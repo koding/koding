@@ -2,11 +2,11 @@ class DockController extends KDViewController
 
   defaultItems = [
     { title : "Activity",  path : "/Activity", order : 10, type :"" }
-    { title : "Topics",    path : "/Topics",   order : 20, type :"" }
+    # { title : "Topics",    path : "/Topics",   order : 20, type :"" }
+    { title : "Teamwork",  path : "/Teamwork", order : 20, type :"" }
     { title : "Terminal",  path : "/Terminal", order : 30, type :"" }
     { title : "Editor",    path : "/Ace",      order : 40, type :"" }
     { title : "Apps",      path : "/Apps",     order : 50, type :"" }
-    { title : "Teamwork",  path : "/Teamwork", order : 60, type :"" }
     # { title : "About",     path : "/About",    order : 70, type :"" }
   ]
 

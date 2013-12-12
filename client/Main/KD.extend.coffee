@@ -161,6 +161,9 @@ KD.extend
 
   tell: (rest...)-> KD.getSingleton('appManager').tell rest...
 
+  hasAccess:(permission)->
+    if "admin" in KD.config.roles then yes else permission in KD.config.permissions
+
 Object.defineProperty KD, "defaultSlug",
   get:->
     if KD.isGuest() then 'guests' else 'koding'

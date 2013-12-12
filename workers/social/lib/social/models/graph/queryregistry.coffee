@@ -164,6 +164,7 @@ module.exports =
         START member=node:koding(id={userId})
         MATCH member<-[:author]-content
         WHERE content.originId = {userId}
+        AND content.name = "JNewStatusUpdate"
         #{options.facetQuery}
         RETURN content
         ORDER BY #{options.orderBy} DESC

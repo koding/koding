@@ -105,11 +105,13 @@ class CommentViewHeader extends JView
       if @liveUpdate
         @getDelegate().emit "AllCommentsLinkWasClicked"
       else
+        @setClass 'new'
         @allItemsLink.hide()
         @show()
         @newItemsLink.updatePartial "#{@newCount} new comment..."
         @newItemsLink.setClass('in')
     else
+      @unsetClass 'new'
       @newItemsLink.unsetClass('in')
 
     if @onListCount > @oldCount

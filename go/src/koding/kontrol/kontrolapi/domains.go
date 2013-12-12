@@ -51,7 +51,7 @@ func ResolveDomain(writer http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
 	domainname := vars["domain"]
 
-	target, err := resolver.GetTarget(domainname)
+	target, err := resolver.TargetByHost(domainname)
 	if err != nil {
 		http.Error(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err), http.StatusBadRequest)
 		return
@@ -103,13 +103,13 @@ func CreateOrUpdateDomain(writer http.ResponseWriter, req *http.Request) {
 
 	var resp string
 	switch p.Mode {
-	case "internal":
+	case resolver.ModeInternal:
 		resp = fmt.Sprintf("{\"host\":\"%s-%s.kd.io\"}\n", p.Name, p.Key)
-	case "redirect":
+	case resolver.ModeRedirect:
 		resp = fmt.Sprintf("{\"host\":\"%s\"}\n", p.FullUrl)
-	case "vm":
+	case resolver.ModeVM:
 		resp = fmt.Sprintf("{\"host\":\"%s\"}\n", domainname)
-	case "maintenance":
+	case resolver.ModeMaintenance:
 		resp = fmt.Sprintf("{\"res\":\"maintenance mode enabled for %s\"}\n", domainname)
 	}
 
@@ -141,23 +141,23 @@ func (p *ProxyPostMessage) validate() error {
 		return errors.New("Missing field 'mode'. Can be one of: internal, redirect, vm and maintenance")
 	}
 
-	if p.Username == "" && p.Mode == "internal" {
+	if p.Username == "" && p.Mode == resolver.ModeInternal {
 		return errors.New("Missing field 'username' is required with {'mode': 'internal'}")
 	}
 
-	if p.Name == "" && p.Mode == "internal" {
+	if p.Name == "" && p.Mode == resolver.ModeInternal {
 		return errors.New("Missing field 'name' is required with {'mode': 'internal'}")
 	}
 
-	if p.Key == "" && p.Mode == "internal" {
+	if p.Key == "" && p.Mode == resolver.ModeInternal {
 		return errors.New("Missing field 'key' is required with {'mode': 'internal'}")
 	}
 
-	if p.FullUrl == "" && p.Mode == "redirect" {
+	if p.FullUrl == "" && p.Mode == resolver.ModeRedirect {
 		return errors.New("Missing field 'fullUrl' is required with {'mode': 'redirect}'")
 	}
 
-	if p.HostnameAlias == "" && p.Mode == "vm" {
+	if p.HostnameAlias == "" && p.Mode == resolver.ModeVM {
 		return errors.New("Missing field 'hostnameAlias' is required with {'mode': 'vm}'")
 	}
 
