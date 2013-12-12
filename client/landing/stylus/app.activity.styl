@@ -2684,6 +2684,7 @@ div.kdtooltip
         margin-top                15px
 
 
+.trynew-modal
 .nominate-modal
 
   z-index                       10001
@@ -2740,6 +2741,68 @@ div.kdtooltip
     border-radius               4px
     cursor                      pointer
 
+.trynew-button
+
+  top                           -50px
+  right                         15px
+  color                         white
+  border                        none
+  background                    #3BAF9A
+  border-radius                 4px
+  vendor                        transition, top 300ms ease
+  abs()
+
+  &.in
+    top                         14px
+
+.trynew-modal
+
+  padding-top                   20px
+  border                        1px solid #999
+
+  h2
+
+    font-size                   36px
+
+  span.close-icon
+    background-position         -80px -520px
+    opacity                     .5
+
+  hr
+
+    width                       80%
+    margin                      0 auto
+
+  div.warning
+
+    padding-left                160px
+    padding-top                 20px
+    padding-bottom              30px
+
+    img
+
+      left                      130px
+      abs()
+
+    p
+      padding                   10px
+      text-align                left
+      padding-bottom            0
+      padding-top               0
+      font-size                 12px
+
+  div.feature
+    width                       200px
+    margin-bottom               50px
+    margin-top                  30px
+    fl()
+
+    p
+      padding                   0
+
+  div.button
+    background                  #40AF96
+    clear                       both
 
 .referrer-modal
   .kdmodal-content

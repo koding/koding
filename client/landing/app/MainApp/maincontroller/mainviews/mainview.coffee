@@ -10,6 +10,7 @@ class MainView extends KDView
     @setStickyNotification()
     @createSideBar()
     @createChatPanel()
+    @createTryNewButton()
     @listenWindowResize()
 
     @utils.defer =>
@@ -168,6 +169,17 @@ class MainView extends KDView
     @addSubView @chatPanel   = new MainChatPanel
     # @addSubView @chatHandler = new MainChatHandler
     @chatHandler = new MainChatHandler
+
+  createTryNewButton:->
+
+    @addSubView @tryNewButton = new KDButtonView
+      title    : "Wanna try new Koding?"
+      cssClass : "trynew-button"
+      callback : ->
+        @destroy()
+        new TryNewModal
+
+    KD.utils.wait 30 * 1000, => @tryNewButton.setClass 'in'
 
   setStickyNotification:->
     # sticky = KD.getSingleton('windowController')?.stickyNotification
