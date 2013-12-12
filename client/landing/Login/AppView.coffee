@@ -354,21 +354,6 @@ class LoginView extends KDView
     (err, status)-> console.log "Status of fetching stuff from external: #{status}"
 
 
-  preferredDomainCookieName = 'kdproxy-preferred-domain'
-
-  # This function checks current user's preferred domain and
-  # set's it to preferredDomainCookie
-  setPreferredDomain:(account)->
-
-    {preferredKDProxyDomain} = account
-    if preferredKDProxyDomain and preferredKDProxyDomain isnt ""
-      # if cookie name is already same do nothing
-      return  if $.cookie(preferredDomainCookieName) is preferredKDProxyDomain
-      $.cookie preferredDomainCookieName, preferredKDProxyDomain
-      # there can be conflicts between first(which is defined below) route
-      # and the currect builds router, so reload to main page from server
-      location.reload(true)
-
   afterLoginCallback: (err, params={})->
     @loginForm.button.hideLoader()
     {entryPoint} = KD.config
@@ -380,8 +365,10 @@ class LoginView extends KDView
     else
       {account, replacementToken} = params
       $.cookie 'clientId', replacementToken  if replacementToken
+
       # check and set preferred BE domain for Koding
-      @setPreferredDomain account
+      # prevent user from seeing the main wiev
+      KD.utils.setPreferredDomain account if account
 
       mainController = KD.getSingleton('mainController')
       mainView       = mainController.mainViewController.getView()
