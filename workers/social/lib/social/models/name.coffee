@@ -110,11 +110,11 @@ module.exports = class JName extends Model
       models = []
       queue = nameObj.slugs.map (slug, i)->->
         konstructor = Base.constructors[slug.constructorName]
-        return queue.next() unless konstructor
+        return queue.fin() unless konstructor
         selector = {}
         selector[slug.usedAsPath] = slug.slug
         konstructor.one selector, (err, model)->
-          return queue.next() if err or not model
+          return queue.fin() if err or not model
           models[i] = model
           queue.fin()
 
