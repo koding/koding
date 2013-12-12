@@ -277,7 +277,7 @@ class ActivityTicker extends ActivityRightBase
       if @listController.getItemCount() < 15
         @tryLoadingAgain loadOptions
 
-  pistachio:
+  pistachio:->
     """
     <div class="activity-ticker right-block-box">
       <h3>What's happening on Koding {{> @settingsButton}}</h3>
@@ -304,7 +304,7 @@ class ActivityTicker extends ActivityRightBase
 
 
   getItemId: (item) ->
-    {source, target, object, as} = item
-    "#{source.getId()}_#{target.getId()}_#{as}_#{object?.getId()}"
+    {source, target, subject, as} = item
+    "#{source.getId()}_#{target.getId()}_#{as}_#{subject?.getId()}"
 
 
