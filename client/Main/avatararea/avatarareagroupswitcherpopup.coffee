@@ -100,7 +100,23 @@ class AvatarPopupGroupSwitcher extends AvatarPopup
       partial    : 'Go back to old Koding'
       click      : (event)=>
         KD.utils.stopDOMEvent event
-        KD.utils.goBackToOldKoding()
+        modal = new KDModalView
+          title   : "Go back to old Koding"
+          cssClass: "go-back-survey"
+          content : """
+            Please take a short survey about <a href="http://bit.ly/1jsjlna">New Koding.</a><br><br>
+          """
+          buttons :
+            "Switch":
+              cssClass: "modal-clean-gray"
+              callback: ->
+                KD.mixpanel "Switched to old Koding"
+                KD.utils.goBackToOldKoding()
+                modal.destroy()
+            "Cancel":
+              cssClass: "modal-cancel"
+              callback: ->
+                modal.destroy()
         @hide()
 
     @avatarPopupContent.addSubView new KDCustomHTMLView
@@ -112,8 +128,6 @@ class AvatarPopupGroupSwitcher extends AvatarPopup
         KD.utils.stopDOMEvent event
         KD.getSingleton('router').handleRoute '/Logout'
         @hide()
-
-
 
   populatePendingGroups:->
     @listControllerPending.removeAllItems()
