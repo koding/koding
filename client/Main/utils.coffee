@@ -89,12 +89,6 @@ __utils.extend __utils,
         result += $element.get(0).outerHTML or "" # in case there is a text-only element
       result
 
-  expandTags: (text) ->
-    return null unless text
-    text.replace /[#]+[A-Za-z0-9-_]+/g, (t) ->
-      tag = t.replace "#", ""
-      "<a href='#!/topic/#{tag}' class='ttag'><span>#{tag}</span></a>"
-
   expandUrls: (text,replaceAndYieldLinks=no) ->
     return null unless text
 
@@ -201,6 +195,41 @@ __utils.extend __utils,
       return \
         if candidate?.length > minLength then candidate
         else longText
+
+  expandTokens: (str = "", data) ->
+    return  str unless tokenMatches = str.match /\|.+?\|/g
+
+    tagMap = {}
+    data.tags?.forEach (tag) -> tagMap[tag.getId()] = tag
+
+    viewParams = []
+    for tokenString in tokenMatches
+      [prefix, constructorName, id] = match[1].split /:/g  if match = tokenString.match /^\|(.+)\|$/
+
+      switch prefix
+        when "#" then token = tagMap?[id]
+        else continue
+
+      continue  unless token
+
+      domId     = __utils.getUniqueId()
+      itemClass = __utils.getTokenClass prefix
+      tokenView = new TokenView {domId, itemClass}, token
+      tokenView.emit "viewAppended"
+      str = str.replace tokenString, tokenView.getElement().outerHTML
+      tokenView.destroy()
+
+      viewParams.push {options: {domId, itemClass}, data: token}
+
+    __utils.defer ->
+      for {options, data} in viewParams
+        new TokenView options, data
+
+    return  str
+
+  getTokenClass: (prefix) ->
+    switch prefix
+      when "#" then TagLinkView
 
   getMonthOptions : ->
     ((if i > 9 then { title : "#{i}", value : i} else { title : "0#{i}", value : i}) for i in [1..12])

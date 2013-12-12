@@ -22,49 +22,9 @@ class StatusActivityItemView extends ActivityItemChild
 
     @timeAgoView = new KDTimeAgoView {}, @getData().meta.createdAt
 
-  getTokenMap: (tokens) ->
-    return  unless tokens
-    map = {}
-    tokens.forEach (token) -> map[token.getId()] = token
-    return  map
-
-  expandTokens: (str = "") ->
-    return  str unless tokenMatches = str.match /\|.+?\|/g
-
-    data = @getData()
-    tagMap = @getTokenMap data.tags  if data.tags
-
-    viewParams = []
-    for tokenString in tokenMatches
-      [prefix, constructorName, id] = @decodeToken tokenString
-
-      switch prefix
-        when "#" then token = tagMap?[id]
-        else continue
-
-      continue  unless token
-
-      domId     = @utils.getUniqueId()
-      itemClass = tokenClassMap[prefix]
-      tokenView = new TokenView {domId, itemClass}, token
-      tokenView.emit "viewAppended"
-      str = str.replace tokenString, tokenView.getElement().outerHTML
-      tokenView.destroy()
-
-      viewParams.push {options: {domId, itemClass}, data: token}
-
-    @utils.defer ->
-      for {options, data} in viewParams
-        new TokenView options, data
-
-    return  str
-
-  decodeToken: (str) ->
-    return  match[1].split /:/g  if match = str.match /^\|(.+)\|$/
-
   formatContent: (str = "")->
     str = @utils.applyMarkdown str
-    str = @expandTokens str
+    str = @utils.expandTokens str, @getData()
     return  str
 
   viewAppended:->
@@ -92,6 +52,3 @@ class StatusActivityItemView extends ActivityItemChild
       </footer>
       {{> @commentBox}}
     """
-
-  tokenClassMap =
-    "#"         : TagLinkView
