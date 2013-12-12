@@ -41,6 +41,11 @@ class ActivityTicker extends ActivityRightBase
     group.on "ReplyIsAdded", @bound "addComment"
     group.on "PostIsDeleted", @bound "deleteActivity"
 
+    @listController.listView.on 'ItemWasAdded', (view, index) =>
+      if view.data?
+        itemId = @getItemId view.data
+        @indexedItems[itemId] = view
+
     @load {}
 
   settingsMenu:(data)->
@@ -71,11 +76,6 @@ class ActivityTicker extends ActivityRightBase
         callback : ->
           filterSelected ["user"]
     return menu
-
-    @listController.listView.on 'ItemWasAdded', (view, index) =>
-      if view.getData()?
-        itemId = @getItemId view.data
-        @itemsIndexed[itemId] = view
 
   getConstructorName :(obj)->
     if obj and obj.bongo_ and obj.bongo_.constructorName
