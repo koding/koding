@@ -19,6 +19,14 @@ class TeamworkTabView extends CollaborativePane
         if pane.getOptions().indexKey is key
           @tabView.showPaneByIndex @tabView.getPaneIndex pane
 
+    @keysRef.on "child_added", (snapshot) =>
+      data    = snapshot.val()
+      key     = data.indexKey
+      {panes} = @tabView
+      isExist = yes for pane in panes when pane.getOptions().indexKey is key
+
+      @createTabFromFirebaseData data  unless isExist
+
 
   createElements: ->
     @tabHandleHolder = new ApplicationTabHandleHolder delegate: this
