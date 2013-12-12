@@ -21,7 +21,7 @@ class ActivityInputWidget extends KDView
       size      :
         width   : 35
         height  : 35
-      , KD.whoami()
+    , KD.whoami()
 
   submit: (callback) ->
     return  unless value = @input.getValue().trim()
