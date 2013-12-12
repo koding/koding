@@ -29,7 +29,7 @@ func NewTerminal() *kite.Kite {
 	}
 
 	k := kite.New(options)
-	k.SetConcurrent(false)
+	k.DisableConcurrency()
 	k.HandleFunc("connect", Connect)
 	return k
 }
