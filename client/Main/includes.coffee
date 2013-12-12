@@ -38,7 +38,6 @@ module.exports = [
   "CommonViews/nominatemodal.coffee",
   "CommonViews/slidingsplit.coffee",
   "CommonViews/bidirectionalnavigation.coffee"
-  "CommonViews/activitycommentview.coffee"
 
   "CommonViews/kodingswitch.coffee",
 
