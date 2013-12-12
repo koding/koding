@@ -266,7 +266,7 @@ module.exports = class JVM extends Module
     JGroup = require './group'
     JGroup.one {slug: groupSlug}, (err, group)=>
       return callback err  if err
-      
+
       account.fetchUser (err, user)=>
         return callback err  if err
         return callback new Error "user is not defined"  unless user
@@ -528,56 +528,58 @@ module.exports = class JVM extends Module
               JPermissionSet.checkPermission client, "delete vms", group,
               (err, hasPermission)=>
                 return callback err  if err
-                
+
                 @deleteVM vm, callback  if hasPermission
+
+  @addVm = ({ account, target, user, sudo, groups, groupSlug
+             type, planCode, planOwner, webHome, uid }, callback)->
+
+    return handleError new Error "user is not defined"  unless user
+    nickname = account.profile.nickname or user.username
+    uid ?= 0
+    hostnameAliases = JVM.createAliases {
+      nickname
+      type, uid, groupSlug
+    }
+
+    users = [
+      { id: user.getId(), sudo: yes, owner: yes }
+    ]
+
+    [hostnameAlias]  = hostnameAliases
+    groups          ?= []
+
+    vm = new JVM {
+      hostnameAlias
+      planOwner
+      planCode
+      webHome
+      groups
+      users
+      vmType: type
+    }
+
+    vm.save (err)->
+
+      callback? err, vm  unless err
+
+      handleError err
+      if err
+        return console.warn "Failed to create VM for ", \
+                             {users, groups, hostnameAlias}
+
+      JVM.ensureDomainSettings \
+        {account, vm, type, nickname, groupSlug}
+      # JVM.createDomains account, hostnameAliases, hostnameAlias
+      target.addVm vm, handleError
+
+  wrapGroup = (group)-> [ { id: group.getId() } ]
 
   do ->
 
     JAccount  = require './account'
     JGroup    = require './group'
     JUser     = require './user'
-
-    addVm = ({ account, target, user, sudo, groups, groupSlug
-               type, planCode, planOwner, webHome })->
-
-      return handleError new Error "user is not defined"  unless user
-      nickname = account.profile.nickname or user.username
-      uid = 0
-      hostnameAliases = JVM.createAliases {
-        nickname
-        type, uid, groupSlug
-      }
-
-      users = [
-        { id: user.getId(), sudo: yes, owner: yes }
-      ]
-
-      [hostnameAlias]  = hostnameAliases
-      groups          ?= []
-
-      vm = new JVM {
-        hostnameAlias
-        planOwner
-        planCode
-        webHome
-        groups
-        users
-        vmType: type
-      }
-
-      vm.save (err)->
-
-        handleError err
-        if err
-          return console.warn "Failed to create VM for ", \
-                               {users, groups, hostnameAlias}
-
-        JVM.ensureDomainSettings \
-          {account, vm, type, nickname, groupSlug}
-        # JVM.createDomains account, hostnameAliases, hostnameAlias
-        target.addVm vm, handleError
-
-    wrapGroup =(group)-> [ { id: group.getId() } ]
 
     uidFactory = null
 
@@ -691,7 +693,7 @@ module.exports = class JVM extends Module
           }).next ->
 
           # TODO: this special case for koding should be generalized for any group.
-          addVm {
+          JVM.addVm {
             user
             account   : member
             sudo      : yes
