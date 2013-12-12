@@ -307,4 +307,10 @@ class ActivityTicker extends ActivityRightBase
     {source, target, subject, as} = item
     "#{source.getId()}_#{target.getId()}_#{as}_#{subject?.getId()}"
 
+  isFiltered: (filter) ->
+    if @filters and @filters.length
+      return unless filter in @filters then yes else no
+    else
+      return no
+
 
