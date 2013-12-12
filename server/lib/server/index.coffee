@@ -199,39 +199,6 @@ app.get "/sitemap:sitemapName", (req, res)->
       res.send sitemap.content
     res.end
 
-if uploads?.enableStreamingUploads
-
-  s3 = require('./s3') uploads.s3, findUsernameFromSession
-
-  app.post '/Upload', s3..., (req, res)->
-    res.send(for own key, file of req.files
-      filename  : file.filename
-      resource  : nodePath.join uploads.distribution, file.path
-    )
-
-  # app.get '/Upload/test', (req, res)->
-  #   res.send \
-  #     """
-  #     <script>
-  #       function submitForm(form) {
-  #         var file, fld;
-  #         input = document.getElementById('image');
-  #         file = input.files[0];
-  #         fld = document.createElement('input');
-  #         fld.hidden = true;
-  #         fld.name = input.name + '-size';
-  #         fld.value = file.size;
-  #         form.appendChild(fld);
-  #         return true;
-  #       }
-  #     </script>
-  #     <form method="post" action="/upload" enctype="multipart/form-data" onsubmit="return submitForm(this)">
-  #       <p>Title: <input type="text" name="title" /></p>
-  #       <p>Image: <input type="file" name="image" id="image" /></p>
-  #       <p><input type="submit" value="Upload" /></p>
-  #     </form>
-  #     """
-
 app.get "/-/presence/:service", (req, res) ->
   # if services[service] and services[service].count > 0
   res.send 200
