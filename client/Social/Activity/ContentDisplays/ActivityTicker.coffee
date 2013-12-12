@@ -58,7 +58,7 @@ class ActivityTicker extends ActivityRightBase
       'Member'   :
         callback : =>
           @load filters : ["member"]
-      'User'   :
+      'App'      :
         callback : =>
           @load filters : ["user"]
     return menu
