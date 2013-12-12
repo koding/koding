@@ -12,11 +12,11 @@ type KeyData struct {
 	// LoadBalance for this server
 	LoadBalancer LoadBalancer `json:"loadBalancer"`
 
-	// future usage...
+	// Contains the source of the creator, who has created this?
 	HostData string `json:"hostData"`
 
-	// future usage, proxy via mq
-	RabbitKey string `json:"rabbitKey"`
+	// If true proxy is allowd to route to the given hosts.
+	Enabled bool `json:"enabled"`
 }
 
 type KeyRoutingTable struct {

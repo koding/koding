@@ -141,27 +141,6 @@ resurrection.commons.styl
   font-size                 20px
   abs()
 
-.vm-selection
-  z-index             10001
-  background          rgba(37, 46, 48, 1.0)
-  border-radius       2px
-  color               white
-  font-size           14px
-  font-family         'Proxima Nova'
-  font-weight         100
-  border              1px solid rgba(255,255,255,.1)
-
-  .kdmodal-title
-    background        rgba(68, 80, 83, 1.0)
-    padding           10px
-    text-align        center
-    font-size         17px
-
-  .vm-list
-    .kdlistitemview
-      padding         10px
-
-
 div.copy-url-wrapper
   width 320px
   padding 2px 5px 2px 10px
@@ -726,3 +705,28 @@ input.kdinput.text
   >cite.hint
     font-size         11px
     color             #999
+
+.kdnotification.mini.tray
+  bg                  color, #fff
+  rounded             10px
+  padding             17px
+  shadow              0 3px 18px rgba(0, 0, 0, .10)
+  border              1px solid #c4c4c4
+  fix()
+
+  .kdnotification-close
+    background          none
+    background-position 0px -982px !important
+    size                16px !important, 16px !important
+    sprite            app, "notification-close"
+
+  .avatarview
+    rounded           4px
+    fl()
+
+  .kdnotification-title
+    fr()
+    line-height       26px
+    color             #3c4752
+
+

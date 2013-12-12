@@ -18,7 +18,7 @@ class StatusActivityItemView extends ActivityItemChild
       @embedBox = new EmbedBox embedOptions, data.link
       @setClass "two-columns"  if @twoColumns
     else
-      @embedBox = new KDView
+      @embedBox = new KDCustomHTMLView
 
     @timeAgoView = new KDTimeAgoView {}, @getData().meta.createdAt
 

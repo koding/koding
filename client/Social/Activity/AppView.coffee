@@ -1,6 +1,8 @@
 class ActivityAppView extends KDScrollView
 
+
   headerHeight = 0
+
 
   constructor:(options = {}, data)->
 
@@ -9,26 +11,26 @@ class ActivityAppView extends KDScrollView
 
     super options, data
 
-    @listenWindowResize()
+    # FIXME: disable live updates - SY
+    @appStorage = KD.getSingleton("appStorageController").storage 'Activity', '1.0'
+    @appStorage.setValue 'liveUpdates', off
+
 
   viewAppended:->
 
     {entryPoint}      = KD.config
-
-    if entryPoint in ['koding', 'guest']
-      @setClass 'fixed'
-    else if entryPoint?.type is 'profile'
-      @setClass 'fixed'
-
+    windowController  = KD.singleton 'windowController'
     HomeKonstructor   = if entryPoint and entryPoint.type isnt 'profile' then GroupHomeView else KDCustomHTMLView
     @feedWrapper      = new ActivityListContainer
     @header           = new HomeKonstructor
     @inputWidget      = new ActivityInputWidget
-    @activityTicker   = new ActivityTicker
-    @activeUsers      = new ActiveUsers
-    @activeTopics     = new ActiveTopics
-    @leftBlock        = new KDCustomHTMLView cssClass : "activity-left-block"
-    @rightBlock       = new KDCustomHTMLView cssClass : "activity-right-block"
+
+    @tickerBox        = new ActivityTicker
+    @usersBox         = new ActiveUsers
+    @topicsBox        = new ActiveTopics
+
+    @mainBlock        = new KDCustomHTMLView tagName : "main" #"activity-left-block"
+    @sideBlock        = new KDCustomHTMLView tagName : "aside"   #"activity-right-block"
 
     @mainController   = KD.getSingleton("mainController")
     @mainController.on "AccountChanged", @bound "decorate"
@@ -36,35 +38,35 @@ class ActivityAppView extends KDScrollView
 
     @header.bindTransitionEnd()
 
+    # @activityHeader.liveUpdateButton.setValue off
+
     @feedWrapper.ready =>
       @activityHeader  = @feedWrapper.controller.activityHeader
       {@filterWarning} = @feedWrapper
-      @on 'scroll', (event) =>
-        if event.delegateTarget.scrollTop > 50
-          @activityHeader.setClass "scrolling-up-outset"
-          @activityHeader.liveUpdateButton.setValue off
-        else
-          @activityHeader.unsetClass "scrolling-up-outset"
-          @activityHeader.liveUpdateButton.setValue on
-          KD.getSingleton("activityController").clearNewItemsCount()
+
+    @tickerBox.once 'viewAppended', =>
+      topOffset = @tickerBox.$().position().top
+      windowController.on 'ScrollHappened', =>
+        if document.body.scrollTop > topOffset
+        then @tickerBox.setClass 'fixed'
+        else @tickerBox.unsetClass 'fixed'
 
     @decorate()
 
     @setLazyLoader 200
 
-    @header.on ["viewAppended", "ready"], => headerHeight = @header.getHeight()
-
     $(".kdview.fl.common-inner-nav, .kdview.activity-content.feeder-tabs").remove()
+
     @addSubView @header
-    @addSubView @leftBlock
-    @addSubView @rightBlock
+    @addSubView @mainBlock
+    @addSubView @sideBlock
 
-    @leftBlock.addSubView @inputWidget
-    @leftBlock.addSubView @feedWrapper
+    @mainBlock.addSubView @inputWidget
+    @mainBlock.addSubView @feedWrapper
 
-    @rightBlock.addSubView @activityTicker
-    @rightBlock.addSubView @activeUsers
-    @rightBlock.addSubView @activeTopics
+    @sideBlock.addSubView @topicsBox
+    @sideBlock.addSubView @usersBox
+    @sideBlock.addSubView @tickerBox
 
   decorate:->
     @unsetClass "guest"

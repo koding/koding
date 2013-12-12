@@ -1,56 +1,11 @@
-# FIXME - Move this in a seperate file ~ GG
-
-class VmListItem extends KDListItemView
-
-  click: ->
-    @getDelegate().emit 'VMSelected', @getData()
-
-  viewAppended: ->
-    JView::viewAppended.call this
-
-  pistachio: ->
-    """
-      <div class="vm-info">
-        <cite></cite>
-        #{@getData()}
-      </div>
-    """
-
-class VMSelection extends KDBlockingModalView
-
-  constructor:(options={}, data)->
-
-    super
-      width           : 300
-      title           : "Select VM"
-      overlay         : yes
-      cssClass        : KD.utils.curry 'vm-selection', options.cssClass
-      draggable       : no
-      cancellable     : no
-      appendToDomBody : yes
-    , data
-
-    @listController   = new KDListViewController
-      view            : new KDListView
-        type          : "vm"
-        cssClass      : "vm-list"
-        itemClass     : VmListItem
-
-  viewAppended:->
-    @unsetClass 'kdmodal'
-    @addSubView view = @listController.getView()
-
-    @listController.getListView().on 'VMSelected', (vm)=>
-      @emit "VMSelected", vm
-      @destroy()
-
-    @listController.instantiateListItems KD.getSingleton('vmController').vms
-
 class WebTermView extends KDView
 
   constructor: (options = {}, data) ->
 
     super options, data
+
+    @_vmName = options.vmName  if options.vmName
+
     @initBackoff()
 
   viewAppended: ->
@@ -112,17 +67,7 @@ class WebTermView extends KDView
 
     @bindEvent 'contextmenu'
 
-    @utils.defer =>
-
-      vmc = KD.getSingleton 'vmController'
-      if vmc.vms.length > 1
-        vmselection = new VMSelection
-        vmselection.once 'VMSelected', (vm)=>
-          @_vmName = vm
-          do @connectToTerminal
-      else
-        @_vmName = vmc.vms.first
-        do @connectToTerminal
+    @connectToTerminal()
 
   connectToTerminal:->
 

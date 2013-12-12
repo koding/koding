@@ -61,6 +61,7 @@ app        = express()
 }          = require './helpers'
 
 { generateFakeClient } = require "./client"
+{ generateHumanstxt } = require "./humanstxt"
 
 
 # this is a hack so express won't write the multipart to /tmp
@@ -199,6 +200,9 @@ app.post "/-/kd/upload", s3..., (req, res)->
 app.get "/Logout", (req, res)->
   res.clearCookie 'clientId'
   res.redirect 302, '/'
+
+app.get "/humans.txt", (req, res)->
+  generateHumanstxt(req, res)
 
 app.get "/sitemap:sitemapName", (req, res)->
   {JSitemap}       = koding.models

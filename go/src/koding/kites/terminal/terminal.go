@@ -5,11 +5,9 @@ import (
 	"crypto/rand"
 	"encoding/base64"
 	"errors"
-	"flag"
 	"fmt"
+	"koding/newkite/dnode"
 	"koding/newkite/kite"
-	"koding/newkite/protocol"
-	"koding/tools/dnode"
 	"koding/tools/pty"
 	"os/exec"
 	"os/user"
@@ -30,34 +28,24 @@ type WebtermServer struct {
 }
 
 type WebtermRemote struct {
-	Output       dnode.Callback
-	SessionEnded dnode.Callback
+	Output       dnode.Function
+	SessionEnded dnode.Function
 }
 
-type Terminal struct{}
-
-var port = flag.String("port", "4003", "port to bind itself")
-
 func main() {
-	flag.Parse()
-	options := &protocol.Options{
-		PublicIP: "localhost",
-		Kitename: "terminal",
-		Version:  "0.0.1",
-		Kind:     "vm",
-		Port:     *port,
-	}
-
-	methods := map[string]string{
-		"webterm.connect": "Connect",
+	options := &kite.Options{
+		Kitename:    "terminal",
+		Version:     "0.0.1",
+		Region:      "localhost",
+		Environment: "development",
 	}
 
 	k := kite.New(options)
-	k.AddMethods(new(Terminal), methods)
-	k.Start()
+	k.HandleFunc("connect", Connect)
+	k.Run()
 }
 
-func (Terminal) Connect(r *protocol.KiteDnodeRequest, result *WebtermServer) error {
+func Connect(r *kite.Request) (interface{}, error) {
 	var params struct {
 		Remote       WebtermRemote
 		Session      string
@@ -66,11 +54,11 @@ func (Terminal) Connect(r *protocol.KiteDnodeRequest, result *WebtermServer) err
 	}
 
 	if r.Args.Unmarshal(&params) != nil || params.SizeX <= 0 || params.SizeY <= 0 {
-		return errors.New("{ remote: [object], session: [string], sizeX: [integer], sizeY: [integer], noScreen: [boolean] }")
+		return nil, errors.New("{ remote: [object], session: [string], sizeX: [integer], sizeY: [integer], noScreen: [boolean] }")
 	}
 
 	if params.NoScreen && params.Session != "" {
-		return errors.New("The 'noScreen' and 'session' parameters can not be used together.")
+		return nil, errors.New("The 'noScreen' and 'session' parameters can not be used together.")
 	}
 
 	newSession := false
@@ -111,7 +99,7 @@ func (Terminal) Connect(r *protocol.KiteDnodeRequest, result *WebtermServer) err
 
 	user, err := user.Current()
 	if err != nil {
-		return fmt.Errorf("Could not get home dir: %s", err)
+		return nil, fmt.Errorf("Could not get home dir: %s", err)
 	}
 
 	cmd.Env = []string{"TERM=xterm-256color", "HOME=" + user.HomeDir}
@@ -173,8 +161,7 @@ func (Terminal) Connect(r *protocol.KiteDnodeRequest, result *WebtermServer) err
 		}
 	}()
 
-	*result = *server
-	return nil
+	return server, nil
 }
 
 func (server *WebtermServer) Input(data string) {

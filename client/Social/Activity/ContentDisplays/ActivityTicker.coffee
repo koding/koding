@@ -1,6 +1,9 @@
 class ActivityTicker extends ActivityRightBase
+
   constructor:(options={}, data)->
+
     options.cssClass = KD.utils.curry "activity-ticker", options.cssClass
+
     super options, data
 
     @listController = new KDListViewController
@@ -169,7 +172,19 @@ class ActivityTicker extends ActivityRightBase
 
     return item
 
-  load:(anotherLoad=no) ->
+  tryLoadingAgain:(loadOptions={})->
+    unless loadOptions.tryCount?
+      return warn "Current try count is not defined, discarding request"
+
+    if loadOptions.tryCount >= 10
+      return warn "Reached max re-tries for What is Happening widget"
+
+    loadOptions.tryCount++
+    return @load loadOptions
+
+  load:(loadOptions={}) ->
+    loadOptions.tryCount or= 0
+
     lastItem = @listController.getItemsOrdered().last
     lastItemTimestamp = +(new Date())
 
@@ -180,17 +195,21 @@ class ActivityTicker extends ActivityRightBase
 
     KD.remote.api.ActivityTicker.fetch options, (err, items = []) =>
       @listController.hideLazyLoader()
-      return warn err if err
-      addedItemCount = 0
+      # if we had any error, try loading again
+      if err
+        warn err
+        return @tryLoadingAgain loadOptions
+
       for item in items when @filterItem item
-        addedItemCount++
         @addNewItem item
-      @load yes  if addedItemCount isnt items.length and not anotherLoad
+
+      if @listController.getItemCount() < 15
+        @tryLoadingAgain loadOptions
 
   pistachio:
     """
     <div class="activity-ticker right-block-box">
-      <h3>What's happening on Koding</h3>
+      <h3>What's happening</h3>
       {{> @listView}}
     </div>
     """

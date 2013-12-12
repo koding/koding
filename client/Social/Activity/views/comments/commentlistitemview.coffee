@@ -18,8 +18,8 @@ class CommentListItemView extends KDListItemView
 
     @avatar = new AvatarView {
       size        :
-        width       : options.avatarWidth or 43
-        height      : options.avatarHeight or 43
+        width       : options.avatarWidth or 40
+        height      : options.avatarHeight or 40
       origin
       showStatus  : yes
     }
