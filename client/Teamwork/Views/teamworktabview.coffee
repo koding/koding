@@ -8,7 +8,6 @@ class TeamworkTabView extends CollaborativePane
     @keysRef  = @workspaceRef.child "keys"
     @indexRef = @workspaceRef.child "index"
 
-    @recoverSession()  if @isJoinedASession
     @tabView.on "PaneDidShow", (pane) =>
       @indexRef.set pane.getOptions().indexKey
 
@@ -61,19 +60,6 @@ class TeamworkTabView extends CollaborativePane
         callback  : => @createChat()
     }
 
-  recoverSession: ->
-    @keysRef.once "value" , (snapshot) =>
-      data = snapshot.val()
-      return unless data
-
-      for key, value of data
-        switch value.type
-          when "dashboard" then @createDashboard()
-          when "editor"
-            file = FSHelper.createFileFromPath value.filePath
-            @createEditor file, "", value.sessionKey
-          when "terminal" then @createTerminal value.sessionKey
-          when "preview"  then @createPreview  value.sessionKey
 
   createDashboard: ->
     return @tabView.showPane @dashboard  if @dashboard
