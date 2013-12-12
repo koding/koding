@@ -135,7 +135,6 @@ class LoginView extends KDView
       cssClass : "login-form"
       testPath : "login-form"
       callback : (formData)=>
-        formData.clientId = $.cookie('clientId')
         @doLogin formData
 
     @registerForm = new RegisterInlineForm
@@ -165,8 +164,12 @@ class LoginView extends KDView
     @resetForm = new ResetInlineForm
       cssClass : "login-form"
       callback : (formData)=>
-        formData.clientId = $.cookie('clientId')
         @doReset formData
+
+    @finishRegistrationForm = new FinishRegistrationForm
+      cssClass  : "login-form foobar"
+      callback  : (formData) =>
+        @doFinishRegistration formData
 
     @headBanner = new KDCustomHTMLView
       domId    : "invite-recovery-notification-bar"
@@ -227,6 +230,9 @@ class LoginView extends KDView
       <div class="login-form-holder rf">
         {{> @registerForm}}
       </div>
+      <div class="login-form-holder frf">
+        {{> @finishRegistrationForm}}
+      </div>
       <div class="login-form-holder rdf">
         {{> @redeemForm}}
       </div>
@@ -251,7 +257,7 @@ class LoginView extends KDView
     </footer>
     """
 
-  doReset:({recoveryToken, password, clientId})->
+  doReset:({recoveryToken, password})->
     KD.remote.api.JPasswordRecovery.resetPassword recoveryToken, password, (err, username)=>
       if err
         new KDNotificationView
@@ -260,7 +266,7 @@ class LoginView extends KDView
         @resetForm.button.hideLoader()
         @resetForm.reset()
         @headBanner.hide()
-        @doLogin {username, password, clientId}
+        @doLogin {username, password}
 
   doRecover:(formData)->
     KD.remote.api.JPasswordRecovery.recoverPassword formData['username-or-email'], (err)=>
@@ -336,11 +342,12 @@ class LoginView extends KDView
           @registerForm.button.hideLoader()
         , 1000
 
-  doLogin:(credentials)->
-    (KD.getSingleton 'mainController').isLoggingIn on
-    credentials.username = credentials.username.toLowerCase().trim()
-    KD.remote.api.JUser.login credentials, @bound 'afterLoginCallback'
+  doFinishRegistration: (formData) ->
+    (KD.getSingleton 'mainController').handleFinishRegistration formData, @bound 'afterLoginCallback'
 
+  doLogin:(credentials)->
+    (KD.getSingleton 'mainController').handleLogin credentials, @bound 'afterLoginCallback'
+    
   runExternal = (token)->
     KD.getSingleton("kiteController").run
       kiteName        : "externals"
@@ -372,13 +379,12 @@ class LoginView extends KDView
 
       mainController = KD.getSingleton('mainController')
       mainView       = mainController.mainViewController.getView()
-      mainController.accountChanged account
       mainView.show()
       mainView.$().css "opacity", 1
 
       firstRoute = KD.getSingleton("router").visitedRoutes.first
 
-      if firstRoute and /^\/Reset/.test firstRoute
+      if firstRoute and /^\/(?:Reset|Register2)\//.test firstRoute
         firstRoute = "/"
 
       KD.getSingleton('appManager').quitAll()
@@ -500,7 +506,7 @@ class LoginView extends KDView
             @headBanner.updatePartial @headBannerMsg
             @headBanner.show()
 
-      @unsetClass "register recover login reset home resendEmail"
+      @unsetClass "register recover login reset home resendEmail finishRegistration"
       @emit "LoginViewAnimated", name
       @setClass name
       @$('.flex-wrapper').removeClass 'three one'
@@ -508,6 +514,8 @@ class LoginView extends KDView
       switch name
         when "register"
           @registerForm.email.input.setFocus()
+        when "finishRegistration"
+          @finishRegistrationForm.username.input.setFocus()
         when "redeem"
           @$('.flex-wrapper').addClass 'one'
           @redeemForm.inviteCode.input.setFocus()
