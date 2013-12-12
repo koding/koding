@@ -9,6 +9,19 @@ class ActivityInputWidget extends KDView
     @input    = new ActivityInputView
     @input.on "Escape", @bound "reset"
 
+    @notification = new KDView
+      cssClass : "notification hidden"
+      partial  : """
+This is a sneak peek beta for testing purposes only. If you find any bugs, please post them here on the activity feed with the tag #bug. Beware that your activities could be discarded.<br><br>
+
+With love from the Koding team.<br>
+      """
+
+    @notification.addSubView new KDCustomHTMLView
+      tagName : "span"
+      cssClass: "close-tab"
+      click   : => @notification.destroy()
+
     @embedBox = new EmbedBoxWidget delegate: @input, data
 
     @submit    = new KDButtonView
@@ -71,6 +84,7 @@ class ActivityInputWidget extends KDView
           @reset yes
           @embedBox.resetEmbedAndHide()
           @emit "Submit"
+          @notification.show()
           callback? err, activity
     ]
 
@@ -128,6 +142,7 @@ class ActivityInputWidget extends KDView
   viewAppended: ->
     @addSubView @avatar
     @addSubView @input
+    @addSubView @notification
     @addSubView @embedBox
     @input.addSubView @submit
     @hide()  unless KD.isLoggedIn()
