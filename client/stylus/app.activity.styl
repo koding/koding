@@ -2684,37 +2684,39 @@ div.kdtooltip
         margin-top                15px
 
 
+.trynew-modal
 .nominate-modal
 
   z-index                       10001
   background                    white
   border-radius                 5px
-  text-align: center;
+  text-align                    center
+  box-shadow                    0 0 20px
 
   a
-    text-decoration            none
+    text-decoration             none
 
   .logo
 
-    background: url("../images/icon_rocket.png") no-repeat;
-    height: 160px;
-    position: absolute;
-    top: -20px;
-    left: 130px;
-    width: 100%;
+    background                  url("../images/icon_rocket.png") no-repeat
+    height                      160px
+    top                         -20px
+    left                        130px
+    width                       100%
+    abs()
 
   .header
 
-    height: 100px;
-    background: #504E4B;
-    border-top-right-radius: 5px;
-    border-top-left-radius: 5px;
-    margin-bottom: 40px;
+    height                      100px
+    background                  #504E4B
+    border-top-right-radius     5px
+    border-top-left-radius      5px
+    margin-bottom               40px
 
   h2
 
-    font-weight: 100;
-    font-size: 26px;
+    font-weight                 100
+    font-size                   26px
 
   h1
 
@@ -2722,22 +2724,86 @@ div.kdtooltip
 
   p
 
-    padding: 20px 70px 10px 70px;
-    font-size: 15px;
-    font-weight: 100;
+    padding                     20px 70px 10px 70px
+    font-size                   15px
+    font-weight                 100
 
   div.button
 
-    background: #2E7FA1;
-    text-shadow: none;
-    color: white;
-    font-size: 20px;
-    font-weight: 100;
-    padding: 10px;
-    width: 210px;
-    margin: 20px auto;
-    border-radius: 4px;
+    background                  #2E7FA1
+    text-shadow                 none
+    color                       white
+    font-size                   20px
+    font-weight                 100
+    padding                     10px
+    width                       210px
+    margin                      20px auto
+    border-radius               4px
+    cursor                      pointer
 
+.trynew-button
+
+  top                           -50px
+  right                         15px
+  color                         white
+  border                        none
+  background                    #3BAF9A
+  border-radius                 4px
+  vendor                        transition, top 300ms ease
+  z-index                       10000
+  abs()
+
+  &.in
+    top                         14px
+
+.trynew-modal
+
+  padding-top                   20px
+  border                        1px solid #999
+
+  h2
+
+    font-size                   36px
+
+  span.close-icon
+    background-position         -80px -520px
+    opacity                     .5
+
+  hr
+
+    width                       80%
+    margin                      0 auto
+
+  div.warning
+
+    padding-left                160px
+    padding-top                 20px
+    padding-bottom              30px
+
+    img
+
+      left                      130px
+      abs()
+
+    p
+      padding                   10px
+      text-align                left
+      padding-bottom            0
+      padding-top               0
+      font-size                 12px
+
+  div.feature
+    width                       200px
+    margin-bottom               50px
+    margin-top                  30px
+    fl()
+
+    p
+      padding                   0
+
+  div.button
+    background                  #40AF96
+    clear                       both
 
 .referrer-modal
   .kdmodal-content

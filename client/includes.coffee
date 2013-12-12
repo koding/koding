@@ -540,6 +540,7 @@ module.exports = [
   "app/Applications/Account.kdapplication/views/gmailcontact.coffee",
   "app/Applications/Account.kdapplication/views/referrermodal.coffee",
   "app/Applications/Account.kdapplication/views/nominatemodal.coffee",
+  "app/Applications/Account.kdapplication/views/trynewmodal.coffee",
   "app/Applications/Account.kdapplication/AppView.coffee",
 
   # GROUP DASHBOARD
