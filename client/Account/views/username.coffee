@@ -33,7 +33,8 @@ class AccountEditUsername extends JView
           cssClass         : "thin"
           placeholder      : "username"
           name             : "username"
-          attributes       : readonly : "true"
+          attributes       :
+            readonly       : "#{not /^guest-/.test @account.profile.nickname}"
           testPath         : "account-username-input"
         password           :
           cssClass         : "thin half"
