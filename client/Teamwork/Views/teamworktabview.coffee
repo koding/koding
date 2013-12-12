@@ -9,6 +9,8 @@ class TeamworkTabView extends CollaborativePane
     @indexRef = @workspaceRef.child "index"
 
     @recoverSession()  if @isJoinedASession
+    @tabView.on "PaneDidShow", (pane) =>
+      @indexRef.set pane.getOptions().indexKey
 
   createElements: ->
     @tabHandleHolder = new ApplicationTabHandleHolder
