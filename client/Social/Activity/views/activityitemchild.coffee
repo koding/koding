@@ -54,7 +54,7 @@ class ActivityItemChild extends KDView
     , data
 
     account = KD.whoami()
-    if (data.originId is KD.whoami().getId()) or KD.checkFlag 'super-admin'
+    if (data.originId is KD.whoami().getId()) or KD.checkFlag('super-admin') or KD.hasAccess("delete posts")
       @settingsButton = new KDButtonViewWithMenu
         cssClass       : 'activity-settings-menu'
         itemChildClass : ActivityItemMenuItem
@@ -119,7 +119,7 @@ class ActivityItemChild extends KDView
 
       return menu
 
-    if KD.checkFlag 'super-admin'
+    if KD.checkFlag('super-admin') or KD.hasAccess ("delete posts")
       if KD.checkFlag 'exempt', account
         menu =
           'Unmark User as Troll' :
