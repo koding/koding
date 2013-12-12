@@ -59,9 +59,10 @@ class ActivityItemChild extends KDView
 
     data = @getData()
 
-    deleteActivity = (activityItem)->
+    deleteActivity = (activityItem)=>
       activityItem.destroy() #FIXME
-      activityItem.slideOut -> activityItem.destroy()
+      # activityItem.slideOut -> activityItem.destroy()
+      @emit 'ActivityIsDeleted'
 
     @settingsButton.on 'ActivityIsDeleted', =>
       activityItem = @getDelegate()
