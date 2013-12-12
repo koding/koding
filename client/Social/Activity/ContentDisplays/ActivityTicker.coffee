@@ -44,23 +44,32 @@ class ActivityTicker extends ActivityRightBase
     @load {}
 
   settingsMenu:(data)->
+    filterSelected = (filters=[]) =>
+      @listController.removeAllItems()
+      @indexedItems = {}
+      @tryCount = 0
+      @load filters : filters
+
     menu =
-      'Follower'     :
-        callback : =>
-          @load filters : ["follower"]
-      'Like'   :
-        callback : =>
-          @load filters : ["like"]
+      'All'      :
+        callback :->
+          do filterSelected
+      'Follower' :
+        callback : ->
+          filterSelected ["follower"]
+      'Like'     :
+        callback : ->
+          filterSelected ["like"]
       # Example menu item for multiple filters.
       # 'Follower+Like'   :
       #   callback : =>
       #     @load filters : ["follower", "like"]
       'Member'   :
-        callback : =>
-          @load filters : ["member"]
+        callback : ->
+          filterSelected ["member"]
       'App'      :
-        callback : =>
-          @load filters : ["user"]
+        callback : ->
+          filterSelected ["user"]
     return menu
 
     @listController.listView.on 'ItemWasAdded', (view, index) =>
@@ -243,7 +252,6 @@ class ActivityTicker extends ActivityRightBase
   load: (loadOptions = {})->
     if loadOptions.filters
       @filters = loadOptions.filters
-      @listController.removeAllItems()
 
     if loadOptions.continue
       @filters = loadOptions.filters = loadOptions.continue
