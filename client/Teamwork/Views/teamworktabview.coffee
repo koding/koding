@@ -78,6 +78,16 @@ class TeamworkTabView extends CollaborativePane
         callback  : => @createDrawingBoard()
     }
 
+  createTabFromFirebaseData: (data) ->
+    {sessionKey, indexKey} = data
+    switch data.type
+      when "dashboard" then @createDashboard()
+      when "terminal"  then @createTerminal     sessionKey, indexKey
+      when "preview"   then @createPreview      sessionKey, indexKey
+      when "drawing"   then @createDrawingBoard sessionKey, indexKey
+      when "editor"
+        file = FSHelper.createFileFromPath data.filePath
+        @createEditor file, "", sessionKey, indexKey
 
   createDashboard: ->
     return @tabView.showPane @dashboard  if @dashboard
