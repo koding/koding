@@ -50,6 +50,7 @@ module.exports = class JVM extends Module
           'fetchDefaultVm'
           'fetchVmRegion'
           'createVmByNonce'
+          'createFreeVm'
         ]
       instance          : []
     schema              :
@@ -213,6 +214,50 @@ module.exports = class JVM extends Module
         uid = parseInt(prefix.split(/-/)[1], 10)
         return {groupSlug, prefix, nickname, uid, type:'user', alias}
     return null
+
+  @createFreeVm = secure (client, callback)->
+
+    @fetchDefaultVm client, (err, vm)=>
+
+      return callback err  if err
+
+      { delegate: account } = client.connection
+
+      unless vm
+
+        JGroup = require './group'
+        JGroup.one slug:'koding', (err, group)=>
+
+          account.fetchUser (err, user) =>
+            return callback err  if err
+            return callback new Error "user not found" unless user
+
+            nameFactory = (require 'koding-counter')
+              db          : JVM.getClient()
+              offset      : 0
+              counterName : "koding~#{user.username}~"
+
+            nameFactory.next (err, uid)=>
+              return console.error err  if err
+              # Counter created
+
+              @addVm {
+                uid
+                user
+                account
+                sudo      : yes
+                type      : 'user'
+                target    : account
+                planCode  : 'free'
+                groupSlug : group.slug
+                planOwner : "user_#{account._id}"
+                webHome   : account.profile.nickname
+                groups    : wrapGroup group
+              }, callback
+
+      else
+
+        callback new KodingError('Default VM already exists'), vm
 
   vmProductMap =
     "f34ba4e35041fea7e519dc20a96d3e1b": { core  : 1 }
