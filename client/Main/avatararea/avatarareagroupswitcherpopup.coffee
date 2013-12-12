@@ -95,6 +95,16 @@ class AvatarPopupGroupSwitcher extends AvatarPopup
 
     @avatarPopupContent.addSubView new KDCustomHTMLView
       tagName    : 'a'
+      attributes : href : '#'
+      cssClass   : 'bottom'
+      partial    : 'Go back to old Koding'
+      click      : (event)=>
+        KD.utils.stopDOMEvent event
+        KD.utils.goBackToOldKoding()
+        @hide()
+
+    @avatarPopupContent.addSubView new KDCustomHTMLView
+      tagName    : 'a'
       attributes : href : '/Logout'
       cssClass   : 'bottom'
       partial    : 'Logout'

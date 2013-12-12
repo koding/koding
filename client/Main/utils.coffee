@@ -30,6 +30,12 @@ __utils.extend __utils,
     return "https://i.embed.ly/1/display#{endpoint or ''}?grow=#{options.grow}&width=#{options.width}&height=#{options.height}&key=#{KD.config.embedly.apiKey}&url=#{encodeURIComponent url}"
 
 
+  goBackToOldKoding:->
+    KD.whoami().modify preferredKDProxyDomain : '', (err)->
+      unless err
+        $.cookie 'kdproxy-preferred-domain', erase:yes
+        location.reload yes
+
   # This function checks current user's preferred domain and
   # set's it to preferredDomainCookie
   setPreferredDomain:(account)->
