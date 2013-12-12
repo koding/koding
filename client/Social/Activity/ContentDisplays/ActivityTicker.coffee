@@ -84,8 +84,7 @@ class ActivityTicker extends ActivityRightBase
   addActivity: (data)->
     {origin, subject} = data
 
-    unless @filters and "addactivity" in @filters
-      return
+    return if @isFiltered "activity"
 
     unless @getConstructorName(origin) and @getConstructorName(subject)
       return console.warn "data is not valid"
@@ -102,8 +101,7 @@ class ActivityTicker extends ActivityRightBase
   deleteActivity: (data) ->
     {origin, subject} = data
 
-    unless @filters and "deleteactivity" in @filters
-      return
+    return if @isFiltered "activity"
 
     unless @getConstructorName(origin) and @getConstructorName(subject)
       return console.warn "data is not valid"
@@ -117,8 +115,7 @@ class ActivityTicker extends ActivityRightBase
   addJoin: (data)->
     {member} = data
 
-    unless @filters and "member" in @filters
-      return
+    return if isFiltered "member"
 
     return console.warn "member is not defined in new member event"  unless member
 
@@ -130,9 +127,8 @@ class ActivityTicker extends ActivityRightBase
 
   addFollow: (data)->
     {follower, origin} = data
-
-    unless @filters and "follow" in @filters
-      return
+    
+    return if @isFiltered "follower"
 
     return console.warn "data is not valid"  unless follower and origin
 
@@ -156,8 +152,7 @@ class ActivityTicker extends ActivityRightBase
   addLike: (data)->
     {liker, origin, subject} = data
 
-    unless @filters and "like" in @filters
-      return
+    return if @isFiltered "like"
 
     unless liker and origin and subject
       return console.warn "data is not valid"
@@ -180,8 +175,7 @@ class ActivityTicker extends ActivityRightBase
   addComment: (data) ->
     {origin, reply, subject, replier} = data
 
-    unless @filters and "comment" in @filters
-      return
+    return if @isFiltered "comment"
 
     unless replier and origin and subject and reply
       return console.warn "data is not valid"
