@@ -220,13 +220,10 @@ class ActiveUserItemView extends KDListItemView
 
     @actor = new ProfileLinkView {}, data
 
-    {followers, following} = data.counts
     @followersAndFollowing = new JView
       cssClass  : 'user-numbers'
-      pistachio :
-        """
-          #{followers} followers #{following} following
-        """
+      pistachio : "{{ #(counts.followers)}} followers {{ #(counts.following)}} following"
+    , data
 
     unless KD.isMine data
       @followButton = new FollowButton
