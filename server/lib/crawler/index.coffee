@@ -15,7 +15,7 @@ profile = require './staticpages/profile'
 
 decorateComment = (JAccount, comment, callback) ->
   createdAt = formatDate(new Date(comment.timestamp_))
-  commentSummary = {body: comment.data.body, createdAt: createdAt}
+  commentSummary = {body: comment.body, createdAt: createdAt}
   selector =
   {
     "targetId" : comment.getId(),
@@ -25,7 +25,7 @@ decorateComment = (JAccount, comment, callback) ->
     if err
       console.error err
       callback err, null
-    sel = { "_id" : rel.data.sourceId}
+    sel = { "_id" : rel.sourceId}
 
     JAccount.one sel, (err, acc) =>
       if err
@@ -37,7 +37,7 @@ decorateComment = (JAccount, comment, callback) ->
 
 fetchLastStatusUpdatesOfUser = (account, Relationship, JStatusUpdate, callback) ->
   {daisy} = require "bongo"
-  originId = account.data._id
+  originId = account._id
   selector =
     "targetId"   : originId
     "targetName" : "JAccount"
@@ -49,9 +49,9 @@ fetchLastStatusUpdatesOfUser = (account, Relationship, JStatusUpdate, callback) 
     return callback null, null unless relationships?.length > 0
     queue = [0..relationships.length - 1].map (index)=>=>
       rel = relationships[index]
-      queue.next unless rel
+      queue.next unless rel?.sourceId?
       sel =
-        _id        : rel.data.sourceId
+        _id        : rel.sourceId
         originType : "JAccount"
       JStatusUpdate.one sel, {}, (error, statusUpdate)=>
         queue.next() if error
@@ -68,7 +68,7 @@ createActivityContent = (JAccount, models, comments, section, callback) ->
   unless model
     callback new Error "JStatusUpdate cannot be found.", null
   statusUpdateId = model.getId()
-  jAccountId = model.data.originId
+  jAccountId = model.originId
   selector =
   {
     "sourceId" : statusUpdateId,
@@ -83,7 +83,7 @@ createActivityContent = (JAccount, models, comments, section, callback) ->
 
     codeSnippet = ""
     if model.bongo_?.constructorName is "JCodeSnip"
-      codeSnippet = model.data?.attachments[0]?.content
+      codeSnippet = model?.attachments[0]?.content
 
     Relationship.one selector, (err, rel) =>
       if err
@@ -91,7 +91,7 @@ createActivityContent = (JAccount, models, comments, section, callback) ->
           callback err, null
       sel =
       {
-        "_id" : rel.data.targetId
+        "_id" : rel.targetId
       }
       JAccount.one sel, (err, acc) =>
         if err
@@ -110,9 +110,9 @@ createActivityContent = (JAccount, models, comments, section, callback) ->
           title : if model?.title? then model.title else model.body or ""
           body : if model?.body?  then model.body  else ""
           codeSnippet : htmlEncode codeSnippet
-          createdAt : formatDate(model?.data?.meta?.createdAt)
+          createdAt : formatDate(model?.meta?.createdAt)
           numberOfComments : teaser.repliesCount or 0
-          numberOfLikes : model?.data?.meta?.likes or 0
+          numberOfLikes : model?.meta?.likes or 0
           comments : comments
           tags : tags
           type : model?.bongo_?.constructorName
@@ -155,7 +155,7 @@ module.exports =
               model?.fetchRelativeComments? limit:3, after:"", (error, comments)=>
                 queue = [0..comments.length].map (index)=>=>
                   comment = comments[index]
-                  if comment?.data?
+                  if comment?
                     # Get comments authors, put comment info into commentSummaries
                     decorateComment JAccount, comment, (error, commentSummary)=>
                       queue.next() if error
@@ -187,6 +187,7 @@ module.exports =
           else
             models.last.fetchOwnAccount (err, account)->
               {JStatusUpdate} = bongo.models
+              # TODO user's other activity types must be shown, such as blogposts, code snippets etc.
               fetchLastStatusUpdatesOfUser account, Relationship, JStatusUpdate, (error, statusUpdates) =>
                 return res.send 500, error_500()  if error
                 content = profile {account, statusUpdates}
