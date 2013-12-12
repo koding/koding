@@ -75,6 +75,7 @@ class BadgeUpdateForm extends JView
                     @badge.assignBadgeBatch idArray, (err) =>
                       new KDNotificationView
                         title : if err then err.message else "Badge given "
+                        @badgeUserList.loadUserList()
           "Users"             :
             fields            : {}
           "Delete"            :
@@ -90,7 +91,7 @@ class BadgeUpdateForm extends JView
                 style         : "modal-clean-red"
                 callback      : (formData)=>
                   {itemList} = @getOptions()
-                  modal = new BadgeRemoveForm {itemList}, {@badge}
+                  modal = new BadgeRemoveForm {itemList:itemList,delegate:this}, {@badge}
 
 
 
@@ -140,8 +141,9 @@ class BadgeUpdateForm extends JView
     parentView.addSubView new BadgeRules {@badge}
 
   updateBadgeUsersList: ->
-    parentView = @badgeForm.modalTabs.forms["Users"]
-    parentView.addSubView new BadgeUsersList {@badge}
+    parentView    = @badgeForm.modalTabs.forms["Users"]
+    @badgeUserList = new BadgeUsersList {@badge}
+    parentView.addSubView @badgeUserList
 
 #below 2 classes taken from old AdminModal.coffee
 class MemberAutoCompleteItemView extends KDAutoCompleteListItemView

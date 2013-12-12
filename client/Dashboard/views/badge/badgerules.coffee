@@ -50,7 +50,7 @@ class BadgeRules extends JView
       type            : "hidden"
       name            : "rule"
 
-    @userList = @filteredUsersController.getView()
+    @userList = @filteredUsersController.getListView()
 
     @badgeListView.on "RemoveRuleFromList", (item)=>
       @badgeRulesListController.removeItem item
@@ -64,6 +64,12 @@ class BadgeRules extends JView
         title      : "Badge created"
         duration   : "2000"
 
+    @userList.on "RemoveBadgeUser", (ac) =>
+      tmpArr = @usersInput.getValue().split ','
+      index = tmpArr.indexOf ac._id
+      tmpArr.splice index,1
+      @usersInput.setValue tmpArr.toString()
+
     {@badge} = @getOptions()
     if @badge
       @updateRulesList()
@@ -74,7 +80,7 @@ class BadgeRules extends JView
     ruleItems  = @badgeRulesListController.getItemsOrdered()
     for ruleItem, key in ruleItems
       countProp = ruleItem.propertySelect.getValue()
-      property = "counts." + countProp
+      property = "counts.#{countProp}"
       tmpAct   = ruleItem.propertyAction.getValue()
       propVal  = ruleItem.propertyVal.getValue()
 
@@ -129,7 +135,7 @@ class BadgeUsersItem extends KDListItemView
       cssClass : "modal-clean-red"
       callback : =>
         @parent.removeItem this
-        @parent.emit "removeBadgeUser", @account
+        @parent.emit "RemoveBadgeUser", @account
 
   viewAppended: JView::viewAppended
 
@@ -144,6 +150,8 @@ class BadgeUsersItem extends KDListItemView
 
 class BadgeRuleItem extends KDListItemView
   constructor: (options = {}, data) ->
+    super options, data
+
     @propertySelect   = new KDSelectBox
       name            : 'rule-property'
       selectOptions   : [
@@ -159,6 +167,7 @@ class BadgeRuleItem extends KDListItemView
         { title:"Twitter Followers" , value:"twitterFollowers" }
       ]
       defaultValue    : if data.property then data.property else "followers"
+      disabled        : if data.propVal then yes else no
 
     @propertyAction   = new KDSelectBox
       name            : 'rule-action'
@@ -167,11 +176,13 @@ class BadgeRuleItem extends KDListItemView
         { title: "less then"  , value:"<" }
       ]
       defaultValue    : data.action or ">"
+      disabled        : if data.propVal then yes else no
 
     @propertyVal      = new KDInputView
       name            : 'rule-value'
       placeholder     : "enter value"
       defaultValue    : data.propVal or ""
+      disabled        : if data.propVal then yes else no
 
     @removeRule       = new KDButtonView
       name            : 'removeRule'
@@ -180,8 +191,7 @@ class BadgeRuleItem extends KDListItemView
       callback        : =>
         @parent.emit "RemoveRuleFromList", this
 
-    super options, data
-
+    @removeRule.hide() if data.propVal
   viewAppended: JView::viewAppended
 
   pistachio:->

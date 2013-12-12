@@ -11,7 +11,7 @@ class NewBadgeForm extends JView
       height                  : "auto"
       tabs                    :
         callback              : (formData)=> @createBadgeAndAssign formData
-        navigable             : yes
+        navigable             : no
         forms                 :
           "New Badge"         :
             buttons           :

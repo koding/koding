@@ -10,17 +10,20 @@ class BadgeUsersList extends JView
         itemClass            : BadgeUsersItem
 
     # TODO : after design we may need pagination
-    KD.remote.api.JBadge.fetchBadgeUsers @badge.getId(), limit:10 ,(err, accounts)=>
-      @filteredUsersController.instantiateListItems accounts
+    @loadUserList()
 
     @userView = @filteredUsersController.getListView()
 
-    @userView.on "removeBadgeUser", (account) =>
+    @userView.on "RemoveBadgeUser", (account) =>
       @badge.removeBadgeFromUser account, (err, account)=>
         return err if err
         new KDNotificationView
           title     : "Badge removed"
           duration  : 2000
+
+  loadUserList:->
+    KD.remote.api.JBadge.fetchBadgeUsers @badge.getId(), limit:10 ,(err, accounts)=>
+      @filteredUsersController.instantiateListItems accounts
 
   viewAppended:->
     @addSubView @userView

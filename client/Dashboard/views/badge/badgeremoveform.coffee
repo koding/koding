@@ -12,10 +12,12 @@ class BadgeRemoveForm extends KDModalViewWithForms
               callback      : =>
                 {badge}     = @getData()
                 badge.deleteBadge (err)=>
-                  return err if err
                   {itemList} = @getOptions()
+                  updateForm = @getOptions().delegate
+                  updateForm.badgeForm.destroy()
                   itemList.destroy()
                   @destroy()
+                  return err if err
             Cancel          :
               title         : "No"
               style         : "modal-clean-red"

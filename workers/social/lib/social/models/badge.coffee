@@ -24,6 +24,7 @@ module.exports = class JBadge extends jraphical.Module
       iconURL             :
         type              : String
       reward              : String
+      role                : String
       createdAt           :
         type              : Date
         default           : -> new Date
@@ -47,6 +48,8 @@ module.exports = class JBadge extends jraphical.Module
     success: (client, formData, callback)->
       @update $set : formData, callback
 
+  # TODO ; if user has permissions related to badge,
+  # also remove it.
   deleteBadge : permit 'delete badge',
     success: (client, callback=->)->
       @remove callback
@@ -55,7 +58,6 @@ module.exports = class JBadge extends jraphical.Module
     success: (client, accountIds, callback)->
       JAccount = require './account'
       errors = []
-      console.log accountIds
       if accountIds.length > 0
         queue  = accountIds.map (id) =>=>
           JAccount.one "_id" : id, (err, account)=>
@@ -76,17 +78,14 @@ module.exports = class JBadge extends jraphical.Module
 
   removeBadgeFromUser : permit 'remove user badge',
     success: (client, user, callback)->
-      JAccount       = require './account'
       {Relationship} = jraphical
-
-      JAccount.one {'profile.nickname' : user.profile.nickname}, (err, account)=>
-        Relationship.remove {
-          targetId   : @getId()
-          targetName : 'JBadge'
-          sourceId   : account.getId()
-          sourceName : 'JAccount'
-          as         : "badge"
-        }, callback
+      Relationship.remove {
+        targetId   : @getId()
+        targetName : 'JBadge'
+        sourceId   : user._id
+        sourceName : 'JAccount'
+        as         : "badge"
+      }, callback
 
   @getUserBadges:(user, callback) ->
     JAccount = require './account'
