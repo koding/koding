@@ -29,6 +29,7 @@ func NewTerminal() *kite.Kite {
 	}
 
 	k := kite.New(options)
+	k.SetConcurrent(false)
 	k.HandleFunc("connect", Connect)
 	return k
 }
@@ -41,7 +42,7 @@ func Connect(r *kite.Request) (interface{}, error) {
 		NoScreen     bool
 	}
 
-	if r.Args.Unmarshal(&params) != nil || params.SizeX <= 0 || params.SizeY <= 0 {
+	if r.Args[0].Unmarshal(&params) != nil || params.SizeX <= 0 || params.SizeY <= 0 {
 		return nil, errors.New("{ remote: [object], session: [string], sizeX: [integer], sizeY: [integer], noScreen: [boolean] }")
 	}
 
