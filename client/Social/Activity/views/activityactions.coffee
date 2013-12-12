@@ -81,9 +81,9 @@ class ActivityActionsView extends KDView
     @loader = new KDLoaderView
       cssClass      : 'action-container'
       size          :
-        width       : 24
+        width       : 16
       loaderOptions :
-        color       : '#949DA5'
+        color       : '#6B727B'
 
     # unless KD.isLoggedIn()
     #   @commentLink.setTooltip title: "Login required"
@@ -91,8 +91,6 @@ class ActivityActionsView extends KDView
     #   KD.getSingleton("mainController").on "accountChanged.to.loggedIn", =>
     #     delete @likeView.likeLink.tooltip
     #     delete @commentLink.tooltip
-
-    @attachListeners()
 
   viewAppended:->
 
@@ -120,16 +118,11 @@ class ActivityActionsView extends KDView
     activity    = @getData()
     commentList = @getDelegate()
 
-    events =
-      BackgroundActivityStarted  : 'show'
-      BackgroundActivityFinished : 'hide'
-
-    for own ev, func of events
-      commentList.off ev
-      commentList.on ev, @loader.bound func
+    commentList.on 'BackgroundActivityStarted',  @loader.bound 'show'
+    commentList.on 'BackgroundActivityFinished', @loader.bound 'hide'
 
     @commentLink.on "click", (event)=>
-      commentList.emit "CommentLinkReceivedClick", event, @
+      commentList.emit "CommentLinkReceivedClick", event, this
 
 class ActivityActionLink extends KDCustomHTMLView
   constructor:(options,data)->

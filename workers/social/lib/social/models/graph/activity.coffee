@@ -73,7 +73,7 @@ module.exports = class Activity extends Graph
   # this function gets request options to fetch public content on main page
   # for all groups it is called when it has "Public" filter in it
   # It can filter also with facets like: "Everything, Status Updates, Discussions"
-  @fetchAll:(requestOptions, callback)->
+  @fetchAll:(requestOptions, callback=->)->
     {group:{groupName, groupId}, startDate, client, facet} = requestOptions
     queryOptions =
       groupId : groupId

@@ -1,7 +1,13 @@
 class ActivityTicker extends ActivityRightBase
+
   constructor:(options={}, data)->
+
     options.cssClass = KD.utils.curry "activity-ticker", options.cssClass
+
     super options, data
+
+    @filters = null
+    @tryCount = 0
 
     @listController = new KDListViewController
       lazyLoadThreshold: .99
@@ -14,9 +20,16 @@ class ActivityTicker extends ActivityRightBase
 
     @listView = @listController.getView()
 
-    @listController.on "LazyLoadThresholdReached", @bound "load"
+    @listController.on "LazyLoadThresholdReached", @bound "continueLoading"
 
-    @load()
+    @settingsButton = new KDButtonViewWithMenu
+      cssClass    : 'ticker-settings-menu'
+      title       : ''
+      icon        : yes
+      iconClass   : "arrow"
+      delegate    : @
+      menu        : @settingsMenu data
+      callback    : (event)=> @settingsButton.contextMenu event
 
     @itemsIndexed = {}
 
@@ -27,6 +40,28 @@ class ActivityTicker extends ActivityRightBase
     group.on "PostIsCreated", @bound "addActivity"
     group.on "ReplyIsAdded", @bound "addComment"
     group.on "PostIsDeleted", @bound "deleteActivity"
+
+    @load {}
+
+  settingsMenu:(data)->
+    menu =
+      'Follower'     :
+        callback : =>
+          @load filters : ["follower"]
+      'Like'   :
+        callback : =>
+          @load filters : ["like"]
+      # Example menu item for multiple filters.
+      # 'Follower+Like'   :
+      #   callback : =>
+      #     @load filters : ["follower", "like"]
+      'Member'   :
+        callback : =>
+          @load filters : ["member"]
+      'App'      :
+        callback : =>
+          @load filters : ["user"]
+    return menu
 
     @listController.listView.on 'ItemWasAdded', (view, index) =>
       if view.getData()?
@@ -48,6 +83,10 @@ class ActivityTicker extends ActivityRightBase
 
   addActivity: (data)->
     {origin, subject} = data
+
+    unless @filters and "addactivity" in @filters
+      return
+
     unless @getConstructorName(origin) and @getConstructorName(subject)
       return console.warn "data is not valid"
 
@@ -62,6 +101,10 @@ class ActivityTicker extends ActivityRightBase
 
   deleteActivity: (data) ->
     {origin, subject} = data
+
+    unless @filters and "deleteactivity" in @filters
+      return
+
     unless @getConstructorName(origin) and @getConstructorName(subject)
       return console.warn "data is not valid"
 
@@ -73,6 +116,10 @@ class ActivityTicker extends ActivityRightBase
 
   addJoin: (data)->
     {member} = data
+
+    unless @filters and "member" in @filters
+      return
+
     return console.warn "member is not defined in new member event"  unless member
 
     {constructorName, id} = member
@@ -83,6 +130,10 @@ class ActivityTicker extends ActivityRightBase
 
   addFollow: (data)->
     {follower, origin} = data
+
+    unless @filters and "follow" in @filters
+      return
+
     return console.warn "data is not valid"  unless follower and origin
 
     {constructorName, id} = follower
@@ -104,6 +155,10 @@ class ActivityTicker extends ActivityRightBase
 
   addLike: (data)->
     {liker, origin, subject} = data
+
+    unless @filters and "like" in @filters
+      return
+
     unless liker and origin and subject
       return console.warn "data is not valid"
 
@@ -124,6 +179,10 @@ class ActivityTicker extends ActivityRightBase
 
   addComment: (data) ->
     {origin, reply, subject, replier} = data
+
+    unless @filters and "comment" in @filters
+      return
+
     unless replier and origin and subject and reply
       return console.warn "data is not valid"
     #CtF: such a copy paste it is. could be handled better
@@ -146,7 +205,9 @@ class ActivityTicker extends ActivityRightBase
             eventObj = {source, target, subject, object, as:"reply"}
             @addNewItem eventObj, 0
 
-
+  continueLoading: (loadOptions = {})->
+    loadOptions.continue = @filters
+    @load loadOptions
 
   filterItem:(item)->
     {as, source, target} = item
@@ -169,28 +230,49 @@ class ActivityTicker extends ActivityRightBase
 
     return item
 
-  load:(anotherLoad=no) ->
+  tryLoadingAgain:(loadOptions={})->
+    unless @tryCount?
+      return warn "Current try count is not defined, discarding request"
+
+    if @tryCount >= 10
+      return warn "Reached max re-tries for What is Happening widget"
+
+    @tryCount++
+    return @load loadOptions
+
+  load: (loadOptions = {})->
+    if loadOptions.filters
+      @filters = loadOptions.filters
+      @listController.removeAllItems()
+
+    if loadOptions.continue
+      @filters = loadOptions.filters = loadOptions.continue
+
     lastItem = @listController.getItemsOrdered().last
     lastItemTimestamp = +(new Date())
 
     if lastItem and timestamp = lastItem.getData().timestamp
       lastItemTimestamp = (new Date(timestamp)).getTime()
 
-    options = from: lastItemTimestamp
+    loadOptions.from = lastItemTimestamp
 
-    KD.remote.api.ActivityTicker.fetch options, (err, items = []) =>
+    KD.remote.api.ActivityTicker.fetch loadOptions, (err, items = []) =>
       @listController.hideLazyLoader()
-      return warn err if err
-      addedItemCount = 0
+      # if we had any error, try loading again
+      if err
+        warn err
+        return @tryLoadingAgain loadOptions
+
       for item in items when @filterItem item
-        addedItemCount++
         @addNewItem item
-      @load yes  if addedItemCount isnt items.length and not anotherLoad
+
+      if @listController.getItemCount() < 15
+        @tryLoadingAgain loadOptions
 
   pistachio:
     """
     <div class="activity-ticker right-block-box">
-      <h3>What's happening on Koding</h3>
+      <h3>What's happening on Koding {{> @settingsButton}}</h3>
       {{> @listView}}
     </div>
     """

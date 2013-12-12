@@ -64,7 +64,7 @@ func TestKontrol(t *testing.T) {
 		Name:        "mathworker",
 	}
 
-	kites, err := exp2Kite.Kontrol.GetKites(query, nil)
+	kites, err := exp2Kite.Kontrol.GetKites(query)
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -90,7 +90,7 @@ func TestKontrol(t *testing.T) {
 	}
 	fmt.Printf("newToken: %#v\n", newToken)
 
-	response, err := mathWorker.Call("square", 2)
+	response, err := mathWorker.Tell("square", 2)
 	if err != nil {
 		t.Errorf(err.Error())
 		return
@@ -112,7 +112,7 @@ func TestKontrol(t *testing.T) {
 func mathWorker() *kite.Kite {
 	options := &kite.Options{
 		Kitename:    "mathworker",
-		Version:     "1",
+		Version:     "0.0.1",
 		Port:        "3636",
 		Region:      "localhost",
 		Environment: "development",
@@ -142,7 +142,7 @@ func Square(r *kite.Request) (interface{}, error) {
 func exp2() *kite.Kite {
 	options := &kite.Options{
 		Kitename:    "exp2",
-		Version:     "1",
+		Version:     "0.0.1",
 		Port:        "3637",
 		Region:      "localhost",
 		Environment: "development",
