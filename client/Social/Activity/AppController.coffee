@@ -254,7 +254,6 @@ class ActivityAppController extends AppController
       filterWarning.hide()
 
   setLastTimestamps:(from, to)->
-    # debugger
 
     if from
       @lastTo   = to
