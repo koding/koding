@@ -42,7 +42,7 @@ func Connect(r *kite.Request) (interface{}, error) {
 		NoScreen     bool
 	}
 
-	if r.Args[0].Unmarshal(&params) != nil || params.SizeX <= 0 || params.SizeY <= 0 {
+	if r.Args.One().Unmarshal(&params) != nil || params.SizeX <= 0 || params.SizeY <= 0 {
 		return nil, errors.New("{ remote: [object], session: [string], sizeX: [integer], sizeY: [integer], noScreen: [boolean] }")
 	}
 
@@ -179,7 +179,7 @@ type WebtermRemote struct {
 
 // Input is called when some text is written to the terminal.
 func (w *WebtermServer) Input(req *kite.Request) {
-	data := req.Args.MustSliceOfLength(1)[0].MustString()
+	data := req.Args.One().MustString()
 
 	// There is no need to protect the Write() with a mutex because
 	// Kite Library guarantees that only one message is processed at a time.
@@ -188,7 +188,7 @@ func (w *WebtermServer) Input(req *kite.Request) {
 
 // ControlSequence is called when a non-printable key is pressed on the terminal.
 func (w *WebtermServer) ControlSequence(req *kite.Request) {
-	data := req.Args.MustSliceOfLength(1)[0].MustString()
+	data := req.Args.One().MustString()
 	w.pty.MasterEncoded.Write([]byte(data))
 }
 
