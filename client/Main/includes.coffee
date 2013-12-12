@@ -35,6 +35,7 @@ module.exports = [
   "CommonViews/linkviews/autocompleteprofiletextview.coffee",
   "CommonViews/linkviews/grouplinkview.coffee",
   "CommonViews/splitview.coffee",
+  "CommonViews/nominatemodal.coffee",
   "CommonViews/slidingsplit.coffee",
   "CommonViews/bidirectionalnavigation.coffee"
   "CommonViews/activitycommentview.coffee"
