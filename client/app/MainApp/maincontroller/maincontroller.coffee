@@ -65,6 +65,9 @@ class MainController extends KDController
     @userAccount             = account
     connectedState.connected = yes
 
+    @on "pageLoaded.as.loggedIn", (account)-> # ignore othter parameters
+      KD.utils.setPreferredDomain account if account
+
     account.fetchMyPermissionsAndRoles (err, permissions, roles)=>
       return warn err  if err
       KD.config.roles       = roles
