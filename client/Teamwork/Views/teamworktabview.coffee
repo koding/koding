@@ -109,6 +109,7 @@ class TeamworkTabView extends CollaborativePane
         type     : "dashboard"
         indexKey : "dashboard"
 
+    @registerPaneRemoveListener_ @dashboard
 
   createDrawingBoard: (sessionKey, indexKey) ->
     indexKey  = indexKey or @createSessionKey()
@@ -124,6 +125,19 @@ class TeamworkTabView extends CollaborativePane
         sessionKey : drawing.sessionKey
         indexKey   : indexKey
 
+    @registerPaneRemoveListener_ pane
+
+  registerPaneRemoveListener_: (pane) ->
+    pane.on "KDObjectWillBeDestroyed", =>
+      paneIndexKey = pane.getOptions().indexKey
+
+      @keysRef.once "value", (snapshot) =>
+        data = snapshot.val()
+        return unless data
+
+        for key, value of data
+          if value.indexKey is paneIndexKey
+            @keysRef.child(key).remove()
 
   createEditor: (file, content = "", sessionKey, indexKey) ->
     isLocal  = not file
@@ -142,6 +156,7 @@ class TeamworkTabView extends CollaborativePane
         indexKey  : indexKey
 
     @workspace.addToHistory "$0 opened a new editor"  if isLocal
+    @registerPaneRemoveListener_ pane
 
   openFile: (file, content) ->
     @createEditor file, content
@@ -166,6 +181,7 @@ class TeamworkTabView extends CollaborativePane
             vmName   : KD.getSingleton("vmController").defaultVmName
 
     @workspace.addToHistory "$0 opened a new terminal"
+    @registerPaneRemoveListener_ pane
 
   createPreview: (sessionKey, indexKey) ->
     indexKey = indexKey or @createSessionKey()
@@ -182,6 +198,7 @@ class TeamworkTabView extends CollaborativePane
         indexKey  : indexKey
 
     @workspace.addToHistory "$0 opened a new browser"
+    @registerPaneRemoveListener_ pane
 
   createChat: ->
     pane = new KDTabPaneView title: "Chat"
