@@ -13,7 +13,7 @@ module.exports = class Graph
     return @db
 
   # TODO: move it to a proper place eg. trait maybe..
-  @getExemptUsersClauseIfNeeded: (requestOptions, callback)->
+  @getExemptUsersClauseIfNeeded: (requestOptions, callback=->)->
     if not requestOptions.withExempt
       delegate = null
 
@@ -38,8 +38,8 @@ module.exports = class Graph
     @getDb().query query, params, callback
 
   @revive:(results, callback=->)->
-    if results.length < 1
-      return callback
+    if not results or results.length < 1
+      return callback []
     data  = []
     for result in results
       if Array.isArray result
@@ -54,7 +54,7 @@ module.exports = class Graph
 
   # we have a bug here for objects that have array properties
   # they are converted into properties, not to array
-  @objectify:(incomingObjects, callback)->
+  @objectify:(incomingObjects, callback=->)->
     incomingObjects = [].concat(incomingObjects)
     generatedObjects = []
     for incomingObject in incomingObjects

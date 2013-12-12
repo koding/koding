@@ -1,6 +1,9 @@
 class ActivityTicker extends ActivityRightBase
+
   constructor:(options={}, data)->
+
     options.cssClass = KD.utils.curry "activity-ticker", options.cssClass
+
     super options, data
 
     @filters = null
@@ -82,7 +85,7 @@ class ActivityTicker extends ActivityRightBase
     {origin, subject} = data
 
     unless @filters and "addactivity" in @filters
-      return console.warn "Filter applied"
+      return
 
     unless @getConstructorName(origin) and @getConstructorName(subject)
       return console.warn "data is not valid"
@@ -100,7 +103,7 @@ class ActivityTicker extends ActivityRightBase
     {origin, subject} = data
 
     unless @filters and "deleteactivity" in @filters
-      return console.warn "Filter applied"
+      return
 
     unless @getConstructorName(origin) and @getConstructorName(subject)
       return console.warn "data is not valid"
@@ -115,7 +118,7 @@ class ActivityTicker extends ActivityRightBase
     {member} = data
 
     unless @filters and "member" in @filters
-      return console.warn "Filter applied"
+      return
 
     return console.warn "member is not defined in new member event"  unless member
 
@@ -129,7 +132,7 @@ class ActivityTicker extends ActivityRightBase
     {follower, origin} = data
 
     unless @filters and "follow" in @filters
-      return console.warn "Filter applied"
+      return
 
     return console.warn "data is not valid"  unless follower and origin
 
@@ -154,7 +157,7 @@ class ActivityTicker extends ActivityRightBase
     {liker, origin, subject} = data
 
     unless @filters and "like" in @filters
-      return console.warn "Filter applied"
+      return
 
     unless liker and origin and subject
       return console.warn "data is not valid"
@@ -178,7 +181,7 @@ class ActivityTicker extends ActivityRightBase
     {origin, reply, subject, replier} = data
 
     unless @filters and "comment" in @filters
-      return console.warn "Filter applied"
+      return
 
     unless replier and origin and subject and reply
       return console.warn "data is not valid"

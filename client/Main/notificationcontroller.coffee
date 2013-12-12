@@ -147,6 +147,11 @@ class NotificationController extends KDObject
         return if err or not subjectObj
 
         actorName = KD.utils.getFullnameFromAccount actorAccount
+        options.actorAvatar = new AvatarView
+          size      :
+            width   : 35
+            height  : 35
+          , actorAccount
         options.title = switch actionType
           when "reply", "opinion"
             if isMine
@@ -210,7 +215,7 @@ class NotificationController extends KDObject
 
   notify:(options  = {})->
 
-    options.title or= 'notification arrived'
+    options.title       or= 'notification arrived'
 
     notification = new KDNotificationView
       type     : 'tray'
@@ -218,5 +223,7 @@ class NotificationController extends KDObject
       duration : 10000
       title    : "<span></span>#{options.title}"
       content  : options.content  or null
+
+    if options.actorAvatar then notification.addSubView options.actorAvatar
 
     notification.once 'click', options.click

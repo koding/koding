@@ -14,8 +14,14 @@ class ActivityInputWidget extends KDView
     @submit    = new KDButtonView
       type     : "submit"
       cssClass : "solid green"
-      title    : "Post"
+      iconOnly : yes
       callback : @bound "submit"
+
+    @avatar = new AvatarView
+      size      :
+        width   : 35
+        height  : 35
+    , KD.whoami()
 
   submit: (callback) ->
     return  unless value = @input.getValue().trim()
@@ -99,13 +105,13 @@ class ActivityInputWidget extends KDView
     content = activity.body.replace /\n/g, "<br>"
     @input.setContent content, activity
     @embedBox.loadEmbed activity.link.link_url  if activity.link
-    @submit.setTitle "Update"
+    # @submit.setTitle "Update"
 
   reset: (lock = yes) ->
     @input.setContent ""
     @input.blur()
     @embedBox.resetEmbedAndHide()
-    @submit.setTitle "Post"
+    # @submit.setTitle "Post"
     @submit.focus()
     setTimeout (@bound "unlockSubmit"), 8000
     @setData null
@@ -113,13 +119,14 @@ class ActivityInputWidget extends KDView
 
   lockSubmit: ->
     @submit.disable()
-    @submit.setTitle "Wait"
+    # @submit.setTitle "Wait"
 
   unlockSubmit: ->
     @submit.enable()
-    @submit.setTitle "Post"
+    # @submit.setTitle "Post"
 
   viewAppended: ->
+    @addSubView @avatar
     @addSubView @input
     @addSubView @embedBox
     @input.addSubView @submit

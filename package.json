@@ -15,7 +15,6 @@
   },
   "dependencies": {
     "async"           : "0.2.5",
-    "aws2js"          : "0.8.2",
     "aws-sdk"         : "0.9.5-pre.6",
     "bitly"           : "1.2.4",
     "coffee-script"   : "1.6.3",
@@ -63,7 +62,10 @@
     "htmlencode"      : "0.0.3",
     "node-odesk"      : "0.0.7",
     "oauth"           : "0.9.10",
-    "newrelic"        : "1.1.1"
+    "node-uuid"       : "1.4.1",
+    "newrelic"        : "1.1.1",
+    "sync"            : "0.2.2",
+    "fibers"          : "1.0.1"
   },
   "devDependencies": {},
   "optionalDependencies": {},

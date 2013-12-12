@@ -19,7 +19,7 @@ html.app
     height          100%
 
 body
-  font-family       "HelveticaNeue-Light", "Helvetica Neue Light", "Helvetica Neue", Helvetica, Arial, sans-serif
+  font-family       "Helvetica Neue", Helvetica, Arial, sans-serif
   font-weight       300
   bg                color, #e4e4e4
 
@@ -40,6 +40,7 @@ button
   z-index             1000
   overflow            visible
   visibility          visible
+  shadow              3px 3px 0 rgba(0, 0, 0, .2)
   fix()
 
   .inner-container
@@ -95,7 +96,6 @@ button
     abs()
     display         block
     size            69px 55px
-    border-left     1px solid #252e30
     vendor          transition, top .2s linear\,\
                                 left .2s linear
     cite
@@ -119,19 +119,11 @@ button
       display       block
 
     &.selected
-      bg            color, #252E30
+      bg            color, #2b3335
 
-    &.running:after
-      content       ""
-      display       block
-      background    #63c3c5
-      size          3px 3px
-      left          34px
-      bottom        8px
-      border-radius 8px
-      box-shadow    0 0 10px 1px #63c3c5
-      opacity       0.5
-      abs()
+    &.running
+      border-top    2px solid #1aaf5d
+      borderBox()
 
     &.loading
       .icon

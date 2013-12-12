@@ -353,6 +353,7 @@ class LoginView extends KDView
       ,
     (err, status)-> console.log "Status of fetching stuff from external: #{status}"
 
+
   afterLoginCallback: (err, params={})->
     @loginForm.button.hideLoader()
     {entryPoint} = KD.config
@@ -364,6 +365,11 @@ class LoginView extends KDView
     else
       {account, replacementToken} = params
       $.cookie 'clientId', replacementToken  if replacementToken
+
+      # check and set preferred BE domain for Koding
+      # prevent user from seeing the main wiev
+      KD.utils.setPreferredDomain account if account
+
       mainController = KD.getSingleton('mainController')
       mainView       = mainController.mainViewController.getView()
       mainController.accountChanged account
