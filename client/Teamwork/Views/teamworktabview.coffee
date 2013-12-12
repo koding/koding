@@ -74,6 +74,8 @@ class TeamworkTabView extends CollaborativePane
         callback  : => @createPreview()
       "Chat"      :
         callback  : => @createChat()
+      "Drawing Board":
+        callback  : => @createDrawingBoard()
     }
 
 
@@ -93,6 +95,20 @@ class TeamworkTabView extends CollaborativePane
 
   openFile: (file, content) ->
     @createEditor file, content
+  createDrawingBoard: (sessionKey, indexKey) ->
+    indexKey  = indexKey or @createSessionKey()
+    pane      = new KDTabPaneView { title: "Drawing Board", indexKey }
+    delegate  = @panel
+    drawing   = new CollaborativeDrawingPane { delegate, sessionKey }
+
+    @appendPane_ pane, drawing
+
+    if @amIHost
+      @keysRef.push
+        type       : "drawing"
+        sessionKey : drawing.sessionKey
+        indexKey   : indexKey
+
 
   createEditor: (file, content = "", sessionKey) ->
     isLocal  = not file
