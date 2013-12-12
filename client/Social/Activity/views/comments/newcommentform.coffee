@@ -12,8 +12,8 @@ class NewCommentForm extends KDView
 
     @addSubView commenterAvatar = new AvatarStaticView
       size    :
-        width : 43
-        height: 43
+        width : 35
+        height: 35
     , KD.whoami()
 
     @addSubView commentFormWrapper = new KDView
