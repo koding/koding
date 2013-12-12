@@ -114,6 +114,10 @@ resurrection.activity.styl
           bg                color, transparent
           sprite            app '20-close-tab'
 
+        a
+          color      #3aaaab
+          noTextDeco()
+
     .activity-content
       size              auto, auto
       margin            0 0 0 100px
@@ -410,6 +414,7 @@ span.collapsedtext
     max-height    400px
     padding       5px 23px 0
     line-height   22px
+    white-space   pre
 
   >.profile
     color         #1aaf5d
@@ -854,7 +859,7 @@ body.profile
       opacity           0
 
 /** Markdown Styling **/
-p.status-body
+span.status-body
 
   /* Headings */
   h1, h2, h3, h4, h5, h6
