@@ -31,7 +31,7 @@ class ActivityTicker extends ActivityRightBase
       menu        : @settingsMenu data
       callback    : (event)=> @settingsButton.contextMenu event
 
-    @itemsIndexed = {}
+    @indexedItems = {}
 
     group = KD.getSingleton("groupsController")
     group.on "MemberJoinedGroup", @bound "addJoin"
@@ -280,18 +280,18 @@ class ActivityTicker extends ActivityRightBase
   addNewItem: (newItem, index) ->
     itemId = @getItemId newItem
 
-    if not @itemsIndexed[itemId]
+    if not @indexedItems[itemId]
       if index? then @listController.addItem newItem, index
       else @listController.addItem newItem
     else
-      viewItem = @itemsIndexed[itemId]
+      viewItem = @indexedItems[itemId]
       @listController.moveItemToIndex viewItem, 0
 
   removeItem: (item) ->
     itemId = @getItemId item
 
-    if @itemsIndexed[itemId]
-      viewItem = @itemsIndexed[itemId]
+    if @indexedItems[itemId]
+      viewItem = @indexedItems[itemId]
       @listController.removeItem viewItem
 
 
