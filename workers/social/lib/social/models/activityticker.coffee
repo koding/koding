@@ -15,6 +15,34 @@ module.exports = class ActivityTicker extends Base
 
   JAccount = require './account'
 
+  filterSources = (filters) =>
+    constructorNames  = ["JAccount", "JNewApp", "JGroup", "JTag", "JNewStatusUpdate", "JComment"]
+
+    relationshipMap =
+      "follower" : ["JTag"]
+      "like"     : ["JAccount", "JNewStatusUpdate"]
+      "member"   : ["JGroup"]
+      "user"     : ["JApp"]
+
+    sources = []
+    for filter in filters
+      sources.concat relationshipMap[filter]
+
+    if sources.length is 0
+      return constructorNames
+    return sources
+
+  filterTargets = (filters) ->
+    constructorNames = ["follower", "like", "member", "user"]
+    targets = []
+    # The only possible options are either returning only "JAccount" or
+    # returning whole constructorNames. I left this function for future-cases.
+    for filter in filters
+      if filter in constructorNames
+        targets.push "JAccount"
+        return targets
+    return constructorNames
+
   decorateEvents = (relationship, callback) ->
     {source, target, as, timestamp} = relationship
 
@@ -82,11 +110,26 @@ module.exports = class ActivityTicker extends Base
   @fetch = secure (client, options = {}, callback) ->
     {connection: {delegate}} = client
 
+    sources = constructorNames
+    as      = relationshipNames
+    targets = constructorNames
+
+    filters = []
+    if options?.filters
+      for filter in options.filters  when filter in relationshipNames
+        filters.push filter
+
+    if filters.length > 0
+      sources = filterSources options.filters
+      as      = options.filters
+      targets = filterTargets options.filters
+
+
     from = options.from or +(new Date())
     selector     =
-      sourceName : "$in": constructorNames
-      as         : "$in": relationshipNames
-      targetName : "$in": constructorNames
+      sourceName : "$in": sources
+      as         : "$in": as
+      targetName : "$in": targets
       timestamp : {"$lt" : new Date(from)}
 
     options      =
