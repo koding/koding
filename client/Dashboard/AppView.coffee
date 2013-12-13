@@ -18,7 +18,7 @@ class DashboardAppView extends JView
       @header.hide()
       @nav.hide()
       group = KD.getSingleton("groupsController").getCurrentGroup()
-      group.canEditGroup (err, success)=>
+      group?.canEditGroup (err, success)=>
         if err or not success
           {entryPoint} = KD.config
           KD.getSingleton('router').handleRoute "/Activity", { entryPoint }

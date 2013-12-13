@@ -12,6 +12,7 @@ class AceAppView extends JView
     @tabView             = new AceApplicationTabView
       delegate           : this
       tabHandleContainer : @tabHandleContainer
+      closeAppWhenAllTabsClosed : no
       saveSession        : yes
       sessionName        : "AceTabHistory"
     @finderWrapper       = new KDCustomHTMLView
