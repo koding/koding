@@ -102,9 +102,9 @@ class TeamworkDashboard extends JView
 
   fetchManifests: ->
     filename = if location.hostname is "localhost" then "manifest-dev" else "manifest"
-    url      = "https://raw.github.com/koding/Teamwork/master/Playgrounds/#{filename}.json"
     delegate = @getDelegate()
-    delegate.doCurlRequest url, (err, manifests) =>
+
+    delegate.fetchGitHubFileContent "Playgrounds/#{filename}.json", (err, manifests) =>
       if err
         return new KDNotificationView
           type     : "mini"
