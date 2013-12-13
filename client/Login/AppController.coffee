@@ -27,7 +27,7 @@ class LoginAppsController extends AppController
 #        'http:\/\/localhost'
 #        'https:\/\/koding.com'
 #      ] when 0 is window.location.href.indexOf url
-        return do handler()
+#        return do handler()
 
 #      return handleFailureOfRestriction()  unless token
 
