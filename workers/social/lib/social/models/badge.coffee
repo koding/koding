@@ -2,6 +2,7 @@ jraphical = require 'jraphical'
 module.exports = class JBadge extends jraphical.Module
   {permit}          = require './group/permissionset'
   {daisy, secure}   = require 'bongo'
+  KodingError       = require '../error'
 
   @trait __dirname, '../traits/filterable'
 
@@ -24,21 +25,25 @@ module.exports = class JBadge extends jraphical.Module
       iconURL             :
         type              : String
       reward              : String
-      role                : String
+      role                : String # storing as string because we already use permission title as a relation identifier in relationship modal
       createdAt           :
         type              : Date
         default           : -> new Date
     sharedMethods         :
-      static              : ["listBadges", "getUserBadges", "create","fetchBadgeUsers",
-      "fetchUsersByRule", "checkEligibleBadges"]
-      instance            : ["modify", "deleteBadge",
-      "removeBadgeFromUser", "assignBadgeBatch"]
+      static              : ["listBadges", "create","fetchBadgeUsers",
+      "checkEligibleBadges"]
+      instance            : ["modify", "deleteBadge","removeBadgeFromUser",
+      "assignBadgeBatch"]
 
   @create: permit 'create badge',
     success:(client, badgeData, callback=->)->
-      badge = new JBadge badgeData
-      badge.save (err)=>
-        callback err, badge
+      protectedRoles = ["admin","moderator","owner","guest","member"]
+      unless badgeData.role in protectedRoles
+        badge = new JBadge badgeData
+        badge.save (err)=>
+          callback err, badge
+      else
+        callback new KodingError 'That role cannot be given from UI', null
 
   @listBadges: permit 'list badges',
     success: (client, selector, callback=->)->
@@ -48,18 +53,23 @@ module.exports = class JBadge extends jraphical.Module
     success: (client, formData, callback)->
       @update $set : formData, callback
 
-  # TODO ; if user has permissions related to badge,
-  # also remove it.
   deleteBadge : permit 'delete badge',
     success: (client, callback=->)->
-      @remove callback
+      @remove (err)=>
+        unless err
+          jraphical.Relationship.remove {
+            sourceName : "JGroup"
+            as         : @role
+          },(err)->
+          return callback err if err
+          return callback null, null
 
   assignBadgeBatch : permit 'assign badge',
     success: (client, accountIds, callback)->
-      JAccount = require './account'
-      errors = []
       if accountIds.length > 0
-        queue  = accountIds.map (id) =>=>
+        JAccount = require './account'
+        errors   = []
+        queue    = accountIds.map (id) =>=>
           JAccount.one "_id" : id, (err, account)=>
             errors.push err if err
             if account
@@ -68,11 +78,30 @@ module.exports = class JBadge extends jraphical.Module
                 targetId   : @getId()
                 sourceId   : account.getId()
               , (err, rel) =>
-                if not rel
-                    account.addBadge this, (err, badge)->
+                  unless rel
+                    account.addBadge this, (err, badge)=>
                       errors.push err if err
-            queue.next()
-
+                      groupName = client.context.group
+                      # find the group id
+                      JGroup = require './group'
+                      JGroup.one {slug : groupName}, (err, group)=>
+                        unless err
+                          new jraphical.Relationship
+                            targetName  : 'JAccount'
+                            targetId    : account.getId()
+                            sourceName  : 'JGroup'
+                            sourceId    : group.getId()
+                            as          : @role
+                          .save (err)=>
+                            errors.push err if err
+                            queue.next()
+                        else
+                          errors.push err if err
+                          queue.next()
+                  else
+                    queue.next()
+            else
+              queue.next()
         queue.push -> callback if errors.length > 0 then errors else null
         daisy queue
 
@@ -85,12 +114,16 @@ module.exports = class JBadge extends jraphical.Module
         sourceId   : user._id
         sourceName : 'JAccount'
         as         : "badge"
-      }, callback
+      }, (err)=>
+        unless err
+          Relationship.remove {
+            targetId   : user._id
+            targetName : 'JAccount'
+            sourceName : "JGroup"
+            as         : @role
+          }, (err)->
+            callback err, null
 
-  @getUserBadges:(user, callback) ->
-    JAccount = require './account'
-    JAccount.one 'profile.nickname' : user.profile.nickname, (err, account)=>
-      account.fetchBadges callback
 
   @findAccounts : (cursor, items, callback)->
     cursor.nextObject (err, rel) =>
@@ -149,15 +182,34 @@ module.exports = class JBadge extends jraphical.Module
         "rule"     :
           "$regex" : options.badgeItem
         "_id"      : $nin:badgeIds
-      @listBadges client, ruleSelector, (err, badges)=>
+      JBadge.some ruleSelector,{limit:50}, (err, badges)=>
         badgesGained  = []
         errors        = []
         queue = badges.map (badge) =>=>
           if @checkRules badge.rule, @account.counts
             @account.addBadge badge, (err, o)->
-              errors.push err if err
-              badgesGained.push badge
-              queue.next()
+              JGroup = require './group'
+              groupName = client.context.group
+              JGroup.one {slug : groupName}, (err, group)=>
+                user = client.connection.delegate
+                unless err
+                  if badge.role
+                    new jraphical.Relationship
+                      targetName  : 'JAccount'
+                      targetId    : user.getId()
+                      sourceName  : 'JGroup'
+                      sourceId    : group.getId()
+                      as          : badge.role
+                    .save (err)=>
+                      errors.push err if err
+                      badgesGained.push badge
+                      queue.next()
+                  else
+                    badgesGained.push badge
+                    queue.next()
+                else
+                  errors.push err if err
+                  queue.next()
           else
             queue.next()
         queue.push -> callback if errors.length > 0 then null else badgesGained

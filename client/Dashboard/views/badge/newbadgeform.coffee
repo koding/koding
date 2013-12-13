@@ -46,9 +46,10 @@ class NewBadgeForm extends JView
               Permission      :
                 label         : "Permission"
                 itemClass     : KDSelectBox
-                name          : "permission"
+                name          : "role"
+                defaultValue  : "null"
                 selectOptions : [
-                    { title : "No Permission", value : "none"   }
+                    { title : "No Permission", value : null   }
                   ]
           "Rules"             :
             fields            : {}
@@ -60,12 +61,15 @@ class NewBadgeForm extends JView
     @addSubView @badgeForm
 
   updatePermissionBoxData:->
+
     selectRoles   = []
     permissionBox = @badgeForm.modalTabs.forms["New Badge"].inputs.Permission
     currentGroup  = KD.getSingleton("groupsController").getCurrentGroup()
     currentGroup.fetchRoles (err, roles) ->
+      tmpRole = ["admin","owner","guest","member","moderator"]
       for role in roles
-        selectRoles.push title : role.title, value : role._id
+        unless role.title in tmpRole
+          selectRoles.push title : role.title, value : role.title
       permissionBox.setSelectOptions selectRoles
 
   updateRulesTabView:->

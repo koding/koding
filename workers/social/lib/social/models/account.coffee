@@ -707,7 +707,6 @@ module.exports = class JAccount extends jraphical.Module
           sourceName : source
 
         if targetSelf then selector["targetId"]=@getId() else selector["sourceId"]=@getId()
-
         Relationship.count selector, (err, count) =>
           return err if err
           countsField = {}
@@ -758,7 +757,7 @@ module.exports = class JAccount extends jraphical.Module
     Relationship.count
       as         : 'author'
       targetId   : @getId()
-      sourceName : 'JStatusUpdate'
+      sourceName : 'JNewStatusUpdate'
     , (err, count)=>
       @update ($set: 'counts.statusUpdates': count), ->
 
@@ -766,7 +765,7 @@ module.exports = class JAccount extends jraphical.Module
     Relationship.count
       as         : 'commenter'
       targetId   : @getId()
-      sourceName : 'JStatusUpdate'
+      sourceName : 'JNewStatusUpdate'
     , (err, count)=>
       @update ($set: 'counts.comments': count), ->
 
