@@ -47,9 +47,9 @@ class NewBadgeForm extends JView
                 label         : "Permission"
                 itemClass     : KDSelectBox
                 name          : "role"
-                defaultValue  : "null"
+                defaultValue  : "none"
                 selectOptions : [
-                    { title : "No Permission", value : null   }
+                    { title : "No Permission", value : "none" }
                   ]
           "Rules"             :
             fields            : {}

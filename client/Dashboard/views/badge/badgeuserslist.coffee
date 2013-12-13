@@ -23,7 +23,7 @@ class BadgeUsersList extends JView
 
   loadUserList:->
     KD.remote.api.JBadge.fetchBadgeUsers @badge.getId(), limit:10 ,(err, accounts)=>
-      @filteredUsersController.instantiateListItems accounts
+      @filteredUsersController.replaceAllItems accounts
 
   viewAppended:->
     @addSubView @userView

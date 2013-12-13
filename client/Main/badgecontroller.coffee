@@ -10,3 +10,5 @@ class BadgeController extends KDController
             content  : "<img src='" + badge.iconURL + "'/>"
             type     : "growl"
             duration : 2000
+          # Send Mixpanel event.
+          KD.mixpanel "Badge Gained", badge.title

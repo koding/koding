@@ -40,6 +40,7 @@ module.exports = class JBadge extends jraphical.Module
       protectedRoles = ["admin","moderator","owner","guest","member"]
       unless badgeData.role in protectedRoles
         badge = new JBadge badgeData
+        badge.role = null if badgeData.role is "none"
         badge.save (err)=>
           callback err, badge
       else
@@ -61,8 +62,7 @@ module.exports = class JBadge extends jraphical.Module
             sourceName : "JGroup"
             as         : @role
           },(err)->
-          return callback err if err
-          return callback null, null
+          return callback err, null
 
   assignBadgeBatch : permit 'assign badge',
     success: (client, accountIds, callback)->
@@ -71,7 +71,7 @@ module.exports = class JBadge extends jraphical.Module
         errors   = []
         queue    = accountIds.map (id) =>=>
           JAccount.one "_id" : id, (err, account)=>
-            errors.push err if err
+            errors.push KodingError 'Account couldnt fetched' if err
             if account
               jraphical.Relationship.one
                 as         : "badge"
@@ -85,7 +85,7 @@ module.exports = class JBadge extends jraphical.Module
                       # find the group id
                       JGroup = require './group'
                       JGroup.one {slug : groupName}, (err, group)=>
-                        unless err
+                        unless err or @role is undefined
                           new jraphical.Relationship
                             targetName  : 'JAccount'
                             targetId    : account.getId()

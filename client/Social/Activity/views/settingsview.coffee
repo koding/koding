@@ -5,7 +5,7 @@ class ActivitySettingsView extends KDCustomHTMLView
     super options, data
     data = @getData()
     account = KD.whoami()
-    @settings = if (data.originId is account.getId()) or KD.checkFlag 'super-admin'
+    @settings = if (data.originId is account.getId()) or KD.checkFlag('super-admin') or KD.hasAccess("delete posts")
       button = new KDButtonViewWithMenu
         cssClass       : 'activity-settings-menu'
         itemChildClass : ActivityItemMenuItem
@@ -21,9 +21,7 @@ class ActivitySettingsView extends KDCustomHTMLView
     activityController = KD.getSingleton('activityController')
 
   settingsMenu:(post)->
-
     account        = KD.whoami()
-
     if post.originId is account.getId()
       menu =
         'Edit'     :
@@ -36,7 +34,7 @@ class ActivitySettingsView extends KDCustomHTMLView
 
       return menu
 
-    if KD.checkFlag 'super-admin'
+    if KD.checkFlag("super-admin") or KD.hasAccess("delete posts")
       if KD.checkFlag 'exempt', account
         menu =
           'Unmark User as Troll' :

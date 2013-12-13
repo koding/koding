@@ -1,7 +1,6 @@
 class BadgeUpdateForm extends JView
   constructor:(options = {}, data)->
     super options, data
-
     {@badge}                  = @getData()
     @badgeForm                = new KDModalViewWithForms
       title                   : "Modify Badge"
@@ -48,9 +47,9 @@ class BadgeUpdateForm extends JView
                 label         : "Permission"
                 itemClass     : KDSelectBox
                 name          : "permission"
-                defaultValue  : @badge.role or "null"
+                defaultValue  : @badge.role or "none"
                 selectOptions : [
-                    { title   : "No Permission", value : null }
+                    { title   : "No Permission", value : "none" }
                   ]
           "Rules"             :
             fields            : {}
@@ -75,7 +74,7 @@ class BadgeUpdateForm extends JView
                     @badge.assignBadgeBatch idArray, (err) =>
                       new KDNotificationView
                         title : if err then err.message else "Badge given "
-                        @badgeUserList.loadUserList()
+                      @badgeUserList.loadUserList()
           "Users"             :
             fields            : {}
           "Delete"            :
@@ -92,8 +91,6 @@ class BadgeUpdateForm extends JView
                 callback      : (formData)=>
                   {itemList} = @getOptions()
                   modal = new BadgeRemoveForm {itemList:itemList,delegate:this}, {@badge}
-
-
 
     @updatePermissionBoxData()
     @updateRulesTabView()
@@ -152,17 +149,13 @@ class MemberAutoCompleteItemView extends KDAutoCompleteListItemView
   constructor:(options, data)->
     options.cssClass = "clearfix member-suggestion-item"
     super options, data
-
     userInput = options.userInput or @getDelegate().userInput
-
     @addSubView @profileLink = \
       new AutoCompleteProfileTextView {userInput, shouldShowNick: yes}, data
-
   viewAppended:JView::viewAppended
 
 
 class MemberAutoCompletedItemView extends KDAutoCompletedItem
-
   viewAppended:->
     @addSubView @profileText = new AutoCompleteProfileTextView {}, @getData()
     viewAppended:JView::viewAppended
