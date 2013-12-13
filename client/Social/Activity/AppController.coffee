@@ -217,7 +217,7 @@ class ActivityAppController extends AppController
     eventSuffix = "#{@getFeedFilter()}_#{@getActivityFilter()}"
 
     # get from cache if only it is "Public" or "Everything"
-    if @getFeedFilter() is "Public" and @getActivityFilter() is "Everything"
+    if @getFeedFilter() is "Public" and @getActivityFilter() is "Everything" and KD.prefetchedFeeds
       prefetchedActivity = KD.prefetchedFeeds["activity.main"]
       if prefetchedActivity and ('activities.main' not in USEDFEEDS)
         log "exhausting feed:", "activity.main"
@@ -254,7 +254,6 @@ class ActivityAppController extends AppController
       filterWarning.hide()
 
   setLastTimestamps:(from, to)->
-    # debugger
 
     if from
       @lastTo   = to

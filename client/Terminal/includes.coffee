@@ -3,6 +3,7 @@ module.exports = [
   # terminal
   "AppController.coffee",
   "AppView.coffee",
+  "vmselectionview.coffee",
   "webtermappview.coffee",
   "webtermsettingsview.coffee",
   "webtermsettings.coffee",
@@ -12,6 +13,8 @@ module.exports = [
   "src/ScreenBuffer.coffee",
   "src/StyledText.coffee",
   "src/Terminal.coffee",
+
+  "styl/app.terminal.styl",
 
   # Terminal Themes
   "themes/green-on-black.styl",

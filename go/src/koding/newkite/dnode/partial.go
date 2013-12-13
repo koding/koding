@@ -3,6 +3,7 @@ package dnode
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"reflect"
 )
 
@@ -19,13 +20,12 @@ func (p *Partial) MarshalJSON() ([]byte, error) {
 
 // UnmarshalJSON puts the data into Partial.Raw.
 func (p *Partial) UnmarshalJSON(data []byte) error {
-	// p.Raw = make([]byte, len(data))
-	// copy(p.Raw, data)
-	// return nil
 	if p == nil {
 		return errors.New("json.Partial: UnmarshalJSON on nil pointer")
 	}
-	p.Raw = append(p.Raw[0:0], data...)
+
+	p.Raw = make([]byte, len(data))
+	copy(p.Raw, data)
 	return nil
 }
 
@@ -33,6 +33,10 @@ func (p *Partial) UnmarshalJSON(data []byte) error {
 // v must be a struct that is the type of expected arguments.
 func (p *Partial) Unmarshal(v interface{}) error {
 	l.Printf("Unmarshal Partial")
+
+	if p == nil {
+		return fmt.Errorf("Cannot unmarshal nil argument")
+	}
 
 	value := reflect.ValueOf(v)
 	if value.Kind() != reflect.Ptr {

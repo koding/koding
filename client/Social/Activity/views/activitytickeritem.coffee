@@ -21,7 +21,7 @@ class ActivityTickerFollowItem extends ActivityTickerBaseItem
     {source, target} = data
 
     @avatar    = new AvatarView
-      size     : width: 28, height: 28
+      size     : width: 30, height: 30
       cssClass : "avatarview"
     , target
 
@@ -33,9 +33,9 @@ class ActivityTickerFollowItem extends ActivityTickerBaseItem
 
     # if current user did the activity
     if target.getId() is KD.whoami().getId()
-      return "{{> @avatar}} You followed {{> @object}}"
+      return "{{> @avatar}} <div class='text-overflow'>You followed {{> @object}}</div>"
 
-    return "{{> @avatar}} {{> @actor}} followed {{> @object}}"
+    return "{{> @avatar}} <div class='text-overflow'>{{> @actor}} followed {{> @object}}</div>"
 
 class ActivityTickerLikeItem extends ActivityTickerBaseItem
   constructor: (options = {}, data) ->
@@ -59,20 +59,20 @@ class ActivityTickerLikeItem extends ActivityTickerBaseItem
     if  source.getId() is KD.whoami().getId()
       # if user liked his/her post
       if source.getId() is target.getId() then \
-        return "{{> @avatar}} You #{activity} your {{> @subj}}"
+        return "{{> @avatar}} <div class='text-overflow'>You #{activity} your {{> @subj}}</div>"
       else
-        return "{{> @avatar}} You #{activity} {{> @origin}}'s {{> @subj}}"
+        return "{{> @avatar}} <div class='text-overflow'>You #{activity} {{> @origin}}'s {{> @subj}}</div>"
 
     # someone did something to you
     if target.getId() is KD.whoami().getId() then \
-      return "{{> @avatar}} {{> @actor}} #{activity} your {{> @subj}}"
+      return "{{> @avatar}} <div class='text-overflow'>{{> @actor}} #{activity} your {{> @subj}}</div>"
 
     # if user liked his/her post
     if source.getId() is target.getId() then \
-      return "{{> @avatar}} {{> @actor}} #{activity} their {{> @subj}}"
+      return "{{> @avatar}} <div class='text-overflow'>{{> @actor}} #{activity} their {{> @subj}}</div>"
 
     # rest
-    return "{{> @avatar}} {{> @actor}} #{activity} {{> @origin}}'s {{> @subj}}"
+    return "{{> @avatar}} <div class='text-overflow'>{{> @actor}} #{activity} {{> @origin}}'s {{> @subj}}</div>"
 
 
 class ActivityTickerMemberItem extends ActivityTickerBaseItem
@@ -92,9 +92,9 @@ class ActivityTickerMemberItem extends ActivityTickerBaseItem
     {target} = @getData()
     # if current user did the activity
     if target.getId() is KD.whoami().getId()
-      return "{{> @avatar}} You became a member"
+      return "{{> @avatar}} <div class='text-overflow'>You became a member</div>"
 
-    return "{{> @avatar}} {{> @actor}} became a member"
+    return "{{> @avatar}} <div class='text-overflow'>{{> @actor}} became a member</div>"
 
 class ActivityTickerAppUserItem extends ActivityTickerBaseItem
   constructor: (options = {}, data) ->
@@ -113,9 +113,9 @@ class ActivityTickerAppUserItem extends ActivityTickerBaseItem
   pistachio: ->
     {target} = @getData()
     if target.getId() is KD.whoami().getId()
-      return "{{> @avatar}} You installed {{> @object}}"
+      return "{{> @avatar}} <div class='text-overflow'>You installed {{> @object}}</div>"
 
-    return "{{> @avatar}} {{> @actor}} installed {{> @object}}"
+    return "{{> @avatar}} <div class='text-overflow'>{{> @actor}} installed {{> @object}}</div>"
 
 class ActivityTickerCommentItem extends ActivityTickerBaseItem
   constructor: (options = {}, data) ->
@@ -140,20 +140,20 @@ class ActivityTickerCommentItem extends ActivityTickerBaseItem
     if  source.getId() is KD.whoami().getId()
       # if user commented his/her post
       if source.getId() is target.getId() then \
-        return "{{> @avatar}} You #{activity} your {{> @subj}}"
+        return "{{> @avatar}} <div class='text-overflow'>You #{activity} your {{> @subj}}</div>"
       else
-        return "{{> @avatar}} You #{activity} {{> @subj}}"
+        return "{{> @avatar}} <div class='text-overflow'>You #{activity} {{> @subj}}</div>"
 
     # someone did something to you
     if target.getId() is KD.whoami().getId() then \
-      return "{{> @avatar}} {{> @actor}} #{activity} your {{> @subj}}"
+      return "{{> @avatar}} <div class='text-overflow'>{{> @actor}} #{activity} your {{> @subj}}</div>"
 
     # if user commented his/her post
     if source.getId() is target.getId() then \
-      return "{{> @avatar}} {{> @actor}} #{activity} their {{> @subj}}"
+      return "{{> @avatar}} <div class='text-overflow'>{{> @actor}} #{activity} their {{> @subj}}</div>"
 
     # rest
-    return "{{> @avatar}} {{> @actor}} #{activity} {{> @origin}}'s {{> @subj}}"
+    return "{{> @avatar}} <div class='text-overflow'>{{> @actor}} #{activity} {{> @origin}}'s {{> @subj}}</div>"
 
 class ActivityTickerStatusUpdateItem extends ActivityTickerBaseItem
   constructor: (options = {}, data) ->
@@ -172,9 +172,9 @@ class ActivityTickerStatusUpdateItem extends ActivityTickerBaseItem
   pistachio: ->
     {source, target} = @getData()
     if target.getId() is KD.whoami().getId()
-      return "{{> @avatar}} You posted {{> @subj}}"
+      return "{{> @avatar}} <div class='text-overflow'>You posted {{> @subj}}</div>"
 
-    return "{{> @avatar}} {{> @actor}} posted {{> @subj}}"
+    return "{{> @avatar}} <div class='text-overflow'>{{> @actor}} posted {{> @subj}}</div>"
 
 
 class ActivityTickerItem extends KDListItemView
@@ -213,27 +213,34 @@ class ActiveUserItemView extends KDListItemView
     data = @getData()
 
     @avatar  = new AvatarView
-      size       : width: 25, height: 25
+      size       : width: 30, height: 30
       cssClass   : "avatarview"
       showStatus : yes
     , data
 
     @actor = new ProfileLinkView {}, data
 
+    @followersAndFollowing = new JView
+      cssClass  : 'user-numbers'
+      pistachio : "{{ #(counts.followers)}} followers {{ #(counts.following)}} following"
+    , data
+
     unless KD.isMine data
       @followButton = new FollowButton
-        style          : "solid green"
+        title          : "follow"
+        icon           : yes
         stateOptions   :
           unfollow     :
+            title      : "unfollow"
             cssClass   : 'following-account'
         dataType       : 'JAccount'
       , data
 
   viewAppended:->
     @addSubView @avatar
-    @addSubView @actor
-
     @addSubView @followButton  if @followButton
+    @addSubView @actor
+    @addSubView @followersAndFollowing
 
 class ActiveTopicItemView extends KDListItemView
   constructor: (options = {}, data) ->
@@ -242,9 +249,11 @@ class ActiveTopicItemView extends KDListItemView
 
     @tag = new TagLinkView {}, data
     @followButton = new FollowButton
-      cssClass       : 'solid green'
+      title          : "follow"
+      icon           : yes
       stateOptions   :
         unfollow     :
+          title      : "unfollow"
           cssClass   : 'following-topic'
       dataType       : 'JTag'
     , data

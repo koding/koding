@@ -64,7 +64,9 @@ class FormWorkflow extends KDView
 
     return this
 
-  nextForm: -> try @showForm @nextProvider()
+  nextForm: ->
+    provider = @nextProvider()
+    @showForm provider  if provider?
 
   nextRequirement: -> @collector.nextRequirement()
 
@@ -75,6 +77,8 @@ class FormWorkflow extends KDView
     return provider  if provider?
 
     try @nextProvider key, 0
+    catch e
+      throw e  unless e instanceof RangeError
 
   addForm: (formName, form, provides = []) ->
     @forms[formName] = form
@@ -106,8 +110,8 @@ class FormWorkflow extends KDView
   showForm: (form, shouldPushState = yes) ->
     @hideForms()
     form = @getForm form
-    form.activate? this
     form.show()
+    form.activate? this
 
     @active = form
 
@@ -118,3 +122,9 @@ class FormWorkflow extends KDView
   viewAppended:->
     @prepareWorkflow?()
     @emit 'ready'
+
+  skip: (data) ->
+    v = new KDView
+    v.activate = => @collectData data
+    v
+

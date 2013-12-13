@@ -296,6 +296,7 @@ module.exports = class JAccount extends jraphical.Module
           default           : 0
         lastStatusUpdate    : String
       referrerUsername      : String
+      preferredKDProxyDomain: String
       isExempt              : # is a troll ?
         type                : Boolean
         default             : false
@@ -973,7 +974,28 @@ module.exports = class JAccount extends jraphical.Module
       @fetchActivities selector, options, callback
 
   modify: secure (client, fields, callback) ->
-    if @equals(client.connection.delegate) and 'globalFlags' not in Object.keys(fields)
+
+    allowedFields = [
+      "preferredKDProxyDomain"
+      "profile.about"
+      "profile.description"
+      "profile.ircNickname"
+      "profile.firstName"
+      "profile.lastName"
+      "profile.avatar"
+      "profile.experience"
+      "profile.experiencePoints"
+      "skillTags"
+      "locationTags"
+    ]
+
+    objKeys = Object.keys(fields)
+
+    for objKey in objKeys
+      if objKey not in allowedFields
+        return callback new KodingError "Modify fields is not valid"
+
+    if @equals(client.connection.delegate)
       @update $set: fields, callback
 
   setClientId:(@clientId)->
@@ -1356,7 +1378,7 @@ module.exports = class JAccount extends jraphical.Module
 
   fetchPaymentMethods$: secure (client, callback) ->
     {delegate} = client.connection
-    if delegate is this or delegate.can 'administer accounts'
+    if (delegate.equals this) or delegate.can 'administer accounts'
       @fetchDecoratedPaymentMethods callback
 
   fetchSubscriptions$: secure ({ connection:{ delegate }}, options, callback) ->

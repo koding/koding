@@ -151,7 +151,12 @@ module.exports = class JPaymentPlan extends JPaymentBase
       return callback err  if err
 
       if subscription?
-        return callback 'Already subscribed.'  unless options.multiple
+        unless options.multiple
+          return callback {
+            message               : 'Already subscribed.'
+            short                 : 'existing_subscription'
+            existingSubscription  : subscription
+          }
 
         quantity = subscription.quantity + 1
 

@@ -24,16 +24,18 @@ class ApplicationTabView extends KDTabView
       tabView = this
       pane.on "KDTabPaneDestroy", ->
         # -1 because the pane is still there but will be destroyed after this event
-        if tabView.panes.length - 1 is 0 and options.closeAppWhenAllTabsClosed
-          appManager.quit appManager.getFrontApp()
+        if tabView.panes.length - 1 is 0
+          if options.closeAppWhenAllTabsClosed
+            appManager.quit appManager.getFrontApp()
+          tabView.emit "AllTabsClosed"
         tabView.tabHandleContainer.repositionPlusHandle tabView.handles
 
       {tabHandle}  = pane
       {plusHandle} = @getOptions().tabHandleContainer
-      tabHandle.on "DragInAction", =>
-        plusHandle.hide() if tabHandle.dragIsAllowed
-      tabHandle.on "DragFinished", =>
-        plusHandle.show()
+      tabHandle.on "DragInAction", ->
+        plusHandle?.hide() if tabHandle.dragIsAllowed
+      tabHandle.on "DragFinished", ->
+        plusHandle?.show()
 
     @on "SaveSessionData", (data) =>
       @appStorage.setValue "sessions", data if @isSessionEnabled
@@ -42,7 +44,7 @@ class ApplicationTabView extends KDTabView
       if mainView = pane.getMainView()
         {tabView} = pane.getMainView()
         if this is tabView
-          @getActivePane()?.getHandle?().$().click()
+          @getActivePane()?.getHandle()?.$().click()
 
     mainView = KD.getSingleton("mainViewController").getView()
     mainView.mainTabView.on "PaneDidShow", focusActivePane

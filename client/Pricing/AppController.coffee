@@ -1,19 +1,13 @@
 class PricingAppController extends KDViewController
 
-  KD.registerAppClass this,
-    name         : "Pricing"
-    route        : "/Pricing"
-    multiple     : no
-    openWith     : "forceNew"
-    behavior     : "application"
-    navItem      :
-      title      : "Develop"
-
-  createWorkflow: ->
-    paymentController = KD.getSingleton 'paymentController'
-
-    paymentController.createUpgradeWorkflow 'vm'
-
+  # KD.registerAppClass this,
+  #   name         : "Pricing"
+  #   route        : "/Pricing"
+  #   multiple     : no
+  #   openWith     : "forceNew"
+  #   behavior     : "application"
+  #   navItem      :
+  #     title      : "Develop"
 
   constructor:(options = {}, data)->
 
@@ -26,5 +20,12 @@ class PricingAppController extends KDViewController
 
     super options, data
 
-  open:(path)->
-    @getView().openPath path
+  createWorkflow: ->
+    paymentController = KD.getSingleton 'paymentController'
+
+    workflow = paymentController.createUpgradeWorkflow 'vm'
+
+    workflow.on 'Finished', =>
+      @getView().showThankYou workflow.getData()
+
+    workflow.on 'Cancel', => @getView().showCancellation()

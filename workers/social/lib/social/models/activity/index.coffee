@@ -40,7 +40,7 @@ module.exports = class CActivity extends jraphical.Capsule
     sharedEvents      :
       instance        : []
       static          : ['BucketIsUpdated', 'cacheWorker'
-                         'ActivityIsCreated', 'feed-new']
+                         'ActivityIsCreated']
     sharedMethods     :
       static          :
         fetchFolloweeContents:
@@ -111,12 +111,6 @@ module.exports = class CActivity extends jraphical.Capsule
       originType      : String
       originId        : ObjectId
       group           : String
-
-  @on 'feed-new', (activities)->
-    JGroup = require '../group'
-    grouped = groupBy activities, 'group'
-    for own groupName, items of grouped
-      JGroup.broadcast groupName, 'feed-new', items
 
   @fetchLastActivityTimestamp = (callback) ->
     selector  = {}
