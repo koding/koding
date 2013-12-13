@@ -6,6 +6,8 @@ class ActivityInputWidget extends KDView
     options.cssClass = KD.utils.curry "input-wrapper", options.cssClass
     super options, data
 
+    options.editMode ?= no
+
     @input    = new ActivityInputView
     @input.on "Escape", @bound "reset"
 
@@ -32,11 +34,21 @@ With love from the Koding team.<br>
       iconOnly : yes
       callback : @bound "submit"
 
+    if options.editMode
+      @cancel = new KDButtonView
+        cssClass : "gray"
+        title    : "Cancel"
+        callback : @bound "cancel"
+
     @avatar = new AvatarView
       size      :
         width   : 35
         height  : 35
     , KD.whoami()
+
+  cancel: ->
+    @destroy()
+    @emit "Cancel"
 
   submit: (callback) ->
     return  unless value = @input.getValue().trim()
@@ -86,6 +98,7 @@ With love from the Koding team.<br>
           @reset yes
           @embedBox.resetEmbedAndHide()
           @emit "Submit"
+          @destroy() if @getOptions().editMode
           @notification.show()
           callback? err, activity
     ]
@@ -121,7 +134,6 @@ With love from the Koding team.<br>
     content = activity.body.replace /\n/g, "<br>"
     @input.setContent content, activity
     @embedBox.loadEmbed activity.link.link_url  if activity.link
-    # @submit.setTitle "Update"
 
   reset: (lock = yes) ->
     @input.setContent ""
@@ -147,4 +159,5 @@ With love from the Koding team.<br>
     @addSubView @notification
     @addSubView @embedBox
     @input.addSubView @submit
+    @input.addSubView @cancel if @getOptions().editMode
     @hide()  unless KD.isLoggedIn()
