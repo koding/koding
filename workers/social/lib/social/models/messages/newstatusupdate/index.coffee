@@ -100,6 +100,10 @@ module.exports = class JNewStatusUpdate extends JPost
           (signature Object, Function)
         checkIfLikedBefore:
           (signature Function)
+        fetchLikedByes:[
+          (signature Function)
+          (signature Object, Function)
+        ]
 
     schema            : schema
     relationships     : JPost.relationships
