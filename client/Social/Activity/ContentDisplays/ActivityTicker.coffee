@@ -125,7 +125,7 @@ class ActivityTicker extends ActivityRightBase
   addJoin: (data)->
     {member} = data
 
-    return if isFiltered "member"
+    return if @isFiltered "member"
 
     return console.warn "member is not defined in new member event"  unless member
 
