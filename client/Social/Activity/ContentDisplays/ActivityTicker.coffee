@@ -105,7 +105,7 @@ class ActivityTicker extends ActivityRightBase
     @fetchTags source, (err, tags)=>
       return log "discarding event, invalid data"  if err
       source.tags = tags
-      @addNewItem {source, target, as}, 0
+      @addNewItem {source, target, as}
 
   deleteActivity: (data) ->
     {origin, subject} = data
@@ -132,11 +132,11 @@ class ActivityTicker extends ActivityRightBase
     KD.remote.cacheable constructorName, id, (err, account)=>
       return console.error "account is not found", err if err or not account
       source = KD.getSingleton("groupsController").getCurrentGroup()
-      @addNewItem {as: "member", target: account, source  }, 0
+      @addNewItem {as: "member", target: account, source  }
 
   addFollow: (data)->
     {follower, origin} = data
-    
+
     return if @isFiltered "follower"
 
     return console.warn "data is not valid"  unless follower and origin
@@ -156,7 +156,7 @@ class ActivityTicker extends ActivityRightBase
             target : source
             as     : "follower"
 
-        @addNewItem eventObj, 0
+        @addNewItem eventObj
 
   addLike: (data)->
     {liker, origin, subject} = data
@@ -183,9 +183,9 @@ class ActivityTicker extends ActivityRightBase
             @fetchTags subject, (err, tags)=>
               return log "discarding event, invalid data"  if err
               subject.tags = tags
-              @addNewItem eventObj, 0
+              @addNewItem eventObj
           else
-            @addNewItem eventObj, 0
+            @addNewItem eventObj
 
   addComment: (data) ->
     {origin, reply, subject, replier} = data
@@ -212,7 +212,7 @@ class ActivityTicker extends ActivityRightBase
             return console.log "reply is not found", err, data.reply if err or not object
 
             eventObj = {source, target, subject, object, as:"reply"}
-            @addNewItem eventObj, 0
+            @addNewItem eventObj
 
   continueLoading: (loadOptions = {})->
     loadOptions.continue = @filters
@@ -285,7 +285,7 @@ class ActivityTicker extends ActivityRightBase
     </div>
     """
 
-  addNewItem: (newItem, index) ->
+  addNewItem: (newItem, index=0) ->
     itemId = @getItemId newItem
 
     if not @indexedItems[itemId]
