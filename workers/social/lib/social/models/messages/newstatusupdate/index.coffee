@@ -103,6 +103,7 @@ module.exports = class JNewStatusUpdate extends JPost
         fetchLikedByes:[
           (signature Function)
           (signature Object, Function)
+          (signature Object, Object, Function)
         ]
 
     schema            : schema
