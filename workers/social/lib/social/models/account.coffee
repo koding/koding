@@ -147,8 +147,8 @@ module.exports = class JAccount extends jraphical.Module
         setEmailPreferences:
           (signature Object, Function)
         glanceActivities: [
-          (signature Object, Function)
-          (signature Object, ObjectId, Function)
+          (signature Function)
+          (signature String, Function)
         ]
         fetchRole:
           (signature Function)
@@ -504,6 +504,7 @@ module.exports = class JAccount extends jraphical.Module
 
   fetchGroups: secure (client, options, callback)->
     [callback, options] = [options, callback]  unless callback
+    options       ?= {}
     JGroup        = require './group'
     {groupBy}     = require 'underscore'
     {delegate}    = client.connection
