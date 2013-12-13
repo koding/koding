@@ -1,11 +1,10 @@
 class AccountEmailNotifications extends KDView
 
   viewAppended:->
-    KD.remote.api.JUser.fetchUser (err,user)=>
-      @putContents KD.whoami(), user
+    KD.whoami().fetchEmailFrequency (err, frequency)=>
+      @putContents KD.whoami(), frequency
 
-  putContents:(account, user)->
-
+  putContents:(account, frequency)->
     fields =
       daily            :
         title          : 'Send me a daily email about everything below'
@@ -28,7 +27,7 @@ class AccountEmailNotifications extends KDView
       groupLeft        :
         title          : 'When someone leaves your group'
 
-    globalValue = user.getAt "emailFrequency.global"
+    globalValue = frequency.global
 
     turnedOffHint = new KDCustomHTMLView
       partial : "Email notifications are turned off. You won't receive any emails about anything."
@@ -56,7 +55,7 @@ class AccountEmailNotifications extends KDView
         title        : field.title
         cssClass     : "main-label" # +if flag isnt 'global' then 'indent' else ''
 
-      field.current = user.getAt("emailFrequency.#{flag}")
+      field.current = frequency[flag]
 
       field.formView.addSubView field.switch = new KodingSwitch
         cssClass      : 'dark'
