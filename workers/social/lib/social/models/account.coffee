@@ -338,9 +338,9 @@ module.exports = class JAccount extends jraphical.Module
         as          : 'creator'
         targetType  : [
           "JNewStatusUpdate"
+          "JComment"
 #          "CActivity"
 #          "JCodeSnip"
-#          "JComment"
 #          "JReview"
 #          "JDiscussion"
 #          "JOpinion"

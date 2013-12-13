@@ -68,7 +68,9 @@ module.exports = class JPost extends jraphical.Message
     tagRole           : 'tag'
     schema            : schema
     relationships     :
-      comment         : JComment
+      comment         :
+        targetType    : JComment
+        as            : 'reply'
       participant     :
         targetType    : JAccount
         as            : ['author','commenter']
