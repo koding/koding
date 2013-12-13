@@ -85,7 +85,7 @@ class AvatarPopupGroupSwitcher extends AvatarPopup
     # FIXME:
     KD.utils.wait 2000, =>
       group = KD.getSingleton("groupsController").getCurrentGroup()
-      group.canEditGroup? (err, success)=>
+      group?.canEditGroup (err, success)=>
         if success
           dashboard.show()
           dashboard.on 'click', (event)=>
