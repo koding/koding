@@ -4,6 +4,7 @@ deepFreeze      = require 'koding-deep-freeze'
 
 version         = "0.0.1"
 mongo           = 'localhost:27017/koding'
+mongoKontrol    = 'localhost:27017/kontrol'
 projectRoot     = nodePath.join __dirname, '..'
 socialQueueName = "koding-social-vagrant"
 
@@ -34,6 +35,7 @@ module.exports =
     enabled     : yes
     port        : 3526
   mongo         : mongo
+  mongoKontrol  : mongoKontrol
   mongoReplSet  : null
   neo4j         :
     read        : "http://localhost"

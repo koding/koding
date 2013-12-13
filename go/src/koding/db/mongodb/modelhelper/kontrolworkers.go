@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"koding/db/models"
 	"koding/db/mongodb"
+	"koding/tools/config"
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
 	"log"
@@ -13,6 +14,10 @@ const (
 	WorkersCollection = "jKontrolWorkers"
 	WorkersDB         = "kontrol"
 )
+
+func init() {
+	mongodb.ChangeURL(config.Current.MongoKontrol)
+}
 
 func GetWorker(uuid string) (models.Worker, error) {
 	result := models.Worker{}

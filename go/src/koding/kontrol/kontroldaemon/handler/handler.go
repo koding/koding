@@ -9,6 +9,7 @@ import (
 	"koding/db/mongodb/modelhelper"
 	"koding/kontrol/kontroldaemon/workerconfig"
 	"koding/kontrol/kontrolhelper"
+	"koding/tools/config"
 	"koding/tools/slog"
 	"strconv"
 	"strings"
@@ -42,6 +43,8 @@ func Startup() {
 	if err != nil {
 		slog.Printf("clientExchange exchange.declare: %s\n", err)
 	}
+
+	mongodb.ChangeURL(config.Current.MongoKontrol)
 
 	go heartBeatChecker()
 	go deploymentCleaner()

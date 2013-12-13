@@ -38,6 +38,7 @@ module.exports =
     write       : "http://172.16.6.12"
     port        : 7474
   mongo         : 'dev:k9lc4G1k32nyD72@172.16.6.13:27017/koding'
+  mongoKontrol  : 'dev:k9lc4G1k32nyD72@172.16.6.13:27017/kontrol'
   mongoReplSet  : null
   runNeo4jFeeder: yes
   runGoBroker   : no
