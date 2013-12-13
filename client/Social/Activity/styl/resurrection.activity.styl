@@ -986,6 +986,7 @@ span.status-body
 /* Temp style for contentdisplay */
 
 .content-display
+
   .sub-header
     margin                22px 0 0
     display               inline-block
@@ -997,3 +998,14 @@ span.status-body
     a
       color               #50595a
       noTextDeco()
+
+
+  // quick fix:
+  // burak please check and fix if necessary - SY
+  &.activity-related.status
+    kalc                  width, (100% \- 100px)
+    margin-left           100px
+    overflow              visible
+
+    .sub-header
+      margin-left         -78px

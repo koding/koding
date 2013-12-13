@@ -135,9 +135,9 @@ class GroupsInvitationView extends KDView
       cssClass           : 'invite-by-email'
       callback           : ({emails, message, saveMessage, bcc})=>
 
-        KD.remote.api.JUser.fetchUser (err, user)=>
+        KD.whoami().fetchFromUser "email", (err, userEmail)=>
           emailList = emails.split(/\n/).map (email)-> email.trim()
-          if user.email in emailList
+          if userEmail in emailList
             @inviteByEmail.modalTabs.forms.invite.buttons.Send.hideLoader()
             return new KDNotificationView
               title: "You cannot invite yourself!"

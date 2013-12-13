@@ -11,7 +11,7 @@ class ActivityTickerBaseItem extends JView
     JTag               : TagLinkView
     JGroup             : GroupLinkView
     JNewStatusUpdate   : ActivityLinkView
-    JComment           : ActivityCommentView
+    JComment           : ActivityLinkView
 
 class ActivityTickerFollowItem extends ActivityTickerBaseItem
   constructor: (options = {}, data) ->
@@ -121,7 +121,7 @@ class ActivityTickerCommentItem extends ActivityTickerBaseItem
   constructor: (options = {}, data) ->
     super options, data
 
-    {source, target, subject} = data
+    {source, target, object, subject} = data
 
     @avatar    = new AvatarView
       size     : width: 28, height: 28
@@ -130,7 +130,7 @@ class ActivityTickerCommentItem extends ActivityTickerBaseItem
 
     @actor    = new ProfileLinkView null, source
     @origin   = new ProfileLinkView null, target
-    @subj     = new ActivityLinkView null, subject
+    @subj     = new ActivityLinkView null, object
 
   pistachio: ->
     {source, target, subject} = @getData()
