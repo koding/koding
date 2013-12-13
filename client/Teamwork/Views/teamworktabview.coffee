@@ -8,10 +8,16 @@ class TeamworkTabView extends CollaborativePane
     @keysRef  = @workspaceRef.child "keys"
     @indexRef = @workspaceRef.child "index"
 
-    @listenIndexRef()
-    @listenChildAddedOnKeysRef()
     @listenChildRemovedOnKeysRef()
-    @listenPaneDidShow()
+    if @amIHost
+      @bindRemoteEvents()
+    else
+      @keysRef.once "value", (snapshot) =>
+        data = snapshot.val()
+        return unless data
+
+        @keysRefChildAddedCallback value  for key, value of data
+        @bindRemoteEvents()
 
   listenPaneDidShow: ->
     @tabView.on "PaneDidShow", (pane) =>
@@ -27,14 +33,21 @@ class TeamworkTabView extends CollaborativePane
         if pane.getOptions().indexKey is indexKey
           @tabView.removePane pane
 
+  bindRemoteEvents: ->
+    @listenPaneDidShow()
+    @listenIndexRef()
+    @listenChildAddedOnKeysRef()
+
   listenChildAddedOnKeysRef: ->
     @keysRef.on "child_added", (snapshot) =>
-      data    = snapshot.val()
-      key     = data.indexKey
-      {panes} = @tabView
-      isExist = yes for pane in panes when pane.getOptions().indexKey is key
+      @keysRefChildAddedCallback snapshot.val()
 
-      @createTabFromFirebaseData data  unless isExist
+  keysRefChildAddedCallback: (data) ->
+    key     = data.indexKey
+    {panes} = @tabView
+    isExist = yes for pane in panes when pane.getOptions().indexKey is key
+
+    @createTabFromFirebaseData data  unless isExist
 
   listenIndexRef: ->
     @indexRef.on "value", (snapshot) =>
