@@ -124,12 +124,6 @@ body.profile
               padding         0 0 8px
 
       .user-menu
-        .badge-property
-          color               gray
-          .number
-            color             white
-            font-weight       bold
-
         padding               26px 52px 0 44px
         a
           display             block
@@ -159,6 +153,35 @@ body.profile
             font-size         14px
             color             #707879
             fr()
+
+      .user-badges
+        padding               26px 52px 0 44px
+
+        h3
+          display             block
+          font-size           18px
+          color               #1aaf5d
+          font-weight         400
+          letter-spacing      0.2px
+          margin              0 0 36px
+
+        .kdlistitemview
+          width               74px
+          margin              0 0 18px 18px
+          text-align          center
+          color               rgba(233, 233, 233, .6)
+          font-size           14px
+          font-weight         100
+          letter-spacing      0.5px
+          fl()
+
+          &:nth-child(3n+1)
+            margin-left       0
+
+          img
+            size              74px, 74px
+            margin-bottom     14px
+
 
   /* Profile page specific color changes to activity items */
   .activity-item
