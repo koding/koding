@@ -38,7 +38,9 @@ class ActivityTicker extends ActivityRightBase
     group.on "LikeIsAdded", @bound "addLike"
     group.on "FollowHappened", @bound "addFollow"
     group.on "PostIsCreated", @bound "addActivity"
-    group.on "ReplyIsAdded", @bound "addComment"
+    # disable for now, since we dont have comment view
+    # and comments doesnt have slug
+    # group.on "ReplyIsAdded", @bound "addComment"
     group.on "PostIsDeleted", @bound "deleteActivity"
 
     @listController.listView.on 'ItemWasAdded', (view, index) =>
