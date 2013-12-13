@@ -263,8 +263,6 @@ class ActivityTicker extends ActivityRightBase
       lastItemTimestamp = (new Date(timestamp)).getTime()
       loadOptions.from = lastItemTimestamp
 
-    # remove from options
-    delete loadOptions.tryCount
     KD.remote.api.ActivityTicker.fetch loadOptions, (err, items = []) =>
       @listController.hideLazyLoader()
       # if we had any error, try loading again

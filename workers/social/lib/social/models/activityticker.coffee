@@ -197,9 +197,8 @@ module.exports = class ActivityTicker extends Base
       @_fetch requestOptions, callback
     else
       Cache  = require '../cache/main'
-      feedFn = @_fetch
-      getCacheKey =-> return "activityticker"
-      Cache.fetch getCacheKey(), feedFn, requestOptions, (err, data)=>
+      cacheKey = "activityticker"
+      Cache.fetch cacheKey, @_fetch, requestOptions, (err, data)=>
         # if data is not set, or it is empty
         # fetch from db
         if err or not data or Object.keys(data).length is 0
