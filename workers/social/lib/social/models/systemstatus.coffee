@@ -1,4 +1,4 @@
-{Model, Base, secure, daisy} = require 'bongo'
+{Model, Base, secure, daisy, signature} = require 'bongo'
 KodingError = require '../error'
 
 module.exports = class JSystemStatus extends Model
@@ -6,9 +6,18 @@ module.exports = class JSystemStatus extends Model
   @share()
 
   @set
+
     sharedMethods    :
-      static         : ['getCurrentSystemStatus','create'
-                        'stopCurrentSystemStatus','forceReload']
+      static         :
+        getCurrentSystemStatus:
+          (signature Function)
+        create:
+          (signature Object, Function)
+        stopCurrentSystemStatus:
+          (signature Function)
+        forceReload:
+          (do signature)
+
     sharedEvents     :
       static         : ['forceReload']
       instance       : ['restartCanceled', 'restartScheduled']

@@ -4,7 +4,7 @@ module.exports = class JDomain extends jraphical.Module
   DomainManager      = require 'domainer'
   Validators         = require './group/validators'
   KodingError        = require '../error'
-  {secure, ObjectId} = require 'bongo'
+  {secure, ObjectId, signature} = require 'bongo'
   {Relationship}     = jraphical
   {permit}           = require './group/permissionset'
   JGroup             = require './group'
@@ -30,21 +30,57 @@ module.exports = class JDomain extends jraphical.Module
       'list domains'       : ['member']
       'list own domains'   : ['member']
 
-    sharedMethods   :  # Basic methods
-      instance      : ['bindVM', 'unbindVM', 'remove'
+    sharedMethods:
 
-                       # Proxy Methods
-                       'deleteProxyRule', 'createProxyRule', 'fetchProxyRules',
-                       'updateProxyRule', 'updateRuleOrders',
-                       'createProxyFilter', 'fetchProxyFilters',
-                       'fetchProxyRulesWithMatches'
+      static: 
+        one:
+          (signature Object, Function)
+        getDomainInfo:
+          (signature String, Function)
+        registerDomain:
+          (signature Object, Function)
+        getTldList:
+          (signature Function)
+        createDomain: [
+          (signature Function)
+          (signature Object, Function)
+        ]
+        getTldPrice:
+          (signature String, Function)
+        getDomainSuggestions:
+          (signature String, Function)
 
-                       # DNS Related methods
-                       'fetchDNSRecords', 'createDNSRecord', 'deleteDNSRecord',
-                       'updateDNSRecord', 'setDomainCNameToProxyDomain'
-                      ]
-      static        : ['one', 'getDomainInfo', 'registerDomain', 'getTldList'
-                       'createDomain', 'getTldPrice', 'getDomainSuggestions']
+      instance      :
+        # Basic methods
+        bindVM:
+          (signature Object, Function)
+        unbindVM:
+          (signature Object, Function)
+        remove:
+          (signature Function)
+        # Proxy Methods
+        deleteProxyRule:
+          (signature Object, Function)
+        createProxyRule:
+          (signature Object, Function)
+        fetchProxyRules:
+          (signature Function)
+        updateProxyRule:
+          (signature Object, Function)
+        updateRuleOrders:
+          (signature [Object], Function)
+        fetchProxyRulesWithMatches:
+          (signature Function)
+        # DNS Related methods
+        fetchDNSRecords:
+          (signature String, Function)
+        createDNSRecord:
+          (signature Object, Function)
+        deleteDNSRecord:
+          (signature Object, Function)
+        updateDNSRecord:
+          (signature Object, Function)
+
     sharedEvents    :
       static        : [
         { name : "RemovedFromCollection" }
@@ -148,7 +184,8 @@ module.exports = class JDomain extends jraphical.Module
           return callback null, no  unless hasPermission
           callback null, !/shared[\-]?([0-9]+)?$/.test prefix
 
-  @createDomain: secure (client, options={}, callback)->
+  @createDomain: secure (client, options, callback)->
+    [callback, options] = [options, callback]  unless callback
     {delegate} = client.connection
 
     JGroup.one {slug:'koding'}, (err, group)->
@@ -193,13 +230,6 @@ module.exports = class JDomain extends jraphical.Module
 
   @getTldPrice = (tld, callback) ->
     domainManager.domainService.getTldPrice tld, callback
-
-  # Where the hell security here? ~ GG
-  setDomainCNameToProxyDomain:(callback)->
-    domainManager.domainService.updateDomainCName
-      domainName : @domain
-      orderId    : @orderId.resellerClub
-    , (err, response)-> callback err, response if callback?
 
   @registerDomain = permit 'create domains',
 
@@ -309,7 +339,7 @@ module.exports = class JDomain extends jraphical.Module
     success: (client, callback)->
       {delegate} = client.connection
       if /^([\w\-]+)\.kd\.io$/.test @domain
-        return callback new KodingError "It's not allowed to delete root domains"
+        return callback message: "It's not allowed to delete root domains"
       @remove (err)=> callback err
 
   # DNS Related Methods

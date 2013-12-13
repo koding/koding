@@ -3,7 +3,7 @@ JAccount = require '../../account'
 
 module.exports = class JComment extends jraphical.Reply
 
-  {ObjectId,ObjectRef,dash,daisy,secure} = require 'bongo'
+  {ObjectId,ObjectRef,dash,daisy,secure,signature} = require 'bongo'
   {Relationship}  = require 'jraphical'
 
   @trait __dirname, '../../../traits/likeable'
@@ -18,8 +18,22 @@ module.exports = class JComment extends jraphical.Reply
 
   @set
     sharedMethods  :
-      static       : ['fetchRelated', 'one']
-      instance     : ['delete','like','fetchLikedByes','checkIfLikedBefore']
+      static       :
+        fetchRelated:
+          (signature ObjectId, Function)
+        one:
+          (signature Object, Function)
+      instance     :
+        delete:
+          (signature Function)
+        like:
+          (signature Function)
+        fetchLikedByes: [
+          (signature Function)
+          (signature Object, Function)
+        ]
+        checkIfLikedBefore:
+          (signature Function)
     sharedEvents  :
       instance    : [
         { name: 'updateInstance' }

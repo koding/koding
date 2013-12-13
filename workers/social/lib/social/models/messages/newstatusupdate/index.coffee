@@ -1,7 +1,7 @@
 JPost = require '../post'
 {extend} = require 'underscore'
 module.exports = class JNewStatusUpdate extends JPost
-  {secure, race} = require 'bongo'
+  {secure, race, signature} = require 'bongo'
   {Relationship} = require 'jraphical'
   {permit} = require '../../group/permissionset'
   {once, extend} = require 'underscore'
@@ -33,15 +33,79 @@ module.exports = class JNewStatusUpdate extends JPost
         { name: 'RemovedFromCollection' }
       ]
     sharedMethods     :
-      static          : [
-        'create','one','fetchDataFromEmbedly','updateAllSlugs',
-        'fetchFollowingFeed', 'fetchTopicFeed', 'fetchProfileFeed','fetchGroupActivity'
-      ]
-      instance        : [
-        'reply','restComments','commentsByRange'
-        'like','fetchLikedByes','mark','unmark','fetchTags'
-        'delete','modify','fetchRelativeComments','checkIfLikedBefore'
-      ]
+      static          :
+        create:
+          (signature Object, Function)
+        one:
+          (signature Object, Function)
+        fetchDataFromEmbedly: [
+          (signature String, Object, Function)
+          (signature [String], Object, Function)
+        ]
+        updateAllSlugs: [
+          (signature Function)
+          (signature Object, Function)
+        ]
+        fetchFollowingFeed: [
+          (signature Function)
+          (signature Object, Function)
+        ]
+        fetchTopicFeed: [
+          (signature Function)
+          (signature Object, Function)
+        ]
+        fetchProfileFeed: [
+          (signature Function)
+          (signature Object, Function)
+        ]
+        fetchGroupActivity: [
+          (signature Function)
+          (signature Object, Function)
+        ]
+
+      instance        :
+        reply:
+          (signature String, Function)
+        restComments: [
+          (signature Function)
+          (signature Number, Function)
+        ]
+        commentsByRange: [
+          (signature Function)
+          (signature Object, Function)
+        ]
+        like:
+          (signature Function)
+        fetchLikedByes: [
+          (signature Function)
+          (signature Object, Function)
+        ]
+        mark: [
+          (signature String)
+          (signature String, Function)
+        ]
+        unmark: [
+          (signature String)
+          (signature String, Function)
+        ]
+        fetchTags: [
+          (signature Function)
+          (signature Object, Function)
+        ]
+        delete:
+          (signature Function)
+        modify:
+          (signature Object, Function)
+        fetchRelativeComments:
+          (signature Object, Function)
+        checkIfLikedBefore:
+          (signature Function)
+        fetchLikedByes:[
+          (signature Function)
+          (signature Object, Function)
+          (signature Object, Object, Function)
+        ]
+
     schema            : schema
     relationships     : JPost.relationships
 

@@ -2,6 +2,8 @@ JPaymentBase = require './base'
 
 module.exports = class JPaymentProduct extends JPaymentBase
 
+  { signature } = require 'bongo'
+
   createId = require 'hat'
   recurly = require 'koding-payment'
 
@@ -11,14 +13,16 @@ module.exports = class JPaymentProduct extends JPaymentBase
 
   @set
     sharedMethods     :
-      static          : [
-        'create'
-        'removeByCode'
-      ]
-      instance        : [
-        'remove'
-        'modify'
-      ]
+      static          :
+        create        :
+          (signature Object, Function)
+        removeByCode  :
+          (signature String, Function)
+      instance        :
+        remove        :
+          (signature Function)
+        modify        :
+          (signature Object, Function)
     schema            :
       planCode        :
         type          : String

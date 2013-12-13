@@ -7,15 +7,26 @@ module.exports = class JKodingKey extends jraphical.Module
 
   {Relationship} = jraphical
 
-  {Base, secure, race} = require 'bongo'
+  {Base, secure, race, signature} = require 'bongo'
 
   @share()
 
   @set
     softDelete        : yes
     sharedMethods     :
-      instance        : ['revoke']
-      static          : ['create', 'fetchAll', 'fetchByKey']
+
+      instance        :
+        revoke        :
+          (signature Function)
+
+      static          :
+        create        :
+          (signature Object, Function)
+        fetchAll      :
+          (signature Object, Function)
+        fetchByKey    :
+          (signature Object, Function)
+
     indexes           :
       key             : ['unique']
     schema            :

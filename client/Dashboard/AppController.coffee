@@ -21,11 +21,6 @@ class DashboardAppController extends AppController
     super options, data
 
     @tabData = [
-      #   name        : 'Readme'
-      #   viewOptions :
-      #     viewClass : GroupReadmeView
-      #     lazy      : no
-      # ,
         name         : 'Settings'
         viewOptions  :
           viewClass  : GroupGeneralSettingsView
@@ -115,12 +110,3 @@ class DashboardAppController extends AppController
 
   productViewAdded: (pane, view) ->
     new GroupProductsController { view }
-
-  # vocabularyViewAdded:(pane, view)->
-  #   group = view.getData()
-  #   group.fetchVocabulary (err, vocab)-> view.setVocabulary vocab
-  #   view.on 'VocabularyCreateRequested', ->
-  #     {JVocabulary} = KD.remote.api
-  #     JVocabulary.create {}, (err, vocab)-> view.setVocabulary vocab
-
-  # bundleViewAdded:(pane, view)-> console.log 'bundle view', view

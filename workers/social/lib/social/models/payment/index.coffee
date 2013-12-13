@@ -3,7 +3,7 @@ recurly = require 'koding-payment'
 
 module.exports = class JPayment extends Base
 
-  {secure, dash} = require 'bongo'
+  {secure, dash, signature} = require 'bongo'
   {difference, extend} = require 'underscore'
 
   JUser = require '../user'
@@ -12,14 +12,15 @@ module.exports = class JPayment extends Base
 
   @set
     sharedMethods  :
-      static       : [
-        'getBalance'
-        'setPaymentInfo'
-        'fetchAccountDetails'
-        'fetchTransactions'
-        'fetchCountryDataByIp'
-        'removePaymentMethod'
-      ]
+      static       :
+        setPaymentInfo:
+          (signature String, Object, Function)
+        fetchTransactions:
+          (signature Function)
+        fetchCountryDataByIp:
+          (signature String, Function)
+        removePaymentMethod:
+          (signature String, Function)
 
   @removePaymentMethod: secure (client, paymentMethodId, callback) ->
     (require './method').removePaymentMethod client, paymentMethodId, callback
@@ -27,10 +28,6 @@ module.exports = class JPayment extends Base
   @setPaymentInfo = secure (client, paymentMethodId, data, callback) ->
     [data, callback, paymentMethodId] = [paymentMethodId, data, callback]  unless callback
     (require './method').updatePaymentMethodById client, paymentMethodId, data, callback
-
-  @fetchAccountDetails = secure ({ connection:{ delegate }}, callback)->
-    console.error 'needs to be reimplemented'
-#    recurly.fetchAccountDetailsByPaymentMethodId (userCodeOf delegate), callback
 
   @fetchTransactions = secure ({ connection:{ delegate }}, callback) ->
     delegate.fetchPaymentMethods (err, paymentMethods) ->
