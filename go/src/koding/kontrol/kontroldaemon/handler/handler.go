@@ -28,7 +28,7 @@ var producer *kontrolhelper.Producer
 
 const (
 	WorkersCollection = "jKontrolWorkers"
-	WorkersDB         = "KontrolWorkers"
+	WorkersDB         = "kontrol"
 )
 
 func Startup() {
