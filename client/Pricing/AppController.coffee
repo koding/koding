@@ -1,13 +1,13 @@
 class PricingAppController extends KDViewController
 
-  KD.registerAppClass this,
-    name         : "Pricing"
-    route        : "/Pricing"
-    multiple     : no
-    openWith     : "forceNew"
-    behavior     : "application"
-    navItem      :
-      title      : "Develop"
+  # KD.registerAppClass this,
+  #   name         : "Pricing"
+  #   route        : "/Pricing"
+  #   multiple     : no
+  #   openWith     : "forceNew"
+  #   behavior     : "application"
+  #   navItem      :
+  #     title      : "Develop"
 
   constructor:(options = {}, data)->
 
