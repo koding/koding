@@ -247,7 +247,7 @@ class GroupsListItemView extends KDListItemView
       callback err
 
   cancelRequest:(group, callback)->
-    KD.whoami().cancelRequest group, @handleBackendResponse 'Successfully canceled the request!', callback
+    KD.whoami().cancelRequest group.slug, @handleBackendResponse 'Successfully canceled the request!', callback
 
   acceptInvitation:->
     KD.whoami().acceptInvitation @getData(), @handleBackendResponse 'Successfully accepted the invitation!', (err)=>
