@@ -7,7 +7,6 @@ class ActivityTicker extends ActivityRightBase
     super options, data
 
     @filters = null
-    @tryCount = 0
 
     @listController = new KDListViewController
       lazyLoadThreshold: .99
@@ -242,16 +241,17 @@ class ActivityTicker extends ActivityRightBase
     return item
 
   tryLoadingAgain:(loadOptions={})->
-    unless @tryCount?
+    unless loadOptions.tryCount?
       return warn "Current try count is not defined, discarding request"
 
-    if @tryCount >= 10
+    if loadOptions.tryCount >= 10
       return warn "Reached max re-tries for What is Happening widget"
 
-    @tryCount++
+    loadOptions.tryCount++
     return @load loadOptions
 
   load: (loadOptions = {})->
+    loadOptions.tryCount = loadOptions.tryCount or 0
     if loadOptions.filters
       @filters = loadOptions.filters
 
@@ -274,7 +274,7 @@ class ActivityTicker extends ActivityRightBase
         return @tryLoadingAgain loadOptions
 
       for item in items when @filterItem item
-        @addNewItem item
+        @addNewItem item, @listController.getItemCount()
 
       if @listController.getItemCount() < 15
         @tryLoadingAgain loadOptions
