@@ -1,4 +1,4 @@
-class LikeView extends KDView
+class LikeView extends JView
 
   constructor:(options={}, data)->
 
@@ -30,8 +30,6 @@ class LikeView extends KDView
       , data
 
     @likeLink = new ActivityActionLink
-
-    @setTemplate @pistachio()
 
     # We need to getridoff this asap FIXME ~HK
     if options.checkIfLikedBefore and KD.isLoggedIn()
