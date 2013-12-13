@@ -307,12 +307,11 @@ class CollaborativeWorkspace extends Workspace
     }
 
   addToHistory: (data) ->
-    target = @historyRef.child Date.now()
-    if typeof data is "string"
-      target.set message: data.replace "$0", KD.nick()
-    else
-      data.message = data.message.replace "$0", KD.nick()  if data.message
-      target.set data
+    target       = @historyRef.child Date.now()
+    data         = message: data  if typeof data is "string"
+    data.message = data.message.replace "$0", KD.nick()
+
+    target.set data
 
   broadcastMessage: (details) ->
     @broadcastRef.set
