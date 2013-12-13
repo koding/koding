@@ -184,3 +184,20 @@ module.exports = class ActivityTicker extends Base
         daisy queue
 
 
+  @fetch = secure (client, options = {}, callback) ->
+    # TODO - add group security here
+    requestOptions = { client, options }
+
+    if options.from or options.filters
+      @_fetch requestOptions, callback
+    else
+      Cache  = require '../cache/main'
+      feedFn = @_fetch
+      getCacheKey =-> return "activityticker"
+      Cache.fetch getCacheKey(), feedFn, requestOptions, (err, data)=>
+        # if data is not set, or it is empty
+        # fetch from db
+        if err or not data or Object.keys(data).length is 0
+          @_fetch requestOptions, callback
+        else
+          callback err, data
