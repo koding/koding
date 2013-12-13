@@ -158,6 +158,11 @@ projects      =
     script        : "website/js/__app.pricing.#{KODING_VERSION}.js"
     sourceMapRoot : "Pricing/"
 
+  Demos           :
+    files         : "client/Demos/includes.coffee"
+    style         : "website/css/__app.demos.#{KODING_VERSION}.css"
+    script        : "website/js/__app.demos.#{KODING_VERSION}.js"
+    sourceMapRoot : "Demos/"
 
 bundles           =
 
