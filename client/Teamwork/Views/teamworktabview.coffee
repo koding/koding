@@ -42,7 +42,7 @@ class TeamworkTabView extends CollaborativePane
 
       {indexKey} = data
       for pane in @tabView.panes
-        if pane.getOptions().indexKey is indexKey
+        if pane?.getOptions().indexKey is indexKey
           @tabView.removePane pane
 
   bindRemoteEvents: ->
@@ -106,14 +106,15 @@ class TeamworkTabView extends CollaborativePane
         callback  : => @handlePaneCreate "terminal", => @createTerminal()
       "Browser"   :
         callback  : => @handlePaneCreate "preview",  => @createPreview()
-      "Drawing Boar d":
+      "Drawing Board":
         callback  : => @handlePaneCreate "drawing",  => @createDrawingBoard()
       # "Chat"      :
       #   callback  : => @createChat()
     }
 
   handlePaneCreate: (paneType, callback = noop) =>
-    if @amIHost then callback()
+    if @amIHost
+      callback()
     else
       @requestRef.set
         type : paneType

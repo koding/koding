@@ -117,6 +117,7 @@ class TeamworkDashboard extends JView
 
   pistachio: ->
     """
+      <!--
       <div class="welcome">
         <h2 class="title">Welcome to Teamwork</h2>
         <div class="video">
@@ -134,6 +135,7 @@ class TeamworkDashboard extends JView
         </div>
       </div>
       {{> @sessionButton}}
+      -->
       <div class="actions">
         <div class="tw-items-container">
           <div class="item team-up">

@@ -120,7 +120,7 @@ class CollaborativeDrawingPane extends CollaborativePane
     ctx.lineTo x, y
     ctx.stroke()
 
-  setUserColor: () ->
+  setUserColor: ->
     nickname              = KD.nick()
     color                 = KD.utils.getRandomHex()
     @userColors[nickname] = color

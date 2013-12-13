@@ -78,12 +78,12 @@ class TeamworkWorkspace extends CollaborativeWorkspace
       KD.utils.wait 500, => # prevent double triggered firebase event.
         @fetchUsers()
 
-  createLoader: ->
-    @container.addSubView @loader = new KDCustomHTMLView
-      cssClass   : "teamwork-loader"
-      tagName    : "img"
-      attributes :
-        src      : "#{KD.apiUri}/images/teamwork/loading.gif"
+  # createLoader: ->
+  #   @container.addSubView @loader = new KDCustomHTMLView
+  #     cssClass   : "teamwork-loader"
+  #     tagName    : "img"
+  #     attributes :
+  #       src      : "#{KD.apiUri}/images/teamwork/loading.gif"
 
   startNewSession: (options) ->
     KD.mixpanel "User Started Teamwork session"
