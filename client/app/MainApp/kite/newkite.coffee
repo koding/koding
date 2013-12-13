@@ -16,8 +16,12 @@ class NewKite extends KDObject
     @initBackoff options  if @autoReconnect
 
     @handlers =
-      log   : (options, cb)-> log options.withArgs
-      alert : (options, cb)-> alert options.withArgs
+      log   : (options)->
+        log options.withArgs...
+        options.responseCallback()
+      alert : (options)->
+        alert options.withArgs...
+        options.responseCallback()
 
     @proto = new Bongo.dnodeProtocol.Session null, @handlers
     @proto.on 'request', (req)=>
@@ -46,9 +50,13 @@ class NewKite extends KDObject
 
   # Call a method on the connected Kite.
   tell: (method, args, cb) ->
+    if not Array.isArray(args)
+      args = [args]
+
     options =
-      authentication : @authentication
-      withArgs       : args
+      authentication   : @authentication
+      withArgs         : args
+      responseCallback : cb
 
     # Normally the request is made with the following statement:
     #   @proto.request method, [options, cb]
@@ -57,7 +65,7 @@ class NewKite extends KDObject
     # will never be called again. That's why we are deleting to
     # free the memory with the code below.
     scrubber = new Bongo.dnodeProtocol.Scrubber @proto.localStore
-    scrubber.scrub [options, cb], =>
+    scrubber.scrub [options], =>
       scrubbed = scrubber.toDnodeProtocol()
       scrubbed.method = method
       @proto.emit 'request', scrubbed
@@ -72,7 +80,8 @@ class NewKite extends KDObject
         # replace the handler. when called it will remove the handler.
         @proto.localStore.items[id] = ()=>
           delete @proto.localStore.items[id]
-          fn.apply null, arguments
+          response = arguments[0].withArgs[0]
+          fn.apply null, [response.error, response.result]
 
   onOpen: ->
     log "Connected to Kite: #{@kite.name}"
