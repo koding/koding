@@ -133,10 +133,6 @@ class MainView extends KDView
 
   createLoggedInAccountArea:->
 
-    @accountArea.addSubView new KDCustomHTMLView
-      cssClass   : 'nominateicon'
-      click      : -> new NominateModal
-
     @accountArea.addSubView @accountMenu = new AvatarAreaIconMenu
     @accountMenu.accountChanged KD.whoami()
 
