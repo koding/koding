@@ -9,13 +9,34 @@ class ActivityInputWidget extends KDView
     @input    = new ActivityInputView
     @input.on "Escape", @bound "reset"
 
+    @notification = new KDView
+      cssClass : "notification hidden"
+      partial  : """
+This is a sneak peek beta for testing purposes only. If you find any bugs, please post them here on the activity feed with the tag #bug. Beware that your activities could be discarded.<br><br>
+
+Please take a short survey about <a href="http://bit.ly/1jsjlna">New Koding.</a><br><br>
+
+With love from the Koding team.<br>
+      """
+
+    @notification.addSubView new KDCustomHTMLView
+      tagName : "span"
+      cssClass: "close-tab"
+      click   : => @notification.destroy()
+
     @embedBox = new EmbedBoxWidget delegate: @input, data
 
     @submit    = new KDButtonView
       type     : "submit"
       cssClass : "solid green"
-      title    : "Post"
+      iconOnly : yes
       callback : @bound "submit"
+
+    @avatar = new AvatarView
+      size      :
+        width   : 35
+        height  : 35
+    , KD.whoami()
 
   submit: (callback) ->
     return  unless value = @input.getValue().trim()
@@ -65,6 +86,7 @@ class ActivityInputWidget extends KDView
           @reset yes
           @embedBox.resetEmbedAndHide()
           @emit "Submit"
+          @notification.show()
           callback? err, activity
     ]
 
@@ -99,13 +121,13 @@ class ActivityInputWidget extends KDView
     content = activity.body.replace /\n/g, "<br>"
     @input.setContent content, activity
     @embedBox.loadEmbed activity.link.link_url  if activity.link
-    @submit.setTitle "Update"
+    # @submit.setTitle "Update"
 
   reset: (lock = yes) ->
     @input.setContent ""
     @input.blur()
     @embedBox.resetEmbedAndHide()
-    @submit.setTitle "Post"
+    # @submit.setTitle "Post"
     @submit.focus()
     setTimeout (@bound "unlockSubmit"), 8000
     @setData null
@@ -113,14 +135,16 @@ class ActivityInputWidget extends KDView
 
   lockSubmit: ->
     @submit.disable()
-    @submit.setTitle "Wait"
+    # @submit.setTitle "Wait"
 
   unlockSubmit: ->
     @submit.enable()
-    @submit.setTitle "Post"
+    # @submit.setTitle "Post"
 
   viewAppended: ->
+    @addSubView @avatar
     @addSubView @input
+    @addSubView @notification
     @addSubView @embedBox
     @input.addSubView @submit
     @hide()  unless KD.isLoggedIn()

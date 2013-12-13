@@ -156,6 +156,9 @@ module.exports = class JAccount extends jraphical.Module
         'fetchPaymentMethods'
         'fetchSubscriptions'
         'fetchPlansAndSubscriptions'
+        'fetchEmailAndStatus'
+        'fetchEmailFrequency'
+        'fetchOAuthInfo'
       ]
     schema                  :
       skillTags             : [String]
@@ -211,6 +214,7 @@ module.exports = class JAccount extends jraphical.Module
           default           : 0
         lastStatusUpdate    : String
       referrerUsername      : String
+      preferredKDProxyDomain: String
       isExempt              : # is a troll ?
         type                : Boolean
         default             : false
@@ -911,7 +915,28 @@ module.exports = class JAccount extends jraphical.Module
       @fetchActivities selector, options, callback
 
   modify: secure (client, fields, callback) ->
-    if @equals(client.connection.delegate) and 'globalFlags' not in Object.keys(fields)
+
+    allowedFields = [
+      "preferredKDProxyDomain"
+      "profile.about"
+      "profile.description"
+      "profile.ircNickname"
+      "profile.firstName"
+      "profile.lastName"
+      "profile.avatar"
+      "profile.experience"
+      "profile.experiencePoints"
+      "skillTags"
+      "locationTags"
+    ]
+
+    objKeys = Object.keys(fields)
+
+    for objKey in objKeys
+      if objKey not in allowedFields
+        return callback new KodingError "Modify fields is not valid"
+
+    if @equals(client.connection.delegate)
       @update $set: fields, callback
 
   oldFetchMounts = @::fetchMounts
@@ -1303,7 +1328,7 @@ module.exports = class JAccount extends jraphical.Module
 
   fetchPaymentMethods$: secure (client, callback) ->
     {delegate} = client.connection
-    if delegate is this or delegate.can 'administer accounts'
+    if (delegate.equals this) or delegate.can 'administer accounts'
       @fetchDecoratedPaymentMethods callback
 
   fetchSubscriptions$: secure ({ connection:{ delegate }}, options, callback) ->
@@ -1338,3 +1363,29 @@ module.exports = class JAccount extends jraphical.Module
         return callback err  if err
 
         callback null, { subscriptions, plans }
+
+  fetchEmailAndStatus: secure (client, callback)->
+    @fetchFromUser client, ['email', 'status'], callback
+
+  fetchEmailFrequency: secure (client, callback)->
+    @fetchFromUser client, 'emailFrequency', callback
+
+  fetchOAuthInfo: secure (client, callback)->
+    @fetchFromUser client, 'foreignAuth', callback
+
+  fetchFromUser: (client, key, callback)->
+    {delegate} = client.connection
+    isMine     = @equals delegate
+    if isMine
+      @fetchUser (err, user)->
+        return callback err  if err
+        if Array.isArray key
+          results = {}
+          for k in key
+            results[k] = user.getAt k
+
+          callback null, results
+        else
+          callback null, user.getAt key
+    else
+      callback new KodingError 'Access denied'

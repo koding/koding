@@ -26,6 +26,11 @@ type IncomingMessage struct {
 
 var producer *kontrolhelper.Producer
 
+const (
+	WorkersCollection = "jKontrolWorkers"
+	WorkersDB         = "KontrolWorkers"
+)
+
 func Startup() {
 	var err error
 	producer, err = kontrolhelper.CreateProducer("worker")
@@ -209,7 +214,7 @@ func handleForceOption(worker models.Worker) (workerconfig.WorkerResponse, error
 
 	}
 
-	mongodb.Run("jKontrolWorkers", query)
+	mongodb.Run(WorkersCollection, query)
 
 	startLog := fmt.Sprintf("[%s (%d) - (%s)] starting at '%s' - '%s'\n",
 		worker.Name,
@@ -289,7 +294,7 @@ func handleExclusiveOption(worker models.Worker) (workerconfig.WorkerResponse, e
 	// is still alive.
 	aliveWorker := new(models.Worker)
 
-	err := mongodb.Run("jKontrolWorkers", func(c *mgo.Collection) error {
+	err := mongodb.Run(WorkersCollection, func(c *mgo.Collection) error {
 		// worst fucking syntax ever I saw in my life that is doing
 		// fucking gazillion things with one fucking method called fucking
 		// apply. fuck you mgo
@@ -473,7 +478,7 @@ func heartBeatChecker() {
 	}
 
 	for {
-		mongodb.Run("jKontrolWorkers", queryFunc)
+		mongodb.Run(WorkersCollection, queryFunc)
 		time.Sleep(workerconfig.HEARTBEAT_INTERVAL)
 	}
 }
@@ -500,7 +505,7 @@ func deploymentCleaner() {
 				return nil
 			}
 
-			mongodb.Run("jKontrolWorkers", query)
+			mongodb.Run(WorkersCollection, query)
 
 			// remove deployment information only if there is no worker alive for that version
 			if numberOfWorkers == 0 {

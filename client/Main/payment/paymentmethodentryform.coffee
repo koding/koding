@@ -25,6 +25,7 @@ class PaymentMethodEntryForm extends KDFormViewWithFields
 
       cardDescription     :
         label             : 'Description'
+        cssClass          : 'hidden'
 
       cardNumber          :
         label             : 'Credit card'
@@ -99,6 +100,11 @@ class PaymentMethodEntryForm extends KDFormViewWithFields
 
     @updateDescription()
 
+  activate: ->
+    { cardFirstName, cardLastName, cardNumber } = @inputs
+    for input in [cardFirstName, cardLastName, cardNumber]
+      return input.setFocus()  unless input.getValue()
+        
   getCardInputValue:->
     @inputs.cardNumber.getValue().replace /-|\s/g, ''
 

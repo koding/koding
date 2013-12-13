@@ -132,6 +132,7 @@ class MainView extends KDView
     @createLoggedInAccountArea()
 
   createLoggedInAccountArea:->
+
     @accountArea.addSubView @accountMenu = new AvatarAreaIconMenu
     @accountMenu.accountChanged KD.whoami()
 

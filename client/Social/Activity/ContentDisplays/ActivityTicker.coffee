@@ -1,7 +1,12 @@
 class ActivityTicker extends ActivityRightBase
+
   constructor:(options={}, data)->
+
     options.cssClass = KD.utils.curry "activity-ticker", options.cssClass
+
     super options, data
+
+    @filters = null
 
     @listController = new KDListViewController
       lazyLoadThreshold: .99
@@ -14,24 +19,64 @@ class ActivityTicker extends ActivityRightBase
 
     @listView = @listController.getView()
 
-    @listController.on "LazyLoadThresholdReached", @bound "load"
+    @listController.on "LazyLoadThresholdReached", @bound "continueLoading"
 
-    @load()
+    @settingsButton = new KDButtonViewWithMenu
+      cssClass    : 'ticker-settings-menu'
+      title       : ''
+      icon        : yes
+      iconClass   : "arrow"
+      delegate    : @
+      menu        : @settingsMenu data
+      callback    : (event)=> @settingsButton.contextMenu event
 
-    @itemsIndexed = {}
+    @indexedItems = {}
 
     group = KD.getSingleton("groupsController")
     group.on "MemberJoinedGroup", @bound "addJoin"
     group.on "LikeIsAdded", @bound "addLike"
     group.on "FollowHappened", @bound "addFollow"
     group.on "PostIsCreated", @bound "addActivity"
-    group.on "ReplyIsAdded", @bound "addComment"
+    # disable for now, since we dont have comment view
+    # and comments doesnt have slug
+    # group.on "ReplyIsAdded", @bound "addComment"
     group.on "PostIsDeleted", @bound "deleteActivity"
 
     @listController.listView.on 'ItemWasAdded', (view, index) =>
-      if view.getData()?
-        itemId = @getItemId view.data
-        @itemsIndexed[itemId] = view
+      if viewData = view.getData()
+        itemId = @getItemId viewData
+        @indexedItems[itemId] = view
+
+    @load {}
+
+  settingsMenu:(data)->
+    filterSelected = (filters=[]) =>
+      @listController.removeAllItems()
+      @indexedItems = {}
+      tryCount = 0
+      @load {filters, tryCount}
+
+    menu =
+      'All'      :
+        callback :->
+          do filterSelected
+      'Follower' :
+        callback : ->
+          filterSelected ["follower"]
+      'Like'     :
+        callback : ->
+          filterSelected ["like"]
+      # Example menu item for multiple filters.
+      # 'Follower+Like'   :
+      #   callback : =>
+      #     @load filters : ["follower", "like"]
+      'Member'   :
+        callback : ->
+          filterSelected ["member"]
+      'App'      :
+        callback : ->
+          filterSelected ["user"]
+    return menu
 
   getConstructorName :(obj)->
     if obj and obj.bongo_ and obj.bongo_.constructorName
@@ -48,6 +93,9 @@ class ActivityTicker extends ActivityRightBase
 
   addActivity: (data)->
     {origin, subject} = data
+
+    return if @isFiltered "activity"
+
     unless @getConstructorName(origin) and @getConstructorName(subject)
       return console.warn "data is not valid"
 
@@ -56,12 +104,15 @@ class ActivityTicker extends ActivityRightBase
     as     = "author"
 
     @fetchTags source, (err, tags)=>
-      return log "discarding event, invalid data"  if err or not tags
+      return log "discarding event, invalid data"  if err
       source.tags = tags
-      @addNewItem {source, target, as}, 0
+      @addNewItem {source, target, as}
 
   deleteActivity: (data) ->
     {origin, subject} = data
+
+    return if @isFiltered "activity"
+
     unless @getConstructorName(origin) and @getConstructorName(subject)
       return console.warn "data is not valid"
 
@@ -73,16 +124,22 @@ class ActivityTicker extends ActivityRightBase
 
   addJoin: (data)->
     {member} = data
+
+    return if @isFiltered "member"
+
     return console.warn "member is not defined in new member event"  unless member
 
     {constructorName, id} = member
     KD.remote.cacheable constructorName, id, (err, account)=>
       return console.error "account is not found", err if err or not account
       source = KD.getSingleton("groupsController").getCurrentGroup()
-      @addNewItem {as: "member", target: account, source  }, 0
+      @addNewItem {as: "member", target: account, source  }
 
   addFollow: (data)->
     {follower, origin} = data
+
+    return if @isFiltered "follower"
+
     return console.warn "data is not valid"  unless follower and origin
 
     {constructorName, id} = follower
@@ -100,10 +157,13 @@ class ActivityTicker extends ActivityRightBase
             target : source
             as     : "follower"
 
-        @addNewItem eventObj, 0
+        @addNewItem eventObj
 
   addLike: (data)->
     {liker, origin, subject} = data
+
+    return if @isFiltered "like"
+
     unless liker and origin and subject
       return console.warn "data is not valid"
 
@@ -120,10 +180,19 @@ class ActivityTicker extends ActivityRightBase
           return console.log "subject is not found", err, data.subject if err or not subject
 
           eventObj = {source, target, subject, as:"like"}
-          @addNewItem eventObj, 0
+          if subject.bongo_.constructorName is "JNewStatusUpdate"
+            @fetchTags subject, (err, tags)=>
+              return log "discarding event, invalid data"  if err
+              subject.tags = tags
+              @addNewItem eventObj
+          else
+            @addNewItem eventObj
 
   addComment: (data) ->
     {origin, reply, subject, replier} = data
+
+    return if @isFiltered "comment"
+
     unless replier and origin and subject and reply
       return console.warn "data is not valid"
     #CtF: such a copy paste it is. could be handled better
@@ -144,9 +213,11 @@ class ActivityTicker extends ActivityRightBase
             return console.log "reply is not found", err, data.reply if err or not object
 
             eventObj = {source, target, subject, object, as:"reply"}
-            @addNewItem eventObj, 0
+            @addNewItem eventObj
 
-
+  continueLoading: (loadOptions = {})->
+    loadOptions.continue = @filters
+    @load loadOptions
 
   filterItem:(item)->
     {as, source, target} = item
@@ -179,8 +250,13 @@ class ActivityTicker extends ActivityRightBase
     loadOptions.tryCount++
     return @load loadOptions
 
-  load:(loadOptions={}) ->
-    loadOptions.tryCount or= 0
+  load: (loadOptions = {})->
+    loadOptions.tryCount = loadOptions.tryCount or 0
+    if loadOptions.filters
+      @filters = loadOptions.filters
+
+    if loadOptions.continue
+      @filters = loadOptions.filters = loadOptions.continue
 
     lastItem = @listController.getItemsOrdered().last
     lastItemTimestamp = +(new Date())
@@ -188,9 +264,9 @@ class ActivityTicker extends ActivityRightBase
     if lastItem and timestamp = lastItem.getData().timestamp
       lastItemTimestamp = (new Date(timestamp)).getTime()
 
-    options = from: lastItemTimestamp
+    loadOptions.from = lastItemTimestamp
 
-    KD.remote.api.ActivityTicker.fetch options, (err, items = []) =>
+    KD.remote.api.ActivityTicker.fetch loadOptions, (err, items = []) =>
       @listController.hideLazyLoader()
       # if we had any error, try loading again
       if err
@@ -198,39 +274,45 @@ class ActivityTicker extends ActivityRightBase
         return @tryLoadingAgain loadOptions
 
       for item in items when @filterItem item
-        @addNewItem item
+        @addNewItem item, @listController.getItemCount()
 
       if @listController.getItemCount() < 15
         @tryLoadingAgain loadOptions
 
-  pistachio:
+  pistachio:->
     """
     <div class="activity-ticker right-block-box">
-      <h3>What's happening on Koding</h3>
+      <h3>What's happening on Koding {{> @settingsButton}}</h3>
       {{> @listView}}
     </div>
     """
 
-  addNewItem: (newItem, index) ->
+  addNewItem: (newItem, index=0) ->
     itemId = @getItemId newItem
 
-    if not @itemsIndexed[itemId]
+    if not @indexedItems[itemId]
       if index? then @listController.addItem newItem, index
       else @listController.addItem newItem
     else
-      viewItem = @itemsIndexed[itemId]
+      viewItem = @indexedItems[itemId]
       @listController.moveItemToIndex viewItem, 0
 
   removeItem: (item) ->
     itemId = @getItemId item
 
-    if @itemsIndexed[itemId]
-      viewItem = @itemsIndexed[itemId]
+    if @indexedItems[itemId]
+      viewItem = @indexedItems[itemId]
       @listController.removeItem viewItem
 
 
   getItemId: (item) ->
-    {source, target, object, as} = item
-    "#{source.getId()}_#{target.getId()}_#{as}_#{object?.getId()}"
+    {source, target, subject, as} = item
+    "#{source.getId()}_#{target.getId()}_#{as}_#{subject?.getId()}"
+
+  isFiltered: (filter) ->
+    if @filters and @filters.length
+      return unless filter in @filters then yes else no
+    else
+      return no
 
 

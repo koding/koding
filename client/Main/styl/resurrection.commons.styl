@@ -705,3 +705,28 @@ input.kdinput.text
   >cite.hint
     font-size         11px
     color             #999
+
+.kdnotification.mini.tray
+  bg                  color, #fff
+  rounded             10px
+  padding             17px
+  shadow              0 3px 18px rgba(0, 0, 0, .10)
+  border              1px solid #c4c4c4
+  fix()
+
+  .kdnotification-close
+    background          none
+    background-position 0px -982px !important
+    size                16px !important, 16px !important
+    sprite            app, "notification-close"
+
+  .avatarview
+    rounded           4px
+    fl()
+
+  .kdnotification-title
+    fr()
+    line-height       26px
+    color             #3c4752
+
+
