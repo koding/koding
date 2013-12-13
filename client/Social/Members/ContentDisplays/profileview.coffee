@@ -694,10 +694,10 @@ class ProfileView extends JView
         <a href="#">Tutorials</a>
         <a href="#">Blog Posts</a>
       </div>
-      <div class="user-menu">
+      <div class="user-badges">
+        <h3>Badges</h3>
         {{> @userBadgesView}}
         {{> @prp}}
-
       </div>
 
     """

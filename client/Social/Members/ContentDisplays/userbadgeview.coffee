@@ -1,7 +1,8 @@
 class UserBadgeView extends KDListItemView
   constructor: (options = {}, data) ->
     super options, data
-    {iconURL, description} = @getData()
+    {iconURL, description, title} = @getData()
+
     @badgeIcon   = new KDCustomHTMLView
       tagName    : 'img'
       size       :
@@ -11,8 +12,13 @@ class UserBadgeView extends KDListItemView
         src      : iconURL
         title    : description or ''
 
+    @title       = new KDCustomHTMLView
+      tagName    : 'span'
+      partial    : title
+
   viewAppended:->
     @addSubView @badgeIcon
+    @addSubView @title
 
 class UserPropertyList extends JView
   constructor:(options = {}, data)->
