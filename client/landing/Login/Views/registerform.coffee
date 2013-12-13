@@ -51,31 +51,7 @@ class RegisterInlineForm extends LoginViewInlineForm
         name          : "email"
         placeholder   : "email address"
         testPath      : "register-form-email"
-        validate      :
-          container   : this
-          event       : "blur"
-          rules       :
-            required  : yes
-            email     : yes
-            available : (input, event)=>
-              return if event?.which is 9
-              input.setValidationResult "available", null
-              email = input.getValue()
-              if input.valid
-                @email.loader.show()
-                KD.remote.api.JUser.emailAvailable email, (err, response)=>
-                  @email.loader.hide()
-                  if err then warn err
-                  else
-                    if response
-                      input.setValidationResult "available", null
-                    else
-                      input.setValidationResult "available", "Sorry, \"#{email}\" is already in use!"
-                    @userAvatarFeedback input
-              return
-          messages    :
-            required  : "Please enter your email address."
-            email     : "That doesn't seem like a valid email address."
+        validate      : @getEmailValidator()
         blur          : (input, event)=>
           @utils.defer =>
             @userAvatarFeedback input
@@ -256,6 +232,32 @@ class RegisterInlineForm extends LoginViewInlineForm
           @addSubView new ProfileTextView({}, account), '.invited-by .wrapper'
       else
         @$('.invited-by').addClass('hidden')
+
+  getEmailValidator: ->
+    container   : this
+    event       : "blur"
+    rules       :
+      required  : yes
+      email     : yes
+      available : (input, event)=>
+        return if event?.which is 9
+        input.setValidationResult "available", null
+        email = input.getValue()
+        if input.valid
+          @email.loader.show()
+          KD.remote.api.JUser.emailAvailable email, (err, response)=>
+            @email.loader.hide()
+            if err then warn err
+            else
+              if response
+                input.setValidationResult "available", null
+              else
+                input.setValidationResult "available", "Sorry, \"#{email}\" is already in use!"
+              @userAvatarFeedback input
+        return
+    messages    :
+      required  : "Please enter your email address."
+      email     : "That doesn't seem like a valid email address."
 
   pistachio:->
     """

@@ -46,6 +46,9 @@ class LoginInlineForm extends LoginViewInlineForm
         color     : "#ffffff"
         diameter  : 21
 
+  activate: ->
+    @username.setFocus()
+
   resetDecoration:->
     @username.resetDecoration()
     @password.resetDecoration()
