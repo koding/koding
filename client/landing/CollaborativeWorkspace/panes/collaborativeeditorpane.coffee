@@ -62,11 +62,15 @@ class CollaborativeEditorPane extends CollaborativePane
       scrollPastEnd   : yes
       mode            : "htmlmixed"
       extraKeys       :
-        "Cmd-S"       : @bound "save"
-        "Ctrl-S"      : @bound "save"
+        "Cmd-S"       : @bound "handleSave"
+        "Ctrl-S"      : @bound "handleSave"
 
     @setEditorTheme()
     @setEditorMode()
+
+  handleSave: ->
+    @save()
+    @workspace.addToHistory "$0 saved #{@getData().name}"
 
   setEditorTheme: ->
     if document.getElementById "codemirror-ambiance-style"
