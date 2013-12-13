@@ -9,6 +9,7 @@ class AceApplicationTabView extends ApplicationTabView
     return @removePane_ pane  unless ace.isContentChanged()
 
     modal = new KDModalView
+      width         : 620
       cssClass      : "modal-with-text"
       title         : "Do you want to save your changes?"
       content       : "<p>Your changes will be lost if you don't save them.</p>"

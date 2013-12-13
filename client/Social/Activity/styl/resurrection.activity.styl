@@ -170,9 +170,10 @@ resurrection.activity.styl
         padding         0
 
     .kdlistitemview-activity-ticker-item
-      size              auto, 53px
+      size              auto, auto
+      min-height        53px
       position          relative
-      padding           11px 0 0
+      padding           11px 0 11px
       margin            0 0 0 44px
       overflow          visible
       border-bottom     1px solid #d3d3d3
@@ -457,7 +458,7 @@ span.collapsedtext
         sprite        activity share-icon
 
     .action-container
-      size            auto 13px
+      size            auto 18px
       margin          0 0 0 14px
       fl()
 
@@ -657,6 +658,7 @@ span.collapsedtext
 
 .embed-link-view
   padding               1px 19px 19px
+  border-top            1px solid transparent
 
   .preview-image
     overflow            hidden
@@ -668,7 +670,6 @@ span.collapsedtext
 
     &+.preview-text
       kalc              width, 100% \- 144px
-      padding           15px
 
   .preview-text
     font-size           12px
@@ -676,6 +677,7 @@ span.collapsedtext
     color               #50595a
     bg                  color, #f3f3f3
     height              100px
+    padding             15px
     borderBox()
     fl()
 
