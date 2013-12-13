@@ -1,4 +1,4 @@
-{Model, secure, daisy} = require 'bongo'
+{Model, secure, daisy, signature} = require 'bongo'
 
 module.exports = class JLocation extends Model
 
@@ -6,12 +6,15 @@ module.exports = class JLocation extends Model
 
   @set
     sharedMethods :
-      static      : [
-        'importAll'
-        'importStates'
-        'one'
-        'fetchStatesByCountryCode'
-      ]
+      static      :
+        importAll:
+          (signature Function)
+        importStates:
+          (signature Function)
+        one:
+          (signature Object, Function)
+        fetchStatesByCountryCode:
+          (signature String, Function)
     schema        :
       zip         : String
       city        : String

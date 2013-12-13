@@ -1,7 +1,7 @@
 jraphical = require 'jraphical'
 Bongo     = require "bongo"
 
-{secure, daisy, Base} = Bongo
+{secure, daisy, Base, signature} = Bongo
 
 module.exports = class JInvitation extends jraphical.Module
 
@@ -17,7 +17,7 @@ module.exports = class JInvitation extends jraphical.Module
 
   @isEnabledGlobally = yes
 
-  {ObjectRef, dash, daisy, secure} = require 'bongo'
+  {ObjectRef, dash, daisy, secure, signature} = require 'bongo'
 
   KodingError = require '../error'
   JMail       = require './email'
@@ -28,8 +28,29 @@ module.exports = class JInvitation extends jraphical.Module
     indexes         :
       code          : 'unique'
     sharedMethods   :
-      instance      : ['modifyMultiuse', 'remove']
-      static        : ['inviteFriend', 'byCode', 'suggestCode', 'createMultiuse']
+
+      instance:
+        modifyMultiuse:
+          (signature Object, Function)
+        remove:
+          (signature Function)
+      
+      static:
+        inviteFriend:
+          (signature Object, Function)
+        byCode:
+          (signature String, Function)
+        suggestCode:
+          (signature Function)
+        createMultiuse:
+          (signature Object, Function)
+#        createForResurrection:
+#          (signature String, Function)
+#        createMultiForResurrection:
+#          (signature [String], Function)
+#        byCodeForBeta:
+#          (signature String, Function)
+
     sharedEvents    :
       static        : []
       instance      : []

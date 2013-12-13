@@ -205,8 +205,8 @@ class AdminModal extends KDModalViewWithForms
                     cssClass  : 'type-explain'
                     itemClass : KDView
                     partial   : 'This will show a timer.'
-          "Introduction":
-            fields            : {}
+          # "Introduction":
+          #   fields            : {}
 
     super options, data
 

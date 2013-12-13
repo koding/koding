@@ -124,7 +124,6 @@ class PermissionsForm extends KDFormViewWithFields
       "JNewApp"        : "Apps"
       "JGroup"      : "Groups"
       "JPost"       : "Posts"
-      "JVocabulary" : "Vocabularies"
       "JVM"         : "Compute"
       "CActivity"   : "Activity"
       "JGroupBundle": "Group Bundles"

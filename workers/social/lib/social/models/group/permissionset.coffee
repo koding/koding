@@ -127,7 +127,8 @@ module.exports = class JPermissionSet extends Module
       failure = promise.failure?.bind this
       {delegate} = client.connection
       JPermissionSet.checkPermission client, advanced, this,
-        (err, hasPermission)->
+        (err, hasPermission, roles)->
+          client.roles = roles
           args = [client, rest..., callback]
           if err then callback err
           else if hasPermission
