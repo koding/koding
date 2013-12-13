@@ -32,14 +32,6 @@ func NewMongoDB(url string) *MongoDB {
 	return m
 }
 
-func ChangeURL(url string) {
-	mu.Lock()
-	defer mu.Unlock()
-
-	Mongo.Session = nil
-	Mongo.URL = url
-}
-
 func (m *MongoDB) CreateSession(url string) {
 	var err error
 	m.Session, err = mgo.Dial(url)
@@ -78,12 +70,19 @@ func (m *MongoDB) Run(collection string, s func(*mgo.Collection) error) error {
 	return s(c)
 }
 
+func (m *MongoDB) RunOnDatabase(database, collection string, s func(*mgo.Collection) error) error {
+	session := m.GetSession()
+	defer session.Close()
+	c := session.DB(database).C(collection)
+	return s(c)
+}
+
 // RunOnDatabase runs command on given database, instead of current database
 // this is needed for kite datastores currently, since it uses another database
 // on the same connection. mongodb has database level write lock, which locks
 // the entire database while flushing data, if kites tend to send too many
 // set/get/delete commands this wont lock our koding database - hopefully
-func RunOnDatabase(database string, collection string, s func(*mgo.Collection) error) error {
+func RunOnDatabase(database, collection string, s func(*mgo.Collection) error) error {
 	session := Mongo.GetSession()
 	defer session.Close()
 	c := session.DB(database).C(collection)

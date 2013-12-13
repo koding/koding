@@ -15,8 +15,10 @@ const (
 	WorkersDB         = "kontrol"
 )
 
+var kontrolDB *mongodb.MongoDB
+
 func init() {
-	mongodb.ChangeURL(config.Current.MongoKontrol)
+	kontrolDB = mongodb.NewMongoDB(config.Current.MongoKontrol)
 }
 
 func GetWorker(uuid string) (models.Worker, error) {
@@ -25,7 +27,7 @@ func GetWorker(uuid string) (models.Worker, error) {
 		return c.Find(bson.M{"uuid": uuid}).One(&result)
 	}
 
-	err := mongodb.RunOnDatabase(WorkersDB, WorkersCollection, query)
+	err := kontrolDB.RunOnDatabase(WorkersDB, WorkersCollection, query)
 	if err != nil {
 		return result, fmt.Errorf("no worker with the uuid %s exist.", uuid)
 	}
@@ -38,7 +40,7 @@ func UpdateIDWorker(worker models.Worker) {
 		return c.UpdateId(worker.ObjectId, worker)
 	}
 
-	err := mongodb.RunOnDatabase(WorkersDB, WorkersCollection, query)
+	err := kontrolDB.RunOnDatabase(WorkersDB, WorkersCollection, query)
 	if err != nil {
 		log.Println(err)
 	}
@@ -49,7 +51,7 @@ func UpdateWorker(worker models.Worker) {
 		return c.Update(bson.M{"uuid": worker.Uuid}, worker)
 	}
 
-	err := mongodb.RunOnDatabase(WorkersDB, WorkersCollection, query)
+	err := kontrolDB.RunOnDatabase(WorkersDB, WorkersCollection, query)
 	if err != nil {
 		log.Println(err)
 	}
@@ -61,7 +63,7 @@ func UpsertWorker(worker models.Worker) error {
 		return err
 	}
 
-	return mongodb.RunOnDatabase(WorkersDB, WorkersCollection, query)
+	return kontrolDB.RunOnDatabase(WorkersDB, WorkersCollection, query)
 }
 
 func DeleteWorker(uuid string) error {
@@ -69,5 +71,5 @@ func DeleteWorker(uuid string) error {
 		return c.Remove(bson.M{"uuid": uuid})
 	}
 
-	return mongodb.RunOnDatabase(WorkersDB, WorkersCollection, query)
+	return kontrolDB.RunOnDatabase(WorkersDB, WorkersCollection, query)
 }
