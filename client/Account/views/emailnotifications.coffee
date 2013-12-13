@@ -1,7 +1,7 @@
 class AccountEmailNotifications extends KDView
 
   viewAppended:->
-    KD.whoami().fetchFromUser "emailFrequency", (err, frequency)=>
+    KD.whoami().fetchEmailFrequency (err, frequency)=>
       @putContents KD.whoami(), frequency
 
   putContents:(account, frequency)->

@@ -65,7 +65,7 @@ class AccountLinkedAccountsListItem extends KDListItemView
 
     JView::viewAppended.call this
     {provider} = @getData()
-    KD.whoami().fetchFromUser "foreignAuth", (err, foreignAuth)=>
+    KD.whoami().fetchOAuthInfo (err, foreignAuth)=>
       @linked = foreignAuth?[provider]?
       @switch.setDefaultValue @linked
 

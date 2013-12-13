@@ -123,7 +123,7 @@ class AccountEditUsername extends JView
         else if isValid
           notify "Thanks for confirming your email address"
 
-    KD.whoami().fetchFromUser ["email", "status"], (err, userInfo)=>
+    KD.whoami().fetchEmailAndStatus (err, userInfo)=>
       @userInfo = userInfo
 
       super

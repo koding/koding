@@ -156,7 +156,9 @@ module.exports = class JAccount extends jraphical.Module
         'fetchPaymentMethods'
         'fetchSubscriptions'
         'fetchPlansAndSubscriptions'
-        'fetchFromUser'
+        'fetchEmailAndStatus'
+        'fetchEmailFrequency'
+        'fetchOAuthInfo'
       ]
     schema                  :
       skillTags             : [String]
@@ -1362,9 +1364,16 @@ module.exports = class JAccount extends jraphical.Module
 
         callback null, { subscriptions, plans }
 
-  # Fetches client's info from JUser, to be used from client in order to
-  # prevent exposing the entire user object.
-  fetchFromUser: secure (client, key, callback)->
+  fetchEmailAndStatus: secure (client, callback)->
+    @fetchFromUser client, ['email', 'status'], callback
+
+  fetchEmailFrequency: secure (client, callback)->
+    @fetchFromUser client, 'emailFrequency', callback
+
+  fetchOAuthInfo: secure (client, callback)->
+    @fetchFromUser client, 'foreignAuth', callback
+
+  fetchFromUser: (client, key, callback)->
     {delegate} = client.connection
     isMine     = @equals delegate
     if isMine
