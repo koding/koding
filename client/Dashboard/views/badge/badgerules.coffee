@@ -11,7 +11,7 @@ class BadgeRules extends JView
 
     @badgeListView = @badgeRulesListController.getListView()
 
-    @addRule          = new KDButtonView
+    @addRuleButton    = new KDButtonView
       name            : 'addrule'
       style           : 'add-new-rule solid green'
       title           : 'Add new rule'
@@ -60,6 +60,8 @@ class BadgeRules extends JView
     @once "BadgeCreated" , =>
       @giveBadgeButton.loader.hide()
       @giveBadgeButton.hide()
+      @addRuleButton.hide()
+      @doneButton.hide()
       new KDNotificationView
         title      : "Badge created"
         duration   : "2000"
@@ -112,7 +114,7 @@ class BadgeRules extends JView
 
   pistachio:->
     """
-    {{> @addRule}}
+    {{> @addRuleButton}}
     {{> @badgeListView}}
     {{> @doneButton}}
     {{> @userList}}
