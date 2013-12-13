@@ -1,4 +1,4 @@
-{Model, Base, ObjectId, secure} = require 'bongo'
+{Model, Base, ObjectId, secure, signature} = require 'bongo'
 {extend} = require 'underscore'
 KodingError = require '../error'
 
@@ -18,7 +18,9 @@ module.exports = class JMailNotification extends Model
       receiver       : 'sparse'
       contentId      : 'sparse'
     sharedMethods    :
-      static         : ['unsubscribeWithId']
+      static         :
+        unsubscribeWithId:
+          (signature String, String, String, Function)
     sharedEvents     :
       static         : []
       instance       : []

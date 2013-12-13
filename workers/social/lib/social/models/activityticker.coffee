@@ -1,7 +1,7 @@
 Bongo          = require "bongo"
 {Relationship} = require "jraphical"
 
-{secure, daisy, dash, Base} = Bongo
+{secure, daisy, dash, signature, Base} = Bongo
 {uniq} = require 'underscore'
 
 module.exports = class ActivityTicker extends Base
@@ -9,7 +9,11 @@ module.exports = class ActivityTicker extends Base
 
   @set
     sharedMethods :
-      static      : ["fetch"]
+      static      :
+        fetch     : [
+          (signature Function)
+          (signature Object, Function)
+        ]
 
   relationshipNames = ["follower", "like", "member", "user",  "author"]
   constructorNames  = ["JAccount", "JNewApp", "JGroup", "JTag", "JNewStatusUpdate"]
@@ -184,7 +188,8 @@ module.exports = class ActivityTicker extends Base
         daisy queue
 
 
-  @fetch = secure (client, options = {}, callback) ->
+  @fetch = secure (client, options, callback) ->
+    [callback, options] = [options, callback]  unless callback
     # TODO - add group security here
     requestOptions = { client, options }
 

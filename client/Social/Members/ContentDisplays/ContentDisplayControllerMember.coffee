@@ -111,10 +111,10 @@ class ContentDisplayControllerMember extends KDViewController
       filter                :
         # everything          : @createFilter("Everything", account, 'Everything')
         statuses            : @createFilter("Status Updates", account, 'JNewStatusUpdate')
-        # codesnips           : @createFilter("Code Snippets", account, 'JCodeSnip')
-        # blogposts           : @createFilter("Blog Posts", account, 'JBlogPost')
-        # discussions         : @createFilter("Discussions", account, 'JDiscussion')
-        # tutorials           : @createFilter("Tutorials", account, 'JTutorial')
+#        codesnips           : @createFilter("Code Snippets", account, 'JCodeSnip')
+#        blogposts           : @createFilter("Blog Posts", account, 'JBlogPost')
+#        discussions         : @createFilter("Discussions", account, 'JDiscussion')
+#        tutorials           : @createFilter("Tutorials", account, 'JTutorial')
       sort                  :
         'likesCount'  :
           title             : "Most popular"

@@ -2,26 +2,26 @@ class ActivityListItemView extends KDListItemView
 
   getActivityChildConstructors = ->
     JNewStatusUpdate       : StatusActivityItemView
-    JCodeSnip           : CodesnipActivityItemView
-    JDiscussion         : DiscussionActivityItemView
-    JLink               : LinkActivityItemView
-    JTutorial           : TutorialActivityItemView
-    JBlogPost           : BlogPostActivityItemView
+#    JCodeSnip           : CodesnipActivityItemView
+#    JDiscussion         : DiscussionActivityItemView
+#    JLink               : LinkActivityItemView
+#    JTutorial           : TutorialActivityItemView
+#    JBlogPost           : BlogPostActivityItemView
 
     NewMemberBucketData   : NewMemberBucketView
 
-  getActivityChildCssClass = ->
+  getActivityChildCssClass = -> 'system-message'
 
-    CFollowerBucket           : "system-message"
-    CFolloweeBucket           : "system-message"
-    CNewMemberBucket          : "system-message"
-    CInstallerBucket          : "system-message"
-
-    CFollowerBucketActivity   : "system-message"
-    CFolloweeBucketActivity   : "system-message"
-    CNewMemberBucketActivity  : "system-message"
-    CInstallerBucketActivity  : "system-message"
-    NewMemberBucketData       : "system-message"
+#    CFollowerBucket           : "system-message"
+#    CFolloweeBucket           : "system-message"
+#    CNewMemberBucket          : "system-message"
+#    CInstallerBucket          : "system-message"
+#
+#    CFollowerBucketActivity   : "system-message"
+#    CFolloweeBucketActivity   : "system-message"
+#    CNewMemberBucketActivity  : "system-message"
+#    CInstallerBucketActivity  : "system-message"
+#    NewMemberBucketData       : "system-message"
 
   getBucketMap =->
     JAccount  : AccountFollowBucketItemView

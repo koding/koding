@@ -1,5 +1,5 @@
 bongo    = require 'bongo'
-{secure} = bongo
+{secure, signature} = bongo
 crypto   = require 'crypto'
 oauth    = require "oauth"
 
@@ -8,7 +8,8 @@ module.exports = class OAuth extends bongo.Base
 
   @set
     sharedMethods   :
-      static        : ['getUrl']
+      static        :
+        getUrl      : (signature String, Function)
 
   @getUrl = secure (client, provider, callback)->
     switch provider

@@ -6,15 +6,15 @@ KodingError = require "./../../error"
 module.exports = class Activity extends Graph
 
   neo4jFacets = [
-    "JLink"
-    "JBlogPost"
-    "JTutorial"
     "JNewStatusUpdate"
-    "JComment"
-    "JOpinion"
-    "JDiscussion"
-    "JCodeSnip"
-    "JCodeShare"
+#    "JLink"
+#    "JBlogPost"
+#    "JTutorial"
+#    "JComment"
+#    "JOpinion"
+#    "JDiscussion"
+#    "JCodeSnip"
+#    "JCodeShare"
   ]
 
   # build facet queries

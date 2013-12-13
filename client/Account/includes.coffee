@@ -13,7 +13,6 @@ module.exports = [
   "views/username.coffee",
   "views/linkedaccts.coffee",
   "views/emailnotifications.coffee",
-  # "views/devdatabases.coffee",
   "views/editors.coffee",
   "views/sshkeys.coffee",
   "views/paymenthistory.coffee",

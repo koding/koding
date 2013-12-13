@@ -45,8 +45,8 @@ class ActivityInnerNavigation extends CommonInnerNavigation
     items : [
         { title: "Everything",      type: "Everything" }
         { title : "Status Updates", type : "JNewStatusUpdate" }
-        { title : "Blog Posts",     type : "JBlogPost" }
-        { title : "Code Snippets",  type : "JCodeSnip" }
-        { title : "Discussions",    type : "JDiscussion" }
-        { title : "Tutorials",      type : "JTutorial" }
+#        { title : "Blog Posts",     type : "JBlogPost" }
+#        { title : "Code Snippets",  type : "JCodeSnip" }
+#        { title : "Discussions",    type : "JDiscussion" }
+#        { title : "Tutorials",      type : "JTutorial" }
     ]

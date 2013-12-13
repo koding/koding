@@ -15,10 +15,10 @@ getRoleSelector = (delegate, group, permission, permissionSet)->
     as        : { $in: roles }
   }
 
-createExistenceCallback = (callback)-> (err, count)->
+createExistenceCallback = (callback)-> (err, roles)->
   if err then callback err, no
-  else if count > 0 then callback null, yes
-  else callback null, no
+  else if roles?.length ? 0 > 0 then callback null, yes
+  else callback null, no, roles
 
 module.exports =
 
@@ -30,23 +30,23 @@ module.exports =
     roleSelector = getRoleSelector delegate, group, permission, permissionSet
     # if we get -1 as the role selector, it means guest (i.e. anyone) is allowed
     return callback null, yes  if roleSelector is -1
-    Relationship.count roleSelector, (err, count)=>
+    Relationship.some roleSelector, {limit: 50}, (err, roles)=>
       if err then callback err, no
-      else if count is 0 then callback null, no
+      else if roles?.length ? 0 is 0 then callback null, no, roles
       else
         delegateId = delegate.getId()
         if @originId? and delegateId.equals @originId
-          callback null, yes
+          callback null, yes, roles
         else
           ownerSelector = {
             sourceId  : delegateId
             targetId  : @getId()
             as        : 'owner'
           }
-          Relationship.count ownerSelector, createExistenceCallback callback
+          Relationship.some ownerSelector, createExistenceCallback callback
 
   any:(client, group, permission, permissionSet, callback)->
     {delegate} = client.connection
     roleSelector = getRoleSelector delegate, group, permission, permissionSet
     return callback null, yes  if roleSelector is -1
-    Relationship.count roleSelector, createExistenceCallback callback
+    Relationship.some roleSelector, {limit: 50}, createExistenceCallback callback

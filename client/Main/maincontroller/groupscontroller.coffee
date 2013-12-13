@@ -40,9 +40,7 @@ class GroupsController extends KDController
 
     @groupChannel.once 'setSecretNames', callback
 
-  changeGroup:(groupName='', callback=->)->
-
-    groupName or= 'koding' # KD.defaultSlug
+  changeGroup:(groupName = 'koding', callback = (->))->
     return callback()  if @currentGroupName is groupName
 
     oldGroupName        = @currentGroupName
@@ -96,7 +94,7 @@ class GroupsController extends KDController
     KD.whoami().ignoreInvitation group, callback
 
   cancelGroupRequest:(group, callback)->
-    KD.whoami().cancelRequest group, callback
+    KD.whoami().cancelRequest group.slug, callback
 
   cancelMembershipPolicyChange:(policy, membershipPolicyView, modal)->
     membershipPolicyView.enableInvitations.setValue policy.invitationsEnabled

@@ -11,10 +11,6 @@ module.exports = class JProxyRestriction extends jraphical.Module
   @set
     softDelete      : no
 
-    sharedMethods   :
-      instance      : ['addRule', 'updateRule']
-      static        : ['one', 'fetchRestrictionByDomain', 'updateRuleOrders']
-
     indexes         :
       domainName    : 'unique'
 

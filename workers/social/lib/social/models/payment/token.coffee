@@ -2,7 +2,7 @@
 
 module.exports = class JPaymentToken extends Module
 
-  {secure}    = require 'bongo'
+  {secure, signature}    = require 'bongo'
   crypto      = require 'crypto'
 
   Emailer     = require '../../emailer'
@@ -12,7 +12,11 @@ module.exports = class JPaymentToken extends Module
 
   @set
     sharedMethods :
-      static      : ['checkToken', 'createToken']
+      static      :
+        checkToken:
+          (signature Object, Function)
+        createToken:
+          (signature Object, Function)
     schema        :
       userCode    : String
       planCode    : String
