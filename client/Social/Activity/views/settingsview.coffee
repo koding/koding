@@ -3,7 +3,7 @@ class ActivitySettingsView extends KDCustomHTMLView
   constructor:(options = {}, data={})->
 
     super options, data
-
+    data = @getData()
     account = KD.whoami()
     @settings = if (data.originId is account.getId()) or KD.checkFlag 'super-admin'
       button = new KDButtonViewWithMenu
@@ -11,13 +11,14 @@ class ActivitySettingsView extends KDCustomHTMLView
         itemChildClass : ActivityItemMenuItem
         title          : ''
         icon           : yes
-        delegate       : @
+        delegate       : this
         iconClass      : "arrow"
         menu           : @settingsMenu data
         callback       : (event)=> button.contextMenu event
     else
       new KDCustomHTMLView tagName : 'span', cssClass : 'hidden'
 
+    activityController = KD.getSingleton('activityController')
 
   settingsMenu:(post)->
 
