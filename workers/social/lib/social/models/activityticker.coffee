@@ -24,14 +24,12 @@ module.exports = class ActivityTicker extends Base
       "user"     : ["JApp"]
 
     sources = []
-    # iterate on filters and add required
-    # constructor names into sourceNames
     for filter in filters
       sources.concat relationshipMap[filter]
 
-    # if we couldnt find any applied filter
-    # it should be checked at calling side
-    return uniq sources
+    if sources.length is 0
+      return constructorNames
+    return sources
 
   mapTargetNames = (filters) ->
     validFilters = ["follower", "like", "member", "user"]
@@ -134,7 +132,6 @@ module.exports = class ActivityTicker extends Base
         do kallback
 
   @fetch = secure (client, options = {}, callback) ->
-    console.log "hede"
     {connection: {delegate}} = client
 
     sources = constructorNames
