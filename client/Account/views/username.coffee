@@ -123,9 +123,8 @@ class AccountEditUsername extends JView
         else if isValid
           notify "Thanks for confirming your email address"
 
-    JUser.fetchUser (err,user)=>
-
-      @user    = user
+    KD.whoami().fetchFromUser ["email", "status"], (err, userInfo)=>
+      @userInfo = userInfo
 
       super
 
@@ -134,7 +133,7 @@ class AccountEditUsername extends JView
 
   putDefaults:->
 
-    {email} = @user
+    {email} = @userInfo
     {nickname, firstName, lastName} = @account.profile
 
     @emailForm.inputs.email.setDefaultValue email
@@ -145,7 +144,7 @@ class AccountEditUsername extends JView
     {focus} = KD.utils.parseQuery()
     @emailForm.inputs[focus]?.setFocus()  if focus
 
-    if @user.status is "unconfirmed"
+    if @userInfo.status is "unconfirmed"
       o =
         tagName      : "a"
         partial      : "You didn't verify your email yet <span>Verify now</span>"

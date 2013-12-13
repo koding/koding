@@ -156,6 +156,7 @@ module.exports = class JAccount extends jraphical.Module
         'fetchPaymentMethods'
         'fetchSubscriptions'
         'fetchPlansAndSubscriptions'
+        'fetchFromUser'
       ]
     schema                  :
       skillTags             : [String]
@@ -1360,3 +1361,22 @@ module.exports = class JAccount extends jraphical.Module
         return callback err  if err
 
         callback null, { subscriptions, plans }
+
+  # Fetches client's info from JUser, to be used from client in order to
+  # prevent exposing the entire user object.
+  fetchFromUser: secure (client, key, callback)->
+    {delegate} = client.connection
+    isMine     = @equals delegate
+    if isMine
+      @fetchUser (err, user)->
+        return callback err  if err
+        if Array.isArray key
+          results = {}
+          for k in key
+            results[k] = user.getAt k
+
+          callback null, results
+        else
+          callback null, user.getAt key
+    else
+      callback new KodingError 'Access denied'
