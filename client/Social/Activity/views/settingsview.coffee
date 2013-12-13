@@ -3,7 +3,7 @@ class ActivitySettingsView extends KDCustomHTMLView
   constructor:(options = {}, data={})->
 
     super options, data
-
+    data = @getData()
     account = KD.whoami()
     @settings = if (data.originId is account.getId()) or KD.checkFlag 'super-admin'
       button = new KDButtonViewWithMenu
@@ -11,26 +11,28 @@ class ActivitySettingsView extends KDCustomHTMLView
         itemChildClass : ActivityItemMenuItem
         title          : ''
         icon           : yes
-        delegate       : @
+        delegate       : this
         iconClass      : "arrow"
         menu           : @settingsMenu data
         callback       : (event)=> button.contextMenu event
     else
       new KDCustomHTMLView tagName : 'span', cssClass : 'hidden'
 
+    activityController = KD.getSingleton('activityController')
 
-  settingsMenu:(data)->
+  settingsMenu:(post)->
 
     account        = KD.whoami()
 
-    if data.originId is account.getId()
+    if post.originId is account.getId()
       menu =
         'Edit'     :
-          callback : ->
-            KD.getSingleton("appManager").tell "Activity", "editActivity", data
+          callback : =>
+            @emit 'ActivityEditIsClicked'
+            # KD.getSingleton("appManager").tell "Activity", "editActivity", post
         'Delete'   :
           callback : =>
-            @confirmDeletePost data
+            @confirmDeletePost post
 
       return menu
 
@@ -39,26 +41,26 @@ class ActivitySettingsView extends KDCustomHTMLView
         menu =
           'Unmark User as Troll' :
             callback             : ->
-              activityController.emit "ActivityItemUnMarkUserAsTrollClicked", data
+              activityController.emit "ActivityItemUnMarkUserAsTrollClicked", post
       else
         menu =
           'Mark User as Troll' :
             callback           : ->
-              activityController.emit "ActivityItemMarkUserAsTrollClicked", data
+              activityController.emit "ActivityItemMarkUserAsTrollClicked", post
 
       menu['Delete Post'] =
         callback : =>
-          @confirmDeletePost data
+          @confirmDeletePost post
 
       menu['Block User'] =
         callback : ->
-          activityController.emit "ActivityItemBlockUserClicked", data.originId
+          activityController.emit "ActivityItemBlockUserClicked", post.originId
 
       return menu
 
   viewAppended: -> @addSubView @settings
 
-  confirmDeletePost:(data)->
+  confirmDeletePost:(post)->
 
     modal = new KDModalView
       title          : "Delete post"
@@ -73,13 +75,13 @@ class ActivitySettingsView extends KDCustomHTMLView
             diameter : 16
           callback   : =>
 
-            if data.fake
+            if post.fake
               @emit 'ActivityIsDeleted'
               modal.buttons.Delete.hideLoader()
               modal.destroy()
               return
 
-            data.delete (err)=>
+            post.delete (err)=>
               modal.buttons.Delete.hideLoader()
               modal.destroy()
               unless err then @emit 'ActivityIsDeleted'

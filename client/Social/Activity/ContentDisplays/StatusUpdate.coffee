@@ -9,9 +9,9 @@ class ContentDisplayStatusUpdate extends ActivityContentDisplay
 
     super options,data
 
-    @activityItem = new StatusActivityItemView {delegate: this}, @getData()
+    @activityItem = new StatusActivityItemView delegate: this, @getData()
 
-    @activityItem.on 'ActivityIsDeleted', =>
+    @activityItem.on 'ActivityIsDeleted', ->
       KD.singleton('router').back()
 
   viewAppended: JView::viewAppended

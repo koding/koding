@@ -43,8 +43,8 @@ class ActivityTicker extends ActivityRightBase
     group.on "PostIsDeleted", @bound "deleteActivity"
 
     @listController.listView.on 'ItemWasAdded', (view, index) =>
-      if view.data?
-        itemId = @getItemId view.data
+      if viewData = view.getData()
+        itemId = @getItemId viewData
         @indexedItems[itemId] = view
 
     @load {}
@@ -53,8 +53,8 @@ class ActivityTicker extends ActivityRightBase
     filterSelected = (filters=[]) =>
       @listController.removeAllItems()
       @indexedItems = {}
-      @tryCount = 0
-      @load filters : filters
+      tryCount = 0
+      @load {filters, tryCount}
 
     menu =
       'All'      :
