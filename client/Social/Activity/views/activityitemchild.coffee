@@ -41,7 +41,7 @@ class ActivityItemChild extends KDView
     # -> JOpinion
     #    -> JComment
     if data.bongo_.constructorName in ["JDiscussion","JTutorial"]
-      @commentBox = new OpinionView null, data
+      @commentBox = new OpinionView {}, data
       list        = @commentBox.opinionList
     else
       commentSettings = options.commentSettings or null
@@ -53,7 +53,7 @@ class ActivityItemChild extends KDView
       delegate : list
     , data
 
-    @settingsButton = new ActivitySettingsView null, data
+    @settingsButton = new ActivitySettingsView {}, data
 
     super options, data
 
