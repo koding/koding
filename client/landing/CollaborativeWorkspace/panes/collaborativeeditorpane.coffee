@@ -17,10 +17,12 @@ class CollaborativeEditorPane extends CollaborativePane
         {file, content} = @getOptions()
         return @openFile file, content  if file
 
-      @ref.on "value", (snapshot) =>
-        value = snapshot.val()
-        return unless value
-        return @save()  if value.WaitingSaveRequest is yes
+      if @amIHost
+        @ref.on "value", (snapshot) =>
+          value = snapshot.val()
+          return unless value
+          if value.WaitingSaveRequest is yes
+            return @save()
 
       @ref.onDisconnect().remove()  if @amIHost
 
