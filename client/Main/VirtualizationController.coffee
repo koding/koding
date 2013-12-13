@@ -69,7 +69,7 @@ class VirtualizationController extends KDController
 
   confirmVmDeletion: (vmInfo, callback = (->)) ->
     { hostnameAlias } = vmInfo
-    
+
     vmPrefix = (@parseAlias hostnameAlias)?.prefix or hostnameAlias
 
     modal = new VmDangerModalView
@@ -89,7 +89,7 @@ class VirtualizationController extends KDController
     JVM.removeByHostname hostnameAlias, (err)->
       return callback err  if err
 
-      KD.getSingleton("finderController").unmountVm hostnameAlias
+      # KD.getSingleton("finderController").unmountVm hostnameAlias
       KD.getSingleton("vmController").emit 'VMListChanged'
       callback null
 
@@ -193,7 +193,7 @@ class VirtualizationController extends KDController
         return new KDNotificationView
           title : err.message or "Something bad happened while creating VM"
       else
-        KD.getSingleton("finderController").mountVm vm.hostnameAlias
+        # KD.getSingleton("finderController").mountVm vm.hostnameAlias
         vmController.emit 'VMListChanged'
         vmController.showVMDetails vm
 
@@ -293,28 +293,25 @@ class VirtualizationController extends KDController
           color       : "#ffffff"
         duration      : 120000
 
-      KD.remote.cacheable KD.defaultSlug, (err, group)->
-        if err or not group?.length
-          return warn err
-        koding = group.first
-        koding.createVM
-          planCode : 'free'
-          type     : 'user'
-        , (err)->
-          unless err
-            vmController = KD.getSingleton('vmController')
-            vmController.fetchDefaultVmName (defaultVmName)->
-              vmController.emit 'VMListChanged'
-              KD.getSingleton('finderController').mountVm defaultVmName
-              notify.destroy()
-              callback?()
-          else
-            notify?.destroy()
-            KD.showError err
+      { JVM } = KD.remote.api
+      JVM.createFreeVm (err, vm)->
+        unless err
+          vmController = KD.getSingleton('vmController')
+          vmController.fetchDefaultVmName (defaultVmName)->
+            vmController.emit 'VMListChanged'
+            notify.destroy()
+            callback?()
+        else
+          notify?.destroy()
+          KD.showError err
 
   createNewVM: (callback)->
     @hasDefaultVM (err, state)=>
-      if state then @createPaidVM() else @createDefaultVM callback
+      if state
+        new KDNotificationView
+          title : "Paid VMs will be available soon to purchase"
+      else
+        @createDefaultVM callback
 
   showVMDetails: (vm)->
     vmName = vm.hostnameAlias
@@ -359,7 +356,7 @@ class VirtualizationController extends KDController
 
       KD.getGroup().fetchProducts 'pack', options, (err, packs) ->
         return  if KD.showError err
-        
+
         productForm.setContents 'packs', packs
 
     workflow = new PaymentWorkflow

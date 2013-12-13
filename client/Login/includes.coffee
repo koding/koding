@@ -13,6 +13,7 @@ module.exports = [
   "Views/registerform.coffee",
   "Views/recoverform.coffee",
   "Views/resetform.coffee",
+  "Views/finishregistrationform.coffee",
   "Views/redeemform.coffee",
 
   # Styles

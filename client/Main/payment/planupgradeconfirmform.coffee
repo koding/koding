@@ -1,6 +1,8 @@
 class PlanUpgradeConfirmForm extends PaymentConfirmForm
 
   viewAppended: ->
+    @unsetClass 'kdview'
+
     data = @getData()
 
     @plan = new KDView

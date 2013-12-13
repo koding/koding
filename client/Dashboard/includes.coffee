@@ -44,6 +44,10 @@ module.exports = [
   "views/groupsinvitationtabpaneview.coffee"
   "views/groupsinvitationtabview.coffee"
   "views/grouptabhandleview.coffee"
+  "views/groupswebhookview.coffee"
+  "views/groupseditablewebhookview.coffee"
+  "views/groupsmembershippolicyeditor.coffee"
+  "views/groupsformgeneratorview.coffee"
 
 
   "views/permissionsform.coffee",
