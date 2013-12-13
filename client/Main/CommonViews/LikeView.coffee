@@ -26,7 +26,7 @@ class LikeView extends KDView
           data.fetchLikedByes {},
             sort : timestamp : -1
           , (err, likes) =>
-            new ShowMoreDataModalView {title:"Members who liked <cite>#{data.body}</cite>"}, likes
+            new ShowMoreDataModalView {title:"Members who liked <cite>#{@utils.expandTokens data.body, data}</cite>"}, likes
       , data
 
     @likeLink = new ActivityActionLink

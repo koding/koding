@@ -30,6 +30,10 @@ class AvatarArea extends KDCustomHTMLView
         title    : 'Your groups'
       delegate   : @groupSwitcherPopup
 
+    @nominateIcon = new KDCustomHTMLView
+      cssClass   : 'nominateicon'
+      click      : -> new NominateModal
+
     @once 'viewAppended', =>
       mainView = KD.getSingleton 'mainView'
       mainView.addSubView @groupSwitcherPopup
@@ -50,6 +54,7 @@ class AvatarArea extends KDCustomHTMLView
 
   pistachio: ->
     """
+    {{> @nominateIcon}}
     {{> @avatar}}
     <section>
       <h2>{{> @profileLink}}</h2>

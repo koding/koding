@@ -52,6 +52,10 @@ module.exports = [
   "views/badge/badgeupdateform.coffee"
   "views/badge/badgeuserslist.coffee"
   "views/badge/badgeremoveform.coffee"
+  "views/groupswebhookview.coffee"
+  "views/groupseditablewebhookview.coffee"
+  "views/groupsmembershippolicyeditor.coffee"
+  "views/groupsformgeneratorview.coffee"
 
   "views/permissionsform.coffee",
 

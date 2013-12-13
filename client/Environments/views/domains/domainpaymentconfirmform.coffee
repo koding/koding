@@ -1,6 +1,7 @@
 class DomainPaymentConfirmForm extends PaymentConfirmForm
 
   viewAppended: ->
+
     { year, domain, price } = @getOptions()
 
     yearFmt = @utils.formatPlural year, 'year', no
@@ -15,4 +16,10 @@ class DomainPaymentConfirmForm extends PaymentConfirmForm
         </div>
         """
 
-    @addSubView @details, null, yes
+    super()
+
+  pistachio: ->
+    """
+    {{> @details}}
+    {{> @buttonBar}}
+    """
