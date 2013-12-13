@@ -159,6 +159,7 @@ class TeamworkApp extends KDObject
       for manifest in @playgroundsManifest when playground is manifest.name
         {manifestUrl} = manifest
 
+    # TODO: doCurlRequest is useless here, use fetchGitHubFileContent method.
     @doCurlRequest manifestUrl, (err, manifest) =>
       @teamwork?.destroy()
       @createTeamwork @mergePlaygroundOptions manifest, playground
@@ -220,3 +221,24 @@ class TeamworkApp extends KDObject
           callback error, manifest
         when "md"
           callback errorMessage, KD.utils.applyMarkdown error, contents
+
+  fetchGitHubFileContent: (path, callback, type, username, repoName) ->
+    window.ali = @
+    callback or= noop
+    type     or= "json"
+    username or= "koding"
+    repoName or= "Teamwork"
+
+    $.ajax
+      url           : "https://api.github.com/repos/#{username}/#{repoName}/contents/#{path}",
+      crossDomain   : true
+      dataType      : "jsonp"
+      success       : (response) =>
+        content     = atob response.data.content.replace /\n/g, ""
+        if type is "json"
+          try
+            content = JSON.parse content
+          catch err
+            warn "File content is not a valid JSON."
+
+        callback err, content
