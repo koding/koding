@@ -63,7 +63,8 @@ module.exports = class JVM extends Module
           (signature String, Function)
         createVmByNonce:
           (signature String, Function)
-
+        createFreeVm:
+          (signature Function)
     schema              :
       ip                :
         type            : String

@@ -93,6 +93,7 @@ module.exports = class JUser extends jraphical.Module
         getSSHKeys              : (signature Function)
         authenticateWithOauth   : (signature Object, Function)
         unregister              : (signature Boolean, Function)
+        finishRegistration      : (signature Object, Function)
 
     schema          :
       username      :

@@ -22,6 +22,8 @@ module.exports = class JPasswordRecovery extends jraphical.Module
           (signature String, Function)
         resetPassword:
           (signature String, String, Function)
+        fetchRegistrationDetails:
+          (signature String, Function)
     indexes       :
       token       : 'unique'
     schema        :
