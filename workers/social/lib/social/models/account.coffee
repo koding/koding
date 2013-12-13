@@ -242,6 +242,12 @@ module.exports = class JAccount extends jraphical.Module
           (signature Function)
           (signature Object, Function)
         ]
+        fetchEmailAndStatus:
+          (signature Function)
+        fetchEmailFrequency:
+          (signature Function)
+        fetchOAuthInfo:
+          (signature Function)
     schema                  :
       skillTags             : [String]
       locationTags          : [String]
