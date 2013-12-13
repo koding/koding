@@ -101,16 +101,23 @@ class TeamworkTabView extends CollaborativePane
         separator : yes
         callback  : => @createDashboard()
       "Editor"    :
-        callback  : => @createEditor()
+        callback  : => @handlePaneCreate "editor",   => @createEditor()
       "Terminal"  :
-        callback  : => @createTerminal()
+        callback  : => @handlePaneCreate "terminal", => @createTerminal()
       "Browser"   :
-        callback  : => @createPreview()
-      "Drawing Board":
-        callback  : => @createDrawingBoard()
+        callback  : => @handlePaneCreate "preview",  => @createPreview()
+      "Drawing Boar d":
+        callback  : => @handlePaneCreate "drawing",  => @createDrawingBoard()
       # "Chat"      :
       #   callback  : => @createChat()
     }
+
+  handlePaneCreate: (paneType, callback = noop) =>
+    if @amIHost then callback()
+    else
+      @requestRef.set
+        type : paneType
+        by   : KD.nick()
 
   createTabFromFirebaseData: (data) ->
     {sessionKey, indexKey} = data
@@ -120,7 +127,8 @@ class TeamworkTabView extends CollaborativePane
       when "preview"   then @createPreview      sessionKey, indexKey
       when "drawing"   then @createDrawingBoard sessionKey, indexKey
       when "editor"
-        file = FSHelper.createFileFromPath data.filePath
+        path = data.filePath or "localfile:/untitled.txt"
+        file = FSHelper.createFileFromPath path
         @createEditor file, "", sessionKey, indexKey
 
   createDashboard: ->
