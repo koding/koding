@@ -73,8 +73,8 @@ class ActivityItemChild extends KDView
         @editWidget = new ActivityInputWidget editMode: yes
         reset = => @editWidget = null if @editWidget
 
-        @editWidget.on 'Submit', => do reset
-        @editWidget.on 'Cancel', => do reset
+        @editWidget.on 'Submit', reset
+        @editWidget.on 'ActivityInputCancelled', reset
 
         @editWidget.edit @getData()
 

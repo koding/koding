@@ -48,7 +48,7 @@ With love from the Koding team.<br>
 
   cancel: ->
     @destroy()
-    @emit "Cancel"
+    @emit "ActivityInputCancelled"
 
   submit: (callback) ->
     return  unless value = @input.getValue().trim()
