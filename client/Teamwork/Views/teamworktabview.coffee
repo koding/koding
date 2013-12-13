@@ -78,6 +78,15 @@ class TeamworkTabView extends CollaborativePane
       tabHandleContainer        : @tabHandleHolder
       closeAppWhenAllTabsClosed : no
 
+    @tabView.on "PaneAdded", (pane) =>
+      pane.getHandle().on "click", =>
+        paneOptions = pane.getOptions()
+        @workspace.addToHistory
+          message    : "$0 switched to new pane, #{paneOptions.title}"
+          data       :
+            title    : paneOptions.title
+            indexKey : paneOptions.indexKey
+
   addNewTab: ->
     @createPlusHandleDropDown()
 
@@ -119,6 +128,8 @@ class TeamworkTabView extends CollaborativePane
       @requestRef.set
         type : paneType
         by   : KD.nick()
+
+    @track "$0 opened a new #{paneType}"
 
   createTabFromFirebaseData: (data) ->
     {sessionKey, indexKey} = data
@@ -198,7 +209,6 @@ class TeamworkTabView extends CollaborativePane
         filePath  : file.path
         indexKey  : indexKey
 
-    @workspace.addToHistory "$0 opened a new editor"  if isLocal
     @registerPaneRemoveListener_ pane
 
   openFile: (file, content) ->
@@ -223,7 +233,6 @@ class TeamworkTabView extends CollaborativePane
             host     : KD.nick()
             vmName   : KD.getSingleton("vmController").defaultVmName
 
-    @workspace.addToHistory "$0 opened a new terminal"
     @registerPaneRemoveListener_ pane
 
   createPreview: (sessionKey, indexKey) ->
@@ -240,7 +249,6 @@ class TeamworkTabView extends CollaborativePane
         sessionKey: preview.sessionKey
         indexKey  : indexKey
 
-    @workspace.addToHistory "$0 opened a new browser"
     @registerPaneRemoveListener_ pane
 
   createChat: ->
@@ -254,6 +262,9 @@ class TeamworkTabView extends CollaborativePane
   appendPane_: (pane, childView) ->
     pane.addSubView childView
     @tabView.addPane pane
+
+  track: (data) ->
+    @workspace.addToHistory data
 
   viewAppended: ->
     super
