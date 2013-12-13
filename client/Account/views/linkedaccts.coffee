@@ -61,15 +61,13 @@ class AccountLinkedAccountsListItem extends KDListItemView
       notify "Your #{title} account is now unlinked."
       @linked = no
 
-
   viewAppended:->
 
     JView::viewAppended.call this
     {provider} = @getData()
-    KD.remote.api.JUser.fetchUser (err, user)=>
-      @linked = user.foreignAuth?[provider]?
+    KD.whoami().fetchOAuthInfo (err, foreignAuth)=>
+      @linked = foreignAuth?[provider]?
       @switch.setDefaultValue @linked
-
 
   pistachio:->
 

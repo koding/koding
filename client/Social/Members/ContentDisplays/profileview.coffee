@@ -437,7 +437,7 @@ class ProfileView extends JView
         else
           @modal = new KDModalView
             cssClass : "avatar-container"
-            width    : 300
+            width    : 390
             fx       : yes
             overlay  : yes
             draggable: yes
