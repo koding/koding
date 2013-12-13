@@ -317,10 +317,13 @@ class ActivityAppController extends AppController
     return contentDisplay
 
   createStatusUpdateContentDisplay:(activity)->
-    @showContentDisplay new ContentDisplayStatusUpdate
-      title : "Status Update"
-      type  : "status"
-    ,activity
+    activity.fetchTags (err, tags) =>
+      unless err
+        activity.tags = tags
+        @showContentDisplay new ContentDisplayStatusUpdate
+          title : "Status Update"
+          type  : "status"
+        ,activity
 
 #  createBlogPostContentDisplay:(activity)->
 #    @showContentDisplay new ContentDisplayBlogPost

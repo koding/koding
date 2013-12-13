@@ -2,6 +2,7 @@ Bongo          = require "bongo"
 {Relationship} = require "jraphical"
 
 {secure, daisy, dash, signature, Base} = Bongo
+{uniq} = require 'underscore'
 
 module.exports = class ActivityTicker extends Base
   @share()
@@ -14,16 +15,14 @@ module.exports = class ActivityTicker extends Base
           (signature Object, Function)
         ]
 
-  relationshipNames = ["follower", "like", "member", "user", "reply", "author"]
-  constructorNames  = ["JAccount", "JNewApp", "JGroup", "JTag", "JNewStatusUpdate", "JComment"]
+  relationshipNames = ["follower", "like", "member", "user",  "author"]
+  constructorNames  = ["JAccount", "JNewApp", "JGroup", "JTag", "JNewStatusUpdate"]
 
   JAccount = require './account'
 
-  filterSources = (filters) =>
-    constructorNames  = ["JAccount", "JNewApp", "JGroup", "JTag", "JNewStatusUpdate", "JComment"]
-
+  mapSourceNames = (filters)=>
     relationshipMap =
-      "follower" : ["JTag"]
+      "follower" : ["JAccount", "JTag"]
       "like"     : ["JAccount", "JNewStatusUpdate"]
       "member"   : ["JGroup"]
       "user"     : ["JApp"]
@@ -36,13 +35,13 @@ module.exports = class ActivityTicker extends Base
       return constructorNames
     return sources
 
-  filterTargets = (filters) ->
-    constructorNames = ["follower", "like", "member", "user"]
+  mapTargetNames = (filters) ->
+    validFilters = ["follower", "like", "member", "user"]
     targets = []
     # The only possible options are either returning only "JAccount" or
     # returning whole constructorNames. I left this function for future-cases.
     for filter in filters
-      if filter in constructorNames
+      if filter in validFilters
         targets.push "JAccount"
         return targets
     return constructorNames
@@ -70,6 +69,11 @@ module.exports = class ActivityTicker extends Base
 
 
   decorateCommentEvent = (relationship, callback) ->
+    # it will be decorated as
+    # source is JAccount          -- doer
+    # target is JAccount          -- owner of the status update
+    # object is JComment          -- the actual comment
+    # subject is JNewStatusUpdate -- post that is commented on
     {source, target, as, timestamp} = relationship
     modifiedEvent =
       as        : as
@@ -77,7 +81,19 @@ module.exports = class ActivityTicker extends Base
       object    : target
       timestamp : timestamp
 
+    # rewrite this part without dash ~ C.S
     queue = [
+      ->
+        source.fetchTags (err, tags) ->
+          return callback err if err
+          modifiedEvent.subject.tags = tags
+          queue.fin()
+      # disable for now
+      # ->
+      #   target.fetchTags (err, tags) ->
+      #     return callback err if err
+      #     modifiedEvent.object.tags = tags
+      #     queue.fin()
       ->
         JAccount.one "_id": source.originId, (err, targetAccount) ->
           return callback err if err
@@ -101,15 +117,23 @@ module.exports = class ActivityTicker extends Base
     JAccount.one {"_id": source.originId}, (err, targetAccount)->
       return callback err if err
 
-      modifiedEvent =
-        source    : target
-        target    : targetAccount
-        subject   : source
-        as        : as
-        timestamp : timestamp
+      kallback = ->
+        modifiedEvent =
+          source    : target
+          target    : targetAccount
+          subject   : source
+          as        : as
+          timestamp : timestamp
 
-      callback null, modifiedEvent
+        callback null, modifiedEvent
 
+      if source.bongo_.constructorName is "JNewStatusUpdate"
+        source.fetchTags (err, tags) ->
+          return callback err if err
+          source.tags = tags
+          do kallback
+      else
+        do kallback
 
   @fetch = secure (client, options, callback) ->
     [callback, options] = [options, callback]  unless callback
@@ -120,14 +144,14 @@ module.exports = class ActivityTicker extends Base
     targets = constructorNames
 
     filters = []
-    if options?.filters
+    if options.filters
       for filter in options.filters  when filter in relationshipNames
         filters.push filter
 
     if filters.length > 0
-      sources = filterSources options.filters
-      as      = options.filters
-      targets = filterTargets options.filters
+      sources = mapSourceNames filters
+      as      = filters
+      targets = mapTargetNames filters
 
 
     from = options.from or +(new Date())
@@ -137,12 +161,12 @@ module.exports = class ActivityTicker extends Base
       targetName : "$in": targets
       timestamp : {"$lt" : new Date(from)}
 
-    options      =
+    relOptions      =
       # do not fetch more than 15 at once
       limit      : 10 # Math.min options.limit ? 15, 15
       sort       : timestamp  : -1
 
-    Relationship.some selector, options, (err, relationships) ->
+    Relationship.some selector, relOptions, (err, relationships) ->
       buckets = []
       return  callback err, buckets  if err
       daisy queue = relationships.map (relationship) ->

@@ -1,5 +1,5 @@
 cache           = {}
-cachingTimeInMS = 30000
+cachingTimeInMS = 10000
 
 repeatFetchingItems = (cacheKey, fetcherFn, fetcherFnOptions)->
   inProgress = cache[cacheKey]?.inProgress or no
