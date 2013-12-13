@@ -156,7 +156,7 @@ class FilterWarning extends JView
     @warning   = new KDCustomHTMLView
     @goBack    = new KDButtonView
       cssClass : 'goback-button'
-      callback : => KD.singletons.router.handleRoute '/Activity'
+      callback : => KD.singletons.router.back()
 
   pistachio:->
     """
