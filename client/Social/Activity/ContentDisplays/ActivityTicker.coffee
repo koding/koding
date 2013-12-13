@@ -53,8 +53,8 @@ class ActivityTicker extends ActivityRightBase
     filterSelected = (filters=[]) =>
       @listController.removeAllItems()
       @indexedItems = {}
-      @tryCount = 0
-      @load filters : filters
+      tryCount = 0
+      @load {filters, tryCount}
 
     menu =
       'All'      :
