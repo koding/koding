@@ -1,7 +1,7 @@
 jraphical = require 'jraphical'
 module.exports = class JBadge extends jraphical.Module
   {permit}          = require './group/permissionset'
-  {daisy, secure}   = require 'bongo'
+  {daisy, secure, signature}   = require 'bongo'
   KodingError       = require '../error'
 
   @trait __dirname, '../traits/filterable'
@@ -30,10 +30,25 @@ module.exports = class JBadge extends jraphical.Module
         type              : Date
         default           : -> new Date
     sharedMethods         :
-      static              : ["listBadges", "create","fetchBadgeUsers",
-      "checkEligibleBadges"]
-      instance            : ["modify", "deleteBadge","removeBadgeFromUser",
-      "assignBadgeBatch"]
+      static :
+        listBadges :
+          (signature Object, Object, Function)
+        create :
+          (signature Object, Function)
+        fetchBadgeUsers :
+          (signature String, Object, Function)
+        checkEligibleBadges :
+          (signature Object, Function)
+      instance :
+        modify :
+          (signature String, Object, Function)
+        deleteBadge :
+          (signature Function)
+        removeBadgeFromUser :
+          (signature Object, Function)
+        assignBadgeBatch :
+          (signature Object, Function)
+
 
   @create: permit 'create badge',
     success:(client, badgeData, callback=->)->
@@ -47,8 +62,8 @@ module.exports = class JBadge extends jraphical.Module
         callback new KodingError 'That role cannot be given from UI', null
 
   @listBadges: permit 'list badges',
-    success: (client, selector, callback=->)->
-      JBadge.some selector,{limit:50},callback
+    success: (client, selector, options, callback=->)->
+      JBadge.some selector, options, callback
 
   modify: permit 'edit badge',
     success: (client, formData, callback)->

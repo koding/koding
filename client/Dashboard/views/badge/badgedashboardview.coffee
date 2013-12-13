@@ -28,7 +28,7 @@ class BadgeDashboardView extends JView
         new NewBadgeForm {@badgeListController}
 
   getAllBadges: ->
-    KD.remote.api.JBadge.listBadges '',(err, badges)=>
+    KD.remote.api.JBadge.listBadges {},limit:50 ,(err, badges)=>
       return callback err if err
       @badgeListController.instantiateListItems badges
 
