@@ -5,10 +5,13 @@ class TeamworkTabView extends CollaborativePane
     super options, data
 
     @createElements()
-    @keysRef  = @workspaceRef.child "keys"
-    @indexRef = @workspaceRef.child "index"
+    @keysRef    = @workspaceRef.child "keys"
+    @indexRef   = @workspaceRef.child "index"
+    @requestRef = @workspaceRef.child "request"
 
     @listenChildRemovedOnKeysRef()
+    @listenRequestRef()
+
     if @amIHost
       @bindRemoteEvents()
     else
@@ -18,6 +21,15 @@ class TeamworkTabView extends CollaborativePane
 
         @keysRefChildAddedCallback value  for key, value of data
         @bindRemoteEvents()
+
+  listenRequestRef: ->
+    @requestRef.on "value", (snapshot) =>
+      if @amIHost
+        request = snapshot.val()
+        return unless request
+
+        @createTabFromFirebaseData request
+        @requestRef.remove()
 
   listenPaneDidShow: ->
     @tabView.on "PaneDidShow", (pane) =>
