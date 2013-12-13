@@ -9,9 +9,8 @@ class CollaborativePreviewPane extends CollaborativePane
     {@previewer} = @previewPane
 
     if @isJoinedASession
-      @workspaceRef.once "value", (snapshot) => @openPathFromSnapshot snapshot
-    else
-      @previewer.on "ready", => @saveUrl()
+      @workspaceRef.once "value", (snapshot) =>
+        @openPathFromSnapshot snapshot
 
     @previewer.on "ViewerLocationChanged", => @saveUrl()
 
@@ -34,3 +33,4 @@ class CollaborativePreviewPane extends CollaborativePane
     url    = unless force then path.replace(/\?.*/, "") else "#{path}?#{Date.now()}"
 
     @workspaceRef.child("url").set url
+    @workspace.addToHistory "$0 opened #{url}"
