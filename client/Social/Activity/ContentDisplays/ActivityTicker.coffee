@@ -43,8 +43,8 @@ class ActivityTicker extends ActivityRightBase
     group.on "PostIsDeleted", @bound "deleteActivity"
 
     @listController.listView.on 'ItemWasAdded', (view, index) =>
-      if view.data?
-        itemId = @getItemId view.data
+      if viewData = view.getData()
+        itemId = @getItemId viewData
         @indexedItems[itemId] = view
 
     @load {}
