@@ -68,6 +68,20 @@ class ActivityItemChild extends KDView
       activityItem = @getDelegate()
       deleteActivity activityItem
 
+    @settingsButton.on 'ActivityEditIsClicked', =>
+      unless @editWidget
+        @editWidget = new ActivityInputWidget editMode: yes
+        reset = => @editWidget = null if @editWidget
+
+        @editWidget.on 'Submit', => do reset
+        @editWidget.on 'Cancel', => do reset
+
+        @editWidget.edit @getData()
+
+        @addSubView @editWidget, null, yes
+
+
+
     data.on 'PostIsDeleted', =>
       activityItem = @getDelegate()
       return unless activityItem.isInDom()
