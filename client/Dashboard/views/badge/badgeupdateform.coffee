@@ -8,6 +8,7 @@ class BadgeUpdateForm extends JView
       overlay                 : yes
       width                   : 700
       height                  : "auto"
+      cssClass                : "modify-badge-modal"
       tabs                    :
         goToNextFormOnSubmit  : no
         navigable             : yes

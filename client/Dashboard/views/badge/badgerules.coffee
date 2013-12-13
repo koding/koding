@@ -13,14 +13,14 @@ class BadgeRules extends JView
 
     @addRule          = new KDButtonView
       name            : 'addrule'
-      style           : 'add-new-rule'
-      title           : '+'
+      style           : 'add-new-rule solid green'
+      title           : 'Add new rule'
       callback        : =>
         @badgeRulesListController.addItem {}
 
     @doneButton       = new KDButtonView
       name            : 'listdone'
-      style           : 'rule-set-done'
+      style           : 'rule-set-done solid green'
       title           : 'done'
       callback        : =>
         @createUserSelector()
@@ -35,7 +35,7 @@ class BadgeRules extends JView
 
     @giveBadgeButton  = new KDButtonView
       name            : 'createbadge'
-      style           : 'create-badge-button'
+      style           : 'create-badge-button solid green'
       title           : 'Create'
       type            : "submit"
       loader          :
@@ -113,8 +113,8 @@ class BadgeRules extends JView
   pistachio:->
     """
     {{> @addRule}}
-    {{> @doneButton}}
     {{> @badgeListView}}
+    {{> @doneButton}}
     {{> @userList}}
     {{> @giveBadgeButton}}
     {{> @usersInput}}
@@ -131,8 +131,8 @@ class BadgeUsersItem extends KDListItemView
       size     :
         width  : 40
     @remove    = new KDButtonView
-      title    : "Remove"
-      cssClass : "modal-clean-red"
+      title    : "x"
+      cssClass : "solid red"
       callback : =>
         @parent.removeItem this
         @parent.emit "RemoveBadgeUser", @account
@@ -186,7 +186,7 @@ class BadgeRuleItem extends KDListItemView
 
     @removeRule       = new KDButtonView
       name            : 'removeRule'
-      style           : 'remove-rule'
+      style           : 'remove-rule solid red'
       title           : '-'
       callback        : =>
         @parent.emit "RemoveRuleFromList", this
