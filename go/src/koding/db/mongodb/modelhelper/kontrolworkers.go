@@ -9,13 +9,18 @@ import (
 	"log"
 )
 
+const (
+	WorkersCollection = "jKontrolWorkers"
+	WorkersDB         = "kontrol"
+)
+
 func GetWorker(uuid string) (models.Worker, error) {
 	result := models.Worker{}
 	query := func(c *mgo.Collection) error {
 		return c.Find(bson.M{"uuid": uuid}).One(&result)
 	}
 
-	err := mongodb.Run("jKontrolWorkers", query)
+	err := mongodb.RunOnDatabase(WorkersDB, WorkersCollection, query)
 	if err != nil {
 		return result, fmt.Errorf("no worker with the uuid %s exist.", uuid)
 	}
@@ -28,7 +33,7 @@ func UpdateIDWorker(worker models.Worker) {
 		return c.UpdateId(worker.ObjectId, worker)
 	}
 
-	err := mongodb.Run("jKontrolWorkers", query)
+	err := mongodb.RunOnDatabase(WorkersDB, WorkersCollection, query)
 	if err != nil {
 		log.Println(err)
 	}
@@ -39,7 +44,7 @@ func UpdateWorker(worker models.Worker) {
 		return c.Update(bson.M{"uuid": worker.Uuid}, worker)
 	}
 
-	err := mongodb.Run("jKontrolWorkers", query)
+	err := mongodb.RunOnDatabase(WorkersDB, WorkersCollection, query)
 	if err != nil {
 		log.Println(err)
 	}
@@ -51,7 +56,7 @@ func UpsertWorker(worker models.Worker) error {
 		return err
 	}
 
-	return mongodb.Run("jKontrolWorkers", query)
+	return mongodb.RunOnDatabase(WorkersDB, WorkersCollection, query)
 }
 
 func DeleteWorker(uuid string) error {
@@ -59,5 +64,5 @@ func DeleteWorker(uuid string) error {
 		return c.Remove(bson.M{"uuid": uuid})
 	}
 
-	return mongodb.Run("jKontrolWorkers", query)
+	return mongodb.RunOnDatabase(WorkersDB, WorkersCollection, query)
 }
