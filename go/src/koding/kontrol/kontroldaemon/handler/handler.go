@@ -214,7 +214,7 @@ func handleForceOption(worker models.Worker) (workerconfig.WorkerResponse, error
 
 	}
 
-	mongodb.Run(WorkersCollection, query)
+	mongodb.RunOnDatabase(WorkersDB, WorkersCollection, query)
 
 	startLog := fmt.Sprintf("[%s (%d) - (%s)] starting at '%s' - '%s'\n",
 		worker.Name,
@@ -294,7 +294,7 @@ func handleExclusiveOption(worker models.Worker) (workerconfig.WorkerResponse, e
 	// is still alive.
 	aliveWorker := new(models.Worker)
 
-	err := mongodb.Run(WorkersCollection, func(c *mgo.Collection) error {
+	err := mongodb.RunOnDatabase(WorkersDB, WorkersCollection, func(c *mgo.Collection) error {
 		// worst fucking syntax ever I saw in my life that is doing
 		// fucking gazillion things with one fucking method called fucking
 		// apply. fuck you mgo
@@ -478,7 +478,7 @@ func heartBeatChecker() {
 	}
 
 	for {
-		mongodb.Run(WorkersCollection, queryFunc)
+		mongodb.RunOnDatabase(WorkersDB, WorkersCollection, queryFunc)
 		time.Sleep(workerconfig.HEARTBEAT_INTERVAL)
 	}
 }
@@ -505,7 +505,7 @@ func deploymentCleaner() {
 				return nil
 			}
 
-			mongodb.Run(WorkersCollection, query)
+			mongodb.RunOnDatabase(WorkersDB, WorkersCollection, query)
 
 			// remove deployment information only if there is no worker alive for that version
 			if numberOfWorkers == 0 {
