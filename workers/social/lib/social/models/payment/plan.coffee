@@ -12,7 +12,7 @@ module.exports = class JPaymentPlan extends JPaymentBase
   {secure, dash}        = require 'bongo'
   {difference, extend}  = require 'underscore'
 
-  {partition}           = require '../../util'
+  {partition}           = require 'bongo/lib/util'
   {permit}              = require '../group/permissionset'
 
   JUser                 = require '../user'
@@ -141,7 +141,12 @@ module.exports = class JPaymentPlan extends JPaymentBase
       return callback err  if err
 
       if subscription?
-        return callback 'Already subscribed.'  unless options.multiple
+        unless options.multiple
+          return callback {
+            message               : 'Already subscribed.'
+            short                 : 'existing_subscription'
+            existingSubscription  : subscription
+          }
 
         quantity = subscription.quantity + 1
 

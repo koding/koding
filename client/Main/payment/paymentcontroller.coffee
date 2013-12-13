@@ -9,9 +9,9 @@ class PaymentController extends KDController
     appStorage = new AppStorage 'Account', '1.0'
     queue = [
 
-      -> appStorage.fetchStorage (err) ->
+      -> appStorage.fetchStorage ->
         preferredPaymentMethod = appStorage.getValue 'preferredPaymentMethod'
-        queue.fin err
+        queue.fin()
 
       => KD.whoami().fetchPaymentMethods (err, paymentMethods) ->
         methods = paymentMethods
@@ -98,7 +98,7 @@ class PaymentController extends KDController
 
       subscription = null
       queue.push =>
-        @fetchSubscriptionsWithPlans tags: ['vm'], (err, [subscription_]) ->
+        @fetchSubscriptionsWithPlans tags: tag, (err, [subscription_]) ->
           subscription = subscription_
           queue.fin()
 
@@ -140,11 +140,69 @@ class PaymentController extends KDController
 
     workflow
 
+  confirmReactivation: (subscription, callback) ->
+    modal = KDModalView.confirm
+      title       : 'Inactive subscription'
+      description : 
+        """
+        Your existing subscription for this plan has been canceled.  Would
+        you like to reactivate it?
+        """
+      subView     : new SubscriptionView {}, subscription
+      ok          :
+        title     : 'Reactivate'
+        callback  : -> subscription.resume (err) ->
+          return callback err  if err
+
+          modal.destroy()
+
+          callback null, subscription
+
+  createSubscription: ({ plan, email, paymentMethod, createAccount }, callback) ->
+    { paymentMethodId, billing } = paymentMethod
+
+    plan.subscribe paymentMethodId, (err, subscription) =>
+      if err?.short is 'existing_subscription'
+        { existingSubscription } = err
+
+        if existingSubscription.status is 'active'
+          new KDNotificationView
+            title: "You are already subscribed to this plan!"
+          KD.getSingleton('router').handleRoute '/Account/Subscriptions'
+
+        else
+          existingSubscription.plan = plan
+          @confirmReactivation existingSubscription, callback
+
+      else if createAccount
+        { JUser } = KD.remote.api
+
+        { cardFirstName: firstName, cardLastName: lastName } = billing
+
+        JUser.convert { firstName, lastName, email }, (err) ->
+          return callback err  if err
+
+          JUser.logout (err) ->
+            return callback err  if err
+            
+            callback null
+      else
+        callback err, subscription
+
   transitionSubscription: (formData, callback) ->
-    { productData, oldSubscription, paymentMethod } = formData
-    { plan:{ planCode }} = productData
+    { productData, oldSubscription, paymentMethod, createAccount, email } = formData
+    { plan } = productData
+    { planCode } = plan
     { paymentMethodId } = paymentMethod
-    oldSubscription.transitionTo { planCode, paymentMethodId }, callback
+    if oldSubscription
+      oldSubscription.transitionTo { planCode, paymentMethodId }, callback
+    else
+      @createSubscription {
+        plan
+        email
+        paymentMethod
+        createAccount
+      }, callback
 
   debitSubscription: (subscription, pack, callback) ->
     subscription.debit pack, (err, nonce) =>
