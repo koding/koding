@@ -261,3 +261,18 @@ class ActiveTopicItemView extends KDListItemView
   viewAppended:->
     @addSubView @tag
     @addSubView @followButton
+
+    @addSubView tagInfo = new KDCustomHTMLView
+      cssClass          : "tag-info clearfix"
+
+    @getData().fetchRandomFollowers {}, =>
+      randomFollowers = arguments[1]
+      for user in randomFollowers
+        tagInfo.addSubView new AvatarView
+          size: { width: 19, height: 19 }
+        , user
+
+      tagInfo.addSubView new KDCustomHTMLView
+        tagName   : "span"
+        cssClass  : "total-following"
+        partial   : "+#{@getData().counts.followers} is following"

@@ -221,7 +221,6 @@ resurrection.activity.styl
         bg              color, transparent
         border          2px solid #b5b5b5
         right           4px
-        top             22px
         vendor          transition, width .1s ease \,\
                                     border-color .3s ease
         abs()
@@ -305,9 +304,36 @@ resurrection.activity.styl
 
 
     .active-topics
+      h3
+        margin-bottom   4px
+
+      .kdscrollview
+        height          252px
+
       .kdlistitemview-activity-ticker-item
         margin          0
-        height          53px
+        height          auto
+        padding-top     9px
+
+      .follow-btn
+        top             16px
+
+      .tag-info
+        line-height     19px
+        margin          6px 0 0
+
+        .avatarview
+          position      static
+          margin        0 1px 0
+          rounded       3px
+          fl()
+
+        .total-following
+          margin        0 0 0 5px
+          font-size     12px
+          font-weight   200
+          color         #9a9a9a
+          fl()
 
     .kdbuttonwithmenu-wrapper.ticker-settings-menu
         abs()
@@ -327,14 +353,6 @@ resurrection.activity.styl
           hidden()
         .chevron
           sprite    activity chevron-icon
-
-        .ttag
-          line-height   34px
-
-          &:before
-            content     "#"
-            margin-right 4px
-            color        #b5b5b5
 
 span.collapsedtext
   borderBox()
@@ -668,7 +686,7 @@ span.collapsedtext
 
 /* Embed Styles */
 .embed-image-view
-  margin                20px 0 8px
+  margin                0 0 18px
   border-top            2px solid #e4e4e4
 
   a
