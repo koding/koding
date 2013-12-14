@@ -7,7 +7,7 @@ module.exports = class JTag extends jraphical.Module
 
   {Relationship} = jraphical
 
-  {ObjectId, ObjectRef, Inflector, secure, daisy, race, signature} = require 'bongo'
+  {ObjectId, ObjectRef, Inflector, daisy, secure, race, signature} = require 'bongo'
 
   Validators  = require './group/validators'
   {permit}    = require './group/permissionset'
@@ -71,6 +71,8 @@ module.exports = class JTag extends jraphical.Module
           (signature Object, Object, Function)
         delete:
           (signature Function)
+        fetchRandomFollowers:
+          (signature Object, Function)
       static        :
         one:
           (signature Object, Function)
@@ -358,3 +360,21 @@ module.exports = class JTag extends jraphical.Module
   @byRelevance$ = permit 'read tags',
     success: (client, seed, options, callback)->
       @byRelevance client, seed, options, callback
+
+  fetchRandomFollowers: secure (client, options, callback)->
+    {limit}  = options
+    limit  or= 3
+
+    Relationship.some {
+      as       : "follower"
+      sourceId : @getId()
+    }, {limit}, (err, rels)->
+      accounts = []
+      daisy queue = rels.map (r)->
+        ->
+          JAccount = require './account'
+          JAccount.one _id: r.targetId, (err, acc)->
+            accounts.push acc  if !err and acc
+            queue.next()
+
+      queue.push -> callback null, accounts
