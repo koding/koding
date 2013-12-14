@@ -44,7 +44,7 @@ class ActivityTickerLikeItem extends ActivityTickerBaseItem
     {source, target, subject} = data
 
     @avatar    = new AvatarView
-      size     : width: 28, height: 28
+      size     : width: 30, height: 30
       cssClass : "avatarview"
     , source
 
@@ -82,7 +82,7 @@ class ActivityTickerMemberItem extends ActivityTickerBaseItem
     {target} = data
 
     @avatar    = new AvatarView
-      size     : width: 28, height: 28
+      size     : width: 30, height: 30
       cssClass : "avatarview"
     , target
 
@@ -103,7 +103,7 @@ class ActivityTickerAppUserItem extends ActivityTickerBaseItem
     {source, target} = data
 
     @avatar    = new AvatarView
-      size     : width: 28, height: 28
+      size     : width: 30, height: 30
       cssClass : "avatarview"
     , target
 
@@ -124,7 +124,7 @@ class ActivityTickerCommentItem extends ActivityTickerBaseItem
     {source, target, object, subject} = data
 
     @avatar    = new AvatarView
-      size     : width: 28, height: 28
+      size     : width: 30, height: 30
       cssClass : "avatarview"
     , source
 
@@ -162,7 +162,7 @@ class ActivityTickerStatusUpdateItem extends ActivityTickerBaseItem
     {source, target} = data
 
     @avatar    = new AvatarView
-      size     : width: 28, height: 28
+      size     : width: 30, height: 30
       cssClass : "avatarview"
     , target
 

@@ -32,8 +32,8 @@ resurrection.activity.styl
     word-spacing        0
 
   > main
-    size                  711px, auto
-    kalc                  margin-right, 37% \+ 32px
+    size                  689px, auto
+    kalc                  margin-right, 37% \+ 34px
     fr()
 
     .filter-warning
@@ -53,13 +53,13 @@ resurrection.activity.styl
 
     .input-wrapper
       size              auto auto
-      margin            0 0 0 100px
+      margin            0 0 0 79px
       position          relative
 
       .avatarview
         rounded           4px
-        top               6px
-        left              6px
+        top               7px
+        left              7px
         z-index           2
         abs()
 
@@ -75,19 +75,22 @@ resurrection.activity.styl
           line-height     16px
           font-size       14px
           color           #acacac
-          padding         15px 100px 14px 56px
+          padding         15px 100px 16px 56px
           background      #fff
+          font-weight     200
           borderBox()
 
         &.placeholder
           > div
+            font-weight   200
             color         #acacac
 
       button[type=submit]
         size            30px, 30px
         bottom          8px
-        right           9px
+        right           8px
         padding         0
+        background      #6ccab7
         abs()
         z-index         1
 
@@ -120,7 +123,7 @@ resurrection.activity.styl
 
     .activity-content
       size              auto, auto
-      margin            0 0 0 100px
+      margin            0 0 0 80px
       font-size         14px
       overflow          visible
 
@@ -130,7 +133,7 @@ resurrection.activity.styl
   > aside
     right               0
     top                 55px
-    padding             0 0 0 33px
+    padding             0 0 0 35px
     bg                  color, #ebebeb
     size                37%, 100%
     border-left         1px solid #d5d5d5
@@ -145,41 +148,42 @@ resurrection.activity.styl
     .active-topics
       size              269px, auto
 
-    .active-users
-    .activity-ticker
-      margin-top        18px
-
     .right-block-box
       size              auto, auto
-      margin            30px 0 0
+      margin            33px 0 0
 
       h3
         display         block
         font-size       14px
         font-weight     400
         color           #37b298
-        margin          0 0 17px 0
+        margin          0
+        padding         0 0 7px
+        border-bottom   1px solid #2eb398
+        letter-spacing  .2px
+
         .show-all-link
-          color         #a6abb1
-          font-weight   300
+          color         #a1a1a1
+          font-weight   200
+          font-size     12px
           noTextDeco()
           fr()
 
       .kdscrollview
-        size            auto, 212px
+        size            auto, 203px
         padding         0
 
     .kdlistitemview-activity-ticker-item
-      size              auto, auto
-      min-height        53px
+      size              auto, 60px
       position          relative
-      padding           11px 0 11px
-      margin            0 0 0 44px
+      padding           14px 0 11px
+      margin            0 0 0 42px
       overflow          visible
       border-bottom     1px solid #d3d3d3
       color             #3c4752
       font-weight       400
       font-size         13px
+      letter-spacing    .2px
       borderBox()
 
       .action
@@ -204,27 +208,26 @@ resurrection.activity.styl
           font-weight   500
 
       .avatarview
-        size            30px, 30px
         rounded         5px
         display         block
-        left            -42px
+        left            -43px
         top             1px
         abs()
 
       .follow-btn
         size            25px, 25px
         padding         0
-        margin          4px 0 0
         rounded         13px
         bg              color, transparent
         border          2px solid #b5b5b5
-        right           0
+        right           4px
+        top             22px
         vendor          transition, width .1s ease \,\
                                     border-color .3s ease
         abs()
         .icon
           padding       0
-          margin        2px 0 0 4px
+          margin        1px 0 0 4px
           sprite        activity, "follow-check"
 
         .button-title
@@ -253,41 +256,58 @@ resurrection.activity.styl
           .button-title
             color       #2eb398
           &:hover
-            width         78px
+            width       78px
 
     .activity-ticker
-      .profile
-        display       inline
       &.fixed
         top           55px
         fix()
 
+      .kdscrollview
+        height        240px
+
+      .profile
+        display       inline
+
+      .avatarview
+        top           3px
+
       .action
         a.ttag
-          color      #3aaaab
-          span:before
-             content    "#"
+          font-weight 400
+          color       #3c4752
 
     .active-users
+      .kdscrollview
+        height        240px
+
       .avatarview
-        top             11px
+        top             15px
       .profile
       .user-numbers
         white-space     nowrap
         width           170px
         overflow        hidden
         text-overflow   ellipsis
-        color           #414853
+        color           #3c4752
+        opacity         .8
+        letter-spacing  0
         fl()
       .user-numbers
         height          18px
-        margin          4px 0 0
-        color           #7A7D82
-        font-weight     300
+        margin          6px 0 0
+        font-weight     200
+        span
+          font-weight   400
+
+      .follow-btn
+        top             17px
+
 
     .active-topics
       .kdlistitemview-activity-ticker-item
         margin          0
+        height          53px
 
     .kdbuttonwithmenu-wrapper.ticker-settings-menu
         abs()
@@ -353,13 +373,10 @@ span.collapsedtext
   rounded         5px
   overflow        visible
   position        relative
-  margin          30px 0 0 0
+  margin          31px 0 11px 0
   border          1px solid #d8d8d8
   shadow          1px 1px 0 rgba(196, 196, 196, .75)
   borderBox()
-
-  &:nth-child(1)
-    margin-top    32px
 
   &.content-display-main-section /* Content display */
     kalc          width, 100% \- 100px
@@ -393,11 +410,10 @@ span.collapsedtext
   .author-avatar
     display       block
     size          70px, 70px
-    rounded       5px
+    rounded       4px
     top           0
     right         100%
-    margin        0 9px 0 0
-    border        1px solid #bdc3c7
+    margin        0 11px 0 0
     borderBox()
     abs()
 
@@ -413,33 +429,35 @@ span.collapsedtext
     // until we find a better solution - SY
     overflow      auto
     max-height    400px
-    padding       5px 23px 0
-    line-height   22px
+    padding       4px 21px 0
+    font-size     14px
+    line-height   21px
     white-space   pre
+    letter-spacing .2px
 
   >.profile
     color         #1aaf5d
-    font-weight   500
-    padding       18px 22px 0
+    font-weight   400
+    padding       18px 20px 0
     display       inline-block
     noTextDeco()
 
   footer
-    size          100%, 25px
-    margin        0
+    size          100%, 33px
+    margin        -12px 0 0 0
     borderBox()
 
     time
       width       auto
-      line-height 14px
+      line-height 19px
       font-size   12px
       color       #dadcdd
-      padding     0 22px 0 0
+      padding     0 19px 0 0
       fr()
 
     .activity-actions
       width       auto
-      padding     0 0 0 10px
+      padding     0 0 0 9px
       fl()
 
     .action-link
@@ -447,6 +465,7 @@ span.collapsedtext
     .share-icon
       display         inline-block
       vertical-align  middle
+      opacity         .8
 
       &.like-icon
         sprite        activity like-icon
@@ -459,18 +478,19 @@ span.collapsedtext
 
     .action-container
       size            auto 18px
-      margin          0 0 0 14px
+      margin          0 0 0 13px
       fl()
 
       &.liked .like-icon
         sprite        activity like-icon-liked
+        opacity       1
       // &.kdview.kdloader
       //   margin-top    0
 
     .count
       display         inline-block
       vertical-align  text-bottom
-      color           #73787e
+      color           #9da0a4
       font-size       12px
       margin          0 0 0 6px
       noTextDeco()
@@ -505,17 +525,18 @@ span.collapsedtext
           color         #fff
 
   .kdlistitemview-comment
-    padding           22px 22px 15px 20px
+    padding           22px 22px 17px 20px
     borderBox()
 
-    // &:last-of-type
-    //   padding-bottom  33px
+    &:last-of-type
+      padding-bottom  26px
 
     .avatarview
       border          1px solid #bdc3c7
-      top             20px
+      top             22px
       left            20px
       rounded         5px
+      borderBox()
       abs()
 
     .comment-contents
@@ -529,12 +550,14 @@ span.collapsedtext
         display       inline-block
         color         #1aaf5d
         font-weight   500
-        margin        2px 0 10px 0
+        margin        3px 0 6px 0
+        font-weight   400
         noTextDeco()
 
       .comment-body
         word-break    break-word
-        line-height   16px
+        line-height   17px
+        font-weight   200
 
         a
           color       inherit
@@ -544,8 +567,9 @@ span.collapsedtext
       time
         font-size         11px
         display           inline-block
-        margin            14px 0 0
+        margin            12px 0 0
         width             auto
+        font-weight       200
 
       .reply-link
         margin-left       14px
@@ -587,11 +611,8 @@ span.collapsedtext
       padding-top       0
       border-top        1px solid #d8d8d8
 
-      .avatarview
-        top           13px
-
       .comment-contents
-        padding-top   13px
+        padding-top     22px
 
     &.deleted
       width           auto
@@ -904,7 +925,7 @@ span.status-body
       font-size           20px
 
   /* Paragraphs and other text */
-  p
+  p  p
     padding               0 0 12px
   em
     font-style            italic
