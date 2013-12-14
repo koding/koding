@@ -18,10 +18,10 @@ class NewKite extends KDObject
     @handlers =
       log   : (options)->
         log options.withArgs...
-        options.responseCallback()
+        options.responseCallback({withArgs: [{error: null, result: null}]})
       alert : (options)->
         alert options.withArgs...
-        options.responseCallback()
+        options.responseCallback({withArgs: [{error: null, result: null}]})
 
     @proto = new Bongo.dnodeProtocol.Session null, @handlers
     @proto.on 'request', (req)=>
