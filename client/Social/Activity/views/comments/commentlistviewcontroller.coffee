@@ -68,7 +68,7 @@ class CommentListViewController extends KDListViewController
 
       KD.mixpanel "Commented on activity"
       KD.getSingleton("badgeController").checkBadge
-        property:"comments", relType:"commenter",source:"JNewStatusUpdate" ,targetSelf:1
+        property : "comments", relType : "commenter", source : "JNewStatusUpdate", targetSelf : 1
 
   fetchCommentsByRange:(from,to,callback)->
     [to,callback] = [callback,to] unless callback

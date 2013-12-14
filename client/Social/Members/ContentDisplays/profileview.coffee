@@ -514,14 +514,14 @@ class ProfileView extends JView
     @memberData.fetchMyBadges (err, badges)=>
       @userBadgesController.instantiateListItems badges
 
-    @userBadgesView = @userBadgesController.getListView()
+    @userBadgesView = @userBadgesController.getView()
 
 
     # for admins and moderators, list user badge property counts
+    @badgeItemsList = new KDCustomHTMLView
     if KD.checkFlag 'super-admin'
-      @prp = new UserPropertyList {}, counts : @memberData.counts
-    else
-      @prp = new KDCustomHTMLView
+      @badgeItemsList = new UserPropertyList {}, counts : @memberData.counts
+
 
   viewAppended:->
 
@@ -697,7 +697,7 @@ class ProfileView extends JView
       <div class="user-badges">
         <h3>Badges</h3>
         {{> @userBadgesView}}
-        {{> @prp}}
+        {{> @badgeItemsList}}
       </div>
 
     """

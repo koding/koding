@@ -1,6 +1,6 @@
 class BadgeListItem extends KDListItemView
   constructor: (options = {}, data) ->
-    options.cssClass =  KD.utils.curry "items", options.cssClass
+    options.type =  "badge"
     super options, data
     {iconURL, description} = @getData()
 
@@ -23,7 +23,6 @@ class BadgeListItem extends KDListItemView
   viewAppended: JView::viewAppended
 
   pistachio:->
-    {title} = @getData()
     """
       {{ #(title) }}
       {{> @badgeIcon}}

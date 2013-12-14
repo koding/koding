@@ -26,7 +26,6 @@ class BadgeUpdateForm extends JView
             fields            :
               Title           :
                 label         : "Title"
-                type          : "text"
                 name          : "title"
                 defaultValue  : @badge.title
                 validate      :
@@ -36,12 +35,10 @@ class BadgeUpdateForm extends JView
                     required  : "badge name required"
               Icon            :
                 label         : "Badge Icon"
-                type          : "text"
                 name          : "iconURL"
                 defaultValue  : @badge.iconURL
               Description     :
                 label         : "Description"
-                type          : "text"
                 name          : "description"
                 defaultValue  : @badge.description
               Permission      :
@@ -130,10 +127,8 @@ class BadgeUpdateForm extends JView
     permissionBox = @badgeForm.modalTabs.forms["Properties"].inputs.Permission
     currentGroup  = KD.getSingleton("groupsController").getCurrentGroup()
     currentGroup.fetchRoles (err, roles)=>
-      tmpRole = ["admin","owner","moderator","guest","member"]
-      for role in roles
-        unless role.title in tmpRole
-          selectRoles.push title : role.title, value : role.title
+      tmpRoles = ["admin", "owner", "moderator", "guest", "member"]
+      selectRoles = {title, value} for {title, value} in roles when not title in tmpRoles
       permissionBox.setSelectOptions selectRoles
 
   updateRulesTabView: ->

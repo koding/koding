@@ -1,4 +1,4 @@
-class NewBadgeForm extends JView
+class NewBadgeForm extends KDView
 
   constructor:(options = {}, data)->
     super options, data
@@ -8,7 +8,6 @@ class NewBadgeForm extends JView
       overlay                 : yes
       cssClass                : "add-badge-modal"
       width                   : 600
-      height                  : "auto"
       tabs                    :
         callback              : (formData)=> @createBadgeAndAssign formData
         navigable             : no
@@ -25,7 +24,6 @@ class NewBadgeForm extends JView
             fields            :
               Title           :
                 label         : "Title"
-                type          : "text"
                 name          : "title"
                 placeholder   : "enter the name of the badge"
                 validate      :
@@ -35,12 +33,10 @@ class NewBadgeForm extends JView
                     required  : "add badge name"
               Icon            :
                 label         : "Badge Icon"
-                type          : "text"
                 name          : "iconURL"
                 placeholder   : "enter the path of badge"
               Description     :
                 label         : "Description"
-                type          : "text"
                 name          : "description"
                 placeholder   : "Description of the badge to be showed to user"
               Permission      :
@@ -48,9 +44,7 @@ class NewBadgeForm extends JView
                 itemClass     : KDSelectBox
                 name          : "role"
                 defaultValue  : "none"
-                selectOptions : [
-                    { title : "No Permission", value : "none" }
-                  ]
+                selectOptions : [{title : "No Permission", value : "none"}]
           "Rules"             :
             fields            : {}
 
@@ -66,10 +60,8 @@ class NewBadgeForm extends JView
     permissionBox = @badgeForm.modalTabs.forms["New Badge"].inputs.Permission
     currentGroup  = KD.getSingleton("groupsController").getCurrentGroup()
     currentGroup.fetchRoles (err, roles) ->
-      tmpRole = ["admin","owner","guest","member","moderator"]
-      for role in roles
-        unless role.title in tmpRole
-          selectRoles.push title : role.title, value : role.title
+      tmpRoles = ["admin", "owner", "moderator", "guest", "member"]
+      selectRoles = {title, value} for {title, value} in roles when not title in tmpRoles
       permissionBox.setSelectOptions selectRoles
 
   updateRulesTabView:->
@@ -80,7 +72,7 @@ class NewBadgeForm extends JView
   createBadgeAndAssign: (formData)->
     KD.remote.api.JBadge.create formData, (err, badge)=>
       if err
-        new KDNotificationView title:err.message
+        new KDNotificationView title : err.message
       else
         {badgeListController} = @getOptions()
         badgeListController.addItem badge

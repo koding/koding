@@ -25,7 +25,7 @@ class FollowButton extends KDToggleButton
                 account.followee = response
                 # check badge for following count
                 KD.getSingleton("badgeController").checkBadge
-                  property:"following", relType:"follower",source:"JAccount" ,targetSelf:1
+                  property : "following", relType : "follower", source : "JAccount" , targetSelf : 1
                 cb? err
       ,
         title      : "Following"

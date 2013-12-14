@@ -8,8 +8,10 @@ class BadgeRules extends JView
         type              : "badges"
         cssClass          : "badge-rules"
         itemClass         : BadgeRuleItem
+        scrollView        : no
+        wrapper           : no
 
-    @badgeListView = @badgeRulesListController.getListView()
+    @badgeListView = @badgeRulesListController.getView()
 
     @addRuleButton    = new KDButtonView
       name            : 'addrule'
@@ -50,9 +52,9 @@ class BadgeRules extends JView
       type            : "hidden"
       name            : "rule"
 
-    @userList = @filteredUsersController.getListView()
-
-    @badgeListView.on "RemoveRuleFromList", (item)=>
+    @userList = @filteredUsersController.getView()
+    listView = @badgeRulesListController.getListView()
+    listView.on "RemoveRuleFromList", (item)=>
       @badgeRulesListController.removeItem item
 
     @giveBadgeButton.hide()
@@ -87,8 +89,7 @@ class BadgeRules extends JView
       propVal  = ruleItem.propertyVal.getValue()
 
       operArr  = {}
-
-      if tmpAct is "<" then action = "$lt" else action = "$gt"
+      action = if tmpAct is "<" then "$lt" else "$gt"
 
       operArr[action]    = propVal
       selector[property] = operArr
@@ -96,7 +97,7 @@ class BadgeRules extends JView
       rules += "+" if key < ruleItems.length-1
 
     @rule.setValue rules
-    KD.remote.api.JAccount.someWithRelationship selector, {}, (err,users) =>
+    KD.remote.api.JAccount.someWithRelationship selector, {}, (err, users) =>
       return err if err
       @usersInput.setValue (user._id for user in users)
       @filteredUsersController.removeAllItems()
@@ -108,9 +109,9 @@ class BadgeRules extends JView
       decoded  = Encoder.htmlDecode rule
       actionPos = decoded.search /[\<\>\=]/
       action    = decoded.substr actionPos, 1
-      property  = decoded.substr 0,actionPos
-      propVal   = decoded.substr actionPos+1
-      @badgeRulesListController.addItem {property,action,propVal}
+      property  = decoded.substr 0, actionPos
+      propVal   = decoded.substr actionPos + 1
+      @badgeRulesListController.addItem {property, action, propVal}
 
   pistachio:->
     """
@@ -126,32 +127,31 @@ class BadgeRules extends JView
 class BadgeUsersItem extends KDListItemView
   constructor: (options ={}, data)->
     super options, data
-    @account = @getData()
 
     @avatar    = new AvatarImage
-      origin   : @account.profile.nickname
+      origin   : @getData().profile.nickname
       size     :
         width  : 40
     @remove    = new KDButtonView
       title    : "x"
       cssClass : "solid red"
       callback : =>
-        @parent.removeItem this
-        @parent.emit "RemoveBadgeUser", @account
+        @getDelegate().removeItem this
+        @getDelegate().emit "RemoveBadgeUser", @getData()
 
   viewAppended: JView::viewAppended
 
   pistachio:->
-    nickname = @account.profile.nickname
     """
      {{> @avatar}}
-     #{nickname}
+     {{ #(profile.nickname)}}
      {{> @remove}}
     """
 
 
 class BadgeRuleItem extends KDListItemView
   constructor: (options = {}, data) ->
+    options.cssClass = 'rule-item'
     super options, data
 
     @propertySelect   = new KDSelectBox
@@ -168,8 +168,8 @@ class BadgeRuleItem extends KDListItemView
         { title:"Status Updates"    , value:"statusUpdates"    }
         { title:"Twitter Followers" , value:"twitterFollowers" }
       ]
-      defaultValue    : if data.property then data.property else "followers"
-      disabled        : if data.propVal then yes else no
+      defaultValue    : data.property or "followers"
+      disabled        : !!data.propVal
 
     @propertyAction   = new KDSelectBox
       name            : 'rule-action'
@@ -191,17 +191,15 @@ class BadgeRuleItem extends KDListItemView
       style           : 'remove-rule solid red'
       title           : '-'
       callback        : =>
-        @parent.emit "RemoveRuleFromList", this
+        @getDelegate().emit "RemoveRuleFromList", this
 
     @removeRule.hide() if data.propVal
   viewAppended: JView::viewAppended
 
   pistachio:->
     """
-    <div class="rule-item">
     {{> @propertySelect}}
     {{> @propertyAction}}
     {{> @propertyVal}}
     {{> @removeRule}}
-    </div>
     """

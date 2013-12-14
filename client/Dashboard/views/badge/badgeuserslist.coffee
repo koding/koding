@@ -1,4 +1,4 @@
-class BadgeUsersList extends JView
+class BadgeUsersList extends KDView
   constructor:(options = {}, data) ->
     super options, data
     {@badge}                 = @getOptions()
@@ -12,9 +12,9 @@ class BadgeUsersList extends JView
     # TODO : after design we may need pagination
     @loadUserList()
 
-    @userView = @filteredUsersController.getListView()
-
-    @userView.on "RemoveBadgeUser", (account) =>
+    @userView = @filteredUsersController.getView()
+    listView = @filteredUsersController.getListView()
+    listView.on "RemoveBadgeUser", (account) =>
       @badge.removeBadgeFromUser account, (err, account)=>
         return err if err
         new KDNotificationView

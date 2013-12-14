@@ -13,7 +13,6 @@ class UserBadgeView extends KDListItemView
         title    : description or ''
 
     @title       = new KDCustomHTMLView
-      tagName    : 'span'
       partial    : title
 
   viewAppended:->
@@ -25,19 +24,18 @@ class UserPropertyList extends JView
     # ONLY ADMINS CAN SEE THAT VIEW
     super options, data
   pistachio:->
-    {counts} = @getData()
     """
      <a href="#">User Properties</a>
      <div class="badge-property">
-      <p>Follower count : <span class='number'>#{counts.followers}</span></p>
-      <p>Following count : <span class='number'>#{counts.following}</span></p>
-      <p>Comments count : <span class='number'>#{counts.comments}</span></p>
-      <p>Invitations count : <span class='number'>#{counts.invitations}</span></p>
-      <p>Last Login Date: <span class='number'>#{counts.lastLoginDate}</span></p>
-      <p>Likes count : <span class='number'>#{counts.likes}</span></p>
-      <p>Referred User count : <span class='number'>#{counts.referredUsers}</span></p>
-      <p>Status updates count : <span class='number'>#{counts.statusUpdates}</span></p>
-      <p>Topics count : <span class='number'>#{counts.topics}</span></p>
+      <p>Likes count : {span.number{ #(counts.likes)}}</p>
+      <p>Topic count : {span.number{ #(counts.topics)}}</p>
+      <p>Follower count : {span.number{ #(counts.followers)}}</p>
+      <p>Comments count : {span.number{ #(counts.comments)}}</p>
+      <p>Following count : {span.number{ #(counts.following)}}</p>
+      <p>Invitations count : {span.number{ #(counts.invitations)}}</p>
+      <p>Referred User count : {span.number{ #(counts.referredUsers)}}</p>
+      <p>Status updates count : {span.number{ #(counts.statusUpdates)}}</p>
+      <p>Last Login : {span.number{ #(counts.lastLoginDate)}}</p>
     </div>
     """
 

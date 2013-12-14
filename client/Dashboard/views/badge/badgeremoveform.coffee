@@ -1,7 +1,7 @@
 class BadgeRemoveForm extends KDModalViewWithForms
   constructor:(options = {}, data)->
     options.title           or= 'Sure ?'
-    options.tabs            ?=
+    options.tabs            =
       forms                 :
         deleteForm          :
           buttons           :
@@ -13,7 +13,7 @@ class BadgeRemoveForm extends KDModalViewWithForms
                 {badge}     = @getData()
                 badge.deleteBadge (err)=>
                   {itemList} = @getOptions()
-                  updateForm = @getOptions().delegate
+                  updateForm = @getDelegate()
                   updateForm.badgeForm.destroy()
                   itemList.destroy()
                   @destroy()

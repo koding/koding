@@ -133,7 +133,7 @@ class LikeView extends JView
             @likeLink.updatePartial "Unlike" if useTitle
             KD.mixpanel "Liked activity"
             KD.getSingleton("badgeController").checkBadge
-                  property:"likes", relType:"like",targetSelf:1
+              property : "likes", relType : "like", targetSelf : 1
           else
             @unsetClass "liked"
             @likeLink.updatePartial "Like" if useTitle

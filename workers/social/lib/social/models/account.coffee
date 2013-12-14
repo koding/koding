@@ -251,6 +251,8 @@ module.exports = class JAccount extends jraphical.Module
           (signature Function)
         fetchMyBadges:
           (signature Function)
+        updateCountAndCheckBadge:
+          (signature Object, Function)
     schema                  :
       skillTags             : [String]
       locationTags          : [String]
@@ -1526,7 +1528,7 @@ module.exports = class JAccount extends jraphical.Module
 
         callback null, { subscriptions, plans }
 
-  fetchMyBadges$: secure (client,callback)->
+  fetchMyBadges$: (callback)->
     @fetchBadges callback
 
   fetchEmailAndStatus: secure (client, callback)->
