@@ -11,9 +11,6 @@ class TeamworkWorkspace extends CollaborativeWorkspace
       @createButtons panel
       @createRunButton panel  if playground
       @getActivePanel().header.setClass "teamwork"
-      @buttonsContainer.addSubView new KDCustomHTMLView
-        cssClass : "tw-db-icon"
-        click    : => @getDelegate().dashboard.show()
 
     @on "WorkspaceSyncedWithRemote", =>
       if playground and @amIHost()
