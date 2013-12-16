@@ -519,7 +519,7 @@ class ProfileView extends JView
 
     # for admins and moderators, list user badge property counts
     @badgeItemsList = new KDCustomHTMLView
-    if KD.checkFlag 'super-admin'
+    if KD.hasAccess "assign badge"
       @badgeItemsList = new UserPropertyList {}, counts : @memberData.counts
 
 

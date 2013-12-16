@@ -208,11 +208,11 @@ module.exports = class JBadge extends jraphical.Module
         queue = badges.map (badge) =>=>
           return queue.next() if not @checkRules badge.rule, @account.counts
           @account.addBadge badge, (err, o)->
-            return queue.next() if err or not group
+            return queue.next() if err
             JGroup = require './group'
             {context:{group:groupName}} = client
             JGroup.one {slug : groupName}, (err, group)=>
-              return queue.next() if err
+              return queue.next() if err or not group
               user = client.connection.delegate
               if badge.role
                 new jraphical.Relationship
