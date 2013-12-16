@@ -20,27 +20,14 @@ class DNDUploader extends KDView
       @on "dragleave", => @unsetClass "hover"
       @on "drop",      => @unsetClass "hover"
 
-    @on "uploadFile", (fsFile, percent)=>
-      filePath  = "[#{fsFile.vmName}]#{fsFile.path}"
-      @finder.treeController.nodes[filePath]?.showProgressView percent
+    @on "uploadFile", (fsFile, percent) =>
+      @emit 'uploadProgress', { file: fsFile, percent }
 
-    @on "uploadStart", (fsFile)=>
+    @on "uploadStart", (fsFile) =>
       filePath   = "[#{fsFile.vmName}]#{fsFile.path}"
       parentPath = "[#{fsFile.vmName}]#{fsFile.parentPath}"
 
-      bindAbort = (nodeView)->
-        nodeView.once "abortProgress", => fsFile.abort yes
-
-      nodeView = @finder.treeController.nodes[filePath]
-      if nodeView
-      then bindAbort nodeView
-      else
-        @finder.treeController.on "NodeWasAdded", (nodeView)->
-          if nodeView.getData().path is filePath
-            bindAbort nodeView
-
-        fsFile.save "", =>
-          @finder.expandFolders FSHelper.getPathHierarchy parentPath
+      fsFile.save "", => @emit 'uploadComplete', { filePath, parentPath }
 
   viewAppended: ->
     super
@@ -154,7 +141,7 @@ class DNDUploader extends KDView
         else @walkDirectory entry, callback, error
     , error
 
-  setPath: (@path=@options.defaultPath)->
+  setPath: (@path = @getOptions().defaultPath) ->
     {uploadToVM, title} = @getOptions()
     @updatePartial """
       <div class="file-drop">
@@ -167,7 +154,7 @@ class DNDUploader extends KDView
     if uploadToVM and @finder
       @finder.expandFolders FSHelper.getPathHierarchy @path
 
-  showCancel:->
+  showCancel: ->
     @addSubView new KDCustomHTMLView
       tagName   : "a"
       partial   : "cancel"
@@ -175,7 +162,7 @@ class DNDUploader extends KDView
       attributes: href: "#"
       click     : => @emit "cancel"
 
-  saveFile: (fsFile, data)->
+  saveFile: (fsFile, data) ->
     @emit "uploadStart", fsFile
     fsFile.saveBinary data, (err, res, progress)=>
       progress or= res
