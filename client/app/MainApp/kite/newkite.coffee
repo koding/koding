@@ -50,6 +50,12 @@ class NewKite extends KDObject
 
   # Call a method on the connected Kite.
   tell: (method, args, cb) ->
+    # some methods doesn't need any argument(s), therefore you can omit args
+    # completely. If you omit args, then you'll going to pass cb as the second
+    # argument to the function, therefore we'll assign it back to cb and make
+    # args empty.
+    [args, cb] = [[], args] unless cb
+
     if not Array.isArray(args)
       args = [args]
 
