@@ -34,25 +34,22 @@ app.teamwork.styl
       line-height               35px
       left                      -10px
       .icon
-        background              url(/images/teamwork/teampunk.png) 0 0 no-repeat
-        top                     5px
-        position                relative
-        background-size         24px 24px !important
-        size                    24px 24px
-  .tw-db-icon
-    size                        23px, 21px
-    kdfsprite()
-    bg                          position, 0 0
-    fr()
-    top                         10px
-    position                    relative
-    pointer()
+        size                    10px 24px
   .finder-pane
     &.file-container
       .no-vm-found-widget
         display                 none
   .kdsplitview-resizer.vertical
     display                     none
+  .tw-mode
+    bg                          color, red
+    rounded                     16px
+    size                        16px, 16px
+    position                    relative
+    top                         -12px
+    left                        80px
+    &.active
+      bg                        color, green
 
 .teamwork-loader
   size                          204px, 324px
@@ -318,9 +315,12 @@ app.teamwork.styl
   font-weight                   600
 .tw-dashboard-input
   border                        none !important
+  background                    #FFF !important
+  font-size                     12px !important
   rounded                       0 !important
-  size                          145px, 35px !important
+  size                          149px !important, 35px !important
   bg                            image, none !important
+  text-align                    left !important
 .tw-dashboard-button
   border                        none
   background                    #2880B9
@@ -357,7 +357,7 @@ app.teamwork.styl
     font-weight                 600
     margin-bottom               10px
   p
-    font-size                   11px
+    font-size                   12px
   .tw-play-button
     size                        189px, 35px
     line-height                 35px
@@ -493,7 +493,7 @@ app.teamwork.styl
 
 .tw-buttons-container
   top                           0
-  right                         100px
+  right                         0
   position                      absolute
   width                         130px
   text-align                    right
@@ -511,3 +511,9 @@ app.teamwork.styl
   .tw-cog
     display                     block
     sprite                      teamwork, cog-icon
+
+.tw-bot-avatar
+  size                          32px, 32px
+  margin-right                  4px
+  bg                            image, url("../images/teamwork/teampunk.png")
+  fl()
