@@ -62,13 +62,13 @@ class AceView extends JView
       $spans.eq(0).text ++cursor.row
       $spans.eq(1).text ++cursor.column
 
-    @ace.on "ace.requests.saveAs", (contents)=>
-      @openSaveDialog()
+    @ace.on "ace.requests.saveAs", (contents, options)=>
+      @openSaveDialog options
 
     @ace.on "ace.requests.save", (contents)=>
       file = @getData()
       if /localfile:/.test file.path
-        @openSaveDialog()
+        @openSaveDialog closeAfter: no
       else
         file.once "fs.save.started",    @ace.bound "saveStarted"
         file.once "fs.save.finished",   @ace.bound "saveFinished"
@@ -163,7 +163,7 @@ class AceView extends JView
       id         : 13
       parentId   : null
       callback   : =>
-        @openSaveDialog()
+        @openSaveDialog closeAfter: no
 
   _windowDidResize:->
 
@@ -171,7 +171,8 @@ class AceView extends JView
     bottomBarHeight = @$('.editor-bottom-bar').height()
     @ace.setHeight height - bottomBarHeight
 
-  openSaveDialog: (callback) ->
+  openSaveDialog: (options = {}) ->
+    { closeAfter }   = options
 
     file = @getData()
     KD.utils.showSaveDialog this, (input, finderController, dialog) =>
@@ -182,20 +183,23 @@ class AceView extends JView
       return @ace.notify "Please select a folder to save!", "error"  unless node
 
       dialog.destroy()
-      @utils.wait 300, => # temp fix to be sure overlay has removed with fade out animation
-        parent = node.getData()
-        file.emit "file.requests.saveAs", @ace.getContents(), name, parent.path
-        file.once "fs.saveAs.finished",   @ace.bound "saveAsFinished"
-        @ace.emit "AceDidSaveAs", name, parent.path
-        oldCursorPosition = @ace.editor.getCursorPosition()
-        file.on "fs.saveAs.finished", =>
-          {tabView} = @getDelegate()
-          return  if tabView.willClose
-          @getDelegate().openFile FSHelper.createFileFromPath "#{parent.path}/#{name}", yes
+      # @utils.wait 300, => # temp fix to be sure overlay has removed with fade out animation
+
+      parent = node.getData()
+      file.emit "file.requests.saveAs", @ace.getContents(), name, parent.path
+      file.once "fs.saveAs.finished",   @ace.bound "saveAsFinished"
+      @ace.emit "AceDidSaveAs", name, parent.path
+      oldCursorPosition = @ace.editor.getCursorPosition()
+      file.on "fs.saveAs.finished", =>
+        {tabView} = @getDelegate()
+        return  if tabView.willClose
+        @getDelegate().openFile FSHelper.createFileFromPath "#{parent.path}/#{name}", yes
+
+        if closeAfter
           @utils.defer =>
-            newIndex = tabView.getPaneIndex tabView.getActivePane()
-            tabView.removePane_ tabView.getPaneByIndex newIndex - 1
+            tabView.removePane_ tabView.getActivePane()
             {ace} = tabView.getActivePane().getOptions().aceView
-            ace.on "ace.ready", =>
+            ace.on "ace.ready", ->
               ace.editor.moveCursorTo oldCursorPosition.row, oldCursorPosition.column
+
     , { inputDefaultValue: file.name }

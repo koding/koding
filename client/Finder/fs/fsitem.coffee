@@ -6,8 +6,7 @@ class FSItem extends KDObject
 
   escapeFilePath = FSHelper.escapeFilePath
 
-  @create:(path, type, vmName, callback)->
-
+  @create:({ path, type, vmName, treeController }, callback)->
     FSHelper.ensureNonexistentPath path, vmName, (err, response)->
       if err
         callback? err, response
@@ -24,7 +23,12 @@ class FSItem extends KDObject
         , (err, res)->
           if err then warn err
           else
-            file = FSHelper.createFile {path:response, type, vmName}
+            file = FSHelper.createFile {
+              path: response
+              type
+              vmName
+              treeController
+            }
           callback? err, file
 
   @copy:(sourceItem, targetItem, callback)->
