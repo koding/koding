@@ -30,24 +30,4 @@ class GroupHomeView extends KDView
 
         @addSubView @homeLoginBar = new HomeLoginBar
           domId : "group-home-links"
-
-        # group.fetchReadme (err, readme)=>
-        #   @addSubView @readmeView = new KDView
-        #     partial   : @utils.applyMarkdown(readme?.content)or \
-        #       GroupReadmeView::getDefaultGroupReadme.call @, group.title
-        #     cssClass  : 'has-markdown'
-        #     tagName   : 'figure'
-        #     domId     : "home-group-readme"
-        #   , group
-
-        #   GroupReadmeView::highlightCode.call @
-
           @emit "ready"
-
-        # {roles} = KD.config
-        # if 'member' in roles or 'admin' in roles
-        #   isAdmin = 'admin' in roles
-        #   groupsController.emit roleEventMap.member, isAdmin
-        # else
-        #   groupsController.emit roleEventMap[roles.first]
-

@@ -5,7 +5,7 @@ module.exports = class JInvitationRequest extends Model
   @trait __dirname, '../traits/grouprelated'
 
   {Relationship}             = require 'jraphical'
-  {ObjectRef, daisy, secure} = require 'bongo'
+  {ObjectRef, daisy, secure, signature} = require 'bongo'
   {permit}                   = require './group/permissionset'
   KodingError                = require '../error'
 
@@ -16,8 +16,14 @@ module.exports = class JInvitationRequest extends Model
       email           : 'sparse'
       status          : 'sparse'
     sharedMethods     :
-      static          : ['create']
-      instance        : ['send', 'remove', 'approve', 'decline']
+      static          : {}
+      instance        : 
+        remove        :
+          (signature Function)
+        approve       :
+          (signature Function)
+        decline       :
+          (signature Function)
     schema            :
       requestedAt     :
         type          : Date

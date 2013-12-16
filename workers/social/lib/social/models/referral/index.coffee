@@ -10,7 +10,7 @@ module.exports = class JReferral extends jraphical.Message
 
   {Relationship} = jraphical
 
-  {race, secure, dash} = require 'bongo'
+  {race, secure, dash, signature} = require 'bongo'
 
   @share()
 
@@ -28,8 +28,13 @@ module.exports = class JReferral extends jraphical.Message
 
   @set
     sharedMethods     :
-      static          : ['redeem', 'fetchRedeemableReferrals', 'fetchReferredAccounts' ]
-      instance        : [ ]
+      static          :
+        redeem:
+          (signature Object, Function)
+        fetchRedeemableReferrals:
+          (signature Object, Function)
+        fetchReferredAccounts:
+          (signature Object, Object, Function)
     sharedEvents      :
       static          : []
       instance        : []

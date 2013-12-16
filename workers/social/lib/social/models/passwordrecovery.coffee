@@ -3,7 +3,7 @@ jraphical = require 'jraphical'
 module.exports = class JPasswordRecovery extends jraphical.Module
   # TODO - Refactor this file, now it is not only for password recovery
   # but also for email verification
-  {secure} = require 'bongo'
+  {secure, signature} = require 'bongo'
 
   dateFormat  = require 'dateformat'
   createId    = require 'hat'
@@ -14,14 +14,16 @@ module.exports = class JPasswordRecovery extends jraphical.Module
   @share()
 
   @set
-    sharedMethods :
-      static      : [
-        'validate'
-        'recoverPassword'
-        'recoverPasswordByEmail'
-        'resetPassword'
-        'fetchRegistrationDetails'
-      ]
+    sharedMethods:
+      static:
+        validate:
+          (signature String, Function)
+        recoverPassword:
+          (signature String, Function)
+        resetPassword:
+          (signature String, String, Function)
+        fetchRegistrationDetails:
+          (signature String, Function)
     indexes       :
       token       : 'unique'
     schema        :

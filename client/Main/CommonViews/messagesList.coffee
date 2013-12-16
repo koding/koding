@@ -63,7 +63,7 @@ class MessagesListController extends KDListViewController
 
 class NotificationListItem extends KDListItemView
 
-  activityNameMap = ->
+  activityNameMap =
     JNewStatusUpdate   : "your status update."
     JCodeSnip       : "your status update."
     JAccount        : "started following you."
@@ -74,14 +74,14 @@ class NotificationListItem extends KDListItemView
     JReview         : "your review."
     JGroup          : "your group"
 
-  bucketNameMap = ->
+  bucketNameMap =
     CReplieeBucketActivity     : "comment"
     CFolloweeBucketActivity    : "follow"
     CLikeeBucketActivity       : "like"
     CGroupJoineeBucketActivity : "groupJoined"
     CGroupLeaveeBucketActivity : "groupLeft"
 
-  actionPhraseMap = ->
+  actionPhraseMap =
     comment     : "commented on"
     reply       : "replied to"
     like        : "liked"
@@ -100,7 +100,7 @@ class NotificationListItem extends KDListItemView
 
     super options, data
 
-    @setClass bucketNameMap()[data.bongo_.constructorName]
+    @setClass bucketNameMap[data.bongo_.constructorName]
 
     @snapshot = JSON.parse Encoder.htmlDecode data.snapshot
 
@@ -161,13 +161,13 @@ class NotificationListItem extends KDListItemView
     if @snapshot.anchor.constructorName is "JPrivateMessage"
       @unsetClass "comment"
       @setClass "reply"
-      actionPhraseMap().reply
+      actionPhraseMap.reply
     else
-      actionPhraseMap()[bucketNameMap()[data.bongo_.constructorName]]
+      actionPhraseMap[bucketNameMap[data.bongo_.constructorName]]
 
   getActivityPlot:->
     data = @getData()
-    return activityNameMap()[@snapshot.anchor.constructorName]
+    return activityNameMap[@snapshot.anchor.constructorName]
 
   click:->
 

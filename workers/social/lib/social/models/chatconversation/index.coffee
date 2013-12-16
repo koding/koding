@@ -2,7 +2,7 @@
 
 module.exports = class JChatConversation extends Module
 
-  {ObjectId, ObjectRef, secure} = require 'bongo'
+  {ObjectId, ObjectRef, secure, signature} = require 'bongo'
 
   createId = require 'hat'
 
@@ -19,8 +19,20 @@ module.exports = class JChatConversation extends Module
       static        : []
       instance      : ['updateInstance','notification']
     sharedMethods   :
-      static        : ['create','fetch','fetchSome']
-      instance      : ['invite','leave']
+      static        :
+        create:
+          (signature [String], Function)
+        fetch:
+          (signature String, Function)
+        fetchSome: [
+          (signature Function)
+          (signature Object, Function)
+        ]
+      instance      :
+        invite:
+          (signature String, Function)
+        leave:
+          (signature Function)
     schema          :
       publicName    : String
       createdAt     :
