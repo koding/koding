@@ -54,7 +54,7 @@ module.exports = class JBadge extends jraphical.Module
 # they also will be removed.
   @create: permit 'create badge',
     success:(client, badgeData, callback=->)->
-      protectedRoles = ["admin","moderator","owner","guest","member"]
+      protectedRoles = ["admin","owner","guest","member"]
       unless badgeData.role in protectedRoles
         badge = new JBadge badgeData
         badge.role = null if badgeData.role is "none"
@@ -78,13 +78,21 @@ module.exports = class JBadge extends jraphical.Module
 
   deleteBadge : permit 'delete badge',
     success: (client, callback=->)->
-      @remove (err)=>
-        unless err
-          jraphical.Relationship.remove {
-            sourceName : "JGroup"
-            as         : @role
-          },(err)->
-          return callback err, null
+      # get badge users
+      # remove role that given with that badge
+      # remove badge
+      JBadge.fetchBadgeUsers client, @getId(), {}, (err, accounts)=>
+        return err if err
+        ids = (account._id for account in accounts)
+        removeKey = "$in"   : ids
+        @remove (err)=>
+          unless err
+            jraphical.Relationship.remove {
+              sourceName : "JGroup"
+              as         : @role
+              targetId   : removeKey
+            },(err)->
+            return callback err, null
 
   assignBadgeBatch : permit 'assign badge',
     success: (client, accountIds, callback)->
@@ -146,7 +154,6 @@ module.exports = class JBadge extends jraphical.Module
             as         : @role
           }, (err)->
             callback err, null
-
 
   @findAccounts : (cursor, items, callback)->
     cursor.nextObject (err, rel) =>
@@ -237,5 +244,5 @@ module.exports = class JBadge extends jraphical.Module
                   queue.next()
           else
             queue.next()
-        queue.push -> callback errors badgesGained
+        queue.push -> callback errors, badgesGained
         daisy queue

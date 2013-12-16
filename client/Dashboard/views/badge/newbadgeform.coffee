@@ -60,8 +60,11 @@ class NewBadgeForm extends KDView
     permissionBox = @badgeForm.modalTabs.forms["New Badge"].inputs.Permission
     currentGroup  = KD.getSingleton("groupsController").getCurrentGroup()
     currentGroup.fetchRoles (err, roles) ->
-      tmpRoles = ["admin", "owner", "moderator", "guest", "member"]
-      selectRoles = {title, value} for {title, value} in roles when not title in tmpRoles
+      tmpRoles = ["admin", "owner", "guest", "member"]
+      for role in roles
+        unless role.title in tmpRoles
+          {title} = role
+          selectRoles.push title:title, value:title
       permissionBox.setSelectOptions selectRoles
 
   updateRulesTabView:->

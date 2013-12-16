@@ -2,7 +2,8 @@ class BadgeController extends KDController
 
   checkBadge: (options)->
     client = KD.whoami()
-    client.updateCountAndCheckBadge options,(badges)->
+    client.updateCountAndCheckBadge options,(err, badges)->
+      warn err if err
       for badge in badges
         new KDNotificationView
           title    : "Congratz dude you got the " + badge.title + " badge!"
