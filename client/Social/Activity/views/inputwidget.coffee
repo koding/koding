@@ -113,6 +113,7 @@ With love from the Koding team.<br>
     activity = @getData()
     return  @reset() unless activity
     activity.modify data, (err) =>
+      KD.showError err
       @reset()  unless err
       callback? err
 

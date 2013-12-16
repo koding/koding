@@ -39,18 +39,23 @@ class WebTermAppView extends JView
         Terminal by clicking (+) Plus button on top left.
       """, yes
 
-  setMessage:(msg, light = no)->
+  setMessage:(msg, light = no, bindClose = no)->
     @messagePane.updatePartial msg
     if light
     then @messagePane.setClass   'light'
     else @messagePane.unsetClass 'light'
     @messagePane.show()
+    if bindClose
+      @messagePane.once 'click', ->
+        KD.singleton('router').back()
+        KD.singleton('appManager').quitByName 'Terminal'
 
   checkVM:->
 
     # KD.mixpanel "Click open Webterm", vmName
 
     vmController = KD.getSingleton 'vmController'
+    return @setMessage "Couldn't connect to your VM, please try again later. <a href='#'>close this</a> ", no, yes
     vmController.fetchDefaultVmName (vmName)=>
 
       unless vmName
@@ -62,7 +67,8 @@ class WebTermAppView extends JView
         KD.mixpanel "Opened Webterm", vmName
 
       , =>
-        @setMessage "Failed to fetch VM Info, please try again later."
+        KD.mixpanel "Failed to open terminal", vmName
+        @setMessage "Couldn't connect to your VM, please try again later."
       , 5000
 
   showApprovalModal: (remote, command)->
