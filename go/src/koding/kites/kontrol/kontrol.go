@@ -4,8 +4,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/coreos/go-etcd/etcd"
-	"github.com/op/go-logging"
 	"koding/db/mongodb/modelhelper"
 	"koding/newkite/dnode"
 	"koding/newkite/kite"
@@ -17,6 +15,9 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/coreos/go-etcd/etcd"
+	"github.com/op/go-logging"
 )
 
 const (
@@ -38,7 +39,7 @@ func New() *Kontrol {
 		Kitename:    "kontrol",
 		Version:     "0.0.1",
 		Port:        strconv.Itoa(config.Current.NewKontrol.Port),
-		Region:      "localhost",
+		Region:      "sj",
 		Environment: "development",
 		Username:    "koding",
 	}
