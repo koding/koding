@@ -14,6 +14,7 @@ class DemosMainView extends KDScrollView
       lastTabHandleMargin       : 200
       maxHandleWidth            : 200
       tabHandleContainer        : @tabHandleContainer
+      enableMoveTabHandle       : yes
 
     for i in [0..5]
       pane   = new KDTabPaneView
