@@ -81,7 +81,7 @@ module.exports = class JBadge extends jraphical.Module
       # get badge users
       JBadge.fetchBadgeUsers client, @getId(), {}, (err, accounts)=>
         return err if err
-        ids = (account._id for account in accounts)
+        ids = (account.getId() for account in accounts)
         removeKey = "$in" : ids
         # remove role that given with that badge
         jraphical.Relationship.remove {
@@ -89,6 +89,7 @@ module.exports = class JBadge extends jraphical.Module
           as         : @role
           targetId   : removeKey
         },(err)=>
+          return err if err
           # remove badge
           @remove (err)->
             return callback err, null
@@ -134,14 +135,13 @@ module.exports = class JBadge extends jraphical.Module
         sourceName : 'JAccount'
         as         : "badge"
       }, (err)=>
-        unless err
-          Relationship.remove {
-            targetId   : user._id
-            targetName : 'JAccount'
-            sourceName : "JGroup"
-            as         : @role
-          }, (err)->
-            callback err, null
+        return callback err if err
+        Relationship.remove {
+          targetId   : user._id
+          targetName : 'JAccount'
+          sourceName : "JGroup"
+          as         : @role
+        }, callback
 
   @findAccounts : (cursor, items, callback)->
     cursor.nextObject (err, rel) =>
@@ -162,10 +162,10 @@ module.exports = class JBadge extends jraphical.Module
         sourceName : "JAccount"
 
       jraphical.Relationship.cursor selector, options, (err, cursor)=>
+        return callback err if err
         @findAccounts cursor, [], (items) ->
           JAccount = require './account'
-          JAccount.some { "_id": { "$in": items } }, {}, (err, jAccounts) =>
-            callback err,jAccounts
+          JAccount.some { "_id": { "$in": items } }, {}, callback
 
   @ruleSplit:(rule, userCounts)->
     operators =
@@ -208,7 +208,7 @@ module.exports = class JBadge extends jraphical.Module
         queue = badges.map (badge) =>=>
           return queue.next() if not @checkRules badge.rule, @account.counts
           @account.addBadge badge, (err, o)->
-            return queue.next() if err
+            return queue.next() if err or not group
             JGroup = require './group'
             {context:{group:groupName}} = client
             JGroup.one {slug : groupName}, (err, group)=>
@@ -222,6 +222,7 @@ module.exports = class JBadge extends jraphical.Module
                   sourceId    : group.getId()
                   as          : badge.role
                 .save (err)=>
+                  return queue.next() if err
                   badgesGained.push badge
                   queue.next()
               else

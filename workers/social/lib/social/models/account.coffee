@@ -777,27 +777,26 @@ module.exports = class JAccount extends jraphical.Module
       "referredUsers"
       "invitations"
     ]
-    if @equals client.connection.delegate
-      {@property} = options
+    return new KodingError "No permission!" unless @equals client.connection.delegate
+    {@property} = options
 
-      if @property in propertyArray
-        {relType, source, targetSelf} = options
+    return new KodingError "That property not supported!" unless  @property in propertyArray
+    {relType, source, targetSelf} = options
+    selector     =
+      as         : relType
+      sourceName : source
 
-        selector     =
-          as         : relType
-          sourceName : source
+    if targetSelf then selector["targetId"]=@getId() else selector["sourceId"]=@getId()
 
-        if targetSelf then selector["targetId"]=@getId() else selector["sourceId"]=@getId()
-        Relationship.count selector, (err, count) =>
-          return err if err
-          countsField = {}
-          key = "counts.#{@property}"
-          countsField[key] = count
-          # race condition exist, should take them to queue
-          @update $set: countsField , (err)=>
-            return err if err
-            JBadge = require './badge'
-            JBadge.checkEligibleBadges client, badgeItem:@property , callback
+    Relationship.count selector, (err, count) =>
+      return err if err
+      countsField = {}
+      key = "counts.#{@property}"
+      countsField[key] = count
+      @update $set: countsField , (err)=>
+        return err if err
+        JBadge = require './badge'
+        JBadge.checkEligibleBadges client, badgeItem:@property , callback
 
   # Update broken counts for user
   updateCounts:->
