@@ -32,8 +32,9 @@ class TeamworkTabView extends CollaborativePane
         @requestRef.remove()
 
   listenPaneDidShow: ->
-    @tabView.on "PaneDidShow", (pane) =>
-      @indexRef.set pane.getOptions().indexKey
+    # @tabView.on "PaneDidShow", (pane) =>
+    #   @indexRef.set
+    #     indexKey: pane.getOptions().indexKey
 
   listenChildRemovedOnKeysRef: ->
     @keysRef.on "child_removed", (snapshot) =>
@@ -63,18 +64,21 @@ class TeamworkTabView extends CollaborativePane
 
   listenIndexRef: ->
     @indexRef.on "value", (snapshot) =>
-      key = snapshot.val()
-      return unless key
+      data       = snapshot.val()
+      {watchMap} = @workspace
+      username   = KD.nick()
+      return unless data
 
-      for pane in @tabView.panes
-        if pane.getOptions().indexKey is key
-          @tabView.showPaneByIndex @tabView.getPaneIndex pane
+      if watchMap[username] is "everybody" or watchMap[username] is data.by
+        for pane in @tabView.panes
+          if pane.getOptions().indexKey is data.indexKey
+            @tabView.showPaneByIndex @tabView.getPaneIndex pane
 
   createElements: ->
     @tabHandleHolder = new ApplicationTabHandleHolder delegate: this
     @tabView         = new ApplicationTabView
       delegate                  : this
-      lastTabHandleMargin       : 200
+      lastTabHandleMargin       : 80
       tabHandleContainer        : @tabHandleHolder
       closeAppWhenAllTabsClosed : no
 
@@ -83,9 +87,14 @@ class TeamworkTabView extends CollaborativePane
         paneOptions = pane.getOptions()
         @workspace.addToHistory
           message    : "$0 switched to new pane, #{paneOptions.title}"
+          by         : KD.nick()
           data       :
             title    : paneOptions.title
             indexKey : paneOptions.indexKey
+
+        @indexRef.set
+          indexKey: pane.getOptions().indexKey
+          by      : KD.nick()
 
   addNewTab: ->
     @createPlusHandleDropDown()
@@ -129,7 +138,9 @@ class TeamworkTabView extends CollaborativePane
         type : paneType
         by   : KD.nick()
 
-    @track "$0 opened a new #{paneType}"
+    @workspace.addToHistory
+      message: "$0 opened a new #{paneType}"
+      by     : KD.nick()
 
   createTabFromFirebaseData: (data) ->
     {sessionKey, indexKey} = data
@@ -262,9 +273,6 @@ class TeamworkTabView extends CollaborativePane
   appendPane_: (pane, childView) ->
     pane.addSubView childView
     @tabView.addPane pane
-
-  track: (data) ->
-    @workspace.addToHistory data
 
   viewAppended: ->
     super
