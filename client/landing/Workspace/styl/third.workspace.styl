@@ -289,6 +289,12 @@ third.workspace.styl
   transition            top .4s ease, height .2s ease-in
   &.active
     height              317px
+  &.no-dock
+    height              292px
+  .ws-chat-avatar
+    fl()
+    rounded             4px
+    margin-right        4px
   .dock
     font-size           14px
     font-weight         600
@@ -333,8 +339,12 @@ third.workspace.styl
     gradient            #EBEBEB, #FFF
     borderBox()
   .kdinput
-    width               230px
-    border-color        #8F8F8F !important
+    width               202px !important
+    border-color        #8f8f8f !important
+    height              23px !important
+    line-height         23px !important
+    background-color    #FFF !important
+    text-align          left !important
   .chat-item
     height              auto
     margin-bottom       10px
