@@ -299,7 +299,11 @@ class CollaborativeWorkspace extends Workspace
     return  if @userList
     @userListContainer.setClass "active"
 
-    @userListContainer.addSubView @userList = new CollaborativeWorkspaceUserList {
+    @createUserList()
+    @userListContainer.addSubView @userList
+
+  createUserList: ->
+    @userList = new CollaborativeWorkspaceUserList {
       @workspaceRef
       @sessionKey
       container : @userListContainer
