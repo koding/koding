@@ -296,7 +296,9 @@ class KodingRouter extends KDRouter
       ''                       : handleRoot
 
       '/Landing/:page'         : noop
-      '/R/:username'           : noop
+      '/R/:username'           : ({params:{username}})->
+        KD.mixpanel "Visited referrer url", {username}
+        noop
 
       '/:name?/Logout'         : ({params:{name}})-> requireLogin -> mainController.doLogout()
 
