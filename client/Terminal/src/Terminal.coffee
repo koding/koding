@@ -18,6 +18,12 @@ class WebTerm.Terminal
     @sessionEndedCallback = null
     @setTitleCallback = null
 
+    @keyInput = new KDCustomHTMLView
+      tagName: 'input'
+      cssClass: 'offscreen'
+
+    @keyInput.appendToDomBody()
+
     @pixelWidth = 0
     @pixelHeight = 0
     @sizeX = 80
@@ -68,6 +74,10 @@ class WebTerm.Terminal
       sessionEnded: =>
         @sessionEndedCallback()
 
+  destroy: ->
+    @keyInput?.destroy()
+    super()
+
   keyDown: (event) ->
     @inputHandler.keyDown event
 
@@ -77,8 +87,12 @@ class WebTerm.Terminal
   keyUp: (event) ->
     @inputHandler.keyUp event
 
+  setKeyFocus: ->
+    @keyInput.getElement().focus()
+
   setFocused: (value) ->
     @cursor.setFocused value
+    KD.utils.defer => @setKeyFocus()
 
   setSize: (x, y) ->
     return if x is @sizeX and y is @sizeY
