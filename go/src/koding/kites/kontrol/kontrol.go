@@ -40,6 +40,7 @@ func New() *Kontrol {
 		Port:        strconv.Itoa(config.Current.NewKontrol.Port),
 		Region:      "localhost",
 		Environment: "development",
+		Username:    "koding",
 	}
 
 	// Read list of etcd servers from config.
@@ -81,6 +82,7 @@ func (k *Kontrol) Start() {
 // init does common operations of Run() and Start().
 func (k *Kontrol) init() {
 	go k.WatchEtcd()
+	go k.registerSelf()
 }
 
 // registerValue is the type of the value that is saved to etcd.
@@ -167,6 +169,25 @@ func requestHeartbeat(r *kite.RemoteKite, setterFunc func() (string, error)) err
 
 	_, err := r.Tell("heartbeat", heartbeatArgs...)
 	return err
+}
+
+// registerSelf adds Kontrol itself to etcd.
+func (k *Kontrol) registerSelf() {
+	key, err := getKiteKey(&k.kite.Kite)
+	if err != nil {
+		panic(err)
+	}
+
+	setter := k.makeSetter(&k.kite.Kite, key, k.kite.KodingKey)
+	for {
+		if _, err := setter(); err != nil {
+			log.Critical(err.Error())
+			time.Sleep(time.Second)
+			continue
+		}
+
+		time.Sleep(HeartbeatInterval)
+	}
 }
 
 //  makeSetter returns a func for setting the kite key with value in etcd.
