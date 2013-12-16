@@ -26,6 +26,7 @@ class CollaborativeWorkspace extends Workspace
     @workspaceRef = @firepadRef.child @sessionKey
     @broadcastRef = @workspaceRef.child "broadcast"
     @historyRef   = @workspaceRef.child "history"
+    @watchRef     = @workspaceRef.child "watch"
 
   bindRemoteEvents: ->
     @workspaceRef.once "value", (snapshot) =>
@@ -48,6 +49,7 @@ class CollaborativeWorkspace extends Workspace
       @userRef.onDisconnect().set "offline"
       record = if isOldSession then "$0 joined the session" else "$0 started the session"
       @addToHistory record
+      @watchRef.child(@nickname).set "everybody"
 
       if @amIHost()
         @workspaceRef.onDisconnect().remove()
@@ -101,6 +103,9 @@ class CollaborativeWorkspace extends Workspace
       @forceDisconnect()
       events = [ "value", "child_added", "child_removed", "child_changed" ]
       @workspaceRef.off eventName for eventName in events
+
+    @watchRef.on "value", (snapshot) =>
+      @watchMap = snapshot.val() or {}
 
   # TODO: Be sure we don't query if we have user data
   fetchUsers: ->
@@ -309,6 +314,10 @@ class CollaborativeWorkspace extends Workspace
       container : @userListContainer
       delegate  : this
     }
+
+  setWatchMode: (targetUsername) ->
+    username = KD.nick()
+    @watchRef.child(username).set targetUsername
 
   addToHistory: (data) ->
     target       = @historyRef.child Date.now()
