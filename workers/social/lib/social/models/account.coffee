@@ -807,6 +807,7 @@ module.exports = class JAccount extends jraphical.Module
       targetId   : @getId()
       sourceName : $in: likeableActivities
     , (err, count)=>
+      return if err or not count
       @update ($set: 'counts.likes': count), ->
 
     # Member Following count
@@ -815,6 +816,7 @@ module.exports = class JAccount extends jraphical.Module
       targetId   : @getId()
       sourceName : 'JAccount'
     , (err, count)=>
+      return if err or not count
       @update ($set: 'counts.following': count), ->
 
     # Member Follower count
@@ -823,6 +825,7 @@ module.exports = class JAccount extends jraphical.Module
       sourceId   : @getId()
       sourceName : 'JAccount'
     , (err, count)=>
+      return if err or not count
       @update ($set: 'counts.followers': count), ->
 
     # Tag Following count
@@ -831,6 +834,7 @@ module.exports = class JAccount extends jraphical.Module
       targetId   : @getId()
       sourceName : 'JTag'
     , (err, count)=>
+      return if err or not count
       @update ($set: 'counts.topics': count), ->
 
     # Status Update count
@@ -839,6 +843,7 @@ module.exports = class JAccount extends jraphical.Module
       targetId   : @getId()
       sourceName : 'JNewStatusUpdate'
     , (err, count)=>
+      return if err or not count
       @update ($set: 'counts.statusUpdates': count), ->
 
     # Comments count
@@ -847,12 +852,14 @@ module.exports = class JAccount extends jraphical.Module
       targetId   : @getId()
       sourceName : 'JNewStatusUpdate'
     , (err, count)=>
+      return if err or not count
       @update ($set: 'counts.comments': count), ->
 
     # ReferredUsers count
     JAccount.count
       referrerUsername : @profile.nickname
     , (err, count)=>
+      return if err or not count
       @update ($set: 'counts.referredUsers': count), ->
 
     # Invitations count
@@ -860,6 +867,7 @@ module.exports = class JAccount extends jraphical.Module
       username   : @profile.nickname
       invited    : true
     , (err, count)=>
+      return if err or not count
       @update ($set: 'counts.invitations': count), ->
 
     # Last Login date
@@ -867,6 +875,7 @@ module.exports = class JAccount extends jraphical.Module
 
     # Twitter follower count
     JUser.one {username: @profile.nickname}, (err, user)->
+      return if err or not user
       if user.foreignAuth?.twitter?
         followerCount = user.foreignAuth.twitter.profile.followers_count
         @update ($set: 'counts.twitterFollowers': followerCount), ->
