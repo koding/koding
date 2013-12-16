@@ -124,17 +124,7 @@ module.exports = [
   "CommonViews/clonerepomodal.coffee",
 
   "kodingappcontroller.coffee",
-  "sidebar/sidebarcontroller.coffee",
-  "sidebar/sidebarview.coffee",
-  "sidebar/sidebarresizehandle.coffee",
-  "sidebar/virtualizationcontrols.coffee",
-  "sidebar/footermenuitem.coffee",
-  "sidebar/modals/introductiontooltip/introductionitem.coffee",
-  "sidebar/modals/introductiontooltip/introductionchilditem.coffee",
-  "sidebar/modals/introductiontooltip/introductionadminform.coffee",
-  "sidebar/modals/introductiontooltip/introductionadmin.coffee",
-  "sidebar/modals/adminmodal.coffee",
-  "sidebar/modals/kiteselector.coffee",
+  "CommonViews/adminmodal.coffee",
 
   "navigation/navigationlist.coffee",
   "navigation/navigationlink.coffee",

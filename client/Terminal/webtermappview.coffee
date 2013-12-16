@@ -55,7 +55,6 @@ class WebTermAppView extends JView
     # KD.mixpanel "Click open Webterm", vmName
 
     vmController = KD.getSingleton 'vmController'
-    return @setMessage "Couldn't connect to your VM, please try again later. <a href='#'>close this</a> ", no, yes
     vmController.fetchDefaultVmName (vmName)=>
 
       unless vmName
@@ -68,7 +67,7 @@ class WebTermAppView extends JView
 
       , =>
         KD.mixpanel "Failed to open terminal", vmName
-        @setMessage "Couldn't connect to your VM, please try again later."
+        @setMessage "Couldn't connect to your VM, please try again later. <a href='#'>close this</a> ", no, yes
       , 5000
 
   showApprovalModal: (remote, command)->
