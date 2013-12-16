@@ -52,8 +52,9 @@ class BadgeRules extends JView
       type            : "hidden"
       name            : "rule"
 
-    @userList = @filteredUsersController.getView()
-    listView = @badgeRulesListController.getListView()
+    @userList    = @filteredUsersController.getView()
+    userListView = @filteredUsersController.getListView()
+    listView     = @badgeRulesListController.getListView()
     listView.on "RemoveRuleFromList", (item)=>
       @badgeRulesListController.removeItem item
 
@@ -68,11 +69,12 @@ class BadgeRules extends JView
         title      : "Badge created"
         duration   : "2000"
 
-    @userList.on "RemoveBadgeUser", (ac) =>
+    userListView.on "RemoveBadgeUser", (ac) =>
       tmpArr = @usersInput.getValue().split ','
       index = tmpArr.indexOf ac._id
       tmpArr.splice index,1
       @usersInput.setValue tmpArr.toString()
+      @usersInput.getValue()
 
     {@badge} = @getOptions()
     if @badge
