@@ -80,7 +80,10 @@ class TeamworkTabView extends CollaborativePane
       delegate                  : this
       lastTabHandleMargin       : 80
       tabHandleContainer        : @tabHandleHolder
+      enableMoveTabHandle       : yes
+      resizeTabHandles          : no
       closeAppWhenAllTabsClosed : no
+      minHandleWidth            : 128
 
     @tabView.on "PaneAdded", (pane) =>
       pane.getHandle().on "click", =>
