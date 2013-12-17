@@ -10,12 +10,7 @@ import (
 	"koding/newkite/kodingkey"
 	"log"
 	"net/http"
-	"os"
-	"path/filepath"
-	"strings"
 	"time"
-
-	uuid "github.com/nu7hatch/gouuid"
 )
 
 const KeyLength = 64
@@ -23,8 +18,6 @@ const KeyLength = 64
 var (
 	AuthServer      = "https://koding.com"
 	AuthServerLocal = "http://localhost:3020"
-	KdPath          = util.GetKdPath()
-	KeyPath         = filepath.Join(KdPath, "koding.key")
 )
 
 type Register struct {
@@ -47,7 +40,7 @@ func (r *Register) Exec(args []string) error {
 		r.authServer = AuthServerLocal
 	}
 
-	hostID, err := hostID()
+	hostID, err := util.HostID()
 	if err != nil {
 		return err
 	}
@@ -55,7 +48,7 @@ func (r *Register) Exec(args []string) error {
 	var key string
 	keyExist := false
 
-	key, err = getKey()
+	key, err = util.GetKey()
 	if err != nil {
 		k, err := kodingkey.NewKodingKey()
 		if err != nil {
@@ -64,17 +57,26 @@ func (r *Register) Exec(args []string) error {
 
 		key = k.String()
 	} else {
-		fmt.Printf("Found a key under '%s'. Going to use it to register\n", KdPath)
+		fmt.Printf("Found a key under '%s'. Going to use it to register\n", util.GetKdPath())
 		keyExist = true
 	}
 
 	registerUrl := fmt.Sprintf("%s/-/auth/register/%s/%s", r.authServer, hostID, key)
+	checkUrl := fmt.Sprintf("%s/-/auth/check/%s", r.authServer, key)
+
+	// first check if the user is alrady registered
+	err = checkResponse(checkUrl)
+	if err == nil {
+		fmt.Printf("... you are already registered.\n")
+		return nil
+	}
 
 	fmt.Printf("Please open the following url for authentication:\n\n")
 	fmt.Println(registerUrl)
 	fmt.Printf("\nwaiting . ")
 
-	err = r.checker(key)
+	// .. if not let the user register himself
+	err = checker(checkUrl)
 	if err != nil {
 		return err
 	}
@@ -84,7 +86,7 @@ func (r *Register) Exec(args []string) error {
 		return nil
 	}
 
-	err = writeKey(key)
+	err = util.WriteKey(key)
 	if err != nil {
 		return err
 	}
@@ -93,9 +95,7 @@ func (r *Register) Exec(args []string) error {
 }
 
 // checker checks if the user has browsed the register URL by polling the check URL.
-func (r *Register) checker(key string) error {
-	checkUrl := fmt.Sprintf("%s/-/auth/check/%s", r.authServer, key)
-
+func checker(checkUrl string) error {
 	// check the result every two seconds
 	ticker := time.NewTicker(2 * time.Second).C
 
@@ -108,6 +108,7 @@ func (r *Register) checker(key string) error {
 			err := checkResponse(checkUrl)
 			if err != nil {
 				// we didn't get OK message, continue until timout
+				fmt.Printf(". ") // animation
 				continue
 			}
 
@@ -130,8 +131,6 @@ func checkResponse(checkUrl string) error {
 	}
 	resp.Body.Close()
 
-	fmt.Printf(". ") // animation
-
 	if resp.StatusCode != 200 {
 		return errors.New("non 200 response")
 	}
@@ -147,43 +146,4 @@ func checkResponse(checkUrl string) error {
 	}
 
 	return nil
-}
-
-// getKey returns the Koding key content from ~/.kd/koding.key
-func getKey() (string, error) {
-	data, err := ioutil.ReadFile(KeyPath)
-	if err != nil {
-		return "", err
-	}
-
-	key := strings.TrimSpace(string(data))
-
-	return key, nil
-}
-
-// writeKey writes the content of the given key to ~/.kd/koding.key
-func writeKey(key string) error {
-	os.Mkdir(KdPath, 0700) // create if not exists
-
-	err := ioutil.WriteFile(KeyPath, []byte(key), 0600)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-// hostID returns a unique string that defines a machine
-func hostID() (string, error) {
-	id, err := uuid.NewV4()
-	if err != nil {
-		return "", err
-	}
-
-	hostname, err := os.Hostname()
-	if err != nil {
-		return "", err
-	}
-
-	return hostname + "-" + id.String(), nil
 }
