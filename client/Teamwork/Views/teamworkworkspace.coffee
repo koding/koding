@@ -270,8 +270,11 @@ class TeamworkWorkspace extends CollaborativeWorkspace
       iconOnly   : yes
       iconClass  : "icon"
       callback   : =>
-        @activityWidget.show()
-        @activityWidget.unsetClass "collapsed"
+        if @activityWidget.activity
+          @activityWidget.show()
+          @activityWidget.unsetClass "collapsed"
+        else
+          @share()
 
     @workspaceRef.child("activityId").once "value", (snapshot) =>
       return  unless id = snapshot.val()
