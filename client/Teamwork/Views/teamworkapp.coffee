@@ -7,6 +7,7 @@ class TeamworkApp extends KDObject
     super options, data
 
     @appView = @getDelegate()
+    {query}  = @getOptions()
 
     @on "NewSessionRequested", (callback = noop, options) =>
       @teamwork?.destroy()
@@ -40,7 +41,11 @@ class TeamworkApp extends KDObject
       @teamwork.once "WorkspaceSyncedWithRemote", =>
         @showTeamUpModal()
 
-    @emit "NewSessionRequested"
+    if query?.sessionKey
+      cb = =>
+        @emit "JoinSessionRequested", query.sessionKey
+
+    @emit "NewSessionRequested", cb
 
   createTeamwork: (options) ->
     playgroundClass = TeamworkWorkspace
