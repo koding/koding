@@ -22,7 +22,7 @@ class TeamworkImporter extends KDObject
       else
         @url = "#{@url}.git" # convert Github url to git url
         @cloneRepo()
-    else if extension
+    else
       switch extension
         when "zip" then @downloadZip()
         when "git" then @cloneRepo()
@@ -163,8 +163,7 @@ class TeamworkImporter extends KDObject
     [@folderName] = FSHelper.getFileNameFromPath(@url).split ".git"
     repoFolder    = FSHelper.createFileFromPath "#{rootPath}/#{@folderName}", "folder"
     repoFolder.exists (err, isExists) =>
-
-    return @handleError err  if err
+      return @handleError err  if err
       if isExists
         @showOverwriteModal
           content: "<p>Repo exists. Overwrite?</p>"
