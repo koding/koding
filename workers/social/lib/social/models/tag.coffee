@@ -292,31 +292,13 @@ module.exports = class JTag extends jraphical.Module
           callback new KodingError 'Access denied'
         else
           tagId = @getId()
-          @fetchContents (err, contents)=>
+          @remove (err)=>
             if err
               callback err
             else
-              Relationship.remove {
-                $or: [{
-                  targetId  : tagId
-                  as        : 'tag'
-                },{
-                  sourceId  : tagId
-                  as        : 'post'
-                }]
-              }, (err)=>
-                if err
-                  callback err
-                else
-                  @remove (err)=>
-                    if err
-                      callback err
-                    else
-                      @emit 'TagIsDeleted', yes
-                      callback null
-                      contents.forEach (content)->
-                        content.flushSnapshot tagId, (err)->
-                          if err then console.log err
+              @constructor.emit 'TagIsDeleted', {tagId}
+              callback null
+
 
   @fetchSkillTags:(selector, options, callback)->
     selector.group = 'koding'
