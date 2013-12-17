@@ -67,6 +67,8 @@ func New() *Kontrol {
 	kontrol.kite.HandleFunc("getKites", kontrol.handleGetKites)
 	kontrol.kite.HandleFunc("getToken", kontrol.handleGetToken)
 
+	kontrol.kite.EnableTLS(cert_pem(), key_pem())
+
 	return kontrol
 }
 
