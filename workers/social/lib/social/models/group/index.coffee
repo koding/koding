@@ -136,10 +136,10 @@ module.exports = class JGroup extends Module
           (signature Function)
         fetchUserRoles: [
           (signature Function)
-          (signature [ObjectId], Function)
+          (signature [String], Function)
         ]
         changeMemberRoles:
-          (signature ObjectId, [String], Function)
+          (signature String, [String], Function)
         canOpenGroup:
           (signature Function)
         canEditGroup:
@@ -163,9 +163,9 @@ module.exports = class JGroup extends Module
         inviteByEmails:
           (signature [String], Object, Function)
         kickMember:
-          (signature ObjectId, Function)
+          (signature String, Function)
         transferOwnership:
-          (signature ObjectId, Function)
+          (signature String, Function)
         fetchRolesByClientId: [
           (signature Function)
           (signature String, Function)
