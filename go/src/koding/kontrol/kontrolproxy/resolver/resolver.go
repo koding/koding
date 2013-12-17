@@ -400,8 +400,7 @@ func vmTarget(host, port string, domain *models.Domain) (*Target, error) {
 		return nil, err
 	}
 
-	// cache VM's target for one day, they have static IP's and don't never change
-	return newTarget(target, domain.Proxy.Mode, time.Hour*24), nil
+	return newTarget(target, domain.Proxy.Mode, time.Second*60), nil
 }
 
 // fallbackDomain is used to return a fallback domain when the incoming host
