@@ -15,7 +15,7 @@ class TerminalPane extends Pane
     KD.utils.wait options.delay, =>
       @createWebTermView()
       @webterm.on "WebTermConnected", (@remote) =>
-        @emit "WebtermCreatead"
+        @emit "WebtermCreated"
         @onWebTermConnected()
 
       @container.destroy()

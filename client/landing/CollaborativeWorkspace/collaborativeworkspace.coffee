@@ -21,10 +21,13 @@ class CollaborativeWorkspace extends Workspace
     unless instanceName
       return warn "CollaborativeWorkspace requires a Firebase instance."
 
-    @firepadRef   = new Firebase "https://#{instanceName}.firebaseIO.com/"
+    @firepadRef   = new Firebase "https://#{instanceName}.firebaseio.com/"
     @sessionKey   = @getOptions().sessionKey or @createSessionKey()
     @workspaceRef = @firepadRef.child @sessionKey
     @broadcastRef = @workspaceRef.child "broadcast"
+    @historyRef   = @workspaceRef.child "history"
+    @watchRef     = @workspaceRef.child "watch"
+    @usersRef     = @workspaceRef.child "users"
 
   bindRemoteEvents: ->
     @workspaceRef.once "value", (snapshot) =>
@@ -42,9 +45,12 @@ class CollaborativeWorkspace extends Workspace
         @createPanel()
         @workspaceRef.set "keys": @sessionData
 
-      @userRef = @workspaceRef.child("users").child @nickname
+      @userRef = @usersRef.child @nickname
       @userRef.set "online"
       @userRef.onDisconnect().set "offline"
+      record = if isOldSession then "$0 joined the session" else "$0 started the session"
+      @addToHistory record
+      @watchRef.child(@nickname).set "everybody"
 
       if @amIHost()
         @workspaceRef.onDisconnect().remove()
@@ -54,22 +60,23 @@ class CollaborativeWorkspace extends Workspace
       @chatView?.show()
 
       @emit "WorkspaceSyncedWithRemote"
+      @emit "SomeoneJoinedToSession", KD.nick() if isOldSession
 
-      @broadcastRef.on "value", (snapshot) =>
-        message = snapshot.val()
-        return if not message or not message.data or message.data.sender is @nickname
-        @displayBroadcastMessage message.data
-
-    @workspaceRef.child("users").on "child_added", (snapshot) =>
+    @usersRef.on "child_added", (snapshot) =>
       @fetchUsers()
 
-    @workspaceRef.child("users").on "child_changed", (snapshot) =>
+    @usersRef.on "child_changed", (snapshot) =>
       name = snapshot.name()
       if @amIHost() and snapshot.val() is "offline"
+        message = "#{name} has left the session"
+
         @broadcastMessage
-          title     : "#{name} has left the session"
+          title     : message
           cssClass  : "error"
           sender    : name
+
+        @addToHistory message
+        @emit "SomeoneHasLeftSession", name
 
     @workspaceRef.on "child_removed", (snapshot) =>
       return  if @disconnectedModal
@@ -79,10 +86,16 @@ class CollaborativeWorkspace extends Workspace
       # if we can't get the node value then it means user really disconnected.
       KD.utils.wait 1500, =>
         @workspaceRef.once "value", (snapshot) =>
-          @showDisconnectedModal()  unless snapshot.val() or @disconnectedModal
+          unless snapshot.val() or @disconnectedModal or @sessionNotActive
+            @showDisconnectedModal()
+
+    @broadcastRef.on "value", (snapshot) =>
+      message = snapshot.val()
+      return if not message or not message.data or message.data.sender is @nickname
+      @displayBroadcastMessage message.data
 
     @broadcastMessage
-      title     : "#{@nickname} has joined the session"
+      title     : "#{@nickname} has joined to the session"
       sender    : @nickname
 
     @on "AllPanesAddedToPanel", (panel, panes) ->
@@ -95,7 +108,9 @@ class CollaborativeWorkspace extends Workspace
       events = [ "value", "child_added", "child_removed", "child_changed" ]
       @workspaceRef.off eventName for eventName in events
 
-  # TODO: Be sure we don't query if we have user data
+    @watchRef.on "value", (snapshot) =>
+      @watchMap = snapshot.val() or {}
+
   fetchUsers: ->
     @workspaceRef.once "value", (snapshot) =>
       val = snapshot.val()
@@ -104,6 +119,7 @@ class CollaborativeWorkspace extends Workspace
       usernames = []
       usernames.push username for own username, status of val.users unless @users[username]
 
+      # TODO: Each time we are fetching user data that we already have. Needs to be fixed.
       KD.remote.api.JAccount.some { "profile.nickname": { "$in": usernames } }, {}, (err, jAccounts) =>
         @users[user.profile.nickname] = user for user in jAccounts
         @emit "WorkspaceUsersFetched"
@@ -149,6 +165,7 @@ class CollaborativeWorkspace extends Workspace
         @startNewSession()
 
     @container.addSubView notValid
+    @sessionNotActive = yes
     @loader.hide()
 
   startNewSession: ->
@@ -202,6 +219,7 @@ class CollaborativeWorkspace extends Workspace
       content          : "<p>#{content}</p>"
       cssClass         : "host-disconnected-modal"
       overlay          : no
+      width            : 470
       buttons          :
         Start          :
           title        : "Start New Session"
@@ -292,12 +310,28 @@ class CollaborativeWorkspace extends Workspace
     return  if @userList
     @userListContainer.setClass "active"
 
-    @userListContainer.addSubView @userList = new CollaborativeWorkspaceUserList {
+    @createUserList()
+    @userListContainer.addSubView @userList
+
+  createUserList: ->
+    @userList = new CollaborativeWorkspaceUserList {
       @workspaceRef
       @sessionKey
       container : @userListContainer
       delegate  : this
     }
+
+  setWatchMode: (targetUsername) ->
+    username = KD.nick()
+    @watchRef.child(username).set targetUsername
+
+  addToHistory: (data) ->
+    target       = @historyRef.child Date.now()
+    data         = message: data  if typeof data is "string"
+    data.message = data.message.replace "$0", KD.nick()
+
+    target.set data
+    @emit "NewHistoryItemAdded", data
 
   broadcastMessage: (details) ->
     @broadcastRef.set
@@ -306,13 +340,17 @@ class CollaborativeWorkspace extends Workspace
         cssClass : details.cssClass  ? "success"
         duration : details.duration or 4200
         origin   : details.origin   or "users"
-        sender   : details.sender   or @nickname
+        sender   : details.sender    ? @nickname
+
+    @broadcastRef.set {}
 
   displayBroadcastMessage: (options) ->
     # simple broadcast message is
     # { !title, duration=, origin=, sender=, cssClass= }
+
     return unless options.title
 
+    options.title   = options.title.replace "$0", KD.nick()
     activePanel     = @getActivePanel()
     {broadcastItem} = activePanel
     activePanel.setClass "broadcasting"
