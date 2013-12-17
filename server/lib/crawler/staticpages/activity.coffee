@@ -99,7 +99,10 @@ getSingleActivityContent = (activityContent, model)->
   if activityContent?.tags?.length > 0
     tags = """<span>tags: #{activityContent.tags.join(',')}</span><br>"""
 
-  title  = activityContent?.title
+  title  =
+    """
+      <a href="#{uri.address}/#!/Activity/#{activityContent.slug}">#{activityContent?.title}</a>
+    """
 
   content  =
     """

@@ -73,10 +73,13 @@ createActivityContent = (JAccount, model, comments, createFullHTML=no, callback)
 
         fullName = getFullName acc
         nickname = getNickname acc
+        slug = "#"
+        slug = teaser.slug  if teaser?.slug?
 
         hash = getUserHash acc
 
-        activityContent = {
+        activityContent =
+          slug : teaser.slug
           fullName : fullName
           nickname : nickname
           hash : hash
@@ -89,7 +92,6 @@ createActivityContent = (JAccount, model, comments, createFullHTML=no, callback)
           comments : comments
           tags : tags
           type : model?.bongo_?.constructorName
-        }
 
         if createFullHTML
           content = getSingleActivityPage {activityContent, model}
