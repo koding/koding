@@ -2,14 +2,14 @@ package main
 
 import (
 	"flag"
-	"fmt"
 	"koding/newkite/kd/util"
 	"koding/newkite/kite"
 	"koding/newkite/kodingkey"
-	"log"
+
+	"github.com/op/go-logging"
 )
 
-var port = flag.String("port", "5555", "port to bind itself")
+var log *logging.Logger
 
 func main() {
 	flag.Parse()
@@ -17,13 +17,14 @@ func main() {
 	options := &kite.Options{
 		Kitename:    "kodingclient",
 		Version:     "0.0.1",
-		Port:        *port,
+		Port:        "5555",
 		Region:      "localhost",
 		Environment: "development",
 		PublicIP:    "127.0.0.1",
 	}
 
 	k := kite.New(options)
+	log = k.Log
 
 	k.RegisterToKontrol = false // we'll going to work only in localhost
 	k.DisableAuthentication()
@@ -51,16 +52,16 @@ func info(r *kite.Request) (interface{}, error) {
 
 		key = k.String()
 	} else {
-		fmt.Printf("Found a key under '%s'. Going to use it to register\n", util.GetKdPath())
+		log.Info("Found a key under '%s'. Going to use it to register\n", util.GetKdPath())
 		keyExist = true
 	}
 
 	cb := func(r *kite.Request) {
 		if !r.Args.One().MustBool() {
-			fmt.Println("not authorized")
+			log.Info("not authorized")
 		}
 
-		fmt.Println("got registered")
+		log.Info("got registered")
 
 		if keyExist {
 			return
@@ -68,7 +69,7 @@ func info(r *kite.Request) (interface{}, error) {
 
 		err := util.WriteKey(key)
 		if err != nil {
-			log.Println(err)
+			log.Error(err.Error())
 		}
 	}
 
@@ -78,7 +79,7 @@ func info(r *kite.Request) (interface{}, error) {
 		CB:     cb,
 	}
 
-	fmt.Printf("sending auth '%+v' to %s\n", auth, r.Username)
+	log.Info("sending auth '%+v' to %s\n", auth, r.Username)
 	return auth, nil
 }
 
