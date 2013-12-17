@@ -146,6 +146,7 @@ class TeamworkTools extends JView
             notification.notificationSetTimer 4000
             notification.setClass "success"
             @showUrlView shorten
+            @emit "Exported", nodeData.name, shorten
       , no
 
   showUrlView: (shortenUrl) ->

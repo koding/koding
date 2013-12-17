@@ -50,6 +50,9 @@ module.exports = [
   "CommonViews/avatarviews/avatarstaticview.coffee",
   "CommonViews/avatarviews/autocompleteavatarview.coffee",
 
+  "CommonViews/activitywidgetitem.coffee",
+  "CommonViews/activitywidget.coffee",
+
   # junction
   "junction/junction.coffee"
   "junction/satisfier.coffee"

@@ -11,6 +11,7 @@ class TeamworkWorkspace extends CollaborativeWorkspace
       @createButtons panel
       @createRunButton panel  if playground
       @getActivePanel().header.setClass "teamwork"
+      @createActivityWidget panel
 
     @on "WorkspaceSyncedWithRemote", =>
       if playground and @amIHost()
@@ -67,6 +68,11 @@ class TeamworkWorkspace extends CollaborativeWorkspace
       iconClass: "tw-cog"
       iconOnly : yes
       callback : => @getDelegate().showToolsModal panel, this
+
+    panel.addSubView new KDButtonView
+      cssClass   : "tw-share-button"
+      title      : "Share"
+      callback   : @bound "share"
 
   displayBroadcastMessage: (options) ->
     super options
@@ -203,3 +209,40 @@ class TeamworkWorkspace extends CollaborativeWorkspace
     avatarView.once "transitionend", =>
       avatarView.destroy()
       delete @avatars[nickname]
+
+  createActivityWidget: (panel) ->
+    panel.addSubView @activityWidget = new ActivityWidget
+      cssClass      : "tw-activity-widget collapsed"
+      childOptions  :
+        cssClass    : "activity-item"
+
+    @activityWidget.addSubView new KDCustomHTMLView
+      cssClass   : "close-tab"
+      click      : =>
+        @activityWidget.setClass "collapsed"
+        @activityWidget.on "transitionend", =>
+          @activityWidget.hide()
+
+    panel.addSubView @showActivityWidget = new KDButtonView
+      cssClass   : "tw-show-activity-widget"
+      iconOnly   : yes
+      iconClass  : "icon"
+      callback   : =>
+        @activityWidget.show()
+        @activityWidget.unsetClass "collapsed"
+
+    @workspaceRef.child("activityId").once "value", (snapshot) =>
+      if id = snapshot.val()
+        @activityWidget.display id
+        @activityWidget.show()
+      else
+        url = "#{document.location.href}?sessionKey=#{@sessionKey}"
+        @activityWidget.create "#{KD.nick()} started a Teamwork session #{url}", (err, activity) =>
+          return  err if err
+          @workspaceRef.child("activityId").set activity.getId()
+
+  share: ->
+    @getDelegate().emit "ExportRequested", (name, url) =>
+      body = "#{KD.nick()} exported #{name} #{url}"
+      @activityWidget.reply body, (err, activity) =>
+        KD.showError err

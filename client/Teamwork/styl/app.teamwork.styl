@@ -532,3 +532,120 @@ app.teamwork.styl
   right                         5px
   border-radius                 12px
   abs()
+
+.tw-share-button
+  width             186px
+  abs               0 0 20px 30px
+  font-size         24px
+  padding           5px 30px
+  border            3px solid #1fcd6e
+  border-radius     22px
+  color             #1fcd6e
+  background        #1b2224
+
+  &:focus
+    color           #7dbef1
+    border-width    3px
+
+.tw-show-activity-widget
+  abs()
+  top               8px
+  left              206px
+  background        transparent
+  border          none
+
+  .icon
+    sprite          app account-notifications
+
+.tw-activity-widget
+  width             40%
+  height            100%
+  abs()
+  top               0
+  left              0
+  vendor            transition .3s linear
+  vendor            transform translateX(0)
+  padding           20px
+  overflow          visible
+  z-index           1
+  background        #f0f0f0
+  shadow            20px 0 40px rgba(0,0,0,0.5)
+
+  &.collapsed
+    vendor          transform translateX(-552px)
+    shadow          none
+
+    .toggle
+      abs           -2px -6px
+      vendor        transform translate(-2px, -6px)
+      padding       3px 6px 4px 6px
+
+  .close-tab
+    abs()
+    top             5px
+    right           2px
+    bg              color transparent
+    sprite          app '20-close-tab'
+    border          none
+
+  .activity-item
+    height            auto
+    margin            0
+    background        transparent
+    border            1px solid #dfddde
+    border-radius     0
+    box-shadow        none
+
+    &:nth-child(2)
+      margin-top      10px
+
+    .avatarview
+      display         inline-block
+      border-radius   25px
+
+    header
+      padding         20px 15px 0 15px
+      background      white
+
+      .content
+        display           inline-block
+        width             360px
+        vertical-align    middle
+        margin-left       12px
+
+        .profile
+          color           #1aaf5d
+          font-weight     500
+          text-decoration none
+
+        .status-body
+          padding         0
+
+          p
+            padding       0
+
+    footer
+      .activity-actions
+        height            auto
+        padding           10px 0
+
+      time
+        line-height       38px
+
+    .comment-container
+      height              auto
+
+      .kdlistitemview-comment
+        background        white
+
+        .avatarview
+          border-radius   25px
+
+      .item-add-comment-box
+        .avatarview
+          display         none
+
+        .item-add-comment-form
+          textarea
+            padding-left  14px
+            border-radius 0
