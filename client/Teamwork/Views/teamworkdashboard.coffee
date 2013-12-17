@@ -105,12 +105,14 @@ class TeamworkDashboard extends JView
     filename = if location.hostname is "localhost" then "manifest-dev" else "manifest"
     delegate = @getDelegate()
 
-    delegate.fetchGitHubFileContent "Playgrounds/#{filename}.json", (err, manifests) =>
+    delegate.fetchManifestFile "#{filename}.json", (err, manifests) =>
       if err
+        @setClass "ready"
+        @playgrounds.hide()
         return new KDNotificationView
           type     : "mini"
           cssClass : "error"
-          title    : "Could not fetch Playground manifests"
+          title    : "Could not fetch Playground manifest."
           duration : 4000
 
       delegate.playgroundsManifest = manifests

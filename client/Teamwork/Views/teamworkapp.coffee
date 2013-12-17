@@ -236,23 +236,12 @@ class TeamworkApp extends KDObject
         when "md"
           callback errorMessage, KD.utils.applyMarkdown error, contents
 
-  fetchGitHubFileContent: (path, callback, type, username, repoName) ->
-    window.ali = @
-    callback or= noop
-    type     or= "json"
-    username or= "koding"
-    repoName or= "Teamwork"
-
+  fetchManifestFile: (path, callback = noop) ->
     $.ajax
-      url           : "https://api.github.com/repos/#{username}/#{repoName}/contents/#{path}",
-      crossDomain   : true
-      dataType      : "jsonp"
-      success       : (response) =>
-        content     = atob response.data.content.replace /\n/g, ""
-        if type is "json"
-          try
-            content = JSON.parse content
-          catch err
-            warn "File content is not a valid JSON."
-
-        callback err, content
+      url           : "http://resources.gokmen.kd.io/Teamwork/Playgrounds/#{path}"
+      type          : "GET"
+      success       : (response) ->
+        return callback yes, null  unless response
+        callback null, response
+      error         : ->
+        return callback yes, null
