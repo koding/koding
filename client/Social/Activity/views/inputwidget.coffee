@@ -109,6 +109,9 @@ With love from the Koding team.<br>
           duration   : 5000
         KodingError  : 'Something went wrong while creating activity'
 
+      KD.getSingleton("badgeController").checkBadge
+        property : "statusUpdates", relType : "author", source : "JNewStatusUpdate", targetSelf : 1
+
   update: (data, callback) ->
     activity = @getData()
     return  @reset() unless activity

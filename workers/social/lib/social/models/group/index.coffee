@@ -40,8 +40,8 @@ module.exports = class JGroup extends Module
       'grant permissions'                 : []
       'open group'                        : ['member','moderator']
       'list members'                      :
-        public                            : ['guest','member','moderator']
-        private                           : ['member','moderator']
+        public                            : ['moderator']
+        private                           : ['moderator']
       'create groups'                     : ['moderator']
       'edit groups'                       : ['moderator']
       'edit own groups'                   : ['member','moderator']
