@@ -58,6 +58,10 @@ class WebTerm.InputHandler
       event.preventDefault()
   
   keyPress: (event) ->
+    return  if event.metaKey and event.charCode in [
+      114 # meta-R is reload
+      118 # meta-V is paste
+    ]
     unless (event.ctrlKey and not event.altKey) or event.charCode is 0
       @terminal.server.input String.fromCharCode(event.charCode)
     event.preventDefault()

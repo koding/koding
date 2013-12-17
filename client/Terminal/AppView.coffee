@@ -54,15 +54,15 @@ class WebTermView extends KDView
 
     @on "KDObjectWillBeDestroyed", @bound "clearConnectionAttempts"
 
-    $(window).on "blur", =>
+    window.addEventListener "blur", =>
       @terminal.setFocused false
 
-    $(window).on "focus", =>
+    window.addEventListener "focus", =>
       @terminal.setFocused @focused
 
-    $(document).on "paste", (event) =>
+    document.addEventListener "paste", (event) =>
       if @focused
-        @terminal.server.input event.originalEvent.clipboardData.getData("text/plain")
+        @terminal?.server.input event.clipboardData.getData("text/plain")
         @setKeyView()
 
     @bindEvent 'contextmenu'
@@ -230,7 +230,6 @@ class WebTermView extends KDView
     event
 
   createInvisibleTextarea:(eventData)->
-
     # Get selected Text for cut/copy
     if window.getSelection
         selectedText = window.getSelection()
