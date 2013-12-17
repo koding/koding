@@ -50,7 +50,7 @@ class TeamworkTools extends JView
           @hasShareElements = yes
 
     @teamUpPlaceholder = new KDCustomHTMLView cssClass: "content"
-    @sharePlaceholder  = new KDCustomHTMLView cssClass: "content export"
+    @sharePlaceholder  = new KDCustomHTMLView cssClass: "export"
 
   createTeamupElements: ->
     @teamUpPlaceholder.addSubView new KDCustomHTMLView

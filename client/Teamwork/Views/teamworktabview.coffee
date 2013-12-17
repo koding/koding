@@ -99,7 +99,7 @@ class TeamworkTabView extends CollaborativePane
       pane.getHandle().on "click", =>
         paneOptions = pane.getOptions()
         @workspace.addToHistory
-          message    : "$0 switched to new pane, #{paneOptions.title}"
+          message    : "$0 switched to #{paneOptions.title}"
           by         : KD.nick()
           data       :
             title    : paneOptions.title
@@ -136,11 +136,9 @@ class TeamworkTabView extends CollaborativePane
       "Terminal"  :
         callback  : => @handlePaneCreate "terminal", => @createTerminal()
       "Browser"   :
-        callback  : => @handlePaneCreate "preview",  => @createPreview()
+        callback  : => @handlePaneCreate "browser",  => @createPreview()
       "Drawing Board":
         callback  : => @handlePaneCreate "drawing",  => @createDrawingBoard()
-      # "Chat"      :
-      #   callback  : => @createChat()
     }
 
   handlePaneCreate: (paneType, callback = noop) =>
@@ -160,7 +158,7 @@ class TeamworkTabView extends CollaborativePane
     switch data.type
       when "dashboard" then @createDashboard()
       when "terminal"  then @createTerminal     sessionKey, indexKey
-      when "preview"   then @createPreview      sessionKey, indexKey
+      when "browser"   then @createPreview      sessionKey, indexKey
       when "drawing"   then @createDrawingBoard sessionKey, indexKey
       when "editor"
         path = data.filePath or "localfile:/untitled.txt"
@@ -263,14 +261,14 @@ class TeamworkTabView extends CollaborativePane
     indexKey = indexKey or @createSessionKey()
     pane     = new KDTabPaneView { title: "Browser", indexKey }
     delegate = @getDelegate()
-    preview  = new CollaborativePreviewPane { delegate, sessionKey }
+    browser  = new CollaborativePreviewPane { delegate, sessionKey }
 
-    @appendPane_ pane, preview
+    @appendPane_ pane, browser
 
     if @amIHost
       @keysRef.push
-        type      : "preview"
-        sessionKey: preview.sessionKey
+        type      : "browser"
+        sessionKey: browser.sessionKey
         indexKey  : indexKey
 
     @registerPaneRemoveListener_ pane

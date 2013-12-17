@@ -53,13 +53,19 @@ class ChatPane extends JView
 
         @chatRef.child(message.time).set message
 
+      workspace.avatarsView = new KDCustomHTMLView
+        cssClass   : "tw-users"
+        partial    : "<p>There is nobody in this session. Your friends will be visible here. To invite your friend, type invite username.<p>"
+
+      @addSubView workspace.avatarsView, null, yes
+
   isVisible: -> return @hasClass "active"
 
   addNew: (details) ->
     ownerNickname = details.user.nickname
-    if @lastChatItemOwner is ownerNickname
+    if @lastChatItemOwner is ownerNickname and @lastChatItemOwner isnt "teamwork"
       @lastChatItem.messageList.addSubView new KDCustomHTMLView
-        partial : Encoder.XSSEncode(details.body).replace(/NEW_LINE/g, "<br />")
+        partial : Encoder.XSSEncode details.body
       return @messageAddedCallback details
 
     @lastChatItem      = new ChatItem details, @workspace.users[ownerNickname]

@@ -418,13 +418,15 @@ app.teamwork.styl
     border-bottom               1px solid #C5C5C5
     padding                     10px 0
     pointer()
+    &.share
+      border-bottom             none
     &:hover
       bg                        color, #ECF0F1
     &.active
       bg                        color, #ECF0F1
       border-bottom             none
     .icon
-      size                      50px, 40px
+      size                      20px, 40px
       fl()
     .text
       font-size                 17px
@@ -433,15 +435,15 @@ app.teamwork.styl
       font-size                 14px
       margin-top                3px
   .option
-    margin                      10px 50px
+    margin                      10px 20px
     font-size                   14px
     font-weight                 300
   .teamwork-modal-input
-    margin                      0 10px 0 50px
+    margin                      0 10px 0 20px
     font-size                   18px
     border-radius               0 !important
     padding                     20px !important
-    width                       240px
+    size                        235px !important, 30px !important
     display                     inline-block !important
     &.url
       margin-left               0
@@ -455,12 +457,12 @@ app.teamwork.styl
       .session-key, p, .cancel-button
         display                 none
     .kdautocompletewrapper
-      margin-left               50px
+      margin-left               20px
       .kdinput
         border-radius           0
         padding                 20px
         font-size               18px
-        width                   410px
+        size                    390px, 43px
   .invite-button.cupid-green, .tw-export-button
     border-radius               0
     height                      42px
@@ -473,16 +475,17 @@ app.teamwork.styl
     font-size                   16px
     text-shadow                 none
     width                       84px
-    margin-left                 466px
+    margin-left                 416px
   .tw-export-button
-    margin                      0 0 0 320px
+    margin                      0 0 0 258px
     width                       232px
     color                       #FFF
   .nfinder
     height                      150px
-    width                       500px
-    margin                      5px 0 6px 50px
+    width                       468px
+    margin                      5px 0 6px 0
     border                      1px solid #CCC
+    left                        20px
   .shorten
     width                       500px
 .teamwork .playground .tw-header-buttons
@@ -649,3 +652,19 @@ app.teamwork.styl
           textarea
             padding-left  14px
             border-radius 0
+
+.tw-users
+  bg                            color, #ededed
+  padding                       5px
+  font-size                     13px
+  overflow                      hidden
+  &.has-user
+    p
+      display                   none
+    .avatarview
+      fl()
+      margin-right              4px
+      &.watching
+        border                  2px solid green
+        box-sizing              border-box
+
