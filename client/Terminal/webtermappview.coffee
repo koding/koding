@@ -52,7 +52,7 @@ class WebTermAppView extends JView
 
   checkVM:->
 
-    # KD.mixpanel "Click open Webterm", vmName
+    KD.mixpanel "Click open Webterm", {vmName}
 
     vmController = KD.getSingleton 'vmController'
     vmController.fetchDefaultVmName (vmName)=>
@@ -63,10 +63,10 @@ class WebTermAppView extends JView
       vmController.info vmName, KD.utils.getTimedOutCallback (err, vm, info)=>
 
         @addNewTab vmName  if info?.state is 'RUNNING'
-        KD.mixpanel "Opened Webterm", vmName
+        KD.mixpanel "Opened Webterm", {vmName}
 
       , =>
-        KD.mixpanel "Failed to open terminal", vmName
+        KD.mixpanel "Can't open Webterm", {vmName}
         @setMessage "Couldn't connect to your VM, please try again later. <a href='#'>close this</a> ", no, yes
       , 5000
 
