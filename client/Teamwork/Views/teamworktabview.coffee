@@ -8,6 +8,7 @@ class TeamworkTabView extends CollaborativePane
     @keysRef    = @workspaceRef.child "keys"
     @indexRef   = @workspaceRef.child "index"
     @requestRef = @workspaceRef.child "request"
+    @paneRef    = @workspaceRef.child "pane"
 
     @listenChildRemovedOnKeysRef()
     @listenRequestRef()
@@ -63,16 +64,23 @@ class TeamworkTabView extends CollaborativePane
     @createTabFromFirebaseData data  unless isExist
 
   listenIndexRef: ->
+
     @indexRef.on "value", (snapshot) =>
       data       = snapshot.val()
       {watchMap} = @workspace
       username   = KD.nick()
       return unless data
 
+      @paneRef.child(data.by).set data.indexKey
+
       if watchMap[username] is "everybody" or watchMap[username] is data.by
         for pane in @tabView.panes
           if pane.getOptions().indexKey is data.indexKey
-            @tabView.showPaneByIndex @tabView.getPaneIndex pane
+            index = @tabView.getPaneIndex pane
+            @tabView.showPaneByIndex index
+            log pane.tabHandle
+
+            log "Current:", index, data.by, @workspace.users[data.by]
 
   createElements: ->
     @tabHandleHolder = new ApplicationTabHandleHolder delegate: this
@@ -83,7 +91,9 @@ class TeamworkTabView extends CollaborativePane
       enableMoveTabHandle       : yes
       resizeTabHandles          : no
       closeAppWhenAllTabsClosed : no
-      minHandleWidth            : 128
+      minHandleWidth            : 150
+      maxHandleWidth            : 150
+      tabHandleClass            : TabHandleWithAvatar
 
     @tabView.on "PaneAdded", (pane) =>
       pane.getHandle().on "click", =>
@@ -96,8 +106,8 @@ class TeamworkTabView extends CollaborativePane
             indexKey : paneOptions.indexKey
 
         @indexRef.set
-          indexKey: pane.getOptions().indexKey
-          by      : KD.nick()
+          indexKey   : pane.getOptions().indexKey
+          by         : KD.nick()
 
   addNewTab: ->
     @createPlusHandleDropDown()
@@ -286,3 +296,67 @@ class TeamworkTabView extends CollaborativePane
       {{> @tabHandleHolder}}
       {{> @tabView}}
     """
+
+class TabHandleWithAvatar extends KDTabHandleView
+
+  constructor:(options = {}, data)->
+    options.view = new TabHandleAvatarView options
+    super options, data
+
+  setTitle:(title)-> (@getOption 'view').title.updatePartial title
+  setAccounts:(accounts)-> (@getOption 'view').setAccounts accounts
+
+class TabHandleAvatarView extends KDView
+
+  constructor:(options = {}, data)->
+    options.cssClass = 'tw-tab-avatar-view'
+    super options, data
+
+    @accounts = ["gokmen", "devrim", "sinan"]
+
+    @addSubView @title = new KDCustomHTMLView
+      cssClass : 'tw-tab-avatar-title'
+      partial  : "#{options.title}"
+
+    @addSubView @avatar = new AvatarStaticView
+      cssClass   : 'tw-tab-avatar-img'
+      size       : width : 20, height: 20
+      bind       : 'mouseenter mouseleave'
+      mouseenter : =>
+
+        offset = @avatar.$().offset()
+        @avatar.contextMenu = new JContextMenu
+          menuWidth     : 160
+          delegate      : @avatar
+          treeItemClass : AvatarContextMenuItem
+          x             : offset.left - 106
+          y             : offset.top + 27
+          arrow         :
+            placement   : "top"
+            margin      : 108
+          lazyLoad      : yes
+        , {}
+
+        @utils.defer =>
+          @accounts.forEach (account)=>
+            KD.remote.cacheable account, (err, [account])=>
+              if not err and account
+                @avatar.contextMenu.treeController.addNode account
+
+      mouseleave : => @avatar.contextMenu?.destroy()
+
+    , KD.whoami()
+
+  setAccounts: (@accounts)->
+
+class AvatarContextMenuItem extends JContextMenuItem
+
+  constructor:->
+    super
+    @avatar = new AvatarStaticView
+      size     : width: 20, height: 20
+      cssClass : 'tw-tab-avatar-img-context'
+    , @getData()
+
+  pistachio: ->
+     "{{> @avatar}} #{KD.utils.getFullnameFromAccount @getData()}"
