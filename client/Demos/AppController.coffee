@@ -1,9 +1,10 @@
 class DemosAppController extends AppController
 
-  KD.registerAppClass this,
-    name         : "Demos"
-    route        : "/Demos"
-    behavior     : "application"
+  if location.hostname is 'localhost'
+    KD.registerAppClass this,
+      name         : "Demos"
+      route        : "/Demos"
+      behavior     : "application"
 
   constructor:(options = {}, data)->
     options.view    = new DemosMainView

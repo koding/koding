@@ -469,7 +469,7 @@ module.exports = class Builder
           identifier : "app-#{title.toLowerCase()}"
 
     # Remove internals
-    for internal in ['PostOperations', 'KDBackend', 'KDFramework', 'KDMainApp', 'Demos']
+    for internal in ['PostOperations', 'KDBackend', 'KDFramework', 'KDMainApp']
       delete apps[internal]
 
     return JSON.stringify apps
