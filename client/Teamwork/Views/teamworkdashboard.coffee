@@ -12,7 +12,6 @@ class TeamworkDashboard extends JView
       callback    : =>
         delegate  = @getDelegate()
         if delegate.teamwork
-          @hide()
           delegate.showTeamUpModal()
         else
           delegate.emit "NewSessionRequested", ->
@@ -80,8 +79,10 @@ class TeamworkDashboard extends JView
         icon      : yes
         iconClass : "play"
         callback  : =>
-          @hide()
-          @getDelegate().handlePlaygroundSelection manifest.name, manifest.manifestUrl
+          new KDNotificationView
+            title : "Coming Soon"
+          # @hide()
+          # @getDelegate().handlePlaygroundSelection manifest.name, manifest.manifestUrl
 
   handleImport: ->
     @getDelegate().emit "ImportRequested", @importInput.getValue()
