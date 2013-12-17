@@ -42,7 +42,7 @@ module.exports = (bongo, page, contentType, callback)=>
           createFullHTML = no
           putBody = no
           createActivityContent JAccount, content, {}, createFullHTML, putBody, (error, content)=>
-            queue.next()  if error or not content
+            return queue.next()  if error or not content
             queue.pageContent = queue.pageContent + content
             queue.next()
         else if contentType is "Topics"
