@@ -52,7 +52,7 @@ func info(r *kite.Request) (interface{}, error) {
 
 		key = k.String()
 	} else {
-		log.Info("Found a key under '%s'. Going to use it to register\n", util.GetKdPath())
+		log.Info("Found a key under '%s'. Going to use it to register", util.GetKdPath())
 		keyExist = true
 	}
 
@@ -79,7 +79,7 @@ func info(r *kite.Request) (interface{}, error) {
 		CB:     cb,
 	}
 
-	log.Info("sending auth '%+v' to %s\n", auth, r.Username)
+	log.Info("sending auth '%+v' to %s", auth, r.Username)
 	return auth, nil
 }
 
