@@ -33,7 +33,7 @@ class ActivityWidget extends KDView
 
   viewAppended: ->
     {defaultValue} = @getOptions()
-    KD.singleton("appManager").create "Activity", =>
+    KD.singleton("appManager").require "Activity", =>
       @addSubView @inputWidget = new ActivityInputWidget {defaultValue}
       @inputWidget.once "Submit", (err, activity) =>
         return  KD.showError err if err
