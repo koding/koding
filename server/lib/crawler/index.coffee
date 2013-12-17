@@ -2,6 +2,7 @@
 {htmlEncode} = require 'htmlencode'
 kodinghome = require './staticpages/kodinghome'
 activity = require './staticpages/activity'
+crawlableFeed = require './staticpages/feed'
 profile = require './staticpages/profile'
 {Relationship} = require 'jraphical'
 
@@ -11,29 +12,9 @@ profile = require './staticpages/profile'
   getFullName
   getNickname
   getUserHash
+  createActivityContent
+  decorateComment
 }          = require './helpers'
-
-decorateComment = (JAccount, comment, callback) ->
-  createdAt = formatDate(new Date(comment.timestamp_))
-  commentSummary = {body: comment.body, createdAt: createdAt}
-  selector =
-  {
-    "targetId" : comment.getId(),
-    "sourceName": "JAccount"
-  }
-  Relationship.one selector, (err, rel) =>
-    if err
-      console.error err
-      callback err, null
-    sel = { "_id" : rel.sourceId}
-
-    JAccount.one sel, (err, acc) =>
-      if err
-        console.error err
-        callback err, null
-      commentSummary.authorName = getFullName acc
-      commentSummary.authorNickname = getNickname acc
-      callback null, commentSummary
 
 fetchLastStatusUpdatesOfUser = (account, Relationship, JStatusUpdate, callback) ->
   {daisy} = require "bongo"
@@ -63,63 +44,6 @@ fetchLastStatusUpdatesOfUser = (account, Relationship, JStatusUpdate, callback) 
       return callback null, queue.statusUpdates
     daisy queue
 
-createActivityContent = (JAccount, models, comments, section, callback) ->
-  model = models.first if models and Array.isArray models
-  unless model
-    callback new Error "JStatusUpdate cannot be found.", null
-  statusUpdateId = model.getId()
-  jAccountId = model.originId
-  selector =
-  {
-    "sourceId" : statusUpdateId,
-    "as" : "author"
-  }
-
-  return callback new Error "Cannot call fetchTeaser function.", null unless typeof model.fetchTeaser is "function"
-  model.fetchTeaser (error, teaser)=>
-    tags = []
-    if teaser?.tags?
-      tags = (tag.title for tag in teaser.tags)
-
-    codeSnippet = ""
-    if model.bongo_?.constructorName is "JCodeSnip"
-      codeSnippet = model?.attachments[0]?.content
-
-    Relationship.one selector, (err, rel) =>
-      if err
-          console.error err
-          callback err, null
-      sel =
-      {
-        "_id" : rel.targetId
-      }
-      JAccount.one sel, (err, acc) =>
-        if err
-          console.error err
-          callback err, null
-
-        fullName = getFullName acc
-        nickname = getNickname acc
-
-        hash = getUserHash acc
-
-        activityContent = {
-          fullName : fullName
-          nickname : nickname
-          hash : hash
-          title : if model?.title? then model.title else model.body or ""
-          body : if model?.body?  then model.body  else ""
-          codeSnippet : htmlEncode codeSnippet
-          createdAt : formatDate(model?.meta?.createdAt)
-          numberOfComments : teaser.repliesCount or 0
-          numberOfLikes : model?.meta?.likes or 0
-          comments : comments
-          tags : tags
-          type : model?.bongo_?.constructorName
-        }
-        content = activity {activityContent, section, models}
-        callback null, content
-
 module.exports =
   crawl: (bongo, req, res, slug)->
     {Base, race, dash, daisy} = require "bongo"
@@ -148,6 +72,7 @@ module.exports =
             if err
               console.error err
               return res.send 500, error_500()
+
             model = models.first if models and Array.isArray models
             return res.send 404, error_404() unless model
 
@@ -165,15 +90,38 @@ module.exports =
                       queue.next()
                   else queue.next()
                 queue.push =>
-                  createActivityContent JAccount, models, queue.commentSummaries, section, (error, content)=>
+                  createActivityContent JAccount, model, queue.commentSummaries, yes, (error, content)=>
                     queue.next() if error
                     return res.send 200, content
                 daisy queue
             else
-              createActivityContent JAccount, models, {}, section, (error, content)=>
+              createActivityContent JAccount, model, {}, yes, (error, content)=>
                 return res.send 200, content
       else
-        return res.send 404, error_404("No section is given.")
+        if /^(Activity)|(Topics)/.test name
+          if /\?page=/.test name
+            parts = name.split "?"
+            if parts[0] in ["Activity", "Topics"]
+              name = parts[0]
+            else
+              return res.send 404, error_404()
+            if parts[1]
+              querystringParams = parts[1].split "&"
+              for param in querystringParams
+                if /page=/.test param
+                  [key, value] = param.split "="
+                  page = parseInt(value) ? 1  if value
+            else
+              return res.send 500, error_500()
+
+          if isNaN page
+            page = 1
+
+          crawlableFeed bongo, page, name, (error, content)->
+            return res.send 500, error_500() if error or not content
+            return res.send 200, content
+        else
+          return res.send 404, error_404("No section is given.")
     else
       isLoggedIn req, res, (err, loggedIn, account)->
         JName.fetchModels name, (err, models, jname)->

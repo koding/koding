@@ -2,14 +2,13 @@
 {argv} = require 'optimist'
 {uri} = require('koding-config-manager').load("main.#{argv.c}")
 
-module.exports = ({activityContent, account, section, models})->
+getSingleActivityPage = ({activityContent, account, models})->
   {Relationship} = require 'jraphical'
   getStyles  = require './styleblock'
   getGraphMeta  = require './graphmeta'
   model      = models.first if models and Array.isArray models
 
   title  = activityContent?.title
-
   """
   <!DOCTYPE html>
   <html lang="en">
@@ -18,8 +17,9 @@ module.exports = ({activityContent, account, section, models})->
     #{getGraphMeta()}
   </head>
     <body itemscope itemtype="http://schema.org/WebPage">
+      <a href="#{uri.address}">Koding</a><br />
       <article itemscope itemtype="http://schema.org/BlogPosting">
-        #{putContent(activityContent, section, model)}
+        #{getSingleActivityContent(activityContent, model)}
       </article>
     </body>
   </html>
@@ -71,8 +71,7 @@ createUserInteractionMeta = (numberOfLikes, numberOfComments)->
   userInteractionMeta += "<meta itemprop=\"interactionCount\" content=\"UserComments:#{numberOfComments}\"/>"
   return userInteractionMeta
 
-putContent = (activityContent, section, model)->
-
+getSingleActivityContent = (activityContent, model)->
   body = activityContent.body
   nickname = activityContent.nickname
   accountName = createAccountName activityContent.fullName
@@ -104,23 +103,28 @@ putContent = (activityContent, section, model)->
 
   content  =
     """
-        <a href="#{uri.address}">Koding</a><br />
-        <header itemprop="headline"><h1>#{title}</h1></header>
-        #{body} #{codeSnippet}
+      <header itemprop="headline"><h1>#{title}</h1></header>
+      #{body} #{codeSnippet}
+      <hr>
+      <figure itemscope itemtype="http://schema.org/person" title="#{accountName}">
+        #{avatarImage}
+        <figcaption>
+          Author: #{author}
+        </figcaption>
+      </figure>
+      <footer>
+        #{userInteractionMeta}
+        #{createdAt} by #{author}
+        <br>
+        #{tags}
         <hr>
-        <figure itemscope itemtype="http://schema.org/person" title="#{accountName}">
-          #{avatarImage}
-          <figcaption>
-            Author: #{author}
-          </figcaption>
-        </figure>
-        <footer>
-          #{userInteractionMeta}
-          #{createdAt} by #{author}
-          <br>
-          #{tags}
-          <hr>
-          #{commentsCount}, #{likesCount}
-        </footer>
-        #{commentsContent}
+        #{commentsCount}, #{likesCount}
+      </footer>
+      #{commentsContent}
     """
+  return content
+
+module.exports = {
+  getSingleActivityPage
+  getSingleActivityContent
+}
