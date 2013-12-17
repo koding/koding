@@ -90,7 +90,9 @@ module.exports =
                       queue.next()
                   else queue.next()
                 queue.push =>
-                  createActivityContent JAccount, model, queue.commentSummaries, yes, (error, content)=>
+                  createFullHTML = yes
+                  putBody = yes
+                  createActivityContent JAccount, model, queue.commentSummaries, createFullHTML, putBody, (error, content)=>
                     queue.next() if error
                     return res.send 200, content
                 daisy queue

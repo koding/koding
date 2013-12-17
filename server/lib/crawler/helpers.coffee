@@ -37,11 +37,10 @@ getUserHash = (account) ->
     hash = account.data.profile.hash
   return hash
 
-createActivityContent = (JAccount, model, comments, createFullHTML=no, callback) ->
+createActivityContent = (JAccount, model, comments, createFullHTML=no, putBody=yes, callback) ->
   {Relationship} = require 'jraphical'
   {htmlEncode}   = require 'htmlencode'
   {getSingleActivityPage, getSingleActivityContent} = require './staticpages/activity'
-
 
   statusUpdateId = model.getId()
   jAccountId = model.originId
@@ -52,8 +51,7 @@ createActivityContent = (JAccount, model, comments, createFullHTML=no, callback)
   return callback new Error "Cannot call fetchTeaser function.", null unless typeof model.fetchTeaser is "function"
   model.fetchTeaser (error, teaser)=>
     tags = []
-    if teaser?.tags?
-      tags = (tag.title for tag in teaser.tags)
+    tags = teaser.tags  if teaser?.tags?
 
     codeSnippet = ""
     if model.bongo_?.constructorName is "JCodeSnip"
@@ -78,20 +76,25 @@ createActivityContent = (JAccount, model, comments, createFullHTML=no, callback)
 
         hash = getUserHash acc
 
+        if model?.body? and putBody
+          body = model.body
+        else
+          body = ""
+
         activityContent =
-          slug : teaser.slug
-          fullName : fullName
-          nickname : nickname
-          hash : hash
-          title : if model?.title? then model.title else model.body or ""
-          body : if model?.body?  then model.body  else ""
-          codeSnippet : htmlEncode codeSnippet
-          createdAt : formatDate(model?.meta?.createdAt)
+          slug             : teaser.slug
+          fullName         : fullName
+          nickname         : nickname
+          hash             : hash
+          title            :  if model?.title? then model.title else model.body or ""
+          body             : body
+          codeSnippet      : htmlEncode codeSnippet
+          createdAt        : formatDate(model?.meta?.createdAt)
           numberOfComments : teaser.repliesCount or 0
-          numberOfLikes : model?.meta?.likes or 0
-          comments : comments
-          tags : tags
-          type : model?.bongo_?.constructorName
+          numberOfLikes    : model?.meta?.likes or 0
+          comments         : comments
+          tags             : tags
+          type             : model?.bongo_?.constructorName
 
         if createFullHTML
           content = getSingleActivityPage {activityContent, model}

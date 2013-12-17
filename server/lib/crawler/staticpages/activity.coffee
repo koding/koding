@@ -52,10 +52,16 @@ createCreationDate = (createdAt)->
   return "Created at: <span itemprop=\"dateCreated\">#{createdAt}</span>"
 
 createCommentsCount = (numberOfComments)->
-  return "<span>#{numberOfComments}</span> comments"
+  content = ""
+  if numberOfComments > 0
+    content =  "<span>#{numberOfComments}</span> comments"
+  return content
 
 createLikesCount = (numberOfLikes)->
-  return "<span>#{numberOfLikes}</span> likes."
+  content = ""
+  if numberOfLikes > 0
+    content = "<span>#{numberOfLikes}</span> likes."
+  return content
 
 createAuthor = (accountName, nickname)->
   return "<a href=\"#{uri.address}/#!/#{nickname}\"><span itemprop=\"name\">#{accountName}</span></a>"
@@ -86,7 +92,7 @@ getSingleActivityContent = (activityContent, model)->
 
   codeSnippet = createCodeSnippet activityContent.codeSnippet
 
-  if activityContent.numberOfComments > 0
+  if activityContent?.comments?.length? > 0
     comments = (createCommentNode(comment) for comment in activityContent.comments)
     commentsContent = "<h4>Comments:</h4>"
     commentsContent += "<ol>"
@@ -97,11 +103,20 @@ getSingleActivityContent = (activityContent, model)->
 
   tags = ""
   if activityContent?.tags?.length > 0
-    tags = """<span>tags: #{activityContent.tags.join(',')}</span><br>"""
+    tags = "tags: "
+    for tag in activityContent.tags
+      content =
+        """
+          <a href="#{uri.address}/#!/Topics/#{tag.slug}">#{tag.title}</a>
+        """
+      tags += content
 
-  title  =
+  shortenedTitle = activityContent.title
+  if shortenedTitle?.length > 150
+    shortenedTitle = activityContent.title.substring(0, 150) + "..."
+  title =
     """
-      <a href="#{uri.address}/#!/Activity/#{activityContent.slug}">#{activityContent?.title}</a>
+      <a href="#{uri.address}/#!/Activity/#{activityContent.slug}">#{shortenedTitle}</a>
     """
 
   content  =
@@ -111,9 +126,6 @@ getSingleActivityContent = (activityContent, model)->
       <hr>
       <figure itemscope itemtype="http://schema.org/person" title="#{accountName}">
         #{avatarImage}
-        <figcaption>
-          Author: #{author}
-        </figcaption>
       </figure>
       <footer>
         #{userInteractionMeta}
@@ -121,7 +133,7 @@ getSingleActivityContent = (activityContent, model)->
         <br>
         #{tags}
         <hr>
-        #{commentsCount}, #{likesCount}
+        #{commentsCount} #{likesCount}
       </footer>
       #{commentsContent}
     """

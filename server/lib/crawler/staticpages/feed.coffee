@@ -44,7 +44,12 @@ module.exports = (bongo, page, contentType, callback)=>
         content = contents[index]
 
         if contentType is "Activity"
-          appendDecoratedStatusUpdate JAccount, content, queue
+          createFullHTML = no
+          putBody = no
+          createActivityContent JAccount, content, {}, createFullHTML, putBody, (error, content)=>
+            return callback error if error or not content
+            queue.pageContent = queue.pageContent + content
+            queue.next()
         else if contentType is "Topics"
           appendDecoratedTopic content, queue
         else queue.next()
@@ -58,31 +63,6 @@ module.exports = (bongo, page, contentType, callback)=>
         fullPage = putContentIntoFullPage content, pagination
         return callback null, fullPage
       daisy queue
-
-appendDecoratedStatusUpdate = (JAccount, newstatusupdate, queue)=>
-  if typeof newstatusupdate.fetchRelativeComments is "function"
-    newstatusupdate?.fetchRelativeComments? limit:3, after:"", (error, comments)=>
-      commentQueue = [0..comments.length].map (index)=>=>
-        comment = comments[index]
-        if comment?
-          # Get comments authors, put comment info into commentSummaries
-          decorateComment JAccount, comment, (error, commentSummary)=>
-            commentQueue.next() if error
-            commentQueue.commentSummaries or= []
-            if commentSummary.body
-              commentQueue.commentSummaries.push commentSummary
-            commentQueue.next()
-        else commentQueue.next()
-      commentQueue.push =>
-        createActivityContent JAccount, newstatusupdate, commentQueue.commentSummaries, no, (error, content)=>
-          commentQueue.next() if error
-          queue.pageContent = queue.pageContent + content
-          queue.next()
-      commentQueue.push => queue.next()
-      daisy commentQueue
-  else
-    createActivityContent JAccount, newstatusupdate, {}, no, (error, content)=>
-      queue.pageContent = queue.pageContent + content
 
 getPagination = (currentPage, numberOfItems, contentType)->
   # This is the number of adjacent link around current page.
