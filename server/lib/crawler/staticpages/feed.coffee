@@ -16,7 +16,7 @@ module.exports = (bongo, page, contentType, callback)=>
   {JName, JAccount, JStatusUpdate, JTag} = bongo.models
   skip = 0
   if page > 0
-    skip = (page - 1) * 5
+    skip = (page - 1) * ITEMSPERPAGE
 
 
   options = {

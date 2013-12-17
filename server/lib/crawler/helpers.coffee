@@ -46,10 +46,8 @@ createActivityContent = (JAccount, model, comments, createFullHTML=no, callback)
   statusUpdateId = model.getId()
   jAccountId = model.originId
   selector =
-  {
     "sourceId" : statusUpdateId,
-    "as" : "author"
-  }
+    "as"       : "author"
 
   return callback new Error "Cannot call fetchTeaser function.", null unless typeof model.fetchTeaser is "function"
   model.fetchTeaser (error, teaser)=>
@@ -66,9 +64,8 @@ createActivityContent = (JAccount, model, comments, createFullHTML=no, callback)
           console.error err
           return callback err, null
       sel =
-      {
         "_id" : rel.targetId
-      }
+
       JAccount.one sel, (err, acc) =>
         if err
           console.error err
