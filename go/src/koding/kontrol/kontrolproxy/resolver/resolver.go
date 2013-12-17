@@ -192,23 +192,6 @@ func MemTargetByHost(host string) (*Target, error) {
 // arslan.kd.io -> "http://10.128.2.25:80", mode:vm
 // y.koding.com -> "http://localhost/maintenance", mode:maintenance
 func TargetByHost(host string) (*Target, error) {
-	domain, err := targetDomain(host)
-	if err != nil {
-		return nil, err
-	}
-
-	target, err := targetMode(host, domain)
-	if err != nil {
-		return nil, err
-	}
-
-	target.CacheEnabled = domain.Proxy.CacheEnabled
-	target.CacheSuffixes = domain.Proxy.CacheSuffixes
-	return target, nil
-}
-
-func targetMode(host string, domain *models.Domain) (*Target, error) {
-	// split host and port and also check if incoming host has a port
 	var port string
 	var err error
 
@@ -221,6 +204,22 @@ func targetMode(host string, domain *models.Domain) (*Target, error) {
 		}
 	}
 
+	domain, err := targetDomain(host)
+	if err != nil {
+		return nil, err
+	}
+
+	target, err := targetMode(host, port, domain)
+	if err != nil {
+		return nil, err
+	}
+
+	target.CacheEnabled = domain.Proxy.CacheEnabled
+	target.CacheSuffixes = domain.Proxy.CacheSuffixes
+	return target, nil
+}
+
+func targetMode(host, port string, domain *models.Domain) (*Target, error) {
 	mode := domain.Proxy.Mode
 
 	switch mode {
