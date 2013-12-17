@@ -86,7 +86,8 @@ class CollaborativeWorkspace extends Workspace
       # if we can't get the node value then it means user really disconnected.
       KD.utils.wait 1500, =>
         @workspaceRef.once "value", (snapshot) =>
-          @showDisconnectedModal()  unless snapshot.val() or @disconnectedModal
+          unless snapshot.val() or @disconnectedModal or @sessionNotActive
+            @showDisconnectedModal()
 
     @broadcastRef.on "value", (snapshot) =>
       message = snapshot.val()
@@ -164,6 +165,7 @@ class CollaborativeWorkspace extends Workspace
         @startNewSession()
 
     @container.addSubView notValid
+    @sessionNotActive = yes
     @loader.hide()
 
   startNewSession: ->
