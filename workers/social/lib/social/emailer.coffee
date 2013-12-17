@@ -29,8 +29,7 @@ module.exports = class Emailer
           # console.log error
           callback error
         else
-          # console.log "sent:",mailOptions.to
-          callback null, "Message sent: " + response.message
+          callback null, response
     ,1000/20
 
   @simulate : (options,callback)->
