@@ -74,7 +74,7 @@ module.exports =
               return res.send 500, error_500()
 
             model = models.first if models and Array.isArray models
-            return res.send 404, error_404() unless model
+            return res.send 404, error_404()  unless model
 
             if typeof model.fetchRelativeComments is "function"
               model?.fetchRelativeComments? limit:3, after:"", (error, comments)=>

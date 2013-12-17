@@ -4,12 +4,6 @@
 { Relationship }                     = require 'jraphical'
 { createActivityContent, decorateComment } = require '../helpers'
 
-{
-  isLoggedIn
-  error_404
-  error_500
-} = require '../../server/helpers'
-
 ITEMSPERPAGE = 20
 
 module.exports = (bongo, page, contentType, callback)=>
@@ -48,7 +42,7 @@ module.exports = (bongo, page, contentType, callback)=>
           createFullHTML = no
           putBody = no
           createActivityContent JAccount, content, {}, createFullHTML, putBody, (error, content)=>
-            return callback error if error or not content
+            queue.next()  if error or not content
             queue.pageContent = queue.pageContent + content
             queue.next()
         else if contentType is "Topics"
