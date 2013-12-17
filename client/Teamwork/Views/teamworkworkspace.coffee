@@ -241,7 +241,7 @@ class TeamworkWorkspace extends CollaborativeWorkspace
     @chatView.chatRef.child(message.time).set message
 
   createActivityWidget: (panel) ->
-    url = "#{document.location.href}?sessionKey=#{@sessionKey}"
+    url = "#{KD.config.apiUri}/Teamwork?sessionKey=#{@sessionKey}"
 
     panel.addSubView @activityWidget = new ActivityWidget
       cssClass      : "tw-activity-widget collapsed"
