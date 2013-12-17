@@ -76,7 +76,7 @@ class AccountAppController extends AppController
     mainView.addSubView navView = @navController.getView()
 
     mainView.addSubView @tabView = new KDTabView
-      tabHandleContainer : new KDCustomHTMLView
+      hideHandleContainer : yes
 
     @tabView.addPane @createTab items.personal.items.first
 
