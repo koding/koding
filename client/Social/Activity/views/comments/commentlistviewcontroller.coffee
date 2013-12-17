@@ -102,7 +102,7 @@ class CommentListViewController extends KDListViewController
 
       if comments.length is _limit
         startTime = comments[comments.length-1].meta.createdAt
-        @fetchRelativeComments 11, startTime, continuous  if continuous
+        @fetchRelativeComments ++_limit, startTime, continuous  if continuous
       else
         listView = @getListView()
         listView.emit "BackgroundActivityFinished"
