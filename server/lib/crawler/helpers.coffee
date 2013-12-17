@@ -89,7 +89,7 @@ createActivityContent = (JAccount, model, comments, createFullHTML=no, putBody=y
           title            :  if model?.title? then model.title else model.body or ""
           body             : body
           codeSnippet      : htmlEncode codeSnippet
-          createdAt        : formatDate(model?.meta?.createdAt)
+          createdAt        : if model?.meta?.createdAt? then formatDate model.meta.createdAt else ""
           numberOfComments : teaser.repliesCount or 0
           numberOfLikes    : model?.meta?.likes or 0
           comments         : comments
