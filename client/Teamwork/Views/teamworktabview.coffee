@@ -78,9 +78,8 @@ class TeamworkTabView extends CollaborativePane
           if pane.getOptions().indexKey is data.indexKey
             index = @tabView.getPaneIndex pane
             @tabView.showPaneByIndex index
-            log pane.tabHandle
-
-            log "Current:", index, data.by, @workspace.users[data.by]
+            # log pane.tabHandle
+            # log "Current:", index, data.by, @workspace.users[data.by]
 
   createElements: ->
     @tabHandleHolder = new ApplicationTabHandleHolder delegate: this

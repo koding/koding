@@ -58,7 +58,7 @@ class TeamworkWorkspace extends CollaborativeWorkspace
         @manageUserAvatars userStatus
 
     @on "NewHistoryItemAdded", (data) =>
-      log data
+      # log data
       @sendSystemMessage data.message
 
   createButtons: (panel) ->
