@@ -12,7 +12,6 @@ class TeamworkDashboard extends JView
       callback    : =>
         delegate  = @getDelegate()
         if delegate.teamwork
-          @hide()
           delegate.showTeamUpModal()
         else
           delegate.emit "NewSessionRequested", ->
@@ -80,8 +79,10 @@ class TeamworkDashboard extends JView
         icon      : yes
         iconClass : "play"
         callback  : =>
-          @hide()
-          @getDelegate().handlePlaygroundSelection manifest.name, manifest.manifestUrl
+          new KDNotificationView
+            title : "Coming Soon"
+          # @hide()
+          # @getDelegate().handlePlaygroundSelection manifest.name, manifest.manifestUrl
 
   handleImport: ->
     @getDelegate().emit "ImportRequested", @importInput.getValue()
@@ -104,12 +105,14 @@ class TeamworkDashboard extends JView
     filename = if location.hostname is "localhost" then "manifest-dev" else "manifest"
     delegate = @getDelegate()
 
-    delegate.fetchGitHubFileContent "Playgrounds/#{filename}.json", (err, manifests) =>
+    delegate.fetchManifestFile "#{filename}.json", (err, manifests) =>
       if err
+        @setClass "ready"
+        @playgrounds.hide()
         return new KDNotificationView
           type     : "mini"
           cssClass : "error"
-          title    : "Could not fetch Playground manifests"
+          title    : "Could not fetch Playground manifest."
           duration : 4000
 
       delegate.playgroundsManifest = manifests

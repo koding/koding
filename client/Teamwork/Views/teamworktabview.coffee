@@ -92,7 +92,7 @@ class TeamworkTabView extends CollaborativePane
       closeAppWhenAllTabsClosed : no
       minHandleWidth            : 150
       maxHandleWidth            : 150
-      tabHandleClass            : TabHandleWithAvatar
+      # tabHandleClass            : TabHandleWithAvatar
 
     @tabView.on "PaneAdded", (pane) =>
       pane.getHandle().on "click", =>
