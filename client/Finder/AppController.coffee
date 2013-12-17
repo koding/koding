@@ -17,5 +17,55 @@ class FinderController extends KDController
     options.useStorage       ?= yes
     options.addOrphansToRoot ?= no
 
-    new NFinderController options
+    @controller = new NFinderController options
+
+    @uploader = @createDNDUploader @controller
+
+    return @controller
+
+  createDNDUploader: (controller) ->
+
+    { treeController } = controller
+
+    dndUploadHolder = new KDView
+      domId       : "finder-dnduploader"
+      cssClass    : "hidden"
+
+    dnduploader  = new DNDUploader
+      hoverDetect : no
+
+    dndUploadHolder.addSubView dnduploader
+
+    onDrag = ->
+      unless treeController.internalDragging
+        dndUploadHolder.show()
+        dnduploader.unsetClass "hover"
+
+    dnduploader
+      .on "dragleave", ->
+        dndUploadHolder.hide()
+
+      .on "drop", ->
+        dndUploadHolder.hide()
+
+      .on 'uploadProgress', ({ file, percent })->
+        filePath = "[#{file.vmName}]#{file.path}"
+        treeController.nodes[filePath]?.showProgressView percent
+
+      .on "uploadComplete", ({ parentPath }) ->
+        controller.expandFolders FSHelper.getPathHierarchy parentPath
+
+      .on "cancel", ->
+        dnduploader.setPath()
+        dndUploadHolder.hide()
+
+    treeController.on 'dragEnter',  onDrag
+    treeController.on 'dragOver',   onDrag
+
+    controller.getView().addSubView dndUploadHolder
+
+    return dndUploadHolder
+
+    # @finderController.treeController.on "dragEnter", onDrag
+    # @finderController.treeController.on "dragOver",  onDrag
 

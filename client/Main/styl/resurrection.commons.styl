@@ -59,11 +59,41 @@ resurrection.commons.styl
   bg                        color, #1b2224
 
 .kdtabhandlecontainer.application-tab-handle-holder
+
   bg                        color, #252E30
   border-bottom             none
   padding-top               3px
   height                    40px
+  overflow                  hidden
+  noTextSelection()
   borderBox()
+
+  .kdtabhandle-tabs
+    width                   2000px
+    vendor                  transition, margin-left .3s ease
+
+  .kdtabhandle-movenav
+    width                   33px
+    height                  40px
+    padding                 8px
+    background              #252E30
+    right                   0
+    top                     3px
+    z-index                 11
+    abs()
+
+    .leftButton
+      bg                    color, transparent
+      sprite                app 'previous'
+      fl()
+
+    .rightButton
+      bg                    color, transparent
+      sprite                app 'next'
+      margin-left           10px
+      fl()
+
+
   .kdtabhandle
     border                  none
     height                  37px
@@ -554,7 +584,6 @@ input.kdinput.text
       vendor              transform, translateX(24px)
     a.knob
       size                24px 24px
-
 
 //
 // KODING RESURRECTION MODAL THEME

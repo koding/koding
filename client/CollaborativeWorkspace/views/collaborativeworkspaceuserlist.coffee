@@ -62,6 +62,8 @@ class CollaborativeWorkspaceUserList extends JView
           user.status = userList[user.profile.nickname]
           @createUserView user
 
+        @emit "UserListCreated"
+
   createUserView: (user) ->
     userView      = new KDView
       cssClass    : "user-view #{user.status}"
@@ -147,6 +149,8 @@ class CollaborativeWorkspaceUserList extends JView
         @reset()
 
   sendInvite: (account) ->
+    return @emit "UserInviteFailed"  unless account
+
     to           = account.profile.nickname
     nickname     = KD.nick()
     {profile}    = KD.whoami()
@@ -173,12 +177,8 @@ class CollaborativeWorkspaceUserList extends JView
 
     KD.remote.api.JPrivateMessage.create { to, subject, body }, noop
 
-    new KDNotificationView
-      title    : "Invitation sent to #{to}"
-      duration : 3000
-      type     : "tray"
-
     @workspaceRef.child("users").child(to).set "invited"
+    @emit "UserInvited", to
 
   returnToInviteView: ->
     for key in ["onlineUsers", "offlineUsers", "invitedUsers"]

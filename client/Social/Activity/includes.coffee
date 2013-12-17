@@ -92,5 +92,6 @@ module.exports = [
   "ListItems/ActivityListItemTutorial.coffee",
   "ListItems/ActivityListItemBlogPost.coffee",
 
-  "styl/resurrection.activity.styl"
+  "styl/activity.styl"
+  "styl/activity.responsive.styl"
 ]

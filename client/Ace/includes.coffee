@@ -13,7 +13,7 @@ module.exports = [
   "acefindandreplaceview.coffee"
 
   # Terminal Themes
-  "styl/app.aceeditor.styl"
-  "styl/app.editor.styl"
+  "styl/aceeditor.styl"
+  "styl/editor.styl"
 
 ]

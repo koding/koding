@@ -143,6 +143,9 @@ class KodingRouter extends KDRouter
 
     callback = =>
       KD.getSingleton("appManager").tell section, method, options ? models, (contentDisplay) =>
+        unless contentDisplay
+          console.warn 'no content display'
+          return
         routeWithoutParams = route.split('?')[0]
         @openRoutes[routeWithoutParams] = contentDisplay
         @openRoutesById[contentDisplay.id] = routeWithoutParams

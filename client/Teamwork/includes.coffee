@@ -1,6 +1,7 @@
 module.exports = [
 
   # coffee block
+  "Views/teamworktabview.coffee",
   "Views/teamworkmarkdownmodal.coffee",
   "Views/facebookteamworkinstructionsmodal.coffee",
   "Views/teamworktools.coffee",

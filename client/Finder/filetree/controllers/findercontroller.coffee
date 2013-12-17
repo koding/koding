@@ -1,7 +1,6 @@
 class NFinderController extends KDViewController
 
   constructor:(options = {}, data)->
-
     {nickname}  = KD.whoami().profile
 
     options.view = new KDView cssClass : "nfinder file-container"
@@ -28,6 +27,8 @@ class NFinderController extends KDViewController
 
     @appStorage = KD.getSingleton('appStorageController').storage 'Finder', '1.1'
 
+    @watchers = {}
+
     if options.useStorage
       @appStorage.ready =>
         @treeController.on "file.opened", @bound 'setRecentFile'
@@ -41,8 +42,6 @@ class NFinderController extends KDViewController
     @cleanup()
 
     KD.getSingleton("vmController").on "StateChanged", @bound "checkVMState"
-
-  watchers: {}
 
   registerWatcher:(path, stopWatching)->
     @watchers[path] = stop: stopWatching
@@ -137,6 +136,7 @@ class NFinderController extends KDViewController
       path   : "[#{vmName}]#{path}"
       type   : "vm"
       vmName : vmName
+      treeController: @treeController
 
     @noVMFoundWidget.hide()
     @treeController.addNode @vms.last

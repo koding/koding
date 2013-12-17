@@ -7,6 +7,14 @@ TERMINAL stylesheet
 app.terminal.styl
 */
 }
+body.terminal #main-header
+  shadow        none
+
+.offscreen
+  position  absolute
+  top       -100px
+  left      -100px
+  opacity   0
 
 .terminal
 
@@ -21,6 +29,12 @@ app.terminal.styl
 
     &.light
       opacity   .5
+
+    a
+      font-style italic
+      color      #aaa
+      &:visited
+        color    #aaa
 
 .vm-info
 
