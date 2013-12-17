@@ -27,6 +27,10 @@ class TeamworkApp extends KDObject
         else
           @emit "NewSessionRequested"
 
+    @on "ExportRequested", (callback) =>
+      @showExportModal()
+      @tools.once "Exported", callback
+
     @on "ImportRequested", (importUrl) =>
       @emit "NewSessionRequested"
       @teamwork.on "WorkspaceSyncedWithRemote", =>
@@ -49,6 +53,11 @@ class TeamworkApp extends KDObject
     @showToolsModal @teamwork.getActivePanel(), @teamwork
     @tools.teamUpHeader.emit "click"
     @tools.setClass "team-up-mode"
+
+  showExportModal: ->
+    @showToolsModal @teamwork.getActivePanel(), @teamwork
+    @tools.shareHeader.emit "click"
+    @tools.setClass "share-mode"
 
   getTeamworkOptions: ->
     options               = @getOptions()
