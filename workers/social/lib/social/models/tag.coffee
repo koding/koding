@@ -181,7 +181,10 @@ module.exports = class JTag extends jraphical.Module
           if tag
             callback new KodingError "Slug already exists!"
           else
-            @update $set: formData, callback
+            @update $set: formData, (err) =>
+              return callback err if err
+              @constructor.emit 'TagIsUpdated', tagId : @getId()
+              callback null
       else
         callback new KodingError 'Access denied'
 
