@@ -349,12 +349,6 @@ func buildHosts(username, servicename, key string) ([]string, string, error) {
 // to 0 seconds, means it will be cached forever (because it uses an IP that
 // never change.)
 func vmTarget(host, port string, domain *models.Domain) (*Target, error) {
-	// we only opened ports between those, therefore other ports are not used
-	portInt, _ := strconv.Atoi(port)
-	if portInt >= 1024 && portInt <= 10000 {
-		return nil, fmt.Errorf("port '%s' is not allowed. Allowed range is 1024 - 10,000", port)
-	}
-
 	if len(domain.HostnameAlias) == 0 {
 		return nil, fmt.Errorf("no hostnameAlias defined for host (vm): %s", host)
 	}
