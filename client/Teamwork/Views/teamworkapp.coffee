@@ -42,10 +42,9 @@ class TeamworkApp extends KDObject
         @showTeamUpModal()
 
     if query?.sessionKey
-      cb = =>
-        @emit "JoinSessionRequested", query.sessionKey
-
-    @emit "NewSessionRequested", cb
+      @emit "JoinSessionRequested", query.sessionKey
+    else
+      @emit "NewSessionRequested", cb
 
   createTeamwork: (options) ->
     playgroundClass = TeamworkWorkspace
