@@ -95,7 +95,7 @@ class CollaborativeWorkspace extends Workspace
       @displayBroadcastMessage message.data
 
     @broadcastMessage
-      title     : "#{@nickname} has joined the session"
+      title     : "#{@nickname} has joined to the session"
       sender    : @nickname
 
     @on "AllPanesAddedToPanel", (panel, panes) ->
