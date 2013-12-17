@@ -79,8 +79,7 @@ class MonitorStatus extends KDObject
         @emit "allDone"
 
     @on "allDone", ->
-      @emitStatus()
-      @printReport()
+      #@emitStatus()
       @reset()
 
     @on "internetDown", ->
@@ -88,15 +87,13 @@ class MonitorStatus extends KDObject
       status.internetDown()
 
   notify: (reason) ->
-    return  unless @showNotifications
-
     notifications =
-      internetUp : "All systems go!"
-      internetDown: "Your internet is down."
-      brokerDown: "Broker is down."
-      kitesDown: "Kites are down."
-      bongoDown: "Bongo is down."
-      undefined: "Sorry, something went wrong."
+      internetUp   : "All systems go!"
+      internetDown : "Your internet is down."
+      brokerDown   : "Broker is down."
+      kitesDown    : "Kites are down."
+      bongoDown    : "Bongo is down."
+      undefined    : "Sorry, something went wrong."
 
     msg = notifications[reason] or notifications["undefined"]
 
@@ -112,7 +109,7 @@ class MonitorStatus extends KDObject
     @failedPings = []
 
   emitStatus: ->
-    if _.size(@failedPings) is 0
+    if @failedPings.length is 0
       @internetUp()
       @notify "internetUp"
     else
@@ -127,7 +124,7 @@ class MonitorStatus extends KDObject
 
     for own reason, items of reasons
       intersection = _.intersection items, @failedPings
-      if _.size(intersection) is _.size(items)
+      if intersection.length is items.length
         @emit reason, _.first(@failedPings)
         @notify reason
         log reason
@@ -137,11 +134,14 @@ class MonitorStatus extends KDObject
     log  "all's well on western front"
     @emit 'internetUp'
 
-  printReport: ->
-    for own name, item of @itemsToMonitor
-      log name, item.getResponseTime()
+  run: (callback)->
+    @on "allDone", ->
+      times = {}
+      for own name, item of @itemsToMonitor
+        times[name] = item.getResponseTime()
 
-  run: ->
+      callback times
+
     for own name, item of @itemsToMonitor
       item.once "finish", (i, n) =>
         @emit "pingDone", i, n
@@ -170,7 +170,9 @@ do ->
   monitorItems = new MonitorItems
   monitorItems.register {external}
 
-  KD.troubleshoot = (showNotifications=true)->
+  window.jsonp =-> KD.externalPong()
+
+  KD.troubleshoot = (callback)->
     monitorItems = KD.getSingleton("monitorItems").items
 
     if monitorItems.length == 1
@@ -178,10 +180,7 @@ do ->
       return
 
     monitor = new MonitorStatus monitorItems
-    monitor.showNotifications = showNotifications
-    monitor.run()
-
-  window.jsonp =-> KD.externalPong()
+    monitor.run callback
 
 class BrokerPing extends Pinger
   constructor: (options, data) ->
