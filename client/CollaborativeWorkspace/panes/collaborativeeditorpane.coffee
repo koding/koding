@@ -17,10 +17,12 @@ class CollaborativeEditorPane extends CollaborativePane
         {file, content} = @getOptions()
         return @openFile file, content  if file
 
-      @ref.on "value", (snapshot) =>
-        value = snapshot.val()
-        return unless value
-        return @save()  if value.WaitingSaveRequest is yes
+      if @amIHost
+        @ref.on "value", (snapshot) =>
+          value = snapshot.val()
+          return unless value
+          if value.WaitingSaveRequest is yes
+            return @save()
 
       @ref.onDisconnect().remove()  if @amIHost
 
@@ -41,11 +43,9 @@ class CollaborativeEditorPane extends CollaborativePane
 
       @ref.child("WaitingSaveRequest").set no
       file.save @firepad.getText(), (err, res) =>
-        new KDNotificationView
-          type     : "mini"
-          cssClass : "success"
-          title    : "File is saved"
-          duration : 4000
+        @workspace.broadcastMessage
+          title : "#{file.name} is saved"
+          sender: ""
     else
       @ref.child("WaitingSaveRequest").set yes
 
@@ -64,11 +64,15 @@ class CollaborativeEditorPane extends CollaborativePane
       scrollPastEnd   : yes
       mode            : "htmlmixed"
       extraKeys       :
-        "Cmd-S"       : @bound "save"
-        "Ctrl-S"      : @bound "save"
+        "Cmd-S"       : @bound "handleSave"
+        "Ctrl-S"      : @bound "handleSave"
 
     @setEditorTheme()
     @setEditorMode()
+
+  handleSave: ->
+    @save()
+    @workspace.addToHistory "$0 saved #{@getData().name}"
 
   setEditorTheme: ->
     if document.getElementById "codemirror-ambiance-style"
