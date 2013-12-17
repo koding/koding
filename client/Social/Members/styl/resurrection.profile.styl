@@ -13,7 +13,7 @@ resurrection.profile.styl
   display                     none
 
 body.profile
-  bg                          color, #eaeae8
+  bg                          color, #e2e8e4
 
   #kdmaincontainer
   .kdtabpaneview.content-display
@@ -26,7 +26,8 @@ body.profile
 
   .feeder-tabs
     padding-left               386px
-    width                      611px
+    borderBox()
+
 
   .member.content-display
     overflow                  visible
@@ -152,6 +153,53 @@ body.profile
             font-size         14px
             color             #707879
             fr()
+
+      .user-badges
+        padding               26px 52px 0 44px
+
+        h3
+          display             block
+          font-size           18px
+          color               #1aaf5d
+          font-weight         400
+          letter-spacing      0.2px
+          margin              0 0 36px
+
+        .kdlistitemview
+          width               74px
+          margin              0 0 18px 18px
+          text-align          center
+          color               rgba(233, 233, 233, .6)
+          font-size           14px
+          font-weight         100
+          letter-spacing      0.5px
+          fl()
+
+          &:nth-child(3n+1)
+            margin-left       0
+
+          img
+            size              74px, 74px
+            margin-bottom     14px
+
+
+  /* Profile page specific color changes to activity items */
+  .activity-item
+    max-width             728px
+    footer
+      bg                  color, #f6f8f7
+      border-top-color    #e2e8e4
+
+    .comment-container.commented
+      border-top-color    #e2e8e4
+
+
+      .kdlistitemview-comment~.kdlistitemview-comment
+        .comment-contents
+          border-top-color #e2e8e4
+
+    .item-add-comment-box
+      border-top-color     #e2e8e4
 
   //
   // Profile avatar change styles
@@ -407,7 +455,3 @@ body.profile
       vendor        transition-property, opacity
       vendor        transition-duration, 500ms
       opacity       0
-
-.kdmodal.avatar-container
-  .avatarview
-    display         block

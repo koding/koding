@@ -51,72 +51,8 @@ resurrection.activity.styl
         border          none
         abs()
 
-    .input-wrapper
-      size              auto auto
-      margin            0 0 0 100px
-      position          relative
-
-      .avatarview
-        rounded           4px
-        top               6px
-        left              6px
-        z-index           2
-        abs()
-
-      .input-view
-        border            none
-        border-top        1px solid #CDCCC2
-        border-left       1px solid #CDCCC2
-        rounded           5px
-        borderBox()
-
-        > div
-          size            100% auto
-          line-height     16px
-          font-size       14px
-          color           #acacac
-          padding         15px 100px 14px 56px
-          background      #fff
-          borderBox()
-
-        &.placeholder
-          > div
-            color         #acacac
-
-      button[type=submit]
-        size            30px, 30px
-        bottom          8px
-        right           9px
-        padding         0
-        abs()
-        z-index         1
-
-        .icon
-          margin        1px 0 0 7px
-          sprite        activity, "update-bubble"
-
-        &[disabled=disabled]
-          bg            color, #DDD !important
-
-      .notification
-        size                auto auto
-        background          lightyellow
-        font-size           12px
-        margin              10px 0
-        padding             10px 30px 10px 10px
-        border              1px solid lightgray
-        border-radius       5px
-
-        .close-tab
-          abs()
-          top               4px
-          right             4px
-          bg                color, transparent
-          sprite            app '20-close-tab'
-
-        a
-          color      #3aaaab
-          noTextDeco()
+    .activity-input-widget
+      margin-left       100px
 
     .activity-content
       size              auto, auto
@@ -346,6 +282,73 @@ span.collapsedtext
       margin-left     0
       padding         0
 
+
+.activity-input-widget
+  size                auto auto
+  position            relative
+  margin              0
+
+  .avatarview
+    rounded           4px
+    top               6px
+    left              6px
+    z-index           2
+    abs()
+
+  .input-view
+    border            none
+    border-top        1px solid #CDCCC2
+    border-left       1px solid #CDCCC2
+    rounded           5px
+    borderBox()
+
+    > div
+      size            100% auto
+      line-height     16px
+      font-size       14px
+      color           #acacac
+      padding         15px 100px 14px 56px
+      background      #fff
+      borderBox()
+
+    &.placeholder
+      > div
+        color         #acacac
+
+  button[type=submit]
+    size            30px, 30px
+    bottom          8px
+    right           9px
+    padding         0
+    abs()
+    z-index         1
+
+    &.solid.green .icon
+      margin        1px 0 0 7px
+      sprite        activity, "update-bubble"
+
+    &[disabled=disabled]
+      bg            color, #DDD !important
+
+  .notification
+    size                auto auto
+    background          lightyellow
+    font-size           12px
+    margin              10px 0
+    padding             10px 30px 10px 10px
+    border              1px solid lightgray
+    border-radius       5px
+
+    .close-tab
+      abs()
+      top               4px
+      right             4px
+      bg                color, transparent
+      sprite            app '20-close-tab'
+
+    a
+      color      #3aaaab
+      noTextDeco()
 
 /* Activity items */
 .activity-item
@@ -752,7 +755,7 @@ span.collapsedtext
       vertical-align        middle
       color                 #aab5bc
 
-.input-wrapper
+.activity-input-widget
   .link-embed-box
     margin                  18px 0 0
     rounded                 5px

@@ -591,6 +591,29 @@ app.teamwork.styl
     sprite          app '20-close-tab'
     border          none
 
+    &:hover
+      cursor        pointer
+
+  .notification
+    size                auto auto
+    background          lightyellow
+    font-size           12px
+    margin              10px 0
+    padding             10px 30px 10px 10px
+    border              1px solid lightgray
+    border-radius       5px
+
+    .close-tab
+      abs()
+      top               4px
+      right             4px
+      bg                color, transparent
+      sprite            app '20-close-tab'
+
+    a
+      color      #3aaaab
+      noTextDeco()
+
   .activity-item
     height            auto
     margin            0
@@ -667,4 +690,3 @@ app.teamwork.styl
       &.watching
         border                  2px solid green
         box-sizing              border-box
-

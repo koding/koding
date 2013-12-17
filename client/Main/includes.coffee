@@ -38,7 +38,6 @@ module.exports = [
   "CommonViews/nominatemodal.coffee",
   "CommonViews/slidingsplit.coffee",
   "CommonViews/bidirectionalnavigation.coffee"
-
   "CommonViews/kodingswitch.coffee",
 
   "CommonViews/tokenview.coffee",
@@ -142,6 +141,8 @@ module.exports = [
   # LOCATION
   "locationcontroller.coffee",
   "CommonViews/location/locationform.coffee",
+  # BadgeController
+  "badgecontroller.coffee",
 
   # PAYMENT
   # controller

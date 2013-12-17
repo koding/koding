@@ -121,7 +121,6 @@ class LikeView extends JView
 
     if $(event.target).is("a.action-link")
       @getData().like (err)=>
-
         KD.showError err,
           AccessDenied : 'You are not allowed to like activities'
           KodingError  : 'Something went wrong while like'
@@ -133,6 +132,8 @@ class LikeView extends JView
             @setClass "liked"
             @likeLink.updatePartial "Unlike" if useTitle
             KD.mixpanel "Liked activity"
+            KD.getSingleton("badgeController").checkBadge
+              property : "likes", relType : "like", targetSelf : 1
           else
             @unsetClass "liked"
             @likeLink.updatePartial "Like" if useTitle
