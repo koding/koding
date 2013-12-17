@@ -217,6 +217,7 @@ class CollaborativeWorkspace extends Workspace
       content          : "<p>#{content}</p>"
       cssClass         : "host-disconnected-modal"
       overlay          : no
+      width            : 470
       buttons          :
         Start          :
           title        : "Start New Session"
