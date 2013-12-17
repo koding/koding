@@ -27,6 +27,7 @@ class CollaborativeWorkspace extends Workspace
     @broadcastRef = @workspaceRef.child "broadcast"
     @historyRef   = @workspaceRef.child "history"
     @watchRef     = @workspaceRef.child "watch"
+    @usersRef     = @workspaceRef.child "users"
 
   bindRemoteEvents: ->
     @workspaceRef.once "value", (snapshot) =>
@@ -44,7 +45,7 @@ class CollaborativeWorkspace extends Workspace
         @createPanel()
         @workspaceRef.set "keys": @sessionData
 
-      @userRef = @workspaceRef.child("users").child @nickname
+      @userRef = @usersRef.child @nickname
       @userRef.set "online"
       @userRef.onDisconnect().set "offline"
       record = if isOldSession then "$0 joined the session" else "$0 started the session"
@@ -59,11 +60,12 @@ class CollaborativeWorkspace extends Workspace
       @chatView?.show()
 
       @emit "WorkspaceSyncedWithRemote"
+      @emit "SomeoneJoinedToSession", KD.nick() if isOldSession
 
-    @workspaceRef.child("users").on "child_added", (snapshot) =>
+    @usersRef.on "child_added", (snapshot) =>
       @fetchUsers()
 
-    @workspaceRef.child("users").on "child_changed", (snapshot) =>
+    @usersRef.on "child_changed", (snapshot) =>
       name = snapshot.name()
       if @amIHost() and snapshot.val() is "offline"
         message = "#{name} has left the session"
@@ -74,6 +76,7 @@ class CollaborativeWorkspace extends Workspace
           sender    : name
 
         @addToHistory message
+        @emit "SomeoneHasLeftSession", name
 
     @workspaceRef.on "child_removed", (snapshot) =>
       return  if @disconnectedModal
@@ -107,7 +110,6 @@ class CollaborativeWorkspace extends Workspace
     @watchRef.on "value", (snapshot) =>
       @watchMap = snapshot.val() or {}
 
-  # TODO: Be sure we don't query if we have user data
   fetchUsers: ->
     @workspaceRef.once "value", (snapshot) =>
       val = snapshot.val()
@@ -116,6 +118,7 @@ class CollaborativeWorkspace extends Workspace
       usernames = []
       usernames.push username for own username, status of val.users unless @users[username]
 
+      # TODO: Each time we are fetching user data that we already have. Needs to be fixed.
       KD.remote.api.JAccount.some { "profile.nickname": { "$in": usernames } }, {}, (err, jAccounts) =>
         @users[user.profile.nickname] = user for user in jAccounts
         @emit "WorkspaceUsersFetched"
@@ -325,6 +328,7 @@ class CollaborativeWorkspace extends Workspace
     data.message = data.message.replace "$0", KD.nick()
 
     target.set data
+    @emit "NewHistoryItemAdded", data
 
   broadcastMessage: (details) ->
     @broadcastRef.set
