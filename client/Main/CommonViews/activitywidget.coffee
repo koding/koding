@@ -5,6 +5,16 @@ class ActivityWidget extends KDView
     super options, data
     @activity = null
 
+  showForm: (callback) ->
+    @inputWidget?.show()
+    @inputWidget.once "Submit", (err, activity) =>
+      return  KD.showError err if err
+      @addActivity activity  if activity
+      callback err, activity
+
+  hideForm: ->
+    @inputWidget?.destroy()
+
   display: (id, callback = noop) ->
     KD.remote.cacheable "JNewStatusUpdate", id, (err, activity) =>
       KD.showError err
@@ -25,4 +35,6 @@ class ActivityWidget extends KDView
     @addSubView new ActivityWidgetItem @getOptions().childOptions, activity
 
   viewAppended: ->
-    KD.singleton("appManager").create "Activity"
+    {defaultValue} = @getOptions()
+    KD.singleton("appManager").create "Activity", =>
+      @addSubView @inputWidget = new ActivityInputWidget {defaultValue}

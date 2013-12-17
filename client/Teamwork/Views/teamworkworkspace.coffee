@@ -70,11 +70,6 @@ class TeamworkWorkspace extends CollaborativeWorkspace
       iconOnly : yes
       callback : => @getDelegate().showToolsModal panel, this
 
-    panel.addSubView new KDButtonView
-      cssClass   : "tw-share-button"
-      title      : "Share"
-      callback   : @bound "share"
-
   displayBroadcastMessage: (options) ->
     super options
 
@@ -245,12 +240,18 @@ class TeamworkWorkspace extends CollaborativeWorkspace
 
     @chatView.chatRef.child(message.time).set message
 
-
   createActivityWidget: (panel) ->
+    url = "#{KD.config.apiUri}/Teamwork?sessionKey=#{@sessionKey}"
+
     panel.addSubView @activityWidget = new ActivityWidget
       cssClass      : "tw-activity-widget collapsed"
+      defaultValue  : "Would you like to join my Teamwork session? #{url}"
       childOptions  :
         cssClass    : "activity-item"
+
+    @activityWidget.addSubView @notification = new KDCustomHTMLView
+      cssClass  : "notification"
+      partial   : "This status update will be visible in Activity feed."
 
     @activityWidget.addSubView new KDCustomHTMLView
       cssClass   : "close-tab"
@@ -258,6 +259,11 @@ class TeamworkWorkspace extends CollaborativeWorkspace
         @activityWidget.setClass "collapsed"
         @activityWidget.on "transitionend", =>
           @activityWidget.hide()
+
+    panel.addSubView shareButton = new KDButtonView
+      cssClass   : "tw-share-button"
+      title      : "Share"
+      callback   : @bound "share"
 
     panel.addSubView @showActivityWidget = new KDButtonView
       cssClass   : "tw-show-activity-widget"
@@ -268,17 +274,16 @@ class TeamworkWorkspace extends CollaborativeWorkspace
         @activityWidget.unsetClass "collapsed"
 
     @workspaceRef.child("activityId").once "value", (snapshot) =>
-      if id = snapshot.val()
-        @activityWidget.display id
-        @activityWidget.show()
-      else
-        url = "#{document.location.href}?sessionKey=#{@sessionKey}"
-        @activityWidget.create "#{KD.nick()} started a Teamwork session #{url}", (err, activity) =>
-          return  err if err
-          @workspaceRef.child("activityId").set activity.getId()
+      return  unless id = snapshot.val()
+      shareButton.hide()
+      @activityWidget.display id
+      @activityWidget.show()
 
   share: ->
-    @getDelegate().emit "ExportRequested", (name, url) =>
-      body = "#{KD.nick()} exported #{name} #{url}"
-      @activityWidget.reply body, (err, activity) =>
-        KD.showError err
+    @activityWidget.show()
+    @activityWidget.unsetClass "collapsed"
+    @activityWidget.showForm (err, activity) =>
+      return  err if err
+      @activityWidget.hideForm()
+      @notification.hide()
+      @workspaceRef.child("activityId").set activity.getId()
