@@ -120,7 +120,8 @@ module.exports =
             page = 1
 
           crawlableFeed bongo, page, name, (error, content)->
-            return res.send 500, error_500() if error or not content
+            return res.send 500, error_500()  if error
+            return res.send 404, error_404()  unless content
             return res.send 200, content
         else
           return res.send 404, error_404("No section is given.")

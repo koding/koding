@@ -34,10 +34,11 @@ module.exports = (bongo, page, contentType, callback)=>
 
   pageContent = ""
   model.count {}, (error, count)=>
-    return callback error, null if error or not count
+    return callback error, null  if error
+    return callback null, null  if count is 0
     model.some {}, options, (err, contents)=>
-      return callback new Error "Parameter error", null  if contents.length is 0
-
+      return callback err, null  if err
+      return callback null, null  if contents.length is 0
       queue = [0..contents.length - 1].map (index)=>=>
         queue.pageContent or= ""
 
@@ -145,7 +146,7 @@ createTagNode = (tag)->
     tagContent +=
     """
       <p>
-        <a href="#{uri.address}/#!/Activity?tagged=#{tag.slug}"><span itemprop="itemListElement">#{tag.title}</span></a>
+        <a href="#{uri.address}/#!/Topics/#{tag.slug}"><span itemprop="itemListElement">#{tag.title}</span></a>
       </p>
     """
   if tag?.counts?.followers?
