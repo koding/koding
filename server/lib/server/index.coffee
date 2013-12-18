@@ -240,10 +240,9 @@ app.all '/-/email/webhook', (req, res) ->
   { JMail } = koding.models
   { body: batch } = req
 
-  for item in batch
-    if item.event is 'delivered'
-      JMail.markDelivered item, (err) ->
-        console.warn err  if err
+  for item in batch when item.event is 'delivered'
+    JMail.markDelivered item, (err) ->
+      console.warn err  if err
 
   res.send 'ok'
 

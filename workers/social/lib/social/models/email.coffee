@@ -47,6 +47,7 @@ module.exports = class JMail extends Model
                           'unsubscribed'
                         ]]
       smtpId          : String
+      redemptionToken : String
       force           :
         type          : Boolean
         default       : false
@@ -71,11 +72,11 @@ module.exports = class JMail extends Model
 
     @one { smtpId }, (err, mail) ->
       return callback err  if err
-      return callback null, { message: 'Unrecognized SMTP id' }
-      
+      return callback { message: 'Unrecognized SMTP id' }  unless mail?
+
       operation = $set  :
         status          : 'delivered'
-        dateDelivered   : status.timestamp
+        dateDelivered   : status.timestamp * 1000 # milliseconds
 
       mail.update operation, callback
 
