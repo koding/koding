@@ -27,12 +27,12 @@ func main() {
 	k := kite.New(options)
 	log = k.Log
 
-	k.RegisterToKontrol = false // we'll going to work only in localhost
+	k.KontrolEnabled = false // we'll going to work only in localhost
 	k.DisableAuthentication()
 
 	k.HandleFunc("info", info)
 
-	cmd := exec.Command("open", "https://localhost:3020/-/Hede")
+	cmd := exec.Command("open", "http://localhost:3020/RegisterHostKey")
 	_, err := cmd.CombinedOutput()
 	if err != nil {
 		log.Error(err.Error())
