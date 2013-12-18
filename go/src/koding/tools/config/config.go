@@ -21,8 +21,9 @@ type Config struct {
 	Client          struct {
 		StaticFilesBaseUrl string
 	}
-	Mongo string
-	Mq    struct {
+	Mongo        string
+	MongoKontrol string
+	Mq           struct {
 		Host          string
 		Port          int
 		ComponentUser string

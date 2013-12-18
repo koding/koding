@@ -14,13 +14,13 @@ func TestSimpleMethodCall(t *testing.T) {
 
 	tr1 := newMockTransport()
 	receiver := New(tr1)
-	printFunc := func(p *Partial) {
+	printFunc := func(args Arguments) {
 		l.Lock()
 		called = true
 		l.Unlock()
-		fmt.Println(string(p.Raw))
+		fmt.Println(string(args.One().Raw))
 	}
-	receiver.HandleSimple("print", Callback(printFunc))
+	receiver.HandleFunc("print", printFunc)
 	go receiver.Run()
 	defer tr1.Close()
 
@@ -43,30 +43,28 @@ func TestSimpleMethodCall(t *testing.T) {
 func TestMethodCallWithCallback(t *testing.T) {
 	l := sync.Mutex{}
 	var result float64
-	successFunc := func(p *Partial) {
+	successFunc := func(args Arguments) {
 		fmt.Println("success")
-		args, _ := p.Slice()
 		l.Lock()
-		result, _ = args[0].Float64()
+		result, _ = args.One().Float64()
 		l.Unlock()
 	}
-	failureFunc := func(p *Partial) {
+	failureFunc := func(args Arguments) {
 		fmt.Println("failure")
-		args, _ := p.Slice()
 		l.Lock()
-		result, _ = args[0].Float64()
+		result, _ = args.One().Float64()
 		result = -result
 		l.Unlock()
 	}
 
 	tr1 := newMockTransport()
 	receiver := New(tr1)
-	fooFunc := func(p *Partial) {
+	fooFunc := func(args Arguments) {
 		var callbacks []Function
-		p.Unmarshal(&callbacks)
+		args.MustUnmarshal(&callbacks)
 		callbacks[0](6)
 	}
-	receiver.HandleSimple("foo", Callback(fooFunc))
+	receiver.HandleFunc("foo", fooFunc)
 	go receiver.Run()
 	defer tr1.Close()
 
@@ -101,7 +99,7 @@ func TestCallMessage(t *testing.T) {
 	}
 
 	// Send a single integer method.
-	go d.call(5, "hello", "world")
+	go d.send(5, []interface{}{"hello", "world"})
 	expected = `{"method":5,"arguments":["hello","world"],"callbacks":{},"links":[]}`
 	err = assertSentMessage(tr.sent, expected)
 	if err != nil {
@@ -117,10 +115,8 @@ func TestSendCallback(t *testing.T) {
 	// echo function also sends the messages to this channel so
 	// we can assert the call and passed arguments.
 	echoChan := make(chan string)
-	echoF := func(arguments *Partial) {
-		var args []string
-		arguments.Unmarshal(&args)
-		msg := args[0]
+	echoF := func(arguments Arguments) {
+		msg := arguments.One().MustString()
 		fmt.Println(msg)
 		echoChan <- msg
 	}
@@ -178,7 +174,7 @@ func TestSendCallback(t *testing.T) {
 	}
 
 	// For testing sending a struct with methods
-	f := func(p *Partial) {}
+	f := func(args Arguments) {}
 	cb := Callback(f)
 	a := Math{
 		Name:      "Pisagor",
