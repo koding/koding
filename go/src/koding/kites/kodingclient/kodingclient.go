@@ -16,19 +16,19 @@ func main() {
 	flag.Parse()
 
 	options := &kite.Options{
-		Kitename:    "kodingclient",
-		Version:     "0.0.1",
-		Port:        "5555",
-		Region:      "localhost",
-		Environment: "development",
-		PublicIP:    "127.0.0.1",
+		Kitename:       "kodingclient",
+		Version:        "0.0.1",
+		Port:           "5555",
+		Region:         "localhost",
+		Environment:    "development",
+		PublicIP:       "127.0.0.1",
+		Authentication: new(bool),
 	}
 
 	k := kite.New(options)
 	log = k.Log
 
 	k.KontrolEnabled = false // we'll going to work only in localhost
-	k.DisableAuthentication()
 
 	k.HandleFunc("info", info)
 
