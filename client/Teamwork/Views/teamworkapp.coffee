@@ -28,10 +28,6 @@ class TeamworkApp extends KDObject
         else
           @emit "NewSessionRequested"
 
-    @on "ExportRequested", (callback) =>
-      @showExportModal()
-      @tools.once "Exported", callback
-
     @on "ImportRequested", (importUrl) =>
       @emit "NewSessionRequested"
       @teamwork.on "WorkspaceSyncedWithRemote", =>
@@ -109,6 +105,7 @@ class TeamworkApp extends KDObject
 
     modal.addSubView @tools = new TeamworkTools { modal, panel, workspace, twApp: this }
     @emit "TeamworkToolsModalIsReady", modal
+    @forwardEvent @tools, "Exported"
 
   showImportWarning: (url, callback = noop) ->
     @importModal?.destroy()

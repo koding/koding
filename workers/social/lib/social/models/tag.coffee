@@ -74,8 +74,10 @@ module.exports = class JTag extends jraphical.Module
         fetchRandomFollowers:
           (signature Object, Function)
       static        :
-        one:
+        one: [
           (signature Object, Function)
+          (signature Object, Object, Function)
+        ]
         on:
           (signature String, Function)
         some:
