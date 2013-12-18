@@ -7,7 +7,7 @@ module.exports = class JTag extends jraphical.Module
 
   {Relationship} = jraphical
 
-  {ObjectId, ObjectRef, Inflector, secure, daisy, race} = require 'bongo'
+  {ObjectId, ObjectRef, Inflector, secure, daisy, race, signature} = require 'bongo'
 
   Validators  = require './group/validators'
   {permit}    = require './group/permissionset'
@@ -52,16 +52,59 @@ module.exports = class JTag extends jraphical.Module
         { name: 'updateInstance' }
       ]
     sharedMethods   :
-      instance      : [
-        'modify','follow', 'unfollow', 'fetchFollowersWithRelationship'
-        'fetchFollowingWithRelationship','fetchContents','fetchContentTeasers',
-        'delete'
+      instance      :
+        modify      :
+          (signature Object, Function)
+        follow      : [
+          (signature Function)
+          (signature Object, Function)
         ]
-      static        : [
-        'one','on','some','create', 'count', 'fetchCount' #,'updateAllSlugs'
-        'someWithRelationship','byRelevance'#,'markFollowing'
-        'cursor','cursorWithRelationship','fetchMyFollowees','each'
-        'fetchSkillTags', 'byRelevanceForSkills'
+        unfollow:
+          (signature Function)
+        fetchFollowersWithRelationship:
+          (signature Object, Object, Function)
+        fetchFollowingWithRelationship:
+          (signature Object, Object, Function)
+        fetchContents:
+          (signature Function)
+        fetchContentTeasers:
+          (signature Object, Object, Function)
+        delete:
+          (signature Function)
+      static        :
+        one:
+          (signature Object, Function)
+        on:
+          (signature String, Function)
+        some:
+          (signature Object, Object, Function)
+        create:
+          (signature Object, Function)
+        count:
+          (signature Object, Function)
+        fetchCount:
+          (signature Function)
+        someWithRelationship:
+          (signature Object, Object, Function)
+        byRelevance: [
+          (signature String, Function)
+          (signature String, Object, Function)
+        ]
+        cursor:
+          (signature Object, Object, Function)
+        cursorWithRelationship:
+          (signature Object, Object, Function)
+        fetchMyFollowees:
+          (signature [Object], Function)
+        each: [
+          (signature Object, Object, Function)
+          (signature Object, Object, Object, Function)
+        ]
+        fetchSkillTags:
+          (signature Object, Object, Function)
+        byRelevanceForSkills: [
+          (signature String, Function)
+          (signature String, Object, Function)
         ]
     schema          :
       title         :
@@ -103,8 +146,16 @@ module.exports = class JTag extends jraphical.Module
         as          : 'follower'
       content       :
         targetType  : [
-          "JCodeSnip", "JNewApp", "JStatusUpdate", "JNewStatusUpdate", "JLink", "JTutorial"
-          "JAccount", "JOpinion", "JDiscussion", "JCodeShare", 'JBlogPost'
+          "JNewStatusUpdate"
+          # "JCodeSnip"
+          # "JNewApp"
+          # "JLink"
+          # "JTutorial"
+          # "JAccount"
+          # "JOpinion"
+          # "JDiscussion"
+          # "JCodeShare"
+          # 'JBlogPost'
 
         ]
         as          : 'post'

@@ -3,7 +3,7 @@ jraphical = require 'jraphical'
 module.exports = class JPasswordRecovery extends jraphical.Module
   # TODO - Refactor this file, now it is not only for password recovery
   # but also for email verification
-  {secure} = require 'bongo'
+  {secure, signature} = require 'bongo'
 
   dateFormat  = require 'dateformat'
   createId    = require 'hat'
@@ -14,14 +14,16 @@ module.exports = class JPasswordRecovery extends jraphical.Module
   @share()
 
   @set
-    sharedMethods :
-      static      : [
-        'validate'
-        'recoverPassword'
-        'recoverPasswordByEmail'
-        'resetPassword'
-        'fetchRegistrationDetails'
-      ]
+    sharedMethods:
+      static:
+        validate:
+          (signature String, Function)
+        recoverPassword:
+          (signature String, Function)
+        resetPassword:
+          (signature String, String, Function)
+        fetchRegistrationDetails:
+          (signature String, Function)
     indexes       :
       token       : 'unique'
     schema        :
@@ -96,7 +98,7 @@ module.exports = class JPasswordRecovery extends jraphical.Module
 
     verb ?= "Reset"
 
-    defaultExpiresAt = new Date Date.now() + 1000 * 60 * 30 # 30 minutes
+    defaultExpiresAt = new Date Date.now() + 1000 * 60 * 90 # 90 minutes
 
     {host, protocol} = require '../config.email'
     messageOptions =
@@ -156,25 +158,28 @@ module.exports = class JPasswordRecovery extends jraphical.Module
 
   @resetPassword = secure (client, token, newPassword, callback)->
     JUser = require './user'
+    UNKNOWN_ERROR = { message: "Error occured. Please try again." }
     {delegate} = client.connection
     unless delegate.type is 'unregistered'
-      callback new KodingError 'You are already logged in!'
+      callback { message: 'You are already logged in!' }
     else
       @one {token}, (err, certificate)->
         if err
           callback err
         else unless certificate
-          callback new KodingError 'Invalid token.'
+          console.warn 'Invalid password reset token', delegate.profile.nickname
+          callback { message: 'Invalid token.' }
         else if certificate.getAt('status') isnt 'active' or
                 certificate.getAt('expiresAt') < new Date
-          callback new KodingError """
+          console.warn 'Expired password reset token', delegate.profile.nickname
+          callback message: """
             This password recovery certificate cannot be redeemed.
             """
         else
           {username} = certificate
           JUser.one {username}, (err, user)->
             if err or !user
-              callback err or new KodingError "Unknown user!"
+              callback err or { message: "Unknown user!" }
             else certificate.redeem (err)->
               if err
                 callback err
@@ -184,9 +189,9 @@ module.exports = class JPasswordRecovery extends jraphical.Module
                     callback err
                   else
                     JPasswordRecovery.invalidate {username}, (err)->
-                      return callback new Error "Error occured. Please try again." if err
+                      return callback UNKNOWN_ERROR if err
                       user.confirmEmail (err)->
-                        return callback new Error "Error occured. Please try again." if err
+                        return callback UNKNOWN_ERROR if err
                         callback err, unless err then username
 
   @fetchRegistrationDetails = (token, callback) ->

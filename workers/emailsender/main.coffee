@@ -45,7 +45,7 @@ sendEmail = (emailContent)->
     TextBody
     ReplyTo   : replyto
     Bcc       : bcc
-  }, (err, status)->
+  }, (err, { messageId: smtpId })->
     dateAttempted = new Date()
     status        = 'attempted'
     unless err then log "An e-mail sent to #{To}"
@@ -53,7 +53,7 @@ sendEmail = (emailContent)->
       log "An error occured: #{err}"
       status = 'failed'
 
-    emailContent.update $set: {status, dateAttempted}, (err)->
+    emailContent.update $set: {status, dateAttempted, smtpId}, (err)->
       console.error err if err
 
 emailSender = ->

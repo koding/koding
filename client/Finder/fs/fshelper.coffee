@@ -1,6 +1,6 @@
 class FSHelper
 
-  parseWatcherFile = (vm, parentPath, file, user)->
+  parseWatcherFile = (vm, parentPath, file, user, treeController)->
 
     {name, size, mode} = file
     type      = if file.isBroken then 'brokenLink' else \
@@ -10,9 +10,9 @@ class FSHelper
     group     = user
     createdAt = file.time
     return { size, user, group, createdAt, mode, type, \
-             parentPath, path, name, vmName:vm }
+             parentPath, path, name, vmName:vm, treeController }
 
-  @parseWatcher = (vm, parentPath, files)->
+  @parseWatcher = (vm, parentPath, files, treeController)->
 
     data = []
     return data unless files
@@ -27,18 +27,13 @@ class FSHelper
     nickname = KD.nick()
     for file in sortedFiles
       data.push FSHelper.createFile \
-        parseWatcherFile vm, parentPath, file, nickname
+        parseWatcherFile vm, parentPath, file, nickname, treeController
 
     return data
 
   @folderOnChange = (vm, path, change, treeController)->
-    # log "THEY CHANGED:", vm, path, change, treeController
-    treeController or= KD.getSingleton('finderController')?.treeController
-    unless treeController
-      warn "No treeController to update."
-      return
-
-    file = @parseWatcher(vm, path, change.file).first
+    return  unless treeController
+    file = (@parseWatcher vm, path, change.file, treeController).first
     switch change.event
       when "added"
         treeController.addNode file
@@ -151,18 +146,18 @@ class FSHelper
     name       = @getFileNameFromPath path
     return @createFile { path, parentPath, name, type, vmName }
 
-  @createFile = (data)->
-    unless data and data.type and data.path
+  @createFile = (options)->
+    unless options and options.type and options.path
       return warn "pass a path and type to create a file instance"
 
-    unless data.vmName?
-      data.vmName = KD.getSingleton('vmController').defaultVmName
+    unless options.vmName?
+      options.vmName = KD.getSingleton('vmController').defaultVmName
 
-    if @registry[data.path]
-      instance = @registry[data.path]
-      @updateInstance data
+    if @registry[options.path]
+      instance = @registry[options.path]
+      @updateInstance options
     else
-      constructor = switch data.type
+      constructor = switch options.type
         when "vm"         then FSVm
         when "folder"     then FSFolder
         when "mount"      then FSMount
@@ -170,7 +165,7 @@ class FSHelper
         when "brokenLink" then FSBrokenLink
         else FSFile
 
-      instance = new constructor data
+      instance = new constructor options
       @register instance
 
     return instance

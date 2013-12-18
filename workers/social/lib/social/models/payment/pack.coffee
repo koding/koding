@@ -2,22 +2,31 @@ JPaymentBase = require './base'
 
 module.exports = class JPaymentPack extends JPaymentBase
 
+  { signature } = require 'bongo'
+
   { permit } = require '../group/permissionset'
 
   @share()
 
   @set
     sharedMethods   :
-      static        : [
-        'create'
-        'removeByCode'
-      ]
-      instance      : [
-        'modify'
-        'remove'
-        'fetchProducts'
-        'updateProducts'
-      ]
+      static        :
+        create      :
+          (signature Object, Function)
+        removeByCode:
+          (signature String, Function)
+      instance      :
+        modify      :
+          (signature Object, Function)
+        remove      :
+          (signature Function)
+        fetchProducts: [
+          (signature Function)
+          (signature Object, Function)
+          (signature Object, Object, Function)
+        ]
+        updateProducts:
+          (signature Object, Function)
     schema          :
       planCode      :
         type        : String

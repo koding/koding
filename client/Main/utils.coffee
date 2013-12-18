@@ -192,7 +192,7 @@ __utils.extend __utils,
         "#{longText.split(optimalBreak).slice(0, -1).join optimalBreak}#{suffix ? optimalBreak}"
 
     (longText, options={})->
-      return unless longText
+      return ''  unless longText
       minLength = options.minLength or 450
       maxLength = options.maxLength or 600
       suffix    = options.suffix     ? '...'

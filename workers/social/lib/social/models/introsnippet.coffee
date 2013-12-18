@@ -2,14 +2,28 @@ jraphical = require 'jraphical'
 
 module.exports = class JIntroSnippet extends jraphical.Module
 
-  {secure} = require 'bongo'
+  {secure, signature} = require 'bongo'
 
   @share()
 
   @set
     sharedMethods :
-      instance    : [ "addChild", "delete", "deleteChild", "updateChild", "update" ]
-      static      : [ "create", "fetchAll" ]
+      instance    :
+        addChild:
+          (signature Object, Function)
+        delete:
+          (signature Function)
+        deleteChild:
+          (signature String, Function)
+        updateChild:
+          (signature Object, Function)
+        update:
+          (signature Object, Function)
+      static      :
+        create:
+          (signature Object, Function)
+        fetchAll:
+          (signature Function)
     schema        :
       title       :
         type      : String
@@ -56,7 +70,7 @@ module.exports = class JIntroSnippet extends jraphical.Module
   deleteChild: secure (client, introId, callback) ->
     return unless introId
     @checkPermission client
-    {snippets} = @
+    {snippets} = this
     for snippet in snippets
       if snippet?.introId is introId
         snippets.splice snippets.indexOf(snippet), 1

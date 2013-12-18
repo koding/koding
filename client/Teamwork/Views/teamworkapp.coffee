@@ -1,29 +1,15 @@
 class TeamworkApp extends KDObject
 
-  filename            = "manifest"
-  instanceName        = "kd-prod-1"
-  playgroundsManifest = "https://raw.github.com/koding/Teamwork/master/Playgrounds/#{filename}.json"
-
-  if location.hostname is "localhost"
-    filename          = "manifest-dev"
-    instanceName      = "teamwork-local"
+  instanceName = if location.hostname is "localhost" then "tw-local" else "kd-prod-1"
 
   constructor: (options = {}, data) ->
 
     super options, data
 
-    @appView   = @getDelegate()
-    @dashboard = new TeamworkDashboard
-      delegate : this
-
-    @doCurlRequest playgroundsManifest, (err, manifest) =>
-      @playgroundsManifest = manifest
-      @dashboard.emit "PlaygroundsFetched", @playgroundsManifest
-
-    @appView.addSubView @dashboard
+    @appView = @getDelegate()
+    query    = @getOptions().query or {}
 
     @on "NewSessionRequested", (callback = noop, options) =>
-      @dashboard.hide()
       @teamwork?.destroy()
       @createTeamwork options
       @appView.addSubView @teamwork
@@ -31,7 +17,7 @@ class TeamworkApp extends KDObject
 
     @on "JoinSessionRequested", (sessionKey) =>
       @setOption "sessionKey", sessionKey
-      firebase = new Firebase "https://#{instanceName}.firebaseIO.com/"
+      firebase = new Firebase "https://#{instanceName}.firebaseio.com/"
       firebase.child(sessionKey).once "value", (snapshot) =>
         val = snapshot.val()
         if val?.playground
@@ -42,6 +28,10 @@ class TeamworkApp extends KDObject
         else
           @emit "NewSessionRequested"
 
+    @on "ExportRequested", (callback) =>
+      @showExportModal()
+      @tools.once "Exported", callback
+
     @on "ImportRequested", (importUrl) =>
       @emit "NewSessionRequested"
       @teamwork.on "WorkspaceSyncedWithRemote", =>
@@ -50,6 +40,13 @@ class TeamworkApp extends KDObject
     @on "TeamUpRequested", =>
       @teamwork.once "WorkspaceSyncedWithRemote", =>
         @showTeamUpModal()
+
+    if query.sessionKey
+      @emit "JoinSessionRequested", query.sessionKey
+    else if query.import
+      @emit "ImportRequested", query.import
+    else
+      @emit "NewSessionRequested"
 
   createTeamwork: (options) ->
     playgroundClass = TeamworkWorkspace
@@ -63,6 +60,11 @@ class TeamworkApp extends KDObject
     @tools.teamUpHeader.emit "click"
     @tools.setClass "team-up-mode"
 
+  showExportModal: ->
+    @showToolsModal @teamwork.getActivePanel(), @teamwork
+    @tools.shareHeader.emit "click"
+    @tools.setClass "share-mode"
+
   getTeamworkOptions: ->
     options               = @getOptions()
     return {
@@ -73,11 +75,11 @@ class TeamworkApp extends KDObject
       firebaseInstance    : options.firebaseInstance    or instanceName
       sessionKey          : options.sessionKey
       delegate            : this
+      enableChat          : yes
       playground          : options.playground          or null
       panels              : options.panels              or [
         hint              : "<p>This is a collaborative coding environment where you can team up with others and work on the same code.</p>"
         buttons           : []
-        floatingPanes     : [ "chat" , "terminal", "preview" ]
         layout            :
           direction       : "vertical"
           sizes           : [ "250px", null ]
@@ -87,10 +89,12 @@ class TeamworkApp extends KDObject
               title       : "<div class='header-title'><span class='icon'></span>Teamwork</div>"
               type        : "finder"
               name        : "finder"
+              editor      : "tabView"
             }
             {
-              type        : "tabbedEditor"
-              name        : "editor"
+              type        : "custom"
+              paneClass   : TeamworkTabView
+              name        : "tabView"
             }
           ]
       ]
@@ -171,6 +175,7 @@ class TeamworkApp extends KDObject
       for manifest in @playgroundsManifest when playground is manifest.name
         {manifestUrl} = manifest
 
+    # TODO: doCurlRequest is useless here, use fetchGitHubFileContent method.
     @doCurlRequest manifestUrl, (err, manifest) =>
       @teamwork?.destroy()
       @createTeamwork @mergePlaygroundOptions manifest, playground
@@ -232,3 +237,13 @@ class TeamworkApp extends KDObject
           callback error, manifest
         when "md"
           callback errorMessage, KD.utils.applyMarkdown error, contents
+
+  fetchManifestFile: (path, callback = noop) ->
+    $.ajax
+      url           : "http://resources.gokmen.kd.io/Teamwork/Playgrounds/#{path}"
+      type          : "GET"
+      success       : (response) ->
+        return callback yes, null  unless response
+        callback null, response
+      error         : ->
+        return callback yes, null

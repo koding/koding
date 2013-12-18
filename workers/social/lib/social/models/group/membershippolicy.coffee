@@ -1,5 +1,5 @@
 {Module} = require 'jraphical'
-{Model} = require 'bongo'
+{Model, signature} = require 'bongo'
 
 module.exports = class JMembershipPolicy extends Module
 
@@ -10,8 +10,8 @@ module.exports = class JMembershipPolicy extends Module
   @set
     softDelete            : yes
     sharedMethods         :
-      static              : ['byGroupSlug']
-      instance            : ['explain']
+      static              :
+        byGroupSlug       : (signature String, Function)
     sharedEvents          :
       static              : []
       instance            : ['updateInstance']

@@ -44,11 +44,18 @@ module.exports = [
   "views/groupsinvitationtabpaneview.coffee"
   "views/groupsinvitationtabview.coffee"
   "views/grouptabhandleview.coffee"
+  # badge views
+  "views/badge/badgedashboardview.coffee"
+  "views/badge/badgelistitem.coffee"
+  "views/badge/newbadgeform.coffee"
+  "views/badge/badgerules.coffee"
+  "views/badge/badgeupdateform.coffee"
+  "views/badge/badgeuserslist.coffee"
+  "views/badge/badgeremoveform.coffee"
   "views/groupswebhookview.coffee"
   "views/groupseditablewebhookview.coffee"
   "views/groupsmembershippolicyeditor.coffee"
   "views/groupsformgeneratorview.coffee"
-
 
   "views/permissionsform.coffee",
 

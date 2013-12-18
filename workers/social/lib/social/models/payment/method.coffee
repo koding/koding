@@ -2,7 +2,7 @@
 
 module.exports = class JPaymentMethod extends Module
 
-  {secure, dash} = require 'bongo'
+  {secure, dash, signature} = require 'bongo'
   {extend} = require 'underscore'
   createId = require 'hat'
 
@@ -12,12 +12,12 @@ module.exports = class JPaymentMethod extends Module
 
   @set
     sharedMethods:
-      static: [
-        'create'
-      ]
-      instance: [
-        'associatePaymentData'
-      ]
+      static:
+        create:
+          (signature Object, Function)
+      instance:
+        associatePaymentData:
+          (signature Object, Function)
     schema:
       paymentMethodId:  String
       description:      String

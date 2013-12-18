@@ -27,16 +27,18 @@ class CollaborativeFinderPane extends CollaborativePane
         nodeView         = treeController.nodes[path]
         nodeView.user    = clientData.user
 
-        treeController.openItem nodeView
+        treeController.openItem nodeView, clientData
         @finderController.treeController.syncInteraction()
 
     @finderController.on "FileTreeInteractionDone", (files) =>
       @syncContent files
 
     @finderController.on "OpenedAFile", (file, content) =>
-      for pane in @panel.panes
-        if pane instanceof CollaborativeEditorPane or pane instanceof CollaborativeTabbedEditorPane
-          editorPane = pane
+      editorPane = @panel.getPaneByName @getOptions().editor
+      unless editorPane
+        for pane in @panel.panes
+          if pane instanceof CollaborativeEditorPane or pane instanceof CollaborativeTabbedEditorPane
+            editorPane = pane
 
       return  warn "could not find an editor instance to set file content" unless editorPane
 
@@ -45,6 +47,9 @@ class CollaborativeFinderPane extends CollaborativePane
     @workspaceRef.onDisconnect().remove()  if @workspace.amIHost()
 
     @finderController.reset()  unless @workspace.getOptions().playground
+
+    @finderController.treeController.on "HistoryItemCreated", (historyItem) =>
+      @workspace.addToHistory historyItem
 
   syncContent: (files) ->
     @workspaceRef.set { files }
@@ -55,6 +60,22 @@ class CollaborativeFinderTreeController extends NFinderTreeController
   addNodes: (nodes) ->
     super nodes
     @syncInteraction()
+
+  openItem: (nodeView, clientData) ->
+    nodeData = nodeView.getData()
+    keyword  = "opened"
+    user     = if clientData then clientData.requestedBy else KD.nick()
+    {name, path, type} = nodeData
+
+    if type is "folder"
+      isExpanded = @nodes[nodeData.path].expanded
+      keyword    = if isExpanded then "collapsed" else "expanded"
+
+    @emit "HistoryItemCreated",
+      message  : "#{user} #{keyword} #{nodeData.name}"
+      data     : { name, path, type }
+
+    super nodeView
 
   getSnapshot: ->
     snapshot = []

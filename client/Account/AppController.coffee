@@ -30,11 +30,12 @@ class AccountAppController extends AppController
     #   title : "Develop"
     #   items : [
     #     { slug : 'SSH',  title : "SSH keys",    listHeader: "Your SSH Keys",    listType: "keys" }
+    #     { slug : 'Keys', title : "Koding Keys", listHeader: "Your Koding Keys", listType: "kodingKeys" }
     #   ]
     danger  :
       title : "Danger"
       items : [
-        { slug: 'Delete', title : "Delete Account", listHeader: "Danger Zone", listType: "delete" }
+        { slug: 'Delete', title : "Delete Account", listHeader: "Danger Zone", listType: "deleteAccount" }
       ]
 
   constructor:(options={}, data)->
@@ -76,7 +77,7 @@ class AccountAppController extends AppController
     mainView.addSubView navView = @navController.getView()
 
     mainView.addSubView @tabView = new KDTabView
-      tabHandleContainer : new KDCustomHTMLView
+      hideHandleContainer : yes
 
     @tabView.addPane @createTab items.personal.items.first
 

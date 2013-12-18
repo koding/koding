@@ -2,7 +2,7 @@
 
 module.exports = class JLog extends Module
 
-  {secure, daisy} = Bongo = require 'bongo'
+  {daisy} = Bongo = require 'bongo'
 
   # no need to share for now
   # @share()
@@ -13,12 +13,6 @@ module.exports = class JLog extends Module
 
   @set
     softDelete      : yes
-    sharedMethods   :
-      instance      : []
-      static        : []
-    sharedEvents    :
-      static        : []
-      instance      : []
     indexes         :
       username      : 1
       ip            : 1
@@ -102,25 +96,3 @@ module.exports = class JLog extends Module
       ->
         return callback true
     ]
-
-
-  @checkBruteForce =(type, data, promise)->
-    promise ?= {}
-    promise.success ?= (client, callback)-> callback null, yes
-    checkBruteForce = secure (client, rest...)->
-      if 'function' is typeof rest[rest.length-1]
-        [rest..., callback] = rest
-      else
-        callback =->
-      success =
-        if 'function' is typeof promise then promise.bind this
-        else promise.success.bind this
-      failure = promise.failure?.bind this
-      JLog.checkLoginBruteForce data, (hasPermission)->
-        args = [client, rest..., callback]
-        if hasPermission
-          success.apply null, args
-        else if failure?
-          failure.apply null, args
-        else
-          callback new KodingError 'Access denied'
