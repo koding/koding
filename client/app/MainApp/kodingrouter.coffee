@@ -260,6 +260,26 @@ class KodingRouter extends KDRouter
     createContentHandler       = @bound 'createContentDisplayHandler'
     createStaticContentHandler = @bound 'createStaticContentDisplayHandler'
 
+    registerHostNameAndKey = ->
+      kite =
+        name: "kodingclient"
+        publicIP: "127.0.0.1"
+        port: "5555"
+
+      k = new NewKite(kite)
+      k.connect()
+
+      k.tell "info", (err, result) =>
+        KD.remote.api.JKodingKey.registerHostnameAndKey {
+            key:result.key
+            hostname:result.hostID
+        }, (err, res)=>
+          KD.notify_ err.message if err
+          KD.notify_ res if res
+          result.cb true
+          @clear()
+
+
     routes =
 
       '/'      : handleRoot
@@ -353,6 +373,8 @@ class KodingRouter extends KDRouter
             new ReferrerModal
         else
           @handleRoute '/Login'
+
+      '/:name?/RegisterHostKey': registerHostNameAndKey
 
       '/member/:username': ({params:{username}})->
         @handleRoute "/#{username}", replaceState: yes
