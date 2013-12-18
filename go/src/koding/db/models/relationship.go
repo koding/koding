@@ -6,11 +6,12 @@ import (
 )
 
 type Relationship struct {
-	Id         bson.ObjectId `bson:"_id" json:"-"`
-	TargetId   bson.ObjectId `bson:"targetId"`
-	TargetName string        `bson:"targetName"`
-	SourceId   bson.ObjectId `bson:"sourceId"`
-	SourceName string        `bson:"sourceName"`
-	As         string        `bson:"as"`
-	TimeStamp  time.Time     `bson:"timestamp"`
+	Id         bson.ObjectId          `bson:"_id" json:"_id"`
+	TargetId   bson.ObjectId          `bson:"targetId" json:"targetId"`
+	TargetName string                 `bson:"targetName" json:"targetName"`
+	SourceId   bson.ObjectId          `bson:"sourceId" json:"sourceId"`
+	SourceName string                 `bson:"sourceName" json:"sourceName"`
+	As         string                 `bson:"as" json:"as"`
+	TimeStamp  time.Time              `bson:"timestamp" json:"timestamp"`
+	Data       map[string]interface{} `json:"data,omitempty"`
 }
