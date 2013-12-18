@@ -5,6 +5,7 @@ import (
 	"koding/newkite/kd/util"
 	"koding/newkite/kite"
 	"koding/newkite/kodingkey"
+	"os/exec"
 
 	"github.com/op/go-logging"
 )
@@ -30,6 +31,12 @@ func main() {
 	k.DisableAuthentication()
 
 	k.HandleFunc("info", info)
+
+	cmd := exec.Command("open", "https://localhost:3020/-/Hede")
+	_, err := cmd.CombinedOutput()
+	if err != nil {
+		log.Error(err.Error())
+	}
 
 	k.Run()
 }
