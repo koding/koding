@@ -236,7 +236,9 @@ app.teamwork.styl
   vendor                        transition, height .266s ease
   overflow                      auto
   height                        0
-  bg                            color, #FFF
+  bg                            color, #282F31
+  border                        1px solid #191F21
+  box-sizing                    border-box
   .tw-items-container
     overflow                    hidden
     width                       800px
@@ -244,129 +246,86 @@ app.teamwork.styl
   &.ready
     .loading
       display                   none
-  h2.title
-    font-size                   58px
-    font-weight                 300
-    margin                      55px 0
-    text-align                  center
-  .welcome
-    width                       800px
-    overflow                    hidden
-    margin                      0 auto
-  .video
-    margin-right                25px
-    fl()
-  .what-is-tw
-    width                       275px
-    text-align                  left
-    fl()
-    h2
-      font-size                 26px
-      font-weight               600
-    p
-      margin                    10px 0
-    ul
-      margin-left               30px
-      list-style-position       inside
-      list-style                initial
-    li
-      margin-bottom             2px
   &.active
     height                      100%
   .actions
     overflow                    hidden
-    bg                          color, #E8F0F3
+    border-bottom               1px solid #191F21
     .item
       width                     185px
       text-align                center
       padding                   0 30px
       fl()
-      .badge
-        bg                      image, url("../images/teamwork/sprite.png")
       h3
-        margin                  15px 0
-        font-size               26px
+        margin                  33px 0 26px
+        font-size               18px
         font-weight             normal
+        color                   #9F9F9F
       p
         width                   180px
         margin                  0 auto 10px
+        color                   #676F71
+        font-size               14px
       .badge
-        size                    120px, 120px
-        bg                      color, #F49F42
-        rounded                 120px
+        size                    48px, 48px
         margin                  0 auto
-      &.team-up
-        margin-left             33px
-      &.join-in
-        .badge
-          bg                    color, #2880B9
-          bg                    position, -120px 0
-      &.import
-        .badge
-          bg                    color, #ED6339
-          bg                    position, -240px 0
-.tw-teamup-button
-  border                        none
-  bg                            color, #2880B9
-  size                          185px, 35px
-  color                         #FFF
-  font-size                     16px
-  shadow                        0px 0px 2px rgba(0, 0, 0, .2) inset
-  font-weight                   600
+      &.team-up .badge
+        sprite                  teamwork "teamup"
+      &.join-in .badge
+        sprite                  teamwork "join"
+        position                relative
+        left                    -4px
+      &.import .badge
+        sprite                  teamwork "import"
 .tw-dashboard-input
-  border                        none !important
-  background                    #FFF !important
-  font-size                     12px !important
-  rounded                       0 !important
-  size                          149px !important, 35px !important
+  border                        1px solid #4F4F4F
+  font-size                     14px !important
+  rounded                       14px !important
+  size                          186px !important, 47px !important
+  line-height                   47px
   bg                            image, none !important
   text-align                    left !important
 .tw-dashboard-button
-  border                        none
-  background                    #2880B9
   abs()
-  top                           0
+  top                           15px
   right                         0
-  size                          35px !important, 35px
-  .icon
-    bg                          image, url("../images/teamwork/sprite.png") !important
-    left                        1px
-    height                      22px
-    &.join-in
-      bg                        position, -80px -128px !important
-    &.import
-      bg                        position, -44px -128px !important
+  size                          20px !important, 20px
+  z-index                       22
+  sprite                        teamwork "arrow"
+  border                        none
 .tw-input-container
   position                      relative
 .tw-playground-item
-  size                          189px, auto
+  size                          350px, 105px
+  margin                        0 50px 50px 0
+  position                      relative
   text-align                    left
-  margin                        0 15px 15px 0
   fl()
-  &:nth-child(4n)
-    margin-right                -1px
+  &:nth-child(2n)
+    margin-right                0
   img
     vertical-align              top
-    size                        189px, 120px
-  .content
-    bg                          color, #FFF
-    padding                     10px
-    height                      100px
+    margin-right                20px
+    size                        111px, 79px
+    fl()
   h4
-    font-size                   16px
-    font-weight                 600
+    font-size                   18px
+    color                       #9f9f9f
     margin-bottom               10px
   p
-    font-size                   12px
+    font-size                   14px
+    color                       #676f71
+    margin-left                 131px
   .tw-play-button
-    size                        189px, 35px
-    line-height                 35px
+    size                        111px, 26px
+    line-height                 26px
     text-align                  center
-    font-weight                 600
-    font-size                   16px
-    color                       #FFF
-    bg                          color, #F27935
+    font-size                   14px
+    color                       #626A6C
+    bg                          color, #1B2224
     border                      none
+    abs()
+    top                         81px
     .icon
       bg                        image, url("../images/teamwork/sprite.png") !important
       bg                        position, -110px -128px !important
@@ -380,7 +339,7 @@ app.teamwork.styl
   overflow                      hidden
   margin                        0 auto
   width                         800px
-  padding                       85px 0 70px
+  padding                       50px 0
 .tw-session-button
   width                         418px
   height                        70px
@@ -392,7 +351,6 @@ app.teamwork.styl
   margin-left                   -209px
   top                           35px
 .tw-playgrounds-container
-  bg                            color, #CFDEE5
   position                      relative
   .loading
     font-size                   22px
@@ -513,7 +471,7 @@ app.teamwork.styl
       border                    none
   .tw-cog
     display                     block
-    sprite                      teamwork, cog-icon
+    sprite                      teamwork, "cog"
 
 .tw-bot-avatar
   size                          32px, 32px
@@ -536,16 +494,16 @@ app.teamwork.styl
   border-radius                 12px
   abs()
 
-.tw-share-button
-  width             186px
-  abs               0 0 20px 30px
-  font-size         24px
+.tw-rounded-button
+  size              186px, 47px
+  font-size         18px
   padding           5px 30px
   border            3px solid #1fcd6e
   border-radius     22px
   color             #1fcd6e
-  background        #1b2224
-
+  background        transparent
+  &.share
+    abs             0 0 20px 30px
   &:focus
     color           #7dbef1
     border-width    3px

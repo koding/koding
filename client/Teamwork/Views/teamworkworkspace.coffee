@@ -261,7 +261,7 @@ class TeamworkWorkspace extends CollaborativeWorkspace
           @activityWidget.hide()
 
     panel.addSubView shareButton = new KDButtonView
-      cssClass   : "tw-share-button"
+      cssClass   : "tw-rounded-button share"
       title      : "Share"
       callback   : @bound "share"
 
