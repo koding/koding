@@ -261,24 +261,20 @@ class KodingRouter extends KDRouter
     createStaticContentHandler = @bound 'createStaticContentDisplayHandler'
 
     registerHostNameAndKey = ->
-      kite =
-        name: "kodingclient"
-        publicIP: "127.0.0.1"
-        port: "5555"
-
-      k = new NewKite(kite)
-      k.connect()
-
-      k.tell "info", (err, result) =>
-        KD.remote.api.JKodingKey.registerHostnameAndKey {
-            key:result.key
-            hostname:result.hostID
-        }, (err, res)=>
-          KD.notify_ err.message if err
-          KD.notify_ res if res
-          result.cb true
-          @clear()
-
+      $.cookie "register-to-koding-client", "yes"
+      unless KD.isLoggedIn()
+        message = "Please login before next step"
+        modal = new KDBlockingModalView
+          title        : "Login"
+          content      : "<div class='modalformline'>#{message}</div>"
+          height       : "auto"
+          overlay      : yes
+          buttons      :
+            Close      :
+              style    : "modal-clean-gray"
+              callback : ->
+                modal.destroy()
+                KD.utils.wait 5000, window.location.pathname = "/"
 
     routes =
 
