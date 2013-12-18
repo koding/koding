@@ -8,7 +8,7 @@ class TeamworkDashboard extends JView
 
     @teamUpButton = new KDButtonView
       title       : "Team Up!"
-      cssClass    : "tw-teamup-button"
+      cssClass    : "tw-rounded-button"
       callback    : =>
         delegate  = @getDelegate()
         if delegate.teamwork
@@ -20,7 +20,7 @@ class TeamworkDashboard extends JView
     @joinInput    = new KDHitEnterInputView
       cssClass    : "tw-dashboard-input"
       type        : "text"
-      placeholder : "Session key or join url"
+      placeholder : "Session key or url"
       validate    :
         rules     : required: yes
         messages  : required: "Enter session key or URL to join."
@@ -35,7 +35,7 @@ class TeamworkDashboard extends JView
     @importInput  = new KDHitEnterInputView
       cssClass    : "tw-dashboard-input"
       type        : "text"
-      placeholder : "Url to import your VM"
+      placeholder : "Import url"
       validate    :
         rules     : required: yes
         messages  : required: "Enter URL to import content."
@@ -76,8 +76,6 @@ class TeamworkDashboard extends JView
       view.addSubView new KDButtonView
         cssClass  : "tw-play-button"
         title     : "Play"
-        icon      : yes
-        iconClass : "play"
         callback  : =>
           new KDNotificationView
             title : "Coming Soon"
@@ -120,25 +118,6 @@ class TeamworkDashboard extends JView
 
   pistachio: ->
     """
-      <!--
-      <div class="welcome">
-        <h2 class="title">Welcome to Teamwork</h2>
-        <div class="video">
-          <iframe src="//player.vimeo.com/video/45156018?title=0&amp;byline=0&amp;portrait=0" width="500" height="281" frameborder="0" webkitallowfullscreen mozallowfullscreen allowfullscreen></iframe>
-        </div>
-        <div class="what-is-tw">
-          <h2>What is Teamwork?</h2>
-          <p>Teamwork is an environment that lets you share your VM and collaborate in realtime with other users.</p>
-          <ul>
-            <li>Team up with your friends on your session.</li>
-            <li>Share your session as a ZIP file.</li>
-            <li>Join another session.</li>
-            <li>Clone GitHub repositories and start working on it with your friends.</li>
-          </ul>
-        </div>
-      </div>
-      {{> @sessionButton}}
-      -->
       <div class="actions">
         <div class="tw-items-container">
           <div class="item team-up">
