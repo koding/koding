@@ -261,7 +261,7 @@ class KodingRouter extends KDRouter
     createStaticContentHandler = @bound 'createStaticContentDisplayHandler'
 
     registerHostNameAndKey = ->
-      $.cookie "register-to-koding-client", "yes"
+      $.cookie "register-to-koding-client", yes
       unless KD.isLoggedIn()
         message = "Please login before next step"
         modal = new KDBlockingModalView
@@ -270,11 +270,13 @@ class KodingRouter extends KDRouter
           height       : "auto"
           overlay      : yes
           buttons      :
-            Close      :
-              style    : "modal-clean-gray"
-              callback : ->
+            "Go to Login" :
+              style       : "modal-clean-gray"
+              callback    : ->
                 modal.destroy()
-                KD.utils.wait 5000, window.location.pathname = "/"
+                KD.utils.wait 5000, window.location.pathname = "/Login"
+      else
+        location.href = "/"
 
     routes =
 
