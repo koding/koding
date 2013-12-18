@@ -36,7 +36,7 @@ With love from the Koding team.<br>
 
     if options.editMode
       @cancel = new KDButtonView
-        cssClass : "gray"
+        cssClass : "solid gray"
         title    : "Cancel"
         callback : @bound "cancel"
 
@@ -161,3 +161,25 @@ With love from the Koding team.<br>
     @input.addSubView @submit
     @input.addSubView @cancel if @getOptions().editMode
     @hide()  unless KD.isLoggedIn()
+
+
+
+class ActivityEditWidget extends ActivityInputWidget
+  constructor : (options = {}) ->
+    options.editMode = yes
+    options.cssClass = "edit-widget"
+
+    super options
+
+    @submit    = new KDButtonView
+      type     : "submit"
+      cssClass : "solid green"
+      iconOnly : no
+      title    : "Done editing"
+      callback : @bound "submit"
+
+  viewAppended: ->
+    @addSubView @input
+    @addSubView @embedBox
+    @input.addSubView @submit
+    @input.addSubView @cancel

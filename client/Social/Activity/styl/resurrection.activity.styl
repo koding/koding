@@ -51,7 +51,7 @@ resurrection.activity.styl
         border          none
         abs()
 
-    .input-wrapper
+    >.input-wrapper
       size              auto auto
       margin            0 0 0 100px
       position          relative
@@ -423,6 +423,32 @@ span.collapsedtext
     padding       18px 22px 0
     display       inline-block
     noTextDeco()
+
+  .edit-widget-wrapper
+    margin        14px
+    border        1px solid #ececec
+    background    #f6f6f6
+
+    div[contenteditable = "true"]
+      bg             color, #fdfdfd
+      padding        14px
+      border-bottom  1px solid #ececec
+      color          #3c4752
+      borderBox()
+
+    button
+      size        auto, 25px
+      padding     0 10px
+      margin      8px 8px 8px 0
+      fr()
+
+      .button-title
+        line-height     25px
+        font-size       12px
+        font-weight     300
+
+    &:not(.hidden) ~ .status-body
+      display      none
 
   footer
     size          100%, 25px

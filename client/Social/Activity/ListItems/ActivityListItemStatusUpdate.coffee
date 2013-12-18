@@ -22,6 +22,10 @@ class StatusActivityItemView extends ActivityItemChild
 
     @timeAgoView = new KDTimeAgoView {}, @getData().meta.createdAt
 
+    @editWidgetWrapper = new KDCustomHTMLView
+      cssClass         : "edit-widget-wrapper hidden"
+
+
   formatContent: (str = "")->
     str = @utils.applyMarkdown str
     str = @utils.expandTokens str, @getData()
@@ -44,6 +48,7 @@ class StatusActivityItemView extends ActivityItemChild
       {{> @avatar}}
       {{> @settingsButton}}
       {{> @author}}
+      {{> @editWidgetWrapper}}
       <span class="status-body">{{@formatContent #(body)}}</span>
       {{> @embedBox}}
       <footer>

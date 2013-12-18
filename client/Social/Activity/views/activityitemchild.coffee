@@ -70,15 +70,18 @@ class ActivityItemChild extends KDView
 
     @settingsButton.on 'ActivityEditIsClicked', =>
       unless @editWidget
-        @editWidget = new ActivityInputWidget editMode: yes
-        reset = => @editWidget = null if @editWidget
+        @editWidget = new ActivityEditWidget
+        reset = =>
+          @editWidget = null if @editWidget
+          @editWidgetWrapper.setClass "hidden"
 
         @editWidget.on 'Submit', reset
         @editWidget.on 'ActivityInputCancelled', reset
 
         @editWidget.edit @getData()
 
-        @addSubView @editWidget, null, yes
+        @editWidgetWrapper.addSubView @editWidget, null, yes
+        @editWidgetWrapper.unsetClass "hidden"
 
 
 
