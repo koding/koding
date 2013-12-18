@@ -967,56 +967,49 @@ span.status-body
       padding             14px
 
 .activity-share-popup
-  bg                      color, #fff
+  bg                      color, #ececec
   margin                  4px 0 0 14px
-  rounded                 6px
-  border                  1px solid #e4e4e4
-  shadow                  0 8px 35px rgba(0, 0, 0, .22)
-  padding                 5px 13px 5px 5px
+  rounded                 3px 11px 11px 3px
+  size                    176px, 22px
 
   &:after
     content             ""
     display             block
     size                0 0
-    left                98px
-    top                 100%
-    border              7px solid transparent
-    border-top-color    #fff
+    left                -12px
+    top                 5px
+    border              6px solid transparent
+    border-right-color  #ececec
     z-index             600
-    abs()
-
-  &:before
-    content             ""
-    display             block
-    size                0 0
-    left                97px
-    top                 100%
-    border              8px solid transparent
-    border-top-color    #e4e4e4
-    z-index             599
     abs()
 
   .context-list-wrapper
     padding               0
 
   input.share-input
-    rounded               6px
-    size                  160px, 40px
-    margin                0
+  input.share-input:hover
+  input.share-input:focus
+  input.share-input:active
+    background            transparent
+    border                none
+    margin                0 2px 0 0
+    font-size             12px
+    color                 #6e6e6e
+    line-height           22px
+    size                  106px, 22px
+    outline               0
     fl()
 
   .icon-link
-    size                  24px, 24px
-    margin                8px 0 0 8px
+    margin                3px 0 0 4px
     fl()
-    &.custom-link-view
-      sprite              activity, "link-24"
+
     &.share-twitter
-      sprite              activity, "twitter-24"
+      sprite              activity, "twitter-16"
     &.share-facebook
-      sprite              activity, "facebook-24"
+      sprite              activity, "facebook-16"
     &.share-linkedin
-      sprite              activity, "linkedin-24"
+      sprite              activity, "linkedin-16"
 
 
 
