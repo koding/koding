@@ -20,7 +20,7 @@ class TeamworkDashboard extends JView
     @joinInput    = new KDHitEnterInputView
       cssClass    : "tw-dashboard-input"
       type        : "text"
-      placeholder : "Session key or join url"
+      placeholder : "Session key or url"
       validate    :
         rules     : required: yes
         messages  : required: "Enter session key or URL to join."
@@ -35,7 +35,7 @@ class TeamworkDashboard extends JView
     @importInput  = new KDHitEnterInputView
       cssClass    : "tw-dashboard-input"
       type        : "text"
-      placeholder : "Url to import your VM"
+      placeholder : "Import url"
       validate    :
         rules     : required: yes
         messages  : required: "Enter URL to import content."
@@ -76,8 +76,6 @@ class TeamworkDashboard extends JView
       view.addSubView new KDButtonView
         cssClass  : "tw-play-button"
         title     : "Play"
-        icon      : yes
-        iconClass : "play"
         callback  : =>
           new KDNotificationView
             title : "Coming Soon"
