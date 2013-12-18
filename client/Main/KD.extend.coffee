@@ -106,20 +106,22 @@ KD.extend
 
   resetAppScripts    :-> @appScripts = {}
 
-  enableLogs:do->
-    oldConsole = window.console
-    window.console = {}
-    console[method] = noop  for method in ['log','warn','error','trace','time','timeEnd']
+  disableLogs:->
+    for method in ['log','warn','error','trace','time','timeEnd']
+      window[method] = noop
+      KD[method]     = noop
+    delete KD.logsEnabled
+    return "Logs are disabled now."
 
-    enableLogs =->
-      window.console = oldConsole
-      KD.log     = log     = if console?.log     then console.log.bind(console)     else noop
-      KD.warn    = warn    = if console?.warn    then console.warn.bind(console)    else noop
-      KD.error   = error   = if console?.error   then console.error.bind(console)   else noop
-      KD.time    = time    = if console?.time    then console.time.bind(console)    else noop
-      KD.timeEnd = timeEnd = if console?.timeEnd then console.timeEnd.bind(console) else noop
-      KD.logsEnabled = yes
-      return "Logs are enabled now."
+  enableLogs:(state = yes)->
+    return KD.disableLogs()  unless state
+    KD.log     = window.log     = console.log.bind     console
+    KD.warn    = window.warn    = console.warn.bind    console
+    KD.error   = window.error   = console.error.bind   console
+    KD.time    = window.time    = console.time.bind    console
+    KD.timeEnd = window.timeEnd = console.timeEnd.bind console
+    KD.logsEnabled = yes
+    return "Logs are enabled now."
 
   impersonate : (username)->
     KD.remote.api.JAccount.impersonate username, (err)->
@@ -284,4 +286,4 @@ Object.defineProperty KD, "defaultSlug",
   get:->
     if KD.isGuest() then 'guests' else 'koding'
 
-KD.enableLogs() if not KD.config?.suppressLogs
+KD.enableLogs ($.cookie 'enableLogs') or !KD.config?.suppressLogs
