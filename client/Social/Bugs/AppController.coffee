@@ -1,13 +1,13 @@
 class BugReportController extends AppController
 
   KD.registerAppClass this,
-    name         : "BugReport"
-    route        : "/BugReport"
+    name         : "Bugs"
+    route        : "/Bugs"
     behaviour    : 'application'
     version      : "1.0"
     navItem      :
       title      : "Bug Reports"
-      path       : "/BugReport"
+      path       : "/Bugs"
       order      : 60
 
   constructor:(options = {}, data)->
