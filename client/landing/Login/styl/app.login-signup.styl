@@ -288,6 +288,10 @@ app.login-signup.styl
 
   .login-input-view
     overflow            visible
+
+    .kdinput
+      text-align        center
+
     .placeholder-helper
       abs()
       size              100% auto
@@ -300,7 +304,7 @@ app.login-signup.styl
       vendor            transition, top .1s ease\,\
                                     opacity .3s .3s ease\,\
                                     font-size .1s ease
-      z-index           0
+      z-index           10
       &.out
         top             -15px
         font-size       12px
