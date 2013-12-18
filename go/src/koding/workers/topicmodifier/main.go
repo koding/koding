@@ -6,6 +6,7 @@ import (
   "github.com/streadway/amqp"
   . "koding/db/models"
   "koding/tools/amqputil"
+  "labix.org/v2/mgo/bson"
   "log"
   "strings"
 )
@@ -30,9 +31,8 @@ type Consumer struct {
 }
 
 type TagModifierData struct {
-  OldTagId string `json:"oldTagId"`
-  TagId    string `json:"tagId"`
-  Status   Status `json:"status"`
+  TagId  string `json:"tagId"`
+  Status Status `json:"status"`
 }
 
 func init() {
@@ -42,7 +42,6 @@ func init() {
 func main() {
   log.Printf("Tag Modifier Worker Started")
   consumeMessages()
-  // fetch/update related posts
   // ack message
 }
 
@@ -72,10 +71,6 @@ func declareExchange() {
 
 }
 
-func fetchRelatedPosts() {
-
-}
-
 func consumeMessages() {
   c := &Consumer{
     conn:    nil,
@@ -100,18 +95,19 @@ func consumeMessages() {
     }
 
     modifyMessage := func() {
-      // get rid of this case structure.
+      tagId := modifierData.TagId
       switch modifierData.Status {
       default:
         log.Println("Unknown modification status")
         // rawMsg.Ack(false)
       case UPDATE:
-        updateTags(modifierData)
+        updateTags(tagId)
       case DELETE:
-        deleteTags(modifierData)
+        deleteTags(tagId)
       case MERGE:
-        mergeTags(modifierData)
+        mergeTags(tagId)
       }
+      rawMsg.Ack(false)
     }
 
     modifyMessage()
@@ -119,49 +115,111 @@ func consumeMessages() {
   }
 }
 
-func isTagValid(tagId string, fn func(string) Tag) bool {
-  tag := fn(tagId)
-  if (tag != Tag{}) {
-    return true
-  }
-  return false
-}
-
-func updateTags(modifierData *TagModifierData) {
+func updateTags(tagId string) {
   log.Println("update")
   // fetch tag
   // fetch related posts
 }
 
-func deleteTags(modifierData *TagModifierData) {
+func deleteTags(tagId string) {
   log.Println("delete")
-  if isTagValid(modifierData.TagId, FindDeletedTagById) {
+  if tag := FindTagById(tagId); (tag != Tag{}) {
     log.Println("Valid tag")
-    rels := FindRelationshipsWithTagId(modifierData.TagId)
-    deleteTagsFromPosts(rels)
+    rels := FindRelationships(bson.M{"targetId": bson.ObjectIdHex(tagId), "as": "tag"})
+    updatePosts(rels, "")
+    updateRelationships(rels, &Tag{})
   }
   //ack
 
 }
 
-func deleteTagsFromPosts(rels []Relationship) {
+func mergeTags(tagId string) {
+  log.Println("merge")
+
+  if tag := FindTagById(tagId); (tag != Tag{}) {
+    log.Println("Valid tag")
+
+    synonym := FindSynonym(tagId)
+    tagRels := FindRelationships(bson.M{"targetId": bson.ObjectIdHex(tagId), "as": "tag"})
+    if len(tagRels) > 0 {
+      updatePosts(tagRels, synonym.Id.Hex())
+      updateRelationships(tagRels, &synonym)
+    }
+
+    postRels := FindRelationships(bson.M{"sourceId": bson.ObjectIdHex(tagId), "as": "post"})
+    if len(postRels) > 0 {
+      updateRelationships(postRels, &synonym)
+      updateCounts(&tag, &synonym)
+    }
+    UpdateTag(&synonym)
+    tag.Counts = TagCount{} // reset counts
+    UpdateTag(&tag)
+    updateFollowers(&tag, &synonym)
+  }
+}
+
+func updatePosts(rels []Relationship, newTagId string) {
+  var newTag string
+  if newTagId != "" {
+    newTag = fmt.Sprintf("|#:JTag:%v|", newTagId)
+  }
+
   for _, rel := range rels {
     tagId := rel.TargetId.Hex()
     post := FindPostWithId(rel.SourceId.Hex())
-    updatePost(&post, tagId)
-    RemoveTagRelationship(rel)
+    modifiedTag := fmt.Sprintf("|#:JTag:%v|", tagId)
+    post.Body = strings.Replace(post.Body, modifiedTag, newTag, -1)
+    UpdatePost(&post)
   }
-  log.Printf("Deleted %d tags", len(rels))
+  log.Printf("%v Posts updated", len(rels))
 }
 
-//it could take fn parameter for deleting/appending tag
-func updatePost(post *StatusUpdate, tagId string) {
-  modifiedTag := fmt.Sprintf("|#:JTag:%v|", tagId)
-  post.Body = strings.Replace(post.Body, modifiedTag, "", -1)
-  // log.Println("PostBody:", post.Body)
-  UpdatePost(post)
+func updateRelationships(rels []Relationship, synonym *Tag) {
+  for _, rel := range rels {
+    removeRelationship(rel)
+    if (synonym != &Tag{}) {
+      if rel.TargetName == "JTag" {
+        rel.TargetId = synonym.Id
+      } else {
+        rel.SourceId = synonym.Id
+      }
+      rel.Id = bson.NewObjectId()
+      createRelationship(rel)
+    }
+  }
 }
 
-func mergeTags(modifierData *TagModifierData) {
-  log.Println("merge")
+func updateCounts(tag *Tag, synonym *Tag) {
+  synonym.Counts.Following += tag.Counts.Following
+  synonym.Counts.Followers += tag.Counts.Followers
+  synonym.Counts.Post += tag.Counts.Post
+  synonym.Counts.Tagged += tag.Counts.Tagged
+}
+
+func updateFollowers(tag *Tag, synonym *Tag) {
+  var arr [2]bson.M
+  arr[0] = bson.M{
+    "targetId": tag.Id,
+    "as":       "follower",
+  }
+  arr[1] = bson.M{
+    "sourceId": tag.Id,
+    "as":       "follower",
+  }
+  rels := FindRelationships(bson.M{"$or": arr})
+  log.Printf("%v follower rels found", len(rels))
+  if len(rels) > 0 {
+    updateRelationships(rels, synonym)
+  }
+}
+
+func createRelationship(relationship Relationship) {
+  CreateGraphRelationship(relationship)
+  CreateRelationship(relationship)
+}
+
+func removeRelationship(relationship Relationship) {
+  RemoveGraphRelationship(relationship)
+  RemoveRelationship(relationship)
+
 }
