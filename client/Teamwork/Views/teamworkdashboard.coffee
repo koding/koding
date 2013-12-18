@@ -12,7 +12,6 @@ class TeamworkDashboard extends JView
       callback    : =>
         delegate  = @getDelegate()
         if delegate.teamwork
-          @hide()
           delegate.showTeamUpModal()
         else
           delegate.emit "NewSessionRequested", ->
@@ -56,8 +55,7 @@ class TeamworkDashboard extends JView
       title       : "Start your session now!"
       callback    : => @getDelegate().emit "NewSessionRequested"
 
-    @on "PlaygroundsFetched", (manifests) =>
-      @createPlaygrounds manifests
+    @fetchManifests()
 
   show: -> @setClass "active"
 
@@ -81,8 +79,10 @@ class TeamworkDashboard extends JView
         icon      : yes
         iconClass : "play"
         callback  : =>
-          @hide()
-          @getDelegate().handlePlaygroundSelection manifest.name, manifest.manifestUrl
+          new KDNotificationView
+            title : "Coming Soon"
+          # @hide()
+          # @getDelegate().handlePlaygroundSelection manifest.name, manifest.manifestUrl
 
   handleImport: ->
     @getDelegate().emit "ImportRequested", @importInput.getValue()
@@ -101,8 +101,26 @@ class TeamworkDashboard extends JView
 
     @getDelegate().emit "JoinSessionRequested", sessionKey
 
+  fetchManifests: ->
+    filename = if location.hostname is "localhost" then "manifest-dev" else "manifest"
+    delegate = @getDelegate()
+
+    delegate.fetchManifestFile "#{filename}.json", (err, manifests) =>
+      if err
+        @setClass "ready"
+        @playgrounds.hide()
+        return new KDNotificationView
+          type     : "mini"
+          cssClass : "error"
+          title    : "Could not fetch Playground manifest."
+          duration : 4000
+
+      delegate.playgroundsManifest = manifests
+      @createPlaygrounds manifests
+
   pistachio: ->
     """
+      <!--
       <div class="welcome">
         <h2 class="title">Welcome to Teamwork</h2>
         <div class="video">
@@ -120,6 +138,7 @@ class TeamworkDashboard extends JView
         </div>
       </div>
       {{> @sessionButton}}
+      -->
       <div class="actions">
         <div class="tw-items-container">
           <div class="item team-up">

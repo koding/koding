@@ -1,7 +1,7 @@
 Bongo          = require "bongo"
 {Relationship} = require "jraphical"
 
-{secure, daisy, dash, Base} = Bongo
+{secure, daisy, dash, signature, Base} = Bongo
 {uniq} = require 'underscore'
 
 module.exports = class ActivityTicker extends Base
@@ -9,7 +9,11 @@ module.exports = class ActivityTicker extends Base
 
   @set
     sharedMethods :
-      static      : ["fetch"]
+      static      :
+        fetch     : [
+          (signature Function)
+          (signature Object, Function)
+        ]
 
   relationshipNames = ["follower", "like", "member", "user",  "author"]
   constructorNames  = ["JAccount", "JNewApp", "JGroup", "JTag", "JNewStatusUpdate"]
@@ -131,9 +135,8 @@ module.exports = class ActivityTicker extends Base
       else
         do kallback
 
-  @fetch = secure (client, options = {}, callback) ->
-    {connection: {delegate}} = client
-
+  @_fetch = (requestOptions = {}, callback)->
+    {options, client} = requestOptions
     sources = constructorNames
     as      = relationshipNames
     targets = constructorNames
@@ -161,15 +164,44 @@ module.exports = class ActivityTicker extends Base
       limit      : 10 # Math.min options.limit ? 15, 15
       sort       : timestamp  : -1
 
-    Relationship.some selector, relOptions, (err, relationships) ->
-      buckets = []
-      return  callback err, buckets  if err
-      daisy queue = relationships.map (relationship) ->
-        ->
-          relationship.fetchTeaser ->
-            decorateEvents relationship, (err, decoratedEvent)=>
-              buckets.push decoratedEvent  if decoratedEvent
-              queue.next()
+    JGroup = require './group'
+    JGroup.one slug:'guests', (err, group)->
+      return callback err if err
+      return callback new Error "Group not found" if not group
+      # do not include guest group results to data set
+      selector.sourceId = { "$ne" : group.getId() }
 
-      queue.push ->
-        callback null, buckets
+      Relationship.some selector, relOptions, (err, relationships) ->
+        buckets = []
+        return  callback err, buckets  if err
+        queue = relationships.map (relationship) ->
+          ->
+            relationship.fetchTeaser ->
+              decorateEvents relationship, (err, decoratedEvent)=>
+                buckets.push decoratedEvent  if decoratedEvent
+                queue.next()
+
+        queue.push ->
+          callback null, buckets
+          queue.next()
+
+        daisy queue
+
+
+  @fetch = secure (client, options, callback) ->
+    [callback, options] = [options, callback]  unless callback
+    # TODO - add group security here
+    requestOptions = { client, options }
+
+    if options.from or options.filters
+      @_fetch requestOptions, callback
+    else
+      Cache  = require '../cache/main'
+      cacheKey = "activityticker"
+      Cache.fetch cacheKey, @_fetch, requestOptions, (err, data)=>
+        # if data is not set, or it is empty
+        # fetch from db
+        if err or not data or Object.keys(data).length is 0
+          @_fetch requestOptions, callback
+        else
+          callback err, data

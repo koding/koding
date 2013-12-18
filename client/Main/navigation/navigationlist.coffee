@@ -27,26 +27,20 @@ class NavigationList extends KDListView
           current = 0
 
         if current > lastChange
-          @moveItemsTemporarily view, 1
+          @moveItemToIndex view, view._index+1
           lastChange = current
         else if current < lastChange
-          @moveItemsTemporarily view, -1
+          @moveItemToIndex view, view._index-1
           lastChange = current
 
       view.on 'DragFinished', =>
         view.setX view._index * @viewWidth
-        @moveItemToIndex view, view._index
-        item._index = i for item, i in @items
+        view.setY view._y
         lastChange  = 0
 
-  moveItemsTemporarily:(view, step)->
+  moveItemToIndex:(item, index)->
+    super item, index
 
-    newIndex = Math.max(0, Math.min(view._index + step, @items.length-1))
-    return  if newIndex is view._index
-
-    for item, index in @items
-      if item._index is newIndex
-        item.setX item.getRelativeX() - (step * @viewWidth)
-        item._index = view._index
-        view._index = newIndex
-        break
+    for _item, index in @items
+      _item._index = index
+      _item.setX index * @viewWidth  unless item is _item

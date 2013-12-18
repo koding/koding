@@ -134,7 +134,7 @@ class Ace extends KDView
     @askedForSave = yes
     @emit "ace.requests.save", contents
 
-  requestSaveAs:->
+  requestSaveAs: (options) ->
     contents = @getContents()
     @emit "ace.requests.saveAs", contents
 

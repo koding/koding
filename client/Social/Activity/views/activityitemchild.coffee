@@ -53,7 +53,7 @@ class ActivityItemChild extends KDView
       delegate : list
     , data
 
-    @settingsButton = new ActivitySettingsView {}, data
+    @settingsButton = new ActivitySettingsView itemView: this, data
 
     super options, data
 

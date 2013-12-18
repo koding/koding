@@ -6,7 +6,7 @@ forceInterval = 60 * 3
 
 module.exports = class JPaymentCharge extends jraphical.Module
 
-  {secure}      = require 'bongo'
+  {secure, signature}      = require 'bongo'
   JPayment      = require './token'
   JPaymentToken = require './token'
   JUser         = require '../user'
@@ -17,30 +17,26 @@ module.exports = class JPaymentCharge extends jraphical.Module
     indexes:
       uuid            : 'unique'
     sharedMethods     :
-      static          : [
+      static          :
         # TODO: this is a really big WTF, and needs to be removed:
-        'all'
-        'one'
-        'some'
-        'charge'
-        'fetchToken'
-        'fetchCharges'
-      ]
-      instance        : [
-        'cancel'
-      ]
+        # 'all'
+        one:
+          (signature Object, Function)
+        some:
+          (signature Object, Object, Function)
+        charge:
+          (signature Object, Function)
+
+      instance:
+        cancel:
+          (signature Function)
+
     schema            :
       uuid            : String
       paymentMethodId : String
       amount          : Number
       status          : String
       lastUpdate      : Number
-
-  @fetchCharges = secure (client, callback)->
-    callback { message: 'Not implemented!' }
-
-  @fetchToken = secure (client, data, callback)->
-    callback { message: 'Not implemented!' }
 
   @charge = secure (client, data, callback)->
     { connection: { delegate } } = client

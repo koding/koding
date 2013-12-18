@@ -1,4 +1,4 @@
-{Model} = require 'bongo'
+{Model, signature} = require 'bongo'
 
 createId = require 'hat'
 getUniqueId= -> createId 256
@@ -8,41 +8,50 @@ module.exports = class JMail extends Model
   @share()
 
   @set
-    indexes          :
-      status         : 'sparse'
-    sharedMethods    :
-      static         : ['unsubscribeWithId']
-    sharedEvents     :
-      instance       : []
-      static         : []
-    schema           :
-      dateIssued     :
-        type         : Date
-        default      : -> new Date
-      dateAttempted  : Date
-      email          :
-        type         : String
-        email        : yes
-      from           :
-        type         : String
-        email        : yes
-        default      : 'hello@koding.com'
-      replyto        :
-        type         : String
-        email        : yes
-        default      : 'hello@koding.com'
-      status         :
-        type         : String
-        default      : 'queued'
-        enum         : ['Invalid status', ['queued', 'attempted', 'sending',
-                                           'failed', 'unsubscribed']]
-      force          :
-        type         : Boolean
-        default      : false
-      subject        : String
-      content        : String
-      unsubscribeId  : String
-      bcc            : String
+    indexes           :
+      status          : 'sparse'
+    sharedMethods     :
+      static          :
+        unsubscribeWithId:
+          (signature String, String, String, Function)
+    sharedEvents      :
+      instance        : []
+      static          : []
+    schema            :
+      dateIssued      :
+        type          : Date
+        default       : -> new Date
+      dateAttempted   : Date
+      email           :
+        type          : String
+        email         : yes
+      from            :
+        type          : String
+        email         : yes
+        default       : 'hello@koding.com'
+      replyto         :
+        type          : String
+        email         : yes
+        default       : 'hello@koding.com'
+      status          :
+        type          : String
+        default       : 'queued'
+        enum          : ['Invalid status'
+                        [
+                          'queued'
+                          'attempted'
+                          'sending'
+                          'failed'
+                          'unsubscribed'
+                        ]]
+      smtpId          : String
+      force           :
+        type          : Boolean
+        default       : false
+      subject         : String
+      content         : String
+      unsubscribeId   : String
+      bcc             : String
 
   save:(callback)->
     @unsubscribeId = getUniqueId()+''  unless @_id? or @force

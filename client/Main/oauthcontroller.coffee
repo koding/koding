@@ -3,7 +3,7 @@
 #   KD.singletons.oauthController.authCompleted null, "github"
 class OAuthController extends KDController
   openPopup: (provider)->
-    KD.singleton('appManager').create 'Login', =>
+    KD.singleton('appManager').require 'Login', =>
 
       (KD.getSingleton 'mainController').isLoggingIn on
       KD.remote.api.OAuth.getUrl provider, (err, url)->

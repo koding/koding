@@ -58,6 +58,8 @@ class CommentView extends KDView
     if data.replies
       for reply in data.replies  when reply? and reply.originId? and reply.originType?
         @commentList.addItem reply
+    else
+      @commentController.fetchRelativeComments null, data.meta.createdAt, no
 
     @commentList.emit "BackgroundActivityFinished"
 

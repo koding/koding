@@ -1,11 +1,26 @@
 jraphical = require "jraphical"
 module.exports = class JReferrableEmail extends jraphical.Module
   JAccount           = require "./account"
-  {ObjectId, secure} = require "bongo"
+  {ObjectId, secure, signature} = require "bongo"
 
   @share()
 
   @set
+
+    sharedMethods :
+
+      static      :
+        invite    :
+          (signature String, Function)
+        getUninvitedEmails:
+          (signature Function)
+        deleteEmailsForAccount:
+          (signature Function)
+
+      instance    :
+        invite    :
+          (signature Function)
+
     schema        :
       title       : String
       email       :
@@ -21,9 +36,6 @@ module.exports = class JReferrableEmail extends jraphical.Module
       modifiedAt  :
         type      : Date
         get       : -> new Date
-    sharedMethods :
-      static      : ["invite", "getUninvitedEmails", "deleteEmailsForAccount"]
-      instance    : ["invite"]
 
   @create: (clientId, {email, title}, callback)->
     JSession = require "./session"

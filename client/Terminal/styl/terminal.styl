@@ -1,0 +1,47 @@
+@import "../../Framework/themes/default/kdfn"
+@import "../../Main/styl/appfn"
+
+@css {
+/*
+TERMINAL stylesheet
+app.terminal.styl
+*/
+}
+body.terminal #main-header
+  shadow        none
+
+.offscreen
+  position  absolute
+  top       -100px
+  left      -100px
+  opacity   0
+
+.terminal
+
+  .message-pane
+    color       #fff
+    top         50%
+    margin-top  5px
+    z-index     1
+    width       100%
+    text-align  center
+    abs()
+
+    &.light
+      opacity   .5
+
+    a
+      font-style italic
+      color      #aaa
+      &:visited
+        color    #aaa
+
+.vm-info
+
+  padding      5px
+  font-family  monospace
+  font-size    13px
+
+  &:hover
+    cursor     pointer
+    color      green

@@ -38,7 +38,6 @@ module.exports = [
   "CommonViews/nominatemodal.coffee",
   "CommonViews/slidingsplit.coffee",
   "CommonViews/bidirectionalnavigation.coffee"
-
   "CommonViews/kodingswitch.coffee",
 
   "CommonViews/tokenview.coffee",
@@ -49,6 +48,9 @@ module.exports = [
   "CommonViews/avatarviews/avatarview.coffee",
   "CommonViews/avatarviews/avatarstaticview.coffee",
   "CommonViews/avatarviews/autocompleteavatarview.coffee",
+
+  "CommonViews/activitywidgetitem.coffee",
+  "CommonViews/activitywidget.coffee",
 
   # junction
   "junction/junction.coffee"
@@ -124,17 +126,7 @@ module.exports = [
   "CommonViews/clonerepomodal.coffee",
 
   "kodingappcontroller.coffee",
-  "sidebar/sidebarcontroller.coffee",
-  "sidebar/sidebarview.coffee",
-  "sidebar/sidebarresizehandle.coffee",
-  "sidebar/virtualizationcontrols.coffee",
-  "sidebar/footermenuitem.coffee",
-  "sidebar/modals/introductiontooltip/introductionitem.coffee",
-  "sidebar/modals/introductiontooltip/introductionchilditem.coffee",
-  "sidebar/modals/introductiontooltip/introductionadminform.coffee",
-  "sidebar/modals/introductiontooltip/introductionadmin.coffee",
-  "sidebar/modals/adminmodal.coffee",
-  "sidebar/modals/kiteselector.coffee",
+  "CommonViews/adminmodal.coffee",
 
   "navigation/navigationlist.coffee",
   "navigation/navigationlink.coffee",
@@ -149,6 +141,8 @@ module.exports = [
   # LOCATION
   "locationcontroller.coffee",
   "CommonViews/location/locationform.coffee",
+  # BadgeController
+  "badgecontroller.coffee",
 
   # PAYMENT
   # controller

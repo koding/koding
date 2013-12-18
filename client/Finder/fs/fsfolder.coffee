@@ -1,6 +1,7 @@
 class FSFolder extends FSFile
 
   fetchContents:(callback, dontWatch=yes)->
+    { treeController } = @getOptions()
 
     @emit "fs.job.started"
     @vmController.run
@@ -8,11 +9,11 @@ class FSFolder extends FSFile
       vmName     : @vmName
       withArgs   :
         onChange : if dontWatch then null else (change)=>
-          FSHelper.folderOnChange @vmName, @path, change, @treeController
+          FSHelper.folderOnChange @vmName, @path, change, treeController
         path     : FSHelper.plainPath @path
     , (err, response)=>
       if not err and response?.files
-        files = FSHelper.parseWatcher @vmName, @path, response.files
+        files = FSHelper.parseWatcher @vmName, @path, response.files, treeController
         @registerWatcher response
         @emit "fs.job.finished", err, files
       else

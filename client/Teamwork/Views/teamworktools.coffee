@@ -50,7 +50,7 @@ class TeamworkTools extends JView
           @hasShareElements = yes
 
     @teamUpPlaceholder = new KDCustomHTMLView cssClass: "content"
-    @sharePlaceholder  = new KDCustomHTMLView cssClass: "content export"
+    @sharePlaceholder  = new KDCustomHTMLView cssClass: "export"
 
   createTeamupElements: ->
     @teamUpPlaceholder.addSubView new KDCustomHTMLView
@@ -146,6 +146,7 @@ class TeamworkTools extends JView
             notification.notificationSetTimer 4000
             notification.setClass "success"
             @showUrlView shorten
+            @emit "Exported", nodeData.name, shorten
       , no
 
   showUrlView: (shortenUrl) ->

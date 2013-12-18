@@ -1,0 +1,1107 @@
+@import "../../../Framework/themes/default/kdfn"
+@import "../../../Main/styl/appfn"
+
+
+@css {
+/*
+Activity stylesheet
+resurrection.activity.styl
+*/
+}
+
+
+.feeder-header
+.common-inner-nav
+.system-message
+.activity-status-context
+// .comment-container.no-comment
+  display               none
+
+.content-page.activity
+  max-width             100%
+  min-height            1026px
+  margin                85px auto
+  padding               0
+  position              static
+  overflow              visible
+
+  .lazy-loader
+    margin              30px 0
+    font-size           0
+    letter-spacing      0
+    word-spacing        0
+
+  > main
+    size                  711px, auto
+    kalc                  margin-right, 37% \+ 32px
+    fr()
+
+    .filter-warning
+      background        rgba(37, 46, 48, 1.0)
+      width             calc( 100% \- 10px)
+      padding           10px 0 10px 10px
+      margin            25px 0 10px 0
+      border-radius     2px
+      color             #89A5A8
+
+      .goback-button
+        right           10px
+        top             8px
+        sprite          app '20-close-tab'
+        border          none
+        abs()
+
+    >.input-wrapper
+      size              auto auto
+      margin            0 0 0 100px
+      position          relative
+
+      .avatarview
+        rounded           4px
+        top               6px
+        left              6px
+        z-index           2
+        abs()
+
+      .input-view
+        border            none
+        border-top        1px solid #CDCCC2
+        border-left       1px solid #CDCCC2
+        rounded           5px
+        borderBox()
+
+        > div
+          size            100% auto
+          line-height     16px
+          font-size       14px
+          color           #acacac
+          padding         15px 100px 14px 56px
+          background      #fff
+          borderBox()
+
+        &.placeholder
+          > div
+            color         #acacac
+
+      button[type=submit]
+        size            30px, 30px
+        bottom          8px
+        right           9px
+        padding         0
+        abs()
+        z-index         1
+
+        .icon
+          margin        1px 0 0 7px
+          sprite        activity, "update-bubble"
+
+        &[disabled=disabled]
+          bg            color, #DDD !important
+
+      .notification
+        size                auto auto
+        background          lightyellow
+        font-size           12px
+        margin              10px 0
+        padding             10px 30px 10px 10px
+        border              1px solid lightgray
+        border-radius       5px
+
+        .close-tab
+          abs()
+          top               4px
+          right             4px
+          bg                color, transparent
+          sprite            app '20-close-tab'
+
+        a
+          color      #3aaaab
+          noTextDeco()
+
+    // .activity-input-widget
+    //   margin-left       100px
+
+    .activity-content
+      size              auto, auto
+      margin            0 0 0 100px
+      font-size         14px
+      overflow          visible
+
+      .kdview
+        overflow        visible
+
+  > aside
+    right               0
+    top                 55px
+    padding             0 0 0 33px
+    bg                  color, #ebebeb
+    size                37%, 100%
+    border-left         1px solid #d5d5d5
+    borderBox()
+    abs()
+
+    .kdloader
+      margin            60px 0 0 110px
+
+    .activity-ticker
+    .active-users
+    .active-topics
+      size              269px, auto
+
+    .active-users
+    .activity-ticker
+      margin-top        18px
+
+    .right-block-box
+      size              auto, auto
+      margin            30px 0 0
+
+      h3
+        display         block
+        font-size       14px
+        font-weight     400
+        color           #37b298
+        margin          0 0 17px 0
+        .show-all-link
+          color         #a6abb1
+          font-weight   300
+          noTextDeco()
+          fr()
+
+      .kdscrollview
+        size            auto, 212px
+        padding         0
+
+    .kdlistitemview-activity-ticker-item
+      size              auto, auto
+      min-height        53px
+      position          relative
+      padding           11px 0 11px
+      margin            0 0 0 44px
+      overflow          visible
+      border-bottom     1px solid #d3d3d3
+      color             #3c4752
+      font-weight       400
+      font-size         13px
+      borderBox()
+
+      .action
+        overflow        visible
+        width           auto
+        line-height     18px
+
+        .kdview
+          font-weight   300
+
+      .text-overflow
+        overflow        hidden
+        text-overflow   ellipsis
+
+      a
+        color           inherit
+        white-space     nowrap
+        display         inline
+        noTextDeco()
+
+        &.profile
+          font-weight   500
+
+      .avatarview
+        size            30px, 30px
+        rounded         5px
+        display         block
+        left            -42px
+        top             1px
+        abs()
+
+      .follow-btn
+        size            25px, 25px
+        padding         0
+        margin          4px 0 0
+        rounded         13px
+        bg              color, transparent
+        border          2px solid #b5b5b5
+        right           0
+        vendor          transition, width .1s ease \,\
+                                    border-color .3s ease
+        abs()
+        .icon
+          padding       0
+          margin        2px 0 0 4px
+          sprite        activity, "follow-check"
+
+        .button-title
+          z-index       -1
+          opacity       0
+          right         0
+          top           4px
+          font-size     12px
+          color         #b5b5b5
+          vendor        transition, opacity .4s ease
+          abs()
+
+        &:hover
+          width         64px
+          background    #ebebeb
+          .button-title
+            right       4px
+            z-index     1
+            opacity     1
+
+        &.following-account
+        &.following-topic
+          border-color  #2eb398
+          .icon
+            sprite      activity, "following-check"
+          .button-title
+            color       #2eb398
+          &:hover
+            width         78px
+
+    .activity-ticker
+      .profile
+        display       inline
+      &.fixed
+        top           55px
+        fix()
+
+      .action
+        a.ttag
+          color      #3aaaab
+          span:before
+             content    "#"
+
+    .active-users
+      .avatarview
+        top             11px
+      .profile
+      .user-numbers
+        white-space     nowrap
+        width           170px
+        overflow        hidden
+        text-overflow   ellipsis
+        color           #414853
+        fl()
+      .user-numbers
+        height          18px
+        margin          4px 0 0
+        color           #7A7D82
+        font-weight     300
+
+    .active-topics
+      .kdlistitemview-activity-ticker-item
+        margin          0
+
+    .kdbuttonwithmenu-wrapper.ticker-settings-menu
+        abs()
+        top                 26px
+        right               2px
+        size                21px 21px
+        padding             0
+        button.kdbutton
+          size              21px 21px
+          bg                color transparent
+          border            none
+          padding           0
+          padding-right     0 !important
+          span.icon
+            hidden()
+        .chevron-separator
+          hidden()
+        .chevron
+          sprite    activity chevron-icon
+
+        .ttag
+          line-height   34px
+
+          &:before
+            content     "#"
+            margin-right 4px
+            color        #b5b5b5
+
+span.collapsedtext
+  borderBox()
+  vendor              transition, font-size .2s linear
+  a.more-link
+  a.less-link
+    font-size         11px
+    font-weight       400
+    // padding           0 5px
+    margin-left       5px
+    color             linkColor1
+    vendor            transition, font-size .2s linear
+    // bg                color, linkColor1
+    // rounded           8px
+
+  &.hide
+    font-size         0!important
+    *
+      visibility      hidden
+      display         none
+    a.more-link
+      font-size       11px!important
+      visibility      visible
+      display         inline
+
+  &.show
+    a.more-link
+      font-size       0
+      margin-left     0
+      padding         0
+
+
+.activity-input-widget
+  size                auto auto
+  position            relative
+  margin              0
+
+  .avatarview
+    rounded           4px
+    top               6px
+    left              6px
+    z-index           2
+    abs()
+
+  .input-view
+    border            none
+    border-top        1px solid #CDCCC2
+    border-left       1px solid #CDCCC2
+    rounded           5px
+    borderBox()
+
+    > div
+      size            100% auto
+      line-height     16px
+      font-size       14px
+      color           #acacac
+      padding         15px 100px 14px 56px
+      background      #fff
+      borderBox()
+
+    &.placeholder
+      > div
+        color         #acacac
+
+  button[type=submit]
+    size            30px, 30px
+    bottom          8px
+    right           9px
+    padding         0
+    abs()
+    z-index         1
+
+    &.solid.green .icon
+      margin        1px 0 0 7px
+      sprite        activity, "update-bubble"
+
+    &[disabled=disabled]
+      bg            color, #DDD !important
+
+  .notification
+    size                auto auto
+    background          lightyellow
+    font-size           12px
+    margin              10px 0
+    padding             10px 30px 10px 10px
+    border              1px solid lightgray
+    border-radius       5px
+
+    .close-tab
+      abs()
+      top               4px
+      right             4px
+      bg                color, transparent
+      sprite            app '20-close-tab'
+
+    a
+      color      #3aaaab
+      noTextDeco()
+
+/* Activity items */
+.activity-item
+  background      #fff
+  rounded         5px
+  overflow        visible
+  position        relative
+  margin          30px 0 0 0
+  border          1px solid #d8d8d8
+  shadow          1px 1px 0 rgba(196, 196, 196, .75)
+  borderBox()
+
+  &:nth-child(1)
+    margin-top    32px
+
+  &.content-display-main-section /* Content display */
+    kalc          width, 100% \- 100px
+    margin-left   100px
+
+  a.ttag
+    color         #3aaaab
+    noTextDeco()
+    span:before
+      content     '#'
+
+  .kdbuttonwithmenu-wrapper.activity-settings-menu
+    abs()
+    top                 8px
+    right               11px
+    size                21px 21px
+    padding             0
+    button.kdbutton
+      size              21px 21px
+      bg                color transparent
+      border            none
+      padding           0
+      padding-right     0 !important
+      span.icon
+        hidden()
+    .chevron-separator
+      hidden()
+    .chevron
+      sprite    activity chevron-icon
+
+  .author-avatar
+    display       block
+    size          70px, 70px
+    rounded       5px
+    top           0
+    right         100%
+    margin        0 9px 0 0
+    border        1px solid #bdc3c7
+    borderBox()
+    abs()
+
+  .profile
+  .status-body
+    word-break    break-word
+    display       block
+    color         #3c4752
+    font-weight   200
+
+  .status-body
+    // to avoid too long posts
+    // until we find a better solution - SY
+    overflow      auto
+    max-height    400px
+    padding       5px 23px 0
+    line-height   22px
+    white-space   pre-line
+
+  >.profile
+    color         #1aaf5d
+    font-weight   500
+    padding       18px 22px 0
+    display       inline-block
+    noTextDeco()
+
+  .edit-widget-wrapper
+    margin        14px
+    border        1px solid #ececec
+    background    #f6f6f6
+
+    div[contenteditable = "true"]
+      bg             color, #fdfdfd
+      padding        14px
+      border-bottom  1px solid #ececec
+      color          #3c4752
+      borderBox()
+
+    button
+      size        auto, 25px
+      padding     0 10px
+      margin      8px 8px 8px 0
+      fr()
+
+      .button-title
+        line-height     25px
+        font-size       12px
+        font-weight     300
+
+    &:not(.hidden) ~ .status-body
+      display      none
+
+  footer
+    size          100%, 25px
+    margin        0
+    borderBox()
+
+    time
+      width       auto
+      line-height 14px
+      font-size   12px
+      color       #dadcdd
+      padding     0 22px 0 0
+      fr()
+
+    .activity-actions
+      width       auto
+      padding     0 0 0 10px
+      fl()
+
+    .action-link
+    .comment-icon
+    .share-icon
+      display         inline-block
+      vertical-align  middle
+
+      &.like-icon
+        sprite        activity like-icon
+
+      &.comment-icon
+        sprite        activity comment-icon
+
+      &.share-icon
+        sprite        activity share-icon
+
+    .action-container
+      size            auto 18px
+      margin          0 0 0 14px
+      fl()
+
+      &.liked .like-icon
+        sprite        activity like-icon-liked
+      // &.kdview.kdloader
+      //   margin-top    0
+
+    .count
+      display         inline-block
+      vertical-align  text-bottom
+      color           #73787e
+      font-size       12px
+      margin          0 0 0 6px
+      noTextDeco()
+
+  .comment-container
+    bg                color, #f6f6f6
+
+  .comment-container.commented
+    border-top        1px solid #d8d8d8
+
+    .show-more-comments
+      size            auto, 40px
+      line-height     40px
+      bg              color, #ececec
+      border-top      1px solid #d8d8d8
+      border-bottom   1px solid #d8d8d8
+      text-align      center
+      margin          -1px 0 0 0
+
+      a
+        display         block
+        width           auto 55px
+        color           rgba(78, 78, 78, .78)
+        font-size       13px
+        letter-spacing  .2px
+        noTextDeco()
+
+      &.new
+        bg              color, #2eb398
+
+        a
+          color         #fff
+
+  .kdlistitemview-comment
+    padding           22px 22px 15px 20px
+    borderBox()
+
+    // &:last-of-type
+    //   padding-bottom  33px
+
+    .avatarview
+      border          1px solid #bdc3c7
+      top             20px
+      left            20px
+      rounded         5px
+      abs()
+
+    .comment-contents
+      size            auto, auto
+      margin          0 0 0 56px
+      font-size       13px  !important
+      font-weight     400   !important
+      color           #515b65
+
+      .profile
+        display       inline-block
+        color         #1aaf5d
+        font-weight   500
+        margin        2px 0 10px 0
+        noTextDeco()
+
+      .comment-body
+        word-break    break-word
+        line-height   16px
+
+        a
+          color       inherit
+
+      .like-view
+      .reply-link
+      time
+        font-size         11px
+        display           inline-block
+        margin            14px 0 0
+        width             auto
+
+      .reply-link
+        margin-left       14px
+        position          relative
+
+        &:before
+          content         "\2022"
+          display         block
+          font-size       18px
+          left            -12px
+          top             -3px
+          color           #d8d8d8
+          abs()
+
+      .like-view a
+      .reply-link
+        color           #a6abb1
+        noTextDeco()
+
+        &.count
+          display       inline-block
+          margin        0 0 0 9px
+          font-weight   500
+
+      .like-view.liked a
+        color           #1aaf5d
+
+      time
+        fr()
+        opacity         0
+        vendor          transition, opacity .2s ease
+        color           #a5acad
+
+    &:hover
+      time
+        opacity         1
+
+    &~.kdlistitemview-comment
+      padding-top       0
+      border-top        1px solid #d8d8d8
+
+      .avatarview
+        top           13px
+
+      .comment-contents
+        padding-top   13px
+
+    &.deleted
+      width           auto
+      padding         16px 0
+      margin          0 23px 0 81px
+      font-size       12px
+      color           #717e80
+      .profile
+        display       inline
+
+    &~.deleted
+      border-top      1px solid #eeeeef
+
+
+  .item-add-comment-box
+    border-top    1px solid #d8d8d8
+    borderBox()
+
+    .avatarview
+      size        35px, 35px
+      display     block
+      left        5px
+      top         5px
+      rounded     3px
+      z-index     10
+      abs()
+
+    .item-add-comment-form
+      margin      -1px
+      size        auto, auto
+
+      textarea
+        size        100% 47px
+        min-height  47px
+        border      1px solid #d1d3d3
+        box-shadow  none
+        background  #fff
+        line-height 24px
+        padding     9px 9px 8px 54px
+        color       #50595a
+        font-size   13px
+        rounded     0 0 5px 5px
+        vendor      transition, line-height .2s ease
+        borderBox()
+
+        &::-webkit-input-placeholder
+          color     #acacac
+        &::-moz-placeholder
+          color     #acacac
+
+        &:focus
+          line-height     24px
+
+/* Embed Styles */
+.embed-image-view
+  margin                20px 0 8px
+  border-top            2px solid #e4e4e4
+
+  a
+  img
+    display             block
+    margin              0
+    padding             0
+
+.embed-link-view
+  padding               1px 19px 19px
+  border-top            1px solid transparent
+
+  .preview-image
+    overflow            hidden
+    size                144px, 100px
+    fl()
+
+    img
+      max-width         100%
+
+    &+.preview-text
+      kalc              width, 100% \- 144px
+
+  .preview-text
+    font-size           12px
+    font-weight         300
+    color               #50595a
+    bg                  color, #f3f3f3
+    height              100px
+    padding             15px
+    borderBox()
+    fl()
+
+    .preview-text-link
+      size              auto, auto
+      color             inherit
+      display           block
+      word-break        break-word
+      overflow          visible
+      noTextDeco()
+
+      .preview-title
+        font-weight     500
+
+      &.description
+        padding         13px 0
+        line-height     15px
+        height          45px
+        overflow        hidden !important
+        borderBox()
+
+        .description-input
+          width         100%
+          margin        15px 0 0 0
+
+    .provider-info
+      size              auto, auto
+      margin-top        8px
+      font-size         12px
+      color             #a9aeaf
+
+  .preview-link-pager
+    .preview-link-switch
+      size                  24px 24px
+      margin                9px 0 0
+      rounded               5px 0 0 5px
+      background            #f7f7f7
+      position              relative
+      cursor                pointer
+      fl()
+
+      &:hover
+        opacity             .9
+
+      &:after
+        content             ""
+        size                0 0
+        border              6px solid transparent
+        border-right-color  #aab5bc
+        left                3px
+        top                 6px
+        abs()
+
+      &:nth-child(2)
+        margin-left         2px
+        rounded             0 5px 5px 0
+
+        &:after
+          left              9px
+          border-right      none
+          border-left-color #aab5bc
+
+    .thumb-count
+      margin                9px 0 0 7px
+      line-height           24px
+      font-size             14px
+      color                 #7a8287
+      fl()
+
+    .thumb-text
+      font-size             12px
+      vertical-align        middle
+      color                 #aab5bc
+
+.activity-input-widget
+  .link-embed-box
+    margin                  18px 0 0
+    rounded                 5px
+    position                relative
+    borderBox()
+
+  .embed-link-view
+    margin                  0
+    border                  none
+
+  .embed-image-view
+    margin                  0 0 -18px
+    border                  none
+
+    &:after
+      content               ""
+      display               block
+      size                  38px 38px
+      rounded               0 0 0 60%
+      bg                    color rgba(255, 255, 255, .6)
+      top                   0
+      right                 0
+      abs()
+
+  .embed-link-view
+    padding                 0
+
+  .preview-image
+    rounded                 5px 0 0 5px
+  .preview-text
+    rounded                 0 5px 5px 0
+
+  .hide-embed
+    right                   7px
+    top                     7px
+    border                  none
+    outline                 none
+    shadow                  none
+    z-index                 10
+    sprite                  app "20-close-tab"
+    abs()
+
+.activity-item.status
+  .link-embed-box
+    .preview-text-link
+      input.preview-title-input
+        display             none
+      textarea.description-input
+        display             none
+
+/* Activity item menu */
+body.activity
+body.profile
+  .kdbuttonmenu.jcontextmenu
+    margin              4px 0 0 14px
+    rounded             6px
+    border              1px solid #e4e4e4
+    shadow              0 8px 35px rgba(0, 0, 0, .22)
+    padding             5px 0
+
+    &:after
+      content             ""
+      display             block
+      size                0 0
+      right               19px
+      bottom              100%
+      border              7px solid transparent
+      border-bottom-color #fff
+      z-index             600
+      abs()
+
+    &:before
+      content             ""
+      display             block
+      size                0 0
+      right               18px
+      bottom              100%
+      border              8px solid transparent
+      border-bottom-color #e4e4e4
+      z-index             599
+      abs()
+
+    .kdlistitemview-contextitem
+      color               #50595f
+      font-size           12px
+      line-height         24px
+      cursor              pointer
+      padding             0 0 0 12px
+
+      .icon
+        margin            0 7px 0 0
+        display           inline-block
+        vertical-align    sub
+        &.edit
+          sprite          activity "edit-icon"
+        &.delete
+          sprite          activity "delete-icon"
+
+      &:hover
+      &.selected
+        bg                color #F8f8f8
+        text-shadow       none
+
+
+    .chevron-ghost-wrapper
+      opacity           0
+
+/** Markdown Styling **/
+span.status-body
+
+  /* Headings */
+  h1, h2, h3, h4, h5, h6
+    color         #50595a
+    font-weight   600
+    margin        0 0 12px
+  h1
+    font-size     22px
+  h2
+    font-size     20px
+  h3
+    font-size     18px
+  h4
+    font-size     16px
+  h5
+    font-size     14px
+  h6
+    font-size     12px
+
+  /* Lists */
+  ol,ul
+    padding               0 25px 12px
+    list-style            none
+    display               block
+    position              relative
+    li
+      position            relative
+    li:before
+      color               #c4c4c9
+      left                -20px
+      abs()
+  ol
+    counter-reset         i 0
+    li:before
+      content             counter(i)
+      counter-increment   i
+  ul
+    li:before
+      content             "\2022"
+      font-size           20px
+
+  /* Paragraphs and other text */
+  p
+    padding               0 0 12px
+  em
+    font-style            italic
+  strong
+    font-weight           600
+  a
+    color                 inherit
+  hr
+    height                1px
+    background            #c4c4c9
+    border                none
+  code
+    display               inline-block
+    font-size             12px
+    border                1px solid #e3e3e3
+    rounded               5px
+    padding               0 4px
+    bg                    color #f2f2f2
+
+  pre
+    code
+      display             block
+      padding             14px
+
+.activity-share-popup
+  bg                      color, #fff
+  margin                  4px 0 0 14px
+  rounded                 6px
+  border                  1px solid #e4e4e4
+  shadow                  0 8px 35px rgba(0, 0, 0, .22)
+  padding                 5px 13px 5px 5px
+
+  &:after
+    content             ""
+    display             block
+    size                0 0
+    left                98px
+    top                 100%
+    border              7px solid transparent
+    border-top-color    #fff
+    z-index             600
+    abs()
+
+  &:before
+    content             ""
+    display             block
+    size                0 0
+    left                97px
+    top                 100%
+    border              8px solid transparent
+    border-top-color    #e4e4e4
+    z-index             599
+    abs()
+
+  .context-list-wrapper
+    padding               0
+
+  input.share-input
+    rounded               6px
+    size                  160px, 40px
+    margin                0
+    fl()
+
+  .icon-link
+    size                  24px, 24px
+    margin                8px 0 0 8px
+    fl()
+    &.custom-link-view
+      sprite              activity, "link-24"
+    &.share-twitter
+      sprite              activity, "twitter-24"
+    &.share-facebook
+      sprite              activity, "facebook-24"
+    &.share-linkedin
+      sprite              activity, "linkedin-24"
+
+
+
+/* Temp style for contentdisplay */
+
+.content-display
+
+  .sub-header
+    margin                22px 0 0
+    display               inline-block
+    padding               5px 15px
+    border                1px solid #c4c4c9
+    rounded               3px
+    &:hover
+      opacity             .5
+    a
+      color               #50595a
+      noTextDeco()
+
+
+  // quick fix:
+  // burak please check and fix if necessary - SY
+  &.activity-related.status
+    kalc                  width, (100% \- 100px)
+    margin-left           100px
+    overflow              visible
+
+    .sub-header
+      margin-left         -78px
