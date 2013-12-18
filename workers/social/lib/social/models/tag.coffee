@@ -73,6 +73,8 @@ module.exports = class JTag extends jraphical.Module
           (signature Function)
         fetchRandomFollowers:
           (signature Object, Function)
+        createSynonym:
+          (signature Object, Function)
       static        :
         one: [
           (signature Object, Function)
@@ -137,6 +139,10 @@ module.exports = class JTag extends jraphical.Module
       meta          : require 'bongo/bundles/meta'
       synonyms      : [String]
       group         : String
+      type          :
+        type        : String
+        enum        : ['invalid type', ['deleted', 'synonym','complete']]
+        default     : 'complete'
       # owner         : ObjectId
     relationships   :->
       JAccount = require './account'
@@ -148,6 +154,9 @@ module.exports = class JTag extends jraphical.Module
       follower      :
         targetType  : JAccount
         as          : 'follower'
+      synonymOf   :
+        targetType  : JTag
+        as          : "synonymOf"
       content       :
         targetType  : [
           "JNewStatusUpdate"
@@ -193,6 +202,7 @@ module.exports = class JTag extends jraphical.Module
 
     selector or= {}
     selector['data.flags.isLowQuality'] = $ne: yes
+    selector['type'] = $ne: "deleted"
 
     @fetchContents selector, options, (err, contents)->
       if err then callback err
@@ -243,26 +253,52 @@ module.exports = class JTag extends jraphical.Module
               callbackForEach null, tag for tag in existingTags
       ]
 
+  create = (data, creator, callback) ->
+    tag = new JTag data
+    tag.createSlug (err, slug)->
+      if err then callback err
+      else
+        tag.slug = slug.slug
+        tag.slug_ = slug.slug
+        tag.save (err)->
+          if err
+            callback err
+          else
+            tag.addCreator creator, (err)->
+              if err
+                callback err
+              else
+                callback null, tag
+
   @create = permit 'create tags',
     success: (client, data, callback)->
       {delegate} = client.connection
+      data.group = client.context
+      create data, delegate, callback
+
+  createSynonym : permit ['create tags', 'read tags'],
+    success: (client, title, callback)->
+      addSynonym = (tag) =>
+        @addSynonymOf tag, (err) =>
+          return callback err if err
+          @update $set: type :'synonym', (err) =>
+            return callback err if err
+            @constructor.emit 'TagIsSynonym', {tagId:@getId()}
+            callback null
+
+      if (@type is 'deleted' or @type is 'synonym')
+        return callback new KodingError "Topic is already set as #{@type}!"
+
+      {delegate} = client.connection
       {group} = client.context
-      tag = new this data
-      tag.group = group
-      tag.createSlug (err, slug)->
-        if err then callback err
+      JTag.one {title}, (err, tag) =>
+        return callback err if err
+        unless tag
+          create {title, group}, delegate, (err, tag) =>
+            return callback err if err
+            addSynonym tag
         else
-          tag.slug = slug.slug
-          tag.slug_ = slug.slug
-          tag.save (err)->
-            if err
-              callback err
-            else
-              tag.addCreator delegate, (err)->
-                if err
-                  callback err
-                else
-                  callback null, tag
+          addSynonym tag
 
   @findSuggestions = (client, seed, options, callback)->
     {limit, blacklist, skip} = options
