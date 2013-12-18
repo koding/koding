@@ -18,7 +18,6 @@ class BugReportController extends AppController
     super options, data
 
   loadView:(mainView)->
-    mainView.createCommons()
     @createFeed mainView
 
   createFeed: (view)->
@@ -33,7 +32,7 @@ class BugReportController extends AppController
           noItemFoundText  : "There is no reported bugs"
           dataSource       : (selector, options, callback) =>
             selector       =
-              limit        : 20
+              limit        : 10
               slug         : "bug"
             KD.remote.api.JNewStatusUpdate.fetchTopicFeed selector, callback
       sort                 :

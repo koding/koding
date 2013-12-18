@@ -1,6 +1,25 @@
-class BugReportMainView extends KDView
+class BugReportMainView extends KDScrollView
 
-  createCommons:->
-    @addSubView @header = new HeaderViewSection
-      type  : "big"
-      title : "Bugs"
+  constructor:(options = {}, data)->
+    super options, data
+
+    @filterMenu = new KDSelectBox
+      selectOptions : [
+        { title : "all"     , value : "all"         }
+        { title : "fixed"     , value : "fixed"     }
+        { title : "postponed" , value : "postponed" }
+        { title : "not repro" , value : "not repro" }
+        { title : "duplicate" , value : "duplicate" }
+        { title : "by design" , value : "by design" }
+      ]
+      callback      : ->
+        log "Need to filter bug report feeder "
+
+    @inputWidget = new ActivityInputWidget
+
+    @addSubView @filterMenu
+    @addSubView @inputWidget
+
+  viewAppended:->
+    KD.remote.api.JTag.one slug:"bug", null, (err, tag) =>
+      @inputWidget.input.setDefaultTokens tags: [tag]
