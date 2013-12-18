@@ -13,7 +13,6 @@ var (
   MONGO_CONN_STRING = config.Current.Mongo
   REL_COLL          *mgo.Collection
   TAG_COLL          *mgo.Collection
-  TRASH_COLL        *mgo.Collection
   POST_COLL         *mgo.Collection
 )
 
@@ -33,7 +32,6 @@ func initMongo() {
   DATABASE = session.DB("koding")
   REL_COLL = DATABASE.C("relationships")
   TAG_COLL = DATABASE.C("jTags")
-  TRASH_COLL = DATABASE.C("trashes")
   POST_COLL = DATABASE.C("jNewStatusUpdates") //CtF this will change
 }
 
@@ -51,30 +49,8 @@ func FindTagById(tagId string) Tag {
   return tag
 }
 
-func FindDeletedTagById(tagId string) Tag {
-  trash := Trash{}
-
-  query := bson.M{
-    "constructorName": "JTag",
-    "data._id":        bson.ObjectIdHex(tagId),
-  }
-
-  if err := TRASH_COLL.Find(query).One(&trash); err != nil {
-    log.Println("Error in Tag Fetching: ", err)
-    panic(err)
-  }
-
-  return trash.Tag
-}
-
-func FindRelationshipsWithTagId(tagId string) []Relationship {
-  log.Println("TagId", tagId)
+func FindRelationships(query bson.M) []Relationship {
   var relationships []Relationship
-  query := bson.M{
-    "as":       "tag",
-    "targetId": bson.ObjectIdHex(tagId),
-  }
-
   if err := REL_COLL.Find(query).All(&relationships); err != nil {
     log.Println("Relationship fetch error", err)
     panic(err)
@@ -104,20 +80,31 @@ func UpdatePost(post *StatusUpdate) {
   }
 }
 
-func RemoveTagRelationship(rel Relationship) {
-  if err := REL_COLL.Remove(bson.M{"_id": rel.Id}); err != nil {
-    log.Println("Remove Tag Relationship error", err)
+func UpdateTag(tag *Tag) {
+  if err := TAG_COLL.UpdateId(tag.Id, tag); err != nil {
+    log.Println("Tag update error", err)
     panic(err)
   }
+}
 
-  // bidirectional tag relationship exists here
-  query := bson.M{
-    "sourceId": rel.TargetId,
-    "targetId": rel.SourceId,
-    "as":       "post",
+func FindSynonym(tagId string) Tag {
+  rels := FindRelationships(bson.M{"sourceId": bson.ObjectIdHex(tagId), "as": "synonymOf"})
+  if len(rels) > 0 {
+    synonym := rels[0]
+    return FindTagById(synonym.TargetId.Hex())
+  } else {
+    return Tag{}
   }
-  if err := REL_COLL.Remove(query); err != nil {
-    log.Println("Remove Tag Relationship error", err)
-    panic(err)
+}
+
+func RemoveRelationship(rel Relationship) {
+  if err := REL_COLL.Remove(bson.M{"_id": rel.Id}); err != nil {
+    log.Println("Remove Relationship error", err)
+  }
+}
+
+func CreateRelationship(rel Relationship) {
+  if err := REL_COLL.Insert(rel); err != nil {
+    log.Println("Insert Relationship error", err)
   }
 }
