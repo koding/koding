@@ -61,13 +61,8 @@ class MainController extends KDController
 
       console.timeEnd "Koding.com loaded"
 
-  accountChanged:(account, firstLoad = no)->
-    @userAccount             = account
-    connectedState.connected = yes
-
-    @on "pageLoaded.as.loggedIn", (account)=> # ignore othter parameters
-      KD.utils.setPreferredDomain account if account
-      if registerToKodingClient = $.cookie "register-to-koding-client"
+  registerKodingClient: ->
+    if registerToKodingClient = $.cookie "register-to-koding-client"
         clear = ->
           $.cookie "register-to-koding-client", erase:yes
           window.location.pathname = "/"
@@ -129,12 +124,23 @@ class MainController extends KDController
               hostname:result.hostID
           }, (err, res)=>
             fn = => k.tell "info", handleInfo
-            return showErrorModal err, fn if err
-            clear()
-            result.cb true
-            KD.utils.wait 500, clear
+            return showErrorModal err.message, fn if err
+            showSuccessfulModal res, =>
+              result.cb true
+              KD.utils.wait 500, clear
 
         k.tell "info", handleInfo
+
+  accountChanged:(account, firstLoad = no)->
+    @userAccount             = account
+    connectedState.connected = yes
+
+    @on "pageLoaded.as.loggedIn", (account)=> # ignore othter parameters
+      KD.utils.setPreferredDomain account if account
+      @emit "changedToLoggedIn"
+
+    @once "accountChanged.to.loggedIn", (account)=> # ignore othter parameters
+      @emit "changedToLoggedIn"
 
     account.fetchMyPermissionsAndRoles (err, permissions, roles)=>
       return warn err  if err
@@ -179,6 +185,9 @@ class MainController extends KDController
   attachListeners:->
     # @on 'pageLoaded.as.(loggedIn|loggedOut)', (account)=>
     #   log "pageLoaded", @isUserLoggedIn()
+
+    @once 'changedToLoggedIn', (account)=>
+      @registerKodingClient()
 
     # TODO: this is a kludge we needed.  sorry for this.  Move it someplace better C.T.
     wc = @getSingleton 'windowController'
