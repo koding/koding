@@ -7,6 +7,10 @@ class NavigationLink extends KDListItemView
     data.type        or= ''
     options.tagName  or= 'a'
     options.type     or= 'main-nav'
+    options.tooltip    =
+      title            : "#{data.title}"
+      placement        : "bottom"
+      arrow            : "top"
     options.draggable  = yes
       # axis             : 'xy'
       # containment      : 'parent' #KD.getSingleton('DockController').getView()
