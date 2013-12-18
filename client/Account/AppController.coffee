@@ -34,7 +34,7 @@ class AccountAppController extends AppController
     danger  :
       title : "Danger"
       items : [
-        { slug: 'Delete', title : "Delete Account", listHeader: "Danger Zone", listType: "delete" }
+        { slug: 'Delete', title : "Delete Account", listHeader: "Danger Zone", listType: "deleteAccount" }
       ]
 
   constructor:(options={}, data)->

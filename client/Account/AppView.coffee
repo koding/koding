@@ -18,7 +18,7 @@ class AccountListWrapper extends KDView
     editors                    : AccountEditorList
     keysController             : AccountSshKeyListController
     keys                       : AccountSshKeyList
-    delete                     : DeleteAccountView
+    deleteAccount              : DeleteAccountView
 
   viewAppended:->
 
