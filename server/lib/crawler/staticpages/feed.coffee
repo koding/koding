@@ -140,7 +140,7 @@ createTagNode = (tag)->
     tagContent +=
     """
       <p>
-        <a href="#{uri.address}/#!/Topics/#{tag.slug}"><span itemprop="itemListElement">#{tag.title}</span></a>
+        <a href="#{uri.address}/#!/Activity?tagged=#{tag.slug}"><span itemprop="itemListElement">#{tag.title}</span></a>
       </p>
     """
   if tag?.counts?.followers?
