@@ -5,7 +5,6 @@ jraphical = require 'jraphical'
 {CronJob} = require 'cron'
 
 NAMEPERPAGE = 50000
-GROUPPERPAGE = 5
 
 module.exports = class SitemapGeneratorWorker extends EventEmitter
   constructor: (@bongo, @options = {}) ->
@@ -49,6 +48,10 @@ module.exports = class SitemapGeneratorWorker extends EventEmitter
 
     {JName, JSitemap} = @bongo.models
 
+    feedLinksAdded = no
+    activityFeedURL = "Activity"
+    topicsFeedURL = "Topics"
+
     generateSitemapIndex = (sitemapNames)=>
       name = "sitemap.xml"
       content = @generateSitemapIndexString sitemapNames
@@ -77,6 +80,12 @@ module.exports = class SitemapGeneratorWorker extends EventEmitter
         JName.some selector, option, (err, names)=>
           if names
             urls = (name.name for name in names)
+
+            unless feedLinksAdded
+              urls.push activityFeedURL
+              urls.push topicsFeedURL
+              feedLinksAdded = yes
+
             sitemapName =  @generateSitemapName skip
             content = @generateSitemapString urls
             @saveSitemap sitemapName, content
