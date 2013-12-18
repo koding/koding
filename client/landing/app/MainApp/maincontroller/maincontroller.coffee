@@ -65,8 +65,50 @@ class MainController extends KDController
     @userAccount             = account
     connectedState.connected = yes
 
-    @on "pageLoaded.as.loggedIn", (account)-> # ignore othter parameters
+    @on "pageLoaded.as.loggedIn", (account)=> # ignore othter parameters
       KD.utils.setPreferredDomain account if account
+      if registerToKodingClient = $.cookie "register-to-koding-client"
+        clear = ->
+          $.cookie "register-to-koding-client", erase:yes
+          window.location.pathname = "/"
+
+        k = new NewKite
+          name: "kodingclient"
+          publicIP: "127.0.0.1"
+          port: "5555"
+
+        k.connect()
+
+        showErrorModal = (err, callback)->
+          modal = new KDBlockingModalView
+            title        : "Want to try again?"
+            content      : "<div class='modalformline'>#{err.message}</div>"
+            height       : "auto"
+            overlay      : yes
+            buttons      :
+              Retry      :
+                style    : "modal-clean-gray"
+                callback : ->
+                  modal.destroy()
+                  callback?()
+              Cancel      :
+                style    : "modal-clean-red"
+                callback : ->
+                  modal.destroy()
+                  clear()
+
+        handleInfo = (err, result)=>
+          KD.remote.api.JKodingKey.registerHostnameAndKey {
+              key:result.key
+              hostname:result.hostID
+          }, (err, res)=>
+            fn = => k.tell "info", handleInfo
+            return showErrorModal err, fn if err
+            clear()
+            result.cb true
+            KD.utils.wait 500, clear
+
+        k.tell "info", handleInfo
 
     account.fetchMyPermissionsAndRoles (err, permissions, roles)=>
       return warn err  if err
