@@ -279,8 +279,9 @@ class TeamworkWorkspace extends CollaborativeWorkspace
     @workspaceRef.child("activityId").once "value", (snapshot) =>
       return  unless id = snapshot.val()
       shareButton.hide()
-      @activityWidget.display id
-      @activityWidget.show()
+      @notification.hide()
+      @activityWidget.display id, =>
+        @activityWidget.hideForm()
 
   share: ->
     @activityWidget.show()
