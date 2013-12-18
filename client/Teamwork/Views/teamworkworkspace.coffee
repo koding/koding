@@ -283,6 +283,9 @@ class TeamworkWorkspace extends CollaborativeWorkspace
       @activityWidget.display id, =>
         @activityWidget.hideForm()
 
+    @delegate.on "Exported", (name, url) =>
+      @activityWidget.reply "#{KD.nick()} exported #{name} #{url}"
+
   share: ->
     @activityWidget.show()
     @activityWidget.unsetClass "collapsed"
