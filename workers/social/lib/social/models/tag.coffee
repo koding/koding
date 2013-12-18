@@ -292,7 +292,7 @@ module.exports = class JTag extends jraphical.Module
           callback new KodingError 'Access denied'
         else
           tagId = @getId()
-          @remove (err)=>
+          @update {$set: type: "deleted"}, (err)=>
             if err
               callback err
             else
