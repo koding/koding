@@ -199,12 +199,12 @@ class BrokerPing extends Pinger
     @remote.on 'disconnected'      , @bound 'reset'
     @remote.on 'disconnected'      , @bound 'setStopPinging'
     @remote.on 'connected'         , @bound 'setStartPinging'
-    @remote.on 'connected'         , @bound 'pingChannel'
+    @remote.on 'connected'         , @bound 'ping'
 
   handleUnresponsiveChannel: ->
     log "broker unresponsive since #{@lastPong}"
 
-  pingChannel: (callback)->
+  ping: (callback)->
     return if @stopPinging
     @channel.ping callback
 
