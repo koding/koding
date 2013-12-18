@@ -72,8 +72,10 @@ module.exports = class JTag extends jraphical.Module
         delete:
           (signature Function)
       static        :
-        one:
+        one: [
           (signature Object, Function)
+          (signature Object, Object, Function)
+        ]
         on:
           (signature String, Function)
         some:

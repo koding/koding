@@ -90,7 +90,8 @@ button
 
   .on-top
     z-index         100
-    bg              color, #252E30
+    border          none !important
+    background      none !important
 
   > a
     abs()
@@ -120,6 +121,8 @@ button
 
     &.selected
       bg            color, #2b3335
+      .icon
+        margin-top  9px
 
     &.running
       border-top    2px solid #1aaf5d

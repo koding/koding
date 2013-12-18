@@ -1,7 +1,9 @@
 class AccountPaymentMethodsListController extends AccountListViewController
+
   constructor:(options,data)->
 
     options.noItemFoundText = "You have no payment method."
+
     super options, data
 
     data = @getData()
@@ -45,17 +47,14 @@ class AccountPaymentMethodsListController extends AccountListViewController
 
     KD.whoami().fetchPaymentMethods (err, paymentMethods) =>
       @instantiateListItems paymentMethods
-      @hideLazyLoader()
 
-  loadView:->
-    super
-    @getView().parent.addSubView addButton = new KDButtonView
-      style     : "solid green small account-header-button"
-      title     : ""
-      icon      : yes
-      iconOnly  : yes
-      iconClass : "plus"
-      callback  : => @showModal()
+      @addButton?.destroy()
+      @getListView().addSubView @addButton = new KDCustomHTMLView
+        cssClass  : 'kdlistitemview-cc plus'
+        partial   : '<span><i></i><i></i></span>'
+        click     : => @showModal()
+
+      @hideLazyLoader()
 
   showModal: (initialPaymentInfo) ->
     paymentController = KD.getSingleton 'paymentController'
@@ -73,18 +72,24 @@ class AccountPaymentMethodsListController extends AccountListViewController
       else
         modal.destroy()
 
+
 class AccountPaymentMethodsList extends KDListView
-  constructor:(options,data)->
-    options = $.extend
-      tagName      : "ul"
-      itemClass : AccountPaymentMethodsListItem
-    ,options
+
+  constructor:(options = {},data)->
+
+    options.tagName   = "ul"
+    options.itemClass = AccountPaymentMethodsListItem
+
     super options,data
 
+
 class AccountPaymentMethodsListItem extends KDListItemView
-  constructor:(options, data)->
-    options.tagName = "li"
-    options.cssClass = 'credit-card-list-item'
+
+  constructor:(options = {}, data)->
+
+    options.tagName  = "li"
+    options.type     = 'cc'
+
     super options,data
 
     data = @getData()

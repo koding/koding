@@ -31,6 +31,11 @@ class EntryPage extends KDSlidePageView
   viewAppended:->
 
     @addSubView new KDCustomHTMLView
+      partial   : "Login"
+      cssClass  : "login-button"
+      click     : -> KD.getSingleton('router').handleRoute '/Login'
+
+    @addSubView new KDCustomHTMLView
       cssClass  : "top-slogan"
       partial   : """
         A new way for developers to work

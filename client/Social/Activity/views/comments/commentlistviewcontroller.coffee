@@ -89,7 +89,7 @@ class CommentListViewController extends KDListViewController
       listView.emit "AllCommentsWereAdded"
       callback err, comments
 
-  fetchRelativeComments:(_limit = 10, _after)->
+  fetchRelativeComments:(_limit = 10, _after, continuous = yes)->
     listView = @getListView()
     message = @getListView().getData()
     message.fetchRelativeComments limit:_limit, after:_after, (err, comments)=>
@@ -102,7 +102,7 @@ class CommentListViewController extends KDListViewController
 
       if comments.length is _limit
         startTime = comments[comments.length-1].meta.createdAt
-        @fetchRelativeComments 11, startTime
+        @fetchRelativeComments ++_limit, startTime, continuous  if continuous
       else
         listView = @getListView()
         listView.emit "BackgroundActivityFinished"
