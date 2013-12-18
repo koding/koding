@@ -46,7 +46,7 @@ module.exports = class JVM extends Module
           (signature Object, Function)
         ]
         fetchVmsByContext:
-          (signature Object, Function)
+          (signature Function)
         fetchVmInfo:
           (signature String, Function)
         fetchDomains:
