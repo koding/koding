@@ -67,10 +67,12 @@ class MainController extends KDController
           $.cookie "register-to-koding-client", erase:yes
           window.location.pathname = "/"
 
+        # We pick up 54321 because it's in dynamic range and no one uses it
+        # http://en.wikipedia.org/wiki/List_of_TCP_and_UDP_port_numbers
         k = new NewKite
           name: "kodingclient"
           publicIP: "127.0.0.1"
-          port: "5555"
+          port: "54321"
 
         k.connect()
 

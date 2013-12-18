@@ -54,8 +54,8 @@ module.exports = class JKodingKey extends jraphical.Module
     JKodingKey.one
       key   : options.key
     , (err, key)->
-      callback err, no if err
-      callback null, no unless key
+      return callback err, no if err
+      return callback null, no unless key
       callback null, yes
 
   @createKeyByUser = (options, callback)->
