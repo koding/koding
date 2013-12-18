@@ -79,23 +79,49 @@ class MainController extends KDController
 
         k.connect()
 
-        showErrorModal = (err, callback)->
+        showErrorModal = (message, callback)->
           modal = new KDBlockingModalView
-            title        : "Want to try again?"
-            content      : "<div class='modalformline'>#{err.message}</div>"
+            title        : "Kite Registration"
+            content      : "<div class='modalformline'>#{message}</div>"
+            height       : "auto"
+            overlay      : yes
+            buttons      : {}
+
+          Retry      =
+            style    : "modal-clean-gray"
+            callback : ->
+              modal.destroy()
+              callback?()
+
+          Cancel     =
+            style    : "modal-clean-red"
+            callback : ->
+              modal.destroy()
+              clear()
+
+          Ok         =
+            style    : "modal-clean-gray"
+            callback : ->
+              modal.destroy()
+              clear()
+
+          if /^Authentication\ already\ established/.test message
+            modal.setButtons {Ok}, yes
+          else
+            modal.setButtons {Retry, Cancel}, yes
+
+        showSuccessfulModal = (message, callback)->
+          modal = new KDBlockingModalView
+            title        : "Kite Registration"
+            content      : "<div class='modalformline'>#{message}</div>"
             height       : "auto"
             overlay      : yes
             buttons      :
-              Retry      :
-                style    : "modal-clean-gray"
+              Ok         :
+                style    : "modal-clean-green"
                 callback : ->
                   modal.destroy()
                   callback?()
-              Cancel      :
-                style    : "modal-clean-red"
-                callback : ->
-                  modal.destroy()
-                  clear()
 
         handleInfo = (err, result)=>
           KD.remote.api.JKodingKey.registerHostnameAndKey {
