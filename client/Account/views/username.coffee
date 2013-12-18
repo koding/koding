@@ -173,7 +173,7 @@ class AccountEditUsername extends JView
       width       : 160
       height      : 160
     click         : =>
-      KD.singleton('appManager').create 'Activity', =>
+      KD.singleton('appManager').require 'Activity', =>
         pos =
           top  : @avatar.getY() - 8
           left : @avatar.getX() - 8

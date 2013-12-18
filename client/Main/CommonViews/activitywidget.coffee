@@ -7,10 +7,7 @@ class ActivityWidget extends KDView
 
   showForm: (callback) ->
     @inputWidget?.show()
-    @inputWidget.once "Submit", (err, activity) =>
-      return  KD.showError err if err
-      @addActivity activity  if activity
-      callback err, activity
+    @inputWidget.once "Submit", callback
 
   hideForm: ->
     @inputWidget?.destroy()
@@ -36,5 +33,8 @@ class ActivityWidget extends KDView
 
   viewAppended: ->
     {defaultValue} = @getOptions()
-    KD.singleton("appManager").create "Activity", =>
+    KD.singleton("appManager").require "Activity", =>
       @addSubView @inputWidget = new ActivityInputWidget {defaultValue}
+      @inputWidget.once "Submit", (err, activity) =>
+        return  KD.showError err if err
+        @addActivity activity  if activity

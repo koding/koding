@@ -52,10 +52,10 @@ class WebTermAppView extends JView
 
   checkVM:->
 
-    KD.mixpanel "Click open Webterm", {vmName}
-
     vmController = KD.getSingleton 'vmController'
     vmController.fetchDefaultVmName (vmName)=>
+
+      KD.mixpanel "Click open Webterm", {vmName}
 
       unless vmName
         return @setMessage "It seems you don't have a VM to use with Terminal."

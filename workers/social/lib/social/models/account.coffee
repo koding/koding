@@ -874,7 +874,7 @@ module.exports = class JAccount extends jraphical.Module
     @update ($set: 'counts.lastLoginDate': new Date), ->
 
     # Twitter follower count
-    JUser.one {username: @profile.nickname}, (err, user)->
+    JUser.one {username: @profile.nickname}, (err, user)=>
       return if err or not user
       if user.foreignAuth?.twitter?
         followerCount = user.foreignAuth.twitter.profile.followers_count
