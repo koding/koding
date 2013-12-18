@@ -235,6 +235,18 @@ app.get "/-/oauth/google/callback"    , require "./google_callback"
 app.get "/-/oauth/linkedin/callback"  , require "./linkedin_callback"
 app.get "/-/oauth/twitter/callback"   , require "./twitter_callback"
 
+# TODO: we need to add basic auth!
+app.all '/-/email/webhook', (req, res) ->
+  { JMail } = koding.models
+  { body: batch } = req
+
+  for item in batch
+    if item.event is 'delivered'
+      JMail.markDelivered item, (err) ->
+        console.warn err  if err
+
+  res.send 'ok'
+
 app.get "/Landing/:page", (req, res, next) ->
   {page}      = req.params
   bongoModels = koding.models
