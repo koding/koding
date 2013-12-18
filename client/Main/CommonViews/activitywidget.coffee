@@ -1,6 +1,7 @@
 class ActivityWidget extends KDView
   constructor: (options = {}, data) ->
     options.cssClass       = KD.utils.curry "status-update-widget", options.cssClass
+    options.showForm     or= yes
     options.childOptions or= {}
     super options, data
     @activity = null
@@ -10,7 +11,7 @@ class ActivityWidget extends KDView
     @inputWidget.once "Submit", callback
 
   hideForm: ->
-    @inputWidget?.destroy()
+    @inputWidget?.hide()
 
   display: (id, callback = noop) ->
     KD.remote.cacheable "JNewStatusUpdate", id, (err, activity) =>
@@ -32,8 +33,8 @@ class ActivityWidget extends KDView
     @addSubView new ActivityWidgetItem @getOptions().childOptions, activity
 
   viewAppended: ->
-    {defaultValue} = @getOptions()
-    KD.singleton("appManager").create "Activity", =>
+    {defaultValue, showForm} = @getOptions()
+    KD.singleton("appManager").require "Activity", =>
       @addSubView @inputWidget = new ActivityInputWidget {defaultValue}
       @inputWidget.once "Submit", (err, activity) =>
         return  KD.showError err if err

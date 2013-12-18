@@ -44,7 +44,7 @@ class ActivityTickerLikeItem extends ActivityTickerBaseItem
     {source, target, subject} = data
 
     @avatar    = new AvatarView
-      size     : width: 28, height: 28
+      size     : width: 30, height: 30
       cssClass : "avatarview"
     , source
 
@@ -82,7 +82,7 @@ class ActivityTickerMemberItem extends ActivityTickerBaseItem
     {target} = data
 
     @avatar    = new AvatarView
-      size     : width: 28, height: 28
+      size     : width: 30, height: 30
       cssClass : "avatarview"
     , target
 
@@ -103,7 +103,7 @@ class ActivityTickerAppUserItem extends ActivityTickerBaseItem
     {source, target} = data
 
     @avatar    = new AvatarView
-      size     : width: 28, height: 28
+      size     : width: 30, height: 30
       cssClass : "avatarview"
     , target
 
@@ -124,7 +124,7 @@ class ActivityTickerCommentItem extends ActivityTickerBaseItem
     {source, target, object, subject} = data
 
     @avatar    = new AvatarView
-      size     : width: 28, height: 28
+      size     : width: 30, height: 30
       cssClass : "avatarview"
     , source
 
@@ -162,7 +162,7 @@ class ActivityTickerStatusUpdateItem extends ActivityTickerBaseItem
     {source, target} = data
 
     @avatar    = new AvatarView
-      size     : width: 28, height: 28
+      size     : width: 30, height: 30
       cssClass : "avatarview"
     , target
 
@@ -261,3 +261,18 @@ class ActiveTopicItemView extends KDListItemView
   viewAppended:->
     @addSubView @tag
     @addSubView @followButton
+
+    @addSubView tagInfo = new KDCustomHTMLView
+      cssClass          : "tag-info clearfix"
+
+    @getData().fetchRandomFollowers {}, =>
+      randomFollowers = arguments[1]
+      for user in randomFollowers
+        tagInfo.addSubView new AvatarView
+          size: { width: 19, height: 19 }
+        , user
+
+      tagInfo.addSubView new KDCustomHTMLView
+        tagName   : "span"
+        cssClass  : "total-following"
+        partial   : "+#{@getData().counts.followers} is following"

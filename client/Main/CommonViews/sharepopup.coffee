@@ -48,8 +48,6 @@ class SharePopup extends JView
     @facebookShareLink = @buildFacebookShareLink()
     @linkedInShareLink = @buildLinkedInShareLink()
 
-    @openNewTabButton = @buildNewTabLink()
-
   buildURLInput:()->
     @urlInput = new KDInputView
       cssClass    : "share-input"
@@ -107,24 +105,9 @@ class SharePopup extends JView
           "width=626,height=436,left=#{Math.floor (screen.width/2) - (500/2)},top=#{Math.floor (screen.height/2) - (350/2)}"
         )
 
-  buildNewTabLink:()->
-    if @getOptions().newTab.enabled
-      return new CustomLinkView
-        cssClass    : "icon-link"
-        title       : ""
-        href        :  @getOptions().newTab.url
-        target      :  "_blank"
-        icon        :
-          cssClass  : 'new-page'
-          placement : 'right'
-
-    # if  is not provided, do not show
-    return new KDView
-
   pistachio: ->
     """
     {{> @urlInput}}
-    {{> @openNewTabButton}}
     {{> @twitterShareLink}}
     {{> @facebookShareLink}}
     {{> @linkedInShareLink}}

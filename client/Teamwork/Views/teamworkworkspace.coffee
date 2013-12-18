@@ -261,7 +261,7 @@ class TeamworkWorkspace extends CollaborativeWorkspace
           @activityWidget.hide()
 
     panel.addSubView shareButton = new KDButtonView
-      cssClass   : "tw-share-button"
+      cssClass   : "tw-rounded-button share"
       title      : "Share"
       callback   : @bound "share"
 
@@ -279,8 +279,12 @@ class TeamworkWorkspace extends CollaborativeWorkspace
     @workspaceRef.child("activityId").once "value", (snapshot) =>
       return  unless id = snapshot.val()
       shareButton.hide()
-      @activityWidget.display id
-      @activityWidget.show()
+      @notification.hide()
+      @activityWidget.display id, =>
+        @activityWidget.hideForm()
+
+    @delegate.on "Exported", (name, url) =>
+      @activityWidget.reply "#{KD.nick()} exported #{name} #{url}"
 
   share: ->
     @activityWidget.show()
