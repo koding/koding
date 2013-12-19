@@ -27,7 +27,7 @@ class WebTermView extends KDView
         iconOnly      : yes
         iconClass     : "cog"
         type          : "contextmenu"
-        delegate      : @
+        delegate      : this
         itemClass     : WebtermSettingsView
         click         : (pubInst, event)-> @contextMenu event
         menu          : @getAdvancedSettingsMenuItems.bind @
@@ -205,7 +205,7 @@ class WebTermView extends KDView
 
   setKeyView: ->
     super
-    KD.getSingleton('windowController').addLayer @
+    KD.getSingleton('windowController').addLayer this
     @focused = true
     @terminal.setFocused true
 
