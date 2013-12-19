@@ -9,7 +9,7 @@ class NFinderDeleteDialog extends KDModalView
     options.content  = ""
     options.overlay  = yes
     options.cssClass = "new-kdmodal"
-    options.width    = 400
+    options.width    = 500
     options.height   = "auto"
     options.buttons  = {}
     options.buttons["Yes, delete #{numFiles}"] =
