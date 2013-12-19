@@ -103,17 +103,19 @@ module.exports = class JKodingKey extends jraphical.Module
     return new KodingError "Key is not valid" unless @authCheckKey key
     return new KodingError "Data is not valid" unless username and hostname
 
-    JKodingKey.one {key:key}, (err, kodingKey)=>
+    JKodingKey.one {key}, (err, kodingKey)=>
       if err
         console.warn "Error occured while fetching koding-key username: #{username}, key: #{key}, err :#{err}"
         return callback new KodingError "There is a problem with your key"
 
       if kodingKey
         errMessage = "Authentication already established with #{kodingKey.hostname}!"
-        return callback new KodingError errMessage
+        error = new KodingError errMessage
+        error.code = 201
+        return callback error
 
       # if not created before, create here
-      JKodingKey.createKeyByUser {username, hostname, key}, (err, data)=>
+      JKodingKey.createKeyByUser {username, hostname, key}, (err, data)->
         if err
           console.warn "Error occured while creating koding key - Err: #{err}, "
           return callback new KodingError "An error occured while saving your key, please try again later"
