@@ -34,6 +34,9 @@ class ActivityWidget extends KDView
     @activity = activity
     @addSubView new ActivityWidgetItem @getOptions().childOptions, activity
 
+  setInputContent: (str = "") ->
+    @inputWidget?.input.setContent str
+
   viewAppended: ->
     {defaultValue, showForm} = @getOptions()
     KD.singleton("appManager").require "Activity", =>
