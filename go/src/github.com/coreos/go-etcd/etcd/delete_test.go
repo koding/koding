@@ -7,21 +7,21 @@ import (
 func TestDelete(t *testing.T) {
 	c := NewClient(nil)
 	defer func() {
-		c.DeleteAll("foo")
+		c.Delete("foo", true)
 	}()
 
 	c.Set("foo", "bar", 5)
-	resp, err := c.Delete("foo")
+	resp, err := c.Delete("foo", false)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	if !(resp.PrevValue == "bar" && resp.Value == "") {
-		t.Fatalf("Delete failed with %s %s", resp.PrevValue,
-			resp.Value)
+	if !(resp.Node.Value == "") {
+		t.Fatalf("Delete failed with %s %s", resp.Node.PrevValue,
+			resp.Node.Value)
 	}
 
-	resp, err = c.Delete("foo")
+	resp, err = c.Delete("foo", false)
 	if err == nil {
 		t.Fatalf("Delete should have failed because the key foo did not exist.  "+
 			"The response was: %v", resp)
@@ -31,32 +31,38 @@ func TestDelete(t *testing.T) {
 func TestDeleteAll(t *testing.T) {
 	c := NewClient(nil)
 	defer func() {
-		c.DeleteAll("foo")
-		c.DeleteAll("fooDir")
+		c.Delete("foo", true)
+		c.Delete("fooDir", true)
 	}()
 
 	c.Set("foo", "bar", 5)
-	resp, err := c.DeleteAll("foo")
+	// test delete an empty dir
+	resp, err := c.DeleteDir("foo")
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	if !(resp.PrevValue == "bar" && resp.Value == "") {
+	if !(resp.Node.Value == "") {
 		t.Fatalf("DeleteAll 1 failed: %#v", resp)
 	}
 
-	c.SetDir("fooDir", 5)
+	c.CreateDir("fooDir", 5)
 	c.Set("fooDir/foo", "bar", 5)
-	resp, err = c.DeleteAll("fooDir")
+	_, err = c.DeleteDir("fooDir")
+	if err == nil {
+		t.Fatal("should not able to delete a non-empty dir with deletedir")
+	}
+
+	resp, err = c.Delete("fooDir", true)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	if !(resp.PrevValue == "" && resp.Value == "") {
+	if !(resp.Node.Value == "") {
 		t.Fatalf("DeleteAll 2 failed: %#v", resp)
 	}
 
-	resp, err = c.DeleteAll("foo")
+	resp, err = c.Delete("foo", true)
 	if err == nil {
 		t.Fatalf("DeleteAll should have failed because the key foo did not exist.  "+
 			"The response was: %v", resp)

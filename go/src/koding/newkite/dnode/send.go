@@ -2,7 +2,6 @@ package dnode
 
 import (
 	"encoding/json"
-	"fmt"
 	"reflect"
 	"strconv"
 	"strings"
@@ -15,12 +14,17 @@ func (d *Dnode) Call(method string, arguments ...interface{}) (map[string]Path, 
 		panic("Empty method name")
 	}
 
-	return d.call(method, arguments...)
+	if arguments == nil {
+		arguments = make([]interface{}, 0)
+	}
+	if d.WrapMethodArgs != nil {
+		arguments = d.WrapMethodArgs(arguments, d.transport)
+	}
+
+	return d.send(method, arguments)
 }
 
-func (d *Dnode) call(method interface{}, arguments ...interface{}) (map[string]Path, error) {
-	l.Printf("Call method: %s arguments: %+v\n", fmt.Sprint(method), arguments)
-
+func (d *Dnode) send(method interface{}, arguments []interface{}) (map[string]Path, error) {
 	var err error
 	callbacks := make(map[string]Path)
 	defer func() {
@@ -38,7 +42,6 @@ func (d *Dnode) call(method interface{}, arguments ...interface{}) (map[string]P
 
 	rawArgs, err := json.Marshal(arguments)
 	if err != nil {
-		l.Printf("Cannot marshal arguments: %s: %#v", err, arguments)
 		return nil, err
 	}
 
@@ -51,13 +54,11 @@ func (d *Dnode) call(method interface{}, arguments ...interface{}) (map[string]P
 
 	data, err := json.Marshal(msg)
 	if err != nil {
-		l.Printf("Cannot marshal message: %s: %#v", err, msg)
 		return nil, err
 	}
 
 	err = d.transport.Send(data)
 	if err != nil {
-		l.Printf("Cannot send message over transport: %s", err)
 		return nil, err
 	}
 
@@ -65,7 +66,7 @@ func (d *Dnode) call(method interface{}, arguments ...interface{}) (map[string]P
 	return callbacks, nil
 }
 
-// Used to remove callbacks after error occurs in call().
+// Used to remove callbacks after error occurs in send().
 func (d *Dnode) removeCallbacks(callbacks map[string]Path) {
 	for id, _ := range callbacks {
 		delete(d.handlers, id)
@@ -73,7 +74,7 @@ func (d *Dnode) removeCallbacks(callbacks map[string]Path) {
 }
 
 // collectCallbacks walks over the rawObj and populates callbackMap
-// with callbacks. This is a recursive function. The top level call must
+// with callbacks. This is a recursive function. The top level send must
 // sends arguments as rawObj, an empty path and empty callbackMap parameter.
 func (d *Dnode) collectCallbacks(rawObj interface{}, path Path, callbackMap map[string]Path) {
 	switch obj := rawObj.(type) {
@@ -124,12 +125,31 @@ func (d *Dnode) collectFields(v reflect.Value, path Path, callbackMap map[string
 	for i := 0; i < v.NumField(); i++ {
 		f := v.Type().Field(i)
 
-		name := f.Tag.Get("json")
-		if name == "" {
+		if f.PkgPath != "" { // unexported
+			continue
+		}
+
+		// Do not collect callbacks for "-" tagged fields.
+		tag := f.Tag.Get("dnode")
+		if tag == "-" {
+			continue
+		}
+
+		tag = f.Tag.Get("json")
+		if tag == "-" {
+			continue
+		}
+
+		var name string
+		if tag != "" {
+			name = tag
+		} else {
 			name = f.Name
 		}
 
-		if f.PkgPath == "" { // exported
+		if f.Anonymous {
+			d.collectCallbacks(v.Field(i).Interface(), path, callbackMap)
+		} else {
 			d.collectCallbacks(v.Field(i).Interface(), append(path, name), callbackMap)
 		}
 	}
@@ -161,9 +181,5 @@ func (d *Dnode) registerCallback(val reflect.Value, path Path, callbackMap map[s
 	callbackMap[seq] = pathCopy
 
 	// Save in client callbacks so we can call it when we receive a call.
-	if fn, ok := val.Interface().(Handler); ok {
-		d.callbacks[next] = fn
-	} else {
-		d.callbacks[next] = SimpleFunc(val)
-	}
+	d.callbacks[next] = val
 }

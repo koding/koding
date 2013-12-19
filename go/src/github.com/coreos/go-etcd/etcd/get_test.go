@@ -8,22 +8,22 @@ import (
 func TestGet(t *testing.T) {
 	c := NewClient(nil)
 	defer func() {
-		c.DeleteAll("foo")
+		c.Delete("foo", true)
 	}()
 
 	c.Set("foo", "bar", 5)
 
-	result, err := c.Get("foo", false)
+	result, err := c.Get("foo", false, false)
 
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	if result.Key != "/foo" || result.Value != "bar" {
-		t.Fatalf("Get failed with %s %s %v", result.Key, result.Value, result.TTL)
+	if result.Node.Key != "/foo" || result.Node.Value != "bar" {
+		t.Fatalf("Get failed with %s %s %v", result.Node.Key, result.Node.Value, result.Node.TTL)
 	}
 
-	result, err = c.Get("goo", false)
+	result, err = c.Get("goo", false, false)
 	if err == nil {
 		t.Fatalf("should not be able to get non-exist key")
 	}
@@ -32,68 +32,102 @@ func TestGet(t *testing.T) {
 func TestGetAll(t *testing.T) {
 	c := NewClient(nil)
 	defer func() {
-		c.DeleteAll("fooDir")
+		c.Delete("fooDir", true)
 	}()
 
-	c.SetDir("fooDir", 5)
+	c.CreateDir("fooDir", 5)
 	c.Set("fooDir/k0", "v0", 5)
 	c.Set("fooDir/k1", "v1", 5)
 
 	// Return kv-pairs in sorted order
-	result, err := c.Get("fooDir", true)
+	result, err := c.Get("fooDir", true, false)
 
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	expected := kvPairs{
-		KeyValuePair{
-			Key:   "/fooDir/k0",
-			Value: "v0",
+	expected := Nodes{
+		Node{
+			Key:           "/fooDir/k0",
+			Value:         "v0",
+			TTL:           5,
+			ModifiedIndex: 31,
+			CreatedIndex:  31,
 		},
-		KeyValuePair{
-			Key:   "/fooDir/k1",
-			Value: "v1",
+		Node{
+			Key:           "/fooDir/k1",
+			Value:         "v1",
+			TTL:           5,
+			ModifiedIndex: 32,
+			CreatedIndex:  32,
 		},
 	}
 
-	if !reflect.DeepEqual(result.Kvs, expected) {
-		t.Fatalf("(actual) %v != (expected) %v", result.Kvs, expected)
+	// do not check expiration time, too hard to fake
+	for i, _ := range result.Node.Nodes {
+		result.Node.Nodes[i].Expiration = nil
+	}
+
+	if !reflect.DeepEqual(result.Node.Nodes, expected) {
+		t.Fatalf("(actual) %v != (expected) %v", result.Node.Nodes, expected)
 	}
 
 	// Test the `recursive` option
-	c.SetDir("fooDir/childDir", 5)
+	c.CreateDir("fooDir/childDir", 5)
 	c.Set("fooDir/childDir/k2", "v2", 5)
 
 	// Return kv-pairs in sorted order
-	result, err = c.GetAll("fooDir", true)
+	result, err = c.Get("fooDir", true, true)
+
+	// do not check expiration time, too hard to fake
+	result.Node.Expiration = nil
+	for i, _ := range result.Node.Nodes {
+		result.Node.Nodes[i].Expiration = nil
+		if result.Node.Nodes[i].Nodes != nil {
+			for j, _ := range result.Node.Nodes[i].Nodes {
+				result.Node.Nodes[i].Nodes[j].Expiration = nil
+			}
+		}
+	}
 
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	expected = kvPairs{
-		KeyValuePair{
+	expected = Nodes{
+		Node{
 			Key: "/fooDir/childDir",
 			Dir: true,
-			KVPairs: kvPairs{
-				KeyValuePair{
-					Key:   "/fooDir/childDir/k2",
-					Value: "v2",
+			Nodes: Nodes{
+				Node{
+					Key:           "/fooDir/childDir/k2",
+					Value:         "v2",
+					TTL:           5,
+					ModifiedIndex: 34,
+					CreatedIndex:  34,
 				},
 			},
+			TTL:           5,
+			ModifiedIndex: 33,
+			CreatedIndex:  33,
 		},
-		KeyValuePair{
-			Key:   "/fooDir/k0",
-			Value: "v0",
+		Node{
+			Key:           "/fooDir/k0",
+			Value:         "v0",
+			TTL:           5,
+			ModifiedIndex: 31,
+			CreatedIndex:  31,
 		},
-		KeyValuePair{
-			Key:   "/fooDir/k1",
-			Value: "v1",
+		Node{
+			Key:           "/fooDir/k1",
+			Value:         "v1",
+			TTL:           5,
+			ModifiedIndex: 32,
+			CreatedIndex:  32,
 		},
 	}
 
-	if !reflect.DeepEqual(result.Kvs, expected) {
-		t.Fatalf("(actual) %v != (expected) %v", result.Kvs)
+	if !reflect.DeepEqual(result.Node.Nodes, expected) {
+		t.Fatalf("(actual) %v != (expected) %v", result.Node.Nodes, expected)
 	}
 }

@@ -2,14 +2,13 @@
 {argv} = require 'optimist'
 {uri} = require('koding-config-manager').load("main.#{argv.c}")
 
-module.exports = ({activityContent, account, section, models})->
+getSingleActivityPage = ({activityContent, account, models})->
   {Relationship} = require 'jraphical'
   getStyles  = require './styleblock'
   getGraphMeta  = require './graphmeta'
   model      = models.first if models and Array.isArray models
 
   title  = activityContent?.title
-
   """
   <!DOCTYPE html>
   <html lang="en">
@@ -18,8 +17,9 @@ module.exports = ({activityContent, account, section, models})->
     #{getGraphMeta()}
   </head>
     <body itemscope itemtype="http://schema.org/WebPage">
+      <a href="#{uri.address}">Koding</a><br />
       <article itemscope itemtype="http://schema.org/BlogPosting">
-        #{putContent(activityContent, section, model)}
+        #{getSingleActivityContent(activityContent, model)}
       </article>
     </body>
   </html>
@@ -52,10 +52,16 @@ createCreationDate = (createdAt)->
   return "Created at: <span itemprop=\"dateCreated\">#{createdAt}</span>"
 
 createCommentsCount = (numberOfComments)->
-  return "<span>#{numberOfComments}</span> comments"
+  content = ""
+  if numberOfComments > 0
+    content =  "<span>#{numberOfComments}</span> comments"
+  return content
 
 createLikesCount = (numberOfLikes)->
-  return "<span>#{numberOfLikes}</span> likes."
+  content = ""
+  if numberOfLikes > 0
+    content = "<span>#{numberOfLikes}</span> likes."
+  return content
 
 createAuthor = (accountName, nickname)->
   return "<a href=\"#{uri.address}/#!/#{nickname}\"><span itemprop=\"name\">#{accountName}</span></a>"
@@ -71,8 +77,7 @@ createUserInteractionMeta = (numberOfLikes, numberOfComments)->
   userInteractionMeta += "<meta itemprop=\"interactionCount\" content=\"UserComments:#{numberOfComments}\"/>"
   return userInteractionMeta
 
-putContent = (activityContent, section, model)->
-
+getSingleActivityContent = (activityContent, model)->
   body = activityContent.body
   nickname = activityContent.nickname
   accountName = createAccountName activityContent.fullName
@@ -87,7 +92,7 @@ putContent = (activityContent, section, model)->
 
   codeSnippet = createCodeSnippet activityContent.codeSnippet
 
-  if activityContent.numberOfComments > 0
+  if activityContent?.comments?.length? > 0
     comments = (createCommentNode(comment) for comment in activityContent.comments)
     commentsContent = "<h4>Comments:</h4>"
     commentsContent += "<ol>"
@@ -98,29 +103,43 @@ putContent = (activityContent, section, model)->
 
   tags = ""
   if activityContent?.tags?.length > 0
-    tags = """<span>tags: #{activityContent.tags.join(',')}</span><br>"""
+    tags = "tags: "
+    for tag in activityContent.tags
+      content =
+        """
+          <a href="#{uri.address}/#!/Topics/#{tag.slug}">#{tag.title}</a>
+        """
+      tags += content
 
-  title  = activityContent?.title
+  shortenedTitle = activityContent.title
+  if shortenedTitle?.length > 150
+    shortenedTitle = activityContent.title.substring(0, 150) + "..."
+  title =
+    """
+      <a href="#{uri.address}/#!/Activity/#{activityContent.slug}">#{shortenedTitle}</a>
+    """
 
   content  =
     """
-        <a href="#{uri.address}">Koding</a><br />
-        <header itemprop="headline"><h1>#{title}</h1></header>
-        #{body} #{codeSnippet}
+      <header itemprop="headline"><h1>#{title}</h1></header>
+      #{body} #{codeSnippet}
+      <hr>
+      <figure itemscope itemtype="http://schema.org/person" title="#{accountName}">
+        #{avatarImage}
+      </figure>
+      <footer>
+        #{userInteractionMeta}
+        #{createdAt} by #{author}
+        <br>
+        #{tags}
         <hr>
-        <figure itemscope itemtype="http://schema.org/person" title="#{accountName}">
-          #{avatarImage}
-          <figcaption>
-            Author: #{author}
-          </figcaption>
-        </figure>
-        <footer>
-          #{userInteractionMeta}
-          #{createdAt} by #{author}
-          <br>
-          #{tags}
-          <hr>
-          #{commentsCount}, #{likesCount}
-        </footer>
-        #{commentsContent}
+        #{commentsCount} #{likesCount}
+      </footer>
+      #{commentsContent}
     """
+  return content
+
+module.exports = {
+  getSingleActivityPage
+  getSingleActivityContent
+}

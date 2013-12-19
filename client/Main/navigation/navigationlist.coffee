@@ -3,7 +3,7 @@ class NavigationList extends KDListView
   constructor:->
     super
 
-    @viewWidth = 70
+    @viewWidth = 55
 
     @on 'ItemWasAdded', (view)=>
 
