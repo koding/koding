@@ -33,54 +33,44 @@ class Kontrol extends KDObject
   #   id          string
   #
   getKites: (query={}, callback = noop)->
-    query = @_sanitizeQuery query
+    @_sanitizeQuery query
 
-    @kite.tell "getKites", [query], (res)=>
-      [err, kites] = res.withArgs
+    @kite.tell "getKites", [query], (err, kites)=>
       return callback err, null  if err
 
-      kiteInstances = []
-      for k in kites
-        kiteInstances.push @_createKite k
-
-      callback null, kiteInstances
-
+      callback null, (@_createKite k for k in kites)
 
   # watchKites watches for Kites that matches the query. The onEvent functions
   # is called for current kites and every new kite event.
   watchKites: (query={}, callback)->
     return warn "callback is not defined "  unless callback
 
-    query = @_sanitizeQuery query
+    @_sanitizeQuery query
 
-    onEvent = (e)=>
-      log "kite event: ", e.action, {e}
-      callback e.action, @_createKite {kite: e.kite, token: e.token}
+    onEvent = (options)=>
+      e = options.withArgs[0]
+      kite =
+        kite   : e.kite
+        token  :
+          key  : e.token?.key
+          ttl  : e.token?.ttl
 
-    args = [query, onEvent]
+      callback null, {action: e.action, kite: @_createKite kite}
 
-    @kite.tell "getKites", args, (res)=>
-      [err, kites] = res.withArgs
+    @kite.tell "getKites", [query, onEvent], (err, kites)=>
       return callback err, null  if err
 
-      for k in kites
-        e =
-          action : @KiteAction.Register
-          kite   : k
-          token  : k.authentication.key
-
-        callback e.action, @_createKite {kite: e.kite, token: e.token}
+      for kite in kites
+        callback null, {action: @KiteAction.Register, kite: @_createKite kite}
 
   # Returns a new NewKite instance from Kite data structure coming from
   # getKites() and watchKites() methods.
   _createKite: (k)->
-    return new NewKite k.kite, {type: "token", key: k.token}
+    new NewKite k.kite, {type: "token", key: k.token.key}
 
   _sanitizeQuery: (query) ->
     query.username    = "#{KD.nick()}"  unless query.username
     query.environment = "production"    unless query.environment
-
-    return query
 
   KiteAction :
     Register   : "REGISTER"
