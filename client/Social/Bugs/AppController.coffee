@@ -31,13 +31,17 @@ class BugReportController extends AppController
           title            : "Reported Bugs"
           noItemFoundText  : "There is no reported bugs"
           dataSource       : (selector, options, callback) =>
-            options = tag : "bug", tagType : "user-tag"
+            options   =
+              tag     : "bug"
+              tagType : "user-tag"
             @createFilter options, callback
         fixed              :
           title            : "Fixed Bugs"
           noItemFoundText  : "There is no fixed bugs"
           dataSource       : (selector, options, callback) =>
-            options = tag : "fixed", tagType : "system-tag"
+            options   =
+              tag     : "fixed"
+              tagType : "system-tag"
             @createFilter options, callback
       sort                 :
         'meta.modifiedAt'  :
