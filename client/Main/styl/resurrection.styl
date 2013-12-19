@@ -165,8 +165,25 @@ button
     display         inline-block
     border-left     1px solid #1f2628
     .count
-      cite
-        display     none
+      vendor        transform, scale(0)
+      size          16px, 16px
+      bg            color, #e94b35
+      top           9px
+      right         6px
+      font-size     10px
+      color         #fff
+      line-height   16px
+      text-align    center
+      rounded       100%
+      -webkit-transition -webkit-transform .3s cubic-bezier(0.68, -0.55, 0.265, 1.55)
+      -moz-transition    -moz-transform .3s ease
+      transition         transform .3s cubic-bezier(0.68, -0.55, 0.265, 1.55)
+      z-index            1001
+      abs()
+
+      &.in
+        vendor        transform, scale(1)
+
     .icon
       display       block
     &.notifications .icon
