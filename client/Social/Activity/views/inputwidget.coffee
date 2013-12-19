@@ -14,7 +14,7 @@ class ActivityInputWidget extends KDView
     @notification = new KDView
       cssClass : "notification hidden"
       partial  : """
-This is a sneak peek beta for testing purposes only. If you find any bugs, please post them here on the activity feed with the tag #bug. Beware that your activities could be discarded.<br><br>
+This is a sneak peek beta for testing purposes only. If you find any bugs, please post them here on the activity feed with the tag #bug. Beware that your status updates could be discarded.<br><br>
 
 Please take a short survey about <a href="http://bit.ly/1jsjlna">New Koding.</a><br><br>
 
