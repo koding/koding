@@ -57,11 +57,19 @@ module.exports = (options = {}, callback)->
 
     <!-- ROLLBAR -->
     <script>
+      var startTime = new Date().getTime();
       var _rollbarParams = {
         "server.environment": "production",
         "client.javascript.source_map_enabled": true,
         "client.javascript.code_version": "#{KONFIG.version}",
-        "client.javascript.guess_uncaught_frames": true
+        "client.javascript.guess_uncaught_frames": true,
+        checkIgnore: function(msg, file, line, col, err) {
+          if ((new Date().getTime() - startTime) > 1000*60*60) {
+            // ignore errors after the page has been open for 1hr
+            return true;
+          }
+          return false;
+        }
       };
       _rollbarParams["notifier.snippet_version"] = "2"; var _rollbar=["#{KONFIG.rollbar}", _rollbarParams]; var _ratchet=_rollbar;
       (function(w,d){w.onerror=function(e,u,l){_rollbar.push({_t:'uncaught',e:e,u:u,l:l});};var i=function(){var s=d.createElement("script");var
