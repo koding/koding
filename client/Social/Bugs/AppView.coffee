@@ -21,5 +21,5 @@ class BugReportMainView extends KDScrollView
     @addSubView @inputWidget
 
   viewAppended:->
-    KD.remote.api.JTag.one slug:"bug", null, (err, tag) =>
+    KD.remote.api.JTag.one slug:"bug", (err, tag) =>
       @inputWidget.input.setDefaultTokens tags: [tag]

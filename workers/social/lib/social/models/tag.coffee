@@ -44,6 +44,7 @@ module.exports = class JTag extends jraphical.Module
       'assign system tag'     : ['moderator']
       'fetch system tag'      : ['moderator']
       'create system tag'     : ['moderator']
+      'remove system tag'     : ['moderator']
       # 'delete system tag'     : ['moderator']
 
     emitFollowingActivities : yes # create buckets for follower / followees
@@ -75,6 +76,8 @@ module.exports = class JTag extends jraphical.Module
         fetchContentTeasers:
           (signature Object, Object, Function)
         addSystemTagToStatusUpdate:
+          (signature Object, Function)
+        removeTagFromStatus:
           (signature Object, Function)
         delete:
           (signature Function)
@@ -392,15 +395,33 @@ module.exports = class JTag extends jraphical.Module
     selector.category = "system-tag"
     @some selector, options, callback
 
-  addSystemTagToStatusUpdate = permit 'assign system tag',
+  addSystemTagToStatusUpdate : permit 'assign system tag',
     success: (client, statusUpdate, callback)->
       callback new KodingError "That is not system tag!" unless @category is "system-tag"
       JNewStatusUpdate = require './messages/newstatusupdate'
-      JNewStatusUpdate.one id:statusUpdate._id, (err, status)=>
+      JNewStatusUpdate.one _id:statusUpdate._id, (err, status)=>
         callback err if err
-        status.addTags client, this, callback
+        if status
+          tagsArray = [
+            slug: @slug
+          ]
+          status.addTags client, tagsArray , (err)->
+            callback err, null
+        else
+          callback new KodingError "Status not found!"
 
   @createSystemTag = permit 'create system tag',
     success: (client, data, callback)->
       data.category = "system-tag"
       @create client, data, callback
+
+  removeTagFromStatus  = permit 'remove system tag',
+    success: (client, statusUpdate, callback)->
+      callback new KodingError "That is not system tag!" unless @category is "system-tag"
+      JNewStatusUpdate = require './messages/newstatusupdate'
+      JNewStatusUpdate.one id:statusUpdate._id, (err, status)=>
+        callback err if err
+        Relationship.remove {
+          targetId    : @getId()
+          sourceId    : status.getId()
+        } , callback
