@@ -38,7 +38,7 @@ class ChatItem extends JView
     , new Date @getOptions().time
 
     @messageList.addSubView new KDCustomHTMLView
-      partial    : Encoder.XSSEncode(@getOptions().body).replace(/NEW_LINE/g, "<br />")
+      partial    : KD.utils.xssEncode(@getOptions().body).replace(/NEW_LINE/g, "<br />")
 
     @setClass "mine" if ownMessage
 
