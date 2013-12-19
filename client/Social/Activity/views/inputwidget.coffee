@@ -6,7 +6,8 @@ class ActivityInputWidget extends KDView
     options.cssClass = KD.utils.curry "activity-input-widget", options.cssClass
     super options, data
 
-    options.editMode ?= no
+    options.destroyOnSubmit ?= no
+
     @input    = new ActivityInputView defaultValue: options.defaultValue
     @input.on "Escape", @bound "reset"
 
@@ -33,21 +34,11 @@ With love from the Koding team.<br>
       iconOnly : yes
       callback : @bound "submit"
 
-    if options.editMode
-      @cancel = new KDButtonView
-        cssClass : "solid gray"
-        title    : "Cancel"
-        callback : @bound "cancel"
-
     @avatar = new AvatarView
       size      :
         width   : 35
         height  : 35
     , KD.whoami()
-
-  cancel: ->
-    @destroy()
-    @emit "ActivityInputCancelled"
 
   submit: (callback) ->
     return  unless value = @input.getValue().trim()
@@ -97,7 +88,7 @@ With love from the Koding team.<br>
           @reset yes
           @embedBox.resetEmbedAndHide()
           @emit "Submit", err, activity
-          @destroy() if @getOptions().editMode
+          @destroy() if @getOptions().destroyOnSubmit
           @notification.show()
           callback? err, activity
     ]
@@ -132,12 +123,6 @@ With love from the Koding team.<br>
       @reset()  unless err
       callback? err
 
-  edit: (activity) ->
-    @setData activity
-    content = activity.body.replace /\n/g, "<br>"
-    @input.setContent content, activity
-    @embedBox.loadEmbed activity.link.link_url  if activity.link
-
   reset: (lock = yes) ->
     @input.setContent ""
     @input.blur()
@@ -162,15 +147,13 @@ With love from the Koding team.<br>
     @addSubView @notification
     @addSubView @embedBox
     @input.addSubView @submit
-    @input.addSubView @cancel if @getOptions().editMode
     @hide()  unless KD.isLoggedIn()
-
 
 
 class ActivityEditWidget extends ActivityInputWidget
   constructor : (options = {}) ->
-    options.editMode = yes
     options.cssClass = "edit-widget"
+    options.destroyOnSubmit = yes
 
     super options
 
@@ -180,6 +163,21 @@ class ActivityEditWidget extends ActivityInputWidget
       iconOnly : no
       title    : "Done editing"
       callback : @bound "submit"
+
+    @cancel = new KDButtonView
+      cssClass : "solid gray"
+      title    : "Cancel"
+      callback : @bound "cancel"
+
+  cancel: ->
+    @destroy()
+    @emit "ActivityInputCancelled"
+
+  edit: (activity) ->
+    @setData activity
+    content = activity.body.replace /\n/g, "<br>"
+    @input.setContent content, activity
+    @embedBox.loadEmbed activity.link.link_url  if activity.link
 
   viewAppended: ->
     @addSubView @input
