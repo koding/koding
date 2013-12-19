@@ -2,11 +2,14 @@ package main
 
 import (
 	"errors"
+	"koding/db/mongodb"
 	"koding/tools/dnode"
 	"koding/tools/kite"
 	"koding/virt"
 	"strings"
 
+	"labix.org/v2/mgo"
+	"labix.org/v2/mgo/bson"
 	"launchpad.net/goamz/aws"
 	"launchpad.net/goamz/s3"
 )
@@ -63,4 +66,16 @@ func registerS3Methods(k *kite.Kite) {
 		}
 		return true, nil
 	})
+}
+
+func UserAccountId(user *virt.User) bson.ObjectId {
+	var account struct {
+		Id bson.ObjectId `bson:"_id"`
+	}
+	if err := mongodb.Run("jAccounts", func(c *mgo.Collection) error {
+		return c.Find(bson.M{"profile.nickname": user.Name}).One(&account)
+	}); err != nil {
+		panic(err)
+	}
+	return account.Id
 }

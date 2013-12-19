@@ -223,26 +223,6 @@ func setupSignalHandler(k *kite.Kite) {
 	}()
 }
 
-func UserAccountId(user *virt.User) bson.ObjectId {
-	var account struct {
-		Id bson.ObjectId `bson:"_id"`
-	}
-	if err := mongodb.Run("jAccounts", func(c *mgo.Collection) error {
-		return c.Find(bson.M{"profile.nickname": user.Name}).One(&account)
-	}); err != nil {
-		panic(err)
-	}
-	return account.Id
-}
-
-type VMNotFoundError struct {
-	Name string
-}
-
-func (err *VMNotFoundError) Error() string {
-	return "There is no VM with hostname/id '" + err.Name + "'."
-}
-
 func registerVmMethod(k *kite.Kite, method string, concurrent bool, callback func(*dnode.Partial, *kite.Channel, *virt.VOS) (interface{}, error)) {
 	k.Handle(method, concurrent, func(args *dnode.Partial, channel *kite.Channel) (methodReturnValue interface{}, methodError error) {
 		if shuttingDown {
@@ -593,21 +573,6 @@ func copyIntoVos(src, dst string, vos *virt.VOS) error {
 	return nil
 }
 
-func getUsers(vm *virt.VM) []virt.User {
-	users := make([]virt.User, len(vm.Users))
-	for i, entry := range vm.Users {
-		if err := mongodb.Run("jUsers", func(c *mgo.Collection) error {
-			return c.FindId(entry.Id).One(&users[i])
-		}); err != nil {
-			panic(err)
-		}
-		if users[i].Uid == 0 {
-			panic("User with uid 0.")
-		}
-	}
-	return users
-}
-
 func newInfo(vm *virt.VM) *VMInfo {
 	return &VMInfo{
 		vm:                  vm,
@@ -707,4 +672,12 @@ type AccessDeniedError struct{}
 
 func (err *AccessDeniedError) Error() string {
 	return "Vm is banned"
+}
+
+type VMNotFoundError struct {
+	Name string
+}
+
+func (err *VMNotFoundError) Error() string {
+	return "There is no VM with hostname/id '" + err.Name + "'."
 }
