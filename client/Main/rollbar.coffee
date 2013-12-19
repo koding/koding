@@ -5,9 +5,13 @@ if _rollbar? && KD.config.logToExternal then do ->
 
   # log ping times so we know if failure was due to user's slow
   # internet or our internals timing out
-  KD.logToExternalWithTime = (name, timeout)->
+  KD.logToExternalWithTime = (name, options)->
     KD.troubleshoot (times)->
-      KD.logToExternal msg:"#{name} timed out in #{timeout}", pings:times
+      KD.logToExternal {
+        options
+        msg:"#{name} timed out"
+        pings:times
+      }
 
   # set user info in rollbar for people tracking
   KD.getSingleton('mainController').on "AccountChanged", (account) ->

@@ -143,7 +143,7 @@ class NFinderTreeController extends JTreeViewController
           KD.logToExternal "Couldn't fetch files, permission denied"
         else
           message = "Couldn't fetch files! Click to retry"
-          KD.logToExternal "Couldn't fetch files"
+          KD.logToExternalWithTime "Couldn't fetch files"
         @notify message, 'clickable', \
                 """Sorry, a problem occured while communicating with servers,
                    please try again later.""", yes
