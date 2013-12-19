@@ -147,9 +147,9 @@ class ActivityTutorialWidget extends ActivityWidgetFormView
     @tagController.setDefaultValue tags or []
 
     fillForm = =>
-      @inputDiscussionTitle.setValue Encoder.htmlDecode title
-      @inputContent.setValue Encoder.htmlDecode body
-      @inputTutorialEmbedLink.setValue Encoder.htmlDecode link?.link_url
+      @inputDiscussionTitle.setValue KD.utils.htmlDecode title
+      @inputContent.setValue KD.utils.htmlDecode body
+      @inputTutorialEmbedLink.setValue KD.utils.htmlDecode link?.link_url
       @inputContent.generatePreview()
 
     fillForm()

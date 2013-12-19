@@ -58,7 +58,7 @@ class ContentDisplayBlogPost extends ActivityContentDisplay
       </span>
       <div class='activity-item-right-col'>
         <h3 class='blog-post-title'>{{ @applyTextExpansions #(title)}}</h3>
-        <p class="blog-post-body has-markdown">{{ KD.utils.applyMarkdown Encoder.htmlDecode #(body)}}</p>
+        <p class="blog-post-body has-markdown">{{ KD.utils.applyMarkdown KD.utils.htmlDecode #(body)}}</p>
         <footer class='clearfix'>
           <div class='type-and-time'>
             <span class='type-icon'></span> {{> @contentGroupLink }} by {{> @author}}
@@ -91,6 +91,6 @@ class StaticBlogPostListItem extends KDListItemView
     """
     <div class="title"><span class="text">#{@getData().title}</span><span class="create-date">#{@postDate}</span></div>
     <div class="has-markdown">
-      <span class="data">#{Encoder.htmlDecode @getData().html}</span>
+      <span class="data">#{KD.utils.htmlDecode @getData().html}</span>
     </div>
     """
