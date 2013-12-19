@@ -23,7 +23,6 @@ class AccountListWrapper extends KDView
     deleteAccount              : DeleteAccountView
 
   viewAppended:->
-
     {listType, listHeader} = @getData()
 
     @addSubView @header = new KDHeaderView type : "medium", title : listHeader
