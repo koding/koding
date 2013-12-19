@@ -65,7 +65,7 @@ class ChatPane extends JView
     ownerNickname = details.user.nickname
     if @lastChatItemOwner is ownerNickname and @lastChatItemOwner isnt "teamwork"
       @lastChatItem.messageList.addSubView new KDCustomHTMLView
-        partial : Encoder.XSSEncode details.body
+        partial : KD.utils.xssEncode details.body
       return @messageAddedCallback details
 
     @lastChatItem      = new ChatItem details, @workspace.users[ownerNickname]
