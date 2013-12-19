@@ -64,6 +64,7 @@ With love from the Koding team.<br>
         tagCreateJobs = suggestedTags.map (title) ->
           ->
             JTag.create {title}, (err, tag) ->
+              return KD.showError err if err
               activity?.tags.push tag
               tags.push id: tag.getId()
               createdTags[title] = tag
