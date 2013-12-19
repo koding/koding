@@ -35,7 +35,7 @@ class NavigationList extends KDListView
 
       view.on 'DragFinished', =>
         view.setX view._index * @viewWidth
-        view.setY view._y
+        view.setY 0
         lastChange  = 0
 
   moveItemToIndex:(item, index)->

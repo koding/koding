@@ -15,28 +15,6 @@ class MainTabView extends KDTabView
       then @showPane view.parent
       else @createTabPane options, view
 
-    # KD.getSingleton("mainView").on "mainViewTransitionEnd", (e) =>
-    #   if e.target is KD.getSingleton("contentPanel").domElement[0]
-    #     @tabHandleContainer.setWidth @getWidth()
-    #     @resizeTabHandles()
-
-    # @on "PaneAdded", =>
-    #   @tabHandleContainer.setWidth @getWidth()
-
-    # mainViewController = KD.getSingleton "mainViewController"
-    # mainViewController.on "UILayoutNeedsToChange", @bound "changeLayout"
-
-  # changeLayout:(options)->
-
-  #   {hideTabs} = options
-
-  #   if hideTabs
-  #     @hideHandleContainer()
-  #   else
-  #     if KD.getSingleton('contentPanel').navOpenedOnce
-  #       @showHandleContainer()
-
-
   handleClicked:(index, event)->
     pane        = @getPaneByIndex index
     appView     = pane.getMainView()
@@ -52,14 +30,6 @@ class MainTabView extends KDTabView
       return no
     else
       @appManager.showInstance appInstance
-
-  # showHandleContainer:->
-    # @tabHandleContainer.setClass 'in'
-    # @handlesHidden = no
-
-  # hideHandleContainer:->
-    # @tabHandleContainer.unsetClass 'in'
-    # @handlesHidden = yes
 
   showPane:(pane)->
 
@@ -138,11 +108,13 @@ class MainTabView extends KDTabView
 
     mainView.on "KDObjectWillBeDestroyed", @removePane.bind this, pane
 
+
   rearrangeVisibleHandlesArray:->
     @visibleHandles = []
     for handle in @handles
       unless handle.getOptions().hidden
         @visibleHandles.push handle
+
 
   warnClosingMultipleTabs: (appInstance, quitOptions) ->
     title   = quitOptions.title   or "Do you want to close multiple tabs?"
