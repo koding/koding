@@ -45,9 +45,11 @@ class KiteHelper extends KDEventEmitter
 
     else
       KD.getSingleton("router").clear()
+      registerKodingClient_()
 
-  registerKodingClient: ->
+  registerKodingClient_ = ->
     if registerToKodingClient = $.cookie "register-to-koding-client"
+      clear()
       # We pick up 54321 because it's in dynamic range and no one uses it
       # http://en.wikipedia.org/wiki/List_of_TCP_and_UDP_port_numbers
       k = new NewKite
@@ -114,3 +116,5 @@ class KiteHelper extends KDEventEmitter
             KD.utils.wait 500, clear
 
       k.tell "info", handleInfo
+
+  registerKodingClient : registerKodingClient_
