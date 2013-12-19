@@ -61,88 +61,11 @@ class MainController extends KDController
 
       console.timeEnd "Koding.com loaded"
 
-  registerKodingClient: ->
-    if registerToKodingClient = $.cookie "register-to-koding-client"
-        clear = ->
-          $.cookie "register-to-koding-client", erase:yes
-          window.location.pathname = "/"
 
-        # We pick up 54321 because it's in dynamic range and no one uses it
-        # http://en.wikipedia.org/wiki/List_of_TCP_and_UDP_port_numbers
-        k = new NewKite
-          name: "kodingclient"
-          publicIP: "127.0.0.1"
-          port: "54321"
-
-        k.connect()
-
-        showErrorModal = (message, callback)->
-          modal = new KDBlockingModalView
-            title        : "Kite Registration"
-            content      : "<div class='modalformline'>#{message}</div>"
-            height       : "auto"
-            overlay      : yes
-            buttons      : {}
-
-          Retry      =
-            style    : "modal-clean-gray"
-            callback : ->
-              modal.destroy()
-              callback?()
-
-          Cancel     =
-            style    : "modal-clean-red"
-            callback : ->
-              modal.destroy()
-              clear()
-
-          Ok         =
-            style    : "modal-clean-gray"
-            callback : ->
-              modal.destroy()
-              clear()
-
-          if /^Authentication\ already\ established/.test message
-            modal.setButtons {Ok}, yes
-          else
-            modal.setButtons {Retry, Cancel}, yes
-
-        showSuccessfulModal = (message, callback)->
-          modal = new KDBlockingModalView
-            title        : "Koding Client Registration"
-            content      : "<div class='modalformline'>#{message}</div>"
-            height       : "auto"
-            overlay      : yes
-            buttons      :
-              Ok         :
-                style    : "modal-clean-green"
-                callback : ->
-                  modal.destroy()
-                  callback?()
-
-        handleInfo = (err, result)=>
-          KD.remote.api.JKodingKey.registerHostnameAndKey {
-              key:result.key
-              hostname:result.hostID
-          }, (err, res)=>
-            fn = => k.tell "info", handleInfo
-            return showErrorModal err.message, fn if err
-            showSuccessfulModal res, =>
-              result.cb true
-              KD.utils.wait 500, clear
-
-        k.tell "info", handleInfo
 
   accountChanged:(account, firstLoad = no)->
     @userAccount             = account
     connectedState.connected = yes
-
-    @on "pageLoaded.as.loggedIn", (account)=> # ignore othter parameters
-      KD.utils.setPreferredDomain account if account
-      @emit "changedToLoggedIn"
-
-    @once "accountChanged.to.loggedIn", (account)=> # ignore othter parameters
-      @emit "changedToLoggedIn"
 
     account.fetchMyPermissionsAndRoles (err, permissions, roles)=>
       return warn err  if err
@@ -187,9 +110,6 @@ class MainController extends KDController
   attachListeners:->
     # @on 'pageLoaded.as.(loggedIn|loggedOut)', (account)=>
     #   log "pageLoaded", @isUserLoggedIn()
-
-    @once 'changedToLoggedIn', (account)=>
-      @registerKodingClient()
 
     # TODO: this is a kludge we needed.  sorry for this.  Move it someplace better C.T.
     wc = @getSingleton 'windowController'
