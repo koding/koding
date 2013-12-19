@@ -108,9 +108,7 @@ app.get "/-/auth/check/:key", (req, res)->
   {key} = req.params
 
   {JKodingKey} = koding.models
-  JKodingKey.checkKey
-    key     : key
-  , (err, status)=>
+  JKodingKey.checkKey {key}, (err, status)=>
     return res.send 401, authTemplate "Key doesn't exist" unless status
     res.send 200, {result: 'key is added successfully'}
 
