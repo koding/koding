@@ -62,8 +62,10 @@ module.exports = class JAccount extends jraphical.Module
       ]
     sharedMethods :
       static:
-        one:
+        one: [
           (signature Object, Function)
+          (signature Object, Object, Function)
+        ]
         some:
           (signature Object, Object, Function)
         cursor:
