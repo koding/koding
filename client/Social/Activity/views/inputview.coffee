@@ -43,6 +43,13 @@ class ActivityInputView extends KDTokenizedInput
     fillTokenMap activity.tags , tokens.tags  if activity?.tags?.length
     super @renderTokens content, tokens
 
+  sanitizeInput: ->
+    {prefix} = @activeRule
+    value = @tokenInput.textContent.substring prefix.length
+    words = value.split /\W/, 3
+    @tokenInput.textContent = prefix + words.join "-"
+    @utils.selectEnd @tokenInput
+
   keyDown: (event) ->
     super
     return  if event.isPropagationStopped()

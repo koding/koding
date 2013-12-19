@@ -1,9 +1,125 @@
 # this class will register itself just before application starts loading, right after framework is ready
 KD.extend
 
-  apiUri    : KD.config.apiUri
-  appsUri   : KD.config.appsUri
-  singleton : KD.getSingleton.bind KD
+  apiUri      : KD.config.apiUri
+  appsUri     : KD.config.appsUri
+  singleton   : KD.getSingleton.bind KD
+  appClasses  : {}
+  appScripts  : {}
+  appLabels   : {}
+
+  socketConnected:->
+    @backendIsConnected = yes
+
+  registerAppClass:(fn, options = {})->
+
+    return error "AppClass is missing a name!"  unless options.name
+
+    if KD.appClasses[options.name]
+
+      if KD.config.apps[options.name]
+        return warn "AppClass #{options.name} cannot be used, since its conflicting with an internal Koding App."
+      else
+        warn "AppClass #{options.name} is already registered or the name is already taken!"
+        warn "Removing the old one. It was ", KD.appClasses[options.name]
+        @unregisterAppClass options.name
+
+    options.multiple      ?= no           # a Boolean
+    options.background    ?= no           # a Boolean
+    options.hiddenHandle  ?= no           # a Boolean
+    options.openWith     or= "lastActive" # a String "lastActive","forceNew" or "prompt"
+    options.behavior     or= ""           # a String "application", "hideTabs", or ""
+    options.thirdParty    ?= no           # a Boolean
+    options.menu         or= null         # <Array<Object{title: string, eventName: string, shortcut: string}>>
+    options.navItem      or= {}           # <Object{title: string, eventName: string, shortcut: string}>
+    options.labels       or= []           # <Array<string>> list of labels to use as app name
+    options.version       ?= "1.0"        # <string> version
+    options.route        or= null         # <string> or <Object{slug: string, handler: function}>
+    options.routes       or= null         # <string> or <Object{slug: string, handler: function}>
+    options.styles       or= []           # <Array<string>> list of stylesheets
+
+    wrapHandler = (fn, options) -> ->
+      router = KD.getSingleton 'router'
+      router.setPageTitle? options.navItem.title  if options.navItem.title
+      fn.apply this, arguments
+
+    registerRoute = (route, handler)=>
+      slug        = if "string" is typeof route then route else route.slug
+      route       =
+        slug      : slug or '/'
+        handler   : handler or route.handler or null
+
+      if route.slug isnt '/'
+
+        {slug, handler} = route
+        cb = (router)->
+          handler =
+            if handler
+            then wrapHandler handler, options
+            else
+              ({params:{name}, query})->
+                router.openSection options.name, name, query
+
+          router.addRoute slug, handler
+
+        if KD.singletons.router
+        then @utils.defer -> cb KD.getSingleton('router')
+        else KodingRouter.on 'RouterReady', cb
+
+    if   options.route
+    then registerRoute options.route
+    else if options.routes
+    then registerRoute route, handler for own route, handler of options.routes
+
+    if options.navItem?.order
+      @registerNavItem options.navItem
+
+    Object.defineProperty KD.appClasses, options.name,
+      configurable  : yes
+      enumerable    : yes
+      writable      : no
+      value         : { fn, options }
+
+  registerNavItem    : (itemData)->
+    unless @navItemIndex[itemData.title]
+      @navItemIndex[itemData.title] = itemData
+      @navItems.push itemData
+      return true
+    return false
+
+  getNavItems        : -> @navItems.sort (a, b)-> a.order - b.order
+
+  setNavItems        : (navItems)->
+    @registerNavItem item for item in navItems.sort (a, b)-> a.order - b.order
+
+  unregisterAppClass :(name)-> delete KD.appClasses[name]
+
+  getAppClass        :(name)-> KD.appClasses[name]?.fn or null
+
+  getAppOptions      :(name)-> KD.appClasses[name]?.options or null
+
+  getAppScript       :(name)-> @appScripts[name] or null
+
+  registerAppScript  :(name, script)-> @appScripts[name] = script
+
+  unregisterAppScript:(name)-> delete @appScripts[name]
+
+  resetAppScripts    :-> @appScripts = {}
+
+  enableLogs:do->
+    oldConsole = window.console
+    window.console = {}
+    console[method] = noop  for method in ['log','warn','error','trace','time','timeEnd']
+
+    enableLogs =->
+      window.console = oldConsole
+      KD.log     = log     = if console?.log     then console.log.bind(console)     else noop
+      KD.warn    = warn    = if console?.warn    then console.warn.bind(console)    else noop
+      KD.error   = error   = if console?.error   then console.error.bind(console)   else noop
+      KD.time    = time    = if console?.time    then console.time.bind(console)    else noop
+      KD.timeEnd = timeEnd = if console?.timeEnd then console.timeEnd.bind(console) else noop
+      KD.logsEnabled = yes
+      return "Logs are enabled now."
 
   impersonate : (username)->
     KD.remote.api.JAccount.impersonate username, (err)->
@@ -167,3 +283,5 @@ KD.extend
 Object.defineProperty KD, "defaultSlug",
   get:->
     if KD.isGuest() then 'guests' else 'koding'
+
+KD.enableLogs() if not KD.config?.suppressLogs
