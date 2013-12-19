@@ -7,7 +7,7 @@ module.exports = class JTag extends jraphical.Module
 
   {Relationship} = jraphical
 
-  {ObjectId, ObjectRef, Inflector, daisy, secure, race, signature} = require 'bongo'
+  {ObjectId, ObjectRef, Inflector, daisy, secure, race, signature, dash} = require 'bongo'
 
   Validators  = require './group/validators'
   {permit}    = require './group/permissionset'
@@ -74,7 +74,7 @@ module.exports = class JTag extends jraphical.Module
         fetchRandomFollowers:
           (signature Object, Function)
         createSynonym:
-          (signature Object, Function)
+          (signature String, Function)
       static        :
         one: [
           (signature Object, Function)
@@ -139,10 +139,8 @@ module.exports = class JTag extends jraphical.Module
       meta          : require 'bongo/bundles/meta'
       synonyms      : [String]
       group         : String
-      type          :
-        type        : String
-        enum        : ['invalid type', ['deleted', 'synonym','complete']]
-        default     : 'complete'
+      status        : String
+
       # owner         : ObjectId
     relationships   :->
       JAccount = require './account'
@@ -154,7 +152,7 @@ module.exports = class JTag extends jraphical.Module
       follower      :
         targetType  : JAccount
         as          : 'follower'
-      synonymOf   :
+      synonym       :
         targetType  : JTag
         as          : "synonymOf"
       content       :
@@ -192,7 +190,6 @@ module.exports = class JTag extends jraphical.Module
           else
             @update $set: formData, (err) =>
               return callback err if err
-              @constructor.emit 'TagIsUpdated', tagId : @getId()
               callback null
       else
         callback new KodingError 'Access denied'
@@ -202,7 +199,7 @@ module.exports = class JTag extends jraphical.Module
 
     selector or= {}
     selector['data.flags.isLowQuality'] = $ne: yes
-    selector['type'] = $ne: "deleted"
+    selector['status'] = $ne: "deleted"
 
     @fetchContents selector, options, (err, contents)->
       if err then callback err
@@ -253,7 +250,7 @@ module.exports = class JTag extends jraphical.Module
               callbackForEach null, tag for tag in existingTags
       ]
 
-  create = (data, creator, callback) ->
+  create = (data, creator, callback) =>
     tag = new JTag data
     tag.createSlug (err, slug)->
       if err then callback err
@@ -273,24 +270,25 @@ module.exports = class JTag extends jraphical.Module
   @create = permit 'create tags',
     success: (client, data, callback)->
       {delegate} = client.connection
-      data.group = client.context
+      data.group = client.context.group
       create data, delegate, callback
 
   createSynonym : permit ['create tags', 'read tags'],
     success: (client, title, callback)->
       addSynonym = (tag) =>
-        @addSynonymOf tag, (err) =>
+        @addSynonym tag, (err) =>
           return callback err if err
-          @update $set: type :'synonym', (err) =>
+          @update $set: status :'synonym', (err) =>
             return callback err if err
             @constructor.emit 'TagIsSynonym', {tagId:@getId()}
             callback null
 
-      if (@type is 'deleted' or @type is 'synonym')
-        return callback new KodingError "Topic is already set as #{@type}!"
+      if (@status is 'deleted' or @status is 'synonym')
+        return callback new KodingError "Topic is already set as #{@status}!"
 
       {delegate} = client.connection
       {group} = client.context
+
       JTag.one {title}, (err, tag) =>
         return callback err if err
         unless tag
@@ -332,8 +330,10 @@ module.exports = class JTag extends jraphical.Module
         else unless role is 'super-admin'
           callback new KodingError 'Access denied'
         else
+          if (@status is 'deleted' or @status is 'synonym')
+            return callback new KodingError "Topic is already set as #{@status}!"
           tagId = @getId()
-          @update {$set: type: "deleted"}, (err)=>
+          @update {$set: status: "deleted"}, (err)=>
             if err
               callback err
             else
