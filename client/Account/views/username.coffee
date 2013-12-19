@@ -58,7 +58,7 @@ class AccountEditUsername extends JView
   update:(formData)->
 
     {daisy} = Bongo
-
+    {JUser} = KD.remote.api
     {email, password, confirmPassword, firstName, lastName, username} = formData
 
     profileUpdated = yes
@@ -78,7 +78,7 @@ class AccountEditUsername extends JView
           queue.next()
       =>
         # secondly change user email address
-        KD.remote.api.JUser.changeEmail {email}, (err, result)=>
+        JUser.changeEmail {email}, (err, result)=>
           # here we are simply discarding the email is same error
           # but do not forget to warn users about other errors
           if err
@@ -101,7 +101,7 @@ class AccountEditUsername extends JView
             notify "You should set your password"
           return queue.next()
 
-        KD.remote.api.JUser.changePassword password, (err,docs)=>
+        JUser.changePassword password, (err,docs)=>
           if err
             return queue.next()  if err.message is "PasswordIsSame"
             return  notify err.message
@@ -118,7 +118,7 @@ class AccountEditUsername extends JView
     {token} = KD.utils.parseQuery()
     if token
       JPasswordRecovery.validate token, (err, isValid)=>
-        if err
+        if err and err.short isnt 'redeemed_token'
           notify err.message
         else if isValid
           notify "Thanks for confirming your email address"

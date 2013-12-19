@@ -11,6 +11,8 @@ module.exports = class JPasswordRecovery extends jraphical.Module
   KodingError = require '../error'
   JUser       = require './user'
 
+  UNKNOWN_ERROR = { message: "Error occured. Please try again." }
+
   @share()
 
   @set
@@ -141,23 +143,25 @@ module.exports = class JPasswordRecovery extends jraphical.Module
             email.save callback
 
   @validate = secure ({connection:{delegate}}, token, callback)->
-    @one {token, status: 'active'}, (err, certificate)->
+    @one {token}, (err, certificate)->
       if err
         callback err
       else unless certificate
-        callback new KodingError 'Invalid token.'
+        callback { message: 'Invalid token.', short: 'invalid_token' }
+      else if certificate.status is 'redeemed'
+        callback { message: 'Already redeemed', short: 'redeemed_token' }
       else if certificate.getAt('expiresAt') < new Date
         certificate.expire (err)->
           if err
             callback err
           else
-            callback new KodingError 'The token has expired.'
+            callback { message: 'The token has expired.', short: 'expired_token' }
       else
         JUser = require './user'
         JUser.one {email:certificate.email}, (err, user)->
-          return callback new Error "Error occured. Please try again." if err or not user
+          return callback UNKNOWN_ERROR if err or not user
           user.confirmEmail (err)->
-            return callback new Error "Error occured. Please try again." if err
+            return callback UNKNOWN_ERROR if err
             callback null, yes
 
   @invalidate =(query, callback)->
@@ -166,7 +170,6 @@ module.exports = class JPasswordRecovery extends jraphical.Module
 
   @resetPassword = secure (client, token, newPassword, callback)->
     JUser = require './user'
-    UNKNOWN_ERROR = { message: "Error occured. Please try again." }
     {delegate} = client.connection
     unless delegate.type is 'unregistered'
       callback { message: 'You are already logged in!' }
