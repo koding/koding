@@ -179,7 +179,7 @@ class WebTerm.Terminal
     newContent.pushAll oldContent.substring(if insert then x else x + text.length)
     @screenBuffer.setLineContent lineIndex, newContent
 
-  writeEmptyText: (lenght, options) ->
+  writeEmptyText: (length, options) ->
     if not @currentWhitespaceStyle?
       @currentWhitespaceStyle = jQuery.extend true, {}, @currentStyle
       @currentWhitespaceStyle.inverse = false
@@ -187,7 +187,7 @@ class WebTerm.Terminal
     options ?= {}
     options.style = @currentWhitespaceStyle
     text = ""
-    text += "\xA0" for i in [0...lenght]
+    text += "\xA0" for i in [0...length]
     @writeText text, options
 
   deleteCharacters: (count, options) ->

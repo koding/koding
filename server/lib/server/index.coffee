@@ -85,10 +85,11 @@ app.disable 'x-powered-by'
 if basicAuth
   app.use express.basicAuth basicAuth.username, basicAuth.password
 
-process.on 'uncaughtException',(err)->
+process.on 'uncaughtException', (err) ->
   console.log 'there was an uncaught exception'
   console.log process.pid
   console.error err
+  process.exit(1)
 
 app.use (req, res, next) ->
   # add referral code into session if there is one
@@ -210,6 +211,17 @@ app.get "/-/oauth/facebook/callback"  , require "./facebook_callback"
 app.get "/-/oauth/google/callback"    , require "./google_callback"
 app.get "/-/oauth/linkedin/callback"  , require "./linkedin_callback"
 app.get "/-/oauth/twitter/callback"   , require "./twitter_callback"
+
+# TODO: we need to add basic auth!
+app.all '/-/email/webhook', (req, res) ->
+  { JMail } = koding.models
+  { body: batch } = req
+
+  for item in batch when item.event is 'delivered'
+    JMail.markDelivered item, (err) ->
+      console.warn err  if err
+
+  res.send 'ok'
 
 app.get "/Landing/:page", (req, res, next) ->
   {page}      = req.params

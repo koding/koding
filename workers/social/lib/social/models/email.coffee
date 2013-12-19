@@ -22,6 +22,7 @@ module.exports = class JMail extends Model
         type          : Date
         default       : -> new Date
       dateAttempted   : Date
+      dateDelivered   : Date
       email           :
         type          : String
         email         : yes
@@ -39,12 +40,14 @@ module.exports = class JMail extends Model
         enum          : ['Invalid status'
                         [
                           'queued'
-                          'attempted'
                           'sending'
+                          'attempted'
                           'failed'
+                          'delivered'
                           'unsubscribed'
                         ]]
       smtpId          : String
+      redemptionToken : String
       force           :
         type          : Boolean
         default       : false
@@ -60,6 +63,22 @@ module.exports = class JMail extends Model
   isUnsubscribed:(callback)->
     JUnsubscribedMail = require './unsubscribedmail'
     JUnsubscribedMail.isUnsubscribed @email, callback
+
+  @markDelivered = (status, callback = (->)) ->
+    smtpId = do ([_, id] = status['smtp-id'].match /^<(.+)>$/) -> id
+
+    unless smtpId?
+      return process.nextTick -> callback { message: 'Unknown SMTP id' }
+
+    @one { smtpId }, (err, mail) ->
+      return callback err  if err
+      return callback { message: 'Unrecognized SMTP id' }  unless mail?
+
+      operation = $set  :
+        status          : 'delivered'
+        dateDelivered   : status.timestamp * 1000 # milliseconds
+
+      mail.update operation, callback
 
   @unsubscribeWithId = (unsubscribeId, email, opt, callback)->
     JMail.one {email, unsubscribeId}, (err, mail)->
