@@ -41,7 +41,6 @@ func init() {
 func main() {
   log.Printf("Tag Modifier Worker Started")
   consumeMessages()
-  // ack message
 }
 
 func declareExchange() {
@@ -119,8 +118,6 @@ func deleteTags(tagId string) {
     updatePosts(rels, "")
     updateRelationships(rels, &Tag{})
   }
-  //ack
-
 }
 
 func mergeTags(tagId string) {
@@ -141,10 +138,10 @@ func mergeTags(tagId string) {
       updateRelationships(postRels, &synonym)
       updateCounts(&tag, &synonym)
     }
+    synonym.Counts.Followers += updateFollowers(&tag, &synonym)
     UpdateTag(&synonym)
     tag.Counts = TagCount{} // reset counts
     UpdateTag(&tag)
-    updateFollowers(&tag, &synonym)
   }
 }
 
@@ -180,13 +177,13 @@ func updateRelationships(rels []Relationship, synonym *Tag) {
 }
 
 func updateCounts(tag *Tag, synonym *Tag) {
-  synonym.Counts.Following += tag.Counts.Following
-  synonym.Counts.Followers += tag.Counts.Followers
+  synonym.Counts.Following += tag.Counts.Following // does this have any meaning?
+  // synonym.Counts.Followers += tag.Counts.Followers
   synonym.Counts.Post += tag.Counts.Post
   synonym.Counts.Tagged += tag.Counts.Tagged
 }
 
-func updateFollowers(tag *Tag, synonym *Tag) {
+func updateFollowers(tag *Tag, synonym *Tag) int {
   var arr [2]bson.M
   arr[0] = bson.M{
     "targetId": tag.Id,
@@ -197,10 +194,42 @@ func updateFollowers(tag *Tag, synonym *Tag) {
     "as":       "follower",
   }
   rels := FindRelationships(bson.M{"$or": arr})
-  log.Printf("%v follower rels found", len(rels))
-  if len(rels) > 0 {
-    updateRelationships(rels, synonym)
+  var removeRels []Relationship
+  var updateRels []Relationship
+
+  for _, rel := range rels {
+    query := bson.M{
+      "as": "follower",
+    }
+
+    if rel.SourceName == "JTag" {
+      query["sourceId"] = synonym.Id
+      query["targetId"] = rel.TargetId
+    } else {
+      query["sourceId"] = rel.SourceId
+      query["targetId"] = synonym.Id
+    }
+    // for filtering already existing relationships
+    _, err := FindRelationship(query)
+
+    // what if there is really an error
+    if err == nil {
+      updateRels = append(updateRels, rel)
+    } else {
+      removeRels = append(removeRels, rel)
+    }
   }
+
+  log.Printf("%v users are already following new topic", len(removeRels))
+  if len(removeRels) > 0 {
+    updateRelationships(removeRels, &Tag{})
+  }
+  log.Printf("%v users followed new topic", len(updateRels))
+  if len(updateRels) > 0 {
+    updateRelationships(updateRels, synonym)
+  }
+
+  return len(updateRels)
 }
 
 func createRelationship(relationship Relationship) {
