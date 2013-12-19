@@ -260,26 +260,41 @@ class TeamworkWorkspace extends CollaborativeWorkspace
       iconClass  : "icon"
       callback   : =>
         if @activityWidget.activity
+          @activityWidget.hideForm()
           @activityWidget.show()
           @activityWidget.unsetClass "collapsed"
         else
           @share()
 
-    @workspaceRef.child("activityId").once "value", (snapshot) =>
-      return  unless id = snapshot.val()
-      shareButton.hide()
-      @notification.hide()
-      @activityWidget.display id, =>
-        @activityWidget.hideForm()
+    {activityId} = @getOptions()
+    if activityId
+      @displayActivity activityId
+    else
+      @workspaceRef.child("activityId").once "value", (snapshot) =>
+        return  unless activityId = snapshot.val()
+        @displayActivity activityId
 
-    @delegate.on "Exported", (name, url) =>
-      @activityWidget.reply "#{KD.nick()} exported #{name} #{url}"
+    @getDelegate().on "Exported", (name, importUrl) =>
+      activityId = @activityWidget.activity.getId()
+      querystring = @utils.stringifyQuery {activityId, importUrl}
+      url = "#{KD.config.apiUri}/Teamwork?#{querystring}"
+      @utils.shortenUrl url, (shorty) =>
+        @activityWidget.reply "#{KD.nick()} exported #{name} #{shorty}"
+
+  displayActivity: (id) ->
+    @activityWidget.display id, =>
+      @notification.hide()
+      @activityWidget.hideForm()
 
   share: ->
     @activityWidget.show()
     @activityWidget.unsetClass "collapsed"
-    @activityWidget.showForm (err, activity) =>
-      return  err if err
+
+    if @activityWidget.activity
       @activityWidget.hideForm()
-      @notification.hide()
-      @workspaceRef.child("activityId").set activity.getId()
+    else
+      @activityWidget.showForm (err, activity) =>
+        return  err if err
+        @activityWidget.hideForm()
+        @notification.hide()
+        @workspaceRef.child("activityId").set activity.getId()
