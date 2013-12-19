@@ -3,7 +3,7 @@ module.exports = (options, callback)->
   getStyles    = require './../styleblock'
   fetchScripts = require './../scriptblock'
   getSidebar   = require './sidebar'
-  encoder      = require 'htmlencode'
+  encoder      = require 'he'
 
   {
     account, slug, title, content, body,
@@ -17,7 +17,7 @@ module.exports = (options, callback)->
     <!DOCTYPE html>
     <html>
     <head>
-      <title>#{encoder.XSSEncode title}</title>
+      <title>#{encoder.escape title}</title>
       #{getStyles()}
     </head>
     <body class="group">
@@ -26,7 +26,7 @@ module.exports = (options, callback)->
       <div id="invite-recovery-notification-bar" class="invite-recovery-notification-bar hidden"></div>
       <header class="kdview" id='main-header'>
         <div class="kdview">
-          <a class="group" id="koding-logo" href="#"><span></span>#{encoder.XSSEncode title}</a>
+          <a class="group" id="koding-logo" href="#"><span></span>#{encoder.escape title}</a>
         </div>
       </header>
       <section class="kdview" id="main-panel-wrapper">
@@ -37,7 +37,7 @@ module.exports = (options, callback)->
               <div id="content-page-activity" class="kdview content-page activity kdscrollview">
                 <div class="kdview screenshots" id="home-group-header" >
                   <section id="home-group-body" class="kdview kdscrollview">
-                    <div class="group-desc">#{encoder.XSSEncode body}</div>
+                    <div class="group-desc">#{encoder.escape body}</div>
                   </section>
                   <div class="home-links" id="group-home-links">
                     <div class='overlay'></div>

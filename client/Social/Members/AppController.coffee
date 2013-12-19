@@ -217,7 +217,7 @@ class MembersAppController extends AppController
     if firstRun
       mainView.on "searchFilterChanged", (value) =>
         return if value is @_searchValue
-        @_searchValue = Encoder.XSSEncode value
+        @_searchValue = KD.utils.xssEncode value
         @_lastSubview.destroy?()
         @loadView mainView, no, yes
       mainView.createCommons()

@@ -50,13 +50,13 @@ class GroupGeneralSettingsView extends JView
         Title               :
           label             : "Group Name"
           name              : "title"
-          defaultValue      : Encoder.htmlDecode group.title ? ""
+          defaultValue      : KD.utils.htmlDecode group.title ? ""
           placeholder       : 'Please enter a title here'
         Description         :
           label             : "Description"
           type              : "textarea"
           name              : "body"
-          defaultValue      : Encoder.htmlDecode group.body ? ""
+          defaultValue      : KD.utils.htmlDecode group.body ? ""
           placeholder       : 'Please enter a description here.'
           autogrow          : yes
         "Privacy settings"  :
