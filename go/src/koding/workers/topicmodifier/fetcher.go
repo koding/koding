@@ -58,6 +58,14 @@ func FindRelationships(query bson.M) []Relationship {
   return relationships
 }
 
+func FindRelationship(query bson.M) (Relationship, error) {
+  relationship := Relationship{}
+  if err := REL_COLL.Find(query).One(&relationship); err != nil {
+    return relationship, err
+  }
+  return relationship, nil
+}
+
 func FindPostWithId(id string) StatusUpdate {
   post := StatusUpdate{}
   query := bson.M{
@@ -97,14 +105,14 @@ func FindSynonym(tagId string) Tag {
   }
 }
 
-func RemoveRelationship(rel Relationship) {
-  if err := REL_COLL.Remove(bson.M{"_id": rel.Id}); err != nil {
-    log.Println("Remove Relationship error", err)
-  }
+func RemoveRelationship(rel Relationship) error {
+  return REL_COLL.Remove(bson.M{"_id": rel.Id})
 }
 
-func CreateRelationship(rel Relationship) {
+func CreateRelationship(rel Relationship) error {
   if err := REL_COLL.Insert(rel); err != nil {
     log.Println("Insert Relationship error", err)
+    return err
   }
+  return nil
 }
