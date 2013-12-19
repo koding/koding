@@ -1,13 +1,11 @@
-class BugStatusItemList extends KDListItemView
+class BugStatusItemList extends StatusActivityItemView
 
   constructor:( options={}, data)->
-    options.cssClass = "activity-item status"
     super options, data
 
     bugTags     = ["fixed", "postponed", "not repro","duplicate","by design"]
-    @statusItem = new StatusActivityItemView options, data
     @bugstatus  = new KDMultipleChoice
-      cssClass     : "clean-gray editor-button control-button"
+      cssClass     : "clean-gray editor-button control-button bug"
       labels       : bugTags
       multiple     : no
       defaultValue : "done"
@@ -61,8 +59,9 @@ class BugStatusItemList extends KDListItemView
             data.modify options, (err)->
               log err if err
 
-    @addSubView @statusItem
-    @addSubView @bugstatus
+      KD.utils.defer =>
+        @addSubView @bugstatus
 
+  getItemDataId:-> @getData().getId?() or @getData().id or @getData()._id
   viewAppended: JView::viewAppended
 
