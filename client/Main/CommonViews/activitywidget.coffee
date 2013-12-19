@@ -17,7 +17,9 @@ class ActivityWidget extends KDView
     KD.remote.cacheable "JNewStatusUpdate", id, (err, activity) =>
       KD.showError err
       callback err, activity
-      @addActivity activity  if activity and not err
+      activity.fetchTags (err, tags) =>
+        activity.tags = tags
+        @addActivity activity  if activity and not err
 
   create: (body, callback = noop) ->
     KD.remote.api.JNewStatusUpdate.create {body}, (err, activity) =>
