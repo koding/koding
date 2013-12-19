@@ -24,8 +24,6 @@ import (
 
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
-	"launchpad.net/goamz/aws"
-	"launchpad.net/goamz/s3"
 )
 
 type VMInfo struct {
@@ -53,101 +51,58 @@ var (
 	containerSubnet  *net.IPNet
 	shuttingDown     = false
 	requestWaitGroup sync.WaitGroup
-
-	s3store = s3.New(
-		aws.Auth{
-			AccessKey: "AKIAJI6CLCXQ73BBQ2SQ",
-			SecretKey: "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",
-		},
-		aws.USEast,
-	)
-	uploadsBucket = s3store.Bucket("koding-uploads")
-	appsBucket    = s3store.Bucket("koding-apps")
 )
 
 func main() {
 	initializeSettings()
 
+	k := prepareOsKite()
+
+	// handle leftover VMs
+	handleCurrentVMS(k)
+
+	// start pinned always-on VMs
+	startPinnedVMS(k)
+
+	// handle SIGUSR1 and other signals. Shutdown gracely when USR1 is received
+	setupSignalHandler(k)
+
+	// register current client-side methods
+	registerVmMethods(k)
+	registerS3Methods(k)
+	registerFileSystemMethods(k)
+	registerWebtermMethods(k)
+	registerAppMethods(k)
+
+	k.Run()
+}
+
+func initializeSettings() {
+	lifecycle.Startup("kite.os", true)
+
+	var err error
+	if firstContainerIP, containerSubnet, err = net.ParseCIDR(config.Current.ContainerSubnet); err != nil {
+		log.LogError(err, 0)
+		return
+	}
+
+	virt.VMPool = config.Current.VmPool
+	if err := virt.LoadTemplates(templateDir); err != nil {
+		log.LogError(err, 0)
+		return
+	}
+
+	go ldapserver.Listen()
+	go LimiterLoop()
+}
+
+func prepareOsKite() *kite.Kite {
 	kiteName := "os"
 	if config.Region != "" {
 		kiteName += "-" + config.Region
 	}
 
 	k := kite.New(kiteName, true)
-
-	// handle leftover VMs
-	dirs, err := ioutil.ReadDir("/var/lib/lxc")
-	if err != nil {
-		log.LogError(err, 0)
-		return
-	}
-
-	for _, dir := range dirs {
-		if strings.HasPrefix(dir.Name(), "vm-") {
-			vmId := bson.ObjectIdHex(dir.Name()[3:])
-			var vm virt.VM
-			query := func(c *mgo.Collection) error {
-				return c.FindId(vmId).One(&vm)
-			}
-
-			if err := mongodb.Run("jVMs", query); err != nil || vm.HostKite != k.ServiceUniqueName {
-				if err := virt.UnprepareVM(vmId); err != nil {
-					log.Warn(err.Error())
-				}
-				continue
-			}
-			vm.ApplyDefaults()
-			info := newInfo(&vm)
-			infos[vm.Id] = info
-			info.startTimeout()
-		}
-	}
-
-	// start pinned always-on VMs
-	mongodb.Run("jVMs", func(c *mgo.Collection) error {
-		iter := c.Find(bson.M{"pinnedToHost": k.ServiceUniqueName, "alwaysOn": true}).Iter()
-		for {
-			var vm virt.VM
-			if !iter.Next(&vm) {
-				break
-			}
-			if err := startVM(k, &vm, nil); err != nil {
-				log.LogError(err, 0)
-			}
-		}
-		if err := iter.Close(); err != nil {
-			panic(err)
-		}
-		return nil
-	})
-
-	sigtermChannel := make(chan os.Signal)
-	signal.Notify(sigtermChannel, syscall.SIGINT, syscall.SIGTERM, syscall.SIGUSR1)
-	go func() {
-		sig := <-sigtermChannel
-		log.Info("Shutdown initiated.")
-		shuttingDown = true
-		requestWaitGroup.Wait()
-		if sig == syscall.SIGUSR1 {
-			for _, info := range infos {
-				log.Info("Unpreparing " + info.vm.String() + "...")
-				info.unprepareVM()
-			}
-			query := func(c *mgo.Collection) error {
-				_, err := c.UpdateAll(
-					bson.M{"hostKite": k.ServiceUniqueName},
-					bson.M{"$set": bson.M{"hostKite": nil}},
-				) // ensure that really all are set to nil
-				return err
-			}
-
-			err := mongodb.Run("jVMs", query)
-			if err != nil {
-				log.LogError(err, 0)
-			}
-		}
-		log.SendLogsAndExit(0)
-	}()
 
 	k.LoadBalancer = func(correlationName string, username string, deadService string) string {
 		var vm *virt.VM
@@ -179,32 +134,93 @@ func main() {
 		return vm.HostKite
 	}
 
-	registerVmMethods(k)
-	registerS3Methods(k)
-	registerFileSystemMethods(k)
-	registerWebtermMethods(k)
-	registerAppMethods(k)
-
-	k.Run()
+	return k
 }
 
-func initializeSettings() {
-	lifecycle.Startup("kite.os", true)
-
-	var err error
-	if firstContainerIP, containerSubnet, err = net.ParseCIDR(config.Current.ContainerSubnet); err != nil {
+// handleCurrentVMS removes and unprepare any vm in the lxc dir that doesn't
+// have any associated document which in mongodb.
+func handleCurrentVMS(k *kite.Kite) {
+	dirs, err := ioutil.ReadDir("/var/lib/lxc")
+	if err != nil {
 		log.LogError(err, 0)
 		return
 	}
 
-	virt.VMPool = config.Current.VmPool
-	if err := virt.LoadTemplates(templateDir); err != nil {
-		log.LogError(err, 0)
-		return
-	}
+	for _, dir := range dirs {
+		if strings.HasPrefix(dir.Name(), "vm-") {
+			vmId := bson.ObjectIdHex(dir.Name()[3:])
+			var vm virt.VM
+			query := func(c *mgo.Collection) error {
+				return c.FindId(vmId).One(&vm)
+			}
 
-	go ldapserver.Listen()
-	go LimiterLoop()
+			if err := mongodb.Run("jVMs", query); err != nil || vm.HostKite != k.ServiceUniqueName {
+				if err := virt.UnprepareVM(vmId); err != nil {
+					log.Warn(err.Error())
+				}
+				continue
+			}
+
+			vm.ApplyDefaults()
+			info := newInfo(&vm)
+			infos[vm.Id] = info
+			info.startTimeout()
+		}
+	}
+}
+
+func startPinnedVMS(k *kite.Kite) {
+	mongodb.Run("jVMs", func(c *mgo.Collection) error {
+		iter := c.Find(bson.M{"pinnedToHost": k.ServiceUniqueName, "alwaysOn": true}).Iter()
+		for {
+			var vm virt.VM
+			if !iter.Next(&vm) {
+				break
+			}
+			if err := startVM(k, &vm, nil); err != nil {
+				log.LogError(err, 0)
+			}
+		}
+
+		if err := iter.Close(); err != nil {
+			panic(err)
+		}
+
+		return nil
+	})
+
+}
+
+func setupSignalHandler(k *kite.Kite) {
+	sigtermChannel := make(chan os.Signal)
+	signal.Notify(sigtermChannel, syscall.SIGINT, syscall.SIGTERM, syscall.SIGUSR1)
+	go func() {
+		sig := <-sigtermChannel
+		log.Info("Shutdown initiated.")
+		shuttingDown = true
+		requestWaitGroup.Wait()
+		if sig == syscall.SIGUSR1 {
+			for _, info := range infos {
+				log.Info("Unpreparing " + info.vm.String() + "...")
+				info.unprepareVM()
+			}
+
+			query := func(c *mgo.Collection) error {
+				_, err := c.UpdateAll(
+					bson.M{"hostKite": k.ServiceUniqueName},
+					bson.M{"$set": bson.M{"hostKite": nil}},
+				) // ensure that really all are set to nil
+				return err
+			}
+
+			err := mongodb.Run("jVMs", query)
+			if err != nil {
+				log.LogError(err, 0)
+			}
+		}
+
+		log.SendLogsAndExit(0)
+	}()
 }
 
 func UserAccountId(user *virt.User) bson.ObjectId {

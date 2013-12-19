@@ -7,7 +7,20 @@ import (
 	"koding/virt"
 	"strings"
 
+	"launchpad.net/goamz/aws"
 	"launchpad.net/goamz/s3"
+)
+
+var (
+	s3store = s3.New(
+		aws.Auth{
+			AccessKey: "AKIAJI6CLCXQ73BBQ2SQ",
+			SecretKey: "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",
+		},
+		aws.USEast,
+	)
+	uploadsBucket = s3store.Bucket("koding-uploads")
+	appsBucket    = s3store.Bucket("koding-apps")
 )
 
 func registerS3Methods(k *kite.Kite) {
