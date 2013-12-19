@@ -14,7 +14,6 @@ import (
 type Status string
 
 const (
-  UPDATE Status = "update"
   DELETE Status = "delete"
   MERGE  Status = "merge"
 )
@@ -99,9 +98,6 @@ func consumeMessages() {
       switch modifierData.Status {
       default:
         log.Println("Unknown modification status")
-        // rawMsg.Ack(false)
-      case UPDATE:
-        updateTags(tagId)
       case DELETE:
         deleteTags(tagId)
       case MERGE:
@@ -113,12 +109,6 @@ func consumeMessages() {
     modifyMessage()
 
   }
-}
-
-func updateTags(tagId string) {
-  log.Println("update")
-  // fetch tag
-  // fetch related posts
 }
 
 func deleteTags(tagId string) {

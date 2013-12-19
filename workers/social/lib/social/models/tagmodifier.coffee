@@ -21,9 +21,6 @@ tagModifierMQ.on 'ready', ->
       exchange.publish 'modifyTag', {tagId, status}
       exchange.close()
 
-  JTag.on 'TagIsUpdated', (tag) ->
-    emitter tag, 'update'
-
   JTag.on 'TagIsDeleted', (tag) ->
     emitter tag, 'delete'
 
