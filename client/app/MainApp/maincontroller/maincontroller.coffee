@@ -109,7 +109,7 @@ class MainController extends KDController
 
         showSuccessfulModal = (message, callback)->
           modal = new KDBlockingModalView
-            title        : "Kite Registration"
+            title        : "Koding Client Registration"
             content      : "<div class='modalformline'>#{message}</div>"
             height       : "auto"
             overlay      : yes
