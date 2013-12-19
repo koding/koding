@@ -186,11 +186,8 @@ class ApplicationManager extends KDObject
     appOptions.params     = params
     @register appInstance = new AppClass appOptions  if AppClass
 
-    log 'AppManager: opening an app', name
     if @isAppInternal name
-      log 'AppManager: couldn\'t find', name
       return KodingAppsController.loadInternalApp name, (err)=>
-        log 'AppManager: loaded', name
         return warn err  if err
         KD.utils.defer => @create name, params, callback
 
