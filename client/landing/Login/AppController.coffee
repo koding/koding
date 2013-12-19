@@ -48,6 +48,7 @@ class LoginAppsController extends AppController
       '/:name?/Recover'          : handler (app)-> app.getView().animateToForm 'recover'
       '/:name?/Reset'            : handler (app)-> app.getView().animateToForm 'reset'
       '/:name?/Reset/:token'     : handleResetRoute
+      '/:name?/Confirm/:token'   : handleResetRoute
       '/:name?/ResendToken'      : handler (app)-> app.getView().animateToForm 'resendEmail'
     hiddenHandle                 : yes
     behavior                     : 'application'
