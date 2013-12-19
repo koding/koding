@@ -5,6 +5,7 @@ class BugStatusItemList extends StatusActivityItemView
 
     bugTags = ["fixed", "postponed", "not repro","duplicate","by design"]
     state   = tag.title for tag in data.tags when tag.title in bugTags
+    return unless KD.hasAccess "edit posts"
     @bugstatus  = new KDMultipleChoice
       cssClass     : "clean-gray editor-button control-button bug"
       labels       : bugTags
