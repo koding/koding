@@ -263,9 +263,9 @@ class KodingRouter extends KDRouter
     registerHostNameAndKey = ->
       $.cookie "register-to-koding-client", yes
       unless KD.isLoggedIn()
-        message = "Please login before next step"
+        message = "Please login to proceed to the next step"
         modal = new KDBlockingModalView
-          title        : "Login"
+          title        : "Koding Client Registration"
           content      : "<div class='modalformline'>#{message}</div>"
           height       : "auto"
           overlay      : yes
@@ -275,6 +275,10 @@ class KodingRouter extends KDRouter
               callback    : ->
                 modal.destroy()
                 KD.utils.wait 5000, window.location.pathname = "/Login"
+            "Cancel" :
+              style       : "modal-cancel"
+              callback    : ->
+                modal.destroy()
       else
         location.href = "/"
 
