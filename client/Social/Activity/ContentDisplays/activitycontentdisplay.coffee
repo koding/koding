@@ -37,14 +37,4 @@ class ActivityContentDisplay extends KDScrollView
         KD.singleton('display').emit "ContentDisplayWantsToBeHidden", @
         KD.singleton('router').back()
 
-
     @back = new KDCustomHTMLView  unless KD.isLoggedIn()
-
-
-
-
-#     # disabled for beta
-#     # @getView().addSubView metaSection = new KDView cssClass : "content-display-meta"
-#     # metaSection.addSubView meta = new ContentDisplayScoreBoard cssClass : "scoreboard",activity
-#     # metaSection.addSubView tagHead = new KDHeaderView title : "Tags"
-#     # metaSection.addSubView metaTags = new ContentDisplayTags

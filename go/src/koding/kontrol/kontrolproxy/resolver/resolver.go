@@ -192,23 +192,6 @@ func MemTargetByHost(host string) (*Target, error) {
 // arslan.kd.io -> "http://10.128.2.25:80", mode:vm
 // y.koding.com -> "http://localhost/maintenance", mode:maintenance
 func TargetByHost(host string) (*Target, error) {
-	domain, err := targetDomain(host)
-	if err != nil {
-		return nil, err
-	}
-
-	target, err := targetMode(host, domain)
-	if err != nil {
-		return nil, err
-	}
-
-	target.CacheEnabled = domain.Proxy.CacheEnabled
-	target.CacheSuffixes = domain.Proxy.CacheSuffixes
-	return target, nil
-}
-
-func targetMode(host string, domain *models.Domain) (*Target, error) {
-	// split host and port and also check if incoming host has a port
 	var port string
 	var err error
 
@@ -221,6 +204,22 @@ func targetMode(host string, domain *models.Domain) (*Target, error) {
 		}
 	}
 
+	domain, err := targetDomain(host)
+	if err != nil {
+		return nil, err
+	}
+
+	target, err := targetMode(host, port, domain)
+	if err != nil {
+		return nil, err
+	}
+
+	target.CacheEnabled = domain.Proxy.CacheEnabled
+	target.CacheSuffixes = domain.Proxy.CacheSuffixes
+	return target, nil
+}
+
+func targetMode(host, port string, domain *models.Domain) (*Target, error) {
 	mode := domain.Proxy.Mode
 
 	switch mode {
@@ -350,12 +349,6 @@ func buildHosts(username, servicename, key string) ([]string, string, error) {
 // to 0 seconds, means it will be cached forever (because it uses an IP that
 // never change.)
 func vmTarget(host, port string, domain *models.Domain) (*Target, error) {
-	// we only opened ports between those, therefore other ports are not used
-	portInt, _ := strconv.Atoi(port)
-	if portInt >= 1024 && portInt <= 10000 {
-		return nil, fmt.Errorf("port '%s' is not allowed. Allowed range is 1024 - 10,000", port)
-	}
-
 	if len(domain.HostnameAlias) == 0 {
 		return nil, fmt.Errorf("no hostnameAlias defined for host (vm): %s", host)
 	}
@@ -400,8 +393,7 @@ func vmTarget(host, port string, domain *models.Domain) (*Target, error) {
 		return nil, err
 	}
 
-	// cache VM's target for one day, they have static IP's and don't never change
-	return newTarget(target, domain.Proxy.Mode, time.Hour*24), nil
+	return newTarget(target, domain.Proxy.Mode, time.Second*60), nil
 }
 
 // fallbackDomain is used to return a fallback domain when the incoming host

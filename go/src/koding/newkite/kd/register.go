@@ -5,14 +5,11 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	uuid "github.com/nu7hatch/gouuid"
 	"io/ioutil"
 	"koding/newkite/kd/util"
 	"koding/newkite/kodingkey"
+	"log"
 	"net/http"
-	"os"
-	"path/filepath"
-	"strings"
 	"time"
 )
 
@@ -43,36 +40,62 @@ func (r *Register) Exec(args []string) error {
 		r.authServer = AuthServerLocal
 	}
 
-	id, err := uuid.NewV4()
+	hostID, err := util.HostID()
 	if err != nil {
 		return err
 	}
 
-	hostname, err := os.Hostname()
-	if err != nil {
-		return err
-	}
+	var key string
+	keyExist := false
 
-	hostID := hostname + "-" + id.String()
-
-	key, err := getOrCreateKey()
+	key, err = util.GetKey()
 	if err != nil {
-		return err
+		k, err := kodingkey.NewKodingKey()
+		if err != nil {
+			return err
+		}
+
+		key = k.String()
+	} else {
+		fmt.Printf("Found a key under '%s'. Going to use it to register\n", util.GetKdPath())
+		keyExist = true
 	}
 
 	registerUrl := fmt.Sprintf("%s/-/auth/register/%s/%s", r.authServer, hostID, key)
+	checkUrl := fmt.Sprintf("%s/-/auth/check/%s", r.authServer, key)
+
+	// first check if the user is alrady registered
+	err = checkResponse(checkUrl)
+	if err == nil {
+		fmt.Printf("... you are already registered.\n")
+		return nil
+	}
 
 	fmt.Printf("Please open the following url for authentication:\n\n")
 	fmt.Println(registerUrl)
 	fmt.Printf("\nwaiting . ")
 
-	return r.checker(key)
+	// .. if not let the user register himself
+	err = checker(checkUrl)
+	if err != nil {
+		return err
+	}
+	fmt.Println("successfully authenticated.")
+
+	if keyExist {
+		return nil
+	}
+
+	err = util.WriteKey(key)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // checker checks if the user has browsed the register URL by polling the check URL.
-func (r *Register) checker(key string) error {
-	checkUrl := fmt.Sprintf("%s/-/auth/check/%s", r.authServer, key)
-
+func checker(checkUrl string) error {
 	// check the result every two seconds
 	ticker := time.NewTicker(2 * time.Second).C
 
@@ -82,89 +105,45 @@ func (r *Register) checker(key string) error {
 	for {
 		select {
 		case <-ticker:
-			resp, err := http.Get(checkUrl)
+			err := checkResponse(checkUrl)
 			if err != nil {
-				return err
+				// we didn't get OK message, continue until timout
+				fmt.Printf(". ") // animation
+				continue
 			}
 
-			body, err := ioutil.ReadAll(resp.Body)
-			if err != nil {
-				return err
-			}
-
-			resp.Body.Close()
-			fmt.Printf(". ")
-
-			if resp.StatusCode == 200 {
-				type Result struct {
-					Result string `json:"result"`
-				}
-
-				res := Result{}
-
-				err := json.Unmarshal(bytes.TrimSpace(body), &res)
-				if err != nil {
-					return err
-				}
-
-				fmt.Println(res.Result)
-				return nil
-			}
+			return nil
 		case <-timeout:
 			return errors.New("timeout")
 		}
 	}
 }
 
-// getOrCreateKey combines the two functions: getKey and writeNewKey
-func getOrCreateKey() (string, error) {
-	kdPath := util.GetKdPath()
-	keyPath := filepath.Join(kdPath, "koding.key")
-	key, err := getKey(keyPath)
-	if err == nil {
-		return key, nil
-	}
-
-	if !os.IsNotExist(err) {
-		return "", err
-	}
-
-	key, err = writeNewKey(kdPath, keyPath)
+func checkResponse(checkUrl string) error {
+	resp, err := http.Get(checkUrl)
 	if err != nil {
-		return "", err
+		return err
 	}
 
-	return key, nil
-
-}
-
-// getKey returns the Koding key from ~/.kd/koding.key
-func getKey(keyPath string) (string, error) {
-	data, err := ioutil.ReadFile(keyPath)
+	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return "", err
+		return err
+	}
+	resp.Body.Close()
+
+	if resp.StatusCode != 200 {
+		return errors.New("non 200 response")
 	}
 
-	key := strings.TrimSpace(string(data))
+	type Result struct {
+		Result string `json:"result"`
+	}
 
-	return key, nil
-}
-
-// writeNewKey generates a new Koding key and writes to ~/.kd/koding.key
-func writeNewKey(kdPath, keyPath string) (string, error) {
-	fmt.Println("Koding key is not found on this host. A new key will be created.")
-
-	err := os.Mkdir(kdPath, 0700)
-
-	key, err := kodingkey.NewKodingKey()
+	res := Result{}
+	err = json.Unmarshal(bytes.TrimSpace(body), &res)
 	if err != nil {
-		return "", err
+		log.Fatalln(err) // this should not happen, exit here
 	}
 
-	err = ioutil.WriteFile(keyPath, []byte(key.String()), 0600)
-	if err != nil {
-		return "", err
-	}
-
-	return key.String(), nil
+	return nil
 }

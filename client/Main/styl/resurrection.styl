@@ -40,11 +40,11 @@ button
   z-index             1000
   overflow            visible
   visibility          visible
-  shadow              0 3px 0 rgba(0, 0, 0, .2)
+  shadow              0 3px 0 rgba(0, 0, 0, .15)
   fix()
 
   .inner-container
-    bg                  color, #1e2628
+    bg                  color, #1f2628
     size                100%, 55px
     vendor              transform, translateY(0)
     -webkit-transition  -webkit-transform .2s ease
@@ -75,12 +75,12 @@ button
 
 #koding-logo
   size              57px 55px
-  bg                color, #2eb398
+  bg                color, #37b298
   fl()
 
   cite
-    sprite          app 'nav-logo'
-    margin          11px 0 0 11px
+    r-sprite        app 'nav-logo'
+    margin          0 0 0 1px
     display         block
 
 #main-nav
@@ -91,12 +91,14 @@ button
   .on-top
     z-index         100
     border          none !important
+    shadow          none !important
     background      none !important
 
   > a
     abs()
     display         block
-    size            69px 55px
+    size            55px 55px
+    border-right    1px solid #252e30
     vendor          transition, top .2s linear\,\
                                 left .2s linear
     cite
@@ -116,16 +118,13 @@ button
       abs()
 
     .icon
-      margin        11px 0 0 19px
       display       block
 
     &.selected
       bg            color, #2b3335
-      .icon
-        margin-top  9px
 
     &.running
-      border-top    2px solid #1aaf5d
+      shadow        inset 0 2px 0 #1aaf5d
       borderBox()
 
     &.loading
@@ -133,21 +132,21 @@ button
         vendor      animation, pulse 1.5s ease-in-out 100
 
     &.activity .icon
-      sprite      app nav-activity
-    &.develop .icon
-      sprite      app nav-develop
+      r-sprite      app nav-activity
     &.topics .icon
-      sprite      app nav-topics
+      r-sprite      app nav-topics
     &.editor .icon
-      sprite      app nav-editor
+      r-sprite      app nav-editor
     &.terminal .icon
-      sprite      app nav-terminal
+      r-sprite      app nav-terminal
     &.apps .icon
-      sprite      app nav-apps
-    &.finder .icon
-      sprite      app nav-finder
+      r-sprite      app nav-apps
     &.teamwork .icon
-      sprite      app nav-teamwork
+      r-sprite      app nav-teamwork
+    // &.develop .icon
+    //   r-sprite      app nav-develop
+    // &.finder .icon
+    //   r-sprite      app nav-finder
 
 .account-area
   vendor            transform-style, preserve-3d
@@ -162,19 +161,22 @@ button
     vertical-align  top
 
   .acc-dropdown-icon
-    size            55px 55px
+    size            45px 55px
     display         inline-block
+    border-left     1px solid #1f2628
     .count
       cite
         display     none
     .icon
       display       block
     &.notifications .icon
-      margin        18px 0 0 16px
+      margin        18px 0 0 13px
       sprite        app account-notifications
-    &.search .icon
-      margin        15px 0 0 17px
-      sprite        app account-search
+    &.search
+      width         55px
+      .icon
+        margin      17px 0 0 17px
+        sprite      app account-search
     &.groups
       abs()
       top           0
@@ -223,7 +225,7 @@ button
                        opacity .5s ease
 
   .avatar-area
-    bg                 color, #212932
+    bg                 color, #2e3537
     padding            15px 20px
     height             55px
     width              238px
@@ -947,15 +949,14 @@ section.page
     cursor                      pointer
 
 div.nominateicon
-  width                         50px
-  height                        43px
+  width                         45px
+  height                        55px
   background                    url("../images/icon_medal.png") no-repeat
-  background-position           14px 0px
+  background-position           12px 0px
   background-color              #2B3335
   border-radius                 3px
-  margin-top                    7px
   cursor                        pointer
-  right                         295px
+  right                         285px
   z-index                       1
   top                           0
   abs()

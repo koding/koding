@@ -4,10 +4,22 @@ import (
 	"fmt"
 	"koding/db/models"
 	"koding/db/mongodb"
+	"koding/tools/config"
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
 	"log"
 )
+
+const (
+	WorkersCollection = "jKontrolWorkers"
+	WorkersDB         = "kontrol"
+)
+
+var kontrolDB *mongodb.MongoDB
+
+func init() {
+	kontrolDB = mongodb.NewMongoDB(config.Current.MongoKontrol)
+}
 
 func GetWorker(uuid string) (models.Worker, error) {
 	result := models.Worker{}
@@ -15,7 +27,7 @@ func GetWorker(uuid string) (models.Worker, error) {
 		return c.Find(bson.M{"uuid": uuid}).One(&result)
 	}
 
-	err := mongodb.Run("jKontrolWorkers", query)
+	err := kontrolDB.RunOnDatabase(WorkersDB, WorkersCollection, query)
 	if err != nil {
 		return result, fmt.Errorf("no worker with the uuid %s exist.", uuid)
 	}
@@ -28,7 +40,7 @@ func UpdateIDWorker(worker models.Worker) {
 		return c.UpdateId(worker.ObjectId, worker)
 	}
 
-	err := mongodb.Run("jKontrolWorkers", query)
+	err := kontrolDB.RunOnDatabase(WorkersDB, WorkersCollection, query)
 	if err != nil {
 		log.Println(err)
 	}
@@ -39,7 +51,7 @@ func UpdateWorker(worker models.Worker) {
 		return c.Update(bson.M{"uuid": worker.Uuid}, worker)
 	}
 
-	err := mongodb.Run("jKontrolWorkers", query)
+	err := kontrolDB.RunOnDatabase(WorkersDB, WorkersCollection, query)
 	if err != nil {
 		log.Println(err)
 	}
@@ -51,7 +63,7 @@ func UpsertWorker(worker models.Worker) error {
 		return err
 	}
 
-	return mongodb.Run("jKontrolWorkers", query)
+	return kontrolDB.RunOnDatabase(WorkersDB, WorkersCollection, query)
 }
 
 func DeleteWorker(uuid string) error {
@@ -59,5 +71,5 @@ func DeleteWorker(uuid string) error {
 		return c.Remove(bson.M{"uuid": uuid})
 	}
 
-	return mongodb.Run("jKontrolWorkers", query)
+	return kontrolDB.RunOnDatabase(WorkersDB, WorkersCollection, query)
 }
