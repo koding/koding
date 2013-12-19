@@ -260,28 +260,6 @@ class KodingRouter extends KDRouter
     createContentHandler       = @bound 'createContentDisplayHandler'
     createStaticContentHandler = @bound 'createStaticContentDisplayHandler'
 
-    registerHostNameAndKey = ->
-      $.cookie "register-to-koding-client", yes
-      unless KD.isLoggedIn()
-        message = "Please login to proceed to the next step"
-        modal = new KDBlockingModalView
-          title        : "Koding Client Registration"
-          content      : "<div class='modalformline'>#{message}</div>"
-          height       : "auto"
-          overlay      : yes
-          buttons      :
-            "Go to Login" :
-              style       : "modal-clean-gray"
-              callback    : ->
-                modal.destroy()
-                KD.utils.wait 5000, window.location.pathname = "/Login"
-            "Cancel" :
-              style       : "modal-cancel"
-              callback    : ->
-                modal.destroy()
-      else
-        location.href = "/"
-
     routes =
 
       '/'      : handleRoot
@@ -376,7 +354,7 @@ class KodingRouter extends KDRouter
         else
           @handleRoute '/Login'
 
-      '/:name?/RegisterHostKey': registerHostNameAndKey
+      '/:name?/RegisterHostKey': KiteHelper.initiateRegistiration
 
       '/member/:username': ({params:{username}})->
         @handleRoute "/#{username}", replaceState: yes
