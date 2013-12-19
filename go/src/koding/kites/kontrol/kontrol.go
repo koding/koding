@@ -90,8 +90,7 @@ func (k *Kontrol) init() {
 
 // registerValue is the type of the value that is saved to etcd.
 type registerValue struct {
-	PublicIP   string
-	Port       string
+	URL        protocol.KiteURL
 	KodingKey  string
 	Visibility protocol.Visibility
 }
@@ -105,9 +104,15 @@ func (k *Kontrol) handleRegister(r *kite.Request) (interface{}, error) {
 		return nil, fmt.Errorf("Unexpected authentication type: %s", r.Authentication.Type)
 	}
 
-	// Set PublicIP address if it's empty.
-	if r.RemoteKite.PublicIP == "" {
-		r.RemoteKite.PublicIP, _, _ = net.SplitHostPort(r.RemoteAddr)
+	if r.RemoteKite.URL.URL == nil {
+		return nil, errors.New("Empty 'url' field")
+	}
+
+	// In case Kite.URL does not contain a hostname, the r.RemoteAddr is used.
+	host, port, _ := net.SplitHostPort(r.RemoteKite.URL.Host)
+	if host == "" {
+		host, _, _ = net.SplitHostPort(r.RemoteAddr)
+		r.RemoteKite.URL.Host = net.JoinHostPort(host, port)
 	}
 
 	return k.register(r.RemoteKite, r.Authentication.Key)
@@ -150,10 +155,11 @@ func (k *Kontrol) register(r *kite.RemoteKite, kodingkey string) (*protocol.Regi
 	})
 
 	// send response back to the kite, also identify him with the new name
+	ip, _, _ := net.SplitHostPort(r.URL.Host)
 	return &protocol.RegisterResult{
 		Result:   protocol.AllowKite,
 		Username: r.Username,
-		PublicIP: r.PublicIP,
+		PublicIP: ip,
 	}, nil
 }
 
@@ -196,8 +202,7 @@ func (k *Kontrol) registerSelf() {
 //  makeSetter returns a func for setting the kite key with value in etcd.
 func (k *Kontrol) makeSetter(kite *protocol.Kite, etcdKey, kodingkey string) func() (string, error) {
 	rv := &registerValue{
-		PublicIP:   kite.PublicIP,
-		Port:       kite.Port,
+		URL:        kite.URL,
 		KodingKey:  kodingkey,
 		Visibility: kite.Visibility,
 	}
@@ -450,8 +455,7 @@ func kiteFromEtcdKV(key, value string) (*protocol.Kite, string, error) {
 	rv := new(registerValue)
 	json.Unmarshal([]byte(value), rv)
 
-	kite.PublicIP = rv.PublicIP
-	kite.Port = rv.Port
+	kite.URL = rv.URL
 
 	return kite, rv.KodingKey, nil
 }

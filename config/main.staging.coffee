@@ -163,8 +163,7 @@ module.exports =
       github    :
         clientId: "f733c52d991ae9642365"
       newkontrol:
-        host    : '127.0.0.1'
-        port    : 80
+        url     : 'wss://127.0.0.1:80/dnode'
       fileFetchTimeout: 15 * 1000 # seconds
   mq            :
     host        : '172.16.6.14'

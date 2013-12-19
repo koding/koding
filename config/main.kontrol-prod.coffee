@@ -166,8 +166,7 @@ module.exports =
       uploadsUri: 'https://koding-uploads.s3.amazonaws.com'
       sourceUri : "http://webserver-#{version}a.sj.koding.com:1337"
       newkontrol:
-        host    : 'newkontrol.sj.koding.com'
-        port    : 80
+        url     : 'wss://newkontrol.sj.koding.com:80/dnode'
       fileFetchTimeout: 15 * 1000 # seconds
   mq            :
     host        : '172.16.3.4'
