@@ -14,10 +14,6 @@ import (
 	"koding/tools/log"
 	"koding/tools/utils"
 	"koding/virt"
-	"labix.org/v2/mgo"
-	"labix.org/v2/mgo/bson"
-	"launchpad.net/goamz/aws"
-	"launchpad.net/goamz/s3"
 	"net"
 	"os"
 	"os/signal"
@@ -25,6 +21,9 @@ import (
 	"sync"
 	"syscall"
 	"time"
+
+	"labix.org/v2/mgo"
+	"labix.org/v2/mgo/bson"
 )
 
 type VMInfo struct {
@@ -44,37 +43,41 @@ type VMInfo struct {
 	TotalMemoryLimit    int    `json:"totalMemoryLimit"`
 }
 
-type UnderMaintenanceError struct{}
-
-func (err *UnderMaintenanceError) Error() string {
-	return "VM is under maintenance."
-}
-
-type AccessDeniedError struct{}
-
-func (err *AccessDeniedError) Error() string {
-	return "Vm is banned"
-}
-
-var infos = make(map[bson.ObjectId]*VMInfo)
-var infosMutex sync.Mutex
-var templateDir = config.Current.ProjectRoot + "/go/templates"
-var firstContainerIP net.IP
-var containerSubnet *net.IPNet
-var shuttingDown = false
-var requestWaitGroup sync.WaitGroup
-
-var s3store = s3.New(
-	aws.Auth{
-		AccessKey: "AKIAJI6CLCXQ73BBQ2SQ",
-		SecretKey: "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",
-	},
-	aws.USEast,
+var (
+	infos            = make(map[bson.ObjectId]*VMInfo)
+	infosMutex       sync.Mutex
+	templateDir      = config.Current.ProjectRoot + "/go/templates"
+	firstContainerIP net.IP
+	containerSubnet  *net.IPNet
+	shuttingDown     = false
+	requestWaitGroup sync.WaitGroup
 )
-var uploadsBucket = s3store.Bucket("koding-uploads")
-var appsBucket = s3store.Bucket("koding-apps")
 
 func main() {
+	initializeSettings()
+
+	k := prepareOsKite()
+
+	// handle leftover VMs
+	handleCurrentVMS(k)
+
+	// start pinned always-on VMs
+	startPinnedVMS(k)
+
+	// handle SIGUSR1 and other signals. Shutdown gracely when USR1 is received
+	setupSignalHandler(k)
+
+	// register current client-side methods
+	registerVmMethods(k)
+	registerS3Methods(k)
+	registerFileSystemMethods(k)
+	registerWebtermMethods(k)
+	registerAppMethods(k)
+
+	k.Run()
+}
+
+func initializeSettings() {
 	lifecycle.Startup("kite.os", true)
 
 	var err error
@@ -91,84 +94,15 @@ func main() {
 
 	go ldapserver.Listen()
 	go LimiterLoop()
+}
+
+func prepareOsKite() *kite.Kite {
 	kiteName := "os"
 	if config.Region != "" {
 		kiteName += "-" + config.Region
 	}
+
 	k := kite.New(kiteName, true)
-
-	// handle leftover VMs
-	dirs, err := ioutil.ReadDir("/var/lib/lxc")
-	if err != nil {
-		log.LogError(err, 0)
-		return
-	}
-	for _, dir := range dirs {
-		if strings.HasPrefix(dir.Name(), "vm-") {
-			vmId := bson.ObjectIdHex(dir.Name()[3:])
-			var vm virt.VM
-			query := func(c *mgo.Collection) error {
-				return c.FindId(vmId).One(&vm)
-			}
-
-			if err := mongodb.Run("jVMs", query); err != nil || vm.HostKite != k.ServiceUniqueName {
-				if err := virt.UnprepareVM(vmId); err != nil {
-					log.Warn(err.Error())
-				}
-				continue
-			}
-			vm.ApplyDefaults()
-			info := newInfo(&vm)
-			infos[vm.Id] = info
-			info.startTimeout()
-		}
-	}
-
-	// start pinned always-on VMs
-	mongodb.Run("jVMs", func(c *mgo.Collection) error {
-		iter := c.Find(bson.M{"pinnedToHost": k.ServiceUniqueName, "alwaysOn": true}).Iter()
-		for {
-			var vm virt.VM
-			if !iter.Next(&vm) {
-				break
-			}
-			if err := startVM(k, &vm, nil); err != nil {
-				log.LogError(err, 0)
-			}
-		}
-		if err := iter.Close(); err != nil {
-			panic(err)
-		}
-		return nil
-	})
-
-	sigtermChannel := make(chan os.Signal)
-	signal.Notify(sigtermChannel, syscall.SIGINT, syscall.SIGTERM, syscall.SIGUSR1)
-	go func() {
-		sig := <-sigtermChannel
-		log.Info("Shutdown initiated.")
-		shuttingDown = true
-		requestWaitGroup.Wait()
-		if sig == syscall.SIGUSR1 {
-			for _, info := range infos {
-				log.Info("Unpreparing " + info.vm.String() + "...")
-				info.unprepareVM()
-			}
-			query := func(c *mgo.Collection) error {
-				_, err := c.UpdateAll(
-					bson.M{"hostKite": k.ServiceUniqueName},
-					bson.M{"$set": bson.M{"hostKite": nil}},
-				) // ensure that really all are set to nil
-				return err
-			}
-
-			err := mongodb.Run("jVMs", query)
-			if err != nil {
-				log.LogError(err, 0)
-			}
-		}
-		log.SendLogsAndExit(0)
-	}()
 
 	k.LoadBalancer = func(correlationName string, username string, deadService string) string {
 		var vm *virt.VM
@@ -177,6 +111,7 @@ func main() {
 				return c.FindId(bson.ObjectIdHex(correlationName)).One(&vm)
 			})
 		}
+
 		if vm == nil {
 			if err := mongodb.Run("jVMs", func(c *mgo.Collection) error {
 				return c.Find(bson.M{"hostnameAlias": correlationName}).One(&vm)
@@ -191,6 +126,7 @@ func main() {
 			}
 			return k.ServiceUniqueName
 		}
+
 		if vm.HostKite == deadService {
 			log.Warn("VM is registered as running on dead service.", correlationName, username, deadService)
 			return k.ServiceUniqueName
@@ -198,134 +134,93 @@ func main() {
 		return vm.HostKite
 	}
 
-	registerVmMethod(k, "vm.start", false, func(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
-		if !vos.Permissions.Sudo {
-			return nil, &kite.PermissionError{}
+	return k
+}
+
+// handleCurrentVMS removes and unprepare any vm in the lxc dir that doesn't
+// have any associated document which in mongodb.
+func handleCurrentVMS(k *kite.Kite) {
+	dirs, err := ioutil.ReadDir("/var/lib/lxc")
+	if err != nil {
+		log.LogError(err, 0)
+		return
+	}
+
+	for _, dir := range dirs {
+		if strings.HasPrefix(dir.Name(), "vm-") {
+			vmId := bson.ObjectIdHex(dir.Name()[3:])
+			var vm virt.VM
+			query := func(c *mgo.Collection) error {
+				return c.FindId(vmId).One(&vm)
+			}
+
+			if err := mongodb.Run("jVMs", query); err != nil || vm.HostKite != k.ServiceUniqueName {
+				if err := virt.UnprepareVM(vmId); err != nil {
+					log.Warn(err.Error())
+				}
+				continue
+			}
+
+			vm.ApplyDefaults()
+			info := newInfo(&vm)
+			infos[vm.Id] = info
+			info.startTimeout()
 		}
-		if err := vos.VM.Start(); err != nil {
+	}
+}
+
+func startPinnedVMS(k *kite.Kite) {
+	mongodb.Run("jVMs", func(c *mgo.Collection) error {
+		iter := c.Find(bson.M{"pinnedToHost": k.ServiceUniqueName, "alwaysOn": true}).Iter()
+		for {
+			var vm virt.VM
+			if !iter.Next(&vm) {
+				break
+			}
+			if err := startVM(k, &vm, nil); err != nil {
+				log.LogError(err, 0)
+			}
+		}
+
+		if err := iter.Close(); err != nil {
 			panic(err)
 		}
-		return true, nil
+
+		return nil
 	})
 
-	registerVmMethod(k, "vm.shutdown", false, func(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
-		if !vos.Permissions.Sudo {
-			return nil, &kite.PermissionError{}
-		}
-		if err := vos.VM.Shutdown(); err != nil {
-			panic(err)
-		}
-		return true, nil
-	})
+}
 
-	registerVmMethod(k, "vm.stop", false, func(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
-		if !vos.Permissions.Sudo {
-			return nil, &kite.PermissionError{}
-		}
-		if err := vos.VM.Stop(); err != nil {
-			panic(err)
-		}
-		return true, nil
-	})
+func setupSignalHandler(k *kite.Kite) {
+	sigtermChannel := make(chan os.Signal)
+	signal.Notify(sigtermChannel, syscall.SIGINT, syscall.SIGTERM, syscall.SIGUSR1)
+	go func() {
+		sig := <-sigtermChannel
+		log.Info("Shutdown initiated.")
+		shuttingDown = true
+		requestWaitGroup.Wait()
+		if sig == syscall.SIGUSR1 {
+			for _, info := range infos {
+				log.Info("Unpreparing " + info.vm.String() + "...")
+				info.unprepareVM()
+			}
 
-	registerVmMethod(k, "vm.reinitialize", false, func(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
-		if !vos.Permissions.Sudo {
-			return nil, &kite.PermissionError{}
-		}
-		vos.VM.Prepare(true, log.Warn)
-		if err := vos.VM.Start(); err != nil {
-			panic(err)
-		}
-		return true, nil
-	})
+			query := func(c *mgo.Collection) error {
+				_, err := c.UpdateAll(
+					bson.M{"hostKite": k.ServiceUniqueName},
+					bson.M{"$set": bson.M{"hostKite": nil}},
+				) // ensure that really all are set to nil
+				return err
+			}
 
-	registerVmMethod(k, "vm.info", false, func(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
-		info := channel.KiteData.(*VMInfo)
-		info.State = vos.VM.GetState()
-		return info, nil
-	})
-
-	registerVmMethod(k, "vm.resizeDisk", false, func(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
-		if !vos.Permissions.Sudo {
-			return nil, &kite.PermissionError{}
-		}
-		return true, vos.VM.ResizeRBD()
-	})
-
-	registerVmMethod(k, "vm.createSnapshot", false, func(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
-		if !vos.Permissions.Sudo {
-			return nil, &kite.PermissionError{}
+			err := mongodb.Run("jVMs", query)
+			if err != nil {
+				log.LogError(err, 0)
+			}
 		}
 
-		snippetId := bson.NewObjectId().Hex()
-		if err := vos.VM.CreateConsistentSnapshot(snippetId); err != nil {
-			return nil, err
-		}
-
-		return snippetId, nil
-	})
-
-	registerVmMethod(k, "spawn", true, func(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
-		var command []string
-		if args.Unmarshal(&command) != nil {
-			return nil, &kite.ArgumentError{Expected: "[array of strings]"}
-		}
-		return vos.VM.AttachCommand(vos.User.Uid, "", command...).CombinedOutput()
-	})
-
-	registerVmMethod(k, "exec", true, func(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
-		var line string
-		if args.Unmarshal(&line) != nil {
-			return nil, &kite.ArgumentError{Expected: "[string]"}
-		}
-		return vos.VM.AttachCommand(vos.User.Uid, "", "/bin/bash", "-c", line).CombinedOutput()
-	})
-
-	registerVmMethod(k, "s3.store", true, func(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
-		var params struct {
-			Name    string
-			Content []byte
-		}
-		if args.Unmarshal(&params) != nil || params.Name == "" || len(params.Content) == 0 || strings.Contains(params.Name, "/") {
-			return nil, &kite.ArgumentError{Expected: "{ name: [string], content: [base64 string] }"}
-		}
-
-		if len(params.Content) > 2*1024*1024 {
-			return nil, errors.New("Content size larger than maximum of 2MB.")
-		}
-
-		result, err := uploadsBucket.List(UserAccountId(vos.User).Hex()+"/", "", "", 100)
-		if err != nil {
-			return nil, err
-		}
-		if len(result.Contents) >= 100 {
-			return nil, errors.New("Maximum of 100 stored files reached.")
-		}
-
-		if err := uploadsBucket.Put(UserAccountId(vos.User).Hex()+"/"+params.Name, params.Content, "", s3.Private); err != nil {
-			return nil, err
-		}
-		return true, nil
-	})
-
-	registerVmMethod(k, "s3.delete", true, func(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
-		var params struct {
-			Name string
-		}
-		if args.Unmarshal(&params) != nil || params.Name == "" || strings.Contains(params.Name, "/") {
-			return nil, &kite.ArgumentError{Expected: "{ name: [string] }"}
-		}
-		if err := uploadsBucket.Del(UserAccountId(vos.User).Hex() + "/" + params.Name); err != nil {
-			return nil, err
-		}
-		return true, nil
-	})
-
-	registerFileSystemMethods(k)
-	registerWebtermMethods(k)
-	registerAppMethods(k)
-
-	k.Run()
+		log.SendLogsAndExit(0)
+	}()
 }
 
 func UserAccountId(user *virt.User) bson.ObjectId {
@@ -800,4 +695,16 @@ func NextCounterValue(counterName string, initialValue int) int {
 
 	return counter.Value
 
+}
+
+type UnderMaintenanceError struct{}
+
+func (err *UnderMaintenanceError) Error() string {
+	return "VM is under maintenance."
+}
+
+type AccessDeniedError struct{}
+
+func (err *AccessDeniedError) Error() string {
+	return "Vm is banned"
 }
