@@ -27,18 +27,18 @@ class BugReportController extends AppController
       limitPerPage         : 10
       useHeaderNav         : yes
       filter               :
-        allbugs            :
+        all                :
           title            : "Reported Bugs"
           noItemFoundText  : "There is no reported bugs"
           dataSource       : (selector, options, callback) =>
-            selector       =
-              limit        : 10
-              slug         : "bug"
-            KD.remote.api.JNewStatusUpdate.fetchTopicFeed selector, (err, activities = []) ->
-              activities?.map (activity) ->
-                activity.on "TagsUpdated", (tags) ->
-                  activity.tags = KD.remote.revive tags
-              callback err, activities
+            options = tag : "bug", tagType : "user-tag"
+            @createFilter options, callback
+        fixed              :
+          title            : "Fixed Bugs"
+          noItemFoundText  : "There is no fixed bugs"
+          dataSource       : (selector, options, callback) =>
+            options = tag : "fixed", tagType : "system-tag"
+            @createFilter options, callback
       sort                 :
         'meta.modifiedAt'  :
           title            : "Latest Bugs"
@@ -47,8 +47,24 @@ class BugReportController extends AppController
     KD.getSingleton("appManager").tell 'Feeder', 'createContentFeedController', options, (controller)=>
       view.addSubView controller.getView()
       @feedController = controller
+      @getOptions().view.setOptions controller
       @emit 'ready'
 
+  createFilter:(options, callback)->
+    {JNewStatusUpdate, JTag} = KD.remote.api
+    JTag.one title : options.tag, category : options.tagType, (err, sysTag)->
+      return err if err
+      selector       =
+        limit        : 10
+        slug         : sysTag.slug
+
+      JNewStatusUpdate.fetchTopicFeed selector, (err, activities = []) ->
+        activities?.map (activity) ->
+          activity.on "TagsUpdated", (tags) ->
+            activity.tags = KD.remote.revive tags
+        callback err, activities
+
+#TODO :  move to another file
 class BugStatusItemList extends KDListItemView
 
   constructor:( options={}, data)->
@@ -76,7 +92,6 @@ class BugStatusItemList extends KDListItemView
           #TODO : IF tag count of status is bigger, that become useless change to for loop
           tagToRemove = tag for tag in statusTags when tag.title in bugTags
           tagToAdd    = tag for tag in systemTags when tag.title is value
-
           return new KDNotificationView title: "Tag not found!" unless tagToAdd
 
           # if system tag exist, remove it then add new tag

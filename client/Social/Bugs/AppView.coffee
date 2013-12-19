@@ -5,15 +5,12 @@ class BugReportMainView extends KDScrollView
 
     @filterMenu = new KDSelectBox
       selectOptions : [
-        { title : "all"     , value : "all"         }
+        { title : "all"       , value : "all"       }
         { title : "fixed"     , value : "fixed"     }
-        { title : "postponed" , value : "postponed" }
-        { title : "not repro" , value : "not repro" }
-        { title : "duplicate" , value : "duplicate" }
-        { title : "by design" , value : "by design" }
       ]
-      callback      : ->
-        log "Need to filter bug report feeder "
+      callback     : (formData)=>
+        feedController =  @getOptions()
+        feedController.selectFilter formData
 
     @inputWidget = new ActivityInputWidget
 
