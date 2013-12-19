@@ -19,7 +19,7 @@ class ActivityInputView extends KDTokenizedInput
     KD.getSingleton("appManager").tell "Topics", "fetchTopics", {inputValue}, (tags = []) =>
       matches = []
       if inputValue.length > 1
-        matches = tags.filter (tag) -> tag.title is inputValue
+        matches = tags.filter (tag) -> tag.title is inputValue or tag.synonymOf?.title is inputValue
         tags = [$suggest: inputValue].concat tags  unless matches.length
 
       @showMenu

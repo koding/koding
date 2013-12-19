@@ -382,7 +382,22 @@ module.exports = class JTag extends jraphical.Module
 
   @byRelevance$ = permit 'read tags',
     success: (client, seed, options, callback)->
-      @byRelevance client, seed, options, callback
+      kallback = (err, tags) ->
+        return callback err if err
+        result = []
+        synonyms = []
+        for tag in tags
+          unless tag.status is 'synonym' then result.push tag
+          else
+            synonyms.push ->
+              tag.fetchSynonym (err, synonym) ->
+                if not err and synonym?
+                  synonym['synonymOf'] = tag
+                  result.push synonym
+                synonyms.fin()
+
+        dash synonyms, -> callback null, result
+      @byRelevance client, seed, options, kallback
 
   fetchRandomFollowers: secure (client, options, callback)->
     {limit}  = options
