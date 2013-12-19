@@ -104,14 +104,80 @@ class TopicsAppController extends AppController
     if KD.checkFlag ['super-admin', 'editor']
       @listItemClass = TopicsListItemViewEditable
       if firstRun
-        KD.getSingleton('mainController').on "TopicItemEditLinkClicked", (topicItem)=>
+        KD.getSingleton('mainController').on "TopicItemEditClicked", (topicItem)=>
           @updateTopic topicItem
+        KD.getSingleton('mainController').on "TopicItemDeleteClicked", (topicItem)=>
+          @deleteTopic topicItem
+        KD.getSingleton('mainController').on "TopicItemSynonymClicked", (topicItem)=>
+          @setSynonymTopic topicItem
 
     @createFeed mainView, loadFeed
 
   openTopic:(topic)->
     {entryPoint} = KD.config
     KD.getSingleton('router').handleRoute "/Topics/#{topic.slug}", {state:topic, entryPoint}
+
+  deleteTopic:(topicItem)->
+    topic = topicItem.getData()
+    modal             = new KDModalView
+      title           : "Delete Topic"
+      content         : "<div class='modalformline'>Are you sure you want to delete this topic?</div>"
+      overlay         : yes
+      buttons         :
+        Delete        :
+          style       : "modal-clean-red"
+          loader      :
+            color     : "#ffffff"
+            diameter  : 16
+          callback    : =>
+            topic.delete (err)=>
+              # modal.buttons.Delete.hideLoader()
+              modal.destroy()
+              new KDNotificationView
+                title : if err then err.message else "Deleted!"
+              topicItem.hide() unless err
+        Cancel        :
+          style       : "modal-cancel"
+          title       : "cancel"
+          callback    : ->
+            modal.destroy()
+
+  setSynonymTopic:(topicItem) ->
+    topic = topicItem.getData()
+    modal = new KDModalViewWithForms
+      title                       : "Set Topic Synonym for #{topic.title}"
+      height                      : "auto"
+      cssClass                    : "compose-message-modal"
+      width                       : 779
+      overlay                     : yes
+      tabs                        :
+        navigable                 : yes
+        goToNextFormOnSubmit      : no
+        forms                     :
+          synonym                 :
+            buttons               :
+              Confirm             :
+                style             : "modal-clean-green"
+                type              : "submit"
+                loader            :
+                  color           : "#444444"
+                  diameter        : 12
+              Cancel              :
+                style             : "modal-clean-gray"
+                title             : "Cancel"
+                callback          : ->
+                  modal.destroy()
+            fields                :
+              Synonym             :
+                label             : "Synonym"
+                itemClass         : KDInputView
+                name              : "synonym"
+            callback              : (formData) =>
+              topic.createSynonym formData.synonym.trim(), (err) ->
+                new KDNotificationView
+                  title : if err then err.message else "Synonym is set successfully"
+                # modal.modalTabs.forms.synonym.buttons.Confirm.hideLoader()
+                modal.destroy()
 
   updateTopic:(topicItem)->
     topic = topicItem.data
@@ -138,23 +204,16 @@ class TopicsAppController extends AppController
                 modal.destroy()
             buttons               :
               Update              :
-                style             : "modal-clean-gray"
+                style             : "modal-clean-green"
                 type              : "submit"
                 loader            :
                   color           : "#444444"
                   diameter        : 12
-              Delete              :
-                style             : "modal-clean-red"
-                loader            :
-                  color           : "#ffffff"
-                  diameter        : 16
-                callback          : =>
-                  topic.delete (err)=>
-                    # modal.modalTabs.forms.update.buttons.Delete.hideLoader()
-                    modal.destroy()
-                    new KDNotificationView
-                      title : if err then err.message else "Deleted!"
-                    topicItem.hide() unless err
+              Cancel              :
+                style             : "modal-clean-gray"
+                title             : "Cancel"
+                callback          : ->
+                  modal.destroy()
             fields                :
               Title               :
                 label             : "Title"

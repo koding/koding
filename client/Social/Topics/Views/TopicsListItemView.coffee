@@ -13,15 +13,16 @@ class TopicsListItemView extends KDListItemView
     , data
 
     if options.editable
-      @editButton = new KDCustomHTMLView
-        tagName     : 'a'
-        cssClass    : 'edit-topic'
-        pistachio   : '<span class="icon"></span>Edit'
-        click       : (event) =>
-          KD.getSingleton('mainController').emit 'TopicItemEditLinkClicked', @
-      , null
+      @settingsButton = new KDButtonViewWithMenu
+        cssClass   : 'edit-topic transparent'
+        icon       : yes
+        delegate   : this
+        iconClass  : "arrow"
+        menu       : @getSettingsMenu()
+        callback   : (event) => @settingsButton.contextMenu event
     else
-      @editButton = new KDCustomHTMLView tagName : 'span', cssClass : 'hidden'
+      @settingsButton = new KDCustomHTMLView tagName : 'span', cssClass : 'hidden'
+
 
     @followButton = new FollowButton
       cssClass       : 'solid green'
@@ -33,6 +34,18 @@ class TopicsListItemView extends KDListItemView
           cssClass   : 'following-btn'
       dataType       : 'JTag'
     , data
+
+
+  getSettingsMenu:->
+    menu = {}
+    menu["Edit"] =
+      callback  : => KD.getSingleton('mainController').emit 'TopicItemEditClicked', @
+    menu["Delete"] =
+      callback : => KD.getSingleton('mainController').emit 'TopicItemDeleteClicked', @
+    menu["Set Synonym"] =
+      callback : => KD.getSingleton('mainController').emit 'TopicItemSynonymClicked', @
+
+    menu
 
   titleReceivedClick:(event)-> @emit 'LinkClicked'
 
@@ -68,9 +81,9 @@ class TopicsListItemView extends KDListItemView
 
   pistachio:->
     """
-      {{> @editButton}}
+      {{> @settingsButton}}
       <header>
-        {h3{> @titleLink}}
+        {h3{> @titleLink}} <span class="stats">{{#(status) or ''}}</span>
       </header>
       <div class="stats">
         <a href="#">{{#(counts.post) or 0}}</a> Posts
