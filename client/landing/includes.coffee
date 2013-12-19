@@ -559,6 +559,7 @@ module.exports = [
   "app/MainApp/kite/kitecontroller.coffee",
   "app/MainApp/kite/newkite.coffee"
   "app/MainApp/kite/kontrol.coffee"
+  "app/MainApp/kite/kitehelper.coffee"
   # Virtualization CONTROLLER
   "app/MainApp/VirtualizationController.coffee",
 
