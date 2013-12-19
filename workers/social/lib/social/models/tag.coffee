@@ -297,6 +297,11 @@ module.exports = class JTag extends jraphical.Module
           create {title, group}, delegate, (err, tag) =>
             return callback err if err
             addSynonym tag
+        else if tag.status is 'synonym' #for preventing circular synonym definition
+          tag.fetchSynonym (err, synonym) =>
+            if String(synonym?.getId()) is String(@getId())
+              return callback new KodingError "Circular Synonym Definition!"
+            addSynonym tag
         else
           addSynonym tag
 
