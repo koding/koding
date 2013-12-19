@@ -566,3 +566,8 @@ __utils.extend __utils,
       then KD.getSingleton("appManager").tell 'Activity', 'ownActivityArrived', reply
       else new KDNotificationView type : "mini", title : "There was an error, try again later!"
 
+  # log ping times so we know if failure was due to user's slow
+  # internet or our internals timing out
+  logToExternalWithTime: (name, timeout)->
+    KD.troubleshoot (times)->
+      KD.logToExternal msg:"#{name} timed out in #{timeout}", pings:times
