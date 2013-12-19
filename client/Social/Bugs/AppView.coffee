@@ -4,6 +4,7 @@ class BugReportMainView extends KDScrollView
     super options, data
 
     @filterMenu = new KDSelectBox
+      cssClass      : "bug-status"
       selectOptions : [
         { title : "all"       , value : "all"       }
         { title : "fixed"     , value : "fixed"     }
@@ -14,8 +15,8 @@ class BugReportMainView extends KDScrollView
 
     @inputWidget = new ActivityInputWidget
 
-    @addSubView @filterMenu
     @addSubView @inputWidget
+    @addSubView @filterMenu
 
   viewAppended:->
     KD.remote.api.JTag.one slug:"bug", (err, tag) =>
