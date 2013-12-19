@@ -11,9 +11,7 @@ class TeamworkWorkspace extends CollaborativeWorkspace
       @createButtons panel
       @createRunButton panel  if playground
       @getActivePanel().header.setClass "teamwork"
-      @buttonsContainer.addSubView new KDCustomHTMLView
-        cssClass : "tw-db-icon"
-        click    : => @getDelegate().dashboard.show()
+      @createActivityWidget panel
 
     @on "WorkspaceSyncedWithRemote", =>
       if playground and @amIHost()
@@ -29,38 +27,39 @@ class TeamworkWorkspace extends CollaborativeWorkspace
         return if not joinedUser or joinedUser is KD.nick()
         @hidePlaygroundsButton()
 
-      if @amIHost()
-        # currently only for host.
-        # bc of clients need to know host's vmName and active pane's file data etc.
-        activePanel    = @getActivePanel()
-        {previewPane}  = activePanel.paneLauncher
-        {viewerHeader} = previewPane.previewer
-        viewerHeader.addSubView new KDButtonView
-          cssClass : "clean-gray tw-previewer-button"
-          title    : "View active file"
-          callback : =>
-            @previewFile()
+      # if @amIHost()
+      #   # currently only for host.
+      #   # bc of clients need to know host's vmName and active pane's file data etc.
+      #   activePanel    = @getActivePanel()
+      #   {previewPane}  = activePanel.paneLauncher
+      #   {viewerHeader} = previewPane.previewer
+      #   viewerHeader.addSubView new KDButtonView
+      #     cssClass : "clean-gray tw-previewer-button"
+      #     title    : "View active file"
+      #     callback : =>
+      #       @previewFile()
 
-        viewerHeader.addSubView @autoRefreshSwitch = new KDOnOffSwitch
-          defaultValue : off
-          cssClass     : "tw-live-update"
-          title        : "Auto Refresh: "
-          size         : "tiny"
-          tooltip      :
-            title      : "If it's on, preview will be refreshed when you save a file."
-            placement  : "bottom"
+      #   viewerHeader.addSubView @autoRefreshSwitch = new KDOnOffSwitch
+      #     defaultValue : off
+      #     cssClass     : "tw-live-update"
+      #     title        : "Auto Refresh: "
+      #     size         : "tiny"
+      #     tooltip      :
+      #       title      : "If it's on, preview will be refreshed when you save a file."
+      #       placement  : "bottom"
 
-        activePanel.getPaneByName("editor").on "EditorDidSave", =>
-          @refreshPreviewPane previewPane  if @autoRefreshSwitch.getValue()
-
-      @getActivePanel().header.addSubView @avatarsView = new KDCustomHTMLView
-        cssClass : "tw-user-avatars"
+      #   activePanel.getPaneByName("editor").on "EditorDidSave", =>
+      #     @refreshPreviewPane previewPane  if @autoRefreshSwitch.getValue()
 
     @on "WorkspaceUsersFetched", =>
       @workspaceRef.child("users").once "value", (snapshot) =>
         userStatus = snapshot.val()
         return unless userStatus
         @manageUserAvatars userStatus
+
+    @on "NewHistoryItemAdded", (data) =>
+      # log data
+      @sendSystemMessage data.message
 
   createButtons: (panel) ->
     panel.addSubView @buttonsContainer = new KDCustomHTMLView
@@ -78,12 +77,12 @@ class TeamworkWorkspace extends CollaborativeWorkspace
       KD.utils.wait 500, => # prevent double triggered firebase event.
         @fetchUsers()
 
-  createLoader: ->
-    @container.addSubView @loader = new KDCustomHTMLView
-      cssClass   : "teamwork-loader"
-      tagName    : "img"
-      attributes :
-        src      : "#{KD.apiUri}/images/teamwork/loading.gif"
+  # createLoader: ->
+  #   @container.addSubView @loader = new KDCustomHTMLView
+  #     cssClass   : "teamwork-loader"
+  #     tagName    : "img"
+  #     attributes :
+  #       src      : "#{KD.apiUri}/images/teamwork/loading.gif"
 
   startNewSession: (options) ->
     KD.mixpanel "User Started Teamwork session"
@@ -186,18 +185,43 @@ class TeamworkWorkspace extends CollaborativeWorkspace
 
     userNickname = jAccount.profile.nickname
     return if userNickname is KD.nick()
+    followText   = "Click user avatar to watch #{userNickname}"
 
-    tooltipTitle = userNickname
     avatarView   = new AvatarStaticView
       size       :
         width    : 25
         height   : 25
       tooltip    :
-        title    : tooltipTitle
+        title    : followText
+      click      : =>
+        @watchingUserAvatar?.unsetClass "watching"
+        isAlreadyWatched = @watchingUserAvatar is avatarView
+
+        if isAlreadyWatched
+          @watchRef.child(@nickname).set "nobody"
+          message = "#{KD.nick()} stopped watching #{userNickname}"
+          @watchingUserAvatar = null
+          avatarView.setTooltip
+            title : followText
+        else
+          @watchRef.child(@nickname).set userNickname
+          message = "#{KD.nick()} started to watch #{userNickname}.  Type 'stop watching' or click on avatars to start/stop watching."
+          avatarView.setClass "watching"
+          @watchingUserAvatar = avatarView
+          avatarView.setTooltip
+            title : "You are now watching #{userNickname}. Click again to stop watching."
+
+        message =
+          user       :
+            nickname : "teamwork"
+          time       : Date.now()
+          body       : message
+        @workspaceRef.child("chat").child(message.time).set message
     , jAccount
 
     @avatars[userNickname] = avatarView
     @avatarsView.addSubView avatarView
+    @avatarsView.setClass "has-user"
     avatarView.bindTransitionEnd()
 
   removeUserAvatar: (nickname) ->
@@ -206,3 +230,67 @@ class TeamworkWorkspace extends CollaborativeWorkspace
     avatarView.once "transitionend", =>
       avatarView.destroy()
       delete @avatars[nickname]
+      @avatarsView.unsetClass "has-user" if @avatars.length is 0
+
+  sendSystemMessage: (message) ->
+    message =
+      user  : nickname : "teamwork"
+      time  : Date.now()
+      body  : message
+
+    @chatView.chatRef.child(message.time).set message
+
+  createActivityWidget: (panel) ->
+    url = "#{KD.config.apiUri}/Teamwork?sessionKey=#{@sessionKey}"
+
+    panel.addSubView @activityWidget = new ActivityWidget
+      cssClass      : "tw-activity-widget collapsed"
+      defaultValue  : "Would you like to join my Teamwork session? #{url}"
+      childOptions  :
+        cssClass    : "activity-item"
+
+    @activityWidget.addSubView @notification = new KDCustomHTMLView
+      cssClass  : "notification"
+      partial   : "This status update will be visible in Activity feed."
+
+    @activityWidget.addSubView new KDCustomHTMLView
+      cssClass   : "close-tab"
+      click      : =>
+        @activityWidget.setClass "collapsed"
+        @activityWidget.on "transitionend", =>
+          @activityWidget.hide()
+
+    panel.addSubView shareButton = new KDButtonView
+      cssClass   : "tw-rounded-button share"
+      title      : "Share"
+      callback   : @bound "share"
+
+    panel.addSubView @showActivityWidget = new KDButtonView
+      cssClass   : "tw-show-activity-widget"
+      iconOnly   : yes
+      iconClass  : "icon"
+      callback   : =>
+        if @activityWidget.activity
+          @activityWidget.show()
+          @activityWidget.unsetClass "collapsed"
+        else
+          @share()
+
+    @workspaceRef.child("activityId").once "value", (snapshot) =>
+      return  unless id = snapshot.val()
+      shareButton.hide()
+      @notification.hide()
+      @activityWidget.display id, =>
+        @activityWidget.hideForm()
+
+    @delegate.on "Exported", (name, url) =>
+      @activityWidget.reply "#{KD.nick()} exported #{name} #{url}"
+
+  share: ->
+    @activityWidget.show()
+    @activityWidget.unsetClass "collapsed"
+    @activityWidget.showForm (err, activity) =>
+      return  err if err
+      @activityWidget.hideForm()
+      @notification.hide()
+      @workspaceRef.child("activityId").set activity.getId()

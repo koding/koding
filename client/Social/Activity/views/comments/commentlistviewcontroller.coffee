@@ -67,6 +67,8 @@ class CommentListViewController extends KDListViewController
         listView.emit "BackgroundActivityFinished"
 
       KD.mixpanel "Commented on activity"
+      KD.getSingleton("badgeController").checkBadge
+        property : "comments", relType : "commenter", source : "JNewStatusUpdate", targetSelf : 1
 
   fetchCommentsByRange:(from,to,callback)->
     [to,callback] = [callback,to] unless callback
@@ -87,7 +89,7 @@ class CommentListViewController extends KDListViewController
       listView.emit "AllCommentsWereAdded"
       callback err, comments
 
-  fetchRelativeComments:(_limit = 10, _after)->
+  fetchRelativeComments:(_limit = 10, _after, continuous = yes)->
     listView = @getListView()
     message = @getListView().getData()
     message.fetchRelativeComments limit:_limit, after:_after, (err, comments)=>
@@ -100,7 +102,7 @@ class CommentListViewController extends KDListViewController
 
       if comments.length is _limit
         startTime = comments[comments.length-1].meta.createdAt
-        @fetchRelativeComments 11, startTime
+        @fetchRelativeComments ++_limit, startTime, continuous  if continuous
       else
         listView = @getListView()
         listView.emit "BackgroundActivityFinished"

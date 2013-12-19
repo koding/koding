@@ -14,7 +14,6 @@ module.exports = class JKodingKey extends jraphical.Module
   @set
     softDelete        : yes
     sharedMethods     :
-
       instance        :
         revoke        :
           (signature Function)
@@ -26,7 +25,8 @@ module.exports = class JKodingKey extends jraphical.Module
           (signature Object, Function)
         fetchByKey    :
           (signature Object, Function)
-
+        registerHostnameAndKey :
+          (signature Object, Function)
     indexes           :
       key             : ['unique']
     schema            :
@@ -112,3 +112,34 @@ module.exports = class JKodingKey extends jraphical.Module
       _id    : @getId()
     , (err, key)->
       key.remove callback
+
+  @authCheckKey = (key, callback)->
+    return false if not key
+    return false if typeof key isnt "string"
+
+    key = decodeURIComponent key
+    return false if key.length isnt 64
+    return true
+
+  @registerHostnameAndKey$ = secure (client, options, callback)->
+    {connection:{delegate}} = client
+    errMessage = "You need to be registered/loggedin in order to register your Kite"
+    return callback new KodingError errMessage if delegate.type isnt "registered"
+    # set username
+    options.username = delegate.profile.nickname
+    @registerHostnameAndKey options, callback
+
+  @registerHostnameAndKey = ({username, key, hostname}, callback)->
+    return new KodingError "Key is not valid" unless @authCheckKey key
+    return new KodingError "Data is not valid" unless username and hostname
+
+    @fetchByUserKey {username, key}, (err, kodingKey)=>
+      return callback new KodingError "Koding Auth Error - 3" if err
+      if kodingKey
+        errMessage = "Authentication already established with #{kodingKey.hostname}!"
+        return callback new KodingError errMessage
+
+      # if not created before, create here
+      @createKeyByUser {username, hostname, key}, (err, data)=>
+        return callback new KodingError "Koding Auth Error - 3" if err
+        return callback null, "Authentication is successfull! Using id: #{data.hostname}"

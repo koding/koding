@@ -3,10 +3,10 @@ class ActivityInputWidget extends KDView
   {JNewStatusUpdate, JTag} = KD.remote.api
 
   constructor: (options = {}, data) ->
-    options.cssClass = KD.utils.curry "input-wrapper", options.cssClass
+    options.cssClass = KD.utils.curry "activity-input-widget", options.cssClass
     super options, data
 
-    @input    = new ActivityInputView
+    @input    = new ActivityInputView defaultValue: options.defaultValue
     @input.on "Escape", @bound "reset"
 
     @notification = new KDView
@@ -85,7 +85,7 @@ With love from the Koding team.<br>
         fn data, (err, activity) =>
           @reset yes
           @embedBox.resetEmbedAndHide()
-          @emit "Submit"
+          @emit "Submit", err, activity
           @notification.show()
           callback? err, activity
     ]
@@ -108,6 +108,9 @@ With love from the Koding team.<br>
           content    : 'This activity will only be visible to you'
           duration   : 5000
         KodingError  : 'Something went wrong while creating activity'
+
+      KD.getSingleton("badgeController").checkBadge
+        property : "statusUpdates", relType : "author", source : "JNewStatusUpdate", targetSelf : 1
 
   update: (data, callback) ->
     activity = @getData()

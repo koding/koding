@@ -28,6 +28,8 @@ module.exports = class JAccount extends jraphical.Module
   CActivity        = require './activity'
   Graph            = require "./graph/graph"
   JName            = require './name'
+  JBadge           = require './badge'
+  JReferrableEmail = require './referrableemail'
 
   @getFlagRole            = 'content'
   @lastUserCountFetchTime = 0
@@ -59,10 +61,11 @@ module.exports = class JAccount extends jraphical.Module
         { name : "RemovedFromCollection" }
       ]
     sharedMethods :
-
       static:
-        one:
+        one: [
           (signature Object, Function)
+          (signature Object, Object, Function)
+        ]
         some:
           (signature Object, Object, Function)
         cursor:
@@ -183,7 +186,7 @@ module.exports = class JAccount extends jraphical.Module
         fetchMyGroupInvitationStatus:
           (signature String, Function)
         fetchMyPermissions:
-          (signature Function)          
+          (signature Function)
         fetchMyPermissionsAndRoles:
           (signature Function)
         fetchMyFollowingsFromGraph:
@@ -248,6 +251,10 @@ module.exports = class JAccount extends jraphical.Module
           (signature Function)
         fetchOAuthInfo:
           (signature Function)
+        fetchMyBadges:
+          (signature Function)
+        updateCountAndCheckBadge:
+          (signature Object, Function)
     schema                  :
       skillTags             : [String]
       locationTags          : [String]
@@ -269,6 +276,25 @@ module.exports = class JAccount extends jraphical.Module
         likes               :
           type              : Number
           default           : 0
+        statusUpdates       :
+          type              : Number
+          default           : 0
+        comments            :
+          type              : Number
+          default           : 0
+        referredUsers       :
+          type              : Number
+          default           : 0
+        invitations         :
+          type              : Number
+          default           : 0
+        lastLoginDate       :
+          type              : Date
+          default           : new Date
+        twitterFollowers    :
+          type              : Number
+          default           : 0
+
       environmentIsCreated  : Boolean
       type                  :
         type                : String
@@ -389,6 +415,10 @@ module.exports = class JAccount extends jraphical.Module
       subscription  :
         as          : 'service subscription'
         targetType  : 'JPaymentSubscription'
+
+      badge         :
+        as          : 'badge'
+        targetType  : 'JBadge'
 
   constructor:->
     super
@@ -738,15 +768,48 @@ module.exports = class JAccount extends jraphical.Module
         , -> callback null, teasers
         collectTeasers node for node in contents
 
+  updateCountAndCheckBadge: secure (client, options, callback)->
+    propertyArray = [
+      "likes"
+      "followers"
+      "following"
+      "topics"
+      "statusUpdates"
+      "comments"
+      "referredUsers"
+      "invitations"
+    ]
+    return new KodingError "No permission!" unless @equals client.connection.delegate
+    {@property} = options
+
+    return new KodingError "That property not supported!" unless  @property in propertyArray
+    {relType, source, targetSelf} = options
+    selector     =
+      as         : relType
+      sourceName : source
+
+    if targetSelf then selector["targetId"]=@getId() else selector["sourceId"]=@getId()
+
+    Relationship.count selector, (err, count) =>
+      return err if err
+      countsField = {}
+      key = "counts.#{@property}"
+      countsField[key] = count
+      @update $set: countsField , (err)=>
+        return err if err
+        JBadge = require './badge'
+        JBadge.checkEligibleBadges client, badgeItem:@property , callback
+
   # Update broken counts for user
   updateCounts:->
-
+    JUser = require './user'
     # Like count
     Relationship.count
       as         : 'like'
       targetId   : @getId()
       sourceName : $in: likeableActivities
     , (err, count)=>
+      return if err or not count
       @update ($set: 'counts.likes': count), ->
 
     # Member Following count
@@ -755,7 +818,17 @@ module.exports = class JAccount extends jraphical.Module
       targetId   : @getId()
       sourceName : 'JAccount'
     , (err, count)=>
+      return if err or not count
       @update ($set: 'counts.following': count), ->
+
+    # Member Follower count
+    Relationship.count
+      as         : 'follower'
+      sourceId   : @getId()
+      sourceName : 'JAccount'
+    , (err, count)=>
+      return if err or not count
+      @update ($set: 'counts.followers': count), ->
 
     # Tag Following count
     Relationship.count
@@ -763,7 +836,51 @@ module.exports = class JAccount extends jraphical.Module
       targetId   : @getId()
       sourceName : 'JTag'
     , (err, count)=>
+      return if err or not count
       @update ($set: 'counts.topics': count), ->
+
+    # Status Update count
+    Relationship.count
+      as         : 'author'
+      targetId   : @getId()
+      sourceName : 'JNewStatusUpdate'
+    , (err, count)=>
+      return if err or not count
+      @update ($set: 'counts.statusUpdates': count), ->
+
+    # Comments count
+    Relationship.count
+      as         : 'commenter'
+      targetId   : @getId()
+      sourceName : 'JNewStatusUpdate'
+    , (err, count)=>
+      return if err or not count
+      @update ($set: 'counts.comments': count), ->
+
+    # ReferredUsers count
+    JAccount.count
+      referrerUsername : @profile.nickname
+    , (err, count)=>
+      return if err or not count
+      @update ($set: 'counts.referredUsers': count), ->
+
+    # Invitations count
+    JReferrableEmail.count
+      username   : @profile.nickname
+      invited    : true
+    , (err, count)=>
+      return if err or not count
+      @update ($set: 'counts.invitations': count), ->
+
+    # Last Login date
+    @update ($set: 'counts.lastLoginDate': new Date), ->
+
+    # Twitter follower count
+    JUser.one {username: @profile.nickname}, (err, user)=>
+      return if err or not user
+      if user.foreignAuth?.twitter?
+        followerCount = user.foreignAuth.twitter.profile.followers_count
+        @update ($set: 'counts.twitterFollowers': followerCount), ->
 
   dummyAdmins = [ "sinan", "devrim", "gokmen", "chris", "fatihacet", "arslan",
                   "sent-hil", "kiwigeraint", "cihangirsavas", "leventyalcin",
@@ -1170,7 +1287,7 @@ module.exports = class JAccount extends jraphical.Module
     JGroup = require './group'
 
     JGroup.one { slug }, (err, group) ->
-      return callback err  if err      
+      return callback err  if err
 
       selector = sourceId: group.getId()
 
@@ -1420,6 +1537,9 @@ module.exports = class JAccount extends jraphical.Module
         return callback err  if err
 
         callback null, { subscriptions, plans }
+
+  fetchMyBadges$: (callback)->
+    @fetchBadges callback
 
   fetchEmailAndStatus: secure (client, callback)->
     @fetchFromUser client, ['email', 'status'], callback

@@ -3,7 +3,6 @@ package kite
 import (
 	"flag"
 	"fmt"
-	"github.com/op/go-logging"
 	"koding/newkite/dnode/rpc"
 	"koding/newkite/protocol"
 	"koding/newkite/utils"
@@ -16,12 +15,11 @@ import (
 	"strings"
 	"syscall"
 	"time"
+
+	"github.com/op/go-logging"
 )
 
 func init() {
-	// Use all available CPUS.
-	runtime.GOMAXPROCS(runtime.NumCPU())
-
 	// Debugging helper: Prints stacktrace on SIGUSR1.
 	c := make(chan os.Signal)
 	signal.Notify(c, syscall.SIGUSR1)
@@ -69,6 +67,9 @@ type Kite struct {
 	// method map for exported methods
 	handlers map[string]HandlerFunc
 
+	// Should handlers run concurrently? Default is true.
+	concurrent bool
+
 	// Dnode rpc server
 	server *rpc.Server
 
@@ -83,6 +84,9 @@ type Kite struct {
 	// Contains different functions for authenticating user from request.
 	// Keys are the authentication types (options.authentication.type).
 	Authenticators map[string]func(*Request) error
+
+	// Should kite invoke authenticators for incoming requests? Default is true
+	authenticate bool
 
 	// Used to signal if the kite is ready to start and make calls to
 	// other kites.
@@ -131,13 +135,18 @@ func New(options *Options) *Kite {
 		},
 		KodingKey:         kodingKey,
 		server:            rpc.NewServer(),
+		concurrent:        true,
 		KontrolEnabled:    true,
 		RegisterToKontrol: true,
 		Authenticators:    make(map[string]func(*Request) error),
+		authenticate:      true,
 		handlers:          make(map[string]HandlerFunc),
 		ready:             make(chan bool),
 		end:               make(chan bool, 1),
 	}
+
+	k.server.SetWrappers(wrapMethodArgs, wrapCallbackArgs, runMethod, runCallback)
+	k.server.Properties()["localKite"] = k
 
 	k.Log = newLogger(k.Name, k.hasDebugFlag())
 	k.Kontrol = k.NewKontrol(options.KontrolAddr)
@@ -161,6 +170,16 @@ func New(options *Options) *Kite {
 	k.HandleFunc("log", k.handleLog)
 
 	return k
+}
+
+func (k *Kite) DisableConcurrency() {
+	k.server.SetConcurrent(false)
+}
+
+// DisableAuthentication disables authentication for every incoming request.
+// This makes all methods accessible for everyone.
+func (k *Kite) DisableAuthentication() {
+	k.authenticate = false
 }
 
 // Run is a blocking method. It runs the kite server and then accepts requests
@@ -210,7 +229,7 @@ func (k *Kite) handleHeartbeat(r *Request) (interface{}, error) {
 
 // handleLog prints a log message to stdout.
 func (k *Kite) handleLog(r *Request) (interface{}, error) {
-	msg := r.Args.MustString()
+	msg := r.Args.One().MustString()
 	k.Log.Info(fmt.Sprintf("%s: %s", r.RemoteKite.Name, msg))
 	return nil, nil
 }
@@ -283,7 +302,7 @@ func (k *Kite) listenAndServe() (err error) {
 	if err != nil {
 		return err
 	}
-	k.Log.Info("Listening: %s", k.listener.Addr().String())
+	k.Log.Notice("Listening: %s", k.listener.Addr().String())
 
 	// Port is known here if "0" is used as port number
 	_, k.Port, _ = net.SplitHostPort(k.listener.Addr().String())

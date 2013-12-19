@@ -49,8 +49,8 @@ if $0 == "Vagrantfile" || Vagrant::VERSION < "1.2.7"
 end
 
 goVersion = `go version | cut -d " " -f 3` rescue "0"
-if goVersion < "go1.1"
-  puts "", "Your go version is outdated! Please install at least version 1.1", ""
+if goVersion < "go1.2"
+  puts "", "Your go version is outdated! Please install at least version 1.2 from https://code.google.com/p/go/downloads/list.\nRemove also the folder go/pkg after installing the new version.", ""
   exit! 1
 end
 
@@ -85,7 +85,6 @@ Vagrant.configure("2") do |config|
     default.vm.network :forwarded_port, :guest => 7474, :host => 7474 # neo4j
     default.vm.network :forwarded_port, :guest => 6379, :host => 6379 # redis
     default.vm.network :forwarded_port, :guest => 9200, :host => 9200 # elastic search
-    default.vm.network :forwarded_port, :guest => 4000, :host => 4000 # kontrol
     default.vm.network :forwarded_port, :guest => 4005, :host => 4005 # provisioning
     default.vm.hostname = "vagrant"
 

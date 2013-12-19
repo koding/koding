@@ -92,7 +92,7 @@ module.exports = class JUser extends jraphical.Module
         setSSHKeys              : (signature [Object], Function)
         getSSHKeys              : (signature Function)
         authenticateWithOauth   : (signature Object, Function)
-        unregister              : (signature Boolean, Function)
+        unregister              : (signature String, Function)
         finishRegistration      : (signature Object, Function)
 
     schema          :
@@ -296,7 +296,7 @@ module.exports = class JUser extends jraphical.Module
 
   @login = secure (client, credentials, callback)->
     {username, password} = credentials
-    {sessionToken: clientId, connection} = client 
+    {sessionToken: clientId, connection} = client
 
     constructor = this
     JSession.one {clientId}, (err, session)->
@@ -709,11 +709,11 @@ module.exports = class JUser extends jraphical.Module
           queue.next()
       =>
         JPasswordRecovery = require '../passwordrecovery'
-       
+
         passwordOptions =
           email         : user.email
           verb          : unless username? then 'Register2'
-        
+
         JPasswordRecovery.create client, passwordOptions, (err)->
           queue.next()
       ->
@@ -821,7 +821,7 @@ module.exports = class JUser extends jraphical.Module
             user.changeEmail account, options, callback
             if account.status is 'registered'
               # don't send an email when guests change their emails, which we
-              # need to allow for the pricing workflow. 
+              # need to allow for the pricing workflow.
               sendChangeEmail user.email, "email"
 
   @emailAvailable = (email, callback)->
