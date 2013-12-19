@@ -7,7 +7,7 @@ class ActivityStatusUpdateWidget extends ActivityWidgetFormView
     name        = KD.utils.getFullnameFromAccount KD.whoami(), yes
 
     # seyPlaceholer already has encoder. No need to decode again.
-    decodedName = Encoder.htmlDecode name
+    decodedName = KD.utils.htmlDecode name
 
     @smallInput = new KDInputView
       testPath      : "status-update-input"
@@ -199,7 +199,7 @@ class ActivityStatusUpdateWidget extends ActivityWidgetFormView
     else
       @submitBtn.setTitle "Submit again"
 
-    @lastestStatusMessage = Encoder.htmlDecode body
+    @lastestStatusMessage = KD.utils.htmlDecode body
     @utils.selectText @largeInput.$()[0]
 
     if link? and link.link_url isnt ''

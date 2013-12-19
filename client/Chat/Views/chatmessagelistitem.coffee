@@ -4,7 +4,7 @@ class ChatMessageListItem extends KDListItemView
 
     options.cssClass = KD.utils.curry "message", data.cssClass
     options.tagName  = "li"
-    data.message     = Encoder.XSSEncode data.message
+    data.message     = KD.utils.xssEncode data.message
     super options, data
 
     @timeWidget = new KDTimeAgoView
@@ -23,5 +23,5 @@ class ChatMessageListItem extends KDListItemView
     """
 
   addMessage:(message)->
-    @data.message += "<br/>#{Encoder.XSSEncode message}"
+    @data.message += "<br/>#{KD.utils.xssEncode message}"
     @render()

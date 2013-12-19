@@ -174,16 +174,15 @@ __utils.extend __utils,
       maxLength : l + Math.floor(l/10)
       suffix    : ''
 
-    # log "[#{text.length}:#{Encoder.htmlEncode(text).length}/#{shortenedText.length}:#{Encoder.htmlEncode(shortenedText).length}]"
-    text = if Encoder.htmlEncode(text).length > Encoder.htmlEncode(shortenedText).length
+    text = if @xssEncode(text).length > @xssEncode(shortenedText).length
       morePart = "<span class='collapsedtext hide'>"
       morePart += "<a href='#' class='more-link' title='Show more...'>Show more...</a>"
-      morePart += Encoder.htmlEncode(text).substr Encoder.htmlEncode(shortenedText).length
+      morePart += @xssEncode(text).substr @xssEncode(shortenedText).length
       morePart += "<a href='#' class='less-link' title='Show less...'>...show less</a>"
       morePart += "</span>"
-      Encoder.htmlEncode(shortenedText) + morePart
+      @xssEncode(shortenedText) + morePart
     else
-      Encoder.htmlEncode shortenedText
+      @xssEncode shortenedText
 
   shortenText: do ->
     tryToShorten = (longText, optimalBreak = ' ', suffix)->
@@ -269,7 +268,7 @@ __utils.extend __utils,
       name = account.profile.firstName
     else
       name = "#{account.profile.firstName} #{account.profile.lastName}"
-    return Encoder.htmlEncode name or 'a Koding user'
+    return @xssEncode name or 'a Koding user'
 
   getNameFromFullname :(fullname)->
     fullname.split(' ')[0]
