@@ -12,7 +12,6 @@ import (
 	"koding/db/mongodb/modelhelper"
 	"koding/kites/provisioning/container"
 	"koding/newkite/kite"
-	"koding/newkite/protocol"
 	"koding/tools/config"
 	"koding/tools/utils"
 	"net"
@@ -20,11 +19,11 @@ import (
 	"strconv"
 	"sync"
 	"time"
+
+	"github.com/op/go-logging"
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
 )
-
-type Provisioning struct{}
 
 var (
 	port             = flag.String("port", "4005", "port to bind itself")
@@ -33,7 +32,7 @@ var (
 	states           = make(map[string]*State)
 	statesMu         sync.Mutex
 	k                = &kite.Kite{}
-	log              = kite.GetLogger()
+	log              *logging.Logger
 )
 
 func init() {
@@ -56,7 +55,7 @@ func main() {
 	kontrolHost := config.Current.NewKontrol.Host
 	kontrolAddr := fmt.Sprintf("%s:%s", kontrolHost, kontrolPort)
 
-	options := &protocol.Options{
+	options := &kite.Options{
 		PublicIP:    "localhost",
 		Kitename:    "provisioning",
 		Environment: config.FileProfile,
@@ -66,143 +65,34 @@ func main() {
 		KontrolAddr: kontrolAddr,
 	}
 
-	methods := map[string]string{
-		"start":      "Start",
-		"stop":       "Stop",
-		"prepare":    "Prepare",
-		"unprepare":  "Unprepare",
-		"exec":       "Exec",
-		"info":       "Info",
-		"state":      "State",
-		"resizeDisk": "ResizeDisk",
-	}
-
 	k = kite.New(options)
-	k.AddMethods(new(Provisioning), methods)
-	k.Start()
+
+	k.HandleFunc("start", Start)
+	k.HandleFunc("stop", Stop)
+	k.HandleFunc("prepare", Prepare)
+	k.HandleFunc("unprepare", Unprepare)
+	k.HandleFunc("exec", Exec)
+	k.HandleFunc("info", Info)
+	k.HandleFunc("state", StateFunc)
+	k.HandleFunc("resizeDisk", ResizeDisk)
+
+	k.Run()
 }
 
-func (p *Provisioning) State(r *protocol.KiteDnodeRequest, result *string) error {
+func Start(r *kite.Request) (interface{}, error) {
 	var params struct {
 		ContainerName string
-	}
-
-	if r.Args == nil {
-		log.Error("[%s] could not get state. withArgs is not defined.", r.Username)
-		return errors.New("withArgs is not defined")
 	}
 
 	if r.Args.Unmarshal(&params) != nil || params.ContainerName == "" {
-		return errors.New("{ containerName: [string] }")
-	}
-
-	log.Info("[%s] requested state for the container: '%s'", r.Username, params.ContainerName)
-
-	vm, err := getVM(params.ContainerName)
-	if err == nil {
-		containerName := "vm-" + vm.Id.Hex()
-		c := container.NewContainer(containerName)
-		*result = c.State()
-		return nil
-	}
-
-	// the vm could be in a maintenance mode, if yes return the state as "MAINTENANCE"
-	_, ok := err.(*UnderMaintenanceError)
-	if !ok {
-		log.Error("[%s] could not get vm to state '%s'. err: '%s'",
-			r.Username, params.ContainerName, err)
-		return errors.New("could not state vm - 1")
-	}
-
-	*result = "MAINTENANCE"
-	return nil
-}
-
-func (p *Provisioning) ResizeDisk(r *protocol.KiteDnodeRequest, result *bool) error {
-	var params struct {
-		ContainerName string
-		ResizeTo      int
-	}
-
-	if r.Args == nil {
-		log.Error("[%s] could not get info. withArgs is not defined.", r.Username)
-		return errors.New("withArgs is not defined")
-	}
-
-	if r.Args.Unmarshal(&params) != nil || params.ContainerName == "" || params.ResizeTo == 0 {
-		return errors.New("{ containerName: [string], resizeTo: [int] }")
-	}
-
-	log.Info("[%s] resizeDisk the container: '%s'", r.Username, params.ContainerName)
-
-	vm, err := getVM(params.ContainerName)
-	if err != nil {
-		log.Error("[%s] could not get vm to resize '%s'. err: '%s'",
-			r.Username, params.ContainerName, err)
-		return errors.New("could not start vm - 1")
-	}
-
-	containerName := "vm-" + vm.Id.Hex()
-	c := container.NewContainer(containerName)
-
-	err = c.Resize(params.ResizeTo)
-	if err != nil {
-		return err
-	}
-
-	*result = true
-	return nil
-}
-
-func (p *Provisioning) Info(r *protocol.KiteDnodeRequest, result *ContainerInfo) error {
-	var params struct {
-		ContainerName string
-	}
-
-	if r.Args == nil {
-		log.Error("[%s] could not get info. withArgs is not defined.", r.Username)
-		return errors.New("withArgs is not defined")
-	}
-
-	if r.Args.Unmarshal(&params) != nil || params.ContainerName == "" {
-		return errors.New("{ containerName: [string] }")
-	}
-
-	log.Info("[%s] requested info for the container: '%s'", r.Username, params.ContainerName)
-
-	vm, err := getVM(params.ContainerName)
-	if err != nil {
-		log.Error("[%s] could not get vm to get info about '%s'. err: '%s'",
-			r.Username, params.ContainerName, err)
-		return errors.New("could not info vm - 1")
-	}
-
-	containerName := "vm-" + vm.Id.Hex()
-
-	state := GetState(containerName)
-	*result = state.ContainerInfo
-	return nil
-}
-
-func (p *Provisioning) Start(r *protocol.KiteDnodeRequest, result *bool) error {
-	var params struct {
-		ContainerName string
-	}
-
-	if r.Args == nil {
-		log.Error("[%s] could not start command. withArgs is not defined.", r.Username)
-		return errors.New("withArgs is not defined")
-	}
-
-	if r.Args.Unmarshal(&params) != nil || params.ContainerName == "" {
-		return errors.New("{ containerName: [string] }")
+		return nil, errors.New("{ containerName: [string] }")
 	}
 
 	vm, err := getVM(params.ContainerName)
 	if err != nil {
 		log.Error("[%s] could not get vm to start '%s'. err: '%s'",
 			r.Username, params.ContainerName, err)
-		return errors.New("could not start vm - 1")
+		return nil, errors.New("could not start vm - 1")
 	}
 
 	containerName := "vm-" + vm.Id.Hex()
@@ -211,78 +101,147 @@ func (p *Provisioning) Start(r *protocol.KiteDnodeRequest, result *bool) error {
 	err = c.Start()
 	if err != nil {
 		log.Error("[%s] could not start container: '%s'. err: '%s'", r.Username, containerName, err)
-		return errors.New("could not start vm - 2")
+		return nil, errors.New("could not start vm - 2")
 	}
 
 	log.Info("[%s] started the container: '%s'", r.Username, containerName)
-	*result = true
-	return nil
+	return true, nil
 }
 
-func (p *Provisioning) Stop(r *protocol.KiteDnodeRequest, result *bool) error {
+func StateFunc(r *kite.Request) (interface{}, error) {
 	var params struct {
 		ContainerName string
 	}
 
-	if r.Args == nil {
-		log.Error("[%s] could not stop command. withArgs is not defined.", r.Username)
-		return errors.New("withArgs is not defined")
+	if r.Args.Unmarshal(&params) != nil || params.ContainerName == "" {
+		return nil, errors.New("{ containerName: [string] }")
+	}
+
+	log.Info("[%s] requested state for the container: '%s'", r.Username, params.ContainerName)
+
+	vm, err := getVM(params.ContainerName)
+	if err == nil {
+		containerName := "vm-" + vm.Id.Hex()
+		c := container.NewContainer(containerName)
+		return c.State(), nil
+	}
+
+	// the vm could be in a maintenance mode, if yes return the state as "MAINTENANCE"
+	_, ok := err.(*UnderMaintenanceError)
+	if !ok {
+		log.Error("[%s] could not get vm to state '%s'. err: '%s'",
+			r.Username, params.ContainerName, err)
+		return nil, errors.New("could not state vm - 1")
+	}
+
+	return "MAINTENANCE", nil
+}
+
+func ResizeDisk(r *kite.Request) (interface{}, error) {
+	var params struct {
+		ContainerName string
+		ResizeTo      int
+	}
+
+	if r.Args.Unmarshal(&params) != nil || params.ContainerName == "" || params.ResizeTo == 0 {
+		return nil, errors.New("{ containerName: [string], resizeTo: [int] }")
+	}
+
+	log.Info("[%s] resizeDisk the container: '%s'", r.Username, params.ContainerName)
+
+	vm, err := getVM(params.ContainerName)
+	if err != nil {
+		log.Error("[%s] could not get vm to resize '%s'. err: '%s'",
+			r.Username, params.ContainerName, err)
+		return nil, errors.New("could not start vm - 1")
+	}
+
+	containerName := "vm-" + vm.Id.Hex()
+	c := container.NewContainer(containerName)
+
+	err = c.Resize(params.ResizeTo)
+	if err != nil {
+		return nil, err
+	}
+
+	return true, nil
+}
+
+func Info(r *kite.Request) (interface{}, error) {
+	var params struct {
+		ContainerName string
 	}
 
 	if r.Args.Unmarshal(&params) != nil || params.ContainerName == "" {
-		return errors.New("{ containerName: [string] }")
+		return nil, errors.New("{ containerName: [string] }")
+	}
+
+	log.Info("[%s] requested info for the container: '%s'", r.Username, params.ContainerName)
+
+	vm, err := getVM(params.ContainerName)
+	if err != nil {
+		log.Error("[%s] could not get vm to get info about '%s'. err: '%s'",
+			r.Username, params.ContainerName, err)
+		return nil, errors.New("could not info vm - 1")
+	}
+
+	containerName := "vm-" + vm.Id.Hex()
+
+	state := GetState(containerName)
+	return state.ContainerInfo, nil
+}
+
+func Stop(r *kite.Request) (interface{}, error) {
+	var params struct {
+		ContainerName string
+	}
+
+	if r.Args.Unmarshal(&params) != nil || params.ContainerName == "" {
+		return nil, errors.New("{ containerName: [string] }")
 	}
 
 	vm, err := getVM(params.ContainerName)
 	if err != nil {
 		log.Error("[%s] could not get vm to stop '%s'. err: '%s'",
 			r.Username, params.ContainerName, err)
-		return errors.New("could not stop vm - 1")
+		return nil, errors.New("could not stop vm - 1")
 	}
 
 	containerName := "vm-" + vm.Id.Hex()
 
 	c := container.NewContainer(containerName)
 	err = c.Stop()
-
 	if err != nil {
 		log.Error("[%s] could not stop container: '%s'. err: '%s'", r.Username, containerName, err)
-		return errors.New("could not stop vm - 2")
+		return nil, errors.New("could not stop vm - 2")
 	}
 
 	log.Info("[%s] stopped the container: '%s'", r.Username, containerName)
-
-	*result = true
-	return nil
+	return true, nil
 }
 
-func (p *Provisioning) Exec(r *protocol.KiteDnodeRequest, result *string) error {
+func Exec(r *kite.Request) (interface{}, error) {
 	var params struct {
 		ContainerName string
 		Command       string
 	}
 
-	if r.Args == nil {
-		log.Error("[%s] could not exec command. withArgs is not defined.", r.Username)
-		return errors.New("withArgs is not defined")
-	}
-
 	if r.Args.Unmarshal(&params) != nil || params.ContainerName == "" || params.Command == "" {
-		return errors.New("{ containerName: [string] , command: [string] }")
+		return nil, errors.New("{ containerName: [string] , command: [string] }")
 	}
 
 	user, err := getUser(r.Username)
 	if err != nil {
 		log.Error("[%s] could not get user to exec a command on '%s'. err: '%s'",
 			r.Username, params.ContainerName, err)
-		return errors.New("could not run command - 1")
+		return nil, errors.New("could not run command - 1")
 	}
 
 	vm, err := getVM(params.ContainerName)
 	if err != nil {
 		log.Error("[%s] could not get vm to exec a command on '%s'. err: '%s'",
 			r.Username, params.ContainerName, err)
-		return errors.New("could not run command - 2")
+		return nil, errors.New("could not run command - 2")
 	}
 
 	containerName := "vm-" + vm.Id.Hex()
@@ -293,36 +252,30 @@ func (p *Provisioning) Exec(r *protocol.KiteDnodeRequest, result *string) error 
 	output, err := c.Run(params.Command)
 	if err != nil {
 		log.Error("[%s] could not exec a command on '%s'. err: '%s'", r.Username, params.ContainerName, err)
-		return errors.New("could not run command - 3")
+		return nil, errors.New("could not run command - 3")
 	}
 
 	state := GetState(containerName)
 	state.ResetTimer()
 	log.Info("[%s] did run the command '%s' on container %s\n", r.Username, params.Command, containerName)
 
-	*result = string(output)
-	return nil
+	return string(output), nil
 }
 
-func (p *Provisioning) Unprepare(r *protocol.KiteDnodeRequest, result *bool) error {
+func Unprepare(r *kite.Request) (interface{}, error) {
 	var params struct {
 		ContainerName string
 	}
 
-	if r.Args == nil {
-		log.Error("[%s] could not unprepare vm. withArgs is not defined.", r.Username)
-		return errors.New("withArgs is not defined")
-	}
-
 	if r.Args.Unmarshal(&params) != nil || params.ContainerName == "" {
-		return errors.New("{ containerName: [string] }")
+		return nil, errors.New("{ containerName: [string] }")
 	}
 
 	vm, err := getVM(params.ContainerName)
 	if err != nil {
 		log.Error("[%s] could not get vm to unprepare '%s'. err: '%s'",
 			r.Username, params.ContainerName, err)
-		return errors.New("could not unprepare vm - 1")
+		return nil, errors.New("could not unprepare vm - 1")
 	}
 
 	containerName := "vm-" + vm.Id.Hex()
@@ -335,7 +288,7 @@ func (p *Provisioning) Unprepare(r *protocol.KiteDnodeRequest, result *bool) err
 		if err != nil {
 			log.Error("[%s] could not shutdown vm for unprepare vm: '%s'. err: '%s'",
 				r.Username, params.ContainerName, err)
-			return errors.New("could not unprepare vm - 2")
+			return nil, errors.New("could not unprepare vm - 2")
 		}
 	}
 
@@ -343,41 +296,36 @@ func (p *Provisioning) Unprepare(r *protocol.KiteDnodeRequest, result *bool) err
 	if err != nil {
 		log.Error("[%s] could not unprepare vm: '%s'. err: '%s'",
 			r.Username, params.ContainerName, err)
-		return errors.New("could not unprepare vm - 3")
+		return nil, errors.New("could not unprepare vm - 3")
 	}
 
 	log.Info("[%s] unprepared the container '%s'", r.Username, containerName)
-	*result = true
-	return nil
+	return true, nil
 }
 
-func (p *Provisioning) Prepare(r *protocol.KiteDnodeRequest, result *bool) error {
+func Prepare(r *kite.Request) (interface{}, error) {
 	var params struct {
 		ContainerName string
 		Reinitialize  bool
 	}
 
-	if r.Args == nil {
-		log.Error("[%s] could not prepare vm. withArgs is not defined.", r.Username)
-		return errors.New("withArgs is not defined")
-	}
-
 	if r.Args.Unmarshal(&params) != nil || params.ContainerName == "" {
-		return errors.New("{ containerName: [string] }")
+		return nil, errors.New("{ containerName: [string] }")
 	}
 
-	err := prepare(params.Reinitialize, r.Username, params.ContainerName)
+	err := prepare(params.Reinitialize, params.ContainerName, r)
 	if err != nil {
 		log.Error("[%s] could not prepare vm: '%s'. err: '%s'",
 			r.Username, params.ContainerName, err)
-		return errors.New("could not prepare vm")
+		return nil, errors.New("could not prepare vm")
 	}
 
-	*result = true
-	return nil
+	return true, nil
 }
 
-func prepare(reinitialize bool, username, vmName string) error {
+func prepare(reinitialize bool, vmName string, r *kite.Request) error {
+	username := r.Username
+
 	user, err := getUser(username)
 	if err != nil {
 		return err
@@ -425,8 +373,7 @@ func prepare(reinitialize bool, username, vmName string) error {
 	state := GetState(containerName)
 	state.IP = c.IP
 	state.StartTimer()
-
-	k.OnDisconnect(username, func() {
+	r.RemoteKite.OnDisconnect(func() {
 		state.StopTimer()
 	})
 
