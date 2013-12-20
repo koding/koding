@@ -1,7 +1,7 @@
 module.exports = (account)->
 
   {firstName} = account.profile
-  encoder     = require 'he'
+  encoder     = require 'htmlencode'
 
   """
   <div id="activity-update-widget" class="kdview activity-update-widget-wrapper">
@@ -12,7 +12,7 @@ module.exports = (account)->
       <div class="kdview kdscrollview kdtabview update-widget-tabs">
         <div class="kdview kdtabpaneview update clearfix no-shadow active">
           <form class="kdformview status-widget">
-            <div class="small-input"><input name="dummy" type="text" class="kdinput text status-update-input warn-on-unsaved-data" placeholder="What's new #{encoder.escape firstName}?"></div>
+            <div class="small-input"><input name="dummy" type="text" class="kdinput text status-update-input warn-on-unsaved-data" placeholder="What's new #{encoder.XSSEncode firstName}?"></div>
           </form>
         </div>
       </div>
