@@ -164,7 +164,7 @@ class TeamworkImporter extends KDObject
     repoFolder    = FSHelper.createFileFromPath "#{rootPath}/#{@folderName}", "folder"
     repoFolder.exists (err, isExists) =>
 
-    return @handleError err  if err
+      return @handleError err  if err
       if isExists
         @showOverwriteModal
           content: "<p>Repo exists. Overwrite?</p>"

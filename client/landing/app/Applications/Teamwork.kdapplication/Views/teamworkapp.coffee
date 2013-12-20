@@ -6,13 +6,14 @@ class TeamworkApp extends KDObject
 
   if location.hostname is "localhost"
     filename          = "manifest-dev"
-    instanceName      = "teamwork-local"
+    instanceName      = "tw-local"
 
   constructor: (options = {}, data) ->
 
     super options, data
 
     @appView   = @getDelegate()
+    query      = @getOptions().query or {}
     @dashboard = new TeamworkDashboard
       delegate : this
 
@@ -50,6 +51,11 @@ class TeamworkApp extends KDObject
     @on "TeamUpRequested", =>
       @teamwork.once "WorkspaceSyncedWithRemote", =>
         @showTeamUpModal()
+
+    if query.sessionKey
+      @emit "JoinSessionRequested", query.sessionKey
+    else if query.import
+      @emit "ImportRequested", query.import
 
   createTeamwork: (options) ->
     playgroundClass = TeamworkWorkspace
