@@ -12,7 +12,10 @@ class CollaborativeWorkspace extends Workspace
     @bindRemoteEvents()
 
   createChat: ->
-    @container.addSubView @chatView = new ChatPane delegate: this
+    chatPaneClass = @getOptions().chatPaneClass or ChatPane
+    @container.addSubView @chatView = new chatPaneClass
+      delegate: this
+
     @chatView.hide()
 
   createRemoteInstance: ->
@@ -26,6 +29,7 @@ class CollaborativeWorkspace extends Workspace
     @workspaceRef = @firepadRef.child @sessionKey
     @broadcastRef = @workspaceRef.child "broadcast"
     @historyRef   = @workspaceRef.child "history"
+    @chatRef      = @workspaceRef.child "chat"
     @watchRef     = @workspaceRef.child "watch"
     @usersRef     = @workspaceRef.child "users"
 
