@@ -24,12 +24,24 @@ class AvatarPopupGroupSwitcher extends AvatarPopup
     # KD.whoami().on        'NewPendingInvitation',  @bound 'populatePendingGroups'
 
     @listControllerPending = new KDListViewController
+      lazyLoaderOptions   :
+        partial           : ''
+        spinnerOptions    :
+          loaderOptions   :
+            color         : '#6BB197'
+          size            :
+            width         : 32
       view                : @_popupListPending
-      startWithLazyLoader : yes
 
     @listController = new KDListViewController
+      lazyLoaderOptions   :
+        partial           : ''
+        spinnerOptions    :
+          loaderOptions   :
+            color         : '#6BB197'
+          size            :
+            width         : 32
       view                : @_popupList
-      startWithLazyLoader : yes
 
     @listController.on "AvatarPopupShouldBeHidden", @bound 'hide'
 
@@ -105,7 +117,7 @@ class AvatarPopupGroupSwitcher extends AvatarPopup
           cssClass: "go-back-survey"
           content : """
             Please take a short survey about <a href="http://bit.ly/1jsjlna">New Koding.</a><br><br>
-          """
+            """
           buttons :
             "Switch":
               cssClass: "modal-clean-gray"
@@ -145,9 +157,10 @@ class AvatarPopupGroupSwitcher extends AvatarPopup
         @updatePendingCount()
         @notPopulatedPending = no
 
+
   populateGroups:->
+
     @listController.removeAllItems()
-    @listController.showLazyLoader()
 
     return  unless KD.isLoggedIn()
 
@@ -159,18 +172,22 @@ class AvatarPopupGroupSwitcher extends AvatarPopup
         groups.forEach (group)->
           stack.push (cb)->
             group.group.fetchMyRoles (err, roles)->
-              group.admin = no
-              unless err
-                group.admin = 'admin' in roles
+              group.admin = unless err then 'admin' in roles else no
               cb err, group
 
         async.parallel stack, (err, results)=>
           unless err
             results.sort (a, b)->
-              if a.admin == b.admin
-                return a.group.slug > b.group.slug
-              else
-                return not a.admin and b.admin
+              return if a.admin is b.admin
+              then a.group.slug > b.group.slug
+              else not a.admin and b.admin
+
+            index = null
+            results.forEach (item, i)->
+              index = i  if item.group.slug is 'koding'
+
+            results.splice index, 1  if index?
+
             @listController.hideLazyLoader()
             @listController.instantiateListItems results
 

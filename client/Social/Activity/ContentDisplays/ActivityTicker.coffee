@@ -9,11 +9,12 @@ class ActivityTicker extends ActivityRightBase
     @filters = null
 
     @listController = new KDListViewController
-      lazyLoadThreshold: .99
-      viewOptions :
-        type      : "activities"
-        cssClass  : "activities"
-        itemClass : ActivityTickerItem
+      lazyLoadThreshold : .99
+      lazyLoaderOptions : partial : ''
+      viewOptions       :
+        type            : "activities"
+        cssClass        : "activities"
+        itemClass       : ActivityTickerItem
 
     @showAllLink = new KDCustomHTMLView
 
