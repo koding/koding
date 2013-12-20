@@ -108,22 +108,10 @@ app.get "/-/8a51a0a07e3d456c0b00dc6ec12ad85c", require './__notify-users'
 app.get "/-/auth/check/:key", (req, res)->
   {key} = req.params
 
-  console.log "checking for key"
-  authCheckKey key, (ok, result) ->
-    if not ok
-      console.log "key is valid: #{result}" #keep up the result to us
-      res.send 401, authTemplate "Key is not valid: '#{key}'"
-      return
-
-    {JKodingKey} = koding.models
-    JKodingKey.fetchKey
-      key     : key
-    , (err, kodingKey)=>
-      if err or not kodingKey
-        res.send 401, authTemplate "Key doesn't exist"
-        return
-
-      res.send 200, {result: 'key is added successfully'}
+  {JKodingKey} = koding.models
+  JKodingKey.checkKey {key}, (err, status)=>
+    return res.send 401, authTemplate "Key doesn't exist" unless status
+    res.send 200, {result: 'key is added successfully'}
 
 app.get "/-/auth/register/:hostname/:key", (req, res)->
   {key, hostname} = req.params

@@ -19,12 +19,9 @@ third.workspace.styl
       position          relative
     .kdloader
       top               -14px
-  .kdheaderview
-    padding             10px 10px 5px 10px
   .inner-header
     size                auto, 37px
-    font-size           16px
-    font-weight         bold
+    font-size           14px
     color               #4C4C4C
     border-bottom       3px solid #c7c7c7
     gradient            #F3F3F3, #DBDBDB
@@ -211,9 +208,24 @@ third.workspace.styl
         font-size       12px
         fl()
   .file-container
-    bg                  color, #1B2224
-    width               247px
-    border-right        3px solid #252E30
+    bg                  color, #282F31
+    &.finder-pane
+      border-right      15px solid #1B2224
+      box-sizing        border-box
+    .jtreeview-wrapper
+      width             250px
+      bg                color, #282F31
+    .vm
+      height           42px
+      padding          0
+      background       #1E2527
+      border-top       2px solid #181E20
+      .icon
+        size           10px !important, 10px !important
+        rounded        10px
+        position       relative
+        top            15px
+        left           8px
     &.client-finder-pane
       .vm
         .icon
@@ -284,22 +296,12 @@ third.workspace.styl
   z-index               10000
   bottom                0px
   right                 0px
-  -webkit-transition    top .4s ease, height .2s ease-in
-  -moz-transition       top .4s ease, height .2s ease-in
-  transition            top .4s ease, height .2s ease-in
   &.active
     height              317px
-  &.no-dock
-    height              auto
-    box-shadow          0 0 20px
-    rounded             4px 0 0 0
-    // kalc                height, 100% \- 40px
-    // .messages
-    //   kalc              height, 100% \- 35px
   .ws-chat-avatar
     fl()
-    rounded             4px
-    margin-right        4px
+    rounded             5px
+    margin-right        5px
   .dock
     font-size           14px
     font-weight         600
@@ -333,63 +335,51 @@ third.workspace.styl
     &.active
       display           block
   .input-container
-    background          #E2E2E2
-    padding             5px
-    border-top          1px solid #8F8F8F
+    background          #282F31
+    padding             15px
+    border-left         11px solid #191f21
   .messages
     size                auto, 257px
-    padding             5px
+    padding             15px
     overflow-y          auto
-    border-top          1px solid #FFF
-    gradient            #EBEBEB, #FFF
+    border-top          1px solid #191f21
+    border-left         11px solid #191f21
+    bg                  color, #282F31
+    color               #7E888A
     borderBox()
   .kdinput
-    width               202px !important
-    border-color        #8f8f8f !important
-    height              23px !important
-    line-height         23px !important
-    background-color    #FFF !important
+    width               239px !important
+    color               #7E888A !important
+    height              80px !important
+    line-height         17px !important
     text-align          left !important
+    border              none !important
+    bg                  color, #181E20 !important
+    font-size           14px !important
+    box-shadow          none !important
+    padding             10px 15px !important
+    bg                  image, none !important
   .chat-item
-    height              auto
-    margin-bottom       10px
-    &.mine
-      .items-container
-        background      #FFF5EE
-        border-color    #F1B480
-      .username
-        background      #FFD8BD !important
-        border-bottom   1px solid #F1B480 !important
-      .avatarview
-        float           right
+    size                224px, auto
+    margin-bottom       12px
+    border-bottom       1px solid #212728
+    box-shadow          0 1px 0 #2F3739
     .avatarview
       float             left
-      margin-right      6px
-      border-radius     3px
+      margin-right      13px
     .items-container
-      width             185px
-      font-size         12px
-      border            1px solid #BDBDBD
-      border-radius     3px
-      background        #ECECEC
-      div
-        margin          1px 5px
-        line-height     15px
+      width             181px
+      font-size         13px
+      margin-bottom     10px
       .username
-        background      #DDD
-        border-bottom   1px solid #BDBDBD
-        font-weight     600
-        margin-bottom   3px
-        padding         2px 5px
-        margin          0 -5px
-        text-indent     5px
+        color           #00CF6A
+        margin-bottom   5px
       .time-ago
-        right           2px
-        top             2px
-        color           #7E7E7E
-        font-size       9px
+        right           0
+        top             1px
+        color           #676f71
+        font-size       10px
         font-weight     normal
-        font-style      italic
         text-align      right
         abs()
 
@@ -537,3 +527,9 @@ third.workspace.styl
 
 .ws-pane.preview-pane
   bg                    color, #FFF
+
+.workspace-chat
+  ::-webkit-input-placeholder
+    color               #7E888A
+  ::-moz-placeholder
+    color               #7E888A
