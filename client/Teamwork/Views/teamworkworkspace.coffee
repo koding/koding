@@ -65,6 +65,18 @@ class TeamworkWorkspace extends CollaborativeWorkspace
     panel.addSubView @buttonsContainer = new KDCustomHTMLView
       cssClass : "tw-buttons-container"
 
+    @buttonsContainer.addSubView chatButton = new KDButtonView
+      cssClass : "tw-chat-toggle active"
+      iconClass: "tw-chat"
+      iconOnly : yes
+      callback : =>
+        cssClass      = "tw-chat-open"
+        isChatVisible = @hasClass cssClass
+        @toggleClass cssClass
+        chatButton.toggleClass "active"
+
+        if isChatVisible then @chatView.hide() else @chatView.show()
+
     @buttonsContainer.addSubView new KDButtonView
       iconClass: "tw-cog"
       iconOnly : yes
