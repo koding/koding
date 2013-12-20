@@ -228,5 +228,13 @@ func createRelationship(relationship Relationship) {
 func removeRelationship(relationship Relationship) {
   RemoveGraphRelationship(relationship)
   RemoveRelationship(relationship)
+//Finds synonym of a given tag by tagId
+func FindSynonym(tagId string) (*Tag, error) {
+  selector := helper.Selector{"sourceId": helper.GetObjectId(tagId), "as": "synonymOf"}
+  synonymRel, err := helper.GetRelationship(selector)
+  if err != nil {
+    return nil, err
+  }
 
+  return helper.GetTagById(synonymRel.TargetId.Hex())
 }
