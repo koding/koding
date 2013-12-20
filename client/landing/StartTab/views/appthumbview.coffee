@@ -50,7 +50,7 @@ class StartTabAppThumbView extends KDCustomHTMLView
         width       : 40
 
     if name isnt title
-      appPath = KD.utils.xssEncode "/home/#{KD.nick()}/Applications/#{name}"
+      appPath = Encoder.XSSEncode "/home/#{KD.nick()}/Applications/#{name}"
       appPath = "<p class='app-path'><cite>#{appPath}</cite></p>"
 
     @info = new KDCustomHTMLView
@@ -62,9 +62,9 @@ class StartTabAppThumbView extends KDCustomHTMLView
           left : -5
         title  : """
           <div class='app-tip'>
-            <header><strong>#{KD.utils.xssEncode title} #{KD.utils.xssEncode version}</strong> <cite>by #{KD.utils.xssEncode author}</cite></header>
-            <p class='app-desc'>#{KD.utils.xssEncode description.slice(0,200)}#{if description.length > 199 then '...' else ''}</p>
-            #{if additionalinfo then "<cite>#{KD.utils.xssEncode additionalinfo}</cite>" else ""}
+            <header><strong>#{Encoder.XSSEncode title} #{Encoder.XSSEncode version}</strong> <cite>by #{Encoder.XSSEncode author}</cite></header>
+            <p class='app-desc'>#{Encoder.XSSEncode description.slice(0,200)}#{if description.length > 199 then '...' else ''}</p>
+            #{if additionalinfo then "<cite>#{Encoder.XSSEncode additionalinfo}</cite>" else ""}
             #{appPath}
           <div>
           """
@@ -81,8 +81,8 @@ class StartTabAppThumbView extends KDCustomHTMLView
       click    : =>
         @delete.getTooltip().hide()
         @deleteModal = new KDModalView
-          title          : "Delete #{KD.utils.xssEncode title}"
-          content        : "<div class='modalformline'>Are you sure you want to delete <strong>#{KD.utils.xssEncode title}</strong> application?</div>"
+          title          : "Delete #{Encoder.XSSEncode title}"
+          content        : "<div class='modalformline'>Are you sure you want to delete <strong>#{Encoder.XSSEncode title}</strong> application?</div>"
           height         : "auto"
           overlay        : yes
           buttons        :
