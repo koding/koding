@@ -138,12 +138,12 @@ class ActivityCodeSnippetWidget extends ActivityWidgetFormView
     @tagController.setDefaultValue tags or []
 
     fillForm = =>
-      @title.setValue KD.utils.htmlDecode title
-      @description.setValue KD.utils.htmlDecode body
-      @ace.setContents KD.utils.htmlDecode KD.utils.xssEncode content
-      @hiddenAceInputClone.setValue KD.utils.htmlDecode KD.utils.xssEncode content
+      @title.setValue Encoder.htmlDecode title
+      @description.setValue Encoder.htmlDecode body
+      @ace.setContents Encoder.htmlDecode Encoder.XSSEncode content
+      @hiddenAceInputClone.setValue Encoder.htmlDecode Encoder.XSSEncode content
       @hiddenAceInputClone.setClass 'warn-on-unsaved-data'
-      @syntaxSelect.setValue KD.utils.htmlDecode syntax
+      @syntaxSelect.setValue Encoder.htmlDecode syntax
 
     if @ace?.editor
       fillForm()
@@ -175,7 +175,7 @@ class ActivityCodeSnippetWidget extends ActivityWidgetFormView
         # Shadowing the Ace contents so the onbeforeunload catch-all does
         # not need special jquery calls
 
-        @hiddenAceInputClone.setValue KD.utils.xssEncode @ace.getContents()
+        @hiddenAceInputClone.setValue Encoder.XSSEncode @ace.getContents()
         unless @hiddenAceInputClone.getValue() in ['',@aceDefaultContent]
           @hiddenAceInputClone.setClass "warn-on-unsaved-data"
         else

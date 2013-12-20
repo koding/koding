@@ -115,7 +115,7 @@ class KodingRouter extends KDRouter
 
   getDefaultRoute:-> if KD.isLoggedIn() then '/Activity' else '/'
 
-  setPageTitle:(title="Koding")-> document.title = KD.utils.htmlDecode title
+  setPageTitle:(title="Koding")-> document.title = Encoder.htmlDecode title
 
   getContentTitle:(model)->
     {JAccount, JNewStatusUpdate, JGroup} = KD.remote.api

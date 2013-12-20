@@ -6,6 +6,6 @@ class EmbedBoxObjectView extends KDView
     objectHtml = @getData().link_embed?.object?.html
     """
     <div class="embed embed-object-view custom-object">
-      #{KD.utils.htmlDecode objectHtml or ''}
+      #{Encoder.htmlDecode objectHtml or ''}
     </div>
     """
