@@ -17,11 +17,11 @@ class NavigationList extends KDListView
 
       view.on 'DragInAction', (x, y)=>
 
+        return  if x + view._x > @_width or x + view._x < 0
+
         if view.data.type isnt 'persistent' and y > 125
         then view.setClass 'remove'
         else view.unsetClass 'remove'
-
-        return  if x + view._x > @_width or x + view._x < 0
 
         if x > @viewWidth
           current = Math.floor x / @viewWidth
