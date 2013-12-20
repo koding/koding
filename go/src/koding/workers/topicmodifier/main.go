@@ -5,9 +5,8 @@ import (
   "fmt"
   "github.com/streadway/amqp"
   . "koding/db/models"
-  "koding/tools/amqputil"
-  "labix.org/v2/mgo/bson"
-  "log"
+  helper "koding/db/mongodb/modelhelper"
+  "koding/messaging/rabbitmq"
   "strings"
 )
 
@@ -23,12 +22,6 @@ var (
   WORKER_QUEUE_NAME = "topicModifierWorkerQueue"
 )
 
-type Consumer struct {
-  conn    *amqp.Connection
-  channel *amqp.Channel
-  name    string
-}
-
 type TagModifierData struct {
   TagId  string `json:"tagId"`
   Status Status `json:"status"`
@@ -39,75 +32,63 @@ func init() {
 }
 
 func main() {
-  log.Printf("Tag Modifier Worker Started")
-  consumeMessages()
+  exchange := rabbitmq.Exchange{
+    Name:    EXCHANGE_NAME,
+    Type:    "fanout",
+    Durable: true,
+  }
+
+  queue := rabbitmq.Queue{
+    Name:    WORKER_QUEUE_NAME,
+    Durable: true,
+  }
+
+  binding := rabbitmq.BindingOptions{
+    RoutingKey: "",
+  }
+
+  consumerOptions := rabbitmq.ConsumerOptions{
+    Tag: "TopicModifier",
+  }
+
+  consumer, err := rabbitmq.NewConsumer(exchange, queue, binding, consumerOptions)
+  if err != nil {
+    log.Error("%v", err)
+    return
+  }
+
+  defer consumer.Shutdown()
+  err = consumer.QOS(3)
+  if err != nil {
+    panic(err)
+  }
+
+  defer PUBLISHER.Shutdown()
+
+  log.Info("Tag Modifier worker started")
+  consumer.RegisterSignalHandler()
+  consumer.Consume(messageConsumer)
 }
 
-func declareExchange() {
 
-  connection := amqputil.CreateConnection("exchangeDeclareConnection")
+var messageConsumer = func(delivery amqp.Delivery) {
 
-  channel := amqputil.CreateChannel(connection)
-
-  err := channel.ExchangeDeclare(EXCHANGE_NAME, "fanout", true, false, false, false, nil)
-  if err != nil {
-    log.Println("exchange.declare: %s", err)
-    panic(err)
+  modifierData := &TagModifierData{}
+  if err := json.Unmarshal([]byte(delivery.Body), modifierData); err != nil {
+    log.Error("Wrong Post Format", err, delivery)
   }
 
-  //name, durable, autoDelete, exclusive, noWait, args Table
-  _, err = channel.QueueDeclare(WORKER_QUEUE_NAME, true, false, false, false, nil)
-  if err != nil {
-    log.Println("queue.declare: %s", err)
-    panic(err)
+  tagId := modifierData.TagId
+  switch modifierData.Status {
+  default:
+    log.Error("Unknown modification status %s", modifierData.Status)
+  case DELETE:
+    deleteTags(tagId)
+  case MERGE:
+    mergeTags(tagId)
   }
-  err = channel.QueueBind(WORKER_QUEUE_NAME, "", EXCHANGE_NAME, false, nil)
-  if err != nil {
-    log.Println("queue.bind: %s", err)
-    panic(err)
-  }
+  delivery.Ack(false)
 
-}
-
-func consumeMessages() {
-  c := &Consumer{
-    conn:    nil,
-    channel: nil,
-    name:    "",
-  }
-
-  c.name = "tagModifier"
-  c.conn = amqputil.CreateConnection(c.name)
-  c.channel = amqputil.CreateChannel(c.conn)
-
-  postData, err := c.channel.Consume(WORKER_QUEUE_NAME, c.name, false, false, false, false, nil)
-  if err != nil {
-    log.Printf("Consume error %s", err)
-    panic(err)
-  }
-
-  for rawMsg := range postData {
-    modifierData := &TagModifierData{}
-    if err = json.Unmarshal([]byte(rawMsg.Body), modifierData); err != nil {
-      log.Println("Wrong Post Format", err, rawMsg)
-    }
-
-    modifyMessage := func() {
-      tagId := modifierData.TagId
-      switch modifierData.Status {
-      default:
-        log.Println("Unknown modification status")
-      case DELETE:
-        deleteTags(tagId)
-      case MERGE:
-        mergeTags(tagId)
-      }
-      rawMsg.Ack(false)
-    }
-
-    modifyMessage()
-
-  }
 }
 
 func deleteTags(tagId string) {
