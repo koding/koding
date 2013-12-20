@@ -1,4 +1,4 @@
-encoder      = require 'he'
+encoder      = require 'htmlencode'
 
 #module.exports = (title = "A new way for developers to work.", shareUrl = "https://koding.com")->
 module.exports = (options = {})->
@@ -14,8 +14,8 @@ module.exports = (options = {})->
   <meta name="author" content="Koding">
   <meta name="fragment" content="!">
   <meta property="og:site_name" content="Koding"/>
-  <meta property="og:description" content="#{encoder.escape options.body}"/>
-  <meta property="og:title" content="Koding - #{encoder.escape options.title}"/>
+  <meta property="og:description" content="#{encoder.XSSEncode options.body}"/>
+  <meta property="og:title" content="Koding - #{encoder.XSSEncode options.title}"/>
   <meta property="og:url" content="#{options.shareUrl}"/>
   <meta property="og:image" content="#{options.image}"/>
   <meta property="og:image:secure_url" content="#{options.image}"/>

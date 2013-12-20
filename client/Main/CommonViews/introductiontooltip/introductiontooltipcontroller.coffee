@@ -98,7 +98,7 @@ class IntroductionTooltipController extends KDController
 
     tooltipView = null
     try
-      tooltipView = eval KD.utils.htmlDecode data.snippet.split("@").join("this.") # trying to eval snippet
+      tooltipView = eval Encoder.htmlDecode data.snippet.split("@").join("this.") # trying to eval snippet
     catch err
       log err.message
     return no unless tooltipView instanceof KDView # we will add this as a subview, should be a KDView instance

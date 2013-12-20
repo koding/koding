@@ -15,7 +15,7 @@ class CodesnipActivityItemView extends ActivityItemChild
     codeSnippetData = @getData().attachments?[0] or ""
     codeSnippetData.title = @getData().title
 
-    if @getData().fake then codeSnippetData.content = KD.utils.xssEncode codeSnippetData.content
+    if @getData().fake then codeSnippetData.content = Encoder.htmlEncode codeSnippetData.content
 
     @codeSnippetView = new CodeSnippetView {}, codeSnippetData
 
@@ -100,7 +100,7 @@ class CodeSnippetView extends KDCustomHTMLView
 
     {content, syntax, title} = data = @getData()
 
-    # @codeView = new NonEditableAceField defaultValue: KD.utils.htmlDecode(content), autoGrow: yes, afterOpen: =>
+    # @codeView = new NonEditableAceField defaultValue: Encoder.htmlDecode(content), autoGrow: yes, afterOpen: =>
     #   syntax or= 'javascript'
     #   @codeView.setTheme 'merbivore'
     #   @codeView.setSyntax syntax
@@ -139,7 +139,7 @@ class CodeSnippetView extends KDCustomHTMLView
 
         FSHelper.createRecursiveFolder path : rootPath , =>
           file    = FSHelper.createFileFromPath "#{fullPath}"
-          content = KD.utils.htmlDecode content
+          content = Encoder.htmlDecode content
           file.save content, (err) ->
             notificationTitle = new KDView
               partial : "Your file is saved into Documents/CodeSnippets"
@@ -169,7 +169,7 @@ class CodeSnippetView extends KDCustomHTMLView
         {title, content, syntax} = @getData()
         fileName      = "localfile:/#{title}"
         file          = FSHelper.createFileFromPath fileName
-        file.contents = KD.utils.htmlDecode content
+        file.contents = Encoder.htmlDecode content
         file.syntax   = syntax
         KD.getSingleton("appManager").openFile file
 

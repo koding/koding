@@ -108,7 +108,7 @@ class BadgeRules extends JView
   updateRulesList:->
     ruleArray = @badge.rule.split "+"
     for rule in ruleArray
-      decoded  = KD.utils.htmlDecode rule
+      decoded  = Encoder.htmlDecode rule
       actionPos = decoded.search /[\<\>\=]/
       action    = decoded.substr actionPos, 1
       property  = decoded.substr 0, actionPos
