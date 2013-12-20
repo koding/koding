@@ -7,6 +7,7 @@ module.exports = [
   "Views/teamworktools.coffee",
   "Views/teamworkdashboard.coffee",
   "Views/teamworkimporter.coffee",
+  "Views/teamworkchatpane.coffee",
   "Views/teamworkworkspace.coffee",
   "Views/playgroundteamwork.coffee",
   "Views/teamworkapp.coffee",

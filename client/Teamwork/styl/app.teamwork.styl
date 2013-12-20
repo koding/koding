@@ -11,6 +11,15 @@ app.teamwork.styl
 .teamwork
   .workspace
     bg                          color, #FFF
+  .application-tab-handle-holder
+    height                      58px
+    bg                          color, #1B2224
+    .kdtabhandle
+      bg                        color, #21292B
+      rounded                   6px 6px 0 0
+      margin-right              1px
+      &.active
+        bg                      color, #282F31
   .user-list-container
     .inner-header
       .title
@@ -18,9 +27,11 @@ app.teamwork.styl
   .inner-header
     bg                          color, #1B2224
     bg                          image, none
-    border-bottom               3px solid #252E30
+    border-bottom               none
     text-shadow                 none
-    color                       #5e7074
+    color                       #676f71
+    height                      58px
+    line-height                 58px
     .title
       text-indent               0
     .icon
@@ -28,28 +39,32 @@ app.teamwork.styl
       size                      37px 37px
       fl()
     .header-title
-      height                    35px
-      top                       -9px
-      position                  relative
-      line-height               35px
-      left                      -10px
       .icon
         size                    10px 24px
   .finder-pane
     &.file-container
       .no-vm-found-widget
         display                 none
+    .nfinder
+      kalc                      height, 100% \- 140px
+  .application-tabview
+    kalc                        height, 100% \- 58px
   .kdsplitview-resizer.vertical
     display                     none
-  .tw-mode
-    bg                          color, red
-    rounded                     16px
-    size                        16px, 16px
+  .kdtabhandle-tabs
+    top                         18px
     position                    relative
-    top                         -12px
-    left                        80px
-    &.active
-      bg                        color, green
+  .previewer-body
+    .kdinput
+      font-size                 13px !important
+      line-height               14px
+  .ws-drawing-pane
+    bg                          color, #282F32
+  .CodeMirror,
+  .CodeMirror-gutters,
+  .webterm .console
+    bg                          color, #282F32 !important
+    padding-left                3px
 
 .teamwork-loader
   size                          204px, 324px
@@ -152,12 +167,6 @@ app.teamwork.styl
 .tw-before-starting-modal .kdscrollview
   overflow                      auto !important
 
-.workspace-chat .dock .toggle
-  &:before
-    content                     "x" !important
-    font-size                   14px
-    top                         0
-
 .tw-previewer-button
   position                      absolute
   top                           12px
@@ -191,30 +200,6 @@ app.teamwork.styl
     &.fade-out
       opacity                   0
 
-.teamwork
-  .workspace-launcher
-    top                         0
-    size                        100px, 40px
-    cursor                      default
-    .launcher-item
-      bg                        color, transparent !important
-      bg                        position, -1px -63px
-      rounded                   0
-      size                      20px, 20px
-      margin                    12px 12px 0 0
-      fr()
-      pointer()
-      &.chat
-        bg                      position, -3px -67px
-      &.terminal
-        bg                      position, 0 -116px
-      &.preview
-        bg                      position, 0px -13px
-  .finder-pane
-    .inner-header
-      border-top                3px solid #252e30
-      height                    43px
-
 .tw-terminal-splash
   background                    #FFF
   p
@@ -237,7 +222,6 @@ app.teamwork.styl
   overflow                      auto
   height                        0
   bg                            color, #282F31
-  border                        1px solid #191F21
   box-sizing                    border-box
   line-height                   1.22em
   .tw-items-container
@@ -448,13 +432,13 @@ app.teamwork.styl
   top                           0
   right                         0
   position                      absolute
-  width                         130px
+  size                          130px, 58px
   text-align                    right
   button
     background                  none
     border                      none
-    top                         7px
-    right                       2px
+    top                         18px
+    right                       5px
     &:hover
       background                none
       border                    none
@@ -487,144 +471,120 @@ app.teamwork.styl
   abs()
 
 .tw-rounded-button
-  size              186px, 47px
-  font-size         18px
-  padding           5px 30px
-  border            3px solid #1fcd6e
-  border-radius     22px
-  color             #1fcd6e
-  background        transparent
+  size                          186px, 47px
+  font-size                     18px
+  padding                       5px 30px
+  border                        3px solid #1fcd6e
+  border-radius                 22px
+  color                         #1fcd6e
+  background                    transparent
   &.share
-    abs             0 0 20px 30px
+    abs                         0 0 20px 30px
   &:focus
-    color           #7dbef1
-    border-width    3px
+    color                       #7dbef1
+    border-width                3px
 
 .tw-show-activity-widget
   abs()
-  top               8px
-  left              206px
-  background        transparent
-  border          none
-
+  top                           14px
+  left                          206px
+  background                    transparent
+  border                        none
   .icon
-    sprite          app account-notifications
+    sprite                      app "account-notifications"
 
 .tw-activity-widget
-  width             506px
-  height            100%
+  size                          506px, 100%
   abs()
-  top               0
-  left              0
-  vendor            transition .3s linear
-  vendor            transform translateX(0)
-  padding           20px
-  overflow          visible
-  z-index           10
-  background        #f0f0f0
-  shadow            20px 0 40px rgba(0,0,0,0.5)
-
+  top                           0
+  left                          0
+  vendor                        transition .3s linear
+  vendor                        transform translateX(0)
+  padding                       20px
+  overflow                      visible
+  z-index                       10
+  background                    #f0f0f0
+  shadow                        20px 0 40px rgba(0,0,0,0.5)
   &.collapsed
-    vendor          transform translateX(-546px)
-    shadow          none
-
+    vendor                      transform translateX(-546px)
+    shadow                      none
     .toggle
-      abs           -2px -6px
-      vendor        transform translate(-2px, -6px)
-      padding       3px 6px 4px 6px
-
+      abs                       -2px -6px
+      vendor                    transform translate(-2px, -6px)
+      padding                   3px 6px 4px 6px
   .close-tab
     abs()
-    top             5px
-    right           2px
-    bg              color transparent
-    sprite          app '20-close-tab'
-    border          none
-
+    top                         5px
+    right                       2px
+    bg                          color transparent
+    sprite                      app '20-close-tab'
+    border                      none
     &:hover
-      cursor        pointer
-
+      pointer()
   .notification
-    size                auto auto
-    background          lightyellow
-    font-size           12px
-    margin              10px 0
-    padding             10px 30px 10px 10px
-    border              1px solid lightgray
-    border-radius       5px
-
+    size                        auto auto
+    background                  lightyellow
+    font-size                   12px
+    margin                      10px 0
+    padding                     10px 30px 10px 10px
+    border                      1px solid lightgray
+    border-radius               5px
     .close-tab
       abs()
-      top               4px
-      right             4px
-      bg                color, transparent
-      sprite            app '20-close-tab'
-
+      top                       4px
+      right                     4px
+      bg                        color, transparent
+      sprite                    app '20-close-tab'
     a
-      color      #3aaaab
+      color                     #3aaaab
       noTextDeco()
-
   .activity-item
-    height            auto
-    margin            0
-    background        transparent
-    border            1px solid #dfddde
-    border-radius     0
-    box-shadow        none
-
+    height                      auto
+    margin                      0
+    background                  transparent
+    border                      1px solid #dfddde
+    border-radius               0
+    box-shadow                  none
     &:nth-child(2)
-      margin-top      10px
-
+      margin-top                10px
     .avatarview
-      display         inline-block
-      border-radius   25px
-
+      display                   inline-block
+      border-radius             25px
     header
-      padding         20px 15px 0 15px
-      background      white
-
+      padding                   20px 15px 0 15px
+      background                #FFF
       .content
-        display           inline-block
-        width             360px
-        vertical-align    middle
-        margin-left       12px
-
+        display                 inline-block
+        width                   360px
+        vertical-align          middle
+        margin-left             12px
         .profile
-          color           #1aaf5d
-          font-weight     500
-          text-decoration none
-
+          color                 #1aaf5d
+          font-weight           500
+          text-decoration       none
         .status-body
-          padding         0
-
+          padding               0
           p
-            padding       0
-
+            padding             0
     footer
       .activity-actions
-        height            auto
-        padding           10px 0
-
+        height                  auto
+        padding                 10px 0
       time
-        line-height       38px
-
+        line-height             38px
     .comment-container
-      height              auto
-
+      height                    auto
       .kdlistitemview-comment
-        background        white
-
+        background              #fff
         .avatarview
-          border-radius   25px
-
+          border-radius         25px
       .item-add-comment-box
         .avatarview
-          display         none
-
+          display               none
         .item-add-comment-form
           textarea
-            padding-left  14px
-            border-radius 0
+            padding-left        14px
+            border-radius       0
 
 .tw-users
   bg                            color, #ededed
@@ -640,3 +600,18 @@ app.teamwork.styl
       &.watching
         border                  2px solid green
         box-sizing              border-box
+
+.tw-chat
+  width                         280px
+  kalc                          height, 100% \- 57px
+  bg                            color, #1B2224
+  .messages
+    kalc                        height, 100% \- 111px
+
+.tw-chat-open
+  .application-tabview
+    kalc                        width, 100% \- 280px
+
+.teamwork
+  .previewer-body
+    width                       auto
