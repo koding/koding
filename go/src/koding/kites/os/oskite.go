@@ -225,44 +225,26 @@ func setupSignalHandler(k *kite.Kite) {
 
 func registerVmMethod(k *kite.Kite, method string, concurrent bool, callback func(*dnode.Partial, *kite.Channel, *virt.VOS) (interface{}, error)) {
 	k.Handle(method, concurrent, func(args *dnode.Partial, channel *kite.Channel) (methodReturnValue interface{}, methodError error) {
+
 		if shuttingDown {
 			return nil, errors.New("Kite is shutting down.")
 		}
+
 		requestWaitGroup.Add(1)
 		defer requestWaitGroup.Done()
+
 		if shuttingDown { // check second time after sync to avoid additional mutex
 			return nil, errors.New("Kite is shutting down.")
 		}
 
-		var user virt.User
-		if err := mongodb.Run("jUsers", func(c *mgo.Collection) error {
-			return c.Find(bson.M{"username": channel.Username}).One(&user)
-		}); err != nil {
-			if err != mgo.ErrNotFound {
-				panic(err)
-			}
-			if !strings.HasPrefix(channel.Username, "guest-") {
-				log.Warn("User not found.", channel.Username)
-			}
-			time.Sleep(time.Second) // to avoid rapid cycle channel loop
-			return nil, &kite.WrongChannelError{}
-		}
-		if user.Uid < virt.UserIdOffset {
-			panic("User with too low uid.")
+		user, err := getUser(channel.Username)
+		if err != nil {
+			return nil, err
 		}
 
-		var vm *virt.VM
-		query := bson.M{"hostnameAlias": channel.CorrelationName}
-		if bson.IsObjectIdHex(channel.CorrelationName) {
-			query = bson.M{"_id": bson.ObjectIdHex(channel.CorrelationName)}
-		}
-		if info, _ := channel.KiteData.(*VMInfo); info != nil {
-			query = bson.M{"_id": info.vm.Id}
-		}
-		if err := mongodb.Run("jVMs", func(c *mgo.Collection) error {
-			return c.Find(query).One(&vm)
-		}); err != nil {
-			return nil, &VMNotFoundError{Name: channel.CorrelationName}
+		vm, err := getVM(channel)
+		if err != nil {
+			return nil, err
 		}
 		vm.ApplyDefaults()
 
@@ -279,27 +261,29 @@ func registerVmMethod(k *kite.Kite, method string, concurrent bool, callback fun
 				JoinUser string
 				Session  string
 			}
+
 			args.Unmarshal(&params)
+
 			if params.JoinUser != "" {
 				if len(params.Session) != utils.RandomStringLength {
 					return nil, errors.New("Invalid session identifier.")
 				}
+
 				if vm.GetState() != "RUNNING" {
 					return nil, errors.New("VM not running.")
 				}
+
 				if err := mongodb.Run("jUsers", func(c *mgo.Collection) error {
 					return c.Find(bson.M{"username": params.JoinUser}).One(&user)
 				}); err != nil {
 					panic(err)
 				}
-				if user.Uid < virt.UserIdOffset {
-					panic("User with too low uid.")
-				}
-				return callback(args, channel, &virt.VOS{VM: vm, User: &user})
+
+				return callback(args, channel, &virt.VOS{VM: vm, User: user})
 			}
 		}
 
-		permissions := vm.GetPermissions(&user)
+		permissions := vm.GetPermissions(user)
 		if permissions == nil {
 			return nil, &kite.PermissionError{}
 		}
@@ -315,7 +299,8 @@ func registerVmMethod(k *kite.Kite, method string, concurrent bool, callback fun
 		if err != nil {
 			panic(err)
 		}
-		userVos, err := vm.OS(&user)
+
+		userVos, err := vm.OS(user)
 		if err != nil {
 			panic(err)
 		}
@@ -326,10 +311,10 @@ func registerVmMethod(k *kite.Kite, method string, concurrent bool, callback fun
 
 		rootVos.Chmod("/", 0755)     // make sure that executable flag is set
 		rootVos.Chmod("/home", 0755) // make sure that executable flag is set
-		createUserHome(&user, rootVos, userVos)
+		createUserHome(user, rootVos, userVos)
 		createVmWebDir(vm, vmWebDir, rootVos, vmWebVos)
 		if vmWebDir != userWebDir {
-			createUserWebDir(&user, vmWebDir, userWebDir, rootVos, userVos)
+			createUserWebDir(user, vmWebDir, userWebDir, rootVos, userVos)
 		}
 
 		if concurrent {
@@ -338,6 +323,50 @@ func registerVmMethod(k *kite.Kite, method string, concurrent bool, callback fun
 		}
 		return callback(args, channel, userVos)
 	})
+}
+
+func getUser(username string) (*virt.User, error) {
+	var user *virt.User
+	if err := mongodb.Run("jUsers", func(c *mgo.Collection) error {
+		return c.Find(bson.M{"username": username}).One(&user)
+	}); err != nil {
+		if err != mgo.ErrNotFound {
+			panic(err)
+		}
+
+		if !strings.HasPrefix(username, "guest-") {
+			log.Warn("User not found.", username)
+		}
+
+		time.Sleep(time.Second) // to avoid rapid cycle channel loop
+		return nil, &kite.WrongChannelError{}
+	}
+
+	if user.Uid < virt.UserIdOffset {
+		panic("User with too low uid.")
+	}
+
+	return user, nil
+}
+
+func getVM(channel *kite.Channel) (*virt.VM, error) {
+	var vm *virt.VM
+	query := bson.M{"hostnameAlias": channel.CorrelationName}
+	if bson.IsObjectIdHex(channel.CorrelationName) {
+		query = bson.M{"_id": bson.ObjectIdHex(channel.CorrelationName)}
+	}
+
+	if info, _ := channel.KiteData.(*VMInfo); info != nil {
+		query = bson.M{"_id": info.vm.Id}
+	}
+
+	if err := mongodb.Run("jVMs", func(c *mgo.Collection) error {
+		return c.Find(query).One(&vm)
+	}); err != nil {
+		return nil, &VMNotFoundError{Name: channel.CorrelationName}
+	}
+
+	return vm, nil
 }
 
 func startVM(k *kite.Kite, vm *virt.VM, channel *kite.Channel) error {
