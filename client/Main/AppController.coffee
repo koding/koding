@@ -14,6 +14,6 @@ class AppController extends KDViewController
   handleQuery:(query)->
     @ready => @feedController?.handleQuery? query
 
-  registerKeyBindings: (bindings) ->
+  @registerKeyBindings = (bindings) ->
     for binding in bindings
       console.log { binding }
