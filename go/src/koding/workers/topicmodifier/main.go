@@ -104,79 +104,144 @@ var messageConsumer = func(delivery amqp.Delivery) {
 
 }
 
+//Deletes given tags. Tags are removed from post bodies and collections.
+//Tag relations are also removed.
 func deleteTags(tagId string) {
-  log.Println("delete")
-  if tag := FindTagById(tagId); (tag != Tag{}) {
-    log.Println("Valid tag")
-    rels := FindRelationships(bson.M{"targetId": bson.ObjectIdHex(tagId), "as": "tag"})
+  log.Info("Deleting obsolete tag")
+  if tag, err := helper.GetTagById(tagId); err == nil {
+    log.Info("Valid Tag - Id: %s", tagId)
+    selector := helper.Selector{"targetId": helper.GetObjectId(tagId), "as": "tag"}
+
+    rels := helper.GetRelationships(selector)
     updatePosts(rels, "")
-    updateRelationships(rels, &Tag{})
+    updateTagRelationships(rels, &Tag{})
+
+    tag.Counts = TagCount{}
+    helper.UpdateTag(tag)
   }
 }
 
 func mergeTags(tagId string) {
-  log.Println("merge")
+  log.Info("Merging topics")
 
-  if tag := FindTagById(tagId); (tag != Tag{}) {
-    log.Println("Valid tag")
-
-    synonym := FindSynonym(tagId)
-    tagRels := FindRelationships(bson.M{"targetId": bson.ObjectIdHex(tagId), "as": "tag"})
-    if len(tagRels) > 0 {
-      updatePosts(tagRels, synonym.Id.Hex())
-      updateRelationships(tagRels, &synonym)
-    }
-
-    postRels := FindRelationships(bson.M{"sourceId": bson.ObjectIdHex(tagId), "as": "post"})
-    if len(postRels) > 0 {
-      updateRelationships(postRels, &synonym)
-      updateCounts(&tag, &synonym)
-    }
-    synonym.Counts.Followers += updateFollowers(&tag, &synonym)
-    UpdateTag(&synonym)
-    tag.Counts = TagCount{} // reset counts
-    UpdateTag(&tag)
+  tag, err := helper.GetTagById(tagId)
+  if err != nil {
+    log.Error("Tag not found - Id: ", tagId)
+    return
   }
+
+  synonym, err := FindSynonym(tagId)
+  if err != nil {
+    log.Error("Synonym not found - Id %s", tagId)
+    return
+  }
+  log.Info("Merging Topic %s into %s", tag.Title, synonym.Title)
+
+  selector := helper.Selector{"targetId": helper.GetObjectId(tagId), "as": "tag"}
+  tagRels := helper.GetRelationships(selector)
+
+  taggedPostCount := len(tagRels)
+  log.Info("%v tagged posts found", taggedPostCount)
+  if taggedPostCount > 0 {
+    updatedPostRels := updatePosts(tagRels, synonym.Id.Hex())
+    postCount := len(updatedPostRels)
+    log.Info("Merged Post count %d", postCount)
+    synonym.Counts.Post += postCount
+
+    updateTagRelationships(updatedPostRels, synonym)
+    postRels := convertTagRelationships(updatedPostRels)
+    updateTagRelationships(postRels, synonym)
+  }
+
+  updateCounts(tag, synonym)
+  synonym.Counts.Followers += updateFollowers(tag, synonym)
+  helper.UpdateTag(synonym)
+  tag.Counts = TagCount{} // reset counts
+  helper.UpdateTag(tag)
 }
 
-func updatePosts(rels []Relationship, newTagId string) {
-  var newTag string
-  if newTagId != "" {
-    newTag = fmt.Sprintf("|#:JTag:%v|", newTagId)
+func convertTagRelationships(tagRels []Relationship) (postRelationships []Relationship) {
+  for _, tagRel := range tagRels {
+    postRelationships = append(postRelationships, swapTagRelation(&tagRel, "post"))
   }
 
+  return postRelationships
+}
+
+//Update post tags with new ones. When newTagId = "" or post already
+//includes new tag, then it just removes old tag and also removes tag relationship
+//Returns Filtered Relationships
+func updatePosts(rels []Relationship, newTagId string) (filteredRels []Relationship) {
   for _, rel := range rels {
     tagId := rel.TargetId.Hex()
-    post := FindPostWithId(rel.SourceId.Hex())
-    modifiedTag := fmt.Sprintf("|#:JTag:%v|", tagId)
-    post.Body = strings.Replace(post.Body, modifiedTag, newTag, -1)
-    UpdatePost(&post)
+    post, err := helper.GetStatusUpdateById(rel.SourceId.Hex())
+    if err != nil {
+      log.Error("Status Update Not Found - Id: %s, Err: %s", rel.SourceId.Hex(), err)
+      continue
+    }
+    tagIncluded := updatePostBody(post, tagId, newTagId)
+    err = helper.UpdateStatusUpdate(post)
+
+    if err != nil {
+      log.Error(err.Error())
+      continue
+    }
+
+    if !tagIncluded {
+      filteredRels = append(filteredRels, rel)
+    } else {
+      removeRelationship(&rel)
+      postRel := swapTagRelation(&rel, "post")
+      removeRelationship(&postRel)
+    }
   }
-  log.Printf("%v Posts updated", len(rels))
+
+  return filteredRels
 }
 
-func updateRelationships(rels []Relationship, synonym *Tag) {
+//Replaces given post tagId with new one. If new tag is already included
+//then it just removes old one.
+//Returns tag included information
+func updatePostBody(s *StatusUpdate, tagId string, newTagId string) (tagIncluded bool) {
+  var newTag string
+  tagIncluded = false
+  if newTagId != "" {
+    newTag = fmt.Sprintf("|#:JTag:%v|", newTagId)
+    //new tag already included in post
+    if strings.Index(s.Body, newTag) != -1 {
+      tagIncluded = true
+      newTag = ""
+    }
+  }
+
+  modifiedTag := fmt.Sprintf("|#:JTag:%v|", tagId)
+  s.Body = strings.Replace(s.Body, modifiedTag, newTag, -1)
+  return tagIncluded
+}
+
+//Removes old tag relationships and creates new ones if synonym tag does exists
+func updateTagRelationships(rels []Relationship, synonym *Tag) {
   for _, rel := range rels {
-    removeRelationship(rel)
+    removeRelationship(&rel)
     if (synonym != &Tag{}) {
       if rel.TargetName == "JTag" {
         rel.TargetId = synonym.Id
       } else {
         rel.SourceId = synonym.Id
       }
-      rel.Id = bson.NewObjectId()
-      createRelationship(rel)
+      rel.Id = helper.NewObjectId()
+      createRelationship(&rel)
     }
   }
 }
 
 func updateCounts(tag *Tag, synonym *Tag) {
   synonym.Counts.Following += tag.Counts.Following // does this have any meaning?
-  // synonym.Counts.Followers += tag.Counts.Followers
-  synonym.Counts.Post += tag.Counts.Post
   synonym.Counts.Tagged += tag.Counts.Tagged
 }
 
+//Moves follower information under the new topic. If user is already following
+//new topic, then she is not added as follower.
 func updateFollowers(tag *Tag, synonym *Tag) int {
   selector := helper.Selector{
     "sourceId":   tag.Id,
@@ -220,14 +285,35 @@ func updateFollowers(tag *Tag, synonym *Tag) int {
   return len(newFollowers)
 }
 
-func createRelationship(relationship Relationship) {
-  CreateGraphRelationship(relationship)
-  CreateRelationship(relationship)
+func swapTagRelation(r *Relationship, as string) Relationship {
+  return Relationship{
+    As:         as,
+    SourceId:   r.TargetId,
+    SourceName: r.TargetName,
+    TargetId:   r.SourceId,
+    TargetName: r.SourceName,
+    TimeStamp:  r.TimeStamp,
+  }
 }
 
-func removeRelationship(relationship Relationship) {
+//Creates Relationships both in mongo and neo4j
+func createRelationship(relationship *Relationship) {
+  CreateGraphRelationship(relationship)
+  helper.AddRelationship(relationship)
+}
+
+//Removes Relationships both from mongo and neo4j
+func removeRelationship(relationship *Relationship) {
   RemoveGraphRelationship(relationship)
-  RemoveRelationship(relationship)
+  selector := helper.Selector{
+    "sourceId": relationship.SourceId,
+    "targetId": relationship.TargetId,
+    "as":       relationship.As,
+  }
+  helper.DeleteRelationship(selector)
+
+}
+
 //Finds synonym of a given tag by tagId
 func FindSynonym(tagId string) (*Tag, error) {
   selector := helper.Selector{"sourceId": helper.GetObjectId(tagId), "as": "synonymOf"}
