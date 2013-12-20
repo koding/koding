@@ -67,8 +67,10 @@ module.exports = class JTag extends jraphical.Module
           (signature Object, Object, Function)
         fetchContents:
           (signature Function)
-        fetchContentTeasers:
+        fetchContentTeasers: [
           (signature Object, Object, Function)
+          (signature Object, Object, Object, Function)
+        ]
         delete:
           (signature Function)
         fetchRandomFollowers:
