@@ -79,7 +79,7 @@ class TeamworkApp extends KDObject
         buttons           : []
         layout            :
           direction       : "vertical"
-          sizes           : [ "250px", null ]
+          sizes           : [ "265px", null ]
           splitName       : "BaseSplit"
           views           : [
             {
