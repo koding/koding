@@ -77,13 +77,6 @@ class TeamworkWorkspace extends CollaborativeWorkspace
       KD.utils.wait 500, => # prevent double triggered firebase event.
         @fetchUsers()
 
-  # createLoader: ->
-  #   @container.addSubView @loader = new KDCustomHTMLView
-  #     cssClass   : "teamwork-loader"
-  #     tagName    : "img"
-  #     attributes :
-  #       src      : "#{KD.apiUri}/images/teamwork/loading.gif"
-
   startNewSession: (options) ->
     KD.mixpanel "User Started Teamwork session"
 
@@ -233,12 +226,8 @@ class TeamworkWorkspace extends CollaborativeWorkspace
       @avatarsView.unsetClass "has-user" if @avatars.length is 0
 
   sendSystemMessage: (message) ->
-    message =
-      user  : nickname : "teamwork"
-      time  : Date.now()
-      body  : message
-
-    @chatView.chatRef.child(message.time).set message
+    return unless @getOptions().enableChat
+    @chatView.sendMessage message, yes
 
   createActivityWidget: (panel) ->
     url = "#{KD.config.apiUri}/Teamwork?sessionKey=#{@sessionKey}"
