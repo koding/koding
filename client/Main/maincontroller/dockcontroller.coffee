@@ -1,21 +1,14 @@
 class DockController extends KDViewController
 
   defaultItems = [
-    { title : "Activity",  path : "/Activity", order : 10, type :"" }
-    # { title : "Topics",    path : "/Topics",   order : 20, type :"" }
-    { title : "Teamwork",  path : "/Teamwork", order : 20, type :"" }
-    { title : "Terminal",  path : "/Terminal", order : 30, type :"" }
-    { title : "Editor",    path : "/Ace",      order : 40, type :"" }
-    { title : "Apps",      path : "/Apps",     order : 50, type :"" }
-    # { title : "About",     path : "/About",    order : 70, type :"" }
+    { title : "Activity",  path : "/Activity", order : 10, type :"persistent" }
+    # { title : "Topics",    path : "/Topics",   order : 20, type :"persistent" }
+    { title : "Teamwork",  path : "/Teamwork", order : 20, type :"persistent" }
+    { title : "Terminal",  path : "/Terminal", order : 30, type :"persistent" }
+    { title : "Editor",    path : "/Ace",      order : 40, type :"persistent" }
+    { title : "Apps",      path : "/Apps",     order : 50, type :"persistent" }
+    # { title : "About",     path : "/About",    order : 70, type :"persistent" }
   ]
-
-  createHash = (arr)->
-
-    hash = {}
-    arr.forEach (item)-> hash[item.title] = item
-    return hash
-
 
   constructor:(options = {}, data)->
 
@@ -39,58 +32,72 @@ class DockController extends KDViewController
       title        : 'navigation'
       items        : []
 
-    KD.setNavItems defaultItems
-    @navController.reset()
-
-    # Disabled until we figure out the flow of dock controller ~ GG
-    #
-    # @storage.fetchStorage (err, storage)=>
-
-      # usersNavItems = @storage.getValue 'navItems'
-      # ourNavItems   = defaultItems
-      # ourNavObj     = createHash ourNavItems
-      # KD.setNavItems ourNavItems
-
-      # unless usersNavItems
-
-      #   @navController.reset()
-      #   log ourNavItems, 'ready'
-      #   return @emit 'ready'
-
-      # usersNavObj = createHash usersNavItems
-
-      # # reset default items' orders if user has customized them
-      # for ourItem in ourNavItems
-      #   continue unless usersItem = usersNavObj[ourItem.title]
-      #   log 'changing order for:', ourItem.title
-      #   ourItem.order = usersItem.order
-
-      # # add user's custom items in nav items
-      # for usersItem in usersNavItems
-      #   continue if ourNavObj[usersItem.title]
-      #   KD.registerNavItem usersItem
-
-      # # re-sort the navitems
-      # KD.setNavItems KD.getNavItems()
-      # @navController.reset()
-
-      # @emit 'ready'
-
     mainController = KD.getSingleton 'mainController'
     mainController.ready @bound 'accountChanged'
 
-    @emit 'ready'
+    @storage.fetchValue 'navItems', (usersNavItems)=>
 
-  setItemOrder:(item, order = 0)->
+      unless usersNavItems
+        @setNavItems defaultItems
+        return @emit 'ready'
 
-    item.order = order
-    KD.setNavItems KD.getNavItems()
+      @setNavItems @buildNavItems usersNavItems
+      @emit 'ready'
 
+  buildNavItems:(sourceItems)->
+
+    finalItems = []
+
+    _sources = KD.utils.arrayToObject sourceItems, 'title'
+    for defaultItem in defaultItems
+      sourceItem = _sources[defaultItem.title]
+      if sourceItem
+        continue  if sourceItem.deleted
+        sourceItem.type = defaultItem.type
+        finalItems.push sourceItem
+      else
+        finalItems.push defaultItem
+
+    _defaults = KD.utils.arrayToObject defaultItems, 'title'
+    for sourceItem in sourceItems
+      defaultItem = _defaults[sourceItem.title]
+      unless defaultItem
+        finalItems.push sourceItem
+
+    return finalItems
+
+  saveItemOrders:(items)->
+
+    items or= @navController.itemsOrdered
+
+    navItems = []
+    for own index, item of items
+      {data} = item
+      data.order = index
+      navItems.push data
+
+    @storage.setValue 'navItems', navItems, (err)->
+      warn "Failed to save navItems order", err  if err
+
+  resetItemSettings:->
+    item.order = index  for own index, item of defaultItems
+
+    @storage.unsetKey 'navItems', (err)=>
+      warn "Failed to reset navItems", err  if err
+
+      KD.resetNavItems defaultItems
+      @navController.reset()
+      "Navigation items has been reset."
+
+  setNavItems:(items)->
+    KD.setNavItems items
+    @navController.reset()
 
   addItem:(item)->
 
     if KD.registerNavItem item
       @navController.addItem item
+      @saveItemOrders()
 
   removeItem:(item)->
 
@@ -135,5 +142,3 @@ class DockController extends KDViewController
 
       appManager.on "AppUnregistered", (name, options) =>
         @setNavItemState {name, options}, 'initial'
-
-

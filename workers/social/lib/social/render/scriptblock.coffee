@@ -1,5 +1,5 @@
 module.exports = (options = {}, callback)->
-  encoder = require 'htmlencode'
+  encoder = require 'he'
 
   options.intro                 ?= no
   options.landing               ?= no
@@ -13,7 +13,7 @@ module.exports = (options = {}, callback)->
   {client, intro, landing} = options
 
   createHTML = ->
-    replacer    = (k, v)-> if 'string' is typeof v then encoder.XSSEncode v else v
+    replacer    = (k, v)-> if 'string' is typeof v then encoder.escape v else v
     encodedFeed = JSON.stringify prefetchedFeeds, replacer
 
     landingOptions =

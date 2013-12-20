@@ -37,7 +37,7 @@ class BlogPostActivityItemView extends ActivityItemChild
         <span class="author-name">{{> @author}}</span>
         <h3 class="blog-post-title">{{> @readThisLink}}</h3>
         <p class="body no-scroll has-markdown force-small-markdown">
-          {{@utils.shortenText @utils.applyMarkdown Encoder.htmlDecode #(body)}}
+          {{@utils.shortenText @utils.applyMarkdown KD.utils.htmlDecode #(body)}}
         </p>
       </div>
       <footer>
@@ -55,7 +55,7 @@ class BlogPostActivityItemView extends ActivityItemChild
     #   <h3 class="blog-post-body">{{> @readThisLink}}</h3>
     #   <div class="activity-content-container discussion">
     #     <p class="body no-scroll has-markdown force-small-markdown">
-    #       {{@utils.shortenText @utils.applyMarkdown Encoder.htmlDecode #(body)}}
+    #       {{@utils.shortenText @utils.applyMarkdown KD.utils.htmlDecode #(body)}}
     #     </p>
     #   </div>
     #   <footer class='clearfix'>

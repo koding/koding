@@ -147,12 +147,12 @@ class FormGeneratorView extends JView
       {type,title,key,defaultValue,options} = item.getData()
 
       newFields.push
-        key           : Encoder.XSSEncode key
+        key           : KD.utils.xssEncode key
         type          : type
-        title         : Encoder.XSSEncode title
+        title         : KD.utils.xssEncode title
         defaultValue  :
           if 'string' is typeof defaultValue
-            Encoder.XSSEncode defaultValue
+            KD.utils.xssEncode defaultValue
           else defaultValue
         options       : options if options
 
@@ -170,15 +170,15 @@ class FormGeneratorView extends JView
 
     if newItem
       @listController.addItem
-        title       : Encoder.XSSEncode @inputTitle.getValue()
-        key         : Encoder.XSSEncode @inputKey.getValue()
+        title       : KD.utils.xssEncode @inputTitle.getValue()
+        key         : KD.utils.xssEncode @inputKey.getValue()
         defaultValue: switch @inputType.getValue()
-          when 'text'     then Encoder.XSSEncode @inputDefault.getValue()
+          when 'text'     then KD.utils.xssEncode @inputDefault.getValue()
           when 'select'   then @inputDefaultSelect.getValue()
           when 'checkbox' then @inputDefaultSwitch.getValue()
           when 'radio'    then @inputDefaultRadio.getValue()
           when 'textarea' then @inputDefaultTextarea.getValue()
-          else Encoder.XSSEncode @inputDefault.getValue()
+          else KD.utils.xssEncode @inputDefault.getValue()
         type        : @inputType.getValue()
         options     : switch @inputType.getValue()
           when 'select'
@@ -257,7 +257,7 @@ class FormGeneratorMultipleInputView extends JView
       title     : 'Add option'
       click     : =>
         @listController.addItem
-          title : Encoder.XSSEncode @inputTitle.getValue()
+          title : KD.utils.xssEncode @inputTitle.getValue()
           value : @utils.slugify(@inputTitle.getValue()).replace(/-/g,'_')
 
         @emit 'InputChanged', {

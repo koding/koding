@@ -39,7 +39,7 @@ getUserHash = (account) ->
 
 createActivityContent = (JAccount, model, comments, createFullHTML=no, putBody=yes, callback) ->
   {Relationship} = require 'jraphical'
-  {htmlEncode}   = require 'htmlencode'
+  {xssEncode} = require 'he'
   {getSingleActivityPage, getSingleActivityContent} = require './staticpages/activity'
 
   statusUpdateId = model.getId()
@@ -88,7 +88,7 @@ createActivityContent = (JAccount, model, comments, createFullHTML=no, putBody=y
           hash             : hash
           title            :  if model?.title? then model.title else model.body or ""
           body             : body
-          codeSnippet      : htmlEncode codeSnippet
+          codeSnippet      : xssEncode codeSnippet
           createdAt        : if model?.meta?.createdAt? then formatDate model.meta.createdAt else ""
           numberOfComments : teaser.repliesCount or 0
           numberOfLikes    : model?.meta?.likes or 0
