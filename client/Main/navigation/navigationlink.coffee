@@ -14,7 +14,7 @@ class NavigationLink extends KDListItemView
     options.draggable  = yes
       # axis             : 'xy'
       # containment      : 'parent' #KD.getSingleton('DockController').getView()
-    options.attributes = {href, target:'_self'}
+    options.attributes = { href }
     options.cssClass   = KD.utils.curry @utils.slugify(data.title), options.cssClass
 
     super options, data
