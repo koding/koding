@@ -13,5 +13,5 @@ type Relationship struct {
 	SourceName string                 `bson:"sourceName" json:"sourceName"`
 	As         string                 `bson:"as" json:"as"`
 	TimeStamp  time.Time              `bson:"timestamp" json:"timestamp"`
-	Data       map[string]interface{} `json:"data,omitempty"`
+	Data       map[string]interface{} `bson:"data,omitempty" json:"data,omitempty"`
 }
