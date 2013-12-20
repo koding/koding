@@ -24,25 +24,25 @@ class WebTerm.Terminal
 
     @keyInput.appendToDomBody()
 
-    @pixelWidth = 0
-    @pixelHeight = 0
-    @sizeX = 80
-    @sizeY = 24
-    @currentStyle = WebTerm.StyledText.DEFAULT_STYLE
-    @currentWhitespaceStyle = null
-    @currentCharacterSets = ["B", "A", "A", "A"]
+    @pixelWidth               = 0
+    @pixelHeight              = 0
+    @sizeX                    = 80
+    @sizeY                    = 24
+    @currentStyle             = WebTerm.StyledText.DEFAULT_STYLE
+    @currentWhitespaceStyle   = null
+    @currentCharacterSets     = ["B", "A", "A", "A"]
     @currentCharacterSetIndex = 0
 
-    @inputHandler = new WebTerm.InputHandler(this)
-    @screenBuffer = new WebTerm.ScreenBuffer(this)
-    @cursor = new WebTerm.Cursor(this)
+    @inputHandler      = new WebTerm.InputHandler(this)
+    @screenBuffer      = new WebTerm.ScreenBuffer(this)
+    @cursor            = new WebTerm.Cursor(this)
     @controlCodeReader = WebTerm.createAnsiControlCodeReader(this)
 
-    @measurebox = $(document.createElement("div"))
+    @measurebox        = $(document.createElement("div"))
+    @updateSizeTimer   = null
     @measurebox.css "position", "absolute"
     @measurebox.css "visibility", "hidden"
     @container.append @measurebox
-    @updateSizeTimer = null
     @updateSize()
 
     @outputbox = $(document.createElement("div"))
@@ -98,8 +98,8 @@ class WebTerm.Terminal
     return if x is @sizeX and y is @sizeY
 
     cursorLineIndex = @screenBuffer.toLineIndex(@cursor.y)
-    @sizeX = x
-    @sizeY = y
+    @sizeX          = x
+    @sizeY          = y
     @screenBuffer.scrollingRegion = [0, y - 1]
 
     @cursor.moveTo @cursor.x, cursorLineIndex - @screenBuffer.toLineIndex(0)
@@ -108,7 +108,7 @@ class WebTerm.Terminal
   updateSize: (force=no) ->
     return if not force and @pixelWidth is @container.prop("clientWidth") and @pixelHeight is @container.prop("clientHeight")
     @container.scrollTop @container.scrollTop() + @pixelHeight - @container.prop("clientHeight") + 1 if @container.prop("clientHeight") < @pixelHeight
-    @pixelWidth = @container.prop("clientWidth")
+    @pixelWidth  = @container.prop("clientWidth")
     @pixelHeight = @container.prop("clientHeight")
 
     width = 1
