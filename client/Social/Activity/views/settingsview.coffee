@@ -27,7 +27,6 @@ class ActivitySettingsView extends KDCustomHTMLView
         'Edit'     :
           callback : =>
             @emit 'ActivityEditIsClicked'
-            KD.getSingleton("appManager").tell "Activity", "editActivity", @getOptions().itemView
         'Delete'   :
           callback : =>
             @confirmDeletePost post

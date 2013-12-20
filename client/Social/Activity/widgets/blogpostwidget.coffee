@@ -95,8 +95,8 @@ class ActivityBlogPostWidget extends ActivityWidgetFormView
     @tagController.setDefaultValue tags or []
 
     fillForm = =>
-      @inputDiscussionTitle.setValue KD.utils.htmlDecode title
-      @inputContent.setValue KD.utils.htmlDecode body
+      @inputDiscussionTitle.setValue Encoder.htmlDecode title
+      @inputContent.setValue Encoder.htmlDecode body
 
     fillForm()
 

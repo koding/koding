@@ -38,7 +38,7 @@ class IntroductionTooltip extends KDObject
   close: (hasNext, processCallback = yes) ->
     if processCallback
       data     = @getData()
-      callback = KD.utils.htmlDecode(data.callback)
+      callback = Encoder.htmlDecode(data.callback)
       eval callback if data.callback
     @emit "IntroductionTooltipClosed", hasNext
     @destroy()

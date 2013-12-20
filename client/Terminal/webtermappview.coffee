@@ -87,7 +87,7 @@ class WebTermAppView extends JView
         </p>
       </div>
       <pre>
-        #{KD.utils.xssEncode command}
+        #{Encoder.XSSEncode command}
       </pre>
       """
       buttons :
