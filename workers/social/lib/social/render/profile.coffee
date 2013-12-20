@@ -14,7 +14,7 @@ module.exports = (options, callback)->
   getStyles    = require './styleblock'
   fetchScripts = require './scriptblock'
   getGraphMeta = require './graphmeta'
-  encoder      = require 'htmlencode'
+  encoder      = require 'he'
 
   {account, renderedAccount, isLoggedIn, content, bongoModels, client} = options
   {profile, counts, skilltags}                                         = renderedAccount
@@ -64,7 +64,7 @@ module.exports = (options, callback)->
     # <!DOCTYPE html>
     # <html prefix="og: http://ogp.me/ns#">
     # <head>
-    #   <title>#{encoder.XSSEncode title}</title>
+    #   <title>#{encoder.escape title}</title>
     #   #{getStyles()}
     #   #{getGraphMeta image: bgImg, title: title}
     # </head>
@@ -142,17 +142,17 @@ module.exports = (options, callback)->
     #                     <span class="icon hidden"></span>
     #                     <span class="button-title">Follow</span>
     #                   </button>
-    #                   <cite class="data" data-paths="profile.nickname">@#{encoder.XSSEncode nickname}</cite>
+    #                   <cite class="data" data-paths="profile.nickname">@#{encoder.escape nickname}</cite>
     #                 </div>
 
     #                 <div class=""></div>
 
     #                 <section>
     #                   <div class="profileinfo">
-    #                     <h3 class="profilename"><span class="data" data-paths="profile.firstName">#{encoder.XSSEncode firstName}</span> <span class="data" data-paths="profile.lastName">#{encoder.XSSEncode lastName}</span></h3>
-    #                     <h4 class="profilelocation"><div class="kdview"><span class="data" data-paths="locationTags">#{if locationTags then encoder.XSSEncode locationTags[0] else 'Earth'}</span></div></h4>
+    #                     <h3 class="profilename"><span class="data" data-paths="profile.firstName">#{encoder.escape firstName}</span> <span class="data" data-paths="profile.lastName">#{encoder.escape lastName}</span></h3>
+    #                     <h4 class="profilelocation"><div class="kdview"><span class="data" data-paths="locationTags">#{if locationTags then encoder.escape locationTags[0] else 'Earth'}</span></div></h4>
     #                     <h5>
-    #                       <a class="user-home-link" href="http://#{encoder.XSSEncode nickname}.kd.io" target="_blank">#{encoder.XSSEncode nickname}.kd.io</a>
+    #                       <a class="user-home-link" href="http://#{encoder.escape nickname}.kd.io" target="_blank">#{encoder.escape nickname}.kd.io</a>
     #                       <cite>member for #{if amountOfDays < 2 then 'a' else amountOfDays} day#{if amountOfDays > 1 then 's' else ''}.</cite>
     #                     </h5>
     #                     <div class="profilestats">
@@ -166,12 +166,12 @@ module.exports = (options, callback)->
     #                         <a class="kdview" href="#"><cite></cite><span class="data" data-paths="counts.likes">#{counts.likes}</span> <span>Likes</span></a>
     #                       </div>
     #                       <div class="contact">
-    #                         <a class="" href="#"><cite></cite><span>Contact</span><span class="data" data-paths="profile.firstName">#{encoder.XSSEncode firstName}</span></a>
+    #                         <a class="" href="#"><cite></cite><span>Contact</span><span class="data" data-paths="profile.firstName">#{encoder.escape firstName}</span></a>
     #                       </div>
     #                     </div>
 
     #                     <div class="profilebio">
-    #                       <p><span class="data" data-paths="profile.about">#{encoder.XSSEncode about}</span></p>
+    #                       <p><span class="data" data-paths="profile.about">#{encoder.escape about}</span></p>
     #                     </div>
     #                   </div>
     #                 </section>

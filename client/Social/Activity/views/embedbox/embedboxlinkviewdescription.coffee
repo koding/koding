@@ -21,7 +21,7 @@ class EmbedBoxLinkViewDescription extends KDView
       blur         : =>
         @descriptionInput.hide()
         descriptionEl = @getDescriptionEl()
-        setText descriptionEl, Encoder.XSSEncode @getValue()
+        setText descriptionEl, KD.utils.xssEncode @getValue()
         @utils.elementShow descriptionEl
 
   getDescriptionEl:->
@@ -51,7 +51,7 @@ class EmbedBoxLinkViewDescription extends KDView
   getDescription:->
     value = @getData().link_embed?.description or @getData().description
     if value?
-      value = Encoder.XSSEncode value
+      value = KD.utils.xssEncode value
 
     return value
 
