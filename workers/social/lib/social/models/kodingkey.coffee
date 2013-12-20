@@ -103,7 +103,7 @@ module.exports = class JKodingKey extends jraphical.Module
     return new KodingError "Key is not valid" unless @authCheckKey key
     return new KodingError "Data is not valid" unless username and hostname
 
-    JKodingKey.one {key}, (err, kodingKey)=>
+    JKodingKey.one {key}, (err, kodingKey)->
       if err
         console.warn "Error occured while fetching koding-key username: #{username}, key: #{key}, err :#{err}"
         return callback new KodingError "There is a problem with your key"
