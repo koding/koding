@@ -8,7 +8,6 @@ class KiteHelper extends KDEventEmitter
     mainController = KD.getSingleton("mainController")
 
     mainController.on "pageLoaded.as.loggedIn", (account)=> # ignore othter parameters
-      KD.utils.setPreferredDomain account if account
       @emit "changedToLoggedIn"
 
     mainController.on "accountChanged.to.loggedIn", (account)=> # ignore othter parameters
@@ -35,7 +34,6 @@ class KiteHelper extends KDEventEmitter
             style       : "modal-clean-gray"
             callback    : ->
               modal.destroy()
-              # KD.utils.wait 5000, window.location.pathname = "/Login"
               KD.utils.wait 5000, KD.getSingleton("router").handleRoute "/Login"
           "Cancel" :
             style       : "modal-cancel"
