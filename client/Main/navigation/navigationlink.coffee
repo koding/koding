@@ -32,10 +32,6 @@ class NavigationLink extends KDListItemView
 
     @on "DragStarted", @bound 'dragStarted'
 
-    # @on "DragInAction", @bound 'dragInAction'
-
-    @on "DragFinished", @bound 'dragFinished'
-
   setState:(state = 'initial')->
 
     states = 'running failed loading'
@@ -48,7 +44,7 @@ class NavigationLink extends KDListItemView
 
     # This check is for custom items which isn't connected to an app
     # or if the item is a separator
-    return if not path or @positionChanged()
+    return false  if not path or @positionChanged()
 
     mc = KD.getSingleton 'mainController'
     mc.emit "NavigationLinkTitleClick",
@@ -69,18 +65,10 @@ class NavigationLink extends KDListItemView
       <cite>#{@name}</cite>
     """
 
-  dragInAction: (x, y)->
-    # log x, y
-
   dragStarted: (event, dragState)->
 
     @keepCurrentPosition()
     @setClass 'no-anim on-top'
-
-  dragFinished: (event, dragState)->
-
-    # @restoreLastPosition()
-    @unsetClass 'no-anim on-top'
 
   keepCurrentPosition:->
 
