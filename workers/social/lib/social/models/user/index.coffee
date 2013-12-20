@@ -712,8 +712,10 @@ module.exports = class JUser extends jraphical.Module
 
         passwordOptions =
           email         : user.email
-          verb          : unless username? then 'Register2'
-
+          verb          : unless username? then 'Register' else 'Confirm'
+          resetPassword : no
+          expiryPeriod  : 1000 * 60 * 60 * 24 * 14 # 2 weeks in milliseconds
+        
         JPasswordRecovery.create client, passwordOptions, (err)->
           queue.next()
       ->

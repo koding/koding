@@ -26,7 +26,7 @@ body
 input
 textarea
 button
-  font-family       'Helvetica Neue'
+  font-family       "Helvetica Neue", Helvetica, Arial, sans-serif
 
 .no-anim
   noAnim()
@@ -99,16 +99,18 @@ button
     display         block
     size            55px 55px
     border-right    1px solid #252e30
-    vendor          transition, top .2s linear\,\
+    opacity         1
+    vendor          transition, top .2s  linear \,\
                                 left .2s linear
+
     cite
       hidden()
 
     .fake-icon
       width         30px
       height        20px
-      left          20px
-      top           12px
+      left          13px
+      top           14px
       text-align    center
       padding-top    4px
       padding-bottom 4px
@@ -119,6 +121,12 @@ button
 
     .icon
       display       block
+
+    &.remove
+      cursor        url('/images/cursor-trash.png'), auto
+
+    &.explode
+      vendor        animation, explode .5s ease-in-out 100
 
     &.selected
       bg            color, #2b3335
@@ -165,8 +173,25 @@ button
     display         inline-block
     border-left     1px solid #1f2628
     .count
-      cite
-        display     none
+      vendor        transform, scale(0)
+      size          16px, 16px
+      bg            color, #e94b35
+      top           9px
+      right         6px
+      font-size     10px
+      color         #fff
+      line-height   16px
+      text-align    center
+      rounded       100%
+      -webkit-transition -webkit-transform .3s cubic-bezier(0.68, -0.55, 0.265, 1.55)
+      -moz-transition    -moz-transform .3s ease
+      transition         transform .3s cubic-bezier(0.68, -0.55, 0.265, 1.55)
+      z-index            1001
+      abs()
+
+      &.in
+        vendor        transform, scale(1)
+
     .icon
       display       block
     &.notifications .icon

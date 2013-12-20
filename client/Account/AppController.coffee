@@ -46,7 +46,6 @@ class AccountAppController extends AppController
 
 
   createTab:(itemData)->
-
     {title, listType} = itemData
 
     new KDTabPaneView
@@ -78,8 +77,6 @@ class AccountAppController extends AppController
 
     mainView.addSubView @tabView = new KDTabView
       hideHandleContainer : yes
-
-    @tabView.addPane @createTab items.personal.items.first
 
     for own sectionKey, section of items
       @navController.instantiateListItems section.items

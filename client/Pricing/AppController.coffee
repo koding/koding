@@ -1,19 +1,17 @@
 class PricingAppController extends KDViewController
 
-  # KD.registerAppClass this,
-  #   name         : "Pricing"
-  #   route        : "/Pricing"
-  #   multiple     : no
-  #   openWith     : "forceNew"
-  #   behavior     : "application"
-  #   navItem      :
-  #     title      : "Develop"
+  # FIXME: obviously, remove this once this is prod ready - SY
+  if location.hostname is "localhost"
+    KD.registerAppClass this,
+      name         : "Pricing"
+      route        : "/Pricing"
 
   constructor:(options = {}, data)->
 
     options.view = new PricingAppView
       params     : options.params
       workflow   : @createWorkflow()
+      cssClass   : "content-page pricing"
 
     options.appInfo =
       title         : "Pricing"

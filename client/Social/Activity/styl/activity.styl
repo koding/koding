@@ -27,9 +27,7 @@ resurrection.activity.styl
 
   .lazy-loader
     margin              30px 0
-    font-size           0
-    letter-spacing      0
-    word-spacing        0
+    text-align          center
 
   > main
     size                  689px, auto
@@ -37,72 +35,20 @@ resurrection.activity.styl
     fr()
 
     >.activity-input-widget
-      size                auto auto
-      position            relative
-      margin              0 0 0 80px
-
-      .avatarview
-        rounded           4px
-        top               6px
-        left              6px
-        z-index           2
-        abs()
+      margin-left       80px
 
       .input-view
         border            none
         border-top        1px solid #CDCCC2
         border-left       1px solid #CDCCC2
-        rounded           5px
-        borderBox()
-
-        > div
-          size            100% auto
-          line-height     16px
-          font-size       14px
-          color           #acacac
-          padding         15px 100px 14px 56px
-          background      #fff
-          borderBox()
-
-        &.placeholder
-          > div
-            color         #acacac
 
       button[type=submit]
-        size            30px, 30px
-        bottom          8px
-        right           9px
-        padding         0
-        abs()
-        z-index         1
-
         &.solid.green .icon
           margin        1px 0 0 7px
           sprite        activity, "update-bubble"
 
         &[disabled=disabled]
           bg            color, #DDD !important
-
-      .notification
-        size                auto auto
-        background          lightyellow
-        font-size           12px
-        margin              10px 0
-        padding             10px 30px 10px 10px
-        border              1px solid lightgray
-        border-radius       5px
-
-        .close-tab
-          abs()
-          top               4px
-          right             4px
-          bg                color, transparent
-          sprite            app '20-close-tab'
-
-        a
-          color      #3aaaab
-          noTextDeco()
-
 
     .filter-warning
       background        rgba(37, 46, 48, 1.0)
@@ -138,9 +84,6 @@ resurrection.activity.styl
     borderBox()
     abs()
 
-    .kdloader
-      margin            60px 0 0 110px
-
     .activity-ticker
     .active-users
     .active-topics
@@ -172,7 +115,8 @@ resurrection.activity.styl
         padding         0
 
     .kdlistitemview-activity-ticker-item
-      size              auto, 60px
+      size              auto auto
+      min-height        60px
       position          relative
       padding           14px 0 11px
       margin            0 0 0 42px
@@ -310,7 +254,6 @@ resurrection.activity.styl
 
       .kdlistitemview-activity-ticker-item
         margin          0
-        height          auto
         padding-top     9px
 
       .follow-btn
@@ -351,6 +294,77 @@ resurrection.activity.styl
           hidden()
         .chevron
           sprite    activity chevron-icon
+
+.activity-input-widget
+  size                auto auto
+  position            relative
+  margin              0
+
+  .avatarview
+    rounded           4px
+    top               6px
+    left              6px
+    z-index           2
+    abs()
+
+  .input-view
+    rounded           5px
+    borderBox()
+
+    > div
+      size            100% auto
+      line-height     16px
+      font-size       14px
+      color           #acacac
+      padding         15px 100px 14px 56px
+      background      #fff
+      borderBox()
+
+    &.placeholder
+      > div
+        color         #acacac
+
+    button[type=submit]
+      size            30px, 30px
+      abs             0 9px 8px 0
+      padding         0
+      z-index         1
+
+      &.solid.green .icon
+        margin        1px 0 0 7px
+        sprite        activity, "update-bubble"
+
+      &[disabled=disabled]
+        bg            color, #DDD !important
+
+  &.edit-widget
+    .input-view
+      button[type=submit]
+        size          auto auto
+        rel()
+        right         initial
+        bottom        initial
+        padding       0 10px
+
+  .notification
+    size                auto auto
+    background          lightyellow
+    font-size           12px
+    margin              10px 0
+    padding             10px 30px 10px 10px
+    border              1px solid lightgray
+    border-radius       5px
+
+    .close-tab
+      abs()
+      top               4px
+      right             4px
+      bg                color, transparent
+      sprite            app '20-close-tab'
+
+    a
+      color      #3aaaab
+      noTextDeco()
 
 span.collapsedtext
   borderBox()

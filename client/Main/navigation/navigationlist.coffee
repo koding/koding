@@ -11,13 +11,17 @@ class NavigationList extends KDListView
 
         view._index ?= @getItemIndex view
         view.setX view._index * @viewWidth
-        @_width = @viewWidth * @items.length
+        @_width = @viewWidth * (@items.length + 1)
 
       lastChange = 0
 
       view.on 'DragInAction', (x, y)=>
 
         return  if x + view._x > @_width or x + view._x < 0
+
+        if view.data.type isnt 'persistent' and y > 125
+        then view.setClass 'remove'
+        else view.unsetClass 'remove'
 
         if x > @viewWidth
           current = Math.floor x / @viewWidth
@@ -34,13 +38,28 @@ class NavigationList extends KDListView
           lastChange = current
 
       view.on 'DragFinished', =>
-        view.setX view._index * @viewWidth
-        view.setY view._y
+
+        view.unsetClass 'no-anim remove'
+
+        if view.data.type isnt 'persistent' and view.getY() > 125
+          view.setClass 'explode'
+          KD.utils.wait 500, =>
+            @removeItem view
+            @updateItemPositions()
+            KD.singletons.dock.saveItemOrders @items
+        else
+          KD.utils.wait 200, -> view.unsetClass 'on-top'
+          view.setX view._index * @viewWidth
+          view.setY 0
+          KD.singletons.dock.saveItemOrders @items
+
         lastChange  = 0
+
+  updateItemPositions:(exclude)->
+    for _item, index in @items
+      _item._index = index
+      _item.setX index * @viewWidth  unless exclude is _item
 
   moveItemToIndex:(item, index)->
     super item, index
-
-    for _item, index in @items
-      _item._index = index
-      _item.setX index * @viewWidth  unless item is _item
+    @updateItemPositions item

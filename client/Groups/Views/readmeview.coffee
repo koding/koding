@@ -21,10 +21,10 @@ class GroupReadmeView extends JView
     group.fetchReadme (err, readme)=>
       if not err and readme?
         partial = readme.content or ""
-        @readmeInput.setValue Encoder.htmlDecode partial
+        @readmeInput.setValue KD.utils.htmlDecode partial
 
   makeEditable:->
-    @readmeInput.setValue Encoder.htmlDecode @readme
+    @readmeInput.setValue KD.utils.htmlDecode @readme
     @readmeInput.show()
 
   getDefaultGroupReadme:(title)->

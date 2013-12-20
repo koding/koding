@@ -1,0 +1,34 @@
+{
+  "name": "global",
+  "checksum": "45c816fa89ad809d7700c32b491c50f0",
+  "shortsum": "45c81",
+  "images": [
+    {
+      "name": "100x100",
+      "filename": "100x100.png",
+      "checksum": "25ce6895f8ed03aa127123430997bbdf",
+      "width": 100,
+      "height": 100,
+      "positionX": 0,
+      "positionY": 0
+    },
+    {
+      "name": "50 100",
+      "filename": "50 100.png",
+      "checksum": "e5f0b0f339c67bfefce15a1d246d1348",
+      "width": 50,
+      "height": 100,
+      "positionX": 0,
+      "positionY": 102
+    },
+    {
+      "name": "50x50",
+      "filename": "50x50.png",
+      "checksum": "3626eba4d972899ebdef6094ee256403",
+      "width": 50,
+      "height": 50,
+      "positionX": 0,
+      "positionY": 204
+    }
+  ]
+}

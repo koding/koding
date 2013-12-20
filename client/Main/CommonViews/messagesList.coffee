@@ -13,6 +13,14 @@ class MessagesListController extends KDListViewController
     options.itemClass           or= MessagesListItemView
     options.listView            or= new MessagesListView
     options.startWithLazyLoader   = yes
+    options.lazyLoaderOptions     =
+      partial                     : ''
+      spinnerOptions              :
+        loaderOptions             :
+          color                   : '#6BB197'
+        size                      :
+          width                   : 32
+
     super options, data
 
     @getListView().on "AvatarPopupShouldBeHidden", =>
@@ -102,7 +110,7 @@ class NotificationListItem extends KDListItemView
 
     @setClass bucketNameMap[data.bongo_.constructorName]
 
-    @snapshot = JSON.parse Encoder.htmlDecode data.snapshot
+    @snapshot = JSON.parse KD.utils.htmlDecode data.snapshot
 
     # group = data.map (participant)->
     #   constructorName : participant.targetOriginName

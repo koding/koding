@@ -1,12 +1,14 @@
 # this class will register itself just before application starts loading, right after framework is ready
 KD.extend
 
-  apiUri      : KD.config.apiUri
-  appsUri     : KD.config.appsUri
-  singleton   : KD.getSingleton.bind KD
-  appClasses  : {}
-  appScripts  : {}
-  appLabels   : {}
+  apiUri       : KD.config.apiUri
+  appsUri      : KD.config.appsUri
+  singleton    : KD.getSingleton.bind KD
+  appClasses   : {}
+  appScripts   : {}
+  appLabels    : {}
+  navItems     : []
+  navItemIndex : {}
 
   socketConnected:->
     @backendIsConnected = yes
@@ -79,6 +81,10 @@ KD.extend
       enumerable    : yes
       writable      : no
       value         : { fn, options }
+
+  resetNavItems      : (items)->
+    @navItems        = items
+    @navItemIndex    = KD.utils.arrayToObject items, 'title'
 
   registerNavItem    : (itemData)->
     unless @navItemIndex[itemData.title]
