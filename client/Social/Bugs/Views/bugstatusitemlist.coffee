@@ -6,7 +6,7 @@ class BugStatusItemList extends StatusActivityItemView
     @bugTags = ["fixed", "postponed", "not reproducible","duplicate","by design"]
     state   = tag.title for tag in data.tags when tag.title in @bugTags
     return unless KD.hasAccess "edit posts"
-    @bugstatus  = new KDMultipleChoice
+    @bugstatus     = new KDMultipleChoice
       cssClass     : "clean-gray editor-button control-button bug"
       labels       : @bugTags
       multiple     : no
@@ -31,7 +31,7 @@ class BugStatusItemList extends StatusActivityItemView
       statusTags  = activity.tags
       newTags     = []
 
-      tagToRemove = tag for tag in statusTags when tag.title in @bugTags
+      tagToRemove = tag for tag in statusTags when tag.title in @bugTags and tag.category is "system-tag"
       tagToAdd    = tag for tag in systemTags when tag.title is status
       return new KDNotificationView title: "Tag not found!" unless tagToAdd
 

@@ -54,6 +54,10 @@ class ActivitySettingsView extends KDCustomHTMLView
         callback : ->
           activityController.emit "ActivityItemBlockUserClicked", post.originId
 
+      menu['Add System Tag'] =
+        callback : =>
+          @selectSystemTag post
+
       return menu
 
   viewAppended: -> @addSubView @settings
@@ -95,4 +99,26 @@ class ActivitySettingsView extends KDCustomHTMLView
 
     modal.buttons.Delete.blur()
 
+  selectSystemTag : (post)->
+    modal = new KDModalView
+      title          : "Add Systen Tag"
+      height         : "auto"
+      content        : "Coming Soon"
+      overlay        : no
+      buttons        :
+        Cancel       :
+          style      : "modal-cancel"
+          title      : "cancel"
+          callback   : ->
+            modal.destroy()
+
+    systemTags = new KDMultipleChoice
+      cssClass     : "clean-gray editor-button control-button bug"
+      labels       : ["changelog","fixed"]
+      multiple     : no
+      size         : "tiny"
+      callback     : (value)=>
+        log value
+
+    modal.addSubView systemTags
 
