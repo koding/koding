@@ -7,57 +7,63 @@ import (
   "encoding/json"
   "github.com/streadway/amqp"
   . "koding/db/models"
-  "koding/tools/amqputil"
-  "log"
+  "koding/messaging/rabbitmq"
 )
 
 var (
   GRAPHITY_CHANNEL *amqp.Channel
+  PUBLISHER        *rabbitmq.Producer
 )
 
 func init() {
-  connectToRabbitMQ()
-  log.Println("Connected to rabbit")
-}
-
-func connectToRabbitMQ() {
+  exchange := rabbitmq.Exchange{
+    Name: "graphFeederExchange",
+  }
+  queue := rabbitmq.Queue{}
+  publishingOptions := rabbitmq.PublishingOptions{
+    Tag:        "graphityRelationship",
+    RoutingKey: "",
+  }
+  // var err Error
   var err error
-
-  conn := amqputil.CreateConnection("graphityRelationship")
-  GRAPHITY_CHANNEL, err = conn.Channel()
-  conn.Channel()
+  PUBLISHER, err = rabbitmq.NewProducer(exchange, queue, publishingOptions)
   if err != nil {
     panic(err)
   }
+
+  PUBLISHER.RegisterSignalHandler()
 }
 
-func CreateGraphRelationship(relationship Relationship) {
+func CreateGraphRelationship(relationship *Relationship) {
   updateRelationship(relationship, "RelationshipSaved")
 }
 
-func RemoveGraphRelationship(relationship Relationship) {
+func RemoveGraphRelationship(relationship *Relationship) {
   updateRelationship(relationship, "RelationshipRemoved")
 }
 
-func updateRelationship(relationship Relationship, event string) {
+func updateRelationship(relationship *Relationship, event string) {
   data := make([]Relationship, 1)
-  data[0] = relationship
+  data[0] = *relationship
   eventData := map[string]interface{}{"event": event, "payload": data}
 
   neoMessage, err := json.Marshal(eventData)
 
   if err != nil {
-    log.Println("unmarshall error")
+    log.Error("unmarshall error")
     return
   }
 
-  GRAPHITY_CHANNEL.Publish(
-    "graphFeederExchange", // exchange name
-    "",    // key
-    false, // mandatory
-    false, // immediate
-    amqp.Publishing{
-      Body: neoMessage,
-    },
-  )
+  message := amqp.Publishing{
+    Body: neoMessage,
+  }
+
+  PUBLISHER.NotifyReturn(func(message amqp.Return) {
+    log.Info("%v", message)
+  })
+
+  err = PUBLISHER.Publish(message)
+  if err != nil {
+    log.Error(err.Error())
+  }
 }
