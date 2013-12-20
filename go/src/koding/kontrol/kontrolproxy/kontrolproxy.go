@@ -16,12 +16,14 @@ import (
 	"net/http/httputil"
 	"net/url"
 	"os"
+	"os/signal"
 	"path/filepath"
 	"regexp"
 	"runtime"
 	"strconv"
 	"strings"
 	"sync"
+	"syscall"
 	"time"
 
 	"github.com/gorilla/handlers"
@@ -145,24 +147,57 @@ func configureProxy() {
 
 // startProxy is used to fire off all our ftp, https and http proxies
 func startProxy() {
-	var err error
-	var logOutput io.Writer
-	logFile := "/var/log/koding/kontrolproxyCLH.log"
-
-	logOutput, err = os.OpenFile(logFile, os.O_WRONLY|os.O_CREATE, 0640)
-	if err != nil {
-		fmt.Printf("err: '%s'. \nusing stderr for log destination\n", err)
-		logOutput = os.Stderr
-	}
-
 	reverseProxy := &Proxy{
 		EnableFirewall:  false,
 		CacheTransports: make(map[string]http.RoundTripper),
-		LogDestination:  logOutput,
 	}
+
+	reverseProxy.setupLogging()
 
 	startHTTPS(reverseProxy) // non-blocking
 	startHTTP(reverseProxy)  // blocking
+}
+
+// setupLogging creates a new file for CLH logging and also sets a new signal
+// listener for SIGHUP signals. It closes the old file and creates a new file
+// for logging.
+func (p *Proxy) setupLogging() {
+	// no-op if exists
+	err := os.MkdirAll("/var/log/koding/", 0755)
+	if err != nil {
+		log.Println(err)
+	}
+
+	logPath := "/var/log/koding/kontrolproxyCLH.log"
+	logFile, err := os.OpenFile(logPath, os.O_WRONLY|os.O_APPEND|os.O_CREATE, 0640)
+	if err != nil {
+		log.Printf("err: '%s'. \nusing stderr for log destination\n", err)
+		p.LogDestination = os.Stderr
+	} else {
+		p.LogDestination = logFile
+	}
+
+	go func() {
+		signals := make(chan os.Signal, 1)
+		signal.Notify(signals)
+		for {
+			signal := <-signals
+			switch signal {
+			case syscall.SIGHUP:
+				log.Println("got an sighup")
+				logFile.Close()
+				newFile, err := os.Create(logPath)
+				if err != nil {
+					log.Println(err)
+				} else {
+					log.Println("creating new file")
+					p.LogDestination = newFile
+				}
+			case syscall.SIGINT, syscall.SIGKILL:
+				os.Exit(1)
+			}
+		}
+	}()
 }
 
 // startHTTPS is used to reverse proxy incoming request to the port 443. It is
