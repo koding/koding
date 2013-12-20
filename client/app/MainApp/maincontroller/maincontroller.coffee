@@ -61,8 +61,6 @@ class MainController extends KDController
 
       console.timeEnd "Koding.com loaded"
 
-
-
   accountChanged:(account, firstLoad = no)->
     @userAccount             = account
     connectedState.connected = yes
