@@ -178,52 +178,46 @@ func updateCounts(tag *Tag, synonym *Tag) {
 }
 
 func updateFollowers(tag *Tag, synonym *Tag) int {
-  var arr [2]bson.M
-  arr[0] = bson.M{
-    "targetId": tag.Id,
-    "as":       "follower",
+  selector := helper.Selector{
+    "sourceId":   tag.Id,
+    "as":         "follower",
+    "targetName": "JAccount",
   }
-  arr[1] = bson.M{
-    "sourceId": tag.Id,
-    "as":       "follower",
-  }
-  rels := FindRelationships(bson.M{"$or": arr})
-  var removeRels []Relationship
-  var updateRels []Relationship
+
+  rels := helper.GetRelationships(selector)
+  var oldFollowers []Relationship
+  var newFollowers []Relationship
 
   for _, rel := range rels {
-    query := bson.M{
-      "as": "follower",
-    }
+    selector["sourceId"] = synonym.Id
+    selector["targetId"] = rel.TargetId
 
-    if rel.SourceName == "JTag" {
-      query["sourceId"] = synonym.Id
-      query["targetId"] = rel.TargetId
+    // checking if relationship already exists for the synonym
+    _, err := helper.GetRelationship(selector)
+    //because there are two relations as account -> follower -> tag and
+    //tag -> follower -> account, we have added
+    if err != nil {
+      if err == mgo.ErrNotFound {
+        newFollowers = append(newFollowers, rel)
+      } else {
+        log.Error(err.Error())
+        return 0
+      }
     } else {
-      query["sourceId"] = rel.SourceId
-      query["targetId"] = synonym.Id
-    }
-    // for filtering already existing relationships
-    _, err := FindRelationship(query)
-
-    // what if there is really an error
-    if err == nil {
-      updateRels = append(updateRels, rel)
-    } else {
-      removeRels = append(removeRels, rel)
+      oldFollowers = append(oldFollowers, rel)
     }
   }
 
-  log.Printf("%v users are already following new topic", len(removeRels))
-  if len(removeRels) > 0 {
-    updateRelationships(removeRels, &Tag{})
+  log.Info("%v users are already following new topic", len(oldFollowers))
+  if len(oldFollowers) > 0 {
+    updateTagRelationships(oldFollowers, &Tag{})
   }
-  log.Printf("%v users followed new topic", len(updateRels))
-  if len(updateRels) > 0 {
-    updateRelationships(updateRels, synonym)
+  log.Info("%v users followed new topic", len(newFollowers))
+  if len(newFollowers) > 0 {
+    updateTagRelationships(newFollowers, synonym)
   }
 
-  return len(updateRels)
+  return len(newFollowers)
 }
 
 func createRelationship(relationship Relationship) {
