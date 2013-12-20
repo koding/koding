@@ -186,12 +186,13 @@ class LoginView extends KDView
       isUserLoggedIn = KD.isLoggedIn()
       params = {isUserLoggedIn, provider}
 
-      KD.remote.api.JUser.authenticateWithOauth params, (err, resp)=>
+      (KD.getSingleton 'mainController').handleOauthAuth params, (err, resp)=>
         if err
           showError err
         else
           {account, replacementToken, isNewUser, userInfo} = resp
           if isNewUser
+            KD.getSingleton('router').handleRoute '/Register'
             @animateToForm "register"
             for own field, value of userInfo
               setValue field, value
