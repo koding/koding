@@ -6,8 +6,6 @@ class ViewerAppController extends KDViewController
     multiple     : yes
     openWith     : "forceNew"
     behavior     : "application"
-    navItem      :
-      title      : "Develop"
     preCondition :
 
       condition  : (options, cb)->

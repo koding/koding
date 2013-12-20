@@ -4,10 +4,6 @@ class ActivityAppController extends AppController
     name         : "Activity"
     route        : "/:name?/Activity"
     hiddenHandle : yes
-    navItem      :
-      title      : "Activity"
-      path       : "/Activity"
-      order      : 21
 
 
   {dash} = Bongo
