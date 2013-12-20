@@ -893,10 +893,14 @@ module.exports = class JAccount extends jraphical.Module
   # returns troll users ids
   @getExemptUserIds: (callback)->
     JAccount.someData {isExempt:true}, {_id:1}, (err, cursor)->
-      cursor.toArray (err, data)->
-        if err
-          return callback err, null
-        callback null, (i._id for i in data)
+      return callback err, null if err
+      ids = []
+      cursor.each (err, account)->
+        return callback err, null if err
+        if account
+            ids.push account._id
+        else
+            callback null, ids
 
   isEmailVerified: (callback)->
     @fetchUser (err, user)->
