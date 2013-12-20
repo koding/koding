@@ -25,8 +25,6 @@ import (
 	"labix.org/v2/mgo/bson"
 )
 
-type Provisioning struct{}
-
 var (
 	port             = flag.String("port", "4005", "port to bind itself")
 	containerSubnet  *net.IPNet
