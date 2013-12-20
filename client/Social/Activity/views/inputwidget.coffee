@@ -151,8 +151,8 @@ With love from the Koding team.<br>
 
 
 class ActivityEditWidget extends ActivityInputWidget
-  constructor : (options = {}) ->
-    options.cssClass = "edit-widget"
+  constructor : (options = {}, data) ->
+    options.cssClass = KD.utils.curry "edit-widget", options.cssClass
     options.destroyOnSubmit = yes
 
     super options
