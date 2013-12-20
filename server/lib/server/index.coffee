@@ -108,22 +108,10 @@ app.get "/-/8a51a0a07e3d456c0b00dc6ec12ad85c", require './__notify-users'
 app.get "/-/auth/check/:key", (req, res)->
   {key} = req.params
 
-  console.log "checking for key"
-  authCheckKey key, (ok, result) ->
-    if not ok
-      console.log "key is valid: #{result}" #keep up the result to us
-      res.send 401, authTemplate "Key is not valid: '#{key}'"
-      return
-
-    {JKodingKey} = koding.models
-    JKodingKey.fetchKey
-      key     : key
-    , (err, kodingKey)=>
-      if err or not kodingKey
-        res.send 401, authTemplate "Key doesn't exist"
-        return
-
-      res.send 200, {result: 'key is added successfully'}
+  {JKodingKey} = koding.models
+  JKodingKey.checkKey {key}, (err, status)=>
+    return res.send 401, authTemplate "Key doesn't exist" unless status
+    res.send 200, {result: 'key is added successfully'}
 
 app.get "/-/auth/register/:hostname/:key", (req, res)->
   {key, hostname} = req.params
@@ -211,6 +199,17 @@ app.get "/-/oauth/facebook/callback"  , require "./facebook_callback"
 app.get "/-/oauth/google/callback"    , require "./google_callback"
 app.get "/-/oauth/linkedin/callback"  , require "./linkedin_callback"
 app.get "/-/oauth/twitter/callback"   , require "./twitter_callback"
+
+# TODO: we need to add basic auth!
+app.all '/-/email/webhook', (req, res) ->
+  { JMail } = koding.models
+  { body: batch } = req
+
+  for item in batch when item.event is 'delivered'
+    JMail.markDelivered item, (err) ->
+      console.warn err  if err
+
+  res.send 'ok'
 
 app.get "/Landing/:page", (req, res, next) ->
   {page}      = req.params

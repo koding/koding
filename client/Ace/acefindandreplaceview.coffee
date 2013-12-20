@@ -11,6 +11,7 @@ class AceFindAndReplaceView extends JView
 
     @findInput = new KDHitEnterInputView
       type         : "text"
+      placeholder  : "Find..."
       validate     :
         rules      :
           required : yes
@@ -30,6 +31,7 @@ class AceFindAndReplaceView extends JView
     @replaceInput = new KDHitEnterInputView
       type         : "text"
       cssClass     : "ace-replace-input"
+      placeholder  : "Replace..."
       validate     :
         rules      :
           required : yes

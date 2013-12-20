@@ -5,8 +5,8 @@ class WebTerm.ControlCodeReader
     @controlCodeOffset = null
     @regexp = new RegExp Object.keys(@handler.map).join("|")
 
-  skip: (lenght) ->
-    @pos += lenght
+  skip: (length) ->
+    @pos += length
 
   readChar: ->
     return null if @pos >= @data.length
@@ -105,7 +105,7 @@ WebTerm.createAnsiControlCodeReader = (terminal) ->
       result = reader.readRegexp regexp
       return reader.incompleteControlCode() if not result?
       [_, prefix, paramString, command] = result
-      rawParams = if paramString.lenght is 0
+      rawParams = if paramString.length is 0
         []
       else
         for p in paramString.split ";"

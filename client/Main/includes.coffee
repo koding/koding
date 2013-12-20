@@ -225,6 +225,7 @@ module.exports = [
   "kite/kitecontroller.coffee",
   "kite/newkite.coffee"
   "kite/kontrol.coffee"
+  "kite/kitehelper.coffee"
   # Virtualization CONTROLLER
   "VirtualizationController.coffee",
   "CommonViews/modalappslistitemview.coffee",

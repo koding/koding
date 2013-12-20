@@ -6,6 +6,8 @@ class ActivityInputWidget extends KDView
     options.cssClass = KD.utils.curry "activity-input-widget", options.cssClass
     super options, data
 
+    options.destroyOnSubmit ?= no
+
     @input    = new ActivityInputView defaultValue: options.defaultValue
     @input.on "Escape", @bound "reset"
 
@@ -86,6 +88,7 @@ With love from the Koding team.<br>
           @reset yes
           @embedBox.resetEmbedAndHide()
           @emit "Submit", err, activity
+          @destroy() if @getOptions().destroyOnSubmit
           @notification.show()
           callback? err, activity
     ]
@@ -104,7 +107,7 @@ With love from the Koding team.<br>
 
       KD.showError err,
         AccessDenied :
-          title      : 'You are not allowed to #{action} activities'
+          title      : "You are not allowed to #{action} activities"
           content    : 'This activity will only be visible to you'
           duration   : 5000
         KodingError  : 'Something went wrong while creating activity'
@@ -119,13 +122,6 @@ With love from the Koding team.<br>
       KD.showError err
       @reset()  unless err
       callback? err
-
-  edit: (activity) ->
-    @setData activity
-    content = activity.body.replace /\n/g, "<br>"
-    @input.setContent content, activity
-    @embedBox.loadEmbed activity.link.link_url  if activity.link
-    # @submit.setTitle "Update"
 
   reset: (lock = yes) ->
     @input.setContent ""
@@ -152,3 +148,39 @@ With love from the Koding team.<br>
     @addSubView @embedBox
     @input.addSubView @submit
     @hide()  unless KD.isLoggedIn()
+
+
+class ActivityEditWidget extends ActivityInputWidget
+  constructor : (options = {}, data) ->
+    options.cssClass = KD.utils.curry "edit-widget", options.cssClass
+    options.destroyOnSubmit = yes
+
+    super options
+
+    @submit    = new KDButtonView
+      type     : "submit"
+      cssClass : "solid green"
+      iconOnly : no
+      title    : "Done editing"
+      callback : @bound "submit"
+
+    @cancel = new KDButtonView
+      cssClass : "solid gray"
+      title    : "Cancel"
+      callback : @bound "cancel"
+
+  cancel: ->
+    @destroy()
+    @emit "ActivityInputCancelled"
+
+  edit: (activity) ->
+    @setData activity
+    content = activity.body.replace /\n/g, "<br>"
+    @input.setContent content, activity
+    @embedBox.loadEmbed activity.link.link_url  if activity.link
+
+  viewAppended: ->
+    @addSubView @input
+    @addSubView @embedBox
+    @input.addSubView @submit
+    @input.addSubView @cancel

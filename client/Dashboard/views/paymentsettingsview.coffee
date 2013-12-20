@@ -94,16 +94,6 @@ class GroupPaymentSettingsView extends JView
                                 payment up to a specific amount will be charged from your
                                 balance.</p>
                               </section>"""
-        overagePolicy       :
-          label             : "Over-usage"
-          itemClass         : KDOnOffSwitch
-          name              : "allow-over-usage"
-          cssClass          : "no-title"
-          callback          : (state)=>
-            if state
-              @settingsForm.fields.approval.show()
-            else
-              @settingsForm.fields.approval.hide()
         approval            :
           label             : "Need approval?"
           itemClass         : KDOnOffSwitch
@@ -114,29 +104,6 @@ class GroupPaymentSettingsView extends JView
 
     @forwardEvent @settingsForm.inputs.billing, 'PaymentMethodEditRequested'
     @forwardEvent @settingsForm.inputs.billing, 'PaymentMethodUnlinkRequested'
-
-    group.fetchBundle (err, bundle)=>
-      if err or not bundle
-        return
-
-      { fields, inputs } = @settingsForm
-
-      if bundle.allocation
-        inputs.allocation.setValue bundle.allocation
-
-      if bundle.sharedVM
-        inputs.sharedVM.setOn()
-
-      fields.approval.hide()
-
-      if bundle.overagePolicy is "by permission"
-        inputs.overagePolicy.setOn()
-        inputs.approval.setOn()
-        fields.approval.show()
-
-      else if bundle.overagePolicy is "allowed"
-        inputs.overagePolicy.setOn()
-        fields.approval.show()
 
   setPaymentInfo: (paymentMethod) ->
     { billing: billingView } = @settingsForm.inputs

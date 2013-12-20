@@ -186,12 +186,13 @@ class LoginView extends KDView
       isUserLoggedIn = KD.isLoggedIn()
       params = {isUserLoggedIn, provider}
 
-      KD.remote.api.JUser.authenticateWithOauth params, (err, resp)=>
+      (KD.getSingleton 'mainController').handleOauthAuth params, (err, resp)=>
         if err
           showError err
         else
           {account, replacementToken, isNewUser, userInfo} = resp
           if isNewUser
+            KD.getSingleton('router').handleRoute '/Register'
             @animateToForm "register"
             for own field, value of userInfo
               setValue field, value
@@ -384,7 +385,7 @@ class LoginView extends KDView
 
       firstRoute = KD.getSingleton("router").visitedRoutes.first
 
-      if firstRoute and /^\/(?:Reset|Register2)\//.test firstRoute
+      if firstRoute and /^\/(?:Reset|Register|Confirm)\//.test firstRoute
         firstRoute = "/"
 
       KD.getSingleton('appManager').quitAll()

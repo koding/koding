@@ -4,10 +4,6 @@ class TeamworkAppController extends AppController
     name            : "Teamwork"
     route           : "/:name?/Teamwork"
     behavior        : "application"
-    navItem         :
-      title         : "Teamwork"
-      path          : "/Teamwork"
-      order         : 70
 
   constructor: (options = {}, data) ->
 

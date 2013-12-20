@@ -44,7 +44,7 @@ class KodingRouter extends KDRouter
       console.warn "Contract warning: shared route #{route} is not implemented."
 
   handleRoute:(route, options={})->
-    # InternalApps Fetcher
+
     appManager = KD.getSingleton 'appManager'
     frags      = route.split '/'
     name       = frags[1] or ''
@@ -321,6 +321,8 @@ class KodingRouter extends KDRouter
             new ReferrerModal
         else
           @handleRoute '/Login'
+
+      '/:name?/RegisterHostKey': KiteHelper.initiateRegistiration
 
       '/member/:username': ({params:{username}})->
         @handleRoute "/#{username}", replaceState: yes

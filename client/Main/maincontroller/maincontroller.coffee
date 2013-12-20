@@ -176,6 +176,19 @@ class MainController extends KDController
       return callback err  if err
       @swapAccount result, callback
 
+  handleOauthAuth : (formData, callback)->
+    { JUser } = KD.remote.api
+
+    @isLoggingIn on
+
+    # Same oauth flow is used for login and registering, however
+    # after auth code paths differs.
+    JUser.authenticateWithOauth formData, (err, result) =>
+      return callback err          if err
+      return callback err, result  if result.isNewUser
+
+      @swapAccount result, callback
+
   isUserLoggedIn: -> KD.isLoggedIn()
 
   isLoggingIn: (isLoggingIn) ->
