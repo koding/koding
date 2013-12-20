@@ -24,8 +24,6 @@ class CollaborativeEditorPane extends CollaborativePane
           if value.WaitingSaveRequest is yes
             return @save()
 
-      @ref.onDisconnect().remove()  if @amIHost
-
   openFile: (file, content) ->
     @setData file
     isLocalFile = file.path.indexOf("localfile") is 0

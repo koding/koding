@@ -14,9 +14,6 @@ class CollaborativePane extends Pane
     @amIHost          = @workspace.amIHost()
     @container        = new KDView cssClass: "ws-container"
 
-    # This is too much risky line, blame this line first if something become wrong
-    @workspaceRef.onDisconnect().remove()  if @amIHost
-
   createSessionKey: ->
     nick = KD.nick()
     u    = KD.utils
