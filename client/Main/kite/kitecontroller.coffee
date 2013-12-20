@@ -66,6 +66,7 @@ class KiteController extends KDController
 
     # new API:
     @kiteInstances = {}
+    @helper = new KiteHelper
 
 
   addKite: (name, channel) ->

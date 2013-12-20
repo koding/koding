@@ -2,7 +2,6 @@ package kite
 
 import (
 	"encoding/json"
-	"github.com/streadway/amqp"
 	"koding/db/mongodb/modelhelper"
 	"koding/tools/amqputil"
 	"koding/tools/dnode"
@@ -13,6 +12,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/streadway/amqp"
 )
 
 type Kite struct {
@@ -258,15 +259,15 @@ func (k *Kite) startRouting(stream <-chan amqp.Delivery, publishChannel *amqp.Ch
 							if !ok {
 								return
 							}
-							func() {
-								defer func() {
-									if err := recover(); err != nil {
-										log.LogError(err, 1, channel.Username, channel.CorrelationName, message)
-									}
-								}()
-								log.Debug("Read", channel.RoutingKey, message)
-								d.ProcessMessage(message)
+
+							defer func() {
+								if err := recover(); err != nil {
+									log.LogError(err, 1, channel.Username, channel.CorrelationName, message)
+								}
 							}()
+
+							log.Debug("Read", channel.RoutingKey, message)
+							d.ProcessMessage(message)
 							pingAlreadySent = false
 						case <-time.After(5 * time.Minute):
 							if pingAlreadySent {

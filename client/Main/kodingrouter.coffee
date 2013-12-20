@@ -322,6 +322,8 @@ class KodingRouter extends KDRouter
         else
           @handleRoute '/Login'
 
+      '/:name?/RegisterHostKey': KiteHelper.initiateRegistiration
+
       '/member/:username': ({params:{username}})->
         @handleRoute "/#{username}", replaceState: yes
 
