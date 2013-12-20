@@ -15,11 +15,11 @@ class GroupsController extends KDController
     @groups           = {}
     @currentGroupData = new GroupData
 
-    mainController.on 'NavigationLinkTitleClick', (pageInfo)=>
-      return unless pageInfo.path
-      if pageInfo.topLevel
-      then router.handleRoute "#{pageInfo.path}"
-      else router.handleRoute "#{pageInfo.path}", {entryPoint}
+    # mainController.on 'NavigationLinkTitleClick', (pageInfo)=>
+    #   return unless pageInfo.path
+    #   if pageInfo.topLevel
+    #   then router.handleRoute "#{pageInfo.path}"
+    #   else router.handleRoute "#{pageInfo.path}", {entryPoint}
 
   getCurrentGroup:->
     throw 'FIXME: array should never be passed'  if Array.isArray @currentGroupData.data
