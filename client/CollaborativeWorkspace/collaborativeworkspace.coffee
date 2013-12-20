@@ -12,7 +12,10 @@ class CollaborativeWorkspace extends Workspace
     @bindRemoteEvents()
 
   createChat: ->
-    @container.addSubView @chatView = new ChatPane delegate: this
+    chatPaneClass = @getOptions().chatPaneClass or ChatPane
+    @container.addSubView @chatView = new chatPaneClass
+      delegate: this
+
     @chatView.hide()
 
   createRemoteInstance: ->

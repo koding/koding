@@ -72,6 +72,7 @@ class TeamworkApp extends KDObject
       sessionKey          : options.sessionKey
       delegate            : this
       enableChat          : yes
+      chatPaneClass       : TeamworkChatPane
       playground          : options.playground          or null
       panels              : options.panels              or [
         hint              : "<p>This is a collaborative coding environment where you can team up with others and work on the same code.</p>"
