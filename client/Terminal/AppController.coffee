@@ -3,10 +3,6 @@ class WebTermController extends AppController
   KD.registerAppClass this,
     name         : "Terminal"
     title        : "Terminal"
-    navItem      :
-      title      : "Terminal"
-      order      : 41
-      path       : "/Terminal"
     route        :
       slug       : "/:name?/Terminal"
       handler    : ({params:{name}, query})->
