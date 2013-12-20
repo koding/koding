@@ -99,16 +99,18 @@ button
     display         block
     size            55px 55px
     border-right    1px solid #252e30
-    vendor          transition, top .2s linear\,\
+    opacity         1
+    vendor          transition, top .2s  linear \,\
                                 left .2s linear
+
     cite
       hidden()
 
     .fake-icon
       width         30px
       height        20px
-      left          20px
-      top           12px
+      left          13px
+      top           14px
       text-align    center
       padding-top    4px
       padding-bottom 4px
@@ -119,6 +121,12 @@ button
 
     .icon
       display       block
+
+    &.remove
+      cursor        url('/images/cursor-trash.png'), auto
+
+    &.explode
+      vendor        animation, explode .5s ease-in-out 100
 
     &.selected
       bg            color, #2b3335

@@ -6,10 +6,11 @@ class ActivityRightBase extends JView
 
     @tickerController = new KDListViewController
       startWithLazyLoader : yes
-      viewOptions :
-        type      : "activities"
-        cssClass  : "activities"
-        itemClass : @itemClass
+      lazyLoaderOptions   : partial : ''
+      viewOptions         :
+        type              : "activities"
+        cssClass          : "activities"
+        itemClass         : @itemClass
 
     @tickerListView = @tickerController.getView()
 
