@@ -3,10 +3,14 @@ package main
 import (
   "encoding/json"
   "fmt"
+  logging "github.com/op/go-logging"
   "github.com/streadway/amqp"
   . "koding/db/models"
   helper "koding/db/mongodb/modelhelper"
   "koding/messaging/rabbitmq"
+  "labix.org/v2/mgo"
+  stdlog "log"
+  "os"
   "strings"
 )
 
@@ -20,6 +24,7 @@ const (
 var (
   EXCHANGE_NAME     = "topicModifierExchange"
   WORKER_QUEUE_NAME = "topicModifierWorkerQueue"
+  log               = logging.MustGetLogger("TopicModifier")
 )
 
 type TagModifierData struct {
@@ -28,7 +33,7 @@ type TagModifierData struct {
 }
 
 func init() {
-  declareExchange()
+  configureLogger()
 }
 
 func main() {
@@ -70,6 +75,14 @@ func main() {
   consumer.Consume(messageConsumer)
 }
 
+func configureLogger() {
+  logging.SetLevel(logging.INFO, "TopicModifier")
+  log.Module = "TopicModifier"
+  logging.SetFormatter(logging.MustStringFormatter("%{level:-3s} ▶ %{message}"))
+  stderrBackend := logging.NewLogBackend(os.Stderr, "", stdlog.LstdFlags|stdlog.Lshortfile)
+  stderrBackend.Color = true
+  logging.SetBackend(stderrBackend)
+}
 
 var messageConsumer = func(delivery amqp.Delivery) {
 
