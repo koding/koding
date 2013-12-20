@@ -97,7 +97,10 @@ module.exports =
                     return res.send 200, content
                 daisy queue
             else
-              createActivityContent JAccount, model, {}, yes, (error, content)=>
+              createFullHTML = no
+              putBody = yes
+              createActivityContent JAccount, model, {}, createFullHTML, putBody, (error, content)=>
+                return res.send 500, error_500()  if error
                 return res.send 200, content
       else
         if /^(Activity)|(Topics)/.test name
