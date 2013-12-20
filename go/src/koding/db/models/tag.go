@@ -7,7 +7,7 @@ type Tag struct {
   Title  string        `bson:"title"`
   Slug   string        `bson:"slug"`
   Group  string        `bson:"group"`
-  Type   string        `bson:"type,omitempty"`
+  Status string        `bson:"status,omitempty"`
   Counts TagCount      `bson:"counts"`
   Meta   Meta          `bson:"meta"`
 }
