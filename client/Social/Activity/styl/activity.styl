@@ -514,37 +514,25 @@ span.collapsedtext
       fl()
 
     .action-link
-    .comment-icon
-    .share-icon
       display         inline-block
-      vertical-align  middle
-      opacity         .8
-
-      &.like-icon
-        sprite        activity like-icon
-
-      &.comment-icon
-        sprite        activity comment-icon
-
-      &.share-icon
-        sprite        activity share-icon
+      opacity         .9
+      font-size       12px
+      color           #a6abb1
+      noTextDeco()
 
     .action-container
       size            auto 18px
       margin          0 0 0 13px
       fl()
 
-      &.liked .like-icon
-        sprite        activity like-icon-liked
-        opacity       1
-      // &.kdview.kdloader
-      //   margin-top    0
+      &.liked .action-link
+        color         #2db66a
+        opacity       .8
 
     .count
-      display         inline-block
-      vertical-align  text-bottom
-      color           #9da0a4
       font-size       12px
+      display         inline-block
+      color           #9da0a4
       margin          0 0 0 6px
       noTextDeco()
 
