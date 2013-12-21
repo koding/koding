@@ -47,15 +47,15 @@ website/index.html
 kontrolUUID-*
 
 
-website/a/css/__*.css
-website/a/js/__*.js
-website/a/js/*.js.map
-website/a/sprites/*.json
-website/a/sprites/*-*.png
+/website/a/css/__*.css
+/website/a/js/__*.js
+/website/a/js/*.js.map
+/website/a/sprites/*.json
+/website/a/sprites/*-*.png
 
-website/*/landingapp*
-website/*/koding*
-website/*/kd*
-website/*/introapp*
-website/*/bongo*
-newrelic_agent.log
+/website/*/landingapp*
+/website/*/koding*
+/website/*/kd*
+/website/*/introapp*
+/website/*/bongo*
+/newrelic_agent.log
