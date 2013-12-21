@@ -438,6 +438,7 @@ func startVM(k *kite.Kite, vm *virt.VM, channel *kite.Channel) error {
 		}
 		vm.IP = ip
 	}
+
 	if !containerSubnet.Contains(vm.IP) {
 		panic("VM with IP that is not in the container subnet: " + vm.IP.String())
 	}
@@ -459,6 +460,7 @@ func startVM(k *kite.Kite, vm *virt.VM, channel *kite.Channel) error {
 		}
 		isPrepared = false
 	}
+
 	if !isPrepared || info.currentHostname != vm.HostnameAlias {
 		vm.Prepare(false, log.Warn)
 		if err := vm.Start(); err != nil {
