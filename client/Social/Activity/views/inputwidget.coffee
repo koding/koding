@@ -90,6 +90,8 @@ With love from the Koding team.<br>
           @destroy() if @getOptions().destroyOnSubmit
           @notification.show()
           callback? err, activity
+
+          KD.mixpanel "Click status update post success", {length:activity.body?.length}
     ]
 
   encodeTagSuggestions: (str, tags) ->
@@ -100,6 +102,9 @@ With love from the Koding team.<br>
 
   create: (data, callback) ->
     JNewStatusUpdate.create data, (err, activity) =>
+      if err
+        KD.mixpanel "Click activity post create fail"
+
       @reset()  unless err
 
       callback? err, activity
@@ -118,9 +123,14 @@ With love from the Koding team.<br>
     activity = @getData()
     return  @reset() unless activity
     activity.modify data, (err) =>
+      if err
+        KD.mixpanel "Click activity post update fail"
+
       KD.showError err
       @reset()  unless err
       callback? err
+
+      KD.mixpanel "Click activity post update success"
 
   reset: (lock = yes) ->
     @input.setContent ""

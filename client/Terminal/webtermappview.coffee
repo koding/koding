@@ -67,10 +67,10 @@ class WebTermAppView extends JView
       vmController.info vmName, KD.utils.getTimedOutCallback (err, vm, info)=>
 
         @addNewTab vmName  if info?.state is 'RUNNING'
-        KD.mixpanel "Opened Webterm", {vmName}
+        KD.mixpanel "Click open Webterm success", {vmName}
 
       , =>
-        KD.mixpanel "Can't open Webterm", {vmName}
+        KD.mixpanel "Click open Webterm fail", {vmName}
         KD.logToExternalWithTime "Can't open Webterm", vmName
         @setMessage "Couldn't connect to your VM, please try again later. <a class='close' href='#'>close this</a>", no, yes
       , 5000

@@ -63,7 +63,7 @@ class KodingRouter extends KDRouter
       value = split[1]
       argsForMixpanel[key] = value
 
-    KD.mixpanel "Visited page", argsForMixpanel
+    KD.mixpanel "Click visited page", argsForMixpanel
 
     log 'handlingRoute', route, 'for the', name, 'app', 'with params', splitParams
     if appManager.isAppInternal name
