@@ -121,6 +121,7 @@ class LoginView extends KDView
       style       : 'solid github'
       icon        : yes
       callback    : ->
+        KD.mixpanel "Click Github auth"
         KD.singletons.oauthController.openPopup "github"
 
     @github.setPartial "<span class='button-arrow'></span>"
@@ -142,13 +143,11 @@ class LoginView extends KDView
       testPath : "register-form"
       callback : (formData)=>
         @doRegister formData
-        KD.mixpanel "RegisterButtonClicked"
 
     @redeemForm = new RedeemInlineForm
       cssClass : "login-form"
       callback : (formData)=>
         @doRedeem formData
-        KD.mixpanel "RedeemButtonClicked"
 
     @recoverForm = new RecoverInlineForm
       cssClass : "login-form"
@@ -189,6 +188,7 @@ class LoginView extends KDView
       (KD.getSingleton 'mainController').handleOauthAuth params, (err, resp)=>
         if err
           showError err
+          KD.mixpanel "Oauth linking fail"
         else
           {account, replacementToken, isNewUser, userInfo} = resp
           if isNewUser
@@ -196,17 +196,19 @@ class LoginView extends KDView
             @animateToForm "register"
             for own field, value of userInfo
               setValue field, value
+
+            KD.mixpanel "Click Github auth register success"
           else
             if isUserLoggedIn
               mainController.emit "ForeignAuthSuccess.#{provider}"
+              KD.mixpanel "Oauth link success", {provider}
               new KDNotificationView
                 title : "Your #{provider.capitalize()} account has been linked."
                 type  : "mini"
 
             else
               @afterLoginCallback err, {account, replacementToken}
-
-          KD.mixpanel "Authenticated oauth", {provider}
+              KD.mixpanel "Click Github auth login success"
 
   viewAppended:->
 
