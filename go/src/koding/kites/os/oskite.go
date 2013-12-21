@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/binary"
 	"errors"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"koding/db/mongodb"
@@ -398,6 +399,7 @@ func startVM(k *kite.Kite, vm *virt.VM, channel *kite.Channel) error {
 	if channel != nil {
 		info, _ = channel.KiteData.(*VMInfo)
 	}
+
 	if info == nil {
 		infosMutex.Lock()
 		var found bool
@@ -434,6 +436,16 @@ func startVM(k *kite.Kite, vm *virt.VM, channel *kite.Channel) error {
 		if err := mongodb.Run("jVMs", func(c *mgo.Collection) error {
 			return c.Update(bson.M{"_id": vm.Id, "ip": nil}, bson.M{"$set": bson.M{"ip": ip}})
 		}); err != nil {
+			var logVM *virt.VM
+			err := mongodb.One("jVMs", vm.Id.Hex(), logVM)
+			if err != nil {
+				errLog := fmt.Sprintf("Vm %s does not exist for updating IP. This is a race condition", vm.Id.Hex())
+				log.LogError(errLog, 0)
+			} else {
+				errLog := fmt.Sprintf("Vm %s does exist for updating IP but it tries to replace it. This is a race condition", vm.Id.Hex())
+				log.LogError(errLog, 0, logVM)
+			}
+
 			panic(err)
 		}
 		vm.IP = ip
