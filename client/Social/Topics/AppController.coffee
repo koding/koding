@@ -4,10 +4,6 @@ class TopicsAppController extends AppController
     name         : "Topics"
     route        : "/:name?/Topics"
     hiddenHandle : yes
-    navItem      :
-      title      : "Topics"
-      path       : "/Topics"
-      order      : 20
 
   constructor:(options = {}, data)->
 
@@ -95,7 +91,7 @@ class TopicsAppController extends AppController
     if firstRun
       mainView.on "searchFilterChanged", (value) =>
         return if value is @_searchValue
-        @_searchValue = KD.utils.xssEncode value
+        @_searchValue = Encoder.XSSEncode value
         @_lastSubview.destroy?()
         @loadView mainView, no, yes
 

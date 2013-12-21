@@ -4,9 +4,6 @@ class InboxAppController extends AppController
     name         : "Inbox"
     route        : "/:name?/Inbox"
     hiddenHandle : yes
-    navItem      :
-      title      : "Inbox"
-      path       : "/Inbox"
 
   {race} = Bongo
 

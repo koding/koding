@@ -3,11 +3,10 @@ class TeamworkApp extends KDObject
   instanceName = if location.hostname is "localhost" then "tw-local" else "kd-prod-1"
 
   constructor: (options = {}, data) ->
-
+    options.query or= {}
     super options, data
 
     @appView = @getDelegate()
-    query    = @getOptions().query or {}
 
     @on "NewSessionRequested", (callback = noop, options) =>
       @teamwork?.destroy()
@@ -33,16 +32,19 @@ class TeamworkApp extends KDObject
       @teamwork.on "WorkspaceSyncedWithRemote", =>
         @showImportWarning importUrl
 
+    @on "ExportRequested", (callback) =>
+      @showExportModal()
+      @tools.once "Exported", callback
+
     @on "TeamUpRequested", =>
       @teamwork.once "WorkspaceSyncedWithRemote", =>
         @showTeamUpModal()
 
-    if query.sessionKey
-      @emit "JoinSessionRequested", query.sessionKey
-    else if query.import
-      @emit "ImportRequested", query.import
-    else
-      @emit "NewSessionRequested"
+    {query: {sessionKey}} = options
+    importUrl = options.query.import
+    if sessionKey     then @emit "JoinSessionRequested", sessionKey
+    else if importUrl then @emit "ImportRequested"     , importUrl
+    else @emit "NewSessionRequested"
 
   createTeamwork: (options) ->
     playgroundClass = TeamworkWorkspace
@@ -70,6 +72,7 @@ class TeamworkApp extends KDObject
       shareSessionKeyInfo : options.shareSessionKeyInfo or "<p>This is your session key, you can share this key with your friends to work together.</p>"
       firebaseInstance    : options.firebaseInstance    or instanceName
       sessionKey          : options.sessionKey
+      activityId          : options.query.activityId
       delegate            : this
       enableChat          : yes
       chatPaneClass       : TeamworkChatPane

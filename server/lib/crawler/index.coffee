@@ -1,4 +1,5 @@
 { isLoggedIn, error_404, error_500 } = require '../server/helpers'
+{htmlEncode} = require 'htmlencode'
 kodinghome = require './staticpages/kodinghome'
 activity = require './staticpages/activity'
 crawlableFeed = require './staticpages/feed'

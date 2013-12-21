@@ -28,7 +28,7 @@ class StartTabAppThumbView extends KDCustomHTMLView
     if manifest.devMode
       resourceRoot = "https://#{authorNick}.#{KD.config.userSitesDomain}/.applications/#{__utils.slugify name}"
 
-    thumb = "#{KD.apiUri + '/images/default.app.thumb.png'}"
+    thumb = "#{KD.apiUri + '/a/images/default.app.thumb.png'}"
 
     for size in [512, 256, 160, 128, 64]
       if icns and icns[String size]
@@ -43,14 +43,14 @@ class StartTabAppThumbView extends KDCustomHTMLView
 
     @img.off 'error'
     @img.on  'error', ->
-      @setAttribute "src", "/images/default.app.thumb.png"
+      @setAttribute "src", "/a/images/default.app.thumb.png"
 
     @loader = new KDLoaderView
       size          :
         width       : 40
 
     if name isnt title
-      appPath = KD.utils.xssEncode "/home/#{KD.nick()}/Applications/#{name}"
+      appPath = Encoder.XSSEncode "/home/#{KD.nick()}/Applications/#{name}"
       appPath = "<p class='app-path'><cite>#{appPath}</cite></p>"
 
     @info = new KDCustomHTMLView
@@ -62,9 +62,9 @@ class StartTabAppThumbView extends KDCustomHTMLView
           left : -5
         title  : """
           <div class='app-tip'>
-            <header><strong>#{KD.utils.xssEncode title} #{KD.utils.xssEncode version}</strong> <cite>by #{KD.utils.xssEncode author}</cite></header>
-            <p class='app-desc'>#{KD.utils.xssEncode description.slice(0,200)}#{if description.length > 199 then '...' else ''}</p>
-            #{if additionalinfo then "<cite>#{KD.utils.xssEncode additionalinfo}</cite>" else ""}
+            <header><strong>#{Encoder.XSSEncode title} #{Encoder.XSSEncode version}</strong> <cite>by #{Encoder.XSSEncode author}</cite></header>
+            <p class='app-desc'>#{Encoder.XSSEncode description.slice(0,200)}#{if description.length > 199 then '...' else ''}</p>
+            #{if additionalinfo then "<cite>#{Encoder.XSSEncode additionalinfo}</cite>" else ""}
             #{appPath}
           <div>
           """
@@ -81,8 +81,8 @@ class StartTabAppThumbView extends KDCustomHTMLView
       click    : =>
         @delete.getTooltip().hide()
         @deleteModal = new KDModalView
-          title          : "Delete #{KD.utils.xssEncode title}"
-          content        : "<div class='modalformline'>Are you sure you want to delete <strong>#{KD.utils.xssEncode title}</strong> application?</div>"
+          title          : "Delete #{Encoder.XSSEncode title}"
+          content        : "<div class='modalformline'>Are you sure you want to delete <strong>#{Encoder.XSSEncode title}</strong> application?</div>"
           height         : "auto"
           overlay        : yes
           buttons        :
@@ -276,7 +276,7 @@ class GetMoreAppsButton extends StartTabAppThumbView
 
     super options, data
 
-    @img.$().attr "src", "/images/icn-appcatalog.png"
+    @img.$().attr "src", "/a/images/icn-appcatalog.png"
 
     @compile = new KDView
     @delete = new KDView
@@ -298,7 +298,7 @@ class AppShortcutButton extends StartTabAppThumbView
 
     super options, data
 
-    @img.setAttribute "src", "/images/#{data.icon}"
+    @img.setAttribute "src", "/a/images/#{data.icon}"
 
     @compile = new KDView
     @delete  = new KDView  if data.type is 'koding-app'

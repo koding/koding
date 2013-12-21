@@ -105,12 +105,13 @@ With love from the Koding team.<br>
 
       callback? err, activity
 
-      KD.showError err,
-        AccessDenied :
-          title      : 'You are not allowed to #{action} activities'
-          content    : 'This activity will only be visible to you'
-          duration   : 5000
-        KodingError  : 'Something went wrong while creating activity'
+      if err
+        KD.showError err,
+          AccessDenied :
+            title      : "You are not allowed to post activity"
+            content    : 'This activity will only be visible to you'
+            duration   : 5000
+          KodingError  : 'Something went wrong while creating activity'
 
       KD.getSingleton("badgeController").checkBadge
         property : "statusUpdates", relType : "author", source : "JNewStatusUpdate", targetSelf : 1
@@ -151,8 +152,8 @@ With love from the Koding team.<br>
 
 
 class ActivityEditWidget extends ActivityInputWidget
-  constructor : (options = {}) ->
-    options.cssClass = "edit-widget"
+  constructor : (options = {}, data) ->
+    options.cssClass = KD.utils.curry "edit-widget", options.cssClass
     options.destroyOnSubmit = yes
 
     super options

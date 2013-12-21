@@ -186,7 +186,7 @@ class EmbedBoxWidget extends KDView
       wantedData[key] = data[key]
 
     for key, value of wantedData when "string" is typeof value
-      wantedData[key] = KD.utils.htmlDecode value
+      wantedData[key] = Encoder.htmlDecode value
 
     return wantedData
 

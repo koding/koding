@@ -26,7 +26,10 @@ resurrection.activity.styl
   overflow              visible
 
   .lazy-loader
-    margin              30px 0
+    margin              30px 0 30px 80px !important
+    font-size           0
+    letter-spacing      0
+    word-spacing        0
     text-align          center
 
   > main
@@ -35,72 +38,20 @@ resurrection.activity.styl
     fr()
 
     >.activity-input-widget
-      size                auto auto
-      position            relative
-      margin              0 0 0 80px
-
-      .avatarview
-        rounded           4px
-        top               6px
-        left              6px
-        z-index           2
-        abs()
+      margin-left       80px
 
       .input-view
         border            none
         border-top        1px solid #CDCCC2
         border-left       1px solid #CDCCC2
-        rounded           5px
-        borderBox()
-
-        > div
-          size            100% auto
-          line-height     16px
-          font-size       14px
-          color           #acacac
-          padding         15px 100px 14px 56px
-          background      #fff
-          borderBox()
-
-        &.placeholder
-          > div
-            color         #acacac
 
       button[type=submit]
-        size            30px, 30px
-        bottom          8px
-        right           9px
-        padding         0
-        abs()
-        z-index         1
-
         &.solid.green .icon
           margin        1px 0 0 7px
-          sprite        activity, "update-bubble"
+          r-sprite        activity, "update-bubble"
 
         &[disabled=disabled]
           bg            color, #DDD !important
-
-      .notification
-        size                auto auto
-        background          lightyellow
-        font-size           12px
-        margin              10px 0
-        padding             10px 30px 10px 10px
-        border              1px solid lightgray
-        border-radius       5px
-
-        .close-tab
-          abs()
-          top               4px
-          right             4px
-          bg                color, transparent
-          sprite            app '20-close-tab'
-
-        a
-          color      #3aaaab
-          noTextDeco()
-
 
     .filter-warning
       background        rgba(37, 46, 48, 1.0)
@@ -221,7 +172,7 @@ resurrection.activity.styl
         .icon
           padding       0
           margin        1px 0 0 4px
-          sprite        activity, "follow-check"
+          r-sprite        activity, "follow-check"
 
         .button-title
           z-index       -1
@@ -245,7 +196,7 @@ resurrection.activity.styl
         &.following-topic
           border-color  #2eb398
           .icon
-            sprite      activity, "following-check"
+            r-sprite      activity, "following-check"
           .button-title
             color       #2eb398
           &:hover
@@ -345,7 +296,78 @@ resurrection.activity.styl
         .chevron-separator
           hidden()
         .chevron
-          sprite    activity chevron-icon
+          r-sprite    activity chevron-icon
+
+.activity-input-widget
+  size                auto auto
+  position            relative
+  margin              0
+
+  .avatarview
+    rounded           4px
+    top               6px
+    left              6px
+    z-index           2
+    abs()
+
+  .input-view
+    rounded           5px
+    borderBox()
+
+    > div
+      size            100% auto
+      line-height     16px
+      font-size       14px
+      color           #acacac
+      padding         15px 100px 14px 56px
+      background      #fff
+      borderBox()
+
+    &.placeholder
+      > div
+        color         #acacac
+
+    button[type=submit]
+      size            30px, 30px
+      abs             0 9px 8px 0
+      padding         0
+      z-index         1
+
+      &.solid.green .icon
+        margin        1px 0 0 7px
+        r-sprite        activity, "update-bubble"
+
+      &[disabled=disabled]
+        bg            color, #DDD !important
+
+  &.edit-widget
+    .input-view
+      button[type=submit]
+        size          auto auto
+        rel()
+        right         initial
+        bottom        initial
+        padding       0 10px
+
+  .notification
+    size                auto auto
+    background          lightyellow
+    font-size           12px
+    margin              10px 0
+    padding             10px 30px 10px 10px
+    border              1px solid lightgray
+    border-radius       5px
+
+    .close-tab
+      abs()
+      top               4px
+      right             4px
+      bg                color, transparent
+      sprite            app '20-close-tab'
+
+    a
+      color      #3aaaab
+      noTextDeco()
 
 span.collapsedtext
   borderBox()
@@ -415,7 +437,7 @@ span.collapsedtext
     .chevron-separator
       hidden()
     .chevron
-      sprite    activity chevron-icon
+      r-sprite    activity chevron-icon
 
   .author-avatar
     display       block
@@ -495,37 +517,25 @@ span.collapsedtext
       fl()
 
     .action-link
-    .comment-icon
-    .share-icon
       display         inline-block
-      vertical-align  middle
-      opacity         .8
-
-      &.like-icon
-        sprite        activity like-icon
-
-      &.comment-icon
-        sprite        activity comment-icon
-
-      &.share-icon
-        sprite        activity share-icon
+      opacity         .9
+      font-size       12px
+      color           #a6abb1
+      noTextDeco()
 
     .action-container
       size            auto 18px
       margin          0 0 0 13px
       fl()
 
-      &.liked .like-icon
-        sprite        activity like-icon-liked
-        opacity       1
-      // &.kdview.kdloader
-      //   margin-top    0
+      &.liked .action-link
+        color         #2db66a
+        opacity       .8
 
     .count
-      display         inline-block
-      vertical-align  text-bottom
-      color           #9da0a4
       font-size       12px
+      display         inline-block
+      color           #9da0a4
       margin          0 0 0 6px
       noTextDeco()
 
@@ -902,9 +912,9 @@ body.profile
         display           inline-block
         vertical-align    sub
         &.edit
-          sprite          activity "edit-icon"
+          r-sprite          activity "edit-icon"
         &.delete
-          sprite          activity "delete-icon"
+          r-sprite          activity "delete-icon"
 
       &:hover
       &.selected
@@ -1023,11 +1033,11 @@ span.status-body
     fl()
 
     &.share-twitter
-      sprite              activity, "twitter-16"
+      r-sprite              activity, "twitter-16"
     &.share-facebook
-      sprite              activity, "facebook-16"
+      r-sprite              activity, "facebook-16"
     &.share-linkedin
-      sprite              activity, "linkedin-16"
+      r-sprite              activity, "linkedin-16"
 
 
 
@@ -1057,3 +1067,67 @@ span.status-body
 
     .sub-header
       margin-left         -78px
+
+
+/* Bug reports */
+.bugs
+  .content-page.bugreports
+    min-height            1026px
+    margin                85px auto
+    padding               0
+    position              static
+    overflow              visible
+
+  .item-add-comment-form
+    textarea
+      rounded             0 !important
+
+  .on-off
+    margin                0 -1px -2px -1px
+
+    a
+      kalc                width, 20%
+      height              35px
+      line-height         35px
+      padding             0
+      shadow              none
+      font-weight         300
+      font-size           12px
+      border-color        #d8d8d8 !important
+      background          #f6f6f6
+      text-transform      capitalize
+      color               #a0a7af
+      text-shadow         none
+      borderBox()
+
+      &.active
+        background        #6ccab7
+        color             #fff
+        shadow            inset 0 0 0 1px #2eb398
+
+      &:first-of-type
+        rounded           0 0 0 4px
+
+      &:last-of-type
+        rounded           0 0 4px 0
+
+  .kdlistview-all
+    margin-left          80px
+    overflow             visible
+
+  .bug-status
+    width                269px !important
+
+    .bug-status-title
+      display            block
+      line-height        45px
+      color              #3c4752
+      padding            0 0 0 18px
+      borderBox()
+      noTextDeco()
+
+      &:hover
+        color            #73899e
+
+      &~.bug-status-title
+        border-top       1px solid #d3d3d3

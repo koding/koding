@@ -18,7 +18,7 @@ class GmailContactsListItem extends KDListItemView
 
   setAvatar: ->
     hash     = md5.digest @getData().email
-    fallback = "#{KD.apiUri}/images/defaultavatar/default.avatar.25.png"
+    fallback = "#{KD.apiUri}/a/images/defaultavatar/default.avatar.25.png"
     uri      = "url(//gravatar.com/avatar/#{hash}?size=25&d=#{encodeURIComponent fallback})"
     @$(".avatar").css "background-image", uri
 

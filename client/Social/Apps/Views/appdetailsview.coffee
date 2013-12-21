@@ -23,11 +23,11 @@ class AppDetailsView extends KDScrollView
       style    : "delete"
       callback : =>
         modal = new KDModalView
-          title          : "Delete #{KD.utils.xssEncode app.manifest.name}"
+          title          : "Delete #{Encoder.XSSEncode app.manifest.name}"
           content        :
             """
               <div class='modalformline'>Are you sure you want to delete
-              <strong>#{KD.utils.xssEncode app.manifest.name}</strong>
+              <strong>#{Encoder.XSSEncode app.manifest.name}</strong>
               application?</div>
             """
           height         : "auto"

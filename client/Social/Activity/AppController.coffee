@@ -4,10 +4,6 @@ class ActivityAppController extends AppController
     name         : "Activity"
     route        : "/:name?/Activity"
     hiddenHandle : yes
-    navItem      :
-      title      : "Activity"
-      path       : "/Activity"
-      order      : 21
 
 
   {dash} = Bongo
@@ -415,14 +411,6 @@ class ActivityAppController extends AppController
   feederBridge : (options, callback)->
 
     KD.getSingleton("appManager").tell 'Feeder', 'createContentFeedController', options, callback
-
-  editActivity: (item) ->
-    activity = item.getData()
-    {inputWidget} = @getView()
-    inputWidget.edit activity
-    window.scrollTo 0, 0
-    inputWidget.once "Submit", ->
-      window.scrollTo 0, item.getElement().getBoundingClientRect().top
 
   resetProfileLastTo : ->
     @profileLastTo = null
