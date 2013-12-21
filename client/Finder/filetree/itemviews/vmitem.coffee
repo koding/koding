@@ -62,15 +62,15 @@ class NVMItemView extends NFileItemView
       parents.push "/#{path}"
     parents.reverse()
 
-    vm = @getData().vmName
+    vm     = @getData().vmName
+    finder = @getData().treeController.getDelegate()
 
     @utils.defer ->
       parents.forEach (path)->
         contextMenu.treeController.addNode
           title    : path
           callback : ->
-            KD.getSingleton('finderController').updateVMRoot \
-              vm, path, contextMenu.bound("destroy")
+            finder?.updateVMRoot vm, path, contextMenu.bound("destroy")
 
       contextMenu.positionContextMenu()
       contextMenu.treeController.selectFirstNode()

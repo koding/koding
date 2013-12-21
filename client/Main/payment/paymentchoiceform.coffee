@@ -60,7 +60,7 @@ class PaymentChoiceForm extends KDFormViewWithFields
 
         defaultMethod = methodsByPaymentMethodId[defaultPaymentMethod]
 
-        choiceForm.addCustomData 'paymentMethod', defaultMethod
+        @addCustomData 'paymentMethod', defaultMethod
 
         select = new KDSelectBox
           defaultValue  : defaultPaymentMethod
@@ -68,9 +68,9 @@ class PaymentChoiceForm extends KDFormViewWithFields
           selectOptions : methods.map (method) ->
             title       : KD.utils.getPaymentMethodTitle method
             value       : method.paymentMethodId
-          callback      : (paymentMethodId) ->
+          callback      : (paymentMethodId) =>
             chosenMethod = methodsByPaymentMethodId[paymentMethodId]
-            choiceForm.addCustomData 'paymentMethod', chosenMethod
+            @addCustomData 'paymentMethod', chosenMethod
 
         paymentField.addSubView select
 

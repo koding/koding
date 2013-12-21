@@ -1,6 +1,6 @@
 module.exports = (account)->
 
-  bgImg  = encodeURIComponent "//images/defaultavatar/default.avatar.160.png"
+  bgImg  = encodeURIComponent "//a/images/defaultavatar/default.avatar.160.png"
 
   """
   <div class="kdview" id="sidebar-panel">

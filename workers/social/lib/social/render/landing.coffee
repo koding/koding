@@ -12,7 +12,7 @@ module.exports = ({client, bongoModels, page}, callback)->
     <head>
       <title>Koding</title>
       #{getStyles()}
-      <link rel="stylesheet" href="/css/landingapp.#{KONFIG.version}.css" />
+      <link rel="stylesheet" href="/a/css/landingapp.#{KONFIG.version}.css" />
       <link href="https://fonts.googleapis.com/css?family=Raleway:100,700" rel="stylesheet" type="text/css">
       #{getGraphMeta()}
     </head>

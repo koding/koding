@@ -448,13 +448,13 @@ __utils.extend __utils,
     #     break
 
     image  = if name is "Ace" then "icn-ace" else "default.app.thumb"
-    thumb  = "#{KD.apiUri}/images/#{image}.png"
+    thumb  = "#{KD.apiUri}/a/images/#{image}.png"
 
     img = new KDCustomHTMLView
       tagName     : "img"
       bind        : "error"
       error       : ->
-        @getElement().setAttribute "src", "/images/default.app.thumb.png"
+        @getElement().setAttribute "src", "/a/images/default.app.thumb.png"
       attributes  :
         src       : thumb
 
