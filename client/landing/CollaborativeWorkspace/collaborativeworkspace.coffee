@@ -14,7 +14,8 @@ class CollaborativeWorkspace extends Workspace
   createChat: ->
     chatPaneClass = @getOptions().chatPaneClass or ChatPane
     @container.addSubView @chatView = new chatPaneClass
-      delegate: this
+      delegate  : this
+      itemClass : TeamworkChatItem
 
     @chatView.hide()
 
@@ -334,7 +335,6 @@ class CollaborativeWorkspace extends Workspace
     data         = message: data  if typeof data is "string"
     data.message = data.message.replace "$0", KD.nick()
 
-    target.set data
     @emit "NewHistoryItemAdded", data
 
   broadcastMessage: (details) ->

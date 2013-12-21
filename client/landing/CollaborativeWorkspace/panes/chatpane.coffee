@@ -7,6 +7,7 @@ class ChatPane extends JView
 
     super options, data
 
+    @itemClass   = @getOptions().itemClass or ChatItem
     @unreadCount = 0
     @workspace   = @getDelegate()
     {@chatRef}   = @workspace
