@@ -15,7 +15,7 @@ class BugReportController extends AppController
     @lastTo
     @lastFrom
     @on "LazyLoadThresholdReached", => @feedController?.loadFeed()
-    @on "ChangeFilterClicked", (filterName)=>
+    @getView().on "ChangeFilterClicked", (filterName)=>
       @feedController.selectFilter filterName
 
   loadView:(mainView)->

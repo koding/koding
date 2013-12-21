@@ -3,8 +3,6 @@ class BugReportMainView extends KDScrollView
   constructor:(options = {}, data)->
     super options, data
 
-    {@delegate} = @getOptions()
-
     @filterMenu = new KDCustomHTMLView
       cssClass      : "bug-status right-block-box"
 
@@ -19,21 +17,21 @@ class BugReportMainView extends KDScrollView
       cssClass : "bug-status-title"
       partial  : "Bug Reports"
       click    : =>
-        @delegate.emit "ChangeFilterClicked", "all"
+        @emit "ChangeFilterClicked", "all"
 
     @filterMenu.addSubView new KDCustomHTMLView
       tagName  : "a"
       cssClass : "bug-status-title"
       partial  : "Fixed Bugs"
       click    : =>
-        @delegate.emit "ChangeFilterClicked", "fixed"
+        @emit "ChangeFilterClicked", "fixed"
 
     @filterMenu.addSubView new KDCustomHTMLView
       tagName  : "a"
       cssClass : "bug-status-title"
       partial  : "ChangeLog"
       click    : =>
-        @delegate.emit "ChangeFilterClicked", "changelog"
+        @emit "ChangeFilterClicked", "changelog"
 
     @inputWidget = new ActivityInputWidget
 
