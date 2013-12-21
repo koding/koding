@@ -3,49 +3,6 @@ class RegisterInlineForm extends LoginViewInlineForm
   constructor:(options={},data)->
     super options, data
 
-    # @fullName = new LoginInputView
-    #   inputOptions    :
-    #     name          : "fullName"
-    #     placeholder   : "full name"
-    #     validate      :
-    #       container   : this
-    #       event       : "blur"
-    #       rules       :
-    #         required  : yes
-    #       messages    :
-    #         required  : "Please enter your name."
-    #     testPath      : "register-form-fullname"
-
-    @firstName = new LoginInputView
-      cssClass          : "half-size"
-      inputOptions      :
-        name            : "firstName"
-        placeholder     : "first name"
-        validate        :
-          notifications :
-            type        : 'tooltip'
-            placement   : 'left'
-            direction   : 'right'
-          container     : this
-          rules         :
-            required    : yes
-          messages      :
-            required    : "Please enter your first name."
-        testPath        : "register-form-firstname"
-
-    @lastName = new LoginInputView
-      cssClass        : "half-size"
-      inputOptions    :
-        name          : "lastName"
-        placeholder   : "last name"
-        validate      :
-          container   : this
-          rules       :
-            required  : yes
-          messages    :
-            required  : "Please enter your last name."
-        testPath      : "register-form-lastname"
-
     @email = new LoginInputViewWithLoader
       inputOptions    :
         name          : "email"
@@ -96,40 +53,6 @@ class RegisterInlineForm extends LoginViewInlineForm
             regExp       : "keyup"
             usernameCheck: "keyup"
             finalCheck   : "blur"
-
-    # @password = new LoginInputView
-    #   inputOptions    :
-    #     name          : "password"
-    #     type          : "password"
-    #     placeholder   : "Create a password"
-    #     testPath      : "register-form-pass1"
-    #     validate      :
-    #       container   : this
-    #       event       : "blur"
-    #       rules       :
-    #         required  : yes
-    #         minLength : 8
-    #       messages    :
-    #         required  : "Password is required."
-    #         minLength : "Password should at least be 8 characters."
-
-    # @passwordConfirm = new LoginInputView
-    #   cssClass        : "password-confirm"
-    #   inputOptions    :
-    #     name          : "passwordConfirm"
-    #     type          : "password"
-    #     placeholder   : "Confirm your password"
-    #     testPath      : "register-form-pass2"
-    #     validate      :
-    #       container   : this
-    #       event       : "blur"
-    #       rules       :
-    #         required  : yes
-    #         match     : @password.input
-    #         minLength : 8
-    #       messages    :
-    #         required  : "Password confirmation required!"
-    #         match     : "Password confirmation doesn't match!"
 
     @button = new KDButtonView
       title         : "CREATE ACCOUNT"
@@ -263,7 +186,6 @@ class RegisterInlineForm extends LoginViewInlineForm
     """
     <section class='main-part'>
       <div class='email'>{{> @avatar}}{{> @email}}</div>
-      <div>{{> @firstName}}{{> @lastName}}</div>
       <div class='username'>{{> @username}}</div>
       <div class='invitation-field invited-by hidden'>
         <span class='icon'></span>
