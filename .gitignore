@@ -49,6 +49,8 @@ kontrolUUID-*
 
 /website/a/css/__*.css
 /website/a/js/__*.js
+/website/a/css/*.0.0.1.css
+/website/a/js/*.0.0.1.js
 /website/a/js/*.js.map
 /website/a/sprites/*.json
 /website/a/sprites/*-*.png
