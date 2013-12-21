@@ -259,7 +259,8 @@ class TeamworkWorkspace extends CollaborativeWorkspace
       cssClass : "invite-teammate tw-rounded-button hidden"
       title    : "Invite"
       callback : =>
-        url = "#{KD.config.apiUri}/Teamwork?sessionKey=#{@sessionKey}"
+        query = @utils.stringifyQuery {@sessionKey}
+        url   = "#{window.location.origin}/Teamwork?#{query}"
         @activityWidget.setInputContent "Would you like to join my Teamwork session? #{url}"
         @showActivityWidget()
         @hideShareButtons()
