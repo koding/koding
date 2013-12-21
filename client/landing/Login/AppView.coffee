@@ -82,7 +82,7 @@ class LoginView extends KDView
 
     super options, data
 
-    @setCss 'background-image', "url('../images/unsplash/#{backgroundImageNr}.jpg')"
+    @setCss 'background-image', "url('../a/images/unsplash/#{backgroundImageNr}.jpg')"
 
     @hidden = yes
 
@@ -186,12 +186,13 @@ class LoginView extends KDView
       isUserLoggedIn = KD.isLoggedIn()
       params = {isUserLoggedIn, provider}
 
-      KD.remote.api.JUser.authenticateWithOauth params, (err, resp)=>
+      (KD.getSingleton 'mainController').handleOauthAuth params, (err, resp)=>
         if err
           showError err
         else
           {account, replacementToken, isNewUser, userInfo} = resp
           if isNewUser
+            KD.getSingleton('router').handleRoute '/Register'
             @animateToForm "register"
             for own field, value of userInfo
               setValue field, value
@@ -347,7 +348,7 @@ class LoginView extends KDView
 
   doLogin:(credentials)->
     (KD.getSingleton 'mainController').handleLogin credentials, @bound 'afterLoginCallback'
-    
+
   runExternal = (token)->
     KD.getSingleton("kiteController").run
       kiteName        : "externals"

@@ -107,7 +107,7 @@ class HomeIntroView extends JView
 
     # @videoThumb = new KDCustomHTMLView
     #   tagName  : 'a'
-    #   partial  : "<i></i><img src='/images/timedude.jpg'/>"
+    #   partial  : "<i></i><img src='/a/images/timedude.jpg'/>"
     #   click    : ->
     #     w = 800
     #     h = 450
