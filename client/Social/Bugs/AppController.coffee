@@ -52,7 +52,7 @@ class BugReportController extends AppController
           direction       : -1
 
     KD.getSingleton("appManager").tell 'Feeder', 'createContentFeedController', options, (controller)=>
-      view.addSubView controller.getView()
+      view.mainBlock.addSubView controller.getView()
       @feedController = controller
 
       @getOptions().view.setOptions controller
