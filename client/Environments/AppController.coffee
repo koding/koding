@@ -9,6 +9,15 @@ class EnvironmentsAppController extends AppController
     #   title      : "Environments"
     #   path       : "/Environments"
     #   role       : "member"
+    commands     :
+      'clear buffer'  : -> console.log 'clearing the buffer'
+      'ring bell'     : -> console.log 'ringing the bell'
+      'noop'          : -> console.log 'not doing shiiiit'
+    keyBindings  : [
+      { command: 'clear buffer',  binding: 'super+k' }
+      { command: 'ring bell',     binding: 'alt+super+k' }
+      { command: 'noop',          bindings: ['super+v','super+r'] }
+    ]
 
   constructor:(options = {}, data)->
 

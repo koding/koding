@@ -20,6 +20,15 @@ class WebTermController extends AppController
       items      : [
         {title: "customViewAdvancedSettings"}
       ]
+    commands     :
+      'clear buffer'  : -> console.log 'clearing the buffer'
+      'ring bell'     : -> console.log 'ringing the bell'
+      'noop'          : -> console.log 'not doing shiiiit'
+    keyBindings  : [
+      { command: 'clear buffer',  binding: 'super+k',             global: yes }
+      { command: 'ring bell',     binding: 'alt+super+k',         global: yes }
+      { command: 'noop',          binding: ['super+v','super+r'], global: yes }
+    ]
     behavior     : "application"
 
   constructor:(options = {}, data)->
@@ -32,6 +41,8 @@ class WebTermController extends AppController
       cssClass          : "webterm"
 
     super options, data
+
+    @registerKeyBindings 'Terminal'
 
     KD.mixpanel "Opened Webterm tab", {vmName}
 

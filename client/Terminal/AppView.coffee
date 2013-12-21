@@ -204,10 +204,10 @@ class WebTermView extends KDView
     @terminal.setScrollbackLimit @appStorage.getValue 'scrollback'
 
   setKeyView: ->
-    super
     KD.getSingleton('windowController').addLayer this
     @focused = true
     @terminal.setFocused true
+    @emit 'KeyViewIsSet'
 
   click: ->
     @setKeyView()
