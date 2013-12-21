@@ -4,6 +4,7 @@ package dnode
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"reflect"
 	"strconv"
 	"strings"
@@ -193,13 +194,28 @@ func (d *DNode) ProcessMessage(data []byte) {
 		if err != nil {
 			panic(err)
 		}
+
 		if index < 0 || index >= len(d.Callbacks) {
 			return
 		}
+
 		callArgs := make([]reflect.Value, len(args))
 		for i, v := range args {
+			// Client side did send nil values, it's invalid here.
+			if v == nil {
+				f := d.Callbacks[index].Type()
+				log.Printf("ERROR!! got a nil value, expecting values for function signature: %s\n", f.String())
+				return
+			}
+
 			callArgs[i] = reflect.ValueOf(v)
 		}
+
+		// don't invoke "Call" when zero arguments are passed
+		if len(callArgs) == 0 {
+			return
+		}
+
 		d.Callbacks[index].Call(callArgs)
 		return
 	}
