@@ -17,6 +17,7 @@ resurrection.activity.styl
 // .comment-container.no-comment
   display               none
 
+.content-page.bugreports
 .content-page.activity
   max-width             100%
   min-height            1026px
@@ -26,10 +27,11 @@ resurrection.activity.styl
   overflow              visible
 
   .lazy-loader
-    margin              30px 0
+    margin              30px 0 30px 80px !important
     font-size           0
     letter-spacing      0
     word-spacing        0
+    text-align          center
 
   > main
     size                  689px, auto
@@ -1056,26 +1058,6 @@ span.status-body
     word-spacing        0
 
 .bugs
-  .activity-input-widget
-    margin-left           80px
-
-  .kdlistview-all
-    overflow              visible
-    margin-left           80px
-
-  .kdselectbox.bug-status
-    size                  auto 35px
-    margin                18px 0 -20px
-    fr()
-
-    .title
-      line-height         35px
-      font-size           12px
-      padding             0 30px 0 15px
-
-    .arrows
-      top                 8px
-
   .item-add-comment-form
     textarea
       rounded             0 !important
@@ -1109,5 +1091,24 @@ span.status-body
       &:last-of-type
         rounded           0 0 4px 0
 
+  /* Bug tracker */
+.bugs
+  .kdlistview-all
+    margin-left          80px
+    overflow             visible
+  .bug-status
+    width                269px !important
+    .bug-status-title
+      display            block
+      line-height        45px
+      color              #3c4752
+      padding            0 0 0 18px
+      borderBox()
+      noTextDeco()
 
+      &:hover
+        color            #73899e
+
+      &~.bug-status-title
+        border-top       1px solid #d3d3d3
 
