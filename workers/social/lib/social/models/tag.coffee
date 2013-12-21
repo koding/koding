@@ -41,6 +41,12 @@ module.exports = class JTag extends jraphical.Module
       'delete tags'           : ['moderator']
       'edit own tags'         : ['moderator']
       'delete own tags'       : ['moderator']
+      'assign system tag'     : ['moderator']
+      'fetch system tag'      : ['moderator']
+      'create system tag'     : ['moderator']
+      'remove system tag'     : ['moderator']
+      # 'delete system tag'     : ['moderator']
+
     emitFollowingActivities : yes # create buckets for follower / followees
     indexes         :
       # slug          : 'unique'
@@ -71,6 +77,10 @@ module.exports = class JTag extends jraphical.Module
           (signature Object, Object, Function)
           (signature Object, Object, Object, Function)
         ]
+        addSystemTagToStatusUpdate:
+          (signature Object, Function)
+        removeTagFromStatus:
+          (signature Object, Function)
         delete:
           (signature Function)
         fetchRandomFollowers:
@@ -112,6 +122,11 @@ module.exports = class JTag extends jraphical.Module
           (signature String, Function)
           (signature String, Object, Function)
         ]
+        fetchSystemTags:
+          (signature Object, Object, Function)
+        createSystemTag:
+          (signature Object, Object, Function)
+
     schema          :
       title         :
         type        : String
@@ -139,6 +154,9 @@ module.exports = class JTag extends jraphical.Module
       meta          : require 'bongo/bundles/meta'
       synonyms      : [String]
       group         : String
+      category      :
+        type        : String
+        default     : "user-tag"
       # owner         : ObjectId
     relationships   :->
       JAccount = require './account'
@@ -242,6 +260,12 @@ module.exports = class JTag extends jraphical.Module
               callbackForEach null, tag for tag in existingTags
       ]
 
+
+  @create$ = permit 'create tags',
+    success: (client, data, callback)->
+      data.category = "user-tag"
+      @create client, data, callback
+
   @create = permit 'create tags',
     success: (client, data, callback)->
       {delegate} = client.connection
@@ -264,13 +288,15 @@ module.exports = class JTag extends jraphical.Module
                   callback null, tag
 
   @findSuggestions = (client, seed, options, callback)->
-    {limit, blacklist, skip} = options
+    {limit, blacklist, skip, category} = options
     {group} = client.context
     @some {
         group
         title   : seed
         _id     :
           $nin  : blacklist
+        category: "user-tag"
+
       },{
         skip
         limit
@@ -335,7 +361,8 @@ module.exports = class JTag extends jraphical.Module
       @one uniqueSelector, options, callback
 
   @_some = (client, selector, options, callback)->
-    selector.group = makeGroupSelector client.context.group
+    selector.group    = makeGroupSelector client.context.group
+    selector.category = "user-tag"
     @some selector, options, callback
 
   @some$ = permit 'read tags', success: @_some
@@ -348,22 +375,62 @@ module.exports = class JTag extends jraphical.Module
     success:(client, selector, callback)->
       [callback, selector] = [selector, callback]  unless callback
       selector ?= {}
-      selector.group = makeGroupSelector client.context.group
+      selector.group    = makeGroupSelector client.context.group
+      selector.category = "user-tag"
       @count selector, callback
 
   @cursor$ = permit 'read tags',
     success:(client, selector, options, callback)->
-      selector.group = makeGroupSelector client.context.group
+      selector.group    = makeGroupSelector client.context.group
+      selector.category = "user-tag"
       @cursor selector, options, callback
 
   @each$ = permit 'read tags',
     success:(client, selector, fields, options, callback)->
-      selector.group = makeGroupSelector client.context.group
+      selector.group    = makeGroupSelector client.context.group
+      selector.category = "user-tag"
       @each selector, fields, options, callback
 
   @byRelevance$ = permit 'read tags',
     success: (client, seed, options, callback)->
       @byRelevance client, seed, options, callback
+
+  @fetchSystemTags    = permit 'fetch system tag',
+   success: (client, selector, options, callback)->
+    selector.group    = makeGroupSelector client.context.group
+    selector.category = "system-tag"
+    @some selector, options, callback
+
+  addSystemTagToStatusUpdate : permit 'assign system tag',
+    success: (client, statusUpdate, callback)->
+      callback new KodingError "That is not system tag!" unless @category is "system-tag"
+      JNewStatusUpdate = require './messages/newstatusupdate'
+      JNewStatusUpdate.one _id:statusUpdate._id, (err, status)=>
+        callback err if err
+        if status
+          tagsArray = [
+            slug: @slug
+          ]
+          status.addTags client, tagsArray , (err)->
+            callback err, null
+        else
+          callback new KodingError "Status not found!"
+
+  @createSystemTag = permit 'create system tag',
+    success: (client, data, callback)->
+      data.category = "system-tag"
+      @create client, data, callback
+
+  removeTagFromStatus  = permit 'remove system tag',
+    success: (client, statusUpdate, callback)->
+      callback new KodingError "That is not system tag!" unless @category is "system-tag"
+      JNewStatusUpdate = require './messages/newstatusupdate'
+      JNewStatusUpdate.one id:statusUpdate._id, (err, status)=>
+        callback err if err
+        Relationship.remove {
+          targetId    : @getId()
+          sourceId    : status.getId()
+        } , callback
 
   fetchRandomFollowers: secure (client, options, callback)->
     {limit}  = options
