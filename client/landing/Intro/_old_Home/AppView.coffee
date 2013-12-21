@@ -79,7 +79,7 @@ class HomeAppView extends JView
       <div class="home-slider">
         <div class="slider-page">
           <div class="wrapper">
-            <figure><img src="/images/homeslide/you.jpg"></figure>
+            <figure><img src="/a/images/homeslide/you.jpg"></figure>
             <h3>
               <i></i> Koding for <span>You</span>
             </h3>
@@ -94,7 +94,7 @@ class HomeAppView extends JView
 
         <div class="slider-page left-aligned">
           <div class="wrapper">
-            <figure><img src="/images/homeslide/developers.jpg"></figure>
+            <figure><img src="/a/images/homeslide/developers.jpg"></figure>
             <h3>
               <i></i> Koding for <span>Developers</span>
             </h3>
@@ -109,7 +109,7 @@ class HomeAppView extends JView
 
         <div class="slider-page">
           <div class="wrapper">
-            <figure><img src="/images/homeslide/education.jpg"></figure>
+            <figure><img src="/a/images/homeslide/education.jpg"></figure>
             <h3>
               <i></i> Koding for <span>Education</span>
             </h3>
@@ -124,7 +124,7 @@ class HomeAppView extends JView
 
         <div class="slider-page left-aligned">
           <div class="wrapper">
-            <figure><img src="/images/homeslide/business.jpg"></figure>
+            <figure><img src="/a/images/homeslide/business.jpg"></figure>
             <h3>
               <i></i> Koding for <span>Business</span>
             </h3>
