@@ -7,7 +7,7 @@ class BugReportController extends AppController
 
   constructor:(options = {}, data)->
     options.view    = new BugReportMainView
-      cssClass      : "content-page bugreports"
+      cssClass      : "content-page bugreports activity"
       delegate      : this
     options.appInfo =
       name          : 'Bugs'
