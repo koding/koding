@@ -59,13 +59,13 @@ class TeamworkWorkspace extends CollaborativeWorkspace
 
     @on "NewHistoryItemAdded", (data) =>
       # log data
-      @sendSystemMessage data.message
+      @sendSystemMessage data
 
   createButtons: (panel) ->
     panel.addSubView @buttonsContainer = new KDCustomHTMLView
       cssClass : "tw-buttons-container"
 
-    @buttonsContainer.addSubView chatButton = new KDButtonView
+    @buttonsContainer.addSubView @chatButton = new KDButtonView
       cssClass : "tw-chat-toggle active"
       iconClass: "tw-chat"
       iconOnly : yes
@@ -73,7 +73,7 @@ class TeamworkWorkspace extends CollaborativeWorkspace
         cssClass      = "tw-chat-open"
         isChatVisible = @hasClass cssClass
         @toggleClass cssClass
-        chatButton.toggleClass "active"
+        @chatButton.toggleClass "active"
 
         if isChatVisible then @chatView.hide() else @chatView.show()
 
@@ -237,9 +237,9 @@ class TeamworkWorkspace extends CollaborativeWorkspace
       delete @avatars[nickname]
       @avatarsView.unsetClass "has-user" if @avatars.length is 0
 
-  sendSystemMessage: (message) ->
+  sendSystemMessage: (messageData) ->
     return unless @getOptions().enableChat
-    @chatView.sendMessage message, yes
+    @chatView.sendMessage messageData, yes
 
   createActivityWidget: (panel) ->
     url = "#{KD.config.apiUri}/Teamwork?sessionKey=#{@sessionKey}"
