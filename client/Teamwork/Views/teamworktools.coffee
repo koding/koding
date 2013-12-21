@@ -65,9 +65,10 @@ class TeamworkTools extends JView
         readonly   : "readonly"
       click        : => @keyInput.getDomElement().select()
 
+    query = @utils.stringifyQuery {sessionKey: @workspace.sessionKey}
     @urlInput      = new KDInputView
       cssClass     : "teamwork-modal-input url"
-      defaultValue : "#{document.location.href}?sessionKey=#{@workspace.sessionKey}"
+      defaultValue : "#{window.location.origin}/Teamwork?#{query}"
       attributes   :
         readonly   : "readonly"
       click        : => @urlInput.getDomElement().select()
