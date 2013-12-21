@@ -439,6 +439,7 @@ module.exports = class JTag extends jraphical.Module
     Relationship.some {
       as       : "follower"
       sourceId : @getId()
+      sort     : '_id' : -1
     }, {limit}, (err, rels)->
       accounts = []
       daisy queue = rels.map (r)->
