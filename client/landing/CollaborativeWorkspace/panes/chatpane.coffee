@@ -31,7 +31,9 @@ class ChatPane extends JView
     @input        = new KDHitEnterInputView
       placeholder : "Type your message and hit enter"
       callback    : =>
-        @sendMessage @input.getValue()
+        @sendMessage
+          message: @input.getValue()
+          by     : KD.nick()
         @input.setValue ""
         @input.setFocus()
 
