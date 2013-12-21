@@ -33,4 +33,6 @@ class CollaborativePreviewPane extends CollaborativePane
     url    = unless force then path.replace(/\?.*/, "") else "#{path}?#{Date.now()}"
 
     @workspaceRef.child("url").set url
-    @workspace.addToHistory "$0 opened #{url}"
+    @workspace.addToHistory
+      message: "$0 opened #{url}"
+      by     : KD.nick()
