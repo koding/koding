@@ -53,7 +53,7 @@ class CollaborativeWorkspace extends Workspace
       @userRef.set "online"
       @userRef.onDisconnect().set "offline"
       record = if isOldSession then "$0 joined the session" else "$0 started the session"
-      @addToHistory record
+      @addToHistory { message: record, by: KD.nick() }
       @watchRef.child(@nickname).set "everybody"
 
       if @amIHost()
@@ -79,7 +79,7 @@ class CollaborativeWorkspace extends Workspace
           cssClass  : "error"
           sender    : name
 
-        @addToHistory message
+        @addToHistory { message, by: KD.nick() }
         @emit "SomeoneHasLeftSession", name
 
     @workspaceRef.on "child_removed", (snapshot) =>
