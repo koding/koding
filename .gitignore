@@ -42,13 +42,14 @@ sftp-config.json
 sftp-config.json
 v8.log
 
-website/a/css/__*.css
-website/a/js/__*.js
-website/a/js/*.js.map
 website/default.html
 website/index.html
 kontrolUUID-*
 
+
+website/a/css/__*.css
+website/a/js/__*.js
+website/a/js/*.js.map
 website/a/sprites/*.json
 website/a/sprites/*-*.png
 
