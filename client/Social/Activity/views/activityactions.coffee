@@ -39,8 +39,7 @@ class ActivityActionsView extends KDView
     activity = @getData()
 
     @commentLink  = new ActivityActionLink
-      partial : ""
-      cssClass: "comment-icon"
+      partial : "Comment"
 
     @commentCount = new ActivityCommentCount
       tooltip     :
@@ -51,8 +50,7 @@ class ActivityActionsView extends KDView
     , activity
 
     @shareLink    = new ActivityActionLink
-      partial         : ""
-      cssClass        : "share-icon"
+      partial         : "Share"
       click           :(event)=>
         data = @getData()
         if data?.group? and data.group isnt "koding"
@@ -74,8 +72,9 @@ class ActivityActionsView extends KDView
           transparent : yes
 
     @likeView = new LikeView
-      cssClass : "logged-in action-container"
-      useTitle : no
+      cssClass           : "logged-in action-container"
+      useTitle           : yes
+      checkIfLikedBefore : yes
     , activity
 
     @loader = new KDLoaderView
@@ -128,7 +127,7 @@ class ActivityActionLink extends KDCustomHTMLView
   constructor:(options,data)->
     options = $.extend
       tagName   : "a"
-      cssClass  : "action-link like-icon"
+      cssClass  : "action-link"
       attributes:
         href    : "#"
     , options

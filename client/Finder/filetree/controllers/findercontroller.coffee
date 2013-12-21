@@ -143,9 +143,7 @@ class NFinderController extends KDViewController
 
     vmItem = @getVmNode vmName
     if fetchContent and vmItem
-      # Without this, it fails to fetch Finder settings before creating
-      # Fileitems o_0 FIXME ~ GG
-      @utils.wait 1000, =>
+      @utils.defer =>
         @treeController.expandFolder vmItem, (err)=>
           if err?.name is 'VMNotFoundError'
             return @unmountVm vmName
