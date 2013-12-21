@@ -650,7 +650,7 @@ func (info *VMInfo) unprepareVM() {
 	if err := mongodb.Run("jVMs", func(c *mgo.Collection) error {
 		return c.Update(bson.M{"_id": info.vm.Id}, bson.M{"$set": bson.M{"hostKite": nil}})
 	}); err != nil {
-		log.LogError(err, 0)
+		log.LogError(err, 0, info.vm.Id.Hex())
 	}
 
 	infosMutex.Lock()
