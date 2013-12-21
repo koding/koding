@@ -7,13 +7,16 @@ class BugReportController extends AppController
 
   constructor:(options = {}, data)->
     options.view    = new BugReportMainView
-      cssClass      : "content-page bugreports"
+      cssClass      : "content-page bugreports activity"
+      delegate      : this
     options.appInfo =
       name          : 'Bugs'
     super options, data
     @lastTo
     @lastFrom
     @on "LazyLoadThresholdReached", => @feedController?.loadFeed()
+    @getView().on "ChangeFilterClicked", (filterName)=>
+      @feedController.selectFilter filterName
 
   loadView:(mainView)->
     @createFeed mainView
@@ -52,16 +55,16 @@ class BugReportController extends AppController
           direction       : -1
 
     KD.getSingleton("appManager").tell 'Feeder', 'createContentFeedController', options, (controller)=>
-      view.addSubView controller.getView()
+      view.mainBlock.addSubView controller.getView()
       @feedController = controller
-
-      @getOptions().view.setOptions controller
+      @feedController.on "FilterChanged", =>
+        delete @lastTo
       @emit 'ready'
 
   fetch:(selector, options ,callback)->
     {JNewStatusUpdate, JTag} = KD.remote.api
     JTag.one title : options.tag, category : options.tagType, (err, sysTag) =>
-      return err if err
+      return err if err or not sysTag
       selector  =
         slug    : sysTag.slug
         limit   : options.limit
