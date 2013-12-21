@@ -92,7 +92,7 @@ class ChatPane extends JView
   appendToChatItem: (params) ->
     {details} = params
     @lastChatItem.messageList.addSubView new KDCustomHTMLView
-      partial  : KD.utils.xssEncode details.body
+      partial  : Encoder.XSSEncode details.body
       cssClass : details.cssClass
 
   updateDate: (timestamp) ->
