@@ -5,15 +5,19 @@ class BugStatusItemList extends StatusActivityItemView
 
     @bugTags = ["fixed", "postponed", "not reproducible","duplicate","by design"]
     state   = tag.title for tag in data.tags when tag.title in @bugTags
-    return unless KD.hasAccess "edit posts"
+
     @bugstatus     = new KDMultipleChoice
       cssClass     : "clean-gray editor-button control-button bug"
       labels       : @bugTags
       multiple     : no
       defaultValue : state
       size         : "tiny"
+      disabled     : not KD.hasAccess "edit posts"
       callback     : (value)=>
         @changeBugStatus value
+      click        : (event)->
+        KD.utils.stopDOMEvent event
+
 
     KD.utils.defer =>
       @addSubView @bugstatus

@@ -54,7 +54,8 @@ class BugReportController extends AppController
     KD.getSingleton("appManager").tell 'Feeder', 'createContentFeedController', options, (controller)=>
       view.mainBlock.addSubView controller.getView()
       @feedController = controller
-
+      @feedController.on "FilterChanged", =>
+        delete @lastTo
       @getOptions().view.setOptions controller
       @emit 'ready'
 

@@ -11,20 +11,35 @@ class BugReportMainView extends KDScrollView
         { title : "changelog" , value : "changelog" }
       ]
 
-    for item in filterOptions
-      @filterMenu.addSubView new KDCustomHTMLView
-        tagName  : "a"
-        cssClass : "bug-status-title"
-        partial  : "#{item.title}"
-        click    : =>
-          feedController = @getOptions()
-          feedController.selectFilter item.value
+    @filterMenu.addSubView new KDCustomHTMLView
+      tagName  : "a"
+      cssClass : "bug-status-title"
+      partial  : "Bug Reports"
+      click    : =>
+        feedController = @getOptions()
+        feedController.selectFilter "all"
+
+    @filterMenu.addSubView new KDCustomHTMLView
+      tagName  : "a"
+      cssClass : "bug-status-title"
+      partial  : "Fixed Bugs"
+      click    : =>
+        feedController = @getOptions()
+        feedController.selectFilter "fixed"
+
+    @filterMenu.addSubView new KDCustomHTMLView
+      tagName  : "a"
+      cssClass : "bug-status-title"
+      partial  : "ChangeLog"
+      click    : =>
+        feedController = @getOptions()
+        feedController.selectFilter "changelog"
 
     @inputWidget = new ActivityInputWidget
 
   viewAppended:->
-    @mainBlock        = new KDCustomHTMLView tagName : "main"
-    @sideBlock        = new KDCustomHTMLView tagName : "aside"
+    @mainBlock = new KDCustomHTMLView tagName : "main"
+    @sideBlock = new KDCustomHTMLView tagName : "aside"
 
     @addSubView @mainBlock
     @addSubView @sideBlock
@@ -34,6 +49,3 @@ class BugReportMainView extends KDScrollView
 
     KD.remote.api.JTag.one slug:"bug", (err, tag) =>
       @inputWidget.input.setDefaultTokens tags: [tag]
-
-
-
