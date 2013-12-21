@@ -34,7 +34,7 @@
 /website/dev/*.json
 /website/dev/sourceClient.json
 /website/dev/sourceServer.json
-/website/js/requiresReload.txt
+/website/a/js/requiresReload.txt
 /website_nonstatic/index.html
 ebin
 node_modules/.bin
@@ -42,15 +42,15 @@ sftp-config.json
 sftp-config.json
 v8.log
 
-website/css/__*.css
-website/js/__*.js
-website/js/*.js.map
+website/a/css/__*.css
+website/a/js/__*.js
+website/a/js/*.js.map
 website/default.html
 website/index.html
 kontrolUUID-*
 
-website/sprites/*.json
-website/sprites/*-*.png
+website/a/sprites/*.json
+website/a/sprites/*-*.png
 
 website/*/landingapp*
 website/*/koding*
@@ -58,4 +58,3 @@ website/*/kd*
 website/*/introapp*
 website/*/bongo*
 newrelic_agent.log
-

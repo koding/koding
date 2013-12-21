@@ -28,7 +28,7 @@ class StartTabAppThumbView extends KDCustomHTMLView
     if manifest.devMode
       resourceRoot = "https://#{authorNick}.#{KD.config.userSitesDomain}/.applications/#{__utils.slugify name}"
 
-    thumb = "#{KD.apiUri + '/images/default.app.thumb.png'}"
+    thumb = "#{KD.apiUri + '/a/images/default.app.thumb.png'}"
 
     for size in [512, 256, 160, 128, 64]
       if icns and icns[String size]
@@ -43,7 +43,7 @@ class StartTabAppThumbView extends KDCustomHTMLView
 
     @img.off 'error'
     @img.on  'error', ->
-      @setAttribute "src", "/images/default.app.thumb.png"
+      @setAttribute "src", "/a/images/default.app.thumb.png"
 
     @loader = new KDLoaderView
       size          :
@@ -276,7 +276,7 @@ class GetMoreAppsButton extends StartTabAppThumbView
 
     super options, data
 
-    @img.$().attr "src", "/images/icn-appcatalog.png"
+    @img.$().attr "src", "/a/images/icn-appcatalog.png"
 
     @compile = new KDView
     @delete = new KDView
@@ -298,7 +298,7 @@ class AppShortcutButton extends StartTabAppThumbView
 
     super options, data
 
-    @img.setAttribute "src", "/images/#{data.icon}"
+    @img.setAttribute "src", "/a/images/#{data.icon}"
 
     @compile = new KDView
     @delete  = new KDView  if data.type is 'koding-app'
