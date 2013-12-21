@@ -33,6 +33,20 @@ button
 
 #kdmaincontainer
   width             auto
+  &.fullscreen
+    width             100%!important
+    left              0!important
+    top               0!important
+    bottom            0!important
+    right             0!important
+    z-index           10
+    .application-page
+      padding         0!important
+    .app-settings-menu
+      top             0
+      right           0
+    #main-header
+      hidden()
 
 #main-header
   margin              0

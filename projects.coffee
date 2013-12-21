@@ -164,10 +164,16 @@ projects      =
     script        : "website/js/__app.demos.#{KODING_VERSION}.js"
     sourceMapRoot : "Demos/"
 
+  Bugs            :
+    files         : "client/Social/Bugs/includes.coffee"
+    style         : "website/css/__app.bugreport.#{KODING_VERSION}.css"
+    script        : "website/js/__app.bugreport.#{KODING_VERSION}.js"
+    sourceMapRoot : "Social/Bugs/"
+
 bundles           =
 
   Social          :
-    projects      : ['Activity', 'Members', 'Topics', 'Apps']
+    projects      : ['Activity', 'Members', 'Topics', 'Apps', 'Bugs']
     style         : "website/css/__social.#{KODING_VERSION}.css"
     script        : "website/js/__social.#{KODING_VERSION}.js"
 

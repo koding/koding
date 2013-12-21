@@ -16,7 +16,7 @@ class DockController extends KDViewController
 
     super options, data
 
-    @storage = new AppStorage "Dock", "1.0"
+    @storage = new AppStorage "Dock", "1.0.1"
 
     @navController = new MainNavController
       view         : new NavigationList
@@ -114,7 +114,8 @@ class DockController extends KDViewController
     route   or= options.navItem?.path or '-'
 
     for nav in @navController.itemsOrdered
-      if nav.name is name or ///^#{route}///.test nav.data.path
+      if (///^#{route}///.test nav.data.path) \
+      or (nav.data.path is "/#{name}") or ("/#{name}" is nav.data.path)
         nav.setState state
         hasNav = yes
 

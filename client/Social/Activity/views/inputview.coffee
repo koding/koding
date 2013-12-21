@@ -1,4 +1,6 @@
 class ActivityInputView extends KDTokenizedInput
+  {JTag} = KD.remote.api
+
   constructor: (options = {}, data) ->
     options.cssClass         = KD.utils.curry "input-view", options.cssClass
     options.type           or= "html"
@@ -50,12 +52,26 @@ class ActivityInputView extends KDTokenizedInput
     @tokenInput.textContent = prefix + words.join "-"
     @utils.selectEnd @tokenInput
 
+  selectToken: ->
+    return  unless @menu
+    {prefix} = @activeRule
+    value = @tokenInput.textContent.substring(prefix.length).toLowerCase()
+    tokens = @menu.getData().filter @getTokenFilter()
+    for token in tokens
+      if value is token.title.toLowerCase()
+        @addToken token, @getOptions().tokenViewClass
+        @hideMenu()
+        return  true
+
   keyDown: (event) ->
     super
     return  if event.isPropagationStopped()
     switch event.which
       when 27 # Escape
         @emit "Escape"
+
+    if /\s/.test String.fromCharCode event.which
+      KD.utils.stopDOMEvent event  if @selectToken()
 
   focus: ->
     return  if @focused
@@ -97,6 +113,11 @@ class ActivityInputView extends KDTokenizedInput
       tokenView.setAttributes "data-key": tokenKey
       tokenView.emit "viewAppended"
       return tokenView.getElement().outerHTML
+
+  getTokenFilter: ->
+    switch @activeRule.prefix
+      when "#" then (token) -> token instanceof JTag
+      else noop
 
   fillTokenMap = (tokens, map) ->
     tokens.forEach (token) ->

@@ -106,12 +106,13 @@ With love from the Koding team.<br>
 
       callback? err, activity
 
-      KD.showError err,
-        AccessDenied :
-          title      : "You are not allowed to #{action} activities"
-          content    : 'This activity will only be visible to you'
-          duration   : 5000
-        KodingError  : 'Something went wrong while creating activity'
+      if err
+        KD.showError err,
+          AccessDenied :
+            title      : "You are not allowed to post activity"
+            content    : 'This activity will only be visible to you'
+            duration   : 5000
+          KodingError  : 'Something went wrong while creating activity'
 
       KD.getSingleton("badgeController").checkBadge
         property : "statusUpdates", relType : "author", source : "JNewStatusUpdate", targetSelf : 1
