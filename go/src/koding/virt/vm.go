@@ -119,17 +119,9 @@ func (vm *VM) ApplyDefaults() {
 	}
 }
 
+// DONT refactor this function, it works on an assumption that it SHOULD panic.
 func (vm *VM) Prepare(reinitialize bool, logWarning func(string, ...interface{})) {
 	vm.Unprepare()
-
-	//var err error
-	//vm.VMRoot, err = os.Readlink("/var/lib/lxc/vmroot/")
-	//if err != nil {
-	//	vm.VMRoot = "/var/lib/lxc/vmroot/"
-	//}
-	//if vm.VMRoot[0] != '/' {
-	//	vm.VMRoot = "/var/lib/lxc/" + vm.VMRoot
-	//}
 
 	// write LXC files
 	prepareDir(vm.File(""), 0)
