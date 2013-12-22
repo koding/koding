@@ -62,40 +62,40 @@ func VMName(vmId bson.ObjectId) string {
 	return "vm-" + vmId.Hex()
 }
 
-func (v *VM) String() string {
-	return VMName(v.Id)
+func (vm *VM) String() string {
+	return VMName(vm.Id)
 }
 
-func (v *VM) VEth() string {
-	return fmt.Sprintf("veth-%x", []byte(v.IP[12:16]))
+func (vm *VM) VEth() string {
+	return fmt.Sprintf("veth-%x", []byte(vm.IP[12:16]))
 }
 
-func (v *VM) MAC() net.HardwareAddr {
-	return net.HardwareAddr([]byte{0, 0, v.IP[12], v.IP[13], v.IP[14], v.IP[15]})
+func (vm *VM) MAC() net.HardwareAddr {
+	return net.HardwareAddr([]byte{0, 0, vm.IP[12], vm.IP[13], vm.IP[14], vm.IP[15]})
 }
 
-func (v *VM) RbdDevice() string {
-	return "/dev/rbd/" + VMPool + "/" + v.String()
+func (vm *VM) RbdDevice() string {
+	return "/dev/rbd/" + VMPool + "/" + vm.String()
 }
 
-func (v *VM) File(p string) string {
-	return fmt.Sprintf("/var/lib/lxc/%s/%s", v, p)
+func (vm *VM) File(p string) string {
+	return fmt.Sprintf("/var/lib/lxc/%s/%s", vm, p)
 }
 
-func (v *VM) OverlayFile(p string) string {
-	return v.File("overlay/" + p)
+func (vm *VM) OverlayFile(p string) string {
+	return vm.File("overlay/" + p)
 }
 
-func (v *VM) LowerdirFile(p string) string {
-	return v.VMRoot + "rootfs/" + p
+func (vm *VM) LowerdirFile(p string) string {
+	return vm.VMRoot + "rootfs/" + p
 }
 
-func (v *VM) PtsDir() string {
-	return v.File("rootfs/dev/pts")
+func (vm *VM) PtsDir() string {
+	return vm.File("rootfs/dev/pts")
 }
 
-func (v *VM) GetPermissions(user *User) *Permissions {
-	for _, entry := range v.Users {
+func (vm *VM) GetPermissions(user *User) *Permissions {
+	for _, entry := range vm.Users {
 		if entry.Id == user.ObjectId {
 			p := Permissions(entry)
 			return &p
@@ -104,130 +104,91 @@ func (v *VM) GetPermissions(user *User) *Permissions {
 	return nil
 }
 
-func (v *VM) ApplyDefaults() {
-	if v.NumCPUs == 0 {
-		v.NumCPUs = 1
+func (vm *VM) ApplyDefaults() {
+	if vm.NumCPUs == 0 {
+		vm.NumCPUs = 1
 	}
-
-	if v.MaxMemoryInMB == 0 {
-		v.MaxMemoryInMB = 1024
+	if vm.MaxMemoryInMB == 0 {
+		vm.MaxMemoryInMB = 1024
 	}
-
-	if v.DiskSizeInMB == 0 {
-		v.DiskSizeInMB = 1200
+	if vm.DiskSizeInMB == 0 {
+		vm.DiskSizeInMB = 1200
 	}
-
-	if v.VMRoot == "" {
-		v.VMRoot = "/var/lib/lxc/vmroot/"
+	if vm.VMRoot == "" {
+		vm.VMRoot = "/var/lib/lxc/vmroot/"
 	}
 }
 
-// Prepare creates and initialized the container to be started later directly
-// with lxc.start. We don't use lxc.create (which uses shell scipts for
-// templating), instead of we use this method which basically let us do things
-// more efficient. It creates the home directory, generates files like lxc.conf
-// and mounts the necessary filesystems.
-func (v *VM) Prepare(reinitialize bool, logWarning func(string, ...interface{})) {
-	// first unprepare to not conflict with everything else
-	v.Unprepare()
+func (vm *VM) Prepare(reinitialize bool, logWarning func(string, ...interface{})) {
+	vm.Unprepare()
 
-	// create our lxc container dir
-	v.createContainerDir()
+	//var err error
+	//vm.VMRoot, err = os.Readlink("/var/lib/lxc/vmroot/")
+	//if err != nil {
+	//	vm.VMRoot = "/var/lib/lxc/vmroot/"
+	//}
+	//if vm.VMRoot[0] != '/' {
+	//	vm.VMRoot = "/var/lib/lxc/" + vm.VMRoot
+	//}
+
+	// write LXC files
+	prepareDir(vm.File(""), 0)
+	vm.generateFile(vm.File("config"), "config", 0, false)
+	vm.generateFile(vm.File("fstab"), "fstab", 0, false)
+	vm.generateFile(vm.File("ip-address"), "ip-address", 0, false)
 
 	// map rbd image to block device
-	v.mountRBD()
+	if err := vm.MountRBD(vm.OverlayFile("")); err != nil {
+		panic(err)
+	}
 
 	// remove all except /home on reinitialize
 	if reinitialize {
-		v.reinitialize()
-	}
-
-	v.createOverlay()
-	v.mergeFiles(logWarning)
-	v.mountAufs()
-	v.prepareAndMountPts()
-	v.addEbtablesRule()
-	v.addStaticRoute()
-}
-
-func (v *VM) createContainerDir() {
-	// write LXC files
-	prepareDir(v.File(""), 0)
-	v.generateFile(v.File("config"), "config", 0, false)
-	v.generateFile(v.File("fstab"), "fstab", 0, false)
-	v.generateFile(v.File("ip-address"), "ip-address", 0, false)
-}
-
-func (v *VM) mountRBD() {
-	if err := v.MountRBD(v.OverlayFile("")); err != nil {
-		panic(err)
-	}
-}
-
-func (v *VM) reinitialize() {
-	entries, err := ioutil.ReadDir(v.OverlayFile("/"))
-	if err != nil {
-		panic(err)
-	}
-	for _, entry := range entries {
-		if entry.Name() != "home" {
-			os.RemoveAll(v.OverlayFile("/" + entry.Name()))
+		entries, err := ioutil.ReadDir(vm.OverlayFile("/"))
+		if err != nil {
+			panic(err)
+		}
+		for _, entry := range entries {
+			if entry.Name() != "home" {
+				os.RemoveAll(vm.OverlayFile("/" + entry.Name()))
+			}
 		}
 	}
-}
 
-func (v *VM) createOverlay() {
 	// prepare overlay
-	prepareDir(v.OverlayFile("/"), RootIdOffset)           // for chown
-	prepareDir(v.OverlayFile("/lost+found"), RootIdOffset) // for chown
-	prepareDir(v.OverlayFile("/etc"), RootIdOffset)
+	prepareDir(vm.OverlayFile("/"), RootIdOffset)           // for chown
+	prepareDir(vm.OverlayFile("/lost+found"), RootIdOffset) // for chown
+	prepareDir(vm.OverlayFile("/etc"), RootIdOffset)
+	vm.generateFile(vm.OverlayFile("/etc/hostname"), "hostname", RootIdOffset, false)
+	vm.generateFile(vm.OverlayFile("/etc/hosts"), "hosts", RootIdOffset, false)
+	vm.generateFile(vm.OverlayFile("/etc/ldap.conf"), "ldap.conf", RootIdOffset, false)
+	vm.MergePasswdFile(logWarning)
+	vm.MergeGroupFile(logWarning)
+	vm.MergeDpkgDatabase()
 
-	v.generateFile(v.OverlayFile("/etc/hostname"), "hostname", RootIdOffset, false)
-	v.generateFile(v.OverlayFile("/etc/hosts"), "hosts", RootIdOffset, false)
-	v.generateFile(v.OverlayFile("/etc/ldap.conf"), "ldap.conf", RootIdOffset, false)
-}
-
-func (v *VM) mergeFiles(logWarning func(string, ...interface{})) {
-	v.MergePasswdFile(logWarning)
-	v.MergeGroupFile(logWarning)
-	v.MergeDpkgDatabase()
-}
-
-func (v *VM) mountAufs() {
 	// mount "/var/lib/lxc/vm-{id}/overlay" (rw) and "/var/lib/lxc/vmroot" (ro)
 	// under "/var/lib/lxc/vm-{id}/rootfs"
-	prepareDir(v.File("rootfs"), RootIdOffset)
-	// if out, err := exec.Command("/bin/mount", "--no-mtab", "-t", "overlayfs", "-o", fmt.Sprintf("lowerdir=%s,upperdir=%s", v.LowerdirFile("/"), v.OverlayFile("/")), "overlayfs", v.File("rootfs")).CombinedOutput(); err != nil {
-	if out, err := exec.Command("/bin/mount", "--no-mtab", "-t", "aufs", "-o", fmt.Sprintf("noplink,br=%s:%s", v.OverlayFile("/"), v.LowerdirFile("/")), "aufs", v.File("rootfs")).CombinedOutput(); err != nil {
+	prepareDir(vm.File("rootfs"), RootIdOffset)
+	// if out, err := exec.Command("/bin/mount", "--no-mtab", "-t", "overlayfs", "-o", fmt.Sprintf("lowerdir=%s,upperdir=%s", vm.LowerdirFile("/"), vm.OverlayFile("/")), "overlayfs", vm.File("rootfs")).CombinedOutput(); err != nil {
+	if out, err := exec.Command("/bin/mount", "--no-mtab", "-t", "aufs", "-o", fmt.Sprintf("noplink,br=%s:%s", vm.OverlayFile("/"), vm.LowerdirFile("/")), "aufs", vm.File("rootfs")).CombinedOutput(); err != nil {
 		panic(commandError("mount overlay failed.", err, out))
 	}
-}
 
-func (v *VM) prepareAndMountPts() {
 	// mount devpts
-	prepareDir(v.PtsDir(), RootIdOffset)
-	if out, err := exec.Command("/bin/mount", "--no-mtab", "-t", "devpts", "-o", "rw,noexec,nosuid,newinstance,gid="+strconv.Itoa(RootIdOffset+5)+",mode=0620,ptmxmode=0666", "devpts", v.PtsDir()).CombinedOutput(); err != nil {
+	prepareDir(vm.PtsDir(), RootIdOffset)
+	if out, err := exec.Command("/bin/mount", "--no-mtab", "-t", "devpts", "-o", "rw,noexec,nosuid,newinstance,gid="+strconv.Itoa(RootIdOffset+5)+",mode=0620,ptmxmode=0666", "devpts", vm.PtsDir()).CombinedOutput(); err != nil {
 		panic(commandError("mount devpts failed.", err, out))
 	}
-	chown(v.PtsDir(), RootIdOffset, RootIdOffset)
-	chown(v.PtsDir()+"/ptmx", RootIdOffset, RootIdOffset)
+	chown(vm.PtsDir(), RootIdOffset, RootIdOffset)
+	chown(vm.PtsDir()+"/ptmx", RootIdOffset, RootIdOffset)
 
-	if v.IP == nil {
-		if ip, err := ioutil.ReadFile(v.File("ip-address")); err == nil {
-			v.IP = net.ParseIP(string(ip))
-		}
-	}
-}
-
-// addEbtablesRule adds entries to restrict IP and MAC
-func (v *VM) addEbtablesRule() {
-	if out, err := exec.Command("/sbin/ebtables", "--append", "VMS", "--protocol", "IPv4", "--source", v.MAC().String(), "--ip-src", v.IP.String(), "--in-interface", v.VEth(), "--jump", "ACCEPT").CombinedOutput(); err != nil {
+	// add ebtables entry to restrict IP and MAC
+	if out, err := exec.Command("/sbin/ebtables", "--append", "VMS", "--protocol", "IPv4", "--source", vm.MAC().String(), "--ip-src", vm.IP.String(), "--in-interface", vm.VEth(), "--jump", "ACCEPT").CombinedOutput(); err != nil {
 		panic(commandError("ebtables rule addition failed.", err, out))
 	}
-}
 
-func (v *VM) addStaticRoute() {
-	if out, err := exec.Command("/sbin/route", "add", v.IP.String(), "lxcbr0").CombinedOutput(); err != nil {
+	// add a static route so it is redistributed by BGP
+	if out, err := exec.Command("/sbin/route", "add", vm.IP.String(), "lxcbr0").CombinedOutput(); err != nil {
 		panic(commandError("adding route failed.", err, out))
 	}
 }
@@ -248,6 +209,13 @@ func (vm *VM) Unprepare() error {
 	// backup dpkg database for statistical purposes
 	os.Mkdir("/var/lib/lxc/dpkg-statuses", 0755)
 	copyFile(vm.OverlayFile("/var/lib/dpkg/status"), "/var/lib/lxc/dpkg-statuses/"+vm.String(), RootIdOffset)
+
+	if vm.IP == nil {
+		if ip, err := ioutil.ReadFile(vm.File("ip-address")); err == nil {
+			vm.IP = net.ParseIP(string(ip))
+		}
+	}
+
 	if vm.IP != nil {
 		// remove ebtables entry
 		if out, err := exec.Command("/sbin/ebtables", "--delete", "VMS", "--protocol", "IPv4", "--source", vm.MAC().String(), "--ip-src", vm.IP.String(), "--in-interface", vm.VEth(), "--jump", "ACCEPT").CombinedOutput(); err != nil && firstError == nil {
