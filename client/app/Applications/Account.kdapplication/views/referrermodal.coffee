@@ -55,7 +55,7 @@ class ReferrerModal extends KDModalViewWithForms
     shareLinks.addSubView new LinkedInShareLink url: options.url
 
     rightColumn.addSubView gmail = new KDButtonView
-      title    : "Invite Gmail Contacs"
+      title    : "Invite Gmail Contacts"
       style    : "invite-button gmail"
       icon     : yes
       callback : @bound "checkGoogleLinkStatus"

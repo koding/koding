@@ -49,7 +49,6 @@ app        = express()
   error_404
   error_500
   authTemplate
-  authCheckKey
   authenticationFailed
   findUsernameFromKey
   findUsernameFromSession
@@ -108,72 +107,37 @@ app.get "/-/8a51a0a07e3d456c0b00dc6ec12ad85c", require './__notify-users'
 app.get "/-/auth/check/:key", (req, res)->
   {key} = req.params
 
-  console.log "checking for key"
-  authCheckKey key, (ok, result) ->
-    if not ok
-      console.log "key is valid: #{result}" #keep up the result to us
-      res.send 401, authTemplate "Key is not valid: '#{key}'"
-      return
-
-    {JKodingKey} = koding.models
-    JKodingKey.fetchKey
-      key     : key
-    , (err, kodingKey)=>
-      if err or not kodingKey
-        res.send 401, authTemplate "Key doesn't exist"
-        return
-
-      res.send 200, {result: 'key is added successfully'}
+  {JKodingKey} = koding.models
+  JKodingKey.checkKey {key}, (err, status)=>
+    return res.send 401, authTemplate "Key doesn't exist" unless status
+    res.send 200, {result: 'key is added successfully'}
 
 app.get "/-/auth/register/:hostname/:key", (req, res)->
   {key, hostname} = req.params
 
-  authCheckKey key, (ok, result) ->
-    if not ok
-      console.log "key is not valid: #{result}" #keep up the result to us
-      res.send 401, authTemplate "Key is not valid: '#{key}'"
+  isLoggedIn req, res, (err, loggedIn, account)->
+    return res.send 401, authTemplate "Koding Auth Error - 1" if err
+
+    unless loggedIn
+      errMessage = "You are not logged in! Please log in with your Koding username and password"
+      res.send 401, authTemplate errMessage
       return
 
-    isLoggedIn req, res, (err, loggedIn, account)->
+    unless account and account.profile and account.profile.nickname
+      errMessage = "Your account is not found, it may be a system error"
+      res.send 401, authTemplate errMessage
+      return
+
+    username = account.profile.nickname
+
+    console.log "CREATING KEY WITH HOSTNAME: #{hostname} and KEY: #{key}"
+    {JKodingKey} = koding.models
+    JKodingKey.registerHostnameAndKey {username, hostname, key}, (err, data)=>
       if err
-        # console.log "isLoggedIn error", err
-        res.send 401, authTemplate "Koding Auth Error - 1"
-        return
+        res.send 401, authTemplate err.message
+      else
+        res.send 200, authTemplate data
 
-      if not loggedIn
-        res.send 401, authTemplate "You are not logged in! Please log in with your Koding username and password"
-        return
-
-      findUsernameFromSession req, res, (err, notUsed, username) ->
-        if err
-          # console.log "findUsernameFromSession error", err
-          res.send 401, authTemplate "Koding Auth Error - 2"
-          return
-
-        if not username
-          res.send 401, authTemplate "Username is not defined: '#{username}'"
-          return
-
-        console.log "CREATING KEY WITH HOSTNAME: #{hostname} and KEY: #{key}"
-        {JKodingKey} = koding.models
-        JKodingKey.fetchByUserKey
-          username: username
-          key     : key
-        , (err, kodingKey)=>
-          if err or not kodingKey
-            JKodingKey.createKeyByUser
-              username : username
-              hostname : hostname
-              key      : key
-            , (err, data) =>
-              if err or not data
-                # console.log "createKeyByUser error", key, err
-                res.send 401, authTemplate "Koding Auth Error - 3"
-              else
-                res.send 200, authTemplate "Authentication is successfull! Using id: #{hostname}", key, hostname
-
-          else
-            res.send 200, authTemplate "Authentication already established!"
 
 app.get "/Logout", (req, res)->
   res.clearCookie 'clientId'

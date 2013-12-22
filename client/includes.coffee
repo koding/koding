@@ -138,7 +138,7 @@ module.exports = [
   "app/MainApp/navigation/navigationappslink.coffee",
   "app/MainApp/navigation/navigationdocsjobslink.coffee",
   "app/MainApp/navigation/navigationpromotelink.coffee",
-  "app/MainApp/navigation/navigationnominatelink.coffee",
+  # "app/MainApp/navigation/navigationnominatelink.coffee",
 
   # BOOK
   "app/MainApp/book/embedded/tableofcontents.coffee",
@@ -539,7 +539,7 @@ module.exports = [
   "app/Applications/Account.kdapplication/views/deleteaccountview.coffee",
   "app/Applications/Account.kdapplication/views/gmailcontact.coffee",
   "app/Applications/Account.kdapplication/views/referrermodal.coffee",
-  "app/Applications/Account.kdapplication/views/nominatemodal.coffee",
+  # "app/Applications/Account.kdapplication/views/nominatemodal.coffee",
   "app/Applications/Account.kdapplication/views/trynewmodal.coffee",
   "app/Applications/Account.kdapplication/AppView.coffee",
 
@@ -559,6 +559,7 @@ module.exports = [
   "app/MainApp/kite/kitecontroller.coffee",
   "app/MainApp/kite/newkite.coffee"
   "app/MainApp/kite/kontrol.coffee"
+  "app/MainApp/kite/kitehelper.coffee"
   # Virtualization CONTROLLER
   "app/MainApp/VirtualizationController.coffee",
 

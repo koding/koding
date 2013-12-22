@@ -2,6 +2,7 @@
 # It is analogous to RemoteKite class in go/koding/newkite/kite/remote.go file.
 class NewKite extends KDObject
 
+  {setAt} = Bongo.JsPath
   [NOTREADY, READY, CLOSED] = [0,1,3]
 
   constructor: (kite, authentication, options={})->
@@ -86,7 +87,7 @@ class NewKite extends KDObject
         # replace the handler. when called it will remove the handler.
         @proto.localStore.items[id] = ()=>
           delete @proto.localStore.items[id]
-          response = arguments[0].withArgs[0]
+          response = arguments[0]
           fn.apply null, [response.error, response.result]
 
   onOpen: ->
@@ -104,11 +105,51 @@ class NewKite extends KDObject
     if @autoReconnect
       KD.utils.defer => @setBackoffTimeout @bound "connect"
 
+
   onMessage: (evt)->
     data = evt.data
     log "onMessage", data
     req = JSON.parse data
-    @proto.handle(req)
+
+    getCallback = (callbackId) =>
+      unless @proto.remoteStore.has callbackId
+        @proto.remoteStore.add callbackId, =>
+          @proto.request callbackId, [].slice.call arguments
+      cb = @proto.remoteStore.get callbackId
+      return (rest...) =>
+        cb withArgs:rest
+
+    args = req.arguments or []
+    Object.keys(req.callbacks or {}).forEach (strId)->
+      id = parseInt strId, 10
+      path = req.callbacks[id]
+
+      callback = getCallback id
+
+      callback.id = id
+      setAt args, path, callback
+
+    {method} = req
+    switch method
+      when 'methods'
+        @proto.handleMethods args[0]
+      when 'error'
+        @proto.emit 'remoteError', args[0]
+      when 'cull'
+        args.forEach (id)=> @proto.remoteStore.cull id
+      else
+        switch typeof method
+          when 'string'
+            if @proto.instance.propertyIsEnumerable method
+              apply @proto.instance[method], @proto.instance, args
+            else
+              @proto.emit 'error', new Error(
+                "Request for non-enumerable method: #{method}"
+              )
+          when 'number'
+            apply @proto.localStore.get(method), @proto.instance, args[0].withArgs
+
+  apply =(fn, ctx, args)-> fn.apply ctx, args
 
   onError: (evt)->
     log "#{@kite.name} error: #{evt.data}"
