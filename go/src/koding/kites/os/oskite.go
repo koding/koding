@@ -433,11 +433,14 @@ func startVM(k *kite.Kite, vm *virt.VM, channel *kite.Channel) error {
 	if vm.IP == nil {
 		ipInt := NextCounterValue("vm_ip", int(binary.BigEndian.Uint32(firstContainerIP.To4())))
 		ip := net.IPv4(byte(ipInt>>24), byte(ipInt>>16), byte(ipInt>>8), byte(ipInt))
-		if err := mongodb.Run("jVMs", func(c *mgo.Collection) error {
+
+		updateErr := mongodb.Run("jVMs", func(c *mgo.Collection) error {
 			return c.Update(bson.M{"_id": vm.Id, "ip": nil}, bson.M{"$set": bson.M{"ip": ip}})
-		}); err != nil {
+		})
+
+		if updateErr != nil {
 			var logVM *virt.VM
-			err := mongodb.One("jVMs", vm.Id.Hex(), logVM)
+			err := mongodb.One("jVMs", vm.Id.Hex(), &logVM)
 			if err != nil {
 				errLog := fmt.Sprintf("Vm %s does not exist for updating IP. This is a race condition", vm.Id.Hex())
 				log.LogError(errLog, 0)
@@ -446,8 +449,9 @@ func startVM(k *kite.Kite, vm *virt.VM, channel *kite.Channel) error {
 				log.LogError(errLog, 0, logVM)
 			}
 
-			panic(err)
+			panic(updateErr)
 		}
+
 		vm.IP = ip
 	}
 
