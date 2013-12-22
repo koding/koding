@@ -228,6 +228,12 @@ config =
     newkontrol      :
       host          : 1
       port          : 1
+      certFile      : 1
+      keyFile       : 1
+    tlsKite         :
+      domain        : 1
+      certFile      : 1
+      keyFile       : 1
     kontrold        :
       vhost         : 1
       overview      :

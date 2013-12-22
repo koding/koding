@@ -219,6 +219,12 @@ module.exports =
   newkontrol      :
     host          : "127.0.0.1"
     port          : 4000
+    certFile      : "/opt/koding/certs/vagrant_127.0.0.1_cert.pem"
+    keyFile       : "/opt/koding/certs/vagrant_127.0.0.1_key.pem"
+  tlsKite         :
+    domain        : "127.0.0.1"
+    certFile      : "/opt/koding/certs/vagrant_127.0.0.1_cert.pem"
+    keyFile       : "/opt/koding/certs/vagrant_127.0.0.1_key.pem"
   etcd            : [ {host: "127.0.0.1", port: 4001} ]
   kontrold        :
     vhost         : "/"

@@ -65,8 +65,15 @@ type Config struct {
 		Queue string
 	}
 	NewKontrol struct {
-		Host string
-		Port int
+		Host     string
+		Port     int
+		CertFile string
+		KeyFile  string
+	}
+	TLSKite struct {
+		Domain   string
+		CertFile string
+		KeyFile  string
 	}
 	Etcd []struct {
 		Host string
