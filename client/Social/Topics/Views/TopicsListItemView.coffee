@@ -4,6 +4,7 @@ class TopicsListItemView extends KDListItemView
     options.type = "topics"
     super options, data
 
+    data = @getData()
     @titleLink = new KDCustomHTMLView
       tagName     : 'a'
       pistachio   : '{{#(title)}}'
@@ -23,17 +24,19 @@ class TopicsListItemView extends KDListItemView
     else
       @settingsButton = new KDCustomHTMLView tagName : 'span', cssClass : 'hidden'
 
-
-    @followButton = new FollowButton
-      cssClass       : 'solid green'
-      errorMessages  :
-        KodingError  : 'Something went wrong while follow'
-        AccessDenied : 'You are not allowed to follow topics'
-      stateOptions   :
-        unfollow     :
-          cssClass   : 'following-btn'
-      dataType       : 'JTag'
-    , data
+    unless data.status is 'synonym' or data.status is 'deleted'
+      @followButton = new FollowButton
+        cssClass       : 'solid green'
+        errorMessages  :
+          KodingError  : 'Something went wrong while follow'
+          AccessDenied : 'You are not allowed to follow topics'
+        stateOptions   :
+          unfollow     :
+            cssClass   : 'following-btn'
+        dataType       : 'JTag'
+      , data
+    else
+      @followButton = new KDCustomHTMLView tagName : 'span', cssClass : 'hidden'
 
 
   getSettingsMenu:->
