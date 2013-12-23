@@ -1,7 +1,7 @@
 class HomeSlideShow extends KDView
 
   slideData = [
-      bg      : "/images/bg/blurred/1.jpg"
+      bg      : "/a/images/bg/blurred/1.jpg"
       title   : "<p><span>A new way for</span><br><span>developers to work!</span></p>"
     ]
 

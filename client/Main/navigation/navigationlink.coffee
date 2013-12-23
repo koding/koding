@@ -16,6 +16,7 @@ class NavigationLink extends KDListItemView
       # containment      : 'parent' #KD.getSingleton('DockController').getView()
     options.attributes = { href }
     options.cssClass   = KD.utils.curry @utils.slugify(data.title), options.cssClass
+    options.cssClass   = KD.utils.curry 'no-anim', options.cssClass
 
     super options, data
 

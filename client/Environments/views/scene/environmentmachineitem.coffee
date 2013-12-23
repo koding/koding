@@ -21,10 +21,10 @@ class EnvironmentMachineItem extends EnvironmentItem
 
     vmName = @getData().title
     vmStateSwitch = new NVMToggleButtonView {}, {vmName}
-    vmMountSwitch = new NMountToggleButtonView {}, {vmName}
+    # vmMountSwitch = new NMountToggleButtonView {}, {vmName}
     items =
       customView1        : vmStateSwitch
-      customView2        : vmMountSwitch
+      # customView2        : vmMountSwitch
       'Re-initialize VM' :
         disabled         : KD.isGuest()
         callback         : ->

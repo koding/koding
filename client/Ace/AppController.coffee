@@ -1,6 +1,6 @@
 # this is necessary for ace dependencies, can be moved to another file
 # but SHALL NOT BE REMOVED~!
-require.config baseUrl: "/js", waitSeconds:30
+require.config baseUrl: "/a/js", waitSeconds:30
 
 class AceAppController extends AppController
 
@@ -14,10 +14,6 @@ class AceAppController extends AppController
     multiple      : yes
     hiddenHandle  : no
     openWith      : "lastActive"
-    navItem       :
-      title       : "Editor"
-      path        : "/Ace"
-      order       : 42
     route         :
       slug        : "/:name?/Ace"
       handler     : ({params:{name}, query})->

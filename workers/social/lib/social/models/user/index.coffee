@@ -42,7 +42,7 @@ module.exports = class JUser extends jraphical.Module
                      'administrator','members','register','activate','shared',
                      'groups','blogs','forums','topics','develop','terminal',
                      'term','twitter','facebook','google','framework', 'kite'
-                     'landing']
+                     'landing','hello','dev']
 
   @hashUnhashedPasswords =->
     @all {salt: $exists: no}, (err, users)->
@@ -638,6 +638,9 @@ module.exports = class JUser extends jraphical.Module
     { username, email, firstName, lastName,
       agree, inviteCode, referrer } = userFormData
 
+    if not firstName or firstName is "" then firstName = username
+    if not lastName then lastName = ""
+
     # only unreigstered accounts can be "converted"
     if account.status is "registered"
       return callback createKodingError "This account is already registered."
@@ -715,7 +718,7 @@ module.exports = class JUser extends jraphical.Module
           verb          : unless username? then 'Register' else 'Confirm'
           resetPassword : no
           expiryPeriod  : 1000 * 60 * 60 * 24 * 14 # 2 weeks in milliseconds
-        
+
         JPasswordRecovery.create client, passwordOptions, (err)->
           queue.next()
       ->

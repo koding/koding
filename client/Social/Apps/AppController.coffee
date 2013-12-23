@@ -11,10 +11,6 @@ class AppsAppController extends AppController
     hiddenHandle : yes
     behaviour    : 'application'
     version      : "1.0"
-    navItem      :
-      title      : "Apps"
-      path       : "/Apps"
-      order      : 60
 
   constructor:(options = {}, data)->
 

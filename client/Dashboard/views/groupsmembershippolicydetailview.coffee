@@ -11,7 +11,7 @@ class GroupsMembershipPolicyDetailView extends KDView
         new KDNotificationView { title: err.message, duration: 1000 }
       else
         @on 'MembershipPolicyChanged', (formData)->
-          KD.getSingleton('appManager').tell 'Groups', 
+          KD.getSingleton('appManager').tell 'Groups',
             'updateMembershipPolicy', group, policy, formData
 
         @createSubViews policy
@@ -150,7 +150,7 @@ class GroupsMembershipPolicyDetailView extends KDView
       <h2>Policy language</h2>
       <div class="formline">
         <div class='policy-language-image-wrapper'>
-          <img src='/images/policy-language-modal.jpg' alt='the policy language modal' class='policy-language-image'/>
+          <img src='/a/images/policy-language-modal.jpg' alt='the policy language modal' class='policy-language-image'/>
           <span class='legend'>This modal will be presented to people who request access.</span>
         </div>
         <p>It's possible to compose custom policy language (copy) to help your
