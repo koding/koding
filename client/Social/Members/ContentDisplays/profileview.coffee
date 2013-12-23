@@ -511,8 +511,13 @@ class ProfileView extends JView
         cssClass             : "badge-list"
         itemClass            : UserBadgeView
 
+    @badgeHeader = new KDCustomHTMLView
+      tagName : "h3"
+
     @memberData.fetchMyBadges (err, badges)=>
-      @userBadgesController.instantiateListItems badges
+      if badges.length > 0
+        @badgeHeader.setPartial "Badges"
+        @userBadgesController.instantiateListItems badges
 
     @userBadgesView = @userBadgesController.getView()
 
@@ -695,9 +700,8 @@ class ProfileView extends JView
         <a href="#">Blog Posts</a>
       </div>
       <div class="user-badges">
-        <h3>Badges</h3>
+        {{> @badgeHeader}}
         {{> @userBadgesView}}
         {{> @badgeItemsList}}
       </div>
-
     """
