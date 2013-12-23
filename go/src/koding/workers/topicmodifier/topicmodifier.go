@@ -70,7 +70,7 @@ func main() {
 
   defer PUBLISHER.Shutdown()
 
-  log.Info("Tag Modifier worker started")
+  log.Info("Topic Modifier worker started")
   consumer.RegisterSignalHandler()
   consumer.Consume(messageConsumer)
 }
@@ -108,17 +108,23 @@ var messageConsumer = func(delivery amqp.Delivery) {
 //Tag relations are also removed.
 func deleteTags(tagId string) {
   log.Info("Deleting obsolete tag")
-  if tag, err := helper.GetTagById(tagId); err == nil {
-    log.Info("Valid Tag - Id: %s", tagId)
-    selector := helper.Selector{"targetId": helper.GetObjectId(tagId), "as": "tag"}
-
-    rels := helper.GetRelationships(selector)
-    updatePosts(rels, "")
-    updateTagRelationships(rels, &Tag{})
-
-    tag.Counts = TagCount{}
-    helper.UpdateTag(tag)
+  tag, err := helper.GetTagById(tagId)
+  if err != nil {
+    log.Error("Tag not found - Id: ", tagId)
+    return
   }
+
+  selector := helper.Selector{"targetId": helper.GetObjectId(tagId), "as": "tag"}
+
+  rels := helper.GetRelationships(selector)
+  updatePosts(rels, "")
+  updateTagRelationships(rels, &Tag{})
+
+  postRels := convertTagRelationships(rels)
+  updateTagRelationships(postRels, &Tag{})
+
+  tag.Counts = TagCount{}
+  helper.UpdateTag(tag)
 }
 
 func mergeTags(tagId string) {
@@ -223,7 +229,7 @@ func updatePostBody(s *StatusUpdate, tagId string, newTagId string) (tagIncluded
 func updateTagRelationships(rels []Relationship, synonym *Tag) {
   for _, rel := range rels {
     removeRelationship(&rel)
-    if (synonym != &Tag{}) {
+    if synonym.Id.Hex() != "" {
       if rel.TargetName == "JTag" {
         rel.TargetId = synonym.Id
       } else {
@@ -299,6 +305,7 @@ func swapTagRelation(r *Relationship, as string) Relationship {
 //Creates Relationships both in mongo and neo4j
 func createRelationship(relationship *Relationship) {
   CreateGraphRelationship(relationship)
+  log.Debug("Add Mongo Relationship")
   helper.AddRelationship(relationship)
 }
 
@@ -310,6 +317,7 @@ func removeRelationship(relationship *Relationship) {
     "targetId": relationship.TargetId,
     "as":       relationship.As,
   }
+  log.Debug("Delete Mongo Relationship")
   helper.DeleteRelationship(selector)
 
 }
