@@ -507,6 +507,7 @@ run =({configFile})->
     invoke 'socialWorker'
     invoke 'emailWorker'                      if config.emailWorker?.run is yes
     invoke 'emailSender'                      if config.emailSender?.run is yes
+    invoke 'addTagCategories'
     invoke 'webserver'
 
 task 'importDB', (options) ->
@@ -549,6 +550,9 @@ task 'run', (options)->
 
 task 'buildTests', "Build the client-side tests", (options) ->
 
+task 'killGOProcesses', " Kill hanging go processes", (options) ->
+  command = "kill -9 `ps -ef | grep go/bin | grep -v grep | awk '{print $2}'`"
+  exec command
 
 task 'buildClient', "Build the static web pages for webserver", (options)->
   (new (require('./Builder'))).buildClient options
@@ -642,6 +646,9 @@ task 'test-all', 'Runs functional test suite', (options)->
 
 # ------------ OTHER LESS IMPORTANT STUFF ---------------------#
 
+task 'addTagCategories','Add new field category to JTag, and set default to "user-tag"',(options)->
+  command = "mongo localhost/koding --quiet  --eval=\"db.jTags.update({'category':{\\\$ne:'system-tag'}},{\\\$set:{'category':'user-tag'}},{'multi':'true'})\""
+  exec command
 
 task 'parseAnalyzedCss','Shows the output of analyzeCss in a nice format',(options)->
 
