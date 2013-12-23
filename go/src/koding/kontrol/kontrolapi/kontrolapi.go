@@ -2,12 +2,13 @@ package main
 
 import (
 	"fmt"
-	"github.com/gorilla/mux"
 	"io"
 	"koding/tools/config"
 	"log"
 	"net/http"
 	"strconv"
+
+	"github.com/gorilla/mux"
 )
 
 type ProxyPostMessage struct {
@@ -49,6 +50,7 @@ func main() {
 	workers.HandleFunc("/{uuid}", changeHandler(GetWorker)).Methods("GET")
 	workers.HandleFunc("/{uuid}/{action}", changeHandler(UpdateWorker)).Methods("PUT")
 	workers.HandleFunc("/{uuid}", changeHandler(DeleteWorker)).Methods("DELETE")
+	workers.HandleFunc("/url/{workername}", changeHandler(GetWorkerURL)).Methods("GET")
 
 	// Proxy handlers
 	proxies := rout.PathPrefix("/proxies").Subrouter()
