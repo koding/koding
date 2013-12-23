@@ -19,8 +19,13 @@ class WebTerm.Terminal
     @setTitleCallback = null
 
     @keyInput = new KDCustomHTMLView
-      tagName: 'input'
-      cssClass: 'offscreen'
+      tagName   : 'input'
+      attributes: type: 'text'
+      cssClass  : 'offscreen'
+      bind      : 'keydown keyup keypress'
+      keydown   : => @keyDown arguments...
+      keypress  : => @keyPress arguments...
+      keyup     : => @keyUp arguments...
 
     @keyInput.appendToDomBody()
 
@@ -104,6 +109,9 @@ class WebTerm.Terminal
 
     @cursor.moveTo @cursor.x, cursorLineIndex - @screenBuffer.toLineIndex(0)
     @server.setSize x, y if @server
+
+  clearBuffer: ->
+    @screenBuffer.clearPreviousLines()
 
   updateSize: (force=no) ->
     return if not force and @pixelWidth is @container.prop("clientWidth") and @pixelHeight is @container.prop("clientHeight")

@@ -172,6 +172,9 @@ class WebTermAppView extends JView
 
     # webTermView.once 'KDObjectWillBeDestroyed', => @tabView.removePane pane
 
+  clearBuffer: ->
+    @tabView.getActivePane().getOptions().webTermView.clearBuffer()
+
   addNewTab: (vmName)->
 
     @messagePane.hide()

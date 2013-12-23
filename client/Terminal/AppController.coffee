@@ -15,11 +15,11 @@ class WebTermController extends AppController
       width      : 250
       items      : [
         {title: "customViewAdvancedSettings"}
-      ]
+      ]    
     commands     :
-      'clear buffer'  : -> console.log 'clearing the buffer'
-      'ring bell'     : -> console.log 'ringing the bell'
-      'noop'          : -> console.log 'not doing shiiiit'
+      'clear buffer'  : 'clearBuffer'
+      'ring bell'     : 'ringBell'
+      'noop'          : (->)
     keyBindings  : [
       { command: 'clear buffer',  binding: 'super+k',             global: yes }
       { command: 'ring bell',     binding: 'alt+super+k',         global: yes }
@@ -45,6 +45,12 @@ class WebTermController extends AppController
   handleQuery: (query) ->
     @getView().ready =>
       @getView().handleQuery query
+
+  clearBuffer: (event) ->
+    event.preventDefault()
+    @getOptions().view.clearBuffer()
+
+  ringBell: do (bell = new Audio '/a/audio/bell.wav') -> -> bell.play()
 
 
 WebTerm = {}

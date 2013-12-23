@@ -14,28 +14,36 @@ class AppController extends KDViewController
   handleQuery:(query)->
     @ready => @feedController?.handleQuery? query
 
-  registerKeyBinding: ({ binding, command, isGlobal }) ->
+  registerKeyBinding: ({ binding, command, isGlobal, appName }) ->
     binding = binding.replace /\bsuper\b/g, 'mod'
-    console.log { binding, command }
     Mousetrap[if isGlobal then 'bindGlobal' else 'bind'] binding, (event) =>
-      @handleCommand command, event
+      @handleCommand command, appName, event
 
-  handleCommand: (command) ->
-    console.log command
+  handleCommand: (command, appName, event) ->
+    { commands } = KD.getAppOptions appName
 
-  bindKeys: (keyBindings, commands) ->
+    cmd = commands[command]
+    
+    if 'function' is typeof cmd
+      cmd.call this, event
+    else if 'string' is typeof cmd
+      @[cmd]?.call this, event
+    else
+      throw new Error "Unknown command: #{command}"
+
+  bindKeys: (keyBindings, appName) ->
     Mousetrap.reset()
 
     for { binding, command, global: isGlobal } in keyBindings
       bindings = binding  if Array.isArray binding
 
       if bindings?
-        @registerKeyBinding { binding, command, isGlobal }  for binding in bindings
+        @registerKeyBinding { binding, command, isGlobal, appName }  for binding in bindings
       else
-        @registerKeyBinding { binding, command, isGlobal }
+        @registerKeyBinding { binding, command, isGlobal, appName }
 
 
   registerKeyBindings: (appName) ->
     { keyBindings } = KD.getAppOptions appName
 
-    @getView().on 'KeyViewIsSet', => @bindKeys keyBindings
+    @getView().on 'KeyViewIsSet', => @bindKeys keyBindings, appName
