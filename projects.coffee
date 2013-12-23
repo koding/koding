@@ -170,6 +170,12 @@ projects      =
     script        : "website/a/js/__app.bugreport.#{KODING_VERSION}.js"
     sourceMapRoot : "Social/Bugs/"
 
+  DevTools        :
+    files         : "client/DevTools/includes.coffee"
+    style         : "website/a/css/__app.devtools.#{KODING_VERSION}.css"
+    script        : "website/a/js/__app.devtools.#{KODING_VERSION}.js"
+    sourceMapRoot : "DevTools/"
+
 bundles           =
 
   Social          :
