@@ -3,13 +3,14 @@ package models
 import "labix.org/v2/mgo/bson"
 
 type Tag struct {
-  Id     bson.ObjectId `bson:"_id" json:"-"`
-  Title  string        `bson:"title"`
-  Slug   string        `bson:"slug"`
-  Group  string        `bson:"group"`
-  Status string        `bson:"status,omitempty"`
-  Counts TagCount      `bson:"counts"`
-  Meta   Meta          `bson:"meta"`
+  Id       bson.ObjectId `bson:"_id" json:"-"`
+  Title    string        `bson:"title"`
+  Slug     string        `bson:"slug"`
+  Group    string        `bson:"group"`
+  Status   string        `bson:"status,omitempty"`
+  Counts   TagCount      `bson:"counts"`
+  Category string        `bson:"category"`
+  Meta     Meta          `bson:"meta"`
 }
 
 type TagCount struct {
