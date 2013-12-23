@@ -345,21 +345,23 @@ module.exports = class JTag extends jraphical.Module
     ]
     success: (client, callback)->
       {delegate} = client.connection
-      delegate.fetchRole client, (err, role)=>
-        if err
-          callback err
-        else unless role is 'super-admin'
-          callback new KodingError 'Access denied'
-        else
-          if (@status is 'deleted' or @status is 'synonym')
-            return callback new KodingError "Topic is already set as #{@status}!"
-          tagId = @getId()
-          @update {$set: status: "deleted"}, (err)=>
-            if err
-              callback err
-            else
-              @constructor.emit 'TagIsDeleted', {tagId}
-              callback null
+
+      deleteTag = (err) =>
+        tagId = @getId()
+        @update {$set: status: "deleted"}, (err)=>
+          return callback err if err
+          @constructor.emit 'TagIsDeleted', {tagId}
+          callback null
+
+      unless delegate.checkFlag('super-admin')
+        callback new KodingError 'Access denied'
+      else
+        if @status is 'deleted'
+          return callback new KodingError "Topic is already deleted!"
+
+        if @status is 'synonym'
+          return Relationship.remove {sourceId: @getId(), as: "synonymOf"}, deleteTag
+        deleteTag null
 
 
   @fetchSkillTags:(selector, options, callback)->
