@@ -50,7 +50,7 @@ class WebTerm.InputHandler
       return
     
     seq = @KEY_SEQUENCES[event.keyCode]
-    if seq instanceof Array
+    if Array.isArray seq
       seq = seq[if @applicationKeypad then 1 else 0]
     
     if seq?

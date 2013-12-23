@@ -111,7 +111,7 @@ class WebTerm.Terminal
     @server.setSize x, y if @server
 
   clearBuffer: ->
-    @screenBuffer.clearPreviousLines()
+    @terminal.server?.controlSequence '\x1B[J'
 
   updateSize: (force=no) ->
     return if not force and @pixelWidth is @container.prop("clientWidth") and @pixelHeight is @container.prop("clientHeight")
