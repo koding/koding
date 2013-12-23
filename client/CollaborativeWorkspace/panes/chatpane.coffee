@@ -106,12 +106,19 @@ class ChatPane extends JView
     @lastChatItem.timeAgo.setData new Date timestamp
 
   checkEmbeddableContent: ->
-    element = @lastMessage.getElement()
-    content = element.innerHTML
-    isUrl   = /^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/.test content
+    element  = @lastMessage.getElement()
+    content  = element.innerHTML
+    words    = content.split " "
+    urlRegex = /^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/
+    hasUrl   = no
 
-    if isUrl
-      element.innerHTML = "<a href='#{content}'>#{content}</a>"
+    for word, index in words
+      if urlRegex.test word
+        hasUrl = yes
+        words.splice index, 1, "<a href='#{word}'>#{word}</a>"
+
+    if hasUrl
+      element.innerHTML = words.join " "
       element.classList.add "tw-chat-media"
 
   scrollToTop: ->
