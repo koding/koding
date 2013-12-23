@@ -1,10 +1,10 @@
 package main
 
 import (
-	"fmt"
 	"io"
 	"koding/tools/config"
 	"log"
+	"net"
 	"net/http"
 	"strconv"
 
@@ -115,7 +115,12 @@ func home(writer http.ResponseWriter, request *http.Request) {
 
 func changeHandler(fn func(w http.ResponseWriter, r *http.Request)) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		fmt.Println(r.Method, r.URL.Path) // just for logging
+		ip, _, err := net.SplitHostPort(r.RemoteAddr)
+		if err != nil {
+			ip = "non-ip"
+		}
+
+		log.Printf("%s %s '%s'\n", r.Method, r.URL.String(), ip)
 		w.Header().Set("Access-Control-Allow-Origin", "*")
 		fn(w, r)
 	}
