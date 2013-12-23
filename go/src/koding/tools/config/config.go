@@ -83,6 +83,7 @@ type Config struct {
 		}
 		Api struct {
 			Port int
+			URL  string
 		}
 		Proxy struct {
 			Port    int
