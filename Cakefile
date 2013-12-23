@@ -488,6 +488,15 @@ task 'runGraphiteFeeder', "Collect analytics from database and feed to grahpite"
     stderr  : process.stderr
     verbose : yes
 
+task 'topicModifier', "Process delete/merge topic requests", ({configFile})->
+  console.log "Running Topic modifier"
+  processes.spawn
+    name    : 'topicModifier'
+    cmd     : "./go/bin/topicmodifier -c #{configFile}"
+    stdout  : process.stdout
+    stderr  : process.stderr
+    verbose : yes
+
 run =({configFile})->
   config = require('koding-config-manager').load("main.#{configFile}")
 
@@ -508,6 +517,7 @@ run =({configFile})->
     invoke 'emailWorker'                      if config.emailWorker?.run is yes
     invoke 'emailSender'                      if config.emailSender?.run is yes
     invoke 'webserver'
+    invoke 'topicModifier'
 
 task 'importDB', (options) ->
   if options.configFile is 'vagrant'
