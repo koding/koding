@@ -132,7 +132,7 @@ module.exports =
       isLoggedIn req, res, (err, loggedIn, account)->
         JName.fetchModels name, (err, models, jname)->
           return res.send 500, error_500()  if err
-          return res.send 404, error_404()  if not models
+          return res.send 404, error_404()  if not models?.last?
           # this is a group, we are not serving groups to bots anymore.
           if jname.slugs.first.usedAsPath is "slug"
             return res.send 404, error_404()

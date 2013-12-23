@@ -43,6 +43,7 @@ type Config struct {
 		KeyFile         string
 		AuthExchange    string
 		AuthAllExchange string
+		WebProtocol     string
 	}
 	Loggr struct {
 		Push   bool

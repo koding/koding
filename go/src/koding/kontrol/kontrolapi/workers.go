@@ -9,11 +9,13 @@ import (
 	"koding/kontrol/kontroldaemon/workerconfig"
 	"koding/tools/config"
 	"log"
+	"math"
 	"net/http"
 	"net/url"
 	"sort"
 	"strconv"
 	"strings"
+	"sync/atomic"
 	"time"
 
 	"github.com/gorilla/mux"
@@ -49,7 +51,108 @@ const (
 	WorkersDB         = "kontrol"
 )
 
-var kontrolDB = mongodb.NewMongoDB(config.Current.MongoKontrol)
+var (
+	kontrolDB = mongodb.NewMongoDB(config.Current.MongoKontrol)
+
+	// used for loadbalance modes, like roundrobin or random
+	index AtomicUint32
+)
+
+func GetWorkerURL(writer http.ResponseWriter, req *http.Request) {
+	vars := mux.Vars(req)
+	workerName := vars["workername"]
+
+	queries, _ := url.ParseQuery(req.URL.RawQuery)
+	worker := models.Worker{}
+	workers := make(Workers, 0)
+
+	query := func(c *mgo.Collection) error {
+		iter := c.Find(bson.M{"name": workerName}).Iter()
+		for iter.Next(&worker) {
+			apiWorker := &ApiWorker{
+				worker.Name,
+				worker.ServiceGenericName,
+				worker.ServiceUniqueName,
+				worker.Uuid,
+				worker.Hostname,
+				worker.Version,
+				worker.Timestamp,
+				worker.Pid,
+				StatusCode[worker.Status],
+				worker.Monitor.Uptime,
+				worker.Port,
+			}
+
+			workers = append(workers, *apiWorker)
+		}
+
+		return nil
+	}
+
+	kontrolDB.RunOnDatabase(WorkersDB, WorkersCollection, query)
+
+	// use http for all workers because they don't have ssl certs
+	protocolScheme := "http:"
+
+	// broker has ssl cert and a custom url scheme, look what it's it
+	if workerName == "broker" {
+		if config.Current.Broker.WebProtocol != "" {
+			protocolScheme = config.Current.Broker.WebProtocol
+		} else {
+			protocolScheme = "https:" // fallback
+		}
+	}
+
+	// ann
+	hostnames := make([]string, len(workers))
+	for i, worker := range workers {
+		hostnames[i] = fmt.Sprintf("%s//%s", protocolScheme, worker.Hostname)
+	}
+
+	var data []byte
+	var err error
+
+	_, ok := queries["all"]
+	if ok {
+		// return all hostnames back
+		data, err = json.MarshalIndent(hostnames, "", "  ")
+		if err != nil {
+			io.WriteString(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err))
+			return
+		}
+	} else {
+		// return only one hostname back, roundrobin
+		oldIndex := index.Get() // gives 0 for first time
+
+		N := float64(len(hostnames))
+		newIndex := int(math.Mod(float64(oldIndex+1), N))
+		hostname := hostnames[newIndex]
+
+		index.CompareAndSwap(oldIndex, uint32(newIndex))
+
+		data = []byte(fmt.Sprintf("\"%s\"", hostname))
+	}
+
+	writer.Write(data)
+}
+
+type AtomicUint32 uint32
+
+func (i *AtomicUint32) Add(n uint32) uint32 {
+	return atomic.AddUint32((*uint32)(i), n)
+}
+
+func (i *AtomicUint32) Set(n uint32) {
+	atomic.StoreUint32((*uint32)(i), n)
+}
+
+func (i *AtomicUint32) Get() uint32 {
+	return atomic.LoadUint32((*uint32)(i))
+}
+
+func (i *AtomicUint32) CompareAndSwap(oldval, newval uint32) (swapped bool) {
+	return atomic.CompareAndSwapUint32((*uint32)(i), oldval, newval)
+}
 
 func GetWorkers(writer http.ResponseWriter, req *http.Request) {
 	queries, _ := url.ParseQuery(req.URL.RawQuery)
@@ -102,38 +205,6 @@ func GetWorkers(writer http.ResponseWriter, req *http.Request) {
 	}
 	writer.Write(data)
 
-}
-
-func GetWorker(writer http.ResponseWriter, req *http.Request) {
-	vars := mux.Vars(req)
-	uuid := vars["uuid"]
-
-	query := bson.M{"uuid": uuid}
-	matchedWorkers := queryResult(query, false, nil)
-	data, err := json.MarshalIndent(matchedWorkers, "", "  ")
-	if err != nil {
-		io.WriteString(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err))
-		return
-	}
-	writer.Write(data)
-}
-
-func UpdateWorker(writer http.ResponseWriter, req *http.Request) {
-	vars := mux.Vars(req)
-	uuid, action := vars["uuid"], vars["action"]
-
-	buildSendCmd(action, uuid)
-	resp := fmt.Sprintf("worker: '%s' is updated in db", uuid)
-	io.WriteString(writer, resp)
-}
-
-func DeleteWorker(writer http.ResponseWriter, req *http.Request) {
-	vars := mux.Vars(req)
-	uuid := vars["uuid"]
-
-	buildSendCmd("delete", uuid)
-	resp := fmt.Sprintf("worker: '%s' is deleted from db", uuid)
-	io.WriteString(writer, resp)
 }
 
 func queryResult(query bson.M, latestVersion bool, sortFields []string) Workers {
@@ -192,6 +263,38 @@ func queryResult(query bson.M, latestVersion bool, sortFields []string) Workers 
 	}
 
 	return workers
+}
+
+func GetWorker(writer http.ResponseWriter, req *http.Request) {
+	vars := mux.Vars(req)
+	uuid := vars["uuid"]
+
+	query := bson.M{"uuid": uuid}
+	matchedWorkers := queryResult(query, false, nil)
+	data, err := json.MarshalIndent(matchedWorkers, "", "  ")
+	if err != nil {
+		io.WriteString(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err))
+		return
+	}
+	writer.Write(data)
+}
+
+func UpdateWorker(writer http.ResponseWriter, req *http.Request) {
+	vars := mux.Vars(req)
+	uuid, action := vars["uuid"], vars["action"]
+
+	buildSendCmd(action, uuid)
+	resp := fmt.Sprintf("worker: '%s' is updated in db", uuid)
+	io.WriteString(writer, resp)
+}
+
+func DeleteWorker(writer http.ResponseWriter, req *http.Request) {
+	vars := mux.Vars(req)
+	uuid := vars["uuid"]
+
+	buildSendCmd("delete", uuid)
+	resp := fmt.Sprintf("worker: '%s' is deleted from db", uuid)
+	io.WriteString(writer, resp)
 }
 
 func buildSendCmd(action, uuid string) {
