@@ -2,7 +2,7 @@ class ChatItem extends JView
 
   constructor: (options, data) ->
 
-    options.cssClass = KD.utils.curry "chat-item", options.cssClass
+    options.cssClass = KD.utils.curry "tw-chat-item", options.cssClass
 
     super options, data
 
@@ -22,7 +22,8 @@ class ChatItem extends JView
       cssClass   : "time-ago"
     , new Date @getOptions().time
 
-    @messageList.addSubView new KDCustomHTMLView
+    @messageList.addSubView @message = new KDCustomHTMLView
+      cssClass   : "tw-chat-body"
       partial    : Encoder.XSSEncode @getOptions().body
 
     @setClass "mine" if ownMessage
