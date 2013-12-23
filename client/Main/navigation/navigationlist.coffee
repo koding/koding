@@ -12,6 +12,9 @@ class NavigationList extends KDListView
         view._index ?= @getItemIndex view
         view.setX view._index * @viewWidth
         @_width = @viewWidth * (@items.length + 1)
+        # FIXME: had to run this with defer
+        # w/o it, it didn't work as intended - SY
+        KD.utils.defer -> view.unsetClass 'no-anim'
 
       lastChange = 0
 

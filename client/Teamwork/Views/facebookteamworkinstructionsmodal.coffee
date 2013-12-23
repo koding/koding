@@ -18,11 +18,11 @@ class FacebookTeamworkInstructionsModal extends KDModalViewWithForms
               partial              : """
                 <p class="tw-modal-line">1. Visit <strong><a href="http://developers.facebook.com/apps">http://developers.facebook.com/apps</a></strong> and click the <strong>Create New App</strong> button in the top right corner.</p>
                 <div class="tw-modal-image">
-                  <img src="/images/teamwork/facebook/step1.jpg" />
+                  <img src="/a/images/teamwork/facebook/step1.jpg" />
                 </div>
                 <p class="tw-modal-line">2. Then fill out <strong>App Name</strong>, <strong>App Namespace</strong> and <strong>App Category</strong> fields. Once that is done, click <strong>Continue</strong> button.</p>
                 <div class="tw-modal-image step1">
-                  <img class="tw-fb-step1" src="/images/teamwork/facebook/step2.jpg" />
+                  <img class="tw-fb-step1" src="/a/images/teamwork/facebook/step2.jpg" />
                 </div>
                 <p class="tw-modal-line">3. Once that is done, click the <strong>Next</strong> button on this page.</p>
               """
@@ -39,7 +39,7 @@ class FacebookTeamworkInstructionsModal extends KDModalViewWithForms
               partial              : """
                 <div class="tw-modal-image step-general">
                   <p class="tw-modal-line">1. Find your <strong>App ID</strong> and <strong>Namespace</strong> and copy below.</p>
-                  <img src="/images/teamwork/facebook/step4.jpg" />
+                  <img src="/a/images/teamwork/facebook/step4.jpg" />
                 </div>
               """
             appId                  :
@@ -74,7 +74,7 @@ class FacebookTeamworkInstructionsModal extends KDModalViewWithForms
               cssClass             : "step"
               partial              : """
                 <div class="tw-modal-image step-general">
-                  <img src="/images/teamwork/facebook/step3.jpg" />
+                  <img src="/a/images/teamwork/facebook/step3.jpg" />
                 </div>
               """
           buttons                  :

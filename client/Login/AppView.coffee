@@ -82,7 +82,7 @@ class LoginView extends KDView
 
     super options, data
 
-    @setCss 'background-image', "url('../images/unsplash/#{backgroundImageNr}.jpg')"
+    @setCss 'background-image', "url('../a/images/unsplash/#{backgroundImageNr}.jpg')"
 
     @hidden = yes
 
@@ -348,7 +348,7 @@ class LoginView extends KDView
 
   doLogin:(credentials)->
     (KD.getSingleton 'mainController').handleLogin credentials, @bound 'afterLoginCallback'
-    
+
   runExternal = (token)->
     KD.getSingleton("kiteController").run
       kiteName        : "externals"

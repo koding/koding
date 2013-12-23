@@ -1,0 +1,66 @@
+.landingapp-view .spaceship .login,.landingapp-view .spaceship .title{text-align:center;line-height:1.1;font-family:'Raleway',Helvetica,Arial,sans-serif;font-weight:normal}
+.landingapp-view .spaceship .top{height:80px;}
+.landingapp-view .spaceship .top .logo{top:20px;left:20px;position:absolute}
+.landingapp-view .spaceship .top .login{top:20px;right:20px;position:absolute;font-size:16px;font-family:'Raleway',Helvetica,Arial,sans-serif;font-weight:normal;color:#333}
+.landingapp-view .spaceship .title{font-size:28px;margin-top:60px}
+.landingapp-view .spaceship .middle .left{width:50%;margin:0 auto;}
+.landingapp-view .spaceship .middle .left img{display:block;width:100%;height:100%;margin:0 auto}
+.landingapp-view .spaceship .middle .right{display:block;width:75%;margin:0 auto;}
+.landingapp-view .spaceship .middle .right h2{text-align:center;font-size:18px;font-family:'Raleway',Helvetica,Arial,sans-serif;font-weight:normal;margin:10px 0}
+.landingapp-view .spaceship .middle .right p{text-align:center;font-size:14px;font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;color:#333;margin:0 auto 10px auto}
+.landingapp-view .spaceship .middle .right .invite-button{display:block;width:100%;max-width:550px;margin:0 auto 20px auto}
+.landingapp-view .spaceship .middle .right .invite-by-email{width:100%;max-width:550px;margin:0 auto;}
+.landingapp-view .spaceship .middle .right .invite-by-email textarea{display:inline-block;width:100%;height:45px;padding:10px;-webkit-box-sizing:border-box;-moz-box-sizing:border-box;box-sizing:border-box;resize:none}
+.landingapp-view .spaceship .middle .right .submit-email-addresses,.landingapp-view .spaceship .middle .right .invitations-sent{width:100%;text-align:center;font-size:18px;line-height:1.33;padding:10px 15px;color:#fff;-webkit-box-sizing:border-box;-moz-box-sizing:border-box;box-sizing:border-box;border:1px solid transparent;border-radius:6px}
+.landingapp-view .spaceship .middle .right .submit-email-addresses{background-color:#f0ad4e;border:1px solid #eea236;}
+.landingapp-view .spaceship .middle .right .submit-email-addresses:hover,.landingapp-view .spaceship .middle .right .submit-email-addresses:focus,.landingapp-view .spaceship .middle .right .submit-email-addresses:active{background-color:#ed9c28;border-color:#d58512}
+.landingapp-view .spaceship .middle .right .submit-email-addresses:active{-webkit-box-shadow:inset 0 3px 5px rgba(0,0,0,0.125);-moz-box-shadow:inset 0 3px 5px rgba(0,0,0,0.125);box-shadow:inset 0 3px 5px rgba(0,0,0,0.125)}
+.landingapp-view .spaceship .middle .right .invitations-sent{background-color:#5cb85c;border-color:#4cae4c;cursor:default}
+.landingapp-view .spaceship .middle .right hr{max-width:550px;margin:10px auto}
+.landingapp-view .spaceship .middle .right .share{width:100%;max-width:550px;text-align:center;margin:0 auto;}
+.landingapp-view .spaceship .middle .right .share .share-links{display:block;margin-top:10px}
+.landingapp-view .spaceship .middle .right .share h3{display:block;font-size:18px;font-family:'Raleway',Helvetica,Arial,sans-serif;font-weight:normal;margin:10px 0}
+.landingapp-view .spaceship .middle .right .share .referrer-url{display:inline-block;width:100%;height:34px;font-size:14px;color:#555;padding:10px 15px;border:1px solid #ccc;border-radius:4px;-webkit-box-shadow:inset 0 1px 1px rgba(0,0,0,0.075);-moz-box-shadow:inset 0 1px 1px rgba(0,0,0,0.075);box-shadow:inset 0 1px 1px rgba(0,0,0,0.075);-webkit-transition:border-color ease-in-out .15s;-moz-transition:border-color ease-in-out .15s;transition:border-color ease-in-out .15s;}
+.landingapp-view .spaceship .middle .right .share .referrer-url:focus{border-color:#66afe9;-webkit-box-shadow:inset 0 1px 1px rgba(0,0,0,0.075),0 0 8px rgba(102,175,233,0.6);-moz-box-shadow:inset 0 1px 1px rgba(0,0,0,0.075),0 0 8px rgba(102,175,233,0.6);box-shadow:inset 0 1px 1px rgba(0,0,0,0.075),0 0 8px rgba(102,175,233,0.6)}
+.landingapp-view .spaceship .middle .right .error-message{color:#b94a48;font-weight:bold;}
+.landingapp-view .spaceship .middle .right .error-message .email-list{font-weight:normal}
+@media only screen and (min-width: 768px){.landingapp-view .spaceship .top .title{font-size:56px}
+.landingapp-view .spaceship .middle{margin-top:40px;}
+.landingapp-view .spaceship .middle .left{display:block;width:100%;margin:0 auto;}
+.landingapp-view .spaceship .middle .left img{width:auto;height:auto}
+.landingapp-view .spaceship .middle .right{width:100%;max-width:680px;margin:0 auto;}
+.landingapp-view .spaceship .middle .right h2{font-size:28px}
+.landingapp-view .spaceship .middle .right .invite-button{max-width:550px}
+.landingapp-view .spaceship .middle .right .invite-by-email textarea{width:50%;max-width:270px}
+.landingapp-view .spaceship .middle .right .invite-by-email .submit-email-addresses,.landingapp-view .spaceship .middle .right .invite-by-email .invitations-sent{display:block;float:right;width:50%;max-width:270px}
+.landingapp-view .spaceship .middle .right hr{width:550px}
+.landingapp-view .spaceship .middle .right .share .referrer-url{max-width:435px}
+.landingapp-view .spaceship .middle .right .share .share-links{display:inline-block}
+}@media only screen and (min-width: 992px){.landingapp-view .spaceship .middle .left{display:block;float:left;width:50%;}
+.landingapp-view .spaceship .middle .left img{width:100%;height:100%}
+.landingapp-view .spaceship .middle .right{display:inline-block;width:50%;}
+.landingapp-view .spaceship .middle .right p{width:80%}
+.landingapp-view .spaceship .middle .right .invite-by-email{max-width:550px;}
+.landingapp-view .spaceship .middle .right .invite-by-email textarea{max-width:240px}
+.landingapp-view .spaceship .middle .right .invite-by-email .submit-email-addresses,.landingapp-view .spaceship .middle .right .invite-by-email .invitations-sent{width:50%;max-width:240px}
+.landingapp-view .spaceship .middle .right .share .referrer-url{max-width:370px}
+}@media only screen and (min-width: 1200px){.landingapp-view .spaceship .middle .left{width:50%;}
+.landingapp-view .spaceship .middle .left img{width:auto;height:auto}
+.landingapp-view .spaceship .middle .right .invite-button,.landingapp-view .spaceship .middle .right .invite-by-email,.landingapp-view .spaceship .middle .right hr,.landingapp-view .spaceship .middle .right .share{max-width:485px}
+.landingapp-view .spaceship .middle .right .share .referrer-url{max-width:370px}
+}
+body.landing{background-image:none;background-color:#efefef;}
+body.landing #kdmaincontainer.home > header{display:none}
+body.landing .landingapp-view{position:absolute;top:0;left:0;background-color:#efefef;z-index:1;}
+body.landing .landingapp-view .page-container{margin:0 auto;padding:0 15px}
+body.landing .landingapp-view .login:hover{cursor:pointer}
+body.landing .landingapp-view .invite-button{font-size:18px;text-align:center;line-height:1.33;border:1px solid transparent;border-radius:6px;padding:10px 16px;}
+body.landing .landingapp-view .invite-button.gmail{color:#fff;background-color:#428bca;border-color:#357eba;}
+body.landing .landingapp-view .invite-button.gmail:hover,body.landing .landingapp-view .invite-button.gmail:focus{text-decoration:none;background-color:#3276b1;border-color:#285e8e}
+body.landing .landingapp-view .invite-button.gmail:hover:hover,body.landing .landingapp-view .invite-button.gmail:focus:hover{text-decoration:none}
+body.landing .landingapp-view .invite-button.gmail:active{-webkit-box-shadow:inset 0 3px 5px rgba(0,0,0,0.125);-moz-box-shadow:inset 0 3px 5px rgba(0,0,0,0.125);box-shadow:inset 0 3px 5px rgba(0,0,0,0.125)}
+body.landing .landingapp-view .invite-button.gmail .icon{display:inline-block;vertical-align:middle;float:none;width:38px;height:38px;-webkit-box-sizing:border-box;-moz-box-sizing:border-box;box-sizing:border-box;background-image:url("../images/landing/gmail.png");background-position:0 0}
+@media only screen and (min-width: 768px){.landingapp-view .page-container{width:750px}
+}@media only screen and (min-width: 992px){.landingapp-view .page-container{width:970px}
+}@media only screen and (min-width: 1200px){.landingapp-view .page-container{width:1170px}
+}

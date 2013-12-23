@@ -223,7 +223,7 @@ module.exports = class JNewStatusUpdate extends JPost
     {context:{group}} = client
 
     JTag = require '../../tag'
-    JTag.one { slug : options.slug }, (err, tag)=>
+    JTag.one { slug : options.slug, group }, (err, tag)=>
       return callback err  if err
       return callback null, [] unless tag
 

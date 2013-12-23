@@ -48,7 +48,7 @@ checkFileCase = (fileName) ->
 
 module.exports = class Builder
 
-  spritePath   = './website/sprites'
+  spritePath   = './website/a/sprites'
   spriteHelper = null
 
   buildClient: (options) ->
@@ -61,7 +61,7 @@ module.exports = class Builder
 
     sprite.stylus
       path     : spritePath
-      httpPath : '/sprites'
+      httpPath : '/a/sprites'
       retina   : '@2x'
     , (err, helper)=>
       spriteHelper = helper

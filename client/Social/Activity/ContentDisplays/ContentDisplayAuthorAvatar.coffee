@@ -16,7 +16,7 @@ class ContentDisplayAuthorAvatar extends KDCustomHTMLView
     {hash} = account.profile
 
     host = "//#{location.host}/"
-    fallbackUrl = "url(http://www.gravatar.com/avatar/#{hash}?size=40&d=#{encodeURIComponent(host + '/images/defaultavatar/default.avatar.40.png')})"
+    fallbackUrl = "url(http://www.gravatar.com/avatar/#{hash}?size=40&d=#{encodeURIComponent(host + '/a/images/defaultavatar/default.avatar.40.png')})"
 
     """
       <span href='' style='background-image:#{fallbackUrl};'></span>

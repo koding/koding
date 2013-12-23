@@ -3,13 +3,11 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/gorilla/mux"
 	"io"
 	"koding/db/models"
 	"koding/db/mongodb"
 	"koding/kontrol/kontroldaemon/workerconfig"
-	"labix.org/v2/mgo"
-	"labix.org/v2/mgo/bson"
+	"koding/tools/config"
 	"log"
 	"net/http"
 	"net/url"
@@ -17,6 +15,10 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/gorilla/mux"
+	"labix.org/v2/mgo"
+	"labix.org/v2/mgo/bson"
 )
 
 type ApiWorker struct {
@@ -41,6 +43,13 @@ var StatusCode = map[models.WorkerStatus]string{
 	models.Killed:  "dead",
 	models.Dead:    "dead",
 }
+
+const (
+	WorkersCollection = "jKontrolWorkers"
+	WorkersDB         = "kontrol"
+)
+
+var kontrolDB = mongodb.NewMongoDB(config.Current.MongoKontrol)
 
 func GetWorkers(writer http.ResponseWriter, req *http.Request) {
 	queries, _ := url.ParseQuery(req.URL.RawQuery)
@@ -154,7 +163,7 @@ func queryResult(query bson.M, latestVersion bool, sortFields []string) Workers 
 		return nil
 	}
 
-	mongodb.Run("jKontrolWorkers", queryFunc)
+	kontrolDB.RunOnDatabase(WorkersDB, WorkersCollection, queryFunc)
 
 	// finding the largest number of a field in mongo is kinda problematic.
 	// therefore we are doing it on our side

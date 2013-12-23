@@ -34,13 +34,13 @@ class SpaceshipLandingPage extends LandingView
   pistachio: ->
     """
     <div class="top">
-      <img class="logo" src="/images/landing/logo.png" />
+      <img class="logo" src="/a/images/landing/logo.png" />
       {{> @login}}
       <header class="title">Share the <strong>power</strong> of Koding!</header>
     </div>
     <div class="middle">
       <div class="left">
-        <img src="/images/landing/spaceship.png" />
+        <img src="/a/images/landing/spaceship.png" />
       </div>
       <div class="right">
         <h2>Get up to <strong>16</strong> GB</h2>

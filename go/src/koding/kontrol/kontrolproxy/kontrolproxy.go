@@ -169,7 +169,7 @@ func (p *Proxy) setupLogging() {
 	}
 
 	logPath := "/var/log/koding/kontrolproxyCLH.log"
-	logFile, err := os.OpenFile(logPath, os.O_WRONLY|os.O_APPEND|os.O_CREATE, 0640)
+	logFile, err := os.OpenFile(logPath, os.O_WRONLY|os.O_APPEND|os.O_CREATE, 0755)
 	if err != nil {
 		log.Printf("err: '%s'. \nusing stderr for log destination\n", err)
 		p.LogDestination = os.Stderr

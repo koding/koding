@@ -35,7 +35,7 @@ module.exports = (options, callback)->
 
   hash    = profile.hash or ''
   avatar  = profile.avatar or no
-  bgImg   = "//gravatar.com/avatar/#{hash}?size=90&d=#{encodeURIComponent '//images/defaultavatar/default.avatar.90.png'}"
+  bgImg   = "//gravatar.com/avatar/#{hash}?size=90&d=#{encodeURIComponent '//a/images/defaultavatar/default.avatar.90.png'}"
   if avatar
     bgImg = "//i.embed.ly/1/display/crop?grow=false&width=90&height=90&key=94991069fb354d4e8fdb825e52d4134a&url=#{encodeURIComponent avatar}"
 
@@ -81,7 +81,7 @@ module.exports = (options, callback)->
     #         <div id="main-nav">
     #           <div class="avatar-placeholder">
     #             <div id="avatar-area">
-    #               <div class="avatarview avatar-image-wrapper" style="width: 160px; height: 76px; background-image: url(/images/defaultavatar/default.avatar.160.png);"></div>
+    #               <div class="avatarview avatar-image-wrapper" style="width: 160px; height: 76px; background-image: url(/a/images/defaultavatar/default.avatar.160.png);"></div>
     #             </div>
     #           </div>
     #           <div class="kdview actions">
