@@ -27,30 +27,6 @@ class TeamworkWorkspace extends CollaborativeWorkspace
         return if not joinedUser or joinedUser is KD.nick()
         @hidePlaygroundsButton()
 
-      # if @amIHost()
-      #   # currently only for host.
-      #   # bc of clients need to know host's vmName and active pane's file data etc.
-      #   activePanel    = @getActivePanel()
-      #   {previewPane}  = activePanel.paneLauncher
-      #   {viewerHeader} = previewPane.previewer
-      #   viewerHeader.addSubView new KDButtonView
-      #     cssClass : "clean-gray tw-previewer-button"
-      #     title    : "View active file"
-      #     callback : =>
-      #       @previewFile()
-
-      #   viewerHeader.addSubView @autoRefreshSwitch = new KDOnOffSwitch
-      #     defaultValue : off
-      #     cssClass     : "tw-live-update"
-      #     title        : "Auto Refresh: "
-      #     size         : "tiny"
-      #     tooltip      :
-      #       title      : "If it's on, preview will be refreshed when you save a file."
-      #       placement  : "bottom"
-
-      #   activePanel.getPaneByName("editor").on "EditorDidSave", =>
-      #     @refreshPreviewPane previewPane  if @autoRefreshSwitch.getValue()
-
     @on "WorkspaceUsersFetched", =>
       @workspaceRef.child("users").once "value", (snapshot) =>
         userStatus = snapshot.val()
