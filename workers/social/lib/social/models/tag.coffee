@@ -81,6 +81,8 @@ module.exports = class JTag extends jraphical.Module
           (signature Object, Function)
         removeTagFromStatus:
           (signature Object, Function)
+        fetchSynonym:
+          (signature Function)
         delete:
           (signature Function)
         fetchRandomFollowers:
@@ -288,6 +290,7 @@ module.exports = class JTag extends jraphical.Module
 
   @create$ = permit 'create tags',
     success: (client, data, callback)->
+      {connection:{delegate}} = client
       data.category = "user-tag"
       data.group = client.context.group
       create data, delegate, callback
@@ -314,13 +317,20 @@ module.exports = class JTag extends jraphical.Module
           create {title, group}, delegate, (err, tag) =>
             return callback err if err
             addSynonym tag
-        else if tag.status is 'synonym' #for preventing circular synonym definition
-          tag.fetchSynonym (err, synonym) =>
-            if String(synonym?.getId()) is String(@getId())
-              return callback new KodingError "Circular Synonym Definition!"
-            addSynonym tag
+        else if tag.status is "synonym" or tag.status is "deleted"
+          return callback new KodingError "##{tag.title} already set as #{tag.status}!"
         else
-          addSynonym tag
+          @checkChildSynonyms (err) =>
+            return callback err if err
+            addSynonym tag
+
+  checkChildSynonyms : (callback) =>
+    Relationship.one "targetId": @getId(), "as": "synonymOf", (err, childSynonym) =>
+      return callback err if err
+      if childSynonym
+        return callback new KodingError "##{@title} have child tags! You must first delete them"
+      callback null
+
 
   @findSuggestions = (client, seed, options, callback)->
     {limit, blacklist, skip, category} = options
@@ -331,7 +341,7 @@ module.exports = class JTag extends jraphical.Module
         _id     :
           $nin  : blacklist
         category: "user-tag"
-
+        status  : $ne : 'deleted'
       },{
         skip
         limit
@@ -384,6 +394,7 @@ module.exports = class JTag extends jraphical.Module
   @_some = (client, selector, options, callback)->
     selector.group    = makeGroupSelector client.context.group
     selector.category = "user-tag"
+    setSelectorStatus client, selector
     @some selector, options, callback
 
   @some$ = permit 'read tags', success: @_some
@@ -398,18 +409,21 @@ module.exports = class JTag extends jraphical.Module
       selector ?= {}
       selector.group    = makeGroupSelector client.context.group
       selector.category = "user-tag"
+      setSelectorStatus client, selector
       @count selector, callback
 
   @cursor$ = permit 'read tags',
     success:(client, selector, options, callback)->
       selector.group    = makeGroupSelector client.context.group
       selector.category = "user-tag"
+      setSelectorStatus client, selector
       @cursor selector, options, callback
 
   @each$ = permit 'read tags',
     success:(client, selector, fields, options, callback)->
       selector.group    = makeGroupSelector client.context.group
       selector.category = "user-tag"
+      setSelectorStatus client, selector
       @each selector, fields, options, callback
 
   @byRelevance$ = permit 'read tags',
@@ -500,4 +514,8 @@ module.exports = class JTag extends jraphical.Module
       return callback new KodingError "#{@status} topic cannot be followed"
     Followable = require '../traits/followable'
     Followable::follow.call this, client, options, callback
+
+  setSelectorStatus = (client, selector) ->
+    {connection:{delegate}} = client
+    # selector.status = $nin: ['deleted','synonym'] unless delegate.checkFlag 'super-admin'
 
