@@ -24,12 +24,15 @@ class ActivitySettingsView extends KDCustomHTMLView
     account        = KD.whoami()
     if post.originId is account.getId()
       menu =
-        'Edit'     :
-          callback : =>
+        'Edit'           :
+          callback       : =>
             @emit 'ActivityEditIsClicked'
-        'Delete'   :
-          callback : =>
+        'Delete'         :
+          callback       : =>
             @confirmDeletePost post
+        'Add System Tag' :
+          callback       : =>
+            @selectSystemTag post
 
       return menu
 
@@ -116,8 +119,23 @@ class ActivitySettingsView extends KDCustomHTMLView
       labels       : ["changelog","fixed"]
       multiple     : no
       size         : "tiny"
-      callback     : (value)=>
-        log value
+      callback     : (value)->
+        newTags = []
+        {JTag} = KD.remote.api
+        JTag.fetchSystemTags {title:value},limit:1, (err, systemTags)->
+          tag = systemTags.first
+          stringToAdd = "|#:JTag:#{tag.getId()}|"
+          post.body += " #{stringToAdd}"
+
+          newTags.push id:tag.getId() for tag in post.tags
+          options  =
+            body   : post.body
+            meta   :
+              tags : newTags
+
+          post.modify options, (err)->
+            log err if err
+
 
     modal.addSubView systemTags
 

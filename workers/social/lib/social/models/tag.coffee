@@ -426,7 +426,7 @@ module.exports = class JTag extends jraphical.Module
       callback new KodingError "That is not system tag!" unless @category is "system-tag"
       JNewStatusUpdate = require './messages/newstatusupdate'
       JNewStatusUpdate.one id:statusUpdate._id, (err, status)=>
-        callback err if err
+        callback err if err or not status
         Relationship.remove {
           targetId    : @getId()
           sourceId    : status.getId()
