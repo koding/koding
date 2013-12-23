@@ -26,6 +26,7 @@ services=(
   koding/workers/elasticsearchfeeder
   koding/workers/externals
   koding/workers/graphitefeeder
+  koding/workers/topicmodifier
 )
 
 go install -v -ldflags "$ldflags" "${services[@]}"
