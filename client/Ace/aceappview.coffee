@@ -18,7 +18,6 @@ class AceAppView extends JView
     @finderWrapper       = new KDCustomHTMLView
       tagName            : 'aside'
 
-    @embedFinder()
     @attachEvents()
     @attachAppMenuEvents()
 
@@ -125,7 +124,9 @@ class AceAppView extends JView
 
   viewAppended:->
     super
-    @utils.wait 100, => @addNewTab() if @tabView.panes.length is 0
+    @utils.wait 100, =>
+      @embedFinder()
+      @addNewTab() if @tabView.panes.length is 0
 
   addNewTab: (file) ->
     file = file or FSHelper.createFileFromPath 'localfile:/Untitled.txt'
