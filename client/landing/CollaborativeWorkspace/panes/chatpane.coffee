@@ -7,6 +7,7 @@ class ChatPane extends JView
 
     super options, data
 
+    @itemClass   = @getOptions().itemClass or ChatItem
     @unreadCount = 0
     @workspace   = @getDelegate()
     {@chatRef}   = @workspace
@@ -31,7 +32,9 @@ class ChatPane extends JView
     @input        = new KDHitEnterInputView
       placeholder : "Type your message and hit enter"
       callback    : =>
-        @sendMessage @input.getValue()
+        @sendMessage
+          message: @input.getValue()
+          by     : KD.nick()
         @input.setValue ""
         @input.setFocus()
 
@@ -58,27 +61,39 @@ class ChatPane extends JView
 
   isVisible: -> return @hasClass "active"
 
-  sendMessage: (message) ->
+  sendMessage: (messageData) ->
     message  =
       user   : { nickname: KD.nick() }
       time   : Date.now()
-      body   : message
+      body   : messageData.message
 
     @chatRef.child(message.time).set message
 
   addNew: (details) ->
     ownerNickname = details.user.nickname
+    ownerAccount  = @workspace.users[ownerNickname] or { nickname: ownerNickname }
+    params        = { details, ownerNickname, ownerAccount }
+
     if @lastChatItemOwner is ownerNickname
-      @lastChatItem.messageList.addSubView new KDCustomHTMLView
-        partial : Encoder.XSSEncode details.body
+      @appendToChatItem params
       @updateDate details.time
       return  @scrollToTop()
 
-    @lastChatItem      = new ChatItem details, @workspace.users[ownerNickname]
+    @createNewChatItem params
+
+  createNewChatItem: (params) ->
+    {details, ownerAccount, ownerNickname} = params
+    @lastChatItem      = new @itemClass details, ownerAccount
     @lastChatItemOwner = ownerNickname
     @messages.addSubView @lastChatItem
     @updateDate details.time
     @scrollToTop()
+
+  appendToChatItem: (params) ->
+    {details} = params
+    @lastChatItem.messageList.addSubView new KDCustomHTMLView
+      partial  : Encoder.XSSEncode details.body
+      cssClass : details.cssClass
 
   updateDate: (timestamp) ->
     @lastChatItem.timeAgo.setData new Date timestamp

@@ -72,7 +72,9 @@ class CollaborativeEditorPane extends CollaborativePane
 
   handleSave: ->
     @save()
-    @workspace.addToHistory "$0 saved #{@getData().name}"
+    @workspace.addToHistory
+      message: "$0 saved #{@getData().name}"
+      by     : KD.nick()
 
   setEditorTheme: ->
     if document.getElementById "codemirror-ambiance-style"

@@ -340,7 +340,7 @@ third.workspace.styl
     border-left         11px solid #191f21
   .messages
     size                auto, 257px
-    padding             15px
+    padding             15px 15px 0 15px
     overflow-y          auto
     border-left         11px solid #191f21
     bg                  color, #282F31
@@ -359,15 +359,19 @@ third.workspace.styl
     padding             10px 15px !important
     bg                  image, none !important
   .chat-item
-    size                224px, auto
+    size                239px, auto
     margin-bottom       12px
     border-bottom       1px solid #212728
     box-shadow          0 1px 0 #2F3739
+    .chat-item
+      margin-bottom     0
+      border-bottom     none
+      box-shadow        none
     .avatarview
       float             left
       margin-right      13px
     .items-container
-      width             181px
+      width             196px
       font-size         13px
       margin-bottom     10px
       .username
