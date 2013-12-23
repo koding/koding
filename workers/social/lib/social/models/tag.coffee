@@ -414,19 +414,27 @@ module.exports = class JTag extends jraphical.Module
     success: (client, seed, options, callback)->
       kallback = (err, tags) ->
         return callback err if err
-        result = []
+        resultMap = {}
         synonyms = []
         for tag in tags
-          unless tag.status is 'synonym' then result.push tag
+          tag.children = []
+          unless tag.status is 'synonym' then resultMap[tag.getId()] = tag
           else
+            childTag = tag
             synonyms.push ->
-              tag.fetchSynonym (err, synonym) ->
+              childTag.fetchSynonym (err, synonym) ->
                 if not err and synonym?
-                  synonym['synonymOf'] = tag
-                  result.push synonym
+                  resultMap[synonym.getId()] ?= synonym
+                  parentTag = resultMap[synonym.getId()]
+                  parentTag.children ?= []
+                  parentTag.children.push childTag.title
                 synonyms.fin()
 
-        dash synonyms, -> callback null, result
+        dash synonyms, ->
+          result = []
+          result.push val for key, val of resultMap
+          callback null, result
+
       @byRelevance client, seed, options, kallback
 
   @fetchSystemTags    = permit 'fetch system tag',
