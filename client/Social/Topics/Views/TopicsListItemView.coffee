@@ -38,6 +38,7 @@ class TopicsListItemView extends KDListItemView
     else
       @followButton = new KDCustomHTMLView tagName : 'span', cssClass : 'hidden'
 
+    @synonymInfo = new KDCustomHTMLView tagName : 'span', cssClass : 'hidden'
 
   getSettingsMenu:->
     menu = {}
@@ -54,6 +55,16 @@ class TopicsListItemView extends KDListItemView
 
   viewAppended:->
     @setClass "topic-item"
+    data = @getData()
+    if data.status is "synonym"
+      data.fetchSynonym (err, synonym) =>
+        return console.warn "synonym is not valid" if err
+        data.synonym = synonym
+        @addSubView new KDCustomHTMLView
+          tagName   : "span"
+          cssClass  : "synonym"
+          partial   : "Parent: #{data.synonym?.title}"
+
 
     @setTemplate @pistachio()
     @template.update()
@@ -87,6 +98,7 @@ class TopicsListItemView extends KDListItemView
       {{> @settingsButton}}
       <header>
         {h3{> @titleLink}} <span class="stats">{{#(status) or ''}}</span>
+        {{> @synonymInfo}}
       </header>
       <div class="stats">
         <a href="#">{{#(counts.post) or 0}}</a> Posts
