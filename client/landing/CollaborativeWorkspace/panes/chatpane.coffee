@@ -16,6 +16,9 @@ class ChatPane extends JView
     @createDock()
     @bindRemoteEvents()
 
+    @on "NewChatItemCreated", =>
+      @checkEmbeddableContent()
+
   bindRemoteEvents: ->
     @chatRef.on "child_added", (snapshot) =>
       unless @isVisible() or @getOptions().floating
@@ -87,16 +90,29 @@ class ChatPane extends JView
     @lastChatItemOwner = ownerNickname
     @messages.addSubView @lastChatItem
     @updateDate details.time
+    @lastMessage = @lastChatItem.message
+    @emit "NewChatItemCreated"
     @scrollToTop()
 
   appendToChatItem: (params) ->
-    {details} = params
-    @lastChatItem.messageList.addSubView new KDCustomHTMLView
+    {details}  = params
+    @lastChatItem.messageList.addSubView @lastMessage = new KDCustomHTMLView
       partial  : Encoder.XSSEncode details.body
-      cssClass : details.cssClass
+      cssClass : "tw-chat-message"
+
+    @emit "NewChatItemCreated"
 
   updateDate: (timestamp) ->
     @lastChatItem.timeAgo.setData new Date timestamp
+
+  checkEmbeddableContent: ->
+    element = @lastMessage.getElement()
+    content = element.innerHTML
+    isUrl   = /^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/.test content
+
+    if isUrl
+      element.innerHTML = "<a href='#{content}'>#{content}</a>"
+      element.classList.add "tw-chat-media"
 
   scrollToTop: ->
     $messages = @messages.$()
