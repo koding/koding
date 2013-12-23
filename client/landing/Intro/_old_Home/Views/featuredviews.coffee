@@ -94,13 +94,13 @@ class HomeFeaturedAppsListItemView extends KDListItemView
     if icns and (icns['256'] or icns['512'] or icns['128'] or icns['160'] or icns['64'])
       thumb = "#{KD.appsUri}/#{authorNick}/#{identifier}/#{version}/#{if icns then icns['256'] or icns['128'] or icns['160'] or icns['512'] or icns['64']}"
     else
-      thumb = "#{KD.apiUri + '/images/default.app.listthumb.png'}"
+      thumb = "#{KD.apiUri + '/a/images/default.app.listthumb.png'}"
 
     @thumbnail = new KDCustomHTMLView
       tagName     : "img"
       bind        : "error"
       error       : =>
-        @thumbnail.setAttribute "src", "/images/default.app.listthumb.png"
+        @thumbnail.setAttribute "src", "/a/images/default.app.listthumb.png"
       attributes  :
         src       : thumb
 
@@ -166,14 +166,14 @@ class HomeFeaturedAppsDetailsView extends JView
     if icns and (icns['256'] or icns['512'] or icns['128'] or icns['160'] or icns['64'])
       thumb = "#{KD.appsUri}/#{authorNick}/#{identifier}/#{version}/#{if icns then icns['256'] or icns['128'] or icns['160'] or icns['512'] or icns['64']}"
     else
-      thumb = "#{KD.apiUri + '/images/default.app.listthumb.png'}"
+      thumb = "#{KD.apiUri + '/a/images/default.app.listthumb.png'}"
 
     @thumbnail = new KDCustomHTMLView
       cssClass    : 'details-thumb'
       tagName     : "img"
       bind        : "error"
       error       : =>
-        @thumbnail.setAttribute "src", "/images/default.app.listthumb.png"
+        @thumbnail.setAttribute "src", "/a/images/default.app.listthumb.png"
       attributes  :
         src       : thumb
 

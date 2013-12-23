@@ -74,6 +74,7 @@ class CollaborativeFinderTreeController extends NFinderTreeController
     @emit "HistoryItemCreated",
       message  : "#{user} #{keyword} #{nodeData.name}"
       data     : { name, path, type }
+      by       : user
 
     super nodeView
 
