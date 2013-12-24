@@ -160,7 +160,7 @@ func TargetByBuild(buildKey string) (*Target, error) {
 		return nil, err
 	}
 
-	return newTarget(target, ModeInternal, time.Second*20), nil
+	return newTarget(target, ModeInternal, time.Second*1), nil
 }
 
 // MemTargetByHost is like TargetByHost with a difference, that it f first makes a
@@ -287,7 +287,7 @@ func internalTarget(domain *models.Domain) (*Target, error) {
 		return nil, err
 	}
 
-	return newTarget(target, ModeInternal, time.Second*20), nil
+	return newTarget(target, ModeInternal, time.Second*0), nil
 }
 
 var (
@@ -317,27 +317,32 @@ func newRing(list []string) *ring.Ring {
 	return r
 }
 
-func healtCheck(hosts *ring.Ring) {
-	for _ = range time.Tick(time.Second) {
+func healtCheck(hosts *ring.Ring, indexkey string) {
+	// make a copy of hosts and create a slice of those hosts for convenience
+	currentHosts := newSlice(hosts)
+	log.Println("starting healtcheck with", currentHosts)
+
+	for _ = range time.Tick(time.Second * 15) {
 		healthyHosts := make([]string, 0)
-		currentHosts := newSlice(hosts)
 
 		for _, host := range currentHosts {
+			host = utils.AddPort(host, "80")
 			err := utils.CheckServer(host)
 			if err != nil {
+				log.Println("error checking it", err)
 				continue
 			}
 
 			healthyHosts = append(healthyHosts, host)
-
 		}
 
-		if hosts.Len() != len(healthyHosts) {
-			// replace hosts with healthy ones
-			hosts = newRing(healthyHosts)
-		}
+		log.Println("alive hosts", healthyHosts)
+
+		// replace hosts with healthy ones
+		ringsMu.Lock()
+		rings[indexkey] = newRing(healthyHosts)
+		ringsMu.Unlock()
 	}
-
 }
 
 // buildTarget returns a target that is obtained via the jProxyServices
@@ -351,26 +356,34 @@ func buildTarget(username, servicename, key string) (*url.URL, error) {
 	indexKey := fmt.Sprintf("%s-%s-%s", username, servicename, key)
 	var r *ring.Ring
 	var ok bool
+	fmt.Println("indexkey is", indexKey)
 
 	ringsMu.Lock()
 	r, ok = rings[indexKey]
 	if !ok {
+		fmt.Println("no ring found, creating one")
 		hosts, err := buildHosts(username, servicename, key)
 		if err != nil {
 			ringsMu.Unlock()
 			return nil, err
 		}
 
+		fmt.Println("hosts are created", hosts)
 		r = newRing(hosts)
 		rings[indexKey] = r
+		go healtCheck(r, indexKey)
 	}
 	ringsMu.Unlock()
 
 	// get hostname and forward ring to the next value. the next value will be
 	// used on the next request
-	hostname = r.Value.(string)
-	r.Next()
-	rings[indexKey] = r
+	hostname, ok = r.Value.(string)
+	if !ok {
+		return nil, errors.New("no healthy hostname available")
+	}
+
+	fmt.Println("using hostname", hostname)
+	rings[indexKey] = r.Next()
 
 	// be sure that the hostname has scheme prependend
 	hostname = utils.CheckScheme(hostname)
@@ -378,6 +391,8 @@ func buildTarget(username, servicename, key string) (*url.URL, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	fmt.Println(" - ")
 
 	return target, nil
 }
