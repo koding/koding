@@ -200,6 +200,13 @@ class AccountEditUsername extends JView
           @uploadAvatar avatarBase64, =>
             @avatarChange.emit "LoadingEnd"
 
+  uploadAvatar: (avatarData, callback)->
+    FSHelper.s3.upload "avatar.png", avatarData, (err, url)=>
+      resized = KD.utils.proxifyUrl url,
+        crop: true, width: 300, height: 300
+
+      @account.modify "profile.avatar": "#{url}?#{Date.now()}", callback
+
   pistachio:->
 
     """
