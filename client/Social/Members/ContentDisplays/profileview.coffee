@@ -702,6 +702,6 @@ class ProfileView extends JView
       <div class="user-badges">
         {{> @badgeHeader}}
         {{> @userBadgesView}}
-        {{> @badgeItemsList}}
       </div>
+      {{> @badgeItemsList}}
     """
