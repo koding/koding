@@ -248,6 +248,7 @@ module.exports =
       switchHost  : "example.com"
     api           :
       port        : 8888
+      url         : "http://localhost"
     proxy         :
       port        : 80
       portssl     : 8081

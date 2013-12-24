@@ -23,6 +23,7 @@
     "cron"            : "1.0.1",
     "csv"             : "0.3.6",
     "dateformat"      : "1.0.2-1.2.3",
+    "deep-equal"      : "0.1.2",
     "embedly"         : "1.0.1",
     "express"         : "3.4.0",
     "formidable"      : "1.0.12",

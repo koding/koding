@@ -166,6 +166,6 @@ class FilterWarning extends JView
 
   showWarning:(tag)->
     @warning.updatePartial \
-      """You are now looking activities tagged with <strong>##{tag}</strong> """
+      """You are now looking at activities tagged with <strong>##{tag}</strong> """
 
     @show()

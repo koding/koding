@@ -14,7 +14,8 @@ class CollaborativeWorkspace extends Workspace
   createChat: ->
     chatPaneClass = @getOptions().chatPaneClass or ChatPane
     @container.addSubView @chatView = new chatPaneClass
-      delegate: this
+      delegate  : this
+      itemClass : TeamworkChatItem
 
     @chatView.hide()
 
@@ -53,7 +54,7 @@ class CollaborativeWorkspace extends Workspace
       @userRef.set "online"
       @userRef.onDisconnect().set "offline"
       record = if isOldSession then "$0 joined the session" else "$0 started the session"
-      @addToHistory record
+      @addToHistory { message: record, by: KD.nick() }
       @watchRef.child(@nickname).set "everybody"
 
       if @amIHost()
@@ -79,7 +80,7 @@ class CollaborativeWorkspace extends Workspace
           cssClass  : "error"
           sender    : name
 
-        @addToHistory message
+        @addToHistory { message, by: KD.nick() }
         @emit "SomeoneHasLeftSession", name
 
     @workspaceRef.on "child_removed", (snapshot) =>
@@ -334,7 +335,6 @@ class CollaborativeWorkspace extends Workspace
     data         = message: data  if typeof data is "string"
     data.message = data.message.replace "$0", KD.nick()
 
-    target.set data
     @emit "NewHistoryItemAdded", data
 
   broadcastMessage: (details) ->
