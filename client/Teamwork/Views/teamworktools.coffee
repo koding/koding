@@ -35,7 +35,7 @@ class TeamworkTools extends JView
       partial      : """
         <span class="icon"></span>
         <h3 class="text">Export and share</h3>
-        <p class="desc">Select a folder to export and share the link with your friends.</p>
+        <p class="desc">Choose the folder you’d like to share</p>
       """
       click        : =>
         if @hasShareElements
@@ -106,7 +106,7 @@ class TeamworkTools extends JView
     @sharePlaceholder.addSubView finder
     @sharePlaceholder.addSubView exportButton = new KDButtonView
       cssClass : "tw-export-button"
-      title    : "Click to start export"
+      title    : "Next"
       callback : => @export()
 
   export: ->
