@@ -57,7 +57,7 @@ With love from the Koding team.<br>
             tags.push id: data.getId()
             activity?.tags.push data
           else if data.$suggest
-            suggestedTags.push data.$suggest
+            suggestedTags.push data.$suggest unless data.$suggest in suggestedTags
 
     daisy queue = [
       ->
