@@ -4,6 +4,7 @@ forceTwoDigits = (val) ->
   return val
 
 formatDate = (date) ->
+  return ""  unless date
   year = date.getFullYear()
   month = date.getMonth()
   day = forceTwoDigits date.getDate()
@@ -115,6 +116,7 @@ decorateComment = (JAccount, comment, callback) ->
     if err
       console.error err
       callback err, null
+    return callback err, null  unless rel?.sourceId?
     sel = { "_id" : rel.sourceId}
 
     JAccount.one sel, (err, acc) =>

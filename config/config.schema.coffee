@@ -256,6 +256,7 @@ config =
         switchHost  : 1
       api           :
         port        : 1
+        url         : 1
       proxy         :
         port        : 1
         portssl     : 1

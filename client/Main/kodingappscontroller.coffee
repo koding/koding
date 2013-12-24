@@ -39,16 +39,13 @@ class KodingAppsController extends KDController
     # Remove app from head if exists, just for sure
     # $("head .internal-#{app.identifier}").remove()
 
-    log "PUT APP", app
-
     if $("head .internal-style-#{app.identifier}").length is 0 and app.style
 
       style        = new KDCustomHTMLView
         tagName    : "link"
         cssClass   : "internal-style-#{app.identifier}"
         bind       : 'load'
-        load       : ->
-          log "Style loaded? for #{name} # don't trust this ..."
+        # load       : ->
         attributes :
           rel      : "stylesheet"
           href     : "#{app.style}?#{KD.utils.uniqueId()}"

@@ -67,7 +67,7 @@ class WebTermAppView extends JView
 
       , =>
         KD.mixpanel "Can't open Webterm", {vmName}
-        @setMessage "Couldn't connect to your VM, please try again later. <a href='#'>close this</a> ", no, yes
+        @setMessage "Couldn't connect to your VM, please try again later. <a href='#'>close this</a>", no, yes
       , 5000
 
   showApprovalModal: (remote, command)->

@@ -1,93 +1,43 @@
-{ argv } = require 'optimist'
+request = require 'request'
 
-koding = require './bongo'
+supportedServices = ['broker']
 
-opsview = require 'koding-opsview-wrapper'
+getFailoverUrl = ->
+  { webProtocol: protocol, webHostname: hostname, webPort: port } =
+    KONFIG.broker
 
-parseServiceKey = require 'koding-service-key-parser'
+  # piece the url together from the config:
+  url = "#{ protocol }//#{ hostname }#{ if port then ":#{port}" else "" }"
 
-allServices = {}
-
-incService = (serviceKey, amount) ->
-  serviceInfo = parseServiceKey serviceKey
-
-  { serviceGenericName, serviceUniqueName } = serviceInfo
-
-  fetchHostname serviceGenericName, serviceUniqueName, (err, hostname) ->
-
-    allServices[serviceGenericName] ?= { seq: 0, services: {} }
-
-    genericServices = allServices[serviceGenericName].services
-
-    if genericServices[serviceUniqueName]?
-    then genericServices[serviceUniqueName].amount += amount
-    else genericServices[serviceUniqueName] = { amount, hostname }
-
-    if genericServices[serviceUniqueName].amount is 0
-      delete genericServices[serviceUniqueName]
-    else if genericServices[serviceUniqueName].amount < 0
-      console.error 'Negative service count!'
-
-koding.connect ->
-  opsview.send 'Services presence', 0, 'Service started'
-  koding.monitorPresence
-    join: (serviceKey) ->
-      incService serviceKey, 1
-    leave: (serviceKey) ->
-      incService serviceKey, -1
-
-fetchHostname = (serviceGenericName, serviceUniqueName, callback) ->
-  if 'broker' is serviceGenericName and not KONFIG.runKontrol
-    process.nextTick -> callback null,
-      if KONFIG.broker.webPort?
-      then "#{ KONFIG.broker.webHostname }:#{ KONFIG.broker.webPort }"
-      else KONFIG.broker.webHostname
+failover = (req, res, multi) ->  
+  if req.params.service is 'broker'
+    url = getFailoverUrl()
+    res.set 'Content-Type', 'application/json'
+    res.send if multi then [url] else JSON.stringify url
+    yes
   else
-    (koding.getClient().collection 'jKontrolWorkers')
-      .findOne {
-        serviceUniqueName
-        hostname  : ///^#{ serviceGenericName }///
-        status    : 0
-      }, { hostname: 1 }, (err, worker) ->
-          return callback err  if err?
-          callback null, worker?.hostname ? null
+    no
 
-module.exports = do (failing = no) -> (req, res) ->
-  { params:{ service }, query } = req
+module.exports = (req, res, next) ->
+  { params, query } = req
 
-  protocol = KONFIG.broker.webProtocol ? 'https:'
+  { service } = params
 
-  genericServices = allServices[service]
+  return next()  unless service in supportedServices
 
-  { services: s } = genericServices
+  multi = query.all?
 
-  services =
-    Object.keys(s).map( (k) ->
-      { hostname } = s[k]
-      unless hostname?
-        console.warn """
-          Could not find that hostname:
-          #{k}
-          #{require('util').inspect genericServices.services[k]}
-          """
-      return hostname
-    ).filter Boolean
+  if KONFIG.runKontrol # let kontrol provide the url
 
-  res.set "Content-Type", "text/json"
+    url = "#{ KONFIG.kontrold.api.url }/workers/url/#{ service }#{
+      if multi
+      then '?all'
+      else ''
+    }"
 
-  if query.all?
-    res.send services.map (hostname) -> "#{ protocol }//#{ hostname }"
+    request(url)
+      .on('error', (err) -> next err  unless failover req, res, multi)
+      .pipe(res)
 
-  else if services.length is 0
-    # FAILURE! send an alert to opsview.
-    unless failing
-      failing = yes
-      opsview.send 'Services presence', 2, 'Service loadbalancing failure detected!'
-    # Fail-over to the value hard-coded into the config.
-    { webHostname, webPort } = KONFIG.broker
-    res.send "\"#{ protocol }//#{ webHostname }#{ if webHostname.port then ":#{webHostname.port}" else "" }\""
-
-  else
-    failing = no
-    i = genericServices.seq++ % services.length
-    res.send "\"#{ protocol }//#{ services[i] }\""
+  else # handle fail over
+    next()  unless failover req, res, multi
