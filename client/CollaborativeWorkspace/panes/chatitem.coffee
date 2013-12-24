@@ -8,8 +8,8 @@ class ChatItem extends JView
 
     @createAvatar()
 
-    {user}       = @getOptions()
-    ownMessage   = user.nickname is KD.nick()
+    {user, time, body} = @getOptions()
+    ownMessage         = user.nickname is KD.nick()
 
     @messageList = new KDView
       cssClass   : "items-container"
@@ -20,11 +20,14 @@ class ChatItem extends JView
 
     @header.addSubView @timeAgo = new KDTimeAgoView
       cssClass   : "time-ago"
-    , new Date @getOptions().time
+    , new Date time
+
+    body = Encoder.XSSEncode(body).split("\n").map (text) =>
+      "<p class='tw-chat-para'>#{text}</p>"
 
     @messageList.addSubView @message = new KDCustomHTMLView
       cssClass   : "tw-chat-body"
-      partial    : Encoder.XSSEncode @getOptions().body
+      partial    : body
 
     @setClass "mine" if ownMessage
 
