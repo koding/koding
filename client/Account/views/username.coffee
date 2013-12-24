@@ -87,7 +87,9 @@ class AccountEditUsername extends JView
 
           new VerifyPINModal 'Update E-Mail', (pin)=>
             KD.remote.api.JUser.changeEmail {email, pin}, (err)=>
-              notify if err then err.message else "E-mail changed!"
+              if err
+                notify err.message
+                profileUpdated = false
               queue.next()
       =>
         # on third turn update password
