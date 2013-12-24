@@ -10,7 +10,9 @@ createLinkToStatusUpdate = (createDate, slug) ->
 
 createStatusUpdateNode = (statusUpdate, authorFullName, authorNickname)->
   { formatDate } = require '../helpers'
-  createdAt = formatDate statusUpdate.meta.createdAt
+  createdAt = ""
+  if statusUpdate?.meta?.createdAt?
+    createdAt = formatDate statusUpdate.meta.createdAt
   linkToStatusUpdate = createLinkToStatusUpdate createdAt, statusUpdate.slug
   statusUpdateContent = ""
   if statusUpdate.body
