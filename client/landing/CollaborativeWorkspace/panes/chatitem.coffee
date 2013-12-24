@@ -16,7 +16,7 @@ class ChatItem extends JView
 
     @messageList.addSubView @header = new KDCustomHTMLView
       cssClass   : "username"
-      partial    : if ownMessage then "Me" else "#{user.nickname}"
+      partial    : if ownMessage then "Me" else @getUsername()
 
     @header.addSubView @timeAgo = new KDTimeAgoView
       cssClass   : "time-ago"
@@ -27,6 +27,9 @@ class ChatItem extends JView
       partial    : Encoder.XSSEncode @getOptions().body
 
     @setClass "mine" if ownMessage
+
+  getUsername: ->
+    return "#{@getOptions().user.nickname}"
 
   createAvatar: ->
     @avatar      = new AvatarView
