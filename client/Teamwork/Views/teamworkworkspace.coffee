@@ -86,7 +86,7 @@ class TeamworkWorkspace extends CollaborativeWorkspace
     @destroySubViews()
 
     @forceDisconnect()
-    @firepadRef.child(sessionKey).once "value", (snapshot) =>
+    @firebaseRef.child(sessionKey).once "value", (snapshot) =>
       value = snapshot.val()
       {playground, playgroundManifest} = value  if value
 

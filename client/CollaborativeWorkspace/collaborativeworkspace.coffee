@@ -25,9 +25,9 @@ class CollaborativeWorkspace extends Workspace
     unless instanceName
       return warn "CollaborativeWorkspace requires a Firebase instance."
 
-    @firepadRef   = new Firebase "https://#{instanceName}.firebaseio.com/"
+    @firebaseRef  = new Firebase "https://#{instanceName}.firebaseio.com/"
     @sessionKey   = @getOptions().sessionKey or @createSessionKey()
-    @workspaceRef = @firepadRef.child @sessionKey
+    @workspaceRef = @firebaseRef.child @sessionKey
     @broadcastRef = @workspaceRef.child "broadcast"
     @historyRef   = @workspaceRef.child "history"
     @chatRef      = @workspaceRef.child "chat"

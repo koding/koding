@@ -8,7 +8,7 @@ class CollaborativeEditorPane extends CollaborativePane
 
     @container.on "viewAppended", =>
       @createEditor()
-      @ref        = @workspace.firepadRef.child @sessionKey
+      @ref        = @workspace.firebaseRef.child @sessionKey
       @firepad    = Firepad.fromCodeMirror @ref, @codeMirrorEditor
 
       @firepad.on "ready", =>
