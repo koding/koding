@@ -40,7 +40,7 @@ class WebTerm.Terminal
     @cursor            = new WebTerm.Cursor(this)
     @controlCodeReader = WebTerm.createAnsiControlCodeReader(this)
 
-    @measurebox = $("div")
+    @measurebox = $("<div/>")
     @measurebox.css
       position   : "absolute"
       visibility : "hidden"
