@@ -347,7 +347,6 @@ module.exports = class JTag extends jraphical.Module
         _id     :
           $nin  : blacklist
         category: "user-tag"
-        status  : $ne : 'deleted'
       },{
         skip
         limit
@@ -434,30 +433,33 @@ module.exports = class JTag extends jraphical.Module
 
   @byRelevance$ = permit 'read tags',
     success: (client, seed, options, callback)->
-      kallback = (err, tags) ->
+      filterSynonyms = (err, tags) ->
         return callback err if err
         resultMap = {}
+        deletedTags = []
         synonyms = []
         for tag in tags
           tag.children = []
-          unless tag.status is 'synonym' then resultMap[tag.getId()] = tag
-          else
-            childTag = tag
-            synonyms.push ->
-              childTag.fetchSynonym (err, synonym) ->
-                if not err and synonym?
-                  resultMap[synonym.getId()] ?= synonym
-                  parentTag = resultMap[synonym.getId()]
-                  parentTag.children ?= []
-                  parentTag.children.push childTag.title
-                synonyms.fin()
+          switch tag.status
+            when 'deleted' then deletedTags.push tag.title
+            when 'synonym'
+              childTag = tag
+              synonyms.push ->
+                childTag.fetchSynonym (err, synonym) ->
+                  if not err and synonym?
+                    resultMap[synonym.getId()] ?= synonym
+                    parentTag = resultMap[synonym.getId()]
+                    parentTag.children ?= []
+                    parentTag.children.push childTag.title
+                  synonyms.fin()
+            else resultMap[tag.getId()] = tag
 
         dash synonyms, ->
           result = []
           result.push val for key, val of resultMap
-          callback null, result
+          callback null, result, deletedTags
 
-      @byRelevance client, seed, options, kallback
+      @byRelevance client, seed, options, filterSynonyms
 
   @fetchSystemTags    = permit 'fetch system tag',
    success: (client, selector, options, callback)->
