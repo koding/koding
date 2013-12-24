@@ -1,6 +1,7 @@
 package resolver
 
 import (
+	"container/ring"
 	"errors"
 	"fmt"
 	"koding/db/models"
@@ -154,7 +155,12 @@ func TargetByBuild(buildKey string) (*Target, error) {
 	username := "koding"
 	servicename := "server"
 
-	return buildTarget(username, servicename, buildKey)
+	target, err := buildTarget(username, servicename, buildKey)
+	if err != nil {
+		return nil, err
+	}
+
+	return newTarget(target, ModeInternal, time.Second*20), nil
 }
 
 // MemTargetByHost is like TargetByHost with a difference, that it f first makes a
@@ -276,40 +282,7 @@ func internalTarget(domain *models.Domain) (*Target, error) {
 	servicename := domain.Proxy.Servicename
 	key := domain.Proxy.Key
 
-	return buildTarget(username, servicename, key)
-}
-
-// buildTarget returns a target that is obtained via the jProxyServices
-// collection, which is used for internal services. An example service to
-// target could be in form: "koding, server, 950" ->
-// "webserver-950.sj.koding.com:3000". The default cacheTimeout is 20 seconds.
-func buildTarget(username, servicename, key string) (*Target, error) {
-	var hostname string
-
-	hosts, balanceMode, err := buildHosts(username, servicename, key)
-	if err != nil {
-		return nil, err
-	}
-
-	switch balanceMode {
-	case "roundrobin":
-		var n int
-		indexKey := fmt.Sprintf("%s-%s-%s", username, servicename, key)
-		index := getIndex(indexKey) // gives 0 if not available
-		hostname, n = internalRoundRobin(hosts, index, 0)
-		addOrUpdateIndex(indexKey, n)
-		if hostname == "" { // means all servers are dead, show maintenance page
-			return newTarget(nil, ModeMaintenance, time.Second*20), nil
-		}
-	case "random":
-		randomIndex := rand.Intn(len(hosts) - 1)
-		hostname = hosts[randomIndex]
-	default:
-		hostname = hosts[0]
-	}
-
-	hostname = utils.CheckScheme(hostname)
-	target, err := url.Parse(hostname)
+	target, err := buildTarget(username, servicename, key)
 	if err != nil {
 		return nil, err
 	}
@@ -317,8 +290,100 @@ func buildTarget(username, servicename, key string) (*Target, error) {
 	return newTarget(target, ModeInternal, time.Second*20), nil
 }
 
-// buildHosts returns a list of targe thosts for the given build paramaters.
-func buildHosts(username, servicename, key string) ([]string, string, error) {
+var (
+	rings   = make(map[string]*ring.Ring)
+	ringsMu sync.Mutex
+)
+
+// newSlice returns a new slice populated with the given ring items.
+func newSlice(r *ring.Ring) []string {
+	list := make([]string, r.Len())
+	for i := 0; i < r.Len(); i++ {
+		list[i] = r.Value.(string)
+		r = r.Next()
+	}
+
+	return list
+}
+
+// newRing creates a new ring sturct populated with the given list items.
+func newRing(list []string) *ring.Ring {
+	r := ring.New(len(list))
+	for _, val := range list {
+		r.Value = val
+		r = r.Next()
+	}
+
+	return r
+}
+
+func healtCheck(hosts *ring.Ring) {
+	for _ = range time.Tick(time.Second) {
+		healthyHosts := make([]string, 0)
+		currentHosts := newSlice(hosts)
+
+		for _, host := range currentHosts {
+			err := utils.CheckServer(host)
+			if err != nil {
+				continue
+			}
+
+			healthyHosts = append(healthyHosts, host)
+
+		}
+
+		if hosts.Len() != len(healthyHosts) {
+			// replace hosts with healthy ones
+			hosts = newRing(healthyHosts)
+		}
+	}
+
+}
+
+// buildTarget returns a target that is obtained via the jProxyServices
+// collection, which is used for internal services. An example service to
+// target could be in form: "koding, server, 950" ->
+// "webserver-950.sj.koding.com:3000".
+func buildTarget(username, servicename, key string) (*url.URL, error) {
+	var hostname string
+
+	// generate unique key
+	indexKey := fmt.Sprintf("%s-%s-%s", username, servicename, key)
+	var r *ring.Ring
+	var ok bool
+
+	ringsMu.Lock()
+	r, ok = rings[indexKey]
+	if !ok {
+		hosts, err := buildHosts(username, servicename, key)
+		if err != nil {
+			ringsMu.Unlock()
+			return nil, err
+		}
+
+		r = newRing(hosts)
+		rings[indexKey] = r
+	}
+	ringsMu.Unlock()
+
+	// get hostname and forward ring to the next value. the next value will be
+	// used on the next request
+	hostname = r.Value.(string)
+	r.Next()
+	rings[indexKey] = r
+
+	// be sure that the hostname has scheme prependend
+	hostname = utils.CheckScheme(hostname)
+	target, err := url.Parse(hostname)
+	if err != nil {
+		return nil, err
+	}
+
+	return target, nil
+}
+
+// buildHosts returns a list of target hosts for the given build parameters.
+func buildHosts(username, servicename, key string) ([]string, error) {
 	latestKey := modelhelper.GetLatestKey(username, servicename)
 	if latestKey == "" {
 		latestKey = key
@@ -329,18 +394,18 @@ func buildHosts(username, servicename, key string) ([]string, string, error) {
 		currentVersion, _ := strconv.Atoi(key)
 		latestVersion, _ := strconv.Atoi(latestKey)
 		if currentVersion < latestVersion {
-			return nil, "", ErrGone
+			return nil, ErrGone
 		} else {
-			return nil, "", fmt.Errorf("no keyData for username '%s', servicename '%s' and key '%s'",
+			return nil, fmt.Errorf("no keyData for username '%s', servicename '%s' and key '%s'",
 				username, servicename, key)
 		}
 	}
 
 	if !keyData.Enabled {
-		return nil, "", errors.New("host is not allowed to be used")
+		return nil, errors.New("host is not allowed to be used")
 	}
 
-	return keyData.Host, keyData.LoadBalancer.Mode, nil
+	return keyData.Host, nil
 }
 
 // vmTarget returns a target that is obtained via the jVMs collections. The
