@@ -166,14 +166,39 @@ class TopicsAppController extends AppController
             fields                :
               Synonym             :
                 label             : "Synonym"
-                itemClass         : KDInputView
-                name              : "synonym"
+                type              : "hidden"
             callback              : (formData) =>
-              topic.createSynonym formData.synonym.trim(), (err) ->
+              showStatus = (status) =>
+                modal.modalTabs.forms.synonym.buttons.Confirm.hideLoader()
                 new KDNotificationView
-                  title : if err then err.message else "Synonym is set successfully"
-                # modal.modalTabs.forms.synonym.buttons.Confirm.hideLoader()
+                  title : status
+              unless formData.synonyms?.length
+                return showStatus "You must choose parent topic first"
+
+              [synonym] = formData.synonyms
+              title = if synonym.$suggest then synonym.$suggest.trim() else synonym.title
+              topic.createSynonym title, (err) ->
+                status = if err then err.message else "Parent Topic is set successfully"
+                showStatus status
                 modal.destroy()
+
+    {fields, inputs} = modal.modalTabs.forms["synonym"]
+    @synonymController = new TagAutoCompleteController
+      form              : modal.modalTabs.forms["synonym"]
+      width             : 300
+      name              : "synonym"
+      itemClass         : TagAutoCompleteItemView
+      itemDataPath      : "title"
+      selectedItemClass : TagAutoCompletedItemView
+      submitValueAsText : yes
+      selectedItemsLimit: 1
+      dataSource : (args, callback) =>
+        {inputValue} = args
+        KD.singleton("appManager").tell "Topics", "fetchTopics", {inputValue}, (tags = [], deletedTags = []) =>
+          if not tags then @synonymController.showNoDataFound()
+          else callback tags
+
+    fields.Synonym.addSubView userRequestLineEdit = @synonymController.getView()
 
   updateTopic:(topicItem)->
     topic = topicItem.data
