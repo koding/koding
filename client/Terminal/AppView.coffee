@@ -17,7 +17,7 @@ class WebTermView extends KDView
       @container.$().scrollLeft 0
     @addSubView @container
 
-    @terminal = new WebTerm.Terminal @container.$()
+    @terminal = new WebTerm.Terminal @container
     # KD.track "userOpenedTerminal", KD.getSingleton("groupsController").getCurrentGroup()
     @options.advancedSettings ?= no
     if @options.advancedSettings
@@ -68,6 +68,10 @@ class WebTermView extends KDView
     @bindEvent 'contextmenu'
 
     @connectToTerminal()
+
+    @getDelegate().on 'KDTabPaneActive', =>
+      @terminal.setSize 100, 100
+      @terminal.updateSize yes
 
   connectToTerminal:->
 

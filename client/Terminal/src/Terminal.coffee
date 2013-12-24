@@ -123,10 +123,10 @@ class WebTerm.Terminal
         elements.push div
       @measurebox.empty()
       @measurebox.append elements
-      newWidth = Math.max width, Math.floor(@pixelWidth / @measurebox.width() * width)
-      newHeight = Math.max height, Math.floor(@pixelHeight / @measurebox.height() * height)
       break if newWidth is width and newHeight is height
       break if newWidth > 1000 or newHeight > 1000 # sanity check
+      newWidth  = Math.max width,  Math.floor @pixelWidth  / @measurebox.width()  * width
+      newHeight = Math.max height, Math.floor @pixelHeight / @measurebox.height() * height
       width = newWidth
       height = newHeight
 
@@ -220,15 +220,15 @@ class WebTerm.Terminal
   changeScreenBuffer: (index) ->
 
   isScrolledToBottom: ->
-    @container.scrollTop() + @container.prop("clientHeight") >= @container.prop("scrollHeight") - 3
+    @container.scrollTop() + @parent.getHeight() >= @container.prop("scrollHeight") - 3
 
   scrollToBottom: (animate=no) ->
     return if @isScrolledToBottom()
     @container.stop()
     if animate
-      @container.animate { scrollTop: @container.prop("scrollHeight") - @container.prop("clientHeight") }, duration: 200
+      @container.animate { scrollTop: @container.prop("scrollHeight") - @parent.getHeight() }, duration: 200
     else
-      @container.scrollTop(@container.prop("scrollHeight") - @container.prop("clientHeight"))
+      @container.scrollTop(@container.prop("scrollHeight") - @parent.getHeight())
 
   setScrollbackLimit: (limit) ->
     @screenBuffer.scrollbackLimit = limit
