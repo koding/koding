@@ -264,7 +264,7 @@ class TeamworkWorkspace extends CollaborativeWorkspace
         @showActivityWidget()
         @hideShareButtons()
 
-        KD.mixpanel "Click Teamwork Invite", {sessionKey}
+        KD.mixpanel "Click Teamwork Invite", {@sessionKey}
 
     panel.addSubView @exportWorkspace = new KDButtonView
       cssClass : "export-workspace tw-rounded-button hidden"
