@@ -34,21 +34,24 @@ class WebTermAppView extends JView
       partial    : 'Loading Terminal...'
 
     @tabView.on 'AllTabsClosed', =>
-      @setMessage """
-        All tabs are closed. You can create a new
-        Terminal by clicking (+) Plus button on top left.
-      """, yes
+      @setMessage "All tabs are closed. <a class='plus' href='#'>Click to open a new Terminal</a>.", no, yes
 
-  setMessage:(msg, light = no, bindClose = no)->
+  setMessage:(msg, light = no, bindClick = no)->
     @messagePane.updatePartial msg
     if light
     then @messagePane.setClass   'light'
     else @messagePane.unsetClass 'light'
     @messagePane.show()
-    if bindClose
-      @messagePane.once 'click', ->
-        KD.singleton('router').back()
-        KD.singleton('appManager').quitByName 'Terminal'
+
+    if bindClick
+      @messagePane.once 'click', (event)=>
+        KD.utils.stopDOMEvent event
+        if $(event.target).hasClass 'close'
+          KD.singleton('router').back()
+          KD.singleton('appManager').quitByName 'Terminal'
+        else if $(event.target).hasClass 'plus'
+          @addNewTab()
+
 
   checkVM:->
 
@@ -67,7 +70,7 @@ class WebTermAppView extends JView
 
       , =>
         KD.mixpanel "Can't open Webterm", {vmName}
-        @setMessage "Couldn't connect to your VM, please try again later. <a href='#'>close this</a> ", no, yes
+        @setMessage "Couldn't connect to your VM, please try again later. <a class='close' href='#'>close this</a>", no, yes
       , 5000
 
   showApprovalModal: (remote, command)->
@@ -198,9 +201,9 @@ class WebTermAppView extends JView
 
   pistachio: ->
     """
-      {{> @tabHandleContainer}}
-      {{> @messagePane}}
-      {{> @tabView}}
+    {{> @tabHandleContainer}}
+    {{> @messagePane}}
+    {{> @tabView}}
     """
 
 class ChromeTerminalBanner extends JView

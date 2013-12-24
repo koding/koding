@@ -43,6 +43,7 @@ type Config struct {
 		KeyFile         string
 		AuthExchange    string
 		AuthAllExchange string
+		WebProtocol     string
 	}
 	Loggr struct {
 		Push   bool
@@ -82,6 +83,7 @@ type Config struct {
 		}
 		Api struct {
 			Port int
+			URL  string
 		}
 		Proxy struct {
 			Port    int

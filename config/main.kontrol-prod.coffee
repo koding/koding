@@ -161,7 +161,7 @@ module.exports =
       broker    :
         servicesEndpoint: "/-/services/broker"
         sockJS   : "https://broker-#{version}.koding.com/subscribe"
-      apiUri    : 'https://www.koding.com'
+      apiUri    : 'https://koding.com'
       appsUri   : 'https://koding-apps.s3.amazonaws.com'
       uploadsUri: 'https://koding-uploads.s3.amazonaws.com'
       sourceUri : "http://webserver-#{version}a.sj.koding.com:1337"
@@ -243,6 +243,7 @@ module.exports =
       switchHost  : "koding.com"
     api           :
       port        : 80
+      url         : "http://kontrol0.sj.koding.com"
     proxy         :
       port        : 80
       portssl     : 443

@@ -3,20 +3,24 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/gorilla/mux"
 	"io"
 	"koding/db/models"
 	"koding/db/mongodb"
 	"koding/kontrol/kontroldaemon/workerconfig"
-	"labix.org/v2/mgo"
-	"labix.org/v2/mgo/bson"
+	"koding/tools/config"
 	"log"
+	"math"
 	"net/http"
 	"net/url"
 	"sort"
 	"strconv"
 	"strings"
+	"sync/atomic"
 	"time"
+
+	"github.com/gorilla/mux"
+	"labix.org/v2/mgo"
+	"labix.org/v2/mgo/bson"
 )
 
 type ApiWorker struct {
@@ -40,6 +44,114 @@ var StatusCode = map[models.WorkerStatus]string{
 	models.Waiting: "waiting",
 	models.Killed:  "dead",
 	models.Dead:    "dead",
+}
+
+const (
+	WorkersCollection = "jKontrolWorkers"
+	WorkersDB         = "kontrol"
+)
+
+var (
+	kontrolDB = mongodb.NewMongoDB(config.Current.MongoKontrol)
+
+	// used for loadbalance modes, like roundrobin or random
+	index AtomicUint32
+)
+
+func GetWorkerURL(writer http.ResponseWriter, req *http.Request) {
+	vars := mux.Vars(req)
+	workerName := vars["workername"]
+
+	queries, _ := url.ParseQuery(req.URL.RawQuery)
+	worker := models.Worker{}
+	workers := make(Workers, 0)
+
+	query := func(c *mgo.Collection) error {
+		iter := c.Find(bson.M{"name": workerName}).Iter()
+		for iter.Next(&worker) {
+			apiWorker := &ApiWorker{
+				worker.Name,
+				worker.ServiceGenericName,
+				worker.ServiceUniqueName,
+				worker.Uuid,
+				worker.Hostname,
+				worker.Version,
+				worker.Timestamp,
+				worker.Pid,
+				StatusCode[worker.Status],
+				worker.Monitor.Uptime,
+				worker.Port,
+			}
+
+			workers = append(workers, *apiWorker)
+		}
+
+		return nil
+	}
+
+	kontrolDB.RunOnDatabase(WorkersDB, WorkersCollection, query)
+
+	// use http for all workers because they don't have ssl certs
+	protocolScheme := "http:"
+
+	// broker has ssl cert and a custom url scheme, look what it's it
+	if workerName == "broker" {
+		if config.Current.Broker.WebProtocol != "" {
+			protocolScheme = config.Current.Broker.WebProtocol
+		} else {
+			protocolScheme = "https:" // fallback
+		}
+	}
+
+	// ann
+	hostnames := make([]string, len(workers))
+	for i, worker := range workers {
+		hostnames[i] = fmt.Sprintf("%s//%s", protocolScheme, worker.Hostname)
+	}
+
+	var data []byte
+	var err error
+
+	_, ok := queries["all"]
+	if ok {
+		// return all hostnames back
+		data, err = json.MarshalIndent(hostnames, "", "  ")
+		if err != nil {
+			io.WriteString(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err))
+			return
+		}
+	} else {
+		// return only one hostname back, roundrobin
+		oldIndex := index.Get() // gives 0 for first time
+
+		N := float64(len(hostnames))
+		newIndex := int(math.Mod(float64(oldIndex+1), N))
+		hostname := hostnames[newIndex]
+
+		index.CompareAndSwap(oldIndex, uint32(newIndex))
+
+		data = []byte(fmt.Sprintf("\"%s\"", hostname))
+	}
+
+	writer.Write(data)
+}
+
+type AtomicUint32 uint32
+
+func (i *AtomicUint32) Add(n uint32) uint32 {
+	return atomic.AddUint32((*uint32)(i), n)
+}
+
+func (i *AtomicUint32) Set(n uint32) {
+	atomic.StoreUint32((*uint32)(i), n)
+}
+
+func (i *AtomicUint32) Get() uint32 {
+	return atomic.LoadUint32((*uint32)(i))
+}
+
+func (i *AtomicUint32) CompareAndSwap(oldval, newval uint32) (swapped bool) {
+	return atomic.CompareAndSwapUint32((*uint32)(i), oldval, newval)
 }
 
 func GetWorkers(writer http.ResponseWriter, req *http.Request) {
@@ -95,6 +207,64 @@ func GetWorkers(writer http.ResponseWriter, req *http.Request) {
 
 }
 
+func queryResult(query bson.M, latestVersion bool, sortFields []string) Workers {
+	workers := make(Workers, 0)
+	worker := models.Worker{}
+
+	queryFunc := func(c *mgo.Collection) error {
+		// sorting is no-op when sortFields is empty
+		iter := c.Find(query).Sort(sortFields...).Iter()
+		for iter.Next(&worker) {
+			apiWorker := &ApiWorker{
+				worker.Name,
+				worker.ServiceGenericName,
+				worker.ServiceUniqueName,
+				worker.Uuid,
+				worker.Hostname,
+				worker.Version,
+				worker.Timestamp,
+				worker.Pid,
+				StatusCode[worker.Status],
+				worker.Monitor.Uptime,
+				worker.Port,
+			}
+
+			workers = append(workers, *apiWorker)
+		}
+		return nil
+	}
+
+	kontrolDB.RunOnDatabase(WorkersDB, WorkersCollection, queryFunc)
+
+	// finding the largest number of a field in mongo is kinda problematic.
+	// therefore we are doing it on our side
+	if latestVersion {
+		versions := make([]int, len(workers))
+
+		if len(workers) == 0 {
+			return workers
+		}
+
+		for i, val := range workers {
+			versions[i] = val.Version
+		}
+
+		sort.Ints(versions)
+		maxVersion := versions[len(versions)-1] // get largest version number
+
+		filteredWorkers := make(Workers, 0)
+		for _, val := range workers {
+			if maxVersion == val.Version {
+				filteredWorkers = append(filteredWorkers, val)
+			}
+		}
+
+		return filteredWorkers
+	}
+
+	return workers
+}
+
 func GetWorker(writer http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
 	uuid := vars["uuid"]
@@ -125,64 +295,6 @@ func DeleteWorker(writer http.ResponseWriter, req *http.Request) {
 	buildSendCmd("delete", uuid)
 	resp := fmt.Sprintf("worker: '%s' is deleted from db", uuid)
 	io.WriteString(writer, resp)
-}
-
-func queryResult(query bson.M, latestVersion bool, sortFields []string) Workers {
-	workers := make(Workers, 0)
-	worker := models.Worker{}
-
-	queryFunc := func(c *mgo.Collection) error {
-		// sorting is no-op when sortFields is empty
-		iter := c.Find(query).Sort(sortFields...).Iter()
-		for iter.Next(&worker) {
-			apiWorker := &ApiWorker{
-				worker.Name,
-				worker.ServiceGenericName,
-				worker.ServiceUniqueName,
-				worker.Uuid,
-				worker.Hostname,
-				worker.Version,
-				worker.Timestamp,
-				worker.Pid,
-				StatusCode[worker.Status],
-				worker.Monitor.Uptime,
-				worker.Port,
-			}
-
-			workers = append(workers, *apiWorker)
-		}
-		return nil
-	}
-
-	mongodb.Run("jKontrolWorkers", queryFunc)
-
-	// finding the largest number of a field in mongo is kinda problematic.
-	// therefore we are doing it on our side
-	if latestVersion {
-		versions := make([]int, len(workers))
-
-		if len(workers) == 0 {
-			return workers
-		}
-
-		for i, val := range workers {
-			versions[i] = val.Version
-		}
-
-		sort.Ints(versions)
-		maxVersion := versions[len(versions)-1] // get largest version number
-
-		filteredWorkers := make(Workers, 0)
-		for _, val := range workers {
-			if maxVersion == val.Version {
-				filteredWorkers = append(filteredWorkers, val)
-			}
-		}
-
-		return filteredWorkers
-	}
-
-	return workers
 }
 
 func buildSendCmd(action, uuid string) {
