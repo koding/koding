@@ -21,7 +21,7 @@ class UserBadgeView extends KDListItemView
 
 class UserPropertyList extends JView
   constructor:(options = {}, data)->
-    options.cssClass = "user-property-list"
+    options.type = "user-properties"
     # ONLY ADMINS CAN SEE THAT VIEW
     super options, data
   pistachio:->
