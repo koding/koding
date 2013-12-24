@@ -29,6 +29,9 @@ module.exports = class JBadge extends jraphical.Module
       createdAt           :
         type              : Date
         default           : -> new Date
+    sharedEvents          :
+      instance            : []
+      static              : []
     sharedMethods         :
       static :
         listBadges :

@@ -25,7 +25,6 @@ class ActivityInputView extends KDTokenizedInput
         tags = [$suggest: inputValue].concat tags  unless matches.length
 
       @showMenu
-        suggest         : if matches.length is 0 then inputValue else ""
         itemChildClass  : TagContextMenuItem
       , tags
 
