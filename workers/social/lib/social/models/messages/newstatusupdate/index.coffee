@@ -225,13 +225,12 @@ module.exports = class JNewStatusUpdate extends JPost
 
       @getExemptUserIdsIfNeeded client, options, (err, ids)=>
         return callback err  if err
-
-        selector = 'meta.createdAt': "$lt" : to
+        selector = 'meta.createdAt': $lt: to
         # remove exempts from result set
         selector.originId = $nin : ids if ids.length > 0
 
         options.sort = 'meta.createdAt' : -1
-        options.limit or= 20
+        options.limit ?= 20
 
         @some selector, options, (err, data)=>
           return callback err if err
@@ -277,7 +276,7 @@ module.exports = class JNewStatusUpdate extends JPost
 
         query =
           targetName: 'JNewStatusUpdate'
-          "timestamp": "$lt": to
+          "timestamp": $lt: to
 
         showExempt = @checkForTrollMode delegate, options
         # add isExempt query if necessary
