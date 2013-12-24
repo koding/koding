@@ -38,6 +38,5 @@ module.exports = (req, res, next) ->
     request(url)
       .on('error', (err) -> next err  unless failover req, res, multi)
       .pipe(res)
-
-  else # handle fail over
-    next()  unless failover req, res, multi
+  
+  else next()  unless failover req, res, multi
