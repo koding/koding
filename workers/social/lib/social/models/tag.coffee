@@ -311,26 +311,26 @@ module.exports = class JTag extends jraphical.Module
             @constructor.emit 'TagIsSynonym', {tagId:@getId()}
             callback null
 
-      if (@status is 'deleted' or @status is 'synonym')
+      if @status in ['deleted', 'synonym']
         return callback new KodingError "Topic is already set as #{@status}!"
 
-      {delegate} = client.connection
-      {group} = client.context
-
-      JTag.one {title}, (err, tag) =>
+      @checkChildTopics (err) =>
         return callback err if err
-        unless tag
-          create {title, group}, delegate, (err, tag) =>
-            return callback err if err
-            addSynonym tag
-        else if tag.status is "synonym" or tag.status is "deleted"
-          return callback new KodingError "##{tag.title} already set as #{tag.status}!"
-        else
-          @checkChildSynonyms (err) =>
-            return callback err if err
+        {delegate} = client.connection
+        {group} = client.context
+
+        JTag.one {title}, (err, tag) =>
+          return callback err if err
+          unless tag
+            create {title, group}, delegate, (err, tag) =>
+              return callback err if err
+              addSynonym tag
+          else if tag.status in ["synonym", "deleted"]
+            return callback new KodingError "##{tag.title} already set as #{tag.status}!"
+          else
             addSynonym tag
 
-  checkChildSynonyms : (callback) =>
+  checkChildTopics : (callback) =>
     Relationship.one "targetId": @getId(), "as": "synonymOf", (err, childSynonym) =>
       return callback err if err
       if childSynonym
