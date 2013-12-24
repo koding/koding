@@ -25,7 +25,7 @@ class UserPropertyList extends JView
     super options, data
   pistachio:->
     """
-     <a href="#">User Properties</a>
+     <a href="#">User Properties * staff only</a>
      <div class="badge-property">
       <p>Likes count : {span.number{ #(counts.likes)}}</p>
       <p>Topic count : {span.number{ #(counts.topics)}}</p>
