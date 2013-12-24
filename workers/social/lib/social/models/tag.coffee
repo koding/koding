@@ -279,21 +279,27 @@ module.exports = class JTag extends jraphical.Module
         tag.slug = slug.slug
         tag.slug_ = slug.slug
         tag.save (err)->
-          if err
-            callback err
+          if err then callback err
           else
             tag.addCreator creator, (err)->
-              if err
-                callback err
-              else
-                callback null, tag
+              if err then callback err
+              else callback null, tag
+
+  checkTagExistence = (tag, callback) =>
+    {title, category} = tag
+    @one {title, category}, (err, tag) ->
+      return callback err if err
+      return callback new KodingError "Tag already exists!" if tag
+      callback null
 
   @create$ = permit 'create tags',
     success: (client, data, callback)->
       {connection:{delegate}} = client
       data.category = "user-tag"
       data.group = client.context.group
-      create data, delegate, callback
+      checkTagExistence data, (err) ->
+        return callback err if err
+        create data, delegate, callback
 
   createSynonym : permit ['create tags', 'read tags'],
     success: (client, title, callback)->
