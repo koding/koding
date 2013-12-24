@@ -2,16 +2,11 @@ class ChatItem extends JView
 
   constructor: (options, data) ->
 
-    options.cssClass = "chat-item"
+    options.cssClass = KD.utils.curry "chat-item", options.cssClass
 
     super options, data
 
-    account      = @getData()
-    @avatar      = new AvatarView
-      size       :
-        width    : 30
-        height   : 30
-    , account
+    @createAvatar()
 
     {user}       = @getOptions()
     ownMessage   = user.nickname is KD.nick()
@@ -31,6 +26,13 @@ class ChatItem extends JView
       partial    : Encoder.XSSEncode @getOptions().body
 
     @setClass "mine" if ownMessage
+
+  createAvatar: ->
+    @avatar      = new AvatarView
+      size       :
+        width    : 30
+        height   : 30
+    , @getData()
 
   pistachio: ->
     """
