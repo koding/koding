@@ -7,6 +7,8 @@ class TeamworkChatPane extends ChatPane
     @setClass "tw-chat"
     @getDelegate().setClass "tw-chat-open"
 
+    @on "NewChatItemCreated", @bound "checkForSystemAction"
+
   createDock: ->
     @dock = new KDCustomHTMLView cssClass: "hidden"
 
@@ -24,7 +26,7 @@ class TeamworkChatPane extends ChatPane
       user     : { nickname }
       time     : Date.now()
       body     : messageData.message
-      by       : messageData.by
+      by       : if isSystemMessage then "teamwork" else messageData.by
       cssClass : cssClass            or ""
       system   : isSystemMessage     or no
 
@@ -49,3 +51,76 @@ class TeamworkChatPane extends ChatPane
     originUser      = details.by
 
     return originUser is KD.nick() and isSystemMessage
+
+  checkForSystemAction: ->
+    splitted = @lastMessageBody.split " "
+    [key]    = splitted
+
+    messageToMethod =
+      help          : "replyForSystemHelp"
+      invite        : "replyForInvite"
+      watch         : "replyForWatch"
+      join          : "replyForJoin"
+
+    splitted.shift() # remove first item and update the array instance
+    @[messageToMethod[key]]? splitted
+
+  replyForSystemHelp: ->
+    message = """
+        Type "invite username" to invite someone to your session.
+        Type "watch username"  to watch changes of somebody.
+        Type "join sessionKey" to join a session.
+      """
+    @sendMessage message: message, yes
+
+  replyForJoin: (sessionKey) ->
+    return if sessionKey.length > 1
+    # TODO: fatihacet - we need to use a regex to check it's a real sessionKey
+    sessionKey = sessionKey.first
+
+    if sessionKey.indexOf("_") > -1
+      @sendMessage message: "Validating the session key, #{sessionKey}", yes
+      @workspace.firebaseRef.child(sessionKey).once "value", (snapshot) =>
+        if snapshot.val() is null or not snapshot.val().keys
+          @sendMessage message: "This session is no longer active, you cannot join.", yes
+        else
+          @sendMessage message: "Joining to session, #{sessionKey}", yes
+          @workspace.getDelegate().emit "JoinSessionRequested", sessionKey
+    else
+      # TODO: fatihacet - implement getting the sessionKey via username
+
+  replyForInvite: (usernames) ->
+    # TODO: fatihacet - currently invite only first user
+    username = usernames.first
+    return if usernames.length is 0 or username.trim() is ""
+
+    # TODO: fatihacet
+    # Kinda hacky to create user list here to send an invite. Instead of this,
+    # I should implement a method in CW that will handle to invite stuff.
+    @workspace.createUserList()
+    query = { "profile.nickname": username }
+
+    KD.remote.api.JAccount.one query, {}, (err, account) =>
+      @workspace.userList.once "UserInvited", =>
+        message    = "#{username} is successfully invited."
+        if usernames.length > 1
+          message += "You can invite only one person at a time. Try again for other users too."
+        @sendMessage message: message, yes
+
+      @workspace.userList.once "UserInviteFailed", =>
+        @sendMessage message: "Are you sure your friend's nickname is #{username}?", yes
+
+      @workspace.userList.sendInvite account
+
+  replyForWatch: (usernames) ->
+    username = usernames.first
+    return if usernames.length is 0 or usernames.first.trim is ""
+
+    # TODO: fatihacet - I need to check username is valid and user is in session.
+    @workspace.setWatchMode username
+    message = """
+      Ok. Now you started to watch #{username}.
+      This means you will only be notified by #{username}'s changes.
+      Type "watch nobody" to stop watching #{username} or type "watch username" to watch someone else.
+    """
+    @sendMessage message: message, yes
