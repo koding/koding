@@ -2,6 +2,7 @@ package main
 
 import (
 	"crypto/tls"
+	"fmt"
 	"io"
 	"koding/newkite/kite"
 	"koding/newkite/protocol"
@@ -10,7 +11,7 @@ import (
 	"net/http"
 	"net/url"
 	"strconv"
-	"sync/atomic"
+	"unsafe"
 
 	"code.google.com/p/go.net/websocket"
 )
@@ -21,11 +22,8 @@ type TLSKite struct {
 	tlsPort     int
 	tlsListener net.Listener
 
-	// Path component of the URL returned from "register" method.
-	seq uint64
-
 	// Holds registered kites.
-	kites map[uint64]protocol.KiteURL
+	urls map[*kite.RemoteKite]protocol.KiteURL
 }
 
 func main() {
@@ -45,10 +43,13 @@ func New(tlsPort int) *TLSKite {
 	tlsKite := &TLSKite{
 		kite:    kite.New(options),
 		tlsPort: tlsPort,
-		kites:   make(map[uint64]protocol.KiteURL),
+		urls:    make(map[*kite.RemoteKite]protocol.KiteURL),
 	}
 
 	tlsKite.kite.HandleFunc("register", tlsKite.register)
+
+	// Remove URL from the map when Kite disconnects.
+	tlsKite.kite.OnDisconnect(func(r *kite.RemoteKite) { delete(tlsKite.urls, r) })
 
 	return tlsKite
 }
@@ -90,19 +91,12 @@ func (t *TLSKite) startHTTPSServer() {
 }
 
 func (t *TLSKite) register(r *kite.Request) (interface{}, error) {
-	i := atomic.AddUint64(&t.seq, 1)
-	if i == 0 {
-		t.kite.Log.Fatal("Integer overflow")
-	}
-
-	r.RemoteKite.OnDisconnect(func() { delete(t.kites, i) })
-
-	t.kites[i] = r.RemoteKite.URL
+	t.urls[r.RemoteKite] = r.RemoteKite.URL
 
 	result := url.URL{
 		Scheme: "wss",
 		Host:   net.JoinHostPort(config.Current.TLSKite.Domain, strconv.Itoa(t.tlsPort)),
-		Path:   "/" + strconv.FormatUint(i, 10),
+		Path:   fmt.Sprintf("/%d", unsafe.Pointer(r.RemoteKite)),
 	}
 
 	return result.String(), nil
@@ -115,7 +109,8 @@ func (t *TLSKite) handleWS(ws *websocket.Conn) {
 		return
 	}
 
-	kiteURL, ok := t.kites[i]
+	r := (*kite.RemoteKite)(unsafe.Pointer(uintptr(i)))
+	kiteURL, ok := t.urls[r]
 	if !ok {
 		return
 	}
