@@ -54,7 +54,7 @@ func TestTLSKite(t *testing.T) {
 		Region:      "localhost",
 	}
 	kite1 := kite.New(opt1)
-	kite1.EnableTLSProxy()
+	kite1.EnableProxy()
 	kite1.HandleFunc("foo", func(r *kite.Request) (interface{}, error) {
 		return "bar", nil
 	})

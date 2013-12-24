@@ -11,6 +11,7 @@ import (
 	"net/http"
 	"net/url"
 	"strconv"
+	"strings"
 	"unsafe"
 
 	"code.google.com/p/go.net/websocket"
@@ -93,18 +94,41 @@ func (t *ProxyKite) startHTTPSServer() {
 func (t *ProxyKite) register(r *kite.Request) (interface{}, error) {
 	t.urls[r.RemoteKite] = r.RemoteKite.URL
 
+	path := strings.Join([]string{
+		"proxy",
+		fmt.Sprintf("%d", unsafe.Pointer(r.RemoteKite)),
+		r.RemoteKite.Kite.Username,
+		r.RemoteKite.Kite.Environment,
+		r.RemoteKite.Kite.Name,
+		r.RemoteKite.Kite.Version,
+		r.RemoteKite.Kite.Region,
+		r.RemoteKite.Kite.Hostname,
+		r.RemoteKite.Kite.ID,
+	}, "/")
+
 	result := url.URL{
 		Scheme: "wss",
 		Host:   net.JoinHostPort(config.Current.ProxyKite.Domain, strconv.Itoa(t.tlsPort)),
-		Path:   fmt.Sprintf("/%d", unsafe.Pointer(r.RemoteKite)),
+		Path:   path,
 	}
 
 	return result.String(), nil
 }
 
 func (t *ProxyKite) handleWS(ws *websocket.Conn) {
-	s := ws.Request().URL.Path[1:] // strip leading '/'
-	i, err := strconv.ParseUint(s, 10, 64)
+	path := ws.Request().URL.Path[1:] // strip leading '/'
+
+	parts := strings.Split(path, "/")
+	fmt.Printf("--- parts: %#v\n", parts)
+	if len(parts) < 2 {
+		return
+	}
+
+	if parts[0] != "proxy" {
+		return
+	}
+
+	i, err := strconv.ParseUint(parts[1], 10, 64)
 	if err != nil {
 		return
 	}
