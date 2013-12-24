@@ -8,11 +8,9 @@ class TeamworkApp extends KDObject
 
     @appView = @getDelegate()
 
-    @on "NewSessionRequested", (callback = noop, options) =>
-      @teamwork?.destroy()
-      @createTeamwork options
-      @appView.addSubView @teamwork
-      callback()
+    @on "NewSessionRequested", (options, callback) =>
+      @unsetOption "sessionKey"
+      @createTeamwork options, callback
 
     @on "JoinSessionRequested", (sessionKey) =>
       @setOption "sessionKey", sessionKey
@@ -23,9 +21,9 @@ class TeamworkApp extends KDObject
           @setOption "playgroundManifest", val.playgroundManifest
           @setOption "playground", val.playground
           options = @mergePlaygroundOptions val.playgroundManifest, val.playground
-          @emit "NewSessionRequested", null, options
+          @createTeamwork options
         else
-          @emit "NewSessionRequested"
+          @createTeamwork()
 
     @on "ImportRequested", (importUrl) =>
       @emit "NewSessionRequested"
@@ -46,12 +44,15 @@ class TeamworkApp extends KDObject
     else if importUrl then @emit "ImportRequested"     , importUrl
     else @emit "NewSessionRequested"
 
-  createTeamwork: (options) ->
+  createTeamwork: (options, callback) ->
     playgroundClass = TeamworkWorkspace
     if options?.playground
       playgroundClass = if options.playground is "Facebook" then FacebookTeamwork else PlaygroundTeamwork
 
+    @teamwork?.destroy()
     @teamwork = new playgroundClass options or @getTeamworkOptions()
+    @appView.addSubView @teamwork
+    callback?()
 
   showTeamUpModal: ->
     @showToolsModal @teamwork.getActivePanel(), @teamwork
