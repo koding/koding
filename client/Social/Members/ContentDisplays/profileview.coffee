@@ -511,8 +511,13 @@ class ProfileView extends JView
         cssClass             : "badge-list"
         itemClass            : UserBadgeView
 
+    @badgeHeader = new KDCustomHTMLView
+      tagName : "h3"
+
     @memberData.fetchMyBadges (err, badges)=>
-      @userBadgesController.instantiateListItems badges
+      if badges.length > 0
+        @badgeHeader.setPartial "Badges"
+        @userBadgesController.instantiateListItems badges
 
     @userBadgesView = @userBadgesController.getView()
 
@@ -676,6 +681,12 @@ class ProfileView extends JView
     account      = @getData()
     amountOfDays = Math.floor (new Date - new Date(account.meta.createdAt)) / (24*60*60*1000)
     onlineStatus = if account.onlineStatus then 'online' else 'offline'
+    # <a href="#" class="active">Open Projects<span class="count">128</span></a>
+    # <div class="user-menu">
+    #   <a href="#">Discussions</a>
+    #   <a href="#">Tutorials</a>
+    #   <a href="#">Blog Posts</a>
+    # </div>
     """
       <div class="users-profile clearfix">
         {{> @avatar}}
@@ -688,16 +699,9 @@ class ProfileView extends JView
           {{> @likes}}
         </div>
       </div>
-      <div class="user-menu">
-        <a href="#" class="active">Open Projects<span class="count">128</span></a>
-        <a href="#">Discussions</a>
-        <a href="#">Tutorials</a>
-        <a href="#">Blog Posts</a>
-      </div>
       <div class="user-badges">
-        <h3>Badges</h3>
+        {{> @badgeHeader}}
         {{> @userBadgesView}}
-        {{> @badgeItemsList}}
       </div>
-
+      {{> @badgeItemsList}}
     """
