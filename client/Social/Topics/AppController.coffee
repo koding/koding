@@ -275,8 +275,8 @@ class TopicsAppController extends AppController
 
   fetchTopics:({inputValue, blacklist}, callback)->
 
-    KD.remote.api.JTag.byRelevance inputValue, {blacklist}, (err, tags)->
+    KD.remote.api.JTag.byRelevance inputValue, {blacklist}, (err, tags, deletedTags)->
       unless err
-        callback? tags
+        callback? tags, deletedTags
       else
         warn "there was an error fetching topics #{err.message}"

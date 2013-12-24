@@ -18,11 +18,12 @@ class ActivityInputView extends KDTokenizedInput
     @defaultTokens = initializeDefaultTokens()
 
   fetchTopics: (inputValue, callback) ->
-    KD.getSingleton("appManager").tell "Topics", "fetchTopics", {inputValue}, (tags = []) =>
+    KD.getSingleton("appManager").tell "Topics", "fetchTopics", {inputValue}, (tags = [], deletedTags = []) =>
       matches = []
       if inputValue.length > 1
         matches = tags.filter (tag) -> tag.title is inputValue or inputValue in tag.children
-        tags = [$suggest: inputValue].concat tags  unless matches.length
+        deletedMatches = deletedTags.filter (title) -> title is inputValue
+        tags = [$suggest: inputValue].concat tags  unless matches.length or deletedMatches.length
 
       @showMenu
         itemChildClass  : TagContextMenuItem
