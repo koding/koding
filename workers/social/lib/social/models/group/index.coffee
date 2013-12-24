@@ -195,7 +195,8 @@ module.exports = class JGroup extends Module
         # (signature)
         fetchProducts: [
           (signature Function)
-          (signature Object, Function)
+          (signature String, Function)
+          (signature String, Object, Function)
         ]
         saveInviteMessage: [
           (signature String, String)
