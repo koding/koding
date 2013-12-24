@@ -7,3 +7,8 @@ class TeamworkChatItem extends ChatItem
         cssClass : "avatarview tw-bot-avatar"
     else
       super
+
+  getUsername: ->
+    {nickname} = @getOptions().user
+    if nickname is "teamwork" then return "Teamwork Bot"
+    else super
