@@ -215,7 +215,6 @@ class AdminModal extends KDModalViewWithForms
 
     @hideConnectedFields()
 
-    @initIntroductionTab()
     @createUserAutoComplete()
 
   createUserAutoComplete:->
@@ -270,9 +269,6 @@ class AdminModal extends KDModalViewWithForms
     fields.Block.show()
     buttons.Update.show()
 
-  initIntroductionTab: ->
-    parentView = @modalTabs.forms["Introduction"]
-    parentView.addSubView new IntroductionAdmin { parentView }
 
 class MemberAutoCompleteItemView extends KDAutoCompleteListItemView
   constructor:(options, data)->
