@@ -215,13 +215,17 @@ class ActivityAppController extends AppController
     # get from cache if only it is "Public" or "Everything"
     if @getFeedFilter() is "Public" and @getActivityFilter() is "Everything" and KD.prefetchedFeeds
       prefetchedActivity = KD.prefetchedFeeds["activity.main"]
-      if prefetchedActivity and ('activities.main' not in USEDFEEDS)
-        log "exhausting feed:", "activity.main"
-        USEDFEEDS.push 'activities.main'
-        # update this function
-        messages = @prepareCacheForListing prefetchedActivity
-        @emit "publicFeedFetched_#{eventSuffix}", messages
-        return
+
+      # TODO : REMOVING FOR GROUPS DEV. BECAUSE PREFETCH NOT WORKING FOR GROUPS
+
+      # if prefetchedActivity and ('activities.main' not in USEDFEEDS)
+      #   log "exhausting feed:", "activity.main"
+      #   USEDFEEDS.push 'activities.main'
+      #   # update this function
+      #   log "prefetchedActivity", prefetchedActivity
+      #   messages = @prepareCacheForListing prefetchedActivity
+      #   @emit "publicFeedFetched_#{eventSuffix}", messages
+      #   return
 
     JNewStatusUpdate.fetchGroupActivity options, (err, messages)=>
       return @emit "activitiesCouldntBeFetched", err  if err
