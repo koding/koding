@@ -83,17 +83,6 @@ class CollaborativeWorkspace extends Workspace
         @addToHistory { message, by: KD.nick() }
         @emit "SomeoneHasLeftSession", name
 
-    @workspaceRef.on "child_removed", (snapshot) =>
-      return  if @disconnectedModal
-      # root node is write protected. however when someone try to remove root node
-      # firebase will trigger disconnect event for once, which is a really wrong behaviour.
-      # to be sure it's a real disconnection, trying to get node value again.
-      # if we can't get the node value then it means user really disconnected.
-      KD.utils.wait 1500, =>
-        @workspaceRef.once "value", (snapshot) =>
-          unless snapshot.val() or @disconnectedModal or @sessionNotActive
-            @showDisconnectedModal()
-
     @broadcastRef.on "value", (snapshot) =>
       message = snapshot.val()
       return if not message or not message.data or message.data.sender is @nickname
