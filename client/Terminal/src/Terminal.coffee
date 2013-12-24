@@ -133,9 +133,7 @@ class WebTerm.Terminal
     @measurebox.empty()
     @setSize width, height
 
-  windowDidResize: ->
-    window.clearTimeout @updateSizeTimer
-    @updateSizeTimer = window.setTimeout (=> @updateSize()), 500
+  windowDidResize: _.throttle (-> @updateSize()), 500
 
   lineFeed: ->
     if @cursor.y is @screenBuffer.scrollingRegion[1]
