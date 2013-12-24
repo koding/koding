@@ -523,5 +523,5 @@ module.exports = class JTag extends jraphical.Module
 
   setSelectorStatus = (client, selector) ->
     {connection:{delegate}} = client
-    # selector.status = $nin: ['deleted','synonym'] unless delegate.checkFlag 'super-admin'
+    selector.status = $nin: ['deleted','synonym'] unless delegate.checkFlag 'super-admin'
 
