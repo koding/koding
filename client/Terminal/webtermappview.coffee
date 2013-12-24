@@ -73,7 +73,7 @@ class WebTermAppView extends JView
         KD.mixpanel "Click open Webterm fail", {vmName}
         KD.logToExternalWithTime "Can't open Webterm", vmName
         @setMessage "Couldn't connect to your VM, please try again later. <a class='close' href='#'>close this</a>", no, yes
-      , 5000
+      , 10000
 
   showApprovalModal: (remote, command)->
     modal = new KDModalView
