@@ -155,4 +155,4 @@ class TeamworkDashboard extends JView
         <p class="loading">Loading Playgrounds...</p>
         {{> @playgrounds}}
       </div>
-    ""
+    """
