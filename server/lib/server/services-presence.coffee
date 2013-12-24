@@ -23,9 +23,7 @@ module.exports = (req, res, next) ->
 
   { service } = params
 
-  if service not in supportedServices
-    next()
-    return
+  return next()  unless service in supportedServices
 
   multi = query.all?
 
