@@ -163,7 +163,7 @@ class CollaborativeWorkspace extends Workspace
     @loader.hide()
 
   startNewSession: ->
-    @destroySubViews()
+    @destroy()
     options = @getOptions()
     delete options.sessionKey
     @addSubView new CollaborativeWorkspace options
@@ -184,9 +184,8 @@ class CollaborativeWorkspace extends Workspace
     options                = @getOptions()
     options.sessionKey     = newOptions.sessionKey.trim()
     options.joinedASession = yes
-    @destroySubViews()
-
     @forceDisconnect()
+    @destroy()
 
     @addSubView new CollaborativeWorkspace options
 
