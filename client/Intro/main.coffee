@@ -14,7 +14,7 @@ class IntroPage extends KDSlidePageView
         <div class="slogan">Koding {{ #(slogan) }}</div>
         <div class="wrapper">
           <figure>
-            <img src="/images/homeslide/#{@getData().slideImage}?#{time}" />
+            <img src="/a/images/homeslide/#{@getData().slideImage}?#{time}" />
           </figure>
           <div class="details">
             {{ #(subSlogan) }}

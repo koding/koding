@@ -1,6 +1,6 @@
 # this is necessary for ace dependencies, can be moved to another file
 # but SHALL NOT BE REMOVED~!
-require.config baseUrl: "/js", waitSeconds:30
+require.config baseUrl: "/a/js", waitSeconds:30
 
 class AceAppController extends AppController
 
@@ -18,7 +18,7 @@ class AceAppController extends AppController
       slug        : "/:name?/Ace"
       handler     : ({params:{name}, query})->
         router = KD.getSingleton 'router'
-        warn "ace handling itself", name, query, arguments
+        # warn "ace handling itself", name, query, arguments
         router.openSection "Ace", name, query
     behavior      : "application"
     menu          : [

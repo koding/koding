@@ -1,0 +1,16 @@
+{
+  "name": "ace@2x",
+  "checksum": "6fc80943bad14663341a27265150f0cf",
+  "shortsum": "6fc80",
+  "images": [
+    {
+      "name": "26-search-case-active",
+      "filename": "26-search-case-active.png",
+      "checksum": "5f5b0a7e3ed82e9ffcfbfb59610a011c",
+      "width": 52,
+      "height": 48,
+      "positionX": 0,
+      "positionY": 0
+    }
+  ]
+}

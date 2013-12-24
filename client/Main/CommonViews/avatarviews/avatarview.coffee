@@ -37,7 +37,7 @@ class AvatarView extends LinkView
           @tooltip.getView().updateData data if data?.profile.nickname
 
     @bgImg = null
-    @fallbackUri = "#{KD.apiUri}/images/defaultavatar/default.avatar.#{options.size.width}.png"
+    @fallbackUri = "#{KD.apiUri}/a/images/defaultavatar/default.avatar.#{options.size.width}.png"
 
   setAvatar:(uri)->
     if @bgImg isnt uri
@@ -270,7 +270,7 @@ class AvatarImage extends AvatarView
     super options, data
 
     @bgImg = null
-    @fallbackUri = "#{KD.apiUri}/images/defaultavatar/default.avatar.#{options.size.width}.png"
+    @fallbackUri = "#{KD.apiUri}/a/images/defaultavatar/default.avatar.#{options.size.width}.png"
 
   setAvatar:(uri)->
     if @bgImg isnt uri

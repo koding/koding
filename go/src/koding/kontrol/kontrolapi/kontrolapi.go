@@ -1,13 +1,14 @@
 package main
 
 import (
-	"fmt"
-	"github.com/gorilla/mux"
 	"io"
 	"koding/tools/config"
 	"log"
+	"net"
 	"net/http"
 	"strconv"
+
+	"github.com/gorilla/mux"
 )
 
 type ProxyPostMessage struct {
@@ -49,6 +50,7 @@ func main() {
 	workers.HandleFunc("/{uuid}", changeHandler(GetWorker)).Methods("GET")
 	workers.HandleFunc("/{uuid}/{action}", changeHandler(UpdateWorker)).Methods("PUT")
 	workers.HandleFunc("/{uuid}", changeHandler(DeleteWorker)).Methods("DELETE")
+	workers.HandleFunc("/url/{workername}", changeHandler(GetWorkerURL)).Methods("GET")
 
 	// Proxy handlers
 	proxies := rout.PathPrefix("/proxies").Subrouter()
@@ -113,7 +115,12 @@ func home(writer http.ResponseWriter, request *http.Request) {
 
 func changeHandler(fn func(w http.ResponseWriter, r *http.Request)) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		fmt.Println(r.Method, r.URL.Path) // just for logging
+		ip, _, err := net.SplitHostPort(r.RemoteAddr)
+		if err != nil {
+			ip = "non-ip"
+		}
+
+		log.Printf("%s %s '%s'\n", r.Method, r.URL.String(), ip)
 		w.Header().Set("Access-Control-Allow-Origin", "*")
 		fn(w, r)
 	}

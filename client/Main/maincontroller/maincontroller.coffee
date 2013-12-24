@@ -160,9 +160,9 @@ class MainController extends KDController
     { JUser } = KD.remote.api
 
     @isLoggingIn on
-    
+
     credentials.username = credentials.username.toLowerCase().trim()
-    
+
     JUser.login credentials, (err, result) =>
       return callback err  if err
       @swapAccount result, callback
@@ -221,6 +221,7 @@ class MainController extends KDController
                      We don't know why, but your browser couldn't reach our server.<br><br>Please try again.
                    </div>"
         height  : "auto"
+        width   : 600
         overlay : yes
         buttons :
           "Refresh Now" :

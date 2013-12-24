@@ -240,6 +240,7 @@ module.exports =
       switchHost  : "y.koding.com"
     api           :
       port        : 80
+      url         : "http://stage-kontrol.sj.koding.com"
     proxy         :
       port        : 80
       portssl     : 443
