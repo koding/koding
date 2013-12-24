@@ -132,13 +132,13 @@ class WebTermView extends KDView
     serviceName = "~#{kiteType}-#{kiteRegion}~#{vmName}"
 
     @setBackoffTimeout(
-      @bound "atttemptToReconnect"
+      @bound "attemptToReconnect"
       @bound "handleConnectionFailure"
     )
 
     kiteController.kiteInstances[serviceName]?.cycleChannel()
 
-  atttemptToReconnect: ->
+  attemptToReconnect: ->
     return  if @reconnected
     @reconnectingNotification ?= new KDNotificationView
       type      : "mini"
