@@ -107,7 +107,7 @@ With love from the Koding team.<br>
 
       KD.showError err,
         AccessDenied :
-          title      : "You are not allowed to #{action} activities"
+          title      : "You are not allowed to post activities"
           content    : 'This activity will only be visible to you'
           duration   : 5000
         KodingError  : 'Something went wrong while creating activity'
