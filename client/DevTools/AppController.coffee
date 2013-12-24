@@ -4,9 +4,6 @@ class DevToolsController extends AppController
     name     : "DevTools"
     route    : "/DevTools"
     behavior : "application"
-    multiple : yes
-    openWith : "lastActive"
-    cssClass : 'ace'
 
   constructor:(options = {}, data)->
     options.view    = new DevToolsMainView
