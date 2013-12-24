@@ -213,7 +213,7 @@ module.exports =
     port          : 80
     certFile      : "/opt/koding/go/src/koding/kontrol/kontrolproxy/files/10.0.5.231_cert.pem"
     keyFile       : "/opt/koding/go/src/koding/kontrol/kontrolproxy/files/10.0.5.231_key.pem"
-  tlsKite         :
+  proxyKite       :
     domain        : "127.0.0.1"
     certFile      : "/opt/koding/go/src/koding/kontrol/kontrolproxy/files/10.0.5.102_cert.pem"
     keyFile       : "/opt/koding/go/src/koding/kontrol/kontrolproxy/files/10.0.5.102_key.pem"

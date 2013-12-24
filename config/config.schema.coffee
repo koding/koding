@@ -230,7 +230,7 @@ config =
       port          : 1
       certFile      : 1
       keyFile       : 1
-    tlsKite         :
+    proxyKite       :
       domain        : 1
       certFile      : 1
       keyFile       : 1
