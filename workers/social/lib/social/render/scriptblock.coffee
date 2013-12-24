@@ -74,6 +74,10 @@ module.exports = (options = {}, callback)->
     html = createHTML()
     return callback null, html
 
+  {delegate} = options.client
+  # if user is exempt do not cache his/her result set
+  return generateScript()  if delegate and delegate.isExempt
+
   Cache  = require '../cache/main'
   feedFn = require '../cache/feed'
 
