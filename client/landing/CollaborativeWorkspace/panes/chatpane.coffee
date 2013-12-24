@@ -73,9 +73,10 @@ class ChatPane extends JView
     @chatRef.child(message.time).set message
 
   addNew: (details) ->
-    ownerNickname = details.user.nickname
-    ownerAccount  = @workspace.users[ownerNickname] or { nickname: ownerNickname }
-    params        = { details, ownerNickname, ownerAccount }
+    ownerNickname    = details.user.nickname
+    ownerAccount     = @workspace.users[ownerNickname] or { nickname: ownerNickname }
+    params           = { details, ownerNickname, ownerAccount }
+    @lastMessageBody = details.body
 
     if @lastChatItemOwner is ownerNickname
       @appendToChatItem params
@@ -107,8 +108,7 @@ class ChatPane extends JView
 
   checkEmbeddableContent: ->
     element  = @lastMessage.getElement()
-    content  = element.innerHTML
-    words    = content.split " "
+    words    = @lastMessageBody.split " "
     urlRegex = /^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/
     hasUrl   = no
 
