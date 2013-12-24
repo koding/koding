@@ -61,6 +61,9 @@ class TeamworkWorkspace extends CollaborativeWorkspace
       # log data
       @sendSystemMessage data
 
+    KD.singleton("windowController").addUnloadListener "window", =>
+      @workspaceRef.remove()
+
   createButtons: (panel) ->
     panel.addSubView @buttonsContainer = new KDCustomHTMLView
       cssClass : "tw-buttons-container"
