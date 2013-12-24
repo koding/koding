@@ -243,7 +243,7 @@ module.exports =
       switchHost  : "koding.com"
     api           :
       port        : 80
-      url         : "http://kontrol.sj.koding.com"
+      url         : "http://kontrol0.sj.koding.com"
     proxy         :
       port        : 80
       portssl     : 443
