@@ -91,6 +91,11 @@ func (t *TLSKite) startHTTPSServer() {
 
 func (t *TLSKite) register(r *kite.Request) (interface{}, error) {
 	i := atomic.AddUint64(&t.seq, 1)
+	if i == 0 {
+		t.kite.Log.Fatal("Integer overflow")
+	}
+
+	r.RemoteKite.OnDisconnect(func() { delete(t.kites, i) })
 
 	t.kites[i] = r.RemoteKite.URL
 
@@ -104,7 +109,7 @@ func (t *TLSKite) register(r *kite.Request) (interface{}, error) {
 }
 
 func (t *TLSKite) handleWS(ws *websocket.Conn) {
-	s := ws.Request().URL.Path[1:] // strip '/'
+	s := ws.Request().URL.Path[1:] // strip leading '/'
 	i, err := strconv.ParseUint(s, 10, 64)
 	if err != nil {
 		return
