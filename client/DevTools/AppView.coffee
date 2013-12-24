@@ -1,7 +1,5 @@
-class DevToolsMainView extends JView
+class DevToolsMainView extends KDView
 
-  constructor:->
-    super
-
+  viewAppended:->
     KD.singletons.appManager.require 'Ace', =>
       @addSubView @view = new AceAppView
