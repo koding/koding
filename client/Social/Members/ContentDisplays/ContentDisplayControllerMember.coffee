@@ -82,15 +82,6 @@ class ContentDisplayControllerMember extends KDViewController
   #       @getView().$('.profilearea').css "overflow", "visible"
   #   , 500
 
-  createFilter:(title, account, facets)->
-    filter =
-      title             : title
-      dataSource        : (selector, options, callback)=>
-        options.originId = account.getId()
-        options.facet   = facets
-        KD.getSingleton("appManager").tell 'Activity', 'fetchActivitiesProfilePage', options, callback
-    return filter
-
   addActivityView:(account)->
     @getView().$('div.lazy').remove()
     windowController = KD.getSingleton('windowController')
@@ -103,29 +94,17 @@ class ContentDisplayControllerMember extends KDViewController
       limitPerPage          : 8
       useHeaderNav          : yes
       delegate              : @getDelegate()
-      # help                  :
-      #   subtitle            : "Learn Personal feed"
-      #   tooltip             :
-      #     title             : "<p class='bigtwipsy'>This is the personal feed of a single Koding user.</p>"
-      #     placement         : "above"
       filter                :
-        # everything          : @createFilter("Everything", account, 'Everything')
-        statuses            : @createFilter("Status Updates", account, 'JNewStatusUpdate')
-#        codesnips           : @createFilter("Code Snippets", account, 'JCodeSnip')
-#        blogposts           : @createFilter("Blog Posts", account, 'JBlogPost')
-#        discussions         : @createFilter("Discussions", account, 'JDiscussion')
-#        tutorials           : @createFilter("Tutorials", account, 'JTutorial')
+        statuses            :
+          title             : "Status Updates"
+          noItemFoundText   : "#{KD.utils.getFullnameFromAccount account} has not shared any posts yet."
+          dataSource        : (selector, options = {}, callback)=>
+            options.originId = account.getId()
+            KD.getSingleton("appManager").tell 'Activity', 'fetchActivitiesProfilePage', options, callback
       sort                  :
-        'likesCount'  :
-          title             : "Most popular"
-          direction         : -1
         'modifiedAt'        :
           title             : "Latest activity"
           direction         : -1
-        'repliesCount':
-          title             : "Most commented"
-          direction         : -1
-        # and more
     }, (controller)=>
       @feedController = controller
       @getView().addSubView controller.getView()
