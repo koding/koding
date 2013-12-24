@@ -204,6 +204,10 @@ class TeamworkTabView extends CollaborativePane
 
   registerPaneRemoveListener_: (pane) ->
     pane.on "KDObjectWillBeDestroyed", =>
+      switch @workspace.hostStatus
+        when "unknown", "offline"
+          return
+
       paneIndexKey = pane.getOptions().indexKey
 
       @keysRef.once "value", (snapshot) =>

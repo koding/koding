@@ -37,6 +37,9 @@ class TeamworkWorkspace extends CollaborativeWorkspace
       # log data
       @sendSystemMessage data
 
+    KD.singleton("windowController").addUnloadListener "window", =>
+      @workspaceRef.remove()
+
   createButtons: (panel) ->
     panel.addSubView @buttonsContainer = new KDCustomHTMLView
       cssClass : "tw-buttons-container"
@@ -67,16 +70,7 @@ class TeamworkWorkspace extends CollaborativeWorkspace
 
   startNewSession: (options) ->
     KD.mixpanel "User Started Teamwork session"
-
-    @destroySubViews()
-    unless options
-      options = @getOptions()
-      delete options.sessionKey
-
-    workspaceClass          = @getPlaygroundClass options.playground
-    teamwork                = new workspaceClass options
-    @getDelegate().teamwork = teamwork
-    @addSubView teamwork
+    @getDelegate().emit "NewSessionRequested", options
 
   joinSession: (newOptions) ->
     sessionKey              = newOptions.sessionKey.trim()

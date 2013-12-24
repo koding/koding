@@ -41,31 +41,33 @@ class CollaborativeWorkspace extends Workspace
           @showNotActiveView()
           return false
 
-      isOldSession = keys = snapshot.val()?.keys
+      cb = =>
+        isOldSession = keys = snapshot.val()?.keys
+        if isOldSession
+          @sessionData = keys
+          @createPanel()
+        else
+          @createPanel()
+          @workspaceRef.set "keys": @sessionData
 
-      if isOldSession
-        @sessionData  = keys
-        @createPanel()
-      else
-        @createPanel()
-        @workspaceRef.set "keys": @sessionData
+        @setPresenceHandlers()
 
-      @userRef = @usersRef.child @nickname
-      @userRef.set "online"
-      @userRef.onDisconnect().set "offline"
-      record = if isOldSession then "$0 joined the session" else "$0 started the session"
-      @addToHistory { message: record, by: KD.nick() }
-      @watchRef.child(@nickname).set "everybody"
+        record = if isOldSession then "$0 joined the session" else "$0 started the session"
+        @addToHistory { message: record, by: KD.nick() }
+        @watchRef.child(@nickname).set "everybody"
+
+        @loader.destroy()
+        @chatView?.show()
+
+        @emit "WorkspaceSyncedWithRemote"
+        @emit "SomeoneJoinedToSession", KD.nick() if isOldSession
 
       if @amIHost()
-        @workspaceRef.onDisconnect().remove()
-        @userRef.onDisconnect().remove()
-
-      @loader.destroy()
-      @chatView?.show()
-
-      @emit "WorkspaceSyncedWithRemote"
-      @emit "SomeoneJoinedToSession", KD.nick() if isOldSession
+      then cb()
+      else
+        @pingHost (status) =>
+          return  unless status is "online"
+          cb()
 
     @usersRef.on "child_added", (snapshot) =>
       @fetchUsers()
@@ -82,17 +84,6 @@ class CollaborativeWorkspace extends Workspace
 
         @addToHistory { message, by: KD.nick() }
         @emit "SomeoneHasLeftSession", name
-
-    @workspaceRef.on "child_removed", (snapshot) =>
-      return  if @disconnectedModal
-      # root node is write protected. however when someone try to remove root node
-      # firebase will trigger disconnect event for once, which is a really wrong behaviour.
-      # to be sure it's a real disconnection, trying to get node value again.
-      # if we can't get the node value then it means user really disconnected.
-      KD.utils.wait 1500, =>
-        @workspaceRef.once "value", (snapshot) =>
-          unless snapshot.val() or @disconnectedModal or @sessionNotActive
-            @showDisconnectedModal()
 
     @broadcastRef.on "value", (snapshot) =>
       message = snapshot.val()
@@ -154,27 +145,35 @@ class CollaborativeWorkspace extends Workspace
     [sessionOwner] = @sessionKey.split "_"
     return sessionOwner is @nickname
 
-  showNotActiveView: ->
-    notValid = new KDView
-      cssClass : "not-valid"
-      partial  : "This session is not valid or no longer available."
+  showNotActiveView: do ->
+    notValid = null
 
-    notValid.addSubView new KDView
-      cssClass : "description"
-      partial  : "This usually means, the person who is hosting this session is disconnected or closed the session."
+    ->
+      return  if notValid
 
-    notValid.addSubView new KDButtonView
-      cssClass : "cupid-green"
-      title    : "Start New Session"
-      callback : =>
-        @startNewSession()
+      notValid = new KDView
+        cssClass : "not-valid"
+        partial  : "This session is not valid or no longer available."
 
-    @container.addSubView notValid
-    @sessionNotActive = yes
-    @loader.hide()
+      notValid.addSubView new KDView
+        cssClass : "description"
+        partial  : "This usually means, the person who is hosting this session is disconnected or closed the session."
+
+      notValid.addSubView new KDButtonView
+        cssClass : "cupid-green"
+        title    : "Start New Session"
+        callback : =>
+          @startNewSession()
+          notValid.destroy()
+          notValid = null
+
+      @container.destroySubViews()
+      @container.addSubView notValid
+      @sessionNotActive = yes
+      @loader.hide()
 
   startNewSession: ->
-    @destroySubViews()
+    @destroy()
     options = @getOptions()
     delete options.sessionKey
     @addSubView new CollaborativeWorkspace options
@@ -195,9 +194,7 @@ class CollaborativeWorkspace extends Workspace
     options                = @getOptions()
     options.sessionKey     = newOptions.sessionKey.trim()
     options.joinedASession = yes
-    @destroySubViews()
-
-    @forceDisconnect()
+    @destroy()
 
     @addSubView new CollaborativeWorkspace options
 
@@ -369,3 +366,54 @@ class CollaborativeWorkspace extends Workspace
       broadcastItem.hide()
       activePanel.unsetClass "broadcasting"
       @emit "MessageBroadcasted"
+
+  setPresenceHandlers: ->
+    @userRef = @usersRef.child @nickname
+
+    @timestampInterval = @utils.repeat 1000, =>
+      @userRef.child("timestamp").set new Date().getTime(), (err) =>
+        return  unless err
+        @utils.killRepeat interval
+
+    @pingHostInterval = @utils.repeat 2000, @bound "pingHost"  unless @amIHost()
+
+    @once "KDObjectWillBeDestroyed", =>
+      @utils.killRepeat timestampInterval
+      @utils.killRepeat pingHostInterval
+
+  checkHost: (snapshot, callback) ->
+    unless host = snapshot.val()
+      @showNotActiveView()
+      @utils.killRepeat @timestampInterval
+      @utils.killRepeat @pingHostInterval
+      return
+
+    diff = new Date().getTime() - host.timestamp
+
+    if diff <= 5000
+      @hideNotification()
+      @hostStatus = "online"
+    else if diff >= 20000
+      @hideNotification()
+      @showNotActiveView()
+      @hostStatus = "offline"
+    else if diff >= 5000
+      @showNotification "Host is experiencing connectivity issues"
+      @hostStatus = "unknown"
+
+    callback? @hostStatus
+
+  pingHost: (callback) ->
+    @usersRef.child(@getHost()).once "value", (snapshot) =>
+      @checkHost snapshot, callback
+
+  showNotification: (message) ->
+    @hideNotification()
+    @notification = new KDNotificationView
+      title       : message
+      duration    : 20000
+      container   : this
+      overlay     : {}
+
+  hideNotification: ->
+    @notification?.destroy()
