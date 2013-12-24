@@ -49,7 +49,8 @@ class CommentListItemView extends KDListItemView
       @replyView = new ActivityActionLink
         cssClass : "action-link reply-link"
         partial  : "Mention"
-        click    : =>
+        click    : (event)=>
+          @utils.stopDOMEvent event
           KD.remote.cacheable data.originType, data.originId, (err, res) =>
             @getDelegate().emit 'ReplyLinkClicked', res.profile.nickname
     else
