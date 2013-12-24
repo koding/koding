@@ -184,7 +184,6 @@ class CollaborativeWorkspace extends Workspace
     options                = @getOptions()
     options.sessionKey     = newOptions.sessionKey.trim()
     options.joinedASession = yes
-    @forceDisconnect()
     @destroy()
 
     @addSubView new CollaborativeWorkspace options
