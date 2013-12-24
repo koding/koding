@@ -12,7 +12,7 @@ class CollaborativeClientFinderPane extends Pane
     panel         = @getDelegate()
     workspace     = panel.getDelegate()
     {@sessionKey} = @getOptions()
-    @workspaceRef = workspace.firepadRef.child @sessionKey
+    @workspaceRef = workspace.firebaseRef.child @sessionKey
 
     @createLoader()
 

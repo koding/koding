@@ -9,7 +9,7 @@ class CollaborativePane extends Pane
     @panel            = @getDelegate()
     @workspace        = @panel.getDelegate()
     @sessionKey       = @getOptions().sessionKey or @createSessionKey()
-    @workspaceRef     = @workspace.firepadRef.child @sessionKey
+    @workspaceRef     = @workspace.firebaseRef.child @sessionKey
     @isJoinedASession = @getOptions().sessionKey
     @amIHost          = @workspace.amIHost()
     @container        = new KDView cssClass: "ws-container"
