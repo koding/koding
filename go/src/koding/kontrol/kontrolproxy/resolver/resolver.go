@@ -210,7 +210,7 @@ func TargetByHost(host string) (*Target, error) {
 		}
 	}
 
-	domain, err := targetDomain(host)
+	domain, err := getDomain(host)
 	if err != nil {
 		return nil, err
 	}
@@ -225,30 +225,7 @@ func TargetByHost(host string) (*Target, error) {
 	return target, nil
 }
 
-func targetMode(host, port string, domain *models.Domain) (*Target, error) {
-	mode := domain.Proxy.Mode
-
-	switch mode {
-	case ModeMaintenance:
-		// for avoiding nil pointer referencing
-		return newTarget(nil, mode, time.Second*20), nil
-	case ModeRedirect:
-		target, err := url.Parse(utils.CheckScheme(domain.Proxy.FullUrl))
-		if err != nil {
-			return nil, err
-		}
-
-		return newTarget(target, mode, time.Second*20), nil
-	case ModeVM:
-		return vmTarget(host, port, domain)
-	case ModeInternal:
-		return internalTarget(domain)
-	}
-
-	return nil, fmt.Errorf("ERROR: proxy mode is not supported: %s", mode)
-}
-
-func targetDomain(host string) (*models.Domain, error) {
+func getDomain(host string) (*models.Domain, error) {
 	domain := new(models.Domain)
 	var err error
 
@@ -275,19 +252,36 @@ func targetDomain(host string) (*models.Domain, error) {
 	return domain, nil
 }
 
-// internalTarget is a simple wrapper around buildTarget, it takes a
-// models.Domain as argument instead of username, servicename and key.
-func internalTarget(domain *models.Domain) (*Target, error) {
-	username := domain.Proxy.Username
-	servicename := domain.Proxy.Servicename
-	key := domain.Proxy.Key
+func targetMode(host, port string, domain *models.Domain) (*Target, error) {
+	mode := domain.Proxy.Mode
 
-	target, err := buildTarget(username, servicename, key)
-	if err != nil {
-		return nil, err
+	switch mode {
+	case ModeMaintenance:
+		// for avoiding nil pointer referencing
+		return newTarget(nil, mode, time.Second*20), nil
+	case ModeRedirect:
+		target, err := url.Parse(utils.CheckScheme(domain.Proxy.FullUrl))
+		if err != nil {
+			return nil, err
+		}
+
+		return newTarget(target, mode, time.Second*20), nil
+	case ModeVM:
+		return vmTarget(host, port, domain)
+	case ModeInternal:
+		username := domain.Proxy.Username
+		servicename := domain.Proxy.Servicename
+		key := domain.Proxy.Key
+
+		target, err := buildTarget(username, servicename, key)
+		if err != nil {
+			return nil, err
+		}
+
+		return newTarget(target, ModeInternal, time.Second*0), nil
 	}
 
-	return newTarget(target, ModeInternal, time.Second*0), nil
+	return nil, fmt.Errorf("ERROR: proxy mode is not supported: %s", mode)
 }
 
 var (
@@ -317,32 +311,45 @@ func newRing(list []string) *ring.Ring {
 	return r
 }
 
-func healtCheck(hosts *ring.Ring, indexkey string) {
-	// make a copy of hosts and create a slice of those hosts for convenience
-	currentHosts := newSlice(hosts)
-	log.Println("starting healtcheck with", currentHosts)
+// checkHosts checks each host for the given hosts slice and returns a new
+// slice with healthy/alive ones.
+func checkHosts(hosts []string) []string {
+	healthyHosts := make([]string, 0)
+	var wg sync.WaitGroup
 
-	for _ = range time.Tick(time.Second * 15) {
-		healthyHosts := make([]string, 0)
+	for _, host := range hosts {
+		wg.Add(1)
+		go func(host string) {
+			defer wg.Done()
 
-		for _, host := range currentHosts {
+			log.Println("checking host", host)
 			host = utils.AddPort(host, "80")
 			err := utils.CheckServer(host)
 			if err != nil {
 				log.Println("error checking it", err)
-				continue
+			} else {
+				healthyHosts = append(healthyHosts, host)
 			}
+		}(host)
+	}
 
-			healthyHosts = append(healthyHosts, host)
-		}
+	wg.Wait()
 
-		log.Println("alive hosts", healthyHosts)
+	log.Println("alive hosts", healthyHosts)
+	return healthyHosts
+}
 
+// healtChecker checks each host and updates the ring for the associated indexKey
+func healtChecker(hosts []string, indexkey string) {
+	log.Println("starting healtcheck with", hosts)
+	for _ = range time.Tick(time.Second * 10) {
+		healtyHosts := checkHosts(hosts)
 		// replace hosts with healthy ones
 		ringsMu.Lock()
-		rings[indexkey] = newRing(healthyHosts)
+		rings[indexkey] = newRing(healtyHosts)
 		ringsMu.Unlock()
 	}
+
 }
 
 // buildTarget returns a target that is obtained via the jProxyServices
@@ -368,18 +375,27 @@ func buildTarget(username, servicename, key string) (*url.URL, error) {
 			return nil, err
 		}
 
-		fmt.Println("hosts are created", hosts)
-		r = newRing(hosts)
+		fmt.Println("hosts created:", hosts)
+		aliveHosts := checkHosts(hosts)
+		fmt.Println("hosts alive  :", aliveHosts)
+
+		r = newRing(aliveHosts)
 		rings[indexKey] = r
-		go healtCheck(r, indexKey)
+
+		// start health checker for base hosts
+		go healtChecker(hosts, indexKey)
 	}
 	ringsMu.Unlock()
 
 	// get hostname and forward ring to the next value. the next value will be
 	// used on the next request
+	if r == nil {
+		return nil, errors.New("no healthy hostname available")
+	}
+
 	hostname, ok = r.Value.(string)
 	if !ok {
-		return nil, errors.New("no healthy hostname available")
+		return nil, fmt.Errorf("ring value is not string: %+v", r.Value)
 	}
 
 	fmt.Println("using hostname", hostname)
@@ -391,8 +407,6 @@ func buildTarget(username, servicename, key string) (*url.URL, error) {
 	if err != nil {
 		return nil, err
 	}
-
-	fmt.Println(" - ")
 
 	return target, nil
 }
