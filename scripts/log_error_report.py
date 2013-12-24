@@ -13,7 +13,11 @@ def parse_log_file(daemon_name, for_date):
 	is_met_first_line = False
 
 	filename = '/var/log/koding/'+ daemon_name + '.log'
-	f = open(filename)
+
+	try:
+		f = open(filename)
+	except Exception, e:
+		return {'nodaemon':1}
 
 	for line in f:
 		line = re_console_colors.sub("", line)
@@ -22,6 +26,7 @@ def parse_log_file(daemon_name, for_date):
 		if is_met_first_line is True and line.startswith("["):
 			is_met_first_line = False
 
+#		if line.startswith("[2013-12-19"):
 		if line.startswith("[" + for_date.strftime("%Y-%m-%d")):
 			if "[ERROR]" in line:
 				err_part = line.split()
@@ -55,6 +60,9 @@ if __name__ == '__main__':
 
 	if len(errors) < 1:
 		print "No log for " + yesterday.strftime("%Y-%m-%d")
+		sys.exit(1)
+	if 'nodaemon' in errors.keys():
+		print options.daemon_name, " not exist for this instance"
 		sys.exit(1)
 
 	errors = sorted(errors.iteritems(), key=lambda x: int(x[1]), reverse=True)
