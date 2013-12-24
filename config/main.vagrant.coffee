@@ -221,7 +221,7 @@ module.exports =
     port          : 4000
     certFile      : "/opt/koding/certs/vagrant_127.0.0.1_cert.pem"
     keyFile       : "/opt/koding/certs/vagrant_127.0.0.1_key.pem"
-  tlsKite         :
+  proxyKite       :
     domain        : "127.0.0.1"
     certFile      : "/opt/koding/certs/vagrant_127.0.0.1_cert.pem"
     keyFile       : "/opt/koding/certs/vagrant_127.0.0.1_key.pem"

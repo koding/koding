@@ -70,7 +70,7 @@ type Config struct {
 		CertFile string
 		KeyFile  string
 	}
-	TLSKite struct {
+	ProxyKite struct {
 		Domain   string
 		CertFile string
 		KeyFile  string
