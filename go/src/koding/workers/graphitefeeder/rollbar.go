@@ -2,7 +2,8 @@ package main
 
 import (
 	"github.com/sent-hil/rollbar"
-	"log"
+	"koding/tools/logger"
+	"time"
 )
 
 func init() {
@@ -10,7 +11,10 @@ func init() {
 	registerAnalytic(numberOfTimeoutReachedForKiteRequest)
 }
 
-var rollbarClient = rollbar.NewClient("089bd80bbfc2450dbe7b4ea2a897a181")
+var (
+	rollbarClient = rollbar.NewClient("089bd80bbfc2450dbe7b4ea2a897a181")
+	log           = logger.New("graphitefeeder")
+)
 
 func numberOfCouldntFetchFiles() (string, int) {
 	var itemsService = rollbar.ItemsService{C: rollbarClient}
@@ -23,7 +27,9 @@ func numberOfCouldntFetchFiles() (string, int) {
 		panic(err)
 	}
 
-	log.Println("item", item)
+	log.Info("item", item)
+
+	PublishToGraphite("rollbar.errors.couldnt_fetch_files", item.TotalOccurrences, time.Now().Unix())
 
 	return identifier, item.TotalOccurrences
 }
@@ -39,7 +45,9 @@ func numberOfTimeoutReachedForKiteRequest() (string, int) {
 		panic(err)
 	}
 
-	log.Println("item", item)
+	log.Info("item", item)
+
+	PublishToGraphite("rollbar.errors.kite_request_timeout_reached", item.TotalOccurrences, time.Now().Unix())
 
 	return identifier, item.TotalOccurrences
 }

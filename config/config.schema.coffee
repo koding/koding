@@ -309,6 +309,10 @@ config =
       use           : 1
       ip            : 1
       port          : 1
+    graphite        :
+      use           : 1
+      host          : 1
+      port          : 1
     linkedin        :
       client_id     : 1
       client_secret : 1

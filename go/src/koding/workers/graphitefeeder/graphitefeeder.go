@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/marpaia/graphite-golang"
 	"github.com/peterbourgon/g2s"
 	"koding/tools/config"
 	"strconv"
@@ -23,11 +24,41 @@ func init() {
 	}
 }
 
+func PublishToGraphite(name string, value int, timestamp int64) error {
+	log.Info("publishing to graphite. ", name, value, timestamp)
+
+	var graphiteServer *graphite.Graphite
+	var ts int64
+	var err error
+
+	if config.Current.Graphite.Use {
+		graphiteServer, err = graphite.NewGraphite(config.Current.Graphite.Host, config.Current.Graphite.Port)
+		if err != nil {
+			fmt.Println("error connecting to graphite, falling back to noop: ", err)
+			graphiteServer = graphite.NewGraphiteNop(config.Current.Graphite.Host, config.Current.Graphite.Port)
+		}
+	} else {
+		graphiteServer = graphite.NewGraphiteNop(config.Current.Graphite.Host, config.Current.Graphite.Port)
+	}
+
+	if timestamp == 0 {
+		ts = time.Now().Unix()
+	} else {
+		ts = timestamp
+	}
+
+	metric := graphite.Metric{Name: name, Value: strconv.Itoa(value), Timestamp: ts}
+
+	graphiteServer.SendMetric(metric)
+
+	return nil
+}
+
 func main() {
 	for _, fn := range listOfAnalytics {
 		name, count := fn()
 		log.Info("%v %v", name, count)
-		STATSD.Gauge(1, name, strconv.Itoa(count))
+		//STATSD.Gauge(1, name, strconv.Itoa(count))
 	}
 }
 
