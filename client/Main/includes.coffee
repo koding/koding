@@ -46,6 +46,7 @@ module.exports = [
   "CommonViews/tagcontextmenuitem.coffee",
 
   "CommonViews/avatarviews/avatarview.coffee",
+  "CommonViews/avatarviews/avatartooltipview.coffee",
   "CommonViews/avatarviews/avatarimage.coffee",
   "CommonViews/avatarviews/avatarstaticview.coffee",
   "CommonViews/avatarviews/autocompleteavatarview.coffee",
