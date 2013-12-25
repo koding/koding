@@ -48,8 +48,10 @@ class ActivityInputView extends KDTokenizedInput
     {prefix} = @activeRule
     value = @tokenInput.textContent.substring prefix.length
     words = value.split /\W/, 3
-    @tokenInput.textContent = prefix + words.join "-"
-    @utils.selectEnd @tokenInput
+    if words.join("") isnt ""
+      newval = prefix + words.join "-"
+      @tokenInput.textContent = newval
+      @utils.selectEnd @tokenInput
 
   selectToken: ->
     return  unless @menu

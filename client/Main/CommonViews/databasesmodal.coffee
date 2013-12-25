@@ -221,6 +221,7 @@ class AccountDatabaseListController extends KDListViewController
         @addCustomItem """It seems there is something wrong with
                           database provider. Please try again later."""
         callback?()
+        KD.logToExternalWithTime "Couldn't fetch database"
       , 10000
 
   deleteDatabase:(listItem)->
