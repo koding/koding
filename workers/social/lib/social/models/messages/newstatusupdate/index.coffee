@@ -54,6 +54,10 @@ module.exports = class JNewStatusUpdate extends JPost
           (signature Function)
           (signature Object, Function)
         ]
+        search: [
+          (signature String, Function)
+          (signature String, Object, Function)
+        ]
         fetchProfileFeed: [
           (signature Function)
           (signature Object, Function)
@@ -288,6 +292,37 @@ module.exports = class JNewStatusUpdate extends JPost
         tag.fetchContents query, fetchOptions, (err, posts)=>
           return callback err if err
           @decorateResults posts, showExempt, callback
+
+  # todo - generalize this function with listing
+  @findSuggestions = (client, seed, options, callback)->
+    {connection:{delegate}} = client
+    showExemptComments = @checkForTrollMode delegate, options
+    @getCurrentGroup client, (err, group)=>
+      if err then return callback err
+      {to} = options
+      to = if to then new Date(to)  else new Date()
+
+      @getExemptUserIdsIfNeeded client, options, (err, ids)=>
+        return callback err  if err
+        delete options.blacklist
+        selector =
+          'meta.createdAt': $lt: to
+          group: group.slug
+          body : RegExp seed, "i"
+
+        # remove exempts from result set
+        selector.originId = $nin : ids if ids.length > 0
+
+        options.sort = 'meta.createdAt' : -1
+        options.limit ?= 20
+        @some selector, options, (err, data)=>
+          return callback err if err
+          @decorateResults data, showExemptComments, callback
+
+  @search = permit 'read posts',
+    success: (client, seed, options, callback)->
+      @findSuggestions client, seed, options, callback
+
 
   @fetchFollowingFeed = secure (client, options = {}, callback)->
     {Activity} = require "../../graph"
