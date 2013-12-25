@@ -301,34 +301,3 @@ func swapTagRelation(r *Relationship, as string) Relationship {
     TimeStamp:  r.TimeStamp,
   }
 }
-
-//Creates Relationships both in mongo and neo4j
-func createRelationship(relationship *Relationship) {
-  CreateGraphRelationship(relationship)
-  log.Debug("Add Mongo Relationship")
-  helper.AddRelationship(relationship)
-}
-
-//Removes Relationships both from mongo and neo4j
-func removeRelationship(relationship *Relationship) {
-  RemoveGraphRelationship(relationship)
-  selector := helper.Selector{
-    "sourceId": relationship.SourceId,
-    "targetId": relationship.TargetId,
-    "as":       relationship.As,
-  }
-  log.Debug("Delete Mongo Relationship")
-  helper.DeleteRelationship(selector)
-
-}
-
-//Finds synonym of a given tag by tagId
-func FindSynonym(tagId string) (*Tag, error) {
-  selector := helper.Selector{"sourceId": helper.GetObjectId(tagId), "as": "synonymOf"}
-  synonymRel, err := helper.GetRelationship(selector)
-  if err != nil {
-    return nil, err
-  }
-
-  return helper.GetTagById(synonymRel.TargetId.Hex())
-}
