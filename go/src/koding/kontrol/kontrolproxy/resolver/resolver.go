@@ -25,7 +25,7 @@ var (
 	targetsMu sync.Mutex // protects targets map
 
 	// our load balancer roundrobin maps. Key is created for each index key.
-	rings   = make(map[string]*ring.Ring)
+	rings   = make(map[string]*roundRing)
 	ringsMu sync.Mutex
 )
 
@@ -38,6 +38,8 @@ const (
 	ModeVM          = "vm"
 	ModeVMOff       = "vmOff"
 	ModeRedirect    = "redirect"
+
+	HealthCheckInterval = time.Second * 10
 )
 
 // Target is returned for every incoming request host.
@@ -138,7 +140,6 @@ func getFromCache(host string) (*Target, error) {
 }
 
 func getFromDB(host string) (*Target, error) {
-	fmt.Println("using db")
 	domain, err := getDomain(host)
 	if err != nil {
 		return nil, err
@@ -215,11 +216,7 @@ func (t *Target) Resolve(host string) error {
 			return err
 		}
 	case ModeInternal:
-		s := service{
-			username:    t.Proxy.Username,
-			servicename: t.Proxy.Servicename,
-			build:       t.Proxy.Key,
-		}
+		s := t.getService()
 
 		t.URL, err = s.resolve()
 		if err != nil {
@@ -233,6 +230,14 @@ func (t *Target) Resolve(host string) error {
 	}
 
 	return nil
+}
+
+func (t *Target) getService() *service {
+	return &service{
+		username:    t.Proxy.Username,
+		servicename: t.Proxy.Servicename,
+		build:       t.Proxy.Key,
+	}
 }
 
 // vm returns a target that is obtained via the jVMs collections. The
@@ -293,50 +298,71 @@ func (s *service) target() (*Target, error) {
 	return t, nil
 }
 
+type roundRing struct {
+	r      *ring.Ring
+	ticker *time.Ticker
+}
+
+func (r *roundRing) healtChecker(hosts []string, indexkey string) {
+	log.Println("starting healtcheck with", hosts)
+	r.ticker = time.NewTicker(HealthCheckInterval)
+
+	for _ = range r.ticker.C {
+		healtyHosts := checkHosts(hosts)
+		// replace hosts with healthy ones
+		r.r = newRing(healtyHosts)
+	}
+
+	fmt.Println("checker stopped for", indexkey)
+}
+
 // buildTarget returns a target that is obtained via the jProxyServices
 // collection, which is used for internal services. An example service to
 // target could be in form: "koding, server, 950" ->
 // "webserver-950.sj.koding.com:3000".
 func (s *service) resolve() (*url.URL, error) {
-	var hostname string
-	var r *ring.Ring
+	var round *roundRing
 	var ok bool
 
 	indexkey := s.String()
 
 	ringsMu.Lock()
-	r, ok = rings[indexkey]
+
+	round, ok = rings[indexkey]
 	if !ok {
+		// get the hosts to be roundrobined
 		hosts, err := s.serviceHosts()
 		if err != nil {
 			ringsMu.Unlock()
 			return nil, err
 		}
 
-		aliveHosts := checkHosts(hosts)
-		r = newRing(aliveHosts)
-		rings[indexkey] = r
+		round = &roundRing{
+			r: newRing(checkHosts(hosts)),
+		}
+		rings[indexkey] = round
 
 		// start health checker for base hosts
-		go healtChecker(hosts, indexkey)
+		go round.healtChecker(hosts, indexkey)
 	}
 	ringsMu.Unlock()
 
 	// means the healtChecker created a zero length ring. This is caused only
 	// when all hosts are sick.
-	if r == nil {
+	if round.r == nil {
 		return nil, ErrNoHost
 	}
 
 	// get hostname and forward ring to the next value. the next value will be
 	// used on the next request
-	hostname, ok = r.Value.(string)
+	hostname, ok := round.r.Value.(string)
 	if !ok {
-		return nil, fmt.Errorf("ring value is not string: %+v", r.Value)
+		return nil, fmt.Errorf("ring value is not string: %+v", round.r.Value)
 	}
 
 	ringsMu.Lock()
-	rings[indexkey] = r.Next()
+	round.r = round.r.Next()
+	rings[indexkey] = round
 	ringsMu.Unlock()
 
 	// be sure that the hostname has scheme prependend
@@ -397,12 +423,31 @@ func newRing(list []string) *ring.Ring {
 	return r
 }
 
-func CleanRingCache() {
-	ringsMu.Lock()
-	defer ringsMu.Unlock()
+// CleanCache cleans the cache for the given host
+func CleanCache(host string) {
+	targetsMu.Lock()
+	target, ok := targets[host]
+	if !ok {
+		targetsMu.Unlock()
+		return
+	}
+	delete(targets, host)
+	targetsMu.Unlock()
 
-	// purge rings, that means
-	rings = make(map[string]*ring.Ring)
+	// only internal mode uses ring cache
+	if target.Proxy.Mode == ModeInternal {
+		ringKey := target.getService().String()
+		fmt.Println("cleaning also ", ringKey)
+
+		ringsMu.Lock()
+		round, ok := rings[ringKey]
+		if ok {
+			fmt.Println("stopping ticker")
+			round.ticker.Stop()
+		}
+		delete(rings, ringKey)
+		ringsMu.Unlock()
+	}
 }
 
 // checkHosts checks each host for the given hosts slice and returns a new
@@ -415,10 +460,9 @@ func checkHosts(hosts []string) []string {
 	for _, host := range hosts {
 		wg.Add(1)
 		go func(host string) {
-			host = utils.AddPort(host, "80")
 			err := utils.CheckServer(host)
 			if err != nil {
-				log.Println("error checking it", err)
+				log.Printf("server '%s' is sick. Removing it from the healty server pool. err: %s\n", host, err)
 			} else {
 				mu.Lock()
 				healthyHosts = append(healthyHosts, host)
@@ -433,17 +477,4 @@ func checkHosts(hosts []string) []string {
 
 	log.Println("alive hosts", healthyHosts)
 	return healthyHosts
-}
-
-// healtChecker checks each host and updates the ring for the associated indexKey
-func healtChecker(hosts []string, indexkey string) {
-	log.Println("starting healtcheck with", hosts)
-	for _ = range time.Tick(time.Second * 3) {
-		healtyHosts := checkHosts(hosts)
-		// replace hosts with healthy ones
-		ringsMu.Lock()
-		rings[indexkey] = newRing(healtyHosts)
-		ringsMu.Unlock()
-	}
-
 }

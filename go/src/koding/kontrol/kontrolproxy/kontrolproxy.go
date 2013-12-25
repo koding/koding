@@ -5,7 +5,6 @@ import (
 	"html/template"
 	"io"
 	"koding/db/mongodb/modelhelper"
-	"koding/kontrol/kontrolproxy/cache"
 	"koding/kontrol/kontrolproxy/resolver"
 	"koding/kontrol/kontrolproxy/utils"
 	"koding/tools/config"
@@ -285,7 +284,8 @@ func (p *Proxy) getHandler(req *http.Request) http.Handler {
 	// remove cache for static files. It should be in form of _/resetcache_/koding.com
 	if resetRegex.MatchString(req.URL.String()) && req.Host == proxyName {
 		logs.Debug(fmt.Sprintf("resetCache is invoked %s - %s\n", req.Host, req.URL.String()))
-		return p.resetCacheHandler(filepath.Base(req.URL.String()))
+		cacheHost := filepath.Base(req.URL.String())
+		return p.resetCacheHandler(cacheHost)
 	}
 
 	target, err := resolver.GetTarget(req)
@@ -345,20 +345,7 @@ func (p *Proxy) getHandler(req *http.Request) http.Handler {
 		return websocketHandler(target.URL.Host)
 	}
 
-	var transport http.RoundTripper
-	var ok bool
-
-	if target.Proxy.CacheEnabled && target.Proxy.CacheSuffixes != "" {
-		p.Lock()
-		transport, ok = p.CacheTransports[req.Host]
-		if !ok {
-			transport = cache.NewCacheTransport(target.Proxy.CacheSuffixes)
-			p.CacheTransports[req.Host] = transport
-		}
-		p.Unlock()
-	}
-
-	return reverseProxyHandler(transport, target.URL)
+	return reverseProxyHandler(nil, target.URL)
 }
 
 // reverseProxyHandler is the main handler that is used for copy the response
@@ -381,23 +368,13 @@ func reverseProxyHandler(transport http.RoundTripper, target *url.URL) http.Hand
 
 // resetCacheHandler is reseting the cache transport for the given host.
 func (p *Proxy) resetCacheHandler(host string) http.Handler {
-	var result string
-
 	p.Lock()
 	defer p.Unlock()
-
-	_, ok := p.CacheTransports[host]
-	if !ok {
-		result = "there is no caching enabled for " + host
-	} else {
-		delete(p.CacheTransports, host)
-		result = "cache is resetted for " + host
-	}
+	resolver.CleanCache(host)
 
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte(result))
+		w.Write([]byte("cache is cleaned"))
 	})
-
 }
 
 // securePageHandler is used currently for the securepage feature of our
