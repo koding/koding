@@ -20,6 +20,7 @@ class WebTermAppView extends JView
       webTermView.on 'viewAppended', -> webTermView.terminal.setFocused yes
       webTermView.once 'viewAppended', => @emit "ready"
       webTermView.terminal?.setFocused yes
+      webTermView.terminal?.scrollToBottom()
       KD.utils.defer -> webTermView.setKeyView()
 
       webTermView.on "WebTerm.terminated", (server) =>
@@ -120,6 +121,7 @@ class WebTermAppView extends JView
   handleQuery:(query)->
     pane = @tabView.getActivePane()
     {webTermView} = pane.getOptions()
+    webTermView.terminal?.scrollToBottom()
     webTermView.once 'WebTermConnected', (remote)=>
 
       if query.command
