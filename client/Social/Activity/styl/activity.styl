@@ -1007,15 +1007,47 @@ span.status-body
     display               block
     line-height           16px
     font-size             12px
-    border                1px solid #e3e3e3
-    rounded               5px
-    padding               0 4px
-    bg                    color #f2f2f2
+    font-family           Monaco, Consolas, Lucida Console, Liberation Mono, DejaVu Sans Mono, Bitstream Vera Sans Mono, Courier New
+    padding               14px
+    color                 white
+    bg                    color, #28292A
 
-  pre
-    code
-      display             block
-      padding             14px
+    .comment
+    .string
+    .regexp
+      color               #96B486
+
+    .keyword
+      color               #9B8298
+
+    .title
+    .variable
+      color               #6096BE
+
+    .literal
+    .number
+      color               #D17819
+
+    .constant
+    .decorator
+    .typename
+      color               #DEB63A
+
+    &.lang-go
+      .built_in
+        color             #6096BE
+
+    &.lang-css
+      .pseudo
+        color             #DEB63A
+
+      .id
+      .tag
+      .class
+        color             #9B8298
+
+      .attribute
+        color             #6096BE
 
 .activity-share-popup
   bg                      color, #ececec
