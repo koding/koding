@@ -415,6 +415,8 @@ class CollaborativeWorkspace extends Workspace
       title       : message
       duration    : 20000
       container   : this
+      cssClass    : "error"
+      type        : "mini"
       overlay     : {}
 
   hideNotification: ->
