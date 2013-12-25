@@ -10,13 +10,15 @@ class WebTerm.Terminal
     '\\': '\\\\'
     '\u001b': '\\e'
 
-  constructor: (@container) ->
+  constructor: (containerView) ->
     localStorage?["WebTerm.logRawOutput"] ?= "false"
     localStorage?["WebTerm.slowDrawing"]  ?= "false"
 
-    @server = null
+    @parent               = containerView
+    @container            = containerView.$()
+    @server               = null
     @sessionEndedCallback = null
-    @setTitleCallback = null
+    @setTitleCallback     = null
 
     @keyInput = new KDCustomHTMLView
       tagName: 'input'
@@ -38,10 +40,10 @@ class WebTerm.Terminal
     @cursor            = new WebTerm.Cursor(this)
     @controlCodeReader = WebTerm.createAnsiControlCodeReader(this)
 
-    @measurebox        = $(document.createElement("div"))
-    @updateSizeTimer   = null
-    @measurebox.css "position", "absolute"
-    @measurebox.css "visibility", "hidden"
+    @measurebox = $("<div/>")
+    @measurebox.css
+      position   : "absolute"
+      visibility : "hidden"
     @container.append @measurebox
     @updateSize()
 
@@ -106,36 +108,30 @@ class WebTerm.Terminal
     @server.setSize x, y if @server
 
   updateSize: (force=no) ->
-    return if not force and @pixelWidth is @container.prop("clientWidth") and @pixelHeight is @container.prop("clientHeight")
-    @container.scrollTop @container.scrollTop() + @pixelHeight - @container.prop("clientHeight") + 1 if @container.prop("clientHeight") < @pixelHeight
-    @pixelWidth  = @container.prop("clientWidth")
-    @pixelHeight = @container.prop("clientHeight")
+    return if not force and @pixelWidth is @parent.getWidth() and @pixelHeight is @parent.getHeight()
+    @container.scrollTop @container.scrollTop() + @pixelHeight - @parent.getHeight() + 1 if @parent.getHeight() < @pixelHeight
+    @pixelWidth  = @parent.getWidth()
+    @pixelHeight = @parent.getHeight()
 
-    width = 1
+    width  = 1
     height = 1
     for n in [0..10] # avoid infinite loop
-      text = ""
-      text += "\xA0" for x in [0...width]
-      elements = []
-      for y in [0...height]
-        div = $(document.createElement("div"))
-        div.text text
-        elements.push div
+      text      = ""
+      text     += "\xA0" for x in [0...width]
+      elements  = ($("<div>#{text}</div>") for y in [0...height])
       @measurebox.empty()
       @measurebox.append elements
-      newWidth = Math.max width, Math.floor(@pixelWidth / @measurebox.width() * width)
-      newHeight = Math.max height, Math.floor(@pixelHeight / @measurebox.height() * height)
-      break if newWidth is width and newHeight is height
-      break if newWidth > 1000 or newHeight > 1000 # sanity check
-      width = newWidth
+      newWidth  = Math.max width,  Math.floor @pixelWidth  / @measurebox.width()  * width
+      newHeight = Math.max height, Math.floor @pixelHeight / @measurebox.height() * height
+      break  if newWidth is width and newHeight is height
+      break  if newWidth > 1000 or newHeight > 1000 # sanity check
+      width  = newWidth
       height = newHeight
 
     @measurebox.empty()
     @setSize width, height
 
-  windowDidResize: ->
-    window.clearTimeout @updateSizeTimer
-    @updateSizeTimer = window.setTimeout (=> @updateSize()), 500
+  windowDidResize: _.throttle (-> @updateSize()), 500
 
   lineFeed: ->
     if @cursor.y is @screenBuffer.scrollingRegion[1]
@@ -220,15 +216,15 @@ class WebTerm.Terminal
   changeScreenBuffer: (index) ->
 
   isScrolledToBottom: ->
-    @container.scrollTop() + @container.prop("clientHeight") >= @container.prop("scrollHeight") - 3
+    @container.scrollTop() + @parent.getHeight() >= @container.prop("scrollHeight") - 3
 
   scrollToBottom: (animate=no) ->
     return if @isScrolledToBottom()
     @container.stop()
     if animate
-      @container.animate { scrollTop: @container.prop("scrollHeight") - @container.prop("clientHeight") }, duration: 200
+      @container.animate { scrollTop: @container.prop("scrollHeight") - @parent.getHeight() }, duration: 200
     else
-      @container.scrollTop(@container.prop("scrollHeight") - @container.prop("clientHeight"))
+      @container.scrollTop(@container.prop("scrollHeight") - @parent.getHeight())
 
   setScrollbackLimit: (limit) ->
     @screenBuffer.scrollbackLimit = limit
