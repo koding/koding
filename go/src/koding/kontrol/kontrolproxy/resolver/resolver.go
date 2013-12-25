@@ -256,7 +256,7 @@ func (t *Target) vm(host, port string) (*url.URL, error) {
 		return nil, err
 	}
 
-	if vm.HostKite == "" && vm.IP == nil {
+	if vm.HostKite == "" || vm.IP == nil {
 		t.Proxy.Mode = ModeVMOff
 		return nil, errors.New("vm is off")
 	}
