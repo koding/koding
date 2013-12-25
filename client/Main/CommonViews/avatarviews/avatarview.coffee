@@ -4,8 +4,8 @@ class AvatarView extends LinkView
 
     options.cssClass       or= ""
     options.size           or=
-      width                   : 50
-      height                  : 50
+      width                  : 50
+      height                 : 50
     options.detailed        ?= no
     options.showStatus     or= no
     options.statusDiameter or= 5
@@ -28,7 +28,9 @@ class AvatarView extends LinkView
 
     options.cssClass = "avatarview #{options.cssClass}"
 
-    super options,data
+    super options, data
+
+    @dpr = window.devicePixelRatio ? 1
 
     if @detailedAvatar?
       @on 'TooltipReady', =>
@@ -37,11 +39,16 @@ class AvatarView extends LinkView
           @tooltip.getView().updateData data if data?.profile.nickname
 
     @bgImg = null
-    @fallbackUri = "#{KD.apiUri}/a/images/defaultavatar/default.avatar.#{options.size.width}.png"
+    @fallbackUri = "#{KD.apiUri}/a/images/defaultavatar/avatar.svg"
 
   setAvatar:(uri)->
     if @bgImg isnt uri
-      @$().css "background-image", "url(#{uri})"
+      @setCss "background-image", "url(#{uri})"
+      {width, height} = @getOptions().size
+      # do prefixing elsewhere - SY
+      @setCss "-webkit-background-size", "#{width}px #{height}px"
+      @setCss "-moz-background-size", "#{width}px #{height}px"
+      @setCss "background-size", "#{width}px #{height}px"
       @bgImg = uri
 
   getAvatar:->
@@ -51,7 +58,7 @@ class AvatarView extends LinkView
     {profile} = @getData()
     {width} = @getOptions().size
     if profile.hash \
-      then "//gravatar.com/avatar/#{profile.hash}?size=#{width}&d=#{encodeURIComponent @fallbackUri}"
+      then "//gravatar.com/avatar/#{profile.hash}?size=#{width * @dpr}&d=#{encodeURIComponent @fallbackUri}"
       else "#{@fallbackUri}"
 
   render:->
@@ -269,12 +276,12 @@ class AvatarImage extends AvatarView
 
     super options, data
 
-    @bgImg = null
-    @fallbackUri = "#{KD.apiUri}/a/images/defaultavatar/default.avatar.#{options.size.width}.png"
-
   setAvatar:(uri)->
     if @bgImg isnt uri
+      {width, height} = @getOptions().size
       @setAttribute "src", uri
+      @setAttribute "width", width
+      @setAttribute "height", height
       @bgImg = uri
 
   pistachio:-> ''

@@ -44,7 +44,9 @@ class ActiveUsers extends ActivityRightBase
       tagName : "a"
       partial : "show all"
       cssClass: "show-all-link hidden"
-      click   : (event) -> KD.singletons.router.handleRoute "/Members"
+      click   : (event) ->
+        KD.singletons.router.handleRoute "/Members"
+        KD.mixpanel "Show all members, click"
     , data
 
     KD.remote.api.ActiveItems.fetchUsers {}, @bound 'renderItems'
@@ -68,6 +70,7 @@ class ActiveTopics extends ActivityRightBase
       click   : (event) ->
         if group is "koding" then route = "/Topics" else route = "/#{group}/Topics"
         KD.singletons.router.handleRoute route
+        KD.mixpanel "Show all topics, click"
     , data
 
     KD.remote.api.ActiveItems.fetchTopics {group}, @bound 'renderItems'

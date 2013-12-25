@@ -59,7 +59,7 @@ class WebTermAppView extends JView
     vmController = KD.getSingleton 'vmController'
     vmController.fetchDefaultVmName (vmName)=>
 
-      KD.mixpanel "Click open Webterm", {vmName}
+      KD.mixpanel "Open Webterm, click", {vmName}
 
       unless vmName
         return @setMessage "It seems you don't have a VM to use with Terminal."
@@ -67,12 +67,13 @@ class WebTermAppView extends JView
       vmController.info vmName, KD.utils.getTimedOutCallback (err, vm, info)=>
 
         @addNewTab vmName  if info?.state is 'RUNNING'
-        KD.mixpanel "Opened Webterm", {vmName}
+        KD.mixpanel "Open Webterm, success", {vmName}
 
       , =>
-        KD.mixpanel "Can't open Webterm", {vmName}
+        KD.mixpanel "Open Webterm, fail", {vmName}
+        KD.logToExternalWithTime "oskite: Can't open Webterm", vmName
         @setMessage "Couldn't connect to your VM, please try again later. <a class='close' href='#'>close this</a>", no, yes
-      , 5000
+      , 10000
 
   showApprovalModal: (remote, command)->
     modal = new KDModalView
@@ -121,6 +122,7 @@ class WebTermAppView extends JView
   handleQuery:(query)->
     pane = @tabView.getActivePane()
     {webTermView} = pane.getOptions()
+    webTermView.terminal?.scrollToBottom()
     webTermView.once 'WebTermConnected', (remote)=>
 
       if query.command
@@ -182,7 +184,7 @@ class WebTermAppView extends JView
       @tabHandleContainer.addPlusHandle()
 
     if @_secondTab
-      KD.mixpanel "Click open new Webterm tab"
+      KD.mixpanel "Open new Webterm tab, success"
 
     @_secondTab   = yes
 
