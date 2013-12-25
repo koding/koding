@@ -19,3 +19,6 @@ do->
     category = action = rest.first
     trackArray = ['_trackEvent', category, action]
     _gaq.push trackArray
+
+  KD.singleton('router').on "RouteInfoHandled", (argsForMixpanel)->
+    KD.mixpanel "Visit page, success", argsForMixpanel

@@ -45,27 +45,13 @@ class KodingRouter extends KDRouter
 
   handleRoute:(route, options={})->
 
-    appManager         = KD.getSingleton 'appManager'
-    frags              = route.split '/'
-    nameAndParams      = frags[1] or ''
-    splitNameAndParams = (nameAndParams.split '?')
-    name               = splitNameAndParams[0]
-    params             = splitNameAndParams[1]
-    splitParams        = if params then params.split '&' else []
+    appManager = KD.getSingleton 'appManager'
+    frags      = route.split '/'
+    name       = frags[1] or ''
+    name       = (name.split '?')[0]
 
-    argsForMixpanel    = {
-      path: name
-    }
+    log 'handlingRoute', route, 'for the', name, 'app'
 
-    for p in splitParams
-      split = p.split '='
-      key   = split[0]
-      value = split[1]
-      argsForMixpanel[key] = value
-
-    KD.mixpanel "Visit page, success", argsForMixpanel
-
-    log 'handlingRoute', route, 'for the', name, 'app', 'with params', splitParams
     if appManager.isAppInternal name
       log 'couldn\'t find', name
       return KodingAppsController.loadInternalApp name, (err)=>
