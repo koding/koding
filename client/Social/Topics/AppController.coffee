@@ -104,7 +104,7 @@ class TopicsAppController extends AppController
           @updateTopic topicItem
         KD.getSingleton('mainController').on "TopicItemDeleteClicked", (topicItem)=>
           @deleteTopic topicItem
-        KD.getSingleton('mainController').on "TopicItemSynonymClicked", (topicItem)=>
+        KD.getSingleton('mainController').on "TopicItemSetParentClicked", (topicItem)=>
           @setSynonymTopic topicItem
 
     @createFeed mainView, loadFeed
@@ -140,8 +140,9 @@ class TopicsAppController extends AppController
 
   setSynonymTopic:(topicItem) ->
     topic = topicItem.getData()
+    {synonym: parent} = topic
     modal = new KDModalViewWithForms
-      title                       : "Set Topic Synonym for #{topic.title}"
+      title                       : "Set Parent Topic for #{topic.title}"
       height                      : "auto"
       cssClass                    : "compose-message-modal"
       width                       : 779
@@ -165,7 +166,7 @@ class TopicsAppController extends AppController
                   modal.destroy()
             fields                :
               Synonym             :
-                label             : "Synonym"
+                label             : "Parent"
                 type              : "hidden"
             callback              : (formData) =>
               showStatus = (status) =>
