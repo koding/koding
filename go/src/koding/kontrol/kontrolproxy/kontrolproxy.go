@@ -290,16 +290,14 @@ func (p *Proxy) getHandler(req *http.Request) http.Handler {
 
 	target, err := resolver.GetTarget(req)
 	if err != nil {
-		if err == resolver.ErrGone {
-			return templateHandler("notfound.html", req.Host, 410)
-		}
-
 		logs.Info(fmt.Sprintf("resolver error (%s): %s", userIP, err))
 		return templateHandler("notfound.html", req.Host, 404)
 	}
 
-	logs.Debug(fmt.Sprintf("mode '%s' [%s] via %s : %s --> %s\n",
-		target.Proxy.Mode, userIP, target.FetchedSource, req.Host, target.URL.String()))
+	defer func() {
+		logs.Notice(fmt.Sprintf("mode '%s' [%s] via %s : %s --> %s\n",
+			target.Proxy.Mode, userIP, target.FetchedSource, req.Host, target.URL.String()))
+	}()
 
 	if p.EnableFirewall {
 		_, err = validate(userIP, req.Host)
@@ -326,6 +324,21 @@ func (p *Proxy) getHandler(req *http.Request) http.Handler {
 		}
 	case resolver.ModeVMOff:
 		return templateHandler("notOnVM.html", req.Host, 404)
+	case resolver.ModeInternal:
+		// roundrobin to next target
+		err := target.Resolve(req.Host)
+		if err != nil {
+			logs.Info(fmt.Sprintf("internal resolver error (%s) - %s", userIP, err))
+			if err == resolver.ErrGone {
+				return templateHandler("notfound.html", req.Host, 410)
+			}
+
+			if err == resolver.ErrNoHost {
+				return templateHandler("maintenance.html", nil, 503)
+			}
+
+			return templateHandler("notfound.html", req.Host, 404)
+		}
 	}
 
 	if isWebsocket(req) {
