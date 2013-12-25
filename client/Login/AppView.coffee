@@ -326,6 +326,8 @@ class LoginView extends KDView
 
       else
         KD.mixpanel.alias account.profile.nickname
+        KD.mixpanel "Signup, success"
+        _gaq.push ['_trackEvent', 'Sign-up']
 
         $.cookie 'newRegister', yes
         $.cookie 'clientId', replacementToken
