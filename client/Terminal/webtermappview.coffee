@@ -121,6 +121,7 @@ class WebTermAppView extends JView
   handleQuery:(query)->
     pane = @tabView.getActivePane()
     {webTermView} = pane.getOptions()
+    webTermView.terminal?.scrollToBottom()
     webTermView.once 'WebTermConnected', (remote)=>
 
       if query.command
