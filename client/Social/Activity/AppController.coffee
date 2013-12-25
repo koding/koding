@@ -213,7 +213,11 @@ class ActivityAppController extends AppController
     eventSuffix = "#{@getFeedFilter()}_#{@getActivityFilter()}"
 
     # get from cache if only it is "Public" or "Everything"
-    if @getFeedFilter() is "Public" and @getActivityFilter() is "Everything" and KD.prefetchedFeeds
+    if @getFeedFilter() is "Public" \
+        and @getActivityFilter() is "Everything" \
+        and KD.prefetchedFeeds \
+        # if current user is exempt, fetch from db, not from cache
+        and not KD.whoami().isExempt
       prefetchedActivity = KD.prefetchedFeeds["activity.main"]
 
       # TODO : REMOVING FOR GROUPS DEV. BECAUSE PREFETCH NOT WORKING FOR GROUPS
