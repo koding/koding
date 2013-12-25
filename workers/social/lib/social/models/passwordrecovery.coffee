@@ -88,30 +88,28 @@ module.exports = class JPasswordRecovery extends jraphical.Module
     {delegate} = client.connection
     JUser.one {username}, (err, user)=>
       unless user then callback new KodingError "Unknown username"
-      else @create client, {email: user.getAt('email')}, callback
+      else @create client, {email: user.getAt('email'), resetPassword:yes}, callback
 
   @recoverPasswordByEmail = secure (client, email, callback)->
     JUser = require './user'
     {delegate} = client.connection
     JUser.count {email}, (err, num)=>
       unless num then callback null # pretend like everything went fine.
-      else @create client, {email}, callback
+      else @create client, {email, resetPassword:yes}, callback
 
   @create = (client, options, callback)->
     JUser = require './user'
     token = createId()
-    
+
     {email, verb, expiryPeriod} = options
 
-    options.resetPassword ?= yes
+    options.resetPassword ?= no
 
     expiryPeriod ?= @expiryPeriod
 
     verb ?= "Reset"
 
     {host, protocol} = require '../config.email'
-    messageOptions =
-      url : "#{protocol}//#{host}/#{verb}/#{encodeURIComponent token}"
 
     JUser.one {email}, (err, user)=>
       if err
@@ -128,9 +126,11 @@ module.exports = class JPasswordRecovery extends jraphical.Module
           if err
             callback err
           else
-            messageOptions.requestedAt = certificate.getAt('requestedAt')
+            messageOptions =
+              url           : "#{protocol}//#{host}/#{verb}/#{encodeURIComponent token}"
+              resetPassword : options.resetPassword
+              requestedAt   : certificate.getAt('requestedAt')
 
-            messageOptions.resetPassword = no
             JMail = require './email'
             email = new JMail
               from            : @getPasswordRecoveryEmail()
@@ -177,9 +177,7 @@ module.exports = class JPasswordRecovery extends jraphical.Module
       @one {token}, (err, certificate)->
         return callback err  if err
         return callback { message: 'Invalid token.' }  unless certificate
-        
-        { status, expiresAt } = certificate
-
+        {status, expiresAt} = certificate
         if (status isnt 'active') or (expiresAt? and expiresAt < new Date)
           console.warn 'Old-style password reset token is expired', delegate.profile.nickname
           return callback message: """
@@ -190,10 +188,8 @@ module.exports = class JPasswordRecovery extends jraphical.Module
 
         JUser.one {username}, (err, user)->
           return callback err or { message: "Unknown user!" }  if err or not user
-          
           certificate.redeem (err)->
             return callback err  if err
-
             user.changePassword newPassword, (err)->
               return callback err  if err
               JPasswordRecovery.invalidate {username}, (err)->
@@ -231,7 +227,7 @@ module.exports = class JPasswordRecovery extends jraphical.Module
     JMail.one redemptionToken: @token, (err, mail) =>
       return callback err  if err
 
-      dateThen = 
+      dateThen =
         if mail.dateDelivered
         then mail.dateDelivered
         else

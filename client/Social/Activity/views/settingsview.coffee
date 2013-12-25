@@ -22,6 +22,7 @@ class ActivitySettingsView extends KDCustomHTMLView
 
   settingsMenu:(post)->
     account        = KD.whoami()
+    activityController = KD.getSingleton("activityController")
     if post.originId is account.getId()
       menu =
         'Edit'     :
