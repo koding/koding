@@ -46,8 +46,8 @@ class TopicsListItemView extends KDListItemView
       callback  : => KD.getSingleton('mainController').emit 'TopicItemEditClicked', @
     menu["Delete"] =
       callback : => KD.getSingleton('mainController').emit 'TopicItemDeleteClicked', @
-    menu["Set Synonym"] =
-      callback : => KD.getSingleton('mainController').emit 'TopicItemSynonymClicked', @
+    menu["Set Parent"] =
+      callback : => KD.getSingleton('mainController').emit 'TopicItemSetParentClicked', @
 
     menu
 
