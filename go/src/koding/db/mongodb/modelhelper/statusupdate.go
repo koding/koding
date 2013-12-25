@@ -26,3 +26,12 @@ func UpdateStatusUpdate(s *models.StatusUpdate) error {
 
   return mongodb.Run(POST_COLL, query)
 }
+
+func DeleteStatusUpdateById(id string) error {
+  selector := Selector{"_id": GetObjectId(id)}
+  query := func(c *mgo.Collection) error {
+    return c.Remove(selector)
+  }
+
+  return mongodb.Run(POST_COLL, query)
+}
