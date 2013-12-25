@@ -185,8 +185,13 @@ func updatePosts(rels []Relationship, newTagId string) (filteredRels []Relations
       log.Error("Status Update Not Found - Id: %s, Err: %s", rel.SourceId.Hex(), err)
       continue
     }
+
     tagIncluded := updatePostBody(post, tagId, newTagId)
-    err = helper.UpdateStatusUpdate(post)
+    if strings.TrimSpace(post.Body) == "" {
+      DeleteStatusUpdate(post.Id.Hex())
+    } else {
+      err = helper.UpdateStatusUpdate(post)
+    }
 
     if err != nil {
       log.Error(err.Error())
@@ -196,9 +201,9 @@ func updatePosts(rels []Relationship, newTagId string) (filteredRels []Relations
     if !tagIncluded {
       filteredRels = append(filteredRels, rel)
     } else {
-      removeRelationship(&rel)
+      RemoveRelationship(&rel)
       postRel := swapTagRelation(&rel, "post")
-      removeRelationship(&postRel)
+      RemoveRelationship(&postRel)
     }
   }
 
@@ -228,7 +233,7 @@ func updatePostBody(s *StatusUpdate, tagId string, newTagId string) (tagIncluded
 //Removes old tag relationships and creates new ones if synonym tag does exists
 func updateTagRelationships(rels []Relationship, synonym *Tag) {
   for _, rel := range rels {
-    removeRelationship(&rel)
+    RemoveRelationship(&rel)
     if synonym.Id.Hex() != "" {
       if rel.TargetName == "JTag" {
         rel.TargetId = synonym.Id
@@ -236,7 +241,7 @@ func updateTagRelationships(rels []Relationship, synonym *Tag) {
         rel.SourceId = synonym.Id
       }
       rel.Id = helper.NewObjectId()
-      createRelationship(&rel)
+      CreateRelationship(&rel)
     }
   }
 }
