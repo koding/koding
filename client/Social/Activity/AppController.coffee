@@ -70,6 +70,21 @@ class ActivityAppController extends AppController
 
   fetchCurrentGroup:(callback)-> callback @currentGroupSlug
 
+  search:(text)->
+    {JNewStatusUpdate} = KD.remote.api
+    options =
+      limit : 20
+      skip  : 0
+
+    JNewStatusUpdate.search text, options, (err, activities) =>
+      KD.notify_ err if err
+      @resetAll()
+      @clearPopulateActivityBindings()
+      @listController.listActivities activities
+
+
+
+
   bindLazyLoad:->
     @once 'LazyLoadThresholdReached', @bound "continueLoadingTeasers"
     @listController.once 'teasersLoaded', @bound "teasersLoaded"
