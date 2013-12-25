@@ -30,6 +30,7 @@ func numberOfCouldntFetchFiles() (string, int) {
 	log.Info("item", item)
 
 	PublishToGraphite("rollbar.errors.couldnt_fetch_files", item.TotalOccurrences, time.Now().Unix())
+	PublishToGraphite("rollbar.errors.couldnt_fetch_files_occurence", 1, int64(item.LastOccurrenceTimestamp))
 
 	return identifier, item.TotalOccurrences
 }
@@ -48,6 +49,7 @@ func numberOfTimeoutReachedForKiteRequest() (string, int) {
 	log.Info("item", item)
 
 	PublishToGraphite("rollbar.errors.kite_request_timeout_reached", item.TotalOccurrences, time.Now().Unix())
+	PublishToGraphite("rollbar.errors.kite_request_timeout_reached_occurence", 1, int64(item.LastOccurrenceTimestamp))
 
 	return identifier, item.TotalOccurrences
 }
