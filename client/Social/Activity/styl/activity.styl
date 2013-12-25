@@ -542,6 +542,16 @@ span.collapsedtext
   .comment-container
     bg                color, #f6f6f6
 
+    .delete-link
+      display       block
+      top           27px
+      right         20px
+      opacity       0
+      sprite        activity "delete-icon"
+      transition    opacity .2s ease
+      abs()
+
+
   .comment-container.commented
     border-top        1px solid #d8d8d8
 
@@ -571,6 +581,12 @@ span.collapsedtext
   .kdlistitemview-comment
     padding           22px 22px 17px 20px
     borderBox()
+
+    &:hover
+      .delete-link
+        opacity         .5
+        &:hover
+          opacity       1
 
     &:last-of-type
       padding-bottom  26px
