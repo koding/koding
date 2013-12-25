@@ -163,6 +163,22 @@ module.exports = class JNewStatusUpdate extends JPost
       JComment = require '../comment'
       JPost::reply.call this, client, JComment, comment, callback
 
+  @getExemptUserIdsIfNeeded: (client, options, callback=->)->
+    unless options.withExempt
+      {delegate} = client.connection
+      return callback null, []  unless delegate
+
+      JAccount = require '../../account'
+      JAccount.getExemptUserIds (err, ids)->
+        return callback err, null if err
+        index = ids.indexOf(delegate.getId().toString())
+        if index > -1
+          ids.splice(index, 1)
+
+        callback null, ids
+    else
+      callback null, []
+
   @getCurrentGroup: (client, callback)->
     groupName = client.context.group or "koding"
     JGroup = require '../../group'
@@ -182,21 +198,46 @@ module.exports = class JNewStatusUpdate extends JPost
         else callback null, group
 
 
+  @checkForTrollMode = (delegate, options) ->
+    # if delegate is set and  user is exempt
+    # display exempt posts/comments
+    if delegate and delegate.isExempt
+      return yes
+    # if options.withExempt is not set or
+    # it is set to false set it to false again
+    else if not options.withExempt
+      return no
+
+    return options.withExempt
+
+
+
   @fetchGroupActivity$ = secure (client, options = {}, callback)->
     @fetchGroupActivity client, options, callback
 
   @fetchGroupActivity = (client, options = {}, callback)->
+    {connection:{delegate}} = client
+    showExemptComments = @checkForTrollMode delegate, options
     @getCurrentGroup client, (err, group)=>
       if err then return callback err
       {to} = options
       to = if to then new Date(to)  else new Date()
-      selector = {'meta.createdAt' : "$lt" : to }
 
-      options.sort = 'meta.createdAt' : -1
-      options.limit or= 20
-      @some selector, options, (err, data)=>
-        return callback err if err
-        @decorateResults data, callback
+      @getExemptUserIdsIfNeeded client, options, (err, ids)=>
+        return callback err  if err
+        selector =
+          'meta.createdAt': $lt: to
+          group: group.slug
+
+        # remove exempts from result set
+        selector.originId = $nin : ids if ids.length > 0
+
+        options.sort = 'meta.createdAt' : -1
+        options.limit ?= 20
+
+        @some selector, options, (err, data)=>
+          return callback err if err
+          @decorateResults data, showExemptComments, callback
 
   @fetchProfileFeed = secure (client, options = {}, callback)->
     {connection:{delegate}, context:{group}} = client
@@ -216,11 +257,10 @@ module.exports = class JNewStatusUpdate extends JPost
 
     @some selector, feedOptions, (err, data)=>
       return callback err if err
-      @decorateResults data, callback
+      @decorateResults data, yes, callback
 
   @fetchTopicFeed = secure (client, options = {}, callback)->
-
-    {context:{group}} = client
+    {connection:{delegate}, context:{group}} = client
 
     JTag = require '../../tag'
     JTag.one { slug : options.slug, group }, (err, tag)=>
@@ -234,15 +274,27 @@ module.exports = class JNewStatusUpdate extends JPost
         sort : {'timestamp': -1}
         limit: options.limit or 20
 
-      tag.fetchContents {
-        targetName: 'JNewStatusUpdate'
-        "timestamp": "$lt": to
-      }, fetchOptions, (err, posts)=>
-        return callback err if err
-        @decorateResults posts, callback
+      @getExemptUserIdsIfNeeded client, options, (err, ids)=>
+        return callback err  if err
+
+        query =
+          targetName: 'JNewStatusUpdate'
+          "timestamp": $lt: to
+
+        showExempt = @checkForTrollMode delegate, options
+        # add isExempt query if necessary
+        query['data.flags.isLowQuality'] = $ne: yes unless showExempt
+
+        tag.fetchContents query, fetchOptions, (err, posts)=>
+          return callback err if err
+          @decorateResults posts, showExempt, callback
 
   @fetchFollowingFeed = secure (client, options = {}, callback)->
     {Activity} = require "../../graph"
+
+    {connection:{delegate}} = client
+    showExemptComments = @checkForTrollMode delegate, options
+
     options.client = client
     Activity.fetchFolloweeContentsForNewKoding options, (err, ids)=>
       return callback err  if err
@@ -251,19 +303,9 @@ module.exports = class JNewStatusUpdate extends JPost
         _id : "$in" : activityIds
       @some selector, {}, (err, activities)=>
         return callback err  if err
-        @decorateResults activities, callback
+        @decorateResults activities, showExemptComments, callback
 
-  @fetchActivitiesWithRels = ({selector, options, relSelector, relOptions}, callback)->
-    Relationship.some relSelector, relOptions, (err, rels)=>
-      return callback err  if err
-      return callback null, [] if not rels or rels.length < 1
-      activityIds = rels.map (rel)-> rel.targetId
-      selector._id = "$in" : activityIds
-      @some selector, options, (err, activities)=>
-        return callback err  if err
-        @decorateResults activities, callback
-
-  @decorateResults = (posts, callback) ->
+  @decorateResults = (posts, showExempt, callback) ->
     return callback null, [] if not posts or posts.length < 1
     teasers = []
     collectTeasers = race (i, root, fin)->
@@ -274,5 +316,6 @@ module.exports = class JNewStatusUpdate extends JPost
         else
           teasers[i] = teaser
           fin()
+      , showExempt
     , -> callback null, teasers
     collectTeasers post for post in posts
