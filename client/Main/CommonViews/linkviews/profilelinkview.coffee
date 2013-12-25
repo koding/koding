@@ -31,11 +31,7 @@ class ProfileLinkView extends LinkView
 
   getDisplayName:->
     return @displayName  if @displayName
-
-    {profile} = @getData()
-    {firstName, lastName} = profile
-
-    return "#{firstName} #{lastName}"
+    return KD.utils.getFullnameFromAccount @getData()
 
   render: (fields) ->
     nickname = @getData().profile?.nickname
