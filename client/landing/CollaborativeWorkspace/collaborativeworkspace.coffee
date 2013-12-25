@@ -25,14 +25,15 @@ class CollaborativeWorkspace extends Workspace
     unless instanceName
       return warn "CollaborativeWorkspace requires a Firebase instance."
 
-    @firebaseRef  = new Firebase "https://#{instanceName}.firebaseio.com/"
-    @sessionKey   = @getOptions().sessionKey or @createSessionKey()
-    @workspaceRef = @firebaseRef.child @sessionKey
-    @broadcastRef = @workspaceRef.child "broadcast"
-    @historyRef   = @workspaceRef.child "history"
-    @chatRef      = @workspaceRef.child "chat"
-    @watchRef     = @workspaceRef.child "watch"
-    @usersRef     = @workspaceRef.child "users"
+    @firebaseRef    = new Firebase "https://#{instanceName}.firebaseio.com/"
+    @sessionKey     = @getOptions().sessionKey or @createSessionKey()
+    @workspaceRef   = @firebaseRef.child @sessionKey
+    @broadcastRef   = @workspaceRef.child "broadcast"
+    @historyRef     = @workspaceRef.child "history"
+    @chatRef        = @workspaceRef.child "chat"
+    @watchRef       = @workspaceRef.child "watch"
+    @usersRef       = @workspaceRef.child "users"
+    @sessionKeysRef = @firebaseRef.child  "session_keys"
 
   bindRemoteEvents: ->
     @workspaceRef.once "value", (snapshot) =>
@@ -55,6 +56,7 @@ class CollaborativeWorkspace extends Workspace
         record = if isOldSession then "$0 joined the session" else "$0 started the session"
         @addToHistory { message: record, by: KD.nick() }
         @watchRef.child(@nickname).set "everybody"
+        @sessionKeysRef.child(@nickname).set @sessionKey
 
         @loader.destroy()
         @chatView?.show()
