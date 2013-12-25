@@ -451,24 +451,30 @@ span.collapsedtext
 
   .profile
   .status-body
-    word-break    break-word
     display       block
     color         #3c4752
     font-weight   200
+    word-break    break-word
 
   .status-body
     // to avoid too long posts
     // until we find a better solution - SY
     overflow      auto
     max-height    400px
-    padding       5px 21px 0
     line-height   22px
-    white-space   pre-line
+
+    > span
+      > *
+        padding       0 21px
+        white-space   pre-line
+
+      > pre
+        padding       0
 
   >.profile
     color         #1aaf5d
     font-weight   400
-    padding       18px 20px 0
+    padding       18px 20px 5px
     display       inline-block
     noTextDeco()
 
@@ -499,8 +505,8 @@ span.collapsedtext
       display      none
 
   footer
-    size          100%, 33px
-    margin        -12px 0 0 0
+    size          100%, 25px
+    margin-top    10px
     borderBox()
 
     time
@@ -998,7 +1004,8 @@ span.status-body
     background            #c4c4c9
     border                none
   code
-    display               inline-block
+    display               block
+    line-height           16px
     font-size             12px
     border                1px solid #e3e3e3
     rounded               5px
