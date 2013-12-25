@@ -4,8 +4,8 @@ class AvatarView extends LinkView
 
     options.cssClass       or= ""
     options.size           or=
-      width                   : 50
-      height                  : 50
+      width                  : 50
+      height                 : 50
     options.detailed        ?= no
     options.showStatus     or= no
     options.statusDiameter or= 5
