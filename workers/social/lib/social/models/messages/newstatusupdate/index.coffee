@@ -225,7 +225,10 @@ module.exports = class JNewStatusUpdate extends JPost
 
       @getExemptUserIdsIfNeeded client, options, (err, ids)=>
         return callback err  if err
-        selector = 'meta.createdAt': $lt: to
+        selector =
+          'meta.createdAt': $lt: to
+          group: group.slug
+
         # remove exempts from result set
         selector.originId = $nin : ids if ids.length > 0
 
