@@ -156,7 +156,7 @@ module.exports =
       broker    :
         servicesEndpoint: "/-/services/broker"
         sockJS   : "http://stage-broker-#{version}.sj.koding.com/subscribe"
-      apiUri    : 'https://www.koding.com'
+      apiUri    : 'https://koding.com'
       appsUri   : 'https://koding-apps.s3.amazonaws.com'
       uploadsUri: 'https://koding-uploads.s3.amazonaws.com'
       sourceUri : "http://stage-webserver-#{version}.sj.koding.com:1337"
@@ -298,3 +298,4 @@ module.exports =
     version      : "1.0"
     signature    : "HMAC-SHA1"
   mixpanel       : "113c2731b47a5151f4be44ddd5af0e7a"
+  rollbar        : "8108a4c027604f59bac7a8315c205afe"

@@ -5,7 +5,7 @@ class GroupsInvitationView extends KDView
     super options, data
 
     @getData().fetchMembershipPolicy (err, @policy)=>
-      @addSubView tabHandleContainer = new KDCustomHTMLView
+      @addSubView tabHandleContainer = new KDTabHandleContainer
       @addSubView @tabView = new GroupsInvitationTabView {
         delegate           : this
         tabHandleClass     : GroupTabHandleView

@@ -82,7 +82,8 @@ class ActivityAppView extends KDScrollView
     #   @inputWidget.hide()
     @_windowDidResize()
 
-  setTopicTag: (slug = "") ->
+  setTopicTag: (slug) ->
+    return  if not slug or slug is ""
     KD.remote.api.JTag.one {slug}, null, (err, tag) =>
       @inputWidget.input.setDefaultTokens tags: [tag]
 
@@ -166,6 +167,6 @@ class FilterWarning extends JView
 
   showWarning:(tag)->
     @warning.updatePartial \
-      """You are now looking activities tagged with <strong>##{tag}</strong> """
+      """You are now looking at activities tagged with <strong>##{tag}</strong> """
 
     @show()

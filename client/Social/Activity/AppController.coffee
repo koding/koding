@@ -83,7 +83,7 @@ class ActivityAppController extends AppController
     return  if @isLoading
     @clearPopulateActivityBindings()
 
-    KD.mixpanel "Scrolled down feed"
+    KD.mixpanel "Scroll down feed, success"
     @populateActivity to : @lastFrom
 
   attachEvents:(controller)->
@@ -213,7 +213,11 @@ class ActivityAppController extends AppController
     eventSuffix = "#{@getFeedFilter()}_#{@getActivityFilter()}"
 
     # get from cache if only it is "Public" or "Everything"
-    if @getFeedFilter() is "Public" and @getActivityFilter() is "Everything" and KD.prefetchedFeeds
+    if @getFeedFilter() is "Public" \
+        and @getActivityFilter() is "Everything" \
+        and KD.prefetchedFeeds \
+        # if current user is exempt, fetch from db, not from cache
+        and not KD.whoami().isExempt
       prefetchedActivity = KD.prefetchedFeeds["activity.main"]
       if prefetchedActivity and ('activities.main' not in USEDFEEDS)
         log "exhausting feed:", "activity.main"

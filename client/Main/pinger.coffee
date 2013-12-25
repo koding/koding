@@ -23,7 +23,7 @@ class Pinger extends KDObject
     @lastPong    = Date.now()
 
     @pingTimeoutId = setTimeout =>
-      @pingChannel()
+      @ping()
     , 10000
 
   handleSuspectChannel: ->

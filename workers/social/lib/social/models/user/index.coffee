@@ -795,8 +795,8 @@ module.exports = class JUser extends jraphical.Module
         return callback createKodingError "PasswordIsSame"
 
       user.changePassword password, (err)=>
-        return callback err if err
         sendChangeEmail user.email, "password"
+        return callback err
 
   sendChangeEmail = (email, type)->
     email = new JMail {

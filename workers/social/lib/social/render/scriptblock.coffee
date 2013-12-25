@@ -6,6 +6,7 @@ module.exports = (options = {}, callback)->
   options.client               or= {}
   options.client.context       or= {}
   options.client.context.group or= "koding"
+  options.client.connection    or= {}
 
   {argv} = require 'optimist'
 
@@ -56,13 +57,21 @@ module.exports = (options = {}, callback)->
 
     <!-- ROLLBAR -->
     <script>
+      var startTime = new Date().getTime();
       var _rollbarParams = {
         "server.environment": "production",
         "client.javascript.source_map_enabled": true,
         "client.javascript.code_version": "#{KONFIG.version}",
-        "client.javascript.guess_uncaught_frames": true
+        "client.javascript.guess_uncaught_frames": true,
+        checkIgnore: function(msg, file, line, col, err) {
+          if ((new Date().getTime() - startTime) > 1000*60*60) {
+            // ignore errors after the page has been open for 1hr
+            return true;
+          }
+          return false;
+        }
       };
-      _rollbarParams["notifier.snippet_version"] = "2"; var _rollbar=["713a5f6ab23c4ab0abc05494ef7bca55", _rollbarParams]; var _ratchet=_rollbar;
+      _rollbarParams["notifier.snippet_version"] = "2"; var _rollbar=["#{KONFIG.rollbar}", _rollbarParams]; var _ratchet=_rollbar;
       (function(w,d){w.onerror=function(e,u,l){_rollbar.push({_t:'uncaught',e:e,u:u,l:l});};var i=function(){var s=d.createElement("script");var
       f=d.getElementsByTagName("script")[0];s.src="//d37gvrvc0wt4s1.cloudfront.net/js/1/rollbar.min.js";s.async=!0;
       f.parentNode.insertBefore(s,f);};if(w.addEventListener){w.addEventListener("load",i,!1);}else{w.attachEvent("onload",i);}})(window,document);
@@ -74,10 +83,14 @@ module.exports = (options = {}, callback)->
     html = createHTML()
     return callback null, html
 
+  {delegate} = options.client.connection
+  # if user is exempt do not cache his/her result set
+  return generateScript()  if delegate and delegate.isExempt
+
   Cache  = require '../cache/main'
   feedFn = require '../cache/feed'
 
-  getCacheKey =-> return "scriptblock"
+  getCacheKey =-> return "scriptblock-#{options.client.context.group}"
 
   Cache.fetch getCacheKey(), feedFn, options, (err, data)->
     prefetchedFeeds = data    # this is updating the prefetchedFeeds property

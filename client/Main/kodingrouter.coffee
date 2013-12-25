@@ -51,6 +51,7 @@ class KodingRouter extends KDRouter
     name       = (name.split '?')[0]
 
     log 'handlingRoute', route, 'for the', name, 'app'
+
     if appManager.isAppInternal name
       log 'couldn\'t find', name
       return KodingAppsController.loadInternalApp name, (err)=>
@@ -281,7 +282,9 @@ class KodingRouter extends KDRouter
       ''                       : handleRoot
 
       '/Landing/:page'         : noop
-      '/R/:username'           : noop
+      '/R/:username'           : ({params:{username}})->
+        KD.mixpanel "Visit referrer url, success", {username}
+        noop
 
       '/:name?/Logout'         : ({params:{name}})-> requireLogin -> mainController.doLogout()
 
