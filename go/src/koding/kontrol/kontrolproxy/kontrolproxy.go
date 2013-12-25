@@ -180,7 +180,7 @@ func (p *Proxy) setupLogging() {
 					log.Println("creating new file")
 					p.LogDestination = newFile
 				}
-			case syscall.SIGINT, syscall.SIGKILL:
+			case syscall.SIGINT, syscall.SIGTERM:
 				os.Exit(1)
 			}
 		}
