@@ -26,7 +26,7 @@ class TeamworkChatPane extends ChatPane
       user     : { nickname }
       time     : Date.now()
       body     : messageData.message
-      by       : if isSystemMessage then "teamwork" else messageData.by
+      by       : messageData.by
       cssClass : cssClass            or ""
       system   : isSystemMessage     or no
 
@@ -71,7 +71,7 @@ class TeamworkChatPane extends ChatPane
         Type "watch username"  to watch changes of somebody.
         Type "join sessionKey" to join a session.
       """
-    @sendMessage message: message, yes
+    @botReply message
 
   replyForJoin: (sessionKey) ->
     return if sessionKey.length > 1
@@ -79,12 +79,12 @@ class TeamworkChatPane extends ChatPane
     sessionKey = sessionKey.first
 
     if sessionKey.indexOf("_") > -1
-      @sendMessage message: "Validating the session key, #{sessionKey}", yes
+      @botReply "Validating the session key, #{sessionKey}", yes
       @workspace.firebaseRef.child(sessionKey).once "value", (snapshot) =>
         if snapshot.val() is null or not snapshot.val().keys
-          @sendMessage message: "This session is no longer active, you cannot join.", yes
+          @botReply "This session is no longer active, you cannot join."
         else
-          @sendMessage message: "Joining to session, #{sessionKey}", yes
+          @botReply "Joining to session, #{sessionKey}"
           @workspace.getDelegate().emit "JoinSessionRequested", sessionKey
     else
       # TODO: fatihacet - implement getting the sessionKey via username
@@ -105,10 +105,10 @@ class TeamworkChatPane extends ChatPane
         message    = "#{username} is successfully invited."
         if usernames.length > 1
           message += "You can invite only one person at a time. Try again for other users too."
-        @sendMessage message: message, yes
+        @botReply message
 
       @workspace.userList.once "UserInviteFailed", =>
-        @sendMessage message: "Are you sure your friend's nickname is #{username}?", yes
+        @botReply "Are you sure your friend's nickname is #{username}?"
 
       @workspace.userList.sendInvite account
 
@@ -123,4 +123,12 @@ class TeamworkChatPane extends ChatPane
       This means you will only be notified by #{username}'s changes.
       Type "watch nobody" to stop watching #{username} or type "watch username" to watch someone else.
     """
-    @sendMessage message: message, yes
+    @botReply message
+
+  botReply: (message) ->
+    messageData =
+      message   : message
+      by        :
+        nickname: "teamwork"
+
+    @sendMessage messageData, yes

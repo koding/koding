@@ -34,7 +34,6 @@ class TeamworkWorkspace extends CollaborativeWorkspace
         @manageUserAvatars userStatus
 
     @on "NewHistoryItemAdded", (data) =>
-      # log data
       @sendSystemMessage data
 
     KD.singleton("windowController").addUnloadListener "window", =>
