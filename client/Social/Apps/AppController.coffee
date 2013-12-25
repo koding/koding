@@ -21,13 +21,18 @@ class AppsAppController extends AppController
 
     super options, data
 
-  loadView:(mainView)->
+  loadView:(mainView, firstRun = yes, loadFeed = no)->
+    if firstRun
+      @on "searchFilterChanged", (value) =>
+        return if value is @_searchValue
+        @_searchValue = Encoder.XSSEncode value
+        @_lastSubview.destroy?()
+        @loadView mainView, no, yes
 
-    mainView.createCommons()
-    @createFeed mainView
+      mainView.createCommons()
+    @createFeed mainView, loadFeed
 
-  createFeed:(view)->
-
+  createFeed:(view, loadFeed = no)->
     options =
       feedId                : 'apps.main'
       itemClass             : AppsListItemView
@@ -39,7 +44,11 @@ class AppsAppController extends AppController
           title             : "All Apps"
           noItemFoundText   : "There is no application yet"
           dataSource        : (selector, options, callback)=>
-            KD.remote.api.JNewApp.some selector, options, callback
+            {JNewApp} = KD.remote.api
+            if @_searchValue
+              JNewApp.byRelevance @_searchValue, options, callback
+            else
+              JNewApp.some selector, options, callback
         webApps             :
           title             : "Web Apps"
           noItemFoundText   : "There is no web apps yet"
@@ -101,8 +110,9 @@ class AppsAppController extends AppController
 
     KD.getSingleton("appManager").tell 'Feeder', 'createContentFeedController', options, (controller)=>
 
-      view.addSubView controller.getView()
+      view.addSubView @_lastSubview = controller.getView()
       @feedController = controller
+      controller.loadFeed() if loadFeed
       @emit 'ready'
 
   handleQuery:(query)->
@@ -127,3 +137,6 @@ class AppsAppController extends AppController
     contentDisplay = controller.getView()
     KD.singleton('display').emit "ContentDisplayWantsToBeShown", contentDisplay
     return contentDisplay
+
+  search:(text)-> @emit "searchFilterChanged", text
+
