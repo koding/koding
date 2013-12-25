@@ -10,7 +10,7 @@ class TeamworkDashboard extends JView
       title       : "Team Up!"
       cssClass    : "tw-rounded-button"
       callback    : =>
-        KD.mixpanel "Click Teamwork team up"
+        KD.mixpanel "Teamwork team up, click"
         delegate  = @getDelegate()
         if delegate.teamwork
           delegate.showTeamUpModal()
@@ -33,7 +33,7 @@ class TeamworkDashboard extends JView
       cssClass    : "tw-dashboard-button"
       callback    : =>
         @handleJoinSession()
-        KD.mixpanel "Click Teamwork join session"
+        KD.mixpanel "Teamwork join session, success"
 
     @importInput  = new KDHitEnterInputView
       cssClass    : "tw-dashboard-input"
@@ -44,7 +44,7 @@ class TeamworkDashboard extends JView
         messages  : required: "Enter URL to import content."
       callback    : =>
         @handleImport()
-        KD.mixpanel "Click Teamwork import"
+        KD.mixpanel "Teamwork import, click"
 
     @importButton = new KDButtonView
       iconOnly    : yes

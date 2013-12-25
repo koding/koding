@@ -91,7 +91,7 @@ With love from the Koding team.<br>
           @notification.show()
           callback? err, activity
 
-          KD.mixpanel "Click status update post success", {length:activity.body?.length}
+          KD.mixpanel "Status update create, success", {length:activity.body?.length}
     ]
 
   encodeTagSuggestions: (str, tags) ->
@@ -103,7 +103,7 @@ With love from the Koding team.<br>
   create: (data, callback) ->
     JNewStatusUpdate.create data, (err, activity) =>
       if err
-        KD.mixpanel "Click activity post create fail"
+        KD.mixpanel "Status update create, fail"
 
       @reset()  unless err
 
@@ -124,13 +124,13 @@ With love from the Koding team.<br>
     return  @reset() unless activity
     activity.modify data, (err) =>
       if err
-        KD.mixpanel "Click activity post update fail"
+        KD.mixpanel "Status update update, fail"
 
       KD.showError err
       @reset()  unless err
       callback? err
 
-      KD.mixpanel "Click activity post update success"
+      KD.mixpanel "Status update update, success"
 
   reset: (lock = yes) ->
     @input.setContent ""

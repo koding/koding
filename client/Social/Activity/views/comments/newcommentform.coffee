@@ -66,7 +66,7 @@ class NewCommentForm extends KDView
         @commentInput.$().blur()
         @getDelegate().emit 'CommentSubmitted', reply
 
-        KD.mixpanel "Click comment create", reply.length
+        KD.mixpanel "Comment activity, click", reply.length
       onFailMsg : "Login required to post a comment!"
       tryAgain  : yes
       groupName : @getDelegate().getData().group

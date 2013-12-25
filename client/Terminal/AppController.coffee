@@ -29,7 +29,7 @@ class WebTermController extends AppController
 
     super options, data
 
-    KD.mixpanel "Opened Webterm tab", {vmName}
+    KD.mixpanel "Open Webterm tab, success", {vmName}
 
   handleQuery: (query) ->
     @getView().ready =>

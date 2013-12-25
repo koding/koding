@@ -46,7 +46,7 @@ class ActiveUsers extends ActivityRightBase
       cssClass: "show-all-link hidden"
       click   : (event) ->
         KD.singletons.router.handleRoute "/Members"
-        KD.mixpanel "Click show all members"
+        KD.mixpanel "Show all members, click"
     , data
 
     KD.remote.api.ActiveItems.fetchUsers {}, @bound 'renderItems'
@@ -67,7 +67,7 @@ class ActiveTopics extends ActivityRightBase
       cssClass: "show-all-link"
       click   : (event) ->
         KD.singletons.router.handleRoute "/Topics"
-        KD.mixpanel "Click show all topics"
+        KD.mixpanel "Show all topics, click"
     , data
 
     KD.remote.api.ActiveItems.fetchTopics {}, @bound 'renderItems'

@@ -63,7 +63,7 @@ class KodingRouter extends KDRouter
       value = split[1]
       argsForMixpanel[key] = value
 
-    KD.mixpanel "Visited page", argsForMixpanel
+    KD.mixpanel "Visit page, success", argsForMixpanel
 
     log 'handlingRoute', route, 'for the', name, 'app', 'with params', splitParams
     if appManager.isAppInternal name
@@ -297,7 +297,7 @@ class KodingRouter extends KDRouter
 
       '/Landing/:page'         : noop
       '/R/:username'           : ({params:{username}})->
-        KD.mixpanel "Visited referrer url", {username}
+        KD.mixpanel "Visit referrer url, success", {username}
         noop
 
       '/:name?/Logout'         : ({params:{name}})-> requireLogin -> mainController.doLogout()
