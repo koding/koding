@@ -117,7 +117,7 @@ class TopicsAppController extends AppController
     topic = topicItem.getData()
     modal             = new KDModalView
       title           : "Delete Topic"
-      content         : "<div class='modalformline'>Are you sure you want to delete this topic?</div>"
+      content         : "<div class='modalformline'>Are you sure you want to delete this topic? (This will also delete all the child topics!)</div>"
       overlay         : yes
       buttons         :
         Delete        :
@@ -127,11 +127,11 @@ class TopicsAppController extends AppController
             diameter  : 16
           callback    : =>
             topic.delete (err)=>
+              topicItem.followButton.hide()
               # modal.buttons.Delete.hideLoader()
               modal.destroy()
               new KDNotificationView
                 title : if err then err.message else "Deleted!"
-              topicItem.hide() unless err
         Cancel        :
           style       : "modal-cancel"
           title       : "cancel"
@@ -181,6 +181,7 @@ class TopicsAppController extends AppController
               topic.createSynonym title, (err) ->
                 status = if err then err.message else "Parent Topic is set successfully"
                 showStatus status
+                topicItem.followButton.hide()
                 modal.destroy()
 
     {fields, inputs} = modal.modalTabs.forms["synonym"]
