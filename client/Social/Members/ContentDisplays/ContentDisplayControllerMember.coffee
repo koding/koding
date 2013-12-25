@@ -89,11 +89,12 @@ class ContentDisplayControllerMember extends KDViewController
     KD.getSingleton("appManager").tell 'Activity', 'feederBridge', {
       domId                 : 'members-feeder-split-view' unless @revivedContentDisplay
       itemClass             : ActivityListItemView
-      listControllerClass   : ActivityListController
+      listControllerClass   : MemberActivityListController
       listCssClass          : "activity-related"
       limitPerPage          : 8
       useHeaderNav          : yes
       delegate              : @getDelegate()
+      origin                : account
       filter                :
         statuses            :
           title             : "Status Updates"
@@ -110,3 +111,8 @@ class ContentDisplayControllerMember extends KDViewController
       @getView().addSubView controller.getView()
       @getView().setCss minHeight : windowController.winHeight
       @emit 'ready'
+
+class MemberActivityListController extends ActivityListController
+  addItem: (activity, index, animation)->
+    if activity.originId is @getOptions().origin.getId()
+      super activity, index, animation
