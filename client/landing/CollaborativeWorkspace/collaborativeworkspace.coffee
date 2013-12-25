@@ -380,14 +380,12 @@ class CollaborativeWorkspace extends Workspace
     @pingHostInterval = @utils.repeat 2000, @bound "pingHost"  unless @amIHost()
 
     @once "KDObjectWillBeDestroyed", =>
-      @utils.killRepeat timestampInterval
-      @utils.killRepeat pingHostInterval
+      @killConnectionTimers()
 
   checkHost: (snapshot, callback) ->
     unless host = snapshot.val()
       @showNotActiveView()
-      @utils.killRepeat @timestampInterval
-      @utils.killRepeat @pingHostInterval
+      @killConnectionTimers()
       return
 
     diff = new Date().getTime() - host.timestamp
@@ -408,6 +406,10 @@ class CollaborativeWorkspace extends Workspace
   pingHost: (callback) ->
     @usersRef.child(@getHost()).once "value", (snapshot) =>
       @checkHost snapshot, callback
+
+  killConnectionTimers: ->
+    @utils.killRepeat @timestampInterval
+    @utils.killRepeat @pingHostInterval
 
   showNotification: (message) ->
     @hideNotification()
