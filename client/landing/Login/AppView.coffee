@@ -121,7 +121,7 @@ class LoginView extends KDView
       style       : 'solid github'
       icon        : yes
       callback    : ->
-        KD.mixpanel "Click Github auth"
+        KD.mixpanel "Github auth, click"
         KD.singletons.oauthController.openPopup "github"
 
     @github.setPartial "<span class='button-arrow'></span>"
@@ -188,7 +188,7 @@ class LoginView extends KDView
       (KD.getSingleton 'mainController').handleOauthAuth params, (err, resp)=>
         if err
           showError err
-          KD.mixpanel "Oauth linking fail"
+          KD.mixpanel "External auth link, fail"
         else
           {account, replacementToken, isNewUser, userInfo} = resp
           if isNewUser
@@ -197,18 +197,18 @@ class LoginView extends KDView
             for own field, value of userInfo
               setValue field, value
 
-            KD.mixpanel "Click Github auth register success"
+            KD.mixpanel "Github auth register, success"
           else
             if isUserLoggedIn
               mainController.emit "ForeignAuthSuccess.#{provider}"
-              KD.mixpanel "Oauth link success", {provider}
+              KD.mixpanel "External auth link, success", {provider}
               new KDNotificationView
                 title : "Your #{provider.capitalize()} account has been linked."
                 type  : "mini"
 
             else
               @afterLoginCallback err, {account, replacementToken}
-              KD.mixpanel "Click Github auth login success"
+              KD.mixpanel "Github auth login, success"
 
   viewAppended:->
 
@@ -408,7 +408,7 @@ class LoginView extends KDView
 
       @hide()
 
-      KD.mixpanel "Logged in"
+      KD.mixpanel "Login, success"
 
   doRedeem:({inviteCode})->
     return  unless KD.config.entryPoint?.slug or KD.isLoggedIn()
@@ -453,7 +453,7 @@ class LoginView extends KDView
     @setClass 'hidden'
     callback?()
 
-    KD.mixpanel "Cancelled Login/Register"
+    KD.mixpanel "Login/Register modal, cancel"
 
   show:(callback)->
 
@@ -501,7 +501,7 @@ class LoginView extends KDView
               @registerForm.disabledNotice.hide()
               @registerForm.$('.main-part').removeClass 'hidden'
 
-          KD.mixpanel "Opened register form"
+          KD.mixpanel "Register form, click"
 
         when "home"
           parent.notification?.destroy()
