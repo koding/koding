@@ -290,7 +290,12 @@ func (p *Proxy) getHandler(req *http.Request) http.Handler {
 
 	target, err := resolver.GetTarget(req)
 	if err != nil {
-		logs.Info(fmt.Sprintf("resolver error (%s): %s", userIP, err))
+		logs.Info(fmt.Sprintf("resolver error of %s (%s): %s", req.Host, userIP, err))
+
+		if err == resolver.ErrVMOff {
+			return templateHandler("notOnVM.html", req.Host, 404)
+		}
+
 		return templateHandler("notfound.html", req.Host, 404)
 	}
 
@@ -322,8 +327,6 @@ func (p *Proxy) getHandler(req *http.Request) http.Handler {
 			logs.Info(fmt.Sprintf("vm host %s is down: '%s'", req.Host, err))
 			return templateHandler("notactiveVM.html", req.Host, 404)
 		}
-	case resolver.ModeVMOff:
-		return templateHandler("notOnVM.html", req.Host, 404)
 	case resolver.ModeInternal:
 		// roundrobin to next target
 		err := target.Resolve(req.Host)
