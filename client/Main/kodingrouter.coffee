@@ -45,10 +45,12 @@ class KodingRouter extends KDRouter
 
   handleRoute:(route, options={})->
 
+    {entryPoint} = options
+
     appManager = KD.getSingleton 'appManager'
     frags      = route.split '/'
     name       = frags[1] or ''
-    name       = (name.split '?')[0]
+    name       = if entryPoint?.type is "group" then frags[2] or '' else (name.split '?')[0]
 
     log 'handlingRoute', route, 'for the', name, 'app'
     if appManager.isAppInternal name
@@ -58,7 +60,6 @@ class KodingRouter extends KDRouter
         return warn err  if err
         KD.utils.defer => @handleRoute route, options
 
-    {entryPoint} = options
     if entryPoint?.slug? and entryPoint.type is "group"
       entrySlug = "/" + entryPoint.slug
       # if incoming route is prefixed with groupname or entrySlug is the route
