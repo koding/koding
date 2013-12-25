@@ -41,7 +41,7 @@ def parse_log_file(daemon_name, for_date):
 			stack_traces[err] = stack_traces[err] + "\n   " + line
 		else:
 			is_met_first_line = False
-	return errors
+	return errors, stack_traces
 
 if __name__ == '__main__':
 
@@ -56,7 +56,7 @@ if __name__ == '__main__':
 		sys.exit(2)
 
 	yesterday = datetime.date.fromordinal(datetime.date.today().toordinal()-int(options.daysago))
-	errors = parse_log_file(options.daemon_name, for_date=yesterday)
+	errors, stack_traces = parse_log_file(options.daemon_name, for_date=yesterday)
 
 	if len(errors) < 1:
 		print "No log for " + yesterday.strftime("%Y-%m-%d")
