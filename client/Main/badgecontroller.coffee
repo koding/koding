@@ -12,4 +12,4 @@ class BadgeController extends KDController
           type     : "growl"
           duration : 2000
         # Send Mixpanel event.
-        KD.mixpanel "Badge Gained", badge.title
+        KD.mixpanel "Badge Gain, click", badge.title
