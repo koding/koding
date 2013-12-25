@@ -276,12 +276,12 @@ class AvatarImage extends AvatarView
 
     super options, data
 
-    @bgImg = null
-    @fallbackUri = "#{KD.apiUri}/a/images/defaultavatar/default.avatar.#{options.size.width}.png"
-
   setAvatar:(uri)->
     if @bgImg isnt uri
+      {width, height} = @getOptions().size
       @setAttribute "src", uri
+      @setAttribute "width", width
+      @setAttribute "height", height
       @bgImg = uri
 
   pistachio:-> ''
