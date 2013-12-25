@@ -166,6 +166,11 @@ func getFromDB(host string) (*Target, error) {
 }
 
 func getDomain(host string) (*models.Domain, error) {
+	// remove port if host as a port
+	if utils.HasPort(host) {
+		host, _, _ = net.SplitHostPort(host)
+	}
+
 	domain := new(models.Domain)
 	var err error
 
