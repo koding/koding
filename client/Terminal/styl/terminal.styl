@@ -11,15 +11,15 @@ body.terminal #main-header
   shadow        none
 
 .offscreen
-  position  absolute
-  top       -100px
-  left      -100px
-  opacity   0
+  position      absolute
+  top           -100px
+  left          -100px
+  opacity       0
 
 .terminal
 
   .message-pane
-    color       #fff
+    color       #aaa
     top         50%
     margin-top  5px
     z-index     1
@@ -28,13 +28,17 @@ body.terminal #main-header
     abs()
 
     &.light
-      opacity   .5
-
+      color        #eee
+      a
+        color      #fff
+        &:visited
+          color    #eee
     a
-      font-style italic
-      color      #aaa
+      color      #eee
+      &:hover
+        color    #fff
       &:visited
-        color    #aaa
+        color    #eee
 
 .vm-info
 

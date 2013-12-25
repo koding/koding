@@ -6,6 +6,7 @@ module.exports = (options = {}, callback)->
   options.client               or= {}
   options.client.context       or= {}
   options.client.context.group or= "koding"
+  options.client.connection    or= {}
 
   {argv} = require 'optimist'
 
@@ -74,10 +75,14 @@ module.exports = (options = {}, callback)->
     html = createHTML()
     return callback null, html
 
+  {delegate} = options.client.connection
+  # if user is exempt do not cache his/her result set
+  return generateScript()  if delegate and delegate.isExempt
+
   Cache  = require '../cache/main'
   feedFn = require '../cache/feed'
 
-  getCacheKey =-> return "scriptblock"
+  getCacheKey =-> return "scriptblock-#{options.client.context.group}"
 
   Cache.fetch getCacheKey(), feedFn, options, (err, data)->
     prefetchedFeeds = data    # this is updating the prefetchedFeeds property
