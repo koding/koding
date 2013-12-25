@@ -19,6 +19,7 @@ import (
 var (
 	ErrGone   = errors.New("target is gone")
 	ErrNoHost = errors.New("no healthy hostname available")
+	ErrVMOff  = errors.New("vm is off")
 
 	// cache lookup tables
 	targets   = make(map[string]*Target)
@@ -36,7 +37,6 @@ const (
 	ModeMaintenance = "maintenance"
 	ModeInternal    = "internal"
 	ModeVM          = "vm"
-	ModeVMOff       = "vmOff"
 	ModeRedirect    = "redirect"
 
 	HealthCheckInterval = time.Second * 10
@@ -148,7 +148,7 @@ func getFromDB(host string) (*Target, error) {
 	target := &Target{
 		Proxy:         domain.Proxy,
 		HostnameAlias: domain.HostnameAlias,
-		CacheTimeout:  time.Second * 20,
+		CacheTimeout:  time.Second * 10,
 		FetchedAt:     time.Now(),
 		FetchedSource: "MongoDB",
 	}
@@ -176,7 +176,7 @@ func getDomain(host string) (*models.Domain, error) {
 
 	domain, err = modelhelper.GetDomain(host)
 	if err != nil {
-		return nil, fmt.Errorf("not valid req host: '%s'", host)
+		return nil, fmt.Errorf("not found in DB '%s'", host)
 	}
 
 	if domain.Proxy == nil {
@@ -262,8 +262,7 @@ func (t *Target) vm(host, port string) (*url.URL, error) {
 	}
 
 	if vm.HostKite == "" || vm.IP == nil {
-		t.Proxy.Mode = ModeVMOff
-		return nil, errors.New("vm is off")
+		return nil, ErrVMOff
 	}
 
 	vmAddr := vm.IP.String()
