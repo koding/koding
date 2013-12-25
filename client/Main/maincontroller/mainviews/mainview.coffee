@@ -166,6 +166,10 @@ class MainView extends KDView
       keyup      :
         "esc"    : =>
           @accountArea.unsetClass "search-open"
+        "enter"  : =>
+          app = KD.getSingleton("appManager").getFrontApp()
+          # todo - fallback to activity
+          app.search?(@searchInput.getValue())
 
   createMainTabView:->
 
