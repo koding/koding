@@ -33,6 +33,9 @@ class AvatarView extends LinkView
     @gravatar       = new KDCustomHTMLView
       tagName       : 'img'
       cssClass      : 'hidden'
+      bind          : 'load error'
+      load          : => @setCss 'background-image', 'none'
+      error         : -> @hide()
       attributes    :
         width       : width
         height      : height
@@ -59,7 +62,7 @@ class AvatarView extends LinkView
     {profile} = @getData()
     {width} = @getOptions().size
     if profile.hash
-    then "//gravatar.com/avatar/#{profile.hash}?size=#{width * @dpr}&d=blank&r=pg"
+    then "//gravatar.com/avatar/#{profile.hash}?size=#{width * @dpr}&d=404&r=pg"
     else no
 
   render:->
