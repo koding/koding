@@ -16,7 +16,7 @@ class ShareLink extends KDButtonView
       "width=626,height=436,left=#{Math.floor (screen.width/2) - (500/2)},top=#{Math.floor (screen.height/2) - (350/2)}"
     )
 
-    KD.kdMixpanel.track "#{provider} Share Link Clicked", $user: KD.nick()
+    KD.mixpanel "#{provider} share link, click", user: KD.nick()
 
 class TwitterShareLink extends ShareLink
   constructor: (options = {}, data) ->
