@@ -91,7 +91,7 @@ With love from the Koding team.<br>
           @notification.show()
           callback? err, activity
 
-          KD.mixpanel "Status update create, success", {length:activity.body?.length}
+          KD.mixpanel "Status update create, success", {length:activity?.body?.length}
     ]
 
   encodeTagSuggestions: (str, tags) ->
