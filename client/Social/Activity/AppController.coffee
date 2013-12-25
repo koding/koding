@@ -83,7 +83,7 @@ class ActivityAppController extends AppController
     return  if @isLoading
     @clearPopulateActivityBindings()
 
-    KD.mixpanel "Scrolled down feed"
+    KD.mixpanel "Scroll down feed, success"
     @populateActivity to : @lastFrom
 
   attachEvents:(controller)->

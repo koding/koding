@@ -83,7 +83,7 @@ module.exports = class JTag extends jraphical.Module
           (signature Object, Function)
         delete:
           (signature Function)
-        fetchRandomFollowers:
+        fetchLastInteractors:
           (signature Object, Function)
       static        :
         one: [
@@ -432,14 +432,14 @@ module.exports = class JTag extends jraphical.Module
           sourceId    : status.getId()
         } , callback
 
-  fetchRandomFollowers: secure (client, options, callback)->
+  fetchLastInteractors: secure (client, options, callback)->
     {limit}  = options
     limit  or= 3
 
     Relationship.some {
       as       : "follower"
       sourceId : @getId()
-    }, {limit}, (err, rels)->
+    }, {limit, sort: {'_id' : -1}}, (err, rels)->
       accounts = []
       daisy queue = rels.map (r)->
         ->

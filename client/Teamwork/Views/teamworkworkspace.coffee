@@ -90,7 +90,7 @@ class TeamworkWorkspace extends CollaborativeWorkspace
         @fetchUsers()
 
   startNewSession: (options) ->
-    KD.mixpanel "User Started Teamwork session"
+    KD.mixpanel "Start Teamwork session, click"
 
     @destroySubViews()
     unless options
@@ -264,6 +264,8 @@ class TeamworkWorkspace extends CollaborativeWorkspace
         @showActivityWidget()
         @hideShareButtons()
 
+        KD.mixpanel "Teamwork Invite, click", {@sessionKey}
+
     panel.addSubView @exportWorkspace = new KDButtonView
       cssClass : "export-workspace tw-rounded-button hidden"
       title    : "Export"
@@ -271,12 +273,16 @@ class TeamworkWorkspace extends CollaborativeWorkspace
         @getDelegate().emit "ExportRequested", (name, url) =>
         @hideShareButtons()
 
+        KD.mixpanel "Teamwork Export, click"
+
     panel.addSubView shareButton = new KDButtonView
       cssClass   : "tw-rounded-button share"
       title      : "Share"
       callback   : =>
         @inviteTeammate.toggleClass "hidden"
         @exportWorkspace.toggleClass "hidden"
+
+        KD.mixpanel "Teamwork Share, click"
 
     panel.addSubView @showActivityWidgetButton = new KDButtonView
       cssClass   : "tw-show-activity-widget"

@@ -10,7 +10,7 @@ class GmailContactsListItem extends KDListItemView
     data.invite (err) =>
       return log err  if err
       @decorateInvitationSent()
-      KD.kdMixpanel.track "User Sent Invitation", $user: KD.nick(), count: 1
+      KD.mixpanel "User invite send, success"
 
   decorateInvitationSent: ->
     @setClass "invitation-sent"
