@@ -25,15 +25,16 @@ var (
 	ErrGone = errors.New("target is gone")
 
 	// cache lookup tables
-	targetHosts   = make(map[string]*Target)
-	targetHostsMu sync.Mutex // protects targetHosts map
-
-	targetBuilds   = make(map[string]*Target)
-	targetBuildsMu sync.Mutex // protects targetBuilds map
+	targets   = make(map[string]*Target)
+	targetsMu sync.Mutex // protects targets map
 
 	// used for loadbalance modes, like roundrobin or random
 	indexes   = make(map[string]int)
 	indexesMu sync.Mutex // protect indexes
+
+	// our load balancer roundrobin maps. Key is created for each index key.
+	rings   = make(map[string]*ring.Ring)
+	ringsMu sync.Mutex
 )
 
 const (
@@ -55,7 +56,8 @@ type Target struct {
 	// Mode contains the information get via model.ProxyTable.Mode. It is used
 	// to make specific lookups for incoming hosts, or return special targets.
 	// Some examples are: "vm", "redirect", "internal" and so on.
-	Mode string
+	Mode     string
+	ModeData string
 
 	// FetchedAt contains the time the target was fetched and stored in our
 	// internal map. Useful for caching.
@@ -65,8 +67,7 @@ type Target struct {
 	// obtained.
 	FetchedSource string
 
-	// CacheTimeout is used to invalidate the target. If no timeout is given,
-	// it caches it forever (works only if UseCache is true).
+	// CacheTimeout is used to invalidate the target. Zero duration disables the cache.
 	CacheTimeout time.Duration
 
 	// See struct models.Domain.Proxy
@@ -87,23 +88,19 @@ func newTarget(url *url.URL, mode string, timeout time.Duration) *Target {
 	}
 }
 
-// GetTarget is used to get the target according to the incoming request
+// GetTarget is used to get the target according to the incoming request it
+// looks if a request has set cookies to change the target. If not it
+// fallbacks to request host data.
 func GetTarget(req *http.Request) (*Target, error) {
-	target, err := GetTargetByCookie(req)
-	if err == nil {
-		return target, nil
-	}
-
-	// if cookie is not set, use request host data, this is also a fallback
-	return MemTargetByHost(req.Host)
-}
-
-// GetTargetByCookie looks if a request has set cookies to change the target.
-// It looks for CookieBuildName and CookieDomainName.
-func GetTargetByCookie(req *http.Request) (*Target, error) {
 	cookieBuild, err := req.Cookie(CookieBuildName)
 	if err == nil {
-		targetBuild, err := MemTargetByBuild(cookieBuild.Value)
+		key := routeKey{
+			username:    "koding",
+			servicename: "server",
+			build:       cookieBuild.Value,
+		}
+
+		targetBuild, err := buildTarget(key)
 		if err == nil && targetBuild.Mode == ModeInternal {
 			log.Printf("proxy target is overridden by cookie. Using BUILD '%s'\n", cookieBuild.Value)
 			return targetBuild, nil
@@ -112,81 +109,25 @@ func GetTargetByCookie(req *http.Request) (*Target, error) {
 
 	cookieDomain, err := req.Cookie(CookieDomainName)
 	if err == nil {
-		targetDomain, err := MemTargetByHost(cookieDomain.Value)
+		targetDomain, err := TargetByHost(cookieDomain.Value)
 		if err == nil && targetDomain.Mode == ModeInternal {
 			log.Printf("proxy target is overrriden by cookie. Using DOMAIN '%s'\n", cookieDomain.Value)
 			return targetDomain, nil
 		}
 	}
 
-	return nil, errors.New("cookies are not set")
+	// if cookie is not set, use request host data, this is also a fallback
+	return TargetByHost(req.Host)
 }
 
-// TODO: make it an interface capable function and merge with MemTargetByHost
-// MemTargetByBuild is like TargetByBuild with a difference, that it f first makes a
-// lookup from the in-memory lookup, if not found it returns the result from
-// TargetByBuild()
-func MemTargetByBuild(host string) (*Target, error) {
-	var err error
-	target := new(Target)
-
-	targetBuildsMu.Lock()
-	defer targetBuildsMu.Unlock()
-
-	target, ok := targetBuilds[host]
-	if !ok || target.FetchedAt.Add(target.CacheTimeout).Before(time.Now()) {
-		target, err = TargetByBuild(host)
-		if err != nil {
-			return nil, err
-		}
-		target.FetchedSource = "MongoDB"
-
-		targetBuilds[host] = target
-	} else {
-		target.FetchedSource = "Cache"
-	}
-
-	return target, nil
+type routeKey struct {
+	username    string
+	servicename string
+	build       string
 }
 
-// TargetByBuild is used the resolve the final target destination for the
-// given build number.
-func TargetByBuild(buildKey string) (*Target, error) {
-	username := "koding"
-	servicename := "server"
-
-	target, err := buildTarget(username, servicename, buildKey)
-	if err != nil {
-		return nil, err
-	}
-
-	return newTarget(target, ModeInternal, time.Second*1), nil
-}
-
-// MemTargetByHost is like TargetByHost with a difference, that it f first makes a
-// lookup from the in-memory lookup, if not found it returns the result from
-// TargetByHost()
-func MemTargetByHost(host string) (*Target, error) {
-	var err error
-	target := new(Target)
-
-	targetHostsMu.Lock()
-	defer targetHostsMu.Unlock()
-
-	target, ok := targetHosts[host]
-	if !ok || target.FetchedAt.Add(target.CacheTimeout).Before(time.Now()) {
-		target, err = TargetByHost(host)
-		if err != nil {
-			return nil, err
-		}
-		target.FetchedSource = "MongoDB"
-
-		targetHosts[host] = target
-	} else {
-		target.FetchedSource = "Cache"
-	}
-
-	return target, nil
+func (r *routeKey) String() string {
+	return fmt.Sprintf("%s-%s-%s", r.username, r.servicename, r.build)
 }
 
 // TargetByHost is used to resolve any hostname to their final target
@@ -210,18 +151,38 @@ func TargetByHost(host string) (*Target, error) {
 		}
 	}
 
+	var target *Target
+	var ok bool
+
+	targetsMu.Lock()
+	target, ok = targets[host]
+	if ok && time.Now().Before(target.FetchedAt.Add(target.CacheTimeout)) {
+		targetsMu.Unlock()
+		fmt.Println("using cache")
+		target.FetchedSource = "Cache"
+		return target, nil
+	}
+	targetsMu.Unlock()
+	fmt.Println("using db")
+
 	domain, err := getDomain(host)
 	if err != nil {
 		return nil, err
 	}
 
-	target, err := targetMode(host, port, domain)
+	target, err = targetMode(host, port, domain)
 	if err != nil {
 		return nil, err
 	}
 
 	target.CacheEnabled = domain.Proxy.CacheEnabled
 	target.CacheSuffixes = domain.Proxy.CacheSuffixes
+	target.FetchedSource = "MongoDB"
+
+	targetsMu.Lock()
+	targets[host] = target
+	targetsMu.Unlock()
+
 	return target, nil
 }
 
@@ -269,25 +230,17 @@ func targetMode(host, port string, domain *models.Domain) (*Target, error) {
 	case ModeVM:
 		return vmTarget(host, port, domain)
 	case ModeInternal:
-		username := domain.Proxy.Username
-		servicename := domain.Proxy.Servicename
-		key := domain.Proxy.Key
-
-		target, err := buildTarget(username, servicename, key)
-		if err != nil {
-			return nil, err
+		key := routeKey{
+			username:    domain.Proxy.Username,
+			servicename: domain.Proxy.Servicename,
+			build:       domain.Proxy.Key,
 		}
 
-		return newTarget(target, ModeInternal, time.Second*0), nil
+		return buildTarget(key)
 	}
 
 	return nil, fmt.Errorf("ERROR: proxy mode is not supported: %s", mode)
 }
-
-var (
-	rings   = make(map[string]*ring.Ring)
-	ringsMu sync.Mutex
-)
 
 // newSlice returns a new slice populated with the given ring items.
 func newSlice(r *ring.Ring) []string {
@@ -309,6 +262,14 @@ func newRing(list []string) *ring.Ring {
 	}
 
 	return r
+}
+
+func CleanRingCache() {
+	ringsMu.Lock()
+	defer ringsMu.Unlock()
+
+	// purge rings, that means
+	rings = make(map[string]*ring.Ring)
 }
 
 // checkHosts checks each host for the given hosts slice and returns a new
@@ -356,20 +317,17 @@ func healtChecker(hosts []string, indexkey string) {
 // collection, which is used for internal services. An example service to
 // target could be in form: "koding, server, 950" ->
 // "webserver-950.sj.koding.com:3000".
-func buildTarget(username, servicename, key string) (*url.URL, error) {
+func buildTarget(key routeKey) (*Target, error) {
 	var hostname string
-
-	// generate unique key
-	indexKey := fmt.Sprintf("%s-%s-%s", username, servicename, key)
 	var r *ring.Ring
 	var ok bool
-	fmt.Println("indexkey is", indexKey)
+	fmt.Println("indexkey is", key)
 
 	ringsMu.Lock()
-	r, ok = rings[indexKey]
+	r, ok = rings[key.String()]
 	if !ok {
 		fmt.Println("no ring found, creating one")
-		hosts, err := buildHosts(username, servicename, key)
+		hosts, err := buildHosts(key)
 		if err != nil {
 			ringsMu.Unlock()
 			return nil, err
@@ -380,53 +338,55 @@ func buildTarget(username, servicename, key string) (*url.URL, error) {
 		fmt.Println("hosts alive  :", aliveHosts)
 
 		r = newRing(aliveHosts)
-		rings[indexKey] = r
+		rings[key.String()] = r
 
 		// start health checker for base hosts
-		go healtChecker(hosts, indexKey)
+		go healtChecker(hosts, key.String())
 	}
 	ringsMu.Unlock()
 
-	// get hostname and forward ring to the next value. the next value will be
-	// used on the next request
+	// means the healtChecker created a zero length ring. This is caused only
+	// when all hosts are sick.
 	if r == nil {
 		return nil, errors.New("no healthy hostname available")
 	}
 
+	// get hostname and forward ring to the next value. the next value will be
+	// used on the next request
 	hostname, ok = r.Value.(string)
 	if !ok {
 		return nil, fmt.Errorf("ring value is not string: %+v", r.Value)
 	}
 
 	fmt.Println("using hostname", hostname)
-	rings[indexKey] = r.Next()
+	rings[key.String()] = r.Next()
 
 	// be sure that the hostname has scheme prependend
 	hostname = utils.CheckScheme(hostname)
-	target, err := url.Parse(hostname)
+	targetURL, err := url.Parse(hostname)
 	if err != nil {
 		return nil, err
 	}
 
-	return target, nil
+	return newTarget(targetURL, ModeInternal, time.Second*0), nil
 }
 
 // buildHosts returns a list of target hosts for the given build parameters.
-func buildHosts(username, servicename, key string) ([]string, error) {
-	latestKey := modelhelper.GetLatestKey(username, servicename)
+func buildHosts(key routeKey) ([]string, error) {
+	latestKey := modelhelper.GetLatestKey(key.username, key.servicename)
 	if latestKey == "" {
-		latestKey = key
+		latestKey = key.build
 	}
 
-	keyData, err := modelhelper.GetKey(username, servicename, key)
+	keyData, err := modelhelper.GetKey(key.username, key.servicename, key.build)
 	if err != nil {
-		currentVersion, _ := strconv.Atoi(key)
+		currentVersion, _ := strconv.Atoi(key.build)
 		latestVersion, _ := strconv.Atoi(latestKey)
 		if currentVersion < latestVersion {
 			return nil, ErrGone
 		} else {
 			return nil, fmt.Errorf("no keyData for username '%s', servicename '%s' and key '%s'",
-				username, servicename, key)
+				key.username, key.servicename, key.build)
 		}
 	}
 
@@ -537,27 +497,6 @@ func notValidDomainFor(host string) (*models.Domain, error) {
 	return nil, fmt.Errorf("not valid req host: '%s'", host)
 }
 
-// internalRoundRobin is doing roundrobin between between the servers in the hosts
-// array. If picks the next item in the array, specified with index and then
-// checks for aliveness. If the server is dead it checks for the next item,
-// until all servers are checked. If all servers are dead it returns an empty
-// string, otherwise it returns the correct server name.
-func internalRoundRobin(hosts []string, index, iter int) (string, int) {
-	if iter == len(hosts) {
-		return "", 0 // all hosts are dead
-	}
-
-	N := float64(len(hosts))
-	n := int(math.Mod(float64(index+1), N))
-	hostname := hosts[n]
-
-	if err := utils.CheckServer(hostname); err != nil {
-		hostname, n = internalRoundRobin(hosts, index+1, iter+1)
-	}
-
-	return hostname, n
-}
-
 /*******************************************************
 *
 *  loadbalance index functions for roundrobin or random
@@ -581,12 +520,4 @@ func addOrUpdateIndex(indexKey string, index int) {
 	indexesMu.Lock()
 	defer indexesMu.Unlock()
 	indexes[indexKey] = index
-}
-
-// deleteIndex is used to remove the current index from the indexes. It's
-// concurrent-safe.
-func deleteIndex(indexKey string) {
-	indexesMu.Lock()
-	defer indexesMu.Unlock()
-	delete(indexes, indexKey)
 }
