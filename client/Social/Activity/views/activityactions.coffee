@@ -61,7 +61,7 @@ class ActivityActionsView extends KDView
           cssClass    : "activity-share-popup"
           type        : "activity-share"
           delegate    : this
-          x           : @getX() + 145
+          x           : @getX() + 160
           y           : @getY() - 7
           menuMaxWidth: 400
           lazyLoad    : yes
