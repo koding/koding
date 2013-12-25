@@ -55,14 +55,6 @@ type Proxy struct {
 	sync.Mutex
 }
 
-// Client is used to register incoming request with an 1 hour cache. After that
-// it get removed. This is used to gather unique (in our case one IP per one
-// hour) statical information.
-type Client struct {
-	Target     string    `json:"target"`
-	Registered time.Time `json:"firstVist"`
-}
-
 // used by redis counter
 type interval struct {
 	name     string
@@ -90,10 +82,6 @@ var (
 
 	// cookie handling is used for features like securePage
 	store = sessions.NewCookieStore([]byte("kontrolproxy-secret-key"))
-
-	// clients and clientsLock are used together with the Client struct
-	clients     = make(map[string]Client)
-	clientsLock sync.RWMutex
 
 	// used for all our logs, currently it uses our local syslog server
 	logs *syslog.Writer
@@ -287,7 +275,7 @@ var resetRegex = regexp.MustCompile("/_resetcache_/")
 // getHandler returns the appropriate Handler for the given Request,
 // or nil if none found.
 func (p *Proxy) getHandler(req *http.Request) http.Handler {
-	userIP, userCountry := getIPandCountry(req.RemoteAddr)
+	userIP := getIP(req.RemoteAddr)
 
 	// remove www from the hostname (i.e. www.foo.com -> foo.com)
 	if strings.HasPrefix(req.Host, "www.") {
@@ -306,15 +294,15 @@ func (p *Proxy) getHandler(req *http.Request) http.Handler {
 			return templateHandler("notfound.html", req.Host, 410)
 		}
 
-		logs.Info(fmt.Sprintf("resolver error (%s - %s): %s", userIP, userCountry, err))
+		logs.Info(fmt.Sprintf("resolver error (%s): %s", userIP, err))
 		return templateHandler("notfound.html", req.Host, 404)
 	}
 
-	logs.Debug(fmt.Sprintf("mode '%s' [%s,%s] via %s : %s --> %s\n",
-		target.Mode, userIP, userCountry, target.FetchedSource, req.Host, target.Url.String()))
+	logs.Debug(fmt.Sprintf("mode '%s' [%s] via %s : %s --> %s\n",
+		target.Proxy.Mode, userIP, target.FetchedSource, req.Host, target.URL.String()))
 
 	if p.EnableFirewall {
-		_, err = validate(userIP, userCountry, req.Host)
+		_, err = validate(userIP, req.Host)
 		if err == ErrSecurePage {
 			return securePageHandler(userIP)
 		}
@@ -325,20 +313,13 @@ func (p *Proxy) getHandler(req *http.Request) http.Handler {
 		}
 	}
 
-	if _, ok := getClient(userIP); !ok {
-		// these are not used for any purpose, disable them to avoid load on mongodb
-		// go logDomainRequests(req.Host)
-		// go logProxyStat(proxyName, userCountry)
-		go registerClient(userIP, target.Url.String())
-	}
-
-	switch target.Mode {
+	switch target.Proxy.Mode {
 	case resolver.ModeMaintenance:
 		return templateHandler("maintenance.html", nil, 503)
 	case resolver.ModeRedirect:
-		return http.RedirectHandler(target.Url.String()+req.RequestURI, http.StatusFound)
+		return http.RedirectHandler(target.URL.String()+req.RequestURI, http.StatusFound)
 	case resolver.ModeVM:
-		err := utils.CheckServer(target.Url.Host)
+		err := utils.CheckServer(target.URL.Host)
 		if err != nil {
 			logs.Info(fmt.Sprintf("vm host %s is down: '%s'", req.Host, err))
 			return templateHandler("notactiveVM.html", req.Host, 404)
@@ -348,23 +329,23 @@ func (p *Proxy) getHandler(req *http.Request) http.Handler {
 	}
 
 	if isWebsocket(req) {
-		return websocketHandler(target.Url.Host)
+		return websocketHandler(target.URL.Host)
 	}
 
 	var transport http.RoundTripper
 	var ok bool
 
-	if target.CacheEnabled && target.CacheSuffixes != "" {
+	if target.Proxy.CacheEnabled && target.Proxy.CacheSuffixes != "" {
 		p.Lock()
 		transport, ok = p.CacheTransports[req.Host]
 		if !ok {
-			transport = cache.NewCacheTransport(target.CacheSuffixes)
+			transport = cache.NewCacheTransport(target.Proxy.CacheSuffixes)
 			p.CacheTransports[req.Host] = transport
 		}
 		p.Unlock()
 	}
 
-	return reverseProxyHandler(transport, target.Url)
+	return reverseProxyHandler(transport, target.URL)
 }
 
 // reverseProxyHandler is the main handler that is used for copy the response
@@ -483,70 +464,6 @@ func templateHandler(path string, data interface{}, code int) http.Handler {
 	})
 }
 
-/*************************************************
-*
-*  unique IP handling and cleaner
-*
-*  - arslan
-*************************************************/
-
-func resetClients() {
-	clientsLock.Lock()
-	defer clientsLock.Unlock()
-	clients = make(map[string]Client)
-}
-
-func registerClient(ip, target string) {
-	clientsLock.Lock()
-	defer clientsLock.Unlock()
-	clients[ip] = Client{Target: target, Registered: time.Now()}
-	if len(clients) == 1 {
-		go cleaner()
-	}
-}
-
-func getClients() map[string]Client {
-	clientsLock.RLock()
-	defer clientsLock.RUnlock()
-	return clients
-}
-
-func getClient(ip string) (Client, bool) {
-	clientsLock.RLock()
-	defer clientsLock.RUnlock()
-	c, ok := clients[ip]
-	return c, ok
-}
-
-// The goroutine basically does this: as long as there are clients in the map, it
-// finds the one it should be deleted next, sleeps until it's time to delete it
-// (one hour - time since client registration) and deletes it.  If there are no
-// clients, the goroutine exits and a new one is created the next time a user is
-// registered. The time.Sleep goes toward zero, thus it will not lock the
-// for iterator forever.
-func cleaner() {
-	clientsLock.RLock()
-	for len(clients) > 0 {
-		var nextTime time.Time
-		var nextClient string
-		for ip, c := range clients {
-			if nextTime.IsZero() || c.Registered.Before(nextTime) {
-				nextTime = c.Registered
-				nextClient = ip
-			}
-		}
-		clientsLock.RUnlock()
-		// negative duration is no-op, means it will not panic
-		time.Sleep(time.Hour - time.Now().Sub(nextTime))
-		clientsLock.Lock()
-		logs.Info(fmt.Sprintf("deleting client from internal map", nextClient))
-		delete(clients, nextClient)
-		clientsLock.Unlock()
-		clientsLock.RLock()
-	}
-	clientsLock.RUnlock()
-}
-
 // isWebsocket checks wether the incoming request is a part of websocket
 // handshake
 func isWebsocket(req *http.Request) bool {
@@ -557,68 +474,21 @@ func isWebsocket(req *http.Request) bool {
 	return true
 }
 
-func getIPandCountry(addr string) (ip, country string) {
+func getIP(addr string) string {
 	ip, _, err := net.SplitHostPort(addr)
 	if err != nil {
-		return
+		return ""
 	}
-
-	// return when geoIp is not initialized?
-	if geoIP == nil {
-		return
-	}
-
-	// return when location was not found
-	loc := geoIP.GetLocationByIP(ip)
-	if loc == nil {
-		return
-	}
-
-	country = loc.CountryName
-	return
+	return ip
 }
 
-func logDomainRequests(domain string) {
-	if domain == "" {
-		return
-	}
-
-	err := modelhelper.AddDomainRequests(domain)
-	if err != nil {
-		logs.Warning(fmt.Sprintf("could not add domain statistisitcs for %s\n", err.Error()))
-	}
-}
-
-func logProxyStat(name, country string) {
-	err := modelhelper.AddProxyStat(name, country)
-	if err != nil {
-		logs.Warning(fmt.Sprintf("could not add proxy statistisitcs for %s\n", err.Error()))
-	}
-}
-
-func validate(ip, country, domain string) (bool, error) {
+func validate(ip, domain string) (bool, error) {
 	restriction, err := modelhelper.GetRestrictionByDomain(domain)
 	if err != nil {
 		return true, nil //don't block if we don't get a rule (pre-caution))
 	}
 
+	// TODO: enable geoIP and gather country from there
+	country := ""
 	return validator(restriction, ip, country, domain).AddRules().Check()
-}
-
-// increase request counters for the incoming host
-func hitCounter(host string) {
-	for _, item := range redisIntervals {
-		res, err := redisClient.Incr(host + ":" + item.name)
-		if err != nil {
-			logs.Warning(err.Error())
-			continue
-		}
-
-		if int(res) == 1 {
-			_, err := redisClient.Expire(host+":"+item.name, item.duration)
-			if err != nil {
-				logs.Warning(err.Error())
-			}
-		}
-	}
 }

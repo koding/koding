@@ -14,11 +14,8 @@ import (
 	"net/http"
 	"net/url"
 	"strconv"
-	"strings"
 	"sync"
 	"time"
-
-	"labix.org/v2/mgo"
 )
 
 var (
@@ -50,14 +47,14 @@ const (
 
 // Target is returned for every incoming request host.
 type Target struct {
-	// Url contains the final target
-	Url *url.URL
+	// URL contains the final target
+	URL *url.URL
 
-	// Mode contains the information get via model.ProxyTable.Mode. It is used
-	// to make specific lookups for incoming hosts, or return special targets.
-	// Some examples are: "vm", "redirect", "internal" and so on.
-	Mode     string
-	ModeData string
+	// A list of hosts
+	HostnameAlias []string
+
+	// Information used to resolve to the final target.
+	Proxy *models.ProxyTable
 
 	// FetchedAt contains the time the target was fetched and stored in our
 	// internal map. Useful for caching.
@@ -69,23 +66,6 @@ type Target struct {
 
 	// CacheTimeout is used to invalidate the target. Zero duration disables the cache.
 	CacheTimeout time.Duration
-
-	// See struct models.Domain.Proxy
-	CacheEnabled  bool
-	CacheSuffixes string `bson:"cacheSuffixes"`
-}
-
-func newTarget(url *url.URL, mode string, timeout time.Duration) *Target {
-	if url == nil {
-		url, _ = url.Parse("http://localhost/maintenance")
-	}
-
-	return &Target{
-		Url:          url,
-		Mode:         mode,
-		FetchedAt:    time.Now(),
-		CacheTimeout: timeout,
-	}
 }
 
 // GetTarget is used to get the target according to the incoming request it
@@ -94,25 +74,25 @@ func newTarget(url *url.URL, mode string, timeout time.Duration) *Target {
 func GetTarget(req *http.Request) (*Target, error) {
 	cookieBuild, err := req.Cookie(CookieBuildName)
 	if err == nil {
-		key := routeKey{
+		service := service{
 			username:    "koding",
 			servicename: "server",
 			build:       cookieBuild.Value,
 		}
 
-		targetBuild, err := buildTarget(key)
-		if err == nil && targetBuild.Mode == ModeInternal {
-			log.Printf("proxy target is overridden by cookie. Using BUILD '%s'\n", cookieBuild.Value)
-			return targetBuild, nil
+		t, err := service.target()
+		if err == nil {
+			log.Printf("proxy target is overridden by cookie build: '%s'\n", cookieBuild.Value)
+			return t, nil
 		}
 	}
 
 	cookieDomain, err := req.Cookie(CookieDomainName)
 	if err == nil {
-		targetDomain, err := TargetByHost(cookieDomain.Value)
-		if err == nil && targetDomain.Mode == ModeInternal {
-			log.Printf("proxy target is overrriden by cookie. Using DOMAIN '%s'\n", cookieDomain.Value)
-			return targetDomain, nil
+		t, err := TargetByHost(cookieDomain.Value)
+		if err == nil {
+			log.Printf("proxy target is overrriden by cookie domain: '%s'\n", cookieDomain.Value)
+			return t, nil
 		}
 	}
 
@@ -120,14 +100,116 @@ func GetTarget(req *http.Request) (*Target, error) {
 	return TargetByHost(req.Host)
 }
 
-type routeKey struct {
+type service struct {
 	username    string
 	servicename string
 	build       string
 }
 
-func (r *routeKey) String() string {
-	return fmt.Sprintf("%s-%s-%s", r.username, r.servicename, r.build)
+func (s *service) String() string {
+	return fmt.Sprintf("%s-%s-%s", s.username, s.servicename, s.build)
+}
+
+func (s *service) target() (*Target, error) {
+	u, err := s.resolve()
+	if err != nil {
+		return nil, err
+	}
+
+	t := &Target{
+		URL:       u,
+		FetchedAt: time.Now(),
+	}
+
+	return t, nil
+}
+
+// buildTarget returns a target that is obtained via the jProxyServices
+// collection, which is used for internal services. An example service to
+// target could be in form: "koding, server, 950" ->
+// "webserver-950.sj.koding.com:3000".
+func (s *service) resolve() (*url.URL, error) {
+	var hostname string
+	var r *ring.Ring
+	var ok bool
+
+	indexkey := s.String()
+	fmt.Println("indexkey is", indexkey)
+
+	ringsMu.Lock()
+	r, ok = rings[indexkey]
+	if !ok {
+		fmt.Println("no ring found, creating one")
+		hosts, err := s.serviceHosts()
+		if err != nil {
+			ringsMu.Unlock()
+			return nil, err
+		}
+
+		fmt.Println("hosts created:", hosts)
+		aliveHosts := checkHosts(hosts)
+		fmt.Println("hosts alive  :", aliveHosts)
+
+		r = newRing(aliveHosts)
+		rings[indexkey] = r
+
+		// start health checker for base hosts
+		go healtChecker(hosts, indexkey)
+	}
+	ringsMu.Unlock()
+
+	// means the healtChecker created a zero length ring. This is caused only
+	// when all hosts are sick.
+	if r == nil {
+		return nil, errors.New("no healthy hostname available")
+	}
+
+	// get hostname and forward ring to the next value. the next value will be
+	// used on the next request
+	hostname, ok = r.Value.(string)
+	if !ok {
+		return nil, fmt.Errorf("ring value is not string: %+v", r.Value)
+	}
+
+	fmt.Println("using hostname", hostname)
+	ringsMu.Lock()
+	rings[indexkey] = r.Next()
+	ringsMu.Unlock()
+
+	// be sure that the hostname has scheme prependend
+	hostname = utils.CheckScheme(hostname)
+	targetURL, err := url.Parse(hostname)
+	if err != nil {
+		return nil, err
+	}
+
+	return targetURL, nil
+}
+
+// buildHosts returns a list of target hosts for the given build parameters.
+func (s *service) serviceHosts() ([]string, error) {
+	latestKey := modelhelper.GetLatestKey(s.username, s.servicename)
+	if latestKey == "" {
+		latestKey = s.build
+	}
+
+	keyData, err := modelhelper.GetKey(s.username, s.servicename, s.build)
+	if err != nil {
+		currentVersion, _ := strconv.Atoi(s.build)
+		latestVersion, _ := strconv.Atoi(latestKey)
+		if currentVersion < latestVersion {
+			return nil, ErrGone
+		} else {
+			return nil, fmt.Errorf("no keyData for username '%s', servicename '%s' and key '%s'",
+				s.username, s.servicename, s.build)
+		}
+	}
+
+	if !keyData.Enabled {
+		return nil, errors.New("host is not allowed to be used")
+	}
+
+	return keyData.Host, nil
 }
 
 // TargetByHost is used to resolve any hostname to their final target
@@ -170,14 +252,13 @@ func TargetByHost(host string) (*Target, error) {
 		return nil, err
 	}
 
-	target, err = targetMode(host, port, domain)
+	target.Proxy = domain.Proxy
+	target.HostnameAlias = domain.HostnameAlias
+
+	err = target.resolve(host, port)
 	if err != nil {
 		return nil, err
 	}
-
-	target.CacheEnabled = domain.Proxy.CacheEnabled
-	target.CacheSuffixes = domain.Proxy.CacheSuffixes
-	target.FetchedSource = "MongoDB"
 
 	targetsMu.Lock()
 	targets[host] = target
@@ -192,14 +273,7 @@ func getDomain(host string) (*models.Domain, error) {
 
 	domain, err = modelhelper.GetDomain(host)
 	if err != nil {
-		if err != mgo.ErrNotFound {
-			return nil, fmt.Errorf("incoming req host: %s, domain lookup error '%s'\n", host, err.Error())
-		}
-
-		domain, err = fallbackDomain(host)
-		if err != nil {
-			return nil, err
-		}
+		return nil, fmt.Errorf("not valid req host: '%s'", host)
 	}
 
 	if domain.Proxy == nil {
@@ -213,33 +287,97 @@ func getDomain(host string) (*models.Domain, error) {
 	return domain, nil
 }
 
-func targetMode(host, port string, domain *models.Domain) (*Target, error) {
-	mode := domain.Proxy.Mode
+func notValidDomainFor(host string) (*models.Domain, error) {
+	return nil, fmt.Errorf("not valid req host: '%s'", host)
+}
 
-	switch mode {
+func (t *Target) resolve(host, port string) error {
+	var err error
+
+	// by default each target has a 20 second cache
+	t.CacheTimeout = time.Second * 20
+	t.FetchedAt = time.Now()
+	t.FetchedSource = "MongoDB"
+
+	switch t.Proxy.Mode {
 	case ModeMaintenance:
-		// for avoiding nil pointer referencing
-		return newTarget(nil, mode, time.Second*20), nil
+		t.URL, _ = url.Parse("http://localhost/maintenance")
 	case ModeRedirect:
-		target, err := url.Parse(utils.CheckScheme(domain.Proxy.FullUrl))
+		t.URL, err = url.Parse(utils.CheckScheme(t.Proxy.FullUrl))
 		if err != nil {
-			return nil, err
+			return err
 		}
-
-		return newTarget(target, mode, time.Second*20), nil
 	case ModeVM:
-		return vmTarget(host, port, domain)
+		t.URL, err = t.vm(host, port)
+		if err != nil {
+			return err
+		}
 	case ModeInternal:
-		key := routeKey{
-			username:    domain.Proxy.Username,
-			servicename: domain.Proxy.Servicename,
-			build:       domain.Proxy.Key,
+		s := service{
+			username:    t.Proxy.Username,
+			servicename: t.Proxy.Servicename,
+			build:       t.Proxy.Key,
 		}
 
-		return buildTarget(key)
+		t.URL, err = s.resolve()
+		if err != nil {
+			return err
+		}
+	default:
+		return errors.New("no mode defined for target resolver")
 	}
 
-	return nil, fmt.Errorf("ERROR: proxy mode is not supported: %s", mode)
+	return nil
+}
+
+// vm returns a target that is obtained via the jVMs collections. The
+// returned target's url is static and is not going to change. It is usually
+// in form of "arslan.kd.io" -> "10.56.12.12". The default cacheTimeout is set
+// to 0 seconds, means it will be cached forever (because it uses an IP that
+// never change.)
+func (t *Target) vm(host, port string) (*url.URL, error) {
+	if len(t.HostnameAlias) == 0 {
+		return nil, fmt.Errorf("no hostnameAlias defined for host (vm): %s", host)
+	}
+
+	var hostname string
+
+	switch t.Proxy.Mode {
+	case "roundrobin": // equal weights
+		index := getIndex(host) // gives 0 if not available
+		N := float64(len(t.HostnameAlias))
+		n := int(math.Mod(float64(index+1), N))
+		hostname = t.HostnameAlias[n]
+
+		addOrUpdateIndex(host, n)
+	case "random":
+		randomIndex := rand.Intn(len(t.HostnameAlias) - 1)
+		hostname = t.HostnameAlias[randomIndex]
+	default:
+		hostname = t.HostnameAlias[0]
+	}
+
+	vm, err := modelhelper.GetVM(hostname)
+	if err != nil {
+		return nil, err
+	}
+
+	if vm.HostKite == "" || vm.IP == nil {
+		t.Proxy.Mode = ModeVMOff
+		return nil, errors.New("vm is off")
+	}
+
+	vmAddr := vm.IP.String()
+	if !utils.HasPort(vmAddr) {
+		vmAddr = utils.AddPort(vmAddr, port)
+	}
+
+	u, err := url.Parse("http://" + vmAddr)
+	if err != nil {
+		return nil, err
+	}
+
+	return u, nil
 }
 
 // newSlice returns a new slice populated with the given ring items.
@@ -311,190 +449,6 @@ func healtChecker(hosts []string, indexkey string) {
 		ringsMu.Unlock()
 	}
 
-}
-
-// buildTarget returns a target that is obtained via the jProxyServices
-// collection, which is used for internal services. An example service to
-// target could be in form: "koding, server, 950" ->
-// "webserver-950.sj.koding.com:3000".
-func buildTarget(key routeKey) (*Target, error) {
-	var hostname string
-	var r *ring.Ring
-	var ok bool
-	fmt.Println("indexkey is", key)
-
-	ringsMu.Lock()
-	r, ok = rings[key.String()]
-	if !ok {
-		fmt.Println("no ring found, creating one")
-		hosts, err := buildHosts(key)
-		if err != nil {
-			ringsMu.Unlock()
-			return nil, err
-		}
-
-		fmt.Println("hosts created:", hosts)
-		aliveHosts := checkHosts(hosts)
-		fmt.Println("hosts alive  :", aliveHosts)
-
-		r = newRing(aliveHosts)
-		rings[key.String()] = r
-
-		// start health checker for base hosts
-		go healtChecker(hosts, key.String())
-	}
-	ringsMu.Unlock()
-
-	// means the healtChecker created a zero length ring. This is caused only
-	// when all hosts are sick.
-	if r == nil {
-		return nil, errors.New("no healthy hostname available")
-	}
-
-	// get hostname and forward ring to the next value. the next value will be
-	// used on the next request
-	hostname, ok = r.Value.(string)
-	if !ok {
-		return nil, fmt.Errorf("ring value is not string: %+v", r.Value)
-	}
-
-	fmt.Println("using hostname", hostname)
-	rings[key.String()] = r.Next()
-
-	// be sure that the hostname has scheme prependend
-	hostname = utils.CheckScheme(hostname)
-	targetURL, err := url.Parse(hostname)
-	if err != nil {
-		return nil, err
-	}
-
-	return newTarget(targetURL, ModeInternal, time.Second*0), nil
-}
-
-// buildHosts returns a list of target hosts for the given build parameters.
-func buildHosts(key routeKey) ([]string, error) {
-	latestKey := modelhelper.GetLatestKey(key.username, key.servicename)
-	if latestKey == "" {
-		latestKey = key.build
-	}
-
-	keyData, err := modelhelper.GetKey(key.username, key.servicename, key.build)
-	if err != nil {
-		currentVersion, _ := strconv.Atoi(key.build)
-		latestVersion, _ := strconv.Atoi(latestKey)
-		if currentVersion < latestVersion {
-			return nil, ErrGone
-		} else {
-			return nil, fmt.Errorf("no keyData for username '%s', servicename '%s' and key '%s'",
-				key.username, key.servicename, key.build)
-		}
-	}
-
-	if !keyData.Enabled {
-		return nil, errors.New("host is not allowed to be used")
-	}
-
-	return keyData.Host, nil
-}
-
-// vmTarget returns a target that is obtained via the jVMs collections. The
-// returned target's url is static and is not going to change. It is usually
-// in form of "arslan.kd.io" -> "10.56.12.12". The default cacheTimeout is set
-// to 0 seconds, means it will be cached forever (because it uses an IP that
-// never change.)
-func vmTarget(host, port string, domain *models.Domain) (*Target, error) {
-	if len(domain.HostnameAlias) == 0 {
-		return nil, fmt.Errorf("no hostnameAlias defined for host (vm): %s", host)
-	}
-
-	var hostname string
-
-	switch domain.LoadBalancer.Mode {
-	case "roundrobin": // equal weights
-		index := getIndex(host) // gives 0 if not available
-		N := float64(len(domain.HostnameAlias))
-		n := int(math.Mod(float64(index+1), N))
-		hostname = domain.HostnameAlias[n]
-
-		addOrUpdateIndex(host, n)
-	case "random":
-		randomIndex := rand.Intn(len(domain.HostnameAlias) - 1)
-		hostname = domain.HostnameAlias[randomIndex]
-	default:
-		hostname = domain.HostnameAlias[0]
-	}
-
-	vm, err := modelhelper.GetVM(hostname)
-	if err != nil {
-		return nil, err
-	}
-
-	if vm.HostKite == "" {
-		return newTarget(nil, ModeVMOff, time.Second*20), nil
-	}
-
-	if vm.IP == nil {
-		return newTarget(nil, ModeVMOff, time.Second*20), nil
-	}
-
-	vmAddr := vm.IP.String()
-	if !utils.HasPort(vmAddr) {
-		vmAddr = utils.AddPort(vmAddr, port)
-	}
-
-	target, err := url.Parse("http://" + vmAddr)
-	if err != nil {
-		return nil, err
-	}
-
-	return newTarget(target, domain.Proxy.Mode, time.Second*60), nil
-}
-
-// fallbackDomain is used to return a fallback domain when the incoming host
-// is not availaible in our Domains collection. This is usefull for dynamic
-// url's like "server-123.x.koding.com" or "awesomekite-1-arslan.kd.io" you
-// can overide the incoming host  always by adding a new entry for the domain
-// itself into to jDomains collection.
-func fallbackDomain(host string) (*models.Domain, error) {
-	h := strings.SplitN(host, ".", 2) // input: xxxxx.kd.io, output: [xxxxx kd.io]
-
-	if len(h) != 2 {
-		return notValidDomainFor(host)
-	}
-
-	var servicename, key, username string
-	s := strings.Split(h[0], "-") // input: service-key-username, output: [service key username]
-
-	switch h[1] {
-	case "x.koding.com":
-		// in form of: server-123.x.koding.com, assuming the user is 'koding'
-		fmt.Println("X.KODING.COM", host)
-		if c := strings.Count(h[0], "-"); c != 1 {
-			return notValidDomainFor(host)
-		}
-		servicename, key, username = s[0], s[1], "koding"
-	case "kd.io":
-		// in form of: chatkite-1-arslan.kd.io
-		//           : webserver-917-fatih.kd.io
-		fmt.Println("KD.IO", host)
-		if c := strings.Count(h[0], "-"); c != 2 {
-			return notValidDomainFor(host)
-		}
-		servicename, key, username = s[0], s[1], s[2]
-	default:
-		// any other domains are discarded
-		return notValidDomainFor(host)
-	}
-
-	if servicename == "" || key == "" || username == "" {
-		return notValidDomainFor(host)
-	}
-
-	return modelhelper.NewDomain(host, ModeInternal, username, servicename, key, "", []string{}), nil
-}
-
-func notValidDomainFor(host string) (*models.Domain, error) {
-	return nil, fmt.Errorf("not valid req host: '%s'", host)
 }
 
 /*******************************************************
