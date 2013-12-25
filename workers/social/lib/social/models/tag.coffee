@@ -314,8 +314,14 @@ module.exports = class JTag extends jraphical.Module
       if @status in ['deleted', 'synonym']
         return callback new KodingError "Topic is already set as #{@status}!"
 
-      @checkChildTopics (err) =>
+      return callback new KodingError "Self reference is forbidden!" if @title is title
+
+      # checks child topic existence
+      Relationship.one "targetId": @getId(), "as": "synonymOf", (err, childTopic) =>
         return callback err if err
+        if childTopic
+          return callback new KodingError "##{@title} have child topics! You must first delete them"
+
         {delegate} = client.connection
         {group} = client.context
 
@@ -329,14 +335,6 @@ module.exports = class JTag extends jraphical.Module
             return callback new KodingError "##{tag.title} already set as #{tag.status}!"
           else
             addSynonym tag
-
-  checkChildTopics : (callback) =>
-    Relationship.one "targetId": @getId(), "as": "synonymOf", (err, childSynonym) =>
-      return callback err if err
-      if childSynonym
-        return callback new KodingError "##{@title} have child tags! You must first delete them"
-      callback null
-
 
   @findSuggestions = (client, seed, options, callback)->
     {limit, blacklist, skip, category} = options
@@ -353,6 +351,13 @@ module.exports = class JTag extends jraphical.Module
         sort    : 'title' : 1
       }, callback
 
+  delete_: (callback) ->
+    tagId = @getId()
+    @update {$set: status: "deleted"}, (err)=>
+      return callback err if err
+      @constructor.emit 'TagIsDeleted', {tagId}
+      callback null
+
   delete: permit
     advanced: [
       { permission: 'delete own tags', validateWith: Validators.own }
@@ -361,22 +366,26 @@ module.exports = class JTag extends jraphical.Module
     success: (client, callback)->
       {delegate} = client.connection
 
-      deleteTag = (err) =>
-        tagId = @getId()
-        @update {$set: status: "deleted"}, (err)=>
-          return callback err if err
-          @constructor.emit 'TagIsDeleted', {tagId}
-          callback null
+      return callback new KodingError 'Access denied' unless delegate.checkFlag('super-admin')
 
-      unless delegate.checkFlag('super-admin')
-        callback new KodingError 'Access denied'
-      else
-        if @status is 'deleted'
-          return callback new KodingError "Topic is already deleted!"
+      return callback new KodingError "Topic is already deleted!" if @status is 'deleted'
 
-        if @status is 'synonym'
-          return Relationship.remove {sourceId: @getId(), as: "synonymOf"}, deleteTag
-        deleteTag null
+      if @status is 'synonym'
+        @delete_ => Relationship.remove {sourceId: @getId(), as: "synonymOf"}, callback
+
+      # check child topics and delete all
+      Relationship.all "targetId": @getId(), "as": "synonymOf", (err, childTopicRels) =>
+        return callback err if err
+        unless childTopicRels?.length then @delete_ callback
+        else
+          queue = childTopicRels.map (childTopicRel) ->
+            -> JTag.one "_id": childTopicRel.sourceId, (err, childTopic) ->
+              return callback err if err
+              return callback new KodingError 'Child Topic could not be found' unless childTopic
+              childTopic.delete_ (err) ->
+                return callback err if err
+                Relationship.remove {sourceId: childTopic.getId(), as: "synonymOf"}, -> queue.fin()
+          dash queue, => @delete_ callback
 
 
   @fetchSkillTags:(selector, options, callback)->
