@@ -200,6 +200,7 @@ class TopicsAppController extends AppController
           else callback tags
 
     fields.Synonym.addSubView userRequestLineEdit = @synonymController.getView()
+    @synonymController.addItemToSubmitQueue new TagAutoCompleteItemView({}, parent), parent if parent
 
   updateTopic:(topicItem)->
     topic = topicItem.data
