@@ -6,6 +6,7 @@ module.exports = (options = {}, callback)->
   options.client               or= {}
   options.client.context       or= {}
   options.client.context.group or= "koding"
+  options.client.connection    or= {}
 
   {argv} = require 'optimist'
 
