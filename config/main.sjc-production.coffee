@@ -301,7 +301,7 @@ module.exports =
   graphite       :
     use          : true
     host         : "172.168.2.7"
-    port         : true
+    port         : 2003
   linkedin       :
     client_id    : "aza9cks1zb3d"
     client_secret: "zIMa5kPYbZjHfOsq"
