@@ -49,15 +49,14 @@ With love from the Koding team.<br>
     suggestedTags  = []
     createdTags    = {}
 
-    unless KD.checkFlag "exempt"
-      for token in @input.getTokens()
-        {data, type} = token
-        if type is "tag"
-          if data instanceof JTag
-            tags.push id: data.getId()
-            activity?.tags.push data
-          else if data.$suggest
-            suggestedTags.push data.$suggest
+    for token in @input.getTokens()
+      {data, type} = token
+      if type is "tag"
+        if data instanceof JTag
+          tags.push id: data.getId()
+          activity?.tags.push data
+        else if data.$suggest
+          suggestedTags.push data.$suggest
 
     daisy queue = [
       ->

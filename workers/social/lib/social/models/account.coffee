@@ -898,7 +898,7 @@ module.exports = class JAccount extends jraphical.Module
       cursor.each (err, account)->
         return callback err, null if err
         if account
-            ids.push account._id
+            ids.push account._id.toString()
         else
             callback null, ids
 
