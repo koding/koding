@@ -76,8 +76,8 @@ module.exports = (options = {}, callback)->
     return callback null, html
 
   {delegate} = options.client.connection
-  # if user is exempt do not cache his/her result set
-  return generateScript()  if delegate and delegate.isExempt
+  # if user is exempt or super-admin do not cache his/her result set
+  return generateScript()  if delegate and delegate.checkFlag ['super-admin', 'exempt']
 
   Cache  = require '../cache/main'
   feedFn = require '../cache/feed'
