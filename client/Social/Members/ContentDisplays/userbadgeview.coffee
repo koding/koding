@@ -19,11 +19,13 @@ class UserBadgeView extends KDListItemView
     @addSubView @badgeIcon
     @addSubView @title
 
-class UserPropertyList extends JView
+class UserPropertyList extends KDListView
   constructor:(options = {}, data)->
     options.type = "user-properties"
     # ONLY ADMINS CAN SEE THAT VIEW
     super options, data
+
+  viewAppended:JView::viewAppended
   pistachio:->
     """
      <h3>User Properties <span>(staff only)<span></h3>
