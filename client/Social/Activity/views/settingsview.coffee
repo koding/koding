@@ -121,11 +121,11 @@ class ActivitySettingsView extends KDCustomHTMLView
       size         : "tiny"
       callback     : (value)->
         newTags = []
-        {JTag} = KD.remote.api
-        JTag.fetchSystemTags {title:value},limit:1, (err, systemTags)->
-          tag = systemTags.first
-          stringToAdd = "|#:JTag:#{tag.getId()}|"
-          post.body += " #{stringToAdd}"
+        {JTag}  = KD.remote.api
+        JTag.fetchSystemTags {title:value}, {limit:1}, (err, systemTags)->
+          tag         = systemTags.first
+          stringToAdd = " |#:JTag:#{tag.getId()}|"
+          post.body  += stringToAdd
 
           newTags.push id:tag.getId() for tag in post.tags
           options  =
@@ -135,7 +135,6 @@ class ActivitySettingsView extends KDCustomHTMLView
 
           post.modify options, (err)->
             log err if err
-
 
     modal.addSubView systemTags
 
