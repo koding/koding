@@ -202,7 +202,7 @@ class StartTabAppThumbView extends KDCustomHTMLView
       @deleteModal.destroy()
       @destroy()  unless err
 
-      KD.mixpanel "User Deleted Application", manifest.name
+      KD.mixpanel "Delete Application, success", manifest.name
 
   viewAppended:->
 
