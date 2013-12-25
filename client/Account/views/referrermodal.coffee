@@ -125,6 +125,3 @@ class ReferrerModal extends KDModalViewWithForms
         listController.instantiateListItems contacts
 
     @setPositions()
-
-  track: (count) ->
-    KD.kdMixpanel.track "User Sent Invitation", $user: KD.nick(), count: count
