@@ -91,6 +91,7 @@ func (vm *VM) WaitForNetwork(timeout time.Duration) error {
 
 		if strings.TrimSpace(string(out)) == "up" {
 			return true
+		}
 
 		return false
 	}
