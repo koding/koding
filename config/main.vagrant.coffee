@@ -317,3 +317,4 @@ module.exports =
     version      : "1.0"
     signature    : "HMAC-SHA1"
   mixpanel       : "a57181e216d9f713e19d5ce6d6fb6cb3"
+  rollbar        : "71c25e4dc728431b88f82bd3e7a600c9"

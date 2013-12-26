@@ -50,6 +50,9 @@ class ActivityTicker extends ActivityRightBase
 
     @load {}
 
+    @once 'viewAppended', =>
+      @$('.kdscrollview').height window.innerHeight - 120
+
   settingsMenu:(data)->
     filterSelected = (filters=[]) =>
       @listController.removeAllItems()

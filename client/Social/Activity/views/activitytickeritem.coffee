@@ -267,7 +267,7 @@ class ActiveTopicItemView extends KDListItemView
     @addSubView tagInfo = new KDCustomHTMLView
       cssClass          : "tag-info clearfix"
 
-    @getData().fetchRandomFollowers {}, =>
+    @getData().fetchLastInteractors {}, =>
       randomFollowers = arguments[1]
       for user in randomFollowers
         tagInfo.addSubView new AvatarView

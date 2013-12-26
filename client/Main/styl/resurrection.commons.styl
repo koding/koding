@@ -9,6 +9,14 @@ resurrection.commons.styl
 */
 }
 
+.avatarview
+  background-image          url('/a/images/defaultavatar/avatar.svg')
+  background-size           100% 100%
+  background-repeat         no-repeat
+  overflow                  hidden
+  display                   block
+  vertical-align            top
+
 .content-page
   max-width                 1146px
   margin                    0 auto
@@ -527,7 +535,7 @@ input.kdinput.text
   rel()
   z-index             1
   padding             11px 6px
-  border              1px solid #bdc3c7
+  // border              1px solid #bdc3c7
   color               #3E4F55
   font-size           16px
   box-shadow          none
@@ -779,3 +787,39 @@ input.kdinput.text
       right   28px
       top      8px
       abs()
+
+// File upload
+.file-droparea
+  kalc            height, 100% \- 20px
+  kalc            width,  100% \- 20px
+  margin          10px
+  borderBox()
+  border          3px dashed #333
+  border-radius   5px
+  noTextSelection()
+
+  &.hover
+    border-color  #444
+
+  .file-drop
+    width         100%
+    position      absolute
+    top           50%
+    text-align    center
+    font-size     20px
+    margin-top    -10px
+    z-index       0
+
+    small
+      display     block
+      font-size   12px
+      font-weight 200
+      word-wrap   break-word
+      margin-top  10px
+
+  .cancel
+    width         100%
+    position      absolute
+    bottom        20px
+    text-align    center
+    color         #EEE

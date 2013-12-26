@@ -300,4 +300,5 @@ module.exports =
     secret_url   : "https://twitter.com/oauth/authenticate?oauth_token="
     version      : "1.0"
     signature    : "HMAC-SHA1"
-  mixpanel       : "113c2731b47a5151f4be44ddd5af0e7a"
+  mixpanel       : "d35a8d0b14e284f32ab5380590c6848a"
+  rollbar        : "4a8a1f8400fc4e64bae05d47b9345538"

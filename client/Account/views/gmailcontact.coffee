@@ -10,7 +10,7 @@ class GmailContactsListItem extends KDListItemView
     data.invite (err) =>
       return log err  if err
       @decorateInvitationSent()
-      KD.kdMixpanel.track "User Sent Invitation", $user: KD.nick(), count: 1
+      KD.mixpanel "User invite send, success"
 
   decorateInvitationSent: ->
     @setClass "invitation-sent"
@@ -18,9 +18,12 @@ class GmailContactsListItem extends KDListItemView
 
   setAvatar: ->
     hash     = md5.digest @getData().email
-    fallback = "#{KD.apiUri}/a/images/defaultavatar/default.avatar.25.png"
+    fallback = "#{KD.apiUri}/a/images/defaultavatar/avatar.svg"
     uri      = "url(//gravatar.com/avatar/#{hash}?size=25&d=#{encodeURIComponent fallback})"
     @$(".avatar").css "background-image", uri
+    @$(".avatar").css "-webkit-background-size", "25px 25px"
+    @$(".avatar").css "-moz-background-size", "25px 25px"
+    @$(".avatar").css "background-size", "25px 25px"
 
   viewAppended: ->
     JView::viewAppended.call this

@@ -14,7 +14,7 @@ class ActivityInputWidget extends KDView
     @notification = new KDView
       cssClass : "notification hidden"
       partial  : """
-This is a sneak peek beta for testing purposes only. If you find any bugs, please post them here on the activity feed with the tag #bug. Beware that your activities could be discarded.<br><br>
+This is a sneak peek beta for testing purposes only. If you find any bugs, please post them here on the activity feed with the tag #bug. Beware that your status updates could be discarded.<br><br>
 
 Please take a short survey about <a href="http://bit.ly/1jsjlna">New Koding.</a><br><br>
 
@@ -49,15 +49,14 @@ With love from the Koding team.<br>
     suggestedTags  = []
     createdTags    = {}
 
-    unless KD.checkFlag "exempt"
-      for token in @input.getTokens()
-        {data, type} = token
-        if type is "tag"
-          if data instanceof JTag
-            tags.push id: data.getId()
-            activity?.tags.push data
-          else if data.$suggest
-            suggestedTags.push data.$suggest
+    for token in @input.getTokens()
+      {data, type} = token
+      if type is "tag"
+        if data instanceof JTag
+          tags.push id: data.getId()
+          activity?.tags.push data
+        else if data.$suggest
+          suggestedTags.push data.$suggest
 
     daisy queue = [
       ->
@@ -91,6 +90,8 @@ With love from the Koding team.<br>
           @destroy() if @getOptions().destroyOnSubmit
           @notification.show()
           callback? err, activity
+
+          KD.mixpanel "Status update create, success", {length:activity?.body?.length}
     ]
 
   encodeTagSuggestions: (str, tags) ->
@@ -101,6 +102,9 @@ With love from the Koding team.<br>
 
   create: (data, callback) ->
     JNewStatusUpdate.create data, (err, activity) =>
+      if err
+        KD.mixpanel "Status update create, fail"
+
       @reset()  unless err
 
       callback? err, activity
@@ -119,9 +123,14 @@ With love from the Koding team.<br>
     activity = @getData()
     return  @reset() unless activity
     activity.modify data, (err) =>
+      if err
+        KD.mixpanel "Status update update, fail"
+
       KD.showError err
       @reset()  unless err
       callback? err
+
+      KD.mixpanel "Status update update, success"
 
   reset: (lock = yes) ->
     @input.setContent ""

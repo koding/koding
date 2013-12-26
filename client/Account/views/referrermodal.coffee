@@ -50,9 +50,9 @@ class ReferrerModal extends KDModalViewWithForms
       cssClass : "share-links"
       partial  : "<span>Share your code on</span>"
 
-    shareLinks.addSubView new TwitterShareLink  url: options.url
-    shareLinks.addSubView new FacebookShareLink url: options.url
-    shareLinks.addSubView new LinkedInShareLink url: options.url
+    shareLinks.addSubView new TwitterShareLink  url: options.url, trackingName: "referrer"
+    shareLinks.addSubView new FacebookShareLink url: options.url, trackingName: "referrer"
+    shareLinks.addSubView new LinkedInShareLink url: options.url, trackingName: "referrer"
 
     rightColumn.addSubView gmail = new KDButtonView
       title    : "Invite Gmail Contacts"
@@ -125,6 +125,3 @@ class ReferrerModal extends KDModalViewWithForms
         listController.instantiateListItems contacts
 
     @setPositions()
-
-  track: (count) ->
-    KD.kdMixpanel.track "User Sent Invitation", $user: KD.nick(), count: count

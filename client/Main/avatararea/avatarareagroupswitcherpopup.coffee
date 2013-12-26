@@ -122,7 +122,7 @@ class AvatarPopupGroupSwitcher extends AvatarPopup
             "Switch":
               cssClass: "modal-clean-gray"
               callback: ->
-                KD.mixpanel "Switched to old Koding"
+                KD.mixpanel "Switch to old Koding, click"
                 KD.utils.goBackToOldKoding()
                 modal.destroy()
             "Cancel":

@@ -31,6 +31,7 @@ module.exports = class JComment extends jraphical.Reply
         fetchLikedByes: [
           (signature Function)
           (signature Object, Function)
+          (signature Object, Object, Function)
         ]
         checkIfLikedBefore:
           (signature Function)

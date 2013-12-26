@@ -185,7 +185,7 @@ class TeamworkApp extends KDObject
       @teamwork.on "WorkspaceSyncedWithRemote", =>
         {contentDetails} = @teamwork.getOptions()
 
-        KD.mixpanel "User Changed Playground", playground
+        KD.mixpanel "Change Playground, success", playground
 
         if contentDetails.type is "zip"
           root            = "/home/#{@teamwork.getHost()}/Web/Teamwork/#{playground}"
