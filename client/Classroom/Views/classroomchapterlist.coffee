@@ -7,7 +7,7 @@ class ClassroomChapterList extends KDScrollView
     super options, data
 
     courseName = @getData().name
-    appStorage = KD.getSingleton("appStorageController").storage "Classroom"
+    appStorage = KD.getSingleton("appStorageController").storage "Classroom", "1.2.1"
     completed  = appStorage.getValue("Completed")?[courseName] or []
 
     for chapter, index in @getData().chapters
