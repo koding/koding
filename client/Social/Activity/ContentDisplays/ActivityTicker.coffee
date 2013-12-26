@@ -107,7 +107,7 @@ class ActivityTicker extends ActivityRightBase
     target = KD.remote.revive origin
     as     = "author"
 
-    return if target.isExempt
+    return if target.isExempt or @checkGuestUser origin
 
     @fetchTags source, (err, tags)=>
       return log "discarding event, invalid data"  if err
@@ -148,7 +148,7 @@ class ActivityTicker extends ActivityRightBase
 
     return console.warn "data is not valid"  unless follower and origin
 
-    return if follower.isExempt
+    return if follower.isExempt or @checkGuestUser origin
 
     {constructorName, id} = follower
     KD.remote.cacheable constructorName, id, (err, source)=>
@@ -175,7 +175,7 @@ class ActivityTicker extends ActivityRightBase
     unless liker and origin and subject
       return console.warn "data is not valid"
 
-    return if liker.isExempt
+    return if liker.isExempt or @checkGuestUser origin
 
     {constructorName, id} = liker
     KD.remote.cacheable constructorName, id, (err, source)=>
@@ -229,18 +229,19 @@ class ActivityTicker extends ActivityRightBase
     loadOptions.continue = @filters
     @load loadOptions
 
+  checkGuestUser: (account) ->
+    if account.profile and accountNickname = account.profile.nickname
+      if /^guest-/.test accountNickname
+        return yes
+    return no
+
   filterItem:(item)->
     {as, source, target} = item
     # objects should be there
     return null  unless source and target and as
 
     # relationships from guests should not be there
-    if source.profile and sourceNickname = source.profile.nickname
-      if /^guest-/.test sourceNickname
-        return null
-    if target.profile and targetNickname = target.profile.nickname
-      if /^guest-/.test targetNickname
-        return null
+    return null if @checkGuestUser(source) or @checkGuestUser(target)
 
     # filter user followed status activity
     if @getConstructorName(source) is "JNewStatusUpdate" and \
