@@ -224,6 +224,7 @@ class ManageRemotesModal extends KDModalViewWithForms
     , =>
       @addCustomItem "It seems there is something wrong with remote servers. Please try again later."
       callback?()
+      KD.logToExternalWithTime "Couldn't fetch remotes"
     , 8000
 
   mountRemote:(mount, callback)->

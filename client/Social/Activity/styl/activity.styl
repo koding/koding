@@ -23,6 +23,9 @@ resurrection.activity.styl
     margin              30px auto !important
     text-align          center
 
+.status.content-display
+  .status-body
+    max-height          100%
 
 .content-page.activity
   max-width             100%
@@ -76,6 +79,21 @@ resurrection.activity.styl
 
       .kdview
         overflow        visible
+
+    .feed-type-selection
+      margin-right      3px
+      margin-top        28px
+      text-align        right
+
+      a
+        font-weight     300
+        padding-left    20px
+        color           #838987
+        font-size       20px
+        noTextDeco()
+
+        &.active
+          color         #37B298
 
   > aside
     right               0
@@ -318,7 +336,7 @@ resurrection.activity.styl
       size            100% auto
       line-height     16px
       font-size       14px
-      color           #acacac
+      color           #3c4752
       padding         15px 100px 14px 56px
       background      #fff
       borderBox()
@@ -348,26 +366,6 @@ resurrection.activity.styl
         right         initial
         bottom        initial
         padding       0 10px
-
-  .notification
-    size                auto auto
-    background          lightyellow
-    font-size           12px
-    margin              10px 0
-    padding             10px 30px 10px 10px
-    border              1px solid lightgray
-    border-radius       5px
-
-    .close-tab
-      abs()
-      top               4px
-      right             4px
-      bg                color, transparent
-      sprite            app '20-close-tab'
-
-    a
-      color      #3aaaab
-      noTextDeco()
 
 span.collapsedtext
   borderBox()
@@ -451,24 +449,29 @@ span.collapsedtext
 
   .profile
   .status-body
-    word-break    break-word
     display       block
     color         #3c4752
     font-weight   200
+    word-break    break-word
 
   .status-body
     // to avoid too long posts
     // until we find a better solution - SY
     overflow      auto
     max-height    400px
-    padding       5px 21px 0
     line-height   22px
-    white-space   pre-line
+
+    > span
+      > *
+        padding       0 21px
+
+      > pre
+        padding       10px 0
 
   >.profile
     color         #1aaf5d
     font-weight   400
-    padding       18px 20px 0
+    padding       18px 20px 5px
     display       inline-block
     noTextDeco()
 
@@ -499,8 +502,8 @@ span.collapsedtext
       display      none
 
   footer
-    size          100%, 33px
-    margin        -12px 0 0 0
+    size          100%, 25px
+    margin-top    7px
     borderBox()
 
     time
@@ -513,7 +516,7 @@ span.collapsedtext
 
     .activity-actions
       width       auto
-      padding     0 0 0 9px
+      padding     0 0 0 8px
       fl()
 
     .action-link
@@ -522,6 +525,7 @@ span.collapsedtext
       font-size       12px
       color           #a6abb1
       noTextDeco()
+      cursor          pointer
 
     .action-container
       size            auto 18px
@@ -592,7 +596,7 @@ span.collapsedtext
       padding-bottom  26px
 
     .avatarview
-      border          1px solid #bdc3c7
+      // border          1px solid #bdc3c7
       top             22px
       left            20px
       rounded         5px
@@ -947,20 +951,7 @@ span.status-body
   /* Headings */
   h1, h2, h3, h4, h5, h6
     color         #50595a
-    font-weight   600
-    margin        0 0 12px
-  h1
-    font-size     22px
-  h2
-    font-size     20px
-  h3
-    font-size     18px
-  h4
-    font-size     16px
-  h5
     font-size     14px
-  h6
-    font-size     12px
 
   /* Lists */
   ol,ul
@@ -998,17 +989,50 @@ span.status-body
     background            #c4c4c9
     border                none
   code
-    display               inline-block
+    display               block
+    line-height           16px
     font-size             12px
-    border                1px solid #e3e3e3
-    rounded               5px
-    padding               0 4px
-    bg                    color #f2f2f2
+    font-family           Monaco, Consolas, Lucida Console, Liberation Mono, DejaVu Sans Mono, Bitstream Vera Sans Mono, Courier New
+    padding               14px
+    color                 white
+    bg                    color, #28292A
 
-  pre
-    code
-      display             block
-      padding             14px
+    .comment
+    .string
+    .regexp
+      color               #96B486
+
+    .keyword
+      color               #9B8298
+
+    .title
+    .variable
+      color               #6096BE
+
+    .literal
+    .number
+      color               #D17819
+
+    .constant
+    .decorator
+    .typename
+      color               #DEB63A
+
+    &.lang-go
+      .built_in
+        color             #6096BE
+
+    &.lang-css
+      .pseudo
+        color             #DEB63A
+
+      .id
+      .tag
+      .class
+        color             #9B8298
+
+      .attribute
+        color             #6096BE
 
 .activity-share-popup
   bg                      color, #ececec

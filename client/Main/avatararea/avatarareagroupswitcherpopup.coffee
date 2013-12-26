@@ -122,7 +122,7 @@ class AvatarPopupGroupSwitcher extends AvatarPopup
             "Switch":
               cssClass: "modal-clean-gray"
               callback: ->
-                KD.mixpanel "Switched to old Koding"
+                KD.mixpanel "Switch to old Koding, click"
                 KD.utils.goBackToOldKoding()
                 modal.destroy()
             "Cancel":
@@ -159,10 +159,11 @@ class AvatarPopupGroupSwitcher extends AvatarPopup
 
 
   populateGroups:->
+    return  unless KD.isLoggedIn() or @isLoading
 
     @listController.removeAllItems()
 
-    return  unless KD.isLoggedIn()
+    @isLoading = yes
 
     KD.whoami().fetchGroups null, (err, groups)=>
       if err then warn err
@@ -176,6 +177,8 @@ class AvatarPopupGroupSwitcher extends AvatarPopup
               cb err, group
 
         async.parallel stack, (err, results)=>
+          @isLoading = no
+
           unless err
             results.sort (a, b)->
               return if a.admin is b.admin
@@ -190,7 +193,6 @@ class AvatarPopupGroupSwitcher extends AvatarPopup
 
             @listController.hideLazyLoader()
             @listController.instantiateListItems results
-
 
   decreasePendingCount:->
     @pending--

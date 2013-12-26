@@ -52,6 +52,7 @@ class ActivityActionsView extends KDView
     @shareLink    = new ActivityActionLink
       partial         : "Share"
       click           :(event)=>
+        @utils.stopDOMEvent event
         data = @getData()
         if data?.group? and data.group isnt "koding"
           shareUrl = "#{KD.config.mainUri}/#!/#{data.group}/Activity/#{data.slug}"
@@ -121,25 +122,22 @@ class ActivityActionsView extends KDView
     commentList.on 'BackgroundActivityFinished', @loader.bound 'hide'
 
     @commentLink.on "click", (event)=>
+      @utils.stopDOMEvent event
       commentList.emit "CommentLinkReceivedClick", event, this
 
 class ActivityActionLink extends KDCustomHTMLView
   constructor:(options,data)->
     options = $.extend
-      tagName   : "a"
+      tagName   : "span"
       cssClass  : "action-link"
-      attributes:
-        href    : "#"
     , options
     super options,data
 
 class ActivityCountLink extends KDCustomHTMLView
   constructor:(options,data)->
     options = $.extend
-      tagName   : "a"
+      tagName   : "span"
       cssClass  : "count"
-      attributes:
-        href    : "#"
     , options
     super options,data
 

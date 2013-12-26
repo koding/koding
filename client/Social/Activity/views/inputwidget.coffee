@@ -11,21 +11,6 @@ class ActivityInputWidget extends KDView
     @input    = new ActivityInputView defaultValue: options.defaultValue
     @input.on "Escape", @bound "reset"
 
-    @notification = new KDView
-      cssClass : "notification hidden"
-      partial  : """
-This is a sneak peek beta for testing purposes only. If you find any bugs, please post them here on the activity feed with the tag #bug. Beware that your activities could be discarded.<br><br>
-
-Please take a short survey about <a href="http://bit.ly/1jsjlna">New Koding.</a><br><br>
-
-With love from the Koding team.<br>
-      """
-
-    @notification.addSubView new KDCustomHTMLView
-      tagName : "span"
-      cssClass: "close-tab"
-      click   : => @notification.destroy()
-
     @embedBox = new EmbedBoxWidget delegate: @input, data
 
     @submit    = new KDButtonView
@@ -87,10 +72,10 @@ With love from the Koding team.<br>
         fn data, (err, activity) =>
           @reset yes
           @embedBox.resetEmbedAndHide()
-          @emit "Submit", err, activity
-          @destroy() if @getOptions().destroyOnSubmit
-          @notification.show()
+          @emit "Submit"
           callback? err, activity
+
+          KD.mixpanel "Status update create, success", {length:activity?.body?.length}
     ]
 
   encodeTagSuggestions: (str, tags) ->
@@ -101,6 +86,9 @@ With love from the Koding team.<br>
 
   create: (data, callback) ->
     JNewStatusUpdate.create data, (err, activity) =>
+      if err
+        KD.mixpanel "Status update create, fail"
+
       @reset()  unless err
 
       callback? err, activity
@@ -119,9 +107,14 @@ With love from the Koding team.<br>
     activity = @getData()
     return  @reset() unless activity
     activity.modify data, (err) =>
+      if err
+        KD.mixpanel "Status update update, fail"
+
       KD.showError err
       @reset()  unless err
       callback? err
+
+      KD.mixpanel "Status update update, success"
 
   reset: (lock = yes) ->
     @input.setContent ""
@@ -144,7 +137,6 @@ With love from the Koding team.<br>
   viewAppended: ->
     @addSubView @avatar
     @addSubView @input
-    @addSubView @notification
     @addSubView @embedBox
     @input.addSubView @submit
     @hide()  unless KD.isLoggedIn()

@@ -427,8 +427,9 @@ class ProfileView extends JView
           @avatarChange.on "UsePhoto", (dataURI)=>
             [_, avatarBase64] = dataURI.split ","
             @avatar.setAvatar "url(#{dataURI})"
-            @avatar.$().css
-              backgroundSize: "auto 90px"
+            # i don't know why this was here - SY
+            # @avatar.$().css
+            #   backgroundSize: "auto 90px"
             @avatarChange.emit "LoadingStart"
             @uploadAvatar avatarBase64, =>
               @avatarChange.emit "LoadingEnd"

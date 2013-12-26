@@ -3,6 +3,7 @@ class ActivityAppController extends AppController
   KD.registerAppClass this,
     name         : "Activity"
     route        : "/:name?/Activity"
+    searchRoute  : "/Activity?q=:text:"
     hiddenHandle : yes
 
 
@@ -70,6 +71,12 @@ class ActivityAppController extends AppController
 
   fetchCurrentGroup:(callback)-> callback @currentGroupSlug
 
+  search:(text)->
+    text = Encoder.XSSEncode text
+    @searchText = text
+    @setWarning {text, loading:yes, type:"search"}
+    @populateActivity searchText:text
+
   bindLazyLoad:->
     @once 'LazyLoadThresholdReached', @bound "continueLoadingTeasers"
     @listController.once 'teasersLoaded', @bound "teasersLoaded"
@@ -83,8 +90,11 @@ class ActivityAppController extends AppController
     return  if @isLoading
     @clearPopulateActivityBindings()
 
-    KD.mixpanel "Scrolled down feed"
-    @populateActivity to : @lastFrom
+    options = {to : @lastFrom}
+    options.searchText = @searchText if @searchText
+
+    @populateActivity options
+    KD.mixpanel "Scroll down feed, success"
 
   attachEvents:(controller)->
     activityController = KD.getSingleton('activityController')
@@ -94,6 +104,18 @@ class ActivityAppController extends AppController
 
     @listController = controller
     @bindLazyLoad()
+
+    appView.feedFilterController.on "FilterChanged", (filter) =>
+
+      KD.track "Activity", "#{filter}FilterClicked"
+      @resetAll()
+      @clearPopulateActivityBindings()
+
+      if filter in ["Public", "Followed"]
+      then @setFeedFilter filter
+      else @setActivityFilter filter
+
+      @populateActivity()
 
   setFeedFilter: (feedType) -> @currentFeedFilter = feedType
   getFeedFilter: -> @currentFeedFilter
@@ -111,8 +133,13 @@ class ActivityAppController extends AppController
 
     if query.tagged
       tag = KD.utils.slugify KD.utils.stripTags query.tagged
-      @setWarning tag, yes
+      @setWarning {text:tag, loading:yes}
       options = filterByTag: tag
+    else if query.q
+      query = KD.utils.stripTags query.q
+      @setWarning {text:query, loading:yes, type:"search"}
+      options = searchText: query
+
     # TODO: populateActivity will fire twice if there is a query (FIXME) C.T.
     @ready => @populateActivity options
 
@@ -130,7 +157,11 @@ class ActivityAppController extends AppController
     groupsController = KD.getSingleton 'groupsController'
     {isReady}        = groupsController
     currentGroup     = groupsController.getCurrentGroup()
-    {filterByTag,to} = options
+    {
+      filterByTag
+      to
+      searchText
+    } = options
 
     setFeedData = (messages) =>
 
@@ -158,6 +189,7 @@ class ActivityAppController extends AppController
         facets     : @getActivityFilter()
         withExempt : no
         slug       : filterByTag
+        searchText : searchText
 
       options.withExempt = \
         KD.getSingleton("activityController").flags.showExempt?
@@ -167,27 +199,38 @@ class ActivityAppController extends AppController
       {roles} = KD.config
       group   = groupObj?.slug
 
+      if not to and (searchText or @searchText)
+        @resetAll()
+        @clearPopulateActivityBindings()
+        @searchText = searchText
+
+      if searchText? or (@searchText and to)
+        options.searchText ?= @searchText
+        @once "searchFeedFetched_#{eventSuffix}", setFeedData
+        @searchActivities options
+        @setWarning {text:searchText, loading:no, type:"search"}
+        return
+
       if not to and (filterByTag or @_wasFilterByTag)
         @resetAll()
         @clearPopulateActivityBindings()
         @_wasFilterByTag = filterByTag
 
       if filterByTag? or (@_wasFilterByTag and to)
-
         options.slug ?= @_wasFilterByTag
         @once "topicFeedFetched_#{eventSuffix}", setFeedData
         @fetchTopicActivities options
-        @setWarning options.slug
+        @setWarning {text:options.slug}
         view.setTopicTag options.slug
+        return
 
       else if @getFeedFilter() is "Public"
-
         @once "publicFeedFetched_#{eventSuffix}", setFeedData
         @fetchPublicActivities options
         @setWarning()
+        return
 
       else
-
         @once "followingFeedFetched_#{eventSuffix}", setFeedData
         @fetchFollowingActivities options
         @setWarning()
@@ -196,6 +239,15 @@ class ActivityAppController extends AppController
 
     if isReady then fetch()
     else groupsController.once 'GroupChanged', fetch
+
+  searchActivities:(options = {})->
+    options.to = @lastTo
+    {JNewStatusUpdate} = KD.remote.api
+    eventSuffix = "#{@getFeedFilter()}_#{@getActivityFilter()}"
+    JNewStatusUpdate.search options, (err, activities) =>
+      if err then @emit "activitiesCouldntBeFetched", err
+      else @emit "searchFeedFetched_#{eventSuffix}", activities
+
 
   fetchTopicActivities:(options = {})->
     options.to = @lastTo
@@ -237,24 +289,25 @@ class ActivityAppController extends AppController
   fetchFollowingActivities:(options = {})->
     {JNewStatusUpdate} = KD.remote.api
     eventSuffix = "#{@getFeedFilter()}_#{@getActivityFilter()}"
-    CActivity.fetchFollowingFeed options, (err, activities) =>
+    JNewStatusUpdate.fetchFollowingFeed options, (err, activities) =>
       if err
       then @emit "activitiesCouldntBeFetched", err
       else @emit "followingFeedFetched_#{eventSuffix}", activities
 
-  setWarning:(tag, loading = no)->
+  setWarning:(options = {})->
+    options.type or= "tag"
+    {text, loading, type} = options
     {filterWarning} = @getView()
-    if tag
+    if text
       unless loading
-        filterWarning.showWarning tag
+        filterWarning.showWarning {text, type}
       else
-        filterWarning.warning.setPartial "Filtering activities by #{tag}..."
+        filterWarning.warning.setPartial "Filtering activities by #{text}..."
         filterWarning.show()
     else
       filterWarning.hide()
 
   setLastTimestamps:(from, to)->
-
     if from
       @lastTo   = to
       @lastFrom = from

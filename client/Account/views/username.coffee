@@ -110,7 +110,7 @@ class AccountEditUsername extends JView
           return queue.next()
       =>
         # if everything is OK or didnt change, show profile updated modal
-        notify "Profile Updated" if profileUpdated
+        notify "Your account information is updated." if profileUpdated
     ]
     daisy queue
 
