@@ -2,11 +2,12 @@ package virt
 
 import (
 	"errors"
-	"labix.org/v2/mgo/bson"
 	"os/exec"
 	"strconv"
 	"strings"
 	"time"
+
+	"labix.org/v2/mgo/bson"
 )
 
 func (vm *VM) Start() error {
@@ -75,4 +76,35 @@ func (vm *VM) SendMessageToVMUsers(message string) error {
 		return commandError("wall failed.", err, out)
 	}
 	return nil
+}
+
+func (vm *VM) WaitForNetwork(timeout time.Duration) error {
+	// precaution for bad input
+	if timeout == 0 {
+		timeout = time.Second * 5
+	}
+
+	isNetworkUp := func() bool {
+		// neglect error because it's not important and we also going to timeout
+		out, _ := exec.Command("/usr/bin/lxc-attach", "--name", vm.String(),
+			"--", "/bin/cat", "/sys/class/net/eth0/operstate").CombinedOutput()
+
+		if strings.TrimSpace(string(out)) == "up" {
+			return true
+
+		return false
+	}
+
+	tryUntil := time.Now().Add(timeout)
+	for {
+		if up := isNetworkUp(); up {
+			return nil
+		}
+
+		if time.Now().After(tryUntil) {
+			return errors.New("Timeout while waiting for VM Network state.")
+		}
+
+		time.Sleep(time.Millisecond * 100)
+	}
 }

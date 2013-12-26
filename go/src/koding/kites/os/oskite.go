@@ -482,6 +482,12 @@ func startVM(k *kite.Kite, vm *virt.VM, channel *kite.Channel) error {
 		if err := vm.Start(); err != nil {
 			log.LogError(err, 0)
 		}
+
+		// wait until network is up
+		if err := vm.WaitForNetwork(time.Second * 5); err != nil {
+			log.LogError(err, 0)
+		}
+
 		info.currentHostname = vm.HostnameAlias
 	}
 
