@@ -67,6 +67,7 @@ class TopicsListItemView extends KDListItemView
     # @$clone.remove()
 
   pistachio:->
+    body = @getData().body or ""
     """
       {{> @editButton}}
       <header>
@@ -79,27 +80,6 @@ class TopicsListItemView extends KDListItemView
       {article{ #(body) or ""}}
       {{> @followButton}}
     """
-
-    # """
-    # <div class="topictext">
-    #   {{> @editButton}}
-    #   {h3{> @titleLink}}
-    #   {article{#(body)}}
-    #   <div class="topicmeta clearfix">
-    #     <div class="topicstats">
-    #       <p class="posts">
-    #         <span class="icon"></span>
-    #         <a href="#">{{#(counts.post) or 0}}</a> Posts
-    #       </p>
-    #       <p class="followers">
-    #         <span class="icon"></span>
-    #         <a href="#">{{#(counts.followers) or 0}}</a> Followers
-    #       </p>
-    #     </div>
-    #     <div class="button-container">{{> @followButton}}</div>
-    #   </div>
-    # </div>
-    # """
 
 class ModalTopicsListItem extends TopicsListItemView
 
