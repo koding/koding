@@ -1,6 +1,5 @@
 jraphical = require "jraphical"
 module.exports = class JReferrableEmail extends jraphical.Module
-  JAccount           = require "./account"
   {ObjectId, secure} = require "bongo"
 
   @share()
@@ -31,6 +30,8 @@ module.exports = class JReferrableEmail extends jraphical.Module
       return callback err  if err
 
       {username} = session.data
+
+      JAccount = require "./account"
       JAccount.one {"profile.nickname": username}, (err, account)=>
         return callback err  if err
         r = new JReferrableEmail {email, title, username}
