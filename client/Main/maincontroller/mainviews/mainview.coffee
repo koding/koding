@@ -162,15 +162,24 @@ class MainView extends KDView
     @accountArea.addSubView @searchForm = new KDCustomHTMLView
       cssClass   : "search-form-container"
 
+    handleRoute = (searchRoute, text)->
+      if group = KD.getSingleton("groupsController").getCurrentGroup()
+        groupSlug = if group.slug is "koding" then "" else "/#{group.slug}"
+      else
+        groupSlug = ""
+
+      # inject search text
+      searchRoute = searchRoute.replace ":text:", text
+      # add group slug
+      searchRoute = "#{groupSlug}#{searchRoute}"
+      KD.getSingleton("router").handleRoute searchRoute
+
     search = (text) ->
       currentApp  = KD.getSingleton("appManager").getFrontApp()
-      if typeof currentApp.search isnt "function"
-        appManager = KD.getSingleton("appManager")
-        appManager.open "Activity", {}, ()=>
-          currentApp = appManager.getFrontApp()
-          currentApp.search text
+      if currentApp and searchRoute = currentApp.options.searchRoute
+        return handleRoute searchRoute, text
       else
-        currentApp.search text
+        return handleRoute "/Activity?q=:text:", text
 
     @searchForm.addSubView @searchInput = new KDInputView
       placeholder  : "Search here..."
