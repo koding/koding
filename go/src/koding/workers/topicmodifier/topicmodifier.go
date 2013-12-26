@@ -89,6 +89,8 @@ var messageConsumer = func(delivery amqp.Delivery) {
 	modifierData := &TagModifierData{}
 	if err := json.Unmarshal([]byte(delivery.Body), modifierData); err != nil {
 		log.Error("Wrong Post Format", err, delivery)
+		delivery.Ack(false)
+		return
 	}
 
 	tagId := modifierData.TagId
