@@ -12,60 +12,49 @@ class FinderController extends KDController
 
   createFileFromPath:(rest...)-> FSHelper.createFileFromPath rest...
 
-  create:(options = {})->
-
+  create: (options = {}) ->
     options.useStorage       ?= yes
     options.addOrphansToRoot ?= no
-
+    options.delegate         ?= this
     @controller = new NFinderController options
 
-    @uploader = @createDNDUploader @controller
-
+    @controller.getView().addSubView @getUploader()
     return @controller
 
-  createDNDUploader: (controller) ->
-
-    { treeController } = controller
-
-    dndUploadHolder = new KDView
+  getUploader: ->
+    @uploaderPlaceholder = new KDView
       domId       : "finder-dnduploader"
       cssClass    : "hidden"
 
-    dnduploader  = new DNDUploader
+    @uploaderPlaceholder.addSubView @uploader = new DNDUploader
       hoverDetect : no
+      delegate    : this
 
-    dndUploadHolder.addSubView dnduploader
+    {treeController} = @controller
+    treeController.on 'dragEnter', @bound "onDrag"
+    treeController.on 'dragOver' , @bound "onDrag"
 
-    onDrag = ->
-      unless treeController.internalDragging
-        dndUploadHolder.show()
-        dnduploader.unsetClass "hover"
+    @uploader
+      .on "dragleave", =>
+        @uploaderPlaceholder.hide()
 
-    dnduploader
-      .on "dragleave", ->
-        dndUploadHolder.hide()
+      .on "drop", =>
+        @uploaderPlaceholder.hide()
 
-      .on "drop", ->
-        dndUploadHolder.hide()
-
-      .on 'uploadProgress', ({ file, percent })->
+      .on 'uploadProgress', ({ file, percent }) ->
         filePath = "[#{file.vmName}]#{file.path}"
         treeController.nodes[filePath]?.showProgressView percent
 
-      .on "uploadComplete", ({ parentPath }) ->
-        controller.expandFolders FSHelper.getPathHierarchy parentPath
+      .on "uploadComplete", ({ parentPath }) =>
+        @controller.expandFolders FSHelper.getPathHierarchy parentPath
 
-      .on "cancel", ->
-        dnduploader.setPath()
-        dndUploadHolder.hide()
+      .on "cancel", =>
+        @uploader.setPath()
+        @uploaderPlaceholder.hide()
 
-    treeController.on 'dragEnter',  onDrag
-    treeController.on 'dragOver',   onDrag
+    return @uploaderPlaceholder
 
-    controller.getView().addSubView dndUploadHolder
-
-    return dndUploadHolder
-
-    # @finderController.treeController.on "dragEnter", onDrag
-    # @finderController.treeController.on "dragOver",  onDrag
-
+  onDrag: ->
+    return  if @controller.treeController.internalDragging
+    @uploaderPlaceholder.show()
+    @uploader.unsetClass "hover"
