@@ -168,10 +168,13 @@ class MainView extends KDView
       else
         groupSlug = ""
 
+      toBeReplaced =  if text is "" then "?q=:text:" else ":text:"
+
       # inject search text
-      searchRoute = searchRoute.replace ":text:", text
+      searchRoute = searchRoute.replace toBeReplaced, text
       # add group slug
       searchRoute = "#{groupSlug}#{searchRoute}"
+
       KD.getSingleton("router").handleRoute searchRoute
 
     search = (text) ->
