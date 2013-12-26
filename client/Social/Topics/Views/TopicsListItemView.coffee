@@ -76,7 +76,7 @@ class TopicsListItemView extends KDListItemView
         <a href="#">{{#(counts.post) or 0}}</a> Posts
         <a href="#">{{#(counts.followers) or 0}}</a> Followers
       </div>
-      {article{ #(body)}}
+      {article{ #(body) or ""}}
       {{> @followButton}}
     """
 
