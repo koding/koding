@@ -95,16 +95,15 @@ class ActivityAppController extends AppController
     @listController = controller
     @bindLazyLoad()
 
-    appView.feedFilterController.on "ItemSelectionPerformed", (_, {items}) =>
-      data = items.first.getData()
+    appView.feedFilterController.on "FilterChanged", (filter) =>
 
-      KD.track "Activity", data.type + "FilterClicked"
+      KD.track "Activity", "#{filter}FilterClicked"
       @resetAll()
       @clearPopulateActivityBindings()
 
-      if data.type in ["Public", "Followed"]
-      then @setFeedFilter data.type
-      else @setActivityFilter data.type
+      if filter in ["Public", "Followed"]
+      then @setFeedFilter filter
+      else @setActivityFilter filter
 
       @populateActivity()
 

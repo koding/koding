@@ -32,16 +32,14 @@ class ActivityAppView extends KDScrollView
     @mainBlock        = new KDCustomHTMLView tagName : "main" #"activity-left-block"
     @sideBlock        = new KDCustomHTMLView tagName : "aside"   #"activity-right-block"
 
-    @feedFilterController = new KDListViewController
-      itemChildClass : FeedFilterListItem
+    @feedFilterController = new KDMultipleChoice
+      labels       : ["Public", "Followed"]
+      cssClass     : 'feed-type-selection'
+      defaultValue : "Public"
+      callback     : (selection)->
+        @emit 'FilterChanged', selection
 
-    items = [
-      {title: "Public",    type: "Public" },
-      {title: "Following", type: "Followed"}
-    ]
-
-    for i in items
-      @feedFilterController.addItem i
+    @feedFilterController.unsetClass 'multiple-choice on-off'
 
     @mainController   = KD.getSingleton("mainController")
     @mainController.on "AccountChanged", @bound "decorate"
@@ -68,12 +66,12 @@ class ActivityAppView extends KDScrollView
 
     $(".kdview.fl.common-inner-nav, .kdview.activity-content.feeder-tabs").remove()
 
-    @addSubView @feedFilterController.getView()
     @addSubView @header
     @addSubView @mainBlock
     @addSubView @sideBlock
 
     @mainBlock.addSubView @inputWidget
+    @mainBlock.addSubView @feedFilterController
     @mainBlock.addSubView @feedWrapper
 
     @sideBlock.addSubView @topicsBox
@@ -182,10 +180,3 @@ class FilterWarning extends JView
       """You are now looking at activities tagged with <strong>##{tag}</strong> """
 
     @show()
-
-class FeedFilterListItem extends KDListItemView
-  constructor:(options = {}, data)->
-    options.cssClass = KD.utils.curry "feed-filter-list-item", options.cssClass
-    super options, data
-
-  partial:-> @getData().type
