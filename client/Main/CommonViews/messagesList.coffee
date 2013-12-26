@@ -196,6 +196,9 @@ class NotificationListItem extends KDListItemView
         appManager.tell 'Inbox', "goToMessages"
       when "JComment", "JReview", "JOpinion"
         KD.remote.api[@snapshot.anchor.constructorName]?.fetchRelated @snapshot.anchor.id, showPost
+      when "JAccount"
+        KD.remote.api.JAccount.one _id : @snapshot.group[0].id, (err, account)->
+          KD.getSingleton('router').handleRoute "/#{account.profile.nickname}"
       when "JGroup"
         # do nothing
       else
