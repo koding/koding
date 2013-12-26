@@ -1,11 +1,11 @@
 package models
 
 import (
-  "time"
+	"time"
 )
 
 type Meta struct {
-  ModifiedAt time.Time `bson:"modifiedAt"`
-  CreatedAt  time.Time `bson:"createdAt"`
-  Likes      int       `bson:"likes"`
+	ModifiedAt time.Time `bson:"modifiedAt"`
+	CreatedAt  time.Time `bson:"createdAt"`
+	Likes      int       `bson:"likes"`
 }
