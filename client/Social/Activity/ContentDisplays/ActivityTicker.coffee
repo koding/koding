@@ -34,14 +34,14 @@ class ActivityTicker extends ActivityRightBase
     @indexedItems = {}
 
     group = KD.getSingleton("groupsController")
-    group.on "MemberJoinedGroup", @bound "addJoin"
-    group.on "LikeIsAdded", @bound "addLike"
-    group.on "FollowHappened", @bound "addFollow"
-    group.on "PostIsCreated", @bound "addActivity"
-    # disable for now, since we dont have comment view
+    group.on "MemberJoinedGroup"    , @bound "addJoin"
+    group.on "LikeIsAdded"          , @bound "addLike"
+    group.on "FollowHappened"       , @bound "addFollow"
+    group.on "PostIsCreated"        , @bound "addActivity"
+    # disable for now               , since we dont have comment view
     # and comments doesnt have slug
-    # group.on "ReplyIsAdded", @bound "addComment"
-    group.on "PostIsDeleted", @bound "deleteActivity"
+    # group.on "ReplyIsAdded"       , @bound "addComment"
+    group.on "PostIsDeleted"        , @bound "deleteActivity"
 
     @listController.listView.on 'ItemWasAdded', (view, index) =>
       if viewData = view.getData()
