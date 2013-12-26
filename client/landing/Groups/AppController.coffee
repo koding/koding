@@ -163,7 +163,7 @@ class GroupsAppController extends AppController
       @feedController.loadFeed() if loadFeed
       @emit 'ready'
 
-      KD.mixpanel "Loaded group list"
+      KD.mixpanel "Group list load, success"
 
   markGroupRelationship:(controller, ids)->
     fetchRoles =
