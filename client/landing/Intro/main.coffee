@@ -171,6 +171,8 @@ class IntroView extends JView
         state = '' if state is 'Koding'
         history.replaceState {}, state, "/##{state}"
 
+        KD.mixpanel "Home page slider link, click", {page:state}
+
     @slider.on 'CurrentPageChanged', (current)=>
 
       multipleChoice.setValue labels[current.x], no

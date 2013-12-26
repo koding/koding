@@ -56,12 +56,10 @@ class AboutListItem extends KDListItemView
     super options, data
 
     {username} = @getData()
-    @avatar    = new AvatarImage
+    @avatar    = new AvatarView
       origin   : username
-      bind     : 'load'
-      load     : -> @setClass 'in'
-      size     :
-        width  : 160
+      size     : width : 160
+
     @link      = new ProfileLinkView origin : username
 
 
