@@ -119,7 +119,6 @@ func (t *ProxyKite) handleWS(ws *websocket.Conn) {
 	path := ws.Request().URL.Path[1:] // strip leading '/'
 
 	parts := strings.Split(path, "/")
-	fmt.Printf("--- parts: %#v\n", parts)
 	if len(parts) < 2 {
 		return
 	}
