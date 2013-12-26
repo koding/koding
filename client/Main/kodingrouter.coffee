@@ -296,12 +296,14 @@ class KodingRouter extends KDRouter
       '/:name/Following'       : createContentHandler 'Members', yes
       '/:name/Likes'           : createContentHandler 'Members', yes
 
-      '/:name?/Invitation/:inviteCode': ({params:{inviteCode}})=>
+      '/:name?/Invitation/:inviteCode': ({params:{inviteCode, name}})=>
         inviteCode = decodeURIComponent inviteCode
         if KD.isLoggedIn()
-          warn "FIXME Add tell to Login app ~ GG @ kodingrouter"
-          # mainController.loginScreen.doRedeem {inviteCode}
-          @handleRoute '/', entryPoint: KD.config.entryPoint
+          KD.remote.cacheable name, (err, [group])=>
+            group.redeemInvitation inviteCode, (err)=>
+              return KD.notify_ err.message or err  if err
+              KD.notify_ 'Success!'
+              KD.getSingleton('mainController').accountChanged KD.whoami()
         else KD.remote.api.JInvitation.byCode inviteCode, (err, invite)=>
           if err or !invite? or invite.status not in ['active','sent']
             unless KD.isLoggedIn()
