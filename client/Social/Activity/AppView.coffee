@@ -12,7 +12,7 @@ class ActivityAppView extends KDScrollView
     super options, data
 
     # FIXME: disable live updates - SY
-    @appStorage = KD.getSingleton("appStorageController").storage 'Activity', '1.0'
+    @appStorage = KD.getSingleton("appStorageController").storage 'Activity', '1.0.1'
     @appStorage.setValue 'liveUpdates', off
 
 

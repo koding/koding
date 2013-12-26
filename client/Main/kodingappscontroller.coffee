@@ -137,7 +137,7 @@ class KodingAppsController extends KDController
     @manifests      = KodingAppsController.manifests
     @publishedApps  = {}
     @_fetchQueue    = []
-    @appStorage     = KD.getSingleton('appStorageController').storage 'Finder', '1.1'
+    @appStorage     = KD.getSingleton('appStorageController').storage 'Finder', '1.1.1'
     @watcher        = new AppsWatcher
 
     # @fetchApps =>

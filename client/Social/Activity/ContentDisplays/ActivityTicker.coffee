@@ -141,6 +141,25 @@ class ActivityTicker extends ActivityRightBase
       source = KD.getSingleton("groupsController").getCurrentGroup()
       @addNewItem {as: "member", target: account, source  }
 
+  checkGuestUser: (account) ->
+    if account.profile and accountNickname = account.profile.nickname
+      if /^guest-/.test accountNickname
+        return yes
+    return no
+
+  checkForValidAccount: (account) ->
+    # if account is not set
+    return no  unless account
+
+    isNotMe = account.getId() isnt KD.whoami().getId()
+    # if user is exempt
+    return no  if account.isExempt and isNotMe
+
+    # if user is guest
+    return no  if @checkGuestUser(account) and isNotMe
+
+    return yes
+
   addFollow: (data)->
     {follower, origin} = data
 
@@ -148,7 +167,6 @@ class ActivityTicker extends ActivityRightBase
 
     return console.warn "data is not valid"  unless follower and origin
 
-    return if follower.isExempt or @checkGuestUser origin
 
     {constructorName, id} = follower
     KD.remote.cacheable constructorName, id, (err, source)=>
@@ -157,6 +175,8 @@ class ActivityTicker extends ActivityRightBase
       KD.remote.cacheable constructorName, id, (err, target)=>
         return console.log "account is not found" if err or not target
         eventObj = {source:target, target:source, as:"follower"}
+
+        return if not @checkForValidAccount(source) or not @checkForValidAccount(target)
 
         # following tag has its relationship flipped!!!
         if constructorName is "JTag"
@@ -172,10 +192,10 @@ class ActivityTicker extends ActivityRightBase
 
     return if @isFiltered "like"
 
-    unless liker and origin and subject
-      return console.warn "data is not valid"
+    return if not @checkForValidAccount(liker) or not @checkForValidAccount(origin)
 
-    return if liker.isExempt or @checkGuestUser origin
+    unless subject
+      return console.warn "data is not valid"
 
     {constructorName, id} = liker
     KD.remote.cacheable constructorName, id, (err, source)=>
@@ -203,8 +223,11 @@ class ActivityTicker extends ActivityRightBase
 
     return if @isFiltered "comment"
 
-    unless replier and origin and subject and reply
+    return if not @checkForValidAccount(replier) or not @checkForValidAccount(origin)
+
+    unless subject and reply
       return console.warn "data is not valid"
+
     #CtF: such a copy paste it is. could be handled better
     {constructorName, id} = replier
     KD.remote.cacheable constructorName, id, (err, source)=>
@@ -228,12 +251,6 @@ class ActivityTicker extends ActivityRightBase
   continueLoading: (loadOptions = {})->
     loadOptions.continue = @filters
     @load loadOptions
-
-  checkGuestUser: (account) ->
-    if account.profile and accountNickname = account.profile.nickname
-      if /^guest-/.test accountNickname
-        return yes
-    return no
 
   filterItem:(item)->
     {as, source, target} = item

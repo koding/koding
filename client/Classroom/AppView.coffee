@@ -6,7 +6,7 @@ class ClassroomAppView extends KDScrollView
 
     super options, data
 
-    @appStorage  = KD.getSingleton("appStorageController").storage "Classroom", "1.2"
+    @appStorage  = KD.getSingleton("appStorageController").storage "Classroom", "1.2.1"
 
     @emit "ready"
 

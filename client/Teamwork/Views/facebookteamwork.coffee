@@ -4,7 +4,7 @@ class FacebookTeamwork extends TeamworkWorkspace
 
     super options, data
 
-    @appStorage = KD.getSingleton("appStorageController").storage "Teamwork"
+    @appStorage = KD.getSingleton("appStorageController").storage "Teamwork", "1.0.1"
 
     @on "PanelCreated", (panel) =>
       editor = panel.getPaneByName "editor"
