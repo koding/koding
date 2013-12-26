@@ -109,13 +109,13 @@ var messageConsumer = func(delivery amqp.Delivery) {
 //Deletes given tags. Tags are removed from post bodies and collections.
 //Tag relations are also removed.
 func deleteTags(tagId string) {
-	log.Info("Deleting obsolete tag")
+	log.Info("Deleting topic")
 	tag, err := helper.GetTagById(tagId)
 	if err != nil {
 		log.Error("Tag not found - Id: ", tagId)
 		return
 	}
-
+	log.Info("Deleting %s", tag.Title)
 	selector := helper.Selector{"targetId": helper.GetObjectId(tagId), "as": "tag"}
 
 	rels := helper.GetRelationships(selector)
