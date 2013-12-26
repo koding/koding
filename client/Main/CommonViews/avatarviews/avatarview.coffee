@@ -30,12 +30,8 @@ class AvatarView extends LinkView
 
     @dpr            = window.devicePixelRatio ? 1
     {width, height} = options.size
-    @gravatar       = new KDCustomHTMLView
-      tagName       : 'img'
-      cssClass      : 'hidden'
-      attributes    :
-        width       : width
-        height      : height
+    @gravatar       = new ErrorlessImageView {width, height}
+    @gravatar.on 'load', => @setCss 'background-image', 'none'
 
     super options, data
 
@@ -59,7 +55,7 @@ class AvatarView extends LinkView
     {profile} = @getData()
     {width} = @getOptions().size
     if profile.hash
-    then "//gravatar.com/avatar/#{profile.hash}?size=#{width * @dpr}&d=blank&r=pg"
+    then "//gravatar.com/avatar/#{profile.hash}?size=#{width * @dpr}&d=404&r=pg"
     else no
 
   render:->
@@ -132,3 +128,19 @@ class AvatarView extends LinkView
     {{> @gravatar}}
     <cite></cite>
     """
+
+class ErrorlessImageView extends KDCustomHTMLView
+
+  constructor: (options = {}, data) ->
+    super
+      tagName       : 'img'
+      cssClass      : 'hidden'
+      bind          : 'load error'
+      attributes    :
+        width       : options.width
+        height      : options.height
+    , data
+
+  error:->
+    @hide()
+    no
