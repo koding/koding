@@ -89,7 +89,7 @@ class TopicsAppController extends AppController
 
   loadView:(mainView, firstRun = yes, loadFeed = no)->
     if firstRun
-      mainView.on "searchFilterChanged", (value) =>
+      @on "searchFilterChanged", (value) =>
         return if value is @_searchValue
         @_searchValue = Encoder.XSSEncode value
         @_lastSubview.destroy?()
@@ -221,3 +221,5 @@ class TopicsAppController extends AppController
         callback? tags
       else
         warn "there was an error fetching topics #{err.message}"
+
+  search:(text)-> @emit "searchFilterChanged", text
