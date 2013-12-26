@@ -3,6 +3,7 @@ class ActivityAppController extends AppController
   KD.registerAppClass this,
     name         : "Activity"
     route        : "/:name?/Activity"
+    searchRoute  : "/Activity?q=:text:"
     hiddenHandle : yes
 
 
@@ -134,6 +135,11 @@ class ActivityAppController extends AppController
       tag = KD.utils.slugify KD.utils.stripTags query.tagged
       @setWarning {text:tag, loading:yes}
       options = filterByTag: tag
+    else if query.q
+      query = KD.utils.stripTags query.q
+      @setWarning {text:query, loading:yes, type:"search"}
+      options = searchText: query
+
     # TODO: populateActivity will fire twice if there is a query (FIXME) C.T.
     @ready => @populateActivity options
 
