@@ -161,15 +161,38 @@ class MainView extends KDView
 
     @accountArea.addSubView @searchForm = new KDCustomHTMLView
       cssClass   : "search-form-container"
+
+    search = (text) ->
+      currentApp  = KD.getSingleton("appManager").getFrontApp()
+      if typeof currentApp.search isnt "function"
+        appManager = KD.getSingleton("appManager")
+        appManager.open "Activity", {}, ()=>
+          currentApp = appManager.getFrontApp()
+          currentApp.search text
+      else
+        currentApp.search text
+
     @searchForm.addSubView @searchInput = new KDInputView
-      placeholder: "Search here..."
-      keyup      :
-        "esc"    : =>
+      placeholder  : "Search here..."
+      keyup      : (event)=>
+        text = @searchInput.getValue()
+        # if user deleted everything in textbox
+        # clear the search result
+        if text is "" and @searchInput.searched
+          search("")
+          @searchInput.searched = false
+
+        # 13 is ENTER
+        if event.keyCode is 13
+          search text
+          @searchInput.searched = true
+
+        # 27 is ESC
+        if event.keyCode is 27
           @accountArea.unsetClass "search-open"
-        "enter"  : =>
-          app = KD.getSingleton("appManager").getFrontApp()
-          # todo - fallback to activity
-          app.search?(@searchInput.getValue())
+          @searchInput.setValue ""
+          @searchInput.searched = false
+
 
   createMainTabView:->
 
