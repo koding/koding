@@ -63,8 +63,9 @@ class AvatarPopupGroupSwitcher extends AvatarPopup
     groupsController = KD.getSingleton("groupsController")
     groupsController.once 'GroupChanged', () =>
       group =  groupsController.getCurrentGroup()
-      if group?.slug isnt "koding"
-        backToKodingView.updatePartial "<a class='right' target='_blank' href='/Activity'>Back to Koding</a>"
+      # TODO : do we really need backToKoding ? Erdinc
+      # if group?.slug isnt "koding"
+      #   backToKodingView.updatePartial "<a class='right' target='_blank' href='/Activity'>Back to Koding</a>"
 
     @avatarPopupContent.addSubView new KDCustomHTMLView
       tagName    : 'a'

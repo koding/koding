@@ -164,6 +164,9 @@ class FeedController extends KDViewController
     options    = @getFeedOptions()
     selector   = @getFeedSelector()
     {itemClass, feedId}  = @getOptions()
+    currentGroup = KD.singletons.groupsController.getCurrentGroup().slug
+    feedId = "#{currentGroup}-#{feedId}"
+
 
     kallback = (err, items, rest...)=>
       listController = @emitLoadCompleted filter

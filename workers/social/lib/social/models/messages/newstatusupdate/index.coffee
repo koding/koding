@@ -222,6 +222,10 @@ module.exports = class JNewStatusUpdate extends JPost
       if err then return callback err
       {to} = options
       to = if to then new Date(to)  else new Date()
+      selector =
+        'meta.createdAt' :
+          "$lt"          : to
+        'group'          : group.slug
 
       @getExemptUserIdsIfNeeded client, options, (err, ids)=>
         return callback err  if err
