@@ -94,7 +94,7 @@ class ContentDisplayControllerMember extends KDViewController
       limitPerPage          : 8
       useHeaderNav          : yes
       delegate              : @getDelegate()
-      origin                : account
+      creator               : account
       filter                :
         statuses            :
           title             : "Status Updates"
@@ -114,5 +114,5 @@ class ContentDisplayControllerMember extends KDViewController
 
 class MemberActivityListController extends ActivityListController
   addItem: (activity, index, animation)->
-    if activity.originId is @getOptions().origin.getId()
+    if activity.originId is @getOptions().creator.getId()
       super activity, index, animation

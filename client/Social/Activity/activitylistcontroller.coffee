@@ -202,5 +202,3 @@ class ActivityListController extends KDListViewController
   bindItemEvents: (item) ->
     item.on "TagsUpdated", (tags) ->
       item.tags = KD.remote.revive tags
-
-  getOrigin:-> @options.getOptions().origin

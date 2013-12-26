@@ -22,7 +22,7 @@ class FeedController extends KDViewController
       listCssClass        : options.listCssClass or ""
       delegate            : @
       onboarding          : options.onboarding
-      origin              : options.origin
+      creator             : options.creator
 
     unless options.useHeaderNav
       facetsController    = options.facetsController or FeederFacetsController

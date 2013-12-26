@@ -34,7 +34,7 @@ class FeederResultsController extends KDViewController
       listControllerClass
       listCssClass
       onboarding
-      origin
+      creator
     } = @getOptions()
 
     tabView = @getView()
@@ -51,7 +51,7 @@ class FeederResultsController extends KDViewController
         cssClass          : listCssClass
         type              : name
         itemClass         : itemClass
-      origin              : origin
+      creator             : creator
 
     forwardItemWasAdded = @emit.bind this, 'ItemWasAdded'
 
