@@ -277,7 +277,6 @@ module.exports = class JTag extends jraphical.Module
       if err then callback err
       else
         tag.slug = slug.slug
-        tag.slug_ = slug.slug
         tag.save (err)->
           if err then callback err
           else
