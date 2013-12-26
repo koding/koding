@@ -223,10 +223,12 @@ class TopicsAppController extends AppController
       else
         warn "there was an error fetching topics #{err.message}"
 
+  # TODO ~ fix direct opening of topic links with query
   handleQuery:(query)->
     @ready =>
       {q} = query
       if q
         @emit "searchFilterChanged", q
       else
+        @emit "searchFilterChanged", ""
         super query

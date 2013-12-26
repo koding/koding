@@ -122,7 +122,7 @@ class AppsAppController extends AppController
       if q
         @emit "searchFilterChanged", q
       else
-        @feedController.handleQuery query
+        @emit "searchFilterChanged", ""
 
   handleRoute:(route)->
 
