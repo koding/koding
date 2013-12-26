@@ -276,9 +276,9 @@ class NFinderController extends KDViewController
     @expandFolders recentFolders
 
   uploadTo: (path)->
-    sidebarView = @getDelegate()
-    sidebarView.dnduploader.setPath path
-    sidebarView.dndUploadHolder.show()
+    {uploader, uploaderPlaceholder} = @getDelegate()
+    uploader.setPath path
+    uploaderPlaceholder.show()
 
   _pipedVmName:(vmName)-> vmName.replace /\./g, '|'
 
