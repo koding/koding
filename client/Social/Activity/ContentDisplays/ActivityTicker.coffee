@@ -34,14 +34,14 @@ class ActivityTicker extends ActivityRightBase
     @indexedItems = {}
 
     group = KD.getSingleton("groupsController")
-    group.on "MemberJoinedGroup", @bound "addJoin"
-    group.on "LikeIsAdded", @bound "addLike"
-    group.on "FollowHappened", @bound "addFollow"
-    group.on "PostIsCreated", @bound "addActivity"
-    # disable for now, since we dont have comment view
+    group.on "MemberJoinedGroup"    , @bound "addJoin"
+    group.on "LikeIsAdded"          , @bound "addLike"
+    group.on "FollowHappened"       , @bound "addFollow"
+    group.on "PostIsCreated"        , @bound "addActivity"
+    # disable for now               , since we dont have comment view
     # and comments doesnt have slug
-    # group.on "ReplyIsAdded", @bound "addComment"
-    group.on "PostIsDeleted", @bound "deleteActivity"
+    # group.on "ReplyIsAdded"       , @bound "addComment"
+    group.on "PostIsDeleted"        , @bound "deleteActivity"
 
     @listController.listView.on 'ItemWasAdded', (view, index) =>
       if viewData = view.getData()
@@ -49,6 +49,9 @@ class ActivityTicker extends ActivityRightBase
         @indexedItems[itemId] = view
 
     @load {}
+
+    @once 'viewAppended', =>
+      @$('.kdscrollview').height window.innerHeight - 120
 
   settingsMenu:(data)->
     filterSelected = (filters=[]) =>
@@ -104,6 +107,8 @@ class ActivityTicker extends ActivityRightBase
     target = KD.remote.revive origin
     as     = "author"
 
+    return if target.isExempt or @checkGuestUser origin
+
     @fetchTags source, (err, tags)=>
       return log "discarding event, invalid data"  if err
       source.tags = tags
@@ -136,12 +141,32 @@ class ActivityTicker extends ActivityRightBase
       source = KD.getSingleton("groupsController").getCurrentGroup()
       @addNewItem {as: "member", target: account, source  }
 
+  checkGuestUser: (account) ->
+    if account.profile and accountNickname = account.profile.nickname
+      if /^guest-/.test accountNickname
+        return yes
+    return no
+
+  checkForValidAccount: (account) ->
+    # if account is not set
+    return no  unless account
+
+    isNotMe = account.getId() isnt KD.whoami().getId()
+    # if user is exempt
+    return no  if account.isExempt and isNotMe
+
+    # if user is guest
+    return no  if @checkGuestUser(account) and isNotMe
+
+    return yes
+
   addFollow: (data)->
     {follower, origin} = data
 
     return if @isFiltered "follower"
 
     return console.warn "data is not valid"  unless follower and origin
+
 
     {constructorName, id} = follower
     KD.remote.cacheable constructorName, id, (err, source)=>
@@ -150,6 +175,8 @@ class ActivityTicker extends ActivityRightBase
       KD.remote.cacheable constructorName, id, (err, target)=>
         return console.log "account is not found" if err or not target
         eventObj = {source:target, target:source, as:"follower"}
+
+        return if not @checkForValidAccount(source) or not @checkForValidAccount(target)
 
         # following tag has its relationship flipped!!!
         if constructorName is "JTag"
@@ -165,7 +192,9 @@ class ActivityTicker extends ActivityRightBase
 
     return if @isFiltered "like"
 
-    unless liker and origin and subject
+    return if not @checkForValidAccount(liker) or not @checkForValidAccount(origin)
+
+    unless subject
       return console.warn "data is not valid"
 
     {constructorName, id} = liker
@@ -194,8 +223,11 @@ class ActivityTicker extends ActivityRightBase
 
     return if @isFiltered "comment"
 
-    unless replier and origin and subject and reply
+    return if not @checkForValidAccount(replier) or not @checkForValidAccount(origin)
+
+    unless subject and reply
       return console.warn "data is not valid"
+
     #CtF: such a copy paste it is. could be handled better
     {constructorName, id} = replier
     KD.remote.cacheable constructorName, id, (err, source)=>
@@ -226,18 +258,16 @@ class ActivityTicker extends ActivityRightBase
     return null  unless source and target and as
 
     # relationships from guests should not be there
-    if source.profile and sourceNickname = source.profile.nickname
-      if /^guest-/.test sourceNickname
-        return null
-    if target.profile and targetNickname = target.profile.nickname
-      if /^guest-/.test targetNickname
-        return null
+    return null if @checkGuestUser(source) or @checkGuestUser(target)
 
     # filter user followed status activity
     if @getConstructorName(source) is "JNewStatusUpdate" and \
         @getConstructorName(target) is "JAccount" and \
         as is "follower"
       return null
+
+    actor = if @getConstructorName(target) is "JAccount" then target else source
+    return null if actor.isExempt
 
     return item
 

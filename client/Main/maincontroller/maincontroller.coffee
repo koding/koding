@@ -186,6 +186,7 @@ class MainController extends KDController
     JUser.authenticateWithOauth formData, (err, result) =>
       return callback err          if err
       return callback err, result  if result.isNewUser
+      return callback err, result  if formData.isUserLoggedIn
 
       @swapAccount result, callback
 

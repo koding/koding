@@ -314,4 +314,5 @@ config =
       version       : 1
       signature     : 1
     mixpanel        : 1
+    rollbar         : 1
 module.exports = config

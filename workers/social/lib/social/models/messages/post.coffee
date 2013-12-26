@@ -181,6 +181,7 @@ module.exports = class JPost extends jraphical.Message
                 snapshotIds: status.getId()
             , =>
               callback null, teaser
+              return queue.next()  if status.isLowQuality
               status.fetchTags (err, tags)->
                 status.tags = tags
                 status.emit 'PostIsCreated', {
@@ -358,7 +359,7 @@ module.exports = class JPost extends jraphical.Message
             return callback err if err
             queue.next()
         =>
-          @addComment comment, flags: {isLowQuality: exempt}, (err, docs)=>
+          @addComment comment, data: { flags: {isLowQuality: exempt}}, (err, docs)=>
             return callback err if err
             queue.docs = docs
             queue.next()
@@ -368,24 +369,25 @@ module.exports = class JPost extends jraphical.Message
             return callback err if err
             queue.next()
         =>
+          return queue.next() if exempt
           @update $set: repliesCount: queue.relationshipCount, (err)=>
             return callback err if err
             queue.next()
         =>
+          return queue.next() if exempt
           @fetchOrigin (err, origin)=>
             return callback err if err
-            unless exempt
-              @emit 'ReplyIsAdded', {
-                origin
-                subject       : ObjectRef(@).data
-                actorType     : 'replier'
-                actionType    : 'reply'
-                replier       : ObjectRef(delegate).data
-                reply         : ObjectRef(comment).data
-                repliesCount  : queue.relationshipCount
-                relationship  : queue.docs[0]
-                group         : @group
-              }
+            @emit 'ReplyIsAdded', {
+              origin
+              subject       : ObjectRef(@).data
+              actorType     : 'replier'
+              actionType    : 'reply'
+              replier       : ObjectRef(delegate).data
+              reply         : ObjectRef(comment).data
+              repliesCount  : queue.relationshipCount
+              relationship  : queue.docs[0]
+              group         : @group
+            }
             queue.next()
         =>
           @follow client, emitActivity: no, (err)->
@@ -429,7 +431,7 @@ module.exports = class JPost extends jraphical.Message
     .endGraphlet()
     .fetchRoot callback
 
-  fetchRelativeComments:({limit, before, after}, callback)->
+  fetchRelativeComments:({limit, before, after, sort}, callback)->
     limit ?= 10
     if before? and after?
       callback createKodingError "Don't use before and after together."
@@ -437,7 +439,8 @@ module.exports = class JPost extends jraphical.Message
       if before? then  $lt: before
       else if after? then $gt: after
     selector['data.flags.isLowQuality'] = $ne: yes
-    options = {limit, sort: timestamp: 1}
+    sort ?= 1
+    options = {limit, sort: timestamp: sort}
     @fetchComments selector, options, callback
 
   commentsByRange:(options, callback)->

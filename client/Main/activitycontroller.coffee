@@ -167,6 +167,7 @@ class ActivityController extends KDObject
                        """
       height         : "auto"
       overlay        : yes
+      width          : 475
       buttons        :
         "YES, THIS USER IS DEFINITELY A TROLL" :
           style      : "modal-clean-red"

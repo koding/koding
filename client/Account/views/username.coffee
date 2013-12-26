@@ -87,7 +87,9 @@ class AccountEditUsername extends JView
 
           new VerifyPINModal 'Update E-Mail', (pin)=>
             KD.remote.api.JUser.changeEmail {email, pin}, (err)=>
-              notify if err then err.message else "E-mail changed!"
+              if err
+                notify err.message
+                profileUpdated = false
               queue.next()
       =>
         # on third turn update password
@@ -108,7 +110,7 @@ class AccountEditUsername extends JView
           return queue.next()
       =>
         # if everything is OK or didnt change, show profile updated modal
-        notify "Profile Updated" if profileUpdated
+        notify "Your account information is updated." if profileUpdated
     ]
     daisy queue
 
@@ -197,6 +199,13 @@ class AccountEditUsername extends JView
           @avatarChange.emit "LoadingStart"
           @uploadAvatar avatarBase64, =>
             @avatarChange.emit "LoadingEnd"
+
+  uploadAvatar: (avatarData, callback)->
+    FSHelper.s3.upload "avatar.png", avatarData, (err, url)=>
+      resized = KD.utils.proxifyUrl url,
+        crop: true, width: 300, height: 300
+
+      @account.modify "profile.avatar": "#{url}?#{Date.now()}", callback
 
   pistachio:->
 
