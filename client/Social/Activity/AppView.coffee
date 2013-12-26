@@ -167,6 +167,7 @@ class FilterWarning extends JView
     @warning   = new KDCustomHTMLView
     @goBack    = new KDButtonView
       cssClass : 'goback-button'
+      # todo - add group context here!
       callback : => KD.singletons.router.handleRoute '/Activity'
 
   pistachio:->
