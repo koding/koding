@@ -8,14 +8,11 @@ class BadgeUsersList extends KDView
         type                 : "users"
         cssClass             : "user-list"
         itemClass            : BadgeUsersItem
-
     # TODO : after design we may need pagination
-    @loadUserList()
-
     @userView = @filteredUsersController.getView()
     listView = @filteredUsersController.getListView()
     listView.on "RemoveBadgeUser", (account) =>
-      @badge.removeBadgeFromUser account, (err, account)=>
+      @badge.removeBadgeFromUser account, (err, account)->
         return err if err
         new KDNotificationView
           title     : "Badge removed"
@@ -27,3 +24,4 @@ class BadgeUsersList extends KDView
 
   viewAppended:->
     @addSubView @userView
+    @loadUserList()
