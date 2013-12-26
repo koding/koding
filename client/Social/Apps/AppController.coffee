@@ -9,6 +9,7 @@ class AppsAppController extends AppController
         handler (app)-> app.handleQuery query
       "/:name?/Apps/:lala/:app?" : (arg)-> handler (app)-> app.handleRoute arg
     hiddenHandle : yes
+    searchRoute  : "/Apps?q=:text:"
     behaviour    : 'application'
     version      : "1.0"
 
@@ -117,7 +118,10 @@ class AppsAppController extends AppController
 
   handleQuery:(query)->
     @ready =>
-      @feedController.handleQuery query
+      if {q} = query
+        @emit "searchFilterChanged", q
+      else
+        @feedController.handleQuery query
 
   handleRoute:(route)->
 
