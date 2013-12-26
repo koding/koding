@@ -3,6 +3,7 @@ class TopicsAppController extends AppController
   KD.registerAppClass this,
     name         : "Topics"
     route        : "/:name?/Topics"
+    searchRoute  : "/Topics?q=:text:"
     hiddenHandle : yes
 
   constructor:(options = {}, data)->
@@ -222,4 +223,10 @@ class TopicsAppController extends AppController
       else
         warn "there was an error fetching topics #{err.message}"
 
-  search:(text)-> @emit "searchFilterChanged", text
+  handleQuery:(query)->
+    @ready =>
+      {q} = query
+      if q
+        @emit "searchFilterChanged", q
+      else
+        super query
