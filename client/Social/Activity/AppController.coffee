@@ -71,18 +71,8 @@ class ActivityAppController extends AppController
   fetchCurrentGroup:(callback)-> callback @currentGroupSlug
 
   search:(text)->
-    {JNewStatusUpdate} = KD.remote.api
-    options =
-      limit : 20
-      skip  : 0
-
-    JNewStatusUpdate.search text, options, (err, activities) =>
-      KD.notify_ err if err
-      @resetAll()
-      @clearPopulateActivityBindings()
-      @listController.listActivities activities
-
-
+    @setWarning text, yes
+    @populateActivity searchText:text
 
 
   bindLazyLoad:->
@@ -145,7 +135,11 @@ class ActivityAppController extends AppController
     groupsController = KD.getSingleton 'groupsController'
     {isReady}        = groupsController
     currentGroup     = groupsController.getCurrentGroup()
-    {filterByTag,to} = options
+    {
+      filterByTag
+      to
+      searchText
+    } = options
 
     setFeedData = (messages) =>
 
@@ -173,6 +167,7 @@ class ActivityAppController extends AppController
         facets     : @getActivityFilter()
         withExempt : no
         slug       : filterByTag
+        searchText : searchText
 
       options.withExempt = \
         KD.getSingleton("activityController").flags.showExempt?
@@ -186,6 +181,17 @@ class ActivityAppController extends AppController
         @resetAll()
         @clearPopulateActivityBindings()
         @_wasFilterByTag = filterByTag
+
+      if not to and (searchText or @_wasSearchText)
+        @resetAll()
+        @clearPopulateActivityBindings()
+        @_wasSearchText = searchText
+
+      if searchText? or (@_wasSearchText and to)
+        options.searchText ?= @_wasSearchText
+        @once "searchFeedFetched_#{eventSuffix}", setFeedData
+        @searchActivities options
+        @setWarning searchText, no
 
       if filterByTag? or (@_wasFilterByTag and to)
 
@@ -211,6 +217,15 @@ class ActivityAppController extends AppController
 
     if isReady then fetch()
     else groupsController.once 'GroupChanged', fetch
+
+  searchActivities:(options = {})->
+    options.to = @lastTo
+    {JNewStatusUpdate} = KD.remote.api
+    eventSuffix = "#{@getFeedFilter()}_#{@getActivityFilter()}"
+    JNewStatusUpdate.search options, (err, activities) =>
+      if err then @emit "activitiesCouldntBeFetched", err
+      else @emit "searchFeedFetched_#{eventSuffix}", activities
+
 
   fetchTopicActivities:(options = {})->
     options.to = @lastTo
