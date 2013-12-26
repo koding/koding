@@ -118,7 +118,8 @@ class AppsAppController extends AppController
 
   handleQuery:(query)->
     @ready =>
-      if {q} = query
+      {q} = query
+      if q
         @emit "searchFilterChanged", q
       else
         @feedController.handleQuery query
