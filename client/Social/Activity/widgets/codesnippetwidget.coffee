@@ -98,7 +98,6 @@ class ActivityCodeSnippetWidget extends ActivityWidgetFormView
   submit:->
     @addCustomData "code", @ace.getContents()
     @once "FormValidationPassed", =>
-      KD.track "Activity", "CodeSnippetSubmitted"
       @reset()
 
     super

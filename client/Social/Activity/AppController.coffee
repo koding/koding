@@ -107,7 +107,6 @@ class ActivityAppController extends AppController
 
     appView.feedFilterController.on "FilterChanged", (filter) =>
 
-      KD.track "Activity", "#{filter}FilterClicked"
       @resetAll()
       @clearPopulateActivityBindings()
 
