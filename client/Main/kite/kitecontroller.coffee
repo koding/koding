@@ -30,8 +30,13 @@ class KiteController extends KDController
 
   createKite:(kiteName, correlationName, kiteKey)->
     kite = new Kite { kiteName, correlationName, kiteKey }
-    kite.on 'destroy', => @destroyKite kite
+    kite.on 'destroy', =>
+      @destroyKite kite
+      @emit "channelDeleted", kite, kiteName
+
     @forwardEvent kite, "KiteError"
+    @emit "channelAdded", kite, kiteName
+
     return kite
 
   # notification = null

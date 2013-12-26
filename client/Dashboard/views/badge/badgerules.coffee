@@ -130,10 +130,11 @@ class BadgeUsersItem extends KDListItemView
   constructor: (options ={}, data)->
     super options, data
 
-    @avatar    = new AvatarImage
-      origin   : @getData().profile.nickname
+    @avatar    = new AvatarView
       size     :
         width  : 40
+    , @getData()
+
     @remove    = new KDButtonView
       title    : "x"
       cssClass : "solid red"

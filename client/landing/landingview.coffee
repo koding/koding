@@ -58,9 +58,9 @@ class LandingView extends JView
       placeholder     : "Login to see your referrer URL"
       click           : -> @selectAll()
 
-    @shareLinks.addSubView @twitter  = new TwitterShareLink  {url, disabled}
-    @shareLinks.addSubView @facebook = new FacebookShareLink {url, disabled}
-    @shareLinks.addSubView @linkedin = new LinkedInShareLink {url, disabled}
+    @shareLinks.addSubView @twitter  = new TwitterShareLink  {url, disabled, trackingName: "landingPage"}
+    @shareLinks.addSubView @facebook = new FacebookShareLink {url, disabled, trackingName: "landingPage"}
+    @shareLinks.addSubView @linkedin = new LinkedInShareLink {url, disabled, trackingName: "landingPage"}
 
     KD.getSingleton("mainController").on "AccountChanged", @bound "enable"
 

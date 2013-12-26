@@ -12,7 +12,7 @@ class LinkView extends KDCustomHTMLView
     KD.getSingleton('linkController').registerLink this
 
   _addDefaultProfile:(data)->
-    data.profile    or= {}
+    data.profile          or= {}
     data.profile.firstName ?= "a koding"
     data.profile.lastName  ?= "user"
     return data

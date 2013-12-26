@@ -255,7 +255,7 @@ class KodingAppsController extends KDController
           @_fetchQueue = []
     , =>
       warn msg = "Timeout reached for kite request"
-      KD.logToExternal msg
+      KD.logToExternalWithTime msg
       callback() for callback in @_fetchQueue
       @_fetchQueue = []
     , KD.config.fileFetchTimeout
@@ -669,7 +669,7 @@ class KodingAppsController extends KDController
                 KodingError : 'Failed to fetch app creator info'
               return callback? err  if err
 
-              KD.mixpanel "User Installed Application", app.manifest.identifier
+              KD.mixpanel "Install Application, success", app.manifest.identifier
 
               @vmController.run
                 method       : "app.install"
