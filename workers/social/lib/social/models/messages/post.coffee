@@ -439,6 +439,7 @@ module.exports = class JPost extends jraphical.Message
       if before? then  $lt: before
       else if after? then $gt: after
     selector['data.flags.isLowQuality'] = $ne: yes
+    sort ?= 1
     options = {limit, sort: timestamp: sort}
     @fetchComments selector, options, callback
 
