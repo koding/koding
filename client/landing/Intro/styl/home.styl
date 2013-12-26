@@ -17,6 +17,7 @@ headerLinkColor = #3e4446
 bgColor         = #202527
 teamworkColor   = #f2c500
 socialColor     = #2d97de
+footerLinkColor = #a8a8a8
 
 body.intro
   bg                    color, bgColor
@@ -47,6 +48,10 @@ body.intro
     noTextDeco()
 
 
+
+#home-page
+  height                auto
+
   .logo
     margin              10px
     size                45px 45px
@@ -58,8 +63,7 @@ body.intro
       margin            14px
       display           block
 
-#home-page
-  height                auto
+  #home-bottom
   main
     padding-top         70px
     background          url('/a/images/home/photo-1.jpg') no-repeat center center
@@ -72,7 +76,7 @@ body.intro
     text-shadow         1px 1px 0 rgba(0, 0, 0, .6)
     font-weight         300
 
-  h1
+  .big-header
     font-family         proximaFamily
     color               logoBg
     font-size           36px
@@ -154,7 +158,35 @@ body.intro
           margin        11px auto
           bg            color logoBg
 
+  footer
+    rounded             8px 8px 0 0
+    font-size           14px
+    line-height         23px
+    color               footerLinkColor
+    bg                  color rgba(0, 0, 0, .6)
+    max-width           1280px
+    margin              0 auto
+    padding             45px
+    margin-top          -200px
 
+    .logo
+      margin            0 17px 0 0
+
+    address
+      overflow          hidden
+      width             auto
+
+    nav
+      fr()
+      a
+        display         inline-block
+        color           footerLinkColor
+        line-height     45px
+        font-size       16px
+        margin-left     16px
+        noTextDeco()
+        &:hover
+          color         white
 
 
 #home-features
@@ -219,8 +251,6 @@ body.intro
     line-height         1
 
   h2
-    font-family         proximaFamily
-    color               logoBg
     font-size           38px
     margin-bottom       30px
 
@@ -230,13 +260,106 @@ body.intro
     font-size           24px
     margin-top          40px
 
-  figure
-    background          url('/a/images/home/group.jpg') no-repeat center center
+  figure.browser
+  figure.education
     background-size     cover
-    size                1053px 714px
-    margin              80px auto
     overflow            hidden
+    rounded             4px
+
+  figure.browser
+    background          url('/a/images/home/group.jpg') no-repeat center center
+    size                1053px 714px
+    margin              80px auto 100px
     shadow              0 20px 50px rgba(0, 0, 0, .5)
     rel()
 
+  figure.education
+    background          url('/a/images/home/classroom.jpg') no-repeat center center
+    size                1280px 1055px
+    margin-top          500px
+    margin-left         -640px
+    left                50%
+    shadow              0 5px 16px rgba(0, 0, 0, .47)
+    abs()
 
+  .group-features
+    max-width           1053px
+    margin              0 auto
+
+    rel()
+
+    > div
+      width             33%
+      rel()
+      fl()
+
+      span.icon
+        size            100px, 100px
+        margin-bototm   28px
+        display         block
+        margin          0 auto
+
+      article
+        color             homeHeaderBg
+        font-family       openSansFamily
+        width             auto
+        display           block
+        font-size         15px
+        line-height       1.5
+        padding           40px
+        font-weight       300
+        borderBox()
+        h4
+          color           white
+          font-family     proximaFamily
+          font-weight     300
+          letter-spacing  1px
+          font-size       18px
+          line-height     1
+          margin-bottom   10px
+
+      &.white-label
+        span.icon
+          sprite          home 'group-of-people'
+
+      &.school
+        span.icon
+          sprite          home 'post-head'
+
+      &.project
+        span.icon
+          sprite          home 'text-balloons'
+
+  .kdbutton.pricing
+    display               block
+    margin                100px auto
+    size                  494px 92px
+    bg                    color logoBg
+    text-align            left
+    rounded               10px
+
+    span.button-title
+      text-align          left
+      font-family         openSansFamily
+      font-size           20px
+      line-height         1.4
+      letter-spacing      1px
+      margin-left         90px
+      font-weight         300
+      display             block
+      cite
+        display           block
+        color             homeHeaderBg
+        // font-weight       300
+
+    span.icon.dollar
+      margin              0
+      padding             0
+      sprite              home 'dollar'
+
+#home-bottom
+  padding-top         70px
+  background          url('/a/images/home/photo-1.jpg') no-repeat center center
+  background-size     cover
+  size                100% 630px
+  border-bottom       none
