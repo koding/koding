@@ -73,6 +73,7 @@ class NotificationListItem extends KDListItemView
 
   activityNameMap =
     JNewStatusUpdate   : "your status update."
+    JStatusUpdate   : "your status update."
     JCodeSnip       : "your status update."
     JAccount        : "started following you."
     JPrivateMessage : "your private message."
