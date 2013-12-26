@@ -271,7 +271,7 @@ class ActivityAppController extends AppController
         # if current user is exempt, fetch from db, not from cache
         and not KD.whoami().isExempt
       prefetchedActivity = KD.prefetchedFeeds["activity.main"]
-      if prefetchedActivity and ('activities.main' not in USEDFEEDS)
+      if prefetchedActivity and prefetchedActivity.length > 0 and ('activities.main' not in USEDFEEDS)
         log "exhausting feed:", "activity.main"
         USEDFEEDS.push 'activities.main'
         # update this function

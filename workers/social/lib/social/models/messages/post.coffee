@@ -431,7 +431,7 @@ module.exports = class JPost extends jraphical.Message
     .endGraphlet()
     .fetchRoot callback
 
-  fetchRelativeComments:({limit, before, after}, callback)->
+  fetchRelativeComments:({limit, before, after, sort}, callback)->
     limit ?= 10
     if before? and after?
       callback createKodingError "Don't use before and after together."
@@ -439,7 +439,8 @@ module.exports = class JPost extends jraphical.Message
       if before? then  $lt: before
       else if after? then $gt: after
     selector['data.flags.isLowQuality'] = $ne: yes
-    options = {limit, sort: timestamp: 1}
+    sort ?= 1
+    options = {limit, sort: timestamp: sort}
     @fetchComments selector, options, callback
 
   commentsByRange:(options, callback)->
