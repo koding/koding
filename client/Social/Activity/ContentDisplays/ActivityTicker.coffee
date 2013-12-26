@@ -107,6 +107,8 @@ class ActivityTicker extends ActivityRightBase
     target = KD.remote.revive origin
     as     = "author"
 
+    return if target.isExempt
+
     @fetchTags source, (err, tags)=>
       return log "discarding event, invalid data"  if err
       source.tags = tags
@@ -146,6 +148,8 @@ class ActivityTicker extends ActivityRightBase
 
     return console.warn "data is not valid"  unless follower and origin
 
+    return if follower.isExempt
+
     {constructorName, id} = follower
     KD.remote.cacheable constructorName, id, (err, source)=>
       return console.log "account is not found" if err or not source
@@ -170,6 +174,8 @@ class ActivityTicker extends ActivityRightBase
 
     unless liker and origin and subject
       return console.warn "data is not valid"
+
+    return if liker.isExempt
 
     {constructorName, id} = liker
     KD.remote.cacheable constructorName, id, (err, source)=>
@@ -241,6 +247,9 @@ class ActivityTicker extends ActivityRightBase
         @getConstructorName(target) is "JAccount" and \
         as is "follower"
       return null
+
+    actor = if @getConstructorName(target) is "JAccount" then target else source
+    return null if actor.isExempt
 
     return item
 
