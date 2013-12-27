@@ -12,7 +12,7 @@ class ActivityAppView extends KDScrollView
     super options, data
 
     # FIXME: disable live updates - SY
-    @appStorage = KD.getSingleton("appStorageController").storage 'Activity', '1.0'
+    @appStorage = KD.getSingleton("appStorageController").storage 'Activity', '1.0.1'
     @appStorage.setValue 'liveUpdates', off
 
 
@@ -20,9 +20,9 @@ class ActivityAppView extends KDScrollView
 
     {entryPoint}      = KD.config
     windowController  = KD.singleton 'windowController'
-    HomeKonstructor   = if entryPoint and entryPoint.type isnt 'profile' then GroupHomeView else KDCustomHTMLView
+
     @feedWrapper      = new ActivityListContainer
-    @header           = new HomeKonstructor
+    @header           = new KDCustomHTMLView
     @inputWidget      = new ActivityInputWidget
 
     @tickerBox        = new ActivityTicker

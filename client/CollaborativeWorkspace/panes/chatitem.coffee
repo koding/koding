@@ -2,30 +2,37 @@ class ChatItem extends JView
 
   constructor: (options, data) ->
 
-    options.cssClass = KD.utils.curry "chat-item", options.cssClass
+    options.cssClass = KD.utils.curry "tw-chat-item", options.cssClass
 
     super options, data
 
     @createAvatar()
 
-    {user}       = @getOptions()
-    ownMessage   = user.nickname is KD.nick()
+    {user, time, body} = @getOptions()
+    ownMessage         = user.nickname is KD.nick()
 
     @messageList = new KDView
       cssClass   : "items-container"
 
     @messageList.addSubView @header = new KDCustomHTMLView
       cssClass   : "username"
-      partial    : if ownMessage then "Me" else "#{user.nickname}"
+      partial    : if ownMessage then "Me" else @getUsername()
 
     @header.addSubView @timeAgo = new KDTimeAgoView
       cssClass   : "time-ago"
-    , new Date @getOptions().time
+    , new Date time
 
-    @messageList.addSubView new KDCustomHTMLView
-      partial    : Encoder.XSSEncode @getOptions().body
+    body = Encoder.XSSEncode(body).split("\n").map (text) =>
+      "<p class='tw-chat-para'>#{text}</p>"
+
+    @messageList.addSubView @message = new KDCustomHTMLView
+      cssClass   : "tw-chat-body"
+      partial    : body
 
     @setClass "mine" if ownMessage
+
+  getUsername: ->
+    return "#{@getOptions().user.nickname}"
 
   createAvatar: ->
     @avatar      = new AvatarView

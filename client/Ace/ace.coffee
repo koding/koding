@@ -12,7 +12,7 @@ class Ace extends KDView
 
     super options, file
     @lastSavedContents = ""
-    @appStorage = KD.getSingleton('appStorageController').storage 'Ace', '1.0'
+    @appStorage = KD.getSingleton('appStorageController').storage 'Ace', '1.0.1'
 
   setDomElement:(cssClass)->
 
@@ -36,8 +36,8 @@ class Ace extends KDView
           @editor.gotoLine 0
           @focus()
           @show()
-          # log to external
-          KD.track "User Opened Ace", KD.getSingleton("groupsController").getCurrentGroup()
+
+          KD.mixpanel "Open Ace, success"
 
       require ["ace/keyboard/vim"], (vimMode) =>
         @vimKeyboardHandler = vimMode.handler

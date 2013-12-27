@@ -13,7 +13,7 @@ module.exports = class ActiveItems extends Base
 
   @set
     sharedMethods   :
-      static        : 
+      static        :
         fetchTopics : [
           (signature Function)
           (signature Object, Function)
@@ -38,9 +38,10 @@ module.exports = class ActiveItems extends Base
   @fetchTopics = secure (client, options, callback)->
     [callback, options] = [options, callback]  unless callback
     options.name       = "topic"
+    options.group      = client.context.group
     options.fallbackFn = @fetchRandomTopics
-
-    Cache.fetch "activeItems.fetchTopics", (@fetchItems.bind this), options, callback
+    cacheId            = "#{options.group}-activeItems.fetchTopics"
+    Cache.fetch cacheId, (@fetchItems.bind this), options, callback
 
   # Returns users in following order:
   #   * Client's followers who are online
@@ -48,16 +49,17 @@ module.exports = class ActiveItems extends Base
   #   * Random users
   @fetchUsers = secure (client, options, callback)->
     [callback, options] = [options, callback]  unless callback
-    options.client     = client
-    options.fallbackFn = @fetchRandomUsers
+    options.client      = client
+    options.group       = client.context.group
+    options.fallbackFn  = @fetchRandomUsers
 
     Cache.fetch "activeItems.fetchUsers", (@_fetchUsers.bind this), options, callback
 
   @fetchRandomUsers = (callback)-> JAccount.some {}, {limit:10}, callback
 
-  @fetchRandomTopics = (callback)->
-    {select: selector} = nameMapping.topic
-    JTag.some selector, {limit:10}, callback
+  @fetchRandomTopics = (callback, options)->
+    group = options.group or "koding"
+    JTag.some {group, selector}, {limit:10}, callback
 
   @_fetchUsers = (options={}, callback)->
     {client}   = options

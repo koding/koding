@@ -29,11 +29,10 @@ module.exports = class Cache
     if cache[cacheKey]
       {data, ttl} = cache[cacheKey]
       callback null, data
-
       if (Date.now() - (ttl or 0)  > cachingTimeInMS)
         repeatFetchingItems cacheKey, fetcherFn, fetcherFnOptions
     else
       repeatFetchingItems cacheKey, fetcherFn, fetcherFnOptions
-      (fallbackFn? callback) or (callback null, {})
+      (fallbackFn? callback, fetcherFnOptions) or (callback null, {})
 
   @remove: (cacheKey, data)-> delete cache[cacheKey]
