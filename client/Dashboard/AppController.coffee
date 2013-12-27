@@ -1,15 +1,16 @@
 class DashboardAppController extends AppController
 
+  handler = (group, callback)->
+    KD.getSingleton('groupsController').changeGroup group, (err)=>
+      KD.singleton('appManager').open 'Dashboard', callback
+
   KD.registerAppClass this,
     name         : "Dashboard"
-    route        : "/:name?/Dashboard"
+    routes                         :
+      "/:name?/Dashboard"          : null
+      "/:name?/Dashboard/:section" : ({params : {section,name}})->
+        handler name, (app)-> app.handleQuery title : section
     hiddenHandle : yes
-    # navItem      :
-    #   title      : "Group"
-    #   path       : "/Dashboard"
-    #   order      : 75
-    #   role       : "admin"
-    #   type       : "account"
 
   constructor: (options = {}, data) ->
 
@@ -102,6 +103,10 @@ class DashboardAppController extends AppController
       log 'MemberAdded'
       # {tabHandle} = pane
       # tabHandle.markDirty()
+
+  handleQuery: ({title}) ->
+    @getView().nav.ready =>
+      @getView().tabs.showPaneByName title or 'Settings'
 
   policyViewAdded: (pane, view) ->
 
