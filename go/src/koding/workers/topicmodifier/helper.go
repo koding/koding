@@ -8,7 +8,6 @@ import (
 
 // hard delete.
 func DeleteStatusUpdate(id string) error {
-
 	err := RemoveComments(id)
 	if err != nil {
 		log.Error("Empty Status Update Cannot be deleted")
@@ -78,7 +77,10 @@ func RemoveComments(id string) error {
 		return err
 	}
 	for _, rel := range rels {
-		RemoveRelationship(&rel)
+		err = RemoveRelationship(&rel)
+		if err != nil {
+			return err
+		}
 		removedNodeIds = append(removedNodeIds, rel.SourceId)
 	}
 

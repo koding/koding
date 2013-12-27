@@ -93,14 +93,18 @@ var messageConsumer = func(delivery amqp.Delivery) {
 		return
 	}
 
+	var err error
 	tagId := modifierData.TagId
 	switch modifierData.Status {
 	default:
 		log.Error("Unknown modification status %s", modifierData.Status)
 	case DELETE:
-		deleteTags(tagId)
+		err = deleteTags(tagId)
 	case MERGE:
-		mergeTags(tagId)
+		err = mergeTags(tagId)
+	}
+	if err != nil {
+		log.Error(err.Error())
 	}
 	delivery.Ack(false)
 
@@ -108,12 +112,12 @@ var messageConsumer = func(delivery amqp.Delivery) {
 
 //Deletes given tags. Tags are removed from post bodies and collections.
 //Tag relations are also removed.
-func deleteTags(tagId string) {
+func deleteTags(tagId string) error {
 	log.Info("Deleting topic")
 	tag, err := helper.GetTagById(tagId)
 	if err != nil {
 		log.Error("Tag not found - Id: ", tagId)
-		return
+		return err
 	}
 	log.Info("Deleting %s", tag.Title)
 	selector := helper.Selector{"targetId": helper.GetObjectId(tagId), "as": "tag"}
@@ -121,40 +125,46 @@ func deleteTags(tagId string) {
 	rels, err := helper.GetRelationships(selector)
 	// remove panic
 	if err != nil {
-		panic(err)
+		return err
 	}
 
 	updatePosts(rels, "")
-	updateTagRelationships(rels, &Tag{})
 
+	err = updateTagRelationships(rels, &Tag{})
+	if err != nil {
+		return err
+	}
 	postRels := convertTagRelationships(rels)
-	updateTagRelationships(postRels, &Tag{})
-
+	err = updateTagRelationships(postRels, &Tag{})
+	if err != nil {
+		return err
+	}
 	tag.Counts = TagCount{}
-	helper.UpdateTag(tag)
+	return helper.UpdateTag(tag)
 }
 
-func mergeTags(tagId string) {
+func mergeTags(tagId string) error {
 	log.Info("Merging topics")
 
 	tag, err := helper.GetTagById(tagId)
 	if err != nil {
 		log.Error("Tag not found - Id: ", tagId)
-		return
+		return err
 	}
 
 	synonym, err := FindSynonym(tagId)
 	if err != nil {
 		log.Error("Synonym not found - Id %s", tagId)
-		return
+		return err
 	}
+
 	log.Info("Merging Topic %s into %s", tag.Title, synonym.Title)
 
 	selector := helper.Selector{"targetId": helper.GetObjectId(tagId), "as": "tag"}
 	tagRels, err := helper.GetRelationships(selector)
 	// remove panic
 	if err != nil {
-		panic(err)
+		return err
 	}
 
 	taggedPostCount := len(tagRels)
@@ -171,10 +181,20 @@ func mergeTags(tagId string) {
 	}
 
 	updateCounts(tag, synonym)
-	synonym.Counts.Followers += updateFollowers(tag, synonym)
-	helper.UpdateTag(synonym)
+
+	count, err := updateFollowers(tag, synonym)
+	if err != nil {
+		return err
+	}
+	synonym.Counts.Followers += count
+	err = helper.UpdateTag(synonym)
+	if err != nil {
+		return err
+	}
+
 	tag.Counts = TagCount{} // reset counts
-	helper.UpdateTag(tag)
+	return helper.UpdateTag(tag)
+
 }
 
 func convertTagRelationships(tagRels []Relationship) (postRelationships []Relationship) {
@@ -242,9 +262,12 @@ func updatePostBody(s *StatusUpdate, tagId string, newTagId string) (tagIncluded
 }
 
 //Removes old tag relationships and creates new ones if synonym tag does exists
-func updateTagRelationships(rels []Relationship, synonym *Tag) {
+func updateTagRelationships(rels []Relationship, synonym *Tag) error {
 	for _, rel := range rels {
-		RemoveRelationship(&rel)
+		err := RemoveRelationship(&rel)
+		if err != nil {
+			return err
+		}
 		if synonym.Id.Hex() != "" {
 			if rel.TargetName == "JTag" {
 				rel.TargetId = synonym.Id
@@ -252,9 +275,13 @@ func updateTagRelationships(rels []Relationship, synonym *Tag) {
 				rel.SourceId = synonym.Id
 			}
 			rel.Id = helper.NewObjectId()
-			CreateRelationship(&rel)
+			err = CreateRelationship(&rel)
+			if err != nil {
+				return err
+			}
 		}
 	}
+	return nil
 }
 
 func updateCounts(tag *Tag, synonym *Tag) {
@@ -264,7 +291,7 @@ func updateCounts(tag *Tag, synonym *Tag) {
 
 //Moves follower information under the new topic. If user is already following
 //new topic, then she is not added as follower.
-func updateFollowers(tag *Tag, synonym *Tag) int {
+func updateFollowers(tag *Tag, synonym *Tag) (int, error) {
 	selector := helper.Selector{
 		"sourceId":   tag.Id,
 		"as":         "follower",
@@ -274,7 +301,7 @@ func updateFollowers(tag *Tag, synonym *Tag) int {
 	rels, err := helper.GetRelationships(selector)
 	// remove panic
 	if err != nil {
-		panic(err)
+		return 0, err
 	}
 
 	var oldFollowers []Relationship
@@ -293,7 +320,7 @@ func updateFollowers(tag *Tag, synonym *Tag) int {
 				newFollowers = append(newFollowers, rel)
 			} else {
 				log.Error(err.Error())
-				return 0
+				return 0, err
 			}
 		} else {
 			oldFollowers = append(oldFollowers, rel)
@@ -302,14 +329,20 @@ func updateFollowers(tag *Tag, synonym *Tag) int {
 
 	log.Info("%v users are already following new topic", len(oldFollowers))
 	if len(oldFollowers) > 0 {
-		updateTagRelationships(oldFollowers, &Tag{})
+		err = updateTagRelationships(oldFollowers, &Tag{})
+		if err != nil {
+			return 0, err
+		}
 	}
 	log.Info("%v users followed new topic", len(newFollowers))
 	if len(newFollowers) > 0 {
-		updateTagRelationships(newFollowers, synonym)
+		err = updateTagRelationships(newFollowers, synonym)
+		if err != nil {
+			return 0, err
+		}
 	}
 
-	return len(newFollowers)
+	return len(newFollowers), nil
 }
 
 func swapTagRelation(r *Relationship, as string) Relationship {
