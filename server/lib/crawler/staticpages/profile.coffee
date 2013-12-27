@@ -13,7 +13,11 @@ createStatusUpdateNode = (statusUpdate, authorFullName, authorNickname)->
   createdAt = ""
   if statusUpdate?.meta?.createdAt?
     createdAt = formatDate statusUpdate.meta.createdAt
-  linkToStatusUpdate = createLinkToStatusUpdate createdAt, statusUpdate.slug
+
+  slug = ""
+  slug = statusUpdate.slug  if statusUpdate?.slug?
+
+  linkToStatusUpdate = createLinkToStatusUpdate createdAt, slug
   statusUpdateContent = ""
   if statusUpdate.body
     statusUpdateContent =
