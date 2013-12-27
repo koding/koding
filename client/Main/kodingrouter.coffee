@@ -49,8 +49,8 @@ class KodingRouter extends KDRouter
 
     appManager = KD.getSingleton 'appManager'
     frags      = route.split '/'
-    name       = frags[1] or ''
-    name       = if entryPoint?.type is "group" then frags[2] or '' else (name.split '?')[0]
+    name       = (if entryPoint?.type is "group" then frags[2] else frags[1]) or ''
+    name       = (name.split '?')[0]
 
     log 'handlingRoute', route, 'for the', name, 'app'
 

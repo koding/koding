@@ -230,7 +230,6 @@ class ActivityStatusUpdateWidget extends ActivityWidgetFormView
     @addCustomData "link_embed", @embedBox.getDataForSubmit() or {}
 
     @once 'FormValidationPassed', =>
-      KD.track "Activity", "StatusUpdateSubmitted"
       @reset yes
 
     super

@@ -65,6 +65,9 @@ class WebTermAppView extends JView
         return @setMessage "It seems you don't have a VM to use with Terminal."
 
       vmController.info vmName, KD.utils.getTimedOutCallback (err, vm, info)=>
+        if err
+          KD.logToExternal "oskite: Error opening Webterm", vmName, err
+          KD.mixpanel "Open Webterm, fail", {vmName}
 
         @addNewTab vmName  if info?.state is 'RUNNING'
         KD.mixpanel "Open Webterm, success", {vmName}
@@ -173,6 +176,11 @@ class WebTermAppView extends JView
 
     @tabView.addPane pane
     pane.addSubView webTermView
+
+    webTermView.on "WebTermNeedsToBeRecovered", (options) =>
+      options.delegate = this
+      pane.destroySubViews()
+      pane.addSubView new WebTermView options
 
     # webTermView.once 'KDObjectWillBeDestroyed', => @tabView.removePane pane
 

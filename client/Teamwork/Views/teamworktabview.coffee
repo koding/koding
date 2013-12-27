@@ -8,7 +8,6 @@ class TeamworkTabView extends CollaborativePane
     @keysRef    = @workspaceRef.child "keys"
     @indexRef   = @workspaceRef.child "index"
     @requestRef = @workspaceRef.child "request"
-    @paneRef    = @workspaceRef.child "pane"
 
     @listenChildRemovedOnKeysRef()
     @listenRequestRef()
@@ -71,15 +70,16 @@ class TeamworkTabView extends CollaborativePane
       username   = KD.nick()
       return unless data
 
-      @paneRef.child(data.by).set data.indexKey
-
       if watchMap[username] is "everybody" or watchMap[username] is data.by
         for pane in @tabView.panes
           if pane.getOptions().indexKey is data.indexKey
             index = @tabView.getPaneIndex pane
             @tabView.showPaneByIndex index
-            # log pane.tabHandle
-            # log "Current:", index, data.by, @workspace.users[data.by]
+
+            if pane.terminalView
+              {terminal} = pane.terminalView.webterm
+              terminal.scrollToBottom()
+              terminal.container.trigger 'click'
 
   createElements: ->
     @tabHandleHolder = new ApplicationTabHandleHolder delegate: this
@@ -204,6 +204,10 @@ class TeamworkTabView extends CollaborativePane
 
   registerPaneRemoveListener_: (pane) ->
     pane.on "KDObjectWillBeDestroyed", =>
+      switch @workspace.hostStatus
+        when "unknown", "offline"
+          return
+
       paneIndexKey = pane.getOptions().indexKey
 
       @keysRef.once "value", (snapshot) =>
@@ -243,6 +247,8 @@ class TeamworkTabView extends CollaborativePane
     terminal = new klass { delegate, sessionKey }
 
     @appendPane_ pane, terminal
+
+    pane.terminalView = terminal
 
     if @amIHost
       terminal.on "WebtermCreated", =>

@@ -9,7 +9,11 @@ class LoginAppsController extends AppController
   handleResetRoute = ({params:{token}})->
     KD.singleton('appManager').open 'Login', (app) ->
       if KD.isLoggedIn()
-        KD.getSingleton('router').handleRoute "/Activity"
+        KD.remote.api.JUser.fetchUser (err, user)->
+          if user and user.passwordStatus is "valid"
+            KD.getSingleton('router').handleRoute "/Activity"
+          else
+            KD.getSingleton('router').handleRoute "/Account/Profile?focus=password&token=#{token}"
       else
         app.getView().setCustomDataToForm('reset', {recoveryToken:token})
         app.getView().animateToForm('reset')
