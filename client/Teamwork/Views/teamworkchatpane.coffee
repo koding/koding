@@ -139,3 +139,29 @@ class TeamworkChatPane extends ChatPane
     """
     @botReply message
 
+  viewAppended: ->
+    super
+
+    @avatars   = @workspace.avatarsView = new KDCustomHTMLView
+      cssClass : "tw-users"
+      partial  : "<p>Active Users</p>"
+
+    @addSubView @avatars, null, yes
+
+    if @workspace.amIHost()
+      tipTitle = "You are the host of this session"
+    else
+      tipTitle = "This is you"
+
+    @avatars.addSubView new AvatarStaticView
+      size     :
+        width  : 30
+        height : 30
+      tooltip  :
+        title  : tipTitle
+    , KD.whoami()
+
+    @avatars.addSubView new KDCustomHTMLView
+      cssClass : "tw-bot-avatar"
+      tooltip  :
+        title  : """ Hi there, My name is TBot. I am here to assist you. If you need help, just type "help" """
