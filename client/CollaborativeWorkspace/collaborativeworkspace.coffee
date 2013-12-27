@@ -33,6 +33,7 @@ class CollaborativeWorkspace extends Workspace
     @chatRef        = @workspaceRef.child "chat"
     @watchRef       = @workspaceRef.child "watch"
     @usersRef       = @workspaceRef.child "users"
+    @userRef        = @usersRef.child KD.nick()
     @sessionKeysRef = @firebaseRef.child  "session_keys"
 
   bindRemoteEvents: ->
@@ -57,6 +58,7 @@ class CollaborativeWorkspace extends Workspace
         @addToHistory { message: record, by: KD.nick() }
         @watchRef.child(@nickname).set "everybody"
         @sessionKeysRef.child(@nickname).set @sessionKey
+        @userRef.child("status").set "online"
 
         @loader.destroy()
         @chatView?.show()
@@ -64,19 +66,17 @@ class CollaborativeWorkspace extends Workspace
         @emit "WorkspaceSyncedWithRemote"
         @emit "SomeoneJoinedToSession", KD.nick() if isOldSession
 
-      if @amIHost()
-      then cb()
+      if @amIHost() then cb()
       else
         @pingHost (status) =>
-          return  unless status is "online"
-          cb()
+          cb()  if status is "online"
 
     @usersRef.on "child_added", (snapshot) =>
       @fetchUsers()
 
     @usersRef.on "child_changed", (snapshot) =>
       name = snapshot.name()
-      if @amIHost() and snapshot.val() is "offline"
+      if @amIHost() and snapshot.val()?.status is "offline"
         message = "#{name} has left the session"
 
         @broadcastMessage
@@ -108,6 +108,8 @@ class CollaborativeWorkspace extends Workspace
 
     @watchRef.on "value", (snapshot) =>
       @watchMap = snapshot.val() or {}
+
+    @userRef.child("status").onDisconnect().set "offline"
 
   fetchUsers: ->
     @workspaceRef.once "value", (snapshot) =>
