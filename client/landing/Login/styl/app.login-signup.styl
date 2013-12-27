@@ -291,6 +291,7 @@ app.login-signup.styl
 
     .kdinput
       text-align        center
+      background        transparent
 
     .placeholder-helper
       abs()
@@ -300,11 +301,11 @@ app.login-signup.styl
       top               19px
       font-size         16px
       text-align        center
+      z-index           0
       opacity           1
       vendor            transition, top .1s ease\,\
                                     opacity .3s .3s ease\,\
                                     font-size .1s ease
-      z-index           10
       &.out
         top             -15px
         font-size       12px
