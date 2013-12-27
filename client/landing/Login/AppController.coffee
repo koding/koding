@@ -26,7 +26,6 @@ class LoginAppsController extends AppController
           group.redeemInvitation token, (err)=>
             return KD.notify_ err.message or err  if err
             KD.notify_ 'Success!'
-            console.log "will be routed to: ", "/#{group.slug}"
             KD.getSingleton('router').handleRoute "/#{group.slug}"
             KD.getSingleton('mainController').accountChanged KD.whoami()
       else
