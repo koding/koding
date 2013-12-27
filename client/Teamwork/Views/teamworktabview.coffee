@@ -8,7 +8,6 @@ class TeamworkTabView extends CollaborativePane
     @keysRef    = @workspaceRef.child "keys"
     @indexRef   = @workspaceRef.child "index"
     @requestRef = @workspaceRef.child "request"
-    @paneRef    = @workspaceRef.child "pane"
 
     @listenChildRemovedOnKeysRef()
     @listenRequestRef()
@@ -71,15 +70,11 @@ class TeamworkTabView extends CollaborativePane
       username   = KD.nick()
       return unless data
 
-      @paneRef.child(data.by).set data.indexKey
-
       if watchMap[username] is "everybody" or watchMap[username] is data.by
         for pane in @tabView.panes
           if pane.getOptions().indexKey is data.indexKey
             index = @tabView.getPaneIndex pane
             @tabView.showPaneByIndex index
-            # log pane.tabHandle
-            # log "Current:", index, data.by, @workspace.users[data.by]
 
   createElements: ->
     @tabHandleHolder = new ApplicationTabHandleHolder delegate: this
