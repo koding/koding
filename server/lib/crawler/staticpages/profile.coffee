@@ -19,7 +19,7 @@ createStatusUpdateNode = (statusUpdate, authorFullName, authorNickname)->
 
   linkToStatusUpdate = createLinkToStatusUpdate createdAt, slug
   statusUpdateContent = ""
-  if statusUpdate.body
+  if statusUpdate?.body?
     statusUpdateContent =
     """
     <li itemtype="http://schema.org/Comment" itemscope itemprop="comment">
