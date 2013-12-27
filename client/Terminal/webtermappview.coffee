@@ -65,6 +65,9 @@ class WebTermAppView extends JView
         return @setMessage "It seems you don't have a VM to use with Terminal."
 
       vmController.info vmName, KD.utils.getTimedOutCallback (err, vm, info)=>
+        if err
+          KD.logToExternal "oskite: Error opening Webterm", vmName, err
+          KD.mixpanel "Open Webterm, fail", {vmName}
 
         @addNewTab vmName  if info?.state is 'RUNNING'
         KD.mixpanel "Open Webterm, success", {vmName}
