@@ -218,18 +218,19 @@ class ActivityAppController extends AppController
         and KD.prefetchedFeeds \
         # if current user is exempt, fetch from db, not from cache
         and not KD.whoami().isExempt
-      prefetchedActivity = KD.prefetchedFeeds["activity.main"]
+      group  = KD.getSingleton("groupsController").getCurrentGroup()
+      feedId = "#{group.slug}-activity.main"
+      prefetchedActivity = KD.prefetchedFeeds[feedId]
 
       # TODO : REMOVING FOR GROUPS DEV. BECAUSE PREFETCH NOT WORKING FOR GROUPS
 
-      # if prefetchedActivity and ('activities.main' not in USEDFEEDS)
-      #   log "exhausting feed:", "activity.main"
-      #   USEDFEEDS.push 'activities.main'
-      #   # update this function
-      #   log "prefetchedActivity", prefetchedActivity
-      #   messages = @prepareCacheForListing prefetchedActivity
-      #   @emit "publicFeedFetched_#{eventSuffix}", messages
-      #   return
+      if prefetchedActivity and (feedId not in USEDFEEDS)
+        log "exhausting feed:", feedId
+        USEDFEEDS.push feedId
+        # update this function
+        messages = @prepareCacheForListing prefetchedActivity
+        @emit "publicFeedFetched_#{eventSuffix}", messages
+        return
 
     JNewStatusUpdate.fetchGroupActivity options, (err, messages)=>
       return @emit "activitiesCouldntBeFetched", err  if err
