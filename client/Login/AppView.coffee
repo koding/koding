@@ -390,7 +390,7 @@ class LoginView extends KDView
       firstRoute = KD.getSingleton("router").visitedRoutes.first
 
       if firstRoute and /^\/(?:Reset|Register|Confirm)\//.test firstRoute
-        firstRoute = "/"
+        firstRoute = "/Activity"
 
       KD.getSingleton('appManager').quitAll()
       KD.getSingleton('router').handleRoute firstRoute or '/Activity', {replaceState: yes, entryPoint}
