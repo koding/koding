@@ -40,10 +40,7 @@ class TeamworkChatPane extends ChatPane
   appendToChatItem: (params) ->
     return if @shouldBeHidden_ params
 
-    if params.ownerNickname is "teamwork"
-      @createNewChatItem params
-    else
-      super
+    super
 
   shouldBeHidden_: (params) ->
     {details}       = params
