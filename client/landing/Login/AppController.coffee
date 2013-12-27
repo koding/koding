@@ -14,6 +14,30 @@ class LoginAppsController extends AppController
         app.getView().setCustomDataToForm('reset', {recoveryToken:token})
         app.getView().animateToForm('reset')
 
+  handleRedeemRoute = ({params:{name, token}})->
+    console.log "name: ", name
+    token = decodeURIComponent token
+    if KD.isLoggedIn()
+      KD.remote.cacheable groupName, (err, [group])=>
+        group.redeemInvitation token, (err)=>
+          return KD.notify_ err.message or err  if err
+          KD.notify_ 'Success!'
+          console.log "will be routed to: ", "/#{groupName}/Activity"
+          KD.getSingleton('router').handleRoute "/#{groupName}"
+          KD.getSingleton('mainController').accountChanged KD.whoami()
+    else KD.remote.api.JInvitation.byCode token, (err, invite)=>
+      if err or !invite? or invite.status not in ['active','sent']
+        unless KD.isLoggedIn()
+          if err then error err
+          KD.singleton('appManager').open 'Login', (app) ->
+            new KDNotificationView
+              title: 'Invalid invitation code!'
+            app.getView().animateToForm 'login'
+      else
+        KD.singleton('appManager').open 'Login', (app) ->
+          app.getView().animateToForm 'login'
+          app.headBannerShowInvitation invite
+
   handleFinishRegistration = ({params:{token}}) ->
     KD.singleton('appManager').open 'Login', (app) ->
       app.prepareFinishRegistrationForm token  unless KD.isLoggedIn()
@@ -49,6 +73,7 @@ class LoginAppsController extends AppController
       '/:name?/Reset'            : handler (app)-> app.getView().animateToForm 'reset'
       '/:name?/Reset/:token'     : handleResetRoute
       '/:name?/Confirm/:token'   : handleResetRoute
+      '/:name?/Redeem/:token'    : handleRedeemRoute
       '/:name?/ResendToken'      : handler (app)-> app.getView().animateToForm 'resendEmail'
     hiddenHandle                 : yes
     behavior                     : 'application'

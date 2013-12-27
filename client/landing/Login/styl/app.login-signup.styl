@@ -427,3 +427,24 @@ p.login-tip
     margin-left         -16px
     div.wrapper
       text-align        right
+
+.invite-recovery-notification-bar
+  position              fixed
+  z-index               10000
+  width                 100%
+  top                   0
+  height                0px
+  text-align            center
+  font-size             16px
+  padding-top           6px
+  color                 white
+  cursor                pointer
+  border-bottom         1px solid rgba(15,15,15,0.16)
+  bg                    color, rgba(15,15,15,0.45)
+  vendor                transition, height .4s ease-in-out
+
+  &.show
+    height              26px
+
+  span
+    color               #ffb500
