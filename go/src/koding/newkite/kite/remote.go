@@ -1,14 +1,17 @@
 package kite
 
 import (
+	"crypto/tls"
+	"crypto/x509"
 	"errors"
-	"github.com/op/go-logging"
 	"koding/newkite/dnode"
 	"koding/newkite/dnode/rpc"
 	"koding/newkite/protocol"
 	"strconv"
 	"sync"
 	"time"
+
+	"github.com/op/go-logging"
 )
 
 const DefaultTellTimeout = 4 * time.Second
@@ -53,13 +56,20 @@ func (k *Kite) NewRemoteKite(kite protocol.Kite, auth Authentication) *RemoteKit
 	r.SetTellTimeout(DefaultTellTimeout)
 
 	// Required for customizing dnode protocol for Kite.
-	r.client.SetWrappers(wrapMethodArgs, wrapCallbackArgs, runMethod, runCallback)
+	r.client.SetWrappers(wrapMethodArgs, wrapCallbackArgs, runMethod, runCallback, onError)
 
 	// We need a reference to the local kite when a method call is received.
 	r.client.Properties()["localKite"] = k
 
 	// We need a reference to the remote kite when sending a message to remote.
 	r.client.Properties()["remoteKite"] = r
+
+	if r.Kite.URL.Scheme == "wss" {
+		// Check if the certificate of the remote Kite is signed by Kontrol.
+		pool := x509.NewCertPool()
+		pool.AppendCertsFromPEM(kontrol_pem())
+		r.client.Config.TlsConfig = &tls.Config{RootCAs: pool}
+	}
 
 	r.OnConnect(func() {
 		if r.Authentication.validUntil == nil {
@@ -81,6 +91,28 @@ func (k *Kite) NewRemoteKite(kite protocol.Kite, auth Authentication) *RemoteKit
 	return r
 }
 
+func onError(err error) {
+	switch e := err.(type) {
+	case dnode.MethodNotFoundError: // Tell the requester "method is not found".
+		if len(e.Args) == 0 {
+			return
+		}
+
+		var options callOptions
+		if e.Args[0].Unmarshal(&options) != nil {
+			return
+		}
+
+		if options.ResponseCallback != nil {
+			response := callbackArg{
+				Result: nil,
+				Error:  errorForSending(&Error{"methodNotFound", err.Error()}),
+			}
+			options.ResponseCallback(response)
+		}
+	}
+}
+
 func wrapCallbackArgs(args []interface{}, tr dnode.Transport) []interface{} {
 	return []interface{}{&callOptionsOut{
 		WithArgs: args,
@@ -97,7 +129,7 @@ func wrapCallbackArgs(args []interface{}, tr dnode.Transport) []interface{} {
 func (k *Kite) newRemoteKiteWithClient(kite protocol.Kite, auth Authentication, client *rpc.Client) *RemoteKite {
 	r := k.NewRemoteKite(kite, auth)
 	r.client = client
-	r.client.SetWrappers(wrapMethodArgs, wrapCallbackArgs, runMethod, runCallback)
+	r.client.SetWrappers(wrapMethodArgs, wrapCallbackArgs, runMethod, runCallback, onError)
 	r.client.Properties()["localKite"] = k
 	r.client.Properties()["remoteKite"] = r
 	return r
@@ -108,16 +140,14 @@ func (r *RemoteKite) SetTellTimeout(d time.Duration) { r.tellTimeout = d }
 
 // Dial connects to the remote Kite. Returns error if it can't.
 func (r *RemoteKite) Dial() (err error) {
-	addr := r.Kite.Addr()
-	r.Log.Info("Dialing remote kite: [%s %s]", r.Kite.Name, addr)
-	return r.client.Dial("ws://" + addr + "/dnode")
+	r.Log.Info("Dialing remote kite: [%s %s]", r.Kite.Name, r.Kite.URL.String())
+	return r.client.Dial(r.Kite.URL.String())
 }
 
 // Dial connects to the remote Kite. If it can't connect, it retries indefinitely.
-func (r *RemoteKite) DialForever() {
-	addr := r.Kite.Addr()
-	r.Log.Info("Dialing remote kite: [%s %s]", r.Kite.Name, addr)
-	r.client.DialForever("ws://" + addr + "/dnode")
+func (r *RemoteKite) DialForever() error {
+	r.Log.Info("Dialing remote kite: [%s %s]", r.Kite.Name, r.Kite.URL.String())
+	return r.client.DialForever(r.Kite.URL.String())
 }
 
 func (r *RemoteKite) Close() {
@@ -216,7 +246,7 @@ func wrapMethodArgs(args []interface{}, tr dnode.Transport) []interface{} {
 	r := tr.Properties()["remoteKite"].(*RemoteKite)
 
 	responseCallback := args[len(args)-1].(Callback) // last item
-	args = args[:len(args)-1]                        // previout items
+	args = args[:len(args)-1]                        // previous items
 
 	options := callOptionsOut{
 		WithArgs:         args,
@@ -361,7 +391,7 @@ func (r *RemoteKite) makeResponseCallback(doneChan chan *response, removeCallbac
 		// Notify that the callback is finished.
 		defer func() {
 			if resp.Err != nil {
-				r.Log.Warning("Error in remote Kite: %s", resp.Err.Error())
+				r.Log.Warning("Error received from remote Kite: %s", resp.Err.Error())
 				doneChan <- &response{resp.Result, resp.Err}
 			} else {
 				doneChan <- &response{resp.Result, nil}
