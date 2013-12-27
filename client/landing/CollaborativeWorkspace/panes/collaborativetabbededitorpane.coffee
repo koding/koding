@@ -38,8 +38,6 @@ class CollaborativeTabbedEditorPane extends CollaborativePane
       return if snapshot.val() is null
       @tabView.showPaneByIndex snapshot.val()
 
-    @workspaceRef.onDisconnect().remove()  if @workspace.amIHost()
-
   getActivePaneEditor: ->
     return @editors[@getActivePaneIndex()] or null
 
