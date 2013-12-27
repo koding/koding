@@ -1,0 +1,205 @@
+{
+  "name": "activity@2x",
+  "checksum": "88fc2c33bccebe06378ae6ad3bff3ef5",
+  "shortsum": "88fc2",
+  "images": [
+    {
+      "name": "blogpost-icon",
+      "filename": "blogpost-icon.png",
+      "checksum": "056b26876e094d4edf599a5a7ec28402",
+      "width": 42,
+      "height": 42,
+      "positionX": 0,
+      "positionY": 0
+    },
+    {
+      "name": "chevron-icon",
+      "filename": "chevron-icon.png",
+      "checksum": "1799e79858325951f87f0d5c805fe566",
+      "width": 42,
+      "height": 42,
+      "positionX": 0,
+      "positionY": 44
+    },
+    {
+      "name": "codesnip-icon",
+      "filename": "codesnip-icon.png",
+      "checksum": "f03396d7435434a366fb890cdc78630b",
+      "width": 52,
+      "height": 34,
+      "positionX": 0,
+      "positionY": 88
+    },
+    {
+      "name": "cog-icon",
+      "filename": "cog-icon.png",
+      "checksum": "d9aca975002faa37099240813cc1225e",
+      "width": 30,
+      "height": 30,
+      "positionX": 0,
+      "positionY": 124
+    },
+    {
+      "name": "comment-icon",
+      "filename": "comment-icon.png",
+      "checksum": "4e40904e6ea7c08ee05e5854328ee25a",
+      "width": 26,
+      "height": 26,
+      "positionX": 0,
+      "positionY": 156
+    },
+    {
+      "name": "delete-icon",
+      "filename": "delete-icon.png",
+      "checksum": "eb1e2d820ad7c78d02ffba3d959bec82",
+      "width": 32,
+      "height": 32,
+      "positionX": 0,
+      "positionY": 184
+    },
+    {
+      "name": "edit-icon",
+      "filename": "edit-icon.png",
+      "checksum": "b76bd1c7ff3dc225af14dcb79ef3202f",
+      "width": 32,
+      "height": 32,
+      "positionX": 0,
+      "positionY": 218
+    },
+    {
+      "name": "facebook-16",
+      "filename": "facebook-16.png",
+      "checksum": "cc03890fdc0180b1378ecb4ae7f35b63",
+      "width": 32,
+      "height": 32,
+      "positionX": 0,
+      "positionY": 252
+    },
+    {
+      "name": "facebook-24",
+      "filename": "facebook-24.png",
+      "checksum": "5bcd3da73901fc32e7e53c4e1f480d34",
+      "width": 48,
+      "height": 48,
+      "positionX": 0,
+      "positionY": 286
+    },
+    {
+      "name": "flag-icon",
+      "filename": "flag-icon.png",
+      "checksum": "e45cae3f8433fb3dfbd7f6ebcc7fe104",
+      "width": 28,
+      "height": 32,
+      "positionX": 0,
+      "positionY": 336
+    },
+    {
+      "name": "follow-check",
+      "filename": "follow-check.png",
+      "checksum": "2b87b26451a3948605ab4623bf795bb7",
+      "width": 26,
+      "height": 22,
+      "positionX": 0,
+      "positionY": 370
+    },
+    {
+      "name": "following-check",
+      "filename": "following-check.png",
+      "checksum": "81579542f142bd5b77449c25991a8960",
+      "width": 26,
+      "height": 22,
+      "positionX": 0,
+      "positionY": 394
+    },
+    {
+      "name": "like-icon-liked",
+      "filename": "like-icon-liked.png",
+      "checksum": "dbe722b2fca92773f565b29b69af120b",
+      "width": 26,
+      "height": 26,
+      "positionX": 0,
+      "positionY": 418
+    },
+    {
+      "name": "like-icon",
+      "filename": "like-icon.png",
+      "checksum": "9660ab60fae5f0081a8a9f42c4bdfc9e",
+      "width": 26,
+      "height": 26,
+      "positionX": 0,
+      "positionY": 446
+    },
+    {
+      "name": "link-24",
+      "filename": "link-24.png",
+      "checksum": "76204d1fa4fe760b6788760a9e2a9fcb",
+      "width": 48,
+      "height": 48,
+      "positionX": 0,
+      "positionY": 474
+    },
+    {
+      "name": "linkedin-16",
+      "filename": "linkedin-16.png",
+      "checksum": "f07a4f670796aa3fd2964a02be4fd042",
+      "width": 32,
+      "height": 32,
+      "positionX": 0,
+      "positionY": 524
+    },
+    {
+      "name": "linkedin-24",
+      "filename": "linkedin-24.png",
+      "checksum": "5dc3a488ae436e61a6467d558a3ace9d",
+      "width": 48,
+      "height": 48,
+      "positionX": 0,
+      "positionY": 558
+    },
+    {
+      "name": "share-icon",
+      "filename": "share-icon.png",
+      "checksum": "4331ab6ea9c94b11458319d0a932db25",
+      "width": 26,
+      "height": 26,
+      "positionX": 0,
+      "positionY": 608
+    },
+    {
+      "name": "twitter-16",
+      "filename": "twitter-16.png",
+      "checksum": "fcb3b81c031f3f28e0619c6aa54e6344",
+      "width": 32,
+      "height": 32,
+      "positionX": 0,
+      "positionY": 636
+    },
+    {
+      "name": "twitter-24",
+      "filename": "twitter-24.png",
+      "checksum": "1da057a4337da23ee976493fb7a49043",
+      "width": 48,
+      "height": 48,
+      "positionX": 0,
+      "positionY": 670
+    },
+    {
+      "name": "update-bubble",
+      "filename": "update-bubble.png",
+      "checksum": "a63a4d3528c53df96e0f8f57a8feb548",
+      "width": 32,
+      "height": 32,
+      "positionX": 0,
+      "positionY": 720
+    },
+    {
+      "name": "update-icon",
+      "filename": "update-icon.png",
+      "checksum": "19030d5296345bb0135e0429b5cc26ff",
+      "width": 38,
+      "height": 38,
+      "positionX": 0,
+      "positionY": 754
+    }
+  ]
+}
