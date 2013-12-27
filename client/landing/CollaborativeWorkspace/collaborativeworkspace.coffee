@@ -207,52 +207,6 @@ class CollaborativeWorkspace extends Workspace
     KD.utils.wait 2000, => # check for user is still connected
       @forcedToDisconnect = no
 
-  showDisconnectedModal: ->
-    return if @forcedToDisconnect
-
-    if @amIHost()
-      title   = "Disconnected from remote"
-      content = "It seems, you have been disconnected from Firebase server. You cannot continue this session."
-    else
-      title   = "Host disconnected"
-      content = "It seems, host is disconnected from Firebase server. You cannot continue this session."
-
-    @disconnectedModal = new KDBlockingModalView
-      title            : title
-      appendToDomBody  : no
-      content          : "<p>#{content}</p>"
-      cssClass         : "host-disconnected-modal"
-      overlay          : no
-      width            : 470
-      buttons          :
-        Start          :
-          title        : "Start New Session"
-          callback     : =>
-            @disconnectedModal.destroy()
-            @startNewSession()
-        Join           :
-          title        : "Join Another Session"
-          callback     : =>
-            @disconnectedModal.destroy()
-            @showJoinModal()
-        Exit           :
-          title        : "Exit App"
-          cssClass     : "modal-cancel"
-          callback     : =>
-            @disconnectedModal.destroy()
-            appManager = KD.getSingleton "appManager"
-            appManager.quit appManager.frontApp
-
-    @disconnectedModal.on "KDObjectWillBeDestroyed", =>
-      delete @disconnectedModal
-      @disconnectOverlay.destroy()
-
-    @disconnectOverlay = new KDOverlayView
-      parent           : KD.singletons.mainView.mainTabView.activePane
-      isRemovable      : no
-
-    @container.getDomElement().append @disconnectedModal.getDomElement()
-
   showJoinModal: ->
     options        = @getOptions()
     modal          = new KDModalView
@@ -280,29 +234,6 @@ class CollaborativeWorkspace extends Workspace
     return unless sessionKey
     @joinSession { sessionKey }
     modal.destroy()
-
-  showShareView: (panel, workspace, event) ->
-    button   = KD.instances[event.currentTarget.id]
-    shareUrl = "#{location.origin}/Develop/#{@getOptions().name}?sessionKey=#{@sessionKey}"
-    new JContextMenu
-      cssClass    : "activity-share-popup"
-      type        : "activity-share"
-      delegate    : this
-      x           : button.getX() + 25
-      y           : button.getY() + 25
-      arrow       :
-        placement : "top"
-        margin    : -10
-      lazyLoad    : yes
-    , customView  : new SharePopup {
-        url       : shareUrl
-        shortenURL: false
-        twitter   :
-          text    : "Learn, code and deploy together to powerful VMs - @koding, the dev environment from the future! #{shareUrl}"
-        linkedin  :
-          title   : "Join me @koding!"
-          text    : "Learn, code and deploy together to powerful VMs - @koding, the dev environment from the future! #{shareUrl}"
-      }
 
   createUserListContainer: ->
     @container.addSubView @userListContainer = new KDView
