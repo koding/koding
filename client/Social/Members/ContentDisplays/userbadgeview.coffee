@@ -25,7 +25,7 @@ class UserPropertyList extends KDListView
     # ONLY ADMINS CAN SEE THAT VIEW
     super options, data
 
-  viewAppended:JView::viewAppended
+  viewAppended: JView::viewAppended
   pistachio:->
     """
      <h3>User Properties <span>(staff only)<span></h3>
