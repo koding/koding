@@ -158,7 +158,7 @@ class LoginView extends KDView
       cssClass : "login-form"
       callback : (formData)=>
         @resendEmailConfirmationToken formData
-        KD.track "Login", "ResendEmailConfirmationTokenButtonClicked"
+        KD.mixpanel "Resend email button, click"
 
     @resetForm = new ResetInlineForm
       cssClass : "login-form"

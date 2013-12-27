@@ -569,20 +569,6 @@ module.exports = class JGroup extends Module
   broadcast:(message, event)->
     @constructor.broadcast @slug, message, event
 
-  # this is a temporary feature to display all activities
-  # from public and visible groups in koding group
-  @oldBroadcast = @broadcast
-  @broadcast = (groupSlug, event, message)->
-    return  unless groupSlug
-    if groupSlug isnt "koding" or event isnt "MemberJoinedGroup"
-      @one {slug : groupSlug }, (err, group)=>
-        console.error err  if err
-        return  unless group
-        if group.privacy isnt "private" and group.visibility isnt "hidden"
-          unless event is "MemberJoinedGroup" or event is "FollowHappened"
-            @oldBroadcast.call this, "koding", event, message
-    @oldBroadcast.call this, groupSlug, event, message
-
   changeMemberRoles: permit 'grant permissions',
     success:(client, targetId, roles, callback)->
       remove = []

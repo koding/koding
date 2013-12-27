@@ -23,7 +23,9 @@ class WebTerm.Terminal
     @keyInput = new KDCustomHTMLView
       tagName: 'input'
       cssClass: 'offscreen'
+    # containerView.addSubView @keyInput
     @keyInput.appendToDomBody()
+
     containerView.on 'KDObjectWillBeDestroyed', @keyInput.bound 'destroy'
 
     @currentWidth             = 0

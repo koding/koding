@@ -20,9 +20,9 @@ class ActivityAppView extends KDScrollView
 
     {entryPoint}      = KD.config
     windowController  = KD.singleton 'windowController'
-    HomeKonstructor   = if entryPoint and entryPoint.type isnt 'profile' then GroupHomeView else KDCustomHTMLView
+
     @feedWrapper      = new ActivityListContainer
-    @header           = new HomeKonstructor
+    @header           = new KDCustomHTMLView
     @inputWidget      = new ActivityInputWidget
 
     @tickerBox        = new ActivityTicker

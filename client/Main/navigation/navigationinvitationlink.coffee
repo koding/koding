@@ -23,7 +23,7 @@ class NavigationInviteLink extends KDCustomHTMLView
       else
         new KDNotificationView title: 'Success!'
         modal.destroy()
-        KD.track "Members", "InvitationSentToFriend", formData.recipient
+        KD.mixpanel "Invite friend, success"
 
   viewAppended: JView::viewAppended
 

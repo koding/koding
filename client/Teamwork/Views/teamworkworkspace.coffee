@@ -206,6 +206,11 @@ class TeamworkWorkspace extends CollaborativeWorkspace
         @activityWidget.setInputContent "Would you like to join my Teamwork session? #{url}"
         @showActivityWidget()
         @hideShareButtons()
+        @activityWidget.showForm (err, activity) =>
+          return  err if err
+          @activityWidget.hideForm()
+          @notification.hide()
+          @workspaceRef.child("activityId").set activity.getId()
 
         KD.mixpanel "Teamwork Invite, click", {@sessionKey}
 

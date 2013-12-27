@@ -100,6 +100,11 @@ class TeamworkTabView extends CollaborativePane
             index = @tabView.getPaneIndex pane
             @tabView.showPaneByIndex index
 
+            if pane.terminalView
+              {terminal} = pane.terminalView.webterm
+              terminal.scrollToBottom()
+              terminal.container.trigger 'click'
+
   createElements: ->
     @tabHandleHolder = new ApplicationTabHandleHolder delegate: this
     @tabView         = new ApplicationTabView
@@ -266,6 +271,8 @@ class TeamworkTabView extends CollaborativePane
     terminal = new klass { delegate, sessionKey }
 
     @appendPane_ pane, terminal
+
+    pane.terminalView = terminal
 
     if @amIHost
       terminal.on "WebtermCreated", =>
