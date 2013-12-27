@@ -98,8 +98,13 @@ class MainController extends KDController
     mainView = KD.getSingleton("mainView")
     KD.logout()
     storage = new LocalStorage 'Koding'
+
     KD.remote.api.JUser.logout (err, account, replacementToken)=>
       mainView._logoutAnimation()
+
+      wc = KD.singleton 'windowController'
+      wc.clearUnloadListeners()
+
       KD.utils.wait 1000, ->
         $.cookie 'clientId', replacementToken  if replacementToken
         storage.setValue 'loggingOut', '1'
@@ -186,6 +191,7 @@ class MainController extends KDController
     JUser.authenticateWithOauth formData, (err, result) =>
       return callback err          if err
       return callback err, result  if result.isNewUser
+      return callback err, result  if formData.isUserLoggedIn
 
       @swapAccount result, callback
 

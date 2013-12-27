@@ -61,7 +61,7 @@ __utils.extend __utils,
     $trg.parent().removeClass("show").addClass("hide") if $trg.is(less)
 
   applyTextExpansions: (text, shorten)->
-    return null unless text
+    return "" unless text
 
     text = text.replace /&#10;/g, ' '
 

@@ -18,7 +18,6 @@ class WebTermView extends KDView
     @addSubView @container
 
     @terminal = new WebTerm.Terminal @container
-    # KD.track "userOpenedTerminal", KD.getSingleton("groupsController").getCurrentGroup()
     @options.advancedSettings ?= no
     if @options.advancedSettings
       @advancedSettings = new KDButtonViewWithMenu
@@ -36,9 +35,6 @@ class WebTermView extends KDView
     @terminal.sessionEndedCallback = (sessions) =>
       @emit "WebTerm.terminated"
       @clearConnectionAttempts()
-
-    @terminal.setTitleCallback = (title) =>
-      #@tabPane.setTitle title
 
     @terminal.flushedCallback = =>
       @emit 'WebTerm.flushed'
@@ -74,8 +70,7 @@ class WebTermView extends KDView
       @terminal.updateSize yes
 
   connectToTerminal:->
-
-    @appStorage = KD.getSingleton('appStorageController').storage 'WebTerm', '1.0'
+    @appStorage = KD.getSingleton('appStorageController').storage 'WebTerm', '1.0.1'
     @appStorage.fetchStorage =>
       @appStorage.setValue 'font'      , 'ubuntu-mono' if not @appStorage.getValue('font')?
       @appStorage.setValue 'fontSize'  , 14 if not @appStorage.getValue('fontSize')?
@@ -109,20 +104,15 @@ class WebTermView extends KDView
         @emit "WebTermConnected", remote
         @sessionId = remote.session
 
-    KD.getSingleton("status").once "reconnected", => @handleReconnect()
+    KD.getSingleton("status").on "reconnected", =>
+      @handleReconnect yes
 
-    kiteErrorCallback = (err) =>
+    KD.getSingleton("kiteController").on "KiteError", (err) =>
       @reconnected               = no
       {code, serviceGenericName} = err
 
       if code is 503 and serviceGenericName.indexOf("kite-os") is 0
         @reconnectAttemptFailed serviceGenericName, @_vmName or @getDelegate().getOption "vmName"
-
-    kiteController = KD.getSingleton "kiteController"
-    kiteController.on "KiteError", kiteErrorCallback
-
-    @on "KiteErrorBindingNeedsToBeRemoved", =>
-      kiteController.off "KiteError", kiteErrorCallback
 
   reconnectAttemptFailed: (serviceGenericName, vmName) ->
     return  if @reconnected or not serviceGenericName
@@ -151,17 +141,19 @@ class WebTermView extends KDView
 
     vmController.info @_vmName or @getDelegate().getOption("vmName"), (err, res) =>
       hasResponse = yes
+      return if @reconnected
       @handleReconnect()
       @clearConnectionAttempts()
 
     @utils.wait 500, => @reconnectAttemptFailed() unless hasResponse
 
   clearConnectionAttempts: ->
-    @emit "KiteErrorBindingNeedsToBeRemoved"
     @clearBackoffTimeout()
 
-  handleReconnect: ->
-    return  if @reconnected
+  handleReconnect: (force = no) ->
+    unless force
+      return  if @reconnected
+
     @clearConnectionAttempts()
     options =
       session  : @sessionId
@@ -172,11 +164,8 @@ class WebTermView extends KDView
     @reconnected = yes
 
   reinitializeWebTerm: (options = {}) ->
-    options.delegate = @getDelegate()
-    @addSubView webterm = new WebTermView options
-
-    webterm.on "WebTermConnected", =>
-      @getSubViews().first.destroy() # TODO: refactor this, don't use subviews
+    return  if @reconnected
+    @emit "WebTermNeedsToBeRecovered", options
 
   handleConnectionFailure: ->
     return if @failedToReconnect

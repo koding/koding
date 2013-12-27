@@ -80,7 +80,6 @@ class DashboardAppView extends JView
 
       @nav.addSubView @navController.getView()
 
-    @nav.on "NavItemReceivedClick", ({title})=> @tabs.showPaneByName title
     @tabs.on "PaneDidShow", (pane)=> @navController.selectItemByName pane.name
 
   createTabs:->
@@ -96,11 +95,10 @@ class DashboardAppView extends JView
 
         # Push all items, however if it has 'kodingOnly' push only when the group is really 'koding'
         if not kodingOnly or data.slug is 'koding'
-          navItems.push {title: name, type: if hiddenHandle then 'hidden' else null}
-
+          navItems.push {title : name, slug : "/Dashboard/#{name}", type : if hiddenHandle then 'hidden' else null}
 
       @navController.replaceAllItems navItems
-      @navController.selectItem @navController.itemsOrdered.first
+      @nav.emit "ready"
 
   pistachio:->
     """

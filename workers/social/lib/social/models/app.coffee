@@ -64,6 +64,10 @@ module.exports = class JNewApp extends jraphical.Module
           (signature Object, Function)
           (signature Object, Object, Function)
         ]
+        byRelevance     : [
+          (signature String, Function)
+          (signature String, Object, Function)
+        ]
 
     permissions         :
 
@@ -158,6 +162,23 @@ module.exports = class JNewApp extends jraphical.Module
   @getAuthorType =-> JAccount
 
   capitalize = (str)-> str.charAt(0).toUpperCase() + str.slice(1)
+
+  @findSuggestions = (client, seed, options, callback)->
+    {limit, blacklist, skip}  = options
+    names = seed.toString().split('/')[1].replace('^','')
+    @some {
+      $or : [
+          ( 'name'  : new RegExp names, 'i' )
+          ( 'title' : new RegExp names, 'i' )
+        ]
+      _id     :
+        $nin  : blacklist
+      },{skip, limit}, callback
+
+
+  @byRelevance$ = permit 'list apps',
+    success: (client, seed, options, callback)->
+      @byRelevance client, seed, options, callback
 
   @create = permit 'create apps',
 

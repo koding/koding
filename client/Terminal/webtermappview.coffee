@@ -174,6 +174,11 @@ class WebTermAppView extends JView
     @tabView.addPane pane
     pane.addSubView webTermView
 
+    webTermView.on "WebTermNeedsToBeRecovered", (options) =>
+      options.delegate = this
+      pane.destroySubViews()
+      pane.addSubView new WebTermView options
+
     # webTermView.once 'KDObjectWillBeDestroyed', => @tabView.removePane pane
 
   addNewTab: (vmName)->

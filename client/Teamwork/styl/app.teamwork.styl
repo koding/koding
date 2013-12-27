@@ -52,8 +52,7 @@ app.teamwork.styl
   .kdsplitview-resizer.vertical
     display                     none
   .kdtabhandle-tabs
-    top                         18px
-    position                    relative
+    margin-top                  18px
   .previewer-body
     .kdinput
       font-size                 13px !important
@@ -68,12 +67,13 @@ app.teamwork.styl
   .CodeMirror-gutters
     border-right                none
 
-.teamwork-loader
-  size                          204px, 324px
+.tw-loader
+  size                          133px, 133px
   left                          50%
   position                      relative
-  margin                        -162px 0 0 -102px
+  margin                        -67px 0 0 -67px
   top                           50%
+  sprite                        teamwork "teampunk-big"
 
 .powered-by-firepad
   display                       none
@@ -181,26 +181,13 @@ app.teamwork.styl
   text-transform                uppercase
   color                         #666 !important
   text-shadow                   0 1px 0 #FFF !important
+
 .tw-live-update
   position                      absolute
   top                           11px
   right                         120px
   span
     font-size                   11px
-
-.broadcasting
-  .tw-user-avatars
-    margin-top                  -19px
-
-.tw-user-avatars
-  float                         right
-  overflow                      hidden
-  .avatarview
-    float                       left
-    margin                      5px 5px 5px 0
-    vendor                      transition, opacity .6s ease-in-out
-    &.fade-out
-      opacity                   0
 
 .tw-terminal-splash
   background                    #FFF
@@ -332,7 +319,6 @@ app.teamwork.styl
   position                      relative
   .loading
     font-size                   22px
-    font-weight                 bold
     text-align                  center
     height                      30px
     top                         50%
@@ -413,8 +399,8 @@ app.teamwork.styl
     width                       84px
     margin-left                 416px
   .tw-export-button
-    margin                      0 0 0 258px
-    width                       232px
+    margin                      0 0 0 380px
+    width                       110px
     color                       #FFF
   .nfinder
     height                      150px
@@ -459,10 +445,17 @@ app.teamwork.styl
       background-color          #282F31
       border-radius             6px 6px 0 0
 
-.tw-bot-message
-  .avatarview
-    sprite                      teamwork, "teampunk"
+.tw-bot-avatar
+  sprite                        teamwork, "teampunk"
+  size                          30px, 30px
+  fl()
 
+.tw-tab-avatar-img
+  abs()
+  display                       block
+  top                           8px
+  right                         5px
+  rounded                       20px
 .tw-tab-avatar-img-context
   top                           5px
   right                         5px
@@ -601,26 +594,32 @@ app.teamwork.styl
             border-radius       0
 
 .tw-users
-  bg                            color, #ededed
-  padding                       5px
-  font-size                     13px
+  bg                            color, #282F31
+  border-left                   11px solid #191F21
+  border-bottom                 11px solid #191F21
+  padding                       15px
+  height                        52px
   overflow                      hidden
-  &.has-user
-    p
-      display                   none
-    .avatarview
-      fl()
-      margin-right              4px
-      &.watching
-        border                  2px solid green
-        box-sizing              border-box
+  p
+    color                       #1fcd6e
+    font-size                   12px
+  .avatarview
+    fl()
+    margin                      10px 9px 0 0
+    rounded                     3px
+    &.watching
+      border                    2px solid #1fcd6e
+      box-sizing                border-box
+      background-position       -2px -2px
+  .tw-bot-avatar
+    margin                      10px 9px 0 0
 
 .tw-chat
   width                         280px
   kalc                          height, 100% \- 58px
   bg                            color, #1B2224
   .messages
-    kalc                        height, 100% \- 111px
+    kalc                        height, 100% \- 171px
 
 .tw-chat-open
   .application-tabview
@@ -629,3 +628,31 @@ app.teamwork.styl
 .teamwork
   .previewer-body
     width                       auto
+
+.tw-embed-image
+  max-width                     240px
+
+.tw-chat
+  .tw-chat-item a
+    color                       #676f71
+  .tw-chat-message,
+  .tw-chat-body
+    line-height                 16px
+  .tw-chat-media
+    margin                      4px 0
+  .tw-chat-para
+    margin-bottom               3px
+
+.pulsing
+  vendor              transition, margin .6s ease-in-out //\, opacity .3s ease-in-out
+  vendor              animation, pulse 1.5s ease-in-out 100
+  &.out
+    opacity           0
+    vendor            animation, pulse-to-fade-out .75s ease-in-out
+    vendor            animation-iteration-count, 1
+
+@keyframes pulse-to-fade-out
+  0%
+    opacity 1
+  100%
+    opacity 0

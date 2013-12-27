@@ -235,6 +235,8 @@ class ActiveUserItemView extends KDListItemView
             cssClass   : 'following-account'
         dataType       : 'JAccount'
       , data
+    else
+      @actor.setDisplayName "You"
 
   viewAppended:->
     @addSubView @avatar

@@ -73,6 +73,7 @@ class NotificationListItem extends KDListItemView
 
   activityNameMap =
     JNewStatusUpdate   : "your status update."
+    JStatusUpdate   : "your status update."
     JCodeSnip       : "your status update."
     JAccount        : "started following you."
     JPrivateMessage : "your private message."
@@ -196,6 +197,9 @@ class NotificationListItem extends KDListItemView
         appManager.tell 'Inbox', "goToMessages"
       when "JComment", "JReview", "JOpinion"
         KD.remote.api[@snapshot.anchor.constructorName]?.fetchRelated @snapshot.anchor.id, showPost
+      when "JAccount"
+        KD.remote.api.JAccount.one _id : @snapshot.group[0].id, (err, account)->
+          KD.getSingleton('router').handleRoute "/#{account.profile.nickname}"
       when "JGroup"
         # do nothing
       else
