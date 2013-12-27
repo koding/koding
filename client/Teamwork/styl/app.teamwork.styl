@@ -640,3 +640,19 @@ app.teamwork.styl
     line-height                 16px
   .tw-chat-media
     margin                      4px 0
+  .tw-chat-para
+    margin-bottom               3px
+
+.pulsing
+  vendor              transition, margin .6s ease-in-out //\, opacity .3s ease-in-out
+  vendor              animation, pulse 1.5s ease-in-out 100
+  &.out
+    opacity           0
+    vendor            animation, pulse-to-fade-out .75s ease-in-out
+    vendor            animation-iteration-count, 1
+
+@keyframes pulse-to-fade-out
+  0%
+    opacity 1
+  100%
+    opacity 0

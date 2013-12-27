@@ -293,3 +293,9 @@ class TeamworkWorkspace extends CollaborativeWorkspace
         @activityWidget.hideForm()
         @notification.hide()
         @workspaceRef.child("activityId").set activity.getId()
+
+  createLoader: ->
+    @loader    = new KDView
+      cssClass : "tw-loader pulsing"
+
+    @container.addSubView @loader
