@@ -312,9 +312,9 @@ class KodingRouter extends KDRouter
               new KDNotificationView
                 title: 'Invalid invitation code!'
           else
-            warn "FIXME Add tell to Login app ~ GG @ kodingrouter"
-            # mainController.loginScreen.headBannerShowInvitation invite
-          @clear "/"
+            appManager = KD.getSingleton "appManager"
+            appManager.open 'Login', (app) =>
+              app.headBannerShowInvitation invite
 
       '/:name?/InviteFriends': ->
         if KD.isLoggedIn()
