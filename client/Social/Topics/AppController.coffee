@@ -3,6 +3,7 @@ class TopicsAppController extends AppController
   KD.registerAppClass this,
     name         : "Topics"
     route        : "/:name?/Topics"
+    searchRoute  : "/Topics?q=:text:"
     hiddenHandle : yes
 
   constructor:(options = {}, data)->
@@ -89,7 +90,7 @@ class TopicsAppController extends AppController
 
   loadView:(mainView, firstRun = yes, loadFeed = no)->
     if firstRun
-      mainView.on "searchFilterChanged", (value) =>
+      @on "searchFilterChanged", (value) =>
         return if value is @_searchValue
         @_searchValue = Encoder.XSSEncode value
         @_lastSubview.destroy?()
@@ -221,3 +222,13 @@ class TopicsAppController extends AppController
         callback? tags
       else
         warn "there was an error fetching topics #{err.message}"
+
+  # TODO ~ fix direct opening of topic links with query
+  handleQuery:(query)->
+    @ready =>
+      {q} = query
+      if q
+        @emit "searchFilterChanged", q
+      else
+        @emit "searchFilterChanged", ""
+        super query

@@ -196,7 +196,7 @@ class TeamworkApp extends KDObject
           folder.exists (err, exists) =>
             return @setUpImport contentUrl, manifestVersion, playground  unless exists
 
-            appStorage  = KD.getSingleton("appStorageController").storage "Teamwork", "1.0"
+            appStorage  = KD.getSingleton("appStorageController").storage "Teamwork", "1.0.1"
             appStorage.fetchStorage (storage) =>
               currentVersion  = appStorage.getValue "#{playground}PlaygroundVersion"
               hasNewVersion   = KD.utils.versionCompare manifestVersion, "gt", currentVersion
@@ -216,7 +216,7 @@ class TeamworkApp extends KDObject
     @showImportWarning url, =>
       @teamwork.emit "ContentIsReady"
       @teamwork.importModalContent = no
-      appStorage = KD.getSingleton("appStorageController").storage "Teamwork", "1.0"
+      appStorage = KD.getSingleton("appStorageController").storage "Teamwork", "1.0.1"
       appStorage.setValue "#{playground}PlaygroundVersion", version
 
   doCurlRequest: (path, callback = noop) ->
