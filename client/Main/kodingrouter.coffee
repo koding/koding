@@ -298,23 +298,7 @@ class KodingRouter extends KDRouter
       '/:name/Likes'           : createContentHandler 'Members', yes
 
       '/:name?/Invitation/:inviteCode': ({params:{inviteCode, name}})=>
-        inviteCode = decodeURIComponent inviteCode
-        if KD.isLoggedIn()
-          KD.remote.cacheable name, (err, [group])=>
-            group.redeemInvitation inviteCode, (err)=>
-              return KD.notify_ err.message or err  if err
-              KD.notify_ 'Success!'
-              KD.getSingleton('mainController').accountChanged KD.whoami()
-        else KD.remote.api.JInvitation.byCode inviteCode, (err, invite)=>
-          if err or !invite? or invite.status not in ['active','sent']
-            unless KD.isLoggedIn()
-              if err then error err
-              new KDNotificationView
-                title: 'Invalid invitation code!'
-          else
-            appManager = KD.getSingleton "appManager"
-            appManager.open 'Login', (app) =>
-              app.headBannerShowInvitation invite
+        @handleRoute "/Redeem/#{inviteCode}"
 
       '/:name?/InviteFriends': ->
         if KD.isLoggedIn()
