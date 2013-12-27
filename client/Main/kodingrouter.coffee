@@ -60,7 +60,7 @@ class KodingRouter extends KDRouter
         KD.utils.defer => @handleRoute route, options
 
     {entryPoint} = options
-    if entryPoint?.slug? and entryPoint.type is "group"
+    if entryPoint?.slug and entryPoint.type is "group"
       entrySlug = "/" + entryPoint.slug
       # if incoming route is prefixed with groupname or entrySlug is the route
       # also we dont want koding as group name
