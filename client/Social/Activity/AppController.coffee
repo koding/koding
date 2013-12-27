@@ -269,7 +269,6 @@ class ActivityAppController extends AppController
         and KD.prefetchedFeeds \
         # if current user is exempt, fetch from db, not from cache
         and not KD.whoami().isExempt
-
       group  = KD.getSingleton("groupsController").getCurrentGroup()
       feedId = "#{group.slug}-activity.main"
       prefetchedActivity = KD.prefetchedFeeds[feedId]
@@ -279,7 +278,6 @@ class ActivityAppController extends AppController
       if prefetchedActivity and (feedId not in USEDFEEDS)
         log "exhausting feed:", feedId
         USEDFEEDS.push feedId
-
         # update this function
         messages = @prepareCacheForListing prefetchedActivity
         @emit "publicFeedFetched_#{eventSuffix}", messages
