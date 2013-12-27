@@ -12,11 +12,8 @@ var (
 
 func GetStatusUpdateById(id string) (*models.StatusUpdate, error) {
 	statusUpdate := new(models.StatusUpdate)
-	if err := mongodb.One(POST_COLL, id, statusUpdate); err != nil {
-		return nil, err
-	}
 
-	return statusUpdate, nil
+	return statusUpdate, mongodb.One(POST_COLL, id, statusUpdate)
 }
 
 func UpdateStatusUpdate(s *models.StatusUpdate) error {

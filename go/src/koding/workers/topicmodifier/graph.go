@@ -34,15 +34,15 @@ func init() {
 	PUBLISHER.RegisterSignalHandler()
 }
 
-func CreateGraphRelationship(relationship *Relationship) {
-	updateRelationship(relationship, "RelationshipSaved")
+func CreateGraphRelationship(relationship *Relationship) error {
+	return updateRelationship(relationship, "RelationshipSaved")
 }
 
-func RemoveGraphRelationship(relationship *Relationship) {
-	updateRelationship(relationship, "RelationshipRemoved")
+func RemoveGraphRelationship(relationship *Relationship) error {
+	return updateRelationship(relationship, "RelationshipRemoved")
 }
 
-func updateRelationship(relationship *Relationship, event string) {
+func updateRelationship(relationship *Relationship, event string) error {
 	data := make([]Relationship, 1)
 	data[0] = *relationship
 	eventData := map[string]interface{}{"event": event, "payload": data}
@@ -50,8 +50,8 @@ func updateRelationship(relationship *Relationship, event string) {
 	neoMessage, err := json.Marshal(eventData)
 
 	if err != nil {
-		log.Error("unmarshall error")
-		return
+		log.Error("unmarshall error - %v", err)
+		return err
 	}
 
 	message := amqp.Publishing{
@@ -65,5 +65,7 @@ func updateRelationship(relationship *Relationship, event string) {
 	err = PUBLISHER.Publish(message)
 	if err != nil {
 		log.Error(err.Error())
+		return err
 	}
+	return nil
 }

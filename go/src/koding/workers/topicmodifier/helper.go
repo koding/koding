@@ -7,36 +7,54 @@ import (
 )
 
 // hard delete.
-func DeleteStatusUpdate(id string) {
+func DeleteStatusUpdate(id string) error {
 
-	RemoveComments(id)
-	RemovePostRelationships(id)
-	err := helper.DeleteStatusUpdateById(id)
+	err := RemoveComments(id)
 	if err != nil {
 		log.Error("Empty Status Update Cannot be deleted")
-		return
+		return err
+	}
+
+	err = RemovePostRelationships(id)
+	if err != nil {
+		log.Error("Empty Status Update Cannot be deleted")
+		return err
+	}
+
+	err = helper.DeleteStatusUpdateById(id)
+	if err != nil {
+		log.Error("Empty Status Update Cannot be deleted")
+		return err
 	}
 
 	log.Info("Deleted Empty Status Update")
+	return nil
 }
 
 //Creates Relationships both in mongo and neo4j
-func CreateRelationship(relationship *Relationship) {
-	CreateGraphRelationship(relationship)
+func CreateRelationship(relationship *Relationship) error {
+	err := CreateGraphRelationship(relationship)
+	if err != nil {
+		return err
+	}
 	log.Debug("Add Mongo Relationship")
-	helper.AddRelationship(relationship)
+	return helper.AddRelationship(relationship)
 }
 
 //Removes Relationships both from mongo and neo4j
-func RemoveRelationship(relationship *Relationship) {
-	RemoveGraphRelationship(relationship)
+func RemoveRelationship(relationship *Relationship) error {
+	err := RemoveGraphRelationship(relationship)
+	if err != nil {
+		return err
+	}
+
 	selector := helper.Selector{
 		"sourceId": relationship.SourceId,
 		"targetId": relationship.TargetId,
 		"as":       relationship.As,
 	}
 	log.Debug("Delete Mongo Relationship")
-	helper.DeleteRelationship(selector)
+	return helper.DeleteRelationship(selector)
 }
 
 //Finds synonym of a given tag by tagId
@@ -55,7 +73,10 @@ func RemoveComments(id string) error {
 	selector := helper.Selector{"targetId": objectId, "sourceName": "JComment"}
 
 	removedNodeIds := make([]bson.ObjectId, 0)
-	rels := helper.GetRelationships(selector)
+	rels, err := helper.GetRelationships(selector)
+	if err != nil {
+		return err
+	}
 	for _, rel := range rels {
 		RemoveRelationship(&rel)
 		removedNodeIds = append(removedNodeIds, rel.SourceId)
@@ -63,26 +84,36 @@ func RemoveComments(id string) error {
 
 	//remove comment relationships with opposite orientation
 	selector = helper.Selector{"targetId": helper.Selector{"$in": removedNodeIds}}
-	RemoveRelationships(selector)
+	err = RemoveRelationships(selector)
+	if err != nil {
+		return err
+	}
 
 	selector = helper.Selector{"_id": helper.Selector{"$in": removedNodeIds}}
 	return helper.DeleteComment(selector)
 }
 
-func RemovePostRelationships(id string) {
+func RemovePostRelationships(id string) error {
 	objectId := helper.GetObjectId(id)
 	// remove post relationships
 	selector := helper.Selector{"$or": []helper.Selector{
 		helper.Selector{"sourceId": objectId},
 		helper.Selector{"targetId": objectId},
 	}}
-	RemoveRelationships(selector)
-
+	return RemoveRelationships(selector)
 }
 
-func RemoveRelationships(selector helper.Selector) {
-	rels := helper.GetRelationships(selector)
-	for _, rel := range rels {
-		RemoveRelationship(&rel)
+func RemoveRelationships(selector helper.Selector) error {
+	rels, err := helper.GetRelationships(selector)
+	if err != nil {
+		return err
 	}
+
+	for _, rel := range rels {
+		err = RemoveRelationship(&rel)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }

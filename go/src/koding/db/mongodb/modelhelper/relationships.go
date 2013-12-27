@@ -6,16 +6,16 @@ import (
 	"labix.org/v2/mgo"
 )
 
-func GetRelationships(selector Selector) []models.Relationship {
+func GetRelationships(selector Selector) ([]models.Relationship, error) {
 	relationships := make([]models.Relationship, 0)
 
 	query := func(c *mgo.Collection) error {
 		return c.Find(selector).All(&relationships)
 	}
 
-	mongodb.Run("relationships", query)
+	err := mongodb.Run("relationships", query)
 
-	return relationships
+	return relationships, err
 }
 
 func GetRelationship(selector Selector) (models.Relationship, error) {
@@ -25,11 +25,9 @@ func GetRelationship(selector Selector) (models.Relationship, error) {
 		return c.Find(selector).One(&relationship)
 	}
 
-	if err := mongodb.Run("relationships", query); err != nil {
-		return relationship, err
-	}
+	err := mongodb.Run("relationships", query)
 
-	return relationship, nil
+	return relationship, err
 
 }
 
@@ -43,10 +41,7 @@ func DeleteRelationship(selector Selector) error {
 
 func AddRelationship(r *models.Relationship) error {
 	query := func(c *mgo.Collection) error {
-		if err := c.Insert(r); err != nil {
-			return err
-		}
-		return nil
+		return c.Insert(r)
 	}
 
 	return mongodb.Run("relationships", query)

@@ -118,7 +118,12 @@ func deleteTags(tagId string) {
 	log.Info("Deleting %s", tag.Title)
 	selector := helper.Selector{"targetId": helper.GetObjectId(tagId), "as": "tag"}
 
-	rels := helper.GetRelationships(selector)
+	rels, err := helper.GetRelationships(selector)
+	// remove panic
+	if err != nil {
+		panic(err)
+	}
+
 	updatePosts(rels, "")
 	updateTagRelationships(rels, &Tag{})
 
@@ -146,7 +151,11 @@ func mergeTags(tagId string) {
 	log.Info("Merging Topic %s into %s", tag.Title, synonym.Title)
 
 	selector := helper.Selector{"targetId": helper.GetObjectId(tagId), "as": "tag"}
-	tagRels := helper.GetRelationships(selector)
+	tagRels, err := helper.GetRelationships(selector)
+	// remove panic
+	if err != nil {
+		panic(err)
+	}
 
 	taggedPostCount := len(tagRels)
 	log.Info("%v tagged posts found", taggedPostCount)
@@ -262,7 +271,12 @@ func updateFollowers(tag *Tag, synonym *Tag) int {
 		"targetName": "JAccount",
 	}
 
-	rels := helper.GetRelationships(selector)
+	rels, err := helper.GetRelationships(selector)
+	// remove panic
+	if err != nil {
+		panic(err)
+	}
+
 	var oldFollowers []Relationship
 	var newFollowers []Relationship
 
