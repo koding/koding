@@ -133,3 +133,12 @@ class TeamworkChatPane extends ChatPane
         nickname: "teamwork"
 
     @sendMessage messageData, yes
+
+  sendWelcomeMessage: ->
+    message = """
+      Hello earthling! My name is TBot. I love keyboard commands.
+      I can bring others to work with you from far far away.
+      For a list of things that I can help you with, type 'help'
+    """
+    @botReply message
+
