@@ -44,8 +44,6 @@ class CollaborativeFinderPane extends CollaborativePane
 
       editorPane.openFile file, content
 
-    @workspaceRef.onDisconnect().remove()  if @workspace.amIHost()
-
     @finderController.reset()  unless @workspace.getOptions().playground
 
     @finderController.treeController.on "HistoryItemCreated", (historyItem) =>
