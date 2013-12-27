@@ -37,7 +37,7 @@ class TeamworkWorkspace extends CollaborativeWorkspace
       @sendSystemMessage data
 
     KD.singleton("windowController").addUnloadListener "window", =>
-      @workspaceRef.remove()
+      @workspaceRef.remove()  if @amIHost()
 
     @chatView.sendWelcomeMessage()  if @amIHost()
 
@@ -121,9 +121,9 @@ class TeamworkWorkspace extends CollaborativeWorkspace
     else
       Panel::showHintModal.call @getActivePanel()
 
-  manageUserAvatars: (userStatus) ->
-    for own nickname, status of userStatus
-      if status is "online"
+  manageUserAvatars: (users) ->
+    for own nickname, data of users
+      if data.status is "online"
         unless @avatars[nickname]
           @createUserAvatar @users[nickname]
       else
@@ -139,8 +139,8 @@ class TeamworkWorkspace extends CollaborativeWorkspace
 
     avatarView   = new AvatarStaticView
       size       :
-        width    : 25
-        height   : 25
+        width    : 30
+        height   : 30
       tooltip    :
         title    : followText
       click      : =>
@@ -176,11 +176,9 @@ class TeamworkWorkspace extends CollaborativeWorkspace
 
   removeUserAvatar: (nickname) ->
     avatarView = @avatars[nickname]
-    avatarView.setClass "fade-out"
-    avatarView.once "transitionend", =>
-      avatarView.destroy()
-      delete @avatars[nickname]
-      @avatarsView.unsetClass "has-user" if @avatars.length is 0
+    avatarView.destroy()
+    delete @avatars[nickname]
+    @avatarsView.unsetClass "has-user" if @avatars.length is 0
 
   sendSystemMessage: (messageData) ->
     return unless @getOptions().enableChat
