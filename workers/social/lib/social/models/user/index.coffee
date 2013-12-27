@@ -336,7 +336,7 @@ module.exports = class JUser extends jraphical.Module
 
   checkUserStatus = (user, account, callback)->
     if user.status is 'unconfirmed' and KONFIG.emailConfirmationCheckerWorker.enabled
-      error = createKodingError "CONFIRMATION_WAITING"
+      error = createKodingError "You should confirm your email address"
       error.code = 403
       error.data or= {}
       error.data.name = account.profile.firstName or account.profile.nickname
