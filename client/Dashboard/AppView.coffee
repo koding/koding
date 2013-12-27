@@ -98,6 +98,7 @@ class DashboardAppView extends JView
           navItems.push {title : name, slug : "/Dashboard/#{name}", type : if hiddenHandle then 'hidden' else null}
 
       @navController.replaceAllItems navItems
+      @navController.selectItem @navController.itemsOrdered.first
       @nav.emit "ready"
 
   pistachio:->
