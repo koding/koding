@@ -3,23 +3,14 @@ class TerminalPane extends Pane
   constructor: (options = {}, data) ->
 
     options.cssClass  = "terminal-pane terminal"
-    options.delay    ?= if location.hostname is "localhost" then 100 else 10000
+    options.delay    ?= 0
 
     super options, data
 
-    @container = new KDView
-      cssClass : "tw-terminal-splash"
-      partial  : "<p>Preparing your VM...</p>"
-
-    # we need to wait vm startup for guest users
-    KD.utils.wait options.delay, =>
-      @createWebTermView()
-      @webterm.on "WebTermConnected", (@remote) =>
-        @emit "WebtermCreated"
-        @onWebTermConnected()
-
-      @container.destroy()
-      @addSubView @webterm
+    @createWebTermView()
+    @webterm.on "WebTermConnected", (@remote) =>
+      @emit "WebtermCreated"
+      @onWebTermConnected()
 
   createWebTermView: ->
     @webterm           = new WebTermView
@@ -47,5 +38,5 @@ class TerminalPane extends Pane
   pistachio: ->
     """
       {{> @header}}
-      {{> @container}}
+      {{> @webterm}}
     """
