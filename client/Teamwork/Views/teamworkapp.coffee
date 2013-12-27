@@ -1,6 +1,6 @@
 class TeamworkApp extends KDObject
 
-  instanceName = if location.hostname is "localhost" then "tw-local" else "kd-prod-1"
+  instanceName = if location.hostname.indexOf("local") > -1 then "tw-local" else "kd-prod-1"
 
   constructor: (options = {}, data) ->
     options.query or= {}
