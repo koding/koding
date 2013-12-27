@@ -1,13 +1,15 @@
 package rpc
 
 import (
-	"code.google.com/p/go.net/websocket"
 	"errors"
 	"koding/newkite/dnode"
+	"net/url"
+	"sync"
 	"time"
+
+	"code.google.com/p/go.net/websocket"
 )
 
-const origin = "http://localhost"
 const redialDurationStart = 1 * time.Second
 const redialDurationMax = 60 * time.Second
 
@@ -31,14 +33,14 @@ type Client struct {
 	// Websocket connection
 	Conn *websocket.Conn
 
+	// Websocket connection options.
+	Config *websocket.Config
+
 	// Dnode message processor.
 	dnode *dnode.Dnode
 
 	// A space for saving/reading extra properties about this client.
 	properties map[string]interface{}
-
-	// Dialled URL, used to re-connect again.
-	url string
 
 	// Should we reconnect if disconnected?
 	Reconnect bool
@@ -50,24 +52,39 @@ type Client struct {
 	// connect/disconnect.
 	onConnectHandlers    []func()
 	onDisconnectHandlers []func()
+
+	// For protecting access over OnConnect and OnDisconnect handlers.
+	m sync.RWMutex
 }
 
 // NewClient returns a pointer to new Client.
 // You need to call Dial() before interacting with the Server.
 func NewClient() *Client {
+	// Must send an "Origin" header. Does not checked on server.
+	origin, _ := url.Parse("")
+
+	config := &websocket.Config{
+		Version: websocket.ProtocolVersionHybi13,
+		Origin:  origin,
+		// Location will be set when dialing.
+	}
+
 	c := &Client{
 		properties:     make(map[string]interface{}),
 		redialDuration: redialDurationStart,
+		Config:         config,
 	}
+
 	c.dnode = dnode.New(c)
 	return c
 }
 
-func (c *Client) SetWrappers(wrapMethodArgs, wrapCallbackArgs dnode.Wrapper, runMethod, runCallback dnode.Runner) {
+func (c *Client) SetWrappers(wrapMethodArgs, wrapCallbackArgs dnode.Wrapper, runMethod, runCallback dnode.Runner, onError func(error)) {
 	c.dnode.WrapMethodArgs = wrapMethodArgs
 	c.dnode.WrapCallbackArgs = wrapCallbackArgs
 	c.dnode.RunMethod = runMethod
 	c.dnode.RunCallback = runCallback
+	c.dnode.OnError = onError
 }
 
 // Dial connects to the dnode server on "url" and starts a goroutine
@@ -75,20 +92,25 @@ func (c *Client) SetWrappers(wrapMethodArgs, wrapCallbackArgs dnode.Wrapper, run
 //
 // Do not forget to register your handlers on Client.Dnode
 // before calling Dial() to prevent race conditions.
-func (c *Client) Dial(url string) error {
-	c.url = url
-	err := c.dial()
-	if err != nil {
+func (c *Client) Dial(serverURL string) error {
+	var err error
+
+	if c.Config.Location, err = url.Parse(serverURL); err != nil {
+		return err
+	}
+
+	if err = c.dial(); err != nil {
 		return err
 	}
 
 	go c.run()
+
 	return nil
 }
 
 // dial makes a single Dial() and run onConnectHandlers if connects.
 func (c *Client) dial() error {
-	ws, err := websocket.Dial(c.url, "", origin)
+	ws, err := websocket.DialConfig(c.Config)
 	if err != nil {
 		return err
 	}
@@ -108,9 +130,14 @@ func (c *Client) dial() error {
 
 // DialForever connects to the server in background.
 // If the connection drops, it reconnects again.
-func (c *Client) DialForever(url string) {
-	c.url = url
+func (c *Client) DialForever(serverURL string) (err error) {
+	if c.Config.Location, err = url.Parse(serverURL); err != nil {
+		return
+	}
+
 	go c.dialForever()
+
+	return
 }
 
 func (c *Client) dialForever() {
@@ -203,24 +230,38 @@ func (c *Client) Call(method string, args ...interface{}) (map[string]dnode.Path
 
 // OnConnect registers a function to run on client connect.
 func (c *Client) OnConnect(handler func()) {
+	c.m.Lock()
 	c.onConnectHandlers = append(c.onConnectHandlers, handler)
+	c.m.Unlock()
 }
 
 // OnDisconnect registers a function to run on client disconnect.
 func (c *Client) OnDisconnect(handler func()) {
+	c.m.Lock()
 	c.onDisconnectHandlers = append(c.onDisconnectHandlers, handler)
+	c.m.Unlock()
 }
 
 // callOnConnectHandlers runs the registered connect handlers.
 func (c *Client) callOnConnectHandlers() {
+	c.m.RLock()
 	for _, handler := range c.onConnectHandlers {
-		go handler()
+		func() {
+			defer recover()
+			handler()
+		}()
 	}
+	c.m.RUnlock()
 }
 
 // callOnDisconnectHandlers runs the registered disconnect handlers.
 func (c *Client) callOnDisconnectHandlers() {
+	c.m.RLock()
 	for _, handler := range c.onDisconnectHandlers {
-		go handler()
+		func() {
+			defer recover()
+			handler()
+		}()
 	}
+	c.m.RUnlock()
 }

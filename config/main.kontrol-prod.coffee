@@ -166,8 +166,7 @@ module.exports =
       uploadsUri: 'https://koding-uploads.s3.amazonaws.com'
       sourceUri : "http://webserver-#{version}a.sj.koding.com:1337"
       newkontrol:
-        host    : 'newkontrol.sj.koding.com'
-        port    : 80
+        url     : 'wss://newkontrol.sj.koding.com:80/dnode'
       fileFetchTimeout: 15 * 1000 # seconds
   mq            :
     host        : '172.16.3.4'
@@ -215,6 +214,12 @@ module.exports =
   newkontrol      :
     host          : "newkontrol.sj.koding.com"
     port          : 80
+    certFile      : "/opt/koding/go/src/koding/kontrol/kontrolproxy/files/10.0.5.231_cert.pem"
+    keyFile       : "/opt/koding/go/src/koding/kontrol/kontrolproxy/files/10.0.5.231_key.pem"
+  proxyKite       :
+    domain        : "x.koding.com"
+    certFile      : "/opt/koding/go/src/koding/kontrol/kontrolproxy/files/10.0.5.102_cert.pem"
+    keyFile       : "/opt/koding/go/src/koding/kontrol/kontrolproxy/files/10.0.5.102_key.pem"
   etcd            : [ {host: "127.0.0.1", port: 4001} ]
   kontrold        :
     vhost         : "/"
