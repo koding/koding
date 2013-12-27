@@ -44,7 +44,7 @@ class CollaborativeClientFinderPane extends Pane
 
     loaderContainer.addSubView new KDCustomHTMLView
       tagName     : "p"
-      partial     : "Fetching remote file tree"
+      partial     : "Fetching host's file tree"
 
   pistachio: ->
     """
