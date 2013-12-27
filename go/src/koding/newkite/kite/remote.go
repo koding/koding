@@ -4,13 +4,14 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"errors"
-	"github.com/op/go-logging"
 	"koding/newkite/dnode"
 	"koding/newkite/dnode/rpc"
 	"koding/newkite/protocol"
 	"strconv"
 	"sync"
 	"time"
+
+	"github.com/op/go-logging"
 )
 
 const DefaultTellTimeout = 4 * time.Second
@@ -55,7 +56,7 @@ func (k *Kite) NewRemoteKite(kite protocol.Kite, auth Authentication) *RemoteKit
 	r.SetTellTimeout(DefaultTellTimeout)
 
 	// Required for customizing dnode protocol for Kite.
-	r.client.SetWrappers(wrapMethodArgs, wrapCallbackArgs, runMethod, runCallback)
+	r.client.SetWrappers(wrapMethodArgs, wrapCallbackArgs, runMethod, runCallback, onError)
 
 	// We need a reference to the local kite when a method call is received.
 	r.client.Properties()["localKite"] = k
@@ -90,6 +91,28 @@ func (k *Kite) NewRemoteKite(kite protocol.Kite, auth Authentication) *RemoteKit
 	return r
 }
 
+func onError(err error) {
+	switch e := err.(type) {
+	case dnode.MethodNotFoundError: // Tell the requester "method is not found".
+		if len(e.Args) == 0 {
+			return
+		}
+
+		var options callOptions
+		if e.Args[0].Unmarshal(&options) != nil {
+			return
+		}
+
+		if options.ResponseCallback != nil {
+			response := callbackArg{
+				Result: nil,
+				Error:  errorForSending(&Error{"methodNotFound", err.Error()}),
+			}
+			options.ResponseCallback(response)
+		}
+	}
+}
+
 func wrapCallbackArgs(args []interface{}, tr dnode.Transport) []interface{} {
 	return []interface{}{&callOptionsOut{
 		WithArgs: args,
@@ -106,7 +129,7 @@ func wrapCallbackArgs(args []interface{}, tr dnode.Transport) []interface{} {
 func (k *Kite) newRemoteKiteWithClient(kite protocol.Kite, auth Authentication, client *rpc.Client) *RemoteKite {
 	r := k.NewRemoteKite(kite, auth)
 	r.client = client
-	r.client.SetWrappers(wrapMethodArgs, wrapCallbackArgs, runMethod, runCallback)
+	r.client.SetWrappers(wrapMethodArgs, wrapCallbackArgs, runMethod, runCallback, onError)
 	r.client.Properties()["localKite"] = k
 	r.client.Properties()["remoteKite"] = r
 	return r
@@ -223,7 +246,7 @@ func wrapMethodArgs(args []interface{}, tr dnode.Transport) []interface{} {
 	r := tr.Properties()["remoteKite"].(*RemoteKite)
 
 	responseCallback := args[len(args)-1].(Callback) // last item
-	args = args[:len(args)-1]                        // previout items
+	args = args[:len(args)-1]                        // previous items
 
 	options := callOptionsOut{
 		WithArgs:         args,
@@ -368,7 +391,7 @@ func (r *RemoteKite) makeResponseCallback(doneChan chan *response, removeCallbac
 		// Notify that the callback is finished.
 		defer func() {
 			if resp.Err != nil {
-				r.Log.Warning("Error in remote Kite: %s", resp.Err.Error())
+				r.Log.Warning("Error received from remote Kite: %s", resp.Err.Error())
 				doneChan <- &response{resp.Result, resp.Err}
 			} else {
 				doneChan <- &response{resp.Result, nil}
