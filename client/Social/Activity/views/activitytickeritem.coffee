@@ -225,18 +225,15 @@ class ActiveUserItemView extends KDListItemView
       pistachio : "{{ #(counts.followers)}} followers {{ #(counts.following)}} following"
     , data
 
-    unless KD.isMine data
-      @followButton = new FollowButton
-        title          : "follow"
-        icon           : yes
-        stateOptions   :
-          unfollow     :
-            title      : "unfollow"
-            cssClass   : 'following-account'
-        dataType       : 'JAccount'
-      , data
-    else
-      @actor.setDisplayName "You"
+    @followButton = new FollowButton
+      title          : "follow"
+      icon           : yes
+      stateOptions   :
+        unfollow     :
+          title      : "unfollow"
+          cssClass   : 'following-account'
+      dataType       : 'JAccount'
+    , data
 
   viewAppended:->
     @addSubView @avatar

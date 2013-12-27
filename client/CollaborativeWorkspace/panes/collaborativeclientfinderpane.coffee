@@ -12,7 +12,7 @@ class CollaborativeClientFinderPane extends Pane
     panel         = @getDelegate()
     workspace     = panel.getDelegate()
     {@sessionKey} = @getOptions()
-    @workspaceRef = workspace.firepadRef.child @sessionKey
+    @workspaceRef = workspace.firebaseRef.child @sessionKey
 
     @createLoader()
 
@@ -44,7 +44,7 @@ class CollaborativeClientFinderPane extends Pane
 
     loaderContainer.addSubView new KDCustomHTMLView
       tagName     : "p"
-      partial     : "Fetching remote file tree"
+      partial     : "Fetching host's file tree"
 
   pistachio: ->
     """

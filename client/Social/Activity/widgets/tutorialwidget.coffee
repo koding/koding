@@ -102,7 +102,6 @@ class ActivityTutorialWidget extends ActivityWidgetFormView
 
   submit:->
     @once "FormValidationPassed", =>
-      KD.track "Activity", "TutorialSubmitted"
       @reset()
 
     if @embedBox.hasValidContent

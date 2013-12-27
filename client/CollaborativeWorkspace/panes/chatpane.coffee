@@ -16,6 +16,9 @@ class ChatPane extends JView
     @createDock()
     @bindRemoteEvents()
 
+    @on "NewChatItemCreated", =>
+      @checkEmbeddableContent()
+
   bindRemoteEvents: ->
     @chatRef.on "child_added", (snapshot) =>
       unless @isVisible() or @getOptions().floating
@@ -70,9 +73,10 @@ class ChatPane extends JView
     @chatRef.child(message.time).set message
 
   addNew: (details) ->
-    ownerNickname = details.user.nickname
-    ownerAccount  = @workspace.users[ownerNickname] or { nickname: ownerNickname }
-    params        = { details, ownerNickname, ownerAccount }
+    ownerNickname    = details.user.nickname
+    ownerAccount     = @workspace.users[ownerNickname] or { nickname: ownerNickname }
+    params           = { details, ownerNickname, ownerAccount }
+    @lastMessageBody = details.body
 
     if @lastChatItemOwner is ownerNickname
       @appendToChatItem params
@@ -87,16 +91,35 @@ class ChatPane extends JView
     @lastChatItemOwner = ownerNickname
     @messages.addSubView @lastChatItem
     @updateDate details.time
+    @lastMessage = @lastChatItem.message
+    @emit "NewChatItemCreated"
     @scrollToTop()
 
   appendToChatItem: (params) ->
-    {details} = params
-    @lastChatItem.messageList.addSubView new KDCustomHTMLView
+    {details}  = params
+    @lastChatItem.messageList.addSubView @lastMessage = new KDCustomHTMLView
       partial  : Encoder.XSSEncode details.body
-      cssClass : details.cssClass
+      cssClass : "tw-chat-message"
+
+    @emit "NewChatItemCreated"
 
   updateDate: (timestamp) ->
     @lastChatItem.timeAgo.setData new Date timestamp
+
+  checkEmbeddableContent: ->
+    element  = @lastMessage.getElement()
+    words    = @lastMessageBody.split " "
+    urlRegex = /^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/
+    hasUrl   = no
+
+    for word, index in words
+      if urlRegex.test word
+        hasUrl = yes
+        words.splice index, 1, "<a href='#{word}'>#{word}</a>"
+
+    if hasUrl
+      element.innerHTML = words.join " "
+      element.classList.add "tw-chat-media"
 
   scrollToTop: ->
     $messages = @messages.$()

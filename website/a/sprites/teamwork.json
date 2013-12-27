@@ -1,0 +1,70 @@
+{
+  "name": "teamwork",
+  "checksum": "6ff3d22397b75610eb37f7204543aaa9",
+  "shortsum": "6ff3d",
+  "images": [
+    {
+      "name": "arrow",
+      "filename": "arrow.png",
+      "checksum": "cf1f8492b4134de76f10b970fe2afb98",
+      "width": 10,
+      "height": 17,
+      "positionX": 0,
+      "positionY": 0
+    },
+    {
+      "name": "chat",
+      "filename": "chat.png",
+      "checksum": "2f2c4c5b6465d34a6cac6b68ab77673e",
+      "width": 16,
+      "height": 16,
+      "positionX": 0,
+      "positionY": 19
+    },
+    {
+      "name": "import",
+      "filename": "import.png",
+      "checksum": "fd06db9ede52ae4c9903e0b9f4186628",
+      "width": 48,
+      "height": 48,
+      "positionX": 0,
+      "positionY": 37
+    },
+    {
+      "name": "join",
+      "filename": "join.png",
+      "checksum": "3438fbadc63aa3cd8dce116ccf8dff6a",
+      "width": 48,
+      "height": 48,
+      "positionX": 0,
+      "positionY": 87
+    },
+    {
+      "name": "settings",
+      "filename": "settings.png",
+      "checksum": "f04be2fd89e5b72dd8241ab2f4e75f1e",
+      "width": 16,
+      "height": 16,
+      "positionX": 0,
+      "positionY": 137
+    },
+    {
+      "name": "teampunk",
+      "filename": "teampunk.png",
+      "checksum": "43288e81588f6fdcd3b90935206b9450",
+      "width": 30,
+      "height": 30,
+      "positionX": 0,
+      "positionY": 155
+    },
+    {
+      "name": "teamup",
+      "filename": "teamup.png",
+      "checksum": "353b1c929f61b5535db7a1d9215a284e",
+      "width": 47,
+      "height": 47,
+      "positionX": 0,
+      "positionY": 187
+    }
+  ]
+}

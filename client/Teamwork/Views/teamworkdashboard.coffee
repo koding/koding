@@ -15,7 +15,7 @@ class TeamworkDashboard extends JView
         if delegate.teamwork
           delegate.showTeamUpModal()
         else
-          delegate.emit "NewSessionRequested", ->
+          delegate.emit "NewSessionRequested", null, ->
             delegate.emit "TeamUpRequested"
 
     @joinInput    = new KDHitEnterInputView
