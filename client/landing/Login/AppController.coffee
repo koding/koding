@@ -73,3 +73,8 @@ class LoginAppsController extends AppController
       view.finishRegistrationForm.setRegistrationDetails details
       view.setCustomDataToForm 'finishRegistration', recoveryToken: token
       view.animateToForm 'finishRegistration'
+
+  headBannerShowInvitation:(invite)->
+    view = @getView()
+    view.headBannerShowInvitation invite
+
