@@ -61,13 +61,16 @@ class ActiveTopics extends ActivityRightBase
 
     super options, data
 
+    group = KD.singletons.groupsController.getCurrentGroup().slug
+
     @showAllLink = new KDCustomHTMLView
       tagName : "a"
       partial : "show all"
       cssClass: "show-all-link"
       click   : (event) ->
-        KD.singletons.router.handleRoute "/Topics"
+        if group is "koding" then route = "/Topics" else route = "/#{group}/Topics"
+        KD.singletons.router.handleRoute route
         KD.mixpanel "Show all topics, click"
     , data
 
-    KD.remote.api.ActiveItems.fetchTopics {}, @bound 'renderItems'
+    KD.remote.api.ActiveItems.fetchTopics {group}, @bound 'renderItems'
