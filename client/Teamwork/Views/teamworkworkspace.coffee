@@ -98,10 +98,6 @@ class TeamworkWorkspace extends CollaborativeWorkspace
       @getDelegate().teamwork    = teamwork
       @addSubView teamwork
 
-  refreshPreviewPane: (previewPane) ->
-    # emitting ViewerRefreshed event will trigger refreshing the preview via Firebase.
-    previewPane.previewer.emit "ViewerRefreshed"
-
   createRunButton: (panel) ->
     panel.headerButtonsContainer.addSubView new KDButtonView
       title      : "Run"
@@ -122,28 +118,6 @@ class TeamworkWorkspace extends CollaborativeWorkspace
       @getDelegate().showMarkdownModal()
     else
       Panel::showHintModal.call @getActivePanel()
-
-  previewFile: ->
-    activePanel     = @getActivePanel()
-    editor          = activePanel.getPaneByName "editor"
-    file            = editor.getActivePaneFileData()
-    path            = FSHelper.plainPath file.path
-    error           = "File must be under Web folder"
-    isLocal         = path.indexOf("localfile") is 0
-    isNotPublic     = not FSHelper.isPublicPath path
-    {previewPane}   = activePanel.paneLauncher
-
-    return if isLocal or isNotPublic
-      error         = "This file cannot be previewed" if isLocal
-      new KDNotificationView
-        title       : error
-        cssClass    : "error"
-        type        : "mini"
-        duration    : 2500
-        container   : previewPane
-
-    url = path.replace "/home/#{@getHost()}/Web", "https://#{KD.nick()}.kd.io"
-    previewPane.openUrl url
 
   manageUserAvatars: (userStatus) ->
     for own nickname, status of userStatus
