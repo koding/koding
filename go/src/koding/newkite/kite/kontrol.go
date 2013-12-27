@@ -5,11 +5,29 @@ import (
 	"fmt"
 	"koding/newkite/protocol"
 	"net"
+	"net/url"
 	"sync"
 	"time"
 )
 
 var ErrNoKitesAvailable = errors.New("no kites availabile")
+
+const registerKontrolRetryDuration = time.Minute
+
+func (k *Kite) keepRegisteredToKontrol(urls chan *url.URL) {
+	for k.URL.URL = range urls {
+		for {
+			err := k.Kontrol.Register()
+			if err != nil {
+				k.Log.Fatalf("Cannot register to Kontrol: %s", err)
+				time.Sleep(registerKontrolRetryDuration)
+			}
+
+			// Registered to Kontrol.
+			break
+		}
+	}
+}
 
 // Kontrol embeds RemoteKite which has additional special helper methods.
 type Kontrol struct {
@@ -21,13 +39,11 @@ type Kontrol struct {
 }
 
 // NewKontrol returns a pointer to new Kontrol instance.
-func (k *Kite) NewKontrol(addr string) *Kontrol {
+func (k *Kite) NewKontrol(kontrolURL *url.URL) *Kontrol {
 	// Only the address is required to connect Kontrol
-	host, port, _ := net.SplitHostPort(addr)
 	kite := protocol.Kite{
-		PublicIP: host,
-		Port:     port,
-		Name:     "kontrol", // for logging purposes
+		Name: "kontrol", // for logging purposes
+		URL:  protocol.KiteURL{kontrolURL},
 	}
 
 	auth := Authentication{
@@ -60,6 +76,8 @@ func (k *Kite) NewKontrol(addr string) *Kontrol {
 // Register registers current Kite to Kontrol. After registration other Kites
 // can find it via GetKites() method.
 func (k *Kontrol) Register() error {
+	<-k.ready
+
 	response, err := k.RemoteKite.Tell("register")
 	if err != nil {
 		return err
@@ -79,12 +97,12 @@ func (k *Kontrol) Register() error {
 		kite.Username = rr.Username
 
 		// Set the correct PublicIP if left empty in options.
-		if kite.PublicIP == "" {
-			kite.PublicIP = rr.PublicIP
+		ip, port, _ := net.SplitHostPort(kite.URL.Host)
+		if ip == "" {
+			kite.URL.Host = net.JoinHostPort(rr.PublicIP, port)
 		}
 
-		k.Log.Info("Registered to kontrol with addr: %s version: %s uuid: %s",
-			kite.Addr(), kite.Version, kite.ID)
+		k.Log.Info("Registered to Kontrol with URL: %s ID: %s", kite.URL.String(), kite.ID)
 	case protocol.RejectKite:
 		return errors.New("Kite rejected")
 	default:

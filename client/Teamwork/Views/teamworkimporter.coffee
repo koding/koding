@@ -17,7 +17,7 @@ class TeamworkImporter extends KDObject
     gitHubUrlRegex = /http(s)?:\/\/github.com/
     isGitHubUrl    = gitHubUrlRegex.test @url
 
-    if isGitHubUrl
+    if isGitHubUrl and extension isnt "zip"
       if extension is "git" then @cloneRepo()
       else
         @url = "#{@url}.git" # convert Github url to git url
