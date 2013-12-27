@@ -267,6 +267,7 @@ class CollaborativeWorkspace extends Workspace
     data         = message: data  if typeof data is "string"
     data.message = data.message.replace "$0", KD.nick()
 
+    target.set data
     @emit "NewHistoryItemAdded", data
 
   broadcastMessage: (details) ->
