@@ -20,7 +20,7 @@ class EnvironmentScene extends KDDiaScene
     @boxes = {}
 
     sc = KD.getSingleton 'appStorageController'
-    @appStorage = sc.storage 'EnvironmentsScene', '1.0'
+    @appStorage = sc.storage 'EnvironmentsScene', '1.0.1'
 
   disconnect:(dia, joint)->
 

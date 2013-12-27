@@ -84,6 +84,8 @@ class NotificationController extends KDObject
       new KDModalView
         title         : "Permission denied. You've been banned."
         overlay       : yes
+        overlayClick  : no
+        cancelable    : no
         content       :
           """
           <div class="modalformline">
