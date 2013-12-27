@@ -10,5 +10,5 @@ class TeamworkChatItem extends ChatItem
 
   getUsername: ->
     {nickname} = @getOptions().user
-    if nickname is "teamwork" then return "Teamwork Bot"
+    if nickname is "teamwork" then return "TBot"
     else super

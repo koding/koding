@@ -67,9 +67,11 @@ class TeamworkChatPane extends ChatPane
 
   replyForSystemHelp: ->
     message = """
-        Type "invite username" to invite someone to your session.
-        Type "watch username"  to watch changes of somebody.
-        Type "join sessionKey" to join a session.
+        If you type,
+        "invite username" I can bring someone to your session,
+        "watch username"  I will show you their changes in realtime,
+        "join sessionKey" I will take you to that session.
+        Try me!
       """
     @botReply message
 
@@ -79,12 +81,12 @@ class TeamworkChatPane extends ChatPane
     sessionKey = sessionKey.first
 
     if sessionKey.indexOf("_") > -1
-      @botReply "Validating the session key, #{sessionKey}", yes
+      @botReply "01001101 ... I am checking this session key, #{sessionKey}.", yes
       @workspace.firebaseRef.child(sessionKey).once "value", (snapshot) =>
         if snapshot.val() is null or not snapshot.val().keys
-          @botReply "This session is no longer active, you cannot join."
+          @botReply "Sorry, looks like this session is closed by its host, I cannot get you in."
         else
-          @botReply "Joining to session, #{sessionKey}"
+          @botReply "01001010 ... Joining session, #{sessionKey}"
           @workspace.getDelegate().emit "JoinSessionRequested", sessionKey
     else
       # TODO: fatihacet - implement getting the sessionKey via username
@@ -102,13 +104,13 @@ class TeamworkChatPane extends ChatPane
 
     KD.remote.api.JAccount.one query, {}, (err, account) =>
       @workspace.userList.once "UserInvited", =>
-        message    = "#{username} is successfully invited."
+        message    = "Sure thing! I invited #{username} for you. I will let you know when they join."
         if usernames.length > 1
-          message += "You can invite only one person at a time. Try again for other users too."
+          message += "Sorry, you can invite only one person at a time for now. My master is working on this feature. Please type one by one."
         @botReply message
 
       @workspace.userList.once "UserInviteFailed", =>
-        @botReply "Are you sure your friend's nickname is #{username}?"
+        @botReply "Sorry, are you sure your friend's nickname is #{username}? Because I can't find it."
 
       @workspace.userList.sendInvite account
 
@@ -119,9 +121,8 @@ class TeamworkChatPane extends ChatPane
     # TODO: fatihacet - I need to check username is valid and user is in session.
     @workspace.setWatchMode username
     message = """
-      Ok. Now you started to watch #{username}.
-      This means you will only be notified by #{username}'s changes.
-      Type "watch nobody" to stop watching #{username} or type "watch username" to watch someone else.
+      Ok. Now you are now watching #{username}. Seems like a nice guy.
+      You can type "stop watching" anytime.
     """
     @botReply message
 

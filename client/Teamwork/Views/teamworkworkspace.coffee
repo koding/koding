@@ -133,7 +133,7 @@ class TeamworkWorkspace extends CollaborativeWorkspace
 
     userNickname = jAccount.profile.nickname
     return if userNickname is KD.nick()
-    followText   = "Click user avatar to watch #{userNickname}"
+    followText   = "Click avatar to watch #{userNickname}"
 
     avatarView   = new AvatarStaticView
       size       :
