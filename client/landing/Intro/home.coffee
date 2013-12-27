@@ -98,7 +98,7 @@ class HomePage extends JView
           <div class='white-label'>
             <span class='icon'></span>
             <article>
-              <h4>WHITE LABELED KODING</h4>
+              <h4>WHITE LABEL KODING</h4>
               Etiam turpis ante, aliquam id mattis condimentum, adipiscing vitae ipsum. Phasellus ultricies diam ligula, at pellentesque ligula lobortis eget.
             </article>
           </div>

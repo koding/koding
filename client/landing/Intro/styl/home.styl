@@ -18,6 +18,7 @@ bgColor         = #202527
 teamworkColor   = #f2c500
 socialColor     = #2d97de
 footerLinkColor = #a8a8a8
+footerBg        = #222627
 
 body.intro
   bg                    color, bgColor
@@ -66,10 +67,22 @@ body.intro
   #home-bottom
   main
     padding-top         70px
-    background          url('/a/images/home/photo-1.jpg') no-repeat center center
+    background          url('/a/images/home/photo-small.jpg') no-repeat center center
     background-size     cover
     size                100% 630px
     border-bottom       3px solid logoBg
+
+  #home-bottom
+    margin-top          -660px
+    background          url('/a/images/home/photo-large.jpg') no-repeat center center
+    padding-top         730px
+    size                100% 1160px
+    border-bottom       none
+    borderBox()
+    h2
+      margin-bottom     30px
+    h3
+      margin-top        0
 
   h1, h2, h3
     text-align          center
@@ -163,7 +176,7 @@ body.intro
     font-size           14px
     line-height         23px
     color               footerLinkColor
-    bg                  color rgba(0, 0, 0, .6)
+    bg                  color footerBg
     max-width           1280px
     margin              0 auto
     padding             45px
@@ -356,10 +369,3 @@ body.intro
       margin              0
       padding             0
       sprite              home 'dollar'
-
-#home-bottom
-  padding-top         70px
-  background          url('/a/images/home/photo-1.jpg') no-repeat center center
-  background-size     cover
-  size                100% 630px
-  border-bottom       none
