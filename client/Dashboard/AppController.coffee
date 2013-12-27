@@ -8,8 +8,8 @@ class DashboardAppController extends AppController
     name         : "Dashboard"
     routes                         :
       "/:name?/Dashboard"          : null
-      "/:name?/Dashboard/:section" : ({params:{section,name}})->
-        handler name,(app)-> app.handleQuery title:section
+      "/:name?/Dashboard/:section" : ({params : {section,name}})->
+        handler name, (app)-> app.handleQuery title : section
     hiddenHandle : yes
 
   constructor: (options = {}, data) ->

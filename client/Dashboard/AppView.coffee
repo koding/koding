@@ -95,7 +95,7 @@ class DashboardAppView extends JView
 
         # Push all items, however if it has 'kodingOnly' push only when the group is really 'koding'
         if not kodingOnly or data.slug is 'koding'
-          navItems.push {title: name,slug : "/Dashboard/#{name}" ,type: if hiddenHandle then 'hidden' else null}
+          navItems.push {title : name, slug : "/Dashboard/#{name}", type : if hiddenHandle then 'hidden' else null}
 
       @navController.replaceAllItems navItems
       @nav.emit "ready"
