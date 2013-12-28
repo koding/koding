@@ -31,7 +31,9 @@ class AvatarView extends LinkView
     @dpr            = window.devicePixelRatio ? 1
     {width, height} = options.size
     @gravatar       = new ErrorlessImageView {width, height}
-    @gravatar.on 'load', => @setCss 'background-image', 'none'
+    @gravatar.on 'load', =>
+      @gravatar.setCss 'opacity', '1'
+      @setCss 'background-image', 'none'
 
     super options, data
 
@@ -140,6 +142,8 @@ class ErrorlessImageView extends KDCustomHTMLView
         width       : options.width
         height      : options.height
     , data
+
+    @setCss 'opacity', '0.0001'
 
   error:->
     @hide()
