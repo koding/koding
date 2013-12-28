@@ -6,17 +6,6 @@ class HomePage extends JView
 
     super options, data
 
-    @email        = new KDInputView
-      placeholder : 'your@email.com'
-
-    @username     = new KDInputView
-      placeholder : 'desired username'
-
-    @signUp       = new KDButtonView
-      title       : 'Sign up'
-      cssClass    : 'solid red shadowed'
-      type        : 'submit'
-
     @pricingButton = new KDButtonView
       title       : 'Get Koding for your intranet<cite>Starting from $5 per user</cite>'
       cssClass    : 'solid green shadowed pricing'
@@ -24,13 +13,14 @@ class HomePage extends JView
       iconClass   : 'dollar'
       callback    : -> log 'lolololoooo'
 
-    @registerForm = new KDFormView
-      callback    : (formData)-> log formData
+    @registerForm = new RegisterInlineForm
+      callback    : (formData)-> @doRegister formData
 
-    @registerForm.once 'viewAppended', =>
-      @registerForm.addSubView @email
-      @registerForm.addSubView @username
-      @registerForm.addSubView @signUp
+    @githubLink   = new KDCustomHTMLView
+      tagName     : "a"
+      partial     : "GitHub"
+      click       : ->
+        KD.singletons.oauthController.openPopup "github"
 
   pistachio:->
 
@@ -57,7 +47,7 @@ class HomePage extends JView
         <h1 class='big-header'>SOMETHING SUPER EXCITING GOES HERE</h1>
         <h2>Something super simple and super descriptive goes here</h2>
         {{> @registerForm}}
-        <h3>Or you can sign up using <a href='/Register/GitHub'><strong>GitHub</strong><span></span></a></h2>
+        <h3>Or you can sign up using {{> @githubLink}}<span></span></a></h2>
       </main>
       <figure class='laptop'>
         <section class='teamwork'>
@@ -140,7 +130,6 @@ class HomePage extends JView
         </nav>
       </footer>
     """
-
 
 KD.introView = new HomePage
 KD.introView.appendToDomBody()
