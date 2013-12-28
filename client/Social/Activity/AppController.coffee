@@ -46,6 +46,7 @@ class ActivityAppController extends AppController
     @mainController        = KD.getSingleton 'mainController'
     @lastTo                = null
     @lastFrom              = Date.now()
+    @lastQuery             = null
 
     # if @mainController.appIsReady then @putListeners()
     # else @mainController.on 'AppIsReady', => @putListeners()
@@ -129,15 +130,20 @@ class ActivityAppController extends AppController
     # log "------------------ bindingsCleared", dateFormat(@lastFrom, "mmmm dS HH:mm:ss"), @_e
 
   handleQuery:(query = {})->
-
     if query.tagged
+      return  if @lastQuery and query.tagged is @lastQuery.tagged
       tag = KD.utils.slugify KD.utils.stripTags query.tagged
       @setWarning {text:tag, loading:yes}
       options = filterByTag: tag
     else if query.q
+      return  if @lastQuery and query.q is @lastQuery.q
       query = KD.utils.stripTags query.q
       @setWarning {text:query, loading:yes, type:"search"}
       options = searchText: query
+    else
+      return  if @lastQuery and Object.keys(query).length is 0 and Object.keys(@lastQuery).length is 0
+
+    @lastQuery = query
 
     # TODO: populateActivity will fire twice if there is a query (FIXME) C.T.
     @ready => @populateActivity options

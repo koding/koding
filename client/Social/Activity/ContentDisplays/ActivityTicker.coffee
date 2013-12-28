@@ -192,9 +192,7 @@ class ActivityTicker extends ActivityRightBase
 
     return if @isFiltered "like"
 
-    return if not @checkForValidAccount(liker) or not @checkForValidAccount(origin)
-
-    unless subject
+    unless subject and liker and origin
       return console.warn "data is not valid"
 
     {constructorName, id} = liker
@@ -209,6 +207,7 @@ class ActivityTicker extends ActivityRightBase
         KD.remote.cacheable constructorName, id, (err, subject)=>
           return console.log "subject is not found", err, data.subject if err or not subject
 
+          return if not @checkForValidAccount(source) or not @checkForValidAccount(target)
           eventObj = {source, target, subject, as:"like"}
           if subject.bongo_.constructorName is "JNewStatusUpdate"
             @fetchTags subject, (err, tags)=>
@@ -223,9 +222,7 @@ class ActivityTicker extends ActivityRightBase
 
     return if @isFiltered "comment"
 
-    return if not @checkForValidAccount(replier) or not @checkForValidAccount(origin)
-
-    unless subject and reply
+    unless subject and reply and replier and origin
       return console.warn "data is not valid"
 
     #CtF: such a copy paste it is. could be handled better
@@ -245,6 +242,7 @@ class ActivityTicker extends ActivityRightBase
           KD.remote.cacheable constructorName, id, (err, object)=>
             return console.log "reply is not found", err, data.reply if err or not object
 
+            return if not @checkForValidAccount(source) or not @checkForValidAccount(target)
             eventObj = {source, target, subject, object, as:"reply"}
             @addNewItem eventObj
 
