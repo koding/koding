@@ -13,6 +13,7 @@ class MarkerController extends KDController
     options.offset.top  ?= 0
     options.offset.left ?= 0
     options.wait        ?= 0
+    options.container  or= null         # [String window], [String selector] or [Object KDView]
     options.client     or= 'window'     # [String window], [String selector] or [Object KDView]
 
     if @collection[name]
@@ -64,10 +65,25 @@ class Marker extends KDCustomHTMLView
       @show()
       @setPosition @getClientPosition()
 
-    KD.utils.wait options.wait, => @appendToDomBody()
+    KD.utils.wait options.wait, => @append()
 
   _windowDidResize:->
     @setPosition @getClientPosition()
+
+  append:->
+
+    {container} = @getOptions()
+
+    if container instanceof KDView
+      container.addSubView this
+    else if 'string' is typeof container
+      switch container
+        when 'window' then @appendToDOMBody()
+        else
+          $(container).append @$()
+          @utils.defer => @emit "viewAppended"
+    else
+      @appendToDOMBody()
 
   getClientPosition:->
 
@@ -87,7 +103,8 @@ class Marker extends KDCustomHTMLView
   setPosition:({top, left})->
 
     {offset} = @getOptions()
-
+    # probably we need to take container into account as well here
+    # this is good for now. - SY
     @setY top  + offset.top
     @setX left + offset.left
 
