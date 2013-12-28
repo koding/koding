@@ -29,34 +29,36 @@ class HomePage extends JView
     super
 
     vmMarker = @markers.create 'vms',
-      client : '#home-page .laptop .teamwork'
-      wait   : 1000
-      offset :
-        top  : 150
-        left : 50
+      client    : '#home-page .laptop .teamwork'
+      container : this
+      wait      : 1000
+      offset    :
+        top     : 150
+        left    : 50
 
     navMarker = @markers.create 'nav',
-      client : '#home-page .laptop .teamwork'
-      wait   : 1300
-      offset :
-        top  : -30
-        left : 240
+      client    : '#home-page .laptop .teamwork'
+      container : this
+      wait      : 1300
+      offset    :
+        top     : -30
+        left    : 240
 
     chatMarker = @markers.create 'chat',
-      client : '#home-page .laptop .teamwork'
-      wait   : 1600
-      offset :
-        top  : 150
-        left : 800
+      client    : '#home-page .laptop .teamwork'
+      container : this
+      wait      : 1600
+      offset    :
+        top     : 150
+        left    : 800
 
     playMarker = @markers.create 'play',
-      client : '#home-page .laptop .teamwork'
-      wait   : 1900
-      offset :
-        top  : 275
-        left : 500
-
-    log vmMarker
+      client    : '#home-page .laptop .teamwork'
+      container : this
+      wait      : 1900
+      offset    :
+        top     : 275
+        left    : 500
 
 
   pistachio:->
@@ -76,8 +78,6 @@ class HomePage extends JView
       </main>
       <figure class='laptop'>
         <section class='teamwork'></section>
-        <section></section>
-        <section></section>
       </figure>
       <section id='home-features' class='clearfix'>
         <div class='appstore'>
