@@ -116,7 +116,7 @@ class TeamworkTabView extends CollaborativePane
       closeAppWhenAllTabsClosed : no
       minHandleWidth            : 150
       maxHandleWidth            : 150
-      tabHandleClass            : TabHandleWithAvatar
+      tabHandleClass            : TeamworkTabHandleWithAvatar
 
     @tabView.on "PaneAdded", (pane) =>
       pane.getHandle().on "click", =>
@@ -322,96 +322,4 @@ class TeamworkTabView extends CollaborativePane
     """
       {{> @tabHandleHolder}}
       {{> @tabView}}
-    """
-
-class TabHandleWithAvatar extends KDTabHandleView
-
-  constructor: (options = {}, data) ->
-
-    options.view = new TabHandleAvatarView options
-
-    super options, data
-
-    @avatarView = @getOption "view"
-
-  setTitle: (title) ->
-    @avatarView.title.updatePartial title
-
-  setAccounts: (accounts) ->
-    @avatarView.setAccounts accounts
-
-class TabHandleAvatarView extends KDView
-
-  constructor: (options = {}, data) ->
-
-    options.cssClass = "tw-tab-avatar-view"
-
-    super options, data
-
-    @accounts = []
-
-    @addSubView @title = new KDCustomHTMLView
-      cssClass   : "tw-tab-avatar-title"
-      partial    : "#{options.title}"
-
-  createAvatar: ->
-    @avatar      = new AvatarStaticView
-      cssClass   : "tw-tab-avatar-img"
-      bind       : "mouseenter mouseleave"
-      mouseenter : @bound "avatarMouseEnter"
-      mouseleave : @bound "avatarMouseLeave"
-      size       :
-        width    : 20
-        height   : 20
-    , @accounts.first
-
-    @addSubView @avatar
-
-  avatarMouseLeave: ->
-    @avatar.avatarsMenu?.destroy()
-
-  avatarMouseEnter: ->
-    return if @accounts.length <= 1
-
-    offset = @avatar.$().offset()
-    @avatar.avatarsMenu = new JContextMenu
-      menuWidth     : 160
-      delegate      : @avatar
-      treeItemClass : AvatarContextMenuItem
-      x             : offset.left - 106
-      y             : offset.top + 27
-      arrow         :
-        placement   : "top"
-        margin      : 108
-      lazyLoad      : yes
-    , {}
-
-    KD.utils.defer =>
-      @accounts.forEach (account) =>
-        @avatar.avatarsMenu.treeController.addNode account
-
-  removeAvatar: ->
-    @avatar?.destroy()
-
-  setAccounts: (accounts) ->
-    @accounts = accounts
-    if accounts.length > 0 then @createAvatar() else @removeAvatar()
-
-class AvatarContextMenuItem extends JContextMenuItem
-
-  constructor: (options = {}, data) ->
-
-    super options, data
-
-    @avatar = new AvatarStaticView
-      size     :
-        width  : 20
-        height : 20
-      cssClass : "tw-tab-avatar-img-context"
-    , @getData()
-
-  pistachio: ->
-    """
-      {{> @avatar}}
-      #{@getData().profile.nickname}
     """
