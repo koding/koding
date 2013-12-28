@@ -23,6 +23,34 @@ footerBg        = #222627
 body.intro
   bg                    color, bgColor
 
+span.intro-marker
+  vendor          transform, scale(0)
+  rounded         26px
+  display         block
+  size            52px 52px
+  left            0
+  top             0
+  bg              color rgba(26, 175, 93, .2)
+  // shadow          0 0 2px 10px
+  overflow        hidden
+  border          2px solid logoBg
+  cursor          pointer
+  z-index         1000
+  -webkit-transition -webkit-transform .3s cubic-bezier(0.68, -0.55, 0.265, 1.55)
+  -moz-transition    -moz-transform .3s ease
+  transition         transform .3s cubic-bezier(0.68, -0.55, 0.265, 1.55)
+  borderBox()
+  abs()
+  i
+    rounded       13px
+    display       block
+    size          26px 26px
+    margin        11px auto
+    bg            color logoBg
+  &.in
+    vendor        transform, scale(1)
+
+
 #home-header
   margin                0
   size                  100% 65px
@@ -169,26 +197,6 @@ body.intro
       &.teamwork
         background      transparent url('/a/images/home/teamwork.jpg') no-repeat 0 0
         background-size cover
-
-      span.marker
-        rounded         26px
-        display         block
-        size            52px 52px
-        left            60%
-        top             10px
-        bg              color rgba(26, 175, 93, .2)
-        // shadow          0 0 2px 10px
-        overflow        hidden
-        border          2px solid logoBg
-        cursor          pointer
-        borderBox()
-        abs()
-        i
-          rounded       13px
-          display       block
-          size          26px 26px
-          margin        11px auto
-          bg            color logoBg
 
   footer
     rounded             8px 8px 0 0

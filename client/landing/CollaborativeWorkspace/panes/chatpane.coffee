@@ -19,6 +19,10 @@ class ChatPane extends JView
     @on "NewChatItemCreated", =>
       @checkEmbeddableContent()
 
+    @on "NewChatItemPosted", =>
+      @input.setValue ""
+      @input.setFocus()
+
   bindRemoteEvents: ->
     @chatRef.on "child_added", (snapshot) =>
       unless @isVisible() or @getOptions().floating
@@ -34,12 +38,14 @@ class ChatPane extends JView
     @messages     = new KDView cssClass : "messages"
     @input        = new KDHitEnterInputView
       placeholder : "Type your message and hit enter"
-      callback    : =>
-        @sendMessage
-          message: @input.getValue()
-          by     : KD.nick()
-        @input.setValue ""
-        @input.setFocus()
+      callback    : @bound "createMessage"
+
+  createMessage: ->
+    @sendMessage
+      message: @input.getValue()
+      by     : KD.nick()
+
+    @emit "NewChatItemPosted"
 
   createDock: ->
     @dock        = new KDView

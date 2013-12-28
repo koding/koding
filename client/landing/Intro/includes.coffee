@@ -1,7 +1,8 @@
 module.exports = [
   "views/logininputs.coffee"
   "views/registerinlineform.coffee"
-  "home.coffee",
+  "markercontroller.coffee"
+  "home.coffee"
   "styl/home.styl"
 
 ]
