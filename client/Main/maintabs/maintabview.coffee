@@ -65,14 +65,7 @@ class MainTabView extends KDTabView
     handle.destroy()
     @emit "PaneRemoved"
 
-    if rightPane
-      if rightPane.mainView
-        @appManager.showInstance @appManager.getByView rightPane.mainView
-    else if leftPane
-      if leftPane.mainView
-        @appManager.showInstance @appManager.getByView leftPane.mainView
-    else
-      @router.handleRoute @router.currentPath
+    @router.handleRoute @router.currentPath
 
   createTabPane:(options = {}, mainView)->
 

@@ -90,10 +90,12 @@ class BadgeUpdateForm extends JView
                   {itemList} = @getOptions()
                   modal = new BadgeRemoveForm {itemList:itemList,delegate:this}, {@badge}
 
-    @updatePermissionBoxData()
-    @updateRulesTabView()
-    @createUserAutoComplete()
-    @updateBadgeUsersList()
+    @badgeForm.once "viewAppended", =>
+      KD.utils.wait 1827, =>
+        @updatePermissionBoxData()
+        @updateRulesTabView()
+        @createUserAutoComplete()
+        @updateBadgeUsersList()
 
   createUserAutoComplete:->
     {forms} = @badgeForm.modalTabs
@@ -139,7 +141,7 @@ class BadgeUpdateForm extends JView
     parentView.addSubView new BadgeRules {@badge}
 
   updateBadgeUsersList: ->
-    parentView    = @badgeForm.modalTabs.forms["Users"]
+    parentView     = @badgeForm.modalTabs.forms["Users"]
     @badgeUserList = new BadgeUsersList {@badge}
     parentView.addSubView @badgeUserList
 

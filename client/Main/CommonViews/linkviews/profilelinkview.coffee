@@ -27,16 +27,10 @@ class ProfileLinkView extends LinkView
 
     @setClass "profile"
 
-  setDisplayName:(@displayName)->
-
-  getDisplayName:->
-    return @displayName  if @displayName
-    return KD.utils.getFullnameFromAccount @getData()
-
   render: (fields) ->
     nickname = @getData().profile?.nickname
     @setAttribute "href", "/#{nickname}"  if nickname
     super fields
 
   pistachio:->
-    super @getDisplayName()
+    super "{{#(profile.firstName)+' '+#(profile.lastName)}}"
