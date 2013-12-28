@@ -15,20 +15,20 @@ resurrection.account.dropdown.styl
   overflow                  visible
   top                       53px
   width                     280px
-  z-index                   -1
-  opacity                   0
+  display                   none
+  z-index                   1000
   fix()
   &.active
-    z-index                 1000
-    opacity                 1
+    display                 block
 
   .kdview.kdlistview
     margin                  0
   .tab
     cursor                  pointer
     border-bottom           none
-    rel()
+    abs()
     top                     -54px
+    right                   0
     text-align              center
     z-index                 1
     size                    45px 55px
@@ -38,7 +38,6 @@ resurrection.account.dropdown.styl
       size                  20px, 20px
       blockMid()
   .content
-    margin-top              -55px
     shadow                  0 0 21px 10px rgba(0,0,0,0.18)
     size                    100%, auto
     bg                      color, #212932
@@ -46,11 +45,7 @@ resurrection.account.dropdown.styl
     borderBox()
 
   &.notifications
-    .content
-      right                 234px
-
-  &.notifications
-    right                   60px
+    right                   295px
     .tab span
       margin                19px 0 0 3px
       sprite                app account-notifications
