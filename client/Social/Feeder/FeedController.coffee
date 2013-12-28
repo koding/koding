@@ -165,38 +165,41 @@ class FeedController extends KDViewController
     options    = @getFeedOptions()
     selector   = @getFeedSelector()
     {itemClass, feedId}  = @getOptions()
-    currentGroup = KD.singletons.groupsController.getCurrentGroup().slug
-    feedId = "#{currentGroup}-#{feedId}"
 
+    {groupsController} = KD.singletons
+    groupsController.changeGroup KD.config.entryPoint, =>
 
-    kallback = (err, items, rest...)=>
-      listController = @emitLoadCompleted filter
-      @emit "FilterLoaded"
-      {limit}      = options
-      {scrollView} = listController
+      currentGroup = groupsController.getCurrentGroup().slug
+      feedId = "#{currentGroup}-#{feedId}"
 
-      if items?.length > 0
-        unless err
-          items = @sortByKey(items, filter.activeSort) if filter.activeSort
-          listController.instantiateListItems items
-          @emitCountChanged listController.itemsOrdered.length, filter.name
-          if scrollView and scrollView.getScrollHeight() <= scrollView.getHeight()
-            @loadFeed filter
+      kallback = (err, items, rest...)=>
+        listController = @emitLoadCompleted filter
+        @emit "FilterLoaded"
+        {limit}      = options
+        {scrollView} = listController
+
+        if items?.length > 0
+          unless err
+            items = @sortByKey(items, filter.activeSort) if filter.activeSort
+            listController.instantiateListItems items
+            @emitCountChanged listController.itemsOrdered.length, filter.name
+            if scrollView and scrollView.getScrollHeight() <= scrollView.getHeight()
+              @loadFeed filter
+          else
+            warn err
+        else unless err
+          filter.dataEnd? this, rest...
         else
-          warn err
-      else unless err
-        filter.dataEnd? this, rest...
-      else
-        filter.dataError? this, err
+          filter.dataError? this, err
 
-    @emitLoadStarted filter
-    if options.skip isnt 0 and options.skip < options.limit # Dont load forever
-      @emitLoadCompleted filter
-      @emit "FilterLoaded"
-    else unless feedId in USEDFEEDS
-      USEDFEEDS.push feedId
-      unless prefetchedItems = KD.prefetchedFeeds[feedId]
-      then @loadFeed filter
-      else kallback null, (KD.remote.revive item for item in prefetchedItems)
-    else
-      filter.dataSource selector, options, kallback
+      @emitLoadStarted filter
+      if options.skip isnt 0 and options.skip < options.limit # Dont load forever
+        @emitLoadCompleted filter
+        @emit "FilterLoaded"
+      else unless feedId in USEDFEEDS
+        USEDFEEDS.push feedId
+        unless prefetchedItems = KD.prefetchedFeeds[feedId]
+        then @loadFeed filter
+        else kallback null, (KD.remote.revive item for item in prefetchedItems)
+      else
+        filter.dataSource selector, options, kallback
