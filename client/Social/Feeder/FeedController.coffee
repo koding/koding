@@ -167,7 +167,12 @@ class FeedController extends KDViewController
     {itemClass, feedId}  = @getOptions()
 
     {groupsController} = KD.singletons
-    groupsController.changeGroup KD.config.entryPoint, =>
+
+    if KD.config.entryPoint?.type is 'group'
+    then group = KD.config.entryPoint.slug
+    else group = 'koding'
+
+    groupsController.changeGroup group, =>
 
       currentGroup = groupsController.getCurrentGroup().slug
       feedId = "#{currentGroup}-#{feedId}"
