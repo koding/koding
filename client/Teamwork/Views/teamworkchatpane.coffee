@@ -57,9 +57,10 @@ class TeamworkChatPane extends ChatPane
 
     return originUser is KD.nick() and isSystemMessage
 
-  isSystemMessage: (message = "") ->
-    [key] = message.split " "
-    return replyHandlers[key] isnt undefined
+  isSystemMessage: (message) ->
+    return  unless message
+    splitted = message.split " "
+    return splitted.length is 2 and replyHandlers[splitted.first] isnt undefined
 
   runSystemMessageHandler: (message) ->
     splitted = message.split " "
@@ -80,12 +81,13 @@ class TeamworkChatPane extends ChatPane
       @botReply getMessage "validateKey", sessionKey
       @workspace.firebaseRef.child(sessionKey).once "value", (snapshot) =>
         if snapshot.val() is null or not snapshot.val().keys
-          @botReply message.noSession
+          @botReply messages.noSession
         else
           @botReply getMessage "joinSession", sessionKey
           @workspace.getDelegate().emit "JoinSessionRequested", sessionKey
     else
       # TODO: fatihacet - implement getting the sessionKey via username
+      @botReply messages.invalidKey
 
   replyForInvite: (usernames) ->
     # TODO: fatihacet - currently invite only first user
@@ -185,6 +187,7 @@ class TeamworkChatPane extends ChatPane
     validateKey   : "01001101 ... I am checking this session key, $0."
     joinSession   : "01001010 ... Joining session, $0"
     noSession     : "Sorry, looks like this session is closed by its host, I cannot get you in."
+    invalidKey    : "Sorry, looks like this session key is not valid anymore."
     help          : """
         If you type,
         "invite username" I can bring someone to your session,
