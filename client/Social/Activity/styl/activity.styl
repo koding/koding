@@ -189,8 +189,10 @@ resurrection.activity.styl
         abs()
         .icon
           padding       0
-          margin        1px 0 0 4px
-          r-sprite        activity, "follow-check"
+          r-sprite      activity, "follow-check"
+          top           6px
+          left          8px
+          abs()
 
         .button-title
           z-index       -1
@@ -334,6 +336,7 @@ resurrection.activity.styl
 
     > div
       size            100% auto
+      min-height      45px
       line-height     16px
       font-size       14px
       color           #3c4752
@@ -350,10 +353,12 @@ resurrection.activity.styl
       abs             0 9px 8px 0
       padding         0
       z-index         1
+      text-align      center
 
       &.solid.green .icon
-        margin        1px 0 0 7px
-        r-sprite        activity, "update-bubble"
+        margin        0 !important
+        abs           7px 0 0 7px
+        r-sprite      activity, "update-bubble"
 
       &[disabled=disabled]
         bg            color, #DDD !important
@@ -545,6 +550,7 @@ span.collapsedtext
 
   .comment-container
     bg                color, #f6f6f6
+    rounded           0 0 5px 5px
 
     .delete-link
       display       block
@@ -648,7 +654,7 @@ span.collapsedtext
           color           #d8d8d8
           abs()
 
-      .like-view a
+      .like-view span
       .reply-link
         color           #a6abb1
         noTextDeco()
@@ -692,7 +698,6 @@ span.collapsedtext
 
 
   .item-add-comment-box
-    border-top    1px solid #d8d8d8
     borderBox()
 
     .avatarview
