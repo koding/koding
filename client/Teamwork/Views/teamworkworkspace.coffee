@@ -149,24 +149,19 @@ class TeamworkWorkspace extends CollaborativeWorkspace
 
         if isAlreadyWatched
           @watchRef.child(@nickname).set "nobody"
-          message = "#{KD.nick()} stopped watching #{userNickname}"
+          message = "You stopped watching #{userNickname}"
           @watchingUserAvatar = null
           avatarView.setTooltip
             title : followText
         else
           @watchRef.child(@nickname).set userNickname
-          message = "#{KD.nick()} started to watch #{userNickname}.  Type 'stop watching' or click on avatars to start/stop watching."
+          message = "You started to watch #{userNickname}.  Type 'stop watching' or click on avatars to start/stop watching."
           avatarView.setClass "watching"
           @watchingUserAvatar = avatarView
           avatarView.setTooltip
             title : "You are now watching #{userNickname}. Click again to stop watching."
 
-        message =
-          user       :
-            nickname : "teamwork"
-          time       : Date.now()
-          body       : message
-        @workspaceRef.child("chat").child(message.time).set message
+        @chatView.botReply message
     , jAccount
 
     @avatars[userNickname] = avatarView
