@@ -137,9 +137,9 @@ class ActivityAppController extends AppController
       options = filterByTag: tag
     else if query.q
       return  if @lastQuery and query.q is @lastQuery.q
-      query = KD.utils.stripTags query.q
-      @setWarning {text:query, loading:yes, type:"search"}
-      options = searchText: query
+      search = KD.utils.stripTags query.q
+      @setWarning {text: search, loading:yes, type:"search"}
+      options = searchText: search
     else
       return  if @lastQuery and Object.keys(query).length is 0 and Object.keys(@lastQuery).length is 0
 
