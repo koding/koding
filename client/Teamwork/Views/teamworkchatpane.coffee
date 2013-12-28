@@ -7,16 +7,23 @@ class TeamworkChatPane extends ChatPane
     @setClass "tw-chat"
     @getDelegate().setClass "tw-chat-open"
 
-    @on "NewChatItemCreated", @bound "checkForSystemAction"
-
   createDock: ->
     @dock = new KDCustomHTMLView cssClass: "hidden"
 
   updateCount: (count) ->
 
-  sendMessage: (messageData, isSystemMessage) ->
-    cssClass = ""
-    nickname = KD.nick()
+  createMessage: ->
+    message  = @input.getValue()
+    if @isSystemMessage message
+      @sendMessage message: message, no, yes
+      @runSystemMessageHandler message
+      @emit "NewChatItemPosted"
+    else
+      super
+
+  sendMessage: (messageData, isSystemMessage, slientlyHandle) ->
+    cssClass   = ""
+    nickname   = KD.nick()
 
     if isSystemMessage
       cssClass = "tw-bot-message"
@@ -30,7 +37,8 @@ class TeamworkChatPane extends ChatPane
       cssClass : cssClass            or ""
       system   : isSystemMessage     or no
 
-    @chatRef.child(message.time).set message
+    if   isSystemMessage or slientlyHandle then @addNew message
+    else @chatRef.child(message.time).set message
 
   createNewChatItem: (params) ->
     return if @shouldBeHidden_ params
@@ -49,18 +57,16 @@ class TeamworkChatPane extends ChatPane
 
     return originUser is KD.nick() and isSystemMessage
 
-  checkForSystemAction: ->
-    splitted = @lastMessageBody.split " "
+  isSystemMessage: (message = "") ->
+    [key] = message.split " "
+    return replyHandlers[key] isnt undefined
+
+  runSystemMessageHandler: (message) ->
+    splitted = message.split " "
     [key]    = splitted
 
-    messageToMethod =
-      help          : "replyForSystemHelp"
-      invite        : "replyForInvite"
-      watch         : "replyForWatch"
-      join          : "replyForJoin"
-
     splitted.shift() # remove first item and update the array instance
-    @[messageToMethod[key]]? splitted
+    @[replyHandlers[key]] splitted
 
   replyForSystemHelp: ->
     message = """
@@ -165,3 +171,11 @@ class TeamworkChatPane extends ChatPane
       cssClass : "tw-bot-avatar"
       tooltip  :
         title  : """ Hi there, My name is TBot. I am here to assist you. If you need help, just type "help" """
+
+
+  # class scope variables
+  replyHandlers =
+    help        : "replyForSystemHelp"
+    invite      : "replyForInvite"
+    watch       : "replyForWatch"
+    join        : "replyForJoin"
