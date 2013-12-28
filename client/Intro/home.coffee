@@ -32,19 +32,44 @@ class HomePage extends JView
       @registerForm.addSubView @username
       @registerForm.addSubView @signUp
 
+    @markers = new MarkerController
+
+  viewAppended:->
+
+    super
+
+    vmMarker = @markers.create 'vms',
+      client : '#home-page .laptop .teamwork'
+      wait   : 1000
+      offset :
+        top  : 150
+        left : 50
+
+    navMarker = @markers.create 'nav',
+      client : '#home-page .laptop .teamwork'
+      wait   : 1300
+      offset :
+        top  : -30
+        left : 240
+
+    chatMarker = @markers.create 'chat',
+      client : '#home-page .laptop .teamwork'
+      wait   : 1600
+      offset :
+        top  : 150
+        left : 800
+
+    playMarker = @markers.create 'play',
+      client : '#home-page .laptop .teamwork'
+      wait   : 1900
+      offset :
+        top  : 275
+        left : 500
+
+    log vmMarker
+
+
   pistachio:->
-
-    # <nav>
-    #   <ul>
-    #     <li><a href="/About">About</a></li>
-    #     <li><a href="/Pricing">Pricing</a></li>
-    #     <li><a href="/Features">Features</a></li>
-    #     <li><a href="/About">Learn</a></li>
-    #     <li><a href="/Team">Team</a></li>
-    #     <li><a href="/Jobs">Jobs</a></li>
-    #   </ul>
-    # </nav>
-
 
     """
       <header id='home-header'>
@@ -60,9 +85,7 @@ class HomePage extends JView
         <h3>Or you can sign up using <a href='/Register/GitHub'><strong>GitHub</strong><span></span></a></h2>
       </main>
       <figure class='laptop'>
-        <section class='teamwork'>
-          <span class='marker'><i></i></span>
-        </section>
+        <section class='teamwork'></section>
         <section></section>
         <section></section>
       </figure>

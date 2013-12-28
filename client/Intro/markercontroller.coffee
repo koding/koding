@@ -91,6 +91,15 @@ class Marker extends KDCustomHTMLView
     @setY top  + offset.top
     @setX left + offset.left
 
+  click:->
+
+    Marker.message?.destroy()
+
+    Marker.message = new MarkerMessage
+      position     :
+        top        : @getY() + 100
+        left       : @getX() + 50
+
   show:->
 
     super
@@ -103,3 +112,8 @@ class Marker extends KDCustomHTMLView
 
     @unsetClass 'in'
 
+class MarkerMessage extends KDCustomHTMLView
+
+  constructor:(options = {}, data)->
+
+    options.partial or= 'This is a marker message!'
