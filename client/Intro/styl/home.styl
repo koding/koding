@@ -429,15 +429,14 @@ span.intro-marker
 
 @media all and (max-width: 1020px)
   .intro
-    .headings-container
-      .big-header
-        font-size         26px !important
-        line-height       36px !important
+    .big-header
+      font-size         26px !important
+      line-height       36px !important
 
-        ~h2
-          font-size       18px !important
-          line-height     28px !important
-          margin-bottom   30px !important
+      ~h2
+        font-size       18px !important
+        line-height     28px !important
+        margin-bottom   30px !important
 
     .laptop
     .intro-marker
@@ -448,6 +447,16 @@ span.intro-marker
 
     #home-features
       padding             0 30px
+
+    figure.browser
+      display             none
+
+    figure.education
+      height              778px !important
+      margin-top          100px !important
+
+    .group-features
+      margin-top          200px !important
 
 @media all and (max-width: 900px) and (min-width: 510px)
   .intro
@@ -483,19 +492,36 @@ span.intro-marker
       margin-left         auto !important
       margin-right        auto !important
 
-      h1,h2
-        text-align        center !important
+    h1,h2
+      text-align        center !important
 
-      .big-header
-        font-size         26px !important
-        margin-bottom     24px !important
+    .big-header
+      font-size         26px !important
+      margin-bottom     24px !important
 
-        ~h2
-          font-size       18px !important
-          margin-bottom   30px !important
+      ~h2
+        font-size       18px !important
+        margin-bottom   30px !important
 
     main
       padding             36px 60px 44px !important
+
+    .group-features
+      >div
+        width             100% !important
+        float             none !important
+        text-align        center
+
+        article
+          width           auto !important
+
+    .kdbutton.pricing
+      margin              20px auto !important
+      width               90% !important
+
+    figure.education
+      height              1035px !important
+
 
 @media all and (max-width: 510px)
   .intro
@@ -532,5 +558,9 @@ span.intro-marker
         &.social .icon
           margin-right    22px
           margin-left     6px
+
+
+    #home-bottom
+      padding-top         690px !important
 
 
