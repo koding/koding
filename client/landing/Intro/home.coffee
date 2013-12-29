@@ -24,6 +24,21 @@ class HomePage extends JView
 
     @markers = new MarkerController
 
+  show:->
+
+    @unsetClass 'out'
+    document.body.classList.add 'intro'
+    KD.utils.defer => @markers.reset()
+
+    super
+
+  hide:->
+
+    @setClass 'out'
+    document.body.classList.remove 'intro'
+
+    super
+
   viewAppended:->
 
     super
