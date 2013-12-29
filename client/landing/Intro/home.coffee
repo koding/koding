@@ -112,21 +112,21 @@ class HomePage extends JView
         <figure class='education'></figure>
         <figure class='browser'></figure>
         <div class='group-features clearfix'>
-          <div class='white-label'>
+          <div class='white-label clearfix'>
             <span class='icon'></span>
             <article>
               <h4>WHITE LABEL KODING</h4>
               Etiam turpis ante, aliquam id mattis condimentum, adipiscing vitae ipsum. Phasellus ultricies diam ligula, at pellentesque ligula lobortis eget.
             </article>
           </div>
-          <div class='school'>
+          <div class='school clearfix'>
             <span class='icon'></span>
             <article>
               <h4>USE IT IN YOUR SCHOOL</h4>
               Etiam turpis ante, aliquam id mattis condimentum, adipiscing vitae ipsum. Phasellus ultricies diam ligula, at pellentesque ligula lobortis eget.
             </article>
           </div>
-          <div class='project'>
+          <div class='project clearfix'>
             <span class='icon'></span>
             <article>
               <h4>CREATE PROJECT GROUPS</h4>
