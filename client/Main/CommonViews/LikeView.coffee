@@ -21,7 +21,8 @@ class LikeView extends JView
       mouseenter  : => @fetchLikeInfo()
       attributes  :
         href      : "#"
-      click       : (event)=>
+      click       : (event) =>
+        KD.utils.stopDOMEvent event
         if data.meta.likes > 0
           data.fetchLikedByes {},
             sort : timestamp : -1
