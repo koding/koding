@@ -27,7 +27,7 @@ class LikeView extends JView
             new ShowMoreDataModalView {title:"Members who liked <cite>#{@utils.expandTokens data.body, data}</cite>"}, likes
       , data
 
-    @likeLink = new ActivityActionLink
+    @likeLink = new ActivityActionLink partial: "Like"
 
     # We need to getridoff this asap FIXME ~HK
     if options.checkIfLikedBefore and KD.isLoggedIn()
