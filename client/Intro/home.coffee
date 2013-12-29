@@ -18,7 +18,7 @@ class HomePage extends JView
 
     @githubLink   = new KDCustomHTMLView
       tagName     : "a"
-      partial     : "GitHub"
+      partial     : "Or you can sign up using <strong>GitHub</strong>"
       click       : ->
         KD.singletons.oauthController.openPopup "github"
 
@@ -70,31 +70,35 @@ class HomePage extends JView
           <a href="/Login" class="login fr">LOGIN</a>
         </div>
       </header>
-      <main>
-        <h1 class='big-header'>SOMETHING SUPER EXCITING GOES HERE</h1>
-        <h2>Something super simple and super descriptive goes here</h2>
-        {{> @registerForm}}
-        <h3>Or you can sign up using {{> @githubLink}}<span></span></a></h2>
+      <main class="clearfix">
+        <div class="headings-container">
+          <h1 class='big-header'>SOMETHING SUPER EXCITING GOES HERE</h1>
+          <h2>Something super simple and super descriptive goes here</h2>
+        </div>
+        <div class="register-container">
+          {{> @registerForm}}
+          <h3>{{> @githubLink}}</h2>
+        </div>
       </main>
       <figure class='laptop'>
         <section class='teamwork'></section>
       </figure>
       <section id='home-features' class='clearfix'>
-        <div class='appstore'>
+        <div class='appstore clearfix'>
           <span class='icon'></span>
           <article>
             <h4>APPSTORE</h4>
             Koding apps to speed up your noob processes
           </article>
         </div>
-        <div class='teamwork'>
+        <div class='teamwork clearfix'>
           <span class='icon'></span>
           <article>
             <h4>TEAMWORK</h4>
             Collaborative development environment for your pleasure
           </article>
         </div>
-        <div class='social'>
+        <div class='social clearfix'>
           <span class='icon'></span>
           <article>
             <h4>SOCIAL</h4>
@@ -108,21 +112,21 @@ class HomePage extends JView
         <figure class='education'></figure>
         <figure class='browser'></figure>
         <div class='group-features clearfix'>
-          <div class='white-label'>
+          <div class='white-label clearfix'>
             <span class='icon'></span>
             <article>
               <h4>WHITE LABEL KODING</h4>
               Etiam turpis ante, aliquam id mattis condimentum, adipiscing vitae ipsum. Phasellus ultricies diam ligula, at pellentesque ligula lobortis eget.
             </article>
           </div>
-          <div class='school'>
+          <div class='school clearfix'>
             <span class='icon'></span>
             <article>
               <h4>USE IT IN YOUR SCHOOL</h4>
               Etiam turpis ante, aliquam id mattis condimentum, adipiscing vitae ipsum. Phasellus ultricies diam ligula, at pellentesque ligula lobortis eget.
             </article>
           </div>
-          <div class='project'>
+          <div class='project clearfix'>
             <span class='icon'></span>
             <article>
               <h4>CREATE PROJECT GROUPS</h4>
