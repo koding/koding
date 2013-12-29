@@ -462,13 +462,20 @@ span.collapsedtext
   .status-body
     // to avoid too long posts
     // until we find a better solution - SY
-    overflow      auto
-    max-height    400px
-    line-height   22px
+    overflow          auto
+    max-height        400px
+    line-height       22px
+    margin-bottom     7px
 
     > span
       > *
         padding       0 21px
+
+      > ol, ul
+        padding       0 42px
+
+      > blockquote
+        padding       0 10px
 
       > pre
         padding       10px 0
@@ -508,7 +515,6 @@ span.collapsedtext
 
   footer
     size          100%, 25px
-    margin-top    7px
     borderBox()
 
     time
@@ -959,7 +965,7 @@ span.status-body
     font-size     14px
 
   /* Lists */
-  ol,ul
+  ol, ul
     padding               0 25px 12px
     list-style            none
     display               block
@@ -993,51 +999,61 @@ span.status-body
     height                1px
     background            #c4c4c9
     border                none
-  code
-    display               block
-    line-height           16px
-    font-size             12px
-    font-family           Monaco, Consolas, Lucida Console, Liberation Mono, DejaVu Sans Mono, Bitstream Vera Sans Mono, Courier New
-    padding               14px
-    color                 white
-    bg                    color, #28292A
+  blockquote
+    border-left           4px solid #DDD
+    margin                4px 21px
+  p
+    code
+      padding             0px 3px
+      border              1px solid #DDD
+      background-color    #F8F8F8
+      border-radius       3px
+  pre
+    code
+      display             block
+      line-height         16px
+      font-size           12px
+      font-family         Monaco, Consolas, Lucida Console, Liberation Mono, DejaVu Sans Mono, Bitstream Vera Sans Mono, Courier New
+      padding             14px
+      color               white
+      bg                  color, #28292A
 
-    .comment
-    .string
-    .regexp
-      color               #96B486
+      .comment
+      .string
+      .regexp
+        color             #96B486
 
-    .keyword
-      color               #9B8298
-
-    .title
-    .variable
-      color               #6096BE
-
-    .literal
-    .number
-      color               #D17819
-
-    .constant
-    .decorator
-    .typename
-      color               #DEB63A
-
-    &.lang-go
-      .built_in
-        color             #6096BE
-
-    &.lang-css
-      .pseudo
-        color             #DEB63A
-
-      .id
-      .tag
-      .class
+      .keyword
         color             #9B8298
 
-      .attribute
+      .title
+      .variable
         color             #6096BE
+
+      .literal
+      .number
+        color             #D17819
+
+      .constant
+      .decorator
+      .typename
+        color             #DEB63A
+
+      &.lang-go
+        .built_in
+          color           #6096BE
+
+      &.lang-css
+        .pseudo
+          color           #DEB63A
+
+        .id
+        .tag
+        .class
+          color           #9B8298
+
+        .attribute
+          color           #6096BE
 
 .activity-share-popup
   bg                      color, #ececec
