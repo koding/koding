@@ -85,11 +85,13 @@ span.intro-marker
   z-index               1000
   overflow              visible
   visibility            visible
+  bg                    color homeHeaderBg
   shadow                0 3px 0 rgba(0, 0, 0, .15)
   rel()
 
   .inner-container
-    bg                  color, homeHeaderBg
+    max-width           1400px
+    margin              0 auto
     size                100%, 65px
     vendor              transform, translateY(0)
     -webkit-transition  -webkit-transform .2s ease
@@ -134,20 +136,26 @@ span.intro-marker
     borderBox()
 
   main > div
-
     max-width           790px
+    margin              0 auto
 
   #home-bottom
     margin-top          -660px
     background          url('/a/images/home/photo-large.jpg') no-repeat center center
-    padding-top         730px
+    padding-top         720px
     size                100% 1160px
     border-bottom       none
+    background-size     cover
     borderBox()
     h2
       margin-bottom     30px
+      font-size         30px
     h3
       margin-top        0
+    form
+      .login-input-view
+      button.kdbutton
+        kalc            width, 33% \- 15px
 
   h1, h2, h3
     text-align          center
@@ -164,7 +172,7 @@ span.intro-marker
   .big-header
     font-family         proximaFamily
     color               logoBg
-    font-size           36px
+    font-size           39px
     line-height         60px
     font-weight         400
 
@@ -214,7 +222,7 @@ span.intro-marker
 
     .login-input-view
       display           inline-block
-      size              100%
+      size              100% auto
       margin-right      15px
 
       // ? [BC]
@@ -288,7 +296,7 @@ span.intro-marker
 
 
 #home-features
-  max-width             984px
+  max-width             1207px
   margin                60px auto
   // padding-bottom        60px
   rel()
@@ -365,7 +373,8 @@ span.intro-marker
     rounded             4px
 
   figure.browser
-    background          url('/a/images/home/group.jpg') no-repeat center center
+    background          url('/a/images/home/group.jpg') no-repeat center top
+    bg                  size, cover
     size                1053px 714px
     margin              80px 0 100px -526px
     left                50%
@@ -416,6 +425,8 @@ span.intro-marker
           font-size       18px
           line-height     1
           margin-bottom   10px
+      a
+        color           white
 
       &.white-label
         span.icon
@@ -436,6 +447,9 @@ span.intro-marker
     bg                    color logoBg
     text-align            left
     rounded               10px
+    a
+      noTextDeco()
+      color               white
 
     span.button-title
       text-align          left
