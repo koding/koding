@@ -80,21 +80,21 @@ class HomePage extends JView
         <section class='teamwork'></section>
       </figure>
       <section id='home-features' class='clearfix'>
-        <div class='appstore'>
+        <div class='appstore clearfix'>
           <span class='icon'></span>
           <article>
             <h4>APPSTORE</h4>
             Koding apps to speed up your noob processes
           </article>
         </div>
-        <div class='teamwork'>
+        <div class='teamwork clearfix'>
           <span class='icon'></span>
           <article>
             <h4>TEAMWORK</h4>
             Collaborative development environment for your pleasure
           </article>
         </div>
-        <div class='social'>
+        <div class='social clearfix'>
           <span class='icon'></span>
           <article>
             <h4>SOCIAL</h4>
