@@ -1,4 +1,4 @@
-class LoginInputView extends JView
+class HomeLoginInput extends JView
 
 
   constructor:(options = {}, data)->
