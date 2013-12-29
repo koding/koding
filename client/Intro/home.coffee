@@ -7,13 +7,16 @@ class HomePage extends JView
     super options, data
 
     @pricingButton = new KDButtonView
-      title       : 'Get Koding for your intranet<cite>Starting from $5 per user</cite>'
+      title       : "<a href='mailto:sales@koding.com?subject=Koding, white label' target='_self'>Get your own Koding for your team<cite>Contact us for details</cite></a>"
       cssClass    : 'solid green shadowed pricing'
       icon        : 'yes'
       iconClass   : 'dollar'
-      callback    : -> log 'lolololoooo'
+      click       : (event)-> KD.utils.stopDOMEvent event
 
     @registerForm = new HomeRegisterForm
+      callback    : (formData)-> @doRegister formData
+
+    @registerFormBottom = new HomeRegisterForm
       callback    : (formData)-> @doRegister formData
 
     @githubLink   = new KDCustomHTMLView
@@ -47,6 +50,7 @@ class HomePage extends JView
       client    : '#home-page .laptop .teamwork'
       container : this
       wait      : 1000
+      message   : 'ACCESS YOUR VMS ONLINE'
       offset    :
         top     : 150
         left    : 50
@@ -55,6 +59,7 @@ class HomePage extends JView
       client    : '#home-page .laptop .teamwork'
       container : this
       wait      : 1300
+      message   : 'EASY ACCESS TO YOUR APPS'
       offset    :
         top     : -30
         left    : 240
@@ -63,17 +68,28 @@ class HomePage extends JView
       client    : '#home-page .laptop .teamwork'
       container : this
       wait      : 1600
+      message   : 'WORK TOGETHER, HAVE FUN!'
       offset    :
         top     : 150
-        left    : 800
+        left    : 700
 
     playMarker = @markers.create 'play',
       client    : '#home-page .laptop .teamwork'
       container : this
       wait      : 1900
+      message   : 'INSTANTLY SPIN UP PLAYGROUNDS'
       offset    :
         top     : 275
         left    : 500
+
+    logoMarker = @markers.create 'logo',
+      client    : '#home-page .browser'
+      container : this
+      wait      : 2200
+      message   : 'WHITE LABEL KODING'
+      offset    :
+        top     : 25
+        left    : 25
 
 
   pistachio:->
@@ -85,14 +101,16 @@ class HomePage extends JView
           <a href="/Login" class="login fr">LOGIN</a>
         </div>
       </header>
-      <main class="clearfix">
-        <div class="headings-container">
-          <h1 class='big-header'>SOMETHING SUPER EXCITING GOES HERE</h1>
-          <h2>Something super simple and super descriptive goes here</h2>
-        </div>
-        <div class="register-container">
-          {{> @registerForm}}
-          <h3>{{> @githubLink}}</h2>
+      <main>
+        <div class="clearfix">
+          <div class="headings-container">
+            <h1 class='big-header'>CODING ENVIRONMENT<br/>FROM THE FUTURE</h1>
+            <h2>Social development in your browser, sign up to join a great community and code on powerful VMs.</h2>
+          </div>
+          <div class="register-container">
+            {{> @registerForm}}
+            <h3>{{> @githubLink}}</h2>
+          </div>
         </div>
       </main>
       <figure class='laptop'>
@@ -102,28 +120,25 @@ class HomePage extends JView
         <div class='appstore clearfix'>
           <span class='icon'></span>
           <article>
-            <h4>APPSTORE</h4>
-            Koding apps to speed up your noob processes
+            <h4>APPSTORE</h4>Speed up with user contributed apps, or create your own app, Koding has a great toolset to interact with VMs and to build UIs around.
           </article>
         </div>
         <div class='teamwork clearfix'>
           <span class='icon'></span>
           <article>
-            <h4>TEAMWORK</h4>
-            Collaborative development environment for your pleasure
+            <h4>TEAMWORK</h4>Collaborative development environment for lecturing a group, or for pair programming, or simply for sharing what you're doing with a total stranger.
           </article>
         </div>
         <div class='social clearfix'>
           <span class='icon'></span>
           <article>
-            <h4>SOCIAL</h4>
-            Ask the masters of code, help out the poor noob.
+            <h4>SOCIAL</h4>Share with the community, learn from the experts or help the ones who has yet to start coding. Socialize with like minded people and have fun.
           </article>
         </div>
       </section>
       <section id='home-groups'>
-        <h2 class='big-header'>GROUPS ARE LIKE BALOONS</h2>
-        <h3>Something super simple and super descriptive goes here</h3>
+        <h2 class='big-header'>GROUPS, HAVE YOUR OWN KODING</h2>
+        <h3>Have all your development needs in a single private space.</h3>
         <figure class='education'></figure>
         <figure class='browser'></figure>
         <div class='group-features clearfix'>
@@ -131,21 +146,21 @@ class HomePage extends JView
             <span class='icon'></span>
             <article>
               <h4>WHITE LABEL KODING</h4>
-              Etiam turpis ante, aliquam id mattis condimentum, adipiscing vitae ipsum. Phasellus ultricies diam ligula, at pellentesque ligula lobortis eget.
+              You can have your private Koding in the cloud, with your rules, your apps and your own members. Please <a id='home-contact-link' href='mailto:education@koding.com?subject=Koding, white label' target='_self'>contact us</a> for further information.
             </article>
           </div>
           <div class='school clearfix'>
             <span class='icon'></span>
             <article>
               <h4>USE IT IN YOUR SCHOOL</h4>
-              Etiam turpis ante, aliquam id mattis condimentum, adipiscing vitae ipsum. Phasellus ultricies diam ligula, at pellentesque ligula lobortis eget.
+              Koding in the classroom, prepare your files online, share them with the whole class instantly. Collaborate live or just make your students watch what you're doing.
             </article>
           </div>
           <div class='project clearfix'>
             <span class='icon'></span>
             <article>
               <h4>CREATE PROJECT GROUPS</h4>
-              Etiam turpis ante, aliquam id mattis condimentum, adipiscing vitae ipsum. Phasellus ultricies diam ligula, at pellentesque ligula lobortis eget.
+              Want to work on a project with your buddies and use the same resources and running instances, share a VM between your fellow developers.
             </article>
           </div>
         </div>
@@ -153,7 +168,8 @@ class HomePage extends JView
       </section>
       <section id='home-bottom'>
         <h2 class='big-header'>IF YOU ARE READY TO GO, LET’S DO THIS</h2>
-        <h3>Something super simple and super descriptive goes here</h3>
+        <h3 class='hidden'>Something super simple and super descriptive goes here</h3>
+        {{> @registerFormBottom}}
       </section>
       <footer class='clearfix'>
         <div class='fl'>
