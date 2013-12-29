@@ -25,8 +25,16 @@ body.intro
   #kdmaincontainer
     hidden()
 
+boink()
+  vendor              transform, scale(0)
+  -webkit-transition  -webkit-transform .3s cubic-bezier(0.68, -0.55, 0.265, 1.55)
+  -moz-transition     -moz-transform .3s ease
+  transition          transform .3s cubic-bezier(0.68, -0.55, 0.265, 1.55)
+  &.in
+    vendor            transform, scale(1)
+
+
 span.intro-marker
-  vendor          transform, scale(0)
   rounded         26px
   display         block
   size            52px 52px
@@ -37,21 +45,39 @@ span.intro-marker
   overflow        hidden
   border          2px solid logoBg
   cursor          pointer
-  z-index         1000
-  -webkit-transition -webkit-transform .3s cubic-bezier(0.68, -0.55, 0.265, 1.55)
-  -moz-transition    -moz-transform .3s ease
-  transition         transform .3s cubic-bezier(0.68, -0.55, 0.265, 1.55)
+  z-index         10
   borderBox()
   abs()
+  boink()
   i
     rounded       13px
     display       block
     size          26px 26px
     margin        11px auto
     bg            color logoBg
-  &.in
-    vendor        transform, scale(1)
 
+.marker-message
+  bg              color logoBg
+  rounded         6px
+  padding         18px
+  font-size       18px
+  text-align      center
+  color           white
+  z-index         20
+  shadow          0 11px 16px rgba(0, 0, 0, .17)
+  abs()
+  boink()
+  cite
+    display       block
+    size          2px 0
+    left          50%
+    top           100%
+    bg            color logoBg
+    margin-left   -1px
+    vendor        transition, height .1s ease-in
+    abs()
+    &.in
+      height      30px
 
 #home-header
   margin                0
@@ -105,6 +131,10 @@ span.intro-marker
     background-size     cover
     size                100% 630px
     border-bottom       3px solid logoBg
+
+  main > div
+
+    max-width           790px
 
   #home-bottom
     margin-top          -660px
