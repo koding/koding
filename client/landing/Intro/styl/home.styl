@@ -98,11 +98,12 @@ span.intro-marker
 
   #home-bottom
   main
-    padding-top         70px
+    padding             70px 16%
     background          url('/a/images/home/photo-small.jpg') no-repeat center center
     background-size     cover
     size                100% 630px
     border-bottom       3px solid logoBg
+    borderBox()
 
   #home-bottom
     margin-top          -660px
@@ -121,6 +122,13 @@ span.intro-marker
     text-shadow         1px 1px 0 rgba(0, 0, 0, .6)
     font-weight         300
 
+  .headings-container
+    kalc                width, 97% \- 276px
+    fl()
+
+    h1, h2
+      text-align        left
+
   .big-header
     font-family         proximaFamily
     color               logoBg
@@ -137,13 +145,12 @@ span.intro-marker
 
   h3
     color               #d2d2d2
-    font-size           18px
-    line-height         30px
-    margin-top          40px
+    font-size           16px
+    line-height         18px
+    margin-top          22px
     a
     a:visited
       color             #d2d2d2
-      noTextDeco()
       &:hover
         color           #fff
 
@@ -155,18 +162,27 @@ span.intro-marker
       font-weight       500
       font-family       OpenSans
 
+  .register-container
+    width               276px
+    fr()
+
   form
-    size                710px 55px
+    size                100%  auto
     margin              0 auto
+
+    .kdbutton.solid.red
+      size              100%, 56px
 
     .kdinput
       border            1px solid #e6e6e6
-      shadow            3px 3px 5px rgba(0, 0, 0, .31)
+      shadow            inset 3px 3px 5px rgba(0, 0, 0, .31)
       text-align        center
+      margin            0 0 22px
+      size              100%, 56px
 
     .login-input-view
       display           inline-block
-      width             275px
+      size              100%
       margin-right      15px
 
       // ? [BC]
@@ -413,13 +429,22 @@ span.intro-marker
 
 @media all and (max-width: 1020px)
   .intro
+    .headings-container
+      .big-header
+        font-size         26px !important
+        line-height       36px !important
+
+        ~h2
+          font-size       18px !important
+          line-height     28px !important
+          margin-bottom   30px !important
+
     .laptop
     .intro-marker
       display             none !important
 
     main
       height              auto !important
-      padding-bottom      64px !important
 
     #home-features
       padding             0 30px
@@ -451,40 +476,37 @@ span.intro-marker
 
 @media all and (max-width: 720px)
   .intro
+    .headings-container
+    .register-container
+      float               none !important
+      width               75% !important
+      margin-left         auto !important
+      margin-right        auto !important
+
+      h1,h2
+        text-align        center !important
+
+      .big-header
+        font-size         26px !important
+        margin-bottom     24px !important
+
+        ~h2
+          font-size       18px !important
+          margin-bottom   30px !important
+
     main
-      padding-top         36px !important
-      padding-bottom      44px !important
-
-    .big-header
-      font-size           26px !important
-
-      ~h2
-        font-size         18px !important
-        margin-bottom     30px !important
-
-    #home-page
-      form
-        size              auto, auto
-        .login-input-view
-        .kdbutton
-          display         block
-          width           70%
-          margin          0 auto 20px
+      padding             36px 60px 44px !important
 
 @media all and (max-width: 510px)
   .intro
-    #home-page
-      form
-        .login-input-view
-        .kdbutton
-          width           90%
+    .headings-container
+    .register-container
+      width               100% !important
 
     .big-header
-      line-height         36px !important
       margin              0 16px 22px
 
       &~h2
-        line-height       28px !important
         margin            0 16px 22px
 
     #home-features

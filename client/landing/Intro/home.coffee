@@ -18,7 +18,7 @@ class HomePage extends JView
 
     @githubLink   = new KDCustomHTMLView
       tagName     : "a"
-      partial     : "GitHub"
+      partial     : "Or you can sign up using <strong>GitHub</strong>"
       click       : ->
         KD.singletons.oauthController.openPopup "github"
 
@@ -70,11 +70,15 @@ class HomePage extends JView
           <a href="/Login" class="login fr">LOGIN</a>
         </div>
       </header>
-      <main>
-        <h1 class='big-header'>SOMETHING SUPER EXCITING GOES HERE</h1>
-        <h2>Something super simple and super descriptive goes here</h2>
-        {{> @registerForm}}
-        <h3>Or you can sign up using {{> @githubLink}}<span></span></a></h2>
+      <main class="clearfix">
+        <div class="headings-container">
+          <h1 class='big-header'>SOMETHING SUPER EXCITING GOES HERE</h1>
+          <h2>Something super simple and super descriptive goes here</h2>
+        </div>
+        <div class="register-container">
+          {{> @registerForm}}
+          <h3>{{> @githubLink}}</h2>
+        </div>
       </main>
       <figure class='laptop'>
         <section class='teamwork'></section>
