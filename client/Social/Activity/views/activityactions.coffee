@@ -44,15 +44,15 @@ class ActivityActionsView extends KDView
     @commentCount = new ActivityCommentCount
       tooltip     :
         title     : "Show all"
-      click       : (event)=>
-        event.preventDefault()
-        @getDelegate().emit "CommentCountClicked", @
+      click       : (event) =>
+        KD.utils.stopDOMEvent event
+        @getDelegate().emit "CommentCountClicked", this
     , activity
 
-    @shareLink    = new ActivityActionLink
-      partial         : "Share"
-      click           :(event)=>
-        @utils.stopDOMEvent event
+    @shareLink = new ActivityActionLink
+      partial  : "Share"
+      click    : (event) =>
+        KD.utils.stopDOMEvent event
         data = @getData()
         if data?.group? and data.group isnt "koding"
           shareUrl = "#{KD.config.mainUri}/#!/#{data.group}/Activity/#{data.slug}"
@@ -128,16 +128,20 @@ class ActivityActionsView extends KDView
 class ActivityActionLink extends KDCustomHTMLView
   constructor:(options,data)->
     options = $.extend
-      tagName   : "span"
+      tagName   : "a"
       cssClass  : "action-link"
+      attributes:
+        href    : "#"
     , options
     super options,data
 
 class ActivityCountLink extends KDCustomHTMLView
   constructor:(options,data)->
     options = $.extend
-      tagName   : "span"
+      tagName   : "a"
       cssClass  : "count"
+      attributes:
+        href    : "#"
     , options
     super options,data
 
