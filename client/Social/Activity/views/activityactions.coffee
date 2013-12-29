@@ -128,16 +128,20 @@ class ActivityActionsView extends KDView
 class ActivityActionLink extends KDCustomHTMLView
   constructor:(options,data)->
     options = $.extend
-      tagName   : "span"
+      tagName   : "a"
       cssClass  : "action-link"
+      attributes:
+        href    : "#"
     , options
     super options,data
 
 class ActivityCountLink extends KDCustomHTMLView
   constructor:(options,data)->
     options = $.extend
-      tagName   : "span"
+      tagName   : "a"
       cssClass  : "count"
+      attributes:
+        href    : "#"
     , options
     super options,data
 

@@ -19,6 +19,8 @@ class LikeView extends JView
         title     : ""
       bind        : "mouseenter"
       mouseenter  : => @fetchLikeInfo()
+      attributes  :
+        href      : "#"
       click       : (event)=>
         if data.meta.likes > 0
           data.fetchLikedByes {},
@@ -117,7 +119,7 @@ class LikeView extends JView
   click:(event)->
     event.preventDefault()
 
-    if $(event.target).is(".action-link")
+    if $(event.target).is("a.action-link")
       @getData().like (err)=>
         if err
           KD.mixpanel "Activity like, fail"
