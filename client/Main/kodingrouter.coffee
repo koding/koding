@@ -79,6 +79,8 @@ class KodingRouter extends KDRouter
         @handleRoute @userRoute or @getDefaultRoute(), {replaceState: yes, entryPoint}
       else
         @handleRoute @getDefaultRoute(), {entryPoint}
+        if not entryPoint or entryPoint?.slug is 'koding'
+          KD.introView?.show()
 
   cleanupRoute:(contentDisplay)->
     delete @openRoutes[@openRoutesById[contentDisplay.id]]
