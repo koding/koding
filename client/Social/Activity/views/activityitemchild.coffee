@@ -68,22 +68,16 @@ class ActivityItemChild extends KDView
       activityItem = @getDelegate()
       deleteActivity activityItem
 
+    resetEditing = =>
+      @editWidget.destroy()
+      @editWidgetWrapper.setClass "hidden"
+
     @settingsButton.on 'ActivityEditIsClicked', =>
-      unless @editWidget
-        @editWidget = new ActivityEditWidget
-        reset = =>
-          @editWidget = null if @editWidget
-          @editWidgetWrapper.setClass "hidden"
-
-        @editWidget.on 'Submit', reset
-        @editWidget.on 'ActivityInputCancelled', reset
-
-        @editWidget.edit @getData()
-
-        @editWidgetWrapper.addSubView @editWidget, null, yes
-        @editWidgetWrapper.unsetClass "hidden"
-
-
+      @editWidget = new ActivityEditWidget null, data
+      @editWidget.on 'Submit', resetEditing
+      @editWidget.on 'Cancel', resetEditing
+      @editWidgetWrapper.addSubView @editWidget, null, yes
+      @editWidgetWrapper.unsetClass "hidden"
 
     data.on 'PostIsDeleted', =>
       activityItem = @getDelegate()
