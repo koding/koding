@@ -1,10 +1,10 @@
-class RegisterInlineForm extends KDFormView
+class HomeRegisterForm extends KDFormView
 
   constructor:(options={},data)->
 
     super options, data
 
-    @email = new LoginInputView
+    @email = new HomeLoginInput
       inputOptions    :
         name          : "email"
         placeholder   : 'your@email.com'
@@ -12,7 +12,7 @@ class RegisterInlineForm extends KDFormView
         validate      : @getEmailValidator()
         # blur          : (input, event)=>
 
-    @username = new LoginInputView
+    @username = new HomeLoginInput
       inputOptions       :
         name             : "username"
         forceCase        : "lowercase"

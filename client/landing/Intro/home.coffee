@@ -13,7 +13,7 @@ class HomePage extends JView
       iconClass   : 'dollar'
       callback    : -> log 'lolololoooo'
 
-    @registerForm = new RegisterInlineForm
+    @registerForm = new HomeRegisterForm
       callback    : (formData)-> @doRegister formData
 
     @githubLink   = new KDCustomHTMLView
