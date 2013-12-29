@@ -19,7 +19,10 @@ class LikeView extends JView
         title     : ""
       bind        : "mouseenter"
       mouseenter  : => @fetchLikeInfo()
-      click       : (event)=>
+      attributes  :
+        href      : "#"
+      click       : (event) =>
+        KD.utils.stopDOMEvent event
         if data.meta.likes > 0
           data.fetchLikedByes {},
             sort : timestamp : -1
@@ -27,7 +30,7 @@ class LikeView extends JView
             new ShowMoreDataModalView {title:"Members who liked <cite>#{@utils.expandTokens data.body, data}</cite>"}, likes
       , data
 
-    @likeLink = new ActivityActionLink
+    @likeLink = new ActivityActionLink partial: "Like"
 
     # We need to getridoff this asap FIXME ~HK
     if options.checkIfLikedBefore and KD.isLoggedIn()
@@ -117,7 +120,7 @@ class LikeView extends JView
   click:(event)->
     event.preventDefault()
 
-    if $(event.target).is(".action-link")
+    if $(event.target).is("a.action-link")
       @getData().like (err)=>
         if err
           KD.mixpanel "Activity like, fail"
