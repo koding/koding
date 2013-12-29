@@ -169,6 +169,11 @@ span.intro-marker
       width             275px
       margin-right      15px
 
+      // ? [BC]
+      .input-loader
+      .placeholder-helper
+        display         none
+
       &.validation-error
         input.kdinput.text
           border          1px solid #e79a8f
@@ -190,8 +195,9 @@ span.intro-marker
     background          url('/a/images/home/laptop.png') no-repeat center center
     background-size     cover
     size                1207px 739px
-    margin              -260px auto 0
+    margin              -260px 0 0 -603px
     overflow            hidden
+    left                50%
     rel()
 
     section
@@ -313,7 +319,8 @@ span.intro-marker
   figure.browser
     background          url('/a/images/home/group.jpg') no-repeat center center
     size                1053px 714px
-    margin              80px auto 100px
+    margin              80px 0 100px -526px
+    left                50%
     shadow              0 20px 50px rgba(0, 0, 0, .5)
     rel()
 
@@ -339,7 +346,7 @@ span.intro-marker
 
       span.icon
         size            100px, 100px
-        margin-bototm   28px
+        margin-bottom   28px
         display         block
         margin          0 auto
 
@@ -400,3 +407,108 @@ span.intro-marker
       margin              0
       padding             0
       sprite              home 'dollar'
+
+
+/* Media Queries */
+
+@media all and (max-width: 1020px)
+  .intro
+    .laptop
+    .intro-marker
+      display             none !important
+
+    main
+      height              auto !important
+      padding-bottom      64px !important
+
+    #home-features
+      padding             0 30px
+
+@media all and (max-width: 900px) and (min-width: 510px)
+  .intro
+    #home-features
+      >div
+        text-align        center
+
+        span.icon
+          margin          0 auto
+          float           none
+
+        article
+          width           100%
+          padding         0 20px
+          borderBox()
+
+        &.appstore .icon
+          margin-top      6px
+          margin-bottom   20px
+
+        &.teamwork .icon
+          margin-bottom   12px
+
+        &.social .icon
+          margin-bottom   15px
+
+@media all and (max-width: 720px)
+  .intro
+    main
+      padding-top         36px !important
+      padding-bottom      44px !important
+
+    .big-header
+      font-size           26px !important
+
+      ~h2
+        font-size         18px !important
+        margin-bottom     30px !important
+
+    #home-page
+      form
+        size              auto, auto
+        .login-input-view
+        .kdbutton
+          display         block
+          width           70%
+          margin          0 auto 20px
+
+@media all and (max-width: 510px)
+  .intro
+    #home-page
+      form
+        .login-input-view
+        .kdbutton
+          width           90%
+
+    .big-header
+      line-height         36px !important
+      margin              0 16px 22px
+
+      &~h2
+        line-height       28px !important
+        margin            0 16px 22px
+
+    #home-features
+      padding             0 15px
+      margin              40px auto
+      >div
+        float             none
+        width             auto
+
+        .icon
+          vendor          transform, scale(.7) translateY(-10px)
+
+        &~div
+          margin          28px 0 0
+
+        &.appstore .icon
+          margin-left     6px
+          margin-right    20px
+
+        &.teamwork .icon
+          margin-right    12px
+
+        &.social .icon
+          margin-right    22px
+          margin-left     6px
+
+
