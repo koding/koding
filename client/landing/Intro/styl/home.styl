@@ -10,7 +10,7 @@ home.styl
 }
 
 body.intro
-  bg                    color, bgColor
+  bg                    color bgColor
   #kdmaincontainer
     hidden()
 
@@ -115,6 +115,12 @@ span.intro-marker
       margin            14px
       display           block
 
+  .logotype
+    r-sprite            home 'logotype'
+    margin              23px 0 0 3px
+    font-size           0
+    fl()
+
   #home-bottom
   main
     padding             70px 16%
@@ -188,8 +194,9 @@ span.intro-marker
       display           inline-block
       margin            0 0 -3px 10px
     strong
-      font-weight       500
-      font-family       OpenSans
+      font-weight       600
+      font-family       openSansFamily
+      color             white
 
   .register-container
     width               276px
