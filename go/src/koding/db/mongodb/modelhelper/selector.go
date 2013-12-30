@@ -1,6 +1,7 @@
 package modelhelper
 
 import (
+	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
 )
 
@@ -13,3 +14,5 @@ func GetObjectId(id string) bson.ObjectId {
 func NewObjectId() bson.ObjectId {
 	return bson.NewObjectId()
 }
+
+var ErrNotFound = mgo.ErrNotFound
