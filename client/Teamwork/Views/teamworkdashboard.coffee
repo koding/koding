@@ -6,65 +6,10 @@ class TeamworkDashboard extends JView
 
     super options, data
 
-    @teamUpButton = new KDButtonView
-      title       : "Team Up!"
-      cssClass    : "tw-rounded-button"
-      callback    : =>
-        KD.mixpanel "Teamwork team up, click"
-        delegate  = @getDelegate()
-        if delegate.teamwork
-          delegate.showTeamUpModal()
-        else
-          delegate.emit "NewSessionRequested", null, ->
-            delegate.emit "TeamUpRequested"
-
-    @joinInput    = new KDHitEnterInputView
-      cssClass    : "tw-dashboard-input"
-      type        : "text"
-      placeholder : "Session key or url"
-      validate    :
-        rules     : required: yes
-        messages  : required: "Enter session key or URL to join."
-      callback    : => @handleJoinSession()
-
-    @joinButton   = new KDButtonView
-      iconOnly    : yes
-      iconClass   : "join-in"
-      cssClass    : "tw-dashboard-button"
-      callback    : =>
-        @handleJoinSession()
-        KD.mixpanel "Teamwork join session, success"
-
-    @importInput  = new KDHitEnterInputView
-      cssClass    : "tw-dashboard-input"
-      type        : "text"
-      placeholder : "Import url"
-      validate    :
-        rules     : required: yes
-        messages  : required: "Enter URL to import content."
-      callback    : =>
-        @handleImport()
-        KD.mixpanel "Teamwork import, click"
-
-    @importButton = new KDButtonView
-      iconOnly    : yes
-      iconClass   : "import"
-      cssClass    : "tw-dashboard-button"
-      callback    : => @handleImport()
+    @fetchManifests()
 
     @playgrounds  = new KDCustomHTMLView
       cssClass    : "tw-playgrounds"
-
-    @sessionButton = new KDButtonView
-      cssClass    : "tw-session-button"
-      title       : "Start your session now!"
-      callback    : => @getDelegate().emit "NewSessionRequested"
-
-    @fetchManifests()
-
-  show: -> @setClass "active"
-
-  hide: -> @unsetClass "active"
 
   createPlaygrounds: (manifests) ->
     manifests?.forEach (manifest) =>
@@ -84,25 +29,7 @@ class TeamworkDashboard extends JView
         callback  : =>
           new KDNotificationView
             title : "Coming Soon"
-          # @hide()
           # @getDelegate().handlePlaygroundSelection manifest.name, manifest.manifestUrl
-
-  handleImport: ->
-    @getDelegate().emit "ImportRequested", @importInput.getValue()
-
-  handleJoinSession: ->
-    sessionKey = @joinInput.getValue()
-    if sessionKey.match /(http|https)/
-      if sessionKey.indexOf("koding.com") > -1 and sessionKey.indexOf("sessionKey=") > -1
-        [temp, sessionKey] = sessionKey.split "sessionKey="
-      else
-        return new KDNotificationView
-          type     : "mini"
-          cssClass : "error"
-          title    : "Could not resolve your URL"
-          duration : 5000
-
-    @getDelegate().emit "JoinSessionRequested", sessionKey
 
   fetchManifests: ->
     filename = if location.hostname is "localhost" then "manifest-dev" else "manifest"
@@ -123,34 +50,6 @@ class TeamworkDashboard extends JView
 
   pistachio: ->
     """
-      <div class="actions">
-        <div class="tw-items-container">
-          <div class="item team-up">
-            <div class="badge"></div>
-            <h3>Team Up</h3>
-            <p>Team up and start working with your friends. Invite your Koding friends or invite them via email.</p>
-            {{> @teamUpButton}}
-          </div>
-          <div class="item join-in">
-            <div class="badge"></div>
-            <h3>Join In</h3>
-            <p>Join your friend's Teamwork session. You can enter a session key or a full Koding URL.</p>
-            <div class="tw-input-container">
-              {{> @joinInput}}
-              {{> @joinButton}}
-            </div>
-          </div>
-          <div class="item import">
-            <div class="badge"></div>
-            <h3>Import</h3>
-            <p>Import content to your VM and start working on it. It might be a zip file or a GitHub repository.</p>
-            <div class="tw-input-container">
-              {{> @importInput}}
-              {{> @importButton}}
-            </div>
-          </div>
-        </div>
-      </div>
       <div class="tw-playgrounds-container">
         <p class="loading">Loading Playgrounds...</p>
         {{> @playgrounds}}
