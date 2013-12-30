@@ -31,7 +31,7 @@ KD.extend
         username  : 'geraint'
         title     : 'Director of Infrastructure'
       ,
-        username  : 'leventyalcin'
+        username  : 'aleksey-m'
         title     : 'System Administrator'
       ,
         username  : 'ybrs'
@@ -43,14 +43,17 @@ KD.extend
         username  : 'szkl'
         title     : 'Software Engineer'
       ,
+        username  : 'burakcan'
+        title     : 'CSS Wizard'
+      ,
+        username  : 'leventyalcin'
+        title     : 'System Administrator'
+      ,
         username  : 'samet'
         title     : 'Software Engineer'
       ,
         username  : 'cenk6'
         title     : 'Software Engineer'
-      ,
-        username  : 'burakcan'
-        title     : 'CSS Wizard'
       ,
         username  : 'emred'
         title     : 'Designer'
@@ -60,12 +63,12 @@ KD.extend
       ,
         username  : 'pablostanley'
         title     : 'Illustrator'
-      ,
-        username  : 'leeolayvar'
-        title     : 'Community Manager'
-      ,
-        username  : 'stefanbc'
-        title     : 'Community Relations'
+      # ,
+      #   username  : 'leeolayvar'
+      #   title     : 'Community Manager'
+      # ,
+      #   username  : 'stefanbc'
+      #   title     : 'Community Manager'
       ,
         username  : 'dicle'
         title     : 'Business Analysist'
@@ -77,10 +80,7 @@ KD.extend
         title     : 'Finance Assistant'
       ,
         username  : 'nesli'
-        title     : 'Chef de cuisine'
-      ,
-        username  : 'aleksey-m'
-        title     : 'System Administrator'
+        title     : 'Chef de Cuisine'
       ]
 
     suspended     : []
