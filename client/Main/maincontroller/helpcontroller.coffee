@@ -10,6 +10,8 @@ class HelpController extends KDController
     @_modal?.destroy?()
     @_modal = new HelpModal {delegate}
 
+    storage = KD.singletons.localStorageController.storage('HelpController')
+    storage.setValue 'shown', yes
 
 class HelpPage extends KDSlidePageView
 
