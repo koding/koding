@@ -1,29 +1,14 @@
-package main
+package topicmodifier
 
 import (
 	"fmt"
-	logging "github.com/op/go-logging"
 	. "koding/db/models"
 	helper "koding/db/mongodb/modelhelper"
-	"labix.org/v2/mgo"
-	stdlog "log"
-	"os"
 	"strings"
 )
 
 var (
-	log               = logging.MustGetLogger("TopicModifier")
 )
-
-
-func configureLogger() {
-	logging.SetLevel(logging.INFO, "TopicModifier")
-	log.Module = "TopicModifier"
-	logging.SetFormatter(logging.MustStringFormatter("%{level:-3s} ▶ %{message}"))
-	stderrBackend := logging.NewLogBackend(os.Stderr, "", stdlog.LstdFlags|stdlog.Lshortfile)
-	stderrBackend.Color = true
-	logging.SetBackend(stderrBackend)
-}
 
 //Deletes given tags. Tags are removed from post bodies and collections.
 //Tag relations are also removed.
