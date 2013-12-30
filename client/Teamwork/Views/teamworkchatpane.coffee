@@ -57,9 +57,21 @@ class TeamworkChatPane extends ChatPane
 
     return originUser is KD.nick() and isSystemMessage
 
-  isSystemMessage: (message = "") ->
-    [key] = message.split " "
-    return replyHandlers[key] isnt undefined
+  isSystemMessage: (message) ->
+    return  unless message
+    splitted     = message.trim().split " "
+    keyword      = splitted.first
+    hasMaxLength = splitted.length is 2
+    hasHandler   = replyHandlers[keyword] isnt undefined
+    isHelp       = keyword is "help"
+    isStopWatch  = keyword is "stop"
+
+    if isHelp
+      return splitted.length is 1
+    else if isStopWatch
+      return message is "stop watching"
+    else
+      return hasMaxLength and hasHandler
 
   runSystemMessageHandler: (message) ->
     splitted = message.split " "
@@ -80,12 +92,13 @@ class TeamworkChatPane extends ChatPane
       @botReply getMessage "validateKey", sessionKey
       @workspace.firebaseRef.child(sessionKey).once "value", (snapshot) =>
         if snapshot.val() is null or not snapshot.val().keys
-          @botReply message.noSession
+          @botReply messages.noSession
         else
           @botReply getMessage "joinSession", sessionKey
           @workspace.getDelegate().emit "JoinSessionRequested", sessionKey
     else
       # TODO: fatihacet - implement getting the sessionKey via username
+      @botReply messages.invalidKey
 
   replyForInvite: (usernames) ->
     # TODO: fatihacet - currently invite only first user
@@ -117,6 +130,10 @@ class TeamworkChatPane extends ChatPane
     # TODO: fatihacet - I need to check username is valid and user is in session.
     @workspace.setWatchMode username
     @botReply getMessage "watchReply", username
+
+  replyForStopWatching: ->
+    @workspace.setWatchMode "nobody"
+    @botReply getMessage "watchNobody"
 
   botReply: (message) ->
     messageData =
@@ -162,6 +179,7 @@ class TeamworkChatPane extends ChatPane
     invite        : "replyForInvite"
     watch         : "replyForWatch"
     join          : "replyForJoin"
+    stop          : "replyForStopWatching"
 
   messages        =
     welcome       : """
@@ -176,6 +194,7 @@ class TeamworkChatPane extends ChatPane
         Ok. Now you are now watching $0. Seems like a nice guy.
         You can type "stop watching" anytime.
       """
+    watchNobody   : "It's done. Now you are watching nobody."
     invited       : "Sure thing! I invited $0 for you. I will let you know when they join."
     inviteOneByOne: """
 
@@ -185,6 +204,7 @@ class TeamworkChatPane extends ChatPane
     validateKey   : "01001101 ... I am checking this session key, $0."
     joinSession   : "01001010 ... Joining session, $0"
     noSession     : "Sorry, looks like this session is closed by its host, I cannot get you in."
+    invalidKey    : "Sorry, looks like this session key is not valid anymore."
     help          : """
         If you type,
         "invite username" I can bring someone to your session,

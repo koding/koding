@@ -216,7 +216,7 @@ class CollaborativeWorkspace extends Workspace
       content      : options.joinModalContent or "<p>This is your session key, you can share this key with your friends to work together.</p>"
       overlay      : yes
       cssClass     : "workspace-modal join-modal"
-      width        : 500
+      width        : 600
       buttons      :
         Join       :
           title    : "Join Session"
