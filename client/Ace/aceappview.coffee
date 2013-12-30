@@ -122,6 +122,8 @@ class AceAppView extends JView
 
   preview: ->
     {path, vmName} = @getActiveAceView().getData()
+    return  if /^localfile/.test path
+    path = KD.getPublicURLOfPath path
     KD.singleton("appManager").create "Viewer", {path, vmName}, (app) =>
       @tabView.addPane new KDTabPaneView
         name    : "[#{path.split("/").last}]"
