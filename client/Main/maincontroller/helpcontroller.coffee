@@ -31,10 +31,10 @@ class HelpPage extends KDSlidePageView
         options.click = (event)=>
           KD.utils.stopDOMEvent event
           KD.singletons.appManager.require 'Terminal',(app)=>
-            KD.singletons.router.handleRoute link.url
-            KD.singletons.appManager.tell 'Terminal', 'runCommand', link.command
-            KD.utils.wait 1000, =>
-              @getDelegate().emit 'InternalLinkClicked', link
+            @getDelegate().emit 'InternalLinkClicked', link
+            KD.utils.wait 500, =>
+              KD.singletons.router.handleRoute link.url
+              KD.singletons.appManager.tell 'Terminal', 'runCommand', link.command
 
       @addSubView (new KDCustomHTMLView options), 'ul'
 
