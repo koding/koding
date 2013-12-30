@@ -18,6 +18,18 @@ func GetRelationships(selector Selector) ([]models.Relationship, error) {
 	return relationships, err
 }
 
+func GetSomeRelationships(selector Selector, limit int) ([]models.Relationship, error) {
+	relationships := make([]models.Relationship, 0)
+
+	query := func(c *mgo.Collection) error {
+		return c.Find(selector).Limit(limit).All(&relationships)
+	}
+
+	err := mongodb.Run("relationships", query)
+
+	return relationships, err
+}
+
 func GetRelationship(selector Selector) (models.Relationship, error) {
 	relationship := models.Relationship{}
 
