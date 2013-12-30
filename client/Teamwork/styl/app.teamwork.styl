@@ -571,48 +571,40 @@ app.teamwork.styl
     vendor                      animation, pulse-to-fade-out .75s ease-in-out
     vendor                      animation-iteration-count, 1
 
-.tw-loader
-  size                          133px, 133px
-  left                          50%
-  position                      relative
-  margin                        -67px 0 0 -67px
-  top                           50%
-  r-sprite                      teamwork "teampunk-big"
-
 .tw-loading
   .loading-animation
-    abs                    50% 0 0 50%
-    margin                 -66px 0 0 -66px
-    r-sprite               "teamwork", "teampunk-big"
+    abs                         50% 0 0 50%
+    margin                      -66px 0 0 -66px
+    r-sprite                    "teamwork", "teampunk-big"
 
     &:after
     &:before
     span
-      content              ""
-      abs                  0 0
-      size                 100%, 100%
-      rounded              50%
-      border               1px solid #f2c500
-      vendor               transform, scale(.91)
-      vendor               animation, borderPulse 2.1s infinite ease
+      content                   ""
+      abs                       0 0
+      size                      100%, 100%
+      rounded                   50%
+      border                    1px solid #f2c500
+      vendor                    transform, scale(.91)
+      vendor                    animation, borderPulse 2.1s infinite ease
       borderBox()
 
     &:before
-      vendor               animation-delay, .3s
+      vendor                    animation-delay, .3s
 
     span
-      vendor               animation-delay, .6s
+      vendor                    animation-delay, .6s
 
 @-moz-keyframes borderPulse
   15%
-    opacity              1
+    opacity                     1
   100%
-    -moz-transform       scale(1.3)
-    opacity              0
+    -moz-transform              scale(1.3)
+    opacity                     0
 
 @-webkit-keyframes borderPulse
   15%
-    opacity              1
+    opacity                     1
   100%
-    -webkit-transform    scale(1.3)
-    opacity              0
+    -webkit-transform           scale(1.3)
+    opacity                     0
