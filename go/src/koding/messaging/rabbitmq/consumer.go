@@ -2,6 +2,7 @@ package rabbitmq
 
 import (
 	"github.com/streadway/amqp"
+	"time"
 )
 
 type Consumer struct {
@@ -137,6 +138,24 @@ func (c *Consumer) Consume(handler func(delivery amqp.Delivery)) {
 	c.done <- nil
 }
 
+// ConsumeMessage accepts a handler function and only consumes one message
+// stream from RabbitMq and then closes connection
+func (c *Consumer) ConsumeMessage(handler func(delivery amqp.Delivery)) error {
+	c.handler = handler
+
+	timer := time.NewTimer(time.Second * 5)
+
+	select {
+	case message := <-c.deliveries:
+		log.Info("Message received")
+		handler(message)
+	case <-timer.C:
+		log.Info("No message received")
+	}
+
+	return shutdown(c.conn, c.channel, c.tag)
+}
+
 // Shutdown gracefully closes all connections and waits
 // for handler to finish its messages
 func (c *Consumer) Shutdown() error {
@@ -144,7 +163,7 @@ func (c *Consumer) Shutdown() error {
 	// first stop streaming then close connections
 	err := shutdown(c.conn, c.channel, c.tag)
 	if err != nil {
-		return nil
+		return err
 	}
 
 	defer log.Info("Consumer shutdown OK")
