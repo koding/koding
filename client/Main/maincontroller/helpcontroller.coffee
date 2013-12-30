@@ -168,9 +168,9 @@ class HelpModal extends AnimatedModalView
     @addSubView new KDCustomHTMLView
       tagName  :'footer'
       partial  : """
-        <h4>Also, we would love to hear your <a href='https://docs.google.com/forms/d/1jxdnXLm-cgHDpokzKIJSaShEirb66huoEMhPkQF5f_I/viewform'target='_blank'>feedback</a>, thank you.</h4>
+        <h4>Find more at <a href='http://learn.koding.com'>Koding University</a>, also, we would love to hear your <a href='https://docs.google.com/forms/d/1jxdnXLm-cgHDpokzKIJSaShEirb66huoEMhPkQF5f_I/viewform'target='_blank'>feedback</a>.</h4>
         <div class='warning'>
-          <img src="/a/images/icon_warning.png" />
+          <span class='icon'></span>
           <p>
           It’s still in beta, so you might find some bugs.<br/>
           Please report them in a status update tagged as <i>#bug</i>.<br/>
