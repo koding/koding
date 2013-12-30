@@ -12,13 +12,14 @@ class TeamworkDashboard extends JView
       cssClass    : "tw-playgrounds"
 
   createPlaygrounds: (manifests) ->
-    @playgrounds.addSubView new KDCustomHTMLView
-      cssClass    : "tw-playground-item default-item add-new"
-      partial     : "<div></div><p>New Project</p>"
+    # @playgrounds.addSubView new KDCustomHTMLView
+    #   cssClass    : "tw-playground-item default-item add-new"
+    #   partial     : "<div></div><p>New Project</p>"
 
     @playgrounds.addSubView new KDCustomHTMLView
       cssClass    : "tw-playground-item default-item import"
       partial     : "<div></div><p>Import Project</p>"
+      click       : => @getDelegate().teamwork.showImportModal()
 
     manifests?.forEach (manifest) =>
       @setClass "ready"
