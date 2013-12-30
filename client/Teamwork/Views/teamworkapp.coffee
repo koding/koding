@@ -30,9 +30,9 @@ class TeamworkApp extends KDObject
       @teamwork.on "WorkspaceSyncedWithRemote", =>
         @showImportWarning importUrl
 
-    @on "ExportRequested", (callback) =>
+    @on "ExportRequested", (callback = noop) =>
       @showExportModal()
-      @tools.once "Exported", callback
+      @tools.once "Exported", callback # TODO: what a great event name
 
     @on "TeamUpRequested", =>
       @teamwork.once "WorkspaceSyncedWithRemote", =>

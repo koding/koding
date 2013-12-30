@@ -20,7 +20,7 @@ class ActivityInputView extends KDTokenizedInput
   fetchTopics: (inputValue, callback) ->
     KD.getSingleton("appManager").tell "Topics", "fetchTopics", {inputValue}, (tags = [], deletedTags = []) =>
       matches = []
-      if inputValue.length > 1
+      if inputValue.length > 1 and not /^\W+$/.test inputValue
         matches = tags.filter (tag) -> tag.title is inputValue or inputValue in tag.children
         deletedMatches = deletedTags.filter (title) -> title is inputValue
         tags = [$suggest: inputValue].concat tags  unless matches.length or deletedMatches.length
@@ -73,7 +73,8 @@ class ActivityInputView extends KDTokenizedInput
         @emit "Escape"
 
     if /\s/.test String.fromCharCode event.which
-      KD.utils.stopDOMEvent event  if @selectToken()
+      if @tokenInput and /^\W+$/.test @tokenInput.textContent then @cancel()
+      else if @selectToken() then KD.utils.stopDOMEvent event
 
   focus: ->
     return  if @focused
