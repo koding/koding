@@ -22,6 +22,13 @@ class AvatarAreaIconMenu extends JView
         title    : 'Notifications'
       delegate   : @notificationsPopup
 
+    {mainController} = KD.singletons
+    mainController.ready =>
+      storage = KD.singletons.localStorageController.storage('HelpController')
+      unless storage.getValue 'shown'
+        KD.utils.wait 5000, =>
+          KD.singletons.helpController.showHelp @helpIcon
+
   pistachio:->
     """
     {{> @helpIcon}}
