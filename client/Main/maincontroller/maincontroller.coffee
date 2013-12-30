@@ -43,7 +43,9 @@ class MainController extends KDController
     KD.registerSingleton "vmController",              new VirtualizationController
     KD.registerSingleton "paymentController",         new PaymentController
     KD.registerSingleton "locationController",        new LocationController
-    KD.registerSingleton "badgeController"   ,        new BadgeController
+    KD.registerSingleton "badgeController",           new BadgeController
+    KD.registerSingleton "helpController",            new HelpController
+
 
     # appManager.create 'Chat', (chatController)->
     #   KD.registerSingleton "chatController", chatController

@@ -6,6 +6,13 @@ class AvatarAreaIconMenu extends JView
 
     @setClass "account-menu"
 
+    @helpIcon    = new AvatarAreaIconLink
+      cssClass   : "help acc-dropdown-icon"
+      attributes :
+        title    : 'Help'
+
+    @helpIcon.click = => KD.singletons.helpController.showHelp this
+
     @notificationsPopup = new AvatarPopupNotifications
       cssClass : "notifications"
 
@@ -17,16 +24,15 @@ class AvatarAreaIconMenu extends JView
 
   pistachio:->
     """
+    {{> @helpIcon}}
     {{> @notificationsIcon}}
     """
-
 
   viewAppended:->
 
     super
 
     mainView = KD.getSingleton 'mainView'
-
     mainView.addSubView @notificationsPopup
 
     @attachListeners()

@@ -842,3 +842,158 @@ input.kdinput.text
     bottom        20px
     text-align    center
     color         #EEE
+
+
+.animated-modalview
+
+  z-index                       10001
+  background                    white
+  overflow                      hidden
+
+  size                          640px, 480px
+  top                           0
+  left                          0
+
+  abs()
+
+  vendor                transform-style, preserve-3d
+  vendor                transform, translate3d(0, 0, 0)
+
+  -webkit-transition    -webkit-transform .4s ease
+  -moz-transition       -moz-transform    .4s ease
+  transition            transform         .4s ease
+
+  &.inresize
+    noAnim()
+
+
+.kdhelp-modal
+
+  text-align                    center
+  box-shadow                    0 0 20px
+  padding-top                   20px
+  border-radius                 5px
+
+  // border                        1px solid #999
+
+  a
+    text-decoration             none
+
+
+  .header
+
+    height                      100px
+    background                  #504E4B
+    margin-bottom               40px
+
+  h1
+
+    font-weight                 400
+
+  h2
+
+    font-size                   36px
+
+  p
+
+    padding                     20px 70px 10px 70px
+    font-size                   15px
+    font-weight                 100
+
+  div.button
+
+    background                  #2E7FA1
+    text-shadow                 none
+    color                       white
+    font-size                   20px
+    font-weight                 100
+    padding                     10px
+    width                       210px
+    margin                      20px auto
+    border-radius               4px
+    cursor                      pointer
+
+  span.close-icon
+    background-position         -80px -520px
+    opacity                     .5
+
+  hr
+
+    width                       80%
+    margin                      0 auto
+
+  div.warning
+
+    padding-left                160px
+    padding-top                 20px
+    padding-bottom              30px
+
+    img
+
+      left                      130px
+      abs()
+
+    p
+      padding                   10px
+      text-align                left
+      padding-bottom            0
+      padding-top               0
+      font-size                 12px
+
+  div.feature
+    width                       200px
+    margin-bottom               50px
+    margin-top                  30px
+    fl()
+
+    p
+      padding                   0
+
+  div.button
+    background                  #40AF96
+    clear                       both
+
+  .button-container
+    background                  #1F2628
+
+    .inline-help-button:last-child
+      border-right              1px solid #333
+
+    .inline-help-button
+      size                      48px, 48px
+      border                    none
+      display                   inline-block
+      min-width                 48px
+      background                none
+      border-left               1px solid #333
+
+      &.activity
+        r-sprite                app nav-activity
+      &.editor
+        r-sprite                app nav-editor
+      &.terminal
+        r-sprite                app nav-terminal
+      &.apps
+        r-sprite                app nav-apps
+      &.teamwork
+        r-sprite                app nav-teamwork
+
+  .help-content
+    height                      240px
+
+    .help-page
+
+      text-align                left
+
+      h3
+
+        margin                  20px
+        font-size               22px
+        font-weight             300
+        border-bottom           1px solid #eee
+        padding-bottom          5px
+        margin-bottom           0
+
+      div.content
+        margin                  10px 10px 10px 20px
+        line-height             30px
