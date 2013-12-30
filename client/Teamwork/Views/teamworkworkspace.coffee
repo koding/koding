@@ -57,10 +57,16 @@ class TeamworkWorkspace extends CollaborativeWorkspace
 
         if isChatVisible then @chatView.hide() else @chatView.show()
 
-    @buttonsContainer.addSubView new KDButtonView
+    @buttonsContainer.addSubView @shareButton = new KDButtonView
+      iconClass: "tw-export"
+      iconOnly : yes
+      # callback : => @createShareMenuButton()
+      callback : => @getDelegate().emit "ExportRequested"
+
+    @buttonsContainer.addSubView @optionsButton = new KDButtonView
       iconClass: "tw-cog"
       iconOnly : yes
-      callback : => @getDelegate().showToolsModal panel, this
+      callback : => @createOptionsMenuButton()
 
   displayBroadcastMessage: (options) ->
     super options
@@ -178,6 +184,32 @@ class TeamworkWorkspace extends CollaborativeWorkspace
   sendSystemMessage: (messageData) ->
     return unless @getOptions().enableChat
     @chatView.sendMessage messageData, yes
+
+  createOptionsMenuButton: ->
+    menuItems = [
+      { title : "Join in", callback : => @showJoinModal()   }
+      { title : "Import" , callback : => @showImportModal() }
+      { title : "Team up", callback : => @getDelegate().showTeamUpModal() }
+    ]
+
+    @createMenuButton @optionsButton.$().offset(), menuItems
+
+  createShareMenuButton: ->
+    menuItems = [
+      { title : "Share",   callback : => console.log "join in" }
+      { title : "Export" , callback : => @getDelegate().emit "ExportRequested" }
+    ]
+
+    @createMenuButton @shareButton.$().offset(), menuItems
+
+  createMenuButton: (offset, items) ->
+    new JContextMenu
+      x           : offset.left - 140
+      y           : offset.top  + 31
+      arrow       :
+        placement : "top"
+        margin    : 150
+    , items
 
   createActivityWidget: (panel) ->
     panel.addSubView @activityWidget = new ActivityWidget
@@ -299,3 +331,25 @@ class TeamworkWorkspace extends CollaborativeWorkspace
       cssClass : "tw-loader pulsing"
 
     @container.addSubView @loader
+
+  showImportModal: ->
+    modal          = new KDModalView
+      title        : "Import Content to your VM"
+      content      : "<p>Import content to your VM and start working on it. It might be a zip file or a GitHub repository.</p>"
+      cssClass     : "workspace-modal join-modal"
+      overlay      : yes
+      width        : 600
+      buttons      :
+        Import     :
+          title    : "Import"
+          cssClass : "modal-clean-green"
+          callback : => @getDelegate().emit "ImportRequested", importUrlInput.getValue()
+        Close      :
+          title    : "Close"
+          cssClass : "modal-cancel"
+          callback : -> modal.destroy()
+
+    modal.addSubView importUrlInput = new KDHitEnterInputView
+      type         : "text"
+      placeholder  : "Import Url"
+      callback     : => @handleJoinASessionFromModal sessionKeyInput.getValue(), modal
