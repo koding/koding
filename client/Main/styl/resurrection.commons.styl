@@ -911,6 +911,8 @@ input.kdinput.text
   footer
     h4
       line-height               30px
+      font-size                 14px
+      color                     #222
       a
         text-decoration         underline
         color                   socialColor
@@ -921,8 +923,9 @@ input.kdinput.text
       padding                     15px 0
       borderBox()
 
-      img
-        margin                    3px 30px 0 100px
+      span.icon
+        r-sprite                  app '25-warning'
+        margin                    4px 20px 0 100px
         fl()
 
       p
@@ -969,6 +972,9 @@ input.kdinput.text
 
       &.active
         bg                      color logoBg
+
+      &:last-child
+        margin-right            0
 
   .help-content
     height                      220px
