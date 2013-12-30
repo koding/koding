@@ -1,37 +1,24 @@
 // This must be taken into a more general package. A similar
 // file already exists in migrators/graphity/common package
 
-package main
+package topicmodifier
 
 import (
-	"encoding/json"
-	"github.com/streadway/amqp"
 	. "koding/db/models"
 	"koding/messaging/rabbitmq"
 )
 
 var (
-	GRAPHITY_CHANNEL *amqp.Channel
-	PUBLISHER        *rabbitmq.Producer
+	GraphPublisher *rabbitmq.Producer
 )
 
-func init() {
-	exchange := rabbitmq.Exchange{
-		Name: "graphFeederExchange",
+func initGraphPublisher() {
+	options := &PublisherConfig{
+		ExchangeName: "graphFeederExchange",
+		Tag:          "graphityRelationship",
+		RoutingKey:   "",
 	}
-	queue := rabbitmq.Queue{}
-	publishingOptions := rabbitmq.PublishingOptions{
-		Tag:        "graphityRelationship",
-		RoutingKey: "",
-	}
-	// var err Error
-	var err error
-	PUBLISHER, err = rabbitmq.NewProducer(exchange, queue, publishingOptions)
-	if err != nil {
-		panic(err)
-	}
-
-	PUBLISHER.RegisterSignalHandler()
+	GraphPublisher = createPublisher(options)
 }
 
 func CreateGraphRelationship(relationship *Relationship) error {
@@ -47,25 +34,5 @@ func updateRelationship(relationship *Relationship, event string) error {
 	data[0] = *relationship
 	eventData := map[string]interface{}{"event": event, "payload": data}
 
-	neoMessage, err := json.Marshal(eventData)
-
-	if err != nil {
-		log.Error("unmarshall error - %v", err)
-		return err
-	}
-
-	message := amqp.Publishing{
-		Body: neoMessage,
-	}
-
-	PUBLISHER.NotifyReturn(func(message amqp.Return) {
-		log.Info("%v", message)
-	})
-
-	err = PUBLISHER.Publish(message)
-	if err != nil {
-		log.Error(err.Error())
-		return err
-	}
-	return nil
+	return publish(GraphPublisher, eventData)
 }
