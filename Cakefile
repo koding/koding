@@ -488,11 +488,11 @@ task 'runGraphiteFeeder', "Collect analytics from database and feed to grahpite"
     stderr  : process.stderr
     verbose : yes
 
-task 'topicModifier', "Process delete/merge topic requests", ({configFile})->
-  console.log "Running Topic modifier"
+task 'cronJobs', "Run CronJobs", ({configFile})->
+  console.log "Running CronJobs"
   processes.spawn
-    name    : 'topicModifier'
-    cmd     : "./go/bin/topicmodifier -c #{configFile}"
+    name    : 'cronJobs'
+    cmd     : "./go/bin/cron -c #{configFile}"
     stdout  : process.stdout
     stderr  : process.stderr
     verbose : yes
@@ -518,7 +518,7 @@ run =({configFile})->
     invoke 'emailSender'                      if config.emailSender?.run is yes
     invoke 'addTagCategories'
     invoke 'webserver'
-    invoke 'topicModifier'
+    invoke 'cronJobs'
 
 task 'importDB', (options) ->
   if options.configFile is 'vagrant'
