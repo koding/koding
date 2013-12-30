@@ -11,7 +11,9 @@ class AvatarAreaIconMenu extends JView
       attributes :
         title    : 'Help'
 
-    @helpIcon.click = => KD.singletons.helpController.showHelp this
+    @helpIcon.click = (event)=>
+      KD.singletons.helpController.showHelp this
+      KD.utils.stopDOMEvent event
 
     @notificationsPopup = new AvatarPopupNotifications
       cssClass : "notifications"
