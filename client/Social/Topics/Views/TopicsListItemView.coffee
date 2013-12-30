@@ -41,15 +41,13 @@ class TopicsListItemView extends KDListItemView
     @synonymInfo = new KDCustomHTMLView tagName : 'span', cssClass : 'hidden'
 
   getSettingsMenu:->
-    menu = {}
-    menu["Edit"] =
-      callback  : => KD.getSingleton('mainController').emit 'TopicItemEditClicked', @
-    menu["Delete"] =
-      callback : => KD.getSingleton('mainController').emit 'TopicItemDeleteClicked', @
-    menu["Set Parent"] =
-      callback : => KD.getSingleton('mainController').emit 'TopicItemSetParentClicked', @
-
-    menu
+    mainController = KD.singleton("mainController")
+    Edit        :
+      callback  : => mainController.emit 'TopicItemEditClicked', @
+    Delete      :
+      callback  : => mainController.emit 'TopicItemDeleteClicked', @
+    "Set Parent":
+      callback  : => mainController.emit 'TopicItemSetParentClicked', @
 
   titleReceivedClick:(event)-> @emit 'LinkClicked'
 
