@@ -98,6 +98,7 @@ class HomePage extends JView
       <header id='home-header'>
         <div class="inner-container">
           <a href="/" class="logo"><cite></cite></a>
+          <a href="/" class="logotype">Koding</a>
           <a href="/Login" class="login fr">LOGIN</a>
         </div>
       </header>
