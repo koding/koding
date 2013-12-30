@@ -16,11 +16,11 @@ KD.extend
         username  : 'gokmen'
         title     : 'Software Engineer'
       ,
+        username  : 'fatihacet'
+        title     : 'Front-End Engineer'
+      ,
         username  : 'arslan'
         title     : 'Software Engineer'
-      ,
-        username  : 'fatihacet'
-        title     : 'Front-End Developer'
       ,
         username  : 'sent-hil'
         title     : 'Software Engineer'
@@ -29,6 +29,9 @@ KD.extend
         title     : 'Software Engineer'
       ,
         username  : 'geraint'
+        title     : 'Director of Infrastructure'
+      ,
+        username  : 'leventyalcin'
         title     : 'System Administrator'
       ,
         username  : 'ybrs'
@@ -57,7 +60,27 @@ KD.extend
       ,
         username  : 'pablostanley'
         title     : 'Illustrator'
-
+      ,
+        username  : 'leeolayvar'
+        title     : 'Community Manager'
+      ,
+        username  : 'stefanbc'
+        title     : 'Community Relations'
+      ,
+        username  : 'dicle'
+        title     : 'Business Analysist'
+      ,
+        username  : 'niltuncer'
+        title     : 'Business Analysist'
+      ,
+        username  : 'zeynep'
+        title     : 'Finance Assistant'
+      ,
+        username  : 'nesli'
+        title     : 'Chef de cuisine'
+      ,
+        username  : 'aleksey-m'
+        title     : 'System Administrator'
       ]
 
     suspended     : []
