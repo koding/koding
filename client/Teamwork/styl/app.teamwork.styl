@@ -581,45 +581,38 @@ app.teamwork.styl
 
 .tw-loading
   .loading-animation
-    left                        50%
-    top                         50%
-    margin                      -48px 0 0 -48px
-    width                       96px
-    height                      96px
-    background                  url(http://burak-can.kd.io/teampunk-big.png) no-repeat center center
-    background-size             cover
-    z-index                     5
-    abs()
+    abs                    50% 0 0 50%
+    margin                 -66px 0 0 -66px
+    r-sprite               "teamwork", "teampunk-big"
 
     &:after
     &:before
     span
-      z-index                   -1
-      content                   ""
-      top                       0
-      left                      0
-      width                     100%
-      height                    100%
-      border-radius             50%
-      border                    1px solid #f2c500
-      box-sizing                border-box
-      vendor                    transform, scale(.91)
-      vendor                    animation, border-pulse 2.1s infinite ease
-      abs()
+      content              ""
+      abs                  0 0
+      size                 100%, 100%
+      rounded              50%
+      border               1px solid #f2c500
+      vendor               transform, scale(.91)
+      vendor               animation, borderPulse 2.1s infinite ease
+      borderBox()
+
     &:before
-      vendor                    animation-delay .3s
+      vendor               animation-delay, .3s
+
     span
-      vendor                    animation-delay .6s
+      vendor               animation-delay, .6s
 
-@-webkit-keyframes border-pulse
+@-moz-keyframes borderPulse
   15%
-    opacity                     1
+    opacity              1
   100%
-    vendor                      transform    scale(1.3)
-    opacity                     0
+    -moz-transform       scale(1.3)
+    opacity              0
 
-@keyframes pulse-to-fade-out
-  0%
-    opacity 1
+@-webkit-keyframes borderPulse
+  15%
+    opacity              1
   100%
-    opacity 0
+    -webkit-transform    scale(1.3)
+    opacity              0
