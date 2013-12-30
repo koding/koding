@@ -430,6 +430,7 @@ class LoginView extends KDView
     @headBanner.setClass 'show'
     $('body').addClass 'recovery'
     @headBanner.click = callback
+    @headBanner.appendToDomBody()
 
   headBannerShowGoBackGroup:(groupTitle)->
     @showHeadBanner "<span>Go Back to</span> #{groupTitle}", =>
@@ -439,7 +440,6 @@ class LoginView extends KDView
       $('#group-landing').css 'opacity', 1
 
   headBannerShowInvitation:(invite)->
-
     @showHeadBanner "Cool! you got an invite! <span>Click here to register your account.</span>", =>
       @headBanner.hide()
       KD.getSingleton('router').clear @getRouteWithEntryPoint('Register')
