@@ -23,6 +23,9 @@ body
   font-weight       300
   bg                color, #e4e4e4
 
+  &.noscroll
+    overflow        hidden
+
 input
 textarea
 button
@@ -89,7 +92,7 @@ button
 
 #koding-logo
   size              57px 55px
-  bg                color, #37b298
+  bg                color, logoBg
   fl()
 
   cite
@@ -186,6 +189,13 @@ button
     size            45px 55px
     display         inline-block
     border-left     1px solid #1f2628
+
+    &.help
+      width         30px
+      .icon
+        margin      18px 0 0 13px
+        sprite      app question-mark
+
     .count
       vendor        transform, scale(0)
       size          16px, 16px

@@ -122,6 +122,28 @@ class WebTermAppView extends JView
 
     return settingsView
 
+  runCommand:(_command)->
+    pane = @tabView.getActivePane()
+    {webTermView} = pane.getOptions()
+
+    runner = =>
+      webTermView.terminal.scrollToBottom()
+      command = decodeURIComponent _command
+
+      # FIXME Make it more elegant later.
+      safeCommands = ['help this', 'help sudo', 'help ftp', 'help mysql',
+                      'help programs', 'help phpmyadmin', 'help mongodb',
+                      'help specs', 'help']
+
+      if _command in safeCommands
+        webTermView.terminal.server.input "#{command}\n"
+      else
+        @showApprovalModal webTermView.terminal, command
+
+    if webTermView.terminal?.server?
+    then runner()
+    else webTermView.once 'WebTermConnected', runner
+
   handleQuery:(query)->
     pane = @tabView.getActivePane()
     {webTermView} = pane.getOptions()

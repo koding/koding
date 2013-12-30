@@ -147,7 +147,7 @@ class ActivityEditWidget extends ActivityInputWidget
     options.cssClass = KD.utils.curry "edit-widget", options.cssClass
     options.destroyOnSubmit = yes
 
-    super options
+    super options, data
 
     @submit    = new KDButtonView
       type     : "submit"
@@ -159,19 +159,17 @@ class ActivityEditWidget extends ActivityInputWidget
     @cancel = new KDButtonView
       cssClass : "solid gray"
       title    : "Cancel"
-      callback : @bound "cancel"
-
-  cancel: ->
-    @destroy()
-    @emit "ActivityInputCancelled"
-
-  edit: (activity) ->
-    @setData activity
-    content = activity.body.replace /\n/g, "<br>"
-    @input.setContent content, activity
-    @embedBox.loadEmbed activity.link.link_url  if activity.link
+      callback : => @emit "Cancel"
 
   viewAppended: ->
+    data         = @getData()
+    {body, link} = data
+
+    content = ""
+    content += "<div>#{line}</div>" for line in body.split "\n"
+    @input.setContent content, data
+    @embedBox.loadEmbed link.link_url  if link
+
     @addSubView @input
     @addSubView @embedBox
     @input.addSubView @submit
