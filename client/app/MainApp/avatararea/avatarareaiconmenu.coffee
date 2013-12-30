@@ -58,6 +58,11 @@ class AvatarAreaIconMenu extends JView
 
     @attachListeners()
 
+  filterNotifications=(notifications)->
+    notifications.filter (notification) ->
+      snapshot = JSON.parse Encoder.htmlDecode notification.snapshot
+      snapshot.anchor.constructorName isnt "JNewStatusUpdate"
+
   attachListeners:->
     KD.getSingleton('notificationController').on 'NotificationHasArrived', ({event})=>
       # No need the following
@@ -66,7 +71,7 @@ class AvatarAreaIconMenu extends JView
         @notificationsPopup.listController.fetchNotificationTeasers (notifications)=>
           @notificationsPopup.noNotification.hide()
           @notificationsPopup.listController.removeAllItems()
-          @notificationsPopup.listController.instantiateListItems notifications
+          @notificationsPopup.listController.instantiateListItems filterNotifications notifications
 
     @notificationsPopup.listController.on 'NotificationCountDidChange', (count)=>
       @utils.killWait @notificationsPopup.loaderTimeout
@@ -102,7 +107,7 @@ class AvatarAreaIconMenu extends JView
 
       # Fetch Notifications
       notificationsPopup.listController.fetchNotificationTeasers (teasers)=>
-        notificationsPopup.listController.instantiateListItems teasers
+        notificationsPopup.listController.instantiateListItems filterNotifications teasers
 
       # Fetch Private Messages
       messagesPopup.listController.fetchMessages()
