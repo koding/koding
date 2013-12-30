@@ -179,7 +179,6 @@ class TeamworkTabView extends CollaborativePane
   createTabFromFirebaseData: (data) ->
     {sessionKey, indexKey} = data
     switch data.type
-      when "dashboard" then @createDashboard()
       when "terminal"  then @createTerminal     sessionKey, indexKey
       when "browser"   then @createPreview      sessionKey, indexKey
       when "drawing"   then @createDrawingBoard sessionKey, indexKey
@@ -194,6 +193,7 @@ class TeamworkTabView extends CollaborativePane
     @dashboard = new KDTabPaneView
       title    : "Dashboard"
       indexKey : "dashboard"
+      hiddenHandle: yes
 
     dashboard  = new TeamworkDashboard
       delegate : @workspace.getDelegate()
