@@ -22,16 +22,19 @@ class HelpPage extends KDSlidePageView
   addLinks:(links)->
 
     links.forEach (link)=>
-      target = if link.internal then '' else " target='_blank'"
+      target = if link.command then '' else " target='_blank'"
       options =
         tagName : 'li'
         partial : "<a href='#{link.url}'#{target}>#{link.title}</a>"
 
-      if link.internal
+      if link.command
         options.click = (event)=>
           KD.utils.stopDOMEvent event
-          KD.singletons.router.handleRoute link.url
-          @getDelegate().emit 'InternalLinkClicked', link
+          KD.singletons.appManager.require 'Terminal',(app)=>
+            KD.singletons.router.handleRoute link.url
+            KD.singletons.appManager.tell 'Terminal', 'runCommand', link.command
+            KD.utils.wait 1000, =>
+              @getDelegate().emit 'InternalLinkClicked', link
 
       @addSubView (new KDCustomHTMLView options), 'ul'
 
@@ -52,7 +55,7 @@ class HelpModal extends AnimatedModalView
       { title : '<i>Tutorial:</i> Octopress', url : 'http://learn.koding.com/octopress-installation-beginners/' }
       { title : '<i>Tutorial:</i> Ghost Blog', url : 'http://learn.koding.com/developing-ghost-blog-koding/' }
       { title : '<i>Tutorial:</i> Bootstrap 3', url : 'http://learn.koding.com/bootstrap-3-quick-tip/' }
-      { title : 'Terminal', url : '/Terminal?command=help this', internal : yes }
+      { title : 'Terminal', url : '/Terminal', command:'help this' }
     ]
     experienced : [
       { title : 'Koding subdomains and Vhosts', url : 'http://learn.koding.com/koding-subdomains-and-vhosts/' }
@@ -60,21 +63,21 @@ class HelpModal extends AnimatedModalView
       { title : 'Codeigniter Installation', url : 'http://learn.koding.com/codeigniter-beginners/' }
       { title : 'Firebase setup and usage', url : 'http://learn.koding.com/getting-started-firebase/' }
       { title : 'Getting started with Facebook Application Development', url : 'http://learn.koding.com/getting-started-with-facebook-application-development/' }
-      { title : 'sudo password', url : '/Terminal?command=help sudo', internal : yes }
+      { title : 'sudo password', url : '/Terminal', command:'help sudo' }
     ]
     advanced : [
       { title : 'Terminal and custom ports', url : 'http://learn.koding.com/terminal-and-custom-ports/' }
       { title : 'Using Tmux on Koding', url : 'http://learn.koding.com/using-tmux-on-koding/' }
-      { title : 'sudo password', url : '/Terminal?command=help sudo', internal : yes }
+      { title : 'sudo password', url : '/Terminal', command:'help sudo' }
     ]
     commons : [
       { title : 'FAQ', url : 'http://learn.koding.com/faq/' }
-      { title : 'Ftp', url : '/Terminal?command=help ftp', internal : yes }
-      { title : 'MySql', url : '/Terminal?command=help mysql', internal : yes }
-      { title : 'phpMyAdmin', url : '/Terminal?command=help phpmyadmin', internal : yes }
-      { title : 'MongoDB', url : '/Terminal?command=help mongodb', internal : yes }
-      { title : 'VM Specs', url : '/Terminal?command=help specs', internal : yes }
-      { title : 'Preinstalled packages', url : '/Terminal?command=help programs', internal : yes }
+      { title : 'Ftp', url : '/Terminal', command:'help ftp' }
+      { title : 'MySql', url : '/Terminal', command:'help mysql' }
+      { title : 'phpMyAdmin', url : '/Terminal', command:'help phpmyadmin' }
+      { title : 'MongoDB', url : '/Terminal', command:'help mongodb' }
+      { title : 'VM Specs', url : '/Terminal', command:'help specs' }
+      { title : 'Preinstalled packages', url : '/Terminal', command:'help programs' }
     ]
 
   constructor:(options, data)->
@@ -102,9 +105,8 @@ class HelpModal extends AnimatedModalView
     buttonContainer.on 'deselectAll', ->
       @$('a').removeClass 'active'
 
-    @on 'InternalLinkClicked', (link)=> @destroy()
-
-
+    @on 'InternalLinkClicked', (link)=>
+      KD.utils.defer => @destroy()
 
     {slider} = this
 
