@@ -184,8 +184,7 @@ class HomePage extends JView
           <a href="mailto:hello@koding.com">Contact</a>
           <a href="http://learn.koding.com/">University</a>
           <a href="http://koding.github.io/jobs/">Jobs</a>
-          <a href="/Blog">Blog</a>
-          <a href="/Status">Status</a>
+          <a href="http://blog.koding.com">Blog</a>
         </nav>
       </footer>
     """
