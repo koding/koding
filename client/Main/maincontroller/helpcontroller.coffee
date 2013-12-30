@@ -13,20 +13,69 @@ class HelpController extends KDController
 
 class HelpPage extends KDSlidePageView
 
-  constructor:(data)->
-    options = cssClass: 'help-page'
+  constructor:(options = {}, data)->
+
+    options.cssClass = KD.utils.curry 'help-page', options.cssClass
+
     super options, data
+
+  addLinks:(links)->
+
+    links.forEach (link)=>
+      target = if link.internal then '' else " target='_blank'"
+      options =
+        tagName : 'li'
+        partial : "<a href='#{link.url}'#{target}>#{link.title}</a>"
+
+      if link.internal
+        options.click = (event)=>
+          KD.utils.stopDOMEvent event
+          KD.singletons.router.handleRoute link.url
+          @getDelegate().emit 'InternalLinkClicked', link
+
+      @addSubView (new KDCustomHTMLView options), 'ul'
 
   pistachio:->
     """
       {h3{#(title)}}
-      <div class='content'>
-        {span{#(content)}}
-        <img src="#{@getData().image}"/>
-      </div>
+      <ul></ul>
     """
 
 class HelpModal extends AnimatedModalView
+
+  links =
+    noob : [
+      { title : 'What is Koding?', url : 'http://learn.koding.com/what-is-koding/' }
+      { title : 'Getting Started', url : 'http://learn.koding.com/gettingstarted/' }
+      { title : 'Development on Koding', url : 'http://learn.koding.com/development-on-koding/' }
+      { title : '<i>Tutorial:</i> EmberJS', url : 'http://learn.koding.com/emberjs-starting-kit/' }
+      { title : '<i>Tutorial:</i> Octopress', url : 'http://learn.koding.com/octopress-installation-beginners/' }
+      { title : '<i>Tutorial:</i> Ghost Blog', url : 'http://learn.koding.com/developing-ghost-blog-koding/' }
+      { title : '<i>Tutorial:</i> Bootstrap 3', url : 'http://learn.koding.com/bootstrap-3-quick-tip/' }
+      { title : 'Terminal', url : '/Terminal?command=help this', internal : yes }
+    ]
+    experienced : [
+      { title : 'Koding subdomains and Vhosts', url : 'http://learn.koding.com/koding-subdomains-and-vhosts/' }
+      { title : 'How to setup Octopress', url : 'http://learn.koding.com/63/' }
+      { title : 'Codeigniter Installation', url : 'http://learn.koding.com/codeigniter-beginners/' }
+      { title : 'Firebase setup and usage', url : 'http://learn.koding.com/getting-started-firebase/' }
+      { title : 'Getting started with Facebook Application Development', url : 'http://learn.koding.com/getting-started-with-facebook-application-development/' }
+      { title : 'sudo password', url : '/Terminal?command=help sudo', internal : yes }
+    ]
+    advanced : [
+      { title : 'Terminal and custom ports', url : 'http://learn.koding.com/terminal-and-custom-ports/' }
+      { title : 'Using Tmux on Koding', url : 'http://learn.koding.com/using-tmux-on-koding/' }
+      { title : 'sudo password', url : '/Terminal?command=help sudo', internal : yes }
+    ]
+    commons : [
+      { title : 'FAQ', url : 'http://learn.koding.com/faq/' }
+      { title : 'Ftp', url : '/Terminal?command=help ftp', internal : yes }
+      { title : 'MySql', url : '/Terminal?command=help mysql', internal : yes }
+      { title : 'phpMyAdmin', url : '/Terminal?command=help phpmyadmin', internal : yes }
+      { title : 'MongoDB', url : '/Terminal?command=help mongodb', internal : yes }
+      { title : 'VM Specs', url : '/Terminal?command=help specs', internal : yes }
+      { title : 'Preinstalled packages', url : '/Terminal?command=help programs', internal : yes }
+    ]
 
   constructor:(options, data)->
 
@@ -42,69 +91,89 @@ class HelpModal extends AnimatedModalView
       touchEnabled : no
 
     @addSubView new KDCustomHTMLView
-      partial : """
+      partial      : """
         <h2>Welcome on board!</h2>
-        <p>
-          You're now part of something exciting here ... FIXME
-        </p>
-      """
+        <p>Let us try to help you find your way in Koding. You are:</p>
+        """
 
     @addSubView buttonContainer = new KDCustomHTMLView
       cssClass : "button-container"
 
-    buttonContainer.addSubView new InlineHelpButton
-      cssClass : "activity"
-      callback : => @slider.jump 0
-    buttonContainer.addSubView new InlineHelpButton
-      cssClass : "teamwork"
-      callback : => @slider.jump 1
-    buttonContainer.addSubView new InlineHelpButton
-      cssClass : "terminal"
-      callback : => @slider.jump 2
-    buttonContainer.addSubView new InlineHelpButton
-      cssClass : "editor"
-      callback : => @slider.jump 3
-    buttonContainer.addSubView new InlineHelpButton
-      cssClass : "apps"
-      callback : => @slider.jump 4
+    buttonContainer.on 'deselectAll', ->
+      @$('a').removeClass 'active'
+
+    @on 'InternalLinkClicked', (link)=> @destroy()
+
+
+
+    {slider} = this
+
+    buttonContainer.addSubView new KDCustomHTMLView
+      tagName    : 'a'
+      cssClass   : 'active'
+      attributes : href : '#'
+      partial    : "new to<br/>programming"
+      click      : (event)->
+        KD.utils.stopDOMEvent event
+        buttonContainer.emit 'deselectAll'
+        @setClass 'active'
+        slider.jump 0
+
+    buttonContainer.addSubView new KDCustomHTMLView
+      tagName    : 'a'
+      attributes : href : '#'
+      partial    : "an experienced<br/>developer"
+      click      : (event)->
+        KD.utils.stopDOMEvent event
+        buttonContainer.emit 'deselectAll'
+        @setClass 'active'
+        slider.jump 1
+
+    buttonContainer.addSubView new KDCustomHTMLView
+      tagName    : 'a'
+      attributes : href : '#'
+      partial    : "an advanced<br/>programmer"
+      click      : (event)->
+        KD.utils.stopDOMEvent event
+        buttonContainer.emit 'deselectAll'
+        @setClass 'active'
+        slider.jump 2
 
     @addSubView @slider
 
-    @slider.addPage new HelpPage
-      title: "Activity"
-      content: """Share with the community, learn from the experts or
-                  help the ones who has yet to start coding. Socialize
-                  with like minded people and have fun."""
+    @slider.addPage noob = new HelpPage
+      delegate : this
+    ,
+      title    : "New to programming? No worries we got you covered!"
 
-    @slider.addPage new HelpPage
-      title: "Teamwork"
-      content: """Teamwork collaborative ..."""
-    @slider.addPage new HelpPage
-      title: "Terminal"
-      content: """Terminal whoohooo"""
-    @slider.addPage new HelpPage
-      title: "Editor"
-      content: """Text editor rulez."""
-    @slider.addPage new HelpPage
-      title: "Apps"
-      content: """Applicashyons."""
+    noob.addLinks links.noob
+    noob.addLinks links.commons
+
+    @slider.addPage experienced = new HelpPage
+      delegate : this
+    ,
+      title    : "You may find these topics below helpful:"
+
+    experienced.addLinks links.experienced
+    experienced.addLinks links.commons
+
+    @slider.addPage advanced = new HelpPage
+      delegate : this
+    ,
+      title    : "Welcome to <code>$ sudo su</code> world in the cloud"
+
+    advanced.addLinks links.advanced
+    advanced.addLinks links.commons
 
     @addSubView new KDCustomHTMLView
+      tagName  :'footer'
       partial  : """
-
-        <hr />
-
+        <h4>Also, we would love to hear your <a href='https://docs.google.com/forms/d/1jxdnXLm-cgHDpokzKIJSaShEirb66huoEMhPkQF5f_I/viewform'target='_blank'>feedback</a>, thank you.</h4>
         <div class='warning'>
           <img src="/a/images/icon_warning.png" />
-          <p>It’s still in beta, so you might find some bugs.</p>
-          <p>Please report them in a status update tagged as </i>#bug</i>.</p>
+          <p>
+          It’s still in beta, so you might find some bugs.<br/>
+          Please report them in a status update tagged as <i>#bug</i>.<br/>
+          </p>
         </div>
-
       """
-
-class InlineHelpButton extends KDButtonView
-
-  constructor:(options={}, data)->
-    options.iconOnly = yes
-    options.cssClass = KD.utils.curry 'inline-help-button', options.cssClass
-    super options, data
