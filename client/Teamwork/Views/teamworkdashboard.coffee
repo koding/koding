@@ -32,10 +32,8 @@ class TeamworkDashboard extends JView
             title : "Coming Soon"
 
   fetchManifests: ->
-    filename = if location.hostname is "localhost" then "manifest-dev" else "manifest"
     delegate = @getDelegate()
-
-    delegate.fetchManifestFile "#{filename}.json", (err, manifests) =>
+    delegate.fetchManifestFile "manifest.json", (err, manifests) =>
       if err
         @setClass "ready"
         @playgrounds.hide()
