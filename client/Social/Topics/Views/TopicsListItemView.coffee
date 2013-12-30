@@ -58,12 +58,13 @@ class TopicsListItemView extends KDListItemView
     data = @getData()
     if data.status is "synonym"
       data.fetchSynonym (err, synonym) =>
-        return console.warn "synonym is not valid" if err
-        data.synonym = synonym
-        @addSubView new KDCustomHTMLView
-          tagName   : "span"
-          cssClass  : "synonym"
-          partial   : "Parent: #{data.synonym?.title}"
+        return warn "synonym is not valid" if err
+        if (synonym)
+          data.synonym = synonym
+          @addSubView new KDCustomHTMLView
+            tagName   : "span"
+            cssClass  : "synonym"
+            partial   : "Parent: #{data.synonym?.title}"
 
 
     @setTemplate @pistachio()
