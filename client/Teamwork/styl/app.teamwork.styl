@@ -67,14 +67,6 @@ app.teamwork.styl
   .CodeMirror-gutters
     border-right                none
 
-.tw-loader
-  size                          133px, 133px
-  left                          50%
-  position                      relative
-  margin                        -67px 0 0 -67px
-  top                           50%
-  r-sprite                        teamwork "teampunk-big"
-
 .powered-by-firepad
   display                       none
 
@@ -370,7 +362,7 @@ app.teamwork.styl
       border-radius             6px 6px 0 0
 
 .tw-bot-avatar
-  r-sprite                        teamwork, "teampunk"
+  r-sprite                      teamwork, "teampunk"
   size                          30px, 30px
   fl()
 
@@ -402,20 +394,20 @@ app.teamwork.styl
     border-width                3px
 
   &.share
-    abs             0 0 20px 30px
+    abs                         0 0 20px 30px
 
   &.invite-teammate
-    abs             0 0 80px 30px
+    abs                         0 0 80px 30px
 
   &.export-workspace
-    abs             0 0 80px 126px
+    abs                         0 0 80px 126px
 
   &.invite-teammate
   &.export-workspace
-    size            90px, 30px
-    font-size       12px
-    padding         0
-    border-width    2px
+    size                        90px, 30px
+    font-size                   12px
+    padding                     0
+    border-width                2px
 
 .tw-show-activity-widget
   abs()
@@ -572,12 +564,59 @@ app.teamwork.styl
     margin-bottom               3px
 
 .pulsing
-  vendor              transition, margin .6s ease-in-out //\, opacity .3s ease-in-out
-  vendor              animation, pulse 1.5s ease-in-out 100
+  vendor                        transition, margin .6s ease-in-out //\, opacity .3s ease-in-out
+  vendor                        animation, pulse 1.5s ease-in-out 100
   &.out
-    opacity           0
-    vendor            animation, pulse-to-fade-out .75s ease-in-out
-    vendor            animation-iteration-count, 1
+    opacity                     0
+    vendor                      animation, pulse-to-fade-out .75s ease-in-out
+    vendor                      animation-iteration-count, 1
+
+.tw-loader
+  size                          133px, 133px
+  left                          50%
+  position                      relative
+  margin                        -67px 0 0 -67px
+  top                           50%
+  r-sprite                      teamwork "teampunk-big"
+
+.tw-loading
+  .loading-animation
+    left                        50%
+    top                         50%
+    margin                      -48px 0 0 -48px
+    width                       96px
+    height                      96px
+    background                  url(http://burak-can.kd.io/teampunk-big.png) no-repeat center center
+    background-size             cover
+    z-index                     5
+    abs()
+
+    &:after
+    &:before
+    span
+      z-index                   -1
+      content                   ""
+      top                       0
+      left                      0
+      width                     100%
+      height                    100%
+      border-radius             50%
+      border                    1px solid #f2c500
+      box-sizing                border-box
+      vendor                    transform, scale(.91)
+      vendor                    animation, border-pulse 2.1s infinite ease
+      abs()
+    &:before
+      vendor                    animation-delay .3s
+    span
+      vendor                    animation-delay .6s
+
+@-webkit-keyframes border-pulse
+  15%
+    opacity                     1
+  100%
+    vendor                      transform    scale(1.3)
+    opacity                     0
 
 @keyframes pulse-to-fade-out
   0%

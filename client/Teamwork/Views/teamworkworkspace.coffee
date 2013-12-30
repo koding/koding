@@ -328,7 +328,12 @@ class TeamworkWorkspace extends CollaborativeWorkspace
 
   createLoader: ->
     @loader    = new KDView
-      cssClass : "tw-loader pulsing"
+      cssClass : "tw-loading"
+      partial  : """
+        <figure class="loading-animation">
+          <span></span>
+        </figure>
+      """
 
     @container.addSubView @loader
 
