@@ -1,4 +1,4 @@
-package main
+package topicmodifier
 
 import (
 	. "koding/db/models"
@@ -10,19 +10,19 @@ import (
 func DeleteStatusUpdate(id string) error {
 	err := RemoveComments(id)
 	if err != nil {
-		log.Error("Empty Status Update Cannot be deleted")
+		log.Error("Empty Status Update Cannot be deleted: %s", err.Error())
 		return err
 	}
 
 	err = RemovePostRelationships(id)
 	if err != nil {
-		log.Error("Empty Status Update Cannot be deleted")
+		log.Error("Empty Status Update Cannot be deleted: %s", err.Error())
 		return err
 	}
 
 	err = helper.DeleteStatusUpdateById(id)
 	if err != nil {
-		log.Error("Empty Status Update Cannot be deleted")
+		log.Error("Empty Status Update Cannot be deleted: %s", err.Error())
 		return err
 	}
 
