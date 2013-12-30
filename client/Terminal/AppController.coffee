@@ -35,5 +35,8 @@ class WebTermController extends AppController
     @getView().ready =>
       @getView().handleQuery query
 
+  runCommand:(command)->
+    @getView().ready =>
+      @getView().runCommand command
 
 WebTerm = {}

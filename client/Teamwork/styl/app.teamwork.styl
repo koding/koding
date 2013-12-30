@@ -73,7 +73,7 @@ app.teamwork.styl
   position                      relative
   margin                        -67px 0 0 -67px
   top                           50%
-  sprite                        teamwork "teampunk-big"
+  r-sprite                        teamwork "teampunk-big"
 
 .powered-by-firepad
   display                       none
@@ -357,20 +357,17 @@ app.teamwork.styl
       border                    none
   .tw-cog
     display                     block
-    sprite                      teamwork, "settings"
+    r-sprite                    teamwork, "settings"
   .tw-chat
     display                     block
-    sprite                      teamwork, "chat"
-  .tw-export
-    display                     block
-    sprite                      teamwork, "export"
+    r-sprite                    teamwork, "chat"
   .tw-chat-toggle
     &.active
       background-color          #282F31
       border-radius             6px 6px 0 0
 
 .tw-bot-avatar
-  sprite                        teamwork, "teampunk"
+  r-sprite                        teamwork, "teampunk"
   size                          30px, 30px
   fl()
 
@@ -424,7 +421,7 @@ app.teamwork.styl
   background                    transparent
   border                        none
   .icon
-    sprite                      app "account-notifications"
+    r-sprite                      app "account-notifications"
 
 .tw-activity-widget
   size                          506px, 100%
@@ -450,7 +447,7 @@ app.teamwork.styl
     top                         5px
     right                       2px
     bg                          color transparent
-    sprite                      app '20-close-tab'
+    r-sprite                      app '20-close-tab'
     border                      none
     &:hover
       pointer()
@@ -467,7 +464,7 @@ app.teamwork.styl
       top                       4px
       right                     4px
       bg                        color, transparent
-      sprite                    app '20-close-tab'
+      r-sprite                    app '20-close-tab'
     a
       color                     #3aaaab
       noTextDeco()

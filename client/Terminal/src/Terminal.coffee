@@ -20,13 +20,13 @@ class WebTerm.Terminal
     @sessionEndedCallback = null
     @setTitleCallback     = null
 
-    @keyInput = new KDCustomHTMLView
-      tagName: 'input'
-      cssClass: 'offscreen'
+    # @keyInput = new KDCustomHTMLView
+    #   tagName: 'input'
+    #   cssClass: 'offscreen'
     # containerView.addSubView @keyInput
-    @keyInput.appendToDomBody()
+    # @keyInput.appendToDomBody()
 
-    containerView.on 'KDObjectWillBeDestroyed', @keyInput.bound 'destroy'
+    # containerView.on 'KDObjectWillBeDestroyed', @keyInput.bound 'destroy'
 
     @currentWidth             = 0
     @currentHeight            = 0
@@ -89,7 +89,7 @@ class WebTerm.Terminal
     @inputHandler.keyUp event
 
   setKeyFocus: ->
-    @keyInput.getElement().focus()
+    # @keyInput.getElement().focus()
 
   setFocused: (value) ->
     @cursor.setFocused value

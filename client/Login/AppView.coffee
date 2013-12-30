@@ -178,7 +178,8 @@ class LoginView extends KDView
     KD.getSingleton("mainController").on "landingSidebarClicked", => @unsetClass 'landed'
 
     setValue = (field, value)=>
-      @registerForm[field].input?.setValue value
+      @registerForm[field]?.input?.setValue value
+      @registerForm[field]?.placeholder?.setClass 'out'
 
     mainController = KD.getSingleton "mainController"
     mainController.on "ForeignAuthCompleted", (provider)=>
@@ -390,7 +391,7 @@ class LoginView extends KDView
       firstRoute = KD.getSingleton("router").visitedRoutes.first
 
       if firstRoute and /^\/(?:Reset|Register|Confirm)\//.test firstRoute
-        firstRoute = "/"
+        firstRoute = "/Activity"
 
       KD.getSingleton('appManager').quitAll()
       KD.getSingleton('router').handleRoute firstRoute or '/Activity', {replaceState: yes, entryPoint}
