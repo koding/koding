@@ -1,79 +1,20 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
 	logging "github.com/op/go-logging"
-	"github.com/streadway/amqp"
 	. "koding/db/models"
 	helper "koding/db/mongodb/modelhelper"
-	"koding/messaging/rabbitmq"
 	"labix.org/v2/mgo"
 	stdlog "log"
 	"os"
 	"strings"
 )
 
-type Status string
-
-const (
-	DELETE Status = "delete"
-	MERGE  Status = "merge"
-)
-
 var (
-	EXCHANGE_NAME     = "topicModifierExchange"
-	WORKER_QUEUE_NAME = "topicModifierWorkerQueue"
 	log               = logging.MustGetLogger("TopicModifier")
 )
 
-type TagModifierData struct {
-	TagId  string `json:"tagId"`
-	Status Status `json:"status"`
-}
-
-func init() {
-	configureLogger()
-}
-
-func main() {
-	exchange := rabbitmq.Exchange{
-		Name:    EXCHANGE_NAME,
-		Type:    "fanout",
-		Durable: true,
-	}
-
-	queue := rabbitmq.Queue{
-		Name:    WORKER_QUEUE_NAME,
-		Durable: true,
-	}
-
-	binding := rabbitmq.BindingOptions{
-		RoutingKey: "",
-	}
-
-	consumerOptions := rabbitmq.ConsumerOptions{
-		Tag: "TopicModifier",
-	}
-
-	consumer, err := rabbitmq.NewConsumer(exchange, queue, binding, consumerOptions)
-	if err != nil {
-		log.Error("%v", err)
-		return
-	}
-
-	defer consumer.Shutdown()
-	err = consumer.QOS(3)
-	if err != nil {
-		panic(err)
-	}
-
-	defer PUBLISHER.Shutdown()
-
-	log.Info("Topic Modifier worker started")
-	consumer.RegisterSignalHandler()
-	consumer.Consume(messageConsumer)
-}
 
 func configureLogger() {
 	logging.SetLevel(logging.INFO, "TopicModifier")
@@ -82,32 +23,6 @@ func configureLogger() {
 	stderrBackend := logging.NewLogBackend(os.Stderr, "", stdlog.LstdFlags|stdlog.Lshortfile)
 	stderrBackend.Color = true
 	logging.SetBackend(stderrBackend)
-}
-
-var messageConsumer = func(delivery amqp.Delivery) {
-
-	modifierData := &TagModifierData{}
-	if err := json.Unmarshal([]byte(delivery.Body), modifierData); err != nil {
-		log.Error("Wrong Post Format", err, delivery)
-		delivery.Ack(false)
-		return
-	}
-
-	var err error
-	tagId := modifierData.TagId
-	switch modifierData.Status {
-	default:
-		log.Error("Unknown modification status %s", modifierData.Status)
-	case DELETE:
-		err = deleteTags(tagId)
-	case MERGE:
-		err = mergeTags(tagId)
-	}
-	if err != nil {
-		log.Error(err.Error())
-	}
-	delivery.Ack(false)
-
 }
 
 //Deletes given tags. Tags are removed from post bodies and collections.
