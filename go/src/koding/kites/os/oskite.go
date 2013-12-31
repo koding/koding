@@ -156,6 +156,8 @@ func handleCurrentVMS(k *kite.Kite) {
 			}
 
 			if err := mongodb.Run("jVMs", query); err != nil || vm.HostKite != k.ServiceUniqueName {
+				log.Warn("oskite started, calling unprepare", err, vmId)
+
 				if err := virt.UnprepareVM(vmId); err != nil {
 					log.Warn(err.Error())
 				}
