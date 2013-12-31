@@ -45,26 +45,16 @@ class TeamworkWorkspace extends CollaborativeWorkspace
     panel.addSubView @buttonsContainer = new KDCustomHTMLView
       cssClass : "tw-buttons-container"
 
-    @buttonsContainer.addSubView @chatButton = new KDButtonView
-      cssClass : "tw-chat-toggle active"
-      iconClass: "tw-chat"
-      iconOnly : yes
-      callback : =>
-        cssClass      = "tw-chat-open"
-        isChatVisible = @hasClass cssClass
-        @toggleClass cssClass
-        @chatButton.toggleClass "active"
-
-        if isChatVisible then @chatView.hide() else @chatView.show()
-
     @buttonsContainer.addSubView @shareButton = new KDButtonView
       iconClass: "tw-export"
+      cssClass : "tw-export-button"
       iconOnly : yes
       # callback : => @createShareMenuButton()
       callback : => @getDelegate().emit "ExportRequested"
 
     @buttonsContainer.addSubView @optionsButton = new KDButtonView
       iconClass: "tw-cog"
+      cssClass : "tw-options-button"
       iconOnly : yes
       callback : => @createOptionsMenuButton()
 
@@ -290,6 +280,14 @@ class TeamworkWorkspace extends CollaborativeWorkspace
         else
           @activityWidget.setInputContent message
           @showActivityWidget()
+
+  toggleChatPane: ->
+    cssClass      = "tw-chat-open"
+    isChatVisible = @hasClass cssClass
+    @toggleClass cssClass
+    @chatButton.toggleClass "active"
+
+    if isChatVisible then @chatView.hide() else @chatView.show()
 
   showActivityWidget: ->
     @activityWidget.show()
