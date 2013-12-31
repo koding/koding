@@ -132,7 +132,7 @@ class ActivitySettingsView extends KDCustomHTMLView
     @bugTagSwitch   = new KodingSwitch
       cssClass      : 'dark'
       defaultValue  : "bug" in postUserTags
-      callback      : (state)=>
+      callback      : (state) =>
         @tagStateChanged state, "bug", post
 
     modal.addSubView new KDLabelView
@@ -145,7 +145,7 @@ class ActivitySettingsView extends KDCustomHTMLView
 
   tagStateChanged:(state, tagto, post)->
     {JTag} = KD.remote.api
-    JTag.one {"slug" : tagto}, (err, tag)=>
+    JTag.one "slug" : tagto, (err, tag)=>
       if state
         @addTagToPost post, tag
       else
@@ -168,7 +168,7 @@ class ActivitySettingsView extends KDCustomHTMLView
     activity.modify options, (err)->
       KD.showError err if err
 
-  addTagToPost : (activity, tagToAdd, update = no) ->
+  addTagToPost : (activity, tagToAdd)->
     if not tagToAdd
       return new KDNotificationView title : "Tag not found!"
 
@@ -177,7 +177,7 @@ class ActivitySettingsView extends KDCustomHTMLView
     body         += " |#:JTag:#{tagToAdd.getId()}|"
 
     if tags?.length > 0
-      newTags.push {id : tag.getId()} for tag in tags
+      newTags.push id : tag.getId() for tag in tags
 
     newTags.push id : tagToAdd.getId()
 
