@@ -71,10 +71,10 @@ KD.extend
       #   title     : 'Community Manager'
       ,
         username  : 'dicle'
-        title     : 'Business Analysist'
+        title     : 'Business Analyst'
       ,
         username  : 'niltuncer'
-        title     : 'Business Analysist'
+        title     : 'Business Analyst'
       ,
         username  : 'zeynep'
         title     : 'Finance Assistant'
