@@ -77,9 +77,6 @@ class ActivityTicker extends ActivityRightBase
       'Member'   :
         callback : ->
           filterSelected ["member"]
-      'App'      :
-        callback : ->
-          filterSelected ["user"]
     return menu
 
   getConstructorName :(obj)->
