@@ -61,7 +61,8 @@ class ActiveTopics extends ActivityRightBase
 
     super options, data
 
-    group = KD.singletons.groupsController.getCurrentGroup().slug
+    # FIXME ~ EA
+    group = 'koding' # KD.singletons.groupsController.getCurrentGroup().slug
 
     @showAllLink = new KDCustomHTMLView
       tagName : "a"
