@@ -364,13 +364,13 @@ class ProfileView extends JView
     @lastName.on "click",  -> @setEditingMode yes
     @bio.on "click",       -> @setEditingMode yes
 
-    @firstName.on "Enter", save
-    @lastName.on "Enter", save
-    @bio.on "Enter", save
+    @firstName.on "EnterPressed", save
+    @lastName.on "EnterPressed", save
+    @bio.on "EnterPressed", save
 
-    @firstName.on "Blur", save
-    @lastName.on "Blur", save
-    @bio.on "Blur", save
+    @firstName.on "BlurHappened", save
+    @lastName.on "BlurHappened", save
+    @bio.on "BlurHappened", save
 
     avatarOptions  =
       showStatus      : yes
