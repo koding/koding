@@ -348,41 +348,29 @@ class ProfileView extends JView
       tabNavigation : yes
     , @memberData
 
-    @firstName.on "NextTabStop", =>
-      @lastName.setEditingMode yes
-      @lastName.focus()
+    save = -> @getDelegate().save()
+    focus = (input) ->
+      input.setEditingMode yes
+      input.focus()
 
-    @firstName.on "PreviousTabStop", =>
-      @bio.setEditingMode yes
-      @bio.focus()
-
-    @lastName.on "NextTabStop", =>
-      @bio.setEditingMode yes
-      @bio.focus()
-
-    @lastName.on "PreviousTabStop", =>
-      @firstName.setEditingMode yes
-      @firstName.focus()
-
-    @bio.on "NextTabStop", =>
-      @firstName.setEditingMode yes
-      @firstName.focus()
-
-    @bio.on "PreviousTabStop", =>
-      @lastName.setEditingMode yes
-      @lastName.focus()
-
-    @firstName.on "Enter", -> @getDelegate().save()
-    @lastName.on "Enter", -> @getDelegate().save()
-    @bio.on "Enter", -> @getDelegate().save()
-
-    @firstName.on "Blur", -> @getDelegate().save()
-    @lastName.on "Blur", -> @getDelegate().save()
-    @bio.on "Blur", -> @getDelegate().save()
+    @firstName.on "NextTabStop",     => focus @lastName
+    @firstName.on "PreviousTabStop", => focus @bio
+    @lastName.on "NextTabStop",      => focus @bio
+    @lastName.on "PreviousTabStop",  => focus @firstName
+    @bio.on "NextTabStop",           => focus @firstName
+    @bio.on "PreviousTabStop",       => focus @lastName
 
     @firstName.on "click", -> @setEditingMode yes
-    @lastName.on "click", -> @setEditingMode yes
-    @bio.on "click", -> @setEditingMode yes
+    @lastName.on "click",  -> @setEditingMode yes
+    @bio.on "click",       -> @setEditingMode yes
+
+    @firstName.on "Enter", save
+    @lastName.on "Enter", save
+    @bio.on "Enter", save
+
+    @firstName.on "Blur", save
+    @lastName.on "Blur", save
+    @bio.on "Blur", save
 
     avatarOptions  =
       showStatus      : yes
