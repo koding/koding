@@ -121,7 +121,7 @@ class TeamworkChatPane extends ChatPane
       @workspace.userList.once "UserInviteFailed", =>
         @botReply getMessage "inviteFailed", username
 
-      @workspace.userList.sendInvite account
+      @workspace.userList.sendInviteTo account
 
   replyForWatch: (usernames) ->
     username = usernames.first
