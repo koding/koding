@@ -156,7 +156,7 @@ class ActivitySettingsView extends KDCustomHTMLView
       return new KDNotificationView title : "Tag not found!"
 
     {tags, body}   = activity
-    stringToRemove = "|#:JTag:#{tagToRemove.getId()}|"
+    stringToRemove = @utils.tokenizeTag tagToRemove
     body  = body.replace stringToRemove, ""
     index = tags.indexOf tagToRemove
     tags.splice index, 1
@@ -174,7 +174,7 @@ class ActivitySettingsView extends KDCustomHTMLView
 
     {tags, body} = activity
     newTags      = []
-    body         += " |#:JTag:#{tagToAdd.getId()}|"
+    body         += @utils.tokenizeTag tagToAdd
 
     if tags?.length > 0
       newTags.push id : tag.getId() for tag in tags

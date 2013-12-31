@@ -571,3 +571,7 @@ __utils.extend __utils,
   logToExternalWithTime: (name, timeout)->
     KD.troubleshoot (times)->
       KD.logToExternal msg:"#{name} timed out in #{timeout}", pings:times
+
+  # creates string from tag so that new status updates can
+  # show the tags properly
+  tokenizeTag: (tag)-> "|#:JTag:#{tag.getId()}|"

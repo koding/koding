@@ -44,11 +44,11 @@ class BugStatusItemList extends StatusActivityItemView
         index = statusTags.indexOf tagToRemove
         statusTags.splice index, 1
         # remove tag from body
-        stringToRemove = "|#:JTag:#{tagToRemove.getId()}|"
+        stringToRemove = @utils.tokenizeTag tagToRemove
         stringToAdd    = "|#:JTag:#{tagToAdd.getId()}|"
         body = body.replace stringToRemove, stringToAdd
       else
-        stringToAdd = "|#:JTag:#{tagToAdd.getId()}|"
+        stringToAdd = @utils.tokenizeTag tagToAdd
         body       += " #{stringToAdd}"
 
       newTags.push id : tagToAdd.getId()
