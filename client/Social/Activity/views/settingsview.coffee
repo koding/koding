@@ -31,9 +31,11 @@ class ActivitySettingsView extends KDCustomHTMLView
         'Delete'         :
           callback       : =>
             @confirmDeletePost post
-        'Add System Tag' :
-          callback       : =>
-            @selectSystemTag post
+
+      if KD.checkFlag("super-admin") or KD.hasAccess("delete posts")
+        menu['Add System Tag'] =
+        callback : =>
+          @selectSystemTag post
 
       return menu
 
@@ -103,39 +105,86 @@ class ActivitySettingsView extends KDCustomHTMLView
     modal.buttons.Delete.blur()
 
   selectSystemTag : (post)->
+    postSystemTags  = []
+    postUserTags    = []
+
+    if post.tags?.length > 0
+      postSystemTags = (tag.slug for tag in post.tags when tag.category is "system-tag")
+      postUserTags   = (tag.slug for tag in post.tags when tag.category is "user-tag")
+
     modal = new KDModalView
-      title          : "Add Systen Tag"
-      height         : "auto"
-      content        : "Coming Soon"
-      overlay        : no
-      buttons        :
-        Cancel       :
-          style      : "modal-cancel"
-          title      : "cancel"
-          callback   : ->
+      title        : "Add tags to status update."
+      height       : "auto"
+      overlay      : no
+      buttons      :
+        Cancel     :
+          style    : "modal-cancel"
+          title    : "cancel"
+          callback : ->
             modal.destroy()
 
-    systemTags = new KDMultipleChoice
-      cssClass     : "clean-gray editor-button control-button bug"
-      labels       : ["changelog","fixed"]
-      multiple     : no
-      size         : "tiny"
-      callback     : (value)->
-        newTags = []
-        {JTag}  = KD.remote.api
-        JTag.fetchSystemTags {title:value}, {limit:1}, (err, systemTags)->
-          tag         = systemTags.first
-          stringToAdd = " |#:JTag:#{tag.getId()}|"
-          post.body  += stringToAdd
+    @changeLogTagSwitch = new KodingSwitch
+      cssClass          : 'dark'
+      defaultValue      : "changelog" in postSystemTags
+      callback          : (state) =>
+        @tagStateChanged state, "changelog", post
 
-          newTags.push id:tag.getId() for tag in post.tags
-          options  =
-            body   : post.body
-            meta   :
-              tags : newTags
+    @bugTagSwitch   = new KodingSwitch
+      cssClass      : 'dark'
+      defaultValue  : "bug" in postUserTags
+      callback      : (state)=>
+        @tagStateChanged state, "bug", post
 
-          post.modify options, (err)->
-            log err if err
+    modal.addSubView new KDLabelView
+      title : "ChangeLog"
+    modal.addSubView @changeLogTagSwitch
 
-    modal.addSubView systemTags
+    modal.addSubView new KDLabelView
+      title : "Bug"
+    modal.addSubView @bugTagSwitch
 
+  tagStateChanged:(state, tagto, post)->
+    {JTag} = KD.remote.api
+    JTag.one {"slug" : tagto}, (err, tag)=>
+      if state
+        @addTagToPost post, tag
+      else
+        @removeTagFromPost post, tag
+
+  removeTagFromPost:(activity, tagToRemove)->
+    if not tagToRemove
+      return new KDNotificationView title : "Tag not found!"
+
+    {tags, body}   = activity
+    stringToRemove = "|#:JTag:#{tagToRemove.getId()}|"
+    body  = body.replace stringToRemove, ""
+    index = tags.indexOf tagToRemove
+    tags.splice index, 1
+
+    options  =
+      body   : body
+      meta   : {tags}
+
+    activity.modify options, (err)->
+      KD.showError err if err
+
+  addTagToPost : (activity, tagToAdd, update = no) ->
+    if not tagToAdd
+      return new KDNotificationView title : "Tag not found!"
+
+    {tags, body} = activity
+    newTags      = []
+    body         += " |#:JTag:#{tagToAdd.getId()}|"
+
+    if tags?.length > 0
+      newTags.push {id : tag.getId()} for tag in tags
+
+    newTags.push id : tagToAdd.getId()
+
+    options  =
+      body   : body
+      meta   :
+        tags : newTags
+
+    activity.modify options, (err)->
+      KD.showError err if err

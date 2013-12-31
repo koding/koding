@@ -52,7 +52,7 @@ class BugStatusItemList extends StatusActivityItemView
         body       += " #{stringToAdd}"
 
       newTags.push id : tagToAdd.getId()
-      newTags.push id:tag.getId() for tag in statusTags
+      newTags.push id : tag.getId() for tag in statusTags
 
       options  =
         body   : body
