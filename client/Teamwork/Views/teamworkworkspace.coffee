@@ -230,7 +230,7 @@ class TeamworkWorkspace extends CollaborativeWorkspace
       title    : "Invite"
       callback : =>
         url = "#{KD.config.apiUri}/Teamwork?sessionKey=#{@sessionKey}"
-        @activityWidget.setInputContent "Would you like to join my Teamwork session? #{url}"
+        @activityWidget.setInputContent "Join me in Teamwork: #{url}"
         @showActivityWidget()
         @hideShareButtons()
         @activityWidget.showForm (err, activity) =>
