@@ -35,7 +35,7 @@ class ActiveUsers extends ActivityRightBase
   constructor:(options={}, data)->
 
     @itemClass       = ActiveUserItemView
-    options.title    = "Active Koders"
+    options.title    = "Active users"
     options.cssClass = "active-users"
 
     super options, data
