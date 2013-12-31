@@ -56,7 +56,7 @@ class ActiveTopics extends ActivityRightBase
   constructor:(options={}, data)->
 
     @itemClass       = ActiveTopicItemView
-    options.title    = "Popular Topics"
+    options.title    = "Popular topics"
     options.cssClass = "active-topics"
 
     super options, data
