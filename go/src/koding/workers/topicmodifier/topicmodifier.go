@@ -298,5 +298,6 @@ func swapTagRelation(r *Relationship, as string) Relationship {
 		TargetId:   r.SourceId,
 		TargetName: r.SourceName,
 		TimeStamp:  r.TimeStamp,
+		Data:       r.Data,
 	}
 }
