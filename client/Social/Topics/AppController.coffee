@@ -18,6 +18,8 @@ class TopicsAppController extends AppController
     @listItemClass = TopicsListItemView
     @controllers = {}
 
+    @_searchValue = ""
+
     # @on "LazyLoadThresholdReached", => @feedController.loadFeed()
 
   createFeed:(view, loadFeed = no)->

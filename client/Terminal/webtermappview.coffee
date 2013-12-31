@@ -6,7 +6,7 @@ class WebTermAppView extends JView
 
     @tabHandleContainer = new ApplicationTabHandleHolder
       delegate          : this
-      addPlusHandle     : no
+      addPlusHandle     : yes
 
     @tabView = new ApplicationTabView
       delegate                  : this
@@ -69,7 +69,12 @@ class WebTermAppView extends JView
           KD.logToExternal "oskite: Error opening Webterm", vmName, err
           KD.mixpanel "Open Webterm, fail", {vmName}
 
-        @addNewTab vmName  if info?.state is 'RUNNING'
+        if info?.state is 'RUNNING'
+          @addNewTab vmName
+        else
+          vmController.start vmName, (err, state)=>
+            warn "Failed to turn on vm:", err  if err
+            KD.utils.defer => @addNewTab vmName
         KD.mixpanel "Open Webterm, success", {vmName}
 
       , =>
@@ -209,9 +214,6 @@ class WebTermAppView extends JView
   addNewTab: (vmName)->
 
     @messagePane.hide()
-
-    if not @tabHandleContainer.plusHandle
-      @tabHandleContainer.addPlusHandle()
 
     if @_secondTab
       KD.mixpanel "Open new Webterm tab, success"

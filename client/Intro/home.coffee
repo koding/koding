@@ -86,7 +86,7 @@ class HomePage extends JView
       client    : '#home-page .browser'
       container : this
       wait      : 2200
-      message   : 'WHITE LABEL KODING'
+      message   : 'WHITE-LABEL KODING'
       offset    :
         top     : 25
         left    : 25
@@ -146,7 +146,7 @@ class HomePage extends JView
           <div class='white-label clearfix'>
             <span class='icon'></span>
             <article>
-              <h4>WHITE LABEL KODING</h4>
+              <h4>WHITE-LABEL KODING</h4>
               You can have your private Koding in the cloud, with your rules, your apps and your own members. Please <a id='home-contact-link' href='mailto:education@koding.com?subject=Koding, white label' target='_self'>contact us</a> for further information.
             </article>
           </div>

@@ -108,6 +108,7 @@ class AppDetailsView extends KDScrollView
         <header><a href='#'>Screenshots</a></header>
         <section class='screenshots'>{{> @slideShow}}</section>
       """
+    desc = @getData().manifest?.description or ""
 
     """
 
@@ -118,7 +119,7 @@ class AppDetailsView extends KDScrollView
         <h4>{{#(manifest.author)}}</h4>
 
         <div class="appdetails">
-          <article>{{#(manifest.description)}}</article>
+          <article>#{desc}</article>
         </div>
 
       </div>

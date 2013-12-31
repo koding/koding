@@ -35,7 +35,7 @@ class ActiveUsers extends ActivityRightBase
   constructor:(options={}, data)->
 
     @itemClass       = ActiveUserItemView
-    options.title    = "Active Koders"
+    options.title    = "Active users"
     options.cssClass = "active-users"
 
     super options, data
@@ -56,12 +56,13 @@ class ActiveTopics extends ActivityRightBase
   constructor:(options={}, data)->
 
     @itemClass       = ActiveTopicItemView
-    options.title    = "Popular Topics"
+    options.title    = "Popular topics"
     options.cssClass = "active-topics"
 
     super options, data
 
-    group = KD.singletons.groupsController.getCurrentGroup().slug
+    # FIXME ~ EA
+    group = 'koding' # KD.singletons.groupsController.getCurrentGroup().slug
 
     @showAllLink = new KDCustomHTMLView
       tagName : "a"

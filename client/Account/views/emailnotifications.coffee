@@ -6,6 +6,8 @@ class AccountEmailNotifications extends KDView
 
   putContents:(account, frequency)->
     fields =
+      global           :
+        title          : 'Notify me via email'
       daily            :
         title          : 'Send me a daily email about everything below'
       privateMessage   :
@@ -29,50 +31,34 @@ class AccountEmailNotifications extends KDView
 
     globalValue = frequency.global
 
-    turnedOffHint = new KDCustomHTMLView
-      partial : "Email notifications are turned off. You won't receive any emails about anything."
-      cssClass: "no-item-found #{if globalValue then 'hidden'}"
-
-    @addSubView turnedOffHint
-
-    @getDelegate().addSubView global = new KodingSwitch
-      cssClass      : "dark in-account-header"
-      defaultValue  : globalValue
-      callback      : (state)=>
-        account.setEmailPreferences global: state, (err)=>
-          if err
-            global.oldValue = globalValue
-            global.fallBackToOldState()
-            return new KDNotificationView
-              duration : 2000
-              title    : "Failed to turn #{state.toLowerCase()} the email notifications."
-
-          @emit 'GlobalStateChanged', state
-
     for own flag, field of fields
       @addSubView field.formView = new KDFormView
       field.formView.addSubView    new KDLabelView
         title        : field.title
         cssClass     : "main-label" # +if flag isnt 'global' then 'indent' else ''
 
-      field.current = frequency[flag]
-
-      field.formView.addSubView field.switch = new KodingSwitch
+      fieldSwitch = new KodingSwitch
         cssClass      : 'dark'
-        defaultValue  : field.current
-        callback      : (state)->
+        defaultValue  : frequency[flag]
+        callback      : (state) ->
           prefs = {}
 
-          prefs[@getData()] = state
-          fields[@getData()].loader.show()
+          switchFlag = @getData()
+
+          prefs[switchFlag] = state
+          fields[switchFlag].loader.show()
 
           account.setEmailPreferences prefs, (err)=>
-            fields[@getData()].loader.hide()
+            fields[switchFlag].loader.hide()
             if err
               @fallBackToOldState()
               KD.notify_ 'Failed to change state'
 
-        , flag
+          toggleGlobalState state  if switchFlag is 'global'
+
+      , flag
+
+      field.formView.addSubView fieldSwitch
 
       fields[flag].formView.addSubView fields[flag].loader = new KDLoaderView
         size          :
@@ -81,17 +67,11 @@ class AccountEmailNotifications extends KDView
         loaderOptions :
           color       : "#FFFFFF"
 
-    toggleFieldStates = (state)->
-      for own flag, field of fields
+    toggleGlobalState = (state) ->
+      for own flag, field of fields when flag isnt 'global'
         if state is off
           field.formView.hide()
         else
           field.formView.show()
 
-    toggleFieldStates globalValue
-
-    @on 'GlobalStateChanged', (state)=>
-      toggleFieldStates state
-      if state is off
-      then turnedOffHint.show()
-      else turnedOffHint.hide()
+    toggleGlobalState globalValue
