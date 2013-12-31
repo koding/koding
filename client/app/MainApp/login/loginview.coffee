@@ -290,10 +290,6 @@ class LoginView extends KDScrollView
       {account, replacementToken} = params
       $.cookie 'clientId', replacementToken  if replacementToken
 
-      # check and set preferred BE domain for Koding
-      # prevent user from seeing the main wiev
-      KD.utils.setPreferredDomain account if account
-
       mainController = KD.getSingleton('mainController')
       mainView       = mainController.mainViewController.getView()
       mainController.accountChanged account
