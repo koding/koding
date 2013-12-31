@@ -38,7 +38,7 @@ func createConnections() {
 func ConsumeMessage() {
 	log.Info("Topic Modifier: Checking for message")
 	createConnections()
-	if err := Consumer.ConsumeMessage(messageConsumer); err != nil {
+	if err := Consumer.Get(messageConsumer); err != nil {
 		log.Error(err.Error())
 	}
 	Shutdown()
