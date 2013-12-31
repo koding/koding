@@ -164,8 +164,8 @@ class CollaborativeWorkspace extends Workspace
         partial  : "This usually means, the person who is hosting this session is disconnected or closed the session."
 
       notValid.addSubView new KDButtonView
-        cssClass : "cupid-green"
-        title    : "Start New Session"
+        cssClass : "tw-rounded-button new-session"
+        title    : "Start new session"
         callback : =>
           @startNewSession()
           notValid.destroy()
