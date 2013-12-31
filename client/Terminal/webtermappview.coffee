@@ -69,7 +69,12 @@ class WebTermAppView extends JView
           KD.logToExternal "oskite: Error opening Webterm", vmName, err
           KD.mixpanel "Open Webterm, fail", {vmName}
 
-        @addNewTab vmName  if info?.state is 'RUNNING'
+        if info?.state is 'RUNNING'
+          @addNewTab vmName
+        else
+          vmController.start vmName, (err, state)=>
+            warn "Failed to turn on vm:", err  if err
+            KD.utils.wait 2000, => @addNewTab vmName
         KD.mixpanel "Open Webterm, success", {vmName}
 
       , =>
