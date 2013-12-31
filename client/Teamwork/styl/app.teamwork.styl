@@ -338,7 +338,7 @@ app.teamwork.styl
   button
     background                  none
     border                      none
-    top                         20px
+    top                         17px
     right                       5px
     padding                     10px !important
     &:hover
@@ -350,9 +350,6 @@ app.teamwork.styl
   .tw-cog
     display                     block
     r-sprite                    teamwork, "settings"
-  .tw-chat
-    display                     block
-    r-sprite                    teamwork, "chat"
   .tw-export
     display                     block
     sprite                      teamwork, "export"
@@ -360,6 +357,17 @@ app.teamwork.styl
     &.active
       background-color          #282F31
       border-radius             6px 6px 0 0
+  .tw-export-button
+    size                        32px, 32px
+    bg                          color, #2E98DF
+    rounded                     32px
+    &:hover
+      bg                        color, #2E98DF
+    span
+      top                       -1px
+      position                  relative
+  .tw-options-button
+      top                       14px
 
 .tw-bot-avatar
   r-sprite                      teamwork, "teampunk"
