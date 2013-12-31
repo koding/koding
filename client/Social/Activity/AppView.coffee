@@ -178,10 +178,9 @@ class FilterWarning extends JView
 
   showWarning:({text, type})->
     partialText = switch type
-      when "search" then "contains <strong>\"#{text}\"</strong>"
-      else "tagged with <strong>##{text}</strong>"
+      when "search" then "Results for <strong>\"#{text}\"</strong>"
+      else "You are now looking at activities tagged with <strong>##{text}</strong>"
 
-    @warning.updatePartial \
-      """You are now looking at activities #{partialText}"""
+    @warning.updatePartial "#{partialText}"
 
     @show()
