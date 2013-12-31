@@ -110,7 +110,7 @@ class HomePage extends JView
           </div>
           <div class="register-container">
             {{> @registerForm}}
-            <h3>{{> @githubLink}}</h2>
+            <h3>{{> @githubLink}}</h3>
           </div>
         </div>
       </main>
