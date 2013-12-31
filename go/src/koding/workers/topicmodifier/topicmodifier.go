@@ -7,10 +7,9 @@ import (
 	"strings"
 )
 
-var (
-	Limit     int = 50
-	Completed     = false
-)
+const LIMIT = 50
+
+var Completed = false
 
 //Deletes given tags. Tags are removed from post bodies and collections.
 //Tag relations are also removed.
@@ -52,7 +51,7 @@ func mergeTags(tagId string) error {
 
 func updateTags(tag *Tag, synonym *Tag) error {
 	selector := helper.Selector{"targetId": helper.GetObjectId(tag.Id.Hex()), "as": "tag"}
-	rels, err := helper.GetSomeRelationships(selector, Limit)
+	rels, err := helper.GetSomeRelationships(selector, LIMIT)
 	if err != nil {
 		return err
 	}
@@ -90,7 +89,7 @@ func updateTags(tag *Tag, synonym *Tag) error {
 		}
 	}
 
-	if postCount < Limit {
+	if postCount < LIMIT {
 		return updateFollowers(tag, synonym)
 	}
 
@@ -204,7 +203,7 @@ func updateFollowers(tag *Tag, synonym *Tag) error {
 		"targetName": "JAccount",
 	}
 
-	rels, err := helper.GetSomeRelationships(selector, Limit)
+	rels, err := helper.GetSomeRelationships(selector, LIMIT)
 	if err != nil {
 		return err
 	}
@@ -228,7 +227,7 @@ func updateFollowers(tag *Tag, synonym *Tag) error {
 	}
 
 	tag.Counts.Followers -= followerCount
-	if followerCount < Limit {
+	if followerCount < LIMIT {
 		updateCounts(tag, synonym)
 		Completed = true
 	}
