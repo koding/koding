@@ -6,7 +6,7 @@ class WebTermAppView extends JView
 
     @tabHandleContainer = new ApplicationTabHandleHolder
       delegate          : this
-      addPlusHandle     : no
+      addPlusHandle     : yes
 
     @tabView = new ApplicationTabView
       delegate                  : this
@@ -209,9 +209,6 @@ class WebTermAppView extends JView
   addNewTab: (vmName)->
 
     @messagePane.hide()
-
-    if not @tabHandleContainer.plusHandle
-      @tabHandleContainer.addPlusHandle()
 
     if @_secondTab
       KD.mixpanel "Open new Webterm tab, success"
