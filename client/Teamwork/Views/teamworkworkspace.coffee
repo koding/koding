@@ -335,7 +335,7 @@ class TeamworkWorkspace extends CollaborativeWorkspace
   showImportModal: ->
     modal          = new KDModalView
       title        : "Import Content to your VM"
-      content      : "<p>Import content to your VM and start working on it. It might be a zip file or a GitHub repository.</p>"
+      content      : "<p>Enter the URL of a git repository or zip archive.</p>"
       cssClass     : "workspace-modal join-modal"
       overlay      : yes
       width        : 600
