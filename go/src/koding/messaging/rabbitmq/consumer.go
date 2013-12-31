@@ -2,7 +2,6 @@ package rabbitmq
 
 import (
 	"github.com/streadway/amqp"
-	"time"
 )
 
 type Consumer struct {
@@ -22,6 +21,11 @@ type Consumer struct {
 	// Current producer connection settings
 	session Session
 }
+
+var (
+	Q  amqp.Queue
+	CO ConsumerOptions
+)
 
 func (c *Consumer) Deliveries() <-chan amqp.Delivery {
 	return c.deliveries
@@ -60,7 +64,7 @@ func (c *Consumer) connect() error {
 	e := c.session.Exchange
 	q := c.session.Queue
 	bo := c.session.BindingOptions
-	co := c.session.ConsumerOptions
+	CO = c.session.ConsumerOptions
 
 	var err error
 
@@ -78,7 +82,7 @@ func (c *Consumer) connect() error {
 	}
 
 	// declaring Queue
-	queue, err := c.channel.QueueDeclare(
+	Q, err = c.channel.QueueDeclare(
 		q.Name,       // name of the queue
 		q.Durable,    // durable
 		q.AutoDelete, // delete when usused
@@ -93,7 +97,7 @@ func (c *Consumer) connect() error {
 	// binding Exchange to Queue
 	if err = c.channel.QueueBind(
 		// bind to real queue
-		queue.Name,    // name of the queue
+		Q.Name,        // name of the queue
 		bo.RoutingKey, // bindingKey
 		e.Name,        // sourceExchange
 		bo.NoWait,     // noWait
@@ -102,16 +106,22 @@ func (c *Consumer) connect() error {
 		return err
 	}
 
+	return nil
+}
+
+// Consume accepts a handler function for every message streamed from RabbitMq
+// will be called within this handler func
+func (c *Consumer) Consume(handler func(delivery amqp.Delivery)) error {
 	// Exchange bound to Queue, starting Consume
 	deliveries, err := c.channel.Consume(
 		// consume from real queue
-		queue.Name,   // name
-		co.Tag,       // consumerTag,
-		co.AutoAck,   // autoAck
-		co.Exclusive, // exclusive
-		co.NoLocal,   // noLocal
-		co.NoWait,    // noWait
-		co.Args,      // arguments
+		Q.Name,       // name
+		CO.Tag,       // consumerTag,
+		CO.AutoAck,   // autoAck
+		CO.Exclusive, // exclusive
+		CO.NoLocal,   // noLocal
+		CO.NoWait,    // noWait
+		CO.Args,      // arguments
 	)
 	if err != nil {
 		return err
@@ -119,13 +129,6 @@ func (c *Consumer) connect() error {
 
 	// should we stop streaming, in order not to consume from server?
 	c.deliveries = deliveries
-
-	return nil
-}
-
-// Consume accepts a handler function for every message streamed from RabbitMq
-// will be called within this handler func
-func (c *Consumer) Consume(handler func(delivery amqp.Delivery)) {
 	c.handler = handler
 
 	// handle all consumer errors, if required re-connect
@@ -136,20 +139,25 @@ func (c *Consumer) Consume(handler func(delivery amqp.Delivery)) {
 
 	log.Info("handle: deliveries channel closed")
 	c.done <- nil
+	return nil
 }
 
 // ConsumeMessage accepts a handler function and only consumes one message
 // stream from RabbitMq and then closes connection
-func (c *Consumer) ConsumeMessage(handler func(delivery amqp.Delivery)) error {
+func (c *Consumer) Get(handler func(delivery amqp.Delivery)) error {
+	message, ok, err := c.channel.Get(
+		Q.Name,
+		CO.AutoAck)
+	if err != nil {
+		return err
+	}
+
 	c.handler = handler
 
-	timer := time.NewTimer(time.Second * 5)
-
-	select {
-	case message := <-c.deliveries:
+	if ok {
 		log.Info("Message received")
 		handler(message)
-	case <-timer.C:
+	} else {
 		log.Info("No message received")
 	}
 
