@@ -31,9 +31,9 @@ __utils.extend __utils,
 
 
   goBackToOldKoding:->
-    KD.whoami().modify preferredKDProxyDomain : '', (err)->
+    KD.whoami().modify preferredKDProxyDomain : 'oldkoding', (err)->
       unless err
-        $.cookie 'kdproxy-preferred-domain', erase:yes
+        $.cookie 'kdproxy-preferred-domain', 'oldkoding'
         location.reload yes
 
   # This function checks current user's preferred domain and
