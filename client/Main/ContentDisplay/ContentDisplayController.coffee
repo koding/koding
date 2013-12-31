@@ -20,19 +20,20 @@ class ContentDisplayController extends KDController
 
   showDisplay:(view)->
 
-    {@mainTabView} = KD.singleton "mainView"
     tabPane = new ContentDisplay
       name  : 'content-display'
       type  : 'social'
-
-    @displays[view.id] = view
-    tabPane.addSubView view
-    @mainTabView.addPane tabPane
-
-    KD.singleton('dock').navController.selectItemByName 'Activity'
+      view  : view
 
     tabPane.on 'KDTabPaneInactive', => @hideDisplay view
 
+    @displays[view.id] = view
+
+    {@mainTabView} = KD.singleton "mainView"
+    activePane = @mainTabView.getActivePane()
+    @mainTabView.addPane tabPane
+
+    KD.singleton('dock').navController.selectItemByName 'Activity'
     return tabPane
 
 

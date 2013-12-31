@@ -59,7 +59,7 @@ class MainTabView extends KDTabView
 
     handle = @getHandleByIndex index
     @handles.splice index, 1
-    handle.destroy()
+    handle?.destroy()
 
     @emit "PaneRemoved"
 
