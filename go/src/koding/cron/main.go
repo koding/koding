@@ -3,13 +3,17 @@ package main
 import (
     "fmt"
     "github.com/robfig/cron"
+    "koding/tools/config"
     "koding/workers/topicmodifier"
     "os"
     "os/signal"
     "syscall"
 )
 
-var Cron *cron.Cron
+var (
+    Cron                    *cron.Cron
+    TOPIC_MODIFIER_SCHEDULE = config.Current.TopicModifier.CronSchedule
+)
 
 // later on this could be implemented as kite, and then we will no longer need hard coded
 // method scheduling. Service just calls addFunc and registers itself
@@ -27,7 +31,7 @@ func main() {
 }
 
 func addTopicModifierConsumer() {
-    addFunc("@every 5m", topicmodifier.ConsumeMessage)
+    addFunc(TOPIC_MODIFIER_SCHEDULE, topicmodifier.ConsumeMessage)
 }
 
 func registerSignalHandler() {
