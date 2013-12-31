@@ -110,6 +110,9 @@ type Config struct {
 		Ip   string
 		Port int
 	}
+	TopicModifier struct {
+		CronSchedule string
+	}
 }
 
 var FileProfile string

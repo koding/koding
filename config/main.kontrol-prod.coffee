@@ -119,6 +119,8 @@ module.exports =
     numberOfWorkers      : 2
     watch                : yes
     cronSchedule         : '00 00 00 * * *'
+  topicModifier          :
+    cronSchedule         : '@every 5m'
   graphFeederWorker:
     numberOfWorkers: 4
   social        :

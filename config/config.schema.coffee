@@ -135,6 +135,8 @@ config =
       numberOfWorkers     : 1
       watch               : 1
       cronSchedule        : 1
+    topicModifier         :
+      cronSchedule        : 1
     social        :
       login       : 1
       numberOfWorkers: 1
