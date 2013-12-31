@@ -31,7 +31,6 @@ class ContentDisplayController extends KDController
 
     {@mainTabView} = KD.singleton "mainView"
     activePane = @mainTabView.getActivePane()
-    @hideDisplay activePane.getMainView()  if activePane
     @mainTabView.addPane tabPane
 
     KD.singleton('dock').navController.selectItemByName 'Activity'
