@@ -11,8 +11,7 @@ const LIMIT = 50
 
 var Completed = false
 
-//Deletes given tags. Tags are removed from post bodies and collections.
-//Tag relations are also removed.
+// deleteTags removes given tags from post body and deletes related tag relationships.
 func deleteTags(tagId string) error {
 	log.Info("Deleting topic")
 
@@ -21,10 +20,10 @@ func deleteTags(tagId string) error {
 		return fmt.Errorf("Tag not found - Id: %s", tagId)
 	}
 	log.Info("Deleting %s", tag.Title)
-	emptyTag := &Tag{}
-	return updateTags(tag, emptyTag)
+	return updateTags(tag, &Tag{})
 }
 
+// mergeTags merges given tag with its synonym.
 func mergeTags(tagId string) error {
 	log.Info("Merging topics")
 
@@ -104,9 +103,11 @@ func convertTagRelationships(tagRels []Relationship) (postRelationships []Relati
 	return postRelationships
 }
 
-//Update tags included in posts. When newTagId = "" or when new tag is already
-//included in post, then it just removes old tag and also removes tag relationship
-//Returns Filtered Relationships
+//updatePosts updates post body and post relationships according to given tag
+//information. When newTagId = "" or when new tag is already included in post,
+//then it just removes old tag (|JTag:x|) from post body and also removes post
+//relationships.
+//Returns Post Relationships where the old tag information is replaced.
 func updatePosts(rels []Relationship, newTagId string) (filteredRels []Relationship) {
 	for _, rel := range rels {
 		tagId := rel.TargetId.Hex()
@@ -140,11 +141,11 @@ func updatePosts(rels []Relationship, newTagId string) (filteredRels []Relations
 	return filteredRels
 }
 
-//Replaces given post tagId with new one. If new tag is already included in the post
-//then it just removes old tag.
-//Ex. post is #go #golang. when we merge #go to #golang, post becomes as #golang #golang.
+//updatePostBody updates post body with given tags. It replaces already existing
+//tag |#:JTag:[tagId]| with new one as |#:JTag:[newTagId]|. If new tag is already
+//included in the post then it is not appended.
+//E.g. post is #go #golang. when we merge #go to #golang, post becomes as #golang #golang.
 //for preventing this doubling effect we drop one tag. Finally post becomes: #golang
-//Returns tag included information
 func updatePostBody(s *StatusUpdate, tagId string, newTagId string) (tagIncluded bool) {
 	var newTag string
 	tagIncluded = false
@@ -162,7 +163,8 @@ func updatePostBody(s *StatusUpdate, tagId string, newTagId string) (tagIncluded
 	return tagIncluded
 }
 
-//Removes old tag relationships and creates new ones if synonym tag does exists
+//updateTagRelationships replaces old tag relationships with new ones.
+//When synonym Tag is an empty object it just removes old relationships.
 func updateTagRelationships(rels []Relationship, synonym *Tag) error {
 	for _, rel := range rels {
 		err := RemoveRelationship(&rel)
@@ -186,7 +188,8 @@ func updateTagRelationships(rels []Relationship, synonym *Tag) error {
 	return nil
 }
 
-//Yes Update counts. But not sure if the following counts really have a meaning.
+// updateCounts updates tag count information. But here not sure if the
+// following and tagged counts really have a meaning.
 func updateCounts(tag *Tag, synonym *Tag) {
 	synonym.Counts.Following += tag.Counts.Following
 	tag.Counts.Following = 0
@@ -194,8 +197,9 @@ func updateCounts(tag *Tag, synonym *Tag) {
 	tag.Counts.Tagged = 0
 }
 
-//Moves follower information under the new topic. If user is already following
-//new topic, then she is not added as follower.
+// updateFollowers appends old tag followers to new one. When user is already
+// following new topic, then she is not appended as follower. It also updates
+// tag follower counts.
 func updateFollowers(tag *Tag, synonym *Tag) error {
 	selector := helper.Selector{
 		"sourceId":   tag.Id,
@@ -236,7 +240,7 @@ func updateFollowers(tag *Tag, synonym *Tag) error {
 	return nil
 }
 
-// Merge topic followers.
+// mergeFollowers merges topic followers.
 func mergeFollowers(rels []Relationship, synonym *Tag) error {
 	var existingFollowers []Relationship
 	var newFollowers []Relationship
@@ -284,6 +288,8 @@ func mergeFollowers(rels []Relationship, synonym *Tag) error {
 	return nil
 }
 
+// swapTagRelation swaps source and target data of relationships. It is used
+// for converting bidirectional relationships.
 func swapTagRelation(r *Relationship, as string) Relationship {
 	return Relationship{
 		As:         as,
