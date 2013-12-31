@@ -145,10 +145,10 @@ class CollaborativeWorkspaceUserList extends JView
       title    : "Invite"
       callback : =>
         accounts  = @userController.getSelectedItemData()
-        @sendInvite account for account in accounts
+        @sendInviteTo account for account in accounts
         @reset()
 
-  sendInvite: (account) ->
+  sendInviteTo: (account) ->
     return @emit "UserInviteFailed"  unless account
 
     to           = account.profile.nickname
@@ -162,15 +162,13 @@ class CollaborativeWorkspaceUserList extends JView
     subject      = "Join my #{appName} session"
     body         =
       """
-        Hey #{account.profile.firstName},
+        Hi @#{account.profile.nickname},
 
-        #{fromFullName} (@#{profile.nickname}) invited you to #{appName} session.
+        @#{profile.nickname} has invited you to join #{KD.utils.formatIndefiniteArticle appName} session.
 
-        You can use this key #{sessionKey} to join #{fromFullName}'s #{appName} session or you can click the link below:
+        To join, click the link below:
 
-        http://koding.com/Develop/#{appName}?sessionKey=#{sessionKey}
-
-        If you don't have #{appName} installed, you can install it from the App Catalog.
+        https://koding.com/#{encodeURIComponent appName}?sessionKey=#{encodeURIComponent sessionKey}
       """
 
     return if to is nickname
