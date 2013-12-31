@@ -74,7 +74,7 @@ class WebTermAppView extends JView
         else
           vmController.start vmName, (err, state)=>
             warn "Failed to turn on vm:", err  if err
-            KD.utils.wait 2000, => @addNewTab vmName
+            KD.utils.defer => @addNewTab vmName
         KD.mixpanel "Open Webterm, success", {vmName}
 
       , =>

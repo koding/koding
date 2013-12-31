@@ -74,7 +74,7 @@ class WebTermView extends KDView
       else
         vmController.start vmName, (err, state)=>
           warn "Failed to turn on vm:", err  if err
-          KD.utils.wait 2000, => @connectToTerminal()
+          KD.utils.defer => @connectToTerminal()
       KD.mixpanel "Open Webterm, success", {vmName}
 
     , =>

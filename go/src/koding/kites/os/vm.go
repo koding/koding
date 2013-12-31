@@ -5,6 +5,7 @@ import (
 	"koding/tools/kite"
 	"koding/tools/log"
 	"koding/virt"
+	"time"
 
 	"labix.org/v2/mgo/bson"
 )
@@ -17,6 +18,12 @@ func registerVmMethods(k *kite.Kite) {
 		if err := vos.VM.Start(); err != nil {
 			panic(err)
 		}
+
+		// wait until network is up
+		if err := vos.VM.WaitForNetwork(time.Second * 5); err != nil {
+			panic(err)
+		}
+
 		return true, nil
 	})
 
