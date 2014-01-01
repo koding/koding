@@ -22,7 +22,7 @@ class WebTerm.ControlCodeReader
 
   readUntil: (regexp) ->
     endPos = @data.substring(@pos).search regexp
-    return null if endPos == -1
+    return null if endPos is -1
     string = @data.substring @pos, @pos + endPos
     @pos += endPos
     string
@@ -59,7 +59,7 @@ class WebTerm.ControlCodeReader
     @controlCodeIncomplete = true
 
   unsupportedControlCode: ->
-    warn "Unsupported control code: " + @terminal.inspectString(@data.substring(@controlCodeOffset, @pos))
+    # warn "Unsupported control code: " + @terminal.inspectString(@data.substring(@controlCodeOffset, @pos))
 
 
 class WebTerm.TextReader
@@ -174,7 +174,7 @@ WebTerm.createAnsiControlCodeReader = (terminal) ->
 
   initEscapeSequenceHandler = ->
     switchCharacter
-      "\x07": -> new KDNotificationView {title: 'Bell!'} if @visualBell
+      "\x07": -> terminal.command 'ring bell'
       "\x0E": -> terminal.setCharacterSetIndex 1
       "\x0F": -> terminal.setCharacterSetIndex 0
       "\x1B": switchCharacter # ESC
