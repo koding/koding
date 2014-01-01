@@ -3,6 +3,7 @@ class WebTermController extends AppController
   KD.registerAppClass this,
     name         : "Terminal"
     title        : "Terminal"
+    version      : "1.0.1"
     route        :
       slug       : "/:name?/Terminal"
       handler    : ({params:{name}, query})->
@@ -50,7 +51,7 @@ class WebTermController extends AppController
     { name, version } = @getOptions()
     
     storage = (KD.getSingleton 'appStorageController').storage name, version
-    
+
     if not bell? or storage.getValue 'visualBell'
     then new KDNotificationView title: 'Bell!', duration: 100
     else bell.play()
