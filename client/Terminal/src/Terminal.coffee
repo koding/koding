@@ -1,4 +1,4 @@
-class WebTerm.Terminal
+class WebTerm.Terminal extends KDObject
   LINE_DRAWING_CHARSET = [0x2191, 0x2193, 0x2192, 0x2190, 0x2588, 0x259a, 0x2603, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, 0x0020, 0x25c6, 0x2592, 0x2409, 0x240c, 0x240d, 0x240a, 0x00b0, 0x00b1, 0x2424, 0x240b, 0x2518, 0x2510, 0x250c, 0x2514, 0x253c, 0x23ba, 0x23bb, 0x2500, 0x23bc, 0x23bd, 0x251c, 0x2524, 0x2534, 0x252c, 0x2502, 0x2264, 0x2265, 0x03c0, 0x2260, 0x00a3, 0x00b7]
 
   SPECIAL_CHARS =
@@ -11,6 +11,8 @@ class WebTerm.Terminal
     '\u001b': '\\e'
 
   constructor: (@container) ->
+    super()
+
     localStorage?["WebTerm.logRawOutput"] ?= "false"
     localStorage?["WebTerm.slowDrawing"]  ?= "false"
 
@@ -79,6 +81,8 @@ class WebTerm.Terminal
       sessionEnded: =>
         @sessionEndedCallback()
 
+  command: (command) -> @emit 'command', command
+
   destroy: ->
     @keyInput?.destroy()
     super()
@@ -109,9 +113,6 @@ class WebTerm.Terminal
 
     @cursor.moveTo @cursor.x, cursorLineIndex - @screenBuffer.toLineIndex(0)
     @server.setSize x, y if @server
-
-  clearBuffer: ->
-    @terminal.server?.controlSequence '\x1B[J'
 
   updateSize: (force=no) ->
     return if not force and @pixelWidth is @container.prop("clientWidth") and @pixelHeight is @container.prop("clientHeight")

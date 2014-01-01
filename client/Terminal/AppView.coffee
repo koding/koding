@@ -67,11 +67,13 @@ class WebTermView extends KDView
 
     @bindEvent 'contextmenu'
 
+    @forwardEvent @terminal, 'command'
+
     @connectToTerminal()
 
   connectToTerminal:->
 
-    @appStorage = KD.getSingleton('appStorageController').storage 'WebTerm', '1.0'
+    @appStorage = KD.getSingleton('appStorageController').storage 'Terminal', '1.0'
     @appStorage.fetchStorage =>
       @appStorage.setValue 'font'      , 'ubuntu-mono' if not @appStorage.getValue('font')?
       @appStorage.setValue 'fontSize'  , 14 if not @appStorage.getValue('fontSize')?

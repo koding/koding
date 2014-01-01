@@ -21,7 +21,6 @@ class WebTermController extends AppController
       'ring bell'     : 'ringBell'
       'noop'          : (->)
     keyBindings  : [
-      { command: 'clear buffer',  binding: 'super+k',             global: yes }
       { command: 'ring bell',     binding: 'alt+super+k',         global: yes }
       { command: 'noop',          binding: ['super+v','super+r'], global: yes }
     ]
@@ -31,14 +30,14 @@ class WebTermController extends AppController
     params              = options.params or {}
     {joinUser, session} = params
     vmName              = params.vmName  or KD.getSingleton("vmController").defaultVmName
-    options.view        = new WebTermAppView { vmName, joinUser, session }
+    view                = (new WebTermAppView { vmName, joinUser, session })
+                            .on 'command', @bound 'handleCommand'
+    options.view        = view
     options.appInfo     =
       title             : "Terminal on #{vmName}"
       cssClass          : "webterm"
 
     super options, data
-
-    @registerKeyBindings 'Terminal'
 
     KD.mixpanel "Opened Webterm tab", {vmName}
 
@@ -46,11 +45,13 @@ class WebTermController extends AppController
     @getView().ready =>
       @getView().handleQuery query
 
-  clearBuffer: (event) ->
-    event.preventDefault()
-    @getOptions().view.clearBuffer()
-
-  ringBell: do (bell = new Audio '/a/audio/bell.wav') -> -> bell.play()
-
+  ringBell: do (bell = new Audio '/a/audio/bell.wav') ->
+    (event) ->
+      { name, version } = @getOptions()
+      storage = (KD.getSingleton 'appStorageController').storage name, version
+      event?.preventDefault()
+      if storage.getValue 'visualBell'
+      then new KDNotificationView title: 'Bell!', duration: 100
+      else bell.play()
 
 WebTerm = {}

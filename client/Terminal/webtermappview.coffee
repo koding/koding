@@ -161,7 +161,7 @@ class WebTermAppView extends JView
       delegate    : this
       vmName      : vmName
 
-    @forwardEvent webTermView, 'KeyViewIsSet'
+    @forwardEvents webTermView, ['KeyViewIsSet', 'command']
 
     pane          = new KDTabPaneView
       name        : 'Terminal'
@@ -171,9 +171,6 @@ class WebTermAppView extends JView
     pane.addSubView webTermView
 
     # webTermView.once 'KDObjectWillBeDestroyed', => @tabView.removePane pane
-
-  clearBuffer: ->
-    @tabView.getActivePane().getOptions().webTermView.clearBuffer()
 
   addNewTab: (vmName)->
 
