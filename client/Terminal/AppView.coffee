@@ -65,8 +65,6 @@ class WebTermView extends KDView
 
     @forwardEvent @terminal, 'command'
 
-    @connectToTerminal()
-
     vmName = @_vmName
     vmController = KD.getSingleton 'vmController'
     vmController.info vmName, KD.utils.getTimedOutCallback (err, vm, info)=>
