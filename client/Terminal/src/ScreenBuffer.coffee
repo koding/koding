@@ -38,20 +38,6 @@ class WebTerm.ScreenBuffer
           new ContentArray
         @setLineContent @toLineIndex(y), newContent
 
-  clearPreviousLines: ->
-    { cursor } = @terminal
-    { x, y } = cursor
-
-    line = @getLineContent cursor.y
-    cursor.moveTo x, 0
-
-    for index in [0...@terminal.sizeY]
-      if index is 0
-        @setLineContent 0, line
-      else
-        @setLineContent index, new ContentArray
-
-    @flush()
 
   clear: (force) ->
     if force or not @isFullScrollingRegion or @lastScreenClearLineCount is @lineContents.length
