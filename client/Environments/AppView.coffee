@@ -4,5 +4,3 @@ class EnvironmentsMainView extends JView
 
     @addSubView new HeaderViewSection type : "big", title : "Environments"
     @addSubView new EnvironmentsMainScene
-
-  click: -> debugger
