@@ -197,6 +197,9 @@ class WebTermAppView extends JView
       delegate    : this
       vmName      : vmName
 
+    webTermView.on 'WebTermConnected', (remote) ->
+      console.log remote.session
+
     @forwardEvents webTermView, ['KeyViewIsSet', 'command']
 
     pane          = new KDTabPaneView
