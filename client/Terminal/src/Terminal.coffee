@@ -27,9 +27,9 @@ class WebTerm.Terminal extends KDObject
       attributes: type: 'text'
       cssClass  : 'offscreen'
       bind      : 'keydown keyup keypress'
-      keydown   : => @keyDown arguments...
-      keypress  : => @keyPress arguments...
-      keyup     : => @keyUp arguments...
+      keydown   : @bound 'keyDown'
+      keypress  : @bound 'keyPress'
+      keyup     : @bound 'keyUp'
 
     @keyInput.appendToDomBody()
 
