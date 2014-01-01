@@ -74,16 +74,17 @@ third.workspace.styl
   .not-valid
     height              150px
     line-height         40px
-    font-weight         bold
     font-size           26px
     width               100%
     text-align          center
     top                 50%
     margin-top          -75px
     text-shadow         1px 1px 1px rgba(0, 0, 0, .3)
-    text-transform      uppercase
+    color               #7a8285
+    .tw-rounded-button
+      width             auto
     .description
-      font-size         13px
+      font-size         15px
       width             50%
       height            50px
       line-height       20px
@@ -210,10 +211,10 @@ third.workspace.styl
   .file-container
     bg                  color, #282F31
     &.finder-pane
-      border-right      15px solid #1B2224
+      border-right      11px solid #1B2224
       box-sizing        border-box
     .jtreeview-wrapper
-      width             250px
+      width             254px
       bg                color, #282F31
     .vm
       height           42px
@@ -293,7 +294,7 @@ third.workspace.styl
 .workspace-chat
   abs()
   size                  240px, 24px
-  z-index               10000
+  z-index               2
   bottom                0px
   right                 0px
   &.active
@@ -337,12 +338,12 @@ third.workspace.styl
   .input-container
     background          #282F31
     padding             15px
-    border-left         11px solid #191f21
+    border-left         11px solid #1B2224
   .messages
     size                auto, 257px
     padding             15px 15px 0 15px
     overflow-y          auto
-    border-left         11px solid #191f21
+    border-left         11px solid #1B2224
     bg                  color, #282F31
     color               #7E888A
     borderBox()
@@ -358,7 +359,7 @@ third.workspace.styl
     box-shadow          none !important
     padding             10px 15px !important
     bg                  image, none !important
-  .chat-item
+  .tw-chat-item
     size                239px, auto
     margin-bottom       12px
     border-bottom       1px solid #212728
@@ -374,16 +375,21 @@ third.workspace.styl
       width             196px
       font-size         13px
       margin-bottom     10px
+      &:hover
+        .time-ago
+          display       block
       .username
         color           #00CF6A
         margin-bottom   5px
       .time-ago
         right           0
         top             1px
+        height          12px
         color           #676f71
         font-size       10px
         font-weight     normal
         text-align      right
+        display         none
         abs()
 
 .workspace-launcher
