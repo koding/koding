@@ -102,7 +102,7 @@ class WebTerm.Terminal extends KDObject
     @inputHandler.keyUp event
 
   setKeyFocus: ->
-    # @keyInput.getElement().focus()
+    @keyInput.getElement().focus()
 
   setFocused: (value) ->
     @cursor.setFocused value
