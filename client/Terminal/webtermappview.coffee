@@ -37,6 +37,11 @@ class WebTermAppView extends JView
     @tabView.on 'AllTabsClosed', =>
       @setMessage "All tabs are closed. <a class='plus' href='#'>Click to open a new Terminal</a>.", no, yes
 
+    @tabView
+      .on('PaneRemoved', @bound 'updateSessions')
+      .on('TabsSorted', @bound 'updateSessions')
+
+
   setMessage:(msg, light = no, bindClick = no)->
     @messagePane.updatePartial msg
     if light
@@ -52,6 +57,9 @@ class WebTermAppView extends JView
           KD.singleton('appManager').quitByName 'Terminal'
         else if $(event.target).hasClass 'plus'
           @addNewTab()
+
+  restoreTabs: (vmName) ->
+    @addNewTab vmName
 
 
   checkVM:->
@@ -70,7 +78,7 @@ class WebTermAppView extends JView
           KD.mixpanel "Open Webterm, fail", {vmName}
 
         if info?.state is 'RUNNING'
-          @addNewTab vmName
+          @restoreTabs vmName
         else
           vmController.start vmName, (err, state)=>
             warn "Failed to turn on vm:", err  if err
@@ -197,9 +205,6 @@ class WebTermAppView extends JView
       delegate    : this
       vmName      : vmName
 
-    webTermView.on 'WebTermConnected', (remote) ->
-      console.log remote.session
-
     @forwardEvents webTermView, ['KeyViewIsSet', 'command']
 
     pane          = new KDTabPaneView
@@ -214,7 +219,17 @@ class WebTermAppView extends JView
       pane.destroySubViews()
       pane.addSubView new WebTermView options
 
+    webTermView.on 'WebTermConnected', @bound 'updateSessions'
+
     # webTermView.once 'KDObjectWillBeDestroyed', => @tabView.removePane pane
+
+  updateSessions: ->
+    storage = KD.getSingleton('appStorageController').storage 'Terminal', '1.0.1'
+    storage.fetchStorage =>
+      sessions = @tabView.panes.map (pane) =>
+        pane.getOptions().webTermView.sessionId
+      console.log { sessions }
+      storage.setValue 'savedSessions', sessions
 
   addNewTab: (vmName)->
 

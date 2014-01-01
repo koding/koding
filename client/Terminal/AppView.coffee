@@ -42,7 +42,7 @@ class WebTermView extends KDView
     @listenWindowResize()
 
     @focused = true
-
+    
     @on "ReceivedClickElsewhere", =>
       @focused = false
       @terminal.setFocused false
@@ -121,8 +121,8 @@ class WebTermView extends KDView
         @terminal.eventHandler = (data)=> @emit "WebTermEvent", data
         @terminal.server       = remote
         @setKeyView()
-        @emit "WebTermConnected", remote
         @sessionId = remote.session
+        @emit "WebTermConnected", remote
 
     KD.getSingleton("status").on "reconnected", =>
       @handleReconnect yes
