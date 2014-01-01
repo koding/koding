@@ -59,7 +59,7 @@ class WebTerm.ControlCodeReader
     @controlCodeIncomplete = true
 
   unsupportedControlCode: ->
-    warn "Unsupported control code: " + @terminal.inspectString(@data.substring(@controlCodeOffset, @pos))
+    # warn "Unsupported control code: " + @terminal.inspectString(@data.substring(@controlCodeOffset, @pos))
 
 
 class WebTerm.TextReader
