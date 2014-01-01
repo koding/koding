@@ -17,7 +17,6 @@ class WebTermController extends AppController
         {title: "customViewAdvancedSettings"}
       ]    
     commands     :
-      'clear buffer'  : 'clearBuffer'
       'ring bell'     : 'ringBell'
       'noop'          : (->)
     keyBindings  : [
