@@ -44,15 +44,17 @@ class WebTermController extends AppController
     @getView().ready =>
       @getView().handleQuery query
 
-  ringBell: do (bell = try new Audio '/a/audio/bell.wav') ->
-    (event) ->
-      { name, version } = @getOptions()
-      storage = (KD.getSingleton 'appStorageController').storage name, version
-      event?.preventDefault()
-      if not bell? or storage.getValue 'visualBell'
-      then new KDNotificationView title: 'Bell!', duration: 100
-      else bell.play()
-  
+  ringBell: do (bell = try new Audio '/a/audio/bell.wav') -> (event) ->
+    event?.preventDefault()
+
+    { name, version } = @getOptions()
+    
+    storage = (KD.getSingleton 'appStorageController').storage name, version
+    
+    if not bell? or storage.getValue 'visualBell'
+    then new KDNotificationView title: 'Bell!', duration: 100
+    else bell.play()
+
   runCommand:(command)->
     @getView().ready =>
       @getView().runCommand command
