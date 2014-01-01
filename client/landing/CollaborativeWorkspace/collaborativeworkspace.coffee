@@ -164,8 +164,8 @@ class CollaborativeWorkspace extends Workspace
         partial  : "This usually means, the person who is hosting this session is disconnected or closed the session."
 
       notValid.addSubView new KDButtonView
-        cssClass : "cupid-green"
-        title    : "Start New Session"
+        cssClass : "tw-rounded-button new-session"
+        title    : "Start new session"
         callback : =>
           @startNewSession()
           notValid.destroy()
@@ -216,7 +216,7 @@ class CollaborativeWorkspace extends Workspace
       content      : options.joinModalContent or "<p>This is your session key, you can share this key with your friends to work together.</p>"
       overlay      : yes
       cssClass     : "workspace-modal join-modal"
-      width        : 500
+      width        : 600
       buttons      :
         Join       :
           title    : "Join Session"

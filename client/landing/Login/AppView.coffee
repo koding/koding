@@ -178,7 +178,8 @@ class LoginView extends KDView
     KD.getSingleton("mainController").on "landingSidebarClicked", => @unsetClass 'landed'
 
     setValue = (field, value)=>
-      @registerForm[field].input?.setValue value
+      @registerForm[field]?.input?.setValue value
+      @registerForm[field]?.placeholder?.setClass 'out'
 
     mainController = KD.getSingleton "mainController"
     mainController.on "ForeignAuthCompleted", (provider)=>
