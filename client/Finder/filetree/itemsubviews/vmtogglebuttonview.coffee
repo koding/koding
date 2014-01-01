@@ -23,7 +23,7 @@ class NVMToggleButtonView extends JView
         type    : "mini"
         cssClass: "error"
         duration: 5000
-        title   : "I cannot turn this machine on, please give it a few seconds."
+        title   : "Still waiting... This VM is booting slowly."
 
       @toggle.setDefaultValue no
       # KD.utils.notifyAndEmailVMTurnOnFailureToSysAdmin vm, err.message

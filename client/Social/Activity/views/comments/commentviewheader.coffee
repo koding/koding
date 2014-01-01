@@ -110,7 +110,7 @@ class CommentViewHeader extends JView
         @setClass 'new'
         @allItemsLink.hide()
         @show()
-        @newItemsLink.updatePartial "#{@newCount} new comment..."
+        @newItemsLink.updatePartial "#{ KD.utils.formatPlural @newCount, 'new comment' }..."
         @newItemsLink.setClass('in')
     else
       @unsetClass 'new'

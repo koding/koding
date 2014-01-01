@@ -45,22 +45,18 @@ class TeamworkWorkspace extends CollaborativeWorkspace
     panel.addSubView @buttonsContainer = new KDCustomHTMLView
       cssClass : "tw-buttons-container"
 
-    @buttonsContainer.addSubView @chatButton = new KDButtonView
-      cssClass : "tw-chat-toggle active"
-      iconClass: "tw-chat"
+    @buttonsContainer.addSubView @shareButton = new KDButtonView
+      iconClass: "tw-export"
+      cssClass : "tw-export-button"
       iconOnly : yes
-      callback : =>
-        cssClass      = "tw-chat-open"
-        isChatVisible = @hasClass cssClass
-        @toggleClass cssClass
-        @chatButton.toggleClass "active"
+      # callback : => @createShareMenuButton()
+      callback : => @getDelegate().emit "ExportRequested"
 
-        if isChatVisible then @chatView.hide() else @chatView.show()
-
-    @buttonsContainer.addSubView new KDButtonView
+    @buttonsContainer.addSubView @optionsButton = new KDButtonView
       iconClass: "tw-cog"
+      cssClass : "tw-options-button"
       iconOnly : yes
-      callback : => @getDelegate().showToolsModal panel, this
+      callback : => @createOptionsMenuButton()
 
   displayBroadcastMessage: (options) ->
     super options
@@ -149,24 +145,19 @@ class TeamworkWorkspace extends CollaborativeWorkspace
 
         if isAlreadyWatched
           @watchRef.child(@nickname).set "nobody"
-          message = "#{KD.nick()} stopped watching #{userNickname}"
+          message = "You stopped watching #{userNickname}"
           @watchingUserAvatar = null
           avatarView.setTooltip
             title : followText
         else
           @watchRef.child(@nickname).set userNickname
-          message = "#{KD.nick()} started to watch #{userNickname}.  Type 'stop watching' or click on avatars to start/stop watching."
+          message = "You started to watch #{userNickname}.  Type 'stop watching' or click on avatars to start/stop watching."
           avatarView.setClass "watching"
           @watchingUserAvatar = avatarView
           avatarView.setTooltip
             title : "You are now watching #{userNickname}. Click again to stop watching."
 
-        message =
-          user       :
-            nickname : "teamwork"
-          time       : Date.now()
-          body       : message
-        @workspaceRef.child("chat").child(message.time).set message
+        @chatView.botReply message
     , jAccount
 
     @avatars[userNickname] = avatarView
@@ -183,6 +174,32 @@ class TeamworkWorkspace extends CollaborativeWorkspace
   sendSystemMessage: (messageData) ->
     return unless @getOptions().enableChat
     @chatView.sendMessage messageData, yes
+
+  createOptionsMenuButton: ->
+    menuItems = [
+      { title : "Join in", callback : => @showJoinModal()   }
+      { title : "Import" , callback : => @showImportModal() }
+      { title : "Team up", callback : => @getDelegate().showTeamUpModal() }
+    ]
+
+    @createMenuButton @optionsButton.$().offset(), menuItems
+
+  createShareMenuButton: ->
+    menuItems = [
+      { title : "Share",   callback : => console.log "join in" }
+      { title : "Export" , callback : => @getDelegate().emit "ExportRequested" }
+    ]
+
+    @createMenuButton @shareButton.$().offset(), menuItems
+
+  createMenuButton: (offset, items) ->
+    new JContextMenu
+      x           : offset.left - 140
+      y           : offset.top  + 31
+      arrow       :
+        placement : "top"
+        margin    : 150
+    , items
 
   createActivityWidget: (panel) ->
     panel.addSubView @activityWidget = new ActivityWidget
@@ -203,7 +220,7 @@ class TeamworkWorkspace extends CollaborativeWorkspace
       title    : "Invite"
       callback : =>
         url = "#{KD.config.apiUri}/Teamwork?sessionKey=#{@sessionKey}"
-        @activityWidget.setInputContent "Would you like to join my Teamwork session? #{url}"
+        @activityWidget.setInputContent "Join me in Teamwork: #{url}"
         @showActivityWidget()
         @hideShareButtons()
         @activityWidget.showForm (err, activity) =>
@@ -264,6 +281,14 @@ class TeamworkWorkspace extends CollaborativeWorkspace
           @activityWidget.setInputContent message
           @showActivityWidget()
 
+  toggleChatPane: ->
+    cssClass      = "tw-chat-open"
+    isChatVisible = @hasClass cssClass
+    @toggleClass cssClass
+    @chatButton.toggleClass "active"
+
+    if isChatVisible then @chatView.hide() else @chatView.show()
+
   showActivityWidget: ->
     @activityWidget.show()
     @activityWidget.unsetClass "collapsed"
@@ -301,6 +326,33 @@ class TeamworkWorkspace extends CollaborativeWorkspace
 
   createLoader: ->
     @loader    = new KDView
-      cssClass : "tw-loader pulsing"
+      cssClass : "tw-loading"
+      partial  : """
+        <figure class="loading-animation">
+          <span></span>
+        </figure>
+      """
 
     @container.addSubView @loader
+
+  showImportModal: ->
+    modal          = new KDModalView
+      title        : "Import Content to your VM"
+      content      : "<p>Enter the URL of a git repository or zip archive.</p>"
+      cssClass     : "workspace-modal join-modal"
+      overlay      : yes
+      width        : 600
+      buttons      :
+        Import     :
+          title    : "Import"
+          cssClass : "modal-clean-green"
+          callback : => @getDelegate().emit "ImportRequested", importUrlInput.getValue()
+        Close      :
+          title    : "Close"
+          cssClass : "modal-cancel"
+          callback : -> modal.destroy()
+
+    modal.addSubView importUrlInput = new KDHitEnterInputView
+      type         : "text"
+      placeholder  : "Import Url"
+      callback     : => @handleJoinASessionFromModal sessionKeyInput.getValue(), modal

@@ -126,8 +126,7 @@ class MainViewController extends KDViewController
 
       KDView.setElementClass body, 'remove', 'intro'
       mainView.unsetClass 'home'
-      KD.introView?.unsetClass 'in'
-      KD.introView?.setClass 'out'
+      KD.introView?.hide()
 
   #     group = KD.getSingleton('groupsController').getCurrentGroup()
 

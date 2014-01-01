@@ -271,7 +271,9 @@ class ActiveTopicItemView extends KDListItemView
           size: { width: 19, height: 19 }
         , user
 
+      { followers: followerCount } = @getData().counts
+
       tagInfo.addSubView new KDCustomHTMLView
         tagName   : "span"
         cssClass  : "total-following"
-        partial   : "+#{@getData().counts.followers} is following"
+        partial   : "+#{followerCount} #{if followerCount is 1 then 'is' else 'are'} following"

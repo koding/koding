@@ -6,7 +6,7 @@ class WebTermAppView extends JView
 
     @tabHandleContainer = new ApplicationTabHandleHolder
       delegate          : this
-      addPlusHandle     : no
+      addPlusHandle     : yes
 
     @tabView = new ApplicationTabView
       delegate                  : this
@@ -69,7 +69,12 @@ class WebTermAppView extends JView
           KD.logToExternal "oskite: Error opening Webterm", vmName, err
           KD.mixpanel "Open Webterm, fail", {vmName}
 
-        @addNewTab vmName  if info?.state is 'RUNNING'
+        if info?.state is 'RUNNING'
+          @addNewTab vmName
+        else
+          vmController.start vmName, (err, state)=>
+            warn "Failed to turn on vm:", err  if err
+            KD.utils.defer => @addNewTab vmName
         KD.mixpanel "Open Webterm, success", {vmName}
 
       , =>
@@ -122,6 +127,28 @@ class WebTermAppView extends JView
 
     return settingsView
 
+  runCommand:(_command)->
+    pane = @tabView.getActivePane()
+    {webTermView} = pane.getOptions()
+
+    runner = =>
+      webTermView.terminal.scrollToBottom()
+      command = decodeURIComponent _command
+
+      # FIXME Make it more elegant later.
+      safeCommands = ['help this', 'help sudo', 'help ftp', 'help mysql',
+                      'help programs', 'help phpmyadmin', 'help mongodb',
+                      'help specs', 'help']
+
+      if _command in safeCommands
+        webTermView.terminal.server.input "#{command}\n"
+      else
+        @showApprovalModal webTermView.terminal, command
+
+    if webTermView.terminal?.server?
+    then runner()
+    else webTermView.once 'WebTermConnected', runner
+
   handleQuery:(query)->
     pane = @tabView.getActivePane()
     {webTermView} = pane.getOptions()
@@ -170,6 +197,8 @@ class WebTermAppView extends JView
       delegate    : this
       vmName      : vmName
 
+    @forwardEvents webTermView, ['KeyViewIsSet', 'command']
+
     pane          = new KDTabPaneView
       name        : 'Terminal'
       webTermView : webTermView
@@ -187,9 +216,6 @@ class WebTermAppView extends JView
   addNewTab: (vmName)->
 
     @messagePane.hide()
-
-    if not @tabHandleContainer.plusHandle
-      @tabHandleContainer.addPlusHandle()
 
     if @_secondTab
       KD.mixpanel "Open new Webterm tab, success"

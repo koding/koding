@@ -63,14 +63,34 @@ class WebTermView extends KDView
 
     @bindEvent 'contextmenu'
 
-    @connectToTerminal()
+    @forwardEvent @terminal, 'command'
+
+    vmName = @_vmName
+    vmController = KD.getSingleton 'vmController'
+    vmController.info vmName, KD.utils.getTimedOutCallback (err, vm, info)=>
+      if err
+        KD.logToExternal "oskite: Error opening Webterm", vmName, err
+        KD.mixpanel "Open Webterm, fail", {vmName}
+
+      if info?.state is 'RUNNING' then @connectToTerminal()
+      else
+        vmController.start vmName, (err, state)=>
+          warn "Failed to turn on vm:", err  if err
+          KD.utils.defer => @connectToTerminal()
+      KD.mixpanel "Open Webterm, success", {vmName}
+
+    , =>
+      KD.mixpanel "Open Webterm, fail", {vmName}
+      KD.logToExternalWithTime "oskite: Can't open Webterm", vmName
+      @setMessage "Couldn't connect to your VM, please try again later. <a class='close' href='#'>close this</a>", no, yes
+    , 10000
 
     @getDelegate().on 'KDTabPaneActive', =>
       @terminal.setSize 100, 100
       @terminal.updateSize yes
 
   connectToTerminal:->
-    @appStorage = KD.getSingleton('appStorageController').storage 'WebTerm', '1.0.1'
+    @appStorage = KD.getSingleton('appStorageController').storage 'Terminal', '1.0.1'
     @appStorage.fetchStorage =>
       @appStorage.setValue 'font'      , 'ubuntu-mono' if not @appStorage.getValue('font')?
       @appStorage.setValue 'fontSize'  , 14 if not @appStorage.getValue('fontSize')?
@@ -197,10 +217,10 @@ class WebTermView extends KDView
     @terminal.setScrollbackLimit @appStorage.getValue 'scrollback'
 
   setKeyView: ->
-    super
     KD.getSingleton('windowController').addLayer this
     @focused = true
     @terminal.setFocused true
+    @emit 'KeyViewIsSet'
 
   click: ->
     @setKeyView()

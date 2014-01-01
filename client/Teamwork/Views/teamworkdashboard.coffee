@@ -2,113 +2,38 @@ class TeamworkDashboard extends JView
 
   constructor: (options = {}, data) ->
 
-    options.cssClass = "tw-dashboard active"
+    options.cssClass = "tw-dashboard"
 
     super options, data
 
-    @teamUpButton = new KDButtonView
-      title       : "Team Up!"
-      cssClass    : "tw-rounded-button"
-      callback    : =>
-        KD.mixpanel "Teamwork team up, click"
-        delegate  = @getDelegate()
-        if delegate.teamwork
-          delegate.showTeamUpModal()
-        else
-          delegate.emit "NewSessionRequested", null, ->
-            delegate.emit "TeamUpRequested"
-
-    @joinInput    = new KDHitEnterInputView
-      cssClass    : "tw-dashboard-input"
-      type        : "text"
-      placeholder : "Session key or url"
-      validate    :
-        rules     : required: yes
-        messages  : required: "Enter session key or URL to join."
-      callback    : => @handleJoinSession()
-
-    @joinButton   = new KDButtonView
-      iconOnly    : yes
-      iconClass   : "join-in"
-      cssClass    : "tw-dashboard-button"
-      callback    : =>
-        @handleJoinSession()
-        KD.mixpanel "Teamwork join session, success"
-
-    @importInput  = new KDHitEnterInputView
-      cssClass    : "tw-dashboard-input"
-      type        : "text"
-      placeholder : "Import url"
-      validate    :
-        rules     : required: yes
-        messages  : required: "Enter URL to import content."
-      callback    : =>
-        @handleImport()
-        KD.mixpanel "Teamwork import, click"
-
-    @importButton = new KDButtonView
-      iconOnly    : yes
-      iconClass   : "import"
-      cssClass    : "tw-dashboard-button"
-      callback    : => @handleImport()
+    @fetchManifests()
 
     @playgrounds  = new KDCustomHTMLView
       cssClass    : "tw-playgrounds"
 
-    @sessionButton = new KDButtonView
-      cssClass    : "tw-session-button"
-      title       : "Start your session now!"
-      callback    : => @getDelegate().emit "NewSessionRequested"
-
-    @fetchManifests()
-
-  show: -> @setClass "active"
-
-  hide: -> @unsetClass "active"
-
   createPlaygrounds: (manifests) ->
+    # @playgrounds.addSubView new KDCustomHTMLView
+    #   cssClass    : "tw-playground-item default-item add-new"
+    #   partial     : "<div></div><p>New Project</p>"
+
+    @playgrounds.addSubView new KDCustomHTMLView
+      cssClass    : "tw-playground-item default-item import"
+      partial     : "<div></div><p>Import Project</p>"
+      click       : => @getDelegate().teamwork.showImportModal()
+
     manifests?.forEach (manifest) =>
       @setClass "ready"
       @playgrounds.addSubView view = new KDCustomHTMLView
         cssClass  : "tw-playground-item"
-        partial   : """
-          <img src="#{manifest.icon}" />
-          <div class="content">
-            <h4>#{manifest.name}</h4>
-            <p>#{manifest.description}</p>
-          </div>
-        """
-      view.addSubView new KDButtonView
-        cssClass  : "tw-play-button"
-        title     : "Play"
-        callback  : =>
+        partial   : "<img src='#{manifest.icon}'/> <p>#{manifest.name}</p>"
+        click     : =>
+          # @getDelegate().handlePlaygroundSelection manifest.name, manifest.manifestUrl
           new KDNotificationView
             title : "Coming Soon"
-          # @hide()
-          # @getDelegate().handlePlaygroundSelection manifest.name, manifest.manifestUrl
-
-  handleImport: ->
-    @getDelegate().emit "ImportRequested", @importInput.getValue()
-
-  handleJoinSession: ->
-    sessionKey = @joinInput.getValue()
-    if sessionKey.match /(http|https)/
-      if sessionKey.indexOf("koding.com") > -1 and sessionKey.indexOf("sessionKey=") > -1
-        [temp, sessionKey] = sessionKey.split "sessionKey="
-      else
-        return new KDNotificationView
-          type     : "mini"
-          cssClass : "error"
-          title    : "Could not resolve your URL"
-          duration : 5000
-
-    @getDelegate().emit "JoinSessionRequested", sessionKey
 
   fetchManifests: ->
-    filename = if location.hostname is "localhost" then "manifest-dev" else "manifest"
     delegate = @getDelegate()
-
-    delegate.fetchManifestFile "#{filename}.json", (err, manifests) =>
+    delegate.fetchManifestFile "manifest.json", (err, manifests) =>
       if err
         @setClass "ready"
         @playgrounds.hide()
@@ -123,33 +48,11 @@ class TeamworkDashboard extends JView
 
   pistachio: ->
     """
-      <div class="actions">
-        <div class="tw-items-container">
-          <div class="item team-up">
-            <div class="badge"></div>
-            <h3>Team Up</h3>
-            <p>Team up and start working with your friends. Invite your Koding friends or invite them via email.</p>
-            {{> @teamUpButton}}
-          </div>
-          <div class="item join-in">
-            <div class="badge"></div>
-            <h3>Join In</h3>
-            <p>Join your friend's Teamwork session. You can enter a session key or a full Koding URL.</p>
-            <div class="tw-input-container">
-              {{> @joinInput}}
-              {{> @joinButton}}
-            </div>
-          </div>
-          <div class="item import">
-            <div class="badge"></div>
-            <h3>Import</h3>
-            <p>Import content to your VM and start working on it. It might be a zip file or a GitHub repository.</p>
-            <div class="tw-input-container">
-              {{> @importInput}}
-              {{> @importButton}}
-            </div>
-          </div>
-        </div>
+      <div class="headline">
+        <h1>Welcome to Teamwork</h1>
+        <p>Teamwork is a collaborative IDE for Koding. You can share your code, invite friends and code together.</p>
+        <div class="separator"></div>
+        <p>Start a new project from scratch, import one from GitHub or a .zip file or play with one of the ready-to-go templates below.</p>
       </div>
       <div class="tw-playgrounds-container">
         <p class="loading">Loading Playgrounds...</p>

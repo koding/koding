@@ -23,20 +23,20 @@ class AceAppController extends AppController
     behavior      : "application"
     menu          : [
       { title     : "Save",                eventName : "save" }
-      { title     : "Save As",             eventName : "saveAs" }
+      { title     : "Save as...",          eventName : "saveAs" }
       { type      : "separator" }
       { title     : "Find",                eventName : "find" }
-      { title     : "Find and Replace",    eventName : "findAndReplace" }
-      { title     : "Goto line",           eventName : "gotoLine" }
+      { title     : "Find and replace...", eventName : "findAndReplace" }
+      { title     : "Go to line",          eventName : "gotoLine" }
       { type      : "separator" }
       # { title     : "Compile and Run",     eventName : "compileAndRun", condition: canCompile}
       # { type      : "separator",                                        condition: canCompile}
       { title     : "Preview",             eventName : "preview" }
       { type      : "separator" }
-      { title     : "Advanced Settings",   id        : "advancedSettings" }
+      { title     : "Advanced settings",   id        : "advancedSettings" }
       { title     : "customViewAdvancedSettings", parentId: "advancedSettings"}
       { type      : "separator" }
-      { title     : "Reopen Latest Files", eventName : "reopen" }
+      { title     : "Reopen previous files", eventName : "reopen" }
       { type      : "separator" }
       { title     : "customViewFullscreen" }
       { type      : "separator" }

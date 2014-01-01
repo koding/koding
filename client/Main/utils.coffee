@@ -31,9 +31,9 @@ __utils.extend __utils,
 
 
   goBackToOldKoding:->
-    KD.whoami().modify preferredKDProxyDomain : '', (err)->
+    KD.whoami().modify preferredKDProxyDomain : 'oldkoding', (err)->
       unless err
-        $.cookie 'kdproxy-preferred-domain', erase:yes
+        $.cookie 'kdproxy-preferred-domain', 'oldkoding'
         location.reload yes
 
   # This function checks current user's preferred domain and
@@ -571,3 +571,7 @@ __utils.extend __utils,
   logToExternalWithTime: (name, timeout)->
     KD.troubleshoot (times)->
       KD.logToExternal msg:"#{name} timed out in #{timeout}", pings:times
+
+  # creates string from tag so that new status updates can
+  # show the tags properly
+  tokenizeTag: (tag)-> "|#:JTag:#{tag.getId()}|"

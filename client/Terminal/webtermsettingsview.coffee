@@ -54,9 +54,9 @@ class WebtermSettingsView extends JView
   pistachio:->
     """
     <p>Font                     {{> @font}}</p>
-    <p>Font Size                {{> @fontSize}}</p>
+    <p>Font size                {{> @fontSize}}</p>
     <p>Theme                    {{> @theme}}</p>
     <p>Scrollback               {{> @scrollback}}</p>
-    <p>Use Visual Bell          {{> @bell}}</p>
+    <p>Use visual bell          {{> @bell}}</p>
     <p>Fullscreen               {{> @fullscreen}}</p>
     """

@@ -94,12 +94,12 @@ resurrection.commons.styl
 
     .leftButton
       bg                    color, transparent
-      sprite                app 'previous'
+      r-sprite                app 'previous'
       fl()
 
     .rightButton
       bg                    color, transparent
-      sprite                app 'next'
+      r-sprite                app 'next'
       margin-left           10px
       fl()
 
@@ -119,7 +119,7 @@ resurrection.commons.styl
       top                   8px
       right                 8px
       bg                    color, transparent
-      sprite                app '20-close-tab'
+      r-sprite                app '20-close-tab'
       opacity               0
 
     &.plus
@@ -128,7 +128,7 @@ resurrection.commons.styl
       width                 37px
       padding               0
       .icon
-        sprite              app '20-tab-plus'
+        r-sprite              app '20-tab-plus'
         margin              8px 9px 9px 8px
         display             block
     &.active
@@ -138,7 +138,7 @@ resurrection.commons.styl
         top                 8px
         right               8px
         bg                  color, transparent
-        sprite              app '20-close-tab'
+        r-sprite              app '20-close-tab'
 
 .header-facets
   right                     0
@@ -170,7 +170,7 @@ resurrection.commons.styl
       right                 0
       display               block
       background-color      red
-      sprite                app '20-chevron-orange'
+      r-sprite                app '20-chevron-orange'
       size                  16px 20px
 
 #header-sign-in
@@ -227,7 +227,7 @@ button.app-settings-menu
   .icon
     padding           0
     bg                color, red
-    sprite            app 'global-app-settings'
+    r-sprite            app 'global-app-settings'
   &:focus
     border            none
     shadow            none
@@ -629,12 +629,12 @@ input.kdinput.text
     margin              45px
 
     .close-icon
-      sprite            app, "modal-close-icon"
+      r-sprite            app, "modal-close-icon"
       top               14px
       right             14px
 
       &:hover
-        sprite          app, "modal-close-icon"
+        r-sprite          app, "modal-close-icon"
 
   .kdmodal-title
     cursor              move
@@ -775,7 +775,7 @@ input.kdinput.text
     background          none
     background-position 0px -982px !important
     size                16px !important, 16px !important
-    sprite            app, "notification-close"
+    r-sprite            app, "notification-close"
 
   .avatarview
     rounded           4px
@@ -842,3 +842,185 @@ input.kdinput.text
     bottom        20px
     text-align    center
     color         #EEE
+
+a.action-link.verify-email
+  color             #888
+  margin            250px
+  line-height       50px
+  text-decoration   none
+  span
+    color           #36B298
+
+.animated-modalview
+
+  z-index                       10001
+  background                    white
+  overflow                      hidden
+
+  size                          640px, 480px
+  top                           0
+  left                          0
+
+  abs()
+
+  vendor                transform-style, preserve-3d
+  vendor                transform, translate3d(0, 0, 0)
+
+  -webkit-transition    -webkit-transform .4s ease
+  -moz-transition       -moz-transform    .4s ease
+  transition            transform         .4s ease
+
+  &.inresize
+    noAnim()
+
+
+.kdhelp-modal
+
+  text-align                    center
+  box-shadow                    0 0 60px rgba(0, 0, 0, .5)
+  padding-top                   20px
+  rounded                       10px
+
+  a
+    noTextDeco()
+
+
+  > .header
+    height                      100px
+    background                  #504E4B
+    margin-bottom               40px
+
+  > div > h2
+    font-size                   36px
+
+  > div > p
+
+    padding                     20px 70px 10px 70px
+    font-size                   15px
+    font-weight                 300
+
+  div.button
+
+    background                  #2E7FA1
+    text-shadow                 none
+    color                       white
+    font-size                   20px
+    font-weight                 300
+    padding                     10px
+    width                       210px
+    margin                      20px auto
+    border-radius               4px
+    cursor                      pointer
+
+  span.close-icon
+    background-position         -80px -520px
+    opacity                     .5
+  footer
+    h4
+      line-height               30px
+      font-size                 14px
+      color                     #222
+      a
+        text-decoration         underline
+        color                   socialColor
+
+    div.warning
+      border-top                  1px solid #f2f2f2
+      margin                      0 30px
+      padding                     15px 0
+      borderBox()
+
+      span.icon
+        r-sprite                  app '25-warning'
+        margin                    4px 20px 0 100px
+        fl()
+
+      p
+        overflow                  hidden
+        width                     auto
+        text-align                left
+        font-size                 14px
+        line-height               1.3
+        color                     footerLinkColor
+        i
+          color                   socialColor
+          font-weight             400
+
+  div.feature
+    width                       200px
+    margin-bottom               50px
+    margin-top                  30px
+    fl()
+
+    p
+      padding                   0
+
+  div.button
+    background                  #40AF96
+    clear                       both
+
+  .button-container
+    background                  #1F2628
+    height                      80px
+
+    a
+      display                   inline-block
+      color                     white
+      margin                    14px 14px 14px 0
+      text-align                center
+      padding                   10px 20px
+      bg                        color, #33383A
+      min-width                 130px
+      rounded                   6px
+      noTextDeco()
+
+      &:hover
+        bg                      color socialColor
+
+      &.active
+        bg                      color logoBg
+
+      &:last-child
+        margin-right            0
+
+  .help-content
+    height                      220px
+
+    .help-page
+
+      h3
+
+        margin                  15px 30px
+        font-size               22px
+        font-weight             300
+        border-bottom           1px solid #f2f2f2
+        padding-bottom          15px
+        code
+          display               inline
+          bg                    color homeHeaderBg
+          font-family           monoFamily
+          padding               0 6px
+          font-weight           300
+          rounded               6px
+
+      ul
+        margin                  0 30px
+        line-height             22px
+        li
+          display               inline-block
+          padding               4px 12px
+          margin                0 6px 6px 0
+          bg                    color homeHeaderBg
+          rounded               6px
+          a
+            font-size           13px
+            color               headerLinkColor
+            i
+              color             socialColor
+              font-weight       400
+          &:hover
+            bg                  color logoBg
+            a
+              color             white
+              i
+                color           #ddd

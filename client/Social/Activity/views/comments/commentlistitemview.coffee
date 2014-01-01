@@ -34,6 +34,7 @@ class CommentListItemView extends KDListItemView
       attributes  :
         href      : '#'
       cssClass    : 'delete-link hidden'
+      click       : KD.utils.stopDOMEvent
 
     activity = @getDelegate().getData()
     loggedInId = KD.whoami().getId()

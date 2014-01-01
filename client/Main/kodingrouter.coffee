@@ -61,7 +61,7 @@ class KodingRouter extends KDRouter
         return warn err  if err
         KD.utils.defer => @handleRoute route, options
 
-    if entryPoint?.slug? and entryPoint.type is "group"
+    if entryPoint?.slug and entryPoint.type is "group"
       entrySlug = "/" + entryPoint.slug
       # if incoming route is prefixed with groupname or entrySlug is the route
       # also we dont want koding as group name
@@ -79,6 +79,8 @@ class KodingRouter extends KDRouter
         @handleRoute @userRoute or @getDefaultRoute(), {replaceState: yes, entryPoint}
       else
         @handleRoute @getDefaultRoute(), {entryPoint}
+        if not entryPoint or entryPoint?.slug is 'koding'
+          KD.introView?.show()
 
   cleanupRoute:(contentDisplay)->
     delete @openRoutes[@openRoutesById[contentDisplay.id]]

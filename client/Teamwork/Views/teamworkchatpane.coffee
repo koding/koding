@@ -7,16 +7,23 @@ class TeamworkChatPane extends ChatPane
     @setClass "tw-chat"
     @getDelegate().setClass "tw-chat-open"
 
-    @on "NewChatItemCreated", @bound "checkForSystemAction"
-
   createDock: ->
     @dock = new KDCustomHTMLView cssClass: "hidden"
 
   updateCount: (count) ->
 
-  sendMessage: (messageData, isSystemMessage) ->
-    cssClass = ""
-    nickname = KD.nick()
+  createMessage: ->
+    message  = @input.getValue()
+    if @isSystemMessage message
+      @sendMessage message: message, no, yes
+      @runSystemMessageHandler message
+      @emit "NewChatItemPosted"
+    else
+      super
+
+  sendMessage: (messageData, isSystemMessage, slientlyHandle) ->
+    cssClass   = ""
+    nickname   = KD.nick()
 
     if isSystemMessage
       cssClass = "tw-bot-message"
@@ -30,7 +37,8 @@ class TeamworkChatPane extends ChatPane
       cssClass : cssClass            or ""
       system   : isSystemMessage     or no
 
-    @chatRef.child(message.time).set message
+    if   isSystemMessage or slientlyHandle then @addNew message
+    else @chatRef.child(message.time).set message
 
   createNewChatItem: (params) ->
     return if @shouldBeHidden_ params
@@ -49,28 +57,31 @@ class TeamworkChatPane extends ChatPane
 
     return originUser is KD.nick() and isSystemMessage
 
-  checkForSystemAction: ->
-    splitted = @lastMessageBody.split " "
+  isSystemMessage: (message) ->
+    return  unless message
+    splitted     = message.trim().split " "
+    keyword      = splitted.first
+    hasMaxLength = splitted.length is 2
+    hasHandler   = replyHandlers[keyword] isnt undefined
+    isHelp       = keyword is "help"
+    isStopWatch  = keyword is "stop"
+
+    if isHelp
+      return splitted.length is 1
+    else if isStopWatch
+      return message is "stop watching"
+    else
+      return hasMaxLength and hasHandler
+
+  runSystemMessageHandler: (message) ->
+    splitted = message.split " "
     [key]    = splitted
 
-    messageToMethod =
-      help          : "replyForSystemHelp"
-      invite        : "replyForInvite"
-      watch         : "replyForWatch"
-      join          : "replyForJoin"
-
     splitted.shift() # remove first item and update the array instance
-    @[messageToMethod[key]]? splitted
+    @[replyHandlers[key]] splitted
 
   replyForSystemHelp: ->
-    message = """
-        If you type,
-        "invite username" I can bring someone to your session,
-        "watch username"  I will show you their changes in realtime,
-        "join sessionKey" I will take you to that session.
-        Try me!
-      """
-    @botReply message
+    @botReply messages.help
 
   replyForJoin: (sessionKey) ->
     return if sessionKey.length > 1
@@ -78,15 +89,16 @@ class TeamworkChatPane extends ChatPane
     sessionKey = sessionKey.first
 
     if sessionKey.indexOf("_") > -1
-      @botReply "01001101 ... I am checking this session key, #{sessionKey}.", yes
+      @botReply getMessage "validateKey", sessionKey
       @workspace.firebaseRef.child(sessionKey).once "value", (snapshot) =>
         if snapshot.val() is null or not snapshot.val().keys
-          @botReply "Sorry, looks like this session is closed by its host, I cannot get you in."
+          @botReply messages.noSession
         else
-          @botReply "01001010 ... Joining session, #{sessionKey}"
+          @botReply getMessage "joinSession", sessionKey
           @workspace.getDelegate().emit "JoinSessionRequested", sessionKey
     else
       # TODO: fatihacet - implement getting the sessionKey via username
+      @botReply messages.invalidKey
 
   replyForInvite: (usernames) ->
     # TODO: fatihacet - currently invite only first user
@@ -101,15 +113,15 @@ class TeamworkChatPane extends ChatPane
 
     KD.remote.api.JAccount.one query, {}, (err, account) =>
       @workspace.userList.once "UserInvited", =>
-        message    = "Sure thing! I invited #{username} for you. I will let you know when they join."
+        message    = getMessage "invited", username
         if usernames.length > 1
-          message += "Sorry, you can invite only one person at a time for now. My master is working on this feature. Please type one by one."
+          message += messages.inviteOneByOne
         @botReply message
 
       @workspace.userList.once "UserInviteFailed", =>
-        @botReply "Sorry, are you sure your friend's nickname is #{username}? Because I can't find it."
+        @botReply getMessage "inviteFailed", username
 
-      @workspace.userList.sendInvite account
+      @workspace.userList.sendInviteTo account
 
   replyForWatch: (usernames) ->
     username = usernames.first
@@ -117,11 +129,11 @@ class TeamworkChatPane extends ChatPane
 
     # TODO: fatihacet - I need to check username is valid and user is in session.
     @workspace.setWatchMode username
-    message = """
-      Ok. Now you are now watching #{username}. Seems like a nice guy.
-      You can type "stop watching" anytime.
-    """
-    @botReply message
+    @botReply getMessage "watchReply", username
+
+  replyForStopWatching: ->
+    @workspace.setWatchMode "nobody"
+    @botReply getMessage "watchNobody"
 
   botReply: (message) ->
     messageData =
@@ -132,12 +144,7 @@ class TeamworkChatPane extends ChatPane
     @sendMessage messageData, yes
 
   sendWelcomeMessage: ->
-    message = """
-      Hello earthling! My name is TBot. I love keyboard commands.
-      I can bring others to work with you from far far away.
-      For a list of things that I can help you with, type 'help'
-    """
-    @botReply message
+    @botReply messages.welcome
 
   viewAppended: ->
     super
@@ -148,10 +155,7 @@ class TeamworkChatPane extends ChatPane
 
     @addSubView @avatars, null, yes
 
-    if @workspace.amIHost()
-      tipTitle = "You are the host of this session"
-    else
-      tipTitle = "This is you"
+    tipTitle   = if @workspace.amIHost() then messages.host else messages.you
 
     @avatars.addSubView new AvatarStaticView
       size     :
@@ -164,4 +168,47 @@ class TeamworkChatPane extends ChatPane
     @avatars.addSubView new KDCustomHTMLView
       cssClass : "tw-bot-avatar"
       tooltip  :
-        title  : """ Hi there, My name is TBot. I am here to assist you. If you need help, just type "help" """
+        title  : messages.botTooltip
+
+  getMessage = (key, data) ->
+    return messages[key].replace "$0", data
+
+  # class scope variables
+  replyHandlers   =
+    help          : "replyForSystemHelp"
+    invite        : "replyForInvite"
+    watch         : "replyForWatch"
+    join          : "replyForJoin"
+    stop          : "replyForStopWatching"
+
+  messages        =
+    welcome       : """
+        Hello earthling! My name is TBot. I love keyboard commands.
+        I can bring others to work with you from far far away.
+        For a list of things that I can help you with, type 'help'
+      """
+    botTooltip    : """ Hi there, My name is TBot. I am here to assist you. If you need help, just type "help" """
+    host          : "You are the host of this session"
+    you           : "This is you"
+    watchReply    : """
+        Ok. Now you are now watching $0. Seems like a nice guy.
+        You can type "stop watching" anytime.
+      """
+    watchNobody   : "It's done. Now you are watching nobody."
+    invited       : "Sure thing! I invited $0 for you. I will let you know when they join."
+    inviteOneByOne: """
+
+      Sorry, you can invite only one person at a time for now. My master is working on this feature. Please type one by one.
+    """
+    inviteFailed  : "Sorry, are you sure your friend's nickname is $0? Because I can't find it."
+    validateKey   : "01001101 ... I am checking this session key, $0."
+    joinSession   : "01001010 ... Joining session, $0"
+    noSession     : "Sorry, looks like this session is closed by its host, I cannot get you in."
+    invalidKey    : "Sorry, looks like this session key is not valid anymore."
+    help          : """
+        If you type,
+        "invite username" I can bring someone to your session,
+        "watch username"  I will show you their changes in realtime,
+        "join sessionKey" I will take you to that session.
+        Try me!
+      """
