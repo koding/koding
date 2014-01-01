@@ -299,7 +299,4 @@ class WebTermView extends KDView
       mainView.toggleFullscreen()
       event.preventDefault()
 
-  clearBuffer: ->
-    @terminal?.clearBuffer()
-
   initBackoff: KDBroker.Broker::initBackoff
