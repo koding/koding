@@ -182,8 +182,7 @@ config =
         uploadsUri    : 1
         sourceUri     : 1
         newkontrol    :
-          host        : 1
-          port        : 1
+          url         : 1
         fileFetchTimeout: 1
         externalProfiles  :
           github          :
@@ -247,6 +246,12 @@ config =
     newkontrol      :
       host          : 1
       port          : 1
+      certFile      : 1
+      keyFile       : 1
+    proxyKite       :
+      domain        : 1
+      certFile      : 1
+      keyFile       : 1
     kontrold        :
       vhost         : 1
       overview      :
@@ -256,6 +261,7 @@ config =
         switchHost  : 1
       api           :
         port        : 1
+        url         : 1
       proxy         :
         port        : 1
         portssl     : 1
@@ -313,4 +319,5 @@ config =
       version       : 1
       signature     : 1
     mixpanel        : 1
+    rollbar         : 1
 module.exports = config

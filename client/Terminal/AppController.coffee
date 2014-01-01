@@ -39,7 +39,7 @@ class WebTermController extends AppController
 
     super options, data
 
-    KD.mixpanel "Opened Webterm tab", {vmName}
+    KD.mixpanel "Open Webterm tab, success", {vmName}
 
   handleQuery: (query) ->
     @getView().ready =>
@@ -53,5 +53,8 @@ class WebTermController extends AppController
       if storage.getValue 'visualBell'
       then new KDNotificationView title: 'Bell!', duration: 100
       else bell.play()
-
+  
+  runCommand:(command)->
+    @getView().ready =>
+      @getView().runCommand command
 WebTerm = {}

@@ -2,12 +2,9 @@ class ContentDisplayControllerMember extends KDViewController
 
   constructor:(options={}, data)->
 
-    {@revivedContentDisplay} = KD.singleton('display')
-
     options = $.extend
       view : mainView = new KDView
         cssClass : 'member content-display'
-        domId    : 'member-contentdisplay'  unless @revivedContentDisplay
         type     : 'profile'
     , options
     super options, data
@@ -52,7 +49,6 @@ class ContentDisplayControllerMember extends KDViewController
   addProfileView:(member)->
     options      =
       cssClass   : "profilearea clearfix"
-      domId      : 'profilearea' unless @revivedContentDisplay
       delegate   : @getView()
 
     if KD.isMine member
@@ -82,52 +78,36 @@ class ContentDisplayControllerMember extends KDViewController
   #       @getView().$('.profilearea').css "overflow", "visible"
   #   , 500
 
-  createFilter:(title, account, facets)->
-    filter =
-      title             : title
-      dataSource        : (selector, options, callback)=>
-        options.originId = account.getId()
-        options.facet   = facets
-        KD.getSingleton("appManager").tell 'Activity', 'fetchActivitiesProfilePage', options, callback
-    return filter
-
   addActivityView:(account)->
     @getView().$('div.lazy').remove()
     windowController = KD.getSingleton('windowController')
 
     KD.getSingleton("appManager").tell 'Activity', 'feederBridge', {
-      domId                 : 'members-feeder-split-view' unless @revivedContentDisplay
       itemClass             : ActivityListItemView
-      listControllerClass   : ActivityListController
+      listControllerClass   : MemberActivityListController
       listCssClass          : "activity-related"
       limitPerPage          : 8
       useHeaderNav          : yes
       delegate              : @getDelegate()
-      # help                  :
-      #   subtitle            : "Learn Personal feed"
-      #   tooltip             :
-      #     title             : "<p class='bigtwipsy'>This is the personal feed of a single Koding user.</p>"
-      #     placement         : "above"
+      creator               : account
       filter                :
-        # everything          : @createFilter("Everything", account, 'Everything')
-        statuses            : @createFilter("Status Updates", account, 'JNewStatusUpdate')
-#        codesnips           : @createFilter("Code Snippets", account, 'JCodeSnip')
-#        blogposts           : @createFilter("Blog Posts", account, 'JBlogPost')
-#        discussions         : @createFilter("Discussions", account, 'JDiscussion')
-#        tutorials           : @createFilter("Tutorials", account, 'JTutorial')
+        statuses            :
+          title             : "Status Updates"
+          noItemFoundText   : "#{KD.utils.getFullnameFromAccount account} has not shared any posts yet."
+          dataSource        : (selector, options = {}, callback)=>
+            options.originId = account.getId()
+            KD.getSingleton("appManager").tell 'Activity', 'fetchActivitiesProfilePage', options, callback
       sort                  :
-        'likesCount'  :
-          title             : "Most popular"
-          direction         : -1
         'modifiedAt'        :
           title             : "Latest activity"
           direction         : -1
-        'repliesCount':
-          title             : "Most commented"
-          direction         : -1
-        # and more
     }, (controller)=>
       @feedController = controller
       @getView().addSubView controller.getView()
       @getView().setCss minHeight : windowController.winHeight
       @emit 'ready'
+
+class MemberActivityListController extends ActivityListController
+  addItem: (activity, index, animation)->
+    if activity.originId is @getOptions().creator.getId()
+      super activity, index, animation

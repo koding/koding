@@ -66,8 +66,15 @@ type Config struct {
 		Queue string
 	}
 	NewKontrol struct {
-		Host string
-		Port int
+		Host     string
+		Port     int
+		CertFile string
+		KeyFile  string
+	}
+	ProxyKite struct {
+		Domain   string
+		CertFile string
+		KeyFile  string
 	}
 	Etcd []struct {
 		Host string
@@ -83,6 +90,7 @@ type Config struct {
 		}
 		Api struct {
 			Port int
+			URL  string
 		}
 		Proxy struct {
 			Port    int

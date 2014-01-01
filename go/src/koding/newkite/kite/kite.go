@@ -1,6 +1,7 @@
 package kite
 
 import (
+	"crypto/tls"
 	"flag"
 	"fmt"
 	"koding/newkite/dnode/rpc"
@@ -9,6 +10,7 @@ import (
 	"log"
 	"net"
 	"net/http"
+	"net/url"
 	"os"
 	"os/signal"
 	"runtime"
@@ -63,6 +65,11 @@ type Kite struct {
 
 	// Wheter we want to register our Kite to Kontrol, true by default.
 	RegisterToKontrol bool
+
+	// Use Koding.com's reverse-proxy server for incoming connections.
+	// Instead of the Kite's address, address of the Proxy Kite will be
+	// registered to Kontrol.
+	proxyEnabled bool
 
 	// method map for exported methods
 	handlers map[string]HandlerFunc
@@ -131,13 +138,16 @@ func New(options *Options) *Kite {
 			ID:          kiteID,
 			Version:     options.Version,
 			Hostname:    hostname,
-			Port:        options.Port,
 			Environment: options.Environment,
 			Region:      options.Region,
 			Visibility:  options.Visibility,
-
-			// PublicIP will be set by Kontrol after registering if it is not set.
-			PublicIP: options.PublicIP,
+			URL: protocol.KiteURL{
+				&url.URL{
+					Scheme: "ws",
+					Host:   net.JoinHostPort(options.PublicIP, options.Port),
+					Path:   "/dnode",
+				},
+			},
 		},
 		KodingKey:           kodingKey,
 		server:              rpc.NewServer(),
@@ -151,11 +161,11 @@ func New(options *Options) *Kite {
 		end:                 make(chan bool, 1),
 	}
 
-	k.server.SetWrappers(wrapMethodArgs, wrapCallbackArgs, runMethod, runCallback)
+	k.server.SetWrappers(wrapMethodArgs, wrapCallbackArgs, runMethod, runCallback, onError)
 	k.server.Properties()["localKite"] = k
 
 	k.Log = newLogger(k.Name, k.hasDebugFlag())
-	k.Kontrol = k.NewKontrol(options.KontrolAddr)
+	k.Kontrol = k.NewKontrol(options.KontrolURL)
 
 	// Call registered handlers when a client has disconnected.
 	k.server.OnDisconnect(func(c *rpc.Client) {
@@ -180,6 +190,23 @@ func New(options *Options) *Kite {
 
 func (k *Kite) DisableConcurrency() {
 	k.server.SetConcurrent(false)
+}
+
+func (k *Kite) EnableTLS(certFile, keyFile string) {
+	cert, err := tls.LoadX509KeyPair(certFile, keyFile)
+	if err != nil {
+		k.Log.Fatal(err.Error())
+	}
+
+	k.server.TlsConfig = &tls.Config{
+		Certificates: []tls.Certificate{cert},
+	}
+
+	k.Kite.URL.Scheme = "wss"
+}
+
+func (k *Kite) EnableProxy() {
+	k.proxyEnabled = true
 }
 
 // Run is a blocking method. It runs the kite server and then accepts requests
@@ -293,30 +320,51 @@ func (k *Kite) hasDebugFlag() bool {
 
 // listenAndServe starts our rpc server with the given addr.
 func (k *Kite) listenAndServe() (err error) {
-	// An error string equivalent to net.errClosing for using with http.Serve()
-	// during a graceful exit.
-	// I had to put it here because it is not exported by "net" package.
-	const errClosing = "use of closed network connection"
-
-	k.listener, err = net.Listen("tcp4", ":"+k.Port)
+	k.listener, err = net.Listen("tcp4", k.Kite.URL.Host)
 	if err != nil {
 		return err
 	}
+
 	k.Log.Notice("Listening: %s", k.listener.Addr().String())
 
+	// Enable TLS
+	if k.server.TlsConfig != nil {
+		k.listener = tls.NewListener(k.listener, k.server.TlsConfig)
+	}
+
 	// Port is known here if "0" is used as port number
-	_, k.Port, _ = net.SplitHostPort(k.listener.Addr().String())
+	host, _, _ := net.SplitHostPort(k.Kite.URL.Host)
+	_, port, _ := net.SplitHostPort(k.listener.Addr().String())
+	k.Kite.URL.Host = net.JoinHostPort(host, port)
+
+	registerURLs := make(chan *url.URL, 1)
+
+	if k.proxyEnabled {
+		// Register to Proxy Kite and stay connected.
+		// Fill the channel with registered Proxy URLs.
+		go k.keepRegisteredToProxyKite(registerURLs)
+	} else {
+		// Register with Kite's own URL.
+		registerURLs <- k.URL.URL
+	}
 
 	// We must connect to Kontrol after starting to listen on port
 	if k.KontrolEnabled {
-		if k.RegisterToKontrol {
-			k.Kontrol.OnConnect(k.registerToKontrol)
+		if err = k.Kontrol.DialForever(); err != nil {
+			return
 		}
 
-		k.Kontrol.DialForever()
+		if k.RegisterToKontrol {
+			go k.keepRegisteredToKontrol(registerURLs)
+		}
 	}
 
-	k.ready <- true // listener is ready, means we are ready too
+	k.ready <- true // listener is ready, unblock Start().
+
+	// An error string equivalent to net.errClosing for using with http.Serve()
+	// during a graceful exit. Needed to declare here again because it is not
+	// exported by "net" package.
+	const errClosing = "use of closed network connection"
 
 	err = http.Serve(k.listener, k.server)
 	if strings.Contains(err.Error(), errClosing) {
@@ -327,13 +375,6 @@ func (k *Kite) listenAndServe() (err error) {
 	k.end <- true // Serving is finished.
 
 	return err
-}
-
-func (k *Kite) registerToKontrol() {
-	err := k.Kontrol.Register()
-	if err != nil {
-		k.Log.Fatalf("Cannot register to Kontrol: %s", err)
-	}
 }
 
 // OnConnect registers a function to run when a Kite connects to this Kite.
@@ -348,7 +389,7 @@ func (k *Kite) OnDisconnect(handler func(*RemoteKite)) {
 
 // notifyRemoteKiteConnected runs the registered handlers with OnConnect().
 func (k *Kite) notifyRemoteKiteConnected(r *RemoteKite) {
-	k.Log.Info("Client is connected to us: [%s %s]", r.Name, r.Addr())
+	k.Log.Info("Client is connected to us: %s", r.Name)
 
 	for _, handler := range k.onConnectHandlers {
 		go handler(r)
@@ -356,7 +397,7 @@ func (k *Kite) notifyRemoteKiteConnected(r *RemoteKite) {
 }
 
 func (k *Kite) notifyRemoteKiteDisconnected(r *RemoteKite) {
-	k.Log.Info("Client has disconnected: [%s %s]", r.Name, r.Addr())
+	k.Log.Info("Client has disconnected: %s", r.Name)
 
 	for _, handler := range k.onDisconnectHandlers {
 		go handler(r)

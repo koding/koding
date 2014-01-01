@@ -22,7 +22,7 @@ class Kite extends Pinger
     @entropy        = @createId 128
     @qualifiedName  = "kite-#{@kiteName}"
 
-    @channelName  = @getChannelName()
+    @channelName    = @getChannelName()
 
     @channel = KD.remote.mq.subscribe @channelName
     @channel.setAuthenticationInfo
@@ -32,7 +32,7 @@ class Kite extends Pinger
       clientId          : KD.remote.getSessionToken()
 
     @channel.cycleChannel               = @bound 'cycleChannel'
-    @channel.ping                       = @bound 'pingChannel'
+    @channel.ping                       = @bound 'ping'
     @channel.setStartPinging            = @bound 'setStartPinging'
     @channel.setStopPinging             = @bound 'setStopPinging'
 
@@ -53,7 +53,7 @@ class Kite extends Pinger
     @initChannel()
     @emit 'destroy'
 
-  pingChannel: (callback) ->
+  ping: (callback)->
     return if @stopPinging
     @channel.publish JSON.stringify
       method      : 'ping'

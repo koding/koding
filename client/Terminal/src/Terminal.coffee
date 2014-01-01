@@ -10,15 +10,17 @@ class WebTerm.Terminal extends KDObject
     '\\': '\\\\'
     '\u001b': '\\e'
 
-  constructor: (@container) ->
+  constructor: (containerView) ->
     super()
 
     localStorage?["WebTerm.logRawOutput"] ?= "false"
     localStorage?["WebTerm.slowDrawing"]  ?= "false"
 
-    @server = null
+    @parent               = containerView
+    @container            = containerView.$()
+    @server               = null
     @sessionEndedCallback = null
-    @setTitleCallback = null
+    @setTitleCallback     = null
 
     @keyInput = new KDCustomHTMLView
       tagName   : 'input'
@@ -31,8 +33,10 @@ class WebTerm.Terminal extends KDObject
 
     @keyInput.appendToDomBody()
 
-    @pixelWidth               = 0
-    @pixelHeight              = 0
+    containerView.on 'KDObjectWillBeDestroyed', @keyInput.bound 'destroy'
+
+    @currentWidth             = 0
+    @currentHeight            = 0
     @sizeX                    = 80
     @sizeY                    = 24
     @currentStyle             = WebTerm.StyledText.DEFAULT_STYLE
@@ -45,15 +49,16 @@ class WebTerm.Terminal extends KDObject
     @cursor            = new WebTerm.Cursor(this)
     @controlCodeReader = WebTerm.createAnsiControlCodeReader(this)
 
-    @measurebox        = $(document.createElement("div"))
-    @updateSizeTimer   = null
-    @measurebox.css "position", "absolute"
-    @measurebox.css "visibility", "hidden"
-    @container.append @measurebox
+    @measurebox = new KDCustomHTMLView
+      partial   : "\xA0"
+      cssClass  : 'offscreen'
+
     @updateSize()
 
     @outputbox = $(document.createElement("div"))
     @outputbox.css "cursor", "text"
+    @outputbox.append @measurebox.getDomElement()
+
     @container.append @outputbox
 
     @container.on "mousedown mousemove mouseup mousewheel contextmenu", (event) =>
@@ -97,7 +102,7 @@ class WebTerm.Terminal extends KDObject
     @inputHandler.keyUp event
 
   setKeyFocus: ->
-    @keyInput.getElement().focus()
+    # @keyInput.getElement().focus()
 
   setFocused: (value) ->
     @cursor.setFocused value
@@ -106,45 +111,42 @@ class WebTerm.Terminal extends KDObject
   setSize: (x, y) ->
     return if x is @sizeX and y is @sizeY
 
-    cursorLineIndex = @screenBuffer.toLineIndex(@cursor.y)
-    @sizeX          = x
-    @sizeY          = y
+    cursorLineIndex  = @screenBuffer.toLineIndex(@cursor.y)
+    [@sizeX, @sizeY] = [x, y]
     @screenBuffer.scrollingRegion = [0, y - 1]
 
     @cursor.moveTo @cursor.x, cursorLineIndex - @screenBuffer.toLineIndex(0)
     @server.setSize x, y if @server
 
+  getCharSizes:->
+
+    sizes =
+      width  : @measurebox.getWidth()  or @_mbWidth
+      height : @measurebox.getHeight() or @_mbHeight
+
+    [@_mbWidth, @_mbHeight] = [@measurebox.getWidth(), @measurebox.getHeight()]
+
+    return sizes
+
   updateSize: (force=no) ->
-    return if not force and @pixelWidth is @container.prop("clientWidth") and @pixelHeight is @container.prop("clientHeight")
-    @container.scrollTop @container.scrollTop() + @pixelHeight - @container.prop("clientHeight") + 1 if @container.prop("clientHeight") < @pixelHeight
-    @pixelWidth  = @container.prop("clientWidth")
-    @pixelHeight = @container.prop("clientHeight")
 
-    width = 1
-    height = 1
-    for n in [0..10] # avoid infinite loop
-      text = ""
-      text += "\xA0" for x in [0...width]
-      elements = []
-      for y in [0...height]
-        div = $(document.createElement("div"))
-        div.text text
-        elements.push div
-      @measurebox.empty()
-      @measurebox.append elements
-      newWidth = Math.max width, Math.floor(@pixelWidth / @measurebox.width() * width)
-      newHeight = Math.max height, Math.floor(@pixelHeight / @measurebox.height() * height)
-      break if newWidth is width and newHeight is height
-      break if newWidth > 1000 or newHeight > 1000 # sanity check
-      width = newWidth
-      height = newHeight
+    [swidth, sheight] = [@parent.getWidth()  or @currentWidth,\
+                         @parent.getHeight() or @currentHeight]
 
-    @measurebox.empty()
-    @setSize width, height
+    return  if not force and \
+               swidth is @currentWidth and sheight is @currentHeight
 
-  windowDidResize: ->
-    window.clearTimeout @updateSizeTimer
-    @updateSizeTimer = window.setTimeout (=> @updateSize()), 500
+    @scrollToBottom()
+
+    [@currentWidth, @currentHeight] = [swidth, sheight]
+    {width, height} = @getCharSizes()
+
+    newWidth  = Math.max width,  Math.floor swidth  / width
+    newHeight = Math.max height, Math.floor sheight / height
+
+    @setSize newWidth, newHeight
+
+  windowDidResize: _.throttle (-> @updateSize()), 500
 
   lineFeed: ->
     if @cursor.y is @screenBuffer.scrollingRegion[1]
@@ -229,15 +231,15 @@ class WebTerm.Terminal extends KDObject
   changeScreenBuffer: (index) ->
 
   isScrolledToBottom: ->
-    @container.scrollTop() + @container.prop("clientHeight") >= @container.prop("scrollHeight") - 3
+    @container.scrollTop() + @parent.getHeight() >= @container.prop("scrollHeight") - 3
 
   scrollToBottom: (animate=no) ->
     return if @isScrolledToBottom()
     @container.stop()
     if animate
-      @container.animate { scrollTop: @container.prop("scrollHeight") - @container.prop("clientHeight") }, duration: 200
+      @container.animate { scrollTop: @container.prop("scrollHeight") - @parent.getHeight() }, duration: 200
     else
-      @container.scrollTop(@container.prop("scrollHeight") - @container.prop("clientHeight"))
+      @container.scrollTop(@container.prop("scrollHeight") - @parent.getHeight())
 
   setScrollbackLimit: (limit) ->
     @screenBuffer.scrollbackLimit = limit

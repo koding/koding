@@ -81,9 +81,11 @@ class NotificationController extends KDObject
             callback  : (event) -> modal.destroy()
 
     @on 'UserBlocked', ({blockedDate}) ->
-      new KDModalView
+      modal = new KDModalView
         title         : "Permission denied. You've been banned."
         overlay       : yes
+        overlayClick  : no
+        cancelable    : no
         content       :
           """
           <div class="modalformline">
@@ -96,10 +98,12 @@ class NotificationController extends KDObject
             callback  : (event) ->
               $.cookie 'clientId', erase: yes
               modal.destroy()
+              location.reload yes
 
       # If not clicked on "Ok", kick him out after 10 seconds
       @utils.wait 10000, =>
         $.cookie 'clientId', erase: yes
+        location.reload yes
 
   prepareNotification: (notification)->
 

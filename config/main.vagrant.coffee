@@ -159,8 +159,7 @@ module.exports =
       uploadsUri: 'https://koding-uploads.s3.amazonaws.com'
       sourceUri : 'http://localhost:3526'
       newkontrol:
-        host    : '127.0.0.1'
-        port    : 4000
+        url     : 'wss://127.0.0.1:80/dnode'
       fileFetchTimeout: 15 * 1000 # seconds
       externalProfiles  :
         github          :
@@ -238,6 +237,12 @@ module.exports =
   newkontrol      :
     host          : "127.0.0.1"
     port          : 4000
+    certFile      : "/opt/koding/certs/vagrant_127.0.0.1_cert.pem"
+    keyFile       : "/opt/koding/certs/vagrant_127.0.0.1_key.pem"
+  proxyKite       :
+    domain        : "127.0.0.1"
+    certFile      : "/opt/koding/certs/vagrant_127.0.0.1_cert.pem"
+    keyFile       : "/opt/koding/certs/vagrant_127.0.0.1_key.pem"
   etcd            : [ {host: "127.0.0.1", port: 4001} ]
   kontrold        :
     vhost         : "/"
@@ -248,6 +253,7 @@ module.exports =
       switchHost  : "example.com"
     api           :
       port        : 8888
+      url         : "http://localhost"
     proxy         :
       port        : 80
       portssl     : 8081
@@ -316,3 +322,4 @@ module.exports =
     version      : "1.0"
     signature    : "HMAC-SHA1"
   mixpanel       : "a57181e216d9f713e19d5ce6d6fb6cb3"
+  rollbar        : "71c25e4dc728431b88f82bd3e7a600c9"

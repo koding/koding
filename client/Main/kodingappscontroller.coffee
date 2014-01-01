@@ -39,16 +39,13 @@ class KodingAppsController extends KDController
     # Remove app from head if exists, just for sure
     # $("head .internal-#{app.identifier}").remove()
 
-    log "PUT APP", app
-
     if $("head .internal-style-#{app.identifier}").length is 0 and app.style
 
       style        = new KDCustomHTMLView
         tagName    : "link"
         cssClass   : "internal-style-#{app.identifier}"
         bind       : 'load'
-        load       : ->
-          log "Style loaded? for #{name} # don't trust this ..."
+        # load       : ->
         attributes :
           rel      : "stylesheet"
           href     : "#{app.style}?#{KD.utils.uniqueId()}"
@@ -140,7 +137,7 @@ class KodingAppsController extends KDController
     @manifests      = KodingAppsController.manifests
     @publishedApps  = {}
     @_fetchQueue    = []
-    @appStorage     = KD.getSingleton('appStorageController').storage 'Finder', '1.1'
+    @appStorage     = KD.getSingleton('appStorageController').storage 'Finder', '1.1.1'
     @watcher        = new AppsWatcher
 
     # @fetchApps =>
@@ -258,7 +255,7 @@ class KodingAppsController extends KDController
           @_fetchQueue = []
     , =>
       warn msg = "Timeout reached for kite request"
-      KD.logToExternal msg
+      KD.logToExternalWithTime msg
       callback() for callback in @_fetchQueue
       @_fetchQueue = []
     , KD.config.fileFetchTimeout
@@ -672,7 +669,7 @@ class KodingAppsController extends KDController
                 KodingError : 'Failed to fetch app creator info'
               return callback? err  if err
 
-              KD.mixpanel "User Installed Application", app.manifest.identifier
+              KD.mixpanel "Install Application, success", app.manifest.identifier
 
               @vmController.run
                 method       : "app.install"

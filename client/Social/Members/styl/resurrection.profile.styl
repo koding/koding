@@ -13,8 +13,6 @@ resurrection.profile.styl
   display                     none
 
 body.profile
-  bg                          color, #e2e8e4
-
   #kdmaincontainer
   .kdtabpaneview.content-display
     overflow                  visible
@@ -75,6 +73,7 @@ body.profile
           font-size           18px
           font-weight         200
           margin-top          9px
+          overflow            visible
           borderBox()
 
           a
@@ -182,24 +181,36 @@ body.profile
             size              74px, 74px
             margin-bottom     14px
 
+      .kdlistview-user-properties
+        padding               0 52px 0 44px
+        borderBox()
+        h3
+          display             block
+          font-size           18px
+          color               #1aaf5d
+          font-weight         400
+          letter-spacing      0.2px
+          margin              0 0 16px
 
-  /* Profile page specific color changes to activity items */
+          span
+            opacity           .6
+            font-size         14px
+
+        p
+          line-height         24px
+          color               #a3a3a3
+          font-size           12px
+
+          &~p
+            border-top        1px solid #424445
+
+          .number
+            color             #f6f6f6
+            fr()
+
   .activity-item
+    font-size             14px
     max-width             728px
-    footer
-      bg                  color, #f6f8f7
-      border-top-color    #e2e8e4
-
-    .comment-container.commented
-      border-top-color    #e2e8e4
-
-
-      .kdlistitemview-comment~.kdlistitemview-comment
-        .comment-contents
-          border-top-color #e2e8e4
-
-    .item-add-comment-box
-      border-top-color     #e2e8e4
 
 //
 // Profile avatar change styles

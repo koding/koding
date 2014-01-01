@@ -21,7 +21,6 @@ class CollaborativeDrawingPane extends CollaborativePane
       @bindMouseUpOnCanvas()
       @bindMouseMoveCanvas()
 
-      @workspaceRef.onDisconnect().remove()  if @amIHost
       @redrawCanvas()  if @isJoinedASession
 
       @bindRemoteEvents()

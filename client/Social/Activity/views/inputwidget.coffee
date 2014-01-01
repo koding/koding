@@ -11,21 +11,6 @@ class ActivityInputWidget extends KDView
     @input    = new ActivityInputView defaultValue: options.defaultValue
     @input.on "Escape", @bound "reset"
 
-    @notification = new KDView
-      cssClass : "notification hidden"
-      partial  : """
-This is a sneak peek beta for testing purposes only. If you find any bugs, please post them here on the activity feed with the tag #bug. Beware that your activities could be discarded.<br><br>
-
-Please take a short survey about <a href="http://bit.ly/1jsjlna">New Koding.</a><br><br>
-
-With love from the Koding team.<br>
-      """
-
-    @notification.addSubView new KDCustomHTMLView
-      tagName : "span"
-      cssClass: "close-tab"
-      click   : => @notification.destroy()
-
     @embedBox = new EmbedBoxWidget delegate: @input, data
 
     @submit    = new KDButtonView
@@ -49,15 +34,14 @@ With love from the Koding team.<br>
     suggestedTags  = []
     createdTags    = {}
 
-    unless KD.checkFlag "exempt"
-      for token in @input.getTokens()
-        {data, type} = token
-        if type is "tag"
-          if data instanceof JTag
-            tags.push id: data.getId()
-            activity?.tags.push data
-          else if data.$suggest
-            suggestedTags.push data.$suggest
+    for token in @input.getTokens()
+      {data, type} = token
+      if type is "tag"
+        if data instanceof JTag
+          tags.push id: data.getId()
+          activity?.tags.push data
+        else if data.$suggest
+          suggestedTags.push data.$suggest
 
     daisy queue = [
       ->
@@ -88,9 +72,9 @@ With love from the Koding team.<br>
           @reset yes
           @embedBox.resetEmbedAndHide()
           @emit "Submit", err, activity
-          @destroy() if @getOptions().destroyOnSubmit
-          @notification.show()
           callback? err, activity
+
+          KD.mixpanel "Status update create, success", {length:activity?.body?.length}
     ]
 
   encodeTagSuggestions: (str, tags) ->
@@ -101,17 +85,19 @@ With love from the Koding team.<br>
 
   create: (data, callback) ->
     JNewStatusUpdate.create data, (err, activity) =>
+      if err
+        KD.mixpanel "Status update create, fail"
+
       @reset()  unless err
 
       callback? err, activity
 
-      if err
-        KD.showError err,
-          AccessDenied :
-            title      : "You are not allowed to post activity"
-            content    : 'This activity will only be visible to you'
-            duration   : 5000
-          KodingError  : 'Something went wrong while creating activity'
+      KD.showError err,
+        AccessDenied :
+          title      : "You are not allowed to post activities"
+          content    : 'This activity will only be visible to you'
+          duration   : 5000
+        KodingError  : 'Something went wrong while creating activity'
 
       KD.getSingleton("badgeController").checkBadge
         property : "statusUpdates", relType : "author", source : "JNewStatusUpdate", targetSelf : 1
@@ -120,9 +106,14 @@ With love from the Koding team.<br>
     activity = @getData()
     return  @reset() unless activity
     activity.modify data, (err) =>
+      if err
+        KD.mixpanel "Status update update, fail"
+
       KD.showError err
       @reset()  unless err
       callback? err
+
+      KD.mixpanel "Status update update, success"
 
   reset: (lock = yes) ->
     @input.setContent ""
@@ -145,7 +136,6 @@ With love from the Koding team.<br>
   viewAppended: ->
     @addSubView @avatar
     @addSubView @input
-    @addSubView @notification
     @addSubView @embedBox
     @input.addSubView @submit
     @hide()  unless KD.isLoggedIn()
@@ -156,7 +146,7 @@ class ActivityEditWidget extends ActivityInputWidget
     options.cssClass = KD.utils.curry "edit-widget", options.cssClass
     options.destroyOnSubmit = yes
 
-    super options
+    super options, data
 
     @submit    = new KDButtonView
       type     : "submit"
@@ -168,19 +158,17 @@ class ActivityEditWidget extends ActivityInputWidget
     @cancel = new KDButtonView
       cssClass : "solid gray"
       title    : "Cancel"
-      callback : @bound "cancel"
-
-  cancel: ->
-    @destroy()
-    @emit "ActivityInputCancelled"
-
-  edit: (activity) ->
-    @setData activity
-    content = activity.body.replace /\n/g, "<br>"
-    @input.setContent content, activity
-    @embedBox.loadEmbed activity.link.link_url  if activity.link
+      callback : => @emit "Cancel"
 
   viewAppended: ->
+    data         = @getData()
+    {body, link} = data
+
+    content = ""
+    content += "<div>#{line}</div>" for line in body.split "\n"
+    @input.setContent content, data
+    @embedBox.loadEmbed link.link_url  if link
+
     @addSubView @input
     @addSubView @embedBox
     @input.addSubView @submit

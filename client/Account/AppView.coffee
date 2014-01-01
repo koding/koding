@@ -23,9 +23,8 @@ class AccountListWrapper extends KDView
     deleteAccount              : DeleteAccountView
 
   viewAppended:->
-    {listType, listHeader} = @getData()
+    {listType} = @getData()
 
-    @addSubView @header = new KDHeaderView type : "medium", title : listHeader
     type = if listType then listType or ''
 
     listViewClass   = if listClasses[type] then listClasses[type] else KDListView

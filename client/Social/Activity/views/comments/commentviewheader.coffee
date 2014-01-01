@@ -38,9 +38,11 @@ class CommentViewHeader extends JView
     , data
 
     @newItemsLink = new KDCustomHTMLView
-      tagName   : "a"
-      cssClass  : "new-items"
-      click     : => list.emit "AllCommentsLinkWasClicked", @
+      tagName     : "a"
+      cssClass    : "new-items"
+      click       : (event) =>
+        KD.utils.stopDOMEvent event
+        list.emit "AllCommentsLinkWasClicked", this
 
     @liveUpdate = KD.getSingleton('activityController').flags?.liveUpdates or off
     KD.getSingleton('activityController').on "LiveStatusUpdateStateChanged", (newstate)=>
@@ -108,7 +110,7 @@ class CommentViewHeader extends JView
         @setClass 'new'
         @allItemsLink.hide()
         @show()
-        @newItemsLink.updatePartial "#{@newCount} new comment..."
+        @newItemsLink.updatePartial "#{ KD.utils.formatPlural @newCount, 'new comment' }..."
         @newItemsLink.setClass('in')
     else
       @unsetClass 'new'

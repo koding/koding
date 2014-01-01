@@ -109,7 +109,10 @@ class MainView extends KDView
 
   createAccountArea:->
 
-    @innerContainer.addSubView @accountArea = new KDCustomHTMLView cssClass : 'account-area'
+    @accountArea = new KDCustomHTMLView
+      cssClass : 'account-area'
+
+    @innerContainer.addSubView @accountArea
 
     unless KD.isLoggedIn()
       @loginLink = new CustomLinkView
@@ -161,11 +164,50 @@ class MainView extends KDView
 
     @accountArea.addSubView @searchForm = new KDCustomHTMLView
       cssClass   : "search-form-container"
+
+    handleRoute = (searchRoute, text)->
+      if group = KD.getSingleton("groupsController").getCurrentGroup()
+        groupSlug = if group.slug is "koding" then "" else "/#{group.slug}"
+      else
+        groupSlug = ""
+
+      toBeReplaced =  if text is "" then "?q=:text:" else ":text:"
+
+      # inject search text
+      searchRoute = searchRoute.replace toBeReplaced, text
+      # add group slug
+      searchRoute = "#{groupSlug}#{searchRoute}"
+
+      KD.getSingleton("router").handleRoute searchRoute
+
+    search = (text) ->
+      currentApp  = KD.getSingleton("appManager").getFrontApp()
+      if currentApp and searchRoute = currentApp.options.searchRoute
+        return handleRoute searchRoute, text
+      else
+        return handleRoute "/Activity?q=:text:", text
+
     @searchForm.addSubView @searchInput = new KDInputView
-      placeholder: "Search here..."
-      keyup      :
-        "esc"    : =>
+      placeholder  : "Search here..."
+      keyup      : (event)=>
+        text = @searchInput.getValue()
+        # if user deleted everything in textbox
+        # clear the search result
+        if text is "" and @searchInput.searched
+          search("")
+          @searchInput.searched = false
+
+        # 13 is ENTER
+        if event.keyCode is 13
+          search text
+          @searchInput.searched = true
+
+        # 27 is ESC
+        if event.keyCode is 27
           @accountArea.unsetClass "search-open"
+          @searchInput.setValue ""
+          @searchInput.searched = false
+
 
   createMainTabView:->
 

@@ -22,7 +22,7 @@ class IntroductionTooltipController extends KDController
       return log err if err # TODO: error handling
 
       appStorages = KD.getSingleton 'appStorageController'
-      @appStorage = appStorages.storage "IntroductionTooltipStatus", "1.0"
+      @appStorage = appStorages.storage "IntroductionTooltipStatus", "1.1"
       @appStorage.fetchStorage (storage) =>
         @introSnippets = snippets
 

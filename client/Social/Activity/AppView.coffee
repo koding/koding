@@ -12,7 +12,7 @@ class ActivityAppView extends KDScrollView
     super options, data
 
     # FIXME: disable live updates - SY
-    @appStorage = KD.getSingleton("appStorageController").storage 'Activity', '1.0'
+    @appStorage = KD.getSingleton("appStorageController").storage 'Activity', '1.0.1'
     @appStorage.setValue 'liveUpdates', off
 
 
@@ -20,9 +20,9 @@ class ActivityAppView extends KDScrollView
 
     {entryPoint}      = KD.config
     windowController  = KD.singleton 'windowController'
-    HomeKonstructor   = if entryPoint and entryPoint.type isnt 'profile' then GroupHomeView else KDCustomHTMLView
+
     @feedWrapper      = new ActivityListContainer
-    @header           = new HomeKonstructor
+    @header           = new KDCustomHTMLView
     @inputWidget      = new ActivityInputWidget
 
     @tickerBox        = new ActivityTicker
@@ -31,6 +31,15 @@ class ActivityAppView extends KDScrollView
 
     @mainBlock        = new KDCustomHTMLView tagName : "main" #"activity-left-block"
     @sideBlock        = new KDCustomHTMLView tagName : "aside"   #"activity-right-block"
+
+    @feedFilterController = new KDMultipleChoice
+      labels       : ["Public", "Followed"]
+      cssClass     : 'feed-type-selection'
+      defaultValue : "Public"
+      callback     : (selection)->
+        @emit 'FilterChanged', selection
+
+    @feedFilterController.unsetClass 'multiple-choice on-off'
 
     @mainController   = KD.getSingleton("mainController")
     @mainController.on "AccountChanged", @bound "decorate"
@@ -62,6 +71,7 @@ class ActivityAppView extends KDScrollView
     @addSubView @sideBlock
 
     @mainBlock.addSubView @inputWidget
+    @mainBlock.addSubView @feedFilterController
     @mainBlock.addSubView @feedWrapper
 
     @sideBlock.addSubView @topicsBox
@@ -82,7 +92,8 @@ class ActivityAppView extends KDScrollView
     #   @inputWidget.hide()
     @_windowDidResize()
 
-  setTopicTag: (slug = "") ->
+  setTopicTag: (slug) ->
+    return  if not slug or slug is ""
     KD.remote.api.JTag.one {slug}, null, (err, tag) =>
       @inputWidget.input.setDefaultTokens tags: [tag]
 
@@ -156,7 +167,8 @@ class FilterWarning extends JView
     @warning   = new KDCustomHTMLView
     @goBack    = new KDButtonView
       cssClass : 'goback-button'
-      callback : => KD.singletons.router.back()
+      # todo - add group context here!
+      callback : => KD.singletons.router.handleRoute '/Activity'
 
   pistachio:->
     """
@@ -164,8 +176,11 @@ class FilterWarning extends JView
       {{> @goBack}}
     """
 
-  showWarning:(tag)->
-    @warning.updatePartial \
-      """You are now looking activities tagged with <strong>##{tag}</strong> """
+  showWarning:({text, type})->
+    partialText = switch type
+      when "search" then "Results for <strong>\"#{text}\"</strong>"
+      else "You are now looking at activities tagged with <strong>##{text}</strong>"
+
+    @warning.updatePartial "#{partialText}"
 
     @show()

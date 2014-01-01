@@ -37,8 +37,8 @@ module.exports =
     read        : "http://172.16.6.12"
     write       : "http://172.16.6.12"
     port        : 7474
-  mongo         : 'dev:k9lc4G1k32nyD72@172.16.6.13:27017/koding'
-  mongoKontrol  : 'dev:k9lc4G1k32nyD72@172.16.6.13:27017/kontrol'
+  mongo         : 'dev:k9lc4G1k32nyD72@68.68.97.107:27017/koding'
+  mongoKontrol  : 'dev:k9lc4G1k32nyD72@68.68.97.107:27017/kontrol'
   mongoReplSet  : null
   runNeo4jFeeder: yes
   runGoBroker   : no
@@ -156,15 +156,14 @@ module.exports =
       broker    :
         servicesEndpoint: "/-/services/broker"
         sockJS   : "http://stage-broker-#{version}.sj.koding.com/subscribe"
-      apiUri    : 'https://www.koding.com'
+      apiUri    : 'https://koding.com'
       appsUri   : 'https://koding-apps.s3.amazonaws.com'
       uploadsUri: 'https://koding-uploads.s3.amazonaws.com'
       sourceUri : "http://stage-webserver-#{version}.sj.koding.com:1337"
       github    :
         clientId: "f733c52d991ae9642365"
       newkontrol:
-        host    : '127.0.0.1'
-        port    : 80
+        url     : 'wss://127.0.0.1:80/dnode'
       fileFetchTimeout: 15 * 1000 # seconds
       externalProfiles  :
         github          :
@@ -230,6 +229,12 @@ module.exports =
   newkontrol      :
     host          : "127.0.0.1"
     port          : 80
+    certFile      : "/opt/koding/go/src/koding/kontrol/kontrolproxy/files/10.0.5.231_cert.pem"
+    keyFile       : "/opt/koding/go/src/koding/kontrol/kontrolproxy/files/10.0.5.231_key.pem"
+  proxyKite       :
+    domain        : "127.0.0.1"
+    certFile      : "/opt/koding/go/src/koding/kontrol/kontrolproxy/files/10.0.5.102_cert.pem"
+    keyFile       : "/opt/koding/go/src/koding/kontrol/kontrolproxy/files/10.0.5.102_key.pem"
   etcd            : [ {host: "127.0.0.1", port: 4001} ]
   kontrold        :
     vhost         : "/"
@@ -240,6 +245,7 @@ module.exports =
       switchHost  : "y.koding.com"
     api           :
       port        : 80
+      url         : "http://stage-kontrol.sj.koding.com"
     proxy         :
       port        : 80
       portssl     : 443
@@ -297,3 +303,4 @@ module.exports =
     version      : "1.0"
     signature    : "HMAC-SHA1"
   mixpanel       : "113c2731b47a5151f4be44ddd5af0e7a"
+  rollbar        : "8108a4c027604f59bac7a8315c205afe"

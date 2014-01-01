@@ -18,19 +18,22 @@ resurrection.activity.styl
   display               none
 
 .content-page.activity
+.member.content-display
+  .lazy-loader
+    margin              30px auto !important
+    text-align          center
+
+.status.content-display
+  .status-body
+    max-height          100%
+
+.content-page.activity
   max-width             100%
   min-height            1026px
   margin                85px auto
   padding               0
   position              static
   overflow              visible
-
-  .lazy-loader
-    margin              30px 0 30px 80px !important
-    font-size           0
-    letter-spacing      0
-    word-spacing        0
-    text-align          center
 
   > main
     size                  689px, auto
@@ -64,7 +67,7 @@ resurrection.activity.styl
       .goback-button
         right           10px
         top             8px
-        sprite          app '20-close-tab'
+        r-sprite          app '20-close-tab'
         border          none
         abs()
 
@@ -76,6 +79,21 @@ resurrection.activity.styl
 
       .kdview
         overflow        visible
+
+    .feed-type-selection
+      margin-right      3px
+      margin-top        28px
+      text-align        right
+
+      a
+        font-weight     300
+        padding-left    20px
+        color           #838987
+        font-size       20px
+        noTextDeco()
+
+        &.active
+          color         logoBg
 
   > aside
     right               0
@@ -100,7 +118,7 @@ resurrection.activity.styl
         display         block
         font-size       14px
         font-weight     400
-        color           #37b298
+        color           logoBg
         margin          0
         padding         0 0 7px
         border-bottom   1px solid #2eb398
@@ -152,6 +170,12 @@ resurrection.activity.styl
         &.profile
           font-weight   500
 
+        &.ttag.expandable
+          display       block
+          overflow      hidden
+          text-overflow ellipsis
+          width         240px
+
       .avatarview
         rounded         5px
         display         block
@@ -171,8 +195,10 @@ resurrection.activity.styl
         abs()
         .icon
           padding       0
-          margin        1px 0 0 4px
-          r-sprite        activity, "follow-check"
+          r-sprite      activity, "follow-check"
+          top           6px
+          left          8px
+          abs()
 
         .button-title
           z-index       -1
@@ -316,9 +342,10 @@ resurrection.activity.styl
 
     > div
       size            100% auto
+      min-height      45px
       line-height     16px
       font-size       14px
-      color           #acacac
+      color           #3c4752
       padding         15px 100px 14px 56px
       background      #fff
       borderBox()
@@ -332,10 +359,12 @@ resurrection.activity.styl
       abs             0 9px 8px 0
       padding         0
       z-index         1
+      text-align      center
 
       &.solid.green .icon
-        margin        1px 0 0 7px
-        r-sprite        activity, "update-bubble"
+        margin        0 !important
+        abs           7px 0 0 7px
+        r-sprite      activity, "update-bubble"
 
       &[disabled=disabled]
         bg            color, #DDD !important
@@ -348,26 +377,6 @@ resurrection.activity.styl
         right         initial
         bottom        initial
         padding       0 10px
-
-  .notification
-    size                auto auto
-    background          lightyellow
-    font-size           12px
-    margin              10px 0
-    padding             10px 30px 10px 10px
-    border              1px solid lightgray
-    border-radius       5px
-
-    .close-tab
-      abs()
-      top               4px
-      right             4px
-      bg                color, transparent
-      sprite            app '20-close-tab'
-
-    a
-      color      #3aaaab
-      noTextDeco()
 
 span.collapsedtext
   borderBox()
@@ -451,24 +460,36 @@ span.collapsedtext
 
   .profile
   .status-body
-    word-break    break-word
     display       block
     color         #3c4752
     font-weight   200
+    word-break    break-word
 
   .status-body
     // to avoid too long posts
     // until we find a better solution - SY
-    overflow      auto
-    max-height    400px
-    padding       5px 21px 0
-    line-height   22px
-    white-space   pre-line
+    overflow          auto
+    max-height        400px
+    line-height       22px
+    margin-bottom     7px
+
+    > span
+      > *
+        padding       0 21px
+
+      > ol, ul
+        padding       0 42px
+
+      > blockquote
+        padding       0 10px
+
+      > pre
+        padding       10px 0
 
   >.profile
     color         #1aaf5d
     font-weight   400
-    padding       18px 20px 0
+    padding       18px 20px 5px
     display       inline-block
     noTextDeco()
 
@@ -499,8 +520,7 @@ span.collapsedtext
       display      none
 
   footer
-    size          100%, 33px
-    margin        -12px 0 0 0
+    size          100%, 25px
     borderBox()
 
     time
@@ -513,7 +533,7 @@ span.collapsedtext
 
     .activity-actions
       width       auto
-      padding     0 0 0 9px
+      padding     0 0 0 8px
       fl()
 
     .action-link
@@ -541,6 +561,17 @@ span.collapsedtext
 
   .comment-container
     bg                color, #f6f6f6
+    rounded           0 0 5px 5px
+
+    .delete-link
+      display       block
+      top           27px
+      right         20px
+      opacity       0
+      r-sprite        activity "delete-icon"
+      transition    opacity .2s ease
+      abs()
+
 
   .comment-container.commented
     border-top        1px solid #d8d8d8
@@ -572,11 +603,17 @@ span.collapsedtext
     padding           22px 22px 17px 20px
     borderBox()
 
+    &:hover
+      .delete-link
+        opacity         .5
+        &:hover
+          opacity       1
+
     &:last-of-type
       padding-bottom  26px
 
     .avatarview
-      border          1px solid #bdc3c7
+      // border          1px solid #bdc3c7
       top             22px
       left            20px
       rounded         5px
@@ -616,15 +653,15 @@ span.collapsedtext
         font-weight       200
 
       .reply-link
-        margin-left       14px
+        margin-left       15px
         position          relative
 
         &:before
           content         "\2022"
           display         block
           font-size       18px
-          left            -12px
-          top             -3px
+          left            -14px
+          top             -2px
           color           #d8d8d8
           abs()
 
@@ -672,7 +709,6 @@ span.collapsedtext
 
 
   .item-add-comment-box
-    border-top    1px solid #d8d8d8
     borderBox()
 
     .avatarview
@@ -857,7 +893,7 @@ span.collapsedtext
     outline                 none
     shadow                  none
     z-index                 10
-    sprite                  app "20-close-tab"
+    r-sprite                  app "20-close-tab"
     abs()
 
 .activity-item.status
@@ -931,23 +967,10 @@ span.status-body
   /* Headings */
   h1, h2, h3, h4, h5, h6
     color         #50595a
-    font-weight   600
-    margin        0 0 12px
-  h1
-    font-size     22px
-  h2
-    font-size     20px
-  h3
-    font-size     18px
-  h4
-    font-size     16px
-  h5
     font-size     14px
-  h6
-    font-size     12px
 
   /* Lists */
-  ol,ul
+  ol, ul
     padding               0 25px 12px
     list-style            none
     display               block
@@ -981,18 +1004,61 @@ span.status-body
     height                1px
     background            #c4c4c9
     border                none
-  code
-    display               inline-block
-    font-size             12px
-    border                1px solid #e3e3e3
-    rounded               5px
-    padding               0 4px
-    bg                    color #f2f2f2
-
+  blockquote
+    border-left           4px solid #DDD
+    margin                4px 21px
+  p
+    code
+      padding             0px 3px
+      border              1px solid #DDD
+      background-color    #F8F8F8
+      border-radius       3px
   pre
     code
       display             block
+      line-height         16px
+      font-size           12px
+      font-family         Monaco, Consolas, Lucida Console, Liberation Mono, DejaVu Sans Mono, Bitstream Vera Sans Mono, Courier New
       padding             14px
+      color               white
+      bg                  color, #28292A
+
+      .comment
+      .string
+      .regexp
+        color             #96B486
+
+      .keyword
+        color             #9B8298
+
+      .title
+      .variable
+        color             #6096BE
+
+      .literal
+      .number
+        color             #D17819
+
+      .constant
+      .decorator
+      .typename
+        color             #DEB63A
+
+      &.lang-go
+        .built_in
+          color           #6096BE
+
+      &.lang-css
+        .pseudo
+          color           #DEB63A
+
+        .id
+        .tag
+        .class
+          color           #9B8298
+
+        .attribute
+          color           #6096BE
 
 .activity-share-popup
   bg                      color, #ececec

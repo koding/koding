@@ -34,6 +34,7 @@ class CommentListItemView extends KDListItemView
       attributes  :
         href      : '#'
       cssClass    : 'delete-link hidden'
+      click       : KD.utils.stopDOMEvent
 
     activity = @getDelegate().getData()
     loggedInId = KD.whoami().getId()
@@ -49,7 +50,8 @@ class CommentListItemView extends KDListItemView
       @replyView = new ActivityActionLink
         cssClass : "action-link reply-link"
         partial  : "Mention"
-        click    : =>
+        click    : (event)=>
+          @utils.stopDOMEvent event
           KD.remote.cacheable data.originType, data.originId, (err, res) =>
             @getDelegate().emit 'ReplyLinkClicked', res.profile.nickname
     else

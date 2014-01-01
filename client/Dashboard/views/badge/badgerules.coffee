@@ -129,11 +129,11 @@ class BadgeRules extends JView
 class BadgeUsersItem extends KDListItemView
   constructor: (options ={}, data)->
     super options, data
-
     @avatar    = new AvatarImage
-      origin   : @getData().profile.nickname
       size     :
         width  : 40
+    , @getData()
+
     @remove    = new KDButtonView
       title    : "x"
       cssClass : "solid red"

@@ -14,10 +14,6 @@ class MainViewController extends KDViewController
     @registerSingleton 'mainViewController', this, yes
     @registerSingleton 'mainView', mainView, yes
 
-    warn "FIXME Add tell to Login app ~ GG @ kodingrouter (if needed)"
-    # mainController.on 'accountChanged.to.loggedIn', (account)->
-    #   mainController.loginScreen.hide()
-
     appManager.on 'AppIsBeingShown', (controller)=>
       @setBodyClass KD.utils.slugify controller.getOption 'name'
 
@@ -130,8 +126,7 @@ class MainViewController extends KDViewController
 
       KDView.setElementClass body, 'remove', 'intro'
       mainView.unsetClass 'home'
-      KD.introView?.unsetClass 'in'
-      KD.introView?.setClass 'out'
+      KD.introView?.hide()
 
   #     group = KD.getSingleton('groupsController').getCurrentGroup()
 

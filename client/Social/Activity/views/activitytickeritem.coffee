@@ -225,16 +225,15 @@ class ActiveUserItemView extends KDListItemView
       pistachio : "{{ #(counts.followers)}} followers {{ #(counts.following)}} following"
     , data
 
-    unless KD.isMine data
-      @followButton = new FollowButton
-        title          : "follow"
-        icon           : yes
-        stateOptions   :
-          unfollow     :
-            title      : "unfollow"
-            cssClass   : 'following-account'
-        dataType       : 'JAccount'
-      , data
+    @followButton = new FollowButton
+      title          : "follow"
+      icon           : yes
+      stateOptions   :
+        unfollow     :
+          title      : "unfollow"
+          cssClass   : 'following-account'
+      dataType       : 'JAccount'
+    , data
 
   viewAppended:->
     @addSubView @avatar
@@ -265,14 +264,16 @@ class ActiveTopicItemView extends KDListItemView
     @addSubView tagInfo = new KDCustomHTMLView
       cssClass          : "tag-info clearfix"
 
-    @getData().fetchRandomFollowers {}, =>
+    @getData().fetchLastInteractors {}, =>
       randomFollowers = arguments[1]
       for user in randomFollowers
         tagInfo.addSubView new AvatarView
           size: { width: 19, height: 19 }
         , user
 
+      { followers: followerCount } = @getData().counts
+
       tagInfo.addSubView new KDCustomHTMLView
         tagName   : "span"
         cssClass  : "total-following"
-        partial   : "+#{@getData().counts.followers} is following"
+        partial   : "+#{followerCount} #{if followerCount is 1 then 'is' else 'are'} following"
