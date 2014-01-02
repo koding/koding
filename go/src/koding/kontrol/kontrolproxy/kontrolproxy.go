@@ -134,15 +134,14 @@ func configureProxy() {
 
 // startProxy is used to fire off all our ftp, https and http proxies
 func startProxy() {
-	reverseProxy := &Proxy{
+	p := &Proxy{
 		EnableFirewall:  false,
 		CacheTransports: make(map[string]http.RoundTripper),
 	}
 
-	reverseProxy.setupLogging()
-
-	startHTTPS(reverseProxy) // non-blocking
-	startHTTP(reverseProxy)  // blocking
+	p.setupLogging()
+	p.startHTTPS() // non-blocking
+	p.startHTTP()
 }
 
 // setupLogging creates a new file for CLH logging and also sets a new signal
@@ -191,7 +190,7 @@ func (p *Proxy) setupLogging() {
 // creating a new listener for each file that ends with ".pem" and has the IP
 // in his base filename, like 10.0.5.102_cert.pem.  Each listener is created in
 // a seperate goroutine, thus the functions is nonblocking.
-func startHTTPS(reverseProxy *Proxy) {
+func (p *Proxy) startHTTPS() {
 	// HTTPS handling, it is always 443, standart port for HTTPS protocol
 	portssl := strconv.Itoa(config.Current.Kontrold.Proxy.PortSSL)
 	logs.Info(fmt.Sprintf("https mode is enabled. serving at :%s ...", portssl))
@@ -208,7 +207,7 @@ func startHTTPS(reverseProxy *Proxy) {
 
 		ip := s[0] // contains the IP of the interface
 		go func(ip string) {
-			err := http.ListenAndServeTLS(ip+":"+portssl, ip+"_cert.pem", ip+"_key.pem", reverseProxy)
+			err := http.ListenAndServeTLS(ip+":"+portssl, ip+"_cert.pem", ip+"_key.pem", p)
 			if err != nil {
 				logs.Alert(err.Error())
 				fmt.Printf("[%s] %s\n", time.Now().Format(time.Stamp))
@@ -220,7 +219,7 @@ func startHTTPS(reverseProxy *Proxy) {
 // startHTTP is used to reverse proxy incoming requests on the port 80 and
 // 1024-10000. The listener that listens on port 80 is not started on a
 // seperate go routine, and thus is blocking.
-func startHTTP(reverseProxy *Proxy) {
+func (p *Proxy) startHTTP() {
 	// HTTP Handling for VM port forwardings
 	logs.Info("normal mode is enabled. serving ports between 1024-10000 for vms...")
 
@@ -228,20 +227,19 @@ func startHTTP(reverseProxy *Proxy) {
 		for i := 1024; i <= 10000; i++ {
 			go func(i int) {
 				port := strconv.Itoa(i)
-				err := http.ListenAndServe(":"+port, reverseProxy)
+				err := http.ListenAndServe(":"+port, p)
 				if err != nil {
 					logs.Alert(err.Error())
 					log.Println(err)
 				}
 			}(i)
-
 		}
 	}
 
 	// HTTP handling (port 80, main)
 	port := strconv.Itoa(config.Current.Kontrold.Proxy.Port)
 	logs.Info(fmt.Sprintf("normal mode is enabled. serving at :%s ...", port))
-	err := http.ListenAndServe(":"+port, reverseProxy)
+	err := http.ListenAndServe(":"+port, p)
 	if err != nil {
 		logs.Alert(err.Error())
 		// don't use panic. It output full stack which we don't care.
