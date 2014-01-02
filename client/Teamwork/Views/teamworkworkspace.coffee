@@ -11,7 +11,6 @@ class TeamworkWorkspace extends CollaborativeWorkspace
       @createButtons panel
       @createRunButton panel  if playground
       @getActivePanel().header.setClass "teamwork"
-      @createActivityWidget panel
 
     @on "WorkspaceSyncedWithRemote", =>
       if playground and @amIHost()
@@ -19,13 +18,6 @@ class TeamworkWorkspace extends CollaborativeWorkspace
 
         if playgroundManifest
           @workspaceRef.child("playgroundManifest").set playgroundManifest
-
-      @hidePlaygroundsButton()  unless @amIHost()
-
-      @workspaceRef.child("users").on "child_added", (snapshot) =>
-        joinedUser = snapshot.name()
-        return if not joinedUser or joinedUser is KD.nick()
-        @hidePlaygroundsButton()
 
     @on "WorkspaceUsersFetched", =>
       @workspaceRef.child("users").once "value", (snapshot) =>
@@ -41,22 +33,13 @@ class TeamworkWorkspace extends CollaborativeWorkspace
 
     @chatView.sendWelcomeMessage()  if @amIHost()
 
+  setWatchMode: (targetUsername) ->
+    username = KD.nick()
+    @watchRef.child(username).set targetUsername
+
   createButtons: (panel) ->
     panel.addSubView @buttonsContainer = new KDCustomHTMLView
       cssClass : "tw-buttons-container"
-
-    @buttonsContainer.addSubView @shareButton = new KDButtonView
-      iconClass: "tw-export"
-      cssClass : "tw-export-button"
-      iconOnly : yes
-      # callback : => @createShareMenuButton()
-      callback : => @getDelegate().emit "ExportRequested"
-
-    @buttonsContainer.addSubView @optionsButton = new KDButtonView
-      iconClass: "tw-cog"
-      cssClass : "tw-options-button"
-      iconOnly : yes
-      callback : => @createOptionsMenuButton()
 
   displayBroadcastMessage: (options) ->
     super options
@@ -107,9 +90,6 @@ class TeamworkWorkspace extends CollaborativeWorkspace
 
   handleRun: (panel) ->
     console.warn "You should override this method."
-
-  hidePlaygroundsButton: ->
-    @getActivePanel().headerButtons.Playgrounds?.hide()
 
   showHintModal: ->
     if @markdownContent
@@ -175,112 +155,6 @@ class TeamworkWorkspace extends CollaborativeWorkspace
     return unless @getOptions().enableChat
     @chatView.sendMessage messageData, yes
 
-  createOptionsMenuButton: ->
-    menuItems = [
-      { title : "Join in", callback : => @showJoinModal()   }
-      { title : "Import" , callback : => @showImportModal() }
-      { title : "Team up", callback : => @getDelegate().showTeamUpModal() }
-    ]
-
-    @createMenuButton @optionsButton.$().offset(), menuItems
-
-  createShareMenuButton: ->
-    menuItems = [
-      { title : "Share",   callback : => console.log "join in" }
-      { title : "Export" , callback : => @getDelegate().emit "ExportRequested" }
-    ]
-
-    @createMenuButton @shareButton.$().offset(), menuItems
-
-  createMenuButton: (offset, items) ->
-    new JContextMenu
-      x           : offset.left - 140
-      y           : offset.top  + 31
-      arrow       :
-        placement : "top"
-        margin    : 150
-    , items
-
-  createActivityWidget: (panel) ->
-    panel.addSubView @activityWidget = new ActivityWidget
-      cssClass      : "tw-activity-widget collapsed"
-      childOptions  :
-        cssClass    : "activity-item"
-
-    @activityWidget.addSubView @notification = new KDCustomHTMLView
-      cssClass  : "notification"
-      partial   : "This status update will be visible in Activity feed."
-
-    @activityWidget.addSubView new KDCustomHTMLView
-      cssClass   : "close-tab"
-      click      : @bound "hideActivityWidget"
-
-    panel.addSubView @inviteTeammate = new KDButtonView
-      cssClass : "invite-teammate tw-rounded-button hidden"
-      title    : "Invite"
-      callback : =>
-        url = "#{KD.config.apiUri}/Teamwork?sessionKey=#{@sessionKey}"
-        @activityWidget.setInputContent "Join me in Teamwork: #{url}"
-        @showActivityWidget()
-        @hideShareButtons()
-        @activityWidget.showForm (err, activity) =>
-          return  err if err
-          @activityWidget.hideForm()
-          @notification.hide()
-          @workspaceRef.child("activityId").set activity.getId()
-
-        KD.mixpanel "Teamwork Invite, click", {@sessionKey}
-
-    panel.addSubView @exportWorkspace = new KDButtonView
-      cssClass : "export-workspace tw-rounded-button hidden"
-      title    : "Export"
-      callback : =>
-        @getDelegate().emit "ExportRequested", (name, url) =>
-        @hideShareButtons()
-
-        KD.mixpanel "Teamwork Export, click"
-
-    panel.addSubView shareButton = new KDButtonView
-      cssClass   : "tw-rounded-button share"
-      title      : "Share"
-      callback   : =>
-        @inviteTeammate.toggleClass "hidden"
-        @exportWorkspace.toggleClass "hidden"
-
-        KD.mixpanel "Teamwork Share, click"
-
-    panel.addSubView @showActivityWidgetButton = new KDButtonView
-      cssClass   : "tw-show-activity-widget"
-      iconOnly   : yes
-      iconClass  : "icon"
-      callback   : =>
-        if @activityWidget.activity
-          @activityWidget.hideForm()
-          @showActivityWidget()
-        else
-          @share()
-
-    {activityId} = @getOptions()
-    if activityId then @displayActivity activityId
-    else
-      @workspaceRef.child("activityId").once "value", (snapshot) =>
-        return  unless activityId = snapshot.val()
-        @displayActivity activityId
-
-    @getDelegate().on "Exported", (name, importUrl) =>
-      activityId = @activityWidget.activity?.getId()
-
-      query = {import: importUrl}
-      query.activityId = activityId  if activityId
-      querystring = @utils.stringifyQuery query
-
-      @utils.shortenUrl "#{KD.config.apiUri}/Teamwork?#{querystring}", (url) =>
-        message = "#{KD.nick()} exported #{name} #{url}"
-        if activityId then @activityWidget.reply message
-        else
-          @activityWidget.setInputContent message
-          @showActivityWidget()
-
   toggleChatPane: ->
     cssClass      = "tw-chat-open"
     isChatVisible = @hasClass cssClass
@@ -288,41 +162,6 @@ class TeamworkWorkspace extends CollaborativeWorkspace
     @chatButton.toggleClass "active"
 
     if isChatVisible then @chatView.hide() else @chatView.show()
-
-  showActivityWidget: ->
-    @activityWidget.show()
-    @activityWidget.unsetClass "collapsed"
-
-  hideActivityWidget: ->
-    @activityWidget.setClass "collapsed"
-    @activityWidget.on "transitionend", =>
-      @activityWidget.hide()
-
-  showShareButtons: ->
-    @inviteTeammate.show()
-    @exportWorkspace.show()
-
-  hideShareButtons: ->
-    @inviteTeammate.hide()
-    @exportWorkspace.hide()
-
-  displayActivity: (id) ->
-    @activityWidget.display id, =>
-      @notification.hide()
-      @activityWidget.hideForm()
-
-  share: ->
-    @activityWidget.show()
-    @activityWidget.unsetClass "collapsed"
-
-    if @activityWidget.activity
-      @activityWidget.hideForm()
-    else
-      @activityWidget.showForm (err, activity) =>
-        return  err if err
-        @activityWidget.hideForm()
-        @notification.hide()
-        @workspaceRef.child("activityId").set activity.getId()
 
   createLoader: ->
     @loader    = new KDView

@@ -30,14 +30,6 @@ class TeamworkApp extends KDObject
       @teamwork.on "WorkspaceSyncedWithRemote", =>
         @showImportWarning importUrl
 
-    @on "ExportRequested", (callback = noop) =>
-      @showExportModal()
-      @tools.once "Exported", callback # TODO: what a great event name
-
-    @on "TeamUpRequested", =>
-      @teamwork.once "WorkspaceSyncedWithRemote", =>
-        @showTeamUpModal()
-
     {sessionKey, importUrl} = options.query
     if sessionKey     then @emit "JoinSessionRequested", sessionKey
     else if importUrl then @emit "ImportRequested"     , importUrl
@@ -52,16 +44,6 @@ class TeamworkApp extends KDObject
     @teamwork = new playgroundClass options or @getTeamworkOptions()
     @appView.addSubView @teamwork
     callback?()
-
-  showTeamUpModal: ->
-    @showToolsModal @teamwork.getActivePanel(), @teamwork
-    @tools.teamUpHeader.emit "click"
-    @tools.setClass "team-up-mode"
-
-  showExportModal: ->
-    @showToolsModal @teamwork.getActivePanel(), @teamwork
-    @tools.shareHeader.emit "click"
-    @tools.setClass "share-mode"
 
   getTeamworkOptions: ->
     options               = @getOptions()
@@ -99,17 +81,6 @@ class TeamworkApp extends KDObject
           ]
       ]
     }
-
-  showToolsModal: (panel, workspace) ->
-    modal       = new KDModalView
-      cssClass  : "teamwork-tools-modal"
-      title     : "Teamwork Tools"
-      overlay   : yes
-      width     : 600
-
-    modal.addSubView @tools = new TeamworkTools { modal, panel, workspace, twApp: this }
-    @emit "TeamworkToolsModalIsReady", modal
-    @forwardEvent @tools, "Exported"
 
   showImportWarning: (url, callback = noop) ->
     @importModal?.destroy()
