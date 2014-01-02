@@ -368,9 +368,9 @@ func (p *Proxy) resetCacheHandler() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.Host != proxyName {
 			logs.Debug(fmt.Sprintf("resetcache handler: got hostame %s, expected %s\n",
-				r.Host, r.URL.String()))
+				r.Host, proxyName))
 			logs.Debug("resetcache handler: fallback to reverse proxy handler")
-			p.mux.ServeHTTP(w, r)
+			p.ServeHTTP(w, r)
 			return
 		}
 
