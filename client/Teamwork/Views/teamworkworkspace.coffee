@@ -339,7 +339,7 @@ class TeamworkWorkspace extends CollaborativeWorkspace
     modal          = new KDModalView
       title        : "Import Content to your VM"
       content      : "<p>Enter the URL of a git repository or zip archive.</p>"
-      cssClass     : "workspace-modal join-modal"
+      cssClass     : "tw-modal"
       overlay      : yes
       width        : 600
       buttons      :
