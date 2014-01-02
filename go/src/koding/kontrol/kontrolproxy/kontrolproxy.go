@@ -38,18 +38,20 @@ func init() {
 // Proxy is implementing the http.Handler interface (via ServeHTTP). This is
 // used as the main handler for our HTTP and HTTPS listeners.
 type Proxy struct {
-	// EnableFirewall is used to activate the internal validator that uses the
+	// enableFirewall is used to activate the internal validator that uses the
 	// restrictions and filter collections to validate the incoming requests
 	// accoding to ip, country, requests and so on..
-	EnableFirewall bool
+	enableFirewall bool
 
-	// LogDestination specifies the destination of requests logs in the
+	// logDestination specifies the destination of requests logs in the
 	// Combined Log Format.
-	LogDestination io.Writer
+	logDestination io.Writer
 
-	// CacheTransports is used to enable cache based roundtrips for certaing
+	// cacheTransports is used to enable cache based roundtrips for certaing
 	// request hosts, such as koding.com.
-	CacheTransports map[string]http.RoundTripper
+	cacheTransports map[string]http.RoundTripper
+
+	//
 
 	sync.Mutex
 }
@@ -135,8 +137,8 @@ func configureProxy() {
 // startProxy is used to fire off all our ftp, https and http proxies
 func startProxy() {
 	p := &Proxy{
-		EnableFirewall:  false,
-		CacheTransports: make(map[string]http.RoundTripper),
+		enableFirewall:  false,
+		cacheTransports: make(map[string]http.RoundTripper),
 	}
 
 	p.setupLogging()
@@ -158,9 +160,9 @@ func (p *Proxy) setupLogging() {
 	logFile, err := os.OpenFile(logPath, os.O_WRONLY|os.O_APPEND|os.O_CREATE, 0755)
 	if err != nil {
 		log.Printf("err: '%s'. \nusing stderr for log destination\n", err)
-		p.LogDestination = os.Stderr
+		p.logDestination = os.Stderr
 	} else {
-		p.LogDestination = logFile
+		p.logDestination = logFile
 	}
 
 	go func() {
@@ -177,7 +179,7 @@ func (p *Proxy) setupLogging() {
 					log.Println(err)
 				} else {
 					log.Println("creating new file")
-					p.LogDestination = newFile
+					p.logDestination = newFile
 				}
 			case syscall.SIGINT, syscall.SIGTERM:
 				os.Exit(1)
@@ -257,7 +259,7 @@ func (p *Proxy) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	// our main handler mux function goes and picks the correct handler
 	if h := p.getHandler(r); h != nil {
-		loggingHandler := handlers.CombinedLoggingHandler(p.LogDestination, h)
+		loggingHandler := handlers.CombinedLoggingHandler(p.logDestination, h)
 		loggingHandler.ServeHTTP(w, r)
 		return
 	}
@@ -302,7 +304,7 @@ func (p *Proxy) getHandler(req *http.Request) http.Handler {
 			target.Proxy.Mode, userIP, target.FetchedSource, req.Host, target.URL.String()))
 	}()
 
-	if p.EnableFirewall {
+	if p.enableFirewall {
 		_, err = validate(userIP, req.Host)
 		if err == ErrSecurePage {
 			return securePageHandler(userIP)
