@@ -197,6 +197,8 @@ class WebTermAppView extends JView
       delegate    : this
       vmName      : vmName
 
+    @forwardEvents webTermView, ['KeyViewIsSet', 'command']
+
     pane          = new KDTabPaneView
       name        : 'Terminal'
       webTermView : webTermView

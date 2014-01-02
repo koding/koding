@@ -63,6 +63,8 @@ class WebTermView extends KDView
 
     @bindEvent 'contextmenu'
 
+    @forwardEvent @terminal, 'command'
+
     vmName = @_vmName
     vmController = KD.getSingleton 'vmController'
     vmController.info vmName, KD.utils.getTimedOutCallback (err, vm, info)=>
@@ -88,7 +90,7 @@ class WebTermView extends KDView
       @terminal.updateSize yes
 
   connectToTerminal:->
-    @appStorage = KD.getSingleton('appStorageController').storage 'WebTerm', '1.0.1'
+    @appStorage = KD.getSingleton('appStorageController').storage 'Terminal', '1.0.1'
     @appStorage.fetchStorage =>
       @appStorage.setValue 'font'      , 'ubuntu-mono' if not @appStorage.getValue('font')?
       @appStorage.setValue 'fontSize'  , 14 if not @appStorage.getValue('fontSize')?
@@ -215,10 +217,10 @@ class WebTermView extends KDView
     @terminal.setScrollbackLimit @appStorage.getValue 'scrollback'
 
   setKeyView: ->
-    super
     KD.getSingleton('windowController').addLayer this
     @focused = true
     @terminal.setFocused true
+    @emit 'KeyViewIsSet'
 
   click: ->
     @setKeyView()
