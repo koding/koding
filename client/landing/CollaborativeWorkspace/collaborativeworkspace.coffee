@@ -1,14 +1,15 @@
 class CollaborativeWorkspace extends Workspace
 
   init: ->
+    {createUserList, enableChat} = @getOptions()
     @nickname    = KD.nick()
     @sessionData = []
     @users       = {}
     @createRemoteInstance()
     @createLoader()
     @fetchUsers()
-    @createUserListContainer()
-    @createChat()  if @getOptions().enableChat
+    @createUserListContainer()  if createUserList
+    @createChat()               if enableChat
     @bindRemoteEvents()
 
   createChat: ->
@@ -257,10 +258,6 @@ class CollaborativeWorkspace extends Workspace
       container : @userListContainer
       delegate  : this
     }
-
-  setWatchMode: (targetUsername) ->
-    username = KD.nick()
-    @watchRef.child(username).set targetUsername
 
   addToHistory: (data) ->
     target       = @historyRef.child Date.now()
