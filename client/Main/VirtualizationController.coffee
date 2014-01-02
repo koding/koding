@@ -409,7 +409,7 @@ class VirtualizationController extends KDController
     switch command
       when 'vm.stop', 'vm.shutdown'
         content = """<p>Turning off your VM will <b>stop</b> running Terminal
-                     instances and all running proccesess that you have on
+                     instances and all running processes that you have on
                      your VM. Do you want to continue?</p>"""
         button  =
           title : "Turn off"
