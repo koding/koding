@@ -1067,6 +1067,7 @@ a.action-link.verify-email
     border          2px solid #b5b5b5
     right           4px
     top             17px
+    z-index         0 //This line is the meaning of the life... [BC]
     vendor          transition, width .1s ease \,\
                                 border-color .3s ease
     abs()
@@ -1096,10 +1097,9 @@ a.action-link.verify-email
         opacity     1
 
     &.following-account
-    &.following-topic
       border-color  #2eb398
       .icon
-        r-sprite      activity, "following-check"
+        r-sprite    activity, "following-check"
       .button-title
         color       #2eb398
       &:hover
