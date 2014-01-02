@@ -585,7 +585,6 @@ app.teamwork.styl
     abs                         50% 0 0 50%
     margin                      -66px 0 0 -66px
     r-sprite                    "teamwork", "teampunk-big"
-
     &:after
     &:before
     span
@@ -597,12 +596,20 @@ app.teamwork.styl
       vendor                    transform, scale(.91)
       vendor                    animation, borderPulse 2.1s infinite ease
       borderBox()
-
     &:before
       vendor                    animation-delay, .3s
-
     span
       vendor                    animation-delay, .6s
+  .tw-loader-text
+    color                       #7a8285
+    text-align                  center
+    position                    relative
+    top                         50%
+    margin-top                  96px
+
+.tw-ply-icon
+    position                    relative
+    top                         10px
 
 @-moz-keyframes borderPulse
   15%
