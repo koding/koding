@@ -38,6 +38,11 @@ func init() {
 // Proxy is implementing the http.Handler interface (via ServeHTTP). This is
 // used as the main handler for our HTTP and HTTPS listeners.
 type Proxy struct {
+	// mux imples the http.Handler interface. Currently we use the default
+	// http.ServeMux but can be swapped with any other mux that satisfies the
+	// http.Handler
+	mux *http.ServeMux
+
 	// enableFirewall is used to activate the internal validator that uses the
 	// restrictions and filter collections to validate the incoming requests
 	// accoding to ip, country, requests and so on..
@@ -51,9 +56,7 @@ type Proxy struct {
 	// request hosts, such as koding.com.
 	cacheTransports map[string]http.RoundTripper
 
-	//
-
-	sync.Mutex
+	sync.Mutex // protects cacheTransports
 }
 
 // used by redis counter
@@ -137,9 +140,12 @@ func configureProxy() {
 // startProxy is used to fire off all our ftp, https and http proxies
 func startProxy() {
 	p := &Proxy{
+		mux:             http.NewServeMux(),
 		enableFirewall:  false,
 		cacheTransports: make(map[string]http.RoundTripper),
 	}
+
+	p.mux.Handle("/", p)
 
 	p.setupLogging()
 	p.startHTTPS() // non-blocking
@@ -209,7 +215,7 @@ func (p *Proxy) startHTTPS() {
 
 		ip := s[0] // contains the IP of the interface
 		go func(ip string) {
-			err := http.ListenAndServeTLS(ip+":"+portssl, ip+"_cert.pem", ip+"_key.pem", p)
+			err := http.ListenAndServeTLS(ip+":"+portssl, ip+"_cert.pem", ip+"_key.pem", p.mux)
 			if err != nil {
 				logs.Alert(err.Error())
 				fmt.Printf("[%s] %s\n", time.Now().Format(time.Stamp))
@@ -241,7 +247,7 @@ func (p *Proxy) startHTTP() {
 	// HTTP handling (port 80, main)
 	port := strconv.Itoa(config.Current.Kontrold.Proxy.Port)
 	logs.Info(fmt.Sprintf("normal mode is enabled. serving at :%s ...", port))
-	err := http.ListenAndServe(":"+port, p)
+	err := http.ListenAndServe(":"+port, p.mux)
 	if err != nil {
 		logs.Alert(err.Error())
 		// don't use panic. It output full stack which we don't care.
