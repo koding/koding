@@ -15,9 +15,12 @@ class Panel extends JView
     {title}         = options
     buttonsLength   = options.buttons?.length
 
-    @createHeader title     if title or buttonsLength
-    @createHeaderButtons()  if buttonsLength
-    @createHeaderHint()     if options.hint
+    if title or buttonsLength
+      @createHeader title
+      @createHeaderButtons()  if buttonsLength
+      @createHeaderHint()     if options.hint
+    else
+      @header = new KDCustomHTMLView { cssClass: "hidden" }
 
     @createLayout()
 
