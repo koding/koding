@@ -17,11 +17,9 @@ import (
 	"os"
 	"os/signal"
 	"path/filepath"
-	"regexp"
 	"runtime"
 	"strconv"
 	"strings"
-	"sync"
 	"syscall"
 	"time"
 
@@ -38,8 +36,8 @@ func init() {
 // Proxy is implementing the http.Handler interface (via ServeHTTP). This is
 // used as the main handler for our HTTP and HTTPS listeners.
 type Proxy struct {
-	// mux imples the http.Handler interface. Currently we use the default
-	// http.ServeMux but can be swapped with any other mux that satisfies the
+	// mux implies the http.Handler interface. Currently we use the default
+	// http.ServeMux but it can be swapped with any other mux that satisfies the
 	// http.Handler
 	mux *http.ServeMux
 
@@ -55,8 +53,6 @@ type Proxy struct {
 	// cacheTransports is used to enable cache based roundtrips for certaing
 	// request hosts, such as koding.com.
 	cacheTransports map[string]http.RoundTripper
-
-	sync.Mutex // protects cacheTransports
 }
 
 // used by redis counter
@@ -146,6 +142,7 @@ func startProxy() {
 	}
 
 	p.mux.Handle("/", p)
+	p.mux.Handle("/_resetcache_/", resetCacheHandler())
 
 	p.setupLogging()
 	p.startHTTPS() // non-blocking
@@ -275,8 +272,6 @@ func (p *Proxy) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	return
 }
 
-var resetRegex = regexp.MustCompile("/_resetcache_/")
-
 // getHandler returns the appropriate Handler for the given Request,
 // or nil if none found.
 func (p *Proxy) getHandler(req *http.Request) http.Handler {
@@ -285,13 +280,6 @@ func (p *Proxy) getHandler(req *http.Request) http.Handler {
 	// remove www from the hostname (i.e. www.foo.com -> foo.com)
 	if strings.HasPrefix(req.Host, "www.") {
 		req.Host = strings.TrimPrefix(req.Host, "www.")
-	}
-
-	// remove cache for static files. It should be in form of _/resetcache_/koding.com
-	if resetRegex.MatchString(req.URL.String()) && req.Host == proxyName {
-		logs.Debug(fmt.Sprintf("resetCache is invoked %s - %s\n", req.Host, req.URL.String()))
-		cacheHost := filepath.Base(req.URL.String())
-		return p.resetCacheHandler(cacheHost)
 	}
 
 	target, err := resolver.GetTarget(req)
@@ -376,13 +364,20 @@ func reverseProxyHandler(transport http.RoundTripper, target *url.URL) http.Hand
 }
 
 // resetCacheHandler is reseting the cache transport for the given host.
-func (p *Proxy) resetCacheHandler(host string) http.Handler {
-	p.Lock()
-	defer p.Unlock()
-	resolver.CleanCache(host)
-
+func resetCacheHandler() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte("cache is cleaned"))
+		if r.Host == proxyName {
+			logs.Debug(fmt.Sprintf("resetcachehandler, got hostame: %s, expected %s\n",
+				r.Host, r.URL.String()))
+			http.NotFound(w, r)
+			return
+		}
+
+		logs.Debug(fmt.Sprintf("resetCache is invoked %s - %s\n", r.Host, r.URL.String()))
+		cacheHost := filepath.Base(r.URL.String())
+		resolver.CleanCache(cacheHost)
+
+		w.Write([]byte(fmt.Sprintf("cache is cleaned for %s", cacheHost)))
 	})
 }
 
