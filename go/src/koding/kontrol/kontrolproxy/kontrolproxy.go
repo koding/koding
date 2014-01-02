@@ -17,11 +17,9 @@ import (
 	"os"
 	"os/signal"
 	"path/filepath"
-	"regexp"
 	"runtime"
 	"strconv"
 	"strings"
-	"sync"
 	"syscall"
 	"time"
 
@@ -38,20 +36,23 @@ func init() {
 // Proxy is implementing the http.Handler interface (via ServeHTTP). This is
 // used as the main handler for our HTTP and HTTPS listeners.
 type Proxy struct {
-	// EnableFirewall is used to activate the internal validator that uses the
+	// mux implies the http.Handler interface. Currently we use the default
+	// http.ServeMux but it can be swapped with any other mux that satisfies the
+	// http.Handler
+	mux *http.ServeMux
+
+	// enableFirewall is used to activate the internal validator that uses the
 	// restrictions and filter collections to validate the incoming requests
 	// accoding to ip, country, requests and so on..
-	EnableFirewall bool
+	enableFirewall bool
 
-	// LogDestination specifies the destination of requests logs in the
+	// logDestination specifies the destination of requests logs in the
 	// Combined Log Format.
-	LogDestination io.Writer
+	logDestination io.Writer
 
-	// CacheTransports is used to enable cache based roundtrips for certaing
+	// cacheTransports is used to enable cache based roundtrips for certaing
 	// request hosts, such as koding.com.
-	CacheTransports map[string]http.RoundTripper
-
-	sync.Mutex
+	cacheTransports map[string]http.RoundTripper
 }
 
 // used by redis counter
@@ -135,9 +136,13 @@ func configureProxy() {
 // startProxy is used to fire off all our ftp, https and http proxies
 func startProxy() {
 	p := &Proxy{
-		EnableFirewall:  false,
-		CacheTransports: make(map[string]http.RoundTripper),
+		mux:             http.NewServeMux(),
+		enableFirewall:  false,
+		cacheTransports: make(map[string]http.RoundTripper),
 	}
+
+	p.mux.Handle("/", p)
+	p.mux.Handle("/_resetcache_/", p.resetCacheHandler())
 
 	p.setupLogging()
 	p.startHTTPS() // non-blocking
@@ -158,9 +163,9 @@ func (p *Proxy) setupLogging() {
 	logFile, err := os.OpenFile(logPath, os.O_WRONLY|os.O_APPEND|os.O_CREATE, 0755)
 	if err != nil {
 		log.Printf("err: '%s'. \nusing stderr for log destination\n", err)
-		p.LogDestination = os.Stderr
+		p.logDestination = os.Stderr
 	} else {
-		p.LogDestination = logFile
+		p.logDestination = logFile
 	}
 
 	go func() {
@@ -177,7 +182,7 @@ func (p *Proxy) setupLogging() {
 					log.Println(err)
 				} else {
 					log.Println("creating new file")
-					p.LogDestination = newFile
+					p.logDestination = newFile
 				}
 			case syscall.SIGINT, syscall.SIGTERM:
 				os.Exit(1)
@@ -207,7 +212,7 @@ func (p *Proxy) startHTTPS() {
 
 		ip := s[0] // contains the IP of the interface
 		go func(ip string) {
-			err := http.ListenAndServeTLS(ip+":"+portssl, ip+"_cert.pem", ip+"_key.pem", p)
+			err := http.ListenAndServeTLS(ip+":"+portssl, ip+"_cert.pem", ip+"_key.pem", p.mux)
 			if err != nil {
 				logs.Alert(err.Error())
 				fmt.Printf("[%s] %s\n", time.Now().Format(time.Stamp))
@@ -239,7 +244,7 @@ func (p *Proxy) startHTTP() {
 	// HTTP handling (port 80, main)
 	port := strconv.Itoa(config.Current.Kontrold.Proxy.Port)
 	logs.Info(fmt.Sprintf("normal mode is enabled. serving at :%s ...", port))
-	err := http.ListenAndServe(":"+port, p)
+	err := http.ListenAndServe(":"+port, p.mux)
 	if err != nil {
 		logs.Alert(err.Error())
 		// don't use panic. It output full stack which we don't care.
@@ -257,7 +262,7 @@ func (p *Proxy) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	// our main handler mux function goes and picks the correct handler
 	if h := p.getHandler(r); h != nil {
-		loggingHandler := handlers.CombinedLoggingHandler(p.LogDestination, h)
+		loggingHandler := handlers.CombinedLoggingHandler(p.logDestination, h)
 		loggingHandler.ServeHTTP(w, r)
 		return
 	}
@@ -267,8 +272,6 @@ func (p *Proxy) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	return
 }
 
-var resetRegex = regexp.MustCompile("/_resetcache_/")
-
 // getHandler returns the appropriate Handler for the given Request,
 // or nil if none found.
 func (p *Proxy) getHandler(req *http.Request) http.Handler {
@@ -277,13 +280,6 @@ func (p *Proxy) getHandler(req *http.Request) http.Handler {
 	// remove www from the hostname (i.e. www.foo.com -> foo.com)
 	if strings.HasPrefix(req.Host, "www.") {
 		req.Host = strings.TrimPrefix(req.Host, "www.")
-	}
-
-	// remove cache for static files. It should be in form of _/resetcache_/koding.com
-	if resetRegex.MatchString(req.URL.String()) && req.Host == proxyName {
-		logs.Debug(fmt.Sprintf("resetCache is invoked %s - %s\n", req.Host, req.URL.String()))
-		cacheHost := filepath.Base(req.URL.String())
-		return p.resetCacheHandler(cacheHost)
 	}
 
 	target, err := resolver.GetTarget(req)
@@ -302,7 +298,7 @@ func (p *Proxy) getHandler(req *http.Request) http.Handler {
 			target.Proxy.Mode, userIP, target.FetchedSource, req.Host, target.URL.String()))
 	}()
 
-	if p.EnableFirewall {
+	if p.enableFirewall {
 		_, err = validate(userIP, req.Host)
 		if err == ErrSecurePage {
 			return securePageHandler(userIP)
@@ -368,13 +364,21 @@ func reverseProxyHandler(transport http.RoundTripper, target *url.URL) http.Hand
 }
 
 // resetCacheHandler is reseting the cache transport for the given host.
-func (p *Proxy) resetCacheHandler(host string) http.Handler {
-	p.Lock()
-	defer p.Unlock()
-	resolver.CleanCache(host)
-
+func (p *Proxy) resetCacheHandler() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte("cache is cleaned"))
+		if r.Host != proxyName {
+			logs.Debug(fmt.Sprintf("resetcache handler: got hostame %s, expected %s\n",
+				r.Host, proxyName))
+			logs.Debug("resetcache handler: fallback to reverse proxy handler")
+			p.ServeHTTP(w, r)
+			return
+		}
+
+		logs.Debug(fmt.Sprintf("resetCache is invoked %s - %s\n", r.Host, r.URL.String()))
+		cacheHost := filepath.Base(r.URL.String())
+		resolver.CleanCache(cacheHost)
+
+		w.Write([]byte(fmt.Sprintf("cache is cleaned for %s", cacheHost)))
 	})
 }
 
