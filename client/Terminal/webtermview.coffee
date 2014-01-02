@@ -108,8 +108,6 @@ class WebTermView extends KDView
         session     : myOptions.session  or delegateOptions.session
         noScreen    : delegateOptions.noScreen
 
-      console.log { myOptions, params }
-
       KD.getSingleton("vmController").run
         method        : "webterm.connect",
         vmName        : myOptions.vmName or delegateOptions.vmName
@@ -122,7 +120,6 @@ class WebTermView extends KDView
 
         @terminal.eventHandler = (data)=> @emit "WebTermEvent", data
         @terminal.server       = remote
-        @setKeyView()
         @sessionId = remote.session
         @emit "WebTermConnected", remote
 
