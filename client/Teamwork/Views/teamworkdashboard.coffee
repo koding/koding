@@ -22,14 +22,13 @@ class TeamworkDashboard extends JView
       click       : => @getDelegate().teamwork.showImportModal()
 
     manifests?.forEach (manifest) =>
-      @setClass "ready"
       @playgrounds.addSubView view = new KDCustomHTMLView
         cssClass  : "tw-playground-item"
         partial   : "<img src='#{manifest.icon}'/> <p>#{manifest.name}</p>"
         click     : =>
-          # @getDelegate().handlePlaygroundSelection manifest.name, manifest.manifestUrl
-          new KDNotificationView
-            title : "Coming Soon"
+          @getDelegate().handlePlaygroundSelection manifest.name, manifest.manifestUrl
+
+    @setClass "ready"
 
   fetchManifests: ->
     delegate = @getDelegate()
