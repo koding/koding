@@ -62,6 +62,7 @@ class AccountEditUsername extends JView
     {email, password, confirmPassword, firstName, lastName, username} = formData
 
     profileUpdated = yes
+    currentPasswordConfirmed = no
     queue = [
       =>
         # update firstname and lastname
@@ -85,12 +86,14 @@ class AccountEditUsername extends JView
             return queue.next() if err.message is "EmailIsSameError"
             return notify err.message
 
-          new VerifyPINModal 'Update E-Mail', (pin)=>
-            KD.remote.api.JUser.changeEmail {email, pin}, (err)=>
-              if err
-                notify err.message
-                profileUpdated = false
-              queue.next()
+          confirmCurrentPassword currentPasswordConfirmed, =>
+            currentPasswordConfirmed = true
+            new VerifyPINModal 'Update E-Mail', (pin)=>
+              KD.remote.api.JUser.changeEmail {email, pin}, (err)=>
+                if err
+                  notify err.message
+                  profileUpdated = false
+                queue.next()
       =>
         # on third turn update password
         # check for password confirmation
@@ -103,17 +106,27 @@ class AccountEditUsername extends JView
             notify "You should set your password"
           return queue.next()
 
-        JUser.changePassword password, (err,docs)=>
-          if err
-            return queue.next()  if err.message is "PasswordIsSame"
-            return  notify err.message
-          return queue.next()
+        confirmCurrentPassword currentPasswordConfirmed, =>
+          JUser.changePassword password, (err,docs)=>
+            @emailForm.inputs.password.setValue ""
+            @emailForm.inputs.confirm.setValue ""
+            if err
+              return queue.next()  if err.message is "PasswordIsSame"
+              return  notify err.message
+            return queue.next()
       =>
         # if everything is OK or didnt change, show profile updated modal
         notify "Your account information is updated." if profileUpdated
     ]
     daisy queue
 
+  confirmCurrentPassword = (currentPasswordConfirmed, callback) ->
+    return callback null if currentPasswordConfirmed
+    new VerifyPasswordModal "Confirm", (currentPassword) ->
+      KD.remote.api.JUser.verifyPassword currentPassword, (err, confirmed) ->
+        return notify err.message if err
+        return notify "Current password cannot be confirmed" unless confirmed
+        callback null
 
   viewAppended:->
     {JPasswordRecovery, JUser} = KD.remote.api
