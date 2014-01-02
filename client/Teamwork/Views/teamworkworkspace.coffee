@@ -97,10 +97,10 @@ class TeamworkWorkspace extends CollaborativeWorkspace
       @addSubView teamwork
 
   createRunButton: (panel) ->
-    panel.headerButtonsContainer.addSubView new KDButtonView
-      title      : "Run"
-      cssClass   : "clean-gray tw-ply-run"
-      callback   : => @handleRun panel
+  #   panel.headerButtonsContainer.addSubView new KDButtonView
+  #     title      : "Run"
+  #     cssClass   : "clean-gray tw-ply-run"
+  #     callback   : => @handleRun panel
 
   getPlaygroundClass: (playground) ->
     return if playground is "Facebook" then FacebookTeamwork else PlaygroundTeamwork
