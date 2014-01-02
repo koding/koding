@@ -142,7 +142,7 @@ func startProxy() {
 	}
 
 	p.mux.Handle("/", p)
-	p.mux.Handle("/_resetcache_/", resetCacheHandler())
+	p.mux.Handle("/_resetcache_/", p.resetCacheHandler())
 
 	p.setupLogging()
 	p.startHTTPS() // non-blocking
@@ -364,12 +364,13 @@ func reverseProxyHandler(transport http.RoundTripper, target *url.URL) http.Hand
 }
 
 // resetCacheHandler is reseting the cache transport for the given host.
-func resetCacheHandler() http.Handler {
+func (p *Proxy) resetCacheHandler() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.Host == proxyName {
-			logs.Debug(fmt.Sprintf("resetcachehandler, got hostame: %s, expected %s\n",
+		if r.Host != proxyName {
+			logs.Debug(fmt.Sprintf("resetcache handler: got hostame %s, expected %s\n",
 				r.Host, r.URL.String()))
-			http.NotFound(w, r)
+			logs.Debug("resetcache handler: fallback to reverse proxy handler")
+			p.mux.ServeHTTP(w, r)
 			return
 		}
 
