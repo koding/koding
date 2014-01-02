@@ -22,6 +22,7 @@ class TeamworkDashboard extends JView
       click       : => @getDelegate().teamwork.showImportModal()
 
     manifests?.forEach (manifest) =>
+      return if manifest.name is "Facebook"
       @playgrounds.addSubView view = new KDCustomHTMLView
         cssClass  : "tw-playground-item"
         partial   : "<img src='#{manifest.icon}'/> <p>#{manifest.name}</p>"
