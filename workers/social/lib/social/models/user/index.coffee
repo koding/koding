@@ -801,7 +801,7 @@ module.exports = class JUser extends jraphical.Module
   sendChangeEmail = (email, type)->
     email = new JMail {
       email
-      subject : "Your #{type} has changed"
+      subject : "Your #{type} has been changed"
       content : """
         Your #{type} has been changed!  If you didn't request this change, please contact support@koding.com immediately!
       """
@@ -882,7 +882,10 @@ module.exports = class JUser extends jraphical.Module
       salt
       password: hashPassword(newPassword, salt)
       passwordStatus: 'valid'
-    }, callback
+    }, (err) ->
+      return callback err if err
+      sendChangeEmail @email, "password"
+      callback null
 
   changeEmail:(account, options, callback)->
 
