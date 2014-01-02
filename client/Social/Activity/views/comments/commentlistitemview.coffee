@@ -144,9 +144,7 @@ class CommentListItemView extends KDListItemView
       {{> @avatar}}
       <div class='comment-contents clearfix'>
         {{> @author}}
-        <p class='comment-body'>
-          {{@utils.applyTextExpansions #(body), yes}}
-        </p>
+        {p{@utils.applyTextExpansions #(body), yes}}
         {{> @deleteLink}}
         {{> @likeView}}
         {{> @replyView}}
