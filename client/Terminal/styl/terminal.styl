@@ -18,6 +18,11 @@ body.terminal #main-header
 
 .terminal
 
+  .console
+    > div[contenteditable="true"]
+      &:focus
+        outline  none
+
   .message-pane
     color       #aaa
     top         50%
