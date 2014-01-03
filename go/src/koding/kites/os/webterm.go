@@ -43,7 +43,7 @@ func screenSessions(vos *virt.VOS) []string {
 	// We need to use ls here, because /var/run/screen mount is only
 	// visible from inside of container. Errors are ignored.
 	out, _ := vos.VM.AttachCommand(vos.User.Uid, "", "ls", "/var/run/screen/S-"+vos.User.Name).Output()
-	names := strings.Split(string(out[:len(out)-1]), "\n")
+	names := strings.Split(string(bytes.TrimSpace(out)), "\n")
 	sessions := make([]string, len(names))
 
 	prefix := sessionPrefix + "."
