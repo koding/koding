@@ -71,6 +71,12 @@ class WebTerm.Terminal extends KDObject
           @setKeyFocus()
     , yes
 
+    @outputbox.on "keydown", (event) =>
+      if @mousedownHappened
+        @setKeyFocus() unless event.ctrlKey or event.metaKey
+        @utils.defer =>
+          @mousedownHappened = false
+
     @container.on "mousedown mousemove mouseup mousewheel contextmenu", (event) =>
       @inputHandler.mouseEvent event
 
