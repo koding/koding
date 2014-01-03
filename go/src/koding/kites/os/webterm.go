@@ -99,7 +99,7 @@ func registerWebtermMethods(k *kite.Kite) {
 		cmdArgs := []string{"/usr/bin/screen", "-e^Bb", "-S"}
 
 		switch params.Mode {
-		case "shared":
+		case "shared", "resume":
 			if params.Session == "" {
 				return nil, &kite.ArgumentError{Expected: "{ session: [string] }"}
 			}
@@ -110,21 +110,14 @@ func registerWebtermMethods(k *kite.Kite) {
 				}
 			}
 
-			cmdArgs = append(cmdArgs, sessionPrefix+"."+params.Session, "-x")
+			cmdArgs = append(cmdArgs, sessionPrefix+"."+params.Session)
+			if params.Mode == "shared" {
+				cmdArgs = append(cmdArgs, "-x") // multiuser mode
+			} else if params.Mode == "resume" {
+				cmdArgs = append(cmdArgs, "-r") // resume
+			}
 		case "noscreen":
 			cmdArgs = nil
-		case "resume":
-			if params.Session == "" {
-				return nil, &kite.ArgumentError{Expected: "{ session: [string] }"}
-			}
-
-			if !sessionExists(vos, params.Session) {
-				return nil, &kite.Error{
-					Message: fmt.Sprintf("The given session '%s' is not available.", params.Session),
-				}
-			}
-
-			cmdArgs = append(cmdArgs, sessionPrefix+"."+params.Session, "-r")
 		case "create":
 			params.Session = utils.RandomString()
 			cmdArgs = append(cmdArgs, sessionPrefix+"."+params.Session)
