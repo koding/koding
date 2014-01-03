@@ -111,7 +111,7 @@ app.login-signup.styl
     .login-options-holder.reg
       visible()
     .flex-wrapper
-      height                475px
+      height                400px
       &.taller
         height              500px
 
@@ -184,10 +184,10 @@ app.login-signup.styl
         display         block
         right           20px
         top             27px
-        sprite          app 'login-right-arrow'
+        r-sprite          app 'login-right-arrow'
       .icon
         padding           0
-        sprite            app 'login-github'
+        r-sprite            app 'login-github'
 
 .login-box-header
   rel()
@@ -214,7 +214,7 @@ app.login-signup.styl
     cite
       margin              19px auto 0 auto
       display             block
-      sprite              app logo-login
+      r-sprite              app logo-login
   a.back-to-login
     font-size             11px
     abs()
@@ -255,12 +255,12 @@ app.login-signup.styl
         // .placeholder-helper
         //   color           #e79a8f
         .validation-icon
-          sprite          app 'login-validation-fail'
+          r-sprite          app 'login-validation-fail'
           opacity         1
 
       // &.validation-passed
       //   .validation-icon
-      //     sprite          app 'login-validation-pass'
+      //     r-sprite          app 'login-validation-pass'
       //     opacity         1
 
   p
@@ -291,6 +291,7 @@ app.login-signup.styl
 
     .kdinput
       text-align        center
+      background        transparent
 
     .placeholder-helper
       abs()
@@ -300,11 +301,11 @@ app.login-signup.styl
       top               19px
       font-size         16px
       text-align        center
+      z-index           0
       opacity           1
       vendor            transition, top .1s ease\,\
                                     opacity .3s .3s ease\,\
                                     font-size .1s ease
-      z-index           10
       &.out
         top             -15px
         font-size       12px
@@ -427,3 +428,24 @@ p.login-tip
     margin-left         -16px
     div.wrapper
       text-align        right
+
+.invite-recovery-notification-bar
+  position              fixed
+  z-index               5
+  width                 100%
+  top                   0
+  height                0
+  text-align            center
+  font-size             16px
+  padding-top           6px
+  color                 white
+  cursor                pointer
+  border-bottom         1px solid rgba(15,15,15,0.16)
+  bg                    color, rgba(15,15,15,0.45)
+  vendor                transition, height .4s ease-in-out
+
+  &.show
+    height              26px
+
+  span
+    color               #ffb500
