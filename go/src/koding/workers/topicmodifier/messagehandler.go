@@ -74,26 +74,38 @@ var messageConsumer = func(delivery amqp.Delivery) {
 }
 
 func finalize(delivery amqp.Delivery, modifierData *TagModifierData) {
-	delivery.Ack(false)
+	// update is completed
 	if Completed {
 		log.Info("Merge Completed")
+		delivery.Ack(false)
 		Shutdown()
 		return
 	}
 
-	if modifierData.Error != "" {
-		log.Error("Error in topic update process: %s.", modifierData.Error)
-		modifierData.Error = ""
-		modifierData.TryCount += 1
-		if modifierData.TryCount == TRY_COUNT_LIMIT {
-			log.Error("Reached Max Try Count for Tag: %s", modifierData.TagId)
-			log.Error("Dropping message")
-			return
-		}
+	// update is still ongoing. just requeue the message
+	if modifierData.Error == "" {
+		delivery.Nack(false, true)
+		Shutdown()
+		return
+	}
+
+	log.Error("Error in topic update process: %s.", modifierData.Error)
+	modifierData.Error = ""
+	modifierData.TryCount += 1
+	// it has reached max try count. dropping the message
+	if modifierData.TryCount == TRY_COUNT_LIMIT {
+		log.Error("Reached Max Try Count for Tag: %s", modifierData.TagId)
+		log.Error("Dropping message")
+		delivery.Ack(false)
+		Shutdown()
+		return
 	}
 
 	if err := publish(Publisher, *modifierData); err != nil {
 		log.Error("Publish error:", err.Error())
+		delivery.Nack(false, true)
+	} else {
+		delivery.Ack(false)
 	}
 
 	Shutdown()
