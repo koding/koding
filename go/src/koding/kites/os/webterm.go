@@ -43,7 +43,13 @@ func screenSessions(vos *virt.VOS) []string {
 	// We need to use ls here, because /var/run/screen mount is only
 	// visible from inside of container. Errors are ignored.
 	out, _ := vos.VM.AttachCommand(vos.User.Uid, "", "ls", "/var/run/screen/S-"+vos.User.Name).Output()
-	names := strings.Split(string(bytes.TrimSpace(out)), "\n")
+	shellOut := string(bytes.TrimSpace(out))
+
+	if shellOut == "" {
+		return []string{}
+	}
+
+	names := strings.Split(shellOut, "\n")
 	sessions := make([]string, len(names))
 
 	prefix := sessionPrefix + "."
@@ -88,9 +94,6 @@ func registerWebtermMethods(k *kite.Kite) {
 		if args.Unmarshal(&params) != nil || params.SizeX <= 0 || params.SizeY <= 0 {
 			return nil, &kite.ArgumentError{Expected: "{ remote: [object], session: [string], sizeX: [integer], sizeY: [integer], noScreen: [boolean] }"}
 		}
-		if params.NoScreen && params.Session != "" {
-			return nil, errors.New("The 'noScreen' and 'session' parameters can not be used together.")
-		}
 
 		newSession := false
 		if params.Session == "" {
@@ -103,7 +106,9 @@ func registerWebtermMethods(k *kite.Kite) {
 			// because we don't accept arbitrary session names and also screen
 			// it self would fail if the given session doesn't exists.
 			if !sessionExists(vos, params.Session) {
-				return nil, fmt.Errorf("The given session '%s' is not available.", params.Session)
+				return nil, &kite.Error{
+					Message: fmt.Sprintf("The given session '%s' is not available.", params.Session),
+				}
 			}
 		}
 
