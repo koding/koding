@@ -35,8 +35,7 @@ func (err *ArgumentError) Error() string {
 	return "Invalid argument, " + err.Expected + " expected."
 }
 
-type PermissionError struct {
-}
+type PermissionError struct{}
 
 func (err *PermissionError) Error() string {
 	return "Permission denied."
@@ -46,4 +45,12 @@ type WrongChannelError struct{}
 
 func (err *WrongChannelError) Error() string {
 	return "Wrong channel."
+}
+
+type Error struct {
+	Message string
+}
+
+func (err *Error) Error() string {
+	return err.Message
 }
