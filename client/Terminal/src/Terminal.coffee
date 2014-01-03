@@ -55,7 +55,10 @@ class WebTerm.Terminal extends KDObject
 
     @updateSize()
 
-    @outputbox = $(document.createElement("div"))
+    outputboxElement = document.createElement "div"
+    @outputbox = $ outputboxElement
+    @outputbox.attr "contenteditable", yes
+    @outputbox.attr "spellcheck", off
     @outputbox.css "cursor", "text"
     @outputbox.append @measurebox.getDomElement()
 
