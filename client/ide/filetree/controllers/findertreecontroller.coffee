@@ -454,9 +454,9 @@ class NFinderTreeController extends JTreeViewController
   openTerminalFromHere: (nodeView) ->
     @appManager.open "Terminal", (appInstance) =>
       path          = nodeView.getData().path
-      {webTermView} = @appManager.getFrontApp().getView().tabView.getActivePane().getOptions()
+      {terminalView} = @appManager.getFrontApp().getView().tabView.getActivePane().getOptions()
 
-      webTermView.on "WebTermConnected", (server) =>
+      terminalView.on "WebTermConnected", (server) =>
         server.input "cd #{path}\n"
 
   ###
