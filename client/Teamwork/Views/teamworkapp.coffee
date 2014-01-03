@@ -219,7 +219,7 @@ class TeamworkApp extends KDObject
 
   fetchManifestFile: (path, callback = noop) ->
     $.ajax
-      url           : "http://resources.gokmen.kd.io/Teamwork/Playgrounds/#{path}"
+      url           : "https://resources.kd.io/Teamwork/Playgrounds/#{path}"
       type          : "GET"
       success       : (response) ->
         return callback yes, null  unless response
