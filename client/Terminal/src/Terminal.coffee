@@ -53,13 +53,13 @@ class WebTerm.Terminal extends KDObject
       partial   : "\xA0"
       cssClass  : 'offscreen'
 
-    @updateSize()
-
     @outputbox = $(document.createElement("div"))
     @outputbox.css "cursor", "text"
     @outputbox.append @measurebox.getDomElement()
 
     @container.append @outputbox
+
+    @updateSize()
 
     @container.on "mousedown mousemove mouseup mousewheel contextmenu", (event) =>
       @inputHandler.mouseEvent event
@@ -119,7 +119,6 @@ class WebTerm.Terminal extends KDObject
     @server.setSize x, y if @server
 
   getCharSizes:->
-
     sizes =
       width  : @measurebox.getWidth()  or @_mbWidth
       height : @measurebox.getHeight() or @_mbHeight
