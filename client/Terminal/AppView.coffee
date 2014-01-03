@@ -57,6 +57,7 @@ class WebTermView extends KDView
       @terminal.setFocused @focused
 
     document.addEventListener "paste", (event) =>
+      KD.utils.stopDOMEvent event
       if @focused
         @terminal?.server.input event.clipboardData.getData("text/plain")
         @setKeyView()
