@@ -136,6 +136,7 @@ resurrection.activity.styl
         padding         0
 
     .kdlistitemview-activity-ticker-item
+    .kdlistitemview-member
       size              auto auto
       min-height        60px
       position          relative
@@ -179,7 +180,7 @@ resurrection.activity.styl
       .avatarview
         rounded         5px
         display         block
-        left            -43px
+        left            -41px
         top             1px
         abs()
 
@@ -246,33 +247,16 @@ resurrection.activity.styl
         a.ttag
           font-weight 400
           color       #3c4752
+          display     inline
+          width       auto
 
     .active-users
       .kdscrollview
         height        240px
 
-      .avatarview
-        top             15px
       .profile
       .user-numbers
-        white-space     nowrap
         width           170px
-        overflow        hidden
-        text-overflow   ellipsis
-        color           #3c4752
-        opacity         .8
-        letter-spacing  0
-        fl()
-      .user-numbers
-        height          18px
-        margin          6px 0 0
-        font-weight     200
-        span
-          font-weight   400
-
-      .follow-btn
-        top             17px
-
 
     .active-topics
       h3

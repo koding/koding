@@ -77,9 +77,6 @@ class ActivityTicker extends ActivityRightBase
       'Member'   :
         callback : ->
           filterSelected ["member"]
-      'App'      :
-        callback : ->
-          filterSelected ["user"]
     return menu
 
   getConstructorName :(obj)->
@@ -111,6 +108,7 @@ class ActivityTicker extends ActivityRightBase
 
     @fetchTags source, (err, tags)=>
       return log "discarding event, invalid data"  if err
+      @bindItemEvents source
       source.tags = tags
       @addNewItem {source, target, as}
 
@@ -300,6 +298,7 @@ class ActivityTicker extends ActivityRightBase
         return @tryLoadingAgain loadOptions
 
       for item in items when @filterItem item
+        @bindItemEvents item.source
         @addNewItem item, @listController.getItemCount()
 
       if @listController.getItemCount() < 15
@@ -341,4 +340,7 @@ class ActivityTicker extends ActivityRightBase
     else
       return no
 
-
+  bindItemEvents: (item) ->
+    return unless @getConstructorName(item) is "JNewStatusUpdate"
+    item.on "TagsUpdated", (tags) ->
+      item.tags = KD.remote.revive tags

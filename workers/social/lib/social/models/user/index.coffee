@@ -94,6 +94,7 @@ module.exports = class JUser extends jraphical.Module
         authenticateWithOauth   : (signature Object, Function)
         unregister              : (signature String, Function)
         finishRegistration      : (signature Object, Function)
+        verifyPassword          : (signature String, Function)
 
     schema          :
       username      :
@@ -327,6 +328,17 @@ module.exports = class JUser extends jraphical.Module
             logAndReturnLoginError username, 'Access denied!', callback
           else
             afterLogin connection, user, clientId, session, callback
+
+
+  @verifyPassword = secure (client, password, callback)->
+    {connection: {delegate}} = client
+
+    return callback createKodingError "Password cannot be empty!" if password is ""
+
+    @fetchUser client, (err, user) ->
+      return callback err if err
+
+      return callback(null, user.getAt('password') is hashPassword password, user.getAt('salt'))
 
   logAndReturnLoginError = (username, error, callback)->
     JLog.log { type: "login", username: username, success: no }, ->
@@ -801,7 +813,7 @@ module.exports = class JUser extends jraphical.Module
   sendChangeEmail = (email, type)->
     email = new JMail {
       email
-      subject : "Your #{type} has changed"
+      subject : "Your #{type} has been changed"
       content : """
         Your #{type} has been changed!  If you didn't request this change, please contact support@koding.com immediately!
       """
@@ -882,7 +894,10 @@ module.exports = class JUser extends jraphical.Module
       salt
       password: hashPassword(newPassword, salt)
       passwordStatus: 'valid'
-    }, callback
+    }, (err) ->
+      return callback err if err
+      sendChangeEmail @email, "password"
+      callback null
 
   changeEmail:(account, options, callback)->
 
