@@ -60,7 +60,7 @@ class WebTermView extends KDView
       KD.utils.stopDOMEvent event
       if @focused
         @terminal?.server.input event.clipboardData.getData("text/plain")
-        @setKeyView()
+      @setKeyView()
 
     @getElement().addEventListener "mousedown", (event) =>
       @terminal.mousedownHappened = yes
