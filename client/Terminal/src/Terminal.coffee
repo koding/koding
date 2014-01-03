@@ -81,6 +81,10 @@ class WebTerm.Terminal extends KDObject
         @utils.defer =>
           @mousedownHappened = false
 
+    @outputbox.on "drop", (event) =>
+      @server.input event.originalEvent.dataTransfer.getData "text/plain"
+      KD.utils.stopDOMEvent event
+
     @container.on "mousedown mousemove mouseup mousewheel contextmenu", (event) =>
       @inputHandler.mouseEvent event
 
