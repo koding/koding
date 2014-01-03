@@ -120,7 +120,7 @@ module.exports =
     watch                : yes
     cronSchedule         : '00 00 00 * * *'
   topicModifier          :
-    cronSchedule         : '@every 5m'
+    cronSchedule         : '0 */5 * * * *'
   graphFeederWorker:
     numberOfWorkers: 4
   social        :
