@@ -31,8 +31,6 @@ class WebTerm.Terminal extends KDObject
       keypress  : @bound 'keyPress'
       keyup     : @bound 'keyUp'
 
-    @keyInput.appendToDomBody()
-
     containerView.on 'KDObjectWillBeDestroyed', @keyInput.bound 'destroy'
 
     @currentWidth             = 0
@@ -61,7 +59,7 @@ class WebTerm.Terminal extends KDObject
     @outputbox.attr "spellcheck", off
     @outputbox.css "cursor", "text"
     @outputbox.append @measurebox.getDomElement()
-
+    @outputbox.append @keyInput.getDomElement()
     @container.append @outputbox
 
     @container.on "mousedown mousemove mouseup mousewheel contextmenu", (event) =>
