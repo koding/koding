@@ -22,11 +22,6 @@ type Consumer struct {
 	session Session
 }
 
-var (
-	Q  amqp.Queue
-	CO ConsumerOptions
-)
-
 func (c *Consumer) Deliveries() <-chan amqp.Delivery {
 	return c.deliveries
 }
@@ -64,7 +59,6 @@ func (c *Consumer) connect() error {
 	e := c.session.Exchange
 	q := c.session.Queue
 	bo := c.session.BindingOptions
-	CO = c.session.ConsumerOptions
 
 	var err error
 
@@ -82,7 +76,7 @@ func (c *Consumer) connect() error {
 	}
 
 	// declaring Queue
-	Q, err = c.channel.QueueDeclare(
+	_, err = c.channel.QueueDeclare(
 		q.Name,       // name of the queue
 		q.Durable,    // durable
 		q.AutoDelete, // delete when usused
@@ -97,7 +91,7 @@ func (c *Consumer) connect() error {
 	// binding Exchange to Queue
 	if err = c.channel.QueueBind(
 		// bind to real queue
-		Q.Name,        // name of the queue
+		q.Name,        // name of the queue
 		bo.RoutingKey, // bindingKey
 		e.Name,        // sourceExchange
 		bo.NoWait,     // noWait
@@ -112,16 +106,18 @@ func (c *Consumer) connect() error {
 // Consume accepts a handler function for every message streamed from RabbitMq
 // will be called within this handler func
 func (c *Consumer) Consume(handler func(delivery amqp.Delivery)) error {
+	co := c.session.ConsumerOptions
+	q := c.session.Queue
 	// Exchange bound to Queue, starting Consume
 	deliveries, err := c.channel.Consume(
 		// consume from real queue
-		Q.Name,       // name
-		CO.Tag,       // consumerTag,
-		CO.AutoAck,   // autoAck
-		CO.Exclusive, // exclusive
-		CO.NoLocal,   // noLocal
-		CO.NoWait,    // noWait
-		CO.Args,      // arguments
+		q.Name,       // name
+		co.Tag,       // consumerTag,
+		co.AutoAck,   // autoAck
+		co.Exclusive, // exclusive
+		co.NoLocal,   // noLocal
+		co.NoWait,    // noWait
+		co.Args,      // arguments
 	)
 	if err != nil {
 		return err
@@ -145,9 +141,9 @@ func (c *Consumer) Consume(handler func(delivery amqp.Delivery)) error {
 // ConsumeMessage accepts a handler function and only consumes one message
 // stream from RabbitMq and then closes connection
 func (c *Consumer) Get(handler func(delivery amqp.Delivery)) error {
-	message, ok, err := c.channel.Get(
-		Q.Name,
-		CO.AutoAck)
+	co := c.session.ConsumerOptions
+	q := c.session.Queue
+	message, ok, err := c.channel.Get(q.Name, co.AutoAck)
 	if err != nil {
 		return err
 	}
