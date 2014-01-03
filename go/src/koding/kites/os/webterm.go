@@ -89,27 +89,47 @@ func registerWebtermMethods(k *kite.Kite) {
 			Remote       WebtermRemote
 			Session      string
 			SizeX, SizeY int
-			NoScreen     bool
+			Mode         string
 		}
+
 		if args.Unmarshal(&params) != nil || params.SizeX <= 0 || params.SizeY <= 0 {
 			return nil, &kite.ArgumentError{Expected: "{ remote: [object], session: [string], sizeX: [integer], sizeY: [integer], noScreen: [boolean] }"}
 		}
 
-		newSession := false
-		if params.Session == "" {
-			params.Session = utils.RandomString()
-			newSession = true
-		} else {
-			// getting 'params.Session' prepopulated (not empty) means we
-			// should connect to an already running screen(which was created
-			// previously). However we check if the given session exists
-			// because we don't accept arbitrary session names and also screen
-			// it self would fail if the given session doesn't exists.
+		cmdArgs := []string{"/usr/bin/screen", "-e^Bb", "-S"}
+
+		switch params.Mode {
+		case "shared":
+			if params.Session == "" {
+				return nil, &kite.ArgumentError{Expected: "{ session: [string] }"}
+			}
+
 			if !sessionExists(vos, params.Session) {
 				return nil, &kite.Error{
 					Message: fmt.Sprintf("The given session '%s' is not available.", params.Session),
 				}
 			}
+
+			cmdArgs = append(cmdArgs, sessionPrefix+"."+params.Session, "-x")
+		case "noscreen":
+			cmdArgs = nil
+		case "resume":
+			if params.Session == "" {
+				return nil, &kite.ArgumentError{Expected: "{ session: [string] }"}
+			}
+
+			if !sessionExists(vos, params.Session) {
+				return nil, &kite.Error{
+					Message: fmt.Sprintf("The given session '%s' is not available.", params.Session),
+				}
+			}
+
+			cmdArgs = append(cmdArgs, sessionPrefix+"."+params.Session, "-r")
+		case "create":
+			params.Session = utils.RandomString()
+			cmdArgs = append(cmdArgs, sessionPrefix+"."+params.Session)
+		default:
+			return nil, &kite.ArgumentError{Expected: "{ mode: [shared|noscreen|resume|create] }"}
 		}
 
 		server := &WebtermServer{
@@ -120,18 +140,11 @@ func registerWebtermMethods(k *kite.Kite) {
 			isForeignSession: vos.User.Name != channel.Username,
 			pty:              pty.New(vos.VM.PtsDir()),
 		}
+
 		server.SetSize(float64(params.SizeX), float64(params.SizeY))
-
-		cmdArgs := []string{"/usr/bin/screen", "-e^Bb", "-S", sessionPrefix + "." + params.Session}
-		if !newSession {
-			cmdArgs = append(cmdArgs, "-x")
-		}
-		if params.NoScreen {
-			cmdArgs = nil
-		}
 		server.pty.Slave.Chown(vos.User.Uid, -1)
-		cmd := vos.VM.AttachCommand(vos.User.Uid, "/dev/pts/"+strconv.Itoa(server.pty.No), cmdArgs...)
 
+		cmd := vos.VM.AttachCommand(vos.User.Uid, "/dev/pts/"+strconv.Itoa(server.pty.No), cmdArgs...)
 		err := cmd.Start()
 		if err != nil {
 			panic(err)
