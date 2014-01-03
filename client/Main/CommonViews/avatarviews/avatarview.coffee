@@ -2,10 +2,12 @@ class AvatarView extends LinkView
 
   constructor:(options = {},data)->
 
-    options.cssClass       or= ""
+    options.cssClass         = KD.utils.curry 'avatarview', options.cssClass
     options.size           or=
-      width                   : 50
-      height                  : 50
+      width                  : 50
+      height                 : 50
+    options.size.width      ?= 50
+    options.size.height     ?= options.size.width
     options.detailed        ?= no
     options.showStatus     or= no
     options.statusDiameter or= 5
@@ -26,9 +28,16 @@ class AvatarView extends LinkView
       options.tooltip.placement    or= 'top'
       options.tooltip.direction    or= 'right'
 
-    options.cssClass = "avatarview #{options.cssClass}"
+    @dpr            = window.devicePixelRatio ? 1
+    {width, height} = options.size
+    @gravatar       = new ErrorlessImageView {width, height}
+    @gravatar.on 'load', =>
+      @gravatar.setCss 'opacity', '1'
+      @setCss 'background-image', 'none'
 
-    super options,data
+    super options, data
+
+    src = @getGravatarUri()
 
     if @detailedAvatar?
       @on 'TooltipReady', =>
@@ -36,71 +45,76 @@ class AvatarView extends LinkView
           data = @getData()
           @tooltip.getView().updateData data if data?.profile.nickname
 
-    @bgImg = null
-    @fallbackUri = "#{KD.apiUri}/a/images/defaultavatar/default.avatar.#{options.size.width}.png"
-
-  setAvatar:(uri)->
-    if @bgImg isnt uri
-      @$().css "background-image", "url(#{uri})"
-      @bgImg = uri
-
   getAvatar:->
-    return @bgImg
+    @gravatar?.getAttribute 'src' or '/a/images/defaultavatar/avatar.svg'
+
+  setAvatar:(src)->
+    if src and @gravatar.getAttribute('src') isnt src
+      @gravatar.show()
+      @gravatar.setAttribute 'src', src
 
   getGravatarUri:->
     {profile} = @getData()
     {width} = @getOptions().size
-    if profile.hash \
-      then "//gravatar.com/avatar/#{profile.hash}?size=#{width}&d=#{encodeURIComponent @fallbackUri}"
-      else "#{@fallbackUri}"
+    if profile.hash
+    then "//gravatar.com/avatar/#{profile.hash}?size=#{width * @dpr}&d=404&r=g"
+    else no
 
   render:->
-    account = @getData()
-    return unless account
+
+    return  unless account = @getData()
 
     {profile, type} = account
-    return @setAvatar "url(#{@fallbackUri})"  if type is 'unregistered'
+
+    return  if type is 'unregistered'
 
     {width, height} = @getOptions().size
-
-    height = width unless height
-
-    avatarURI = @getGravatarUri()
+    height          = width unless height
+    avatarURI       = @getGravatarUri()
 
     if profile.avatar?.match /^https?:\/\//
       resizedAvatar = KD.utils.proxifyUrl profile.avatar, {crop: yes, width, height}
-      avatarURI = "#{resizedAvatar}"
+      avatarURI     = resizedAvatar
 
     @setAvatar avatarURI
 
-    flags = ""
-    if account.globalFlags
+    flags = if account.globalFlags
       if Array.isArray account.globalFlags
-        flags = account.globalFlags.join(" ")
-      else
-        flags = (value for own key, value of account.globalFlags).join(" ")
+      then account.globalFlags.join(" ")
+      else (value for own key, value of account.globalFlags).join(" ")
+    else ""
 
     @$('cite').addClass flags
 
     @setAttribute "href", "/#{profile.nickname}"
 
-    if @getOptions().showStatus
-      onlineStatus = account.onlineStatus or 'offline'
+    @showStatus()  if @getOptions().showStatus
 
-      if @statusAttr? and onlineStatus isnt @statusAttr
-        @setClass "animate"
+  showStatus:->
 
-      @statusAttr = onlineStatus
+    account = @getData()
 
-      if @statusAttr is "online"
-        @unsetClass "offline"
-        @setClass   "online"
-      else
-        @unsetClass "online"
-        @setClass   "offline"
+    onlineStatus = account.onlineStatus or 'offline'
+
+    if @statusAttr? and onlineStatus isnt @statusAttr
+      @setClass "animate"
+
+    @statusAttr = onlineStatus
+
+    if @statusAttr is "online"
+      @unsetClass "offline"
+      @setClass   "online"
+    else
+      @unsetClass "online"
+      @setClass   "offline"
 
   viewAppended:->
+
     super
+
+    {width, height} = @getOptions().size
+    @setCss "background-size", "#{width}px #{height}px"
+
     @render() if @getData()
 
     if @getOptions().showStatus
@@ -111,170 +125,26 @@ class AvatarView extends LinkView
       @statusIndicator.setWidth statusDiameter
       @statusIndicator.setHeight statusDiameter
 
-  pistachio:-> '<cite></cite>'
-
-
-class AvatarTooltipView extends KDView
-  constructor:(options={}, data)->
-
-    super options, data
-
-    origin = options.origin
-    name   = KD.utils.getFullnameFromAccount @getData()
-
-    @profileName = new KDCustomHTMLView
-      tagName    : 'a'
-      cssClass   : 'profile-name'
-      attributes :
-        href     : "/#{@getData().profile.nickname}"
-        target   : '_blank'
-      pistachio  : "<h2>#{name}</h2>"
-    , data
-
-    @staticAvatar = new AvatarStaticView
-      cssClass  : 'avatar-static'
-      noTooltip : yes
-      size      :
-        width   : 80
-        height  : 80
-      origin    : origin
-    , data
-
-
-    @followButton = new MemberFollowToggleButton
-      style       : "follow-btn"
-      loader      :
-        color     : "#333333"
-        diameter  : 18
-        top       : 11
-    , @getData()
-
-    @followers = new KDView
-      tagName     : 'a'
-      attributes  :
-        href      : '#'
-      pistachio   : "<cite/>{{#(counts.followers)}} <span>Followers</span>"
-      click       : (event)->
-        return if @getData().counts.followers is 0
-        KD.getSingleton("appManager").tell "Members", "createFolloweeContentDisplay", @getData(), 'followers'
-    , @getData()
-
-    @following = new KDView
-      tagName     : 'a'
-      attributes  :
-        href      : '#'
-      pistachio   : "<cite/>{{#(counts.following)}} <span>Following</span>"
-      click       : (event)->
-        return if @getData().counts.following is 0
-        KD.getSingleton("appManager").tell "Members", "createFolloweeContentDisplay", @getData(), 'following'
-    , @getData()
-
-    @likes = new KDView
-      tagName     : 'a'
-      attributes  :
-        href      : '#'
-      pistachio   : "<cite/>{{#(counts.likes) or 0}} <span>Likes</span>"
-      click       : (event)=>
-        return if @getData().counts.following is 0
-        KD.getSingleton("appManager").tell "Members", "createLikedContentDisplay", @getData()
-    , @getData()
-
-    @sendMessageLink = new MemberMailLink {}, @getData()
-
-  viewAppended:->
-    super()
-    @setTemplate @pistachio()
-    @template.update()
-
-  click:(event)->
-    # @getDelegate()?.getTooltip().hide()
-
-  decorateFollowButton:(data)->
-
-    # no dummy data!
-    return unless data.getId?
-
-    unless data.followee?
-      KD.whoami().isFollowing? data.getId(), "JAccount", (err, following)=>
-        data.followee = following
-        warn err  if KD.isLoggedIn()
-        if data.followee
-          @followButton.setClass 'following-btn'
-          @followButton.setState "Following"
-        else
-          @followButton.setState "Follow"
-          @followButton.unsetClass 'following-btn'
-    else
-      if data.followee
-        @followButton.setClass 'following-btn'
-        @followButton.setState "Following"
-    @followButton.setData data
-    @followButton.render()
-
-  updateData:(data={})->
-
-    # lazy loading data is spoonfed to the individual views
-    @setData data
-
-    @decorateFollowButton data
-
-    @profileName.setData data
-    @profileName.render()
-
-    @followers.setData data
-    @following.setData data
-    @likes.setData data
-    @sendMessageLink.setData data
-
-    @followers.render()
-    @following.render()
-    @likes.render()
-    @sendMessageLink.render()
-
   pistachio:->
     """
-    <div class="leftcol">
-      {{> @staticAvatar}}
-      {{> @followButton}}
-    </div>
-    <div class="rightcol">
-      {{> @profileName}}
-      <div class="profilestats">
-          <div class="fers">
-            {{> @followers}}
-          </div>
-          <div class="fing">
-            {{> @following}}
-          </div>
-           <div class="liks">
-            {{> @likes}}
-          </div>
-          <div class='contact'>
-            {{> @sendMessageLink}}
-          </div>
-        </div>
-    </div>
+    {{> @gravatar}}
+    <cite></cite>
     """
 
-class AvatarImage extends AvatarView
+class ErrorlessImageView extends KDCustomHTMLView
 
-  constructor:(options = {},data)->
+  constructor: (options = {}, data) ->
+    super
+      tagName       : 'img'
+      cssClass      : 'hidden'
+      bind          : 'load error'
+      attributes    :
+        width       : options.width
+        height      : options.height
+    , data
 
-    options.tagName  or= "img"
-    options.cssClass or= ""
-    options.size     or=
-      width            : 50
-      height           : 50
-    options.cssClass   = KD.utils.curry "avatarimage", options.cssClass
+    @setCss 'opacity', '0.0001'
 
-    super options, data
-
-    @bgImg = null
-    @fallbackUri = "#{KD.apiUri}/a/images/defaultavatar/default.avatar.#{options.size.width}.png"
-
-  setAvatar:(uri)->
-    if @bgImg isnt uri
-      @setAttribute "src", uri
-      @bgImg = uri
-
-  pistachio:-> ''
+  error:->
+    @hide()
+    no

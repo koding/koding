@@ -4,7 +4,6 @@
 .previewer-body
   width                 100%
   height                100%
-  padding-bottom        45px
 
   iframe
     box-sizing          content-box
@@ -13,15 +12,9 @@
     overflow            auto
 
 .viewer-header
-  height                27px
-  color                 #888
-  border                1px solid #e2e2e2
-  border-bottom-color   #dadada
-  border-radius         3px
-  box-shadow            0 1px 4px rgba(0,0,0,0.1)
-  width                 auto
-  gradient              #f9f9f9, #e7e7e7
-  padding               5px
+  size                  auto 40px
+  color                 #EEE
+  margin                10px
 
   .viewer-title
     display             inline-block
@@ -57,11 +50,19 @@
     kdfsprite()
 
   .kdinput.text.hitenterview
-    bg                  image, none
-    size                100%, 25px
-    margin              2px 0
-    padding             2px 5px 0 22px
-    font-size           11px
+    size                100%, 40px
+    font-size           14px
+    line-height         inherit
+    border              1px solid #252E30
+    padding             0 0 0 22px
+    bg                  image none
+    bg                  color #1B2224
+    noShadow()
+
+    &:focus
+      color             #3AAAAB
+      border-color      #3AAAAB
+      noShadow()
 
 .jcontextmenu.editor-advanced-settings-menu
   button.kdbutton.with-icon span.icon.cog-white

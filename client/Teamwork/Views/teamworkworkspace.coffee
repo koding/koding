@@ -27,30 +27,6 @@ class TeamworkWorkspace extends CollaborativeWorkspace
         return if not joinedUser or joinedUser is KD.nick()
         @hidePlaygroundsButton()
 
-      # if @amIHost()
-      #   # currently only for host.
-      #   # bc of clients need to know host's vmName and active pane's file data etc.
-      #   activePanel    = @getActivePanel()
-      #   {previewPane}  = activePanel.paneLauncher
-      #   {viewerHeader} = previewPane.previewer
-      #   viewerHeader.addSubView new KDButtonView
-      #     cssClass : "clean-gray tw-previewer-button"
-      #     title    : "View active file"
-      #     callback : =>
-      #       @previewFile()
-
-      #   viewerHeader.addSubView @autoRefreshSwitch = new KDOnOffSwitch
-      #     defaultValue : off
-      #     cssClass     : "tw-live-update"
-      #     title        : "Auto Refresh: "
-      #     size         : "tiny"
-      #     tooltip      :
-      #       title      : "If it's on, preview will be refreshed when you save a file."
-      #       placement  : "bottom"
-
-      #   activePanel.getPaneByName("editor").on "EditorDidSave", =>
-      #     @refreshPreviewPane previewPane  if @autoRefreshSwitch.getValue()
-
     @on "WorkspaceUsersFetched", =>
       @workspaceRef.child("users").once "value", (snapshot) =>
         userStatus = snapshot.val()
@@ -58,29 +34,29 @@ class TeamworkWorkspace extends CollaborativeWorkspace
         @manageUserAvatars userStatus
 
     @on "NewHistoryItemAdded", (data) =>
-      # log data
       @sendSystemMessage data
+
+    KD.singleton("windowController").addUnloadListener "window", =>
+      @workspaceRef.remove()  if @amIHost()
+
+    @chatView.sendWelcomeMessage()  if @amIHost()
 
   createButtons: (panel) ->
     panel.addSubView @buttonsContainer = new KDCustomHTMLView
       cssClass : "tw-buttons-container"
 
-    @buttonsContainer.addSubView @chatButton = new KDButtonView
-      cssClass : "tw-chat-toggle active"
-      iconClass: "tw-chat"
+    @buttonsContainer.addSubView @shareButton = new KDButtonView
+      iconClass: "tw-export"
+      cssClass : "tw-export-button"
       iconOnly : yes
-      callback : =>
-        cssClass      = "tw-chat-open"
-        isChatVisible = @hasClass cssClass
-        @toggleClass cssClass
-        @chatButton.toggleClass "active"
+      # callback : => @createShareMenuButton()
+      callback : => @getDelegate().emit "ExportRequested"
 
-        if isChatVisible then @chatView.hide() else @chatView.show()
-
-    @buttonsContainer.addSubView new KDButtonView
+    @buttonsContainer.addSubView @optionsButton = new KDButtonView
       iconClass: "tw-cog"
+      cssClass : "tw-options-button"
       iconOnly : yes
-      callback : => @getDelegate().showToolsModal panel, this
+      callback : => @createOptionsMenuButton()
 
   displayBroadcastMessage: (options) ->
     super options
@@ -91,16 +67,7 @@ class TeamworkWorkspace extends CollaborativeWorkspace
 
   startNewSession: (options) ->
     KD.mixpanel "User Started Teamwork session"
-
-    @destroySubViews()
-    unless options
-      options = @getOptions()
-      delete options.sessionKey
-
-    workspaceClass          = @getPlaygroundClass options.playground
-    teamwork                = new workspaceClass options
-    @getDelegate().teamwork = teamwork
-    @addSubView teamwork
+    @getDelegate().emit "NewSessionRequested", options
 
   joinSession: (newOptions) ->
     sessionKey              = newOptions.sessionKey.trim()
@@ -110,7 +77,7 @@ class TeamworkWorkspace extends CollaborativeWorkspace
     @destroySubViews()
 
     @forceDisconnect()
-    @firepadRef.child(sessionKey).once "value", (snapshot) =>
+    @firebaseRef.child(sessionKey).once "value", (snapshot) =>
       value = snapshot.val()
       {playground, playgroundManifest} = value  if value
 
@@ -128,10 +95,6 @@ class TeamworkWorkspace extends CollaborativeWorkspace
       teamwork                   = new teamworkClass teamworkOptions
       @getDelegate().teamwork    = teamwork
       @addSubView teamwork
-
-  refreshPreviewPane: (previewPane) ->
-    # emitting ViewerRefreshed event will trigger refreshing the preview via Firebase.
-    previewPane.previewer.emit "ViewerRefreshed"
 
   createRunButton: (panel) ->
     panel.headerButtonsContainer.addSubView new KDButtonView
@@ -154,31 +117,9 @@ class TeamworkWorkspace extends CollaborativeWorkspace
     else
       Panel::showHintModal.call @getActivePanel()
 
-  previewFile: ->
-    activePanel     = @getActivePanel()
-    editor          = activePanel.getPaneByName "editor"
-    file            = editor.getActivePaneFileData()
-    path            = FSHelper.plainPath file.path
-    error           = "File must be under Web folder"
-    isLocal         = path.indexOf("localfile") is 0
-    isNotPublic     = not FSHelper.isPublicPath path
-    {previewPane}   = activePanel.paneLauncher
-
-    return if isLocal or isNotPublic
-      error         = "This file cannot be previewed" if isLocal
-      new KDNotificationView
-        title       : error
-        cssClass    : "error"
-        type        : "mini"
-        duration    : 2500
-        container   : previewPane
-
-    url = path.replace "/home/#{@getHost()}/Web", "https://#{KD.nick()}.kd.io"
-    previewPane.openUrl url
-
-  manageUserAvatars: (userStatus) ->
-    for own nickname, status of userStatus
-      if status is "online"
+  manageUserAvatars: (users) ->
+    for own nickname, data of users
+      if data.status is "online"
         unless @avatars[nickname]
           @createUserAvatar @users[nickname]
       else
@@ -190,12 +131,12 @@ class TeamworkWorkspace extends CollaborativeWorkspace
 
     userNickname = jAccount.profile.nickname
     return if userNickname is KD.nick()
-    followText   = "Click user avatar to watch #{userNickname}"
+    followText   = "Click avatar to watch #{userNickname}"
 
     avatarView   = new AvatarStaticView
       size       :
-        width    : 25
-        height   : 25
+        width    : 30
+        height   : 30
       tooltip    :
         title    : followText
       click      : =>
@@ -204,24 +145,19 @@ class TeamworkWorkspace extends CollaborativeWorkspace
 
         if isAlreadyWatched
           @watchRef.child(@nickname).set "nobody"
-          message = "#{KD.nick()} stopped watching #{userNickname}"
+          message = "You stopped watching #{userNickname}"
           @watchingUserAvatar = null
           avatarView.setTooltip
             title : followText
         else
           @watchRef.child(@nickname).set userNickname
-          message = "#{KD.nick()} started to watch #{userNickname}.  Type 'stop watching' or click on avatars to start/stop watching."
+          message = "You started to watch #{userNickname}.  Type 'stop watching' or click on avatars to start/stop watching."
           avatarView.setClass "watching"
           @watchingUserAvatar = avatarView
           avatarView.setTooltip
             title : "You are now watching #{userNickname}. Click again to stop watching."
 
-        message =
-          user       :
-            nickname : "teamwork"
-          time       : Date.now()
-          body       : message
-        @workspaceRef.child("chat").child(message.time).set message
+        @chatView.botReply message
     , jAccount
 
     @avatars[userNickname] = avatarView
@@ -231,15 +167,39 @@ class TeamworkWorkspace extends CollaborativeWorkspace
 
   removeUserAvatar: (nickname) ->
     avatarView = @avatars[nickname]
-    avatarView.setClass "fade-out"
-    avatarView.once "transitionend", =>
-      avatarView.destroy()
-      delete @avatars[nickname]
-      @avatarsView.unsetClass "has-user" if @avatars.length is 0
+    avatarView.destroy()
+    delete @avatars[nickname]
+    @avatarsView.unsetClass "has-user" if @avatars.length is 0
 
   sendSystemMessage: (messageData) ->
     return unless @getOptions().enableChat
     @chatView.sendMessage messageData, yes
+
+  createOptionsMenuButton: ->
+    menuItems = [
+      { title : "Join in", callback : => @showJoinModal()   }
+      { title : "Import" , callback : => @showImportModal() }
+      { title : "Team up", callback : => @getDelegate().showTeamUpModal() }
+    ]
+
+    @createMenuButton @optionsButton.$().offset(), menuItems
+
+  createShareMenuButton: ->
+    menuItems = [
+      { title : "Share",   callback : => console.log "join in" }
+      { title : "Export" , callback : => @getDelegate().emit "ExportRequested" }
+    ]
+
+    @createMenuButton @shareButton.$().offset(), menuItems
+
+  createMenuButton: (offset, items) ->
+    new JContextMenu
+      x           : offset.left - 140
+      y           : offset.top  + 31
+      arrow       :
+        placement : "top"
+        margin    : 150
+    , items
 
   createActivityWidget: (panel) ->
     panel.addSubView @activityWidget = new ActivityWidget
@@ -259,11 +219,17 @@ class TeamworkWorkspace extends CollaborativeWorkspace
       cssClass : "invite-teammate tw-rounded-button hidden"
       title    : "Invite"
       callback : =>
-        query = @utils.stringifyQuery {@sessionKey}
-        url   = "#{window.location.origin}/Teamwork?#{query}"
-        @activityWidget.setInputContent "Would you like to join my Teamwork session? #{url}"
+        url = "#{KD.config.apiUri}/Teamwork?sessionKey=#{@sessionKey}"
+        @activityWidget.setInputContent "Join me in Teamwork: #{url}"
         @showActivityWidget()
         @hideShareButtons()
+        @activityWidget.showForm (err, activity) =>
+          return  err if err
+          @activityWidget.hideForm()
+          @notification.hide()
+          @workspaceRef.child("activityId").set activity.getId()
+
+        KD.mixpanel "Teamwork Invite, click", {@sessionKey}
 
     panel.addSubView @exportWorkspace = new KDButtonView
       cssClass : "export-workspace tw-rounded-button hidden"
@@ -272,12 +238,16 @@ class TeamworkWorkspace extends CollaborativeWorkspace
         @getDelegate().emit "ExportRequested", (name, url) =>
         @hideShareButtons()
 
+        KD.mixpanel "Teamwork Export, click"
+
     panel.addSubView shareButton = new KDButtonView
       cssClass   : "tw-rounded-button share"
       title      : "Share"
       callback   : =>
         @inviteTeammate.toggleClass "hidden"
         @exportWorkspace.toggleClass "hidden"
+
+        KD.mixpanel "Teamwork Share, click"
 
     panel.addSubView @showActivityWidgetButton = new KDButtonView
       cssClass   : "tw-show-activity-widget"
@@ -310,6 +280,14 @@ class TeamworkWorkspace extends CollaborativeWorkspace
         else
           @activityWidget.setInputContent message
           @showActivityWidget()
+
+  toggleChatPane: ->
+    cssClass      = "tw-chat-open"
+    isChatVisible = @hasClass cssClass
+    @toggleClass cssClass
+    @chatButton.toggleClass "active"
+
+    if isChatVisible then @chatView.hide() else @chatView.show()
 
   showActivityWidget: ->
     @activityWidget.show()
@@ -345,3 +323,36 @@ class TeamworkWorkspace extends CollaborativeWorkspace
         @activityWidget.hideForm()
         @notification.hide()
         @workspaceRef.child("activityId").set activity.getId()
+
+  createLoader: ->
+    @loader    = new KDView
+      cssClass : "tw-loading"
+      partial  : """
+        <figure class="loading-animation">
+          <span></span>
+        </figure>
+      """
+
+    @container.addSubView @loader
+
+  showImportModal: ->
+    modal          = new KDModalView
+      title        : "Import Content to your VM"
+      content      : "<p>Enter the URL of a git repository or zip archive.</p>"
+      cssClass     : "workspace-modal join-modal"
+      overlay      : yes
+      width        : 600
+      buttons      :
+        Import     :
+          title    : "Import"
+          cssClass : "modal-clean-green"
+          callback : => @getDelegate().emit "ImportRequested", importUrlInput.getValue()
+        Close      :
+          title    : "Close"
+          cssClass : "modal-cancel"
+          callback : -> modal.destroy()
+
+    modal.addSubView importUrlInput = new KDHitEnterInputView
+      type         : "text"
+      placeholder  : "Import Url"
+      callback     : => @handleJoinASessionFromModal sessionKeyInput.getValue(), modal

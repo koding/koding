@@ -48,19 +48,23 @@ class AceAppView extends JView
       else
         @openFile FSHelper.createFileFromPath file for file in items
 
-    @tabView.on "PaneDidShow", (pane) =>
-      {ace} = pane.getOptions().aceView
-      ace.on "ace.ready", -> ace.focus()
+    @tabView.on "PaneDidShow", (pane) ->
+      {aceView} = pane.getOptions()
+      return  unless aceView
+      {ace}     = aceView
+      return  unless ace
+
       ace.focus()
+      ace.on "ace.ready", -> ace.focus()
+      ace.on "AceDidSaveAs", (name, parentPath) ->
+        pane.setTitle name
 
       title = FSHelper.minimizePath(ace.data.path).replace /^localfile:\//, ''
+      pane.tabHandle.setTitle title
+
       # if KD.getSingleton("finderController").vms.length > 1
       #   vm    = FSHelper.getVMNameFromPath ace.data.path
       #   title = "#{title} on #{vm}"  if vm
-
-      pane.tabHandle.setTitle title
-      ace.on "AceDidSaveAs", (name, parentPath) =>
-        pane.tabHandle.setTitle title
 
       # TODO: fatihacet - should add tab handle tooltips here
 
@@ -85,7 +89,9 @@ class AceAppView extends JView
     recordKey = "#{@id}-#{@timestamp}"
 
     for pane in openPanes
-      {path} = pane.getOptions().aceView.getData()
+      {aceView} = pane.getOptions()
+      continue  unless aceView
+      {path} = aceView.getData()
       paths.push path if path.indexOf("localfile") is -1
 
     data[recordKey] = paths
@@ -113,6 +119,15 @@ class AceAppView extends JView
         itemCount++
 
     return items
+
+  preview: ->
+    {path, vmName} = @getActiveAceView().getData()
+    return  if /^localfile/.test path
+    path = KD.getPublicURLOfPath path
+    KD.singleton("appManager").create "Viewer", {path, vmName}, (app) =>
+      @tabView.addPane new KDTabPaneView
+        name    : "[#{path.split("/").last}]"
+        view    : app.getView()
 
   reopenLastSession: ->
     data   = @sessionData
@@ -188,7 +203,7 @@ class AceAppView extends JView
 
     @on "compileAndRunMenuItemClicked", => @getActiveAceView().compileAndRun()
 
-    @on "previewMenuItemClicked", => @getActiveAceView().preview()
+    @on "previewMenuItemClicked", => @preview()
 
     @on "reopenMenuItemClicked", => @reopenLastSession()
 

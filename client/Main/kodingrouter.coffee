@@ -45,12 +45,15 @@ class KodingRouter extends KDRouter
 
   handleRoute:(route, options={})->
 
+    {entryPoint} = options
+
     appManager = KD.getSingleton 'appManager'
     frags      = route.split '/'
-    name       = frags[1] or ''
+    name       = (if entryPoint?.type is "group" then frags[2] else frags[1]) or ''
     name       = (name.split '?')[0]
 
     log 'handlingRoute', route, 'for the', name, 'app'
+
     if appManager.isAppInternal name
       log 'couldn\'t find', name
       return KodingAppsController.loadInternalApp name, (err)=>
@@ -58,8 +61,7 @@ class KodingRouter extends KDRouter
         return warn err  if err
         KD.utils.defer => @handleRoute route, options
 
-    {entryPoint} = options
-    if entryPoint?.slug? and entryPoint.type is "group"
+    if entryPoint?.slug and entryPoint.type is "group"
       entrySlug = "/" + entryPoint.slug
       # if incoming route is prefixed with groupname or entrySlug is the route
       # also we dont want koding as group name
@@ -77,6 +79,8 @@ class KodingRouter extends KDRouter
         @handleRoute @userRoute or @getDefaultRoute(), {replaceState: yes, entryPoint}
       else
         @handleRoute @getDefaultRoute(), {entryPoint}
+        if not entryPoint or entryPoint?.slug is 'koding'
+          KD.introView?.show()
 
   cleanupRoute:(contentDisplay)->
     delete @openRoutes[@openRoutesById[contentDisplay.id]]
@@ -281,7 +285,9 @@ class KodingRouter extends KDRouter
       ''                       : handleRoot
 
       '/Landing/:page'         : noop
-      '/R/:username'           : noop
+      '/R/:username'           : ({params:{username}})->
+        KD.mixpanel "Visit referrer url, success", {username}
+        noop
 
       '/:name?/Logout'         : ({params:{name}})-> requireLogin -> mainController.doLogout()
 
@@ -293,22 +299,8 @@ class KodingRouter extends KDRouter
       '/:name/Following'       : createContentHandler 'Members', yes
       '/:name/Likes'           : createContentHandler 'Members', yes
 
-      '/:name?/Invitation/:inviteCode': ({params:{inviteCode}})=>
-        inviteCode = decodeURIComponent inviteCode
-        if KD.isLoggedIn()
-          warn "FIXME Add tell to Login app ~ GG @ kodingrouter"
-          # mainController.loginScreen.doRedeem {inviteCode}
-          @handleRoute '/', entryPoint: KD.config.entryPoint
-        else KD.remote.api.JInvitation.byCode inviteCode, (err, invite)=>
-          if err or !invite? or invite.status not in ['active','sent']
-            unless KD.isLoggedIn()
-              if err then error err
-              new KDNotificationView
-                title: 'Invalid invitation code!'
-          else
-            warn "FIXME Add tell to Login app ~ GG @ kodingrouter"
-            # mainController.loginScreen.headBannerShowInvitation invite
-          @clear "/"
+      '/:name?/Invitation/:inviteCode': ({params:{inviteCode, name}})=>
+        @handleRoute "/Redeem/#{inviteCode}"
 
       '/:name?/InviteFriends': ->
         if KD.isLoggedIn()

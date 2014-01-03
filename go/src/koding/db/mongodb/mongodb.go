@@ -3,10 +3,11 @@ package mongodb
 import (
 	"fmt"
 	"koding/tools/config"
-	"labix.org/v2/mgo"
-	"labix.org/v2/mgo/bson"
 	"os"
 	"sync"
+
+	"labix.org/v2/mgo"
+	"labix.org/v2/mgo/bson"
 )
 
 type MongoDB struct {
@@ -36,7 +37,7 @@ func (m *MongoDB) CreateSession(url string) {
 	var err error
 	m.Session, err = mgo.Dial(url)
 	if err != nil {
-		fmt.Printf("mongodb connection error: %s/n", err)
+		fmt.Printf("mongodb connection error: %s\n", err)
 		os.Exit(1)
 		return
 	}

@@ -25,7 +25,7 @@ class NFinderController extends KDViewController
     TreeControllerClass = options.treeControllerClass or NFinderTreeController
     @treeController     = new TreeControllerClass treeOptions, []
 
-    @appStorage = KD.getSingleton('appStorageController').storage 'Finder', '1.1'
+    @appStorage = KD.getSingleton('appStorageController').storage 'Finder', '1.1.1'
 
     @watchers = {}
 
@@ -276,9 +276,9 @@ class NFinderController extends KDViewController
     @expandFolders recentFolders
 
   uploadTo: (path)->
-    sidebarView = @getDelegate()
-    sidebarView.dnduploader.setPath path
-    sidebarView.dndUploadHolder.show()
+    {uploader, uploaderPlaceholder} = @getDelegate()
+    uploader.setPath path
+    uploaderPlaceholder.show()
 
   _pipedVmName:(vmName)-> vmName.replace /\./g, '|'
 

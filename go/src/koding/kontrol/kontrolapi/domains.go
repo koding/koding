@@ -4,12 +4,13 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/gorilla/mux"
 	"io"
 	"io/ioutil"
 	"koding/db/mongodb/modelhelper"
 	"koding/kontrol/kontrolproxy/resolver"
 	"net/http"
+
+	"github.com/gorilla/mux"
 )
 
 func GetDomains(writer http.ResponseWriter, req *http.Request) {
@@ -57,7 +58,7 @@ func ResolveDomain(writer http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	data, err := json.MarshalIndent(target.Url.String(), "", "  ")
+	data, err := json.MarshalIndent(target.URL.String(), "", "  ")
 	if err != nil {
 		io.WriteString(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err))
 		return

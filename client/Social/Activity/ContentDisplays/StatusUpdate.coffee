@@ -18,6 +18,5 @@ class ContentDisplayStatusUpdate extends ActivityContentDisplay
 
   pistachio:->
     """
-    <h2 class="sub-header">{{> @back}}</h2>
     {{> @activityItem}}
     """

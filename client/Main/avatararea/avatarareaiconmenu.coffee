@@ -6,6 +6,15 @@ class AvatarAreaIconMenu extends JView
 
     @setClass "account-menu"
 
+    @helpIcon    = new AvatarAreaIconLink
+      cssClass   : "help acc-dropdown-icon"
+      attributes :
+        title    : 'Help'
+
+    @helpIcon.click = (event)=>
+      KD.singletons.helpController.showHelp this
+      KD.utils.stopDOMEvent event
+
     @notificationsPopup = new AvatarPopupNotifications
       cssClass : "notifications"
 
@@ -15,18 +24,24 @@ class AvatarAreaIconMenu extends JView
         title    : 'Notifications'
       delegate   : @notificationsPopup
 
+    {mainController} = KD.singletons
+    mainController.ready =>
+      storage = KD.singletons.localStorageController.storage('HelpController')
+      unless storage.getValue 'shown'
+        KD.utils.wait 5000, =>
+          KD.singletons.helpController.showHelp @helpIcon
+
   pistachio:->
     """
+    {{> @helpIcon}}
     {{> @notificationsIcon}}
     """
-
 
   viewAppended:->
 
     super
 
     mainView = KD.getSingleton 'mainView'
-
     mainView.addSubView @notificationsPopup
 
     @attachListeners()
@@ -40,7 +55,7 @@ class AvatarAreaIconMenu extends JView
         @notificationsPopup.listController.fetchNotificationTeasers (notifications)=>
           @notificationsPopup.noNotification.hide()
           @notificationsPopup.listController.removeAllItems()
-          @notificationsPopup.listController.instantiateListItems notifications
+          @notificationsPopup.listController.instantiateListItems filterNotifications notifications
 
     @notificationsPopup.listController.on 'NotificationCountDidChange', (count)=>
       @utils.killWait @notificationsPopup.loaderTimeout
@@ -56,7 +71,19 @@ class AvatarAreaIconMenu extends JView
     notificationsPopup.listController.removeAllItems()
 
     if KD.isLoggedIn()
-
       # Fetch Notifications
       notificationsPopup.listController.fetchNotificationTeasers (teasers)=>
-        notificationsPopup.listController.instantiateListItems teasers
+        notificationsPopup.listController.instantiateListItems filterNotifications teasers
+
+  filterNotifications=(notifications)->
+    activityNameMap = [
+      "JNewStatusUpdate"
+      "JAccount"
+      "JPrivateMessage"
+      "JComment"
+      "JReview"
+      "JGroup"
+    ]
+    notifications.filter (notification) ->
+      snapshot = JSON.parse Encoder.htmlDecode notification.snapshot
+      snapshot.anchor.constructorName in activityNameMap

@@ -26,7 +26,7 @@ class ApplicationManager extends KDObject
     # set unload listener
     wc = KD.singleton 'windowController'
     wc.addUnloadListener 'window', =>
-      for own app of @appControllers when app in ['Ace', 'Terminal']
+      for own app of @appControllers when app in ['Ace', 'Terminal', 'Teamwork']
         safeToUnload = no
         break
       return safeToUnload ? yes
@@ -173,8 +173,8 @@ class ApplicationManager extends KDObject
   require: (name, params, callback) ->
     log "AppManager: requiring an app", name
     [callback, params] = [params, callback]  unless callback
-    if @get name
-    then callback()
+    if app = @get name
+    then callback app
     else @create name, params, callback
 
   create:(name, params, callback)->

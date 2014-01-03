@@ -6,7 +6,7 @@ class WebTermAppView extends JView
 
     @tabHandleContainer = new ApplicationTabHandleHolder
       delegate          : this
-      addPlusHandle     : no
+      addPlusHandle     : yes
 
     @tabView = new ApplicationTabView
       delegate                  : this
@@ -20,6 +20,7 @@ class WebTermAppView extends JView
       webTermView.on 'viewAppended', -> webTermView.terminal.setFocused yes
       webTermView.once 'viewAppended', => @emit "ready"
       webTermView.terminal?.setFocused yes
+      webTermView.terminal?.scrollToBottom()
       KD.utils.defer -> webTermView.setKeyView()
 
       webTermView.on "WebTerm.terminated", (server) =>
@@ -34,41 +35,53 @@ class WebTermAppView extends JView
       partial    : 'Loading Terminal...'
 
     @tabView.on 'AllTabsClosed', =>
-      @setMessage """
-        All tabs are closed. You can create a new
-        Terminal by clicking (+) Plus button on top left.
-      """, yes
+      @setMessage "All tabs are closed. <a class='plus' href='#'>Click to open a new Terminal</a>.", no, yes
 
-  setMessage:(msg, light = no, bindClose = no)->
+  setMessage:(msg, light = no, bindClick = no)->
     @messagePane.updatePartial msg
     if light
     then @messagePane.setClass   'light'
     else @messagePane.unsetClass 'light'
     @messagePane.show()
-    if bindClose
-      @messagePane.once 'click', ->
-        KD.singleton('router').back()
-        KD.singleton('appManager').quitByName 'Terminal'
+
+    if bindClick
+      @messagePane.once 'click', (event)=>
+        KD.utils.stopDOMEvent event
+        if $(event.target).hasClass 'close'
+          KD.singleton('router').back()
+          KD.singleton('appManager').quitByName 'Terminal'
+        else if $(event.target).hasClass 'plus'
+          @addNewTab()
+
 
   checkVM:->
 
     vmController = KD.getSingleton 'vmController'
     vmController.fetchDefaultVmName (vmName)=>
 
-      KD.mixpanel "Click open Webterm", {vmName}
+      KD.mixpanel "Open Webterm, click", {vmName}
 
       unless vmName
         return @setMessage "It seems you don't have a VM to use with Terminal."
 
       vmController.info vmName, KD.utils.getTimedOutCallback (err, vm, info)=>
+        if err
+          KD.logToExternal "oskite: Error opening Webterm", vmName, err
+          KD.mixpanel "Open Webterm, fail", {vmName}
 
-        @addNewTab vmName  if info?.state is 'RUNNING'
-        KD.mixpanel "Opened Webterm", {vmName}
+        if info?.state is 'RUNNING'
+          @addNewTab vmName
+        else
+          vmController.start vmName, (err, state)=>
+            warn "Failed to turn on vm:", err  if err
+            KD.utils.defer => @addNewTab vmName
+        KD.mixpanel "Open Webterm, success", {vmName}
 
       , =>
-        KD.mixpanel "Can't open Webterm", {vmName}
-        @setMessage "Couldn't connect to your VM, please try again later. <a href='#'>close this</a>", no, yes
-      , 5000
+        KD.mixpanel "Open Webterm, fail", {vmName}
+        KD.logToExternalWithTime "oskite: Can't open Webterm", vmName
+        @setMessage "Couldn't connect to your VM, please try again later. <a class='close' href='#'>close this</a>", no, yes
+      , 10000
 
   showApprovalModal: (remote, command)->
     modal = new KDModalView
@@ -114,9 +127,32 @@ class WebTermAppView extends JView
 
     return settingsView
 
+  runCommand:(_command)->
+    pane = @tabView.getActivePane()
+    {webTermView} = pane.getOptions()
+
+    runner = =>
+      webTermView.terminal.scrollToBottom()
+      command = decodeURIComponent _command
+
+      # FIXME Make it more elegant later.
+      safeCommands = ['help this', 'help sudo', 'help ftp', 'help mysql',
+                      'help programs', 'help phpmyadmin', 'help mongodb',
+                      'help specs', 'help']
+
+      if _command in safeCommands
+        webTermView.terminal.server.input "#{command}\n"
+      else
+        @showApprovalModal webTermView.terminal, command
+
+    if webTermView.terminal?.server?
+    then runner()
+    else webTermView.once 'WebTermConnected', runner
+
   handleQuery:(query)->
     pane = @tabView.getActivePane()
     {webTermView} = pane.getOptions()
+    webTermView.terminal?.scrollToBottom()
     webTermView.once 'WebTermConnected', (remote)=>
 
       if query.command
@@ -161,6 +197,8 @@ class WebTermAppView extends JView
       delegate    : this
       vmName      : vmName
 
+    @forwardEvents webTermView, ['KeyViewIsSet', 'command']
+
     pane          = new KDTabPaneView
       name        : 'Terminal'
       webTermView : webTermView
@@ -168,17 +206,19 @@ class WebTermAppView extends JView
     @tabView.addPane pane
     pane.addSubView webTermView
 
+    webTermView.on "WebTermNeedsToBeRecovered", (options) =>
+      options.delegate = this
+      pane.destroySubViews()
+      pane.addSubView new WebTermView options
+
     # webTermView.once 'KDObjectWillBeDestroyed', => @tabView.removePane pane
 
   addNewTab: (vmName)->
 
     @messagePane.hide()
 
-    if not @tabHandleContainer.plusHandle
-      @tabHandleContainer.addPlusHandle()
-
     if @_secondTab
-      KD.mixpanel "Click open new Webterm tab"
+      KD.mixpanel "Open new Webterm tab, success"
 
     @_secondTab   = yes
 
@@ -198,9 +238,9 @@ class WebTermAppView extends JView
 
   pistachio: ->
     """
-      {{> @tabHandleContainer}}
-      {{> @messagePane}}
-      {{> @tabView}}
+    {{> @tabHandleContainer}}
+    {{> @messagePane}}
+    {{> @tabView}}
     """
 
 class ChromeTerminalBanner extends JView

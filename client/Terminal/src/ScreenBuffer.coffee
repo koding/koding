@@ -38,8 +38,9 @@ class WebTerm.ScreenBuffer
           new ContentArray
         @setLineContent @toLineIndex(y), newContent
 
-  clear: ->
-    if not @isFullScrollingRegion or @lastScreenClearLineCount is @lineContents.length
+
+  clear: (force) ->
+    if force or not @isFullScrollingRegion or @lastScreenClearLineCount is @lineContents.length
       for y in [0...@terminal.sizeY]
         @setLineContent @toLineIndex(y), new ContentArray
     else

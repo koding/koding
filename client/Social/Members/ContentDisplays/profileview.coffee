@@ -309,29 +309,6 @@ class ProfileView extends JView
       if not KD.checkFlag 'super-admin'
         return KD.getSingleton('router').handleRoute "/Activity"
 
-    @editLink = if KD.isMine @memberData
-    then new CustomLinkView
-      title       : "Edit your profile"
-      icon        :
-        cssClass  : "edit"
-        placement : "right"
-      testPath    : "profile-edit-button"
-      cssClass    : "edit"
-      click       : @bound 'edit'
-    else new KDCustomHTMLView
-
-    @saveButton     = new KDButtonView
-      testPath      : "profile-save-button"
-      cssClass      : "save hidden"
-      style         : "cupid-green"
-      title         : "Save"
-      callback      : @bound 'save'
-
-    @cancelButton   = new CustomLinkView
-      title         : "Cancel"
-      cssClass      : "cancel hidden"
-      click         : @bound 'cancel'
-
     @firstName      = new KDContentEditableView
       tagName       : "span"
       testPath      : "profile-first-name"
@@ -339,6 +316,7 @@ class ProfileView extends JView
       cssClass      : "firstName"
       placeholder   : "First name"
       delegate      : this
+      tabNavigation : yes
       validate      :
         rules       :
           required  : yes
@@ -354,20 +332,10 @@ class ProfileView extends JView
       cssClass      : "lastName"
       placeholder   : "Last name"
       delegate      : this
+      tabNavigation : yes
       validate      :
         rules       :
           maxLength : 25
-      , @memberData
-
-    @memberData.locationTags or= []
-
-    @location     = new KDContentEditableView
-      testPath    : "profile-location"
-      pistachio   : "{{#(locationTags)}}"
-      cssClass    : "location"
-      placeholder : "Earth"
-      default     : "Earth"
-      delegate    : this
       , @memberData
 
     @bio            = new KDContentEditableView
@@ -377,28 +345,32 @@ class ProfileView extends JView
       placeholder   : if KD.isMine @memberData then "You haven't entered anything in your bio yet. Why not add something now?" else ""
       textExpansion : yes
       delegate      : this
-      click         : (event) => KD.utils.showMoreClickHandler event
+      tabNavigation : yes
     , @memberData
 
-    @firstName.on "NextTabStop", => @lastName.focus()
-    @firstName.on "PreviousTabStop", => @bio.focus()
-    @lastName.on "NextTabStop", => @location.focus()
-    @lastName.on "PreviousTabStop", => @firstName.focus()
-    @location.on "NextTabStop", => @bio.focus()
-    @location.on "PreviousTabStop", => @lastName.focus()
-    @bio.on "NextTabStop", => @firstName.focus()
-    @bio.on "PreviousTabStop", => @lastName.focus()
+    save = -> @getDelegate().save()
+    focus = (input) ->
+      input.setEditingMode yes
+      input.focus()
 
-    for input in [@firstName, @lastName, @location, @bio]
-      input.on "click", => if not @editingMode and KD.isMine @memberData then @setEditingMode on
+    @firstName.on "NextTabStop",     => focus @lastName
+    @firstName.on "PreviousTabStop", => focus @bio
+    @lastName.on "NextTabStop",      => focus @bio
+    @lastName.on "PreviousTabStop",  => focus @firstName
+    @bio.on "NextTabStop",           => focus @firstName
+    @bio.on "PreviousTabStop",       => focus @lastName
 
-    @skillTagView = if KD.isMine @memberData or @memberData.skillTags.length > 0
-    then new SkillTagFormView {}, @memberData
-    else new KDCustomHTMLView
+    @firstName.on "click", -> @setEditingMode yes
+    @lastName.on "click",  -> @setEditingMode yes
+    @bio.on "click",       -> @setEditingMode yes
 
-    @skillTagView.on "AutoCompleteNeedsTagData", (event) =>
-      {callback, inputValue, blacklist} = event
-      @fetchAutoCompleteDataForTags inputValue, blacklist, callback
+    @firstName.on "EnterPressed", save
+    @lastName.on "EnterPressed", save
+    @bio.on "EnterPressed", save
+
+    @firstName.on "BlurHappened", save
+    @lastName.on "BlurHappened", save
+    @bio.on "BlurHappened", save
 
     avatarOptions  =
       showStatus      : yes
@@ -427,8 +399,9 @@ class ProfileView extends JView
           @avatarChange.on "UsePhoto", (dataURI)=>
             [_, avatarBase64] = dataURI.split ","
             @avatar.setAvatar "url(#{dataURI})"
-            @avatar.$().css
-              backgroundSize: "auto 90px"
+            # i don't know why this was here - SY
+            # @avatar.$().css
+            #   backgroundSize: "auto 90px"
             @avatarChange.emit "LoadingStart"
             @uploadAvatar avatarBase64, =>
               @avatarChange.emit "LoadingEnd"
@@ -561,35 +534,14 @@ class ProfileView extends JView
 
   createBadges:->
 
-  setEditingMode: (state) ->
-    @editingMode = state
-    @emit "EditingModeToggled", state
-
-    if state
-      @editLink.hide()
-      @saveButton.show()
-      @cancelButton.show()
-    else
-      @editLink.show()
-      @saveButton.hide()
-      @cancelButton.hide()
-
-  edit:(event)->
-    KD.utils.stopDOMEvent event  if event
-    @setEditingMode on
-    @firstName.focus()
-
   save: ->
     for input in [@firstName, @lastName]
       unless input.validate() then return
-
-    @setEditingMode off
 
     @memberData.modify
       "profile.firstName" : @firstName.getValue()
       "profile.lastName"  : @lastName.getValue()
       "profile.about"     : @bio.getValue()
-      "locationTags"      : [@location.getValue() || "Earth"]
     , (err) =>
       if err
         state = "error"
@@ -609,7 +561,6 @@ class ProfileView extends JView
 
   cancel:(event)->
     KD.utils.stopDOMEvent event  if event
-    @setEditingMode off
     @memberData.emit "update"
 
   getActionLink: (route) ->

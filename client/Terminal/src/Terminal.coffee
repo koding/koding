@@ -1,4 +1,4 @@
-class WebTerm.Terminal
+class WebTerm.Terminal extends KDObject
   LINE_DRAWING_CHARSET = [0x2191, 0x2193, 0x2192, 0x2190, 0x2588, 0x259a, 0x2603, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, 0x0020, 0x25c6, 0x2592, 0x2409, 0x240c, 0x240d, 0x240a, 0x00b0, 0x00b1, 0x2424, 0x240b, 0x2518, 0x2510, 0x250c, 0x2514, 0x253c, 0x23ba, 0x23bb, 0x2500, 0x23bc, 0x23bd, 0x251c, 0x2524, 0x2534, 0x252c, 0x2502, 0x2264, 0x2265, 0x03c0, 0x2260, 0x00a3, 0x00b7]
 
   SPECIAL_CHARS =
@@ -10,22 +10,33 @@ class WebTerm.Terminal
     '\\': '\\\\'
     '\u001b': '\\e'
 
-  constructor: (@container) ->
+  constructor: (containerView) ->
+    super()
+
     localStorage?["WebTerm.logRawOutput"] ?= "false"
     localStorage?["WebTerm.slowDrawing"]  ?= "false"
 
-    @server = null
+    @parent               = containerView
+    @container            = containerView.$()
+    @server               = null
     @sessionEndedCallback = null
-    @setTitleCallback = null
+    @setTitleCallback     = null
 
     @keyInput = new KDCustomHTMLView
-      tagName: 'input'
-      cssClass: 'offscreen'
+      tagName   : 'input'
+      attributes: type: 'text'
+      cssClass  : 'offscreen'
+      bind      : 'keydown keyup keypress'
+      keydown   : @bound 'keyDown'
+      keypress  : @bound 'keyPress'
+      keyup     : @bound 'keyUp'
 
     @keyInput.appendToDomBody()
 
-    @pixelWidth               = 0
-    @pixelHeight              = 0
+    containerView.on 'KDObjectWillBeDestroyed', @keyInput.bound 'destroy'
+
+    @currentWidth             = 0
+    @currentHeight            = 0
     @sizeX                    = 80
     @sizeY                    = 24
     @currentStyle             = WebTerm.StyledText.DEFAULT_STYLE
@@ -38,15 +49,16 @@ class WebTerm.Terminal
     @cursor            = new WebTerm.Cursor(this)
     @controlCodeReader = WebTerm.createAnsiControlCodeReader(this)
 
-    @measurebox        = $(document.createElement("div"))
-    @updateSizeTimer   = null
-    @measurebox.css "position", "absolute"
-    @measurebox.css "visibility", "hidden"
-    @container.append @measurebox
+    @measurebox = new KDCustomHTMLView
+      partial   : "\xA0"
+      cssClass  : 'offscreen'
+
     @updateSize()
 
     @outputbox = $(document.createElement("div"))
     @outputbox.css "cursor", "text"
+    @outputbox.append @measurebox.getDomElement()
+
     @container.append @outputbox
 
     @container.on "mousedown mousemove mouseup mousewheel contextmenu", (event) =>
@@ -74,6 +86,8 @@ class WebTerm.Terminal
       sessionEnded: =>
         @sessionEndedCallback()
 
+  command: (command) -> @emit 'command', command
+
   destroy: ->
     @keyInput?.destroy()
     super()
@@ -97,45 +111,42 @@ class WebTerm.Terminal
   setSize: (x, y) ->
     return if x is @sizeX and y is @sizeY
 
-    cursorLineIndex = @screenBuffer.toLineIndex(@cursor.y)
-    @sizeX          = x
-    @sizeY          = y
+    cursorLineIndex  = @screenBuffer.toLineIndex(@cursor.y)
+    [@sizeX, @sizeY] = [x, y]
     @screenBuffer.scrollingRegion = [0, y - 1]
 
     @cursor.moveTo @cursor.x, cursorLineIndex - @screenBuffer.toLineIndex(0)
     @server.setSize x, y if @server
 
+  getCharSizes:->
+
+    sizes =
+      width  : @measurebox.getWidth()  or @_mbWidth
+      height : @measurebox.getHeight() or @_mbHeight
+
+    [@_mbWidth, @_mbHeight] = [@measurebox.getWidth(), @measurebox.getHeight()]
+
+    return sizes
+
   updateSize: (force=no) ->
-    return if not force and @pixelWidth is @container.prop("clientWidth") and @pixelHeight is @container.prop("clientHeight")
-    @container.scrollTop @container.scrollTop() + @pixelHeight - @container.prop("clientHeight") + 1 if @container.prop("clientHeight") < @pixelHeight
-    @pixelWidth  = @container.prop("clientWidth")
-    @pixelHeight = @container.prop("clientHeight")
 
-    width = 1
-    height = 1
-    for n in [0..10] # avoid infinite loop
-      text = ""
-      text += "\xA0" for x in [0...width]
-      elements = []
-      for y in [0...height]
-        div = $(document.createElement("div"))
-        div.text text
-        elements.push div
-      @measurebox.empty()
-      @measurebox.append elements
-      newWidth = Math.max width, Math.floor(@pixelWidth / @measurebox.width() * width)
-      newHeight = Math.max height, Math.floor(@pixelHeight / @measurebox.height() * height)
-      break if newWidth is width and newHeight is height
-      break if newWidth > 1000 or newHeight > 1000 # sanity check
-      width = newWidth
-      height = newHeight
+    [swidth, sheight] = [@parent.getWidth()  or @currentWidth,\
+                         @parent.getHeight() or @currentHeight]
 
-    @measurebox.empty()
-    @setSize width, height
+    return  if not force and \
+               swidth is @currentWidth and sheight is @currentHeight
 
-  windowDidResize: ->
-    window.clearTimeout @updateSizeTimer
-    @updateSizeTimer = window.setTimeout (=> @updateSize()), 500
+    @scrollToBottom()
+
+    [@currentWidth, @currentHeight] = [swidth, sheight]
+    {width, height} = @getCharSizes()
+
+    newWidth  = Math.max width,  Math.floor swidth  / width
+    newHeight = Math.max height, Math.floor sheight / height
+
+    @setSize newWidth, newHeight
+
+  windowDidResize: _.throttle (-> @updateSize()), 500
 
   lineFeed: ->
     if @cursor.y is @screenBuffer.scrollingRegion[1]
@@ -220,15 +231,15 @@ class WebTerm.Terminal
   changeScreenBuffer: (index) ->
 
   isScrolledToBottom: ->
-    @container.scrollTop() + @container.prop("clientHeight") >= @container.prop("scrollHeight") - 3
+    @container.scrollTop() + @parent.getHeight() >= @container.prop("scrollHeight") - 3
 
   scrollToBottom: (animate=no) ->
     return if @isScrolledToBottom()
     @container.stop()
     if animate
-      @container.animate { scrollTop: @container.prop("scrollHeight") - @container.prop("clientHeight") }, duration: 200
+      @container.animate { scrollTop: @container.prop("scrollHeight") - @parent.getHeight() }, duration: 200
     else
-      @container.scrollTop(@container.prop("scrollHeight") - @container.prop("clientHeight"))
+      @container.scrollTop(@container.prop("scrollHeight") - @parent.getHeight())
 
   setScrollbackLimit: (limit) ->
     @screenBuffer.scrollbackLimit = limit

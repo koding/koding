@@ -37,11 +37,33 @@ class StatusActivityItemView extends ActivityItemChild
     @setTemplate @pistachio()
     @template.update()
 
+    @setAnchors()
+
     @utils.defer =>
       predicate = @getData().link?.link_url? and @getData().link.link_url isnt ''
       if predicate
       then @embedBox.show()
       else @embedBox.hide()
+
+  setAnchors: ->
+    @$(".status-body a").each (index, element) ->
+      {location: {origin}} = window
+      href = element.getAttribute "href"
+      return  unless href
+
+      if href.substring(0, origin.length) is origin
+        element.setAttribute "href", "/#{href.substring origin.length + 1}"
+        element.classList.add "internal"
+      else
+        element.setAttribute "target", "_blank"
+
+  click: (event) ->
+    super event
+    {target} = event
+    if $(event.target).is ".status-body a.internal"
+      @utils.stopDOMEvent event
+      href = target.getAttribute "href"
+      KD.singleton("router").handleRoute href
 
   pistachio:->
     """

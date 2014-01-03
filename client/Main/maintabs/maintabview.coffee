@@ -49,30 +49,21 @@ class MainTabView extends KDTabView
     # is removed, that's why we override it to use
     # kodingrouter
 
-    index        = @getPaneIndex pane
-    visibles     = @getVisibleTabs?()
-    visibleIndex = visibles.indexOf pane
-    leftPane     = visibles[visibleIndex - 1]
-    rightPane    = visibles[visibleIndex + 1]
+    index = @getPaneIndex pane
 
     pane.emit "KDTabPaneDestroy"
 
     isActivePane = @getActivePane() is pane
     @panes.splice index, 1
     pane.destroy()
+
     handle = @getHandleByIndex index
     @handles.splice index, 1
-    handle.destroy()
+    handle?.destroy()
+
     @emit "PaneRemoved"
 
-    if rightPane
-      if rightPane.mainView
-        @appManager.showInstance @appManager.getByView rightPane.mainView
-    else if leftPane
-      if leftPane.mainView
-        @appManager.showInstance @appManager.getByView leftPane.mainView
-    else
-      @router.handleRoute @router.currentPath
+    @router.handleRoute @router.currentPath
 
   createTabPane:(options = {}, mainView)->
 

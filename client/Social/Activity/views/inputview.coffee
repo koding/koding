@@ -20,7 +20,7 @@ class ActivityInputView extends KDTokenizedInput
   fetchTopics: (inputValue, callback) ->
     KD.getSingleton("appManager").tell "Topics", "fetchTopics", {inputValue}, (tags = []) =>
       matches = []
-      if inputValue.length > 1
+      if inputValue.length > 1 and not /^\W+$/.test inputValue
         matches = tags.filter (tag) -> tag.title is inputValue
         tags = [$suggest: inputValue].concat tags  unless matches.length
 
@@ -48,8 +48,10 @@ class ActivityInputView extends KDTokenizedInput
     {prefix} = @activeRule
     value = @tokenInput.textContent.substring prefix.length
     words = value.split /\W/, 3
-    @tokenInput.textContent = prefix + words.join "-"
-    @utils.selectEnd @tokenInput
+    if words.join("") isnt ""
+      newval = prefix + words.join "-"
+      @tokenInput.textContent = newval
+      @utils.selectEnd @tokenInput
 
   selectToken: ->
     return  unless @menu
@@ -70,7 +72,8 @@ class ActivityInputView extends KDTokenizedInput
         @emit "Escape"
 
     if /\s/.test String.fromCharCode event.which
-      KD.utils.stopDOMEvent event  if @selectToken()
+      if @tokenInput and /^\W+$/.test @tokenInput.textContent then @cancel()
+      else if @selectToken() then KD.utils.stopDOMEvent event
 
   focus: ->
     return  if @focused

@@ -17,8 +17,7 @@ class WebTermView extends KDView
       @container.$().scrollLeft 0
     @addSubView @container
 
-    @terminal = new WebTerm.Terminal @container.$()
-    # KD.track "userOpenedTerminal", KD.getSingleton("groupsController").getCurrentGroup()
+    @terminal = new WebTerm.Terminal @container
     @options.advancedSettings ?= no
     if @options.advancedSettings
       @advancedSettings = new KDButtonViewWithMenu
@@ -36,9 +35,6 @@ class WebTermView extends KDView
     @terminal.sessionEndedCallback = (sessions) =>
       @emit "WebTerm.terminated"
       @clearConnectionAttempts()
-
-    @terminal.setTitleCallback = (title) =>
-      #@tabPane.setTitle title
 
     @terminal.flushedCallback = =>
       @emit 'WebTerm.flushed'
@@ -67,11 +63,34 @@ class WebTermView extends KDView
 
     @bindEvent 'contextmenu'
 
-    @connectToTerminal()
+    @forwardEvent @terminal, 'command'
+
+    vmName = @_vmName
+    vmController = KD.getSingleton 'vmController'
+    vmController.info vmName, KD.utils.getTimedOutCallback (err, vm, info)=>
+      if err
+        KD.logToExternal "oskite: Error opening Webterm", vmName, err
+        KD.mixpanel "Open Webterm, fail", {vmName}
+
+      if info?.state is 'RUNNING' then @connectToTerminal()
+      else
+        vmController.start vmName, (err, state)=>
+          warn "Failed to turn on vm:", err  if err
+          KD.utils.defer => @connectToTerminal()
+      KD.mixpanel "Open Webterm, success", {vmName}
+
+    , =>
+      KD.mixpanel "Open Webterm, fail", {vmName}
+      KD.logToExternalWithTime "oskite: Can't open Webterm", vmName
+      @setMessage "Couldn't connect to your VM, please try again later. <a class='close' href='#'>close this</a>", no, yes
+    , 10000
+
+    @getDelegate().on 'KDTabPaneActive', =>
+      @terminal.setSize 100, 100
+      @terminal.updateSize yes
 
   connectToTerminal:->
-
-    @appStorage = KD.getSingleton('appStorageController').storage 'WebTerm', '1.0'
+    @appStorage = KD.getSingleton('appStorageController').storage 'Terminal', '1.0.1'
     @appStorage.fetchStorage =>
       @appStorage.setValue 'font'      , 'ubuntu-mono' if not @appStorage.getValue('font')?
       @appStorage.setValue 'fontSize'  , 14 if not @appStorage.getValue('fontSize')?
@@ -105,20 +124,15 @@ class WebTermView extends KDView
         @emit "WebTermConnected", remote
         @sessionId = remote.session
 
-    KD.getSingleton("status").once "reconnected", => @handleReconnect()
+    KD.getSingleton("status").on "reconnected", =>
+      @handleReconnect yes
 
-    kiteErrorCallback = (err) =>
+    KD.getSingleton("kiteController").on "KiteError", (err) =>
       @reconnected               = no
       {code, serviceGenericName} = err
 
       if code is 503 and serviceGenericName.indexOf("kite-os") is 0
         @reconnectAttemptFailed serviceGenericName, @_vmName or @getDelegate().getOption "vmName"
-
-    kiteController = KD.getSingleton "kiteController"
-    kiteController.on "KiteError", kiteErrorCallback
-
-    @on "KiteErrorBindingNeedsToBeRemoved", =>
-      kiteController.off "KiteError", kiteErrorCallback
 
   reconnectAttemptFailed: (serviceGenericName, vmName) ->
     return  if @reconnected or not serviceGenericName
@@ -147,17 +161,19 @@ class WebTermView extends KDView
 
     vmController.info @_vmName or @getDelegate().getOption("vmName"), (err, res) =>
       hasResponse = yes
+      return if @reconnected
       @handleReconnect()
       @clearConnectionAttempts()
 
     @utils.wait 500, => @reconnectAttemptFailed() unless hasResponse
 
   clearConnectionAttempts: ->
-    @emit "KiteErrorBindingNeedsToBeRemoved"
     @clearBackoffTimeout()
 
-  handleReconnect: ->
-    return  if @reconnected
+  handleReconnect: (force = no) ->
+    unless force
+      return  if @reconnected
+
     @clearConnectionAttempts()
     options =
       session  : @sessionId
@@ -168,11 +184,8 @@ class WebTermView extends KDView
     @reconnected = yes
 
   reinitializeWebTerm: (options = {}) ->
-    options.delegate = @getDelegate()
-    @addSubView webterm = new WebTermView options
-
-    webterm.on "WebTermConnected", =>
-      @getSubViews().first.destroy() # TODO: refactor this, don't use subviews
+    return  if @reconnected
+    @emit "WebTermNeedsToBeRecovered", options
 
   handleConnectionFailure: ->
     return if @failedToReconnect
@@ -204,10 +217,10 @@ class WebTermView extends KDView
     @terminal.setScrollbackLimit @appStorage.getValue 'scrollback'
 
   setKeyView: ->
-    super
     KD.getSingleton('windowController').addLayer this
     @focused = true
     @terminal.setFocused true
+    @emit 'KeyViewIsSet'
 
   click: ->
     @setKeyView()

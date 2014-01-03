@@ -44,14 +44,15 @@ class ActivityActionsView extends KDView
     @commentCount = new ActivityCommentCount
       tooltip     :
         title     : "Show all"
-      click       : (event)=>
-        event.preventDefault()
-        @getDelegate().emit "CommentCountClicked", @
+      click       : (event) =>
+        KD.utils.stopDOMEvent event
+        @getDelegate().emit "CommentCountClicked", this
     , activity
 
-    @shareLink    = new ActivityActionLink
-      partial         : "Share"
-      click           :(event)=>
+    @shareLink = new ActivityActionLink
+      partial  : "Share"
+      click    : (event) =>
+        KD.utils.stopDOMEvent event
         data = @getData()
         if data?.group? and data.group isnt "koding"
           shareUrl = "#{KD.config.mainUri}/#!/#{data.group}/Activity/#{data.slug}"
@@ -61,8 +62,8 @@ class ActivityActionsView extends KDView
           cssClass    : "activity-share-popup"
           type        : "activity-share"
           delegate    : this
-          x           : @getX() + 90
-          y           : @getY() - 7
+          x           : @shareLink.getX() + 25
+          y           : @shareLink.getY() - 7
           menuMaxWidth: 400
           lazyLoad    : yes
         , customView  : new ActivitySharePopup delegate: this, url: shareUrl
@@ -121,6 +122,7 @@ class ActivityActionsView extends KDView
     commentList.on 'BackgroundActivityFinished', @loader.bound 'hide'
 
     @commentLink.on "click", (event)=>
+      @utils.stopDOMEvent event
       commentList.emit "CommentLinkReceivedClick", event, this
 
 class ActivityActionLink extends KDCustomHTMLView

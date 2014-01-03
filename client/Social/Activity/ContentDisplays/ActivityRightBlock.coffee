@@ -34,8 +34,8 @@ class ActiveUsers extends ActivityRightBase
 
   constructor:(options={}, data)->
 
-    @itemClass       = ActiveUserItemView
-    options.title    = "Active Koders"
+    @itemClass       = MembersListItemView
+    options.title    = "Active users"
     options.cssClass = "active-users"
 
     super options, data
@@ -44,7 +44,9 @@ class ActiveUsers extends ActivityRightBase
       tagName : "a"
       partial : "show all"
       cssClass: "show-all-link hidden"
-      click   : (event) -> KD.singletons.router.handleRoute "/Members"
+      click   : (event) ->
+        KD.singletons.router.handleRoute "/Members"
+        KD.mixpanel "Show all members, click"
     , data
 
     KD.remote.api.ActiveItems.fetchUsers {}, @bound 'renderItems'
@@ -54,16 +56,22 @@ class ActiveTopics extends ActivityRightBase
   constructor:(options={}, data)->
 
     @itemClass       = ActiveTopicItemView
-    options.title    = "Popular Topics"
+    options.title    = "Popular topics"
     options.cssClass = "active-topics"
 
     super options, data
+
+    # FIXME ~ EA
+    group = 'koding' # KD.singletons.groupsController.getCurrentGroup().slug
 
     @showAllLink = new KDCustomHTMLView
       tagName : "a"
       partial : "show all"
       cssClass: "show-all-link"
-      click   : (event) -> KD.singletons.router.handleRoute "/Topics"
+      click   : (event) ->
+        if group is "koding" then route = "/Topics" else route = "/#{group}/Topics"
+        KD.singletons.router.handleRoute route
+        KD.mixpanel "Show all topics, click"
     , data
 
-    KD.remote.api.ActiveItems.fetchTopics {}, @bound 'renderItems'
+    KD.remote.api.ActiveItems.fetchTopics {group}, @bound 'renderItems'

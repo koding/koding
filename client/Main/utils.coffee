@@ -31,9 +31,9 @@ __utils.extend __utils,
 
 
   goBackToOldKoding:->
-    KD.whoami().modify preferredKDProxyDomain : '', (err)->
+    KD.whoami().modify preferredKDProxyDomain : 'oldkoding', (err)->
       unless err
-        $.cookie 'kdproxy-preferred-domain', erase:yes
+        $.cookie 'kdproxy-preferred-domain', 'oldkoding'
         location.reload yes
 
   # This function checks current user's preferred domain and
@@ -61,7 +61,7 @@ __utils.extend __utils,
     $trg.parent().removeClass("show").addClass("hide") if $trg.is(less)
 
   applyTextExpansions: (text, shorten)->
-    return null unless text
+    return "" unless text
 
     text = text.replace /&#10;/g, ' '
 
@@ -566,3 +566,12 @@ __utils.extend __utils,
       then KD.getSingleton("appManager").tell 'Activity', 'ownActivityArrived', reply
       else new KDNotificationView type : "mini", title : "There was an error, try again later!"
 
+  # log ping times so we know if failure was due to user's slow
+  # internet or our internals timing out
+  logToExternalWithTime: (name, timeout)->
+    KD.troubleshoot (times)->
+      KD.logToExternal msg:"#{name} timed out in #{timeout}", pings:times
+
+  # creates string from tag so that new status updates can
+  # show the tags properly
+  tokenizeTag: (tag)-> "|#:JTag:#{tag.getId()}|"

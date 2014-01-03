@@ -3,14 +3,15 @@ class AboutView extends KDView
 
   viewAppended:->
 
-    @addSubView new KDHeaderView
-      title    : "The Team"
-      type     : 'big'
-      cssClass : 'team-title'
+    # @addSubView new KDHeaderView
+    #   title    : "The Team"
+    #   type     : 'big'
+    #   cssClass : 'team-title'
 
     @activeController = new KDListViewController
-      itemClass   : AboutListItem
-      listView    : new KDListView
+      view        : new KDListView
+        itemClass : AboutListItem
+        type      : 'team'
         tagName   : 'ul'
       scrollView  : no
       wrapper     : no
@@ -20,28 +21,28 @@ class AboutView extends KDView
     @addSubView @activeController.getView()
 
 
-    canSeeExMembers = no
+    # canSeeExMembers = no
 
-    for member in KD.team.active when KD.nick() is member.username
-      canSeeExMembers = yes
-      break
+    # for member in KD.team.active when KD.nick() is member.username
+    #   canSeeExMembers = yes
+    #   break
 
-    return  unless canSeeExMembers
+    # return  unless canSeeExMembers
 
-    @suspendedController = new KDListViewController
-      itemClass   : AboutListItem
-      listView    : new KDListView
-        tagName   : 'ul'
-      scrollView  : no
-      wrapper     : no
-    ,
-      items       : KD.team.suspended
+    # @suspendedController = new KDListViewController
+    #   itemClass   : AboutListItem
+    #   listView    : new KDListView
+    #     tagName   : 'ul'
+    #   scrollView  : no
+    #   wrapper     : no
+    # ,
+    #   items       : KD.team.suspended
 
-    @addSubView new KDHeaderView
-      title    : "Ex-members"
-      type     : 'big'
-      cssClass : 'team-title'
-    @addSubView @suspendedController.getView()
+    # @addSubView new KDHeaderView
+    #   title    : "Ex-members"
+    #   type     : 'big'
+    #   cssClass : 'team-title'
+    # @addSubView @suspendedController.getView()
 
 
 
@@ -55,12 +56,10 @@ class AboutListItem extends KDListItemView
     super options, data
 
     {username} = @getData()
-    @avatar    = new AvatarImage
+    @avatar    = new AvatarView
       origin   : username
-      bind     : 'load'
-      load     : -> @setClass 'in'
-      size     :
-        width  : 160
+      size     : width : 160
+
     @link      = new ProfileLinkView origin : username
 
 

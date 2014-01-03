@@ -85,7 +85,7 @@ module.exports =
                     decorateComment JAccount, comment, (error, commentSummary)=>
                       queue.next() if error
                       queue.commentSummaries or= []
-                      if commentSummary.body
+                      if commentSummary?.body?
                         queue.commentSummaries.push commentSummary
                       queue.next()
                   else queue.next()

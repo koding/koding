@@ -58,7 +58,6 @@ class ActivityDiscussionWidget extends ActivityWidgetFormView
 
   submit:->
     @once "FormValidationPassed", =>
-      KD.track "Activity", "DiscussionSubmitted"
       @reset()
     super
     @submitBtn.disable()

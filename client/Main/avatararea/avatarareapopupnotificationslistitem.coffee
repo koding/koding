@@ -19,7 +19,7 @@ class PopupNotificationListItem extends NotificationListItem
   pistachio:->
     """
       {{> @avatar}}
-      <p>{{> @participants}} {{@getActionPhrase #(dummy)}} {{@getActivityPlot #(dummy)}} {{> @interactedGroups}}</p>
+      <p>{{> @participants}} {{@getActionPhrase #(dummy)}} #{@activityPlot} {{> @interactedGroups}}</p>
       <time>{{$.timeago @getLatestTimeStamp #(dummy)}}</time>
     """
 

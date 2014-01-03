@@ -72,7 +72,8 @@ class MessagesListController extends KDListViewController
 class NotificationListItem extends KDListItemView
 
   activityNameMap =
-    JNewStatusUpdate   : "your status update."
+    JNewStatusUpdate   : "status."
+    JStatusUpdate   : "your status update."
     JCodeSnip       : "your status update."
     JAccount        : "started following you."
     JPrivateMessage : "your private message."
@@ -141,9 +142,13 @@ class NotificationListItem extends KDListItemView
 
     @timeAgoView = new KDTimeAgoView {}, @getLatestTimeStamp @getData().dummy
 
+    @activityPlot = ""
+    @getActivityPlot()
+
   viewAppended:->
-    @setTemplate @pistachio()
-    @template.update()
+    @getActivityPlot (err) =>
+      @setTemplate @pistachio()
+      @template.update()
 
   pistachio:->
     """
@@ -151,7 +156,7 @@ class NotificationListItem extends KDListItemView
         {{> @avatar}}
       </div>
       <div class='right-overflow'>
-        <p>{{> @participants}} {{@getActionPhrase #(dummy)}} {{@getActivityPlot #(dummy)}} {{> @interactedGroups}}</p>
+        <p>{{> @participants}} {{@getActionPhrase #(dummy)}} #{@activityPlot} {{> @interactedGroups}}</p>
         <footer>
           {{> @timeAgoView}}
         </footer>
@@ -173,9 +178,24 @@ class NotificationListItem extends KDListItemView
     else
       actionPhraseMap[bucketNameMap[data.bongo_.constructorName]]
 
-  getActivityPlot:->
+  getActivityPlot:(callback=->)->
     data = @getData()
-    return activityNameMap[@snapshot.anchor.constructorName]
+    {constructorName, id} = @snapshot.anchor
+    if constructorName is "JNewStatusUpdate"
+      KD.remote.cacheable constructorName, id, (err, post) =>
+        return callback err if err or not post?
+        KD.remote.cacheable "JAccount", post.originId, (err, origin) =>
+          return callback err if err or not origin?
+          originatorName = KD.utils.getFullnameFromAccount origin
+          @activityPlot = if post.originId is KD.whoami()?.getId() then "your"
+          else "#{originatorName}'s"
+          @activityPlot += " #{activityNameMap[constructorName]}"
+          callback null
+    else
+      @activityPlot = activityNameMap[@snapshot.anchor.constructorName]
+      callback null
+
+
 
   click:->
 
@@ -196,6 +216,9 @@ class NotificationListItem extends KDListItemView
         appManager.tell 'Inbox', "goToMessages"
       when "JComment", "JReview", "JOpinion"
         KD.remote.api[@snapshot.anchor.constructorName]?.fetchRelated @snapshot.anchor.id, showPost
+      when "JAccount"
+        KD.remote.api.JAccount.one _id : @snapshot.group[0].id, (err, account)->
+          KD.getSingleton('router').handleRoute "/#{account.profile.nickname}"
       when "JGroup"
         # do nothing
       else

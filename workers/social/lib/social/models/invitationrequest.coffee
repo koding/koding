@@ -17,7 +17,7 @@ module.exports = class JInvitationRequest extends Model
       status          : 'sparse'
     sharedMethods     :
       static          : {}
-      instance        : 
+      instance        :
         remove        :
           (signature Function)
         approve       :
@@ -66,6 +66,7 @@ module.exports = class JInvitationRequest extends Model
 
           JUser.one {@username}, (err, user)=>
             return callback err  if err
+            return callback new Error "User not found"  unless user
             user.fetchOwnAccount (err, requester)=>
               return callback err  if err
               @update $set:{ status: 'approved' }, (err)=>

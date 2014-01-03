@@ -2,12 +2,9 @@ class ContentDisplayControllerMember extends KDViewController
 
   constructor:(options={}, data)->
 
-    {@revivedContentDisplay} = KD.singleton('display')
-
     options = $.extend
       view : mainView = new KDView
         cssClass : 'member content-display'
-        domId    : 'member-contentdisplay'  unless @revivedContentDisplay
         type     : 'profile'
     , options
     super options, data
@@ -52,7 +49,6 @@ class ContentDisplayControllerMember extends KDViewController
   addProfileView:(member)->
     options      =
       cssClass   : "profilearea clearfix"
-      domId      : 'profilearea' unless @revivedContentDisplay
       delegate   : @getView()
 
     if KD.isMine member
@@ -87,13 +83,13 @@ class ContentDisplayControllerMember extends KDViewController
     windowController = KD.getSingleton('windowController')
 
     KD.getSingleton("appManager").tell 'Activity', 'feederBridge', {
-      domId                 : 'members-feeder-split-view' unless @revivedContentDisplay
       itemClass             : ActivityListItemView
-      listControllerClass   : ActivityListController
+      listControllerClass   : MemberActivityListController
       listCssClass          : "activity-related"
       limitPerPage          : 8
       useHeaderNav          : yes
       delegate              : @getDelegate()
+      creator               : account
       filter                :
         statuses            :
           title             : "Status Updates"
@@ -110,3 +106,8 @@ class ContentDisplayControllerMember extends KDViewController
       @getView().addSubView controller.getView()
       @getView().setCss minHeight : windowController.winHeight
       @emit 'ready'
+
+class MemberActivityListController extends ActivityListController
+  addItem: (activity, index, animation)->
+    if activity.originId is @getOptions().creator.getId()
+      super activity, index, animation
