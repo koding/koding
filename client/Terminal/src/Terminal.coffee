@@ -1,4 +1,4 @@
-class WebTerm.Terminal
+class WebTerm.Terminal extends KDObject
   LINE_DRAWING_CHARSET = [0x2191, 0x2193, 0x2192, 0x2190, 0x2588, 0x259a, 0x2603, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, 0x0020, 0x25c6, 0x2592, 0x2409, 0x240c, 0x240d, 0x240a, 0x00b0, 0x00b1, 0x2424, 0x240b, 0x2518, 0x2510, 0x250c, 0x2514, 0x253c, 0x23ba, 0x23bb, 0x2500, 0x23bc, 0x23bd, 0x251c, 0x2524, 0x2534, 0x252c, 0x2502, 0x2264, 0x2265, 0x03c0, 0x2260, 0x00a3, 0x00b7]
 
   SPECIAL_CHARS =
@@ -11,6 +11,8 @@ class WebTerm.Terminal
     '\u001b': '\\e'
 
   constructor: (containerView) ->
+    super()
+
     localStorage?["WebTerm.logRawOutput"] ?= "false"
     localStorage?["WebTerm.slowDrawing"]  ?= "false"
 
@@ -20,13 +22,18 @@ class WebTerm.Terminal
     @sessionEndedCallback = null
     @setTitleCallback     = null
 
-    # @keyInput = new KDCustomHTMLView
-    #   tagName: 'input'
-    #   cssClass: 'offscreen'
-    # containerView.addSubView @keyInput
-    # @keyInput.appendToDomBody()
+    @keyInput = new KDCustomHTMLView
+      tagName   : 'input'
+      attributes: type: 'text'
+      cssClass  : 'offscreen'
+      bind      : 'keydown keyup keypress'
+      keydown   : @bound 'keyDown'
+      keypress  : @bound 'keyPress'
+      keyup     : @bound 'keyUp'
 
-    # containerView.on 'KDObjectWillBeDestroyed', @keyInput.bound 'destroy'
+    @keyInput.appendToDomBody()
+
+    containerView.on 'KDObjectWillBeDestroyed', @keyInput.bound 'destroy'
 
     @currentWidth             = 0
     @currentHeight            = 0
@@ -79,6 +86,12 @@ class WebTerm.Terminal
       sessionEnded: =>
         @sessionEndedCallback()
 
+  command: (command) -> @emit 'command', command
+
+  destroy: ->
+    @keyInput?.destroy()
+    super()
+
   keyDown: (event) ->
     @inputHandler.keyDown event
 
@@ -89,7 +102,7 @@ class WebTerm.Terminal
     @inputHandler.keyUp event
 
   setKeyFocus: ->
-    # @keyInput.getElement().focus()
+    @keyInput.getElement().focus()
 
   setFocused: (value) ->
     @cursor.setFocused value
