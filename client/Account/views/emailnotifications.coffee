@@ -7,27 +7,27 @@ class AccountEmailNotifications extends KDView
   putContents:(account, frequency)->
     fields =
       global           :
-        title          : 'Notify me via email'
+        title          : 'Send me email notifications'
       daily            :
-        title          : 'Send me a daily email about everything below'
+        title          : 'Send me a daily digest'
       privateMessage   :
-        title          : 'Someone sends me a private message'
+        title          : 'When someone sends me a private message'
       followActions    :
-        title          : 'Someone follows me'
+        title          : 'When I have a new follower'
       comment          :
-        title          : 'My post receives a comment'
+        title          : 'When my post gets a new comment'
       likeActivities   :
-        title          : 'When I receive likes'
+        title          : 'When I someone likes my content'
       groupInvite      :
-        title          : 'Someone invites me to their group'
+        title          : 'When someone invites me to their group'
       groupRequest     :
-        title          : 'Someone requests access to my group'
+        title          : 'When someone requests access to my group'
       groupApproved    :
-        title          : 'Group admin approves my access request'
+        title          : 'When my group access is approved'
       groupJoined      :
-        title          : 'When someone joins your group'
+        title          : 'When someone joins my group'
       groupLeft        :
-        title          : 'When someone leaves your group'
+        title          : 'When someone leaves my group'
 
     globalValue = frequency.global
 
