@@ -73,13 +73,13 @@ func RemoveComments(id string) error {
 
 	removedNodeIds := make([]bson.ObjectId, 0)
 	rels, err := helper.GetRelationships(selector)
+	if err != nil {
+		return err
+	}
 	if len(rels) == 0 {
 		return nil
 	}
 
-	if err != nil {
-		return err
-	}
 	for _, rel := range rels {
 		err = RemoveRelationship(&rel)
 		if err != nil {
@@ -116,8 +116,7 @@ func RemoveRelationships(selector helper.Selector) error {
 	}
 
 	for _, rel := range rels {
-		err = RemoveRelationship(&rel)
-		if err != nil {
+		if err = RemoveRelationship(&rel); err != nil {
 			return err
 		}
 	}
