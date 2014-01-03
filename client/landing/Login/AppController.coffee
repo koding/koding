@@ -43,6 +43,10 @@ class LoginAppsController extends AppController
     KD.singleton('appManager').open 'Login', (app) ->
       app.prepareFinishRegistrationForm token  unless KD.isLoggedIn()
 
+  handleRecovery = ->
+    KD.singleton('appManager').open 'Login', (app)->
+      app.getView().animateToForm 'recover'
+
 #  handleFailureOfRestriction =->
 #    KD.utils.defer -> new KDNotificationView title: "Login restricted"
 
@@ -70,7 +74,7 @@ class LoginAppsController extends AppController
       '/:name?/Login/:token?'    : handler (app)-> app.getView().animateToForm 'login'
       '/:name?/Redeem'           : handler (app)-> app.getView().animateToForm 'redeem'
       '/:name?/Register/:token?' : handler (app)-> app.getView().animateToForm 'register'
-      '/:name?/Recover'          : handler (app)-> app.getView().animateToForm 'recover'
+      '/:name?/Recover'          : handleRecovery
       '/:name?/Reset'            : handler (app)-> app.getView().animateToForm 'reset'
       '/:name?/Reset/:token'     : handleResetRoute
       '/:name?/Confirm/:token'   : handleResetRoute
