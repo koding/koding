@@ -227,6 +227,11 @@ class WebTermView extends KDView
   click: ->
     @setKeyView()
 
+  dblClick: ->
+    range = @utils.getSelectionRange()
+    @utils.defer =>
+      @utils.addRange range
+
   keyDown: (event) ->
     @listenFullscreen event
     @terminal.keyDown event
