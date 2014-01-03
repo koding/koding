@@ -130,7 +130,7 @@ class Ace extends KDView
 
   requestSave:->
     contents = @getContents()
-    return @notify "Nothing to save!" unless @isContentChanged()
+    return @notify "Nothing to save!" unless contents is "" or @isContentChanged()
     @askedForSave = yes
     @emit "ace.requests.save", contents
 
