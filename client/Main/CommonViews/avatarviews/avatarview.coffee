@@ -57,7 +57,7 @@ class AvatarView extends LinkView
     {profile} = @getData()
     {width} = @getOptions().size
     if profile.hash
-    then "//gravatar.com/avatar/#{profile.hash}?size=#{width * @dpr}&d=404&r=pg"
+    then "//gravatar.com/avatar/#{profile.hash}?size=#{width * @dpr}&d=404&r=g"
     else no
 
   render:->
