@@ -57,7 +57,7 @@ class AceAppView extends JView
       ace.focus()
       ace.on "ace.ready", -> ace.focus()
       ace.on "AceDidSaveAs", (name, parentPath) ->
-        pane.tabHandle.setTitle title
+        pane.setTitle name
 
       title = FSHelper.minimizePath(ace.data.path).replace /^localfile:\//, ''
       pane.tabHandle.setTitle title
