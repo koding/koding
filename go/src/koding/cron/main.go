@@ -22,7 +22,7 @@ func init() {
 }
 
 func main() {
-    fmt.Println("start")
+    fmt.Println("Starting Cron Scheduler")
 
     addTopicModifierConsumer()
 
