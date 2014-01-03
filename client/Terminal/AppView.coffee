@@ -61,7 +61,6 @@ class WebTermView extends KDView
         @terminal?.server.input event.clipboardData.getData("text/plain")
         @setKeyView()
 
-    @bindEvent 'contextmenu'
 
     @forwardEvent @terminal, 'command'
 
@@ -224,7 +223,6 @@ class WebTermView extends KDView
 
   click: ->
     @setKeyView()
-    @textarea?.remove()
 
   keyDown: (event) ->
     @listenFullscreen event
@@ -235,53 +233,6 @@ class WebTermView extends KDView
 
   keyUp: (event) ->
     @terminal.keyUp event
-
-  contextMenu: (event) ->
-    # invisible textarea will be placed under the cursor when rightclick
-    @createInvisibleTextarea event
-    @setKeyView()
-    event
-
-  createInvisibleTextarea:(eventData)->
-    # Get selected Text for cut/copy
-    if window.getSelection
-        selectedText = window.getSelection()
-    else if document.getSelection
-        selectedText = document.getSelection()
-    else if document.selection
-        selectedText = document.selection.createRange().text
-
-    @textarea?.remove()
-    @textarea = $(document.createElement("textarea"))
-    @textarea.css
-      position  : "absolute"
-      opacity   : 0
-      # width     : "30px"
-      # height    : "30px"
-      # top       : eventData.offsetY-10
-      # left      : eventData.offsetX-10
-      width       : "100%"
-      height      : "100%"
-      top         : 0
-      left        : 0
-      right       : 0
-      bottom      : 0
-    @$().append @textarea
-
-    # remove on any of these events
-    @textarea.on 'copy cut paste', (event)=>
-      @setKeyView()
-      @utils.wait 1000, => @textarea.remove()
-      yes
-
-    if selectedText
-      @textarea.val(selectedText.toString())
-      @textarea.select()
-    @textarea.focus()
-
-    #remove 15sec later
-    @utils.wait 15000, =>
-      @textarea?.remove()
 
   _windowDidResize: (event) ->
     @terminal.windowDidResize()
