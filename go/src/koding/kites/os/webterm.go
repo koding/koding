@@ -114,7 +114,7 @@ func registerWebtermMethods(k *kite.Kite) {
 			if params.Mode == "shared" {
 				cmdArgs = append(cmdArgs, "-x") // multiuser mode
 			} else if params.Mode == "resume" {
-				cmdArgs = append(cmdArgs, "-dr") // resume
+				cmdArgs = append(cmdArgs, "-raAd") // resume
 			}
 		case "noscreen":
 			cmdArgs = nil
