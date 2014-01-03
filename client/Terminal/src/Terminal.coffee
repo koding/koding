@@ -62,6 +62,15 @@ class WebTerm.Terminal extends KDObject
     @outputbox.append @keyInput.getDomElement()
     @container.append @outputbox
 
+    outputboxElement.addEventListener "keydown", (event) =>
+      range = KD.utils.getSelectionRange()
+      if range.startOffset isnt range.endOffset
+        if event.ctrlKey or event.metaKey
+          @setKeyFocus()  if String.fromCharCode(event.which) is "X"
+        else
+          @setKeyFocus()
+    , yes
+
     @container.on "mousedown mousemove mouseup mousewheel contextmenu", (event) =>
       @inputHandler.mouseEvent event
 
