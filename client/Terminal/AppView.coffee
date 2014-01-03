@@ -71,7 +71,7 @@ class WebTermAppView extends JView
       if sessions?.length
         for session in sessions
           [vmName, sessionId] = session.split ':'
-          @createNewTab { vmName, session: sessionId }
+          @createNewTab { vmName, session: sessionId, mode: 'resume' }
         activePane = @tabView.getPaneByIndex activeIndex ? 0
         @tabView.showPane activePane
         { terminalView } = activePane.getOptions()
@@ -218,11 +218,11 @@ class WebTermAppView extends JView
   createNewTab: (options = {}) ->
     @messagePane.hide()
     
-    terminalView   = new WebTermView
+    defaultOptions =
       testPath    : "webterm-tab"
       delegate    : this
-      vmName      : options.vmName
-      session     : options.session
+
+    terminalView   = new WebTermView (KD.utils.extend defaultOptions, options)
 
     @appendTerminalTab terminalView
 
@@ -270,12 +270,12 @@ class WebTermAppView extends JView
         vmc = KD.getSingleton 'vmController'
         if vmc.vms.length > 1
           vmselection = new VMSelection
-          vmselection.once 'VMSelected', (vm)=> @createNewTab vmName: vm
+          vmselection.once 'VMSelected', (vm)=> @createNewTab vmName: vm, mode: 'create'
         else
-          @createNewTab vmName: vmc.vms.first
+          @createNewTab vmName: vmc.vms.first, mode: 'create'
 
     else
-      @createNewTab vmName: vmName
+      @createNewTab vmName: vmName, mode: 'create'
 
 
   pistachio: ->

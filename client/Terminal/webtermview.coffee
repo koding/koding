@@ -80,7 +80,7 @@ class WebTermView extends KDView
     , =>
       KD.mixpanel "Open Webterm, fail", {vmName}
       KD.logToExternalWithTime "oskite: Can't open Webterm", vmName
-      @setMessage "Couldn't connect to your VM, please try again later. <a class='close' href='#'>close this</a>", no, yes
+      #@setMessage "Couldn't connect to your VM, please try again later. <a class='close' href='#'>close this</a>", no, yes
     , 10000
 
     @getDelegate().on 'KDTabPaneActive', =>
@@ -104,9 +104,9 @@ class WebTermView extends KDView
         remote      : @terminal.clientInterface
         sizeX       : @terminal.sizeX
         sizeY       : @terminal.sizeY
-        joinUser    : myOptions.joinUser or delegateOptions.joinUser
-        session     : myOptions.session  or delegateOptions.session
-        noScreen    : delegateOptions.noScreen
+        joinUser    : myOptions.joinUser  ? delegateOptions.joinUser
+        session     : myOptions.session   ? delegateOptions.session
+        mode        : myOptions.mode      ? 'create' 
 
       KD.getSingleton("vmController").run
         method        : "webterm.connect",
