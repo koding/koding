@@ -1,6 +1,6 @@
 class MembersListItemView extends KDListItemView
   constructor: (options = {}, data) ->
-    options.type = "activity-ticker-item member-list-item-view"
+    options.type        = "member"
     super options, data
 
     data = @getData()
@@ -13,7 +13,7 @@ class MembersListItemView extends KDListItemView
 
     @actor = new ProfileLinkView {}, data
 
-    @followersAndFollowing = new JView
+    @followersAndFollowing = new KDCustomHTMLView
       cssClass  : 'user-numbers'
       pistachio : "{{ #(counts.followers)}} followers {{ #(counts.following)}} following"
     , data
