@@ -14,11 +14,12 @@ class WebTermAppView extends JView
       resizeTabHandles          : yes
       closeAppWhenAllTabsClosed : no
 
-    @tabView.on 'PaneDidShow', (pane) =>
+    @tabView.on 'PaneDidShow', (pane, index) =>
       @_windowDidResize()
       {terminalView} = pane.getOptions()
-      terminalView.on 'viewAppended', -> terminalView.terminal.setFocused yes
-      terminalView.once 'viewAppended', => @emit "ready"
+      terminalView.once 'viewAppended', =>
+        terminalView.terminal.setFocused yes
+        @emit "ready"
       terminalView.terminal?.setFocused yes
       terminalView.terminal?.scrollToBottom()
       KD.utils.defer -> terminalView.setKeyView()
@@ -26,6 +27,8 @@ class WebTermAppView extends JView
       terminalView.on "WebTerm.terminated", (server) =>
         if not pane.isDestroyed and @tabView.getActivePane() is pane
           @tabView.removePane pane
+
+      @fetchStorage (storage) -> storage.setValue 'activeIndex', index
 
     @on "KDObjectWillBeDestroyed", ->
       KD.getSingleton("mainView").disableFullscreen()
@@ -57,14 +60,22 @@ class WebTermAppView extends JView
         else if $(event.target).hasClass 'plus'
           @addNewTab()
 
-  restoreTabs: (vmName) ->
+  fetchStorage: (callback) ->
     storage = KD.getSingleton('appStorageController').storage 'Terminal', '1.0.1'
-    storage.fetchStorage =>
+    storage.fetchStorage -> callback storage
+
+  restoreTabs: (vmName) ->
+    @fetchStorage (storage) =>
       sessions = storage.getValue 'savedSessions'
+      activeIndex = storage.getValue 'activeIndex'
       if sessions?.length
         for session in sessions
           [vmName, sessionId] = session.split ':'
           @createNewTab { vmName, session: sessionId }
+        activePane = @tabView.getPaneByIndex activeIndex ? 0
+        @tabView.showPane activePane
+        { terminalView } = activePane.getOptions()
+        terminalView.setKeyView()
       else
         @addNewTab vmName
 
@@ -205,7 +216,8 @@ class WebTermAppView extends JView
     @checkVM()
 
   createNewTab: (options = {}) ->
-
+    @messagePane.hide()
+    
     terminalView   = new WebTermView
       testPath    : "webterm-tab"
       delegate    : this
@@ -237,15 +249,15 @@ class WebTermAppView extends JView
   updateSessions: ->
     storage = (KD.getSingleton 'appStorageController').storage 'Terminal', '1.0.1'
     storage.fetchStorage =>
+      activeIndex = @tabView.getActivePaneIndex()
       sessions = @tabView.panes.map (pane) =>
         { terminalView } = pane.getOptions()
         sessionId = terminalView.sessionId ? terminalView.getOption 'session'
         "#{ terminalView.getOption 'vmName' }:#{ sessionId }"
       storage.setValue 'savedSessions', sessions
+      storage.setValue 'activeIndex', activeIndex
 
   addNewTab: (vmName)->
-
-    @messagePane.hide()
 
     if @_secondTab
       KD.mixpanel "Open new Webterm tab, success"
