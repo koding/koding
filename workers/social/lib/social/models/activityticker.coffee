@@ -15,8 +15,8 @@ module.exports = class ActivityTicker extends Base
           (signature Object, Function)
         ]
 
-  relationshipNames = ["follower", "like", "member", "user",  "author"]
-  constructorNames  = ["JAccount", "JNewApp", "JGroup", "JTag", "JNewStatusUpdate"]
+  relationshipNames = ["follower", "like", "member", "author"]
+  constructorNames  = ["JAccount", "JGroup", "JTag", "JNewStatusUpdate"]
 
   JAccount = require './account'
 
@@ -25,7 +25,6 @@ module.exports = class ActivityTicker extends Base
       "follower" : ["JAccount", "JTag"]
       "like"     : ["JAccount", "JNewStatusUpdate"]
       "member"   : ["JGroup"]
-      "user"     : ["JApp"]
 
     sources = []
     for filter in filters
@@ -36,7 +35,7 @@ module.exports = class ActivityTicker extends Base
     return sources
 
   mapTargetNames = (filters) ->
-    validFilters = ["follower", "like", "member", "user"]
+    validFilters = ["follower", "like", "member"]
     targets = []
     # The only possible options are either returning only "JAccount" or
     # returning whole constructorNames. I left this function for future-cases.

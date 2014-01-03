@@ -3,6 +3,7 @@ module.exports = [
   # terminal
   "AppController.coffee",
   "AppView.coffee",
+
   "vmselectionview.coffee",
   "webtermappview.coffee",
   "webtermsettingsview.coffee",
