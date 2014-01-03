@@ -45,8 +45,6 @@ app.teamwork.styl
     &.file-container
       .no-vm-found-widget
         display                 none
-    .nfinder
-      kalc                      height, 100% \- 140px
   .application-tabview
     kalc                        height, 100% \- 58px
   .kdsplitview-resizer.vertical
@@ -375,6 +373,15 @@ app.teamwork.styl
   size                          30px, 30px
   fl()
 
+.tw-add-user
+  fl()
+  size                          30px, 30px
+  sprite                        teamwork, "add"
+  bg                            color, #1B2224
+  rounded                       3px
+  margin-top                    10px
+  pointer()
+
 .tw-tab-avatar-img
   abs()
   display                       block
@@ -505,6 +512,24 @@ app.teamwork.styl
     p
       font-size                 14px
       margin-bottom             15px
+  .kdautocompletewrapper
+    bg                          color, transparent
+    rounded                     0
+    vendor                      box-shadow, none
+  .kdautocompletedlistitem
+    margin                      10px 10px 0 0
+    bg                          color, #282F31
+    border                      1px solid #1B2224
+    color                       #BBC1C5
+    font-size                   14px
+    padding                     5px 30px 5px 10px
+    &:hover
+      .close-icon
+        display                 block
+    .close-icon
+      top                       5px !important
+      right                     5px !important
+      display                   none
 
 @-moz-keyframes borderPulse
   15%
