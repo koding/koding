@@ -110,7 +110,7 @@ class HomePage extends JView
           </div>
           <div class="register-container">
             {{> @registerForm}}
-            <h3>{{> @githubLink}}</h2>
+            <h3>{{> @githubLink}}</h3>
           </div>
         </div>
       </main>
@@ -180,7 +180,7 @@ class HomePage extends JView
           </address>
         </div>
         <nav>
-          <a href="/About">About</a>
+          <a class="hidden" href="/About">About</a>
           <a href="mailto:hello@koding.com">Contact</a>
           <a href="http://learn.koding.com/">University</a>
           <a href="http://koding.github.io/jobs/">Jobs</a>
