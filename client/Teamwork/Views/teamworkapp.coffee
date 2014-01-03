@@ -3,7 +3,9 @@ class TeamworkApp extends KDObject
   instanceName = if location.hostname.indexOf("local") > -1 then "tw-local" else "kd-prod-1"
 
   constructor: (options = {}, data) ->
+
     options.query or= {}
+
     super options, data
 
     @appView = @getDelegate()
@@ -44,6 +46,7 @@ class TeamworkApp extends KDObject
     @teamwork = new playgroundClass options or @getTeamworkOptions()
     @appView.addSubView @teamwork
     callback?()
+    KD.getSingleton("router").handleRoute "/Teamwork?sessionKey=#{@teamwork.sessionKey}"
 
   getTeamworkOptions: ->
     options               = @getOptions()
