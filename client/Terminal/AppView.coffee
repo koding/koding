@@ -61,6 +61,9 @@ class WebTermView extends KDView
         @terminal?.server.input event.clipboardData.getData("text/plain")
         @setKeyView()
 
+    @getElement().addEventListener "mousedown", (event) =>
+      @terminal.mousedownHappened = yes
+    , yes
 
     @forwardEvent @terminal, 'command'
 
