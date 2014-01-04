@@ -52,12 +52,8 @@ class KodingRouter extends KDRouter
     name       = (if entryPoint?.type is "group" then frags[2] else frags[1]) or ''
     name       = (name.split '?')[0]
 
-    log 'handlingRoute', route, 'for the', name, 'app'
-
     if appManager.isAppInternal name
-      log 'couldn\'t find', name
       return KodingAppsController.loadInternalApp name, (err)=>
-        log 'Router: loaded', name
         return warn err  if err
         KD.utils.defer => @handleRoute route, options
 
