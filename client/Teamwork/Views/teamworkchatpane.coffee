@@ -151,11 +151,24 @@ class TeamworkChatPane extends ChatPane
   viewAppended: ->
     super
 
+    links      = new KDCustomHTMLView
+      cssClass : "tw-action-links"
+
+    links.addSubView new KDCustomHTMLView
+      tagName  : "p"
+      partial  : "Active users"
+
+    links.addSubView new KDCustomHTMLView
+      tagName  : "p"
+      cssClass : "tw-share-link"
+      partial  : "Share"
+      click    : => new TeamworkShareModal delegate: @getDelegate()
+
     @avatars   = @workspace.avatarsView = new KDCustomHTMLView
       cssClass : "tw-users"
-      partial  : "<p>Active Users</p>"
 
     @addSubView @avatars, null, yes
+    @avatars.addSubView links, null, yes
 
     tipTitle   = if @workspace.amIHost() then messages.host else messages.you
 
