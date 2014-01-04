@@ -419,6 +419,13 @@ app.teamwork.styl
   p
     color                       #1aaf5d
     font-size                   12px
+    &:first-child
+      fl()
+    &.tw-share-link
+      fr()
+      pointer()
+  .tw-action-links
+    overflow                    hidden
   .avatarview
     fl()
     margin                      10px 9px 0 0
@@ -530,6 +537,55 @@ app.teamwork.styl
       top                       5px !important
       right                     5px !important
       display                   none
+
+.tw-share-modal
+  .activity-input-widget
+    .avatarview
+      top                       17px
+      left                      20px
+  .kdtokenizedinputview
+    > div:first-child
+      min-height                72px
+      padding                   18px 20px 20px 70px !important
+      box-shadow                1px 1px 0px #CECECE inset
+      rounded                   4px
+      &:focus
+        outline                 0px !important
+        -webkit-appearance      none
+    .kdbutton
+      size                      93px !important, 40px !important
+      background                #1AAE5D
+      margin-top                20px
+      position                  relative !important
+      left                      518px
+      .icon
+        top                     13px !important
+        left                    65px !important
+        &:after
+          content               "Share"
+          color                 #FFF
+          font-size             14px
+          position              relative
+          top                   -1px
+          left                  -48px
+  .join
+    color                       #3c484c
+    margin-bottom               2px
+  .url
+    color                       #3D4A4D
+    font-weight                 600
+  .tw-share-warning
+    width                       490px
+    margin-top                  -46px
+    color                       #878A8A
+    p
+      display                   inline-block
+      width                     440px
+      margin-left               3px
+    .warning
+      sprite                    "teamwork", "warning"
+      display                   inline-block
+      margin-left               2px
 
 @-moz-keyframes borderPulse
   15%
