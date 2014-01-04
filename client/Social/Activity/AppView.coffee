@@ -25,9 +25,10 @@ class ActivityAppView extends KDScrollView
     @header           = new KDCustomHTMLView
     @inputWidget      = new ActivityInputWidget
 
-    @tickerBox        = new ActivityTicker
-    @usersBox         = new ActiveUsers
+    @referalBox       = new ReferalBox
     @topicsBox        = new ActiveTopics
+    @usersBox         = new ActiveUsers
+    @tickerBox        = new ActivityTicker
 
     @mainBlock        = new KDCustomHTMLView tagName : "main" #"activity-left-block"
     @sideBlock        = new KDCustomHTMLView tagName : "aside"   #"activity-right-block"
@@ -74,6 +75,7 @@ class ActivityAppView extends KDScrollView
     @mainBlock.addSubView @feedFilterController
     @mainBlock.addSubView @feedWrapper
 
+    @sideBlock.addSubView @referalBox  if KD.isLoggedIn()
     @sideBlock.addSubView @topicsBox
     @sideBlock.addSubView @usersBox
     @sideBlock.addSubView @tickerBox
@@ -99,36 +101,6 @@ class ActivityAppView extends KDScrollView
 
   unsetTopicTag: ->
     @inputWidget.input.setDefaultTokens tags: []
-
-  # changePageToActivity:(event)->
-
-  #   if KD.isLoggedIn()
-  #     if not @$().hasClass("fixed") and @getScrollTop() > headerHeight - 10
-  #       {navController} = @mainController.sidebarController.getView()
-  #       navController.selectItemByName 'Activity'
-  #       @setClass "fixed"
-  #       @header.once "transitionend", @header.bound "hide"
-  #       @header.$().css marginTop : -headerHeight
-  #       KD.getSingleton('mainViewController').emit "browseRequested"
-
-  # navigateHome:(itemData)->
-
-  #   switch itemData.pageName
-  #     when "Home"
-  #       @header.show()
-  #       @header._windowDidResize()
-  #       @scrollTo {duration : 300, top : 0}, =>
-  #         # if KD.isLoggedIn()
-  #         @unsetClass "fixed"
-  #         @header.$().css marginTop : 0
-  #     when "Activity"
-  #       if KD.isLoggedIn()
-  #         @header.once "transitionend", =>
-  #           @header.hide()
-  #           @setClass "fixed"
-  #         @header.$().css marginTop : -headerHeight
-  #       else
-  #         @scrollTo {duration : 300, top : @header.getHeight()}
 
 
 class ActivityListContainer extends JView
@@ -172,8 +144,8 @@ class FilterWarning extends JView
 
   pistachio:->
     """
-      {{> @warning}}
-      {{> @goBack}}
+    {{> @warning}}
+    {{> @goBack}}
     """
 
   showWarning:({text, type})->
@@ -184,3 +156,74 @@ class FilterWarning extends JView
     @warning.updatePartial "#{partialText}"
 
     @show()
+
+class ReferalBox extends JView
+
+
+  constructor: (options = {}, data) ->
+
+    options.cssClass = 'referal-box'
+
+    super options, data
+
+    @close = new KDCustomHTMLView
+      tagName    : 'a'
+      attributes :
+        href     : '#'
+      click      : (event)=>
+        KD.utils.stopDOMEvent event
+        @destroy()
+      cssClass   : 'hide'
+      partial    : 'hide this'
+
+    @modalLink = new KDCustomHTMLView
+      tagName    : 'a'
+      attributes :
+        href     : '#'
+      click      : @bound 'showReferrerModal'
+      partial    : 'show more...'
+
+    @progressBar = new KDProgressBarView
+      title       : '0 GB / 16 GB'
+      determinate : yes
+
+
+
+  viewAppended:->
+
+    super
+
+    @progressBar.updateBar 0
+    vmc = KD.getSingleton "vmController"
+    vmc.fetchDefaultVmName (name) =>
+      vmc.fetchDiskUsage name, (usage) =>
+        return  unless usage.max
+
+        usagePercent = usage.max / (16*1e9) * 90
+        used         = KD.utils.formatBytesToHumanReadable usage.max
+
+        @progressBar.updateBar usagePercent + 10, null, "#{used} / 16 GB"
+
+
+  showReferrerModal: (event)->
+    KD.utils.stopDOMEvent event
+
+    appManager = KD.getSingleton "appManager"
+    appManager.tell "Account", "showReferrerModal",
+      # linkView    : getYourReferrerCode
+      top         : 50
+      left        : 35
+      arrowMargin : 110
+
+
+  pistachio:->
+    """
+    {{> @close}}
+    <figure></figure>
+    <p>
+    Invite your friends and get 250mb
+    up to <strong>16GB</strong> for free! {{> @modalLink}}
+    </p>
+    {{> @progressBar}}
+    """
+
