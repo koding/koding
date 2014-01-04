@@ -34,6 +34,9 @@ class CollaborativeFinderPane extends CollaborativePane
       @syncContent files
 
     @finderController.on "OpenedAFile", (file, content) =>
+      fileHandler = @getOption "handleFileOpen"
+      return fileHandler file, content  if fileHandler
+
       editorPane = @panel.getPaneByName @getOptions().editor
       unless editorPane
         for pane in @panel.panes
