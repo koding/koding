@@ -27,7 +27,7 @@ class WebTermView extends KDView
         delegate      : this
         itemClass     : WebtermSettingsView
         click         : (pubInst, event)-> @contextMenu event
-        menu          : @getAdvancedSettingsMenuItems.bind @
+        menu          : @getAdvancedSettingsMenuItems.bind this
       @addSubView @advancedSettings
 
     @terminal.sessionEndedCallback = (sessions) =>
@@ -80,14 +80,14 @@ class WebTermView extends KDView
     , =>
       KD.mixpanel "Open Webterm, fail", {vmName}
       KD.logToExternalWithTime "oskite: Can't open Webterm", vmName
-      #@setMessage "Couldn't connect to your VM, please try again later. <a class='close' href='#'>close this</a>", no, yes
+      @emit 'message', "Couldn't connect to your VM, please try again later. <a class='close' href='#'>close this</a>", no, yes
     , 10000
 
     @getDelegate().on 'KDTabPaneActive', =>
-      @terminal.setSize 100, 100
+      # @terminal.setSize 100, 100
       @terminal.updateSize yes
 
-  connectToTerminal:->
+  connectToTerminal: ->
     @appStorage = KD.getSingleton('appStorageController').storage 'Terminal', '1.0.1'
     @appStorage.fetchStorage =>
       @appStorage.setValue 'font'      , 'ubuntu-mono' if not @appStorage.getValue('font')?
@@ -115,8 +115,14 @@ class WebTermView extends KDView
       , (err, remote) =>
         if err
           warn err
-          @reinitializeWebTerm()  if err.message is "Invalid session identifier."
-          return
+
+          if err.code is "ErrInvalidSession"
+            @emit 'TerminalCanceled',
+              vmName: myOptions.vmName
+              sessionId: myOptions.session
+              error: err
+            return
+          else throw err
 
         @terminal.eventHandler = (data)=> @emit "WebTermEvent", data
         @terminal.server       = remote
@@ -289,7 +295,7 @@ class WebTermView extends KDView
     settings      :
       type        : 'customView'
       view        : new WebtermSettingsView
-        delegate  : @
+        delegate  : this
 
   listenFullscreen: (event)->
     requestFullscreen = (event.metaKey or event.ctrlKey) and event.keyCode is 13

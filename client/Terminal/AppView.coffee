@@ -4,6 +4,8 @@ class WebTermAppView extends JView
 
     super options, data
 
+    @dirty = KD.utils.dict()
+
     @tabHandleContainer = new ApplicationTabHandleHolder
       delegate          : this
       addPlusHandle     : yes
@@ -14,7 +16,7 @@ class WebTermAppView extends JView
       resizeTabHandles          : yes
       closeAppWhenAllTabsClosed : no
 
-    @tabView.on 'PaneDidShow', (pane, index) =>
+    @tabView.once 'PaneDidShow', (pane, index) =>
       @_windowDidResize()
       {terminalView} = pane.getOptions()
       terminalView.once 'viewAppended', =>
@@ -24,7 +26,7 @@ class WebTermAppView extends JView
       terminalView.terminal?.scrollToBottom()
       KD.utils.defer -> terminalView.setKeyView()
 
-      terminalView.on "WebTerm.terminated", (server) =>
+      terminalView.once "WebTerm.terminated", (server) =>
         if not pane.isDestroyed and @tabView.getActivePane() is pane
           @tabView.removePane pane
 
@@ -224,6 +226,10 @@ class WebTermAppView extends JView
 
     terminalView   = new WebTermView (KD.utils.extend defaultOptions, options)
 
+    terminalView.on 'message', @bound 'setMessage'
+
+    terminalView.on 'WebTermConnected', @bound 'updateSessions'
+
     @appendTerminalTab terminalView
 
   appendTerminalTab: (terminalView) ->
@@ -242,7 +248,15 @@ class WebTermAppView extends JView
       pane.destroySubViews()
       pane.addSubView new WebTermView options
 
-    terminalView.on 'WebTermConnected', @bound 'updateSessions'
+    terminalView.on 'TerminalCanceled', ({ vmName }) =>
+      @tabView.removePane pane
+      unless @dirty[vmName]
+        @tabView.off 'AllTabsClosed'
+        @setMessage """
+          Sorry, your terminal sessions on #{ vmName } are dead. <a href='#' class='plus'>Open a new session.</a>
+          """, no, yes
+        @dirty[vmName] = yes
+
 
     # terminalView.once 'KDObjectWillBeDestroyed', => @tabView.removePane pane
 
@@ -253,7 +267,9 @@ class WebTermAppView extends JView
       sessions = @tabView.panes.map (pane) =>
         { terminalView } = pane.getOptions()
         sessionId = terminalView.sessionId ? terminalView.getOption 'session'
-        "#{ terminalView.getOption 'vmName' }:#{ sessionId }"
+        vmName = terminalView.getOption 'vmName'
+        @dirty[vmName] = no
+        "#{ vmName }:#{ sessionId }"
       storage.setValue 'savedSessions', sessions
       storage.setValue 'activeIndex', activeIndex
 
