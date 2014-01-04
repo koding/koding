@@ -887,24 +887,23 @@ module.exports = class JGroup extends Module
             else if request? then request.approve client
             else callback null
 
-  inviteByEmail: do->
-    fetchAccountByEmail = (email, callback)->
-      JUser    = require '../user'
-      JUser.one {email}, (err, user)=>
-        if user
-          user.fetchOwnAccount (err, account)=>
-            return callback null, null  if err or not account
-            @isMember account, (err, isMember)->
-              if isMember
-                callback new KodingError "#{email} is already member of this group!"
-              else
-                callback null, account
-        else
-          return callback null, null
+  fetchAccountByEmail: (email, callback)=>
+    JUser    = require '../user'
+    JUser.one {email}, (err, user)=>
+      return callback err, null  if err or not user
+      user.fetchOwnAccount (err, account)=>
+        return callback err, null  if err
+        return callback new Error "Account not found.", null  unless account
+        @isMember account, (err, isMember)->
+          if isMember
+            callback new KodingError "#{email} is already member of this group!"
+          else
+            callback null, account
 
+  inviteByEmail: do=>
     permit 'send invitations',
       success: (client, email, options, callback)->
-        fetchAccountByEmail email, (err, account)=>
+        @fetchAccountByEmail email, (err, account)=>
           return callback err  if err
           @inviteMember client, email, account, options, callback
 
