@@ -223,7 +223,14 @@ func (k *Kite) startRouting(stream <-chan amqp.Delivery, publishChannel *amqp.Ch
 									return
 								}
 
-								resultCallback(CreateErrorObject(err), result)
+								var kiteErr KiteError
+								var ok bool
+								kiteErr, ok = err.(KiteError)
+								if !ok {
+									kiteErr = NewKiteErr(err)
+								}
+
+								resultCallback(CreateErrorObject(kiteErr), result)
 								return
 							}
 
