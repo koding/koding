@@ -17,7 +17,10 @@ import (
 	"unicode/utf8"
 )
 
-const sessionPrefix = "koding"
+const (
+	sessionPrefix     = "koding"
+	ErrInvalidSession = "ErrInvalidSession"
+)
 
 type WebtermServer struct {
 	Session          string `json:"session"`
@@ -107,8 +110,9 @@ func registerWebtermMethods(k *kite.Kite) {
 			}
 
 			if !sessionExists(vos, params.Session) {
-				return nil, &kite.Error{
+				return nil, &kite.BaseError{
 					Message: fmt.Sprintf("The given session '%s' is not available.", params.Session),
+					CodeErr: ErrInvalidSession,
 				}
 			}
 
