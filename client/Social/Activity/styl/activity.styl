@@ -24,7 +24,7 @@ resurrection.activity.styl
     text-align          center
 
 .status.content-display
-  .status-body
+  article
     max-height          100%
 
 .content-page.activity
@@ -443,13 +443,13 @@ span.collapsedtext
     abs()
 
   .profile
-  .status-body
+  > article
     display       block
     color         #3c4752
     font-weight   200
     word-break    break-word
 
-  .status-body
+  > article
     // to avoid too long posts
     // until we find a better solution - SY
     overflow          auto
@@ -457,18 +457,18 @@ span.collapsedtext
     line-height       22px
     margin-bottom     7px
 
-    > span
-      > *
-        padding       0 21px
+    > *
+      padding       0 21px
 
-      > ol, ul
-        padding       0 42px
+    > ol
+    > ul
+      padding       10px 42px
 
-      > blockquote
-        padding       0 10px
+    > blockquote
+      padding       0 10px
 
-      > pre
-        padding       10px 0
+    > pre
+      padding       10px 0
 
   >.profile
     color         #1aaf5d
@@ -619,7 +619,7 @@ span.collapsedtext
         font-weight   400
         noTextDeco()
 
-      .comment-body
+      > p
         word-break    break-word
         line-height   17px
         font-weight   200
@@ -946,7 +946,7 @@ body.profile
       opacity           0
 
 /** Markdown Styling **/
-span.status-body
+.activity-item > article
 
   /* Headings */
   h1, h2, h3, h4, h5, h6
@@ -954,7 +954,8 @@ span.status-body
     font-size     14px
 
   /* Lists */
-  ol, ul
+  ol
+  ul
     padding               0 25px 12px
     list-style            none
     display               block

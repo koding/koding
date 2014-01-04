@@ -46,7 +46,7 @@ class StatusActivityItemView extends ActivityItemChild
       else @embedBox.hide()
 
   setAnchors: ->
-    @$(".status-body a").each (index, element) ->
+    @$("article a").each (index, element) ->
       {location: {origin}} = window
       href = element.getAttribute "href"
       return  unless href
@@ -60,7 +60,7 @@ class StatusActivityItemView extends ActivityItemChild
   click: (event) ->
     super event
     {target} = event
-    if $(event.target).is ".status-body a.internal"
+    if $(event.target).is "> article a.internal"
       @utils.stopDOMEvent event
       href = target.getAttribute "href"
       KD.singleton("router").handleRoute href
@@ -71,7 +71,7 @@ class StatusActivityItemView extends ActivityItemChild
       {{> @settingsButton}}
       {{> @author}}
       {{> @editWidgetWrapper}}
-      <span class="status-body">{{@formatContent #(body)}}</span>
+      {article{@formatContent #(body)}}
       {{> @embedBox}}
       <footer>
         {{> @actionLinks}}

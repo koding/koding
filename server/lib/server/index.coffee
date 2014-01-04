@@ -54,6 +54,7 @@ app        = express()
   findUsernameFromSession
   fetchJAccountByKiteUserNameAndKey
   serve
+  serveHome
   isLoggedIn
   getAlias
   addReferralCode
@@ -256,7 +257,8 @@ app.all '/:name/:section?*', (req, res, next)->
           if err
             options = {account, name, section, client, bongoModels}
             JGroup.render[prefix].subPage options, serveSub
-          else unless models? then next()
+          else unless models?
+            serveHome req, res, next
           else
             options = {account, name, section, models, client, bongoModels}
             JGroup.render[prefix].subPage options, serveSub
@@ -290,24 +292,7 @@ app.get "/", (req, res, next)->
   # User requests
   #
   else
-
-    serveSub = (err, subPage)->
-      return next()  if err
-      serve subPage, res
-
-    {JGroup} = bongoModels = koding.models
-
-    generateFakeClient req, res, (err, client)->
-      if err or not client
-        console.log err
-        return next()
-      isLoggedIn req, res, (err, loggedIn, account)->
-        if err
-          res.send 500, error_500()
-          return console.error err
-        render = if loggedIn then JGroup.render.loggedIn \
-                             else JGroup.render.loggedOut
-        render.kodingHome {client, account, bongoModels}, serveSub
+    serveHome req, res
 
 # Forwards to /
 #

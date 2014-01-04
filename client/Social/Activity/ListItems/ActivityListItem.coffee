@@ -1,32 +1,8 @@
 class ActivityListItemView extends KDListItemView
 
-  getActivityChildConstructors = ->
-    JNewStatusUpdate       : StatusActivityItemView
-#    JCodeSnip           : CodesnipActivityItemView
-#    JDiscussion         : DiscussionActivityItemView
-#    JLink               : LinkActivityItemView
-#    JTutorial           : TutorialActivityItemView
-#    JBlogPost           : BlogPostActivityItemView
-
-    NewMemberBucketData   : NewMemberBucketView
 
   getActivityChildCssClass = -> 'system-message'
 
-#    CFollowerBucket           : "system-message"
-#    CFolloweeBucket           : "system-message"
-#    CNewMemberBucket          : "system-message"
-#    CInstallerBucket          : "system-message"
-#
-#    CFollowerBucketActivity   : "system-message"
-#    CFolloweeBucketActivity   : "system-message"
-#    CNewMemberBucketActivity  : "system-message"
-#    CInstallerBucketActivity  : "system-message"
-#    NewMemberBucketData       : "system-message"
-
-  getBucketMap =->
-    JAccount  : AccountFollowBucketItemView
-    JTag      : TagFollowBucketItemView
-    JNewApp      : AppFollowBucketItemView
 
   constructor:(options = {},data)->
 
@@ -34,37 +10,23 @@ class ActivityListItemView extends KDListItemView
 
     super options, data
 
-    {constructorName} = data.bongo_
-    @setClass getActivityChildCssClass()[constructorName]
-
-    @bindTransitionEnd()
 
   viewAppended:->
+
     @addChildView @getData()
 
-  addChildView:(data, callback)->
-    # return
+
+  addChildView:(data, callback=->)->
+
     return unless data?.bongo_
-    {constructorName} = data.bongo_
 
+    @addSubView new StatusActivityItemView delegate : this, data
 
-    childConstructor =
-      if /^CNewMemberBucket$/.test constructorName
-        NewMemberBucketItemView
-        # KDView
-      else if /Bucket$/.test constructorName
-        getBucketMap()[data.sourceName]
-      else
-        getActivityChildConstructors()[constructorName]
+    callback()
 
-    if childConstructor
-      childView = new childConstructor
-        delegate : @
-      , data
-      @addSubView childView
-      callback?()
 
   partial:-> ''
+
 
   show:(callback)->
 
@@ -72,10 +34,14 @@ class ActivityListItemView extends KDListItemView
       if teaser
         @addChildView teaser, => @slideIn()
 
+
   slideIn:(callback=noop)->
-    @once 'transitionend', callback.bind this
+
     @unsetClass 'hidden-item'
+    callback()
+
 
   slideOut:(callback=noop)->
-    @once 'transitionend', callback.bind this
+
     @setClass 'hidden-item'
+    callback()

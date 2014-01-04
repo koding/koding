@@ -48,7 +48,7 @@ class ActivityWidgetItem extends JView
       {{> @avatar}}
       <div class="content">
         {{> @author}}
-        <span class="status-body">{{@formatContent #(body)}}</span>
+        {article{@formatContent #(body)}}
       </div>
     </header>
     <footer>
