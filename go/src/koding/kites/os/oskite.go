@@ -269,7 +269,10 @@ func registerVmMethod(k *kite.Kite, method string, concurrent bool, callback fun
 
 			if params.JoinUser != "" {
 				if len(params.Session) != utils.RandomStringLength {
-					return nil, errors.New("Invalid session identifier.")
+					return nil, &kite.BaseError{
+						Message: "Invalid session identifier",
+						CodeErr: ErrInvalidSession,
+					}
 				}
 
 				if vm.GetState() != "RUNNING" {
