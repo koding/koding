@@ -40,11 +40,13 @@ type WebtermRemote struct {
 // screenSessions returns a list of sessions that belongs to the given vos
 // context. The sessions are in the form of ["k7sdjv12344", "askIj12sas12", ...]
 func screenSessions(vos *virt.VOS) []string {
+	// Do not include dead sessions in our result
+	vos.VM.AttachCommand(vos.User.Uid, "", "screen", "-wipe").Output()
+
 	// We need to use ls here, because /var/run/screen mount is only
 	// visible from inside of container. Errors are ignored.
 	out, _ := vos.VM.AttachCommand(vos.User.Uid, "", "ls", "/var/run/screen/S-"+vos.User.Name).Output()
 	shellOut := string(bytes.TrimSpace(out))
-
 	if shellOut == "" {
 		return []string{}
 	}
