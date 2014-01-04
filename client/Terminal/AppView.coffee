@@ -219,7 +219,7 @@ class WebTermAppView extends JView
 
   createNewTab: (options = {}) ->
     @messagePane.hide()
-    
+
     defaultOptions =
       testPath    : "webterm-tab"
       delegate    : this
