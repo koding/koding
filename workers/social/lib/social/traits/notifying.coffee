@@ -28,7 +28,7 @@ module.exports = class Notifying
     createActivity = =>
       if contents.relationship?
         relationship = new Relationship contents.relationship
-        CBucket.addActivities relationship, origin, actor, recipient, callback
+        CBucket.addActivities relationship, receiver, actor, recipient, callback
 
     sendNotification = =>
       if receiver instanceof JAccount and receiver.type isnt 'unregistered'

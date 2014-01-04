@@ -24,7 +24,7 @@ resurrection.activity.styl
     text-align          center
 
 .status.content-display
-  .status-body
+  article
     max-height          100%
 
 .content-page.activity
@@ -136,6 +136,7 @@ resurrection.activity.styl
         padding         0
 
     .kdlistitemview-activity-ticker-item
+    .kdlistitemview-member
       size              auto auto
       min-height        60px
       position          relative
@@ -179,7 +180,7 @@ resurrection.activity.styl
       .avatarview
         rounded         5px
         display         block
-        left            -43px
+        left            -41px
         top             1px
         abs()
 
@@ -246,33 +247,16 @@ resurrection.activity.styl
         a.ttag
           font-weight 400
           color       #3c4752
+          display     inline
+          width       auto
 
     .active-users
       .kdscrollview
         height        240px
 
-      .avatarview
-        top             15px
       .profile
       .user-numbers
-        white-space     nowrap
         width           170px
-        overflow        hidden
-        text-overflow   ellipsis
-        color           #3c4752
-        opacity         .8
-        letter-spacing  0
-        fl()
-      .user-numbers
-        height          18px
-        margin          6px 0 0
-        font-weight     200
-        span
-          font-weight   400
-
-      .follow-btn
-        top             17px
-
 
     .active-topics
       h3
@@ -459,13 +443,13 @@ span.collapsedtext
     abs()
 
   .profile
-  .status-body
+  > article
     display       block
     color         #3c4752
     font-weight   200
     word-break    break-word
 
-  .status-body
+  > article
     // to avoid too long posts
     // until we find a better solution - SY
     overflow          auto
@@ -473,18 +457,18 @@ span.collapsedtext
     line-height       22px
     margin-bottom     7px
 
-    > span
-      > *
-        padding       0 21px
+    > *
+      padding       0 21px
 
-      > ol, ul
-        padding       0 42px
+    > ol
+    > ul
+      padding       10px 42px
 
-      > blockquote
-        padding       0 10px
+    > blockquote
+      padding       0 10px
 
-      > pre
-        padding       10px 0
+    > pre
+      padding       10px 0
 
   >.profile
     color         #1aaf5d
@@ -635,7 +619,7 @@ span.collapsedtext
         font-weight   400
         noTextDeco()
 
-      .comment-body
+      > p
         word-break    break-word
         line-height   17px
         font-weight   200
@@ -962,7 +946,7 @@ body.profile
       opacity           0
 
 /** Markdown Styling **/
-span.status-body
+.activity-item > article
 
   /* Headings */
   h1, h2, h3, h4, h5, h6
@@ -970,7 +954,8 @@ span.status-body
     font-size     14px
 
   /* Lists */
-  ol, ul
+  ol
+  ul
     padding               0 25px 12px
     list-style            none
     display               block
