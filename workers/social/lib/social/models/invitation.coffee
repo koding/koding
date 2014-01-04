@@ -6,6 +6,7 @@ Bongo     = require "bongo"
 module.exports = class JInvitation extends jraphical.Module
 
   @trait __dirname, '../traits/grouprelated'
+  @trait __dirname, '../traits/protected'
 
   fs       = require 'fs'
   crypto   = require 'crypto'
@@ -25,6 +26,8 @@ module.exports = class JInvitation extends jraphical.Module
   @share()
 
   @set
+    permissions     :
+      'send invitations'                  : ['moderator', 'admin']
     indexes         :
       code          : 'unique'
     sharedMethods   :
@@ -34,14 +37,19 @@ module.exports = class JInvitation extends jraphical.Module
           (signature Object, Function)
         remove:
           (signature Function)
-      
+
       static:
         inviteFriend:
           (signature Object, Function)
+        create:
+          (signature String, String, Object, Function)
         byCode:
           (signature String, Function)
-        suggestCode:
+        suggestCode: [
           (signature Function)
+          (signature Object, Function)
+          (signature Object, Function, Number)
+        ]
         createMultiuse:
           (signature Object, Function)
 #        createForResurrection:
@@ -130,31 +138,30 @@ module.exports = class JInvitation extends jraphical.Module
       @addRedeemer delegate, callback
 
   # send invites from group dashboard
+  @create = secure (client, group, email, options, callback)->
+    [callback, options] = [options, callback]  unless callback
+    {delegate} = client.connection
+    type       = 'admin'
 
-  @create = permit 'send invitations',
-    success: (client, group, email, options, callback)->
-      [callback, options] = [options, callback]  unless callback
-      {delegate} = client.connection
-      type       = 'admin'
+    selector = {email, group, type}
+    JInvitation.one selector, (err, existingInvite)=>
+      return callback err                   if err
+      return callback null, existingInvite  if existingInvite
 
-      selector = {email, group, type}
-      JInvitation.one selector, (err, existingInvite)=>
-        return callback err                   if err
-        return callback null, existingInvite  if existingInvite
+      JUser = require './user'
+      JUser.one {email}, (err, user)=>
+        return callback err  if err
 
-        JUser = require './user'
-        JUser.one {email}, (err, user)=>
+        code = @generateInvitationCode 'admin', email, group
+        invite = new JInvitation {
+          code, email, group
+          origin: ObjectRef(delegate)
+        }
+        invite.username = user.username  if user
+        invite.save (err)->
           return callback err  if err
-
-          code = @generateInvitationCode 'admin', email, group
-          invite = new JInvitation {
-            code, email, group
-            origin: ObjectRef(delegate)
-          }
-          invite.username = user.username  if user
-          invite.save (err)->
-            return callback err  if err
-            invite.addInvitedBy delegate, (err)-> callback err, invite
+          invite.addInvitedBy delegate, (err)->
+            callback err, invite
 
   sendMail: permit 'send invitations',
     success: (client, group, options, callback)->
@@ -301,7 +308,7 @@ module.exports = class JInvitation extends jraphical.Module
     #"""
   #### Leaving it here incase we decide to have another beta: SA
 
-  @suggestCode: permit 'send invitations',
+  @suggestCode = permit 'send invitations',
     success: (client, callback, tries=0)->
       return callback 'could not generate code, too many tries!'  if tries > 10
       code = createId 40
