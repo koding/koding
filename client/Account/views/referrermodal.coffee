@@ -25,20 +25,20 @@ class ReferrerModal extends KDModalViewWithForms
 
     {@share, @invite} = @modalTabs.forms
 
-    @share.addSubView usageWrapper = new KDCustomHTMLView cssClass: "disk-usage-wrapper"
-    vmc = KD.getSingleton "vmController"
-    vmc.fetchDefaultVmName (name) ->
-      vmc.fetchDiskUsage name, (usage) ->
-        if usage.max
-          usageWrapper.addSubView new KDLabelView title: "You've claimed <strong>#{KD.utils.formatBytesToHumanReadable usage.max}</strong>
-            of your free <strong>16 GB</strong> disk space."
+    # @share.addSubView usageWrapper = new KDCustomHTMLView cssClass: "disk-usage-wrapper"
+    # vmc = KD.getSingleton "vmController"
+    # vmc.fetchDefaultVmName (name) ->
+    #   vmc.fetchDiskUsage name, (usage) ->
+    #     if usage.max
+    #       usageWrapper.addSubView new KDLabelView title: "You've claimed <strong>#{KD.utils.formatBytesToHumanReadable usage.max}</strong>
+    #         of your free <strong>16 GB</strong> disk space."
 
     @share.addSubView leftColumn  = new KDCustomHTMLView cssClass : "left-column"
     @share.addSubView rightColumn = new KDCustomHTMLView cssClass : "right-column"
 
     leftColumn.addSubView urlLabel = new KDLabelView
       cssClass : "share-url-label"
-      title    : "Here is your invite code"
+      title    : "Share this code to get your free storage!"
 
     leftColumn.addSubView urlInput = new KDInputView
       defaultValue : options.url
