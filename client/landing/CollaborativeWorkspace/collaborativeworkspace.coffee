@@ -66,6 +66,8 @@ class CollaborativeWorkspace extends Workspace
         @emit "WorkspaceSyncedWithRemote"
         @emit "SomeoneJoinedToSession", KD.nick() if isOldSession
 
+        @emit 'ready'
+
       if @amIHost() then cb()
       else
         @pingHost (status) =>
