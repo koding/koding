@@ -31,6 +31,7 @@ class CollaborativeEditorPane extends CollaborativePane
     @firepad.setText content  if @amIHost
     @codeMirrorEditor.scrollTo 0, 0
     @emit "OpenedAFile", file, content
+    @setEditorMode file
 
   save: ->
     file        = @getData()
@@ -85,8 +86,8 @@ class CollaborativeEditorPane extends CollaborativePane
     document.head.appendChild link
     @codeMirrorEditor.setOption "theme", "ambiance"
 
-  setEditorMode: ->
-    {file} = @getOptions()
+  setEditorMode:(file) ->
+    file or= @getOption 'file'
 
     return  unless file
 
