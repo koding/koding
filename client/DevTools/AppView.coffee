@@ -36,6 +36,55 @@ class DevToolsMainView extends KDView
                     .splitViews.BaseSplit.resizePanel "258px", 0, cb
               }
             ]
+          }
+        ]
+        layout                  :
+          direction             : "vertical"
+          sizes                 : [ "258px", null ]
+          splitName             : "BaseSplit"
+          cssClass              : 'basesplit-gokmen'
+            {
+              type              : "split"
+              options           :
+                direction       : "vertical"
+                sizes           : [ "50%", "50%" ]
+                splitName       : "InnerSplit"
+              views             : [
+                {
+                  type          : "split"
+                  options       :
+                    direction   : "horizontal"
+                    sizes       : [ "50%", "50%" ]
+                    splitName   : "EditorSplit"
+                  views         : [
+                    {
+                      type      : "custom"
+                      name      : "JSEditor"
+                      paneClass : DevToolsEditorPane
+                      # title   : "JavaScript"
+                      # buttons : [
+                      #   {
+                      #     itemClass: KDOnOffSwitch
+                      #     callback: ->
+                      #       log arguments
+                      #   }
+                      # ]
+                    }
+                    {
+                      type      : "editor"
+                      name      : "CSSEditor"
+                    }
+                  ]
+                }
+                {
+                  type          : "custom"
+                  name          : "PreviewPane"
+                  paneClass     : CollaborativePane
+                }
+              ]
+            }
+          ]
+      ]
   previewApp:->
 
     time 'Compile took:'
