@@ -1,5 +1,7 @@
 class DevToolsMainView extends KDView
 
+  COFFEE = "//cdnjs.cloudflare.com/ajax/libs/coffee-script/1.6.3/coffee-script.min.js"
+
   viewAppended:->
 
     @addSubView @workspace      = new CollaborativeWorkspace
@@ -34,3 +36,53 @@ class DevToolsMainView extends KDView
                     .splitViews.BaseSplit.resizePanel "258px", 0, cb
               }
             ]
+  previewApp:->
+
+    time 'Compile took:'
+
+    return  if @_inprogress
+    @_inprogress = yes
+
+    {JSEditor, PreviewPane} = @workspace.activePanel.panesByName
+
+    @compiler (coffee)=>
+
+      code = JSEditor.getValue()
+
+      PreviewPane.container.destroySubViews()
+      window.appView = new KDView
+
+      try
+
+        coffee.compile code
+        coffee.run code
+
+        PreviewPane.container.addSubView window.appView
+
+      catch e
+
+        try window.appView.destroy?()
+        warn "Compile failed:", e
+
+      finally
+
+        delete window.appView
+        @_inprogress = no
+
+        timeEnd 'Compile took:'
+
+  previewCss:->
+
+    {CSSEditor, PreviewPane} = @workspace.activePanel.panesByName
+
+    @_css?.remove()
+
+    @_css = $ "<style scoped></style>"
+    @_css.html CSSEditor.getValue()
+
+    PreviewPane.container.domElement.prepend @_css
+
+  compiler:(callback)->
+
+    return callback @coffee  if @coffee
+    require [COFFEE], (@coffee)=> callback @coffee
