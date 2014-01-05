@@ -31,7 +31,7 @@ class CollaborativeEditorPane extends CollaborativePane
     @firepad.setText content  if @amIHost
     @codeMirrorEditor.scrollTo 0, 0
     @emit "OpenedAFile", file, content
-    @setEditorMode file
+    @setEditorMode file.getExtension()
 
   save: ->
     file        = @getData()
@@ -67,7 +67,7 @@ class CollaborativeEditorPane extends CollaborativePane
         "Ctrl-S"      : @bound "handleSave"
 
     @setEditorTheme()
-    @setEditorMode()
+    @setEditorMode 'html'
 
   handleSave: ->
     @save()
@@ -86,13 +86,11 @@ class CollaborativeEditorPane extends CollaborativePane
     document.head.appendChild link
     @codeMirrorEditor.setOption "theme", "ambiance"
 
-  setEditorMode:(file) ->
-    file or= @getOption 'file'
+  setEditorMode:(fileExtension) ->
 
-    return  unless file
+    return  unless fileExtension
 
     CodeMirror.modeURL = "#{cdnRoot}/mode/%N/%N.js"
-    fileExtension      = file.getExtension()
     syntaxHandler      = __aceSettings.syntaxAssociations[fileExtension]
     modeName           = null
     corrections        =
@@ -100,6 +98,7 @@ class CollaborativeEditorPane extends CollaborativePane
       json             : "javascript"
       js               : "javascript"
       go               : "go"
+      coffee           : "coffeescript"
 
     if corrections[fileExtension]
       modeName = corrections[fileExtension]
