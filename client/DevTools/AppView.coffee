@@ -98,6 +98,17 @@ class DevToolsMainView extends KDView
             }
           ]
       ]
+
+    @workspace.ready =>
+
+      {JSEditor, CSSEditor} = panes = @workspace.activePanel.panesByName
+
+      JSEditor.codeMirrorEditor.on "change", \
+        _.debounce (@bound 'previewApp'), 500
+
+      CSSEditor.codeMirrorEditor.on "change", \
+        _.debounce (@bound 'previewCss'), 500
+
   previewApp:->
 
     time 'Compile took:'
