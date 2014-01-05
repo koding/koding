@@ -6,26 +6,21 @@ class Pane extends JView
 
     super options, data
 
-    hasButtons     = options.buttons?.length
     @headerButtons = {}
 
     @createHeader()
-    @createButtons()  if hasButtons
+    @createButtons()  if options.buttons?.length
 
     @on "PaneResized", @bound "handlePaneResized"
 
   createHeader: ->
     options    = @getOptions()
-    hasButtons = options.buttons?.length
     title      = options.title or ""
 
-    if title or hasButtons
-      @header    = new KDHeaderView
-        cssClass : "ws-header inner-header"
-        partial  : title
-    else
-      @header    = new KDCustomHTMLView
-        cssClass : "ws-header"
+    @header    = new KDCustomHTMLView
+      tagName  : "span"  if title is ''
+      cssClass : "ws-header inner-header"
+      partial  : "<h4>#{title}</h4>"
 
   createButtons: ->
     # TODO: c/p from panel, should refactor both of them.
