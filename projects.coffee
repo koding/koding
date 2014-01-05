@@ -189,7 +189,8 @@ bundles           =
     script        : "website/a/js/koding.#{KODING_VERSION}.js"
 
   TeamworkBundle  :
-    projects      : ['Ace', 'Terminal', 'Viewer', 'Workspace', 'CollaborativeWorkspace', 'Teamwork']
+    projects      : ['Ace', 'Terminal', 'Viewer', 'Workspace',
+                     'CollaborativeWorkspace', 'Teamwork', 'DevTools']
     style         : "website/a/css/__teamwork.#{KODING_VERSION}.css"
     script        : "website/a/js/__teamwork.#{KODING_VERSION}.js"
 
