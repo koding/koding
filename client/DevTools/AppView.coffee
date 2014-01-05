@@ -43,6 +43,19 @@ class DevToolsMainView extends KDView
           sizes                 : [ "258px", null ]
           splitName             : "BaseSplit"
           cssClass              : 'basesplit-gokmen'
+          views                 : [
+            {
+              type              : "finder"
+              name              : "finder"
+              editor            : "JSEditor"
+              handleFileOpen    : (file, content) =>
+                # log file, content
+                panes = @workspace.activePanel.panesByName
+                switch FSItem.getFileExtension file.path
+                  when 'css', 'styl'
+                  then panes.CSSEditor.openFile file, content
+                  else panes.JSEditor.openFile file, content
+            }
             {
               type              : "split"
               options           :
