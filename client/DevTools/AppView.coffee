@@ -86,3 +86,35 @@ class DevToolsMainView extends KDView
 
     return callback @coffee  if @coffee
     require [COFFEE], (@coffee)=> callback @coffee
+
+
+class DevToolsEditorPane extends CollaborativeEditorPane
+
+  setEditorTheme: ->
+    if document.getElementById "codemirror-monokai-style"
+      return  @codeMirrorEditor.setOption "theme", "monokai"
+
+    link       = document.createElement "link"
+    link.rel   = "stylesheet"
+    link.type  = "text/css"
+    link.href  = "#{cdnRoot}/theme/monokai.css"
+    link.id    = "codemirror-monokai-style"
+    document.head.appendChild link
+    @codeMirrorEditor.setOption "theme", "monokai"
+
+
+  createEditor: ->
+    @codeMirrorEditor = CodeMirror @container.getDomElement()[0],
+      lineNumbers     : yes
+      scrollPastEnd   : yes
+      cursorHeight    : 1
+      tabSize         : 2
+      mode            : "coffeescript"
+      extraKeys       :
+        "Cmd-S"       : @bound "handleSave"
+        "Ctrl-S"      : @bound "handleSave"
+        "Tab"         : (cm)->
+          spaces = Array(cm.getOption("indentUnit") + 1).join " "
+          cm.replaceSelection spaces, "end", "+input"
+
+    @setEditorMode 'coffee'
