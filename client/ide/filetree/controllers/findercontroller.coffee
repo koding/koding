@@ -25,7 +25,7 @@ class NFinderController extends KDViewController
     TreeControllerClass = options.treeControllerClass or NFinderTreeController
     @treeController     = new TreeControllerClass treeOptions, []
 
-    @appStorage = KD.getSingleton('appStorageController').storage 'Finder', '1.1.1'
+    @appStorage = KD.getSingleton('appStorageController').storage 'Finder', '1.1.2'
 
     @watchers = {}
 
@@ -102,15 +102,14 @@ class NFinderController extends KDViewController
     return  if KD.isGuest()
     groupSlug  = KD.getSingleton("groupsController").getGroupSlug()
     groupSlug ?= KD.defaultSlug
-    @appStorage.fetchValue "mountedVM", (vms)=>
-      vms or= {}
-      vms[groupSlug] or= []
-      items = vms[groupSlug]
-      if state and vmName not in items
-        items.push vmName
-      else if not state and vmName in items
-        items.splice items.indexOf(vmName), 1
-      @appStorage.setValue "mountedVM", vms
+    vms = @appStorage.getValue("mountedVM") or {}
+    vms[groupSlug] or= []
+    items = vms[groupSlug]
+    if state and vmName not in items
+      items.push vmName
+    else if not state and vmName in items
+      items.splice items.indexOf(vmName), 1
+    @appStorage.setValue "mountedVM", vms
 
   checkVMState: (err, vm, info)->
     return warn err if err or not info
