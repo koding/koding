@@ -218,9 +218,9 @@ app.teamwork.styl
     rounded                     12px
     pointer()
     &.add-new div
-      sprite                    teamwork, "plus"
+      sprite                    teamwork, "add-big"
     &.import div
-      sprite                    teamwork, "import"
+      sprite                    teamwork, "import-big"
 
 .tw-playgrounds
   overflow                      hidden
@@ -346,12 +346,6 @@ app.teamwork.styl
     &:focus
       vendor                    box-shadow, none
       border                    none
-  .tw-cog
-    display                     block
-    r-sprite                    teamwork, "settings"
-  .tw-export
-    display                     block
-    sprite                      teamwork, "export"
   .tw-chat-toggle
     &.active
       background-color          #282F31
@@ -537,6 +531,79 @@ app.teamwork.styl
       top                       5px !important
       right                     5px !important
       display                   none
+  .tw-share-warning
+    width                       490px
+    color                       #878A8A
+    p
+      display                   inline-block
+      width                     440px
+      margin-left               3px
+    .warning
+      sprite                    "teamwork", "warning"
+      display                   inline-block
+      margin-left               2px
+  .kdbutton
+    rounded                     12px !important
+    font-size                   14px !important
+    &.with-icon
+      .icon
+        padding                 0 2px 0 0 !important
+    &.modal-clean-green
+      bg                        color, #1AAE5D
+      color                     #FFF
+    &.modal-cancel
+      bg                        color, #A9A9A9
+      color                     #FFF
+      border-color              #A9A9A9
+
+.tw-invite-modal
+  .kdmodal-buttons
+    border                      none !important
+    margin-top                  0 !important
+  .modal-clean-green
+    .button-title
+      position                  relative
+      top                       3px
+    .tw-intive-icon
+      sprite                    "teamwork", "invite"
+  .kdinput
+    border                      none !important
+    height                      46px !important
+    padding-left                35px !important
+    &:hover
+      border                    none
+    &:focus
+      box-shadow                none !important
+  .tw-search-icon
+    sprite                      "teamwork", "search"
+    top                         13px
+    position                    absolute
+    z-index                     2
+    left                        9px
+
+.tw-import-modal
+  .tw-import-url
+    border                      none !important
+    height                      46px !important
+    padding-left                35px !important
+    &:hover
+      border                    none
+    &:focus
+      box-shadow                none !important
+  .kdmodal-buttons
+    border                      none !important
+    margin-top                  0 !important
+  .tw-import-url
+    bg                          image, none !important
+  .input-icon
+    sprite                      "teamwork", "url"
+    display                     block
+    position                    absolute
+    top                         13px
+    left                        11px
+    z-index                     2
+  .tw-import-icon
+    sprite                      "teamwork", "import"
 
 .tw-share-modal
   .activity-input-widget
@@ -575,17 +642,21 @@ app.teamwork.styl
     color                       #3D4A4D
     font-weight                 600
   .tw-share-warning
-    width                       490px
     margin-top                  -46px
-    color                       #878A8A
-    p
-      display                   inline-block
-      width                     440px
-      margin-left               3px
-    .warning
-      sprite                    "teamwork", "warning"
-      display                   inline-block
-      margin-left               2px
+
+.tw-export-modal
+  .tw-share-warning
+    top                         46px
+    position                    relative
+
+.ws-pane.finder-pane
+  .kdlistitemview-finderitem
+    .tw-export
+      sprite                    "teamwork", "export"
+      position                  absolute
+      top                       7px
+      right                     25px
+      pointer()
 
 @-moz-keyframes borderPulse
   15%
