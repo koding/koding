@@ -136,6 +136,7 @@ config =
       watch               : 1
       cronSchedule        : 1
     topicModifier         :
+      logLevel            : 1
       cronSchedule        : 1
     social        :
       login       : 1
@@ -215,6 +216,7 @@ config =
       password    : 1
       heartbeat   : 1
       vhost       : 1
+      logLevel    : 1
     broker        :
       ip          : 1
       port        : 1

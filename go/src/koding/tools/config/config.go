@@ -29,6 +29,7 @@ type Config struct {
 		ComponentUser string
 		Password      string
 		Vhost         string
+		LogLevel      string
 	}
 	Neo4j struct {
 		Read    string
@@ -111,6 +112,7 @@ type Config struct {
 		Port int
 	}
 	TopicModifier struct {
+		LogLevel     string
 		CronSchedule string
 	}
 }
