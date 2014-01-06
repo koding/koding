@@ -4,12 +4,13 @@ class TeamworkInviteModal extends KDModalView
 
     options.cssClass = "tw-modal tw-invite-modal"
     options.title    = "Invite someone to your project"
-    options.content  = "<p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor.</p>"
     options.overlay  = yes
-    options.width    = 500
+    options.width    = 600
     options.buttons  =
       Invite         :
         cssClass     : "modal-clean-green"
+        icon         : yes
+        iconClass    : "tw-intive-icon"
         callback     : @bound "sendInvites"
       Cancel         :
         cssClass     : "modal-cancel"
@@ -42,6 +43,9 @@ class TeamworkInviteModal extends KDModalView
 
     @addSubView @userController.getView()
     @addSubView @completedItems
+    @addSubView new KDCustomHTMLView
+      tagName  : "span"
+      cssClass : "tw-search-icon"
 
   sendInvites: ->
     accounts  = @userController.getSelectedItemData()
