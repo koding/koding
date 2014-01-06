@@ -58,7 +58,6 @@ class ActivityBlogPostWidget extends ActivityWidgetFormView
 
   submit:->
     @once "FormValidationPassed", =>
-      KD.track "Activity", "BlogPostSubmitted"
       @reset()
     super
     @submitBtn.disable()

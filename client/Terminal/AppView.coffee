@@ -1,293 +1,384 @@
-class WebTermView extends KDView
+class WebTermAppView extends JView
 
   constructor: (options = {}, data) ->
 
     super options, data
 
-    @_vmName = options.vmName  if options.vmName
+    @dirty = KD.utils.dict()
 
-    @initBackoff()
+    @initedPanes = KD.utils.dict()
+
+    @tabHandleContainer = new ApplicationTabHandleHolder
+      delegate          : this
+      addPlusHandle     : yes
+
+    @tabView = new ApplicationTabView
+      delegate                  : this
+      tabHandleContainer        : @tabHandleContainer
+      resizeTabHandles          : yes
+      closeAppWhenAllTabsClosed : no
+
+    @tabView.on 'PaneDidShow', (pane, index) =>
+      @_windowDidResize()
+      {terminalView} = pane.getOptions()
+
+      @initPane pane
+
+      KD.utils.defer -> terminalView.setKeyView()
+
+      @fetchStorage (storage) -> storage.setValue 'activeIndex', index
+
+    @on "KDObjectWillBeDestroyed", ->
+      KD.getSingleton("mainView").disableFullscreen()
+
+    @messagePane = new KDCustomHTMLView
+      cssClass   : 'message-pane'
+      partial    : 'Loading Terminal...'
+
+    @tabView.on 'AllTabsClosed', =>
+      @setMessage "All tabs are closed. <a class='plus' href='#'>Click to open a new Terminal</a>.", no, yes
+
+    @tabView
+      .on('PaneRemoved', @bound 'updateSessions')
+      .on('TabsSorted', @bound 'updateSessions')
+
+  initPane: (pane) ->
+    return if pane.id of @initedPanes
+    @initedPanes[pane.id] = yes
+
+    {terminalView} = pane.getOptions()
+
+    terminalView.terminal?.scrollToBottom()
+    terminalView.once 'viewAppended', => @emit "ready"
+    terminalView.once "WebTerm.terminated", (server) =>
+      if not pane.isDestroyed and @tabView.getActivePane() is pane
+        @tabView.removePane pane
+
+  setMessage:(msg, light = no, bindClick = no)->
+    @messagePane.updatePartial msg
+    if light
+    then @messagePane.setClass   'light'
+    else @messagePane.unsetClass 'light'
+    @messagePane.show()
+
+    if bindClick
+      @messagePane.once 'click', (event)=>
+        KD.utils.stopDOMEvent event
+        if $(event.target).hasClass 'close'
+          KD.singleton('router').back()
+          KD.singleton('appManager').quitByName 'Terminal'
+        else if $(event.target).hasClass 'plus'
+          @addNewTab()
+
+  fetchStorage: (callback) ->
+    storage = KD.getSingleton('appStorageController').storage 'Terminal', '1.0.1'
+    storage.fetchStorage -> callback storage
+
+  restoreTabs: (vmName) ->
+    @fetchStorage (storage) =>
+      sessions = storage.getValue 'savedSessions'
+      activeIndex = storage.getValue 'activeIndex'
+      if sessions?.length
+        for session in sessions
+          [vmName, sessionId] = session.split ':'
+          @createNewTab { vmName, session: sessionId, mode: 'resume' }
+        activePane = @tabView.getPaneByIndex activeIndex ? 0
+        @tabView.showPane activePane
+        { terminalView } = activePane.getOptions()
+        terminalView.setKeyView()
+      else
+        @addNewTab vmName
+
+  checkVM:->
+
+    vmController = KD.getSingleton 'vmController'
+    vmController.fetchDefaultVmName (vmName)=>
+
+      KD.mixpanel "Open Webterm, click", {vmName}
+
+      unless vmName
+        return @setMessage "It seems you don't have a VM to use with Terminal."
+
+      vmController.info vmName, KD.utils.getTimedOutCallback (err, vm, info)=>
+        if err
+          KD.logToExternal "oskite: Error opening Webterm", vmName, err
+          KD.mixpanel "Open Webterm, fail", {vmName}
+
+        if info?.state is 'RUNNING'
+          @restoreTabs vmName
+        else
+          vmController.start vmName, (err, state)=>
+            warn "Failed to turn on vm:", err  if err
+            KD.utils.defer => @addNewTab vmName
+        KD.mixpanel "Open Webterm, success", {vmName}
+
+      , =>
+        KD.mixpanel "Open Webterm, fail", {vmName}
+        KD.logToExternalWithTime "oskite: Can't open Webterm", vmName
+        @setMessage "Couldn't connect to your VM, please try again later. <a class='close' href='#'>close this</a>", no, yes
+      , 10000
+
+  showApprovalModal: (remote, command)->
+    modal = new KDModalView
+      title   : "Warning!"
+      content : """
+      <div class="modalformline">
+        <p>
+          If you <strong>don't trust this app</strong>, or if you clicked on this
+          link <strong>not knowing what it would do</strong> - be careful it <strong>can
+          damage/destroy</strong> your Koding VM.
+        </p>
+      </div>
+      <div class="modalformline">
+        <p>
+          This URL is set to execute the command below:
+        </p>
+      </div>
+      <pre>
+        #{Encoder.XSSEncode command}
+      </pre>
+      """
+      buttons :
+        "Run" :
+          cssClass: "modal-clean-gray"
+          callback: ->
+            remote.input "#{command}\n"
+            modal.destroy()
+        "Cancel":
+          cssClass: "modal-cancel"
+          callback: ->
+            modal.destroy()
+
+  getAdvancedSettingsMenuView: (item, menu)->
+    pane = @tabView.getActivePane()
+    return  unless pane
+
+    {terminalView} = pane.getOptions()
+    settingsView = new KDView
+      cssClass: "editor-advanced-settings-menu"
+    settingsView.addSubView new WebtermSettingsView
+      menu    : menu
+      delegate: terminalView
+
+    return settingsView
+
+  runCommand:(_command)->
+    pane = @tabView.getActivePane()
+    {terminalView} = pane.getOptions()
+
+    runner = =>
+      terminalView.terminal.scrollToBottom()
+      command = decodeURIComponent _command
+
+      # FIXME Make it more elegant later.
+      safeCommands = ['help this', 'help sudo', 'help ftp', 'help mysql',
+                      'help programs', 'help phpmyadmin', 'help mongodb',
+                      'help specs', 'help']
+
+      if _command in safeCommands
+        terminalView.terminal.server.input "#{command}\n"
+      else
+        @showApprovalModal terminalView.terminal, command
+
+    if terminalView.terminal?.server?
+    then runner()
+    else terminalView.once 'WebTermConnected', runner
+
+  handleQuery:(query)->
+    pane = @tabView.getActivePane()
+    {terminalView} = pane.getOptions()
+    terminalView.terminal?.scrollToBottom()
+    terminalView.once 'WebTermConnected', (remote)=>
+
+      if query.command
+        command = decodeURIComponent query.command
+        @showApprovalModal remote, command
+
+      # chrome app specific settings
+      if query.chromeapp
+
+        query.fullscreen = yes # forcing fullscreen
+        @chromeAppMode()
+
+      if query.fullscreen
+        KD.getSingleton("mainView").enableFullscreen()
+
+  chromeAppMode: ->
+    windowController = KD.getSingleton("windowController")
+    mainController   = KD.getSingleton("mainController")
+
+    # talking with chrome app
+    if window.parent?.postMessage
+      {parent} = window
+      mainController.on "clientIdChanged", ->
+        parent.postMessage "clientIdChanged", "*"
+
+      parent.postMessage "fullScreenTerminalReady", "*"
+      parent.postMessage "loggedIn", "*"  if KD.isLoggedIn()
+
+      @on "KDObjectWillBeDestroyed", ->
+        parent.postMessage "fullScreenWillBeDestroyed", "*"
+
+    @addSubView new ChromeTerminalBanner
 
   viewAppended: ->
-
-    @container = new KDView
-      cssClass : "console ubuntu-mono green-on-black"
-      bind     : "scroll"
-    @container.on "scroll", =>
-      @container.$().scrollLeft 0
-    @addSubView @container
-
-    @terminal = new WebTerm.Terminal @container
-    # KD.track "userOpenedTerminal", KD.getSingleton("groupsController").getCurrentGroup()
-    @options.advancedSettings ?= no
-    if @options.advancedSettings
-      @advancedSettings = new KDButtonViewWithMenu
-        style         : 'editor-advanced-settings-menu'
-        icon          : yes
-        iconOnly      : yes
-        iconClass     : "cog"
-        type          : "contextmenu"
-        delegate      : this
-        itemClass     : WebtermSettingsView
-        click         : (pubInst, event)-> @contextMenu event
-        menu          : @getAdvancedSettingsMenuItems.bind @
-      @addSubView @advancedSettings
-
-    @terminal.sessionEndedCallback = (sessions) =>
-      @emit "WebTerm.terminated"
-      @clearConnectionAttempts()
-
-    @terminal.setTitleCallback = (title) =>
-      #@tabPane.setTitle title
-
-    @terminal.flushedCallback = =>
-      @emit 'WebTerm.flushed'
-
-    @listenWindowResize()
-
-    @focused = true
-
-    @on "ReceivedClickElsewhere", =>
-      @focused = false
-      @terminal.setFocused false
-      KD.getSingleton('windowController').removeLayer @
-
-    @on "KDObjectWillBeDestroyed", @bound "clearConnectionAttempts"
-
-    window.addEventListener "blur", =>
-      @terminal.setFocused false
-
-    window.addEventListener "focus", =>
-      @terminal.setFocused @focused
-
-    document.addEventListener "paste", (event) =>
-      if @focused
-        @terminal?.server.input event.clipboardData.getData("text/plain")
-        @setKeyView()
-
-    @bindEvent 'contextmenu'
-
-    @connectToTerminal()
-
-    @getDelegate().on 'KDTabPaneActive', =>
-      @terminal.setSize 100, 100
-      @terminal.updateSize yes
-
-  connectToTerminal:->
-
-    @appStorage = KD.getSingleton('appStorageController').storage 'WebTerm', '1.0.1'
-    @appStorage.fetchStorage =>
-      @appStorage.setValue 'font'      , 'ubuntu-mono' if not @appStorage.getValue('font')?
-      @appStorage.setValue 'fontSize'  , 14 if not @appStorage.getValue('fontSize')?
-      @appStorage.setValue 'theme'     , 'green-on-black' if not @appStorage.getValue('theme')?
-      @appStorage.setValue 'visualBell', false if not @appStorage.getValue('visualBell')?
-      @appStorage.setValue 'scrollback', 1000 if not @appStorage.getValue('scrollback')?
-      @updateSettings()
-
-      delegateOptions = @getDelegate().getOptions()
-      myOptions       = @getOptions()
-
-      KD.getSingleton("vmController").run
-        method        : "webterm.connect",
-        vmName        : @_vmName or delegateOptions.vmName
-        withArgs      :
-          remote      : @terminal.clientInterface
-          sizeX       : @terminal.sizeX
-          sizeY       : @terminal.sizeY
-          joinUser    : myOptions.joinUser or delegateOptions.joinUser
-          session     : myOptions.session  or delegateOptions.session
-          noScreen    : delegateOptions.noScreen
-      , (err, remote) =>
-        if err
-          warn err
-          if err.message is "Invalid session identifier."
-            return @reinitializeWebTerm()
-
-        @terminal.eventHandler = (data)=> @emit "WebTermEvent", data
-        @terminal.server       = remote
-        @setKeyView()
-        @emit "WebTermConnected", remote
-        @sessionId = remote.session
-
-    KD.getSingleton("status").once "reconnected", => @handleReconnect()
-
-    kiteErrorCallback = (err) =>
-      @reconnected               = no
-      {code, serviceGenericName} = err
-
-      if code is 503 and serviceGenericName.indexOf("kite-os") is 0
-        @reconnectAttemptFailed serviceGenericName, @_vmName or @getDelegate().getOption "vmName"
-
-    kiteController = KD.getSingleton "kiteController"
-    kiteController.on "KiteError", kiteErrorCallback
-
-    @on "KiteErrorBindingNeedsToBeRemoved", =>
-      kiteController.off "KiteError", kiteErrorCallback
-
-  reconnectAttemptFailed: (serviceGenericName, vmName) ->
-    return  if @reconnected or not serviceGenericName
-
-    kiteController = KD.getSingleton "kiteController"
-    [prefix, kiteType, kiteRegion] = serviceGenericName.split "-"
-    serviceName = "~#{kiteType}-#{kiteRegion}~#{vmName}"
-
-    @setBackoffTimeout(
-      @bound "attemptToReconnect"
-      @bound "handleConnectionFailure"
-    )
-
-    kiteController.kiteInstances[serviceName]?.cycleChannel()
-
-  attemptToReconnect: ->
-    return  if @reconnected
-    @reconnectingNotification ?= new KDNotificationView
-      type      : "mini"
-      title     : "Trying to reconnect your Terminal"
-      duration  : 2 * 60 * 1000 # 2 mins
-      container : @container
-
-    vmController = KD.getSingleton "vmController"
-    hasResponse  = no
-
-    vmController.info @_vmName or @getDelegate().getOption("vmName"), (err, res) =>
-      hasResponse = yes
-      @handleReconnect()
-      @clearConnectionAttempts()
-
-    @utils.wait 500, => @reconnectAttemptFailed() unless hasResponse
-
-  clearConnectionAttempts: ->
-    @emit "KiteErrorBindingNeedsToBeRemoved"
-    @clearBackoffTimeout()
-
-  handleReconnect: ->
-    return  if @reconnected
-    @clearConnectionAttempts()
-    options =
-      session  : @sessionId
-      joinUser : KD.nick()
-
-    @reinitializeWebTerm options
-    @reconnectingNotification?.destroy()
-    @reconnected = yes
-
-  reinitializeWebTerm: (options = {}) ->
-    options.delegate = @getDelegate()
-    @addSubView webterm = new WebTermView options
-
-    webterm.on "WebTermConnected", =>
-      @getSubViews().first.destroy() # TODO: refactor this, don't use subviews
-
-  handleConnectionFailure: ->
-    return if @failedToReconnect
-    @reconnectingNotification?.destroy()
-    @reconnected       = no
-    @failedToReconnect = yes
-    @clearConnectionAttempts()
-    new KDNotificationView
-      type      : "mini"
-      title     : "Sorry, something is wrong with our backend."
-      container : @container
-      cssClass  : "error"
-      duration  : 15 * 1000 # 15 secs
-
-  destroy: ->
     super
-    @terminal.server?.terminate()
+    @checkVM()
 
-  updateSettings: ->
-    @container.unsetClass font.value for font in __webtermSettings.fonts
-    @container.unsetClass theme.value for theme in __webtermSettings.themes
-    @container.setClass @appStorage.getValue('font')
-    @container.setClass @appStorage.getValue('theme')
-    @container.$().css
-      fontSize: @appStorage.getValue('fontSize') + 'px'
-    @terminal.updateSize true
-    @terminal.scrollToBottom(no)
-    @terminal.controlCodeReader.visualBell = @appStorage.getValue 'visualBell'
-    @terminal.setScrollbackLimit @appStorage.getValue 'scrollback'
+  createNewTab: (options = {}) ->
+    @messagePane.hide()
 
-  setKeyView: ->
-    super
-    KD.getSingleton('windowController').addLayer this
-    @focused = true
-    @terminal.setFocused true
+    defaultOptions =
+      testPath    : "webterm-tab"
+      delegate    : this
 
-  click: ->
-    @setKeyView()
-    @textarea?.remove()
+    terminalView   = new WebTermView (KD.utils.extend defaultOptions, options)
 
-  keyDown: (event) ->
-    @listenFullscreen event
-    @terminal.keyDown event
+    terminalView.on 'message', @bound 'setMessage'
 
-  keyPress: (event) ->
-    @terminal.keyPress event
+    terminalView.on 'WebTermConnected', @bound 'updateSessions'
 
-  keyUp: (event) ->
-    @terminal.keyUp event
+    @appendTerminalTab terminalView
 
-  contextMenu: (event) ->
-    # invisible textarea will be placed under the cursor when rightclick
-    @createInvisibleTextarea event
-    @setKeyView()
-    event
+  appendTerminalTab: (terminalView) ->
 
-  createInvisibleTextarea:(eventData)->
-    # Get selected Text for cut/copy
-    if window.getSelection
-        selectedText = window.getSelection()
-    else if document.getSelection
-        selectedText = document.getSelection()
-    else if document.selection
-        selectedText = document.selection.createRange().text
+    @forwardEvents terminalView, ['KeyViewIsSet', 'command']
 
-    @textarea?.remove()
-    @textarea = $(document.createElement("textarea"))
-    @textarea.css
-      position  : "absolute"
-      opacity   : 0
-      # width     : "30px"
-      # height    : "30px"
-      # top       : eventData.offsetY-10
-      # left      : eventData.offsetX-10
-      width       : "100%"
-      height      : "100%"
-      top         : 0
-      left        : 0
-      right       : 0
-      bottom      : 0
-    @$().append @textarea
+    pane = new KDTabPaneView
+      name          : 'Terminal'
+      terminalView  : terminalView
 
-    # remove on any of these events
-    @textarea.on 'copy cut paste', (event)=>
-      @setKeyView()
-      @utils.wait 1000, => @textarea.remove()
-      yes
+    @tabView.addPane pane
+    pane.addSubView terminalView
 
-    if selectedText
-      @textarea.val(selectedText.toString())
-      @textarea.select()
-    @textarea.focus()
+    terminalView.on "WebTermNeedsToBeRecovered", (options) =>
+      options.delegate = this
+      pane.destroySubViews()
+      pane.addSubView new WebTermView options
 
-    #remove 15sec later
-    @utils.wait 15000, =>
-      @textarea?.remove()
+    terminalView.on 'TerminalCanceled', ({ vmName }) =>
+      @tabView.removePane pane
+      unless @dirty[vmName]
+        @tabView.off 'AllTabsClosed'
+        @setMessage """
+          Sorry, your terminal sessions on #{ vmName } are dead. <a href='#' class='plus'>Open a new session.</a>
+          """, no, yes
+        @dirty[vmName] = yes
 
-  _windowDidResize: (event) ->
-    @terminal.windowDidResize()
 
-  getAdvancedSettingsMenuItems:->
-    settings      :
-      type        : 'customView'
-      view        : new WebtermSettingsView
-        delegate  : @
+    # terminalView.once 'KDObjectWillBeDestroyed', => @tabView.removePane pane
 
-  listenFullscreen: (event)->
-    requestFullscreen = (event.metaKey or event.ctrlKey) and event.keyCode is 13
-    if requestFullscreen
-      mainView = KD.getSingleton "mainView"
-      mainView.toggleFullscreen()
-      event.preventDefault()
+  updateSessions: ->
+    storage = (KD.getSingleton 'appStorageController').storage 'Terminal', '1.0.1'
+    storage.fetchStorage =>
+      activeIndex = @tabView.getActivePaneIndex()
+      sessions = @tabView.panes.map (pane) =>
+        { terminalView } = pane.getOptions()
+        sessionId = terminalView.sessionId ? terminalView.getOption 'session'
+        vmName = terminalView.getOption 'vmName'
+        @dirty[vmName] = no
+        "#{ vmName }:#{ sessionId }"
+      storage.setValue 'savedSessions', sessions
+      storage.setValue 'activeIndex', activeIndex
 
-  initBackoff: KDBroker.Broker::initBackoff
+  addNewTab: (vmName)->
+
+    if @_secondTab
+      KD.mixpanel "Open new Webterm tab, success"
+
+    @_secondTab   = yes
+
+    unless vmName
+      @utils.defer =>
+
+        vmc = KD.getSingleton 'vmController'
+        if vmc.vms.length > 1
+          vmselection = new VMSelection
+          vmselection.once 'VMSelected', (vm)=> @createNewTab vmName: vm, mode: 'create'
+        else
+          @createNewTab vmName: vmc.vms.first, mode: 'create'
+
+    else
+      @createNewTab vmName: vmName, mode: 'create'
+
+
+  pistachio: ->
+    """
+    {{> @tabHandleContainer}}
+    {{> @messagePane}}
+    {{> @tabView}}
+    """
+
+class ChromeTerminalBanner extends JView
+  constructor: (options={}, data)->
+
+    options.domId = "chrome-terminal-banner"
+
+    super options, data
+
+    @descriptionHidden = yes
+
+    @mainView = KD.getSingleton "mainView"
+    @router   = KD.getSingleton "router"
+    @finder   = KD.getSingleton "finderController"
+
+    @mainView.on "fullscreen", (state)=>
+      unless state then @hide() else @show()
+
+    @register   = new CustomLinkView
+      cssClass: "action"
+      title   : "Register"
+      click   : => @revealKoding "/Register"
+
+    @login      = new CustomLinkView
+      cssClass: "action"
+      title   : "Login"
+      click   : => @revealKoding "/Login"
+
+    @whatIsThis = new CustomLinkView
+      cssClass : "action"
+      title    : "What is This?"
+      click    : =>
+        if @descriptionHidden
+          @description.show()
+        else
+          @description.hide()
+        @descriptionHidden = not @descriptionHidden
+
+    @description = new KDCustomHTMLView
+      tagName : "p"
+      cssClass: "hidden"
+      partial : """
+      This is a complete virtual environment provided by Koding. <br>
+      Koding is a social development environment. <br>
+      Visit and see it in action at <a href="http://koding.com" target="_blank">http://koding.com</a>
+      """
+
+    @revealer = new CustomLinkView
+      cssClass : "action"
+      title    : "Reveal Koding"
+      click    : => @revealKoding()
+
+  revealKoding: (route)->
+    @finder.mountVm "vm-0.#{KD.nick()}.guests.kd.io" unless KD.isLoggedIn()
+    @router.handleRoute route if route
+    @mainView.disableFullscreen()
+
+  pistachio: ->
+    if KD.isLoggedIn()
+      """
+      <span class="koding-icon"></span>
+      <div class="actions">
+        {{> @revealer}}
+      </div>
+      """
+    else
+      """
+      <span class="koding-icon"></span>
+      <div class="actions">
+        {{> @register}}
+        {{> @login}}
+        {{> @whatIsThis}}
+      </div>
+      {{> @description}}
+      """

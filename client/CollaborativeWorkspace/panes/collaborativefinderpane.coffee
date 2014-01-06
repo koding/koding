@@ -34,6 +34,9 @@ class CollaborativeFinderPane extends CollaborativePane
       @syncContent files
 
     @finderController.on "OpenedAFile", (file, content) =>
+      fileHandler = @getOption "handleFileOpen"
+      return fileHandler file, content  if fileHandler
+
       editorPane = @panel.getPaneByName @getOptions().editor
       unless editorPane
         for pane in @panel.panes
@@ -43,8 +46,6 @@ class CollaborativeFinderPane extends CollaborativePane
       return  warn "could not find an editor instance to set file content" unless editorPane
 
       editorPane.openFile file, content
-
-    @workspaceRef.onDisconnect().remove()  if @workspace.amIHost()
 
     @finderController.reset()  unless @workspace.getOptions().playground
 

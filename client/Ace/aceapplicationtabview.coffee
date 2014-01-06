@@ -3,7 +3,11 @@ class AceApplicationTabView extends ApplicationTabView
   removePane_: KDTabView::removePane
 
   removePane: (pane) ->
-    {ace} = pane.getOptions().aceView
+    {aceView} = pane.getOptions()
+
+    return  @removePane_ pane  unless aceView
+
+    {ace} = aceView
     file  = ace.getData()
 
     return @removePane_ pane  unless ace.isContentChanged()

@@ -20,9 +20,9 @@ class ActivityAppView extends KDScrollView
 
     {entryPoint}      = KD.config
     windowController  = KD.singleton 'windowController'
-    HomeKonstructor   = if entryPoint and entryPoint.type isnt 'profile' then GroupHomeView else KDCustomHTMLView
+
     @feedWrapper      = new ActivityListContainer
-    @header           = new HomeKonstructor
+    @header           = new KDCustomHTMLView
     @inputWidget      = new ActivityInputWidget
 
     @tickerBox        = new ActivityTicker
@@ -178,10 +178,9 @@ class FilterWarning extends JView
 
   showWarning:({text, type})->
     partialText = switch type
-      when "search" then "contains <strong>\"#{text}\"</strong>"
-      else "tagged with <strong>##{text}</strong>"
+      when "search" then "Results for <strong>\"#{text}\"</strong>"
+      else "You are now looking at activities tagged with <strong>##{text}</strong>"
 
-    @warning.updatePartial \
-      """You are now looking at activities #{partialText}"""
+    @warning.updatePartial "#{partialText}"
 
     @show()

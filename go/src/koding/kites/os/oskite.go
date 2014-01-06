@@ -156,6 +156,8 @@ func handleCurrentVMS(k *kite.Kite) {
 			}
 
 			if err := mongodb.Run("jVMs", query); err != nil || vm.HostKite != k.ServiceUniqueName {
+				log.Warn("oskite started, calling unprepare", err, vmId)
+
 				if err := virt.UnprepareVM(vmId); err != nil {
 					log.Warn(err.Error())
 				}
@@ -267,7 +269,10 @@ func registerVmMethod(k *kite.Kite, method string, concurrent bool, callback fun
 
 			if params.JoinUser != "" {
 				if len(params.Session) != utils.RandomStringLength {
-					return nil, errors.New("Invalid session identifier.")
+					return nil, &kite.BaseError{
+						Message: "Invalid session identifier",
+						CodeErr: ErrInvalidSession,
+					}
 				}
 
 				if vm.GetState() != "RUNNING" {

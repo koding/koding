@@ -39,6 +39,7 @@ module.exports = [
   "CommonViews/slidingsplit.coffee",
   "CommonViews/bidirectionalnavigation.coffee"
   "CommonViews/kodingswitch.coffee",
+  "CommonViews/animatedmodalview.coffee",
 
   "CommonViews/tokenview.coffee",
   "CommonViews/suggestedtokenview.coffee",
@@ -83,6 +84,7 @@ module.exports = [
   "CommonViews/HelpBox.coffee",
   "CommonViews/KeyboardHelper.coffee",
   "CommonViews/VerifyPINModal.coffee",
+  "CommonViews/VerifyPasswordModal.coffee",
 
   "CommonViews/followbutton.coffee",
 
@@ -207,6 +209,7 @@ module.exports = [
   "maincontroller/dockcontroller.coffee",
   "maincontroller/groupscontroller.coffee",
   "maincontroller/maincontroller.coffee",
+  "maincontroller/helpcontroller.coffee",
 
   # --- Applications ---
   "channels/kitechannel.coffee",

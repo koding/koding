@@ -50,7 +50,7 @@ class WebTerm.InputHandler
       return
     
     seq = @KEY_SEQUENCES[event.keyCode]
-    if seq instanceof Array
+    if Array.isArray seq
       seq = seq[if @applicationKeypad then 1 else 0]
     
     if seq?
@@ -58,10 +58,12 @@ class WebTerm.InputHandler
       event.preventDefault()
   
   keyPress: (event) ->
-    return  if event.metaKey and event.charCode in [
-      114 # meta-R is reload
-      118 # meta-V is paste
-    ]
+    if event.metaKey
+      switch event.charCode
+        when 114, 118
+          # meta-R is reload
+          # meta-V is paste
+          return
     unless (event.ctrlKey and not event.altKey) or event.charCode is 0
       @terminal.server.input String.fromCharCode(event.charCode)
     event.preventDefault()

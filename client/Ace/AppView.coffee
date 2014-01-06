@@ -113,10 +113,6 @@ class AceView extends JView
   getActiveTabHandle: ->
     return  @getDelegate().tabView.getActivePane().tabHandle
 
-  preview: ->
-    {vmName, path} = @getData()
-    KD.getSingleton("appManager").open "Viewer", params: {path, vmName}
-
   # compileAndRun: ->
   #   manifest = KodingAppsController.getManifestFromPath @getData().path
   #   return @ace.notify "Not found an app to compile", null, yes unless manifest?.name

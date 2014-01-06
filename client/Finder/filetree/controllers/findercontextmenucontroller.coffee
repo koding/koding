@@ -109,7 +109,7 @@ class NFinderContextMenuController extends KDController
       Collapse                    :
         action                    : "collapse"
         separator                 : yes
-      'Make this top Folder'      :
+      'Make this the top folder'  :
         action                    : 'makeTopFolder'
         separator                 : yes
       Delete                      :
@@ -129,9 +129,9 @@ class NFinderContextMenuController extends KDController
         separator                 : yes
         children                  :
           customView              : new NSetPermissionsView {}, fileData
-      'New File'                  :
+      'New file'                  :
         action                    : 'createFile'
-      'New Folder'                :
+      'New folder'                :
         action                    : 'createFolder'
       'Upload file...'            :
         action                    : 'upload'
@@ -187,7 +187,7 @@ class NFinderContextMenuController extends KDController
 
       if KD.checkFlag('app-publisher') or KD.checkFlag('super-admin')
         items['Application menu'].children["Download source files"].separator = yes
-        items['Application menu'].children["Publish to App Catalog"] =
+        items['Application menu'].children["Publish to app catalog"] =
           action : "publish"
 
     return items
@@ -211,7 +211,7 @@ class NFinderContextMenuController extends KDController
         separator                 : yes
       'Unmount VM'                :
         action                    : 'unmountVm'
-      'Open VM Terminal'          :
+      'Open VM terminal'          :
         action                    : 'openVmTerminal'
         separator                 : yes
       Expand                      :
@@ -220,12 +220,12 @@ class NFinderContextMenuController extends KDController
       Collapse                    :
         action                    : 'collapse'
         separator                 : yes
-      'Toggle Invisible Files'    :
+      'Toggle invisible files'    :
         action                    : 'toggleDotFiles'
         separator                 : yes
-      'New File'                  :
+      'New file'                  :
         action                    : 'createFile'
-      'New Folder'                :
+      'New folder'                :
         action                    : 'createFolder'
       'Upload file...'            :
         action                    : 'upload'
@@ -250,9 +250,9 @@ class NFinderContextMenuController extends KDController
       Collapse                    :
         action                    : "collapse"
         separator                 : yes
-      'New File'                  :
+      'New file'                  :
         action                    : 'createFile'
-      'New Folder'                :
+      'New folder'                :
         action                    : 'createFolder'
       'Upload file...'            :
         action                    : 'upload'
@@ -343,7 +343,7 @@ class NFinderContextMenuController extends KDController
   getMultipleFileMenu:(fileViews)->
 
     items =
-      'Open Files'      :
+      'Open files'      :
         action          : 'openFile'
       Delete            :
         action          : 'delete'
@@ -387,9 +387,9 @@ class NFinderContextMenuController extends KDController
 
     items["Viewer"]               = action   : "previewFile"  if plainPath.match reWebHome
     items["separator"]            = type     : "separator"
-    items["Other Apps"]           = action   : "showOpenWithModal", separator : yes
-    items["Search the App Store"] = disabled : yes
-    items["Contribute an Editor"] = disabled : yes
+    items["Other apps"]           = action   : "showOpenWithModal", separator : yes
+    items["Search the app store"] = disabled : yes
+    items["Contribute an editor"] = disabled : yes
 
     return items
   # getOpenWithMenuItems: (fileView) ->

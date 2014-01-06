@@ -46,6 +46,7 @@ class ActivityAppController extends AppController
     @mainController        = KD.getSingleton 'mainController'
     @lastTo                = null
     @lastFrom              = Date.now()
+    @lastQuery             = null
 
     # if @mainController.appIsReady then @putListeners()
     # else @mainController.on 'AppIsReady', => @putListeners()
@@ -107,7 +108,6 @@ class ActivityAppController extends AppController
 
     appView.feedFilterController.on "FilterChanged", (filter) =>
 
-      KD.track "Activity", "#{filter}FilterClicked"
       @resetAll()
       @clearPopulateActivityBindings()
 
@@ -130,15 +130,20 @@ class ActivityAppController extends AppController
     # log "------------------ bindingsCleared", dateFormat(@lastFrom, "mmmm dS HH:mm:ss"), @_e
 
   handleQuery:(query = {})->
-
     if query.tagged
+      return  if @lastQuery and query.tagged is @lastQuery.tagged
       tag = KD.utils.slugify KD.utils.stripTags query.tagged
       @setWarning {text:tag, loading:yes}
       options = filterByTag: tag
     else if query.q
-      query = KD.utils.stripTags query.q
-      @setWarning {text:query, loading:yes, type:"search"}
-      options = searchText: query
+      return  if @lastQuery and query.q is @lastQuery.q
+      search = KD.utils.stripTags query.q
+      @setWarning {text: search, loading:yes, type:"search"}
+      options = searchText: search
+    else
+      return  if @lastQuery and Object.keys(query).length is 0 and Object.keys(@lastQuery).length is 0
+
+    @lastQuery = query
 
     # TODO: populateActivity will fire twice if there is a query (FIXME) C.T.
     @ready => @populateActivity options
@@ -270,10 +275,15 @@ class ActivityAppController extends AppController
         and KD.prefetchedFeeds \
         # if current user is exempt, fetch from db, not from cache
         and not KD.whoami().isExempt
-      prefetchedActivity = KD.prefetchedFeeds["activity.main"]
-      if prefetchedActivity and prefetchedActivity.length > 0 and ('activities.main' not in USEDFEEDS)
-        log "exhausting feed:", "activity.main"
-        USEDFEEDS.push 'activities.main'
+      group  = KD.getSingleton("groupsController").getCurrentGroup()
+      feedId = "#{group.slug}-activity.main"
+      prefetchedActivity = KD.prefetchedFeeds[feedId]
+
+      # TODO : REMOVING FOR GROUPS DEV. BECAUSE PREFETCH NOT WORKING FOR GROUPS
+
+      if prefetchedActivity and (feedId not in USEDFEEDS)
+        log "exhausting feed:", feedId
+        USEDFEEDS.push feedId
         # update this function
         messages = @prepareCacheForListing prefetchedActivity
         @emit "publicFeedFetched_#{eventSuffix}", messages

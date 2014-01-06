@@ -8,7 +8,7 @@ class TeamworkTabView extends CollaborativePane
     @keysRef    = @workspaceRef.child "keys"
     @indexRef   = @workspaceRef.child "index"
     @requestRef = @workspaceRef.child "request"
-    @paneRef    = @workspaceRef.child "pane"
+    @stateRef   = @workspaceRef.child "state"
 
     @listenChildRemovedOnKeysRef()
     @listenRequestRef()
@@ -33,9 +33,32 @@ class TeamworkTabView extends CollaborativePane
         @requestRef.remove()
 
   listenPaneDidShow: ->
-    # @tabView.on "PaneDidShow", (pane) =>
-    #   @indexRef.set
-    #     indexKey: pane.getOptions().indexKey
+    @tabView.on "PaneDidShow", (pane) =>
+      @stateRef.child(KD.nick()).set pane.getOptions().indexKey
+
+      # need to delay fetching state ref.
+      # otherwise clients might be in different tabs.
+      KD.utils.wait 600, =>
+        @stateRef.once "value", (snapshot) =>
+          map = snapshot.val()
+          return unless map
+
+          data = {}
+
+          for username, indexKey of map
+            data[indexKey] = []  unless data[indexKey]
+            jAccount       = @workspace.users[username]
+            data[indexKey].push jAccount  if jAccount
+
+          for pane in @tabView.panes
+            {indexKey} = pane.getOptions()
+            if data[indexKey]
+              avatars = data[indexKey].filter (jAccount) ->
+                return if jAccount?.profile.nickname is KD.nick() then no else yes
+              pane.tabHandle.avatarView?.avatar?.destroy()
+              pane.tabHandle.setAccounts avatars
+            else
+              pane.tabHandle.avatarView?.avatar?.destroy()
 
   listenChildRemovedOnKeysRef: ->
     @keysRef.on "child_removed", (snapshot) =>
@@ -71,15 +94,16 @@ class TeamworkTabView extends CollaborativePane
       username   = KD.nick()
       return unless data
 
-      @paneRef.child(data.by).set data.indexKey
-
       if watchMap[username] is "everybody" or watchMap[username] is data.by
         for pane in @tabView.panes
           if pane.getOptions().indexKey is data.indexKey
             index = @tabView.getPaneIndex pane
             @tabView.showPaneByIndex index
-            # log pane.tabHandle
-            # log "Current:", index, data.by, @workspace.users[data.by]
+
+            if pane.terminalView
+              {terminal} = pane.terminalView.webterm
+              terminal.scrollToBottom()
+              terminal.container.trigger 'click'
 
   createElements: ->
     @tabHandleHolder = new ApplicationTabHandleHolder delegate: this
@@ -92,7 +116,7 @@ class TeamworkTabView extends CollaborativePane
       closeAppWhenAllTabsClosed : no
       minHandleWidth            : 150
       maxHandleWidth            : 150
-      # tabHandleClass            : TabHandleWithAvatar
+      tabHandleClass            : TeamworkTabHandleWithAvatar
 
     @tabView.on "PaneAdded", (pane) =>
       pane.getHandle().on "click", =>
@@ -155,7 +179,6 @@ class TeamworkTabView extends CollaborativePane
   createTabFromFirebaseData: (data) ->
     {sessionKey, indexKey} = data
     switch data.type
-      when "dashboard" then @createDashboard()
       when "terminal"  then @createTerminal     sessionKey, indexKey
       when "browser"   then @createPreview      sessionKey, indexKey
       when "drawing"   then @createDrawingBoard sessionKey, indexKey
@@ -170,6 +193,7 @@ class TeamworkTabView extends CollaborativePane
     @dashboard = new KDTabPaneView
       title    : "Dashboard"
       indexKey : "dashboard"
+      hiddenHandle: yes
 
     dashboard  = new TeamworkDashboard
       delegate : @workspace.getDelegate()
@@ -204,6 +228,10 @@ class TeamworkTabView extends CollaborativePane
 
   registerPaneRemoveListener_: (pane) ->
     pane.on "KDObjectWillBeDestroyed", =>
+      switch @workspace.hostStatus
+        when "unknown", "offline"
+          return
+
       paneIndexKey = pane.getOptions().indexKey
 
       @keysRef.once "value", (snapshot) =>
@@ -243,6 +271,8 @@ class TeamworkTabView extends CollaborativePane
     terminal = new klass { delegate, sessionKey }
 
     @appendPane_ pane, terminal
+
+    pane.terminalView = terminal
 
     if @amIHost
       terminal.on "WebtermCreated", =>
@@ -293,67 +323,3 @@ class TeamworkTabView extends CollaborativePane
       {{> @tabHandleHolder}}
       {{> @tabView}}
     """
-
-class TabHandleWithAvatar extends KDTabHandleView
-
-  constructor:(options = {}, data)->
-    options.view = new TabHandleAvatarView options
-    super options, data
-
-  setTitle:(title)-> (@getOption 'view').title.updatePartial title
-  setAccounts:(accounts)-> (@getOption 'view').setAccounts accounts
-
-class TabHandleAvatarView extends KDView
-
-  constructor:(options = {}, data)->
-    options.cssClass = 'tw-tab-avatar-view'
-    super options, data
-
-    @accounts = ["gokmen", "devrim", "sinan"]
-
-    @addSubView @title = new KDCustomHTMLView
-      cssClass : 'tw-tab-avatar-title'
-      partial  : "#{options.title}"
-
-    @addSubView @avatar = new AvatarStaticView
-      cssClass   : 'tw-tab-avatar-img'
-      size       : width : 20, height: 20
-      bind       : 'mouseenter mouseleave'
-      mouseenter : =>
-
-        offset = @avatar.$().offset()
-        @avatar.contextMenu = new JContextMenu
-          menuWidth     : 160
-          delegate      : @avatar
-          treeItemClass : AvatarContextMenuItem
-          x             : offset.left - 106
-          y             : offset.top + 27
-          arrow         :
-            placement   : "top"
-            margin      : 108
-          lazyLoad      : yes
-        , {}
-
-        @utils.defer =>
-          @accounts.forEach (account)=>
-            KD.remote.cacheable account, (err, [account])=>
-              if not err and account
-                @avatar.contextMenu.treeController.addNode account
-
-      mouseleave : => @avatar.contextMenu?.destroy()
-
-    , KD.whoami()
-
-  setAccounts: (@accounts)->
-
-class AvatarContextMenuItem extends JContextMenuItem
-
-  constructor:->
-    super
-    @avatar = new AvatarStaticView
-      size     : width: 20, height: 20
-      cssClass : 'tw-tab-avatar-img-context'
-    , @getData()
-
-  pistachio: ->
-     "{{> @avatar}} #{KD.utils.getFullnameFromAccount @getData()}"

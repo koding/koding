@@ -3,18 +3,28 @@ package main
 import (
 	"bytes"
 	"errors"
+	"fmt"
 	"koding/tools/dnode"
 	"koding/tools/kite"
 	"koding/tools/log"
 	"koding/tools/pty"
 	"koding/tools/utils"
 	"koding/virt"
+	"os"
 	"strconv"
 	"strings"
 	"syscall"
 	"time"
 	"unicode/utf8"
 )
+
+const (
+	sessionPrefix      = "koding"
+	fallbackScreenPath = "/opt/koding/bin/screen"
+	screenPath         = "/usr/bin/screen"
+)
+
+var ErrInvalidSession = "ErrInvalidSession"
 
 type WebtermServer struct {
 	Session          string `json:"session"`
@@ -27,6 +37,7 @@ type WebtermServer struct {
 	messageCounter   int
 	byteCounter      int
 	lineFeeedCounter int
+	screenPath       string
 }
 
 type WebtermRemote struct {
@@ -34,16 +45,51 @@ type WebtermRemote struct {
 	SessionEnded dnode.Callback
 }
 
+// screenSessions returns a list of sessions that belongs to the given vos
+// context. The sessions are in the form of ["k7sdjv12344", "askIj12sas12", ...]
+func screenSessions(vos *virt.VOS) []string {
+	// Do not include dead sessions in our result
+	vos.VM.AttachCommand(vos.User.Uid, "", "screen", "-wipe").Output()
+
+	// We need to use ls here, because /var/run/screen mount is only
+	// visible from inside of container. Errors are ignored.
+	out, _ := vos.VM.AttachCommand(vos.User.Uid, "", "ls", "/var/run/screen/S-"+vos.User.Name).Output()
+	shellOut := string(bytes.TrimSpace(out))
+	if shellOut == "" {
+		return []string{}
+	}
+
+	names := strings.Split(shellOut, "\n")
+	sessions := make([]string, len(names))
+
+	prefix := sessionPrefix + "."
+	for i, name := range names {
+		segments := strings.SplitN(name, ".", 2)
+		sessions[i] = strings.TrimPrefix(segments[1], prefix)
+	}
+
+	return sessions
+}
+
+// screenExists checks whether the given session exists in the running list of
+// screen sessions.
+func sessionExists(vos *virt.VOS, session string) bool {
+	for _, s := range screenSessions(vos) {
+		if s == session {
+			return true
+		}
+	}
+
+	return false
+}
+
 func registerWebtermMethods(k *kite.Kite) {
 	registerVmMethod(k, "webterm.getSessions", false, func(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
-		// We need to use ls here, because /var/run/screen mount is only visible from inside of container. Errors are ignored.
-		out, _ := vos.VM.AttachCommand(vos.User.Uid, "", "ls", "/var/run/screen/S-"+vos.User.Name).Output()
-		names := strings.Split(string(out[:len(out)-1]), "\n")
-		sessions := make([]string, len(names))
-		for i, name := range names {
-			segements := strings.SplitN(name, ".", 2)
-			sessions[i] = segements[1]
+		sessions := screenSessions(vos)
+		if len(sessions) == 0 {
+			return nil, errors.New("no sessions available")
 		}
+
 		return sessions, nil
 	})
 
@@ -53,19 +99,49 @@ func registerWebtermMethods(k *kite.Kite) {
 			Remote       WebtermRemote
 			Session      string
 			SizeX, SizeY int
-			NoScreen     bool
+			Mode         string
 		}
+
 		if args.Unmarshal(&params) != nil || params.SizeX <= 0 || params.SizeY <= 0 {
 			return nil, &kite.ArgumentError{Expected: "{ remote: [object], session: [string], sizeX: [integer], sizeY: [integer], noScreen: [boolean] }"}
 		}
-		if params.NoScreen && params.Session != "" {
-			return nil, errors.New("The 'noScreen' and 'session' parameters can not be used together.")
+
+		screen := screenPath
+		_, err := vos.Stat(screenPath)
+		if os.IsNotExist(err) {
+			// it can happen that the user deleted their screen binary
+			// accidently if this happens, fallback to our second screen binary
+			screen = fallbackScreenPath
 		}
 
-		newSession := false
-		if params.Session == "" {
+		cmdArgs := []string{screen, "-e^Bb", "-S"}
+
+		switch params.Mode {
+		case "shared", "resume":
+			if params.Session == "" {
+				return nil, &kite.ArgumentError{Expected: "{ session: [string] }"}
+			}
+
+			if !sessionExists(vos, params.Session) {
+				return nil, &kite.BaseError{
+					Message: fmt.Sprintf("The given session '%s' is not available.", params.Session),
+					CodeErr: ErrInvalidSession,
+				}
+			}
+
+			cmdArgs = append(cmdArgs, sessionPrefix+"."+params.Session)
+			if params.Mode == "shared" {
+				cmdArgs = append(cmdArgs, "-x") // multiuser mode
+			} else if params.Mode == "resume" {
+				cmdArgs = append(cmdArgs, "-raAd") // resume
+			}
+		case "noscreen":
+			cmdArgs = nil
+		case "create":
 			params.Session = utils.RandomString()
-			newSession = true
+			cmdArgs = append(cmdArgs, sessionPrefix+"."+params.Session)
+		default:
+			return nil, &kite.ArgumentError{Expected: "{ mode: [shared|noscreen|resume|create] }"}
 		}
 
 		server := &WebtermServer{
@@ -75,20 +151,14 @@ func registerWebtermMethods(k *kite.Kite) {
 			user:             vos.User,
 			isForeignSession: vos.User.Name != channel.Username,
 			pty:              pty.New(vos.VM.PtsDir()),
+			screenPath:       screen,
 		}
+
 		server.SetSize(float64(params.SizeX), float64(params.SizeY))
-
-		cmdArgs := []string{"/usr/bin/screen", "-e^Bb", "-S", "koding." + params.Session}
-		if !newSession {
-			cmdArgs = append(cmdArgs, "-x")
-		}
-		if params.NoScreen {
-			cmdArgs = nil
-		}
 		server.pty.Slave.Chown(vos.User.Uid, -1)
-		cmd := vos.VM.AttachCommand(vos.User.Uid, "/dev/pts/"+strconv.Itoa(server.pty.No), cmdArgs...)
 
-		err := cmd.Start()
+		cmd := vos.VM.AttachCommand(vos.User.Uid, "/dev/pts/"+strconv.Itoa(server.pty.No), cmdArgs...)
+		err = cmd.Start()
 		if err != nil {
 			panic(err)
 		}
@@ -164,7 +234,7 @@ func (server *WebtermServer) Close() error {
 func (server *WebtermServer) Terminate() error {
 	server.Close()
 	if !server.isForeignSession {
-		server.vm.AttachCommand(server.user.Uid, "", "/usr/bin/screen", "-S", "koding."+server.Session, "-X", "quit").Run()
+		server.vm.AttachCommand(server.user.Uid, "", server.screenPath, "-S", "koding."+server.Session, "-X", "quit").Run()
 	}
 	return nil
 }

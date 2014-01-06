@@ -205,45 +205,6 @@ class ActivityTickerItem extends KDListItemView
 
     return itemClassMap[classKey]
 
-class ActiveUserItemView extends KDListItemView
-  constructor: (options = {}, data) ->
-    options.type = "activity-ticker-item"
-    super options, data
-
-    data = @getData()
-
-    @avatar  = new AvatarView
-      size       : width: 30, height: 30
-      cssClass   : "avatarview"
-      showStatus : yes
-    , data
-
-    @actor = new ProfileLinkView {}, data
-
-    @followersAndFollowing = new JView
-      cssClass  : 'user-numbers'
-      pistachio : "{{ #(counts.followers)}} followers {{ #(counts.following)}} following"
-    , data
-
-    unless KD.isMine data
-      @followButton = new FollowButton
-        title          : "follow"
-        icon           : yes
-        stateOptions   :
-          unfollow     :
-            title      : "unfollow"
-            cssClass   : 'following-account'
-        dataType       : 'JAccount'
-      , data
-    else
-      @actor.setDisplayName "You"
-
-  viewAppended:->
-    @addSubView @avatar
-    @addSubView @followButton  if @followButton
-    @addSubView @actor
-    @addSubView @followersAndFollowing
-
 class ActiveTopicItemView extends KDListItemView
   constructor: (options = {}, data) ->
     options.type = "activity-ticker-item"
@@ -274,7 +235,9 @@ class ActiveTopicItemView extends KDListItemView
           size: { width: 19, height: 19 }
         , user
 
+      { followers: followerCount } = @getData().counts
+
       tagInfo.addSubView new KDCustomHTMLView
         tagName   : "span"
         cssClass  : "total-following"
-        partial   : "+#{@getData().counts.followers} is following"
+        partial   : "+#{followerCount} #{if followerCount is 1 then 'is' else 'are'} following"

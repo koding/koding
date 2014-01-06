@@ -32,6 +32,7 @@ class ShowMoreDataModalView extends KDModalView
     options.title    or= titleMap()[@type]
     options.height   = "auto"
     options.overlay  = yes
+    options.width  or= 540
     options.cssClass = css
     options.buttons  =
       Close :

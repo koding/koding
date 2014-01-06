@@ -50,6 +50,7 @@ module.exports = class JGroup extends Module
       'assure collection'                 : ['moderator']
       'remove documents from collection'  : ['moderator']
       'view readme'                       : ['guest','member','moderator']
+      'send invitations'                  : ['moderator']
     indexes         :
       slug          : 'unique'
     sharedEvents    :
@@ -161,7 +162,7 @@ module.exports = class JGroup extends Module
         inviteByEmail:
           (signature String, Object, Function)
         inviteByEmails:
-          (signature [String], Object, Function)
+          (signature String, Object, Function)
         kickMember:
           (signature String, Function)
         transferOwnership:
@@ -569,20 +570,6 @@ module.exports = class JGroup extends Module
   broadcast:(message, event)->
     @constructor.broadcast @slug, message, event
 
-  # this is a temporary feature to display all activities
-  # from public and visible groups in koding group
-  @oldBroadcast = @broadcast
-  @broadcast = (groupSlug, event, message)->
-    return  unless groupSlug
-    if groupSlug isnt "koding" or event isnt "MemberJoinedGroup"
-      @one {slug : groupSlug }, (err, group)=>
-        console.error err  if err
-        return  unless group
-        if group.privacy isnt "private" and group.visibility isnt "hidden"
-          unless event is "MemberJoinedGroup" or event is "FollowHappened"
-            @oldBroadcast.call this, "koding", event, message
-    @oldBroadcast.call this, groupSlug, event, message
-
   changeMemberRoles: permit 'grant permissions',
     success:(client, targetId, roles, callback)->
       remove = []
@@ -900,22 +887,23 @@ module.exports = class JGroup extends Module
             else if request? then request.approve client
             else callback null
 
-  inviteByEmail: do->
-    fetchAccountByEmail = (email, callback)->
-      JUser    = require '../user'
-      JUser.one {email}, (err, user)=>
-        return callback null, null  if err or not user
-        user.fetchOwnAccount (err, account)=>
-          return callback null, null  if err or not account
-          @isMember account, (err, isMember)->
-            if isMember
-              callback new KodingError "#{email} is already member of this group!"
-            else
-              callback null, account
+  fetchAccountByEmail: (email, callback)=>
+    JUser    = require '../user'
+    JUser.one {email}, (err, user)=>
+      return callback err, null  if err or not user
+      user.fetchOwnAccount (err, account)=>
+        return callback err, null  if err
+        return callback new Error "Account not found.", null  unless account
+        @isMember account, (err, isMember)->
+          if isMember
+            callback new KodingError "#{email} is already member of this group!"
+          else
+            callback null, account
 
+  inviteByEmail: do=>
     permit 'send invitations',
       success: (client, email, options, callback)->
-        fetchAccountByEmail email, (err, account)=>
+        @fetchAccountByEmail email, (err, account)=>
           return callback err  if err
           @inviteMember client, email, account, options, callback
 
@@ -938,22 +926,23 @@ module.exports = class JGroup extends Module
         set["communications.#{messageType}"] = message
         policy.update $set: set, callback
 
-  inviteMember: (client, email, account, options, callback)->
-    JInvitation = require '../invitation'
-    JInvitation.create client, @slug, email, options, (err, invite)=>
-      return callback err  if err
-      @addInvitation invite, (err)=>
+  inviteMember : permit 'send invitations',
+    success: (client, email, account, options, callback)->
+      JInvitation = require '../invitation'
+      JInvitation.create client, @slug, email, options, (err, invite)=>
         return callback err  if err
-        invite.sendMail client, this, options, (err)->
+        @addInvitation invite, (err)=>
           return callback err  if err
-          kallback = (err)-> callback err, invite
+          invite.sendMail client, this, options, (err)->
+            return callback err  if err
+            kallback = (err)-> callback err, invite
 
-          JAccount = require '../account'
-          if account instanceof JAccount
-            account.emit 'NewPendingInvitation'
-            account.addInvitation invite, kallback
-          else
-            kallback null
+            JAccount = require '../account'
+            if account instanceof JAccount
+              account.emit 'NewPendingInvitation'
+              account.addInvitation invite, kallback
+            else
+              kallback null
 
   isMember: (account, callback)->
     selector =

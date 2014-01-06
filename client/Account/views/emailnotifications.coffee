@@ -6,48 +6,30 @@ class AccountEmailNotifications extends KDView
 
   putContents:(account, frequency)->
     fields =
+      global           :
+        title          : 'Send me email notifications'
       daily            :
-        title          : 'Send me a daily email about everything below'
+        title          : 'Send me a daily digest'
       privateMessage   :
-        title          : 'Someone sends me a private message'
+        title          : 'When someone sends me a private message'
       followActions    :
-        title          : 'Someone follows me'
+        title          : 'When I have a new follower'
       comment          :
-        title          : 'My post receives a comment'
+        title          : 'When my post gets a new comment'
       likeActivities   :
-        title          : 'When I receive likes'
+        title          : 'When I someone likes my content'
       groupInvite      :
-        title          : 'Someone invites me to their group'
+        title          : 'When someone invites me to their group'
       groupRequest     :
-        title          : 'Someone requests access to my group'
+        title          : 'When someone requests access to my group'
       groupApproved    :
-        title          : 'Group admin approves my access request'
+        title          : 'When my group access is approved'
       groupJoined      :
-        title          : 'When someone joins your group'
+        title          : 'When someone joins my group'
       groupLeft        :
-        title          : 'When someone leaves your group'
+        title          : 'When someone leaves my group'
 
     globalValue = frequency.global
-
-    turnedOffHint = new KDCustomHTMLView
-      partial : "Email notifications are turned off. You won't receive any emails about anything."
-      cssClass: "no-item-found #{if globalValue then 'hidden'}"
-
-    @addSubView turnedOffHint
-
-    @getDelegate().addSubView global = new KodingSwitch
-      cssClass      : "dark in-account-header"
-      defaultValue  : globalValue
-      callback      : (state)=>
-        account.setEmailPreferences global: state, (err)=>
-          if err
-            global.oldValue = globalValue
-            global.fallBackToOldState()
-            return new KDNotificationView
-              duration : 2000
-              title    : "Failed to turn #{state.toLowerCase()} the email notifications."
-
-          @emit 'GlobalStateChanged', state
 
     for own flag, field of fields
       @addSubView field.formView = new KDFormView
@@ -55,24 +37,28 @@ class AccountEmailNotifications extends KDView
         title        : field.title
         cssClass     : "main-label" # +if flag isnt 'global' then 'indent' else ''
 
-      field.current = frequency[flag]
-
-      field.formView.addSubView field.switch = new KodingSwitch
+      fieldSwitch = new KodingSwitch
         cssClass      : 'dark'
-        defaultValue  : field.current
-        callback      : (state)->
+        defaultValue  : frequency[flag]
+        callback      : (state) ->
           prefs = {}
 
-          prefs[@getData()] = state
-          fields[@getData()].loader.show()
+          switchFlag = @getData()
+
+          prefs[switchFlag] = state
+          fields[switchFlag].loader.show()
 
           account.setEmailPreferences prefs, (err)=>
-            fields[@getData()].loader.hide()
+            fields[switchFlag].loader.hide()
             if err
               @fallBackToOldState()
               KD.notify_ 'Failed to change state'
 
-        , flag
+          toggleGlobalState state  if switchFlag is 'global'
+
+      , flag
+
+      field.formView.addSubView fieldSwitch
 
       fields[flag].formView.addSubView fields[flag].loader = new KDLoaderView
         size          :
@@ -81,17 +67,11 @@ class AccountEmailNotifications extends KDView
         loaderOptions :
           color       : "#FFFFFF"
 
-    toggleFieldStates = (state)->
-      for own flag, field of fields
+    toggleGlobalState = (state) ->
+      for own flag, field of fields when flag isnt 'global'
         if state is off
           field.formView.hide()
         else
           field.formView.show()
 
-    toggleFieldStates globalValue
-
-    @on 'GlobalStateChanged', (state)=>
-      toggleFieldStates state
-      if state is off
-      then turnedOffHint.show()
-      else turnedOffHint.hide()
+    toggleGlobalState globalValue

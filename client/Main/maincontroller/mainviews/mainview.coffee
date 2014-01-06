@@ -109,7 +109,10 @@ class MainView extends KDView
 
   createAccountArea:->
 
-    @innerContainer.addSubView @accountArea = new KDCustomHTMLView cssClass : 'account-area'
+    @accountArea = new KDCustomHTMLView
+      cssClass : 'account-area'
+
+    @innerContainer.addSubView @accountArea
 
     unless KD.isLoggedIn()
       @loginLink = new CustomLinkView
