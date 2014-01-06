@@ -1,7 +1,7 @@
 class ReferrerModal extends KDModalViewWithForms
   constructor: (options = {}, data) ->
     options.cssClass       = KD.utils.curry "referrer-modal", options.cssClass
-    options.width          = 570
+    options.width          = 610
     options.overlay       ?= yes
     options.title          = "Get free disk space!"
     options.url          or= KD.getReferralUrl KD.nick()
