@@ -328,7 +328,7 @@ module.exports = class JUser extends jraphical.Module
           else unless user.getAt('password') is hashPassword password, user.getAt('salt')
             logAndReturnLoginError username, 'Access denied!', callback
           else
-            JSessionHistory.create {username, createdAt:new Date}, ->
+            JSessionHistory.create {username}, ->
               afterLogin connection, user, clientId, session, callback
 
   @verifyPassword = secure (client, password, callback)->
