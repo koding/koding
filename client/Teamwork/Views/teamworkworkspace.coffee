@@ -33,6 +33,10 @@ class TeamworkWorkspace extends CollaborativeWorkspace
 
     @chatView.sendWelcomeMessage()  if @amIHost()
 
+    @usersRef.on "child_added", (snapshot) =>
+      user = snapshot.name()
+      @chatView.botReply "#{user} joined"  if user isnt @nickname
+
   setWatchMode: (targetUsername) ->
     username = KD.nick()
     @watchRef.child(username).set targetUsername
