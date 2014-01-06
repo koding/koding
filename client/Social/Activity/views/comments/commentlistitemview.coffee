@@ -64,27 +64,15 @@ class CommentListItemView extends KDListItemView
     data.on 'ContentMarkedAsLowQuality', @bound 'hide' unless KD.checkFlag 'exempt'
     data.on 'ContentUnmarkedAsLowQuality', @bound 'show'
 
-  applyTooltips:->
-    @$("p.status-body > span.data > a").each (i,element)->
-      href = $(element).attr("data-original-url") or $(element).attr("href") or ""
-
-      twOptions = (title) ->
-         title : title, placement : "above", offset : 3, delayIn : 300, html : yes, animate : yes, className : "link-expander"
-
-      if $(element).attr("target") is "_blank"
-        $(element).twipsy twOptions("External Link : <span>"+href+"</span>")
-
   render:->
     if @getData().getAt 'deletedAt'
       @emit 'CommentIsDeleted'
     @updateTemplate()
-    @applyTooltips()
     super
 
   viewAppended:->
     @updateTemplate yes
     @template.update()
-    @applyTooltips()
 
   click:(event)->
 
@@ -144,9 +132,7 @@ class CommentListItemView extends KDListItemView
       {{> @avatar}}
       <div class='comment-contents clearfix'>
         {{> @author}}
-        <p class='comment-body'>
-          {{@utils.applyTextExpansions #(body), yes}}
-        </p>
+        {p{@utils.applyTextExpansions #(body), yes}}
         {{> @deleteLink}}
         {{> @likeView}}
         {{> @replyView}}

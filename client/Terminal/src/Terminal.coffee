@@ -31,8 +31,6 @@ class WebTerm.Terminal extends KDObject
       keypress  : @bound 'keyPress'
       keyup     : @bound 'keyUp'
 
-    @keyInput.appendToDomBody()
-
     containerView.on 'KDObjectWillBeDestroyed', @keyInput.bound 'destroy'
 
     @currentWidth             = 0
@@ -53,13 +51,39 @@ class WebTerm.Terminal extends KDObject
       partial   : "\xA0"
       cssClass  : 'offscreen'
 
-    @updateSize()
-
-    @outputbox = $(document.createElement("div"))
+    outputboxElement = document.createElement "div"
+    @outputbox = $ outputboxElement
+    @outputbox.attr "contenteditable", yes
+    @outputbox.attr "spellcheck", off
     @outputbox.css "cursor", "text"
     @outputbox.append @measurebox.getDomElement()
-
+    @outputbox.append @keyInput.getDomElement()
     @container.append @outputbox
+
+    outputboxElement.addEventListener "keydown", (event) =>
+      range = KD.utils.getSelectionRange()
+      if range.startOffset isnt range.endOffset
+        if event.ctrlKey or event.metaKey
+          @setKeyFocus()  if String.fromCharCode(event.which) is "X"
+        else
+          @setKeyFocus()
+    , yes
+
+    outputboxElement.addEventListener "keypress", (event) =>
+      KD.utils.stopDOMEvent event  if event.target isnt @keyInput.getElement()
+    , yes
+
+    @outputbox.on "keydown", (event) =>
+      if @mousedownHappened
+        @setKeyFocus() unless event.ctrlKey or event.metaKey
+        @utils.defer =>
+          @mousedownHappened = false
+
+    @outputbox.on "drop", (event) =>
+      @server.input event.originalEvent.dataTransfer.getData "text/plain"
+      KD.utils.stopDOMEvent event
+
+    @updateSize()
 
     @container.on "mousedown mousemove mouseup mousewheel contextmenu", (event) =>
       @inputHandler.mouseEvent event
@@ -119,7 +143,6 @@ class WebTerm.Terminal extends KDObject
     @server.setSize x, y if @server
 
   getCharSizes:->
-
     sizes =
       width  : @measurebox.getWidth()  or @_mbWidth
       height : @measurebox.getHeight() or @_mbHeight

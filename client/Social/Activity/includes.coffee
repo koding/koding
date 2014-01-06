@@ -63,13 +63,6 @@ module.exports = [
 
   "ContentDisplays/activitycontentdisplay.coffee",
   "ContentDisplays/StatusUpdate.coffee",
-  "ContentDisplays/CodeSnippet.coffee",
-  "ContentDisplays/Discussion.coffee",
-  "ContentDisplays/blogpost.coffee",
-  "ContentDisplays/tutorial.coffee",
-  "ContentDisplays/blogpost.coffee",
-  "ContentDisplays/QA.coffee",
-  "ContentDisplays/link.coffee",
   "ContentDisplays/ActivityRightBlock.coffee",
   "ContentDisplays/ActivityTicker.coffee",
 
@@ -83,13 +76,6 @@ module.exports = [
   # Activity List Items
   "ListItems/ActivityListItem.coffee",
   "ListItems/ActivityListItemStatusUpdate.coffee",
-  "ListItems/ActivityListItemCodeSnippet.coffee",
-  "ListItems/ActivityListItemBlogPost.coffee",
-  "ListItems/ActivityListItemDiscussion.coffee",
-  "ListItems/ActivityListItemFollow.coffee",
-  "ListItems/ActivityListItemLink.coffee",
-  "ListItems/ActivityListItemTutorial.coffee",
-  "ListItems/ActivityListItemBlogPost.coffee",
 
   "styl/activity.styl"
   "styl/activity.responsive.styl"

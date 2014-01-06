@@ -253,6 +253,8 @@ module.exports = class JAccount extends jraphical.Module
           (signature Function)
         fetchMyBadges:
           (signature Function)
+        fetchFromUser:
+          (signature String, Function)
         updateCountAndCheckBadge:
           (signature Object, Function)
     schema                  :
@@ -1554,7 +1556,7 @@ module.exports = class JAccount extends jraphical.Module
   fetchOAuthInfo: secure (client, callback)->
     @fetchFromUser client, 'foreignAuth', callback
 
-  fetchFromUser: (client, key, callback)->
+  fetchFromUser: secure (client, key, callback)->
     {delegate} = client.connection
     isMine     = @equals delegate
     if isMine
