@@ -26,23 +26,21 @@ class CommentListItemView extends KDListItemView
 
     @author = new ProfileLinkView { origin }
 
+    @body = @getBody data
+
     if deleterId? and deleterId isnt originId
       @deleter = new ProfileLinkView {}, data.getAt('deletedBy')
 
-    @deleteLink = new KDCustomHTMLView
-      tagName     : 'a'
-      attributes  :
-        href      : '#'
-      cssClass    : 'delete-link hidden'
-      click       : KD.utils.stopDOMEvent
-
     activity = @getDelegate().getData()
     loggedInId = KD.whoami().getId()
-    if loggedInId is data.originId or           # if comment/review owner
-       loggedInId is activity.originId or       # if activity/app owner
-       KD.checkFlag "super-admin", KD.whoami()  # if super-admin
-      @deleteLink.unsetClass "hidden"
-      @deleteLink.on "click", => @confirmDeleteComment data
+
+    @settings = if loggedInId is data.originId # if comment/review owner
+      @getSettings(data)
+    else if loggedInId is activity.originId or       # if activity/app owner
+            KD.checkFlag "super-admin", KD.whoami()  # if super-admin
+      @getDeleteButton(data)
+    else
+      new KDCustomHTMLView tagName : 'span', cssClass : 'hidden'
 
     @likeView = new LikeViewClean { tooltipPosition : 'sw', checkIfLikedBefore: yes }, data
 
@@ -58,11 +56,71 @@ class CommentListItemView extends KDListItemView
       @replyView = new KDView
         tagName  : "span"
 
-    @timeAgoView = new KDTimeAgoView {}, @getData().meta.createdAt
+    @timeAgoView = new KDTimeAgoView {}, data.meta.createdAt
 
     # TODO: ??
     data.on 'ContentMarkedAsLowQuality', @bound 'hide' unless KD.checkFlag 'exempt'
     data.on 'ContentUnmarkedAsLowQuality', @bound 'show'
+
+    @on 'CommentUpdated', @bound 'updateComment'
+    @on 'CommentUpdateCancelled', @bound 'cancelCommentUpdate'
+
+  updateComment: (comment="")->
+    unless comment.trim() is ""
+      data = @getData()
+      data.modify comment, (err) =>
+        return new KDNotificationView title: err.message if err
+        data.body = comment
+        @hideEditCommentForm(data)
+
+  cancelCommentUpdate: ->
+    @hideEditCommentForm(@getData())
+
+  hideEditCommentForm:(data)->
+    @body.destroy()
+    @body = @getBody data
+    @settings = @getSettings(data)
+    @timeAgoView = new KDTimeAgoView {}, data.meta.createdAt
+    @updateTemplate yes
+
+
+  showEditCommentForm:(data)->
+    @settings.hide()
+    @settings.destroy()
+    @body.destroy()
+    @body = new EditCommentForm
+      editable : yes
+      delegate : this,
+      data
+    @timeAgoView = new KDTimeAgoView {}, data.meta.createdAt
+    @updateTemplate yes
+
+  getSettings:(data)->
+    button = new KDButtonViewWithMenu
+      cssClass       : 'activity-settings-menu'
+      itemChildClass : ActivityItemMenuItem
+      title          : ''
+      icon           : yes
+      delegate       : this
+      iconClass      : "arrow"
+      menu           : @settingsMenu data
+      callback       : (event)=> button.contextMenu event
+
+  getBody:(data)->
+    new KDCustomHTMLView
+      pistachio: "{p{@utils.applyTextExpansions #(body), yes}}",
+      data
+
+  getDeleteButton:(data)->
+    button = new KDCustomHTMLView
+        tagName     : 'a'
+        attributes  :
+          href      : '#'
+        cssClass    : 'delete-link hidden'
+        click       : KD.utils.stopDOMEvent
+      button.unsetClass "hidden"
+      button.on "click", => @confirmDeleteComment data
+    return button
 
   render:->
     if @getData().getAt 'deletedAt'
@@ -127,13 +185,20 @@ class CommentListItemView extends KDListItemView
     else if force
       @setTemplate @pistachio()
 
+  settingsMenu:(data)->
+    menu =
+      'Edit'     :
+        callback : => @showEditCommentForm data
+      'Delete'   :
+        callback : => @confirmDeleteComment data
+
   pistachio:->
     """
       {{> @avatar}}
       <div class='comment-contents clearfix'>
         {{> @author}}
-        {p{@utils.applyTextExpansions #(body), yes}}
-        {{> @deleteLink}}
+        {{> @body}}
+        {{> @settings}}
         {{> @likeView}}
         {{> @replyView}}
         {{> @timeAgoView}}
