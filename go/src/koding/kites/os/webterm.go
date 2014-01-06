@@ -19,9 +19,9 @@ import (
 )
 
 const (
-	sessionPrefix      = "koding"
-	fallbackScreenPath = "/opt/koding/bin/screen"
-	screenPath         = "/usr/bin/screen"
+	sessionPrefix     = "koding"
+	kodingScreenPath  = "/opt/koding/bin/screen"
+	defaultScreenPath = "/usr/bin/screen"
 )
 
 var ErrInvalidSession = "ErrInvalidSession"
@@ -106,15 +106,15 @@ func registerWebtermMethods(k *kite.Kite) {
 			return nil, &kite.ArgumentError{Expected: "{ remote: [object], session: [string], sizeX: [integer], sizeY: [integer], noScreen: [boolean] }"}
 		}
 
-		screen := screenPath
+		screenPath := kodingScreenPath
 		_, err := vos.Stat(screenPath)
 		if os.IsNotExist(err) {
-			// it can happen that the user deleted their screen binary
-			// accidently if this happens, fallback to our second screen binary
-			screen = fallbackScreenPath
+			// it can happen that the user deleted our screen binary
+			// accidently, if this happens fallback to default screen binary
+			screenPath = defaultScreenPath
 		}
 
-		cmdArgs := []string{screen, "-e^Bb", "-S"}
+		cmdArgs := []string{screenPath, "-e^Bb", "-S"}
 
 		switch params.Mode {
 		case "shared", "resume":
@@ -151,7 +151,7 @@ func registerWebtermMethods(k *kite.Kite) {
 			user:             vos.User,
 			isForeignSession: vos.User.Name != channel.Username,
 			pty:              pty.New(vos.VM.PtsDir()),
-			screenPath:       screen,
+			screenPath:       screenPath,
 		}
 
 		server.SetSize(float64(params.SizeX), float64(params.SizeY))

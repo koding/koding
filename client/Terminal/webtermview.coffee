@@ -39,8 +39,6 @@ class WebTermView extends KDView
 
     @listenWindowResize()
 
-    @focused = true
-
     @on "ReceivedClickElsewhere", =>
       @focused = false
       @terminal.setFocused false
@@ -89,6 +87,8 @@ class WebTermView extends KDView
     @getDelegate().on 'KDTabPaneActive', =>
       # @terminal.setSize 100, 100
       @terminal.updateSize yes
+
+    @setKeyView()
 
   connectToTerminal: ->
     @appStorage = KD.getSingleton('appStorageController').storage 'Terminal', '1.0.1'
