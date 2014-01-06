@@ -92,13 +92,13 @@ class DashboardAppView extends JView
         viewOptions.options = delegate : this  if name is 'Settings'
         hiddenHandle = hiddenHandle? and data.privacy is 'public'
         @tabs.addPane (pane = new KDTabPaneView {name, viewOptions}), i is 0
-
         # Push all items, however if it has 'kodingOnly' push only when the group is really 'koding'
-        if not kodingOnly or data.slug is 'koding'
+        if data.slug is 'koding'
           navItems.push {title : name, slug : "/Dashboard/#{name}", type : if hiddenHandle then 'hidden' else null}
+        if data.slug isnt 'koding' and not kodingOnly
+          navItems.push {title : name, slug : "/#{data.slug}/Dashboard/#{name}", type : if hiddenHandle then 'hidden' else null}
 
       @navController.replaceAllItems navItems
-      @navController.selectItem @navController.itemsOrdered.first
       @nav.emit "ready"
 
   pistachio:->
