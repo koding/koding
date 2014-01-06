@@ -17,9 +17,13 @@ func deleteTags(tagId string) error {
 
 	tag, err := helper.GetTagById(tagId)
 	if err != nil {
-		return fmt.Errorf("Tag not found - Id: %s", tagId)
+		if err == helper.ErrNotFound {
+			return fmt.Errorf("Tag not found - Id: %s", tagId)
+		}
+		return err
 	}
 	log.Info("Deleting %s", tag.Title)
+
 	return updateTags(tag, &Tag{})
 }
 
@@ -119,7 +123,7 @@ func updatePosts(rels []Relationship, newTagId string) (filteredRels []Relations
 
 		tagIncluded := updatePostBody(post, tagId, newTagId)
 		if strings.TrimSpace(post.Body) == "" {
-			DeleteStatusUpdate(post.Id.Hex()) // delete empty post
+			err = DeleteStatusUpdate(post.Id.Hex()) // delete empty post
 		} else {
 			err = helper.UpdateStatusUpdate(post) // update post body
 		}
