@@ -11,9 +11,9 @@ class VerifyPINModal extends KDModalViewWithForms
       tabs                        :
         navigable                 : yes
         forms                     :
-          form                    :
+          verifyPINForm           :
             callback              : =>
-              callback @modalTabs.forms.form.inputs.pin.getValue()
+              callback @modalTabs.forms.verifyPINForm.inputs.pin.getValue()
               @destroy()
             buttons               :
               Submit              :
