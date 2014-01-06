@@ -5,6 +5,7 @@ module.exports = [
   "Views/teamworkmarkdownmodal.coffee",
   "Views/facebookteamworkinstructionsmodal.coffee",
   "Views/teamworkinvitemodal.coffee",
+  "Views/teamworkexportmodal.coffee",
   "Views/teamworksharemodal.coffee",
   "Views/teamworkdashboard.coffee",
   "Views/teamworkimporter.coffee",
