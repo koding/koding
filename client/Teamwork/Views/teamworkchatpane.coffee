@@ -185,11 +185,12 @@ class TeamworkChatPane extends ChatPane
       tooltip  :
         title  : messages.botTooltip
 
-    @avatars.addSubView new KDCustomHTMLView
-      cssClass : "tw-add-user"
-      tooltip  :
-        title  : "Click here to invite your friends"
-      click    : => new TeamworkInviteModal delegate: this
+    if KD.isLoggedIn()
+      @avatars.addSubView new KDCustomHTMLView
+        cssClass : "tw-add-user"
+        tooltip  :
+          title  : "Click here to invite your friends"
+        click    : => new TeamworkInviteModal delegate: this
 
   getMessage = (key, data) ->
     return messages[key].replace "$0", data
