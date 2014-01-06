@@ -177,21 +177,26 @@ class TeamworkWorkspace extends CollaborativeWorkspace
   showImportModal: ->
     modal          = new KDModalView
       title        : "Import Content to your VM"
-      content      : "<p>Enter the URL of a git repository or zip archive.</p>"
-      cssClass     : "tw-modal"
+      cssClass     : "tw-modal tw-import-modal"
       overlay      : yes
       width        : 600
       buttons      :
         Import     :
           title    : "Import"
           cssClass : "modal-clean-green"
+          icon     : yes
+          iconClass: "tw-import-icon"
           callback : => @getDelegate().emit "ImportRequested", importUrlInput.getValue()
         Close      :
-          title    : "Close"
+          title    : "Cancel"
           cssClass : "modal-cancel"
           callback : -> modal.destroy()
 
     modal.addSubView importUrlInput = new KDHitEnterInputView
-      type         : "text"
-      placeholder  : "Import Url"
-      callback     : => @handleJoinASessionFromModal sessionKeyInput.getValue(), modal
+      type         : "text tw-import-url"
+      placeholder  : "Enter the URL of a git repository or zip archive."
+      callback     : => @getDelegate().emit "ImportRequested", importUrlInput.getValue()
+
+    modal.addSubView new KDCustomHTMLView
+      tagName      : "span"
+      cssClass     : "input-icon"
