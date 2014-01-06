@@ -2,23 +2,14 @@ package topicmodifier
 
 import (
 	logging "github.com/op/go-logging"
-	stdlog "log"
-	"os"
+	"koding/tools/config"
+	"koding/tools/logger"
 )
 
-var (
-	log = logging.MustGetLogger("TopicModifier")
-)
+var log *logging.Logger
 
 func init() {
-	configureLogger()
-}
+	level := config.Current.TopicModifier.LogLevel
+	log = logger.CreateLogger("TopicModifier", level)
 
-func configureLogger() {
-	logging.SetLevel(logging.INFO, "TopicModifier")
-	log.Module = "TopicModifier"
-	logging.SetFormatter(logging.MustStringFormatter("%{level:-3s} ▶ %{message}"))
-	stderrBackend := logging.NewLogBackend(os.Stderr, "", stdlog.LstdFlags|stdlog.Lshortfile)
-	stderrBackend.Color = true
-	logging.SetBackend(stderrBackend)
 }
