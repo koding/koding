@@ -6,7 +6,8 @@ class Pane extends JView
 
     super options, data
 
-    hasButtons = options.buttons?.length
+    hasButtons     = options.buttons?.length
+    @headerButtons = {}
 
     @createHeader()
     @createButtons()  if hasButtons
@@ -27,7 +28,18 @@ class Pane extends JView
         cssClass : "ws-header"
 
   createButtons: ->
-    for buttonOptions in @getOptions().buttons
-      @header.addSubView new KDButtonView buttonOptions
+    # TODO: c/p from panel, should refactor both of them.
+    @getOptions().buttons.forEach (buttonOptions) =>
+      if buttonOptions.itemClass
+        Klass = buttonOptions.itemClass
+        buttonOptions.callback = buttonOptions.callback?.bind this, this, @getDelegate()
+
+        buttonView = new Klass buttonOptions
+      else
+        buttonOptions.callback = buttonOptions.callback?.bind this, this, @getDelegate()
+        buttonView = new KDButtonView buttonOptions
+
+      @headerButtons[buttonOptions.title] = buttonView
+      @header.addSubView buttonView
 
   handlePaneResized: ->
