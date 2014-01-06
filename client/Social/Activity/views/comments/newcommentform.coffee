@@ -5,23 +5,14 @@ class NewCommentForm extends KDView
     options.type           or= "new-comment"
     options.cssClass       or= "item-add-comment-box"
     options.itemTypeString or= 'comment'
+    options.editable       or= no
 
     super options, data
 
-  viewAppended:->
-
-    @addSubView commenterAvatar = new AvatarStaticView
-      size    :
-        width : 35
-        height: 35
-    , KD.whoami()
-
-    @addSubView commentFormWrapper = new KDView
-      cssClass    : "item-add-comment-form"
-
     {itemTypeString} = @getOptions()
+    data = @getData()
 
-    commentFormWrapper.addSubView @commentInput = new KDHitEnterInputView
+    @commentInput = new KDHitEnterInputView
       type          : "textarea"
       delegate      : this
       placeholder   : "Type your #{itemTypeString} and hit enter..."
@@ -33,6 +24,22 @@ class NewCommentForm extends KDView
         messages    :
           required  : "Please type a #{itemTypeString}..."
       callback      : @bound "commentInputReceivedEnter"
+
+    @commentFormWrapper = new KDView
+      cssClass    : "item-add-comment-form"
+
+    @commentFormWrapper.addSubView @commentInput
+
+  viewAppended:->
+    {editable} = @getOptions()
+    unless editable
+      @addSubView commenterAvatar = new AvatarStaticView
+        size    :
+          width : 35
+          height: 35
+      , KD.whoami()
+
+    @addSubView @commentFormWrapper
 
     @attachListeners()
 
@@ -59,14 +66,33 @@ class NewCommentForm extends KDView
   commentInputReceivedEnter:(instance,event)->
     KD.requireMembership
       callback  : =>
+        {editable} = @getOptions()
         reply = @commentInput.getValue()
         @commentInput.setValue ''
         @commentInput.resize()
         @commentInput.blur()
         @commentInput.$().blur()
-        @getDelegate().emit 'CommentSubmitted', reply
+        unless editable then @getDelegate().emit 'CommentSubmitted', reply
+        else @getDelegate().emit 'CommentUpdated', reply
+
 
         KD.mixpanel "Comment activity, click", reply.length
       onFailMsg : "Login required to post a comment!"
       tryAgain  : yes
       groupName : @getDelegate().getData().group
+
+class EditCommentForm extends NewCommentForm
+
+  constructor:(options = {}, data)->
+    options.editable = yes
+    super options, data
+
+    @commentFormWrapper.addSubView new KDCustomHTMLView
+      pistachio: "Press Esc to cancel"
+
+    @commentInput.setValue data.body
+    @commentInput.on "EscapePerformed", @bound "cancel"
+    @commentInput.setFocus()
+
+  cancel: ->
+    @getDelegate().emit "CommentUpdateCancelled"
