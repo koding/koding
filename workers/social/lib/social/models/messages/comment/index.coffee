@@ -1,5 +1,6 @@
 jraphical = require 'jraphical'
 JAccount = require '../../account'
+KodingError = require '../../../error'
 
 module.exports = class JComment extends jraphical.Reply
 
@@ -33,6 +34,8 @@ module.exports = class JComment extends jraphical.Reply
           (signature Object, Function)
           (signature Object, Object, Function)
         ]
+        modify:
+          (signature String, Function)
         checkIfLikedBefore:
           (signature Function)
     sharedEvents  :
@@ -126,3 +129,14 @@ module.exports = class JComment extends jraphical.Reply
 
   unflagIsLowQuality:(callback)->
     @_flagIsLowQuality no, 1, callback
+
+  modify: secure (client, body, callback) ->
+    {delegate} = client.connection
+    return callback new KodingError "Access Denied"  unless delegate.getId().equals @originId
+    body = body?.trim()
+    if not body? or body is ""
+      return callback new KodingError "Comment cannot be empty"
+
+    return @update $set: {body}, callback unless body is @body
+
+    callback null
