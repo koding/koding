@@ -10,6 +10,7 @@ import (
 	"koding/tools/pty"
 	"koding/tools/utils"
 	"koding/virt"
+	"os"
 	"strconv"
 	"strings"
 	"syscall"
@@ -18,9 +19,12 @@ import (
 )
 
 const (
-	sessionPrefix     = "koding"
-	ErrInvalidSession = "ErrInvalidSession"
+	sessionPrefix      = "koding"
+	fallbackScreenPath = "/opt/koding/bin/screen"
+	screenPath         = "/usr/bin/screen"
 )
+
+var ErrInvalidSession = "ErrInvalidSession"
 
 type WebtermServer struct {
 	Session          string `json:"session"`
@@ -33,6 +37,7 @@ type WebtermServer struct {
 	messageCounter   int
 	byteCounter      int
 	lineFeeedCounter int
+	screenPath       string
 }
 
 type WebtermRemote struct {
@@ -101,7 +106,15 @@ func registerWebtermMethods(k *kite.Kite) {
 			return nil, &kite.ArgumentError{Expected: "{ remote: [object], session: [string], sizeX: [integer], sizeY: [integer], noScreen: [boolean] }"}
 		}
 
-		cmdArgs := []string{"/usr/bin/screen", "-e^Bb", "-S"}
+		screen := screenPath
+		_, err := vos.Stat(screenPath)
+		if os.IsNotExist(err) {
+			// it can happen that the user deleted their screen binary
+			// accidently if this happens, fallback to our second screen binary
+			screen = fallbackScreenPath
+		}
+
+		cmdArgs := []string{screen, "-e^Bb", "-S"}
 
 		switch params.Mode {
 		case "shared", "resume":
@@ -138,13 +151,14 @@ func registerWebtermMethods(k *kite.Kite) {
 			user:             vos.User,
 			isForeignSession: vos.User.Name != channel.Username,
 			pty:              pty.New(vos.VM.PtsDir()),
+			screenPath:       screen,
 		}
 
 		server.SetSize(float64(params.SizeX), float64(params.SizeY))
 		server.pty.Slave.Chown(vos.User.Uid, -1)
 
 		cmd := vos.VM.AttachCommand(vos.User.Uid, "/dev/pts/"+strconv.Itoa(server.pty.No), cmdArgs...)
-		err := cmd.Start()
+		err = cmd.Start()
 		if err != nil {
 			panic(err)
 		}
@@ -220,7 +234,7 @@ func (server *WebtermServer) Close() error {
 func (server *WebtermServer) Terminate() error {
 	server.Close()
 	if !server.isForeignSession {
-		server.vm.AttachCommand(server.user.Uid, "", "/usr/bin/screen", "-S", "koding."+server.Session, "-X", "quit").Run()
+		server.vm.AttachCommand(server.user.Uid, "", server.screenPath, "-S", "koding."+server.Session, "-X", "quit").Run()
 	}
 	return nil
 }
