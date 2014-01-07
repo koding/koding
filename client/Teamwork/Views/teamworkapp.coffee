@@ -179,7 +179,8 @@ class TeamworkApp extends KDObject
         @teamwork.destroy()
         @createTeamwork @mergePlaygroundOptions manifest, playground
         @teamwork.container.setClass playground
-        @setVMRoot root
+        @teamwork.once "WorkspaceSyncedWithRemote", =>
+          @setVMRoot root
 
   setUpImport: (manifest, playground) ->
     {version} = manifest
