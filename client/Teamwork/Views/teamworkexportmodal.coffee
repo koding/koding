@@ -33,9 +33,10 @@ class TeamworkExportModal extends KDModalView
     @loader.addSubView new KDCustomHTMLView
       tagName    : "span"
       cssClass   : "loading-text"
-      partial    : "Exporting your content"
+      partial    : "Exporting your content. It may take a few minutes depending size of your content. (Max compressed size is 5MB)"
 
     @addSubView @loader
+    @setClass "loading"
 
   getFileInfo: (fsItem) ->
     fileData = fsItem.getData()

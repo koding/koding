@@ -650,8 +650,11 @@ app.teamwork.styl
     margin-left                 -15px
 
 .tw-export-modal
+  &.loading
+    .kdmodal-content
+      height                    64px
   .tw-share-warning
-    top                         30px
+    top                         45px
     position                    relative
   .tw-next-icon
     sprite                      "teamwork", "arrow"
@@ -672,16 +675,16 @@ app.teamwork.styl
     .modal-clean-green
       margin-top                10px !important
   .export-loader
-    width                       200px !important
-    height                      60px !important
+    width                       400px !important
+    height                      90px !important
     left                        50%
     text-align                  center
-    margin-left                 -100px
-    top                         -10px
+    margin-left                 -200px
+    top                         -15px
     .loading-text
-      top                       37px
+      top                       52px
       position                  relative
-      font-size                 14px
+      font-size                 12px
     .canvas-loader
       position                  relative
       top                       -16px
