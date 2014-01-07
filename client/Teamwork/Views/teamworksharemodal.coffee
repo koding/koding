@@ -18,10 +18,11 @@ class TeamworkShareModal extends KDModalView
     KD.getSingleton("appManager").require "Activity", =>
       inputWidget = new ActivityInputWidget
       inputWidget.once "viewAppended", =>
-        inputWidget.input.setContent """
+        content = @getOptions().inputContent or """
           <div class="join">Would you like to join my Teamwork session?</div>
           <div class="url">#{location.origin}/Teamwork?sessionKey=#{@getDelegate().sessionKey}</div>
         """
+        inputWidget.input.setContent content
         loader.destroy()
 
       @addSubView inputWidget
