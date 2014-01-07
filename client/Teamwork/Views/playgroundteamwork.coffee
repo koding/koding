@@ -8,7 +8,7 @@ class PlaygroundTeamwork extends TeamworkWorkspace
 
     @on "PanelCreated", @bound "applyHeaderStyling"
 
-    @on "ContentIsReady", =>
+    @on "WorkspaceSyncedWithRemote", =>
       return unless @amIHost()
       manifest = @getOptions().playgroundManifest
       {prerequisite, initialState} = manifest
