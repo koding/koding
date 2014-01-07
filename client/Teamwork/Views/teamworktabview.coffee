@@ -87,7 +87,6 @@ class TeamworkTabView extends CollaborativePane
     @createTabFromFirebaseData data  unless isExist
 
   listenIndexRef: ->
-
     @indexRef.on "value", (snapshot) =>
       data       = snapshot.val()
       {watchMap} = @workspace
@@ -104,6 +103,8 @@ class TeamworkTabView extends CollaborativePane
               {terminal} = pane.terminalView.webterm
               terminal.scrollToBottom()
               terminal.container.trigger 'click'
+            else if pane.editor
+              pane.editor.codeMirrorEditor.refresh()
 
   createElements: ->
     @tabHandleHolder = new ApplicationTabHandleHolder delegate: this
@@ -251,6 +252,8 @@ class TeamworkTabView extends CollaborativePane
     editor   = new CollaborativeEditorPane { delegate, sessionKey, file, content }
 
     @appendPane_ pane, editor
+    pane.editor = editor
+
     if @amIHost
       @keysRef.push
         type      : "editor"
