@@ -84,9 +84,10 @@ class TeamworkExportModal extends KDModalView
 
   handleExportDone: (shortenUrl) ->
     @destroy()
+    fullUrl      = "https://koding.com/Teamwork?importUrl=#{shortenUrl}"
     inputContent = """
       <div class="join">I exported my files here, click this link to see them.</div>
-      <div class="url">https://koding.com/Teamwork?importUrl=#{shortenUrl}</div>
+      <div class="url">#{fullUrl}</div>
     """
     modal     = new TeamworkShareModal { inputContent, addShareWarning: no }
     container = new KDCustomHTMLView
@@ -98,7 +99,7 @@ class TeamworkExportModal extends KDModalView
       callback      : (state) ->
         if state
           modal.destroy()
-          new TeamworkExportedUrlModal {}, shortenUrl
+          new TeamworkExportedUrlModal {}, fullUrl
 
     container.addSubView new KDCustomHTMLView
       tagName       : "span"
