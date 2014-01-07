@@ -120,7 +120,7 @@ class ActivityListController extends KDListViewController
 
   unhideNewHiddenItems: ->
 
-    @hiddenItems.forEach (item)=> log item; item.show()
+    @hiddenItems.forEach (item)-> item.show()
 
     @hiddenItems = []
 
