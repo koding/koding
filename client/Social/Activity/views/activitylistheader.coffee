@@ -15,34 +15,49 @@ class ActivityListHeader extends JView
     @showNewItemsInTitle = no
 
     @showNewItemsLink = new KDCustomHTMLView
-      cssClass    : "new-updates"
-      partial     : "<span>0</span> new items. <a href='#' title='Show new activities'>Update</a>"
-      click       : => @updateShowNewItemsLink yes
-
-    @headerTitle = new KDCustomHTMLView
-      partial     : "Latest Activity"
-      tagName: "span"
+      tagName    : 'a'
+      attributes :
+        href     : '#'
+      cssClass   : 'new-updates'
+      tooltip    :
+        title    : 'Click to see the new posts!'
+      partial    : '0'
+      click      : (event)=>
+        KD.utils.stopDOMEvent event
+        @updateShowNewItemsLink yes
 
     @showNewItemsLink.hide()
 
-    @liveUpdateButton = new KDOnOffSwitch
-      defaultValue : off
-      inputLabel   : "Live Updates: "
-      size         : "tiny"
-      callback     : (state) =>
-        @_togglePollForUpdates state
-        @appStorage.setValue 'liveUpdates', state, ->
-        @updateShowNewItemsLink()
-        KD.getSingleton('activityController').flags = liveUpdates : state
-        KD.getSingleton('activityController').emit "LiveStatusUpdateStateChanged", state
+    @liveUpdateToggle = new KDToggleButton
+      style           : "live-updates"
+      iconOnly        : yes
+      defaultState    : "lazy"
+      tooltip         :
+        title         : 'Live updates'
+      states          : [
+        title         : "lazy"
+        iconClass     : "broken"
+        callback      : (callback)=>
+          @updateShowNewItemsLink yes
+          @toggleLiveUpdates yes, callback
+      ,
+        title         : "live"
+        iconClass     : "live"
+        callback      : (callback)=> @toggleLiveUpdates no, callback
+      ]
 
+    @feedFilterNav = new KDMultipleChoice
+      labels       : ["Public", "Followed"]
+      titles       : ["Click to see the posts on public feed", "Click to see only the posts you follow"]
+      cssClass     : 'feed-type-selection'
+      defaultValue : "Public"
+      callback     : (selection)->
+        @emit 'FilterChanged', selection
 
-    mainController.on 'AccountChanged', => @decorateLiveUpdateButton()
-
-    @decorateLiveUpdateButton()
 
     if KD.checkFlag "super-admin"
       @lowQualitySwitch = new KDOnOffSwitch
+        cssClass     : 'hidden'
         defaultValue : off
         inputLabel   : "Show trolls: "
         size         : "tiny"
@@ -51,17 +66,8 @@ class ActivityListHeader extends JView
           KD.getSingleton('activityController').flags.showExempt = state
           KD.getSingleton('activityController').emit 'Refresh'
 
-      @refreshLink = new KDCustomHTMLView
-        tagName  : 'a'
-        cssClass : 'fr'
-        partial  : 'Refresh'
-        click    : (event)=>
-          KD.getSingleton('activityController').emit 'Refresh'
-
     else
       @lowQualitySwitch = new KDCustomHTMLView
-      @refreshLink      = new KDCustomHTMLView
-        tagName: "span"
 
     @appStorage.fetchStorage (storage)=>
       state             = @appStorage.getValue("liveUpdates") or off
@@ -69,8 +75,19 @@ class ActivityListHeader extends JView
       {flags}           = KD.getSingleton "activityController"
       flags.liveUpdates = state
       flags.showExempt  = lowQualityContent or off
-      @liveUpdateButton.setValue state
+      @liveUpdateToggle.tooltip.setTitle "Live updates #{if state then 'on' else 'off'}"
+      @liveUpdateToggle.setState if state then 'live' else 'lazy'
       @lowQualitySwitch.setValue? lowQualityContent or off
+
+  toggleLiveUpdates:(state, callback)->
+    @_togglePollForUpdates state
+    @appStorage.setValue 'liveUpdates', state, ->
+    @updateShowNewItemsLink()
+    activityController = KD.getSingleton('activityController')
+    @liveUpdateToggle.tooltip.setTitle "Live updates #{if state then 'on' else 'off'}"
+    activityController.flags = liveUpdates : state
+    activityController.emit "LiveStatusUpdateStateChanged", state
+    callback()
 
   _checkForUpdates: do (lastTs = null, lastCount = null, alreadyWarned = no) ->
     itFailed = ->
@@ -88,24 +105,21 @@ class ActivityListHeader extends JView
     else clearInterval i
 
   pistachio:(newCount)->
-    "<div class='header-wrapper'>{{> @headerTitle}} {{> @lowQualitySwitch}} {{> @liveUpdateButton}} {{> @showNewItemsLink}}{{> @refreshLink}}</div>"
+    "{{> @lowQualitySwitch}} {{> @showNewItemsLink}} {{> @liveUpdateToggle}} {{> @feedFilterNav}}"
 
   newActivityArrived:->
     __count++
     @_newItemsCount++
     @updateShowNewItemsLink()
 
-  decorateLiveUpdateButton:->
-    @liveUpdateButton.show()
-
   updateShowNewItemsLink:(showNewItems = no)->
     if @_newItemsCount > 0
-      if @liveUpdateButton.getValue() is yes or showNewItems is yes
+      if @liveUpdateToggle.getState().title is 'live' or showNewItems is yes
         @emit "UnhideHiddenNewItems"
         @_newItemsCount = 0
         @showNewItemsLink.hide()
       else
-        @showNewItemsLink.$('span').text @_newItemsCount
+        @showNewItemsLink.updatePartial "#{@_newItemsCount} new item#{if @_newItemsCount > 1 then 's' else ''}"
         @showNewItemsLink.show()
     else
       @showNewItemsLink.hide()

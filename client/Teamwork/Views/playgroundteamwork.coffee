@@ -6,10 +6,9 @@ class PlaygroundTeamwork extends TeamworkWorkspace
 
     super options, data
 
-    @on "PanelCreated", =>
-      @getActivePanel().header.unsetClass "teamwork"
+    @on "PanelCreated", @bound "applyHeaderStyling"
 
-    @on "ContentIsReady", =>
+    @on "WorkspaceSyncedWithRemote", =>
       return unless @amIHost()
       manifest = @getOptions().playgroundManifest
       {prerequisite, initialState} = manifest
@@ -22,6 +21,26 @@ class PlaygroundTeamwork extends TeamworkWorkspace
           warn "Unhandled prerequisite type."
       else if initialState
         @setUpInitialState initialState
+
+  applyHeaderStyling: ->
+    {header} = @getActivePanel().getPaneByName "finder"
+    options = @getOptions().headerStyling
+    return unless  options
+
+    header.updatePartial "" # header.destroySubViews didn't work
+    header.addSubView icon = new KDCustomHTMLView
+      tagName  : "span"
+      cssClass : "icon tw-ply-icon"
+
+    header.addSubView title = new KDCustomHTMLView
+      tagName  : "span"
+      partial  : "#{@getOptions().playgroundManifest.name} Teamwork"
+
+    {bgColor, bgImage, textColor} = options
+
+    header.setCss "background"        , "#{bgColor}"       if bgColor
+    header.setCss "color"             , textColor          if textColor
+    icon.setCss   "backgroundImage"   , "url(#{bgImage})"  if bgImage
 
   handleRun: (panel) ->
     options      = @getOptions()
@@ -55,26 +74,24 @@ class PlaygroundTeamwork extends TeamworkWorkspace
       callback()
 
   setUpInitialState: (initialState) ->
-    if initialState.preview
-      @handlePreview initialState.preview.url
+    return  if @isOldSession
 
     if initialState.editor
       @openFiles initialState.editor.files
 
-  handlePreview: (url) ->
-    {paneLauncher} = @getActivePanel()
-    url            = url.replace "$USERNAME", @getHost()
+    if initialState.preview
+      @handlePreview initialState.preview.url
 
-    if paneLauncher.paneVisibilityState.preview is no
-      paneLauncher.handleLaunch "preview"
-    paneLauncher.previewPane.openUrl url
+  handlePreview: (url) ->
+    url = url.replace "$USERNAME", @getHost()
+    @getActivePanel().getPaneByName("tabView").createPreview null, null, url
 
   openFiles: (files) ->
-    editor = @getActivePanel().getPaneByName "editor"
+    tabView = @getActivePanel().getPaneByName "tabView"
 
-    for path in files
+    files.forEach (path) =>
       filePath = "/home/#{KD.nick()}/Web/Teamwork/#{@getOptions().playground}/#{path.replace /^.\//, ''}"
       file     = FSHelper.createFileFromPath filePath
 
       file.fetchContents (err, contents) =>
-        editor.openFile file, contents
+        tabView.createEditor file, contents

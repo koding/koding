@@ -106,31 +106,31 @@ class AvatarPopupGroupSwitcher extends AvatarPopup
             KD.getSingleton('router').handleRoute '/Dashboard'
             @hide()
 
-    @avatarPopupContent.addSubView new KDCustomHTMLView
-      tagName    : 'a'
-      attributes : href : '#'
-      cssClass   : 'bottom'
-      partial    : 'Go back to old Koding'
-      click      : (event)=>
-        KD.utils.stopDOMEvent event
-        modal = new KDModalView
-          title   : "Go back to old Koding"
-          cssClass: "go-back-survey"
-          content : """
-            Please take a short survey about <a href="http://bit.ly/1jsjlna">New Koding.</a><br><br>
-            """
-          buttons :
-            "Switch":
-              cssClass: "modal-clean-gray"
-              callback: ->
-                KD.mixpanel "Switch to old Koding, click"
-                KD.utils.goBackToOldKoding()
-                modal.destroy()
-            "Cancel":
-              cssClass: "modal-cancel"
-              callback: ->
-                modal.destroy()
-        @hide()
+    # @avatarPopupContent.addSubView new KDCustomHTMLView
+    #   tagName    : 'a'
+    #   attributes : href : '#'
+    #   cssClass   : 'bottom'
+    #   partial    : 'Go back to old Koding'
+    #   click      : (event)=>
+    #     KD.utils.stopDOMEvent event
+    #     modal = new KDModalView
+    #       title   : "Go back to old Koding"
+    #       cssClass: "go-back-survey"
+    #       content : """
+    #         Please take a short survey about <a href="http://bit.ly/1jsjlna">New Koding.</a><br><br>
+    #         """
+    #       buttons :
+    #         "Switch":
+    #           cssClass: "modal-clean-gray"
+    #           callback: ->
+    #             KD.mixpanel "Switch to old Koding, click"
+    #             KD.utils.goBackToOldKoding()
+    #             modal.destroy()
+    #         "Cancel":
+    #           cssClass: "modal-cancel"
+    #           callback: ->
+    #             modal.destroy()
+    #     @hide()
 
     @avatarPopupContent.addSubView new KDCustomHTMLView
       tagName    : 'a'

@@ -39,7 +39,6 @@ class GmailContactsListItem extends KDListItemView
         {{ #(email)}}
       </div>
       <div class="invitation-sent-overlay">
-        <span class="checkmark"></span>
         <span class="title">Invitation is sent to</span>
         <span class="email">#{email}</span>
       </div>

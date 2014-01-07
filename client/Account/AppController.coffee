@@ -25,12 +25,12 @@ class AccountAppController extends AppController
         { slug : "Subscriptions", title : "Your subscriptions",  listType: "subscriptions" }
         { slug : "Billing",       title : "Billing history",     listType: "history" }
       ]
-    # develop :
-    #   title : "Develop"
-    #   items : [
-    #     { slug : 'SSH',  title : "SSH keys",    listHeader: "Your SSH Keys",    listType: "keys" }
-    #     { slug : 'Keys', title : "Koding Keys", listHeader: "Your Koding Keys", listType: "kodingKeys" }
-    #   ]
+    develop :
+      title : "Develop"
+      items : [
+        { slug : 'SSH',  title : "SSH keys",    listHeader: "Your SSH Keys",    listType: "keys" }
+        { slug : 'Keys', title : "Koding Keys", listHeader: "Your Koding Keys", listType: "kodingKeys" }
+      ]
     danger  :
       title : "Danger"
       items : [

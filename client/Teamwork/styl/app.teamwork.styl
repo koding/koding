@@ -45,8 +45,6 @@ app.teamwork.styl
     &.file-container
       .no-vm-found-widget
         display                 none
-    .nfinder
-      kalc                      height, 100% \- 140px
   .application-tabview
     kalc                        height, 100% \- 58px
   .kdsplitview-resizer.vertical
@@ -54,6 +52,7 @@ app.teamwork.styl
   .kdtabhandle-tabs
     margin-top                  18px
   .previewer-body
+    z-index                     2
     .kdinput
       font-size                 13px !important
       line-height               14px
@@ -220,9 +219,9 @@ app.teamwork.styl
     rounded                     12px
     pointer()
     &.add-new div
-      sprite                    teamwork, "plus"
+      sprite                    teamwork, "add-big"
     &.import div
-      sprite                    teamwork, "import"
+      sprite                    teamwork, "import-big"
 
 .tw-playgrounds
   overflow                      hidden
@@ -249,6 +248,8 @@ app.teamwork.styl
   &.team-up-mode
     .export, .share
       display                   none
+  .activity-input-widget
+    margin-top                  45px
   .header
     height                      40px
     border-bottom               1px solid #C5C5C5
@@ -348,12 +349,6 @@ app.teamwork.styl
     &:focus
       vendor                    box-shadow, none
       border                    none
-  .tw-cog
-    display                     block
-    r-sprite                    teamwork, "settings"
-  .tw-export
-    display                     block
-    sprite                      teamwork, "export"
   .tw-chat-toggle
     &.active
       background-color          #282F31
@@ -374,6 +369,15 @@ app.teamwork.styl
   r-sprite                      teamwork, "teampunk"
   size                          30px, 30px
   fl()
+
+.tw-add-user
+  fl()
+  size                          30px, 30px
+  sprite                        teamwork, "add"
+  bg                            color, #1B2224
+  rounded                       3px
+  margin                        10px 10px 0 0
+  pointer()
 
 .tw-tab-avatar-img
   abs()
@@ -402,126 +406,6 @@ app.teamwork.styl
     color                       #7dbef1
     border-width                3px
 
-  &.share
-    abs                         0 0 20px 30px
-
-  &.invite-teammate
-    abs                         0 0 80px 30px
-
-  &.export-workspace
-    abs                         0 0 80px 126px
-
-  &.invite-teammate
-  &.export-workspace
-    size                        90px, 30px
-    font-size                   12px
-    padding                     0
-    border-width                2px
-
-.tw-show-activity-widget
-  abs()
-  top                           14px
-  left                          206px
-  background                    transparent
-  border                        none
-  .icon
-    r-sprite                      app "account-notifications"
-
-.tw-activity-widget
-  size                          506px, 100%
-  abs()
-  top                           0
-  left                          0
-  vendor                        transition .3s linear
-  vendor                        transform translateX(0)
-  padding                       20px
-  overflow                      visible
-  z-index                       10
-  background                    #f0f0f0
-  shadow                        20px 0 40px rgba(0,0,0,0.5)
-  &.collapsed
-    vendor                      transform translateX(-546px)
-    shadow                      none
-    .toggle
-      abs                       -2px -6px
-      vendor                    transform translate(-2px, -6px)
-      padding                   3px 6px 4px 6px
-  .close-tab
-    abs()
-    top                         5px
-    right                       2px
-    bg                          color transparent
-    r-sprite                      app '20-close-tab'
-    border                      none
-    &:hover
-      pointer()
-  .notification
-    size                        auto auto
-    background                  lightyellow
-    font-size                   12px
-    margin                      10px 0
-    padding                     10px 30px 10px 10px
-    border                      1px solid lightgray
-    border-radius               5px
-    .close-tab
-      abs()
-      top                       4px
-      right                     4px
-      bg                        color, transparent
-      r-sprite                    app '20-close-tab'
-    a
-      color                     #3aaaab
-      noTextDeco()
-  .activity-item
-    height                      auto
-    margin                      0
-    border                      1px solid #dfddde
-    border-radius               0
-    box-shadow                  none
-    &:nth-child(2)
-      margin-top                10px
-    .avatarview
-      display                   inline-block
-      border-radius             25px
-    header
-      padding                   20px 15px 0 15px
-      background                #FFF
-      .content
-        display                 inline-block
-        width                   360px
-        vertical-align          middle
-        margin-left             12px
-        .profile
-          color                 #1aaf5d
-          font-weight           500
-          text-decoration       none
-        .status-body
-          padding               0
-          p
-            padding             0
-    footer
-      .activity-actions
-        height                  auto
-        padding                 10px 0
-      time
-        line-height             38px
-    .comment-container
-      height                    auto
-      .kdlistitemview-comment
-        background              #fff
-        .avatarview
-          border-radius         25px
-      .item-add-comment-box
-        .avatarview
-          display               none
-        .item-add-comment-form
-          textarea
-            padding-left        14px
-            border-radius       0
-  .activity-input-widget
-    .input-view
-      text-align                left
-
 .tw-users
   bg                            color, #282F31
   border-left                   11px solid #1B2224
@@ -532,6 +416,13 @@ app.teamwork.styl
   p
     color                       #1aaf5d
     font-size                   12px
+    &:first-child
+      fl()
+    &.tw-share-link
+      fr()
+      pointer()
+  .tw-action-links
+    overflow                    hidden
   .avatarview
     fl()
     margin                      10px 9px 0 0
@@ -585,7 +476,6 @@ app.teamwork.styl
     abs                         50% 0 0 50%
     margin                      -66px 0 0 -66px
     r-sprite                    "teamwork", "teampunk-big"
-
     &:after
     &:before
     span
@@ -597,12 +487,249 @@ app.teamwork.styl
       vendor                    transform, scale(.91)
       vendor                    animation, borderPulse 2.1s infinite ease
       borderBox()
-
     &:before
       vendor                    animation-delay, .3s
-
     span
       vendor                    animation-delay, .6s
+  .tw-loader-text
+    color                       #7a8285
+    text-align                  center
+    position                    relative
+    top                         50%
+    margin-top                  96px
+
+.tw-ply-icon
+    position                    relative
+    top                         10px
+
+.tw-modal
+  bg                            color, #E4E4E4
+  .kdmodal-inner
+    bg                          color, #E4E4E4
+    margin                      22px
+    .kdmodal-title
+      margin-bottom             25px !important
+      .title
+        font-size               16px !important
+        color                   #747778
+  .kdmodal-content
+    p
+      font-size                 14px
+      margin-bottom             15px
+  .kdautocompletewrapper
+    bg                          color, transparent
+    rounded                     0
+    vendor                      box-shadow, none
+  .kdautocompletedlistitem
+    margin                      10px 10px 0 0
+    bg                          color, #282F31
+    border                      1px solid #1B2224
+    color                       #BBC1C5
+    font-size                   14px
+    padding                     5px 30px 5px 10px
+    &:hover
+      .close-icon
+        display                 block
+    .close-icon
+      top                       5px !important
+      right                     5px !important
+      display                   none
+  .tw-share-warning
+    width                       490px
+    color                       #878A8A
+    p
+      display                   inline-block
+      width                     440px
+      margin-left               3px
+    .warning
+      sprite                    "teamwork", "warning"
+      display                   inline-block
+      margin-left               2px
+  .kdbutton
+    rounded                     12px !important
+    font-size                   14px !important
+    &.with-icon
+      .icon
+        padding                 0 2px 0 0 !important
+    &.modal-clean-green
+      bg                        color, #1AAE5D
+      color                     #FFF
+    &.modal-cancel
+      bg                        color, #A9A9A9
+      color                     #FFF
+      border-color              #A9A9A9
+
+.tw-invite-modal
+  .kdmodal-buttons
+    border                      none !important
+    margin-top                  0 !important
+  .modal-clean-green
+    .button-title
+      position                  relative
+      top                       3px
+    .tw-intive-icon
+      sprite                    "teamwork", "invite"
+  .kdinput
+    border                      none !important
+    height                      46px !important
+    padding-left                35px !important
+    &:hover
+      border                    none
+    &:focus
+      box-shadow                none !important
+  .tw-search-icon
+    sprite                      "teamwork", "search"
+    top                         13px
+    position                    absolute
+    z-index                     2
+    left                        9px
+
+.tw-import-modal
+  .tw-import-url
+    border                      none !important
+    height                      46px !important
+    padding-left                35px !important
+    &:hover
+      border                    none
+    &:focus
+      box-shadow                none !important
+  .kdmodal-buttons
+    border                      none !important
+    margin-top                  0 !important
+  .tw-import-url
+    bg                          image, none !important
+  .input-icon
+    sprite                      "teamwork", "url"
+    display                     block
+    position                    absolute
+    top                         13px
+    left                        11px
+    z-index                     2
+  .tw-import-icon
+    sprite                      "teamwork", "import"
+
+.tw-share-modal
+  .activity-input-widget
+    .avatarview
+      top                       17px
+      left                      20px
+  .kdtokenizedinputview
+    > div:first-child
+      min-height                72px
+      padding                   18px 20px 20px 70px !important
+      box-shadow                1px 1px 0px #CECECE inset
+      rounded                   4px
+      &:focus
+        outline                 0px !important
+        -webkit-appearance      none
+    .kdbutton
+      size                      93px !important, 40px !important
+      background                #1AAE5D
+      margin-top                20px
+      position                  relative !important
+      left                      518px
+      .icon
+        top                     13px !important
+        left                    65px !important
+        &:after
+          content               "Share"
+          color                 #FFF
+          font-size             14px
+          position              relative
+          top                   -1px
+          left                  -48px
+  .join
+    color                       #3c484c
+    margin-bottom               2px
+  .url
+    color                       #3D4A4D
+    font-weight                 600
+  .tw-share-warning
+    margin-top                  -46px
+  .tw-share-loading
+    left                        50%
+    margin-left                 -15px
+
+.tw-export-modal
+  &.loading
+    .kdmodal-content
+      height                    64px
+  .tw-share-warning
+    top                         31px
+    position                    relative
+  .tw-next-icon
+    sprite                      "teamwork", "arrow"
+    position                    relative
+    left                        50px
+  .button-title
+    position                    relative
+    left                        -15px
+    top                         3px
+  .kdmodal-content
+    margin-top                  40px !important
+    height                      44px
+    p
+      margin-bottom             0
+  .kdmodal-buttons
+    margin-top                  0 !important
+    height                      53px !important
+    .modal-clean-green
+      margin-top                10px !important
+  .export-loader
+    width                       400px !important
+    height                      90px !important
+    left                        50%
+    text-align                  center
+    margin-left                 -200px
+    top                         -15px
+    .loading-text
+      top                       52px
+      position                  relative
+      font-size                 12px
+    .canvas-loader
+      position                  relative
+      top                       -16px
+
+.tw-share-modal
+  .tw-export-text
+    font-size                   12px
+    color                       #3c484c
+    top                         -25px
+    position                    relative
+    left                        60px
+  .tw-export-switch
+    a
+      top                       2px
+      position                  relative
+  .tw-export-settings
+    abs()
+    top                         90px
+    z-index                     2
+
+.tw-url-modal
+  .kdmodal-buttons
+    border-top                  none !important
+    margin-top                  0 !important
+
+.ws-pane.finder-pane
+  .kdlistitemview-finderitem
+    .tw-export
+      sprite                    "teamwork", "export"
+      position                  absolute
+      top                       7px
+      right                     25px
+      pointer()
+
+.tw-browser-splash
+  position                      absolute
+  top                           50%
+  left                          50%
+  width                         560px
+  text-align                    center
+  color                         #7e888a
+  font-size                     18px
+  margin-left                   -280px
+  z-index                       1
 
 @-moz-keyframes borderPulse
   15%
