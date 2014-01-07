@@ -40,7 +40,7 @@ class ActivityListController extends KDListViewController
       subject  = @prepareSubject post
       instance = @addItem subject, 0
 
-      if @activityHeader?.liveUpdateToggle.getState().title is 'broken' and\
+      if @activityHeader?.liveUpdateToggle.getState().title isnt 'live' and\
          not @isMine subject
 
         instance.hide()

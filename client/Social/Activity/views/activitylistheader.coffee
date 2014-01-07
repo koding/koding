@@ -31,11 +31,11 @@ class ActivityListHeader extends JView
     @liveUpdateToggle = new KDToggleButton
       style           : "live-updates"
       iconOnly        : yes
-      defaultState    : "broken"
+      defaultState    : "lazy"
       tooltip         :
         title         : 'Live updates'
       states          : [
-        title         : "broken"
+        title         : "lazy"
         iconClass     : "broken"
         callback      : (callback)=>
           @updateShowNewItemsLink yes
@@ -74,7 +74,7 @@ class ActivityListHeader extends JView
       flags.liveUpdates = state
       flags.showExempt  = lowQualityContent or off
       @liveUpdateToggle.tooltip.setTitle "Live updates #{if state then 'on' else 'off'}"
-      @liveUpdateToggle.setState if state then 'live' else 'broken'
+      @liveUpdateToggle.setState if state then 'live' else 'lazy'
       @lowQualitySwitch.setValue? lowQualityContent or off
 
   toggleLiveUpdates:(state, callback)->
@@ -117,7 +117,7 @@ class ActivityListHeader extends JView
         @_newItemsCount = 0
         @showNewItemsLink.hide()
       else
-        @showNewItemsLink.updatePartial @_newItemsCount
+        @showNewItemsLink.updatePartial "#{@_newItemsCount} new item#{if @_newItemsCount > 1 then 's' else ''}"
         @showNewItemsLink.show()
     else
       @showNewItemsLink.hide()
