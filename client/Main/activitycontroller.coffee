@@ -13,10 +13,9 @@ class ActivityController extends KDObject
       groupChannel.close().off()  if groupChannel?
       groupChannel = groupsController.groupChannel
       groupChannel.on 'feed-new', (activities) =>
-        @emit 'ActivitiesArrived',
-          (KD.remote.revive activity for activity in activities)
-          isOnActivityPage = KD.getSingleton("router").getCurrentPath() is "/Activity"
-          ++@newItemsCount  unless isOnActivityPage
+        revivedActivities = (KD.remote.revive activity for activity in activities)
+        isOnActivityPage = KD.getSingleton("router").getCurrentPath() is "/Activity"
+        ++@newItemsCount  unless isOnActivityPage
 
     @on "ActivityItemBlockUserClicked",         @bound "openBlockUserModal"
     @on "ActivityItemMarkUserAsTrollClicked",   @bound "markUserAsTroll"
