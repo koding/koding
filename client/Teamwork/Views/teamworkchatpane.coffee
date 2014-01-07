@@ -185,7 +185,7 @@ class TeamworkChatPane extends ChatPane
       tooltip  :
         title  : messages.botTooltip
 
-    if KD.isLoggedIn()
+    if @getDelegate().amIHost()
       @avatars.addSubView new KDCustomHTMLView
         cssClass : "tw-add-user"
         tooltip  :
