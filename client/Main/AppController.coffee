@@ -3,12 +3,18 @@ class AppController extends KDViewController
   constructor:->
 
     super
-    
+
     @registerKeyBindings()
 
     { name, version } = @getOptions()
-    @appStorage = \
-      KD.singletons.appStorageController.storage name, version or "1.0.1"
+    { mainController } = KD.singletons
+
+    mainController.ready =>
+      # defer should be removed
+      # this should be listening to a different event - SY
+      KD.utils.defer  =>
+        { appStorageController } = KD.singletons
+        @appStorage = appStorageController.storage name, version or "1.0.1"
 
   createContentDisplay:(models, callback)->
     warn "You need to override #createContentDisplay - #{@constructor.name}"
@@ -25,7 +31,7 @@ class AppController extends KDViewController
     { commands } = KD.getAppOptions @getOptions().name
 
     cmd = commands[command]
-    
+
     if 'function' is typeof cmd
       cmd.call this, event
     else if 'string' is typeof cmd
