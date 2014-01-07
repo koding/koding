@@ -57,6 +57,7 @@ class ActivityListHeader extends JView
 
     if KD.checkFlag "super-admin"
       @lowQualitySwitch = new KDOnOffSwitch
+        cssClass     : 'hidden'
         defaultValue : off
         inputLabel   : "Show trolls: "
         size         : "tiny"

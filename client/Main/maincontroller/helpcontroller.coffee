@@ -173,11 +173,4 @@ class HelpModal extends AnimatedModalView
       tagName  :'footer'
       partial  : """
         <h4>Find more at <a href='http://learn.koding.com'>Koding University</a>, also, we would love to hear your <a href='https://docs.google.com/forms/d/1jxdnXLm-cgHDpokzKIJSaShEirb66huoEMhPkQF5f_I/viewform'target='_blank'>feedback</a>.</h4>
-        <div class='warning'>
-          <span class='icon'></span>
-          <p>
-          It’s still in beta, so you might find some bugs.<br/>
-          Please report them in a status update tagged as <i>#bug</i>.<br/>
-          </p>
-        </div>
       """

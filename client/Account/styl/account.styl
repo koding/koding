@@ -14,6 +14,32 @@ app.settings.styl
 body.account
   bg                      color, #E9E9E7
 
+  // THIS IS TEMP - SY
+
+  textarea.kdinput.text
+    rel()
+    z-index             1
+    padding             11px 6px
+    color               #3E4F55
+    font-size           16px
+    box-shadow          none
+    font-weight         300
+    height              150px
+    line-height         33px
+    rounded             6px
+    width               100%
+    text-align          left
+    bg                  color #f4f4f4
+    borderBox()
+
+    input.kdinput.text.thin::-webkit-input-placeholder
+      color               #93979a
+      font-weight         300
+    input.kdinput.text.thin:-moz-placeholder
+      color               #93979a
+      font-weight         300
+
+
 .kdtabpaneview.account
 
   color                   #828B8B
@@ -61,7 +87,7 @@ body.account
   .kdformview
     .formline
       border              none
-      padding             11px 20px 11px 20px
+      padding             11px 0
       input.kdinput.text
         min-width         0
 
@@ -320,3 +346,121 @@ button.kdbutton.solid.green.account-header-button
       &.invitation-sent .invitation-sent-overlay
         right             0
 
+.settings-list-wrapper
+  height              auto
+  min-height          50px
+
+  header
+    bg                color, rgba(0,0,0,.1)
+    border-bottom     1px solid rgba(0,0,0,0.3)
+    a.custom-link-view
+      margin-left     15px
+      text-decoration underline
+      fl()
+      span.title
+        line-height   24px
+        font-size     11px !important
+
+  .no-item-found
+    padding           10px 20px
+    color             #888
+
+  &.payment-methods
+    .no-item-found
+      padding         10px 0
+      font-size       14px
+      line-height     1.5
+
+  &.ssh-keys
+  &.koding-keys
+  &.billing-history
+  &.your-subscriptions
+    .no-item-found
+      font-size       14px
+      line-height     1.5
+      h2
+        font-weight   400
+        font-size     16px
+        margin-bottom 20px
+    a
+      font-weight         300
+      color               logoBg
+      &:hover
+        text-decoration   underline
+
+    ul
+      margin            0
+      padding           0
+      li
+        list-style      none
+        line-height     1.4
+        borderBox()
+        a
+          margin-left   10px
+          fr()
+        .lightText
+          color         rgba(255,255,255,.8)
+        .darkText
+          color         rgba(255,255,255,.5)
+
+  &.your-subscriptions
+    ul
+      li
+        margin-bottom        15px
+        h4
+          font-weight     400
+          font-size       16px
+          line-height     1.6
+          width           auto
+        a
+          display         inline
+          float           none
+          margin-left     0
+
+  &.koding-keys
+    li
+      line-height     40px
+
+  &.ssh-keys
+    ul
+      margin-top      70px
+
+  &.billing-history
+    table
+      width           100%
+      line-height     1.6
+      margin-top      70px
+    tr
+      width           100%
+      td
+        width         20%
+        &.ccard
+          font-weight 600
+      a.action-link
+        display       table-cell
+        text-align    right
+        width         20%
+
+  &.ssh-keys
+    a.action-link
+      abs()
+      top             0px
+      right           2px
+
+.koding-keys
+  code
+    margin              10px 0
+    display             block
+    line-height         16px
+    font-size           12px
+    font-family         monoFamily
+    padding             14px
+    color               white
+    bg                  color #28292A
+
+
+.new-kdmodal.koding-keys
+  p
+    margin              10px 0
+  strong
+    font-weight         600
