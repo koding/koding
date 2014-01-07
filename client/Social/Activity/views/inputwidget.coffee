@@ -77,6 +77,8 @@ class ActivityInputWidget extends KDView
           KD.mixpanel "Status update create, success", {length:activity?.body?.length}
     ]
 
+    @emit "ActivitySubmitted"
+
   encodeTagSuggestions: (str, tags) ->
     return  str.replace /\|(.*?):\$suggest:(.*?)\|/g, (match, prefix, title) ->
       tag = tags[title]
