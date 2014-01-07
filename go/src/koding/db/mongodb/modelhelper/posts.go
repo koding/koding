@@ -8,12 +8,12 @@ import (
 )
 
 var PostCollMap = map[string]string{
-	"NewStatusUpdate": "jNewStatusUpdates",
-	"StatusUpdate":    "jStatusUpdates",
-	"BlogPost":        "jBlogPosts",
-	"Discussion":      "jDiscussions",
-	"CodeSnip":        "jCodeSnips",
-	"Tutorial":        "jTutorials",
+	"JNewStatusUpdate": "jNewStatusUpdates",
+	"JStatusUpdate":    "jStatusUpdates",
+	"JBlogPost":        "jBlogPosts",
+	"JDiscussion":      "jDiscussions",
+	"JCodeSnip":        "jCodeSnips",
+	"JTutorial":        "jTutorials",
 }
 
 func GetPostById(id string, postType string) (*models.Post, error) {
