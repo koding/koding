@@ -286,11 +286,11 @@ class TeamworkTabView extends CollaborativePane
 
     @registerPaneRemoveListener_ pane
 
-  createPreview: (sessionKey, indexKey) ->
+  createPreview: (sessionKey, indexKey, url = null) ->
     indexKey = indexKey or @createSessionKey()
     pane     = new KDTabPaneView { title: "Browser", indexKey }
     delegate = @getDelegate()
-    browser  = new CollaborativePreviewPane { delegate, sessionKey }
+    browser  = new CollaborativePreviewPane { delegate, sessionKey, url }
 
     @appendPane_ pane, browser
 
