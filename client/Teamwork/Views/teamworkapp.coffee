@@ -120,12 +120,19 @@ class TeamworkApp extends KDObject
 
   setVMRoot: (path) ->
     {finderController} = @teamwork.getActivePanel().getPaneByName "finder"
-    {defaultVmName}    = KD.getSingleton "vmController"
 
-    if finderController.getVmNode defaultVmName
-      finderController.unmountVm defaultVmName
+    cb = (vmName) ->
 
-    finderController.mountVm "#{defaultVmName}:#{path}"
+      if finderController.getVmNode vmName
+        finderController.unmountVm vmName
+
+      finderController.mountVm "#{vmName}:#{path}"
+
+    vmController = KD.getSingleton "vmController"
+    {defaultVmName} = vmController
+    if defaultVmName
+    then cb defaultVmName
+    else vmController.fetchDefaultVmName cb
 
   mergePlaygroundOptions: (manifest, playground) ->
     rawOptions                      = @getTeamworkOptions()
