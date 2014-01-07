@@ -55,18 +55,10 @@ class AccountSshKeyForm extends KDFormView
 
     super
 
-    @titleLabel = new KDLabelView
-      for      : "sshtitle"
-      title    : "Title"
-
     @titleInput = new KDInputView
       placeholder  : "your SSH key title"
       name         : "sshtitle"
       label        : @titleLabel
-
-    @keyTextLabel = new KDLabelView
-      for      : "sshkey"
-      title    : "SSH Key"
 
     @keyTextarea = new KDInputView
       placeholder  : "your SSH key"
@@ -78,27 +70,23 @@ class AccountSshKeyForm extends KDFormView
   viewAppended:->
 
     @addSubView formline1 = new KDCustomHTMLView
-      tagName : "div"
-      cssClass : "formline"
+      cssClass  : "formline"
 
-    formline1.addSubView @titleLabel
     formline1.addSubView @titleInput
-    formline1.addSubView @keyTextLabel
     formline1.addSubView @keyTextarea
 
     @addSubView formline2 = new KDCustomHTMLView
       cssClass : "button-holder"
 
     formline2.addSubView save = new KDButtonView
-      style        : "cupid-green savebtn"
+      style        : "solid green"
       title        : "Save"
       callback     : => @emit "FormSaved"
 
-    formline2.addSubView cancel = new KDCustomHTMLView
-      tagName      : "button"
-      partial      : "Cancel"
-      cssClass     : "cancel-link clean-gray button"
-      click        : => @emit "FormCancelled"
+    formline2.addSubView cancel = new KDButtonView
+      title      : "Cancel"
+      cssClass   : "solid"
+      callback   : => @emit "FormCancelled"
 
     formline2.addSubView @deletebtn = new KDButtonView
       style        : "clean-red deletebtn"
