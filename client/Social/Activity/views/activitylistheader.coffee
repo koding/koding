@@ -48,6 +48,7 @@ class ActivityListHeader extends JView
 
     @feedFilterNav = new KDMultipleChoice
       labels       : ["Public", "Followed"]
+      titles       : ["Click to see the posts on public feed", "Click to see only the posts you follow"]
       cssClass     : 'feed-type-selection'
       defaultValue : "Public"
       callback     : (selection)->
