@@ -144,10 +144,70 @@ resurrection.activity.styl
     borderBox()
     abs()
 
-    .activity-ticker
-    .active-users
-    .active-topics
+    > div
       size              269px, auto
+
+    .referal-box
+      margin-top        33px
+      color             #5b5b5b
+      overflow          visible
+
+      &:hover .hide
+        visible()
+
+      .hide
+        bottom          0
+        right           20px
+        line-height     31px
+        font-size       14px
+        color           #999
+        z-index         3
+        hidden()
+        abs()
+
+      > figure
+        sprite          activity 'refer-friend'
+        margin          0 9px 0 15px
+        fl()
+
+      > p
+        overflow        hidden
+        width           auto
+        font-size       13px
+        line-height     1.25em
+        padding-right   20px
+        borderBox()
+        a
+          color         logoBg
+          noTextDeco()
+
+      .progressbar-container
+        overflow            hidden
+        size                100% 31px
+        border              none
+        rounded             16px
+        margin-top          16px
+        gradient            #cfcece #cfcece
+        borderBox()
+        rel()
+        span
+          display           block
+          size              100% 100%
+          line-height       31px
+          font-size         14px
+          text-align        left
+          color             white
+          text-shadow       none
+          padding           0 20px
+          abs()
+        .bar
+          rounded           15px
+          gradient          logoBg logoBg
+          shadow            none
+          vendor            transition, width 400ms ease
+          overflow          hidden
+          z-index           3
+          abs()
 
     .right-block-box
       size              auto, auto
@@ -1224,3 +1284,4 @@ body.profile
 
       &~.bug-status-title
         border-top       1px solid #d3d3d3
+
