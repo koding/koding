@@ -124,10 +124,14 @@ class AceAppView extends JView
     {path, vmName} = @getActiveAceView().getData()
     return  if /^localfile/.test path
     path = KD.getPublicURLOfPath path
-    KD.singleton("appManager").create "Viewer", {path, vmName}, (app) =>
-      @tabView.addPane new KDTabPaneView
-        name    : "[#{path.split("/").last}]"
-        view    : app.getView()
+
+    if path
+      KD.singleton("appManager").require "Viewer", {path, vmName}, (app) =>
+        @tabView.addPane new KDTabPaneView
+          name    : "[#{path.split("/").last}]"
+          view    : app.getView()
+    else
+      @getActiveAceView().ace.notify "File needs to be under ~/Web folder", "error"
 
   reopenLastSession: ->
     data   = @sessionData
