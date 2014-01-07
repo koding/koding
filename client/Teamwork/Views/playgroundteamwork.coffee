@@ -77,7 +77,7 @@ class PlaygroundTeamwork extends TeamworkWorkspace
     return  if @isOldSession
 
     if initialState.editor
-      @openFiles initialState.editor.files, =>
+      @openFiles initialState.editor.files
 
     if initialState.preview
       @handlePreview initialState.preview.url
