@@ -27,6 +27,8 @@ services=(
   koding/workers/externals
   koding/workers/graphitefeeder
   koding/cron
+  koding/migrators/posts
+  koding/migrators/posts/remover
 )
 
 go install -v -ldflags "$ldflags" "${services[@]}"
