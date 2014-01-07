@@ -205,8 +205,7 @@ class ReferalBox extends JView
     {{> @close}}
     <figure></figure>
     <p>
-    Invite your friends and get 250mb
-    up to <strong>16GB</strong> for free! {{> @modalLink}}
+    Invite your friends and get up to <strong>16GB</strong> for free! {{> @modalLink}}
     </p>
     {{> @progressBar}}
     """

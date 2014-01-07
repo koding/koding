@@ -15,7 +15,7 @@ class ReferrerModal extends KDModalViewWithForms
           customView       : KDCustomHTMLView
           cssClass         : "clearfix"
           partial          : "<p class='description'>For each person registers with your referral code, \
-            you'll get <strong>250 MB</strong> free disk space for your VM, up to <strong>16 GB</strong> total."
+            you'll get <strong>250 MB</strong> free disk space for your VM, up to <strong>16 GB</strong> total.</p><p class='center'>Share this code or invite your gmail contacts.</p>"
         invite             :
           customView       : KDCustomHTMLView
 
