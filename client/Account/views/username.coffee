@@ -106,14 +106,20 @@ class AccountEditUsername extends JView
             notify "You should set your password"
           return queue.next()
 
-        confirmCurrentPassword currentPasswordConfirmed, =>
-          JUser.changePassword password, (err,docs)=>
-            @emailForm.inputs.password.setValue ""
-            @emailForm.inputs.confirm.setValue ""
-            if err
-              return queue.next()  if err.message is "PasswordIsSame"
-              return  notify err.message
+        JUser.fetchUser (err, user)=>
+          if err
+            notify "An error occured"
             return queue.next()
+          else
+            currentPasswordConfirmed = true unless user.passwordStatus is "valid"
+            confirmCurrentPassword currentPasswordConfirmed, =>
+              JUser.changePassword password, (err,docs)=>
+                @emailForm.inputs.password.setValue ""
+                @emailForm.inputs.confirm.setValue ""
+                if err
+                  return queue.next()  if err.message is "PasswordIsSame"
+                  return  notify err.message
+                return queue.next()
       =>
         # if everything is OK or didnt change, show profile updated modal
         notify "Your account information is updated." if profileUpdated
