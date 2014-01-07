@@ -72,7 +72,7 @@ func RemoveComments(id string) error {
 	selector := helper.Selector{"targetId": objectId, "sourceName": "JComment"}
 
 	removedNodeIds := make([]bson.ObjectId, 0)
-	rels, err := helper.GetRelationships(selector)
+	rels, err := helper.GetAllRelationships(selector)
 	if err != nil {
 		return err
 	}
@@ -110,7 +110,7 @@ func RemovePostRelationships(id string) error {
 }
 
 func RemoveRelationships(selector helper.Selector) error {
-	rels, err := helper.GetRelationships(selector)
+	rels, err := helper.GetAllRelationships(selector)
 	if err != nil {
 		return err
 	}

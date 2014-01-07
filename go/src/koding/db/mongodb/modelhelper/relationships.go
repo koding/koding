@@ -6,11 +6,11 @@ import (
 	"labix.org/v2/mgo"
 )
 
-func GetRelationships(selector Selector) ([]models.Relationship, error) {
+func GetAllRelationships(selector Selector) ([]models.Relationship, error) {
 	relationships := make([]models.Relationship, 0)
 
 	query := func(c *mgo.Collection) error {
-		return c.Find(selector).All(&relationships)
+		return c.Find(selector).Sort("timestamp").All(&relationships)
 	}
 
 	err := mongodb.Run("relationships", query)
