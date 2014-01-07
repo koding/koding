@@ -9,6 +9,12 @@ class TeamworkShareModal extends KDModalView
 
     super options, data
 
+    @addSubView loader = new KDLoaderView
+      cssClass   : "tw-share-loading"
+      showLoader : yes
+      size       :
+        width    : 30
+
     KD.getSingleton("appManager").require "Activity", =>
       inputWidget = new ActivityInputWidget
       inputWidget.once "viewAppended", =>
@@ -16,6 +22,7 @@ class TeamworkShareModal extends KDModalView
           <div class="join">Would you like to join my Teamwork session?</div>
           <div class="url">#{location.origin}/Teamwork?sessionKey=#{@getDelegate().sessionKey}</div>
         """
+        loader.destroy()
 
       @addSubView inputWidget
 
