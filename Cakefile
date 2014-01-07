@@ -436,7 +436,6 @@ task 'cacheWorker', "Run the cacheWorker", ({configFile})->
           onChange  : ->
             processes.kill "cacheWorker"
 
-
 task 'kontrolClient', "Run the kontrolClient", (options) ->
   {configFile} = options
   processes.spawn
@@ -493,6 +492,15 @@ task 'cronJobs', "Run CronJobs", ({configFile})->
   processes.spawn
     name    : 'cronJobs'
     cmd     : "./go/bin/cron -c #{configFile}"
+    stdout  : process.stdout
+    stderr  : process.stderr
+    verbose : yes
+
+task 'migratePost', "Migrate Posts to JNewStatusUpdate", ({configFile})->
+  console.log "Migrating Posts"
+  processes.spawn
+    name    : 'migratePost'
+    cmd     : "./go/bin/posts -c #{configFile}"
     stdout  : process.stdout
     stderr  : process.stderr
     verbose : yes
