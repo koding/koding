@@ -247,6 +247,8 @@ app.teamwork.styl
   &.team-up-mode
     .export, .share
       display                   none
+  .activity-input-widget
+    margin-top                  45px
   .header
     height                      40px
     border-bottom               1px solid #C5C5C5
@@ -643,11 +645,67 @@ app.teamwork.styl
     font-weight                 600
   .tw-share-warning
     margin-top                  -46px
+  .tw-share-loading
+    left                        50%
+    margin-left                 -15px
 
 .tw-export-modal
   .tw-share-warning
     top                         46px
     position                    relative
+  .tw-next-icon
+    sprite                      "teamwork", "arrow"
+    position                    relative
+    left                        50px
+  .button-title
+    position                    relative
+    left                        -15px
+    top                         3px
+  .kdmodal-content
+    margin-top                  40px !important
+    height                      44px
+    p
+      margin-bottom             0
+  .kdmodal-buttons
+    margin-top                  0 !important
+    height                      53px !important
+    .modal-clean-green
+      margin-top                10px !important
+  .export-loader
+    width                       200px !important
+    height                      60px !important
+    left                        50%
+    text-align                  center
+    margin-left                 -100px
+    top                         -10px
+    .loading-text
+      top                       37px
+      position                  relative
+      font-size                 14px
+    .canvas-loader
+      position                  relative
+      top                       -16px
+
+.tw-share-modal
+  .tw-export-text
+    font-size                   12px
+    color                       #3c484c
+    top                         -25px
+    position                    relative
+    left                        60px
+  .tw-export-switch
+    a
+      top                       2px
+      position                  relative
+  .tw-export-settings
+    abs()
+    top                         90px
+    z-index                     2
+
+.tw-url-modal
+  .kdmodal-buttons
+    border-top                  none !important
+    margin-top                  0 !important
 
 .ws-pane.finder-pane
   .kdlistitemview-finderitem
