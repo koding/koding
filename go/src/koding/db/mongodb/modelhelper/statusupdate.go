@@ -32,3 +32,9 @@ func DeleteStatusUpdateById(id string) error {
 
 	return mongodb.Run(POST_COLL, query)
 }
+
+func AddStatusUpdate(s *models.StatusUpdate) error {
+	query := insertQuery(s)
+
+	return mongodb.Run(POST_COLL, query)
+}
