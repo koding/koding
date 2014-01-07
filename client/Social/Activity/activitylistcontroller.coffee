@@ -37,16 +37,28 @@ class ActivityListController extends KDListViewController
 
     groupController.on "PostIsCreated", (post) =>
 
-      subject  = @prepareSubject post
-      instance = @addItem subject, 0
+      # check if post got #bug tag attached, if attached,
+      # dont show message instead, show a modal explaining /Bugs
+      # app
+      bugTag = tag for tag in post.subject.tags when tag.slug is "bug"
 
-      if @activityHeader?.liveUpdateToggle.getState().title isnt 'live' and\
-         not @isMine subject
+      unless bugTag
+        subject  = @prepareSubject post
+        instance = @addItem subject, 0
 
-        instance.hide()
-        @hiddenItems.push instance
-        @activityHeader.newActivityArrived()
-        return
+        if @activityHeader?.liveUpdateToggle.getState().title isnt 'live' and\
+           not @isMine subject
+
+          instance.hide()
+          @hiddenItems.push instance
+          @activityHeader.newActivityArrived()
+          return
+      else
+        KD.singletons.dock.addItem { title : "Bugs", path : "/Bugs", order : 60 }
+        new KDNotificationView
+          title : "Hulog"
+          duration : 3000
+
 
 
   prepareSubject:(post)->
