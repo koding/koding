@@ -40,21 +40,19 @@ func GetRelationship(selector Selector) (models.Relationship, error) {
 	err := mongodb.Run("relationships", query)
 
 	return relationship, err
-
 }
 
 func DeleteRelationship(selector Selector) error {
 	query := func(c *mgo.Collection) error {
-		return c.Remove(selector)
+		_, err := c.RemoveAll(selector)
+		return err
 	}
 
 	return mongodb.Run("relationships", query)
 }
 
 func AddRelationship(r *models.Relationship) error {
-	query := func(c *mgo.Collection) error {
-		return c.Insert(r)
-	}
+	query := insertQuery(r)
 
 	return mongodb.Run("relationships", query)
 }
