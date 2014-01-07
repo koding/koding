@@ -65,11 +65,14 @@ class TeamworkChatPane extends ChatPane
     hasHandler   = replyHandlers[keyword] isnt undefined
     isHelp       = keyword is "help"
     isStopWatch  = keyword is "stop"
+    isInvite     = keyword is "invite"
 
     if isHelp
       return splitted.length is 1
     else if isStopWatch
       return message is "stop watching"
+    else if isInvite
+      return hasHandler
     else
       return hasMaxLength and hasHandler
 
@@ -101,27 +104,26 @@ class TeamworkChatPane extends ChatPane
       @botReply messages.invalidKey
 
   replyForInvite: (usernames) ->
-    # TODO: fatihacet - currently invite only first user
-    username = usernames.first
-    return if usernames.length is 0 or username.trim() is ""
+    query = { "profile.nickname": { "$in": usernames } }
 
-    # TODO: fatihacet
-    # Kinda hacky to create user list here to send an invite. Instead of this,
-    # I should implement a method in CW that will handle to invite stuff.
-    @workspace.createUserList()
-    query = { "profile.nickname": username }
+    KD.remote.api.JAccount.someWithRelationship query, {}, (err, accounts) =>
+      stack = []
+      usernames.forEach (username) =>
+        account = null
+        user    = account for account in accounts when account.profile.nickname is username
 
-    KD.remote.api.JAccount.one query, {}, (err, account) =>
-      @workspace.userList.once "UserInvited", =>
-        message    = getMessage "invited", username
-        if usernames.length > 1
-          message += messages.inviteOneByOne
-        @botReply message
+        if user
+          stack.push (cb) =>
+            @workspace.createUserList() # TODO: fatihacet - find a better way for invite
 
-      @workspace.userList.once "UserInviteFailed", =>
-        @botReply getMessage "inviteFailed", username
+            @workspace.userList.once "UserInvited", =>
+              @botReply getMessage "invited", username
 
-      @workspace.userList.sendInviteTo account
+            @workspace.userList.sendInviteTo account
+        else
+          @botReply getMessage "inviteFailed", username
+
+      async.parallel stack, noop
 
   replyForWatch: (usernames) ->
     username = usernames.first
@@ -149,11 +151,24 @@ class TeamworkChatPane extends ChatPane
   viewAppended: ->
     super
 
+    links      = new KDCustomHTMLView
+      cssClass : "tw-action-links"
+
+    links.addSubView new KDCustomHTMLView
+      tagName  : "p"
+      partial  : "Active users"
+
+    links.addSubView new KDCustomHTMLView
+      tagName  : "p"
+      cssClass : "tw-share-link"
+      partial  : "Share"
+      click    : => new TeamworkShareModal delegate: @getDelegate()
+
     @avatars   = @workspace.avatarsView = new KDCustomHTMLView
       cssClass : "tw-users"
-      partial  : "<p>Active Users</p>"
 
     @addSubView @avatars, null, yes
+    @avatars.addSubView links, null, yes
 
     tipTitle   = if @workspace.amIHost() then messages.host else messages.you
 
@@ -169,6 +184,13 @@ class TeamworkChatPane extends ChatPane
       cssClass : "tw-bot-avatar"
       tooltip  :
         title  : messages.botTooltip
+
+    if KD.isLoggedIn()
+      @avatars.addSubView new KDCustomHTMLView
+        cssClass : "tw-add-user"
+        tooltip  :
+          title  : "Click here to invite your friends"
+        click    : => new TeamworkInviteModal delegate: this
 
   getMessage = (key, data) ->
     return messages[key].replace "$0", data
@@ -195,11 +217,7 @@ class TeamworkChatPane extends ChatPane
         You can type "stop watching" anytime.
       """
     watchNobody   : "It's done. Now you are watching nobody."
-    invited       : "Sure thing! I invited $0 for you. I will let you know when they join."
-    inviteOneByOne: """
-
-      Sorry, you can invite only one person at a time for now. My master is working on this feature. Please type one by one.
-    """
+    invited       : "I invited $0 for you. I will let you know when they join."
     inviteFailed  : "Sorry, are you sure your friend's nickname is $0? Because I can't find it."
     validateKey   : "01001101 ... I am checking this session key, $0."
     joinSession   : "01001010 ... Joining session, $0"

@@ -6,8 +6,7 @@ class PlaygroundTeamwork extends TeamworkWorkspace
 
     super options, data
 
-    @on "PanelCreated", =>
-      @getActivePanel().header.unsetClass "teamwork"
+    @on "PanelCreated", @bound "applyHeaderStyling"
 
     @on "ContentIsReady", =>
       return unless @amIHost()
@@ -22,6 +21,26 @@ class PlaygroundTeamwork extends TeamworkWorkspace
           warn "Unhandled prerequisite type."
       else if initialState
         @setUpInitialState initialState
+
+  applyHeaderStyling: ->
+    {header} = @getActivePanel().getPaneByName "finder"
+    options = @getOptions().headerStyling
+    return unless  options
+
+    header.updatePartial "" # header.destroySubViews didn't work
+    header.addSubView icon = new KDCustomHTMLView
+      tagName  : "span"
+      cssClass : "icon tw-ply-icon"
+
+    header.addSubView title = new KDCustomHTMLView
+      tagName  : "span"
+      partial  : "#{@getOptions().playgroundManifest.name} Teamwork"
+
+    {bgColor, bgImage, textColor} = options
+
+    header.setCss "background"        , "#{bgColor}"       if bgColor
+    header.setCss "color"             , textColor          if textColor
+    icon.setCss   "backgroundImage"   , "url(#{bgImage})"  if bgImage
 
   handleRun: (panel) ->
     options      = @getOptions()
