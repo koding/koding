@@ -24,6 +24,8 @@ class WebTermAppView extends JView
 
       @initPane pane
 
+      terminalView.terminal?.scrollToBottom()
+      
       KD.utils.defer -> terminalView.setKeyView()
 
       @fetchStorage (storage) -> storage.setValue 'activeIndex', index
@@ -48,7 +50,6 @@ class WebTermAppView extends JView
 
     {terminalView} = pane.getOptions()
 
-    terminalView.terminal?.scrollToBottom()
     terminalView.once 'viewAppended', => @emit "ready"
     terminalView.once "WebTerm.terminated", (server) =>
       if not pane.isDestroyed and @tabView.getActivePane() is pane
