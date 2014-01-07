@@ -1,7 +1,7 @@
 class ReferrerModal extends KDModalViewWithForms
   constructor: (options = {}, data) ->
     options.cssClass       = KD.utils.curry "referrer-modal", options.cssClass
-    options.width          = 570
+    options.width          = 610
     options.overlay       ?= yes
     options.title          = "Get free disk space!"
     options.url          or= KD.getReferralUrl KD.nick()
@@ -15,7 +15,7 @@ class ReferrerModal extends KDModalViewWithForms
           customView       : KDCustomHTMLView
           cssClass         : "clearfix"
           partial          : "<p class='description'>For each person registers with your referral code, \
-            you'll get <strong>250 MB</strong> free disk space for your VM, up to <strong>16 GB</strong> total."
+            you'll get <strong>250 MB</strong> free disk space for your VM, up to <strong>16 GB</strong> total.</p><p class='center'>Share this code or invite your gmail contacts.</p>"
         invite             :
           customView       : KDCustomHTMLView
 
@@ -25,20 +25,20 @@ class ReferrerModal extends KDModalViewWithForms
 
     {@share, @invite} = @modalTabs.forms
 
-    @share.addSubView usageWrapper = new KDCustomHTMLView cssClass: "disk-usage-wrapper"
-    vmc = KD.getSingleton "vmController"
-    vmc.fetchDefaultVmName (name) ->
-      vmc.fetchDiskUsage name, (usage) ->
-        if usage.max
-          usageWrapper.addSubView new KDLabelView title: "You've claimed <strong>#{KD.utils.formatBytesToHumanReadable usage.max}</strong>
-            of your free <strong>16 GB</strong> disk space."
+    # @share.addSubView usageWrapper = new KDCustomHTMLView cssClass: "disk-usage-wrapper"
+    # vmc = KD.getSingleton "vmController"
+    # vmc.fetchDefaultVmName (name) ->
+    #   vmc.fetchDiskUsage name, (usage) ->
+    #     if usage.max
+    #       usageWrapper.addSubView new KDLabelView title: "You've claimed <strong>#{KD.utils.formatBytesToHumanReadable usage.max}</strong>
+    #         of your free <strong>16 GB</strong> disk space."
 
     @share.addSubView leftColumn  = new KDCustomHTMLView cssClass : "left-column"
     @share.addSubView rightColumn = new KDCustomHTMLView cssClass : "right-column"
 
-    leftColumn.addSubView urlLabel = new KDLabelView
-      cssClass : "share-url-label"
-      title    : "Here is your invite code"
+    # leftColumn.addSubView urlLabel = new KDLabelView
+    #   cssClass : "share-url-label"
+    #   title    : "Share this code to get your free storage!"
 
     leftColumn.addSubView urlInput = new KDInputView
       defaultValue : options.url
