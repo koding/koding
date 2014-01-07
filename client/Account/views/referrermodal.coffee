@@ -36,9 +36,9 @@ class ReferrerModal extends KDModalViewWithForms
     @share.addSubView leftColumn  = new KDCustomHTMLView cssClass : "left-column"
     @share.addSubView rightColumn = new KDCustomHTMLView cssClass : "right-column"
 
-    leftColumn.addSubView urlLabel = new KDLabelView
-      cssClass : "share-url-label"
-      title    : "Share this code to get your free storage!"
+    # leftColumn.addSubView urlLabel = new KDLabelView
+    #   cssClass : "share-url-label"
+    #   title    : "Share this code to get your free storage!"
 
     leftColumn.addSubView urlInput = new KDInputView
       defaultValue : options.url
