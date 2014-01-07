@@ -15,6 +15,7 @@ import (
 	"koding/tools/log"
 	"koding/tools/utils"
 	"koding/virt"
+	logg "log"
 	"net"
 	"os"
 	"os/signal"
@@ -483,6 +484,8 @@ func startVM(k *kite.Kite, vm *virt.VM, channel *kite.Channel) error {
 	}
 
 	if !isPrepared || info.currentHostname != vm.HostnameAlias {
+		startTime := time.Now()
+		logg.Printf("VM START: %s\n", vm)
 		vm.Prepare(false, log.Warn)
 		if err := vm.Start(); err != nil {
 			log.LogError(err, 0)
@@ -492,6 +495,9 @@ func startVM(k *kite.Kite, vm *virt.VM, channel *kite.Channel) error {
 		if err := vm.WaitForNetwork(time.Second * 5); err != nil {
 			log.LogError(err, 0)
 		}
+
+		endTime := time.Now()
+		logg.Printf("VM  END: %s - ElapsedTime: %s\n", vm, endTime.Sub(startTime))
 
 		info.currentHostname = vm.HostnameAlias
 	}
