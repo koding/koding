@@ -7,10 +7,11 @@ import (
 
 func GetAccountById(id string) (*models.Account, error) {
 	account := new(models.Account)
-	err := mongodb.One("jAccounts", id, account)
-	if err != nil {
-		return nil, err
-	}
+	return account, mongodb.One("jAccounts", id, account)
+}
 
-	return account, nil
+func CheckAccountExistence(id string) (bool, error) {
+	var exists bool
+	query := checkExistence(id, &exists)
+	return exists, mongodb.Run("jAccounts", query)
 }
