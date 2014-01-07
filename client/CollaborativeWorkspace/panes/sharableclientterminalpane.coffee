@@ -15,3 +15,4 @@ class SharableClientTerminalPane extends TerminalPane
       cssClass         : "webterm"
       advancedSettings : no
       delegate         : this
+      mode             : "shared"

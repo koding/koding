@@ -52,6 +52,7 @@ app.teamwork.styl
   .kdtabhandle-tabs
     margin-top                  18px
   .previewer-body
+    z-index                     2
     .kdinput
       font-size                 13px !important
       line-height               14px
@@ -375,7 +376,7 @@ app.teamwork.styl
   sprite                        teamwork, "add"
   bg                            color, #1B2224
   rounded                       3px
-  margin-top                    10px
+  margin                        10px 10px 0 0
   pointer()
 
 .tw-tab-avatar-img
@@ -650,8 +651,11 @@ app.teamwork.styl
     margin-left                 -15px
 
 .tw-export-modal
+  &.loading
+    .kdmodal-content
+      height                    64px
   .tw-share-warning
-    top                         46px
+    top                         45px
     position                    relative
   .tw-next-icon
     sprite                      "teamwork", "arrow"
@@ -672,16 +676,16 @@ app.teamwork.styl
     .modal-clean-green
       margin-top                10px !important
   .export-loader
-    width                       200px !important
-    height                      60px !important
+    width                       400px !important
+    height                      90px !important
     left                        50%
     text-align                  center
-    margin-left                 -100px
-    top                         -10px
+    margin-left                 -200px
+    top                         -15px
     .loading-text
-      top                       37px
+      top                       52px
       position                  relative
-      font-size                 14px
+      font-size                 12px
     .canvas-loader
       position                  relative
       top                       -16px
@@ -715,6 +719,17 @@ app.teamwork.styl
       top                       7px
       right                     25px
       pointer()
+
+.tw-browser-splash
+  position                      absolute
+  top                           50%
+  left                          50%
+  width                         560px
+  text-align                    center
+  color                         #7e888a
+  font-size                     18px
+  margin-left                   -280px
+  z-index                       1
 
 @-moz-keyframes borderPulse
   15%
