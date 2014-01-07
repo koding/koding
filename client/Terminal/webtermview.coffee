@@ -247,6 +247,15 @@ class WebTermView extends KDView
   keyUp: (event) ->
     @terminal.keyUp event
 
+  _windowDidResize: (event) ->
+    @terminal.windowDidResize()
+
+  getAdvancedSettingsMenuItems: ->
+    settings     :
+      type       : 'customView'
+      view       : new WebtermSettingsView
+        delegate : this
+
   listenFullscreen: (event)->
     requestFullscreen = (event.metaKey or event.ctrlKey) and event.keyCode is 13
     if requestFullscreen

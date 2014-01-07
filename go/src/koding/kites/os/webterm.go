@@ -128,7 +128,7 @@ func registerWebtermMethods(k *kite.Kite) {
 				server.byteCounter += n
 				server.lineFeeedCounter += bytes.Count(buf[:n], []byte{'\n'})
 				if server.messageCounter > 100 || server.byteCounter > 1<<18 || server.lineFeeedCounter > 300 {
-					time.Sleep(time.Second)
+					time.Sleep(time.Second / 100)
 				}
 
 				server.remote.Output(string(utils.FilterInvalidUTF8(buf[:n])))
