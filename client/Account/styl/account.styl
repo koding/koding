@@ -372,10 +372,9 @@ button.kdbutton.solid.green.account-header-button
       line-height     1.5
 
   &.ssh-keys
-    ul
-      margin-top      50px
-
   &.koding-keys
+  &.billing-history
+  &.your-subscriptions
     .no-item-found
       font-size       14px
       line-height     1.5
@@ -394,7 +393,7 @@ button.kdbutton.solid.green.account-header-button
       padding           0
       li
         list-style      none
-        line-height     40px
+        line-height     1.4
         borderBox()
         a
           margin-left   10px
@@ -403,6 +402,50 @@ button.kdbutton.solid.green.account-header-button
           color         rgba(255,255,255,.8)
         .darkText
           color         rgba(255,255,255,.5)
+
+  &.your-subscriptions
+    ul
+      li
+        margin-bottom        15px
+        h4
+          font-weight     400
+          font-size       16px
+          line-height     1.6
+          width           auto
+        a
+          display         inline
+          float           none
+          margin-left     0
+
+  &.koding-keys
+    li
+      line-height     40px
+
+  &.ssh-keys
+    ul
+      margin-top      70px
+
+  &.billing-history
+    table
+      width           100%
+      line-height     1.6
+      margin-top      70px
+    tr
+      width           100%
+      td
+        width         20%
+        &.ccard
+          font-weight 600
+      a.action-link
+        display       table-cell
+        text-align    right
+        width         20%
+
+  &.ssh-keys
+    a.action-link
+      abs()
+      top             0px
+      right           2px
 
 .koding-keys
   code
