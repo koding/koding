@@ -179,7 +179,6 @@ class TeamworkApp extends KDObject
       @once "PlaygroundContentIsReady", =>
         @teamwork.destroy()
         @createTeamwork @mergePlaygroundOptions manifest, playground
-        @appView.addSubView @teamwork
         @teamwork.container.setClass playground
         @setVMRoot root
 

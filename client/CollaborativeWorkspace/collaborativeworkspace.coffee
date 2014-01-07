@@ -93,10 +93,6 @@ class CollaborativeWorkspace extends Workspace
       return if not message or not message.data or message.data.sender is @nickname
       @displayBroadcastMessage message.data
 
-    @broadcastMessage
-      title     : "#{@nickname} has joined to the session"
-      sender    : @nickname
-
     @on "AllPanesAddedToPanel", (panel, panes) ->
       paneSessionKeys = []
       paneSessionKeys.push pane.sessionKey for pane in panes
