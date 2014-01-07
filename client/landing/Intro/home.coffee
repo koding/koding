@@ -127,13 +127,13 @@ class HomePage extends JView
         <div class='teamwork clearfix'>
           <span class='icon'></span>
           <article>
-            <h4>TEAMWORK</h4>Collaborative development environment for lecturing a group, or for pair programming, or simply for sharing what you're doing with a total stranger.
+            <h4>TEAMWORK</h4>Collaborative development environment for lecture groups, pair programming, or simply for sharing what you're doing with a total stranger.
           </article>
         </div>
         <div class='social clearfix'>
           <span class='icon'></span>
           <article>
-            <h4>SOCIAL</h4>Share with the community, learn from the experts or help the ones who has yet to start coding. Socialize with like minded people and have fun.
+            <h4>SOCIAL</h4>Share with the community, learn from the experts or help those who have yet to start coding. Socialize with like minded people and have fun.
           </article>
         </div>
       </section>
