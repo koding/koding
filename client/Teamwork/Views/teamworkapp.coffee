@@ -3,7 +3,9 @@ class TeamworkApp extends KDObject
   instanceName = if location.hostname.indexOf("local") > -1 then "tw-local" else "kd-prod-1"
 
   constructor: (options = {}, data) ->
+
     options.query or= {}
+
     super options, data
 
     @appView = @getDelegate()
@@ -30,16 +32,7 @@ class TeamworkApp extends KDObject
       @teamwork.on "WorkspaceSyncedWithRemote", =>
         @showImportWarning importUrl
 
-    @on "ExportRequested", (callback = noop) =>
-      @showExportModal()
-      @tools.once "Exported", callback # TODO: what a great event name
-
-    @on "TeamUpRequested", =>
-      @teamwork.once "WorkspaceSyncedWithRemote", =>
-        @showTeamUpModal()
-
-    {query: {sessionKey}} = options
-    importUrl = options.query.import
+    {sessionKey, importUrl} = options.query
     if sessionKey     then @emit "JoinSessionRequested", sessionKey
     else if importUrl then @emit "ImportRequested"     , importUrl
     else @emit "NewSessionRequested"
@@ -53,16 +46,7 @@ class TeamworkApp extends KDObject
     @teamwork = new playgroundClass options or @getTeamworkOptions()
     @appView.addSubView @teamwork
     callback?()
-
-  showTeamUpModal: ->
-    @showToolsModal @teamwork.getActivePanel(), @teamwork
-    @tools.teamUpHeader.emit "click"
-    @tools.setClass "team-up-mode"
-
-  showExportModal: ->
-    @showToolsModal @teamwork.getActivePanel(), @teamwork
-    @tools.shareHeader.emit "click"
-    @tools.setClass "share-mode"
+    KD.getSingleton("router").handleRoute "/Teamwork?sessionKey=#{@teamwork.sessionKey}"
 
   getTeamworkOptions: ->
     options               = @getOptions()
@@ -100,17 +84,6 @@ class TeamworkApp extends KDObject
           ]
       ]
     }
-
-  showToolsModal: (panel, workspace) ->
-    modal       = new KDModalView
-      cssClass  : "teamwork-tools-modal"
-      title     : "Teamwork Tools"
-      overlay   : yes
-      width     : 600
-
-    modal.addSubView @tools = new TeamworkTools { modal, panel, workspace, twApp: this }
-    @emit "TeamworkToolsModalIsReady", modal
-    @forwardEvent @tools, "Exported"
 
   showImportWarning: (url, callback = noop) ->
     @importModal?.destroy()
@@ -155,11 +128,9 @@ class TeamworkApp extends KDObject
   mergePlaygroundOptions: (manifest, playground) ->
     rawOptions                      = @getTeamworkOptions()
     {name}                          = manifest
-    firstPanel                      = rawOptions.panels.first
-    firstPanel.title                = name
+    rawOptions.headerStyling        = manifest.styling
     rawOptions.playground           = playground
     rawOptions.name                 = name
-    firstPanel.headerStyling        = manifest.styling
     rawOptions.examples             = manifest.examples
     rawOptions.contentDetails       = manifest.content
     rawOptions.playgroundManifest   = manifest
@@ -173,57 +144,64 @@ class TeamworkApp extends KDObject
     return if playground is "Facebook" then FacebookTeamwork else PlaygroundTeamwork
 
   handlePlaygroundSelection: (playground, manifestUrl) ->
+    {teamwork} = this
+
+    teamwork.getActivePanel().setClass "hidden"
+    teamwork.chatView.setClass "hidden"
+    teamwork.createLoader()
+    teamwork.loader.addSubView loadingText = new KDCustomHTMLView
+      partial  : "Loading your #{playground} playground. Please wait..."
+      cssClass : "tw-loader-text"
+
     unless manifestUrl
       for manifest in @playgroundsManifest when playground is manifest.name
         {manifestUrl} = manifest
 
-    # TODO: doCurlRequest is useless here, use fetchGitHubFileContent method.
     @doCurlRequest manifestUrl, (err, manifest) =>
-      @teamwork?.destroy()
-      @createTeamwork @mergePlaygroundOptions manifest, playground
-      @appView.addSubView @teamwork
-      @teamwork.container.setClass playground
-      @teamwork.on "WorkspaceSyncedWithRemote", =>
-        {contentDetails} = @teamwork.getOptions()
+      root            = "/home/#{@teamwork.getHost()}/Web/Teamwork/#{playground}"
+      folder          = FSHelper.createFileFromPath root, "folder"
+      contentUrl      = manifest.content.url
+      manifestVersion = manifest.version
 
-        KD.mixpanel "Change Playground, success", playground
+      folder.exists (err, exists) =>
+        return @setUpImport manifest, playground  unless exists
 
-        if contentDetails.type is "zip"
-          root            = "/home/#{@teamwork.getHost()}/Web/Teamwork/#{playground}"
-          folder          = FSHelper.createFileFromPath root, "folder"
-          contentUrl      = contentDetails.url
-          manifestVersion = manifest.version
+        appStorage  = KD.getSingleton("appStorageController").storage "Teamwork", "1.0.1"
+        appStorage.fetchStorage (storage) =>
+          currentVersion  = appStorage.getValue "#{playground}PlaygroundVersion"
+          hasNewVersion   = KD.utils.versionCompare manifestVersion, "gt", currentVersion
+          if hasNewVersion
+            @setUpImport manifest, playground
+          else
+            @emit "PlaygroundContentIsReady"
 
-          folder.exists (err, exists) =>
-            return @setUpImport contentUrl, manifestVersion, playground  unless exists
+      @once "PlaygroundContentIsReady", =>
+        @teamwork.destroy()
+        @createTeamwork @mergePlaygroundOptions manifest, playground
+        @teamwork.container.setClass playground
+        @setVMRoot root
 
-            appStorage  = KD.getSingleton("appStorageController").storage "Teamwork", "1.0.1"
-            appStorage.fetchStorage (storage) =>
-              currentVersion  = appStorage.getValue "#{playground}PlaygroundVersion"
-              hasNewVersion   = KD.utils.versionCompare manifestVersion, "gt", currentVersion
-              if hasNewVersion
-                @setUpImport contentUrl, manifestVersion, playground
-              else
-                @setVMRoot root
-                @teamwork.emit "ContentIsReady"
-        else
-          warn "Unhandled content type for #{name}"
+  setUpImport: (manifest, playground) ->
+    {version} = manifest
+    {url}     = manifest.content
 
-  setUpImport: (url, version, playground) ->
     unless url
       return warn "Missing url parameter to import zip file for #{playground}"
 
     @teamwork.importInProgress = yes
-    @showImportWarning url, =>
-      @teamwork.emit "ContentIsReady"
+    modal    = null
+    callback = =>
+      @emit "PlaygroundContentIsReady"
       @teamwork.importModalContent = no
       appStorage = KD.getSingleton("appStorageController").storage "Teamwork", "1.0.1"
       appStorage.setValue "#{playground}PlaygroundVersion", version
 
+    new TeamworkImporter { url, modal, callback, delegate: this }
+
   doCurlRequest: (path, callback = noop) ->
     vmController = KD.getSingleton "vmController"
     vmController.run
-      withArgs: "kdwrap curl -kLs #{path}"
+      withArgs: "curl -kLs #{path}"
       vmName  : vmController.defaultVmName
     , (err, contents) =>
       extension = FSItem.getFileExtension path
@@ -242,7 +220,7 @@ class TeamworkApp extends KDObject
 
   fetchManifestFile: (path, callback = noop) ->
     $.ajax
-      url           : "http://resources.gokmen.kd.io/Teamwork/Playgrounds/#{path}"
+      url           : "https://resources.kd.io/Teamwork/Playgrounds/#{path}"
       type          : "GET"
       success       : (response) ->
         return callback yes, null  unless response

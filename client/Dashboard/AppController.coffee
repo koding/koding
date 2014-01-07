@@ -9,7 +9,7 @@ class DashboardAppController extends AppController
     routes                         :
       "/:name?/Dashboard"          : null
       "/:name?/Dashboard/:section" : ({params : {section,name}})->
-        handler name, (app)-> app.handleQuery title : section
+        handler name, (app)-> app.loadSection title : section
     hiddenHandle : yes
 
   constructor: (options = {}, data) ->
@@ -104,7 +104,7 @@ class DashboardAppController extends AppController
       # {tabHandle} = pane
       # tabHandle.markDirty()
 
-  handleQuery: ({title}) ->
+  loadSection: ({title}) ->
     @getView().nav.ready =>
       @getView().tabs.showPaneByName title or 'Settings'
 

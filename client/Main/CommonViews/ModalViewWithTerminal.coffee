@@ -21,6 +21,8 @@ class ModalViewWithTerminal extends KDModalView
 
   constructor: (@options={}, data)->
 
+    options.cssClass = KD.utils.curry "terminal", options.cssClass
+
     super options, data
 
     {@terminal} = options

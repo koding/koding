@@ -124,6 +124,7 @@ class AceAppView extends JView
     {path, vmName} = @getActiveAceView().getData()
     return  if /^localfile/.test path
     path = KD.getPublicURLOfPath path
+    path = "https://#{KD.nick()}.kd.io/#{path.match(/.kd.io\/(.*)/)[1]}"
     KD.singleton("appManager").create "Viewer", {path, vmName}, (app) =>
       @tabView.addPane new KDTabPaneView
         name    : "[#{path.split("/").last}]"

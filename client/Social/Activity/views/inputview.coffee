@@ -52,7 +52,7 @@ class ActivityInputView extends KDTokenizedInput
     if words.join("") isnt ""
       newval = prefix + words.join "-"
       @tokenInput.textContent = newval
-      @utils.selectEnd @tokenInput
+      @utils.selectText @tokenInput, 1
 
   selectToken: ->
     return  unless @menu
