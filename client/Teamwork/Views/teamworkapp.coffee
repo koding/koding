@@ -23,7 +23,9 @@ class TeamworkApp extends KDObject
           @setOption "playgroundManifest", val.playgroundManifest
           @setOption "playground", val.playground
           options = @mergePlaygroundOptions val.playgroundManifest, val.playground
-          @createTeamwork options
+          @createTeamwork options, =>
+            @teamwork.once "WorkspaceSyncedWithRemote", =>
+              @setVMRoot "/home/#{@teamwork.getHost()}/Web/Teamwork/#{val.playground}"
         else
           @createTeamwork()
 
