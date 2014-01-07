@@ -52,6 +52,7 @@ app.teamwork.styl
   .kdtabhandle-tabs
     margin-top                  18px
   .previewer-body
+    z-index                     2
     .kdinput
       font-size                 13px !important
       line-height               14px
@@ -718,6 +719,17 @@ app.teamwork.styl
       top                       7px
       right                     25px
       pointer()
+
+.tw-browser-splash
+  position                      absolute
+  top                           50%
+  left                          50%
+  width                         560px
+  text-align                    center
+  color                         #7e888a
+  font-size                     18px
+  margin-left                   -280px
+  z-index                       1
 
 @-moz-keyframes borderPulse
   15%
