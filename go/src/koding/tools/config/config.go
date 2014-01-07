@@ -36,6 +36,7 @@ type Config struct {
 		Write   string
 		Port    int
 		Enabled bool
+		Log     string
 	}
 	Broker struct {
 		IP              string

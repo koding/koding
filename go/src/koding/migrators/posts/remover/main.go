@@ -28,7 +28,7 @@ type Migrator struct {
 }
 
 func main() {
-	log = logger.CreateLogger("PostMigrator", "warning")
+	log = logger.New("PostMigrator")
 	log.Notice("Started Obsolete Post Remover")
 	defer shutdown()
 	initConsumer()

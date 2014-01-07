@@ -6,7 +6,7 @@ import (
 	"github.com/streadway/amqp"
 	"koding/databases/neo4j"
 	"koding/tools/amqputil"
-	"koding/tools/log"
+	"koding/tools/logger"
 	"koding/tools/statsd"
 	"koding/workers/neo4jfeeder/mongohelper"
 	"labix.org/v2/mgo/bson"
@@ -30,7 +30,11 @@ type Message struct {
 	Payload []map[string]interface{} `json:"payload"`
 }
 
+var log = logger.New("neo4jfeeder")
+
 func main() {
+	log.Error("hello")
+
 	statsd.SetAppName("neo4jFeeder")
 	startConsuming()
 }

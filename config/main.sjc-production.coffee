@@ -45,6 +45,7 @@ module.exports =
     read        : "http://kgraph.sj.koding.com"
     write       : "http://kgraph.sj.koding.com"
     port        : 7474
+    log         : "debug"
   mongo         : mongo
   mongoKontrol  : mongoKontrol
   mongoReplSet  : mongoReplSet

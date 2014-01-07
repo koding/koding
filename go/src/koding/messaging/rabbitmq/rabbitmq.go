@@ -105,7 +105,7 @@ type BindingOptions struct {
 }
 
 func init() {
-	log = logger.CreateLogger("RabbitMQ", config.Current.Mq.LogLevel)
+	log = logger.New("RabbitMQ")
 }
 
 // getConnectionString builds connection string

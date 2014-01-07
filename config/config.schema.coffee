@@ -67,6 +67,7 @@ config =
       read        : 1
       write       : 1
       port        : 1
+      log         : 1
     runNeo4jFeeder: 1
     runGoBroker   : 1
     runKontrol    : 1

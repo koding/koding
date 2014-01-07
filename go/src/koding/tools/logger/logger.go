@@ -1,27 +1,47 @@
 package logger
 
 import (
-	logging "github.com/op/go-logging"
+	"github.com/op/go-logging"
+	"koding/tools/config"
 	stdlog "log"
 	"os"
 )
 
-func init() {
-	// format can be added to the config
-	logging.SetFormatter(logging.MustStringFormatter("%{level:-8s} ▶ %{message}"))
-	stderrBackend := logging.NewLogBackend(os.Stderr, "", stdlog.LstdFlags|stdlog.Lshortfile)
-	stderrBackend.Color = true
-	syslogBackend, _ := logging.NewSyslogBackend("")
-	logging.SetBackend(stderrBackend, syslogBackend)
+var loggingLevel logging.Level
+
+var nameToLevelMapping = map[string]logging.Level{
+	"debug":   logging.DEBUG,
+	"warning": logging.WARNING,
+	"error":   logging.ERROR,
 }
 
-func CreateLogger(module string, level string) *logging.Logger {
-	l, err := logging.LogLevel(level)
+// Get logging level from config file and find the appropriate logging.Level
+// from string.
+func init() {
+	var exists bool
+	var logLevelString = config.Current.Neo4j.Log
+
+	loggingLevel, exists = nameToLevelMapping[logLevelString]
+	if !exists {
+		loggingLevel = logging.DEBUG
+	}
+}
+
+func New(name string) *logging.Logger {
+	logging.SetFormatter(logging.MustStringFormatter("[%{level:.8s}] - %{message}"))
+
+	var logBackend = logging.NewLogBackend(os.Stderr, "", stdlog.LstdFlags|stdlog.Lshortfile)
+	logBackend.Color = true
+
+	var syslogBackend, err = logging.NewSyslogBackend("")
 	if err != nil {
 		panic(err)
 	}
-	logging.SetLevel(l, module)
-	logger := logging.MustGetLogger(module)
-	logger.Module = module
-	return logger
+
+	logging.SetBackend(logBackend, syslogBackend)
+
+	// Set logging level based on value in config.
+	logging.SetLevel(loggingLevel, name)
+
+	return logging.MustGetLogger(name)
 }
