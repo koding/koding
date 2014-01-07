@@ -108,6 +108,7 @@ module.exports =
     cronSchedule         : '00 00 00 * * *'
   topicModifier          :
     cronSchedule         : '0 */5 * * * *'
+    logLevel             : "notice"
   social        :
     login       : 'prod-social'
     numberOfWorkers: 1
@@ -194,6 +195,7 @@ module.exports =
     # so it'll disconnect from RabbitMQ if heartbeat is enabled.
     heartbeat   : 0
     vhost       : '/'
+    logLevel    : "notice"
   broker        :
     ip          : ""
     port        : 8008

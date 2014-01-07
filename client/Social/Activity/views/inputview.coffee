@@ -23,7 +23,11 @@ class ActivityInputView extends KDTokenizedInput
       if inputValue.length > 1 and not /^\W+$/.test inputValue
         matches = tags.filter (tag) -> tag.title is inputValue or inputValue in tag.children
         deletedMatches = deletedTags.filter (title) -> title is inputValue
-        tags = [$suggest: inputValue].concat tags  unless matches.length or deletedMatches.length
+
+        unless matches.length
+          infoItem = if deletedMatches.length then $deleted: inputValue
+          else $suggest: inputValue
+          tags = [infoItem].concat tags
 
       @showMenu
         itemChildClass  : TagContextMenuItem
