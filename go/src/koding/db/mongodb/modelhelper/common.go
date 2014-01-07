@@ -36,6 +36,7 @@ func updateByIdQuery(id string, data interface{}) func(*mgo.Collection) error {
 	}
 }
 
+// TODO this is not functional
 func findAllQuery(s Selector, o Options, data interface{}) func(*mgo.Collection) error {
 	return func(c *mgo.Collection) error {
 		q := c.Find(s)
@@ -57,6 +58,18 @@ func countQuery(s Selector, o Options, count *int) func(*mgo.Collection) error {
 	}
 }
 
+func checkExistence(id string, exists *bool) func(*mgo.Collection) error {
+	s := Selector{"_id": GetObjectId(id)}
+	return func(c *mgo.Collection) error {
+		q := c.Find(s)
+		result, err := q.Count()
+		if err != nil {
+			return err
+		}
+		*exists = result > 0
+		return nil
+	}
+}
 func insertQuery(data interface{}) func(*mgo.Collection) error {
 	return func(c *mgo.Collection) error {
 		return c.Insert(data)
