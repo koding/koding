@@ -189,7 +189,9 @@ class TeamworkWorkspace extends CollaborativeWorkspace
           cssClass : "modal-clean-green"
           icon     : yes
           iconClass: "tw-import-icon"
-          callback : => @getDelegate().emit "ImportRequested", importUrlInput.getValue()
+          callback : =>
+            modal.destroy()
+            @getDelegate().emit "ImportRequested", importUrlInput.getValue()
         Close      :
           title    : "Cancel"
           cssClass : "modal-cancel"
@@ -198,7 +200,9 @@ class TeamworkWorkspace extends CollaborativeWorkspace
     modal.addSubView importUrlInput = new KDHitEnterInputView
       type         : "text tw-import-url"
       placeholder  : "Enter the URL of a git repository or zip archive."
-      callback     : => @getDelegate().emit "ImportRequested", importUrlInput.getValue()
+      callback     : =>
+        modal.destroy()
+        @getDelegate().emit "ImportRequested", importUrlInput.getValue()
 
     modal.addSubView new KDCustomHTMLView
       tagName      : "span"

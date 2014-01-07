@@ -316,7 +316,7 @@ class TeamworkTabView extends CollaborativePane
 
   viewAppended: ->
     super
-    @createDashboard()  if @amIHost
+    @createDashboard()
 
   pistachio: ->
     """

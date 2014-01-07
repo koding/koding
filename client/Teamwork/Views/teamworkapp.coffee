@@ -117,14 +117,13 @@ class TeamworkApp extends KDObject
       targetEl        : t.getActivePanel().headerHint
 
   setVMRoot: (path) ->
-    @teamwork.once "WorkspaceSyncedWithRemote", =>
-      {finderController} = @teamwork.getActivePanel().getPaneByName "finder"
-      {defaultVmName}    = KD.getSingleton "vmController"
+    {finderController} = @teamwork.getActivePanel().getPaneByName "finder"
+    {defaultVmName}    = KD.getSingleton "vmController"
 
-      if finderController.getVmNode defaultVmName
-        finderController.unmountVm defaultVmName
+    if finderController.getVmNode defaultVmName
+      finderController.unmountVm defaultVmName
 
-      finderController.mountVm "#{defaultVmName}:#{path}"
+    finderController.mountVm "#{defaultVmName}:#{path}"
 
   mergePlaygroundOptions: (manifest, playground) ->
     rawOptions                      = @getTeamworkOptions()

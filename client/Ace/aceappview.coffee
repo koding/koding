@@ -127,6 +127,7 @@ class AceAppView extends JView
 
     if path
       KD.singleton("appManager").require "Viewer", {path, vmName}, (app) =>
+        path = "https://#{KD.nick()}.kd.io/#{path.match(/.kd.io\/(.*)/)[1]}"
         @tabView.addPane new KDTabPaneView
           name    : "[#{path.split("/").last}]"
           view    : app.getView()
