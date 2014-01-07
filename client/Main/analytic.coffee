@@ -11,9 +11,9 @@ do->
   # implicit 'User' in front.
   #
   # Ex: 'Followed user'
-  KD.mixpanel = mixpanel.track.bind mixpanel
+  KD.mixpanel = (args)-> mixpanel?.track args  if KD.config.logToExternal
 
-  KD.mixpanel.alias = mixpanel.alias.bind mixpanel
+  KD.mixpanel.alias = (args)-> KD.mixpanel args
 
   logToGoogle = (rest...)->
     category = action = rest.first
