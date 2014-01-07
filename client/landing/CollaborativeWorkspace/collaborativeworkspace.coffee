@@ -47,7 +47,8 @@ class CollaborativeWorkspace extends Workspace
       cb = =>
         isOldSession = keys = snapshot.val()?.keys
         if isOldSession
-          @sessionData = keys
+          @isOldSession = yes
+          @sessionData  = keys
           @createPanel()
         else
           @createPanel()
