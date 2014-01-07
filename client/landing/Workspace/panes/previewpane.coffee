@@ -21,7 +21,7 @@ class PreviewPane extends Pane
     @container.addSubView new KDCustomHTMLView
       tagName  : "p"
       cssClass : "tw-browser-splash"
-      partial  : """ Sorry, for the time being, you can only preview links starting with "https" """
+      partial  : """ Sorry, you can only preview links starting with "https" """
 
   pistachio: ->
     """
