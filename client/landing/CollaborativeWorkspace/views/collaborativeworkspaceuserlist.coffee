@@ -187,6 +187,7 @@ class CollaborativeWorkspaceUserList extends JView
 
   close: ->
     container = @container
+    return  unless container
     container.unsetClass "active"
     container.once "transitionend", =>
       container.destroySubViews()
