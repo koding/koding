@@ -89,7 +89,7 @@ class AccountSshKeyForm extends KDFormView
       callback   : => @emit "FormCancelled"
 
     formline2.addSubView @deletebtn = new KDButtonView
-      style        : "clean-red deletebtn"
+      style        : "solid red fr"
       title        : "Delete"
       callback     : => @emit "FormDeleted"
 
