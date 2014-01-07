@@ -22,7 +22,6 @@ class ActivityAppView extends KDScrollView
     windowController  = KD.singleton 'windowController'
 
     @feedWrapper      = new ActivityListContainer
-    @header           = new KDCustomHTMLView
     @inputWidget      = new ActivityInputWidget
 
     @referalBox       = new ReferalBox
@@ -33,26 +32,15 @@ class ActivityAppView extends KDScrollView
     @mainBlock        = new KDCustomHTMLView tagName : "main" #"activity-left-block"
     @sideBlock        = new KDCustomHTMLView tagName : "aside"   #"activity-right-block"
 
-    @feedFilterController = new KDMultipleChoice
-      labels       : ["Public", "Followed"]
-      cssClass     : 'feed-type-selection'
-      defaultValue : "Public"
-      callback     : (selection)->
-        @emit 'FilterChanged', selection
-
-    @feedFilterController.unsetClass 'multiple-choice on-off'
-
     @mainController   = KD.getSingleton("mainController")
     @mainController.on "AccountChanged", @bound "decorate"
     @mainController.on "JoinedGroup", => @inputWidget.show()
 
-    @header.bindTransitionEnd()
-
-    # @activityHeader.liveUpdateButton.setValue off
-
     @feedWrapper.ready =>
       @activityHeader  = @feedWrapper.controller.activityHeader
       {@filterWarning} = @feedWrapper
+      {feedFilterNav}  = @activityHeader
+      feedFilterNav.unsetClass 'multiple-choice on-off'
 
     @tickerBox.once 'viewAppended', =>
       topOffset = @tickerBox.$().position().top
@@ -65,14 +53,10 @@ class ActivityAppView extends KDScrollView
 
     @setLazyLoader 200
 
-    $(".kdview.fl.common-inner-nav, .kdview.activity-content.feeder-tabs").remove()
-
-    @addSubView @header
     @addSubView @mainBlock
     @addSubView @sideBlock
 
     @mainBlock.addSubView @inputWidget
-    @mainBlock.addSubView @feedFilterController
     @mainBlock.addSubView @feedWrapper
 
     @sideBlock.addSubView @referalBox  if KD.isLoggedIn()

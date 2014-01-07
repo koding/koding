@@ -10,9 +10,9 @@ resurrection.activity.styl
 }
 
 
-.feeder-header
-.common-inner-nav
-.system-message
+// .feeder-header
+// .common-inner-nav
+// .system-message
 .activity-status-context
 // .comment-container.no-comment
   display               none
@@ -80,10 +80,45 @@ resurrection.activity.styl
       .kdview
         overflow        visible
 
-    .feed-type-selection
-      margin-right      3px
+    .feeder-header
       margin-top        28px
       text-align        right
+
+    .new-updates
+      padding           4px 10px
+      bg                color logoBg
+      color             white
+      margin            -2px 10px 0 0
+      font-weight       400
+      display           inline-block
+      rounded           11px
+      min-width         22px
+      text-align        center
+      font-weight       300
+      letter-spacing    .5px
+      noTextDeco()
+      borderBox()
+      &:hover
+        bg              color, socialColor
+
+
+    .kdbutton.live-updates
+      bg              color transparent
+      border          none
+      border-right    1px solid #ccc
+      outline         none
+      margin          -2px 17px 0 0
+      padding         0 10px 0 0
+      &:focus
+        shadow        none
+      .icon.broken
+        r-sprite      activity 'thunder-broken'
+      .icon.live
+        r-sprite      activity 'thunder'
+
+    .feed-type-selection
+      margin-right      3px
+      fr()
 
       a
         font-weight     300
@@ -92,8 +127,12 @@ resurrection.activity.styl
         font-size       20px
         noTextDeco()
 
+        &:first-child
+          padding-left  0
+
         &.active
           color         logoBg
+
 
   > aside
     right               0
@@ -453,6 +492,9 @@ span.collapsedtext
       padding         0
 
 /* Activity items */
+.kdlistitemview-activity.hidden-item
+  hidden()
+
 .activity-item
   background      #fff
   rounded         5px
@@ -515,7 +557,7 @@ span.collapsedtext
     overflow          auto
     max-height        400px
     line-height       22px
-    margin-bottom     7px
+    margin-bottom     16px
 
     > *
       padding       0 21px
@@ -703,9 +745,9 @@ span.collapsedtext
         &:before
           content         "\2022"
           display         block
-          font-size       18px
+          font-size       14px
           left            -14px
-          top             -2px
+          top             -1px
           color           #d8d8d8
           abs()
 
