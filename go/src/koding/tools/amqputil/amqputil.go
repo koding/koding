@@ -20,12 +20,12 @@ func CreateConnection(component string) *amqp.Connection {
 		Vhost:    config.Current.Mq.Vhost,
 	}.String())
 	if err != nil {
-		log.Critical(err.Error())
+		log.Fatal(err)
 	}
 
 	go func() {
 		for err := range conn.NotifyClose(make(chan *amqp.Error)) {
-			log.Error("AMQP connection: " + err.Error())
+			log.Fatal("AMQP connection: " + err.Error())
 		}
 	}()
 
@@ -35,7 +35,7 @@ func CreateConnection(component string) *amqp.Connection {
 func CreateChannel(conn *amqp.Connection) *amqp.Channel {
 	channel, err := conn.Channel()
 	if err != nil {
-		panic(err)
+		log.Panic(err)
 	}
 	go func() {
 		for err := range channel.NotifyClose(make(chan *amqp.Error)) {
@@ -48,20 +48,20 @@ func CreateChannel(conn *amqp.Connection) *amqp.Channel {
 func DeclareBindConsumeQueue(channel *amqp.Channel, kind, exchange, key string, autoDelete bool) <-chan amqp.Delivery {
 	// exchangeName, ExchangeType, durable, autoDelete, internal, noWait, args
 	if err := channel.ExchangeDeclare(exchange, kind, false, autoDelete, false, false, nil); err != nil {
-		panic(err)
+		log.Panic(err)
 	}
 	// name, durable, autoDelete, exclusive, noWait, args Table
 	if _, err := channel.QueueDeclare("", false, true, false, false, nil); err != nil {
-		panic(err)
+		log.Panic(err)
 	}
 
 	if err := channel.QueueBind("", key, exchange, false, nil); err != nil {
-		panic(err)
+		log.Panic(err)
 	}
 
 	stream, err := channel.Consume("", "", true, false, false, false, nil)
 	if err != nil {
-		panic(err)
+		log.Panic(err)
 	}
 
 	return stream
@@ -69,12 +69,12 @@ func DeclareBindConsumeQueue(channel *amqp.Channel, kind, exchange, key string, 
 
 func JoinPresenceExchange(channel *amqp.Channel, exchange, serviceType, serviceGenericName, serviceUniqueName string, loadBalancing bool) string {
 	if err := channel.ExchangeDeclare(exchange, "x-presence", false, true, false, false, nil); err != nil {
-		panic(err)
+		log.Panic(err)
 	}
 
 	queue, err := channel.QueueDeclare("", false, true, true, false, nil)
 	if err != nil {
-		panic(err)
+		log.Panic(err)
 	}
 
 	routingKey := fmt.Sprintf("serviceType.%s.serviceGenericName.%s.serviceUniqueName.%s", serviceType, serviceGenericName, serviceUniqueName)
@@ -84,7 +84,7 @@ func JoinPresenceExchange(channel *amqp.Channel, exchange, serviceType, serviceG
 	}
 
 	if err := channel.QueueBind(queue.Name, routingKey, exchange, false, nil); err != nil {
-		panic(err)
+		log.Panic(err)
 	}
 
 	return queue.Name
