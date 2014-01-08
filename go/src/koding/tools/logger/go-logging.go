@@ -61,9 +61,8 @@ func (g *GoLogger) Debug(format string, args ...interface{}) {
 	g.log.Debug(format, args...)
 }
 
-func (g *GoLogger) RecoverAndLog(format string, args ...interface{}) {
+func (g *GoLogger) RecoverAndLog() {
 	if err := recover(); err != nil {
-		g.Critical(format, args)
 		g.Critical("Panicked %v", err)
 	}
 }

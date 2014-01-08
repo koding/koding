@@ -16,4 +16,5 @@ type Log interface {
 	Notice(format string, args ...interface{})
 	Info(format string, args ...interface{})
 	Debug(format string, args ...interface{})
+	RecoverAndLog()
 }
