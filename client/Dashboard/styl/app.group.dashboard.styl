@@ -174,38 +174,104 @@ Dashboard Member List styles
 }
 
 .kdtabpaneview.members .listview-wrapper
-
   .kdlistview
-    overflow            visible
-  .kdlistitemview-member-item
-    border-bottom       1px solid #f5f5f5
-    &:nth-child(1n)
-      border-right      1px solid #f5f5f5
+    overflow                 visible
 
-    .kdlistitemview-member-item-inner
-      margin            3px 3px 0 0
+    &.item-editing
+      .kdlistitemview-member
+        opacity              .2
 
-    section
+    .kdlistitemview-member
+      min-width              0
+      width                  40%
+      margin-right           16px
+      border-bottom          1px solid #cacaca
+      position               relative
+      vendor                 transition, opacity .2s ease
+      fl()
+
       .profile
-        borderBox()
-        margin-left     60px
-        padding         2px
-        display         block
-      .role
-        borderBox()
-        margin-left     60px
-        padding         2px
-        display         block
+      .user-numbers
+        kalc                 width, 100% \- 50px
+        margin               0
+        height               auto
+
+      .avatarview
+        top                  24px !important
+        left                 -36px
+
       .edit-link
-      .save-link
       .cancel-link
-        fr()
+        abs                  22px 0px 0 0
+        padding              1px 8px
+        rounded              3px
+        color                #3c4752
+        border               1px solid #3c4752
+        font-size            12px
+
       .edit-link
         hidden()
 
-    &:hover
-      section .edit-link
-        visible()
+      .checkboxes
+        border-color         #ededed
+
+      &:hover
+        .edit-link
+          visible()
+
+      &.editing
+        background           transparent
+        opacity              1
+
+      .edit-container
+        z-index              10
+        background           #fff
+        top                  64px
+        height               90px
+        abs()
+
+        .kdbutton
+          height             28px
+          padding            0 10px
+
+          span
+            font-size        12px
+            line-height      28px
+            padding          0
+
+
+
+//   .kdlistview
+//     overflow            visible
+//   .kdlistitemview-member-item
+//     border-bottom       1px solid #f5f5f5
+//     &:nth-child(1n)
+//       border-right      1px solid #f5f5f5
+
+//     .kdlistitemview-member-item-inner
+//       margin            3px 3px 0 0
+
+//     section
+//       .profile
+//         borderBox()
+//         margin-left     60px
+//         padding         2px
+//         display         block
+//       .role
+//         borderBox()
+//         margin-left     60px
+//         padding         2px
+//         display         block
+//       .edit-link
+//       .save-link
+//       .cancel-link
+//         fr()
+//       .edit-link
+//         hidden()
+
+//     &:hover
+//       section .edit-link
+//         visible()
 
 @css {
 /*
