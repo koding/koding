@@ -1,9 +1,11 @@
 package logger
 
 import (
+	"fmt"
 	"github.com/op/go-logging"
 	stdlog "log"
 	"os"
+	"runtime"
 )
 
 type GoLogger struct {
@@ -69,4 +71,21 @@ func (g *GoLogger) RecoverAndLog() {
 	if err := recover(); err != nil {
 		g.Critical("Panicked %v", err)
 	}
+}
+
+func (g *GoLogger) LogError(err interface{}, stackOffset int, additionalData ...interface{}) {
+	data := make([]interface{}, 0)
+	for i := 1 + stackOffset; ; i++ {
+		pc, file, line, ok := runtime.Caller(i)
+		if !ok {
+			break
+		}
+		name := "<unknown>"
+		if fn := runtime.FuncForPC(pc); fn != nil {
+			name = fn.Name()
+		}
+		data = append(data, fmt.Sprintf("at %s (%s:%d)", name, file, line))
+	}
+	data = append(data, additionalData...)
+	g.Error("LogError", data...)
 }
