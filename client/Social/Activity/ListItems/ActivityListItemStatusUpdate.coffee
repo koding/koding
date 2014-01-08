@@ -60,7 +60,7 @@ class StatusActivityItemView extends ActivityItemChild
   click: (event) ->
     super event
     {target} = event
-    if $(event.target).is "> article a.internal"
+    if $(target).is "article a.internal"
       @utils.stopDOMEvent event
       href = target.getAttribute "href"
       KD.singleton("router").handleRoute href
