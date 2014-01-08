@@ -33,8 +33,6 @@ type Message struct {
 var log = logger.New("neo4jfeeder")
 
 func main() {
-	log.Error("hello")
-
 	statsd.SetAppName("neo4jFeeder")
 	startConsuming()
 }
@@ -62,42 +60,38 @@ func startConsuming() {
 	// exchangeName, ExchangeType, durable, autoDelete, internal, noWait, args
 	err := c.channel.ExchangeDeclare(EXCHANGE_NAME, "fanout", true, false, false, false, nil)
 	if err != nil {
-		fmt.Println("exchange.declare: %s", err)
-		panic(err)
+		log.Critical("exchange.declare: %s", err)
 	}
 
 	//name, durable, autoDelete, exclusive, noWait, args Table
 	if _, err := c.channel.QueueDeclare(WORKER_QUEUE_NAME, true, false, false, false, nil); err != nil {
-		fmt.Println("queue.declare: %s", err)
-		panic(err)
+		log.Critical("queue.declare: %s", err)
 	}
 
 	if err := c.channel.QueueBind(WORKER_QUEUE_NAME, "" /* binding key */, EXCHANGE_NAME, false, nil); err != nil {
-		fmt.Println("queue.bind: %s", err)
-		panic(err)
+		log.Critical("queue.bind: %s", err)
 	}
 
 	//(queue, consumer string, autoAck, exclusive, noLocal, noWait bool, args Table) (<-chan Delivery, error) {
 	relationshipEvent, err := c.channel.Consume(WORKER_QUEUE_NAME, "neo4jFeeding", false, false, false, false, nil)
 	if err != nil {
-		fmt.Println("basic.consume: %s", err)
-		panic(err)
+		log.Error("basic.consume: %s", err)
 	}
 
-	fmt.Println("Neo4J Feeder worker started")
+	log.Notice("Neo4J Feeder worker started")
 
 	for msg := range relationshipEvent {
 		body := fmt.Sprintf("%s", msg.Body)
 
 		message, err := jsonDecode(body)
 		if err != nil {
-			fmt.Println("Wrong message format", err, body)
+			log.Error("Wrong message format", err, body)
 			msg.Ack(true)
 			continue
 		}
 
 		if len(message.Payload) < 1 {
-			fmt.Println("Wrong message format; payload should be an Array", message)
+			log.Error("Wrong message format; payload should be an Array", message)
 			msg.Ack(true)
 			continue
 		}
@@ -161,7 +155,7 @@ func createNode(data map[string]interface{}) {
 	targetName := fmt.Sprintf("%s", data["targetName"])
 
 	if sourceId == "" || sourceName == "" || targetId == "" || targetName == "" {
-		fmt.Println("invalid data", data)
+		log.Error("invalid data", data)
 		return
 	}
 
@@ -178,7 +172,7 @@ func createNode(data map[string]interface{}) {
 	sourceContent, err := mongohelper.FetchContent(bson.ObjectIdHex(sourceId), sourceName)
 	if err != nil {
 		sTimer.Failed()
-		fmt.Println("sourceContent", err)
+		log.Error("sourceContent", err)
 
 		return
 	}

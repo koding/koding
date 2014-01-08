@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"koding/tools/config"
+	"koding/tools/logger"
 	"koding/tools/statsd"
 	"labix.org/v2/mgo/bson"
 	"net"
@@ -30,6 +31,8 @@ var (
 func init() {
 	statsd.SetAppName("neo4j")
 }
+
+var log = logger.New("neo4jfeeder")
 
 type Relationship struct {
 	Id         bson.ObjectId `bson:"_id,omitempty"`
@@ -81,12 +84,12 @@ func sendRequest(requestType, url, data string, attempt int) string {
 	res, err := client.Do(req)
 	if err != nil && attempt <= MAX_RETRIES {
 		sTimer.Failed()
-		fmt.Print(err)
+		log.Error(err.Error())
 		attempt++
 		sendRequest(requestType, url, data, attempt)
 	}
 	if err != nil && attempt > MAX_RETRIES {
-		panic(fmt.Sprintf("req to %v timed out after %v retries", url, attempt))
+		log.Error("req to %v timed out after %v retries", url, attempt)
 	}
 
 	body, _ := ioutil.ReadAll(res.Body)
