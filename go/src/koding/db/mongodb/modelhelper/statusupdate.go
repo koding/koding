@@ -17,10 +17,7 @@ func GetStatusUpdateById(id string) (*models.StatusUpdate, error) {
 }
 
 func UpdateStatusUpdate(s *models.StatusUpdate) error {
-	query := func(c *mgo.Collection) error {
-		return c.UpdateId(s.Id, s)
-	}
-
+	query := updateByIdQuery(s.Id.Hex(), s)
 	return mongodb.Run(POST_COLL, query)
 }
 
@@ -37,4 +34,14 @@ func AddStatusUpdate(s *models.StatusUpdate) error {
 	query := insertQuery(s)
 
 	return mongodb.Run(POST_COLL, query)
+}
+
+func GetStatusUpdate(s Selector) (models.StatusUpdate, error) {
+	su := models.StatusUpdate{}
+
+	query := func(c *mgo.Collection) error {
+		return c.Find(s).One(&su)
+	}
+
+	return su, mongodb.Run(POST_COLL, query)
 }
