@@ -51,8 +51,11 @@ class StatusActivityItemView extends ActivityItemChild
       href = element.getAttribute "href"
       return  unless href
 
-      if href.substring(0, origin.length) is origin
-        element.setAttribute "href", "/#{href.substring origin.length + 1}"
+      beginning = href.substring 0, origin.length
+      rest      = href.substring origin.length + 1
+
+      if beginning is origin
+        element.setAttribute "href", "/#{rest}"
         element.classList.add "internal"
       else
         element.setAttribute "target", "_blank"
