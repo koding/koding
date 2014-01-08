@@ -71,6 +71,7 @@ class HomeLoginInput extends JView
   decorateValidation: (err)->
 
     @resetDecoration()
+    return  unless @input.getValue().length
     if err
     then @icon.setTooltip title : "<p>#{err}</p>"
     else @icon.unsetTooltip()
