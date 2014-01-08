@@ -67,6 +67,7 @@ func migrate(m *Migrator) error {
 
 	for _, post := range posts {
 		m.Id = post.Id.Hex()
+		oldPost := post
 		post.Id = helper.NewObjectId()
 		m.NewId = post.Id.Hex()
 		m.Index++
@@ -80,12 +81,17 @@ func migrate(m *Migrator) error {
 			continue
 		}
 
+		if err := updatePostStatus(&oldPost, m, "Started"); err != nil {
+			ReportError(m, err)
+			continue
+		}
+
 		if err := migrateTags(&post, m); err != nil {
 			ReportError(m, err)
 			continue
 		}
 
-		if err := migrateOrigin(&post); err != nil {
+		if err := migrateOrigin(&post, m); err != nil {
 			ReportError(m, err)
 			continue
 		}
@@ -95,8 +101,20 @@ func migrate(m *Migrator) error {
 			ReportError(m, err)
 			continue
 		}
-
 		if err := migrateOpinions(&post, m, commenters); err != nil {
+			ReportError(m, err)
+			continue
+		}
+
+		if err := updatePostStatus(&oldPost, m, "Completed"); err != nil {
+			ReportError(m, err)
+			continue
+		}
+
+		// updates repliesCount
+		su := post.ConvertToStatusUpdate()
+		su.MigrationStatus = m.PostType
+		if err := helper.UpdateStatusUpdate(su); err != nil {
 			ReportError(m, err)
 			continue
 		}
@@ -106,9 +124,25 @@ func migrate(m *Migrator) error {
 	return migrate(m)
 }
 
+func updatePostStatus(p *Post, m *Migrator, status string) error {
+	p.MigrationStatus = status
+	return helper.UpdatePost(p, m.PostType)
+}
+
+func updateRelationshipStatus(r Relationship, status string) {
+	r.MigrationStatus = status
+	helper.UpdateRelationship(&r)
+}
+
 func insertNewStatusUpdate(p *Post, m *Migrator) error {
 	if p.MigrationStatus == "Completed" {
 		return ErrAlreadyMigrated
+	}
+	// it seems post is already migrated with some incomplete relationships
+	if p.MigrationStatus == "Started" {
+		ep, err := helper.GetStatusUpdate(helper.Selector{"slug": p.Slug})
+		p.Id = ep.Id
+		return err
 	}
 	exists, err := helper.CheckGroupExistence(p.Group)
 	if err != nil {
@@ -137,11 +171,13 @@ func migrateCodesnip(p *Post, m *Migrator) error {
 	}
 
 	if len(p.Attachments) > 0 {
-		body, ok := p.Attachments[0]["content"]
+		codesnip, ok := p.Attachments[0]["content"]
 		if !ok {
 			return fmt.Errorf("Codesnip content not found")
 		}
-		p.Body = fmt.Sprintf("`%s`", body)
+		// concatenate post body with codesnip
+		p.Body = fmt.Sprintf("%s \n\n ```%s``` \n\n", p.Body, codesnip)
+		p.Attachments = make([]map[string]interface{}, 0)
 	}
 	return nil
 }
@@ -159,34 +195,38 @@ func migrateTags(p *Post, m *Migrator) error {
 	log.Info("%v tags found", len(rels))
 
 	for _, r := range rels {
+		// relationship already migrated
+		if r.MigrationStatus == "Completed" {
+			continue
+		}
 		tagId := r.TargetId.Hex()
 		// first check tag existence
 		exists, err := helper.CheckTagExistence(tagId)
 		if err != nil {
+			updateRelationshipStatus(r, "Error")
 			return err
 		}
 		if !exists {
+			updateRelationshipStatus(r, "Error")
 			continue
 		}
-
+		or := r // copy old relationship
 		// update tag relationships
 		r.Id = helper.NewObjectId()
 		r.SourceId = p.Id
 		r.SourceName = "JNewStatusUpdate"
 		if err := helper.AddRelationship(&r); err != nil {
+			updateRelationshipStatus(or, "Error")
 			return err
 		}
-		sr := swapRelationship(&r, "post")
+		sr := swapRelationship(&r, "post") // CtF: leaking relationship
 		if err := helper.AddRelationship(sr); err != nil {
+			updateRelationshipStatus(or, "Error")
 			return err
 		}
 		//append tag to status update body
 		p.Body += fmt.Sprintf(" |#:JTag:%s|", tagId)
-	}
-	// if post is tagged
-	if len(rels) > 0 {
-		su := p.ConvertToStatusUpdate()
-		return helper.UpdateStatusUpdate(su)
+		updateRelationshipStatus(or, "Completed")
 	}
 
 	return nil
@@ -213,8 +253,10 @@ func migrateComments(p *Post, m *Migrator) (map[string]bool, error) {
 	count := 0
 
 	for _, r := range rels {
+		or := r
 		comment, err := helper.GetCommentById(r.TargetId.Hex())
 		if err != nil {
+			updateRelationshipStatus(or, "Error")
 			if err == helper.ErrNotFound {
 				log.Info("Comment not found - Id: %s", r.TargetId.Hex())
 				continue
@@ -226,26 +268,37 @@ func migrateComments(p *Post, m *Migrator) (map[string]bool, error) {
 		originId := comment.OriginId.Hex()
 		originExists, err := helper.CheckAccountExistence(originId)
 		if err != nil {
+			updateRelationshipStatus(or, "Error")
 			return accounts, err
 		}
 		if !originExists {
+			updateRelationshipStatus(or, "Error")
 			continue
 		}
+		if r.MigrationStatus != "Completed" {
+			// add relationship: JNewStatusUpdate -> reply -> JComment
+			r.Id = helper.NewObjectId()
+			r.SourceId = p.Id
+			r.SourceName = "JNewStatusUpdate"
+			if err := helper.AddRelationship(&r); err != nil {
+				updateRelationshipStatus(or, "Error")
+				return accounts, err
+			}
 
-		// add relationship: JNewStatusUpdate -> reply -> JComment
-		r.Id = helper.NewObjectId()
-		r.SourceId = p.Id
-		r.SourceName = "JNewStatusUpdate"
-		if err := helper.AddRelationship(&r); err != nil {
-			return accounts, err
-		}
-
-		// get unique commenters for each post
-		if _, exist := accounts[originId]; !exist {
+			// get unique commenters for each post
+			if _, exist := accounts[originId]; !exist {
+				accounts[originId] = true
+				if err := migrateCommentOrigin(comment, p, m); err != nil {
+					return accounts, err
+				}
+			}
+			updateRelationshipStatus(or, "Completed")
+		} else {
 			accounts[originId] = true
-			migrateCommentOrigin(comment, p)
 		}
+
 		count++
+
 	}
 
 	p.RepliesCount = count
@@ -276,8 +329,10 @@ func migrateOpinions(p *Post, m *Migrator, commenters map[string]bool) error {
 	}
 	count := 0
 	for _, r := range rels {
+		or := r
 		opinion, err := helper.GetOpinionById(r.TargetId.Hex())
 		if err != nil {
+			updateRelationshipStatus(or, "Error")
 			if err == helper.ErrNotFound {
 				log.Info("Opinion not found - Id: %s", r.TargetId.Hex())
 				continue
@@ -288,21 +343,27 @@ func migrateOpinions(p *Post, m *Migrator, commenters map[string]bool) error {
 		originId := opinion.OriginId.Hex()
 		originExists, err := helper.CheckAccountExistence(originId)
 		if err != nil {
+			updateRelationshipStatus(or, "Error")
 			return err
 		}
 		if !originExists {
 			continue
 		}
-		comment, err := convertOpinionToComment(opinion, p)
-		if err != nil {
-			return err
-		}
-
-		if _, exist := commenters[originId]; !exist {
-			commenters[originId] = true
-			if err := migrateCommentOrigin(comment, opinion); err != nil {
+		if r.MigrationStatus != "Completed" {
+			comment, err := convertOpinionToComment(opinion, p)
+			if err != nil {
+				updateRelationshipStatus(or, "Error")
 				return err
 			}
+			if _, exist := commenters[originId]; !exist {
+				commenters[originId] = true
+				if err := migrateCommentOrigin(comment, p, m); err != nil {
+					return err
+				}
+			}
+			updateRelationshipStatus(or, "Completed")
+		} else {
+			commenters[originId] = true
 		}
 
 		count++
@@ -356,40 +417,91 @@ func addCommentCreator(c *Comment, r *Relationship) error {
 // migrateCommentOrigins inserts commenter and follower relationships
 // JNewStatusUpdate -> commenter -> JAccount
 // JNewStatusUpdate -> follower -> JAccount
-func migrateCommentOrigin(c *Comment, p *Post) error {
-	r := &Relationship{
-		Id:         helper.NewObjectId(),
-		SourceId:   p.Id,
-		SourceName: "JNewStatusUpdate",
-		TargetId:   c.OriginId,
-		TargetName: "JAccount",
-		As:         "commenter",
-		TimeStamp:  c.Meta.CreatedAt,
+func migrateCommentOrigin(c *Comment, p *Post, m *Migrator) error {
+	s := helper.Selector{
+		"sourceId": helper.GetObjectId(m.Id),
+		"targetId": c.OriginId,
+		"as":       "commenter",
 	}
-	if err := helper.AddRelationship(r); err != nil {
-		return err
+	r, err := helper.GetRelationship(s)
+	if err != nil {
+		return fmt.Errorf("commenter not found")
 	}
-	r.Id = helper.NewObjectId()
-	r.As = "follower"
-	return helper.AddRelationship(r)
+	if r.MigrationStatus != "Completed" {
+		or := r
+		r.Id = helper.NewObjectId()
+		r.SourceId = p.Id
+		r.SourceName = "JNewStatusUpdate"
+		if err := helper.AddRelationship(&r); err != nil {
+			updateRelationshipStatus(or, "Error")
+			return err
+		}
+	}
+	s["as"] = "follower"
+	r, err = helper.GetRelationship(s)
+	if err != nil {
+		return fmt.Errorf("follower not found")
+	}
+
+	if r.MigrationStatus != "Completed" {
+		or := r
+		r.Id = helper.NewObjectId()
+		r.SourceId = p.Id
+		r.SourceName = "JNewStatusUpdate"
+		if err := helper.AddRelationship(&r); err != nil {
+			updateRelationshipStatus(or, "Error")
+			return err
+		}
+	}
+
+	return nil
 }
 
-func migrateOrigin(p *Post) error {
-	r := &Relationship{
-		Id:         helper.NewObjectId(),
-		SourceId:   p.OriginId,
-		SourceName: "JAccount",
-		TargetId:   p.Id,
-		TargetName: "JNewStatusUpdate",
-		TimeStamp:  p.Meta.CreatedAt,
-		As:         "creator",
+func migrateOrigin(p *Post, m *Migrator) error {
+	s := helper.Selector{
+		"as":       "creator",
+		"targetId": helper.GetObjectId(m.Id),
+		"sourceId": p.OriginId,
 	}
-	if err := helper.AddRelationship(r); err != nil {
-		return err
+	r, err := helper.GetRelationship(s)
+	if err != nil {
+		return fmt.Errorf("creator not found")
 	}
 
-	r = swapRelationship(r, "author")
-	return helper.AddRelationship(r)
+	if r.MigrationStatus != "Completed" {
+		or := r
+		r.Id = helper.NewObjectId()
+		r.TargetId = p.Id
+		r.TargetName = "JNewStatusUpdate"
+		if err := helper.AddRelationship(&r); err != nil {
+			updateRelationshipStatus(or, "Error")
+			return err
+		}
+		updateRelationshipStatus(or, "Completed")
+	}
+	s = helper.Selector{
+		"as":       "author",
+		"sourceId": helper.GetObjectId(m.Id),
+		"targetId": p.OriginId,
+	}
+	r, err = helper.GetRelationship(s)
+	if err != nil {
+		return fmt.Errorf("author not found")
+	}
+
+	if r.MigrationStatus != "Completed" {
+		or := r
+		r.Id = helper.NewObjectId()
+		r.SourceId = p.Id
+		r.SourceName = "JNewStatusUpdate"
+		if err := helper.AddRelationship(&r); err != nil {
+			updateRelationshipStatus(or, "Error")
+			return err
+		}
+		updateRelationshipStatus(or, "Completed")
+	}
+
+	return nil
 }
 
 func verifyOrigin(p *Post) error {
