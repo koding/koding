@@ -106,4 +106,6 @@ if [ -f /etc/bash_completion ] && ! shopt -oq posix; then
     . /etc/bash_completion
 fi
 
-curl https://koding.com/koding3d.txt
+if [ -f /etc/skel/.koding3d.txt ]; then
+   cat /etc/skel/.koding3d.txt
+fi

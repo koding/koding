@@ -54,6 +54,7 @@ app        = express()
   findUsernameFromSession
   fetchJAccountByKiteUserNameAndKey
   serve
+  serveHome
   isLoggedIn
   getAlias
   addReferralCode
@@ -85,10 +86,11 @@ app.disable 'x-powered-by'
 if basicAuth
   app.use express.basicAuth basicAuth.username, basicAuth.password
 
-process.on 'uncaughtException',(err)->
+process.on 'uncaughtException', (err) ->
   console.log 'there was an uncaught exception'
   console.log process.pid
   console.error err
+  process.exit(1)
 
 app.use (req, res, next) ->
   # add referral code into session if there is one
@@ -191,12 +193,24 @@ app.get "/-/api/user/:username/flags/:flag", (req, res)->
       state = account.checkFlag('super-admin') or account.checkFlag(flag)
     res.end "#{state}"
 
+app.get "/-/api/app/:app"             , require "./applications"
 app.get "/-/oauth/odesk/callback"     , require "./odesk_callback"
 app.get "/-/oauth/github/callback"    , require "./github_callback"
 app.get "/-/oauth/facebook/callback"  , require "./facebook_callback"
 app.get "/-/oauth/google/callback"    , require "./google_callback"
 app.get "/-/oauth/linkedin/callback"  , require "./linkedin_callback"
 app.get "/-/oauth/twitter/callback"   , require "./twitter_callback"
+
+# TODO: we need to add basic auth!
+app.all '/-/email/webhook', (req, res) ->
+  { JMail } = koding.models
+  { body: batch } = req
+
+  for item in batch when item.event is 'delivered'
+    JMail.markDelivered item, (err) ->
+      console.warn err  if err
+
+  res.send 'ok'
 
 app.get "/Landing/:page", (req, res, next) ->
   {page}      = req.params
@@ -208,38 +222,49 @@ app.get "/Landing/:page", (req, res, next) ->
       JGroup.render.landing {account, page, client, bongoModels}, (err, body) ->
         serve body, res
 
+# Handles all internal pages
+# /USER || /SECTION || /GROUP[/SECTION] || /APP
+#
 app.all '/:name/:section?*', (req, res, next)->
   {JName, JGroup} = koding.models
   {name, section} = req.params
   return res.redirect 302, req.url.substring 7  if name in ['koding', 'guests']
   [firstLetter] = name
 
+  # Checks if its an internal request like /Activity, /Terminal ...
+  #
   if firstLetter.toUpperCase() is firstLetter
-    unless section
-    then next()
-    else
-      bongoModels = koding.models
-      generateFakeClient req, res, (err, client)->
+    # FIXME GG CHECK INTERNAL APPS HERE
+    # if name in ['Activity']
+    # then next()
+    # else
+    bongoModels = koding.models
+    generateFakeClient req, res, (err, client)->
 
-        isLoggedIn req, res, (err, loggedIn, account)->
-          prefix   = if loggedIn then 'loggedIn' else 'loggedOut'
-          serveSub = (err, subPage)->
-            return next()  if err
-            serve subPage, res
+      isLoggedIn req, res, (err, loggedIn, account)->
+        prefix   = if loggedIn then 'loggedIn' else 'loggedOut'
+        serveSub = (err, subPage)->
+          return next()  if err
+          serve subPage, res
 
-          if name is "Develop"
+        # # No need to use Develop anymore FIXME ~ GG
+        # if name is "Develop"
+        #   options = {account, name, section, client, bongoModels}
+        #   return JGroup.render[prefix].subPage options, serveSub
+
+        path = if section then "#{name}/#{section}" else name
+        JName.fetchModels path, (err, models)->
+          if err
             options = {account, name, section, client, bongoModels}
-            return JGroup.render[prefix].subPage options, serveSub
+            JGroup.render[prefix].subPage options, serveSub
+          else unless models?
+            serveHome req, res, next
+          else
+            options = {account, name, section, models, client, bongoModels}
+            JGroup.render[prefix].subPage options, serveSub
 
-          JName.fetchModels "#{name}/#{section}", (err, models)->
-            if err
-              options = {account, name, section, client, bongoModels}
-              JGroup.render[prefix].subPage options, serveSub
-            else unless models? then next()
-            else
-              options = {account, name, section, models, client, bongoModels}
-              JGroup.render[prefix].subPage options, serveSub
-
+  # Checks if its a User or Group from JName collection
+  #
   else
     isLoggedIn req, res, (err, loggedIn, account)->
       JName.fetchModels name, (err, models)->
@@ -252,37 +277,25 @@ app.all '/:name/:section?*', (req, res, next)->
             else res.send 500, error_500()
         else next()
 
+# Main Handler for Koding.com
+#
 app.get "/", (req, res, next)->
-  staticHome = require "../crawler/staticpages/kodinghome"
 
+  # Handle crawler request
+  #
   if req.query._escaped_fragment_?
+    staticHome = require "../crawler/staticpages/kodinghome"
     slug = req.query._escaped_fragment_
     return res.send 200, staticHome() if slug is ""
-
     return Crawler.crawl koding, req, res, slug
+
+  # User requests
+  #
   else
-    serveSub = (err, subPage)->
-      return next()  if err
-      serve subPage, res
-    {JGroup} = koding.models
-    bongoModels = koding.models
+    serveHome req, res
 
-    generateFakeClient req, res, (err, client)->
-      if err or not client
-        console.log err
-        return next()
-
-      isLoggedIn req, res, (err, loggedIn, account)->
-        if err
-          res.send 500, error_500()
-          console.error err
-        else if loggedIn
-          # go to koding activity
-          JGroup.render.loggedIn.kodingHome {client, account, bongoModels}, serveSub
-        else
-          # go to koding home
-          JGroup.render.loggedOut.kodingHome {client, account, bongoModels}, serveSub
-
+# Forwards to /
+#
 app.get '*', (req,res)->
   {url}            = req
   queryIndex       = url.indexOf '?'

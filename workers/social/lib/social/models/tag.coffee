@@ -7,7 +7,7 @@ module.exports = class JTag extends jraphical.Module
 
   {Relationship} = jraphical
 
-  {ObjectId, ObjectRef, Inflector, secure, daisy, race} = require 'bongo'
+  {ObjectId, ObjectRef, Inflector, daisy, secure, race, signature} = require 'bongo'
 
   Validators  = require './group/validators'
   {permit}    = require './group/permissionset'
@@ -41,6 +41,12 @@ module.exports = class JTag extends jraphical.Module
       'delete tags'           : ['moderator']
       'edit own tags'         : ['moderator']
       'delete own tags'       : ['moderator']
+      'assign system tag'     : ['moderator']
+      'fetch system tag'      : ['moderator']
+      'create system tag'     : ['moderator']
+      'remove system tag'     : ['moderator']
+      # 'delete system tag'     : ['moderator']
+
     emitFollowingActivities : yes # create buckets for follower / followees
     indexes         :
       # slug          : 'unique'
@@ -52,17 +58,75 @@ module.exports = class JTag extends jraphical.Module
         { name: 'updateInstance' }
       ]
     sharedMethods   :
-      instance      : [
-        'modify','follow', 'unfollow', 'fetchFollowersWithRelationship'
-        'fetchFollowingWithRelationship','fetchContents','fetchContentTeasers',
-        'delete'
+      instance      :
+        modify      :
+          (signature Object, Function)
+        follow      : [
+          (signature Function)
+          (signature Object, Function)
         ]
-      static        : [
-        'one','on','some','create', 'count', 'fetchCount' #,'updateAllSlugs'
-        'someWithRelationship','byRelevance'#,'markFollowing'
-        'cursor','cursorWithRelationship','fetchMyFollowees','each'
-        'fetchSkillTags', 'byRelevanceForSkills'
+        unfollow:
+          (signature Function)
+        fetchFollowersWithRelationship:
+          (signature Object, Object, Function)
+        fetchFollowingWithRelationship:
+          (signature Object, Object, Function)
+        fetchContents:
+          (signature Function)
+        fetchContentTeasers: [
+          (signature Object, Object, Function)
+          (signature Object, Object, Object, Function)
         ]
+        addSystemTagToStatusUpdate:
+          (signature Object, Function)
+        removeTagFromStatus:
+          (signature Object, Function)
+        delete:
+          (signature Function)
+        fetchLastInteractors:
+          (signature Object, Function)
+      static        :
+        one: [
+          (signature Object, Function)
+          (signature Object, Object, Function)
+        ]
+        on:
+          (signature String, Function)
+        some:
+          (signature Object, Object, Function)
+        create:
+          (signature Object, Function)
+        count:
+          (signature Object, Function)
+        fetchCount:
+          (signature Function)
+        someWithRelationship:
+          (signature Object, Object, Function)
+        byRelevance: [
+          (signature String, Function)
+          (signature String, Object, Function)
+        ]
+        cursor:
+          (signature Object, Object, Function)
+        cursorWithRelationship:
+          (signature Object, Object, Function)
+        fetchMyFollowees:
+          (signature [Object], Function)
+        each: [
+          (signature Object, Object, Function)
+          (signature Object, Object, Object, Function)
+        ]
+        fetchSkillTags:
+          (signature Object, Object, Function)
+        byRelevanceForSkills: [
+          (signature String, Function)
+          (signature String, Object, Function)
+        ]
+        fetchSystemTags:
+          (signature Object, Object, Function)
+        createSystemTag:
+          (signature Object, Object, Function)
+
     schema          :
       title         :
         type        : String
@@ -90,6 +154,9 @@ module.exports = class JTag extends jraphical.Module
       meta          : require 'bongo/bundles/meta'
       synonyms      : [String]
       group         : String
+      category      :
+        type        : String
+        default     : "user-tag"
       # owner         : ObjectId
     relationships   :->
       JAccount = require './account'
@@ -103,8 +170,16 @@ module.exports = class JTag extends jraphical.Module
         as          : 'follower'
       content       :
         targetType  : [
-          "JCodeSnip", "JApp", "JStatusUpdate", "JLink", "JTutorial"
-          "JAccount", "JOpinion", "JDiscussion", "JCodeShare", 'JBlogPost'
+          "JNewStatusUpdate"
+          # "JCodeSnip"
+          # "JNewApp"
+          # "JLink"
+          # "JTutorial"
+          # "JAccount"
+          # "JOpinion"
+          # "JDiscussion"
+          # "JCodeShare"
+          # 'JBlogPost'
 
         ]
         as          : 'post'
@@ -185,6 +260,12 @@ module.exports = class JTag extends jraphical.Module
               callbackForEach null, tag for tag in existingTags
       ]
 
+
+  @create$ = permit 'create tags',
+    success: (client, data, callback)->
+      data.category = "user-tag"
+      @create client, data, callback
+
   @create = permit 'create tags',
     success: (client, data, callback)->
       {delegate} = client.connection
@@ -207,13 +288,15 @@ module.exports = class JTag extends jraphical.Module
                   callback null, tag
 
   @findSuggestions = (client, seed, options, callback)->
-    {limit, blacklist, skip} = options
+    {limit, blacklist, skip, category} = options
     {group} = client.context
     @some {
         group
         title   : seed
         _id     :
           $nin  : blacklist
+        category: "user-tag"
+
       },{
         skip
         limit
@@ -278,7 +361,8 @@ module.exports = class JTag extends jraphical.Module
       @one uniqueSelector, options, callback
 
   @_some = (client, selector, options, callback)->
-    selector.group = makeGroupSelector client.context.group
+    selector.group    = makeGroupSelector client.context.group
+    selector.category = "user-tag"
     @some selector, options, callback
 
   @some$ = permit 'read tags', success: @_some
@@ -291,19 +375,77 @@ module.exports = class JTag extends jraphical.Module
     success:(client, selector, callback)->
       [callback, selector] = [selector, callback]  unless callback
       selector ?= {}
-      selector.group = makeGroupSelector client.context.group
+      selector.group    = makeGroupSelector client.context.group
+      selector.category = "user-tag"
       @count selector, callback
 
   @cursor$ = permit 'read tags',
     success:(client, selector, options, callback)->
-      selector.group = makeGroupSelector client.context.group
+      selector.group    = makeGroupSelector client.context.group
+      selector.category = "user-tag"
       @cursor selector, options, callback
 
   @each$ = permit 'read tags',
     success:(client, selector, fields, options, callback)->
-      selector.group = makeGroupSelector client.context.group
+      selector.group    = makeGroupSelector client.context.group
+      selector.category = "user-tag"
       @each selector, fields, options, callback
 
   @byRelevance$ = permit 'read tags',
     success: (client, seed, options, callback)->
       @byRelevance client, seed, options, callback
+
+  @fetchSystemTags    = permit 'fetch system tag',
+   success: (client, selector, options, callback)->
+    selector.group    = makeGroupSelector client.context.group
+    selector.category = "system-tag"
+    @some selector, options, callback
+
+  addSystemTagToStatusUpdate : permit 'assign system tag',
+    success: (client, statusUpdate, callback)->
+      callback new KodingError "That is not system tag!" unless @category is "system-tag"
+      JNewStatusUpdate = require './messages/newstatusupdate'
+      JNewStatusUpdate.one _id:statusUpdate._id, (err, status)=>
+        callback err if err
+        if status
+          tagsArray = [
+            slug: @slug
+          ]
+          status.addTags client, tagsArray , (err)->
+            callback err, null
+        else
+          callback new KodingError "Status not found!"
+
+  @createSystemTag = permit 'create system tag',
+    success: (client, data, callback)->
+      data.category = "system-tag"
+      @create client, data, callback
+
+  removeTagFromStatus  = permit 'remove system tag',
+    success: (client, statusUpdate, callback)->
+      callback new KodingError "That is not system tag!" unless @category is "system-tag"
+      JNewStatusUpdate = require './messages/newstatusupdate'
+      JNewStatusUpdate.one id:statusUpdate._id, (err, status)=>
+        callback err if err or not status
+        Relationship.remove {
+          targetId    : @getId()
+          sourceId    : status.getId()
+        } , callback
+
+  fetchLastInteractors: secure (client, options, callback)->
+    {limit}  = options
+    limit  or= 3
+
+    Relationship.some {
+      as       : "follower"
+      sourceId : @getId()
+    }, {limit, sort: {'_id' : -1}}, (err, rels)->
+      accounts = []
+      daisy queue = rels.map (r)->
+        ->
+          JAccount = require './account'
+          JAccount.one _id: r.targetId, (err, acc)->
+            accounts.push acc  if !err and acc
+            queue.next()
+
+      queue.push -> callback null, accounts

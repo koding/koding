@@ -8,9 +8,9 @@ module.exports = ->
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
   <meta name="apple-mobile-web-app-title" content="Koding" />
   <meta name="viewport" content="user-scalable=no, width=device-width, initial-scale=1" />
-  <link rel="shortcut icon" href="/images/favicon.ico" />
-  <link rel="fluid-icon" href="/images/kd-fluid-icon512.png" title="Koding" />
-  <link rel="stylesheet" href="/css/kd.#{KONFIG.version}.css" />
-  <link rel="stylesheet" href="/css/introapp.#{KONFIG.version}.css" />
-  <link rel="stylesheet" href="/css/kdapp.#{KONFIG.version}.css" />
+  <link rel="shortcut icon" href="/a/images/favicon.ico" />
+  <link rel="fluid-icon" href="/a/images/kd-fluid-icon512.png" title="Koding" />
+  <link rel="stylesheet" href="/a/css/kd.#{KONFIG.version}.css" />
+  <link rel="stylesheet" href="/a/css/introapp.#{KONFIG.version}.css" />
+  <link rel="stylesheet" href="/a/css/koding.#{KONFIG.version}.css" />
   """

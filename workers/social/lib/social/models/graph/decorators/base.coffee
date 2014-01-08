@@ -26,11 +26,11 @@ module.exports = class BaseDecorator
 
   jNameToC:->
     maps =
-      'JStatusUpdate' : 'CStatusActivity'
-      'JCodeSnip'     : 'CCodeSnipActivity'
-      'JDiscussion'   : 'CDiscussionActivity'
-      'JTutorial'     : 'CTutorialActivity'
-      'JBlogPost'     : 'CBlogPostActivity'
+      'JNewStatusUpdate' : 'CStatusActivity'
+#      'JCodeSnip'     : 'CCodeSnipActivity'
+#      'JDiscussion'   : 'CDiscussionActivity'
+#      'JTutorial'     : 'CTutorialActivity'
+#      'JBlogPost'     : 'CBlogPostActivity'
 
     return maps
 

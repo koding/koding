@@ -2,7 +2,7 @@ jraphical      = require 'jraphical'
 KodingError = require '../../error'
 
 module.exports = class CActivity extends jraphical.Capsule
-  {Base, ObjectId, race, dash, secure} = require 'bongo'
+  {Base, ObjectId, race, dash, secure, signature} = require 'bongo'
   {Relationship} = jraphical
 
   {groupBy} = require 'underscore'
@@ -40,17 +40,52 @@ module.exports = class CActivity extends jraphical.Capsule
     sharedEvents      :
       instance        : []
       static          : ['BucketIsUpdated', 'cacheWorker'
-                         'ActivityIsCreated', 'feed-new']
+                         'ActivityIsCreated']
     sharedMethods     :
-      static          : [
-        'fetchFolloweeContents'
-        'one','some','someData','each','cursor','teasers'
-        'captureSortCounts','addGlobalListener','fetchFacets'
-        'checkIfLikedBefore', 'count', 'fetchCount'
-        'fetchPublicActivityFeed', 'fetchUsersActivityFeed',
-        'fetchLastActivityTimestamp',
-      ]
-      instance        : ['fetchTeaser']
+      static          :
+        fetchFolloweeContents:
+          (signature Object, Function)
+        one:
+          (signature Object, Function)
+        some:
+          (signature Object, Object, Function)
+        someData: [
+          (signature Object, Object, Function)
+          (signature Object, Object, Object, Function)
+        ]
+        each: [
+          (signature Object, Object, Function)
+          (signature Object, Object, Object, Function)
+        ]
+        cursor:
+          (signature Object, Object, Function)
+        teasers: [
+          (signature Function)
+          (signature Object, Function)
+        ]
+        captureSortCounts:
+          (signature Function)
+        fetchFacets:
+          (signature Object, Function)
+        checkIfLikedBefore:
+          (signature [String], Function)
+        count: [
+          (signature Function)
+          (signature Object, Function)
+        ]
+        fetchCount:
+          (signature Function)
+        fetchPublicActivityFeed:
+          (signature Object, Function)
+        fetchUsersActivityFeed:
+          (signature Object, Function)
+        fetchLastActivityTimestamp:
+          (signature Function)
+      instance        :
+        fetchTeaser: [
+          (signature Function)
+          (signature Function, Boolean)
+        ]
 
     schema            :
       # teaserSnapshot  : Object
@@ -76,12 +111,6 @@ module.exports = class CActivity extends jraphical.Capsule
       originType      : String
       originId        : ObjectId
       group           : String
-
-  @on 'feed-new', (activities)->
-    JGroup = require '../group'
-    grouped = groupBy activities, 'group'
-    for own groupName, items of grouped
-      JGroup.broadcast groupName, 'feed-new', items
 
   @fetchLastActivityTimestamp = (callback) ->
     selector  = {}

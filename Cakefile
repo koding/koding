@@ -8,6 +8,8 @@ option '-a', '--domain [DOMAIN]', 'Pass a domain to the task (right now only bro
 option '-f', '--file [file]', 'run tests with just one file'
 option '-l', '--location [location]', 'run tests with this base url'
 
+option '-t', '--tests', 'require test suite'
+
 {spawn, exec} = require 'child_process'
 
 log =
@@ -24,7 +26,7 @@ hat                = require 'hat'
 url                = require 'url'
 nodePath           = require 'path'
 portchecker        = require 'portchecker'
-Watcher            = require "koding-watcher"
+Watcher            = require 'koding-watcher'
 
 require 'colors'
 
@@ -81,14 +83,14 @@ task 'deleteNeo4j', "Drop all entries in the local Neo4j database", ({configFile
 task 'compileGo', "Compile the local go binaries", ({configFile})->
   compileGoBinaries configFile,->
 
-task 'webserver', "Run the webserver", ({configFile}) ->
+task 'webserver', "Run the webserver", ({configFile, tests}) ->
   KONFIG = require('koding-config-manager').load("main.#{configFile}")
   {webserver,sourceServer} = KONFIG
 
   runServer = (config, port, index) ->
     processes.fork
       name              : "server"
-      cmd               : __dirname + "/server/index -c #{config} -p #{port}"
+      cmd               : __dirname + "/server/index -c #{config} -p #{port}#{if tests then ' -t' else ''}"
       restart           : yes
       restartTimeout    : 100
       kontrol           :
@@ -157,6 +159,7 @@ task 'socialWorker', "Run the socialWorker", ({configFile}) ->
               processes.kill "social"
             else
               processes.kill "social-#{i}" for i in [1..social.numberOfWorkers]
+    watcher.on 'change', -> console.log 'change happened', arguments
 
 
 task 'authWorker', "Run the authWorker", ({configFile}) ->
@@ -504,6 +507,7 @@ run =({configFile})->
     invoke 'socialWorker'
     invoke 'emailWorker'                      if config.emailWorker?.run is yes
     invoke 'emailSender'                      if config.emailSender?.run is yes
+    invoke 'addTagCategories'
     invoke 'webserver'
 
 task 'importDB', (options) ->
@@ -543,6 +547,12 @@ task 'run', (options)->
       queue.next()
   queue.push -> run options
   daisy queue
+
+task 'buildTests', "Build the client-side tests", (options) ->
+
+task 'killGoProcesses', " Kill hanging go processes", (options) ->
+  command = "kill -9 `ps -ef | grep go/bin | grep -v grep | awk '{print $2}'`"
+  exec command
 
 task 'buildClient', "Build the static web pages for webserver", (options)->
   (new (require('./Builder'))).buildClient options
@@ -636,6 +646,12 @@ task 'test-all', 'Runs functional test suite', (options)->
 
 # ------------ OTHER LESS IMPORTANT STUFF ---------------------#
 
+task 'addTagCategories','Add new field category to JTag, and set default to "user-tag"',(options)->
+  command = """
+  mongo localhost/koding --quiet  --eval='db.jTags.update(
+    {"category":{$ne:"system-tag"}},{$set:{"category":"user-tag"}},{"multi":"true"})'
+  """
+  exec command
 
 task 'parseAnalyzedCss','Shows the output of analyzeCss in a nice format',(options)->
 

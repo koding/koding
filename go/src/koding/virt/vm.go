@@ -5,7 +5,7 @@ import (
 	"io"
 	"io/ioutil"
 	"koding/db/models"
-	"labix.org/v2/mgo/bson"
+	"log"
 	"net"
 	"os"
 	"os/exec"
@@ -13,6 +13,8 @@ import (
 	"syscall"
 	"text/template"
 	"time"
+
+	"labix.org/v2/mgo/bson"
 )
 
 type VM models.VM
@@ -118,17 +120,11 @@ func (vm *VM) ApplyDefaults() {
 	}
 }
 
+// DONT refactor this function, it works on an assumption that it SHOULD panic.
 func (vm *VM) Prepare(reinitialize bool, logWarning func(string, ...interface{})) {
 	vm.Unprepare()
 
-	//var err error
-	//vm.VMRoot, err = os.Readlink("/var/lib/lxc/vmroot/")
-	//if err != nil {
-	//	vm.VMRoot = "/var/lib/lxc/vmroot/"
-	//}
-	//if vm.VMRoot[0] != '/' {
-	//	vm.VMRoot = "/var/lib/lxc/" + vm.VMRoot
-	//}
+	defer un(trace(fmt.Sprintf("prepare %s", vm)))
 
 	// write LXC files
 	prepareDir(vm.File(""), 0)
@@ -198,6 +194,7 @@ func UnprepareVM(id bson.ObjectId) error {
 }
 
 func (vm *VM) Unprepare() error {
+	defer un(trace(fmt.Sprintf("unprepare %s", vm)))
 	var firstError error
 
 	// stop VM
@@ -259,7 +256,7 @@ func (vm *VM) MountRBD(mountDir string) error {
 	// create image if it does not exist
 	if out, err := exec.Command("/usr/bin/rbd", "info", "--pool", VMPool, "--image", vm.String()).CombinedOutput(); err != nil {
 		exitError, isExitError := err.(*exec.ExitError)
-		if !isExitError || exitError.Sys().(syscall.WaitStatus).ExitStatus() > 2  {
+		if !isExitError || exitError.Sys().(syscall.WaitStatus).ExitStatus() > 2 {
 			return commandError("rbd info failed.", err, out)
 		}
 
@@ -478,4 +475,14 @@ func copyFile(src, dst string, id int) error {
 	}
 
 	return nil
+}
+
+func trace(s string) (string, time.Time) {
+	log.Println("START:", s)
+	return s, time.Now()
+}
+
+func un(s string, startTime time.Time) {
+	endTime := time.Now()
+	log.Println("  END:", s, "ElapsedTime in seconds:", endTime.Sub(startTime))
 }

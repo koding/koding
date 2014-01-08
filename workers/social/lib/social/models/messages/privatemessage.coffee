@@ -5,7 +5,7 @@ KodingError = require '../../error'
 
 module.exports = class JPrivateMessage extends JPost
 
-  {ObjectRef, secure, race} = require 'bongo'
+  {ObjectRef, secure, race, signature} = require 'bongo'
 
   jraphical = require 'jraphical'
   {unique}  = require 'underscore'
@@ -16,11 +16,40 @@ module.exports = class JPrivateMessage extends JPost
 
   @set
     sharedMethods :
-      static      : ['create','on']
+      static      :
+        create:
+          (signature Object, Function)
+        on:
+          (signature String, Function)
       instance    : [
-        'reply','restComments','commentsByRange','like',
-        'fetchLikedByes','disown','mark',
-        'unmark','fetchRelativeComments'
+        reply:
+          (signature String, Function)
+        restComments: [
+          (signature Function)
+          (signature Number, Function)
+        ]
+        commentsByRange: [
+          (signature Function)
+          (signature Object, Function)
+        ]
+        like:
+          (signature Function)
+        fetchLikedByes: [
+          (signature Function)
+          (signature Object, Function)
+        ]
+        disown:
+          (signature Function)
+        mark: [
+          (signature String)
+          (signature String, Function)
+        ]
+        unmark: [
+          (signature String)
+          (signature String, Function)
+        ]
+        fetchRelativeComments:
+          (signature Object, Function)
       ]
     sharedEvents  :
       static      : []
@@ -76,7 +105,7 @@ module.exports = class JPrivateMessage extends JPost
       , callback
       deliver recipient, pm for recipient in recipients
 
-    secure (client, data, callback)->
+    secure (client, data, callback = (->)) ->
       {delegate} = client.connection
 
       JAccount = require '../account'
