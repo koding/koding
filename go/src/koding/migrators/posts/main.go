@@ -69,7 +69,6 @@ func migrate(m *Migrator) error {
 		m.Id = post.Id.Hex()
 		oldPost := post
 		post.Id = helper.NewObjectId()
-		m.NewId = post.Id.Hex()
 		m.Index++
 		if err := verifyOrigin(&post); err != nil {
 			ReportError(m, err)
@@ -80,6 +79,8 @@ func migrate(m *Migrator) error {
 			ReportError(m, err)
 			continue
 		}
+
+		m.NewId = post.Id.Hex()
 
 		if err := updatePostStatus(&oldPost, m, "Started"); err != nil {
 			ReportError(m, err)
@@ -436,6 +437,7 @@ func migrateCommentOrigin(c *Comment, p *Post, m *Migrator) error {
 			updateRelationshipStatus(or, "Error")
 			return err
 		}
+		updateRelationshipStatus(or, "Completed")
 	}
 	s["as"] = "follower"
 	r, err = helper.GetRelationship(s)
@@ -452,6 +454,7 @@ func migrateCommentOrigin(c *Comment, p *Post, m *Migrator) error {
 			updateRelationshipStatus(or, "Error")
 			return err
 		}
+		updateRelationshipStatus(or, "Completed")
 	}
 
 	return nil
