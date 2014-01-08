@@ -97,7 +97,8 @@ func startConsuming() {
 		}
 		data := message.Payload[0]
 
-		log.Debug(message.Event)
+		log.Debug(message.Event, data)
+
 		if message.Event == "RelationshipSaved" {
 			createNode(data)
 		} else if message.Event == "RelationshipRemoved" {
@@ -107,7 +108,7 @@ func startConsuming() {
 		} else if message.Event == "RemovedFromCollection" {
 			deleteNode(data)
 		} else {
-			log.Debug(message.Event)
+			log.Debug("No method found for event", message.Event)
 		}
 
 		msg.Ack(true)
