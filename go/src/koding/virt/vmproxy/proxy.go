@@ -39,11 +39,7 @@ func main() {
 	// })
 
 	fastproxy.ListenHTTP(&net.TCPAddr{IP: nil, Port: 3021}, nil, false, func(req *fastproxy.HTTPRequest) {
-		defer func() {
-			if err := recover(); err != nil {
-				log.Error(err.(error).Error())
-			}
-		}()
+		defer log.RecoverAndLog()
 
 		vmName := strings.SplitN(req.Host, ".", 2)[0]
 
