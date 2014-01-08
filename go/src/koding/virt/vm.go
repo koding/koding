@@ -296,8 +296,14 @@ func UnprepareVM(id bson.ObjectId) error {
 	return vm.Unprepare()
 }
 
+// Unprepare is basically the inverse of Prepare. We don't use lxc.destroy
+// (which purges the container immediately). Instead we use this method which
+// basically let us umount previously mounted disks, remove generated files,
+// etc. It doesn't remove the home folder or any newly created system files.
+// Those files will be stored in the vmroot.
 func (vm *VM) Unprepare() error {
 	defer un(trace(vm.String()))
+
 	var firstError error
 
 	// stop VM
@@ -305,40 +311,21 @@ func (vm *VM) Unprepare() error {
 		panic(err)
 	}
 
-	// backup dpkg database for statistical purposes
-	os.Mkdir("/var/lib/lxc/dpkg-statuses", 0755)
-	copyFile(vm.OverlayFile("/var/lib/dpkg/status"), "/var/lib/lxc/dpkg-statuses/"+vm.String(), RootIdOffset)
+	vm.backupDpkg()
 
-	if vm.IP == nil {
-		if ip, err := ioutil.ReadFile(vm.File("ip-address")); err == nil {
-			vm.IP = net.ParseIP(string(ip))
-		}
+	if err := vm.removeNetworkRules(); err != nil && firstError == nil {
+		firstError = err
 	}
 
-	if vm.IP != nil {
-		// remove ebtables entry
-		if out, err := exec.Command("/sbin/ebtables", "--delete", "VMS", "--protocol", "IPv4", "--source", vm.MAC().String(), "--ip-src", vm.IP.String(), "--in-interface", vm.VEth(), "--jump", "ACCEPT").CombinedOutput(); err != nil && firstError == nil {
-			firstError = commandError("ebtables rule deletion failed.", err, out)
-		}
-
-		// remove the static route so it is no longer redistribed by BGP
-		if out, err := exec.Command("/sbin/route", "del", vm.IP.String(), "lxcbr0").CombinedOutput(); err != nil {
-			firstError = commandError("Removing route failed.", err, out)
-		}
+	if err := vm.umountPts(); err != nil && firstError == nil {
+		firstError = err
 	}
 
-	// unmount and unmap everything
-	if out, err := exec.Command("/bin/umount", vm.PtsDir()).CombinedOutput(); err != nil && firstError == nil {
-		firstError = commandError("umount devpts failed.", err, out)
+	if err := vm.umountAufs(); err != nil && firstError == nil {
+		firstError = err
 	}
-	//Flush the aufs
-	if out, err := exec.Command("/sbin/auplink", vm.File("rootfs"), "flush").CombinedOutput(); err != nil && firstError == nil {
-		firstError = commandError("AUFS flush failed.", err, out)
-	}
-	if out, err := exec.Command("/bin/umount", vm.File("rootfs")).CombinedOutput(); err != nil && firstError == nil {
-		firstError = commandError("umount overlay failed.", err, out)
-	}
-	if err := vm.UnmountRBD(vm.OverlayFile("")); err != nil && firstError == nil {
+
+	if err := vm.umountRBD(); err != nil && firstError == nil {
 		firstError = err
 	}
 
@@ -351,6 +338,79 @@ func (vm *VM) Unprepare() error {
 	os.Remove(vm.File(""))
 
 	return firstError
+}
+
+func (vm *VM) backupDpkg() {
+	defer un(trace(vm.String()))
+
+	// backup dpkg database for statistical purposes
+	os.Mkdir("/var/lib/lxc/dpkg-statuses", 0755)
+	copyFile(vm.OverlayFile("/var/lib/dpkg/status"), "/var/lib/lxc/dpkg-statuses/"+vm.String(), RootIdOffset)
+
+}
+
+func (vm *VM) removeNetworkRules() error {
+	defer un(trace(vm.String()))
+
+	var firstError error
+
+	if vm.IP == nil {
+		if ip, err := ioutil.ReadFile(vm.File("ip-address")); err == nil {
+			vm.IP = net.ParseIP(string(ip))
+		}
+	}
+
+	if vm.IP != nil {
+		// remove ebtables entry
+		if out, err := exec.Command("/sbin/ebtables", "--delete", "VMS", "--protocol", "IPv4",
+			"--source", vm.MAC().String(), "--ip-src", vm.IP.String(), "--in-interface", vm.VEth(),
+			"--jump", "ACCEPT").CombinedOutput(); err != nil {
+			firstError = commandError("ebtables rule deletion failed.", err, out)
+		}
+
+		// remove the static route so it is no longer redistribed by BGP
+		if out, err := exec.Command("/sbin/route", "del", vm.IP.String(), "lxcbr0").CombinedOutput(); err != nil {
+			firstError = commandError("Removing route failed.", err, out)
+		}
+	}
+
+	return firstError
+}
+
+func (vm *VM) umountPts() error {
+	defer un(trace(vm.String()))
+
+	// unmount and unmap everything
+	if out, err := exec.Command("/bin/umount", vm.PtsDir()).CombinedOutput(); err != nil {
+		return commandError("umount devpts failed.", err, out)
+	}
+	return nil
+}
+
+func (vm *VM) umountAufs() error {
+	defer un(trace(vm.String()))
+	var firstError error
+
+	//Flush the aufs
+	if out, err := exec.Command("/sbin/auplink", vm.File("rootfs"), "flush").CombinedOutput(); err != nil {
+		firstError = commandError("AUFS flush failed.", err, out)
+	}
+
+	if out, err := exec.Command("/bin/umount", vm.File("rootfs")).CombinedOutput(); err != nil && firstError == nil {
+		firstError = commandError("umount overlay failed.", err, out)
+	}
+
+	return firstError
+}
+
+func (vm *VM) umountRBD() error {
+	defer un(trace(vm.String()))
+
+	if err := vm.UnmountRBD(vm.OverlayFile("")); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (vm *VM) MountRBD(mountDir string) error {
