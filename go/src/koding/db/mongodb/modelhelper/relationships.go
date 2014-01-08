@@ -56,3 +56,8 @@ func AddRelationship(r *models.Relationship) error {
 
 	return mongodb.Run("relationships", query)
 }
+
+func UpdateRelationship(r *models.Relationship) error {
+	query := updateByIdQuery(r.Id.Hex(), r)
+	return mongodb.Run("relationships", query)
+}
