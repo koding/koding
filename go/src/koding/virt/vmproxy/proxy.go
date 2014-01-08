@@ -4,13 +4,15 @@ import (
 	"koding/db/mongodb"
 	"koding/tools/fastproxy"
 	"koding/tools/lifecycle"
-	"koding/tools/log"
+	"koding/tools/logger"
 	"koding/virt"
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
 	"net"
 	"strings"
 )
+
+var log = logger.New("vmproxy")
 
 func main() {
 	lifecycle.Startup("proxy", true)
@@ -37,7 +39,11 @@ func main() {
 	// })
 
 	fastproxy.ListenHTTP(&net.TCPAddr{IP: nil, Port: 3021}, nil, false, func(req *fastproxy.HTTPRequest) {
-		defer log.RecoverAndLog()
+		defer func() {
+			if err := recover(); err != nil {
+				log.Error(err.(error).Error())
+			}
+		}()
 
 		vmName := strings.SplitN(req.Host, ".", 2)[0]
 
