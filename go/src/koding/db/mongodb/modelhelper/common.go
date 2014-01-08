@@ -36,6 +36,12 @@ func updateByIdQuery(id string, data interface{}) func(*mgo.Collection) error {
 	}
 }
 
+func updateQuery(s Selector, data interface{}) func(*mgo.Collection) error {
+	return func(c *mgo.Collection) error {
+		return c.Update(s, data)
+	}
+}
+
 // TODO this is not functional
 func findAllQuery(s Selector, o Options, data interface{}) func(*mgo.Collection) error {
 	return func(c *mgo.Collection) error {
