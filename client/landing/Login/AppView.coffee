@@ -117,7 +117,7 @@ class LoginView extends KDView
       click       : registerHandler
 
     @github       = new KDButtonView
-      title       : "Sign in with GitHub"
+      title       : "Sign up with GitHub"
       style       : 'solid github'
       icon        : yes
       callback    : ->
