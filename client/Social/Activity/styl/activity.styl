@@ -56,6 +56,21 @@ resurrection.activity.styl
         &[disabled=disabled]
           bg            color, #DDD !important
 
+      &.bug-tagged
+        overflow          visible
+
+        &:after
+          content         "Since you’ve tagged your status with #Bug, we’re gonna put it on /Bugs and hide it from the public feed."
+          display         block
+          size            100%, 38px
+          line-height     38px
+          color           #fff
+          font-weight     400
+          text-align      center
+          font-size       12px
+          rounded         0 0 3px 3px
+          bg              color, #1aaf5d
+
     .filter-warning
       background        rgba(37, 46, 48, 1.0)
       width             calc( 100% \- 10px)
