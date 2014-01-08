@@ -25,7 +25,7 @@ class GroupGeneralSettingsView extends JView
 
       buttons:
         Save                :
-          style             : "modal-clean-green"
+          style             : "solid green"
           type              : "submit"
           loader            :
             color           : "#444444"
