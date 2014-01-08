@@ -5,7 +5,7 @@ import (
 	"koding/databases/neo4j"
 	"koding/db/mongodb"
 	"koding/tools/config"
-	"koding/tools/log"
+	"koding/tools/logger"
 	"koding/workers/neo4jfeeder/mongohelper"
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
@@ -30,6 +30,8 @@ var (
 	MONGO_COLLECTION_NAME = "relationships"
 	TIME_FORMAT           = "2006-01-02T15:04:05.000Z"
 )
+
+var log = logger.New("mongo2neo4j")
 
 func main() {
 
@@ -104,7 +106,7 @@ func main() {
 	}
 
 	if iter.Err() != nil {
-		log.Warn("Error during iteration: ", iter.Err())
+		log.Warning("Error during iteration: ", iter.Err())
 	}
 
 	fmt.Println("Migration completed")
