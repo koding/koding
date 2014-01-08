@@ -60,22 +60,22 @@ func startConsuming() {
 	// exchangeName, ExchangeType, durable, autoDelete, internal, noWait, args
 	err := c.channel.ExchangeDeclare(EXCHANGE_NAME, "fanout", true, false, false, false, nil)
 	if err != nil {
-		log.Critical("exchange.declare: %s", err)
+		log.Panic("exchange.declare: %s", err)
 	}
 
 	//name, durable, autoDelete, exclusive, noWait, args Table
 	if _, err := c.channel.QueueDeclare(WORKER_QUEUE_NAME, true, false, false, false, nil); err != nil {
-		log.Critical("queue.declare: %s", err)
+		log.Panic("queue.declare: %s", err)
 	}
 
 	if err := c.channel.QueueBind(WORKER_QUEUE_NAME, "" /* binding key */, EXCHANGE_NAME, false, nil); err != nil {
-		log.Critical("queue.bind: %s", err)
+		log.Panic("queue.bind: %s", err)
 	}
 
 	//(queue, consumer string, autoAck, exclusive, noLocal, noWait bool, args Table) (<-chan Delivery, error) {
 	relationshipEvent, err := c.channel.Consume(WORKER_QUEUE_NAME, "neo4jFeeding", false, false, false, false, nil)
 	if err != nil {
-		log.Error("basic.consume: %s", err)
+		log.Panic("basic.consume: %s", err)
 	}
 
 	log.Notice("Neo4J Feeder worker started")
@@ -183,7 +183,7 @@ func createNode(data map[string]interface{}) {
 	targetContent, err := mongohelper.FetchContent(bson.ObjectIdHex(targetId), targetName)
 	if err != nil {
 		sTimer.Failed()
-		fmt.Println("targetContent", err)
+		log.Error("targetContent", err)
 
 		return
 	}
@@ -195,7 +195,7 @@ func createNode(data map[string]interface{}) {
 
 	if _, ok := data["as"]; !ok {
 		sTimer.Failed()
-		fmt.Println("as value is not set on this relationship. Discarding this record", data)
+		log.Error("as value is not set on this relationship. Discarding this record", data)
 
 		return
 	}
@@ -203,7 +203,7 @@ func createNode(data map[string]interface{}) {
 
 	if _, ok := data["_id"]; !ok {
 		sTimer.Failed()
-		fmt.Println("id value is not set on this relationship. Discarding this record", data)
+		log.Error("id value is not set on this relationship. Discarding this record", data)
 
 		return
 	}
@@ -230,7 +230,7 @@ func getCreatedAtDate(data map[string]interface{}) time.Time {
 		return bson.ObjectIdHex(id).Time().UTC()
 	}
 
-	fmt.Print("Couldnt determine the createdAt time, returning Now() as creatdAt")
+	log.Warning("Couldnt determine the createdAt time, returning Now() as creatdAt")
 	return time.Now().UTC()
 }
 
@@ -252,7 +252,7 @@ func deleteRelationship(data map[string]interface{}) {
 	targetId := fmt.Sprintf("%s", data["targetId"])
 
 	if sourceId == "" || targetId == "" {
-		fmt.Println("invalid data", data)
+		log.Error("invalid data", data)
 		return
 	}
 
@@ -269,9 +269,9 @@ func deleteRelationship(data map[string]interface{}) {
 	neo4j.DeleteRelationship(sourceId, targetId, as)
 	//result := neo4j.DeleteRelationship(sourceId, targetId, as)
 	//if result {
-	//	fmt.Println("Relationship deleted")
+	//	log.Info("Relationship deleted")
 	//} else {
-	//	fmt.Println("Relationship couldnt be deleted")
+	//	log.Info("Relationship couldnt be deleted")
 	//}
 
 	sTimer.Success()
@@ -292,7 +292,7 @@ func updateNode(data map[string]interface{}) {
 	sourceName := fmt.Sprintf("%s", bongo["constructorName"])
 
 	if sourceId == "" || sourceName == "" {
-		fmt.Println("invalid data", data)
+		log.Error("invalid data", data)
 		return
 	}
 
@@ -309,7 +309,7 @@ func updateNode(data map[string]interface{}) {
 	sourceContent, err := mongohelper.FetchContent(bson.ObjectIdHex(sourceId), sourceName)
 	if err != nil {
 		sTimer.Failed()
-		fmt.Println("sourceContent", err)
+		log.Error("sourceContent", err)
 
 		return
 	}
