@@ -15,9 +15,12 @@ class Panel extends JView
     {title}         = options
     buttonsLength   = options.buttons?.length
 
-    @createHeader title     if title or buttonsLength
-    @createHeaderButtons()  if buttonsLength
-    @createHeaderHint()     if options.hint
+    if title or buttonsLength
+      @createHeader title
+      @createHeaderButtons()  if buttonsLength
+      @createHeaderHint()     if options.hint
+    else
+      @header = new KDCustomHTMLView { cssClass: "hidden" }
 
     @createLayout()
 
@@ -28,18 +31,9 @@ class Panel extends JView
       cssClass     : "title"
       partial      : """ <span class="text">#{title}</span> """
 
-    @headerIcon    = new KDCustomHTMLView
-      tagName      : "span"
-      cssClass     : "icon"
-
-    @headerTitle.addSubView @headerIcon, null, yes
-
     @header.addSubView @headerTitle
     @header.addSubView @headerButtonsContainer = new KDCustomHTMLView
       cssClass     : "tw-header-buttons"
-
-    {headerStyling} = @getOptions()
-    @applyHeaderStyling headerStyling if headerStyling
 
   createHeaderButtons: ->
     # TODO: fatihacet - DRY
@@ -129,20 +123,6 @@ class Panel extends JView
           title    : "Close"
           cssClass : "modal-cancel"
           callback : -> modal.destroy()
-
-  applyHeaderStyling: (options) ->
-    if options.custom
-      return @header.getElement().setAttribute "style", options.custom
-
-    {bgColor, bgGradient, bgImage, textColor, textShadowColor, borderColor} = options
-
-    @header.setCss      "color"             , textColor                     if textColor
-    @header.setCss      "borderBottomColor" , "#{borderColor}"              if borderColor
-    @header.setCss      "background"        , "#{bgColor}"                  if bgColor
-    @headerIcon.setCss  "backgroundImage"   , "url(#{bgImage})"             if bgImage
-    @header.setCss      "textShadowColor"   , "0 1px 0 #{textShadowColor}"  if textShadowColor
-
-    KD.utils.applyGradient @header, bgGradient.first, bgGradient.last       if bgGradient
 
   viewAppended: ->
     super
