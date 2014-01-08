@@ -247,10 +247,34 @@ type DialInfo struct {
 	Username string
 	Password string
 
-	// Dial optionally specifies the dial function for creating connections.
-	// At the moment addr will have type *net.TCPAddr, but other types may
-	// be provided in the future, so check and fail if necessary.
+	// Dial optionally specifies the dial function for establishing
+	// connections with the MongoDB servers.
 	Dial func(addr net.Addr) (net.Conn, error)
+
+	// DialServer optionally specifies the dial function for establishing
+	// connections with the MongoDB servers.
+	//
+	// WARNING: This interface is experimental and may change.
+	DialServer func(addr *ServerAddr) (net.Conn, error)
+}
+
+// ServerAddr represents the address for establishing a connection to an
+// individual MongoDB server.
+//
+// WARNING: This interface is experimental and may change.
+type ServerAddr struct {
+	str string
+	tcp *net.TCPAddr
+}
+
+// String returns the address that was provided for the server before resolution.
+func (addr *ServerAddr) String() string {
+	return addr.str
+}
+
+// TCPAddr returns the resolved TCP address for the server.
+func (addr *ServerAddr) TCPAddr() *net.TCPAddr {
+	return addr.tcp
 }
 
 // DialWithInfo establishes a new session to the cluster identified by info.
@@ -264,7 +288,7 @@ func DialWithInfo(info *DialInfo) (*Session, error) {
 		}
 		addrs[i] = addr
 	}
-	cluster := newCluster(addrs, info.Direct, info.Dial)
+	cluster := newCluster(addrs, info.Direct, dialer{info.Dial, info.DialServer})
 	session := newSession(Eventual, cluster, info.Timeout)
 	session.defaultdb = info.Database
 	if session.defaultdb == "" {
@@ -978,7 +1002,7 @@ func (s *Session) ResetIndexCache() {
 
 // New creates a new session with the same parameters as the original
 // session, including consistency, batch size, prefetching, safety mode,
-// etc. The returned session will use sockets from the poll, so there's
+// etc. The returned session will use sockets from the pool, so there's
 // a chance that writes just performed in another session may not yet
 // be visible.
 //
@@ -1131,6 +1155,19 @@ func (s *Session) SetSocketTimeout(d time.Duration) {
 	}
 	if s.slaveSocket != nil {
 		s.slaveSocket.SetTimeout(d)
+	}
+	s.m.Unlock()
+}
+
+// SetCursorTimeout changes the standard timeout period that the server
+// enforces on created cursors. The only supported value right now is
+// 0, which disables the timeout. The standard server timeout is 10 minutes.
+func (s *Session) SetCursorTimeout(d time.Duration) {
+	s.m.Lock()
+	if d == 0 {
+		s.queryConfig.op.flags |= flagNoCursorTimeout
+	} else {
+		panic("SetCursorTimeout: only 0 (disable timeout) supported for now")
 	}
 	s.m.Unlock()
 }
@@ -2961,6 +2998,8 @@ type valueResult struct {
 //     }
 //     info, err = col.Find(M{"_id": id}).Apply(change, &doc)
 //     fmt.Println(doc.N)
+//
+// This method depends on MongoDB >= 2.0 to work properly.
 //
 // Relevant documentation:
 //
