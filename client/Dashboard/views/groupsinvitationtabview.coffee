@@ -103,4 +103,4 @@ class GroupsInvitationTabView extends KDTabView
   ]
 
   _windowDidResize:->
-    @setHeight @parent.getHeight() - @getTabHandleContainer().getHeight()
+    # @setHeight @parent.getHeight() - @getTabHandleContainer().getHeight()

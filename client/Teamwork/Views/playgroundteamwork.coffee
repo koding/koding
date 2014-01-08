@@ -8,7 +8,7 @@ class PlaygroundTeamwork extends TeamworkWorkspace
 
     @on "PanelCreated", @bound "applyHeaderStyling"
 
-    @on "ContentIsReady", =>
+    @on "WorkspaceSyncedWithRemote", =>
       return unless @amIHost()
       manifest = @getOptions().playgroundManifest
       {prerequisite, initialState} = manifest
@@ -74,26 +74,24 @@ class PlaygroundTeamwork extends TeamworkWorkspace
       callback()
 
   setUpInitialState: (initialState) ->
-    if initialState.preview
-      @handlePreview initialState.preview.url
+    return  if @isOldSession
 
     if initialState.editor
       @openFiles initialState.editor.files
 
-  handlePreview: (url) ->
-    {paneLauncher} = @getActivePanel()
-    url            = url.replace "$USERNAME", @getHost()
+    if initialState.preview
+      @handlePreview initialState.preview.url
 
-    if paneLauncher.paneVisibilityState.preview is no
-      paneLauncher.handleLaunch "preview"
-    paneLauncher.previewPane.openUrl url
+  handlePreview: (url) ->
+    url = url.replace "$USERNAME", @getHost()
+    @getActivePanel().getPaneByName("tabView").createPreview null, null, url
 
   openFiles: (files) ->
-    editor = @getActivePanel().getPaneByName "editor"
+    tabView = @getActivePanel().getPaneByName "tabView"
 
-    for path in files
+    files.forEach (path) =>
       filePath = "/home/#{KD.nick()}/Web/Teamwork/#{@getOptions().playground}/#{path.replace /^.\//, ''}"
       file     = FSHelper.createFileFromPath filePath
 
       file.fetchContents (err, contents) =>
-        editor.openFile file, contents
+        tabView.createEditor file, contents

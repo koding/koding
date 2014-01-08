@@ -1,6 +1,6 @@
 class TeamworkApp extends KDObject
 
-  instanceName = if location.hostname.indexOf("local") > -1 then "tw-local" else "kd-prod-1"
+  instanceName = if location.hostname.indexOf("local") > -1 then "tw-local" else "koding-teamwork"
 
   constructor: (options = {}, data) ->
 
@@ -23,7 +23,9 @@ class TeamworkApp extends KDObject
           @setOption "playgroundManifest", val.playgroundManifest
           @setOption "playground", val.playground
           options = @mergePlaygroundOptions val.playgroundManifest, val.playground
-          @createTeamwork options
+          @createTeamwork options, =>
+            @teamwork.once "WorkspaceSyncedWithRemote", =>
+              @setVMRoot "/home/#{@teamwork.getHost()}/Web/Teamwork/#{val.playground}"
         else
           @createTeamwork()
 
@@ -31,11 +33,6 @@ class TeamworkApp extends KDObject
       @emit "NewSessionRequested"
       @teamwork.on "WorkspaceSyncedWithRemote", =>
         @showImportWarning importUrl
-
-    {sessionKey, importUrl} = options.query
-    if sessionKey     then @emit "JoinSessionRequested", sessionKey
-    else if importUrl then @emit "ImportRequested"     , importUrl
-    else @emit "NewSessionRequested"
 
   createTeamwork: (options, callback) ->
     playgroundClass = TeamworkWorkspace
@@ -46,6 +43,8 @@ class TeamworkApp extends KDObject
     @teamwork = new playgroundClass options or @getTeamworkOptions()
     @appView.addSubView @teamwork
     callback?()
+
+    @setOption "sessionKey", @teamwork.sessionKey
     KD.getSingleton("router").handleRoute "/Teamwork?sessionKey=#{@teamwork.sessionKey}"
 
   getTeamworkOptions: ->
@@ -118,12 +117,19 @@ class TeamworkApp extends KDObject
 
   setVMRoot: (path) ->
     {finderController} = @teamwork.getActivePanel().getPaneByName "finder"
-    {defaultVmName}    = KD.getSingleton "vmController"
 
-    if finderController.getVmNode defaultVmName
-      finderController.unmountVm defaultVmName
+    cb = (vmName) ->
 
-    finderController.mountVm "#{defaultVmName}:#{path}"
+      if finderController.getVmNode vmName
+        finderController.unmountVm vmName
+
+      finderController.mountVm "#{vmName}:#{path}"
+
+    vmController = KD.getSingleton "vmController"
+    {defaultVmName} = vmController
+    if defaultVmName
+    then cb defaultVmName
+    else vmController.fetchDefaultVmName cb
 
   mergePlaygroundOptions: (manifest, playground) ->
     rawOptions                      = @getTeamworkOptions()
@@ -177,7 +183,9 @@ class TeamworkApp extends KDObject
 
       @once "PlaygroundContentIsReady", =>
         @teamwork.destroy()
-        @createTeamwork @mergePlaygroundOptions manifest, playground
+        options = @mergePlaygroundOptions manifest, playground
+        delete options.sessionKey
+        @createTeamwork options
         @teamwork.container.setClass playground
         @teamwork.once "WorkspaceSyncedWithRemote", =>
           @setVMRoot root
