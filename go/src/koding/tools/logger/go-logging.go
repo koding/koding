@@ -8,6 +8,7 @@ import (
 	"runtime"
 )
 
+// Default Log implementation.
 type GoLogger struct {
 	log *logging.Logger
 }
@@ -66,6 +67,10 @@ func (g *GoLogger) Info(format string, args ...interface{}) {
 func (g *GoLogger) Debug(format string, args ...interface{}) {
 	g.log.Debug(format, args...)
 }
+
+//----------------------------------------------------------
+// Originally from koding/tools/log
+//----------------------------------------------------------
 
 func (g *GoLogger) RecoverAndLog() {
 	if err := recover(); err != nil {
