@@ -5,7 +5,7 @@ package models
 type Name struct {
 	// Id    bson.ObjectId `bson:"_id"`
 	Name  string `bson:"name"`
-	Slugs []Slug `bson:"slug"`
+	Slugs []Slug `bson:"slugs"`
 }
 
 type Slug struct {
