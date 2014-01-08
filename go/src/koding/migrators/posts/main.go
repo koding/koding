@@ -190,10 +190,10 @@ func migrateCodesnip(p *Post, m *Migrator) error {
 			syntax = language.(string)
 		}
 
-		codeBlock := fmt.Sprintf("```%s\n %s \n```", syntax, content)
+		codeBlock := fmt.Sprintf("```%s\n%s \n```", syntax, content)
 
 		// concatenate post body with codesnip
-		p.Body = fmt.Sprintf("%s \n\n %s \n\n", p.Body, codeBlock)
+		p.Body = fmt.Sprintf("%s \n\n%s \n", p.Body, codeBlock)
 
 		p.Attachments = make([]map[string]interface{}, 0)
 	}
