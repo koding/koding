@@ -103,7 +103,9 @@ class LoginView extends KDView
     @backToLoginLink = new KDCustomHTMLView
       tagName     : "a"
       partial     : "Sign In"
-      click       : loginHandler
+      click       : ->
+        KD.mixpanel "Login button form in /Login, click"
+        loginHandler()
 
     @goToRecoverLink = new KDCustomHTMLView
       tagName     : "a"
@@ -114,14 +116,16 @@ class LoginView extends KDView
     @goToRegisterLink = new KDCustomHTMLView
       tagName     : "a"
       partial     : "Create Account"
-      click       : registerHandler
+      click       : ->
+        KD.mixpanel "Register button form in /Login, click"
+        registerHandler()
 
     @github       = new KDButtonView
       title       : "Sign in with GitHub"
       style       : 'solid github'
       icon        : yes
       callback    : ->
-        KD.mixpanel "Github auth, click"
+        KD.mixpanel "Github auth button in /Login, click"
         KD.singletons.oauthController.openPopup "github"
 
     @github.setPartial "<span class='button-arrow'></span>"
@@ -136,22 +140,26 @@ class LoginView extends KDView
       cssClass : "login-form"
       testPath : "login-form"
       callback : (formData)=>
+        KD.mixpanel "Login submit, click"
         @doLogin formData
 
     @registerForm = new RegisterInlineForm
       cssClass : "login-form"
       testPath : "register-form"
       callback : (formData)=>
+        KD.mixpanel "Register submit, click"
         @doRegister formData
 
     @redeemForm = new RedeemInlineForm
       cssClass : "login-form"
       callback : (formData)=>
+        KD.mixpanel "Redeem submit, click"
         @doRedeem formData
 
     @recoverForm = new RecoverInlineForm
       cssClass : "login-form"
       callback : (formData)=>
+        KD.mixpanel "Recover password submit, click"
         @doRecover formData
 
     @resendForm= new ResendEmailConfirmationLinkInlineForm
@@ -189,7 +197,7 @@ class LoginView extends KDView
       (KD.getSingleton 'mainController').handleOauthAuth params, (err, resp)=>
         if err
           showError err
-          KD.mixpanel "External auth link, fail"
+          KD.mixpanel "Authenticate with oauth, fail", {provider}
         else
           {account, replacementToken, isNewUser, userInfo} = resp
           if isNewUser
@@ -202,7 +210,7 @@ class LoginView extends KDView
           else
             if isUserLoggedIn
               mainController.emit "ForeignAuthSuccess.#{provider}"
-              KD.mixpanel "External auth link, success", {provider}
+              KD.mixpanel "Authenticate with oauth, success", {provider}
               new KDNotificationView
                 title : "Your #{provider.capitalize()} account has been linked."
                 type  : "mini"
@@ -286,6 +294,8 @@ class LoginView extends KDView
           title     : "Check your email"
           content   : "We've sent you a password recovery token."
           duration  : 4500
+
+        KD.mixpanel "Recover password, success"
 
   resendEmailConfirmationToken:(formData)->
     KD.remote.api.JPasswordRecovery.recoverPassword formData['username-or-email'], (err)=>
@@ -423,6 +433,8 @@ class LoginView extends KDView
         KD.notify_ 'Success!'
         KD.getSingleton('mainController').accountChanged KD.whoami()
 
+        KD.mixpanel "Redeem, success"
+
   showHeadBanner:(message, callback)->
     @headBannerMsg = message
     @headBanner.updatePartial @headBannerMsg
@@ -455,8 +467,6 @@ class LoginView extends KDView
     @emit "LoginViewHidden"
     @setClass 'hidden'
     callback?()
-
-    KD.mixpanel "Login/Register modal, cancel"
 
   show:(callback)->
 

@@ -11,18 +11,25 @@ class HomePage extends JView
       cssClass    : 'solid green shadowed pricing'
       icon        : 'yes'
       iconClass   : 'dollar'
-      click       : (event)-> KD.utils.stopDOMEvent event
+      click       : (event)->
+        KD.mixpanel "Sales contact, click"
+        KD.utils.stopDOMEvent event
 
     @registerForm = new HomeRegisterForm
-      callback    : (formData)-> @doRegister formData
+      callback    : (formData)->
+        KD.mixpanel "Register button in / a, click"
+        @doRegister formData
 
     @registerFormBottom = new HomeRegisterForm
-      callback    : (formData)-> @doRegister formData
+      callback    : (formData)->
+        KD.mixpanel "Register button in / b, click"
+        @doRegister formData
 
     @githubLink   = new KDCustomHTMLView
       tagName     : "a"
       partial     : "Or you can sign up using <strong>GitHub</strong>"
       click       : ->
+        KD.mixpanel "Github auth button in /, click"
         KD.singletons.oauthController.openPopup "github"
 
     @markers = new MarkerController
