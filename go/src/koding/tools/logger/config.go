@@ -18,7 +18,7 @@ var nameToLevelMapping = map[string]logging.Level{
 // Get logging level from config file & find the appropriate logging.Level
 func init() {
 	var exists bool
-	var logLevelString = config.Current.Neo4j.LogLevel
+	var logLevelString = config.Current.GoLogLevel
 
 	loggingLevel, exists = nameToLevelMapping[logLevelString]
 	if !exists {

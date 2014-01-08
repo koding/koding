@@ -32,13 +32,13 @@ type Config struct {
 		LogLevel      string
 	}
 	Neo4j struct {
-		Read     string
-		Write    string
-		Port     int
-		Enabled  bool
-		LogLevel string
+		Read    string
+		Write   string
+		Port    int
+		Enabled bool
 	}
-	Broker struct {
+	GoLogLevel string
+	Broker     struct {
 		IP              string
 		Port            int
 		CertFile        string
