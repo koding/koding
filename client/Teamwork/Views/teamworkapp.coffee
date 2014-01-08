@@ -48,6 +48,8 @@ class TeamworkApp extends KDObject
     @teamwork = new playgroundClass options or @getTeamworkOptions()
     @appView.addSubView @teamwork
     callback?()
+
+    @setOption "sessionKey", @teamwork.sessionKey
     KD.getSingleton("router").handleRoute "/Teamwork?sessionKey=#{@teamwork.sessionKey}"
 
   getTeamworkOptions: ->
