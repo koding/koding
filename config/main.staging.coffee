@@ -214,7 +214,7 @@ module.exports =
     cronInstant : '*/10 * * * * *'
     cronDaily   : '0 10 0 * * *'
     run         : no
-    forcedRecipient : 'noreply@koding.com'
+    forcedRecipient : undefined
   emailSender   :
     run         : no
   guests        :

@@ -60,7 +60,7 @@ class GroupsMemberRolesEditView extends JView
 
     @addSubView (new KDButtonView
       title    : 'Save'
-      cssClass : 'modal-clean-green'
+      cssClass : 'solid green'
       callback : =>
         @getDelegate().emit 'RolesChanged', @getDelegate().getData(), @getSelectedRoles()
         @getDelegate().hideEditMemberRolesView()
@@ -69,14 +69,14 @@ class GroupsMemberRolesEditView extends JView
 
     @addSubView (new KDButtonView
       title    : "Kick"
-      cssClass : 'modal-clean-red'
+      cssClass : 'solid red'
       callback : => @showKickModal()
     ), '.buttons'
 
     if 'owner' in @roles.editorsRoles
       @addSubView (new KDButtonView
         title    : "Make Owner"
-        cssClass : 'modal-clean-gray'
+        cssClass : 'solid'
         callback : => @showTransferOwnershipModal()
       ), '.buttons'
 

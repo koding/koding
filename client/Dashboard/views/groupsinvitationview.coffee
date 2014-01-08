@@ -106,6 +106,7 @@ class GroupsInvitationView extends KDView
     @editInviteMessage = @showModalForm
       title              : 'Edit Invitation Message'
       cssClass           : 'edit-invitation-message'
+      width              : '540'
       submitButtonLabel  : 'Save'
       callback           : ({message})=>
         @saveInviteMessage 'inviteApprovedMessage', message, (err)=>
@@ -194,6 +195,7 @@ class GroupsInvitationView extends KDView
     @bulkApprove = @showModalForm
       title            : "Bulk Approve #{subject} Requests"
       cssClass         : 'bulk-approve'
+      width            : '540'
       callback         : ({count, bcc})=>
         @getData().sendSomeInvitations count, {bcc}, (err, emails)=>
           log 'successfully approved/invited: ', emails

@@ -85,7 +85,7 @@ class TeamworkExportModal extends KDModalView
 
   handleExportDone: (shortenUrl) ->
     @destroy()
-    fullUrl      = "https://koding.com/Teamwork?importUrl=#{shortenUrl}"
+    fullUrl      = "#{window.location.origin}/Teamwork?importUrl=#{shortenUrl}"
     inputContent = """
       <div class="join">I exported my files here, click this link to see them.</div>
       <div class="url">#{fullUrl}</div>
