@@ -465,25 +465,6 @@ module.exports = class JGroup extends Module
             else
               console.log 'roles are added'
               queue.next()
-        ->
-          if groupData['allow-over-usage']
-            if groupData['require-approval']
-              overagePolicy = 'by permission'
-            else
-              overagePolicy = 'allowed'
-          else
-            overagePolicy = 'not allowed'
-          paymentPlan = ""
-          if groupData.payment?.plan
-            paymentPlan = groupData.payment.plan
-          group.createBundle
-            overagePolicy: overagePolicy
-            paymentPlan  : paymentPlan
-            allocation   : parseInt(groupData.allocation, 10) * 100
-            sharedVM     : groupData['shared-vm']
-          , ->
-            console.log 'bundle is created'
-            queue.next()
       ]
 
       if 'private' is group.privacy

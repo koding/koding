@@ -1,14 +1,15 @@
 class CollaborativeWorkspace extends Workspace
 
   init: ->
+    {createUserList, enableChat} = @getOptions()
     @nickname    = KD.nick()
     @sessionData = []
     @users       = {}
     @createRemoteInstance()
     @createLoader()
     @fetchUsers()
-    @createUserListContainer()
-    @createChat()  if @getOptions().enableChat
+    @createUserListContainer()  if createUserList
+    @createChat()               if enableChat
     @bindRemoteEvents()
 
   createChat: ->
@@ -46,7 +47,8 @@ class CollaborativeWorkspace extends Workspace
       cb = =>
         isOldSession = keys = snapshot.val()?.keys
         if isOldSession
-          @sessionData = keys
+          @isOldSession = yes
+          @sessionData  = keys
           @createPanel()
         else
           @createPanel()
@@ -91,10 +93,6 @@ class CollaborativeWorkspace extends Workspace
       message = snapshot.val()
       return if not message or not message.data or message.data.sender is @nickname
       @displayBroadcastMessage message.data
-
-    @broadcastMessage
-      title     : "#{@nickname} has joined to the session"
-      sender    : @nickname
 
     @on "AllPanesAddedToPanel", (panel, panes) ->
       paneSessionKeys = []
@@ -257,10 +255,6 @@ class CollaborativeWorkspace extends Workspace
       container : @userListContainer
       delegate  : this
     }
-
-  setWatchMode: (targetUsername) ->
-    username = KD.nick()
-    @watchRef.child(username).set targetUsername
 
   addToHistory: (data) ->
     target       = @historyRef.child Date.now()
