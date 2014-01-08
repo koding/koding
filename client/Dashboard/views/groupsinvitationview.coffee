@@ -24,8 +24,8 @@ class GroupsInvitationView extends KDView
       title                  : options.title
       content                : options.content
       overlay                : yes
-      width                  : options.width or 400
-      height                 : options.height or 'auto'
+      width                  : options.width
+      height                 : options.height
       tabs                   :
         forms                :
           invite             :
@@ -72,7 +72,7 @@ class GroupsInvitationView extends KDView
             nextElement   :
               Suggest     :
                 itemClass : KDButtonView
-                cssClass  : 'clean-gray suggest-button'
+                cssClass  : 'solid suggest-button'
                 callback  : =>
                   KD.remote.api.JInvitation.suggestCode (err, suggestedCode)=>
                     return @showErrorMessage err  if err
