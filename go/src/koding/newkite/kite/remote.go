@@ -64,7 +64,7 @@ func (k *Kite) NewRemoteKite(kite protocol.Kite, auth Authentication) *RemoteKit
 	// We need a reference to the remote kite when sending a message to remote.
 	r.client.Properties()["remoteKite"] = r
 
-	if r.Kite.URL.Scheme == "wss" {
+	if r.Kite.URL.URL != nil && r.Kite.URL.Scheme == "wss" {
 		// Check if the certificate of the remote Kite is signed by Kontrol.
 		pool := x509.NewCertPool()
 		pool.AppendCertsFromPEM(kontrol_pem())
@@ -361,6 +361,7 @@ func (r *RemoteKite) send(method string, args []interface{}, timeout time.Durati
 
 // sendCallbackID send the callback number to be deleted after response is received.
 func sendCallbackID(callbacks map[string]dnode.Path, ch chan uint64) {
+	// TODO now, it is not the max id that is response callback.
 	if len(callbacks) > 0 {
 		// Find max callback ID.
 		max := uint64(0)
@@ -404,7 +405,31 @@ func (r *RemoteKite) makeResponseCallback(doneChan chan *response, removeCallbac
 			r.client.RemoveCallback(id)
 		}
 
+		// We must only get one argument for response callback.
+		arg, err := request.Args.SliceOfLength(1)
+		if err != nil {
+			resp.Err = &Error{Type: "invalidResponse", Message: err.Error()}
+			return
+		}
+
 		// Unmarshal callback response argument.
-		request.Args.One().MustUnmarshal(&resp)
+		err = arg[0].Unmarshal(&resp)
+		if err != nil {
+			resp.Err = &Error{Type: "invalidResponse", Message: err.Error()}
+			return
+		}
+
+		// At least result or error must be sent.
+		keys := make(map[string]interface{})
+		err = arg[0].Unmarshal(&keys)
+		_, ok1 := keys["result"]
+		_, ok2 := keys["error"]
+		if !ok1 && !ok2 {
+			resp.Err = &Error{
+				Type:    "invalidResponse",
+				Message: "Server has sent invalid response arguments",
+			}
+			return
+		}
 	})
 }
