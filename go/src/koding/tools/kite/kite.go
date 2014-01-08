@@ -6,7 +6,7 @@ import (
 	"koding/tools/amqputil"
 	"koding/tools/dnode"
 	"koding/tools/lifecycle"
-	"koding/tools/log"
+	"koding/tools/logger"
 	"koding/virt"
 	"os"
 	"strconv"
@@ -15,6 +15,8 @@ import (
 
 	"github.com/streadway/amqp"
 )
+
+var log = logger.New("kite")
 
 type Kite struct {
 	Name              string
@@ -95,19 +97,19 @@ func controlRouting(stream <-chan amqp.Delivery) {
 			var control Control
 			err := json.Unmarshal(msg.Body, &control)
 			if err != nil || control.HostnameAlias == "" {
-				log.Err("Invalid control message.", string(msg.Body))
+				log.Error("Invalid control message.", string(msg.Body))
 				continue
 			}
 
 			v, err := modelhelper.GetVM(control.HostnameAlias)
 			if err != nil {
-				log.Err("vm not found '%s'", control.HostnameAlias)
+				log.Error("vm not found '%s'", control.HostnameAlias)
 				continue
 			}
 
 			vm := virt.VM(*v)
 			if err := vm.Stop(); err != nil {
-				log.Err("could not stop vm '%s'", control.HostnameAlias)
+				log.Error("could not stop vm '%s'", control.HostnameAlias)
 				continue
 			}
 		}
@@ -116,7 +118,7 @@ func controlRouting(stream <-chan amqp.Delivery) {
 
 func (k *Kite) startRouting(stream <-chan amqp.Delivery, publishChannel *amqp.Channel) {
 	changeClientsGauge := lifecycle.CreateClientsGauge()
-	log.RunGaugesLoop()
+	logger.RunGaugesLoop()
 
 	timeoutChannel := make(chan string)
 
@@ -141,7 +143,7 @@ func (k *Kite) startRouting(stream <-chan amqp.Delivery, publishChannel *amqp.Ch
 				var channel Channel
 				err := json.Unmarshal(message.Body, &channel)
 				if err != nil || channel.Username == "" || channel.RoutingKey == "" {
-					log.Err("Invalid auth.join message.", message.Body)
+					log.Error("Invalid auth.join message.", message.Body)
 					continue
 				}
 
@@ -302,11 +304,11 @@ func (k *Kite) startRouting(stream <-chan amqp.Delivery, publishChannel *amqp.Ch
 				}
 				err := json.Unmarshal(message.Body, &client)
 				if err != nil || client.Username == "" || client.RoutingKey == "" || client.CorrelationName == "" {
-					log.Err("Invalid auth.who message.", message.Body)
+					log.Error("Invalid auth.who message.", message.Body)
 					continue
 				}
 				if k.LoadBalancer == nil {
-					log.Err("Got auth.who without having a load balancer.", message.Body)
+					log.Error("Got auth.who without having a load balancer.", message.Body)
 					continue
 				}
 
@@ -332,7 +334,7 @@ func (k *Kite) startRouting(stream <-chan amqp.Delivery, publishChannel *amqp.Ch
 					default:
 						close(route)
 						delete(routeMap, message.RoutingKey)
-						log.Warn("Dropped client because of message buffer overflow.")
+						log.Warning("Dropped client because of message buffer overflow.")
 					}
 				}
 			}
