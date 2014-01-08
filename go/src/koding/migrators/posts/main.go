@@ -177,12 +177,24 @@ func migrateCodesnip(p *Post, m *Migrator) error {
 	}
 
 	if len(p.Attachments) > 0 {
+		content := ""
+		// set markdown as syntax
+		syntax := "markdown"
+
 		codesnip, ok := p.Attachments[0]["content"]
-		if !ok {
-			return fmt.Errorf("Codesnip content not found")
+		if ok {
+			content = codesnip.(string)
 		}
+		language, ok := p.Attachments[0]["syntax"]
+		if ok {
+			syntax = language.(string)
+		}
+
+		codeBlock := fmt.Sprintf("```%s\n %s \n```", syntax, content)
+
 		// concatenate post body with codesnip
-		p.Body = fmt.Sprintf("%s \n\n ```%s``` \n\n", p.Body, codesnip)
+		p.Body = fmt.Sprintf("%s \n\n %s \n\n", p.Body, codeBlock)
+
 		p.Attachments = make([]map[string]interface{}, 0)
 	}
 	return nil
