@@ -33,6 +33,10 @@ func NewGoLog(name string) *GoLogger {
 	return goLog
 }
 
+func (g *GoLogger) Fatal(args ...interface{}) {
+	g.log.Fatal(args...)
+}
+
 func (g *GoLogger) Panic(format string, args ...interface{}) {
 	g.log.Panicf(format, args...)
 }

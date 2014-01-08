@@ -9,6 +9,7 @@ func New(name string) Log {
 //----------------------------------------------------------
 
 type Log interface {
+	Fatal(args ...interface{})
 	Panic(format string, args ...interface{})
 	Critical(format string, args ...interface{})
 	Error(format string, args ...interface{})
