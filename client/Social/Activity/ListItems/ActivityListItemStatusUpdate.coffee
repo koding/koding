@@ -57,6 +57,7 @@ class StatusActivityItemView extends ActivityItemChild
       if beginning is origin
         element.setAttribute "href", "/#{rest}"
         element.classList.add "internal"
+        element.classList.add "teamwork"  if rest.match /^Teamwork/
       else
         element.setAttribute "target", "_blank"
 
