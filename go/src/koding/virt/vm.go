@@ -5,6 +5,7 @@ import (
 	"io"
 	"io/ioutil"
 	"koding/db/models"
+	"log"
 	"net"
 	"os"
 	"os/exec"
@@ -123,6 +124,8 @@ func (vm *VM) ApplyDefaults() {
 func (vm *VM) Prepare(reinitialize bool, logWarning func(string, ...interface{})) {
 	vm.Unprepare()
 
+	defer un(trace(fmt.Sprintf("prepare %s", vm)))
+
 	// write LXC files
 	prepareDir(vm.File(""), 0)
 	vm.generateFile(vm.File("config"), "config", 0, false)
@@ -191,6 +194,7 @@ func UnprepareVM(id bson.ObjectId) error {
 }
 
 func (vm *VM) Unprepare() error {
+	defer un(trace(fmt.Sprintf("unprepare %s", vm)))
 	var firstError error
 
 	// stop VM
@@ -471,4 +475,14 @@ func copyFile(src, dst string, id int) error {
 	}
 
 	return nil
+}
+
+func trace(s string) (string, time.Time) {
+	log.Println("START:", s)
+	return s, time.Now()
+}
+
+func un(s string, startTime time.Time) {
+	endTime := time.Now()
+	log.Println("  END:", s, "ElapsedTime in seconds:", endTime.Sub(startTime))
 }

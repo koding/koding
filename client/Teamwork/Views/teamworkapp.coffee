@@ -1,6 +1,6 @@
 class TeamworkApp extends KDObject
 
-  instanceName = if location.hostname.indexOf("local") > -1 then "tw-local" else "kd-prod-1"
+  instanceName = if location.hostname.indexOf("local") > -1 then "tw-local" else "koding-teamwork"
 
   constructor: (options = {}, data) ->
 
