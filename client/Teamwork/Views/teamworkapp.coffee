@@ -34,11 +34,6 @@ class TeamworkApp extends KDObject
       @teamwork.on "WorkspaceSyncedWithRemote", =>
         @showImportWarning importUrl
 
-    {sessionKey, importUrl} = options.query
-    if sessionKey     then @emit "JoinSessionRequested", sessionKey
-    else if importUrl then @emit "ImportRequested"     , importUrl
-    else @emit "NewSessionRequested"
-
   createTeamwork: (options, callback) ->
     playgroundClass = TeamworkWorkspace
     if options?.playground
