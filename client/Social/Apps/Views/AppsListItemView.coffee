@@ -18,6 +18,7 @@ class AppsListItemView extends KDListItemView
       title    : 'run'
       callback : =>
         KodingAppsController.runExternalApp @getData()
+        KD.mixpanel "App run, click"
 
   viewAppended:->
     @setTemplate @pistachio()

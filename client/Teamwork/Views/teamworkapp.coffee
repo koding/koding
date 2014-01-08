@@ -29,6 +29,8 @@ class TeamworkApp extends KDObject
         else
           @createTeamwork()
 
+      KD.mixpanel "Teamwork join session, click"
+
     @on "ImportRequested", (importUrl) =>
       @emit "NewSessionRequested"
       @teamwork.on "WorkspaceSyncedWithRemote", =>
@@ -103,10 +105,13 @@ class TeamworkApp extends KDObject
             diameter: 14
           callback  : =>
             new TeamworkImporter { url, modal, callback, delegate: this }
+            KD.mixpanel "Teamwork import confirm, click"
         DontImport  :
           title     : "Don't import anything"
           cssClass  : "modal-cancel"
-          callback  : -> modal.destroy()
+          callback  : ->
+            modal.destroy()
+            KD.mixpanel "Teamwork import confirm, fail"
 
   showMarkdownModal: (rawContent) ->
     t = @teamwork
