@@ -34,18 +34,18 @@ class TeamworkAppView extends KDView
       content    : "Where do you want to open session #{sessionKey}?"
       cssClass   : "tw-modal"
       overlay    : yes
-        buttons         :
-          CurrentWindow :
-            title       : "Current window"
-            callback    : =>
-              @teamworkApp.emit "JoinSessionRequested", sessionKey
-              modal.destroy()
-          NewWindow     :
-            title       : "New window"
-            callback    : =>
-              @restoreLocation()
-              window.open "#{window.location.origin}/Teamwork?sessionKey=#{sessionKey}", "_blank"
-              modal.destroy()
+      buttons         :
+        CurrentWindow :
+          title       : "Current window"
+          callback    : =>
+            @teamworkApp.emit "JoinSessionRequested", sessionKey
+            modal.destroy()
+        NewWindow     :
+          title       : "New window"
+          callback    : =>
+            @restoreLocation()
+            window.open "#{window.location.origin}/Teamwork?sessionKey=#{sessionKey}", "_blank"
+            modal.destroy()
 
   restoreLocation: ->
     @setLocation @teamworkApp.getOption "sessionKey"
