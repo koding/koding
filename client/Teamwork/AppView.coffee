@@ -18,11 +18,17 @@ class TeamworkAppView extends KDView
     else @teamworkApp.emit "NewSessionRequested"
 
   handleSessionKey: (sessionKey) ->
-    return  if sessionKey is @teamworkApp.getOption "sessionKey"
+    return @restoreLocation()  if sessionKey is @teamworkApp.getOption "sessionKey"
     @teamworkApp.emit "JoinSessionRequested", sessionKey
 
   handleImportUrl: (importUrl) ->
     @teamworkApp.emit "ImportRequested", importUrl
+
+  restoreLocation: ->
+    @setLocation @teamworkApp.getOption "sessionKey"
+
+  setLocation: (sessionKey) ->
+    KD.singleton("router").handleRoute "/Teamwork?sessionKey=#{sessionKey}"
 
   createApp: (query) ->
     return new TeamworkApp
