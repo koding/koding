@@ -107,6 +107,11 @@ func migrate(m *Migrator) error {
 			continue
 		}
 
+		if err := updateName(&post); err != nil {
+			ReportError(m, err)
+			continue
+		}
+
 		if err := updatePostStatus(&oldPost, m, "Completed"); err != nil {
 			ReportError(m, err)
 			continue
@@ -522,6 +527,21 @@ func verifyOrigin(p *Post) error {
 	}
 
 	return nil
+}
+
+func updateName(p *Post) error {
+	slug := Slug{
+		ConstructorName: "JNewStatusUpdate",
+		CollectionName:  "jNewStatusUpdates",
+		UsedAsPath:      "slug",
+		Group:           p.Group,
+		Slug:            p.Slug,
+	}
+	name := &Name{
+		Name:  fmt.Sprintf("Activity/%s", p.Slug),
+		Slugs: []Slug{slug},
+	}
+	return helper.UpdateName(name)
 }
 
 // swapTagRelation swaps source and target data of relationships. It is used
