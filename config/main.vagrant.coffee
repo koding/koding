@@ -44,7 +44,7 @@ module.exports =
     read        : "http://localhost"
     write       : "http://localhost"
     port        : 7474
-    log         : "warning"
+    logLevel    : "warning"
   runNeo4jFeeder: yes
   runGoBroker   : yes
   runKontrol    : no
