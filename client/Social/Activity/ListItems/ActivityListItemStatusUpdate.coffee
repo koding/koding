@@ -67,7 +67,10 @@ class StatusActivityItemView extends ActivityItemChild
     if $(target).is "article a.internal"
       @utils.stopDOMEvent event
       href = target.getAttribute "href"
-      KD.singleton("router").handleRoute href
+
+      if target.classList.contains("teamwork") and KD.singleton("appManager").get "Teamwork"
+      then window.open "#{window.location.origin}#{href}", "_blank"
+      else KD.singleton("router").handleRoute href
 
   pistachio:->
     """
