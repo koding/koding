@@ -301,9 +301,10 @@ func UnprepareVM(id bson.ObjectId) error {
 // basically let us umount previously mounted disks, remove generated files,
 // etc. It doesn't remove the home folder or any newly created system files.
 // Those files will be stored in the vmroot.
+// Unprepare also doesn't return on errors, instead it silently fails and
+// tries to execute the next step until all steps are done.
 func (vm *VM) Unprepare() error {
 	defer un(trace(vm.String()))
-
 	var firstError error
 
 	// stop VM
