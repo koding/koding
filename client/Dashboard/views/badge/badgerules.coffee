@@ -28,6 +28,9 @@ class BadgeRules extends JView
         @createUserSelector()
         @giveBadgeButton.show()
 
+    @totalUserCount   = new KDCustomHTMLView
+      partial         : ""
+
     @filteredUsersController = new KDListViewController
       startWithLazyLoader    : no
       view                   : new KDListView
@@ -72,7 +75,7 @@ class BadgeRules extends JView
     userListView.on "RemoveBadgeUser", (ac) =>
       tmpArr = @usersInput.getValue().split ','
       index = tmpArr.indexOf ac._id
-      tmpArr.splice index,1
+      tmpArr.splice index, 1
       @usersInput.setValue tmpArr.toString()
       @usersInput.getValue()
 
@@ -96,13 +99,14 @@ class BadgeRules extends JView
       operArr[action]    = propVal
       selector[property] = operArr
       rules += countProp + tmpAct + propVal
-      rules += "+" if key < ruleItems.length-1
+      rules += "+" if key < ruleItems.length - 1
 
     @rule.setValue rules
     KD.remote.api.JAccount.someWithRelationship selector, {}, (err, users) =>
       return err if err
       @usersInput.setValue (user._id for user in users)
       @filteredUsersController.removeAllItems()
+      @totalUserCount.setPartial "Total users : #{users.length}"
       @filteredUsersController.instantiateListItems users
 
   updateRulesList:->
@@ -119,12 +123,14 @@ class BadgeRules extends JView
     """
     {{> @addRuleButton}}
     {{> @badgeListView}}
+    {{> @totalUserCount}}
     {{> @doneButton}}
     {{> @userList}}
     {{> @giveBadgeButton}}
     {{> @usersInput}}
     {{> @rule}}
     """
+
 
 class BadgeUsersItem extends KDListItemView
   constructor: (options ={}, data)->
