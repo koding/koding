@@ -35,6 +35,10 @@ func ReportSuccess(m *Migrator) {
 func ReportError(m *Migrator, err error) {
 	log.Error("%d. %s received error: %s", m.Index, m.Id, err.Error())
 	m.AddErrorReport(err)
+	// do not send already migrated post info to queue
+	if err == ErrAlreadyMigrated {
+		return
+	}
 	if err := publish(*m); err != nil {
 		log.Error(err.Error())
 	}

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	. "koding/db/models"
 	helper "koding/db/mongodb/modelhelper"
@@ -20,6 +21,8 @@ type JPost struct {
 	Title        string `bson:"title,omitempty"`
 	OpinionCount int    `bson:"opinionCount,omitempty"`
 }
+
+var ErrAlreadyMigrated = errors.New("already migrated")
 
 func main() {
 	initPublisher()
@@ -104,6 +107,9 @@ func migrate(m *Migrator) error {
 }
 
 func insertNewStatusUpdate(p *Post, m *Migrator) error {
+	if p.MigrationStatus == "Completed" {
+		return ErrAlreadyMigrated
+	}
 	exists, err := helper.CheckGroupExistence(p.Group)
 	if err != nil {
 		return err
