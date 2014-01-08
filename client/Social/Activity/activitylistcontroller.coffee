@@ -28,13 +28,6 @@ class ActivityListController extends KDListViewController
     @_state      = 'public'
 
     groupController = KD.getSingleton("groupsController")
-    groupController.on "MemberJoinedGroup", (member) =>
-      @updateNewMemberBucket member.member
-
-    groupController.on "FollowHappened", (info) =>
-      {follower, origin} = info
-      @updateFollowerBucket follower, origin
-
     groupController.on "PostIsCreated", (post) =>
 
       subject  = @prepareSubject post
