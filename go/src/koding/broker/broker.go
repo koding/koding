@@ -11,7 +11,7 @@ import (
 	"koding/tools/amqputil"
 	"koding/tools/config"
 	"koding/tools/lifecycle"
-	"koding/tools/log"
+	"koding/tools/logger"
 	"koding/tools/sockjs"
 	"koding/tools/utils"
 	"net"
@@ -25,12 +25,14 @@ import (
 	"time"
 )
 
+var log = logger.New("broker")
+
 func main() {
 	lifecycle.Startup("broker", false)
 	changeClientsGauge := lifecycle.CreateClientsGauge()
-	changeNewClientsGauge := log.CreateCounterGauge("newClients", log.NoUnit, true)
-	changeWebsocketClientsGauge := log.CreateCounterGauge("websocketClients", log.NoUnit, false)
-	log.RunGaugesLoop()
+	changeNewClientsGauge := logger.CreateCounterGauge("newClients", logger.NoUnit, true)
+	changeWebsocketClientsGauge := logger.CreateCounterGauge("websocketClients", logger.NoUnit, false)
+	logger.RunGaugesLoop()
 
 	publishConn := amqputil.CreateConnection("broker")
 	defer publishConn.Close()
@@ -78,7 +80,7 @@ func main() {
 
 				for amqpErr := range controlChannel.NotifyClose(make(chan *amqp.Error)) {
 					if !(strings.Contains(amqpErr.Error(), "NOT_FOUND") && (strings.Contains(amqpErr.Error(), "koding-social-") || strings.Contains(amqpErr.Error(), "auth-"))) {
-						log.Warn("AMQP channel: "+amqpErr.Error(), "Last publish payload:", lastPayload)
+						log.Warning("AMQP channel: "+amqpErr.Error(), "Last publish payload:", lastPayload)
 					}
 
 					sendToClient(session, "broker.error", map[string]interface{}{"code": amqpErr.Code, "reason": amqpErr.Reason, "server": amqpErr.Server, "recover": amqpErr.Recover})
@@ -111,11 +113,11 @@ func main() {
 
 		subscribe := func(routingKeyPrefix string) {
 			if subscriptions[routingKeyPrefix] {
-				// log.Warn("Duplicate subscription to same routing key.", session.Tag, routingKeyPrefix)
+				// log.Warning("Duplicate subscription to same routing key.", session.Tag, routingKeyPrefix)
 				return
 			}
 			if len(subscriptions) > 0 && len(subscriptions)%2000 == 0 {
-				log.Warn("Client with more than "+strconv.Itoa(len(subscriptions))+" subscriptions.", session.Tag)
+				log.Warning("Client with more than "+strconv.Itoa(len(subscriptions))+" subscriptions.", session.Tag)
 			}
 			routeMap[routingKeyPrefix] = append(routeMap[routingKeyPrefix], session)
 			subscriptions[routingKeyPrefix] = true
@@ -203,7 +205,7 @@ func main() {
 					exchange := message["exchange"].(string)
 					routingKey := message["routingKey"].(string)
 					if !strings.HasPrefix(routingKey, "client.") {
-						log.Warn("Invalid routing key.", message, socketId)
+						log.Warning("Invalid routing key.", message, socketId)
 						return
 					}
 					for {
@@ -214,7 +216,7 @@ func main() {
 							break
 						}
 						if amqpError, isAmqpError := err.(*amqp.Error); !isAmqpError || amqpError.Code != 504 {
-							log.Warn(fmt.Sprintf("payload: %v routing key: %v exchange: %v", message["payload"], message["routingKey"], message["exchange"]), err)
+							log.Warning(fmt.Sprintf("payload: %v routing key: %v exchange: %v", message["payload"], message["routingKey"], message["exchange"]), err)
 						}
 						time.Sleep(time.Second / 4) // penalty for crashing the AMQP channel
 						resetControlChannel()
@@ -224,7 +226,7 @@ func main() {
 					sendToClient(session, "broker.pong", nil)
 
 				default:
-					log.Warn("Invalid action.", message, socketId)
+					log.Warning("Invalid action.", message, socketId)
 
 				}
 			}()
@@ -250,15 +252,13 @@ func main() {
 		var listener net.Listener
 		listener, err := net.ListenTCP("tcp", &net.TCPAddr{IP: net.ParseIP(config.Current.Broker.IP), Port: config.Current.Broker.Port})
 		if err != nil {
-			log.LogError(err, 0)
-			log.SendLogsAndExit(1)
+			log.Fatal(err)
 		}
 
 		if config.Current.Broker.CertFile != "" {
 			cert, err := tls.LoadX509KeyPair(config.Current.Broker.CertFile, config.Current.Broker.KeyFile)
 			if err != nil {
-				log.LogError(err, 0)
-				log.SendLogsAndExit(1)
+				log.Fatal(err)
 			}
 			listener = tls.NewListener(listener, &tls.Config{
 				NextProtos:   []string{"http/1.1"},
@@ -270,9 +270,9 @@ func main() {
 		for {
 			err := server.Serve(listener)
 			if err != nil {
-				log.Warn("Server error: " + err.Error())
+				log.Warning("Server error: " + err.Error())
 				if time.Now().Sub(lastErrorTime) < time.Second {
-					log.SendLogsAndExit(1)
+					log.Fatal(nil)
 				}
 				lastErrorTime = time.Now()
 			}
@@ -352,6 +352,6 @@ func sendToClient(session *sockjs.Session, routingKey string, payload interface{
 	message.Payload = payload
 	if !session.Send(message) {
 		session.Close()
-		log.Warn("Dropped session because of broker to client buffer overflow.", session.Tag)
+		log.Warning("Dropped session because of broker to client buffer overflow.", session.Tag)
 	}
 }
