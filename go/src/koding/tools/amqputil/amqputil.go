@@ -4,9 +4,11 @@ import (
 	"fmt"
 	"github.com/streadway/amqp"
 	"koding/tools/config"
-	"koding/tools/log"
+	"koding/tools/logger"
 	"strings"
 )
+
+var log = logger.New("amqputil")
 
 func CreateConnection(component string) *amqp.Connection {
 	conn, err := amqp.Dial(amqp.URI{
@@ -18,14 +20,12 @@ func CreateConnection(component string) *amqp.Connection {
 		Vhost:    config.Current.Mq.Vhost,
 	}.String())
 	if err != nil {
-		log.LogError(err, 0)
-		log.SendLogsAndExit(1)
+		log.Critical(err.Error())
 	}
 
 	go func() {
 		for err := range conn.NotifyClose(make(chan *amqp.Error)) {
-			log.Err("AMQP connection: " + err.Error())
-			log.SendLogsAndExit(1)
+			log.Error("AMQP connection: " + err.Error())
 		}
 	}()
 
@@ -39,7 +39,7 @@ func CreateChannel(conn *amqp.Connection) *amqp.Channel {
 	}
 	go func() {
 		for err := range channel.NotifyClose(make(chan *amqp.Error)) {
-			log.Warn("AMQP channel: " + err.Error())
+			log.Warning("AMQP channel: " + err.Error())
 		}
 	}()
 	return channel
