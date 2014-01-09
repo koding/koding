@@ -4,14 +4,10 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/fatih/set"
-	"github.com/gorilla/sessions"
-	"github.com/streadway/amqp"
 	"html/template"
 	"io/ioutil"
 	"koding/db/mongodb/modelhelper"
 	"koding/tools/config"
-	"labix.org/v2/mgo/bson"
 	"log"
 	"net/http"
 	"net/url"
@@ -20,6 +16,11 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/fatih/set"
+	"github.com/gorilla/sessions"
+	"github.com/streadway/amqp"
+	"labix.org/v2/mgo/bson"
 )
 
 type ConfigFile struct {
@@ -177,7 +178,7 @@ func main() {
 	http.HandleFunc("/", viewHandler)
 	http.Handle("/bootstrap/", http.StripPrefix("/bootstrap/", http.FileServer(http.Dir(bootstrapFolder))))
 
-	fmt.Println("koding overview started")
+	fmt.Printf("koding overview started at :%d\n", port)
 	err = http.ListenAndServe(":"+strconv.Itoa(port), nil)
 	if err != nil {
 		fmt.Println(err)
@@ -343,10 +344,15 @@ func viewHandler(w http.ResponseWriter, r *http.Request) {
 
 func keyLookup(key string) (map[string]bool, map[string]bool) {
 	workersApi := apiUrl + "/workers/?version=" + key
+	servers := make(map[string]bool, 0)
+	brokers := make(map[string]bool, 0)
+
 	resp, err := http.Get(workersApi)
 	if err != nil {
 		fmt.Println(err)
+		return nil, nil
 	}
+
 	defer resp.Body.Close()
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
@@ -359,8 +365,6 @@ func keyLookup(key string) (map[string]bool, map[string]bool) {
 		fmt.Println(err)
 	}
 
-	servers := make(map[string]bool, 0)
-	brokers := make(map[string]bool, 0)
 	for _, w := range workers {
 		if w.Name == "server" {
 			servers[w.Hostname+":"+strconv.Itoa(w.Port)] = true
@@ -454,12 +458,16 @@ func workerInfo(build string) ([]WorkerInfo, StatusInfo, error) {
 
 func buildsInfo() []int {
 	serverApi := apiUrl + "/deployments/"
+	builds := make([]int, 0)
+
 	fmt.Println(serverApi)
 	resp, err := http.Get(serverApi)
 	if err != nil {
 		fmt.Println(err)
+		return builds
 	}
 	defer resp.Body.Close()
+
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		fmt.Println(err)
@@ -471,7 +479,6 @@ func buildsInfo() []int {
 		fmt.Println(err)
 	}
 
-	builds := make([]int, 0)
 	for _, serv := range *s {
 		build, _ := strconv.Atoi(serv.BuildNumber)
 		builds = append(builds, build)

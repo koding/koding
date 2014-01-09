@@ -62,7 +62,7 @@
                                 <ul class="dropdown-menu">
                                     <li><a href="?build=current#">current version</a></li>
                                     <li class="divider"></li>
-                                    {{range .Builds}} 
+                                    {{range .Builds}}
                                 	<li><a href="?build={{.}}">{{.}}</a></li>
                                 	{{end}}
                             	</ul>
@@ -122,13 +122,13 @@
 				<table class="table table-hover table-bordered">
 					<thead>
 						<tr>
-                          <td><a target="_blank" href="https://{{ .Status.SwitchHost }}/">{{ .Status.SwitchHost }}</a> is using</td> 
+                          <td><a target="_blank" href="https://{{ .Status.SwitchHost }}/">{{ .Status.SwitchHost }}</a> is using</td>
 						</tr>
 					</thead>
 					<tbody>
 						<tr>
-                          <td rowspan="{{.Status.Koding.ServerLen}}">Servers</td> 
-                          {{range $key, $val := .Status.Koding.ServerHosts}} 
+                          <td rowspan="{{.Status.Koding.ServerLen}}">Servers</td>
+                          {{range $key, $val := .Status.Koding.ServerHosts}}
                           <tr>
                             <td>
                               <a target="_blank" href="http://{{$key}}">{{$key}}</a></td>
@@ -136,8 +136,8 @@
                           </tr>
                           {{end}}
                          </tr>
-                          <td rowspan="{{.Status.Koding.BrokerLen}}">Brokers</td> 
-                          {{range $key, $val := .Status.Koding.BrokerHosts}} 
+                          <td rowspan="{{.Status.Koding.BrokerLen}}">Brokers</td>
+                          {{range $key, $val := .Status.Koding.BrokerHosts}}
                           <tr>
                             <td>
                               <a target="_blank" href="http://{{$key}}">{{$key}}</a></td>
@@ -168,7 +168,7 @@
 						</tr>
 					</thead>
 					<tbody>
-						{{range .Workers}} 
+						{{range .Workers}}
 						<tr class="{{.Info}}">
 							<td>{{.Name}}</td>
 							<td>{{.Hostname}}</td>
@@ -204,16 +204,6 @@
 					<tr>
 						<td>Config used</td>
 						<td>{{.Server.ConfigUsed}}</td>
-					</tr>
-				</table>
-				<table class="table table-hover table-bordered table-condensed">
-					<tr>
-						<td>Hostname</td>
-						<td>{{.Server.Hostname.Public}}</td>
-					</tr>
-					<tr>
-						<td>IP</td>
-						<td>{{.Server.IP.Public}}</td>
 					</tr>
 				</table>
 				<h4>MongoDB</h4>

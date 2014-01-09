@@ -138,6 +138,7 @@ func (k *Kontrol) register(r *kite.RemoteKite, kodingkey string) (*protocol.Regi
 	// Register to etcd.
 	prev, err := setKey()
 	if err != nil {
+		log.Critical("etcd setKey error: %s", err)
 		return nil, errors.New("Internal error")
 	}
 
@@ -346,13 +347,18 @@ func (k *Kontrol) getKites(r *kite.Request, query protocol.KontrolQuery, watchCa
 		return nil, err
 	}
 
-	resp, err := k.etcd.Get(key, false, true)
+	resp, err := k.etcd.Get(
+		key,
+		false, // sorting flag, we don't care about sorting for now
+		true,  // recursive, return all child directories too
+	)
 	if err != nil {
 		if etcdErr, ok := err.(etcd.EtcdError); ok {
 			if etcdErr.ErrorCode == 100 { // Key Not Found
 				return make([]*protocol.KiteWithToken, 0), nil
 			}
 		}
+
 		log.Critical("etcd error: %s", err)
 		return nil, fmt.Errorf("Internal error")
 	}

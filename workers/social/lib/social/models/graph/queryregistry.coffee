@@ -144,7 +144,7 @@ module.exports =
         LIMIT {limitCount}
       """
 
-    followingnew:(exemptClause="", type="JNewStatusUpdate")->
+    followingnew:(exemptClause="", timeQuery="", type="JNewStatusUpdate")->
       """
         START member=node:koding(id={userId})
         MATCH member<-[:follower]-members-[:author]-content
@@ -152,6 +152,7 @@ module.exports =
         AND content.group = {groupName}
         AND content.name = "#{type}"
         #{exemptClause}
+        #{timeQuery}
         RETURN content.id as id
         ORDER BY content.`meta.createdAtEpoch` DESC
         SKIP {skipCount}
