@@ -72,6 +72,7 @@ func updateFunc() func(coll *mgo.Collection) error {
 
 			iter := query.Skip(index).Limit(count - index).Iter()
 			for iter.Next(&account) {
+				log.Debug("Account id", account.Id)
 				err := updateCounts(account.Id)
 				if err != nil {
 					log.Info("Err while updating account", err)
