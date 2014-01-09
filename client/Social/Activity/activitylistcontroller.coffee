@@ -48,10 +48,6 @@ class ActivityListController extends KDListViewController
           return
       else
         KD.singletons.dock.addItem { title : "Bugs", path : "/Bugs", order : 60 }
-        new KDNotificationView
-          title : "Hulog"
-          duration : 3000
-
 
 
   prepareSubject:(post)->
