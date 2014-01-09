@@ -147,6 +147,7 @@ module.exports =
     useStaticFileServer: no
     staticFilesBaseUrl: "https://koding.com"
     runtimeOptions:
+      environment   : "sjc-production"
       activityFetchCount : 20
       precompiledApi: yes
       authExchange: authExchange

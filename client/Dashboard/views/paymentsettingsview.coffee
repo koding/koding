@@ -26,13 +26,13 @@ class GroupPaymentSettingsView extends JView
 
         group.updateBundle updateOptions, -> saveButton.hideLoader()
 
-      buttons:
-        Save                :
-          style             : "modal-clean-green"
-          type              : "submit"
-          loader            :
-            color           : "#444444"
-            diameter        : 12
+      # buttons:
+      #   Save                :
+      #     style             : "modal-clean-green"
+      #     type              : "submit"
+      #     loader            :
+      #       color           : "#444444"
+      #       diameter        : 12
       fields                :
         billing             :
           label             : "Billing method"

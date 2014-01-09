@@ -140,6 +140,7 @@ module.exports =
     useStaticFileServer: no
     staticFilesBaseUrl: 'http://localhost:3020'
     runtimeOptions:
+      environment : "vagrant"
       activityFetchCount : 20
       precompiledApi: no
       authExchange: authExchange
