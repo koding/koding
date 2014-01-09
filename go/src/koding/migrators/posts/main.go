@@ -5,6 +5,8 @@ import (
 	"fmt"
 	. "koding/db/models"
 	helper "koding/db/mongodb/modelhelper"
+
+	"labix.org/v2/mgo/bson"
 )
 
 var POST_TYPES = [5]string{
@@ -67,8 +69,13 @@ func migrate(m *Migrator) error {
 
 	for _, post := range posts {
 		m.Id = post.Id.Hex()
+
+		newId := helper.NewObjectId()
+		oldId := post.Id
+
 		oldPost := post
-		post.Id = helper.NewObjectId()
+		post.Id = newId
+
 		m.Index++
 		if err := verifyOrigin(&post); err != nil {
 			ReportError(m, err)
@@ -125,9 +132,52 @@ func migrate(m *Migrator) error {
 			continue
 		}
 
+		if err := fixRelationships(oldId, newId); err != nil {
+			ReportError(m, err)
+			continue
+		}
+
 		ReportSuccess(m)
 	}
 	return migrate(m)
+}
+
+func fixRelationships(oldId, newId bson.ObjectId) error {
+	selector := helper.Selector{
+		"targetId": oldId,
+		"as": helper.Selector{
+			"$in": []string{"like", "follower"},
+		},
+	}
+	options := helper.Selector{
+		"$set": helper.Selector{
+			"targetId":   newId,
+			"targetName": "JNewStatusUpdate",
+		},
+	}
+
+	if err := helper.UpdateRelationships(selector, options); err != nil {
+		return err
+	}
+
+	selector = helper.Selector{
+		"sourceId": oldId,
+		"as": helper.Selector{
+			"$in": []string{"like", "follower"},
+		},
+	}
+	options = helper.Selector{
+		"$set": helper.Selector{
+			"sourceId":   newId,
+			"sourceName": "JNewStatusUpdate",
+		},
+	}
+
+	if err := helper.UpdateRelationships(selector, options); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func updatePostStatus(p *Post, m *Migrator, status string) error {
@@ -161,7 +211,7 @@ func insertNewStatusUpdate(p *Post, m *Migrator) error {
 	if p.Meta.CreatedAt.Unix() < 0 {
 		return fmt.Errorf("got nil timestamp for")
 	}
-	p.Meta.Likes = 0 // CtF: because we are not migrating activities it is reset
+	// p.Meta.Likes = 0 // CtF: because we are not migrating activities it is reset
 
 	if err := migrateCodesnip(p, m); err != nil {
 		return err
