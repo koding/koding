@@ -90,21 +90,20 @@ class AvatarPopupGroupSwitcher extends AvatarPopup
 
 
     @avatarPopupContent.addSubView dashboard = new KDCustomHTMLView
-      tagName    : 'a'
-      attributes : href : '/Dashboard'
-      cssClass   : 'bottom hidden'
-      partial    : 'Dashboard'
+      tagName  : "a"
+      cssClass : "bottom hidden"
+      partial  : "Dashboard"
+      click    : (event) =>
+        KD.utils.stopDOMEvent event
+        KD.getSingleton("router").handleRoute "/Dashboard"
+        @hide()
 
     # FIXME:
     KD.utils.wait 2000, =>
       group = KD.getSingleton("groupsController").getCurrentGroup()
       group?.canEditGroup (err, success)=>
-        if success
-          dashboard.show()
-          dashboard.on 'click', (event)=>
-            KD.utils.stopDOMEvent event
-            KD.getSingleton('router').handleRoute '/Dashboard'
-            @hide()
+        return  unless success
+        dashboard.show()
 
     # @avatarPopupContent.addSubView new KDCustomHTMLView
     #   tagName    : 'a'
