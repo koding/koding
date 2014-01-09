@@ -70,3 +70,13 @@ func UpdateRelationships(selector, options Selector) error {
 	}
 	return mongodb.Run("relationships", query)
 }
+
+func RelationshipCount(selector Selector) (int, error) {
+	var count int
+	var err error
+	query := func(c *mgo.Collection) error {
+		count, err = c.Find(selector).Count()
+		return err
+	}
+	return count, mongodb.Run("relationships", query)
+}
