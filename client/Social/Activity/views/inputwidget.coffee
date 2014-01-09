@@ -11,6 +11,13 @@ class ActivityInputWidget extends KDView
     @input    = new ActivityInputView defaultValue: options.defaultValue
     @input.on "Escape", @bound "reset"
 
+    @input.on "tokenAdded", (token) =>
+      if token.slug is "bug"
+        @setClass "bug-tagged"
+
+    @on "ActivitySubmitted", =>
+      @unsetClass "bug-tagged"
+
     @embedBox = new EmbedBoxWidget delegate: @input, data
 
     @submit    = new KDButtonView
