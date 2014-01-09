@@ -249,8 +249,8 @@ module.exports = class JNewStatusUpdate extends JPost
 
         options.sort = 'meta.createdAt' : -1
         options.limit ?= 20
+        selector.feedType = options.feedType
 
-        selector.feedType = "$ne" : "bug"
         @some selector, options, (err, data)=>
           return callback err if err
           @decorateResults data, showExemptComments, callback
