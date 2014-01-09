@@ -71,7 +71,6 @@ func main() {
 		fmt.Println(err)
 	}
 }
-}
 
 func viewHandler(w http.ResponseWriter, r *http.Request) {
 	var loginName string
@@ -143,7 +142,6 @@ func viewHandler(w http.ResponseWriter, r *http.Request) {
 	return
 }
 
-
 func logoutHandler(w http.ResponseWriter, r *http.Request) {
 	session, err := store.Get(r, "userData")
 	if err != nil {
@@ -200,6 +198,7 @@ func checkSessionHandler(w http.ResponseWriter, r *http.Request) (string, error)
 	}
 
 	return loginName.(string), nil
+}
 
 func switchOperation(loginName string, r *http.Request) string {
 	operation := r.FormValue("operation")
