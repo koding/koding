@@ -46,8 +46,6 @@ class TeamworkTabHandleAvatarView extends KDView
     @avatar.avatarsMenu?.destroy()
 
   avatarMouseEnter: ->
-    return if @accounts.length <= 1
-
     offset = @avatar.$().offset()
     @avatar.avatarsMenu = new JContextMenu
       menuWidth     : 160
