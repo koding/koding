@@ -32,8 +32,8 @@ class CommentListItemView extends KDListItemView
 
     @editInfo = new KDCustomHTMLView
       tagName: "span"
-      cssClass: "hidden"
-      pistachio: "(edited)"
+      cssClass: "hidden edited"
+      pistachio: "edited"
 
     if data.getAt 'editedAt' then @editInfo.show()
 
@@ -43,7 +43,7 @@ class CommentListItemView extends KDListItemView
     activity = @getDelegate().getData()
     loggedInId = KD.whoami().getId()
 
-    @settings = if KD.checkFlag "super-admin"  # if super-admin
+    @settings = if true  # if super-admin
       @getSettings(data)
     else if loggedInId is data.originId or # if comment/review owner
             loggedInId is activity.originId # if activity/app owner
@@ -101,6 +101,7 @@ class CommentListItemView extends KDListItemView
     @body.hide()
     @editInfo.hide()
     @editComment = new EditCommentForm
+      cssClass : 'edit-comment-box'
       editable : yes
       delegate : this,
       data
@@ -110,6 +111,7 @@ class CommentListItemView extends KDListItemView
   getSettings:(data)->
     button = new KDButtonViewWithMenu
       cssClass       : 'activity-settings-menu'
+      style          : 'comment-menu'
       itemChildClass : ActivityItemMenuItem
       title          : ''
       icon           : yes

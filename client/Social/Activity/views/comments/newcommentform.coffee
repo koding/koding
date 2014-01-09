@@ -88,7 +88,8 @@ class EditCommentForm extends NewCommentForm
     super options, data
 
     @commentFormWrapper.addSubView new KDCustomHTMLView
-      pistachio: "Press Esc to cancel"
+      cssClass  : "cancel-description"
+      pistachio : "Press Esc to cancel"
 
     @commentInput.setValue data.body
     @commentInput.on "EscapePerformed", @bound "cancel"
