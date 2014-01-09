@@ -29,15 +29,12 @@ class TeamworkApp extends KDObject
         else
           @createTeamwork()
 
+      KD.mixpanel "Teamwork join session, click"
+
     @on "ImportRequested", (importUrl) =>
       @emit "NewSessionRequested"
       @teamwork.on "WorkspaceSyncedWithRemote", =>
         @showImportWarning importUrl
-
-    {sessionKey, importUrl} = options.query
-    if sessionKey     then @emit "JoinSessionRequested", sessionKey
-    else if importUrl then @emit "ImportRequested"     , importUrl
-    else @emit "NewSessionRequested"
 
   createTeamwork: (options, callback) ->
     playgroundClass = TeamworkWorkspace
@@ -48,6 +45,8 @@ class TeamworkApp extends KDObject
     @teamwork = new playgroundClass options or @getTeamworkOptions()
     @appView.addSubView @teamwork
     callback?()
+
+    @setOption "sessionKey", @teamwork.sessionKey
     KD.getSingleton("router").handleRoute "/Teamwork?sessionKey=#{@teamwork.sessionKey}"
 
   getTeamworkOptions: ->
@@ -106,10 +105,13 @@ class TeamworkApp extends KDObject
             diameter: 14
           callback  : =>
             new TeamworkImporter { url, modal, callback, delegate: this }
+            KD.mixpanel "Teamwork import confirm, click"
         DontImport  :
           title     : "Don't import anything"
           cssClass  : "modal-cancel"
-          callback  : -> modal.destroy()
+          callback  : ->
+            modal.destroy()
+            KD.mixpanel "Teamwork import confirm, fail"
 
   showMarkdownModal: (rawContent) ->
     t = @teamwork

@@ -33,7 +33,7 @@ class HomeRegisterForm extends KDFormView
             rangeLength  : "Username should be between 4 and 25 characters!"
           events         :
             required     : "blur"
-            rangeLength  : "keyup"
+            rangeLength  : "blur"
             regExp       : "keyup"
             usernameCheck: "keyup"
             finalCheck   : "blur"

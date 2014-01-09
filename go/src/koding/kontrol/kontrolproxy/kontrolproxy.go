@@ -325,7 +325,7 @@ func (p *Proxy) getHandler(req *http.Request) http.Handler {
 		// roundrobin to next target
 		err := target.Resolve(req.Host)
 		if err != nil {
-			logs.Info(fmt.Sprintf("internal resolver error (%s) - %s", userIP, err))
+			logs.Info(fmt.Sprintf("internal resolver error for %s (%s) - %s", req.Host, userIP, err))
 			if err == resolver.ErrGone {
 				return templateHandler("notfound.html", req.Host, 410)
 			}

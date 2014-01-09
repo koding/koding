@@ -45,7 +45,7 @@ func TestTLSKite(t *testing.T) {
 	// TLS Kite is ready.
 
 	// Wait for it to register itself.
-	time.Sleep(100 * time.Millisecond)
+	time.Sleep(1000 * time.Millisecond)
 
 	opt1 := &kite.Options{
 		Kitename:    "kite1",
@@ -77,7 +77,7 @@ func TestTLSKite(t *testing.T) {
 
 	// Wait for kites to register to Kontrol.
 	// TODO do not sleep, make a notifier method.
-	time.Sleep(100 * time.Millisecond)
+	time.Sleep(1000 * time.Millisecond)
 
 	// Get the list of "kite1" kites from Kontrol.
 	query := protocol.KontrolQuery{

@@ -2,21 +2,26 @@ class GroupsMemberPermissionsListItemView extends KDListItemView
 
   constructor:(options = {}, data)->
 
-    options.cssClass = 'formline clearfix'
-    options.type     = 'member-item'
+    options.type     = 'member'
 
     super options, data
 
     data               = @getData()
     list               = @getDelegate()
     {roles, userRoles} = list.getOptions()
-    @avatar            = new AvatarStaticView {}, data
-    @profileLink       = new ProfileTextView {}, data
+
+    @avatar  = new AvatarView
+      size       : width: 30, height: 30
+      cssClass   : "avatarview"
+      showStatus : yes
+    , data
+
+    @profileLink       = new ProfileLinkView {}, data
     @usersRole         = userRoles[data.getId()]
 
     @userRole          = new KDCustomHTMLView
       partial          : "Roles: " + @usersRole.join ', '
-      cssClass         : 'ib role'
+      cssClass         : 'user-numbers'
 
     if 'owner' in @usersRole or KD.whoami().getId() is data.getId()
       @editLink        = new KDCustomHTMLView "hidden"
@@ -61,6 +66,7 @@ class GroupsMemberPermissionsListItemView extends KDListItemView
     list.emit "EditMemberRolesViewShown", this
 
     @setClass 'editing'
+    @getDelegate().setClass 'item-editing'
     @editLink.hide()
     @cancelLink.show()
     @editContainer.show()
@@ -81,6 +87,7 @@ class GroupsMemberPermissionsListItemView extends KDListItemView
   hideEditMemberRolesView:->
 
     @unsetClass 'editing'
+    @getDelegate().unsetClass 'item-editing'
     @editLink.show()
     @cancelLink.hide()
     @editContainer.hide()
@@ -95,14 +102,10 @@ class GroupsMemberPermissionsListItemView extends KDListItemView
 
   pistachio:->
     """
-    <div class="kdlistitemview-member-item-inner">
-      <section>
-        <span class="avatar">{{> @avatar}}</span>
-        {{> @editLink}}
-        {{> @cancelLink}}
-        {{> @profileLink}}
-        {{> @userRole}}
-      </section>
+      {{> @avatar}}
+      {{> @editLink}}
+      {{> @cancelLink}}
+      {{> @profileLink}}
+      {{> @userRole}}
       {{> @editContainer}}
-    </div>
     """

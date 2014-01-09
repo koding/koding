@@ -26,12 +26,12 @@ class GroupsMembershipPolicyDetailView extends KDView
     #   callback      : (state) =>
     #     @emit 'MembershipPolicyChanged', invitationsEnabled: state
 
-    @enableAccessRequests = new KDOnOffSwitch
+    @enableAccessRequests = new KodingSwitch
       defaultValue  : approvalEnabled
       callback      : (state) =>
         @emit 'MembershipPolicyChanged', approvalEnabled: state
 
-    @enableDataCollection = new KDOnOffSwitch
+    @enableDataCollection = new KodingSwitch
       defaultValue  : dataCollectionEnabled
       callback      : (state)=>
         if state
@@ -40,7 +40,7 @@ class GroupsMembershipPolicyDetailView extends KDView
         @emit 'MembershipPolicyChanged', dataCollectionEnabled: state
         @formGenerator[if state then 'show' else 'hide']()
 
-    @enableWebhooks = new KDOnOffSwitch
+    @enableWebhooks = new KodingSwitch
       defaultValue  : webhookExists
       callback      : (state) =>
         if state
@@ -83,13 +83,15 @@ class GroupsMembershipPolicyDetailView extends KDView
 
     policyLanguageExists = policy.explanation
 
-    @showPolicyLanguageLink = new CustomLinkView
+    @showPolicyLanguageLink = new KDButtonView
+      style     : "solid green"
       cssClass  : "edit-link #{if policyLanguageExists then 'hidden' else ''}"
       title     : 'Edit'
-      click     :(event)=>
-        event.preventDefault()
-        @showPolicyLanguageLink.hide()
-        @policyLanguageEditor.show()
+      callback  :=>
+        return new KDNotificationView title : "Currently disabled!"
+        # Following two lines makes enable editing policy language.
+        # @showPolicyLanguageLink.hide()
+        # @policyLanguageEditor.show()
 
     @policyLanguageEditor = new GroupsMembershipPolicyLanguageEditor
       cssClass      : unless policyLanguageExists then 'hidden'
