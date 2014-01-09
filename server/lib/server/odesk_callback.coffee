@@ -27,7 +27,7 @@ module.exports = (req, res)->
   {JSession} = koding.models
 
   JSession.one {clientId}, (err, session)->
-    if err
+    if err or not session
       renderOauthPopup res, {error:err, provider}
       return
 
