@@ -5,10 +5,19 @@ class AnimatedModalView extends KDView
     options.cssClass = KD.utils.curry "animated-modalview", options.cssClass
     super options, data
 
+    @addSubView closeButton = new KDCustomHTMLView
+      partial : \
+        "<span class='close-icon closeModal' title='Close [ESC]'></span>"
+      click   : @bound 'destroy'
+
     @putOverlay options.overlay  if options.overlay
 
     @setMagic 0
     @appendToDomBody()
+
+  keyUp:(event)->
+    @destroy() if event.which is 27
+    event
 
   putOverlay:->
 
@@ -25,6 +34,8 @@ class AnimatedModalView extends KDView
 
     @listenWindowResize()
     @setMagic 1
+
+    KD.utils.defer @bound 'setKeyView'
 
   setMagic:(scale = 1)->
 
