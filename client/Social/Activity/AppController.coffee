@@ -2,7 +2,7 @@ class ActivityAppController extends AppController
 
   KD.registerAppClass this,
     name         : "Activity"
-    route        : "/:name?/Activity"
+    route        : "/:name?/Activity/:slug?"
     searchRoute  : "/Activity?q=:text:"
     hiddenHandle : yes
 
