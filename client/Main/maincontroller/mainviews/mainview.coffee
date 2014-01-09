@@ -82,6 +82,8 @@ class MainView extends KDView
         then KD.getSingleton('router').handleRoute "/Activity", {entryPoint}
         else location.replace '/'
 
+    @logo.setClass KD.config.environment
+
     # REFACTOR NOTE: login link
 
     # wrapper.addSubView loginLink = new CustomLinkView
