@@ -27,8 +27,15 @@ class CommentListItemView extends KDListItemView
     @author = new ProfileLinkView { origin }
 
     @body = @getBody data
+    @editCommentWrapper = new KDCustomHTMLView
+      cssClass : "edit-comment-wrapper hidden"
 
-    @edited = @getEdited data
+    @editInfo = new KDCustomHTMLView
+      tagName: "span"
+      cssClass: "hidden"
+      pistachio: "(edited)"
+
+    if data.getAt 'editedAt' then @editInfo.show()
 
     if deleterId? and deleterId isnt originId
       @deleter = new ProfileLinkView {}, data.getAt('deletedBy')
@@ -77,30 +84,28 @@ class CommentListItemView extends KDListItemView
           return
         data.body = comment
         data.editedAt = new Date
-        @edited = @getEdited data
         @hideEditCommentForm(data)
 
   cancelCommentUpdate: ->
     @hideEditCommentForm(@getData())
 
   hideEditCommentForm:(data)->
-    @body = @getBody data
-    @edited.show()
-    @settings = @getSettings(data)
-    @timeAgoView = new KDTimeAgoView {}, data.meta.createdAt
-    @updateTemplate yes
-
+    @settings.show()
+    @editComment.destroy()
+    @body.show()
+    @editInfo.show() if data.getAt 'editedAt'
+    @editCommentWrapper.hide()
 
   showEditCommentForm:(data)->
     @settings.hide()
-    @body.destroy()
-    @edited.hide()
-    @body = new EditCommentForm
+    @body.hide()
+    @editInfo.hide()
+    @editComment = new EditCommentForm
       editable : yes
       delegate : this,
       data
-    @timeAgoView = new KDTimeAgoView {}, data.meta.createdAt
-    @updateTemplate yes
+    @editCommentWrapper.addSubView @editComment
+    @editCommentWrapper.show()
 
   getSettings:(data)->
     button = new KDButtonViewWithMenu
@@ -117,12 +122,6 @@ class CommentListItemView extends KDListItemView
     new KDCustomHTMLView
       pistachio: "{p{@utils.applyTextExpansions #(body), yes}}",
       data
-
-  getEdited:(data) ->
-    if data.getAt 'editedAt'
-      new KDCustomHTMLView tagName: 'span', pistachio: "(edited)"
-    else new KDCustomHTMLView tagName: 'span', cssClass: 'hidden'
-
 
   getDeleteButton:(data)->
     button = new KDCustomHTMLView
@@ -211,7 +210,8 @@ class CommentListItemView extends KDListItemView
       <div class='comment-contents clearfix'>
         {{> @author}}
         {{> @body}}
-        {{> @edited}}
+        {{> @editCommentWrapper}}
+        {{> @editInfo}}
         {{> @settings}}
         {{> @likeView}}
         {{> @replyView}}
