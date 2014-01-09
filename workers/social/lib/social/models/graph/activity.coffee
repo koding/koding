@@ -180,7 +180,8 @@ module.exports = class Activity extends Graph
           groupName  : currentGroup.slug or "koding"
           userId     : delegate.getId()
 
-        query = QueryRegistry.activity.followingnew exemptClause
+        timeQuery = @generateTimeQuery options
+        query = QueryRegistry.activity.followingnew exemptClause, timeQuery
         @fetch query, queryOptions, (err, results) =>
           return callback err  if err
           callback err, results
