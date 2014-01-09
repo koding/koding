@@ -87,7 +87,8 @@ func migrate(m *Migrator) error {
 			continue
 		}
 
-		m.NewId = post.Id.Hex()
+		newId = post.Id
+		m.NewId = newId.Hex()
 
 		if err := updatePostStatus(&oldPost, m, "Started"); err != nil {
 			ReportError(m, err)
@@ -145,9 +146,7 @@ func migrate(m *Migrator) error {
 func fixRelationships(oldId, newId bson.ObjectId) error {
 	selector := helper.Selector{
 		"targetId": oldId,
-		"as": helper.Selector{
-			"$in": []string{"like", "follower"},
-		},
+		"as":       "like",
 	}
 	options := helper.Selector{
 		"$set": helper.Selector{
@@ -162,9 +161,7 @@ func fixRelationships(oldId, newId bson.ObjectId) error {
 
 	selector = helper.Selector{
 		"sourceId": oldId,
-		"as": helper.Selector{
-			"$in": []string{"like", "follower"},
-		},
+		"as":       "like",
 	}
 	options = helper.Selector{
 		"$set": helper.Selector{
