@@ -23,9 +23,9 @@ if KD.config.logToExternal then do ->
 
 # Access control wrapper around mixpanel object.
 KD.mixpanel = (args...)->
-  return  unless mixpanel
-  mixpanel.track args...  if KD.config.logToExternal
+  return  unless mixpanel or not KD.config.logToExternal
+  mixpanel.track args...
 
 KD.mixpanel.alias = (args...)->
-  return  unless mixpanel
+  return  unless mixpanel or not KD.config.logToExternal
   mixpanel.alias args...
