@@ -139,6 +139,7 @@ module.exports =
     useStaticFileServer: no
     staticFilesBaseUrl: "https://koding.com"
     runtimeOptions:
+      environment   : "staging"
       activityFetchCount : 20
       precompiledApi: yes
       authExchange: authExchange
@@ -214,7 +215,7 @@ module.exports =
     cronInstant : '*/10 * * * * *'
     cronDaily   : '0 10 0 * * *'
     run         : no
-    forcedRecipient : 'noreply@koding.com'
+    forcedRecipient : undefined
   emailSender   :
     run         : no
   guests        :

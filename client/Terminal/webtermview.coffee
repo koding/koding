@@ -1,7 +1,7 @@
 class WebTermView extends KDView
 
   constructor: (options = {}, data) ->
-
+    options.bind = KD.utils.curry "paste", options.bind
     super options, data
 
     @initBackoff()
@@ -39,8 +39,6 @@ class WebTermView extends KDView
 
     @listenWindowResize()
 
-    @focused = true
-
     @on "ReceivedClickElsewhere", =>
       @focused = false
       @terminal.setFocused false
@@ -54,10 +52,10 @@ class WebTermView extends KDView
     window.addEventListener "focus", =>
       @terminal.setFocused @focused
 
-    document.addEventListener "paste", (event) =>
+    @on "paste", (event) =>
       KD.utils.stopDOMEvent event
       if @focused
-        @terminal?.server.input event.clipboardData.getData "text/plain"
+        @terminal?.server.input event.originalEvent.clipboardData.getData "text/plain"
       @setKeyView()
 
     @getElement().addEventListener "mousedown", (event) =>
@@ -89,6 +87,8 @@ class WebTermView extends KDView
     @getDelegate().on 'KDTabPaneActive', =>
       # @terminal.setSize 100, 100
       @terminal.updateSize yes
+
+    @setKeyView()
 
   connectToTerminal: ->
     @appStorage = KD.getSingleton('appStorageController').storage 'Terminal', '1.0.1'
@@ -246,6 +246,15 @@ class WebTermView extends KDView
 
   keyUp: (event) ->
     @terminal.keyUp event
+
+  _windowDidResize: (event) ->
+    @terminal.windowDidResize()
+
+  getAdvancedSettingsMenuItems: ->
+    settings     :
+      type       : 'customView'
+      view       : new WebtermSettingsView
+        delegate : this
 
   listenFullscreen: (event)->
     requestFullscreen = (event.metaKey or event.ctrlKey) and event.keyCode is 13

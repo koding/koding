@@ -12,24 +12,20 @@ class TeamworkDashboard extends JView
       cssClass    : "tw-playgrounds"
 
   createPlaygrounds: (manifests) ->
-    # @playgrounds.addSubView new KDCustomHTMLView
-    #   cssClass    : "tw-playground-item default-item add-new"
-    #   partial     : "<div></div><p>New Project</p>"
-
     @playgrounds.addSubView new KDCustomHTMLView
-      cssClass    : "tw-playground-item default-item import"
+      cssClass    : "tw-playground-item default-item import" # plus: add-new
       partial     : "<div></div><p>Import Project</p>"
       click       : => @getDelegate().teamwork.showImportModal()
 
     manifests?.forEach (manifest) =>
-      @setClass "ready"
+      return if manifest.name is "Facebook"
       @playgrounds.addSubView view = new KDCustomHTMLView
         cssClass  : "tw-playground-item"
         partial   : "<img src='#{manifest.icon}'/> <p>#{manifest.name}</p>"
         click     : =>
-          # @getDelegate().handlePlaygroundSelection manifest.name, manifest.manifestUrl
-          new KDNotificationView
-            title : "Coming Soon"
+          @getDelegate().handlePlaygroundSelection manifest.name, manifest.manifestUrl
+
+    @setClass "ready"
 
   fetchManifests: ->
     delegate = @getDelegate()

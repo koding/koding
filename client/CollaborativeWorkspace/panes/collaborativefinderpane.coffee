@@ -1,3 +1,9 @@
+class TeamworkFinderItem extends NFinderItem
+
+  removeHighlight: ->
+    super
+    @exporter?.destroy()
+
 # TODO: Should implement non-collaborative finder
 # TODO: Should extend this class from NonCollab one.
 
@@ -15,6 +21,7 @@ class CollaborativeFinderPane extends CollaborativePane
       contextMenu         : yes
       useStorage          : no
       treeControllerClass : CollaborativeFinderTreeController
+      treeItemClass       : TeamworkFinderItem
 
     @container?.destroy()
     @finder = @container = @finderController.getView()
@@ -51,6 +58,9 @@ class CollaborativeFinderPane extends CollaborativePane
 
     @finderController.treeController.on "HistoryItemCreated", (historyItem) =>
       @workspace.addToHistory historyItem
+
+    @finderController.treeController.on "ExportRequested", (node) =>
+      new TeamworkExportModal {}, node
 
   syncContent: (files) ->
     @workspaceRef.set { files }
@@ -104,3 +114,14 @@ class CollaborativeFinderTreeController extends NFinderTreeController
     file = nodeView.getData()
     file.fetchContents (err, contents) =>
       @getDelegate().emit "OpenedAFile", file, contents
+
+  selectNode: (node) ->
+    super
+
+    return if node.getData() instanceof FSVm
+
+    node.exporter = new KDCustomHTMLView
+      cssClass    : "tw-export"
+      click       : => @emit "ExportRequested", node
+
+    node.addSubView node.exporter

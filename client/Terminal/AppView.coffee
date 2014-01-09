@@ -6,6 +6,8 @@ class WebTermAppView extends JView
 
     @dirty = KD.utils.dict()
 
+    @initedPanes = KD.utils.dict()
+
     @tabHandleContainer = new ApplicationTabHandleHolder
       delegate          : this
       addPlusHandle     : yes
@@ -16,19 +18,15 @@ class WebTermAppView extends JView
       resizeTabHandles          : yes
       closeAppWhenAllTabsClosed : no
 
-    @tabView.once 'PaneDidShow', (pane, index) =>
+    @tabView.on 'PaneDidShow', (pane, index) =>
       @_windowDidResize()
       {terminalView} = pane.getOptions()
-      terminalView.once 'viewAppended', =>
-        terminalView.terminal.setFocused yes
-        @emit "ready"
-      terminalView.terminal?.setFocused yes
-      terminalView.terminal?.scrollToBottom()
-      KD.utils.defer -> terminalView.setKeyView()
 
-      terminalView.once "WebTerm.terminated", (server) =>
-        if not pane.isDestroyed and @tabView.getActivePane() is pane
-          @tabView.removePane pane
+      @initPane pane
+
+      terminalView.terminal?.scrollToBottom()
+      
+      KD.utils.defer -> terminalView.setKeyView()
 
       @fetchStorage (storage) -> storage.setValue 'activeIndex', index
 
@@ -45,6 +43,17 @@ class WebTermAppView extends JView
     @tabView
       .on('PaneRemoved', @bound 'updateSessions')
       .on('TabsSorted', @bound 'updateSessions')
+
+  initPane: (pane) ->
+    return if pane.id of @initedPanes
+    @initedPanes[pane.id] = yes
+
+    {terminalView} = pane.getOptions()
+
+    terminalView.once 'viewAppended', => @emit "ready"
+    terminalView.once "WebTerm.terminated", (server) =>
+      if not pane.isDestroyed and @tabView.getActivePane() is pane
+        @tabView.removePane pane
 
   setMessage:(msg, light = no, bindClick = no)->
     @messagePane.updatePartial msg

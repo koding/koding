@@ -22,6 +22,7 @@ var (
 
 func init() {
 	Mongo = NewMongoDB(config.Current.Mongo)
+	mgo.SetStats(true)
 }
 
 func NewMongoDB(url string) *MongoDB {
@@ -43,6 +44,7 @@ func (m *MongoDB) CreateSession(url string) {
 	}
 
 	m.Session.SetSafe(&mgo.Safe{})
+	m.Session.SetMode(mgo.Monotonic, true)
 }
 
 func (m *MongoDB) Close() {
@@ -57,10 +59,15 @@ func (m *MongoDB) Copy() *mgo.Session {
 	return m.Session.Copy()
 }
 
+func (m *MongoDB) Clone() *mgo.Session {
+	return m.Session.Clone()
+}
+
 func (m *MongoDB) GetSession() *mgo.Session {
 	if m.Session == nil {
 		m.CreateSession(m.URL)
 	}
+
 	return m.Copy()
 }
 

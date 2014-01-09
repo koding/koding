@@ -16,7 +16,7 @@ class WebTermController extends AppController
       width      : 250
       items      : [
         {title: "customViewAdvancedSettings"}
-      ]    
+      ]
     commands     :
       'ring bell'     : 'ringBell'
       'noop'          : (->)
@@ -37,8 +37,6 @@ class WebTermController extends AppController
 
     super options, data
 
-    KD.mixpanel "Open Webterm tab, success", {vmName}
-
   handleQuery: (query) ->
     @getView().ready =>
       @getView().handleQuery query
@@ -47,7 +45,7 @@ class WebTermController extends AppController
     event?.preventDefault()
 
     { name, version } = @getOptions()
-    
+
     storage = (KD.getSingleton 'appStorageController').storage name, version
 
     if not bell? or storage.getValue 'visualBell'

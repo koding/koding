@@ -2,9 +2,18 @@ class AccountKodingKeyListController extends AccountListViewController
 
   constructor:(options, data)->
 
-    options.noItemFoundText = "You have no Koding key."
+    options.noItemFoundText = """
+      <h2>EXPERIMENTAL</h2>
+      You have no Koding keys. Koding keys are used to authenticate external
+      kites (Koding applications running on other machines). To get your keys listed here
+      you need to download & install the KD Tool (Mac OS X only):
+      <code>$ brew install "https://kd-tool.s3.amazonaws.com/kd.rb"</code>
+      and then register your machine with
+      <code>$ kd register</code>
+
+      """
     options.cssClass = "koding-keys"
-    super options,data
+    super options, data
 
   loadView: ->
     super
@@ -38,21 +47,22 @@ class AccountKodingKeyListItem extends KDListItemView
       tagName      : "a"
       partial      : "Revoke Access"
       cssClass     : "action-link"
+      width        : 600
       click        : =>
         {nickname} = KD.whoami().profile
         modal = new KDModalView
           title        : "Revoke Koding Key Access"
           overlay      : yes
-          cssClass     : "new-kdmodal"
+          cssClass     : "new-kdmodal koding-keys"
           content      : """
           <div class='modalformline'>
             <p>
-              If you revoke access, your computer '<strong>#{data.hostname}</strong>' 
-              will not be able to use your Koding account '#{nickname}'. It won't be 
+              If you revoke access, your computer <strong>#{data.hostname}</strong>
+              will not be able to use your Koding account '#{nickname}'. It won't be
               able to receive public url's, deploy your kites etc.
             </p>
             <p>
-              If you want to register a new key, you can use <code>"kd register"</code>
+              If you want to register a new key, you can use <code>$ kd register</code>
               command anytime.
             </p>
             <p>
@@ -77,12 +87,15 @@ class AccountKodingKeyListItem extends KDListItemView
       partial     : "View access key"
       click       : ->
         modal = new KDModalView
-          title        : "#{data.hostname} Access Key"
+          title        : "Access Key"
           width        : 500
           overlay      : yes
-          cssClass     : "new-kdmodal"
+          cssClass     : "new-kdmodal koding-keys"
           content      : """
           <div class='modalformline'>
+            <p>
+              This key is for <strong>#{data.hostname}</strong>
+            </p>
             <p>
               Please do not share this key anyone!
             </p>

@@ -90,47 +90,46 @@ class AvatarPopupGroupSwitcher extends AvatarPopup
 
 
     @avatarPopupContent.addSubView dashboard = new KDCustomHTMLView
-      tagName    : 'a'
-      attributes : href : '/Dashboard'
-      cssClass   : 'bottom hidden'
-      partial    : 'Dashboard'
+      tagName  : "a"
+      cssClass : "bottom hidden"
+      partial  : "Dashboard"
+      click    : (event) =>
+        KD.utils.stopDOMEvent event
+        KD.getSingleton("router").handleRoute "/Dashboard"
+        @hide()
 
     # FIXME:
     KD.utils.wait 2000, =>
       group = KD.getSingleton("groupsController").getCurrentGroup()
       group?.canEditGroup (err, success)=>
-        if success
-          dashboard.show()
-          dashboard.on 'click', (event)=>
-            KD.utils.stopDOMEvent event
-            KD.getSingleton('router').handleRoute '/Dashboard'
-            @hide()
+        return  unless success
+        dashboard.show()
 
-    @avatarPopupContent.addSubView new KDCustomHTMLView
-      tagName    : 'a'
-      attributes : href : '#'
-      cssClass   : 'bottom'
-      partial    : 'Go back to old Koding'
-      click      : (event)=>
-        KD.utils.stopDOMEvent event
-        modal = new KDModalView
-          title   : "Go back to old Koding"
-          cssClass: "go-back-survey"
-          content : """
-            Please take a short survey about <a href="http://bit.ly/1jsjlna">New Koding.</a><br><br>
-            """
-          buttons :
-            "Switch":
-              cssClass: "modal-clean-gray"
-              callback: ->
-                KD.mixpanel "Switch to old Koding, click"
-                KD.utils.goBackToOldKoding()
-                modal.destroy()
-            "Cancel":
-              cssClass: "modal-cancel"
-              callback: ->
-                modal.destroy()
-        @hide()
+    # @avatarPopupContent.addSubView new KDCustomHTMLView
+    #   tagName    : 'a'
+    #   attributes : href : '#'
+    #   cssClass   : 'bottom'
+    #   partial    : 'Go back to old Koding'
+    #   click      : (event)=>
+    #     KD.utils.stopDOMEvent event
+    #     modal = new KDModalView
+    #       title   : "Go back to old Koding"
+    #       cssClass: "go-back-survey"
+    #       content : """
+    #         Please take a short survey about <a href="http://bit.ly/1jsjlna">New Koding.</a><br><br>
+    #         """
+    #       buttons :
+    #         "Switch":
+    #           cssClass: "modal-clean-gray"
+    #           callback: ->
+    #             KD.mixpanel "Switch to old Koding, click"
+    #             KD.utils.goBackToOldKoding()
+    #             modal.destroy()
+    #         "Cancel":
+    #           cssClass: "modal-cancel"
+    #           callback: ->
+    #             modal.destroy()
+    #     @hide()
 
     @avatarPopupContent.addSubView new KDCustomHTMLView
       tagName    : 'a'

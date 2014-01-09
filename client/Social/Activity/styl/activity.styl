@@ -10,9 +10,9 @@ resurrection.activity.styl
 }
 
 
-.feeder-header
-.common-inner-nav
-.system-message
+// .feeder-header
+// .common-inner-nav
+// .system-message
 .activity-status-context
 // .comment-container.no-comment
   display               none
@@ -80,20 +80,59 @@ resurrection.activity.styl
       .kdview
         overflow        visible
 
+    .feeder-header
+      margin-top        31px
+      text-align        right
+
+    .new-updates
+      padding           4px 10px
+      bg                color logoBg
+      color             white
+      margin            -2px 10px 0 0
+      font-weight       400
+      display           inline-block
+      rounded           11px
+      min-width         22px
+      text-align        center
+      font-weight       300
+      letter-spacing    .5px
+      noTextDeco()
+      borderBox()
+      &:hover
+        bg              color, socialColor
+
+
+    .kdbutton.live-updates
+      bg              color transparent
+      border          none
+      border-right    1px solid #ccc
+      outline         none
+      margin          -2px 17px 0 0
+      padding         0 10px 0 0
+      &:focus
+        shadow        none
+      .icon.broken
+        r-sprite      activity 'thunder-broken'
+      .icon.live
+        r-sprite      activity 'thunder'
+
     .feed-type-selection
       margin-right      3px
-      margin-top        28px
-      text-align        right
+      fr()
 
       a
         font-weight     300
-        padding-left    20px
+        padding-left    18px
         color           #838987
         font-size       20px
         noTextDeco()
 
+        &:first-child
+          padding-left  0
+
         &.active
           color         logoBg
+
 
   > aside
     right               0
@@ -105,10 +144,70 @@ resurrection.activity.styl
     borderBox()
     abs()
 
-    .activity-ticker
-    .active-users
-    .active-topics
+    > div
       size              269px, auto
+
+    .referal-box
+      margin-top        33px
+      color             #5b5b5b
+      overflow          visible
+
+      &:hover .hide
+        visible()
+
+      .hide
+        bottom          0
+        right           20px
+        line-height     31px
+        font-size       14px
+        color           #999
+        z-index         3
+        hidden()
+        abs()
+
+      > figure
+        sprite          activity 'refer-friend'
+        margin          0 9px 0 15px
+        fl()
+
+      > p
+        overflow        hidden
+        width           auto
+        font-size       13px
+        line-height     1.25em
+        padding-right   20px
+        borderBox()
+        a
+          color         logoBg
+          noTextDeco()
+
+      .progressbar-container
+        overflow            hidden
+        size                100% 31px
+        border              none
+        rounded             16px
+        margin-top          16px
+        gradient            #cfcece #cfcece
+        borderBox()
+        rel()
+        span
+          display           block
+          size              100% 100%
+          line-height       31px
+          font-size         14px
+          text-align        left
+          color             white
+          text-shadow       none
+          padding           0 20px
+          abs()
+        .bar
+          rounded           15px
+          gradient          logoBg logoBg
+          shadow            none
+          vendor            transition, width 400ms ease
+          overflow          hidden
+          z-index           3
+          abs()
 
     .right-block-box
       size              auto, auto
@@ -393,6 +492,9 @@ span.collapsedtext
       padding         0
 
 /* Activity items */
+.kdlistitemview-activity.hidden-item
+  hidden()
+
 .activity-item
   background      #fff
   rounded         5px
@@ -455,7 +557,7 @@ span.collapsedtext
     overflow          auto
     max-height        400px
     line-height       22px
-    margin-bottom     7px
+    margin-bottom     16px
 
     > *
       padding       0 21px
@@ -643,9 +745,9 @@ span.collapsedtext
         &:before
           content         "\2022"
           display         block
-          font-size       18px
+          font-size       14px
           left            -14px
-          top             -2px
+          top             -1px
           color           #d8d8d8
           abs()
 
@@ -994,16 +1096,19 @@ body.profile
     margin                4px 21px
   p
     code
-      padding             0px 3px
+      padding             2px 5px
       border              1px solid #DDD
       background-color    #F8F8F8
+      font-family         monoFamily
       border-radius       3px
+      vertical-align      top
+      font-size           12px
   pre
     code
       display             block
       line-height         16px
       font-size           12px
-      font-family         Monaco, Consolas, Lucida Console, Liberation Mono, DejaVu Sans Mono, Bitstream Vera Sans Mono, Courier New
+      font-family         monoFamily
       padding             14px
       color               white
       bg                  color, #28292A
@@ -1182,3 +1287,4 @@ body.profile
 
       &~.bug-status-title
         border-top       1px solid #d3d3d3
+

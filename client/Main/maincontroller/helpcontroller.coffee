@@ -6,6 +6,7 @@ class HelpController extends KDController
   KD.registerAppClass this, {name, version, background: yes}
 
   showHelp:(delegate)->
+    KD.mixpanel "Help modal show, success"
 
     @_modal?.destroy?()
     @_modal = new HelpModal {delegate}
@@ -32,11 +33,16 @@ class HelpPage extends KDSlidePageView
       if link.command
         options.click = (event)=>
           KD.utils.stopDOMEvent event
+          KD.mixpanel "Help modal link, click", title:link.title
+
           KD.singletons.appManager.require 'Terminal',(app)=>
             @getDelegate().emit 'InternalLinkClicked', link
             KD.utils.wait 500, =>
               KD.singletons.router.handleRoute link.url
               KD.singletons.appManager.tell 'Terminal', 'runCommand', link.command
+      else
+        options.click = (event)=>
+          KD.mixpanel "Help modal link, click", title:link.title
 
       @addSubView (new KDCustomHTMLView options), 'ul'
 
@@ -173,11 +179,4 @@ class HelpModal extends AnimatedModalView
       tagName  :'footer'
       partial  : """
         <h4>Find more at <a href='http://learn.koding.com'>Koding University</a>, also, we would love to hear your <a href='https://docs.google.com/forms/d/1jxdnXLm-cgHDpokzKIJSaShEirb66huoEMhPkQF5f_I/viewform'target='_blank'>feedback</a>.</h4>
-        <div class='warning'>
-          <span class='icon'></span>
-          <p>
-          It’s still in beta, so you might find some bugs.<br/>
-          Please report them in a status update tagged as <i>#bug</i>.<br/>
-          </p>
-        </div>
       """

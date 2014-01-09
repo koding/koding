@@ -33,7 +33,7 @@ class HomeRegisterForm extends KDFormView
             rangeLength  : "Username should be between 4 and 25 characters!"
           events         :
             required     : "blur"
-            rangeLength  : "keyup"
+            rangeLength  : "blur"
             regExp       : "keyup"
             usernameCheck: "keyup"
             finalCheck   : "blur"
@@ -112,7 +112,7 @@ class HomeRegisterForm extends KDFormView
   doRegister:(formData)->
     (KD.getSingleton 'mainController').isLoggingIn on
     formData.agree = 'on'
-    formData.referrer = $.cookie 'refererer'
+    formData.referrer = $.cookie 'referrer'
     # we need to close the group channel so we don't receive the cycleChannel event.
     # getting the cycleChannel even for our own MemberAdded can cause a race condition
     # that'll leak a guest account.

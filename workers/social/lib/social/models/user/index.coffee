@@ -5,13 +5,14 @@ Flaggable = require '../../traits/flaggable'
 module.exports = class JUser extends jraphical.Module
   {secure, signature, daisy, dash} = require 'bongo'
 
-  JAccount       = require '../account'
-  JSession       = require '../session'
-  JInvitation    = require '../invitation'
-  JName          = require '../name'
-  JGroup         = require '../group'
-  JLog           = require '../log'
-  JMail          = require '../email'
+  JAccount        = require '../account'
+  JSession        = require '../session'
+  JInvitation     = require '../invitation'
+  JName           = require '../name'
+  JGroup          = require '../group'
+  JLog            = require '../log'
+  JMail           = require '../email'
+  JSessionHistory = require '../sessionhistory'
 
   createId       = require 'hat'
 
@@ -327,8 +328,8 @@ module.exports = class JUser extends jraphical.Module
           else unless user.getAt('password') is hashPassword password, user.getAt('salt')
             logAndReturnLoginError username, 'Access denied!', callback
           else
-            afterLogin connection, user, clientId, session, callback
-
+            JSessionHistory.create {username}, ->
+              afterLogin connection, user, clientId, session, callback
 
   @verifyPassword = secure (client, password, callback)->
     {connection: {delegate}} = client

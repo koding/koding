@@ -77,6 +77,8 @@ class ActivityInputWidget extends KDView
           KD.mixpanel "Status update create, success", {length:activity?.body?.length}
     ]
 
+    @emit "ActivitySubmitted"
+
   encodeTagSuggestions: (str, tags) ->
     return  str.replace /\|(.*?):\$suggest:(.*?)\|/g, (match, prefix, title) ->
       tag = tags[title]
@@ -85,9 +87,6 @@ class ActivityInputWidget extends KDView
 
   create: (data, callback) ->
     JNewStatusUpdate.create data, (err, activity) =>
-      if err
-        KD.mixpanel "Status update create, fail"
-
       @reset()  unless err
 
       callback? err, activity
@@ -106,14 +105,11 @@ class ActivityInputWidget extends KDView
     activity = @getData()
     return  @reset() unless activity
     activity.modify data, (err) =>
-      if err
-        KD.mixpanel "Status update update, fail"
-
       KD.showError err
       @reset()  unless err
       callback? err
 
-      KD.mixpanel "Status update update, success"
+      KD.mixpanel "Status update edit, success"
 
   reset: (lock = yes) ->
     @input.setContent ""

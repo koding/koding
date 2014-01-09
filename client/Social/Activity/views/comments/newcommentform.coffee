@@ -46,6 +46,7 @@ class NewCommentForm extends KDView
   attachListeners:->
     @commentInput.on "blur", @bound "commentInputReceivedBlur"
     @commentInput.on "focus", =>
+      KD.mixpanel "Comment activity, focus"
       @getDelegate().emit "commentInputReceivedFocus"
 
   makeCommentFieldActive:->
@@ -74,7 +75,6 @@ class NewCommentForm extends KDView
         @commentInput.$().blur()
         unless editable then @getDelegate().emit 'CommentSubmitted', reply
         else @getDelegate().emit 'CommentUpdated', reply
-
 
         KD.mixpanel "Comment activity, click", reply.length
       onFailMsg : "Login required to post a comment!"

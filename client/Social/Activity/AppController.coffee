@@ -2,7 +2,7 @@ class ActivityAppController extends AppController
 
   KD.registerAppClass this,
     name         : "Activity"
-    route        : "/:name?/Activity"
+    route        : "/:name?/Activity/:slug?"
     searchRoute  : "/Activity?q=:text:"
     hiddenHandle : yes
 
@@ -80,7 +80,6 @@ class ActivityAppController extends AppController
 
   bindLazyLoad:->
     @once 'LazyLoadThresholdReached', @bound "continueLoadingTeasers"
-    @listController.once 'teasersLoaded', @bound "teasersLoaded"
 
   continueLoadingTeasers:->
     # temp fix:
@@ -100,13 +99,12 @@ class ActivityAppController extends AppController
   attachEvents:(controller)->
     activityController = KD.getSingleton('activityController')
     appView            = @getView()
-    activityController.on 'ActivitiesArrived', @bound "activitiesArrived"
     activityController.on 'Refresh', @bound "refresh"
 
     @listController = controller
     @bindLazyLoad()
 
-    appView.feedFilterController.on "FilterChanged", (filter) =>
+    appView.activityHeader.feedFilterNav.on "FilterChanged", (filter) =>
 
       @resetAll()
       @clearPopulateActivityBindings()
@@ -346,32 +344,8 @@ class ActivityAppController extends AppController
 
       callback null, cache
 
-  activitiesArrived:(activities)->
-    for activity in activities when activity.bongo_.constructorName in newActivitiesArrivedTypes
-      @listController?.newActivityArrived activity
-
-  teasersLoaded:->
-    # the page structure has changed
-    # we don't need this anymore
-    # we need a different approach tho, tBDL - SY
-
-    # due to complex nesting of subviews, i used jQuery here. - AK
-
-    # contentPanel     = KD.getSingleton('contentPanel')
-    # scrollViewHeight = @listController.scrollView.$()[0].clientHeight
-    # headerHeight     = contentPanel.$('.feeder-header')[0].offsetHeight
-    # panelHeight      = contentPanel.$('.activity-content')[0].clientHeight
-
-    # if scrollViewHeight + headerHeight < panelHeight
-    #   @continueLoadingTeasers()
-
   createContentDisplay:(activity, callback=->)->
-    controller = switch activity.bongo_.constructorName
-      when "JNewStatusUpdate" then @createStatusUpdateContentDisplay activity
-#      when "JCodeSnip"     then @createCodeSnippetContentDisplay activity
-#      when "JDiscussion"   then @createDiscussionContentDisplay activity
-#      when "JBlogPost"     then @createBlogPostContentDisplay activity
-#      when "JTutorial"     then @createTutorialContentDisplay activity
+    controller = @createStatusUpdateContentDisplay activity
     @utils.defer -> callback controller
 
   showContentDisplay:(contentDisplay)->
@@ -387,30 +361,6 @@ class ActivityAppController extends AppController
           title : "Status Update"
           type  : "status"
         ,activity
-
-#  createBlogPostContentDisplay:(activity)->
-#    @showContentDisplay new ContentDisplayBlogPost
-#      title : "Blog Post"
-#      type  : "blogpost"
-#    ,activity
-#
-#  createCodeSnippetContentDisplay:(activity)->
-#    @showContentDisplay new ContentDisplayCodeSnippet
-#      title : "Code Snippet"
-#      type  : "codesnip"
-#    ,activity
-#
-#  createDiscussionContentDisplay:(activity)->
-#    @showContentDisplay new ContentDisplayDiscussion
-#      title : "Discussion"
-#      type  : "discussion"
-#    ,activity
-#
-#  createTutorialContentDisplay:(activity)->
-#    @showContentDisplay new ContentDisplayTutorial
-#      title : "Tutorial"
-#      type  : "tutorial"
-#    ,activity
 
   streamByIds:(ids, callback)->
 

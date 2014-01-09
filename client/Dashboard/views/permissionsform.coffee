@@ -14,7 +14,7 @@ class PermissionsForm extends KDFormViewWithFields
     addRoleDialog = null
     options.buttons or=
       "Add Role"          :
-        style             : "modal-clean-gray"
+        style             : "solid"
         cssClass          : 'add-role'
         callback          : =>
           addRoleDialog?.destroy()
@@ -101,7 +101,7 @@ class PermissionsForm extends KDFormViewWithFields
           addRoleDialog.show()
 
       Save          :
-        style       : "modal-clean-gray"
+        style       : "solid green"
         loader      :
           color     : "#444444"
           diameter  : 12
