@@ -73,23 +73,64 @@ func main() {
 }
 
 func viewHandler(w http.ResponseWriter, r *http.Request) {
-
-	// Should be done first
-	operation := r.FormValue("operation")
-	if operation == "logout" {
-		err := logOut(w, r)
-		if err != nil {
-			log.Println(err)
-		}
+	session, err := store.Get(r, "userData")
+	if err != nil {
+		log.Println("Session could not be retrieved")
 	}
 
-	loginName, loginMessage := checkSessionOrDoLogin(w, r)
-	if loginName == "" {
-		home := HomePage{
-			LoginMessage: loginMessage,
+	home := HomePage{}
+	var loginName string
+	operation := r.FormValue("operation")
+	fmt.Println("operation is", operation)
+	switch operation {
+	case "logout":
+		if session != nil {
+			session.Values["userName"] = nil
+			store.Save(r, w, session)
+		} else {
+			log.Println("Session could not be retrieved")
 		}
+
+		home.LoginMessage = "Logged out!"
 		renderTemplate(w, "login", home)
 		return
+	case "login":
+		loginName = r.PostFormValue("loginName")
+		loginPass := r.PostFormValue("loginPass")
+
+		if loginName == "" || loginPass == "" {
+			home.LoginMessage = "Please enter a username and password"
+			renderTemplate(w, "login", home)
+			return
+		}
+
+		// abort if password and username is not valid
+		err := authenticateUser(loginName, loginPass)
+		if err != nil {
+			home.LoginMessage = "Username or password is invalid"
+			renderTemplate(w, "login", home)
+			return
+		}
+
+		session.Values["userName"] = loginName
+		store.Save(r, w, session)
+	default:
+		var ok bool
+		loginN, ok := session.Values["userName"]
+		if !ok {
+			home.LoginMessage = "Username not available"
+			renderTemplate(w, "login", home)
+			return
+		}
+
+		if loginN == nil {
+			// no login operation or no session initialized
+			home.LoginMessage = "No login operation or no session initalized"
+			renderTemplate(w, "login", home)
+			return
+		}
+
+		loginName = loginN.(string)
 	}
 
 	build := r.FormValue("build")
@@ -125,7 +166,7 @@ func viewHandler(w http.ResponseWriter, r *http.Request) {
 	status.Koding.BrokerHosts = b
 	status.Koding.BrokerLen = len(b) + 1
 
-	home := HomePage{
+	h := HomePage{
 		Status:        status,
 		Workers:       workers,
 		Jenkins:       jenkins,
@@ -135,57 +176,8 @@ func viewHandler(w http.ResponseWriter, r *http.Request) {
 		SwitchMessage: switchMessage,
 	}
 
-	renderTemplate(w, "index", home)
+	renderTemplate(w, "index", h)
 	return
-}
-
-func logOut(w http.ResponseWriter, r *http.Request) error {
-	session, err := store.Get(r, "userData")
-	if err == nil {
-		session.Values["userName"] = nil
-		store.Save(r, w, session)
-		return nil
-	} else {
-		return errors.New("Session could not be retrieved")
-	}
-}
-
-func checkSessionOrDoLogin(w http.ResponseWriter, r *http.Request) (string, string) {
-	operation := r.PostFormValue("operation")
-	session, err := store.Get(r, "userData")
-	if err != nil {
-		return "", ""
-	}
-
-	if operation == "login" {
-		loginName := r.PostFormValue("loginName")
-		loginPass := r.PostFormValue("loginPass")
-		if loginName == "" || loginPass == "" {
-			return "", "Please enter a username and password"
-		}
-
-		// abort if password and username is not valid
-		err := authenticateUser(loginName, loginPass)
-		if err != nil {
-			return "", "Username or password is invalid"
-		}
-		session.Values["userName"] = loginName
-		store.Save(r, w, session)
-		return loginName, ""
-	}
-
-	loginName, ok := session.Values["userName"]
-	if !ok {
-		return "", ""
-	}
-
-	if loginName == nil {
-		// no login operation or no session initialized
-		return "", ""
-	}
-
-	s := loginName.(string)
-	return s, ""
 }
 
 func switchOperation(loginName string, r *http.Request) string {
