@@ -288,18 +288,8 @@ class ActivityAppController extends AppController
         return
 
     JNewStatusUpdate.fetchGroupActivity options, (err, messages)=>
-      # if message has #bug tag, remove it from activity feed, instead
-      # we show bugs on /Bugs ~ EA
-      bugFreeMesssages = []
-      for message in messages
-        if message.tags
-          bugyTag = tag for tag in message.tags when tag.title is "bug"
-          bugFreeMesssages.push message unless bugyTag
-        else
-          bugFreeMesssages.push message
-
       return @emit "activitiesCouldntBeFetched", err  if err
-      @emit "publicFeedFetched_#{eventSuffix}", bugFreeMesssages
+      @emit "publicFeedFetched_#{eventSuffix}", messages
 
   # this is only reviving the cache for now
   prepareCacheForListing: (cache)-> return KD.remote.revive cache
