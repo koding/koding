@@ -28,16 +28,18 @@ class CommentListItemView extends KDListItemView
 
     @body = @getBody data
 
+    @edited = @getEdited data
+
     if deleterId? and deleterId isnt originId
       @deleter = new ProfileLinkView {}, data.getAt('deletedBy')
 
     activity = @getDelegate().getData()
     loggedInId = KD.whoami().getId()
 
-    @settings = if loggedInId is data.originId # if comment/review owner
+    @settings = if KD.checkFlag "super-admin"  # if super-admin
       @getSettings(data)
-    else if loggedInId is activity.originId or       # if activity/app owner
-            KD.checkFlag "super-admin", KD.whoami()  # if super-admin
+    else if loggedInId is data.originId or # if comment/review owner
+            loggedInId is activity.originId # if activity/app owner
       @getDeleteButton(data)
     else
       new KDCustomHTMLView tagName : 'span', cssClass : 'hidden'
@@ -69,16 +71,21 @@ class CommentListItemView extends KDListItemView
     unless comment.trim() is ""
       data = @getData()
       data.modify comment, (err) =>
-        return new KDNotificationView title: err.message if err
+        if err
+          @hideEditCommentForm data
+          new KDNotificationView title: err.message
+          return
         data.body = comment
+        data.editedAt = new Date
+        @edited = @getEdited data
         @hideEditCommentForm(data)
 
   cancelCommentUpdate: ->
     @hideEditCommentForm(@getData())
 
   hideEditCommentForm:(data)->
-    @body.destroy()
     @body = @getBody data
+    @edited.show()
     @settings = @getSettings(data)
     @timeAgoView = new KDTimeAgoView {}, data.meta.createdAt
     @updateTemplate yes
@@ -86,8 +93,8 @@ class CommentListItemView extends KDListItemView
 
   showEditCommentForm:(data)->
     @settings.hide()
-    @settings.destroy()
     @body.destroy()
+    @edited.hide()
     @body = new EditCommentForm
       editable : yes
       delegate : this,
@@ -110,6 +117,12 @@ class CommentListItemView extends KDListItemView
     new KDCustomHTMLView
       pistachio: "{p{@utils.applyTextExpansions #(body), yes}}",
       data
+
+  getEdited:(data) ->
+    if data.getAt 'editedAt'
+      new KDCustomHTMLView tagName: 'span', pistachio: "(edited)"
+    else new KDCustomHTMLView tagName: 'span', cssClass: 'hidden'
+
 
   getDeleteButton:(data)->
     button = new KDCustomHTMLView
@@ -198,6 +211,7 @@ class CommentListItemView extends KDListItemView
       <div class='comment-contents clearfix'>
         {{> @author}}
         {{> @body}}
+        {{> @edited}}
         {{> @settings}}
         {{> @likeView}}
         {{> @replyView}}
