@@ -10,7 +10,6 @@ class HomeRegisterForm extends KDFormView
         placeholder   : 'your@email.com'
         testPath      : "register-form-email"
         validate      : @getEmailValidator()
-        # blur          : (input, event)=>
 
     @username = new HomeLoginInput
       inputOptions       :

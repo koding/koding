@@ -121,7 +121,6 @@ class LoginView extends KDView
         registerHandler()
 
     @github       = new KDButtonView
-      title       : "Sign up with GitHub"
       style       : 'solid github'
       icon        : yes
       callback    : ->
@@ -529,6 +528,7 @@ class LoginView extends KDView
 
       switch name
         when "register"
+          @github.setTitle "Sign up with GitHub"
           @registerForm.email.input.setFocus()
         when "finishRegistration"
           @finishRegistrationForm.username.input.setFocus()
@@ -536,6 +536,7 @@ class LoginView extends KDView
           @$('.flex-wrapper').addClass 'one'
           @redeemForm.inviteCode.input.setFocus()
         when "login"
+          @github.setTitle "Sign in with GitHub"
           @loginForm.username.input.setFocus()
         when "recover"
           @$('.flex-wrapper').addClass 'one'
