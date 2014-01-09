@@ -14,12 +14,10 @@ import (
 	"os"
 	"sort"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/fatih/set"
 	"github.com/gorilla/sessions"
-	"github.com/streadway/amqp"
 )
 
 func NewServerInfo() *ServerInfo {
@@ -72,96 +70,6 @@ func main() {
 	if err != nil {
 		fmt.Println(err)
 	}
-}
-
-func logAction(msg string) {
-	fileName := "versionswitchers.log"
-	flag := os.O_WRONLY | os.O_CREATE | os.O_APPEND
-	mode := os.FileMode(0644)
-
-	f, err := os.OpenFile(fileName, flag, mode)
-	if err != nil {
-		log.Println("error opening version switch log file")
-		return
-	}
-	defer f.Close()
-
-	f.WriteString(fmt.Sprintf("[%s] %s\n", time.Now().Format(time.RFC1123), msg))
-}
-
-func checkSessionOrDoLogin(w http.ResponseWriter, r *http.Request) (string, string) {
-	operation := r.PostFormValue("operation")
-	session, err := store.Get(r, "userData")
-	if err != nil {
-		return "", ""
-	}
-
-	if operation == "login" {
-		loginName := r.PostFormValue("loginName")
-		loginPass := r.PostFormValue("loginPass")
-		if loginName == "" || loginPass == "" {
-			return "", "Please enter a username and password"
-		}
-
-		// abort if password and username is not valid
-		err := authenticateUser(loginName, loginPass)
-		if err != nil {
-			return "", "Username or password is invalid"
-		}
-		session.Values["userName"] = loginName
-		store.Save(r, w, session)
-		return loginName, ""
-	}
-
-	loginName, ok := session.Values["userName"]
-	if !ok {
-		return "", ""
-	}
-
-	if loginName == nil {
-		// no login operation or no session initialized
-		return "", ""
-	}
-
-	s := loginName.(string)
-	return s, ""
-}
-
-func logOut(w http.ResponseWriter, r *http.Request) error {
-	session, err := store.Get(r, "userData")
-	if err == nil {
-		session.Values["userName"] = nil
-		store.Save(r, w, session)
-		return nil
-	} else {
-		return errors.New("Session could not be retrieved")
-	}
-}
-
-func switchOperation(loginName string, r *http.Request) string {
-	operation := r.FormValue("operation")
-	if operation != "switchVersion" {
-		return ""
-	}
-
-	version := r.PostFormValue("switchVersion")
-	loginPass := r.PostFormValue("loginPass")
-
-	err := authenticateUser(loginName, loginPass)
-	if err != nil {
-		return "Password is wrong"
-	}
-
-	err = switchVersion(version)
-	if err != nil {
-		log.Println("error switching", err, version)
-		return fmt.Sprintf("Error switching: %s version %s", err, version)
-	}
-
-	res := fmt.Sprintf("Switched to version %s switcher name: %s", version, loginName)
-	logAction(res)
-	log.Println(res)
-	return "Switched to version " + loginName
 }
 
 func viewHandler(w http.ResponseWriter, r *http.Request) {
@@ -231,6 +139,131 @@ func viewHandler(w http.ResponseWriter, r *http.Request) {
 	return
 }
 
+func logOut(w http.ResponseWriter, r *http.Request) error {
+	session, err := store.Get(r, "userData")
+	if err == nil {
+		session.Values["userName"] = nil
+		store.Save(r, w, session)
+		return nil
+	} else {
+		return errors.New("Session could not be retrieved")
+	}
+}
+
+func checkSessionOrDoLogin(w http.ResponseWriter, r *http.Request) (string, string) {
+	operation := r.PostFormValue("operation")
+	session, err := store.Get(r, "userData")
+	if err != nil {
+		return "", ""
+	}
+
+	if operation == "login" {
+		loginName := r.PostFormValue("loginName")
+		loginPass := r.PostFormValue("loginPass")
+		if loginName == "" || loginPass == "" {
+			return "", "Please enter a username and password"
+		}
+
+		// abort if password and username is not valid
+		err := authenticateUser(loginName, loginPass)
+		if err != nil {
+			return "", "Username or password is invalid"
+		}
+		session.Values["userName"] = loginName
+		store.Save(r, w, session)
+		return loginName, ""
+	}
+
+	loginName, ok := session.Values["userName"]
+	if !ok {
+		return "", ""
+	}
+
+	if loginName == nil {
+		// no login operation or no session initialized
+		return "", ""
+	}
+
+	s := loginName.(string)
+	return s, ""
+}
+
+func switchOperation(loginName string, r *http.Request) string {
+	operation := r.FormValue("operation")
+	if operation != "switchVersion" {
+		return ""
+	}
+
+	version := r.PostFormValue("switchVersion")
+	loginPass := r.PostFormValue("loginPass")
+
+	err := authenticateUser(loginName, loginPass)
+	if err != nil {
+		return "Password is wrong"
+	}
+
+	err = switchVersion(version)
+	if err != nil {
+		log.Println("error switching", err, version)
+		return fmt.Sprintf("Error switching: %s version %s", err, version)
+	}
+
+	res := fmt.Sprintf("Switched to version %s switcher name: %s", version, loginName)
+	logAction(res)
+	log.Println(res)
+	return "Switched to version " + loginName
+}
+
+func switchVersion(newVersion string) error {
+	if switchHost == "" {
+		errors.New("switchHost is not defined")
+	}
+
+	// Test if the string is an integer, if not abort
+	_, err := strconv.Atoi(newVersion)
+	if err != nil {
+		return err
+	}
+
+	domain, err := modelhelper.GetDomain(switchHost)
+	if err != nil {
+		return err
+	}
+
+	if domain.Proxy == nil {
+		return fmt.Errorf("proxy field is empty for '%s'", switchHost)
+	}
+
+	if domain.Proxy.Key == "" {
+		return fmt.Errorf("key does not exist for '%s'", switchHost)
+	}
+
+	domain.Proxy.Key = newVersion
+
+	err = modelhelper.UpdateDomain(domain)
+	if err != nil {
+		log.Printf("could not update %+v\n", domain)
+		return err
+	}
+
+	return nil
+}
+
+func logAction(msg string) {
+	fileName := "versionswitchers.log"
+	flag := os.O_WRONLY | os.O_CREATE | os.O_APPEND
+	mode := os.FileMode(0644)
+
+	f, err := os.OpenFile(fileName, flag, mode)
+	if err != nil {
+		log.Println("error opening version switch log file")
+		return
+	}
+	defer f.Close()
+
+	f.WriteString(fmt.Sprintf("[%s] %s\n", time.Now().Format(time.RFC1123), msg))
+}
+
 func keyLookup(key string) (map[string]bool, map[string]bool) {
 	workersApi := apiUrl + "/workers/?version=" + key
 	servers := make(map[string]bool, 0)
@@ -266,13 +299,6 @@ func keyLookup(key string) (map[string]bool, map[string]bool) {
 	}
 
 	return servers, brokers
-}
-
-func renderTemplate(w http.ResponseWriter, tmpl string, home interface{}) {
-	err := templates.ExecuteTemplate(w, tmpl+".html", home)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-	}
 }
 
 func jenkinsInfo() *JenkinsInfo {
@@ -479,61 +505,9 @@ func authenticateUser(username, password string) error {
 	return nil
 }
 
-func switchVersion(newVersion string) error {
-	if switchHost == "" {
-		errors.New("switchHost is not defined")
-	}
-
-	// Test if the string is an integer, if not abort
-	_, err := strconv.Atoi(newVersion)
+func renderTemplate(w http.ResponseWriter, tmpl string, home interface{}) {
+	err := templates.ExecuteTemplate(w, tmpl+".html", home)
 	if err != nil {
-		return err
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
-
-	domain, err := modelhelper.GetDomain(switchHost)
-	if err != nil {
-		return err
-	}
-
-	if domain.Proxy == nil {
-		return fmt.Errorf("proxy field is empty for '%s'", switchHost)
-	}
-
-	if domain.Proxy.Key == "" {
-		return fmt.Errorf("key does not exist for '%s'", switchHost)
-	}
-
-	domain.Proxy.Key = newVersion
-
-	err = modelhelper.UpdateDomain(domain)
-	if err != nil {
-		log.Printf("could not update %+v\n", domain)
-		return err
-	}
-
-	return nil
-}
-
-func CreateAmqpConnection(component string) *amqp.Connection {
-	conn, err := amqp.Dial(amqp.URI{
-		Scheme:   "amqp",
-		Host:     config.Current.Mq.Host,
-		Port:     config.Current.Mq.Port,
-		Username: strings.Replace(config.Current.Mq.ComponentUser, "<component>", component, 1),
-		Password: config.Current.Mq.Password,
-		Vhost:    config.Current.Mq.Vhost,
-	}.String())
-	if err != nil {
-		log.Fatalln("AMQP dial: ", err)
-	}
-
-	return conn
-}
-
-func CreateChannel(conn *amqp.Connection) *amqp.Channel {
-	channel, err := conn.Channel()
-	if err != nil {
-		log.Fatalln("AMQP create channel: ", err)
-	}
-	return channel
 }
