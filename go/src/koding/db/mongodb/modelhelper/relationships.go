@@ -3,6 +3,7 @@ package modelhelper
 import (
 	"koding/db/models"
 	"koding/db/mongodb"
+
 	"labix.org/v2/mgo"
 )
 
@@ -59,5 +60,13 @@ func AddRelationship(r *models.Relationship) error {
 
 func UpdateRelationship(r *models.Relationship) error {
 	query := updateByIdQuery(r.Id.Hex(), r)
+	return mongodb.Run("relationships", query)
+}
+
+func UpdateRelationships(selector, options Selector) error {
+	query := func(c *mgo.Collection) error {
+		_, err := c.UpdateAll(selector, options)
+		return err
+	}
 	return mongodb.Run("relationships", query)
 }
