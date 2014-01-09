@@ -18,6 +18,7 @@ profile = require './staticpages/profile'
 
 fetchLastStatusUpdatesOfUser = (account, Relationship, JNewStatusUpdate, callback) ->
   {daisy} = require "bongo"
+  return callback null, null  unless account?._id
   originId = account._id
   selector =
     "targetId"   : originId
@@ -26,17 +27,17 @@ fetchLastStatusUpdatesOfUser = (account, Relationship, JNewStatusUpdate, callbac
     "as"         : "author"
 
   Relationship.some selector, limit: 3, (err, relationships)->
-    return callback err, null if err
-    return callback null, null unless relationships?.length > 0
+    return callback err, null  if err
+    return callback null, null  unless relationships?.length > 0
     queue = [0..relationships.length - 1].map (index)=>=>
       rel = relationships[index]
-      queue.next unless rel?.sourceId?
+      queue.next  unless rel?.sourceId?
       sel =
         _id        : rel.sourceId
         originType : "JAccount"
       JNewStatusUpdate.one sel, {}, (error, statusUpdate)=>
-        queue.next() if error
-        queue.next() unless statusUpdate
+        queue.next()  if error
+        queue.next()  unless statusUpdate
         queue.statusUpdates or= []
         queue.statusUpdates.push statusUpdate
         queue.next()
@@ -73,7 +74,7 @@ module.exports =
               console.error err
               return res.send 500, error_500()
 
-            model = models.first if models and Array.isArray models
+            model = models.first  if models and Array.isArray models
             return res.send 404, error_404()  unless model
 
             if typeof model.fetchRelativeComments is "function"
@@ -83,7 +84,7 @@ module.exports =
                   if comment?
                     # Get comments authors, put comment info into commentSummaries
                     decorateComment JAccount, comment, (error, commentSummary)=>
-                      queue.next() if error
+                      queue.next()  if error
                       queue.commentSummaries or= []
                       if commentSummary?.body?
                         queue.commentSummaries.push commentSummary
@@ -144,6 +145,7 @@ module.exports =
               # TODO user's other activity types must be shown, such as blogposts, code snippets etc.
               fetchLastStatusUpdatesOfUser account, Relationship, JNewStatusUpdate, (error, statusUpdates) =>
                 return res.send 500, error_500()  if error
+                return res.send 404, error_404()  unless statusUpdates
                 content = profile {account, statusUpdates}
                 return res.send 200, content
 
