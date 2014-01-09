@@ -5,14 +5,17 @@ import (
 	"io"
 	"io/ioutil"
 	"koding/db/models"
-	"labix.org/v2/mgo/bson"
+	"log"
 	"net"
 	"os"
 	"os/exec"
+	"runtime"
 	"strconv"
 	"syscall"
 	"text/template"
 	"time"
+
+	"labix.org/v2/mgo/bson"
 )
 
 type VM models.VM
@@ -118,78 +121,174 @@ func (vm *VM) ApplyDefaults() {
 	}
 }
 
-func (vm *VM) Prepare(reinitialize bool, logWarning func(string, ...interface{})) {
-	vm.Unprepare()
+// Prepare creates and initialized the container to be started later directly
+// with lxc.start. We don't use lxc.create (which uses shell scipts for
+// templating), instead of we use this method which basically let us do things
+// more efficient. It creates the home directory, generates files like lxc.conf
+// and mounts the necessary filesystems.
+func (v *VM) Prepare(reinitialize bool, logWarning func(string, ...interface{})) {
+	// first unprepare to not conflict with everything else
+	v.Unprepare()
 
-	//var err error
-	//vm.VMRoot, err = os.Readlink("/var/lib/lxc/vmroot/")
-	//if err != nil {
-	//	vm.VMRoot = "/var/lib/lxc/vmroot/"
-	//}
-	//if vm.VMRoot[0] != '/' {
-	//	vm.VMRoot = "/var/lib/lxc/" + vm.VMRoot
-	//}
+	defer un(trace(v.String()))
 
-	// write LXC files
-	prepareDir(vm.File(""), 0)
-	vm.generateFile(vm.File("config"), "config", 0, false)
-	vm.generateFile(vm.File("fstab"), "fstab", 0, false)
-	vm.generateFile(vm.File("ip-address"), "ip-address", 0, false)
+	// create our lxc container dir
+	v.createContainerDir()
 
 	// map rbd image to block device
-	if err := vm.MountRBD(vm.OverlayFile("")); err != nil {
+	err := v.mountRBD()
+	if err != nil {
 		panic(err)
 	}
 
 	// remove all except /home on reinitialize
 	if reinitialize {
-		entries, err := ioutil.ReadDir(vm.OverlayFile("/"))
+		err := v.reinitialize()
 		if err != nil {
 			panic(err)
 		}
-		for _, entry := range entries {
-			if entry.Name() != "home" {
-				os.RemoveAll(vm.OverlayFile("/" + entry.Name()))
-			}
+	}
+
+	v.createOverlay()
+
+	v.mergeFiles(logWarning)
+
+	err = v.mountAufs()
+	if err != nil {
+		panic(err)
+	}
+
+	err = v.prepareAndMountPts()
+	if err != nil {
+		panic(err)
+	}
+
+	err = v.addEbtablesRule()
+	if err != nil {
+		panic(err)
+	}
+
+	err = v.addStaticRoute()
+	if err != nil {
+		panic(err)
+	}
+}
+
+func (v *VM) createContainerDir() {
+	defer un(trace(v.String()))
+
+	// write LXC files
+	prepareDir(v.File(""), 0)
+	v.generateFile(v.File("config"), "config", 0, false)
+	v.generateFile(v.File("fstab"), "fstab", 0, false)
+	v.generateFile(v.File("ip-address"), "ip-address", 0, false)
+}
+
+func (v *VM) mountRBD() error {
+	defer un(trace(v.String()))
+
+	if err := v.MountRBD(v.OverlayFile("")); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (v *VM) reinitialize() error {
+	defer un(trace(v.String()))
+
+	entries, err := ioutil.ReadDir(v.OverlayFile("/"))
+	if err != nil {
+		return err
+	}
+
+	for _, entry := range entries {
+		if entry.Name() != "home" {
+			os.RemoveAll(v.OverlayFile("/" + entry.Name()))
 		}
 	}
 
+	return nil
+}
+
+func (v *VM) createOverlay() {
+	defer un(trace(v.String()))
+
 	// prepare overlay
-	prepareDir(vm.OverlayFile("/"), RootIdOffset)           // for chown
-	prepareDir(vm.OverlayFile("/lost+found"), RootIdOffset) // for chown
-	prepareDir(vm.OverlayFile("/etc"), RootIdOffset)
-	vm.generateFile(vm.OverlayFile("/etc/hostname"), "hostname", RootIdOffset, false)
-	vm.generateFile(vm.OverlayFile("/etc/hosts"), "hosts", RootIdOffset, false)
-	vm.generateFile(vm.OverlayFile("/etc/ldap.conf"), "ldap.conf", RootIdOffset, false)
-	vm.MergePasswdFile(logWarning)
-	vm.MergeGroupFile(logWarning)
-	vm.MergeDpkgDatabase()
+	prepareDir(v.OverlayFile("/"), RootIdOffset)           // for chown
+	prepareDir(v.OverlayFile("/lost+found"), RootIdOffset) // for chown
+	prepareDir(v.OverlayFile("/etc"), RootIdOffset)
+
+	v.generateFile(v.OverlayFile("/etc/hostname"), "hostname", RootIdOffset, false)
+	v.generateFile(v.OverlayFile("/etc/hosts"), "hosts", RootIdOffset, false)
+	v.generateFile(v.OverlayFile("/etc/ldap.conf"), "ldap.conf", RootIdOffset, false)
+}
+
+func (v *VM) mergeFiles(logWarning func(string, ...interface{})) {
+	defer un(trace(v.String()))
+
+	v.MergePasswdFile(logWarning)
+	v.MergeGroupFile(logWarning)
+	v.MergeDpkgDatabase()
+}
+
+func (v *VM) mountAufs() error {
+	defer un(trace(v.String()))
 
 	// mount "/var/lib/lxc/vm-{id}/overlay" (rw) and "/var/lib/lxc/vmroot" (ro)
 	// under "/var/lib/lxc/vm-{id}/rootfs"
-	prepareDir(vm.File("rootfs"), RootIdOffset)
-	// if out, err := exec.Command("/bin/mount", "--no-mtab", "-t", "overlayfs", "-o", fmt.Sprintf("lowerdir=%s,upperdir=%s", vm.LowerdirFile("/"), vm.OverlayFile("/")), "overlayfs", vm.File("rootfs")).CombinedOutput(); err != nil {
-	if out, err := exec.Command("/bin/mount", "--no-mtab", "-t", "aufs", "-o", fmt.Sprintf("noplink,br=%s:%s", vm.OverlayFile("/"), vm.LowerdirFile("/")), "aufs", vm.File("rootfs")).CombinedOutput(); err != nil {
-		panic(commandError("mount overlay failed.", err, out))
+	prepareDir(v.File("rootfs"), RootIdOffset)
+	// if out, err := exec.Command("/bin/mount", "--no-mtab", "-t", "overlayfs", "-o", fmt.Sprintf("lowerdir=%s,upperdir=%s", v.LowerdirFile("/"), v.OverlayFile("/")), "overlayfs", v.File("rootfs")).CombinedOutput(); err != nil {
+	if out, err := exec.Command("/bin/mount", "--no-mtab", "-t", "aufs", "-o",
+		fmt.Sprintf("noplink,br=%s:%s", v.OverlayFile("/"), v.LowerdirFile("/")), "aufs",
+		v.File("rootfs")).CombinedOutput(); err != nil {
+		return commandError("mount overlay failed.", err, out)
 	}
+
+	return nil
+}
+
+func (v *VM) prepareAndMountPts() error {
+	defer un(trace(v.String()))
 
 	// mount devpts
-	prepareDir(vm.PtsDir(), RootIdOffset)
-	if out, err := exec.Command("/bin/mount", "--no-mtab", "-t", "devpts", "-o", "rw,noexec,nosuid,newinstance,gid="+strconv.Itoa(RootIdOffset+5)+",mode=0620,ptmxmode=0666", "devpts", vm.PtsDir()).CombinedOutput(); err != nil {
-		panic(commandError("mount devpts failed.", err, out))
-	}
-	chown(vm.PtsDir(), RootIdOffset, RootIdOffset)
-	chown(vm.PtsDir()+"/ptmx", RootIdOffset, RootIdOffset)
-
-	// add ebtables entry to restrict IP and MAC
-	if out, err := exec.Command("/sbin/ebtables", "--append", "VMS", "--protocol", "IPv4", "--source", vm.MAC().String(), "--ip-src", vm.IP.String(), "--in-interface", vm.VEth(), "--jump", "ACCEPT").CombinedOutput(); err != nil {
-		panic(commandError("ebtables rule addition failed.", err, out))
+	prepareDir(v.PtsDir(), RootIdOffset)
+	if out, err := exec.Command("/bin/mount", "--no-mtab", "-t", "devpts", "-o",
+		"rw,noexec,nosuid,newinstance,gid="+strconv.Itoa(RootIdOffset+5)+",mode=0620,ptmxmode=0666",
+		"devpts", v.PtsDir()).CombinedOutput(); err != nil {
+		return commandError("mount devpts failed.", err, out)
 	}
 
-	// add a static route so it is redistributed by BGP
-	if out, err := exec.Command("/sbin/route", "add", vm.IP.String(), "lxcbr0").CombinedOutput(); err != nil {
-		panic(commandError("adding route failed.", err, out))
+	chown(v.PtsDir(), RootIdOffset, RootIdOffset)
+	chown(v.PtsDir()+"/ptmx", RootIdOffset, RootIdOffset)
+
+	if v.IP == nil {
+		if ip, err := ioutil.ReadFile(v.File("ip-address")); err == nil {
+			v.IP = net.ParseIP(string(ip))
+		}
 	}
+
+	return nil
+}
+
+// addEbtablesRule adds entries to restrict IP and MAC
+func (v *VM) addEbtablesRule() error {
+	defer un(trace(v.String()))
+
+	if out, err := exec.Command("/sbin/ebtables", "--append", "VMS", "--protocol",
+		"IPv4", "--source", v.MAC().String(), "--ip-src", v.IP.String(),
+		"--in-interface", v.VEth(), "--jump", "ACCEPT").CombinedOutput(); err != nil {
+		return commandError("ebtables rule addition failed.", err, out)
+	}
+	return nil
+}
+
+func (v *VM) addStaticRoute() error {
+	defer un(trace(v.String()))
+
+	if out, err := exec.Command("/sbin/route", "add", v.IP.String(), "lxcbr0").CombinedOutput(); err != nil {
+		return commandError("adding route failed.", err, out)
+	}
+	return nil
 }
 
 func UnprepareVM(id bson.ObjectId) error {
@@ -197,7 +296,15 @@ func UnprepareVM(id bson.ObjectId) error {
 	return vm.Unprepare()
 }
 
+// Unprepare is basically the inverse of Prepare. We don't use lxc.destroy
+// (which purges the container immediately). Instead we use this method which
+// basically let us umount previously mounted disks, remove generated files,
+// etc. It doesn't remove the home folder or any newly created system files.
+// Those files will be stored in the vmroot.
+// Unprepare also doesn't return on errors, instead it silently fails and
+// tries to execute the next step until all steps are done.
 func (vm *VM) Unprepare() error {
+	defer un(trace(vm.String()))
 	var firstError error
 
 	// stop VM
@@ -205,40 +312,21 @@ func (vm *VM) Unprepare() error {
 		panic(err)
 	}
 
-	// backup dpkg database for statistical purposes
-	os.Mkdir("/var/lib/lxc/dpkg-statuses", 0755)
-	copyFile(vm.OverlayFile("/var/lib/dpkg/status"), "/var/lib/lxc/dpkg-statuses/"+vm.String(), RootIdOffset)
+	vm.backupDpkg()
 
-	if vm.IP == nil {
-		if ip, err := ioutil.ReadFile(vm.File("ip-address")); err == nil {
-			vm.IP = net.ParseIP(string(ip))
-		}
+	if err := vm.removeNetworkRules(); err != nil && firstError == nil {
+		firstError = err
 	}
 
-	if vm.IP != nil {
-		// remove ebtables entry
-		if out, err := exec.Command("/sbin/ebtables", "--delete", "VMS", "--protocol", "IPv4", "--source", vm.MAC().String(), "--ip-src", vm.IP.String(), "--in-interface", vm.VEth(), "--jump", "ACCEPT").CombinedOutput(); err != nil && firstError == nil {
-			firstError = commandError("ebtables rule deletion failed.", err, out)
-		}
-
-		// remove the static route so it is no longer redistribed by BGP
-		if out, err := exec.Command("/sbin/route", "del", vm.IP.String(), "lxcbr0").CombinedOutput(); err != nil {
-			firstError = commandError("Removing route failed.", err, out)
-		}
+	if err := vm.umountPts(); err != nil && firstError == nil {
+		firstError = err
 	}
 
-	// unmount and unmap everything
-	if out, err := exec.Command("/bin/umount", vm.PtsDir()).CombinedOutput(); err != nil && firstError == nil {
-		firstError = commandError("umount devpts failed.", err, out)
+	if err := vm.umountAufs(); err != nil && firstError == nil {
+		firstError = err
 	}
-	//Flush the aufs
-	if out, err := exec.Command("/sbin/auplink", vm.File("rootfs"), "flush").CombinedOutput(); err != nil && firstError == nil {
-		firstError = commandError("AUFS flush failed.", err, out)
-	}
-	if out, err := exec.Command("/bin/umount", vm.File("rootfs")).CombinedOutput(); err != nil && firstError == nil {
-		firstError = commandError("umount overlay failed.", err, out)
-	}
-	if err := vm.UnmountRBD(vm.OverlayFile("")); err != nil && firstError == nil {
+
+	if err := vm.umountRBD(); err != nil && firstError == nil {
 		firstError = err
 	}
 
@@ -253,13 +341,86 @@ func (vm *VM) Unprepare() error {
 	return firstError
 }
 
+func (vm *VM) backupDpkg() {
+	defer un(trace(vm.String()))
+
+	// backup dpkg database for statistical purposes
+	os.Mkdir("/var/lib/lxc/dpkg-statuses", 0755)
+	copyFile(vm.OverlayFile("/var/lib/dpkg/status"), "/var/lib/lxc/dpkg-statuses/"+vm.String(), RootIdOffset)
+
+}
+
+func (vm *VM) removeNetworkRules() error {
+	defer un(trace(vm.String()))
+
+	var firstError error
+
+	if vm.IP == nil {
+		if ip, err := ioutil.ReadFile(vm.File("ip-address")); err == nil {
+			vm.IP = net.ParseIP(string(ip))
+		}
+	}
+
+	if vm.IP != nil {
+		// remove ebtables entry
+		if out, err := exec.Command("/sbin/ebtables", "--delete", "VMS", "--protocol", "IPv4",
+			"--source", vm.MAC().String(), "--ip-src", vm.IP.String(), "--in-interface", vm.VEth(),
+			"--jump", "ACCEPT").CombinedOutput(); err != nil {
+			firstError = commandError("ebtables rule deletion failed.", err, out)
+		}
+
+		// remove the static route so it is no longer redistribed by BGP
+		if out, err := exec.Command("/sbin/route", "del", vm.IP.String(), "lxcbr0").CombinedOutput(); err != nil {
+			firstError = commandError("Removing route failed.", err, out)
+		}
+	}
+
+	return firstError
+}
+
+func (vm *VM) umountPts() error {
+	defer un(trace(vm.String()))
+
+	// unmount and unmap everything
+	if out, err := exec.Command("/bin/umount", vm.PtsDir()).CombinedOutput(); err != nil {
+		return commandError("umount devpts failed.", err, out)
+	}
+	return nil
+}
+
+func (vm *VM) umountAufs() error {
+	defer un(trace(vm.String()))
+	var firstError error
+
+	//Flush the aufs
+	if out, err := exec.Command("/sbin/auplink", vm.File("rootfs"), "flush").CombinedOutput(); err != nil {
+		firstError = commandError("AUFS flush failed.", err, out)
+	}
+
+	if out, err := exec.Command("/bin/umount", vm.File("rootfs")).CombinedOutput(); err != nil && firstError == nil {
+		firstError = commandError("umount overlay failed.", err, out)
+	}
+
+	return firstError
+}
+
+func (vm *VM) umountRBD() error {
+	defer un(trace(vm.String()))
+
+	if err := vm.UnmountRBD(vm.OverlayFile("")); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (vm *VM) MountRBD(mountDir string) error {
 	makeFileSystem := false
 
 	// create image if it does not exist
 	if out, err := exec.Command("/usr/bin/rbd", "info", "--pool", VMPool, "--image", vm.String()).CombinedOutput(); err != nil {
 		exitError, isExitError := err.(*exec.ExitError)
-		if !isExitError || exitError.Sys().(syscall.WaitStatus).ExitStatus() > 2  {
+		if !isExitError || exitError.Sys().(syscall.WaitStatus).ExitStatus() > 2 {
 			return commandError("rbd info failed.", err, out)
 		}
 
@@ -478,4 +639,27 @@ func copyFile(src, dst string, id int) error {
 	}
 
 	return nil
+}
+
+// the following two functions are used to track how long it takes a function to
+// be finished. see more about this pattern:
+// https://github.com/iand/gocookbook/blob/master/recipes/timingfunction.md
+// but we also print the function name of the caller
+func trace(additionalInfo string) (string, time.Time) {
+	name := "<unknown>"
+	pc, _, _, ok := runtime.Caller(1) // 1 means the caller who called trace()
+	if ok {
+		if fn := runtime.FuncForPC(pc); fn != nil {
+			name = fn.Name() //  get the function name of the caller
+		}
+	}
+
+	finalLog := fmt.Sprintf("%s [%s]", name, additionalInfo)
+	log.Println("START:", finalLog)
+	return finalLog, time.Now()
+}
+
+func un(traceLog string, startTime time.Time) {
+	endTime := time.Now()
+	log.Println("  END:", traceLog, "ElapsedTime:", endTime.Sub(startTime))
 }

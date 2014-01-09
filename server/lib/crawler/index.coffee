@@ -16,13 +16,13 @@ profile = require './staticpages/profile'
   decorateComment
 }          = require './helpers'
 
-fetchLastStatusUpdatesOfUser = (account, Relationship, JStatusUpdate, callback) ->
+fetchLastStatusUpdatesOfUser = (account, Relationship, JNewStatusUpdate, callback) ->
   {daisy} = require "bongo"
   originId = account._id
   selector =
     "targetId"   : originId
     "targetName" : "JAccount"
-    "sourceName" : "JStatusUpdate"
+    "sourceName" : "JNewStatusUpdate"
     "as"         : "author"
 
   Relationship.some selector, limit: 3, (err, relationships)->
@@ -34,7 +34,7 @@ fetchLastStatusUpdatesOfUser = (account, Relationship, JStatusUpdate, callback) 
       sel =
         _id        : rel.sourceId
         originType : "JAccount"
-      JStatusUpdate.one sel, {}, (error, statusUpdate)=>
+      JNewStatusUpdate.one sel, {}, (error, statusUpdate)=>
         queue.next() if error
         queue.next() unless statusUpdate
         queue.statusUpdates or= []
@@ -140,9 +140,9 @@ module.exports =
           # this is a user
           else
             models.last.fetchOwnAccount (err, account)->
-              {JStatusUpdate} = bongo.models
+              {JNewStatusUpdate} = bongo.models
               # TODO user's other activity types must be shown, such as blogposts, code snippets etc.
-              fetchLastStatusUpdatesOfUser account, Relationship, JStatusUpdate, (error, statusUpdates) =>
+              fetchLastStatusUpdatesOfUser account, Relationship, JNewStatusUpdate, (error, statusUpdates) =>
                 return res.send 500, error_500()  if error
                 content = profile {account, statusUpdates}
                 return res.send 200, content

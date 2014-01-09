@@ -2,7 +2,7 @@
 
 module.exports = class JReview extends Reply
 
-  {ObjectId, ObjectRef, secure, dash} = require 'bongo'
+  {ObjectId, ObjectRef, secure, dash, signature} = require 'bongo'
   {Relationship}  = require 'jraphical'
 
   {log} = console
@@ -21,8 +21,23 @@ module.exports = class JReview extends Reply
 
   @set
     sharedMethods  :
-      static       : ['fetchRelated']
-      instance     : ['delete', 'like', 'fetchLikedByes', 'checkIfLikedBefore']
+
+      static       :
+        fetchRelated:
+          (signature ObjectId, Function)
+
+      instance     :
+        delete:
+          (signature Function)
+        like:
+          (signature Function)
+        fetchLikedByes: [
+          (signature Function)
+          (signature Object, Function)
+        ]
+        checkIfLikedBefore:
+          (signature Function)
+
     sharedEvents   :
       instance     : [
         { name: 'TagsChanged' }

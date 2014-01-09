@@ -144,7 +144,8 @@ module.exports =
     useStaticFileServer: no
     staticFilesBaseUrl: "https://koding.com"
     runtimeOptions:
-      activityFetchCount : 50
+      environment   : "sjc-production"
+      activityFetchCount : 20
       precompiledApi: yes
       authExchange: authExchange
       github        :
@@ -161,13 +162,31 @@ module.exports =
       broker    :
         servicesEndpoint: "/-/services/broker"
         sockJS   : "https://broker-#{version}.koding.com/subscribe"
-      apiUri    : 'https://www.koding.com'
+      apiUri    : 'https://koding.com'
       appsUri   : 'https://koding-apps.s3.amazonaws.com'
       uploadsUri: 'https://koding-uploads.s3.amazonaws.com'
       sourceUri : "http://webserver-#{version}a.sj.koding.com:1337"
       newkontrol:
         url     : 'wss://newkontrol.sj.koding.com:80/dnode'
       fileFetchTimeout: 15 * 1000 # seconds
+      externalProfiles  :
+        github          :
+          nicename      : 'GitHub'
+          urlLocation   : 'html_url'
+        odesk           :
+          nicename      : 'oDesk'
+          urlLocation   : 'info.profile_url'
+        facebook        :
+          nicename      : 'Facebook'
+          urlLocation   : 'link'
+        google          :
+          nicename      : 'Google'
+        linkedin        :
+          nicename      : 'LinkedIn'
+        twitter         :
+          nicename      : 'Twitter'
+        # bitbucket     :
+        #   nicename    : 'BitBucket'
   mq            :
     host        : '172.16.3.4'
     port        : 5672
@@ -230,6 +249,7 @@ module.exports =
       switchHost  : "koding.com"
     api           :
       port        : 80
+      url         : "http://kontrol0.sj.koding.com"
     proxy         :
       port        : 80
       portssl     : 443
@@ -286,4 +306,5 @@ module.exports =
     secret_url   : "https://twitter.com/oauth/authenticate?oauth_token="
     version      : "1.0"
     signature    : "HMAC-SHA1"
-  mixpanel       : "113c2731b47a5151f4be44ddd5af0e7a"
+  mixpanel       : "d35a8d0b14e284f32ab5380590c6848a"
+  rollbar        : "4a8a1f8400fc4e64bae05d47b9345538"

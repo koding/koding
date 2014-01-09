@@ -462,12 +462,15 @@ var marshalItems = []testItemType{
 		"\x0Aa\x00\x0Ac\x00\x0Ab\x00\x0Ad\x00\x0Af\x00\x08e\x00\x01"},
 	{MyD{{"a", nil}, {"c", nil}, {"b", nil}, {"d", nil}, {"f", nil}, {"e", true}},
 		"\x0Aa\x00\x0Ac\x00\x0Ab\x00\x0Ad\x00\x0Af\x00\x08e\x00\x01"},
-
 	{&dOnIface{bson.D{{"a", nil}, {"c", nil}, {"b", nil}, {"d", true}}},
 		"\x03d\x00" + wrapInDoc("\x0Aa\x00\x0Ac\x00\x0Ab\x00\x08d\x00\x01")},
 
 	{bson.RawD{{"a", bson.Raw{0x0A, nil}}, {"c", bson.Raw{0x0A, nil}}, {"b", bson.Raw{0x08, []byte{0x01}}}},
 		"\x0Aa\x00" + "\x0Ac\x00" + "\x08b\x00\x01"},
+	{MyRawD{{"a", bson.Raw{0x0A, nil}}, {"c", bson.Raw{0x0A, nil}}, {"b", bson.Raw{0x08, []byte{0x01}}}},
+		"\x0Aa\x00" + "\x0Ac\x00" + "\x08b\x00\x01"},
+	{&dOnIface{bson.RawD{{"a", bson.Raw{0x0A, nil}}, {"c", bson.Raw{0x0A, nil}}, {"b", bson.Raw{0x08, []byte{0x01}}}}},
+		"\x03d\x00" + wrapInDoc("\x0Aa\x00"+"\x0Ac\x00"+"\x08b\x00\x01")},
 
 	{&ignoreField{"before", "ignore", "after"},
 		"\x02before\x00\a\x00\x00\x00before\x00\x02after\x00\x06\x00\x00\x00after\x00"},
@@ -957,7 +960,7 @@ type condTime struct {
 	V time.Time ",omitempty"
 }
 type condStruct struct {
-	V struct { A []int } ",omitempty"
+	V struct{ A []int } ",omitempty"
 }
 
 type shortInt struct {
@@ -1007,11 +1010,12 @@ type inlineBadKeyMap struct {
 }
 
 type (
-	MyBytes []byte
-	MyBool  bool
-	MyD     []bson.DocElem
-	MyRawD  []bson.RawDocElem
-	MyM     map[string]interface{}
+	MyString string
+	MyBytes  []byte
+	MyBool   bool
+	MyD      []bson.DocElem
+	MyRawD   []bson.RawDocElem
+	MyM      map[string]interface{}
 )
 
 var (
@@ -1157,8 +1161,8 @@ var twoWayCrossItems = []crossTypeItem{
 	{&condTime{time.Unix(123456789, 123e6)}, map[string]time.Time{"v": time.Unix(123456789, 123e6)}},
 	{&condTime{}, map[string]string{}},
 
-	{&condStruct{struct{A []int}{[]int{1}}}, bson.M{"v": bson.M{"a": []interface{}{1}}}},
-	{&condStruct{struct{A []int}{}}, bson.M{}},
+	{&condStruct{struct{ A []int }{[]int{1}}}, bson.M{"v": bson.M{"a": []interface{}{1}}}},
+	{&condStruct{struct{ A []int }{}}, bson.M{}},
 
 	{&namedCondStr{"yo"}, map[string]string{"myv": "yo"}},
 	{&namedCondStr{}, map[string]string{}},
@@ -1215,6 +1219,9 @@ var twoWayCrossItems = []crossTypeItem{
 	// bson.M <=> map
 	{bson.M{"a": bson.M{"b": 1, "c": 2}}, MyM{"a": MyM{"b": 1, "c": 2}}},
 	{bson.M{"a": bson.M{"b": 1, "c": 2}}, map[string]interface{}{"a": map[string]interface{}{"b": 1, "c": 2}}},
+
+	// bson.M <=> map[MyString]
+	{bson.M{"a": bson.M{"b": 1, "c": 2}}, map[MyString]interface{}{"a": map[MyString]interface{}{"b": 1, "c": 2}}},
 }
 
 // Same thing, but only one way (obj1 => obj2).

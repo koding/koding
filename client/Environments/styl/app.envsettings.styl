@@ -1,0 +1,612 @@
+@import "../../Framework/themes/default/kdfn"
+@import "../../Main/styl/appfn"
+
+@css {
+/*
+ENVIRONMENT SETTINGS stylesheet
+app.envsettings.styl
+*/
+}
+
+/*
+**  Environment-Split STYLES
+*/
+#environment-split
+  #environment-sidebar
+    // width           1000px // dummy
+    overflow        hidden  // dummy
+    padding-bottom  10px
+
+
+.environment-pane-split
+  > .panel-0
+    overflow        hidden
+  .kdsplitview-resizer
+    background transparent none !important
+  ul
+    min-height  100%
+    border-right    1px solid #c5c5c5
+  .common-inner-nav
+    border-right none
+  > .panel-1
+    border-left        1px solid #E8E8E8
+
+.content-area-pane.environment
+  h1
+    bg(color,#ececec)
+    > span
+      font-size         24px
+      font-weight       700
+      margin            28px 0 0 28px
+      color             #000
+      letter-spacing    -1px
+      text-shadow       0 1px 1px #fff
+      blockMid()
+    > cite
+      font-size         14px
+      font-weight       300
+      color             #a1a1a1
+      font-style        normal
+      text-shadow       0 1px 0px #fff
+      margin            38px 0 0 10px
+      blockMid()
+    .button-holder
+      abs()
+      right         15px
+      top           50%
+      margin-top    -20px
+      padding       4px 5px
+      rounded(3px)
+      size(122px,34px)
+      background -moz-linear-gradient(top,  rgba(200,200,200,1) 0%, rgba(232,232,232,1) 23%, rgba(224,224,224,1) 81%, rgba(255,255,255,1) 100%)
+      background -webkit-linear-gradient(top,  rgba(200,200,200,1) 0%,rgba(232,232,232,1) 23%,rgba(224,224,224,1) 81%,rgba(255,255,255,1) 100%)
+      background -ms-linear-gradient(top,  rgba(200,200,200,1) 0%,rgba(232,232,232,1) 23%,rgba(224,224,224,1) 81%,rgba(255,255,255,1) 100%)
+      background linear-gradient(top,  rgba(200,200,200,1) 0%,rgba(232,232,232,1) 23%,rgba(224,224,224,1) 81%,rgba(255,255,255,1) 100%)
+      -webkit-box-shadow    0px 10px 25px 0px rgba(200, 200, 200, .2)
+      -moz-box-shadow       0px 10px 25px 0px rgba(200, 200, 200, .2)
+      box-shadow            0px 10px 25px 0px rgba(200, 200, 200, .2)
+
+      button.kdbutton.with-icon
+        padding     7px 9px
+        text-align  center
+        border none
+        border      1px solid rgba(182,182,182,1)
+        border-color    rgba(181,181,181,1) rgba(197,197,197,1) rgba(183,183,183,1) rgba(197,197,197,1)
+        font-size   12px
+        text-shadow  0 1px 0px #fff
+        color       #525252
+        rounded(3px)
+        size(122px,32px)
+        blockMid()
+        bg(color,transparent)
+        background -moz-linear-gradient(top,  rgba(255,255,255,1) 45%, rgba(200,200,200,1) 100%)
+        background -webkit-linear-gradient(top,  rgba(255,255,255,1) 45%,rgba(200,200,200,1) 100%)
+        background -ms-linear-gradient(top,  rgba(255,255,255,1) 45%,rgba(200,200,200,1) 100%)
+        background linear-gradient(top,  rgba(255,255,255,1) 45%,rgba(200,200,200,1) 100%)
+        &:hover
+          bg(color,transparent)
+          border-color    rgba(181,181,181,1) rgba(197,197,197,1) rgba(183,183,183,1) rgba(197,197,197,1)
+          background -moz-linear-gradient(top,  rgba(255,255,255,.5) 45%, rgba(200,200,200,.5) 100%)
+          background -webkit-linear-gradient(top,  rgba(255,255,255,.5) 45%,rgba(200,200,200,.5) 100%)
+          background -ms-linear-gradient(top,  rgba(255,255,255,.5) 45%,rgba(200,200,200,.5) 100%)
+          background linear-gradient(top,  rgba(255,255,255,.5) 45%,rgba(200,200,200,.5) 100%)
+        &:active
+          bg(color,transparent)
+          background     -moz-linear-gradient(top,  rgba(127,127,127,.1) 31%, rgba(200,200,200,1) 100%)
+          background     -webkit-linear-gradient(top,  rgba(127,127,127,.1) 31%,rgba(200,200,200,1) 100%)
+          background     -ms-linear-gradient(top,  rgba(127,127,127,.1) 31%,rgba(200,200,200,1) 100%)
+          background     linear-gradient(top,  rgba(127,127,127,.1) 31%,rgba(200,200,200,1) 100%)
+        span.terminal
+          margin-right 0!important
+          margin-left -2px!important
+          size(10px,12px)
+          bg(position,-260px -140px)
+          kdfsprite()
+
+  .common-inner-nav
+    width           auto
+    padding         20px 28px 0 28px
+    list-style      none
+    height          100%
+    margin   0
+    borderBox()
+
+    .header
+      font-size             9px
+      border                none
+      line-height           20px
+      color                 #9f9d9a
+      margin-bottom         4px
+      &:hover
+        color               #9f9d9a
+        font-weight         normal
+        cursor              default
+    li
+      color                 #7c603b
+      line-height           20px
+      margin-bottom         5px
+      height                auto
+      cursor                pointer
+      font-size             12px
+      a
+        color                 #7c603b
+        &:hover
+          color               linkColor1
+          font-weight         bold
+
+#environment-sidebar
+  min-width         208px
+  text-shadow       0 1px 0 rgba(255, 255, 255, .6)
+  bg(color,#e2e2e2) //new design background
+
+  h3
+    width             83%
+    margin            20px auto 5px 25px
+    font-size         9px
+    font-weight       600
+    line-height       14px
+    height            14px
+    color             #7d7d7d
+    text-transform    uppercase
+    border-bottom     none
+    noTextSelection()
+    cursor            pointer
+    span
+      margin 0
+      &.arrow
+        kdfsprite()
+        bg(position,-182px -323px)
+        size          12px,12px
+        margin-right  10px
+        fl()
+        &.down
+          kdfsprite()
+          bg(position,-182px -364px)
+          size          12px,12px
+          margin-right  10px
+
+  .kdlistview-default
+    border-bottom     none
+
+  .environment
+    span.icon
+      bg(position,-260px -160px)
+  .database
+    span.icon
+      bg(position,-300px -160px)
+  .deploy-target
+    span.icon
+      bg(position,-280px -160px)
+
+  > div
+    padding-bottom    20px
+    height            auto
+    borderBox()
+    bg(image,url("../images/environments-sidebar-back.gif"))
+    bg(position,left bottom)
+    bg(repeat,repeat-x)
+
+    ul
+      margin 0
+      width   100%
+      overflow  visible
+      li
+        padding           15px 0 0 0
+        color             white
+        border-bottom     1px solid rgba(0,0,0,0)
+        strong
+          font-weight     700
+          color           #4e4e4e
+          display         block
+          margin-bottom   4px
+        p
+          color       #717171
+          font-size   12px
+        &:hover
+          border-bottom       1px solid rgba(255,255,255,1)
+          bg(color,rgba(0,0,0,.1))
+          strong
+            font-weight     700
+            margin-bottom   4px
+            display         block
+            color           #4e4e4e
+          p
+            color       #717171
+            font-size   12px
+          > div
+            bg(image,none)
+
+        li.active
+          border-bottom       1px solid rgba(255,255,255,1)
+          background          -moz-linear-gradient(top,  rgba(221,154,53,1) 0%, rgba(246,162,32,1) 69%)
+          background          -webkit-linear-gradient(top,  rgba(221,154,53,1) 0%,rgba(246,162,32,1) 69%)
+          background          -ms-linear-gradient(top,  rgba(221,154,53,1) 0%,rgba(246,162,32,1) 69%)
+          background          linear-gradient(top,  rgba(221,154,53,1) 0%,rgba(246,162,32,1) 69%)
+          text-shadow         0 -1px 0 #d48c1c
+          cursor              pointer
+          strong
+            color             white
+          p
+            color      #fce3bd
+          > div
+            bg(image,none)
+
+        > div
+          margin 0 25px
+          padding-bottom 15px
+          bg(image,url("../images/finder-resizer-back.gif"))
+          bg(position,left bottom)
+          bg(repeat,repeat-x)
+          .icon-wrapper
+            margin-right 5px
+            float left
+            size(20px,20px)
+            bg(repeat,no-repeat)
+            span.icon
+              size(20px,20px)
+              blockMid()
+              kdfsprite()
+          .content-wrapper
+            line-height   15px
+            overflow hidden
+
+.environment-view
+  min-width         400px
+  .environment-header-wrapper
+    height        auto
+    background      -moz-linear-gradient(285deg,  rgba(89,84,77,1) 0%, rgba(46,43,40,1) 120%)
+    background      -webkit-linear-gradient(285deg,  rgba(89,84,77,1) 0%,rgba(46,43,40,1) 120%)
+    background      -ms-linear-gradient(285deg,  rgba(89,84,77,1) 0%,rgba(46,43,40,1) 120%)
+    background      linear-gradient(285deg,  rgba(89,84,77,1) 0%,rgba(46,43,40,1) 120%)
+
+    h3
+      padding           18px 13px
+      color             #aea9a2
+      line-height       13px
+      border-bottom     none
+      bg(color,rgba(0,0,0,.15))
+      size(auto,auto)
+      font-weight       300
+      text-shadow       0 -1px 0px rgba(0,0,0,.3)
+
+    .icon-wrapper
+      margin         20px
+      fl()
+      size(74px,52px)
+
+    .content-wrapper
+      padding         20px 20px 20px 0
+      overflow        hidden
+      color           white
+      borderBox()
+      size(auto,150px)
+      .langtags
+        display block
+        margin-bottom   25px
+        span
+          margin-right  5px
+      p
+        blockMid()
+      strong
+        text-shadow       0 -1px 0px rgba(0,0,0,.5)
+        font-weight       300
+        font-size         24px
+        margin-bottom     10px
+        display           block
+      p.tags
+        display           block
+        margin-bottom     25px
+      .meta-load
+        margin-right      25px
+        color             rgba(255,255,255,.5)
+        text-shadow       0 -1px 0px rgba(0,0,0,1)
+        font-size         10px
+        span
+          color rgba(255,255,255,.8)
+          font-size         12px
+          margin-right      5px
+          &:first-child
+            margin-left     5px
+
+      .meta-uptime
+        color             rgba(255,255,255,.5)
+        text-shadow       0 -1px 0px rgba(0,0,0,1)
+        font-size         10px
+        span
+          color rgba(255,255,255,.8)
+          font-size         12px
+          &:first-child
+            margin-left     5px
+
+  > div
+    height              auto
+    h3
+      color             #575757
+      font-size         14px
+      line-height       20px
+      padding           10px 13px
+      text-shadow       0 1px 0 #fff
+      border-bottom     1px solid #d7d7d7
+      bg(color,rgba(234,234,234,1))
+      size(auto,auto)
+
+  .kdlistview
+    margin          0
+    .kdlistitemview
+      list-style    none
+
+  .usage-stats
+    ul
+      padding           1px 0
+      margin-bottom     1px
+      border-bottom     1px solid #e5e5e5
+      li
+        border-bottom     1px solid #e5e5e5
+        label
+          float       left
+          width       91px
+          padding     11px 0 0 17px
+          span
+            abs()
+            left        100px
+            top         10px
+            z-index     2
+            kdfsprite()
+            bg(position,-180px -300px)
+            size(20px,20px)
+            blockMid()
+        .stats
+          overflow      hidden
+          rel()
+          height        37px
+          margin-right  17px
+          bg(image,url("../images/usage-back.gif"))
+          bg(repeat,repeat)
+          .bar
+            abs()
+            z-index   1
+            rounded(0,3px,3px,0)
+            bg(color,#FFD666)
+            size(0,37px)
+          .stat
+            abs()
+            left          17px
+            top           12px
+            z-index       2
+            color         white
+            text-shadow   0 -1px 0 rgba(0,0,0,.3)
+          .total
+            abs()
+            right       17px
+            top         12px
+            z-index     2
+            color       #47433e
+            text-shadow   0 1px 0 rgba(255,255,255,.3)
+          .pattern
+            opacity     .3
+            size(100%,37px)
+            bg(image,url("../images/usage-back.png"))
+            bg(repeat,repeat-x)
+
+  .process-stats
+    ul
+      margin-bottom     1px
+      border-bottom     1px solid #e5e5e5
+      li
+        height      27px
+        padding     1px 0
+        border-bottom   1px solid #e3e3e3
+        .cell
+          color           #6e6d6b
+          rel()
+          min-width       100px
+          line-height     28px
+          text-shadow     0 1px 0 rgba(255,255,255,1)
+          fl()
+        .cell.first
+          margin-left   18px
+
+    .process-list-header
+      height            16px
+      border-bottom     1px solid #d7d7d7
+      font-size         11px
+      color             #b3b3b3
+      padding-top       4px
+      padding-left      18px
+      text-transform    uppercase
+      span
+        min-width       100px
+        fl()
+
+    .cpu-load-progress
+      abs()
+      border-right          1px solid #fff1df
+      rounded(0,2px,2px,0)
+      bg(image,url("../images/usage-back.gif"))
+      bg(color,transparent)
+      bg(repeat,repeat-x)
+      bg(position,0 -39px)
+      size(0,100%)
+
+  .mounts-stats
+    ul
+      li
+        padding 17px
+        border-bottom   1px solid #e3e3e3 !important
+
+      span.icon
+        size(20px,19px)
+        blockMid()
+        kdfsprite()
+
+      .status-active
+        span.icon
+          bg(position,-280px -140px)
+
+      .status-connection-problem
+        span.icon
+          bg(position,-300px -140px)
+        label,.ttag
+          opacity .5
+
+      .ttag
+        bg(color,#02a0c8)
+      div
+        label
+          width           200px
+          line-height     21px
+          display         inline-block
+          vertical-align  middle
+          margin          0 50px 0 10px
+        a
+          color     linkColor1
+          abs()
+          right     27px
+          top       20px
+          text-decoration   none
+
+.environment-view.server
+  .icon-wrapper
+    kdfsprite()
+    bg(position,-240px -80px)
+    size(70px,60px)
+
+// common add button
+button.add-item-btn
+  border              1px solid rgba(204,204,204,1)
+  color               rgba(82,82,82,1)
+  padding             3px 9px 2px 9px
+  text-shadow         0 1px 0 #ffffff
+  cursor              pointer
+  abs()
+  right               16px
+  top                 7px
+  background          rgb(255,255,255)
+  background          -moz-linear-gradient(top,  rgba(255,255,255,1) 50%, rgba(226,226,224,1) 100%)
+  background          -webkit-linear-gradient(top,  rgba(255,255,255,1) 50%,rgba(226,226,224,1) 100%)
+  background          -ms-linear-gradient(top,  rgba(255,255,255,1) 50%,rgba(226,226,224,1) 100%)
+  background          linear-gradient(top,  rgba(255,255,255,1) 50%,rgba(226,226,224,1) 100%)
+  shadow              0 1px 0 rgba(255,255,255,1)
+  font-size           12px
+  blockMid()
+  size(130px,26px)
+  rounded(3px,3px,3px,3px)
+  borderBox()
+  bg(color,white)
+  span.icon.resources
+    margin 1px 1px 0px 1px
+    size(11px,7px)
+    blockMid()
+    kdfsprite()
+    bg(position,-120px -300px)
+
+a.add-item-btn
+  display             block
+  margin              10px 0 10px 25px
+  color               rgba(82,82,82,1)
+  padding             1px 9px 2px 9px
+  text-shadow         0 1px 0 #ffffff
+  cursor              pointer
+  font-size           11px
+  // blockMid()
+  borderBox()
+  span
+    font-size         18px
+    font-weight       700
+    color             linkColor1
+    line-height       18px
+    margin-right      7px
+    fl()
+  cite
+    display           block
+    overflow          hidden
+    line-height       20px
+    font-style        normal
+
+.add-resources-modal-contents
+  height    200px
+  bg(color,#e3e3e3)
+
+.resources-slider-container
+  sta()
+  rounded         3px
+  padding         8px 8px 6px 8px
+  border          1px solid #e8e8e8
+  border-color    #bfbfbf #d7d7d7 #f1f1f1 #d7d7d7
+  margin          30px auto 25px auto
+  background      -moz-linear-gradient(top,  rgba(209,209,209,1) 0%, rgba(247,247,247,1) 36%)
+  background      -webkit-linear-gradient(top,  rgba(209,209,209,1) 0%,rgba(247,247,247,1) 36%)
+  background      -ms-linear-gradient(top,  rgba(209,209,209,1) 0%,rgba(247,247,247,1) 36%)
+  background      linear-gradient(top,  rgba(209,209,209,1) 0%,rgba(247,247,247,1) 36%)
+  shadow          0 1px 0 1px rgba(248,248,248,1)
+  size(435px,25px)
+
+  .resources-slider
+    rel()
+    height    21px
+    top       1px
+    overflow visible
+    background-image      url("../images/resources-modal-back.png"),-moz-linear-gradient(top,  rgba(245,186,31,1) 25%, rgba(216,113,1,1) 100%)
+    background-image      url("../images/resources-modal-back.png"),-webkit-linear-gradient(top,  rgba(245,186,31,1) 25%,rgba(216,113,1,1) 100%)
+    background-image      url("../images/resources-modal-back.png"),-ms-linear-gradient(top,  rgba(245,186,31,1) 25%,rgba(216,113,1,1) 100%)
+    background-image      url("../images/resources-modal-back.png"),linear-gradient(top,  rgba(245,186,31,1) 25%,rgba(216,113,1,1) 100%)
+    background-repeat     repeat-x
+    background-position   -23px 1px, top left
+    shadow    0px 0px 7px 0 rgba(245, 161, 32, .57)
+    border    1px solid rgba(0,0,0,0)
+    border-color  rgba(250,218,46,.8) rgba(0,0,0,0) rgba(186,114,16,1) rgba(0,0,0,0)
+    rounded   3px
+
+  .slider-circle
+    rounded           25px
+    top               -2px
+    cursor            -webkit-grab
+    kdfsprite()
+    bg(position,-331px -4px)
+    size(25px,25px)
+
+.resources-plan
+  margin 0 auto 25px auto
+  size(465px,40px)
+  > div
+    color         #717171
+    font-size     13px
+    text-shadow   0 1px 0 #fff
+    margin-top    6px
+    size(85px,42px)
+    fl()
+    cite
+      display       block
+      font-style    normal
+    span
+      font-size     18px
+      color         #333
+      text-shadow   0 1px 0 #fff
+
+  .price
+    rel()
+    right         -27px
+    top           -6px
+    cite
+      font-size 20px
+      color #FF9200
+      abs()
+      left -10px
+    span
+      font-size   40px
+      font-weight 600
+      color       linkColor1
+
+
+
+
+
+
+
+
+
+
+
+
+
+

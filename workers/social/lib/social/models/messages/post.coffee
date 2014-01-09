@@ -66,16 +66,11 @@ module.exports = class JPost extends jraphical.Message
     emitFollowingActivities: yes
     taggedContentRole : 'post'
     tagRole           : 'tag'
-    sharedMethods     :
-      static          : ['create','one','updateAllSlugs']
-      instance        : [
-        'reply','restComments','commentsByRange'
-        'like','fetchLikedByes','mark','unmark','fetchTags'
-        'delete','modify','fetchRelativeComments','checkIfLikedBefore'
-      ]
     schema            : schema
     relationships     :
-      comment         : JComment
+      comment         :
+        targetType    : JComment
+        as            : 'reply'
       participant     :
         targetType    : JAccount
         as            : ['author','commenter']
@@ -178,14 +173,23 @@ module.exports = class JPost extends jraphical.Message
               else
                 teaser = teaser_
                 queue.next()
-          ->
+          =>
             activity.update
               $set:
                 snapshot: JSON.stringify(teaser)
               $addToSet:
                 snapshotIds: status.getId()
-            , ->
+            , =>
               callback null, teaser
+              return queue.next()  if status.isLowQuality
+              status.fetchTags (err, tags)->
+                status.tags = tags
+                status.emit 'PostIsCreated', {
+                  origin  : delegate
+                  subject : status
+                  group   : status.group
+                }
+
               CActivity.emit "ActivityIsCreated", activity
               queue.next()
           ->
@@ -209,10 +213,14 @@ module.exports = class JPost extends jraphical.Message
         =>
           tags or= []
           @addTags client, tags, (err)=>
-            if err
-              callback err
-            else
-              queue.next()
+            return callback err  if err
+          queue.next()
+        =>
+          return queue.next()  if tags.length is 0
+          ids = tags.map (tag) -> tag.id
+          JTag.some _id: $in: ids, {}, (err, tags) =>
+            @emit "TagsUpdated", tags
+            queue.next()
         =>
           @update $set: formData, callback
       ]
@@ -244,11 +252,10 @@ module.exports = class JPost extends jraphical.Message
       ]
       dash queue, =>
         callback null
-        @emit 'PostIsDeleted', 1
-        CActivity.emit "PostIsDeleted", {
-          teaserId : id
-          createdAt
-          group    : @group
+        @emit 'PostIsDeleted', {
+          origin  : delegate
+          subject : this
+          group   : @group
         }
 
   fetchActivityId:(callback)->
@@ -336,62 +343,63 @@ module.exports = class JPost extends jraphical.Message
     ]
     daisy queue
 
-  reply: permit 'reply to posts',
-    success:(client, replyType, comment, callback)->
-      {delegate} = client.connection
-      exempt = delegate.checkFlag('exempt')
-      comment = new replyType body: comment
-      comment.sign(delegate).save (err)=>
-        return callback err if err
-        daisy queue = [
-          ->
-            delegate.addContent comment, (err)->
-              return callback err if err
-              queue.next()
-          ->
-            delegate.updateMetaModifiedAt (err)->
-              return callback err if err
-              queue.next()
-          =>
-            @addComment comment, flags: {isLowQuality: exempt}, (err, docs)=>
-              return callback err if err
-              queue.docs = docs
-              queue.next()
-          =>
-            Relationship.count {sourceId: @getId(),as:'reply'}, (err, count)=>
-              queue.relationshipCount = count
-              return callback err if err
-              queue.next()
-          =>
-            @update $set: repliesCount: queue.relationshipCount, (err)=>
-              return callback err if err
-              queue.next()
-          =>
-            @fetchOrigin (err, origin)=>
-              return callback err if err
-              unless exempt
-                @emit 'ReplyIsAdded', {
-                  origin
-                  subject       : ObjectRef(@).data
-                  actorType     : 'replier'
-                  actionType    : 'reply'
-                  replier       : ObjectRef(delegate).data
-                  reply         : ObjectRef(comment).data
-                  repliesCount  : queue.relationshipCount
-                  relationship  : queue.docs[0]
-                }
-              queue.next()
-          =>
-            @follow client, emitActivity: no, (err)->
-              return callback err if err
-              queue.next()
-          =>
-            @addParticipant delegate, 'commenter', (err)->
-              return callback err if err
-              queue.next()
-          ->
-            callback null, comment
-        ]
+  reply: (client, replyType, comment, callback)->
+    {delegate} = client.connection
+    exempt = delegate.checkFlag('exempt')
+    comment = new replyType body: comment
+    comment.sign(delegate).save (err)=>
+      return callback err if err
+      daisy queue = [
+        ->
+          delegate.addContent comment, (err)->
+            return callback err if err
+            queue.next()
+        ->
+          delegate.updateMetaModifiedAt (err)->
+            return callback err if err
+            queue.next()
+        =>
+          @addComment comment, data: { flags: {isLowQuality: exempt}}, (err, docs)=>
+            return callback err if err
+            queue.docs = docs
+            queue.next()
+        =>
+          Relationship.count {sourceId: @getId(),as:'reply'}, (err, count)=>
+            queue.relationshipCount = count
+            return callback err if err
+            queue.next()
+        =>
+          return queue.next() if exempt
+          @update $set: repliesCount: queue.relationshipCount, (err)=>
+            return callback err if err
+            queue.next()
+        =>
+          return queue.next() if exempt
+          @fetchOrigin (err, origin)=>
+            return callback err if err
+            @emit 'ReplyIsAdded', {
+              origin
+              subject       : ObjectRef(@).data
+              actorType     : 'replier'
+              actionType    : 'reply'
+              replier       : ObjectRef(delegate).data
+              reply         : ObjectRef(comment).data
+              repliesCount  : queue.relationshipCount
+              relationship  : queue.docs[0]
+              group         : @group
+            }
+            queue.next()
+        =>
+          @follow client, emitActivity: no, (err)->
+            return callback err if err
+            queue.next()
+        =>
+          @addParticipant delegate, 'commenter', (err)->
+            return callback err if err
+            queue.next()
+        ->
+          callback null, comment
+      ]
 
 
 
@@ -423,7 +431,7 @@ module.exports = class JPost extends jraphical.Message
     .endGraphlet()
     .fetchRoot callback
 
-  fetchRelativeComments:({limit, before, after}, callback)->
+  fetchRelativeComments:({limit, before, after, sort}, callback)->
     limit ?= 10
     if before? and after?
       callback createKodingError "Don't use before and after together."
@@ -431,7 +439,8 @@ module.exports = class JPost extends jraphical.Message
       if before? then  $lt: before
       else if after? then $gt: after
     selector['data.flags.isLowQuality'] = $ne: yes
-    options = {limit, sort: timestamp: 1}
+    sort ?= 1
+    options = {limit, sort: timestamp: sort}
     @fetchComments selector, options, callback
 
   commentsByRange:(options, callback)->

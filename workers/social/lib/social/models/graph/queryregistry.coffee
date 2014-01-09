@@ -13,6 +13,16 @@ module.exports =
         SKIP {skipCount}
         LIMIT {limitCount}
       """
+    onlineFollowing : (orderByQuery)->
+      """
+        START user=node:koding(id={currentUserId})
+        MATCH user-[:follower]->members
+        WHERE members.onlineStatus! = "online"
+        RETURN members
+        #{orderByQuery}
+        SKIP {skipCount}
+        LIMIT {limitCount}
+      """
     follower  : (orderByQuery)->
       """
         START group=node:koding(id={groupId})
@@ -42,7 +52,6 @@ module.exports =
       #{exemptClause}
       RETURN count(members) as count
       """
-
     search: (options)->
       {seed, firstNameRegExp, lastNameRegexp, blacklistQuery, exemptClause} = options
       """
@@ -78,7 +87,7 @@ module.exports =
       """
         START group=node:koding(id={groupId})
         MATCH group-[:member]->users<-[r:user]-apps
-        WHERE apps.name="JApp"
+        WHERE apps.name="JNewApp"
         AND r.createdAtEpoch < {to}
         RETURN users, apps, r
         ORDER BY r.createdAtEpoch DESC
@@ -111,7 +120,7 @@ module.exports =
         START group=node:koding(id={groupId})
         MATCH group-[:member]->members<-[:author]-content
         WHERE content.`meta.createdAtEpoch` < {to}
-        AND content.name <> "JNewStatusUpdate"
+        AND content.name = "JNewStatusUpdate"
         #{facetQuery}
         #{groupFilter}
         #{exemptClause}
@@ -125,8 +134,8 @@ module.exports =
         START member=node:koding(id={userId})
         MATCH member<-[:follower]-members-[:author]-content
         WHERE members.name="JAccount"
-        AND content.name <> "JNewStatusUpdate"
         AND content.group = {groupName}
+        AND content.name = "JNewStatusUpdate"
         #{facet}
         #{timeQuery}
         #{exemptClause}
@@ -135,12 +144,28 @@ module.exports =
         LIMIT {limitCount}
       """
 
+    followingnew:(exemptClause="", timeQuery="", type="JNewStatusUpdate")->
+      """
+        START member=node:koding(id={userId})
+        MATCH member<-[:follower]-members-[:author]-content
+        WHERE members.name="JAccount"
+        AND content.group = {groupName}
+        AND content.name = "#{type}"
+        #{exemptClause}
+        #{timeQuery}
+        RETURN content.id as id
+        ORDER BY content.`meta.createdAtEpoch` DESC
+        SKIP {skipCount}
+        LIMIT {limitCount}
+
+      """
+
     profilePage: (options)->
       """
         START member=node:koding(id={userId})
         MATCH member<-[:author]-content
         WHERE content.originId = {userId}
-        AND content.name <> "JNewStatusUpdate"
+        AND content.name = "JNewStatusUpdate"
         #{options.facetQuery}
         RETURN content
         ORDER BY #{options.orderBy} DESC
@@ -168,4 +193,3 @@ module.exports =
         MATCH group-[:#{relationshipName}]->items
         RETURN count(items) as count
       """
-

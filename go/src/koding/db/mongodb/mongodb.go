@@ -3,10 +3,11 @@ package mongodb
 import (
 	"fmt"
 	"koding/tools/config"
-	"labix.org/v2/mgo"
-	"labix.org/v2/mgo/bson"
 	"os"
 	"sync"
+
+	"labix.org/v2/mgo"
+	"labix.org/v2/mgo/bson"
 )
 
 type MongoDB struct {
@@ -21,6 +22,7 @@ var (
 
 func init() {
 	Mongo = NewMongoDB(config.Current.Mongo)
+	mgo.SetStats(true)
 }
 
 func NewMongoDB(url string) *MongoDB {
@@ -36,12 +38,13 @@ func (m *MongoDB) CreateSession(url string) {
 	var err error
 	m.Session, err = mgo.Dial(url)
 	if err != nil {
-		fmt.Printf("mongodb connection error: %s/n", err)
+		fmt.Printf("mongodb connection error: %s\n", err)
 		os.Exit(1)
 		return
 	}
 
 	m.Session.SetSafe(&mgo.Safe{})
+	m.Session.SetMode(mgo.Monotonic, true)
 }
 
 func (m *MongoDB) Close() {
@@ -56,10 +59,15 @@ func (m *MongoDB) Copy() *mgo.Session {
 	return m.Session.Copy()
 }
 
+func (m *MongoDB) Clone() *mgo.Session {
+	return m.Session.Clone()
+}
+
 func (m *MongoDB) GetSession() *mgo.Session {
 	if m.Session == nil {
 		m.CreateSession(m.URL)
 	}
+
 	return m.Copy()
 }
 

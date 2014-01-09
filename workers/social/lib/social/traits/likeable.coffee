@@ -24,8 +24,9 @@ module.exports = class Likeable
           callback err, no
 
   like: permit 'like posts',
-    success:({connection}, callback)->
+    success:({connection, context}, callback)->
 
+      {group} = context
       {delegate} = connection
       {constructor} = @
       unless delegate instanceof JAccount
@@ -64,6 +65,7 @@ module.exports = class Likeable
                       liker         : ObjectRef(delegate).data
                       likesCount    : count
                       relationship  : docs[0]
+                      group
                     }
 
                   @flushOriginSnapshot constructor

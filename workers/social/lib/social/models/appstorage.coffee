@@ -2,7 +2,7 @@ JStorage = require './storage'
 
 module.exports = class JAppStorage extends JStorage
 
-  {secure} = require 'bongo'
+  {signature} = require 'bongo'
 
   @share()
 
@@ -11,9 +11,13 @@ module.exports = class JAppStorage extends JStorage
       static      : []
       instance    : []
     sharedMethods :
-      static      : []
+      static      : {}
        #it's secure to have save and update, since JAppStorage can only be gotten by a client that owns that appstorage
-      instance    : ['save','update']
+      instance    : 
+        save:
+          (signature Function)
+        update:
+          (signature Object, Function)
     schema        :
       appId       : String  # just the path for now
       version     :         # may be necessary in the future

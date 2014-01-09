@@ -1,5 +1,5 @@
 cache           = {}
-cachingTimeInMS = 30000
+cachingTimeInMS = 10000
 
 repeatFetchingItems = (cacheKey, fetcherFn, fetcherFnOptions)->
   inProgress = cache[cacheKey]?.inProgress or no
@@ -25,14 +25,14 @@ repeatFetchingItems = (cacheKey, fetcherFn, fetcherFnOptions)->
 
 module.exports = class Cache
   @fetch: (cacheKey, fetcherFn, fetcherFnOptions, callback)->
+    {fallbackFn} = fetcherFnOptions
     if cache[cacheKey]
       {data, ttl} = cache[cacheKey]
       callback null, data
-
       if (Date.now() - (ttl or 0)  > cachingTimeInMS)
         repeatFetchingItems cacheKey, fetcherFn, fetcherFnOptions
     else
       repeatFetchingItems cacheKey, fetcherFn, fetcherFnOptions
-      callback null, {}
+      (fallbackFn? callback, fetcherFnOptions) or (callback null, {})
 
   @remove: (cacheKey, data)-> delete cache[cacheKey]

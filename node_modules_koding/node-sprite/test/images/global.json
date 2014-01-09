@@ -1,0 +1,25 @@
+{
+  "name": "global",
+  "checksum": "0f2b5fd4a7ed57ec667b2350d2dfc831",
+  "shortsum": "0f2b5",
+  "images": [
+    {
+      "name": "100x300",
+      "filename": "100x300.png",
+      "checksum": "4a930265ea1cab7bc075cece7aa24e27",
+      "width": 100,
+      "height": 300,
+      "positionX": 0,
+      "positionY": 0
+    },
+    {
+      "name": "200x200",
+      "filename": "200x200.png",
+      "checksum": "dde51aea929d0b9abe9709669ddc1d8d",
+      "width": 200,
+      "height": 200,
+      "positionX": 0,
+      "positionY": 310
+    }
+  ]
+}

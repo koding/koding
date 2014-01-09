@@ -7,7 +7,7 @@
 ITEMSPERPAGE = 20
 
 module.exports = (bongo, page, contentType, callback)=>
-  {JName, JAccount, JStatusUpdate, JTag} = bongo.models
+  {JName, JAccount, JNewStatusUpdate, JTag} = bongo.models
   skip = 0
   if page > 0
     skip = (page - 1) * ITEMSPERPAGE
@@ -20,7 +20,7 @@ module.exports = (bongo, page, contentType, callback)=>
   }
 
   if contentType is "Activity"
-    model = JStatusUpdate
+    model = JNewStatusUpdate
   else if contentType is "Topics"
     model = JTag
   else
@@ -140,7 +140,7 @@ createTagNode = (tag)->
     tagContent +=
     """
       <p>
-        <a href="#{uri.address}/#!/Topics/#{tag.slug}"><span itemprop="itemListElement">#{tag.title}</span></a>
+        <a href="#{uri.address}/#!/Activity?tagged=#{tag.slug}"><span itemprop="itemListElement">#{tag.title}</span></a>
       </p>
     """
   if tag?.counts?.followers?

@@ -1,4 +1,4 @@
-{Model} = require 'bongo'
+{Model, signature} = require 'bongo'
 
 createId = require 'hat'
 getUniqueId= -> createId 256
@@ -8,41 +8,53 @@ module.exports = class JMail extends Model
   @share()
 
   @set
-    indexes          :
-      status         : 'sparse'
-    sharedMethods    :
-      static         : ['unsubscribeWithId']
-    sharedEvents     :
-      instance       : []
-      static         : []
-    schema           :
-      dateIssued     :
-        type         : Date
-        default      : -> new Date
-      dateAttempted  : Date
-      email          :
-        type         : String
-        email        : yes
-      from           :
-        type         : String
-        email        : yes
-        default      : 'hello@koding.com'
-      replyto        :
-        type         : String
-        email        : yes
-        default      : 'hello@koding.com'
-      status         :
-        type         : String
-        default      : 'queued'
-        enum         : ['Invalid status', ['queued', 'attempted', 'sending',
-                                           'failed', 'unsubscribed']]
-      force          :
-        type         : Boolean
-        default      : false
-      subject        : String
-      content        : String
-      unsubscribeId  : String
-      bcc            : String
+    indexes           :
+      status          : 'sparse'
+    sharedMethods     :
+      static          :
+        unsubscribeWithId:
+          (signature String, String, String, Function)
+    sharedEvents      :
+      instance        : []
+      static          : []
+    schema            :
+      dateIssued      :
+        type          : Date
+        default       : -> new Date
+      dateAttempted   : Date
+      dateDelivered   : Date
+      email           :
+        type          : String
+        email         : yes
+      from            :
+        type          : String
+        email         : yes
+        default       : 'hello@koding.com'
+      replyto         :
+        type          : String
+        email         : yes
+        default       : 'hello@koding.com'
+      status          :
+        type          : String
+        default       : 'queued'
+        enum          : ['Invalid status'
+                        [
+                          'queued'
+                          'sending'
+                          'attempted'
+                          'failed'
+                          'delivered'
+                          'unsubscribed'
+                        ]]
+      smtpId          : String
+      redemptionToken : String
+      force           :
+        type          : Boolean
+        default       : false
+      subject         : String
+      content         : String
+      unsubscribeId   : String
+      bcc             : String
 
   save:(callback)->
     @unsubscribeId = getUniqueId()+''  unless @_id? or @force
@@ -51,6 +63,22 @@ module.exports = class JMail extends Model
   isUnsubscribed:(callback)->
     JUnsubscribedMail = require './unsubscribedmail'
     JUnsubscribedMail.isUnsubscribed @email, callback
+
+  @markDelivered = (status, callback = (->)) ->
+    smtpId = do ([_, id] = status['smtp-id'].match /^<(.+)>$/) -> id
+
+    unless smtpId?
+      return process.nextTick -> callback { message: 'Unknown SMTP id' }
+
+    @one { smtpId }, (err, mail) ->
+      return callback err  if err
+      return callback { message: 'Unrecognized SMTP id' }  unless mail?
+
+      operation = $set  :
+        status          : 'delivered'
+        dateDelivered   : status.timestamp * 1000 # milliseconds
+
+      mail.update operation, callback
 
   @unsubscribeWithId = (unsubscribeId, email, opt, callback)->
     JMail.one {email, unsubscribeId}, (err, mail)->

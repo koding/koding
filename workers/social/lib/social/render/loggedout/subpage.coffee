@@ -4,27 +4,30 @@ putSplash = (name, section, model)->
 
   title  = if model?.bongo_?.constructorName
     switch model.bongo_.constructorName
-      when "JStatusUpdate"  then "loading a status update"
+      when "JNewStatusUpdate"  then "loading a status update"
       when "JCodeSnip"      then "loading a code snippet"
       when "JDiscussion"    then "loading a discussion"
       when "JBlogPost"      then "loading a blog post"
       when "JTutorial"      then "loading a tutorial"
       when "JTag"           then "loading a topic"
-      when "JApp"           then "loading a koding app page"
+      when "JNewApp"        then "loading a koding app page"
       else "loading something."
   else "launching an application"
 
   content  = "<figure class='splash'><h2 class='splash-title'>Please wait, #{title}:</h2>"
-  content += "<h3 class='splash-name'>#{name.substr 0, 100}#{if name.length > 100 then '...' else ''}</h3></figure>"
+  if name
+    content += "<h3 class='splash-name'>#{name.substr 0, 100}#{if name.length > 100 then '...' else ''}</h3></figure>"
+
+  return content
 
 generateShareUrl = (model, uri)->
   slug = if model?.bongo_?.constructorName and model?.slug
     switch model.bongo_.constructorName
-      when "JStatusUpdate", "JCodeSnip", "JDiscussion", "JBlogPost", "JTutorial"
+      when "JNewStatusUpdate", "JCodeSnip", "JDiscussion", "JBlogPost", "JTutorial"
         "/Activity/" + model.slug
       when "JTag"
         "/Topics/" + model.slug
-      when "JApp"
+      when "JNewApp"
         "/Apps/" + model.slug
       else ""
 
@@ -48,8 +51,8 @@ module.exports = (options, callback)->
 
   shareUrl = generateShareUrl model, uri
 
-  # JStatusUpdate doesn't have title; we're using body instead.
-  if model?.bongo_?.constructorName is "JStatusUpdate"
+  # JNewStatusUpdate doesn't have title; we're using body instead.
+  if model?.bongo_?.constructorName is "JNewStatusUpdate"
     title = if model?.body then model.body
 
   prepareHTML  = (scripts, title, shareUrl)->
@@ -69,9 +72,6 @@ module.exports = (options, callback)->
 
       <div id='main-loading' class="kdview main-loading">
           <figure class="threed-logo">
-            <span class="line"><i></i></span>
-            <span class="line"><i></i></span>
-            <span class="line"><i></i></span>
             <span class="line"><i></i></span>
             <span class="line"><i></i></span>
             <span class="line"><i></i></span>

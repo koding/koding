@@ -23,6 +23,7 @@ func tryReadByte(r *bufio.Reader, b byte) bool {
 	if err != nil {
 		panic(err)
 	}
+
 	if c == b {
 		return true
 	}

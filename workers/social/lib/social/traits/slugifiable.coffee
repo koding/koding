@@ -29,6 +29,7 @@ module.exports = class Slugifiable
       .trim()                            # trim leading and trailing ws
       .toLowerCase()                     # change everything to lowercase
       .replace(/^\s+|\s+$/g, "")         # trim leading and trailing spaces
+      .replace(/\|.+?\|/g, "")           # remove tokens
       .replace(/[_|\s]+/g, "-")          # change all spaces and underscores to a hyphen
       .replace(/[^a-z0-9-]+/g, "")       # remove all non-alphanumeric characters except the hyphen
       .replace(/[-]+/g, "-")             # replace multiple instances of the hyphen with a single instance
@@ -61,6 +62,8 @@ module.exports = class Slugifiable
       slug.replace(/^-+|-+$/g, "")
 
     return slug
+
+  @slugify = slugify
 
   getNextCount =(name)->            # the name is something like `name: "foo-bar-42"`
     count = name
@@ -199,7 +202,7 @@ module.exports = class Slugifiable
   updateSlug:(callback)->
     @createSlug (err, slug)=>
       if err then callback err
-      else @update $set:{slug, slug_:slug}, (err)->
+      else @update $set:{slug:slug.slug, slug_:slug.slug}, (err)->
         callback err, unless err then slug
 
   createSlug:(callback)->

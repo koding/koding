@@ -1,6 +1,6 @@
 {dash}  = require 'bongo'
 JTag    = require '../models/tag'
-JApp    = require '../models/app'
+JNewApp    = require '../models/app'
 
 localPrefetchedFeeds = {}
 
@@ -13,16 +13,17 @@ module.exports = (options={}, callback)->
     groupName = client?.context?.group or 'koding'
     JGroup.one slug: groupName, (err, group)->
       return cb null, [] if err
-      group._fetchMembersFromGraph client, {}, cb
+      group.fetchMembersFromGraph client, {}, cb
 
-  fetchActivityFromGraph = (bongoModels, client, cb)->
+  fetchActivity = (bongoModels, client, cb)->
     return cb null, [] unless bongoModels
-    {CActivity} = bongoModels
-    options = facets : "Everything"
+    {JNewStatusUpdate} = bongoModels
+    # options = facets : "Everything"
 
-    CActivity._fetchPublicActivityFeed client, options, (err, data)->
+    JNewStatusUpdate.fetchGroupActivity client, options, (err, data)->
       return cb null, [] if err
       return cb null, data
+
 
   # set interval options for later use
   intervalOptions = options
@@ -46,14 +47,14 @@ module.exports = (options={}, callback)->
       queue.fin()
 
   # This is not koding specific so we can return this to every group
-  queue.push ->
-    JApp.some {"approved": true}, defaultOptions, (err, apps)->
-      localPrefetchedFeeds['apps.main'] = apps  if apps
-      queue.fin()
+  # queue.push ->
+  #   JNewApp.some {"approved": true}, defaultOptions, (err, apps)->
+  #     localPrefetchedFeeds['apps.main'] = apps  if apps
+  #     queue.fin()
 
   # we are fetching group activity, so again we can return this one for all groups
   queue.push ->
-    fetchActivityFromGraph bongoModels, client, (err, activity)=>
+    fetchActivity bongoModels, client, (err, activity)=>
       localPrefetchedFeeds['activity.main'] = activity  if activity
       queue.fin()
 

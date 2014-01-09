@@ -91,6 +91,28 @@ serve = (content, res)->
   res.header 'Content-type', 'text/html'
   res.send content
 
+
+serveHome = (req, res, next)->
+  {JGroup} = bongoModels = koding.models
+  {generateFakeClient}   = require "./client"
+
+  generateFakeClient req, res, (err, client)->
+    if err or not client
+      console.log err
+      return next()
+    isLoggedIn req, res, (err, state, account)->
+      if err
+        res.send 500, error_500()
+        return console.error err
+
+      {loggedIn, loggedOut} = JGroup.render
+      {params}              = req
+      fn                    = if state then loggedIn else loggedOut
+      fn.kodingHome {client, account, bongoModels, params}, (err, subPage)->
+        return next()  if err
+        serve subPage, res
+
+
 isLoggedIn = (req, res, callback)->
   {JName} = koding.models
   findUsernameFromSession req, res, (err, isLoggedIn, username)->
@@ -145,6 +167,7 @@ module.exports = {
   findUsernameFromSession
   fetchJAccountByKiteUserNameAndKey
   serve
+  serveHome
   isLoggedIn
   getAlias
   addReferralCode

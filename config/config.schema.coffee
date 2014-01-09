@@ -160,6 +160,7 @@ config =
       useStaticFileServer: 1
       staticFilesBaseUrl: 1
       runtimeOptions  :
+        environment   : 1
         activityFetchCount : 1
         precompiledApi: 1
         authExchange  : 1
@@ -184,7 +185,25 @@ config =
         newkontrol    :
           url         : 1
         fileFetchTimeout: 1
-        # authResourceName : DO NOT COMMIT THIS BACK IN NOR DELETE. IT KEEPS COMING BACK. devrim.
+        externalProfiles  :
+          github          :
+            nicename      : 1
+            urlLocation   : 1
+          odesk           :
+            nicename      : 1
+            urlLocation   : 1
+          facebook        :
+            nicename      : 1
+            urlLocation   : 1
+          google          :
+            nicename      : 1
+          linkedin        :
+            nicename      : 1
+          twitter         :
+            nicename      : 1
+          # bitbucket     :
+          #   nicename    : 1
+      # authResourceName : DO NOT COMMIT THIS BACK IN NOR DELETE. IT KEEPS COMING BACK. devrim.
     mq            :
       host        : 1
       port        : 1
@@ -243,6 +262,7 @@ config =
         switchHost  : 1
       api           :
         port        : 1
+        url         : 1
       proxy         :
         port        : 1
         portssl     : 1
@@ -300,4 +320,5 @@ config =
       version       : 1
       signature     : 1
     mixpanel        : 1
+    rollbar         : 1
 module.exports = config

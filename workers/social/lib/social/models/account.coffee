@@ -1,9 +1,16 @@
 jraphical   = require 'jraphical'
 KodingError = require '../error'
 
-likeableActivities = ['JCodeSnip', 'JStatusUpdate', 'JDiscussion',
-                      'JOpinion', 'JCodeShare', 'JLink', 'JTutorial',
-                      'JBlogPost']
+likeableActivities = [
+  'JNewStatusUpdate'
+#  'JCodeSnip'
+#  'JDiscussion'
+#  'JOpinion'
+#  'JCodeShare'
+#  'JLink'
+#  'JTutorial'
+#  'JBlogPost'
+  ]
 
 module.exports = class JAccount extends jraphical.Module
   log4js          = require "log4js"
@@ -21,29 +28,19 @@ module.exports = class JAccount extends jraphical.Module
   CActivity        = require './activity'
   Graph            = require "./graph/graph"
   JName            = require './name'
+  JBadge           = require './badge'
+  JReferrableEmail = require './referrableemail'
 
   @getFlagRole            = 'content'
   @lastUserCountFetchTime = 0
 
-  {ObjectId, Register, secure, race, dash, daisy} = require 'bongo'
+  {ObjectId, Register, secure, race, dash, daisy, signature} = require 'bongo'
   {Relationship} = jraphical
   {permit} = require './group/permissionset'
   Validators = require './group/validators'
 
   @share()
-  Experience =
-    company           : String
-    website           : String
-    position          : String
-    type              : String
-    fromDate          : String
-    toDate            : String
-    description       : String
-    # endorsements      : [
-    #       endorser    : String
-    #       title       : String
-    #       text        : String
-    #     ]
+
   @set
     softDelete          : yes
     emitFollowingActivities : yes # create buckets for follower / followees
@@ -64,95 +61,202 @@ module.exports = class JAccount extends jraphical.Module
         { name : "RemovedFromCollection" }
       ]
     sharedMethods :
-      static: [
-        'one'
-        'some'
-        'cursor'
-        'each'
-        'someWithRelationship'
-        'someData'
-        'getAutoCompleteData'
-        'count'
-        'byRelevance'
-        'fetchVersion'
-        'reserveNames'
-        'impersonate'
-        'fetchBlockedUsers'
-        'fetchCachedUserCount'
-      ]
-      instance: [
-        'modify'
-        'follow'
-        'unfollow'
-        'fetchFollowersWithRelationship'
-        'countFollowersWithRelationship'
-        'countFollowingWithRelationship'
-        'fetchFollowingWithRelationship'
-        'fetchTopics'
-        'fetchMounts'
-        'fetchActivityTeasers'
-        'fetchRepos'
-        'fetchDatabases'
-        'fetchMail'
-        'fetchNotificationsTimeline'
-        'fetchActivities'
-        'fetchAppStorage'
-        'addTags'
-        'fetchLimit'
-        'fetchLikedContents'
-        'fetchFollowedTopics'
-        'setEmailPreferences'
-        'glanceMessages'
-        'glanceActivities'
-        'fetchRole'
-        'fetchAllKites'
-        'flagAccount'
-        'unflagAccount'
-        'isFollowing'
-        'fetchFeedByTitle'
-        'updateFlags'
-        'fetchGroups'
-        'fetchGroupRoles'
-        'setStaticPageVisibility'
-        'addStaticPageType'
-        'removeStaticPageType'
-        'setHandle'
-        'setAbout'
-        'fetchAbout'
-        'setStaticPageTitle'
-        'setStaticPageAbout'
-        'addStaticBackground'
-        'setBackgroundImage'
-        'fetchGroupsWithPendingInvitations'
-        'fetchGroupsWithPendingRequests'
-        'cancelRequest'
-        'acceptInvitation'
-        'ignoreInvitation'
-        'fetchMyGroupInvitationStatus'
-        'fetchMyPermissions'
-        'fetchMyPermissionsAndRoles'
-        'fetchMyFollowingsFromGraph'
-        'fetchMyFollowersFromGraph'
-        'blockUser'
-        'unblockUser'
-        'sendEmailVMTurnOnFailureToSysAdmin'
-        'fetchRelatedTagsFromGraph'
-        'fetchRelatedUsersFromGraph'
-        'fetchDomains'
-        'unlinkOauth'
-        'changeUsername'
-        'markUserAsExempt'
-        'checkFlag'
-        'userIsExempt'
-        'checkGroupMembership'
-        'getOdeskAuthorizeUrl'
-        'fetchStorage'
-        'fetchStorages'
-        'store'
-        'unstore'
-        'isEmailVerified'
-        'fetchEmail'
-      ]
+      static:
+        one: [
+          (signature Object, Function)
+          (signature Object, Object, Function)
+        ]
+        some:
+          (signature Object, Object, Function)
+        cursor:
+          (signature Object, Object, Function)
+        each: [
+          (signature Object, Object, Function)
+          (signature Object, Object, Object, Function)
+        ]
+        someWithRelationship:
+          (signature Object, Object, Function)
+        someData:
+          (signature Object, Object, Object, Function)
+        getAutoCompleteData:
+          (signature String, String, Function)
+        count: [
+          (signature Function)
+          (signature Object, Function)
+        ]
+        byRelevance: [
+          (signature String, Function)
+          (signature String, Object, Function)
+        ]
+        fetchVersion:
+          (signature Function)
+        reserveNames: [
+          (signature Function)
+          (signature Object, Function)
+        ]
+        impersonate:
+          (signature String, Function)
+        fetchBlockedUsers:
+          (signature Object, Function)
+        fetchCachedUserCount:
+          (signature Function)
+
+      instance:
+        modify:
+          (signature Object, Function)
+        follow: [
+          (signature Function)
+          (signature Object, Function)
+        ]
+        unfollow: [
+          (signature Function)
+        ]
+        fetchFollowersWithRelationship:
+          (signature Object, Object, Function)
+        countFollowersWithRelationship:
+          (signature Object, Function)
+        countFollowingWithRelationship:
+          (signature Object, Function)
+        fetchFollowingWithRelationship:
+          (signature Object, Object, Function)
+        fetchTopics:
+          (signature Object, Object, Function)
+        fetchActivityTeasers: [
+          (signature Object, Function)
+          (signature Object, Object, Function)
+        ]
+        fetchMail: [
+          (signature Function)
+          (signature Object, Function)
+        ]
+        fetchNotificationsTimeline: [
+          (signature Object, Function)
+          (signature Object, Object, Function)
+        ]
+        fetchActivities: [
+          (signature Object, Function)
+          (signature Object, Object, Function)
+        ]
+        fetchAppStorage:
+          (signature Object, Function)
+        addTags: [
+          (signature Object, Function)
+          (signature Object, Object, Function)
+        ]
+        fetchLikedContents: [
+          (signature Object, Function)
+          (signature Object, Object, Function)
+        ]
+        setEmailPreferences:
+          (signature Object, Function)
+        glanceActivities: [
+          (signature Function)
+          (signature String, Function)
+        ]
+        fetchRole:
+          (signature Function)
+        flagAccount:
+          (signature String, Function)
+        unflagAccount:
+          (signature String, Function)
+        isFollowing:
+          (signature String, String, Function)
+        updateFlags:
+          (signature [String], Function)
+        fetchGroups: [
+          (signature Function)
+          (signature Object, Function)
+        ]
+        fetchGroupRoles:
+          (signature String, Function)
+        fetchGroupsWithPendingInvitations: [
+          (signature Function)
+          (signature Object, Function)
+        ]
+        fetchGroupsWithPendingRequests: [
+          (signature Function)
+          (signature Object, Function)
+        ]
+        cancelRequest:
+          (signature String, Function)
+        acceptInvitation:
+          (signature String, Function)
+        ignoreInvitation:
+          (signature String, Function)
+        fetchMyGroupInvitationStatus:
+          (signature String, Function)
+        fetchMyPermissions:
+          (signature Function)
+        fetchMyPermissionsAndRoles:
+          (signature Function)
+        fetchMyFollowingsFromGraph:
+          (signature Object, Function)
+        fetchMyOnlineFollowingsFromGraph:
+          (signature Object, Function)
+        fetchMyFollowersFromGraph:
+          (signature Object, Function)
+        blockUser: [
+          (signature String, Number, Function)
+          (signature ObjectId, Number, Function)
+        ]
+        unblockUser: [
+          (signature String, Function)
+          (signature ObjectId, Function)
+        ]
+        sendEmailVMTurnOnFailureToSysAdmin:
+          (signature String, String)
+        fetchRelatedTagsFromGraph:
+          (signature Object, Function)
+        fetchRelatedUsersFromGraph:
+          (signature Object, Function)
+        fetchDomains:
+          (signature Function)
+        unlinkOauth:
+          (signature String, Function)
+        changeUsername: [
+          (signature Object)
+          (signature Object, Function)
+        ]
+        markUserAsExempt:
+          (signature Boolean, Function)
+        userIsExempt:
+          (signature Function)
+        checkGroupMembership:
+          (signature String, Function)
+        fetchStorage:
+          (signature String, Function)
+        fetchStorages:
+          (signature [String], Function)
+        store:
+          (signature Object, Function)
+        unstore:
+          (signature String, Function)
+        isEmailVerified:
+          (signature Function)
+        fetchEmail:
+          (signature Function)
+        fetchPaymentMethods:
+          (signature Function)
+        fetchSubscriptions: [
+          (signature Function)
+          (signature Object, Function)
+        ]
+        fetchPlansAndSubscriptions: [
+          (signature Function)
+          (signature Object, Function)
+        ]
+        fetchEmailAndStatus:
+          (signature Function)
+        fetchEmailFrequency:
+          (signature Function)
+        fetchOAuthInfo:
+          (signature Function)
+        fetchMyBadges:
+          (signature Function)
+        fetchFromUser:
+          (signature String, Function)
+        updateCountAndCheckBadge:
+          (signature Object, Function)
     schema                  :
       skillTags             : [String]
       locationTags          : [String]
@@ -174,6 +278,25 @@ module.exports = class JAccount extends jraphical.Module
         likes               :
           type              : Number
           default           : 0
+        statusUpdates       :
+          type              : Number
+          default           : 0
+        comments            :
+          type              : Number
+          default           : 0
+        referredUsers       :
+          type              : Number
+          default           : 0
+        invitations         :
+          type              : Number
+          default           : 0
+        lastLoginDate       :
+          type              : Date
+          default           : new Date
+        twitterFollowers    :
+          type              : Number
+          default           : 0
+
       environmentIsCreated  : Boolean
       type                  :
         type                : String
@@ -245,16 +368,20 @@ module.exports = class JAccount extends jraphical.Module
         as          : 'skill'
         targetType  : "JTag"
 
-      about:
-        as          : 'about'
-        targetType  : 'JMarkdownDoc'
-
       content       :
         as          : 'creator'
         targetType  : [
-          "CActivity", "JStatusUpdate", "JCodeSnip", "JComment", "JReview"
-          "JDiscussion", "JOpinion", "JCodeShare", "JLink", "JTutorial",
-          "JBlogPost"
+          "JNewStatusUpdate"
+          "JComment"
+#          "CActivity"
+#          "JCodeSnip"
+#          "JReview"
+#          "JDiscussion"
+#          "JOpinion"
+#          "JCodeShare"
+#          "JLink"
+#          "JTutorial"
+#          "JBlogPost"
         ]
 
       vm            :
@@ -283,11 +410,22 @@ module.exports = class JAccount extends jraphical.Module
         as          : 'owner'
         targetType  : 'JInvitationRequest'
 
+      paymentMethod :
+        as          : 'payment method'
+        targetType  : 'JPaymentMethod'
+
+      subscription  :
+        as          : 'service subscription'
+        targetType  : 'JPaymentSubscription'
+
+      badge         :
+        as          : 'badge'
+        targetType  : 'JBadge'
+
   constructor:->
     super
     @notifyOriginWhen 'PrivateMessageSent', 'FollowHappened'
     @notifyGroupWhen 'FollowHappened'
-
 
   checkGroupMembership: secure (client, groupName, callback)->
     {delegate} = client.connection
@@ -402,21 +540,9 @@ module.exports = class JAccount extends jraphical.Module
       isLoggedIn      : account.type is 'unregistered'
     , callback
 
-
-  setHandle: secure (client, data, callback)->
-    {delegate}      = client.connection
-    {service,value} = data
-    selector        = "profile.handles."+service
-    isMine          = @equals delegate
-    if isMine and service in ['twitter','github']
-      value     = null if value is ''
-      operation = $set: {}
-      operation.$set[selector] = value
-      @update operation, callback
-    else
-      callback? new KodingError 'Access denied'
-
-  fetchGroups: secure (client, options = {}, callback)->
+  fetchGroups: secure (client, options, callback)->
+    [callback, options] = [options, callback]  unless callback
+    options       ?= {}
     JGroup        = require './group'
     {groupBy}     = require 'underscore'
     {delegate}    = client.connection
@@ -598,8 +724,6 @@ module.exports = class JAccount extends jraphical.Module
       else
         @setEmailPreferences user, prefs, callback
 
-  glanceMessages: secure (client, callback)->
-
   glanceActivities: secure (client, activityId, callback)->
     [callback, activityId] = [activityId, callback] unless callback
     {delegate} = client.connection
@@ -646,15 +770,48 @@ module.exports = class JAccount extends jraphical.Module
         , -> callback null, teasers
         collectTeasers node for node in contents
 
+  updateCountAndCheckBadge: secure (client, options, callback)->
+    propertyArray = [
+      "likes"
+      "followers"
+      "following"
+      "topics"
+      "statusUpdates"
+      "comments"
+      "referredUsers"
+      "invitations"
+    ]
+    return new KodingError "No permission!" unless @equals client.connection.delegate
+    {@property} = options
+
+    return new KodingError "That property not supported!" unless  @property in propertyArray
+    {relType, source, targetSelf} = options
+    selector     =
+      as         : relType
+      sourceName : source
+
+    if targetSelf then selector["targetId"]=@getId() else selector["sourceId"]=@getId()
+
+    Relationship.count selector, (err, count) =>
+      return err if err
+      countsField = {}
+      key = "counts.#{@property}"
+      countsField[key] = count
+      @update $set: countsField , (err)=>
+        return err if err
+        JBadge = require './badge'
+        JBadge.checkEligibleBadges client, badgeItem:@property , callback
+
   # Update broken counts for user
   updateCounts:->
-
+    JUser = require './user'
     # Like count
     Relationship.count
       as         : 'like'
       targetId   : @getId()
       sourceName : $in: likeableActivities
     , (err, count)=>
+      return if err or not count
       @update ($set: 'counts.likes': count), ->
 
     # Member Following count
@@ -663,7 +820,17 @@ module.exports = class JAccount extends jraphical.Module
       targetId   : @getId()
       sourceName : 'JAccount'
     , (err, count)=>
+      return if err or not count
       @update ($set: 'counts.following': count), ->
+
+    # Member Follower count
+    Relationship.count
+      as         : 'follower'
+      sourceId   : @getId()
+      sourceName : 'JAccount'
+    , (err, count)=>
+      return if err or not count
+      @update ($set: 'counts.followers': count), ->
 
     # Tag Following count
     Relationship.count
@@ -671,11 +838,55 @@ module.exports = class JAccount extends jraphical.Module
       targetId   : @getId()
       sourceName : 'JTag'
     , (err, count)=>
+      return if err or not count
       @update ($set: 'counts.topics': count), ->
+
+    # Status Update count
+    Relationship.count
+      as         : 'author'
+      targetId   : @getId()
+      sourceName : 'JNewStatusUpdate'
+    , (err, count)=>
+      return if err or not count
+      @update ($set: 'counts.statusUpdates': count), ->
+
+    # Comments count
+    Relationship.count
+      as         : 'commenter'
+      targetId   : @getId()
+      sourceName : 'JNewStatusUpdate'
+    , (err, count)=>
+      return if err or not count
+      @update ($set: 'counts.comments': count), ->
+
+    # ReferredUsers count
+    JAccount.count
+      referrerUsername : @profile.nickname
+    , (err, count)=>
+      return if err or not count
+      @update ($set: 'counts.referredUsers': count), ->
+
+    # Invitations count
+    JReferrableEmail.count
+      username   : @profile.nickname
+      invited    : true
+    , (err, count)=>
+      return if err or not count
+      @update ($set: 'counts.invitations': count), ->
+
+    # Last Login date
+    @update ($set: 'counts.lastLoginDate': new Date), ->
+
+    # Twitter follower count
+    JUser.one {username: @profile.nickname}, (err, user)=>
+      return if err or not user
+      if user.foreignAuth?.twitter?
+        followerCount = user.foreignAuth.twitter.profile.followers_count
+        @update ($set: 'counts.twitterFollowers': followerCount), ->
 
   dummyAdmins = [ "sinan", "devrim", "gokmen", "chris", "fatihacet", "arslan",
                   "sent-hil", "kiwigeraint", "cihangirsavas", "leventyalcin",
-                  "samet", "leeolayvar" ]
+                  "samet", "leeolayvar", "stefanbc" ]
 
   userIsExempt: (callback)->
     # console.log @isExempt, this
@@ -684,10 +895,14 @@ module.exports = class JAccount extends jraphical.Module
   # returns troll users ids
   @getExemptUserIds: (callback)->
     JAccount.someData {isExempt:true}, {_id:1}, (err, cursor)->
-      cursor.toArray (err, data)->
-        if err
-          return callback err, null
-        callback null, (i._id for i in data)
+      return callback err, null if err
+      ids = []
+      cursor.each (err, account)->
+        return callback err, null if err
+        if account
+            ids.push account._id.toString()
+        else
+            callback null, ids
 
   isEmailVerified: (callback)->
     @fetchUser (err, user)->
@@ -747,12 +962,12 @@ module.exports = class JAccount extends jraphical.Module
         callback new KodingError 'Account not found'
 
 
-  blockUser: secure (client, accountIdOrNickname, toDate, callback)->
+  blockUser: secure (client, accountIdOrNickname, durationMillis, callback)->
     {delegate} = client.connection
-    if delegate.can('flag', this) and accountIdOrNickname? and toDate?
+    if delegate.can('flag', this) and accountIdOrNickname? and durationMillis?
       @fetchUserByAccountIdOrNickname accountIdOrNickname, (err, {user, account})->
         return callback err if err
-        blockedDate = new Date(Date.now() + toDate)
+        blockedDate = new Date(Date.now() + durationMillis)
         account.sendNotification 'UserBlocked', { blockedDate }
         user.block blockedDate, callback
     else
@@ -817,17 +1032,6 @@ module.exports = class JAccount extends jraphical.Module
       callback null, "super-admin"
     else
       callback null, "regular"
-
-  fetchAllKites: secure ({connection}, callback)->
-
-    if isDummyAdmin connection.delegate.profile.nickname
-      callback null,
-        Databases     :
-          hosts       : ["cl0", "cl1", "cl2", "cl3"]
-        terminal      :
-          hosts       : ["cl0", "cl1", "cl2", "cl3"]
-    else
-      callback new KodingError "Permission denied!"
 
   # temp dummy stuff ends
 
@@ -923,27 +1127,6 @@ module.exports = class JAccount extends jraphical.Module
 
     if @equals(client.connection.delegate)
       @update $set: fields, callback
-
-  oldFetchMounts = @::fetchMounts
-  fetchMounts: secure (client,callback)->
-    if @equals client.connection.delegate
-      oldFetchMounts.call @,callback
-    else
-      callback new KodingError "access denied for guest."
-
-  oldFetchRepos = @::fetchRepos
-  fetchRepos: secure (client,callback)->
-    if @equals client.connection.delegate
-      oldFetchRepos.call @,callback
-    else
-      callback new KodingError "access denied for guest."
-
-  oldFetchDatabases = @::fetchDatabases
-  fetchDatabases: secure (client,callback)->
-    if @equals client.connection.delegate
-      oldFetchDatabases.call @,callback
-    else
-      callback new KodingError "access denied for guest."
 
   setClientId:(@clientId)->
 
@@ -1104,47 +1287,59 @@ module.exports = class JAccount extends jraphical.Module
   fetchGroupsWithPendingInvitations:(options, callback)->
     @fetchGroupsWithPending '', 'sent', options, callback
 
-  fetchMyGroupInvitationStatus: secure (client, sourceId, callback)->
+  fetchMyGroupInvitationStatus: secure (client, slug, callback)->
     return  unless @equals client.connection.delegate
 
+    JGroup = require './group'
+
+    JGroup.one { slug }, (err, group) ->
+      return callback err  if err
+
+      selector = sourceId: group.getId()
+
+      options = targetOptions: selector: status: 'pending'
+      @fetchInvitationRequests selector, options, (err, requests)=>
+        return callback err                if err
+        return callback null, 'requested'  if requests?[0]
+
+        options = targetOptions: selector: status: 'sent'
+        @fetchInvitations selector, options, (err, invites)=>
+          return callback err              if err
+          return callback null, 'invited'  if invites?[0]
+          return callback null, no
+
+  cancelRequest: secure (client, slug, callback)->
     options = targetOptions: selector: status: 'pending'
-    @fetchInvitationRequests {sourceId}, options, (err, requests)=>
-      return callback err                if err
-      return callback null, 'requested'  if requests?[0]
+    JGroup = require './group'
 
-      options = targetOptions: selector: status: 'sent'
-      @fetchInvitations {sourceId}, options, (err, invites)=>
-        return callback err              if err
-        return callback null, 'invited'  if invites?[0]
-        return callback null, no
+    JGroup.one { slug }, (err, group) ->
+      return callback err  if err
 
-  cancelRequest: secure (client, group, callback)->
-    options = targetOptions: selector: status: 'pending'
-    @fetchInvitationRequests {sourceId: group._id}, options, (err, [request])->
-      return callback err                                  if err
-      return callback 'could not find invitation request'  unless request
-      request.remove callback
+      @fetchInvitationRequests {sourceId: group.getId()}, options, (err, [request])->
+        return callback err                                  if err
+        return callback 'could not find invitation request'  unless request
+        request.remove callback
 
-  fetchInvitationByGroup:(group, callback)->
-    options = targetOptions: selector: {status: 'sent', group: group.slug}
+  fetchInvitationByGroupSlug:(slug, callback)->
+    options = targetOptions: selector: {status: 'sent', group: slug}
     @fetchInvitations {}, options, (err, [invite])->
       return callback err                          if err
       return callback 'could not find invitation'  unless invite
 
       JGroup = require './group'
-      JGroup.one _id: group._id, (err, groupObj)->
+      JGroup.one { slug }, (err, groupObj)->
         return callback err  if err
         callback null, invite, groupObj
 
-  acceptInvitation: secure (client, group, callback)->
-    @fetchInvitationByGroup group, (err, invite, groupObj)=>
+  acceptInvitation: secure (client, slug, callback)->
+    @fetchInvitationByGroupSlug slug, (err, invite, groupObj)=>
       return callback err  if err
       groupObj.approveMember this, (err)->
         return callback err  if err
         invite.update $set:status:'accepted', callback
 
-  ignoreInvitation: secure (client, group, callback)->
-    @fetchInvitationByGroup group, (err, invite)->
+  ignoreInvitation: secure (client, slug, callback)->
+    @fetchInvitationByGroupSlug slug, (err, invite)->
       return callback err  if err
       invite.update $set:status:'ignored', callback
 
@@ -1223,6 +1418,15 @@ module.exports = class JAccount extends jraphical.Module
       if err then return callback err
       else return callback null, results
 
+  fetchMyOnlineFollowingsFromGraph: secure (client, options, callback)->
+    @_fetchMyOnlineFollowingsFromGraph client, options, callback
+
+  _fetchMyOnlineFollowingsFromGraph: (client, options, callback)->
+    options.client = client
+    Member.fetchOnlineFollowingMembers options, (err, results)->
+      if err then return callback err
+      else return callback null, results
+
   fetchMyFollowersFromGraph: secure (client, options, callback)->
     options.client = client
     Member.fetchFollowerMembers options, (err, results)=>
@@ -1265,7 +1469,7 @@ module.exports = class JAccount extends jraphical.Module
       @fetchUser (err, user)=>
         return callback err  if err
 
-        query                            = {}
+        query = {}
         query["foreignAuth.#{provider}"] = ""
         user.update $unset: query, (err)=>
           return callback err  if err
@@ -1293,5 +1497,78 @@ module.exports = class JAccount extends jraphical.Module
       @fetchUser (err, user)->
         return callback err  if err
         callback null, user?.email
+    else
+      callback new KodingError 'Access denied'
+
+  fetchDecoratedPaymentMethods: (callback) ->
+    JPaymentMethod = require './payment/method'
+    @fetchPaymentMethods (err, paymentMethods) ->
+      return callback err  if err
+      JPaymentMethod.decoratePaymentMethods paymentMethods, callback
+
+  fetchPaymentMethods$: secure (client, callback) ->
+    {delegate} = client.connection
+    if (delegate.equals this) or delegate.can 'administer accounts'
+      @fetchDecoratedPaymentMethods callback
+
+  fetchSubscriptions$: secure ({ connection:{ delegate }}, options, callback) ->
+    return callback { message: 'Access denied!' }  unless @equals delegate
+
+    [callback, options] = [options, callback]  unless callback
+
+    { tags, status } = options
+
+    selector = {}
+    queryOptions = targetOptions: { selector }
+
+    selector.tags = $in: tags  if tags
+
+    selector.status = status ? $in: [
+      'active'
+      'past_due'
+      'future'
+    ]
+
+    @fetchSubscriptions {}, queryOptions, callback
+
+  fetchPlansAndSubscriptions: secure (client, options, callback) ->
+    JPaymentPlan = require './payment/plan'
+
+    @fetchSubscriptions$ client, options, (err, subscriptions) ->
+      return callback err  if err
+
+      planCodes = (s.planCode for s in subscriptions)
+
+      JPaymentPlan.all { planCode: $in: planCodes }, (err, plans) ->
+        return callback err  if err
+
+        callback null, { subscriptions, plans }
+
+  fetchMyBadges$: (callback)->
+    @fetchBadges callback
+
+  fetchEmailAndStatus: secure (client, callback)->
+    @fetchFromUser client, ['email', 'status'], callback
+
+  fetchEmailFrequency: secure (client, callback)->
+    @fetchFromUser client, 'emailFrequency', callback
+
+  fetchOAuthInfo: secure (client, callback)->
+    @fetchFromUser client, 'foreignAuth', callback
+
+  fetchFromUser: secure (client, key, callback)->
+    {delegate} = client.connection
+    isMine     = @equals delegate
+    if isMine
+      @fetchUser (err, user)->
+        return callback err  if err
+        if Array.isArray key
+          results = {}
+          for k in key
+            results[k] = user.getAt k
+
+          callback null, results
+        else
+          callback null, user.getAt key
     else
       callback new KodingError 'Access denied'
