@@ -2,8 +2,9 @@ package main
 
 import (
 	"fmt"
-	logging "github.com/op/go-logging"
 	"koding/tools/logger"
+
+	logging "github.com/op/go-logging"
 )
 
 var (
