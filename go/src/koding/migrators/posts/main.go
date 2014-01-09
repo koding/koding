@@ -146,7 +146,9 @@ func migrate(m *Migrator) error {
 func fixRelationships(oldId, newId bson.ObjectId) error {
 	selector := helper.Selector{
 		"targetId": oldId,
-		"as":       "like",
+		"as": helper.Selector{
+			"$in": []string{"like", "follower"},
+		},
 	}
 	options := helper.Selector{
 		"$set": helper.Selector{
@@ -161,7 +163,9 @@ func fixRelationships(oldId, newId bson.ObjectId) error {
 
 	selector = helper.Selector{
 		"sourceId": oldId,
-		"as":       "like",
+		"as": helper.Selector{
+			"$in": []string{"like", "follower"},
+		},
 	}
 	options = helper.Selector{
 		"$set": helper.Selector{
@@ -492,23 +496,6 @@ func migrateCommentOrigin(c *Comment, p *Post, m *Migrator) error {
 	if err != nil {
 		return fmt.Errorf("commenter not found")
 	}
-	if r.MigrationStatus != "Completed" {
-		or := r
-		r.Id = helper.NewObjectId()
-		r.SourceId = p.Id
-		r.SourceName = "JNewStatusUpdate"
-		if err := helper.AddRelationship(&r); err != nil {
-			updateRelationshipStatus(or, "Error")
-			return err
-		}
-		updateRelationshipStatus(or, "Completed")
-	}
-	s["as"] = "follower"
-	r, err = helper.GetRelationship(s)
-	if err != nil {
-		return fmt.Errorf("follower not found")
-	}
-
 	if r.MigrationStatus != "Completed" {
 		or := r
 		r.Id = helper.NewObjectId()
