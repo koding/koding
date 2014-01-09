@@ -624,7 +624,7 @@ input.kdinput.text
   bg                    color white
   rounded               6px
   shadow                0 0 32px rgba(0,0,0,.46)
-  fix()
+  position              fixed !important
 
   .kdmodal-inner
     margin              45px
@@ -651,13 +651,18 @@ input.kdinput.text
       font-size         24px !important
 
   .kdmodal-content
-    overflow            visible !important
     margin              15px 0 0 0 !important
     padding             0 !important
     font-size           16px !important
+    line-height         18px !important
 
     .modalformline
       padding           0
+      overflow          visible
+
+      &:last-child
+        border-bottom   1px solid transparent
+
 
   .kdmodal-buttons
   .kdformview .button-field
