@@ -89,8 +89,10 @@ class VirtualizationController extends KDController
     JVM.removeByHostname hostnameAlias, (err)->
       return callback err  if err
 
-      # KD.getSingleton("finderController").unmountVm hostnameAlias
-      KD.getSingleton("vmController").emit 'VMListChanged'
+      vmc = KD.getSingleton("vmController")
+      vmc.emit 'VMListChanged'
+      vmc.emit 'VMDestroyed', hostnameAlias
+
       callback null
 
   remove: (vm, callback=noop)->

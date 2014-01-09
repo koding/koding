@@ -11,18 +11,25 @@ class HomePage extends JView
       cssClass    : 'solid green shadowed pricing'
       icon        : 'yes'
       iconClass   : 'dollar'
-      click       : (event)-> KD.utils.stopDOMEvent event
+      click       : (event)->
+        KD.mixpanel "Sales contact, click"
+        KD.utils.stopDOMEvent event
 
     @registerForm = new HomeRegisterForm
-      callback    : (formData)-> @doRegister formData
+      callback    : (formData)->
+        KD.mixpanel "Register button in / a, click"
+        @doRegister formData
 
     @registerFormBottom = new HomeRegisterForm
-      callback    : (formData)-> @doRegister formData
+      callback    : (formData)->
+        KD.mixpanel "Register button in / b, click"
+        @doRegister formData
 
     @githubLink   = new KDCustomHTMLView
       tagName     : "a"
       partial     : "Or you can sign up using <strong>GitHub</strong>"
       click       : ->
+        KD.mixpanel "Github auth button in /, click"
         KD.singletons.oauthController.openPopup "github"
 
     @markers = new MarkerController
@@ -91,6 +98,17 @@ class HomePage extends JView
         top     : 25
         left    : 25
 
+    new MixpanelScrollTracker
+      attribute: 'section',
+      event: '/ scroll to',
+      markers: [
+        { position: 362,  value: 'Teamwork screenshot'    }
+        { position: 627,  value: 'Feature explanation'    }
+        { position: 1495, value: 'Activity screenshot'    }
+        { position: 1995, value: 'Enterprise explanation' }
+        { position: 2270, value: 'Enterprise contact'     }
+        { position: 2864, value: 'Scrolled to bottom'     }
+      ]
 
   pistachio:->
 

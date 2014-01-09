@@ -41,7 +41,9 @@ class NFinderController extends KDViewController
     @noVMFoundWidget = new VMMountStateWidget
     @cleanup()
 
-    KD.getSingleton("vmController").on "StateChanged", @bound "checkVMState"
+    vmc = KD.getSingleton("vmController")
+    vmc.on "StateChanged", @bound "checkVMState"
+    vmc.on "VMDestroyed",  @bound "unmountVm"
 
   registerWatcher:(path, stopWatching)->
     @watchers[path] = stop: stopWatching

@@ -191,6 +191,7 @@ class ReferalBox extends JView
 
   showReferrerModal: (event)->
     KD.utils.stopDOMEvent event
+    KD.mixpanel "Referer modal, click"
 
     appManager = KD.getSingleton "appManager"
     appManager.tell "Account", "showReferrerModal",
