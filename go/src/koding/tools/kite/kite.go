@@ -118,7 +118,7 @@ func controlRouting(stream <-chan amqp.Delivery) {
 
 func (k *Kite) startRouting(stream <-chan amqp.Delivery, publishChannel *amqp.Channel) {
 	changeClientsGauge := lifecycle.CreateClientsGauge()
-	logger.RunGaugesLoop()
+	logger.RunGaugesLoop(log)
 
 	timeoutChannel := make(chan string)
 

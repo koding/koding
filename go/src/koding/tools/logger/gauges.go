@@ -1,7 +1,6 @@
 package logger
 
 import (
-	stdlog "log"
 	"strings"
 	"time"
 )
@@ -54,7 +53,7 @@ func CreateCounterGauge(name string, unit Unit, resetOnReport bool) func(int) {
 	}
 }
 
-func RunGaugesLoop() {
+func RunGaugesLoop(log Log) {
 	reportTrigger := make(chan int64)
 	go func() {
 		reportInterval := int64(interval) / 1000
@@ -68,6 +67,8 @@ func RunGaugesLoop() {
 	go func() {
 		for {
 			select {
+			case reportTime := <-reportTrigger:
+				LogGauges(reportTime, log)
 			case change := <-GaugeChanges:
 				change()
 			}
@@ -75,12 +76,12 @@ func RunGaugesLoop() {
 	}()
 }
 
-func LogGauges(reportTime int64) {
+func LogGauges(reportTime int64, log Log) {
 	indent := strings.Repeat(" ", len(ISO8601)+1)
-	stdlog.Printf("%s [gauges %s]\n", time.Now().Format(ISO8601), tags)
+	log.Info("%s [gauges %s]\n", time.Now().Format(ISO8601), tags)
 
 	for _, gauge := range gauges {
-		stdlog.Printf("%s%s: %v\n", indent, gauge.Name, gauge.input())
+		log.Info("%s%s: %v\n", indent, gauge.Name, gauge.input())
 	}
 
 	for _, gauge := range gauges {

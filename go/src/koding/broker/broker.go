@@ -32,7 +32,7 @@ func main() {
 	changeClientsGauge := lifecycle.CreateClientsGauge()
 	changeNewClientsGauge := logger.CreateCounterGauge("newClients", logger.NoUnit, true)
 	changeWebsocketClientsGauge := logger.CreateCounterGauge("websocketClients", logger.NoUnit, false)
-	logger.RunGaugesLoop()
+	logger.RunGaugesLoop(log)
 
 	publishConn := amqputil.CreateConnection("broker")
 	defer publishConn.Close()
