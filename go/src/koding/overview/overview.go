@@ -36,7 +36,7 @@ func NewServerInfo() *ServerInfo {
 
 var (
 	switchHost string
-	apiUrl     = "http://kontrol.in.koding.com:80" // default
+	apiUrl     = "http://kontrol0.sj.koding.com:80" // default
 	templates  = template.Must(template.ParseFiles(
 		"go/templates/overview/index.html",
 		"go/templates/overview/login.html",
