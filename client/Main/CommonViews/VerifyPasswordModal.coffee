@@ -10,9 +10,9 @@ class VerifyPasswordModal extends KDModalViewWithForms
       tabs                        :
         navigable                 : yes
         forms                     :
-          form                    :
+          verifyPasswordForm      :
             callback              : =>
-              callback @modalTabs.forms.form.inputs.password.getValue()
+              callback @modalTabs.forms.verifyPasswordForm.inputs.password.getValue()
               @destroy()
             buttons               :
               Submit              :
@@ -30,7 +30,6 @@ class VerifyPasswordModal extends KDModalViewWithForms
               password            :
                 name              : "password"
                 placeholder       : "current password"
-                testPath          : "account-email-pin"
                 type              : "password"
                 validate          :
                   rules           :
