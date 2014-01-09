@@ -1,9 +1,5 @@
 class NavigationLink extends KDListItemView
-
   constructor:(options = {}, data={})->
-
-    href = if ep = KD.config.entryPoint then ep.slug + data.path else data.path
-
     data.type        or= ''
     options.tagName  or= 'a'
     options.type     or= 'main-nav'
@@ -14,9 +10,16 @@ class NavigationLink extends KDListItemView
     options.draggable  = yes
       # axis             : 'xy'
       # containment      : 'parent' #KD.getSingleton('DockController').getView()
-    options.attributes = { href }
     options.cssClass   = KD.utils.curry @utils.slugify(data.title), options.cssClass
     options.cssClass   = KD.utils.curry 'no-anim', options.cssClass
+    options.attributes = {}
+
+    {entryPoint} = KD.config
+    if entryPoint
+      {slug} = entryPoint
+      options.attributes.href = "/#{slug}#{data.path}"
+    else
+      options.attributes.href = data.path
 
     super options, data
 

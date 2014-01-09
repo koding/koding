@@ -536,7 +536,7 @@ __utils.extend __utils,
 
       # embedly supports many error types. we could display those to the user
       when 'error'
-        log 'Embedding error ', data.error_type, data.error_message
+        log 'Embedding error '
         return 'error'
 
       else
