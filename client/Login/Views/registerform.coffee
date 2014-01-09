@@ -9,9 +9,6 @@ class RegisterInlineForm extends LoginViewInlineForm
         placeholder   : "email address"
         testPath      : "register-form-email"
         validate      : @getEmailValidator()
-        blur          : (input, event)=>
-          @utils.defer =>
-            @userAvatarFeedback input
 
     @avatar = new AvatarStaticView
       size        :
@@ -176,7 +173,6 @@ class RegisterInlineForm extends LoginViewInlineForm
                 input.setValidationResult "available", null
               else
                 input.setValidationResult "available", "Sorry, \"#{email}\" is already in use!"
-              @userAvatarFeedback input
         return
     messages    :
       required  : "Please enter your email address."
