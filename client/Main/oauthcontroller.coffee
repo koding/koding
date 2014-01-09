@@ -34,5 +34,5 @@ class OAuthController extends KDController
       mainController.emit "ForeignAuthCompleted", provider
 
   notify = (err)->
-    message = if err then "Error: #{err}" else "Something went wrong"
+    message = if err then "#{err}" else "Something went wrong"
     new KDNotificationView title : message
