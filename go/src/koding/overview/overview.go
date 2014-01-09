@@ -71,66 +71,29 @@ func main() {
 		fmt.Println(err)
 	}
 }
+}
 
 func viewHandler(w http.ResponseWriter, r *http.Request) {
-	session, err := store.Get(r, "userData")
-	if err != nil {
-		log.Println("Session could not be retrieved")
-	}
-
-	home := HomePage{}
 	var loginName string
-	operation := r.FormValue("operation")
-	fmt.Println("operation is", operation)
-	switch operation {
-	case "logout":
-		if session != nil {
-			session.Values["userName"] = nil
-			store.Save(r, w, session)
-		} else {
-			log.Println("Session could not be retrieved")
-		}
+	var err error
 
-		home.LoginMessage = "Logged out!"
-		renderTemplate(w, "login", home)
+	switch r.FormValue("operation") {
+	case "logout":
+		logoutHandler(w, r)
 		return
 	case "login":
-		loginName = r.PostFormValue("loginName")
-		loginPass := r.PostFormValue("loginPass")
-
-		if loginName == "" || loginPass == "" {
-			home.LoginMessage = "Please enter a username and password"
-			renderTemplate(w, "login", home)
-			return
-		}
-
-		// abort if password and username is not valid
-		err := authenticateUser(loginName, loginPass)
+		loginName, err = loginHandler(w, r)
 		if err != nil {
-			home.LoginMessage = "Username or password is invalid"
-			renderTemplate(w, "login", home)
+			renderTemplate(w, "login", HomePage{LoginMessage: err.Error()})
 			return
 		}
-
-		session.Values["userName"] = loginName
-		store.Save(r, w, session)
+		// continue because login was successfull
 	default:
-		var ok bool
-		loginN, ok := session.Values["userName"]
-		if !ok {
-			home.LoginMessage = "Username not available"
-			renderTemplate(w, "login", home)
+		loginName, err = checkSessionHandler(w, r)
+		if err != nil {
+			renderTemplate(w, "login", HomePage{LoginMessage: err.Error()})
 			return
 		}
-
-		if loginN == nil {
-			// no login operation or no session initialized
-			home.LoginMessage = "No login operation or no session initalized"
-			renderTemplate(w, "login", home)
-			return
-		}
-
-		loginName = loginN.(string)
 	}
 
 	build := r.FormValue("build")
@@ -179,6 +142,64 @@ func viewHandler(w http.ResponseWriter, r *http.Request) {
 	renderTemplate(w, "index", h)
 	return
 }
+
+
+func logoutHandler(w http.ResponseWriter, r *http.Request) {
+	session, err := store.Get(r, "userData")
+	if err != nil {
+		// reset username
+		session.Values["userName"] = nil
+		store.Save(r, w, session)
+	} else {
+		log.Println("Session could not be retrieved", err)
+	}
+
+	home := HomePage{LoginMessage: "Logged out!"}
+	renderTemplate(w, "login", home) // go back to login page
+}
+
+func loginHandler(w http.ResponseWriter, r *http.Request) (string, error) {
+	session, err := store.Get(r, "userData")
+	if err != nil {
+		log.Println("could not get session", err)
+		return "", errors.New("Internal error")
+	}
+
+	loginName := r.PostFormValue("loginName")
+	loginPass := r.PostFormValue("loginPass")
+
+	if loginName == "" || loginPass == "" {
+		return "", errors.New("Please enter a username and password")
+	}
+
+	// abort if password and username is not valid
+	err = authenticateUser(loginName, loginPass)
+	if err != nil {
+		return "", errors.New("Username or password is invalid")
+	}
+
+	session.Values["userName"] = loginName
+	store.Save(r, w, session)
+	return loginName, nil
+}
+
+func checkSessionHandler(w http.ResponseWriter, r *http.Request) (string, error) {
+	session, err := store.Get(r, "userData")
+	if err != nil {
+		log.Println("could not get session", err)
+		return "", errors.New("Internal error")
+	}
+
+	loginName, ok := session.Values["userName"]
+	if !ok {
+		return "", errors.New("Username not available")
+	}
+
+	if loginName == nil {
+		return "", errors.New("No login operation or no session initalized")
+	}
+
+	return loginName.(string), nil
 
 func switchOperation(loginName string, r *http.Request) string {
 	operation := r.FormValue("operation")
@@ -497,8 +518,8 @@ func authenticateUser(username, password string) error {
 	return nil
 }
 
-func renderTemplate(w http.ResponseWriter, tmpl string, home interface{}) {
-	err := templates.ExecuteTemplate(w, tmpl+".html", home)
+func renderTemplate(w http.ResponseWriter, tmpl string, data interface{}) {
+	err := templates.ExecuteTemplate(w, tmpl+".html", data)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
