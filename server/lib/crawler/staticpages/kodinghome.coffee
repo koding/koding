@@ -7,71 +7,83 @@ module.exports = ->
   getGraphMeta  = require './graphmeta'
 
   """
-
   <!DOCTYPE html>
-  <html lang="en"><head>
-    <title>Koding</title>
-    #{getGraphMeta()}
-    <style rel="stylesheet">
-      #koding-logo {
-        font-size: 18px;
-        color : transparent;
-        width: 120px;
-        height: 30px;
-        display: inline-block;
-        background-position: -235px -719px;
-        background-image: url("../images/_kd.sprites.png");
-        background-repeat: no-repeat;
-      }
-    </style>
+  <html lang="en">
+    <head>
+      <title>Koding</title>
+      #{getGraphMeta()}
+      <style rel="stylesheet">
+        #koding-logo {
+          font-size: 18px;
+          color : transparent;
+          width: 120px;
+          height: 30px;
+          display: inline-block;
+          background-position: -235px -719px;
+          background-image: url("../images/_kd.sprites.png");
+          background-repeat: no-repeat;
+        }
+      </style>
+    </head>
   <body itemscope itemtype="http://schema.org/WebPage">
-    <a id="koding-logo" href="http://koding.com">KODING<span></span></a>
-    <h1>Software development has finally evolved,<br> It's now social, in the browser and free!</h1>
+    <a id="koding-logo" href="http://koding.com">Coding environment from the future<span></span></a>
     <hr>
     <article>
-      <header><h2>Koding for you</h2></header>
+      <header>Koding</header>
+      <h1>
+        Coding environment from the future.
+      </h1>
       <p>
-        You have great ideas.  You want to meet brilliant minds, and bring those ideas to life.  You want to start simple.  Maybe soon you'll have a 10 person team, commanding 100s of servers.
-      </p>
-      <p>
-        You want to learn Python, Java, C, Go, Nodejs, HTML, CSS or Javascript or any other. Community will help you along the way.
+        Social development in your browser, sign up to join a great community and code on powerful VMs. Koding is an online IDE for Java, Javascript, CoffeeScript, Go, NodeJS and more!
       </p>
     </article>
     <hr>
     <article>
-      <header><h2>Koding for Developers</h2></header>
+      <header><h3><a href="https://koding.com/Apps">Appstore</a></h3></header>
       <p>
-        You will have an amazing virtual machine that is better than your laptop.  It's connected to the internet 100s of times faster.  You can share it with anyone you wish. Clone git repos.  Test and iterate on your code without breaking your setup.
-      </p>
-      <p>
-        It's free. Koding is your new localhost, in the cloud.
+        Speed up with user contributed apps, or create your own app, Koding has a great toolset to interact with VMs and to build UIs around.
       </p>
     </article>
     <hr>
     <article>
-      <header><h2>Koding for Education</h2></header>
+      <header><h3><a href="https://koding.com/Teamwork">Teamwork</a></h3></header>
       <p>
-        Create a group where your students enjoy the resources you provide to them. Make it private or invite-only.  Let them share, collaborate and submit their assignments together.  It doesn't matter if you have ten students, or ten thousand.  Scale from just one to hundreds of computers.
-      </p>
-      <p>
-        Koding is your new classroom.
+        Collaborative development environment for lecture groups, pair programming, or simply for sharing what you're doing with a total stranger.
       </p>
     </article>
     <hr>
     <article>
-      <header><h2>Koding for Business</h2></header>
+      <header><h3><a href="https://koding.com/Activity">Social</a></h3></header>
       <p>
-        When you hire someone, they can get up to speed in your development environment in 5 minutes—easily collaborating with others and contributing code.  All without sharing ssh keys or passwords.  Stop cc'ing your team; stop searching through old emails.
-      </p>
-      <p>
-        Koding is your new workspace.
+        Share with the community, learn from the experts or help those who have yet to start coding. Socialize with like minded people and have fun.
       </p>
     </article>
     <hr>
     <article>
-      <header><h2>Pricing</h2></header>
+      <header><h2>Groups, have your own Koding</h2></header>
       <p>
-        You'll be able to buy more resources for your personal account or for accounts in your organization.
+        Have all your development needs in a single private space.
       </p>
     </article>
+    <article>
+      <header><h3>White-label Koding</h3></header>
+      <p>
+        You can have your private Koding in the cloud, with your rules, your apps and your own members. Please contact us for further information.
+      </p>
+    </article>
+    <article>
+      <header><h3>Use it in your school</h3></header>
+      <p>
+        Koding in the classroom, prepare your files online, share them with the whole class instantly. Collaborate live or just make your students watch what you're doing.
+      </p>
+    </article>
+    <article>
+      <header><h3>Create project groups</h3></header>
+      <p>
+        Want to work on a project with your buddies and use the same resources and running instances, share a VM between your fellow developers.
+      </p>
+    </article>
+    <p>
+      Get your own Koding for your team. Contact us for details.
+    </p>
   """

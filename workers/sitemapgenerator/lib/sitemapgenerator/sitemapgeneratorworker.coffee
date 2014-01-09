@@ -10,27 +10,26 @@ module.exports = class SitemapGeneratorWorker extends EventEmitter
   constructor: (@bongo, @options = {}) ->
 
   generateSitemapString: (urls)->
-    # sitemap.xml beginning and ending parts
+    # sub-sitemaps beginning and ending parts
     sitemap = '<?xml version="1.0" encoding="UTF-8"?>
       <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
       xmlns:image="http://www.google.com/schemas/sitemap-image/1.1"
       xmlns:video="http://www.google.com/schemas/sitemap-video/1.1">'
     sitemapFooter = '</urlset>'
 
-    # while generating main sitemap, we don't need hashbang in the url.
     for url in urls
       if not /^guest-/.test url
+        # this URL SHOULD have hashbang, DON'T remove it.
         sitemap += "<url><loc>#{@options.uri.address}/#!/#{url}</loc></url>"
     sitemap += sitemapFooter
     return sitemap
 
   generateSitemapIndexString: (sitemapNames)->
-    # sitemapindex.xml beginning and ending parts
+    # sitemap.xml (sitemap index) beginning and ending parts
     sitemap = '<?xml version="1.0" encoding="UTF-8"?>
       <sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'
     sitemapFooter = '</sitemapindex>'
 
-    # while generating main sitemap, we don't need hashbang in the url.
     for sitemapURL in sitemapNames
       sitemap += "<sitemap><loc>#{@options.uri.address}/#{sitemapURL}</loc></sitemap>"
     sitemap += sitemapFooter
@@ -44,24 +43,23 @@ module.exports = class SitemapGeneratorWorker extends EventEmitter
     JSitemap.update {name}, $set : {content}, {upsert : yes}, (err)->
       return console.log err if err
 
-  generate:=>
+  saveSitemapIndex: (sitemapNames)=>
+    name = "sitemap.xml"
+    content = @generateSitemapIndexString sitemapNames
+    @saveSitemap name, content
 
+  generate:=>
     {JName, JSitemap} = @bongo.models
 
     feedLinksAdded = no
     activityFeedURL = "Activity"
     topicsFeedURL = "Topics"
 
-    generateSitemapIndex = (sitemapNames)=>
-      name = "sitemap.xml"
-      content = @generateSitemapIndexString sitemapNames
-      @saveSitemap name, content
-
     selector = {
       $or: [
         {
           'slugs.group': 'koding',
-          'slugs.constructorName': $ne : 'JNewStatusUpdate'
+          'slugs.constructorName': 'JNewStatusUpdate'
         }
         { 'slugs.usedAsPath':'username' }
       ]
@@ -92,7 +90,7 @@ module.exports = class SitemapGeneratorWorker extends EventEmitter
 
             queue.sitemapNames.push sitemapName
           queue.next()
-      queue.push => generateSitemapIndex(queue.sitemapNames)
+      queue.push => @saveSitemapIndex(queue.sitemapNames)
       daisy queue
 
 
