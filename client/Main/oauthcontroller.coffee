@@ -14,12 +14,14 @@ class OAuthController extends KDController
           name       = "Login"
           size       = "height=643,width=1143"
           newWindow  = window.open url, name, size
-          newWindow.onunload =->
-            mainController = KD.getSingleton "mainController"
-            mainController.emit "ForeignAuthPopupClosed", provider
 
           unless newWindow
             notify "Please disable your popup blocker and try again."
+            return
+
+          newWindow.onunload =->
+            mainController = KD.getSingleton "mainController"
+            mainController.emit "ForeignAuthPopupClosed", provider
 
           newWindow.focus()
 
