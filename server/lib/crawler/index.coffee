@@ -142,10 +142,8 @@ module.exports =
           else
             models.last.fetchOwnAccount (err, account)->
               {JNewStatusUpdate} = bongo.models
-              # TODO user's other activity types must be shown, such as blogposts, code snippets etc.
               fetchLastStatusUpdatesOfUser account, Relationship, JNewStatusUpdate, (error, statusUpdates) =>
                 return res.send 500, error_500()  if error
-                return res.send 404, error_404()  unless statusUpdates
                 content = profile {account, statusUpdates}
                 return res.send 200, content
 
