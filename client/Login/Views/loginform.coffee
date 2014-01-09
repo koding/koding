@@ -16,7 +16,7 @@ class LoginInlineForm extends LoginViewInlineForm
       inputOptions    :
         name          : "username"
         forceCase     : "lowercase"
-        placeholder   : "username"
+        placeholder   : "username or email"
         testPath      : "login-form-username"
         validate      :
           event       : 'blur'
