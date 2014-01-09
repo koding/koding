@@ -189,9 +189,7 @@ class TeamworkWorkspace extends CollaborativeWorkspace
           cssClass : "modal-clean-green"
           icon     : yes
           iconClass: "tw-import-icon"
-          callback : =>
-            modal.destroy()
-            @getDelegate().emit "ImportRequested", importUrlInput.getValue()
+          callback : => @handleImport importUrlInput, modal
         Close      :
           title    : "Cancel"
           cssClass : "modal-cancel"
@@ -200,10 +198,23 @@ class TeamworkWorkspace extends CollaborativeWorkspace
     modal.addSubView importUrlInput = new KDHitEnterInputView
       type         : "text tw-import-url"
       placeholder  : "Enter the URL of a git repository or zip archive."
-      callback     : =>
-        modal.destroy()
-        @getDelegate().emit "ImportRequested", importUrlInput.getValue()
+      callback     : => @handleImport importUrlInput, modal
 
     modal.addSubView new KDCustomHTMLView
       tagName      : "span"
       cssClass     : "input-icon"
+
+  handleImport: (input, modal) ->
+    value    = input.getValue()
+    urlRegex = /^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/
+
+    if urlRegex.test value
+      modal.destroy()
+      @getDelegate().emit "ImportRequested", value
+    else
+      new KDNotificationView
+        title     : "Please enter a valid url"
+        type      : "mini"
+        cssClass  : "error"
+        container : modal
+        duration  : 4000
