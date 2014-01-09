@@ -6,10 +6,13 @@ module.exports = class JComment extends jraphical.Reply
 
   {ObjectId,ObjectRef,dash,daisy,secure,signature} = require 'bongo'
   {Relationship}  = require 'jraphical'
+  Validators = require '../../group/validators'
+  {permit} = require '../../group/permissionset'
 
   @trait __dirname, '../../../traits/likeable'
   @trait __dirname, '../../../traits/notifying'
   @trait __dirname, '../../../traits/grouprelated'
+  @trait __dirname, '../../../traits/protected'
 
   @share()
 
@@ -47,6 +50,9 @@ module.exports = class JComment extends jraphical.Reply
         { name: 'updateInstance' }
         { name: 'RemovedFromCollection' }
       ]
+    permissions :
+      'edit comments'     : ['moderator']
+      'edit own comments' : ['moderator']
     schema         :
       isLowQuality : Boolean
       body         :
@@ -60,6 +66,8 @@ module.exports = class JComment extends jraphical.Reply
         required   : yes
       deletedAt    : Date
       deletedBy    : ObjectRef
+      editedAt     : Date
+      editedBy     : ObjectRef
       meta         : require 'bongo/bundles/meta'
     relationships  :
       likedBy      :
@@ -130,13 +138,19 @@ module.exports = class JComment extends jraphical.Reply
   unflagIsLowQuality:(callback)->
     @_flagIsLowQuality no, 1, callback
 
-  modify: secure (client, body, callback) ->
-    {delegate} = client.connection
-    return callback new KodingError "Access Denied"  unless delegate.getId().equals @originId
-    body = body?.trim()
-    if not body? or body is ""
-      return callback new KodingError "Comment cannot be empty"
+  modify: permit
+    advanced: [
+        { permission: 'edit own comments', validateWith: Validators.own }
+        { permission: 'edit comments' }
+      ]
+    success: (client, body, callback) ->
+      {delegate} = client.connection
 
-    return @update $set: {body}, callback unless body is @body
+      body = body?.trim()
+      if not body? or body is ""
+        return callback new KodingError "Comment cannot be empty"
 
-    callback null
+      editedBy = ObjectRef(delegate)
+      return @update $set: {body, editedAt: new Date, editedBy}, callback unless body is @body
+
+      callback null
