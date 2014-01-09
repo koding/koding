@@ -87,10 +87,11 @@ class GroupsMembershipPolicyDetailView extends KDView
       style     : "solid green"
       cssClass  : "edit-link #{if policyLanguageExists then 'hidden' else ''}"
       title     : 'Edit'
-      click     :(event)=>
-        event.preventDefault()
-        @showPolicyLanguageLink.hide()
-        @policyLanguageEditor.show()
+      callback  :=>
+        return new KDNotificationView title : "Currently disabled!"
+        # Following two lines makes enable editing policy language.
+        # @showPolicyLanguageLink.hide()
+        # @policyLanguageEditor.show()
 
     @policyLanguageEditor = new GroupsMembershipPolicyLanguageEditor
       cssClass      : unless policyLanguageExists then 'hidden'
