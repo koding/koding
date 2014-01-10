@@ -36,6 +36,7 @@ class UserPropertyList extends KDListView
       <p>Comments count : {span.number{ #(counts.comments)}}</p>
       <p>Following count : {span.number{ #(counts.following)}}</p>
       <p>Invitations count : {span.number{ #(counts.invitations)}}</p>
+      <p>Staff Likes count : {span.number{ #(counts.staffLikes)}}</p>
       <p>Referred User count : {span.number{ #(counts.referredUsers)}}</p>
       <p>Status updates count : {span.number{ #(counts.statusUpdates)}}</p>
       <p>Last Login : {span.number{ #(counts.lastLoginDate)}}</p>
