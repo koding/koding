@@ -649,12 +649,10 @@ span.collapsedtext
     bg                color, #f6f6f6
     rounded           0 0 5px 5px
 
-    .delete-link
-      display       block
-      top           27px
-      right         20px
+    .activity-settings-menu
+      top           22px
+      right         21px
       opacity       0
-      r-sprite        activity "delete-icon"
       transition    opacity .2s ease
       abs()
 
@@ -690,7 +688,7 @@ span.collapsedtext
     borderBox()
 
     &:hover
-      .delete-link
+      .activity-settings-menu
         opacity         .5
         &:hover
           opacity       1
@@ -728,6 +726,12 @@ span.collapsedtext
 
         a
           color       inherit
+
+      .edited
+        display       block
+        font-size     12px
+        color         #cacaca
+        margin        6px 0 0
 
       .like-view
       .reply-link
@@ -795,6 +799,7 @@ span.collapsedtext
 
 
   .item-add-comment-box
+  .edit-comment-box
     borderBox()
 
     .avatarview
@@ -831,6 +836,16 @@ span.collapsedtext
 
         &:focus
           line-height     24px
+
+    &.edit-comment-box
+      textarea
+        padding           9px
+        rounded           5px
+        margin            4px 0
+
+      .cancel-description
+        font-size         12px
+        color             #cacaca
 
 /* Embed Styles */
 .embed-image-view
@@ -1022,6 +1037,9 @@ body.profile
       z-index             599
       abs()
 
+    &.comment-menu
+      margin              94px 0 0 16px
+
     .kdlistitemview-contextitem
       color               #50595f
       font-size           12px
@@ -1096,10 +1114,13 @@ body.profile
     margin                4px 21px
   p
     code
-      padding             0px 3px
+      padding             2px 5px
       border              1px solid #DDD
       background-color    #F8F8F8
+      font-family         monoFamily
       border-radius       3px
+      vertical-align      top
+      font-size           12px
   pre
     code
       display             block

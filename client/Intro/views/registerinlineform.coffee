@@ -10,7 +10,6 @@ class HomeRegisterForm extends KDFormView
         placeholder   : 'your@email.com'
         testPath      : "register-form-email"
         validate      : @getEmailValidator()
-        # blur          : (input, event)=>
 
     @username = new HomeLoginInput
       inputOptions       :
@@ -33,7 +32,7 @@ class HomeRegisterForm extends KDFormView
             rangeLength  : "Username should be between 4 and 25 characters!"
           events         :
             required     : "blur"
-            rangeLength  : "keyup"
+            rangeLength  : "blur"
             regExp       : "keyup"
             usernameCheck: "keyup"
             finalCheck   : "blur"

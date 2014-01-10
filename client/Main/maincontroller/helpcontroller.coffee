@@ -6,6 +6,7 @@ class HelpController extends KDController
   KD.registerAppClass this, {name, version, background: yes}
 
   showHelp:(delegate)->
+    KD.mixpanel "Help modal show, success"
 
     @_modal?.destroy?()
     @_modal = new HelpModal {delegate}
@@ -32,11 +33,16 @@ class HelpPage extends KDSlidePageView
       if link.command
         options.click = (event)=>
           KD.utils.stopDOMEvent event
+          KD.mixpanel "Help modal link, click", title:link.title
+
           KD.singletons.appManager.require 'Terminal',(app)=>
             @getDelegate().emit 'InternalLinkClicked', link
             KD.utils.wait 500, =>
               KD.singletons.router.handleRoute link.url
               KD.singletons.appManager.tell 'Terminal', 'runCommand', link.command
+      else
+        options.click = (event)=>
+          KD.mixpanel "Help modal link, click", title:link.title
 
       @addSubView (new KDCustomHTMLView options), 'ul'
 

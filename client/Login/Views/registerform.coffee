@@ -9,9 +9,7 @@ class RegisterInlineForm extends LoginViewInlineForm
         placeholder   : "email address"
         testPath      : "register-form-email"
         validate      : @getEmailValidator()
-        blur          : (input, event)=>
-          @utils.defer =>
-            @userAvatarFeedback input
+        decorateValidation: no
 
     @avatar = new AvatarStaticView
       size        :
@@ -53,6 +51,7 @@ class RegisterInlineForm extends LoginViewInlineForm
             regExp       : "keyup"
             usernameCheck: "keyup"
             finalCheck   : "blur"
+        decorateValidation: no
 
     @button = new KDButtonView
       title         : "CREATE ACCOUNT"
@@ -176,7 +175,6 @@ class RegisterInlineForm extends LoginViewInlineForm
                 input.setValidationResult "available", null
               else
                 input.setValidationResult "available", "Sorry, \"#{email}\" is already in use!"
-              @userAvatarFeedback input
         return
     messages    :
       required  : "Please enter your email address."

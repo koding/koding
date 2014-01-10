@@ -7,9 +7,7 @@ import (
 	"koding/db/mongodb/modelhelper"
 	"koding/newkite/dnode"
 	"koding/newkite/kite"
-	"koding/newkite/kodingkey"
 	"koding/newkite/protocol"
-	"koding/newkite/token"
 	"koding/tools/config"
 	"net"
 	"strconv"
@@ -17,6 +15,8 @@ import (
 	"time"
 
 	"github.com/coreos/go-etcd/etcd"
+	"github.com/dgrijalva/jwt-go"
+	"github.com/nu7hatch/gouuid"
 	"github.com/op/go-logging"
 )
 
@@ -138,6 +138,7 @@ func (k *Kontrol) register(r *kite.RemoteKite, kodingkey string) (*protocol.Regi
 	// Register to etcd.
 	prev, err := setKey()
 	if err != nil {
+		log.Critical("etcd setKey error: %s", err)
 		return nil, errors.New("Internal error")
 	}
 
@@ -346,13 +347,18 @@ func (k *Kontrol) getKites(r *kite.Request, query protocol.KontrolQuery, watchCa
 		return nil, err
 	}
 
-	resp, err := k.etcd.Get(key, false, true)
+	resp, err := k.etcd.Get(
+		key,
+		false, // sorting flag, we don't care about sorting for now
+		true,  // recursive, return all child directories too
+	)
 	if err != nil {
 		if etcdErr, ok := err.(etcd.EtcdError); ok {
 			if etcdErr.ErrorCode == 100 { // Key Not Found
 				return make([]*protocol.KiteWithToken, 0), nil
 			}
 		}
+
 		log.Critical("etcd error: %s", err)
 		return nil, fmt.Errorf("Internal error")
 	}
@@ -406,35 +412,48 @@ func addTokenToKites(nodes etcd.Nodes, username string) ([]*protocol.KiteWithTok
 }
 
 func addTokenToKite(kite *protocol.Kite, username, kodingKey string) (*protocol.KiteWithToken, error) {
-	tkn, err := generateToken(kite, username, kodingKey)
+	tkn, err := generateToken(kite, username)
 	if err != nil {
 		return nil, err
 	}
 
 	return &protocol.KiteWithToken{
 		Kite:  *kite,
-		Token: *tkn,
+		Token: tkn,
 	}, nil
 }
 
-func generateToken(kite *protocol.Kite, username, kodingKey string) (*protocol.Token, error) {
-	key, err := kodingkey.FromString(kodingKey)
+// generateToken returns a JWT token string. Please see the URL for details:
+// http://tools.ietf.org/html/draft-ietf-oauth-json-web-token-13#section-4.1
+func generateToken(kite *protocol.Kite, username string) (string, error) {
+	tknID, err := uuid.NewV4()
 	if err != nil {
-		return nil, fmt.Errorf("Koding Key is invalid at Kite: %s", key)
+		return "", errors.New("Server error: Cannot generate a token")
 	}
 
+	// Identifies the expiration time after which the JWT MUST NOT be accepted
+	// for processing.
 	ttl := 1 * time.Hour
 
-	// username is from requester, key is from kite owner.
-	tkn, err := token.NewTokenWithDuration(username, kite.ID, ttl).EncryptString(key)
+	// Implementers MAY provide for some small leeway, usually no more than
+	// a few minutes, to account for clock skew.
+	leeway := 1 * time.Minute
+
+	tkn := jwt.New(jwt.GetSigningMethod("RS256"))
+	tkn.Claims["iss"] = "koding.com"                                 // Issuer
+	tkn.Claims["sub"] = username                                     // Subject
+	tkn.Claims["aud"] = kite.ID                                      // Audience
+	tkn.Claims["exp"] = time.Now().UTC().Add(ttl).Add(leeway).Unix() // Expiration Time
+	tkn.Claims["nbf"] = time.Now().UTC().Add(-leeway).Unix()         // Not Before
+	tkn.Claims["iat"] = time.Now().UTC().Unix()                      // Issued At
+	tkn.Claims["jti"] = tknID.String()                               // JWT ID
+
+	signed, err := tkn.SignedString(rsaKey)
 	if err != nil {
-		return nil, errors.New("Server error: Cannot generate a token")
+		return "", errors.New("Server error: Cannot generate a token")
 	}
 
-	return &protocol.Token{
-		Key: tkn,
-		TTL: int(ttl / time.Second),
-	}, nil
+	return signed, nil
 }
 
 // kiteFromEtcdKV returns a *protocol.Kite and Koding Key string from an etcd key.
@@ -535,7 +554,7 @@ func (k *Kontrol) handleGetToken(r *kite.Request) (interface{}, error) {
 		return nil, err
 	}
 
-	return generateToken(kite, r.Username, kiteVal.KodingKey)
+	return generateToken(kite, r.Username)
 }
 
 // canAccess makes some access control checks and returns true
