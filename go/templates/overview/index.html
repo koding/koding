@@ -85,7 +85,7 @@
             <div class="hero-unit">
                 <h2>{{ .Status.SwitchHost }} switcher</h2>
                     <p>
-                      Create a new build or switch an existing build version.<br>
+                      Create a new build. Write the git branch you want to build.<br>
                     </p>
 
                   <form method="POST">
@@ -96,6 +96,10 @@
                       <button type="submit" class="btn btn-success">New Build   <i class="icon-forward icon-white"></i></button>
                     </div>
                   </form>
+
+                    <p>
+                      Switch to an existing build version. Write the build number to switch.<br>
+                    </p>
 
                   <form method="POST">
                     <div class="input-append">

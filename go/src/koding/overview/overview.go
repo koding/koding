@@ -97,6 +97,11 @@ func viewHandler(w http.ResponseWriter, r *http.Request) {
 
 		switchMessage = switchOperation(loginName, r)
 	case "newbuild":
+		err := buildOperation(r)
+		if err != nil {
+			log.Println("could not build", err)
+		}
+
 		fmt.Println("newbuild is called")
 	default:
 		loginName, err = checkSessionHandler(w, r)
@@ -207,6 +212,32 @@ func checkSessionHandler(w http.ResponseWriter, r *http.Request) (string, error)
 	}
 
 	return loginName.(string), nil
+}
+
+func buildOperation(r *http.Request) error {
+	buildBranch := r.PostFormValue("newbuildBranch")
+	if buildBranch == "" {
+		return errors.New("buildBranch is empty")
+	}
+
+	jenkinsURL := "http://68.68.97.88:8080/job/Koding%20Deployment/buildWithParameters?token=runBuildKoding&BUILDBRANCH=" + buildBranch
+
+	resp, err := http.Post(jenkinsURL, "", nil)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode == 302 {
+		return nil
+	}
+
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	return fmt.Errorf("could not create a new build %s\n", string(body))
 }
 
 func switchOperation(loginName string, r *http.Request) string {
