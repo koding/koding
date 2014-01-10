@@ -11,6 +11,7 @@ authExchange    = "auth-#{version}"
 authAllExchange = "authAll-#{version}"
 
 embedlyApiKey   = '94991069fb354d4e8fdb825e52d4134a'
+
 environment     = "staging"
 
 module.exports =
