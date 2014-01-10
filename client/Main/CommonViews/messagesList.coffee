@@ -124,14 +124,14 @@ class NotificationListItem extends KDListItemView
 
     return  unless myid
 
-    group = (member for member in group when member.id isnt myid)
+    @group = (member for member in group when member.id isnt myid)
 
-    @participants = new options.linkGroupClass {group}
+    @participants = new options.linkGroupClass {@group}
     @avatar       = new options.avatarClass
       size     :
         width  : 40
         height : 40
-      origin   : group[0]
+      origin   : @group[0]
 
     if @snapshot.anchor.constructorName is "JGroup"
       @interactedGroups = new options.linkGroupClass
@@ -188,6 +188,7 @@ class NotificationListItem extends KDListItemView
           return callback err if err or not origin?
           originatorName = KD.utils.getFullnameFromAccount origin
           @activityPlot = if post.originId is KD.whoami()?.getId() then "your"
+          else if @group.length == 1 and @group[0].id is origin.getId() then "their"
           else "#{originatorName}'s"
           @activityPlot += " #{activityNameMap[constructorName]}"
           callback null
