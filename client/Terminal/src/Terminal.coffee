@@ -30,6 +30,7 @@ class WebTerm.Terminal extends KDObject
       keydown   : @bound 'keyDown'
       keypress  : @bound 'keyPress'
       keyup     : @bound 'keyUp'
+    @keyInput.appendToDomBody()
 
     containerView.on 'KDObjectWillBeDestroyed', @keyInput.bound 'destroy'
 
@@ -57,7 +58,6 @@ class WebTerm.Terminal extends KDObject
     @outputbox.attr "spellcheck", off
     @outputbox.css "cursor", "text"
     @outputbox.append @measurebox.getDomElement()
-    @outputbox.append @keyInput.getDomElement()
     @container.append @outputbox
 
     outputboxElement.addEventListener "keydown", (event) =>
