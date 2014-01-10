@@ -134,7 +134,7 @@ func handleCommand(command string, worker models.Worker) error {
 			worker.Name, // servicename
 			key,         // version (build number)
 			worker.Hostname+":"+port, // host
-			"FromKontrolDaemon",      // hostdata
+			worker.Environment,       // hostdata, pass environment
 			true,                     // enable keyData to be used with proxy immediately
 		)
 		if err != nil {
