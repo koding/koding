@@ -1,6 +1,6 @@
 if KD.config.logToExternal then do ->
   KD.getSingleton('mainController').on "AccountChanged", (account) ->
-    return  unless KD.isLoggedIn() or account or mixpanel
+    return  unless KD.isLoggedIn() and account and mixpanel
 
     account.fetchEmail (err, email)->
       console.log err  if err
@@ -23,9 +23,9 @@ if KD.config.logToExternal then do ->
 
 # Access control wrapper around mixpanel object.
 KD.mixpanel = (args...)->
-  return  unless mixpanel or not KD.config.logToExternal
+  return  unless mixpanel and KD.config.logToExternal
   mixpanel.track args...
 
 KD.mixpanel.alias = (args...)->
-  return  unless mixpanel or not KD.config.logToExternal
+  return  unless mixpanel and KD.config.logToExternal
   mixpanel.alias args...
