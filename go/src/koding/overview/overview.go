@@ -16,7 +16,6 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/fatih/set"
 	"github.com/gorilla/sessions"
 )
 
@@ -39,8 +38,6 @@ var (
 		"go/templates/overview/index.html",
 		"go/templates/overview/login.html",
 	))
-	admins = set.New("sinan", "devrim", "gokmen", "chris", "sent-hil",
-		"kiwigeraint", "cihangirsavas", "leventyalcin", "arslan", "ybrs")
 )
 
 const uptimeLayout = "03:04:00"
@@ -187,7 +184,7 @@ func loginHandler(w http.ResponseWriter, r *http.Request) (string, error) {
 	// abort if password and username is not valid
 	err = authenticateUser(loginName, loginPass)
 	if err != nil {
-		return "", errors.New("Username or password is invalid")
+		return "", err
 	}
 
 	session.Values["userName"] = loginName
@@ -544,16 +541,23 @@ func currentVersion() (string, error) {
 }
 
 func authenticateUser(username, password string) error {
-	if !admins.Has(username) {
-		return fmt.Errorf("Username %s is not authenticated\n", username)
-	}
-
-	_, err := modelhelper.CheckAndGetUser(username, password)
+	user, err := modelhelper.CheckAndGetUser(username, password)
 	if err != nil {
-		return fmt.Errorf("Username %s does not match or wrong password\n", username)
+		return errors.New("Wrong username or password")
 	}
 
-	return nil
+	account, err := modelhelper.GetAccount(user.Name)
+	if err != nil {
+		return fmt.Errorf("Could not retrieve account '%s'.", user.Name)
+	}
+
+	for _, flag := range account.GlobalFlags {
+		if flag == "super-admin" {
+			return nil
+		}
+	}
+
+	return errors.New("You don't have super-admin flag")
 }
 
 func renderTemplate(w http.ResponseWriter, tmpl string, data interface{}) {
