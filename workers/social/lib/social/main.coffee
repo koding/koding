@@ -1,5 +1,17 @@
 log = -> logger.info arguments...
 
+log4js  = require 'log4js'
+logger  = log4js.getLogger('social')
+
+log4js.configure {
+  appenders: [
+    { type: 'console' }
+    { type: 'file', filename: 'logs/social.log', category: 'social' }
+    { type: "log4js-ain2", tag : "social", facility: "local0", hostname: "localhost", port: 514 }
+  ],
+  replaceConsole: true
+}
+
 {argv} = require 'optimist'
 
 {exec} = require 'child_process'
@@ -130,7 +142,7 @@ koding.connect ->
     #     process.exit()
     #   ,10*1000
 
-console.log "Koding Social Worker #{process.pid} has started."
+console.info "Koding Social Worker #{process.pid} has started."
 
 # require './followfeed' # side effects
 

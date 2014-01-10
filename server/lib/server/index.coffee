@@ -17,6 +17,18 @@ webPort = argv.p ? webserver.port
 koding  = require './bongo'
 Crawler = require '../crawler'
 
+log4js  = require 'log4js'
+logger  = log4js.getLogger("webserver")
+
+log4js.configure {
+  appenders: [
+    { type: 'console' }
+    { type: 'file', filename: 'logs/webserver.log', category: 'webserver' }
+    { type: "log4js-ain2", tag : "webserver", facility: "local0", hostname: "localhost", port: 514 }
+  ],
+  replaceConsole: true
+}
+
 processMonitor = (require 'processes-monitor').start
   name                : "webServer on port #{webPort}"
   stats_id            : "webserver." + process.pid
