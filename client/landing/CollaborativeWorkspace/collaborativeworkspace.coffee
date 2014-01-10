@@ -284,7 +284,6 @@ class CollaborativeWorkspace extends Workspace
     return unless options.title
 
     options.title     = options.title.replace "$0", KD.nick()
-    activePanel       = @getActivePanel()
     options.container = @getActivePanel()
     options.type      = "mini"
     options.cssClass  = KD.utils.curry "tw-broadcast", options.cssClass
