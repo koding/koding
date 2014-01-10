@@ -8,18 +8,19 @@ class BadgeUsersList extends KDView
         type                 : "users"
         cssClass             : "user-list"
         itemClass            : BadgeUsersItem
-    # TODO : after design we may need pagination
+
     @userView = @filteredUsersController.getView()
     listView = @filteredUsersController.getListView()
     listView.on "RemoveBadgeUser", (account) =>
       @badge.removeBadgeFromUser account, (err, account)->
-        return err if err
+        return KD.showError err if err
         new KDNotificationView
           title     : "Badge removed"
           duration  : 2000
 
   loadUserList:->
-    KD.remote.api.JBadge.fetchBadgeUsers @badge.getId(), limit:10 ,(err, accounts)=>
+    # TODO : after style of scrollView fixed, we will need pagination
+    KD.remote.api.JBadge.fetchBadgeUsers @badge.getId(), limit:100 ,(err, accounts)=>
       @filteredUsersController.replaceAllItems accounts
 
   viewAppended:->
