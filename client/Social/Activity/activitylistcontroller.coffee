@@ -35,19 +35,21 @@ class ActivityListController extends KDListViewController
       # app
       bugTag = tag for tag in post.subject.tags when tag.slug is "bug"
 
-      unless bugTag
-        subject  = @prepareSubject post
-        instance = @addItem subject, 0
-
-        if @activityHeader?.liveUpdateToggle.getState().title isnt 'live' and\
-           not @isMine subject
-
-          instance.hide()
-          @hiddenItems.push instance
-          @activityHeader.newActivityArrived()
-          return
-      else
+      if bugTag
         KD.singletons.dock.addItem { title : "Bugs", path : "/Bugs", order : 60 }
+        return
+
+      subject  = @prepareSubject post
+      instance = @addItem subject, 0
+
+      if @activityHeader?.liveUpdateToggle.getState().title isnt 'live' and\
+         not @isMine subject
+
+        instance.hide()
+        @hiddenItems.push instance
+        @activityHeader.newActivityArrived()
+        return
+
 
 
   prepareSubject:(post)->

@@ -32,8 +32,6 @@ class NavigationLink extends KDListItemView
 
     appsHasIcon = Object.keys(KD.config.apps)
     appsHasIcon.push 'Editor'
-    # # TODO : we have to remove this as soon as we got the icon.
-    # appsHasIcon.splice appsHasIcon.indexOf "Bugs", 1
 
     @icon.hide()  if @name in appsHasIcon
 
