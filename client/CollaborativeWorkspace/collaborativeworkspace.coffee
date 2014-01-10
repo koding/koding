@@ -281,21 +281,13 @@ class CollaborativeWorkspace extends Workspace
 
     return unless options.title
 
-    options.title   = options.title.replace "$0", KD.nick()
-    activePanel     = @getActivePanel()
-    {broadcastItem} = activePanel
-    activePanel.setClass "broadcasting"
-    broadcastItem.updatePartial options.title
+    options.title     = options.title.replace "$0", KD.nick()
+    activePanel       = @getActivePanel()
+    options.container = @getActivePanel()
+    options.type      = "mini"
+    options.cssClass  = KD.utils.curry "tw-broadcast", options.cssClass
 
-    broadcastItem.unsetClass "success"
-    broadcastItem.unsetClass "error"
-    broadcastItem.setClass options.cssClass
-
-    broadcastItem.show()
-    KD.utils.wait options.duration, =>
-      broadcastItem.hide()
-      activePanel.unsetClass "broadcasting"
-      @emit "MessageBroadcasted"
+    new KDNotificationView options
 
   setPresenceHandlers: ->
     @userRef = @usersRef.child @nickname
