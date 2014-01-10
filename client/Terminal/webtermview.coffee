@@ -1,7 +1,7 @@
 class WebTermView extends KDView
 
   constructor: (options = {}, data) ->
-
+    options.bind = KD.utils.curry "paste", options.bind
     super options, data
 
     @initBackoff()
@@ -52,10 +52,10 @@ class WebTermView extends KDView
     window.addEventListener "focus", =>
       @terminal.setFocused @focused
 
-    document.addEventListener "paste", (event) =>
+    @on "paste", (event) =>
       KD.utils.stopDOMEvent event
       if @focused
-        @terminal?.server.input event.clipboardData.getData "text/plain"
+        @terminal?.server.input event.originalEvent.clipboardData.getData "text/plain"
       @setKeyView()
 
     @getElement().addEventListener "mousedown", (event) =>
@@ -231,9 +231,14 @@ class WebTermView extends KDView
 
   click: ->
     @setKeyView()
+    @restoreRange()
 
   dblClick: ->
+    @restoreRange()
+
+  restoreRange: ->
     range = @utils.getSelectionRange()
+    return  if range.startOffset is range.endOffset and range.startContainer is range.endContainer
     @utils.defer =>
       @utils.addRange range
 

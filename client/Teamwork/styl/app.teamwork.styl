@@ -45,6 +45,8 @@ app.teamwork.styl
     &.file-container
       .no-vm-found-widget
         display                 none
+    .file-container
+      kalc                      height, 100% \- 58px
   .application-tabview
     kalc                        height, 100% \- 58px
   .kdsplitview-resizer.vertical
@@ -607,6 +609,11 @@ app.teamwork.styl
     z-index                     2
   .tw-import-icon
     sprite                      "teamwork", "import"
+  .kdnotification.error
+    left                        404px !important
+    top                         10px !important
+    rounded                     4px
+    vendor                      box-shadow, none !important
 
 .tw-share-modal
   .activity-input-widget
@@ -655,7 +662,7 @@ app.teamwork.styl
     .kdmodal-content
       height                    64px
   .tw-share-warning
-    top                         31px
+    top                         47px
     position                    relative
   .tw-next-icon
     sprite                      "teamwork", "arrow"
@@ -690,22 +697,6 @@ app.teamwork.styl
       position                  relative
       top                       -16px
 
-.tw-share-modal
-  .tw-export-text
-    font-size                   12px
-    color                       #3c484c
-    top                         -25px
-    position                    relative
-    left                        60px
-  .tw-export-switch
-    a
-      top                       2px
-      position                  relative
-  .tw-export-settings
-    abs()
-    top                         90px
-    z-index                     2
-
 .tw-url-modal
   .kdmodal-buttons
     border-top                  none !important
@@ -730,6 +721,12 @@ app.teamwork.styl
   font-size                     18px
   margin-left                   -280px
   z-index                       1
+
+.client-finder-pane
+  .jtreeitem
+    &:hover
+      .chevron
+        display                 none
 
 @-moz-keyframes borderPulse
   15%

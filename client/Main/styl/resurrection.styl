@@ -95,6 +95,12 @@ button
   bg                color, logoBg
   fl()
 
+  &.staging
+    bg              color, #ff9200 // old koding orange
+
+  &.vagrant
+    bg              color, purple
+
   cite
     r-sprite        app 'nav-logo'
     margin          0 0 0 1px
@@ -192,6 +198,8 @@ button
       r-sprite      app nav-apps
     &.teamwork .icon
       r-sprite      app nav-teamwork
+    &.bugs .icon
+      r-sprite      app nav-bugs
     // &.develop .icon
     //   r-sprite      app nav-develop
     // &.finder .icon

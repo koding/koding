@@ -50,6 +50,7 @@ var (
 	typeRaw            = reflect.TypeOf(Raw{})
 	typeURL            = reflect.TypeOf(url.URL{})
 	typeTime           = reflect.TypeOf(time.Time{})
+	typeString         = reflect.TypeOf("")
 )
 
 const itoaCacheSize = 32
@@ -334,7 +335,7 @@ func (e *encoder) addElem(name string, v reflect.Value, minSize bool) {
 		if et.Kind() == reflect.Uint8 {
 			e.addElemName('\x05', name)
 			e.addBinary('\x00', v.Bytes())
-		} else if et == typeDocElem {
+		} else if et == typeDocElem || et == typeRawDocElem {
 			e.addElemName('\x03', name)
 			e.addDoc(v)
 		} else {
