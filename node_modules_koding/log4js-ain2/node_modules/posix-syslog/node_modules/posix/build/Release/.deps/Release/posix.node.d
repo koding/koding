@@ -1,0 +1,1 @@
+cmd_Release/posix.node := ./gyp-mac-tool flock ./Release/linker.lock c++ -shared -Wl,-search_paths_first -mmacosx-version-min=10.5 -arch x86_64 -L./Release -install_name @rpath/posix.node  -o Release/posix.node Release/obj.target/posix/src/posix.o -undefined dynamic_lookup
