@@ -62,20 +62,18 @@ class BugReportController extends AppController
       @emit 'ready'
 
   fetch:(selector, options ,callback)->
-    {JNewStatusUpdate, JTag} = KD.remote.api
-    JTag.one title : options.tag, category : options.tagType, (err, sysTag) =>
-      return err if err or not sysTag
-      selector  =
-        slug    : sysTag.slug
-        limit   : options.limit
-        to      : @lastTo
+    {JNewStatusUpdate} = KD.remote.api
+    selector   =
+      feedType : "bug"
+      limit    : options.limit
+      to       : @lastTo
 
-      JNewStatusUpdate.fetchTopicFeed selector, (err, activities = []) =>
-        @extractMessageTimeStamps activities
-        activities?.map (activity) ->
-          activity.on "TagsUpdated", (tags) ->
-            activity.tags = KD.remote.revive tags
-        callback err, activities
+    JNewStatusUpdate.fetchGroupActivity selector, (err, activities = []) =>
+      @extractMessageTimeStamps activities
+      activities?.map (activity) ->
+        activity.on "TagsUpdated", (tags) ->
+          activity.tags = KD.remote.revive tags
+      callback err, activities
 
   setLastTimestamps:(from, to)->
     if from

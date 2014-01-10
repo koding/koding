@@ -3,8 +3,8 @@ class BugStatusItemList extends StatusActivityItemView
   constructor:( options={}, data)->
     super options, data
 
-    @bugTags = ["fixed", "postponed", "not reproducible","duplicate","by design"]
-    state   = tag.title for tag in data.tags when tag.title in @bugTags
+    @bugTags = ["valid", "fixed", "not reproducible", "invalid", "in progress"]
+    state = tag.title for tag in data.tags when tag.title in @bugTags if data.tags
 
     @bugstatus     = new KDMultipleChoice
       cssClass     : "clean-gray editor-button control-button bug"
@@ -41,23 +41,32 @@ class BugStatusItemList extends StatusActivityItemView
 
       # if system tag exist, remove it then add new tag
       if tagToRemove
-        index = statusTags.indexOf tagToRemove
+        isSame = tagToRemove.title is tagToAdd.title
+        index  = statusTags.indexOf tagToRemove
         statusTags.splice index, 1
         # remove tag from body
         stringToRemove = @utils.tokenizeTag tagToRemove
         stringToAdd    = "|#:JTag:#{tagToAdd.getId()}|"
+        if isSame
+          stringToAdd = ""
+          @bugstatus.setValue "", no
+        else
+          stringToAdd = "|#:JTag:#{tagToAdd.getId()}|"
+
         body = body.replace stringToRemove, stringToAdd
+
       else
         stringToAdd = @utils.tokenizeTag tagToAdd
         body       += " #{stringToAdd}"
 
-      newTags.push id : tagToAdd.getId()
+      newTags.push id : tagToAdd.getId() unless isSame
       newTags.push id : tag.getId() for tag in statusTags
 
       options  =
         body   : body
         meta   :
           tags : newTags
+
       activity.modify options, (err)->
         log err if err
 
