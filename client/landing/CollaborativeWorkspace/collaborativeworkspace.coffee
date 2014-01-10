@@ -54,10 +54,10 @@ class CollaborativeWorkspace extends Workspace
           @createPanel()
           @workspaceRef.set "keys": @sessionData
 
-        @setPresenceHandlers()
+        if not isOldSession
+          @addToHistory { message: "$0 started the session", by: KD.nick() }
 
-        record = if isOldSession then "$0 joined the session" else "$0 started the session"
-        @addToHistory { message: record, by: KD.nick() }
+        @setPresenceHandlers()
         @watchRef.child(@nickname).set "everybody"
         @sessionKeysRef.child(@nickname).set @sessionKey
         @userRef.child("status").set "online"
@@ -66,7 +66,6 @@ class CollaborativeWorkspace extends Workspace
         @chatView?.show()
 
         @emit "WorkspaceSyncedWithRemote"
-        @emit "SomeoneJoinedToSession", KD.nick() if isOldSession
 
       if @amIHost() then cb()
       else
@@ -76,18 +75,21 @@ class CollaborativeWorkspace extends Workspace
     @usersRef.on "child_added", (snapshot) =>
       @fetchUsers()
 
-    @usersRef.on "child_changed", (snapshot) =>
-      name = snapshot.name()
-      if @amIHost() and snapshot.val()?.status is "offline"
-        message = "#{name} has left the session"
+      username = snapshot.name()
+      return if username is @nickname
 
-        @broadcastMessage
-          title     : message
-          cssClass  : "error"
-          sender    : name
-
-        @addToHistory { message, by: KD.nick() }
-        @emit "SomeoneHasLeftSession", name
+      @usersRef.child(username).child("status").on "value", (snapshot) =>
+        status = snapshot.val()
+        if status is "online"
+          @emit "SomeoneJoinedToTheSession", username
+          if @amIHost()
+            message = "#{username} joined the session"
+            @addToHistory { message, by: KD.nick() }
+        else if status is "offline"
+          @emit "SomeoneHasLeftTheSession", username
+          if @amIHost()
+            message = "#{username} has left the session"
+            @addToHistory { message, by: KD.nick() }
 
     @broadcastRef.on "value", (snapshot) =>
       message = snapshot.val()
