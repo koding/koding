@@ -87,56 +87,15 @@ class TeamworkExportModal extends KDModalView
       """
 
   handleExportDone: (shortenUrl) ->
-    KD.mixpanel "Teamwork export done, click"
-
     @destroy()
     fullUrl      = "#{window.location.origin}/Teamwork?importUrl=#{shortenUrl}"
     inputContent = """
       <div class="join">I exported my files here, click this link to see them.</div>
       <div class="url">#{fullUrl}</div>
     """
-    modal     = new TeamworkShareModal { inputContent, addShareWarning: no }
-    container = new KDCustomHTMLView
-      cssClass: "tw-export-settings"
+    shareWarning = """
+      <span class="warning"></span>
+      <p>By clicking share this link will be posted publicly on the activity feed. If you just want to send the link privately you can copy the above link.</p>
+    """
 
-    container.addSubView new KodingSwitch
-      cssClass      : "dark tw-export-switch"
-      defaultValue  : "off"
-      callback      : (state) ->
-        if state
-          modal.destroy()
-          KD.mixpanel "Teamwork export don't share, click"
-          new TeamworkExportedUrlModal {}, fullUrl
-
-    container.addSubView new KDCustomHTMLView
-      tagName       : "span"
-      partial       : "Don't share on Koding Activity, just give me a link"
-      cssClass      : "tw-export-text"
-
-    modal.addSubView container
-
-
-class TeamworkExportedUrlModal extends KDModalView
-
-  constructor: (options = {}, data) ->
-
-    options.content  = "<p>Here is the link that you can share with others</p>"
-    options.cssClass = "tw-url-modal tw-modal"
-    options.overlay  = yes
-    options.width    = 600
-    options.buttons  =
-      Done           :
-        cssClass     : "modal-clean-green"
-        title        : "Done"
-        callback     : =>
-          KD.mixpanel "Teamwork export don't share done, click"
-          @destroy()
-
-    super options, data
-
-    @addSubView new KDInputView
-      defaultValue : data
-      cssClass     : "url-input"
-      attributes   :
-        readonly   : "readonly"
-      click        : -> @selectAll()
+    new TeamworkShareModal { inputContent, shareWarning }
