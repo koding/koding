@@ -64,7 +64,6 @@ func GetService(writer http.ResponseWriter, req *http.Request) {
 
 type ServicePostMessage struct {
 	Host    string
-	Mode    string
 	Enabled string
 }
 
@@ -101,10 +100,6 @@ func CreateKey(writer http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	if msg.Mode == "" {
-		// no-op. can be roundrobin or random, if empty the first item in the list is used
-	}
-
 	var enabled bool
 	switch msg.Enabled {
 	case "true", "on", "yes":
@@ -115,13 +110,10 @@ func CreateKey(writer http.ResponseWriter, req *http.Request) {
 		enabled = false
 	}
 
-	persistence := "disabled"
 	hostdata := "FromKontrolAPI"
 
 	err = modelhelper.UpsertKey(
 		username,
-		persistence,
-		msg.Mode,
 		servicename,
 		key,
 		msg.Host,

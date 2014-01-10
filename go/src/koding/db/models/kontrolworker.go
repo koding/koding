@@ -1,8 +1,9 @@
 package models
 
 import (
-	"labix.org/v2/mgo/bson"
 	"time"
+
+	"labix.org/v2/mgo/bson"
 )
 
 type WorkerStatus int
@@ -25,17 +26,13 @@ type Worker struct {
 	Timestamp          time.Time     `bson:"timestamp" json:"timestamp"`
 	Pid                int           `bson:"pid" json:"pid"`
 	Status             WorkerStatus  `bson:"status" json:"status"`
-	Cmd                string        `bson:"cmd" json:"cmd"`
-	ProcessData        string        `bson:"processData" json:"processData"`
 	Number             int           `bson:"number" json:"number"`
 	Message            struct {
 		Command string `bson:"command" json:"command"`
 		Option  string `bson:"option" json:"option"`
 	} `bson:"message" json:"message"`
-	CompatibleWith map[string][]int `bson:"compatibleWith" json:"compatibleWith"`
-	Port           int              `bson:"port" json:"port"`
-	RabbitKey      string           `bson:"rabbitKey" json:"rabbitKey"`
-	Monitor        struct {
+	Port    int `bson:"port" json:"port"`
+	Monitor struct {
 		Mem    MemData `bson:"json" json:"mem"`
 		Uptime int     `bson:"uptime" json:"uptime"`
 	} `bson:"monitor" json:"monitor"`

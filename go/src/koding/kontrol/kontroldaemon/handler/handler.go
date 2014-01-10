@@ -127,19 +127,12 @@ func handleCommand(command string, worker models.Worker) error {
 			return fmt.Errorf("register to kontrol proxy not possible. port number is '0' for %s", worker.Name)
 		}
 
-		mode := "roundrobin"
-		if worker.Name == "broker" {
-			mode = "sticky"
-		}
-
 		port := strconv.Itoa(worker.Port)
 		key := strconv.Itoa(worker.Version)
 		err = modelhelper.UpsertKey(
 			"koding",    // username
-			"",          // persistence, empty means disabled
-			mode,        // loadbalancing mode
 			worker.Name, // servicename
-			key,         // version
+			key,         // version (build number)
 			worker.Hostname+":"+port, // host
 			"FromKontrolDaemon",      // hostdata
 			true,                     // enable keyData to be used with proxy immediately
