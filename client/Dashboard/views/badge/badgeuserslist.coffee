@@ -13,7 +13,7 @@ class BadgeUsersList extends KDView
     listView = @filteredUsersController.getListView()
     listView.on "RemoveBadgeUser", (account) =>
       @badge.removeBadgeFromUser account, (err, account)->
-        return err if err
+        return KD.showError err if err
         new KDNotificationView
           title     : "Badge removed"
           duration  : 2000

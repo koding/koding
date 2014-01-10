@@ -103,7 +103,7 @@ class BadgeRules extends JView
 
     @rule.setValue rules
     KD.remote.api.JAccount.someWithRelationship selector, {}, (err, users) =>
-      return err if err
+      return KD.showError err if err
       @usersInput.setValue (user._id for user in users)
       @filteredUsersController.removeAllItems()
       @totalUserCount.setPartial "Total users : #{users.length}"
