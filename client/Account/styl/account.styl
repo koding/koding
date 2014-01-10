@@ -346,6 +346,24 @@ button.kdbutton.solid.green.account-header-button
       &.invitation-sent .invitation-sent-overlay
         right             0
 
+
+.kdmodal.redeem-modal
+
+  .formline
+    overflow              visible
+    padding               15px 0 0
+    .input-wrapper
+      overflow            visible
+      margin-right        8px
+      fr()
+    label
+      margin              0
+
+
+// FIX THESE STYLES FOR
+// TOO MUCH REPITITION
+// for .settings-list-wrapper - SY
+
 .settings-list-wrapper
   height              auto
   min-height          50px
@@ -359,7 +377,7 @@ button.kdbutton.solid.green.account-header-button
       fl()
       span.title
         line-height   24px
-        font-size     11px !important
+        font-size     11px
 
   .no-item-found
     padding           10px 20px
@@ -375,6 +393,7 @@ button.kdbutton.solid.green.account-header-button
   &.koding-keys
   &.billing-history
   &.your-subscriptions
+  &.referral-system
     .no-item-found
       font-size       14px
       line-height     1.5
@@ -416,6 +435,26 @@ button.kdbutton.solid.green.account-header-button
           display         inline
           float           none
           margin-left     0
+
+  &.referral-system
+    header
+      bg                  color transparent
+      border              none
+      margin-bottom       10px
+      a.custom-link-view
+        margin-left       0
+        margin-right      20px
+        span.title
+          font-size       18px
+          line-height     40px
+    ul
+      li
+        a
+          color           #999
+          line-height     30px
+          float           none
+          margin-left     0
+          noTextDeco()
 
   &.koding-keys
     li
