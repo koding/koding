@@ -82,4 +82,4 @@ class NewBadgeForm extends KDView
         @badgeRules.emit "BadgeCreated"
         idArray = formData.ids.split ","
         badge.assignBadgeBatch idArray, (err) ->
-          return err if err
+          return KD.showError err if err
