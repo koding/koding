@@ -175,9 +175,6 @@ class ActivityInputWidget extends KDView
     @input.addSubView @previewIcon
     @hide()  unless KD.isLoggedIn()
 
-    window.asd = @
-
-
 class ActivityEditWidget extends ActivityInputWidget
   constructor : (options = {}, data) ->
     options.cssClass = KD.utils.curry "edit-widget", options.cssClass
