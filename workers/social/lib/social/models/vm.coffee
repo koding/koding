@@ -629,7 +629,7 @@ module.exports = class JVM extends Module
 
       JVM.ensureDomainSettings \
         {account, vm, type, nickname, groupSlug}
-      # JVM.createDomains account, hostnameAliases, hostnameAlias
+      JVM.createDomains account, hostnameAliases, hostnameAlias
       target.addVm vm, handleError
 
   wrapGroup = (group)-> [ { id: group.getId() } ]
