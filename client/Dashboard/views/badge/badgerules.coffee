@@ -108,7 +108,7 @@ class BadgeRules extends JView
   updateRulesList:->
     ruleArray = @badge.rule.split "+"
     for rule in ruleArray
-      decoded  = Encoder.htmlDecode rule
+      decoded   = Encoder.htmlDecode rule
       actionPos = decoded.search /[\<\>\=]/
       action    = decoded.substr actionPos, 1
       property  = decoded.substr 0, actionPos
@@ -169,6 +169,7 @@ class BadgeRuleItem extends KDListItemView
         { title:"Last Login"        , value:"lastLoginDate"    }
         { title:"Status Updates"    , value:"statusUpdates"    }
         { title:"Twitter Followers" , value:"twitterFollowers" }
+        { title:"Staff Likes"       , value:"staffLikes"       }
       ]
       defaultValue    : data.property or "followers"
       disabled        : !!data.propVal

@@ -298,6 +298,9 @@ module.exports = class JAccount extends jraphical.Module
         twitterFollowers    :
           type              : Number
           default           : 0
+        staffLikes          :
+          type              : Number
+          default           : 0
 
       environmentIsCreated  : Boolean
       type                  :
