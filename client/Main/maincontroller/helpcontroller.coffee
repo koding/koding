@@ -124,7 +124,7 @@ class HelpModal extends AnimatedModalView
       attributes : href : '#'
       partial    : "new to<br/>programming"
       click      : (event)->
-        KD.mixpanel "Help modal subsection, click" title:"new"
+        KD.mixpanel "Help modal subsection, click", title:"new"
         KD.utils.stopDOMEvent event
         buttonContainer.emit 'deselectAll'
         @setClass 'active'
