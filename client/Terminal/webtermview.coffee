@@ -231,9 +231,14 @@ class WebTermView extends KDView
 
   click: ->
     @setKeyView()
+    @restoreRange()
 
   dblClick: ->
+    @restoreRange()
+
+  restoreRange: ->
     range = @utils.getSelectionRange()
+    return  if range.startOffset is range.endOffset and range.startContainer is range.endContainer
     @utils.defer =>
       @utils.addRange range
 

@@ -56,6 +56,22 @@ resurrection.activity.styl
         &[disabled=disabled]
           bg            color, #DDD !important
 
+      &.bug-tagged
+        overflow          visible
+
+        &:after
+          content         "Since you have posted your status with the bug tag, it will be posted directly to our bug tracker application.This application is now visible on your dock."
+          display         block
+          size            100%, 42px
+          line-height     20px
+          color           #fff
+          font-weight     400
+          text-align      center
+          font-size       12px
+          rounded         0 0 3px 3px
+          bg              color, #1aaf5d
+          padding         5px 0 5px 0
+
     .filter-warning
       background        rgba(37, 46, 48, 1.0)
       width             calc( 100% \- 10px)

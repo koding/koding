@@ -32,6 +32,7 @@ class NavigationLink extends KDListItemView
 
     appsHasIcon = Object.keys(KD.config.apps)
     appsHasIcon.push 'Editor'
+
     @icon.hide()  if @name in appsHasIcon
 
     # needs better styling and ux - SY

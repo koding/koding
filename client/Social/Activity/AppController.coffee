@@ -263,6 +263,7 @@ class ActivityAppController extends AppController
 
   fetchPublicActivities:(options = {})->
     options.to = @lastTo
+    options.feedType = "$ne" : "bug"
     {JNewStatusUpdate} = KD.remote.api
     # todo - implement prefetched feed
     eventSuffix = "#{@getFeedFilter()}_#{@getActivityFilter()}"

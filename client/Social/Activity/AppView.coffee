@@ -150,16 +150,6 @@ class ReferalBox extends JView
 
     super options, data
 
-    @close = new KDCustomHTMLView
-      tagName    : 'a'
-      attributes :
-        href     : '#'
-      click      : (event)=>
-        KD.utils.stopDOMEvent event
-        @destroy()
-      cssClass   : 'hide'
-      partial    : 'hide this'
-
     @modalLink = new KDCustomHTMLView
       tagName    : 'a'
       attributes :
@@ -171,6 +161,7 @@ class ReferalBox extends JView
       title       : '0 GB / 16 GB'
       determinate : yes
 
+  click : -> @showReferrerModal()
 
 
   viewAppended:->
@@ -203,7 +194,6 @@ class ReferalBox extends JView
 
   pistachio:->
     """
-    {{> @close}}
     <figure></figure>
     <p>
     Invite your friends and get up to <strong>16GB</strong> for free! {{> @modalLink}}

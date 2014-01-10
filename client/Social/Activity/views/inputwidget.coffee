@@ -11,6 +11,13 @@ class ActivityInputWidget extends KDView
     @input    = new ActivityInputView defaultValue: options.defaultValue
     @input.on "Escape", @bound "reset"
 
+    @input.on "TokenAdded", (type, token) =>
+      if token.slug is "bug" and type is "tag"
+        @setClass "bug-tagged"
+
+    @on "ActivitySubmitted", =>
+      @unsetClass "bug-tagged"
+
     @embedBox = new EmbedBoxWidget delegate: @input, data
 
     @submit    = new KDButtonView
@@ -33,8 +40,10 @@ class ActivityInputWidget extends KDView
     tags           = []
     suggestedTags  = []
     createdTags    = {}
+    feedType       = ""
 
     for token in @input.getTokens()
+      feedType     = "bug" if token.data?.title is "bug"
       {data, type} = token
       if type is "tag"
         if data instanceof JTag
@@ -58,9 +67,10 @@ class ActivityInputWidget extends KDView
     , =>
         body = @encodeTagSuggestions value, createdTags
         data =
-          group : KD.getSingleton('groupsController').getGroupSlug()
-          body  : body
-          meta  : {tags}
+          group    : KD.getSingleton('groupsController').getGroupSlug()
+          body     : body
+          meta     : {tags}
+          feedType : feedType
 
         data.link_url   = @embedBox.url or ""
         data.link_embed = @embedBox.getDataForSubmit() or {}
