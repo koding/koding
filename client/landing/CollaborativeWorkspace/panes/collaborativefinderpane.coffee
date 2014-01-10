@@ -118,10 +118,9 @@ class CollaborativeFinderTreeController extends NFinderTreeController
   selectNode: (node) ->
     super
 
-    return if node.getData() instanceof FSVm
+    if node.getData().type is "folder"
+      node.exporter = new KDCustomHTMLView
+        cssClass    : "tw-export"
+        click       : => @emit "ExportRequested", node
 
-    node.exporter = new KDCustomHTMLView
-      cssClass    : "tw-export"
-      click       : => @emit "ExportRequested", node
-
-    node.addSubView node.exporter
+      node.addSubView node.exporter
