@@ -257,6 +257,8 @@ module.exports = class JAccount extends jraphical.Module
           (signature String, Function)
         updateCountAndCheckBadge:
           (signature Object, Function)
+        likeUser:
+          (signature String, Function)
     schema                  :
       skillTags             : [String]
       locationTags          : [String]
@@ -945,6 +947,34 @@ module.exports = class JAccount extends jraphical.Module
       @update {$set: globalFlags: flags}, callback
     else
       callback new KodingError 'Access denied'
+
+  likeUser: permit 'assign badge',
+    success: (client, userId, callback)->
+      JAccount.one { '_id' : userId }, (err, account)=>
+        return new KodingError 'Account not found' if err or not account
+        Relationship.count
+          as         : 'like'
+          targetId   : account.getId()
+          sourceId   : @getId()
+        , (err, count)=>
+          return new KodingError err if err
+          unless count > 0
+            rel = new Relationship
+              targetId    : account.getId()
+              targetName  : 'JAccount'
+              sourceId    : @getId()
+              sourceName  : 'JAccount'
+              as          : 'like'
+            rel.save (err)=>
+              return new KodingError err if err
+              Relationship.count
+                as         : 'like'
+                targetName : 'JAccount'
+                sourceName : 'JAccount'
+                targetId   : @getId()
+              , (err, count)=>
+                @update ($set: 'counts.staffLikes': count), (err)->
+                  return new KodingError err if err
 
   fetchUserByAccountIdOrNickname:(accountIdOrNickname, callback)->
 
