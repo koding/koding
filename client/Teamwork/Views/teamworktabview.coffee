@@ -102,7 +102,7 @@ class TeamworkTabView extends CollaborativePane
             if pane.terminalView
               {terminal} = pane.terminalView.webterm
               terminal.scrollToBottom()
-              terminal.container.trigger 'click'
+              terminal.setFocused yes  if document.activeElement is document.body
             else if pane.editor
               pane.editor.codeMirrorEditor.refresh()
 
