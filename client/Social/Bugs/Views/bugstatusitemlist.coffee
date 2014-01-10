@@ -4,7 +4,7 @@ class BugStatusItemList extends StatusActivityItemView
     super options, data
 
     @bugTags = ["valid", "fixed", "not reproducible", "invalid", "in progress"]
-    state    = tag.title for tag in data.tags when tag.title in @bugTags
+    state = tag.title for tag in data.tags when tag.title in @bugTags if data.tags
 
     @bugstatus     = new KDMultipleChoice
       cssClass     : "clean-gray editor-button control-button bug"
