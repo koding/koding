@@ -56,7 +56,7 @@ class TeamworkWorkspace extends CollaborativeWorkspace
         @fetchUsers()
 
   startNewSession: (options) ->
-    KD.mixpanel "User Started Teamwork session"
+    KD.mixpanel "Start Teamwork session, click"
     @getDelegate().emit "NewSessionRequested", options
 
   joinSession: (newOptions) ->
