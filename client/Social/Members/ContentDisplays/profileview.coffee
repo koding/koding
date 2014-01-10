@@ -497,8 +497,17 @@ class ProfileView extends JView
 
     # for admins and moderators, list user badge property counts
     @badgeItemsList = new KDCustomHTMLView
+    @thankButton    = new KDCustomHTMLView
     if KD.hasAccess "assign badge"
       @badgeItemsList = new UserPropertyList {}, counts : @memberData.counts
+      # show "Thank You" button to admins
+      @thankButton = new KDButtonView
+        title      : "Thank"
+        type       : "submit"
+        callback   : =>
+          KD.whoami().likeUser @memberData._id, (err)=>
+            log err if err
+
 
 
   viewAppended:->
@@ -655,4 +664,5 @@ class ProfileView extends JView
         {{> @userBadgesView}}
       </div>
       {{> @badgeItemsList}}
+      {{> @thankButton}}
     """
