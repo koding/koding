@@ -26,6 +26,7 @@ type Worker struct {
 	Timestamp          time.Time     `bson:"timestamp" json:"timestamp"`
 	Pid                int           `bson:"pid" json:"pid"`
 	Status             WorkerStatus  `bson:"status" json:"status"`
+	Environment        string        `bson:"environment" json:"environment"`
 	Number             int           `bson:"number" json:"number"`
 	Message            struct {
 		Command string `bson:"command" json:"command"`
