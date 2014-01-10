@@ -286,6 +286,17 @@ func switchVersion(newVersion string) error {
 		return err
 	}
 
+	// reset cache
+	resetURL := "http://koding-proxy0.sj.koding.com/_resetcache_/" + switchHost
+	resp, err := http.Get(resetURL)
+	if err != nil {
+		log.Println("COULD NOT SWITCH")
+	}
+
+	if resp.StatusCode == 200 {
+		log.Println("Cache is cleaned for", switchHost)
+	}
+
 	return nil
 }
 
