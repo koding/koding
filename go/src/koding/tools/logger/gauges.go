@@ -78,10 +78,10 @@ func RunGaugesLoop(log Log) {
 
 func LogGauges(reportTime int64, log Log) {
 	indent := strings.Repeat(" ", len(ISO8601)+1)
-	log.Info("%s [gauges %s]\n", time.Now().Format(ISO8601), tags)
+	log.Info("%s [gauges %s]", time.Now().Format(ISO8601), tags)
 
 	for _, gauge := range gauges {
-		log.Info("%s%s: %v\n", indent, gauge.Name, gauge.input())
+		log.Info("%s%s: %v", indent, gauge.Name, gauge.input())
 	}
 
 	for _, gauge := range gauges {

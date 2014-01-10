@@ -97,7 +97,7 @@ func startConsuming() {
 		}
 		data := message.Payload[0]
 
-		log.Debug(message.Event, data)
+		log.Debug("%v %v", message.Event, data)
 
 		if message.Event == "RelationshipSaved" {
 			createNode(data)

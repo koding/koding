@@ -49,14 +49,14 @@ func main() {
 		session.Tag = socketId
 		clientVersion := 0
 
-		log.Debug("Client connected: %v" + socketId)
+		log.Debug("Client connected: %v", socketId)
 		changeClientsGauge(1)
 		changeNewClientsGauge(1)
 		if session.IsWebsocket {
 			changeWebsocketClientsGauge(1)
 		}
 		defer func() {
-			log.Debug("Client disconnected: %v" + socketId)
+			log.Debug("Client disconnected: %v", socketId)
 			changeClientsGauge(-1)
 			if session.IsWebsocket {
 				changeWebsocketClientsGauge(-1)
@@ -269,7 +269,7 @@ func main() {
 		for {
 			err := server.Serve(listener)
 			if err != nil {
-				log.Warning("Server error: %v" + err.Error())
+				log.Warning("Server error: %v", err.Error())
 				if time.Now().Sub(lastErrorTime) < time.Second {
 					log.Fatal(nil)
 				}

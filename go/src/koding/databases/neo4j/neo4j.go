@@ -111,7 +111,7 @@ func CreateRelationship(relation, source, target string) map[string]interface{} 
 
 	relNode, err := jsonDecode(relRes)
 	if err != nil {
-		fmt.Println("Problem with relation response", relRes)
+		log.Error("Problem with relation response %v", relRes)
 		sTimer.Failed()
 
 		return relNode
@@ -133,7 +133,7 @@ func CreateRelationshipWithData(relation, source, target, data string) map[strin
 	relNode, err := jsonDecode(relRes)
 	if err != nil {
 		sTimer.Failed()
-		fmt.Println("Problem with relation response", relRes)
+		log.Error("Problem with relation response %v", relRes)
 
 		return relNode
 	}
@@ -156,7 +156,7 @@ func CreateUniqueNode(id string, name string) map[string]interface{} {
 
 	node, err := jsonDecode(response)
 	if err != nil {
-		fmt.Println("Problem with unique node creation response", response)
+		log.Error("Problem with unique node creation response %v", response)
 		sTimer.Failed()
 	} else {
 		sTimer.Success()
@@ -195,7 +195,7 @@ func DeleteRelationship(sourceId, targetId, relationship string) bool {
 	//so use json array decoder
 	relationships, err := jsonArrayDecode(response)
 	if err != nil {
-		fmt.Println("Problem with unique node creation response", response)
+		log.Error("Problem with unique node creation response %v", response)
 		return false
 	}
 
@@ -221,7 +221,7 @@ func DeleteRelationship(sourceId, targetId, relationship string) bool {
 
 	if !foundNode {
 		sTimer.Failed()
-		fmt.Println("not found!", relationships[0]["self"])
+		log.Error("not found! %v", relationships[0]["self"])
 	} else {
 		sTimer.Success()
 	}
@@ -239,7 +239,7 @@ func GetNode(id string) []map[string]interface{} {
 
 	nodeData, err := jsonArrayDecode(response)
 	if err != nil {
-		fmt.Println("Problem with response", response)
+		log.Error("Problem with response %v", response)
 	}
 
 	return nodeData
@@ -267,7 +267,7 @@ func UpdateNode(id, propertiesJSON string) map[string]interface{} {
 	if response != "" {
 		res, err := jsonDecode(response)
 		if err != nil {
-			fmt.Println("Problem with response", err, res)
+			log.Error("Problem with response", err, res)
 		}
 	}
 
@@ -304,7 +304,7 @@ func DeleteNode(id string) bool {
 	err := json.Unmarshal([]byte(response), &result)
 	if err != nil {
 		sTimer.Failed()
-		fmt.Println("Deleting node Marshalling error:", err)
+		log.Error("Deleting node Marshalling error:", err)
 		return false
 	}
 
@@ -321,7 +321,7 @@ func CreateUniqueIndex(name string) {
 
 	bd := sendRequest("POST", url, `{"name":"`+name+`"}`, 1)
 
-	fmt.Println("Created unique index for data", bd)
+	log.Error("Created unique index for data", bd)
 }
 
 // This is a custom json string generator as http request body to neo4j
@@ -338,7 +338,7 @@ func jsonArrayDecode(data string) ([]map[string]interface{}, error) {
 	err := json.Unmarshal([]byte(data), &source)
 	if err != nil {
 		sTimer.Failed()
-		fmt.Println("Marshalling error:", err)
+		log.Error("Marshalling error:", err)
 		return nil, err
 	}
 
@@ -353,7 +353,7 @@ func jsonDecode(data string) (map[string]interface{}, error) {
 
 	err := json.Unmarshal([]byte(data), &source)
 	if err != nil {
-		fmt.Println("Marshalling error:", err)
+		log.Error("Marshalling error:", err)
 		return nil, err
 	}
 
