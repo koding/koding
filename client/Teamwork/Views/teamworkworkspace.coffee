@@ -184,11 +184,15 @@ class TeamworkWorkspace extends CollaborativeWorkspace
           cssClass : "modal-clean-green"
           icon     : yes
           iconClass: "tw-import-icon"
-          callback : => @handleImport importUrlInput, modal
+          callback : =>
+            KD.mixpanel "Teamwork import, click"
+            @handleImport importUrlInput, modal
         Close      :
           title    : "Cancel"
           cssClass : "modal-cancel"
-          callback : -> modal.destroy()
+          callback : ->
+            KD.mixpanel "Teamwork import, cancel"
+            modal.destroy()
 
     modal.addSubView importUrlInput = new KDHitEnterInputView
       type         : "text tw-import-url"
