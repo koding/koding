@@ -176,4 +176,3 @@ class FSFile extends FSItem
       if err then warn err
       @emit "fs.save.finished", err, res
       callback? err,res
-      KD.mixpanel "Save file, success"  unless err

@@ -26,7 +26,9 @@ class TeamworkShareModal extends KDModalView
 
       @addSubView inputWidget
 
-      inputWidget.on "ActivitySubmitted", => @destroy()
+      inputWidget.on "ActivitySubmitted", =>
+        KD.mixpanel "Teamwork share post, click"
+        @destroy()
 
       shareWarning = @getOptions().shareWarning or """
         <span class="warning"></span>

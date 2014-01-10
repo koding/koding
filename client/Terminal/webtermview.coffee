@@ -65,6 +65,9 @@ class WebTermView extends KDView
     @forwardEvent @terminal, 'command'
 
     vmName = @getOption 'vmName'
+
+    KD.mixpanel "Open Webterm, click", {vmName}
+
     vmController = KD.getSingleton 'vmController'
     vmController.info vmName, KD.utils.getTimedOutCallback (err, vm, info)=>
       if err
