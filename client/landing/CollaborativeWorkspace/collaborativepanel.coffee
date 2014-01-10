@@ -60,10 +60,6 @@ class CollaborativePanel extends Panel
     @header.addSubView container = new KDCustomHTMLView
       cssClass    : "workspace-broadcast-container"
 
-    container.addSubView @broadcastItem = new KDCustomHTMLView
-      tagName     : "span"
-      cssClass    : "workspace-broadcast pulsing hidden"
-
   EditorPaneClass       : CollaborativeEditorPane
   TerminalPaneClass     : SharableTerminalPane
   FinderPaneClass       : CollaborativeFinderPane
