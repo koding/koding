@@ -74,6 +74,7 @@ func main() {
 
 func viewHandler(w http.ResponseWriter, r *http.Request) {
 	var loginName string
+	var switchMessage string
 	var err error
 
 	switch r.FormValue("operation") {
@@ -87,6 +88,16 @@ func viewHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		// continue because login was successfull
+	case "switchVersion":
+		loginName, err = checkSessionHandler(w, r)
+		if err != nil {
+			renderTemplate(w, "login", HomePage{LoginMessage: err.Error()})
+			return
+		}
+
+		switchMessage = switchOperation(loginName, r)
+	case "newbuild":
+		fmt.Println("newbuild is called")
 	default:
 		loginName, err = checkSessionHandler(w, r)
 		if err != nil {
@@ -100,8 +111,6 @@ func viewHandler(w http.ResponseWriter, r *http.Request) {
 		version, _ := currentVersion()
 		build = version
 	}
-
-	switchMessage := switchOperation(loginName, r)
 
 	workers, status, err := workerInfo(build)
 	if err != nil {
@@ -201,20 +210,8 @@ func checkSessionHandler(w http.ResponseWriter, r *http.Request) (string, error)
 }
 
 func switchOperation(loginName string, r *http.Request) string {
-	operation := r.FormValue("operation")
-	if operation != "switchVersion" {
-		return ""
-	}
-
 	version := r.PostFormValue("switchVersion")
-	loginPass := r.PostFormValue("loginPass")
-
-	err := authenticateUser(loginName, loginPass)
-	if err != nil {
-		return "Password is wrong"
-	}
-
-	err = switchVersion(version)
+	err := switchVersion(version)
 	if err != nil {
 		log.Println("error switching", err, version)
 		return fmt.Sprintf("Error switching: %s version %s", err, version)
