@@ -5,7 +5,6 @@ import (
 	"crypto/tls"
 	"encoding/base64"
 	"encoding/json"
-	"fmt"
 	"github.com/streadway/amqp"
 	"koding/kontrol/kontrolhelper"
 	"koding/tools/amqputil"
@@ -50,14 +49,14 @@ func main() {
 		session.Tag = socketId
 		clientVersion := 0
 
-		log.Debug("Client connected: " + socketId)
+		log.Debug("Client connected: %v" + socketId)
 		changeClientsGauge(1)
 		changeNewClientsGauge(1)
 		if session.IsWebsocket {
 			changeWebsocketClientsGauge(1)
 		}
 		defer func() {
-			log.Debug("Client disconnected: " + socketId)
+			log.Debug("Client disconnected: %v" + socketId)
 			changeClientsGauge(-1)
 			if session.IsWebsocket {
 				changeWebsocketClientsGauge(-1)
@@ -80,7 +79,7 @@ func main() {
 
 				for amqpErr := range controlChannel.NotifyClose(make(chan *amqp.Error)) {
 					if !(strings.Contains(amqpErr.Error(), "NOT_FOUND") && (strings.Contains(amqpErr.Error(), "koding-social-") || strings.Contains(amqpErr.Error(), "auth-"))) {
-						log.Warning("AMQP channel: "+amqpErr.Error(), "Last publish payload:", lastPayload)
+						log.Warning("AMQP channel: %v Last publish payload: %v", amqpErr.Error(), lastPayload)
 					}
 
 					sendToClient(session, "broker.error", map[string]interface{}{"code": amqpErr.Code, "reason": amqpErr.Reason, "server": amqpErr.Server, "recover": amqpErr.Recover})
@@ -113,11 +112,11 @@ func main() {
 
 		subscribe := func(routingKeyPrefix string) {
 			if subscriptions[routingKeyPrefix] {
-				// log.Warning("Duplicate subscription to same routing key.", session.Tag, routingKeyPrefix)
+				log.Warning("Duplicate subscription to same routing key. %v %v", session.Tag, routingKeyPrefix)
 				return
 			}
 			if len(subscriptions) > 0 && len(subscriptions)%2000 == 0 {
-				log.Warning("Client with more than "+strconv.Itoa(len(subscriptions))+" subscriptions.", session.Tag)
+				log.Warning("Client with more than %v subscriptions %v", strconv.Itoa(len(subscriptions)), session.Tag)
 			}
 			routeMap[routingKeyPrefix] = append(routeMap[routingKeyPrefix], session)
 			subscriptions[routingKeyPrefix] = true
@@ -168,7 +167,7 @@ func main() {
 				defer log.RecoverAndLog()
 
 				message := data.(map[string]interface{})
-				log.Debug("Received message", message)
+				log.Debug("Received message: %v", message)
 
 				action := message["action"]
 				switch action {
@@ -205,7 +204,7 @@ func main() {
 					exchange := message["exchange"].(string)
 					routingKey := message["routingKey"].(string)
 					if !strings.HasPrefix(routingKey, "client.") {
-						log.Warning("Invalid routing key.", message, socketId)
+						log.Warning("Invalid routing key: message: %v socketId: %v", message, socketId)
 						return
 					}
 					for {
@@ -216,7 +215,7 @@ func main() {
 							break
 						}
 						if amqpError, isAmqpError := err.(*amqp.Error); !isAmqpError || amqpError.Code != 504 {
-							log.Warning(fmt.Sprintf("payload: %v routing key: %v exchange: %v", message["payload"], message["routingKey"], message["exchange"]), err)
+							log.Warning("payload: %v routing key: %v exchange: %v err: %v", message["payload"], message["routingKey"], message["exchange"], err)
 						}
 						time.Sleep(time.Second / 4) // penalty for crashing the AMQP channel
 						resetControlChannel()
@@ -226,7 +225,7 @@ func main() {
 					sendToClient(session, "broker.pong", nil)
 
 				default:
-					log.Warning("Invalid action.", message, socketId)
+					log.Warning("Invalid action. message: %v socketId: %v", message, socketId)
 
 				}
 			}()
@@ -270,7 +269,7 @@ func main() {
 		for {
 			err := server.Serve(listener)
 			if err != nil {
-				log.Warning("Server error: " + err.Error())
+				log.Warning("Server error: %v" + err.Error())
 				if time.Now().Sub(lastErrorTime) < time.Second {
 					log.Fatal(nil)
 				}
@@ -352,6 +351,6 @@ func sendToClient(session *sockjs.Session, routingKey string, payload interface{
 	message.Payload = payload
 	if !session.Send(message) {
 		session.Close()
-		log.Warning("Dropped session because of broker to client buffer overflow.", session.Tag)
+		log.Warning("Dropped session because of broker to client buffer overflow. %v", session.Tag)
 	}
 }

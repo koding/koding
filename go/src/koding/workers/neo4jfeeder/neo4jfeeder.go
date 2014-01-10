@@ -85,13 +85,13 @@ func startConsuming() {
 
 		message, err := jsonDecode(body)
 		if err != nil {
-			log.Error("Wrong message format", err, body)
+			log.Error("Wrong message format err: %v, body: %v", err, body)
 			msg.Ack(true)
 			continue
 		}
 
 		if len(message.Payload) < 1 {
-			log.Error("Wrong message format; payload should be an Array", message)
+			log.Error("Wrong message format; payload should be an Array message %v", message)
 			msg.Ack(true)
 			continue
 		}
@@ -108,7 +108,7 @@ func startConsuming() {
 		} else if message.Event == "RemovedFromCollection" {
 			deleteNode(data)
 		} else {
-			log.Debug("No method found for event", message.Event)
+			log.Debug("No method found for event: %v", message.Event)
 		}
 
 		msg.Ack(true)
@@ -123,24 +123,24 @@ func checkIfEligible(sourceName, targetName string) bool {
 
 	for _, name := range neo4j.NotAllowedNames {
 		if name == sourceName {
-			log.Debug("not eligible " + sourceName)
+			log.Debug("not eligible %v", sourceName)
 			return false
 		}
 
 		if name == targetName {
-			log.Debug("not eligible " + targetName)
+			log.Debug("not eligible %v", targetName)
 			return false
 		}
 	}
 
 	for _, name := range notAllowedSuffixes {
 		if strings.HasSuffix(sourceName, name) {
-			log.Debug("not eligible " + sourceName)
+			log.Debug("not eligible %v", sourceName)
 			return false
 		}
 
 		if strings.HasSuffix(targetName, name) {
-			log.Debug("not eligible " + targetName)
+			log.Debug("not eligible %v", targetName)
 			return false
 		}
 	}
@@ -156,7 +156,7 @@ func createNode(data map[string]interface{}) {
 	targetName := fmt.Sprintf("%s", data["targetName"])
 
 	if sourceId == "" || sourceName == "" || targetId == "" || targetName == "" {
-		log.Error("invalid data", data)
+		log.Error("invalid data: %v", data)
 		return
 	}
 
@@ -173,7 +173,7 @@ func createNode(data map[string]interface{}) {
 	sourceContent, err := mongohelper.FetchContent(bson.ObjectIdHex(sourceId), sourceName)
 	if err != nil {
 		sTimer.Failed()
-		log.Error("sourceContent", err)
+		log.Error("sourceContent %v", err)
 
 		return
 	}
@@ -183,7 +183,7 @@ func createNode(data map[string]interface{}) {
 	targetContent, err := mongohelper.FetchContent(bson.ObjectIdHex(targetId), targetName)
 	if err != nil {
 		sTimer.Failed()
-		log.Error("targetContent", err)
+		log.Error("targetContent %v", err)
 
 		return
 	}
@@ -195,7 +195,7 @@ func createNode(data map[string]interface{}) {
 
 	if _, ok := data["as"]; !ok {
 		sTimer.Failed()
-		log.Error("as value is not set on this relationship. Discarding this record", data)
+		log.Error("as value is not set on this relationship. Discarding this record data: %v", data)
 
 		return
 	}
@@ -203,7 +203,7 @@ func createNode(data map[string]interface{}) {
 
 	if _, ok := data["_id"]; !ok {
 		sTimer.Failed()
-		log.Error("id value is not set on this relationship. Discarding this record", data)
+		log.Error("id value is not set on this relationship. Discarding this record: %v", data)
 
 		return
 	}
@@ -252,7 +252,7 @@ func deleteRelationship(data map[string]interface{}) {
 	targetId := fmt.Sprintf("%s", data["targetId"])
 
 	if sourceId == "" || targetId == "" {
-		log.Error("invalid data", data)
+		log.Error("invalid data: %v", data)
 		return
 	}
 
@@ -292,7 +292,7 @@ func updateNode(data map[string]interface{}) {
 	sourceName := fmt.Sprintf("%s", bongo["constructorName"])
 
 	if sourceId == "" || sourceName == "" {
-		log.Error("invalid data", data)
+		log.Error("invalid data: %v", data)
 		return
 	}
 
@@ -309,7 +309,7 @@ func updateNode(data map[string]interface{}) {
 	sourceContent, err := mongohelper.FetchContent(bson.ObjectIdHex(sourceId), sourceName)
 	if err != nil {
 		sTimer.Failed()
-		log.Error("sourceContent", err)
+		log.Error("sourceContent %v", err)
 
 		return
 	}
