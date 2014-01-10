@@ -122,7 +122,8 @@ class CommentListItemView extends KDListItemView
 
   getBody:(data)->
     new KDCustomHTMLView
-      pistachio: "{p{@utils.applyTextExpansions #(body), yes}}",
+      tagName  : "p"
+      pistachio: "{div{@utils.applyTextExpansions #(body), yes}}",
       data
 
   getDeleteButton:(data)->
