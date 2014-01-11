@@ -43,13 +43,27 @@ class CommentListItemView extends KDListItemView
     activity = @getDelegate().getData()
     loggedInId = KD.whoami().getId()
 
-    @settings = if true  # if super-admin
-      @getSettings(data)
-    else if loggedInId is data.originId or # if comment/review owner
-            loggedInId is activity.originId # if activity/app owner
-      @getDeleteButton(data)
+    isCommentMine = loggedInId is data.originId
+    isActivityMine = loggedInId is activity.originId
+
+    settingsOptions = {}
+    # if i am the owner of the comment or activity
+    # i can delete it
+    if isCommentMine or isActivityMine
+      settingsOptions.delete = true
+      showSettingsMenu = yes
+
+    # if i can edit comments(have permission)
+    if isCommentMine and "edit own comments" in KD.config.permissions or \
+      "edit comments" in KD.config.permissions
+        settingsOptions.edit = true
+        showSettingsMenu     =  yes
+
+    # if settings menu should be visible
+    if showSettingsMenu
+      @settings = @getSettings data, settingsOptions
     else
-      new KDCustomHTMLView tagName : 'span', cssClass : 'hidden'
+      @settings = new KDView
 
     @likeView = new LikeViewClean { tooltipPosition : 'sw', checkIfLikedBefore: yes }, data
 
