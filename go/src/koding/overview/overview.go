@@ -587,8 +587,6 @@ func sendMsgToSlack(channel, text string) error {
 		return err
 	}
 
-	fmt.Printf("data %+v\n", string(data))
-
 	resp, err := http.Post(hookURL, "application/json", bytes.NewReader(data))
 	if err != nil {
 		return err
