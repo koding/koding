@@ -234,21 +234,10 @@ func buildOperation(username string, r *http.Request) (string, error) {
 	q.Set("cause", fmt.Sprintf("by %s", username))
 	jenkinsURL.RawQuery = q.Encode()
 
-	resp, err := http.Post(jenkinsURL.String(), "", nil)
+	_, err := http.Post(jenkinsURL.String(), "", nil)
 	if err != nil {
 		return "", err
 	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != 302 {
-		body, err := ioutil.ReadAll(resp.Body)
-		if err != nil {
-			fmt.Println(err)
-		}
-
-		return "", fmt.Errorf("could not create a new build %s\n", string(body))
-	}
-
 	return buildBranch, nil
 }
 
