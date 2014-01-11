@@ -32,6 +32,13 @@ class ActivityInputWidget extends KDView
         height  : 35
     , KD.whoami()
 
+    @previewIcon = new KDCustomHTMLView
+      tagName  : "span"
+      cssClass : "preview-icon"
+      click    : =>
+        if not @preview then @showPreview()
+        else @hidePreview()
+
   submit: (callback) ->
     return  unless value = @input.getValue().trim()
 
@@ -139,13 +146,34 @@ class ActivityInputWidget extends KDView
     @submit.enable()
     # @submit.setTitle "Post"
 
+  showPreview: ->
+    return unless value = @input.getValue().trim()
+
+    if not @preview
+      @preview = new KDCustomHTMLView
+        cssClass : "update-preview"
+        partial  : KD.utils.applyMarkdown value
+        click    : => @hidePreview()
+      @input.addSubView @preview
+
+    else
+      @preview.updatePartial(KD.utils.applyMarkdown value)
+
+    @setClass "preview-active"
+
+  hidePreview:->
+    @preview.destroy()
+    @preview = null
+
+    @unsetClass "preview-active"
+
   viewAppended: ->
     @addSubView @avatar
     @addSubView @input
     @addSubView @embedBox
     @input.addSubView @submit
+    @input.addSubView @previewIcon
     @hide()  unless KD.isLoggedIn()
-
 
 class ActivityEditWidget extends ActivityInputWidget
   constructor : (options = {}, data) ->

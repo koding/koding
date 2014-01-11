@@ -162,7 +162,9 @@ class TeamworkChatPane extends ChatPane
       tagName  : "p"
       cssClass : "tw-share-link"
       partial  : "Share"
-      click    : => new TeamworkShareModal delegate: @getDelegate()
+      click    : =>
+        KD.mixpanel "Teamwork share modal, click"
+        new TeamworkShareModal delegate: @getDelegate()
 
     @avatars   = @workspace.avatarsView = new KDCustomHTMLView
       cssClass : "tw-users"
