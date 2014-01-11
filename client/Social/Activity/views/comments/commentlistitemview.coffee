@@ -108,7 +108,7 @@ class CommentListItemView extends KDListItemView
     @editCommentWrapper.addSubView @editComment
     @editCommentWrapper.show()
 
-  getSettings:(data)->
+  getSettings:(data, options)->
     button = new KDButtonViewWithMenu
       cssClass       : 'activity-settings-menu'
       style          : 'comment-menu'
@@ -125,17 +125,6 @@ class CommentListItemView extends KDListItemView
       cssClass : "comment-body-container"
       pistachio: "{p{@utils.applyTextExpansions #(body), yes}}"
     ,data
-
-  getDeleteButton:(data)->
-    button = new KDCustomHTMLView
-        tagName     : 'a'
-        attributes  :
-          href      : '#'
-        cssClass    : 'delete-link hidden'
-        click       : KD.utils.stopDOMEvent
-      button.unsetClass "hidden"
-      button.on "click", => @confirmDeleteComment data
-    return button
 
   render:->
     if @getData().getAt 'deletedAt'
