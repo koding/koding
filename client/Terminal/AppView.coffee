@@ -25,7 +25,7 @@ class WebTermAppView extends JView
       @initPane pane
 
       terminalView.terminal?.scrollToBottom()
-      
+
       KD.utils.defer -> terminalView.setKeyView()
 
       @fetchStorage (storage) -> storage.setValue 'activeIndex', index
@@ -294,7 +294,7 @@ class WebTermAppView extends JView
 
         vmc = KD.getSingleton 'vmController'
         if vmc.vms.length > 1
-          return  unless @vmselection.isDestroyed
+          return  if @vmselection and not @vmselection.isDestroyed
           @vmselection = new VMSelection
           @vmselection.once 'VMSelected', (vm)=> @createNewTab vmName: vm, mode: 'create'
         else
