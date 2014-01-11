@@ -51,6 +51,7 @@ class ActivityInputWidget extends KDView
     { app }        = @getOptions()
 
     for token in @input.getTokens()
+      feedType     = "bug" if token.data?.title.toLowerCase() is "bug"
       {data, type} = token
       if type is "tag"
         if data instanceof JTag
