@@ -94,12 +94,18 @@ func viewHandler(w http.ResponseWriter, r *http.Request) {
 
 		switchMessage = switchOperation(loginName, r)
 	case "newbuild":
-		err := buildOperation(r)
+		loginName, err = checkSessionHandler(w, r)
+		if err != nil {
+			renderTemplate(w, "login", HomePage{LoginMessage: err.Error()})
+			return
+		}
+
+		err := buildOperation(loginName, r)
 		if err != nil {
 			log.Println("could not build", err)
 		}
 
-		fmt.Println("newbuild is called")
+		fmt.Println("newbuild is called is by ", loginName)
 	default:
 		loginName, err = checkSessionHandler(w, r)
 		if err != nil {
@@ -211,13 +217,15 @@ func checkSessionHandler(w http.ResponseWriter, r *http.Request) (string, error)
 	return loginName.(string), nil
 }
 
-func buildOperation(r *http.Request) error {
+func buildOperation(username string, r *http.Request) error {
 	buildBranch := r.PostFormValue("newbuildBranch")
 	if buildBranch == "" {
 		return errors.New("buildBranch is empty")
 	}
 
-	jenkinsURL := "http://68.68.97.88:8080/job/Koding%20Deployment/buildWithParameters?token=runBuildKoding&BUILDBRANCH=" + buildBranch
+	cause := fmt.Sprintf("started%20by%20user%20%s", username)
+
+	jenkinsURL := fmt.Sprintf("http://68.68.97.88:8080/job/Koding%20Deployment/buildWithParameters?token=runBuildKoding&cause=%s&BUILDBRANCH=%s", cause, buildBranch)
 
 	resp, err := http.Post(jenkinsURL, "", nil)
 	if err != nil {
