@@ -223,11 +223,14 @@ func buildOperation(username string, r *http.Request) error {
 		return errors.New("buildBranch is empty")
 	}
 
-	cause := fmt.Sprintf("started%20by%20user%20%s", username)
+	jenkinsURL, _ := url.ParseRequestURI("http://68.68.97.88:8080/job/Koding Deployment/buildWithParamaters")
+	q := jenkinsURL.Query()
+	q.Set("token", "runBuildKoding")
+	q.Set("BUILDBRANCH", buildBranch)
+	q.Set("cause", fmt.Sprintf("by user %s", username))
+	jenkinsURL.RawQuery = q.Encode()
 
-	jenkinsURL := fmt.Sprintf("http://68.68.97.88:8080/job/Koding%20Deployment/buildWithParameters?token=runBuildKoding&cause=%s&BUILDBRANCH=%s", cause, buildBranch)
-
-	resp, err := http.Post(jenkinsURL, "", nil)
+	resp, err := http.Post(jenkinsURL.String(), "", nil)
 	if err != nil {
 		return err
 	}
