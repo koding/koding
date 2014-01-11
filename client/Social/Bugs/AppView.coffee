@@ -34,6 +34,8 @@ class BugReportMainView extends KDScrollView
         @emit "ChangeFilterClicked", "changelog"
 
     @inputWidget = new ActivityInputWidget
+      app        : 'bug'
+
     @inputWidget.on "Submit", (err, activity)=>
       return err if err
       lists = @getDelegate().feedController.resultsController.listControllers
@@ -49,5 +51,5 @@ class BugReportMainView extends KDScrollView
     @mainBlock.addSubView @inputWidget
     @sideBlock.addSubView @filterMenu
 
-    KD.remote.api.JTag.one slug:"bug", (err, tag) =>
-      @inputWidget.input.setDefaultTokens tags: [tag]
+    # KD.remote.api.JTag.one slug:"bug", (err, tag) =>
+    #   @inputWidget.input.setDefaultTokens tags: [tag]
