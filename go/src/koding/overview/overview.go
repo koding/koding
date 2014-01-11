@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -294,6 +295,12 @@ func switchVersion(newVersion string) error {
 		log.Println("Cache is cleaned for", switchHost)
 	}
 
+	msg := fmt.Sprintf("switched <https://koding.com|koding.com> to build %s", newVersion)
+	err = sendMsgToSlack("#_koding", "koding-proxy", msg)
+	if err != nil {
+		log.Println("slack error", err)
+	}
+
 	return nil
 }
 
@@ -549,4 +556,46 @@ func renderTemplate(w http.ResponseWriter, tmpl string, data interface{}) {
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
+}
+
+type slackPayload struct {
+	Channel   string `json:"channel"`
+	Username  string `json:"username"`
+	Text      string `json:"text"`
+	IconEmoji string `json:"icon_emoji"`
+}
+
+func sendMsgToSlack(channel, username, text string) error {
+	hookURL := "https://koding.slack.com/services/hooks/incoming-webhook?token=z7TCJnrGy3kpcRLkbBbUzlKh"
+
+	payload := slackPayload{
+		Channel:   channel,
+		Username:  username,
+		Text:      text,
+		IconEmoji: ":rocket:",
+	}
+
+	data, err := json.Marshal(&payload)
+	if err != nil {
+		return err
+	}
+
+	fmt.Printf("data %+v\n", string(data))
+
+	resp, err := http.Post(hookURL, "application/json", bytes.NewReader(data))
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode == 200 {
+		return nil
+	}
+
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return err
+	}
+
+	return fmt.Errorf("slack err: %s", string(body))
 }
