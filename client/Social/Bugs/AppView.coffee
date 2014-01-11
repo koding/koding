@@ -34,6 +34,10 @@ class BugReportMainView extends KDScrollView
         @emit "ChangeFilterClicked", "changelog"
 
     @inputWidget = new ActivityInputWidget
+    @inputWidget.on "Submit", (err, activity)=>
+      return err if err
+      lists = @getDelegate().feedController.resultsController.listControllers
+      lists.all.addItem activity, 0
 
   viewAppended:->
     @mainBlock = new KDCustomHTMLView tagName : "main"
