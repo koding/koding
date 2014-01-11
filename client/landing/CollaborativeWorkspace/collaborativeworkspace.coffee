@@ -139,8 +139,7 @@ class CollaborativeWorkspace extends Workspace
       KD.remote.api.JAccount.some { "profile.nickname": { "$in": usernames } }, {}, (err, jAccounts) =>
         for user in jAccounts
           {nickname} = user.profile
-          @users[nickname]       = user
-          @activeUsers[nickname] = user
+          @users[nickname] = user
         @emit "WorkspaceUsersFetched"
 
   createPanel: (callback = noop) ->
