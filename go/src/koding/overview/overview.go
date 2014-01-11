@@ -239,6 +239,13 @@ func buildOperation(username string, r *http.Request) (string, error) {
 	if err != nil {
 		return "", err
 	}
+
+	msg := fmt.Sprintf("build is deployed by '%s' with branch '%s'", username, buildBranch)
+	err = sendMsgToSlack("#_koding", "overview", msg)
+	if err != nil {
+		log.Println("slack error", err)
+	}
+
 	return buildBranch, nil
 }
 
@@ -296,7 +303,7 @@ func switchVersion(newVersion string) error {
 	}
 
 	msg := fmt.Sprintf("switched <https://koding.com|koding.com> to build %s", newVersion)
-	err = sendMsgToSlack("#_koding", "koding-proxy", msg)
+	err = sendMsgToSlack("#_koding", "overview", msg)
 	if err != nil {
 		log.Println("slack error", err)
 	}
