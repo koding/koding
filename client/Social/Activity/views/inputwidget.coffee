@@ -15,6 +15,11 @@ class ActivityInputWidget extends KDView
       if token.slug is "bug" and type is "tag"
         @setClass "bug-tagged"
 
+    # FIXME we need to hide bug warning in a proper way ~ GG
+    @input.on "keyup", =>
+      val = @input.getValue()
+      @unsetClass 'bug-tagged'  if val.indexOf("5051003840118f872e001b91") is -1
+
     @on "ActivitySubmitted", =>
       @unsetClass "bug-tagged"
 
@@ -51,7 +56,7 @@ class ActivityInputWidget extends KDView
     { app }        = @getOptions()
 
     for token in @input.getTokens()
-      feedType     = "bug" if token.data?.title.toLowerCase() is "bug"
+      feedType     = "bug" if token.data?.title?.toLowerCase() is "bug"
       {data, type} = token
       if type is "tag"
         if data instanceof JTag
