@@ -453,6 +453,12 @@ resurrection.activity.styl
       > div
         color         #acacac
 
+    .preview-icon
+      display         block
+      abs             0 48px 16px 0
+      r-sprite        "activity", "preview-eye"
+      cursor          pointer
+
     button[type=submit]
       size            30px, 30px
       abs             0 9px 8px 0
@@ -467,6 +473,15 @@ resurrection.activity.styl
 
       &[disabled=disabled]
         bg            color, #DDD !important
+
+  &.preview-active
+    .input-view > div
+      &:not(.update-preview)
+        display       none
+
+    .preview-icon
+      r-sprite        "activity", "preview-eye-active"
+
 
   &.edit-widget
     .input-view
@@ -1084,6 +1099,7 @@ body.profile
 
 /** Markdown Styling **/
 .activity-item > article
+.activity-input-widget .update-preview
 
   /* Headings */
   h1, h2, h3, h4, h5, h6
@@ -1116,6 +1132,7 @@ body.profile
   /* Paragraphs and other text */
   p  p
     padding               0 0 12px
+    word-wrap             break-word
   em
     font-style            italic
   strong

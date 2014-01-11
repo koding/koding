@@ -124,6 +124,7 @@ class HelpModal extends AnimatedModalView
       attributes : href : '#'
       partial    : "new to<br/>programming"
       click      : (event)->
+        KD.mixpanel "Help modal subsection, click", title:"new"
         KD.utils.stopDOMEvent event
         buttonContainer.emit 'deselectAll'
         @setClass 'active'
@@ -134,6 +135,7 @@ class HelpModal extends AnimatedModalView
       attributes : href : '#'
       partial    : "an experienced<br/>developer"
       click      : (event)->
+        KD.mixpanel "Help modal subsection, click", title:"experienced"
         KD.utils.stopDOMEvent event
         buttonContainer.emit 'deselectAll'
         @setClass 'active'
@@ -144,6 +146,7 @@ class HelpModal extends AnimatedModalView
       attributes : href : '#'
       partial    : "an advanced<br/>programmer"
       click      : (event)->
+        KD.mixpanel "Help modal subsection, click", title:"advanced"
         KD.utils.stopDOMEvent event
         buttonContainer.emit 'deselectAll'
         @setClass 'active'
