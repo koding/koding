@@ -1361,9 +1361,13 @@ module.exports = class JAccount extends jraphical.Module
         return callback err  if err
         cb = (err, roles)=>
           return callback err  if err
+
           perms = (perm.permissions.slice()\
                   for perm in permissionSet.permissions\
-                  when perm.role in roles)
+                    # if user is an admin, add all
+                    # roles into permission set
+                  when perm.role in roles or 'admin' in roles)
+
           {flatten} = require 'underscore'
           callback null, flatten(perms), roles
 

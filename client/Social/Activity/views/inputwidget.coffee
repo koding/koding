@@ -48,9 +48,10 @@ class ActivityInputWidget extends KDView
     suggestedTags  = []
     createdTags    = {}
     feedType       = ""
+    { app }        = @getOptions()
 
     for token in @input.getTokens()
-      feedType     = "bug" if token.data?.title is "bug"
+      feedType     = "bug" if token.data?.title.toLowerCase() is "bug"
       {data, type} = token
       if type is "tag"
         if data instanceof JTag
@@ -59,7 +60,7 @@ class ActivityInputWidget extends KDView
         else if data.$suggest
           suggestedTags.push data.$suggest
 
-    daisy queue = [
+    queue = [
       ->
         tagCreateJobs = suggestedTags.map (title) ->
           ->
@@ -93,6 +94,18 @@ class ActivityInputWidget extends KDView
 
           KD.mixpanel "Status update create, success", {length:activity?.body?.length}
     ]
+
+    if app is 'bug'
+      queue.unshift =>
+        KD.remote.api.JTag.one slug : 'bug', (err, tag)=>
+          if err then KD.showError err
+          else
+            feedType = "bug"
+            value += " #{KD.utils.tokenizeTag tag}"
+            tags.push id : tag.getId()
+          queue.next()
+
+    daisy queue
 
     @emit "ActivitySubmitted"
 
