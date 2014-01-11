@@ -19,20 +19,6 @@ class BugReportMainView extends KDScrollView
       click    : =>
         @emit "ChangeFilterClicked", "all"
 
-    @filterMenu.addSubView new KDCustomHTMLView
-      tagName  : "a"
-      cssClass : "bug-status-title"
-      partial  : "Fixed Bugs"
-      click    : =>
-        @emit "ChangeFilterClicked", "fixed"
-
-    @filterMenu.addSubView new KDCustomHTMLView
-      tagName  : "a"
-      cssClass : "bug-status-title"
-      partial  : "ChangeLog"
-      click    : =>
-        @emit "ChangeFilterClicked", "changelog"
-
     @inputWidget = new ActivityInputWidget
       app        : 'bug'
 
