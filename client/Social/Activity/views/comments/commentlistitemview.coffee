@@ -117,7 +117,7 @@ class CommentListItemView extends KDListItemView
       icon           : yes
       delegate       : this
       iconClass      : "arrow"
-      menu           : @settingsMenu data
+      menu           : @settingsMenu data, options
       callback       : (event)=> button.contextMenu event
 
   getBody:(data)->
@@ -200,12 +200,13 @@ class CommentListItemView extends KDListItemView
     else if force
       @setTemplate @pistachio()
 
-  settingsMenu:(data)->
-    menu =
-      'Edit'     :
-        callback : => @showEditCommentForm data
-      'Delete'   :
-        callback : => @confirmDeleteComment data
+  settingsMenu:(data, options={})->
+    menu = {}
+    if options.edit
+      menu['Edit']   = callback : => @showEditCommentForm data
+    if options.delete
+      menu['Delete'] = callback : => @confirmDeleteComment data
+    return menu
 
   pistachio:->
     """
