@@ -105,7 +105,7 @@ func viewHandler(w http.ResponseWriter, r *http.Request) {
 			log.Println("could not build", err)
 		}
 
-		fmt.Println("newbuild is called is by ", loginName)
+		fmt.Println("newbuild is called is by", loginName)
 	default:
 		loginName, err = checkSessionHandler(w, r)
 		if err != nil {
@@ -223,7 +223,7 @@ func buildOperation(username string, r *http.Request) error {
 		return errors.New("buildBranch is empty")
 	}
 
-	jenkinsURL, _ := url.ParseRequestURI("http://68.68.97.88:8080/job/Koding Deployment/buildWithParamaters")
+	jenkinsURL, _ := url.ParseRequestURI("http://68.68.97.88:8080/job/Koding Deployment/buildWithParameters")
 	q := jenkinsURL.Query()
 	q.Set("token", "runBuildKoding")
 	q.Set("BUILDBRANCH", buildBranch)
