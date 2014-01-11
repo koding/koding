@@ -240,8 +240,8 @@ func buildOperation(username string, r *http.Request) (string, error) {
 		return "", err
 	}
 
-	msg := fmt.Sprintf("build is deployed by '%s' with branch '%s'", username, buildBranch)
-	err = sendMsgToSlack("#_koding", "overview", msg)
+	msg := fmt.Sprintf("%s deployed a new build with branch '%s'", username, buildBranch)
+	err = sendMsgToSlack("#_koding", msg)
 	if err != nil {
 		log.Println("slack error", err)
 	}
@@ -302,8 +302,8 @@ func switchVersion(newVersion string) error {
 		log.Println("Cache is cleaned for", switchHost)
 	}
 
-	msg := fmt.Sprintf("switched <https://koding.com|koding.com> to build %s", newVersion)
-	err = sendMsgToSlack("#_koding", "overview", msg)
+	msg := fmt.Sprintf("%s switched <https://koding.com|koding.com> to build %s", newVersion)
+	err = sendMsgToSlack("#_koding", msg)
 	if err != nil {
 		log.Println("slack error", err)
 	}
@@ -572,12 +572,12 @@ type slackPayload struct {
 	IconEmoji string `json:"icon_emoji"`
 }
 
-func sendMsgToSlack(channel, username, text string) error {
+func sendMsgToSlack(channel, text string) error {
 	hookURL := "https://koding.slack.com/services/hooks/incoming-webhook?token=z7TCJnrGy3kpcRLkbBbUzlKh"
 
 	payload := slackPayload{
 		Channel:   channel,
-		Username:  username,
+		Username:  "Koding Overview",
 		Text:      text,
 		IconEmoji: ":rocket:",
 	}
