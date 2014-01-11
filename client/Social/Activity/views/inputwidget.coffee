@@ -161,16 +161,18 @@ class ActivityInputWidget extends KDView
 
   showPreview: ->
     return unless value = @input.getValue().trim()
-
+    markedValue = KD.utils.applyMarkdown value
+    tags = @input.getTokens().map (token) -> token.data if token.type is "tag"
+    tagsExpanded = @utils.expandTokens markedValue, {tags}
     if not @preview
       @preview = new KDCustomHTMLView
         cssClass : "update-preview"
-        partial  : KD.utils.applyMarkdown value
+        partial  : tagsExpanded
         click    : => @hidePreview()
       @input.addSubView @preview
 
     else
-      @preview.updatePartial(KD.utils.applyMarkdown value)
+      @preview.updatePartial tagsExpanded
 
     @setClass "preview-active"
 
