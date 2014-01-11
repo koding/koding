@@ -50,13 +50,13 @@ class CommentListItemView extends KDListItemView
     # if i am the owner of the comment or activity
     # i can delete it
     if isCommentMine or isActivityMine
-      settingsOptions.delete = true
-      showSettingsMenu = yes
+      settingsOptions.delete = yes
+      showSettingsMenu       = yes
 
     # if i can edit comments(have permission)
     if isCommentMine and "edit own comments" in KD.config.permissions or \
       "edit comments" in KD.config.permissions
-        settingsOptions.edit = true
+        settingsOptions.edit = yes
         showSettingsMenu     =  yes
 
     # if settings menu should be visible
