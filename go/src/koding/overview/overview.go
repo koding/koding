@@ -94,9 +94,9 @@ func viewHandler(w http.ResponseWriter, r *http.Request) {
 		version, err := switchOperation(loginName, r)
 		if err != nil {
 			log.Println(err)
+		} else {
+			log.Printf("switch is invoked by '%s' for build number '%s'\n", loginName, version)
 		}
-
-		log.Println("switch is invoked by '%s' for build number '%s'", loginName, version)
 	case "newbuild":
 		loginName, err = checkSessionHandler(w, r)
 		if err != nil {
@@ -107,9 +107,9 @@ func viewHandler(w http.ResponseWriter, r *http.Request) {
 		branch, err := buildOperation(loginName, r)
 		if err != nil {
 			log.Println("could not build", err)
+		} else {
+			log.Printf("build is created by '%s', for branch '%s'\n", loginName, branch)
 		}
-
-		log.Println("build is created by '%s', for branch '%s'", loginName, branch)
 	default:
 		loginName, err = checkSessionHandler(w, r)
 		if err != nil {
