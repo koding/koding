@@ -50,9 +50,6 @@ class ActivityInputWidget extends KDView
     feedType       = ""
     { app }        = @getOptions()
 
-
-
-
     for token in @input.getTokens()
       {data, type} = token
       if type is "tag"
