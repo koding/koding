@@ -11,7 +11,6 @@ import (
 	"log"
 	"net/http"
 	"net/url"
-	"os"
 	"sort"
 	"strconv"
 	"time"
@@ -92,7 +91,12 @@ func viewHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		switchMessage = switchOperation(loginName, r)
+		version, err := switchOperation(loginName, r)
+		if err != nil {
+			log.Println(err)
+		}
+
+		log.Println("switch is invoked by '%s' for build number '%s'", loginName, version)
 	case "newbuild":
 		loginName, err = checkSessionHandler(w, r)
 		if err != nil {
@@ -100,12 +104,12 @@ func viewHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		err := buildOperation(loginName, r)
+		branch, err := buildOperation(loginName, r)
 		if err != nil {
 			log.Println("could not build", err)
 		}
 
-		fmt.Println("newbuild is called is by", loginName)
+		log.Println("build is created by '%s', for branch '%s'", loginName, branch)
 	default:
 		loginName, err = checkSessionHandler(w, r)
 		if err != nil {
@@ -217,10 +221,10 @@ func checkSessionHandler(w http.ResponseWriter, r *http.Request) (string, error)
 	return loginName.(string), nil
 }
 
-func buildOperation(username string, r *http.Request) error {
+func buildOperation(username string, r *http.Request) (string, error) {
 	buildBranch := r.PostFormValue("newbuildBranch")
 	if buildBranch == "" {
-		return errors.New("buildBranch is empty")
+		return "", errors.New("buildBranch is empty")
 	}
 
 	jenkinsURL, _ := url.ParseRequestURI("http://68.68.97.88:8080/job/Koding Deployment/buildWithParameters")
@@ -232,34 +236,30 @@ func buildOperation(username string, r *http.Request) error {
 
 	resp, err := http.Post(jenkinsURL.String(), "", nil)
 	if err != nil {
-		return err
+		return "", err
 	}
 	defer resp.Body.Close()
 
-	if resp.StatusCode == 302 {
-		return nil
+	if resp.StatusCode != 302 {
+		body, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			fmt.Println(err)
+		}
+
+		return "", fmt.Errorf("could not create a new build %s\n", string(body))
 	}
 
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		fmt.Println(err)
-	}
-
-	return fmt.Errorf("could not create a new build %s\n", string(body))
+	return buildBranch, nil
 }
 
-func switchOperation(loginName string, r *http.Request) string {
+func switchOperation(loginName string, r *http.Request) (string, error) {
 	version := r.PostFormValue("switchVersion")
 	err := switchVersion(version)
 	if err != nil {
-		log.Println("error switching", err, version)
-		return fmt.Sprintf("Error switching: %s version %s", err, version)
+		return "", err
 	}
 
-	res := fmt.Sprintf("Switched to version %s switcher name: %s", version, loginName)
-	logAction(res)
-	log.Println(res)
-	return "Switched to version " + loginName
+	return version, nil
 }
 
 func switchVersion(newVersion string) error {
@@ -306,21 +306,6 @@ func switchVersion(newVersion string) error {
 	}
 
 	return nil
-}
-
-func logAction(msg string) {
-	fileName := "versionswitchers.log"
-	flag := os.O_WRONLY | os.O_CREATE | os.O_APPEND
-	mode := os.FileMode(0644)
-
-	f, err := os.OpenFile(fileName, flag, mode)
-	if err != nil {
-		log.Println("error opening version switch log file")
-		return
-	}
-	defer f.Close()
-
-	f.WriteString(fmt.Sprintf("[%s] %s\n", time.Now().Format(time.RFC1123), msg))
 }
 
 func keyLookup(key string) (map[string]bool, map[string]bool) {
@@ -434,7 +419,6 @@ func buildsInfo() []int {
 	serverApi := apiUrl + "/deployments/"
 	builds := make([]int, 0)
 
-	fmt.Println(serverApi)
 	resp, err := http.Get(serverApi)
 	if err != nil {
 		fmt.Println(err)
