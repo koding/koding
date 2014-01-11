@@ -43,19 +43,19 @@ class CommentListItemView extends KDListItemView
     activity = @getDelegate().getData()
     loggedInId = KD.whoami().getId()
 
-    isCommentMine = loggedInId is data.originId
-    isActivityMine = loggedInId is activity.originId
+    isCommentMine   = loggedInId is data.originId
+    isActivityMine  = loggedInId is activity.originId
+    canEditComments = "edit comments" in KD.config.permissions
 
     settingsOptions = {}
     # if i am the owner of the comment or activity
     # i can delete it
-    if isCommentMine or isActivityMine
+    if isCommentMine or isActivityMine or canEditComments
       settingsOptions.delete = yes
       showSettingsMenu       = yes
 
     # if i can edit comments(have permission)
-    if isCommentMine and "edit own comments" in KD.config.permissions or \
-      "edit comments" in KD.config.permissions
+    if (isCommentMine and "edit own comments" in KD.config.permissions) or canEditComments
         settingsOptions.edit = yes
         showSettingsMenu     =  yes
 
