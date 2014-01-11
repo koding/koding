@@ -231,7 +231,7 @@ func buildOperation(username string, r *http.Request) (string, error) {
 	q := jenkinsURL.Query()
 	q.Set("token", "runBuildKoding")
 	q.Set("BUILDBRANCH", buildBranch)
-	q.Set("cause", fmt.Sprintf("by user %s", username))
+	q.Set("cause", fmt.Sprintf("by %s", username))
 	jenkinsURL.RawQuery = q.Encode()
 
 	resp, err := http.Post(jenkinsURL.String(), "", nil)
