@@ -81,7 +81,9 @@ class CollaborativeWorkspace extends Workspace
       @usersRef.child(username).child("status").on "value", (snapshot) =>
         status = snapshot.val()
         if status is "online"
-          @activeUsers[username] = @users[username]  if @users[username]
+          @once "WorkspaceUsersFetched", =>
+            @activeUsers[username] = @users[username]
+
           @emit "SomeoneJoinedToTheSession", username
           @setPresenceHandler()  unless @presenceInterval
           if @amIHost()
@@ -89,7 +91,8 @@ class CollaborativeWorkspace extends Workspace
             @addToHistory { message, by: KD.nick() }
         else if status is "offline"
           delete @activeUsers[username]
-          @killPresenceTimer()  if Object.keys(@activeUsers).length is 0
+          if Object.keys(@activeUsers).length is 0 and @amIHost()
+            @killPresenceTimer()
           @emit "SomeoneHasLeftTheSession", username
           if @amIHost()
             message = "#{username} has left the session"
@@ -345,6 +348,7 @@ class CollaborativeWorkspace extends Workspace
 
   killPresenceTimer: ->
     @utils.killRepeat @presenceInterval
+    @presenceInterval = null
 
   showNotification: (message) ->
     return if @notification
