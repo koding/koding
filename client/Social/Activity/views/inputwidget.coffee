@@ -11,12 +11,9 @@ class ActivityInputWidget extends KDView
     @input    = new ActivityInputView defaultValue: options.defaultValue
     @input.on "Escape", @bound "reset"
 
-
     @input.on "TokenAdded", (type, token) =>
       if token.slug is "bug" and type is "tag"
         @setClass "bug-tagged"
-
-
 
     # FIXME we need to hide bug warning in a proper way ~ GG
     @input.on "keyup", =>

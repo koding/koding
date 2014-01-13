@@ -34,7 +34,6 @@ class BugReportMainView extends KDScrollView
         lists = @getDelegate().feedController.resultsController.listControllers
         lists.all.addItem subject, 0
 
-
   prepareSubject:(post)->
     {subject} = post
     subject = KD.remote.revive subject
