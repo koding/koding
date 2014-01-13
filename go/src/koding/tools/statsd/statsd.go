@@ -16,9 +16,10 @@ package statsd
 
 import (
 	"fmt"
-	client "github.com/etsy/statsd"
 	"koding/tools/config"
 	"time"
+
+	client "github.com/koding/statsd"
 )
 
 var (

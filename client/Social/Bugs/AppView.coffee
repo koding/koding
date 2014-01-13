@@ -19,21 +19,24 @@ class BugReportMainView extends KDScrollView
       click    : =>
         @emit "ChangeFilterClicked", "all"
 
-    @filterMenu.addSubView new KDCustomHTMLView
-      tagName  : "a"
-      cssClass : "bug-status-title"
-      partial  : "Fixed Bugs"
-      click    : =>
-        @emit "ChangeFilterClicked", "fixed"
-
-    @filterMenu.addSubView new KDCustomHTMLView
-      tagName  : "a"
-      cssClass : "bug-status-title"
-      partial  : "ChangeLog"
-      click    : =>
-        @emit "ChangeFilterClicked", "changelog"
-
     @inputWidget = new ActivityInputWidget
+      app        : 'bug'
+
+    @inputWidget.on "Submit", (err, activity)=>
+      return err if err
+      lists = @getDelegate().feedController.resultsController.listControllers
+      lists.all.addItem activity, 0
+
+    groupController = KD.getSingleton("groupsController")
+    groupController.on "PostIsCreated", (post) =>
+      subject = @prepareSubject post
+      if subject.feedType is "bug"
+        lists = @getDelegate().feedController.resultsController.listControllers
+        lists.all.addItem subject, 0
+
+  prepareSubject:(post)->
+    {subject} = post
+    return KD.remote.revive subject
 
   viewAppended:->
     @mainBlock = new KDCustomHTMLView tagName : "main"
@@ -44,6 +47,3 @@ class BugReportMainView extends KDScrollView
 
     @mainBlock.addSubView @inputWidget
     @sideBlock.addSubView @filterMenu
-
-    KD.remote.api.JTag.one slug:"bug", (err, tag) =>
-      @inputWidget.input.setDefaultTokens tags: [tag]

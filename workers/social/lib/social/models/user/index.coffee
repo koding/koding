@@ -984,7 +984,6 @@ module.exports = class JUser extends jraphical.Module
   unblock:(callback)->
     @update
       $set            :
-        status        : 'unconfirmed',
         blockedUntil  : new Date()
     , (err) =>
       return callback err if err

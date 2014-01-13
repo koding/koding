@@ -14,12 +14,14 @@ class OAuthController extends KDController
           name       = "Login"
           size       = "height=643,width=1143"
           newWindow  = window.open url, name, size
-          newWindow.onunload =->
-            mainController = KD.getSingleton "mainController"
-            mainController.emit "ForeignAuthPopupClosed", provider
 
           unless newWindow
             notify "Please disable your popup blocker and try again."
+            return
+
+          newWindow.onunload =->
+            mainController = KD.getSingleton "mainController"
+            mainController.emit "ForeignAuthPopupClosed", provider
 
           newWindow.focus()
 
@@ -32,5 +34,5 @@ class OAuthController extends KDController
       mainController.emit "ForeignAuthCompleted", provider
 
   notify = (err)->
-    message = if err then "Error: #{err}" else "Something went wrong"
+    message = if err then "#{err}" else "Something went wrong"
     new KDNotificationView title : message

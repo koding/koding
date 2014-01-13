@@ -9,10 +9,7 @@ type KeyData struct {
 	// List of hosts to proxy
 	Host []string `json:"host"`
 
-	// LoadBalance for this server
-	LoadBalancer LoadBalancer `json:"loadBalancer"`
-
-	// Contains the source of the creator, who has created this?
+	// Contains additional data about the hosts, like region information
 	HostData string `json:"hostData"`
 
 	// If true proxy is allowd to route to the given hosts.

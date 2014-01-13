@@ -30,24 +30,19 @@ class ActivityListController extends KDListViewController
     groupController = KD.getSingleton("groupsController")
     groupController.on "PostIsCreated", (post) =>
 
-      # check if post got #bug tag attached, if attached,
-      # dont show message instead, show a modal explaining /Bugs
-      # app
-      bugTag = tag for tag in post.subject.tags when tag.slug is "bug"
+      bugTag   = tag for tag in post.subject.tags when tag.slug is "bug"
+      subject  = @prepareSubject post
+      instance = @addItem subject, 0
 
-      unless bugTag
-        subject  = @prepareSubject post
-        instance = @addItem subject, 0
+      if @activityHeader?.liveUpdateToggle.getState().title isnt 'live' and\
+         not @isMine subject
 
-        if @activityHeader?.liveUpdateToggle.getState().title isnt 'live' and\
-           not @isMine subject
+        instance.hide()
+        @hiddenItems.push instance
 
-          instance.hide()
-          @hiddenItems.push instance
-          @activityHeader.newActivityArrived()
-          return
-      else
-        KD.singletons.dock.addItem { title : "Bugs", path : "/Bugs", order : 60 }
+        @activityHeader.newActivityArrived() unless bugTag
+        return
+
 
 
   prepareSubject:(post)->

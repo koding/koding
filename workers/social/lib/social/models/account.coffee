@@ -257,8 +257,6 @@ module.exports = class JAccount extends jraphical.Module
           (signature String, Function)
         updateCountAndCheckBadge:
           (signature Object, Function)
-        likeUser:
-          (signature String, Function)
     schema                  :
       skillTags             : [String]
       locationTags          : [String]
@@ -296,9 +294,6 @@ module.exports = class JAccount extends jraphical.Module
           type              : Date
           default           : new Date
         twitterFollowers    :
-          type              : Number
-          default           : 0
-        staffLikes          :
           type              : Number
           default           : 0
 
@@ -891,7 +886,7 @@ module.exports = class JAccount extends jraphical.Module
 
   dummyAdmins = [ "sinan", "devrim", "gokmen", "chris", "fatihacet", "arslan",
                   "sent-hil", "kiwigeraint", "cihangirsavas", "leventyalcin",
-                  "samet", "leeolayvar", "stefanbc", "erdinc" ]
+                  "samet", "leeolayvar", "stefanbc", "erdinc"]
 
   userIsExempt: (callback)->
     # console.log @isExempt, this
@@ -950,34 +945,6 @@ module.exports = class JAccount extends jraphical.Module
       @update {$set: globalFlags: flags}, callback
     else
       callback new KodingError 'Access denied'
-
-  likeUser: permit 'assign badge',
-    success: (client, userId, callback)->
-      JAccount.one { '_id' : userId }, (err, account)=>
-        return new KodingError 'Account not found' if err or not account
-        Relationship.count
-          as         : 'like'
-          targetId   : account.getId()
-          sourceId   : @getId()
-        , (err, count)=>
-          return new KodingError err if err
-          unless count > 0
-            rel = new Relationship
-              targetId    : account.getId()
-              targetName  : 'JAccount'
-              sourceId    : @getId()
-              sourceName  : 'JAccount'
-              as          : 'like'
-            rel.save (err)=>
-              return new KodingError err if err
-              Relationship.count
-                as         : 'like'
-                targetName : 'JAccount'
-                sourceName : 'JAccount'
-                targetId   : @getId()
-              , (err, count)=>
-                @update ($set: 'counts.staffLikes': count), (err)->
-                  return new KodingError err if err
 
   fetchUserByAccountIdOrNickname:(accountIdOrNickname, callback)->
 
@@ -1394,9 +1361,13 @@ module.exports = class JAccount extends jraphical.Module
         return callback err  if err
         cb = (err, roles)=>
           return callback err  if err
+
           perms = (perm.permissions.slice()\
                   for perm in permissionSet.permissions\
-                  when perm.role in roles)
+                    # if user is an admin, add all
+                    # roles into permission set
+                  when perm.role in roles or 'admin' in roles)
+
           {flatten} = require 'underscore'
           callback null, flatten(perms), roles
 

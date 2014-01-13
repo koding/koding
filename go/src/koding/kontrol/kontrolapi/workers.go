@@ -25,11 +25,12 @@ import (
 
 type ApiWorker struct {
 	Name               string    `json:"name"`
+	Version            int       `json:"version"`
+	Environment        string    `json:"environment"`
+	Hostname           string    `json:"hostname"`
 	ServiceGenericName string    `json:"serviceGenericName"`
 	ServiceUniqueName  string    `json:"serviceUniqueName"`
 	Uuid               string    `json:"uuid"`
-	Hostname           string    `json:"hostname"`
-	Version            int       `json:"version"`
 	Timestamp          time.Time `json:"timestamp"`
 	Pid                int       `json:"pid"`
 	State              string    `json:"state"`
@@ -70,17 +71,18 @@ func GetWorkerURL(writer http.ResponseWriter, req *http.Request) {
 		iter := c.Find(bson.M{"name": workerName}).Iter()
 		for iter.Next(&worker) {
 			apiWorker := &ApiWorker{
-				worker.Name,
-				worker.ServiceGenericName,
-				worker.ServiceUniqueName,
-				worker.Uuid,
-				worker.Hostname,
-				worker.Version,
-				worker.Timestamp,
-				worker.Pid,
-				StatusCode[worker.Status],
-				worker.Monitor.Uptime,
-				worker.Port,
+				Name:               worker.Name,
+				Version:            worker.Version,
+				Environment:        worker.Environment,
+				Hostname:           worker.Hostname,
+				ServiceGenericName: worker.ServiceGenericName,
+				ServiceUniqueName:  worker.ServiceUniqueName,
+				Uuid:               worker.Uuid,
+				Timestamp:          worker.Timestamp,
+				Pid:                worker.Pid,
+				State:              StatusCode[worker.Status],
+				Uptime:             worker.Monitor.Uptime,
+				Port:               worker.Port,
 			}
 
 			workers = append(workers, *apiWorker)
@@ -216,17 +218,18 @@ func queryResult(query bson.M, latestVersion bool, sortFields []string) Workers 
 		iter := c.Find(query).Sort(sortFields...).Iter()
 		for iter.Next(&worker) {
 			apiWorker := &ApiWorker{
-				worker.Name,
-				worker.ServiceGenericName,
-				worker.ServiceUniqueName,
-				worker.Uuid,
-				worker.Hostname,
-				worker.Version,
-				worker.Timestamp,
-				worker.Pid,
-				StatusCode[worker.Status],
-				worker.Monitor.Uptime,
-				worker.Port,
+				Name:               worker.Name,
+				Version:            worker.Version,
+				Environment:        worker.Environment,
+				Hostname:           worker.Hostname,
+				ServiceGenericName: worker.ServiceGenericName,
+				ServiceUniqueName:  worker.ServiceUniqueName,
+				Uuid:               worker.Uuid,
+				Timestamp:          worker.Timestamp,
+				Pid:                worker.Pid,
+				State:              StatusCode[worker.Status],
+				Uptime:             worker.Monitor.Uptime,
+				Port:               worker.Port,
 			}
 
 			workers = append(workers, *apiWorker)

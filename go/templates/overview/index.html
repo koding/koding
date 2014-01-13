@@ -16,7 +16,6 @@
 		<link href="./bootstrap/css/bootstrap-responsive.css" rel="stylesheet">
 		<script src="http://code.jquery.com/jquery.js"></script>
 		<script src="./bootstrap/js/bootstrap.js"></script>
-		<script src="./bootstrap/js/passwordmodal.js"></script>
 
 		<!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
 		<!--[if lt IE 9]>
@@ -86,25 +85,28 @@
             <div class="hero-unit">
                 <h2>{{ .Status.SwitchHost }} switcher</h2>
                     <p>
-                      Change the build version of {{ .Status.SwitchHost }} to a different version.<br>
-                      <span class="label label-important">This is a dangerous action</span>, be sure you know what you are doing!
+                      Create a new build. Write the git branch you want to build.<br>
                     </p>
-                    {{if .SwitchMessage}}
-	                    <div class="alert">
-						  <button type="button" class="close" data-dismiss="alert">&times;</button>
-						  {{ .SwitchMessage }}
-						</div>
-					{{end}}
-                  <form id="switchVersionForm" method="POST">
 
+                  <form method="POST">
+                    <div class="input-append">
+                      <input name="operation" value="newbuild" class="hidden">
+                      <input name="newbuildBranch" class="span4" id="appendedInputButton" type="text">
+
+                      <button type="submit" class="btn btn-success">New Build   <i class="icon-forward icon-white"></i></button>
+                    </div>
+                  </form>
+
+                    <p>
+                      Switch to an existing build version. Write the build number to switch.<br>
+                    </p>
+
+                  <form method="POST">
                     <div class="input-append">
                       <input name="operation" value="switchVersion" class="hidden">
                       <input name="switchVersion" class="span4" id="appendedInputButton" type="text">
-                      <input name="loginPass" id="switcherPass" class="hidden">
-                      <button type="button" id="switchButton" class="btn btn-danger">Switch now <i class="icon-random icon-white"></i></button>
+                      <button type="submit" id="switchButton" class="btn btn-danger">Switch now <i class="icon-random icon-white"></i></button>
                     </div>
-
-                    <small><em>(current production build <span class="badge">{{.Status.CurrentVersion}}</span>)</em></small>
                   </form>
 
             </div>

@@ -15,8 +15,15 @@ class ActivityInputWidget extends KDView
       if token.slug is "bug" and type is "tag"
         @setClass "bug-tagged"
 
+    # FIXME we need to hide bug warning in a proper way ~ GG
+    @input.on "keyup", =>
+      val = @input.getValue()
+      @unsetClass 'bug-tagged'  if val.indexOf("5051003840118f872e001b91") is -1
+
     @on "ActivitySubmitted", =>
       @unsetClass "bug-tagged"
+      @bugNotification.once 'transitionend', =>
+        @bugNotification.hide()
 
     @embedBox = new EmbedBoxWidget delegate: @input, data
 
@@ -32,6 +39,21 @@ class ActivityInputWidget extends KDView
         height  : 35
     , KD.whoami()
 
+    @bugNotification = new KDCustomHTMLView
+      cssClass : 'bug-notification'
+      partial  : '<figure></figure>Posts tagged with <strong>#bug</strong>  will be moved to <a href="/Bugs" target="_blank">Bug Tracker</a>.'
+
+    @bugNotification.bindTransitionEnd()
+
+    @previewIcon = new KDCustomHTMLView
+      tagName  : "span"
+      cssClass : "preview-icon"
+      tooltip  :
+        title     : "Preview"
+      click    : =>
+        if not @preview then @showPreview()
+        else @hidePreview()
+
   submit: (callback) ->
     return  unless value = @input.getValue().trim()
 
@@ -41,9 +63,10 @@ class ActivityInputWidget extends KDView
     suggestedTags  = []
     createdTags    = {}
     feedType       = ""
+    { app }        = @getOptions()
 
     for token in @input.getTokens()
-      feedType     = "bug" if token.data?.title is "bug"
+      feedType     = "bug" if token.data?.title?.toLowerCase() is "bug"
       {data, type} = token
       if type is "tag"
         if data instanceof JTag
@@ -52,7 +75,7 @@ class ActivityInputWidget extends KDView
         else if data.$suggest
           suggestedTags.push data.$suggest
 
-    daisy queue = [
+    queue = [
       ->
         tagCreateJobs = suggestedTags.map (title) ->
           ->
@@ -86,6 +109,20 @@ class ActivityInputWidget extends KDView
 
           KD.mixpanel "Status update create, success", {length:activity?.body?.length}
     ]
+
+    if app is 'bug'
+      queue.unshift =>
+        KD.remote.api.JTag.one slug : 'bug', (err, tag)=>
+          if err then KD.showError err
+          else
+            feedType = "bug"
+            value += " #{KD.utils.tokenizeTag tag}"
+            tags.push id : tag.getId()
+          queue.next()
+
+    daisy queue
+
+    if feedType is "bug" then KD.singletons.dock.addItem { title : "Bugs", path : "/Bugs", order : 60 }
 
     @emit "ActivitySubmitted"
 
@@ -139,13 +176,37 @@ class ActivityInputWidget extends KDView
     @submit.enable()
     # @submit.setTitle "Post"
 
+  showPreview: ->
+    return unless value = @input.getValue().trim()
+    markedValue = KD.utils.applyMarkdown value
+    tags = @input.getTokens().map (token) -> token.data if token.type is "tag"
+    tagsExpanded = @utils.expandTokens markedValue, {tags}
+    if not @preview
+      @preview = new KDCustomHTMLView
+        cssClass : "update-preview"
+        partial  : tagsExpanded
+        click    : => @hidePreview()
+      @input.addSubView @preview
+
+    else
+      @preview.updatePartial tagsExpanded
+
+    @setClass "preview-active"
+
+  hidePreview:->
+    @preview.destroy()
+    @preview = null
+
+    @unsetClass "preview-active"
+
   viewAppended: ->
     @addSubView @avatar
     @addSubView @input
     @addSubView @embedBox
+    @addSubView @bugNotification
     @input.addSubView @submit
+    @input.addSubView @previewIcon
     @hide()  unless KD.isLoggedIn()
-
 
 class ActivityEditWidget extends ActivityInputWidget
   constructor : (options = {}, data) ->

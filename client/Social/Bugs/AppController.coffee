@@ -35,20 +35,6 @@ class BugReportController extends AppController
             options["tag"]     = "bug"
             options["tagType"] = "user-tag"
             @fetch selector, options, callback
-        fixed             :
-          title           : "Fixed Bugs"
-          noItemFoundText : "There is no fixed bugs"
-          dataSource      : (selector, options, callback) =>
-            options["tag"]     = "fixed"
-            options["tagType"] = "system-tag"
-            @fetch selector, options, callback
-        changelog         :
-          title           : "Change Log"
-          noItemFoundText : "There is no changelog"
-          dataSource      : (selector, options, callback) =>
-            options["tag"]     = "changelog"
-            options["tagType"] = "system-tag"
-            @fetch selector, options, callback
       sort                :
         'meta.modifiedAt' :
           title           : "Latest Bugs"

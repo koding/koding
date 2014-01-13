@@ -138,6 +138,8 @@ module.exports = class JNewApp extends jraphical.Module
         type            : ObjectId
         required        : yes
 
+      group             : String
+
 
     relationships       :
       creator           :
@@ -214,6 +216,7 @@ module.exports = class JNewApp extends jraphical.Module
         identifier  : data.identifier
         version     : data.manifest.version
         originId    : delegate.getId()
+        group       : client.context.group
 
       app.save (err)->
         return callback err  if err

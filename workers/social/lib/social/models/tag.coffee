@@ -196,12 +196,9 @@ module.exports = class JTag extends jraphical.Module
     success: (client, formData, callback)->
       {delegate} = client.connection
       if delegate.checkFlag ['super-admin', 'editor']
-        modifiedTag = {slug: formData.slug.trim(), _id: $ne: @getId()}
-        JTag.one modifiedTag, (err, tag)=>
-          if tag
-            callback new KodingError "Slug already exists!"
-          else
-            @update $set: formData, callback
+        formData or= {}
+        delete formData.slug
+        @update $set: formData, callback
       else
         callback new KodingError 'Access denied'
 
