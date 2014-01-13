@@ -42,6 +42,7 @@ resurrection.activity.styl
 
     >.activity-input-widget
       margin-left       80px
+      display           block
 
       .input-view
         border            none
@@ -55,6 +56,38 @@ resurrection.activity.styl
 
         &[disabled=disabled]
           bg            color, #DDD !important
+
+      .bug-notification
+        display         block
+        size            600px 38px
+        margin          -40px 5px 0
+        line-height     38px
+        color           #f5f5f5
+        font-weight     300
+        text-align      left
+        font-size       14px
+        rounded         0 0 3px 3px
+        bg              color #E94B35
+        z-index         0
+        vendor          transition, margin-top .177s ease
+        borderBox()
+        figure
+          sprite        app 'nav-bugs-frameless'
+          margin        5px 18px 0 4px
+          fl()
+        strong
+          font-weight   400
+          color         white
+        a
+          font-weight   400
+          color         white
+
+      &.bug-tagged
+        .bug-notification
+          margin-top    -1px
+
+      //   &:after
+      //     content         "You tagged this as a #bug, this will appear on our bug tracker app!"
 
     .filter-warning
       background        rgba(37, 46, 48, 1.0)
@@ -83,6 +116,7 @@ resurrection.activity.styl
     .feeder-header
       margin-top        31px
       text-align        right
+      overflow          visible
 
     .new-updates
       padding           4px 10px
@@ -437,6 +471,12 @@ resurrection.activity.styl
       > div
         color         #acacac
 
+    .preview-icon
+      display         block
+      abs             0 48px 16px 0
+      r-sprite        "activity", "preview-eye"
+      cursor          pointer
+
     button[type=submit]
       size            30px, 30px
       abs             0 9px 8px 0
@@ -451,6 +491,15 @@ resurrection.activity.styl
 
       &[disabled=disabled]
         bg            color, #DDD !important
+
+  &.preview-active
+    .input-view > div
+      &:not(.update-preview)
+        display       none
+
+    .preview-icon
+      r-sprite        "activity", "preview-eye-active"
+
 
   &.edit-widget
     .input-view
@@ -649,12 +698,10 @@ span.collapsedtext
     bg                color, #f6f6f6
     rounded           0 0 5px 5px
 
-    .delete-link
-      display       block
-      top           27px
-      right         20px
+    .activity-settings-menu
+      top           22px
+      right         21px
       opacity       0
-      r-sprite        activity "delete-icon"
       transition    opacity .2s ease
       abs()
 
@@ -690,7 +737,7 @@ span.collapsedtext
     borderBox()
 
     &:hover
-      .delete-link
+      .activity-settings-menu
         opacity         .5
         &:hover
           opacity       1
@@ -721,13 +768,20 @@ span.collapsedtext
         font-weight   400
         noTextDeco()
 
-      > p
-        word-break    break-word
-        line-height   17px
-        font-weight   200
+      .comment-body-container
+        > p
+          word-break  break-word
+          line-height 17px
+          font-weight 200
 
-        a
-          color       inherit
+          a
+            color     inherit
+
+      .edited
+        display       block
+        font-size     12px
+        color         #cacaca
+        margin        6px 0 0
 
       .like-view
       .reply-link
@@ -795,6 +849,7 @@ span.collapsedtext
 
 
   .item-add-comment-box
+  .edit-comment-box
     borderBox()
 
     .avatarview
@@ -831,6 +886,16 @@ span.collapsedtext
 
         &:focus
           line-height     24px
+
+    &.edit-comment-box
+      textarea
+        padding           9px
+        rounded           5px
+        margin            4px 0
+
+      .cancel-description
+        font-size         12px
+        color             #cacaca
 
 /* Embed Styles */
 .embed-image-view
@@ -1022,6 +1087,9 @@ body.profile
       z-index             599
       abs()
 
+    &.comment-menu
+      margin              94px 0 0 16px
+
     .kdlistitemview-contextitem
       color               #50595f
       font-size           12px
@@ -1049,6 +1117,7 @@ body.profile
 
 /** Markdown Styling **/
 .activity-item > article
+.activity-input-widget .update-preview
 
   /* Headings */
   h1, h2, h3, h4, h5, h6
@@ -1081,6 +1150,7 @@ body.profile
   /* Paragraphs and other text */
   p  p
     padding               0 0 12px
+    word-wrap             break-word
   em
     font-style            italic
   strong

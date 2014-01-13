@@ -2,10 +2,9 @@ class TeamworkShareModal extends KDModalView
 
   constructor: (options = {}, data) ->
 
-    options.cssClass         = "tw-modal tw-share-modal"
-    options.overlay          = yes
-    options.width            = 655
-    options.addShareWarning ?= yes
+    options.cssClass = "tw-modal tw-share-modal"
+    options.overlay  = yes
+    options.width    = 655
 
     super options, data
 
@@ -27,12 +26,15 @@ class TeamworkShareModal extends KDModalView
 
       @addSubView inputWidget
 
-      inputWidget.on "ActivitySubmitted", => @destroy()
+      inputWidget.on "ActivitySubmitted", =>
+        KD.mixpanel "Teamwork share post, click"
+        @destroy()
 
-      if @getOption "addShareWarning"
-        @addSubView new KDCustomHTMLView
-          cssClass : "tw-share-warning"
-          partial  : """
-            <span class="warning"></span>
-            <p>Be warned, this makes your VM accessible to others until you close this browser tab. They can see/delete your files.</p>
-          """
+      shareWarning = @getOptions().shareWarning or """
+        <span class="warning"></span>
+        <p>Be warned, this makes your VM accessible to others until you close this browser tab. They can see/delete your files.</p>
+      """
+
+      @addSubView new KDCustomHTMLView
+        cssClass : "tw-share-warning"
+        partial  : shareWarning

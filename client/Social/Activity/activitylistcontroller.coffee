@@ -30,6 +30,7 @@ class ActivityListController extends KDListViewController
     groupController = KD.getSingleton("groupsController")
     groupController.on "PostIsCreated", (post) =>
 
+      bugTag   = tag for tag in post.subject.tags when tag.slug is "bug"
       subject  = @prepareSubject post
       instance = @addItem subject, 0
 
@@ -38,8 +39,10 @@ class ActivityListController extends KDListViewController
 
         instance.hide()
         @hiddenItems.push instance
-        @activityHeader.newActivityArrived()
+
+        @activityHeader.newActivityArrived() unless bugTag
         return
+
 
 
   prepareSubject:(post)->

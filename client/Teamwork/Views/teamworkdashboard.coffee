@@ -15,7 +15,9 @@ class TeamworkDashboard extends JView
     @playgrounds.addSubView new KDCustomHTMLView
       cssClass    : "tw-playground-item default-item import" # plus: add-new
       partial     : "<div></div><p>Import Project</p>"
-      click       : => @getDelegate().teamwork.showImportModal()
+      click       : =>
+        KD.mixpanel "Teamwork import modal, click"
+        @getDelegate().teamwork.showImportModal()
 
     manifests?.forEach (manifest) =>
       return if manifest.name is "Facebook"

@@ -165,6 +165,7 @@ class ActivitySettingsView extends KDCustomHTMLView
       body   : body
       meta   : {tags}
 
+    options.feedType = '' if tagToRemove.title is "bug"
     activity.modify options, (err)->
       KD.showError err if err
 
@@ -186,5 +187,6 @@ class ActivitySettingsView extends KDCustomHTMLView
       meta   :
         tags : newTags
 
+    options.feedType = 'bug' if tagToAdd.title is "bug"
     activity.modify options, (err)->
       KD.showError err if err

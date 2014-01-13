@@ -11,6 +11,7 @@ module.exports = class JNewStatusUpdate extends JPost
   @share()
 
   schema = extend {}, JPost.schema, {
+    feedType     : String
     link :
       link_url   : String
       link_embed : Object
@@ -142,6 +143,8 @@ module.exports = class JNewStatusUpdate extends JPost
       body        : data.body
       group       : data.group
 
+    statusUpdate.feedType = data.feedType if data.feedType
+
     if data.link_url and data.link_embed
       statusUpdate.link =
         link_url   : data.link_url
@@ -154,6 +157,8 @@ module.exports = class JNewStatusUpdate extends JPost
       meta        : data.meta
       title       : data.title
       body        : data.body
+
+    statusUpdate.feedType = data.feedType if data.feedType
 
     if data.link_url and data.link_embed
       statusUpdate.link =
@@ -244,6 +249,7 @@ module.exports = class JNewStatusUpdate extends JPost
 
         options.sort = 'meta.createdAt' : -1
         options.limit ?= 20
+        selector.feedType = options.feedType
 
         @some selector, options, (err, data)=>
           return callback err if err

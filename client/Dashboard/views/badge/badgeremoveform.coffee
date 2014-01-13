@@ -17,7 +17,7 @@ class BadgeRemoveForm extends KDModalViewWithForms
                   updateForm.badgeForm.destroy()
                   itemList.destroy()
                   @destroy()
-                  return err if err
+                  return KD.showError err if err
             Cancel          :
               title         : "No"
               style         : "modal-clean-red"

@@ -60,7 +60,6 @@ class Marker extends KDCustomHTMLView
   constructor:(options = {})->
 
     options.tagName  = 'span'
-    options.partial  = '<i></i>'
     options.cssClass = KD.utils.curry 'intro-marker hidden', options.cssClass
 
     super options
