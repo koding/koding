@@ -18,6 +18,9 @@ class BugStatusItemList extends StatusActivityItemView
       click        : (event)->
         KD.utils.stopDOMEvent event
 
+    data.on "TagsUpdated",(tags) =>
+      state = tag.title for tag in tags when tag.category is "system-tag"
+      @bugstatus.setValue state
 
     KD.utils.defer =>
       @addSubView @bugstatus

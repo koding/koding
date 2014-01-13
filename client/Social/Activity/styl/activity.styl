@@ -60,17 +60,18 @@ resurrection.activity.styl
         overflow          visible
 
         &:after
-          content         "Since you have posted your status with the bug tag, it will be posted directly to our bug tracker application.This application is now visible on your dock."
+          content         "As you are using the #bug tag - we will move your post to our bug tracker once you post it. Our engineers will be notified. You will be able to see the Bugs app on your dock after you post. Thanks for reporting and happy Koding!"
           display         block
-          size            100%, 42px
+          size            600px, 60px
           line-height     20px
           color           #fff
           font-weight     400
           text-align      center
           font-size       12px
-          rounded         0 0 3px 3px
+          rounded         3px
           bg              color, #1aaf5d
-          padding         5px 0 5px 0
+          padding         5px
+          margin-top      2px
 
     .filter-warning
       background        rgba(37, 46, 48, 1.0)
@@ -453,6 +454,12 @@ resurrection.activity.styl
       > div
         color         #acacac
 
+    .preview-icon
+      display         block
+      abs             0 48px 16px 0
+      r-sprite        "activity", "preview-eye"
+      cursor          pointer
+
     button[type=submit]
       size            30px, 30px
       abs             0 9px 8px 0
@@ -467,6 +474,15 @@ resurrection.activity.styl
 
       &[disabled=disabled]
         bg            color, #DDD !important
+
+  &.preview-active
+    .input-view > div
+      &:not(.update-preview)
+        display       none
+
+    .preview-icon
+      r-sprite        "activity", "preview-eye-active"
+
 
   &.edit-widget
     .input-view
@@ -735,13 +751,14 @@ span.collapsedtext
         font-weight   400
         noTextDeco()
 
-      > p
-        word-break    break-word
-        line-height   17px
-        font-weight   200
+      .comment-body-container
+        > p
+          word-break  break-word
+          line-height 17px
+          font-weight 200
 
-        a
-          color       inherit
+          a
+            color     inherit
 
       .edited
         display       block
@@ -1083,6 +1100,7 @@ body.profile
 
 /** Markdown Styling **/
 .activity-item > article
+.activity-input-widget .update-preview
 
   /* Headings */
   h1, h2, h3, h4, h5, h6
@@ -1115,6 +1133,7 @@ body.profile
   /* Paragraphs and other text */
   p  p
     padding               0 0 12px
+    word-wrap             break-word
   em
     font-style            italic
   strong
