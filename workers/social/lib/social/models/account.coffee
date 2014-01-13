@@ -3,13 +3,6 @@ KodingError = require '../error'
 
 likeableActivities = [
   'JNewStatusUpdate'
-#  'JCodeSnip'
-#  'JDiscussion'
-#  'JOpinion'
-#  'JCodeShare'
-#  'JLink'
-#  'JTutorial'
-#  'JBlogPost'
   ]
 
 module.exports = class JAccount extends jraphical.Module
@@ -21,7 +14,6 @@ module.exports = class JAccount extends jraphical.Module
   @trait __dirname, '../traits/taggable'
   @trait __dirname, '../traits/notifying'
   @trait __dirname, '../traits/flaggable'
-  @trait __dirname, '../traits/protected'
 
   JStorage         = require './storage'
   JAppStorage      = require './appstorage'
@@ -39,10 +31,9 @@ module.exports = class JAccount extends jraphical.Module
   {Relationship} = jraphical
   {permit} = require './group/permissionset'
   Validators = require './group/validators'
+  Protected = require '../traits/protected'
 
   @share()
-
-  allPerms = @getAllPermissions()
 
   @set
     softDelete          : yes
@@ -1364,7 +1355,8 @@ module.exports = class JAccount extends jraphical.Module
         return callback err  if err
         {flatten} = require 'underscore'
         if "admin" in roles
-          callback null, flatten(allPerms), roles
+          perms = Protected.permissionsByModule
+          callback null, flatten(perms), roles
         else
           group.fetchPermissionSet (err, permissionSet)=>
             return callback err  if err
