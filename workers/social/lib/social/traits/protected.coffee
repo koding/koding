@@ -31,3 +31,6 @@ module.exports = class Protected
     defaults = Protected.permissionDefaultsByModule[@name] ?= {}
     extend defaults, permissions
 
+  @getAllPermissions = ->
+    Protected.permissionsByModule
+
