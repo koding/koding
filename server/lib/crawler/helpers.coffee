@@ -54,10 +54,6 @@ createActivityContent = (JAccount, model, comments, createFullHTML=no, putBody=y
     tags = []
     tags = teaser.tags  if teaser?.tags?
 
-    codeSnippet = ""
-    if model.bongo_?.constructorName is "JCodeSnip"
-      codeSnippet = model?.attachments[0]?.content
-
     Relationship.one selector, (err, rel) =>
       if err or not rel
           console.error err
@@ -88,8 +84,7 @@ createActivityContent = (JAccount, model, comments, createFullHTML=no, putBody=y
           nickname         : nickname
           hash             : hash
           title            :  if model?.title? then model.title else model.body or ""
-          body             : body
-          codeSnippet      : htmlEncode codeSnippet
+          body             : htmlEncode body
           createdAt        : if model?.meta?.createdAt? then formatDate model.meta.createdAt else ""
           numberOfComments : teaser.repliesCount or 0
           numberOfLikes    : model?.meta?.likes or 0
