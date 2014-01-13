@@ -21,6 +21,7 @@ module.exports = class JAccount extends jraphical.Module
   @trait __dirname, '../traits/taggable'
   @trait __dirname, '../traits/notifying'
   @trait __dirname, '../traits/flaggable'
+  @trait __dirname, '../traits/protected'
 
   JStorage         = require './storage'
   JAppStorage      = require './appstorage'
@@ -40,6 +41,8 @@ module.exports = class JAccount extends jraphical.Module
   Validators = require './group/validators'
 
   @share()
+
+  allPerms = @getAllPermissions()
 
   @set
     softDelete          : yes
@@ -1357,24 +1360,26 @@ module.exports = class JAccount extends jraphical.Module
     slug = client.context.group ? 'koding'
     JGroup.one {slug}, (err, group)=>
       return callback err  if err
-      group.fetchPermissionSet (err, permissionSet)=>
+      cb = (err, roles)=>
         return callback err  if err
-        cb = (err, roles)=>
-          return callback err  if err
-
-          perms = (perm.permissions.slice()\
+        {flatten} = require 'underscore'
+        if "admin" in roles
+          callback null, flatten(allPerms), roles
+        else
+          group.fetchPermissionSet (err, permissionSet)=>
+            return callback err  if err
+            perms = (perm.permissions.slice()\
                   for perm in permissionSet.permissions\
                     # if user is an admin, add all
                     # roles into permission set
                   when perm.role in roles or 'admin' in roles)
 
-          {flatten} = require 'underscore'
-          callback null, flatten(perms), roles
+            callback null, flatten(perms), roles
 
-        if this instanceof JAccount
-          group.fetchMyRoles client, cb
-        else
-          cb null, ['guest']
+      if this instanceof JAccount
+        group.fetchMyRoles client, cb
+      else
+        cb null, ['guest']
 
   oldAddTags = @::addTags
   addTags: secure (client, tags, options, callback)->
