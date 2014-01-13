@@ -51,6 +51,8 @@ class ActivityInputWidget extends KDView
     @previewIcon = new KDCustomHTMLView
       tagName  : "span"
       cssClass : "preview-icon"
+      tooltip  :
+        title     : "Preview"
       click    : =>
         if not @preview then @showPreview()
         else @hidePreview()
