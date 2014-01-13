@@ -26,11 +26,12 @@ class WebTerm.Terminal extends KDObject
       tagName   : 'input'
       attributes: type: 'text'
       cssClass  : 'offscreen'
-      bind      : 'keydown keyup keypress'
+      bind      : 'keydown keyup keypress paste'
       keydown   : @bound 'keyDown'
       keypress  : @bound 'keyPress'
       keyup     : @bound 'keyUp'
     @keyInput.appendToDomBody()
+    @keyInput.on "paste", @bound "paste"
 
     containerView.on 'KDObjectWillBeDestroyed', @keyInput.bound 'destroy'
 
@@ -78,6 +79,8 @@ class WebTerm.Terminal extends KDObject
         @setKeyFocus() unless event.ctrlKey or event.metaKey
         @utils.defer =>
           @mousedownHappened = false
+
+    @outputbox.on "paste", @bound "paste"
 
     @outputbox.on "drop", (event) =>
       @server.input event.originalEvent.dataTransfer.getData "text/plain"
@@ -276,3 +279,8 @@ class WebTerm.Terminal extends KDObject
       hex = "0" + hex if hex.length is 1
       '\\x' + hex
     '"' + escaped.replace('"', '\\"') + '"'
+
+  paste: (event) =>
+    KD.utils.stopDOMEvent event
+    @server.input event.originalEvent.clipboardData.getData "text/plain"
+    @setKeyFocus()
