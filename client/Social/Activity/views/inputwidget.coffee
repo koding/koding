@@ -18,7 +18,7 @@ class ActivityInputWidget extends KDView
     # FIXME we need to hide bug warning in a proper way ~ GG
     @input.on "keyup", =>
       val = @input.getValue()
-      # @unsetClass 'bug-tagged'  if val.indexOf("5051003840118f872e001b91") is -1
+      @unsetClass 'bug-tagged'  if val.indexOf("5051003840118f872e001b91") is -1
 
     @on "ActivitySubmitted", =>
       @unsetClass "bug-tagged"
