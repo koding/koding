@@ -27,6 +27,17 @@ class BugReportMainView extends KDScrollView
       lists = @getDelegate().feedController.resultsController.listControllers
       lists.all.addItem activity, 0
 
+    groupController = KD.getSingleton("groupsController")
+    groupController.on "PostIsCreated", (post) =>
+      subject = @prepareSubject post
+      if subject.feedType is "bug"
+        lists = @getDelegate().feedController.resultsController.listControllers
+        lists.all.addItem subject, 0
+
+  prepareSubject:(post)->
+    {subject} = post
+    return KD.remote.revive subject
+
   viewAppended:->
     @mainBlock = new KDCustomHTMLView tagName : "main"
     @sideBlock = new KDCustomHTMLView tagName : "aside"
@@ -36,6 +47,3 @@ class BugReportMainView extends KDScrollView
 
     @mainBlock.addSubView @inputWidget
     @sideBlock.addSubView @filterMenu
-
-    # KD.remote.api.JTag.one slug:"bug", (err, tag) =>
-    #   @inputWidget.input.setDefaultTokens tags: [tag]
