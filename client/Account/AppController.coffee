@@ -117,7 +117,7 @@ class AccountAppController extends AppController
           callback     : => @resendHandler modal, username
         Close          :
           style        : "modal-cancel"
-          callback     : => modal.destroy()
+          callback     : -> modal.destroy()
 
     callback modal
 

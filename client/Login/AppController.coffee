@@ -20,13 +20,16 @@ class LoginAppsController extends AppController
 
   handleVerifyRoute = ({params:{token}})->
     KD.singleton('appManager').open 'Login', (app) ->
-      if token
-        KD.remote.api.JPasswordRecovery.validate token, (err, isValid)=>
-          if err and err.short isnt 'redeemed_token'
-            KD.notify_ err.message
-          else if isValid
-            KD.notify_ "Thanks for confirming your email address"
-            KD.getSingleton('router').handleRoute "/Login"
+      return  unless token
+      KD.remote.api.JPasswordRecovery.validate token, (err, isValid)=>
+        return KD.notify_ err.message  if err
+        if isValid
+          KD.notify_ "Thanks for confirming your email address"
+          KD.getSingleton('router').handleRoute "/Login"
+        else
+          KD.notify_ "Token is not valid"
+          KD.getSingleton('router').handleRoute "/Login"
+
   handleRedeemRoute = ({params:{name, token}})->
     token = decodeURIComponent token
     KD.remote.api.JInvitation.byCode token, (err, invite)->

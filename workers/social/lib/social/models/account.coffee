@@ -602,13 +602,13 @@ module.exports = class JAccount extends jraphical.Module
       JSession = require './session'
       JSession.update {clientId: sessionToken}, $set:{username: nickname}, callback
 
-  @verifyEmailByUsername = secure (client, nickname, callback)->
+  @verifyEmailByUsername = secure (client, username, callback)->
     {connection:{delegate}, sessionToken} = client
     unless delegate.can 'verify-emails'
       callback new KodingError 'Access denied'
     else
       JUser = require './user'
-      JUser.one username: nickname, (err, user)->
+      JUser.one {username}, (err, user)->
         return  callback err if err
         return  callback new Error "User is not found" unless user
         user.confirmEmail (err)->

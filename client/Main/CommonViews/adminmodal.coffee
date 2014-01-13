@@ -65,7 +65,7 @@ class AdminModal extends KDModalViewWithForms
                 callback      : =>
                   accounts = @userController.getSelectedItemData()
                   if accounts.length > 0
-                    KD.remote.api.JAccount.verifyEmailByUsername accounts[0].profile.nickname, (err, res)=>
+                    KD.remote.api.JAccount.verifyEmailByUsername accounts.first.profile.nickname, (err, res)->
                       title = if err then err.message else "Confirmed"
                       new KDNotificationView {title}
                   else
