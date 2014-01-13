@@ -58,6 +58,18 @@ class AdminModal extends KDModalViewWithForms
                     activityController.emit "ActivityItemBlockUserClicked", accounts[0].profile.nickname
                   else
                     new KDNotificationView {title: "Please select an account!"}
+              VerifyEmail     :
+                label         : "Verify Email Address"
+                itemClass     : KDButtonView
+                title         : "Verify Email Address"
+                callback      : =>
+                  accounts = @userController.getSelectedItemData()
+                  if accounts.length > 0
+                    KD.remote.api.JAccount.verifyEmailByUsername accounts[0].profile.nickname, (err, res)=>
+                      title = if err then err.message else "Confirmed"
+                      new KDNotificationView {title}
+                  else
+                    new KDNotificationView {title: "Please select an account!"}
 
               Impersonate     :
                 label         : "Switch to User "
