@@ -43,13 +43,27 @@ class CommentListItemView extends KDListItemView
     activity = @getDelegate().getData()
     loggedInId = KD.whoami().getId()
 
-    @settings = if true  # if super-admin
-      @getSettings(data)
-    else if loggedInId is data.originId or # if comment/review owner
-            loggedInId is activity.originId # if activity/app owner
-      @getDeleteButton(data)
+    isCommentMine   = loggedInId is data.originId
+    isActivityMine  = loggedInId is activity.originId
+    canEditComments = "edit comments" in KD.config.permissions
+
+    settingsOptions = {}
+    # if i am the owner of the comment or activity
+    # i can delete it
+    if isCommentMine or isActivityMine or canEditComments
+      settingsOptions.delete = yes
+      showSettingsMenu       = yes
+
+    # if i can edit comments(have permission)
+    if (isCommentMine and "edit own comments" in KD.config.permissions) or canEditComments
+        settingsOptions.edit = yes
+        showSettingsMenu     =  yes
+
+    # if settings menu should be visible
+    if showSettingsMenu
+      @settings = @getSettings data, settingsOptions
     else
-      new KDCustomHTMLView tagName : 'span', cssClass : 'hidden'
+      @settings = new KDView
 
     @likeView = new LikeViewClean { tooltipPosition : 'sw', checkIfLikedBefore: yes }, data
 
@@ -108,7 +122,7 @@ class CommentListItemView extends KDListItemView
     @editCommentWrapper.addSubView @editComment
     @editCommentWrapper.show()
 
-  getSettings:(data)->
+  getSettings:(data, options)->
     button = new KDButtonViewWithMenu
       cssClass       : 'activity-settings-menu'
       style          : 'comment-menu'
@@ -117,24 +131,14 @@ class CommentListItemView extends KDListItemView
       icon           : yes
       delegate       : this
       iconClass      : "arrow"
-      menu           : @settingsMenu data
+      menu           : @settingsMenu data, options
       callback       : (event)=> button.contextMenu event
 
   getBody:(data)->
     new KDCustomHTMLView
-      pistachio: "{p{@utils.applyTextExpansions #(body), yes}}",
-      data
-
-  getDeleteButton:(data)->
-    button = new KDCustomHTMLView
-        tagName     : 'a'
-        attributes  :
-          href      : '#'
-        cssClass    : 'delete-link hidden'
-        click       : KD.utils.stopDOMEvent
-      button.unsetClass "hidden"
-      button.on "click", => @confirmDeleteComment data
-    return button
+      cssClass : "comment-body-container"
+      pistachio: "{p{@utils.applyTextExpansions #(body), yes}}"
+    ,data
 
   render:->
     if @getData().getAt 'deletedAt'
@@ -199,12 +203,13 @@ class CommentListItemView extends KDListItemView
     else if force
       @setTemplate @pistachio()
 
-  settingsMenu:(data)->
-    menu =
-      'Edit'     :
-        callback : => @showEditCommentForm data
-      'Delete'   :
-        callback : => @confirmDeleteComment data
+  settingsMenu:(data, options={})->
+    menu = {}
+    if options.edit
+      menu['Edit']   = callback : => @showEditCommentForm data
+    if options.delete
+      menu['Delete'] = callback : => @confirmDeleteComment data
+    return menu
 
   pistachio:->
     """

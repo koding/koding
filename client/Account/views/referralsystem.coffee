@@ -53,6 +53,7 @@ class AccountReferralSystemListController extends AccountListViewController
 
         @modal = modal = new KDModalViewWithForms
           title                   : "Redeem Your Referral Points"
+          cssClass                : "redeem-modal"
           content                 : ""
           overlay                 : yes
           width                   : 500
@@ -79,6 +80,7 @@ class AccountReferralSystemListController extends AccountListViewController
                 fields            :
                   vmToResize    :
                     label         : "Select a WM to resize"
+                    cssClass      : "clearfix"
                     itemClass     : KDSelectBox
                     type          : "select"
                     name          : "vmToResize"
@@ -93,6 +95,7 @@ class AccountReferralSystemListController extends AccountListViewController
                       cb options
                   sizes           :
                     label         : "Select Size"
+                    cssClass      : "clearfix"
                     itemClass     : KDSelectBox
                     type          : "select"
                     name          : "size"

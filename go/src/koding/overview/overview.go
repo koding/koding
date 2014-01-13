@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -11,12 +12,10 @@ import (
 	"log"
 	"net/http"
 	"net/url"
-	"os"
 	"sort"
 	"strconv"
 	"time"
 
-	"github.com/fatih/set"
 	"github.com/gorilla/sessions"
 )
 
@@ -39,8 +38,6 @@ var (
 		"go/templates/overview/index.html",
 		"go/templates/overview/login.html",
 	))
-	admins = set.New("sinan", "devrim", "gokmen", "chris", "sent-hil",
-		"kiwigeraint", "cihangirsavas", "leventyalcin", "arslan", "ybrs")
 )
 
 const uptimeLayout = "03:04:00"
@@ -95,9 +92,25 @@ func viewHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		switchMessage = switchOperation(loginName, r)
+		version, err := switchOperation(loginName, r)
+		if err != nil {
+			log.Println(err)
+		} else {
+			log.Printf("switch is invoked by '%s' for build number '%s'\n", loginName, version)
+		}
 	case "newbuild":
-		fmt.Println("newbuild is called")
+		loginName, err = checkSessionHandler(w, r)
+		if err != nil {
+			renderTemplate(w, "login", HomePage{LoginMessage: err.Error()})
+			return
+		}
+
+		branch, err := buildOperation(loginName, r)
+		if err != nil {
+			log.Println("could not build", err)
+		} else {
+			log.Printf("build is created by '%s', for branch '%s'\n", loginName, branch)
+		}
 	default:
 		loginName, err = checkSessionHandler(w, r)
 		if err != nil {
@@ -182,7 +195,7 @@ func loginHandler(w http.ResponseWriter, r *http.Request) (string, error) {
 	// abort if password and username is not valid
 	err = authenticateUser(loginName, loginPass)
 	if err != nil {
-		return "", errors.New("Username or password is invalid")
+		return "", err
 	}
 
 	session.Values["userName"] = loginName
@@ -209,18 +222,41 @@ func checkSessionHandler(w http.ResponseWriter, r *http.Request) (string, error)
 	return loginName.(string), nil
 }
 
-func switchOperation(loginName string, r *http.Request) string {
+func buildOperation(username string, r *http.Request) (string, error) {
+	buildBranch := r.PostFormValue("newbuildBranch")
+	if buildBranch == "" {
+		return "", errors.New("buildBranch is empty")
+	}
+
+	jenkinsURL, _ := url.ParseRequestURI("http://68.68.97.88:8080/job/Koding Deployment/buildWithParameters")
+	q := jenkinsURL.Query()
+	q.Set("token", "runBuildKoding")
+	q.Set("BUILDBRANCH", buildBranch)
+	q.Set("cause", fmt.Sprintf("by %s", username))
+	jenkinsURL.RawQuery = q.Encode()
+
+	_, err := http.Post(jenkinsURL.String(), "", nil)
+	if err != nil {
+		return "", err
+	}
+
+	msg := fmt.Sprintf("%s deployed a new build with branch '%s'", username, buildBranch)
+	err = sendMsgToSlack("#_koding", msg)
+	if err != nil {
+		log.Println("slack error", err)
+	}
+
+	return buildBranch, nil
+}
+
+func switchOperation(loginName string, r *http.Request) (string, error) {
 	version := r.PostFormValue("switchVersion")
 	err := switchVersion(version)
 	if err != nil {
-		log.Println("error switching", err, version)
-		return fmt.Sprintf("Error switching: %s version %s", err, version)
+		return "", err
 	}
 
-	res := fmt.Sprintf("Switched to version %s switcher name: %s", version, loginName)
-	logAction(res)
-	log.Println(res)
-	return "Switched to version " + loginName
+	return version, nil
 }
 
 func switchVersion(newVersion string) error {
@@ -255,22 +291,24 @@ func switchVersion(newVersion string) error {
 		return err
 	}
 
-	return nil
-}
-
-func logAction(msg string) {
-	fileName := "versionswitchers.log"
-	flag := os.O_WRONLY | os.O_CREATE | os.O_APPEND
-	mode := os.FileMode(0644)
-
-	f, err := os.OpenFile(fileName, flag, mode)
+	// reset cache
+	resetURL := "http://koding-proxy0.sj.koding.com/_resetcache_/" + switchHost
+	resp, err := http.Get(resetURL)
 	if err != nil {
-		log.Println("error opening version switch log file")
-		return
+		log.Println("COULD NOT SWITCH")
 	}
-	defer f.Close()
 
-	f.WriteString(fmt.Sprintf("[%s] %s\n", time.Now().Format(time.RFC1123), msg))
+	if resp.StatusCode == 200 {
+		log.Println("Cache is cleaned for", switchHost)
+	}
+
+	msg := fmt.Sprintf("%s switched <https://koding.com|koding.com> to build %s", newVersion)
+	err = sendMsgToSlack("#_koding", msg)
+	if err != nil {
+		log.Println("slack error", err)
+	}
+
+	return nil
 }
 
 func keyLookup(key string) (map[string]bool, map[string]bool) {
@@ -384,7 +422,6 @@ func buildsInfo() []int {
 	serverApi := apiUrl + "/deployments/"
 	builds := make([]int, 0)
 
-	fmt.Println(serverApi)
 	resp, err := http.Get(serverApi)
 	if err != nil {
 		fmt.Println(err)
@@ -502,16 +539,23 @@ func currentVersion() (string, error) {
 }
 
 func authenticateUser(username, password string) error {
-	if !admins.Has(username) {
-		return fmt.Errorf("Username %s is not authenticated\n", username)
-	}
-
-	_, err := modelhelper.CheckAndGetUser(username, password)
+	user, err := modelhelper.CheckAndGetUser(username, password)
 	if err != nil {
-		return fmt.Errorf("Username %s does not match or wrong password\n", username)
+		return errors.New("Wrong username or password")
 	}
 
-	return nil
+	account, err := modelhelper.GetAccount(user.Name)
+	if err != nil {
+		return fmt.Errorf("Could not retrieve account '%s'.", user.Name)
+	}
+
+	for _, flag := range account.GlobalFlags {
+		if flag == "super-admin" {
+			return nil
+		}
+	}
+
+	return errors.New("You don't have super-admin flag")
 }
 
 func renderTemplate(w http.ResponseWriter, tmpl string, data interface{}) {
@@ -519,4 +563,44 @@ func renderTemplate(w http.ResponseWriter, tmpl string, data interface{}) {
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
+}
+
+type slackPayload struct {
+	Channel   string `json:"channel"`
+	Username  string `json:"username"`
+	Text      string `json:"text"`
+	IconEmoji string `json:"icon_emoji"`
+}
+
+func sendMsgToSlack(channel, text string) error {
+	hookURL := "https://koding.slack.com/services/hooks/incoming-webhook?token=z7TCJnrGy3kpcRLkbBbUzlKh"
+
+	payload := slackPayload{
+		Channel:   channel,
+		Username:  "Koding Overview",
+		Text:      text,
+		IconEmoji: ":rocket:",
+	}
+
+	data, err := json.Marshal(&payload)
+	if err != nil {
+		return err
+	}
+
+	resp, err := http.Post(hookURL, "application/json", bytes.NewReader(data))
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode == 200 {
+		return nil
+	}
+
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return err
+	}
+
+	return fmt.Errorf("slack err: %s", string(body))
 }

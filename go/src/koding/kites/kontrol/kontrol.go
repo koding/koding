@@ -222,7 +222,9 @@ func (k *Kontrol) makeSetter(kite *protocol.Kite, etcdKey, kodingkey string) fun
 			return
 		}
 
-		prevValue = resp.Node.PrevValue
+		if resp.PrevNode != nil {
+			prevValue = resp.PrevNode.Value
+		}
 
 		// Set the TTL for the username. Otherwise, empty dirs remain in etcd.
 		_, err = k.etcd.UpdateDir(KitesPrefix+"/"+kite.Username, ttl)
