@@ -13,6 +13,7 @@ services=(
   koding/rerouting
   koding/userpresence
   koding/persistence
+  koding/overview
   koding/kites/os
   koding/kites/kontrol/kontrol
   koding/virt/vmproxy

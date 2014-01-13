@@ -75,7 +75,7 @@ class DashboardAppView extends JView
       @navController = @nav.setListController
         itemClass : CommonInnerNavigationListItem
       ,
-        title     : "SHOW ME"
+        title     : ""
         items     : []
 
       @nav.addSubView @navController.getView()

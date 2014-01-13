@@ -19,6 +19,9 @@ Dashboard main styles
     max-width             1100px
     padding-top           90px
 
+  .list-group-title
+    hidden()
+
 
 //////////////////////////////////////
 //                                  //
@@ -284,8 +287,6 @@ Dashboard member listing related common styles
 
   .listview-wrapper .lazy-loader
     font-weight               600
-    background                rgba(0, 0, 0, 0.01)
-    border-bottom             1px solid rgba(0, 0, 0, 0.05)
     font-size                 12px
     color                     #5F5F5F
     .kdview.kdloader
@@ -361,13 +362,8 @@ Dashboard Membership Policy styles
   .policy-view-wrapper
 
     .koding-on-off
-      border-top          1px solid transparent
       margin-top          14px
       fl()
-      borderBox()
-
-      .knob
-        margin            1px 0 0 2px
 
     > .kdbutton.edit-link
       size                auto, 33px
@@ -485,6 +481,7 @@ Dashboard invitations tab styles
 
     .kdtabhandle
       color                   #1aaf5d
+      border                  none
 
     .kdtabhandle.active
       height                  30px
@@ -494,22 +491,27 @@ Dashboard invitations tab styles
       height                  auto
       width                   auto
       position                absolute
-      top                     14px
-      right                   20px
+      top                     15px
+      right                   5px
 
       button
         margin-left           5px
+        height                40px
+        .button-title
+          line-height         40px
 
       .show-resolved
-        margin-right          10px
         height                auto
-        width                 auto
+        width                 150px
 
         label
+          line-height         40px
           font-size           11px
+          fl()
 
-        .on-off a
-          padding-bottom      7px
+        .koding-on-off.small
+          margin              6px
+          fl()
 
       .show-resolved
       .on-off
@@ -702,6 +704,7 @@ Dashboard Invitations Modal Styles
     right             20px
     top               11px
     rounded           0px 3px 3px 0px
+    z-index           1
 
 
 //
@@ -711,6 +714,15 @@ Dashboard Invitations Modal Styles
 
 
 .kdtabview.dashboard-tabs
+  margin-left                 34px
+  kalc                        width, 100% \- 224px
+
+
+  .kdtabhandlecontainer
+    bg                        color transparent
+    border                    none
+
+
   .loader
     fl()
     margin-top                10px

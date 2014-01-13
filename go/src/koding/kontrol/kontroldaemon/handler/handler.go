@@ -15,6 +15,7 @@ import (
 	"strings"
 	"time"
 
+	"log"
 	"github.com/streadway/amqp"
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
@@ -126,21 +127,14 @@ func handleCommand(command string, worker models.Worker) error {
 			return fmt.Errorf("register to kontrol proxy not possible. port number is '0' for %s", worker.Name)
 		}
 
-		mode := "roundrobin"
-		if worker.Name == "broker" {
-			mode = "sticky"
-		}
-
 		port := strconv.Itoa(worker.Port)
 		key := strconv.Itoa(worker.Version)
 		err = modelhelper.UpsertKey(
 			"koding",    // username
-			"",          // persistence, empty means disabled
-			mode,        // loadbalancing mode
 			worker.Name, // servicename
-			key,         // version
+			key,         // version (build number)
 			worker.Hostname+":"+port, // host
-			"FromKontrolDaemon",      // hostdata
+			worker.Environment,       // hostdata, pass environment
 			true,                     // enable keyData to be used with proxy immediately
 		)
 		if err != nil {
@@ -483,6 +477,7 @@ func heartBeatChecker() {
 
 	for {
 		kontrolDB.RunOnDatabase(WorkersDB, WorkersCollection, queryFunc)
+		log.Printf("mgo.GetStats() %+v\n", mgo.GetStats())
 		time.Sleep(workerconfig.HEARTBEAT_INTERVAL)
 	}
 }

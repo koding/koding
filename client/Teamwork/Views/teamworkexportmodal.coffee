@@ -12,7 +12,9 @@ class TeamworkExportModal extends KDModalView
         title        : "Next"
         iconClass    : "tw-next-icon"
         icon         : yes
-        callback     : => @startExport()
+        callback     : =>
+          KD.mixpanel "Teamwork export next, click"
+          @startExport()
 
     super options, data
 
@@ -68,6 +70,7 @@ class TeamworkExportModal extends KDModalView
       , no
 
   createElements: ->
+    KD.mixpanel "Teamwork export, click"
     @addSubView new KDCustomHTMLView
       partial  : """
         <p>

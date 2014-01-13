@@ -589,7 +589,9 @@ input.kdinput.text
   bg                    color, #989F9C
   vendor                transition, background-color .3s ease
   cursor                pointer
+  padding               2px
   noTextSelection()
+  borderBox()
   rel()
   &.on
     bg                  color, #6bb198
@@ -600,7 +602,6 @@ input.kdinput.text
     size                30px 30px
     display             block
     rounded             50%
-    margin              2px 0 0 2px
     -webkit-transition  -webkit-transform .1s ease
     -moz-transition     -moz-transform .1s ease
     transition          transform .1s ease
@@ -623,7 +624,7 @@ input.kdinput.text
   bg                    color white
   rounded               6px
   shadow                0 0 32px rgba(0,0,0,.46)
-  fix()
+  position              fixed !important
 
   .kdmodal-inner
     margin              45px
@@ -650,13 +651,18 @@ input.kdinput.text
       font-size         24px !important
 
   .kdmodal-content
-    overflow            visible !important
     margin              15px 0 0 0 !important
     padding             0 !important
     font-size           16px !important
+    line-height         18px !important
 
     .modalformline
       padding           0
+      overflow          visible
+
+      &:last-child
+        border-bottom   1px solid transparent
+
 
   .kdmodal-buttons
   .kdformview .button-field
@@ -873,6 +879,10 @@ a.action-link.verify-email
   &.inresize
     noAnim()
 
+  .close-icon
+    r-sprite            app, "modal-close-icon"
+    top                 14px
+    right               14px
 
 .kdhelp-modal
 
@@ -912,9 +922,6 @@ a.action-link.verify-email
     border-radius               4px
     cursor                      pointer
 
-  span.close-icon
-    background-position         -80px -520px
-    opacity                     .5
   footer
     h4
       line-height               30px

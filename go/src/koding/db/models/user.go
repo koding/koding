@@ -1,8 +1,9 @@
 package models
 
 import (
-	"labix.org/v2/mgo/bson"
 	"time"
+
+	"labix.org/v2/mgo/bson"
 )
 
 type User struct {

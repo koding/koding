@@ -102,7 +102,7 @@ class TeamworkTabView extends CollaborativePane
             if pane.terminalView
               {terminal} = pane.terminalView.webterm
               terminal.scrollToBottom()
-              terminal.container.trigger 'click'
+              terminal.setFocused yes  if document.activeElement is document.body
             else if pane.editor
               pane.editor.codeMirrorEditor.refresh()
 
@@ -211,6 +211,8 @@ class TeamworkTabView extends CollaborativePane
 
     @registerPaneRemoveListener_ @dashboard
 
+    KD.mixpanel "Teamwork tab dashboard, click"
+
   createDrawingBoard: (sessionKey, indexKey) ->
     indexKey  = indexKey or @createSessionKey()
     pane      = new KDTabPaneView { title: "Drawing Board", indexKey }
@@ -226,6 +228,8 @@ class TeamworkTabView extends CollaborativePane
         indexKey   : indexKey
 
     @registerPaneRemoveListener_ pane
+
+    KD.mixpanel "Teamwork tab drawingboard, click"
 
   registerPaneRemoveListener_: (pane) ->
     pane.on "KDObjectWillBeDestroyed", =>
@@ -263,6 +267,8 @@ class TeamworkTabView extends CollaborativePane
 
     @registerPaneRemoveListener_ pane
 
+    KD.mixpanel "Teamwork tab editor, click"
+
   openFile: (file, content) ->
     @createEditor file, content
 
@@ -289,6 +295,8 @@ class TeamworkTabView extends CollaborativePane
 
     @registerPaneRemoveListener_ pane
 
+    KD.mixpanel "Teamwork tab terminal, click"
+
   createPreview: (sessionKey, indexKey, url = null) ->
     indexKey = indexKey or @createSessionKey()
     pane     = new KDTabPaneView { title: "Browser", indexKey }
@@ -304,6 +312,8 @@ class TeamworkTabView extends CollaborativePane
         indexKey  : indexKey
 
     @registerPaneRemoveListener_ pane
+
+    KD.mixpanel "Teamwork tab browser, click"
 
   createChat: ->
     pane = new KDTabPaneView title: "Chat"

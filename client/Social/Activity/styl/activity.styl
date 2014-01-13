@@ -56,6 +56,23 @@ resurrection.activity.styl
         &[disabled=disabled]
           bg            color, #DDD !important
 
+      &.bug-tagged
+        overflow          visible
+
+        &:after
+          content         "As you are using the #bug tag - we will move your post to our bug tracker once you post it. Our engineers will be notified. You will be able to see the Bugs app on your dock after you post. Thanks for reporting and happy Koding!"
+          display         block
+          size            600px, 60px
+          line-height     20px
+          color           #fff
+          font-weight     400
+          text-align      center
+          font-size       12px
+          rounded         3px
+          bg              color, #1aaf5d
+          padding         5px
+          margin-top      2px
+
     .filter-warning
       background        rgba(37, 46, 48, 1.0)
       width             calc( 100% \- 10px)
@@ -437,6 +454,12 @@ resurrection.activity.styl
       > div
         color         #acacac
 
+    .preview-icon
+      display         block
+      abs             0 48px 16px 0
+      r-sprite        "activity", "preview-eye"
+      cursor          pointer
+
     button[type=submit]
       size            30px, 30px
       abs             0 9px 8px 0
@@ -451,6 +474,15 @@ resurrection.activity.styl
 
       &[disabled=disabled]
         bg            color, #DDD !important
+
+  &.preview-active
+    .input-view > div
+      &:not(.update-preview)
+        display       none
+
+    .preview-icon
+      r-sprite        "activity", "preview-eye-active"
+
 
   &.edit-widget
     .input-view
@@ -649,12 +681,10 @@ span.collapsedtext
     bg                color, #f6f6f6
     rounded           0 0 5px 5px
 
-    .delete-link
-      display       block
-      top           27px
-      right         20px
+    .activity-settings-menu
+      top           22px
+      right         21px
       opacity       0
-      r-sprite        activity "delete-icon"
       transition    opacity .2s ease
       abs()
 
@@ -690,7 +720,7 @@ span.collapsedtext
     borderBox()
 
     &:hover
-      .delete-link
+      .activity-settings-menu
         opacity         .5
         &:hover
           opacity       1
@@ -721,13 +751,20 @@ span.collapsedtext
         font-weight   400
         noTextDeco()
 
-      > p
-        word-break    break-word
-        line-height   17px
-        font-weight   200
+      .comment-body-container
+        > p
+          word-break  break-word
+          line-height 17px
+          font-weight 200
 
-        a
-          color       inherit
+          a
+            color     inherit
+
+      .edited
+        display       block
+        font-size     12px
+        color         #cacaca
+        margin        6px 0 0
 
       .like-view
       .reply-link
@@ -795,6 +832,7 @@ span.collapsedtext
 
 
   .item-add-comment-box
+  .edit-comment-box
     borderBox()
 
     .avatarview
@@ -831,6 +869,16 @@ span.collapsedtext
 
         &:focus
           line-height     24px
+
+    &.edit-comment-box
+      textarea
+        padding           9px
+        rounded           5px
+        margin            4px 0
+
+      .cancel-description
+        font-size         12px
+        color             #cacaca
 
 /* Embed Styles */
 .embed-image-view
@@ -1022,6 +1070,9 @@ body.profile
       z-index             599
       abs()
 
+    &.comment-menu
+      margin              94px 0 0 16px
+
     .kdlistitemview-contextitem
       color               #50595f
       font-size           12px
@@ -1049,6 +1100,7 @@ body.profile
 
 /** Markdown Styling **/
 .activity-item > article
+.activity-input-widget .update-preview
 
   /* Headings */
   h1, h2, h3, h4, h5, h6
@@ -1081,6 +1133,7 @@ body.profile
   /* Paragraphs and other text */
   p  p
     padding               0 0 12px
+    word-wrap             break-word
   em
     font-style            italic
   strong

@@ -37,6 +37,8 @@ config =
         databases       :
           mongodb       : [{ host : 1, user : 1, password:1}]
   main            :
+    environment   : 1
+    version       : 1
     haproxy       :
       webPort     : 1
     aws           :
@@ -48,7 +50,6 @@ config =
     containerSubnet: 1
     vmPool        : 1
     projectRoot   : 1
-    version       : 1
     webserver     :
       useCacheHeader: 1
       login       : 1
@@ -160,6 +161,7 @@ config =
       useStaticFileServer: 1
       staticFilesBaseUrl: 1
       runtimeOptions  :
+        environment   : 1
         activityFetchCount : 1
         precompiledApi: 1
         authExchange  : 1

@@ -262,8 +262,14 @@ func (p *Proxy) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	// our main handler mux function goes and picks the correct handler
 	if h := p.getHandler(r); h != nil {
-		loggingHandler := handlers.CombinedLoggingHandler(p.logDestination, h)
-		loggingHandler.ServeHTTP(w, r)
+		if config.VMProxies {
+			// don't wrap this around CLH logging handler, because it breaks websocket
+			h.ServeHTTP(w, r)
+		} else {
+			loggingHandler := handlers.CombinedLoggingHandler(p.logDestination, h)
+			loggingHandler.ServeHTTP(w, r)
+		}
+
 		return
 	}
 
@@ -288,6 +294,10 @@ func (p *Proxy) getHandler(req *http.Request) http.Handler {
 
 		if err == resolver.ErrVMOff {
 			return templateHandler("notOnVM.html", req.Host, 404)
+		}
+
+		if err == resolver.ErrNoHost {
+			return templateHandler("maintenance.html", nil, 503)
 		}
 
 		return templateHandler("notfound.html", req.Host, 404)
@@ -325,16 +335,14 @@ func (p *Proxy) getHandler(req *http.Request) http.Handler {
 		// roundrobin to next target
 		err := target.Resolve(req.Host)
 		if err != nil {
-			logs.Info(fmt.Sprintf("internal resolver error (%s) - %s", userIP, err))
+			logs.Info(fmt.Sprintf("internal resolver error for %s (%s) - %s", req.Host, userIP, err))
+
+			statusCode := 503
 			if err == resolver.ErrGone {
-				return templateHandler("notfound.html", req.Host, 410)
+				statusCode = 410 // Gone
 			}
 
-			if err == resolver.ErrNoHost {
-				return templateHandler("maintenance.html", nil, 503)
-			}
-
-			return templateHandler("notfound.html", req.Host, 404)
+			return templateHandler("maintenance.html", nil, statusCode)
 		}
 	}
 
@@ -407,29 +415,35 @@ func securePageHandler(userIP string) http.Handler {
 // the underlying http connection and copies forth and back the response
 func websocketHandler(target string) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		d, err := net.Dial("tcp", target)
-		if err != nil {
-			http.Error(w, "Error contacting backend server.", 500)
-			logs.Notice(fmt.Sprintf("error dialing websocket backend %s: %v", target, err))
-			return
-		}
 		hj, ok := w.(http.Hijacker)
 		if !ok {
 			http.Error(w, "not a hijacker?", 500)
+			logs.Notice(fmt.Sprintf("websocket: [%s] not a hijacker?", target))
 			return
 		}
+
 		nc, _, err := hj.Hijack()
 		if err != nil {
-			logs.Notice(fmt.Sprintf("hijack error: %v", err))
+			http.Error(w, "Error contacting backend server.", 500)
+			logs.Notice(fmt.Sprintf("websocket: [%s] hijack error: %v", target, err))
 			return
 		}
 		defer nc.Close()
+
+		d, err := net.Dial("tcp", target)
+		if err != nil {
+			http.Error(w, "Error contacting backend server.", 500)
+			logs.Notice(fmt.Sprintf("websocket: [%s] error dialing websocket backend: %v",
+				target, err))
+			return
+		}
 		defer d.Close()
 
 		// write back the request of the client to the server.
 		err = r.Write(d)
 		if err != nil {
-			logs.Notice(fmt.Sprintf("error copying request to target: %v", err))
+			http.Error(w, "Error contacting backend server.", 500)
+			logs.Notice(fmt.Sprintf("websocket [%s] error copying request to target: %v", target, err))
 			return
 		}
 

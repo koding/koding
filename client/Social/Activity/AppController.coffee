@@ -2,7 +2,7 @@ class ActivityAppController extends AppController
 
   KD.registerAppClass this,
     name         : "Activity"
-    route        : "/:name?/Activity"
+    route        : "/:name?/Activity/:slug?"
     searchRoute  : "/Activity?q=:text:"
     hiddenHandle : yes
 
@@ -263,6 +263,7 @@ class ActivityAppController extends AppController
 
   fetchPublicActivities:(options = {})->
     options.to = @lastTo
+    options.feedType = "$ne" : "bug"
     {JNewStatusUpdate} = KD.remote.api
     # todo - implement prefetched feed
     eventSuffix = "#{@getFeedFilter()}_#{@getActivityFilter()}"
@@ -296,11 +297,16 @@ class ActivityAppController extends AppController
 
   fetchFollowingActivities:(options = {})->
     {JNewStatusUpdate} = KD.remote.api
+    options.to = @lastTo or @followingLastTo or Date.now()
     eventSuffix = "#{@getFeedFilter()}_#{@getActivityFilter()}"
     JNewStatusUpdate.fetchFollowingFeed options, (err, activities) =>
       if err
       then @emit "activitiesCouldntBeFetched", err
-      else @emit "followingFeedFetched_#{eventSuffix}", activities
+      else
+        if Array.isArray activities
+          activities = activities.reverse()
+          @profileLastTo = activities.last.meta.createdAt if activities.length > 0
+        @emit "followingFeedFetched_#{eventSuffix}", activities
 
   setWarning:(options = {})->
     options.type or= "tag"

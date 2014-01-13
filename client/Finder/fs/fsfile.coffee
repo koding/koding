@@ -42,6 +42,8 @@ class FSFile extends FSItem
         if useEncoding
           content = KD.utils.utf8Decode content # Convert to String
 
+        KD.mixpanel "Fetch contents, success"
+
       callback.call @, err, content
       @emit "fs.job.finished", err, content
 
