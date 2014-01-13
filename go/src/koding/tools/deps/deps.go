@@ -9,6 +9,7 @@ import (
 	"path"
 	"sort"
 	"strings"
+	"sync"
 
 	"github.com/fatih/set"
 )
@@ -78,16 +79,39 @@ func (d *Deps) GetDeps() error {
 	godir := "gonew"
 	gopathDir := path.Join(pwd, godir)
 	os.MkdirAll(gopathDir, 0755)
+	os.Setenv("GOPATH", gopathDir)
 
-	listPackages := strings.Join(d.Dependencies, " ")
+	var wg sync.WaitGroup
 
-	cmd := exec.Command("go", []string{"get", "-d", listPackages}...)
-	cmd.Env = []string{"GOPATH=" + gopathDir}
+	results := make(chan string, 0)
 
-	err = cmd.Run()
-	if err != nil {
-		return err
+	for _, pkg := range d.Dependencies {
+		wg.Add(1)
+
+		go func(pkg string) {
+			defer wg.Done()
+			cmd := exec.Command("go", []string{"get", "-d", pkg}...)
+			cmd.Stdout, cmd.Stderr = os.Stdout, os.Stderr
+
+			var res string
+			err := cmd.Run()
+			if err != nil {
+				res = fmt.Sprintf("fetching error %s", err)
+			} else {
+				res = pkg
+			}
+
+			results <- res
+		}(pkg)
 	}
+
+	go func() {
+		for res := range results {
+			fmt.Println(res)
+		}
+	}()
+
+	wg.Wait()
 
 	return nil
 }
