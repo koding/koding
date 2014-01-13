@@ -502,18 +502,21 @@ class ProfileView extends JView
       @badgeItemsList = new UserPropertyList {}, counts : @memberData.counts
       # show "Thank You" button to admins
       @thankButton = new KDButtonView
-        title      : "Thank"
+        title      : "+1 rep"
         type       : "submit"
         callback   : =>
-          KD.whoami().likeUser @memberData._id, (err)=>
-            log err if err
-
-
+          KD.whoami().likeMember @memberData.profile.nickname, (err)=>
+            if err
+              warn err
+            else
+              KD.getSingleton("badgeController").checkBadge
+                source : "JAccount" ,property : "staffLikes", relType : "like", targetSelf : 1
+              @thankButton.disable()
+              @utils.wait 3000, =>
+                @thankButton.enable()
 
   viewAppended:->
-
     super
-
     @createExternalProfiles()
     @createBadges()
 
