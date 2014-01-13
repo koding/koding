@@ -33,6 +33,7 @@ class EmbedBoxLinkViewDescription extends KDView
 
   viewAppended:->
     JView::viewAppended.call this
+    # TODO as a future work editIndicator must be added
     # if @getData().link_embed?.descriptionEdited
     #   @editIndicator.show()
 
