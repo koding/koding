@@ -18,6 +18,15 @@ class LoginAppsController extends AppController
         app.getView().setCustomDataToForm('reset', {recoveryToken:token})
         app.getView().animateToForm('reset')
 
+  handleVerifyRoute = ({params:{token}})->
+    KD.singleton('appManager').open 'Login', (app) ->
+      if token
+        KD.remote.api.JPasswordRecovery.validate token, (err, isValid)=>
+          if err and err.short isnt 'redeemed_token'
+            KD.notify_ err.message
+          else if isValid
+            KD.notify_ "Thanks for confirming your email address"
+            KD.getSingleton('router').handleRoute "/Login"
   handleRedeemRoute = ({params:{name, token}})->
     token = decodeURIComponent token
     KD.remote.api.JInvitation.byCode token, (err, invite)->
@@ -78,6 +87,7 @@ class LoginAppsController extends AppController
       '/:name?/Reset'            : handler (app)-> app.getView().animateToForm 'reset'
       '/:name?/Reset/:token'     : handleResetRoute
       '/:name?/Confirm/:token'   : handleResetRoute
+      '/:name?/Verify/:token'    : handleVerifyRoute
       '/:name?/Redeem/:token'    : handleRedeemRoute
       '/:name?/ResendToken'      : handler (app)-> app.getView().animateToForm 'resendEmail'
     hiddenHandle                 : yes
