@@ -257,6 +257,9 @@ module.exports = class JAccount extends jraphical.Module
           (signature String, Function)
         updateCountAndCheckBadge:
           (signature Object, Function)
+        likeMember:
+          (signature String, Function)
+
     schema                  :
       skillTags             : [String]
       locationTags          : [String]
@@ -279,6 +282,9 @@ module.exports = class JAccount extends jraphical.Module
           type              : Number
           default           : 0
         statusUpdates       :
+          type              : Number
+          default           : 0
+        staffLikes          :
           type              : Number
           default           : 0
         comments            :
@@ -780,6 +786,8 @@ module.exports = class JAccount extends jraphical.Module
       "comments"
       "referredUsers"
       "invitations"
+      "staffLikes"
+      "twitterFollowers"
     ]
     return new KodingError "No permission!" unless @equals client.connection.delegate
     {@property} = options
@@ -793,14 +801,14 @@ module.exports = class JAccount extends jraphical.Module
     if targetSelf then selector["targetId"]=@getId() else selector["sourceId"]=@getId()
 
     Relationship.count selector, (err, count) =>
-      return err if err
+      return callback err, null if err
       countsField = {}
       key = "counts.#{@property}"
       countsField[key] = count
-      @update $set: countsField , (err)=>
+      @update $set: countsField, (err)=>
         return err if err
         JBadge = require './badge'
-        JBadge.checkEligibleBadges client, badgeItem:@property , callback
+        JBadge.checkEligibleBadges client, badgeItem : @property , callback
 
   # Update broken counts for user
   updateCounts:->
@@ -883,6 +891,16 @@ module.exports = class JAccount extends jraphical.Module
       if user.foreignAuth?.twitter?
         followerCount = user.foreignAuth.twitter.profile.followers_count
         @update ($set: 'counts.twitterFollowers': followerCount), ->
+
+    # Staff Likes count
+    Relationship.count
+      as         : 'like'
+      targetId   : @getId()
+      targetName : 'JAccount'
+      sourceName : 'JAccount'
+    , (err, count)=>
+      return if err or not count
+      @update ($set: 'counts.staffLikes': count), ->
 
   dummyAdmins = [ "sinan", "devrim", "gokmen", "chris", "fatihacet", "arslan",
                   "sent-hil", "kiwigeraint", "cihangirsavas", "leventyalcin",
@@ -1576,3 +1594,17 @@ module.exports = class JAccount extends jraphical.Module
           callback null, user.getAt key
     else
       callback new KodingError 'Access denied'
+
+  likeMember:  permit 'like members',
+    success: (client, nickname, callback)->
+      JAccount.one { 'profile.nickname' : nickname }, (err, account)=>
+        return callback new KodingError "An error occured!" if err or not account
+
+        rel = new Relationship
+          targetId    : account.getId()
+          targetName  : 'JAccount'
+          sourceId    : @getId()
+          sourceName  : 'JAccount'
+          as          : 'like'
+
+        rel.save (err)-> callback err
