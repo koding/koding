@@ -1595,7 +1595,7 @@ module.exports = class JAccount extends jraphical.Module
     else
       callback new KodingError 'Access denied'
 
-  likeMember:  permit 'like members',
+  likeMember: permit 'like members',
     success: (client, nickname, callback)->
       JAccount.one { 'profile.nickname' : nickname }, (err, account)=>
         return callback new KodingError "An error occured!" if err or not account

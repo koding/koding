@@ -82,6 +82,9 @@ class BadgeRules extends JView
     {@badge} = @getOptions()
     if @badge
       @updateRulesList()
+      #hide add new rule
+      @addRuleButton.disable()
+      @doneButton = new KDCustomHTMLView
 
   createUserSelector: (limit, skip)->
     selector   = {}
