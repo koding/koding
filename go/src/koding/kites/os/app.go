@@ -1,3 +1,5 @@
+// +build linux
+
 package main
 
 import (
@@ -11,11 +13,12 @@ import (
 	"koding/tools/dnode"
 	"koding/tools/kite"
 	"koding/virt"
-	"launchpad.net/goamz/s3"
 	"os"
 	"path"
 	"strings"
 	"time"
+
+	"launchpad.net/goamz/s3"
 )
 
 type Manifest struct {
