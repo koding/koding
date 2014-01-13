@@ -188,7 +188,7 @@ class NotificationListItem extends KDListItemView
           return callback err if err or not origin?
           originatorName = KD.utils.getFullnameFromAccount origin
           @activityPlot = if post.originId is KD.whoami()?.getId() then "your"
-          else if @group.length == 1 and @group[0].id is origin.getId() then "their"
+          else if @group.length == 1 and @group[0].id is origin.getId() then "their own"
           else "#{originatorName}'s"
           @activityPlot += " #{activityNameMap[constructorName]}"
           callback null
