@@ -24,26 +24,31 @@ boink()
 
 
 span.intro-marker
-  rounded         26px
-  display         block
+  rounded         50%
   size            52px 52px
   left            0
   top             0
-  bg              color rgba(26, 175, 93, .2)
-  // shadow          0 0 2px 10px
-  overflow        hidden
+  background      -webkit-radial-gradient(center center, farthest-side circle, #1aaf5d 50%, rgba(26, 175, 93, .2) 50%)
+  background      -moz-radial-gradient(center center, farthest-side circle, #1aaf5d 50%, rgba(26, 175, 93, .2) 50%)
+  overflow        visible
   border          2px solid logoBg
   cursor          pointer
   z-index         10
   borderBox()
   abs()
   boink()
-  i
-    rounded       13px
-    display       block
-    size          26px 26px
-    margin        11px auto
-    bg            color logoBg
+
+  &.in:after
+    content       ""
+    abs           -2px 0 0 -2px
+    size          52px 52px
+    background    -webkit-radial-gradient(center center, farthest-side circle, rgba(26, 175, 93, 0) 70%, logoBg 100%)
+    background    -moz-radial-gradient(center center, farthest-side circle, rgba(26, 175, 93, 0) 70%, logoBg 100%)
+    border        1px solid logoBg
+    vendor        animation, homeMarkers 5s 3s infinite linear
+    opacity       0
+    rounded       50%
+    borderBox()
 
 .marker-message
   bg              color logoBg

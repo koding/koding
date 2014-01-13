@@ -7,6 +7,7 @@ class LoginInputView extends JView
     options.cssClass          = KD.utils.curry 'login-input-view', options.cssClass
     inputOptions            or= {}
     inputOptions.cssClass     = KD.utils.curry 'thin', inputOptions.cssClass
+    inputOptions.decorateValidation = no
 
     {placeholder, validate}   = inputOptions
 
@@ -62,6 +63,7 @@ class LoginInputView extends JView
   decorateValidation: (err)->
 
     @resetDecoration()
+    return  unless @input.getValue().length
     if err
     then @icon.setTooltip title : "<p>#{err}</p>"
     else @icon.unsetTooltip()
