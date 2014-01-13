@@ -35,8 +35,8 @@ class BugReportMainView extends KDScrollView
         lists.all.addItem subject, 0
 
   prepareSubject:(post)->
-    subject = KD.remote.revive subject
-    return subject
+    {subject} = post
+    return KD.remote.revive subject
 
   viewAppended:->
     @mainBlock = new KDCustomHTMLView tagName : "main"
