@@ -35,7 +35,6 @@ class BugReportMainView extends KDScrollView
         lists.all.addItem subject, 0
 
   prepareSubject:(post)->
-    {subject} = post
     subject = KD.remote.revive subject
     return subject
 
