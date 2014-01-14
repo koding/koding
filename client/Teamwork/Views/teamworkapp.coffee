@@ -76,6 +76,8 @@ class TeamworkApp extends KDObject
               type        : "finder"
               name        : "finder"
               editor      : "tabView"
+              treeItemClass: TeamworkFinderItem
+              treeControllerClass: TeamworkFinderTreeController
             }
             {
               type        : "custom"
