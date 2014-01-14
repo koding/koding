@@ -56,6 +56,13 @@ class CollaborativeFinderPane extends CollaborativePane
 
     @finderController.reset()  unless @workspace.getOptions().playground
 
+    @finderController.on "CannotOpenImageFiles", =>
+      new KDNotificationView
+        type      : "mini"
+        title     : "You cannot open image files in #{@workspace.getOptions().name}"
+        container : @workspace
+        duration  : 4200
+
     @finderController.treeController.on "HistoryItemCreated", (historyItem) =>
       @workspace.addToHistory historyItem
 
@@ -111,9 +118,16 @@ class CollaborativeFinderTreeController extends NFinderTreeController
 
   openFile: (nodeView) ->
     return unless nodeView
-    file = nodeView.getData()
+
+    file      = nodeView.getData()
+    extension = FSItem.getFileExtension file.path
+    fileType  = FSItem.getFileType extension
+    delegate  = @getDelegate()
+
+    return delegate.emit "CannotOpenImageFiles"  if fileType is "image"
+
     file.fetchContents (err, contents) =>
-      @getDelegate().emit "OpenedAFile", file, contents
+      delegate.emit "OpenedAFile", file, contents
 
   selectNode: (node) ->
     super
