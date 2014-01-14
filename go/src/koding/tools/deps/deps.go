@@ -112,14 +112,6 @@ func (d *Deps) populateGoPaths() error {
 	return nil
 }
 
-func compareGoVersions(a, b string) bool {
-	goprefix := "go"
-	a = strings.TrimPrefix(a, goprefix)
-	b = strings.TrimPrefix(b, goprefix)
-	fmt.Println("a, b", a, b)
-	return Compare(a, b, "<=")
-}
-
 func (d *Deps) InstallDeps() error {
 	if !compareGoVersions(d.GoVersion, runtime.Version()) {
 		return fmt.Errorf("Go Version is not satisfied\nSystem Go Version: '%s' Expected: '%s'", runtime.Version(), d.GoVersion)

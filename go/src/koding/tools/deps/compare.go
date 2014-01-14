@@ -4,6 +4,7 @@ package deps
 // We don't use any third party imports for the sake of simplicity
 
 import (
+	"fmt"
 	"regexp"
 	"strconv"
 	"strings"
@@ -24,6 +25,14 @@ var specialForms = map[string]int{
 	"#":     -2,
 	"p":     1,
 	"pl":    1,
+}
+
+func compareGoVersions(a, b string) bool {
+	goprefix := "go"
+	a = strings.TrimPrefix(a, goprefix)
+	b = strings.TrimPrefix(b, goprefix)
+	fmt.Println("a, b", a, b)
+	return compare(a, b, "<=")
 }
 
 // Compares two normalizated version number strings, for a particular relationship
@@ -47,8 +56,8 @@ var specialForms = map[string]int{
 //
 //     version.Compare("1.0", "1.0b1", "ge")
 //     Returns: true
-func Compare(version1, version2, operator string) bool {
-	compare := CompareSimple(version1, version2)
+func compare(version1, version2, operator string) bool {
+	compare := compareSimple(version1, version2)
 
 	switch {
 	case operator == ">" || operator == "gt":
@@ -79,7 +88,7 @@ func Compare(version1, version2, operator string) bool {
 //
 //     version.CompareSimple("1.0rc1", "1.0")
 //     Returns: -1
-func CompareSimple(version1, version2 string) int {
+func compareSimple(version1, version2 string) int {
 	var x, r, l int = 0, 0, 0
 
 	v1, v2 := prepVersion(version1), prepVersion(version2)
