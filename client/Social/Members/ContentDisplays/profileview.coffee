@@ -517,12 +517,15 @@ class ProfileView extends JView
               @utils.wait 3000, =>
                 @thankButton.enable()
       @thankButton.hide()
+      @badgeItemsList.hide()
 
       @on "mouseenter", =>
         @thankButton.show()
+        @badgeItemsList.show()
 
       @on "mouseleave", =>
         @thankButton.hide()
+        @badgeItemsList.hide()
 
   viewAppended:->
     super
