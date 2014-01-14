@@ -215,5 +215,5 @@ class TeamworkWorkspace extends CollaborativeWorkspace
         title     : "Please enter a valid url"
         type      : "mini"
         cssClass  : "error"
-        container : modal.buttonHolder
+        container : modal
         duration  : 4000
