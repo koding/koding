@@ -1,6 +1,7 @@
 package deps
 
 import (
+	"errors"
 	"fmt"
 	"go/build"
 	"log"
@@ -9,19 +10,34 @@ import (
 	"path"
 	"sort"
 	"strings"
-	"sync"
 
 	"github.com/fatih/set"
 )
 
+const depsGoPath = "gonew"
+
 type Deps struct {
-	// if multiple, revision will be always pointing to HEAD
-	// Packages is written as the importPath of a given package.
-	Packages     []string
+	// Packages is written as the importPath of a given package(s).
+	Packages []string
+
+	// Dependencies defines the dependency of the given Packages. If multiple
+	// packages are defined, each dependency will point to the HEAD unless
+	// changed manually.
 	Dependencies []string
+
+	// currentGoPath, is taken from current GOPATH environment variable
+	currentGoPath string
+
+	// tmpGoPath is used to fetch dependencies of the given Packages
+	tmpGoPath string
 }
 
 func LoadDeps(pkgs ...string) (*Deps, error) {
+	gopath := os.Getenv("GOPATH")
+	if gopath == "" {
+		return nil, errors.New("GOPATH is not set")
+	}
+
 	packages, err := listPackages(pkgs...)
 	if err != nil {
 		fmt.Println(err)
@@ -62,56 +78,57 @@ func LoadDeps(pkgs ...string) (*Deps, error) {
 
 	sort.Strings(thirdPartyDeps)
 
+	pwd, err := os.Getwd()
+	if err != nil {
+		return nil, err
+	}
+
 	deps := &Deps{
-		Packages:     pkgs,
-		Dependencies: thirdPartyDeps,
+		Packages:      pkgs,
+		Dependencies:  thirdPartyDeps,
+		currentGoPath: gopath,
+		tmpGoPath:     path.Join(pwd, depsGoPath),
 	}
 
 	return deps, nil
 }
 
-func (d *Deps) GetDeps() error {
-	pwd, err := os.Getwd()
-	if err != nil {
-		return err
+func (d *Deps) InstallDeps() error {
+	// expand current path
+	if d.tmpGoPath != d.currentGoPath {
+		os.Setenv("GOPATH", fmt.Sprintf("%s:%s", d.tmpGoPath, d.currentGoPath))
 	}
 
-	godir := "gonew"
-	gopathDir := path.Join(pwd, godir)
-	os.MkdirAll(gopathDir, 0755)
-	os.Setenv("GOPATH", gopathDir)
+	os.Setenv("GOBIN", fmt.Sprintf("%s/bin", d.tmpGoPath))
 
-	var wg sync.WaitGroup
+	for _, pkg := range d.Packages {
+		fmt.Println("go install -v", pkg)
+		cmd := exec.Command("go", []string{"install", "-v", pkg}...)
+		cmd.Stdout, cmd.Stderr = os.Stdout, os.Stderr
 
-	results := make(chan string, 0)
+		err := cmd.Run()
+		if err != nil {
+			log.Println(err)
+		}
+	}
+
+	return nil
+}
+
+func (d *Deps) GetDeps() error {
+	os.MkdirAll(d.tmpGoPath, 0755)
+	os.Setenv("GOPATH", d.tmpGoPath)
 
 	for _, pkg := range d.Dependencies {
-		wg.Add(1)
+		fmt.Println("go get", pkg)
+		cmd := exec.Command("go", []string{"get", "-d", pkg}...)
+		cmd.Stdout, cmd.Stderr = os.Stdout, os.Stderr
 
-		go func(pkg string) {
-			defer wg.Done()
-			cmd := exec.Command("go", []string{"get", "-d", pkg}...)
-			cmd.Stdout, cmd.Stderr = os.Stdout, os.Stderr
-
-			var res string
-			err := cmd.Run()
-			if err != nil {
-				res = fmt.Sprintf("fetching error %s", err)
-			} else {
-				res = pkg
-			}
-
-			results <- res
-		}(pkg)
-	}
-
-	go func() {
-		for res := range results {
-			fmt.Println(res)
+		err := cmd.Run()
+		if err != nil {
+			log.Println(err)
 		}
-	}()
-
-	wg.Wait()
+	}
 
 	return nil
 }
