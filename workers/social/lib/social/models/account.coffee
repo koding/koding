@@ -96,6 +96,8 @@ module.exports = class JAccount extends jraphical.Module
         ]
         impersonate:
           (signature String, Function)
+        verifyEmailByUsername:
+          (signature String, Function)
         fetchBlockedUsers:
           (signature Object, Function)
         fetchCachedUserCount:
@@ -606,6 +608,19 @@ module.exports = class JAccount extends jraphical.Module
       JSession = require './session'
       JSession.update {clientId: sessionToken}, $set:{username: nickname}, callback
 
+  @verifyEmailByUsername = secure (client, username, callback)->
+    {connection:{delegate}, sessionToken} = client
+    unless delegate.can 'verify-emails'
+      callback new KodingError 'Access denied'
+    else
+      JUser = require './user'
+      JUser.one {username}, (err, user)->
+        return  callback err if err
+        return  callback new Error "User is not found" unless user
+        user.confirmEmail (err)->
+          return callback new Error "An error occured while confirming email" if err
+          callback null, yes
+
   @reserveNames =(options, callback)->
     [callback, options] = [options, callback]  unless callback
     options       ?= {}
@@ -1025,7 +1040,7 @@ module.exports = class JAccount extends jraphical.Module
         @profile.nickname in dummyAdmins or target?.originId?.equals @getId()
       when 'flag', 'reset guests', 'reset groups', 'administer names', \
            'administer url aliases', 'administer accounts', \
-           'migrate-koding-users', 'list-blocked-users'
+           'migrate-koding-users', 'list-blocked-users', 'verify-emails'
         @profile.nickname in dummyAdmins
 
   fetchRoles: (group, callback)->
