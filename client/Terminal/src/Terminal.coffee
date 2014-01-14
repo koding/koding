@@ -61,14 +61,20 @@ class WebTerm.Terminal extends KDObject
     @outputbox.append @measurebox.getDomElement()
     @container.append @outputbox
 
-    outputboxElement.addEventListener "keydown", (event) =>
-      range = KD.utils.getSelectionRange()
-      if range.startOffset isnt range.endOffset
+    outputboxElement.addEventListener "keydown", do =>
+      controlMeta = no
+      (event) =>
+        range = KD.utils.getSelectionRange()
+        return  if range.startOffset is range.endOffset
         if event.ctrlKey or event.metaKey
-          @setKeyFocus()  if String.fromCharCode(event.which) is "X"
+          return  controlMeta = yes  if event.keyIdentifier in ["Control", "Meta"]
+          char = String.fromCharCode event.which
+          if char is "X" then return @setKeyFocus()
+          else if char in ["C", "V"] then return
+          else if controlMeta then @setKeyFocus()
+          controlMeta = no
         else
           @setKeyFocus()
-    , yes
 
     outputboxElement.addEventListener "keypress", (event) =>
       KD.utils.stopDOMEvent event  if event.target isnt @keyInput.getElement()
