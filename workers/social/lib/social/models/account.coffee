@@ -3,13 +3,6 @@ KodingError = require '../error'
 
 likeableActivities = [
   'JNewStatusUpdate'
-#  'JCodeSnip'
-#  'JDiscussion'
-#  'JOpinion'
-#  'JCodeShare'
-#  'JLink'
-#  'JTutorial'
-#  'JBlogPost'
   ]
 
 module.exports = class JAccount extends jraphical.Module
@@ -38,6 +31,7 @@ module.exports = class JAccount extends jraphical.Module
   {Relationship} = jraphical
   {permit} = require './group/permissionset'
   Validators = require './group/validators'
+  Protected = require '../traits/protected'
 
   @share()
 
@@ -1390,24 +1384,27 @@ module.exports = class JAccount extends jraphical.Module
     slug = client.context.group ? 'koding'
     JGroup.one {slug}, (err, group)=>
       return callback err  if err
-      group.fetchPermissionSet (err, permissionSet)=>
+      cb = (err, roles)=>
         return callback err  if err
-        cb = (err, roles)=>
-          return callback err  if err
-
-          perms = (perm.permissions.slice()\
+        {flatten} = require 'underscore'
+        if "admin" in roles
+          perms = Protected.permissionsByModule
+          callback null, flatten(perms), roles
+        else
+          group.fetchPermissionSet (err, permissionSet)=>
+            return callback err  if err
+            perms = (perm.permissions.slice()\
                   for perm in permissionSet.permissions\
                     # if user is an admin, add all
                     # roles into permission set
                   when perm.role in roles or 'admin' in roles)
 
-          {flatten} = require 'underscore'
-          callback null, flatten(perms), roles
+            callback null, flatten(perms), roles
 
-        if this instanceof JAccount
-          group.fetchMyRoles client, cb
-        else
-          cb null, ['guest']
+      if this instanceof JAccount
+        group.fetchMyRoles client, cb
+      else
+        cb null, ['guest']
 
   oldAddTags = @::addTags
   addTags: secure (client, tags, options, callback)->

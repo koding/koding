@@ -43,12 +43,15 @@ class LinkGroup extends KDCustomHTMLView
     #   debugger
     #   return
 
-    for participant, index in participants when participant
+    index = 0
+    for participant in participants.slice(0).reverse()
       if participant?.bongo_?.constructorName is "ObjectRef"
         itemOptions.origin = participant
         @["participant#{index}"] = new itemClass itemOptions
       else
         @["participant#{index}"] = new itemClass itemOptions, participant
+      index++
+
     # tmp fix
     return unless @participant0
 
