@@ -68,9 +68,7 @@ class CollaborativeWorkspace extends Workspace
       @emit "WorkspaceSyncedWithRemote"
 
   bindRemoteEvents: ->
-    if @amIHost() then @syncWorkspace()
-    else
-      @requestPingFromHost()
+    if @amIHost() then @syncWorkspace() else @requestPingFromHost()
 
     @usersRef.on "child_added", (snapshot) =>
       @fetchUsers()
