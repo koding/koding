@@ -1,9 +1,11 @@
 package deps
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"go/build"
+	"io/ioutil"
 	"log"
 	"os"
 	"os/exec"
@@ -14,16 +16,19 @@ import (
 	"github.com/fatih/set"
 )
 
-const depsGoPath = "gonew"
+const (
+	depsGoPath    = "gonew"
+	gopackageFile = "gopackage.json"
+)
 
 type Deps struct {
 	// Packages is written as the importPath of a given package(s).
-	Packages []string
+	Packages []string `json:"packages"`
 
 	// Dependencies defines the dependency of the given Packages. If multiple
 	// packages are defined, each dependency will point to the HEAD unless
 	// changed manually.
-	Dependencies []string
+	Dependencies []string `json:"dependencies"`
 
 	// currentGoPath, is taken from current GOPATH environment variable
 	currentGoPath string
@@ -113,6 +118,44 @@ func (d *Deps) InstallDeps() error {
 	}
 
 	return nil
+}
+
+func goPackagePath() string {
+	pwd, err := os.Getwd()
+	if err != nil {
+		return ""
+	}
+
+	return path.Join(pwd, gopackageFile)
+}
+
+func (d *Deps) WriteJSON() error {
+	data, err := json.MarshalIndent(d, "", "  ")
+	if err != nil {
+		return err
+	}
+
+	err = ioutil.WriteFile(goPackagePath(), data, 0755)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func ReadJson() (*Deps, error) {
+	data, err := ioutil.ReadFile(goPackagePath())
+	if err != nil {
+		return nil, err
+	}
+
+	deps := new(Deps)
+	err = json.Unmarshal(data, deps)
+	if err != nil {
+		return nil, err
+	}
+
+	return deps, nil
 }
 
 func (d *Deps) GetDeps() error {
