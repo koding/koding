@@ -16,6 +16,9 @@ class BugStatusItemList extends StatusActivityItemView
       callback     : (value)=>
         @changeBugStatus value
       click        : (event)->
+        if not KD.hasAccess "edit posts"
+          new KDNotificationView
+            title : "Only Koding staff can set this"
         KD.utils.stopDOMEvent event
 
     data.on "TagsUpdated",(tags) =>

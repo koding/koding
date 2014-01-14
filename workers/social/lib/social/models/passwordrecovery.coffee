@@ -25,6 +25,8 @@ module.exports = class JPasswordRecovery extends jraphical.Module
           (signature String, Function)
         recoverPassword:
           (signature String, Function)
+        resendVerification:
+          (signature String, Function)
         resetPassword:
           (signature String, String, Function)
         fetchRegistrationDetails:
@@ -78,24 +80,38 @@ module.exports = class JPasswordRecovery extends jraphical.Module
   @recoverPassword = secure (client, usernameOrEmail, callback)->
     JUser = require './user'
     if JUser.validateAt 'email', usernameOrEmail
-      @recoverPasswordByEmail client, usernameOrEmail, callback
+      @recoverPasswordByEmail client, {email: usernameOrEmail, resetPassword:yes}, callback
     else if JUser.validateAt 'username', usernameOrEmail
-      @recoverPasswordByUsername client, usernameOrEmail, callback
+      @recoverPasswordByUsername client, {username: usernameOrEmail, resetPassword:yes}, callback
     else callback new KodingError 'Invalid input.'
 
-  @recoverPasswordByUsername = (client, username, callback)->
+  @resendVerification = secure (client, usernameOrEmail, callback)->
+    JUser = require './user'
+    if JUser.validateAt 'email', usernameOrEmail
+      @recoverPasswordByEmail client, {email: usernameOrEmail, resetPassword:no, verb:"Verify"}, callback
+    else if JUser.validateAt 'username', usernameOrEmail
+      @recoverPasswordByUsername client, {username: usernameOrEmail, resetPassword:no, verb:"Verify"}, callback
+    else callback new KodingError 'Invalid input.'
+
+  @recoverPasswordByUsername = (client, options, callback)->
     JUser = require './user'
     {delegate} = client.connection
+    {username} = options
     JUser.one {username}, (err, user)=>
       unless user then callback new KodingError "Unknown username"
-      else @create client, {email: user.getAt('email'), resetPassword:yes}, callback
+      else
+        options.email = user.getAt('email')
+        @create client, options, callback
 
-  @recoverPasswordByEmail = secure (client, email, callback)->
+  @recoverPasswordByEmail = secure (client, options, callback)->
     JUser = require './user'
     {delegate} = client.connection
+    {email} = options
     JUser.count {email}, (err, num)=>
       unless num then callback null # pretend like everything went fine.
-      else @create client, {email, resetPassword:yes}, callback
+      else
+        options.email = email
+        @create client, options, callback
 
   @create = (client, options, callback)->
     JUser = require './user'
