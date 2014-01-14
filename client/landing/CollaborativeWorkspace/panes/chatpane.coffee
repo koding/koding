@@ -99,7 +99,7 @@ class ChatPane extends JView
     @updateDate details.time
     @lastMessage = @lastChatItem.message
     @emit "NewChatItemCreated"
-    @scrollToTop()
+    @scrollToBottom()
 
   appendToChatItem: (params) ->
     {details}  = params
@@ -129,9 +129,9 @@ class ChatPane extends JView
       element.innerHTML = words.join " "
       element.classList.add "tw-chat-media"
 
-  scrollToTop: ->
-    $messages = @messages.$()
-    $messages.scrollTop $messages[0].scrollHeight
+  scrollToBottom: ->
+    element = @messages.getElement()
+    element.scrollTop = element.scrollHeight
 
   pistachio: ->
     """
