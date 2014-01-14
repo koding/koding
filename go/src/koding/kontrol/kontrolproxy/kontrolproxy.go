@@ -7,6 +7,7 @@ import (
 	"koding/db/mongodb/modelhelper"
 	"koding/kontrol/kontrolproxy/resolver"
 	"koding/kontrol/kontrolproxy/utils"
+	"koding/newkite/kite"
 	"koding/tools/config"
 	"log"
 	"log/syslog"
@@ -102,8 +103,31 @@ func main() {
 	runtime.GOMAXPROCS(runtime.NumCPU())
 	fmt.Printf("[%s] I'm using %d cpus for goroutines\n", time.Now().Format(time.Stamp), runtime.NumCPU())
 
+	runKite()
 	configureProxy()
 	startProxy()
+}
+
+func runKite() {
+	kontrolPort := strconv.Itoa(config.Current.NewKontrol.Port)
+	kontrolHost := config.Current.NewKontrol.Host
+	kontrolURL := &url.URL{
+		Scheme: "wss",
+		Host:   fmt.Sprintf("%s:%s", kontrolHost, kontrolPort),
+		Path:   "/dnode",
+	}
+
+	options := &kite.Options{
+		PublicIP:    "localhost",
+		Kitename:    "kdproxy",
+		Environment: config.FileProfile,
+		Region:      config.Region,
+		Version:     "0.0.1",
+		KontrolURL:  kontrolURL,
+	}
+
+	k := kite.New(options)
+	k.Start()
 }
 
 // configureProxy is used to setup all necessary configuration procedures, like
