@@ -124,15 +124,15 @@ func (d *Deps) InstallDeps() error {
 
 	os.Setenv("GOBIN", fmt.Sprintf("%s/bin", d.tmpGoPath))
 
-	for _, pkg := range d.Packages {
-		fmt.Println("go install -v", pkg)
-		cmd := exec.Command("go", []string{"install", "-v", pkg}...)
-		cmd.Stdout, cmd.Stderr = os.Stdout, os.Stderr
+	args := []string{"install", "-v"}
+	args = append(args, d.Packages...)
 
-		err := cmd.Run()
-		if err != nil {
-			log.Println(err)
-		}
+	cmd := exec.Command("go", args...)
+	cmd.Stdout, cmd.Stderr = os.Stdout, os.Stderr
+
+	err := cmd.Run()
+	if err != nil {
+		log.Println(err)
 	}
 
 	return nil
