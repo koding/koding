@@ -13,12 +13,15 @@ class ActivityInputWidget extends KDView
 
     @input.on "TokenAdded", (type, token) =>
       if token.slug is "bug" and type is "tag"
+        @bugNotification.show()
         @setClass "bug-tagged"
 
     # FIXME we need to hide bug warning in a proper way ~ GG
     @input.on "keyup", =>
       val = @input.getValue()
-      @unsetClass 'bug-tagged'  if val.indexOf("5051003840118f872e001b91") is -1
+      if val.indexOf("5051003840118f872e001b91") is -1
+        @unsetClass 'bug-tagged'
+        @bugNotification.hide()
 
     @on "ActivitySubmitted", =>
       @unsetClass "bug-tagged"
@@ -43,6 +46,7 @@ class ActivityInputWidget extends KDView
       cssClass : 'bug-notification'
       partial  : '<figure></figure>Posts tagged with <strong>#bug</strong>  will be moved to <a href="/Bugs" target="_blank">Bug Tracker</a>.'
 
+    @bugNotification.hide()
     @bugNotification.bindTransitionEnd()
 
     @previewIcon = new KDCustomHTMLView
