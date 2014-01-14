@@ -1,9 +1,3 @@
-class TeamworkFinderItem extends NFinderItem
-
-  removeHighlight: ->
-    super
-    @exporter?.destroy()
-
 # TODO: Should implement non-collaborative finder
 # TODO: Should extend this class from NonCollab one.
 
@@ -20,8 +14,8 @@ class CollaborativeFinderPane extends CollaborativePane
       nodeParentIdPath    : "parentPath"
       contextMenu         : yes
       useStorage          : no
-      treeControllerClass : CollaborativeFinderTreeController
-      treeItemClass       : TeamworkFinderItem
+      treeControllerClass : options.treeControllerClass or CollaborativeFinderTreeController
+      treeItemClass       : options.treeItemClass       or NFinderItem
 
     @container?.destroy()
     @finder = @container = @finderController.getView()
@@ -128,13 +122,3 @@ class CollaborativeFinderTreeController extends NFinderTreeController
 
     file.fetchContents (err, contents) =>
       delegate.emit "OpenedAFile", file, contents
-
-  selectNode: (node) ->
-    super
-
-    if node.getData().type is "folder"
-      node.exporter = new KDCustomHTMLView
-        cssClass    : "tw-export"
-        click       : => @emit "ExportRequested", node
-
-      node.addSubView node.exporter
