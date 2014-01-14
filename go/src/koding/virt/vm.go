@@ -228,7 +228,6 @@ func (v *VM) mergeFiles(logWarning func(string, ...interface{})) {
 
 	v.MergePasswdFile(logWarning)
 	v.MergeGroupFile(logWarning)
-	v.MergeDpkgDatabase()
 }
 
 func (v *VM) mountAufs() error {
