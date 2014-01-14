@@ -251,7 +251,7 @@ func buildOperation(username string, r *http.Request) (string, error) {
 
 func switchOperation(loginName string, r *http.Request) (string, error) {
 	version := r.PostFormValue("switchVersion")
-	err := switchVersion(version)
+	err := switchVersion(loginName, version)
 	if err != nil {
 		return "", err
 	}
@@ -259,7 +259,7 @@ func switchOperation(loginName string, r *http.Request) (string, error) {
 	return version, nil
 }
 
-func switchVersion(newVersion string) error {
+func switchVersion(loginName, newVersion string) error {
 	if switchHost == "" {
 		errors.New("switchHost is not defined")
 	}
@@ -302,7 +302,8 @@ func switchVersion(newVersion string) error {
 		log.Println("Cache is cleaned for", switchHost)
 	}
 
-	msg := fmt.Sprintf("%s switched <https://koding.com|koding.com> to build %s", newVersion)
+	msg := fmt.Sprintf("%s switched <https://koding.com|koding.com> to build %s",
+		loginName, newVersion)
 	err = sendMsgToSlack("#_koding", msg)
 	if err != nil {
 		log.Println("slack error", err)
