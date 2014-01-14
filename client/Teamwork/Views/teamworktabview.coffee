@@ -186,7 +186,8 @@ class TeamworkTabView extends CollaborativePane
       when "editor"
         path = data.filePath or "localfile:/untitled.txt"
         file = FSHelper.createFileFromPath path
-        @createEditor file, "", sessionKey, indexKey
+        @createEditor file, "FIREBASE_CONTENT", sessionKey, indexKey
+        # placeholder for setting the firebase content to editor when page refreshed
 
   createDashboard: ->
     return @tabView.showPane @dashboard  if @dashboard
@@ -253,7 +254,8 @@ class TeamworkTabView extends CollaborativePane
     indexKey = indexKey or @createSessionKey()
     pane     = new KDTabPaneView { title: file.name, indexKey }
     delegate = @getDelegate()
-    editor   = new CollaborativeEditorPane { delegate, sessionKey, file, content }
+    useFirepadContent = content is "FIREBASE_CONTENT"
+    editor   = new CollaborativeEditorPane { delegate, sessionKey, file, content, useFirepadContent }
 
     @appendPane_ pane, editor
     pane.editor = editor
