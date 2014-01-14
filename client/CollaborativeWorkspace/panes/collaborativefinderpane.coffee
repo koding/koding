@@ -60,8 +60,17 @@ class CollaborativeFinderPane extends CollaborativePane
     @finderController.treeController.on "HistoryItemCreated", (historyItem) =>
       @workspace.addToHistory historyItem
 
+    # TODO: fatihacet - ExportRequested and PreivewRequested events should be
+    # listened somewhere else since they are Teamwork related events.
     @finderController.treeController.on "ExportRequested", (node) =>
       new TeamworkExportModal {}, node
+
+    @finderController.treeController.on "PreviewRequested", (node) =>
+      tabView   = @workspace.getActivePanel().getPaneByName "tabView"
+      nickname  = KD.nick()
+      [t, path] = node.getData().path.split "#{nickname}/Web/"
+      publicUrl = "https://#{nickname}.kd.io/#{path}"
+      tabView.createPreview null, null, publicUrl
 
   syncContent: (files) ->
     @workspaceRef.set { files }
