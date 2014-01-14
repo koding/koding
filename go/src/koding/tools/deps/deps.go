@@ -10,6 +10,7 @@ import (
 	"os"
 	"os/exec"
 	"path"
+	"runtime"
 	"sort"
 	"strings"
 
@@ -25,6 +26,9 @@ type Deps struct {
 	// Packages is written as the importPath of a given package(s).
 	Packages []string `json:"packages"`
 
+	// GoVersion defines the Go version needed at least as a minumum.
+	GoVersion string `json:"goVersion"`
+
 	// Dependencies defines the dependency of the given Packages. If multiple
 	// packages are defined, each dependency will point to the HEAD unless
 	// changed manually.
@@ -38,11 +42,6 @@ type Deps struct {
 }
 
 func LoadDeps(pkgs ...string) (*Deps, error) {
-	gopath := os.Getenv("GOPATH")
-	if gopath == "" {
-		return nil, errors.New("GOPATH is not set")
-	}
-
 	packages, err := listPackages(pkgs...)
 	if err != nil {
 		fmt.Println(err)
@@ -83,19 +82,34 @@ func LoadDeps(pkgs ...string) (*Deps, error) {
 
 	sort.Strings(thirdPartyDeps)
 
-	pwd, err := os.Getwd()
+	deps := &Deps{
+		Packages:     pkgs,
+		Dependencies: thirdPartyDeps,
+		GoVersion:    runtime.Version(),
+	}
+
+	err = deps.populateGoPaths()
 	if err != nil {
 		return nil, err
 	}
 
-	deps := &Deps{
-		Packages:      pkgs,
-		Dependencies:  thirdPartyDeps,
-		currentGoPath: gopath,
-		tmpGoPath:     path.Join(pwd, depsGoPath),
+	return deps, nil
+}
+
+func (d *Deps) populateGoPaths() error {
+	gopath := os.Getenv("GOPATH")
+	if gopath == "" {
+		return errors.New("GOPATH is not set")
 	}
 
-	return deps, nil
+	pwd, err := os.Getwd()
+	if err != nil {
+		return err
+	}
+
+	d.currentGoPath = gopath
+	d.tmpGoPath = path.Join(pwd, depsGoPath)
+	return nil
 }
 
 func (d *Deps) InstallDeps() error {
@@ -149,13 +163,18 @@ func ReadJson() (*Deps, error) {
 		return nil, err
 	}
 
-	deps := new(Deps)
-	err = json.Unmarshal(data, deps)
+	d := new(Deps)
+	err = json.Unmarshal(data, d)
 	if err != nil {
 		return nil, err
 	}
 
-	return deps, nil
+	err = d.populateGoPaths()
+	if err != nil {
+		return nil, err
+	}
+
+	return d, nil
 }
 
 func (d *Deps) GetDeps() error {
