@@ -554,7 +554,8 @@ class LoginView extends KDView
 
   showError = (err)->
 
-    if err.message is "CONFIRMATION_WAITING"
+
+    if err.code and err.code is 403
       {name, nickname}  = err.data
       KD.getSingleton('appManager').tell 'Account', 'displayConfirmEmailModal', name, nickname
 

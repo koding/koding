@@ -45,6 +45,8 @@ class AvatarAreaIconMenu extends JView
     mainView.addSubView @notificationsPopup
 
     @attachListeners()
+    KD.getSingleton('mainController').on "AccountChanged", =>
+      @attachListeners()
 
 
   attachListeners:->

@@ -66,12 +66,6 @@ createLikesCount = (numberOfLikes)->
 createAuthor = (accountName, nickname)->
   return "<a href=\"#{uri.address}/#!/#{nickname}\"><span itemprop=\"name\">#{accountName}</span></a>"
 
-createCodeSnippet = (code)->
-  codeSnippet = ""
-  if code
-    codeSnippet = "<code>#{code}</code>"
-  return codeSnippet
-
 createUserInteractionMeta = (numberOfLikes, numberOfComments)->
   userInteractionMeta = "<meta itemprop=\"interactionCount\" content=\"UserLikes:#{numberOfLikes}\"/>"
   userInteractionMeta += "<meta itemprop=\"interactionCount\" content=\"UserComments:#{numberOfComments}\"/>"
@@ -89,8 +83,6 @@ getSingleActivityContent = (activityContent, model)->
 
   userInteractionMeta = createUserInteractionMeta \
     activityContent.numberOfLikes, activityContent.numberOfComments
-
-  codeSnippet = createCodeSnippet activityContent.codeSnippet
 
   if activityContent?.comments?.length? > 0
     comments = (createCommentNode(comment) for comment in activityContent.comments)
@@ -122,7 +114,7 @@ getSingleActivityContent = (activityContent, model)->
   content  =
     """
       <header itemprop="headline"><h1>#{title}</h1></header>
-      #{body} #{codeSnippet}
+      #{body}
       <hr>
       <figure itemscope itemtype="http://schema.org/person" title="#{accountName}">
         #{avatarImage}

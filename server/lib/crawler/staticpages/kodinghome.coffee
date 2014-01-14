@@ -7,71 +7,149 @@ module.exports = ->
   getGraphMeta  = require './graphmeta'
 
   """
-
   <!DOCTYPE html>
-  <html lang="en"><head>
-    <title>Koding</title>
-    #{getGraphMeta()}
-    <style rel="stylesheet">
-      #koding-logo {
-        font-size: 18px;
-        color : transparent;
-        width: 120px;
-        height: 30px;
-        display: inline-block;
-        background-position: -235px -719px;
-        background-image: url("../images/_kd.sprites.png");
-        background-repeat: no-repeat;
-      }
-    </style>
-  <body itemscope itemtype="http://schema.org/WebPage">
-    <a id="koding-logo" href="http://koding.com">KODING<span></span></a>
-    <h1>Software development has finally evolved,<br> It's now social, in the browser and free!</h1>
-    <hr>
-    <article>
-      <header><h2>Koding for you</h2></header>
+  <html lang="en">
+    <head>
+      <title>Koding</title>
+      #{getGraphMeta()}
+      <style rel="stylesheet">
+        #koding-logo {
+          font-size: 18px;
+          color : transparent;
+          width: 120px;
+          height: 30px;
+          display: inline-block;
+          background-position: -235px -719px;
+          background-image: url("../images/_kd.sprites.png");
+          background-repeat: no-repeat;
+        }
+      </style>
+    </head>
+    <body itemscope itemtype="http://schema.org/WebPage">
+      <a id="koding-logo" href="http://koding.com">Coding environment from the future<span></span></a>
+      <hr>
+      <article>
+        <header>Koding</header>
+        <h1>
+          Coding environment from the future.
+        </h1>
+        <p>
+          Social development in your browser, sign up to join a great community and code on powerful VMs. Koding is an online IDE for Java, Javascript, CoffeeScript, Go, NodeJS and more!
+        </p>
+      </article>
+      <hr>
+      <article>
+        <header><h3><a href="https://koding.com/Apps">Appstore</a></h3></header>
+        <p>
+          Speed up with user contributed apps, or create your own app, Koding has a great toolset to interact with VMs and to build UIs around.
+        </p>
+      </article>
+      <hr>
+      <article>
+        <header><h3><a href="https://koding.com/Teamwork">Teamwork</a></h3></header>
+        <p>
+          Collaborative development environment for lecture groups, pair programming, or simply for sharing what you're doing with a total stranger.
+        </p>
+      </article>
+      <hr>
+      <article>
+        <header><h3><a href="https://koding.com/Activity">Social</a></h3></header>
+        <p>
+          Share with the community, learn from the experts or help those who have yet to start coding. Socialize with like minded people and have fun.
+        </p>
+      </article>
+      <hr>
+      <article>
+        <header><h2>Groups, have your own Koding</h2></header>
+        <p>
+          Have all your development needs in a single private space.
+        </p>
+      </article>
+      <article>
+        <header><h3>White-label Koding</h3></header>
+        <p>
+          You can have your private Koding in the cloud, with your rules, your apps and your own members. Please contact us for further information.
+        </p>
+      </article>
+      <article>
+        <header><h3>Use it in your school</h3></header>
+        <p>
+          Koding in the classroom, prepare your files online, share them with the whole class instantly. Collaborate live or just make your students watch what you're doing.
+        </p>
+      </article>
+      <article>
+        <header><h3>Create project groups</h3></header>
+        <p>
+          Want to work on a project with your buddies and use the same resources and running instances, share a VM between your fellow developers.
+        </p>
+      </article>
       <p>
-        You have great ideas.  You want to meet brilliant minds, and bring those ideas to life.  You want to start simple.  Maybe soon you'll have a 10 person team, commanding 100s of servers.
+        Get your own Koding for your team. Contact us for details.
       </p>
-      <p>
-        You want to learn Python, Java, C, Go, Nodejs, HTML, CSS or Javascript or any other. Community will help you along the way.
-      </p>
-    </article>
-    <hr>
-    <article>
-      <header><h2>Koding for Developers</h2></header>
-      <p>
-        You will have an amazing virtual machine that is better than your laptop.  It's connected to the internet 100s of times faster.  You can share it with anyone you wish. Clone git repos.  Test and iterate on your code without breaking your setup.
-      </p>
-      <p>
-        It's free. Koding is your new localhost, in the cloud.
-      </p>
-    </article>
-    <hr>
-    <article>
-      <header><h2>Koding for Education</h2></header>
-      <p>
-        Create a group where your students enjoy the resources you provide to them. Make it private or invite-only.  Let them share, collaborate and submit their assignments together.  It doesn't matter if you have ten students, or ten thousand.  Scale from just one to hundreds of computers.
-      </p>
-      <p>
-        Koding is your new classroom.
-      </p>
-    </article>
-    <hr>
-    <article>
-      <header><h2>Koding for Business</h2></header>
-      <p>
-        When you hire someone, they can get up to speed in your development environment in 5 minutes—easily collaborating with others and contributing code.  All without sharing ssh keys or passwords.  Stop cc'ing your team; stop searching through old emails.
-      </p>
-      <p>
-        Koding is your new workspace.
-      </p>
-    </article>
-    <hr>
-    <article>
-      <header><h2>Pricing</h2></header>
-      <p>
-        You'll be able to buy more resources for your personal account or for accounts in your organization.
-      </p>
-    </article>
+      <ul itemscope="itemscope" itemtype="http://schema.org/SiteNavigationElement" >
+        <li>
+          <a itemprop="url" href="mailto:hello@koding.com" >
+            <div itemprop="name">Contact</div>
+          </a>
+        </li>
+        <li>
+          <a itemprop="url" href="http://learn.koding.com/">
+            <div itemprop="name">University</div>
+          </a>
+        </li>
+        <li>
+          <a itemprop="url" href="http://koding.github.io/jobs/">
+            <div itemprop="name">Jobs</div>
+          </a>
+        </li>
+        <li>
+          <a itemprop="url" href="http://blog.koding.com">
+            <div itemprop="name">Blog</div>
+          </a>
+        </li>
+      </ul>
+
+      <div itemscope itemtype="http://schema.org/SoftwareApplication">
+        <span itemprop="name">Koding</span> -
+
+        <span itemprop="description">
+          Social development in your browser, sign up to join a great community and code on powerful VMs. Koding is an online IDE for Java, Javascript, CoffeeScript, Go, NodeJS and more!
+        </span>
+
+        UPDATED: <time itemprop="datePublished" datetime="2009-06-30">2011</time>
+        REQUIRES <span itemprop="operatingSystems">A modern browser, e.g. Google Chrome </span>: <span itemprop="operatingSystemVersion">20</span> and up
+        <link itemprop="SoftwareApplicationCategory" href="http://schema.org/WebApplication"/>
+        CATEGORY: <span itemprop="SoftwareApplicationSubCategory">Online IDE, Software Development Tools</span>
+        INSTALLS: <meta itemprop="interactionCount" content=”UserDownloads:100000"/>100,000 - 500,000
+
+        RATING:
+        <div itemprop="aggregateRating" itemscope itemtype="http://schema.org/AggregateRating">
+         <span itemprop="ratingValue">4.0</span>(
+         <span itemprop="ratingCount">70872</span>)
+         <meta itemprop="reviewCount" content="213" />
+        </div>
+
+        <div itemprop="offers" itemscope itemtype="http://schema.org/Offer">
+         <span itemprop="price">Free</span>
+        </div>
+
+      </div>
+
+      <div itemscope itemtype="http://schema.org/Organization">
+        <span itemprop="name">Koding Inc.</span>
+        <img src="https://koding.com/a/images/kd-fluid-icon512.png" itemprop="image" width="100" height="100" />
+        <div itemprop="address" itemscope itemtype="http://schema.org/PostalAddress">
+          <span itemprop="streetAddress">
+            Koding, Inc.
+            358 Brannan Street
+          </span>
+          <span itemprop="addressLocality">San Francisco</span>,
+          <span itemprop="addressRegion">CA</span>
+          <span itemprop="postalCode">94107</span>
+        </div>
+        <a href="mailto:hello@koding.com" itemprop="email">
+          hello@koding.com
+        </a>
+    </body>
+  </html>
   """
