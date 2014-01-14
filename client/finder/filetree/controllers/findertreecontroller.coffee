@@ -721,8 +721,8 @@ class NFinderTreeController extends JTreeViewController
 
     notification = new KDNotificationView
       title     : msg or "Something went wrong"
-      type      : "mini"
-      cssClass  : "filetree #{style}"
+      type      : "finder-notification"
+      cssClass  : "#{style}"
       container : @getView().parent
       # duration  : 0
       duration  : duration
