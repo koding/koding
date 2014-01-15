@@ -257,6 +257,19 @@ __utils.extend __utils,
     switch prefix
       when "#" then TagLinkView
 
+  getPlainActivityBody: (activity) ->
+    {body} = activity
+    tagMap = {}
+    activity.tags?.forEach (tag) -> tagMap[tag.getId()] = tag
+
+    return body.replace /\|(.+?)\|/g, (match, tokenString) ->
+      [prefix, constructorName, id, title] = tokenString.split /:/
+
+      switch prefix
+        when "#" then token = tagMap?[id]
+
+      return "#{prefix}#{if token then token.title else title or ''}"
+
   getMonthOptions : ->
     ((if i > 9 then { title : "#{i}", value : i} else { title : "0#{i}", value : i}) for i in [1..12])
 
