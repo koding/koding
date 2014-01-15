@@ -13,14 +13,16 @@ import (
 var rollbarClient = rollbar.NewClient("9fb7f29ad0dc478ba4cfd6bbfbecbd47")
 
 type SaveableItem struct {
-	ItemId           int       `bson:"itemId"`
-	ProjectId        int       `bson:"projectId"`
-	CodeVersion      int       `bson:"codeVersion"`
-	CreatedAt        time.Time `bson:"createdAt"`
-	TotalOccurrences int       `bson:"totalOccurrences"`
-	Title            string
-	Level            string
-	Status           string
+	ItemId            int       `bson:"itemId"`
+	ProjectId         int       `bson:"projectId"`
+	CodeVersion       int       `bson:"codeVersion"`
+	CreatedAt         time.Time `bson:"createdAt"`
+	TotalOccurrences  int       `bson:"totalOccurrences"`
+	FirstOccurrenceId int       `bson:"firstOccurrenceId"`
+	LastOccurrenceId  int       `bson:lastOccurrenceId`
+	Title             string
+	Level             string
+	Status            string
 }
 
 func curryItemsFromRollbarToDb() error {
@@ -35,12 +37,14 @@ func curryItemsFromRollbarToDb() error {
 		wg.Add(1)
 
 		var saveableItem = &SaveableItem{
-			ItemId:           i.Id,
-			ProjectId:        i.ProjectId,
-			Title:            i.Title,
-			TotalOccurrences: i.TotalOccurrences,
-			Status:           i.Status,
-			Level:            i.Level,
+			ItemId:            i.Id,
+			ProjectId:         i.ProjectId,
+			TotalOccurrences:  i.TotalOccurrences,
+			FirstOccurrenceId: i.FirstOccurrenceId,
+			LastOccurrenceId:  i.LastOccurrenceId,
+			Title:             i.Title,
+			Level:             i.Level,
+			Status:            i.Status,
 		}
 
 		go func(item rollbar.Item) {
