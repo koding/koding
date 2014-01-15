@@ -17,12 +17,16 @@ type ItemsResult struct {
 }
 
 type Item struct {
-	Id                      int    `json:"id"`
-	ProjectId               int    `json:"project_id"`
-	Title                   string `json:"title"`
-	LastOccurrenceId        int    `json:"last_occurrence_id"`
-	LastOccurrenceTimestamp int    `json:"last_occurrence_timestamp"`
-	TotalOccurrences        int    `json:"total_occurrences"`
+	Id                       int    `json:"id"`
+	ProjectId                int    `json:"project_id"`
+	Title                    string `json:"title"`
+	LastOccurrenceId         int    `json:"last_occurrence_id"`
+	LastOccurrenceTimestamp  int64  `json:"last_occurrence_timestamp"`
+	TotalOccurrences         int    `json:"total_occurrences"`
+	FirstOccurrenceId        int    `json:"first_occurrence_id"`
+	FirstOccurrenceTimestamp int64  `json:"first_occurrence_timestamp"`
+	Status                   string `json:"status"`
+	Level                    string `json:"level"`
 }
 
 func (i *ItemsService) All() (*ItemsResponse, error) {
