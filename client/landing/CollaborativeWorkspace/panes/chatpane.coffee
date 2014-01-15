@@ -84,12 +84,17 @@ class ChatPane extends JView
     params           = { details, ownerNickname, ownerAccount }
     @lastMessageBody = details.body
 
+    if ownerNickname is KD.nick()
+    then forceScrollToBottom = yes
+    else forceScrollToBottom = @isScrollTopAtBottom()
+
     if @lastChatItemOwner is ownerNickname
       @appendToChatItem params
       @updateDate details.time
-      return  @scrollToTop()
+    else
+      @createNewChatItem params
 
-    @createNewChatItem params
+    @scrollToBottom()  if forceScrollToBottom
 
   createNewChatItem: (params) ->
     {details, ownerAccount, ownerNickname} = params
@@ -99,7 +104,6 @@ class ChatPane extends JView
     @updateDate details.time
     @lastMessage = @lastChatItem.message
     @emit "NewChatItemCreated"
-    @scrollToBottom()
 
   appendToChatItem: (params) ->
     {details}  = params
@@ -132,6 +136,11 @@ class ChatPane extends JView
   scrollToBottom: ->
     element = @messages.getElement()
     element.scrollTop = element.scrollHeight
+
+  isScrollTopAtBottom: ->
+    element = @messages.getElement()
+    height = parseInt window.getComputedStyle(element).height, 10
+    return (element.scrollTop + height) is element.scrollHeight
 
   pistachio: ->
     """
