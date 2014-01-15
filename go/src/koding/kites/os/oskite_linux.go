@@ -7,7 +7,6 @@ import (
 	"io"
 	"io/ioutil"
 	"koding/db/mongodb"
-	"koding/db/mongodb/modelhelper"
 	"koding/kites/os/ldapserver"
 	newkite "koding/newkite/kite"
 	"koding/tools/config"
@@ -99,6 +98,7 @@ func runNewKite() {
 		Environment: config.FileProfile,
 		Region:      config.Region,
 		Version:     "0.0.1",
+		Port:        "5000",
 		KontrolURL:  kontrolURL,
 	}
 
@@ -106,16 +106,19 @@ func runNewKite() {
 	k.HandleFunc("startVM", func(r *newkite.Request) (interface{}, error) {
 		hostnameAlias := r.Args.One().MustString()
 
-		vm, err := modelhelper.GetVM(hostnameAlias)
-		if err != nil {
-			return nil, err
-		}
+		// just print hostnameAlias for now
+		fmt.Println(hostnameAlias)
 
-		v := virt.VM(*vm)
-		err = v.Start()
-		if err != nil {
-			return nil, err
-		}
+		// vm, err := modelhelper.GetVM(hostnameAlias)
+		// if err != nil {
+		// 	return nil, err
+		// }
+
+		// v := virt.VM(*vm)
+		// err = v.Start()
+		// if err != nil {
+		// 	return nil, err
+		// }
 
 		return true, nil
 	})
