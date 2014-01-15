@@ -652,5 +652,5 @@ func trace(additionalInfo string) (string, time.Time) {
 
 func un(traceLog string, startTime time.Time) {
 	endTime := time.Now()
-	log.Println("  END:", traceLog, "ElapsedTime:", endTime.Sub(startTime))
+	log.Printf("  END: %s ElapsedTime: %.10f seconds\n", traceLog, endTime.Sub(startTime).Seconds())
 }
