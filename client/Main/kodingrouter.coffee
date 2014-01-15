@@ -121,7 +121,7 @@ class KodingRouter extends KDRouter
     @utils.shortenText(
       switch model.constructor
         when JAccount       then  KD.utils.getFullnameFromAccount model
-        when JNewStatusUpdate  then  model.body
+        when JNewStatusUpdate  then  @utils.getPlainActivityBody model
         when JGroup         then  model.title
         else                      "#{model.title}#{getSectionName model}"
     , maxLength: 100) # max char length of the title
