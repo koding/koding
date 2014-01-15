@@ -7,7 +7,9 @@ import (
 	"io"
 	"io/ioutil"
 	"koding/db/mongodb"
+	"koding/db/mongodb/modelhelper"
 	"koding/kites/os/ldapserver"
+	newkite "koding/newkite/kite"
 	"koding/tools/config"
 	"koding/tools/dnode"
 	"koding/tools/kite"
@@ -17,8 +19,10 @@ import (
 	"koding/virt"
 	logg "log"
 	"net"
+	"net/url"
 	"os"
 	"os/signal"
+	"strconv"
 	"strings"
 	"sync"
 	"syscall"
@@ -75,8 +79,46 @@ func main() {
 	registerFileSystemMethods(k)
 	registerWebtermMethods(k)
 	registerAppMethods(k)
-
 	k.Run()
+}
+
+func runNewKite() {
+	kontrolPort := strconv.Itoa(config.Current.NewKontrol.Port)
+	kontrolHost := config.Current.NewKontrol.Host
+	kontrolURL := &url.URL{
+		Scheme: "wss",
+		Host:   fmt.Sprintf("%s:%s", kontrolHost, kontrolPort),
+		Path:   "/dnode",
+	}
+
+	options := &newkite.Options{
+		PublicIP:    "localhost",
+		Kitename:    "oskite",
+		Environment: config.FileProfile,
+		Region:      config.Region,
+		Version:     "0.0.1",
+		KontrolURL:  kontrolURL,
+	}
+
+	k := newkite.New(options)
+	k.HandleFunc("startVM", func(r *newkite.Request) (interface{}, error) {
+		hostnameAlias := r.Args.One().MustString()
+
+		vm, err := modelhelper.GetVM(hostnameAlias)
+		if err != nil {
+			return nil, err
+		}
+
+		v := virt.VM(*vm)
+		err = v.Start()
+		if err != nil {
+			return nil, err
+		}
+
+		return true, nil
+	})
+
+	k.Start()
 }
 
 func initializeSettings() {

@@ -140,6 +140,7 @@ func configureProxy() {
 // startProxy is used to fire off all our ftp, https and http proxies
 func startProxy() {
 	kite := newKite()
+	kite.Start()
 
 	p := &Proxy{
 		mux:             http.NewServeMux(),
@@ -174,9 +175,7 @@ func newKite() *kite.Kite {
 		KontrolURL:  kontrolURL,
 	}
 
-	k := kite.New(options)
-
-	return k
+	return kite.New(options)
 }
 
 // setupLogging creates a new file for CLH logging and also sets a new signal
