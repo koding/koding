@@ -61,8 +61,6 @@ func curryItemsFromRollbarToDb() error {
 			saveableItem.CodeVersion = codeVersionInt
 			saveableItem.CreatedAt = time.Unix(i.FirstOccurrenceTimestamp, 0)
 
-			//log.Debug("%v", saveableItem)
-
 			err = saveOrUpdateItem(saveableItem)
 			if err != nil {
 				log.Error("Saving/updating item: %v", err)

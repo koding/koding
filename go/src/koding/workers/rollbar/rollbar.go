@@ -1,29 +1,36 @@
 package main
 
 import (
-	"github.com/op/go-logging"
-	stdlog "log"
-	"os"
+	"sync"
 )
-
-var log = logging.MustGetLogger("rollbar")
-
-func init() {
-	logging.SetFormatter(logging.MustStringFormatter("%{message}"))
-
-	var logBackend = logging.NewLogBackend(os.Stderr, "", stdlog.LstdFlags|stdlog.Lshortfile)
-	logBackend.Color = true
-
-	logging.SetBackend(logBackend)
-}
 
 func main() {
 	log.Notice("Started RollbarFeeder")
 
-	var err = curryItemsFromRollbarToDb()
-	if err != nil {
-		log.Error("Error currying items from Rollbar to db: %v", err)
-	}
+	var wg sync.WaitGroup
+
+	// NOTE: need to add wg.Add() outside goroutine for some reason
+	wg.Add(2)
+
+	go func() {
+		defer wg.Done()
+
+		var err = curryItemsFromRollbarToDb()
+		if err != nil {
+			log.Error("Currying items from Rollbar to db: %v", err)
+		}
+	}()
+
+	go func() {
+		defer wg.Done()
+
+		var err = curryDeploysFromRollbarToDb()
+		if err != nil {
+			log.Error("Currying deploys from Rollbar to db: %v", err)
+		}
+	}()
+
+	wg.Wait()
 
 	log.Notice("RollbarFeeder ended....applause.")
 }
