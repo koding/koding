@@ -117,7 +117,7 @@ class ChatPane extends JView
 
     element  = @lastMessage.getElement()
     words    = @lastMessageBody.split " "
-    urlRegex = /^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/
+    urlRegex = /^(https?:\/\/)([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/
     hasUrl   = no
 
     for word, index in words
