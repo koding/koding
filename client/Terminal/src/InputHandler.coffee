@@ -60,9 +60,11 @@ class WebTerm.InputHandler
   keyPress: (event) ->
     if event.metaKey
       switch event.charCode
-        when 114, 118
+        when 97, 114, 118, 119
+          # meta-C is copy
           # meta-R is reload
           # meta-V is paste
+          # meta-W is window.close
           return
     unless (event.ctrlKey and not event.altKey) or event.charCode is 0
       @terminal.server.input String.fromCharCode(event.charCode)
