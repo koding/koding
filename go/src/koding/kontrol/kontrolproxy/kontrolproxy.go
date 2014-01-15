@@ -150,37 +150,41 @@ func startProxy() {
 		kite:            kite,
 	}
 
+	// time.Sleep(time.Second)
+
 	// please start oskite before you start kontrolproxy
 	// the function below is just for gettings done correctly
 	// it will be moved later ...
-	time.AfterFunc(time.Second, func() {
-		query := protocol.KontrolQuery{
-			Username:    "devrim",
-			Environment: "vagrant",
-			Name:        "oskite",
-		}
+	query := protocol.KontrolQuery{
+		Username:    "devrim",
+		Environment: "vagrant",
+		Name:        "oskite",
+	}
 
-		kites, err := kite.Kontrol.GetKites(query)
-		if err != nil {
-			log.Println(err)
-			return
-		}
+	kites, err := kite.Kontrol.GetKites(query)
+	if err != nil {
+		log.Println(err)
+		return
+	}
 
-		oskite := kites[0]
-		err = oskite.Dial()
-		if err != nil {
-			log.Println(err)
-			return
-		}
+	oskite := kites[0]
+	err = oskite.Dial()
+	if err != nil {
+		log.Println(err)
+		return
+	}
 
-		resp, err := oskite.Tell("startVM", "fatih")
-		if err != nil {
-			log.Println(err)
-			return
-		}
+	go func() {
+		for _ = range time.Tick(time.Second) {
+			resp, err := oskite.Tell("startVM", "fatih")
+			if err != nil {
+				log.Println(err)
+				return
+			}
 
-		fmt.Println("resp, err", resp.MustBool(), err)
-	})
+			fmt.Println("resp, err", resp.MustBool(), err)
+		}
+	}()
 
 	p.mux.Handle("/", p)
 	p.mux.Handle("/_resetcache_/", p.resetCacheHandler())
@@ -294,7 +298,7 @@ func (p *Proxy) startHTTP() {
 		for i := 1024; i <= 10000; i++ {
 			go func(i int) {
 				port := strconv.Itoa(i)
-				err := http.ListenAndServe(":"+port, p)
+				err := http.ListenAndServe("0.0.0.0:"+port, p)
 				if err != nil {
 					logs.Alert(err.Error())
 					log.Println(err)

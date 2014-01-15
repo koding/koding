@@ -98,7 +98,6 @@ func runNewKite() {
 		Environment: config.FileProfile,
 		Region:      config.Region,
 		Version:     "0.0.1",
-		Port:        "5000",
 		KontrolURL:  kontrolURL,
 	}
 
