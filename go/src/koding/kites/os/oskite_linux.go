@@ -497,7 +497,7 @@ func startVM(k *kite.Kite, vm *virt.VM, channel *kite.Channel) error {
 		}
 
 		endTime := time.Now()
-		logg.Printf("VM  END: %s - ElapsedTime: %s\n", vm, endTime.Sub(startTime))
+		logg.Printf("VM  END: %s [%s] - ElapsedTime: %s seconds \n", vm, vm.HostnameAlias, endTime.Sub(startTime).Seconds())
 
 		info.currentHostname = vm.HostnameAlias
 	}
@@ -655,7 +655,10 @@ func (info *VMInfo) startTimeout() {
 	if info.useCounter != 0 || info.vm.AlwaysOn {
 		return
 	}
-	info.timeout = time.AfterFunc(5*time.Minute, func() {
+
+	// After 1 hour we are shutting down the VM (unprepareVM does it.)
+	// 5 Minutes from kite.go, 50 + 5 Minutes from here, makes a total of 60 Mins (1 Hour)
+	info.timeout = time.AfterFunc(50*time.Minute, func() {
 		if info.useCounter != 0 || info.vm.AlwaysOn {
 			return
 		}
