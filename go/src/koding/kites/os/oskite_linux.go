@@ -497,7 +497,7 @@ func startVM(k *kite.Kite, vm *virt.VM, channel *kite.Channel) error {
 		}
 
 		endTime := time.Now()
-		logg.Printf("VM  END: %s [%s] - ElapsedTime: %s seconds \n", vm, vm.HostnameAlias, endTime.Sub(startTime).Seconds())
+		logg.Printf("VM  END: %s [%s] - ElapsedTime: %.10f seconds \n", vm, vm.HostnameAlias, endTime.Sub(startTime).Seconds())
 
 		info.currentHostname = vm.HostnameAlias
 	}
