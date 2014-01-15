@@ -28,8 +28,95 @@ body.about
       display           block
 
 .kdtabpaneview.about
-
   bg                color #f1f3f2
+
+.content-page.about
+  max-width         100%
+  width             100%
+  padding           0
+
+.random-team-member
+  size              100%, auto
+  max-width         1043px
+  margin            0 auto
+  padding           140px 0 140px 434px
+  min-height        542px
+  overflow          visible
+  position          relative
+  letter-spacing    .2px
+  borderBox()
+
+  .avatarview
+    abs             111px 0 0 15px
+    fl()
+
+  section
+    .profile
+      display       block
+      font-size     36px
+      font-weight   400
+      color         #1aaf5d
+      text-transform capitalize
+      noTextDeco()
+
+    cite
+      font-size     36px
+      font-weight   100
+      color         #8a8a8a
+
+    article
+      font-size     24px
+      font-weight   100
+      color         #323b3d
+      line-height   26px
+
+section.about-company
+  size              100%, auto
+  min-height        626px
+  background        url('/a/images/city.jpg') no-repeat center bottom
+  bg                size, cover
+  kalc              padding-left, \(100% \- 1043px\)\/2  // (100px - 1043px)/2
+  kalc              padding-right, \(100% \- 1043px\)\/2  // (100px - 1043px)/2
+  position          relative
+  font-size         24px
+  color             #fff
+  font-weight       100
+  letter-spacing    .2px
+  borderBox()
+
+  h2
+    display         block
+    font-size       36px
+    color           #1aaf5d
+    font-weight     400
+
+  h4
+    display         block
+    font-size       36px
+    color           #bbd5c7
+    font-weight     100
+    margin          8px 0 60px
+
+  h6
+    color           #fff
+    opacity         .5
+    font-size       18px
+    font-weight     100
+    margin          0 0 6px
+
+  article
+    padding         144px 510px 144px 0
+    opacity         .9
+
+    p
+      line-height   28px
+
+  aside
+    abs             184px 90px 0 0
+    opacity         .9
+
+    >div
+      margin        0 0 48px
 
 h1.team-title
   font-size         64px

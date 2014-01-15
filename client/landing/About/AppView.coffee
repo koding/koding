@@ -1,13 +1,6 @@
 class AboutView extends KDView
 
-
-  viewAppended:->
-
-    # @addSubView new KDHeaderView
-    #   title    : "The Team"
-    #   type     : 'big'
-    #   cssClass : 'team-title'
-
+  constructor:->
     @activeController = new KDListViewController
       view        : new KDListView
         itemClass : AboutListItem
@@ -18,32 +11,77 @@ class AboutView extends KDView
     ,
       items       : KD.team.active
 
-    @addSubView @activeController.getView()
+    @randomTeamMember = new RandomTeamMemberView
+    @memberList = @activeController.getView()
 
+    super
 
-    # canSeeExMembers = no
+  viewAppended: JView::viewAppended
 
-    # for member in KD.team.active when KD.nick() is member.username
-    #   canSeeExMembers = yes
-    #   break
+  pistachio : ->
+    """
+      {{> @randomTeamMember}}
+      <section class="about-company">
+        <article>
+          <h2>Story & Culture</h2>
+          <h4>When I say Koding, I mean Coding</h4>
+          <p>
+            Duis lorem elit, placerat non consequat ut, aliquet ac purus. Nunc nec est quis erat blandit vestibulum at id orci. Aliquam feugiat convallis libero, id ullamcorper nulla blandit quis. Proin sodales suscipit mi, id accumsan risus convallis a. Duis congue vitae lectus vel ultricies. Vivamus eleifend eros sodales purus dignissim sagittis. Sed volutpat dictum mi ultrices luctus. Integer vitae varius eros, quis tempus lectus.
+          </p>
+        </article>
+        <aside class="clearfix">
+          <div class="based">
+            <i></i>
+            <h6>Based</h6>
+            San Francisco
+          </div>
+          <div class="talents">
+            <i></i>
+            <h6>Talent</h6>
+            25 Geniuses
+          </div>
+          <div class="lines">
+            <i></i>
+            <h6>Lines of Code</h6>
+            21654789
+          </div>
+        </aside>
+      </section>
+      {{> @memberList}}
+    """
 
-    # return  unless canSeeExMembers
+class RandomTeamMemberView extends JView
+  constructor : (options = {}, data) ->
+    options.cssClass = "random-team-member clearfix"
 
-    # @suspendedController = new KDListViewController
-    #   itemClass   : AboutListItem
-    #   listView    : new KDListView
-    #     tagName   : 'ul'
-    #   scrollView  : no
-    #   wrapper     : no
-    # ,
-    #   items       : KD.team.suspended
+    super options, data
 
-    # @addSubView new KDHeaderView
-    #   title    : "Ex-members"
-    #   type     : 'big'
-    #   cssClass : 'team-title'
-    # @addSubView @suspendedController.getView()
+  getRandomTeamMember : ->
+    team  = KD.team.active
+    index = KD.utils.getRandomNumber team.length-1, 0
 
+    log team[index]
+
+    team[index]
+
+  pistachio : ->
+    {username, title} = @getRandomTeamMember()
+    @avatar    = new AvatarView
+      origin   : username
+      size     : width : 300
+
+    @link      = new ProfileLinkView origin : username
+
+    """
+      {{> @avatar}}
+      <section>
+        {{> @link}}
+        <cite>#{title}</cite>
+        <article>
+          Duis lorem elit, placerat non consequat ut, aliquet ac purus. Nunc nec est quis erat blandit vestibulum at id orci. Aliquam feugiat convallis libero, id ullamcorper nulla blandit quis. Proin sodales suscipit mi, id accumsan risus convallis a. Duis congue vitae lectus vel ultricies. Vivamus eleifend eros so-
+        </article>
+      </section>
+    """
 
 
 class AboutListItem extends KDListItemView
