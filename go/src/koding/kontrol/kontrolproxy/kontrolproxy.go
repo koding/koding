@@ -150,8 +150,6 @@ func startProxy() {
 		kite:            kite,
 	}
 
-	// time.Sleep(time.Second)
-
 	// please start oskite before you start kontrolproxy
 	// the function below is just for gettings done correctly
 	// it will be moved later ...
