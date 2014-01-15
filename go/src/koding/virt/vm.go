@@ -110,12 +110,15 @@ func (vm *VM) ApplyDefaults() {
 	if vm.NumCPUs == 0 {
 		vm.NumCPUs = 1
 	}
+
 	if vm.MaxMemoryInMB == 0 {
 		vm.MaxMemoryInMB = 1024
 	}
+
 	if vm.DiskSizeInMB == 0 {
-		vm.DiskSizeInMB = 1200
+		vm.DiskSizeInMB = 3600
 	}
+
 	if vm.VMRoot == "" {
 		vm.VMRoot = "/var/lib/lxc/vmroot/"
 	}
@@ -311,8 +314,6 @@ func (vm *VM) Unprepare() error {
 		panic(err)
 	}
 
-	vm.backupDpkg()
-
 	if err := vm.removeNetworkRules(); err != nil && firstError == nil {
 		firstError = err
 	}
@@ -338,15 +339,6 @@ func (vm *VM) Unprepare() error {
 	os.Remove(vm.File(""))
 
 	return firstError
-}
-
-func (vm *VM) backupDpkg() {
-	defer un(trace(vm.String()))
-
-	// backup dpkg database for statistical purposes
-	os.Mkdir("/var/lib/lxc/dpkg-statuses", 0755)
-	copyFile(vm.OverlayFile("/var/lib/dpkg/status"), "/var/lib/lxc/dpkg-statuses/"+vm.String(), RootIdOffset)
-
 }
 
 func (vm *VM) removeNetworkRules() error {
