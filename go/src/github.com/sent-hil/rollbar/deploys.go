@@ -25,7 +25,7 @@ type Deploy struct {
 	FinishTime int64 `json:"finish_time"`
 }
 
-func (d *DeployService) GetDeploys() (*DeployResponse, error) {
+func (d *DeployService) All() (*DeployResponse, error) {
 	var response = &DeployResponse{}
 
 	var body, err = d.C.Request("GET", "deploys")
