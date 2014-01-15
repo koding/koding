@@ -355,7 +355,7 @@ func (k *Kontrol) getKites(r *kite.Request, query protocol.KontrolQuery, watchCa
 		true,  // recursive, return all child directories too
 	)
 	if err != nil {
-		if etcdErr, ok := err.(etcd.EtcdError); ok {
+		if etcdErr, ok := err.(*etcd.EtcdError); ok {
 			if etcdErr.ErrorCode == 100 { // Key Not Found
 				return make([]*protocol.KiteWithToken, 0), nil
 			}
