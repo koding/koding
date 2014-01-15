@@ -4,6 +4,8 @@
 //
 // Richard: Modified excerpt of Go's match.go that uses VOS.
 
+// +build linux
+
 package virt
 
 import (

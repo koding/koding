@@ -257,7 +257,7 @@ class WebTermAppView extends JView
       pane.destroySubViews()
       pane.addSubView new WebTermView options
 
-    terminalView.on 'TerminalCanceled', ({ vmName }) =>
+    terminalView.once 'TerminalCanceled', ({ vmName }) =>
       @tabView.removePane pane
       unless @dirty[vmName]
         @tabView.off 'AllTabsClosed'
@@ -265,7 +265,6 @@ class WebTermAppView extends JView
           Sorry, your terminal sessions on #{ vmName } are dead. <a href='#' class='plus'>Open a new session.</a>
           """, no, yes
         @dirty[vmName] = yes
-
 
     # terminalView.once 'KDObjectWillBeDestroyed', => @tabView.removePane pane
 
@@ -277,7 +276,6 @@ class WebTermAppView extends JView
         { terminalView } = pane.getOptions()
         sessionId = terminalView.sessionId ? terminalView.getOption 'session'
         vmName = terminalView.getOption 'vmName'
-        @dirty[vmName] = no
         "#{ vmName }:#{ sessionId }"
       storage.setValue 'savedSessions', sessions
       storage.setValue 'activeIndex', activeIndex

@@ -45,6 +45,7 @@ class BadgeUpdateForm extends JView
                 label         : "Permission"
                 itemClass     : KDSelectBox
                 name          : "permission"
+                disabled      : yes
                 defaultValue  : @badge.role or "none"
                 selectOptions : [
                     { title   : "No Permission", value : "none" }

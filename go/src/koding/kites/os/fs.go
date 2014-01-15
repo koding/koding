@@ -1,7 +1,8 @@
+// +build linux
+
 package main
 
 import (
-	"exp/inotify"
 	"fmt"
 	"io"
 	"koding/tools/dnode"
@@ -14,6 +15,8 @@ import (
 	"strconv"
 	"syscall"
 	"time"
+
+	"code.google.com/p/go.exp/inotify"
 )
 
 func init() {
