@@ -228,13 +228,15 @@ __utils.extend __utils,
 
     viewParams = []
     for tokenString in tokenMatches
-      [prefix, constructorName, id] = match[1].split /:/g  if match = tokenString.match /^\|(.+)\|$/
+      [prefix, constructorName, id, title] = match[1].split /:/  if match = tokenString.match /^\|(.+)\|$/
 
       switch prefix
         when "#" then token = tagMap?[id]
         else continue
 
-      continue  unless token
+      unless token
+        str = str.replace tokenString, "#{prefix}#{title}"
+        continue
 
       domId     = __utils.getUniqueId()
       itemClass = __utils.getTokenClass prefix
