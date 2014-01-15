@@ -259,7 +259,7 @@ module.exports =
       port        : 8888
       url         : "http://localhost"
     proxy         :
-      port        : 80
+      port        : 5000
       portssl     : 8081
       ftpip       : '127.0.0.1'
   # crypto :
