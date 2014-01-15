@@ -60,6 +60,8 @@ var (
 )
 
 func main() {
+	runNewKite()
+
 	initializeSettings()
 
 	k := prepareOsKite()
