@@ -62,7 +62,7 @@ type SingleInstanceResponse struct {
 func (i *InstanceService) Get(instanceId int) (*SingleInstanceResponse, error) {
 	response := &SingleInstanceResponse{}
 
-	url := fmt.Sprintf("instances/%v", instanceId)
+	url := fmt.Sprintf("instance/%v", instanceId)
 	body, err := i.C.Request("GET", url)
 	if err != nil {
 		return response, err
