@@ -82,7 +82,7 @@ module.exports =
     numberOfWorkers: 1
     watch       : yes
   emailConfirmationCheckerWorker :
-    enabled              : yes
+    enabled              : no
     login                : 'prod-social'
     queueName            : socialQueueName+'emailConfirmationCheckerWorker'
     numberOfWorkers      : 1
@@ -217,7 +217,7 @@ module.exports =
     cronInstant : '*/10 * * * * *'
     cronDaily   : '0 10 0 * * *'
     run         : no
-    forcedRecipient : "cihangir@koding.com"
+    forcedRecipient : undefined
   emailSender     :
     run           : no
   guests          :
