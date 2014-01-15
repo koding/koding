@@ -51,7 +51,7 @@ func curryItemsFromRollbarToDb() error {
 			// Get code version from first occurence of incident.
 			var instancesResp, err = getInstanceForItem(item.FirstOccurrenceId)
 			if err != nil {
-				log.Error(err.Error())
+				log.Error("Getting instance for item %v: %v", item.Id, err)
 			}
 
 			// Normalize data according to our needs.
@@ -61,9 +61,9 @@ func curryItemsFromRollbarToDb() error {
 
 			//log.Debug("%v", saveableItem)
 
-			err = saveItem(saveableItem)
+			err = saveOrUpdateItem(saveableItem)
 			if err != nil {
-				log.Error(err.Error())
+				log.Error("Saving/updating item: %v", err)
 			}
 
 		}(i)
@@ -88,24 +88,46 @@ func getInstanceForItem(itemId int) (*rollbar.SingleInstanceResponse, error) {
 	return instancesResp, err
 }
 
-func saveItem(s *SaveableItem) error {
+func saveOrUpdateItem(s *SaveableItem) error {
 	var foundItem SaveableItem
 	var findQuery = func(c *mgo.Collection) error {
 		return c.Find(bson.M{"itemId": s.ItemId}).One(&foundItem)
 	}
 
+	var secondErr error
 	var err = mongodb.Run("rollbarItems", findQuery)
-	if err == nil {
-		return nil
+	if err != nil {
+		secondErr = saveItem(s)
+	} else {
+		secondErr = updateItem(s)
 	}
 
+	return secondErr
+}
+
+func saveItem(s *SaveableItem) error {
 	log.Debug("Item with id: %v not found, saving", s.ItemId)
 
-	var insertQuery = func(c *mgo.Collection) error {
+	var query = func(c *mgo.Collection) error {
 		return c.Insert(s)
 	}
 
-	err = mongodb.Run("rollbarItems", insertQuery)
+	var err = mongodb.Run("rollbarItems", query)
+
+	return err
+}
+
+func updateItem(s *SaveableItem) error {
+	log.Debug("Item with id: %v found, updating", s.ItemId)
+
+	var query = func(c *mgo.Collection) error {
+		var findQuery = bson.M{"itemId": s.ItemId}
+		var updateQuery = bson.M{"$set": bson.M{"totalOccurrences": s.TotalOccurrences}}
+
+		return c.Update(findQuery, updateQuery)
+	}
+
+	var err = mongodb.Run("rollbarItems", query)
 
 	return err
 }
