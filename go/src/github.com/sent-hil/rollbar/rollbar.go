@@ -47,5 +47,5 @@ func (c *Client) Request(verb, url string) (io.ReadCloser, error) {
 }
 
 func (c *Client) BuildUrl(url string) string {
-	return fmt.Sprintf("%v/%v/?access_token=%v", c.Endpoint, url, c.Token)
+	return fmt.Sprintf("%v/%v?access_token=%v", c.Endpoint, url, c.Token)
 }

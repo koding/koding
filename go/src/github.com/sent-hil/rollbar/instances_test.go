@@ -26,7 +26,7 @@ func TestGettingInstancesOfItem(t *testing.T) {
 		fmt.Fprint(w, string(content))
 	})
 
-	instancesResp, err := instancesService.GetByItem("272364549")
+	instancesResp, err := instancesService.GetByItem(272364549)
 	if err != nil {
 		t.Errorf("Expected empty error response, got: %v", err)
 	}
