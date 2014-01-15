@@ -31,8 +31,6 @@ func curryItemsFromRollbarToDb() error {
 		return err
 	}
 
-	log.Debug("Got %v latest items from Rollbar", len(latestItems))
-
 	for _, i := range latestItems {
 		wg.Add(1)
 
@@ -75,6 +73,8 @@ func curryItemsFromRollbarToDb() error {
 }
 
 func getLatestItemsFromRollbar() ([]rollbar.Item, error) {
+	log.Debug("Fetching latest items from Rollbar")
+
 	var itemsService = rollbar.ItemsService{rollbarClient}
 	var itemsResp, err = itemsService.All()
 
@@ -82,6 +82,8 @@ func getLatestItemsFromRollbar() ([]rollbar.Item, error) {
 }
 
 func getInstanceForItem(itemId int) (*rollbar.SingleInstanceResponse, error) {
+	log.Debug("Getting instances for item: %v from Rollbar", itemId)
+
 	var instancesService = rollbar.InstanceService{rollbarClient}
 	var instancesResp, err = instancesService.Get(itemId)
 

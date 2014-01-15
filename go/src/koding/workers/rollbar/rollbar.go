@@ -22,6 +22,8 @@ func main() {
 
 	var err = curryItemsFromRollbarToDb()
 	if err != nil {
-		log.Error("Error currying items from Rollbar to Db(): %v", err)
+		log.Error("Error currying items from Rollbar to db: %v", err)
 	}
+
+	log.Notice("RollbarFeeder ended....applause.")
 }
