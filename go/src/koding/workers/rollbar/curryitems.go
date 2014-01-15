@@ -4,6 +4,7 @@ import (
 	"github.com/sent-hil/rollbar"
 	"koding/db/mongodb"
 	"labix.org/v2/mgo"
+	"labix.org/v2/mgo/bson"
 	"strconv"
 	"sync"
 	"time"
@@ -70,8 +71,6 @@ func curryItemsFromRollbarToDb() error {
 
 	wg.Wait()
 
-	log.Debug("Saved %v items to Rollbar", len(latestItems))
-
 	return nil
 }
 
@@ -90,11 +89,23 @@ func getInstanceForItem(itemId int) (*rollbar.SingleInstanceResponse, error) {
 }
 
 func saveItem(s *SaveableItem) error {
+	var foundItem SaveableItem
+	var findQuery = func(c *mgo.Collection) error {
+		return c.Find(bson.M{"itemId": s.ItemId}).One(&foundItem)
+	}
+
+	var err = mongodb.Run("rollbarItems", findQuery)
+	if err == nil {
+		return nil
+	}
+
+	log.Debug("Item with id: %v not found, saving", s.ItemId)
+
 	var insertQuery = func(c *mgo.Collection) error {
 		return c.Insert(s)
 	}
 
-	var err = mongodb.Run("rollbarItems", insertQuery)
+	err = mongodb.Run("rollbarItems", insertQuery)
 
 	return err
 }
