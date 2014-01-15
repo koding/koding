@@ -54,6 +54,9 @@ type Proxy struct {
 	// cacheTransports is used to enable cache based roundtrips for certaing
 	// request hosts, such as koding.com.
 	cacheTransports map[string]http.RoundTripper
+
+	// kite reference
+	kite *kite.Kite
 }
 
 // used by redis counter
@@ -103,31 +106,8 @@ func main() {
 	runtime.GOMAXPROCS(runtime.NumCPU())
 	fmt.Printf("[%s] I'm using %d cpus for goroutines\n", time.Now().Format(time.Stamp), runtime.NumCPU())
 
-	runKite()
 	configureProxy()
 	startProxy()
-}
-
-func runKite() {
-	kontrolPort := strconv.Itoa(config.Current.NewKontrol.Port)
-	kontrolHost := config.Current.NewKontrol.Host
-	kontrolURL := &url.URL{
-		Scheme: "wss",
-		Host:   fmt.Sprintf("%s:%s", kontrolHost, kontrolPort),
-		Path:   "/dnode",
-	}
-
-	options := &kite.Options{
-		PublicIP:    "localhost",
-		Kitename:    "kdproxy",
-		Environment: config.FileProfile,
-		Region:      config.Region,
-		Version:     "0.0.1",
-		KontrolURL:  kontrolURL,
-	}
-
-	k := kite.New(options)
-	k.Start()
 }
 
 // configureProxy is used to setup all necessary configuration procedures, like
@@ -159,10 +139,13 @@ func configureProxy() {
 
 // startProxy is used to fire off all our ftp, https and http proxies
 func startProxy() {
+	kite := newKite()
+
 	p := &Proxy{
 		mux:             http.NewServeMux(),
 		enableFirewall:  false,
 		cacheTransports: make(map[string]http.RoundTripper),
+		kite:            kite,
 	}
 
 	p.mux.Handle("/", p)
@@ -171,6 +154,29 @@ func startProxy() {
 	p.setupLogging()
 	p.startHTTPS() // non-blocking
 	p.startHTTP()
+}
+
+func newKite() *kite.Kite {
+	kontrolPort := strconv.Itoa(config.Current.NewKontrol.Port)
+	kontrolHost := config.Current.NewKontrol.Host
+	kontrolURL := &url.URL{
+		Scheme: "wss",
+		Host:   fmt.Sprintf("%s:%s", kontrolHost, kontrolPort),
+		Path:   "/dnode",
+	}
+
+	options := &kite.Options{
+		PublicIP:    "localhost",
+		Kitename:    "kdproxy",
+		Environment: config.FileProfile,
+		Region:      config.Region,
+		Version:     "0.0.1",
+		KontrolURL:  kontrolURL,
+	}
+
+	k := kite.New(options)
+
+	return k
 }
 
 // setupLogging creates a new file for CLH logging and also sets a new signal
