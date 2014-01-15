@@ -5,10 +5,12 @@ class TeamworkTabView extends CollaborativePane
     super options, data
 
     @createElements()
-    @keysRef    = @workspaceRef.child "keys"
-    @indexRef   = @workspaceRef.child "index"
-    @requestRef = @workspaceRef.child "request"
-    @stateRef   = @workspaceRef.child "state"
+    @openIndexes = {}
+
+    @keysRef     = @workspaceRef.child "keys"
+    @indexRef    = @workspaceRef.child "index"
+    @requestRef  = @workspaceRef.child "request"
+    @stateRef    = @workspaceRef.child "state"
 
     @listenChildRemovedOnKeysRef()
     @listenRequestRef()
@@ -64,11 +66,13 @@ class TeamworkTabView extends CollaborativePane
     @keysRef.on "child_removed", (snapshot) =>
       data = snapshot.val()
       return unless data
-
       {indexKey} = data
-      for pane in @tabView.panes
-        if pane?.getOptions().indexKey is indexKey
+
+      for pane in @tabView.panes when pane
+        paneIndexKey = pane.getOption "indexKey"
+        if paneIndexKey is indexKey
           @tabView.removePane pane
+          delete @openIndexes[paneIndexKey]
 
   bindRemoteEvents: ->
     @listenPaneDidShow()
@@ -121,17 +125,7 @@ class TeamworkTabView extends CollaborativePane
 
     @tabView.on "PaneAdded", (pane) =>
       pane.getHandle().on "click", =>
-        paneOptions = pane.getOptions()
-        @workspace.addToHistory
-          message    : "$0 switched to #{paneOptions.title}"
-          by         : KD.nick()
-          data       :
-            title    : paneOptions.title
-            indexKey : paneOptions.indexKey
-
-        @indexRef.set
-          indexKey   : pane.getOptions().indexKey
-          by         : KD.nick()
+        @handlePaneHandleClicked pane.getOptions()
 
   addNewTab: ->
     @createPlusHandleDropDown()
@@ -268,11 +262,32 @@ class TeamworkTabView extends CollaborativePane
         indexKey  : indexKey
 
     @registerPaneRemoveListener_ pane
+    @openIndexes[FSHelper.plainPath file.path] = indexKey
 
     KD.mixpanel "Teamwork tab editor, click"
 
+  handlePaneHandleClicked: (paneOptions) ->
+    {title, indexKey} = paneOptions
+    @workspace.addToHistory
+      message    : "$0 switched to #{title}"
+      by         : KD.nick()
+      data       :
+        title    : title
+        indexKey : indexKey
+
+    @indexRef.set { indexKey, by: KD.nick() }
+
   openFile: (file, content) ->
-    @createEditor file, content
+    plainPath    = FSHelper.plainPath file.path
+    paneIndexKey = @openIndexes[plainPath]
+
+    if paneIndexKey
+      for pane in @tabView.panes
+        paneOptions = pane.getOptions()
+        if paneOptions.indexKey is paneIndexKey
+          @handlePaneHandleClicked paneOptions
+    else
+      @createEditor file, content
 
   createTerminal: (sessionKey, indexKey) ->
     indexKey = indexKey or @createSessionKey()
@@ -316,6 +331,11 @@ class TeamworkTabView extends CollaborativePane
     @registerPaneRemoveListener_ pane
 
     KD.mixpanel "Teamwork tab browser, click"
+
+  switchToPane: (paneIndexKey) ->
+    for pane in @tabView.panes
+      if pane.getOptions().indexKey is paneIndexKey
+        debugger
 
   createChat: ->
     pane = new KDTabPaneView title: "Chat"
