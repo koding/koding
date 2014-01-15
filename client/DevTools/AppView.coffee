@@ -13,7 +13,8 @@ class DevToolsMainView extends KDView
         buttons                 : [
           {
             title               : "Create"
-            callback            : KD.singletons.kodingAppsController.makeNewApp
+            callback            : ->
+              KD.singletons.kodingAppsController.makeNewApp()
           }
           {
             title               : "Run"
