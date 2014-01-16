@@ -182,8 +182,6 @@ func (p *Proxy) findAndDialOskite() {
 	k := newKite()
 	k.Start()
 
-	time.Sleep(time.Second * 2)
-
 	query := protocol.KontrolQuery{
 		Username:    "devrim",
 		Environment: "vagrant",
