@@ -8,7 +8,6 @@ import (
 	"koding/db/models"
 
 	"github.com/sent-hil/rollbar"
-	"labix.org/v2/mgo/bson"
 )
 
 var rollbarClient = rollbar.NewClient("9fb7f29ad0dc478ba4cfd6bbfbecbd47")
@@ -42,10 +41,17 @@ func importItemsFromRollbarToDb() error {
 			var instancesResp, err = getInstanceForItem(item.FirstOccurrenceId)
 			if err != nil {
 				log.Error("Getting instance for item %v: %v", item.Id, err)
+				return
 			}
 
 			// Normalize data according to our needs.
-			var codeVersionInt, _ = strconv.Atoi(instancesResp.Result.Data.Client.Javascript.CodeVersion)
+			var rawCodeVersionValue = getCodeVersionValue(instancesResp)
+			codeVersionInt, err := strconv.Atoi(rawCodeVersionValue)
+			if err != nil {
+				log.Error("Invalid CodeVersion value: %v for item: %v", rawCodeVersionValue, i.Id)
+				return
+			}
+
 			saveableItem.CodeVersion = codeVersionInt
 			saveableItem.CreatedAt = time.Unix(i.FirstOccurrenceTimestamp, 0)
 
@@ -77,4 +83,8 @@ func getInstanceForItem(itemId int) (*rollbar.SingleInstanceResponse, error) {
 	var instancesResp, err = instancesService.Get(itemId)
 
 	return instancesResp, err
+}
+
+func getCodeVersionValue(instancesResp *rollbar.SingleInstanceResponse) string {
+	return instancesResp.Result.Data.Client.Javascript.CodeVersion
 }

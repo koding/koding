@@ -23,9 +23,13 @@ func importDeploysFromRollbarToDb() error {
 		}
 
 		// Normalize data according to our needs.
-		var codeVersionInt, _ = strconv.Atoi(i.Comment)
-		rollbarDeploy.CodeVersion = codeVersionInt
+		var codeVersionInt, err = strconv.Atoi(i.Comment)
+		if err != nil {
+			log.Error("Invalid codeVersion value: %v for deploy: %v", i.Comment, i.Id)
+			return err
+		}
 
+		rollbarDeploy.CodeVersion = codeVersionInt
 		rollbarDeploy.StartTime = time.Unix(i.StartTime, 0)
 
 		err = rollbarDeploy.UpsertByDeployId()
@@ -45,7 +49,7 @@ func getLatestDeploysFromRollbar() ([]rollbar.Deploy, error) {
 	var deployResp, err = deployService.All()
 	if err != nil {
 		log.Error("Getting deploys: %v", err)
-		return err
+		return nil, err
 	}
 
 	return deployResp.Result.Deploys, err
