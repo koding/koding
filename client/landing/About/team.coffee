@@ -16,11 +16,11 @@ KD.extend
         username  : 'gokmen'
         title     : 'Software Engineer'
       ,
-        username  : 'fatihacet'
-        title     : 'Front-End Engineer'
-      ,
         username  : 'arslan'
         title     : 'Software Engineer'
+      ,
+        username  : 'fatihacet'
+        title     : 'Front-End Engineer'
       ,
         username  : 'sent-hil'
         title     : 'Software Engineer'
