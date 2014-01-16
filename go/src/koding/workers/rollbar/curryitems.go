@@ -1,29 +1,17 @@
 package main
 
 import (
-	"github.com/sent-hil/rollbar"
-	"koding/db/mongodb"
-	"labix.org/v2/mgo"
-	"labix.org/v2/mgo/bson"
 	"strconv"
 	"sync"
 	"time"
+
+	"koding/db/models"
+
+	"github.com/sent-hil/rollbar"
+	"labix.org/v2/mgo/bson"
 )
 
 var rollbarClient = rollbar.NewClient("9fb7f29ad0dc478ba4cfd6bbfbecbd47")
-
-type SaveableItem struct {
-	ItemId            int       `bson:"itemId"`
-	ProjectId         int       `bson:"projectId"`
-	CodeVersion       int       `bson:"codeVersion"`
-	CreatedAt         time.Time `bson:"createdAt"`
-	TotalOccurrences  int       `bson:"totalOccurrences"`
-	FirstOccurrenceId int       `bson:"firstOccurrenceId"`
-	LastOccurrenceId  int       `bson:lastOccurrenceId`
-	Title             string
-	Level             string
-	Status            string
-}
 
 func curryItemsFromRollbarToDb() error {
 	var wg sync.WaitGroup
@@ -36,7 +24,7 @@ func curryItemsFromRollbarToDb() error {
 	for _, i := range latestItems {
 		wg.Add(1)
 
-		var saveableItem = &SaveableItem{
+		var saveableItem = &models.RollbarItem{
 			ItemId:            i.Id,
 			ProjectId:         i.ProjectId,
 			TotalOccurrences:  i.TotalOccurrences,
@@ -61,7 +49,7 @@ func curryItemsFromRollbarToDb() error {
 			saveableItem.CodeVersion = codeVersionInt
 			saveableItem.CreatedAt = time.Unix(i.FirstOccurrenceTimestamp, 0)
 
-			err = saveOrUpdateItem(saveableItem)
+			err = saveableItem.UpsertByItemId()
 			if err != nil {
 				log.Error("Saving/updating item: %v", err)
 			}
@@ -90,48 +78,4 @@ func getInstanceForItem(itemId int) (*rollbar.SingleInstanceResponse, error) {
 	var instancesResp, err = instancesService.Get(itemId)
 
 	return instancesResp, err
-}
-
-func saveOrUpdateItem(s *SaveableItem) error {
-	var foundItem SaveableItem
-	var findQuery = func(c *mgo.Collection) error {
-		return c.Find(bson.M{"itemId": s.ItemId}).One(&foundItem)
-	}
-
-	var secondErr error
-	var err = mongodb.Run("rollbarItems", findQuery)
-	if err != nil {
-		secondErr = saveItem(s)
-	} else {
-		secondErr = updateItem(s)
-	}
-
-	return secondErr
-}
-
-func saveItem(s *SaveableItem) error {
-	log.Debug("Item with id: %v not found, saving", s.ItemId)
-
-	var query = func(c *mgo.Collection) error {
-		return c.Insert(s)
-	}
-
-	var err = mongodb.Run("rollbarItems", query)
-
-	return err
-}
-
-func updateItem(s *SaveableItem) error {
-	log.Debug("Item with id: %v found, updating", s.ItemId)
-
-	var query = func(c *mgo.Collection) error {
-		var findQuery = bson.M{"itemId": s.ItemId}
-		var updateQuery = bson.M{"$set": bson.M{"totalOccurrences": s.TotalOccurrences}}
-
-		return c.Update(findQuery, updateQuery)
-	}
-
-	var err = mongodb.Run("rollbarItems", query)
-
-	return err
 }

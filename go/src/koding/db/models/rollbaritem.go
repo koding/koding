@@ -1,10 +1,12 @@
 package models
 
 import (
+	"time"
+
 	"koding/db/mongodb"
+
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
-	"time"
 )
 
 type RollbarItem struct {
@@ -21,27 +23,10 @@ type RollbarItem struct {
 	Status            string
 }
 
-func (r *RollbarItem) Find(findQuery bson.M) (bool, error) {
+func (r *RollbarItem) UpsertByItemId() error {
 	var query = func(c *mgo.Collection) error {
-		return c.Find(findQuery).One(&r)
-	}
-
-	var err = mongodb.Run(r.CollectionName(), query)
-
-	if err != nil {
-		if err.Error() == "not found" {
-			return false, nil
-		}
-
-		return false, err
-	}
-
-	return true, nil
-}
-
-func (r *RollbarItem) Save() error {
-	var query = func(c *mgo.Collection) error {
-		return c.Insert(r)
+		var _, err = c.Upsert(bson.M{"itemId": r.ItemId}, r)
+		return err
 	}
 
 	var err = mongodb.Run(r.CollectionName(), query)
@@ -49,14 +34,15 @@ func (r *RollbarItem) Save() error {
 	return err
 }
 
-func (r *RollbarItem) Update(updateQuery bson.M) error {
-	var query = func(c *mgo.Collection) error {
-		return c.Update(bson.M{"_id": r.Id}, updateQuery)
+func (r *RollbarItem) FindByCodeVersion() ([]*RollbarItem, error) {
+	var foundItems []*RollbarItem
+	var findQuery = func(c *mgo.Collection) error {
+		return c.Find(bson.M{"codeVersion": r.CodeVersion}).All(&foundItems)
 	}
 
-	var err = mongodb.Run(r.CollectionName(), query)
+	var err = mongodb.Run(r.CollectionName(), findQuery)
 
-	return err
+	return foundItems, err
 }
 
 func (r *RollbarItem) CollectionName() string {

@@ -1,22 +1,13 @@
 package main
 
 import (
-	"github.com/sent-hil/rollbar"
-	"koding/db/mongodb"
-	"labix.org/v2/mgo"
-	"labix.org/v2/mgo/bson"
 	"strconv"
 	"time"
-)
 
-type SaveableDeploy struct {
-	Id          bson.ObjectId `bson:"_id"`
-	DeployId    int           `bson:"deployId"`
-	ProjectId   int           `bson:"projectId"`
-	StartTime   time.Time     `bson:"startTime"`
-	CodeVersion int           `bson:"codeVersion"`
-	Alerted     bool
-}
+	"koding/db/models"
+
+	"github.com/sent-hil/rollbar"
+)
 
 func curryDeploysFromRollbarToDb() error {
 	var latestDeploys, err = getLatestDeploysFromRollbar()
@@ -25,7 +16,7 @@ func curryDeploysFromRollbarToDb() error {
 	}
 
 	for _, i := range latestDeploys {
-		var saveableDeploy = &SaveableDeploy{
+		var rollbarDeploy = &models.RollbarDeploy{
 			DeployId:  i.Id,
 			ProjectId: i.ProjectId,
 			Alerted:   false,
@@ -33,11 +24,11 @@ func curryDeploysFromRollbarToDb() error {
 
 		// Normalize data according to our needs.
 		var codeVersionInt, _ = strconv.Atoi(i.Comment)
-		saveableDeploy.CodeVersion = codeVersionInt
+		rollbarDeploy.CodeVersion = codeVersionInt
 
-		saveableDeploy.StartTime = time.Unix(i.StartTime, 0)
+		rollbarDeploy.StartTime = time.Unix(i.StartTime, 0)
 
-		err = saveUniqueDeploy(saveableDeploy)
+		err = rollbarDeploy.UpsertByDeployId()
 		if err != nil {
 			log.Error("Saving/updating Deploy: %v", err)
 		}
@@ -56,31 +47,4 @@ func getLatestDeploysFromRollbar() ([]rollbar.Deploy, error) {
 	}
 
 	return deployResp.Result.Deploys, err
-}
-
-func saveUniqueDeploy(s *SaveableDeploy) error {
-	var foundDeploy SaveableDeploy
-	var findQuery = func(c *mgo.Collection) error {
-		return c.Find(bson.M{"deployId": s.DeployId}).One(&foundDeploy)
-	}
-
-	var secondErr error
-	var err = mongodb.Run("deploys", findQuery)
-	if err != nil {
-		secondErr = saveDeploy(s)
-	}
-
-	return secondErr
-}
-
-func saveDeploy(s *SaveableDeploy) error {
-	log.Debug("Depoly with id: %v not found, saving", s.DeployId)
-
-	var query = func(c *mgo.Collection) error {
-		return c.Insert(s)
-	}
-
-	var err = mongodb.Run("deploys", query)
-
-	return err
 }

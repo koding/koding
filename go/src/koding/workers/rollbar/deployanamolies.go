@@ -2,8 +2,11 @@ package main
 
 import (
 	"fmt"
-	"github.com/sent-hil/slack"
+
+	"koding/db/models"
 	"koding/db/mongodb"
+
+	"github.com/sent-hil/slack"
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
 )
@@ -46,8 +49,8 @@ func checkForDeployAnamolies() error {
 	return err
 }
 
-func getLatestDeploy() (*SaveableDeploy, error) {
-	var foundDeploy SaveableDeploy
+func getLatestDeploy() (*models.RollbarDeploy, error) {
+	var foundDeploy models.RollbarDeploy
 	var findQuery = func(c *mgo.Collection) error {
 		return c.Find(nil).Sort("-deployId").One(&foundDeploy)
 	}
@@ -59,20 +62,14 @@ func getLatestDeploy() (*SaveableDeploy, error) {
 	return &foundDeploy, err
 }
 
-func getErrorsForDeploy(deployId int) ([]SaveableItem, error) {
-	var foundItems []SaveableItem
-	var findQuery = func(c *mgo.Collection) error {
-		return c.Find(bson.M{"codeVersion": deployId}).All(&foundItems)
-	}
-
-	var err = mongodb.Run("rollbarItems", findQuery)
-
-	log.Debug("Found %v entries for deploy: %v", len(foundItems), deployId)
+func getErrorsForDeploy(deployId int) ([]*models.RollbarItem, error) {
+	var rollbarItem = &models.RollbarItem{CodeVersion: deployId}
+	var foundItems, err = rollbarItem.FindByCodeVersion()
 
 	return foundItems, err
 }
 
-func postToSlack(latestDeployItems []SaveableItem) error {
+func postToSlack(latestDeployItems []*models.RollbarItem) error {
 	var text = fmt.Sprintf("%v new errors happened after deploy: %v", len(latestDeployItems), latestDeployItems[0].CodeVersion)
 
 	var slackClient = slack.NewClient(slackToken)
@@ -91,7 +88,7 @@ func postToSlack(latestDeployItems []SaveableItem) error {
 	return err
 }
 
-func updateDeploy(latestDeploy *SaveableDeploy) error {
+func updateDeploy(latestDeploy *models.RollbarDeploy) error {
 	log.Debug("Updating deploy with id: %v of alert status", latestDeploy.CodeVersion)
 
 	var query = func(c *mgo.Collection) error {
