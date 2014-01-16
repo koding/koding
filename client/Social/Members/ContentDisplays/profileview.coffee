@@ -300,6 +300,7 @@ class ProfileView extends JView
 
   constructor: (options = {}, data) ->
 
+    options.bind   = "mouseenter mouseleave"
     super options, data
 
     @memberData    = @getData()
@@ -515,6 +516,16 @@ class ProfileView extends JView
               @thankButton.disable()
               @utils.wait 3000, =>
                 @thankButton.enable()
+      @thankButton.hide()
+      @badgeItemsList.hide()
+
+      @on "mouseenter", =>
+        @thankButton.show()
+        @badgeItemsList.show()
+
+      @on "mouseleave", =>
+        @thankButton.hide()
+        @badgeItemsList.hide()
 
   viewAppended:->
     super
