@@ -14,6 +14,16 @@ class AboutView extends KDView
     @randomTeamMember = new RandomTeamMemberView
     @memberList = @activeController.getView()
 
+    @logoPackButton = new KDButtonView
+      title         : "Download Logo Pack"
+      style         : "solid green"
+      icon          : yes
+
+    @fontPackButton = new KDButtonView
+      title         : "Download Font Pack"
+      style         : "solid green"
+      icon          : yes
+
     super
 
   viewAppended: JView::viewAppended
@@ -47,7 +57,17 @@ class AboutView extends KDView
           </div>
         </aside>
       </section>
-      {{> @memberList}}
+      <section class="member-list">
+        <h2>The A-Team</h2>
+        <h4>Look at them geniuses</h4>
+        {{> @memberList}}
+      </section>
+      <section class="press-kit">
+        <h2>Press Kit</h2>
+        <h4>Resources for brand enthusiasts</h4>
+        {{> @logoPackButton}}
+        {{> @fontPackButton}}
+      </section>
     """
 
 class RandomTeamMemberView extends JView
