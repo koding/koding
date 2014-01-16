@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"html/template"
 	"io"
@@ -56,8 +57,8 @@ type Proxy struct {
 	// request hosts, such as koding.com.
 	cacheTransports map[string]http.RoundTripper
 
-	// kite reference
-	kite *kite.Kite
+	// oskite reference
+	oskite *kite.RemoteKite
 }
 
 // used by redis counter
@@ -140,49 +141,13 @@ func configureProxy() {
 
 // startProxy is used to fire off all our ftp, https and http proxies
 func startProxy() {
-	kite := newKite()
-	kite.Start()
-
 	p := &Proxy{
 		mux:             http.NewServeMux(),
 		enableFirewall:  false,
 		cacheTransports: make(map[string]http.RoundTripper),
-		kite:            kite,
 	}
 
-	// please start oskite before you start kontrolproxy
-	// the function below is just for gettings done correctly
-	// it will be moved later ...
-	query := protocol.KontrolQuery{
-		Username:    "devrim",
-		Environment: "vagrant",
-		Name:        "oskite",
-	}
-
-	kites, err := kite.Kontrol.GetKites(query)
-	if err != nil {
-		log.Println(err)
-		return
-	}
-
-	oskite := kites[0]
-	err = oskite.Dial()
-	if err != nil {
-		log.Println(err)
-		return
-	}
-
-	go func() {
-		for _ = range time.Tick(time.Second) {
-			resp, err := oskite.Tell("startVM", "fatih")
-			if err != nil {
-				log.Println(err)
-				return
-			}
-
-			fmt.Println("resp, err", resp.MustBool(), err)
-		}
-	}()
+	go p.findAndDialOskite()
 
 	p.mux.Handle("/", p)
 	p.mux.Handle("/_resetcache_/", p.resetCacheHandler())
@@ -190,6 +155,51 @@ func startProxy() {
 	p.setupLogging()
 	p.startHTTPS() // non-blocking
 	p.startHTTP()
+}
+
+func (p *Proxy) findAndDialOskite() {
+	k := newKite()
+	k.Start()
+
+	query := protocol.KontrolQuery{
+		Username:    "devrim",
+		Environment: "vagrant",
+		Name:        "oskite",
+	}
+
+	kites, err := k.Kontrol.GetKites(query)
+	if err != nil {
+		log.Println(err)
+	} else {
+		p.oskite = kites[0]
+		err = p.oskite.Dial()
+		if err != nil {
+			log.Println(err)
+		}
+	}
+
+	onEvent := func(e *protocol.KiteEvent) {
+		fmt.Printf("--- kite event: %#v\n", e)
+	}
+
+	fmt.Println("watching for kites")
+	err = k.Kontrol.WatchKites(query, onEvent)
+	if err != nil {
+		log.Println(err)
+	}
+}
+
+func (p *Proxy) startVM(hostnameAlias string) error {
+	if p.oskite == nil {
+		return errors.New("oskite not connected")
+	}
+
+	_, err := p.oskite.Tell("startVM", hostnameAlias)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func newKite() *kite.Kite {
@@ -347,6 +357,12 @@ func (p *Proxy) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 func (p *Proxy) getHandler(req *http.Request) http.Handler {
 	userIP := getIP(req.RemoteAddr)
 
+	////// TESTING
+	err := p.startVM("fatih")
+	log.Println(err)
+	return templateHandler("notOnVM.html", req.Host, 404)
+	//////
+
 	// remove www from the hostname (i.e. www.foo.com -> foo.com)
 	if strings.HasPrefix(req.Host, "www.") {
 		req.Host = strings.TrimPrefix(req.Host, "www.")
@@ -357,6 +373,7 @@ func (p *Proxy) getHandler(req *http.Request) http.Handler {
 		logs.Info(fmt.Sprintf("resolver error of %s (%s): %s", req.Host, userIP, err))
 
 		if err == resolver.ErrVMOff {
+			p.startVM(target.HostnameAlias[0])
 			return templateHandler("notOnVM.html", req.Host, 404)
 		}
 
