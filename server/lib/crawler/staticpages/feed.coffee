@@ -40,7 +40,7 @@ module.exports = (bongo, page, contentType, callback)=>
 
         if contentType is "Activity"
           createFullHTML = no
-          putBody = no
+          putBody = yes
           createActivityContent JAccount, content, {}, createFullHTML, putBody, (error, content)=>
             return queue.next()  if error or not content
             queue.pageContent = queue.pageContent + content
@@ -52,7 +52,8 @@ module.exports = (bongo, page, contentType, callback)=>
         schemaorgTagsOpening = getSchemaOpeningTags contentType
         schemaorgTagsClosing = getSchemaClosingTags contentType
 
-        content = schemaorgTagsOpening + queue.pageContent + schemaorgTagsClosing
+        # content = schemaorgTagsOpening + queue.pageContent + schemaorgTagsClosing
+        content = queue.pageContent
 
         pagination = getPagination page, count, contentType
         fullPage = putContentIntoFullPage content, pagination
@@ -155,21 +156,75 @@ createUserInteractionMeta = (numberOfFollowers)->
   userInteractionMeta = "<meta itemprop=\"interactionCount\" content=\"UserComments:#{numberOfFollowers}\"/>"
   return userInteractionMeta
 
+getDock = ->
+  """
+  <header id="main-header" class="kdview">
+      <div class="inner-container">
+          <a id="koding-logo" href="/">
+              <cite></cite>
+          </a>
+          <div id="dock" class="">
+              <div id="main-nav" class="kdview kdlistview kdlistview-navigation">
+                  <a class="kdview kdlistitemview kdlistitemview-main-nav activity kddraggable running" href="/Activity" style="left: 0px;">
+                      <span class="icon"></span>
+                      <cite>Activity</cite>
+                  </a>
+                  <a class="kdview kdlistitemview kdlistitemview-main-nav teamwork kddraggable" href="/Teamwork" style="left: 55px;">
+                      <span class="icon"></span>
+                      <cite>Teamwork</cite>
+                  </a>
+                  <a class="kdview kdlistitemview kdlistitemview-main-nav terminal kddraggable" href="/Terminal" style="left: 110px;">
+                      <span class="icon"></span>
+                      <cite>Terminal</cite>
+                  </a>
+                  <a class="kdview kdlistitemview kdlistitemview-main-nav editor kddraggable" href="/Ace" style="left: 165px;">
+                      <span class="icon"></span>
+                      <cite>Editor</cite>
+                  </a>
+                  <a class="kdview kdlistitemview kdlistitemview-main-nav apps kddraggable" href="/Apps" style="left: 220px;">
+                      <span class="icon"></span>
+                      <cite>Apps</cite>
+                  </a>
+              </div>
+          </div>
+      </div>
+  </header>
+  """
+
 putContentIntoFullPage = (content, pagination)->
   getGraphMeta  = require './graphmeta'
-  fullPage =
-    """
-      <!DOCTYPE html>
-      <html lang="en">
-      <head>
-        <title>Koding</title>
-        #{getGraphMeta()}
-      </head>
-        <body itemscope itemtype="http://schema.org/WebPage">
-          <a href="#{uri.address}">Koding</a><br />
-          #{content}
-          #{pagination}
-        </body>
-      </html>
-    """
-  return fullPage
+
+  """
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+      <title>Koding</title>
+      #{getGraphMeta()}
+    </head>
+    <body itemscope itemtype="http://schema.org/WebPage" class="super activity">
+      <div id="kdmaincontainer" class="kdview">
+        #{getDock()}
+        <section id="main-panel-wrapper" class="kdview">
+          <div id="main-tab-view" class="kdview kdscrollview kdtabview">
+            <div class="kdview kdtabpaneview activity clearfix content-area-pane active">
+              <div id="content-page-activity" class="kdview kdscrollview content-page activity loggedin">
+                <main class="">
+                  <div class="kdview activity-content feeder-tabs">
+                    <div class="kdview listview-wrapper">
+                      <div class="kdview kdscrollview">
+                        <div class="kdview kdlistview kdlistview-default activity-related">
+                          #{content}
+                          #{pagination}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </main>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+    </body>
+    </html>
+  """

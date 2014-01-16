@@ -226,46 +226,60 @@ app.get "/Landing/:page", (req, res, next) ->
 # /USER || /SECTION || /GROUP[/SECTION] || /APP
 #
 app.all '/:name/:section?*', (req, res, next)->
+
   {JName, JGroup} = koding.models
   {name, section} = req.params
+  path = if section then "#{name}/#{section}" else name
+
   return res.redirect 302, req.url.substring 7  if name in ['koding', 'guests']
   [firstLetter] = name
+
+  console.log "[GG]> firstLetter ", firstLetter, name
 
   # Checks if its an internal request like /Activity, /Terminal ...
   #
   if firstLetter.toUpperCase() is firstLetter
-    # FIXME GG CHECK INTERNAL APPS HERE
-    # if name in ['Activity']
-    # then next()
-    # else
-    bongoModels = koding.models
-    generateFakeClient req, res, (err, client)->
+
+    if name in ['Activity']
 
       isLoggedIn req, res, (err, loggedIn, account)->
-        prefix   = if loggedIn then 'loggedIn' else 'loggedOut'
-        serveSub = (err, subPage)->
-          return next()  if err
-          serve subPage, res
+        return next()  if loggedIn
 
-        # # No need to use Develop anymore FIXME ~ GG
-        # if name is "Develop"
-        #   options = {account, name, section, client, bongoModels}
-        #   return JGroup.render[prefix].subPage options, serveSub
+        staticHome = require "../crawler/staticpages/kodinghome"
+        return res.send 200, staticHome() if path is ""
+        return Crawler.crawl koding, req, res, path
 
-        path = if section then "#{name}/#{section}" else name
-        JName.fetchModels path, (err, models)->
-          if err
-            options = {account, name, section, client, bongoModels}
-            JGroup.render[prefix].subPage options, serveSub
-          else unless models?
-            serveHome req, res, next
-          else
-            options = {account, name, section, models, client, bongoModels}
-            JGroup.render[prefix].subPage options, serveSub
+    else
+
+      bongoModels = koding.models
+      generateFakeClient req, res, (err, client)->
+
+        isLoggedIn req, res, (err, loggedIn, account)->
+          prefix   = if loggedIn then 'loggedIn' else 'loggedOut'
+
+          console.log "[GG]> prefix ", prefix
+
+          serveSub = (err, subPage)->
+            return next()  if err
+            serve subPage, res
+
+          path = if section then "#{name}/#{section}" else name
+
+          console.log "[GG]> final path ", path
+
+          JName.fetchModels path, (err, models)->
+            if err
+              options = {account, name, section, client, bongoModels}
+              JGroup.render[prefix].subPage options, serveSub
+            else if not models? then next()
+            else
+              options = {account, name, section, models, client, bongoModels}
+              JGroup.render[prefix].subPage options, serveSub
 
   # Checks if its a User or Group from JName collection
   #
   else
+
     isLoggedIn req, res, (err, loggedIn, account)->
       JName.fetchModels name, (err, models)->
         if err then next err
@@ -281,6 +295,8 @@ app.all '/:name/:section?*', (req, res, next)->
 #
 app.get "/", (req, res, next)->
 
+  console.log "[GG]> req.query ", req.query
+
   # Handle crawler request
   #
   if req.query._escaped_fragment_?
@@ -292,7 +308,7 @@ app.get "/", (req, res, next)->
   # User requests
   #
   else
-    serveHome req, res
+    serveHome req, res, next
 
 # Forwards to /
 #
@@ -309,6 +325,8 @@ app.get '*', (req,res)->
     if alias
     then "#{alias}#{query}"
     else "/#!#{urlOnly}#{query}"
+
+  console.log "[GG]> redirectTo ", redirectTo
 
   res.header 'Location', redirectTo
   res.send 302

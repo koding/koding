@@ -1,15 +1,16 @@
 # account and models will be removed.
 {argv} = require 'optimist'
-{uri} = require('koding-config-manager').load("main.#{argv.c}")
+{uri, client} = require('koding-config-manager').load("main.#{argv.c}")
 
 getSingleActivityPage = ({activityContent, account, models})->
   {Relationship} = require 'jraphical'
-  getStyles  = require './styleblock'
-  getGraphMeta  = require './graphmeta'
+  getStyles      = require './styleblock'
+  getGraphMeta   = require './graphmeta'
   model      = models.first if models and Array.isArray models
 
   title  = activityContent?.title
   """
+
   <!DOCTYPE html>
   <html lang="en">
   <head>
@@ -24,6 +25,8 @@ getSingleActivityPage = ({activityContent, account, models})->
     </body>
   </html>
   """
+
+
 createCommentNode = (comment)->
   commentContent = ""
   if comment.body
@@ -42,11 +45,9 @@ createAccountName = (fullName)->
 
 createAvatarImage = (hash)->
   imgURL = "https://gravatar.com/avatar/#{hash}?size=90&amp;d=https%3A%2F%2Fapi.koding.com%2Fimages%2Fdefaultavatar%2Fdefault.avatar.90.png"
-  image =
-    """
-    <img src="#{imgURL}" itemprop="image"/>
-    """
-  return image
+  """
+  <img width="70" height="70" src="#{imgURL}" style="opacity: 1;" itemprop="image" />
+  """
 
 createCreationDate = (createdAt)->
   return "Created at: <span itemprop=\"dateCreated\">#{createdAt}</span>"
@@ -64,7 +65,7 @@ createLikesCount = (numberOfLikes)->
   return content
 
 createAuthor = (accountName, nickname)->
-  return "<a href=\"#{uri.address}/#!/#{nickname}\"><span itemprop=\"name\">#{accountName}</span></a>"
+  return "<a href=\"#{uri.address}/#{nickname}\"><span itemprop=\"name\">#{accountName}</span></a>"
 
 createUserInteractionMeta = (numberOfLikes, numberOfComments)->
   userInteractionMeta = "<meta itemprop=\"interactionCount\" content=\"UserLikes:#{numberOfLikes}\"/>"
@@ -72,6 +73,7 @@ createUserInteractionMeta = (numberOfLikes, numberOfComments)->
   return userInteractionMeta
 
 getSingleActivityContent = (activityContent, model)->
+
   body = activityContent.body
   nickname = activityContent.nickname
   accountName = createAccountName activityContent.fullName
@@ -108,26 +110,51 @@ getSingleActivityContent = (activityContent, model)->
     shortenedTitle = activityContent.title.substring(0, 150) + "..."
   title =
     """
-      <a href="#{uri.address}/#!/Activity/#{activityContent.slug}">#{shortenedTitle}</a>
+      <a href="#{uri.address}/Activity/#{activityContent.slug}">#{shortenedTitle}</a>
     """
 
   content  =
     """
-      <header itemprop="headline"><h1>#{title}</h1></header>
-      #{body}
-      <hr>
-      <figure itemscope itemtype="http://schema.org/person" title="#{accountName}">
-        #{avatarImage}
-      </figure>
-      <footer>
-        #{userInteractionMeta}
-        #{createdAt} by #{author}
-        <br>
-        #{tags}
-        <hr>
-        #{commentsCount} #{likesCount}
-      </footer>
+
+      <div class="kdview kdlistitemview kdlistitemview-activity">
+          <div class="kdview activity-item status">
+              <a class="avatarview author-avatar" href="#{uri.address}/#{nickname}" style="width: 70px; height: 70px; background-size: 70px; background-image: none;">
+                  #{avatarImage}
+              </a>
+
+              <a class="profile" href="#{uri.address}/#{nickname}">
+                <span data-paths="profile.firstName profile.lastName" itemscope itemtype="http://schema.org/person" title="#{accountName}">
+                  #{accountName}
+                </span>
+              </a>
+
+              <article data-paths="body">
+                <p>
+                  #{body}
+                </p>
+              </article>
+
+              <footer>
+                  #{userInteractionMeta}
+                  <div class="kdview comment-header activity-actions">
+                      <span class="kdview logged-in action-container"><a class="action-link" href="/Login">Like</a>
+                          <a class="count" href="/Login">
+                              <span data-paths="meta.likes">#{likesCount}</span>
+                          </a>
+                      </span>
+                      <span class="logged-in action-container">
+                          <a class="action-link" href="/Login">Comment</a>
+                          <a class="count" href="/Login">
+                              <span data-paths="repliesCount" >#{commentsCount}</span>
+                          </a>
+                      </span>
+                  </div>
+                  <time class="kdview">#{createdAt}</time>
+              </footer>
+          </div>
+      </div>
       #{commentsContent}
+
     """
   return content
 
