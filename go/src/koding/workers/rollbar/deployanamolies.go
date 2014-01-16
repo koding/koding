@@ -60,7 +60,7 @@ func getLatestDeploy() (*models.RollbarDeploy, error) {
 
 	var err = mongodb.Run("deploys", findQuery)
 
-	log.Debug("Id of latest deploy: %v", foundDeploy.CodeVersion)
+	log.Debug("Id of latest deploy: %v, status: %v", foundDeploy.CodeVersion, foundDeploy.Alerted)
 
 	return &foundDeploy, err
 }

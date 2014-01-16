@@ -26,16 +26,16 @@ func importDeploysFromRollbarToDb() error {
 		var codeVersionInt, err = strconv.Atoi(i.Comment)
 		if err != nil {
 			log.Error("Invalid codeVersion value: %v for deploy: %v", i.Comment, i.Id)
-			return err
+			continue
 		}
 
 		rollbarDeploy.CodeVersion = codeVersionInt
 		rollbarDeploy.StartTime = time.Unix(i.StartTime, 0)
 
-		err = rollbarDeploy.UpsertByDeployId()
+		err = rollbarDeploy.SaveUniqueByDeployId()
 		if err != nil {
 			log.Error("Saving/updating Deploy: %v", err)
-			return err
+			continue
 		}
 	}
 

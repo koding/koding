@@ -15,20 +15,32 @@ type RollbarDeploy struct {
 	ProjectId   int           `bson:"projectId"`
 	StartTime   time.Time     `bson:"startTime"`
 	CodeVersion int           `bson:"codeVersion"`
-	Alerted     bool
+	Alerted     bool          `bson:"alerted"`
 }
 
-func (r *RollbarDeploy) UpsertByDeployId() error {
-	var query = func(c *mgo.Collection) error {
-		var _, err = c.Upsert(bson.M{"deployId": r.DeployId}, r)
+func (r *RollbarDeploy) SaveUniqueByDeployId() error {
+	var count int
+	var err error
+	var findQuery = func(c *mgo.Collection) error {
+		count, err = c.Find(bson.M{"deployId": r.DeployId}).Count()
+
 		return err
 	}
 
-	var err = mongodb.Run(r.CollectionName(), query)
+	err = mongodb.Run(r.CollectionName(), findQuery)
+	if err != nil {
+		return err
+	}
+
+	if count > 0 {
+		return nil
+	}
+
+	var insertQuery = func(c *mgo.Collection) error {
+		return c.Insert(r)
+	}
+
+	err = mongodb.Run(r.CollectionName(), insertQuery)
 
 	return err
-}
-
-func (r *RollbarDeploy) CollectionName() string {
-	return "deploys"
 }
