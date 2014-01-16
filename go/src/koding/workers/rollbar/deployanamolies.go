@@ -8,7 +8,6 @@ import (
 
 	"github.com/sent-hil/slack"
 	"labix.org/v2/mgo"
-	"labix.org/v2/mgo/bson"
 )
 
 var (
@@ -18,7 +17,8 @@ var (
 )
 
 func checkForDeployAnamolies() error {
-	var latestDeploy, err = getLatestDeploy()
+	var latestDeploy = &models.RollbarDeploy{}
+	var err = latestDeploy.GetLatestDeploy()
 	if err != nil {
 		log.Error("Getting latest deploy from db: %v", err)
 		return err
@@ -47,7 +47,7 @@ func checkForDeployAnamolies() error {
 		return err
 	}
 
-	err = updateDeploy(latestDeploy)
+	err = latestDeploy.UpdateAlertStatus()
 
 	return err
 }
@@ -73,7 +73,8 @@ func getErrorsForDeploy(deployId int) ([]*models.RollbarItem, error) {
 }
 
 func postToSlack(latestDeployItems []*models.RollbarItem) error {
-	var text = fmt.Sprintf("%v new errors happened after deploy: %v", len(latestDeployItems), latestDeployItems[0].CodeVersion)
+	var text = fmt.Sprintf("%v new errors happened after deploy: %v",
+		len(latestDeployItems), latestDeployItems[0].CodeVersion)
 
 	var slackClient = slack.NewClient(slackToken)
 	var messageService = slack.NewMessageService(slackClient)
@@ -87,21 +88,6 @@ func postToSlack(latestDeployItems []*models.RollbarItem) error {
 	if err != nil {
 		return err
 	}
-
-	return err
-}
-
-func updateDeploy(latestDeploy *models.RollbarDeploy) error {
-	log.Debug("Updating deploy with id: %v of alert status", latestDeploy.CodeVersion)
-
-	var query = func(c *mgo.Collection) error {
-		var findQuery = bson.M{"_id": latestDeploy.Id}
-		var updateQuery = bson.M{"$set": bson.M{"alerted": true}}
-
-		return c.Update(findQuery, updateQuery)
-	}
-
-	var err = mongodb.Run("deploys", query)
 
 	return err
 }

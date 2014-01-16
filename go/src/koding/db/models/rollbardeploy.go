@@ -44,3 +44,30 @@ func (r *RollbarDeploy) SaveUniqueByDeployId() error {
 
 	return err
 }
+
+func (r *RollbarDeploy) UpdateAlertStatus() error {
+	var query = func(c *mgo.Collection) error {
+		var findQuery = bson.M{"_id": r.Id}
+		var updateQuery = bson.M{"$set": bson.M{"alerted": true}}
+
+		return c.Update(findQuery, updateQuery)
+	}
+
+	var err = mongodb.Run(r.CollectionName(), query)
+
+	return err
+}
+
+func (r *RollbarDeploy) GetLatestDeploy() error {
+	var findQuery = func(c *mgo.Collection) error {
+		return c.Find(nil).Sort("-deployId").One(&r)
+	}
+
+	var err = mongodb.Run(r.CollectionName(), findQuery)
+
+	return err
+}
+
+func (r *RollbarDeploy) CollectionName() string {
+	return "deploys"
+}
