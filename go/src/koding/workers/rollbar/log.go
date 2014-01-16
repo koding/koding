@@ -1,9 +1,10 @@
 package main
 
 import (
-	"github.com/op/go-logging"
 	stdlog "log"
 	"os"
+
+	"github.com/op/go-logging"
 )
 
 var log = logging.MustGetLogger("rollbar")
