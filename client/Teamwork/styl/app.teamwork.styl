@@ -67,6 +67,10 @@ app.teamwork.styl
     padding-left                3px
   .CodeMirror-gutters
     border-right                none
+  .kdtabhandle-movenav
+    top                         22px !important
+    size                        32px !important, 20px !important
+    rounded                     4px 0 0 0
 
 .powered-by-firepad
   display                       none
@@ -251,7 +255,7 @@ app.teamwork.styl
     .export, .share
       display                   none
   .activity-input-widget
-    margin-top                  45px
+    margin-top                  35px
   .header
     height                      40px
     border-bottom               1px solid #C5C5C5
@@ -339,6 +343,7 @@ app.teamwork.styl
   position                      absolute
   size                          130px, 58px
   text-align                    right
+  display                       none
   button
     background                  none
     border                      none
@@ -355,17 +360,6 @@ app.teamwork.styl
     &.active
       background-color          #282F31
       border-radius             6px 6px 0 0
-  .tw-export-button
-    size                        32px, 32px
-    bg                          color, #2E98DF
-    rounded                     32px
-    &:hover
-      bg                        color, #2E98DF
-    span
-      top                       -1px
-      position                  relative
-  .tw-options-button
-      top                       14px
 
 .tw-bot-avatar
   r-sprite                      teamwork, "teampunk"
