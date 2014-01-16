@@ -322,4 +322,7 @@ config =
       signature     : 1
     mixpanel        : 1
     rollbar         : 1
+    slack           :
+      token         : 1
+      channel       : 1
 module.exports = config
