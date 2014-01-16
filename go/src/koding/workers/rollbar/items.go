@@ -53,7 +53,6 @@ func importItemsFromRollbarToDb() error {
 			if err != nil {
 				log.Error("Saving/updating item: %v", err)
 			}
-
 		}(i)
 	}
 

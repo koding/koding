@@ -21,6 +21,7 @@ func checkForDeployAnamolies() error {
 	var latestDeploy, err = getLatestDeploy()
 	if err != nil {
 		log.Error("Getting latest deploy from db: %v", err)
+		return err
 	}
 
 	if latestDeploy.Alerted == true {
@@ -32,6 +33,7 @@ func checkForDeployAnamolies() error {
 	latestDeployItems, err := getErrorsForDeploy(latestDeployVersion)
 	if err != nil {
 		log.Error("Getting items for latest deploy from db: %v", err)
+		return err
 	}
 
 	if len(latestDeployItems) == 0 {
@@ -41,6 +43,7 @@ func checkForDeployAnamolies() error {
 
 	err = postToSlack(latestDeployItems)
 	if err != nil {
+		log.Error("Posting to slack: %v", err)
 		return err
 	}
 

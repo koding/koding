@@ -31,6 +31,7 @@ func importDeploysFromRollbarToDb() error {
 		err = rollbarDeploy.UpsertByDeployId()
 		if err != nil {
 			log.Error("Saving/updating Deploy: %v", err)
+			return err
 		}
 	}
 
@@ -44,6 +45,7 @@ func getLatestDeploysFromRollbar() ([]rollbar.Deploy, error) {
 	var deployResp, err = deployService.All()
 	if err != nil {
 		log.Error("Getting deploys: %v", err)
+		return err
 	}
 
 	return deployResp.Result.Deploys, err
