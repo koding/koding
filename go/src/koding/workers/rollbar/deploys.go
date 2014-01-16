@@ -5,13 +5,16 @@ import (
 	"koding/db/mongodb"
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
+	"strconv"
 	"time"
 )
 
 type SaveableDeploy struct {
-	DeployId  int       `bson:"deployId"`
-	ProjectId int       `bson:"projectId"`
-	StartTime time.Time `bson:"start_time"`
+	DeployId    int       `bson:"deployId"`
+	ProjectId   int       `bson:"projectId"`
+	StartTime   time.Time `bson:"startTime"`
+	CodeVersion int       `bson:"codeVersion"`
+	Alerted     bool
 }
 
 func curryDeploysFromRollbarToDb() error {
@@ -24,9 +27,13 @@ func curryDeploysFromRollbarToDb() error {
 		var saveableDeploy = &SaveableDeploy{
 			DeployId:  i.Id,
 			ProjectId: i.ProjectId,
+			Alerted:   false,
 		}
 
 		// Normalize data according to our needs.
+		var codeVersionInt, _ = strconv.Atoi(i.Comment)
+		saveableDeploy.CodeVersion = codeVersionInt
+
 		saveableDeploy.StartTime = time.Unix(i.StartTime, 0)
 
 		err = saveUniqueDeploy(saveableDeploy)

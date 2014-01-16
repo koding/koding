@@ -32,5 +32,10 @@ func main() {
 
 	wg.Wait()
 
+	var err = checkForDeployAnamolies()
+	if err != nil {
+		log.Error("Checking for deploy anamolies: %v", err)
+	}
+
 	log.Notice("RollbarFeeder ended....applause.")
 }
