@@ -327,3 +327,6 @@ module.exports =
     signature    : "HMAC-SHA1"
   mixpanel       : "a57181e216d9f713e19d5ce6d6fb6cb3"
   rollbar        : "71c25e4dc728431b88f82bd3e7a600c9"
+  slack          :
+	  token        : "xoxp-2155583316-2155760004-2158149487-a72cf4"
+	  channel      : "C024LG80K"
