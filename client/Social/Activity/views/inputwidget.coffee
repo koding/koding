@@ -13,15 +13,20 @@ class ActivityInputWidget extends KDView
 
     @input.on "TokenAdded", (type, token) =>
       if token.slug is "bug" and type is "tag"
+        @bugNotification.show()
         @setClass "bug-tagged"
 
     # FIXME we need to hide bug warning in a proper way ~ GG
     @input.on "keyup", =>
       val = @input.getValue()
-      @unsetClass 'bug-tagged'  if val.indexOf("5051003840118f872e001b91") is -1
+      if val.indexOf("5051003840118f872e001b91") is -1
+        @unsetClass 'bug-tagged'
+        @bugNotification.hide()
 
     @on "ActivitySubmitted", =>
       @unsetClass "bug-tagged"
+      @bugNotification.once 'transitionend', =>
+        @bugNotification.hide()
 
     @embedBox = new EmbedBoxWidget delegate: @input, data
 
@@ -36,6 +41,13 @@ class ActivityInputWidget extends KDView
         width   : 35
         height  : 35
     , KD.whoami()
+
+    @bugNotification = new KDCustomHTMLView
+      cssClass : 'bug-notification'
+      partial  : '<figure></figure>Posts tagged with <strong>#bug</strong>  will be moved to <a href="/Bugs" target="_blank">Bug Tracker</a>.'
+
+    @bugNotification.hide()
+    @bugNotification.bindTransitionEnd()
 
     @previewIcon = new KDCustomHTMLView
       tagName  : "span"
@@ -113,6 +125,8 @@ class ActivityInputWidget extends KDView
           queue.next()
 
     daisy queue
+
+    if feedType is "bug" then KD.singletons.dock.addItem { title : "Bugs", path : "/Bugs", order : 60 }
 
     @emit "ActivitySubmitted"
 
@@ -193,6 +207,7 @@ class ActivityInputWidget extends KDView
     @addSubView @avatar
     @addSubView @input
     @addSubView @embedBox
+    @addSubView @bugNotification
     @input.addSubView @submit
     @input.addSubView @previewIcon
     @hide()  unless KD.isLoggedIn()

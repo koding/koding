@@ -42,6 +42,7 @@ resurrection.activity.styl
 
     >.activity-input-widget
       margin-left       80px
+      display           block
 
       .input-view
         border            none
@@ -56,22 +57,37 @@ resurrection.activity.styl
         &[disabled=disabled]
           bg            color, #DDD !important
 
-      &.bug-tagged
-        overflow          visible
+      .bug-notification
+        display         block
+        size            600px 38px
+        margin          -40px 5px 0
+        line-height     38px
+        color           #f5f5f5
+        font-weight     300
+        text-align      left
+        font-size       14px
+        rounded         0 0 3px 3px
+        bg              color #E94B35
+        z-index         0
+        vendor          transition, margin-top .177s ease
+        borderBox()
+        figure
+          sprite        app 'nav-bugs-frameless'
+          margin        5px 18px 0 4px
+          fl()
+        strong
+          font-weight   400
+          color         white
+        a
+          font-weight   400
+          color         white
 
-        &:after
-          content         "As you are using the #bug tag - we will move your post to our bug tracker once you post it. Our engineers will be notified. You will be able to see the Bugs app on your dock after you post. Thanks for reporting and happy Koding!"
-          display         block
-          size            600px, 60px
-          line-height     20px
-          color           #fff
-          font-weight     400
-          text-align      center
-          font-size       12px
-          rounded         3px
-          bg              color, #1aaf5d
-          padding         5px
-          margin-top      2px
+      &.bug-tagged
+        .bug-notification
+          margin-top    -1px
+
+      //   &:after
+      //     content         "You tagged this as a #bug, this will appear on our bug tracker app!"
 
     .filter-warning
       background        rgba(37, 46, 48, 1.0)
@@ -100,6 +116,7 @@ resurrection.activity.styl
     .feeder-header
       margin-top        31px
       text-align        right
+      overflow          visible
 
     .new-updates
       padding           4px 10px
@@ -294,7 +311,6 @@ resurrection.activity.styl
           width         240px
 
       .avatarview
-        rounded         5px
         display         block
         left            -41px
         top             1px
@@ -395,7 +411,6 @@ resurrection.activity.styl
         .avatarview
           position      static
           margin        0 1px 0
-          rounded       3px
           fl()
 
         .total-following
@@ -430,7 +445,6 @@ resurrection.activity.styl
   margin              0
 
   .avatarview
-    rounded           4px
     top               6px
     left              6px
     z-index           2
@@ -569,10 +583,10 @@ span.collapsedtext
   .author-avatar
     display       block
     size          70px, 70px
-    rounded       4px
     top           0
     right         100%
     margin        0 11px 0 0
+    border        1px solid #ddd
     borderBox()
     abs()
 
@@ -732,7 +746,6 @@ span.collapsedtext
       // border          1px solid #bdc3c7
       top             22px
       left            20px
-      rounded         5px
       borderBox()
       abs()
 
@@ -840,7 +853,6 @@ span.collapsedtext
       display     block
       left        5px
       top         5px
-      rounded     3px
       z-index     10
       abs()
 

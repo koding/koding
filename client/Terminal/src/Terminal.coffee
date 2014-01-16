@@ -26,11 +26,12 @@ class WebTerm.Terminal extends KDObject
       tagName   : 'input'
       attributes: type: 'text'
       cssClass  : 'offscreen'
-      bind      : 'keydown keyup keypress'
+      bind      : 'keydown keyup keypress paste'
       keydown   : @bound 'keyDown'
       keypress  : @bound 'keyPress'
       keyup     : @bound 'keyUp'
     @keyInput.appendToDomBody()
+    @keyInput.on "paste", @bound "paste"
 
     containerView.on 'KDObjectWillBeDestroyed', @keyInput.bound 'destroy'
 
@@ -60,14 +61,20 @@ class WebTerm.Terminal extends KDObject
     @outputbox.append @measurebox.getDomElement()
     @container.append @outputbox
 
-    outputboxElement.addEventListener "keydown", (event) =>
-      range = KD.utils.getSelectionRange()
-      if range.startOffset isnt range.endOffset
+    outputboxElement.addEventListener "keydown", do =>
+      controlMeta = no
+      (event) =>
+        range = KD.utils.getSelectionRange()
+        return  if range.startOffset is range.endOffset
         if event.ctrlKey or event.metaKey
-          @setKeyFocus()  if String.fromCharCode(event.which) is "X"
+          return  controlMeta = yes  if event.keyIdentifier in ["Control", "Meta"]
+          char = String.fromCharCode event.which
+          if char is "X" then return @setKeyFocus()
+          else if char in ["C", "V"] then return
+          else if controlMeta then @setKeyFocus()
+          controlMeta = no
         else
           @setKeyFocus()
-    , yes
 
     outputboxElement.addEventListener "keypress", (event) =>
       KD.utils.stopDOMEvent event  if event.target isnt @keyInput.getElement()
@@ -78,6 +85,8 @@ class WebTerm.Terminal extends KDObject
         @setKeyFocus() unless event.ctrlKey or event.metaKey
         @utils.defer =>
           @mousedownHappened = false
+
+    @outputbox.on "paste", @bound "paste"
 
     @outputbox.on "drop", (event) =>
       @server.input event.originalEvent.dataTransfer.getData "text/plain"
@@ -276,3 +285,8 @@ class WebTerm.Terminal extends KDObject
       hex = "0" + hex if hex.length is 1
       '\\x' + hex
     '"' + escaped.replace('"', '\\"') + '"'
+
+  paste: (event) =>
+    KD.utils.stopDOMEvent event
+    @server.input event.originalEvent.clipboardData.getData "text/plain"
+    @setKeyFocus()
