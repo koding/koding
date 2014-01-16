@@ -4,7 +4,6 @@ module.exports = [
   "libs/async.js",
   "libs/md5-min.js",
   "libs/accounting.js",
-  "libs/mixpanelscrolltracker.js"
 
   # --- Application ---
   "utils.coffee"

@@ -68,6 +68,8 @@ class ActivityActionsView extends KDView
           lazyLoad    : yes
         , customView  : new ActivitySharePopup delegate: this, url: shareUrl
 
+        KD.mixpanel "Activity share, click"
+
         new KDOverlayView
           parent      : KD.singletons.mainView.mainTabView.activePane
           transparent : yes

@@ -1,4 +1,5 @@
 class ActivityInputView extends KDTokenizedInput
+
   {JTag} = KD.remote.api
 
   constructor: (options = {}, data) ->

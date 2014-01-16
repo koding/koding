@@ -10,7 +10,7 @@ class KodingRouter extends KDRouter
     if sectionName? then " - #{sectionName}" else ''
 
   constructor:(@defaultRoute)->
-
+    @breadcrumb = []
     @defaultRoute or= location.pathname + location.search
     @openRoutes     = {}
     @openRoutesById = {}
@@ -44,6 +44,8 @@ class KodingRouter extends KDRouter
       console.warn "Contract warning: shared route #{route} is not implemented."
 
   handleRoute:(route, options={})->
+    @breadcrumb.push route
+    
     entryPoint = options.entryPoint or KD.config.entryPoint
     frags      = route.split("?")[0].split "/"
     name       = if frags[1] is entryPoint?.slug then frags[2] else frags[1]

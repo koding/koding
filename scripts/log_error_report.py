@@ -17,7 +17,7 @@ def parse_log_file(daemon_name, for_date):
 	try:
 		f = open(filename)
 	except Exception, e:
-		return {'nodaemon':1}
+		return {'nodaemon':1}, None
 
 	for line in f:
 		line = re_console_colors.sub("", line)

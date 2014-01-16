@@ -18,12 +18,6 @@ class TeamworkWorkspace extends CollaborativeWorkspace
         if playgroundManifest
           @workspaceRef.child("playgroundManifest").set playgroundManifest
 
-    @on "WorkspaceUsersFetched", =>
-      @workspaceRef.child("users").once "value", (snapshot) =>
-        userStatus = snapshot.val()
-        return unless userStatus
-        @manageUserAvatars userStatus
-
     @on "NewHistoryItemAdded", (data) =>
       @sendSystemMessage data
 
@@ -32,9 +26,19 @@ class TeamworkWorkspace extends CollaborativeWorkspace
 
     @chatView.sendWelcomeMessage()  if @amIHost()
 
-    @usersRef.on "child_added", (snapshot) =>
-      user = snapshot.name()
-      @chatView.botReply "#{user} joined"  if user isnt @nickname
+    @on "SomeoneJoinedToTheSession", (nickname) =>
+      jAccount = @users[nickname]
+      prefix   = if jAccount then "again" else ""
+      @chatView.botReply "#{nickname} joined the session #{prefix}"
+
+      if jAccount then @createUserAvatar jAccount
+      else
+        @once "WorkspaceUsersFetched", =>
+          @createUserAvatar @users[nickname]
+
+    @on "SomeoneHasLeftTheSession", (nickname) =>
+      @removeUserAvatar nickname
+      @chatView.botReply "#{nickname} has left the session"
 
   setWatchMode: (targetUsername) ->
     username = KD.nick()
@@ -52,7 +56,7 @@ class TeamworkWorkspace extends CollaborativeWorkspace
         @fetchUsers()
 
   startNewSession: (options) ->
-    KD.mixpanel "User Started Teamwork session"
+    KD.mixpanel "Start Teamwork session, click"
     @getDelegate().emit "NewSessionRequested", options
 
   joinSession: (newOptions) ->
@@ -99,15 +103,6 @@ class TeamworkWorkspace extends CollaborativeWorkspace
       @getDelegate().showMarkdownModal()
     else
       Panel::showHintModal.call @getActivePanel()
-
-  manageUserAvatars: (users) ->
-    for own nickname, data of users
-      if data.status is "online"
-        unless @avatars[nickname]
-          @createUserAvatar @users[nickname]
-      else
-        if @avatars[nickname]
-          @removeUserAvatar nickname
 
   createUserAvatar: (jAccount) ->
     return unless jAccount
@@ -190,20 +185,35 @@ class TeamworkWorkspace extends CollaborativeWorkspace
           icon     : yes
           iconClass: "tw-import-icon"
           callback : =>
-            modal.destroy()
-            @getDelegate().emit "ImportRequested", importUrlInput.getValue()
+            KD.mixpanel "Teamwork import, click"
+            @handleImport importUrlInput, modal
         Close      :
           title    : "Cancel"
           cssClass : "modal-cancel"
-          callback : -> modal.destroy()
+          callback : ->
+            KD.mixpanel "Teamwork import, cancel"
+            modal.destroy()
 
     modal.addSubView importUrlInput = new KDHitEnterInputView
       type         : "text tw-import-url"
       placeholder  : "Enter the URL of a git repository or zip archive."
-      callback     : =>
-        modal.destroy()
-        @getDelegate().emit "ImportRequested", importUrlInput.getValue()
+      callback     : => @handleImport importUrlInput, modal
 
     modal.addSubView new KDCustomHTMLView
       tagName      : "span"
       cssClass     : "input-icon"
+
+  handleImport: (input, modal) ->
+    value    = input.getValue()
+    urlRegex = /^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/
+
+    if urlRegex.test value
+      modal.destroy()
+      @getDelegate().emit "ImportRequested", value
+    else
+      new KDNotificationView
+        title     : "Please enter a valid url"
+        type      : "mini"
+        cssClass  : "error"
+        container : modal
+        duration  : 4000

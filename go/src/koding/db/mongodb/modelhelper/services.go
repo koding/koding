@@ -17,13 +17,12 @@ func NewKeyRoutingTable() *models.KeyRoutingTable {
 	}
 }
 
-func NewKeyData(key, persistence, mode, hostdata string, host []string, enabled bool) *models.KeyData {
+func NewKeyData(key, hostdata string, host []string, enabled bool) *models.KeyData {
 	return &models.KeyData{
-		Key:          key,
-		Host:         host,
-		LoadBalancer: models.LoadBalancer{persistence, mode},
-		HostData:     hostdata,
-		Enabled:      enabled,
+		Key:      key,
+		Host:     host,
+		HostData: hostdata,
+		Enabled:  enabled,
 	}
 }
 
@@ -121,7 +120,7 @@ func GetKey(username, servicename, key string) (models.KeyData, error) {
 }
 
 // Update or add a key. service and username will be created if not available
-func UpsertKey(username, persistence, mode, servicename, key, host, hostdata string, enabled bool) error {
+func UpsertKey(username, servicename, key, host, hostdata string, enabled bool) error {
 	service, err := GetService(username)
 	if err != nil {
 		if err != mgo.ErrNotFound {
@@ -139,7 +138,7 @@ func UpsertKey(username, persistence, mode, servicename, key, host, hostdata str
 	_, ok = keyRoutingTable.Keys[key] // empty routing table or not existing key
 	if !ok {
 		hosts := []string{host}
-		keyRoutingTable.Keys[key] = *NewKeyData(key, persistence, mode, hostdata, hosts, enabled)
+		keyRoutingTable.Keys[key] = *NewKeyData(key, hostdata, hosts, enabled)
 		service.Services[servicename] = keyRoutingTable
 		err = UpsertService(username, service)
 		if err != nil {
@@ -161,8 +160,6 @@ func UpsertKey(username, persistence, mode, servicename, key, host, hostdata str
 		keyData.Host = append(keyData.Host, host)
 	}
 
-	keyData.LoadBalancer.Persistence = persistence
-	keyData.LoadBalancer.Mode = mode
 	keyData.HostData = hostdata
 	keyData.Enabled = enabled
 

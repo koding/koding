@@ -7,15 +7,15 @@ import (
 	"io/ioutil"
 	"koding/tools/utils"
 	"koding/virt"
-	"labix.org/v2/mgo"
-	"labix.org/v2/mgo/bson"
 	"net"
 	"os"
 	"os/exec"
 	"runtime"
-	"sort"
 	"strconv"
 	"strings"
+
+	"labix.org/v2/mgo"
+	"labix.org/v2/mgo/bson"
 )
 
 type PackageWithCount struct {
@@ -87,46 +87,6 @@ var actions = map[string]func(){
 		}
 		for i := 0; i < count; i++ {
 			fmt.Println(<-done)
-		}
-	},
-
-	"dpkg-statistics": func() {
-		entries, err := ioutil.ReadDir("/var/lib/lxc/dpkg-statuses")
-		if err != nil {
-			panic(err)
-		}
-
-		counts := make(map[string]int)
-		for _, entry := range entries {
-			packages, err := virt.ReadDpkgStatus("/var/lib/lxc/dpkg-statuses/" + entry.Name())
-			if err != nil {
-				panic(err)
-			}
-			for pkg := range packages {
-				counts[pkg] += 1
-			}
-		}
-
-		packages, err := virt.ReadDpkgStatus("/var/lib/lxc/vmroot/rootfs/var/lib/dpkg/status")
-		if err != nil {
-			panic(err)
-		}
-		for pkg := range packages {
-			delete(counts, pkg)
-		}
-
-		list := make(PackageWithCountSlice, 0, len(counts))
-		for pkg, count := range counts {
-			list = append(list, PackageWithCount{pkg, count})
-		}
-		sort.Sort(list)
-
-		fmt.Println("Top 10 installed packages not in vmroot:")
-		for i, entry := range list {
-			if i == 10 {
-				break
-			}
-			fmt.Printf("%s: %d\n", entry.pkg, entry.count)
 		}
 	},
 

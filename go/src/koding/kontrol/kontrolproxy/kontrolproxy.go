@@ -296,6 +296,10 @@ func (p *Proxy) getHandler(req *http.Request) http.Handler {
 			return templateHandler("notOnVM.html", req.Host, 404)
 		}
 
+		if err == resolver.ErrNoHost {
+			return templateHandler("maintenance.html", nil, 503)
+		}
+
 		return templateHandler("notfound.html", req.Host, 404)
 	}
 
@@ -332,15 +336,13 @@ func (p *Proxy) getHandler(req *http.Request) http.Handler {
 		err := target.Resolve(req.Host)
 		if err != nil {
 			logs.Info(fmt.Sprintf("internal resolver error for %s (%s) - %s", req.Host, userIP, err))
+
+			statusCode := 503
 			if err == resolver.ErrGone {
-				return templateHandler("notfound.html", req.Host, 410)
+				statusCode = 410 // Gone
 			}
 
-			if err == resolver.ErrNoHost {
-				return templateHandler("maintenance.html", nil, 503)
-			}
-
-			return templateHandler("notfound.html", req.Host, 404)
+			return templateHandler("maintenance.html", nil, statusCode)
 		}
 	}
 

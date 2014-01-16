@@ -115,6 +115,10 @@ type Config struct {
 		LogLevel     string
 		CronSchedule string
 	}
+	Slack struct {
+		Token   string
+		Channel string
+	}
 }
 
 var FileProfile string

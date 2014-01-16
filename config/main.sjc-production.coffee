@@ -17,7 +17,11 @@ authAllExchange = "authAll-#{version}"
 
 embedlyApiKey   = '94991069fb354d4e8fdb825e52d4134a'
 
+environment     = "sjc-production"
+
 module.exports =
+  environment   : environment
+  version       : version
   aws           :
     key         : 'AKIAJSUVKX6PD254UGAA'
     secret      : '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'
@@ -27,7 +31,6 @@ module.exports =
   containerSubnet: "10.128.2.0/9"
   vmPool        : "vms"
   projectRoot   : projectRoot
-  version       : version
   webserver     :
     useCacheHeader: yes
     login       : 'prod-webserver'
@@ -147,10 +150,10 @@ module.exports =
     useStaticFileServer: no
     staticFilesBaseUrl: "https://koding.com"
     runtimeOptions:
-      environment   : "sjc-production"
+      environment        : environment
       activityFetchCount : 20
-      precompiledApi: yes
-      authExchange: authExchange
+      precompiledApi     : yes
+      authExchange       : authExchange
       github        :
         clientId    : "5891e574253e65ddb7ea"
       embedly        :
@@ -312,3 +315,6 @@ module.exports =
     signature    : "HMAC-SHA1"
   mixpanel       : "d35a8d0b14e284f32ab5380590c6848a"
   rollbar        : "4a8a1f8400fc4e64bae05d47b9345538"
+  slack          :
+	  token        : "xoxp-2155583316-2155760004-2158149487-a72cf4"
+	  channel      : "C024LG80K"

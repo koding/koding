@@ -5,9 +5,10 @@ import (
 	"koding/db/models"
 	"koding/db/mongodb"
 	"koding/tools/config"
+	"log"
+
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
-	"log"
 )
 
 const (

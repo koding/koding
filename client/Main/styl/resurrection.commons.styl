@@ -16,6 +16,7 @@ resurrection.commons.styl
   overflow                  hidden
   display                   block
   vertical-align            top
+  rounded                   50%
   img
     vendor                  transition, opacity .3s ease
 
@@ -79,7 +80,6 @@ resurrection.commons.styl
   borderBox()
 
   .kdtabhandle-tabs
-    width                   2000px
     vendor                  transition, margin-left .3s ease
 
   .kdtabhandle-movenav
@@ -624,7 +624,7 @@ input.kdinput.text
   bg                    color white
   rounded               6px
   shadow                0 0 32px rgba(0,0,0,.46)
-  fix()
+  position              fixed !important
 
   .kdmodal-inner
     margin              45px
@@ -651,13 +651,18 @@ input.kdinput.text
       font-size         24px !important
 
   .kdmodal-content
-    overflow            visible !important
     margin              15px 0 0 0 !important
     padding             0 !important
     font-size           16px !important
+    line-height         18px !important
 
     .modalformline
       padding           0
+      overflow          visible
+
+      &:last-child
+        border-bottom   1px solid transparent
+
 
   .kdmodal-buttons
   .kdformview .button-field
@@ -779,7 +784,6 @@ input.kdinput.text
     r-sprite            app, "notification-close"
 
   .avatarview
-    rounded           4px
     fl()
 
   .kdnotification-title
@@ -874,6 +878,10 @@ a.action-link.verify-email
   &.inresize
     noAnim()
 
+  .close-icon
+    r-sprite            app, "modal-close-icon"
+    top                 14px
+    right               14px
 
 .kdhelp-modal
 
@@ -913,9 +921,6 @@ a.action-link.verify-email
     border-radius               4px
     cursor                      pointer
 
-  span.close-icon
-    background-position         -80px -520px
-    opacity                     .5
   footer
     h4
       line-height               30px
@@ -1054,7 +1059,6 @@ a.action-link.verify-email
       font-weight   500
 
   .avatarview
-    rounded         5px
     display         block
     left            -41px
     top             15px !important
