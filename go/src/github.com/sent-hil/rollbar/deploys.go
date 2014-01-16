@@ -19,10 +19,11 @@ type DeploysResult struct {
 }
 
 type Deploy struct {
-	Id         int   `json:"id"`
-	ProjectId  int   `json:"project_id"`
-	StartTime  int64 `json:"start_time"`
-	FinishTime int64 `json:"finish_time"`
+	Id         int    `json:"id"`
+	ProjectId  int    `json:"project_id"`
+	StartTime  int64  `json:"start_time"`
+	FinishTime int64  `json:"finish_time"`
+	Comment    string `json:comment`
 }
 
 func (d *DeployService) All() (*DeployResponse, error) {
