@@ -157,51 +157,6 @@ func startProxy() {
 	p.startHTTP()
 }
 
-func (p *Proxy) findAndDialOskite() {
-	k := newKite()
-	k.Start()
-
-	query := protocol.KontrolQuery{
-		Username:    "devrim",
-		Environment: "vagrant",
-		Name:        "oskite",
-	}
-
-	kites, err := k.Kontrol.GetKites(query)
-	if err != nil {
-		log.Println(err)
-	} else {
-		p.oskite = kites[0]
-		err = p.oskite.Dial()
-		if err != nil {
-			log.Println(err)
-		}
-	}
-
-	onEvent := func(e *protocol.KiteEvent) {
-		fmt.Printf("--- kite event: %#v\n", e)
-	}
-
-	fmt.Println("watching for kites")
-	err = k.Kontrol.WatchKites(query, onEvent)
-	if err != nil {
-		log.Println(err)
-	}
-}
-
-func (p *Proxy) startVM(hostnameAlias string) error {
-	if p.oskite == nil {
-		return errors.New("oskite not connected")
-	}
-
-	_, err := p.oskite.Tell("startVM", hostnameAlias)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
 func newKite() *kite.Kite {
 	kontrolPort := strconv.Itoa(config.Current.NewKontrol.Port)
 	kontrolHost := config.Current.NewKontrol.Host
@@ -221,6 +176,43 @@ func newKite() *kite.Kite {
 	}
 
 	return kite.New(options)
+}
+
+func (p *Proxy) findAndDialOskite() {
+	k := newKite()
+	k.Start()
+
+	time.Sleep(time.Second * 2)
+
+	query := protocol.KontrolQuery{
+		Username:    "devrim",
+		Environment: "vagrant",
+		Name:        "oskite",
+	}
+
+	kites, err := k.Kontrol.GetKites(query)
+	if err != nil {
+		log.Println(err)
+	} else {
+		p.oskite = kites[0]
+		err = p.oskite.Dial()
+		if err != nil {
+			log.Println(err)
+		}
+	}
+}
+
+func (p *Proxy) startVM(hostnameAlias string) error {
+	if p.oskite == nil {
+		return errors.New("oskite not connected")
+	}
+
+	_, err := p.oskite.Tell("startVM", hostnameAlias)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // setupLogging creates a new file for CLH logging and also sets a new signal

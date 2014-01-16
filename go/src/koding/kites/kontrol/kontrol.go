@@ -139,7 +139,7 @@ func (k *Kontrol) register(r *kite.RemoteKite, kodingkey string) (*protocol.Regi
 	prev, err := setKey()
 	if err != nil {
 		log.Critical("etcd setKey error: %s", err)
-		return nil, errors.New("Internal error")
+		return nil, errors.New("internal error - register")
 	}
 
 	if prev != "" {
@@ -362,7 +362,7 @@ func (k *Kontrol) getKites(r *kite.Request, query protocol.KontrolQuery, watchCa
 		}
 
 		log.Critical("etcd error: %s", err)
-		return nil, fmt.Errorf("Internal error")
+		return nil, fmt.Errorf("internal error - getKites")
 	}
 
 	kvs := flatten(resp.Node.Nodes)
