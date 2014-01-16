@@ -122,8 +122,14 @@ class CollaborativeWorkspace extends Workspace
 
     @usersRef.child(@getHost()).child("timestamp").on "value", (snapshot) =>
       return if @amIHost() or @connected or snapshot.val() is null
+
+      if Date.now() - snapshot.val() > 20000
+        return @pingHostTimer = KD.utils.wait 10000, =>
+          @showNotActiveView()
+
       @syncWorkspace()
       @connected = yes
+      KD.utils.killWait @pingHostTimer
 
   requestPingFromHost: ->
     @requestPingRef.set Date.now()
