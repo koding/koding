@@ -13,7 +13,7 @@ import (
 
 var rollbarClient = rollbar.NewClient("9fb7f29ad0dc478ba4cfd6bbfbecbd47")
 
-func curryItemsFromRollbarToDb() error {
+func importItemsFromRollbarToDb() error {
 	var wg sync.WaitGroup
 
 	var latestItems, err = getLatestItemsFromRollbar()

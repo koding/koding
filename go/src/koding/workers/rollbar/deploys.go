@@ -9,7 +9,7 @@ import (
 	"github.com/sent-hil/rollbar"
 )
 
-func curryDeploysFromRollbarToDb() error {
+func importDeploysFromRollbarToDb() error {
 	var latestDeploys, err = getLatestDeploysFromRollbar()
 	if err != nil {
 		return err

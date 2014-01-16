@@ -15,7 +15,7 @@ func main() {
 	go func() {
 		defer wg.Done()
 
-		var err = curryItemsFromRollbarToDb()
+		var err = importItemsFromRollbarToDb()
 		if err != nil {
 			log.Error("Currying items from Rollbar to db: %v", err)
 		}
@@ -24,7 +24,7 @@ func main() {
 	go func() {
 		defer wg.Done()
 
-		var err = curryDeploysFromRollbarToDb()
+		var err = importDeploysFromRollbarToDb()
 		if err != nil {
 			log.Error("Currying deploys from Rollbar to db: %v", err)
 		}
