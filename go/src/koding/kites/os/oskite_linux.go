@@ -106,7 +106,7 @@ func runNewKite() {
 		hostnameAlias := r.Args.One().MustString()
 
 		// just print hostnameAlias for now
-		fmt.Println(hostnameAlias)
+		fmt.Println("got request from", r.RemoteKite.Name, "starting:", hostnameAlias)
 
 		// vm, err := modelhelper.GetVM(hostnameAlias)
 		// if err != nil {
