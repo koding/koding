@@ -10,10 +10,11 @@ import (
 )
 
 type SaveableDeploy struct {
-	DeployId    int       `bson:"deployId"`
-	ProjectId   int       `bson:"projectId"`
-	StartTime   time.Time `bson:"startTime"`
-	CodeVersion int       `bson:"codeVersion"`
+	Id          bson.ObjectId `bson:"_id"`
+	DeployId    int           `bson:"deployId"`
+	ProjectId   int           `bson:"projectId"`
+	StartTime   time.Time     `bson:"startTime"`
+	CodeVersion int           `bson:"codeVersion"`
 	Alerted     bool
 }
 

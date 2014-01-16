@@ -37,6 +37,11 @@ func checkForDeployAnamolies() error {
 	}
 
 	err = postToSlack(latestDeployItems)
+	if err != nil {
+		return err
+	}
+
+	err = updateDeploy(latestDeploy)
 
 	return err
 }
@@ -82,6 +87,21 @@ func postToSlack(latestDeployItems []SaveableItem) error {
 	if err != nil {
 		return err
 	}
+
+	return err
+}
+
+func updateDeploy(latestDeploy *SaveableDeploy) error {
+	log.Debug("Updating deploy with id: %v of alert status", latestDeploy.CodeVersion)
+
+	var query = func(c *mgo.Collection) error {
+		var findQuery = bson.M{"_id": latestDeploy.Id}
+		var updateQuery = bson.M{"$set": bson.M{"alerted": true}}
+
+		return c.Update(findQuery, updateQuery)
+	}
+
+	var err = mongodb.Run("deploys", query)
 
 	return err
 }
