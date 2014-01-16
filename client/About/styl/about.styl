@@ -9,6 +9,10 @@ about.styl
 */
 }
 
+innerWrapper(innerWidth = 1043px)
+  kalc              padding-left, \(100% \- innerWidth\)\/2  // (100px - 1043px)/2
+  kalc              padding-right, \(100% \- innerWidth\)\/2  // (100px - 1043px)/2
+
 body.about
   #main-header
     .inner-container
@@ -35,19 +39,40 @@ body.about
   width             100%
   padding           0
 
+.about-company
+.member-list
+.press-kit
+  h2
+    display         block
+    font-size       36px
+    color           #1aaf5d
+    font-weight     400
+    letter-spacing  .9px
+    word-spacing    -2px
+
+  h4
+    display         block
+    font-size       36px
+    color           #bbd5c7
+    font-weight     100
+    margin          8px 0 53px
+    letter-spacing  1.1px
+    word-spacing    -2px
+
 .random-team-member
   size              100%, auto
   max-width         1043px
   margin            0 auto
-  padding           140px 0 140px 434px
+  padding           142px 0 140px 434px
   min-height        542px
   overflow          visible
   position          relative
-  letter-spacing    .2px
+  letter-spacing    .9px
+  word-spacing      -3px
   borderBox()
 
   .avatarview
-    abs             111px 0 0 15px
+    abs             114px 0 0 16px
     fl()
 
   section
@@ -57,45 +82,35 @@ body.about
       font-weight   400
       color         #1aaf5d
       text-transform capitalize
+      margin        0 0 10px
       noTextDeco()
 
     cite
       font-size     36px
       font-weight   100
       color         #8a8a8a
+      letter-spacing 1.2px
 
     article
       font-size     24px
       font-weight   100
       color         #323b3d
-      line-height   26px
+      line-height   28px
+      margin        42px 0 0 4px
+      word-spacing  -3.7px
 
 section.about-company
   size              100%, auto
   min-height        626px
   background        url('/a/images/city.jpg') no-repeat center bottom
   bg                size, cover
-  kalc              padding-left, \(100% \- 1043px\)\/2  // (100px - 1043px)/2
-  kalc              padding-right, \(100% \- 1043px\)\/2  // (100px - 1043px)/2
   position          relative
   font-size         24px
   color             #fff
   font-weight       100
-  letter-spacing    .2px
+  letter-spacing    .9px
+  innerWrapper()
   borderBox()
-
-  h2
-    display         block
-    font-size       36px
-    color           #1aaf5d
-    font-weight     400
-
-  h4
-    display         block
-    font-size       36px
-    color           #bbd5c7
-    font-weight     100
-    margin          8px 0 60px
 
   h6
     color           #fff
@@ -105,57 +120,118 @@ section.about-company
     margin          0 0 6px
 
   article
-    padding         144px 510px 144px 0
+    padding         139px 378px 144px 0
     opacity         .9
 
     p
       line-height   28px
+      word-spacing  -1px
 
   aside
-    abs             184px 90px 0 0
+    abs             180px 106px 0 0
     opacity         .9
 
     >div
-      margin        0 0 48px
+      margin        0 0 41px
+      position      relative
 
-h1.team-title
-  font-size         64px
-  line-height       128px
-  height            128px
-  text-align        center
-  font-weight       300
-  border-bottom     none
+      i
+        display     block
+        top         50%
+        vendor      transform, translateX(-51px) translateY(-50%)
+        abs()
 
-.kdlistview-team
-  margin           40px 0
+      &.based i
+        r-sprite    "about", "pin"
+      &.talents i
+        r-sprite    "about", "card"
+        left        -2px
+      &.lines i
+        r-sprite    "about", "lines"
+        left        1px
 
-.kdlistitemview-team
-  fl()
-  size              190px auto
-  text-align        center
+section.member-list
+  size              100%, auto
+  background        #e3e3e3
+  padding-top       94px
+  border-bottom     1px solid transparent
+  innerWrapper()
+  borderBox()
 
-  figure
-    margin          0 auto
-    rounded         4px
-    size            160px 160px
-    display         block
+  h4
+    color            #8a8a8a
 
-  .avatarview
-    rounded         80px
-    size            160px 160px
-    display         block
-    // opacity         .00001
-    // vendor          transition, opacity .3s .3s ease
-    // &.in
-    //   opacity       1
+  .kdlistview-team
+    kalc             width, 100% \+ 60px
+    margin           82px 0 44px -40px
 
-  figcaption
-    margin          15px 0
+  .kdlistitemview-team
+    fl()
+    size              180px 290px
+    text-align        center
+    margin            0 0 0 40px
+    letter-spacing    .9px
+    word-spacing      -4px
 
-  a.profile
-    text-decoration none
-    color           #333
-    display         block
-  cite
-    font-size       12px
-    color           #999
+    figure
+      margin          0 auto
+      size            160px 160px
+      display         block
+
+    .avatarview
+      size            160px 160px
+      display         block
+
+    figcaption
+      overflow        visible
+
+    a.profile
+      color           #8a8a8a
+      font-size       24px
+      font-weight     100
+      display         block
+      margin          28px 0 7px
+      white-space     nowrap
+      noTextDeco()
+
+    cite
+      font-size       16px
+      color           #8a8a8a
+      letter-spacing  .9px
+      word-spacing    1px
+
+section.press-kit
+  size                100%, auto
+  min-height          542px
+  padding-top         112px
+  innerWrapper()
+  borderBox()
+
+  h4
+    color            #8a8a8a
+    margin-bottom    68px
+
+  .kdbutton.solid.green
+    display          block
+    size             327px, 66px
+    line-height      66px
+    color            #fff
+    font-size        18px
+    font-weight      400
+    background       #1aaf5d
+    rounded          12px
+    padding          0 0 0 40px
+    text-align       left
+    margin-bottom    23px
+
+    .icon
+      r-sprite       "about", "download"
+      padding        0
+      margin         0
+      abs            17px 24px 0 0
+
+    .title
+      color          inherit
+      line-height    inherit
+      font-size      inherit
+      font-weight    inherit
