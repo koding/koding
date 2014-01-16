@@ -52,19 +52,6 @@ func checkForDeployAnamolies() error {
 	return err
 }
 
-func getLatestDeploy() (*models.RollbarDeploy, error) {
-	var foundDeploy models.RollbarDeploy
-	var findQuery = func(c *mgo.Collection) error {
-		return c.Find(nil).Sort("-deployId").One(&foundDeploy)
-	}
-
-	var err = mongodb.Run("deploys", findQuery)
-
-	log.Debug("Id of latest deploy: %v, status: %v", foundDeploy.CodeVersion, foundDeploy.Alerted)
-
-	return &foundDeploy, err
-}
-
 func getErrorsForDeploy(deployId int) ([]*models.RollbarItem, error) {
 	var rollbarItem = &models.RollbarItem{CodeVersion: deployId}
 	var foundItems, err = rollbarItem.FindByCodeVersion()
