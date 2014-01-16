@@ -96,7 +96,7 @@ class CollaborativeEditorPane extends CollaborativePane
     CodeMirror.modeURL = "#{cdnRoot}/mode/%N/%N.js"
     fileExtension      = file.getExtension()
     syntaxHandler      = __aceSettings.syntaxAssociations[fileExtension]
-    modeName           = null
+    modeName           = "htmlmixed"
     corrections        =
       html             : "htmlmixed"
       json             : "javascript"
