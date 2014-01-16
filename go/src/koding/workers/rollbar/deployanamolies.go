@@ -5,15 +5,15 @@ import (
 
 	"koding/db/models"
 	"koding/db/mongodb"
+	"koding/tools/config"
 
 	"github.com/sent-hil/slack"
 	"labix.org/v2/mgo"
 )
 
 var (
-	slackToken    = "xoxp-2155583316-2155760004-2158149487-a72cf4"
-	slackChannel  = "C024LG80K"
-	slackUsername = "Senthil"
+	slackToken   = config.Current.Slack.Token
+	slackChannel = config.Current.Slack.Channel
 )
 
 func checkForDeployAnamolies() error {
@@ -79,9 +79,8 @@ func postToSlack(latestDeployItems []*models.RollbarItem) error {
 	var slackClient = slack.NewClient(slackToken)
 	var messageService = slack.NewMessageService(slackClient)
 	var message = &slack.Message{
-		Channel:  slackChannel,
-		Username: slackUsername,
-		Text:     text,
+		Channel: slackChannel,
+		Text:    text,
 	}
 
 	_, err := messageService.Post(message)
