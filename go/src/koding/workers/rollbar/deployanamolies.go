@@ -1,14 +1,8 @@
 package main
 
 import (
-	"fmt"
-
 	"koding/db/models"
-	"koding/db/mongodb"
 	"koding/tools/config"
-
-	"github.com/sent-hil/slack"
-	"labix.org/v2/mgo"
 )
 
 var (
@@ -24,11 +18,6 @@ func checkForDeployAnamolies() error {
 		return err
 	}
 
-	if latestDeploy.Alerted == true {
-		log.Debug("Already alerted slack of latest deploy, returning")
-		return nil
-	}
-
 	var latestDeployVersion = latestDeploy.CodeVersion
 	latestDeployItems, err := getErrorsForDeploy(latestDeployVersion)
 	if err != nil {
@@ -41,9 +30,9 @@ func checkForDeployAnamolies() error {
 		return nil
 	}
 
-	err = postToSlack(latestDeployItems)
+	err = alert(latestDeploy, latestDeployItems)
 	if err != nil {
-		log.Error("Posting to slack: %v", err)
+		log.Error("Posting alerting: %v", err)
 		return err
 	}
 
@@ -57,23 +46,4 @@ func getErrorsForDeploy(deployId int) ([]*models.RollbarItem, error) {
 	var foundItems, err = rollbarItem.FindByCodeVersion()
 
 	return foundItems, err
-}
-
-func postToSlack(latestDeployItems []*models.RollbarItem) error {
-	var text = fmt.Sprintf("%v new errors happened after deploy: %v",
-		len(latestDeployItems), latestDeployItems[0].CodeVersion)
-
-	var slackClient = slack.NewClient(slackToken)
-	var messageService = slack.NewMessageService(slackClient)
-	var message = &slack.Message{
-		Channel: slackChannel,
-		Text:    text,
-	}
-
-	_, err := messageService.Post(message)
-	if err != nil {
-		return err
-	}
-
-	return err
 }
