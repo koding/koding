@@ -23,51 +23,41 @@ class ActivitySettingsView extends KDCustomHTMLView
   settingsMenu:(post)->
     account        = KD.whoami()
     activityController = KD.getSingleton("activityController")
+    menu = {}
     if post.originId is account.getId()
-      menu =
-        'Edit Post'           :
-          callback       : =>
-            @emit 'ActivityEditIsClicked'
-        'Delete'         :
-          callback       : =>
-            @confirmDeletePost post
+        menu['Edit Post'] =
+          callback: => @emit 'ActivityEditIsClicked'
+        menu['Delete Post'] =
+          callback: => @confirmDeletePost post
 
       if KD.checkFlag("super-admin") or KD.hasAccess("delete posts")
         menu['Add System Tag'] =
-        callback : =>
-          @selectSystemTag post
-
-      return menu
+          callback : => @selectSystemTag post
 
     if KD.checkFlag("super-admin") or KD.hasAccess("delete posts")
       if KD.checkFlag 'exempt', account
-        menu =
-          'Unmark User as Troll' :
+        menu['Unmark User as Troll'] =
             callback             : ->
               activityController.emit "ActivityItemUnMarkUserAsTrollClicked", post
       else
-        menu =
-          'Mark User as Troll' :
+        menu['Mark User as Troll'] =
             callback           : ->
               activityController.emit "ActivityItemMarkUserAsTrollClicked", post
 
       menu['Delete Post'] =
-        callback : =>
-          @confirmDeletePost post
+        callback : => @confirmDeletePost post
 
       menu['Edit Post'] =
-        callback : =>
-          @emit 'ActivityEditIsClicked'
+        callback : => @emit 'ActivityEditIsClicked'
 
       menu['Block User'] =
         callback : ->
           activityController.emit "ActivityItemBlockUserClicked", post.originId
 
       menu['Add System Tag'] =
-        callback : =>
-          @selectSystemTag post
+        callback : => @selectSystemTag post
 
-      return menu
+    return menu
 
   viewAppended: -> @addSubView @settings
 
