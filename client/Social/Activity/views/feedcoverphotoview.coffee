@@ -3,35 +3,53 @@ class FeedCoverPhotoView extends KDView
     options.cssClass = "group-cover-view"
     super options, data
 
-    @addSubView @getCoverView()
+    group = KD.singletons.groupsController.getCurrentGroup()
+
+    if group.slug isnt "koding"
+      container = new KDView
+        cssClass : "container"
+        size     :
+          height : 315
+          width  : 914
+
+      container.addSubView @getCoverUpdateButton()
+      container.addSubView @getCoverView()
+    else
+      container = new KDCustomHTMLView
+
+    @addSubView container
+
+  getCoverUpdateButton: ->
+    admin = role for role in KD.config.roles when role is "admin"
+    if admin
+      new KDButtonView
+        style  : "solid green small account-header-button"
+        type   : "submit"
+        title  : "update cover photo"
+    else
+      new KDCustomHTMLView
 
   getCoverView: ->
     group = KD.singletons.groupsController.getCurrentGroup()
-    return new KDCustomHTMLView if group.slug is "koding"
     if group.customize.background.coverPhoto
       new KDCustomHTMLView
         tagName     : 'img'
-        size        :
-            width   : 942
-            height  : 315
         attributes  :
           src       : group.customize.background.coverPhoto
           title     : group.title or ''
     else
-      # if group doesnt has cover photo, put collage
-      collageList  = new KDListViewController
+      # if group doesnt has cover photo, put collage of group users
+      collageList           = new KDListViewController
         startWithLazyLoader : no
         view                : new KDListView
           type              : "collage"
           cssClass          : "cover-list"
           itemClass         : CollageItemList
 
-      options =
-        limit : 20
+      options = limit : 20
 
       group.fetchMembersFromGraph options, (err, accounts) ->
         collageList.instantiateListItems accounts
-
       collageList.getView()
 
 class CollageItemList extends KDListItemView
