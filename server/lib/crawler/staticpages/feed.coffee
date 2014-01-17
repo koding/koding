@@ -221,9 +221,11 @@ putContentIntoFullPage = (content, pagination, contentType)->
                       <div class="kdview kdscrollview">
                         <div class="kdview kdlistview kdlistview-default activity-related">
                           #{content}
-                          #{pagination}
                         </div>
                       </div>
+                    </div>
+                    <nav class="crawler-pagination clearfix">
+                      #{pagination}
                     </div>
                   </div>
                 </main>
