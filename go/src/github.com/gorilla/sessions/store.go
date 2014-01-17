@@ -16,9 +16,19 @@ import (
 )
 
 // Store is an interface for custom session stores.
+//
+// See CookieStore and FilesystemStore for examples.
 type Store interface {
+	// Get should return a cached session.
 	Get(r *http.Request, name string) (*Session, error)
+
+	// New should create and return a new session.
+	//
+	// Note that New should never return a nil session, even in the case of
+	// an error if using the Registry infrastructure to cache the session.
 	New(r *http.Request, name string) (*Session, error)
+
+	// Save should persist session to the underlying store implementation.
 	Save(r *http.Request, w http.ResponseWriter, s *Session) error
 }
 
@@ -135,6 +145,17 @@ type FilesystemStore struct {
 	Codecs  []securecookie.Codec
 	Options *Options // default configuration
 	path    string
+}
+
+// MaxLength restricts the maximum length of new sessions to l.
+// If l is 0 there is no limit to the size of a session, use with caution.
+// The default for a new FilesystemStore is 4096.
+func (s *FilesystemStore) MaxLength(l int) {
+	for _, c := range s.Codecs {
+		if codec, ok := c.(*securecookie.SecureCookie); ok {
+			codec.MaxLength(l)
+		}
+	}
 }
 
 // Get returns a session for the given name after adding it to the registry.

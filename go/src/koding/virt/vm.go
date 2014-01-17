@@ -5,7 +5,6 @@ import (
 	"io"
 	"io/ioutil"
 	"koding/db/models"
-	"log"
 	"net"
 	"os"
 	"os/exec"
@@ -646,11 +645,13 @@ func trace(additionalInfo string) (string, time.Time) {
 	}
 
 	finalLog := fmt.Sprintf("%s [%s]", name, additionalInfo)
-	log.Println("START:", finalLog)
+	// TODO: disable until senthil has merged the log package
+	// log.Println("START:", finalLog)
 	return finalLog, time.Now()
 }
 
 func un(traceLog string, startTime time.Time) {
-	endTime := time.Now()
-	log.Printf("  END: %s ElapsedTime: %.10f seconds\n", traceLog, endTime.Sub(startTime).Seconds())
+	// endTime := time.Now()
+	// TODO: disable until senthil has merged the log package
+	// log.Printf("  END: %s ElapsedTime: %.10f seconds\n", traceLog, endTime.Sub(startTime).Seconds())
 }
