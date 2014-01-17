@@ -100,7 +100,9 @@ class TopicsAppController extends AppController
 
       mainView.createCommons()
 
-    if KD.checkFlag ['super-admin', 'editor']
+    {permissions} = KD.config
+    canModerateTags = "edit tags" in permissions || "delete tags" in permissions || "create synonym tags" in permissions
+    if canModerateTags
       @listItemClass = TopicsListItemViewEditable
       if firstRun
         KD.getSingleton('mainController').on "TopicItemEditClicked", (topicItem)=>
@@ -180,8 +182,10 @@ class TopicsAppController extends AppController
                 return showStatus "You must choose parent topic first"
 
               [synonym] = formData.synonyms
-              title = if synonym.$suggest then synonym.$suggest.trim() else synonym.title
-              topic.createSynonym title, (err) ->
+              options = if synonym.$suggest then {title: synonym.$suggest.trim()}
+              else {id: synonym.id}
+
+              topic.createSynonym options, (err) ->
                 status = if err then err.message else "Parent Topic is set successfully"
                 showStatus status
                 topicItem.followButton.hide()
