@@ -55,6 +55,11 @@ var messageConsumer = func(delivery amqp.Delivery) {
 
 	var err error
 	tagId := modifierData.TagId
+	if tagId == "" {
+		log.Error("Empty tag id")
+		delivery.Ack(false)
+		return
+	}
 	switch modifierData.Status {
 	default:
 		log.Error("Unknown modification status %s", modifierData.Status)
