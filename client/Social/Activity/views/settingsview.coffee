@@ -55,6 +55,10 @@ class ActivitySettingsView extends KDCustomHTMLView
         callback : =>
           @confirmDeletePost post
 
+      menu['Edit'] =
+        callback : =>
+          @emit 'ActivityEditIsClicked'
+
       menu['Block User'] =
         callback : ->
           activityController.emit "ActivityItemBlockUserClicked", post.originId
