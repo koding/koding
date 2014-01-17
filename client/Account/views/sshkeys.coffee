@@ -114,8 +114,8 @@ class AccountSshKeyListItem extends KDListItemView
 
     {title, key} = @getData()
 
-    form.titleInput.setValue  title if title
-    form.keyTextarea.setValue key   if key
+    form.titleInput.setValue Encoder.htmlDecode title  if title
+    form.keyTextarea.setValue key  if key
 
     @info = info = new KDCustomHTMLView
       tagName  : "span"
