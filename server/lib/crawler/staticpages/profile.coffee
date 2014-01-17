@@ -19,16 +19,35 @@ createStatusUpdateNode = (statusUpdate, authorFullName, authorNickname)->
 
   linkToStatusUpdate = createLinkToStatusUpdate createdAt, slug
 
-  commentsContent = ""
+  commentsList = ""
   if statusUpdate?.replies
     for comment in statusUpdate.replies
-      commentsContent   += "<span>"
-      commentsContent   += comment.body
-      commenterFullName  = comment.author.firstName + " " + comment.author.lastName
-      commenter          = createLinkToUserProfile commenterFullName, comment.author.nickname
-      commentsContent   += commenter
-      commentsContent   += "</span>"
-      commentsContent   += "<br />"
+      console.log comment
+      avatarUrl = "https://gravatar.com/avatar/#{comment.author.hash}?size=90&amp;d=https%3A%2F%2Fapi.koding.com%2Fimages%2Fdefaultavatar%2Fdefault.avatar.40.png"
+      commentsList +=
+        """
+          <div class="kdview kdlistitemview kdlistitemview-comment">
+            <a class="avatarview online" href="/#{comment.author.nickname}" style="width: 40px; height: 40px; background-size: 40px; background-image: none;"><img class="" width="40" height="40" src="#{avatarUrl}" style="opacity: 1;"></a>
+            <div class="comment-contents clearfix">
+              <a class="profile" href="/#{comment.author.nickname}">#{comment.author.firstName} #{comment.author.lastName}</a>
+              <div class="comment-body-container"><p>#{comment.body}</p></div>
+
+            </div>
+          </div>
+        """
+
+  commentsContent =
+    """
+      <div class="kdview comment-container commented">
+        <div class="kdview listview-wrapper">
+          <div class="kdview kdscrollview">
+            <div class="kdview kdlistview kdlistview-comments">
+              #{commentsList}
+            </div>
+          </div>
+        </div>
+      </div>
+    """
 
   statusUpdateContent = ""
   if statusUpdate?.body
