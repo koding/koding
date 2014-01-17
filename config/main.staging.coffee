@@ -232,7 +232,7 @@ module.exports =
     webPort     : 3020
   newkontrol      :
     host          : "kontrol-internal.sj.koding.com"
-    port          : 80
+    port          : 4000
     certFile      : "/opt/koding/go/src/koding/kontrol/kontrolproxy/files/10.0.5.231_cert.pem"
     keyFile       : "/opt/koding/go/src/koding/kontrol/kontrolproxy/files/10.0.5.231_key.pem"
   proxyKite       :

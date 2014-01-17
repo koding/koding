@@ -84,11 +84,11 @@ func main() {
 	k.Run()
 }
 
-func runNewKite() {
+func newKite() *kite.Kite {
 	kontrolPort := strconv.Itoa(config.Current.NewKontrol.Port)
 	kontrolHost := config.Current.NewKontrol.Host
 	kontrolURL := &url.URL{
-		Scheme: "wss",
+		Scheme: "ws",
 		Host:   fmt.Sprintf("%s:%s", kontrolHost, kontrolPort),
 		Path:   "/dnode",
 	}
@@ -102,7 +102,12 @@ func runNewKite() {
 		KontrolURL:  kontrolURL,
 	}
 
-	k := newkite.New(options)
+	return newkite.New(options)
+}
+
+func runNewKite() {
+	k := newKite()
+
 	k.HandleFunc("startVM", func(r *newkite.Request) (interface{}, error) {
 		hostnameAlias := r.Args.One().MustString()
 		// just print hostnameAlias for now

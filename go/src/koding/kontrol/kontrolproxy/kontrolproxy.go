@@ -165,7 +165,7 @@ func newKite() *kite.Kite {
 	kontrolPort := strconv.Itoa(config.Current.NewKontrol.Port)
 	kontrolHost := config.Current.NewKontrol.Host
 	kontrolURL := &url.URL{
-		Scheme: "wss",
+		Scheme: "ws",
 		Host:   fmt.Sprintf("%s:%s", kontrolHost, kontrolPort),
 		Path:   "/dnode",
 	}
