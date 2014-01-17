@@ -541,7 +541,7 @@ module.exports = class JTag extends jraphical.Module
 
   follow: secure (client, options, callback) ->
     [callback, options] = [options, callback] unless callback
-    if @status is 'deleted' or @status is 'synonym'
+    if @status in ['synonym', 'deleted']
       return callback new KodingError "#{@status} topic cannot be followed"
     Followable = require '../traits/followable'
     Followable::follow.call this, client, options, callback
