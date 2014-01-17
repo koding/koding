@@ -26,7 +26,6 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/gorilla/context"
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/sessions"
 	"github.com/hoisie/redis"
@@ -37,36 +36,9 @@ func init() {
 	log.SetPrefix(fmt.Sprintf("proxy [%5d] ", os.Getpid()))
 }
 
-// Proxy is implementing the http.Handler interface (via ServeHTTP). This is
-// used as the main handler for our HTTP and HTTPS listeners.
-type Proxy struct {
-	// mux implies the http.Handler interface. Currently we use the default
-	// http.ServeMux but it can be swapped with any other mux that satisfies the
-	// http.Handler
-	mux *http.ServeMux
-
-	// enableFirewall is used to activate the internal validator that uses the
-	// restrictions and filter collections to validate the incoming requests
-	// accoding to ip, country, requests and so on..
-	enableFirewall bool
-
-	// logDestination specifies the destination of requests logs in the
-	// Combined Log Format.
-	logDestination io.Writer
-
-	// cacheTransports is used to enable cache based roundtrips for certaing
-	// request hosts, such as koding.com.
-	cacheTransports map[string]http.RoundTripper
-
-	// oskite reference
-	oskite *kite.RemoteKite
-}
-
-// used by redis counter
-type interval struct {
-	name     string
-	duration int64
-}
+const (
+	vmCookieName = "kodingproxy-vm"
+)
 
 var (
 	// used to extract the Country information via the IP
@@ -104,6 +76,37 @@ var (
 		"website/maintenance.html",
 	))
 )
+
+// Proxy is implementing the http.Handler interface (via ServeHTTP). This is
+// used as the main handler for our HTTP and HTTPS listeners.
+type Proxy struct {
+	// mux implies the http.Handler interface. Currently we use the default
+	// http.ServeMux but it can be swapped with any other mux that satisfies the
+	// http.Handler
+	mux *http.ServeMux
+
+	// enableFirewall is used to activate the internal validator that uses the
+	// restrictions and filter collections to validate the incoming requests
+	// accoding to ip, country, requests and so on..
+	enableFirewall bool
+
+	// logDestination specifies the destination of requests logs in the
+	// Combined Log Format.
+	logDestination io.Writer
+
+	// cacheTransports is used to enable cache based roundtrips for certaing
+	// request hosts, such as koding.com.
+	cacheTransports map[string]http.RoundTripper
+
+	// oskite reference
+	oskite *kite.RemoteKite
+}
+
+// used by redis counter
+type interval struct {
+	name     string
+	duration int64
+}
 
 func main() {
 	runtime.GOMAXPROCS(runtime.NumCPU())
@@ -320,9 +323,15 @@ func (p *Proxy) startHTTP() {
 
 // ServeHTTP is needed to satisfy the http.Handler interface.
 func (p *Proxy) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	// redirect http to https
 	if r.TLS == nil && (r.Host == "koding.com" || r.Host == "www.koding.com") {
 		http.Redirect(w, r, "https://koding.com"+r.RequestURI, http.StatusMovedPermanently)
 		return
+	}
+
+	// remove www from the hostname (i.e. www.foo.com -> foo.com)
+	if strings.HasPrefix(r.Host, "www.") {
+		r.Host = strings.TrimPrefix(r.Host, "www.")
 	}
 
 	// our main handler mux function goes and picks the correct handler
@@ -338,59 +347,49 @@ func (p *Proxy) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// it should never reach here, if yes something badly happens and needs to be fixed
 	logs.Alert("couldn't find any handler")
 	http.Error(w, "Not found.", http.StatusNotFound)
 	return
 }
+
+// vmTurnOnHandler is used to show a captcha for a VM that is turned off. If
+// the captcha is correct it drops a cookie that lasts for "FILLTIMEOUT HERE"
+// and then turns on the VM. It the user has a cookie already we don't show
+// the Captcha, instead we instantly turn on the VM.
+// func (p *Proxy) vmTurnOnHandler(hostnameAlias string) http.Handler {
+// 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+// 		cookieName := fmt.Sprintf("kodingproxy-vm")
+
+// 		fmt.Println("sessionname", cookieName)
+// 		session, _ := store.Get(r, cookieName)
+// 		fmt.Println("testing for session.Values")
+// 		_, ok := session.Values["vmName"]
+// 		if ok {
+// 			fmt.Println("we have cookie, starting VM", err)
+// 			return
+// 		}
+
+// 		// if not available show our secure page
+// 		fmt.Println("we don't have one :(")
+// 		session.Values["vmName"] = time.Now().String()
+// 		session.Options = &sessions.Options{MaxAge: 20} //seconds
+// 		session.Save(r, w)
+// 		err := templates.ExecuteTemplate(w, "notOnVM.html", r.Host)
+// 		if err != nil {
+// 			logs.Err(fmt.Sprintf("template notOnVM could not be executed %s", err))
+// 			http.Error(w, "error code - 5", 404)
+// 			return
+// 		}
+// 	})
+// }
 
 // getHandler returns the appropriate Handler for the given Request,
 // or nil if none found.
 func (p *Proxy) getHandler(req *http.Request) http.Handler {
 	userIP := getIP(req.RemoteAddr)
 
-	////// TESTING
-	err := p.startVM("fatih")
-	log.Println(err)
-	return context.ClearHandler(vmTurnOnHandler(userIP))
-	//////
-
-	// remove www from the hostname (i.e. www.foo.com -> foo.com)
-	if strings.HasPrefix(req.Host, "www.") {
-		req.Host = strings.TrimPrefix(req.Host, "www.")
-	}
-
-	target, err := resolver.GetTarget(req)
-	if err != nil {
-		logs.Info(fmt.Sprintf("resolver error of %s (%s): %s", req.Host, userIP, err))
-
-		if err == resolver.ErrVMOff {
-			p.startVM(target.HostnameAlias[0])
-			return templateHandler("notOnVM.html", req.Host, 404)
-		}
-
-		if err == resolver.ErrNoHost {
-			return templateHandler("maintenance.html", nil, 503)
-		}
-
-		return templateHandler("notfound.html", req.Host, 404)
-	}
-
-	defer func() {
-		logs.Notice(fmt.Sprintf("mode '%s' [%s] via %s : %s --> %s\n",
-			target.Proxy.Mode, userIP, target.FetchedSource, req.Host, target.URL.String()))
-	}()
-
-	if p.enableFirewall {
-		_, err = validate(userIP, req.Host)
-		if err == ErrSecurePage {
-			return context.ClearHandler(securePageHandler(userIP))
-		}
-
-		if err != nil {
-			logs.Info(fmt.Sprintf("error validating user: %s", err.Error()))
-			return templateHandler("quotaExceeded.html", req.Host, 509)
-		}
-	}
+	target, targetErr := resolver.GetTarget(req)
 
 	switch target.Proxy.Mode {
 	case resolver.ModeMaintenance:
@@ -398,11 +397,47 @@ func (p *Proxy) getHandler(req *http.Request) http.Handler {
 	case resolver.ModeRedirect:
 		return http.RedirectHandler(target.URL.String()+req.RequestURI, http.StatusFound)
 	case resolver.ModeVM:
+		// 1. first start vm if any open
+		if targetErr == resolver.ErrVMOff {
+			hostnameAlias := target.HostnameAlias[0]
+			err := p.startVM(hostnameAlias)
+			if err != nil {
+				log.Println("START VM ERROR", err)
+			}
+		}
+
+		// 2. get cookie if any available
+		session, _ := store.Get(req, vmCookieName)
+		fmt.Println("testing for session.Values")
+		_, ok := session.Values["vmName"]
+		if !ok {
+			// no session, therefore return a custom page for setting up page.
+			return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				session, _ := store.Get(r, vmCookieName)
+				session.Values["vmName"] = time.Now().String()
+				session.Options = &sessions.Options{MaxAge: 20} //seconds
+				session.Save(r, w)
+
+				err := templates.ExecuteTemplate(w, "notOnVM.html", r.Host)
+				if err != nil {
+					logs.Err(fmt.Sprintf("template notOnVM could not be executed %s", err))
+					http.Error(w, "error code - 5", 404)
+					return
+				}
+			})
+		}
+
+		fmt.Println("we have cookie, continue VM")
+
+		// 3. alright, vm is up and ready, however also check if any server is
+		// running that I can reverseproxy.
 		err := utils.CheckServer(target.URL.Host)
 		if err != nil {
 			logs.Info(fmt.Sprintf("vm host %s is down: '%s'", req.Host, err))
 			return templateHandler("notactiveVM.html", req.Host, 404)
 		}
+
+		// 4. ... run forrest run
 	case resolver.ModeInternal:
 		// roundrobin to next target
 		err := target.Resolve(req.Host)
@@ -416,8 +451,15 @@ func (p *Proxy) getHandler(req *http.Request) http.Handler {
 
 			return templateHandler("maintenance.html", nil, statusCode)
 		}
+	default:
+		logs.Info(fmt.Sprintf("TARGET MODE not defined:  %s (%s): %s", req.Host, userIP, targetErr))
+		return templateHandler("notfound.html", req.Host, 404)
 	}
 
+	logs.Notice(fmt.Sprintf("mode '%s' [%s] via %s : %s --> %s\n",
+		target.Proxy.Mode, userIP, target.FetchedSource, req.Host, target.URL.String()))
+
+	// do now reverse proxy stuff
 	if isWebsocket(req) {
 		return websocketHandler(target.URL.Host)
 	}
@@ -459,35 +501,6 @@ func (p *Proxy) resetCacheHandler() http.Handler {
 		resolver.CleanCache(cacheHost)
 
 		w.Write([]byte(fmt.Sprintf("cache is cleaned for %s", cacheHost)))
-	})
-}
-
-// securePageHandler is used currently for the securepage feature of our
-// validator/firewall. It is used to setup cookies to invalidate users visits.
-func vmTurnOnHandler(userIP string) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		cookieName := fmt.Sprintf("kodingproxy-vm")
-
-		fmt.Println("sessionname", cookieName)
-		session, _ := store.Get(r, cookieName)
-		fmt.Println("testing for session.Values")
-		_, ok := session.Values["vmName"]
-		if ok {
-			fmt.Println("we have one!")
-			return
-		}
-
-		// if not available show our secure page
-		fmt.Println("we don't have one :(")
-		session.Values["vmName"] = time.Now().String()
-		session.Options = &sessions.Options{MaxAge: 1} //seconds
-		session.Save(r, w)
-		err := templates.ExecuteTemplate(w, "notOnVM.html", r.Host)
-		if err != nil {
-			logs.Err(fmt.Sprintf("template notOnVM could not be executed %s", err))
-			http.Error(w, "error code - 5", 404)
-			return
-		}
 	})
 }
 
