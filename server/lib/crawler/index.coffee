@@ -47,6 +47,9 @@ fetchLastStatusUpdatesOfUser = (account, Relationship, JNewStatusUpdate, callbac
 
 module.exports =
   crawl: (bongo, req, res, slug)->
+    {query} = req
+    {page}  = query
+    page   ?= 1
     {Base, race, dash, daisy} = require "bongo"
     {JName, JAccount} = bongo.models
     {Relationship} = require 'jraphical'
@@ -105,23 +108,6 @@ module.exports =
                 return res.send 200, content
       else
         if /^(Activity)|(Topics)/.test name
-          if /\?page=/.test name
-            parts = name.split "?"
-            if parts[0] in ["Activity", "Topics"]
-              name = parts[0]
-            else
-              return res.send 404, error_404()
-            if parts[1]
-              querystringParams = parts[1].split "&"
-              for param in querystringParams
-                if /page=/.test param
-                  [key, value] = param.split "="
-                  page = parseInt(value) ? 1  if value
-            else
-              return res.send 500, error_500()
-
-          if isNaN page
-            page = 1
 
           crawlableFeed bongo, page, name, (error, content)->
             return res.send 500, error_500()  if error
