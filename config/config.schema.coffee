@@ -67,7 +67,6 @@ config =
       read        : 1
       write       : 1
       port        : 1
-    goLogLevel    : 1
     runNeo4jFeeder: 1
     runGoBroker   : 1
     runKontrol    : 1
@@ -330,4 +329,6 @@ config =
     slack           :
       token         : 1
       channel       : 1
+    logLevel        :
+      neo4jfeeder   : 1
 module.exports = config

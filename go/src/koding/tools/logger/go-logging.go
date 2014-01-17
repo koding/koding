@@ -34,6 +34,8 @@ func NewGoLog(name string) *GoLogger {
 
 	logging.SetBackend(logBackend, syslogBackend)
 
+	loggingLevel = getLoggingLevelFromConfig(name)
+
 	// go-logging calls Reset() each time it is imported. So if this
 	// pkg is imported in a library and then in a worker, the library
 	// defaults back to DEBUG logging level. This fixes that by

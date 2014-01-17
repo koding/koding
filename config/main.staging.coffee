@@ -40,7 +40,6 @@ module.exports =
     read        : "http://172.16.6.12"
     write       : "http://172.16.6.12"
     port        : 7474
-  goLogLevel    : "debug"
   mongo         : 'dev:k9lc4G1k32nyD72@68.68.97.107:27017/koding'
   mongoKontrol  : 'dev:k9lc4G1k32nyD72@68.68.97.107:27017/kontrol'
   mongoReplSet  : null
@@ -316,3 +315,5 @@ module.exports =
   slack          :
 	  token        : "xoxp-2155583316-2155760004-2158149487-a72cf4"
 	  channel      : "C024LG80K"
+  logLevel       :
+    neo4jfeeder  : "info"

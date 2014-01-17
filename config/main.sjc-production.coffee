@@ -45,7 +45,6 @@ module.exports =
     read        : "http://kgraph.sj.koding.com"
     write       : "http://kgraph.sj.koding.com"
     port        : 7474
-  goLogLevel    : "debug"
   mongo         : mongo
   mongoKontrol  : mongoKontrol
   mongoReplSet  : mongoReplSet
@@ -319,3 +318,5 @@ module.exports =
   slack          :
 	  token        : "xoxp-2155583316-2155760004-2158149487-a72cf4"
 	  channel      : "C024LG80K"
+  logLevel       :
+    neo4jfeeder  : "info"

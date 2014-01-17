@@ -44,7 +44,6 @@ module.exports =
     read        : "http://localhost"
     write       : "http://localhost"
     port        : 7474
-  goLogLevel    : "warning"
   runNeo4jFeeder: yes
   runGoBroker   : yes
   runKontrol    : no
@@ -335,3 +334,5 @@ module.exports =
   slack          :
 	  token        : "xoxp-2155583316-2155760004-2158149487-a72cf4"
 	  channel      : "C024LG80K"
+  logLevel       :
+    neo4jfeeder  : "warning"

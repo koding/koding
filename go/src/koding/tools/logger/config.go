@@ -15,13 +15,19 @@ var nameToLevelMapping = map[string]logging.Level{
 	"error":   logging.ERROR,
 }
 
-// Get logging level from config file & find the appropriate logging.Level
-func init() {
-	var exists bool
-	var logLevelString = config.Current.GoLogLevel
+var defaultLoggingLevel = logging.WARNING
 
-	loggingLevel, exists = nameToLevelMapping[logLevelString]
-	if !exists {
-		loggingLevel = logging.DEBUG
+// Get logging level from config file & find the appropriate logging.Level
+func getLoggingLevelFromConfig(name string) logging.Level {
+	var logLevelString, ok = config.Current.LogLevel[name]
+	if !ok {
+		return defaultLoggingLevel
 	}
+
+	loggingLevel, ok = nameToLevelMapping[logLevelString]
+	if !ok {
+		return defaultLoggingLevel
+	}
+
+	return loggingLevel
 }
