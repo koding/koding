@@ -45,6 +45,7 @@ module.exports = class JTag extends jraphical.Module
       'fetch system tag'      : ['moderator']
       'create system tag'     : ['moderator']
       'remove system tag'     : ['moderator']
+      'create synonym tags'    : ['moderator']
       # 'delete system tag'     : ['moderator']
 
     emitFollowingActivities : yes # create buckets for follower / followees
@@ -337,7 +338,7 @@ module.exports = class JTag extends jraphical.Module
         return callback new KodingError "##{@title} have child topics! You must first delete them"
       callback null
 
-  createSynonym : permit ['create tags', 'read tags'],
+  createSynonym : permit ['create synonym tags'],
     success: (client, options, callback)->
       # whenever client wants to create a new tag for synonym title is used
       {title, id} = options
