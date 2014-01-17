@@ -49,8 +49,10 @@ createAvatarImage = (hash)->
   <img width="70" height="70" src="#{imgURL}" style="opacity: 1;" itemprop="image" />
   """
 
-createCreationDate = (createdAt)->
-  return "Created at: <span itemprop=\"dateCreated\">#{createdAt}</span>"
+createCreationDate = (createdAt, url="")->
+  """
+    <a href='#{url}' class=>Created at: <span itemprop=\"dateCreated\">#{createdAt}</span></a>
+  """
 
 createCommentsCount = (numberOfComments)->
   content = ""
@@ -74,21 +76,23 @@ createUserInteractionMeta = (numberOfLikes, numberOfComments)->
 
 getSingleActivityContent = (activityContent, model)->
 
-  body = activityContent.body
-  nickname = activityContent.nickname
-  accountName = createAccountName activityContent.fullName
-  avatarImage = createAvatarImage activityContent.hash
-  createdAt = createCreationDate activityContent.createdAt
+  slugWithDomain = "#{uri.address}/Activity/#{activityContent.slug}"
+
+  body          = activityContent.body
+  nickname      = activityContent.nickname
+  accountName   = createAccountName activityContent.fullName
+  avatarImage   = createAvatarImage activityContent.hash
+  createdAt     = createCreationDate activityContent.createdAt, slugWithDomain
   commentsCount = createCommentsCount activityContent.numberOfComments
-  likesCount = createLikesCount activityContent.numberOfLikes
-  author = createAuthor accountName, nickname
+  likesCount    = createLikesCount activityContent.numberOfLikes
+  author        = createAuthor accountName, nickname
 
   userInteractionMeta = createUserInteractionMeta \
     activityContent.numberOfLikes, activityContent.numberOfComments
 
   if activityContent?.comments?.length? > 0
-    comments = (createCommentNode(comment) for comment in activityContent.comments)
-    commentsContent = "<h4>Comments:</h4>"
+    comments         = (createCommentNode(comment) for comment in activityContent.comments)
+    commentsContent  = "<h4>Comments:</h4>"
     commentsContent += "<ol>"
     commentsContent += comments.join("")
     commentsContent += "</ol>"
@@ -110,12 +114,11 @@ getSingleActivityContent = (activityContent, model)->
     shortenedTitle = activityContent.title.substring(0, 150) + "..."
   title =
     """
-      <a href="#{uri.address}/Activity/#{activityContent.slug}">#{shortenedTitle}</a>
+      <a href="#{slugWithDomain}">#{shortenedTitle}</a>
     """
 
   content  =
     """
-
       <div class="kdview kdlistitemview kdlistitemview-activity">
           <div class="kdview activity-item status">
               <a class="avatarview author-avatar" href="#{uri.address}/#{nickname}" style="width: 70px; height: 70px; background-size: 70px; background-image: none;">
@@ -154,7 +157,6 @@ getSingleActivityContent = (activityContent, model)->
           </div>
       </div>
       #{commentsContent}
-
     """
   return content
 

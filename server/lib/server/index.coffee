@@ -234,8 +234,6 @@ app.all '/:name/:section?*', (req, res, next)->
   return res.redirect 302, req.url.substring 7  if name in ['koding', 'guests']
   [firstLetter] = name
 
-  console.log "[GG]> firstLetter ", firstLetter, name
-
   # Checks if its an internal request like /Activity, /Terminal ...
   #
   if firstLetter.toUpperCase() is firstLetter
@@ -257,15 +255,11 @@ app.all '/:name/:section?*', (req, res, next)->
         isLoggedIn req, res, (err, loggedIn, account)->
           prefix   = if loggedIn then 'loggedIn' else 'loggedOut'
 
-          console.log "[GG]> prefix ", prefix
-
           serveSub = (err, subPage)->
             return next()  if err
             serve subPage, res
 
           path = if section then "#{name}/#{section}" else name
-
-          console.log "[GG]> final path ", path
 
           JName.fetchModels path, (err, models)->
             if err
@@ -295,8 +289,6 @@ app.all '/:name/:section?*', (req, res, next)->
 #
 app.get "/", (req, res, next)->
 
-  console.log "[GG]> req.query ", req.query
-
   # Handle crawler request
   #
   if req.query._escaped_fragment_?
@@ -325,8 +317,6 @@ app.get '*', (req,res)->
     if alias
     then "#{alias}#{query}"
     else "/#!#{urlOnly}#{query}"
-
-  console.log "[GG]> redirectTo ", redirectTo
 
   res.header 'Location', redirectTo
   res.send 302
