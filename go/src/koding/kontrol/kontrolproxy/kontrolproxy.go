@@ -351,7 +351,7 @@ func (p *Proxy) getHandler(req *http.Request) http.Handler {
 	////// TESTING
 	err := p.startVM("fatih")
 	log.Println(err)
-	return context.ClearHandler(securePageHandler(userIP))
+	return context.ClearHandler(vmTurnOnHandler(userIP))
 	//////
 
 	// remove www from the hostname (i.e. www.foo.com -> foo.com)
@@ -464,11 +464,41 @@ func (p *Proxy) resetCacheHandler() http.Handler {
 
 // securePageHandler is used currently for the securepage feature of our
 // validator/firewall. It is used to setup cookies to invalidate users visits.
+func vmTurnOnHandler(userIP string) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		cookieName := fmt.Sprintf("kodingproxy-vm")
+
+		fmt.Println("sessionname", cookieName)
+		session, _ := store.Get(r, cookieName)
+		fmt.Println("testing for session.Values")
+		_, ok := session.Values["vmName"]
+		if ok {
+			fmt.Println("we have one!")
+			return
+		}
+
+		// if not available show our secure page
+		fmt.Println("we don't have one :(")
+		session.Values["vmName"] = time.Now().String()
+		session.Options = &sessions.Options{MaxAge: 1} //seconds
+		session.Save(r, w)
+		err := templates.ExecuteTemplate(w, "notOnVM.html", r.Host)
+		if err != nil {
+			logs.Err(fmt.Sprintf("template notOnVM could not be executed %s", err))
+			http.Error(w, "error code - 5", 404)
+			return
+		}
+	})
+}
+
+// securePageHandler is used currently for the securepage feature of our
+// validator/firewall. It is used to setup cookies to invalidate users visits.
 func securePageHandler(userIP string) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		sessionName := fmt.Sprintf("kodingproxy-%s-%s", r.Host, userIP)
-		fmt.Println("sessionname", sessionName)
-		session, _ := store.Get(r, sessionName)
+		cookieName := fmt.Sprintf("kodingproxy-securepage")
+
+		fmt.Println("sessionname", cookieName)
+		session, _ := store.Get(r, cookieName)
 		fmt.Println("testing for session.Values")
 		_, ok := session.Values["securePage"]
 		if ok {
