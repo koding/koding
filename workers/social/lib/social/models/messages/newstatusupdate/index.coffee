@@ -15,6 +15,7 @@ module.exports = class JNewStatusUpdate extends JPost
     link :
       link_url   : String
       link_embed : Object
+    migrationStatus : String
   }
 
   @set

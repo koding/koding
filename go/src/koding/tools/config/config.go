@@ -29,6 +29,7 @@ type Config struct {
 		ComponentUser string
 		Password      string
 		Vhost         string
+		LogLevel      string
 	}
 	Neo4j struct {
 		Read    string
@@ -109,6 +110,10 @@ type Config struct {
 		Use  bool
 		Ip   string
 		Port int
+	}
+	TopicModifier struct {
+		LogLevel     string
+		CronSchedule string
 	}
 	Slack struct {
 		Token   string

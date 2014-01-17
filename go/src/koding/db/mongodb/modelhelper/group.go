@@ -4,20 +4,28 @@ import (
 	"koding/db/models"
 	"koding/db/mongodb"
 	"labix.org/v2/mgo"
-	"labix.org/v2/mgo/bson"
 )
 
 func GetGroup(groupname string) (*models.Group, error) {
 	group := new(models.Group)
 
 	query := func(c *mgo.Collection) error {
-		return c.Find(bson.M{"title": groupname}).One(&group)
+		return c.Find(Selector{"title": groupname}).One(&group)
 	}
 
-	err := mongodb.Run("jGroups", query)
-	if err != nil {
-		return nil, err
+	return group, mongodb.Run("jGroups", query)
+}
+
+func CheckGroupExistence(groupname string) (bool, error) {
+	var count int
+	query := func(c *mgo.Collection) error {
+		var err error
+		count, err = c.Find(Selector{"slug": groupname}).Count()
+		if err != nil {
+			return err
+		}
+		return nil
 	}
 
-	return group, nil
+	return count > 0, mongodb.Run("jGroups", query)
 }
