@@ -51,7 +51,7 @@ createAvatarImage = (hash)->
 
 createCreationDate = (createdAt, url="")->
   """
-    <a href='#{url}' class=>Created at: <span itemprop=\"dateCreated\">#{createdAt}</span></a>
+    <a href='#{url}' class=><time>Created at: <span itemprop=\"dateCreated\">#{createdAt}</span></time></a>
   """
 
 createCommentsCount = (numberOfComments)->
@@ -152,7 +152,7 @@ getSingleActivityContent = (activityContent, model)->
                           </a>
                       </span>
                   </div>
-                  <time class="kdview">#{createdAt}</time>
+                  #{createdAt}
               </footer>
           </div>
       </div>
