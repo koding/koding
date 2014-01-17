@@ -25,7 +25,7 @@ class ActivitySettingsView extends KDCustomHTMLView
     activityController = KD.getSingleton("activityController")
     if post.originId is account.getId()
       menu =
-        'Edit'           :
+        'Edit Post'           :
           callback       : =>
             @emit 'ActivityEditIsClicked'
         'Delete'         :
@@ -54,6 +54,10 @@ class ActivitySettingsView extends KDCustomHTMLView
       menu['Delete Post'] =
         callback : =>
           @confirmDeletePost post
+
+      menu['Edit Post'] =
+        callback : =>
+          @emit 'ActivityEditIsClicked'
 
       menu['Block User'] =
         callback : ->
