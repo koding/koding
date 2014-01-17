@@ -2,6 +2,41 @@
 {argv} = require 'optimist'
 {uri, client} = require('koding-config-manager').load("main.#{argv.c}")
 
+getDock = ->
+  """
+  <header id="main-header" class="kdview">
+      <div class="inner-container">
+          <a id="koding-logo" href="/">
+              <cite></cite>
+          </a>
+          <div id="dock" class="">
+              <div id="main-nav" class="kdview kdlistview kdlistview-navigation">
+                  <a class="kdview kdlistitemview kdlistitemview-main-nav activity kddraggable running" href="/Activity" style="left: 0px;">
+                      <span class="icon"></span>
+                      <cite>Activity</cite>
+                  </a>
+                  <a class="kdview kdlistitemview kdlistitemview-main-nav teamwork kddraggable" href="/Teamwork" style="left: 55px;">
+                      <span class="icon"></span>
+                      <cite>Teamwork</cite>
+                  </a>
+                  <a class="kdview kdlistitemview kdlistitemview-main-nav terminal kddraggable" href="/Terminal" style="left: 110px;">
+                      <span class="icon"></span>
+                      <cite>Terminal</cite>
+                  </a>
+                  <a class="kdview kdlistitemview kdlistitemview-main-nav editor kddraggable" href="/Ace" style="left: 165px;">
+                      <span class="icon"></span>
+                      <cite>Editor</cite>
+                  </a>
+                  <a class="kdview kdlistitemview kdlistitemview-main-nav apps kddraggable" href="/Apps" style="left: 220px;">
+                      <span class="icon"></span>
+                      <cite>Apps</cite>
+                  </a>
+              </div>
+          </div>
+      </div>
+  </header>
+  """
+
 getSingleActivityPage = ({activityContent, account, models})->
   {Relationship} = require 'jraphical'
   getStyles      = require './styleblock'
@@ -18,10 +53,30 @@ getSingleActivityPage = ({activityContent, account, models})->
     #{getGraphMeta()}
   </head>
     <body itemscope itemtype="http://schema.org/WebPage">
-      <a href="#{uri.address}">Koding</a><br />
-      <article itemscope itemtype="http://schema.org/BlogPosting">
-        #{getSingleActivityContent(activityContent, model)}
-      </article>
+      #{getDock()}
+      <section id="main-panel-wrapper" class="kdview">
+          <div id="main-tab-view" class="kdview kdscrollview kdtabview">
+            <div class="kdview kdtabpaneview activity clearfix content-area-pane active">
+
+              <div id="content-page" class="kdview kdscrollview content-page">
+                <main class="">
+                  <div class="kdview activity-content feeder-tabs">
+                    <div class="kdview listview-wrapper">
+                      <div class="kdview kdscrollview">
+                        <div class="kdview kdlistview kdlistview-default activity-related">
+                          <div></div>
+                          <div class="kdview kdscrollview content-display activity-related status">
+                            #{getSingleActivityContent(activityContent, model)}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </main>
+              </div>
+            </div>
+          </div>
+        </section>
     </body>
   </html>
   """
@@ -119,42 +174,40 @@ getSingleActivityContent = (activityContent, model)->
 
   content  =
     """
-      <div class="kdview kdlistitemview kdlistitemview-activity">
-          <div class="kdview activity-item status">
-              <a class="avatarview author-avatar" href="#{uri.address}/#{nickname}" style="width: 70px; height: 70px; background-size: 70px; background-image: none;">
-                  #{avatarImage}
-              </a>
+      <div class="kdview activity-item status">
+          <a class="avatarview author-avatar" href="#{uri.address}/#{nickname}" style="width: 70px; height: 70px; background-size: 70px; background-image: none;">
+              #{avatarImage}
+          </a>
 
-              <a class="profile" href="#{uri.address}/#{nickname}">
-                <span data-paths="profile.firstName profile.lastName" itemscope itemtype="http://schema.org/person" title="#{accountName}">
-                  #{accountName}
-                </span>
-              </a>
+          <a class="profile" href="#{uri.address}/#{nickname}">
+            <span data-paths="profile.firstName profile.lastName" itemscope itemtype="http://schema.org/person" title="#{accountName}">
+              #{accountName}
+            </span>
+          </a>
 
-              <article data-paths="body">
-                <p>
-                  #{body}
-                </p>
-              </article>
+          <article data-paths="body">
+            <p>
+              #{body}
+            </p>
+          </article>
 
-              <footer>
-                  #{userInteractionMeta}
-                  <div class="kdview comment-header activity-actions">
-                      <span class="kdview logged-in action-container"><a class="action-link" href="/Login">Like</a>
-                          <a class="count" href="/Login">
-                              <span data-paths="meta.likes">#{likesCount}</span>
-                          </a>
-                      </span>
-                      <span class="logged-in action-container">
-                          <a class="action-link" href="/Login">Comment</a>
-                          <a class="count" href="/Login">
-                              <span data-paths="repliesCount" >#{commentsCount}</span>
-                          </a>
-                      </span>
-                  </div>
-                  #{createdAt}
-              </footer>
-          </div>
+          <footer>
+              #{userInteractionMeta}
+              <div class="kdview comment-header activity-actions">
+                  <span class="kdview logged-in action-container"><a class="action-link" href="/Login">Like</a>
+                      <a class="count" href="/Login">
+                          <span data-paths="meta.likes">#{likesCount}</span>
+                      </a>
+                  </span>
+                  <span class="logged-in action-container">
+                      <a class="action-link" href="/Login">Comment</a>
+                      <a class="count" href="/Login">
+                          <span data-paths="repliesCount" >#{commentsCount}</span>
+                      </a>
+                  </span>
+              </div>
+              #{createdAt}
+          </footer>
       </div>
       #{commentsContent}
     """

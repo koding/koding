@@ -227,7 +227,7 @@ putContentIntoFullPage = (content, pagination, contentType)->
                     </div>
                     <nav class="crawler-pagination clearfix">
                       #{pagination}
-                    </div>
+                    </nav>
                   </div>
                 </main>
               </div>
