@@ -98,8 +98,7 @@ getPagination = (currentPage, numberOfItems, contentType)->
 
 
 getSinglePageLink = (pageNumber, contentType, linkText=pageNumber)->
-  # link = "<a href='#{uri.address}/#!/Activity/&page=#{pageNumber}'>#{linkText}  </a>"
-  link = "<a href='#{uri.address}/#!/#{contentType}?page=#{pageNumber}'>#{linkText}  </a>"
+  link = "<a href='#{uri.address}/#{contentType}?page=#{pageNumber}'>#{linkText}  </a>"
   return link
 
 appendDecoratedTopic = (tag, queue)=>
