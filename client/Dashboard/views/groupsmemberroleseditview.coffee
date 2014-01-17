@@ -24,6 +24,8 @@ class GroupsMemberRolesEditView extends JView
 
   setGroup:(@group)->
 
+  setStatus:(@status)->
+
   getSelectedRoles:->
     @checkboxGroup.getValue()
 
@@ -72,6 +74,20 @@ class GroupsMemberRolesEditView extends JView
       cssClass : 'solid small red'
       callback : => @showKickModal()
     ), '.buttons'
+
+    #CtF this must be available only for koding group
+    if @status is "unconfirmed"
+      @addSubView confirmButton = new KDButtonView
+        title    : "Confirm"
+        cssClass : 'solid'
+        callback : =>
+          KD.remote.api.JAccount.verifyEmailByUsername @member.profile.nickname, (err) =>
+            return new KDNotificationView title: err.message if err
+            new KDNotificationView title: 'User confirmed'
+            @status = "confirmed"
+            @emit 'UserConfirmed', @member
+            confirmButton.destroy()
+      , '.buttons'
 
     if 'owner' in @roles.editorsRoles
       @addSubView (new KDButtonView

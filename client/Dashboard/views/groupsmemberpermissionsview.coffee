@@ -68,15 +68,24 @@ class GroupsMemberPermissionsView extends JView
           userRolesHash[userRole.targetId] ?= []
           userRolesHash[userRole.targetId].push userRole.as
 
+
         list = @listController.getListView()
         list.getOptions().userRoles ?= []
         list.getOptions().userRoles = _.extend(
           list.getOptions().userRoles, userRolesHash
         )
 
-        @listController.instantiateListItems members
-        @timestamp = new Date members.last.timestamp_
-        @emit 'teasersLoaded' if members.length is 20
+        nicknames = (member.profile.nickname for member in members)
+        @getData().fetchUserStatus nicknames, (err, users)=>
+          userStatusHash = {}
+          for user in users
+            userStatusHash[user.username] = user.status
+
+          list.getOptions().userStatus ?= []
+          list.getOptions().userStatus = _.extend(list.getOptions().userStatus, userStatusHash)
+          @listController.instantiateListItems members
+          @timestamp = new Date members.last.timestamp_
+          @emit 'teasersLoaded' if members.length is 20
 
   refresh:->
     @listController.removeAllItems()

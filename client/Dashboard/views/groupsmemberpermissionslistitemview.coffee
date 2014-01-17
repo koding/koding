@@ -60,11 +60,13 @@ class GroupsMemberPermissionsListItemView extends KDListItemView
 
     list           = @getDelegate()
     editorsRoles   = list.getOptions().editorsRoles
-    {group, roles} = list.getOptions()
+    {group, roles, userStatus} = list.getOptions()
 
     @editView      = new GroupsMemberRolesEditView delegate : @
     @editView.setMember @getData()
     @editView.setGroup group
+    @editView.setStatus userStatus[@getData().profile.nickname]
+    @editView.on "UserConfirmed", (user)-> userStatus[user.profile.nickname] = "confirmed"
 
     list.emit "EditMemberRolesViewShown", this
 
