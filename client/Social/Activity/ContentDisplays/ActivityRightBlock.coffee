@@ -75,3 +75,26 @@ class ActiveTopics extends ActivityRightBase
     , data
 
     KD.remote.api.ActiveItems.fetchTopics {group}, @bound 'renderItems'
+
+class GroupDescription extends KDView
+
+  constructor:(options={}, data)->
+    super options, data
+
+    group = KD.singletons.groupsController.getCurrentGroup()
+
+    @titleView = new KDCustomHTMLView
+      partial  : "#{group.title} Group"
+      cssClass : "group-title"
+
+    @bodyView = new KDCustomHTMLView
+      tagName  : "p"
+      partial  : group.body or ""
+      cssClass : "group-body"
+
+    @addSubView @titleView
+    @addSubView @bodyView
+
+  viewAppended:JView::viewAppended
+
+
