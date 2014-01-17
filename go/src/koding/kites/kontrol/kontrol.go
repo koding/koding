@@ -69,7 +69,8 @@ func New() *Kontrol {
 
 	kontrol.kite.EnableTLS(
 		config.Current.NewKontrol.CertFile,
-		config.Current.NewKontrol.KeyFile)
+		config.Current.NewKontrol.KeyFile,
+	)
 
 	return kontrol
 }
