@@ -7,6 +7,7 @@ module.exports = [
   "activitylistcontroller.coffee",
 
   # Activity commons
+  "views/feedcoverphotoview.coffee",
   "views/activityactions.coffee",
   "views/activitylistheader.coffee",
   "views/activitysplitview.coffee",

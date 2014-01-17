@@ -32,6 +32,8 @@ class ActivityAppView extends KDScrollView
     @mainBlock        = new KDCustomHTMLView tagName : "main" #"activity-left-block"
     @sideBlock        = new KDCustomHTMLView tagName : "aside"   #"activity-right-block"
 
+    @groupCoverView   = new FeedCoverPhotoView
+
     @mainController   = KD.getSingleton("mainController")
     @mainController.on "AccountChanged", @bound "decorate"
     @mainController.on "JoinedGroup", => @inputWidget.show()
@@ -56,6 +58,7 @@ class ActivityAppView extends KDScrollView
     @addSubView @mainBlock
     @addSubView @sideBlock
 
+    @mainBlock.addSubView @groupCoverView
     @mainBlock.addSubView @inputWidget
     @mainBlock.addSubView @feedWrapper
 
