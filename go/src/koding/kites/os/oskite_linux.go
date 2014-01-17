@@ -84,7 +84,7 @@ func main() {
 	k.Run()
 }
 
-func newKite() *kite.Kite {
+func newKite() *newkite.Kite {
 	kontrolPort := strconv.Itoa(config.Current.NewKontrol.Port)
 	kontrolHost := config.Current.NewKontrol.Host
 	kontrolURL := &url.URL{
