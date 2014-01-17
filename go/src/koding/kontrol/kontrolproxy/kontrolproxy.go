@@ -26,6 +26,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/gorilla/context"
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/sessions"
 	"github.com/hoisie/redis"
@@ -350,7 +351,7 @@ func (p *Proxy) getHandler(req *http.Request) http.Handler {
 	////// TESTING
 	err := p.startVM("fatih")
 	log.Println(err)
-	return templateHandler("notOnVM.html", req.Host, 404)
+	return context.ClearHandler(securePageHandler(userIP))
 	//////
 
 	// remove www from the hostname (i.e. www.foo.com -> foo.com)
@@ -382,7 +383,7 @@ func (p *Proxy) getHandler(req *http.Request) http.Handler {
 	if p.enableFirewall {
 		_, err = validate(userIP, req.Host)
 		if err == ErrSecurePage {
-			return securePageHandler(userIP)
+			return context.ClearHandler(securePageHandler(userIP))
 		}
 
 		if err != nil {
@@ -466,12 +467,19 @@ func (p *Proxy) resetCacheHandler() http.Handler {
 func securePageHandler(userIP string) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		sessionName := fmt.Sprintf("kodingproxy-%s-%s", r.Host, userIP)
+		fmt.Println("sessionname", sessionName)
 		session, _ := store.Get(r, sessionName)
-		session.Options = &sessions.Options{MaxAge: 20} //seconds
+		fmt.Println("testing for session.Values")
 		_, ok := session.Values["securePage"]
-		if !ok {
-			session.Values["securePage"] = time.Now().String()
+		if ok {
+			fmt.Println("we have one!")
+			return
 		}
+
+		// if not available show our secure page
+		fmt.Println("we don't have one :(")
+		session.Values["securePage"] = time.Now().String()
+		session.Options = &sessions.Options{MaxAge: 20} //seconds
 		session.Save(r, w)
 		err := templates.ExecuteTemplate(w, "securepage.html", r.Host)
 		if err != nil {
