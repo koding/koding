@@ -110,6 +110,10 @@ type Config struct {
 		Ip   string
 		Port int
 	}
+	Slack struct {
+		Token   string
+		Channel string
+	}
 }
 
 var FileProfile string
