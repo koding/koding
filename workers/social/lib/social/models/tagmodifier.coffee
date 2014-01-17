@@ -17,7 +17,7 @@ tagModifierMQ.on 'ready', ->
 
   emitter = (tag, status) ->
     tagModifierMQ.exchange 'topicModifierExchange', USER_EXCHANGE_OPTIONS, (exchange) ->
-      {tagId} = tag
+      tagId = tag.getId()
       exchange.publish 'modifyTag', {tagId, status}
       exchange.close()
 

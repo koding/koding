@@ -45,6 +45,7 @@ module.exports = class JTag extends jraphical.Module
       'fetch system tag'      : ['moderator']
       'create system tag'     : ['moderator']
       'remove system tag'     : ['moderator']
+      'create synonym tags'    : ['moderator']
       # 'delete system tag'     : ['moderator']
 
     emitFollowingActivities : yes # create buckets for follower / followees
@@ -88,7 +89,7 @@ module.exports = class JTag extends jraphical.Module
         fetchLastInteractors:
           (signature Object, Function)
         createSynonym:
-          (signature String, Function)
+          (signature Object, Function)
       static        :
         one: [
           (signature Object, Function)
@@ -301,40 +302,58 @@ module.exports = class JTag extends jraphical.Module
         return callback new KodingError "Tag already exists!" if found
         create data, delegate, callback
 
-  createSynonym : permit ['create tags', 'read tags'],
-    success: (client, title, callback)->
-      addSynonym = (tag) =>
-        @addSynonym tag, (err) =>
-          return callback err if err
-          @update $set: status :'synonym', (err) =>
-            return callback err if err
-            @constructor.emit 'TagIsSynonym', {tagId:@getId()}
-            callback null
+  addSynonym_ : (tag, callback) ->
+    @addSynonym tag, (err) =>
+      return callback err if err
+      @update $set: status :'synonym', (err) =>
+        return callback err if err
+        @constructor.emit 'TagIsSynonym', @
+        callback null
+
+  addExistingTagAsSynonym : (tag, callback) ->
+    return callback new KodingError "Tag not found" unless tag
+    return callback new KodingError "Self reference is forbidden!" if @getId().equals tag.getId()
+    if tag.status in ["synonym", "deleted"]
+        return callback new KodingError "##{tag.title} already set as #{tag.status}!"
+    @checkChildTopics (err) =>
+      return callback err if err
+      @addSynonym_ tag, callback
+
+  addNewTagAsSynonym : (client, title, tag, callback) ->
+    return if tag then @addExistingTagAsSynonym tag, callback
+    {delegate} = client.connection
+    {group} = client.context
+    @checkChildTopics (err) =>
+      return callback err if err
+      create {title, group}, delegate, (err, tag) =>
+        return callback err if err
+        @addSynonym_ tag, callback
+
+  # for preventing synonym links we are checking for existing
+  # child topics
+  checkChildTopics : (callback) ->
+    Relationship.one "targetId": @getId(), "as": "synonymOf", (err, childTopic) =>
+      return callback err if err
+      if childTopic
+        return callback new KodingError "##{@title} have child topics! You must first delete them"
+      callback null
+
+  createSynonym : permit ['create synonym tags'],
+    success: (client, options, callback)->
+      # whenever client wants to create a new tag for synonym title is used
+      {title, id} = options
+
+      return callback new KodingError "Undefined synonym" unless title? or id?
 
       if @status in ['deleted', 'synonym']
         return callback new KodingError "Topic is already set as #{@status}!"
 
-      return callback new KodingError "Self reference is forbidden!" if @title is title
+      selector = if title then {title} else {_id : id}
 
-      # checks child topic existence
-      Relationship.one "targetId": @getId(), "as": "synonymOf", (err, childTopic) =>
+      JTag.one selector, (err, tag) =>
         return callback err if err
-        if childTopic
-          return callback new KodingError "##{@title} have child topics! You must first delete them"
-
-        {delegate} = client.connection
-        {group} = client.context
-
-        JTag.one {title}, (err, tag) =>
-          return callback err if err
-          unless tag
-            create {title, group}, delegate, (err, tag) =>
-              return callback err if err
-              addSynonym tag
-          else if tag.status in ["synonym", "deleted"]
-            return callback new KodingError "##{tag.title} already set as #{tag.status}!"
-          else
-            addSynonym tag
+        if id then @addExistingTagAsSynonym tag, callback
+        else @addNewTagAsSynonym client, title, tag, callback
 
   @findSuggestions = (client, seed, options, callback)->
     {limit, blacklist, skip, category} = options
@@ -352,10 +371,9 @@ module.exports = class JTag extends jraphical.Module
       }, callback
 
   delete_: (callback) ->
-    tagId = @getId()
     @update {$set: status: "deleted"}, (err)=>
       return callback err if err
-      @constructor.emit 'TagIsDeleted', {tagId}
+      @constructor.emit 'TagIsDeleted', @
       callback null
 
   delete: permit
@@ -365,8 +383,6 @@ module.exports = class JTag extends jraphical.Module
     ]
     success: (client, callback)->
       {delegate} = client.connection
-
-      return callback new KodingError 'Access denied' unless delegate.checkFlag('super-admin')
 
       return callback new KodingError "Topic is already deleted!" if @status is 'deleted'
 

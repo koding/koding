@@ -41,13 +41,19 @@ class TopicsListItemView extends KDListItemView
     @synonymInfo = new KDCustomHTMLView tagName : 'span', cssClass : 'hidden'
 
   getSettingsMenu:->
+    {permissions} = KD.config
+    canEditTags          = "edit tags" in permissions
+    canDeleteTags        = "delete tags" in permissions
+    canCreateSynonymTags = "create synonym tags" in permissions
+    menu = {}
     mainController = KD.singleton("mainController")
-    Edit        :
-      callback  : => mainController.emit 'TopicItemEditClicked', @
-    Delete      :
-      callback  : => mainController.emit 'TopicItemDeleteClicked', @
-    "Set Parent":
-      callback  : => mainController.emit 'TopicItemSetParentClicked', @
+    if canEditTags
+      menu["Edit"]       = callback  : => mainController.emit 'TopicItemEditClicked', @
+    if canDeleteTags
+      menu["Delete"]     = callback  : => mainController.emit 'TopicItemDeleteClicked', @
+    if canCreateSynonymTags
+      menu["Set Parent"] = callback  : => mainController.emit 'TopicItemSetParentClicked', @
+    return menu
 
   titleReceivedClick:(event)-> @emit 'LinkClicked'
 
