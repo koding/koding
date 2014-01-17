@@ -37,6 +37,8 @@ config =
         databases       :
           mongodb       : [{ host : 1, user : 1, password:1}]
   main            :
+    environment   : 1
+    version       : 1
     haproxy       :
       webPort     : 1
     aws           :
@@ -48,7 +50,6 @@ config =
     containerSubnet: 1
     vmPool        : 1
     projectRoot   : 1
-    version       : 1
     webserver     :
       useCacheHeader: 1
       login       : 1
@@ -325,4 +326,7 @@ config =
       signature     : 1
     mixpanel        : 1
     rollbar         : 1
+    slack           :
+      token         : 1
+      channel       : 1
 module.exports = config

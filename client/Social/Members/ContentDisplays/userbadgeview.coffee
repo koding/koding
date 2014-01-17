@@ -30,15 +30,16 @@ class UserPropertyList extends KDListView
     """
      <h3>User Properties <span>(staff only)<span></h3>
      <div class="badge-property">
-      <p>Likes count : {span.number{ #(counts.likes)}}</p>
-      <p>Topic count : {span.number{ #(counts.topics)}}</p>
-      <p>Follower count : {span.number{ #(counts.followers)}}</p>
-      <p>Comments count : {span.number{ #(counts.comments)}}</p>
-      <p>Following count : {span.number{ #(counts.following)}}</p>
-      <p>Invitations count : {span.number{ #(counts.invitations)}}</p>
-      <p>Referred User count : {span.number{ #(counts.referredUsers)}}</p>
-      <p>Status updates count : {span.number{ #(counts.statusUpdates)}}</p>
-      <p>Last Login : {span.number{ #(counts.lastLoginDate)}}</p>
+      <p>Likes count : {span.number{ #(counts.likes) || 0 }}</p>
+      <p>Topic count : {span.number{ #(counts.topics) || 0 }}</p>
+      <p>Follower count : {span.number{ #(counts.followers) || 0 }}</p>
+      <p>Comments count : {span.number{ #(counts.comments) || 0 }}</p>
+      <p>Following count : {span.number{ #(counts.following) || 0 }}</p>
+      <p>Invitations count : {span.number{ #(counts.invitations) || 0 }}</p>
+      <p>Staff Likes count : {span.number{ #(counts.staffLikes) || 0 }}</p>
+      <p>Referred User count : {span.number{ #(counts.referredUsers) || 0 }}</p>
+      <p>Status updates count : {span.number{ #(counts.statusUpdates) || 0 }}</p>
+      <p>Last Login : {span.number{ #(counts.lastLoginDate) || 0 }}</p>
     </div>
     """
 

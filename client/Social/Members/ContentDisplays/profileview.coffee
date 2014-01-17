@@ -300,6 +300,7 @@ class ProfileView extends JView
 
   constructor: (options = {}, data) ->
 
+    options.bind   = "mouseenter mouseleave"
     super options, data
 
     @memberData    = @getData()
@@ -497,14 +498,37 @@ class ProfileView extends JView
 
     # for admins and moderators, list user badge property counts
     @badgeItemsList = new KDCustomHTMLView
+    @thankButton    = new KDCustomHTMLView
     if KD.hasAccess "assign badge"
       @badgeItemsList = new UserPropertyList {}, counts : @memberData.counts
+      # show "Thank You" button to admins
+      @thankButton = new KDButtonView
+        cssClass   : "solid green"
+        title      : "+1 rep"
+        type       : "submit"
+        callback   : =>
+          KD.whoami().likeMember @memberData.profile.nickname, (err)=>
+            if err
+              warn err
+            else
+              KD.getSingleton("badgeController").checkBadge
+                source : "JAccount" ,property : "staffLikes", relType : "like", targetSelf : 1
+              @thankButton.disable()
+              @utils.wait 3000, =>
+                @thankButton.enable()
+      @thankButton.hide()
+      @badgeItemsList.hide()
 
+      @on "mouseenter", =>
+        @thankButton.show()
+        @badgeItemsList.show()
+
+      @on "mouseleave", =>
+        @thankButton.hide()
+        @badgeItemsList.hide()
 
   viewAppended:->
-
     super
-
     @createExternalProfiles()
     @createBadges()
 
@@ -655,4 +679,5 @@ class ProfileView extends JView
         {{> @userBadgesView}}
       </div>
       {{> @badgeItemsList}}
+      {{> @thankButton}}
     """

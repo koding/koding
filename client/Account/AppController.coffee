@@ -28,8 +28,9 @@ class AccountAppController extends AppController
     develop :
       title : "Develop"
       items : [
-        { slug : 'SSH',  title : "SSH keys",    listHeader: "Your SSH Keys",    listType: "keys" }
-        { slug : 'Keys', title : "Koding Keys", listHeader: "Your Koding Keys", listType: "kodingKeys" }
+        { slug : 'SSH',       title : "SSH keys",           listHeader: "Your SSH Keys",          listType: "keys" }
+        { slug : 'Keys',      title : "Koding Keys",        listHeader: "Your Koding Keys",       listType: "kodingKeys" }
+        { slug : 'Referral',  title : "Referral System",    listHeader: "Your Referral Options",  listType: "referralSystem" }
       ]
     danger  :
       title : "Danger"
@@ -87,3 +88,45 @@ class AccountAppController extends AppController
       """
 
   showReferrerModal:-> new ReferrerModal
+
+
+  displayConfirmEmailModal:(name, username, callback=noop)->
+    name or= KD.whoami().profile.firstName
+    message =
+      """
+      Dear #{name},
+
+      Thanks for joining Koding.<br/><br/>
+
+      You need to confirm your email address to be able to  login Koding and to fully activate your account.
+
+      When you registered, we have sent you a link to confirm your email address, please use that link to be able to continue using Koding.<br/><br/>
+
+      If you didn't receive the email or the token is expired, please click to Resend email button below.<br/><br/>
+      """
+
+    modal = new KDModalView
+      title            : "Please confirm your email address!"
+      width            : 500
+      overlay          : yes
+      cssClass         : "new-kdmodal"
+      content          : "<div class='modalformline'>#{Encoder.htmlDecode message}</div>"
+      buttons          :
+        "Resend Confirmation Email" :
+          style        : "modal-clean-red"
+          callback     : => @resendHandler modal, username
+        Close          :
+          style        : "modal-cancel"
+          callback     : -> modal.destroy()
+
+    callback modal
+
+  resendHandler : (modal, username)->
+
+    KD.remote.api.JPasswordRecovery.resendVerification username, (err)=>
+      modal.buttons["Resend Confirmation Email"].hideLoader()
+      return KD.showError err if err
+      new KDNotificationView
+        title     : "Check your email"
+        content   : "We've sent you a confirmation mail."
+        duration  : 4500

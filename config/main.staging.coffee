@@ -12,7 +12,11 @@ authAllExchange = "authAll-#{version}"
 
 embedlyApiKey   = '94991069fb354d4e8fdb825e52d4134a'
 
+environment     = "staging"
+
 module.exports =
+  environment   : environment
+  version       : version
   aws           :
     key         : 'AKIAJSUVKX6PD254UGAA'
     secret      : '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'
@@ -22,7 +26,6 @@ module.exports =
   containerSubnet: "10.128.2.0/9"
   vmPool        : "vms-staging"
   projectRoot   : projectRoot
-  version       : version
   webserver     :
     useCacheHeader: yes
     login       : 'prod-webserver'
@@ -142,12 +145,12 @@ module.exports =
     useStaticFileServer: no
     staticFilesBaseUrl: "https://koding.com"
     runtimeOptions:
-      environment   : "staging"
+      environment        : environment
       activityFetchCount : 20
-      precompiledApi: yes
-      authExchange: authExchange
-      github        :
-        clientId    : "5891e574253e65ddb7ea"
+      precompiledApi     : yes
+      authExchange       : authExchange
+      github         :
+        clientId     : "5891e574253e65ddb7ea"
       embedly        :
         apiKey       : embedlyApiKey
       userSitesDomain: 'kd.io'
@@ -309,3 +312,6 @@ module.exports =
     signature    : "HMAC-SHA1"
   mixpanel       : "113c2731b47a5151f4be44ddd5af0e7a"
   rollbar        : "8108a4c027604f59bac7a8315c205afe"
+  slack          :
+	  token        : "xoxp-2155583316-2155760004-2158149487-a72cf4"
+	  channel      : "C024LG80K"

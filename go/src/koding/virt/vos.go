@@ -1,14 +1,17 @@
+// +build linux
+
 package virt
 
 import (
 	"errors"
-	"exp/inotify"
 	"os"
 	"path"
 	"strings"
 	"sync"
 	"syscall"
 	"time"
+
+	"code.google.com/p/go.exp/inotify"
 )
 
 type VOS struct {

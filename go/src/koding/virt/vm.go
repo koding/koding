@@ -5,7 +5,6 @@ import (
 	"io"
 	"io/ioutil"
 	"koding/db/models"
-	"log"
 	"net"
 	"os"
 	"os/exec"
@@ -110,12 +109,15 @@ func (vm *VM) ApplyDefaults() {
 	if vm.NumCPUs == 0 {
 		vm.NumCPUs = 1
 	}
+
 	if vm.MaxMemoryInMB == 0 {
 		vm.MaxMemoryInMB = 1024
 	}
+
 	if vm.DiskSizeInMB == 0 {
-		vm.DiskSizeInMB = 1200
+		vm.DiskSizeInMB = 3600
 	}
+
 	if vm.VMRoot == "" {
 		vm.VMRoot = "/var/lib/lxc/vmroot/"
 	}
@@ -228,7 +230,6 @@ func (v *VM) mergeFiles(logWarning func(string, ...interface{})) {
 
 	v.MergePasswdFile(logWarning)
 	v.MergeGroupFile(logWarning)
-	v.MergeDpkgDatabase()
 }
 
 func (v *VM) mountAufs() error {
@@ -312,8 +313,6 @@ func (vm *VM) Unprepare() error {
 		panic(err)
 	}
 
-	vm.backupDpkg()
-
 	if err := vm.removeNetworkRules(); err != nil && firstError == nil {
 		firstError = err
 	}
@@ -339,15 +338,6 @@ func (vm *VM) Unprepare() error {
 	os.Remove(vm.File(""))
 
 	return firstError
-}
-
-func (vm *VM) backupDpkg() {
-	defer un(trace(vm.String()))
-
-	// backup dpkg database for statistical purposes
-	os.Mkdir("/var/lib/lxc/dpkg-statuses", 0755)
-	copyFile(vm.OverlayFile("/var/lib/dpkg/status"), "/var/lib/lxc/dpkg-statuses/"+vm.String(), RootIdOffset)
-
 }
 
 func (vm *VM) removeNetworkRules() error {
@@ -655,11 +645,13 @@ func trace(additionalInfo string) (string, time.Time) {
 	}
 
 	finalLog := fmt.Sprintf("%s [%s]", name, additionalInfo)
-	log.Println("START:", finalLog)
+	// TODO: disable until senthil has merged the log package
+	// log.Println("START:", finalLog)
 	return finalLog, time.Now()
 }
 
 func un(traceLog string, startTime time.Time) {
-	endTime := time.Now()
-	log.Println("  END:", traceLog, "ElapsedTime:", endTime.Sub(startTime))
+	// endTime := time.Now()
+	// TODO: disable until senthil has merged the log package
+	// log.Printf("  END: %s ElapsedTime: %.10f seconds\n", traceLog, endTime.Sub(startTime).Seconds())
 }

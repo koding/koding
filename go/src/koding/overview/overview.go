@@ -1,136 +1,23 @@
 package main
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/fatih/set"
-	"github.com/gorilla/sessions"
-	"github.com/streadway/amqp"
 	"html/template"
 	"io/ioutil"
 	"koding/db/mongodb/modelhelper"
 	"koding/tools/config"
-	"labix.org/v2/mgo/bson"
 	"log"
 	"net/http"
 	"net/url"
-	"os"
 	"sort"
 	"strconv"
-	"strings"
 	"time"
+
+	"github.com/gorilla/sessions"
 )
-
-type ConfigFile struct {
-	Mongo string
-	Mq    struct {
-		Host          string
-		Port          int
-		ComponentUser string
-		Password      string
-		Vhost         string
-	}
-}
-
-type Domain struct {
-	Domainname string `json:"Domain"`
-	Proxy      struct {
-		Mode        string `json:"mode"`
-		Username    string `json:"username"`
-		Servicename string `json:"servicename"`
-		Key         string `json:"key"`
-	} `json:"Proxy"`
-	FullUrl string `json:"Domain"`
-}
-
-type ServerInfo struct {
-	BuildNumber string
-	GitBranch   string
-	GitCommit   string
-	ConfigUsed  string
-	Config      ConfigFile
-	Hostname    Hostname
-	IP          IP
-	MongoLogin  string
-}
-
-type Hostname struct {
-	Public string
-	Local  string
-}
-
-type IP struct {
-	Public string
-	Local  string
-}
-
-type JenkinsInfo struct {
-	LastCompletedBuild struct {
-		Number int    `json:"number"`
-		Url    string `json:"url"`
-	} `json:"lastCompletedBuild"`
-	LastStableBuild struct {
-		Number int    `json:"number"`
-		Url    string `json:"url"`
-	} `json:"lastStableBuild"`
-	LastFailedBuild struct {
-		Number int    `json:"number"`
-		Url    string `json:"url"`
-	} `json:"lastFailedBuild"`
-}
-
-type WorkerInfo struct {
-	Name      string    `json:"name"`
-	Uuid      string    `json:"uuid"`
-	Hostname  string    `json:"hostname"`
-	Version   int       `json:"version"`
-	Timestamp time.Time `json:"timestamp"`
-	Pid       int       `json:"pid"`
-	State     string    `json:"state"`
-	Info      string    `json:"info"`
-	Clock     string    `json:"clock"`
-	Uptime    int       `json:"uptime"`
-	Port      int       `json:"port"`
-}
-
-type StatusInfo struct {
-	BuildNumber    string
-	CurrentVersion string
-	SwitchHost     string
-	Koding         struct {
-		ServerLen   int
-		ServerHosts map[string]bool
-		BrokerLen   int
-		BrokerHosts map[string]bool
-	}
-	Workers struct {
-		Started int
-	}
-}
-
-type HomePage struct {
-	Status        StatusInfo
-	Workers       []WorkerInfo
-	Jenkins       *JenkinsInfo
-	Server        *ServerInfo
-	Builds        []int
-	LoginName     string
-	SwitchMessage string
-	LoginMessage  string
-}
-
-type User struct {
-	Id            bson.ObjectId `bson:"_id" json:"-"`
-	Email         string        `bson:"email" json:"email"`
-	LastLoginDate time.Time     `bson:"lastLoginDate" json:"lastLoginDate"`
-	Password      string        `bson:"password" json:"password"`
-	RegisteredAt  time.Time     `bson:"registeredAt" json:"registeredAt"`
-	Salt          string        `bson:"salt" json:"salt"`
-	Status        string        `bson:"status" json:"status"`
-	Uid           int           `bson:"uid" json:"uid"`
-	Username      string        `bson:"username" json:"username"`
-}
 
 func NewServerInfo() *ServerInfo {
 	return &ServerInfo{
@@ -146,13 +33,11 @@ func NewServerInfo() *ServerInfo {
 
 var (
 	switchHost string
-	apiUrl     = "http://kontrol.in.koding.com:80" // default
+	apiUrl     = "http://kontrol0.sj.koding.com:80" // default
 	templates  = template.Must(template.ParseFiles(
 		"go/templates/overview/index.html",
 		"go/templates/overview/login.html",
 	))
-	admins = set.New("sinan", "devrim", "gokmen", "chris", "sent-hil",
-		"kiwigeraint", "cihangirsavas", "leventyalcin", "arslan", "ybrs")
 )
 
 const uptimeLayout = "03:04:00"
@@ -177,121 +62,61 @@ func main() {
 	http.HandleFunc("/", viewHandler)
 	http.Handle("/bootstrap/", http.StripPrefix("/bootstrap/", http.FileServer(http.Dir(bootstrapFolder))))
 
-	fmt.Println("koding overview started")
+	fmt.Printf("koding overview started at :%d\n", port)
 	err = http.ListenAndServe(":"+strconv.Itoa(port), nil)
 	if err != nil {
 		fmt.Println(err)
 	}
 }
 
-func logAction(msg string) {
-	fileName := "versionswitchers.log"
-	flag := os.O_WRONLY | os.O_CREATE | os.O_APPEND
-	mode := os.FileMode(0644)
-
-	f, err := os.OpenFile(fileName, flag, mode)
-	if err != nil {
-		log.Println("error opening version switch log file")
-		return
-	}
-	defer f.Close()
-
-	f.WriteString(fmt.Sprintf("[%s] %s\n", time.Now().Format(time.RFC1123), msg))
-}
-
-func checkSessionOrDoLogin(w http.ResponseWriter, r *http.Request) (string, string) {
-	operation := r.PostFormValue("operation")
-	session, err := store.Get(r, "userData")
-	if err != nil {
-		return "", ""
-	}
-
-	if operation == "login" {
-		loginName := r.PostFormValue("loginName")
-		loginPass := r.PostFormValue("loginPass")
-		if loginName == "" || loginPass == "" {
-			return "", "Please enter a username and password"
-		}
-
-		// abort if password and username is not valid
-		err := authenticateUser(loginName, loginPass)
-		if err != nil {
-			return "", "Username or password is invalid"
-		}
-		session.Values["userName"] = loginName
-		store.Save(r, w, session)
-		return loginName, ""
-	}
-
-	loginName, ok := session.Values["userName"]
-	if !ok {
-		return "", ""
-	}
-
-	if loginName == nil {
-		// no login operation or no session initialized
-		return "", ""
-	}
-
-	s := loginName.(string)
-	return s, ""
-}
-
-func logOut(w http.ResponseWriter, r *http.Request) error {
-	session, err := store.Get(r, "userData")
-	if err == nil {
-		session.Values["userName"] = nil
-		store.Save(r, w, session)
-		return nil
-	} else {
-		return errors.New("Session could not be retrieved")
-	}
-}
-
-func switchOperation(loginName string, r *http.Request) string {
-	operation := r.FormValue("operation")
-	if operation != "switchVersion" {
-		return ""
-	}
-
-	version := r.PostFormValue("switchVersion")
-	loginPass := r.PostFormValue("loginPass")
-
-	err := authenticateUser(loginName, loginPass)
-	if err != nil {
-		return "Password is wrong"
-	}
-
-	err = switchVersion(version)
-	if err != nil {
-		log.Println("error switching", err, version)
-		return fmt.Sprintf("Error switching: %s version %s", err, version)
-	}
-
-	res := fmt.Sprintf("Switched to version %s switcher name: %s", version, loginName)
-	logAction(res)
-	log.Println(res)
-	return "Switched to version " + loginName
-}
-
 func viewHandler(w http.ResponseWriter, r *http.Request) {
+	var loginName string
+	var switchMessage string
+	var err error
 
-	// Should be done first
-	operation := r.FormValue("operation")
-	if operation == "logout" {
-		err := logOut(w, r)
+	switch r.FormValue("operation") {
+	case "logout":
+		logoutHandler(w, r)
+		return
+	case "login":
+		loginName, err = loginHandler(w, r)
+		if err != nil {
+			renderTemplate(w, "login", HomePage{LoginMessage: err.Error()})
+			return
+		}
+		// continue because login was successfull
+	case "switchVersion":
+		loginName, err = checkSessionHandler(w, r)
+		if err != nil {
+			renderTemplate(w, "login", HomePage{LoginMessage: err.Error()})
+			return
+		}
+
+		version, err := switchOperation(loginName, r)
 		if err != nil {
 			log.Println(err)
+		} else {
+			log.Printf("switch is invoked by '%s' for build number '%s'\n", loginName, version)
 		}
-	}
+	case "newbuild":
+		loginName, err = checkSessionHandler(w, r)
+		if err != nil {
+			renderTemplate(w, "login", HomePage{LoginMessage: err.Error()})
+			return
+		}
 
-	loginName, loginMessage := checkSessionOrDoLogin(w, r)
-	if loginName == "" {
-		home := HomePage{
-			LoginMessage: loginMessage,
+		branch, err := buildOperation(loginName, r)
+		if err != nil {
+			log.Println("could not build", err)
+		} else {
+			log.Printf("build is created by '%s', for branch '%s'\n", loginName, branch)
 		}
-		renderTemplate(w, "login", home)
-		return
+	default:
+		loginName, err = checkSessionHandler(w, r)
+		if err != nil {
+			renderTemplate(w, "login", HomePage{LoginMessage: err.Error()})
+			return
+		}
 	}
 
 	build := r.FormValue("build")
@@ -299,8 +124,6 @@ func viewHandler(w http.ResponseWriter, r *http.Request) {
 		version, _ := currentVersion()
 		build = version
 	}
-
-	switchMessage := switchOperation(loginName, r)
 
 	workers, status, err := workerInfo(build)
 	if err != nil {
@@ -327,7 +150,7 @@ func viewHandler(w http.ResponseWriter, r *http.Request) {
 	status.Koding.BrokerHosts = b
 	status.Koding.BrokerLen = len(b) + 1
 
-	home := HomePage{
+	h := HomePage{
 		Status:        status,
 		Workers:       workers,
 		Jenkins:       jenkins,
@@ -337,16 +160,169 @@ func viewHandler(w http.ResponseWriter, r *http.Request) {
 		SwitchMessage: switchMessage,
 	}
 
-	renderTemplate(w, "index", home)
+	renderTemplate(w, "index", h)
 	return
+}
+
+func logoutHandler(w http.ResponseWriter, r *http.Request) {
+	session, err := store.Get(r, "userData")
+	if err != nil {
+		// reset username
+		session.Values["userName"] = nil
+		store.Save(r, w, session)
+	} else {
+		log.Println("Session could not be retrieved", err)
+	}
+
+	home := HomePage{LoginMessage: "Logged out!"}
+	renderTemplate(w, "login", home) // go back to login page
+}
+
+func loginHandler(w http.ResponseWriter, r *http.Request) (string, error) {
+	session, err := store.Get(r, "userData")
+	if err != nil {
+		log.Println("could not get session", err)
+		return "", errors.New("Internal error")
+	}
+
+	loginName := r.PostFormValue("loginName")
+	loginPass := r.PostFormValue("loginPass")
+
+	if loginName == "" || loginPass == "" {
+		return "", errors.New("Please enter a username and password")
+	}
+
+	// abort if password and username is not valid
+	err = authenticateUser(loginName, loginPass)
+	if err != nil {
+		return "", err
+	}
+
+	session.Values["userName"] = loginName
+	store.Save(r, w, session)
+	return loginName, nil
+}
+
+func checkSessionHandler(w http.ResponseWriter, r *http.Request) (string, error) {
+	session, err := store.Get(r, "userData")
+	if err != nil {
+		log.Println("could not get session", err)
+		return "", errors.New("Internal error")
+	}
+
+	loginName, ok := session.Values["userName"]
+	if !ok {
+		return "", errors.New("Username not available")
+	}
+
+	if loginName == nil {
+		return "", errors.New("No login operation or no session initalized")
+	}
+
+	return loginName.(string), nil
+}
+
+func buildOperation(username string, r *http.Request) (string, error) {
+	buildBranch := r.PostFormValue("newbuildBranch")
+	if buildBranch == "" {
+		return "", errors.New("buildBranch is empty")
+	}
+
+	jenkinsURL, _ := url.ParseRequestURI("http://68.68.97.88:8080/job/Koding Deployment/buildWithParameters")
+	q := jenkinsURL.Query()
+	q.Set("token", "runBuildKoding")
+	q.Set("BUILDBRANCH", buildBranch)
+	q.Set("cause", fmt.Sprintf("by %s", username))
+	jenkinsURL.RawQuery = q.Encode()
+
+	_, err := http.Post(jenkinsURL.String(), "", nil)
+	if err != nil {
+		return "", err
+	}
+
+	msg := fmt.Sprintf("%s deployed a new build with branch '%s'", username, buildBranch)
+	err = sendMsgToSlack("#_koding", msg)
+	if err != nil {
+		log.Println("slack error", err)
+	}
+
+	return buildBranch, nil
+}
+
+func switchOperation(loginName string, r *http.Request) (string, error) {
+	version := r.PostFormValue("switchVersion")
+	err := switchVersion(loginName, version)
+	if err != nil {
+		return "", err
+	}
+
+	return version, nil
+}
+
+func switchVersion(loginName, newVersion string) error {
+	if switchHost == "" {
+		errors.New("switchHost is not defined")
+	}
+
+	// Test if the string is an integer, if not abort
+	_, err := strconv.Atoi(newVersion)
+	if err != nil {
+		return err
+	}
+
+	domain, err := modelhelper.GetDomain(switchHost)
+	if err != nil {
+		return err
+	}
+
+	if domain.Proxy == nil {
+		return fmt.Errorf("proxy field is empty for '%s'", switchHost)
+	}
+
+	if domain.Proxy.Key == "" {
+		return fmt.Errorf("key does not exist for '%s'", switchHost)
+	}
+
+	domain.Proxy.Key = newVersion
+
+	err = modelhelper.UpdateDomain(domain)
+	if err != nil {
+		log.Printf("could not update %+v\n", domain)
+		return err
+	}
+
+	// reset cache
+	resetURL := "http://koding-proxy0.sj.koding.com/_resetcache_/" + switchHost
+	resp, err := http.Get(resetURL)
+	if err != nil {
+		log.Println("COULD NOT SWITCH")
+	}
+
+	if resp.StatusCode == 200 {
+		log.Println("Cache is cleaned for", switchHost)
+	}
+
+	msg := fmt.Sprintf("%s switched <https://koding.com|koding.com> to build %s",
+		loginName, newVersion)
+	err = sendMsgToSlack("#_koding", msg)
+	if err != nil {
+		log.Println("slack error", err)
+	}
+
+	return nil
 }
 
 func keyLookup(key string) (map[string]bool, map[string]bool) {
 	workersApi := apiUrl + "/workers/?version=" + key
+	servers := make(map[string]bool, 0)
+	brokers := make(map[string]bool, 0)
+
 	resp, err := http.Get(workersApi)
 	if err != nil {
 		fmt.Println(err)
+		return nil, nil
 	}
+
 	defer resp.Body.Close()
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
@@ -359,8 +335,6 @@ func keyLookup(key string) (map[string]bool, map[string]bool) {
 		fmt.Println(err)
 	}
 
-	servers := make(map[string]bool, 0)
-	brokers := make(map[string]bool, 0)
 	for _, w := range workers {
 		if w.Name == "server" {
 			servers[w.Hostname+":"+strconv.Itoa(w.Port)] = true
@@ -373,13 +347,6 @@ func keyLookup(key string) (map[string]bool, map[string]bool) {
 	}
 
 	return servers, brokers
-}
-
-func renderTemplate(w http.ResponseWriter, tmpl string, home interface{}) {
-	err := templates.ExecuteTemplate(w, tmpl+".html", home)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-	}
 }
 
 func jenkinsInfo() *JenkinsInfo {
@@ -454,12 +421,15 @@ func workerInfo(build string) ([]WorkerInfo, StatusInfo, error) {
 
 func buildsInfo() []int {
 	serverApi := apiUrl + "/deployments/"
-	fmt.Println(serverApi)
+	builds := make([]int, 0)
+
 	resp, err := http.Get(serverApi)
 	if err != nil {
 		fmt.Println(err)
+		return builds
 	}
 	defer resp.Body.Close()
+
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		fmt.Println(err)
@@ -471,7 +441,6 @@ func buildsInfo() []int {
 		fmt.Println(err)
 	}
 
-	builds := make([]int, 0)
 	for _, serv := range *s {
 		build, _ := strconv.Atoi(serv.BuildNumber)
 		builds = append(builds, build)
@@ -571,73 +540,68 @@ func currentVersion() (string, error) {
 }
 
 func authenticateUser(username, password string) error {
-	if !admins.Has(username) {
-		return fmt.Errorf("Username %s is not authenticated\n", username)
-	}
-
-	_, err := modelhelper.CheckAndGetUser(username, password)
+	user, err := modelhelper.CheckAndGetUser(username, password)
 	if err != nil {
-		return fmt.Errorf("Username %s does not match or wrong password\n", username)
+		return errors.New("Wrong username or password")
 	}
 
-	return nil
+	account, err := modelhelper.GetAccount(user.Name)
+	if err != nil {
+		return fmt.Errorf("Could not retrieve account '%s'.", user.Name)
+	}
+
+	for _, flag := range account.GlobalFlags {
+		if flag == "super-admin" {
+			return nil
+		}
+	}
+
+	return errors.New("You don't have super-admin flag")
 }
 
-func switchVersion(newVersion string) error {
-	if switchHost == "" {
-		errors.New("switchHost is not defined")
+func renderTemplate(w http.ResponseWriter, tmpl string, data interface{}) {
+	err := templates.ExecuteTemplate(w, tmpl+".html", data)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
+}
+
+type slackPayload struct {
+	Channel   string `json:"channel"`
+	Username  string `json:"username"`
+	Text      string `json:"text"`
+	IconEmoji string `json:"icon_emoji"`
+}
+
+func sendMsgToSlack(channel, text string) error {
+	hookURL := "https://koding.slack.com/services/hooks/incoming-webhook?token=z7TCJnrGy3kpcRLkbBbUzlKh"
+
+	payload := slackPayload{
+		Channel:   channel,
+		Username:  "Koding Overview",
+		Text:      text,
+		IconEmoji: ":rocket:",
 	}
 
-	// Test if the string is an integer, if not abort
-	_, err := strconv.Atoi(newVersion)
+	data, err := json.Marshal(&payload)
 	if err != nil {
 		return err
 	}
 
-	domain, err := modelhelper.GetDomain(switchHost)
+	resp, err := http.Post(hookURL, "application/json", bytes.NewReader(data))
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode == 200 {
+		return nil
+	}
+
+	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		return err
 	}
 
-	if domain.Proxy == nil {
-		return fmt.Errorf("proxy field is empty for '%s'", switchHost)
-	}
-
-	if domain.Proxy.Key == "" {
-		return fmt.Errorf("key does not exist for '%s'", switchHost)
-	}
-
-	domain.Proxy.Key = newVersion
-
-	err = modelhelper.UpdateDomain(domain)
-	if err != nil {
-		log.Printf("could not update %+v\n", domain)
-		return err
-	}
-
-	return nil
-}
-
-func CreateAmqpConnection(component string) *amqp.Connection {
-	conn, err := amqp.Dial(amqp.URI{
-		Scheme:   "amqp",
-		Host:     config.Current.Mq.Host,
-		Port:     config.Current.Mq.Port,
-		Username: strings.Replace(config.Current.Mq.ComponentUser, "<component>", component, 1),
-		Password: config.Current.Mq.Password,
-		Vhost:    config.Current.Mq.Vhost,
-	}.String())
-	if err != nil {
-		log.Fatalln("AMQP dial: ", err)
-	}
-
-	return conn
-}
-
-func CreateChannel(conn *amqp.Connection) *amqp.Channel {
-	channel, err := conn.Channel()
-	if err != nil {
-		log.Fatalln("AMQP create channel: ", err)
-	}
-	return channel
+	return fmt.Errorf("slack err: %s", string(body))
 }

@@ -3,13 +3,6 @@ KodingError = require '../error'
 
 likeableActivities = [
   'JNewStatusUpdate'
-#  'JCodeSnip'
-#  'JDiscussion'
-#  'JOpinion'
-#  'JCodeShare'
-#  'JLink'
-#  'JTutorial'
-#  'JBlogPost'
   ]
 
 module.exports = class JAccount extends jraphical.Module
@@ -38,6 +31,7 @@ module.exports = class JAccount extends jraphical.Module
   {Relationship} = jraphical
   {permit} = require './group/permissionset'
   Validators = require './group/validators'
+  Protected = require '../traits/protected'
 
   @share()
 
@@ -95,6 +89,8 @@ module.exports = class JAccount extends jraphical.Module
           (signature Object, Function)
         ]
         impersonate:
+          (signature String, Function)
+        verifyEmailByUsername:
           (signature String, Function)
         fetchBlockedUsers:
           (signature Object, Function)
@@ -257,6 +253,9 @@ module.exports = class JAccount extends jraphical.Module
           (signature String, Function)
         updateCountAndCheckBadge:
           (signature Object, Function)
+        likeMember:
+          (signature String, Function)
+
     schema                  :
       skillTags             : [String]
       locationTags          : [String]
@@ -279,6 +278,9 @@ module.exports = class JAccount extends jraphical.Module
           type              : Number
           default           : 0
         statusUpdates       :
+          type              : Number
+          default           : 0
+        staffLikes          :
           type              : Number
           default           : 0
         comments            :
@@ -600,6 +602,19 @@ module.exports = class JAccount extends jraphical.Module
       JSession = require './session'
       JSession.update {clientId: sessionToken}, $set:{username: nickname}, callback
 
+  @verifyEmailByUsername = secure (client, username, callback)->
+    {connection:{delegate}, sessionToken} = client
+    unless delegate.can 'verify-emails'
+      callback new KodingError 'Access denied'
+    else
+      JUser = require './user'
+      JUser.one {username}, (err, user)->
+        return  callback err if err
+        return  callback new Error "User is not found" unless user
+        user.confirmEmail (err)->
+          return callback new Error "An error occured while confirming email" if err
+          callback null, yes
+
   @reserveNames =(options, callback)->
     [callback, options] = [options, callback]  unless callback
     options       ?= {}
@@ -780,6 +795,8 @@ module.exports = class JAccount extends jraphical.Module
       "comments"
       "referredUsers"
       "invitations"
+      "staffLikes"
+      "twitterFollowers"
     ]
     return new KodingError "No permission!" unless @equals client.connection.delegate
     {@property} = options
@@ -793,14 +810,14 @@ module.exports = class JAccount extends jraphical.Module
     if targetSelf then selector["targetId"]=@getId() else selector["sourceId"]=@getId()
 
     Relationship.count selector, (err, count) =>
-      return err if err
+      return callback err, null if err
       countsField = {}
       key = "counts.#{@property}"
       countsField[key] = count
-      @update $set: countsField , (err)=>
+      @update $set: countsField, (err)=>
         return err if err
         JBadge = require './badge'
-        JBadge.checkEligibleBadges client, badgeItem:@property , callback
+        JBadge.checkEligibleBadges client, badgeItem : @property , callback
 
   # Update broken counts for user
   updateCounts:->
@@ -884,9 +901,19 @@ module.exports = class JAccount extends jraphical.Module
         followerCount = user.foreignAuth.twitter.profile.followers_count
         @update ($set: 'counts.twitterFollowers': followerCount), ->
 
+    # Staff Likes count
+    Relationship.count
+      as         : 'like'
+      targetId   : @getId()
+      targetName : 'JAccount'
+      sourceName : 'JAccount'
+    , (err, count)=>
+      return if err or not count
+      @update ($set: 'counts.staffLikes': count), ->
+
   dummyAdmins = [ "sinan", "devrim", "gokmen", "chris", "fatihacet", "arslan",
                   "sent-hil", "kiwigeraint", "cihangirsavas", "leventyalcin",
-                  "samet", "leeolayvar", "stefanbc" ]
+                  "samet", "leeolayvar", "stefanbc", "erdinc"]
 
   userIsExempt: (callback)->
     # console.log @isExempt, this
@@ -1007,7 +1034,7 @@ module.exports = class JAccount extends jraphical.Module
         @profile.nickname in dummyAdmins or target?.originId?.equals @getId()
       when 'flag', 'reset guests', 'reset groups', 'administer names', \
            'administer url aliases', 'administer accounts', \
-           'migrate-koding-users', 'list-blocked-users'
+           'migrate-koding-users', 'list-blocked-users', 'verify-emails'
         @profile.nickname in dummyAdmins
 
   fetchRoles: (group, callback)->
@@ -1357,20 +1384,27 @@ module.exports = class JAccount extends jraphical.Module
     slug = client.context.group ? 'koding'
     JGroup.one {slug}, (err, group)=>
       return callback err  if err
-      group.fetchPermissionSet (err, permissionSet)=>
+      cb = (err, roles)=>
         return callback err  if err
-        cb = (err, roles)=>
-          return callback err  if err
-          perms = (perm.permissions.slice()\
-                  for perm in permissionSet.permissions\
-                  when perm.role in roles)
-          {flatten} = require 'underscore'
+        {flatten} = require 'underscore'
+        if "admin" in roles
+          perms = Protected.permissionsByModule
           callback null, flatten(perms), roles
-
-        if this instanceof JAccount
-          group.fetchMyRoles client, cb
         else
-          cb null, ['guest']
+          group.fetchPermissionSet (err, permissionSet)=>
+            return callback err  if err
+            perms = (perm.permissions.slice()\
+                  for perm in permissionSet.permissions\
+                    # if user is an admin, add all
+                    # roles into permission set
+                  when perm.role in roles or 'admin' in roles)
+
+            callback null, flatten(perms), roles
+
+      if this instanceof JAccount
+        group.fetchMyRoles client, cb
+      else
+        cb null, ['guest']
 
   oldAddTags = @::addTags
   addTags: secure (client, tags, options, callback)->
@@ -1572,3 +1606,17 @@ module.exports = class JAccount extends jraphical.Module
           callback null, user.getAt key
     else
       callback new KodingError 'Access denied'
+
+  likeMember: permit 'like members',
+    success: (client, nickname, callback)->
+      JAccount.one { 'profile.nickname' : nickname }, (err, account)=>
+        return callback new KodingError "An error occured!" if err or not account
+
+        rel = new Relationship
+          targetId    : account.getId()
+          targetName  : 'JAccount'
+          sourceId    : @getId()
+          sourceName  : 'JAccount'
+          as          : 'like'
+
+        rel.save (err)-> callback err

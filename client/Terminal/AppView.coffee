@@ -25,7 +25,7 @@ class WebTermAppView extends JView
       @initPane pane
 
       terminalView.terminal?.scrollToBottom()
-      
+
       KD.utils.defer -> terminalView.setKeyView()
 
       @fetchStorage (storage) -> storage.setValue 'activeIndex', index
@@ -257,7 +257,7 @@ class WebTermAppView extends JView
       pane.destroySubViews()
       pane.addSubView new WebTermView options
 
-    terminalView.on 'TerminalCanceled', ({ vmName }) =>
+    terminalView.once 'TerminalCanceled', ({ vmName }) =>
       @tabView.removePane pane
       unless @dirty[vmName]
         @tabView.off 'AllTabsClosed'
@@ -265,7 +265,6 @@ class WebTermAppView extends JView
           Sorry, your terminal sessions on #{ vmName } are dead. <a href='#' class='plus'>Open a new session.</a>
           """, no, yes
         @dirty[vmName] = yes
-
 
     # terminalView.once 'KDObjectWillBeDestroyed', => @tabView.removePane pane
 
@@ -277,7 +276,6 @@ class WebTermAppView extends JView
         { terminalView } = pane.getOptions()
         sessionId = terminalView.sessionId ? terminalView.getOption 'session'
         vmName = terminalView.getOption 'vmName'
-        @dirty[vmName] = no
         "#{ vmName }:#{ sessionId }"
       storage.setValue 'savedSessions', sessions
       storage.setValue 'activeIndex', activeIndex
@@ -294,8 +292,9 @@ class WebTermAppView extends JView
 
         vmc = KD.getSingleton 'vmController'
         if vmc.vms.length > 1
-          vmselection = new VMSelection
-          vmselection.once 'VMSelected', (vm)=> @createNewTab vmName: vm, mode: 'create'
+          return  if @vmselection and not @vmselection.isDestroyed
+          @vmselection = new VMSelection
+          @vmselection.once 'VMSelected', (vm)=> @createNewTab vmName: vm, mode: 'create'
         else
           @createNewTab vmName: vmc.vms.first, mode: 'create'
 

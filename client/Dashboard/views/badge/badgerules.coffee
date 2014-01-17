@@ -28,6 +28,9 @@ class BadgeRules extends JView
         @createUserSelector()
         @giveBadgeButton.show()
 
+    @totalUserCount   = new KDCustomHTMLView
+      partial         : ""
+
     @filteredUsersController = new KDListViewController
       startWithLazyLoader    : no
       view                   : new KDListView
@@ -72,13 +75,16 @@ class BadgeRules extends JView
     userListView.on "RemoveBadgeUser", (ac) =>
       tmpArr = @usersInput.getValue().split ','
       index = tmpArr.indexOf ac._id
-      tmpArr.splice index,1
+      tmpArr.splice index, 1
       @usersInput.setValue tmpArr.toString()
       @usersInput.getValue()
 
     {@badge} = @getOptions()
     if @badge
       @updateRulesList()
+      #hide add new rule
+      @addRuleButton.disable()
+      @doneButton = new KDCustomHTMLView
 
   createUserSelector: (limit, skip)->
     selector   = {}
@@ -96,19 +102,20 @@ class BadgeRules extends JView
       operArr[action]    = propVal
       selector[property] = operArr
       rules += countProp + tmpAct + propVal
-      rules += "+" if key < ruleItems.length-1
+      rules += "+" if key < ruleItems.length - 1
 
     @rule.setValue rules
     KD.remote.api.JAccount.someWithRelationship selector, {}, (err, users) =>
-      return err if err
+      return KD.showError err if err
       @usersInput.setValue (user._id for user in users)
       @filteredUsersController.removeAllItems()
+      @totalUserCount.setPartial "Total users : #{users.length}"
       @filteredUsersController.instantiateListItems users
 
   updateRulesList:->
     ruleArray = @badge.rule.split "+"
     for rule in ruleArray
-      decoded  = Encoder.htmlDecode rule
+      decoded   = Encoder.htmlDecode rule
       actionPos = decoded.search /[\<\>\=]/
       action    = decoded.substr actionPos, 1
       property  = decoded.substr 0, actionPos
@@ -119,12 +126,14 @@ class BadgeRules extends JView
     """
     {{> @addRuleButton}}
     {{> @badgeListView}}
+    {{> @totalUserCount}}
     {{> @doneButton}}
     {{> @userList}}
     {{> @giveBadgeButton}}
     {{> @usersInput}}
     {{> @rule}}
     """
+
 
 class BadgeUsersItem extends KDListItemView
   constructor: (options ={}, data)->
@@ -169,6 +178,7 @@ class BadgeRuleItem extends KDListItemView
         { title:"Last Login"        , value:"lastLoginDate"    }
         { title:"Status Updates"    , value:"statusUpdates"    }
         { title:"Twitter Followers" , value:"twitterFollowers" }
+        { title:"Staff Likes"       , value:"staffLikes"       }
       ]
       defaultValue    : data.property or "followers"
       disabled        : !!data.propVal

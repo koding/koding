@@ -13,7 +13,11 @@ authAllExchange = "authAll"
 
 embedlyApiKey   = '94991069fb354d4e8fdb825e52d4134a'
 
+environment     = "vagrant"
+
 module.exports =
+  environment   : environment
+  version       : version
   aws           :
     key         : 'AKIAJSUVKX6PD254UGAA'
     secret      : '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'
@@ -23,7 +27,6 @@ module.exports =
   containerSubnet: "10.128.2.0/9"
   vmPool        : "vms"
   projectRoot   : projectRoot
-  version       : version
   webserver     :
     useCacheHeader: no
     login       : 'prod-webserver'
@@ -140,10 +143,10 @@ module.exports =
     useStaticFileServer: no
     staticFilesBaseUrl: 'http://localhost:3020'
     runtimeOptions:
-      environment : "vagrant"
+      environment        : environment
       activityFetchCount : 20
-      precompiledApi: no
-      authExchange: authExchange
+      precompiledApi     : no
+      authExchange       : authExchange
       github         :
         clientId     : "f8e440b796d953ea01e5"
       embedly        :
@@ -328,3 +331,6 @@ module.exports =
     signature    : "HMAC-SHA1"
   mixpanel       : "a57181e216d9f713e19d5ce6d6fb6cb3"
   rollbar        : "71c25e4dc728431b88f82bd3e7a600c9"
+  slack          :
+	  token        : "xoxp-2155583316-2155760004-2158149487-a72cf4"
+	  channel      : "C024LG80K"

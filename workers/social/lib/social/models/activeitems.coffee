@@ -116,7 +116,8 @@ module.exports = class ActiveItems extends Base
       daisy queue = items.map (item) ->
         ->
           klass.one _id: item._id, (err, instance)->
-            instances.push instance
+            if not err and instance
+              instances.push instance
             queue.next()
 
       queue.push ->
@@ -125,11 +126,13 @@ module.exports = class ActiveItems extends Base
         if missing > 0
           existingIds = instances.map (i) -> i._id
           existingIds = nin.concat existingIds  if nin
+
           selector = {}
           selector = select if select
           selector.sourceId = {$nin : existingIds}
           klass.some selector, {limit:missing}, (err, randomInstances)->
-            instances = instances.concat randomInstances  unless err
+            if not err and randomInstances
+              instances = instances.concat randomInstances
             queue.next()
         else
           queue.next()

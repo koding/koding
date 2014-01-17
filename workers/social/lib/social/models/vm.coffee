@@ -112,7 +112,7 @@ module.exports = class JVM extends Module
         default         : 1024
       diskSizeInMB      :
         type            : Number
-        default         : 1200
+        default         : 3600
       numCPUs           :
         type            : Number
         default         : 1
@@ -629,7 +629,7 @@ module.exports = class JVM extends Module
 
       JVM.ensureDomainSettings \
         {account, vm, type, nickname, groupSlug}
-      # JVM.createDomains account, hostnameAliases, hostnameAlias
+      JVM.createDomains account, hostnameAliases, hostnameAlias
       target.addVm vm, handleError
 
   wrapGroup = (group)-> [ { id: group.getId() } ]

@@ -63,9 +63,12 @@ func GetService(writer http.ResponseWriter, req *http.Request) {
 }
 
 type ServicePostMessage struct {
-	Host    string
-	Mode    string
-	Enabled string
+	Host        string
+	Enabled     string
+	Key         string
+	Username    string
+	Data        string
+	ServiceName string
 }
 
 func CreateKey(writer http.ResponseWriter, req *http.Request) {
@@ -101,8 +104,10 @@ func CreateKey(writer http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	if msg.Mode == "" {
-		// no-op. can be roundrobin or random, if empty the first item in the list is used
+	if msg.Data == "" {
+		err := "no 'data' field available."
+		http.Error(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err), http.StatusBadRequest)
+		return
 	}
 
 	var enabled bool
@@ -112,20 +117,16 @@ func CreateKey(writer http.ResponseWriter, req *http.Request) {
 	case "false", "off", "no":
 		enabled = false
 	default:
+		msg.Enabled = "false"
 		enabled = false
 	}
 
-	persistence := "disabled"
-	hostdata := "FromKontrolAPI"
-
 	err = modelhelper.UpsertKey(
 		username,
-		persistence,
-		msg.Mode,
 		servicename,
 		key,
 		msg.Host,
-		hostdata,
+		msg.Data,
 		enabled,
 	)
 
@@ -134,14 +135,18 @@ func CreateKey(writer http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	var url string
-	if username == "koding" {
-		url = fmt.Sprintf("{\"host\":\"%s-%s.x.koding.com\"}\n", servicename, key)
-	} else {
-		url = fmt.Sprintf("{\"host\":\"%s-%s-%s.kd.io\"}\n", servicename, key, username)
+	// update msg with rest api paths
+	msg.Username = username
+	msg.Key = key
+	msg.ServiceName = servicename
+
+	data, err := json.MarshalIndent(msg, "", "  ")
+	if err != nil {
+		io.WriteString(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err))
+		return
 	}
 
-	io.WriteString(writer, url)
+	writer.Write(data)
 	return
 }
 
