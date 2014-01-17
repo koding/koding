@@ -118,11 +118,11 @@ class AccountSshKeyListItem extends KDListItemView
     form.keyTextarea.setValue key  if key
 
     @info = info = new KDCustomHTMLView
-      tagName  : "span"
-      partial  : """<div>
-                      <span class="title">#{@getData().title}</span>
-                      <span class="key">#{@getData().key.substr(0,45)} . . . #{@getData().key.substr(-25)}</span>
-                    </div>"""
+      tagName  : "div"
+      partial  : """
+      <div class="title">#{@getData().title}<div>
+      <div class="key">#{@getData().key.substr(0,45)} . . . #{@getData().key.substr(-25)}</div>
+      """
       cssClass : "posstatic"
 
     info.addSubView editLink = new KDCustomHTMLView
