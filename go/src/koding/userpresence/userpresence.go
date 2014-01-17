@@ -6,12 +6,14 @@ import (
 	"koding/db/mongodb"
 	"koding/tools/amqputil"
 	"koding/tools/config"
+	"koding/tools/logger"
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
-	"log"
 	"strings"
 	"time"
 )
+
+var log = logger.New("userpresence")
 
 type socketIds map[string]bool
 
@@ -129,7 +131,7 @@ func handlePresence(
 			done <- err
 		}
 	}
-	log.Printf("handle: deliveries channel closed")
+	log.Info("handle: deliveries channel closed")
 	done <- nil
 }
 
@@ -152,7 +154,7 @@ func createFollowFeedChannel(component string) (*amqp.Channel, error) {
 }
 
 func updateOnlineStatus(channel *amqp.Channel, username, status string) error {
-	log.Println(username)
+	log.Info("Username: %v", username)
 
 	user, account := make(bson.M), make(bson.M)
 
@@ -357,7 +359,7 @@ func handleControl(
 	for d := range deliveries {
 
 		if d.RoutingKey != "auth.join" && d.RoutingKey != "auth.leave" {
-			log.Printf("Consumed an invalid routing key: %s", d.RoutingKey)
+			log.Info("Consumed an invalid routing key: %s", d.RoutingKey)
 			continue
 		}
 
@@ -373,16 +375,16 @@ func handleControl(
 		}
 
 		if msg.Username == "" || msg.SocketId == "" {
-			log.Printf("Invalid message: username: %s socketId: %s", msg.Username, msg.SocketId)
+			log.Error("Invalid message: username: %s socketId: %s", msg.Username, msg.SocketId)
 			continue
 		}
 
 		if err := callee(msg.Username, msg.SocketId, bindingChannel); err != nil {
-			log.Printf("An error occurred: %v", err)
+			log.Error("An error occurred: %v", err)
 		}
 
 	}
-	log.Printf("handle: deliveries channel closed")
+	log.Info("handle: deliveries channel closed")
 	done <- nil
 }
 
