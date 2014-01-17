@@ -22,7 +22,6 @@ createStatusUpdateNode = (statusUpdate, authorFullName, authorNickname)->
   commentsList = ""
   if statusUpdate?.replies
     for comment in statusUpdate.replies
-      console.log comment
       avatarUrl = "https://gravatar.com/avatar/#{comment.author.hash}?size=90&amp;d=https%3A%2F%2Fapi.koding.com%2Fimages%2Fdefaultavatar%2Fdefault.avatar.40.png"
       commentsList +=
         """

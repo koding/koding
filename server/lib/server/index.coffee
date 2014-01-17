@@ -238,7 +238,7 @@ app.all '/:name/:section?*', (req, res, next)->
   #
   if firstLetter.toUpperCase() is firstLetter
 
-    if name in ['Activity']
+    if name in ['Activity', 'Topics']
 
       isLoggedIn req, res, (err, loggedIn, account)->
         return next()  if loggedIn
@@ -279,6 +279,8 @@ app.all '/:name/:section?*', (req, res, next)->
         if err then next err
         else unless models? then res.send 404, error_404()
         else if models.last?
+          unless loggedIn
+            return Crawler.crawl koding, req, res, name
           models.last.fetchHomepageView account, (err, view)->
             if err then next err
             else if view? then res.send view
