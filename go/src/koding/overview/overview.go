@@ -9,7 +9,7 @@ import (
 	"io/ioutil"
 	"koding/db/mongodb/modelhelper"
 	"koding/tools/config"
-	"log"
+	"koding/tools/logger"
 	"net/http"
 	"net/url"
 	"sort"
@@ -18,6 +18,8 @@ import (
 
 	"github.com/gorilla/sessions"
 )
+
+var log = logger.New("overviewj")
 
 func NewServerInfo() *ServerInfo {
 	return &ServerInfo{
@@ -65,7 +67,7 @@ func main() {
 	fmt.Printf("koding overview started at :%d\n", port)
 	err = http.ListenAndServe(":"+strconv.Itoa(port), nil)
 	if err != nil {
-		fmt.Println(err)
+		log.Error("Error: %v", err)
 	}
 }
 
@@ -94,9 +96,9 @@ func viewHandler(w http.ResponseWriter, r *http.Request) {
 
 		version, err := switchOperation(loginName, r)
 		if err != nil {
-			log.Println(err)
+			log.Error("Error: %v", err)
 		} else {
-			log.Printf("switch is invoked by '%s' for build number '%s'\n", loginName, version)
+			log.Info("switch is invoked by '%s' for build number '%s'\n", loginName, version)
 		}
 	case "newbuild":
 		loginName, err = checkSessionHandler(w, r)
@@ -107,9 +109,9 @@ func viewHandler(w http.ResponseWriter, r *http.Request) {
 
 		branch, err := buildOperation(loginName, r)
 		if err != nil {
-			log.Println("could not build", err)
+			log.Error("could not build %v", err)
 		} else {
-			log.Printf("build is created by '%s', for branch '%s'\n", loginName, branch)
+			log.Info("build is created by '%s', for branch '%s'\n", loginName, branch)
 		}
 	default:
 		loginName, err = checkSessionHandler(w, r)
@@ -127,7 +129,7 @@ func viewHandler(w http.ResponseWriter, r *http.Request) {
 
 	workers, status, err := workerInfo(build)
 	if err != nil {
-		fmt.Println(err)
+		log.Error("Error: %v", err)
 	}
 
 	jenkins := jenkinsInfo()
@@ -135,13 +137,13 @@ func viewHandler(w http.ResponseWriter, r *http.Request) {
 
 	server, err := serverInfo(build)
 	if err != nil {
-		fmt.Println(err)
+		log.Error("Error: %v", err)
 		server = NewServerInfo()
 	}
 
 	domain, err := domainInfo()
 	if err != nil {
-		fmt.Println(err)
+		log.Error("Error: %v", err)
 	}
 
 	s, b := keyLookup(domain.Proxy.Key)
@@ -171,7 +173,7 @@ func logoutHandler(w http.ResponseWriter, r *http.Request) {
 		session.Values["userName"] = nil
 		store.Save(r, w, session)
 	} else {
-		log.Println("Session could not be retrieved", err)
+		log.Error("Session could not be retrieved %v", err)
 	}
 
 	home := HomePage{LoginMessage: "Logged out!"}
@@ -181,7 +183,7 @@ func logoutHandler(w http.ResponseWriter, r *http.Request) {
 func loginHandler(w http.ResponseWriter, r *http.Request) (string, error) {
 	session, err := store.Get(r, "userData")
 	if err != nil {
-		log.Println("could not get session", err)
+		log.Error("could not get session %v", err)
 		return "", errors.New("Internal error")
 	}
 
@@ -206,7 +208,7 @@ func loginHandler(w http.ResponseWriter, r *http.Request) (string, error) {
 func checkSessionHandler(w http.ResponseWriter, r *http.Request) (string, error) {
 	session, err := store.Get(r, "userData")
 	if err != nil {
-		log.Println("could not get session", err)
+		log.Error("could not get session %v", err)
 		return "", errors.New("Internal error")
 	}
 
@@ -243,7 +245,7 @@ func buildOperation(username string, r *http.Request) (string, error) {
 	msg := fmt.Sprintf("%s deployed a new build with branch '%s'", username, buildBranch)
 	err = sendMsgToSlack("#_koding", msg)
 	if err != nil {
-		log.Println("slack error", err)
+		log.Error("slack error %v", err)
 	}
 
 	return buildBranch, nil
@@ -287,7 +289,7 @@ func switchVersion(loginName, newVersion string) error {
 
 	err = modelhelper.UpdateDomain(domain)
 	if err != nil {
-		log.Printf("could not update %+v\n", domain)
+		log.Error("could not update %+v", domain)
 		return err
 	}
 
@@ -295,18 +297,18 @@ func switchVersion(loginName, newVersion string) error {
 	resetURL := "http://koding-proxy0.sj.koding.com/_resetcache_/" + switchHost
 	resp, err := http.Get(resetURL)
 	if err != nil {
-		log.Println("COULD NOT SWITCH")
+		log.Error("COULD NOT SWITCH %v")
 	}
 
 	if resp.StatusCode == 200 {
-		log.Println("Cache is cleaned for", switchHost)
+		log.Error("Cache is cleaned for %v", switchHost)
 	}
 
 	msg := fmt.Sprintf("%s switched <https://koding.com|koding.com> to build %s",
 		loginName, newVersion)
 	err = sendMsgToSlack("#_koding", msg)
 	if err != nil {
-		log.Println("slack error", err)
+		log.Error("slack error %v", err)
 	}
 
 	return nil
@@ -319,20 +321,20 @@ func keyLookup(key string) (map[string]bool, map[string]bool) {
 
 	resp, err := http.Get(workersApi)
 	if err != nil {
-		fmt.Println(err)
+		log.Error("Error: %v", err)
 		return nil, nil
 	}
 
 	defer resp.Body.Close()
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		fmt.Println(err)
+		log.Error("Error: %v", err)
 	}
 
 	workers := make([]WorkerInfo, 0)
 	err = json.Unmarshal(body, &workers)
 	if err != nil {
-		fmt.Println(err)
+		log.Error("Error: %v", err)
 	}
 
 	for _, w := range workers {
@@ -354,17 +356,17 @@ func jenkinsInfo() *JenkinsInfo {
 	jenkinsApi := "http://jenkins.sj.koding.com:8080/job/Koding%20Deployment/api/json"
 	resp, err := http.Get(jenkinsApi)
 	if err != nil {
-		fmt.Println(err)
+		log.Error("Error: %v", err)
 	}
 	defer resp.Body.Close()
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		fmt.Println(err)
+		log.Error("Error: %v", err)
 	}
 
 	err = json.Unmarshal(body, &j)
 	if err != nil {
-		fmt.Println(err)
+		log.Error("Error: %v", err)
 	}
 
 	return j
@@ -407,7 +409,7 @@ func workerInfo(build string) ([]WorkerInfo, StatusInfo, error) {
 
 		d, err := time.ParseDuration(strconv.Itoa(workers[i].Uptime) + "s")
 		if err != nil {
-			fmt.Println(err)
+			log.Error("Error: %v", err)
 		}
 		workers[i].Clock = d.String()
 	}
@@ -425,20 +427,20 @@ func buildsInfo() []int {
 
 	resp, err := http.Get(serverApi)
 	if err != nil {
-		fmt.Println(err)
+		log.Error("Error: %v", err)
 		return builds
 	}
 	defer resp.Body.Close()
 
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		fmt.Println(err)
+		log.Error("Error: %v", err)
 	}
 
 	s := &[]ServerInfo{}
 	err = json.Unmarshal(body, &s)
 	if err != nil {
-		fmt.Println(err)
+		log.Error("Error: %v", err)
 	}
 
 	for _, serv := range *s {
@@ -481,7 +483,7 @@ func serverInfo(build string) (*ServerInfo, error) {
 func parseMongoLogin(login string) string {
 	u, err := url.Parse("http://" + login)
 	if err != nil {
-		fmt.Println(err)
+		log.Error("Error: %v", err)
 	}
 
 	mPass, _ := u.User.Password()
