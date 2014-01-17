@@ -82,6 +82,10 @@ func (g *GoLogger) Debug(format string, args ...interface{}) {
 	g.log.Debug(format, args...)
 }
 
+func (g *GoLogger) Name() string {
+	return g.log.Module
+}
+
 //----------------------------------------------------------
 // Originally from koding/tools/log
 //----------------------------------------------------------

@@ -30,4 +30,6 @@ type Log interface {
 
 	// Logs error with callstack.
 	LogError(interface{}, int, ...interface{})
+
+	Name() string
 }
