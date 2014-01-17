@@ -220,6 +220,7 @@ putContentIntoFullPage = (content, pagination, contentType)->
                     <div class="kdview listview-wrapper">
                       <div class="kdview kdscrollview">
                         <div class="kdview kdlistview kdlistview-default activity-related">
+                          <div></div>
                           #{content}
                         </div>
                       </div>
