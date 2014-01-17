@@ -7,7 +7,7 @@ log4js.configure {
   appenders: [
     { type: 'console' }
     { type: 'file', filename: 'logs/social.log', category: 'social' }
-    { type: "log4js-ain2", tag : "social", facility: "local0", hostname: "localhost", port: 514 }
+    { type: "log4js-node-syslog", tag : "webserver", facility: "local0", hostname: "localhost", port: 514 }
   ],
   replaceConsole: true
 }
