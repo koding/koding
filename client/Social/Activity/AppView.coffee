@@ -28,6 +28,7 @@ class ActivityAppView extends KDScrollView
     @topicsBox        = new ActiveTopics
     @usersBox         = new ActiveUsers
     @tickerBox        = new ActivityTicker
+    @groupDescription = new GroupDescription
 
     @mainBlock        = new KDCustomHTMLView tagName : "main" #"activity-left-block"
     @sideBlock        = new KDCustomHTMLView tagName : "aside"   #"activity-right-block"
@@ -62,10 +63,15 @@ class ActivityAppView extends KDScrollView
     @mainBlock.addSubView @inputWidget
     @mainBlock.addSubView @feedWrapper
 
-    @sideBlock.addSubView @referalBox  if KD.isLoggedIn()
+    @sideBlock.addSubView @referalBox  if KD.isLoggedIn() and not @isPrivateGroup()
+    @sideBlock.addSubView @groupDescription if @isPrivateGroup()
     @sideBlock.addSubView @topicsBox
     @sideBlock.addSubView @usersBox
     @sideBlock.addSubView @tickerBox
+
+  isPrivateGroup :->
+    {entryPoint} = KD.config
+    if entryPoint?.slug isnt "koding" and entryPoint?.type is "group" then yes else no
 
   decorate:->
     @unsetClass "guest"
