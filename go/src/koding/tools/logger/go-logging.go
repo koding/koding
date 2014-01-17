@@ -8,6 +8,12 @@ import (
 	"runtime"
 )
 
+var modules []string
+
+func init() {
+	modules = []string{}
+}
+
 // Default Log implementation.
 type GoLogger struct {
 	log *logging.Logger
@@ -28,8 +34,14 @@ func NewGoLog(name string) *GoLogger {
 
 	logging.SetBackend(logBackend, syslogBackend)
 
-	// Set logging level based on value in config.
-	logging.SetLevel(loggingLevel, name)
+	// go-logging calls Reset() each time it is imported. So if this
+	// pkg is imported in a library and then in a worker, the library
+	// defaults back to DEBUG logging level. This fixes that by
+	// re-setting the log level for already set modules.
+	modules = append(modules, name)
+	for _, mod := range modules {
+		logging.SetLevel(loggingLevel, mod)
+	}
 
 	var goLog = &GoLogger{logging.MustGetLogger(name)}
 
