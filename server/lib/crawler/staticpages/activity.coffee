@@ -145,14 +145,42 @@ getSingleActivityContent = (activityContent, model)->
   userInteractionMeta = createUserInteractionMeta \
     activityContent.numberOfLikes, activityContent.numberOfComments
 
-  if activityContent?.comments?.length? > 0
-    comments         = (createCommentNode(comment) for comment in activityContent.comments)
-    commentsContent  = "<h4>Comments:</h4>"
-    commentsContent += "<ol>"
-    commentsContent += comments.join("")
-    commentsContent += "</ol>"
-  else
-    commentsContent = ""
+  # if activityContent?.comments?.length? > 0
+  #   comments         = (createCommentNode(comment) for comment in activityContent.comments)
+  #   commentsContent  = "<h4>Comments:</h4>"
+  #   commentsContent += "<ol>"
+  #   commentsContent += comments.join("")
+  #   commentsContent += "</ol>"
+  # else
+  #   commentsContent = ""
+
+  commentsList = ""
+  if activityContent?.comments
+    for comment in activityContent.comments
+      avatarUrl = "https://gravatar.com/avatar/#{comment.authorHash}?size=90&amp;d=https%3A%2F%2Fapi.koding.com%2Fimages%2Fdefaultavatar%2Fdefault.avatar.40.png"
+      commentsList +=
+        """
+          <div class="kdview kdlistitemview kdlistitemview-comment">
+            <a class="avatarview online" href="/#{comment.authorNickname}" style="width: 40px; height: 40px; background-size: 40px; background-image: none;"><img class="" width="40" height="40" src="#{avatarUrl}" style="opacity: 1;"></a>
+            <div class="comment-contents clearfix">
+              <a class="profile" href="/#{comment.authorNickname}">#{comment.authorName}</a>
+              <div class="comment-body-container"><p>#{comment.body}</p></div>
+            </div>
+          </div>
+        """
+
+  commentsContent =
+    """
+      <div class="kdview comment-container commented">
+        <div class="kdview listview-wrapper">
+          <div class="kdview kdscrollview">
+            <div class="kdview kdlistview kdlistview-comments">
+              #{commentsList}
+            </div>
+          </div>
+        </div>
+      </div>
+    """
 
   tags = ""
   if activityContent?.tags?.length > 0
@@ -208,8 +236,8 @@ getSingleActivityContent = (activityContent, model)->
               </div>
               #{createdAt}
           </footer>
+          #{commentsContent}
       </div>
-      #{commentsContent}
     """
   return content
 
