@@ -56,7 +56,7 @@ module.exports = (bongo, page, contentType, callback)=>
         content = queue.pageContent
 
         pagination = getPagination page, count, contentType
-        fullPage = putContentIntoFullPage content, pagination
+        fullPage = putContentIntoFullPage content, pagination, contentType
         return callback null, fullPage
       daisy queue
 
@@ -137,17 +137,23 @@ getSchemaClosingTags = (contentType)=>
 
 createTagNode = (tag)->
   tagContent = ""
-  if tag.title
-    tagContent +=
-    """
-      <p>
-        <a href="#{uri.address}/#!/Activity?tagged=#{tag.slug}"><span itemprop="itemListElement">#{tag.title}</span></a>
-      </p>
-    """
-  if tag?.counts?.followers?
-    tagContent += createFollowersCount tag.counts.followers
-    tagContent += createUserInteractionMeta tag.counts.followers
-  return tagContent
+  return tagContent  unless tag.title
+  """
+  <div class="kdview kdlistitemview kdlistitemview-topics topic-item">
+    <header>
+      <h3 class="subview">
+        <a href="#{uri.address}/#!/Activity?tagged=#{tag.slug}">
+          <span itemprop="itemListElement">#{tag.title}</span>
+        </a>
+      </h3>
+    </header>
+    <div class="stats">
+      <a href="#"><span>#{tag.counts?.post ? 0}</span></a>Posts
+      <a href="#"><span>#{tag.counts?.followers ? 0}</span></a>Followers
+    </div>
+    <article>#{tag.body ? ''}</article>
+  </div>
+  """
 
 createFollowersCount = (numberOfFollowers)->
   return "<span>#{numberOfFollowers}</span> followers"
@@ -191,7 +197,7 @@ getDock = ->
   </header>
   """
 
-putContentIntoFullPage = (content, pagination)->
+putContentIntoFullPage = (content, pagination, contentType)->
   getGraphMeta  = require './graphmeta'
 
   """
@@ -207,7 +213,8 @@ putContentIntoFullPage = (content, pagination)->
         <section id="main-panel-wrapper" class="kdview">
           <div id="main-tab-view" class="kdview kdscrollview kdtabview">
             <div class="kdview kdtabpaneview activity clearfix content-area-pane active">
-              <div id="content-page-activity" class="kdview kdscrollview content-page activity loggedin">
+
+              <div id="content-page-#{contentType.toLowerCase()}" class="kdview kdscrollview content-page #{contentType.toLowerCase()} loggedin">
                 <main class="">
                   <div class="kdview activity-content feeder-tabs">
                     <div class="kdview listview-wrapper">
