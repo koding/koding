@@ -18,8 +18,20 @@ createStatusUpdateNode = (statusUpdate, authorFullName, authorNickname)->
   slug = statusUpdate.slug  if statusUpdate?.slug?
 
   linkToStatusUpdate = createLinkToStatusUpdate createdAt, slug
+
+  commentsContent = ""
+  if statusUpdate?.replies
+    for comment in statusUpdate.replies
+      commentsContent   += "<span>"
+      commentsContent   += comment.body
+      commenterFullName  = comment.author.firstName + " " + comment.author.lastName
+      commenter          = createLinkToUserProfile commenterFullName, comment.author.nickname
+      commentsContent   += commenter
+      commentsContent   += "</span>"
+      commentsContent   += "<br />"
+
   statusUpdateContent = ""
-  if statusUpdate?.body?
+  if statusUpdate?.body
     statusUpdateContent =
     """
     <div class="kdview activity-item status">
@@ -28,6 +40,7 @@ createStatusUpdateNode = (statusUpdate, authorFullName, authorNickname)->
         <p>#{statusUpdate.body}</p>
       </article>
       <footer>#{linkToStatusUpdate}</footer>
+      #{commentsContent}
     </div>
     """
   return statusUpdateContent
@@ -49,7 +62,7 @@ getStatusUpdates = (statusUpdates, authorFullName, authorNickname) ->
   return updatesContent
 
 
-module.exports = ({account, statusUpdates})->
+module.exports = (account, statusUpdates)->
   getStyles  = require './styleblock'
   getGraphMeta  = require './graphmeta'
   { formatDate, getFullName } = require '../helpers'
@@ -178,3 +191,4 @@ putContent = (account, sUpdates)->
       </section>
     </div>
     """
+

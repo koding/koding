@@ -144,6 +144,29 @@ module.exports =
               {JNewStatusUpdate} = bongo.models
               fetchLastStatusUpdatesOfUser account, Relationship, JNewStatusUpdate, (error, statusUpdates) =>
                 return res.send 500, error_500()  if error
-                content = profile {account, statusUpdates}
-                return res.send 200, content
+                queue = [0..statusUpdates.length].map (index)=>=>
+                  queue.decoratedStatusUpdates or= []
+                  statusUpdate = statusUpdates[index]
+                  if statusUpdate?
+                    statusUpdate.fetchTeaser (err, teaser)->
+                      return queue.next()  if err
+                      return queue.next()  unless teaser
+                      return queue.next()  unless teaser?.replies
+                      originIds = teaser.replies.map (teaser)->
+                        teaser.originId
+                      JAccount.some {_id:$in:originIds}, {}, (err, accounts)->
+                        return queue.next()  if err
+                        return queue.next()  unless accounts
+                        for account in accounts
+                          for comment in teaser.replies
+                            if comment.originId.toString() is account._id.toString()
+                              comment.author = account.data.profile
+                        queue.decoratedStatusUpdates.push teaser
+                        queue.next()
+                  else queue.next()
+                queue.push =>
+                  content = profile account, queue.decoratedStatusUpdates
+                  return res.send 200, content
+                daisy queue
+
 
