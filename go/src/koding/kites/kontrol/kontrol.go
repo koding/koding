@@ -67,10 +67,11 @@ func New() *Kontrol {
 	kontrol.kite.HandleFunc("getKites", kontrol.handleGetKites)
 	kontrol.kite.HandleFunc("getToken", kontrol.handleGetToken)
 
-	kontrol.kite.EnableTLS(
-		config.Current.NewKontrol.CertFile,
-		config.Current.NewKontrol.KeyFile,
-	)
+	// Disable until we got all things set up - arslan
+	// kontrol.kite.EnableTLS(
+	// 	config.Current.NewKontrol.CertFile,
+	// 	config.Current.NewKontrol.KeyFile,
+	// )
 
 	return kontrol
 }
