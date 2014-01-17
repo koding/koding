@@ -16,6 +16,7 @@ module.exports = [
   "views/tutorialactivityactions.coffee",
   "views/newmemberbucket.coffee",
   "views/activitytickeritem.coffee",
+  "views/referalbox.coffee",
 
   "views/embedbox.coffee",
   "views/embedboxwidget.coffee",
