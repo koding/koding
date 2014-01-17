@@ -275,15 +275,13 @@ module.exports = class JTag extends jraphical.Module
   create = (data, creator, callback) =>
     tag = new JTag data
     tag.createSlug (err, slug)->
-      if err then callback err
-      else
-        tag.slug = slug.slug
-        tag.save (err)->
-          if err then callback err
-          else
-            tag.addCreator creator, (err)->
-              if err then callback err
-              else callback null, tag
+      return callback err  if err
+      tag.slug = slug.slug
+      tag.save (err)->
+        return callback err  if err
+        tag.addCreator creator, (err)->
+          return callback err  if err
+          callback null, tag
 
   checkTagExistence = (tag, callback) =>
     {title, category} = tag
