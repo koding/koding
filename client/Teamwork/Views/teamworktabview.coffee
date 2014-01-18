@@ -72,7 +72,9 @@ class TeamworkTabView extends CollaborativePane
         paneIndexKey = pane.getOption "indexKey"
         if paneIndexKey is indexKey
           @tabView.removePane pane
-          delete @openIndexes[paneIndexKey]
+
+      for key, value of @openIndexes when value is indexKey
+        delete @openIndexes[key]
 
   bindRemoteEvents: ->
     @listenPaneDidShow()
