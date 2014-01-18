@@ -1,8 +1,9 @@
-{argv}                               = require 'optimist'
-{uri}                                = require('koding-config-manager').load("main.#{argv.c}")
-{ daisy }                            = require "bongo"
-{ Relationship }                     = require 'jraphical'
-{ createActivityContent, decorateComment } = require '../helpers'
+{argv}                  = require 'optimist'
+{uri}                   = require('koding-config-manager').load("main.#{argv.c}")
+{daisy}                 = require "bongo"
+{Relationship}          = require 'jraphical'
+{createActivityContent,
+ decorateComment}       = require '../helpers'
 
 ITEMSPERPAGE = 20
 
@@ -191,6 +192,10 @@ getDock = ->
                       <cite>Apps</cite>
                   </a>
               </div>
+          </div>
+          <div class="account-area">
+            <a class="custom-link-view header-sign-in" href="/Register">create an account</a>
+            <a class="custom-link-view header-sign-in" href="/Login">login</a>
           </div>
       </div>
   </header>

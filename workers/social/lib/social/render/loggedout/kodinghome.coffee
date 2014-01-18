@@ -25,7 +25,7 @@ module.exports = ({account, client, bongoModels}, callback)->
         <header class="kdview" id='main-header'>
           <div class="kdview">
             <a id="koding-logo" href="#" class='large'><span></span></a>
-            <a id="header-sign-in" class="custom-link-view login" href="#!/Login"><span class="title" data-paths="title">Login</span></a>
+            <a class="custom-link-view login header-sign-in" href="#!/Login"><span class="title" data-paths="title">Login</span></a>
           </div>
         </header>
       </div>
