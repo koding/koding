@@ -28,7 +28,9 @@ class ActivityAppView extends KDScrollView
     @topicsBox        = new ActiveTopics
     @usersBox         = new ActiveUsers
     @tickerBox        = new ActivityTicker
+    # TODO : if not on private group DO NOT create those ~EA
     @groupDescription = new GroupDescription
+    @groupMembers     = new GroupMembers
 
     @mainBlock        = new KDCustomHTMLView tagName : "main" #"activity-left-block"
     @sideBlock        = new KDCustomHTMLView tagName : "aside"   #"activity-right-block"
@@ -66,6 +68,7 @@ class ActivityAppView extends KDScrollView
     @sideBlock.addSubView @referalBox  if KD.isLoggedIn() and not @isPrivateGroup()
     @sideBlock.addSubView @groupDescription if @isPrivateGroup()
     @sideBlock.addSubView @topicsBox
+    @sideBlock.addSubView @groupMembers if @isPrivateGroup()
     @sideBlock.addSubView @usersBox
     @sideBlock.addSubView @tickerBox
 
