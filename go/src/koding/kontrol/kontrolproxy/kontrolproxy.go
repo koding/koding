@@ -172,7 +172,6 @@ func newKite() *kite.Kite {
 	}
 
 	options := &kite.Options{
-		PublicIP:    "localhost",
 		Kitename:    "kdproxy",
 		Environment: config.FileProfile,
 		Region:      config.Region,

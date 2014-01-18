@@ -94,7 +94,6 @@ func newKite() *newkite.Kite {
 	}
 
 	options := &newkite.Options{
-		PublicIP:    "localhost",
 		Kitename:    "oskite",
 		Environment: config.FileProfile,
 		Region:      config.Region,
