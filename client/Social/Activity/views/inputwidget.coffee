@@ -76,7 +76,7 @@ class ActivityInputWidget extends KDView
         if data instanceof JTag
           tags.push id: data.getId()
           activity?.tags.push data
-        else if data.$suggest
+        else if data.$suggest and data.$suggest not in suggestedTags
           suggestedTags.push data.$suggest
 
     queue = [
@@ -84,6 +84,7 @@ class ActivityInputWidget extends KDView
         tagCreateJobs = suggestedTags.map (title) ->
           ->
             JTag.create {title}, (err, tag) ->
+              return KD.showError err if err
               activity?.tags.push tag
               tags.push id: tag.getId()
               createdTags[title] = tag

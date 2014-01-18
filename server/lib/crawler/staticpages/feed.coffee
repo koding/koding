@@ -52,8 +52,7 @@ module.exports = (bongo, page, contentType, callback)=>
         schemaorgTagsOpening = getSchemaOpeningTags contentType
         schemaorgTagsClosing = getSchemaClosingTags contentType
 
-        # content = schemaorgTagsOpening + queue.pageContent + schemaorgTagsClosing
-        content = queue.pageContent
+        content = schemaorgTagsOpening + queue.pageContent + schemaorgTagsClosing
 
         pagination = getPagination page, count, contentType
         fullPage = putContentIntoFullPage content, pagination, contentType
@@ -98,8 +97,7 @@ getPagination = (currentPage, numberOfItems, contentType)->
 
 
 getSinglePageLink = (pageNumber, contentType, linkText=pageNumber)->
-  # link = "<a href='#{uri.address}/#!/Activity/&page=#{pageNumber}'>#{linkText}  </a>"
-  link = "<a href='#{uri.address}/#!/#{contentType}?page=#{pageNumber}'>#{linkText}  </a>"
+  link = "<a href='#{uri.address}/#{contentType}?page=#{pageNumber}'>#{linkText}  </a>"
   return link
 
 appendDecoratedTopic = (tag, queue)=>
@@ -124,6 +122,7 @@ getSchemaOpeningTags = (contentType)=>
           <meta itemprop="mainContentOfPage" content="true"/>
           <h2 itemprop="name">Latest topics</h2><br>
           <meta itemprop="itemListOrder" content="Descending" />
+          <div></div>
       """
   return openingTags
 
@@ -224,7 +223,6 @@ putContentIntoFullPage = (content, pagination, contentType)->
                     <div class="kdview listview-wrapper">
                       <div class="kdview kdscrollview">
                         <div class="kdview kdlistview kdlistview-default activity-related">
-                          <div></div>
                           #{content}
                         </div>
                       </div>
