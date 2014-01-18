@@ -28,8 +28,8 @@ createStatusUpdateNode = (statusUpdate, authorFullName, authorNickname)->
           <div class="kdview kdlistitemview kdlistitemview-comment">
             <a class="avatarview online" href="/#{comment.author.nickname}" style="width: 40px; height: 40px; background-size: 40px; background-image: none;"><img class="" width="40" height="40" src="#{avatarUrl}" style="opacity: 1;"></a>
             <div class="comment-contents clearfix">
-              <a class="profile" href="/#{comment.author.nickname}">#{comment.author.firstName} #{comment.author.lastName}</a>
-              <div class="comment-body-container"><p>#{comment.body}</p></div>
+              <a class="profile" href="/#{comment.author.nickname}" itemprop="name">#{comment.author.firstName} #{comment.author.lastName}</a>
+              <div class="comment-body-container"><p itemprop="commentText">#{comment.body}</p></div>
 
             </div>
           </div>
@@ -149,24 +149,6 @@ putContent = (account, sUpdates)->
   numberOfFollowing = if account.counts.following then account.counts.following else "0"
   imgURL = "https://gravatar.com/avatar/#{account.profile.hash}?size=90&amp;d=https%3A%2F%2Fapi.koding.com%2Fimages%2Fdefaultavatar%2Fdefault.avatar.90.png"
 
-     # <a href="#{uri.address}">Koding</a><br />
-     #  <figure itemscope itemtype="http://schema.org/Person" title="#{firstName} #{lastName}">
-     #      <h2 itemprop="name">
-     #        <a href="#{uri.address}/#!/#{nickname}">#{nickname}</a>
-     #      </h2>
-     #      <figcaption>
-     #        <img src="#{imgURL}" itemprop="image"/> <br>
-     #        <a href="#{uri.address}/#!/#{nickname}">
-     #          <span itemprop="givenName">#{firstName}</span>
-     #          <span itemprop="familyName">#{lastName}</span>
-     #        </a>
-     #        <br>
-     #        <span itemprop="interactionCount">#{numberOfLikes} likes.</span>
-     #      </figcaption>
-     #   </figure>
-     #   #{sUpdates}
-
-
   content  =
     """
     <div id="kdmaincontainer" class="kdview">
@@ -176,19 +158,28 @@ putContent = (account, sUpdates)->
           <div class="kdview kdtabpaneview content-display clearfix content-display-wrapper content-page active">
             <div class="kdview member content-display" style="min-height: 735px;">
               <div class="kdview profilearea clearfix">
-                <div class="users-profile clearfix">
+                <div class="users-profile clearfix" itemscope itemtype="http://schema.org/Person">
                   <span class="avatarview" href="/#{nickname}" style="width: 81px; height: 81px; background-size: 81px; background-image: none;">
-                    <img class="" width="81" height="81" src="#{imgURL}" style="opacity: 1;">
+                    <img class="" width="81" height="81" src="#{imgURL}" style="opacity: 1;" itemprop="image">
                   </span>
                   <h3 class="full-name">
-                    <span class="kdview kdcontenteditableview firstName">#{firstName}</span>
-                    <span class="kdview kdcontenteditableview lastName">#{lastName}</span>
+                    <span class="kdview kdcontenteditableview firstName" itemprop="givenName">#{firstName}</span>
+                    <span class="kdview kdcontenteditableview lastName" itemprop="familyName">#{lastName}</span>
                   </h3>
-                  <div class="kdview kdcontenteditableview bio">#{about}</div>
+                  <div class="kdview kdcontenteditableview bio">
+                    #{about}
+                  </div>
                   <div class="profilestats">
-                    <a class="kdview" href="/#"><span>#{numberOfFollowers}</span>Followers</a>
-                    <a class="kdview" href="/#"><span>#{numberOfFollowing}</span>Following</a>
-                    <a class="kdview" href="/#"><span>#{numberOfLikes}</span>Likes</a>
+                    <a class="kdview" href="/#">
+                      <span>#{numberOfFollowers}</span>Followers
+                    </a>
+                    <a class="kdview" href="/#">
+                      <span>#{numberOfFollowing}</span>Following
+                    </a>
+                    <a class="kdview" href="/#">
+                      <meta itemprop="interactionCount" content="UserLikes:#{numberOfLikes}"/>
+                      <span>#{numberOfLikes}</span>Likes
+                    </a>
                   </div>
                 </div>
               </div>
@@ -196,7 +187,7 @@ putContent = (account, sUpdates)->
                 <div class="kdview kdtabview feeder-tabs">
                   <div class="kdview kdtabpaneview statuses clearfix active">
                     <div class="kdview kdlistview kdlistview-statuses activity-related">
-                      <div class="kdview kdlistitemview kdlistitemview-activity">
+                      <div class="kdview kdlistitemview kdlistitemview-activity" itemscope itemtype="http://schema.org/UserComments">
                         #{sUpdates}
                       </div>
                     </div>

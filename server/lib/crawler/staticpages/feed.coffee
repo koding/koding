@@ -52,8 +52,7 @@ module.exports = (bongo, page, contentType, callback)=>
         schemaorgTagsOpening = getSchemaOpeningTags contentType
         schemaorgTagsClosing = getSchemaClosingTags contentType
 
-        # content = schemaorgTagsOpening + queue.pageContent + schemaorgTagsClosing
-        content = queue.pageContent
+        content = schemaorgTagsOpening + queue.pageContent + schemaorgTagsClosing
 
         pagination = getPagination page, count, contentType
         fullPage = putContentIntoFullPage content, pagination, contentType

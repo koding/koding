@@ -145,15 +145,6 @@ getSingleActivityContent = (activityContent, model)->
   userInteractionMeta = createUserInteractionMeta \
     activityContent.numberOfLikes, activityContent.numberOfComments
 
-  # if activityContent?.comments?.length? > 0
-  #   comments         = (createCommentNode(comment) for comment in activityContent.comments)
-  #   commentsContent  = "<h4>Comments:</h4>"
-  #   commentsContent += "<ol>"
-  #   commentsContent += comments.join("")
-  #   commentsContent += "</ol>"
-  # else
-  #   commentsContent = ""
-
   commentsList = ""
   if activityContent?.comments
     for comment in activityContent.comments
@@ -162,9 +153,9 @@ getSingleActivityContent = (activityContent, model)->
         """
           <div class="kdview kdlistitemview kdlistitemview-comment">
             <a class="avatarview online" href="/#{comment.authorNickname}" style="width: 40px; height: 40px; background-size: 40px; background-image: none;"><img class="" width="40" height="40" src="#{avatarUrl}" style="opacity: 1;"></a>
-            <div class="comment-contents clearfix">
-              <a class="profile" href="/#{comment.authorNickname}">#{comment.authorName}</a>
-              <div class="comment-body-container"><p>#{comment.body}</p></div>
+            <div class="comment-contents clearfix" itemscope itemtype="http://schema.org/UserComments">
+              <a class="profile" href="/#{comment.authorNickname}" itemprop="name">#{comment.authorName}</a>
+              <div class="comment-body-container"><p itemprop="commentText">#{comment.body}</p></div>
             </div>
           </div>
         """
