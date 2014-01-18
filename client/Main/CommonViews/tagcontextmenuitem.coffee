@@ -4,7 +4,10 @@ class TagContextMenuItem extends JContextMenuItem
     super options, data
 
   pistachio: ->
-    if @getData().$suggest
+    {$suggest, $deleted} = @getData()
+    if $suggest
       """Suggest <span class="ttag">{{#($suggest)}}</span> as a new topic?"""
+    else if $deleted
+      """You can not tag your post with <span class="ttag">{{#($deleted)}}</span>"""
     else
-     "{{#(title)}}"
+      "{{#(title)}}"

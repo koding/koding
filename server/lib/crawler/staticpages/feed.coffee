@@ -1,8 +1,9 @@
-{argv}                               = require 'optimist'
-{uri}                                = require('koding-config-manager').load("main.#{argv.c}")
-{ daisy }                            = require "bongo"
-{ Relationship }                     = require 'jraphical'
-{ createActivityContent, decorateComment } = require '../helpers'
+{argv}                  = require 'optimist'
+{uri}                   = require('koding-config-manager').load("main.#{argv.c}")
+{daisy}                 = require "bongo"
+{Relationship}          = require 'jraphical'
+{createActivityContent,
+ decorateComment}       = require '../helpers'
 
 ITEMSPERPAGE = 20
 
@@ -40,7 +41,7 @@ module.exports = (bongo, page, contentType, callback)=>
 
         if contentType is "Activity"
           createFullHTML = no
-          putBody = no
+          putBody = yes
           createActivityContent JAccount, content, {}, createFullHTML, putBody, (error, content)=>
             return queue.next()  if error or not content
             queue.pageContent = queue.pageContent + content
@@ -55,7 +56,7 @@ module.exports = (bongo, page, contentType, callback)=>
         content = schemaorgTagsOpening + queue.pageContent + schemaorgTagsClosing
 
         pagination = getPagination page, count, contentType
-        fullPage = putContentIntoFullPage content, pagination
+        fullPage = putContentIntoFullPage content, pagination, contentType
         return callback null, fullPage
       daisy queue
 
@@ -97,8 +98,7 @@ getPagination = (currentPage, numberOfItems, contentType)->
 
 
 getSinglePageLink = (pageNumber, contentType, linkText=pageNumber)->
-  # link = "<a href='#{uri.address}/#!/Activity/&page=#{pageNumber}'>#{linkText}  </a>"
-  link = "<a href='#{uri.address}/#!/#{contentType}?page=#{pageNumber}'>#{linkText}  </a>"
+  link = "<a href='#{uri.address}/#{contentType}?page=#{pageNumber}'>#{linkText}  </a>"
   return link
 
 appendDecoratedTopic = (tag, queue)=>
@@ -113,7 +113,7 @@ getSchemaOpeningTags = (contentType)=>
         <article itemscope itemtype="http://schema.org/BlogPosting">
           <div itemscope itemtype="http://schema.org/ItemList">
             <meta itemprop="mainContentOfPage" content="true"/>
-            <h2 itemprop="name">Latest activities</h2><br>
+            <h2 itemprop="name" class="invisible">Latest activities</h2><br>
             <meta itemprop="itemListOrder" content="Descending" />
       """
   else if contentType is "Topics"
@@ -121,8 +121,9 @@ getSchemaOpeningTags = (contentType)=>
       """
         <div itemscope itemtype="http://schema.org/ItemList">
           <meta itemprop="mainContentOfPage" content="true"/>
-          <h2 itemprop="name">Latest topics</h2><br>
+          <h2 itemprop="name" class='invisible'>Latest topics</h2><br>
           <meta itemprop="itemListOrder" content="Descending" />
+          <div></div>
       """
   return openingTags
 
@@ -136,17 +137,23 @@ getSchemaClosingTags = (contentType)=>
 
 createTagNode = (tag)->
   tagContent = ""
-  if tag.title
-    tagContent +=
-    """
-      <p>
-        <a href="#{uri.address}/#!/Activity?tagged=#{tag.slug}"><span itemprop="itemListElement">#{tag.title}</span></a>
-      </p>
-    """
-  if tag?.counts?.followers?
-    tagContent += createFollowersCount tag.counts.followers
-    tagContent += createUserInteractionMeta tag.counts.followers
-  return tagContent
+  return tagContent  unless tag.title
+  """
+  <div class="kdview kdlistitemview kdlistitemview-topics topic-item">
+    <header>
+      <h3 class="subview">
+        <a href="#{uri.address}/#!/Activity?tagged=#{tag.slug}">
+          <span itemprop="itemListElement">#{tag.title}</span>
+        </a>
+      </h3>
+    </header>
+    <div class="stats">
+      <a href="#"><span>#{tag.counts?.post ? 0}</span> Posts</a>
+      <a href="#"><span>#{tag.counts?.followers ? 0}</span> Followers</a>
+    </div>
+    <article>#{tag.body ? ''}</article>
+  </div>
+  """
 
 createFollowersCount = (numberOfFollowers)->
   return "<span>#{numberOfFollowers}</span> followers"
@@ -155,21 +162,82 @@ createUserInteractionMeta = (numberOfFollowers)->
   userInteractionMeta = "<meta itemprop=\"interactionCount\" content=\"UserComments:#{numberOfFollowers}\"/>"
   return userInteractionMeta
 
-putContentIntoFullPage = (content, pagination)->
+getDock = ->
+  """
+  <header id="main-header" class="kdview">
+      <div class="inner-container">
+          <a id="koding-logo" href="/">
+              <cite></cite>
+          </a>
+          <div id="dock" class="">
+              <div id="main-nav" class="kdview kdlistview kdlistview-navigation">
+                  <a class="kdview kdlistitemview kdlistitemview-main-nav activity kddraggable running" href="/Activity" style="left: 0px;">
+                      <span class="icon"></span>
+                      <cite>Activity</cite>
+                  </a>
+                  <a class="kdview kdlistitemview kdlistitemview-main-nav teamwork kddraggable" href="/Teamwork" style="left: 55px;">
+                      <span class="icon"></span>
+                      <cite>Teamwork</cite>
+                  </a>
+                  <a class="kdview kdlistitemview kdlistitemview-main-nav terminal kddraggable" href="/Terminal" style="left: 110px;">
+                      <span class="icon"></span>
+                      <cite>Terminal</cite>
+                  </a>
+                  <a class="kdview kdlistitemview kdlistitemview-main-nav editor kddraggable" href="/Ace" style="left: 165px;">
+                      <span class="icon"></span>
+                      <cite>Editor</cite>
+                  </a>
+                  <a class="kdview kdlistitemview kdlistitemview-main-nav apps kddraggable" href="/Apps" style="left: 220px;">
+                      <span class="icon"></span>
+                      <cite>Apps</cite>
+                  </a>
+              </div>
+          </div>
+          <div class="account-area">
+            <a class="custom-link-view header-sign-in" href="/Register">create an account</a>
+            <a class="custom-link-view header-sign-in" href="/Login">login</a>
+          </div>
+      </div>
+  </header>
+  """
+
+putContentIntoFullPage = (content, pagination, contentType)->
   getGraphMeta  = require './graphmeta'
-  fullPage =
-    """
-      <!DOCTYPE html>
-      <html lang="en">
-      <head>
-        <title>Koding</title>
-        #{getGraphMeta()}
-      </head>
-        <body itemscope itemtype="http://schema.org/WebPage">
-          <a href="#{uri.address}">Koding</a><br />
-          #{content}
-          #{pagination}
-        </body>
-      </html>
-    """
-  return fullPage
+
+  """
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+      <title>Koding</title>
+      #{getGraphMeta()}
+    </head>
+    <body itemscope itemtype="http://schema.org/WebPage" class="super activity">
+      <div id="kdmaincontainer" class="kdview">
+        #{getDock()}
+        <section id="main-panel-wrapper" class="kdview">
+          <div id="main-tab-view" class="kdview kdscrollview kdtabview">
+            <div class="kdview kdtabpaneview activity clearfix content-area-pane active">
+
+              <div id="content-page-#{contentType.toLowerCase()}" class="kdview kdscrollview content-page #{contentType.toLowerCase()} loggedin">
+                <main class="">
+                  <div class="kdview activity-content feeder-tabs">
+                    <div class="kdview listview-wrapper">
+                      <div class="kdview kdscrollview">
+                        <div class="kdview kdlistview kdlistview-default activity-related">
+                          #{content}
+                        </div>
+                      </div>
+                    </div>
+                    <nav class="crawler-pagination clearfix">
+                      #{pagination}
+                    </nav>
+                  </div>
+                </main>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+    </body>
+    </html>
+  """
