@@ -281,6 +281,7 @@ class KodingRouter extends KDRouter
       '/Landing/:page'         : noop
       '/R/:username'           : ({params:{username}})->
         KD.mixpanel "Visit referrer url, success", {username}
+        # give a notification to tell that this is a referral link here - SY
         handleRoot.call this
 
       '/:name?/Logout'         : ({params:{name}})-> requireLogin -> mainController.doLogout()
