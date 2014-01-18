@@ -1,9 +1,3 @@
-class TeamworkFinderItem extends NFinderItem
-
-  removeHighlight: ->
-    super
-    @exporter?.destroy()
-
 # TODO: Should implement non-collaborative finder
 # TODO: Should extend this class from NonCollab one.
 
@@ -20,8 +14,8 @@ class CollaborativeFinderPane extends CollaborativePane
       nodeParentIdPath    : "parentPath"
       contextMenu         : yes
       useStorage          : no
-      treeControllerClass : CollaborativeFinderTreeController
-      treeItemClass       : TeamworkFinderItem
+      treeControllerClass : options.treeControllerClass or CollaborativeFinderTreeController
+      treeItemClass       : options.treeItemClass       or NFinderItem
 
     @container?.destroy()
     @finder = @container = @finderController.getView()
@@ -56,11 +50,27 @@ class CollaborativeFinderPane extends CollaborativePane
 
     @finderController.reset()  unless @workspace.getOptions().playground
 
+    @finderController.on "CannotOpenImageFiles", =>
+      new KDNotificationView
+        type      : "mini"
+        title     : "You cannot open image files in #{@workspace.getOptions().name}"
+        container : @workspace
+        duration  : 4200
+
     @finderController.treeController.on "HistoryItemCreated", (historyItem) =>
       @workspace.addToHistory historyItem
 
+    # TODO: fatihacet - ExportRequested and PreivewRequested events should be
+    # listened somewhere else since they are Teamwork related events.
     @finderController.treeController.on "ExportRequested", (node) =>
       new TeamworkExportModal {}, node
+
+    @finderController.treeController.on "PreviewRequested", (node) =>
+      tabView   = @workspace.getActivePanel().getPaneByName "tabView"
+      nickname  = KD.nick()
+      [t, path] = node.getData().path.split "#{nickname}/Web/"
+      publicUrl = "https://#{nickname}.kd.io/#{path}"
+      tabView.createPreview null, null, publicUrl
 
   syncContent: (files) ->
     @workspaceRef.set { files }
@@ -111,16 +121,13 @@ class CollaborativeFinderTreeController extends NFinderTreeController
 
   openFile: (nodeView) ->
     return unless nodeView
-    file = nodeView.getData()
+
+    file      = nodeView.getData()
+    extension = FSItem.getFileExtension file.path
+    fileType  = FSItem.getFileType extension
+    delegate  = @getDelegate()
+
+    return delegate.emit "CannotOpenImageFiles"  if fileType is "image"
+
     file.fetchContents (err, contents) =>
-      @getDelegate().emit "OpenedAFile", file, contents
-
-  selectNode: (node) ->
-    super
-
-    if node.getData().type is "folder"
-      node.exporter = new KDCustomHTMLView
-        cssClass    : "tw-export"
-        click       : => @emit "ExportRequested", node
-
-      node.addSubView node.exporter
+      delegate.emit "OpenedAFile", file, contents
