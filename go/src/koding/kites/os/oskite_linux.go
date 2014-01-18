@@ -95,7 +95,8 @@ func newKite() *newkite.Kite {
 
 	options := &newkite.Options{
 		Kitename:    "oskite",
-		Port:        "5000", // needs to be fixed
+		PublicIP:    "172.16.6.15", // staging IP, needs to get from config
+		Port:        "5000",        // needs to be a fixed port
 		Environment: config.FileProfile,
 		Region:      config.Region,
 		Version:     "0.0.1",
