@@ -136,6 +136,9 @@ config =
       numberOfWorkers     : 1
       watch               : 1
       cronSchedule        : 1
+    topicModifier         :
+      logLevel            : 1
+      cronSchedule        : 1
     social        :
       login       : 1
       numberOfWorkers: 1
@@ -215,6 +218,7 @@ config =
       password    : 1
       heartbeat   : 1
       vhost       : 1
+      logLevel    : 1
     broker        :
       ip          : 1
       port        : 1
@@ -322,4 +326,7 @@ config =
       signature     : 1
     mixpanel        : 1
     rollbar         : 1
+    slack           :
+      token         : 1
+      channel       : 1
 module.exports = config

@@ -38,6 +38,19 @@ getUserHash = (account) ->
     hash = account.data.profile.hash
   return hash
 
+getPlainActivityBody = (activity) ->
+  {body} = activity
+  tagMap = {}
+  activity.tags?.forEach (tag) -> tagMap[tag.getId()] = tag
+
+  return body.replace /\|(.+?)\|/g, (match, tokenString) ->
+    [prefix, constructorName, id, title] = tokenString.split /:/
+
+    switch prefix
+      when "#" then token = tagMap?[id]
+
+    return "#{prefix}#{if token then token.title else title or ''}"
+
 createActivityContent = (JAccount, model, comments, createFullHTML=no, putBody=yes, callback) ->
   {Relationship} = require 'jraphical'
   {htmlEncode}   = require 'htmlencode'
@@ -74,7 +87,7 @@ createActivityContent = (JAccount, model, comments, createFullHTML=no, putBody=y
         hash = getUserHash acc
 
         if model?.body? and putBody
-          body = model.body
+          body = getPlainActivityBody model
         else
           body = ""
 
@@ -118,8 +131,11 @@ decorateComment = (JAccount, comment, callback) ->
       if err
         console.error err
         callback err, null
-      commentSummary.authorName = getFullName acc
+      commentSummary.authorName     = getFullName acc
       commentSummary.authorNickname = getNickname acc
+      if acc?.data?.profile?.hash
+        commentSummary.authorHash   = acc.data.profile.hash
+      commentSummary.authorHash   or= ""
       callback null, commentSummary
 
 module.exports = {

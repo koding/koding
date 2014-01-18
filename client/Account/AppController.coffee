@@ -1,6 +1,10 @@
 class AccountAppController extends AppController
 
-  handler = (callback)-> KD.singleton('appManager').open 'Account', callback
+  handler = (callback)->
+    if KD.isLoggedIn()
+      KD.singleton('appManager').open 'Account', callback
+    else
+      KD.singletons.router.handleRoute '/'
 
   KD.registerAppClass this,
     name                         : "Account"
@@ -94,20 +98,16 @@ class AccountAppController extends AppController
     name or= KD.whoami().profile.firstName
     message =
       """
-      Dear #{name},
+      You need to confirm your email address to continue using Koding and to fully activate your account.<br/><br/>
 
-      Thanks for joining Koding.<br/><br/>
+      When you registered, we sent you a link to confirm your email address. Please use that link.<br/><br/>
 
-      You need to confirm your email address to be able to  login Koding and to fully activate your account.
-
-      When you registered, we have sent you a link to confirm your email address, please use that link to be able to continue using Koding.<br/><br/>
-
-      If you didn't receive the email or the token is expired, please click to Resend email button below.<br/><br/>
+      If you had trouble with the email, please click below to resend it.<br/><br/>
       """
 
     modal = new KDModalView
-      title            : "Please confirm your email address!"
-      width            : 500
+      title            : "#{name}, please confirm your email address!"
+      width            : 600
       overlay          : yes
       cssClass         : "new-kdmodal"
       content          : "<div class='modalformline'>#{Encoder.htmlDecode message}</div>"
