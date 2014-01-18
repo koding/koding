@@ -76,6 +76,7 @@ class ActiveTopics extends ActivityRightBase
 
     KD.remote.api.ActiveItems.fetchTopics {group}, @bound 'renderItems'
 
+
 class GroupDescription extends KDView
 
   constructor:(options={}, data)->
@@ -98,3 +99,38 @@ class GroupDescription extends KDView
   viewAppended:JView::viewAppended
 
 
+class GroupMembers extends ActivityRightBase
+
+  constructor:(options={}, data)->
+    @itemClass       = GroupMembersListItemView
+    options.title    = "Group Users"
+    options.cssClass = "group-users"
+
+    super options, data
+
+    group = KD.singletons.groupsController.getCurrentGroup()
+
+    @showAllLink = new KDCustomHTMLView
+      tagName    : "a"
+      partial    : "show all"
+      cssClass   : "show-all-link"
+      click      : (event) ->
+        KD.singletons.router.handleRoute "/#{group.slug}/Members"
+        KD.mixpanel "Show all members, click"
+    , @getData()
+
+    group.fetchMembersFromGraph limit : 12, @bound 'renderItems'
+
+
+class GroupMembersListItemView extends KDListItemView
+
+  constructor: (options = {}, data) ->
+    super options, data
+    @avatar      = new AvatarView
+      size       : width : 50, height : 50
+      cssClass   : "avatarview"
+      showStatus : yes
+    , @getData()
+    @addSubView @avatar
+
+  viewAppended:JView::viewAppended
