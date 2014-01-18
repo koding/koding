@@ -372,9 +372,16 @@ func (p *Proxy) getHandler(req *http.Request) http.Handler {
 	case resolver.ModeRedirect:
 		return http.RedirectHandler(target.URL.String()+req.RequestURI, http.StatusFound)
 	case resolver.ModeVM:
-		// 1. first start vm if any open
+		fmt.Printf("target err %+v\n", target)
+
+		if target.Err == resolver.ErrVMNotFound {
+			logs.Info(fmt.Sprintf("ModeVM err: %s (%s) %s", req.Host, userIP, target.Err))
+			return templateHandler("notfound.html", req.Host, 404)
+		}
+
 		if target.Err == resolver.ErrVMOff {
 			hostnameAlias := target.HostnameAlias[0]
+			fmt.Println("vm is off, going to start", hostnameAlias)
 			err := p.startVM(hostnameAlias)
 			if err != nil {
 				log.Println("START VM ERROR", err)

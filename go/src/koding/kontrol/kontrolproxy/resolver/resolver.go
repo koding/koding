@@ -17,9 +17,10 @@ import (
 )
 
 var (
-	ErrGone   = errors.New("target is gone")
-	ErrNoHost = errors.New("no healthy hostname available")
-	ErrVMOff  = errors.New("vm is off")
+	ErrGone       = errors.New("target is gone")
+	ErrNoHost     = errors.New("no healthy hostname available")
+	ErrVMOff      = errors.New("vm is off")
+	ErrVMNotFound = errors.New("vm not found")
 
 	// cache lookup tables
 	targets   = make(map[string]*Target)
@@ -235,7 +236,7 @@ func (t *Target) vm(host, port string) (*url.URL, error) {
 	hostname := t.HostnameAlias[0]
 	vm, err := modelhelper.GetVM(hostname)
 	if err != nil {
-		return nil, err
+		return nil, ErrVMNotFound
 	}
 
 	if vm.HostKite == "" || vm.IP == nil {
