@@ -20,13 +20,18 @@ fetchLastStatusUpdatesOfUser = (account, Relationship, JNewStatusUpdate, callbac
   {daisy} = require "bongo"
   return callback null, null  unless account?._id
   originId = account._id
+
+  feedOptions =
+    sort  : 'timestamp' : -1
+    limit : 20
+
   selector =
     "targetId"   : originId
     "targetName" : "JAccount"
     "sourceName" : "JNewStatusUpdate"
     "as"         : "author"
 
-  Relationship.some selector, limit: 3, (err, relationships)->
+  Relationship.some selector, feedOptions, (err, relationships)->
     return callback err, null  if err
     return callback null, null  unless relationships?.length > 0
     queue = [0..relationships.length - 1].map (index)=>=>
@@ -134,19 +139,21 @@ module.exports =
                   queue.decoratedStatusUpdates or= []
                   statusUpdate = statusUpdates[index]
                   if statusUpdate?
-                    statusUpdate.fetchTeaser (err, teaser)->
+                    statusUpdate.fetchTeaser (err, teaser)=>
                       return queue.next()  if err
                       return queue.next()  unless teaser
-                      return queue.next()  unless teaser?.replies
+                      unless teaser?.replies
+                        queue.decoratedStatusUpdates.push teaser
+                        return queue.next()
                       originIds = teaser.replies.map (teaser)->
                         teaser.originId
-                      JAccount.some {_id:$in:originIds}, {}, (err, accounts)->
+                      JAccount.some {_id:$in:originIds}, {}, (err, accounts)=>
                         return queue.next()  if err
                         return queue.next()  unless accounts
-                        for account in accounts
+                        for acc in accounts
                           for comment in teaser.replies
-                            if comment.originId.toString() is account._id.toString()
-                              comment.author = account.data.profile
+                            if comment.originId.toString() is acc._id.toString()
+                              comment.author = acc.data.profile
                         queue.decoratedStatusUpdates.push teaser
                         queue.next()
                   else queue.next()
