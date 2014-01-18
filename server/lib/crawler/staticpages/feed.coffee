@@ -113,7 +113,7 @@ getSchemaOpeningTags = (contentType)=>
         <article itemscope itemtype="http://schema.org/BlogPosting">
           <div itemscope itemtype="http://schema.org/ItemList">
             <meta itemprop="mainContentOfPage" content="true"/>
-            <h2 itemprop="name">Latest activities</h2><br>
+            <h2 itemprop="name" class="invisible">Latest activities</h2><br>
             <meta itemprop="itemListOrder" content="Descending" />
       """
   else if contentType is "Topics"
@@ -121,7 +121,7 @@ getSchemaOpeningTags = (contentType)=>
       """
         <div itemscope itemtype="http://schema.org/ItemList">
           <meta itemprop="mainContentOfPage" content="true"/>
-          <h2 itemprop="name">Latest topics</h2><br>
+          <h2 itemprop="name" class='invisible'>Latest topics</h2><br>
           <meta itemprop="itemListOrder" content="Descending" />
           <div></div>
       """
@@ -148,8 +148,8 @@ createTagNode = (tag)->
       </h3>
     </header>
     <div class="stats">
-      <a href="#"><span>#{tag.counts?.post ? 0}</span></a>Posts
-      <a href="#"><span>#{tag.counts?.followers ? 0}</span></a>Followers
+      <a href="#"><span>#{tag.counts?.post ? 0}</span> Posts</a>
+      <a href="#"><span>#{tag.counts?.followers ? 0}</span> Followers</a>
     </div>
     <article>#{tag.body ? ''}</article>
   </div>
