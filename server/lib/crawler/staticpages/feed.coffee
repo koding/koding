@@ -193,6 +193,10 @@ getDock = ->
                   </a>
               </div>
           </div>
+          <div class="account-area">
+            <a class="custom-link-view header-sign-in" href="/Register">create an account</a>
+            <a class="custom-link-view header-sign-in" href="/Login">login</a>
+          </div>
       </div>
   </header>
   """
