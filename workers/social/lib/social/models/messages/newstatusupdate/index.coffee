@@ -230,7 +230,7 @@ module.exports = class JNewStatusUpdate extends JPost
     showExemptComments = @checkForTrollMode delegate, options
     @getCurrentGroup client, (err, group)=>
       if err then return callback err
-      {to, searchText} = options
+      {to, searchText, feedType} = options
       to = if to then new Date(to)  else new Date()
       selector =
         'meta.createdAt' :
@@ -250,7 +250,7 @@ module.exports = class JNewStatusUpdate extends JPost
 
         options.sort = 'meta.createdAt' : -1
         options.limit ?= 20
-        selector.feedType = options.feedType
+        selector.feedType = feedType if feedType
 
         @some selector, options, (err, data)=>
           return callback err if err
