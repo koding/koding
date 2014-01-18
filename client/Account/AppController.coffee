@@ -1,6 +1,10 @@
 class AccountAppController extends AppController
 
-  handler = (callback)-> KD.singleton('appManager').open 'Account', callback
+  handler = (callback)->
+    if KD.isLoggedIn()
+      KD.singleton('appManager').open 'Account', callback
+    else
+      KD.singletons.router.handleRoute '/'
 
   KD.registerAppClass this,
     name                         : "Account"
