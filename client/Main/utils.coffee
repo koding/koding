@@ -228,13 +228,15 @@ __utils.extend __utils,
 
     viewParams = []
     for tokenString in tokenMatches
-      [prefix, constructorName, id] = match[1].split /:/g  if match = tokenString.match /^\|(.+)\|$/
+      [prefix, constructorName, id, title] = match[1].split /:/  if match = tokenString.match /^\|(.+)\|$/
 
       switch prefix
         when "#" then token = tagMap?[id]
         else continue
 
-      continue  unless token
+      unless token
+        str = str.replace tokenString, "#{prefix}#{title}"
+        continue
 
       domId     = __utils.getUniqueId()
       itemClass = __utils.getTokenClass prefix
@@ -254,6 +256,19 @@ __utils.extend __utils,
   getTokenClass: (prefix) ->
     switch prefix
       when "#" then TagLinkView
+
+  getPlainActivityBody: (activity) ->
+    {body} = activity
+    tagMap = {}
+    activity.tags?.forEach (tag) -> tagMap[tag.getId()] = tag
+
+    return body.replace /\|(.+?)\|/g, (match, tokenString) ->
+      [prefix, constructorName, id, title] = tokenString.split /:/
+
+      switch prefix
+        when "#" then token = tagMap?[id]
+
+      return "#{prefix}#{if token then token.title else title or ''}"
 
   getMonthOptions : ->
     ((if i > 9 then { title : "#{i}", value : i} else { title : "0#{i}", value : i}) for i in [1..12])
