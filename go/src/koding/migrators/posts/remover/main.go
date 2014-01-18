@@ -3,7 +3,6 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	logging "github.com/op/go-logging"
 	"github.com/streadway/amqp"
 	helper "koding/db/mongodb/modelhelper"
 	"koding/messaging/rabbitmq"
@@ -13,7 +12,7 @@ import (
 
 var (
 	Consumer *rabbitmq.Consumer
-	log      *logging.Logger
+	log      = logger.New("PostMigrator")
 )
 
 type Migrator struct {
@@ -28,7 +27,6 @@ type Migrator struct {
 }
 
 func main() {
-	log = logger.New("PostMigrator")
 	log.Notice("Started Obsolete Post Remover")
 	defer shutdown()
 	initConsumer()

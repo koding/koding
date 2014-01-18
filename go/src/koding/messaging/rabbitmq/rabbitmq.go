@@ -3,7 +3,6 @@ package rabbitmq
 import (
 	"errors"
 	"fmt"
-	logging "github.com/op/go-logging"
 	"github.com/streadway/amqp"
 	"koding/tools/config"
 	"koding/tools/logger"
@@ -13,7 +12,7 @@ import (
 	"syscall"
 )
 
-var log *logging.Logger
+var log = logger.New("RabbitMQ")
 
 type Exchange struct {
 	// Exchange name
@@ -102,10 +101,6 @@ type BindingOptions struct {
 
 	// App specific data
 	Args amqp.Table
-}
-
-func init() {
-	log = logger.New("RabbitMQ")
 }
 
 // getConnectionString builds connection string
