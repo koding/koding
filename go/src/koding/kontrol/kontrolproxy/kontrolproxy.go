@@ -191,6 +191,7 @@ func (p *Proxy) findAndDialOskite() {
 		Username:    "arslan", // TODO: going to be changed with koding
 		Environment: config.FileProfile,
 		Name:        "oskite",
+		Version:     "0.0.1",
 		Region:      config.Region,
 	}
 
