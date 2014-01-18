@@ -45,7 +45,7 @@ class KodingRouter extends KDRouter
 
   handleRoute:(route, options={})->
     @breadcrumb.push route
-    
+
     entryPoint = options.entryPoint or KD.config.entryPoint
     frags      = route.split("?")[0].split "/"
     name       = if frags[1] is entryPoint?.slug then frags[2] else frags[1]
@@ -264,8 +264,7 @@ class KodingRouter extends KDRouter
 
     requireLogout =(fn)->
       mainController.ready ->
-        unless KD.isLoggedIn() then __utils.defer fn
-        else clear()
+        unless KD.isLoggedIn() then __utils.defer fn else clear()
 
     createSectionHandler = (sec)=>
       ({params:{name, slug}, query})=>
@@ -282,7 +281,7 @@ class KodingRouter extends KDRouter
       '/Landing/:page'         : noop
       '/R/:username'           : ({params:{username}})->
         KD.mixpanel "Visit referrer url, success", {username}
-        noop
+        handleRoot.call this
 
       '/:name?/Logout'         : ({params:{name}})-> requireLogin -> mainController.doLogout()
 
