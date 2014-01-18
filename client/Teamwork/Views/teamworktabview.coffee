@@ -334,11 +334,6 @@ class TeamworkTabView extends CollaborativePane
 
     KD.mixpanel "Teamwork tab browser, click"
 
-  switchToPane: (paneIndexKey) ->
-    for pane in @tabView.panes
-      if pane.getOptions().indexKey is paneIndexKey
-        debugger
-
   createChat: ->
     pane = new KDTabPaneView title: "Chat"
     chat = new ChatPane
