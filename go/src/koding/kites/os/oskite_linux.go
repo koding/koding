@@ -95,6 +95,7 @@ func newKite() *newkite.Kite {
 
 	options := &newkite.Options{
 		Kitename:    "oskite",
+		Port:        "5000", // needs to be fixed
 		Environment: config.FileProfile,
 		Region:      config.Region,
 		Version:     "0.0.1",

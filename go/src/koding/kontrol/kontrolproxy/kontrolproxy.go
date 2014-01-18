@@ -355,39 +355,16 @@ func (p *Proxy) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	return
 }
 
-// func (p *Proxy) vmTurnOnHandler(hostnameAlias string) http.Handler {
-// 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-// 		cookieName := fmt.Sprintf("kodingproxy-vm")
-
-// 		fmt.Println("sessionname", cookieName)
-// 		session, _ := store.Get(r, cookieName)
-// 		fmt.Println("testing for session.Values")
-// 		_, ok := session.Values["vmName"]
-// 		if ok {
-// 			fmt.Println("we have cookie, starting VM", err)
-// 			return
-// 		}
-
-// 		// if not available show our secure page
-// 		fmt.Println("we don't have one :(")
-// 		session.Values["vmName"] = time.Now().String()
-// 		session.Options = &sessions.Options{MaxAge: 20} //seconds
-// 		session.Save(r, w)
-// 		err := templates.ExecuteTemplate(w, "notOnVM.html", r.Host)
-// 		if err != nil {
-// 			logs.Err(fmt.Sprintf("template notOnVM could not be executed %s", err))
-// 			http.Error(w, "error code - 5", 404)
-// 			return
-// 		}
-// 	})
-// }
-
 // getHandler returns the appropriate Handler for the given Request,
 // or nil if none found.
 func (p *Proxy) getHandler(req *http.Request) http.Handler {
 	userIP := getIP(req.RemoteAddr)
 
-	target, targetErr := resolver.GetTarget(req)
+	target, err := resolver.GetTarget(req)
+	if err != nil {
+		logs.Info(fmt.Sprintf("GetTarget err: %s (%s) %s", req.Host, userIP, err))
+		return templateHandler("notfound.html", req.Host, 404)
+	}
 
 	switch target.Proxy.Mode {
 	case resolver.ModeMaintenance:
@@ -396,7 +373,7 @@ func (p *Proxy) getHandler(req *http.Request) http.Handler {
 		return http.RedirectHandler(target.URL.String()+req.RequestURI, http.StatusFound)
 	case resolver.ModeVM:
 		// 1. first start vm if any open
-		if targetErr == resolver.ErrVMOff {
+		if target.Err == resolver.ErrVMOff {
 			hostnameAlias := target.HostnameAlias[0]
 			err := p.startVM(hostnameAlias)
 			if err != nil {
@@ -441,8 +418,8 @@ func (p *Proxy) getHandler(req *http.Request) http.Handler {
 		// 4. ... run forrest run
 	case resolver.ModeInternal:
 		// roundrobin to next target
-		err := target.Resolve(req.Host)
-		if err != nil {
+		target.Resolve(req.Host)
+		if target.Err != nil {
 			logs.Info(fmt.Sprintf("internal resolver error for %s (%s) - %s", req.Host, userIP, err))
 
 			statusCode := 503
@@ -453,7 +430,7 @@ func (p *Proxy) getHandler(req *http.Request) http.Handler {
 			return templateHandler("maintenance.html", nil, statusCode)
 		}
 	default:
-		logs.Info(fmt.Sprintf("TARGET MODE not defined:  %s (%s): %s", req.Host, userIP, targetErr))
+		logs.Info(fmt.Sprintf("target not defined: %s (%s) %v", req.Host, userIP, target))
 		return templateHandler("notfound.html", req.Host, 404)
 	}
 

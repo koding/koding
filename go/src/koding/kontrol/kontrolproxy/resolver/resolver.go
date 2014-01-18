@@ -47,6 +47,10 @@ type Target struct {
 	// URL contains the final target
 	URL *url.URL
 
+	// Contains errors specific for the given mode. For example if the mode is
+	// "vm" and the vm is off, this field will be set to: "ErrVMOff"
+	Err error
+
 	// A list of hosts, mainly used for vm mode
 	HostnameAlias []string
 
@@ -72,21 +76,6 @@ type Target struct {
 // looks if a request has set cookies to change the target. If not it
 // fallbacks to request host data.
 func GetTarget(req *http.Request) (*Target, error) {
-	cookieBuild, err := req.Cookie(CookieBuildName)
-	if err == nil {
-		service := service{
-			username:    "koding",
-			servicename: "server",
-			build:       cookieBuild.Value,
-		}
-
-		t, err := service.target()
-		if err == nil {
-			log.Printf("proxy target is overridden by cookie build: '%s'\n", cookieBuild.Value)
-			return t, nil
-		}
-	}
-
 	cookieDomain, err := req.Cookie(CookieDomainName)
 	if err == nil {
 		t, err := TargetByHost(cookieDomain.Value)
@@ -136,7 +125,7 @@ func getFromCache(host string) (*Target, error) {
 		return target, nil
 	}
 
-	return nil, fmt.Errorf("target cache invalidaiton for host %s", host)
+	return nil, fmt.Errorf("target cache invalidation for host %s", host)
 }
 
 func getFromDB(host string) (*Target, error) {
@@ -211,23 +200,11 @@ func (t *Target) Resolve(host string) error {
 	case ModeMaintenance:
 		t.URL, _ = url.Parse("http://localhost/maintenance")
 	case ModeRedirect:
-		t.URL, err = url.Parse(utils.CheckScheme(t.Proxy.FullUrl))
-		if err != nil {
-			return err
-		}
+		t.URL, t.Err = url.Parse(utils.CheckScheme(t.Proxy.FullUrl))
 	case ModeVM:
-		t.URL, err = t.vm(host, port)
-		if err != nil {
-			return err
-		}
+		t.URL, t.Err = t.vm(host, port)
 	case ModeInternal:
-		s := t.getService()
-
-		t.URL, err = s.resolve()
-		if err != nil {
-			return err
-		}
-
+		t.URL, t.Err = t.getService().resolve()
 		t.CacheTimeout = time.Second * 0
 		t.HostCacheDisabled = true
 	default:
