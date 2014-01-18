@@ -30,6 +30,7 @@ module.exports = class ActiveItems extends Base
     topic   :
       klass : JTag
       as    : ["developer", "follower", "post"]
+      select: status : $nin : ["deleted", "synonym"]
 
   # Returns topics in following order:
   #   * Active topics in the last day
@@ -58,7 +59,8 @@ module.exports = class ActiveItems extends Base
 
   @fetchRandomTopics = (callback, options)->
     group = options.group or "koding"
-    JTag.some {group}, {limit:10}, callback
+    {select: selector} = nameMapping.topic
+    JTag.some {group, selector}, {limit:10}, callback
 
   @_fetchUsers = (options={}, callback)->
     {client}   = options
@@ -85,7 +87,7 @@ module.exports = class ActiveItems extends Base
     [callback, options] = [options, callback]  unless callback
     {name, nin} = options
     mapping     = nameMapping[name]
-    {klass, as} = mapping
+    {klass, as, select} = mapping
 
     greater = (new Date(Date.now() - 1000*60*60*24))
 
@@ -93,6 +95,7 @@ module.exports = class ActiveItems extends Base
       sourceName : klass.name
       as         : $in  : as
       timestamp  : $gte : greater
+      targetName : $ne : "CFolloweeBucketActivity"
     }
 
     matcher.sourceId = $nin : nin  if nin
@@ -124,7 +127,10 @@ module.exports = class ActiveItems extends Base
           existingIds = instances.map (i) -> i._id
           existingIds = nin.concat existingIds  if nin
 
-          klass.some {sourceId: $nin : existingIds}, {limit:missing}, (err, randomInstances)->
+          selector = {}
+          selector = select if select
+          selector.sourceId = {$nin : existingIds}
+          klass.some selector, {limit:missing}, (err, randomInstances)->
             if not err and randomInstances
               instances = instances.concat randomInstances
             queue.next()
