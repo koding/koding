@@ -158,7 +158,7 @@ func handleCurrentVMS(k *kite.Kite) {
 				log.Debug("oskite started, calling unprepare. VmID: '%s', vm.Hoskite: '%s', k.ServiceUniqueName: '%s', error '%s'", vmId, vm.HostKite, k.ServiceUniqueName, err)
 
 				if err := virt.UnprepareVM(vmId); err != nil {
-					log.Warning(err.Error())
+					log.Error("%v", err)
 				}
 				continue
 			}
@@ -491,7 +491,7 @@ func startVM(k *kite.Kite, vm *virt.VM, channel *kite.Channel) error {
 
 		// wait until network is up
 		if err := vm.WaitForNetwork(time.Second * 5); err != nil {
-			log.Error(err.Error())
+			log.Error("%v", err)
 		}
 
 		endTime := time.Now()
@@ -662,7 +662,7 @@ func (info *VMInfo) startTimeout() {
 		}
 		if info.vm.GetState() == "RUNNING" {
 			if err := info.vm.SendMessageToVMUsers("========================================\nThis VM will be turned off in 5 minutes.\nLog in to Koding.com to keep it running.\n========================================\n"); err != nil {
-				log.Warning(err.Error())
+				log.Warning("%v", err)
 			}
 		}
 		info.timeout = time.AfterFunc(5*time.Minute, func() {
@@ -678,7 +678,7 @@ func (info *VMInfo) startTimeout() {
 
 func (info *VMInfo) unprepareVM() {
 	if err := virt.UnprepareVM(info.vm.Id); err != nil {
-		log.Warning(err.Error())
+		log.Warning("%v", err)
 	}
 
 	if err := mongodb.Run("jVMs", func(c *mgo.Collection) error {

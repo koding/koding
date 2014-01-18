@@ -84,7 +84,7 @@ func sendRequest(requestType, url, data string, attempt int) string {
 	res, err := client.Do(req)
 	if err != nil && attempt <= MAX_RETRIES {
 		sTimer.Failed()
-		log.Error(err.Error())
+		log.Error("Request timed out: %v", err)
 		attempt++
 		sendRequest(requestType, url, data, attempt)
 	}

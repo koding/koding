@@ -269,7 +269,7 @@ func main() {
 		for {
 			err := server.Serve(listener)
 			if err != nil {
-				log.Warning("Server error: %v", err.Error())
+				log.Warning("Server error: %v", err)
 				if time.Now().Sub(lastErrorTime) < time.Second {
 					log.Fatal(nil)
 				}
