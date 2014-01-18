@@ -120,7 +120,9 @@ decorateComment = (JAccount, comment, callback) ->
         callback err, null
       commentSummary.authorName     = getFullName acc
       commentSummary.authorNickname = getNickname acc
-      commentSummary.authorHash     = acc.data.profile.hash
+      if acc?.data?.profile?.hash
+        commentSummary.authorHash   = acc.data.profile.hash
+      commentSummary.authorHash   or= ""
       callback null, commentSummary
 
 module.exports = {
