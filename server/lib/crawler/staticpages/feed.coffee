@@ -122,6 +122,7 @@ getSchemaOpeningTags = (contentType)=>
           <meta itemprop="mainContentOfPage" content="true"/>
           <h2 itemprop="name">Latest topics</h2><br>
           <meta itemprop="itemListOrder" content="Descending" />
+          <div></div>
       """
   return openingTags
 
@@ -218,7 +219,6 @@ putContentIntoFullPage = (content, pagination, contentType)->
                     <div class="kdview listview-wrapper">
                       <div class="kdview kdscrollview">
                         <div class="kdview kdlistview kdlistview-default activity-related">
-                          <div></div>
                           #{content}
                         </div>
                       </div>
