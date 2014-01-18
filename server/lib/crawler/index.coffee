@@ -128,7 +128,7 @@ module.exports =
           else
             models.last.fetchOwnAccount (err, account)->
               {JNewStatusUpdate} = bongo.models
-              fetchLastStatusUpdatesOfUser account, Relationship, JNewStatusUpdate, (error, statusUpdates) =>
+              fetchLastStatusUpdatesOfUser account, Relationship, JNewStatusUpdate, (error, statusUpdates = []) =>
                 return res.send 500, error_500()  if error
                 queue = [0..statusUpdates.length].map (index)=>=>
                   queue.decoratedStatusUpdates or= []
