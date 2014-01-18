@@ -69,12 +69,14 @@ class HomeLoginInput extends JView
 
 
   decorateValidation: (err)->
-
-    @resetDecoration()
     return  unless @input.getValue().length
+    @showError err
+
+  showError: (err) ->
     if err
     then @icon.setTooltip title : "<p>#{err}</p>"
     else @icon.unsetTooltip()
+    @resetDecoration()
     @setClass if err then "validation-error" else "validation-passed"
 
   pistachio:-> "{{> @input}}{{> @placeholder}}{{> @icon}}{{> @loader}}"
