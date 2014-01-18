@@ -25,6 +25,7 @@ import (
 	"strings"
 	"syscall"
 	"time"
+	"github.com/gorilla/context"
 
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/sessions"
@@ -353,10 +354,6 @@ func (p *Proxy) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	return
 }
 
-// vmTurnOnHandler is used to show a captcha for a VM that is turned off. If
-// the captcha is correct it drops a cookie that lasts for "FILLTIMEOUT HERE"
-// and then turns on the VM. It the user has a cookie already we don't show
-// the Captcha, instead we instantly turn on the VM.
 // func (p *Proxy) vmTurnOnHandler(hostnameAlias string) http.Handler {
 // 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 // 		cookieName := fmt.Sprintf("kodingproxy-vm")
@@ -411,11 +408,15 @@ func (p *Proxy) getHandler(req *http.Request) http.Handler {
 		fmt.Println("testing for session.Values")
 		_, ok := session.Values["vmName"]
 		if !ok {
-			// no session, therefore return a custom page for setting up page.
-			return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-				session, _ := store.Get(r, vmCookieName)
+			// this handler is used to show a captcha for a VM that is
+			// turned off. If the captcha is correct it drops a cookie that
+			// lasts for "FILLTIMEOUT HERE" and then turns on the VM. It the
+			// user has a cookie already we don't show the Captcha, instead we
+			// instantly turn on the VM.
+			return context.ClearHandler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				fmt.Println("saving the session now")
 				session.Values["vmName"] = time.Now().String()
-				session.Options = &sessions.Options{MaxAge: 20} //seconds
+				session.Options = &sessions.Options{MaxAge: 3600} //seconds -> 1h
 				session.Save(r, w)
 
 				err := templates.ExecuteTemplate(w, "notOnVM.html", r.Host)
@@ -424,13 +425,12 @@ func (p *Proxy) getHandler(req *http.Request) http.Handler {
 					http.Error(w, "error code - 5", 404)
 					return
 				}
-			})
+			}))
 		}
-
-		fmt.Println("we have cookie, continue VM")
 
 		// 3. alright, vm is up and ready, however also check if any server is
 		// running that I can reverseproxy.
+		fmt.Println("check if server is alive")
 		err := utils.CheckServer(target.URL.Host)
 		if err != nil {
 			logs.Info(fmt.Sprintf("vm host %s is down: '%s'", req.Host, err))
