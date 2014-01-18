@@ -335,6 +335,15 @@ class CollaborativeWorkspace extends Workspace
 
     if diff <= 15000
       @hideNotification()
+
+      if ["offline", "unknown"].indexOf(@hostStatus) > -1
+        new KDNotificationView
+          title     : "Host is back. You can continue your session."
+          cssClass  : "success"
+          type      : "mini"
+          duration  : 5000
+          container : this
+
       @hostStatus = "online"
     else if diff >= 30000
       @hideNotification()
