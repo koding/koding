@@ -6,14 +6,14 @@ import (
 	logging "github.com/op/go-logging"
 	"github.com/streadway/amqp"
 	"koding/tools/config"
-	stdlog "log"
+	"koding/tools/logger"
 	"os"
 	"os/signal"
 	"strings"
 	"syscall"
 )
 
-var log = logging.MustGetLogger("RabbitMQ")
+var log *logging.Logger
 
 type Exchange struct {
 	// Exchange name
@@ -104,6 +104,10 @@ type BindingOptions struct {
 	Args amqp.Table
 }
 
+func init() {
+	log = logger.CreateLogger("RabbitMQ", config.Current.Mq.LogLevel)
+}
+
 // getConnectionString builds connection string
 func getConnectionString() string {
 	return amqp.URI{
@@ -134,15 +138,6 @@ func (r *RabbitMQ) QOS(messageCount int) error {
 	return r.channel.Qos(messageCount, 0, false)
 }
 
-// configureLogger confugires logging options
-func configureLogger(tag string) {
-	log.Module = tag
-	logging.SetFormatter(logging.MustStringFormatter("%{level:-8s} ▶ %{message}"))
-	stderrBackend := logging.NewLogBackend(os.Stderr, "", stdlog.LstdFlags|stdlog.Lshortfile)
-	stderrBackend.Color = true
-	logging.SetBackend(stderrBackend)
-}
-
 // newRabbitMQConnection opens a connection and a channel to RabbitMq
 // In order to prevent developers from misconfiguration
 // and using same channel for publishing and consuming it opens a new channel for
@@ -151,9 +146,6 @@ func newRabbitMQConnection(tag string) (*RabbitMQ, error) {
 	if tag == "" {
 		return nil, errors.New("Tag is not defined in consumer options")
 	}
-
-	// set logger with our tag
-	configureLogger(tag)
 
 	rmq := &RabbitMQ{}
 	rmq.tag = tag
