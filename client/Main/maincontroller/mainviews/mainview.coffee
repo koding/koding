@@ -87,8 +87,8 @@ class MainView extends KDView
     # REFACTOR NOTE: login link
 
     # wrapper.addSubView loginLink = new CustomLinkView
-    #   domId       : 'header-sign-in'
     #   title       : 'Login'
+    #   cssClass    : 'header-sign-in'
     #   attributes  :
     #     href      : '/Login'
     #   click       : (event)->
@@ -118,7 +118,7 @@ class MainView extends KDView
 
     unless KD.isLoggedIn()
       @loginLink = new CustomLinkView
-        domId       : 'header-sign-in'
+        cssClass    : 'header-sign-in'
         title       : 'Login'
         attributes  :
           href      : '/Login'

@@ -100,17 +100,115 @@ class TopicsAppController extends AppController
 
       mainView.createCommons()
 
-    if KD.checkFlag ['super-admin', 'editor']
+    {permissions} = KD.config
+    canModerateTags = "edit tags" in permissions || "delete tags" in permissions || "create synonym tags" in permissions
+    if canModerateTags
       @listItemClass = TopicsListItemViewEditable
       if firstRun
-        KD.getSingleton('mainController').on "TopicItemEditLinkClicked", (topicItem)=>
+        KD.getSingleton('mainController').on "TopicItemEditClicked", (topicItem)=>
           @updateTopic topicItem
+        KD.getSingleton('mainController').on "TopicItemDeleteClicked", (topicItem)=>
+          @deleteTopic topicItem
+        KD.getSingleton('mainController').on "TopicItemSetParentClicked", (topicItem)=>
+          @setSynonymTopic topicItem
 
     @createFeed mainView, loadFeed
 
   openTopic:(topic)->
     {entryPoint} = KD.config
     KD.getSingleton('router').handleRoute "/Topics/#{topic.slug}", {state:topic, entryPoint}
+
+  deleteTopic:(topicItem)->
+    topic = topicItem.getData()
+    modal             = new KDModalView
+      title           : "Delete Topic"
+      content         : "<div class='modalformline'>Are you sure you want to delete this topic? (This will also delete all the child topics!)</div>"
+      overlay         : yes
+      buttons         :
+        Delete        :
+          style       : "modal-clean-red"
+          loader      :
+            color     : "#ffffff"
+            diameter  : 16
+          callback    : =>
+            topic.delete (err)=>
+              topicItem.followButton.hide()
+              # modal.buttons.Delete.hideLoader()
+              modal.destroy()
+              new KDNotificationView
+                title : if err then err.message else "Deleted!"
+        Cancel        :
+          style       : "modal-cancel"
+          title       : "cancel"
+          callback    : ->
+            modal.destroy()
+
+  setSynonymTopic:(topicItem) ->
+    topic = topicItem.getData()
+    {synonym: parent} = topic
+    modal = new KDModalViewWithForms
+      title                       : "Set Parent Topic for #{topic.title}"
+      height                      : "auto"
+      cssClass                    : "compose-message-modal"
+      width                       : 779
+      overlay                     : yes
+      tabs                        :
+        navigable                 : yes
+        goToNextFormOnSubmit      : no
+        forms                     :
+          synonym                 :
+            buttons               :
+              Confirm             :
+                style             : "modal-clean-green"
+                type              : "submit"
+                loader            :
+                  color           : "#444444"
+                  diameter        : 12
+              Cancel              :
+                style             : "modal-clean-gray"
+                title             : "Cancel"
+                callback          : ->
+                  modal.destroy()
+            fields                :
+              Synonym             :
+                label             : "Parent"
+                type              : "hidden"
+            callback              : (formData) =>
+              showStatus = (status) =>
+                modal.modalTabs.forms.synonym.buttons.Confirm.hideLoader()
+                new KDNotificationView
+                  title : status
+              unless formData.synonyms?.length
+                return showStatus "You must choose parent topic first"
+
+              [synonym] = formData.synonyms
+              options = if synonym.$suggest then {title: synonym.$suggest.trim()}
+              else {id: synonym.id}
+
+              topic.createSynonym options, (err) ->
+                status = if err then err.message else "Parent Topic is set successfully"
+                showStatus status
+                topicItem.followButton.hide()
+                modal.destroy()
+
+    {fields, inputs} = modal.modalTabs.forms["synonym"]
+    @synonymController = new TagAutoCompleteController
+      form              : modal.modalTabs.forms["synonym"]
+      width             : 300
+      name              : "synonym"
+      itemClass         : TagAutoCompleteItemView
+      itemDataPath      : "title"
+      selectedItemClass : TagAutoCompletedItemView
+      submitValueAsText : yes
+      selectedItemsLimit: 1
+      dataSource : (args, callback) =>
+        {inputValue} = args
+        KD.singleton("appManager").tell "Topics", "fetchTopics", {inputValue}, (tags = [], deletedTags = []) =>
+          if not tags then @synonymController.showNoDataFound()
+          else callback tags
+
+    fields.Synonym.addSubView userRequestLineEdit = @synonymController.getView()
+    @synonymController.addItemToSubmitQueue new TagAutoCompleteItemView({}, parent), parent if parent
 
   updateTopic:(topicItem)->
     topic = topicItem.data
@@ -137,23 +235,16 @@ class TopicsAppController extends AppController
                 modal.destroy()
             buttons               :
               Update              :
-                style             : "modal-clean-gray"
+                style             : "modal-clean-green"
                 type              : "submit"
                 loader            :
                   color           : "#444444"
                   diameter        : 12
-              Delete              :
-                style             : "modal-clean-red"
-                loader            :
-                  color           : "#ffffff"
-                  diameter        : 16
-                callback          : =>
-                  topic.delete (err)=>
-                    # modal.modalTabs.forms.update.buttons.Delete.hideLoader()
-                    modal.destroy()
-                    new KDNotificationView
-                      title : if err then err.message else "Deleted!"
-                    topicItem.hide() unless err
+              Cancel              :
+                style             : "modal-clean-gray"
+                title             : "Cancel"
+                callback          : ->
+                  modal.destroy()
             fields                :
               Title               :
                 label             : "Title"
@@ -219,9 +310,9 @@ class TopicsAppController extends AppController
 
   fetchTopics:({inputValue, blacklist}, callback)->
 
-    KD.remote.api.JTag.byRelevance inputValue, {blacklist}, (err, tags)->
+    KD.remote.api.JTag.byRelevance inputValue, {blacklist}, (err, tags, deletedTags)->
       unless err
-        callback? tags
+        callback? tags, deletedTags
       else
         warn "there was an error fetching topics #{err.message}"
 

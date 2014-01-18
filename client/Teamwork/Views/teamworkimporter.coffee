@@ -193,7 +193,11 @@ class TeamworkImporter extends KDObject
 
   resolveUrl: (callback = noop) ->
     @vmController.run "curl -sIL #{@url} | grep ^Location", (err, longUrl) =>
-      @handleError err  if err
+      return @handleError err  if err
+
+      message = "Url must be a GitHub repository link or a zip file."
+      return @handleError { message }, message  unless longUrl
+
       @url = longUrl.replace("Location: ", "").replace(/\n/g, "").trim()
       @attemptedUrlResolve = yes
       callback()
@@ -203,6 +207,6 @@ class TeamworkImporter extends KDObject
     @notification?.destroy()
     @notification = new KDNotificationView { title, cssClass, duration, type }
 
-  handleError: (err) ->
-    @notify "Something went wrong.", "error"
+  handleError: (err, message = "Something went wrong.") ->
+    @notify message, "error"
     return warn err

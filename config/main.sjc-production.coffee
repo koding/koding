@@ -122,6 +122,9 @@ module.exports =
     numberOfWorkers      : 2
     watch                : yes
     cronSchedule         : '00 00 00 * * *'
+  topicModifier          :
+    logLevel             : "info"
+    cronSchedule         : '0 */5 * * * *'
   graphFeederWorker:
     numberOfWorkers: 4
   social        :
@@ -200,6 +203,7 @@ module.exports =
     password    : 'Xah8ibeekelah'
     heartbeat   : 20
     vhost       : 'new'
+    logLevel    : "info"
   broker        :
     ip          : ""
     port        : 443
