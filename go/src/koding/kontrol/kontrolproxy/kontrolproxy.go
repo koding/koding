@@ -188,9 +188,10 @@ func (p *Proxy) findAndDialOskite() {
 	k.Start()
 
 	query := protocol.KontrolQuery{
-		Username:    "devrim",
-		Environment: "vagrant",
+		Username:    "arslan", // TODO: going to be changed with koding
+		Environment: config.FileProfile,
 		Name:        "oskite",
+		Region:      config.Region,
 	}
 
 	kites, err := k.Kontrol.GetKites(query)
