@@ -54,6 +54,7 @@ getPlainActivityBody = (activity) ->
 createActivityContent = (JAccount, model, comments, createFullHTML=no, putBody=yes, callback) ->
   {Relationship} = require 'jraphical'
   {htmlEncode}   = require 'htmlencode'
+  marked         = require 'marked'
   {getSingleActivityPage, getSingleActivityContent} = require './staticpages/activity'
 
   statusUpdateId = model.getId()
@@ -88,6 +89,10 @@ createActivityContent = (JAccount, model, comments, createFullHTML=no, putBody=y
 
         if model?.body? and putBody
           body = getPlainActivityBody model
+          body = marked body,
+            gfm       : true
+            pedantic  : false
+            sanitize  : true
         else
           body = ""
 
@@ -97,7 +102,7 @@ createActivityContent = (JAccount, model, comments, createFullHTML=no, putBody=y
           nickname         : nickname
           hash             : hash
           title            :  if model?.title? then model.title else model.body or ""
-          body             : htmlEncode body
+          body             : body
           createdAt        : if model?.meta?.createdAt? then formatDate model.meta.createdAt else ""
           numberOfComments : teaser.repliesCount or 0
           numberOfLikes    : model?.meta?.likes or 0

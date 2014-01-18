@@ -48,6 +48,13 @@ createStatusUpdateNode = (statusUpdate, authorFullName, authorNickname)->
       </div>
     """
 
+  marked = require 'marked'
+
+  body = marked statusUpdate.body,
+    gfm       : true
+    pedantic  : false
+    sanitize  : true
+
   statusUpdateContent = ""
   if statusUpdate?.body
     statusUpdateContent =
@@ -55,7 +62,7 @@ createStatusUpdateNode = (statusUpdate, authorFullName, authorNickname)->
     <div class="kdview activity-item status">
       <a class="profile" href="/#{authorNickname}">#{authorFullName}</a>
       <article data-paths="body" id="el-1223">
-        <p>#{statusUpdate.body}</p>
+        <p>#{body}</p>
       </article>
       <footer>#{linkToStatusUpdate}</footer>
       #{commentsContent}
