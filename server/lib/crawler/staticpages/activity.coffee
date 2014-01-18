@@ -112,13 +112,13 @@ createCreationDate = (createdAt, url="")->
 createCommentsCount = (numberOfComments)->
   content = ""
   if numberOfComments > 0
-    content =  "<span>#{numberOfComments}</span> comments"
+    content =  "<span>#{numberOfComments}</span>"
   return content
 
 createLikesCount = (numberOfLikes)->
   content = ""
   if numberOfLikes > 0
-    content = "<span>#{numberOfLikes}</span> likes."
+    content = "<span>#{numberOfLikes}</span>"
   return content
 
 createAuthor = (accountName, nickname)->
