@@ -36,6 +36,8 @@ class HomePage extends JView
 
   show:->
 
+    @appendToDomBody()  unless document.getElementById 'home-page'
+
     @unsetClass 'out'
     document.body.classList.add 'intro'
     KD.utils.defer => @markers.reset()
@@ -208,4 +210,6 @@ class HomePage extends JView
     """
 
 KD.introView = new HomePage
-KD.introView.appendToDomBody()
+
+if location.hash in ['#!/Home', '/', '']
+  KD.introView.show()

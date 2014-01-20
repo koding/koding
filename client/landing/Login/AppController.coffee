@@ -19,16 +19,17 @@ class LoginAppsController extends AppController
         app.getView().animateToForm('reset')
 
   handleVerifyRoute = ({params:{token}})->
+    router = KD.getSingleton 'router'
+    return router.handleRoute "/Login"  unless token
     KD.singleton('appManager').open 'Login', (app) ->
-      return  unless token
       KD.remote.api.JPasswordRecovery.validate token, (err, isValid)=>
         return KD.notify_ err.message  if err
         if isValid
           KD.notify_ "Thanks for confirming your email address"
-          KD.getSingleton('router').handleRoute "/Login"
+          router.handleRoute "/Login"
         else
           KD.notify_ "Token is not valid"
-          KD.getSingleton('router').handleRoute "/Login"
+          router.handleRoute "/Login"
 
   handleRedeemRoute = ({params:{name, token}})->
     token = decodeURIComponent token
@@ -90,7 +91,7 @@ class LoginAppsController extends AppController
       '/:name?/Reset'            : handler (app)-> app.getView().animateToForm 'reset'
       '/:name?/Reset/:token'     : handleResetRoute
       '/:name?/Confirm/:token'   : handleResetRoute
-      '/:name?/Verify/:token'    : handleVerifyRoute
+      '/:name?/Verify/:token?'   : handleVerifyRoute
       '/:name?/Redeem/:token'    : handleRedeemRoute
       '/:name?/ResendToken'      : handler (app)-> app.getView().animateToForm 'resendEmail'
     hiddenHandle                 : yes

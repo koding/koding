@@ -5,6 +5,7 @@ class CollaborativeWorkspace extends Workspace
     @nickname    = KD.nick()
     @sessionData = []
     @users       = {}
+    @activeUsers = {}
     @createRemoteInstance()
     @createLoader()
     @fetchUsers()
@@ -35,42 +36,41 @@ class CollaborativeWorkspace extends Workspace
     @watchRef       = @workspaceRef.child "watch"
     @usersRef       = @workspaceRef.child "users"
     @userRef        = @usersRef.child KD.nick()
+    @requestPingRef = @workspaceRef.child "requestPing"
     @sessionKeysRef = @firebaseRef.child  "session_keys"
 
-  bindRemoteEvents: ->
+  syncWorkspace: ->
     @workspaceRef.once "value", (snapshot) =>
       if @getOptions().sessionKey
         unless snapshot.val()?.keys
           @showNotActiveView()
           return false
 
-      cb = =>
-        isOldSession = keys = snapshot.val()?.keys
-        if isOldSession
-          @isOldSession = yes
-          @sessionData  = keys
-          @createPanel()
-        else
-          @createPanel()
-          @workspaceRef.set "keys": @sessionData
-
-        if not isOldSession
-          @addToHistory { message: "$0 started the session", by: KD.nick() }
-
-        @setPresenceHandlers()
-        @watchRef.child(@nickname).set "everybody"
-        @sessionKeysRef.child(@nickname).set @sessionKey
-        @userRef.child("status").set "online"
-
-        @loader.destroy()
-        @chatView?.show()
-
-        @emit "WorkspaceSyncedWithRemote"
-
-      if @amIHost() then cb()
+      isOldSession = keys = snapshot.val()?.keys
+      if isOldSession
+        @isOldSession = yes
+        @sessionData  = keys
+        @createPanel()
       else
-        @pingHost (status) =>
-          cb()  if status is "online"
+        @createPanel()
+        @workspaceRef.set "keys": @sessionData
+
+      if not isOldSession
+        @addToHistory { message: "$0 started the session", by: KD.nick() }
+
+      @watchRef.child(@nickname).set "everybody"
+      @sessionKeysRef.child(@nickname).set @sessionKey
+      @userRef.child("status").set "online"
+
+      @loader.destroy()
+      if @chatView
+        @chatView.show()
+        @utils.defer => @chatView.scrollToBottom()
+
+      @emit "WorkspaceSyncedWithRemote"
+
+  bindRemoteEvents: ->
+    if @amIHost() then @syncWorkspace() else @requestPingFromHost()
 
     @usersRef.on "child_added", (snapshot) =>
       @fetchUsers()
@@ -81,11 +81,18 @@ class CollaborativeWorkspace extends Workspace
       @usersRef.child(username).child("status").on "value", (snapshot) =>
         status = snapshot.val()
         if status is "online"
+          @once "WorkspaceUsersFetched", =>
+            @activeUsers[username] = @users[username]
+
           @emit "SomeoneJoinedToTheSession", username
+          @setPresenceHandler()  unless @presenceInterval
           if @amIHost()
             message = "#{username} joined the session"
             @addToHistory { message, by: KD.nick() }
         else if status is "offline"
+          delete @activeUsers[username]
+          if Object.keys(@activeUsers).length is 0 and @amIHost()
+            @killPresenceTimer()
           @emit "SomeoneHasLeftTheSession", username
           if @amIHost()
             message = "#{username} has left the session"
@@ -111,6 +118,24 @@ class CollaborativeWorkspace extends Workspace
 
     @userRef.child("status").onDisconnect().set "offline"
 
+    @requestPingRef.on "value", (snapshot) =>
+      return unless @amIHost()
+      @userRef.child("timestamp").set Date.now()
+
+    @usersRef.child(@getHost()).child("timestamp").on "value", (snapshot) =>
+      return if @amIHost() or @connected or snapshot.val() is null
+
+      if Date.now() - snapshot.val() > 20000
+        return @pingHostTimer = KD.utils.wait 10000, =>
+          @showNotActiveView()
+
+      @syncWorkspace()
+      @connected = yes
+      KD.utils.killWait @pingHostTimer
+
+  requestPingFromHost: ->
+    @requestPingRef.set Date.now()
+
   fetchUsers: ->
     @workspaceRef.once "value", (snapshot) =>
       val = snapshot.val()
@@ -121,7 +146,9 @@ class CollaborativeWorkspace extends Workspace
 
       # TODO: Each time we are fetching user data that we already have. Needs to be fixed.
       KD.remote.api.JAccount.some { "profile.nickname": { "$in": usernames } }, {}, (err, jAccounts) =>
-        @users[user.profile.nickname] = user for user in jAccounts
+        for user in jAccounts
+          {nickname} = user.profile
+          @users[nickname] = user
         @emit "WorkspaceUsersFetched"
 
   createPanel: (callback = noop) ->
@@ -290,35 +317,41 @@ class CollaborativeWorkspace extends Workspace
 
     new KDNotificationView options
 
-  setPresenceHandlers: ->
-    @userRef = @usersRef.child @nickname
-
-    @timestampInterval = @utils.repeat 1000, =>
-      @userRef.child("timestamp").set new Date().getTime(), (err) =>
-        return  unless err
-        @utils.killRepeat interval
-
-    @pingHostInterval = @utils.repeat 2000, @bound "pingHost"  unless @amIHost()
+  setPresenceHandler: ->
+    if @amIHost()
+      @presenceInterval = @utils.repeat 10000, =>
+        @userRef.child("timestamp").set Date.now(), (err) =>
+          return  unless err
+          @utils.killRepeat @presenceInterval
+    else
+      @presenceInterval = @utils.repeat 10000, @bound "pingHost"
 
     @once "KDObjectWillBeDestroyed", =>
-      @killConnectionTimers()
+      @killPresenceTimer()
 
   checkHost: (snapshot, callback) ->
-    unless host = snapshot.val()
-      @showNotActiveView()
-      @killConnectionTimers()
-      return
+    host = snapshot.val()
+    return @showNotActiveView()  unless host
 
-    diff = new Date().getTime() - host.timestamp
+    diff = Date.now() - host.timestamp
 
-    if diff <= 5000
+    if diff <= 15000
       @hideNotification()
+
+      if ["offline", "unknown"].indexOf(@hostStatus) > -1
+        new KDNotificationView
+          title     : "Host is back. You can continue your session."
+          cssClass  : "success"
+          type      : "mini"
+          duration  : 5000
+          container : this
+
       @hostStatus = "online"
-    else if diff >= 20000
+    else if diff >= 30000
       @hideNotification()
       @showNotActiveView()
       @hostStatus = "offline"
-    else if diff >= 5000
+    else if diff >= 15000
       @showNotification "Host is experiencing connectivity issues"
       @hostStatus = "unknown"
 
@@ -328,11 +361,13 @@ class CollaborativeWorkspace extends Workspace
     @usersRef.child(@getHost()).once "value", (snapshot) =>
       @checkHost snapshot, callback
 
-  killConnectionTimers: ->
-    @utils.killRepeat @timestampInterval
-    @utils.killRepeat @pingHostInterval
+  killPresenceTimer: ->
+    @utils.killRepeat @presenceInterval
+    @presenceInterval = null
 
   showNotification: (message) ->
+    return if @notification
+
     @hideNotification()
     @notification = new KDNotificationView
       title       : message
