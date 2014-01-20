@@ -12,6 +12,7 @@ class DashboardAppController extends AppController
       "/:name?/Dashboard/:section" : ({params : {section,name}})->
         handler name, (app)-> app.loadSection title : decodeURIComponent section
     hiddenHandle : yes
+    searchRoute : "/Dashboard?q=:text:"
 
   constructor: (options = {}, data) ->
 
@@ -129,3 +130,21 @@ class DashboardAppController extends AppController
 
   productViewAdded: (pane, view) ->
     new GroupProductsController { view }
+
+  loadView: (mainView, firstRun = yes, loadFeed = no)->
+    if firstRun
+      @on "searchFilterChanged", (value) =>
+        return if value is @_searchValue
+        @_searchValue = Encoder.XSSEncode value
+        @getOptions().view.search @_searchValue
+        @loadView mainView, no, yes
+
+  handleQuery:(query)->
+    @getOptions().view.ready =>
+      {q} = query
+      if q
+        @emit "searchFilterChanged", q
+      else
+        @emit "searchFilterChanged", ""
+        super query
+
