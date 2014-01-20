@@ -1,4 +1,4 @@
-forceTwoDigits = (val) ->
+ forceTwoDigits = (val) ->
   if val < 10
     return "0#{val}"
   return val
@@ -69,9 +69,12 @@ createActivityContent = (JAccount, model, comments, createFullHTML=no, putBody=y
     tags = teaser.tags  if teaser?.tags?
 
     Relationship.one selector, (err, rel) =>
-      if err or not rel
-          console.error err
-          return callback err, null
+      if err
+        console.error err
+        return callback err, null
+      unless rel
+        console.error "Rel not found"
+        return callback new Error "Rel not found", null
       sel =
         "_id" : rel.targetId
 
