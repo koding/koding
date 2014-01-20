@@ -222,24 +222,32 @@ button
       shadow        inset 0 2px 0 #1aaf5d
       borderBox()
 
-      .quit-icon
-        rounded                50%
-        top                    5px
-        right                  5px
-        r-sprite               app, "quit-icon"
-        bg                     color, rgba(255, 255, 255, .4) !important
-        vendor                transform, scale(.4)
-        opacity               0
-        -webkit-transition    -webkit-transform .3s .6s ease \,\
-                              opacity .2s .6s ease
-        -moz-transition       -moz-transform .3s .6s ease \,\
-                              opacity .2s .6s ease
-        abs()
+      .quit-app-link
+        size        100%, 2px
+        line-height 16px
+        font-size   12px
+        bg          color, #1aaf5d
+        color       transparent
+        abs         0px 0 0 0px
+        overflow    hidden
+        text-align  center
+        z-index     40
+        vendor      transition, height .3s 0 ease \,
+                                background-color .5s 0 ease
+
+      &.running-initial
+        .quit-app-link
+          display   none !important
 
       &:hover
-        .quit-icon
-          vendor              transform, scale(1)
-          opacity             1
+        .quit-app-link
+          height        16px
+          bg            color, #e94b35
+          color         rgba(255, 255, 255, .8)
+          vendor        transition, height .3s .3s cubic-bezier(0.68, -0.55, 0.265, 1.55) \,
+                                    background-color .5s .3s ease \,
+                                    color .3s .3s ease
+
 
     &.no-anim
       .quit-icon

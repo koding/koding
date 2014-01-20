@@ -35,20 +35,18 @@ class NavigationLink extends KDListItemView
 
     @icon.hide()  if @name in appsHasIcon
 
-    # needs better styling and ux - SY
+    @quitAppLink = new KDCustomHTMLView
+      tagName  : "span"
+      cssClass : "quit-app-link"
+      partial  : "close"
+      click    : =>
+        appManager = KD.singleton('appManager')
+        router     = KD.singleton('router')
 
-    # @quitIcon = new KDCustomHTMLView
-    #   tagName  : "span"
-    #   cssClass : "quit-icon"
-    #   click    : =>
-    #     appManager = KD.singleton('appManager')
-    #     router     = KD.singleton('router')
+        appManager.quitByName @name
 
-    #     appManager.quitByName @name
-
-    #     if appManager.getFrontApp().getOptions().name is @name
-    #       lastOpened = router.visitedRoutes[0]
-    #       router.back()
+        if appManager.getFrontApp().getOptions().name is @name
+          router.back()
 
     @on "DragStarted", @bound 'dragStarted'
 
@@ -57,6 +55,10 @@ class NavigationLink extends KDListItemView
     states = 'running failed loading'
     @unsetClass states
     if state in states.split ' ' then @setClass state
+    if state is 'running'
+      @setClass 'running-initial'
+      @once 'mouseleave', => @unsetClass 'running-initial'
+
 
   click:(event)->
     KD.utils.stopDOMEvent event
@@ -64,7 +66,7 @@ class NavigationLink extends KDListItemView
 
     # This check is for custom items which isn't connected to an app
     # or if the item is a separator
-    return false  if not path or @positionChanged() # or (event.target is @quitIcon.getElement())
+    return false  if not path or @positionChanged() or (event.target is @quitAppLink.getElement())
 
     mc = KD.getSingleton 'mainController'
     mc.emit "NavigationLinkTitleClick",
@@ -83,8 +85,8 @@ class NavigationLink extends KDListItemView
       {{> @icon}}
       <span class='icon'></span>
       <cite>#{@name}</cite>
+      {{> @quitAppLink}}
     """
-      # {{> @quitIcon}}
 
   dragStarted: (event, dragState)->
 
