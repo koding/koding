@@ -198,6 +198,12 @@ func (p *Proxy) findAndDialOskite() {
 		switch e.Action {
 		case protocol.Register:
 			k.Log.Info("Oskite registered.")
+
+			if p.oskite != nil {
+				k.Log.Info("Another oskite registered, discarding ...")
+				return
+			}
+
 			auth := kite.Authentication{
 				Type: "token",
 				Key:  e.Token,

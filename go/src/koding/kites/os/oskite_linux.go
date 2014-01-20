@@ -114,15 +114,38 @@ func runNewKite() {
 		// just print hostnameAlias for now
 		fmt.Println("got request from", r.RemoteKite.Name, "starting:", hostnameAlias)
 
-		vm, err := modelhelper.GetVM(hostnameAlias)
+		v, err := modelhelper.GetVM(hostnameAlias)
 		if err != nil {
 			return nil, err
 		}
 
-		v := virt.VM(*vm)
-		err = v.Start()
+		vm := virt.VM(*v)
+		vm.ApplyDefaults()
+
+		err = validateVM(&vm)
 		if err != nil {
 			return nil, err
+		}
+
+		isPrepared := true
+		if _, err := os.Stat(vm.File("rootfs/dev")); err != nil {
+			if !os.IsNotExist(err) {
+				panic(err)
+			}
+			isPrepared = false
+		}
+
+		if !isPrepared {
+			fmt.Println("starting ", hostnameAlias)
+			vm.Prepare(false, log.Warn)
+			if err := vm.Start(); err != nil {
+				log.LogError(err, 0)
+			}
+
+			// wait until network is up
+			if err := vm.WaitForNetwork(time.Second * 5); err != nil {
+				log.LogError(err, 0)
+			}
 		}
 
 		return true, nil
@@ -428,7 +451,7 @@ func getVM(channel *kite.Channel) (*virt.VM, error) {
 	return vm, nil
 }
 
-func startVM(k *kite.Kite, vm *virt.VM, channel *kite.Channel) error {
+func validateVM(vm *virt.VM) error {
 	if vm.Region != config.Region {
 		time.Sleep(time.Second) // to avoid rapid cycle channel loop
 		return &kite.WrongChannelError{}
@@ -441,6 +464,54 @@ func startVM(k *kite.Kite, vm *virt.VM, channel *kite.Channel) error {
 	if vm.HostKite == "(banned)" {
 		log.Warn("vm '%s' is banned", vm.HostnameAlias)
 		return &AccessDeniedError{}
+	}
+
+	if vm.IP == nil {
+		ipInt := NextCounterValue("vm_ip", int(binary.BigEndian.Uint32(firstContainerIP.To4())))
+		ip := net.IPv4(byte(ipInt>>24), byte(ipInt>>16), byte(ipInt>>8), byte(ipInt))
+
+		updateErr := mongodb.Run("jVMs", func(c *mgo.Collection) error {
+			return c.Update(bson.M{"_id": vm.Id, "ip": nil}, bson.M{"$set": bson.M{"ip": ip}})
+		})
+
+		if updateErr != nil {
+			var logVM *virt.VM
+			err := mongodb.One("jVMs", vm.Id.Hex(), &logVM)
+			if err != nil {
+				errLog := fmt.Sprintf("Vm %s does not exist for updating IP. This is a race condition", vm.Id.Hex())
+				log.LogError(errLog, 0)
+			} else {
+				errLog := fmt.Sprintf("Vm %s does exist for updating IP but it tries to replace it. This is a race condition", vm.Id.Hex())
+				log.LogError(errLog, 0, logVM)
+			}
+
+			panic(updateErr)
+		}
+
+		vm.IP = ip
+	}
+
+	if !containerSubnet.Contains(vm.IP) {
+		panic("VM with IP that is not in the container subnet: " + vm.IP.String())
+	}
+
+	if vm.LdapPassword == "" {
+		ldapPassword := utils.RandomString()
+		if err := mongodb.Run("jVMs", func(c *mgo.Collection) error {
+			return c.Update(bson.M{"_id": vm.Id}, bson.M{"$set": bson.M{"ldapPassword": ldapPassword}})
+		}); err != nil {
+			panic(err)
+		}
+		vm.LdapPassword = ldapPassword
+	}
+
+	return nil
+}
+
+func startVM(k *kite.Kite, vm *virt.VM, channel *kite.Channel) error {
+	err := validateVM(vm)
+	if err != nil {
+		return err
 	}
 
 	if vm.HostKite != k.ServiceUniqueName {
@@ -487,45 +558,6 @@ func startVM(k *kite.Kite, vm *virt.VM, channel *kite.Channel) error {
 	info.vm = vm
 	info.mutex.Lock()
 	defer info.mutex.Unlock()
-
-	if vm.IP == nil {
-		ipInt := NextCounterValue("vm_ip", int(binary.BigEndian.Uint32(firstContainerIP.To4())))
-		ip := net.IPv4(byte(ipInt>>24), byte(ipInt>>16), byte(ipInt>>8), byte(ipInt))
-
-		updateErr := mongodb.Run("jVMs", func(c *mgo.Collection) error {
-			return c.Update(bson.M{"_id": vm.Id, "ip": nil}, bson.M{"$set": bson.M{"ip": ip}})
-		})
-
-		if updateErr != nil {
-			var logVM *virt.VM
-			err := mongodb.One("jVMs", vm.Id.Hex(), &logVM)
-			if err != nil {
-				errLog := fmt.Sprintf("Vm %s does not exist for updating IP. This is a race condition", vm.Id.Hex())
-				log.LogError(errLog, 0)
-			} else {
-				errLog := fmt.Sprintf("Vm %s does exist for updating IP but it tries to replace it. This is a race condition", vm.Id.Hex())
-				log.LogError(errLog, 0, logVM)
-			}
-
-			panic(updateErr)
-		}
-
-		vm.IP = ip
-	}
-
-	if !containerSubnet.Contains(vm.IP) {
-		panic("VM with IP that is not in the container subnet: " + vm.IP.String())
-	}
-
-	if vm.LdapPassword == "" {
-		ldapPassword := utils.RandomString()
-		if err := mongodb.Run("jVMs", func(c *mgo.Collection) error {
-			return c.Update(bson.M{"_id": vm.Id}, bson.M{"$set": bson.M{"ldapPassword": ldapPassword}})
-		}); err != nil {
-			panic(err)
-		}
-		vm.LdapPassword = ldapPassword
-	}
 
 	isPrepared := true
 	if _, err := os.Stat(vm.File("rootfs/dev")); err != nil {
