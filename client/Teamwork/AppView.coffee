@@ -58,3 +58,10 @@ class TeamworkAppView extends KDView
     return new TeamworkApp
       delegate : this
       query    : query
+
+  parentPaneShown: ->
+    return  unless @teamworkApp
+    element = @teamworkApp.teamwork.chatView.scrollToBottom()
+
+  viewAppended: ->
+    @parent.on "PaneDidShow", @bound "parentPaneShown"

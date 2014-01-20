@@ -117,11 +117,14 @@ module.exports =
     numberOfWorkers      : 2
     watch                : yes
     cronSchedule         : '00 00 00 * * *'
+  topicModifier          :
+    logLevel             : "info"
+    cronSchedule         : '0 */5 * * * *'
   graphFeederWorker:
     numberOfWorkers: 2
   social        :
     login       : 'prod-social'
-    numberOfWorkers: 4
+    numberOfWorkers: 7
     watch       : yes
     queueName   : socialQueueName
     verbose     : no
@@ -197,13 +200,14 @@ module.exports =
     password    : 'djfjfhgh4455__5'
     heartbeat   : 20
     vhost       : 'new'
+    logLevel    : "info"
   broker        :
     ip          : ""
-    port        : 80
-    certFile    : ""
-    keyFile     : ""
-    webProtocol : 'http:'
-    webHostname : "stage-broker-#{version}.sj.koding.com"
+    port        : 443
+    certFile    : "/opt/ssl_certs/wildcard.koding.com.cert"
+    keyFile     : "/opt/ssl_certs/wildcard.koding.com.key"
+    webProtocol : 'https:'
+    webHostname : "broker-#{version}.sj.koding.com"
     webPort     : null
     authExchange: authExchange
     authAllExchange: authAllExchange
@@ -308,3 +312,6 @@ module.exports =
     signature    : "HMAC-SHA1"
   mixpanel       : "113c2731b47a5151f4be44ddd5af0e7a"
   rollbar        : "8108a4c027604f59bac7a8315c205afe"
+  slack          :
+	  token        : "xoxp-2155583316-2155760004-2158149487-a72cf4"
+	  channel      : "C024LG80K"

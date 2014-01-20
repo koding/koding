@@ -123,7 +123,6 @@ isLoggedIn = (req, res, callback)->
       user.fetchAccount "koding", (err, account)->
         if err or not account or account.type is 'unregistered'
           return callback err, no, account
-
         return callback null, yes, account
 
 saveOauthToSession = (oauthInfo, clientId, provider, callback)->

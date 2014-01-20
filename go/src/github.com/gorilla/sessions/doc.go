@@ -48,6 +48,14 @@ And finally we call session.Save() to save the session in the response.
 Note that in production code, we should check for errors when calling
 session.Save(r, w), and either display an error message or otherwise handle it.
 
+Important Note: If you aren't using gorilla/mux, you need to wrap your handlers
+with context.ClearHandler as or else you will leak memory! An easy way to do this
+is to wrap the top-level mux when calling http.ListenAndServe:
+
+    http.ListenAndServe(":8080", context.ClearHandler(http.DefaultServeMux))
+
+The ClearHandler function is provided by the gorilla/context package.
+
 That's all you need to know for the basic usage. Let's take a look at other
 options, starting with flash messages.
 
@@ -113,8 +121,9 @@ fields are basically a subset of http.Cookie fields. Let's change the
 maximum age of a session to one week:
 
 	session.Options = &sessions.Options{
-		Path:   "/",
-		MaxAge: 86400 * 7,
+		Path:     "/",
+		MaxAge:   86400 * 7,
+		HttpOnly: true,
 	}
 
 Sometimes we may want to change authentication and/or encryption keys without
