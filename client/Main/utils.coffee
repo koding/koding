@@ -54,6 +54,7 @@ __utils.extend __utils,
       location.reload(true)
 
   showMoreClickHandler:(event)->
+    __utils.stopDOMEvent event
     $trg = $(event.target)
     more = "span.collapsedtext a.more-link"
     less = "span.collapsedtext a.less-link"
