@@ -113,6 +113,8 @@ class ChatPane extends JView
     @lastChatItem.timeAgo.setData new Date timestamp
 
   checkEmbeddableContent: ->
+    return if not @lastMessage or not @lastMessageBody
+
     element  = @lastMessage.getElement()
     words    = @lastMessageBody.split " "
     urlRegex = /^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/

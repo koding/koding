@@ -67,6 +67,10 @@ app.teamwork.styl
     padding-left                3px
   .CodeMirror-gutters
     border-right                none
+  .kdtabhandle-movenav
+    top                         22px !important
+    size                        32px !important, 20px !important
+    rounded                     4px 0 0 0
 
 .powered-by-firepad
   display                       none
@@ -251,7 +255,7 @@ app.teamwork.styl
     .export, .share
       display                   none
   .activity-input-widget
-    margin-top                  45px
+    margin-top                  35px
   .header
     height                      40px
     border-bottom               1px solid #C5C5C5
@@ -339,6 +343,7 @@ app.teamwork.styl
   position                      absolute
   size                          130px, 58px
   text-align                    right
+  display                       none
   button
     background                  none
     border                      none
@@ -355,17 +360,6 @@ app.teamwork.styl
     &.active
       background-color          #282F31
       border-radius             6px 6px 0 0
-  .tw-export-button
-    size                        32px, 32px
-    bg                          color, #2E98DF
-    rounded                     32px
-    &:hover
-      bg                        color, #2E98DF
-    span
-      top                       -1px
-      position                  relative
-  .tw-options-button
-      top                       14px
 
 .tw-bot-avatar
   r-sprite                      teamwork, "teampunk"
@@ -610,7 +604,7 @@ app.teamwork.styl
   .tw-import-icon
     sprite                      "teamwork", "import"
   .kdnotification.error
-    left                        404px !important
+    left                        394px !important
     top                         10px !important
     rounded                     4px
     vendor                      box-shadow, none !important
@@ -620,6 +614,8 @@ app.teamwork.styl
     .avatarview
       top                       17px
       left                      20px
+    .bug-notification
+      display                   none
   .kdtokenizedinputview
     > div:first-child
       min-height                72px
@@ -652,7 +648,7 @@ app.teamwork.styl
     color                       #3D4A4D
     font-weight                 600
   .tw-share-warning
-    margin-top                  -46px
+    margin-top                  -50px
   .tw-share-loading
     left                        50%
     margin-left                 -15px
@@ -660,7 +656,7 @@ app.teamwork.styl
 .tw-export-modal
   &.loading
     .kdmodal-content
-      height                    64px
+      height                    100px
   .tw-share-warning
     top                         47px
     position                    relative
@@ -684,13 +680,13 @@ app.teamwork.styl
       margin-top                10px !important
   .export-loader
     width                       400px !important
-    height                      90px !important
+    height                      120px !important
     left                        50%
     text-align                  center
     margin-left                 -200px
     top                         -15px
     .loading-text
-      top                       52px
+      top                       68px
       position                  relative
       font-size                 12px
     .canvas-loader
@@ -708,6 +704,12 @@ app.teamwork.styl
       sprite                    "teamwork", "export"
       position                  absolute
       top                       7px
+      right                     25px
+      pointer()
+    .tw-preview
+      r-sprite                  "teamwork", "preview"
+      position                  absolute
+      top                       8px
       right                     25px
       pointer()
 
