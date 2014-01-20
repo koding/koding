@@ -112,7 +112,7 @@ class GroupMembers extends ActivityRightBase
 
     @showAllLink = new KDCustomHTMLView
       tagName    : "a"
-      partial    : "show all"
+      partial    : "See All"
       cssClass   : "show-all-link"
       click      : (event) ->
         KD.singletons.router.handleRoute "/#{group.slug}/Members"
