@@ -9,11 +9,12 @@ logger  = log4js.getLogger('front')
 log4js.configure {
   appenders: [
     { type: 'console' }
-    { type: 'file', filename: 'logs/front.log', category: 'social' }
+    { type: 'file', filename: 'logs/front.log', category: 'front' }
     { type: "log4js-node-syslog", tag : "front", facility: "local0", hostname: "localhost", port: 514 }
   ]
 }
 
+# Exposes log4js to the frontend.
 module.exports = class FrontLogger extends jraphical.Module
   @share()
   @set
@@ -44,6 +45,9 @@ module.exports = class FrontLogger extends jraphical.Module
           (signature String, Object)
         ]
 
+  # Example:
+  #   @info "Hello"
+  #   @info "Hello", {name: "Indiana Jones"}
   logMethods = ['trace', 'debug', 'info', 'warn', 'error', 'fatal']
   for method in logMethods
     do (method)=>
