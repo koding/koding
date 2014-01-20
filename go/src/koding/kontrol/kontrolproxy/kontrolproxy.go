@@ -393,8 +393,6 @@ func (p *Proxy) getHandler(req *http.Request) http.Handler {
 	case resolver.ModeRedirect:
 		return http.RedirectHandler(target.URL.String()+req.RequestURI, http.StatusFound)
 	case resolver.ModeVM:
-		fmt.Printf("target err %+v\n", target)
-
 		if target.Err == resolver.ErrVMNotFound {
 			logs.Info(fmt.Sprintf("ModeVM err: %s (%s) %s", req.Host, userIP, target.Err))
 			return templateHandler("notfound.html", req.Host, 404)
@@ -407,11 +405,12 @@ func (p *Proxy) getHandler(req *http.Request) http.Handler {
 			if err != nil {
 				log.Println("START VM ERROR", err)
 			}
+		} else {
+			fmt.Println("vm is already on")
 		}
 
 		// 2. get cookie if any available
 		session, _ := store.Get(req, vmCookieName)
-		fmt.Println("testing for session.Values")
 		_, ok := session.Values["vmName"]
 		if !ok {
 			// this handler is used to show a captcha for a VM that is
@@ -420,7 +419,7 @@ func (p *Proxy) getHandler(req *http.Request) http.Handler {
 			// user has a cookie already we don't show the Captcha, instead we
 			// instantly turn on the VM.
 			return context.ClearHandler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-				fmt.Println("saving the session now")
+				fmt.Println("saving cookie session now")
 				session.Values["vmName"] = time.Now().String()
 				session.Options = &sessions.Options{MaxAge: 3600} //seconds -> 1h
 				session.Save(r, w)
@@ -432,6 +431,8 @@ func (p *Proxy) getHandler(req *http.Request) http.Handler {
 					return
 				}
 			}))
+		} else {
+			fmt.Println("cookie session is stored already")
 		}
 
 		// 3. alright, vm is up and ready, however also check if any server is
@@ -439,8 +440,11 @@ func (p *Proxy) getHandler(req *http.Request) http.Handler {
 		fmt.Println("check if server is alive")
 		err := utils.CheckServer(target.URL.Host)
 		if err != nil {
+			fmt.Println("vm can't be reached", err)
 			logs.Info(fmt.Sprintf("vm host %s is down: '%s'", req.Host, err))
 			return templateHandler("notactiveVM.html", req.Host, 404)
+		} else {
+			fmt.Println("vm is alive, proxying now.")
 		}
 
 		// 4. ... run forrest run
