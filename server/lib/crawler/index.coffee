@@ -20,13 +20,18 @@ fetchLastStatusUpdatesOfUser = (account, Relationship, JNewStatusUpdate, callbac
   {daisy} = require "bongo"
   return callback null, null  unless account?._id
   originId = account._id
+
+  feedOptions =
+    sort  : 'timestamp' : -1
+    limit : 20
+
   selector =
     "targetId"   : originId
     "targetName" : "JAccount"
     "sourceName" : "JNewStatusUpdate"
     "as"         : "author"
 
-  Relationship.some selector, limit: 3, (err, relationships)->
+  Relationship.some selector, feedOptions, (err, relationships)->
     return callback err, null  if err
     return callback null, null  unless relationships?.length > 0
     queue = [0..relationships.length - 1].map (index)=>=>
@@ -47,6 +52,9 @@ fetchLastStatusUpdatesOfUser = (account, Relationship, JNewStatusUpdate, callbac
 
 module.exports =
   crawl: (bongo, req, res, slug)->
+    {query} = req
+    {page}  = query
+    page   ?= 1
     {Base, race, dash, daisy} = require "bongo"
     {JName, JAccount} = bongo.models
     {Relationship} = require 'jraphical'
@@ -105,23 +113,6 @@ module.exports =
                 return res.send 200, content
       else
         if /^(Activity)|(Topics)/.test name
-          if /\?page=/.test name
-            parts = name.split "?"
-            if parts[0] in ["Activity", "Topics"]
-              name = parts[0]
-            else
-              return res.send 404, error_404()
-            if parts[1]
-              querystringParams = parts[1].split "&"
-              for param in querystringParams
-                if /page=/.test param
-                  [key, value] = param.split "="
-                  page = parseInt(value) ? 1  if value
-            else
-              return res.send 500, error_500()
-
-          if isNaN page
-            page = 1
 
           crawlableFeed bongo, page, name, (error, content)->
             return res.send 500, error_500()  if error
@@ -142,8 +133,33 @@ module.exports =
           else
             models.last.fetchOwnAccount (err, account)->
               {JNewStatusUpdate} = bongo.models
-              fetchLastStatusUpdatesOfUser account, Relationship, JNewStatusUpdate, (error, statusUpdates) =>
+              fetchLastStatusUpdatesOfUser account, Relationship, JNewStatusUpdate, (error, statusUpdates = []) =>
                 return res.send 500, error_500()  if error
-                content = profile {account, statusUpdates}
-                return res.send 200, content
+                queue = [0..statusUpdates.length].map (index)=>=>
+                  queue.decoratedStatusUpdates or= []
+                  statusUpdate = statusUpdates[index]
+                  if statusUpdate?
+                    statusUpdate.fetchTeaser (err, teaser)=>
+                      return queue.next()  if err
+                      return queue.next()  unless teaser
+                      unless teaser?.replies
+                        queue.decoratedStatusUpdates.push teaser
+                        return queue.next()
+                      originIds = teaser.replies.map (teaser)->
+                        teaser.originId
+                      JAccount.some {_id:$in:originIds}, {}, (err, accounts)=>
+                        return queue.next()  if err
+                        return queue.next()  unless accounts
+                        for acc in accounts
+                          for comment in teaser.replies
+                            if comment.originId.toString() is acc._id.toString()
+                              comment.author = acc.data.profile
+                        queue.decoratedStatusUpdates.push teaser
+                        queue.next()
+                  else queue.next()
+                queue.push =>
+                  content = profile account, queue.decoratedStatusUpdates
+                  return res.send 200, content
+                daisy queue
+
 

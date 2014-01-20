@@ -145,7 +145,7 @@ class TeamworkWorkspace extends CollaborativeWorkspace
 
   removeUserAvatar: (nickname) ->
     avatarView = @avatars[nickname]
-    avatarView.destroy()
+    avatarView?.destroy()
     delete @avatars[nickname]
     @avatarsView.unsetClass "has-user" if @avatars.length is 0
 
