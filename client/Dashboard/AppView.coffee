@@ -65,6 +65,9 @@ class DashboardAppView extends JView
     @searchWrapper.addSubView @searchIcon
     @header.addSubView @searchWrapper
 
+    @on "groupSettingsUpdated", (group)->
+      @setData group
+      @createTabs()
 
   setListeners:->
 
@@ -101,9 +104,21 @@ class DashboardAppView extends JView
 
       @navController.replaceAllItems navItems
       @nav.emit "ready"
+      @emit "ready"
 
   pistachio:->
     """
       {{> @nav}}
       {{> @tabs}}
     """
+
+  search: (searchValue)->
+    if @tabs.getActivePane().name is 'Invitations'
+      pane = @tabs.getActivePane()
+    else
+      pane = @tabs.getPaneByName "Members"
+      @tabs.showPane pane
+    {mainView} = pane
+    return unless mainView
+    mainView.emit 'SearchInputChanged', searchValue
+
