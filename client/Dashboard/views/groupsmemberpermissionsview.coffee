@@ -23,12 +23,11 @@ class GroupsMemberPermissionsView extends JView
       unless @listController.scrollView.hasScrollBars()
         @continueLoadingTeasers()
 
-    @refresh()
-
     @on 'SearchInputChanged', (value)=>
       @_searchValue = value
       if value isnt ""
-        @timestamp = new Date 0
+        @timestamp = new Date
+        @skip = 0
         @listController.removeAllItems()
         @fetchSomeMembers()
       else @refresh()
@@ -50,11 +49,12 @@ class GroupsMemberPermissionsView extends JView
   fetchSomeMembers:(selector={})->
     @listController.showLazyLoader no
     options =
-      limit : 20
+      limit : 30
       sort  : { timestamp: -1 }
     # return
     if @_searchValue
       {JAccount} = KD.remote.api
+      options = {limit : 30, skip: @skip}
       JAccount.byRelevance @_searchValue, options, (err, members)=> @populateMembers err, members
     else
       @getData().fetchMembers selector, options, (err, members)=> @populateMembers err, members
@@ -62,6 +62,9 @@ class GroupsMemberPermissionsView extends JView
   populateMembers:(err, members)->
     return warn err if err
     @listController.hideLazyLoader()
+    @skip += members.length
+    @timestamp = new Date members.last.timestamp_
+
     if members.length > 0
       ids = (member._id for member in members)
       @getData().fetchUserRoles ids, (err, userRoles)=>
@@ -87,17 +90,18 @@ class GroupsMemberPermissionsView extends JView
           list.getOptions().userStatus ?= []
           list.getOptions().userStatus = _.extend(list.getOptions().userStatus, userStatusHash)
           @listController.instantiateListItems members
-          @timestamp = new Date members.last.timestamp_
-          @emit 'teasersLoaded' if members.length is 20
+          if members.length < 30
+            @continueLoadingTeasers()
 
   refresh:->
     @listController.removeAllItems()
-    @timestamp = new Date 0
+    @timestamp = new Date
+    @skip = 0
     @fetchRoles()
     @fetchSomeMembers()
 
   continueLoadingTeasers:->
-    @listController.showLazyLoader()
+    @listController.showLazyLoader no
     @fetchSomeMembers {timestamp: $lt: @timestamp.getTime()}
 
   memberRolesChange:(view, member, roles)->
