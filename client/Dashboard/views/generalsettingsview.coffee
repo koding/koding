@@ -47,6 +47,10 @@ class GroupGeneralSettingsView extends JView
                   location.replace('/')
             , data
       fields:
+        Logo                :
+          label             : "Logo"
+          itemClass         : GroupLogoSettings
+
         Title               :
           label             : "Group Name"
           name              : "title"
