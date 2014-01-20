@@ -194,15 +194,30 @@ func (p *Proxy) findAndDialOskite() {
 		Region:      config.Region,
 	}
 
-	kites, err := k.Kontrol.GetKites(query)
+	onEvent := func(e *protocol.KiteEvent) {
+		switch e.Action {
+		case protocol.Register:
+			k.Log.Info("Oskite registered.")
+			auth := kite.Authentication{
+				Type: "token",
+				Key:  e.Token,
+			}
+
+			// update oskite instance with new one
+			p.oskite = k.NewRemoteKite(e.Kite, auth)
+			err := p.oskite.Dial()
+			if err != nil {
+				log.Println(err)
+			}
+		case protocol.Deregister:
+			k.Log.Warning("Oskite deregistered.")
+			p.oskite = nil // make sure we don't send msg's to a dead service
+		}
+	}
+
+	err := k.Kontrol.WatchKites(query, onEvent)
 	if err != nil {
 		log.Println(err)
-	} else {
-		p.oskite = kites[0]
-		err = p.oskite.Dial()
-		if err != nil {
-			log.Println(err)
-		}
 	}
 }
 
