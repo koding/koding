@@ -35,6 +35,9 @@ class GroupsMemberPermissionsView extends JView
 
     KD.singletons.groupsController.on "MemberJoinedGroup", (data) =>
       @refresh()
+    # CtF not very sure about this. just fetched it from ActivityTicker for lazy loading
+    @once 'viewAppended', =>
+      @$('.kdscrollview').height window.innerHeight - 120
 
   fetchRoles:(callback=->)->
     groupData = @getData()
@@ -94,6 +97,7 @@ class GroupsMemberPermissionsView extends JView
     @fetchSomeMembers()
 
   continueLoadingTeasers:->
+    @listController.showLazyLoader()
     @fetchSomeMembers {timestamp: $lt: @timestamp.getTime()}
 
   memberRolesChange:(view, member, roles)->
