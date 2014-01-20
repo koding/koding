@@ -128,7 +128,7 @@ func prepareOsKite() *kite.Kite {
 		}
 
 		if vm.HostKite == deadService {
-			log.Warning("VM is registered as running on dead service.", correlationName, username, deadService)
+			log.Warning("VM is registered as running on dead service. %v, %v", correlationName, username, deadService)
 			return k.ServiceUniqueName
 		}
 		return vm.HostKite
@@ -340,7 +340,7 @@ func getUser(username string) (*virt.User, error) {
 		}
 
 		if !strings.HasPrefix(username, "guest-") {
-			log.Warning("User not found.", username)
+			log.Warning("User not found: %v", username)
 		}
 
 		time.Sleep(time.Second) // to avoid rapid cycle channel loop

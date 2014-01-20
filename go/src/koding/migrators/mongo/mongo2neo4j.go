@@ -106,10 +106,10 @@ func main() {
 	}
 
 	if iter.Err() != nil {
-		log.Warning("Error during iteration: ", iter.Err())
+		log.Warning("Error during iteration: %v", iter.Err())
 	}
 
-	fmt.Println("Migration completed")
+	log.Info("Migration completed")
 }
 
 func getContent(objectId bson.ObjectId, name string) string {
@@ -123,7 +123,7 @@ func getContent(objectId bson.ObjectId, name string) string {
 
 		content, err = mongohelper.FetchContent(objectId, name)
 		if err != nil {
-			log.Debug("source err ", err)
+			log.Debug("source err %v", err)
 			content = ""
 		}
 	}
@@ -160,7 +160,7 @@ func checkIfEligible(sourceName, targetName string) bool {
 
 	for _, name := range notAllowedNames {
 		if name == sourceName || name == targetName {
-			log.Debug("not eligible " + name)
+			log.Debug("not eligible %v", name)
 			return false
 		}
 	}
@@ -168,7 +168,7 @@ func checkIfEligible(sourceName, targetName string) bool {
 	for _, name := range notAllowedSuffixes {
 
 		if strings.HasSuffix(sourceName, name) || strings.HasSuffix(targetName, name) {
-			log.Debug("not eligible " + name)
+			log.Debug("not eligible %v", name)
 			return false
 		}
 	}

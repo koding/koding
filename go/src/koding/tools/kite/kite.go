@@ -97,7 +97,7 @@ func controlRouting(stream <-chan amqp.Delivery) {
 			var control Control
 			err := json.Unmarshal(msg.Body, &control)
 			if err != nil || control.HostnameAlias == "" {
-				log.Error("Invalid control message.", string(msg.Body))
+				log.Error("Invalid control message '%s'", string(msg.Body))
 				continue
 			}
 
@@ -143,7 +143,7 @@ func (k *Kite) startRouting(stream <-chan amqp.Delivery, publishChannel *amqp.Ch
 				var channel Channel
 				err := json.Unmarshal(message.Body, &channel)
 				if err != nil || channel.Username == "" || channel.RoutingKey == "" {
-					log.Error("Invalid auth.join message. %v", message.Body)
+					log.Error("Invalid auth.join message: %v", message.Body)
 					continue
 				}
 
