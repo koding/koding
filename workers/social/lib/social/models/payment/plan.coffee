@@ -54,43 +54,47 @@ module.exports = class JPaymentPlan extends JPaymentBase
           (signature Object, Object, Number, Function)
         ]
 
-    schema          :
-      planCode      :
-        type        : String
-        required    : yes
-      title         :
-        type        : String
-        required    : yes
-      description   : Object # TODO: see below*
-      feeAmount     :
-        type        : Number
-        validate    : (require './validators').fee
-      feeInitial    :
-        type        : Number
-        validate    : (require './validators').fee
-      feeInterval   :
-        type        : Number
-        default     : 1
-      feeUnit       : (require './schema').feeUnit
-      product       :
-        prefix      : String
-        category    : String
-        item        : String
-        version     : Number
-      lastUpdate    : Number
-      contents      : Object
-      group         :
-        type        : String
-        required    : yes
-      quantities    :
-        type        : Object
-        default     : -> {}
-      tags          : (require './schema').tags
-      sortWeight    : Number
-    relationships   :
-      product       :
-        targetType  : 'JPaymentProduct'
-        as          : 'plan product'
+    schema              :
+      planCode          :
+        type            : String
+        required        : yes
+      title             :
+        type            : String
+        required        : yes
+      description       : Object # TODO: see below*
+      feeAmount         :
+        type            : Number
+        validate        : (require './validators').fee
+        default         : 0
+      feeInitial        :
+        type            : Number
+        validate        : (require './validators').fee
+      feeInterval       :
+        type            : Number
+        default         : 1
+      feeUnit           : (require './schema').feeUnit
+      priceIsVolatile   :
+        type            : Boolean
+        default         : no
+      product           :
+        prefix          : String
+        category        : String
+        item            : String
+        version         : Number
+      lastUpdate        : Number
+      contents          : Object
+      group             :
+        type            : String
+        required        : yes
+      quantities        :
+        type            : Object
+        default         : -> {}
+      tags              : (require './schema').tags
+      sortWeight        : Number
+    relationships       :
+      product           :
+        targetType      : 'JPaymentProduct'
+        as              : 'plan product'
 
   # * It seems like we're stuffing some JSON into the description field
   #   on recurly.  I think that's a really bad idea, so let's store any
