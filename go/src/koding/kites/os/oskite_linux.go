@@ -136,16 +136,18 @@ func runNewKite() {
 		}
 
 		if !isPrepared {
-			fmt.Println("starting ", hostnameAlias)
+			fmt.Println("preparing ", hostnameAlias)
 			vm.Prepare(false, log.Warn)
-			if err := vm.Start(); err != nil {
-				log.LogError(err, 0)
-			}
+		}
 
-			// wait until network is up
-			if err := vm.WaitForNetwork(time.Second * 5); err != nil {
-				log.LogError(err, 0)
-			}
+		fmt.Println("starting ", hostnameAlias)
+		if err := vm.Start(); err != nil {
+			log.LogError(err, 0)
+		}
+
+		// wait until network is up
+		if err := vm.WaitForNetwork(time.Second * 5); err != nil {
+			log.LogError(err, 0)
 		}
 
 		return true, nil

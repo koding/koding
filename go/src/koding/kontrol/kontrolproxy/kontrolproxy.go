@@ -228,6 +228,7 @@ func (p *Proxy) findAndDialOskite() {
 }
 
 func (p *Proxy) startVM(hostnameAlias string) error {
+	fmt.Println("starting vm", hostnameAlias)
 	if p.oskite == nil {
 		return errors.New("oskite not connected")
 	}
@@ -407,7 +408,7 @@ func (p *Proxy) getHandler(req *http.Request) http.Handler {
 				log.Println("START VM ERROR", err)
 			}
 		} else {
-			fmt.Println("vm is already on")
+			fmt.Println("vm seems to be ON")
 		}
 
 		fmt.Println("check if server is alive")
