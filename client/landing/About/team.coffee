@@ -5,10 +5,10 @@ KD.extend
     active        : [
 
         username  : 'devrim'
-        title     : 'Co-Founder &amp; CEO'
+        title     : 'CEO &amp; Co-Founder'
       ,
         username  : 'sinan'
-        title     : 'Co-Founder &amp; Chief UI Engineer'
+        title     : 'Chief of UI/UX &amp; Co-F'
       ,
         username  : 'chris'
         title     : 'Director of Engineering'
@@ -63,12 +63,9 @@ KD.extend
       ,
         username  : 'pablostanley'
         title     : 'Illustrator'
-      # ,
-      #   username  : 'leeolayvar'
-      #   title     : 'Community Manager'
-      # ,
-      #   username  : 'stefanbc'
-      #   title     : 'Community Manager'
+      ,
+        username  : 'pedrosanchez'
+        title     : 'Growth Engineer'
       ,
         username  : 'dicle'
         title     : 'Business Analyst'
@@ -79,8 +76,20 @@ KD.extend
         username  : 'zeynep'
         title     : 'Finance Assistant'
       ,
+        username  : 'selin'
+        title     : 'Data scientist'
+      ,
+        username  : 'juliapracht'
+        title     : 'Recruiting & HR'
+      ,
         username  : 'nesli'
         title     : 'Chef de Cuisine'
+      # ,
+      #   username  : 'leeolayvar'
+      #   title     : 'Community Manager'
+      # ,
+      #   username  : 'stefanbc'
+      #   title     : 'Community Manager'
       ]
 
     suspended     : []
