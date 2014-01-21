@@ -426,6 +426,9 @@ func (p *Proxy) getHandler(req *http.Request) http.Handler {
 	case resolver.ModeRedirect:
 		return http.RedirectHandler(target.URL.String()+req.RequestURI, http.StatusFound)
 	case resolver.ModeVM:
+		// TODO: the whole case needs a refactor at some time. Probably when
+		// we decide to split koding-proxy and user-proxy into two seperate
+		// kites.
 		var hostnameAlias string = target.HostnameAlias[0]
 		var port string
 
@@ -452,7 +455,7 @@ func (p *Proxy) getHandler(req *http.Request) http.Handler {
 			}
 		}
 
-		fmt.Println("check if server is alive")
+		fmt.Printf("checking if vm %s is alive.\n", hostnameAlias)
 		err := utils.CheckServer(target.URL.Host)
 		if err != nil {
 			oerr, ok := err.(*net.OpError)
@@ -477,12 +480,10 @@ func (p *Proxy) getHandler(req *http.Request) http.Handler {
 			}
 		}
 
-		// 2. get cookie if any available
 		session, _ := store.Get(req, vmCookieName)
 		_, ok := session.Values["visited"]
 		if !ok {
 			return context.ClearHandler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-				fmt.Println("saving cookie session now")
 				session.Values["visited"] = time.Now().String()
 				session.Options = &sessions.Options{MaxAge: 3600} //seconds -> 1h
 				session.Save(r, w)
@@ -494,11 +495,7 @@ func (p *Proxy) getHandler(req *http.Request) http.Handler {
 					return
 				}
 			}))
-		} else {
-			fmt.Println("cookie session is stored already")
 		}
-
-		// 4. ... run forrest run
 	case resolver.ModeInternal:
 		// roundrobin to next target
 		target.Resolve(req.Host)
@@ -544,54 +541,6 @@ func reverseProxyHandler(transport http.RoundTripper, target *url.URL) http.Hand
 			req.URL.Scheme = target.Scheme
 		},
 	}
-}
-
-// resetCacheHandler is reseting the cache transport for the given host.
-func (p *Proxy) resetCacheHandler() http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.Host != proxyName {
-			logs.Debug(fmt.Sprintf("resetcache handler: got hostame %s, expected %s\n",
-				r.Host, proxyName))
-			logs.Debug("resetcache handler: fallback to reverse proxy handler")
-			p.ServeHTTP(w, r)
-			return
-		}
-
-		logs.Debug(fmt.Sprintf("resetCache is invoked %s - %s\n", r.Host, r.URL.String()))
-		cacheHost := filepath.Base(r.URL.String())
-		resolver.CleanCache(cacheHost)
-
-		w.Write([]byte(fmt.Sprintf("cache is cleaned for %s", cacheHost)))
-	})
-}
-
-// securePageHandler is used currently for the securepage feature of our
-// validator/firewall. It is used to setup cookies to invalidate users visits.
-func securePageHandler(userIP string) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		cookieName := fmt.Sprintf("kodingproxy-securepage")
-
-		fmt.Println("sessionname", cookieName)
-		session, _ := store.Get(r, cookieName)
-		fmt.Println("testing for session.Values")
-		_, ok := session.Values["securePage"]
-		if ok {
-			fmt.Println("we have one!")
-			return
-		}
-
-		// if not available show our secure page
-		fmt.Println("we don't have one :(")
-		session.Values["securePage"] = time.Now().String()
-		session.Options = &sessions.Options{MaxAge: 20} //seconds
-		session.Save(r, w)
-		err := templates.ExecuteTemplate(w, "securepage.html", r.Host)
-		if err != nil {
-			logs.Err(fmt.Sprintf("template securepage could not be executed %s", err))
-			http.Error(w, "error code - 2", 404)
-			return
-		}
-	})
 }
 
 // websocketHandler is used to reverseProxy websocket connection. It hijacks
@@ -653,6 +602,25 @@ func templateHandler(path string, data interface{}, code int) http.Handler {
 			http.Error(w, "error code - 1", 404)
 			return
 		}
+	})
+}
+
+// resetCacheHandler is reseting the cache transport for the given host.
+func (p *Proxy) resetCacheHandler() http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Host != proxyName {
+			logs.Debug(fmt.Sprintf("resetcache handler: got hostame %s, expected %s\n",
+				r.Host, proxyName))
+			logs.Debug("resetcache handler: fallback to reverse proxy handler")
+			p.ServeHTTP(w, r)
+			return
+		}
+
+		logs.Debug(fmt.Sprintf("resetCache is invoked %s - %s\n", r.Host, r.URL.String()))
+		cacheHost := filepath.Base(r.URL.String())
+		resolver.CleanCache(cacheHost)
+
+		w.Write([]byte(fmt.Sprintf("cache is cleaned for %s", cacheHost)))
 	})
 }
 
