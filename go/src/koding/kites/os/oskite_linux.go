@@ -150,7 +150,8 @@ func runNewKite() {
 			log.LogError(err, 0)
 		}
 
-		return true, nil
+		// return back the IP address of the started vm
+		return vm.IP.String(), nil
 	})
 
 	k.Start()

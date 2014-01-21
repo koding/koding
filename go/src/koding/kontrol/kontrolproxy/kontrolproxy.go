@@ -227,18 +227,19 @@ func (p *Proxy) findAndDialOskite() {
 	}
 }
 
-func (p *Proxy) startVM(hostnameAlias string) error {
+// startVM starts the vm and returns back the initalized IP
+func (p *Proxy) startVM(hostnameAlias string) (string, error) {
 	fmt.Println("starting vm", hostnameAlias)
 	if p.oskite == nil {
-		return errors.New("oskite not connected")
+		return "", errors.New("oskite not connected")
 	}
 
-	_, err := p.oskite.Tell("startVM", hostnameAlias)
+	response, err := p.oskite.Tell("startVM", hostnameAlias)
 	if err != nil {
-		return err
+		return "", err
 	}
 
-	return nil
+	return response.MustString(), nil
 }
 
 // setupLogging creates a new file for CLH logging and also sets a new signal
@@ -377,11 +378,17 @@ func (p *Proxy) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	return
 }
 
-func (p *Proxy) checkAndStartVM(hostnameAlias, targetURL string) error {
-	err := p.startVM(hostnameAlias)
+func (p *Proxy) checkAndStartVM(hostnameAlias, port string) error {
+	vmAddr, err := p.startVM(hostnameAlias)
 	if err != nil {
 		return err
 	}
+
+	if !utils.HasPort(vmAddr) {
+		vmAddr = utils.AddPort(vmAddr, port)
+	}
+
+	targetURL, _ := url.Parse("http://" + vmAddr)
 
 	// now check until the server is up
 	ticker := time.NewTicker(500 * time.Millisecond).C
@@ -391,7 +398,7 @@ func (p *Proxy) checkAndStartVM(hostnameAlias, targetURL string) error {
 		select {
 		case <-ticker:
 			fmt.Println("checking if vm is alive", hostnameAlias)
-			err := utils.CheckServer(targetURL)
+			err := utils.CheckServer(targetURL.Host)
 			if err != nil {
 				continue
 			}
@@ -420,6 +427,16 @@ func (p *Proxy) getHandler(req *http.Request) http.Handler {
 		return http.RedirectHandler(target.URL.String()+req.RequestURI, http.StatusFound)
 	case resolver.ModeVM:
 		var hostnameAlias string = target.HostnameAlias[0]
+		var port string
+
+		if !utils.HasPort(req.Host) {
+			port = "80"
+		} else {
+			_, port, err = net.SplitHostPort(req.Host)
+			if err != nil {
+				log.Println(err)
+			}
+		}
 
 		if target.Err == resolver.ErrVMNotFound {
 			logs.Info(fmt.Sprintf("ModeVM err: %s (%s) %s", req.Host, userIP, target.Err))
@@ -428,13 +445,11 @@ func (p *Proxy) getHandler(req *http.Request) http.Handler {
 
 		if target.Err == resolver.ErrVMOff {
 			fmt.Println("vm is off, going to start", hostnameAlias)
-			err := p.startVM(hostnameAlias)
+			err = p.checkAndStartVM(hostnameAlias, port)
 			if err != nil {
-				logs.Info(fmt.Sprintf("vm host %s can't be started: '%s'", req.Host, err))
+				logs.Info(fmt.Sprintf("vm %s timed out, it's still not up, this is not good!", hostnameAlias))
 				return templateHandler("notactiveVM.html", req.Host, 404)
 			}
-
-			return http.RedirectHandler(req.URL.String(), http.StatusFound)
 		}
 
 		fmt.Println("check if server is alive")
@@ -455,7 +470,7 @@ func (p *Proxy) getHandler(req *http.Request) http.Handler {
 
 			// EHOSTUNREACH means "no route to host". This error is passed
 			// when the VM is down, therefore turn it on.
-			err = p.checkAndStartVM(hostnameAlias, target.URL.Host)
+			err = p.checkAndStartVM(hostnameAlias, port)
 			if err != nil {
 				logs.Info(fmt.Sprintf("vm %s timed out, it's still not up, this is not good!", hostnameAlias))
 				return templateHandler("notactiveVM.html", req.Host, 404)

@@ -203,7 +203,7 @@ func (t *Target) Resolve(host string) error {
 	case ModeRedirect:
 		t.URL, t.Err = url.Parse(utils.CheckScheme(t.Proxy.FullUrl))
 	case ModeVM:
-		t.URL, t.Err = t.vm(host, port)
+		t.URL, t.Err = t.resolveVM(host, port)
 	case ModeInternal:
 		t.URL, t.Err = t.getService().resolve()
 		t.CacheTimeout = time.Second * 0
@@ -228,7 +228,7 @@ func (t *Target) getService() *service {
 // in form of "arslan.kd.io" -> "10.56.12.12". The default cacheTimeout is set
 // to 0 seconds, means it will be cached forever (because it uses an IP that
 // never change.)
-func (t *Target) vm(host, port string) (*url.URL, error) {
+func (t *Target) resolveVM(host, port string) (*url.URL, error) {
 	if len(t.HostnameAlias) == 0 {
 		return nil, fmt.Errorf("no hostnameAlias defined for host (vm): %s", host)
 	}
