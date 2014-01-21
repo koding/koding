@@ -44,9 +44,8 @@ class WebTermView extends KDView
 
     @on "KDObjectWillBeDestroyed", @bound "clearConnectionAttempts"
 
-    window.addEventListener "focus", =>
-      @terminal.setFocused @focused
     window.addEventListener "blur",  => @terminal.setFocused no
+    window.addEventListener "focus", => @setFocus @focused
 
     @getElement().addEventListener "mousedown", (event) =>
       @terminal.mousedownHappened = yes
