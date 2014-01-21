@@ -4,7 +4,10 @@ class CollaborativePreviewPane extends CollaborativePane
 
     super options, data
 
-    @container.addSubView @previewPane = new PreviewPane @getOptions()
+    paneOptions = @getOptions()
+    paneOptions.delegate = this
+
+    @container.addSubView @previewPane = new CollaborativePreview paneOptions
 
     {@previewer} = @previewPane
 
