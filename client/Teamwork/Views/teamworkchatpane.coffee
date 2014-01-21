@@ -6,6 +6,12 @@ class TeamworkChatPane extends ChatPane
 
     @setClass "tw-chat"
     @getDelegate().setClass "tw-chat-open"
+    delegate = @getDelegate()
+
+    delegate.setClass "tw-chat-open"
+
+    delegate.on "UserAvatarCreated", =>
+      @handleInviteUserButton()
 
   createDock: ->
     @dock = new KDCustomHTMLView cssClass: "hidden"
@@ -187,8 +193,10 @@ class TeamworkChatPane extends ChatPane
       tooltip  :
         title  : messages.botTooltip
 
+  handleInviteUserButton: ->
     if @getDelegate().amIHost()
-      @avatars.addSubView new KDCustomHTMLView
+      @inviteUserButton?.destroy()
+      @avatars.addSubView @inviteUserButton = new KDCustomHTMLView
         cssClass : "tw-add-user"
         tooltip  :
           title  : "Click here to invite your friends"
