@@ -36,6 +36,7 @@ class CollaborativeWorkspace extends Workspace
     @usersRef       = @workspaceRef.child "users"
     @userRef        = @usersRef.child KD.nick()
     @requestPingRef = @workspaceRef.child "requestPing"
+    @onlineCountRef = @workspaceRef.child "onlineUserCount"
     @sessionKeysRef = @firebaseRef.child  "session_keys"
 
   syncWorkspace: ->
@@ -125,6 +126,13 @@ class CollaborativeWorkspace extends Workspace
       @syncWorkspace()
       @connected = yes
       KD.utils.killWait @pingHostTimer
+
+    @usersRef.on "value", (snapshot) =>
+      data   = snapshot.val()
+      return unless data
+      count  = 0
+      count++ for username, state of data when state.status is "online"
+      @onlineCountRef.set count
 
   requestPingFromHost: ->
     @requestPingRef.set Date.now()
