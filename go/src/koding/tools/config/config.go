@@ -113,7 +113,6 @@ type Config struct {
 		Port int
 	}
 	TopicModifier struct {
-		LogLevel     string
 		CronSchedule string
 	}
 	Slack struct {
