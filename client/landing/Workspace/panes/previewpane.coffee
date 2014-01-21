@@ -22,7 +22,7 @@ class PreviewPane extends Pane
       tagName  : "div"
       cssClass : "tw-browser-splash"
       partial  : """
-        <p>You can only preview links starting with "https".</p> <span>In order to view http content you can </span>"""
+        <p>You can only preview links starting with "https".</p> <span>In order to view non-secure (http) content you can </span>"""
 
     httpLink   = new KDCustomHTMLView
       tagName  : "a"
