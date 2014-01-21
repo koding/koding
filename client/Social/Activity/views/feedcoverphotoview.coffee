@@ -19,23 +19,30 @@ class FeedCoverPhotoView extends KDView
     @addSubView container
 
   getCoverUpdateButton: ->
-    admin = role for role in KD.config.roles when role is "admin"
-    if admin
+    if "admin" in KD.config.roles
       new KDButtonView
-        style  : "solid green small update-cover"
-        type   : "submit"
-        icon   : yes
-        title  : "Update Cover Image"
+        style     : "solid green small"
+        type      : "submit"
+        title     : "update cover photo"
+        callback  : =>
+          new UploadImageModalView
+            title      : "Change Cover Photo"
+            image      :
+              type     : "coverPhoto"
+              size     :
+                width  : 914
+                height : 315
+
     else
       new KDCustomHTMLView
 
   getCoverView: ->
     group = KD.singletons.groupsController.getCurrentGroup()
-    if group.customize.background.coverPhoto
+    if group.customize?.coverPhoto
       new KDCustomHTMLView
         tagName     : 'img'
         attributes  :
-          src       : group.customize.background.coverPhoto
+          src       : group.customize?.coverPhoto
           title     : group.title or ''
     else
       # if group doesnt has cover photo, put collage of group users

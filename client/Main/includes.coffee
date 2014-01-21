@@ -54,6 +54,7 @@ module.exports = [
 
   "CommonViews/activitywidgetitem.coffee",
   "CommonViews/activitywidget.coffee",
+  "CommonViews/uploadimagemodalview.coffee",
 
   # junction
   "junction/junction.coffee"

@@ -237,22 +237,8 @@ module.exports = class JGroup extends Module
       counts        :
         members     : Number
       customize     :
-        background  :
-          customImages    : [String]
-          customColors    : [String]
-          customType      :
-            type          : String
-            default       : 'defaultImage'
-            enum          : ['Invalid type', [
-              'defaultImage'
-              'customImage'
-              'defaultColor'
-              'customColor'
-            ]]
-          customValue     :
-            type          : String
-            default       : '1'
-          customOptions   : Object
+        coverPhoto  : String
+        logo        : String
       payment       :
         plan        : String
         paymentQuota: Number
