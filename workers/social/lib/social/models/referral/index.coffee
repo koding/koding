@@ -31,6 +31,8 @@ module.exports = class JReferral extends jraphical.Message
       static          :
         redeem:
           (signature Object, Function)
+        add5GBDisk:
+          (signature Function)
         fetchRedeemableReferrals:
           (signature Object, Function)
         fetchReferredAccounts:
