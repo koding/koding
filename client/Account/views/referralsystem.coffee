@@ -14,8 +14,7 @@ class AccountReferralSystemListController extends AccountListViewController
       @instantiateListItems referals or []
     @hideLazyLoader()
 
-    @on "ShowRedeemReferralPointModal", ->
-      KD.utils.showRedeemReferralPointModal()
+    @on "ShowRedeemReferralPointModal", KD.utils.showRedeemReferralPointModal
 
   loadView: ->
     super
@@ -47,7 +46,7 @@ class AccountReferralSystemListController extends AccountListViewController
 
     wrapper.addSubView redeem = new CustomLinkView
       title : "Redeem Your Referrer Points"
-      click : => KD.utils.showRedeemReferralPointModal()
+      click : KD.utils.showRedeemReferralPointModal
 
 class AccountReferralSystemList extends KDListView
 

@@ -495,7 +495,7 @@ __utils.extend __utils,
           #{refRes.addedSize} #{refRes.unit} extra #{refRes.type} is successfully added to your #{refRes.vm} VM.
         """
 
-  showRedeemReferralPointModal: ()->
+  showRedeemReferralPointModal:->
     vmController = KD.getSingleton("vmController")
     vmController.fetchVMs yes, (err, vms)=>
       return KD.showError err if err
