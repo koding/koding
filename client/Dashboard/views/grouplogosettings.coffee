@@ -11,18 +11,20 @@ class GroupLogoSettings extends KDView
         src       : ""
       click       : (event) =>
         new UploadImageModalView
-          title         : "Change Group Logo"
-          imageType     : "logo"
-          imageSize     :
-            width       : 55
-            height      : 55
-          previewSize   :
-            width       : 220
-            height      : 220
+          title      : "Change Group Logo"
+          image      :
+            type     : "logo"
+            size     :
+              width  : 55
+              height : 55
+          preview    :
+            size     :
+              width  : 220
+              height : 220
 
   pistachio:->
-      """
-      {{> @groupLogoView}}
-      """
+    """
+    {{> @groupLogoView}}
+    """
 
   viewAppended:JView::viewAppended

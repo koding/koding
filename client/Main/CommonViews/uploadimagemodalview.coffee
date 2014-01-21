@@ -4,14 +4,14 @@ class UploadImageModalView extends KDModalView
     options.title         ?= "Upload photo"
     options.uploaderTitle ?= "Drag & drop image here!"
     options.overlay       ?= yes
-    options.previewSize   ?= options.imageSize
+    options.preview       ?= options.image
 
     super options, data
 
     @uploaderView    = new DNDUploader
       title          : @getOptions().uploaderTitle
       uploadToVM     : no
-      size           : @getOptions().previewSize
+      size           : @getOptions().preview.size
 
     uploadButton     = new KDButtonView
       title          : "Upload"
@@ -39,7 +39,7 @@ class UploadImageModalView extends KDModalView
       tagName    : "img"
       attributes :
         src      : @previewData
-      size       : @getOptions().previewSize
+      size       : @getOptions().preview.size
 
     @uploaderView.addSubView @logoPreview
 
@@ -53,16 +53,16 @@ class UploadImageModalView extends KDModalView
 
       proxifyOptions =
         crop         : true
-        width        : @getOptions().imageSize.width
-        height       : @getOptions().imageSize.height
+        width        : @getOptions().image.size.width
+        height       : @getOptions().image.size.height
 
       resized = KD.utils.proxifyUrl url, proxifyOptions
       group   = KD.singletons.groupsController.getCurrentGroup()
 
-      if @getOptions().imageType is "coverPhoto"
-        group.modify "customize.coverPhoto" : [url, +new Date()].join("?"), callback
+      if @getOptions().image.type is "coverPhoto"
+        group.modify "customize.coverPhoto" : "#{url}?#{Date.now()}",  callback
       else
-        group.modify "customize.logo" : [url, +new Date()].join("?"), callback
+        group.modify "customize.logo" : "#{url}?#{Date.now()}", callback
 
   uploadLogo:->
     @loaderView.show()
