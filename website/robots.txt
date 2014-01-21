@@ -1,4 +1,4 @@
-User-agent: Googlebot
+User-agent: *
 Disallow: /Account
 Disallow: /Login
 Disallow: /Logout
