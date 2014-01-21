@@ -96,7 +96,7 @@ class AccountAppController extends AppController
     options.left        or= 35
     options.arrowMargin or= 110
 
-    return new ReferrerModal options
+    new ReferrerModal options
 
 
   displayConfirmEmailModal:(name, username, callback=noop)->
@@ -145,20 +145,16 @@ class AccountAppController extends AppController
       type   : "disk"
     }
 
-    KD.remote.api.JReferral.redeem data, (err, refRes)->
+    KD.remote.api.JReferral.redeem data, (err, refRes)=>
       return KD.showError err if err
       modal.modal.destroy()
-      KD.getSingleton("vmController").resizeDisk data.vm, (err, res)->
+      KD.getSingleton("vmController").resizeDisk data.vm, (err, res)=>
         return KD.showError err if err
         KD.getSingleton("vmController").emit "ReferralCountUpdated"
-
         KD.notify_ """
             #{refRes.addedSize} #{refRes.unit} extra #{refRes.type} is successfully added to your #{refRes.vm} VM.
           """
-
-        appManager = KD.getSingleton "appManager"
-        appManager.tell "Account", "showReferrerModal",
-          title       : "Want more?"
+        @showReferrerModal title: "Want more?"
 
 
   showRedeemReferralPointModal:->
