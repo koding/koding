@@ -20,8 +20,7 @@ class FeedCoverPhotoView extends KDView
     @addSubView container
 
   getCoverUpdateButton: ->
-    admin = role for role in KD.config.roles when role is "admin"
-    if admin
+    if "admin" in KD.config.roles
       new KDButtonView
         style  : "solid green small account-header-button"
         type   : "submit"
