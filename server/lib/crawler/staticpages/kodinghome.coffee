@@ -5,6 +5,7 @@
 module.exports = ->
 
   getGraphMeta  = require './graphmeta'
+  analytics  = require './analytics'
 
   """
   <!DOCTYPE html>
@@ -150,6 +151,7 @@ module.exports = ->
         <a href="mailto:hello@koding.com" itemprop="email">
           hello@koding.com
         </a>
+        #{analytics}
     </body>
   </html>
   """

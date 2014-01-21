@@ -90,6 +90,7 @@ getStatusUpdates = (statusUpdates, authorFullName, authorNickname) ->
 module.exports = (account, statusUpdates)->
   getStyles  = require './styleblock'
   getGraphMeta  = require './graphmeta'
+  analytics  = require './analytics'
   { formatDate, getFullName } = require '../helpers'
 
   {profile:{nickname}} = account if account
@@ -104,6 +105,7 @@ module.exports = (account, statusUpdates)->
   </head>
     <body class='koding profile' itemscope itemtype="http://schema.org/WebPage">
       #{putContent(account, sUpdates)}
+      #{analytics}
     </body>
   </html>
   """
