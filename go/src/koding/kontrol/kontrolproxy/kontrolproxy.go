@@ -393,13 +393,14 @@ func (p *Proxy) getHandler(req *http.Request) http.Handler {
 	case resolver.ModeRedirect:
 		return http.RedirectHandler(target.URL.String()+req.RequestURI, http.StatusFound)
 	case resolver.ModeVM:
+		var hostnameAlias string = target.HostnameAlias[0]
+
 		if target.Err == resolver.ErrVMNotFound {
 			logs.Info(fmt.Sprintf("ModeVM err: %s (%s) %s", req.Host, userIP, target.Err))
 			return templateHandler("notfound.html", req.Host, 404)
 		}
 
 		if target.Err == resolver.ErrVMOff {
-			hostnameAlias := target.HostnameAlias[0]
 			fmt.Println("vm is off, going to start", hostnameAlias)
 			err := p.startVM(hostnameAlias)
 			if err != nil {
@@ -409,15 +410,36 @@ func (p *Proxy) getHandler(req *http.Request) http.Handler {
 			fmt.Println("vm is already on")
 		}
 
+		fmt.Println("check if server is alive")
+		err := utils.CheckServer(target.URL.Host)
+		if err != nil {
+			oerr, ok := err.(*net.OpError)
+			if !ok {
+				fmt.Println("vm can't be reached,", err)
+				logs.Info(fmt.Sprintf("vm host %s is down: '%s'", req.Host, err))
+				return templateHandler("notactiveVM.html", req.Host, 404)
+			}
+
+			if oerr.Err != syscall.EHOSTUNREACH {
+				fmt.Println("vm can't be reached, net.OpError", oerr.Err)
+				logs.Info(fmt.Sprintf("vm host %s is down: '%s'", req.Host, err))
+				return templateHandler("notactiveVM.html", req.Host, 404)
+			}
+
+			// EHOSTUNREACH means "no route to host". This error is passed
+			// when the VM is down, therefore turn it on.
+			err := p.startVM(hostnameAlias)
+			if err != nil {
+				log.Println("START VM ERROR DUE TO EHOSTUNREACH", err)
+			}
+		} else {
+			fmt.Println("vm is alive, proxying now.")
+		}
+
 		// 2. get cookie if any available
 		session, _ := store.Get(req, vmCookieName)
 		_, ok := session.Values["vmName"]
 		if !ok {
-			// this handler is used to show a captcha for a VM that is
-			// turned off. If the captcha is correct it drops a cookie that
-			// lasts for "FILLTIMEOUT HERE" and then turns on the VM. It the
-			// user has a cookie already we don't show the Captcha, instead we
-			// instantly turn on the VM.
 			return context.ClearHandler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 				fmt.Println("saving cookie session now")
 				session.Values["vmName"] = time.Now().String()
@@ -433,18 +455,6 @@ func (p *Proxy) getHandler(req *http.Request) http.Handler {
 			}))
 		} else {
 			fmt.Println("cookie session is stored already")
-		}
-
-		// 3. alright, vm is up and ready, however also check if any server is
-		// running that I can reverseproxy.
-		fmt.Println("check if server is alive")
-		err := utils.CheckServer(target.URL.Host)
-		if err != nil {
-			fmt.Println("vm can't be reached", err)
-			logs.Info(fmt.Sprintf("vm host %s is down: '%s'", req.Host, err))
-			return templateHandler("notactiveVM.html", req.Host, 404)
-		} else {
-			fmt.Println("vm is alive, proxying now.")
 		}
 
 		// 4. ... run forrest run
