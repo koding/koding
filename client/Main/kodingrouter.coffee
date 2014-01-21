@@ -297,7 +297,7 @@ class KodingRouter extends KDRouter
       '/:name?/Invitation/:inviteCode': ({params:{inviteCode, name}})=>
         @handleRoute "/Redeem/#{inviteCode}"
 
-      '/:name?/Get5G': =>
+      '/:name?/Get5GB': =>
         if not KD.isLoggedIn()
           KD.showError new Error "You should login and try again"
           return @handleRoute '/Login'
