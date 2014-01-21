@@ -118,7 +118,6 @@ module.exports =
     watch                : yes
     cronSchedule         : '00 00 00 * * *'
   topicModifier          :
-    logLevel             : "info"
     cronSchedule         : '0 */5 * * * *'
   graphFeederWorker:
     numberOfWorkers: 2
@@ -200,7 +199,6 @@ module.exports =
     password    : 'djfjfhgh4455__5'
     heartbeat   : 20
     vhost       : 'new'
-    logLevel    : "info"
   broker        :
     ip          : ""
     port        : 443
@@ -315,3 +313,5 @@ module.exports =
   slack          :
 	  token        : "xoxp-2155583316-2155760004-2158149487-a72cf4"
 	  channel      : "C024LG80K"
+  logLevel       :
+    neo4jfeeder  : "info"

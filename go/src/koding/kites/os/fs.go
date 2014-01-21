@@ -7,7 +7,7 @@ import (
 	"io"
 	"koding/tools/dnode"
 	"koding/tools/kite"
-	"koding/tools/log"
+	"koding/tools/logger"
 	"koding/virt"
 	"os"
 	"path"
@@ -19,10 +19,12 @@ import (
 	"code.google.com/p/go.exp/inotify"
 )
 
+var log = logger.New("os")
+
 func init() {
 	go func() {
 		for err := range virt.WatchErrors {
-			log.Warn("Watcher error", err)
+			log.Warning("Watcher error", err)
 		}
 	}()
 }

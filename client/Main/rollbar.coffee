@@ -1,8 +1,13 @@
 # Wrapper for pushing events to Rollbar
-KD.logToExternal = (args) ->
-  return unless KD.config.logToExternal
+KD.logToExternal = (msg, args) ->
+  return  unless KD.config.logToExternal and _rollbar
+  return  if KD.isGuest()
 
-  _rollbar?.push args  unless KD.isGuest()
+  if args?
+    args.msg = msg
+    _rollbar.push args
+  else
+    _rollbar.push msg
 
 # log ping times so we know if failure was due to user's slow
 # internet or our internals timing out
