@@ -157,6 +157,15 @@ class ReferalBox extends JView
       click      : @bound 'showReferrerModal'
       partial    : 'show more...'
 
+    @redeemPointsModal = new KDCustomHTMLView
+      tagName    : 'a'
+      attributes :
+        href     : '#'
+      click      : (e)=>
+        KD.utils.showRedeemReferralPointModal()
+        e.stopPropagation()
+      partial    : 'Redeem your referral points'
+
     @progressBar = new KDProgressBarView
       title       : '0 GB / 16 GB'
       determinate : yes
@@ -197,6 +206,7 @@ class ReferalBox extends JView
     <figure></figure>
     <p>
     Invite your friends and get up to <strong>16GB</strong> for free! {{> @modalLink}}
+    {{> @redeemPointsModal}}
     </p>
     {{> @progressBar}}
     """
