@@ -84,17 +84,20 @@ class GroupDescription extends KDView
 
     group = KD.singletons.groupsController.getCurrentGroup()
 
+    @innerContaner = new KDCustomHTMLView cssClass : "right-block-box"
+
     @titleView = new KDCustomHTMLView
+      tagName  : "h3"
       partial  : "#{group.title} Group"
-      cssClass : "group-title"
 
     @bodyView = new KDCustomHTMLView
       tagName  : "p"
       partial  : group.body or ""
-      cssClass : "group-body"
+      cssClass : "group-description"
 
-    @addSubView @titleView
-    @addSubView @bodyView
+    @innerContaner.addSubView @titleView
+    @innerContaner.addSubView @bodyView
+    @addSubView @innerContaner
 
   viewAppended:JView::viewAppended
 
@@ -103,8 +106,8 @@ class GroupMembers extends ActivityRightBase
 
   constructor:(options={}, data)->
     @itemClass       = GroupMembersListItemView
-    options.title    = "Group Users"
-    options.cssClass = "group-users"
+    options.title    = "Group members"
+    options.cssClass = "group-members"
 
     super options, data
 
@@ -127,8 +130,7 @@ class GroupMembersListItemView extends KDListItemView
   constructor: (options = {}, data) ->
     super options, data
     @avatar      = new AvatarView
-      size       : width : 50, height : 50
-      cssClass   : "avatarview"
+      size       : width : 60, height : 60
       showStatus : yes
     , @getData()
     @addSubView @avatar
