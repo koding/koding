@@ -476,15 +476,34 @@ __utils.extend __utils,
 
     return img
 
+  redeemReferralPoint:(modal)->
+    {vmToResize, sizes} = modal.modal.modalTabs.forms.Redeem.inputs
+
+    data = {
+      vmName : vmToResize.getValue(),
+      size   : sizes.getValue(),
+      type   : "disk"
+    }
+
+    KD.remote.api.JReferral.redeem data, (err, refRes)->
+      return KD.showError errr if err
+      modal.modal.destroy()
+      KD.getSingleton("vmController").resizeDisk data.vm, (err, res)->
+        return KD.showError err if err
+        KD.getSingleton("vmController").emit "ReferralCountUpdated"
+        KD.notify_ """
+          #{refRes.addedSize} #{refRes.unit} extra #{refRes.type} is successfully added to your #{refRes.vm} VM.
+        """
+
   showRedeemReferralPointModal: ()->
     vmController = KD.getSingleton("vmController")
     vmController.fetchVMs yes, (err, vms)=>
       return KD.showError err if err
-      return @notify_ "You don't have any VMs. Please create one VM" if not vms or vms.length < 1
+      return KD.notify_ "You don't have any VMs. Please create one VM" if not vms or vms.length < 1
 
       KD.remote.api.JReferral.fetchRedeemableReferrals { type: "disk" }, (err, referals)=>
         return KD.showError err if err
-        return @notify_ "You dont have any referrals" if not referals or referals.length < 1
+        return KD.notify_ "You dont have any referrals" if not referals or referals.length < 1
 
         @modal = modal = new KDModalViewWithForms
           title                   : "Redeem Your Referral Points"
@@ -498,7 +517,7 @@ __utils.extend __utils,
               Redeem               :
                 callback          : =>
                   @modal.modalTabs.forms.Redeem.buttons.redeemButton.showLoader()
-                  @emit "RedeemReferralPointSubmitted", @
+                  @redeemReferralPoint @
                 buttons           :
                   redeemButton    :
                     title         : "Redeem"
