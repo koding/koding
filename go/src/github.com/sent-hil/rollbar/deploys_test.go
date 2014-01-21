@@ -12,7 +12,7 @@ var (
 )
 
 func TestGettingDeploys(t *testing.T) {
-	mux.HandleFunc("/deploys", func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("/deploys/", func(w http.ResponseWriter, r *http.Request) {
 		if m := "GET"; m != r.Method {
 			t.Errorf("Request method = %v, want %v", r.Method, m)
 		}
@@ -26,7 +26,7 @@ func TestGettingDeploys(t *testing.T) {
 		fmt.Fprint(w, string(content))
 	})
 
-	var deploysResp, err = deploysService.GetDeploys()
+	var deploysResp, err = deploysService.All()
 	if err != nil {
 		t.Errorf("Expected empty error response, got: %v", err)
 	}

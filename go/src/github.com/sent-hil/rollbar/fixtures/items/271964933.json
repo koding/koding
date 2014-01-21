@@ -1,0 +1,25 @@
+{
+  "err": 0,
+  "result": {
+    "id": 271964933,
+    "project_id": 1438,
+    "environment": "production",
+    "platform": "browser",
+    "framework": "browser-js",
+    "hash": "2bd44d6564514889f592f63f3c61678e9f81db57",
+    "title": "realtime failure detected",
+    "first_occurrence_id": 314185998,
+    "first_occurrence_timestamp": 1374633762,
+    "activating_occurrence_id": 335687108,
+    "last_activated_timestamp": 1375884675,
+    "last_resolved_timestamp": 1375884302,
+    "last_muted_timestamp": null,
+    "last_occurrence_id": 705911795,
+    "last_occurrence_timestamp": 1389207954,
+    "total_occurrences": 96855,
+    "last_modified_by": 2147,
+    "status": "active",
+    "level": "info",
+    "integrations_data": null
+  }
+}
