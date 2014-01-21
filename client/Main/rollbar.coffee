@@ -26,5 +26,5 @@ KD.getSingleton('mainController').on "AccountChanged", (account) ->
     username : user.nickname
 
 # on logout reduce no. of errors logged to rollbar
-KD.getSingleton('mainController').on "AccountChanged", (account) ->
-  _rollbar.itemsPerMinute = 1  if KD.isGuest()
+# KD.getSingleton('mainController').on "AccountChanged", (account) ->
+  # _rollbar.itemsPerMinute = 3  if KD.isGuest()
