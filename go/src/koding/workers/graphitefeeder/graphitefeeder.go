@@ -5,7 +5,6 @@ import (
 	"github.com/marpaia/graphite-golang"
 	"github.com/peterbourgon/g2s"
 	"koding/tools/config"
-	"log"
 	"strconv"
 	"time"
 )
@@ -58,7 +57,7 @@ func PublishToGraphite(name string, value int, timestamp int64) error {
 func main() {
 	for _, fn := range listOfAnalytics {
 		name, count := fn()
-		log.Println(name, count)
+		log.Info(name, count)
 		STATSD.Gauge(1, name, strconv.Itoa(count))
 	}
 }
