@@ -78,7 +78,7 @@ getSingleActivityPage = ({activityContent, account, models})->
             </div>
           </div>
         </section>
-        #{analytics}
+        #{analytics()}
     </body>
   </html>
   """

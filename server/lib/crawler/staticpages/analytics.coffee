@@ -1,7 +1,5 @@
 module.exports = ->
 
-  getGraphMeta  = require './graphmeta'
-
   """
     <!-- GOOGLE ANALYTICS -->
     <script>

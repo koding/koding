@@ -105,7 +105,7 @@ module.exports = (account, statusUpdates)->
   </head>
     <body class='koding profile' itemscope itemtype="http://schema.org/WebPage">
       #{putContent(account, sUpdates)}
-      #{analytics}
+      #{analytics()}
     </body>
   </html>
   """

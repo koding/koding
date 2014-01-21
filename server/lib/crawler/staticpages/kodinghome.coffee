@@ -151,7 +151,7 @@ module.exports = ->
         <a href="mailto:hello@koding.com" itemprop="email">
           hello@koding.com
         </a>
-        #{analytics}
+        #{analytics()}
     </body>
   </html>
   """

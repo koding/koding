@@ -239,7 +239,7 @@ putContentIntoFullPage = (content, pagination, contentType)->
           </div>
         </section>
       </div>
-      #{analytics}
+      #{analytics()}
     </body>
     </html>
   """
