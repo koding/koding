@@ -261,7 +261,12 @@ func (p *Proxy) findAndDialOskite() {
 
 func (p *Proxy) randomOskite() (*kite.RemoteKite, bool) {
 	i := 0
-	exit := rand.Intn(len(p.oskites) - 1)
+	n := len(p.oskites)
+	if n == 0 {
+		return nil, false
+	}
+
+	exit := rand.Intn(n)
 	for _, oskite := range p.oskites {
 		if i == exit {
 			return oskite, true
