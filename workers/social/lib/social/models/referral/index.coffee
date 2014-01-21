@@ -238,7 +238,7 @@ module.exports = class JReferral extends jraphical.Message
   @add5GBDisk = secure (client, callback)->
     {delegate} = client.connection
     @checkFor5GBStatus delegate, (err, used) =>
-      return callback new Error "An error occured while trying to add you 5GB please try again" if err
+      return callback new Error "An error occured while trying to add your 5GB please try again" if err
       return callback new Error "You have already redeemed your 5GB extra storage" if used
       referral = new JReferral { type: "disk", unit: "MB", amount: 5000 }
       referral.save (err) ->
