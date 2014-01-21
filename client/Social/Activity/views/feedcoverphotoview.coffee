@@ -38,11 +38,11 @@ class FeedCoverPhotoView extends KDView
 
   getCoverView: ->
     group = KD.singletons.groupsController.getCurrentGroup()
-    if group.customize.background.coverPhoto
+    if group.customize?.coverPhoto
       new KDCustomHTMLView
         tagName     : 'img'
         attributes  :
-          src       : group.customize.background.coverPhoto
+          src       : group.customize?.coverPhoto
           title     : group.title or ''
     else
       # if group doesnt has cover photo, put collage of group users
