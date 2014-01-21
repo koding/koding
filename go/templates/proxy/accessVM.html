@@ -12,27 +12,23 @@
 </head>
 <body class="php">
   <header><a href="http://koding.com">Koding.com</a></header>
-  <h2>{{.}} is currently turned off.</h2>
+  <h2>One more step to access {{.}}</h2>
 
   <div class="wrap">
-
-    <!-- <h3>Possible causes:</h3> -->
-
     <dl>
-    	<dt>This VM has been turned off.</dt>
+    	<dt>One more step to access </dt>
     	<dd>
         Koding servers are provided for active development only. This means
         that they are not suitable for hosting blogs or production sites. To
         maintain a great experience for everyone, Koding will put inactive
-        servers to sleep after 15 minutes of inactivity. This prevents
+        servers to sleep after 1 hours of inactivity. This prevents
         malicious and abusive users from utilizing Koding, allowing you to have
         faster and more stable servers.
       </dd>
       <dd>
-        If this is your server, please log into Koding to activate it again.
 
         <div id="container">
-          <pre>Turn on <a href="http://{{.}}">{{.}}</a></pre>
+          <pre>Click to continue: <a href="http://{{.}}">{{.}}</a></pre>
         </div>
       </dd>
     </dl>

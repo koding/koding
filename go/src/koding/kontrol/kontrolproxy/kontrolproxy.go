@@ -72,7 +72,7 @@ var (
 		"go/templates/proxy/securepage.html",
 		"go/templates/proxy/notfound.html",
 		"go/templates/proxy/notactiveVM.html",
-		"go/templates/proxy/notOnVM.html",
+		"go/templates/proxy/accessVM.html",
 		"go/templates/proxy/quotaExceeded.html",
 		"website/maintenance.html",
 	))
@@ -431,7 +431,8 @@ func (p *Proxy) getHandler(req *http.Request) http.Handler {
 			// when the VM is down, therefore turn it on.
 			err := p.startVM(hostnameAlias)
 			if err != nil {
-				log.Println("START VM ERROR DUE TO EHOSTUNREACH", err)
+				logs.Info(fmt.Sprintf("vm host %s can't be started: '%s'", req.Host, err))
+				return templateHandler("notactiveVM.html", req.Host, 404)
 			}
 
 			// now check until the server is up
@@ -455,9 +456,8 @@ func (p *Proxy) getHandler(req *http.Request) http.Handler {
 
 			err = checker()
 			if err != nil {
-				fmt.Println("vm timed out, we started it but it seems it's still not up")
+				logs.Info(fmt.Sprintf("vm %s timed out, it's still not up, this is not good!", hostnameAlias))
 				return templateHandler("notactiveVM.html", req.Host, 404)
-
 			}
 
 		} else {
@@ -474,7 +474,7 @@ func (p *Proxy) getHandler(req *http.Request) http.Handler {
 				session.Options = &sessions.Options{MaxAge: 3600} //seconds -> 1h
 				session.Save(r, w)
 
-				err := templates.ExecuteTemplate(w, "notOnVM.html", r.Host)
+				err := templates.ExecuteTemplate(w, "accessVM.html", r.Host)
 				if err != nil {
 					logs.Err(fmt.Sprintf("template notOnVM could not be executed %s", err))
 					http.Error(w, "error code - 5", 404)
