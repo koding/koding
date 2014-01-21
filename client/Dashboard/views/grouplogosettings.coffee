@@ -10,65 +10,17 @@ class GroupLogoSettings extends KDView
       attributes  :
         src       : ""
       click       : (event) =>
-        @showLogoUploadView()
-
-  showLogoUploadView : ->
-    logoHolder       = new KDModalView
-      title          : "Change Group Logo"
-      overlay        : yes
-
-    @uploaderView    = new DNDUploader
-      title          : "Drag & drop logo here!"
-      uploadToVM     : no
-      size           :
-        height       : 220
-        width        : 220
-
-    uploadButton     = new KDButtonView
-      title          : "Upload"
-      cssClass       : "solid green"
-      callback       : =>
-        @uploadLogo()
-
-    @logoLoaderView  = new KDLoaderView
-      showLoader     : no
-      size           :
-        width        : 32
-
-    logoHolder.addSubView @uploaderView
-    logoHolder.addSubView uploadButton
-    logoHolder.addSubView @logoLoaderView
-
-    @uploaderView.on "dropFile", ({origin, content})=>
-      if origin is "external"
-        @previewData = "data:image/png;base64,#{btoa content}"
-        @updateLogoImage()
-
-  updateLogoImage : =>
-    @logoPreview?.destroy()
-    @logoPreview = new KDCustomHTMLView
-      tagName    : "img"
-      attributes :
-        src      : @previewData
-      size       :
-        height   : 220
-        width    : 220
-
-    @uploaderView.addSubView @logoPreview
-
-  uploadLogoToS3: (avatarData, callback)->
-    #TODO : change the address and name of the logo
-    FSHelper.s3.upload "grouplogo-test1.png", avatarData, (err, url)=>
-      resized = KD.utils.proxifyUrl url,
-        crop: true, width: 55, height: 55
-      group = KD.singletons.groupsController.getCurrentGroup()
-      group.modify "customize.logo" : "#{url}?#{Date.now()}", callback
-
-  uploadLogo:->
-    @logoLoaderView.show()
-    [_, logoBase64] = @previewData.split ","
-    @uploadLogoToS3 logoBase64, =>
-      @logoLoaderView.hide()
+        new UploadImageModalView
+          title      : "Change Group Logo"
+          image      :
+            type     : "logo"
+            size     :
+              width  : 55
+              height : 55
+          preview    :
+            size     :
+              width  : 220
+              height : 220
 
   pistachio:->
     """
