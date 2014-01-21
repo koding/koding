@@ -87,6 +87,9 @@ type Proxy struct {
 	// http.Handler
 	mux *http.ServeMux
 
+	// resolvers are needed to resolve for different cases
+	resolvers map[string]Resolver
+
 	// enableFirewall is used to activate the internal validator that uses the
 	// restrictions and filter collections to validate the incoming requests
 	// accoding to ip, country, requests and so on..
@@ -104,6 +107,8 @@ type Proxy struct {
 	oskites   map[string]*kite.RemoteKite
 	oskitesMu sync.Mutex
 }
+
+type Resolver func(*http.Request, *resolver.Target) http.Handler
 
 // used by redis counter
 type interval struct {
@@ -153,7 +158,13 @@ func startProxy() {
 		enableFirewall:  false,
 		cacheTransports: make(map[string]http.RoundTripper),
 		oskites:         make(map[string]*kite.RemoteKite),
+		resolvers:       make(map[string]Resolver),
 	}
+
+	p.resolvers[resolver.ModeMaintenance] = p.maintenance
+	p.resolvers[resolver.ModeRedirect] = p.redirect
+	p.resolvers[resolver.ModeVM] = p.vm
+	p.resolvers[resolver.ModeInternal] = p.internal
 
 	go p.findAndDialOskite()
 
@@ -414,6 +425,136 @@ func (p *Proxy) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	return
 }
 
+// getHandler returns the appropriate Handler for the given Request or nil if
+// none found.
+func (p *Proxy) getHandler(req *http.Request) http.Handler {
+	userIP := getIP(req.RemoteAddr)
+
+	target, err := resolver.GetTarget(req)
+	if err != nil {
+		logs.Info(fmt.Sprintf("GetTarget err: %s (%s) %s", req.Host, userIP, err))
+		return templateHandler("notfound.html", req.Host, 404)
+	}
+
+	logs.Notice(fmt.Sprintf("mode '%s' [%s] via %s : %s --> %s\n",
+		target.Proxy.Mode, userIP, target.FetchedSource, req.Host, target.URL.String()))
+
+	resolver, ok := p.resolvers[target.Proxy.Mode]
+	if !ok {
+		logs.Info(fmt.Sprintf("target not defined: %s (%s) %v", req.Host, userIP, target))
+		return templateHandler("notfound.html", req.Host, 404)
+	}
+
+	return resolver(req, target)
+
+}
+
+func (p *Proxy) maintenance(req *http.Request, target *resolver.Target) http.Handler {
+	return templateHandler("maintenance.html", nil, 503)
+}
+
+func (p *Proxy) redirect(req *http.Request, target *resolver.Target) http.Handler {
+	return http.RedirectHandler(target.URL.String()+req.RequestURI, http.StatusFound)
+}
+
+func (p *Proxy) vm(req *http.Request, target *resolver.Target) http.Handler {
+	userIP := getIP(req.RemoteAddr)
+	hostnameAlias := target.HostnameAlias[0]
+	hostkite := target.Properties["hostkite"].(string)
+
+	var port string
+	var err error
+	if !utils.HasPort(req.Host) {
+		port = "80"
+	} else {
+		_, port, err = net.SplitHostPort(req.Host)
+		if err != nil {
+			log.Println(err)
+		}
+	}
+
+	if target.Err == resolver.ErrVMNotFound {
+		logs.Info(fmt.Sprintf("ModeVM err: %s (%s) %s", req.Host, userIP, target.Err))
+		return templateHandler("notfound.html", req.Host, 404)
+	}
+
+	if target.Err == resolver.ErrVMOff {
+		fmt.Println("vm is off, going to start", hostnameAlias)
+		err := p.checkAndStartVM(hostnameAlias, hostkite, port)
+		if err != nil {
+			logs.Info(fmt.Sprintf("vm %s timed out, it's still not up, this is not good!", hostnameAlias))
+			return templateHandler("notactiveVM.html", req.Host, 404)
+		}
+	}
+
+	fmt.Printf("checking if vm %s is alive.\n", hostnameAlias)
+	err = utils.CheckServer(target.URL.Host)
+	if err != nil {
+		oerr, ok := err.(*net.OpError)
+		if !ok {
+			fmt.Println("vm can't be reached,", err)
+			logs.Info(fmt.Sprintf("vm host %s is down: '%s'", req.Host, err))
+			return templateHandler("notactiveVM.html", req.Host, 404)
+		}
+
+		if oerr.Err != syscall.EHOSTUNREACH {
+			fmt.Println("vm can't be reached, net.OpError", oerr.Err)
+			logs.Info(fmt.Sprintf("vm host %s is down: '%s'", req.Host, err))
+			return templateHandler("notactiveVM.html", req.Host, 404)
+		}
+
+		// EHOSTUNREACH means "no route to host". This error is passed
+		// when the VM is down, therefore turn it on.
+		err = p.checkAndStartVM(hostnameAlias, hostkite, port)
+		if err != nil {
+			logs.Info(fmt.Sprintf("vm %s timed out, it's still not up, this is not good!", hostnameAlias))
+			return templateHandler("notactiveVM.html", req.Host, 404)
+		}
+	}
+
+	session, _ := store.Get(req, vmCookieName)
+	_, ok := session.Values["visited"]
+	if !ok {
+		return context.ClearHandler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			session.Values["visited"] = time.Now().String()
+			session.Options = &sessions.Options{MaxAge: 3600} //seconds -> 1h
+			session.Save(r, w)
+
+			err := templates.ExecuteTemplate(w, "accessVM.html", r.Host)
+			if err != nil {
+				logs.Err(fmt.Sprintf("template notOnVM could not be executed %s", err))
+				http.Error(w, "error code - 5", 404)
+				return
+			}
+		}))
+	}
+
+	if isWebsocket(req) {
+		return websocketHandler(target.URL.Host)
+	}
+
+	return reverseProxyHandler(nil, target.URL)
+}
+
+func (p *Proxy) internal(req *http.Request, target *resolver.Target) http.Handler {
+	userIP := getIP(req.RemoteAddr)
+
+	// roundrobin to next target
+	target.Resolve(req.Host)
+	if target.Err != nil {
+		logs.Info(fmt.Sprintf("internal resolver error for %s (%s) - %s", req.Host, userIP, target.Err))
+
+		statusCode := 503
+		if target.Err == resolver.ErrGone {
+			statusCode = 410 // Gone
+		}
+
+		return templateHandler("maintenance.html", nil, statusCode)
+	}
+
+	return reverseProxyHandler(nil, target.URL)
+}
+
 func (p *Proxy) checkAndStartVM(hostnameAlias, hostkite, port string) error {
 	vmAddr, err := p.startVM(hostnameAlias, hostkite)
 	if err != nil {
@@ -443,123 +584,6 @@ func (p *Proxy) checkAndStartVM(hostnameAlias, hostkite, port string) error {
 			return errors.New("timeout")
 		}
 	}
-}
-
-// getHandler returns the appropriate Handler for the given Request or nil if
-// none found.
-func (p *Proxy) getHandler(req *http.Request) http.Handler {
-	userIP := getIP(req.RemoteAddr)
-
-	target, err := resolver.GetTarget(req)
-	if err != nil {
-		logs.Info(fmt.Sprintf("GetTarget err: %s (%s) %s", req.Host, userIP, err))
-		return templateHandler("notfound.html", req.Host, 404)
-	}
-
-	switch target.Proxy.Mode {
-	case resolver.ModeMaintenance:
-		return templateHandler("maintenance.html", nil, 503)
-	case resolver.ModeRedirect:
-		return http.RedirectHandler(target.URL.String()+req.RequestURI, http.StatusFound)
-	case resolver.ModeVM:
-		// TODO: the whole case needs a refactor at some time. Probably when
-		// we decide to split koding-proxy and user-proxy into two seperate
-		// kites.
-		hostnameAlias := target.HostnameAlias[0]
-		hostkite := target.Properties["hostkite"].(string)
-
-		var port string
-		if !utils.HasPort(req.Host) {
-			port = "80"
-		} else {
-			_, port, err = net.SplitHostPort(req.Host)
-			if err != nil {
-				log.Println(err)
-			}
-		}
-
-		if target.Err == resolver.ErrVMNotFound {
-			logs.Info(fmt.Sprintf("ModeVM err: %s (%s) %s", req.Host, userIP, target.Err))
-			return templateHandler("notfound.html", req.Host, 404)
-		}
-
-		if target.Err == resolver.ErrVMOff {
-			fmt.Println("vm is off, going to start", hostnameAlias)
-			err = p.checkAndStartVM(hostnameAlias, hostkite, port)
-			if err != nil {
-				logs.Info(fmt.Sprintf("vm %s timed out, it's still not up, this is not good!", hostnameAlias))
-				return templateHandler("notactiveVM.html", req.Host, 404)
-			}
-		}
-
-		fmt.Printf("checking if vm %s is alive.\n", hostnameAlias)
-		err := utils.CheckServer(target.URL.Host)
-		if err != nil {
-			oerr, ok := err.(*net.OpError)
-			if !ok {
-				fmt.Println("vm can't be reached,", err)
-				logs.Info(fmt.Sprintf("vm host %s is down: '%s'", req.Host, err))
-				return templateHandler("notactiveVM.html", req.Host, 404)
-			}
-
-			if oerr.Err != syscall.EHOSTUNREACH {
-				fmt.Println("vm can't be reached, net.OpError", oerr.Err)
-				logs.Info(fmt.Sprintf("vm host %s is down: '%s'", req.Host, err))
-				return templateHandler("notactiveVM.html", req.Host, 404)
-			}
-
-			// EHOSTUNREACH means "no route to host". This error is passed
-			// when the VM is down, therefore turn it on.
-			err = p.checkAndStartVM(hostnameAlias, hostkite, port)
-			if err != nil {
-				logs.Info(fmt.Sprintf("vm %s timed out, it's still not up, this is not good!", hostnameAlias))
-				return templateHandler("notactiveVM.html", req.Host, 404)
-			}
-		}
-
-		session, _ := store.Get(req, vmCookieName)
-		_, ok := session.Values["visited"]
-		if !ok {
-			return context.ClearHandler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-				session.Values["visited"] = time.Now().String()
-				session.Options = &sessions.Options{MaxAge: 3600} //seconds -> 1h
-				session.Save(r, w)
-
-				err := templates.ExecuteTemplate(w, "accessVM.html", r.Host)
-				if err != nil {
-					logs.Err(fmt.Sprintf("template notOnVM could not be executed %s", err))
-					http.Error(w, "error code - 5", 404)
-					return
-				}
-			}))
-		}
-	case resolver.ModeInternal:
-		// roundrobin to next target
-		target.Resolve(req.Host)
-		if target.Err != nil {
-			logs.Info(fmt.Sprintf("internal resolver error for %s (%s) - %s", req.Host, userIP, err))
-
-			statusCode := 503
-			if err == resolver.ErrGone {
-				statusCode = 410 // Gone
-			}
-
-			return templateHandler("maintenance.html", nil, statusCode)
-		}
-	default:
-		logs.Info(fmt.Sprintf("target not defined: %s (%s) %v", req.Host, userIP, target))
-		return templateHandler("notfound.html", req.Host, 404)
-	}
-
-	logs.Notice(fmt.Sprintf("mode '%s' [%s] via %s : %s --> %s\n",
-		target.Proxy.Mode, userIP, target.FetchedSource, req.Host, target.URL.String()))
-
-	// do now reverse proxy stuff
-	if isWebsocket(req) {
-		return websocketHandler(target.URL.Host)
-	}
-
-	return reverseProxyHandler(nil, target.URL)
 }
 
 // reverseProxyHandler is the main handler that is used for copy the response
