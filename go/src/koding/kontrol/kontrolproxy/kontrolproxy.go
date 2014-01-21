@@ -377,6 +377,31 @@ func (p *Proxy) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	return
 }
 
+func (p *Proxy) checkAndStartVM(hostnameAlias, targetURL string) error {
+	err := p.startVM(hostnameAlias)
+	if err != nil {
+		return err
+	}
+
+	// now check until the server is up
+	ticker := time.NewTicker(500 * time.Millisecond).C
+	timeout := time.After(15 * time.Second)
+
+	for {
+		select {
+		case <-ticker:
+			fmt.Println("checking if vm is alive", hostnameAlias)
+			err := utils.CheckServer(targetURL)
+			if err != nil {
+				continue
+			}
+			return nil
+		case <-timeout:
+			return errors.New("timeout")
+		}
+	}
+}
+
 // getHandler returns the appropriate Handler for the given Request,
 // or nil if none found.
 func (p *Proxy) getHandler(req *http.Request) http.Handler {
@@ -403,12 +428,11 @@ func (p *Proxy) getHandler(req *http.Request) http.Handler {
 
 		if target.Err == resolver.ErrVMOff {
 			fmt.Println("vm is off, going to start", hostnameAlias)
-			err := p.startVM(hostnameAlias)
+			err := p.checkAndStartVM(hostnameAlias, target.URL.Host)
 			if err != nil {
-				log.Println("START VM ERROR", err)
+				logs.Info(fmt.Sprintf("vm host %s can't be started: '%s'", req.Host, err))
+				return templateHandler("notactiveVM.html", req.Host, 404)
 			}
-		} else {
-			fmt.Println("vm seems to be ON")
 		}
 
 		fmt.Println("check if server is alive")
@@ -429,39 +453,11 @@ func (p *Proxy) getHandler(req *http.Request) http.Handler {
 
 			// EHOSTUNREACH means "no route to host". This error is passed
 			// when the VM is down, therefore turn it on.
-			err := p.startVM(hostnameAlias)
-			if err != nil {
-				logs.Info(fmt.Sprintf("vm host %s can't be started: '%s'", req.Host, err))
-				return templateHandler("notactiveVM.html", req.Host, 404)
-			}
-
-			// now check until the server is up
-			checker := func() error {
-				ticker := time.NewTicker(500 * time.Millisecond).C
-				timeout := time.After(15 * time.Second)
-
-				for {
-					select {
-					case <-ticker:
-						err := utils.CheckServer(target.URL.Host)
-						if err != nil {
-							continue
-						}
-						return nil
-					case <-timeout:
-						return errors.New("timeout")
-					}
-				}
-			}
-
-			err = checker()
+			err = p.checkAndStartVM(hostnameAlias, target.URL.Host)
 			if err != nil {
 				logs.Info(fmt.Sprintf("vm %s timed out, it's still not up, this is not good!", hostnameAlias))
 				return templateHandler("notactiveVM.html", req.Host, 404)
 			}
-
-		} else {
-			fmt.Println("vm is alive, proxying now.")
 		}
 
 		// 2. get cookie if any available
