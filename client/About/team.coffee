@@ -64,6 +64,9 @@ KD.extend
         username  : 'pablostanley'
         title     : 'Illustrator'
       ,
+        username  : 'pedrosanchez'
+        title     : 'Growth Engineer'
+      ,
         username  : 'dicle'
         title     : 'Business Analyst'
       ,
@@ -72,6 +75,12 @@ KD.extend
       ,
         username  : 'zeynep'
         title     : 'Finance Assistant'
+      ,
+        username  : 'selin'
+        title     : 'Data scientist'
+      ,
+        username  : 'juliapracht'
+        title     : 'Recruiting & HR'
       ,
         username  : 'nesli'
         title     : 'Chef de Cuisine'
