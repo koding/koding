@@ -58,10 +58,10 @@ class ActivityAppView extends KDScrollView
 
     @setLazyLoader 200
 
+    @addSubView @groupCoverView
     @addSubView @mainBlock
     @addSubView @sideBlock
 
-    @mainBlock.addSubView @groupCoverView
     @mainBlock.addSubView @inputWidget
     @mainBlock.addSubView @feedWrapper
 

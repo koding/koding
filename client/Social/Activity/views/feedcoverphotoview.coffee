@@ -10,7 +10,6 @@ class FeedCoverPhotoView extends KDView
         cssClass : "container"
         size     :
           height : 315
-          width  : 914
 
       container.addSubView @getCoverUpdateButton()
       container.addSubView @getCoverView()
@@ -22,9 +21,10 @@ class FeedCoverPhotoView extends KDView
   getCoverUpdateButton: ->
     if "admin" in KD.config.roles
       new KDButtonView
-        style     : "solid green small"
+        style     : "solid green small update-cover"
+        icon      : yes
         type      : "submit"
-        title     : "update cover photo"
+        title     : "Update cover image"
         callback  : =>
           new UploadImageModalView
             title      : "Change Cover Photo"
@@ -66,8 +66,8 @@ class CollageItemList extends KDListItemView
     super options, data
     @avatar    = new AvatarImage
       size     :
-        width  : 100
-        height : 100
+        width  : 158
+        height : 158
     , @getData()
 
   viewAppended:JView::viewAppended
