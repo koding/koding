@@ -544,10 +544,12 @@ func (p *Proxy) vm(req *http.Request, target *resolver.Target) http.Handler {
 	}
 
 	session, _ := store.Get(req, vmCookieName)
-	_, ok := session.Values["visited"]
+	fmt.Println("getting cookie for", req.Host)
+	_, ok := session.Values[req.Host]
 	if !ok {
 		return context.ClearHandler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			session.Values["visited"] = time.Now().String()
+			fmt.Println("saving cookie for", req.Host)
+			session.Values[req.Host] = time.Now().String()
 			session.Options = &sessions.Options{MaxAge: 3600} //seconds -> 1h
 			session.Save(r, w)
 
