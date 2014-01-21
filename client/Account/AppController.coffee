@@ -92,9 +92,9 @@ class AccountAppController extends AppController
       """
 
   showReferrerModal:(options={})->
-    options.top         or= 50
-    options.left        or= 35
-    options.arrowMargin or= 110
+    options.top         ?= 50
+    options.left        ?= 35
+    options.arrowMargin ?= 110
 
     new ReferrerModal options
 
