@@ -402,8 +402,8 @@ func (p *Proxy) checkAndStartVM(hostnameAlias, targetURL string) error {
 	}
 }
 
-// getHandler returns the appropriate Handler for the given Request,
-// or nil if none found.
+// getHandler returns the appropriate Handler for the given Request or nil if
+// none found.
 func (p *Proxy) getHandler(req *http.Request) http.Handler {
 	userIP := getIP(req.RemoteAddr)
 
@@ -428,11 +428,13 @@ func (p *Proxy) getHandler(req *http.Request) http.Handler {
 
 		if target.Err == resolver.ErrVMOff {
 			fmt.Println("vm is off, going to start", hostnameAlias)
-			err := p.checkAndStartVM(hostnameAlias, target.URL.Host)
+			err := p.startVM(hostnameAlias)
 			if err != nil {
 				logs.Info(fmt.Sprintf("vm host %s can't be started: '%s'", req.Host, err))
 				return templateHandler("notactiveVM.html", req.Host, 404)
 			}
+
+			return http.RedirectHandler(req.URL.String(), http.StatusFound)
 		}
 
 		fmt.Println("check if server is alive")
