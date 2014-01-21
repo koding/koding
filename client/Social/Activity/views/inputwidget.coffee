@@ -135,7 +135,7 @@ class ActivityInputWidget extends KDView
     return  str.replace /\|(.*?):\$suggest:(.*?)\|/g, (match, prefix, title) ->
       tag = tags[title]
       return  "" unless tag
-      return  "|#{prefix}:JTag:#{tag.getId()}|"
+      return  "|#{prefix}:JTag:#{tag.getId()}:#{title}|"
 
   create: (data, callback) ->
     JNewStatusUpdate.create data, (err, activity) =>
