@@ -36,10 +36,8 @@ module.exports = class JPaymentPlan extends JPaymentBase
       instance      :
         fetchToken  :
           (signature Object, Function)
-        subscribe   : [
-          (signature String, Function)
+        subscribe   :
           (signature String, Object, Function)
-        ]
         modify      :
           (signature Object, Function)
         fetchProducts: [
@@ -50,9 +48,10 @@ module.exports = class JPaymentPlan extends JPaymentBase
         updateProducts:
           (signature Object, Function)
         checkQuota  : [
-          (signature Object, Object, Function)
-          (signature Object, Object, Number, Function)
+          (signature Object, Function)
         ]
+        fetchCoupon:
+          (signature String, Function)
 
     schema              :
       planCode          :
@@ -76,6 +75,8 @@ module.exports = class JPaymentPlan extends JPaymentBase
       priceIsVolatile   :
         type            : Boolean
         default         : no
+      discountCode      : String
+      vmCode            : String
       product           :
         prefix          : String
         category        : String
@@ -138,11 +139,12 @@ module.exports = class JPaymentPlan extends JPaymentBase
   fetchToken: secure (client, data, callback) ->
     JPaymentToken.createToken client, planCode: @planCode, callback
 
-  subscribe: (paymentMethodId, options, callback) ->
+  subscribe: (paymentMethodId, options = {}, callback) ->
     [callback, options] = [options, callback]  unless callback
-
-    options ?= {}
     options.multiple ?= no
+    {couponCode} = options
+
+    couponCode = if couponCode is "discount" then @discountCode else @vmCode
 
     JPaymentSubscription.one {
       paymentMethodId
@@ -166,6 +168,7 @@ module.exports = class JPaymentPlan extends JPaymentBase
 
         update = {
           @planCode
+          couponCode
           quantity
           uuid: subscription.uuid
         }
@@ -178,8 +181,12 @@ module.exports = class JPaymentPlan extends JPaymentBase
             else callback null, subscription
 
       else
-        subOptions = { @planCode, startsAt: options.startsAt }
-        
+        subOptions = {
+          @planCode
+          couponCode
+          startsAt: options.startsAt
+        }
+
         recurly.createSubscription paymentMethodId, subOptions, (err, result) =>
           return callback err  if err
 
@@ -188,6 +195,7 @@ module.exports = class JPaymentPlan extends JPaymentBase
 
           subscription = new JPaymentSubscription {
             planCode
+            couponCode
             uuid
             quantity
             status
@@ -245,9 +253,12 @@ module.exports = class JPaymentPlan extends JPaymentBase
       JGroup.one _id: @product.category, (err, group)->
         callback err, unless err then group.slug
 
-  checkQuota: (usage, spend, multiplyFactor, callback) ->
-    [callback, multiplyFactor] = [multiplyFactor, callback]  unless callback
-    
+  vmCouponQuota =
+    "1freevm"   : 1
+    "2freevms"  : 2
+
+  checkQuota: (options, callback) ->
+    {usage, spend, couponCode, multiplyFactor} = options
     multiplyFactor ?= 1
 
     usages = for own planCode, quantity of spend
@@ -255,6 +266,7 @@ module.exports = class JPaymentPlan extends JPaymentBase
       usageAmount = usage[planCode] ? 0
       spendAmount = (spend[planCode] ? 0) * multiplyFactor
 
+      planSize += vmCouponQuota[couponCode]  if couponCode of vmCouponQuota
       total = planSize - usageAmount - spendAmount
 
       { planCode, total }
@@ -264,3 +276,7 @@ module.exports = class JPaymentPlan extends JPaymentBase
     if over.length > 0
     then callback { message: 'quota exceeded', ok, over }
     else callback null
+
+  fetchCoupon: (type, callback) ->
+    code = if type is "discount" then @discountCode else @vmCode
+    recurly.fetchCoupon code, callback
