@@ -99,7 +99,7 @@ class TeamworkTabView extends CollaborativePane
       username   = KD.nick()
       return unless data
 
-      if watchMap[username] is "everybody" or watchMap[username] is data.by
+      if watchMap[username] is data.by or watchMap[watchMap[username]] is data.by
         for pane in @tabView.panes
           if pane.getOptions().indexKey is data.indexKey
             index = @tabView.getPaneIndex pane
