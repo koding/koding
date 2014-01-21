@@ -203,6 +203,7 @@ getDock = ->
 
 putContentIntoFullPage = (content, pagination, contentType)->
   getGraphMeta  = require './graphmeta'
+  analytics     = require './analytics'
 
   """
     <!DOCTYPE html>
@@ -238,6 +239,7 @@ putContentIntoFullPage = (content, pagination, contentType)->
           </div>
         </section>
       </div>
+      #{analytics()}
     </body>
     </html>
   """

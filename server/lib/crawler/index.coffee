@@ -1,10 +1,10 @@
 { isLoggedIn, error_404, error_500 } = require '../server/helpers'
-{htmlEncode} = require 'htmlencode'
-kodinghome = require './staticpages/kodinghome'
-activity = require './staticpages/activity'
-crawlableFeed = require './staticpages/feed'
-profile = require './staticpages/profile'
-{Relationship} = require 'jraphical'
+{htmlEncode}                         = require 'htmlencode'
+kodinghome                           = require './staticpages/kodinghome'
+activity                             = require './staticpages/activity'
+crawlableFeed                        = require './staticpages/feed'
+profile                              = require './staticpages/profile'
+{Relationship}                       = require 'jraphical'
 
 {
   forceTwoDigits
