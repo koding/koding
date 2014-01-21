@@ -41,7 +41,7 @@ class AccountReferralSystemListController extends AccountListViewController
         """
 
 
-  showRedeemReferralPointModal = KD.utils.showRedeemReferralPointModal
+  showRedeemReferralPointModal: KD.utils.showRedeemReferralPointModal
 
   loadView: ->
     super
