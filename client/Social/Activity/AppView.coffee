@@ -161,8 +161,8 @@ class ReferalBox extends JView
       tagName    : 'a'
       attributes :
         href     : '#'
-      click      : (e)->
-        KD.utils.showRedeemReferralPointModal()
+      click      : (e)=>
+        @showRedeemReferralPointModal()
         e.stopPropagation()
 
     KD.getSingleton("vmController").on "ReferralCountUpdated", =>
@@ -176,6 +176,13 @@ class ReferalBox extends JView
       determinate : yes
 
   click : -> @showReferrerModal()
+
+
+  showRedeemReferralPointModal:->
+    KD.mixpanel "Referer Redeem Point modal, click"
+
+    appManager = KD.getSingleton "appManager"
+    appManager.tell "Account", "showRedeemReferralPointModal"
 
   updateReferralCountPartial:->
     KD.remote.api.JReferral.fetchRedeemableReferrals { type: "disk" }, (err, referals)=>
@@ -210,12 +217,7 @@ class ReferalBox extends JView
     KD.mixpanel "Referer modal, click"
 
     appManager = KD.getSingleton "appManager"
-    appManager.tell "Account", "showReferrerModal",
-      # linkView    : getYourReferrerCode
-      top         : 50
-      left        : 35
-      arrowMargin : 110
-
+    appManager.tell "Account", "showReferrerModal"
 
   pistachio:->
     """
