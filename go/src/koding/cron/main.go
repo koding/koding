@@ -1,8 +1,8 @@
 package main
 
 import (
-	"fmt"
 	"koding/tools/config"
+	"koding/tools/logger"
 	"koding/workers/topicmodifier"
 	"os"
 	"os/signal"
@@ -12,6 +12,7 @@ import (
 )
 
 var (
+	log                     = logger.New("go-cron")
 	Cron                    *cron.Cron
 	TOPIC_MODIFIER_SCHEDULE = config.Current.TopicModifier.CronSchedule
 )
@@ -23,7 +24,7 @@ func init() {
 }
 
 func main() {
-	fmt.Println("Starting Cron Scheduler")
+	log.Notice("Starting Cron Scheduler")
 
 	addTopicModifierConsumer()
 
@@ -53,7 +54,7 @@ func addFunc(spec string, cmd func()) {
 
 func shutdown() {
 	Cron.Stop()
-	fmt.Println("Stopping it")
+	log.Notice("Stopping it")
 	err := topicmodifier.Shutdown()
 	if err != nil {
 		panic(err)
