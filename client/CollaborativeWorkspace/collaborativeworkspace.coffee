@@ -62,7 +62,9 @@ class CollaborativeWorkspace extends Workspace
       @userRef.child("status").set "online"
 
       @loader.destroy()
-      @chatView?.show()
+      if @chatView
+        @chatView.show()
+        @utils.defer => @chatView.scrollToBottom()
 
       @emit "WorkspaceSyncedWithRemote"
 
