@@ -14,34 +14,8 @@ class AccountReferralSystemListController extends AccountListViewController
       @instantiateListItems referals or []
     @hideLazyLoader()
 
-    @on "RedeemReferralPointSubmitted", @bound "redeemReferralPoint"
-    @on "ShowRedeemReferralPointModal", @bound "showRedeemReferralPointModal"
-
-  notify_:(message)->
-    new KDNotificationView
-      title    : message
-      duration : 2500
-
-  redeemReferralPoint:(modal)->
-    {vmToResize, sizes} = modal.modal.modalTabs.forms.Redeem.inputs
-
-    data = {
-      vmName : vmToResize.getValue(),
-      size   : sizes.getValue(),
-      type   : "disk"
-    }
-
-    KD.remote.api.JReferral.redeem data, (err, refRes)=>
-      return KD.showError err if err
-      modal.modal.destroy()
-      KD.getSingleton("vmController").resizeDisk data.vm, (err, res)=>
-        return KD.showError err if err
-        @notify_ """
-          #{refRes.addedSize} #{refRes.unit} extra #{refRes.type} is successfully added to your #{refRes.vm} VM.
-        """
-
-
-  showRedeemReferralPointModal: KD.utils.showRedeemReferralPointModal
+    @on "ShowRedeemReferralPointModal", ->
+      KD.utils.showRedeemReferralPointModal()
 
   loadView: ->
     super
@@ -73,7 +47,7 @@ class AccountReferralSystemListController extends AccountListViewController
 
     wrapper.addSubView redeem = new CustomLinkView
       title : "Redeem Your Referrer Points"
-      click : => @emit "ShowRedeemReferralPointModal", this
+      click : => KD.utils.showRedeemReferralPointModal()
 
 class AccountReferralSystemList extends KDListView
 
