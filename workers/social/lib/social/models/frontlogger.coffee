@@ -51,8 +51,8 @@ module.exports = class FrontLogger extends jraphical.Module
   logMethods = ['trace', 'debug', 'info', 'warn', 'error', 'fatal']
   for method in logMethods
     do (method)=>
-      @[method] = (message, params)->
+      @[method] = (message, params...)->
         if params
-          logger[method] message, params
+          logger[method] message, params...
         else
           logger[method] message
