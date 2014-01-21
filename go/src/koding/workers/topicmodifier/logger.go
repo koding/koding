@@ -4,4 +4,4 @@ import (
 	"koding/tools/logger"
 )
 
-var log = logger.New("TopicModifier")
+var log = logger.New("topicModifier")
