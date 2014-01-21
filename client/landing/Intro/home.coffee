@@ -125,7 +125,7 @@ class HomePage extends JView
       <main>
         <div class="clearfix">
           <div class="headings-container">
-            <h1 class='big-header'>CODING ENVIRONMENT<br/>FROM THE FUTURE</h1>
+            <h1 class='big-header'>Coding environment<br/>from the future</h1>
             <h2>Social development in your browser, sign up to join a great community and code on powerful VMs.</h2>
           </div>
           <div class="register-container">
@@ -158,7 +158,7 @@ class HomePage extends JView
         </div>
       </section>
       <section id='home-groups'>
-        <h2 class='big-header'>GROUPS, HAVE YOUR OWN KODING</h2>
+        <h2 class='big-header'>Groups, have your own koding</h2>
         <h3>Have all your development needs in a single private space.</h3>
         <figure class='education'></figure>
         <figure class='browser'></figure>
@@ -188,7 +188,7 @@ class HomePage extends JView
         {{> @pricingButton}}
       </section>
       <section id='home-bottom'>
-        <h2 class='big-header'>IF YOU ARE READY TO GO, LET’S DO THIS</h2>
+        <h2 class='big-header'>If you are ready to go, let’s do this</h2>
         <h3 class='hidden'>Something super simple and super descriptive goes here</h3>
         {{> @registerFormBottom}}
       </section>
@@ -200,6 +200,7 @@ class HomePage extends JView
           </address>
         </div>
         <nav>
+          <a href="/Activity">Activity</a>
           <a href="/About">About</a>
           <a href="mailto:hello@koding.com">Contact</a>
           <a href="http://learn.koding.com/">University</a>
