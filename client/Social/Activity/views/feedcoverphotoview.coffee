@@ -23,9 +23,16 @@ class FeedCoverPhotoView extends KDView
     admin = role for role in KD.config.roles when role is "admin"
     if admin
       new KDButtonView
-        style  : "solid green small account-header-button"
-        type   : "submit"
-        title  : "update cover photo"
+        style     : "solid green small"
+        type      : "submit"
+        title     : "update cover photo"
+        callback  : =>
+          new UploadImageModalView
+            title         : "Change Cover Photo"
+            imageSize     :
+              width       : 914
+              height      : 315
+            imageType     : "coverPhoto"
     else
       new KDCustomHTMLView
 
