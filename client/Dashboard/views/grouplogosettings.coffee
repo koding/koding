@@ -61,9 +61,8 @@ class GroupLogoSettings extends KDView
     FSHelper.s3.upload "grouplogo-test1.png", avatarData, (err, url)=>
       resized = KD.utils.proxifyUrl url,
         crop: true, width: 55, height: 55
-      #TODO : update with JGroup
-      callback err, url
-      # @memberData.modify "profile.avatar": [url, +new Date()].join("?"), callback
+      group = KD.singletons.groupsController.getCurrentGroup()
+      group.modify "customize.logo" : "#{url}?#{Date.now()}", callback
 
   uploadLogo:->
     @logoLoaderView.show()
