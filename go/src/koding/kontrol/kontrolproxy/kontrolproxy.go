@@ -265,13 +265,6 @@ func (p *Proxy) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			http.Redirect(w, r, "https://koding.com"+r.RequestURI, http.StatusMovedPermanently)
 			return
 		}
-
-		// remove this later, just added because this stupid client is not SSLv3 compatible.
-		crawler := r.Header.Get("User-Agent")
-		if crawler != "Screaming Frog SEO Spider/2.22" {
-			http.Redirect(w, r, "https://koding.com"+r.RequestURI, http.StatusMovedPermanently)
-			return
-		}
 	}
 
 	// our main handler mux function goes and picks the correct handler
