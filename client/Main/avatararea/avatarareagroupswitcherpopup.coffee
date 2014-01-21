@@ -136,7 +136,7 @@ class AvatarPopupGroupSwitcher extends AvatarPopup
       @avatarPopupContent.addSubView new KDCustomHTMLView
         tagName    : 'a'
         cssClass   : 'bottom'
-        partial    : 'Switch back to https'
+        partial    : 'Switch back to secure (https) mode'
         click      : (event)=>
           KD.utils.stopDOMEvent event
           $.cookie cookieName, erase: yes
