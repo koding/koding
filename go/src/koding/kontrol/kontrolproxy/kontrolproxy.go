@@ -476,7 +476,6 @@ func (p *Proxy) getHandler(req *http.Request) http.Handler {
 		target.Proxy.Mode, userIP, target.FetchedSource, req.Host, target.URL.String()))
 
 	return resolver(req, target)
-
 }
 
 func (p *Proxy) maintenance(req *http.Request, target *resolver.Target) http.Handler {
@@ -511,7 +510,10 @@ func (p *Proxy) vm(req *http.Request, target *resolver.Target) http.Handler {
 
 	if target.Err == resolver.ErrVMOff {
 		fmt.Println("vm is off, going to start", hostnameAlias)
-		err := p.checkAndStartVM(hostnameAlias, hostkite, port)
+		// target.URL might be nil, however if we start the VM, oskite sends a
+		// new IP that we can use and update the current one. IT will be nil
+		// if an error is occured.
+		target.URL, err = p.checkAndStartVM(hostnameAlias, hostkite, port)
 		if err != nil {
 			logs.Info(fmt.Sprintf("vm %s timed out, err: %s", hostnameAlias, err))
 			return templateHandler("notactiveVM.html", req.Host, 404)
@@ -536,7 +538,7 @@ func (p *Proxy) vm(req *http.Request, target *resolver.Target) http.Handler {
 
 		// EHOSTUNREACH means "no route to host". This error is passed
 		// when the VM is down, therefore turn it on.
-		err = p.checkAndStartVM(hostnameAlias, hostkite, port)
+		target.URL, err = p.checkAndStartVM(hostnameAlias, hostkite, port)
 		if err != nil {
 			logs.Info(fmt.Sprintf("vm %s timed out, it's still not up, this is not good!", hostnameAlias))
 			return templateHandler("notactiveVM.html", req.Host, 404)
@@ -588,10 +590,10 @@ func (p *Proxy) internal(req *http.Request, target *resolver.Target) http.Handle
 	return reverseProxyHandler(nil, target.URL)
 }
 
-func (p *Proxy) checkAndStartVM(hostnameAlias, hostkite, port string) error {
+func (p *Proxy) checkAndStartVM(hostnameAlias, hostkite, port string) (*url.URL, error) {
 	vmAddr, err := p.startVM(hostnameAlias, hostkite)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	if !utils.HasPort(vmAddr) {
@@ -612,9 +614,9 @@ func (p *Proxy) checkAndStartVM(hostnameAlias, hostkite, port string) error {
 			if err != nil {
 				continue
 			}
-			return nil
+			return targetURL, nil
 		case <-timeout:
-			return errors.New("timeout")
+			return nil, errors.New("timeout")
 		}
 	}
 }
