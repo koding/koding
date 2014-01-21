@@ -48,7 +48,6 @@ normalizeActivityBody = (activity, bodyString="") ->
     {body} = activity
 
   tagMap = {}
-  console.log "activity.tags: ", activity.tags
   activity.tags?.forEach (tag) -> tagMap[tag.getId()] = tag
 
   return body.replace /\|(.+?)\|/g, (match, tokenString) ->
