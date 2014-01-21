@@ -89,20 +89,20 @@ getPagination = (currentPage, numberOfItems, contentType)->
     end   = currentPage + PAGERWINDOW
 
   if start > 1
-    pagination += getEmptyLink " ... "
+    pagination += getNoHrefLink " ... "
 
   [start..end].map (pageNumber)=>
     pagination += getSinglePageLink pageNumber, contentType
 
   if end < numberOfPages
-    pagination += getEmptyLink " ... "
+    pagination += getNoHrefLink " ... "
 
   pagination += nextLink
   pagination += lastLink
 
   return pagination
 
-getEmptyLink = (linkText)->
+getNoHrefLink = (linkText)->
   "<a href='#'>#{linkText}  </a>"
 
 getSinglePageLink = (pageNumber, contentType, linkText=pageNumber)->
