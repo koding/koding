@@ -433,17 +433,44 @@ func (p *Proxy) getHandler(req *http.Request) http.Handler {
 			if err != nil {
 				log.Println("START VM ERROR DUE TO EHOSTUNREACH", err)
 			}
+
+			// now check until the server is up
+			checker := func() error {
+				ticker := time.NewTicker(500 * time.Millisecond).C
+				timeout := time.After(15 * time.Second)
+
+				for {
+					select {
+					case <-ticker:
+						err := utils.CheckServer(target.URL.Host)
+						if err != nil {
+							continue
+						}
+						return nil
+					case <-timeout:
+						return errors.New("timeout")
+					}
+				}
+			}
+
+			err = checker()
+			if err != nil {
+				fmt.Println("vm timed out, we started it but it seems it's still not up")
+				return templateHandler("notactiveVM.html", req.Host, 404)
+
+			}
+
 		} else {
 			fmt.Println("vm is alive, proxying now.")
 		}
 
 		// 2. get cookie if any available
 		session, _ := store.Get(req, vmCookieName)
-		_, ok := session.Values["vmName"]
+		_, ok := session.Values["visited"]
 		if !ok {
 			return context.ClearHandler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 				fmt.Println("saving cookie session now")
-				session.Values["vmName"] = time.Now().String()
+				session.Values["visited"] = time.Now().String()
 				session.Options = &sessions.Options{MaxAge: 3600} //seconds -> 1h
 				session.Save(r, w)
 
