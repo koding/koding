@@ -13,6 +13,7 @@ import (
 	"koding/tools/config"
 	"log"
 	"log/syslog"
+	"math/rand"
 	"net"
 	"net/http"
 	"net/http/httputil"
@@ -258,23 +259,47 @@ func (p *Proxy) findAndDialOskite() {
 	}
 }
 
-// startVM starts the vm and returns back the initalized IP
+func (p *Proxy) randomOskite() (*kite.RemoteKite, bool) {
+	i := 0
+	exit := rand.Intn(len(p.oskites) - 1)
+	for _, oskite := range p.oskites {
+		if i == exit {
+			return oskite, true
+		}
+		i++
+	}
+
+	return nil, false
+}
+
+// startVM starts the vm and returns back the iniprandtalized IP
 func (p *Proxy) startVM(hostnameAlias, hostkite string) (string, error) {
 	fmt.Println("starting vm", hostnameAlias)
 	p.oskitesMu.Lock()
 	defer p.oskitesMu.Unlock()
 
-	// hostkite is in form: "kite-os-sj|kontainer1_sj_koding_com"
-	s := strings.Split(hostkite, "|")
-	if len(s) < 2 {
-		return "", fmt.Errorf("hostkite '%s' is malformed", hostkite)
-	}
+	var oskite *kite.RemoteKite
+	var ok bool
 
-	serviceUniqueHostname := s[1] // gives kontainer1_sj_koding_com
+	if hostkite == "" {
+		var ok bool
+		oskite, ok = p.randomOskite()
+		if !ok {
+			return "", fmt.Errorf("no random oskite available")
+		}
+	} else {
+		// hostkite is in form: "kite-os-sj|kontainer1_sj_koding_com"
+		s := strings.Split(hostkite, "|")
+		if len(s) < 2 {
+			return "", fmt.Errorf("hostkite '%s' is malformed", hostkite)
+		}
 
-	oskite, ok := p.oskites[serviceUniqueHostname]
-	if !ok {
-		return "", fmt.Errorf("oskite not available for %s", serviceUniqueHostname)
+		serviceUniqueHostname := s[1] // gives kontainer1_sj_koding_com
+
+		oskite, ok = p.oskites[serviceUniqueHostname]
+		if !ok {
+			return "", fmt.Errorf("oskite not available for %s", serviceUniqueHostname)
+		}
 	}
 
 	if oskite == nil {
@@ -464,6 +489,7 @@ func (p *Proxy) vm(req *http.Request, target *resolver.Target) http.Handler {
 
 	var port string
 	var err error
+
 	if !utils.HasPort(req.Host) {
 		port = "80"
 	} else {
@@ -482,7 +508,7 @@ func (p *Proxy) vm(req *http.Request, target *resolver.Target) http.Handler {
 		fmt.Println("vm is off, going to start", hostnameAlias)
 		err := p.checkAndStartVM(hostnameAlias, hostkite, port)
 		if err != nil {
-			logs.Info(fmt.Sprintf("vm %s timed out, it's still not up, this is not good!", hostnameAlias))
+			logs.Info(fmt.Sprintf("vm %s timed out, err: %s", hostnameAlias, err))
 			return templateHandler("notactiveVM.html", req.Host, 404)
 		}
 	}
