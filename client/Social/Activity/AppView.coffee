@@ -161,7 +161,7 @@ class ReferalBox extends JView
       tagName    : 'a'
       attributes :
         href     : '#'
-      click      : (e)=>
+      click      : (e)->
         KD.utils.showRedeemReferralPointModal()
         e.stopPropagation()
       partial    : 'Redeem your referral points'
