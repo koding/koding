@@ -436,14 +436,14 @@ func (p *Proxy) getHandler(req *http.Request) http.Handler {
 		return templateHandler("notfound.html", req.Host, 404)
 	}
 
-	logs.Notice(fmt.Sprintf("mode '%s' [%s] via %s : %s --> %s\n",
-		target.Proxy.Mode, userIP, target.FetchedSource, req.Host, target.URL.String()))
-
 	resolver, ok := p.resolvers[target.Proxy.Mode]
 	if !ok {
 		logs.Info(fmt.Sprintf("target not defined: %s (%s) %v", req.Host, userIP, target))
 		return templateHandler("notfound.html", req.Host, 404)
 	}
+
+	logs.Notice(fmt.Sprintf("mode '%s' [%s] via %s : %s --> %s\n",
+		target.Proxy.Mode, userIP, target.FetchedSource, req.Host, target.URL.String()))
 
 	return resolver(req, target)
 
