@@ -23,7 +23,7 @@ class VmProductForm extends FormWorkflow
       usage = oldSubscription?.quantities ? {}
       spend = pack.quantities
 
-      plan.checkQuota usage, spend, 1, (err, usage) =>
+      plan.checkQuota {usage, spend, multiplyFactor: 1}, (err, usage) =>
         if err
           @clearData 'plan'
 
