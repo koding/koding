@@ -15,7 +15,9 @@ class CollaborativePreviewPane extends CollaborativePane
       @workspaceRef.once "value", (snapshot) =>
         @openPathFromSnapshot snapshot
 
-    @previewer.on "ViewerLocationChanged", => @saveUrl()
+    @previewer.on "ViewerLocationChanged", =>
+      @saveUrl()
+      @previewPane.secureInfo?.destroy()
 
     @previewer.on "ViewerRefreshed",       => @saveUrl yes
 
@@ -23,7 +25,9 @@ class CollaborativePreviewPane extends CollaborativePane
 
   openPathFromSnapshot: (snapshot) ->
     value = snapshot.val()
-    @previewer.openPath value.url  if value?.url
+    return unless value
+    @previewer.openPath value.url  if value.url
+    @previewPane.secureInfo?.destroy()
 
   openUrl: (url) ->
     @previewer.openPath url
