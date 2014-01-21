@@ -41,7 +41,8 @@ getSingleActivityPage = ({activityContent, account, models})->
   {Relationship} = require 'jraphical'
   getStyles      = require './styleblock'
   getGraphMeta   = require './graphmeta'
-  model      = models.first if models and Array.isArray models
+  analytics      = require './analytics'
+  model          = models.first if models and Array.isArray models
 
   title  = activityContent?.title
   """
@@ -77,6 +78,7 @@ getSingleActivityPage = ({activityContent, account, models})->
             </div>
           </div>
         </section>
+        #{analytics()}
     </body>
   </html>
   """

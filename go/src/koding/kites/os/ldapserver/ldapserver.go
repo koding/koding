@@ -4,7 +4,7 @@ import (
 	ber "github.com/hsoj/asn1-ber"
 	"io"
 	"koding/db/mongodb"
-	"koding/tools/log"
+	"koding/tools/logger"
 	"koding/virt"
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
@@ -13,6 +13,8 @@ import (
 	"strings"
 	"time"
 )
+
+var log = logger.New("ldapserver")
 
 var vmCache = make(map[bson.ObjectId]*virt.VM)
 var userByUidCache = make(map[int]*virt.User)

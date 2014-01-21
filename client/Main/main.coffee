@@ -47,6 +47,8 @@ do ->
     notifyUser = options.notifyUser or= "yes"
     state      = "disconnected"
 
+    KD.logToExternalWithTime "User disconnected"
+
     log "disconnected",\
     "reason: #{reason}, modalSize: #{modalSize}, notifyUser: #{notifyUser}"
 

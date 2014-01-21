@@ -33,10 +33,10 @@ class CollaborativeWorkspace extends Workspace
     @broadcastRef   = @workspaceRef.child "broadcast"
     @historyRef     = @workspaceRef.child "history"
     @chatRef        = @workspaceRef.child "chat"
-    @watchRef       = @workspaceRef.child "watch"
     @usersRef       = @workspaceRef.child "users"
     @userRef        = @usersRef.child KD.nick()
     @requestPingRef = @workspaceRef.child "requestPing"
+    @onlineCountRef = @workspaceRef.child "onlineUserCount"
     @sessionKeysRef = @firebaseRef.child  "session_keys"
 
   syncWorkspace: ->
@@ -58,7 +58,6 @@ class CollaborativeWorkspace extends Workspace
       if not isOldSession
         @addToHistory { message: "$0 started the session", by: KD.nick() }
 
-      @watchRef.child(@nickname).set "everybody"
       @sessionKeysRef.child(@nickname).set @sessionKey
       @userRef.child("status").set "online"
 
@@ -113,9 +112,6 @@ class CollaborativeWorkspace extends Workspace
       events = [ "value", "child_added", "child_removed", "child_changed" ]
       @workspaceRef.off eventName for eventName in events
 
-    @watchRef.on "value", (snapshot) =>
-      @watchMap = snapshot.val() or {}
-
     @userRef.child("status").onDisconnect().set "offline"
 
     @requestPingRef.on "value", (snapshot) =>
@@ -132,6 +128,13 @@ class CollaborativeWorkspace extends Workspace
       @syncWorkspace()
       @connected = yes
       KD.utils.killWait @pingHostTimer
+
+    @usersRef.on "value", (snapshot) =>
+      data   = snapshot.val()
+      return unless data
+      count  = 0
+      count++ for username, state of data when state.status is "online"
+      @onlineCountRef.set count
 
   requestPingFromHost: ->
     @requestPingRef.set Date.now()

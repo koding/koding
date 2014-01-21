@@ -6,7 +6,7 @@ import (
 	"github.com/streadway/amqp"
 	"koding/databases/neo4j"
 	"koding/tools/amqputil"
-	"koding/tools/log"
+	"koding/tools/logger"
 	"koding/tools/statsd"
 	"koding/workers/neo4jfeeder/mongohelper"
 	"labix.org/v2/mgo/bson"
@@ -29,6 +29,8 @@ type Message struct {
 	Event   string                   `json:"event"`
 	Payload []map[string]interface{} `json:"payload"`
 }
+
+var log = logger.New("neo4jfeeder")
 
 func main() {
 	statsd.SetAppName("neo4jFeeder")
@@ -58,48 +60,45 @@ func startConsuming() {
 	// exchangeName, ExchangeType, durable, autoDelete, internal, noWait, args
 	err := c.channel.ExchangeDeclare(EXCHANGE_NAME, "fanout", true, false, false, false, nil)
 	if err != nil {
-		fmt.Println("exchange.declare: %s", err)
-		panic(err)
+		log.Panic("exchange.declare: %s", err)
 	}
 
 	//name, durable, autoDelete, exclusive, noWait, args Table
 	if _, err := c.channel.QueueDeclare(WORKER_QUEUE_NAME, true, false, false, false, nil); err != nil {
-		fmt.Println("queue.declare: %s", err)
-		panic(err)
+		log.Panic("queue.declare: %s", err)
 	}
 
 	if err := c.channel.QueueBind(WORKER_QUEUE_NAME, "" /* binding key */, EXCHANGE_NAME, false, nil); err != nil {
-		fmt.Println("queue.bind: %s", err)
-		panic(err)
+		log.Panic("queue.bind: %s", err)
 	}
 
 	//(queue, consumer string, autoAck, exclusive, noLocal, noWait bool, args Table) (<-chan Delivery, error) {
 	relationshipEvent, err := c.channel.Consume(WORKER_QUEUE_NAME, "neo4jFeeding", false, false, false, false, nil)
 	if err != nil {
-		fmt.Println("basic.consume: %s", err)
-		panic(err)
+		log.Panic("basic.consume: %s", err)
 	}
 
-	fmt.Println("Neo4J Feeder worker started")
+	log.Notice("Neo4J Feeder worker started")
 
 	for msg := range relationshipEvent {
 		body := fmt.Sprintf("%s", msg.Body)
 
 		message, err := jsonDecode(body)
 		if err != nil {
-			fmt.Println("Wrong message format", err, body)
+			log.Error("Wrong message format err: %v, body: %v", err, body)
 			msg.Ack(true)
 			continue
 		}
 
 		if len(message.Payload) < 1 {
-			fmt.Println("Wrong message format; payload should be an Array", message)
+			log.Error("Wrong message format; payload should be an Array message %v", message)
 			msg.Ack(true)
 			continue
 		}
 		data := message.Payload[0]
 
-		log.Debug(message.Event)
+		log.Debug("%v %v", message.Event, data)
+
 		if message.Event == "RelationshipSaved" {
 			createNode(data)
 		} else if message.Event == "RelationshipRemoved" {
@@ -109,7 +108,7 @@ func startConsuming() {
 		} else if message.Event == "RemovedFromCollection" {
 			deleteNode(data)
 		} else {
-			log.Debug(message.Event)
+			log.Debug("No method found for event: %v", message.Event)
 		}
 
 		msg.Ack(true)
@@ -124,24 +123,24 @@ func checkIfEligible(sourceName, targetName string) bool {
 
 	for _, name := range neo4j.NotAllowedNames {
 		if name == sourceName {
-			log.Debug("not eligible " + sourceName)
+			log.Debug("not eligible %v", sourceName)
 			return false
 		}
 
 		if name == targetName {
-			log.Debug("not eligible " + targetName)
+			log.Debug("not eligible %v", targetName)
 			return false
 		}
 	}
 
 	for _, name := range notAllowedSuffixes {
 		if strings.HasSuffix(sourceName, name) {
-			log.Debug("not eligible " + sourceName)
+			log.Debug("not eligible %v", sourceName)
 			return false
 		}
 
 		if strings.HasSuffix(targetName, name) {
-			log.Debug("not eligible " + targetName)
+			log.Debug("not eligible %v", targetName)
 			return false
 		}
 	}
@@ -157,7 +156,7 @@ func createNode(data map[string]interface{}) {
 	targetName := fmt.Sprintf("%s", data["targetName"])
 
 	if sourceId == "" || sourceName == "" || targetId == "" || targetName == "" {
-		fmt.Println("invalid data", data)
+		log.Error("invalid data: %v", data)
 		return
 	}
 
@@ -174,7 +173,7 @@ func createNode(data map[string]interface{}) {
 	sourceContent, err := mongohelper.FetchContent(bson.ObjectIdHex(sourceId), sourceName)
 	if err != nil {
 		sTimer.Failed()
-		fmt.Println("sourceContent", err)
+		log.Error("sourceContent %v", err)
 
 		return
 	}
@@ -184,7 +183,7 @@ func createNode(data map[string]interface{}) {
 	targetContent, err := mongohelper.FetchContent(bson.ObjectIdHex(targetId), targetName)
 	if err != nil {
 		sTimer.Failed()
-		fmt.Println("targetContent", err)
+		log.Error("targetContent %v", err)
 
 		return
 	}
@@ -196,7 +195,7 @@ func createNode(data map[string]interface{}) {
 
 	if _, ok := data["as"]; !ok {
 		sTimer.Failed()
-		fmt.Println("as value is not set on this relationship. Discarding this record", data)
+		log.Error("as value is not set on this relationship. Discarding this record data: %v", data)
 
 		return
 	}
@@ -204,7 +203,7 @@ func createNode(data map[string]interface{}) {
 
 	if _, ok := data["_id"]; !ok {
 		sTimer.Failed()
-		fmt.Println("id value is not set on this relationship. Discarding this record", data)
+		log.Error("id value is not set on this relationship. Discarding this record: %v", data)
 
 		return
 	}
@@ -231,7 +230,7 @@ func getCreatedAtDate(data map[string]interface{}) time.Time {
 		return bson.ObjectIdHex(id).Time().UTC()
 	}
 
-	fmt.Print("Couldnt determine the createdAt time, returning Now() as creatdAt")
+	log.Warning("Couldnt determine the createdAt time, returning Now() as creatdAt")
 	return time.Now().UTC()
 }
 
@@ -253,7 +252,7 @@ func deleteRelationship(data map[string]interface{}) {
 	targetId := fmt.Sprintf("%s", data["targetId"])
 
 	if sourceId == "" || targetId == "" {
-		fmt.Println("invalid data", data)
+		log.Error("invalid data: %v", data)
 		return
 	}
 
@@ -270,9 +269,9 @@ func deleteRelationship(data map[string]interface{}) {
 	neo4j.DeleteRelationship(sourceId, targetId, as)
 	//result := neo4j.DeleteRelationship(sourceId, targetId, as)
 	//if result {
-	//	fmt.Println("Relationship deleted")
+	//	log.Info("Relationship deleted")
 	//} else {
-	//	fmt.Println("Relationship couldnt be deleted")
+	//	log.Info("Relationship couldnt be deleted")
 	//}
 
 	sTimer.Success()
@@ -293,7 +292,7 @@ func updateNode(data map[string]interface{}) {
 	sourceName := fmt.Sprintf("%s", bongo["constructorName"])
 
 	if sourceId == "" || sourceName == "" {
-		fmt.Println("invalid data", data)
+		log.Error("invalid data: %v", data)
 		return
 	}
 
@@ -310,7 +309,7 @@ func updateNode(data map[string]interface{}) {
 	sourceContent, err := mongohelper.FetchContent(bson.ObjectIdHex(sourceId), sourceName)
 	if err != nil {
 		sTimer.Failed()
-		fmt.Println("sourceContent", err)
+		log.Error("sourceContent %v", err)
 
 		return
 	}

@@ -61,6 +61,8 @@ type interval struct {
 	duration int64
 }
 
+const CookieUseHTTP = "kdproxy-usehttp"
+
 var (
 	// used to extract the Country information via the IP
 	geoIP *libgeo.GeoIP
@@ -256,8 +258,13 @@ func (p *Proxy) startHTTP() {
 // ServeHTTP is needed to satisfy the http.Handler interface.
 func (p *Proxy) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if r.TLS == nil && (r.Host == "koding.com" || r.Host == "www.koding.com") {
-		http.Redirect(w, r, "https://koding.com"+r.RequestURI, http.StatusMovedPermanently)
-		return
+
+		// check if this cookie is set, if yes do not redirect to https
+		_, err := r.Cookie(CookieUseHTTP)
+		if err != nil {
+			http.Redirect(w, r, "https://koding.com"+r.RequestURI, http.StatusMovedPermanently)
+			return
+		}
 	}
 
 	// our main handler mux function goes and picks the correct handler
