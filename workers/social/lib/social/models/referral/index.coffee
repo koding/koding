@@ -227,6 +227,13 @@ module.exports = class JReferral extends jraphical.Message
 
     dash queue, kallback
 
+  @checkFor5GBStatus = (delegate, callback)->
+    delegate.fetchReferrers (err, referrers)=>
+      return callback err  if err
+      for ref in referrers
+        {type, unit, amount} = ref
+        return callback null, yes  if type is "disk" and unit is "MB" and amount is 5000
+      callback err, no
 
   @fetchUserVM = (client, vmName, callback)->
     account = client.connection.delegate
