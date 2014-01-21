@@ -30,14 +30,19 @@ class PreviewPane extends Pane
       partial  : "click here"
       click    : => @useHttp()
 
+    separator  = new KDCustomHTMLView
+      tagName  : "span"
+      partial  : " — "
+
     infoLink   = new KDCustomHTMLView
       tagName  : "a"
-      partial  : " — why?"
+      partial  : "why?"
       cssClass : "tw-secure-info"
       attributes:
         href   : "http://security.stackexchange.com/questions/38317/specific-risks-of-embedding-an-https-iframe-in-an-http-page"
 
     @secureInfo.addSubView httpLink
+    @secureInfo.addSubView separator
     @secureInfo.addSubView infoLink
 
   useHttp: ->
