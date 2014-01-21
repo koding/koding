@@ -63,9 +63,9 @@ class GroupsMemberPermissionsView extends JView
     return warn err if err
     @listController.hideLazyLoader()
     @skip += members.length
-    @timestamp = new Date members.last.timestamp_
 
     if members.length > 0
+      @timestamp = new Date members.last.timestamp_
       ids = (member._id for member in members)
       @getData().fetchUserRoles ids, (err, userRoles)=>
         return warn err if err
@@ -87,8 +87,9 @@ class GroupsMemberPermissionsView extends JView
           for user in users
             userStatusHash[user.username] = user.status
 
-          list.getOptions().userStatus ?= []
-          list.getOptions().userStatus = _.extend(list.getOptions().userStatus, userStatusHash)
+          listOptions = list.getOptions()
+          listOptions.userStatus ?= []
+          listOptions.userStatus = _.extend(listOptions.userStatus, userStatusHash)
           @listController.instantiateListItems members
           if members.length < 30
             @continueLoadingTeasers()

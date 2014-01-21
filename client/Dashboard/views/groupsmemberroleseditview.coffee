@@ -82,7 +82,7 @@ class GroupsMemberRolesEditView extends JView
         cssClass : 'solid'
         callback : =>
           KD.remote.api.JAccount.verifyEmailByUsername @member.profile.nickname, (err) =>
-            return new KDNotificationView title: err.message if err
+            return KD.showError err  if err
             new KDNotificationView title: 'User confirmed'
             @status = "confirmed"
             @emit 'UserConfirmed', @member

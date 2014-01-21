@@ -132,19 +132,14 @@ class DashboardAppController extends AppController
     new GroupProductsController { view }
 
   loadView: (mainView, firstRun = yes, loadFeed = no)->
-    if firstRun
-      @on "searchFilterChanged", (value) =>
-        return if value is @_searchValue
-        @_searchValue = Encoder.XSSEncode value
-        @getOptions().view.search @_searchValue
-        @loadView mainView, no, yes
+    return unless firstRun
+    @on "SearchFilterChanged", (value) =>
+      return if value is @_searchValue
+      @_searchValue = Encoder.XSSEncode value
+      @getOptions().view.search @_searchValue
+      @loadView mainView, no, yes
 
-  handleQuery:(query)->
+  handleQuery:(query={})->
     @getOptions().view.ready =>
       {q} = query
-      if q
-        @emit "searchFilterChanged", q
-      else
-        @emit "searchFilterChanged", ""
-        super query
-
+      @emit "SearchFilterChanged", q or ""
