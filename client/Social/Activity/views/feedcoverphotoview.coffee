@@ -21,9 +21,10 @@ class FeedCoverPhotoView extends KDView
   getCoverUpdateButton: ->
     if "admin" in KD.config.roles
       new KDButtonView
-        style     : "solid green small"
+        style     : "solid green small update-cover"
+        icon      : yes
         type      : "submit"
-        title     : "update cover photo"
+        title     : "Update cover image"
         callback  : =>
           new UploadImageModalView
             title      : "Change Cover Photo"
