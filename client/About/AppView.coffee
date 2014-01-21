@@ -11,17 +11,25 @@ class AboutView extends KDView
     ,
       items       : KD.team.active
 
-    @randomTeamMember = new RandomTeamMemberView
+    @founders = new FoundersView
     @memberList = @activeController.getView()
 
-    @logoPackButton = new KDButtonView
-      title         : "Download Logo Pack"
-      style         : "solid green"
+    @logoPackButton = new KDCustomHTMLView
+      tagName       : 'a'
+      attributes    :
+        href        : '/a/koding-logo.pdf'
+        target      : '_blank'
+      partial       : "<span class='icon'></span>Download Logo Pack"
+      cssClass      : "solid green kdbutton"
       icon          : yes
 
-    @fontPackButton = new KDButtonView
-      title         : "Download Font Pack"
-      style         : "solid green"
+    @fontPackButton = new KDCustomHTMLView
+      tagName       : 'a'
+      attributes    :
+        href        : 'http://www.google.com/fonts/specimen/Ubuntu'
+        target      : '_blank'
+      partial       : "<span class='icon'></span>Download Font Pack"
+      cssClass      : "solid green kdbutton"
       icon          : yes
 
     super
@@ -30,77 +38,94 @@ class AboutView extends KDView
 
   pistachio : ->
     """
-      {{> @randomTeamMember}}
+      {{> @founders}}
       <section class="about-company">
-        <article>
-          <h2>Story & Culture</h2>
-          <h4>When I say Koding, I mean Coding</h4>
-          <p>
-            Duis lorem elit, placerat non consequat ut, aliquet ac purus. Nunc nec est quis erat blandit vestibulum at id orci. Aliquam feugiat convallis libero, id ullamcorper nulla blandit quis. Proin sodales suscipit mi, id accumsan risus convallis a. Duis congue vitae lectus vel ultricies. Vivamus eleifend eros sodales purus dignissim sagittis. Sed volutpat dictum mi ultrices luctus. Integer vitae varius eros, quis tempus lectus.
-          </p>
-        </article>
-        <aside class="clearfix">
-          <div class="based">
-            <i></i>
-            <h6>Based</h6>
-            San Francisco
-          </div>
-          <div class="talents">
-            <i></i>
-            <h6>Talent</h6>
-            25 Geniuses
-          </div>
-          <div class="lines">
-            <i></i>
-            <h6>Lines of Code</h6>
-            21654789
-          </div>
-        </aside>
+        <div class='wrapper'>
+          <article>
+            <h2>Story & Culture</h2>
+            <h4>When I say Koding, I mean coding</h4>
+            <p>
+              ...made the first site back in 2009, it was our first attempt to make something totally on our own. Sinan and I, had no money and had no intentions of making money using this thing. We made it for ourselves and for everybody else who was suffering trying to learn stuff, getting lost configuring servers. We launched a version that would work for a few people. When we opened it however, we saw hundreds of people rushing in overnight, <a href='http://blog.koding.com/2012/06/we-want-to-date-not-hire/' target='_blank'>read more</a>...
+            </p>
+          </article>
+          <aside class="clearfix">
+            <div class="based">
+              <i></i>
+              <h6>Based</h6>
+              San Francisco
+            </div>
+            <div class="talents">
+              <i></i>
+              <h6>Talent</h6>
+              #{KD.team.active.length} Koders
+            </div>
+            <div class="lines">
+              <i></i>
+              <h6>VMs spinned up</h6>
+              1,000,000,000+
+            </div>
+          </aside>
+          <cite>photo by - <a href='http://www.tidyclub.com/' target='_blank'>Isaak Dury</a></cite>
+        </div>
       </section>
       <section class="member-list">
-        <h2>The A-Team</h2>
-        <h4>Look at them geniuses</h4>
-        {{> @memberList}}
+        <div class='wrapper'>
+          <h2>The A-Team</h2>
+          <h4>Look at them geniuses</h4>
+          {{> @memberList}}
+        </div>
       </section>
       <section class="press-kit">
-        <h2>Press Kit</h2>
-        <h4>Resources for brand enthusiasts</h4>
-        {{> @logoPackButton}}
-        {{> @fontPackButton}}
+        <div class='wrapper'>
+          <h2>Press Kit</h2>
+          <h4>Resources for brand enthusiasts</h4>
+          {{> @logoPackButton}}
+          {{> @fontPackButton}}
+        </div>
+      </section>
+      <section class="careers">
+        <div class='wrapper'>
+          <h2>Careers</h2>
+          <h4>Shoot us an <a href='mailto:hr@koding.com?subject=Koding%20needs%20me!'>email</a> if you think you should be a part of Koding!</h4>
+        </div>
       </section>
     """
 
-class RandomTeamMemberView extends JView
+class FoundersView extends JView
+
   constructor : (options = {}, data) ->
-    options.cssClass = "random-team-member clearfix"
+
+    options.tagName  = 'section'
+    options.cssClass = 'founders clearfix'
 
     super options, data
 
-  getRandomTeamMember : ->
-    team  = KD.team.active
-    index = KD.utils.getRandomNumber team.length-1, 0
+    @devrim = new KDCustomHTMLView
+      tagName    : 'img'
+      cssClass   : 'devrim'
+      attributes :
+        src      : '/a/team/devrim.jpg'
 
-    log team[index]
-
-    team[index]
+    @sinan = new KDCustomHTMLView
+      tagName    : 'img'
+      cssClass   : 'sinan'
+      attributes :
+        src      : '/a/team/sinan.jpg'
 
   pistachio : ->
-    {username, title} = @getRandomTeamMember()
-    @avatar    = new AvatarView
-      origin   : username
-      size     : width : 300
-
-    @link      = new ProfileLinkView origin : username
 
     """
-      {{> @avatar}}
-      <section>
-        {{> @link}}
-        <cite>#{title}</cite>
-        <article>
-          Duis lorem elit, placerat non consequat ut, aliquet ac purus. Nunc nec est quis erat blandit vestibulum at id orci. Aliquam feugiat convallis libero, id ullamcorper nulla blandit quis. Proin sodales suscipit mi, id accumsan risus convallis a. Duis congue vitae lectus vel ultricies. Vivamus eleifend eros so-
-        </article>
-      </section>
+    <div class='wrapper'>
+      <aside>
+        {{> @devrim}}
+        {{> @sinan}}
+      </aside>
+      <h2>About Koding</h2>
+      <h4>Founded by <a href='/devrim'>Devrim</a> & <a href='/sinan'>Sinan</a> in 2009</h4>
+      <article>
+        <p>Koding is a developer community and cloud development environment where developers come together and code in the browser – with a real development server to run their code. Developers can work, collaborate, write and run apps without jumping through hoops and spending unnecessary money.</p>
+      </article>
+    </div>
     """
 
 
@@ -118,7 +143,15 @@ class AboutListItem extends KDListItemView
       origin   : username
       size     : width : 160
 
-    @link      = new ProfileLinkView origin : username
+    @link      = new CustomLinkView
+      cssClass : 'profile'
+      href     : "/#{username}"
+      title    : "@#{username}"
+
+    @title     = new KDCustomHTMLView
+      tagName  : 'cite'
+      cssClass : 'title'
+      partial  : @getData().title
 
 
   viewAppended: JView::viewAppended
@@ -130,7 +163,7 @@ class AboutListItem extends KDListItemView
     </figure>
     <figcaption>
       {{> @link}}
-      {cite{ #(title)}}
+      {{> @title}}
     </figcaption>
     """
 
