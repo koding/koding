@@ -5,13 +5,16 @@ class TeamworkChatPane extends ChatPane
     super options, data
 
     @setClass "tw-chat"
-    @getDelegate().setClass "tw-chat-open"
     delegate = @getDelegate()
 
     delegate.setClass "tw-chat-open"
 
     delegate.on "UserAvatarCreated", =>
       @handleInviteUserButton()
+      @setSizeOfAvatarArea()
+
+    delegate.on "UserAvatarRemoved", =>
+      @setSizeOfAvatarArea()
 
   createDock: ->
     @dock = new KDCustomHTMLView cssClass: "hidden"
@@ -154,6 +157,34 @@ class TeamworkChatPane extends ChatPane
   sendWelcomeMessage: ->
     @botReply messages.welcome
 
+  setSizeOfAvatarArea: ->
+    # log @getDelegate().activeUsers
+    # log u = @getDelegate().users
+    # count = count++ for n, d of u when d.status is "online"
+    # log count
+    # log userCount
+    # log @getDelegate().users
+    # window.ali = @
+    # delegate = @getDelegate()
+    # delegate.usersRef.once "value", (snapshot) =>
+    #   data   = snapshot.val()
+    #   return unless data
+    #   count  = 0
+    #   count++ for username, state of data when state.status is "online"
+    #   log count
+
+    # userCount = Object.keys(delegate.activeUsers).length
+    delegate = @getDelegate()
+
+    delegate.onlineCountRef.on "value", (snapshot) =>
+      userCount = snapshot.val()
+      if userCount > 4
+        @setClass "expanded"
+        @usersAreaExpanded = yes
+      else
+        @unsetClass "expanded"
+        @usersAreaExpanded = no
+
   viewAppended: ->
     super
 
@@ -161,22 +192,26 @@ class TeamworkChatPane extends ChatPane
       cssClass : "tw-action-links"
 
     links.addSubView new KDCustomHTMLView
-      tagName  : "p"
+      tagName  : "span"
       partial  : "Active users"
 
     links.addSubView new KDCustomHTMLView
-      tagName  : "p"
+      tagName  : "span"
       cssClass : "tw-share-link"
       partial  : "Share"
       click    : =>
         KD.mixpanel "Teamwork share modal, click"
         new TeamworkShareModal delegate: @getDelegate()
 
+    @usersArea  = new KDCustomHTMLView
+      cssClass : "tw-users-area"
+
     @avatars   = @workspace.avatarsView = new KDCustomHTMLView
       cssClass : "tw-users"
 
-    @addSubView @avatars, null, yes
-    @avatars.addSubView links, null, yes
+    @usersArea.addSubView links, null, yes
+    @addSubView @usersArea, null, yes
+    @usersArea.addSubView @avatars
 
     tipTitle   = if @workspace.amIHost() then messages.host else messages.you
 
@@ -193,6 +228,9 @@ class TeamworkChatPane extends ChatPane
       tooltip  :
         title  : messages.botTooltip
 
+    @handleInviteUserButton()
+    @handleWatchLabel()
+
   handleInviteUserButton: ->
     if @getDelegate().amIHost()
       @inviteUserButton?.destroy()
@@ -201,6 +239,60 @@ class TeamworkChatPane extends ChatPane
         tooltip  :
           title  : "Click here to invite your friends"
         click    : => new TeamworkInviteModal delegate: this
+
+  handleWatchLabel: ->
+    workspace      = @getDelegate()
+    workspace.watchRef.once "value", (snapshot) =>
+      watchingMap  = snapshot.val() or {}
+      nickname     = KD.nick()
+      watchingUser = watchingMap[nickname]
+
+      if watchingUser is "nobody"
+        @createWatchLabel "You are not watching anybody"
+      else if workspace.amIHost()
+        workspace.once "SomeoneJoinedToTheSession", =>
+          @createWatchLabel "Click user avatar to watch someone"
+      else
+        username = workspace.getHost()
+        @createWatchLabel "You are now watching #{username} | ", username
+
+  createWatchLabel: (partial, username) ->
+    @watchLabel?.destroy()
+    workspace   = @getDelegate()
+    @watchLabel = new KDCustomHTMLView
+      tagName   : "p"
+      cssClass  : "tw-watch-info"
+      partial   : partial
+
+    @usersArea.addSubView @watchLabel
+
+    return unless username
+
+    @watchLabel.addSubView new KDCustomHTMLView
+      tagName : "a"
+      cssClass: "tw-stop-watch"
+      partial : "stop"
+      click   : => workspace.emit "StoppedWatching"
+
+    if workspace.users[username]
+      @setAvatarToWatchingMode workspace.avatars[username]
+    else
+      workspace.fetchUsers()
+      workspace.on "UserAvatarCreated", (jAccount) =>
+        accountNickname = jAccount.profile.nickname
+        if accountNickname is username
+          @setAvatarToWatchingMode workspace.avatars[username]
+
+  setAvatarToWatchingMode: (avatarView) ->
+    delegate = @getDelegate()
+    delegate.watchingUserAvatar?.unsetClass "watching"
+    userNickname = avatarView.getData().profile.nickname
+    delegate.watchRef.child(KD.nick()).set userNickname
+    avatarView.setClass "watching"
+    delegate.watchingUserAvatar = avatarView
+    @botReply "You started to watch #{userNickname}.  Type 'stop watching' or click on avatars to start/stop watching."
+    avatarView.setTooltip
+      title : "You are now watching #{userNickname}. Click again to stop watching."
 
   getMessage = (key, data) ->
     return messages[key].replace "$0", data
