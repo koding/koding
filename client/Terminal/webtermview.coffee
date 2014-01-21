@@ -39,8 +39,7 @@ class WebTermView extends KDView
     @listenWindowResize()
 
     @on "ReceivedClickElsewhere", =>
-      @focused = false
-      @terminal.setFocused false
+      @setFocus no
       KD.getSingleton('windowController').removeLayer this
 
     @on "KDObjectWillBeDestroyed", @bound "clearConnectionAttempts"
@@ -221,9 +220,13 @@ class WebTermView extends KDView
 
   setKeyView: ->
     KD.getSingleton('windowController').addLayer this
-    @focused = true
-    @terminal.setFocused true
+    @setFocus()
     @emit 'KeyViewIsSet'
+    @once "ReceivedClickElsewhere", => @setFocus no
+
+  setFocus: (state = yes) ->
+    @focused = state
+    @terminal.setFocused state
 
   click: ->
     @setKeyView()
