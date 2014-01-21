@@ -130,6 +130,8 @@ class MainController extends KDController
       cookieMatches = cookie is ($.cookie 'clientId')
       cookie = $.cookie 'clientId'
       if cookieExists and not cookieMatches
+        _rollbar.push "Cookie changed"
+
         return @isLoggingIn off  if @isLoggingIn() is on
 
         window.removeEventListener 'beforeunload', wc.bound 'beforeUnload'
