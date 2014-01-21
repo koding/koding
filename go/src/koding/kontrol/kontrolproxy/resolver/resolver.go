@@ -71,6 +71,9 @@ type Target struct {
 
 	// HostCacheDisabled is used to disable caching host based targets.
 	HostCacheDisabled bool
+
+	// To store additional data about target
+	Properties map[string]interface{}
 }
 
 // GetTarget is used to get the target according to the incoming request it
@@ -141,6 +144,7 @@ func getFromDB(host string) (*Target, error) {
 		CacheTimeout:  time.Second * 10,
 		FetchedAt:     time.Now(),
 		FetchedSource: "MongoDB",
+		Properties:    make(map[string]interface{}),
 	}
 
 	err = target.Resolve(host)
@@ -238,6 +242,8 @@ func (t *Target) resolveVM(host, port string) (*url.URL, error) {
 	if err != nil {
 		return nil, ErrVMNotFound
 	}
+
+	t.Properties["hostkite"] = vm.HostKite
 
 	if vm.HostKite == "" || vm.IP == nil {
 		return nil, ErrVMOff

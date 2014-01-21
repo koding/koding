@@ -23,6 +23,7 @@ import (
 	"runtime"
 	"strconv"
 	"strings"
+	"sync"
 	"syscall"
 	"time"
 	"github.com/gorilla/context"
@@ -99,8 +100,9 @@ type Proxy struct {
 	// request hosts, such as koding.com.
 	cacheTransports map[string]http.RoundTripper
 
-	// oskite reference
-	oskite *kite.RemoteKite
+	// oskite references
+	oskites   map[string]*kite.RemoteKite
+	oskitesMu sync.Mutex
 }
 
 // used by redis counter
@@ -150,6 +152,7 @@ func startProxy() {
 		mux:             http.NewServeMux(),
 		enableFirewall:  false,
 		cacheTransports: make(map[string]http.RoundTripper),
+		oskites:         make(map[string]*kite.RemoteKite),
 	}
 
 	go p.findAndDialOskite()
@@ -195,12 +198,22 @@ func (p *Proxy) findAndDialOskite() {
 	}
 
 	onEvent := func(e *protocol.KiteEvent) {
+		serviceUniqueHostname := strings.Replace(e.Kite.Hostname, ".", "_", -1)
+		if serviceUniqueHostname == "" {
+			k.Log.Warning("serviceUniqueHostname is empty for %s", e)
+			return
+		}
+
 		switch e.Action {
 		case protocol.Register:
 			k.Log.Info("Oskite registered.")
 
-			if p.oskite != nil {
-				k.Log.Info("Another oskite registered, discarding ...")
+			p.oskitesMu.Lock()
+			defer p.oskitesMu.Unlock()
+
+			oskite, ok := p.oskites[serviceUniqueHostname]
+			if ok && oskite != nil {
+				k.Log.Info("Oskite registered already, discarding ...")
 				return
 			}
 
@@ -210,14 +223,21 @@ func (p *Proxy) findAndDialOskite() {
 			}
 
 			// update oskite instance with new one
-			p.oskite = k.NewRemoteKite(e.Kite, auth)
-			err := p.oskite.Dial()
+			oskite = k.NewRemoteKite(e.Kite, auth)
+			err := oskite.Dial()
 			if err != nil {
 				log.Println(err)
 			}
+
+			p.oskites[serviceUniqueHostname] = oskite
 		case protocol.Deregister:
 			k.Log.Warning("Oskite deregistered.")
-			p.oskite = nil // make sure we don't send msg's to a dead service
+			p.oskitesMu.Lock()
+			defer p.oskitesMu.Unlock()
+
+			// make sure we don't send msg's to a dead service
+			p.oskites[serviceUniqueHostname] = nil
+			delete(p.oskites, serviceUniqueHostname)
 		}
 	}
 
@@ -228,13 +248,29 @@ func (p *Proxy) findAndDialOskite() {
 }
 
 // startVM starts the vm and returns back the initalized IP
-func (p *Proxy) startVM(hostnameAlias string) (string, error) {
+func (p *Proxy) startVM(hostnameAlias, hostkite string) (string, error) {
 	fmt.Println("starting vm", hostnameAlias)
-	if p.oskite == nil {
+	p.oskitesMu.Lock()
+	defer p.oskitesMu.Unlock()
+
+	// hostkite is in form: "kite-os-sj|kontainer1_sj_koding_com"
+	s := strings.Split(hostkite, "|")
+	if len(s) < 2 {
+		return "", fmt.Errorf("hostkite '%s' is malformed", hostkite)
+	}
+
+	serviceUniqueHostname := s[1] // gives kontainer1_sj_koding_com
+
+	oskite, ok := p.oskites[serviceUniqueHostname]
+	if !ok {
+		return "", fmt.Errorf("oskite not available for %s", serviceUniqueHostname)
+	}
+
+	if oskite == nil {
 		return "", errors.New("oskite not connected")
 	}
 
-	response, err := p.oskite.Tell("startVM", hostnameAlias)
+	response, err := oskite.Tell("startVM", hostnameAlias)
 	if err != nil {
 		return "", err
 	}
@@ -378,8 +414,8 @@ func (p *Proxy) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	return
 }
 
-func (p *Proxy) checkAndStartVM(hostnameAlias, port string) error {
-	vmAddr, err := p.startVM(hostnameAlias)
+func (p *Proxy) checkAndStartVM(hostnameAlias, hostkite, port string) error {
+	vmAddr, err := p.startVM(hostnameAlias, hostkite)
 	if err != nil {
 		return err
 	}
@@ -429,9 +465,10 @@ func (p *Proxy) getHandler(req *http.Request) http.Handler {
 		// TODO: the whole case needs a refactor at some time. Probably when
 		// we decide to split koding-proxy and user-proxy into two seperate
 		// kites.
-		var hostnameAlias string = target.HostnameAlias[0]
-		var port string
+		hostnameAlias := target.HostnameAlias[0]
+		hostkite := target.Properties["hostkite"].(string)
 
+		var port string
 		if !utils.HasPort(req.Host) {
 			port = "80"
 		} else {
@@ -448,7 +485,7 @@ func (p *Proxy) getHandler(req *http.Request) http.Handler {
 
 		if target.Err == resolver.ErrVMOff {
 			fmt.Println("vm is off, going to start", hostnameAlias)
-			err = p.checkAndStartVM(hostnameAlias, port)
+			err = p.checkAndStartVM(hostnameAlias, hostkite, port)
 			if err != nil {
 				logs.Info(fmt.Sprintf("vm %s timed out, it's still not up, this is not good!", hostnameAlias))
 				return templateHandler("notactiveVM.html", req.Host, 404)
@@ -473,7 +510,7 @@ func (p *Proxy) getHandler(req *http.Request) http.Handler {
 
 			// EHOSTUNREACH means "no route to host". This error is passed
 			// when the VM is down, therefore turn it on.
-			err = p.checkAndStartVM(hostnameAlias, port)
+			err = p.checkAndStartVM(hostnameAlias, hostkite, port)
 			if err != nil {
 				logs.Info(fmt.Sprintf("vm %s timed out, it's still not up, this is not good!", hostnameAlias))
 				return templateHandler("notactiveVM.html", req.Host, 404)
