@@ -60,11 +60,11 @@ var (
 )
 
 func main() {
-	runNewKite()
-
 	initializeSettings()
 
 	k := prepareOsKite()
+
+	runNewKite(k.ServiceUniqueName)
 
 	// handle leftover VMs
 	handleCurrentVMS(k)
@@ -106,7 +106,7 @@ func newKite() *newkite.Kite {
 	return newkite.New(options)
 }
 
-func runNewKite() {
+func runNewKite(serviceUniqueName string) {
 	k := newKite()
 
 	k.HandleFunc("startVM", func(r *newkite.Request) (interface{}, error) {
@@ -122,7 +122,7 @@ func runNewKite() {
 		vm := virt.VM(*v)
 		vm.ApplyDefaults()
 
-		err = validateVM(&vm)
+		err = validateVM(&vm, serviceUniqueName)
 		if err != nil {
 			return nil, err
 		}
@@ -454,7 +454,7 @@ func getVM(channel *kite.Channel) (*virt.VM, error) {
 	return vm, nil
 }
 
-func validateVM(vm *virt.VM) error {
+func validateVM(vm *virt.VM, serviceUniqueName string) error {
 	if vm.Region != config.Region {
 		time.Sleep(time.Second) // to avoid rapid cycle channel loop
 		return &kite.WrongChannelError{}
@@ -508,23 +508,25 @@ func validateVM(vm *virt.VM) error {
 		vm.LdapPassword = ldapPassword
 	}
 
+	if vm.HostKite != serviceUniqueName {
+		err := mongodb.Run("jVMs", func(c *mgo.Collection) error {
+			return c.Update(bson.M{"_id": vm.Id, "hostKite": nil}, bson.M{"$set": bson.M{"hostKite": serviceUniqueName}})
+		})
+		if err != nil {
+			time.Sleep(time.Second) // to avoid rapid cycle channel loop
+			return &kite.WrongChannelError{}
+		}
+
+		vm.HostKite = serviceUniqueName
+	}
+
 	return nil
 }
 
 func startVM(k *kite.Kite, vm *virt.VM, channel *kite.Channel) error {
-	err := validateVM(vm)
+	err := validateVM(vm, k.ServiceUniqueName)
 	if err != nil {
 		return err
-	}
-
-	if vm.HostKite != k.ServiceUniqueName {
-		if err := mongodb.Run("jVMs", func(c *mgo.Collection) error {
-			return c.Update(bson.M{"_id": vm.Id, "hostKite": nil}, bson.M{"$set": bson.M{"hostKite": k.ServiceUniqueName}})
-		}); err != nil {
-			time.Sleep(time.Second) // to avoid rapid cycle channel loop
-			return &kite.WrongChannelError{}
-		}
-		vm.HostKite = k.ServiceUniqueName
 	}
 
 	var info *VMInfo
