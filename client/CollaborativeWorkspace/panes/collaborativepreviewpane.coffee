@@ -37,3 +37,15 @@ class CollaborativePreviewPane extends CollaborativePane
     @workspace.addToHistory
       message: "$0 opened #{url}"
       by     : KD.nick()
+
+
+class CollaborativePreview extends PreviewPane
+
+  useHttp: ->
+    super
+
+    workspace  = @getDelegate().workspace
+    sessionKey = workspace.sessionKey
+    appName    = workspace.getOptions().name
+
+    window.open "http://koding.com/#{appName}?sessionKey=#{sessionKey}"
