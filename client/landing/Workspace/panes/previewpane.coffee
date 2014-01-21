@@ -18,10 +18,37 @@ class PreviewPane extends Pane
 
     @container.addSubView @previewer = new PreviewerView viewerOptions
 
-    @container.addSubView new KDCustomHTMLView
-      tagName  : "p"
+    @container.addSubView @secureInfo = new KDCustomHTMLView
+      tagName  : "div"
       cssClass : "tw-browser-splash"
-      partial  : """ Sorry, you can only preview links starting with "https" """
+      partial  : """
+        <p>You can only preview links starting with "https".</p> <span>In order to view non-secure (http) content you can </span>"""
+
+    httpLink   = new KDCustomHTMLView
+      tagName  : "a"
+      cssClass : "tw-http-link"
+      partial  : "click here"
+      click    : => @useHttp()
+
+    separator  = new KDCustomHTMLView
+      tagName  : "span"
+      partial  : " — "
+
+    infoLink   = new KDCustomHTMLView
+      tagName  : "a"
+      partial  : "why?"
+      cssClass : "tw-secure-info"
+      attributes:
+        href   : "http://security.stackexchange.com/questions/38317/specific-risks-of-embedding-an-https-iframe-in-an-http-page"
+
+    @secureInfo.addSubView httpLink
+    @secureInfo.addSubView separator
+    @secureInfo.addSubView infoLink
+
+  useHttp: ->
+    KD.getSingleton("appManager").quitByName "Teamwork"
+    KD.getSingleton("router").handleRoute "/Activity"
+    $.cookie "kdproxy-usehttp", "1"
 
   pistachio: ->
     """

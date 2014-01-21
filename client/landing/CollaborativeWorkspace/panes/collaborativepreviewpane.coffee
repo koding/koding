@@ -4,7 +4,10 @@ class CollaborativePreviewPane extends CollaborativePane
 
     super options, data
 
-    @container.addSubView @previewPane = new PreviewPane @getOptions()
+    paneOptions = @getOptions()
+    paneOptions.delegate = this
+
+    @container.addSubView @previewPane = new CollaborativePreview paneOptions
 
     {@previewer} = @previewPane
 
@@ -12,7 +15,9 @@ class CollaborativePreviewPane extends CollaborativePane
       @workspaceRef.once "value", (snapshot) =>
         @openPathFromSnapshot snapshot
 
-    @previewer.on "ViewerLocationChanged", => @saveUrl()
+    @previewer.on "ViewerLocationChanged", =>
+      @saveUrl()
+      @previewPane.secureInfo?.destroy()
 
     @previewer.on "ViewerRefreshed",       => @saveUrl yes
 
@@ -20,7 +25,9 @@ class CollaborativePreviewPane extends CollaborativePane
 
   openPathFromSnapshot: (snapshot) ->
     value = snapshot.val()
-    @previewer.openPath value.url  if value?.url
+    return unless value
+    @previewer.openPath value.url  if value.url
+    @previewPane.secureInfo?.destroy()
 
   openUrl: (url) ->
     @previewer.openPath url
@@ -34,3 +41,15 @@ class CollaborativePreviewPane extends CollaborativePane
     @workspace.addToHistory
       message: "$0 opened #{url}"
       by     : KD.nick()
+
+
+class CollaborativePreview extends PreviewPane
+
+  useHttp: ->
+    super
+
+    workspace  = @getDelegate().workspace
+    sessionKey = workspace.sessionKey
+    appName    = workspace.getOptions().name
+
+    window.open "http://koding.com/#{appName}?sessionKey=#{sessionKey}"
