@@ -517,7 +517,7 @@ __utils.extend __utils,
               Redeem               :
                 callback          : =>
                   @modal.modalTabs.forms.Redeem.buttons.redeemButton.showLoader()
-                  @redeemReferralPoint @
+                  KD.utils.redeemReferralPoint @
                 buttons           :
                   redeemButton    :
                     title         : "Redeem"
