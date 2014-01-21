@@ -54,6 +54,7 @@ module.exports =
   crawl: (bongo, req, res, slug)->
     {query} = req
     {page}  = query
+    page = parseInt( page, 10 );
     page   ?= 1
     {Base, race, dash, daisy} = require "bongo"
     {JName, JAccount} = bongo.models
