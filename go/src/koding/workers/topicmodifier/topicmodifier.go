@@ -129,7 +129,7 @@ func updatePosts(rels []Relationship, newTagId string) (filteredRels []Relations
 		}
 
 		if err != nil {
-			log.Error(err.Error())
+			log.Error("%v", err)
 			continue
 		}
 

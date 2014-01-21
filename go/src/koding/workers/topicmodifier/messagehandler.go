@@ -39,7 +39,7 @@ func ConsumeMessage() {
 	log.Notice("Topic Modifier: Checking for message")
 	createConnections()
 	if err := Consumer.Get(messageConsumer); err != nil {
-		log.Error(err.Error())
+		log.Critical("%v", err)
 	}
 	Shutdown()
 }
@@ -107,7 +107,7 @@ func finalize(delivery amqp.Delivery, modifierData *TagModifierData) {
 	}
 
 	if err := publish(Publisher, *modifierData); err != nil {
-		log.Error("Publish error:", err.Error())
+		log.Error("Publish error: %v", err)
 		delivery.Nack(false, true)
 	} else {
 		delivery.Ack(false)

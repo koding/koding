@@ -6,7 +6,7 @@ import (
 	"koding/tools/amqputil"
 	"koding/tools/dnode"
 	"koding/tools/lifecycle"
-	"koding/tools/log"
+	"koding/tools/logger"
 	"koding/virt"
 	"os"
 	"strconv"
@@ -15,6 +15,8 @@ import (
 
 	"github.com/streadway/amqp"
 )
+
+var log = logger.New("kite")
 
 type Kite struct {
 	Name              string
@@ -95,19 +97,19 @@ func controlRouting(stream <-chan amqp.Delivery) {
 			var control Control
 			err := json.Unmarshal(msg.Body, &control)
 			if err != nil || control.HostnameAlias == "" {
-				log.Err("Invalid control message.", string(msg.Body))
+				log.Error("Invalid control message '%s'", string(msg.Body))
 				continue
 			}
 
 			v, err := modelhelper.GetVM(control.HostnameAlias)
 			if err != nil {
-				log.Err("vm not found '%s'", control.HostnameAlias)
+				log.Error("vm not found '%s'", control.HostnameAlias)
 				continue
 			}
 
 			vm := virt.VM(*v)
 			if err := vm.Stop(); err != nil {
-				log.Err("could not stop vm '%s'", control.HostnameAlias)
+				log.Error("could not stop vm '%s'", control.HostnameAlias)
 				continue
 			}
 		}
@@ -116,7 +118,7 @@ func controlRouting(stream <-chan amqp.Delivery) {
 
 func (k *Kite) startRouting(stream <-chan amqp.Delivery, publishChannel *amqp.Channel) {
 	changeClientsGauge := lifecycle.CreateClientsGauge()
-	log.RunGaugesLoop()
+	logger.RunGaugesLoop(log)
 
 	timeoutChannel := make(chan string)
 
@@ -136,12 +138,12 @@ func (k *Kite) startRouting(stream <-chan amqp.Delivery, publishChannel *amqp.Ch
 
 			switch message.RoutingKey {
 			case "auth.join":
-				log.Debug("auth.join", message)
+				log.Debug("auth.join %v", message)
 
 				var channel Channel
 				err := json.Unmarshal(message.Body, &channel)
 				if err != nil || channel.Username == "" || channel.RoutingKey == "" {
-					log.Err("Invalid auth.join message.", message.Body)
+					log.Error("Invalid auth.join message: %v", message.Body)
 					continue
 				}
 
@@ -157,10 +159,10 @@ func (k *Kite) startRouting(stream <-chan amqp.Delivery, publishChannel *amqp.Ch
 					defer channel.Close()
 
 					changeClientsGauge(1)
-					log.Debug("Client connected: " + channel.Username)
+					log.Debug("Client connected: %v", channel.Username)
 					defer func() {
 						changeClientsGauge(-1)
-						log.Debug("Client disconnected: " + channel.Username)
+						log.Debug("Client disconnected: %v", channel.Username)
 					}()
 
 					d := dnode.New()
@@ -249,7 +251,7 @@ func (k *Kite) startRouting(stream <-chan amqp.Delivery, publishChannel *amqp.Ch
 					go func() {
 						defer log.RecoverAndLog()
 						for data := range d.SendChan {
-							log.Debug("Write", channel.RoutingKey, data)
+							log.Debug("Write %v %v", channel.RoutingKey, data)
 							if err := publishChannel.Publish("broker", channel.RoutingKey, false, false, amqp.Publishing{Body: data}); err != nil {
 								log.LogError(err, 0)
 							}
@@ -273,7 +275,7 @@ func (k *Kite) startRouting(stream <-chan amqp.Delivery, publishChannel *amqp.Ch
 								}
 							}()
 
-							log.Debug("Read", channel.RoutingKey, message)
+							log.Debug("Read %v %v", channel.RoutingKey, message)
 							d.ProcessMessage(message)
 							pingAlreadySent = false
 						case <-time.After(5 * time.Minute):
@@ -302,11 +304,11 @@ func (k *Kite) startRouting(stream <-chan amqp.Delivery, publishChannel *amqp.Ch
 				}
 				err := json.Unmarshal(message.Body, &client)
 				if err != nil || client.Username == "" || client.RoutingKey == "" || client.CorrelationName == "" {
-					log.Err("Invalid auth.who message.", message.Body)
+					log.Error("Invalid auth.who message. %v", message.Body)
 					continue
 				}
 				if k.LoadBalancer == nil {
-					log.Err("Got auth.who without having a load balancer.", message.Body)
+					log.Error("Got auth.who without having a load balancer. %v", message.Body)
 					continue
 				}
 
@@ -332,7 +334,7 @@ func (k *Kite) startRouting(stream <-chan amqp.Delivery, publishChannel *amqp.Ch
 					default:
 						close(route)
 						delete(routeMap, message.RoutingKey)
-						log.Warn("Dropped client because of message buffer overflow.")
+						log.Warning("Dropped client because of message buffer overflow.")
 					}
 				}
 			}

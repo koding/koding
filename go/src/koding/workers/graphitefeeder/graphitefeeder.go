@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/peterbourgon/g2s"
 	"koding/tools/config"
-	"log"
 	"strconv"
 	"time"
 )
@@ -27,7 +26,7 @@ func init() {
 func main() {
 	for _, fn := range listOfAnalytics {
 		name, count := fn()
-		log.Println(name, count)
+		log.Info("%v %v", name, count)
 		STATSD.Gauge(1, name, strconv.Itoa(count))
 	}
 }

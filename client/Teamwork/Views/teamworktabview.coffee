@@ -37,30 +37,32 @@ class TeamworkTabView extends CollaborativePane
   listenPaneDidShow: ->
     @tabView.on "PaneDidShow", (pane) =>
       @stateRef.child(KD.nick()).set pane.getOptions().indexKey
+      @updateTabAvatars()
 
-      # need to delay fetching state ref.
-      # otherwise clients might be in different tabs.
-      KD.utils.wait 600, =>
-        @stateRef.once "value", (snapshot) =>
-          map = snapshot.val()
-          return unless map
+  updateTabAvatars: ->
+    # need to delay fetching state ref.
+    # otherwise clients might be in different tabs.
+    KD.utils.wait 600, =>
+      @stateRef.once "value", (snapshot) =>
+        map = snapshot.val()
+        return unless map
 
-          data = {}
+        data = {}
 
-          for username, indexKey of map
-            data[indexKey] = []  unless data[indexKey]
-            jAccount       = @workspace.users[username]
-            data[indexKey].push jAccount  if jAccount
+        for username, indexKey of map
+          data[indexKey] = []  unless data[indexKey]
+          jAccount       = @workspace.users[username]
+          data[indexKey].push jAccount  if jAccount
 
-          for pane in @tabView.panes
-            {indexKey} = pane.getOptions()
-            if data[indexKey]
-              avatars = data[indexKey].filter (jAccount) ->
-                return if jAccount?.profile.nickname is KD.nick() then no else yes
-              pane.tabHandle.avatarView?.avatar?.destroy()
-              pane.tabHandle.setAccounts avatars
-            else
-              pane.tabHandle.avatarView?.avatar?.destroy()
+        for pane in @tabView.panes
+          {indexKey} = pane.getOptions()
+          if data[indexKey]
+            avatars = data[indexKey].filter (jAccount) ->
+              return if jAccount?.profile.nickname is KD.nick() then no else yes
+            pane.tabHandle.avatarView?.avatar?.destroy()
+            pane.tabHandle.setAccounts avatars
+          else
+            pane.tabHandle.avatarView?.avatar?.destroy()
 
   listenChildRemovedOnKeysRef: ->
     @keysRef.on "child_removed", (snapshot) =>
@@ -99,7 +101,7 @@ class TeamworkTabView extends CollaborativePane
       username   = KD.nick()
       return unless data
 
-      if watchMap[username] is "everybody" or watchMap[username] is data.by
+      if watchMap[username] is data.by or watchMap[watchMap[username]] is data.by
         for pane in @tabView.panes
           if pane.getOptions().indexKey is data.indexKey
             index = @tabView.getPaneIndex pane
@@ -111,6 +113,8 @@ class TeamworkTabView extends CollaborativePane
               terminal.setFocused yes  if document.activeElement is document.body
             else if pane.editor
               pane.editor.codeMirrorEditor.refresh()
+
+      @updateTabAvatars()
 
   createElements: ->
     @tabHandleHolder = new ApplicationTabHandleHolder delegate: this

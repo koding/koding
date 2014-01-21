@@ -1,3 +1,6 @@
+{argv} = require 'optimist'
+{uri} = require('koding-config-manager').load("main.#{argv.c}")
+
 forceTwoDigits = (val) ->
   if val < 10
     return "0#{val}"
@@ -38,8 +41,12 @@ getUserHash = (account) ->
     hash = account.data.profile.hash
   return hash
 
-getPlainActivityBody = (activity) ->
-  {body} = activity
+normalizeActivityBody = (activity, bodyString="") ->
+  if bodyString
+    body = bodyString
+  else
+    {body} = activity
+
   tagMap = {}
   activity.tags?.forEach (tag) -> tagMap[tag.getId()] = tag
 
@@ -49,7 +56,18 @@ getPlainActivityBody = (activity) ->
     switch prefix
       when "#" then token = tagMap?[id]
 
-    return "#{prefix}#{if token then token.title else title or ''}"
+    tagTitle = if token then token.title else title
+
+    return ""  unless tagTitle
+    tagContent =
+      """
+        <span class="kdview token">
+          <a class="ttag expandable" href="#{uri.address}/#!/Activity?tagged=#{title}">
+            <span>#{tagTitle}</span>
+          </a>
+        </span>
+      """
+    return tagContent
 
 createActivityContent = (JAccount, model, comments, createFullHTML=no, putBody=yes, callback) ->
   {Relationship} = require 'jraphical'
@@ -69,9 +87,12 @@ createActivityContent = (JAccount, model, comments, createFullHTML=no, putBody=y
     tags = teaser.tags  if teaser?.tags?
 
     Relationship.one selector, (err, rel) =>
-      if err or not rel
-          console.error err
-          return callback err, null
+      if err
+        console.error err
+        return callback err, null
+      unless rel
+        console.error "Rel not found"
+        return callback new Error "Rel not found", null
       sel =
         "_id" : rel.targetId
 
@@ -88,11 +109,11 @@ createActivityContent = (JAccount, model, comments, createFullHTML=no, putBody=y
         hash = getUserHash acc
 
         if model?.body? and putBody
-          body = getPlainActivityBody model
-          body = marked body,
+          body = marked model.body,
             gfm       : true
             pedantic  : false
             sanitize  : true
+          body = normalizeActivityBody model, body
         else
           body = ""
 
