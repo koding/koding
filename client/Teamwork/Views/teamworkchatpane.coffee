@@ -158,22 +158,6 @@ class TeamworkChatPane extends ChatPane
     @botReply messages.welcome
 
   setSizeOfAvatarArea: ->
-    # log @getDelegate().activeUsers
-    # log u = @getDelegate().users
-    # count = count++ for n, d of u when d.status is "online"
-    # log count
-    # log userCount
-    # log @getDelegate().users
-    # window.ali = @
-    # delegate = @getDelegate()
-    # delegate.usersRef.once "value", (snapshot) =>
-    #   data   = snapshot.val()
-    #   return unless data
-    #   count  = 0
-    #   count++ for username, state of data when state.status is "online"
-    #   log count
-
-    # userCount = Object.keys(delegate.activeUsers).length
     delegate = @getDelegate()
 
     delegate.onlineCountRef.on "value", (snapshot) =>
