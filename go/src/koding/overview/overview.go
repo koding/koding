@@ -19,7 +19,7 @@ import (
 	"github.com/gorilla/sessions"
 )
 
-var log = logger.New("overviewj")
+var log = logger.New("overview")
 
 func NewServerInfo() *ServerInfo {
 	return &ServerInfo{

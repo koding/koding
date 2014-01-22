@@ -12,7 +12,7 @@ import (
 
 var (
 	Consumer *rabbitmq.Consumer
-	log      = logger.New("PostMigrator")
+	log      = logger.New("postMigrator")
 )
 
 type Migrator struct {

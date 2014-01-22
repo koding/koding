@@ -313,5 +313,19 @@ module.exports =
   slack          :
 	  token        : "xoxp-2155583316-2155760004-2158149487-a72cf4"
 	  channel      : "C024LG80K"
-  logLevel       :
-    neo4jfeeder  : "info"
+  logLevel        :
+    neo4jfeeder   : "info"
+    oskite        : "info"
+    userpresence  : "info"
+    vmproxy       : "info"
+    graphitefeeder: "info"
+    sync          : "info"
+    topicModifier : "info"
+    postModifier  : "info"
+    router        : "info"
+    rerouting     : "info"
+    overview      : "info"
+    amqputil      : "info"
+    rabbitMQ      : "info"
+    ldapserver    : "info"
+    broker        : "info"

@@ -12,7 +12,7 @@ import (
 	"syscall"
 )
 
-var log = logger.New("RabbitMQ")
+var log = logger.New("rabbitMQ")
 
 type Exchange struct {
 	// Exchange name
