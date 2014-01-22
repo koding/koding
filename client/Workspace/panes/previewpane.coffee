@@ -18,15 +18,15 @@ class PreviewPane extends Pane
 
     @container.addSubView @previewer = new PreviewerView viewerOptions
 
-    @container.addSubView @secureInfo = new KDCustomHTMLView
+    @createSecureWarning()  unless $.cookie("kdproxy-usehttp") is "1"
+
+  createSecureWarning: ->
+    @secureInfo = new KDCustomHTMLView
       tagName  : "div"
       cssClass : "tw-browser-splash"
       partial  : """
         <p>You can only preview links starting with "https".</p> """
 
-    @createSecureWarning()  unless $.cookie("kdproxy-usehttp") is "1"
-
-  createSecureWarning: ->
     infoText   = new KDCustomHTMLView
       tagName  : "span"
       partial  : "In order to view non-secure (http) content you can "
@@ -52,6 +52,7 @@ class PreviewPane extends Pane
     @secureInfo.addSubView httpLink
     @secureInfo.addSubView separator
     @secureInfo.addSubView infoLink
+    @container.addSubView  @secureInfo
 
   useHttp: ->
     KD.getSingleton("router").handleRoute "/Activity"
