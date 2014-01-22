@@ -27,6 +27,7 @@ import (
 	"syscall"
 	"time"
 	"github.com/gorilla/context"
+	"github.com/op/go-logging"
 
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/sessions"
@@ -62,7 +63,7 @@ var (
 	store = sessions.NewCookieStore([]byte("kontrolproxy-secret-key"))
 
 	// used for all our log
-	log = logger.New("kodingproxy")
+	log = logger.New("kontrolproxy")
 
 	// used for various kinds of use cases like validator, 404 pages,
 	// maintenance,...
@@ -175,7 +176,7 @@ func newKite() *kite.Kite {
 	}
 
 	options := &kite.Options{
-		Kitename:    "kdproxy",
+		Kitename:    "kontrolproxy",
 		Environment: config.FileProfile,
 		Region:      config.Region,
 		Version:     "0.0.1",
@@ -188,6 +189,7 @@ func newKite() *kite.Kite {
 func (p *Proxy) findAndDialOskite() {
 	k := newKite()
 	k.Start()
+	logging.SetLevel(logging.DEBUG, "kontrolproxy")
 
 	query := protocol.KontrolQuery{
 		Username:    "arslan", // TODO: going to be changed with koding
