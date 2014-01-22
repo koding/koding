@@ -58,7 +58,7 @@ class GroupsController extends KDController
           @isReady = yes
           callback null, groupName, group
           @emit 'GroupChanged', groupName, group
-          @openGroupChannel group, => @emit 'GroupChannelReady'
+          @openGroupChannel group, => @emit 'ready'
 
   getUserArea:->
     @userArea ? group:
