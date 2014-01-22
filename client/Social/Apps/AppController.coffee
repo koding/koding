@@ -7,7 +7,7 @@ class AppsAppController extends AppController
     routes       :
       "/:name?/Apps"             : ({params, query})->
         handler (app)-> app.handleQuery query
-      "/:name?/Apps/:lala/:app?" : (arg)-> handler (app)-> app.handleRoute arg
+      "/:name?/Apps/:username/:app?" : (arg)-> handler (app)-> app.handleRoute arg
     hiddenHandle : yes
     searchRoute  : "/Apps?q=:text:"
     behaviour    : 'application'
@@ -126,10 +126,10 @@ class AppsAppController extends AppController
 
   handleRoute:(route)->
 
-    {app, lala} = route.params
+    {app, username} = route.params
     {JNewApp}      = KD.remote.api
     if app
-      log "slug:", slug = "Apps/#{lala}/#{app}"
+      log "slug:", slug = "Apps/#{username}/#{app}"
       JNewApp.one {slug}, (err, app)=>
         log "FOUND THIS JAPP", err, app
         if app then @showContentDisplay app
