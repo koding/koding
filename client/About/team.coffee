@@ -31,13 +31,10 @@ KD.extend
         username  : 'geraint'
         title     : 'Director of Infrastructure'
       ,
-        username  : 'aleksey-m'
-        title     : 'System Administrator'
-      ,
-        username  : 'ybrs'
+        username  : 'erdinc'
         title     : 'Software Engineer'
       ,
-        username  : 'erdinc'
+        username  : 'ybrs'
         title     : 'Software Engineer'
       ,
         username  : 'szkl'
@@ -61,11 +58,8 @@ KD.extend
         username  : 'canthefason'
         title     : 'Software Engineer'
       ,
-        username  : 'psanchezdl'
-        title     : 'Growth Engineer'
-      ,
-        username  : 'pablostanley'
-        title     : 'Illustrator'
+        username  : 'nesli'
+        title     : 'Chef de Cuisine'
       ,
         username  : 'dicle'
         title     : 'Business Analyst'
@@ -76,14 +70,20 @@ KD.extend
         username  : 'zeynep'
         title     : 'Finance Assistant'
       ,
-        username  : 'selin'
-        title     : 'Data Scientist'
-      ,
-        username  : 'juliapracht'
+        username  : 'juliap'
         title     : 'Recruiting & HR'
       ,
-        username  : 'nesli'
-        title     : 'Chef de Cuisine'
+        username  : 'psanchezdl'
+        title     : 'Growth Engineer'
+      ,
+        username  : 'selin'
+        title     : 'Data Scientist'
+      # ,
+      #   username  : 'pablostanley'
+      #   title     : 'Illustrator'
+      # ,
+      #   username  : 'aleksey-m'
+      #   title     : 'System Administrator'
       # ,
       #   username  : 'leeolayvar'
       #   title     : 'Community Manager'
