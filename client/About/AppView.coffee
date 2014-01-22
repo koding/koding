@@ -120,8 +120,8 @@ class FoundersView extends JView
         {{> @devrim}}
         {{> @sinan}}
       </aside>
-      <h2>About Koding</h2>
-      <h4>Founded by <a href='/devrim'>Devrim</a> & <a href='/sinan'>Sinan</a> in 2009</h4>
+      <h2>About <i>Koding</i></h2>
+      <h4>Social development in your browser</h4>
       <article>
         <p>Koding is a developer community and cloud development environment where developers come together and code in the browser – with a real development server to run their code. Developers can work, collaborate, write and run apps without jumping through hoops and spending unnecessary money.</p>
       </article>
