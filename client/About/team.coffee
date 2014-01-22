@@ -40,11 +40,11 @@ KD.extend
         username  : 'szkl'
         title     : 'Software Engineer'
       ,
-        username  : 'burakcan'
-        title     : 'CSS Wizard'
-      ,
         username  : 'leventyalcin'
         title     : 'System Administrator'
+      ,
+        username  : 'burakcan'
+        title     : 'CSS Wizard'
       ,
         username  : 'samet'
         title     : 'Software Engineer'
@@ -67,6 +67,12 @@ KD.extend
         username  : 'niltuncer'
         title     : 'Business Analyst'
       ,
+        username  : 'leeolayvar'
+        title     : 'Community Manager'
+      ,
+        username  : 'stefanbc'
+        title     : 'Community Manager'
+      ,
         username  : 'zeynep'
         title     : 'Finance Assistant'
       ,
@@ -84,15 +90,9 @@ KD.extend
       # ,
       #   username  : 'aleksey-m'
       #   title     : 'System Administrator'
-      # ,
-      #   username  : 'leeolayvar'
-      #   title     : 'Community Manager'
-      # ,
-      #   username  : 'stefanbc'
-      #   title     : 'Community Manager'
       ]
 
-    suspended     : []
+    # suspended     : []
 
       #   username  : 'aleksey-m'
       #   title     : 'Sys Admin &amp; node.js Developer'
