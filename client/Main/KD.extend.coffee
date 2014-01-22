@@ -26,6 +26,7 @@ KD.extend
         warn "Removing the old one. It was ", KD.appClasses[options.name]
         @unregisterAppClass options.name
 
+    options.enforceLogin  ?= no           # a Boolean
     options.multiple      ?= no           # a Boolean
     options.background    ?= no           # a Boolean
     options.hiddenHandle  ?= no           # a Boolean
@@ -40,10 +41,16 @@ KD.extend
     options.routes       or= null         # <string> or <Object{slug: string, handler: function}>
     options.styles       or= []           # <Array<string>> list of stylesheets
 
+    enforceLogin=->
+      return if KD.isLoggedIn()
+      appManager = KD.getSingleton "appManager"
+      appManager.tell "Account", "showRegistirationNeededModal"
+
     wrapHandler = (fn, options) -> ->
       router = KD.getSingleton 'router'
       router.setPageTitle? options.navItem.title  if options.navItem.title
       fn.apply this, arguments
+      enforceLogin()  if options.enforceLogin
 
     registerRoute = (route, handler)=>
       slug        = if "string" is typeof route then route else route.slug
@@ -61,6 +68,7 @@ KD.extend
             else
               ({params:{name}, query})->
                 router.openSection options.name, name, query
+                enforceLogin()  if options.enforceLogin
 
           router.addRoute slug, handler
 
