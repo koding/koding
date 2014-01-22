@@ -61,8 +61,10 @@ class ActiveTopics extends ActivityRightBase
 
     super options, data
 
-    # FIXME ~ EA
-    group = 'koding' # KD.singletons.groupsController.getCurrentGroup().slug
+    @showAllLink = new KDCustomHTMLView
+    {entryPoint} = KD.config
+
+    if entryPoint?.slug and entryPoint?.type is "group" then group = entryPoint.slug else group = "koding"
 
     @showAllLink = new KDCustomHTMLView
       tagName : "a"
@@ -82,22 +84,24 @@ class GroupDescription extends KDView
   constructor:(options={}, data)->
     super options, data
 
-    group = KD.singletons.groupsController.getCurrentGroup()
+    {groupsController} = KD.singletons
+    groupsController.ready =>
+      group = groupsController.getCurrentGroup()
 
-    @innerContaner = new KDCustomHTMLView cssClass : "right-block-box"
+      @innerContaner = new KDCustomHTMLView cssClass : "right-block-box"
 
-    @titleView = new KDCustomHTMLView
-      tagName  : "h3"
-      partial  : "#{group.title} Group"
+      @titleView = new KDCustomHTMLView
+        tagName  : "h3"
+        partial  : "#{group.title} Group"
 
-    @bodyView = new KDCustomHTMLView
-      tagName  : "p"
-      partial  : group.body or ""
-      cssClass : "group-description"
+      @bodyView = new KDCustomHTMLView
+        tagName  : "p"
+        partial  : group.body or ""
+        cssClass : "group-description"
 
-    @innerContaner.addSubView @titleView
-    @innerContaner.addSubView @bodyView
-    @addSubView @innerContaner
+      @innerContaner.addSubView @titleView
+      @innerContaner.addSubView @bodyView
+      @addSubView @innerContaner
 
   viewAppended:JView::viewAppended
 
@@ -111,18 +115,20 @@ class GroupMembers extends ActivityRightBase
 
     super options, data
 
-    group = KD.singletons.groupsController.getCurrentGroup()
+    if entryPoint?.slug and entryPoint?.type is "group" then groupSlug = entryPoint.slug else groupSlug = "koding"
 
     @showAllLink = new KDCustomHTMLView
       tagName    : "a"
       partial    : "See All"
       cssClass   : "show-all-link"
       click      : (event) ->
-        KD.singletons.router.handleRoute "/#{group.slug}/Members"
+        KD.singletons.router.handleRoute "/#{groupSlug}/Members"
         KD.mixpanel "Show all members, click"
     , @getData()
 
-    group.fetchMembersFromGraph limit : 12, @bound 'renderItems'
+    {groupsController} = KD.singletons
+    groupsController.ready =>
+      groupsController.getCurrentGroup().fetchMembersFromGraph limit : 12, @bound 'renderItems'
 
 
 class GroupMembersListItemView extends KDListItemView
