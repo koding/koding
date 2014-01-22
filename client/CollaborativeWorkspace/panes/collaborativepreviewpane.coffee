@@ -42,6 +42,13 @@ class CollaborativePreviewPane extends CollaborativePane
       message: "$0 opened #{url}"
       by     : KD.nick()
 
+  viewAppended: ->
+    super
+
+    # TODO: Find a better way without wait
+    KD.utils.wait 200, =>
+      @previewer.viewerHeader.pageLocation.getDomElement().focus()
+
 
 class CollaborativePreview extends PreviewPane
 
