@@ -30,12 +30,12 @@ class ActivityRightBase extends JView
     """
 
 class ActiveUsers extends ActivityRightBase
-
-
   constructor:(options={}, data)->
+    {entryPoint} = KD.config
+    if entryPoint?.type is "group" then group = entryPoint.slug else group = "koding"
 
     @itemClass       = MembersListItemView
-    options.title    = "Active users"
+    options.title    = if group is "koding" then "Active users" else "New Members"
     options.cssClass = "active-users"
 
     super options, data
@@ -49,7 +49,13 @@ class ActiveUsers extends ActivityRightBase
         KD.mixpanel "Show all members, click"
     , data
 
-    KD.remote.api.ActiveItems.fetchUsers {}, @bound 'renderItems'
+    if group is "koding"
+      KD.remote.api.ActiveItems.fetchUsers {}, @bound 'renderItems'
+    else
+      KD.singletons.groupsController.ready =>
+        currentGroup = KD.singletons.groupsController.getCurrentGroup()
+        currentGroup.fetchNewestMembers {}, "limit" : 10, @bound 'renderItems'
+
 
 class ActiveTopics extends ActivityRightBase
 
@@ -62,9 +68,8 @@ class ActiveTopics extends ActivityRightBase
     super options, data
 
     @showAllLink = new KDCustomHTMLView
-    {entryPoint} = KD.config
 
-    if entryPoint?.slug and entryPoint?.type is "group" then group = entryPoint.slug else group = "koding"
+    if entryPoint?.type is "group" then group = entryPoint.slug else group = "koding"
 
     @showAllLink = new KDCustomHTMLView
       tagName : "a"
@@ -122,7 +127,7 @@ class GroupMembers extends ActivityRightBase
 
     super options, data
 
-    if entryPoint?.slug and entryPoint?.type is "group" then groupSlug = entryPoint.slug else groupSlug = "koding"
+    if entryPoint?.type is "group" then groupSlug = entryPoint.slug else groupSlug = "koding"
 
     @showAllLink = new KDCustomHTMLView
       tagName    : "a"
