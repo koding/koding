@@ -4,6 +4,7 @@ class TeamworkAppController extends AppController
     name            : "Teamwork"
     route           : "/:name?/Teamwork"
     behavior        : "application"
+    enforceLogin    : yes
 
   constructor: (options = {}, data) ->
 
