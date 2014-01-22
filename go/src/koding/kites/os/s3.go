@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"koding/db/mongodb"
+	"koding/db/mongodb/modelhelper"
 	"koding/tools/dnode"
 	"koding/tools/kite"
 	"koding/virt"
@@ -42,9 +43,15 @@ var (
 )
 
 type storeParams struct {
-	Name    string // file name
-	Bucket  string // bucket name
-	ID      string // used to defined the path of bucket file
+	// bucket name
+	Bucket string
+
+	// can be user id or group name, defines the path given to the bucket
+	Path string
+
+	// filename
+	Name string
+
 	Content []byte
 }
 
@@ -69,19 +76,22 @@ func userBucketFunc(params *storeParams, vos *virt.VOS) error {
 }
 
 func groupBucketFunc(params *storeParams, vos *virt.VOS) error {
-	if params.ID == "" {
-		return errors.New("{ id: [string] }")
+	if params.Path == "" {
+		return errors.New("{ path: [string] }")
 	}
 
-	pathID := bson.ObjectIdHex(params.ID)
-	path := pathID.Hex()
+	// we need this to make sure the user has permission to this group
+	group, err := modelhelper.GetGroup(params.Path)
+	if err != nil {
+		return err
+	}
 
-	permissions := vos.VM.GetGroupPermissions(pathID)
+	permissions := vos.VM.GetGroupPermissions(group.ObjectId)
 	if permissions == nil {
 		return &kite.PermissionError{}
 	}
 
-	result, err := groupsBucket.List(path+"/", "", "", 100)
+	result, err := groupsBucket.List(params.Path+"/", "", "", 100)
 	if err != nil {
 		return err
 	}
@@ -90,7 +100,7 @@ func groupBucketFunc(params *storeParams, vos *virt.VOS) error {
 		return errors.New("Maximum of 100 stored files reached.")
 	}
 
-	err = groupsBucket.Put(path+"/"+params.Name, params.Content, "", s3.Private)
+	err = groupsBucket.Put(params.Path+"/"+params.Name, params.Content, "", s3.Private)
 	if err != nil {
 		return err
 	}
