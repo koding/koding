@@ -516,7 +516,7 @@ func (p *Proxy) vm(req *http.Request, target *resolver.Target) http.Handler {
 		}
 	}
 
-	log.Debug("checking if vm %s is alive.\n", hostnameAlias)
+	log.Debug("checking if vm %s is alive.", hostnameAlias)
 	err = utils.CheckServer(target.URL.Host)
 	if err != nil {
 		oerr, ok := err.(*net.OpError)
@@ -609,7 +609,7 @@ func (p *Proxy) checkAndStartVM(hostnameAlias, hostkite, port string) (*url.URL,
 	for {
 		select {
 		case <-ticker:
-			log.Debug("checking if vm is alive", hostnameAlias)
+			log.Debug("ticker is checking vm %s is alive", hostnameAlias)
 			err := utils.CheckServer(targetURL.Host)
 			if err != nil {
 				continue
