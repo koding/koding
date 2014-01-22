@@ -3,17 +3,9 @@ package main
 import (
 	"fmt"
 	"koding/tools/logger"
-
-	logging "github.com/op/go-logging"
 )
 
-var (
-	log *logging.Logger
-)
-
-func init() {
-	log = logger.CreateLogger("PostMigrator", "debug")
-}
+var log = logger.New("postMigrator")
 
 func GetMigrationCompletedReport(m *Migrator) {
 	result := fmt.Sprintf("Migration Completed for \"%s\"", m.PostType)

@@ -61,3 +61,5 @@ kontrolUUID-*
 /website/*/introapp*
 /website/*/bongo*
 /newrelic_agent.log
+
+logs/*.log

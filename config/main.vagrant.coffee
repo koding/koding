@@ -111,7 +111,6 @@ module.exports =
     cronSchedule         : '00 00 00 * * *'
   topicModifier          :
     cronSchedule         : '0 */5 * * * *'
-    logLevel             : "notice"
   social        :
     login       : 'prod-social'
     numberOfWorkers: 1
@@ -199,7 +198,6 @@ module.exports =
     # so it'll disconnect from RabbitMQ if heartbeat is enabled.
     heartbeat   : 0
     vhost       : '/'
-    logLevel    : "notice"
   broker        :
     ip          : ""
     port        : 8008
@@ -334,3 +332,19 @@ module.exports =
   slack          :
 	  token        : "xoxp-2155583316-2155760004-2158149487-a72cf4"
 	  channel      : "C024LG80K"
+  logLevel        :
+    neo4jfeeder   : "notice"
+    oskite        : "notice"
+    userpresence  : "notice"
+    vmproxy       : "notice"
+    graphitefeeder: "notice"
+    sync          : "notice"
+    topicModifier : "notice"
+    postModifier  : "notice"
+    router        : "notice"
+    rerouting     : "notice"
+    overview      : "notice"
+    amqputil      : "notice"
+    rabbitMQ      : "notice"
+    ldapserver    : "notice"
+    broker        : "notice"

@@ -43,6 +43,8 @@ const (
 	vmCookieName = "kodingproxy-vm"
 )
 
+const CookieUseHTTP = "kdproxy-usehttp"
+
 var (
 	// used to extract the Country information via the IP
 	geoIP *libgeo.GeoIP
@@ -427,8 +429,13 @@ func (p *Proxy) startHTTP() {
 func (p *Proxy) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	// redirect http to https
 	if r.TLS == nil && (r.Host == "koding.com" || r.Host == "www.koding.com") {
-		http.Redirect(w, r, "https://koding.com"+r.RequestURI, http.StatusMovedPermanently)
-		return
+
+		// check if this cookie is set, if yes do not redirect to https
+		_, err := r.Cookie(CookieUseHTTP)
+		if err != nil {
+			http.Redirect(w, r, "https://koding.com"+r.RequestURI, http.StatusMovedPermanently)
+			return
+		}
 	}
 
 	// remove www from the hostname (i.e. www.foo.com -> foo.com)

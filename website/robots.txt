@@ -1,4 +1,4 @@
-User-agent: Googlebot
+User-agent: *
 Disallow: /Account
 Disallow: /Login
 Disallow: /Logout
@@ -8,16 +8,7 @@ Disallow: /Resend
 Disallow: /ResendToken
 Disallow: /Verify
 
-User-agent: ia_archiver
-Disallow:
-
-User-agent: Alexabot
-Disallow:
-
-User-agent: verifybot
-Disallow:
-
 User-agent: *
-Disallow: /
+Disallow: 
 
 Sitemap: https://koding.com/sitemap.xml

@@ -37,7 +37,8 @@ type Config struct {
 		Port    int
 		Enabled bool
 	}
-	Broker struct {
+	GoLogLevel string
+	Broker     struct {
 		IP              string
 		Port            int
 		CertFile        string
@@ -112,13 +113,14 @@ type Config struct {
 		Port int
 	}
 	TopicModifier struct {
-		LogLevel     string
 		CronSchedule string
 	}
 	Slack struct {
 		Token   string
 		Channel string
 	}
+
+	LogLevel map[string]string
 }
 
 var FileProfile string
