@@ -198,7 +198,7 @@ func (p *Proxy) runNewKite() {
 	logging.SetLevel(logging.DEBUG, "kontrolproxy")
 
 	query := protocol.KontrolQuery{
-		Username:    "arslan", // TODO: going to be changed with koding
+		Username:    "koding-kites",
 		Environment: config.FileProfile,
 		Name:        "oskite",
 		Version:     "0.0.1",
