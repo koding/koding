@@ -71,7 +71,7 @@ class AboutView extends KDView
       <section class="member-list">
         <div class='wrapper'>
           <h2>The A-Team</h2>
-          <h4>Look at them geniuses</h4>
+          <h4>Look at them geniuses <cite>*in order of appearance</cite></h4>
           {{> @memberList}}
         </div>
       </section>
