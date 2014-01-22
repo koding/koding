@@ -2,10 +2,11 @@ package logger
 
 import (
 	"fmt"
-	"github.com/op/go-logging"
 	stdlog "log"
 	"os"
 	"runtime"
+
+	"github.com/op/go-logging"
 )
 
 var modules []string
@@ -98,6 +99,7 @@ func (g *GoLogger) RecoverAndLog() {
 
 func (g *GoLogger) LogError(err interface{}, stackOffset int, additionalData ...interface{}) {
 	data := make([]interface{}, 0)
+	data = append(data, fmt.Sprintln(err))
 	for i := 1 + stackOffset; ; i++ {
 		pc, file, line, ok := runtime.Caller(i)
 		if !ok {
@@ -107,8 +109,8 @@ func (g *GoLogger) LogError(err interface{}, stackOffset int, additionalData ...
 		if fn := runtime.FuncForPC(pc); fn != nil {
 			name = fn.Name()
 		}
-		data = append(data, fmt.Sprintf("at %s (%s:%d)", name, file, line))
+		data = append(data, fmt.Sprintf("at %s (%s:%d)\n", name, file, line))
 	}
 	data = append(data, additionalData...)
-	g.Error("LogError", data...)
+	g.Error("LogError %v", data)
 }
