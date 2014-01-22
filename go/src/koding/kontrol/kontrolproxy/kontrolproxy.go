@@ -11,8 +11,7 @@ import (
 	"koding/newkite/kite"
 	"koding/newkite/protocol"
 	"koding/tools/config"
-	"log"
-	"log/syslog"
+	"koding/tools/logger"
 	"math/rand"
 	"net"
 	"net/http"
@@ -35,15 +34,10 @@ import (
 	libgeo "github.com/nranchev/go-libGeoIP"
 )
 
-func init() {
-	log.SetPrefix(fmt.Sprintf("proxy [%5d] ", os.Getpid()))
-}
-
 const (
-	vmCookieName = "kodingproxy-vm"
+	CookieVM      = "kdproxy-vm"
+	CookieUseHTTP = "kdproxy-usehttp"
 )
-
-const CookieUseHTTP = "kdproxy-usehttp"
 
 var (
 	// used to extract the Country information via the IP
@@ -67,8 +61,8 @@ var (
 	// cookie handling is used for features like securePage
 	store = sessions.NewCookieStore([]byte("kontrolproxy-secret-key"))
 
-	// used for all our logs, currently it uses our local syslog server
-	logs *syslog.Writer
+	// used for all our log
+	log = logger.New("kodingproxy")
 
 	// used for various kinds of use cases like validator, 404 pages,
 	// maintenance,...
@@ -98,7 +92,7 @@ type Proxy struct {
 	// accoding to ip, country, requests and so on..
 	enableFirewall bool
 
-	// logDestination specifies the destination of requests logs in the
+	// logDestination specifies the destination of requests log in the
 	// Combined Log Format.
 	logDestination io.Writer
 
@@ -121,7 +115,7 @@ type interval struct {
 
 func main() {
 	runtime.GOMAXPROCS(runtime.NumCPU())
-	fmt.Printf("[%s] I'm using %d cpus for goroutines\n", time.Now().Format(time.Stamp), runtime.NumCPU())
+	log.Info("[%s] I'm using %d cpus for goroutines\n", time.Now().Format(time.Stamp), runtime.NumCPU())
 
 	configureProxy()
 	startProxy()
@@ -131,26 +125,18 @@ func main() {
 // mongodb connection, syslog enabling and so on..
 func configureProxy() {
 	var err error
-	logs, err = syslog.New(syslog.LOG_DEBUG|syslog.LOG_USER, "KONTROL_PROXY")
-	if err != nil {
-		fmt.Println(err)
-	}
-
-	res := "kontrol proxy started"
-	fmt.Printf("[%s] %s\n", time.Now().Format(time.Stamp), res)
-	logs.Info(res)
+	log.Info("[%s] kontrolproxy started\n", time.Now().Format(time.Stamp))
 
 	err = modelhelper.AddProxy(proxyName)
 	if err != nil {
-		logs.Warning(err.Error())
+		log.Warning(err.Error())
 	}
 
 	// load GeoIP db into memory
 	dbFile := "GeoIP.dat"
 	geoIP, err = libgeo.Load(dbFile)
 	if err != nil {
-		res := fmt.Sprintf("load GeoIP.dat: %s\n", err.Error())
-		logs.Warning(res)
+		log.Notice("load GeoIP.dat: %s\n", err.Error())
 	}
 }
 
@@ -240,7 +226,7 @@ func (p *Proxy) findAndDialOskite() {
 			oskite = k.NewRemoteKite(e.Kite, auth)
 			err := oskite.Dial()
 			if err != nil {
-				log.Println(err)
+				log.Warning(err.Error())
 			}
 
 			p.oskites[serviceUniqueHostname] = oskite
@@ -257,11 +243,15 @@ func (p *Proxy) findAndDialOskite() {
 
 	err := k.Kontrol.WatchKites(query, onEvent)
 	if err != nil {
-		log.Println(err)
+		log.Warning(err.Error())
 	}
 }
 
 func (p *Proxy) randomOskite() (*kite.RemoteKite, bool) {
+	p.oskitesMu.Lock()
+	defer p.oskitesMu.Unlock()
+
+	log.Debug("getting a random oskite")
 	i := 0
 	n := len(p.oskites)
 	if n == 0 {
@@ -281,14 +271,12 @@ func (p *Proxy) randomOskite() (*kite.RemoteKite, bool) {
 
 // startVM starts the vm and returns back the iniprandtalized IP
 func (p *Proxy) startVM(hostnameAlias, hostkite string) (string, error) {
-	fmt.Println("starting vm", hostnameAlias)
-	p.oskitesMu.Lock()
-	defer p.oskitesMu.Unlock()
-
+	log.Debug("starting vm", hostnameAlias)
 	var oskite *kite.RemoteKite
 	var ok bool
 
 	if hostkite == "" {
+		log.Debug("hostkite %s is empty", hostkite)
 		var ok bool
 		oskite, ok = p.randomOskite()
 		if !ok {
@@ -296,6 +284,7 @@ func (p *Proxy) startVM(hostnameAlias, hostkite string) (string, error) {
 		}
 	} else {
 		// hostkite is in form: "kite-os-sj|kontainer1_sj_koding_com"
+		log.Debug("splitting hostkite %s to get serviceUniqueName", hostkite)
 		s := strings.Split(hostkite, "|")
 		if len(s) < 2 {
 			return "", fmt.Errorf("hostkite '%s' is malformed", hostkite)
@@ -303,16 +292,20 @@ func (p *Proxy) startVM(hostnameAlias, hostkite string) (string, error) {
 
 		serviceUniqueHostname := s[1] // gives kontainer1_sj_koding_com
 
+		p.oskitesMu.Lock()
 		oskite, ok = p.oskites[serviceUniqueHostname]
 		if !ok {
+			p.oskitesMu.Unlock()
 			return "", fmt.Errorf("oskite not available for %s", serviceUniqueHostname)
 		}
+		p.oskitesMu.Unlock()
 	}
 
 	if oskite == nil {
 		return "", errors.New("oskite not connected")
 	}
 
+	log.Debug("oskite tell startVM", hostnameAlias)
 	response, err := oskite.Tell("startVM", hostnameAlias)
 	if err != nil {
 		return "", err
@@ -328,13 +321,13 @@ func (p *Proxy) setupLogging() {
 	// no-op if exists
 	err := os.MkdirAll("/var/log/koding/", 0755)
 	if err != nil {
-		log.Println(err)
+		log.Warning(err.Error())
 	}
 
 	logPath := "/var/log/koding/kontrolproxyCLH.log"
 	logFile, err := os.OpenFile(logPath, os.O_WRONLY|os.O_APPEND|os.O_CREATE, 0755)
 	if err != nil {
-		log.Printf("err: '%s'. \nusing stderr for log destination\n", err)
+		log.Warning("err: '%s'. \nusing stderr for CLH log destination\n", err)
 		p.logDestination = os.Stderr
 	} else {
 		p.logDestination = logFile
@@ -347,13 +340,13 @@ func (p *Proxy) setupLogging() {
 			signal := <-signals
 			switch signal {
 			case syscall.SIGHUP:
-				log.Println("got an sighup")
+				log.Debug("got an sighup")
 				logFile.Close()
 				newFile, err := os.Create(logPath)
 				if err != nil {
-					log.Println(err)
+					log.Warning(err.Error())
 				} else {
-					log.Println("creating new file")
+					log.Debug("creating new log file")
 					p.logDestination = newFile
 				}
 			case syscall.SIGINT, syscall.SIGTERM:
@@ -370,7 +363,7 @@ func (p *Proxy) setupLogging() {
 func (p *Proxy) startHTTPS() {
 	// HTTPS handling, it is always 443, standart port for HTTPS protocol
 	portssl := strconv.Itoa(config.Current.Kontrold.Proxy.PortSSL)
-	logs.Info(fmt.Sprintf("https mode is enabled. serving at :%s ...", portssl))
+	log.Info("https mode is enabled. serving at :%s ...", portssl)
 
 	// don't change it to "*.pem", otherwise you'll get duplicate IP's
 	pemFiles, _ := filepath.Glob("*_cert.pem")
@@ -378,7 +371,7 @@ func (p *Proxy) startHTTPS() {
 	for _, file := range pemFiles {
 		s := strings.Split(file, "_")
 		if len(s) != 2 {
-			fmt.Println("file is malformed", file)
+			log.Debug("file is malformed", file)
 			continue
 		}
 
@@ -386,8 +379,7 @@ func (p *Proxy) startHTTPS() {
 		go func(ip string) {
 			err := http.ListenAndServeTLS(ip+":"+portssl, ip+"_cert.pem", ip+"_key.pem", p.mux)
 			if err != nil {
-				logs.Alert(err.Error())
-				fmt.Printf("[%s] %s\n", time.Now().Format(time.Stamp))
+				log.Critical(err.Error())
 			}
 		}(ip)
 	}
@@ -398,7 +390,7 @@ func (p *Proxy) startHTTPS() {
 // seperate go routine, and thus is blocking.
 func (p *Proxy) startHTTP() {
 	// HTTP Handling for VM port forwardings
-	logs.Info("normal mode is enabled. serving ports between 1024-10000 for vms...")
+	log.Info("normal mode is enabled. serving ports between 1024-10000 for vms...")
 
 	if config.VMProxies {
 		for i := 1024; i <= 10000; i++ {
@@ -406,8 +398,7 @@ func (p *Proxy) startHTTP() {
 				port := strconv.Itoa(i)
 				err := http.ListenAndServe("0.0.0.0:"+port, p)
 				if err != nil {
-					logs.Alert(err.Error())
-					log.Println(err)
+					log.Critical(err.Error())
 				}
 			}(i)
 		}
@@ -415,12 +406,11 @@ func (p *Proxy) startHTTP() {
 
 	// HTTP handling (port 80, main)
 	port := strconv.Itoa(config.Current.Kontrold.Proxy.Port)
-	logs.Info(fmt.Sprintf("normal mode is enabled. serving at :%s ...", port))
+	log.Info("normal mode is enabled. serving at :%s ...", port)
 	err := http.ListenAndServe(":"+port, p.mux)
 	if err != nil {
-		logs.Alert(err.Error())
 		// don't use panic. It output full stack which we don't care.
-		fmt.Printf("[%s] %s\n", time.Now().Format(time.Stamp), err.Error())
+		log.Critical("[%s] %s\n", time.Now().Format(time.Stamp), err.Error())
 		os.Exit(1)
 	}
 }
@@ -457,7 +447,7 @@ func (p *Proxy) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// it should never reach here, if yes something badly happens and needs to be fixed
-	logs.Alert("couldn't find any handler")
+	log.Critical("couldn't find any handler")
 	http.Error(w, "Not found.", http.StatusNotFound)
 	return
 }
@@ -469,18 +459,15 @@ func (p *Proxy) getHandler(req *http.Request) http.Handler {
 
 	target, err := resolver.GetTarget(req)
 	if err != nil {
-		logs.Info(fmt.Sprintf("GetTarget err: %s (%s) %s", req.Host, userIP, err))
+		log.Error("getTarget err: %s (%s) %s", req.Host, userIP, err)
 		return templateHandler("notfound.html", req.Host, 404)
 	}
 
 	resolver, ok := p.resolvers[target.Proxy.Mode]
 	if !ok {
-		logs.Info(fmt.Sprintf("target not defined: %s (%s) %v", req.Host, userIP, target))
+		log.Warning("target not defined: %s (%s) %v", req.Host, userIP, target)
 		return templateHandler("notfound.html", req.Host, 404)
 	}
-
-	logs.Notice(fmt.Sprintf("mode '%s' [%s] via %s : %s --> %s\n",
-		target.Proxy.Mode, userIP, target.FetchedSource, req.Host, target.URL.String()))
 
 	return resolver(req, target)
 }
@@ -506,40 +493,38 @@ func (p *Proxy) vm(req *http.Request, target *resolver.Target) http.Handler {
 	} else {
 		_, port, err = net.SplitHostPort(req.Host)
 		if err != nil {
-			log.Println(err)
+			log.Warning(err.Error())
 		}
 	}
 
 	if target.Err == resolver.ErrVMNotFound {
-		logs.Info(fmt.Sprintf("ModeVM err: %s (%s) %s", req.Host, userIP, target.Err))
+		log.Warning("ModeVM err: %s (%s) %s", req.Host, userIP, target.Err)
 		return templateHandler("notfound.html", req.Host, 404)
 	}
 
 	if target.Err == resolver.ErrVMOff {
-		fmt.Println("vm is off, going to start", hostnameAlias)
+		log.Debug("vm %s is off, going to start", hostnameAlias)
 		// target.URL might be nil, however if we start the VM, oskite sends a
-		// new IP that we can use and update the current one. IT will be nil
+		// new IP that we can use and update the current one. It will be nil
 		// if an error is occured.
 		target.URL, err = p.checkAndStartVM(hostnameAlias, hostkite, port)
 		if err != nil {
-			logs.Info(fmt.Sprintf("vm %s timed out, err: %s", hostnameAlias, err))
+			log.Warning("vm %s timed out, err: %s", hostnameAlias, err)
 			return templateHandler("notactiveVM.html", req.Host, 404)
 		}
 	}
 
-	fmt.Printf("checking if vm %s is alive.\n", hostnameAlias)
+	log.Debug("checking if vm %s is alive.\n", hostnameAlias)
 	err = utils.CheckServer(target.URL.Host)
 	if err != nil {
 		oerr, ok := err.(*net.OpError)
 		if !ok {
-			fmt.Println("vm can't be reached,", err)
-			logs.Info(fmt.Sprintf("vm host %s is down: '%s'", req.Host, err))
+			log.Warning("vm host %s is down: '%s'", req.Host, err)
 			return templateHandler("notactiveVM.html", req.Host, 404)
 		}
 
 		if oerr.Err != syscall.EHOSTUNREACH {
-			fmt.Println("vm can't be reached, net.OpError", oerr.Err)
-			logs.Info(fmt.Sprintf("vm host %s is down: '%s'", req.Host, err))
+			log.Warning("vm host %s is down net.OpError: '%s'", req.Host, err)
 			return templateHandler("notactiveVM.html", req.Host, 404)
 		}
 
@@ -547,33 +532,37 @@ func (p *Proxy) vm(req *http.Request, target *resolver.Target) http.Handler {
 		// when the VM is down, therefore turn it on.
 		target.URL, err = p.checkAndStartVM(hostnameAlias, hostkite, port)
 		if err != nil {
-			logs.Info(fmt.Sprintf("vm %s timed out, it's still not up, this is not good!", hostnameAlias))
+			log.Warning("vm %s timed out, err: %s", hostnameAlias, err)
 			return templateHandler("notactiveVM.html", req.Host, 404)
 		}
 	}
 
-	session, _ := store.Get(req, vmCookieName)
-	fmt.Println("getting cookie for", req.Host)
+	// switch to websocket before we even show the cookie
+	if isWebsocket(req) {
+		return websocketHandler(target.URL.Host)
+	}
+
+	session, _ := store.Get(req, CookieVM)
+	log.Debug("getting cookie for: %s", req.Host)
 	_, ok := session.Values[req.Host]
 	if !ok {
 		return context.ClearHandler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			fmt.Println("saving cookie for", req.Host)
+			log.Debug("saving cookie for", req.Host)
 			session.Values[req.Host] = time.Now().String()
 			session.Options = &sessions.Options{MaxAge: 3600} //seconds -> 1h
 			session.Save(r, w)
 
 			err := templates.ExecuteTemplate(w, "accessVM.html", r.Host)
 			if err != nil {
-				logs.Err(fmt.Sprintf("template notOnVM could not be executed %s", err))
+				log.Warning("template notOnVM could not be executed %s", err)
 				http.Error(w, "error code - 5", 404)
 				return
 			}
 		}))
 	}
 
-	if isWebsocket(req) {
-		return websocketHandler(target.URL.Host)
-	}
+	log.Notice("mode '%s' [%s] via %s : %s --> %s\n",
+		target.Proxy.Mode, userIP, target.FetchedSource, req.Host, target.URL.String())
 
 	return reverseProxyHandler(nil, target.URL)
 }
@@ -584,8 +573,7 @@ func (p *Proxy) internal(req *http.Request, target *resolver.Target) http.Handle
 	// roundrobin to next target
 	target.Resolve(req.Host)
 	if target.Err != nil {
-		logs.Info(fmt.Sprintf("internal resolver error for %s (%s) - %s", req.Host, userIP, target.Err))
-
+		log.Info("internal resolver error for %s (%s) - %s", req.Host, userIP, target.Err)
 		statusCode := 503
 		if target.Err == resolver.ErrGone {
 			statusCode = 410 // Gone
@@ -593,6 +581,9 @@ func (p *Proxy) internal(req *http.Request, target *resolver.Target) http.Handle
 
 		return templateHandler("maintenance.html", nil, statusCode)
 	}
+
+	log.Notice("mode '%s' [%s] via %s : %s --> %s\n",
+		target.Proxy.Mode, userIP, target.FetchedSource, req.Host, target.URL.String())
 
 	return reverseProxyHandler(nil, target.URL)
 }
@@ -616,7 +607,7 @@ func (p *Proxy) checkAndStartVM(hostnameAlias, hostkite, port string) (*url.URL,
 	for {
 		select {
 		case <-ticker:
-			fmt.Println("checking if vm is alive", hostnameAlias)
+			log.Debug("checking if vm is alive", hostnameAlias)
 			err := utils.CheckServer(targetURL.Host)
 			if err != nil {
 				continue
@@ -653,14 +644,14 @@ func websocketHandler(target string) http.Handler {
 		hj, ok := w.(http.Hijacker)
 		if !ok {
 			http.Error(w, "not a hijacker?", 500)
-			logs.Notice(fmt.Sprintf("websocket: [%s] not a hijacker?", target))
+			log.Warning("websocket: [%s] not a hijacker?", target)
 			return
 		}
 
 		nc, _, err := hj.Hijack()
 		if err != nil {
 			http.Error(w, "Error contacting backend server.", 500)
-			logs.Notice(fmt.Sprintf("websocket: [%s] hijack error: %v", target, err))
+			log.Warning("websocket: [%s] hijack error: %v", target, err)
 			return
 		}
 		defer nc.Close()
@@ -668,8 +659,7 @@ func websocketHandler(target string) http.Handler {
 		d, err := net.Dial("tcp", target)
 		if err != nil {
 			http.Error(w, "Error contacting backend server.", 500)
-			logs.Notice(fmt.Sprintf("websocket: [%s] error dialing websocket backend: %v",
-				target, err))
+			log.Warning("websocket: [%s] error dialing websocket backend: %v", target, err)
 			return
 		}
 		defer d.Close()
@@ -678,7 +668,7 @@ func websocketHandler(target string) http.Handler {
 		err = r.Write(d)
 		if err != nil {
 			http.Error(w, "Error contacting backend server.", 500)
-			logs.Notice(fmt.Sprintf("websocket [%s] error copying request to target: %v", target, err))
+			log.Notice("websocket [%s] error copying request to target: %v", target, err)
 			return
 		}
 
@@ -701,7 +691,7 @@ func templateHandler(path string, data interface{}, code int) http.Handler {
 		w.WriteHeader(code)
 		err := templates.ExecuteTemplate(w, path, data)
 		if err != nil {
-			logs.Warning(fmt.Sprintf("template %s could not be executed", path))
+			log.Warning("template %s could not be executed", path)
 			http.Error(w, "error code - 1", 404)
 			return
 		}
@@ -712,14 +702,13 @@ func templateHandler(path string, data interface{}, code int) http.Handler {
 func (p *Proxy) resetCacheHandler() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.Host != proxyName {
-			logs.Debug(fmt.Sprintf("resetcache handler: got hostame %s, expected %s\n",
-				r.Host, proxyName))
-			logs.Debug("resetcache handler: fallback to reverse proxy handler")
+			log.Debug("resetcache handler: got hostame %s, expected %s\n", r.Host, proxyName)
+			log.Debug("resetcache handler: fallback to reverse proxy handler")
 			p.ServeHTTP(w, r)
 			return
 		}
 
-		logs.Debug(fmt.Sprintf("resetCache is invoked %s - %s\n", r.Host, r.URL.String()))
+		log.Debug("resetCache is invoked %s - %s\n", r.Host, r.URL.String())
 		cacheHost := filepath.Base(r.URL.String())
 		resolver.CleanCache(cacheHost)
 
