@@ -141,12 +141,12 @@ body.about #main-header
     margin              0 auto
 
   #home-bottom
-    margin-top          -660px
     background          url('/a/images/home/photo-large.jpg') no-repeat center center
-    padding-top         720px
-    size                100% 1160px
+    size                100% 530px
+    padding-top         80px
     border-bottom       none
     background-size     cover
+    shadow              inset 0 5px 16px rgba(0, 0, 0, .47)
     borderBox()
     h2
       margin-bottom     30px
@@ -351,9 +351,141 @@ body.about #main-header
       h4
         color           socialColor
 
+#home-pricing-plans
+  size                  100%, auto
+  background            url('/a/images/home/speedometer.jpg') no-repeat center bottom
+  background-size       cover
+  padding               500px 0 114px
+  margin-top            -400px
+
+  .inner-container
+    max-width           1091px
+    margin              0 auto
+
+    >p
+      text-align        center
+      font-size         28px
+      color             #dfdfdf
+      font-weight       200
+      line-height       38px
+      margin-bottom     84px
+
+      a
+        font-weight     400
+        color           #1aaf5d
+        border-bottom   1px solid #1aaf5d
+        padding-bottom  2px
+        noTextDeco()
+
+      strong
+        font-size       20px
+        color           #a0a0a0
+        display         block
+
+  .pricing-box
+    size                337px, 162px
+    background          #27ae60
+    rounded             12px
+    margin              0 0 0 40px
+    overflow            hidden
+    text-align          left
+    letter-spacing      .2px
+    cursor              pointer
+    position            relative
+    fl()
+
+    &:first-of-type
+      margin-left       0
+
+    .plan-top
+      size              100%, 81px
+
+    &.single
+      shadow            0 5px 0 #229954 \,
+                        0 7px 8px rgba(0,0,0,.7)
+
+      .plan-top
+        background      #415357
+    &.double
+      shadow            0 5px 0 #229954 \,
+                        0 10px 0 #1b8548 \,
+                        0 12px 8px rgba(0,0,0,.7)
+
+      .plan-top
+        background      #ffa800
+    &.triple
+      shadow            0 5px 0 #229954 \,
+                        0 10px 0 #1b8548 \,
+                        0 15px 0 #176e3b \,
+                        0 17px 8px rgba(0,0,0,.7)
+
+      .plan-top
+        background      #e94b35
+
+    h2
+      text-align        left
+      text-shadow       none
+      line-height       81px
+      padding           0 0 0 36px
+      font-weight       600
+      margin            0
+      fl()
+
+      &.buy-now
+        color           #0e542c
+        opacity         .8
+
+    .price
+      color             #fff
+      font-size         46px
+      font-weight       600
+      margin            13px 13px 0 0
+      fr()
+
+      cite
+        font-size       20px
+        font-weight     400
+        vertical-align  super
+
+      span
+        display         block
+        text-align      left
+        padding         0 0 0 14px
+        font-size       11px
+        font-weight     400
+        color           rgba(255, 255, 255, .5)
+
+    .description
+      text-align        right
+      font-size         16px
+      color             rgba(255, 255, 255, .7)
+      font-weight       400
+      width             140px
+      abs               81px 20px 0 0
+      line-height       76px
+      height            81px
+
+      span
+        display         inline-block
+        line-height     normal
+        vertical-align  middle
+
+    .amount
+      abs               65px 0 0 67px
+      size              34px 34px
+      line-height       28px
+      text-align        center
+      border            3px solid #27ae60
+      rounded           50%
+      background        #208c4d
+      color             rgba(255,255,255,.5)
+      font-size         11px
+      font-weight       600
+      borderBox()
+
+
 
 #home-groups
-
   bg                    color, homeHeaderBg
   padding               100px 0
 
@@ -474,7 +606,6 @@ body.about #main-header
       margin              0
       padding             0
       r-sprite              home 'dollar'
-
 
 /* Media Queries */
 

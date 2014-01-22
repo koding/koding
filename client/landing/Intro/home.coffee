@@ -1,3 +1,33 @@
+class PricingPlanBoxView extends KDCustomHTMLView
+  constructor : (options = {}, data = {}) ->
+    options.plan        or= no
+    options.price       or= 0
+    options.amount      or= "1X"
+    options.description or= "and start koding"
+    options.cssClass      = KD.utils.curry "pricing-box", options.cssClass
+
+    super options, data
+
+  viewAppended : JView::viewAppended
+
+  pistachio : ->
+    {plan, price, description, amount} = @getOptions()
+    """
+      <div class="plan-top">
+        <h2>#{plan}</h4>
+        <div class="price">
+          <cite>$</cite>#{price}
+          <span>/MONTH</span>
+        </div>
+      </div>
+      <cite class="amount">#{amount}</cite>
+      <div>
+        <h2 class="buy-now">Buy Now</h2>
+        <div class="description"><span>#{description}</span></div>
+      </div>
+    """
+
+
 class HomePage extends JView
 
   constructor:(options = {}, data)->
@@ -33,6 +63,27 @@ class HomePage extends JView
         KD.singletons.oauthController.openPopup "github"
 
     @markers = new MarkerController
+
+    @singlePlan = new PricingPlanBoxView
+      plan        : 'Single Plan'
+      amount      : '1X'
+      price       : '20'
+      description : 'and start Koding :)'
+      cssClass    : 'single'
+
+    @doublePlan = new PricingPlanBoxView
+      plan        : 'Double Plan'
+      amount      : '2X'
+      price       : '40'
+      description : 'and get 2 free VMs'
+      cssClass    : 'double'
+
+    @triplePlan = new PricingPlanBoxView
+      plan        : 'Triple Plan'
+      amount      : '3X'
+      price       : '60'
+      description : 'and get 5 free VMs or $5 discount'
+      cssClass    : 'triple'
 
   show:->
 
@@ -187,6 +238,18 @@ class HomePage extends JView
         </div>
         {{> @pricingButton}}
       </section>
+      <section id="home-pricing-plans" class="clearfix">
+        <div class="inner-container">
+          <p>
+            We'll give you a base resource pack of
+            <strong>1 GB RAM and 1x CPU Share for free when you <a href="#">sign up</a></strong>
+            But you can start with a pro-pack right away
+          </p>
+          {{> @singlePlan}}
+          {{> @doublePlan}}
+          {{> @triplePlan}}
+        </div>
+      </section>
       <section id='home-bottom'>
         <h2 class='big-header'>If you are ready to go, let’s do this</h2>
         <h3 class='hidden'>Something super simple and super descriptive goes here</h3>
@@ -214,3 +277,4 @@ KD.introView = new HomePage
 
 if location.hash in ['#!/Home', '/', '']
   KD.introView.show()
+
