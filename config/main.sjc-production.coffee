@@ -193,9 +193,9 @@ module.exports =
         # bitbucket     :
         #   nicename    : 'BitBucket'
   mq            :
-    host        : '172.16.3.4'
+    host        : '172.16.3.5'
     port        : 5672
-    apiAddress  : "172.16.3.4"
+    apiAddress  : "172.16.3.5"
     apiPort     : 15672
     login       : 'guest'
     componentUser: "guest"
