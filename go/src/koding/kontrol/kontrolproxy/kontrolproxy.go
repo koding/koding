@@ -492,6 +492,7 @@ func (p *Proxy) vm(req *http.Request, target *resolver.Target) http.Handler {
 	userIP := getIP(req.RemoteAddr)
 	hostnameAlias := target.HostnameAlias[0]
 	hostkite := target.Properties["hostkite"].(string)
+	alwaysOn := target.Properties["alwaysOn"].(bool)
 
 	var port string
 	var err error
@@ -517,7 +518,7 @@ func (p *Proxy) vm(req *http.Request, target *resolver.Target) http.Handler {
 		// if an error is occured.
 		target.URL, err = p.checkAndStartVM(hostnameAlias, hostkite, port)
 		if err != nil {
-			log.Warning("vm %s timed out, err: %s", hostnameAlias, err)
+			log.Warning("vm %s couldn't be started [ErrVMOff]: %s", hostnameAlias, err)
 			return templateHandler("notactiveVM.html", req.Host, 404)
 		}
 	}
@@ -527,12 +528,17 @@ func (p *Proxy) vm(req *http.Request, target *resolver.Target) http.Handler {
 	if err != nil {
 		oerr, ok := err.(*net.OpError)
 		if !ok {
-			log.Warning("vm host %s is down: '%s'", req.Host, err)
+			log.Warning("vm host %s is down, non-net.OpError: '%s'", req.Host, err)
+			return templateHandler("notactiveVM.html", req.Host, 404)
+		}
+
+		if oerr.Err == syscall.ECONNREFUSED {
+			log.Debug("vm host %s is down net.OpError ECONNREFUSED: '%s'", req.Host, err)
 			return templateHandler("notactiveVM.html", req.Host, 404)
 		}
 
 		if oerr.Err != syscall.EHOSTUNREACH {
-			log.Warning("vm host %s is down net.OpError: '%s'", req.Host, err)
+			log.Error("vm host %s is down net.OpError %s: '%s'", req.Host, oerr.Err.Error(), err)
 			return templateHandler("notactiveVM.html", req.Host, 404)
 		}
 
@@ -540,7 +546,7 @@ func (p *Proxy) vm(req *http.Request, target *resolver.Target) http.Handler {
 		// when the VM is down, therefore turn it on.
 		target.URL, err = p.checkAndStartVM(hostnameAlias, hostkite, port)
 		if err != nil {
-			log.Warning("vm %s timed out, err: %s", hostnameAlias, err)
+			log.Warning("vm %s couldn't be started, err: %s", hostnameAlias, err)
 			return templateHandler("notactiveVM.html", req.Host, 404)
 		}
 	}
@@ -548,6 +554,11 @@ func (p *Proxy) vm(req *http.Request, target *resolver.Target) http.Handler {
 	// switch to websocket before we even show the cookie
 	if isWebsocket(req) {
 		return websocketHandler(target.URL.Host)
+	}
+
+	// no cookies for alwaysOn VMs
+	if alwaysOn {
+		return reverseProxyHandler(nil, target.URL)
 	}
 
 	session, _ := store.Get(req, CookieVM)
