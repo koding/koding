@@ -212,7 +212,7 @@ func prepareOsKite() *kite.Kite {
 		}
 
 		if vm.HostKite == deadService {
-			log.Warning("VM is registered as running on dead service. %v, %v", correlationName, username, deadService)
+			log.Warning("VM is registered as running on dead service. %v, %v, %v", correlationName, username, deadService)
 			return k.ServiceUniqueName
 		}
 		return vm.HostKite
