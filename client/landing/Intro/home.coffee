@@ -20,11 +20,49 @@ class PricingPlanBoxView extends KDCustomHTMLView
           <span>/MONTH</span>
         </div>
       </div>
-      <cite class="amount">#{amount}</cite>
       <div>
-        <h2 class="buy-now">Buy Now</h2>
+        <a class="buy-now">Buy Now</a>
         <div class="description"><span>#{description}</span></div>
       </div>
+    """
+
+class PricingBoxWithSliderView extends KDCustomHTMLView
+  constructor : (options = {}, data = {}) ->
+    options.cssClass       = KD.utils.curry "customize-box", options.cssClass
+    options.minValue      ?= 0
+    options.maxValue      ?= 100
+    options.interval      ?= 1
+    options.initialValue  ?= options.minValue
+    options.snapOnDrag    ?= yes
+    options.period        ?= "Month"
+    options.unitName      ?= "Unit"
+    options.unitPrice     ?= 1
+
+    super options, data
+
+    @unitCount = new KDCustomHTMLView
+      tagName : 'strong'
+      partial : @getOption 'initialValue'
+
+    @slider = new KDSliderBarView
+      minValue    : @getOption 'minValue'
+      maxValue    : @getOption 'maxValue'
+      interval    : @getOption 'interval'
+      snapOnDrag  : @getOption 'snapOnDrag'
+      handles     : [@getOption 'initialValue']
+      drawBar     : no
+      width       : 307
+
+  viewAppended : JView::viewAppended
+
+  pistachio : ->
+    """
+      <span class="icon"></span>
+      <div class="plan-values">
+        <span class="unit-display">{{> @unitCount }} #{@getOption('unitName')}</span>
+        <span class="calculated-price">$300/Month</span>
+      </div>
+      <div class="sliderbar-outer-container">{{> @slider}}</div>
     """
 
 
@@ -84,6 +122,25 @@ class HomePage extends JView
       price       : '60'
       description : 'and get 5 free VMs or $5 discount'
       cssClass    : 'triple'
+
+    @customizeUsers = new PricingBoxWithSliderView
+      cssClass    : 'users'
+      minValue    : 1000
+      interval    : 500
+      maxValue    : 10000
+      initialValue: 3000
+      unitPrice   : 10
+      unitName    : "Users"
+
+    @customizeResources = new PricingBoxWithSliderView
+      cssClass    : 'resources'
+      minValue    : 1000
+      interval    : 500
+      maxValue    : 10000
+      initialValue: 4000
+      unitPrice   : 10
+      unitName    : "Resources"
+
 
   show:->
 
@@ -248,6 +305,25 @@ class HomePage extends JView
           {{> @singlePlan}}
           {{> @doublePlan}}
           {{> @triplePlan}}
+        </div>
+      </section>
+      <section id="home-customize-pricing" class="clearfix">
+        {{> @customizeUsers}}
+        <span class="plus-icon"></span>
+        {{> @customizeResources}}
+        <span class="equal-icon"></span>
+        <div class="custom-plan">
+          <div class="plan-top">
+            <h2>Custom Plan</h4>
+            <div class="price">
+              <cite>$</cite>360
+              <span>/MONTH</span>
+            </div>
+          </div>
+          <div>
+            <a class="buy-now">Buy Now</a>
+            <div class="description"><span>and get 5 free VMs</span></div>
+          </div>
         </div>
       </section>
       <section id='home-bottom'>

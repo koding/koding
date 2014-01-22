@@ -403,24 +403,23 @@ body.about #main-header
     &.single
       shadow            0 5px 0 #229954 \,
                         0 7px 8px rgba(0,0,0,.7)
-
       .plan-top
-        background      #415357
+        background      #1f8f4f
+
     &.double
       shadow            0 5px 0 #229954 \,
                         0 10px 0 #1b8548 \,
                         0 12px 8px rgba(0,0,0,.7)
-
       .plan-top
         background      #ffa800
+
     &.triple
       shadow            0 5px 0 #229954 \,
                         0 10px 0 #1b8548 \,
                         0 15px 0 #176e3b \,
                         0 17px 8px rgba(0,0,0,.7)
-
       .plan-top
-        background      #e94b35
+        background      #277dae
 
     h2
       text-align        left
@@ -431,9 +430,18 @@ body.about #main-header
       margin            0
       fl()
 
-      &.buy-now
-        color           #0e542c
-        opacity         .8
+    .buy-now
+      size              131px, 52px
+      text-align        center
+      text-shadow       none
+      line-height       52px
+      font-weight       400
+      font-size         18px
+      rounded           6px
+      margin            13px 0 0 15px
+      color             #1aaf5d
+      background        #184a2d
+      fl()
 
     .price
       color             #fff
@@ -470,20 +478,190 @@ body.about #main-header
         line-height     normal
         vertical-align  middle
 
-    .amount
-      abs               65px 0 0 67px
-      size              34px 34px
-      line-height       28px
-      text-align        center
-      border            3px solid #27ae60
-      rounded           50%
-      background        #208c4d
-      color             rgba(255,255,255,.5)
-      font-size         11px
+#home-customize-pricing
+  bg                    color, #e4e4e4
+  size                  100%, auto
+  padding               62px 0 105px
+  position              relative
+  kalc                  padding-left, \(100% \- 1192px\)\/2
+
+  .plus-icon
+    r-sprite            "home", "plan-plus"
+    display             block
+    abs                 127px 0 0 50%
+    margin-left         -257px
+
+  .equal-icon
+    r-sprite            "home", "plan-equal"
+    abs                 132px 0 0 50%
+    margin-left         172px
+
+  .customize-box
+    size                336px, 177px
+    background          #ffffff
+    rounded             12px
+    margin-left         92px
+    position            relative
+    overflow            visible
+    fl()
+
+    &:first-of-type
+      margin-left       0
+
+    .icon
+      margin            16px 22px 0 29px
+      fl()
+
+    .plan-values
+      margin            34px 0 0
+      width             204px
+      font-weight       400
+      letter-spacing    -.3px
+      fl()
+
+      .unit-display
+        font-size       23px
+        color           #666b6c
+        display         block
+
+        strong
+          color         #1aaf5d
+
+      .calculated-price
+        display         block
+        margin          4px 0 0
+        font-size       19px
+        color           #adadad
+
+    &.users
+      .icon
+        r-sprite        "home", "users"
+
+    &.resources
+      .icon
+        r-sprite        "home", "resources"
+
+    .sliderbar-outer-container
+      abs               0 0 0px 0px
+      size              100%, 50px
+      bg                color, #d1d1d1
+      rounded           0 0 12px 12px
+
+    .sliderbar-container
+      height            7px
+      border            none
+      background        #ebebeb
+      margin            18px auto 0
+
+    .handle
+      size              36px, 43px
+      top               -19px
+      margin            0 0 0 -17px
+      border            none
+      background        #27ae60
+      shadow            0 1px 0 #8d9f95
+
+      &:after
+        background      none
+        width           0
+        height          0
+        border          8px solid transparent
+        border-bottom   8px solid #27ae60
+        top             -16px
+        margin          0 0 0 -8px
+
+      &:before
+        background      #1b8247
+        border          none
+        height          14px
+        top             14px
+        margin          0
+        shadow          4px 0 0 #1b8247 \,
+                        -4px 0 0 #1b8247
+
+    .sliderbar-label
+      color             transparent
+      top               -18px
+
+      &:after
+        height          11px
+        background      #ebebeb
+
+  .custom-plan
+    size                337px, 162px
+    background          #27ae60
+    rounded             12px
+    margin              0 0 0 90px
+    overflow            hidden
+    text-align          left
+    letter-spacing      .2px
+    position            relative
+    fl()
+    shadow              0 5px 0 #229954 \,
+                        0 10px 0 #1b8548 \,
+                        0 15px 0 #176e3b \,
+                        0 17px 8px rgba(0,0,0,.7)
+
+    .plan-top
+      background        #184a2d
+      size              100%, 81px
+
+    h2
+      text-align        left
+      text-shadow       none
+      line-height       81px
+      padding           0 0 0 36px
       font-weight       600
-      borderBox()
+      margin            0
+      fl()
 
+    .buy-now
+      size              131px, 52px
+      text-align        center
+      text-shadow       none
+      line-height       52px
+      font-weight       400
+      font-size         18px
+      rounded           6px
+      margin            13px 0 0 15px
+      color             #1aaf5d
+      background        #184a2d
+      fl()
 
+    .price
+      color             #fff
+      font-size         46px
+      font-weight       600
+      margin            13px 13px 0 0
+      fr()
+
+      cite
+        font-size       20px
+        font-weight     400
+        vertical-align  super
+
+      span
+        display         block
+        text-align      right
+        padding         0 0 0 14px
+        font-size       11px
+        font-weight     400
+        color           rgba(255, 255, 255, .5)
+
+    .description
+      text-align        right
+      font-size         16px
+      color             rgba(255, 255, 255, .7)
+      font-weight       400
+      width             140px
+      abs               81px 20px 0 0
+      line-height       76px
+      height            81px
+
+      span
+        display         inline-block
+        line-height     normal
+        vertical-align  middle
 
 #home-groups
   bg                    color, homeHeaderBg
