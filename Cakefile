@@ -9,6 +9,7 @@ option '-f', '--file [file]', 'run tests with just one file'
 option '-l', '--location [location]', 'run tests with this base url'
 
 option '-t', '--tests', 'require test suite'
+option '-s', '--buildSprites', 'build sprites'
 
 {spawn, exec} = require 'child_process'
 
@@ -561,7 +562,13 @@ task 'run', (options)->
   queue = []
   if config.buildClient is yes
     queue.push ->
-      (new (require('./Builder'))).buildClient options
+
+      buildMethod =
+        if options.buildSprites
+        then 'buildSprites'
+        else 'buildClient'
+
+      (new (require('./Builder')))[buildMethod] options
       queue.next()
   queue.push -> run options
   daisy queue
