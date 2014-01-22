@@ -104,6 +104,17 @@ process.on 'uncaughtException', (err) ->
   console.error err
   process.exit(1)
 
+
+# this is for creating session for incoming user if it doesnt have
+app.use (req, res, next) ->
+  {JSession} = koding.models
+  {clientId} = req.cookies
+  return next() if clientId
+  JSession.createSession (err, session, account)->
+    return next() if err or not session
+    res.cookie "clientId", session.clientId, {}
+    next()
+
 app.use (req, res, next) ->
   # add referral code into session if there is one
   addReferralCode req, res
