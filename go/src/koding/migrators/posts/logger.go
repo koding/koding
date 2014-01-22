@@ -5,7 +5,7 @@ import (
 	"koding/tools/logger"
 )
 
-var log = logger.New("PostMigrator")
+var log = logger.New("postMigrator")
 
 func GetMigrationCompletedReport(m *Migrator) {
 	result := fmt.Sprintf("Migration Completed for \"%s\"", m.PostType)
