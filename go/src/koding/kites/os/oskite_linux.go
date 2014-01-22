@@ -138,7 +138,7 @@ func runNewKite(serviceUniqueName string) {
 
 		if !isPrepared {
 			fmt.Println("preparing ", hostnameAlias)
-			vm.Prepare(false, log.Warn)
+			vm.Prepare(false, log.Warning)
 		}
 
 		fmt.Println("starting ", hostnameAlias)
