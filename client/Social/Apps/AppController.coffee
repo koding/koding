@@ -4,6 +4,7 @@ class AppsAppController extends AppController
 
   KD.registerAppClass this,
     name         : "Apps"
+    enforceLogin : yes
     routes       :
       "/:name?/Apps"             : ({params, query})->
         handler (app)-> app.handleQuery query
