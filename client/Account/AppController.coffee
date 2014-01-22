@@ -228,3 +228,22 @@ class AccountAppController extends AppController
                         options.push ( title : "#{previousTotal} #{referal.unit}" , value : previousTotal)
                       cb options
 
+
+  showRegistirationNeededModal:->
+    message = "Please login to proceed to the next step"
+    modal = new KDBlockingModalView
+      title           : "Koding Registration"
+      content         : "<div class='modalformline'>#{message}</div>"
+      height          : "auto"
+      overlay         : yes
+      buttons         :
+        "Login"       :
+          style       : "modal-clean-gray"
+          callback    : ->
+            modal.destroy()
+            KD.utils.wait 5000, KD.getSingleton("router").handleRoute "/Login"
+        "Register"    :
+          style       : "modal-clean-gray"
+          callback    : ->
+            modal.destroy()
+            KD.utils.wait 5000, KD.getSingleton("router").handleRoute "/Register"
