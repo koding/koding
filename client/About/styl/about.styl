@@ -184,6 +184,11 @@ body.about
 
         .avatarview
           display         block
+          vendor          filter, grayscale(100%)
+          vendor          transition, all .177s ease
+          &:hover
+            vendor        filter, grayscale(0%)
+
 
         figcaption
           overflow        visible
