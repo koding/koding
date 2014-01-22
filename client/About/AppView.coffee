@@ -62,7 +62,7 @@ class AboutView extends KDView
             <div class="lines">
               <i></i>
               <h6>VMs spinned up</h6>
-              1,000,000,000+
+              1,000,000+
             </div>
           </aside>
           <cite>photo by - <a href='http://www.tidyclub.com/' target='_blank'>Isaak Dury</a></cite>
