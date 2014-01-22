@@ -335,6 +335,7 @@ module.exports =
   logLevel        :
     neo4jfeeder   : "notice"
     oskite        : "notice"
+    kontrolproxy  : "notice"
     userpresence  : "notice"
     vmproxy       : "notice"
     graphitefeeder: "notice"

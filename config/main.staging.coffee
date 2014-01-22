@@ -315,7 +315,8 @@ module.exports =
 	  channel      : "C024LG80K"
   logLevel        :
     neo4jfeeder   : "info"
-    oskite        : "info"
+    oskite        : "debug"
+    kontrolproxy  : "debug"
     userpresence  : "info"
     vmproxy       : "info"
     graphitefeeder: "info"
