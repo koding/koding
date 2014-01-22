@@ -385,9 +385,7 @@ class LoginView extends KDView
       @$('.flex-wrapper').removeClass 'shake'
       KD.utils.defer => @$('.flex-wrapper').addClass 'animate shake'
     else
-      {account, replacementToken} = params
-      $.cookie 'clientId', replacementToken  if replacementToken
-
+      {account} = params
       # check and set preferred BE domain for Koding
       # prevent user from seeing the main wiev
       KD.utils.setPreferredDomain account if account
