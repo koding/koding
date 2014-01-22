@@ -17,7 +17,9 @@ do ->
     mainController.accountChanged account, firstLoad
     firstLoad = no
 
-  status.on 'sessionTokenChanged', (token)-> $.cookie 'clientId', token
+  status.on 'sessionTokenChanged', (token)->
+    # this is disabled for now to test user log-out problem.
+    # $.cookie 'clientId', token
 
   status.on 'connected', ->
     destroyCurrentModal()
