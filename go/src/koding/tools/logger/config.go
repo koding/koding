@@ -10,9 +10,12 @@ var loggingLevel logging.Level
 
 // Mappings of strings in config file to internal types.
 var nameToLevelMapping = map[string]logging.Level{
-	"debug":   logging.DEBUG,
-	"warning": logging.WARNING,
-	"error":   logging.ERROR,
+	"critical": logging.CRITICAL,
+	"debug":    logging.DEBUG,
+	"error":    logging.ERROR,
+	"info":     logging.INFO,
+	"notice":   logging.NOTICE,
+	"warning":  logging.WARNING,
 }
 
 var defaultLoggingLevel = logging.WARNING

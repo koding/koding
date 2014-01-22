@@ -3,7 +3,7 @@ class ReferrerModal extends KDModalViewWithForms
     options.cssClass       = KD.utils.curry "referrer-modal", options.cssClass
     options.width          = 610
     options.overlay       ?= yes
-    options.title          = "Get free disk space!"
+    options.title        or= "Get free disk space!"
     options.url          or= KD.getReferralUrl KD.nick()
     options.onlyInviteTab ?= no
     options.tabs           =
@@ -14,7 +14,7 @@ class ReferrerModal extends KDModalViewWithForms
         share              :
           customView       : KDCustomHTMLView
           cssClass         : "clearfix"
-          partial          : "<p class='description'>For each person registers with your referral code, \
+          partial          : options.partial or "<p class='description'>For each person registers with your referral code, \
             you'll get <strong>250 MB</strong> free disk space for your VM, up to <strong>16 GB</strong> total.</p><p class='center'>Share this code or invite your gmail contacts.</p>"
         invite             :
           customView       : KDCustomHTMLView

@@ -12,6 +12,7 @@ import (
 	"koding/tools/dnode"
 	"koding/tools/kite"
 	"koding/tools/lifecycle"
+	"koding/tools/logger"
 	"koding/tools/utils"
 	"koding/virt"
 	"net"
@@ -25,6 +26,8 @@ import (
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
 )
+
+var log = logger.New("oskite")
 
 type VMInfo struct {
 	vm              *virt.VM
