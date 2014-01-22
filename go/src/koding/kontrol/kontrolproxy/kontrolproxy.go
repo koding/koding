@@ -38,6 +38,9 @@ import (
 const (
 	CookieVM      = "kdproxy-vm"
 	CookieUseHTTP = "kdproxy-usehttp"
+
+	// Used as a value for CookieVM
+	MagicCookieValue = "KEbPptvE7dGLM5YFtcfz"
 )
 
 var (
@@ -116,7 +119,8 @@ type interval struct {
 
 func main() {
 	runtime.GOMAXPROCS(runtime.NumCPU())
-	log.Info("[%s] I'm using %d cpus for goroutines\n", time.Now().Format(time.Stamp), runtime.NumCPU())
+	log.Info("[%s] I'm using %d cpus for goroutines",
+		time.Now().Format(time.Stamp), runtime.NumCPU())
 
 	configureProxy()
 	startProxy()
@@ -126,7 +130,7 @@ func main() {
 // mongodb connection, syslog enabling and so on..
 func configureProxy() {
 	var err error
-	log.Info("[%s] kontrolproxy started\n", time.Now().Format(time.Stamp))
+	log.Info("[%s] kontrolproxy started.", time.Now().Format(time.Stamp))
 
 	err = modelhelper.AddProxy(proxyName)
 	if err != nil {
@@ -137,7 +141,7 @@ func configureProxy() {
 	dbFile := "GeoIP.dat"
 	geoIP, err = libgeo.Load(dbFile)
 	if err != nil {
-		log.Notice("load GeoIP.dat: %s\n", err.Error())
+		log.Notice("load GeoIP.dat: %s", err.Error())
 	}
 }
 
@@ -329,7 +333,7 @@ func (p *Proxy) setupLogging() {
 	logPath := "/var/log/koding/kontrolproxyCLH.log"
 	logFile, err := os.OpenFile(logPath, os.O_WRONLY|os.O_APPEND|os.O_CREATE, 0755)
 	if err != nil {
-		log.Warning("err: '%s'. \nusing stderr for CLH log destination\n", err)
+		log.Warning("err: '%s'. \nusing stderr for CLH log destination.", err)
 		p.logDestination = os.Stderr
 	} else {
 		p.logDestination = logFile
@@ -546,11 +550,11 @@ func (p *Proxy) vm(req *http.Request, target *resolver.Target) http.Handler {
 
 	session, _ := store.Get(req, CookieVM)
 	log.Debug("getting cookie for: %s", req.Host)
-	_, ok := session.Values[req.Host]
-	if !ok {
+	cookieValue, ok := session.Values[req.Host]
+	if !ok || cookieValue != MagicCookieValue {
 		return context.ClearHandler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			log.Debug("saving cookie for", req.Host)
-			session.Values[req.Host] = time.Now().String()
+			session.Values[req.Host] = MagicCookieValue
 			session.Options = &sessions.Options{MaxAge: 3600} //seconds -> 1h
 			session.Save(r, w)
 
@@ -563,7 +567,7 @@ func (p *Proxy) vm(req *http.Request, target *resolver.Target) http.Handler {
 		}))
 	}
 
-	log.Notice("mode '%s' [%s] via %s : %s --> %s\n",
+	log.Notice("mode '%s' [%s] via %s : %s --> %s",
 		target.Proxy.Mode, userIP, target.FetchedSource, req.Host, target.URL.String())
 
 	return reverseProxyHandler(nil, target.URL)
@@ -584,7 +588,7 @@ func (p *Proxy) internal(req *http.Request, target *resolver.Target) http.Handle
 		return templateHandler("maintenance.html", nil, statusCode)
 	}
 
-	log.Notice("mode '%s' [%s] via %s : %s --> %s\n",
+	log.Notice("mode '%s' [%s] via %s : %s --> %s",
 		target.Proxy.Mode, userIP, target.FetchedSource, req.Host, target.URL.String())
 
 	return reverseProxyHandler(nil, target.URL)
@@ -704,13 +708,13 @@ func templateHandler(path string, data interface{}, code int) http.Handler {
 func (p *Proxy) resetCacheHandler() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.Host != proxyName {
-			log.Debug("resetcache handler: got hostame %s, expected %s\n", r.Host, proxyName)
+			log.Debug("resetcache handler: got hostame %s, expected %s", r.Host, proxyName)
 			log.Debug("resetcache handler: fallback to reverse proxy handler")
 			p.ServeHTTP(w, r)
 			return
 		}
 
-		log.Debug("resetCache is invoked %s - %s\n", r.Host, r.URL.String())
+		log.Debug("resetCache is invoked %s - %s", r.Host, r.URL.String())
 		cacheHost := filepath.Base(r.URL.String())
 		resolver.CleanCache(cacheHost)
 
