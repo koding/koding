@@ -25,13 +25,20 @@ class CollaborativePreviewPane extends CollaborativePane
 
   openPathFromSnapshot: (snapshot) ->
     value = snapshot.val()
-    return unless value
-    @previewer.openPath value.url  if value.url
-    @previewPane.secureInfo?.destroy()
+
+    if value?.url
+      @recreateIframe()
+      @previewer.openPath value.url
+      @previewPane.secureInfo?.destroy()
 
   openUrl: (url) ->
+    @recreateIframe()
     @previewer.openPath url
     @saveUrl yes
+
+  recreateIframe: ->
+    @previewer.iframe.destroy()
+    @previewer.createIframe()
 
   saveUrl: (force) ->
     {path} = @previewer
