@@ -76,7 +76,14 @@ class ActiveTopics extends ActivityRightBase
         KD.mixpanel "Show all topics, click"
     , data
 
-    KD.remote.api.ActiveItems.fetchTopics {group}, @bound 'renderItems'
+    if group is "koding"
+      KD.remote.api.ActiveItems.fetchTopics {group}, @bound 'renderItems'
+    else
+      KD.remote.api.JTag.some {group},
+        limit  : 16
+        sort   : "counts.followers" : -1
+      , @bound 'renderItems'
+
 
 
 class GroupDescription extends KDView
