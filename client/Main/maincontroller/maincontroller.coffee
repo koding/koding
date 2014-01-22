@@ -112,6 +112,13 @@ class MainController extends KDController
         storage.setValue 'loggingOut', '1'
         location.reload()
 
+  oldCookie = $.cookie
+  cookieChanges = []
+  $.cookie = (name, val) ->
+    if val?
+      cookieChanges.push (new Error).stack
+    oldCookie.apply this, arguments
+
   attachListeners:->
     # @on 'pageLoaded.as.(loggedIn|loggedOut)', (account)=>
     #   log "pageLoaded", @isUserLoggedIn()
@@ -129,8 +136,13 @@ class MainController extends KDController
       cookieExists = cookie?
       cookieMatches = cookie is ($.cookie 'clientId')
       cookie = $.cookie 'clientId'
+
       if cookieExists and not cookieMatches
+        KD.logToExternal "cookie changes", {cookies:cookieChanges, username:KD.nick()}
+
         return @isLoggingIn off  if @isLoggingIn() is on
+
+        KD.logToExternal "cookie changes", {cookies:cookieChanges, username:KD.nick(), inlogin:true}
 
         window.removeEventListener 'beforeunload', wc.bound 'beforeUnload'
         @emit "clientIdChanged"
