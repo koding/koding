@@ -52,4 +52,4 @@ class CollaborativePreview extends PreviewPane
     sessionKey = workspace.sessionKey
     appName    = workspace.getOptions().name
 
-    window.open "http://koding.com/#{appName}?sessionKey=#{sessionKey}"
+    window.open "http://#{location.hostname}/#{appName}?sessionKey=#{sessionKey}"
