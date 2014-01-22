@@ -160,7 +160,7 @@ func startProxy() {
 	p.resolvers[resolver.ModeVM] = p.vm
 	p.resolvers[resolver.ModeInternal] = p.internal
 
-	go p.findAndDialOskite()
+	go p.runNewKite()
 
 	p.mux.Handle("/", p)
 	p.mux.Handle("/_resetcache_/", p.resetCacheHandler())
@@ -190,9 +190,11 @@ func newKite() *kite.Kite {
 	return kite.New(options)
 }
 
-func (p *Proxy) findAndDialOskite() {
+func (p *Proxy) runNewKite() {
 	k := newKite()
 	k.Start()
+
+	// TODO: remove this later, this is needed in order to reinitiliaze the logger package
 	logging.SetLevel(logging.DEBUG, "kontrolproxy")
 
 	query := protocol.KontrolQuery{

@@ -26,6 +26,7 @@ import (
 	"sync"
 	"syscall"
 	"time"
+	"github.com/op/go-logging"
 
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
@@ -156,6 +157,9 @@ func runNewKite(serviceUniqueName string) {
 	})
 
 	k.Start()
+
+	// TODO: remove this later, this is needed in order to reinitiliaze the logger package
+	logging.SetLevel(logging.DEBUG, "oskite")
 }
 
 func initializeSettings() {
@@ -575,7 +579,7 @@ func startVM(k *kite.Kite, vm *virt.VM, channel *kite.Channel) error {
 
 	if !isPrepared || info.currentHostname != vm.HostnameAlias {
 		startTime := time.Now()
-		log.Debug("VM START: %s\n", vm)
+		log.Info("VM START: %s", vm)
 		vm.Prepare(false, log.Warning)
 		if err := vm.Start(); err != nil {
 			log.LogError(err, 0)
@@ -587,7 +591,7 @@ func startVM(k *kite.Kite, vm *virt.VM, channel *kite.Channel) error {
 		}
 
 		endTime := time.Now()
-		log.Debug("VM  END: %s [%s] - ElapsedTime: %.10f seconds \n", vm, vm.HostnameAlias, endTime.Sub(startTime).Seconds())
+		log.Info("VM  END: %s [%s] - ElapsedTime: %.10f seconds.", vm, vm.HostnameAlias, endTime.Sub(startTime).Seconds())
 
 		info.currentHostname = vm.HostnameAlias
 	}
