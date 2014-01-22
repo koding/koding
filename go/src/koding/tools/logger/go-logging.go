@@ -98,8 +98,8 @@ func (g *GoLogger) RecoverAndLog() {
 }
 
 func (g *GoLogger) LogError(err interface{}, stackOffset int, additionalData ...interface{}) {
-	data = append(data, fmt.Sprintln(err))
 	data := make([]interface{}, 0)
+	data = append(data, fmt.Sprintln(err))
 	for i := 1 + stackOffset; ; i++ {
 		pc, file, line, ok := runtime.Caller(i)
 		if !ok {
