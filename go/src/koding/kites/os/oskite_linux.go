@@ -579,7 +579,6 @@ func startVM(k *kite.Kite, vm *virt.VM, channel *kite.Channel) error {
 
 	if !isPrepared || info.currentHostname != vm.HostnameAlias {
 		startTime := time.Now()
-		log.Info("VM START: %s", vm)
 		vm.Prepare(false, log.Warning)
 		if err := vm.Start(); err != nil {
 			log.LogError(err, 0)
@@ -591,7 +590,8 @@ func startVM(k *kite.Kite, vm *virt.VM, channel *kite.Channel) error {
 		}
 
 		endTime := time.Now()
-		log.Info("VM  END: %s [%s] - ElapsedTime: %.10f seconds.", vm, vm.HostnameAlias, endTime.Sub(startTime).Seconds())
+		log.Info("VM PREPARE and START: %s [%s] - ElapsedTime: %.10f seconds.",
+			vm, vm.HostnameAlias, endTime.Sub(startTime).Seconds())
 
 		info.currentHostname = vm.HostnameAlias
 	}
