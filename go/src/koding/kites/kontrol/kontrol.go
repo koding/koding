@@ -611,7 +611,7 @@ func (k *Kontrol) AuthenticateFromKodingKey(r *kite.Request) error {
 func findUsernameFromKey(key string) (string, error) {
 	kodingKey, err := modelhelper.GetKodingKeysByKey(key)
 	if err != nil {
-		return "", fmt.Errorf("register kodingkey err %s", err)
+		return "", errors.New("kodingkey not found in kontrol db")
 	}
 
 	account, err := modelhelper.GetAccountById(kodingKey.Owner)
