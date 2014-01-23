@@ -48,6 +48,13 @@ createStatusUpdateNode = (statusUpdate, authorFullName, authorNickname)->
       </div>
     """
 
+  marked = require 'marked'
+
+  body = marked statusUpdate.body,
+    gfm       : true
+    pedantic  : false
+    sanitize  : true
+
   statusUpdateContent = ""
   if statusUpdate?.body
     statusUpdateContent =
@@ -55,7 +62,7 @@ createStatusUpdateNode = (statusUpdate, authorFullName, authorNickname)->
     <div class="kdview activity-item status">
       <a class="profile" href="/#{authorNickname}">#{authorFullName}</a>
       <article data-paths="body" id="el-1223">
-        <p>#{statusUpdate.body}</p>
+        <p>#{body}</p>
       </article>
       <footer>#{linkToStatusUpdate}</footer>
       #{commentsContent}
@@ -83,6 +90,7 @@ getStatusUpdates = (statusUpdates, authorFullName, authorNickname) ->
 module.exports = (account, statusUpdates)->
   getStyles  = require './styleblock'
   getGraphMeta  = require './graphmeta'
+  analytics  = require './analytics'
   { formatDate, getFullName } = require '../helpers'
 
   {profile:{nickname}} = account if account
@@ -97,6 +105,7 @@ module.exports = (account, statusUpdates)->
   </head>
     <body class='koding profile' itemscope itemtype="http://schema.org/WebPage">
       #{putContent(account, sUpdates)}
+      #{analytics()}
     </body>
   </html>
   """
@@ -131,6 +140,10 @@ getDock = ->
                       <cite>Apps</cite>
                   </a>
               </div>
+          </div>
+          <div class="account-area">
+            <a class="custom-link-view header-sign-in" href="/Register">create an account</a>
+            <a class="custom-link-view header-sign-in" href="/Login">login</a>
           </div>
       </div>
   </header>

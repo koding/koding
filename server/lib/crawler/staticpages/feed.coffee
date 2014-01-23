@@ -65,14 +65,14 @@ getPagination = (currentPage, numberOfItems, contentType)->
   # E.g. let current page be 9, then pagination will look like this:
   # First Prev ... 4 5 6 7 8 9 10 11 12 13 14 ... Next Last
   # (Except 3-dots, they are useless for bots.)
-  PAGERWINDOW = 5
+  PAGERWINDOW = 4
 
   numberOfPages = Math.ceil(numberOfItems / ITEMSPERPAGE)
   firstLink = prevLink = nextLink = lastLink = ""
 
   if currentPage > 1
     firstLink = getSinglePageLink 1, contentType, "First"
-    prevLink  = getSinglePageLink (currentPage - 1), contentType, "Previous"
+    prevLink  = getSinglePageLink (currentPage - 1), contentType, "Prev"
 
   if currentPage < numberOfPages
     lastLink  = getSinglePageLink numberOfPages, contentType, "Last"
@@ -88,14 +88,22 @@ getPagination = (currentPage, numberOfItems, contentType)->
   if currentPage + PAGERWINDOW < numberOfPages
     end   = currentPage + PAGERWINDOW
 
+  if start > 1
+    pagination += getNoHrefLink " ... "
+
   [start..end].map (pageNumber)=>
     pagination += getSinglePageLink pageNumber, contentType
+
+  if end < numberOfPages
+    pagination += getNoHrefLink " ... "
 
   pagination += nextLink
   pagination += lastLink
 
   return pagination
 
+getNoHrefLink = (linkText)->
+  "<a href='#'>#{linkText}  </a>"
 
 getSinglePageLink = (pageNumber, contentType, linkText=pageNumber)->
   link = "<a href='#{uri.address}/#{contentType}?page=#{pageNumber}'>#{linkText}  </a>"
@@ -113,7 +121,7 @@ getSchemaOpeningTags = (contentType)=>
         <article itemscope itemtype="http://schema.org/BlogPosting">
           <div itemscope itemtype="http://schema.org/ItemList">
             <meta itemprop="mainContentOfPage" content="true"/>
-            <h2 itemprop="name">Latest activities</h2><br>
+            <h2 itemprop="name" class="invisible">Latest activities</h2><br>
             <meta itemprop="itemListOrder" content="Descending" />
       """
   else if contentType is "Topics"
@@ -121,7 +129,7 @@ getSchemaOpeningTags = (contentType)=>
       """
         <div itemscope itemtype="http://schema.org/ItemList">
           <meta itemprop="mainContentOfPage" content="true"/>
-          <h2 itemprop="name">Latest topics</h2><br>
+          <h2 itemprop="name" class='invisible'>Latest topics</h2><br>
           <meta itemprop="itemListOrder" content="Descending" />
           <div></div>
       """
@@ -148,8 +156,8 @@ createTagNode = (tag)->
       </h3>
     </header>
     <div class="stats">
-      <a href="#"><span>#{tag.counts?.post ? 0}</span></a>Posts
-      <a href="#"><span>#{tag.counts?.followers ? 0}</span></a>Followers
+      <a href="#"><span>#{tag.counts?.post ? 0}</span> Posts</a>
+      <a href="#"><span>#{tag.counts?.followers ? 0}</span> Followers</a>
     </div>
     <article>#{tag.body ? ''}</article>
   </div>
@@ -203,6 +211,7 @@ getDock = ->
 
 putContentIntoFullPage = (content, pagination, contentType)->
   getGraphMeta  = require './graphmeta'
+  analytics     = require './analytics'
 
   """
     <!DOCTYPE html>
@@ -238,6 +247,7 @@ putContentIntoFullPage = (content, pagination, contentType)->
           </div>
         </section>
       </div>
+      #{analytics()}
     </body>
     </html>
   """

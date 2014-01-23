@@ -1,7 +1,4 @@
 module.exports = [
-
-  "libs/highlightjs/highlight.pack.js"
-
   "AppController.coffee",
   "AppView.coffee",
   "activitylistcontroller.coffee",

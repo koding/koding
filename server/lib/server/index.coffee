@@ -17,6 +17,18 @@ webPort = argv.p ? webserver.port
 koding  = require './bongo'
 Crawler = require '../crawler'
 
+log4js  = require 'log4js'
+logger  = log4js.getLogger("webserver")
+
+log4js.configure {
+  appenders: [
+    { type: 'console' }
+    { type: 'file', filename: 'logs/webserver.log', category: 'webserver' }
+    { type: "log4js-node-syslog", tag : "webserver", facility: "local0", hostname: "localhost", port: 514 }
+  ],
+  replaceConsole: true
+}
+
 processMonitor = (require 'processes-monitor').start
   name                : "webServer on port #{webPort}"
   stats_id            : "webserver." + process.pid
@@ -91,6 +103,17 @@ process.on 'uncaughtException', (err) ->
   console.log process.pid
   console.error err
   process.exit(1)
+
+
+# this is for creating session for incoming user if it doesnt have
+app.use (req, res, next) ->
+  {JSession} = koding.models
+  {clientId} = req.cookies
+  return next() if clientId
+  JSession.createSession (err, session, account)->
+    return next() if err or not session
+    res.cookie "clientId", session.clientId, {}
+    next()
 
 app.use (req, res, next) ->
   # add referral code into session if there is one

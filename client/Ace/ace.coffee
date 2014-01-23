@@ -19,13 +19,14 @@ class Ace extends KDView
     @domElement = $ "<figure class='kdview'><div id='editor#{@getId()}' class='code-wrapper'></div></figure>"
 
   viewAppended:->
-
     @hide()
     @appStorage.fetchStorage (storage)=>
       require ['ace/ace'], (ace)=>
         @fetchContents (err, contents)=>
           notification?.destroy()
-          @editor = ace.edit "editor#{@getId()}"
+          id = "editor#{@getId()}"
+          return  unless document.getElementById id
+          @editor = ace.edit id
           @prepareEditor()
           @utils.defer => @emit "ace.ready"
           if contents

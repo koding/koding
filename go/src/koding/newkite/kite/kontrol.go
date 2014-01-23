@@ -21,7 +21,8 @@ func (k *Kite) keepRegisteredToKontrol(urls chan *url.URL) {
 		for {
 			err := k.Kontrol.Register()
 			if err != nil {
-				k.Log.Fatalf("Cannot register to Kontrol: %s", err)
+				// do not exit, because existing applications might import the kite package
+				k.Log.Error("Cannot register to Kontrol: %s", err)
 				time.Sleep(registerKontrolRetryDuration)
 			}
 
@@ -37,7 +38,14 @@ type Kontrol struct {
 
 	// used for synchronizing methods that needs to be called after
 	// successful connection.
-	ready chan bool
+	readyConnected chan bool
+
+	// used for synchronizing other methods.
+	// if kite.RegisterToKontrol is true,
+	// then we are ready after register,
+	// else we are ready after connect.
+	ready     chan bool
+	onceReady sync.Once
 }
 
 // NewKontrol returns a pointer to new Kontrol instance.
@@ -56,29 +64,38 @@ func (k *Kite) NewKontrol(kontrolURL *url.URL) *Kontrol {
 	remoteKite := k.NewRemoteKite(kite, auth)
 	remoteKite.client.Reconnect = true
 
+	kontrol := &Kontrol{
+		RemoteKite:     remoteKite,
+		readyConnected: make(chan bool),
+		ready:          make(chan bool),
+	}
+
 	var once sync.Once
-	ready := make(chan bool)
 
 	remoteKite.OnConnect(func() {
 		k.Log.Info("Connected to Kontrol ")
 
 		// signal all other methods that are listening on this channel, that we
 		// are ready.
-		once.Do(func() { close(ready) })
+		once.Do(func() {
+			close(kontrol.readyConnected)
+			if !k.RegisterToKontrol {
+				close(kontrol.ready)
+			}
+		})
 	})
 
-	remoteKite.OnDisconnect(func() { k.Log.Warning("Disconnected from Kontrol. I will retry in background...") })
+	remoteKite.OnDisconnect(func() {
+		k.Log.Warning("Disconnected from Kontrol. I will retry in background...")
+	})
 
-	return &Kontrol{
-		RemoteKite: remoteKite,
-		ready:      ready,
-	}
+	return kontrol
 }
 
 // Register registers current Kite to Kontrol. After registration other Kites
 // can find it via GetKites() method.
 func (k *Kontrol) Register() error {
-	<-k.ready
+	<-k.readyConnected
 
 	response, err := k.RemoteKite.Tell("register")
 	if err != nil {
@@ -105,6 +122,7 @@ func (k *Kontrol) Register() error {
 		}
 
 		k.Log.Info("Registered to Kontrol with URL: %s ID: %s", kite.URL.String(), kite.ID)
+		k.onceReady.Do(func() { close(k.ready) })
 	case protocol.RejectKite:
 		return errors.New("Kite rejected")
 	default:

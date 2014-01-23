@@ -70,6 +70,7 @@ class WebTermAppView extends JView
           KD.singleton('appManager').quitByName 'Terminal'
         else if $(event.target).hasClass 'plus'
           @addNewTab()
+          @messagePane.hide()
 
   fetchStorage: (callback) ->
     storage = KD.getSingleton('appStorageController').storage 'Terminal', '1.0.1'

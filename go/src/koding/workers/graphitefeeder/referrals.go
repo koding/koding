@@ -2,11 +2,13 @@ package main
 
 import (
 	"koding/db/mongodb"
+	"koding/tools/logger"
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
-	"log"
 	"time"
 )
+
+var log = logger.New("graphitefeeder")
 
 func init() {
 	registerAnalytic(numberOfReferrableEmails)
@@ -126,7 +128,7 @@ func numberOfMembersFromReferrableEmailsByTime(greaterThanDate time.Time) int {
 		var createdAtTime, ok = item["createdAt"].(time.Time)
 
 		if !ok {
-			log.Println("Unabled to get createdAtTime", item)
+			log.Info("Unabled to get createdAtTime: %v", item)
 			continue
 		}
 

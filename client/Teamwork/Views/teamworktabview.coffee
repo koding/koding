@@ -5,10 +5,12 @@ class TeamworkTabView extends CollaborativePane
     super options, data
 
     @createElements()
-    @keysRef    = @workspaceRef.child "keys"
-    @indexRef   = @workspaceRef.child "index"
-    @requestRef = @workspaceRef.child "request"
-    @stateRef   = @workspaceRef.child "state"
+    @openIndexes = {}
+
+    @keysRef     = @workspaceRef.child "keys"
+    @indexRef    = @workspaceRef.child "index"
+    @requestRef  = @workspaceRef.child "request"
+    @stateRef    = @workspaceRef.child "state"
 
     @listenChildRemovedOnKeysRef()
     @listenRequestRef()
@@ -35,40 +37,46 @@ class TeamworkTabView extends CollaborativePane
   listenPaneDidShow: ->
     @tabView.on "PaneDidShow", (pane) =>
       @stateRef.child(KD.nick()).set pane.getOptions().indexKey
+      @updateTabAvatars()
 
-      # need to delay fetching state ref.
-      # otherwise clients might be in different tabs.
-      KD.utils.wait 600, =>
-        @stateRef.once "value", (snapshot) =>
-          map = snapshot.val()
-          return unless map
+  updateTabAvatars: ->
+    # need to delay fetching state ref.
+    # otherwise clients might be in different tabs.
+    KD.utils.wait 600, =>
+      @stateRef.once "value", (snapshot) =>
+        map = snapshot.val()
+        return unless map
 
-          data = {}
+        data = {}
 
-          for username, indexKey of map
-            data[indexKey] = []  unless data[indexKey]
-            jAccount       = @workspace.users[username]
-            data[indexKey].push jAccount  if jAccount
+        for username, indexKey of map
+          data[indexKey] = []  unless data[indexKey]
+          jAccount       = @workspace.users[username]
+          data[indexKey].push jAccount  if jAccount
 
-          for pane in @tabView.panes
-            {indexKey} = pane.getOptions()
-            if data[indexKey]
-              avatars = data[indexKey].filter (jAccount) ->
-                return if jAccount?.profile.nickname is KD.nick() then no else yes
-              pane.tabHandle.avatarView?.avatar?.destroy()
-              pane.tabHandle.setAccounts avatars
-            else
-              pane.tabHandle.avatarView?.avatar?.destroy()
+        for pane in @tabView.panes
+          {indexKey} = pane.getOptions()
+          if data[indexKey]
+            avatars = data[indexKey].filter (jAccount) ->
+              return if jAccount?.profile.nickname is KD.nick() then no else yes
+            pane.tabHandle.avatarView?.avatar?.destroy()
+            pane.tabHandle.setAccounts avatars
+          else
+            pane.tabHandle.avatarView?.avatar?.destroy()
 
   listenChildRemovedOnKeysRef: ->
     @keysRef.on "child_removed", (snapshot) =>
       data = snapshot.val()
       return unless data
-
       {indexKey} = data
-      for pane in @tabView.panes
-        if pane?.getOptions().indexKey is indexKey
+
+      for pane in @tabView.panes when pane
+        paneIndexKey = pane.getOption "indexKey"
+        if paneIndexKey is indexKey
           @tabView.removePane pane
+
+      for key, value of @openIndexes when value is indexKey
+        delete @openIndexes[key]
 
   bindRemoteEvents: ->
     @listenPaneDidShow()
@@ -93,7 +101,7 @@ class TeamworkTabView extends CollaborativePane
       username   = KD.nick()
       return unless data
 
-      if watchMap[username] is "everybody" or watchMap[username] is data.by
+      if watchMap[username] is data.by or watchMap[watchMap[username]] is data.by
         for pane in @tabView.panes
           if pane.getOptions().indexKey is data.indexKey
             index = @tabView.getPaneIndex pane
@@ -105,6 +113,8 @@ class TeamworkTabView extends CollaborativePane
               terminal.setFocused yes  if document.activeElement is document.body
             else if pane.editor
               pane.editor.codeMirrorEditor.refresh()
+
+      @updateTabAvatars()
 
   createElements: ->
     @tabHandleHolder = new ApplicationTabHandleHolder delegate: this
@@ -121,17 +131,7 @@ class TeamworkTabView extends CollaborativePane
 
     @tabView.on "PaneAdded", (pane) =>
       pane.getHandle().on "click", =>
-        paneOptions = pane.getOptions()
-        @workspace.addToHistory
-          message    : "$0 switched to #{paneOptions.title}"
-          by         : KD.nick()
-          data       :
-            title    : paneOptions.title
-            indexKey : paneOptions.indexKey
-
-        @indexRef.set
-          indexKey   : pane.getOptions().indexKey
-          by         : KD.nick()
+        @handlePaneHandleClicked pane.getOptions()
 
   addNewTab: ->
     @createPlusHandleDropDown()
@@ -186,7 +186,8 @@ class TeamworkTabView extends CollaborativePane
       when "editor"
         path = data.filePath or "localfile:/untitled.txt"
         file = FSHelper.createFileFromPath path
-        @createEditor file, "", sessionKey, indexKey
+        @createEditor file, "FIREBASE_CONTENT", sessionKey, indexKey
+        # placeholder for setting the firebase content to editor when page refreshed
 
   createDashboard: ->
     return @tabView.showPane @dashboard  if @dashboard
@@ -253,7 +254,8 @@ class TeamworkTabView extends CollaborativePane
     indexKey = indexKey or @createSessionKey()
     pane     = new KDTabPaneView { title: file.name, indexKey }
     delegate = @getDelegate()
-    editor   = new CollaborativeEditorPane { delegate, sessionKey, file, content }
+    useFirepadContent = content is "FIREBASE_CONTENT"
+    editor   = new CollaborativeEditorPane { delegate, sessionKey, file, content, useFirepadContent }
 
     @appendPane_ pane, editor
     pane.editor = editor
@@ -266,11 +268,32 @@ class TeamworkTabView extends CollaborativePane
         indexKey  : indexKey
 
     @registerPaneRemoveListener_ pane
+    @openIndexes[FSHelper.plainPath file.path] = indexKey
 
     KD.mixpanel "Teamwork tab editor, click"
 
+  handlePaneHandleClicked: (paneOptions) ->
+    {title, indexKey} = paneOptions
+    @workspace.addToHistory
+      message    : "$0 switched to #{title}"
+      by         : KD.nick()
+      data       :
+        title    : title
+        indexKey : indexKey
+
+    @indexRef.set { indexKey, by: KD.nick() }
+
   openFile: (file, content) ->
-    @createEditor file, content
+    plainPath    = FSHelper.plainPath file.path
+    paneIndexKey = @openIndexes[plainPath]
+
+    if paneIndexKey
+      for pane in @tabView.panes
+        paneOptions = pane.getOptions()
+        if paneOptions.indexKey is paneIndexKey
+          @handlePaneHandleClicked paneOptions
+    else
+      @createEditor file, content
 
   createTerminal: (sessionKey, indexKey) ->
     indexKey = indexKey or @createSessionKey()

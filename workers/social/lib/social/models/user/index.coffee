@@ -317,7 +317,7 @@ module.exports = class JUser extends jraphical.Module
       return callback err  if err
 
       constructor = this
-      JSession.one {clientId}, (err, session)->
+      JSession.fetchSession clientId, (err, session)->
         return callback err  if err
         # temp fix:
         # this broke login, reverted. - SY

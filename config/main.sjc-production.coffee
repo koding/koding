@@ -123,7 +123,6 @@ module.exports =
     watch                : yes
     cronSchedule         : '00 00 00 * * *'
   topicModifier          :
-    logLevel             : "info"
     cronSchedule         : '0 */5 * * * *'
   graphFeederWorker:
     numberOfWorkers: 4
@@ -194,16 +193,15 @@ module.exports =
         # bitbucket     :
         #   nicename    : 'BitBucket'
   mq            :
-    host        : '172.16.3.4'
+    host        : '172.16.3.5'
     port        : 5672
-    apiAddress  : "172.16.3.4"
+    apiAddress  : "172.16.3.5"
     apiPort     : 15672
     login       : 'guest'
     componentUser: "guest"
     password    : 'Xah8ibeekelah'
     heartbeat   : 20
     vhost       : 'new'
-    logLevel    : "info"
   broker        :
     ip          : ""
     port        : 443
@@ -238,8 +236,8 @@ module.exports =
   haproxy:
     webPort     : 3020
   newkontrol      :
-    host          : "newkontrol.sj.koding.com"
-    port          : 80
+    host          : "kontrol-internal.sj.koding.com"
+    port          : 4000
     certFile      : "/opt/koding/go/src/koding/kontrol/kontrolproxy/files/10.0.5.231_cert.pem"
     keyFile       : "/opt/koding/go/src/koding/kontrol/kontrolproxy/files/10.0.5.231_key.pem"
   proxyKite       :
@@ -314,7 +312,24 @@ module.exports =
     version      : "1.0"
     signature    : "HMAC-SHA1"
   mixpanel       : "d35a8d0b14e284f32ab5380590c6848a"
-  rollbar        : "4a8a1f8400fc4e64bae05d47b9345538"
+  rollbar        : "cc4daee549e3405e9e139d34c5bce45b"
   slack          :
 	  token        : "xoxp-2155583316-2155760004-2158149487-a72cf4"
 	  channel      : "C024LG80K"
+  logLevel        :
+    neo4jfeeder   : "info"
+    oskite        : "debug"
+    kontrolproxy  : "debug"
+    userpresence  : "info"
+    vmproxy       : "info"
+    graphitefeeder: "info"
+    sync          : "info"
+    topicModifier : "info"
+    postModifier  : "info"
+    router        : "info"
+    rerouting     : "info"
+    overview      : "info"
+    amqputil      : "info"
+    rabbitMQ      : "info"
+    ldapserver    : "info"
+    broker        : "info"

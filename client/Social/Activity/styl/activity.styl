@@ -583,11 +583,9 @@ span.collapsedtext
 
   .author-avatar
     display       block
-    size          70px, 70px
     top           0
     right         100%
     margin        0 11px 0 0
-    border        1px solid #ddd
     borderBox()
     abs()
 
@@ -1084,7 +1082,7 @@ body.profile
       abs()
 
     &.comment-menu
-      margin              94px 0 0 16px
+      margin              0 0 0 16px
 
     .kdlistitemview-contextitem
       color               #50595f
@@ -1179,25 +1177,25 @@ body.profile
       color               white
       bg                  color, #28292A
 
-      .comment
-      .string
-      .regexp
+      .hljs-comment
+      .hljs-string
+      .hljs-regexp
         color             #96B486
 
-      .keyword
+      .hljs-keyword
         color             #9B8298
 
-      .title
-      .variable
+      .hljs-title
+      .hljs-variable
         color             #6096BE
 
-      .literal
-      .number
+      .hljs-literal
+      .hljs-number
         color             #D17819
 
-      .constant
-      .decorator
-      .typename
+      .hljs-constant
+      .hljs-decorator
+      .hljs-typename
         color             #DEB63A
 
       &.lang-go
@@ -1205,15 +1203,15 @@ body.profile
           color           #6096BE
 
       &.lang-css
-        .pseudo
+        .hljs-pseudo
           color           #DEB63A
 
-        .id
-        .tag
-        .class
+        .hljs-id
+        .hljs-tag
+        .hljs-class
           color           #9B8298
 
-        .attribute
+        .hljs-attribute
           color           #6096BE
 
 .activity-share-popup
