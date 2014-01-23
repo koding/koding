@@ -51,9 +51,9 @@ module.exports = class Builder
   spritePath   = './website/a/sprites'
   spriteHelper = null
 
-  buildClient: (options) ->
+  buildSprites: (options) ->
 
-    @config = require('koding-config-manager').load("main.#{options.configFile}")
+    @config ?= require('koding-config-manager').load("main.#{options.configFile}")
 
     sprite.sprites
       path     : spritePath
@@ -65,15 +65,19 @@ module.exports = class Builder
       retina   : '@2x'
     , (err, helper)=>
       spriteHelper = helper
+      @buildClient options
 
-      try fs.mkdirSync ".build"
+  buildClient: (options) ->
+    @config ?= require('koding-config-manager').load("main.#{options.configFile}")
 
-      if @config.client.runtimeOptions.precompiledApi
-        exec 'coffee ./bongo-api-builder/build.coffee -o .build/api.js', =>
-          @buildAndWatchClient options
-      else
-        fs.writeFileSync '.build/api.js', '', 'utf-8'
+    try fs.mkdirSync ".build"
+
+    if @config.client.runtimeOptions.precompiledApi
+      exec 'coffee ./bongo-api-builder/build.coffee -o .build/api.js', =>
         @buildAndWatchClient options
+    else
+      fs.writeFileSync '.build/api.js', '', 'utf-8'
+      @buildAndWatchClient options
 
   buildAndWatchClient: (options) ->
 
@@ -337,11 +341,17 @@ module.exports = class Builder
 
         rootPath = path.dirname(file.sourcePath)
 
+        if spriteHelper?
+          spriteFn            = spriteHelper.fn
+          spriteDimensionsFn  = spriteHelper.dimensionsFn
+        else
+          spriteFn = spriteDimensionsFn = (->)
+
         stylus = Stylus(source)
           .set('compress',true)
           .set('paths', [rootPath])
-          .define('sprite', spriteHelper.fn )
-          .define('sprite-dimensions', spriteHelper.dimensionsFn)
+          .define('sprite', spriteFn)
+          .define('sprite-dimensions', spriteDimensionsFn)
           .use(nib())
           .render (err, css)=> # callback is synchronous
             log.error "error with styl file at #{file.includePath}:\n #{err}"  if err
