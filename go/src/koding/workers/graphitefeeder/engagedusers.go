@@ -30,10 +30,9 @@ func numberOfTwoWeekEngagedUsers() (string, int) {
 		return query
 	}
 
-	var possibleEngagedUsers = map[string]bool{}
-
 	var iter = mongodb.Iter("jSessionHistories", iterQuery)
 	var result map[string]interface{}
+	var possibleEngagedUsers = map[string]bool{}
 
 	for iter.Next(&result) {
 		var username = result["username"].(string)
@@ -65,10 +64,9 @@ func numberOfTwoWeekEngagedUsers() (string, int) {
 		return query
 	}
 
-	var engagedUsers = map[string]bool{}
-
 	var secondIter = mongodb.Iter("jSessionHistories", secondIterQuery)
 	var secondResult map[string]interface{}
+	var engagedUsers = map[string]bool{}
 
 	for secondIter.Next(&secondResult) {
 		var username = result["username"].(string)
