@@ -193,9 +193,9 @@ module.exports =
         # bitbucket     :
         #   nicename    : 'BitBucket'
   mq            :
-    host        : '172.16.3.4'
+    host        : '172.16.3.5'
     port        : 5672
-    apiAddress  : "172.16.3.4"
+    apiAddress  : "172.16.3.5"
     apiPort     : 15672
     login       : 'guest'
     componentUser: "guest"
@@ -318,7 +318,8 @@ module.exports =
 	  channel      : "C024LG80K"
   logLevel        :
     neo4jfeeder   : "info"
-    oskite        : "info"
+    oskite        : "debug"
+    kontrolproxy  : "debug"
     userpresence  : "info"
     vmproxy       : "info"
     graphitefeeder: "info"

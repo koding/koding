@@ -105,7 +105,6 @@ func GetWorkerURL(writer http.ResponseWriter, req *http.Request) {
 		}
 	}
 
-	// ann
 	hostnames := make([]string, len(workers))
 	for i, worker := range workers {
 		hostnames[i] = fmt.Sprintf("%s//%s", protocolScheme, worker.Hostname)
@@ -123,6 +122,12 @@ func GetWorkerURL(writer http.ResponseWriter, req *http.Request) {
 			return
 		}
 	} else {
+		// quit early when there is no workers available
+		if len(workers) == 0 {
+			writer.Write([]byte(string("")))
+			return
+		}
+
 		// return only one hostname back, roundrobin
 		oldIndex := index.Get() // gives 0 for first time
 
