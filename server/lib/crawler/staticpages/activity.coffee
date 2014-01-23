@@ -41,7 +41,8 @@ getSingleActivityPage = ({activityContent, account, models})->
   {Relationship} = require 'jraphical'
   getStyles      = require './styleblock'
   getGraphMeta   = require './graphmeta'
-  model      = models.first if models and Array.isArray models
+  analytics      = require './analytics'
+  model          = models.first if models and Array.isArray models
 
   title  = activityContent?.title
   """
@@ -77,6 +78,7 @@ getSingleActivityPage = ({activityContent, account, models})->
             </div>
           </div>
         </section>
+        #{analytics()}
     </body>
   </html>
   """
@@ -112,13 +114,13 @@ createCreationDate = (createdAt, url="")->
 createCommentsCount = (numberOfComments)->
   content = ""
   if numberOfComments > 0
-    content =  "<span>#{numberOfComments}</span> comments"
+    content =  "<span>#{numberOfComments}</span>"
   return content
 
 createLikesCount = (numberOfLikes)->
   content = ""
   if numberOfLikes > 0
-    content = "<span>#{numberOfLikes}</span> likes."
+    content = "<span>#{numberOfLikes}</span>"
   return content
 
 createAuthor = (accountName, nickname)->

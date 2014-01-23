@@ -41,7 +41,7 @@ class FSFolder extends FSFile
   remove:(callback)->
     @off 'fs.delete.finished'
     @on  'fs.delete.finished', =>
-      finder = KD.getSingleton 'finderController'
+      return  unless finder = KD.getSingleton 'finderController'
       finder.stopWatching @path
 
     super callback, yes

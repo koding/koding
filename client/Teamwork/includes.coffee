@@ -11,6 +11,7 @@ module.exports = [
   "Views/teamworkimporter.coffee",
   "Views/teamworkchatitem.coffee",
   "Views/teamworkchatpane.coffee",
+  "Views/teamworkfinder.coffee",
   "Views/teamworkworkspace.coffee",
   "Views/teamworkavatartabview.coffee",
   "Views/playgroundteamwork.coffee",

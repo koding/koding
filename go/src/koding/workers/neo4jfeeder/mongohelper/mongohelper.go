@@ -3,14 +3,16 @@ package mongohelper
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"github.com/chuckpreslar/inflect"
 	"koding/db/mongodb"
+	"koding/tools/logger"
 	"koding/tools/mapping"
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
 	"strings"
 )
+
+var log = logger.New("mongohelper")
 
 var (
 	DATA     = make(map[string]interface{})
@@ -66,7 +68,7 @@ func Fetch(idHex, name string) (map[string]interface{}, error) {
 		return nil, err
 	}
 
-	fmt.Println("positive")
+	log.Info("positive")
 	result["id"] = idHex
 	result["name"] = name
 
@@ -148,7 +150,7 @@ func generateJSON(data map[string]interface{}) string {
 	// encode json
 	res, err := json.Marshal(decoratedArray)
 	if err != nil {
-		fmt.Println("Marshalling error:", err)
+		log.Error("Marshalling error: %v", err)
 	}
 	return string(res)
 }

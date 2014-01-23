@@ -2,7 +2,8 @@ class TeamworkTabHandleWithAvatar extends KDTabHandleView
 
   constructor: (options = {}, data) ->
 
-    options.view = new TeamworkTabHandleAvatarView options
+    options.view              = new TeamworkTabHandleAvatarView options
+    options.addTitleAttribute = no
 
     super options, data
 

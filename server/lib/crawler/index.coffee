@@ -1,10 +1,10 @@
 { isLoggedIn, error_404, error_500 } = require '../server/helpers'
-{htmlEncode} = require 'htmlencode'
-kodinghome = require './staticpages/kodinghome'
-activity = require './staticpages/activity'
-crawlableFeed = require './staticpages/feed'
-profile = require './staticpages/profile'
-{Relationship} = require 'jraphical'
+{htmlEncode}                         = require 'htmlencode'
+kodinghome                           = require './staticpages/kodinghome'
+activity                             = require './staticpages/activity'
+crawlableFeed                        = require './staticpages/feed'
+profile                              = require './staticpages/profile'
+{Relationship}                       = require 'jraphical'
 
 {
   forceTwoDigits
@@ -20,13 +20,18 @@ fetchLastStatusUpdatesOfUser = (account, Relationship, JNewStatusUpdate, callbac
   {daisy} = require "bongo"
   return callback null, null  unless account?._id
   originId = account._id
+
+  feedOptions =
+    sort  : 'timestamp' : -1
+    limit : 20
+
   selector =
     "targetId"   : originId
     "targetName" : "JAccount"
     "sourceName" : "JNewStatusUpdate"
     "as"         : "author"
 
-  Relationship.some selector, limit: 3, (err, relationships)->
+  Relationship.some selector, feedOptions, (err, relationships)->
     return callback err, null  if err
     return callback null, null  unless relationships?.length > 0
     queue = [0..relationships.length - 1].map (index)=>=>
@@ -49,7 +54,8 @@ module.exports =
   crawl: (bongo, req, res, slug)->
     {query} = req
     {page}  = query
-    page   ?= 1
+    page = parseInt( page, 10 );
+    page   or= 1
     {Base, race, dash, daisy} = require "bongo"
     {JName, JAccount} = bongo.models
     {Relationship} = require 'jraphical'
@@ -97,7 +103,7 @@ module.exports =
                   createFullHTML = yes
                   putBody = yes
                   createActivityContent JAccount, model, queue.commentSummaries, createFullHTML, putBody, (error, content)=>
-                    queue.next() if error
+                    return res.send 500, error_500()  if error
                     return res.send 200, content
                 daisy queue
             else
@@ -128,25 +134,27 @@ module.exports =
           else
             models.last.fetchOwnAccount (err, account)->
               {JNewStatusUpdate} = bongo.models
-              fetchLastStatusUpdatesOfUser account, Relationship, JNewStatusUpdate, (error, statusUpdates) =>
+              fetchLastStatusUpdatesOfUser account, Relationship, JNewStatusUpdate, (error, statusUpdates = []) =>
                 return res.send 500, error_500()  if error
                 queue = [0..statusUpdates.length].map (index)=>=>
                   queue.decoratedStatusUpdates or= []
                   statusUpdate = statusUpdates[index]
                   if statusUpdate?
-                    statusUpdate.fetchTeaser (err, teaser)->
+                    statusUpdate.fetchTeaser (err, teaser)=>
                       return queue.next()  if err
                       return queue.next()  unless teaser
-                      return queue.next()  unless teaser?.replies
+                      unless teaser?.replies
+                        queue.decoratedStatusUpdates.push teaser
+                        return queue.next()
                       originIds = teaser.replies.map (teaser)->
                         teaser.originId
-                      JAccount.some {_id:$in:originIds}, {}, (err, accounts)->
+                      JAccount.some {_id:$in:originIds}, {}, (err, accounts)=>
                         return queue.next()  if err
                         return queue.next()  unless accounts
-                        for account in accounts
+                        for acc in accounts
                           for comment in teaser.replies
-                            if comment.originId.toString() is account._id.toString()
-                              comment.author = account.data.profile
+                            if comment.originId.toString() is acc._id.toString()
+                              comment.author = acc.data.profile
                         queue.decoratedStatusUpdates.push teaser
                         queue.next()
                   else queue.next()
