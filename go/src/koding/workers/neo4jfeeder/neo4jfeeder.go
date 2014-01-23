@@ -156,7 +156,7 @@ func createNode(data map[string]interface{}) {
 	targetName := fmt.Sprintf("%s", data["targetName"])
 
 	if sourceId == "" || sourceName == "" || targetId == "" || targetName == "" {
-		log.Error("invalid data: %v", data)
+		log.Error("createNode invalid data: %v", data)
 		return
 	}
 
@@ -173,7 +173,8 @@ func createNode(data map[string]interface{}) {
 	sourceContent, err := mongohelper.FetchContent(bson.ObjectIdHex(sourceId), sourceName)
 	if err != nil {
 		sTimer.Failed()
-		log.Error("sourceContent %v\nid: %v, name: %v", err, sourceId, sourceName)
+		log.Error("createNode sourceContent %v\nid: %v, name: %v, data:%v",
+			err, sourceId, sourceName, data)
 
 		return
 	}
@@ -183,7 +184,8 @@ func createNode(data map[string]interface{}) {
 	targetContent, err := mongohelper.FetchContent(bson.ObjectIdHex(targetId), targetName)
 	if err != nil {
 		sTimer.Failed()
-		log.Error("targetContent %v\nid: %v, name: %v", err, targetId, targetName)
+		log.Error("createNode targetContent %v\nid: %v, name: %v, data:%v",
+			err, targetId, targetName, data)
 
 		return
 	}
@@ -195,7 +197,7 @@ func createNode(data map[string]interface{}) {
 
 	if _, ok := data["as"]; !ok {
 		sTimer.Failed()
-		log.Error("as value is not set on this relationship. Discarding this record data: %v", data)
+		log.Error("createNode as value is not set on this relationship. Discarding this record data: %v", data)
 
 		return
 	}
@@ -203,7 +205,7 @@ func createNode(data map[string]interface{}) {
 
 	if _, ok := data["_id"]; !ok {
 		sTimer.Failed()
-		log.Error("id value is not set on this relationship. Discarding this record: %v", data)
+		log.Error("createNode id value is not set on this relationship. Discarding this record: %v", data)
 
 		return
 	}
@@ -252,7 +254,7 @@ func deleteRelationship(data map[string]interface{}) {
 	targetId := fmt.Sprintf("%s", data["targetId"])
 
 	if sourceId == "" || targetId == "" {
-		log.Error("invalid data: %v", data)
+		log.Error("deleteRelationship invalid data: %v", data)
 		return
 	}
 
@@ -292,7 +294,7 @@ func updateNode(data map[string]interface{}) {
 	sourceName := fmt.Sprintf("%s", bongo["constructorName"])
 
 	if sourceId == "" || sourceName == "" {
-		log.Error("invalid data: %v", data)
+		log.Error("updateNode invalid data: %v", data)
 		return
 	}
 
@@ -309,7 +311,7 @@ func updateNode(data map[string]interface{}) {
 	sourceContent, err := mongohelper.FetchContent(bson.ObjectIdHex(sourceId), sourceName)
 	if err != nil {
 		sTimer.Failed()
-		log.Error("sourceContent %v", err)
+		log.Error("updateNode sourceContent %v\ndata:%v", err, data)
 
 		return
 	}
