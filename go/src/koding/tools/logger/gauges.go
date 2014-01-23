@@ -1,7 +1,7 @@
 package logger
 
 import (
-	"strings"
+	"fmt"
 	"time"
 )
 
@@ -77,12 +77,12 @@ func RunGaugesLoop(log Log) {
 }
 
 func LogGauges(reportTime int64, log Log) {
-	indent := strings.Repeat(" ", len(ISO8601)+1)
-	log.Info("%s [%s gauges %s]", time.Now().Format(ISO8601), log.Name(), tags)
-
+	var outputString = ""
 	for _, gauge := range gauges {
-		log.Info("%s%s: %v", indent, gauge.Name, gauge.input())
+		outputString += fmt.Sprintf("%s: %v  ", gauge.Name, gauge.input())
 	}
+
+	log.Debug("%v", outputString)
 
 	for _, gauge := range gauges {
 		gauge.Value = gauge.input()
