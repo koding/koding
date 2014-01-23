@@ -565,13 +565,12 @@ func (p *Proxy) vm(req *http.Request, target *resolver.Target) http.Handler {
 	cookieValue, ok := session.Values[req.Host]
 	if !ok || cookieValue != MagicCookieValue {
 		return context.ClearHandler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			log.Debug("saving cookie for", req.Host)
+			log.Debug("saving cookie for %s", req.Host)
 			session.Values[req.Host] = MagicCookieValue
 			session.Options = &sessions.Options{MaxAge: 3600} //seconds -> 1h
 			session.Save(r, w)
 
-			// err := templates.ExecuteTemplate(w, "accessVM.html", r.Host)
-			err := templates.ExecuteTemplate(w, "accessVM.html", tempData{Host: r.Host, Url: r.URL.String()})
+			err := templates.ExecuteTemplate(w, "accessVM.html", tempData{Host: r.Host, Url: r.Host + r.URL.String()})
 			if err != nil {
 				log.Warning("template notOnVM could not be executed %s", err)
 				http.Error(w, "error code - 5", 404)
