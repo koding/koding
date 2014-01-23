@@ -20,7 +20,7 @@ func numberOfTwoWeekEngagedUsers() (string, int) {
 	var startDateOfMonth = time.Date(year, month, 1, 0, 0, 0, 0, currentTimeLocation)
 
 	// 14 isn't always the middle of the month, but it's easier to assume for now
-	var middleOfMonth = time.Date(year, month, 14, 0, 0, 0, 0, currentTimeLocation)
+	var middleOfMonth = time.Date(year, month, 15, 0, 0, 0, 0, currentTimeLocation)
 
 	var iterQuery = func(c *mgo.Collection) *mgo.Query {
 		var query = c.Find(bson.M{
