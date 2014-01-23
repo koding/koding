@@ -75,7 +75,7 @@ func numberOfTwoWeekEngagedUsers() (string, int) {
 		engagedUsers[username] = true
 	}
 
-	err = mongodb.IterClose(iter)
+	err = mongodb.IterClose(secondIter)
 	if err != nil {
 		fmt.Println(err)
 	}
