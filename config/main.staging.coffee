@@ -233,8 +233,8 @@ module.exports =
   haproxy:
     webPort     : 3020
   newkontrol      :
-    host          : "127.0.0.1"
-    port          : 80
+    host          : "kontrol-internal.sj.koding.com"
+    port          : 4000
     certFile      : "/opt/koding/go/src/koding/kontrol/kontrolproxy/files/10.0.5.231_cert.pem"
     keyFile       : "/opt/koding/go/src/koding/kontrol/kontrolproxy/files/10.0.5.231_key.pem"
   proxyKite       :
@@ -315,7 +315,8 @@ module.exports =
 	  channel      : "C024LG80K"
   logLevel        :
     neo4jfeeder   : "info"
-    oskite        : "info"
+    oskite        : "debug"
+    kontrolproxy  : "debug"
     userpresence  : "info"
     vmproxy       : "info"
     graphitefeeder: "info"

@@ -267,7 +267,7 @@ func UpdateNode(id, propertiesJSON string) map[string]interface{} {
 	if response != "" {
 		res, err := jsonDecode(response)
 		if err != nil {
-			log.Error("Problem with response", err, res)
+			log.Error("Problem with response %v, %v", err, res)
 		}
 	}
 
@@ -304,7 +304,7 @@ func DeleteNode(id string) bool {
 	err := json.Unmarshal([]byte(response), &result)
 	if err != nil {
 		sTimer.Failed()
-		log.Error("Deleting node Marshalling error:", err)
+		log.Error("Deleting node Marshalling error: %v", err)
 		return false
 	}
 
@@ -321,7 +321,7 @@ func CreateUniqueIndex(name string) {
 
 	bd := sendRequest("POST", url, `{"name":"`+name+`"}`, 1)
 
-	log.Error("Created unique index for data", bd)
+	log.Info("Created unique index for data: %v", bd)
 }
 
 // This is a custom json string generator as http request body to neo4j
@@ -338,7 +338,7 @@ func jsonArrayDecode(data string) ([]map[string]interface{}, error) {
 	err := json.Unmarshal([]byte(data), &source)
 	if err != nil {
 		sTimer.Failed()
-		log.Error("Marshalling error:", err)
+		log.Error("Marshalling error: %v", err)
 		return nil, err
 	}
 
@@ -353,7 +353,7 @@ func jsonDecode(data string) (map[string]interface{}, error) {
 
 	err := json.Unmarshal([]byte(data), &source)
 	if err != nil {
-		log.Error("Marshalling error:", err)
+		log.Error("Marshalling error: %v", err)
 		return nil, err
 	}
 

@@ -173,7 +173,7 @@ func createNode(data map[string]interface{}) {
 	sourceContent, err := mongohelper.FetchContent(bson.ObjectIdHex(sourceId), sourceName)
 	if err != nil {
 		sTimer.Failed()
-		log.Error("sourceContent %v", err)
+		log.Error("sourceContent %v\nid: %v, name: %v", err, sourceId, sourceName)
 
 		return
 	}
@@ -183,7 +183,7 @@ func createNode(data map[string]interface{}) {
 	targetContent, err := mongohelper.FetchContent(bson.ObjectIdHex(targetId), targetName)
 	if err != nil {
 		sTimer.Failed()
-		log.Error("targetContent %v", err)
+		log.Error("targetContent %v\nid: %v, name: %v", err, targetId, targetName)
 
 		return
 	}

@@ -7,7 +7,9 @@ import (
 	"io"
 	"io/ioutil"
 	"koding/db/mongodb"
+	"koding/db/mongodb/modelhelper"
 	"koding/kites/os/ldapserver"
+	newkite "koding/newkite/kite"
 	"koding/tools/config"
 	"koding/tools/dnode"
 	"koding/tools/kite"
@@ -16,12 +18,15 @@ import (
 	"koding/tools/utils"
 	"koding/virt"
 	"net"
+	"net/url"
 	"os"
 	"os/signal"
+	"strconv"
 	"strings"
 	"sync"
 	"syscall"
 	"time"
+	"github.com/op/go-logging"
 
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
@@ -61,6 +66,8 @@ func main() {
 
 	k := prepareOsKite()
 
+	runNewKite(k.ServiceUniqueName)
+
 	// handle leftover VMs
 	handleCurrentVMS(k)
 
@@ -76,8 +83,82 @@ func main() {
 	registerFileSystemMethods(k)
 	registerWebtermMethods(k)
 	registerAppMethods(k)
-
 	k.Run()
+}
+
+func newKite() *newkite.Kite {
+	kontrolPort := strconv.Itoa(config.Current.NewKontrol.Port)
+	kontrolHost := config.Current.NewKontrol.Host
+	kontrolURL := &url.URL{
+		Scheme: "ws",
+		Host:   fmt.Sprintf("%s:%s", kontrolHost, kontrolPort),
+		Path:   "/dnode",
+	}
+
+	options := &newkite.Options{
+		Kitename:    "oskite",
+		Port:        "5000", // let it be fixed for now
+		Environment: config.FileProfile,
+		Region:      config.Region,
+		Version:     "0.0.1",
+		KontrolURL:  kontrolURL,
+	}
+
+	return newkite.New(options)
+}
+
+func runNewKite(serviceUniqueName string) {
+	k := newKite()
+
+	k.HandleFunc("startVM", func(r *newkite.Request) (interface{}, error) {
+		hostnameAlias := r.Args.One().MustString()
+		// just print hostnameAlias for now
+		fmt.Println("got request from", r.RemoteKite.Name, "starting:", hostnameAlias)
+
+		v, err := modelhelper.GetVM(hostnameAlias)
+		if err != nil {
+			return nil, err
+		}
+
+		vm := virt.VM(*v)
+		vm.ApplyDefaults()
+
+		err = validateVM(&vm, serviceUniqueName)
+		if err != nil {
+			return nil, err
+		}
+
+		isPrepared := true
+		if _, err := os.Stat(vm.File("rootfs/dev")); err != nil {
+			if !os.IsNotExist(err) {
+				panic(err)
+			}
+			isPrepared = false
+		}
+
+		if !isPrepared {
+			fmt.Println("preparing ", hostnameAlias)
+			vm.Prepare(false, log.Warning)
+		}
+
+		fmt.Println("starting ", hostnameAlias)
+		if err := vm.Start(); err != nil {
+			log.LogError(err, 0)
+		}
+
+		// wait until network is up
+		if err := vm.WaitForNetwork(time.Second * 5); err != nil {
+			log.LogError(err, 0)
+		}
+
+		// return back the IP address of the started vm
+		return vm.IP.String(), nil
+	})
+
+	k.Start()
+
+	// TODO: remove this later, this is needed in order to reinitiliaze the logger package
+	logging.SetLevel(logging.INFO, "oskite")
 }
 
 func initializeSettings() {
@@ -131,7 +212,7 @@ func prepareOsKite() *kite.Kite {
 		}
 
 		if vm.HostKite == deadService {
-			log.Warning("VM is registered as running on dead service. %v, %v", correlationName, username, deadService)
+			log.Warning("VM is registered as running on dead service. %v, %v, %v", correlationName, username, deadService)
 			return k.ServiceUniqueName
 		}
 		return vm.HostKite
@@ -158,7 +239,7 @@ func handleCurrentVMS(k *kite.Kite) {
 			}
 
 			if err := mongodb.Run("jVMs", query); err != nil || vm.HostKite != k.ServiceUniqueName {
-				log.Debug("oskite started, calling unprepare. VmID: '%s', vm.Hoskite: '%s', k.ServiceUniqueName: '%s', error '%s'", vmId, vm.HostKite, k.ServiceUniqueName, err)
+				log.Info("oskite started, calling unprepare. VmID: '%s', vm.Hoskite: '%s', k.ServiceUniqueName: '%s', error '%s'", vmId, vm.HostKite, k.ServiceUniqueName, err)
 
 				if err := virt.UnprepareVM(vmId); err != nil {
 					log.Error("%v", err)
@@ -377,7 +458,7 @@ func getVM(channel *kite.Channel) (*virt.VM, error) {
 	return vm, nil
 }
 
-func startVM(k *kite.Kite, vm *virt.VM, channel *kite.Channel) error {
+func validateVM(vm *virt.VM, serviceUniqueName string) error {
 	if vm.Region != config.Region {
 		time.Sleep(time.Second) // to avoid rapid cycle channel loop
 		return &kite.WrongChannelError{}
@@ -391,51 +472,6 @@ func startVM(k *kite.Kite, vm *virt.VM, channel *kite.Channel) error {
 		log.Warning("vm '%s' is banned", vm.HostnameAlias)
 		return &AccessDeniedError{}
 	}
-
-	if vm.HostKite != k.ServiceUniqueName {
-		if err := mongodb.Run("jVMs", func(c *mgo.Collection) error {
-			return c.Update(bson.M{"_id": vm.Id, "hostKite": nil}, bson.M{"$set": bson.M{"hostKite": k.ServiceUniqueName}})
-		}); err != nil {
-			time.Sleep(time.Second) // to avoid rapid cycle channel loop
-			return &kite.WrongChannelError{}
-		}
-		vm.HostKite = k.ServiceUniqueName
-	}
-
-	var info *VMInfo
-	if channel != nil {
-		info, _ = channel.KiteData.(*VMInfo)
-	}
-
-	if info == nil {
-		infosMutex.Lock()
-		var found bool
-		info, found = infos[vm.Id]
-		if !found {
-			info = newInfo(vm)
-			infos[vm.Id] = info
-		}
-
-		if channel != nil {
-			info.useCounter += 1
-			info.timeout.Stop()
-
-			channel.KiteData = info
-			channel.OnDisconnect(func() {
-				info.mutex.Lock()
-				defer info.mutex.Unlock()
-
-				info.useCounter -= 1
-				info.startTimeout()
-			})
-		}
-
-		infosMutex.Unlock()
-	}
-
-	info.vm = vm
-	info.mutex.Lock()
-	defer info.mutex.Unlock()
 
 	if vm.IP == nil {
 		ipInt := NextCounterValue("vm_ip", int(binary.BigEndian.Uint32(firstContainerIP.To4())))
@@ -476,6 +512,62 @@ func startVM(k *kite.Kite, vm *virt.VM, channel *kite.Channel) error {
 		vm.LdapPassword = ldapPassword
 	}
 
+	if vm.HostKite != serviceUniqueName {
+		err := mongodb.Run("jVMs", func(c *mgo.Collection) error {
+			return c.Update(bson.M{"_id": vm.Id, "hostKite": nil}, bson.M{"$set": bson.M{"hostKite": serviceUniqueName}})
+		})
+		if err != nil {
+			time.Sleep(time.Second) // to avoid rapid cycle channel loop
+			return &kite.WrongChannelError{}
+		}
+
+		vm.HostKite = serviceUniqueName
+	}
+
+	return nil
+}
+
+func startVM(k *kite.Kite, vm *virt.VM, channel *kite.Channel) error {
+	err := validateVM(vm, k.ServiceUniqueName)
+	if err != nil {
+		return err
+	}
+
+	var info *VMInfo
+	if channel != nil {
+		info, _ = channel.KiteData.(*VMInfo)
+	}
+
+	if info == nil {
+		infosMutex.Lock()
+		var found bool
+		info, found = infos[vm.Id]
+		if !found {
+			info = newInfo(vm)
+			infos[vm.Id] = info
+		}
+
+		if channel != nil {
+			info.useCounter += 1
+			info.timeout.Stop()
+
+			channel.KiteData = info
+			channel.OnDisconnect(func() {
+				info.mutex.Lock()
+				defer info.mutex.Unlock()
+
+				info.useCounter -= 1
+				info.startTimeout()
+			})
+		}
+
+		infosMutex.Unlock()
+	}
+
+	info.vm = vm
+	info.mutex.Lock()
+	defer info.mutex.Unlock()
+
 	isPrepared := true
 	if _, err := os.Stat(vm.File("rootfs/dev")); err != nil {
 		if !os.IsNotExist(err) {
@@ -486,7 +578,6 @@ func startVM(k *kite.Kite, vm *virt.VM, channel *kite.Channel) error {
 
 	if !isPrepared || info.currentHostname != vm.HostnameAlias {
 		startTime := time.Now()
-		log.Debug("VM START: %s\n", vm)
 		vm.Prepare(false, log.Warning)
 		if err := vm.Start(); err != nil {
 			log.LogError(err, 0)
@@ -498,7 +589,8 @@ func startVM(k *kite.Kite, vm *virt.VM, channel *kite.Channel) error {
 		}
 
 		endTime := time.Now()
-		log.Debug("VM  END: %s [%s] - ElapsedTime: %.10f seconds \n", vm, vm.HostnameAlias, endTime.Sub(startTime).Seconds())
+		log.Info("VM PREPARE and START: %s [%s] - ElapsedTime: %.10f seconds.",
+			vm, vm.HostnameAlias, endTime.Sub(startTime).Seconds())
 
 		info.currentHostname = vm.HostnameAlias
 	}
