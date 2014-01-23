@@ -570,7 +570,8 @@ func (p *Proxy) vm(req *http.Request, target *resolver.Target) http.Handler {
 			session.Options = &sessions.Options{MaxAge: 3600} //seconds -> 1h
 			session.Save(r, w)
 
-			err := templates.ExecuteTemplate(w, "accessVM.html", r.Host)
+			// err := templates.ExecuteTemplate(w, "accessVM.html", r.Host)
+			err := templates.ExecuteTemplate(w, "accessVM.html", tempData{Host: r.Host, Url: r.URL.String()})
 			if err != nil {
 				log.Warning("template notOnVM could not be executed %s", err)
 				http.Error(w, "error code - 5", 404)
@@ -583,6 +584,11 @@ func (p *Proxy) vm(req *http.Request, target *resolver.Target) http.Handler {
 		target.Proxy.Mode, userIP, target.FetchedSource, req.Host, target.URL.String())
 
 	return reverseProxyHandler(nil, target.URL)
+}
+
+type tempData struct {
+	Host string
+	Url  string
 }
 
 func (p *Proxy) internal(req *http.Request, target *resolver.Target) http.Handler {
