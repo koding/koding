@@ -32,13 +32,15 @@ func numberOfTwoWeekEngagedUsers() (string, int) {
 
 	var possibleEngagedUsers = map[string]bool{}
 
-	var err = mongodb.Iter("jSessionHistories", iterQuery, func(result map[string]interface{}) error {
+	var iter = mongodb.Iter("jSessionHistories", iterQuery)
+	var result map[string]interface{}
+
+	for iter.Next(&result) {
 		var username = result["username"].(string)
 		possibleEngagedUsers[username] = true
+	}
 
-		return nil
-	})
-
+	var err = mongodb.IterClose(iter)
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -65,13 +67,15 @@ func numberOfTwoWeekEngagedUsers() (string, int) {
 
 	var engagedUsers = map[string]bool{}
 
-	err = mongodb.Iter("jSessionHistories", secondIterQuery, func(result map[string]interface{}) error {
+	var secondIter = mongodb.Iter("jSessionHistories", secondIterQuery)
+	var secondResult map[string]interface{}
+
+	for secondIter.Next(&secondResult) {
 		var username = result["username"].(string)
 		engagedUsers[username] = true
+	}
 
-		return nil
-	})
-
+	err = mongodb.IterClose(iter)
 	if err != nil {
 		fmt.Println(err)
 	}

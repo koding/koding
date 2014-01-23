@@ -111,23 +111,17 @@ func One(collection, id string, result interface{}) error {
 	return session.DB("").C(collection).FindId(bson.ObjectIdHex(id)).One(result)
 }
 
-func Iter(collection string, query func(*mgo.Collection) *mgo.Query, work func(map[string]interface{}) error) error {
+func Iter(collection string, query func(*mgo.Collection) *mgo.Query) *mgo.Iter {
 	session := Mongo.GetSession()
 	defer session.Close()
-
 	c := session.DB("").C(collection)
-	iter := query(c).Iter()
+	var iter = query(c).Iter()
 
-	var result map[string]interface{}
-	for iter.Next(&result) {
-		err := work(result)
-		if err != nil {
-			iter.Close()
-			return err
-		}
-	}
+	return iter
+}
 
-	err := iter.Close()
+func IterClose(iter *mgo.Iter) error {
+	var err = iter.Close()
 	if err != nil {
 		return err
 	}
