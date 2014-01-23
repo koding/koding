@@ -285,7 +285,6 @@ func (p *Proxy) startVM(hostnameAlias, hostkite string) (string, error) {
 
 	if hostkite == "" {
 		log.Debug("hostkite %s is empty", hostkite)
-		var ok bool
 		oskite, ok = p.randomOskite()
 		if !ok {
 			return "", fmt.Errorf("no random oskite available")
@@ -313,7 +312,7 @@ func (p *Proxy) startVM(hostnameAlias, hostkite string) (string, error) {
 		return "", errors.New("oskite not connected")
 	}
 
-	log.Debug("oskite tell startVM", hostnameAlias)
+	log.Debug("oskite [%s] tell startVM %s", oskite.Hostname, hostnameAlias)
 	response, err := oskite.Tell("startVM", hostnameAlias)
 	if err != nil {
 		return "", err
@@ -580,7 +579,7 @@ func (p *Proxy) vm(req *http.Request, target *resolver.Target) http.Handler {
 		}))
 	}
 
-	log.Notice("mode '%s' [%s] via %s : %s --> %s",
+	log.Debug("mode '%s' [%s] via %s : %s --> %s",
 		target.Proxy.Mode, userIP, target.FetchedSource, req.Host, target.URL.String())
 
 	return reverseProxyHandler(nil, target.URL)
@@ -601,7 +600,7 @@ func (p *Proxy) internal(req *http.Request, target *resolver.Target) http.Handle
 		return templateHandler("maintenance.html", nil, statusCode)
 	}
 
-	log.Notice("mode '%s' [%s] via %s : %s --> %s",
+	log.Debug("mode '%s' [%s] via %s : %s --> %s",
 		target.Proxy.Mode, userIP, target.FetchedSource, req.Host, target.URL.String())
 
 	return reverseProxyHandler(nil, target.URL)
