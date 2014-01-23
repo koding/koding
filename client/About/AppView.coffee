@@ -34,6 +34,10 @@ class AboutView extends KDView
 
     super
 
+    @once 'viewAppended', => document.body.scrollTop = 0
+
+
+
   viewAppended: JView::viewAppended
 
   pistachio : ->
@@ -100,30 +104,30 @@ class FoundersView extends JView
 
     super options, data
 
-    @devrim = new KDCustomHTMLView
-      tagName    : 'img'
-      cssClass   : 'devrim'
-      attributes :
-        src      : '/a/team/devrim.jpg'
+    # @devrim = new KDCustomHTMLView
+    #   tagName    : 'img'
+    #   cssClass   : 'devrim'
+    #   attributes :
+    #     src      : '/a/team/devrim.jpg'
 
-    @sinan = new KDCustomHTMLView
-      tagName    : 'img'
-      cssClass   : 'sinan'
-      attributes :
-        src      : '/a/team/sinan.jpg'
+    # @sinan = new KDCustomHTMLView
+    #   tagName    : 'img'
+    #   cssClass   : 'sinan'
+    #   attributes :
+    #     src      : '/a/team/sinan.jpg'
 
   pistachio : ->
 
+    # <aside>
+    #   {{> @devrim}}
+    #   {{> @sinan}}
+    # </aside>
     """
     <div class='wrapper'>
-      <aside>
-        {{> @devrim}}
-        {{> @sinan}}
-      </aside>
       <h2>About <i>Koding</i></h2>
       <h4>Social development in your browser</h4>
       <article>
-        <p>Koding is a developer community and cloud development environment where developers come together and code in the browser – with a real development server to run their code. Developers can work, collaborate, write and run apps without jumping through hoops and spending unnecessary money.</p>
+        Koding is a developer community and cloud development environment where developers come together and code in the browser – with a real development server to run their code. Developers can work, collaborate, write and run apps without jumping through hoops and spending unnecessary money.
       </article>
     </div>
     """
