@@ -65,7 +65,7 @@ module.exports = class Builder
       retina   : '@2x'
     , (err, helper)=>
       spriteHelper = helper
-      buildClient options
+      @buildClient options
 
   buildClient: (options) ->
     @config ?= require('koding-config-manager').load("main.#{options.configFile}")
