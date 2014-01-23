@@ -67,9 +67,11 @@ func New() *Kontrol {
 	kontrol.kite.HandleFunc("getKites", kontrol.handleGetKites)
 	kontrol.kite.HandleFunc("getToken", kontrol.handleGetToken)
 
-	kontrol.kite.EnableTLS(
-		config.Current.NewKontrol.CertFile,
-		config.Current.NewKontrol.KeyFile)
+	// Disable until we got all things set up - arslan
+	// kontrol.kite.EnableTLS(
+	// 	config.Current.NewKontrol.CertFile,
+	// 	config.Current.NewKontrol.KeyFile,
+	// )
 
 	return kontrol
 }
@@ -139,7 +141,7 @@ func (k *Kontrol) register(r *kite.RemoteKite, kodingkey string) (*protocol.Regi
 	prev, err := setKey()
 	if err != nil {
 		log.Critical("etcd setKey error: %s", err)
-		return nil, errors.New("Internal error")
+		return nil, errors.New("internal error - register")
 	}
 
 	if prev != "" {
@@ -362,7 +364,7 @@ func (k *Kontrol) getKites(r *kite.Request, query protocol.KontrolQuery, watchCa
 		}
 
 		log.Critical("etcd error: %s", err)
-		return nil, fmt.Errorf("Internal error")
+		return nil, fmt.Errorf("internal error - getKites")
 	}
 
 	kvs := flatten(resp.Node.Nodes)
@@ -609,7 +611,7 @@ func (k *Kontrol) AuthenticateFromKodingKey(r *kite.Request) error {
 func findUsernameFromKey(key string) (string, error) {
 	kodingKey, err := modelhelper.GetKodingKeysByKey(key)
 	if err != nil {
-		return "", fmt.Errorf("register kodingkey err %s", err)
+		return "", errors.New("kodingkey not found in kontrol db")
 	}
 
 	account, err := modelhelper.GetAccountById(kodingKey.Owner)

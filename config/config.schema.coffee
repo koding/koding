@@ -330,6 +330,7 @@ config =
     logLevel        :
       neo4jfeeder   : 1
       oskite        : 1
+      kontrolproxy  : 1
       userpresence  : 1
       vmproxy       : 1
       graphitefeeder: 1
