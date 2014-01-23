@@ -211,10 +211,10 @@ func prepareOsKite() *kite.Kite {
 			return k.ServiceUniqueName
 		}
 
-		// Set hostkite to nil if we detect a death service. Oskite will point
-		// to an health service in validateVM function() because it will
-		// detect that the hostkite is nil and change it to the healtyh
-		// service given by the client
+		// Set hostkite to nil if we detect a dead service. On the next call,
+		// Oskite will point to an health service in validateVM function()
+		// because it will detect that the hostkite is nil and change it to
+		// the healthy service given by the client.
 		if vm.HostKite == deadService {
 			log.Warning("VM is registered as running on dead service. %v, %v, %v",
 				correlationName, username, deadService)
