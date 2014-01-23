@@ -395,7 +395,8 @@ resurrection.activity.styl
         margin-bottom   4px
 
       .kdscrollview
-        height          252px
+        height          auto
+        max-height      252px
 
       .kdlistitemview-activity-ticker-item
         margin          0
@@ -1350,6 +1351,99 @@ body.profile
 
       &~.bug-status-title
         border-top       1px solid #d3d3d3
+
+
+// Group Activity
+body.group
+  .content-page
+    margin-top             55px
+    min-height             2070px
+
+    main
+      margin-top           24px
+
+    >aside
+      padding-top          306px
+
+      .group-description
+        font-size          13px
+        line-height        17px
+        letter-spacing     .2px
+        color              #4a4a4a
+        padding            17px 0 0
+        font-weight        400
+        opacity            .9
+
+      .group-members
+        .kdscrollview
+          height           auto
+          max-height       217px
+        .kdlistview
+          padding          20px 0 0
+        .avatarview
+          margin           0 8px 8px 0
+          fl()
+
+          &:nth-of-type(4n)
+            margin-right   0
+
+
+    .group-cover-view
+      max-width            950px
+      height               315px
+      bg                   color, #e6e6e6
+      margin               0 auto
+      kalc                 margin-right, 37% \- 306px
+      z-index              3
+      bg                   size, 100% \, 67%
+      bg                   image, -webkit-linear-gradient(90deg\, rgba(0,0,0,.06) 50%\, transparent 50%) \,
+                                  -webkit-linear-gradient(0deg\, rgba(0,0,0,.1) 25%\, transparent 25% \, transparent 50% \, rgba(0,0,0,.1) 50% \, rgba(0,0,0,.1) 75% \, transparent 75% \, rgba(255,255,255,.06) 75%)
+      bg                   image, -moz-linear-gradient(90deg\, rgba(0,0,0,.1) 50%\, transparent 50%) \,
+                                  -moz-linear-gradient(0deg\, rgba(0,0,0,.06) 25%\, transparent 25% \, transparent 50% \, rgba(0,0,0,.1) 50% \, rgba(0,0,0,.1) 75% \, transparent 75% \, rgba(255,255,255,.06) 75%)
+
+      .avatarview
+        rounded            0
+
+      figure
+        abs                0px 0 0 0px
+        size               100%, 100%
+        bg-size            cover
+
+      .kdbutton.update-cover
+        abs                0 27px 27px 0
+        margin             0
+        padding            0 0 0 14px
+        font-size          13px
+        font-weight        400
+        color              #fff
+        size               auto, 36px
+        line-height        35px
+        z-index            5
+        rounded            12px
+        bg                 color, #1aaf5d
+        border             1px solid #159950
+
+        .button-title
+          padding          0
+          line-height      35px
+          color            inherit
+          font-size        inherit
+          font-weight      inherit
+
+        .icon
+          r-sprite         "activity", "image"
+          margin           9px 13px 0 9px
+          fr()
+
+  .kdmodal.group-cover-uploader
+    .kdmodal-content
+      .kdloader
+        abs               50% 0 0 50%
+        margin            -47px 0 0 -47px
+        padding           15px
+        rounded           50%
+        background        rgba(255,255,255,.8)
+
 
 // Crawlable //
 nav.crawler-pagination

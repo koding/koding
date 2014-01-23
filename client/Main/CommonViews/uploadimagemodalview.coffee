@@ -5,6 +5,12 @@ class UploadImageModalView extends KDModalView
     options.uploaderTitle ?= "Drag & drop image here!"
     options.overlay       ?= yes
     options.preview       ?= options.image
+    options.buttons       ?=
+      uploadButton     :
+        title          : "Upload"
+        cssClass       : "modal-clean-green"
+        callback       : =>
+          @uploadLogo()
 
     super options, data
 
@@ -13,14 +19,9 @@ class UploadImageModalView extends KDModalView
       uploadToVM     : no
       size           : @getOptions().preview.size
 
-    uploadButton     = new KDButtonView
-      title          : "Upload"
-      cssClass       : "solid green"
-      callback       : =>
-        @uploadLogo()
-
     @loaderView  = new KDLoaderView
       showLoader     : no
+      cssClass       : "hidden"
       size           :
         width        : 32
 
@@ -30,7 +31,7 @@ class UploadImageModalView extends KDModalView
         @updateLogoImage()
 
     @addSubView @uploaderView
-    @addSubView uploadButton
+    # @addSubView uploadButton
     @addSubView @loaderView
 
   updateLogoImage : =>

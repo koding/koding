@@ -27,7 +27,9 @@ class FeedCoverPhotoView extends KDView
         title     : "Update cover image"
         callback  : =>
           new UploadImageModalView
+            cssClass   : "group-cover-uploader"
             title      : "Change Cover Photo"
+            width      : 1004
             image      :
               type     : "coverPhoto"
               size     :
@@ -41,10 +43,9 @@ class FeedCoverPhotoView extends KDView
     group = KD.singletons.groupsController.getCurrentGroup()
     if group.customize?.coverPhoto
       new KDCustomHTMLView
-        tagName     : 'img'
+        tagName     : 'figure'
         attributes  :
-          src       : group.customize?.coverPhoto
-          title     : group.title or ''
+          style     : "background:url(#{group.customize?.coverPhoto})"
     else
       # if group doesnt has cover photo, put collage of group users
       collageList           = new KDListViewController

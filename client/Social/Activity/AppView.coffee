@@ -67,8 +67,8 @@ class ActivityAppView extends KDScrollView
 
     @sideBlock.addSubView @referalBox  if KD.isLoggedIn() and not @isPrivateGroup()
     @sideBlock.addSubView @groupDescription if @isPrivateGroup()
-    @sideBlock.addSubView @topicsBox
     @sideBlock.addSubView @groupMembers if @isPrivateGroup()
+    @sideBlock.addSubView @topicsBox
     @sideBlock.addSubView @usersBox
     @sideBlock.addSubView @tickerBox
 
