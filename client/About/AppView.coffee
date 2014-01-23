@@ -34,6 +34,10 @@ class AboutView extends KDView
 
     super
 
+    @once 'viewAppended', => document.body.scrollTop = 0
+
+
+
   viewAppended: JView::viewAppended
 
   pistachio : ->
