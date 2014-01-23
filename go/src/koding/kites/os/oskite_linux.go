@@ -158,7 +158,7 @@ func runNewKite(serviceUniqueName string) {
 	k.Start()
 
 	// TODO: remove this later, this is needed in order to reinitiliaze the logger package
-	logging.SetLevel(logging.DEBUG, "oskite")
+	logging.SetLevel(logging.INFO, "oskite")
 }
 
 func initializeSettings() {
@@ -239,7 +239,7 @@ func handleCurrentVMS(k *kite.Kite) {
 			}
 
 			if err := mongodb.Run("jVMs", query); err != nil || vm.HostKite != k.ServiceUniqueName {
-				log.Debug("oskite started, calling unprepare. VmID: '%s', vm.Hoskite: '%s', k.ServiceUniqueName: '%s', error '%s'", vmId, vm.HostKite, k.ServiceUniqueName, err)
+				log.Info("oskite started, calling unprepare. VmID: '%s', vm.Hoskite: '%s', k.ServiceUniqueName: '%s', error '%s'", vmId, vm.HostKite, k.ServiceUniqueName, err)
 
 				if err := virt.UnprepareVM(vmId); err != nil {
 					log.Error("%v", err)
