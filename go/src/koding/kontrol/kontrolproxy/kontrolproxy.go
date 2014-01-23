@@ -662,14 +662,14 @@ func websocketHandler(target string) http.Handler {
 		hj, ok := w.(http.Hijacker)
 		if !ok {
 			http.Error(w, "not a hijacker?", 500)
-			log.Warning("websocket: [%s] not a hijacker?", target)
+			log.Error("websocket: [%s] not a hijacker?", target)
 			return
 		}
 
 		nc, _, err := hj.Hijack()
 		if err != nil {
 			http.Error(w, "Error contacting backend server.", 500)
-			log.Warning("websocket: [%s] hijack error: %v", target, err)
+			log.Error("websocket: [%s] hijack error: %v", target, err)
 			return
 		}
 		defer nc.Close()
@@ -677,7 +677,7 @@ func websocketHandler(target string) http.Handler {
 		d, err := net.Dial("tcp", target)
 		if err != nil {
 			http.Error(w, "Error contacting backend server.", 500)
-			log.Warning("websocket: [%s] error dialing websocket backend: %v", target, err)
+			log.Error("websocket: [%s] error dialing websocket backend: %v", target, err)
 			return
 		}
 		defer d.Close()
@@ -686,7 +686,7 @@ func websocketHandler(target string) http.Handler {
 		err = r.Write(d)
 		if err != nil {
 			http.Error(w, "Error contacting backend server.", 500)
-			log.Notice("websocket [%s] error copying request to target: %v", target, err)
+			log.Error("websocket [%s] error copying request to target: %v", target, err)
 			return
 		}
 
@@ -709,7 +709,7 @@ func templateHandler(path string, data interface{}, code int) http.Handler {
 		w.WriteHeader(code)
 		err := templates.ExecuteTemplate(w, path, data)
 		if err != nil {
-			log.Warning("template %s could not be executed", path)
+			log.Error("template %s could not be executed", path)
 			http.Error(w, "error code - 1", 404)
 			return
 		}

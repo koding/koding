@@ -251,7 +251,7 @@ func (k *Kite) startRouting(stream <-chan amqp.Delivery, publishChannel *amqp.Ch
 					go func() {
 						defer log.RecoverAndLog()
 						for data := range d.SendChan {
-							log.Debug("Write %v %v", channel.RoutingKey, data)
+							log.Debug("Write %s %s", channel.RoutingKey, data)
 							if err := publishChannel.Publish("broker", channel.RoutingKey, false, false, amqp.Publishing{Body: data}); err != nil {
 								log.LogError(err, 0)
 							}
@@ -275,7 +275,7 @@ func (k *Kite) startRouting(stream <-chan amqp.Delivery, publishChannel *amqp.Ch
 								}
 							}()
 
-							log.Debug("Read %v %v", channel.RoutingKey, message)
+							log.Debug("Read %s %s", channel.RoutingKey, message)
 							d.ProcessMessage(message)
 							pingAlreadySent = false
 						case <-time.After(5 * time.Minute):
