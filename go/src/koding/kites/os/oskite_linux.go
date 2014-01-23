@@ -211,10 +211,25 @@ func prepareOsKite() *kite.Kite {
 			return k.ServiceUniqueName
 		}
 
+		// Set hostkite to nil if we detect a death service. Oskite will point
+		// to an health service in validateVM function() because it will
+		// detect that the hostkite is nil and change it to the healtyh
+		// service given by the client
 		if vm.HostKite == deadService {
-			log.Warning("VM is registered as running on dead service. %v, %v, %v", correlationName, username, deadService)
+			log.Warning("VM is registered as running on dead service. %v, %v, %v",
+				correlationName, username, deadService)
+
+			query := func(c *mgo.Collection) error {
+				return c.Update(bson.M{"_id": vm.Id}, bson.M{"$set": bson.M{"hostKite": nil}})
+			}
+
+			if err := mongodb.Run("jVMs", query); err != nil {
+				log.LogError(err, 0, vm.Id.Hex())
+			}
+
 			return k.ServiceUniqueName
 		}
+
 		return vm.HostKite
 	}
 
