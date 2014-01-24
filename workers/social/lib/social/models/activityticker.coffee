@@ -71,39 +71,8 @@ module.exports = class ActivityTicker extends Base
 
   @_fetch = (requestOptions = {}, callback)->
     {options, client} = requestOptions
-    sources = constructorNames
-    as      = relationshipNames
-    targets = constructorNames
-
-    filters = []
-    if options.filters
-      for filter in options.filters  when filter in relationshipNames
-        filters.push filter
-
-    if filters.length > 0
-      sources = mapSourceNames filters
-      as      = filters
-      targets = mapTargetNames filters
-
-
-    from = options.from or +(new Date())
-    selector     =
-      sourceName : "$in": sources
-      as         : "$in": as
-      targetName : "$in": targets
-      timestamp : {"$lt" : new Date(from)}
-
-    relOptions      =
-      # do not fetch more than 15 at once
-      limit      : 10 # Math.min options.limit ? 15, 15
-      sort       : timestamp  : -1
-
-    JGroup = require './group'
-    JGroup.one slug:'guests', (err, group)->
       return callback err if err
       return callback new Error "Group not found" if not group
-      # do not include guest group results to data set
-      selector.sourceId = { "$ne" : group.getId() }
 
       Relationship.some selector, relOptions, (err, relationships) ->
         buckets = []
