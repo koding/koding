@@ -105,12 +105,12 @@ module.exports = class ActivityTicker extends Base
     [callback, options] = [options, callback]  unless callback
     # TODO - add group security here
     requestOptions = { client, options }
-
+    {group}        = client.context
     if options.from or options.filters
       @_fetch requestOptions, callback
     else
-      Cache  = require '../cache/main'
-      cacheKey = "activityticker"
+      Cache    = require '../cache/main'
+      cacheKey = "#{group}-activityticker"
       Cache.fetch cacheKey, @_fetch, requestOptions, (err, data)=>
         # if data is not set, or it is empty
         # fetch from db
