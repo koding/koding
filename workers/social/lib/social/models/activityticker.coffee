@@ -15,9 +15,7 @@ module.exports = class ActivityTicker extends Base
           (signature Object, Function)
         ]
 
-
   JAccount = require './account'
-
 
   decorateEvents = (relationship, callback) ->
     {source, target, as, timestamp} = relationship
