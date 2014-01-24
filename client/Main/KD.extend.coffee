@@ -42,7 +42,8 @@ KD.extend
     options.styles       or= []           # <Array<string>> list of stylesheets
 
     enforceLogin=->
-      return if KD.isLoggedIn()
+      return  if KD.isLoggedIn()
+      return  if location.search.indexOf("sr=1") > -1
       appManager = KD.getSingleton "appManager"
       appManager.tell "Account", "showRegistrationNeededModal"
 
