@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"koding/tools/dnode"
 	"koding/tools/kite"
-	"koding/tools/log"
 	"koding/tools/pty"
 	"koding/tools/utils"
 	"koding/virt"

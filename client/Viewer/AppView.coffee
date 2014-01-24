@@ -31,9 +31,13 @@ class PreviewerView extends KDView
   isDocumentClean:->
     @clean
 
+  createIframe: ->
+    @addSubView @iframe = new KDCustomHTMLView
+      tagName : "iframe"
+
   viewAppended:->
-    @addSubView @viewerHeader = new ViewerTopBar     { delegate: this }, @path
-    @addSubView @iframe       = new KDCustomHTMLView { tagName : "iframe" }
+    @addSubView @viewerHeader = new ViewerTopBar { delegate: this }, @path
+    @createIframe()
 
     {params} = @getOptions()
     path     = params?.path

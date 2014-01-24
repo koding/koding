@@ -1,10 +1,10 @@
 { isLoggedIn, error_404, error_500 } = require '../server/helpers'
-{htmlEncode} = require 'htmlencode'
-kodinghome = require './staticpages/kodinghome'
-activity = require './staticpages/activity'
-crawlableFeed = require './staticpages/feed'
-profile = require './staticpages/profile'
-{Relationship} = require 'jraphical'
+{htmlEncode}                         = require 'htmlencode'
+kodinghome                           = require './staticpages/kodinghome'
+activity                             = require './staticpages/activity'
+crawlableFeed                        = require './staticpages/feed'
+profile                              = require './staticpages/profile'
+{Relationship}                       = require 'jraphical'
 
 {
   forceTwoDigits
@@ -54,7 +54,8 @@ module.exports =
   crawl: (bongo, req, res, slug)->
     {query} = req
     {page}  = query
-    page   ?= 1
+    page = parseInt( page, 10 );
+    page   or= 1
     {Base, race, dash, daisy} = require "bongo"
     {JName, JAccount} = bongo.models
     {Relationship} = require 'jraphical'
@@ -102,7 +103,7 @@ module.exports =
                   createFullHTML = yes
                   putBody = yes
                   createActivityContent JAccount, model, queue.commentSummaries, createFullHTML, putBody, (error, content)=>
-                    queue.next() if error
+                    return res.send 500, error_500()  if error
                     return res.send 200, content
                 daisy queue
             else

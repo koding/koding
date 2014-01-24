@@ -7,7 +7,6 @@ import (
 	"koding/newkite/dnode/rpc"
 	"koding/newkite/protocol"
 	"koding/newkite/utils"
-	"koding/tools/logger"
 	"log"
 	"net"
 	"net/http"
@@ -137,7 +136,8 @@ func New(options *Options) *Kite {
 	if !options.DisableAuthentication {
 		kodingKey, err = utils.GetKodingKey()
 		if err != nil {
-			log.Fatal("Couldn't find koding.key. Please run 'kd register'.")
+			// don't fatal until we find a better way to integrate kite into other applications
+			log.Println("Couldn't find koding.key. Please run 'kd register'.")
 		}
 	}
 
@@ -187,6 +187,10 @@ func New(options *Options) *Kite {
 			// Run OnDisconnect handlers.
 			k.notifyRemoteKiteDisconnected(r.(*RemoteKite))
 		}
+	})
+
+	k.server.OnConnect(func(c *rpc.Client) {
+		k.Log.Info("Client is connected: %s", c.Conn.Request().RemoteAddr)
 	})
 
 	// Every kite should be able to authenticate the user from token.
@@ -283,14 +287,27 @@ func (k *Kite) handleLog(r *Request) (interface{}, error) {
 	return nil, nil
 }
 
+func init() {
+	// These logging related stuff needs to be called once because stupid
+	// logging library uses global variables and resets the backends every time.
+	logging.SetFormatter(logging.MustStringFormatter("%{level:-8s} ▶ %{message}"))
+	stderrBackend := logging.NewLogBackend(os.Stderr, "", log.LstdFlags)
+	stderrBackend.Color = true
+	syslogBackend, _ := logging.NewSyslogBackend("")
+	logging.SetBackend(stderrBackend, syslogBackend)
+}
+
 // newLogger returns a new logger object for desired name and level.
 func newLogger(name string, debug bool) *logging.Logger {
-	level := "info"
+	logger := logging.MustGetLogger(name)
+
+	level := logging.INFO
 	if debug {
-		level = "debug"
+		level = logging.DEBUG
 	}
 
-	return logger.CreateLogger(name, level)
+	logging.SetLevel(level, name)
+	return logger
 }
 
 // If the user wants to call flag.Parse() the flag must be defined in advance.
@@ -398,7 +415,8 @@ func (k *Kite) OnDisconnect(handler func(*RemoteKite)) {
 
 // notifyRemoteKiteConnected runs the registered handlers with OnConnect().
 func (k *Kite) notifyRemoteKiteConnected(r *RemoteKite) {
-	k.Log.Info("Client is connected to us: %s", r.Name)
+	k.Log.Info("Client '%s' is identified as '%s'",
+		r.client.Conn.Request().RemoteAddr, r.Name)
 
 	for _, handler := range k.onConnectHandlers {
 		go handler(r)

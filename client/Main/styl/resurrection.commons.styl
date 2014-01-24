@@ -18,6 +18,11 @@ resurrection.commons.styl
   vertical-align            top
   rounded                   50%
   img
+    // to avoid chrome's weird rendering bug
+    // where it first shows the image as a square
+    // then hides the corners to make them rounded - SY
+    // - fixed the line below.
+    rounded                 50%
     vendor                  transition, opacity .3s ease
 
 .content-page
@@ -570,6 +575,15 @@ input.kdinput.text
     color               #93979a
     font-weight         300
 
+
+///
+/// KODING INPUT PLACEHOLDER STYLES
+
+.kdinput:focus
+  &::-webkit-input-placeholder
+    opacity 0.5
+  &:-moz-placeholder
+    opacity 0.5
 
 //
 // KODING ON-OFF SWITCH STYLES

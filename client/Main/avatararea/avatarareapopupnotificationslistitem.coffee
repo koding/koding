@@ -1,30 +1,29 @@
 class PopupNotificationListItem extends NotificationListItem
-
   constructor:(options = {}, data)->
-
     options.tagName        or= "li"
     options.linkGroupClass or= LinkGroup
     options.avatarClass    or= AvatarView
-
     super options, data
-
     @initializeReadState()
 
   initializeReadState:->
     if @getData().getFlagValue('glanced')
-      @unsetClass 'unread'
-    else
-      @setClass 'unread'
+    then @unsetClass 'unread'
+    else @setClass 'unread'
 
   pistachio:->
     """
       {{> @avatar}}
-      <p>{{> @participants}} {{@getActionPhrase #(dummy)}} #{@activityPlot} {{> @interactedGroups}}</p>
-      <time>{{$.timeago @getLatestTimeStamp #(dummy)}}</time>
+      <div class="fr">
+        {{> @participants}}
+        {{@getActionPhrase #(dummy)}}
+        {{> @activityPlot}}
+        {{> @interactedGroups}}
+        {time{$.timeago @getLatestTimeStamp #(dummy)}}
+      </div>
     """
 
   click:(event)->
-
     popupList = @getDelegate()
     popupList.emit 'AvatarPopupShouldBeHidden'
 
@@ -34,4 +33,4 @@ class PopupNotificationListItem extends NotificationListItem
     # KD.whoami().glanceActivities _id, (err)=>
     #   if err then log "Error: ", err
 
-    super
+    super event

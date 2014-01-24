@@ -4,6 +4,7 @@ class WebTermController extends AppController
     name         : "Terminal"
     title        : "Terminal"
     version      : "1.0.1"
+    enforceLogin : yes
     route        :
       slug       : "/:name?/Terminal"
       handler    : ({params:{name}, query})->

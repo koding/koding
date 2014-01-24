@@ -1,27 +1,35 @@
 package logger
 
-import (
-	logging "github.com/op/go-logging"
-	stdlog "log"
-	"os"
-)
-
-func init() {
-	// format can be added to the config
-	logging.SetFormatter(logging.MustStringFormatter("%{level:-8s} ▶ %{message}"))
-	stderrBackend := logging.NewLogBackend(os.Stderr, "", stdlog.LstdFlags|stdlog.Lshortfile)
-	stderrBackend.Color = true
-	syslogBackend, _ := logging.NewSyslogBackend("")
-	logging.SetBackend(stderrBackend, syslogBackend)
+// Example:
+//    var log = New("tester")
+//    log.Info("Started")
+func New(name string) Log {
+	return NewGoLog(name)
 }
 
-func CreateLogger(module string, level string) *logging.Logger {
-	l, err := logging.LogLevel(level)
-	if err != nil {
-		panic(err)
-	}
-	logging.SetLevel(l, module)
-	logger := logging.MustGetLogger(module)
-	logger.Module = module
-	return logger
+//----------------------------------------------------------
+// Interface
+//----------------------------------------------------------
+
+type Log interface {
+	// Same as calling Critical() followed by a call to os.Exit(1).
+	Fatal(args ...interface{})
+
+	// Same as calling Critical() followed by a call to panic().
+	Panic(format string, args ...interface{})
+
+	Critical(format string, args ...interface{})
+	Error(format string, args ...interface{})
+	Warning(format string, args ...interface{})
+	Notice(format string, args ...interface{})
+	Info(format string, args ...interface{})
+	Debug(format string, args ...interface{})
+
+	// Recovers from panic and logs.
+	RecoverAndLog()
+
+	// Logs error with callstack.
+	LogError(interface{}, int, ...interface{})
+
+	Name() string
 }

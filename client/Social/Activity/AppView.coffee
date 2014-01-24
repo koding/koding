@@ -157,6 +157,20 @@ class ReferalBox extends JView
       click      : @bound 'showReferrerModal'
       partial    : 'show more...'
 
+    @redeemPointsModal = new KDCustomHTMLView
+      tagName    : 'a'
+      attributes :
+        href     : '#'
+      click      : (e)=>
+        @showRedeemReferralPointModal()
+        e.stopPropagation()
+
+    KD.getSingleton("vmController").on "ReferralCountUpdated", =>
+      @updateReferralCountPartial()
+      @updateSizeBar()
+
+    @updateReferralCountPartial()
+
     @progressBar = new KDProgressBarView
       title       : '0 GB / 16 GB'
       determinate : yes
@@ -164,10 +178,28 @@ class ReferalBox extends JView
   click : -> @showReferrerModal()
 
 
+  showRedeemReferralPointModal:->
+    KD.mixpanel "Referer Redeem Point modal, click"
+
+    appManager = KD.getSingleton "appManager"
+    appManager.tell "Account", "showRedeemReferralPointModal"
+
+  updateReferralCountPartial:->
+    KD.remote.api.JReferral.fetchRedeemableReferrals { type: "disk" }, (err, referals)=>
+      if referals and referals.length > 0
+        text =  """
+          Congrats, your bonus is waiting for you!
+          You have #{referals.length} referrals!
+        """
+        @redeemPointsModal.updatePartial text
+
+
   viewAppended:->
 
     super
+    @updateSizeBar()
 
+  updateSizeBar:->
     @progressBar.updateBar 0
     vmc = KD.getSingleton "vmController"
     vmc.fetchDefaultVmName (name) =>
@@ -185,18 +217,14 @@ class ReferalBox extends JView
     KD.mixpanel "Referer modal, click"
 
     appManager = KD.getSingleton "appManager"
-    appManager.tell "Account", "showReferrerModal",
-      # linkView    : getYourReferrerCode
-      top         : 50
-      left        : 35
-      arrowMargin : 110
-
+    appManager.tell "Account", "showReferrerModal"
 
   pistachio:->
     """
     <figure></figure>
     <p>
     Invite your friends and get up to <strong>16GB</strong> for free! {{> @modalLink}}
+    {{> @redeemPointsModal}}
     </p>
     {{> @progressBar}}
     """

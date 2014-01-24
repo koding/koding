@@ -118,13 +118,12 @@ module.exports =
     watch                : yes
     cronSchedule         : '00 00 00 * * *'
   topicModifier          :
-    logLevel             : "info"
     cronSchedule         : '0 */5 * * * *'
   graphFeederWorker:
     numberOfWorkers: 2
   social        :
     login       : 'prod-social'
-    numberOfWorkers: 4
+    numberOfWorkers: 7
     watch       : yes
     queueName   : socialQueueName
     verbose     : no
@@ -200,14 +199,13 @@ module.exports =
     password    : 'djfjfhgh4455__5'
     heartbeat   : 20
     vhost       : 'new'
-    logLevel    : "info"
   broker        :
     ip          : ""
-    port        : 80
-    certFile    : ""
-    keyFile     : ""
-    webProtocol : 'http:'
-    webHostname : "stage-broker-#{version}.sj.koding.com"
+    port        : 443
+    certFile    : "/opt/ssl_certs/wildcard.koding.com.cert"
+    keyFile     : "/opt/ssl_certs/wildcard.koding.com.key"
+    webProtocol : 'https:'
+    webHostname : "broker-#{version}.sj.koding.com"
     webPort     : null
     authExchange: authExchange
     authAllExchange: authAllExchange
@@ -235,8 +233,8 @@ module.exports =
   haproxy:
     webPort     : 3020
   newkontrol      :
-    host          : "127.0.0.1"
-    port          : 80
+    host          : "kontrol-internal.sj.koding.com"
+    port          : 4000
     certFile      : "/opt/koding/go/src/koding/kontrol/kontrolproxy/files/10.0.5.231_cert.pem"
     keyFile       : "/opt/koding/go/src/koding/kontrol/kontrolproxy/files/10.0.5.231_key.pem"
   proxyKite       :
@@ -315,3 +313,20 @@ module.exports =
   slack          :
 	  token        : "xoxp-2155583316-2155760004-2158149487-a72cf4"
 	  channel      : "C024LG80K"
+  logLevel        :
+    neo4jfeeder   : "info"
+    oskite        : "debug"
+    kontrolproxy  : "debug"
+    userpresence  : "info"
+    vmproxy       : "info"
+    graphitefeeder: "info"
+    sync          : "info"
+    topicModifier : "info"
+    postModifier  : "info"
+    router        : "info"
+    rerouting     : "info"
+    overview      : "info"
+    amqputil      : "info"
+    rabbitMQ      : "info"
+    ldapserver    : "info"
+    broker        : "info"

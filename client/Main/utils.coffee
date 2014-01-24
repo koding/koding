@@ -54,6 +54,7 @@ __utils.extend __utils,
       location.reload(true)
 
   showMoreClickHandler:(event)->
+    __utils.stopDOMEvent event
     $trg = $(event.target)
     more = "span.collapsedtext a.more-link"
     less = "span.collapsedtext a.less-link"
@@ -284,7 +285,7 @@ __utils.extend __utils,
       name = account.profile.firstName
     else
       name = "#{account.profile.firstName} #{account.profile.lastName}"
-    return Encoder.htmlEncode name or 'a Koding user'
+    return Encoder.htmlEncode name.trim() or 'a Koding user'
 
   getNameFromFullname :(fullname)->
     fullname.split(' ')[0]

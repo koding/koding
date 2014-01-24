@@ -5,7 +5,6 @@ package main
 import (
 	"koding/tools/dnode"
 	"koding/tools/kite"
-	"koding/tools/log"
 	"koding/virt"
 	"time"
 
@@ -53,7 +52,7 @@ func registerVmMethods(k *kite.Kite) {
 		if !vos.Permissions.Sudo {
 			return nil, &kite.PermissionError{}
 		}
-		vos.VM.Prepare(true, log.Warn)
+		vos.VM.Prepare(true, log.Warning)
 		if err := vos.VM.Start(); err != nil {
 			panic(err)
 		}
