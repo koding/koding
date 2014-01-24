@@ -43,7 +43,10 @@ KD.extend
 
     enforceLogin=->
       return  if KD.isLoggedIn()
-      return  if location.search.indexOf("sr=1") > -1
+      if $.cookie("doNotForceRegistration") or location.search.indexOf("sr=1") > -1
+        $.cookie("doNotForceRegistration", "true")
+        return
+
       appManager = KD.getSingleton "appManager"
       appManager.tell "Account", "showRegistrationNeededModal"
 
