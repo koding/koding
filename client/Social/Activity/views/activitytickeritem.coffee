@@ -177,15 +177,38 @@ class ActivityTickerStatusUpdateItem extends ActivityTickerBaseItem
     return "{{> @avatar}} <div class='text-overflow'>{{> @actor}} posted {{> @subj}}</div>"
 
 
+class ActivityTickerUserCommentItem extends ActivityTickerBaseItem
+  constructor: (options = {}, data) ->
+    super options, data
+    {@source, @target} = data
+
+    @avatar    = new AvatarView
+      size     : width: 30, height: 30
+      cssClass : "avatarview"
+    , @target
+
+    @origin   = new ProfileLinkView null, @target
+    @subj     = new ActivityLinkView null, @source
+
+  pistachio: ->
+    """
+    {{> @avatar}}
+    <div class='text-overflow'>
+      #{if @target.getId() is KD.whoami().getId() then "You" else @origin } commented on {{> @subj}}
+    </div>
+    """
+
+
 class ActivityTickerItem extends KDListItemView
   itemClassMap =
-    "JGroup_member_JAccount"           : ActivityTickerMemberItem
-    "JAccount_like_JAccount"           : ActivityTickerLikeItem
-    "JTag_follower_JAccount"           : ActivityTickerFollowItem
-    "JAccount_follower_JAccount"       : ActivityTickerFollowItem
-    "JNewApp_user_JAccount"            : ActivityTickerAppUserItem
-    "JAccount_reply_JAccount"          : ActivityTickerCommentItem
-    "JNewStatusUpdate_author_JAccount" : ActivityTickerStatusUpdateItem
+    "JGroup_member_JAccount"              : ActivityTickerMemberItem
+    "JAccount_like_JAccount"              : ActivityTickerLikeItem
+    "JTag_follower_JAccount"              : ActivityTickerFollowItem
+    "JAccount_follower_JAccount"          : ActivityTickerFollowItem
+    "JNewApp_user_JAccount"               : ActivityTickerAppUserItem
+    "JAccount_reply_JAccount"             : ActivityTickerCommentItem
+    "JNewStatusUpdate_author_JAccount"    : ActivityTickerStatusUpdateItem
+    "JNewStatusUpdate_commenter_JAccount" : ActivityTickerUserCommentItem
 
   constructor: (options = {}, data) ->
     options.type = "activity-ticker-item"
@@ -202,7 +225,6 @@ class ActivityTickerItem extends KDListItemView
   getClassName: (data)->
     {as, source, target} = data
     classKey = "#{source?.bongo_?.constructorName}_#{as}_#{target?.bongo_?.constructorName}"
-
     return itemClassMap[classKey]
 
 class ActiveTopicItemView extends KDListItemView
