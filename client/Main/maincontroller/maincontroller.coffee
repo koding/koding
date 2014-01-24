@@ -152,12 +152,12 @@ class MainController extends KDController
         @utils.defer ->
           firstRoute = KD.getSingleton("router").visitedRoutes.first
 
-         if firstRoute and /^\/Verify/.test firstRoute
-           firstRoute = "/"
-         if firstRoute and /^\/Reset/.test firstRoute
-           firstRoute = "/"
+          firstRoute = KD.getSingleton("router").visitedRoutes.first
+          if firstRoute and /^\/(?:Reset|Register|Verify|Confirm)\//.test firstRoute
+            firstRoute = "/Activity"
 
-          window.location.pathname = firstRoute or "/"
+          {entryPoint} = KD.config
+          KD.getSingleton('router').handleRoute firstRoute or '/Activity', {replaceState: yes, entryPoint}
 
   setVisitor:(visitor)-> @visitor = visitor
   getVisitor: -> @visitor
