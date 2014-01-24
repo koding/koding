@@ -229,7 +229,7 @@ class AccountAppController extends AppController
                       cb options
 
 
-  showRegistirationNeededModal:->
+  showRegistrationNeededModal:->
     return if @modal
     message = "Please login to proceed to the next step"
     @modal = modal = new KDBlockingModalView

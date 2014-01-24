@@ -44,7 +44,7 @@ KD.extend
     enforceLogin=->
       return if KD.isLoggedIn()
       appManager = KD.getSingleton "appManager"
-      appManager.tell "Account", "showRegistirationNeededModal"
+      appManager.tell "Account", "showRegistrationNeededModal"
 
     wrapHandler = (fn, options) -> ->
       router = KD.getSingleton 'router'
