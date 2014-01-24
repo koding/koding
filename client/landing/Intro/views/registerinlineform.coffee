@@ -41,6 +41,12 @@ class HomeRegisterForm extends KDFormView
       title         : 'Sign up'
       cssClass      : 'solid red shadowed'
       type          : 'submit'
+      callback      : =>
+        if @username.input.getValue() is ""
+          @username.showError "Please enter a username."
+        if @email.input.getValue() is ""
+          @email.showError "Please enter an email."
+
 
 
     @on "SubmitFailed", (msg)=>
@@ -141,7 +147,12 @@ class HomeRegisterForm extends KDFormView
           # content   : 'Successfully registered!'
           duration  : 2000
 
-        KD.getSingleton('router').handleRoute "/Activity"
+        firstRoute = KD.getSingleton("router").visitedRoutes.first
+        if firstRoute and /^\/(?:Reset|Register|Confirm)\//.test firstRoute
+          firstRoute = "/Activity"
+
+        {entryPoint} = KD.config
+        KD.getSingleton('router').handleRoute firstRoute or '/Activity', {replaceState: yes, entryPoint}
 
         setTimeout =>
           @hide()

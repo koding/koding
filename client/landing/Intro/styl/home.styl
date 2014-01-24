@@ -101,15 +101,6 @@ body.about #main-header
     color               headerLinkColor
     noTextDeco()
 
-
-
-#home-page
-  height                auto
-  // opacity               1
-  // vendor                transition, opacity .5s ease
-  &.out
-    hidden()
-
   .logo
     margin              10px
     size                45px 45px
@@ -126,6 +117,15 @@ body.about #main-header
     margin              23px 0 0 3px
     font-size           0
     fl()
+
+
+#home-page
+  height                auto
+  // opacity               1
+  // vendor                transition, opacity .5s ease
+  &.out
+    hidden()
+
 
   #home-bottom
   main
@@ -173,6 +173,7 @@ body.about #main-header
   .big-header
     font-family         proximaFamily
     color               logoBg
+    text-transform      uppercase
     font-size           39px
     line-height         60px
     font-weight         400
@@ -192,6 +193,8 @@ body.about #main-header
     a
     a:visited
       color             #d2d2d2
+      border-bottom     1px solid #b2b2b2
+      noTextDeco()
       &:hover
         color           #fff
 

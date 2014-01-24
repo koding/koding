@@ -28,7 +28,10 @@ class CollaborativeEditorPane extends CollaborativePane
     @setData file
     isLocalFile = file.path.indexOf("localfile") is 0
     content     = "" if @amIHost and isLocalFile
-    @firepad.setText content  if @amIHost
+
+    if @amIHost and not @getOptions().useFirepadContent
+      @firepad.setText content
+
     @codeMirrorEditor.scrollTo 0, 0
     @emit "OpenedAFile", file, content
     @setEditorMode file.getExtension()
@@ -92,7 +95,7 @@ class CollaborativeEditorPane extends CollaborativePane
 
     CodeMirror.modeURL = "#{cdnRoot}/mode/%N/%N.js"
     syntaxHandler      = __aceSettings.syntaxAssociations[fileExtension]
-    modeName           = null
+    modeName           = "htmlmixed"
     corrections        =
       html             : "htmlmixed"
       json             : "javascript"

@@ -5,10 +5,10 @@ KD.extend
     active        : [
 
         username  : 'devrim'
-        title     : 'Co-Founder &amp; CEO'
+        title     : 'CEO &amp; Co-Founder'
       ,
         username  : 'sinan'
-        title     : 'Co-Founder &amp; Chief UI Engineer'
+        title     : 'Chief of UI/UX &amp; Co-F'
       ,
         username  : 'chris'
         title     : 'Director of Engineering'
@@ -31,23 +31,20 @@ KD.extend
         username  : 'geraint'
         title     : 'Director of Infrastructure'
       ,
-        username  : 'aleksey-m'
-        title     : 'System Administrator'
-      ,
-        username  : 'ybrs'
+        username  : 'erdinc'
         title     : 'Software Engineer'
       ,
-        username  : 'erdinc'
+        username  : 'ybrs'
         title     : 'Software Engineer'
       ,
         username  : 'szkl'
         title     : 'Software Engineer'
       ,
-        username  : 'burakcan'
-        title     : 'CSS Wizard'
-      ,
         username  : 'leventyalcin'
         title     : 'System Administrator'
+      ,
+        username  : 'burakcan'
+        title     : 'CSS Wizard'
       ,
         username  : 'samet'
         title     : 'Software Engineer'
@@ -61,14 +58,8 @@ KD.extend
         username  : 'canthefason'
         title     : 'Software Engineer'
       ,
-        username  : 'pablostanley'
-        title     : 'Illustrator'
-      # ,
-      #   username  : 'leeolayvar'
-      #   title     : 'Community Manager'
-      # ,
-      #   username  : 'stefanbc'
-      #   title     : 'Community Manager'
+        username  : 'nesli'
+        title     : 'Chef de Cuisine'
       ,
         username  : 'dicle'
         title     : 'Business Analyst'
@@ -76,14 +67,32 @@ KD.extend
         username  : 'niltuncer'
         title     : 'Business Analyst'
       ,
+        username  : 'leeolayvar'
+        title     : 'Community Manager'
+      ,
+        username  : 'stefanbc'
+        title     : 'Community Manager'
+      ,
         username  : 'zeynep'
         title     : 'Finance Assistant'
       ,
-        username  : 'nesli'
-        title     : 'Chef de Cuisine'
+        username  : 'juliap'
+        title     : 'Recruiting & HR'
+      ,
+        username  : 'psanchezdl'
+        title     : 'Growth Engineer'
+      ,
+        username  : 'selin'
+        title     : 'Data Scientist'
+      # ,
+      #   username  : 'pablostanley'
+      #   title     : 'Illustrator'
+      # ,
+      #   username  : 'aleksey-m'
+      #   title     : 'System Administrator'
       ]
 
-    suspended     : []
+    # suspended     : []
 
       #   username  : 'aleksey-m'
       #   title     : 'Sys Admin &amp; node.js Developer'
