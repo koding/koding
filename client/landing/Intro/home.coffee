@@ -1,30 +1,49 @@
-class PricingPlanBoxView extends KDCustomHTMLView
-  constructor : (options = {}, data = {}) ->
-    options.plan        or= no
-    options.price       or= 0
-    options.amount      or= "1X"
-    options.description or= "and start koding"
-    options.cssClass      = KD.utils.curry "pricing-box", options.cssClass
+class PlanSelectionView extends KDCustomHTMLView
+  constructor : (options = {}, data) ->
+    options.cssClass      = KD.utils.curry "plan-selection", options.cssClass
 
     super options, data
+
+    @buyNowButton = new KDButtonView
+      style : 'solid yellow'
+      title : 'BUY NOW'
+
+  createSlider : ->
+    {plans} = @getOptions()
+    slider = new KDSliderBarView
+      minValue    : 0
+      maxValue    : plans.length
+      interval    : 1
+      snapOnDrag  : yes
+      handles     : [0]
+      drawBar     : no
+      width       : 272
+
+    return slider
 
   viewAppended : JView::viewAppended
 
   pistachio : ->
-    {plan, price, description, amount} = @getOptions()
     """
-      <div class="plan-top">
-        <h2>#{plan}</h4>
+      <div class="resource-pack">
+        <h6>Resource Pack</h6>
+        <span class="resource cpu"><i></i> x1</span>
+        <span class="resource ram"><i></i> x2</span>
+        <span class="resource disk"><i></i> 1TB</span>
+        <span class="resource always-on"><i></i> YES</span>
+      </div>
+      <div class="sliderbar-outer-container">{{> @createSlider()}}</div>
+      <div class="selected-plan">
         <div class="price">
-          <cite>$</cite>#{price}
+          <cite>$</cite>20
           <span>/MONTH</span>
         </div>
-      </div>
-      <div>
-        <a class="buy-now">Buy Now</a>
-        <div class="description"><span>#{description}</span></div>
+        <span class="description">$4 OFF OR<br> 1 SHARED VM</span>
+        {{> @buyNowButton}}
       </div>
     """
+
+
 
 class PricingBoxWithSliderView extends KDCustomHTMLView
   constructor : (options = {}, data = {}) ->
@@ -102,26 +121,29 @@ class HomePage extends JView
 
     @markers = new MarkerController
 
-    @singlePlan = new PricingPlanBoxView
-      plan        : 'Single Plan'
-      amount      : '1X'
-      price       : '20'
-      description : 'and start Koding :)'
-      cssClass    : 'single'
+    @planSelection = new PlanSelectionView
+      plans : [
+        { 'First Plan' :
+          cpu        : 1
+          ram        : 2
+          disk       : '1TB'
+          alwaysOn   : no
+          price      : 20 },
+        { 'Second Plan':
+          cpu        : 2
+          ram        : 4
+          disk       : '2TB'
+          alwaysOn   : yes
+          price      : 40 },
+        { 'Third Plan':
+          cpu        : 4
+          ram        : 6
+          disk       : '3TB'
+          alwaysOn   : yes
+          price      : 60 }
+      ]
 
-    @doublePlan = new PricingPlanBoxView
-      plan        : 'Double Plan'
-      amount      : '2X'
-      price       : '40'
-      description : 'and get 2 free VMs'
-      cssClass    : 'double'
 
-    @triplePlan = new PricingPlanBoxView
-      plan        : 'Triple Plan'
-      amount      : '3X'
-      price       : '60'
-      description : 'and get 5 free VMs or $5 discount'
-      cssClass    : 'triple'
 
     @customizeUsers = new PricingBoxWithSliderView
       cssClass    : 'users'
@@ -302,9 +324,7 @@ class HomePage extends JView
             <strong>1 GB RAM and 1x CPU Share for free when you <a href="#">sign up</a></strong>
             But you can start with a pro-pack right away
           </p>
-          {{> @singlePlan}}
-          {{> @doublePlan}}
-          {{> @triplePlan}}
+          {{> @planSelection}}
         </div>
       </section>
       <section id="home-customize-pricing" class="clearfix">
