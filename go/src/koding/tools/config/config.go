@@ -29,6 +29,7 @@ type Config struct {
 		ComponentUser string
 		Password      string
 		Vhost         string
+		LogLevel      string
 	}
 	Neo4j struct {
 		Read    string
@@ -36,7 +37,8 @@ type Config struct {
 		Port    int
 		Enabled bool
 	}
-	Broker struct {
+	GoLogLevel string
+	Broker     struct {
 		IP              string
 		Port            int
 		CertFile        string
@@ -110,6 +112,15 @@ type Config struct {
 		Ip   string
 		Port int
 	}
+	TopicModifier struct {
+		CronSchedule string
+	}
+	Slack struct {
+		Token   string
+		Channel string
+	}
+
+	LogLevel map[string]string
 }
 
 var FileProfile string

@@ -82,13 +82,21 @@ class MainView extends KDView
         then KD.getSingleton('router').handleRoute "/Activity", {entryPoint}
         else location.replace '/'
 
+    @innerContainer.addSubView @logotype = new KDCustomHTMLView
+      tagName   : "a"
+      cssClass  : "logotype"
+      partial   : "Koding"
+      click     : (event)=>
+        KD.utils.stopDOMEvent event
+        KD.getSingleton('router').handleRoute "/", {entryPoint}
+
     @logo.setClass KD.config.environment
 
     # REFACTOR NOTE: login link
 
     # wrapper.addSubView loginLink = new CustomLinkView
-    #   domId       : 'header-sign-in'
     #   title       : 'Login'
+    #   cssClass    : 'header-sign-in'
     #   attributes  :
     #     href      : '/Login'
     #   click       : (event)->
@@ -118,7 +126,7 @@ class MainView extends KDView
 
     unless KD.isLoggedIn()
       @loginLink = new CustomLinkView
-        domId       : 'header-sign-in'
+        cssClass    : 'header-sign-in'
         title       : 'Login'
         attributes  :
           href      : '/Login'

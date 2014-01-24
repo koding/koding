@@ -68,6 +68,9 @@ button
     -moz-transition     -moz-transform .2s ease
     transition          transform .2s ease
 
+    .logotype
+      hidden()
+
 
 .intro #main-header
 .login #main-header
@@ -216,6 +219,18 @@ button
     display         inline-block
     width           auto
     vertical-align  top
+
+  .header-sign-in
+    color           #e5e5e5
+    font-size       18px
+    margin          18px 18px 0 0
+    display         inline-block
+    font-weight     300
+    noTextDeco()
+    &:first-child
+      border-right  1px solid #444
+      padding-right 20px
+
 
   .acc-dropdown-icon
     size            45px 55px
@@ -1040,3 +1055,15 @@ div.nominateicon
   z-index                       1
   top                           0
   abs()
+
+.kdmodal.redeem-modal
+
+  .formline
+    overflow              visible
+    padding               15px 0 0
+    .input-wrapper
+      overflow            visible
+      margin-right        8px
+      fr()
+    label
+      margin              0

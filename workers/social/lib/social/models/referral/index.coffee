@@ -31,6 +31,8 @@ module.exports = class JReferral extends jraphical.Message
       static          :
         redeem:
           (signature Object, Function)
+        add5GBDisk:
+          (signature Function)
         fetchRedeemableReferrals:
           (signature Object, Function)
         fetchReferredAccounts:
@@ -225,6 +227,26 @@ module.exports = class JReferral extends jraphical.Message
 
     dash queue, kallback
 
+  @checkFor5GBStatus = (delegate, callback)->
+    delegate.fetchReferrers (err, referrers)=>
+      return callback err  if err
+      for ref in referrers
+        {type, unit, amount} = ref
+        return callback null, yes  if type is "disk" and unit is "MB" and amount is 5000
+      callback err, no
+
+  @add5GBDisk = secure (client, callback)->
+    {delegate} = client.connection
+    @checkFor5GBStatus delegate, (err, used) =>
+      return callback new Error "An error occured while trying to add your 5GB please try again" if err
+      return callback new Error "You have already redeemed your 5GB extra storage" if used
+      referral = new JReferral { type: "disk", unit: "MB", amount: 5000 }
+      referral.save (err) ->
+        return callback err if err
+        #add referrer as referrer to the referral system
+        delegate.addReferrer referral, (err)->
+          return callback err if err
+          return callback null, yes
 
   @fetchUserVM = (client, vmName, callback)->
     account = client.connection.delegate

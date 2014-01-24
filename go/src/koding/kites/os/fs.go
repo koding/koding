@@ -7,7 +7,6 @@ import (
 	"io"
 	"koding/tools/dnode"
 	"koding/tools/kite"
-	"koding/tools/log"
 	"koding/virt"
 	"os"
 	"path"
@@ -22,7 +21,7 @@ import (
 func init() {
 	go func() {
 		for err := range virt.WatchErrors {
-			log.Warn("Watcher error", err)
+			log.Warning("Watcher error", err)
 		}
 	}()
 }

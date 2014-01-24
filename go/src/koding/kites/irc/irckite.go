@@ -5,8 +5,10 @@ import (
 	"koding/tools/irc"
 	"koding/tools/kite"
 	"koding/tools/lifecycle"
-	"koding/tools/log"
+	"koding/tools/logger"
 )
+
+var log = logger.New("irckite")
 
 func main() {
 	lifecycle.Startup("kite.irc", false)

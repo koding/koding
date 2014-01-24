@@ -3,9 +3,8 @@ package models
 import "labix.org/v2/mgo/bson"
 
 type Account struct {
-	Id bson.ObjectId `bson:"_id" json:"-"`
-
-	GlobalFlags []string `bson:"globalFlags" json:"globalFlags"`
+	Id          bson.ObjectId `bson:"_id" json:"-"`
+	GlobalFlags []string      `bson:"globalFlags" json:"globalFlags"`
 	Profile     struct {
 		Nickname  string `bson:"nickname"`
 		FirstName string `bson:"firstName"`

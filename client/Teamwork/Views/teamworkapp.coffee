@@ -1,6 +1,6 @@
 class TeamworkApp extends KDObject
 
-  instanceName = if location.hostname.indexOf("local") > -1 then "tw-local" else "koding-teamwork"
+  instanceName = if location.hostname.indexOf("local") > -1 then "koding-tw-local" else "koding-teamwork"
 
   constructor: (options = {}, data) ->
 
@@ -76,6 +76,8 @@ class TeamworkApp extends KDObject
               type        : "finder"
               name        : "finder"
               editor      : "tabView"
+              treeItemClass: TeamworkFinderItem
+              treeControllerClass: TeamworkFinderTreeController
             }
             {
               type        : "custom"

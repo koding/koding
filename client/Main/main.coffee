@@ -17,7 +17,10 @@ do ->
     mainController.accountChanged account, firstLoad
     firstLoad = no
 
-  status.on 'sessionTokenChanged', (token)-> $.cookie 'clientId', token
+  status.on 'sessionTokenChanged', (token)->
+    # this is disabled for now to test user log-out problem.
+    KD.logToExternal "sessionTokenChanged event"
+    # $.cookie 'clientId', token
 
   status.on 'connected', ->
     destroyCurrentModal()
@@ -46,6 +49,8 @@ do ->
     modalSize  = options.modalSize  or= "big"
     notifyUser = options.notifyUser or= "yes"
     state      = "disconnected"
+
+    KD.logToExternalWithTime "User disconnected"
 
     log "disconnected",\
     "reason: #{reason}, modalSize: #{modalSize}, notifyUser: #{notifyUser}"

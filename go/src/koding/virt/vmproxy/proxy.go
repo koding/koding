@@ -4,13 +4,15 @@ import (
 	"koding/db/mongodb"
 	"koding/tools/fastproxy"
 	"koding/tools/lifecycle"
-	"koding/tools/log"
+	"koding/tools/logger"
 	"koding/virt"
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
 	"net"
 	"strings"
 )
+
+var log = logger.New("vmproxy")
 
 func main() {
 	lifecycle.Startup("proxy", true)

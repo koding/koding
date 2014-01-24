@@ -1,3 +1,6 @@
+{argv} = require 'optimist'
+{uri} = require('koding-config-manager').load("main.#{argv.c}")
+
 forceTwoDigits = (val) ->
   if val < 10
     return "0#{val}"
@@ -38,9 +41,38 @@ getUserHash = (account) ->
     hash = account.data.profile.hash
   return hash
 
+normalizeActivityBody = (activity, bodyString="") ->
+  if bodyString
+    body = bodyString
+  else
+    {body} = activity
+
+  tagMap = {}
+  activity.tags?.forEach (tag) -> tagMap[tag.getId()] = tag
+
+  return body.replace /\|(.+?)\|/g, (match, tokenString) ->
+    [prefix, constructorName, id, title] = tokenString.split /:/
+
+    switch prefix
+      when "#" then token = tagMap?[id]
+
+    tagTitle = if token then token.title else title
+
+    return ""  unless tagTitle
+    tagContent =
+      """
+        <span class="kdview token">
+          <a class="ttag expandable" href="#{uri.address}/#!/Activity?tagged=#{title}">
+            <span>#{tagTitle}</span>
+          </a>
+        </span>
+      """
+    return tagContent
+
 createActivityContent = (JAccount, model, comments, createFullHTML=no, putBody=yes, callback) ->
   {Relationship} = require 'jraphical'
   {htmlEncode}   = require 'htmlencode'
+  marked         = require 'marked'
   {getSingleActivityPage, getSingleActivityContent} = require './staticpages/activity'
 
   statusUpdateId = model.getId()
@@ -55,9 +87,12 @@ createActivityContent = (JAccount, model, comments, createFullHTML=no, putBody=y
     tags = teaser.tags  if teaser?.tags?
 
     Relationship.one selector, (err, rel) =>
-      if err or not rel
-          console.error err
-          return callback err, null
+      if err
+        console.error err
+        return callback err, null
+      unless rel
+        console.error "Rel not found"
+        return callback new Error "Rel not found", null
       sel =
         "_id" : rel.targetId
 
@@ -74,7 +109,11 @@ createActivityContent = (JAccount, model, comments, createFullHTML=no, putBody=y
         hash = getUserHash acc
 
         if model?.body? and putBody
-          body = model.body
+          body = marked model.body,
+            gfm       : true
+            pedantic  : false
+            sanitize  : true
+          body = normalizeActivityBody model, body
         else
           body = ""
 
@@ -84,7 +123,7 @@ createActivityContent = (JAccount, model, comments, createFullHTML=no, putBody=y
           nickname         : nickname
           hash             : hash
           title            :  if model?.title? then model.title else model.body or ""
-          body             : htmlEncode body
+          body             : body
           createdAt        : if model?.meta?.createdAt? then formatDate model.meta.createdAt else ""
           numberOfComments : teaser.repliesCount or 0
           numberOfLikes    : model?.meta?.likes or 0
@@ -118,8 +157,11 @@ decorateComment = (JAccount, comment, callback) ->
       if err
         console.error err
         callback err, null
-      commentSummary.authorName = getFullName acc
+      commentSummary.authorName     = getFullName acc
       commentSummary.authorNickname = getNickname acc
+      if acc?.data?.profile?.hash
+        commentSummary.authorHash   = acc.data.profile.hash
+      commentSummary.authorHash   or= ""
       callback null, commentSummary
 
 module.exports = {

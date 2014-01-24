@@ -136,7 +136,8 @@ func New(options *Options) *Kite {
 	if !options.DisableAuthentication {
 		kodingKey, err = utils.GetKodingKey()
 		if err != nil {
-			log.Fatal("Couldn't find koding.key. Please run 'kd register'.")
+			// don't fatal until we find a better way to integrate kite into other applications
+			log.Println("Couldn't find koding.key. Please run 'kd register'.")
 		}
 	}
 
@@ -186,6 +187,10 @@ func New(options *Options) *Kite {
 			// Run OnDisconnect handlers.
 			k.notifyRemoteKiteDisconnected(r.(*RemoteKite))
 		}
+	})
+
+	k.server.OnConnect(func(c *rpc.Client) {
+		k.Log.Info("Client is connected: %s", c.Conn.Request().RemoteAddr)
 	})
 
 	// Every kite should be able to authenticate the user from token.
@@ -410,7 +415,8 @@ func (k *Kite) OnDisconnect(handler func(*RemoteKite)) {
 
 // notifyRemoteKiteConnected runs the registered handlers with OnConnect().
 func (k *Kite) notifyRemoteKiteConnected(r *RemoteKite) {
-	k.Log.Info("Client is connected to us: %s", r.Name)
+	k.Log.Info("Client '%s' is identified as '%s'",
+		r.client.Conn.Request().RemoteAddr, r.Name)
 
 	for _, handler := range k.onConnectHandlers {
 		go handler(r)

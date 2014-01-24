@@ -45,7 +45,7 @@ class KodingRouter extends KDRouter
 
   handleRoute:(route, options={})->
     @breadcrumb.push route
-    
+
     entryPoint = options.entryPoint or KD.config.entryPoint
     frags      = route.split("?")[0].split "/"
     name       = if frags[1] is entryPoint?.slug then frags[2] else frags[1]
@@ -121,7 +121,7 @@ class KodingRouter extends KDRouter
     @utils.shortenText(
       switch model.constructor
         when JAccount       then  KD.utils.getFullnameFromAccount model
-        when JNewStatusUpdate  then  model.body
+        when JNewStatusUpdate  then  @utils.getPlainActivityBody model
         when JGroup         then  model.title
         else                      "#{model.title}#{getSectionName model}"
     , maxLength: 100) # max char length of the title
@@ -264,8 +264,7 @@ class KodingRouter extends KDRouter
 
     requireLogout =(fn)->
       mainController.ready ->
-        unless KD.isLoggedIn() then __utils.defer fn
-        else clear()
+        unless KD.isLoggedIn() then __utils.defer fn else clear()
 
     createSectionHandler = (sec)=>
       ({params:{name, slug}, query})=>
@@ -282,7 +281,8 @@ class KodingRouter extends KDRouter
       '/Landing/:page'         : noop
       '/R/:username'           : ({params:{username}})->
         KD.mixpanel "Visit referrer url, success", {username}
-        noop
+        # give a notification to tell that this is a referral link here - SY
+        handleRoot.call this
 
       '/:name?/Logout'         : ({params:{name}})-> requireLogin -> mainController.doLogout()
 
@@ -296,6 +296,16 @@ class KodingRouter extends KDRouter
 
       '/:name?/Invitation/:inviteCode': ({params:{inviteCode, name}})=>
         @handleRoute "/Redeem/#{inviteCode}"
+
+      '/:name?/Get5GB': =>
+        if not KD.isLoggedIn()
+          KD.showError new Error "You should login and try again"
+          return @handleRoute '/Login'
+        else
+          KD.remote.api.JReferral.add5GBDisk (err, result)=>
+            KD.showError err if err
+            KD.notify_ "5GB is added successfully to your redeemable points" if result
+            @handleRoute '/Activity', entryPoint: KD.config.entryPoint
 
       '/:name?/InviteFriends': ->
         if KD.isLoggedIn()

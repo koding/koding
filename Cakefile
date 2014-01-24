@@ -9,6 +9,7 @@ option '-f', '--file [file]', 'run tests with just one file'
 option '-l', '--location [location]', 'run tests with this base url'
 
 option '-t', '--tests', 'require test suite'
+option '-s', '--dontBuildSprites', 'dont build sprites'
 
 {spawn, exec} = require 'child_process'
 
@@ -436,7 +437,6 @@ task 'cacheWorker', "Run the cacheWorker", ({configFile})->
           onChange  : ->
             processes.kill "cacheWorker"
 
-
 task 'kontrolClient', "Run the kontrolClient", (options) ->
   {configFile} = options
   processes.spawn
@@ -488,6 +488,24 @@ task 'runGraphiteFeeder', "Collect analytics from database and feed to grahpite"
     stderr  : process.stderr
     verbose : yes
 
+task 'cronJobs', "Run CronJobs", ({configFile})->
+  console.log "Running CronJobs"
+  processes.spawn
+    name    : 'cronJobs'
+    cmd     : "./go/bin/cron -c #{configFile}"
+    stdout  : process.stdout
+    stderr  : process.stderr
+    verbose : yes
+
+task 'migratePost', "Migrate Posts to JNewStatusUpdate", ({configFile})->
+  console.log "Migrating Posts"
+  processes.spawn
+    name    : 'migratePost'
+    cmd     : "./go/bin/posts -c #{configFile}"
+    stdout  : process.stdout
+    stderr  : process.stderr
+    verbose : yes
+
 run =({configFile})->
   config = require('koding-config-manager').load("main.#{configFile}")
 
@@ -509,6 +527,7 @@ run =({configFile})->
     invoke 'emailSender'                      if config.emailSender?.run is yes
     invoke 'addTagCategories'
     invoke 'webserver'
+    invoke 'cronJobs'
 
 task 'importDB', (options) ->
   if options.configFile is 'vagrant'
@@ -543,7 +562,13 @@ task 'run', (options)->
   queue = []
   if config.buildClient is yes
     queue.push ->
-      (new (require('./Builder'))).buildClient options
+
+      buildMethod =
+        unless options.dontBuildSprites
+        then 'buildSprites'
+        else 'buildClient'
+
+      (new (require('./Builder')))[buildMethod] options
       queue.next()
   queue.push -> run options
   daisy queue

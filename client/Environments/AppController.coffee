@@ -5,6 +5,7 @@ class EnvironmentsAppController extends AppController
     route        : "/:name?/Environments"
     hiddenHandle : yes
     behavior     : "application"
+    enforceLogin : yes
     # navItem      :
     #   title      : "Environments"
     #   path       : "/Environments"
