@@ -7,7 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"koding/kite/dnode"
-	"koding/kite/kite"
+	"koding/kite"
 	"koding/tools/pty"
 	"os/exec"
 	"os/user"

@@ -2,7 +2,7 @@ package main
 
 import (
 	"koding/kites/kontrol"
-	"koding/kite/kite"
+	"koding/kite"
 	"koding/kite/protocol"
 	"net"
 	"os"
