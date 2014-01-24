@@ -116,7 +116,7 @@ class PaymentController extends KDController
     workflow      = new PaymentWorkflow {productForm, confirmForm}
 
     productForm
-      .on 'PlanSelected', (plan, options) ->
+      .on 'PlanSelected', (plan, planOptions) ->
         { oldSubscription } = workflow.collector.data
 
         spend = oldSubscription?.usage ? {}
@@ -124,7 +124,7 @@ class PaymentController extends KDController
         plan.checkQuota {spend, multiplyFactor: 1}, (err) ->
           return  if KD.showError err
 
-          workflow.collectData productData: { plan, options }
+          workflow.collectData productData: { plan, planOptions }
 
       .on 'CurrentSubscriptionSet', (oldSubscription) ->
         workflow.collectData { oldSubscription }
@@ -158,10 +158,10 @@ class PaymentController extends KDController
 
           callback null, subscription
 
-  createSubscription: ({ plan, couponCode, email, paymentMethod, createAccount }, callback) ->
+  createSubscription: (options, callback) ->
+    { plan, planOptions, couponCode, email, paymentMethod, createAccount } = options
     { paymentMethodId, billing } = paymentMethod
-
-    plan.subscribe paymentMethodId, {couponCode}, (err, subscription) =>
+    plan.subscribe paymentMethodId, {planOptions, couponCode}, (err, subscription) =>
       if err?.short is 'existing_subscription'
         { existingSubscription } = err
 
@@ -191,7 +191,7 @@ class PaymentController extends KDController
 
   transitionSubscription: (formData, callback) ->
     { productData, oldSubscription, couponCode, paymentMethod, createAccount, email } = formData
-    { plan } = productData
+    { plan, planOptions } = productData
     { planCode } = plan
     { paymentMethodId } = paymentMethod
     if oldSubscription
@@ -199,6 +199,7 @@ class PaymentController extends KDController
     else
       @createSubscription {
         plan
+        planOptions
         couponCode
         email
         paymentMethod

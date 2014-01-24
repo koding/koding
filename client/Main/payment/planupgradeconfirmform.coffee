@@ -41,8 +41,8 @@ class PlanUpgradeConfirmForm extends PaymentConfirmForm
 
   setData: (data) ->
     if data.productData?.plan
-      {productData: {plan, options}, oldSubscription} = data
-      @plan.addSubView new VmPlanView {}, plan
+      {productData: {plan, planOptions}, oldSubscription} = data
+      @plan.addSubView new VmPlanView {planOptions}, plan
 
       if plan.discountCode and plan.vmCode
         @fetchCoupons ["discount", "vm"], @bound "addCouponOptions"

@@ -136,13 +136,20 @@ module.exports = class JPaymentPlan extends JPaymentBase
 
   @fetchPlanByCode = (planCode, callback) -> @one { planCode }, callback
 
+  userUnitAmount     =  500 # cents
+  resourceUnitAmount = 2000 # cents
+
+  calculateCustomPlanUnitAmount = (userQuantity, resourceQuantity) ->
+    (userQuantity * userUnitAmount) + (resourceQuantity * resourceUnitAmount)
+
   fetchToken: secure (client, data, callback) ->
     JPaymentToken.createToken client, planCode: @planCode, callback
 
   subscribe: (paymentMethodId, options = {}, callback) ->
     [callback, options] = [options, callback]  unless callback
     options.multiple ?= no
-    {couponCode} = options
+    {planOptions, couponCode} = options
+    {userQuantity, resourceQuantity} = planOptions  if planOptions
 
     couponCode = if couponCode is "discount" then @discountCode else @vmCode
 
@@ -186,6 +193,12 @@ module.exports = class JPaymentPlan extends JPaymentBase
           couponCode
           startsAt: options.startsAt
         }
+
+        if "custom-plan" in @tags
+          unless userQuantity or resourceQuantity
+            return callback "User and resource quantities not specified"
+
+          subOptions.unit_amount_in_cents = calculateCustomPlanUnitAmount userQuantity, resourceQuantity
 
         recurly.createSubscription paymentMethodId, subOptions, (err, result) =>
           return callback err  if err
