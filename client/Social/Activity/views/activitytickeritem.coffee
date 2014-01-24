@@ -177,6 +177,28 @@ class ActivityTickerStatusUpdateItem extends ActivityTickerBaseItem
     return "{{> @avatar}} <div class='text-overflow'>{{> @actor}} posted {{> @subj}}</div>"
 
 
+class ActivityTickerUserCommentItem extends ActivityTickerBaseItem
+  constructor: (options = {}, data) ->
+    super options, data
+    {@source, @target} = data
+
+    @avatar    = new AvatarView
+      size     : width: 30, height: 30
+      cssClass : "avatarview"
+    , @target
+
+    @origin   = new ProfileLinkView null, @target
+    @subj     = new ActivityLinkView null, @source
+
+  pistachio: ->
+    """
+    {{> @avatar}}
+    <div class='text-overflow'>
+      #{if @target.getId() is KD.whoami().getId() then "You" else @origin } commented on {{> @subj}}
+    </div>
+    """
+
+
 class ActivityTickerItem extends KDListItemView
   itemClassMap =
     "JGroup_member_JAccount"           : ActivityTickerMemberItem
