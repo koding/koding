@@ -46,7 +46,6 @@ module.exports = class Likeable
                   callback err
                 else
                   @update ($set: 'meta.likes': count), callback
-                  if constructor.name in ["JComment", "JOpinion"]
                     constructor.fetchRelated? @getId(), (err, activity)->
                       activity.triggerCache(constructor.name == "JComment")
                   delegate.update ($inc: 'counts.likes': 1), (err)->
@@ -85,16 +84,6 @@ module.exports = class Likeable
       Relationship.one
         targetId: @getId()
         as: 'reply'
-      , (err, rel)->
-        if not err and rel
-          rel.fetchSource (err, source)->
-            if not err and source
-              source.flushSnapshot?()
-
-    if constructor.name is 'JOpinion'
-      Relationship.one
-        targetId: @getId()
-        as: 'opinion'
       , (err, rel)->
         if not err and rel
           rel.fetchSource (err, source)->
