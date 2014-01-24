@@ -1,29 +1,33 @@
 class PricingAppController extends KDViewController
 
   # FIXME: obviously, remove this once this is prod ready - SY
-  if location.hostname is "localhost"
+  if true or location.hostname is "localhost"
     KD.registerAppClass this,
       name         : "Pricing"
       route        : "/Pricing"
 
-  constructor:(options = {}, data)->
-
+  constructor: (options = {}, data) ->
     options.view = new PricingAppView
       params     : options.params
-      workflow   : @createWorkflow()
       cssClass   : "content-page pricing"
 
-    options.appInfo =
-      title         : "Pricing"
+    options.appInfo = title: "Pricing"
 
     super options, data
 
-  createWorkflow: ->
-    paymentController = KD.getSingleton 'paymentController'
+    userPlanForm = new UserPlanForm unitPrice: 20
+    customPlanForm = new CustomPlanForm userUnitPrice: 5, resourceUnitPrice: 20
 
-    workflow = paymentController.createUpgradeWorkflow 'vm'
+    productForm = new KDView
 
-    workflow.on 'Finished', =>
-      @getView().showThankYou workflow.getData()
+    productForm.addSubView userPlanForm
+    productForm.forwardEvent userPlanForm, "PlanSelected"
 
-    workflow.on 'Cancel', => @getView().showCancellation()
+    productForm.addSubView customPlanForm
+    productForm.forwardEvent customPlanForm, "PlanSelected"
+
+    @getView().addWorkflow workflow = KD.singleton("paymentController").createUpgradeWorkflow
+      productForm: productForm
+
+    workflow.on "Finished", (data, subscription) ->
+      log "workflow finished", {data, subscription}

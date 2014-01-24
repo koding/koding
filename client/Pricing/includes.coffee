@@ -1,9 +1,7 @@
 module.exports = [
-
-  # PRICING
-  "AppController.coffee",
-  "AppView.coffee",
-
-  "styl/pricing.styl",
-
+  "AppController.coffee"
+  "AppView.coffee"
+  "views/userplanform.coffee"
+  "views/customplanform.coffee"
+  "styl/pricing.styl"
 ]
