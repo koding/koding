@@ -2,7 +2,6 @@ package main
 
 import (
 	"github.com/sent-hil/rollbar"
-	"koding/tools/logger"
 	"time"
 )
 
@@ -13,7 +12,6 @@ func init() {
 
 var (
 	rollbarClient = rollbar.NewClient("089bd80bbfc2450dbe7b4ea2a897a181")
-	log           = logger.New("graphitefeeder")
 )
 
 func numberOfCouldntFetchFiles() (string, int) {

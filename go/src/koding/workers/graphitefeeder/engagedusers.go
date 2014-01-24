@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"time"
 
 	"koding/db/mongodb"
@@ -41,10 +40,10 @@ func numberOfTwoWeekEngagedUsers() (string, int) {
 
 	var err = mongodb.IterClose(iter)
 	if err != nil {
-		fmt.Println(err)
+		log.Error("Closing mongo iter: %v", err)
 	}
 
-	fmt.Println("count of possibleEngagedUsers", len(possibleEngagedUsers))
+	log.Debug("Possible EngagedUsers count: %v", len(possibleEngagedUsers))
 
 	var possibleEngagedUsernames = []string{}
 	for username, _ := range possibleEngagedUsers {
@@ -67,8 +66,8 @@ func numberOfTwoWeekEngagedUsers() (string, int) {
 		var smallerSet = possibleEngagedUsernames[startPos:endPos]
 		var secondIterQuery = func(c *mgo.Collection) *mgo.Query {
 			var query = c.Find(bson.M{
-				"username":  bson.M{"$in": possibleEngagedUsernames},
-				"createdAt": bson.M{"$gt": smallerSet},
+				"username":  bson.M{"$in": smallerSet},
+				"createdAt": bson.M{"$gt": middleOfMonth},
 			})
 
 			return query
@@ -78,13 +77,13 @@ func numberOfTwoWeekEngagedUsers() (string, int) {
 		var secondResult map[string]interface{}
 
 		for secondIter.Next(&secondResult) {
-			var username = result["username"].(string)
+			var username = secondResult["username"].(string)
 			engagedUsers[username] = true
 		}
 
 		err = mongodb.IterClose(secondIter)
 		if err != nil {
-			fmt.Println(err)
+			log.Error("Closing mongo iter: %v", err)
 			break
 		}
 
@@ -92,12 +91,10 @@ func numberOfTwoWeekEngagedUsers() (string, int) {
 			break
 		}
 
-		startPos += 100
-		endPos += 100
 		possibleEngagedUsernames = possibleEngagedUsernames[endPos:]
 	}
 
-	fmt.Println("count of engagedUsers", len(engagedUsers))
+	log.Debug("EngagedUsers count: %v", len(engagedUsers))
 
 	var engagedUsernames = []string{}
 	for username, _ := range engagedUsers {

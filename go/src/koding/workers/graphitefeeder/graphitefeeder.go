@@ -2,16 +2,20 @@ package main
 
 import (
 	"fmt"
-	"github.com/marpaia/graphite-golang"
-	"github.com/peterbourgon/g2s"
-	"koding/tools/config"
 	"strconv"
 	"time"
+
+	"koding/tools/config"
+	"koding/tools/logger"
+
+	"github.com/marpaia/graphite-golang"
+	"github.com/peterbourgon/g2s"
 )
 
 var (
 	ip     = config.Current.Statsd.Ip
 	port   = config.Current.Statsd.Port
+	log    = logger.New("graphitefeeder")
 	STATSD g2s.Statter
 )
 
@@ -25,20 +29,24 @@ func init() {
 }
 
 func PublishToGraphite(name string, value int, timestamp int64) error {
-	log.Info("publishing to graphite. ", name, value, timestamp)
+	log.Info("Publishing to graphite: name:%v, value:%v, timestamp:%v",
+		name, value, timestamp)
 
 	var graphiteServer *graphite.Graphite
 	var ts int64
 	var err error
 
+	var host = config.Current.Graphite.Host
+	var port = config.Current.Graphite.Port
+
 	if config.Current.Graphite.Use {
-		graphiteServer, err = graphite.NewGraphite(config.Current.Graphite.Host, config.Current.Graphite.Port)
+		graphiteServer, err = graphite.NewGraphite(host, port)
 		if err != nil {
-			fmt.Println("error connecting to graphite, falling back to noop: ", err)
-			graphiteServer = graphite.NewGraphiteNop(config.Current.Graphite.Host, config.Current.Graphite.Port)
+			log.Error("Connecting to graphite, falling back to noop: %v", err)
+			graphiteServer = graphite.NewGraphiteNop(host, port)
 		}
 	} else {
-		graphiteServer = graphite.NewGraphiteNop(config.Current.Graphite.Host, config.Current.Graphite.Port)
+		graphiteServer = graphite.NewGraphiteNop(host, port)
 	}
 
 	if timestamp == 0 {
@@ -57,7 +65,7 @@ func PublishToGraphite(name string, value int, timestamp int64) error {
 func main() {
 	for _, fn := range listOfAnalytics {
 		name, count := fn()
-		log.Info(name, count)
+		log.Info("Name: %v, Count: %v", name, count)
 		STATSD.Gauge(1, name, strconv.Itoa(count))
 	}
 }
