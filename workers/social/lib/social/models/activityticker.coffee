@@ -40,8 +40,6 @@ module.exports = class ActivityTicker extends Base
       source.tags = tags
       callback null, {source, target, as, timestamp}
 
-
-
   decorateLikeEvent = (relationship, callback) ->
     {source, target, as, timestamp} = relationship
     # there is a flipped relationship between JAccount and JNewStatusUpdate
