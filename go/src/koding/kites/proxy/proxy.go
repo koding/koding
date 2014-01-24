@@ -4,7 +4,7 @@ import (
 	"crypto/tls"
 	"fmt"
 	"io"
-	"koding/kite/kite"
+	"koding/kite"
 	"koding/kite/protocol"
 	"koding/tools/config"
 	"net"

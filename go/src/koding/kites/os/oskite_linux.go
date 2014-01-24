@@ -8,7 +8,7 @@ import (
 	"io/ioutil"
 	"koding/db/mongodb"
 	"koding/db/mongodb/modelhelper"
-	kitelib "koding/kite/kite"
+	kitelib "koding/kite"
 	"koding/kites/os/ldapserver"
 	"koding/kodingkite"
 	"koding/tools/config"

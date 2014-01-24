@@ -5,7 +5,7 @@ import (
 	"github.com/coreos/go-etcd/etcd"
 	"io/ioutil"
 	"koding/db/mongodb/modelhelper"
-	"koding/kite/kite"
+	"koding/kite"
 	"koding/kite/protocol"
 	"labix.org/v2/mgo/bson"
 	"os/user"

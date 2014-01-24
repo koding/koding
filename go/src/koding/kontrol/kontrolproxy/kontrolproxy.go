@@ -6,7 +6,7 @@ import (
 	"html/template"
 	"io"
 	"koding/db/mongodb/modelhelper"
-	"koding/kite/kite"
+	"koding/kite"
 	"koding/kite/protocol"
 	"koding/kodingkite"
 	"koding/kontrol/kontrolproxy/resolver"
