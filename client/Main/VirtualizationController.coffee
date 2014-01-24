@@ -354,11 +354,8 @@ class VirtualizationController extends KDController
       productForm.setCurrentSubscriptions subscriptions
 
     productForm.on 'PackOfferingRequested', (subscription) ->
-      options = targetOptions: selector: tags: 'vm'
-
-      KD.getGroup().fetchProducts 'pack', options, (err, packs) ->
+      KD.getGroup().fetchProducts 'pack', tags: 'vm', (err, packs) ->
         return  if KD.showError err
-
         productForm.setContents 'packs', packs
 
     workflow = new PaymentWorkflow
