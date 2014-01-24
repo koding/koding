@@ -225,7 +225,6 @@ class ActivityTickerItem extends KDListItemView
   getClassName: (data)->
     {as, source, target} = data
     classKey = "#{source?.bongo_?.constructorName}_#{as}_#{target?.bongo_?.constructorName}"
-
     return itemClassMap[classKey]
 
 class ActiveTopicItemView extends KDListItemView
