@@ -41,45 +41,6 @@ module.exports = class ActivityTicker extends Base
       callback null, {source, target, as, timestamp}
 
 
-  decorateCommentEvent = (relationship, callback) ->
-    # it will be decorated as
-    # source is JAccount          -- doer
-    # target is JAccount          -- owner of the status update
-    # object is JComment          -- the actual comment
-    # subject is JNewStatusUpdate -- post that is commented on
-    {source, target, as, timestamp} = relationship
-    modifiedEvent =
-      as        : as
-      subject   : source
-      object    : target
-      timestamp : timestamp
-
-    # rewrite this part without dash ~ C.S
-    queue = [
-      ->
-        source.fetchTags (err, tags) ->
-          return callback err if err
-          modifiedEvent.subject.tags = tags
-          queue.fin()
-      # disable for now
-      # ->
-      #   target.fetchTags (err, tags) ->
-      #     return callback err if err
-      #     modifiedEvent.object.tags = tags
-      #     queue.fin()
-      ->
-        JAccount.one "_id": source.originId, (err, targetAccount) ->
-          return callback err if err
-          modifiedEvent.target = targetAccount
-          queue.fin()
-      ->
-        JAccount.one "_id": target.originId, (err, sourceAccount) ->
-          return callback err if err
-          modifiedEvent.source = sourceAccount
-          queue.fin()
-    ]
-
-    dash queue, -> callback null, modifiedEvent
 
   decorateLikeEvent = (relationship, callback) ->
     {source, target, as, timestamp} = relationship
