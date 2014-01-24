@@ -25,7 +25,7 @@ class AccountSubscriptionsListController extends AccountListViewController
         .on 'PlanChangeRequested', ->
           payment = KD.getSingleton 'paymentController'
 
-          workflow = payment.createUpgradeWorkflow 'vm'
+          workflow = payment.createUpgradeWorkflow tag: 'vm'
 
           modal = new KDModalView
             view    : workflow
