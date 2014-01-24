@@ -6,11 +6,11 @@ import (
 	"html/template"
 	"io"
 	"koding/db/mongodb/modelhelper"
+	"koding/kite/kite"
+	"koding/kite/protocol"
 	"koding/kodingkite"
 	"koding/kontrol/kontrolproxy/resolver"
 	"koding/kontrol/kontrolproxy/utils"
-	"koding/kite/kite"
-	"koding/kite/protocol"
 	"koding/tools/config"
 	"koding/tools/logger"
 	"math/rand"
@@ -190,7 +190,7 @@ func (p *Proxy) runNewKite() {
 		Region:      config.Region,
 	}
 
-	onEvent := func(e *protocol.KiteEvent) {
+	onEvent := func(e *kite.Event) {
 		serviceUniqueHostname := strings.Replace(e.Kite.Hostname, ".", "_", -1)
 		if serviceUniqueHostname == "" {
 			k.Log.Warning("serviceUniqueHostname is empty for %s", e)
@@ -210,13 +210,8 @@ func (p *Proxy) runNewKite() {
 				return
 			}
 
-			auth := kite.Authentication{
-				Type: "token",
-				Key:  e.Token,
-			}
-
 			// update oskite instance with new one
-			oskite = k.NewRemoteKite(e.Kite, auth)
+			oskite = e.RemoteKite()
 			err := oskite.Dial()
 			if err != nil {
 				log.Warning(err.Error())
