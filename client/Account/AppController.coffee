@@ -230,8 +230,9 @@ class AccountAppController extends AppController
 
 
   showRegistirationNeededModal:->
+    return if @modal
     message = "Please login to proceed to the next step"
-    modal = new KDBlockingModalView
+    @modal = modal = new KDBlockingModalView
       title           : "Koding Registration"
       content         : "<div class='modalformline'>#{message}</div>"
       height          : "auto"
