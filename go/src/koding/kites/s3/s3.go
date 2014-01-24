@@ -4,7 +4,7 @@ import (
 	"errors"
 	"flag"
 	"koding/db/mongodb"
-	"koding/kite/kite"
+	"koding/kite"
 	"koding/kite/protocol"
 	"koding/tools/s3utils"
 	"labix.org/v2/mgo"

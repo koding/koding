@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"koding/db/mongodb/modelhelper"
 	"koding/kite/dnode"
-	"koding/kite/kite"
+	"koding/kite"
 	"koding/kite/protocol"
 	"koding/tools/config"
 	"net"
