@@ -1,10 +1,12 @@
 class PricingAppView extends KDView
 
-  viewAppended: ->
-    @addSubView @getOptions().workflow
+  addWorkflow: (@workflow) ->
+    @addSubView @workflow
+    @workflow.on 'Finished', @bound "showThankYou"
+    @workflow.on 'Cancel', @bound "showCancellation"
 
   hideWorkflow: ->
-    @getOptions().workflow.hide()
+    @workflow.hide()
 
   showThankYou: (data) ->
     @hideWorkflow()
@@ -39,14 +41,8 @@ class PricingAppView extends KDView
       </ul>
       """
 
-
   showCancellation: ->
     @hideWorkflow()
-
-    @cancellation = new KDView
-      partial:
-        """
-        <h1>This order has been cancelled.</h1>
-        """
-
+    return  if @cancellation
+    @cancellation = new KDView partial: "<h1>This order has been cancelled.</h1>"
     @addSubView @cancellation

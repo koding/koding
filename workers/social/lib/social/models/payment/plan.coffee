@@ -33,6 +33,8 @@ module.exports = class JPaymentPlan extends JPaymentBase
           (signature String, Function)
         fetchPlanByCode:
           (signature String, Function)
+        one         :
+          (signature Object, Function)
       instance      :
         fetchToken  :
           (signature Object, Function)
