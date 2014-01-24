@@ -69,7 +69,7 @@ class DeleteModalView extends KDModalViewWithForms
                 @setContent """
                   <div class='modalformline'>
                     <p>
-                      Thanks for trying out Koding. We'd appreciate if you tell us why.
+                      Thanks for trying out Koding. Sorry to see you go. We'd appreciate if you take a moment to tell us why.
                     </p>
                     <br>
                     <p><a href='#{surveyLink}' target='_blank'>Click to take the 1 minute survey.</a></p>

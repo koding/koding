@@ -12,7 +12,7 @@
 </head>
 <body class="php">
   <header><a href="http://koding.com">Koding.com</a></header>
-  <h2>One more step to access {{.}}</h2>
+  <h2>One more step to access {{.Host}}</h2>
 
   <div class="wrap">
     <dl>
@@ -25,12 +25,12 @@
       <dt>This page will appear once every hour per visitor.</dt>
       <dd>
          If you think this site is malicious, has inappropriate content, you can report to
-         <a href="mailto:support@koding.com?subject=Malicious VM&amp;body={{.}} has inappropriate content.">support@koding.com</a>
+         <a href="mailto:support@koding.com?subject=Malicious VM&amp;body={{.Host}} has inappropriate content.">support@koding.com</a>
       </dd>
       <dd>
 
         <div id="container">
-          <pre>Click to continue: <a href="http://{{.}}">{{.}}</a></pre>
+          <pre>Click to continue: <a href="http://{{.Url}}">{{.Host}}</a></pre>
         </div>
       </dd>
     </dl>
