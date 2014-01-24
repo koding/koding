@@ -27,7 +27,7 @@ class NVMToggleButtonView extends JView
 
       @toggle.setDefaultValue no
       # KD.utils.notifyAndEmailVMTurnOnFailureToSysAdmin vm, err.message
-      KD.logToExternal "oskite: vm failed to turn on since #{err.message}", {vm}
+      KD.logToExternal "oskite: vm failed to turn on", {error:err.message, vm}
       return warn err
 
     if info.state is "RUNNING"
