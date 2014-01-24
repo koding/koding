@@ -9,8 +9,14 @@ class GroupPlanListItem extends GroupProductListItem
         cssClass  : 'plan-child-products'
         itemClass : GroupChildProductListItem
 
-    if plan.childProducts?
+    @details = new KDCustomHTMLView
 
+    if plan.childProducts.length
+      @details.addSubView new KDCustomHTMLView
+        tagName : "h3"
+        partial : "Contains:"
+
+      @details.addSubView @childProducts.getView()
       @childProducts.instantiateListItems(
         plan.childProducts.map (product) ->
           {
@@ -26,7 +32,6 @@ class GroupPlanListItem extends GroupProductListItem
     <div class="product-item">
       {{> @planView}}
       {{> @controls}}
-      <h3>Contains:</h3>
-      {{> @childProducts.getView()}}
+      {{> @details}}
     </div>
     """
