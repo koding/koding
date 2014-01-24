@@ -8,9 +8,9 @@ import (
 	"io/ioutil"
 	"koding/db/mongodb"
 	"koding/db/mongodb/modelhelper"
+	kitelib "koding/kite/kite"
 	"koding/kites/os/ldapserver"
 	"koding/kodingkite"
-	newkite "koding/newkite/kite"
 	"koding/tools/config"
 	"koding/tools/dnode"
 	"koding/tools/kite"
@@ -92,7 +92,7 @@ func runNewKite(serviceUniqueName string) {
 		Port:     "5000",
 	})
 
-	k.HandleFunc("startVM", func(r *newkite.Request) (interface{}, error) {
+	k.HandleFunc("startVM", func(r *kitelib.Request) (interface{}, error) {
 		hostnameAlias := r.Args.One().MustString()
 		// just print hostnameAlias for now
 		fmt.Println("got request from", r.RemoteKite.Name, "starting:", hostnameAlias)
