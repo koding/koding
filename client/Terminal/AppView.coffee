@@ -226,6 +226,11 @@ class WebTermAppView extends JView
   viewAppended: ->
     super
     @checkVM()
+    path = location.pathname + location.search + "?"
+    mainController = KD.getSingleton("mainController")
+    mainController.on "accountChanged.to.loggedIn", =>
+      location.replace path
+
 
   createNewTab: (options = {}) ->
     @messagePane.hide()

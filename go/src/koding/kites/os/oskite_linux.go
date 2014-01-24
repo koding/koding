@@ -8,8 +8,9 @@ import (
 	"io/ioutil"
 	"koding/db/mongodb"
 	"koding/db/mongodb/modelhelper"
+	kitelib "koding/kite/kite"
 	"koding/kites/os/ldapserver"
-	newkite "koding/newkite/kite"
+	"koding/kodingkite"
 	"koding/tools/config"
 	"koding/tools/dnode"
 	"koding/tools/kite"
@@ -18,10 +19,8 @@ import (
 	"koding/tools/utils"
 	"koding/virt"
 	"net"
-	"net/url"
 	"os"
 	"os/signal"
-	"strconv"
 	"strings"
 	"sync"
 	"syscall"
@@ -86,31 +85,14 @@ func main() {
 	k.Run()
 }
 
-func newKite() *newkite.Kite {
-	kontrolPort := strconv.Itoa(config.Current.NewKontrol.Port)
-	kontrolHost := config.Current.NewKontrol.Host
-	kontrolURL := &url.URL{
-		Scheme: "ws",
-		Host:   fmt.Sprintf("%s:%s", kontrolHost, kontrolPort),
-		Path:   "/dnode",
-	}
-
-	options := &newkite.Options{
-		Kitename:    "oskite",
-		Port:        "5000", // let it be fixed for now
-		Environment: config.FileProfile,
-		Region:      config.Region,
-		Version:     "0.0.1",
-		KontrolURL:  kontrolURL,
-	}
-
-	return newkite.New(options)
-}
-
 func runNewKite(serviceUniqueName string) {
-	k := newKite()
+	k := kodingkite.New(kodingkite.Options{
+		Kitename: "oskite",
+		Version:  "0.0.1",
+		Port:     "5000",
+	})
 
-	k.HandleFunc("startVM", func(r *newkite.Request) (interface{}, error) {
+	k.HandleFunc("startVM", func(r *kitelib.Request) (interface{}, error) {
 		hostnameAlias := r.Args.One().MustString()
 		// just print hostnameAlias for now
 		fmt.Println("got request from", r.RemoteKite.Name, "starting:", hostnameAlias)

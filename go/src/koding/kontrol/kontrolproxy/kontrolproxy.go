@@ -6,10 +6,11 @@ import (
 	"html/template"
 	"io"
 	"koding/db/mongodb/modelhelper"
+	"koding/kodingkite"
 	"koding/kontrol/kontrolproxy/resolver"
 	"koding/kontrol/kontrolproxy/utils"
-	"koding/newkite/kite"
-	"koding/newkite/protocol"
+	"koding/kite/kite"
+	"koding/kite/protocol"
 	"koding/tools/config"
 	"koding/tools/logger"
 	"math/rand"
@@ -170,28 +171,12 @@ func startProxy() {
 	p.startHTTP()
 }
 
-func newKite() *kite.Kite {
-	kontrolPort := strconv.Itoa(config.Current.NewKontrol.Port)
-	kontrolHost := config.Current.NewKontrol.Host
-	kontrolURL := &url.URL{
-		Scheme: "ws",
-		Host:   fmt.Sprintf("%s:%s", kontrolHost, kontrolPort),
-		Path:   "/dnode",
-	}
-
-	options := &kite.Options{
-		Kitename:    "kontrolproxy",
-		Environment: config.FileProfile,
-		Region:      config.Region,
-		Version:     "0.0.1",
-		KontrolURL:  kontrolURL,
-	}
-
-	return kite.New(options)
-}
-
 func (p *Proxy) runNewKite() {
-	k := newKite()
+	k := kodingkite.New(kodingkite.Options{
+		Kitename: "kontrolproxy",
+		Version:  "0.0.1",
+	})
+
 	k.Start()
 
 	// TODO: remove this later, this is needed in order to reinitiliaze the logger package
