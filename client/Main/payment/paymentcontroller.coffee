@@ -108,14 +108,14 @@ class PaymentController extends KDController
 
     return form
 
-  createUpgradeWorkflow: (tag, options = {}) ->
-    upgradeForm = @createUpgradeForm tag, options
+  createUpgradeWorkflow: (options = {}) ->
+    {tag, productForm, confirmForm} = options
 
-    workflow = new PaymentWorkflow
-      productForm: upgradeForm
-      confirmForm: new PlanUpgradeConfirmForm
+    productForm or= @createUpgradeForm tag, options
+    confirmForm or= new PlanUpgradeConfirmForm
+    workflow      = new PaymentWorkflow {productForm, confirmForm}
 
-    upgradeForm
+    productForm
       .on 'PlanSelected', (plan, options) ->
         { oldSubscription } = workflow.collector.data
 
