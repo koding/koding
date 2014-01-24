@@ -108,23 +108,23 @@ class PaymentController extends KDController
 
     return form
 
-  createUpgradeWorkflow: (tag, options = {}) ->
-    upgradeForm = @createUpgradeForm tag, options
+  createUpgradeWorkflow: (options = {}) ->
+    {tag, productForm, confirmForm} = options
 
-    workflow = new PaymentWorkflow
-      productForm: upgradeForm
-      confirmForm: new PlanUpgradeConfirmForm
+    productForm or= @createUpgradeForm tag, options
+    confirmForm or= new PlanUpgradeConfirmForm
+    workflow      = new PaymentWorkflow {productForm, confirmForm}
 
-    upgradeForm
-      .on 'PlanSelected', (plan) ->
+    productForm
+      .on 'PlanSelected', (plan, planOptions) ->
         { oldSubscription } = workflow.collector.data
 
         spend = oldSubscription?.usage ? {}
 
-        plan.checkQuota {}, spend, 1, (err) ->
+        plan.checkQuota {spend, multiplyFactor: 1}, (err) ->
           return  if KD.showError err
 
-          workflow.collectData productData: { plan }
+          workflow.collectData productData: { plan, planOptions }
 
       .on 'CurrentSubscriptionSet', (oldSubscription) ->
         workflow.collectData { oldSubscription }
@@ -158,10 +158,10 @@ class PaymentController extends KDController
 
           callback null, subscription
 
-  createSubscription: ({ plan, email, paymentMethod, createAccount }, callback) ->
+  createSubscription: (options, callback) ->
+    { plan, planOptions, couponCode, email, paymentMethod, createAccount } = options
     { paymentMethodId, billing } = paymentMethod
-
-    plan.subscribe paymentMethodId, (err, subscription) =>
+    plan.subscribe paymentMethodId, {planOptions, couponCode}, (err, subscription) =>
       if err?.short is 'existing_subscription'
         { existingSubscription } = err
 
@@ -190,8 +190,8 @@ class PaymentController extends KDController
         callback err, subscription
 
   transitionSubscription: (formData, callback) ->
-    { productData, oldSubscription, paymentMethod, createAccount, email } = formData
-    { plan } = productData
+    { productData, oldSubscription, couponCode, paymentMethod, createAccount, email } = formData
+    { plan, planOptions } = productData
     { planCode } = plan
     { paymentMethodId } = paymentMethod
     if oldSubscription
@@ -199,6 +199,8 @@ class PaymentController extends KDController
     else
       @createSubscription {
         plan
+        planOptions
+        couponCode
         email
         paymentMethod
         createAccount

@@ -42,6 +42,7 @@ module.exports = class JPaymentSubscription extends jraphical.Module
       uuid          : String
       planCode      : String
       userCode      : String
+      couponCode    : String
       quantity      :
         type        : Number
         default     : 1
@@ -166,11 +167,13 @@ module.exports = class JPaymentSubscription extends jraphical.Module
       quantities = {}
       quantities[product.planCode] = 1
 
+    spend = quantities
+
     JPaymentPlan.fetchPlanByCode @planCode, (err, plan) =>
       return callback err  if err
       return callback { message: 'unknown plan code', @planCode }  unless plan
 
-      plan.checkQuota @usage, quantities, multiplyFactor, callback
+      plan.checkQuota {@usage, @couponCode, spend, multiplyFactor}, callback
 
   createFulfillmentNonce: ({ planCode }, isDebit, callback) ->
     JFulfillmentNonce = require './nonce'
@@ -241,7 +244,7 @@ module.exports = class JPaymentSubscription extends jraphical.Module
 
     queue = [
       =>
-        newPlan.checkQuota @usage, {}, (err) -> queue.next err
+        newPlan.checkQuota {@usage}, (err) -> queue.next err
       =>
         operation.call this, (err) -> queue.next err
       ->
