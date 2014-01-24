@@ -15,35 +15,9 @@ module.exports = class ActivityTicker extends Base
           (signature Object, Function)
         ]
 
-  relationshipNames = ["follower", "like", "member", "author"]
-  constructorNames  = ["JAccount", "JGroup", "JTag", "JNewStatusUpdate"]
 
   JAccount = require './account'
 
-  mapSourceNames = (filters)=>
-    relationshipMap =
-      "follower" : ["JAccount", "JTag"]
-      "like"     : ["JAccount", "JNewStatusUpdate"]
-      "member"   : ["JGroup"]
-
-    sources = []
-    for filter in filters
-      sources.concat relationshipMap[filter]
-
-    if sources.length is 0
-      return constructorNames
-    return sources
-
-  mapTargetNames = (filters) ->
-    validFilters = ["follower", "like", "member"]
-    targets = []
-    # The only possible options are either returning only "JAccount" or
-    # returning whole constructorNames. I left this function for future-cases.
-    for filter in filters
-      if filter in validFilters
-        targets.push "JAccount"
-        return targets
-    return constructorNames
 
   decorateEvents = (relationship, callback) ->
     {source, target, as, timestamp} = relationship
