@@ -69,8 +69,22 @@ module.exports = class ActivityTicker extends Base
 
   @_fetch = (requestOptions = {}, callback)->
     {options, client} = requestOptions
+    groupSlug         = client.context.group
+    JGroup            = require './group'
+    from              = options.from or +(new Date())
+
+    relOptions        =    # do not fetch more than 15 at once
+      limit           : 10 # Math.min options.limit ? 15, 15
+      sort            : timestamp : -1
+
+    JGroup.one slug : groupSlug, (err, group)->
       return callback err if err
       return callback new Error "Group not found" if not group
+
+      selector    =
+        timestamp : {"$lt" : new Date(from)}
+        data      :
+          group   : groupSlug
 
       Relationship.some selector, relOptions, (err, relationships) ->
         buckets = []
