@@ -2,10 +2,10 @@
 {extend} = require 'underscore'
 KodingError = require '../error'
 
-createId = require 'hat'
+{ v4: createId } = require 'node-uuid'
 
 # Poor mans unique ID generator
-getUniqueId= -> createId 128
+getUniqueId = createId
 
 module.exports = class JMailNotification extends Model
 

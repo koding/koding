@@ -10,7 +10,7 @@ class JToken extends Model
 
 module.exports = class JSession extends Model
 
-  createId = require 'hat'
+  { v4: createId } = require 'node-uuid'
 
   # JUser    = require './guest'
 
