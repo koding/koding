@@ -113,7 +113,6 @@ func One(collection, id string, result interface{}) error {
 
 func Iter(collection string, query func(*mgo.Collection) *mgo.Query) *mgo.Iter {
 	session := Mongo.GetSession()
-	defer session.Close()
 	c := session.DB("").C(collection)
 	var iter = query(c).Iter()
 

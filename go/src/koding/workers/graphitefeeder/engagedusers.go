@@ -55,27 +55,46 @@ func numberOfTwoWeekEngagedUsers() (string, int) {
 	// Second Query
 	//----------------------------------------------------------
 
-	var secondIterQuery = func(c *mgo.Collection) *mgo.Query {
-		var query = c.Find(bson.M{
-			"username":  bson.M{"$in": possibleEngagedUsernames},
-			"createdAt": bson.M{"$gt": middleOfMonth},
-		})
-
-		return query
-	}
-
-	var secondIter = mongodb.Iter("jSessionHistories", secondIterQuery)
-	var secondResult map[string]interface{}
 	var engagedUsers = map[string]bool{}
+	var startPos = 0
+	var endPos = startPos + 100
 
-	for secondIter.Next(&secondResult) {
-		var username = result["username"].(string)
-		engagedUsers[username] = true
-	}
+	for {
+		if len(possibleEngagedUsernames) < 100 {
+			endPos = len(possibleEngagedUsernames)
+		}
 
-	err = mongodb.IterClose(secondIter)
-	if err != nil {
-		fmt.Println(err)
+		var smallerSet = possibleEngagedUsernames[startPos:endPos]
+		var secondIterQuery = func(c *mgo.Collection) *mgo.Query {
+			var query = c.Find(bson.M{
+				"username":  bson.M{"$in": possibleEngagedUsernames},
+				"createdAt": bson.M{"$gt": smallerSet},
+			})
+
+			return query
+		}
+
+		var secondIter = mongodb.Iter("jSessionHistories", secondIterQuery)
+		var secondResult map[string]interface{}
+
+		for secondIter.Next(&secondResult) {
+			var username = result["username"].(string)
+			engagedUsers[username] = true
+		}
+
+		err = mongodb.IterClose(secondIter)
+		if err != nil {
+			fmt.Println(err)
+			break
+		}
+
+		if len(possibleEngagedUsernames) < 100 {
+			break
+		}
+
+		startPos += 100
+		endPos += 100
+		possibleEngagedUsernames = possibleEngagedUsernames[endPos:]
 	}
 
 	fmt.Println("count of engagedUsers", len(engagedUsers))
@@ -86,6 +105,9 @@ func numberOfTwoWeekEngagedUsers() (string, int) {
 	}
 
 	var engagedUsernamesLength = len(engagedUsernames)
+
+	var session = mongodb.Mongo.GetSession()
+	defer session.Close()
 
 	return identifier, engagedUsernamesLength
 }
