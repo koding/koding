@@ -231,8 +231,13 @@ class AccountAppController extends AppController
 
   showRegistrationNeededModal:->
     return if @modal
+
+    handler = (modal, route)->
+      modal.destroy()
+      KD.utils.wait 5000, KD.getSingleton("router").handleRoute route
+
     message = "Please login to proceed to the next step"
-    @modal = modal = new KDBlockingModalView
+    @modal = new KDBlockingModalView
       title           : "Koding Registration"
       content         : "<div class='modalformline'>#{message}</div>"
       height          : "auto"
@@ -240,11 +245,10 @@ class AccountAppController extends AppController
       buttons         :
         "Login"       :
           style       : "modal-clean-gray"
-          callback    : ->
-            modal.destroy()
-            KD.utils.wait 5000, KD.getSingleton("router").handleRoute "/Login"
+          callback    : => handler @modal, "/Login"
         "Register"    :
           style       : "modal-clean-gray"
-          callback    : ->
-            modal.destroy()
-            KD.utils.wait 5000, KD.getSingleton("router").handleRoute "/Register"
+          callback    : => handler @modal, "/Register"
+
+
+    @modal.on "KDObjectWillBeDestroyed", => @modal = null
