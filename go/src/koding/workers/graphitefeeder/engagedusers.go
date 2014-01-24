@@ -29,16 +29,19 @@ func numberOfTwoWeekEngagedUsers() (string, int) {
 		return query
 	}
 
-	var iter = mongodb.Iter("jSessionHistories", iterQuery)
 	var result map[string]interface{}
 	var possibleEngagedUsers = map[string]bool{}
 
-	for iter.Next(&result) {
-		var username = result["username"].(string)
-		possibleEngagedUsers[username] = true
+	var iterFn = func(iter *mgo.Iter) error {
+		for iter.Next(&result) {
+			var username = result["username"].(string)
+			possibleEngagedUsers[username] = true
+		}
+
+		return nil
 	}
 
-	var err = mongodb.IterClose(iter)
+	var err = mongodb.Iter("jSessionHistories", iterQuery, iterFn)
 	if err != nil {
 		log.Error("Closing mongo iter: %v", err)
 	}
@@ -73,15 +76,17 @@ func numberOfTwoWeekEngagedUsers() (string, int) {
 			return query
 		}
 
-		var secondIter = mongodb.Iter("jSessionHistories", secondIterQuery)
-		var secondResult map[string]interface{}
+		var secondIterFn = func(iter *mgo.Iter) error {
+			var secondResult map[string]interface{}
+			for iter.Next(&secondResult) {
+				var username = secondResult["username"].(string)
+				engagedUsers[username] = true
+			}
 
-		for secondIter.Next(&secondResult) {
-			var username = secondResult["username"].(string)
-			engagedUsers[username] = true
+			return nil
 		}
 
-		err = mongodb.IterClose(secondIter)
+		err = mongodb.Iter("jSessionHistories", secondIterQuery, secondIterFn)
 		if err != nil {
 			log.Error("Closing mongo iter: %v", err)
 			break
