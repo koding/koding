@@ -42,7 +42,11 @@ KD.extend
     options.styles       or= []           # <Array<string>> list of stylesheets
 
     enforceLogin=->
-      return if KD.isLoggedIn()
+      return  if KD.isLoggedIn()
+      if $.cookie("doNotForceRegistration") or location.search.indexOf("sr=1") > -1
+        $.cookie("doNotForceRegistration", "true")
+        return
+
       appManager = KD.getSingleton "appManager"
       appManager.tell "Account", "showRegistrationNeededModal"
 
