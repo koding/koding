@@ -382,101 +382,151 @@ body.about #main-header
         color           #a0a0a0
         display         block
 
-  .pricing-box
-    size                337px, 162px
+  .plan-selection
+    size                360px, 204px
     background          #27ae60
-    rounded             12px
-    margin              0 0 0 40px
-    overflow            hidden
-    text-align          left
-    letter-spacing      .2px
-    cursor              pointer
     position            relative
-    fl()
+    rounded             12px 0 12px 12px
+    border-top          1px solid transparent
+    margin              0 auto
+    vendor              transform, translateX(-85px)
 
-    &:first-of-type
-      margin-left       0
-
-    .plan-top
-      size              100%, 81px
-
-    &.single
-      shadow            0 5px 0 #229954 \,
-                        0 7px 8px rgba(0,0,0,.7)
-      .plan-top
-        background      #1f8f4f
-
-    &.double
-      shadow            0 5px 0 #229954 \,
-                        0 10px 0 #1b8548 \,
-                        0 12px 8px rgba(0,0,0,.7)
-      .plan-top
-        background      #ffa800
-
-    &.triple
-      shadow            0 5px 0 #229954 \,
-                        0 10px 0 #1b8548 \,
-                        0 15px 0 #176e3b \,
-                        0 17px 8px rgba(0,0,0,.7)
-      .plan-top
-        background      #277dae
-
-    h2
-      text-align        left
-      text-shadow       none
-      line-height       81px
-      padding           0 0 0 36px
-      font-weight       600
-      margin            0
-      fl()
-
-    .buy-now
-      size              131px, 52px
-      text-align        center
-      text-shadow       none
-      line-height       52px
+    h6
+      font-size         24px
       font-weight       400
-      font-size         18px
-      rounded           6px
-      margin            13px 0 0 15px
-      color             #1aaf5d
-      background        #184a2d
+      color             #fff
+      margin            32px 0 0 34px
+      display           block
+      width             100%
+
+    .resource
+      color             #135830
+      font-size         15px
+      font-weight       500
+      line-height       25px
+      margin-left       22px
+      margin-top        24px
+      border-top        1px solid transparent
       fl()
+
+      &:first-of-type
+        margin-left     34px
+
+      i
+        margin-right    12px
+        fl()
+
+      &.cpu i
+        r-sprite        "home", "cpu"
+
+      &.ram i
+        r-sprite        "home", "ram"
+
+      &.disk i
+        r-sprite        "home", "disk"
+        margin-top      3px
+
+      &.always-on i
+        r-sprite        "home", "alwayson"
+        margin-top      6px
+
+    .sliderbar-outer-container
+      abs               0 0 0px 0px
+      size              100%, 70px
+      bg                color, #1c2224
+      rounded           0 0 12px 12px
+
+    .sliderbar-container
+      height            7px
+      border            none
+      background        #1e884b
+      margin            32px auto 0
+      shadow            -24px 0 0 #1e884b \,
+                        24px 0 0 #1e884b
+
+    .handle
+      size              36px, 43px
+      top               -19px
+      margin            0 0 0 -17px
+      border            none
+      background        #27ae60
+      shadow            none
+
+      &:after
+        background      none
+        width           0
+        height          0
+        border          8px solid transparent
+        border-bottom   8px solid #27ae60
+        top             -16px
+        margin          0 0 0 -8px
+
+      &:before
+        background      #1b8247
+        border          none
+        height          14px
+        top             14px
+        margin          0
+        shadow          4px 0 0 #1b8247 \,
+                        -4px 0 0 #1b8247
+
+    .sliderbar-label
+      color             transparent
+      top               -32px
+
+      &:after
+        size            2px, 4px
+        background      #1c2224
+
+  .selected-plan
+    size                170px, 180px
+    rounded             0 12px 12px 0
+    abs                 0px 0 0 100%
+    background          #283032
 
     .price
       color             #fff
-      font-size         46px
+      font-size         62px
       font-weight       600
-      margin            13px 13px 0 0
-      fr()
+      margin            22px 0 0
+      width             100%
+      text-align        center
 
       cite
         font-size       20px
-        font-weight     400
+        font-weight     200
         vertical-align  super
 
       span
         display         block
-        text-align      left
-        padding         0 0 0 14px
-        font-size       11px
+        font-size       15px
         font-weight     400
         color           rgba(255, 255, 255, .5)
 
     .description
-      text-align        right
-      font-size         16px
-      color             rgba(255, 255, 255, .7)
-      font-weight       400
-      width             140px
-      abs               81px 20px 0 0
-      line-height       76px
-      height            81px
+      display           block
+      text-align        center
+      font-size         14px
+      color             rgba(255, 255, 255, .4)
+      margin-top        8px
+      line-height       17px
 
-      span
-        display         inline-block
-        line-height     normal
-        vertical-align  middle
+    .kdbutton.solid.yellow
+      size              126px, 48px
+      line-height       48px
+      color             #935600
+      background        #ffa200
+      padding           0
+      rounded           6px
+      font-weight       500
+      abs               100% 0 0 50%
+      margin            -24px 0 0 -63px
+
+      .button-title
+        color           inherit
+        line-height     inherit
+        padding         0
+        font-weight     inherit
 
 #home-customize-pricing
   bg                    color, #e4e4e4
