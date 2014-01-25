@@ -4,6 +4,8 @@ class UserPlanForm extends JView
     options.unitPrice or= 1
     super options, data
 
+    @choice = 1
+
   viewAppended: ->
     {unitPrice} = @getOptions()
     @multiplier = new KDCustomHTMLView

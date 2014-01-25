@@ -1,7 +1,7 @@
 class ExistingAccountForm extends JView
   viewAppended: ->
     @loginForm = new LoginInlineForm
-      cssClass : "login-form"
+      cssClass : "login-form clearfix"
       testPath : "login-form"
       callback : (credentials) =>
         KD.getSingleton('mainController').handleLogin credentials, (err) =>
@@ -38,8 +38,14 @@ class ExistingAccountForm extends JView
 
   pistachio: ->
     """
-    {{> @loginForm}}
-    {{> @emailCollectionForm}}
+    <div class="pricing-horizontal-divider"></div>
+    <section class="pricing-sign-in clearfix">
+      <h3>Sign in or Signup to proceed with your checkout</h3>
+      {{> @loginForm}}
+      <span class="divider">or</span>
+      {{> @emailCollectionForm}}
+    </section>
+    <div class="pricing-horizontal-divider"></div>
     """
 
 class ExistingAccountWorkflow extends FormWorkflow
