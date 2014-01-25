@@ -25,25 +25,10 @@ class PricingAppView extends KDView
         }
         """
 
-    {tags} = @subscription.productData.plan
-    unless @subscription.createAccount or groupPlanType in tags
-      @thankYou.addSubView @getContinuationLinks()
-
     if "custom-plan" in @workflowData.productData.plan.tags
       @thankYou.addSubView @createGroupNameForm()
 
     @addSubView @thankYou
-
-  getContinuationLinks: ->
-    new KDCustomHTMLView partial:
-      """
-      <ul>
-        <li><a href="/Activity">Activity</a></li>
-        <li><a href="/Account">Account</a></li>
-        <li><a href="/Account/Subscriptions">Subscriptions</a></li>
-        <li><a href="/Environments">Environments</a></li>
-      </ul>
-      """
 
   createGroupNameForm: ->
     @groupForm              = new KDFormViewWithFields
