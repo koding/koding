@@ -383,18 +383,44 @@ module.exports = class JVM extends Module
                 callback null, vm
 
   @addVmUsers = (vm, group, callback)->
-    group.fetchMembers (err, members)->
+    # todo - do this operation in batches
+    selector =
+      sourceId    : group.getId()
+      sourceName  : "JGroup"
+      as          : "member"
+
+    # fetch members of the group
+    Relationship.someData selector, {targetId:1}, (err, cursor)->
       return callback err  if err
-      members.forEach (member)->
-        member.fetchUser (err, user)->
-          return callback err if err
-          return callback new Error "user not found" unless user
-          member.checkPermission group, 'sudoer', (err, hasPermission)->
-            if err then handleError err
-            else
-              vm.update {
-                $addToSet: users: { id: user.getId(), sudo: hasPermission }
-              }, callback
+
+      cursor.toArray (err, targetIds)->
+        return callback err  if err
+        targetIds or= []
+
+        # aggregate them into accountIds
+        accountIds = targetIds.map (rec)-> rec.targetId
+
+        selector =
+          targetId   : {$in : accountIds}
+          targetName : "JAccount"
+          as         : 'owner'
+          sourceName : 'JUser'
+
+        # fetch userids of the accounts
+        Relationship.someData selector, {sourceId:1}, (err, cursor)->
+          return callback err  if err
+
+          cursor.toArray (err, sourceIds)->
+            return callback err  if err
+            sourceIds or= []
+            vmUsers = []
+
+            vmUsers = sourceIds.map (rec)->
+              { id: rec.sourceId, sudo: yes }
+
+            return vm.update {
+              $set: users: vmUsers
+            }, callback
 
   @fetchVmInfo = secure (client, hostnameAlias, callback)->
     {delegate} = client.connection
