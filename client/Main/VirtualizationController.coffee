@@ -309,11 +309,8 @@ class VirtualizationController extends KDController
 
   createNewVM: (callback)->
     @hasDefaultVM (err, state)=>
-      if state
-        new KDNotificationView
-          title : "Paid VMs will be available soon to purchase"
-      else
-        @createDefaultVM callback
+      create = @bound if state then "createPaidVM" else "createDefaultVM"
+      create callback
 
   showVMDetails: (vm)->
     vmName = vm.hostnameAlias
