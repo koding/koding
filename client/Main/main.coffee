@@ -50,7 +50,7 @@ do ->
     notifyUser = options.notifyUser or= "yes"
     state      = "disconnected"
 
-    KD.logToExternalWithTime "User disconnected", protocol: KD.remote.mq.ws.protocol
+    KD.logToExternalWithTime "User disconnected"
 
     log "disconnected",\
     "reason: #{reason}, modalSize: #{modalSize}, notifyUser: #{notifyUser}"
