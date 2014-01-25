@@ -128,7 +128,7 @@ class PricingAppView extends KDView
         "Go to Group"  :
           style        : "modal-clean-red"
           callback     : ->
-            KD.singletons.router.handleRoute "/#{group.slug}"
+            window.open "#{window.location.origin}/#{group.slug}", "_blank"
         Close          :
           style        : "modal-cancel"
           callback     : -> modal.destroy()
