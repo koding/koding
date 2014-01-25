@@ -86,6 +86,16 @@ class EnvironmentsMainScene extends JView
 
       vmController.createNewVM()
 
+    @machinesContainer.on 'PlusButtonForGroupsClicked', =>
+      return unless KD.isLoggedIn()
+        new KDNotificationView
+          title: "You need to login to create a new machine."
+
+      new KDNotificationView
+          title: "Will be implemented soon."
+      # TODO Add shared VM creation here.
+      # vmController.createNewVM()
+
   refreshContainers:->
     # After Domains and Machines container load finished
     # Call updateConnections to draw lines between corresponding objects

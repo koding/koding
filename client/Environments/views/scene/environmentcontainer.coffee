@@ -16,6 +16,12 @@ class EnvironmentContainer extends KDDiaContainer
     @on "DataLoaded", => @_dataLoaded = yes
     # @on "DragFinished", @bound 'savePosition'
 
+    @newItemPlusForGroups = new KDCustomHTMLView
+      cssClass   : 'new-item-plus-for-groups'
+      partial    : "<i></i><span>Shared VM</span>"
+      click      : =>
+        @emit 'PlusButtonForGroupsClicked'
+
     @newItemPlus = new KDCustomHTMLView
       cssClass   : 'new-item-plus'
       partial    : "<i></i><span>Add new</span>"
@@ -23,6 +29,7 @@ class EnvironmentContainer extends KDDiaContainer
         @once 'transitionend', @emit 'PlusButtonClicked'
 
     @newItemPlus.bindTransitionEnd()
+    @newItemPlusForGroups.bindTransitionEnd()
 
     @loader = new KDLoaderView
       cssClass   : 'new-item-loader hidden'
@@ -35,6 +42,20 @@ class EnvironmentContainer extends KDDiaContainer
 
     @addSubView @header
     @header.addSubView @newItemPlus
+
+    groupController = KD.getSingleton("groupsController")
+    currentGroup = groupController.currentGroupData
+
+    if currentGroup?.data
+      currentGroup.data.fetchAdmin (err, admin)=>
+        unless err and admin?.profile
+          me = KD.whoami()
+          if admin.profile?.nickname is me.profile?.nickname
+            title   = @getOption 'title'
+            # FIXME remove magic string.
+            if title is "Machines"
+              @header.addSubView @newItemPlusForGroups
+
     @header.addSubView @loader
 
     {@appStorage} = @parent
