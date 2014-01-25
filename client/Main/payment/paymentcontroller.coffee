@@ -117,14 +117,17 @@ class PaymentController extends KDController
 
     productForm
       .on 'PlanSelected', (plan, planOptions) ->
-        { oldSubscription } = workflow.collector.data
-
-        spend = oldSubscription?.usage ? {}
-
-        plan.checkQuota {spend, multiplyFactor: 1}, (err) ->
-          return  if KD.showError err
-
+        callback = ->
           workflow.collectData productData: { plan, planOptions }
+
+        {oldSubscription} = workflow.collector.data
+        unless oldSubscription
+        then callback()
+        else
+          spend = oldSubscription?.usage ? {}
+          oldSubscription.checkQuota {spend, multiplyFactor: 1}, (err) ->
+            return  if KD.showError err
+            callback()
 
       .on 'CurrentSubscriptionSet', (oldSubscription) ->
         workflow.collectData { oldSubscription }
@@ -141,7 +144,7 @@ class PaymentController extends KDController
   confirmReactivation: (subscription, callback) ->
     modal = KDModalView.confirm
       title       : 'Inactive subscription'
-      description : 
+      description :
         """
         Your existing subscription for this plan has been canceled.  Would
         you like to reactivate it?
@@ -182,7 +185,7 @@ class PaymentController extends KDController
 
           JUser.logout (err) ->
             return callback err  if err
-            
+
             callback null
       else
         callback err, subscription
@@ -219,21 +222,21 @@ class PaymentController extends KDController
 
     KD.whoami().fetchPlansAndSubscriptions options, (err, plansAndSubs) =>
       return callback err  if err
-      
+
       { subscriptions } = @groupPlansBySubscription plansAndSubs
 
       callback null, subscriptions
 
   groupPlansBySubscription: (plansAndSubscriptions = {}) ->
-    
+
     { plans, subscriptions } = plansAndSubscriptions
 
     plansByCode = plans.reduce( (memo, plan) ->
       memo[plan.planCode] = plan
       memo
     , {})
-    
+
     for subscription in subscriptions
       subscription.plan = plansByCode[subscription.planCode]
-    
+
     { plans, subscriptions }

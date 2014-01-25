@@ -10,9 +10,7 @@ module.exports = class JPaymentPlan extends JPaymentBase
   { v4: createId } = require 'node-uuid'
 
   {secure, dash, signature}        = require 'bongo'
-  {difference, extend}  = require 'underscore'
 
-  {partition}           = require 'bongo/lib/util'
   {permit}              = require '../group/permissionset'
 
   JUser                 = require '../user'
@@ -49,9 +47,6 @@ module.exports = class JPaymentPlan extends JPaymentBase
         ]
         updateProducts:
           (signature Object, Function)
-        checkQuota  : [
-          (signature Object, Function)
-        ]
         fetchCoupon:
           (signature String, Function)
 
@@ -208,7 +203,13 @@ module.exports = class JPaymentPlan extends JPaymentBase
           { planCode, uuid, quantity, status, activatedAt, expiresAt, renewAt,
             feeAmount, paymentMethodId } = result
 
-          subscription = new JPaymentSubscription {
+          createSubscription = (options) ->
+            subscription = new JPaymentSubscription options
+            subscription.save (err) ->
+              return callback err  if err
+              callback null, subscription
+
+          subscriptionOptions = {
             planCode
             couponCode
             uuid
@@ -219,13 +220,36 @@ module.exports = class JPaymentPlan extends JPaymentBase
             renewAt
             feeAmount
             paymentMethodId
-            tags      : @tags
+            @tags
           }
 
-          subscription.save (err)->
-            return callback err  if err
+          if "vm" in @tags
+            resourceTag = "vm"
+          else if "custom-plan" in @tags
+            resourceTag = "sharedvm"
 
-            callback null, subscription
+          quantities = {}
+          dash queue = [
+            =>
+              @fetchProducts null, targetOptions: selector: tags: $in: [resourceTag], (err, products) =>
+                return callback err  if err
+                for product in products
+                  continue unless product
+                  {planCode} = product
+                  quantities[planCode] = @quantities[planCode] * (resourceQuantity or 1)
+                queue.fin()
+            =>
+              return queue.fin()  unless "custom-plan" in @tags
+              @fetchProducts null, targetOptions: selector: tags: $in: ["user"], (err, products) =>
+                return callback err  if err
+                product = products[0]
+                return  unless product
+                {planCode} = product
+                quantities[planCode] = @quantities[planCode] * (userQuantity or 1)
+                queue.fin()
+          ], =>
+            subscriptionOptions.quantities = quantities
+            createSubscription subscriptionOptions
 
   subscribe$: secure (client, paymentMethodId, data, callback) ->
     { connection:{ delegate } } = client
@@ -267,31 +291,3 @@ module.exports = class JPaymentPlan extends JPaymentBase
       JGroup = require '../group'
       JGroup.one _id: @product.category, (err, group)->
         callback err, unless err then group.slug
-
-  vmCouponQuota =
-    "1freevm"   : 1
-    "2freevms"  : 2
-
-  checkQuota: (options, callback) ->
-    {usage, spend, couponCode, multiplyFactor} = options
-    multiplyFactor ?= 1
-
-    usages = for own planCode, quantity of spend
-      planSize    = @quantities[planCode] ? 0
-      usageAmount = usage[planCode] ? 0
-      spendAmount = (spend[planCode] ? 0) * multiplyFactor
-
-      planSize += vmCouponQuota[couponCode]  if couponCode of vmCouponQuota
-      total = planSize - usageAmount - spendAmount
-
-      { planCode, total }
-
-    [ok, over] = partition usages, ({ total }) -> total >= 0
-
-    if over.length > 0
-    then callback { message: 'quota exceeded', ok, over }
-    else callback null
-
-  fetchCoupon: (type, callback) ->
-    code = if type is "discount" then @discountCode else @vmCode
-    recurly.fetchCoupon code, callback

@@ -7,6 +7,9 @@ forceInterval = 60 * 3
 module.exports = class JPaymentSubscription extends jraphical.Module
 
   {secure, dash, daisy, signature} = require 'bongo'
+
+  {partition} = require 'bongo/lib/util'
+
   JUser    = require '../user'
   JPayment = require './index'
 
@@ -30,6 +33,8 @@ module.exports = class JPaymentSubscription extends jraphical.Module
           (signature Object, Function)
           (signature Object, Number, Function)
         ]
+        checkQuota  :
+          (signature Object, Function)
         debit: [
           (signature Object, Function)
           (signature Object, Number, Function)
@@ -63,6 +68,9 @@ module.exports = class JPaymentSubscription extends jraphical.Module
       renewAt       : Date
       feeAmount     : Number
       lastUpdate    : Number
+      quantities    :
+        type        : Object
+        default     : -> {}
       usage         :
         type        : Object # "usage" is designed to mirror "quantities" from JPaymentPlan
         default     : {}
@@ -133,7 +141,7 @@ module.exports = class JPaymentSubscription extends jraphical.Module
       if applyRefund
         @refund { amount, description }, (err) ->
           return callback err  if err
-        
+
           callback null, amount
       else
         callback null, 0
@@ -155,25 +163,44 @@ module.exports = class JPaymentSubscription extends jraphical.Module
         @invokeMethod 'reactivateSubscription', callback
 
   checkUsage: (product, multiplyFactor, callback) ->
-    JPaymentPlan = require './plan'
-
     [callback, multiplyFactor] = [multiplyFactor, callback]  unless callback
-
     multiplyFactor ?= 1
-
-    { quantities } = product
+    {quantities} = product
 
     unless quantities?
       quantities = {}
       quantities[product.planCode] = 1
 
     spend = quantities
+    @checkQuota {@usage, @couponCode, spend, multiplyFactor}, callback
 
-    JPaymentPlan.fetchPlanByCode @planCode, (err, plan) =>
-      return callback err  if err
-      return callback { message: 'unknown plan code', @planCode }  unless plan
+  vmCouponQuota =
+    "1freevm"   : 1
+    "2freevms"  : 2
 
-      plan.checkQuota {@usage, @couponCode, spend, multiplyFactor}, callback
+  checkQuota: (options, callback) ->
+    {usage, spend, couponCode, multiplyFactor} = options
+    multiplyFactor ?= 1
+
+    usages = for own planCode, quantity of spend
+      planSize    = @quantities[planCode] or @plan.quantities[planCode] or 0
+      usageAmount = usage[planCode] ? 0
+      spendAmount = (spend[planCode] ? 0) * multiplyFactor
+
+      planSize += vmCouponQuota[couponCode]  if couponCode of vmCouponQuota
+      total = planSize - usageAmount - spendAmount
+
+      { planCode, total }
+
+    [ok, over] = partition usages, ({ total }) -> total >= 0
+
+    if over.length > 0
+    then callback { message: 'quota exceeded', ok, over }
+    else callback null
+
+  fetchCoupon: (type, callback) ->
+    code = if type is "discount" then @discountCode else @vmCode
+    recurly.fetchCoupon code, callback
 
   createFulfillmentNonce: ({ planCode }, isDebit, callback) ->
     JFulfillmentNonce = require './nonce'
@@ -253,7 +280,7 @@ module.exports = class JPaymentSubscription extends jraphical.Module
           queue.next err
       =>
         @addLinkedSubscription newSubscription, (err) -> queue.next err
-      -> 
+      ->
         account.addSubscription newSubscription, (err) -> queue.next err
       =>
         newSubscription.update $set: { @usage }, (err) -> queue.next err
@@ -261,13 +288,13 @@ module.exports = class JPaymentSubscription extends jraphical.Module
         callback null, newSubscription
     ]
 
-    daisy queue 
+    daisy queue
 
   downgrade: (options, callback) ->
-    
+
     options.subOptions =
       startsAt: @getEndDate()
-    
+
     options.operation = (continuation) =>
       @cancel continuation
 
@@ -276,7 +303,7 @@ module.exports = class JPaymentSubscription extends jraphical.Module
   upgrade: (options, callback) ->
     options.operation = (continuation) =>
       @terminate options.oldPlan, continuation
-    
+
     @applyTransition options, callback
 
   transitionTo: secure (client, { planCode, paymentMethodId }, callback) ->
