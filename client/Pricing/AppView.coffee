@@ -41,6 +41,17 @@ class PricingAppView extends KDView
       </ul>
       """
 
+  checkSlug: ->
+    slug      = @groupForm.inputs.GroupUrl
+    slugView  = @groupForm.inputs.Slug
+    tmpSlug   = slug.getValue()
+
+    if tmpSlug.length > 2
+      slugy = KD.utils.slugify tmpSlug
+      KD.remote.api.JGroup.suggestUniqueSlug slugy, (err, newSlug)->
+        slugView.updatePartial "#{location.protocol}//#{location.host}/#{newSlug}"
+        slug.setValue newSlug
+
   showCancellation: ->
     @hideWorkflow()
     return  if @cancellation
