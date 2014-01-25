@@ -347,7 +347,7 @@ class VirtualizationController extends KDController
 
     payment = KD.getSingleton 'paymentController'
 
-    payment.fetchSubscriptionsWithPlans ['vm'], (err, subscriptions) ->
+    payment.fetchSubscriptionsWithPlans tags: ['vm'], (err, subscriptions) ->
       productForm.setCurrentSubscriptions subscriptions
 
     productForm.on 'PackOfferingRequested', (subscription) ->
