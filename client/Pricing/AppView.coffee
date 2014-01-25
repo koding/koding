@@ -8,11 +8,8 @@ class PricingAppView extends KDView
   hideWorkflow: ->
     @workflow.hide()
 
-  showThankYou: (data) ->
-    @subscription = data
+  showThankYou: (@workflowData, @subscription) ->
     @hideWorkflow()
-    # Change if group subscription is different
-    groupPlanType  = "custom-plan"
 
     @thankYou = new KDCustomHTMLView
       partial:
@@ -32,7 +29,7 @@ class PricingAppView extends KDView
     unless @subscription.createAccount or groupPlanType in tags
       @thankYou.addSubView @getContinuationLinks()
 
-    if groupPlanType in tags
+    if "custom-plan" in @workflowData.productData.plan.tags
       @thankYou.addSubView @createGroupNameForm()
 
     @addSubView @thankYou
@@ -118,10 +115,10 @@ class PricingAppView extends KDView
 
     KD.remote.api.JGroup.create options, (err, group)=>
       return KD.showError err if err
-      @showSummaryModal group, @subscription
+      @showSummaryModal group
 
-  showSummaryModal: (group, subscription)->
-    {planOptions}    = subscription.productData
+  showSummaryModal: (group)->
+    {planOptions: {userQuantity, resourceQuantity}} = @workflowData.productData
 
     modal              = new KDModalView
       title            : "Group successfully created"
@@ -138,8 +135,8 @@ class PricingAppView extends KDView
       content          :
         """
           <div>https://koding.com/#{group.slug}</div>
-          <div>userQuantity     : #{planOptions.userQuantity}</div>
-          <div>resourceQuantity : #{planOptions.resourceQuantity}</div>
+          <div>Users: #{userQuantity}</div>
+          <div>Resource packs: #{resourceQuantity}</div>
         """
 
   checkSlug: ->
