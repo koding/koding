@@ -9,7 +9,10 @@ class PricingAppView extends KDView
     @workflow.hide()
 
   showThankYou: (data) ->
+    @subscription = data
     @hideWorkflow()
+    # Change if group subscription is different
+    groupPlanType  = "custom-plan"
 
     @thankYou = new KDCustomHTMLView
       partial:
@@ -19,14 +22,18 @@ class PricingAppView extends KDView
           Your order has been processed.
         </p>
         #{
-          if data.createAccount
+          if @subscription.createAccount
           then "<p>Please check your email for your registration link.</p>"
           else "<p>We hope you enjoy your new subscription</p>"
         }
         """
 
-    unless data.createAccount
+    {tags} = @subscription.productData.plan
+    unless @subscription.createAccount or groupPlanType in tags
       @thankYou.addSubView @getContinuationLinks()
+
+    if groupPlanType in tags
+      @thankYou.addSubView @createGroupNameForm()
 
     @addSubView @thankYou
 
