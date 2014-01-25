@@ -147,7 +147,7 @@ class PricingAppView extends KDView
     if tmpSlug.length > 2
       slugy = KD.utils.slugify tmpSlug
       KD.remote.api.JGroup.suggestUniqueSlug slugy, (err, newSlug)->
-        slugView.updatePartial "#{location.protocol}//#{location.host}/#{newSlug}"
+        slugView.updatePartial "#{location.origin}/#{newSlug}"
         slug.setValue newSlug
 
   showCancellation: ->
