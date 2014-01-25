@@ -5,6 +5,7 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"io/ioutil"
 	"os"
 	"os/exec"
 	"os/signal"
@@ -123,8 +124,6 @@ type Config struct {
 	LogLevel map[string]string
 }
 
-var FileProfile string
-var PillarProfile string
 var Profile string
 var Current Config
 var LogDebug bool
@@ -137,9 +136,9 @@ var Skip int
 var Count int
 
 func init() {
-	flag.StringVar(&FileProfile, "c", "", "Configuration profile from file")
-	flag.StringVar(&FileProfile, "config", "", "Alias for -c")
-	flag.StringVar(&PillarProfile, "p", "", "Configuration profile from saltstack pillar")
+	flag.StringVar(&Profile, "c", "", "Configuration profile from file")
+	flag.StringVar(&Profile, "config", "", "Alias for -c")
+
 	flag.BoolVar(&LogDebug, "d", false, "Log debug messages")
 	flag.StringVar(&Uuid, "u", "", "Enable kontrol mode")
 	flag.StringVar(&Host, "h", "", "Hostname to be resolved")
@@ -170,64 +169,62 @@ func init() {
 }
 
 // readConfig reads and unmarshalls the appropriate config into the Config
-// struct (which is used in many applications). It either reads the config
-// from the koding-config-manager or from salt-pillar with command line flag
-// -c and -p. They are exclusive, which means you only can use one. If there
-// is no flag specified it tries to get the config from the environment
-// variable "CONFIG".
+// struct (which is used in many applications). It reads the config from the
+// koding-config-manager  with command line flag -c. If there is no flag
+// specified it tries to get the config from the environment variable
+// "CONFIG".
 func readConfig() error {
 	if flag.NArg() != 0 {
-		return errors.New("You passed extra unused arguments.")
+		return errors.New("config.go: you passed extra unused arguments.")
 	}
 
-	if FileProfile == "" && PillarProfile == "" {
+	if Profile == "" {
 		// this is needed also if you can't pass a flag into other packages, like testing.
 		// otherwise it's impossible to inject the config paramater. For example:
 		// this doesn't work  : go test -c "vagrant"
 		// but this will work : CONFIG="vagrant" go test
 		envProfile := os.Getenv("CONFIG")
 		if envProfile == "" {
-			return errors.New("Please specify a configuration profile via -c or -p or set a CONFIG environment.")
+			return errors.New("Please specify a configuration profile via -c or set a CONFIG environment.")
 		}
 
-		FileProfile = envProfile
+		Profile = envProfile
 	}
 
-	if FileProfile != "" && PillarProfile != "" {
-		return errors.New("The flags -c and -p are exclusive.")
-	}
-
-	if FileProfile != "" {
-		Profile = FileProfile
-		err := readConfigManager(FileProfile)
-		if err != nil {
-			return err
-		}
-	}
-
-	if PillarProfile != "" {
-		Profile = PillarProfile
-		err := readPillar(PillarProfile)
-		if err != nil {
-			return err
-		}
+	err := readConfigManager(Profile)
+	if err != nil {
+		return err
 	}
 
 	return nil
 
 }
 
+func readJson(profile string) error {
+	gobin := os.Getenv("GOBIN")
+	if gobin == "" {
+		return errors.New("GOBIN is not set")
+	}
+
+	configPath := fmt.Sprintf("%s/config/main.%s.json", gobin, profile)
+
+	data, err := ioutil.ReadFile(configPath)
+	if err != nil {
+		return err
+	}
+
+	err = json.Unmarshal(data, &Current)
+	if err != nil {
+		return fmt.Errorf("Could not unmarshal configuration: %s\nConfiguration source output:\n%s\n",
+			err.Error(), string(data))
+	}
+
+	return nil
+}
+
 func readConfigManager(profile string) error {
 	cmd := exec.Command("node", "-e", "require('koding-config-manager').printJson('main."+profile+"')")
-	return initializeConfig(cmd)
-}
 
-func readPillar(profile string) error {
-	cmd := exec.Command("salt-call", "pillar.get", profile, "--output=json", "--log-level=warning")
-	return initializeConfig(cmd)
-}
-
-func initializeConfig(cmd *exec.Cmd) error {
 	config, err := cmd.CombinedOutput()
 	if err != nil {
 		return fmt.Errorf("Could not execute configuration source: %s\nConfiguration source output:\n%s\n",
@@ -237,7 +234,7 @@ func initializeConfig(cmd *exec.Cmd) error {
 	err = json.Unmarshal(config, &Current)
 	if err != nil {
 		return fmt.Errorf("Could not unmarshal configuration: %s\nConfiguration source output:\n%s\n",
-			err.Error(), config)
+			err.Error(), string(config))
 	}
 
 	// successfully unmarshalled into Current
