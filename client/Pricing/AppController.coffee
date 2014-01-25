@@ -1,12 +1,24 @@
 class PricingAppController extends KDViewController
 
-  # FIXME: obviously, remove this once this is prod ready - SY
-  if true or location.hostname is "localhost"
-    KD.registerAppClass this,
-      name         : "Pricing"
-      route        : "/Pricing"
+  handler = (callback)->
+    KD.singleton('appManager').open 'Pricing', callback
+
+  KD.registerAppClass this,
+    name                         : "Pricing"
+    routes                       :
+      "/:name?/Pricing"          : -> KD.singletons.router.handleRoute '/Pricing/Developer'
+      "/:name?/Pricing/:section" : ({params:{section}})->
+        handler (app)->
+          app.customPlanForm.hide()
+          app.userPlanForm.hide()
+          switch section
+            when 'Developer'
+              app.userPlanForm.show()
+            when 'Enterprise'
+              app.customPlanForm.show()
 
   constructor: (options = {}, data) ->
+
     options.view = new PricingAppView
       params     : options.params
       cssClass   : "content-page pricing"
@@ -15,16 +27,22 @@ class PricingAppController extends KDViewController
 
     super options, data
 
-    userPlanForm = new UserPlanForm unitPrice: 20
-    customPlanForm = new CustomPlanForm userUnitPrice: 5, resourceUnitPrice: 20
+    @userPlanForm   = new UserPlanForm
+      cssClass  : 'hidden'
+      unitPrice : 20
+
+    @customPlanForm = new CustomPlanForm
+      cssClass          : 'hidden'
+      userUnitPrice     : 5
+      resourceUnitPrice : 20
 
     productForm = new KDView
 
-    productForm.addSubView userPlanForm
-    productForm.forwardEvent userPlanForm, "PlanSelected"
+    productForm.addSubView @userPlanForm
+    productForm.forwardEvent @userPlanForm, "PlanSelected"
 
-    productForm.addSubView customPlanForm
-    productForm.forwardEvent customPlanForm, "PlanSelected"
+    productForm.addSubView @customPlanForm
+    productForm.forwardEvent @customPlanForm, "PlanSelected"
 
     @getView().addWorkflow workflow = KD.singleton("paymentController").createUpgradeWorkflow
       productForm: productForm
