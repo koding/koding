@@ -113,6 +113,28 @@ class PricingAppView extends KDView
       return KD.showError err if err
       @showSummaryModal group, @subscription
 
+  showSummaryModal: (group, subscription)->
+    {planOptions}    = subscription.productData
+
+    modal              = new KDModalView
+      title            : "Group successfully created"
+      width            : 600
+      overlay          : yes
+      buttons          :
+        "Go to Group"  :
+          style        : "modal-clean-red"
+          callback     : ->
+            KD.singletons.router.handleRoute "/#{group.slug}"
+        Close          :
+          style        : "modal-cancel"
+          callback     : -> modal.destroy()
+      content          :
+        """
+          <div>https://koding.com/#{group.slug}</div>
+          <div>userQuantity     : #{planOptions.userQuantity}</div>
+          <div>resourceQuantity : #{planOptions.resourceQuantity}</div>
+        """
+
   checkSlug: ->
     slug      = @groupForm.inputs.GroupUrl
     slugView  = @groupForm.inputs.Slug
