@@ -185,19 +185,33 @@ func readConfig() error {
 		// but this will work : CONFIG="vagrant" go test
 		envProfile := os.Getenv("CONFIG")
 		if envProfile == "" {
-			return errors.New("Please specify a configuration profile via -c or set a CONFIG environment.")
+			return errors.New("config.go: please specify a configuration profile via -c or set a CONFIG environment.")
 		}
 
 		Profile = envProfile
 	}
 
-	err := readConfigManager(Profile)
+	configPath := fmt.Sprintf("./config/main.%s.json", Profile)
+	ok, err := exists(configPath)
 	if err != nil {
 		return err
 	}
 
-	return nil
+	if ok {
+		fmt.Printf("config.go: reading config from %s\n", configPath)
+		err := readJson(Profile)
+		if err != nil {
+			return err
+		}
+	} else {
+		fmt.Println("config.go: reading config with koding-config-manager")
+		err := readConfigManager(Profile)
+		if err != nil {
+			return err
+		}
+	}
 
+	return nil
 }
 
 func readJson(profile string) error {
@@ -239,4 +253,18 @@ func readConfigManager(profile string) error {
 
 	// successfully unmarshalled into Current
 	return nil
+}
+
+// exists returns whether the given file or directory exists or not.
+func exists(path string) (bool, error) {
+	_, err := os.Stat(path)
+	if err == nil {
+		return true, nil
+	}
+
+	if os.IsNotExist(err) {
+		return false, nil
+	}
+
+	return false, err
 }
