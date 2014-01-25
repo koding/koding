@@ -55,5 +55,3 @@ class PricingAppController extends KDViewController
     #         resourceQuantity : 15 # evde
     #       plan               :
     #         tags             : ["custom-plan"]
-
-    workflow.on "Finished", (data, subscription) ->
