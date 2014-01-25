@@ -91,8 +91,11 @@ class EnvironmentsMainScene extends JView
         new KDNotificationView
           title: "You need to login to create a new machine."
 
-      new KDNotificationView
-          title: "Will be implemented soon."
+      KD.remote.api.JVM.createSharedVm (err, vm)->
+        return KD.showError err  if err
+        vmc = KD.getSingleton("vmController")
+        vmc.emit 'VMListChanged'
+
       # TODO Add shared VM creation here.
       # vmController.createNewVM()
 
