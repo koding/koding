@@ -351,12 +351,12 @@ body.about #main-header
       h4
         color           socialColor
 
-#home-pricing-plans
-  size                  100%, auto
-  background            url('/a/images/home/speedometer.jpg') no-repeat center bottom
+#resource-pack-plan
+  size                  100% auto
+  padding               150px 0 84px
+  margin-top            -100px
+  background            url('/a/images/home/speedometer.jpg') no-repeat center center
   background-size       cover
-  padding               500px 0 114px
-  margin-top            -400px
 
   .inner-container
     max-width           1091px
@@ -383,12 +383,13 @@ body.about #main-header
         display         block
 
   .plan-selection
-    size                360px, 204px
-    background          #27ae60
-    position            relative
-    rounded             12px 0 12px 12px
+    rel()
+    size                380px 204px
     border-top          1px solid transparent
+    rounded             12px 0 12px 12px
     margin              0 auto
+    overflow            visible
+    background          #27ae60
     vendor              transform, translateX(-85px)
 
     h6
@@ -408,6 +409,9 @@ body.about #main-header
       margin-top        24px
       border-top        1px solid transparent
       fl()
+
+      &.disk
+        min-width       88px
 
       &:first-of-type
         margin-left     34px
@@ -497,13 +501,13 @@ body.about #main-header
         font-weight     200
         vertical-align  super
 
-      span
+      .period
         display         block
         font-size       15px
         font-weight     400
         color           rgba(255, 255, 255, .5)
 
-    .description
+    .promotion
       display           block
       text-align        center
       font-size         14px
@@ -511,46 +515,34 @@ body.about #main-header
       margin-top        8px
       line-height       17px
 
-    .kdbutton.solid.yellow
-      size              126px, 48px
-      line-height       48px
-      color             #935600
-      background        #ffa200
-      padding           0
-      rounded           6px
-      font-weight       600
+    .buy-now
       abs               100% 0 0 50%
       margin            -24px 0 0 -63px
 
-      .button-title
-        color           inherit
-        line-height     inherit
-        padding         0
-        font-weight     inherit
-
-#home-customize-pricing
-  bg                    color, #e4e4e4
-  size                  100%, auto
-  padding               62px 0 105px
+#custom-plan
   position              relative
-  kalc                  padding-left, \(100% \- 1192px\)\/2
+  padding               62px 0 105px
+  bg                    color, #e4e4e4
+
+#custom-plan .custom-plan
+  size                  1161px auto
+  margin                0 auto
 
   .plus-icon
+    fl()
     r-sprite            "home", "plan-plus"
-    display             block
-    abs                 127px 0 0 50%
-    margin-left         -257px
 
   .equal-icon
+    fl()
     r-sprite            "home", "plan-equal"
-    abs                 132px 0 0 50%
-    margin-left         172px
+
+  .plus-icon, .equal-icon
+    margin              65px 20px
 
   .customize-box
     size                336px, 177px
     background          #ffffff
     rounded             12px
-    margin-left         92px
     position            relative
     overflow            visible
     fl()
@@ -637,11 +629,10 @@ body.about #main-header
         height          11px
         background      #ebebeb
 
-  .custom-plan
+  .summary
     size                337px, 162px
     background          #283032
     rounded             12px
-    margin              0 0 0 90px
     overflow            hidden
     text-align          left
     letter-spacing      .2px
@@ -653,13 +644,16 @@ body.about #main-header
       size              100%, 81px
 
     h2
-      text-align        left
-      text-shadow       none
+      fl()
       line-height       81px
       padding           0 0 0 36px
-      font-weight       600
       margin            0
-      fl()
+      color             white
+      font-family       openSansFamily
+      font-weight       600
+      font-size         24px
+      text-align        left
+      text-shadow       none
 
     .buy-now
       cursor            pointer
@@ -687,7 +681,7 @@ body.about #main-header
         font-weight     400
         vertical-align  super
 
-      span
+      .period
         display         block
         text-align      right
         padding         0 0 0 14px
@@ -709,6 +703,22 @@ body.about #main-header
         display         inline-block
         line-height     normal
         vertical-align  middle
+
+#resource-pack-plan, #custom-plan
+  .buy-now
+    size              126px, 48px
+    line-height       48px
+    color             #935600
+    background        #ffa200
+    padding           0
+    rounded           6px
+    font-weight       600
+
+    span.button-title
+      color           inherit
+      line-height     inherit
+      padding         0
+      font-weight     inherit
 
 #home-groups
   bg                    color, homeHeaderBg
@@ -969,5 +979,3 @@ body.about #main-header
 
     #home-bottom
       padding-top         690px !important
-
-
