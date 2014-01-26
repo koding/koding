@@ -40,6 +40,11 @@ class ResourcePackPlan extends JView
     @buyNow    = new KDButtonView
       cssClass : 'solid buy-now'
       title    : 'BUY NOW'
+      callback : =>
+        appManager = KD.singleton "appManager"
+        return   unless appManager
+        appManager.open "Pricing", (app) =>
+          app.selectPlan "rp#{@planIndex + 1}"
 
   updateContent: ->
     @cpuQuantity.updatePartial @plans[@planIndex].cpu
