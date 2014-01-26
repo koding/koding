@@ -47,6 +47,15 @@ class CustomPlan extends JView
     @buyNow    = new KDButtonView
       cssClass : "solid buy-now"
       title    : "BUY NOW"
+      callback : =>
+        appManager = KD.singleton "appManager"
+        return   unless appManager
+        appManager.open "Pricing", (app) =>
+          app.selectPlan "custom-plan", {
+            @userQuantity
+            @resourceQuantity
+            total: (@usersPrice + @resourcesPrice) * 100
+          }
 
   updatePrice: (price) ->
     @price.updatePartial price
