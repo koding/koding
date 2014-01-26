@@ -22,6 +22,10 @@ class ResourcePackPlan extends JView
       drawBar     : no
       width       : 272
 
+    @slider.on "ValueChanged", (handle) =>
+      @planIndex = handle.getSnappedValue()
+      @updateContent()
+
     @cpuQuantity  = new KDCustomHTMLView tagName: "span"
     @ramQuantity  = new KDCustomHTMLView tagName: "span"
     @diskQuantity = new KDCustomHTMLView tagName: "span"
@@ -31,9 +35,23 @@ class ResourcePackPlan extends JView
     @promotion.addSubView @discount = new KDCustomHTMLView tagName: "span"
     @promotion.addSubView @freeVM   = new KDCustomHTMLView tagName: "span"
 
+    @updateContent()
+
     @buyNow    = new KDButtonView
       cssClass : 'solid buy-now'
       title    : 'BUY NOW'
+
+  updateContent: ->
+    @cpuQuantity.updatePartial @plans[@planIndex].cpu
+    @ramQuantity.updatePartial @plans[@planIndex].ram
+    @diskQuantity.updatePartial @plans[@planIndex].disk
+    @alwaysOn.updatePartial if @plans[@planIndex].alwaysOn then "YES" else "NO"
+    @price.updatePartial @plans[@planIndex].price
+
+    {discount, vm} = @plans[@planIndex]
+    if discount and vm
+    then @promotion.updatePartial "$#{discount} OFF OR<br> #{vm} FREE VM"
+    else @promotion.updatePartial ""
 
   pistachio: ->
     """
