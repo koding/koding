@@ -1,48 +1,26 @@
 class PricingAppController extends KDViewController
 
-  handler = (callback)->
-    KD.singleton('appManager').open 'Pricing', callback
-
   KD.registerAppClass this,
-    name                         : "Pricing"
-    routes                       :
-      "/:name?/Pricing"          : -> KD.singletons.router.handleRoute '/Pricing/Developer'
-      "/:name?/Pricing/:section" : ({params:{section}})->
-        handler (app)->
-          app.customPlanForm.hide()
-          app.userPlanForm.hide()
-          switch section
-            when 'Developer'
-              app.userPlanForm.show()
-            when 'Enterprise'
-              app.customPlanForm.show()
+    name  : "Pricing"
+    route : "/:name?/Pricing"
 
   constructor: (options = {}, data) ->
-
-    options.view = new PricingAppView
-      params     : options.params
-      cssClass   : "content-page pricing"
-
     options.appInfo = title: "Pricing"
+    options.view    = new PricingAppView
+      params        : options.params
+      cssClass      : "content-page pricing"
 
     super options, data
 
-    @userPlanForm   = new UserPlanForm
-      cssClass  : 'hidden'
-      unitPrice : 20
+    productForm       = new KDView
+    @resourcePackPlan = new ResourcePackPlan
+    @customPlan       = new CustomPlan
 
-    @customPlanForm = new CustomPlanForm
-      cssClass          : 'hidden'
-      userUnitPrice     : 5
-      resourceUnitPrice : 20
+    productForm.addSubView @resourcePackPlan
+    productForm.forwardEvent @resourcePackPlan, "PlanSelected"
 
-    productForm = new KDView
-
-    productForm.addSubView @userPlanForm
-    productForm.forwardEvent @userPlanForm, "PlanSelected"
-
-    productForm.addSubView @customPlanForm
-    productForm.forwardEvent @customPlanForm, "PlanSelected"
+    productForm.addSubView @customPlan
+    productForm.forwardEvent @customPlan, "PlanSelected"
 
     @getView().addWorkflow workflow = KD.singleton("paymentController").createUpgradeWorkflow
       productForm: productForm
