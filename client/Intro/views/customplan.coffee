@@ -30,9 +30,26 @@ class CustomPlan extends JView
     @price     = new KDCustomHTMLView tagName: "span"
     @promotion = new KDCustomHTMLView cssClass: "promotion"
 
+    @users.on "ValueChanged", (quantity) =>
+      @userQuantity = quantity
+      @usersPrice = quantity * unitPrices.user
+      @updatePrice @usersPrice + @resourcesPrice
+
+    @resources.on "ValueChanged", (quantity) =>
+      @resourceQuantity = quantity
+      @resourcesPrice = quantity * unitPrices.resourcePack
+      @updatePrice @resourcesPrice + @usersPrice
+
+    @usersPrice     = 50
+    @resourcesPrice = 200
+    @updatePrice @usersPrice + @resourcesPrice
+
     @buyNow    = new KDButtonView
       cssClass : "solid buy-now"
       title    : "BUY NOW"
+
+  updatePrice: (price) ->
+    @price.updatePartial price
 
   pistachio: ->
     """

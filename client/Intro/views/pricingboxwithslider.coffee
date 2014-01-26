@@ -18,7 +18,15 @@ class PricingBoxWithSlider extends JView
     options.slider.width   = 307
     options.slider.handles = [options.slider.initialValue]
 
+    {unitName, unitPrice} = options
+
     @slider = new KDSliderBarView options.slider
+    @slider.on "ValueChanged", (handle) =>
+      value = handle.getSnappedValue()
+      price = value * unitPrice
+      @count.updatePartial "#{value} #{unitName}"
+      @price.updatePartial "$#{price}/Month"
+      @emit "ValueChanged", value
 
   pistachio : ->
     """
