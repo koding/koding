@@ -264,25 +264,39 @@ class KodingAppsController extends KDController
     changeLogStr = @_createChangeLog name
     manifest     = JSON.parse manifestStr
     appPath      = @getAppPath manifest
-    # log manifestStr
-    stack = []
-
-    manifestFile  = FSHelper.createFileFromPath "#{appPath}/manifest.json"
-    changeLogFile = FSHelper.createFileFromPath "#{appPath}/ChangeLog"
 
     {vmController} = KD.singletons
 
-    # Copy default app files (app Skeleton)
-    stack.push (cb)=>
-      vmController.run
-        method    : "app.skeleton"
-        withArgs  :
-          type    : if isBlank then "blank" else "sample"
-          appPath : appPath
-        , cb
+    stack = [
 
-    stack.push (cb)=> manifestFile.save  manifestStr,  cb
-    stack.push (cb)=> changeLogFile.save changeLogStr, cb
+      (cb)->
+
+        vmController.run
+          method    : "app.skeleton"
+          withArgs  :
+            type    : "blank"
+            appPath : appPath
+          , cb
+
+      (cb)->
+
+        indexFile     = FSHelper.createFileFromPath "#{appPath}/index.coffee"
+        indexFile.fetchContents (err, content)->
+          return cb err  if err
+          content = content.replace /%%APPNAME%%/g, name
+          indexFile.save content, cb
+
+      (cb)->
+
+        manifestFile  = FSHelper.createFileFromPath "#{appPath}/manifest.json"
+        manifestFile.save  manifestStr,  cb
+
+      (cb)->
+
+        changeLogFile = FSHelper.createFileFromPath "#{appPath}/ChangeLog"
+        changeLogFile.save changeLogStr, cb
+
+    ]
 
     async.series stack, (err, result) =>
       warn err  if err
