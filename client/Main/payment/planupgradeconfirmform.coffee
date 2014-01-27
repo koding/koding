@@ -78,6 +78,7 @@ class PlanUpgradeConfirmForm extends PaymentConfirmForm
       ]
 
     couponOptions.setDefaultValue "discount"
+    @changeCouponOption "discount"
 
     @plan.addSubView totalWrapper = new KDCustomHTMLView cssClass: "total-wrapper"
 
