@@ -1,53 +1,35 @@
 class PricingAppController extends KDViewController
 
-  handler = (callback)->
-    KD.singleton('appManager').open 'Pricing', callback
-
   KD.registerAppClass this,
-    name                         : "Pricing"
-    routes                       :
-      "/:name?/Pricing"          : -> KD.singletons.router.handleRoute '/Pricing/Developer'
-      "/:name?/Pricing/:section" : ({params:{section}})->
-        handler (app)->
-          app.customPlanForm.hide()
-          app.userPlanForm.hide()
-          switch section
-            when 'Developer'
-              app.userPlanForm.show()
-            when 'Enterprise'
-              app.customPlanForm.show()
+    name  : "Pricing"
+    route : "/:name?/Pricing"
 
   constructor: (options = {}, data) ->
-
-    options.view = new PricingAppView
-      params     : options.params
-      cssClass   : "content-page pricing"
-
     options.appInfo = title: "Pricing"
+    options.view    = new PricingAppView
+      params        : options.params
+      cssClass      : "content-page pricing"
 
     super options, data
 
-    @userPlanForm   = new UserPlanForm
-      cssClass  : 'hidden'
-      unitPrice : 20
+    @productForm      = new KDView
+    @resourcePackPlan = new ResourcePackPlan
+    @customPlan       = new CustomPlan
 
-    @customPlanForm = new CustomPlanForm
-      cssClass          : 'hidden'
-      userUnitPrice     : 5
-      resourceUnitPrice : 20
+    @productForm.addSubView @resourcePackPlan
+    @resourcePackPlan.on "PlanSelected", @bound "selectPlan"
 
-    productForm = new KDView
+    @productForm.addSubView @customPlan
+    @customPlan.on "PlanSelected", @bound "selectPlan"
 
-    productForm.addSubView @userPlanForm
-    productForm.forwardEvent @userPlanForm, "PlanSelected"
+    @getView().addWorkflow workflow = KD.singleton("paymentController").createUpgradeWorkflow {@productForm}
 
-    productForm.addSubView @customPlanForm
-    productForm.forwardEvent @customPlanForm, "PlanSelected"
+  selectPlan: (tag, options) ->
+    KD.remote.api.JPaymentPlan.one tags: $in: [tag], (err, plan) =>
+      return  if KD.showError err
+      @productForm.emit "PlanSelected", plan, options
 
-    @getView().addWorkflow workflow = KD.singleton("paymentController").createUpgradeWorkflow
-      productForm: productForm
-
-    # # TODO : remove after test
+    # TODO : remove after test
     # workflow.emit "Finished",
     #     productData          :
     #       planOptions        :
@@ -55,5 +37,3 @@ class PricingAppController extends KDViewController
     #         resourceQuantity : 15 # evde
     #       plan               :
     #         tags             : ["custom-plan"]
-
-    workflow.on "Finished", (data, subscription) ->
