@@ -18,7 +18,7 @@ import (
 )
 
 const (
-	depsGoPath    = "gonew"
+	depsGoPath    = "gopackage"
 	gopackageFile = "gopackage.json"
 )
 

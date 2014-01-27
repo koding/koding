@@ -9,6 +9,7 @@ import (
 	"os"
 	"os/exec"
 	"os/signal"
+	"path/filepath"
 	"syscall"
 )
 
@@ -215,12 +216,12 @@ func readConfig() error {
 }
 
 func readJson(profile string) error {
-	gobin := os.Getenv("GOBIN")
-	if gobin == "" {
-		return errors.New("GOBIN is not set")
+	pwd, err := os.Getwd()
+	if err != nil {
+		return err
 	}
 
-	configPath := fmt.Sprintf("%s/config/main.%s.json", gobin, profile)
+	configPath := filepath.Join(pwd, "config", fmt.Sprintf("main.%s.json", profile))
 
 	data, err := ioutil.ReadFile(configPath)
 	if err != nil {
