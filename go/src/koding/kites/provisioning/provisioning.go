@@ -11,7 +11,7 @@ import (
 	"koding/db/mongodb"
 	"koding/db/mongodb/modelhelper"
 	"koding/kites/provisioning/container"
-	"koding/newkite/kite"
+	"koding/kite"
 	"koding/tools/config"
 	"koding/tools/utils"
 	"net"

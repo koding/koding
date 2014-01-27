@@ -17,7 +17,7 @@ import (
 	"flag"
 	"fmt"
 	"koding/db/mongodb/modelhelper"
-	"koding/newkite/kite"
+	"koding/kite"
 )
 
 var port = flag.String("port", "", "port to bind itself")

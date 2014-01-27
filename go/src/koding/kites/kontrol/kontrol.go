@@ -5,9 +5,9 @@ import (
 	"errors"
 	"fmt"
 	"koding/db/mongodb/modelhelper"
-	"koding/newkite/dnode"
-	"koding/newkite/kite"
-	"koding/newkite/protocol"
+	"koding/kite/dnode"
+	"koding/kite"
+	"koding/kite/protocol"
 	"koding/tools/config"
 	"net"
 	"strconv"
@@ -119,10 +119,10 @@ func (k *Kontrol) handleRegister(r *kite.Request) (interface{}, error) {
 		r.RemoteKite.URL.Host = net.JoinHostPort(host, port)
 	}
 
-	return k.register(r.RemoteKite, r.Authentication.Key)
+	return k.register(r.RemoteKite, r.Authentication.Key, r.RemoteAddr)
 }
 
-func (k *Kontrol) register(r *kite.RemoteKite, kodingkey string) (*protocol.RegisterResult, error) {
+func (k *Kontrol) register(r *kite.RemoteKite, kodingkey, remoteAddr string) (*protocol.RegisterResult, error) {
 	kite := &r.Kite
 
 	if kite.Visibility != protocol.Public && kite.Visibility != protocol.Private {
@@ -160,7 +160,7 @@ func (k *Kontrol) register(r *kite.RemoteKite, kodingkey string) (*protocol.Regi
 	})
 
 	// send response back to the kite, also identify him with the new name
-	ip, _, _ := net.SplitHostPort(r.URL.Host)
+	ip, _, _ := net.SplitHostPort(remoteAddr)
 	return &protocol.RegisterResult{
 		Result:   protocol.AllowKite,
 		Username: r.Username,

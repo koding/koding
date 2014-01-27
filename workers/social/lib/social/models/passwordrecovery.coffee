@@ -6,7 +6,7 @@ module.exports = class JPasswordRecovery extends jraphical.Module
   {secure, signature} = require 'bongo'
 
   dateFormat  = require 'dateformat'
-  createId    = require 'hat'
+  { v4: createId } = require 'node-uuid'
 
   KodingError = require '../error'
   JUser       = require './user'

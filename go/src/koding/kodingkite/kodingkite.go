@@ -2,7 +2,7 @@ package kodingkite
 
 import (
 	"fmt"
-	"koding/newkite/kite"
+	"koding/kite"
 	"koding/tools/config"
 	"net/url"
 	"strconv"

@@ -2,8 +2,8 @@ package main
 
 import (
 	"fmt"
-	"koding/newkite/kite"
-	"koding/newkite/protocol"
+	"koding/kite"
+	"koding/kite/protocol"
 	"testing"
 	"time"
 )
@@ -41,7 +41,7 @@ func TestDatastore(t *testing.T) {
 	}
 
 	// To demonstrate we can receive notifications matcing to our query.
-	onEvent := func(e *protocol.KiteEvent) {
+	onEvent := func(e *kite.Event) {
 		fmt.Printf("--- kite event: %#v\n", e)
 	}
 

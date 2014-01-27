@@ -1,7 +1,8 @@
 {Model, signature} = require 'bongo'
 
-createId = require 'hat'
-getUniqueId= -> createId 256
+{ v4: createId } = require 'node-uuid'
+
+getUniqueId = createId
 
 module.exports = class JMail extends Model
 
