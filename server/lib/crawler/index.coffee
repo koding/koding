@@ -77,7 +77,7 @@ module.exports =
       content = kodinghome()
       return res.send 200, content
 
-    if firstLetter.toUpperCase() is firstLetter
+    if isInAppRoute firstLetter
       if section
         isLoggedIn req, res, (err, loggedIn, account)->
           # Serve homepage for Develop tab, instead of empty content.
