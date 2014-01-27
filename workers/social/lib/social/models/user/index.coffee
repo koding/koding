@@ -14,7 +14,7 @@ module.exports = class JUser extends jraphical.Module
   JMail           = require '../email'
   JSessionHistory = require '../sessionhistory'
 
-  createId       = require 'hat'
+  { v4: createId } = require 'node-uuid'
 
   {Relationship} = jraphical
 
