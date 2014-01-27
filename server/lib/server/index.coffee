@@ -247,6 +247,15 @@ app.get "/Landing/:page", (req, res, next) ->
       JGroup.render.landing {account, page, client, bongoModels}, (err, body) ->
         serve body, res
 
+
+isInAppRoute = (name)->
+  [firstLetter] = name
+  # user nicknames can start with numbers
+  intRegex = /^\d/
+  return false if intRegex.test firstLetter
+  return true  if firstLetter.toUpperCase() is firstLetter
+  return false
+
 # Handles all internal pages
 # /USER || /SECTION || /GROUP[/SECTION] || /APP
 #
@@ -257,11 +266,10 @@ app.all '/:name/:section?*', (req, res, next)->
   path = if section then "#{name}/#{section}" else name
 
   return res.redirect 302, req.url.substring 7  if name in ['koding', 'guests']
-  [firstLetter] = name
 
   # Checks if its an internal request like /Activity, /Terminal ...
   #
-  if firstLetter.toUpperCase() is firstLetter
+  if isInAppRoute name
 
     if name in ['Activity', 'Topics']
 
