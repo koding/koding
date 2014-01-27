@@ -47,7 +47,7 @@ class PricingAppController extends KDViewController
     @getView().addWorkflow workflow = KD.singleton("paymentController").createUpgradeWorkflow
       productForm: productForm
 
-    # # TODO : remove after test
+    # TODO : remove after test
     # workflow.emit "Finished",
     #     productData          :
     #       planOptions        :
