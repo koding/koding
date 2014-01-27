@@ -45,7 +45,7 @@ class PlanUpgradeConfirmForm extends PaymentConfirmForm
       @plan.addSubView new VmPlanView {planOptions}, plan
 
       if plan.discountCode and plan.vmCode
-        @fetchCoupons ["discount", "vm"], @bound "addCouponOptions"
+        @fetchCoupons plan, ["discount", "vm"], @bound "addCouponOptions"
 
       if oldSubscription
         @plan.addSubView new KDView partial: "<p>Your old plan was:</p>"
@@ -78,6 +78,7 @@ class PlanUpgradeConfirmForm extends PaymentConfirmForm
       ]
 
     couponOptions.setDefaultValue "discount"
+    @changeCouponOption "discount"
 
     @plan.addSubView totalWrapper = new KDCustomHTMLView cssClass: "total-wrapper"
 
@@ -91,7 +92,7 @@ class PlanUpgradeConfirmForm extends PaymentConfirmForm
     subtotal.addSubView new KDLabelView title: "Subtotal"
     subtotal.addSubView @subtotal = new KDCustomHTMLView
       tagName  : "span"
-      partial  : (@getData().plan.feeAmount - @utils.formatMoney discountInCents) / 100
+      partial  : (@getData().productData.plan.feeAmount - @utils.formatMoney discountInCents) / 100
 
     @updateTotals couponOptions.getValue()
 
@@ -104,13 +105,13 @@ class PlanUpgradeConfirmForm extends PaymentConfirmForm
     switch discountType
       when "dollars"
         @discount.updatePartial @utils.formatMoney discountInCents / 100
-        @subtotal.updatePartial @utils.formatMoney (@getData().plan.feeAmount - discountInCents) / 100
+        @subtotal.updatePartial @utils.formatMoney (@getData().productData.plan.feeAmount - discountInCents) / 100
 
-  fetchCoupons: (codes, callback) ->
+  fetchCoupons: (plan, codes, callback) ->
     {dash} = Bongo
     queue = codes.map (code) =>
       =>
-        @plan.fetchCoupon code, (err, coupon) =>
+        plan.fetchCoupon code, (err, coupon) =>
           return  if KD.showError err
           @coupons[code] = coupon
           queue.fin()
