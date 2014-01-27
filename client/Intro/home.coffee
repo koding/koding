@@ -190,10 +190,8 @@ class HomePage extends JView
         </div>
         {{> @pricingButton}}
       </section>
-      <section id="resource-pack-plan" class="clearfix">
+      <section id="pricing" class="clearfix">
         {{> @resourcePackPlan}}
-      </section>
-      <section id="custom-plan" class="clearfix">
         {{> @customPlan}}
       </section>
       <section id='home-bottom'>
