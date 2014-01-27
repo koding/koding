@@ -4,10 +4,17 @@ class AccountKodingKeyListController extends AccountListViewController
 
     options.noItemFoundText = """
       <h2>EXPERIMENTAL</h2>
-      You have no Koding keys. Koding keys are used to authenticate external
-      kites (Koding applications running on other machines). To get your keys listed here
-      you need to download & install the KD Tool (Mac OS X only):
+      <p>
+        You have no Koding keys. Koding keys are used to authenticate external
+        kites (Koding applications running on other machines). To get your keys listed here you need to download and install kd tool:
+      </p>
+
+      For OS X:
       <code>$ brew install "https://kd-tool.s3.amazonaws.com/kd.rb"</code>
+
+      For Ubuntu/Debian:
+      <code>$ curl "https://kd-tool.s3.amazonaws.com/install.sh" | bash</code>
+
       and then register your machine with
       <code>$ kd register</code>
 
