@@ -34,11 +34,11 @@ type Deps struct {
 	// changed manually.
 	Dependencies []string `json:"dependencies"`
 
+	// BuildGoPath is used to fetch dependencies of the given Packages
+	BuildGoPath string
+
 	// currentGoPath, is taken from current GOPATH environment variable
 	currentGoPath string
-
-	// tmpGoPath is used to fetch dependencies of the given Packages
-	tmpGoPath string
 }
 
 func LoadDeps(pkgs ...string) (*Deps, error) {
@@ -72,7 +72,7 @@ func LoadDeps(pkgs ...string) (*Deps, error) {
 			continue
 		}
 
-		// do not include koding packages
+		// TODO: do not include koding packages, they are not go gettable
 		if strings.HasPrefix(importPath, "koding") {
 			continue
 		}
@@ -108,31 +108,39 @@ func (d *Deps) populateGoPaths() error {
 	}
 
 	d.currentGoPath = gopath
-	d.tmpGoPath = path.Join(pwd, depsGoPath)
+	d.BuildGoPath = path.Join(pwd, depsGoPath)
 	return nil
 }
 
 func (d *Deps) InstallDeps() error {
 	if !compareGoVersions(d.GoVersion, runtime.Version()) {
-		return fmt.Errorf("Go Version is not satisfied\nSystem Go Version: '%s' Expected: '%s'", runtime.Version(), d.GoVersion)
+		return fmt.Errorf("Go Version is not satisfied\nSystem Go Version: '%s' Expected: '%s'",
+			runtime.Version(), d.GoVersion)
 	}
 
 	// expand current path
-	if d.tmpGoPath != d.currentGoPath {
-		os.Setenv("GOPATH", fmt.Sprintf("%s:%s", d.tmpGoPath, d.currentGoPath))
+	if d.BuildGoPath != d.currentGoPath {
+		os.Setenv("GOPATH", fmt.Sprintf("%s:%s", d.BuildGoPath, d.currentGoPath))
 	}
 
-	os.Setenv("GOBIN", fmt.Sprintf("%s/bin", d.tmpGoPath))
+	// another approach is let them building with a single gobin and then move
+	// the final binaries into new directories based on the binary filename.
+	for _, pkg := range d.Packages {
+		pkgname := path.Base(pkg)
+		binpath := fmt.Sprintf("%s/%s/", d.BuildGoPath, pkgname)
 
-	args := []string{"install", "-v"}
-	args = append(args, d.Packages...)
+		os.MkdirAll(binpath, 0755)
+		os.Setenv("GOBIN", binpath)
 
-	cmd := exec.Command("go", args...)
-	cmd.Stdout, cmd.Stderr = os.Stdout, os.Stderr
+		fmt.Println("installing", pkgname)
+		args := []string{"install", "-v", pkg}
+		cmd := exec.Command("go", args...)
+		cmd.Stdout, cmd.Stderr = os.Stdout, os.Stderr
 
-	err := cmd.Run()
-	if err != nil {
-		log.Println(err)
+		err := cmd.Run()
+		if err != nil {
+			log.Println(err)
+		}
 	}
 
 	return nil
@@ -182,8 +190,8 @@ func ReadJson() (*Deps, error) {
 }
 
 func (d *Deps) GetDeps() error {
-	os.MkdirAll(d.tmpGoPath, 0755)
-	os.Setenv("GOPATH", d.tmpGoPath)
+	os.MkdirAll(d.BuildGoPath, 0755)
+	os.Setenv("GOPATH", d.BuildGoPath)
 
 	for _, pkg := range d.Dependencies {
 		fmt.Println("go get", pkg)
