@@ -50,6 +50,13 @@ fetchLastStatusUpdatesOfUser = (account, Relationship, JNewStatusUpdate, callbac
       return callback null, queue.statusUpdates
     daisy queue
 
+isInAppRoute = (firstLetter)->
+  # user nicknames can start with numbers
+  intRegex = /^\d+$/
+  return false if intRegex.test firstLetter
+  return true  if firstLetter.toUpperCase() is firstLetter
+  return false
+
 module.exports =
   crawl: (bongo, req, res, slug)->
     {query} = req
