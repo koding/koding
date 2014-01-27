@@ -91,7 +91,7 @@ class PlanUpgradeConfirmForm extends PaymentConfirmForm
     subtotal.addSubView new KDLabelView title: "Subtotal"
     subtotal.addSubView @subtotal = new KDCustomHTMLView
       tagName  : "span"
-      partial  : (@getData().plan.feeAmount - @utils.formatMoney discountInCents) / 100
+      partial  : (@getData().productData.plan.feeAmount - @utils.formatMoney discountInCents) / 100
 
     @updateTotals couponOptions.getValue()
 
@@ -104,7 +104,7 @@ class PlanUpgradeConfirmForm extends PaymentConfirmForm
     switch discountType
       when "dollars"
         @discount.updatePartial @utils.formatMoney discountInCents / 100
-        @subtotal.updatePartial @utils.formatMoney (@getData().plan.feeAmount - discountInCents) / 100
+        @subtotal.updatePartial @utils.formatMoney (@getData().productData.plan.feeAmount - discountInCents) / 100
 
   fetchCoupons: (plan, codes, callback) ->
     {dash} = Bongo
