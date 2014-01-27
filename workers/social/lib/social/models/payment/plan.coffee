@@ -291,3 +291,7 @@ module.exports = class JPaymentPlan extends JPaymentBase
       JGroup = require '../group'
       JGroup.one _id: @product.category, (err, group)->
         callback err, unless err then group.slug
+
+  fetchCoupon: (type, callback) ->
+    code = if type is "discount" then @discountCode else @vmCode
+    recurly.fetchCoupon code, callback

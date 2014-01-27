@@ -198,10 +198,6 @@ module.exports = class JPaymentSubscription extends jraphical.Module
     then callback { message: 'quota exceeded', ok, over }
     else callback null
 
-  fetchCoupon: (type, callback) ->
-    code = if type is "discount" then @discountCode else @vmCode
-    recurly.fetchCoupon code, callback
-
   createFulfillmentNonce: ({ planCode }, isDebit, callback) ->
     JFulfillmentNonce = require './nonce'
 
