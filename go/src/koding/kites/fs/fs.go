@@ -5,7 +5,7 @@ import (
 	"flag"
 	"fmt"
 	"koding/kite/dnode"
-	"koding/kite/kite"
+	"koding/kite"
 	"koding/tools/fsutils"
 	"log"
 	"os"
