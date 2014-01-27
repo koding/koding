@@ -264,11 +264,10 @@ app.all '/:name/:section?*', (req, res, next)->
   path = if section then "#{name}/#{section}" else name
 
   return res.redirect 302, req.url.substring 7  if name in ['koding', 'guests']
-  [firstLetter] = name
 
   # Checks if its an internal request like /Activity, /Terminal ...
   #
-  if firstLetter.toUpperCase() is firstLetter
+  if isInAppRoute name
 
     if name in ['Activity', 'Topics']
 
