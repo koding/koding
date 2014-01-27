@@ -1244,4 +1244,151 @@ section.pricing-sign-in
     color             #666666
     fl()
 
+/* Pricing - choose a payment method */
+.pricing-payment-choice
+  h3
+    text-align        center
+    display           block
+    font-size         28px
+    font-weight       200
+    color             #666666
+    margin            56px 0 4px
+
+  h6
+    text-align        center
+    display           block
+    font-size         18px
+    font-weight       400
+    color             #666666
+    opacity           .5
+    margin-bottom     55px
+
+
+  .formline
+    padding           0
+    margin            0
+
+  .payment-method
+    size            384px, 251px
+    rounded         12px
+    background      #fff
+    padding-top     91px
+    margin-left     200px
+    borderBox()
+    fl()
+
+    &:before
+      content       ""
+      abs           43px 0 0 0px
+      size          100%, 48px
+      background    #b4b4b4
+
+    &:after
+      content       ""
+      abs           49px 5px 0 0
+      rounded       12px
+      bg            color, #828282
+
+    &.amex:after
+      r-sprite      "pricing", "amex"
+
+    &.cirrus:after
+      r-sprite      "pricing", "cirrus"
+
+    &.discover:after
+      r-sprite      "pricing", "discover"
+
+    &.mastercard:after
+      r-sprite      "pricing", "mastercard"
+
+    &.paypal:after
+      r-sprite      "pricing", "paypal"
+
+    &.visa:after
+      r-sprite      "pricing", "visa"
+
+    .billing-link
+      margin        46px 0 0
+
+    pre
+      font-family   "Courier"
+      font-size     16px
+      font-weight   400
+      margin        0 0 14px 40px
+
+
+/* Pricing add payment method form */
+.payment-method-entry-form
+  size                538px, auto
+  rounded             12px
+  padding             28px
+  bg                  color, #fff
+  margin              50px auto
+  borderBox()
+
+  .input-wrapper
+    margin-bottom     16px
+
+  .kdinput
+    size              100%, 50px
+    border            1px solid #a0a0a0
+    background        #fff
+    color             #4c555f
+    font-size         14px
+    min-width         0
+    borderBox()
+
+  .formline
+    margin            0
+    padding           0
+    size              auto, auto
+    clear             both
+
+    &.card-name
+      .input-wrapper
+        size          231px, auto
+        fl()
+        &:nth-child(2)
+          margin-left 20px
+
+    &.cardmonth
+      fl()
+      .input-wrapper
+        size          63px, auto
+        fl()
+        &:nth-child(2)
+          margin-left 20px
+
+        .kdinput
+          text-align  center
+
+    &.cardcv
+      clear           none
+      fr()
+      .input-wrapper
+        size          63px, auto
+        .kdinput
+          text-align  center
+
+    &.button-field
+      background      none
+      border-top      1px solid #eaeaea
+      padding         18px 0 0
+
+      .kdbutton.solid.green
+        size          110px, 46px
+        line-height   46px
+        margin        0
+        padding       0
+        font-size     14px
+        background    #1aaf5d
+        rounded       12px
+        font-weight   400
+        fr()
+
+        .button-title
+          line-height inherit
+          padding     inherit
+          font-size   inherit
+          font-weight inherit
 

@@ -2,6 +2,8 @@ class PaymentChoiceForm extends KDFormViewWithFields
 
   constructor: (options = {}, data) ->
 
+    options.cssClass = "pricing-payment-choice clearfix"
+
     options.callback = (formData) =>
       @emit 'PaymentMethodChosen', formData.paymentMethod
 
@@ -9,26 +11,32 @@ class PaymentChoiceForm extends KDFormViewWithFields
 
     options.fields.intro ?=
       itemClass         : KDCustomHTMLView
-      partial           : "<p>Please choose a payment method:</p>"
+      tagName           : "h3"
+      partial           : "Choose a payment method"
+
+    options.fields.subTitle ?=
+      itemClass         : KDCustomHTMLView
+      tagName           : "h6"
+      partial           : "Or add a new one, whatever works"
 
     options.fields.paymentMethod ?=
       itemClass         : KDCustomHTMLView
-      title             : "Payment method"
+      title             : "Payment methods"
 
-    options.buttons ?= {}
+    # options.buttons ?= {}
 
-    options.buttons.submit ?=
-      title             : "Use <b>this</b> payment method"
-      style             : "modal-clean-gray"
-      type              : "submit"
-      loader            :
-        color           : "#ffffff"
-        diameter        : 12
+    # options.buttons.submit ?=
+    #   title             : "Use <b>this</b> payment method"
+    #   style             : "modal-clean-gray"
+    #   type              : "submit"
+    #   loader            :
+    #     color           : "#ffffff"
+    #     diameter        : 12
 
-    options.buttons.another ?=
-      title             : "Use <b>another</b> payment method"
-      style             : "modal-clean-gray"
-      callback          : => @emit 'PaymentMethodNotChosen'
+    # options.buttons.another ?=
+    #   title             : "Use <b>another</b> payment method"
+    #   style             : "modal-clean-gray"
+    #   callback          : => @emit 'PaymentMethodNotChosen'
 
     super options, data
 
@@ -38,7 +46,7 @@ class PaymentChoiceForm extends KDFormViewWithFields
 
     { preferredPaymentMethod, methods, appStorage } = paymentMethods
 
-    paymentField = @fields['Payment method']
+    paymentField = @fields['Payment methods']
 
     switch methods.length
 
@@ -62,16 +70,16 @@ class PaymentChoiceForm extends KDFormViewWithFields
 
         @addCustomData 'paymentMethod', defaultMethod
 
-        select = new KDSelectBox
-          defaultValue  : defaultPaymentMethod
-          name          : 'paymentMethodId'
-          selectOptions : methods.map (method) ->
-            title       : KD.utils.getPaymentMethodTitle method
-            value       : method.paymentMethodId
-          callback      : (paymentMethodId) =>
-            chosenMethod = methodsByPaymentMethodId[paymentMethodId]
-            @addCustomData 'paymentMethod', chosenMethod
+        # select = new KDSelectBox
+        #   defaultValue  : defaultPaymentMethod
+        #   name          : 'paymentMethodId'
+        #   selectOptions : methods.map (method) ->
+        #     title       : KD.utils.getPaymentMethodTitle method
+        #     value       : method.paymentMethodId
+        #   callback      : (paymentMethodId) =>
+        #     chosenMethod = methodsByPaymentMethodId[paymentMethodId]
+        #     @addCustomData 'paymentMethod', chosenMethod
 
-        paymentField.addSubView select
+        # paymentField.addSubView select
 
     return this

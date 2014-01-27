@@ -1,6 +1,7 @@
 class PaymentMethodView extends JView
 
   constructor: (options, data) ->
+    options.cssClass = "payment-method"
 
     super
 
@@ -40,7 +41,8 @@ class PaymentMethodView extends JView
     # #{if postal  then "<span>#{postal}</span>"  else ''}
     """
     <pre>#{numberPrefix}#{cardNumber.slice(-4)}</pre>
-    <pre>#{cardFirstName} #{cardLastName} <span>#{cardMonth}/#{cardYear}</span></pre>
+    <pre>#{cardFirstName} #{cardLastName}</pre>
+    <pre>#{cardMonth}/#{cardYear}</pre>
     """
 
 
@@ -54,7 +56,6 @@ class PaymentMethodView extends JView
 
   pistachio: ->
     """
-    <figure></figure>
     {{> @loader }}
     {{> @paymentMethodInfo }}
     """
