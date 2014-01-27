@@ -175,15 +175,15 @@ class KodingAppsController extends KDController
     newAppModal = new KDModalViewWithForms
       title                       : "Create a new Application"
       content                     :
-        """ <div class='modalformline'><p>
-            Please select the application type you want to start with.
-            Alternatively, you can modify an existing app; all applications are installed under <code>~/Applications</code> folder,
-            you can right click on any of them, go to <b>Applications</b> menu, and click <b>Download source files</b> and start
-            reading <code>manifest.json</code>
-            </p></div>
+        """
+          <div class='modalformline'>
+            <p>
+              Please provide a name for your awesome Koding App you want to start with.
+            </p>
+          </div>
         """
       overlay                     : yes
-      width                       : 400
+      width                       : 600
       height                      : "auto"
       tabs                        :
         navigable                 : yes
@@ -196,51 +196,46 @@ class KodingAppsController extends KDController
                   color           : "#444444"
                   diameter        : 12
                 callback          : =>
-                  unless newAppModal.modalTabs.forms.form.inputs.name.validate()
-                    newAppModal.modalTabs.forms.form.buttons.Create.hideLoader()
+                  form = newAppModal.modalTabs.forms.form
+                  unless form.inputs.name.validate()
+                    form.buttons.Create.hideLoader()
                     return
-                  name        = newAppModal.modalTabs.forms.form.inputs.name.getValue()
-                  type        = newAppModal.modalTabs.forms.form.inputs.type.getValue()
-                  name        = name.replace(/[^a-zA-Z0-9\/\-.]/g, '')  if name
+                  name        = form.inputs.name.getValue()
+                  unless name
+                    return new KDNotificationView
+                      title : "Application name is not provided."
+
+                  type        = "blank"
+                  name        = name.replace /[^a-zA-Z0-9\/\-.]/g, ''
                   manifestStr = defaultManifest type, name
                   manifest    = JSON.parse manifestStr
                   appPath     = @getAppPath manifest
+                  defaultVm   = KD.singletons.vmController.defaultVmName
 
-                  # FIXME Use default VM ~ GG
-                  FSHelper.exists appPath, null, (err, exists)=>
+                  FSHelper.exists appPath, defaultVm, (err, exists)=>
                     if exists
-                      newAppModal.modalTabs.forms.form.buttons.Create.hideLoader()
+                      form.buttons.Create.hideLoader()
                       new KDNotificationView
                         type      : "mini"
                         cssClass  : "error"
                         title     : "App folder with that name is already exists, please choose a new name."
                         duration  : 3000
                     else
-                      @prepareApplication {isBlank : type is "blank", name}, (err, response)=>
+                      @prepareApplication name, (err, response)=>
                         callback? err
-                        newAppModal.modalTabs.forms.form.buttons.Create.hideLoader()
+                        form.buttons.Create.hideLoader()
                         newAppModal.destroy()
 
             fields                :
-              type                :
-                label             : "Type"
-                itemClass         : KDSelectBox
-                type              : "select"
-                name              : "type"
-                defaultValue      : "sample"
-                selectOptions     : [
-                  { title : "Sample Application", value : "sample" }
-                  { title : "Blank Application",  value : "blank"  }
-                ]
               name                :
                 label             : "Name:"
                 name              : "name"
                 placeholder       : "name your application..."
                 validate          :
                   rules           :
-                    regExp        : /^[a-z\d]+([-][a-z\d]+)*$/i
+                    regExp        : /^[a-z]+([a-z]+)*$/i
                   messages        :
-                    regExp        : "For Application name only lowercase letters and numbers are allowed!"
+                    regExp        : "For Application name only lowercase letters are allowed!"
 
     newAppModal.once "KDObjectWillBeDestroyed", ->
       newAppModal = null
@@ -257,11 +252,14 @@ class KodingAppsController extends KDController
         * #{name} (index.coffee): Application created.
     """
 
-  prepareApplication:({isBlank, name}, callback)->
+  prepareApplication:(name, callback)->
 
-    type         = if isBlank then "blank" else "sample"
-    name         = if name is "" then null else name
-    name         = name.replace(/[^a-zA-Z0-9\/\-.]/g, '')  if name
+    unless name
+      return new KDNotificationView
+        title : "Application name is not provided."
+
+    type         = "blank"
+    name         = name.replace /[^a-zA-Z0-9\/\-.]/g, ''
     manifestStr  = defaultManifest type, name
     changeLogStr = @_createChangeLog name
     manifest     = JSON.parse manifestStr
