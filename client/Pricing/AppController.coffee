@@ -12,18 +12,22 @@ class PricingAppController extends KDViewController
 
     super options, data
 
-    productForm       = new KDView
+    @productForm      = new KDView
     @resourcePackPlan = new ResourcePackPlan
     @customPlan       = new CustomPlan
 
-    productForm.addSubView @resourcePackPlan
-    productForm.forwardEvent @resourcePackPlan, "PlanSelected"
+    @productForm.addSubView @resourcePackPlan
+    @resourcePackPlan.on "PlanSelected", @bound "selectPlan"
 
-    productForm.addSubView @customPlan
-    productForm.forwardEvent @customPlan, "PlanSelected"
+    @productForm.addSubView @customPlan
+    @customPlan.on "PlanSelected", @bound "selectPlan"
 
-    @getView().addWorkflow workflow = KD.singleton("paymentController").createUpgradeWorkflow
-      productForm: productForm
+    @getView().addWorkflow workflow = KD.singleton("paymentController").createUpgradeWorkflow {@productForm}
+
+  selectPlan: (tag, options) ->
+    KD.remote.api.JPaymentPlan.one tags: $in: [tag], (err, plan) =>
+      return  if KD.showError err
+      @productForm.emit "PlanSelected", plan, options
 
     # TODO : remove after test
     # workflow.emit "Finished",
