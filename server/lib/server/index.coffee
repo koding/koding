@@ -245,6 +245,15 @@ app.get "/Landing/:page", (req, res, next) ->
       JGroup.render.landing {account, page, client, bongoModels}, (err, body) ->
         serve body, res
 
+
+isInAppRoute = (name)->
+  [firstLetter] = name
+  # user nicknames can start with numbers
+  intRegex = /^\d+$/
+  return false if intRegex.test firstLetter
+  return true  if firstLetter.toUpperCase() is firstLetter
+  return false
+
 # Handles all internal pages
 # /USER || /SECTION || /GROUP[/SECTION] || /APP
 #
