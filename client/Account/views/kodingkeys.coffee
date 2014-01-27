@@ -9,11 +9,11 @@ class AccountKodingKeyListController extends AccountListViewController
         kites (Koding applications running on other machines). To get your keys listed here you need to download and install kd tool:
       </p>
 
-      For OS X:
+      For OS X run the following command in Terminal:
       <code>$ brew install "https://kd-tool.s3.amazonaws.com/kd.rb"</code>
 
-      For Ubuntu/Debian:
-      <code>$ curl "https://kd-tool.s3.amazonaws.com/install.sh" | bash</code>
+      For Ubuntu/Debian install the following package:
+      <code><a href="https://kd-tool.s3.amazonaws.com/kd-latest-linux.deb">https://kd-tool.s3.amazonaws.com/kd-latest-linux.deb</a></code>
 
       and then register your machine with
       <code>$ kd register</code>
