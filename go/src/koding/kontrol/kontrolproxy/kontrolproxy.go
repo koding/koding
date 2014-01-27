@@ -68,11 +68,11 @@ var (
 	// used for various kinds of use cases like validator, 404 pages,
 	// maintenance,...
 	templates = template.Must(template.ParseFiles(
-		"templates/notfound.html",
-		"templates/notactiveVM.html",
-		"templates/securepage.html",
-		"templates/quotaExceeded.html",
-		"templates/maintenance.html",
+		"files/templates/notfound.html",
+		"files/templates/notactiveVM.html",
+		"files/templates/securepage.html",
+		"files/templates/quotaExceeded.html",
+		"files/templates/maintenance.html",
 	))
 )
 
