@@ -45,7 +45,7 @@ class PlanUpgradeConfirmForm extends PaymentConfirmForm
       @plan.addSubView new VmPlanView {planOptions}, plan
 
       if plan.discountCode and plan.vmCode
-        @fetchCoupons ["discount", "vm"], @bound "addCouponOptions"
+        @fetchCoupons plan, ["discount", "vm"], @bound "addCouponOptions"
 
       if oldSubscription
         @plan.addSubView new KDView partial: "<p>Your old plan was:</p>"
@@ -106,11 +106,11 @@ class PlanUpgradeConfirmForm extends PaymentConfirmForm
         @discount.updatePartial @utils.formatMoney discountInCents / 100
         @subtotal.updatePartial @utils.formatMoney (@getData().plan.feeAmount - discountInCents) / 100
 
-  fetchCoupons: (codes, callback) ->
+  fetchCoupons: (plan, codes, callback) ->
     {dash} = Bongo
     queue = codes.map (code) =>
       =>
-        @plan.fetchCoupon code, (err, coupon) =>
+        plan.fetchCoupon code, (err, coupon) =>
           return  if KD.showError err
           @coupons[code] = coupon
           queue.fin()
