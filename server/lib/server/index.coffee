@@ -109,8 +109,7 @@ process.on 'uncaughtException', (err) ->
 app.use (req, res, next) ->
   {JSession} = koding.models
   {clientId} = req.cookies
-  return next() if clientId
-  JSession.createSession (err, session, account)->
+  JSession.fetchSession clientId, (err, session)->
     return next() if err or not session
     res.cookie "clientId", session.clientId, {}
     next()
