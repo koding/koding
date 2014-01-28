@@ -233,6 +233,7 @@ module.exports = class JPaymentPlan extends JPaymentBase
             =>
               @fetchProducts null, targetOptions: selector: tags: $in: [resourceTag], (err, products) =>
                 return callback err  if err
+                return callback "no products found"  unless products and products.length
                 for product in products
                   continue unless product
                   {planCode} = product
@@ -242,8 +243,8 @@ module.exports = class JPaymentPlan extends JPaymentBase
               return queue.fin()  unless "custom-plan" in @tags
               @fetchProducts null, targetOptions: selector: tags: $in: ["user"], (err, products) =>
                 return callback err  if err
+                return callback "no products found"  unless products and products.length
                 product = products[0]
-                return  unless product
                 {planCode} = product
                 quantities[planCode] = @quantities[planCode] * (userQuantity or 1)
                 queue.fin()
