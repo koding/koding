@@ -148,7 +148,7 @@ class HomeRegisterForm extends KDFormView
           duration  : 2000
 
         firstRoute = KD.getSingleton("router").visitedRoutes.first
-        if firstRoute and /^\/(?:Reset|Register|Confirm)\//.test firstRoute
+        if firstRoute and /^\/(?:Reset|Register|Confirm|R)\//.test firstRoute
           firstRoute = "/Activity"
 
         {entryPoint} = KD.config
