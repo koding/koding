@@ -22,7 +22,7 @@ module.exports = class JVM extends Module
 
   handleError = (err)-> console.error err  if err
 
-  VMDefaultDiskSize = 4096
+  VMDefaultDiskSize = @VMDefaultDiskSize = 4096
   @set
     softDelete          : yes
     indexes             :
@@ -129,7 +129,7 @@ module.exports = class JVM extends Module
       }
       return callback null
 
-  fetchDefaultVmHelper = (client, callback)->
+  @fetchDefaultVm_ = (client, callback)->
     {delegate} = client.connection
     delegate.fetchUser (err, user) ->
       return callback err  if err
@@ -146,7 +146,7 @@ module.exports = class JVM extends Module
 
 
   @resetDefaultVMLimits = secure (client, callback)->
-    fetchDefaultVmHelper client, (err, vm)->
+    @fetchDefaultVm_ client, (err, vm)->
       return callback err  if err
       return callback new Error "VM not found" unless vm
       vm.update {$set: diskSizeInMB: VMDefaultDiskSize}, (err) ->
@@ -449,7 +449,7 @@ module.exports = class JVM extends Module
       callback null, vm.region
 
   @fetchDefaultVm = secure (client, callback)->
-    fetchDefaultVmHelper client, (err, vm)->
+    @fetchDefaultVm_ client, (err, vm)->
       return callback err  if err
       callback null, vm?.hostnameAlias
 
