@@ -211,6 +211,8 @@ module.exports = class JGroup extends Module
           (signature String, Function)
         unlinkPaymentMethod:
           (signature String, Function)
+        addSubscription:
+          (signature String, Function)
     schema          :
       title         :
         type        : String
@@ -300,6 +302,9 @@ module.exports = class JGroup extends Module
       plan          :
         targetType  : 'JPaymentPlan'
         as          : 'group plan'
+      subscription  :
+        targetType  : 'JPaymentSubscription'
+        as          : 'payment plan subscription'
 
   constructor:->
     super
@@ -1420,3 +1425,9 @@ module.exports = class JGroup extends Module
         @fetchPacks {}, options, callback
       when 'plan'
         @fetchPlans {}, options, callback
+
+  addSubscription$: permit 'edit own groups',
+    success: (client, id, callback) ->
+      JPaymentSubscription = require '../payment/subscription'
+      JPaymentSubscription.one _id: id, (err, subscription) =>
+        @addSubscription subscription, callback

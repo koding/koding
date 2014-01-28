@@ -86,6 +86,9 @@ class PricingAppView extends KDView
           ]
 
   createGroup: ->
+    unless @subscription
+      return KD.showError "Subscription failed"
+
     groupName  = @groupForm.inputs.GroupName.getValue()
     privacy    = @groupForm.inputs.Privacy.getValue()
     visibility = @groupForm.inputs.Visibility.getValue()
@@ -98,9 +101,11 @@ class PricingAppView extends KDView
       privacy    : privacy
       visibility : visibility
 
-    KD.remote.api.JGroup.create options, (err, group)=>
-      return KD.showError err if err
-      @showSummaryModal group
+    KD.remote.api.JGroup.create options, (err, group) =>
+      return KD.showError err  if err
+      group.addSubscription @subscription.getId(), (err) =>
+        return KD.showError err  if err
+        @showSummaryModal group
 
   showSummaryModal: (group)->
     {planOptions: {userQuantity, resourceQuantity}} = @workflowData.productData
