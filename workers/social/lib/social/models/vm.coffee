@@ -3,6 +3,8 @@
 {argv} = require 'optimist'
 KONFIG = require('koding-config-manager').load("main.#{argv.c}")
 
+JPaymentPack = require "./payment/pack"
+
 module.exports = class JVM extends Module
 
   {permit} = require './group/permissionset'
@@ -337,17 +339,18 @@ module.exports = class JVM extends Module
 
         return callback new Error "You can not create shared VM" unless account.getId().toString() in adminIds
 
-        request =
-          account   :account,
-          type      :"group"
-          # groupSlug :"dede",
-          groupSlug :group.slug,
-          # i dont know what the plan code is!?!
-          planCode  : "group_vm_1xs_1"
-          # this is not used
-          # subscriptionCode:subscriptionCode
+        group.fetchSubscription (err, subscription) =>
+          return callback err  if err or not subscription
 
-        @createVm request, callback
+          JPaymentPack.one tags: $in: ["sharedvm"], (err, pack) =>
+            return callback err  if err or not pack
+            subscription.debit pack, 1, (err) =>
+              return callback err  if err
+              @createVm {
+                type      : "group"
+                groupSlug : group.slug
+                account
+              }, callback
 
   # TODO: this needs to be rethought in terms of bundles, as per the
   # discussion between Devrim, Chris T. and Badahir  C.T.
