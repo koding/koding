@@ -300,7 +300,7 @@ module.exports = class JUser extends jraphical.Module
     if /@/.test loginId
       JUser.someData {email: loginId}, {username: 1}, (err, cursor) ->
         return callback err  if err
-        
+
         cursor.nextObject (err, data) ->
           return callback err  if err?
           return callback { message: 'Unrecognized email' }  unless data?
@@ -323,7 +323,8 @@ module.exports = class JUser extends jraphical.Module
         # this broke login, reverted. - SY
         # if not session? or session.username isnt username
         unless session
-          return callback { message: 'Could not restore your session!' }
+          console.error "login: session not found", username
+          return callback { message: "Couldn't restore your session!" }
 
         bruteForceControlData =
           ip        : session.clientIP
@@ -565,8 +566,13 @@ module.exports = class JUser extends jraphical.Module
     {isUserLoggedIn, provider} = resp
     {sessionToken} = client
     JSession.one {clientId: sessionToken}, (err, session) =>
-      return callback err  if err
-      return callback createKodingError "Couldn't restore your session."  unless session
+      return callback createKodingError err  if err
+
+      unless session
+        {connection: {delegate: {profile: {nickname}}}} = client
+        console.error "authenticateWithOauth: session not found", nickname
+
+        return callback createKodingError "Couldn't restore your session!"
 
       kallback = (err, resp={}) ->
         {account, replacementToken} = resp
