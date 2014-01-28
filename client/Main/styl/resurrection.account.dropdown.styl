@@ -48,7 +48,7 @@ resurrection.account.dropdown.styl
     right                   295px
     .tab span
       margin                19px 0 0 3px
-      r-sprite                app account-notifications
+      r-sprite              app account-notifications
 
   &.group-switcher
     right                   55px
@@ -63,11 +63,13 @@ resurrection.account.dropdown.styl
       shadow                none
 
     a.separator
-      border-top           1px solid #3c4647
+      border-top            1px solid #2F3435
+
+    .bb
+      border-bottom         1px solid #2F3435
 
     .kdscrollview
       max-height            322px !important
-
 
 
     .avatararea-popup-list li a
@@ -80,7 +82,8 @@ resurrection.account.dropdown.styl
       font-weight           300
       text-decoration       none
       &:hover
-        text-decoration     underline
+        text-decoration     none
+        bg                  color, logoBg
       span
         font-weight         300
         color               white
@@ -89,6 +92,8 @@ resurrection.account.dropdown.styl
       li
         padding             0
         border-bottom       none
+        &~li
+          border-top        none
         a.fr
           abs()
           top               7px
@@ -114,9 +119,13 @@ resurrection.account.dropdown.styl
           vertical-align    top
           margin-left       2px
           opacity           .5
+        &:hover
+          .custom-link-view .icon.dashboard-page
+            r-sprite        app '20-cog-white'
 
         .custom-link-view .icon.dashboard-page
           r-sprite          app '20-cog'
+          opacity           .5
 
         .buttons
           fr()
