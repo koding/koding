@@ -86,10 +86,10 @@ class GroupGeneralSettingsView extends JView
 
     @settingsForm = new KDFormViewWithFields formOptions, group
 
-    unless KD.config.roles? and 'owner' in KD.config.roles
-      @settingsForm.buttons.Remove.hide()
+    # unless KD.config.roles? and 'owner' in KD.config.roles
+    #   @settingsForm.buttons.Remove.hide()
 
-    if data.slug is 'koding'
-      @settingsForm.buttons.Remove.hide()
+    # if data.slug is 'koding'
+    #   @settingsForm.buttons.Remove.hide()
 
   pistachio:-> "{{> @settingsForm}}"
