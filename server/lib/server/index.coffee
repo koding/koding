@@ -317,7 +317,7 @@ app.all '/:name/:section?*', (req, res, next)->
           models.last.fetchHomepageView account, (err, view)->
             if err then next err
             else if view? then res.send view
-            else res.send 500, error_500()
+            else res.send 404, error_404()
         else next()
 
 # Main Handler for Koding.com

@@ -708,9 +708,10 @@ module.exports = class JGroup extends Module
   #   success:(client, options, callback)->
 
   fetchHomepageView: (account, callback)->
-    @fetchMembershipPolicy (err, policy)=>
-      if err then callback err
-      else
+    kallback = =>
+      @fetchMembershipPolicy (err, policy)=>
+        return callback err if err
+
         options = {
           account
           @slug
@@ -723,6 +724,12 @@ module.exports = class JGroup extends Module
         }
         prefix = if account.type is 'unregistered' then 'loggedOut' else 'loggedIn'
         JGroup.render[prefix].groupHome options, callback
+
+    if @visibility is 'hidden'
+      @isMember account, (err, isMember)->
+        return callback err if err
+        if isMember then kallback()
+        else do callback
 
   fetchRolesByClientId:(clientId, callback)->
     [callback, clientId] = [clientId, callback]  unless callback
