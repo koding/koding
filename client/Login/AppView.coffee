@@ -433,30 +433,26 @@ class LoginView extends KDView
         KD.mixpanel "Redeem, success"
 
   showHeadBanner:(message, callback)->
+    $('body').addClass 'recovery'
     @headBannerMsg = message
     @headBanner.updatePartial @headBannerMsg
     @headBanner.unsetClass 'hidden'
     @headBanner.setClass 'show'
-    $('body').addClass 'recovery'
-    @headBanner.click = callback
+    @headBanner.off 'click'
+    @headBanner.once 'click', callback
     @headBanner.appendToDomBody()
 
-  headBannerShowGoBackGroup:(groupTitle)->
-    @showHeadBanner "<span>Go Back to</span> #{groupTitle}", =>
-      @headBanner.hide()
-
-      $('#group-landing').css 'height', '100%'
-      $('#group-landing').css 'opacity', 1
-
   headBannerShowInvitation:(invite)->
-    @showHeadBanner "Cool! you got an invite! <span>Click here to register your account.</span>", =>
+    @showHeadBanner "Cool! you got an invite! <span>If you already have an account click here to sign in.</span>", =>
+      @animateToForm "login"
       @headBanner.hide()
-      KD.getSingleton('router').clear @getRouteWithEntryPoint('Register')
-      $('body').removeClass 'recovery'
-      @show =>
-        @animateToForm "register"
-        @$('.flex-wrapper').addClass 'taller'
-        KD.getSingleton('mainController').emit 'InvitationReceived', invite
+
+    KD.getSingleton('router').clear @getRouteWithEntryPoint 'Register'
+    $('body').removeClass 'recovery'
+    @show =>
+      @animateToForm "register"
+      @$('.flex-wrapper').addClass 'taller'
+      KD.getSingleton('mainController').emit 'InvitationReceived', invite
 
   hide:(callback)->
 
