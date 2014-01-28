@@ -343,6 +343,25 @@ module.exports = class JReferral extends jraphical.Message
         return console.error err if err
         console.log "referal saved successfully for #{me.profile.nickname} from #{referrerCode}"
 
+    persistReferrals = (source, target, callback)->
+      getReferralDiskSizeAmount (err, amount)->
+        return callback err if err
+        referral = new JReferral { type: "disk", unit: "MB", amount}
+        referral.save (err) ->
+          return callback err if err
+          #add referrer as referrer to the referral system
+          source.addReferrer referral, (err)->
+            return callback err if err
+            # add me as referred to the referral system
+            target.addReferred referral, (err)->
+              return callback err if err
+              console.info "referal saved successfully for #{target.profile.nickname} from #{source.profile.nickname}"
+              callback null
+
+              # do this async
+              decreaseLeftSpace amount, (err)->
+                return console.error err if err
+
     JUser.on 'EmailConfirmed', (user)->
       return console.log "User is not defined in event" unless user
 
@@ -351,20 +370,14 @@ module.exports = class JReferral extends jraphical.Message
         # if account not fonud then do nothing and return
         return console.error "Account couldnt found" unless me
         referrerUsername = me.referrerUsername
-        return console.log "User doesn't have any referrer" unless referrerUsername
+        return console.info "User doesn't have any referrer" unless referrerUsername
         # get referrer
         JAccount.one {'profile.nickname': referrerUsername }, (err, referrer)->
           # if error occured than do nothing and return
           return console.error "Error while fetching referrer", err if err
           # if referrer not fonud then do nothing and return
           return console.error "Referrer couldnt found" if not referrer
-          referral = new JReferral { type: "disk", unit: "MB", amount: 250 }
-          referral.save (err) ->
+          persistReferrals referrer, me, (err)->
             return console.error err if err
-            #add referrer as referrer to the referral system
-            referrer.addReferrer referral, (err)->
+            persistReferrals me, referrer, (err)->
               return console.error err if err
-              # add me as referred to the referral system
-              me.addReferred referral, (err)->
-                return console.error err if err
-                console.log "referal saved successfully for #{me.profile.nickname} from #{referrerUsername}"
