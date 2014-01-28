@@ -22,6 +22,7 @@ module.exports = class JVM extends Module
 
   handleError = (err)-> console.error err  if err
 
+  VMDefaultDiskSize = 4096
   @set
     softDelete          : yes
     indexes             :
@@ -60,6 +61,8 @@ module.exports = class JVM extends Module
         count:
           (signature Object, Function)
         fetchDefaultVm:
+          (signature Function)
+        resetDefaultVMLimits:
           (signature Function)
         fetchVmRegion:
           (signature String, Function)
@@ -112,7 +115,7 @@ module.exports = class JVM extends Module
         default         : 1024
       diskSizeInMB      :
         type            : Number
-        default         : 3600
+        default         : VMDefaultDiskSize
       numCPUs           :
         type            : Number
         default         : 1
@@ -140,6 +143,16 @@ module.exports = class JVM extends Module
           groups   : { $elemMatch: id: fetchedGroup.getId() }
           planCode : 'free'
         , callback
+
+
+  @resetDefaultVMLimits = secure (client, callback)->
+    fetchDefaultVmHelper client, (err, vm)->
+      return callback err  if err
+      return callback new Error "VM not found" unless vm
+      vm.update {$set: diskSizeInMB: VMDefaultDiskSize}, (err) ->
+        return callback err if err
+        callback null, vm.hostnameAlias
+
   @createDomains = (account, domains, hostnameAlias)->
 
     updateRelationship = (domainObj)->
