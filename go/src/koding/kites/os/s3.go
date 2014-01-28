@@ -83,11 +83,28 @@ func groupBucketFunc(params *storeParams, vos *virt.VOS) error {
 	// we need this to make sure the user has permission to this group
 	group, err := modelhelper.GetGroup(params.Path)
 	if err != nil {
-		return err
+		return fmt.Errorf("modelhelper.GetGroup: %s", err)
 	}
 
-	permissions := vos.VM.GetGroupPermissions(group.ObjectId)
-	if permissions == nil {
+	account, err := modelhelper.GetAccount(vos.User.Name)
+	if err != nil {
+		return fmt.Errorf("modelhelper.GetAccount: %s", err)
+	}
+
+	selector := modelhelper.Selector{
+		"as":         "admin",
+		"targetName": "JAccount",
+		"targetId":   account.Id,
+		"sourceName": "JGroup",
+		"sourceId":   group.Id,
+	}
+
+	relCount, err := modelhelper.RelationshipCount(selector)
+	if err != nil {
+		return fmt.Errorf("modelhelper.GetRelationship: %s", err)
+	}
+
+	if relCount < 1 {
 		return &kite.PermissionError{}
 	}
 
