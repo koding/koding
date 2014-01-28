@@ -30,6 +30,7 @@ class ActivityRightBase extends JView
     """
 
 class ActiveUsers extends ActivityRightBase
+
   constructor:(options={}, data)->
     {entryPoint} = KD.config
     if entryPoint?.type is "group" then group = entryPoint.slug else group = "koding"
@@ -69,6 +70,7 @@ class ActiveTopics extends ActivityRightBase
 
     @showAllLink = new KDCustomHTMLView
 
+    {entryPoint} = KD.config
     if entryPoint?.type is "group" then group = entryPoint.slug else group = "koding"
 
     @showAllLink = new KDCustomHTMLView
@@ -127,6 +129,7 @@ class GroupMembers extends ActivityRightBase
 
     super options, data
 
+    {entryPoint} = KD.config
     if entryPoint?.type is "group" then groupSlug = entryPoint.slug else groupSlug = "koding"
 
     @showAllLink = new KDCustomHTMLView
