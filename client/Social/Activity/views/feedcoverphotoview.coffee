@@ -1,24 +1,60 @@
 class FeedCoverPhotoView extends KDView
+
+  _notify = (msg)-> new KDNotificationView title : msg or 'There was an error, please try again later!'
+
   constructor: (options = {}, data) ->
     options.cssClass = "group-cover-view"
     super options, data
 
     {groupsController} = KD.singletons
+
     groupsController.ready =>
       @group = groupsController.getCurrentGroup()
 
-      if @group.slug isnt "koding"
-        container = new KDView
-          cssClass : "container"
-          size     :
-            height : 315
+      @decorateHeader()  if @group.slug isnt "koding"
 
-        container.addSubView @getCoverUpdateButton()
-        container.addSubView @getCoverView()
-      else
-        container = new KDCustomHTMLView
+      @group.on "update", @bound "decorateHeader"
 
-      @addSubView container
+  decorateHeader:->
+
+    unless @container
+      @container = new KDView
+        cssClass : "container"
+        size     : height : 315
+
+      @coverView = new KDCustomHTMLView
+        tagName    : 'figure'
+        attributes :
+          style    : "background-image: url(#{@group.customize?.coverPhoto});"
+
+      @listController = new KDListViewController
+        startWithLazyLoader : no
+        view                : new KDListView
+          type              : "collage"
+          cssClass          : "cover-list"
+          itemClass         : CollageItemList
+
+
+      @container.addSubView @getCoverUpdateButton()
+      @container.addSubView @coverView
+      @container.addSubView @listController.getView()
+      @addSubView @container
+
+    @toggle()
+
+  toggle:->
+
+    if @group.customize?.coverPhoto
+      @listController.getView().hide()
+      @coverView.setCss 'background-image', "url(#{@group.customize.coverPhoto})"
+      @coverView.show()
+    else
+      @coverView.hide()
+      @listController.getView().show()
+      @listController.removeAllItems()
+      @group.fetchMembersFromGraph limit : 20, (err, accounts) =>
+        @listController.instantiateListItems accounts
+
 
   getCoverUpdateButton: ->
     if "admin" in KD.config.roles
@@ -28,39 +64,35 @@ class FeedCoverPhotoView extends KDView
         type      : "submit"
         title     : "Update cover image"
         callback  : =>
-          new UploadImageModalView
-            cssClass   : "group-cover-uploader"
-            title      : "Change Cover Photo"
-            width      : 1004
-            image      :
-              type     : "coverPhoto"
-              size     :
-                width  : 914
-                height : 315
+          modal = new UploadImageModalView
+            cssClass      : "group-cover-uploader"
+            title         : "Change Cover Photo"
+            uploaderTitle : "Drag & drop image here! <small>Cover photos are 948 pixels wide and 315 pixels tall.</small>"
+            width         : 1004
+            image         :
+              type        : "coverPhoto"
+              size        :
+                width     : 914
+                height    : 315
+            buttons       :
+              uploadButton:
+                title     : "Upload"
+                cssClass  : "modal-clean-green"
+                callback  : =>
+                  modal.upload (err)=>
+                    return  if err then _notify()
+                    modal.destroy()
 
+              clear       :
+                title     : "Remove cover photo"
+                cssClass  : "modal-clean-red"
+                callback  : =>
+                  @group.modify "customize.coverPhoto" : "", (err)=>
+                    return _notify()  if err
+                    modal.destroy()
     else
       new KDCustomHTMLView
 
-  getCoverView: ->
-    if @group.customize?.coverPhoto
-      new KDCustomHTMLView
-        tagName     : 'figure'
-        attributes  :
-          style     : "background:url(#{@group.customize?.coverPhoto})"
-    else
-      # if group doesnt has cover photo, put collage of group users
-      collageList           = new KDListViewController
-        startWithLazyLoader : no
-        view                : new KDListView
-          type              : "collage"
-          cssClass          : "cover-list"
-          itemClass         : CollageItemList
-
-      options = limit : 20
-
-      @group.fetchMembersFromGraph options, (err, accounts) ->
-        collageList.instantiateListItems accounts
-      collageList.getView()
 
 class CollageItemList extends KDListItemView
   constructor: (options = {}, data) ->
