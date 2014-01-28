@@ -10,6 +10,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"runtime"
 	"strings"
 )
 
@@ -54,7 +55,6 @@ func buildPackages() error {
 }
 
 func (p *pkg) build() error {
-
 	// prepare config folder
 	tempDir, err := ioutil.TempDir(".", "gopackage_")
 	if err != nil {
@@ -83,10 +83,13 @@ func (p *pkg) build() error {
 	b.ImportPath = p.importPath
 	b.Files = strings.Join(p.files, ",")
 
+	// initializes b.AppName
 	err = b.InitializeAppName()
 	if err != nil {
 		return err
 	}
+
+	b.Output = fmt.Sprintf("%s-%s.%s-%s", b.AppName, b.Version, runtime.GOOS, runtime.GOARCH)
 
 	err = b.TarGzFile()
 	if err != nil {
