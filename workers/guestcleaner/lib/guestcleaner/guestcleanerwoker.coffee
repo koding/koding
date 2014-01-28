@@ -55,8 +55,8 @@ module.exports = class GuestCleanerWorker
     options = {limit:25}
 
     JAccount.some selector, options, (err, accounts)=>
-      if err then return console.error err
-      if accounts.length < 1  then return
+      return console.error err  if err
+      return  if accounts?.length < 1
 
       accountIds = _.map accounts, (account)-> return account._id
 
