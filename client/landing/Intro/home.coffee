@@ -34,6 +34,9 @@ class HomePage extends JView
 
     @markers = new MarkerController
 
+    @resourcePackPlan = new ResourcePackPlan
+    @customPlan       = new CustomPlan
+
   show:->
 
     @appendToDomBody()  unless document.getElementById 'home-page'
@@ -186,6 +189,10 @@ class HomePage extends JView
           </div>
         </div>
         {{> @pricingButton}}
+      </section>
+      <section id="pricing" class="clearfix">
+        {{> @resourcePackPlan}}
+        {{> @customPlan}}
       </section>
       <section id='home-bottom'>
         <h2 class='big-header'>If you are ready to go, let’s do this</h2>
