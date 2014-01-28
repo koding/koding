@@ -13,8 +13,8 @@ class PricingAppController extends KDViewController
     super options, data
 
     @productForm      = new KDView
-    @resourcePackPlan = new ResourcePackPlan
-    @customPlan       = new CustomPlan
+    @resourcePackPlan = new ResourcePackPlan cssClass: "hidden"
+    @customPlan       = new CustomPlan cssClass: "hidden"
 
     @productForm.addSubView @resourcePackPlan
     @resourcePackPlan.on "PlanSelected", @bound "selectPlan"
