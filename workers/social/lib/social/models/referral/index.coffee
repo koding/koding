@@ -265,6 +265,12 @@ module.exports = class JReferral extends jraphical.Message
         return callback new KodingError "#{vm} is not found" unless vm
         callback null, vm
 
+  CAMPAIGN_NAME                   = "100_TB_CAMPAIGN"
+  CAMPAIGN_TOTAL_DISK_SIZE_IN_MB  = 1024*1024*100 # 100TB
+  CAMPAIGN_DISK_SIZE_IN_MB        = 1024
+  CAMPAIGN_START_DATE             = new Date("Jan 29 2014 16:00:00")
+  OLD_DISK_SIZE_IN_MB             = 250
+
   @isCampaingValid = isCampaingValid = (callback)->
     fetchTBCampaing (err, campaign)->
       return callback err if err
