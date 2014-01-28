@@ -42,12 +42,10 @@ class EnvironmentContainer extends KDDiaContainer
 
     @addSubView @header
     @header.addSubView @newItemPlus
+    KD.getSingleton("groupsController").ready =>
+      currentGroup = KD.getSingleton("groupsController").getCurrentGroup()
 
-    groupController = KD.getSingleton("groupsController")
-    currentGroup = groupController.currentGroupData
-
-    if currentGroup?.data
-      currentGroup.data.fetchAdmin (err, admin)=>
+      currentGroup.fetchAdmin (err, admin)=>
         unless err and admin?.profile
           me = KD.whoami()
           if admin.profile?.nickname is me.profile?.nickname
