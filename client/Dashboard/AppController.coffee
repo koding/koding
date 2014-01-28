@@ -7,7 +7,8 @@ class DashboardAppController extends AppController
   KD.registerAppClass this,
     name         : "Dashboard"
     routes                         :
-      "/:name?/Dashboard"          : null
+      "/:name?/Dashboard"          : ({params : {section,name}})->
+        handler name, (app)-> app.loadSection title : "Settings"
       "/:name?/Dashboard/:section" : ({params : {section,name}})->
         handler name, (app)-> app.loadSection title : section
     hiddenHandle : yes
@@ -106,7 +107,7 @@ class DashboardAppController extends AppController
 
   loadSection: ({title}) ->
     @getView().nav.ready =>
-      @getView().tabs.showPaneByName title or 'Settings'
+      @getView().tabs.showPaneByName title
 
   policyViewAdded: (pane, view) ->
 
