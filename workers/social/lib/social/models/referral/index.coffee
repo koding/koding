@@ -265,6 +265,18 @@ module.exports = class JReferral extends jraphical.Message
         return callback new KodingError "#{vm} is not found" unless vm
         callback null, vm
 
+  decreaseLeftSpace = (size, callback)->
+    isCampaingValid (err, status)->
+      return callback err if err
+      return callback null unless status
+
+      # change value with negative
+      size = -size if size > 0
+      JStorage = require '../storage'
+      JStorage.update
+        name: CAMPAIGN_NAME
+      , $inc : "content.diskSpaceLeftMB" : size
+      , callback
   do =>
     JAccount.on 'AccountRegistered', (me, referrerCode)->
       return console.error "Account is not defined in event" unless me
