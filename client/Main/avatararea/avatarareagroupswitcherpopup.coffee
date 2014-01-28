@@ -76,9 +76,24 @@ class AvatarPopupGroupSwitcher extends AvatarPopup
         router.handleRoute '/Pricing/Enterprise', entryPoint : 'koding'
         @hide()
 
+    backToKoding = new KDCustomHTMLView
+      tagName    : 'a'
+      attributes : href : '/'
+      cssClass   : 'bottom bb'
+      partial    : 'Go back to Koding'
+      click      : (event)=>
+        KD.utils.stopDOMEvent event
+        location.href = '/'
+
+    groupsController.ready ->
+      backToKoding.destroy()  if groupsController.getCurrentGroup().slug is 'koding'
+
+
     @groupSubMenuWrapper.addSubView createGroupLink, '.content'
+    @groupSubMenuWrapper.addSubView backToKoding, '.content'
     @groupSubMenuWrapper.addSubView @listControllerPending.getView(), '.content'
     @groupSubMenuWrapper.addSubView @listController.getView(), '.content'
+
 
     submenuShown = no
 
@@ -178,7 +193,7 @@ class AvatarPopupGroupSwitcher extends AvatarPopup
 
 
   populateGroups:->
-    return  unless KD.isLoggedIn() or @isLoading
+    return  if not KD.isLoggedIn() or @isLoading
 
     @listController.removeAllItems()
 
