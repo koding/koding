@@ -5,6 +5,7 @@ class UploadImageModalView extends KDModalView
     options.uploaderTitle ?= "Drag & drop image here!"
     options.overlay       ?= yes
     options.preview       ?= options.image
+    options.overlayClick  ?= no
     options.buttons       ?=
       uploadButton     :
         title          : "Upload"
