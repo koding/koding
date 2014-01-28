@@ -111,6 +111,10 @@ class DockController extends KDViewController
 
   setNavItemState:({name, route, options}, state)->
 
+    if state is 'active'
+      state  = 'running'
+      select = yes
+
     options or= {}
     route   or= options.navItem?.path or '-'
 
@@ -118,6 +122,7 @@ class DockController extends KDViewController
       if (///^#{route}///.test nav.data.path) \
       or (nav.data.path is "/#{name}") or ("/#{name}" is nav.data.path)
         nav.setState state
+        @navController.selectItem nav  if select
         hasNav = yes
 
     unless hasNav
@@ -144,3 +149,6 @@ class DockController extends KDViewController
 
       appManager.on "AppUnregistered", (name, options) =>
         @setNavItemState {name, options}, 'initial'
+
+      appManager.on "AppIsBeingShown", (instance, view, options) =>
+        @setNavItemState {name:options.name, options}, 'active'
