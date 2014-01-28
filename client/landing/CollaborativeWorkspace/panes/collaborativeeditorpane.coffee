@@ -78,16 +78,19 @@ class CollaborativeEditorPane extends CollaborativePane
       message: "$0 saved #{@getData().name}"
       by     : KD.nick()
 
-  setEditorTheme: ->
-    if document.getElementById "codemirror-ambiance-style"
-      return  @codeMirrorEditor.setOption "theme", "ambiance"
-    link       = document.createElement "link"
-    link.rel   = "stylesheet"
-    link.type  = "text/css"
-    link.href  = "#{cdnRoot}/theme/ambiance.css"
-    link.id    = "codemirror-ambiance-style"
-    document.head.appendChild link
-    @codeMirrorEditor.setOption "theme", "ambiance"
+  setEditorTheme: (theme = 'ambiance')->
+
+    styleId = "codemirror-#{theme}-style"
+
+    unless document.getElementById styleId
+      link       = document.createElement "link"
+      link.rel   = "stylesheet"
+      link.type  = "text/css"
+      link.href  = "#{cdnRoot}/theme/#{theme}.css"
+      link.id    = styleId
+      document.head.appendChild link
+
+    @codeMirrorEditor.setOption "theme", theme
 
   setEditorMode:(fileExtension) ->
 
