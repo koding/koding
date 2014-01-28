@@ -7,11 +7,10 @@ class UploadImageModalView extends KDModalView
     options.preview       ?= options.image
     options.overlayClick  ?= no
     options.buttons       ?=
-      uploadButton     :
-        title          : "Upload"
-        cssClass       : "modal-clean-green"
-        callback       : =>
-          @uploadLogo()
+      uploadButton         :
+        title              : "Upload"
+        cssClass           : "modal-clean-green"
+        callback           : @bound "upload"
 
     super options, data
 
@@ -45,7 +44,7 @@ class UploadImageModalView extends KDModalView
 
     @uploaderView.addSubView @logoPreview
 
-  uploadLogoToS3: (avatarData, callback)->
+  uploadToS3: (avatarData, callback)->
     #TODO : change the address and name of the logo
     FSHelper.s3.upload "grouplogo-test1.png", avatarData, (err, url)=>
       if err
@@ -54,7 +53,7 @@ class UploadImageModalView extends KDModalView
         return
 
       proxifyOptions =
-        crop         : true
+        crop         : yes
         width        : @getOptions().image.size.width
         height       : @getOptions().image.size.height
 
@@ -62,12 +61,16 @@ class UploadImageModalView extends KDModalView
       group   = KD.singletons.groupsController.getCurrentGroup()
 
       if @getOptions().image.type is "coverPhoto"
-        group.modify "customize.coverPhoto" : "#{url}?#{Date.now()}",  callback
+        group.modify "customize.coverPhoto" : "#{url}?#{Date.now()}", callback
       else
         group.modify "customize.logo" : "#{url}?#{Date.now()}", callback
 
-  uploadLogo:->
+  upload:(callback)->
+
+    return new KDNotificationView title : 'Please drag & drop an image to upload!'  unless @previewData
+
     @loaderView.show()
     [_, logoBase64] = @previewData.split ","
-    @uploadLogoToS3 logoBase64, =>
+    @uploadToS3 logoBase64, (err)=>
       @loaderView.hide()
+      callback? err
