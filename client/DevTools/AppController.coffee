@@ -12,3 +12,9 @@ class DevToolsController extends AppController
       type     : "application"
 
     super options, data
+
+  # FIXME facet, to make it work I had to call notifyWindowResizeListeners here
+  handleQuery:->
+    {workspace} = @getView()
+    workspace.ready ->
+      KD.getSingleton("windowController").notifyWindowResizeListeners()
