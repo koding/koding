@@ -400,6 +400,7 @@ module.exports = class JGroup extends Module
       JMembershipPolicy     = require './membershippolicy'
       JName                 = require '../name'
       group                 = new this groupData
+      group.privacy         = 'private'
       permissionSet         = new JPermissionSet {}, {privacy: group.privacy}
       defaultPermissionSet  = new JPermissionSet {}, {privacy: group.privacy}
 
