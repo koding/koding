@@ -17,7 +17,7 @@ class DockController extends KDViewController
 
     super options, data
 
-    @storage = new AppStorage "Dock", "1.0.1"
+    @storage = new AppStorage "Dock", "1.0.2"
 
     @navController = new MainNavController
       view         : new NavigationList
@@ -69,7 +69,7 @@ class DockController extends KDViewController
 
   saveItemOrders:(items)->
 
-    items or= @navController.itemsOrdered
+    items or= @getItems()
 
     navItems = []
     for own index, item of items
@@ -96,18 +96,21 @@ class DockController extends KDViewController
 
   addItem:(item)->
 
-    if KD.registerNavItem item
+    if item not in @getItems()
+      KD.registerNavItem item
       @navController.addItem item
       @saveItemOrders()
 
   removeItem:(item)->
 
-    return unless index = KD.getNavItems().indexOf item > -1
-    KD.getNavItems().splice index, 1
+    @navController.removeItem item
+    @saveItemOrders()
 
   accountChanged:->
-
     @navController.reset()
+
+  getItems:->
+    @navController.getView().items
 
   setNavItemState:({name, route, options}, state)->
 
@@ -118,7 +121,7 @@ class DockController extends KDViewController
     options or= {}
     route   or= options.navItem?.path or '-'
 
-    for nav in @navController.itemsOrdered
+    for nav in @getItems()
       if (///^#{route}///.test nav.data.path) \
       or (nav.data.path is "/#{name}") or ("/#{name}" is nav.data.path)
         nav.setState state
@@ -126,11 +129,9 @@ class DockController extends KDViewController
         hasNav = yes
 
     unless hasNav
-
       unless name in Object.keys(KD.config.apps)
         @addItem { title : name,  path : "/#{name}", \
                    order : 60 + KD.utils.uniqueId(), type :"" }
-        @setNavItemState {name}, 'running'
 
   loadView:(dock)->
 
