@@ -8,11 +8,8 @@ class PricingAppView extends KDView
   hideWorkflow: ->
     @workflow.hide()
 
-  showThankYou: (data) ->
-    @subscription = data
+  showThankYou: (@workflowData, @subscription) ->
     @hideWorkflow()
-    # Change if group subscription is different
-    groupPlanType  = "custom-plan"
 
     @thankYou = new KDCustomHTMLView
       partial:
@@ -28,25 +25,10 @@ class PricingAppView extends KDView
         }
         """
 
-    {tags} = @subscription.productData.plan
-    unless @subscription.createAccount or groupPlanType in tags
-      @thankYou.addSubView @getContinuationLinks()
-
-    if groupPlanType in tags
+    if "custom-plan" in @workflowData.productData.plan.tags
       @thankYou.addSubView @createGroupNameForm()
 
     @addSubView @thankYou
-
-  getContinuationLinks: ->
-    new KDCustomHTMLView partial:
-      """
-      <ul>
-        <li><a href="/Activity">Activity</a></li>
-        <li><a href="/Account">Account</a></li>
-        <li><a href="/Account/Subscriptions">Subscriptions</a></li>
-        <li><a href="/Environments">Environments</a></li>
-      </ul>
-      """
 
   createGroupNameForm: ->
     @groupForm              = new KDFormViewWithFields
@@ -118,10 +100,10 @@ class PricingAppView extends KDView
 
     KD.remote.api.JGroup.create options, (err, group)=>
       return KD.showError err if err
-      @showSummaryModal group, @subscription
+      @showSummaryModal group
 
-  showSummaryModal: (group, subscription)->
-    {planOptions}    = subscription.productData
+  showSummaryModal: (group)->
+    {planOptions: {userQuantity, resourceQuantity}} = @workflowData.productData
 
     modal              = new KDModalView
       title            : "Group successfully created"
@@ -131,15 +113,15 @@ class PricingAppView extends KDView
         "Go to Group"  :
           style        : "modal-clean-red"
           callback     : ->
-            KD.singletons.router.handleRoute "/#{group.slug}"
+            window.open "#{window.location.origin}/#{group.slug}", "_blank"
         Close          :
           style        : "modal-cancel"
           callback     : -> modal.destroy()
       content          :
         """
           <div>https://koding.com/#{group.slug}</div>
-          <div>userQuantity     : #{planOptions.userQuantity}</div>
-          <div>resourceQuantity : #{planOptions.resourceQuantity}</div>
+          <div>Users: #{userQuantity}</div>
+          <div>Resource packs: #{resourceQuantity}</div>
         """
 
   checkSlug: ->
@@ -150,7 +132,7 @@ class PricingAppView extends KDView
     if tmpSlug.length > 2
       slugy = KD.utils.slugify tmpSlug
       KD.remote.api.JGroup.suggestUniqueSlug slugy, (err, newSlug)->
-        slugView.updatePartial "#{location.protocol}//#{location.host}/#{newSlug}"
+        slugView.updatePartial "#{location.origin}/#{newSlug}"
         slug.setValue newSlug
 
   showCancellation: ->

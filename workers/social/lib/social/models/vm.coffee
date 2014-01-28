@@ -67,6 +67,8 @@ module.exports = class JVM extends Module
           (signature String, Function)
         createFreeVm:
           (signature Function)
+        createSharedVm:
+          (signature Function)
     schema              :
       ip                :
         type            : String
@@ -109,13 +111,13 @@ module.exports = class JVM extends Module
         default         : no
       maxMemoryInMB     :
         type            : Number
-        default         : 1024
+        default         : KONFIG.defaultVMConfigs.freeVM.ram ? 1024
       diskSizeInMB      :
         type            : Number
-        default         : 3600
+        default         : KONFIG.defaultVMConfigs.freeVM.storage ? 3600
       numCPUs           :
         type            : Number
-        default         : 1
+        default         : KONFIG.defaultVMConfigs.freeVM.cpu ? 1
 
   suspend: (callback)->
     @update { $set: { hostKite: '(banned)' } }, (err)=>
@@ -319,25 +321,49 @@ module.exports = class JVM extends Module
 
             callback null, vm
 
+
+  @createSharedVm = secure (client, callback)->
+    {connection:{delegate:account}, context:{group}} = client
+    JGroup = require './group'
+    JGroup.one {slug:group}, (err, group)=>
+      return callback err  if err
+      group.fetchAdmins (err, admins)=>
+        return callback err  if err
+
+        adminIds = admins.map (admin) ->
+          admin.getId().toString()
+
+        return callback new Error "You can not create shared VM" unless account.getId().toString() in adminIds
+
+        request =
+          account   :account,
+          type      :"group"
+          # groupSlug :"dede",
+          groupSlug :group.slug,
+          # i dont know what the plan code is!?!
+          planCode  : "group_vm_1xs_1"
+          # this is not used
+          # subscriptionCode:subscriptionCode
+
+        @createVm request, callback
+
   # TODO: this needs to be rethought in terms of bundles, as per the
   # discussion between Devrim, Chris T. and Badahir  C.T.
-  @createVm = ({account, type, groupSlug, usage, planCode, subscriptionCode}, callback)->
+  @createVm = ({account, type, groupSlug, planCode, subscriptionCode}, callback)->
     JGroup = require './group'
     JGroup.one {slug: groupSlug}, (err, group)=>
       return callback err  if err
+      return callback new Error "Group not found"  unless group
 
       account.fetchUser (err, user)=>
         return callback err  if err
         return callback new Error "user is not defined"  unless user
 
         # We are keeping this names just for counter
-        webHome     = groupSlug
-
         {nickname} = account.profile
+        webHome    = if type is "group" then groupSlug else nickname
 
         counterName = "#{groupSlug}~#{nickname}~"
-        webHome     = nickname
-
         nameFactory = (require 'koding-counter') {
           db     : JVM.getClient()
           offset : 0
@@ -361,7 +387,6 @@ module.exports = class JVM extends Module
             webHome
             groups
             users
-            usage
             vmType: type
           }
 
@@ -383,18 +408,44 @@ module.exports = class JVM extends Module
                 callback null, vm
 
   @addVmUsers = (vm, group, callback)->
-    group.fetchMembers (err, members)->
+    # todo - do this operation in batches
+    selector =
+      sourceId    : group.getId()
+      sourceName  : "JGroup"
+      as          : "member"
+
+    # fetch members of the group
+    Relationship.someData selector, {targetId:1}, (err, cursor)->
       return callback err  if err
-      members.forEach (member)->
-        member.fetchUser (err, user)->
-          return callback err if err
-          return callback new Error "user not found" unless user
-          member.checkPermission group, 'sudoer', (err, hasPermission)->
-            if err then handleError err
-            else
-              vm.update {
-                $addToSet: users: { id: user.getId(), sudo: hasPermission }
-              }, callback
+
+      cursor.toArray (err, targetIds)->
+        return callback err  if err
+        targetIds or= []
+
+        # aggregate them into accountIds
+        accountIds = targetIds.map (rec)-> rec.targetId
+
+        selector =
+          targetId   : {$in : accountIds}
+          targetName : "JAccount"
+          as         : 'owner'
+          sourceName : 'JUser'
+
+        # fetch userids of the accounts
+        Relationship.someData selector, {sourceId:1}, (err, cursor)->
+          return callback err  if err
+
+          cursor.toArray (err, sourceIds)->
+            return callback err  if err
+            sourceIds or= []
+            vmUsers = []
+
+            vmUsers = sourceIds.map (rec)->
+              { id: rec.sourceId, sudo: yes }
+
+            return vm.update {
+              $set: users: vmUsers
+            }, callback
 
   @fetchVmInfo = secure (client, hostnameAlias, callback)->
     {delegate} = client.connection
