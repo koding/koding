@@ -126,6 +126,20 @@ module.exports = class JVM extends Module
       }
       return callback null
 
+  fetchDefaultVmHelper = (client, callback)->
+    {delegate} = client.connection
+    delegate.fetchUser (err, user) ->
+      return callback err  if err
+      return callback new Error "User not found" unless user
+
+      JGroup = require './group'
+      JGroup.one slug:'koding', (err, fetchedGroup)=>
+        return callback err  if err
+        JVM.one
+          users    : { $elemMatch: id: user.getId() }
+          groups   : { $elemMatch: id: fetchedGroup.getId() }
+          planCode : 'free'
+        , callback
   @createDomains = (account, domains, hostnameAlias)->
 
     updateRelationship = (domainObj)->
@@ -422,21 +436,9 @@ module.exports = class JVM extends Module
       callback null, vm.region
 
   @fetchDefaultVm = secure (client, callback)->
-    {delegate} = client.connection
-    delegate.fetchUser (err, user) ->
+    fetchDefaultVmHelper client, (err, vm)->
       return callback err  if err
-      return callback new Error "user not found" unless user
-
-      JGroup = require './group'
-      JGroup.one slug:'koding', (err, fetchedGroup)=>
-        return callback err  if err
-        JVM.one
-          users    : { $elemMatch: id: user.getId() }
-          groups   : { $elemMatch: id: fetchedGroup.getId() }
-          planCode : 'free'
-        , (err, vm)->
-          return callback err  if err
-          callback err, vm?.hostnameAlias
+      callback null, vm?.hostnameAlias
 
   @fetchAccountVmsBySelector = (account, selector, options, callback) ->
     [callback, options] = [options, callback]  unless callback
