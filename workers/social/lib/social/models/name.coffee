@@ -29,6 +29,9 @@ module.exports = class JName extends Model
       slugs           : Array # [collectionName, constructorName, slug, usedAsPath]
       constructorName : String
       usedAsPath      : String
+    registeredAt      :
+      type            : Date
+      default         : -> new Date
 
   @cycleSecretName =(name, callback)->
     JSecretName = require './secretname'
