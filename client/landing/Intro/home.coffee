@@ -1,71 +1,3 @@
-class PricingPlanBoxView extends KDCustomHTMLView
-  constructor : (options = {}, data = {}) ->
-    options.plan        or= no
-    options.price       or= 0
-    options.amount      or= "1X"
-    options.description or= "and start koding"
-    options.cssClass      = KD.utils.curry "pricing-box", options.cssClass
-
-    super options, data
-
-  viewAppended : JView::viewAppended
-
-  pistachio : ->
-    {plan, price, description, amount} = @getOptions()
-    """
-      <div class="plan-top">
-        <h2>#{plan}</h4>
-        <div class="price">
-          <cite>$</cite>#{price}
-          <span>/MONTH</span>
-        </div>
-      </div>
-      <div>
-        <a class="buy-now">Buy Now</a>
-        <div class="description"><span>#{description}</span></div>
-      </div>
-    """
-
-class PricingBoxWithSliderView extends KDCustomHTMLView
-  constructor : (options = {}, data = {}) ->
-    options.cssClass       = KD.utils.curry "customize-box", options.cssClass
-    options.minValue      ?= 0
-    options.maxValue      ?= 100
-    options.interval      ?= 1
-    options.initialValue  ?= options.minValue
-    options.snapOnDrag    ?= yes
-    options.period        ?= "Month"
-    options.unitName      ?= "Unit"
-    options.unitPrice     ?= 1
-
-    super options, data
-
-    @unitCount = new KDCustomHTMLView
-      tagName : 'strong'
-      partial : @getOption 'initialValue'
-
-    @slider = new KDSliderBarView
-      minValue    : @getOption 'minValue'
-      maxValue    : @getOption 'maxValue'
-      interval    : @getOption 'interval'
-      snapOnDrag  : @getOption 'snapOnDrag'
-      handles     : [@getOption 'initialValue']
-      drawBar     : no
-      width       : 307
-
-  viewAppended : JView::viewAppended
-
-  pistachio : ->
-    """
-      <span class="icon"></span>
-      <div class="plan-values">
-        <span class="unit-display">{{> @unitCount }} #{@getOption('unitName')}</span>
-        <span class="calculated-price">$300/Month</span>
-      </div>
-      <div class="sliderbar-outer-container">{{> @slider}}</div>
-    """
-
-
 class HomePage extends JView
 
   constructor:(options = {}, data)->
@@ -102,45 +34,8 @@ class HomePage extends JView
 
     @markers = new MarkerController
 
-    @singlePlan = new PricingPlanBoxView
-      plan        : 'Single Plan'
-      amount      : '1X'
-      price       : '20'
-      description : 'and start Koding :)'
-      cssClass    : 'single'
-
-    @doublePlan = new PricingPlanBoxView
-      plan        : 'Double Plan'
-      amount      : '2X'
-      price       : '40'
-      description : 'and get 2 free VMs'
-      cssClass    : 'double'
-
-    @triplePlan = new PricingPlanBoxView
-      plan        : 'Triple Plan'
-      amount      : '3X'
-      price       : '60'
-      description : 'and get 5 free VMs or $5 discount'
-      cssClass    : 'triple'
-
-    @customizeUsers = new PricingBoxWithSliderView
-      cssClass    : 'users'
-      minValue    : 1000
-      interval    : 500
-      maxValue    : 10000
-      initialValue: 3000
-      unitPrice   : 10
-      unitName    : "Users"
-
-    @customizeResources = new PricingBoxWithSliderView
-      cssClass    : 'resources'
-      minValue    : 1000
-      interval    : 500
-      maxValue    : 10000
-      initialValue: 4000
-      unitPrice   : 10
-      unitName    : "Resources"
-
+    @resourcePackPlan = new ResourcePackPlan
+    @customPlan       = new CustomPlan
 
   show:->
 
@@ -295,36 +190,9 @@ class HomePage extends JView
         </div>
         {{> @pricingButton}}
       </section>
-      <section id="home-pricing-plans" class="clearfix">
-        <div class="inner-container">
-          <p>
-            We'll give you a base resource pack of
-            <strong>1 GB RAM and 1x CPU Share for free when you <a href="#">sign up</a></strong>
-            But you can start with a pro-pack right away
-          </p>
-          {{> @singlePlan}}
-          {{> @doublePlan}}
-          {{> @triplePlan}}
-        </div>
-      </section>
-      <section id="home-customize-pricing" class="clearfix">
-        {{> @customizeUsers}}
-        <span class="plus-icon"></span>
-        {{> @customizeResources}}
-        <span class="equal-icon"></span>
-        <div class="custom-plan">
-          <div class="plan-top">
-            <h2>Custom Plan</h4>
-            <div class="price">
-              <cite>$</cite>360
-              <span>/MONTH</span>
-            </div>
-          </div>
-          <div>
-            <a class="buy-now">Buy Now</a>
-            <div class="description"><span>and get 5 free VMs</span></div>
-          </div>
-        </div>
+      <section id="pricing" class="clearfix">
+        {{> @resourcePackPlan}}
+        {{> @customPlan}}
       </section>
       <section id='home-bottom'>
         <h2 class='big-header'>If you are ready to go, let’s do this</h2>
@@ -353,4 +221,3 @@ KD.introView = new HomePage
 
 if location.hash in ['#!/Home', '/', '']
   KD.introView.show()
-
