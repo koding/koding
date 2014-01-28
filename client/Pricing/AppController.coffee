@@ -1,5 +1,22 @@
 class PricingAppController extends KDViewController
 
+  handler = (callback)->
+    KD.singleton('appManager').open 'Pricing', callback
+
+  KD.registerAppClass this,
+    name                         : "Pricing"
+    routes                       :
+      "/:name?/Pricing"          : -> KD.singletons.router.handleRoute '/Pricing/Developer'
+      "/:name?/Pricing/:section" : ({params:{section}})->
+        handler (app)->
+          app.resourcePackPlan.hide()
+          app.customPlan.hide()
+          switch section
+            when 'Developer'
+              app.resourcePackPlan.show()
+            when 'Enterprise'
+              app.customPlan.show()
+
   KD.registerAppClass this,
     name  : "Pricing"
     route : "/:name?/Pricing"
