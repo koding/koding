@@ -297,16 +297,6 @@ class KodingRouter extends KDRouter
       '/:name?/Invitation/:inviteCode': ({params:{inviteCode, name}})=>
         @handleRoute "/Redeem/#{inviteCode}"
 
-      '/:name?/Get5GB': =>
-        if not KD.isLoggedIn()
-          KD.showError new Error "You should login and try again"
-          return @handleRoute '/Login'
-        else
-          KD.remote.api.JReferral.add5GBDisk (err, result)=>
-            KD.showError err if err
-            KD.notify_ "5GB is added successfully to your redeemable points" if result
-            @handleRoute '/Activity', entryPoint: KD.config.entryPoint
-
       '/:name?/InviteFriends': ->
         if KD.isLoggedIn()
           @handleRoute '/Activity', entryPoint: KD.config.entryPoint
