@@ -32,7 +32,7 @@ projects      =
     files     : "client/Intro/includes.coffee"
     style     : "website/a/css/introapp.#{KODING_VERSION}.css"
     script    : "website/a/js/introapp.#{KODING_VERSION}.js"
-    sourceMapRoot : "introapp/"
+    sourceMapRoot : "Intro/"
 
   Landing     :
     files     : "client/landing/includes.coffee"

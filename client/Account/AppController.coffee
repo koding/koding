@@ -11,8 +11,6 @@ class AccountAppController extends AppController
     routes                       :
       "/:name?/Account"          : -> KD.singletons.router.handleRoute '/Account/Profile'
       "/:name?/Account/:section" : ({params:{section}})-> handler (app)-> app.openSection section
-    behavior                     : "hideTabs"
-    hiddenHandle                 : yes
 
   items =
     personal :

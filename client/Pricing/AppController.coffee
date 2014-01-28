@@ -1,29 +1,39 @@
 class PricingAppController extends KDViewController
 
-  # FIXME: obviously, remove this once this is prod ready - SY
-  if location.hostname is "localhost"
-    KD.registerAppClass this,
-      name         : "Pricing"
-      route        : "/Pricing"
+  KD.registerAppClass this,
+    name  : "Pricing"
+    route : "/:name?/Pricing"
 
-  constructor:(options = {}, data)->
-
-    options.view = new PricingAppView
-      params     : options.params
-      workflow   : @createWorkflow()
-      cssClass   : "content-page pricing"
-
-    options.appInfo =
-      title         : "Pricing"
+  constructor: (options = {}, data) ->
+    options.appInfo = title: "Pricing"
+    options.view    = new PricingAppView
+      params        : options.params
+      cssClass      : "content-page pricing"
 
     super options, data
 
-  createWorkflow: ->
-    paymentController = KD.getSingleton 'paymentController'
+    @productForm      = new KDView
+    @resourcePackPlan = new ResourcePackPlan
+    @customPlan       = new CustomPlan
 
-    workflow = paymentController.createUpgradeWorkflow 'vm'
+    @productForm.addSubView @resourcePackPlan
+    @resourcePackPlan.on "PlanSelected", @bound "selectPlan"
 
-    workflow.on 'Finished', =>
-      @getView().showThankYou workflow.getData()
+    @productForm.addSubView @customPlan
+    @customPlan.on "PlanSelected", @bound "selectPlan"
 
-    workflow.on 'Cancel', => @getView().showCancellation()
+    @getView().addWorkflow workflow = KD.singleton("paymentController").createUpgradeWorkflow {@productForm}
+
+  selectPlan: (tag, options) ->
+    KD.remote.api.JPaymentPlan.one tags: $in: [tag], (err, plan) =>
+      return  if KD.showError err
+      @productForm.emit "PlanSelected", plan, options
+
+    # TODO : remove after test
+    # workflow.emit "Finished",
+    #     productData          :
+    #       planOptions        :
+    #         userQuantity     :  5 # arabada
+    #         resourceQuantity : 15 # evde
+    #       plan               :
+    #         tags             : ["custom-plan"]

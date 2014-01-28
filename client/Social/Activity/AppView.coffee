@@ -28,9 +28,14 @@ class ActivityAppView extends KDScrollView
     @topicsBox        = new ActiveTopics
     @usersBox         = new ActiveUsers
     @tickerBox        = new ActivityTicker
+    # TODO : if not on private group DO NOT create those ~EA
+    @groupDescription = new GroupDescription
+    @groupMembers     = new GroupMembers
 
     @mainBlock        = new KDCustomHTMLView tagName : "main" #"activity-left-block"
     @sideBlock        = new KDCustomHTMLView tagName : "aside"   #"activity-right-block"
+
+    @groupCoverView   = new FeedCoverPhotoView
 
     @mainController   = KD.getSingleton("mainController")
     @mainController.on "AccountChanged", @bound "decorate"
@@ -53,16 +58,23 @@ class ActivityAppView extends KDScrollView
 
     @setLazyLoader 200
 
+    @addSubView @groupCoverView
     @addSubView @mainBlock
     @addSubView @sideBlock
 
     @mainBlock.addSubView @inputWidget
     @mainBlock.addSubView @feedWrapper
 
-    @sideBlock.addSubView @referalBox  if KD.isLoggedIn()
+    @sideBlock.addSubView @referalBox  if KD.isLoggedIn() and not @isPrivateGroup()
+    @sideBlock.addSubView @groupDescription if @isPrivateGroup()
+    @sideBlock.addSubView @groupMembers if @isPrivateGroup()
     @sideBlock.addSubView @topicsBox
     @sideBlock.addSubView @usersBox
     @sideBlock.addSubView @tickerBox
+
+  isPrivateGroup :->
+    {entryPoint} = KD.config
+    if entryPoint?.slug isnt "koding" and entryPoint?.type is "group" then yes else no
 
   decorate:->
     @unsetClass "guest"
@@ -140,92 +152,3 @@ class FilterWarning extends JView
     @warning.updatePartial "#{partialText}"
 
     @show()
-
-class ReferalBox extends JView
-
-
-  constructor: (options = {}, data) ->
-
-    options.cssClass = 'referal-box'
-
-    super options, data
-
-    @modalLink = new KDCustomHTMLView
-      tagName    : 'a'
-      attributes :
-        href     : '#'
-      click      : @bound 'showReferrerModal'
-      partial    : 'show more...'
-
-    @redeemPointsModal = new KDCustomHTMLView
-      tagName    : 'a'
-      attributes :
-        href     : '#'
-      click      : (e)=>
-        @showRedeemReferralPointModal()
-        e.stopPropagation()
-
-    KD.getSingleton("vmController").on "ReferralCountUpdated", =>
-      @updateReferralCountPartial()
-      @updateSizeBar()
-
-    @updateReferralCountPartial()
-
-    @progressBar = new KDProgressBarView
-      title       : '0 GB / 16 GB'
-      determinate : yes
-
-  click : -> @showReferrerModal()
-
-
-  showRedeemReferralPointModal:->
-    KD.mixpanel "Referer Redeem Point modal, click"
-
-    appManager = KD.getSingleton "appManager"
-    appManager.tell "Account", "showRedeemReferralPointModal"
-
-  updateReferralCountPartial:->
-    KD.remote.api.JReferral.fetchRedeemableReferrals { type: "disk" }, (err, referals)=>
-      if referals and referals.length > 0
-        text =  """
-          Congrats, your bonus is waiting for you!
-          You have #{referals.length} referrals!
-        """
-        @redeemPointsModal.updatePartial text
-
-
-  viewAppended:->
-
-    super
-    @updateSizeBar()
-
-  updateSizeBar:->
-    @progressBar.updateBar 0
-    vmc = KD.getSingleton "vmController"
-    vmc.fetchDefaultVmName (name) =>
-      vmc.fetchDiskUsage name, (usage) =>
-        return  unless usage.max
-
-        usagePercent = usage.max / (16*1e9) * 90
-        used         = KD.utils.formatBytesToHumanReadable usage.max
-
-        @progressBar.updateBar usagePercent + 10, null, "#{used} / 16 GB"
-
-
-  showReferrerModal: (event)->
-    KD.utils.stopDOMEvent event
-    KD.mixpanel "Referer modal, click"
-
-    appManager = KD.getSingleton "appManager"
-    appManager.tell "Account", "showReferrerModal"
-
-  pistachio:->
-    """
-    <figure></figure>
-    <p>
-    Invite your friends and get up to <strong>16GB</strong> for free! {{> @modalLink}}
-    {{> @redeemPointsModal}}
-    </p>
-    {{> @progressBar}}
-    """
-

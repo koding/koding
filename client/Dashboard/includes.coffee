@@ -58,6 +58,7 @@ module.exports = [
   "views/groupsformgeneratorview.coffee"
 
   "views/permissionsform.coffee",
+  "views/grouplogosettings.coffee",
 
   "styl/app.group.dashboard.styl",
 ]

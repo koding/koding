@@ -309,11 +309,8 @@ class VirtualizationController extends KDController
 
   createNewVM: (callback)->
     @hasDefaultVM (err, state)=>
-      if state
-        new KDNotificationView
-          title : "Paid VMs will be available soon to purchase"
-      else
-        @createDefaultVM callback
+      create = @bound if state then "createPaidVM" else "createDefaultVM"
+      create callback
 
   showVMDetails: (vm)->
     vmName = vm.hostnameAlias
@@ -350,15 +347,12 @@ class VirtualizationController extends KDController
 
     payment = KD.getSingleton 'paymentController'
 
-    payment.fetchSubscriptionsWithPlans ['vm'], (err, subscriptions) ->
+    payment.fetchSubscriptionsWithPlans tags: ['vm'], (err, subscriptions) ->
       productForm.setCurrentSubscriptions subscriptions
 
     productForm.on 'PackOfferingRequested', (subscription) ->
-      options = targetOptions: selector: tags: 'vm'
-
-      KD.getGroup().fetchProducts 'pack', options, (err, packs) ->
+      KD.getGroup().fetchProducts 'pack', tags: 'vm', (err, packs) ->
         return  if KD.showError err
-
         productForm.setContents 'packs', packs
 
     workflow = new PaymentWorkflow

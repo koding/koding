@@ -108,23 +108,26 @@ class PaymentController extends KDController
 
     return form
 
-  createUpgradeWorkflow: (tag, options = {}) ->
-    upgradeForm = @createUpgradeForm tag, options
+  createUpgradeWorkflow: (options = {}) ->
+    {tag, productForm, confirmForm} = options
 
-    workflow = new PaymentWorkflow
-      productForm: upgradeForm
-      confirmForm: new PlanUpgradeConfirmForm
+    productForm or= @createUpgradeForm tag, options
+    confirmForm or= new PlanUpgradeConfirmForm
+    workflow      = new PaymentWorkflow {productForm, confirmForm}
 
-    upgradeForm
-      .on 'PlanSelected', (plan) ->
-        { oldSubscription } = workflow.collector.data
+    productForm
+      .on 'PlanSelected', (plan, planOptions) ->
+        callback = ->
+          workflow.collectData productData: { plan, planOptions }
 
-        spend = oldSubscription?.usage ? {}
-
-        plan.checkQuota {}, spend, 1, (err) ->
-          return  if KD.showError err
-
-          workflow.collectData productData: { plan }
+        {oldSubscription} = workflow.collector.data
+        unless oldSubscription
+        then callback()
+        else
+          spend = oldSubscription?.usage ? {}
+          oldSubscription.checkQuota {spend, multiplyFactor: 1}, (err) ->
+            return  if KD.showError err
+            callback()
 
       .on 'CurrentSubscriptionSet', (oldSubscription) ->
         workflow.collectData { oldSubscription }
@@ -133,9 +136,7 @@ class PaymentController extends KDController
       .on 'DataCollected', (data) =>
         @transitionSubscription data, (err, subscription) ->
           return  if KD.showError err
-
-          workflow.emit 'Finished'
-
+          workflow.emit 'Finished', data, subscription
       .enter()
 
     workflow
@@ -143,7 +144,7 @@ class PaymentController extends KDController
   confirmReactivation: (subscription, callback) ->
     modal = KDModalView.confirm
       title       : 'Inactive subscription'
-      description : 
+      description :
         """
         Your existing subscription for this plan has been canceled.  Would
         you like to reactivate it?
@@ -158,10 +159,10 @@ class PaymentController extends KDController
 
           callback null, subscription
 
-  createSubscription: ({ plan, email, paymentMethod, createAccount }, callback) ->
+  createSubscription: (options, callback) ->
+    { plan, planOptions, couponCode, email, paymentMethod, createAccount } = options
     { paymentMethodId, billing } = paymentMethod
-
-    plan.subscribe paymentMethodId, (err, subscription) =>
+    plan.subscribe paymentMethodId, {planOptions, couponCode}, (err, subscription) =>
       if err?.short is 'existing_subscription'
         { existingSubscription } = err
 
@@ -184,14 +185,14 @@ class PaymentController extends KDController
 
           JUser.logout (err) ->
             return callback err  if err
-            
+
             callback null
       else
         callback err, subscription
 
   transitionSubscription: (formData, callback) ->
-    { productData, oldSubscription, paymentMethod, createAccount, email } = formData
-    { plan } = productData
+    { productData, oldSubscription, couponCode, paymentMethod, createAccount, email } = formData
+    { plan, planOptions } = productData
     { planCode } = plan
     { paymentMethodId } = paymentMethod
     if oldSubscription
@@ -199,6 +200,8 @@ class PaymentController extends KDController
     else
       @createSubscription {
         plan
+        planOptions
+        couponCode
         email
         paymentMethod
         createAccount
@@ -219,21 +222,21 @@ class PaymentController extends KDController
 
     KD.whoami().fetchPlansAndSubscriptions options, (err, plansAndSubs) =>
       return callback err  if err
-      
+
       { subscriptions } = @groupPlansBySubscription plansAndSubs
 
       callback null, subscriptions
 
   groupPlansBySubscription: (plansAndSubscriptions = {}) ->
-    
+
     { plans, subscriptions } = plansAndSubscriptions
 
     plansByCode = plans.reduce( (memo, plan) ->
       memo[plan.planCode] = plan
       memo
     , {})
-    
+
     for subscription in subscriptions
       subscription.plan = plansByCode[subscription.planCode]
-    
+
     { plans, subscriptions }

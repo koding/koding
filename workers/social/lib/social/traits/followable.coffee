@@ -139,7 +139,11 @@ module.exports = class Followable
       else if count > 0
         callback null, count
       else
-        @addFollower follower, respondWithCount : yes, (err, docs, count)=>
+        options            =
+          respondWithCount : yes
+          data             : {group}
+
+        @addFollower follower, options, (err, docs, count)=>
           if err
             callback err
           else

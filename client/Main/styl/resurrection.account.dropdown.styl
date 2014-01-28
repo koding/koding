@@ -51,7 +51,7 @@ resurrection.account.dropdown.styl
       r-sprite                app account-notifications
 
   &.group-switcher
-    right                   54px
+    right                   55px
     width                   238px
     rounded                 0 0 5px 5px
     .tab
@@ -76,6 +76,7 @@ resurrection.account.dropdown.styl
       padding               10px 12px
       color                 white
       font-size             13px
+      line-height           20px
       font-weight           300
       text-decoration       none
       &:hover
@@ -96,12 +97,27 @@ resurrection.account.dropdown.styl
           border            1px solid #e3e3e3
           margin-right      10px
           size              20px, 20px
+
+        .custom-link-view.admin-icon
+          top               0
+          right             0
+          abs()
+
+        .custom-link-view .icon
+          size              20px 20px
+          display           block
+          kdfsprite()
+
         .custom-link-view .icon.new-page
-          bg                position, -180px -520px
-          opacity           .2
+          bg                position, -180px -518px
+          display           inline-block
+          vertical-align    top
+          margin-left       2px
+          opacity           .5
+
         .custom-link-view .icon.dashboard-page
-          bg                position, -180px -440px
-          opacity           .2
+          r-sprite          app '20-cog'
+
         .buttons
           fr()
           button span.accept
