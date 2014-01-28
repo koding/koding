@@ -61,7 +61,7 @@ class AvatarPopupGroupSwitcher extends AvatarPopup
 
     @addSubView @groupSubMenuWrapper = new KDCustomHTMLView
       partial  : '<div class="kdview content"></div>'
-      cssClass : 'avatararea-popup notifications group-switcher' # this is a hack, just to use the same position w/ notifications dropdown
+      cssClass : 'avatararea-popup notifications group-switcher submenu' # this is a hack, just to use the same position w/ notifications dropdown
 
     @groupSubMenuWrapper.setCss 'right', 293
 
@@ -69,7 +69,7 @@ class AvatarPopupGroupSwitcher extends AvatarPopup
     createGroupLink = new KDCustomHTMLView
       tagName    : 'a'
       attributes : href : '/Pricing/Enterprise'
-      cssClass   : 'bottom'
+      cssClass   : 'bottom bb'
       partial    : 'Create a group'
       click      : (event)=>
         KD.utils.stopDOMEvent event
@@ -80,15 +80,26 @@ class AvatarPopupGroupSwitcher extends AvatarPopup
     @groupSubMenuWrapper.addSubView @listControllerPending.getView(), '.content'
     @groupSubMenuWrapper.addSubView @listController.getView(), '.content'
 
+    submenuShown = no
+
+    @avatarPopupContent.bindEvent 'mousemove'
+    @avatarPopupContent.on 'mousemove', (event)=>
+      return  if $(event.target).closest().is '.submenu'
+      @groupSubMenuWrapper.unsetClass 'active'
+
+
     @avatarPopupContent.addSubView new KDCustomHTMLView
       tagName    : 'a'
       attributes : href : '#'
       cssClass   : 'bottom'
       partial    : 'Your groups'
-      click      : (event)=>
+      bind       : 'mouseenter mousemove'
+      mouseenter : (event)=>
         KD.utils.stopDOMEvent event
+        submenuShown = yes
         @groupSubMenuWrapper.setClass 'active'
         @populateGroups()
+      mousemove : KD.utils.stopDOMEvent
 
     @avatarPopupContent.addSubView new KDCustomHTMLView
       tagName    : 'a'
