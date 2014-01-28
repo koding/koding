@@ -37,6 +37,8 @@ module.exports = class JReferral extends jraphical.Message
           (signature Function)
         isCampaingValid:
           (signature Function)
+        resetVMDefaults:
+          (signature Function)
         fetchRedeemableReferrals:
           (signature Object, Function)
         fetchReferredAccounts:
@@ -278,6 +280,19 @@ module.exports = class JReferral extends jraphical.Message
   CAMPAIGN_DISK_SIZE_IN_MB        = 1024
   CAMPAIGN_START_DATE             = new Date("Jan 29 2014 16:00:00")
   OLD_DISK_SIZE_IN_MB             = 250
+
+  # this functions checks default vm and updates disk size
+  # if required, when vm disk size is updated, returns hostname
+  @resetVMDefaults = secure (client, callback)->
+    JVM.fetchDefaultVm_ client, (err, vm)->
+      return callback err if err
+      return callback new Error "VM not found" unless vm
+      if vm.diskSizeInMB and vm.diskSizeInMB >= JVM.VMDefaultDiskSize
+        return callback null, no
+      else
+        JVM.resetDefaultVMLimits client, (er, vmName)->
+          return callback err if err
+          return callback null, yes, vmName
 
   @isCampaingValid = isCampaingValid = (callback)->
     fetchTBCampaing (err, campaign)->
