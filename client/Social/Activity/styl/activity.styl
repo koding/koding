@@ -1380,34 +1380,48 @@ body.group
           max-height       217px
         .kdlistview
           padding          20px 0 0
+        .kdlistitemview
+          display          inline-block
+          size             auto auto
         .avatarview
           margin           0 8px 8px 0
           fl()
+          rounded          4px
+          img
+            rounded        4px
 
           &:nth-of-type(4n)
             margin-right   0
 
 
     .group-cover-view
-      max-width            950px
-      height               315px
+      max-width            948px
+      height               316px
       bg                   color, #e6e6e6
       margin               0 auto
       kalc                 margin-right, 37% \- 306px
       z-index              3
-      bg                   size, 100% \, 67%
+      bg                   size, 100% \, 632px
+
       bg                   image, -webkit-linear-gradient(90deg\, rgba(0,0,0,.06) 50%\, transparent 50%) \,
-                                  -webkit-linear-gradient(0deg\, rgba(0,0,0,.1) 25%\, transparent 25% \, transparent 50% \, rgba(0,0,0,.1) 50% \, rgba(0,0,0,.1) 75% \, transparent 75% \, rgba(255,255,255,.06) 75%)
+                                  -webkit-linear-gradient(0deg\, rgba(0,0,0,.1) 24.7%\, transparent 24.7% \, transparent 49.7% \, rgba(0,0,0,.1) 49.7% \, rgba(0,0,0,.1) 74.7% \, transparent 74.7% \, rgba(255,255,255,.06) 74.7%)
+
       bg                   image, -moz-linear-gradient(90deg\, rgba(0,0,0,.1) 50%\, transparent 50%) \,
-                                  -moz-linear-gradient(0deg\, rgba(0,0,0,.06) 25%\, transparent 25% \, transparent 50% \, rgba(0,0,0,.1) 50% \, rgba(0,0,0,.1) 75% \, transparent 75% \, rgba(255,255,255,.06) 75%)
+                                  -moz-linear-gradient(0deg\, rgba(0,0,0,.06) 24.7%\, transparent 24.7% \, transparent 49.7% \, rgba(0,0,0,.1) 49.7% \, rgba(0,0,0,.1) 74.7% \, transparent 74.7% \, rgba(255,255,255,.06) 74.7%)
 
       .avatarview
+      .avatarview img
         rounded            0
 
       figure
-        abs                0px 0 0 0px
+        abs                0 0 0 0
         size               100%, 100%
         bg-size            cover
+
+      .kdlistview-collage
+        .kdlistitemview
+          display          inline-block
+          size             auto auto
 
       .kdbutton.update-cover
         abs                0 27px 27px 0

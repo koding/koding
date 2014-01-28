@@ -65,7 +65,7 @@ class CollageItemList extends KDListItemView
   constructor: (options = {}, data) ->
 
     super options, data
-    @avatar    = new AvatarImage
+    @avatar    = new AvatarView
       size     :
         width  : 158
         height : 158
