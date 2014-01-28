@@ -86,7 +86,7 @@ class EnvironmentsMainScene extends JView
 
       vmController.createNewVM()
 
-    @machinesContainer.on 'PlusButtonForGroupsClicked', =>
+    @machinesContainer.on 'PlusButtonForGroupsClicked', ->
       return unless KD.isLoggedIn()
         new KDNotificationView
           title: "You need to login to create a new machine."
