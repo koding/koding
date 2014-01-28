@@ -1,24 +1,20 @@
 class PaymentMethodView extends JView
-
-  constructor: (options, data) ->
-    options.cssClass = "payment-method"
-
-    super
+  constructor: (options = {}, data) ->
+    options.cssClass = KD.utils.curry "payment-method", options.cssClass
+    super options, data
 
     @loader = new KDLoaderView
       size        : { width: 14 }
       showLoader  : !data?
 
-    @paymentMethodInfo = new KDCustomHTMLView
-      cssClass  : 'billing-link'
-
+    @paymentMethodInfo = new KDCustomHTMLView cssClass  : 'billing-link'
     @paymentMethodInfo.hide()
-
     @setPaymentInfo data
 
+  click: ->
+    @emit "PaymentMethodChosen", @getData()
 
   getCardInfoPartial: (paymentMethod) ->
-
     return "Enter billing information"  unless paymentMethod
 
     { description, cardFirstName, cardLastName
@@ -45,18 +41,14 @@ class PaymentMethodView extends JView
     <pre>#{cardMonth}/#{cardYear}</pre>
     """
 
-
   setPaymentInfo: (paymentMethod) ->
-
     @loader.hide()
     @setData paymentMethod  if paymentMethod
     @paymentMethodInfo.updatePartial @getCardInfoPartial paymentMethod?.billing
     @paymentMethodInfo.show()
-
 
   pistachio: ->
     """
     {{> @loader }}
     {{> @paymentMethodInfo }}
     """
-
