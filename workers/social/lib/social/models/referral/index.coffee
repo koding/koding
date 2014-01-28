@@ -33,7 +33,7 @@ module.exports = class JReferral extends jraphical.Message
           (signature Object, Function)
         add1GBDisk:
           (signature Function)
-        fetchTBCampaing:
+        fetchTBCampaign:
           (signature Function)
         isCampaingValid:
           (signature Function)
@@ -296,7 +296,7 @@ module.exports = class JReferral extends jraphical.Message
           return callback null, yes, vmName
 
   @isCampaingValid = isCampaingValid = (callback)->
-    fetchTBCampaing (err, campaign)->
+    fetchTBCampaign (err, campaign)->
       return callback err if err
       return callback null, no unless campaign
       {diskSpaceLeftMB, endDate} = campaign.content
@@ -337,7 +337,7 @@ module.exports = class JReferral extends jraphical.Message
       , callback
 
 
-  fetchTBCampaing= (callback)->
+  @fetchTBCampaign = fetchTBCampaign= (callback)->
     JStorage = require '../storage'
     JStorage.one {name: CAMPAIGN_NAME}, (err, campaign) ->
       return callback err if err
