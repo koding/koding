@@ -1,5 +1,7 @@
 {Model} = require 'bongo'
 {Relationship, Module} = require 'jraphical'
+{argv} = require 'optimist'
+KONFIG = require('koding-config-manager').load("main.#{argv.c}")
 
 module.exports = class JVM extends Module
 
