@@ -6,7 +6,7 @@ module.exports = class JName extends Model
 
   {secure, JsPath:{getAt}, dash, signature} = require 'bongo'
 
-  createId = require 'hat'
+  { v4: createId } = require 'node-uuid'
 
   @share()
 

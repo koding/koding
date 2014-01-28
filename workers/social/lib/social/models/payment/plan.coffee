@@ -7,7 +7,7 @@ module.exports = class JPaymentPlan extends JPaymentBase
     forceInterval : 60
 
   recurly = require 'koding-payment'
-  createId = require 'hat'
+  { v4: createId } = require 'node-uuid'
 
   {secure, dash, signature}        = require 'bongo'
   {difference, extend}  = require 'underscore'

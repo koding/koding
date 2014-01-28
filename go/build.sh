@@ -15,7 +15,7 @@ services=(
   koding/persistence
   koding/overview
   koding/kites/os
-  koding/kites/kontrol/kontrol
+  koding/kite/kontrol/kontrol
   koding/virt/vmproxy
   koding/virt/vmtool
   koding/kontrol/kontrolproxy

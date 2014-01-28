@@ -54,8 +54,8 @@ __utils.extend __utils,
       location.reload(true)
 
   showMoreClickHandler:(event)->
-    __utils.stopDOMEvent event
     $trg = $(event.target)
+    __utils.stopDOMEvent event  if $trg.is ".more-link, .less-link"
     more = "span.collapsedtext a.more-link"
     less = "span.collapsedtext a.less-link"
     $trg.parent().addClass("show").removeClass("hide") if $trg.is(more)
