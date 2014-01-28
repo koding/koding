@@ -103,6 +103,14 @@ class DockController extends KDViewController
 
   removeItem:(item)->
 
+    return  if item.data.type is 'persistent'
+
+    {appManager, router} = KD.singletons
+    appManager.quitByName item.name
+
+    if (item.hasClass 'running') and (item.hasClass 'selected')
+    then router.handleRoute '/Activity'
+
     @navController.removeItem item
     @saveItemOrders()
 
@@ -128,7 +136,7 @@ class DockController extends KDViewController
         @navController.selectItem nav  if select
         hasNav = yes
 
-    unless hasNav
+    if not hasNav and state isnt 'initial'
       unless name in Object.keys(KD.config.apps)
         @addItem { title : name,  path : "/#{name}", \
                    order : 60 + KD.utils.uniqueId(), type :"" }
