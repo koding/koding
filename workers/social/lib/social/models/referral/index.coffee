@@ -305,6 +305,25 @@ module.exports = class JReferral extends jraphical.Message
         name: CAMPAIGN_NAME
       , $inc : "content.diskSpaceLeftMB" : size
       , callback
+
+
+  fetchTBCampaing= (callback)->
+    JStorage = require '../storage'
+    JStorage.one {name: CAMPAIGN_NAME}, (err, campaign) ->
+      return callback err if err
+      unless campaign
+        cmp = new JStorage
+          name: CAMPAIGN_NAME
+          content:
+            diskSpaceLeftMB: CAMPAIGN_TOTAL_DISK_SIZE_IN_MB
+            endDate: CAMPAIGN_START_DATE
+
+        cmp.save (err)->
+          return callback err if err
+          return callback null, cmp
+      else
+        return callback null, campaign
+
   do =>
     JAccount.on 'AccountRegistered', (me, referrerCode)->
       return console.error "Account is not defined in event" unless me
