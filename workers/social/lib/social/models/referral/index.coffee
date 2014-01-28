@@ -265,6 +265,28 @@ module.exports = class JReferral extends jraphical.Message
         return callback new KodingError "#{vm} is not found" unless vm
         callback null, vm
 
+  @isCampaingValid = isCampaingValid = (callback)->
+    fetchTBCampaing (err, campaign)->
+      return callback err if err
+      return callback null, no unless campaign
+      {diskSpaceLeftMB, endDate} = campaign.content
+      # if campaign has more disk space
+      if diskSpaceLeftMB > 0
+        # if campaign is valid
+        if endDate.getTime() > +(new Date())
+          return callback null, yes, campaign
+        else
+          return callback null, no
+
+      # this is an edge case, if campaing has negative
+      # disk size set it back to 0
+      else
+        return callback null, no
+        # do not allow negative numbers
+        JStorage.update
+          name: CAMPAIGN_NAME
+        , $set : "content.diskSpaceLeftMB" : 0
+        , ->
   decreaseLeftSpace = (size, callback)->
     isCampaingValid (err, status)->
       return callback err if err
