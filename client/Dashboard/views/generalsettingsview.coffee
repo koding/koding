@@ -30,22 +30,22 @@ class GroupGeneralSettingsView extends JView
           loader            :
             color           : "#444444"
             diameter        : 12
-        Remove              :
-          cssClass   : "modal-clean-red fr"
-          title      : "Remove this Group"
-          callback   : =>
-            modal = new GroupsDangerModalView
-              action     : 'Remove Group'
-              title      : "Remove '#{data.slug}'"
-              longAction : "remove the '#{data.slug}' group"
-              callback   : (callback)=>
-                data.remove (err)=>
-                  callback()
-                  return KD.showError err  if err
-                  new KDNotificationView title:'Successfully removed!'
-                  modal.destroy()
-                  location.replace('/')
-            , data
+        # Remove              :
+        #   cssClass   : "modal-clean-red fr"
+        #   title      : "Remove this Group"
+        #   callback   : =>
+        #     modal = new GroupsDangerModalView
+        #       action     : 'Remove Group'
+        #       title      : "Remove '#{data.slug}'"
+        #       longAction : "remove the '#{data.slug}' group"
+        #       callback   : (callback)=>
+        #         data.remove (err)=>
+        #           callback()
+        #           return KD.showError err  if err
+        #           new KDNotificationView title:'Successfully removed!'
+        #           modal.destroy()
+        #           location.replace('/')
+        #     , data
       fields:
         Logo                :
           label             : "Logo"
