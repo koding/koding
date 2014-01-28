@@ -20,8 +20,10 @@ module.exports = class JInvitation extends jraphical.Module
 
   {ObjectRef, dash, daisy, secure, signature} = require 'bongo'
 
-  KodingError = require '../error'
-  JMail       = require './email'
+  KodingError  = require '../error'
+  JMail        = require './email'
+  JGroup       = require './group'
+  JPaymentPack = require './payment/pack'
 
   @share()
 
@@ -133,9 +135,17 @@ module.exports = class JInvitation extends jraphical.Module
       isRedeemed = yes
     operation.$set = status: 'redeemed'  if isRedeemed
 
-    @update operation, (err)=>
-      return callback err  if err
-      @addRedeemer delegate, callback
+    JGroup.one slug: @group, (err, group) =>
+      callback err  if err
+      group.fetchSubscription (err, subscription) =>
+        callback err  if err
+        JPaymentPack.one tags: "user", (err, pack) =>
+          callback err  if err
+          subscription.debit pack, (err) =>
+            callback err  if err
+            @update operation, (err) =>
+              return callback err  if err
+              @addRedeemer delegate, callback
 
   # send invites from group dashboard
   @create = secure (client, group, email, options, callback)->
