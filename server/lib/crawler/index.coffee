@@ -50,6 +50,13 @@ fetchLastStatusUpdatesOfUser = (account, Relationship, JNewStatusUpdate, callbac
       return callback null, queue.statusUpdates
     daisy queue
 
+isInAppRoute = (firstLetter)->
+  # user nicknames can start with numbers
+  intRegex = /^\d/
+  return false if intRegex.test firstLetter
+  return true  if firstLetter.toUpperCase() is firstLetter
+  return false
+
 module.exports =
   crawl: (bongo, req, res, slug)->
     {query} = req
@@ -70,7 +77,7 @@ module.exports =
       content = kodinghome()
       return res.send 200, content
 
-    if firstLetter.toUpperCase() is firstLetter
+    if isInAppRoute firstLetter
       if section
         isLoggedIn req, res, (err, loggedIn, account)->
           # Serve homepage for Develop tab, instead of empty content.

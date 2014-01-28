@@ -109,8 +109,10 @@ process.on 'uncaughtException', (err) ->
 app.use (req, res, next) ->
   {JSession} = koding.models
   {clientId} = req.cookies
-  return next() if clientId
-  JSession.createSession (err, session, account)->
+  # fetchClient will validate the clientId.
+  # if it is in our db it will return the session it
+  # it it is not in db, creates a new one and returns it
+  JSession.fetchSession clientId, (err, session)->
     return next() if err or not session
     res.cookie "clientId", session.clientId, {}
     next()
@@ -245,6 +247,15 @@ app.get "/Landing/:page", (req, res, next) ->
       JGroup.render.landing {account, page, client, bongoModels}, (err, body) ->
         serve body, res
 
+
+isInAppRoute = (name)->
+  [firstLetter] = name
+  # user nicknames can start with numbers
+  intRegex = /^\d/
+  return false if intRegex.test firstLetter
+  return true  if firstLetter.toUpperCase() is firstLetter
+  return false
+
 # Handles all internal pages
 # /USER || /SECTION || /GROUP[/SECTION] || /APP
 #
@@ -255,11 +266,10 @@ app.all '/:name/:section?*', (req, res, next)->
   path = if section then "#{name}/#{section}" else name
 
   return res.redirect 302, req.url.substring 7  if name in ['koding', 'guests']
-  [firstLetter] = name
 
   # Checks if its an internal request like /Activity, /Terminal ...
   #
-  if firstLetter.toUpperCase() is firstLetter
+  if isInAppRoute name
 
     if name in ['Activity', 'Topics']
 
