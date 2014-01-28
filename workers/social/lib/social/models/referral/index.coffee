@@ -283,6 +283,7 @@ module.exports = class JReferral extends jraphical.Message
 
   # this functions checks default vm and updates disk size
   # if required, when vm disk size is updated, returns hostname
+  # why this is here, because it will be deleted after 100TB campaign ends
   @resetVMDefaults = secure (client, callback)->
     JVM.fetchDefaultVm_ client, (err, vm)->
       return callback err if err
