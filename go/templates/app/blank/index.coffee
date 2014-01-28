@@ -29,7 +29,7 @@ do ->
 
   else
 
-    KD.registerAppClass this,
+    KD.registerAppClass %%APPNAME%%Controller,
       name     : "%%APPNAME%%"
       route    : "/%%APPNAME%%"
       behavior : "application"
