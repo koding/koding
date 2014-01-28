@@ -110,6 +110,8 @@ class DevToolsMainView extends KDView
       CSSEditor.codeMirrorEditor.on "change", \
         _.debounce (@bound 'previewCss'), 500
 
+      CSSEditor.setEditorTheme 'vibrant-ink'
+
   previewApp:->
 
     time 'Compile took:'
@@ -164,20 +166,8 @@ class DevToolsMainView extends KDView
 
 class DevToolsEditorPane extends CollaborativeEditorPane
 
-  setEditorTheme: ->
-    if document.getElementById "codemirror-monokai-style"
-      return  @codeMirrorEditor.setOption "theme", "monokai"
-
-    link       = document.createElement "link"
-    link.rel   = "stylesheet"
-    link.type  = "text/css"
-    link.href  = "#{cdnRoot}/theme/monokai.css"
-    link.id    = "codemirror-monokai-style"
-    document.head.appendChild link
-    @codeMirrorEditor.setOption "theme", "monokai"
-
-
   createEditor: ->
+
     @codeMirrorEditor = CodeMirror @container.getDomElement()[0],
       lineNumbers     : yes
       scrollPastEnd   : yes
@@ -191,4 +181,5 @@ class DevToolsEditorPane extends CollaborativeEditorPane
           spaces = Array(cm.getOption("indentUnit") + 1).join " "
           cm.replaceSelection spaces, "end", "+input"
 
-    @setEditorMode 'coffee'
+    @setEditorMode  'coffee'
+    @setEditorTheme 'vibrant-ink'
