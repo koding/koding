@@ -111,13 +111,13 @@ module.exports = class JVM extends Module
         default         : no
       maxMemoryInMB     :
         type            : Number
-        default         : 1024
+        default         : KONFIG.defaultVMConfigs.freeVM.ram ? 1024
       diskSizeInMB      :
         type            : Number
-        default         : 3600
+        default         : KONFIG.defaultVMConfigs.freeVM.storage ? 3600
       numCPUs           :
         type            : Number
-        default         : 1
+        default         : KONFIG.defaultVMConfigs.freeVM.cpu ? 1
 
   suspend: (callback)->
     @update { $set: { hostKite: '(banned)' } }, (err)=>
@@ -335,19 +335,11 @@ module.exports = class JVM extends Module
 
         return callback new Error "You can not create shared VM" unless account.getId().toString() in adminIds
 
-        # what are we gonna use here?
-        # todo - fix hardcoded values
-        usage  =
-         "cpu": 1
-         "ram": 0.25
-         "disk": 0.5
-
         request =
           account   :account,
           type      :"group"
           # groupSlug :"dede",
           groupSlug :group.slug,
-          usage     :usage
           # i dont know what the plan code is!?!
           planCode  : "group_vm_1xs_1"
           # this is not used
@@ -357,7 +349,7 @@ module.exports = class JVM extends Module
 
   # TODO: this needs to be rethought in terms of bundles, as per the
   # discussion between Devrim, Chris T. and Badahir  C.T.
-  @createVm = ({account, type, groupSlug, usage, planCode, subscriptionCode}, callback)->
+  @createVm = ({account, type, groupSlug, planCode, subscriptionCode}, callback)->
     JGroup = require './group'
     JGroup.one {slug: groupSlug}, (err, group)=>
       return callback err  if err
@@ -395,7 +387,6 @@ module.exports = class JVM extends Module
             webHome
             groups
             users
-            usage
             vmType: type
           }
 
