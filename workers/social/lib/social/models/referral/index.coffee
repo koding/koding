@@ -301,6 +301,12 @@ module.exports = class JReferral extends jraphical.Message
           name: CAMPAIGN_NAME
         , $set : "content.diskSpaceLeftMB" : 0
         , ->
+
+  getReferralDiskSizeAmount=(callback)->
+    isCampaingValid (err, status)->
+      return callback null, OLD_DISK_SIZE_IN_MB if err or not status
+      return callback null, CAMPAIGN_DISK_SIZE_IN_MB
+
   decreaseLeftSpace = (size, callback)->
     isCampaingValid (err, status)->
       return callback err if err
