@@ -223,6 +223,8 @@ Dashboard Member List styles
           visible()
 
       &.editing
+        height               155px
+        border-bottom        none
         background           transparent
         opacity              1
 
@@ -329,7 +331,7 @@ Dashboard member listing related common styles
       display                 inline-block
 
       input[type=checkbox]
-        vertical-align        middle
+        vertical-align        baseline
         display               inline
         width                 auto
         margin                0 10px 0 3px
@@ -544,6 +546,7 @@ Dashboard invitations tab styles
             &.share
               height          15px
               bg              position, -97px -582px
+
       .status
         font-size             11px
         margin-top            10px
@@ -585,23 +588,12 @@ Dashboard invitations tab styles
           line-height         10px
 
         a
+          color               logoBg
           noTextDeco()
 
-        span.avatar
-          border                1px solid #E3E3E3
-          padding               1px
-          margin-right          10px
-          size(40px,40px)
-          bg(color,#fff)
-          fl()
-
-          a
-            display               block
-            background-position   center
-            background-image      url('../images/defaultavatar/default.avatar.40.png')
-            bg(size,cover)
-            bg(repeat,no-repeat)
-            size(30px,30px)
+      span.avatar
+        margin-right          10px
+        fl()
 
   .invitation-code section .details
     margin-left               10px
