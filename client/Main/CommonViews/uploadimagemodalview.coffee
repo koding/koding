@@ -28,6 +28,7 @@ class UploadImageModalView extends KDModalView
     @uploaderView.on "dropFile", ({origin, content})=>
       if origin is "external"
         @previewData = "data:image/png;base64,#{btoa content}"
+        @uploaderView.updatePartial ""
         @updateLogoImage()
 
     @addSubView @uploaderView
