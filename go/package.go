@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"flag"
 	"fmt"
 	"io/ioutil"
@@ -27,7 +28,7 @@ func main() {
 		log.Fatalln("Please define config with -c, that is going to be included with the package.")
 	}
 
-	err := doPackage()
+	err := buildPackages()
 	if err != nil {
 		log.Println(err)
 	} else {
@@ -36,7 +37,24 @@ func main() {
 
 }
 
-func doPackage() error {
+func buildPackages() error {
+	gopath := os.Getenv("GOPATH")
+	if gopath == "" {
+		return errors.New("GOPATH is not set")
+	}
+
+	kontrolproxy := pkg{
+		importPath: "koding/kontrol/kontrolproxy",
+		files: []string{
+			filepath.Join(gopath, "src", "koding/kontrol/kontrolproxy/files"),
+		},
+	}
+
+	return kontrolproxy.build()
+}
+
+func (p *pkg) build() error {
+
 	// prepare config folder
 	tempDir, err := ioutil.TempDir(".", "gopackage_")
 	if err != nil {
@@ -45,6 +63,8 @@ func doPackage() error {
 	defer os.RemoveAll(tempDir)
 
 	configDir := filepath.Join(tempDir, "config")
+	os.MkdirAll(configDir, 0755)
+
 	config, err := exec.Command("node", "-e", "require('koding-config-manager').printJson('main."+*profile+"')").CombinedOutput()
 	if err != nil {
 		return err
@@ -56,24 +76,19 @@ func doPackage() error {
 		return err
 	}
 
-	kontrolproxy := pkg{
-		importPath: "koding/kontrol/kontrolproxy", // TODO read from GOPATH!
-		files: []string{
-			"go/src/koding/kontrol/kontrolproxy/files",
-			configDir,
-		},
-	}
+	// include config dir too
+	p.files = append(p.files, configDir)
 
 	b := build.NewBuild()
-	b.ImportPath = kontrolproxy.importPath
-	b.Files = strings.Join(kontrolproxy.files, ",")
+	b.ImportPath = p.importPath
+	b.Files = strings.Join(p.files, ",")
 
 	err = b.InitializeAppName()
 	if err != nil {
 		return err
 	}
 
-	err = b.Do()
+	err = b.TarGzFile()
 	if err != nil {
 		return err
 	}
