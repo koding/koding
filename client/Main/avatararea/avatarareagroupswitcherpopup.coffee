@@ -178,7 +178,7 @@ class AvatarPopupGroupSwitcher extends AvatarPopup
 
 
   populateGroups:->
-    return  unless KD.isLoggedIn() or @isLoading
+    return  if not KD.isLoggedIn() or @isLoading
 
     @listController.removeAllItems()
 
