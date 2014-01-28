@@ -29,6 +29,7 @@ class UploadImageModalView extends KDModalView
       if origin is "external"
         @previewData = "data:image/png;base64,#{btoa content}"
         @updateLogoImage()
+        @uploaderView.updatePartial ""
 
     @addSubView @uploaderView
     # @addSubView uploadButton
