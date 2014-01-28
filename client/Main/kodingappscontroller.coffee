@@ -93,7 +93,8 @@ class KodingAppsController extends KDController
 
   @runExternalApp = (jApp, callback = noop)->
 
-    return  if jApp.approved then @runApprovedApp jApp
+    if jApp.approved or jApp.manifest.authorNick is KD.nick()
+      return @runApprovedApp jApp
 
     modal = new KDModalView
       title          : "Run #{jApp.manifest.name}"
