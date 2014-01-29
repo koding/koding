@@ -89,6 +89,9 @@ class MainController extends KDController
       eventSuffix = if @isUserLoggedIn() then "loggedIn" else "loggedOut"
       @emit "#{eventPrefix}.#{eventSuffix}", account, connectedState, firstLoad
 
+      KD.utils.wait 5000, =>
+        new TBCampaignController  if KD.isLoggedIn()
+
   createMainViewController:->
     KD.registerSingleton "dock", new DockController
     @mainViewController  = new MainViewController
