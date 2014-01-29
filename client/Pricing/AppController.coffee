@@ -16,10 +16,7 @@ class PricingAppController extends KDViewController
               app.resourcePackPlan.show()
             when 'Enterprise'
               app.customPlan.show()
-
-  KD.registerAppClass this,
-    name  : "Pricing"
-    route : "/:name?/Pricing"
+      "/:name?/KDBackend/Create"      : -> log "asdasd"
 
   constructor: (options = {}, data) ->
     options.appInfo = title: "Pricing"
