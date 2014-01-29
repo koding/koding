@@ -278,7 +278,7 @@ module.exports = class JReferral extends jraphical.Message
   CAMPAIGN_NAME                   = "100_TB_CAMPAIGN"
   CAMPAIGN_TOTAL_DISK_SIZE_IN_MB  = 1024*1024*100 # 100TB
   CAMPAIGN_DISK_SIZE_IN_MB        = 1024
-  CAMPAIGN_START_DATE             = new Date("Jan 29 2014 16:00:00")
+  CAMPAIGN_END_DATE               = new Date("Feb 04 2014 16:00:00 GMT")
   OLD_DISK_SIZE_IN_MB             = 250
 
   # this functions checks default vm and updates disk size
@@ -366,7 +366,7 @@ module.exports = class JReferral extends jraphical.Message
           name: CAMPAIGN_NAME
           content:
             diskSpaceLeftMB: CAMPAIGN_TOTAL_DISK_SIZE_IN_MB
-            endDate: CAMPAIGN_START_DATE
+            endDate: CAMPAIGN_END_DATE
 
         cmp.save (err)->
           return callback err if err
