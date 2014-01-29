@@ -44,7 +44,7 @@ class IntroResourcePackPlan extends JView
         appManager = KD.singleton "appManager"
         return   unless appManager
         appManager.open "Pricing", (app) =>
-          app.selectPlan "rp#{@planIndex + 1}"
+          app.selectPlan "rp#{@planIndex + 1}", planApi: KD.remote.api.JResourcePlan
 
   updateContent: ->
     @cpuQuantity.updatePartial @plans[@planIndex].cpu

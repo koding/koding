@@ -57,6 +57,7 @@ class IntroCustomPlan extends JView
           app.selectPlan "custom-plan", {
             @userQuantity
             @resourceQuantity
+            planApi: KD.remote.api.JGroupPlan
             total: (@usersPrice + @resourcesPrice) * 100
           }
 
