@@ -39,11 +39,7 @@ module.exports = class JResourcePlan extends Base
   @getCalculationOptions = (plan, planOptions) ->
     { resourceQuantity } = planOptions  if planOptions
 
-    resourceTag = 
-      if "vm" in plan.tags
-      then "vm"
-      else if "custom-plan" in plan.tags
-      then "sharedvm"
+    resourceTag = "vm"
 
     {
       plan
@@ -56,16 +52,10 @@ module.exports = class JResourcePlan extends Base
 
     { resourceQuantity } = planOptions  if planOptions
 
-    resourceTag = 
-      if "vm" in plan.tags
-      then "vm"
-      else if "custom-plan" in plan.tags
-      then "sharedvm"
-
     calcOptions = @getCalculationOptions plan, planOptions
 
     @calculateQuantities calcOptions, (err, quantities) ->
-      return callback err  if err              
+      return callback err  if err
 
       options.quantities = quantities
       options.couponCode = plan.couponCodes?[promotionType]
