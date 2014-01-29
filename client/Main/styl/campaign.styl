@@ -1,0 +1,76 @@
+@import "../../Framework/themes/default/kdfn"
+@import "../../Main/styl/appfn"
+
+@css {
+/*
+Campaign Page stylesheet
+campaign.styl
+*/
+}
+
+#terabyte-campaign-modal
+  .kdmodal-inner, .kdmodal-content
+    margin                 0 !important
+  &.referral-modal
+    .left, .right
+      height               390px
+    .logo
+      top                  110px !important
+  .campaign-content
+    overflow               hidden
+  .left
+    size                   255px, 340px
+    bg                     image, url('/a/images/campaign/100tb/bg.png')
+    rounded                6px 0 0 6px
+    fl()
+    .logo
+      bg                   image, url('/a/images/campaign/100tb/modal-logo.png')
+      size                 174px, 167px
+      top                  84px
+      left                 42px
+      position             relative
+  .right
+    size                   500px, 340px
+    padding                10px
+    box-sizing             border-box
+    fl()
+    p
+      line-height          1.18em
+      strong
+        font-weight        500
+      &.sharing-is-care
+        font-size          18px
+    .share-title
+      margin-bottom        10px
+      display              inline-block
+      font-weight          500
+      font-size            22px
+    .content
+      padding              25px 0 0 27px
+      font-size            21px
+      margin-bottom        20px
+      color                #606060
+    .content-text
+      margin-bottom        30px
+    .title
+      font-size            26px
+      font-weight          800
+      color                #2B2B2B
+      margin-bottom        30px
+      .icon
+        bg                 image, url('/a/images/campaign/100tb/we-love-you.png')
+        size               23px, 20px
+        display            inline-block
+    .referral-avatar
+      fl()
+      margin              7px 20px 0 0
+    .share-button
+      border               3px solid #1aaf5d
+      color                #1aaf5d
+      padding              0 24px
+      rounded              23px
+      text-transform       uppercase
+      background           none
+      height               45px
+      font-size            18px
+      margin               15px 0 0 338px

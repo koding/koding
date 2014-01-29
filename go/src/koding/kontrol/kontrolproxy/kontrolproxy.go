@@ -6,7 +6,7 @@ import (
 	"html/template"
 	"io"
 	"koding/db/mongodb/modelhelper"
-	"koding/kite/kite"
+	"koding/kite"
 	"koding/kite/protocol"
 	"koding/kodingkite"
 	"koding/kontrol/kontrolproxy/resolver"
@@ -33,7 +33,6 @@ import (
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/sessions"
 	"github.com/hoisie/redis"
-	libgeo "github.com/nranchev/go-libGeoIP"
 )
 
 const (
@@ -45,10 +44,10 @@ const (
 )
 
 var (
-	// used to extract the Country information via the IP
-	geoIP *libgeo.GeoIP
-
 	proxyName, _ = os.Hostname()
+
+	// used for all our log
+	log = logger.New("kontrolproxy")
 
 	// redis client, connects once
 	redisClient = redis.Client{
@@ -66,18 +65,14 @@ var (
 	// cookie handling is used for features like securePage
 	store = sessions.NewCookieStore([]byte("kontrolproxy-secret-key"))
 
-	// used for all our log
-	log = logger.New("kontrolproxy")
-
 	// used for various kinds of use cases like validator, 404 pages,
 	// maintenance,...
 	templates = template.Must(template.ParseFiles(
-		"go/templates/proxy/securepage.html",
-		"go/templates/proxy/notfound.html",
-		"go/templates/proxy/notactiveVM.html",
-		"go/templates/proxy/accessVM.html",
-		"go/templates/proxy/quotaExceeded.html",
-		"website/maintenance.html",
+		"files/templates/notfound.html",
+		"files/templates/notactiveVM.html",
+		"files/templates/securepage.html",
+		"files/templates/quotaExceeded.html",
+		"files/templates/maintenance.html",
 	))
 )
 
@@ -120,34 +115,10 @@ type interval struct {
 
 func main() {
 	runtime.GOMAXPROCS(runtime.NumCPU())
-	log.Info("[%s] I'm using %d cpus for goroutines",
-		time.Now().Format(time.Stamp), runtime.NumCPU())
 
-	configureProxy()
-	startProxy()
-}
+	log.Info("Kontrolproxy started.")
+	log.Info("I'm using %d cpus for goroutines", runtime.NumCPU())
 
-// configureProxy is used to setup all necessary configuration procedures, like
-// mongodb connection, syslog enabling and so on..
-func configureProxy() {
-	var err error
-	log.Info("[%s] kontrolproxy started.", time.Now().Format(time.Stamp))
-
-	err = modelhelper.AddProxy(proxyName)
-	if err != nil {
-		log.Warning(err.Error())
-	}
-
-	// load GeoIP db into memory
-	dbFile := "GeoIP.dat"
-	geoIP, err = libgeo.Load(dbFile)
-	if err != nil {
-		log.Notice("load GeoIP.dat: %s", err.Error())
-	}
-}
-
-// startProxy is used to fire off all our ftp, https and http proxies
-func startProxy() {
 	p := &Proxy{
 		mux:             http.NewServeMux(),
 		enableFirewall:  false,
@@ -184,7 +155,7 @@ func (p *Proxy) runNewKite() {
 
 	query := protocol.KontrolQuery{
 		Username:    "koding-kites",
-		Environment: config.FileProfile,
+		Environment: config.Profile,
 		Name:        "oskite",
 		Version:     "0.0.1",
 		Region:      config.Region,
@@ -551,7 +522,7 @@ func (p *Proxy) vm(req *http.Request, target *resolver.Target) http.Handler {
 			session.Options = &sessions.Options{MaxAge: 3600} //seconds -> 1h
 			session.Save(r, w)
 
-			err := templates.ExecuteTemplate(w, "accessVM.html", tempData{Host: r.Host, Url: r.Host + r.URL.String()})
+			err := templates.ExecuteTemplate(w, "securepage.html", tempData{Host: r.Host, Url: r.Host + r.URL.String()})
 			if err != nil {
 				log.Warning("template notOnVM could not be executed %s", err)
 				http.Error(w, "error code - 5", 404)

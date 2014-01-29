@@ -32,7 +32,24 @@ class HomePage extends JView
         KD.mixpanel "Github auth button in /, click"
         KD.singletons.oauthController.openPopup "github"
 
+    @play = new KDCustomHTMLView
+      tagName : 'a'
+      cssClass : 'play-button'
+      attributes : href : 'http://www.youtube.com/embed/w6sl_Yt_gNo'
+      click : (event)->
+        KD.utils.stopDOMEvent event
+        w = 853
+        h = 480
+        window.open "/teamwork.html",
+          "Koding Teamwork",
+          "width=#{w},height=#{h},left=#{Math.floor (screen.width/2) - (w/2)},top=#{Math.floor (screen.height/2) - (h/2)}"
+
     @markers = new MarkerController
+
+    @campaignContainer = new KDCustomHTMLView
+
+    if KD.campaign?.status
+      @campaignContainer.addSubView new TBCampaignHomePageView {}, KD.campaign
 
   show:->
 
@@ -88,8 +105,8 @@ class HomePage extends JView
       wait      : 1900
       message   : 'INSTANTLY SPIN UP PLAYGROUNDS'
       offset    :
-        top     : 275
-        left    : 500
+        top     : 375
+        left    : 600
 
     logoMarker = @markers.create 'logo',
       client    : '#home-page .browser'
@@ -122,11 +139,19 @@ class HomePage extends JView
           <a href="/Login" class="login fr">LOGIN</a>
         </div>
       </header>
+      {{> @campaignContainer}}
       <main>
         <div class="clearfix">
           <div class="headings-container">
-            <h1 class='big-header'>Coding environment<br/>from the future</h1>
-            <h2>Social development in your browser, sign up to join a great community and code on powerful VMs.</h2>
+            <h1 class='big-header'>Develop, Together!</h1>
+
+            <h2>Learn programming or make apps.
+              <br/>Hack Ruby, Go, Java, NodeJS, PHP, C, and Python.
+              <br/>Install Wordpress, Laravel, Django, and Bootstrap.
+              <br/>Play with MySQL, Mongo, and enjoy root access.
+              <br/>Sign up now and join the fun!
+            </h2>
+
           </div>
           <div class="register-container">
             {{> @registerForm}}
@@ -135,6 +160,7 @@ class HomePage extends JView
         </div>
       </main>
       <figure class='laptop'>
+        {{> @play}}
         <section class='teamwork'></section>
       </figure>
       <section id='home-features' class='clearfix'>

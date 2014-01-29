@@ -54,8 +54,8 @@ __utils.extend __utils,
       location.reload(true)
 
   showMoreClickHandler:(event)->
-    __utils.stopDOMEvent event
     $trg = $(event.target)
+    __utils.stopDOMEvent event  if $trg.is ".more-link, .less-link"
     more = "span.collapsedtext a.more-link"
     less = "span.collapsedtext a.less-link"
     $trg.parent().addClass("show").removeClass("hide") if $trg.is(more)
@@ -225,7 +225,9 @@ __utils.extend __utils,
     return  str unless tokenMatches = str.match /\|.+?\|/g
 
     tagMap = {}
-    data.tags?.forEach (tag) -> tagMap[tag.getId()] = tag
+    data.tags?.forEach (tag) ->
+      unless tag.lazyNode?
+        tagMap[tag.getId()] = tag
 
     viewParams = []
     for tokenString in tokenMatches

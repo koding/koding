@@ -21,7 +21,7 @@ type GoLogger struct {
 }
 
 func NewGoLog(name string) *GoLogger {
-	logging.SetFormatter(logging.MustStringFormatter("[%{level:.8s}] - %{message}"))
+	logging.SetFormatter(logging.MustStringFormatter("%{module} [%{level:.8s}] - %{message}"))
 
 	// Send log to stdout
 	var logBackend = logging.NewLogBackend(os.Stderr, "", stdlog.LstdFlags|stdlog.Lshortfile)

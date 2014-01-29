@@ -3,7 +3,7 @@ package main
 import (
 	"flag"
 	"koding/kite/kd/util"
-	"koding/kite/kite"
+	"koding/kite"
 	"koding/kite/kodingkey"
 	"os/exec"
 

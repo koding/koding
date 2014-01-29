@@ -229,6 +229,8 @@ class WebTermAppView extends JView
     path = location.pathname + location.search + "?"
     mainController = KD.getSingleton("mainController")
     mainController.on "accountChanged.to.loggedIn", =>
+      wc = KD.singleton 'windowController'
+      wc.clearUnloadListeners()
       location.replace path
 
 

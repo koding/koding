@@ -281,8 +281,9 @@ class KodingRouter extends KDRouter
       '/Landing/:page'         : noop
       '/R/:username'           : ({params:{username}})->
         KD.mixpanel "Visit referrer url, success", {username}
+
         # give a notification to tell that this is a referral link here - SY
-        handleRoot.call this
+        @handleRoute if KD.isLoggedIn() then "/Activity" else "/"
 
       '/:name?/Logout'         : ({params:{name}})-> requireLogin -> mainController.doLogout()
 
@@ -296,16 +297,6 @@ class KodingRouter extends KDRouter
 
       '/:name?/Invitation/:inviteCode': ({params:{inviteCode, name}})=>
         @handleRoute "/Redeem/#{inviteCode}"
-
-      '/:name?/Get5GB': =>
-        if not KD.isLoggedIn()
-          KD.showError new Error "You should login and try again"
-          return @handleRoute '/Login'
-        else
-          KD.remote.api.JReferral.add5GBDisk (err, result)=>
-            KD.showError err if err
-            KD.notify_ "5GB is added successfully to your redeemable points" if result
-            @handleRoute '/Activity', entryPoint: KD.config.entryPoint
 
       '/:name?/InviteFriends': ->
         if KD.isLoggedIn()
