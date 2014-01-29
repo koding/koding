@@ -11,6 +11,7 @@ class AccountAppController extends AppController
     routes                       :
       "/:name?/Account"          : -> KD.singletons.router.handleRoute '/Account/Profile'
       "/:name?/Account/:section" : ({params:{section}})-> handler (app)-> app.openSection section
+      "/:name?/Account/Referrer" : -> handler (app) -> app.showReferrerModal()
     behavior                     : "hideTabs"
     hiddenHandle                 : yes
 
