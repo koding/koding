@@ -18,10 +18,14 @@ class TBCampaignController extends KDController
         referrer = userAccount.referrerUsername
         if referrer
           @showModal { userType: "referral", referrer }
-          KD.mixpanel "TBCampaign referral modal shown", { referrer, referral: KD.nick() }
+
+          KD.mixpanel "TBCampaign modal show, success", {
+            referrer, referral: KD.nick(), userType: "referral"
+          }
         else
           @showModal { userType: "direct" }
-          KD.mixpanel "TBCampaign direct user registered"
+
+          KD.mixpanel "TBCampaign modal show, success", {userType : "direct"}
       else
         @checkExistingUserStatus()
 
@@ -33,10 +37,8 @@ class TBCampaignController extends KDController
         KD.getSingleton("vmController").resizeDisk targetVMName, (err, res) =>
           return warn err  if err
           @showModal { userType: "under4GB" }
-          KD.mixpanel "TBCampaign old user disk upgraded to 4GB"
       else
         @showModal { userType: "above4GB" }
-        KD.mixpanel "TBCampaign user has more than 4GB storage"
 
   showModal: (config) ->
     new TBCampaignModal config
