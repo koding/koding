@@ -408,6 +408,7 @@ module.exports = class JGroup extends Module
       JMembershipPolicy     = require './membershippolicy'
       JName                 = require '../name'
       group                 = new this groupData
+      group.privacy         = 'private'
       permissionSet         = new JPermissionSet {}, {privacy: group.privacy}
       defaultPermissionSet  = new JPermissionSet {}, {privacy: group.privacy}
 
@@ -715,10 +716,11 @@ module.exports = class JGroup extends Module
   # fetchMyFollowees: permit 'list members'
   #   success:(client, options, callback)->
 
-  fetchHomepageView: (account, callback)->
-    @fetchMembershipPolicy (err, policy)=>
-      if err then callback err
-      else
+  fetchHomepageView: (section, account, callback)->
+    kallback = =>
+      @fetchMembershipPolicy (err, policy)=>
+        return callback err if err
+
         options = {
           account
           @slug
@@ -731,6 +733,14 @@ module.exports = class JGroup extends Module
         }
         prefix = if account.type is 'unregistered' then 'loggedOut' else 'loggedIn'
         JGroup.render[prefix].groupHome options, callback
+
+    if @visibility is 'hidden' and section isnt 'Invitation'
+      @isMember account, (err, isMember)->
+        return callback err if err
+        if isMember then kallback()
+        else do callback
+    else
+      kallback()
 
   fetchRolesByClientId:(clientId, callback)->
     [callback, clientId] = [clientId, callback]  unless callback
@@ -936,9 +946,13 @@ module.exports = class JGroup extends Module
       @fetchInvitations {}, selector, (err, [invite])=>
         return callback err  if err
         return callback new KodingError 'Invitation code is invalid!'  unless invite
-        @approveMember delegate, (err)->
+        delegate.fetchUser (err, user)=>
           return callback err  if err
-          invite.redeem client, callback
+          unless user.email is invite.email
+            return callback new KodingError 'Are you sure invitation e-mail is for you?'
+          @approveMember delegate, (err)->
+            return callback err  if err
+            invite.redeem client, callback
 
   bulkApprove: permit 'send invitations',
     success: (client, count, options, callback)->
