@@ -203,11 +203,12 @@ class ReferalBox extends JView
     @progressBar.updateBar 0
     vmc = KD.getSingleton "vmController"
     vmc.fetchDefaultVmName (name) =>
-      vmc.fetchDiskUsage name, (usage) =>
-        return  unless usage.max
-
-        usagePercent = usage.max / (16*1e9) * 90
-        used         = KD.utils.formatBytesToHumanReadable usage.max
+      vmc.fetchVmInfo name, (err , vmInfo) =>
+        return  if err or not vmInfo?.diskSizeInMB
+        max          = vmInfo?.diskSizeInMB or 4096
+        max          = max*1024*1024
+        usagePercent = max / (16*1e9) * 90
+        used         = KD.utils.formatBytesToHumanReadable max
 
         @progressBar.updateBar usagePercent + 10, null, "#{used} / 16 GB"
 
