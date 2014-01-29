@@ -2,6 +2,7 @@ package main
 
 import (
 	"errors"
+	"flag"
 	"fmt"
 	"io/ioutil"
 	"koding/kite/kd/build"
@@ -11,6 +12,12 @@ import (
 	"path/filepath"
 	"runtime"
 	"strings"
+	"text/template"
+)
+
+var (
+	profile = flag.String("c", "", "Define config profile to be included")
+	region  = flag.String("r", "", "Define region profile to be included")
 )
 
 type pkg struct {
@@ -22,9 +29,16 @@ type pkg struct {
 }
 
 func main() {
+	flag.Parse()
+
+	if flag.NFlag() != 2 {
+		fmt.Println("Please define config -c and region -r")
+		os.Exit(1)
+	}
+
 	err := buildPackages()
 	if err != nil {
-		log.Println(err)
+		fmt.Println(err)
 	}
 }
 
@@ -35,6 +49,14 @@ func buildPackages() error {
 	}
 
 	kdproxyPath := "koding/kontrol/kontrolproxy/"
+	kdproxyUpstart := filepath.Join(gopath, "src", kdproxyPath, "files/kontrolproxy.conf")
+
+	configUpstart, err := prepareUpstart(kdproxyUpstart)
+	if err != nil {
+		return err
+	}
+	defer os.Remove(configUpstart)
+
 	kontrolproxy := pkg{
 		appName:    "kontrolproxy",
 		importPath: kdproxyPath,
@@ -46,6 +68,33 @@ func buildPackages() error {
 	}
 
 	return kontrolproxy.build()
+}
+
+func prepareUpstart(path string) (string, error) {
+	temps := struct {
+		Profile string
+		Region  string
+	}{
+		*profile,
+		*region,
+	}
+
+	file, err := ioutil.TempFile(".", "go-package")
+	if err != nil {
+		return "", err
+	}
+	defer file.Close()
+
+	t, err := template.ParseFiles(path)
+	if err != nil {
+		return "", err
+	}
+
+	if err := t.Execute(file, temps); err != nil {
+		return "", err
+	}
+
+	return file.Name(), nil
 }
 
 func (p *pkg) build() error {
