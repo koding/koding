@@ -34,14 +34,15 @@ func buildPackages() error {
 		return errors.New("GOPATH is not set")
 	}
 
+	kdproxyPath := "koding/kontrol/kontrolproxy/"
 	kontrolproxy := pkg{
 		appName:    "kontrolproxy",
-		importPath: "koding/kontrol/kontrolproxy",
+		importPath: kdproxyPath,
 		files: []string{
-			filepath.Join(gopath, "src", "koding/kontrol/kontrolproxy/files"),
+			filepath.Join(gopath, "src", kdproxyPath, "files"),
 		},
 		version:       "0.0.1",
-		upstartScript: filepath.Join(gopath, "src", "koding/kontrol/kontrolproxy/files/kontrolproxy.conf"),
+		upstartScript: filepath.Join(gopath, "src", kdproxyPath, "files/kontrolproxy.conf"),
 	}
 
 	return kontrolproxy.build()
@@ -66,6 +67,7 @@ func (p *pkg) build() error {
 		"sjc-production",
 	}
 
+	// koding-config-manager needs it
 	err = ioutil.WriteFile("VERSION", []byte(p.version), 0755)
 	if err != nil {
 		return err
@@ -83,10 +85,9 @@ func (p *pkg) build() error {
 		if err != nil {
 			return err
 		}
-
 	}
 
-	// include config dir too
+	// include config dir
 	p.files = append(p.files, configDir)
 
 	if runtime.GOOS == "linux" {
