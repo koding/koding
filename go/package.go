@@ -2,7 +2,6 @@ package main
 
 import (
 	"errors"
-	"flag"
 	"fmt"
 	"io/ioutil"
 	"koding/kite/kd/build"
@@ -14,21 +13,13 @@ import (
 	"strings"
 )
 
-var (
-	profile = flag.String("c", "", "Configuration profile from file")
-)
-
 type pkg struct {
 	importPath string
 	files      []string
+	version    string
 }
 
 func main() {
-	flag.Parse()
-	if *profile == "" {
-		log.Fatalln("Please define config with -c, that is going to be included with the package.")
-	}
-
 	err := buildPackages()
 	if err != nil {
 		log.Println(err)
@@ -46,12 +37,15 @@ func buildPackages() error {
 		files: []string{
 			filepath.Join(gopath, "src", "koding/kontrol/kontrolproxy/files"),
 		},
+		version: "0.0.1",
 	}
 
 	return kontrolproxy.build()
 }
 
 func (p *pkg) build() error {
+	fmt.Printf("building package: '%s'\n", p.importPath)
+
 	// prepare config folder
 	tempDir, err := ioutil.TempDir(".", "gopackage_")
 	if err != nil {
@@ -62,15 +56,30 @@ func (p *pkg) build() error {
 	configDir := filepath.Join(tempDir, "config")
 	os.MkdirAll(configDir, 0755)
 
-	config, err := exec.Command("node", "-e", "require('koding-config-manager').printJson('main."+*profile+"')").CombinedOutput()
+	profiles := []string{
+		"vagrant",
+		"staging",
+		"sjc-production",
+	}
+
+	err = ioutil.WriteFile("VERSION", []byte(p.version), 0755)
 	if err != nil {
 		return err
 	}
+	defer os.Remove("VERSION")
 
-	configFile := filepath.Join(configDir, fmt.Sprintf("main.%s.json", *profile))
-	err = ioutil.WriteFile(configFile, config, 0755)
-	if err != nil {
-		return err
+	for _, profile := range profiles {
+		config, err := exec.Command("node", "-e", "require('koding-config-manager').printJson('main."+profile+"')").CombinedOutput()
+		if err != nil {
+			return err
+		}
+
+		configFile := filepath.Join(configDir, fmt.Sprintf("main.%s.json", profile))
+		err = ioutil.WriteFile(configFile, config, 0755)
+		if err != nil {
+			return err
+		}
+
 	}
 
 	// include config dir too
@@ -88,12 +97,22 @@ func (p *pkg) build() error {
 
 	b.Output = fmt.Sprintf("%s-%s.%s-%s", b.AppName, b.Version, runtime.GOOS, runtime.GOARCH)
 
+	if runtime.GOOS == "linux" {
+		debfile, err := b.Linux()
+		if err != nil {
+			return err
+		}
+
+		fmt.Println("package  :", debfile, "ready")
+	} else {
+		fmt.Println("linux build is disabled. Run on a linux machine.")
+	}
+
 	tarFile, err := b.TarGzFile()
 	if err != nil {
 		return err
 	}
-
-	fmt.Println("tar file: ", tarFile, "ready")
+	fmt.Println("tar file :", tarFile, "ready")
 
 	return nil
 }
