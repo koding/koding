@@ -4,8 +4,8 @@ class TBCampaignController extends KDController
 
     super options, data
 
-    campaignStartDateInMs = 1390951988757
     userAccount           = KD.whoami()
+    campaignStartDateInMs = new Date(data.content.startDate).getTime()
     registerDateInMs      = new Date(userAccount.meta.createdAt).getTime()
     registrationDateDiff  = registerDateInMs - campaignStartDateInMs
 
