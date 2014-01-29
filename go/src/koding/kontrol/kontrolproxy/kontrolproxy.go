@@ -509,6 +509,8 @@ func (p *Proxy) vm(req *http.Request, target *resolver.Target) http.Handler {
 
 	// no cookies for alwaysOn or disabledSecurePage VMs
 	if alwaysOn || disableSecurePage {
+		log.Debug("secure page disabled for '%s'. alwaysOn: %v disableSecurePage: %v",
+			hostnameAlias, alwaysOn, disableSecurePage)
 		return reverseProxyHandler(nil, target.URL)
 	}
 
