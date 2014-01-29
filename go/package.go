@@ -32,10 +32,7 @@ func main() {
 	err := buildPackages()
 	if err != nil {
 		log.Println(err)
-	} else {
-		fmt.Println("package build is successful")
 	}
-
 }
 
 func buildPackages() error {
@@ -91,10 +88,12 @@ func (p *pkg) build() error {
 
 	b.Output = fmt.Sprintf("%s-%s.%s-%s", b.AppName, b.Version, runtime.GOOS, runtime.GOARCH)
 
-	err = b.TarGzFile()
+	tarFile, err := b.TarGzFile()
 	if err != nil {
 		return err
 	}
+
+	fmt.Println("tar file: ", tarFile, "ready")
 
 	return nil
 }
