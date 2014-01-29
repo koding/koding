@@ -12,7 +12,7 @@ class GroupsInvitationView extends KDView
         tabHandleContainer
       }, data
 
-      unless @policy.communications?.inviteApprovedMessage
+      unless @policy?.communications?.inviteApprovedMessage
         @saveInviteMessage 'inviteApprovedMessage', @getDefaultInvitationMessage()
 
     @on 'SearchInputChanged', (value)=>
