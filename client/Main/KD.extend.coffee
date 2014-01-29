@@ -141,6 +141,18 @@ KD.extend
     KD.logsEnabled = yes
     return "Logs are enabled now."
 
+  # Rewrites console.log to send logs to backend and also browser console.
+  enabledBackendLogger: (backendLoggerClass)->
+    oldConsoleLog = console.log
+    frontloggerConsoleLog = (args...)->
+      return unless KD.logsEnabled
+      oldConsoleLog.apply this, arguments
+      backendLoggerClass.info.apply backendLoggerClass, arguments
+
+    console.log = frontloggerConsoleLog
+
+    return "Logs are logged to backend too."
+
   impersonate : (username)->
     KD.remote.api.JAccount.impersonate username, (err)->
       if err then new KDNotificationView title: err.message
@@ -247,6 +259,9 @@ KD.extend
                                       or defaultMessages.KodingError
     messages or= defaultMessages
     errMessage or= err.message or messages[err.name] or messages.KodingError
+
+    # log error to backend
+    KD.remote.api.FrontLogger.error errMessage
 
     if errMessage?
       if 'string' is typeof errMessage

@@ -22,7 +22,7 @@ func New(options Options) *kite.Kite {
 
 	// Update config
 	options.Environment = config.Profile
-	options.Region = config.FileProfile
+	options.Region = config.Region
 	options.KontrolURL = kontrolURL
 
 	o := kite.Options(options)
