@@ -1,4 +1,4 @@
-class ResourcePackPlan extends JView
+class IntroResourcePackPlan extends JView
   constructor: (options = {}, data) ->
     options.cssClass = KD.utils.curry "resource-pack-plan", options.cssClass
     super options, data
