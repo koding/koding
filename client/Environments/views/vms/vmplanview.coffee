@@ -1,7 +1,6 @@
 class VmPlanView extends JView
   constructor: (options = {}, data = {} ) ->
-    options.cssClass = "vm-plan-view"
-
+    options.cssClass = KD.utils.curry "vm-plan-view", options.cssClass
     super options, data
 
   pistachio: ->
