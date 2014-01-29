@@ -14,9 +14,11 @@ import (
 )
 
 type pkg struct {
+	appName    string
 	importPath string
 	files      []string
 	version    string
+	upstart    string
 }
 
 func main() {
@@ -33,11 +35,13 @@ func buildPackages() error {
 	}
 
 	kontrolproxy := pkg{
+		appName:    "kontrolproxy",
 		importPath: "koding/kontrol/kontrolproxy",
 		files: []string{
 			filepath.Join(gopath, "src", "koding/kontrol/kontrolproxy/files"),
 		},
 		version: "0.0.1",
+		upstart: filepath.Join(gopath, "src", "koding/kontrol/kontrolproxy/files/kontrolproxy.conf"),
 	}
 
 	return kontrolproxy.build()
@@ -75,7 +79,7 @@ func (p *pkg) build() error {
 		}
 
 		configFile := filepath.Join(configDir, fmt.Sprintf("main.%s.json", profile))
-		err = ioutil.WriteFile(configFile, config, 0755)
+		err = ioutil.WriteFile(configFile, config, 0644)
 		if err != nil {
 			return err
 		}
@@ -85,34 +89,38 @@ func (p *pkg) build() error {
 	// include config dir too
 	p.files = append(p.files, configDir)
 
-	b := build.NewBuild()
-	b.ImportPath = p.importPath
-	b.Files = strings.Join(p.files, ",")
-
-	// initializes b.AppName
-	err = b.InitializeAppName()
-	if err != nil {
-		return err
-	}
-
-	b.Output = fmt.Sprintf("%s-%s.%s-%s", b.AppName, b.Version, runtime.GOOS, runtime.GOARCH)
+	output := fmt.Sprintf("%s-%s.%s-%s", p.appName, p.version, runtime.GOOS, runtime.GOARCH)
 
 	if runtime.GOOS == "linux" {
-		debfile, err := b.Linux()
+		tar := &build.Tar{
+			AppName:    p.appName,
+			Files:      strings.Join(p.files, ","),
+			ImportPath: p.importPath,
+			Output:     output,
+		}
+
+		tarFile, err := tar.Build()
 		if err != nil {
 			return err
 		}
 
-		fmt.Println("package  :", debfile, "ready")
-	} else {
-		fmt.Println("linux build is disabled. Run on a linux machine.")
-	}
+		deb := &build.Deb{
+			AppName:       p.appName,
+			Version:       p.version,
+			Output:        output,
+			TarFile:       tarFile,
+			InstallPrefix: "/opt/kite",
+		}
 
-	tarFile, err := b.TarGzFile()
-	if err != nil {
-		return err
+		debFile, err := deb.Build()
+		if err != nil {
+			log.Println("linux:", err)
+		}
+
+		fmt.Println("package  :", debFile, "ready")
+	} else {
+		fmt.Println("Not supported. Run on a linux machine.")
 	}
-	fmt.Println("tar file :", tarFile, "ready")
 
 	return nil
 }
