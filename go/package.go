@@ -51,6 +51,7 @@ func buildPackages() error {
 	kdproxyPath := "koding/kontrol/kontrolproxy/"
 	kdproxyUpstart := filepath.Join(gopath, "src", kdproxyPath, "files/kontrolproxy.conf")
 
+	// change our upstartscript because it's a template
 	configUpstart, err := prepareUpstart(kdproxyUpstart)
 	if err != nil {
 		return err
@@ -64,7 +65,7 @@ func buildPackages() error {
 			filepath.Join(gopath, "src", kdproxyPath, "files"),
 		},
 		version:       "0.0.1",
-		upstartScript: filepath.Join(gopath, "src", kdproxyPath, "files/kontrolproxy.conf"),
+		upstartScript: configUpstart,
 	}
 
 	return kontrolproxy.build()
@@ -79,7 +80,7 @@ func prepareUpstart(path string) (string, error) {
 		*region,
 	}
 
-	file, err := ioutil.TempFile(".", "go-package")
+	file, err := ioutil.TempFile(".", "gopackage_")
 	if err != nil {
 		return "", err
 	}
@@ -98,7 +99,7 @@ func prepareUpstart(path string) (string, error) {
 }
 
 func (p *pkg) build() error {
-	fmt.Printf("building package: '%s'\n", p.importPath)
+	fmt.Printf("building '%s' for config '%s' and regions '%s'\n", p.appName, *profile, *region)
 
 	// prepare config folder
 	tempDir, err := ioutil.TempDir(".", "gopackage_")
@@ -110,12 +111,6 @@ func (p *pkg) build() error {
 	configDir := filepath.Join(tempDir, "config")
 	os.MkdirAll(configDir, 0755)
 
-	profiles := []string{
-		"vagrant",
-		"staging",
-		"sjc-production",
-	}
-
 	// koding-config-manager needs it
 	err = ioutil.WriteFile("VERSION", []byte(p.version), 0755)
 	if err != nil {
@@ -123,41 +118,41 @@ func (p *pkg) build() error {
 	}
 	defer os.Remove("VERSION")
 
-	for _, profile := range profiles {
-		config, err := exec.Command("node", "-e", "require('koding-config-manager').printJson('main."+profile+"')").CombinedOutput()
-		if err != nil {
-			return err
-		}
-
-		configFile := filepath.Join(configDir, fmt.Sprintf("main.%s.json", profile))
-		err = ioutil.WriteFile(configFile, config, 0644)
-		if err != nil {
-			return err
-		}
+	// create config and include into config folder
+	config, err := exec.Command("node", "-e", "require('koding-config-manager').printJson('main."+*profile+"')").CombinedOutput()
+	if err != nil {
+		return err
 	}
 
-	// include config dir
+	configFile := filepath.Join(configDir, fmt.Sprintf("main.%s.json", *profile))
+	err = ioutil.WriteFile(configFile, config, 0644)
+	if err != nil {
+		return err
+	}
+
 	p.files = append(p.files, configDir)
 
-	if runtime.GOOS == "linux" {
-		deb := &build.Deb{
-			AppName:       p.appName,
-			Version:       p.version,
-			ImportPath:    p.importPath,
-			Files:         strings.Join(p.files, ","),
-			InstallPrefix: "opt/kite",
-			UpstartScript: p.upstartScript,
-		}
-
-		debFile, err := deb.Build()
-		if err != nil {
-			log.Println("linux:", err)
-		}
-
-		fmt.Printf("success: '%s' is ready\n", debFile)
-	} else {
-		fmt.Println("Not supported. Run on a linux machine.")
+	// Now it's time to build
+	if runtime.GOOS != "linux" {
+		return errors.New("Not supported. Please run on a linux machine.")
 	}
+
+	deb := &build.Deb{
+		AppName:       p.appName,
+		Version:       p.version,
+		ImportPath:    p.importPath,
+		Files:         strings.Join(p.files, ","),
+		InstallPrefix: "opt/kite",
+		UpstartScript: p.upstartScript,
+	}
+
+	debFile, err := deb.Build()
+	if err != nil {
+		log.Println("linux:", err)
+	}
+
+	fmt.Printf("success:\n\t'%s' is ready\n", debFile)
+	fmt.Printf("\tcheck with 'dpkg -c %s' before you install the package\n", debFile)
 
 	return nil
 }
