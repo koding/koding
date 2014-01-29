@@ -222,7 +222,6 @@ class ReferalBox extends JView
 
   pistachio:->
     """
-    <figure></figure>
     <strong>#Crazy100TBWeek</strong>
     <p>
     Only this week, share your link, they get 5GB instead of 4GB, and you get 1GB extra! {{> @modalLink}}

@@ -4,8 +4,8 @@ class TBCampaignController extends KDController
 
     super options, data
 
-    campaignStartDateInMs = 1390951988757
     userAccount           = KD.whoami()
+    campaignStartDateInMs = new Date(data.content.startDate).getTime()
     registerDateInMs      = new Date(userAccount.meta.createdAt).getTime()
     registrationDateDiff  = registerDateInMs - campaignStartDateInMs
 
@@ -18,8 +18,10 @@ class TBCampaignController extends KDController
         referrer = userAccount.referrerUsername
         if referrer
           @showModal { userType: "referral", referrer }
+          KD.mixpanel "TBCampaign referral modal shown", { referrer, referral: KD.nick() }
         else
           @showModal { userType: "direct" }
+          KD.mixpanel "TBCampaign direct user registered"
       else
         @checkExistingUserStatus()
 
@@ -31,8 +33,10 @@ class TBCampaignController extends KDController
         KD.getSingleton("vmController").resizeDisk targetVMName, (err, res) =>
           return warn err  if err
           @showModal { userType: "under4GB" }
+          KD.mixpanel "TBCampaign old user disk upgraded to 4GB"
       else
         @showModal { userType: "above4GB" }
+        KD.mixpanel "TBCampaign user has more than 4GB storage"
 
   showModal: (config) ->
     new TBCampaignModal config

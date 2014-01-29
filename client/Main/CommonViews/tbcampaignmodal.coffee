@@ -26,11 +26,10 @@ class TBModalContent extends JView
     @shareWidget = new KDView
       cssClass   : "share"
       partial    : """
-        <p>
-          If you share this week,
-          your friends get 5GB, and you get
-          get additional 1GB when they signup.
-          Crazy 100TB Week ends this sunday, or once we run out of 100TB.
+        <p class="share-title">Share the gigabytes with your friends!</p>
+        <p class="sharing-is-care">
+          Invite your friends <strong>this week</strong> and you'll both receive
+          an <strong>extra 1GB</strong> once they sign up
         </p>
       """
 
@@ -83,14 +82,14 @@ class TBModalContent extends JView
 
   messages    =
     direct    :
-      header  : "Congratz! You got 4GB!"
-      content : "Because you registered with Crazy 100 TB campaign."
+      header  : "Sweet! You got 4GB!"
+      content : "For registering during our #Crazy100TBWeek"
     referral  :
-      header  : "Congratz! You got 5GB!"
+      header  : "Awesome! You got 5GB!"
       content : "Your good friend REFERRAL_NAME invited you, so you got this awesome 5GB storage instead of 4GB and he got additional 1GB."
     under4GB  :
       header  : "You got 4GB #Crazy100TBWeek"
       content : "We increased your storage to 4GB. You're welcome :)"
     above4GB  :
       header  : "WOHOO! #Crazy100TBWeek"
-      content : "We are giving away 10.000 gigabytes of storage this week."
+      content : "We are giving away <strong>100,000 GB</strong> of storage this week."
