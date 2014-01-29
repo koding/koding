@@ -58,7 +58,7 @@ func (i *ItemsService) All() (*ItemsResponse, error) {
 func (i *ItemsService) GetItem(itemId int) (*SingleItemResponse, error) {
 	response := &SingleItemResponse{}
 
-	var url = fmt.Sprintf("items/%v", itemId)
+	var url = fmt.Sprintf("item/%v", itemId)
 	body, err := i.C.Request("GET", url)
 	if err != nil {
 		return response, err
