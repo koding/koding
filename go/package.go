@@ -14,11 +14,11 @@ import (
 )
 
 type pkg struct {
-	appName    string
-	importPath string
-	files      []string
-	version    string
-	upstart    string
+	appName       string
+	importPath    string
+	files         []string
+	version       string
+	upstartScript string
 }
 
 func main() {
@@ -40,8 +40,8 @@ func buildPackages() error {
 		files: []string{
 			filepath.Join(gopath, "src", "koding/kontrol/kontrolproxy/files"),
 		},
-		version: "0.0.1",
-		upstart: filepath.Join(gopath, "src", "koding/kontrol/kontrolproxy/files/kontrolproxy.conf"),
+		version:       "0.0.1",
+		upstartScript: filepath.Join(gopath, "src", "koding/kontrol/kontrolproxy/files/kontrolproxy.conf"),
 	}
 
 	return kontrolproxy.build()
@@ -89,27 +89,14 @@ func (p *pkg) build() error {
 	// include config dir too
 	p.files = append(p.files, configDir)
 
-	output := fmt.Sprintf("%s-%s.%s-%s", p.appName, p.version, runtime.GOOS, runtime.GOARCH)
-
 	if runtime.GOOS == "linux" {
-		tar := &build.Tar{
-			AppName:    p.appName,
-			Files:      strings.Join(p.files, ","),
-			ImportPath: p.importPath,
-			Output:     output,
-		}
-
-		tarFile, err := tar.Build()
-		if err != nil {
-			return err
-		}
-
 		deb := &build.Deb{
 			AppName:       p.appName,
 			Version:       p.version,
-			Output:        output,
-			TarFile:       tarFile,
-			InstallPrefix: "/opt/kite",
+			ImportPath:    p.importPath,
+			Files:         strings.Join(p.files, ","),
+			InstallPrefix: "opt/kite",
+			UpstartScript: p.upstartScript,
 		}
 
 		debFile, err := deb.Build()
@@ -117,7 +104,7 @@ func (p *pkg) build() error {
 			log.Println("linux:", err)
 		}
 
-		fmt.Println("package  :", debFile, "ready")
+		fmt.Printf("success: '%s' is ready\n", debFile)
 	} else {
 		fmt.Println("Not supported. Run on a linux machine.")
 	}
