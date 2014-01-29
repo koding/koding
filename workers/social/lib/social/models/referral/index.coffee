@@ -349,7 +349,6 @@ module.exports = class JReferral extends jraphical.Message
     cachingTimeInMS = 10000
 
     toBeDecreasedSize= parseInt(totalMBPerMSPerSocialWorker*cachingTimeInMS, 10)
-
     decreaseLeftSpace toBeDecreasedSize
     callback null, {}
 
