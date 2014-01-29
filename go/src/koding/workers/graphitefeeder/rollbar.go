@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"github.com/sent-hil/rollbar"
 	"time"
 )
@@ -11,14 +12,14 @@ func init() {
 }
 
 var (
-	rollbarClient = rollbar.NewClient("089bd80bbfc2450dbe7b4ea2a897a181")
+	rollbarClient = rollbar.NewClient("36426ed40a554ab09db7914aa1f0efe1")
 )
 
 func numberOfCouldntFetchFiles() (string, int) {
 	var itemsService = rollbar.ItemsService{C: rollbarClient}
 
 	var identifier = "Couldn't fetch files"
-	var id = 272174924
+	var id = 274022596
 
 	var itemResponse, err = itemsService.GetItem(id)
 	if err != nil {
@@ -42,7 +43,7 @@ func numberOfTimeoutReachedForKiteRequest() (string, int) {
 	var itemsService = rollbar.ItemsService{C: rollbarClient}
 
 	var identifier = "Timeout reached for kite request"
-	var id = 271964933
+	var id = 274022560
 
 	var itemResponse, err = itemsService.GetItem(id)
 	if err != nil {
