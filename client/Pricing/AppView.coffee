@@ -14,6 +14,8 @@ class PricingAppView extends KDView
     @goToVmButton = new KDButtonView
       style       : "solid green"
       title       : "GO TO MY VM"
+      callback    : ->
+        KD.singleton("router").handleRoute "/Environments"
 
     @thankYou = new KDCustomHTMLView
       cssClass: "pricing-thank-you"
