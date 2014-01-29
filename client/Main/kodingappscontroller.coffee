@@ -36,33 +36,15 @@ class KodingAppsController extends KDController
   # Please make sure about your changes on it.
   @putAppScript = (app, callback = noop)->
 
-    identifier = app.identifier.replace /\./g, '_'
-
     @unloadAppScript app
 
-    if app.style and $("head .internal-style-#{identifier}").length is 0
+    identifier = app.identifier
 
-      style        = new KDCustomHTMLView
-        tagName    : "link"
-        cssClass   : "internal-style-#{identifier}"
-        attributes :
-          rel      : "stylesheet"
-          href     : "#{app.style}?#{KD.utils.uniqueId()}"
+    if app.style
+      @appendScriptElement 'style',  { url:app.style, identifier, callback }
 
-      $('head')[0].appendChild style.getElement()
-
-    if app.script and $("head .internal-script-#{identifier}").length is 0
-
-      script       = new KDCustomHTMLView
-        tagName    : "script"
-        cssClass   : "internal-script-#{identifier}"
-        bind       : "load"
-        load       : -> callback null
-        attributes :
-          type     : "text/javascript"
-          src      : "#{app.script}?#{KD.utils.uniqueId()}"
-
-      $('head')[0].appendChild script.getElement()
+    if app.script
+      @appendScriptElement 'script', { url:app.script, identifier, callback }
 
   @unloadAppScript = (app, callback = noop)->
 
@@ -117,6 +99,48 @@ class KodingAppsController extends KDController
         cancel       :
           style      : "modal-cancel"
           callback   : -> modal.destroy()
+
+  @appendScriptElement = (type, {identifier, url, callback})->
+
+    identifier = identifier.replace /\./g, '_'
+    cssClass   = "internal-#{type}-#{identifier}"
+    vmName     = FSHelper.getVMNameFromPath url
+    tagName    = type
+
+    # Which means this is an invm-app
+    if vmName
+
+      file = FSHelper.createFileFromPath url
+      file.fetchContents (err, partial)->
+        return  if err
+        obj = new KDCustomHTMLView {cssClass, tagName, partial}
+
+        if type is 'script'
+          obj.once 'viewAppended', -> callback null
+
+        KD.utils.defer -> obj.appendToSelector 'head'
+
+    else
+
+      url  = "#{url}?#{KD.utils.uniqueId()}"
+      bind = ''
+      load = noop
+
+      if type is 'style'
+        tagName    = 'link'
+        attributes =
+          rel      : 'stylesheet'
+          href     : url
+      else
+        attributes =
+          type     : "text/javascript"
+          src      : url
+        bind       = "load"
+        load       = -> callback null
+
+      $('head')[0].appendChild (new KDCustomHTMLView {
+        cssClass, tagName, attributes, bind, load
+      }).getElement()
 
   # #
   # MAKE NEW APP
