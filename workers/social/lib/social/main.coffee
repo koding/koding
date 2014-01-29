@@ -111,6 +111,8 @@ koding.on 'authenticateUser', (client, callback)->
   {delegate} = client.connection
   callback delegate
 
+koding.on "errFirstDetected", (err)-> console.error err
+
 koding.connect ->
   (require './init').init koding
 

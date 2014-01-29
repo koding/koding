@@ -242,12 +242,17 @@ module.exports = [
   "mixpanel.coffee",
   "analytic.coffee",
 
+  # ---------- Campaign --------------- #
+  "CommonViews/tbcampaigncontroller.coffee",
+  "CommonViews/tbcampaignmodal.coffee",
+
   # ---------- Main APP ENDS ---------- #
 
   # STYLES
 
   "styl/appfn.styl",
   "styl/resurrection.styl",
+  "styl/campaign.styl"
   # "styl/resurrection.activity.styl",
   "styl/resurrection.account.dropdown.styl",
   "styl/resurrection.anims.styl",
