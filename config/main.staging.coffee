@@ -311,8 +311,8 @@ module.exports =
   mixpanel       : "113c2731b47a5151f4be44ddd5af0e7a"
   rollbar        : "8108a4c027604f59bac7a8315c205afe"
   slack          :
-	  token        : "xoxp-2155583316-2155760004-2158149487-a72cf4"
-	  channel      : "C024LG80K"
+    token        : "xoxp-2155583316-2155760004-2158149487-a72cf4"
+    channel      : "C024LG80K"
   logLevel        :
     neo4jfeeder   : "info"
     oskite        : "debug"
