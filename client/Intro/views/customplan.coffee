@@ -1,4 +1,4 @@
-class CustomPlan extends JView
+class IntroCustomPlan extends JView
   unitPrices     =
     user         : 5
     resourcePack : 20
