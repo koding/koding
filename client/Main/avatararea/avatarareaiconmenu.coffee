@@ -14,6 +14,7 @@ class AvatarAreaIconMenu extends JView
     @helpIcon.click = (event)=>
       KD.singletons.helpController.showHelp this
       KD.utils.stopDOMEvent event
+      @animation?.destroy()
 
     @notificationsPopup = new AvatarPopupNotifications
       cssClass : "notifications"
@@ -28,8 +29,11 @@ class AvatarAreaIconMenu extends JView
     mainController.ready =>
       storage = KD.singletons.localStorageController.storage('HelpController')
       unless storage.getValue 'shown'
-        KD.utils.wait 5000, =>
-          KD.singletons.helpController.showHelp @helpIcon
+        # KD.utils.wait 5000, =>
+        #   KD.singletons.helpController.showHelp @helpIcon
+        @helpIcon.addSubView @animation = new KDCustomHTMLView
+          tagName    : "span"
+          cssClass   : "intro-marker in help"
 
   pistachio:->
     """
