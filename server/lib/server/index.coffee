@@ -314,7 +314,7 @@ app.all '/:name/:section?*', (req, res, next)->
         else if models.last?
           if models.last.bongo_?.constructorName isnt "JGroup" and not loggedIn
             return Crawler.crawl koding, req, res, name
-          models.last.fetchHomepageView account, (err, view)->
+          models.last.fetchHomepageView section, account, (err, view)->
             if err then next err
             else if view? then res.send view
             else res.send 404, error_404()
