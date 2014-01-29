@@ -225,7 +225,9 @@ __utils.extend __utils,
     return  str unless tokenMatches = str.match /\|.+?\|/g
 
     tagMap = {}
-    data.tags?.forEach (tag) -> tagMap[tag.getId()] = tag
+    data.tags?.forEach (tag) ->
+      unless tag.lazyNode?
+        tagMap[tag.getId()] = tag
 
     viewParams = []
     for tokenString in tokenMatches
