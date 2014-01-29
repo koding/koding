@@ -162,7 +162,18 @@ class PaymentController extends KDController
   createSubscription: (options, callback) ->
     { plan, planOptions, couponCode, email, paymentMethod, createAccount } = options
     { paymentMethodId, billing } = paymentMethod
-    plan.subscribe paymentMethodId, {planOptions, couponCode}, (err, subscription) =>
+    { planApi } = planOptions
+    
+    throw new Error "Must provide a plan API!"  unless planApi?
+    
+    options = {
+      planOptions
+      couponCode
+      paymentMethodId
+      planCode: plan.planCode
+    }
+
+    planApi.subscribe options, (err, subscription) =>
       if err?.short is 'existing_subscription'
         { existingSubscription } = err
 

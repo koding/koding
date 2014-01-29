@@ -15,8 +15,9 @@ KD.logToExternalWithTime = (name, options)->
   KD.troubleshoot (times)->
     KD.logToExternal {
       options
-      msg:"#{name} timed out"
-      pings:times
+      msg      : "#{name} timed out"
+      pings    : times
+      protocol : KD.remote.mq.ws.protocol
     }
 
 # set user info in rollbar for people tracking

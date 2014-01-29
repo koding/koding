@@ -134,7 +134,7 @@ class GroupsInvitationView extends KDView
     @inviteByEmail = @showModalForm
       title              : 'Invite by Email'
       cssClass           : 'invite-by-email'
-      callback           : ({emails, message, saveMessage, bcc})=>
+      callback           : ({emails, message, saveMessage})=>
 
         KD.whoami().fetchFromUser "email", (err, userEmail)=>
           emailList = emails.split(/\n/).map (email)-> email.trim()
@@ -143,7 +143,7 @@ class GroupsInvitationView extends KDView
             return new KDNotificationView
               title: "You cannot invite yourself!"
 
-          @getData().inviteByEmails emails, {message, bcc}, (err)=>
+          @getData().inviteByEmails emails, {message}, (err)=>
             @modalCallback @inviteByEmail, noop, err
             @saveInviteMessage 'invitationMessage', message  if saveMessage
       fields             :
@@ -180,10 +180,6 @@ class GroupsInvitationView extends KDView
               title      : 'Remember this message'
               click      : (event)=>
                 @inviteByEmail.modalTabs.forms.invite.fields.saveMessage.subViews.first.subViews.first.getDomElement().click()
-        bcc            :
-          label        : 'BCC'
-          type         : 'text'
-          placeholder  : '(optional)'
         report           :
           itemClass      : KDScrollView
           cssClass       : 'report'

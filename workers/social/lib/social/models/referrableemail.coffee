@@ -7,9 +7,11 @@ module.exports = class JReferrableEmail extends jraphical.Module
   @share()
 
   @set
-
+    sharedEvents  :
+      instance    : [
+        { name    : "save" }
+      ]
     sharedMethods :
-
       static      :
         invite    :
           (signature String, Function)
@@ -17,11 +19,9 @@ module.exports = class JReferrableEmail extends jraphical.Module
           (signature Function)
         deleteEmailsForAccount:
           (signature Function)
-
       instance    :
         invite    :
           (signature Function)
-
     schema        :
       title       : String
       email       :

@@ -59,16 +59,6 @@ class GroupGeneralSettingsView extends JView
           defaultValue      : Encoder.htmlDecode group.body ? ""
           placeholder       : 'Please enter a description here.'
           autogrow          : yes
-        "Privacy settings"  :
-          itemClass         : KDSelectBox
-          label             : "Privacy"
-          type              : "select"
-          name              : "privacy"
-          defaultValue      : group.privacy ? "public"
-          selectOptions     : [
-            { title : "Public",    value : "public" }
-            { title : "Private",   value : "private" }
-          ]
         "Visibility settings"  :
           itemClass         : KDSelectBox
           label             : "Visibility"

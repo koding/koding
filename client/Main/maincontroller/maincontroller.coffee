@@ -254,6 +254,7 @@ class MainController extends KDController
 
     checkConnectionState = ->
       unless connectedState.connected
+        KD.logToExternalWithTime "Connect to backend"
         fail()
 
     return ->

@@ -34,10 +34,13 @@ class LoginAppsController extends AppController
   handleRedeemRoute = ({params:{name, token}})->
     token = decodeURIComponent token
     KD.remote.api.JInvitation.byCode token, (err, invite)->
+      return callback err if err
       if KD.isLoggedIn()
         KD.remote.cacheable invite.group, (err, [group])->
           group.redeemInvitation token, (err)->
-            return KD.notify_ err.message or err  if err
+            if err
+              KD.notify_ err.message or err
+              return window.location.href = "/"
             KD.notify_ 'Success!'
             KD.getSingleton('router').handleRoute "/#{group.slug}"
             KD.getSingleton('mainController').accountChanged KD.whoami()
