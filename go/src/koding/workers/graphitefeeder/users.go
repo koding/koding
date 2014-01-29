@@ -2,6 +2,7 @@ package main
 
 import (
 	"koding/db/mongodb"
+
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
 )
@@ -58,7 +59,7 @@ func numberOfUsersWhoLinkedOauthGithub() (string, int) {
 	var count int
 	var err error
 	var query = func(c *mgo.Collection) error {
-		count, err = c.Find(bson.M{"foreignAuth.github": bson.M{"$exists": true}}).Count()
+		count, err = c.Find(bson.M{"foreignAuth.github.foreignId": bson.M{"$exists": true}}).Count()
 
 		return err
 	}
