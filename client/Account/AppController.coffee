@@ -93,12 +93,13 @@ class AccountAppController extends AppController
       """
 
   showReferrerModal:(options={})->
+    return  if @referrerModal and not @referrerModal.isDestroyed
+
     options.top         ?= 50
     options.left        ?= 35
     options.arrowMargin ?= 110
 
-    new ReferrerModal options
-
+    @referrerModal = new ReferrerModal options
 
   displayConfirmEmailModal:(name, username, callback=noop)->
     name or= KD.whoami().profile.firstName
