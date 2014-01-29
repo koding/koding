@@ -39,7 +39,7 @@ class ExistingAccountForm extends JView
   pistachio: ->
     """
     <section class="pricing-sign-in clearfix">
-      <h3>Sign in or Signup to proceed with your checkout</h3>
+      <h3 class="pricing-title">Sign in or Signup to proceed with your checkout</h3>
       {{> @loginForm}}
       <span class="divider">or</span>
       {{> @emailCollectionForm}}
