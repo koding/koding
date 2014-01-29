@@ -337,7 +337,27 @@ module.exports = class JReferral extends jraphical.Message
       , callback
 
 
+  decreaseLeftSpaceInTimeout =(options, callback)->
+    oneDayInMs = 86400000
+    sevenDay = oneDayInMs*7
+    totalTimeInMs = sevenDay
+
+    totalMBPerMS = CAMPAIGN_TOTAL_DISK_SIZE_IN_MB/totalTimeInMs
+    totalMBPerMSPerSocialWorker = totalMBPerMS/KONFIG.social.numberOfWorkers
+    cachingTimeInMS = 10000
+
+    toBeDecreasedSize= parseInt(totalMBPerMSPerSocialWorker*cachingTimeInMS, 10)
+
+    decreaseLeftSpace toBeDecreasedSize
+    callback null, {}
+
   @fetchTBCampaign = fetchTBCampaign= (callback)->
+
+    Cache  = require '../../cache/main'
+    cacheKey = "fetchTBCampaign"
+
+    Cache.fetch cacheKey, decreaseLeftSpaceInTimeout, {}, ->
+
     JStorage = require '../storage'
     JStorage.one {name: CAMPAIGN_NAME}, (err, campaign) ->
       return callback err if err
