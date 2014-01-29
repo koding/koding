@@ -324,7 +324,7 @@ module.exports = class JReferral extends jraphical.Message
       return callback null, OLD_DISK_SIZE_IN_MB if err or not status
       return callback null, CAMPAIGN_DISK_SIZE_IN_MB
 
-  decreaseLeftSpace = (size, callback)->
+  decreaseLeftSpace = (size, callback = ->)->
     isCampaingValid (err, status)->
       return callback err if err
       return callback null unless status
@@ -338,7 +338,7 @@ module.exports = class JReferral extends jraphical.Message
       , callback
 
 
-  decreaseLeftSpaceInTimeout =(options, callback)->
+  decreaseLeftSpaceInTimeout = (options, callback = ->)->
     oneDayInMs = 86400000
     sevenDayInMs = oneDayInMs*7
     totalTimeInMs = sevenDayInMs
