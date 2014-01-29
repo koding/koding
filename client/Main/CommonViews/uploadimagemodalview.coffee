@@ -32,7 +32,6 @@ class UploadImageModalView extends KDModalView
         @updateLogoImage()
 
     @addSubView @uploaderView
-    # @addSubView uploadButton
     @addSubView @loaderView
 
   updateLogoImage : =>
@@ -47,24 +46,31 @@ class UploadImageModalView extends KDModalView
 
   uploadToS3: (avatarData, callback)->
     #TODO : change the address and name of the logo
-    FSHelper.s3.upload "grouplogo-test1.png", avatarData, (err, url)=>
-      if err
-        new KDNotificationView title : "Error while uploading photo."
-        @loaderView.hide()
-        return
+    {groupsController} = KD.singletons
+    groupsController.ready =>
 
-      proxifyOptions =
-        crop         : yes
-        width        : @getOptions().image.size.width
-        height       : @getOptions().image.size.height
+      group     = groupsController.getCurrentGroup()
+      imageType = @getOptions().image.type
+      imageName = "#{group.slug}-#{imageType}"
 
-      resized = KD.utils.proxifyUrl url, proxifyOptions
-      group   = KD.singletons.groupsController.getCurrentGroup()
+      FSHelper.s3.upload imageName, avatarData, (err, url)=>
+        if err
+          new KDNotificationView title : "Error while uploading photo."
+          @loaderView.hide()
+          return
 
-      if @getOptions().image.type is "coverPhoto"
-        group.modify "customize.coverPhoto" : "#{url}?#{Date.now()}", callback
-      else
-        group.modify "customize.logo" : "#{url}?#{Date.now()}", callback
+        proxifyOptions =
+          crop         : yes
+          width        : @getOptions().image.size.width
+          height       : @getOptions().image.size.height
+
+        resized = KD.utils.proxifyUrl url, proxifyOptions
+        group   = KD.singletons.groupsController.getCurrentGroup()
+
+        if @getOptions().image.type is "coverPhoto"
+          group.modify "customize.coverPhoto" : "#{url}?#{Date.now()}", callback
+        else
+          group.modify "customize.logo" : "#{url}?#{Date.now()}", callback
 
   upload:(callback)->
 
