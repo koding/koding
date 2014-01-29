@@ -7,7 +7,7 @@ class DashboardAppView extends JView
     super options, data
 
     @header = new HeaderViewSection type : "big", title : "Group Dashboard"
-    @nav    = new CommonInnerNavigation
+    @nav    = new KDView tagName : 'aside'
     @tabs   = new KDTabView
       cssClass            : 'dashboard-tabs'
       hideHandleContainer : yes
@@ -71,9 +71,13 @@ class DashboardAppView extends JView
 
   setListeners:->
 
-    @nav.on "viewAppended", =>
-      @navController = @nav.setListController
-        itemClass : CommonInnerNavigationListItem
+    @nav.once "viewAppended", =>
+
+      @navController = new NavigationController
+        scrollView    : no
+        wrapper       : no
+        view          : new CommonInnerNavigationList
+          itemClass   : CommonInnerNavigationListItem
       ,
         title     : ""
         items     : []
