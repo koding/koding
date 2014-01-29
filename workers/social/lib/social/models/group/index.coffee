@@ -104,6 +104,8 @@ module.exports = class JGroup extends Module
           (signature String, Function)
           (signature String, Number, Function)
         ]
+        createGroupBotAndPostMessage:
+          (signature Object, Function)
       instance      :
         join: [
           (signature Function)
@@ -213,6 +215,7 @@ module.exports = class JGroup extends Module
           (signature String, Function)
         addSubscription:
           (signature String, Function)
+
     schema          :
       title         :
         type        : String
@@ -1431,3 +1434,23 @@ module.exports = class JGroup extends Module
       JPaymentSubscription = require '../payment/subscription'
       JPaymentSubscription.one _id: id, (err, subscription) =>
         @addSubscription subscription, callback
+
+  @createGroupBotAndPostMessage: permit 'create bot',
+    success: (client, options, callback)->
+      # get groupbot account
+      JAccount = require '../account'
+      JAccount.one "profile.nickname" : options.botname, (err, account) ->
+        return callback err if err
+        return callback new KodingError "Can't find bot account" if not account
+        {group} = client.context
+        JGroup.one slug : group, (err, group)->
+          group.addMember account, "member", (err, member)->
+            return callback err if err
+            JNewStatusUpdate = require '../messages/newstatusupdate'
+            # set client's delegate to bot account
+            client.connection.delegate = account
+            data          =
+              title       : options.title
+              body        : options.body
+              group       : group
+            JNewStatusUpdate.create client, data, callback
