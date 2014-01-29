@@ -13,6 +13,8 @@ module.exports = class JPaymentPack extends JPaymentBase
       static        :
         create      :
           (signature Object, Function)
+        one         :
+          (signature Object, Function)
         removeByCode:
           (signature String, Function)
       instance      :

@@ -44,7 +44,9 @@ class PlanUpgradeConfirmForm extends PaymentConfirmForm
       {productData: {plan, planOptions}, oldSubscription} = data
       @plan.addSubView new VmPlanView {planOptions}, plan
 
-      if plan.discountCode and plan.vmCode
+      {couponCodes} = plan
+
+      if couponCodes and couponCodes.discount and couponCodes.vm
         @fetchCoupons plan, ["discount", "vm"], @bound "addCouponOptions"
 
       if oldSubscription
@@ -78,7 +80,6 @@ class PlanUpgradeConfirmForm extends PaymentConfirmForm
       ]
 
     couponOptions.setDefaultValue "discount"
-    @changeCouponOption "discount"
 
     @plan.addSubView totalWrapper = new KDCustomHTMLView cssClass: "total-wrapper"
 
@@ -94,6 +95,7 @@ class PlanUpgradeConfirmForm extends PaymentConfirmForm
       tagName  : "span"
       partial  : (@getData().productData.plan.feeAmount - @utils.formatMoney discountInCents) / 100
 
+    @changeCouponOption "discount"
     @updateTotals couponOptions.getValue()
 
   changeCouponOption: (name) ->
