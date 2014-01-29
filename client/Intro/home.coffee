@@ -46,8 +46,12 @@ class HomePage extends JView
 
     @markers = new MarkerController
 
-    @resourcePackPlan = new ResourcePackPlan
-    @customPlan       = new CustomPlan
+    @resourcePackPlan  = new ResourcePackPlan
+    @customPlan        = new CustomPlan
+    @campaignContainer = new KDCustomHTMLView
+
+    if KD.campaign?.status
+      @campaignContainer.addSubView new TBCampaignHomePageView {}, KD.campaign
 
   show:->
 
@@ -137,6 +141,7 @@ class HomePage extends JView
           <a href="/Login" class="login fr">LOGIN</a>
         </div>
       </header>
+      {{> @campaignContainer}}
       <main>
         <div class="clearfix">
           <div class="headings-container">
