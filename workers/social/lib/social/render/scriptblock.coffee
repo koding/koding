@@ -92,11 +92,12 @@ module.exports = (options = {}, callback)->
       # get group logo and coverphoto
       if slug # if not, it is koding
         bongoModels.JGroup.one {slug}, (err, group) ->
-          if not err
-          currentGroup =
-            logo       : group.customize?.logo or ""
-            coverPhoto : group.customize?.coverPhoto or ""
-            id         : group.getId()
+          console.log err if err
+          if group
+            currentGroup =
+              logo       : group.customize?.logo or ""
+              coverPhoto : group.customize?.coverPhoto or ""
+              id         : group.getId()
 
           html = createHTML()
           return callback null, html
