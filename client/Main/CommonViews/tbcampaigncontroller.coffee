@@ -12,19 +12,6 @@ class TBCampaignController extends KDController
     @appStorage = KD.getSingleton('appStorageController').storage 'Finder', '1.1.1'
     @appStorage.fetchStorage (storage) =>
       hasShownBefore = @appStorage.getValue "TBCampaignModalShown"
-
-
-
-
-
-      hasShownBefore = no
-
-
-
-
-
-
-
       return if hasShownBefore
 
       if registrationDateDiff > 0
