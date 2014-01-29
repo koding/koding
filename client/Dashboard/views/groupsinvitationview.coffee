@@ -90,14 +90,15 @@ class GroupsInvitationView extends KDView
             placeholder   : "(optional)"
 
   getDefaultInvitationMessage:->
+    fullName = "#{KD.whoami().profile.firstName} #{KD.whoami().profile.lastName}"
     """
     Hi there,
 
-    #INVITER# has invited you to the group #{@getData().title}.
+    #{fullName} has invited you to the group #{@getData().title}.
 
     This link will allow you to join the group: #URL#
 
-    If you reply to this email, it will go to #INVITER#.
+    If you reply to this email, it will go to #{fullName}.
 
     Enjoy! :)
     """
