@@ -11,16 +11,16 @@ module.exports = (options = {}, callback)->
   {argv} = require 'optimist'
 
   prefetchedFeeds = {}
-  campaignData = {}
-  {bongoModels, client, intro, landing} = options
+  campaignData    = {}
+  currentGroup    = {}
+  {bongoModels, client, intro, landing, slug} = options
 
   createHTML = ->
-    replacer    = (k, v)-> if 'string' is typeof v then encoder.XSSEncode v else v
-    encodedFeed = JSON.stringify prefetchedFeeds, replacer
+    replacer            = (k, v)-> if 'string' is typeof v then encoder.XSSEncode v else v
+    encodedFeed         = JSON.stringify prefetchedFeeds, replacer
     encodedCampaignData = JSON.stringify campaignData, replacer
-
-    landingOptions =
-      page         : landing
+    currentGroup        = JSON.stringify currentGroup, replacer
+    landingOptions      = page : landing
 
     if client.connection?.delegate?.profile?.nickname
       {connection: {delegate}} = client
@@ -43,6 +43,7 @@ module.exports = (options = {}, callback)->
     <script src='/a/js/koding.#{KONFIG.version}.js'></script>
     #{if landing then "<script src='/a/js/landingapp.#{ KONFIG.version }.js'></script>" else ''}
     <script>KD.prefetchedFeeds=#{encodedFeed};</script>
+    <script>KD.currentGroup=#{currentGroup};</script>
 
 
     <!-- GOOGLE ANALYTICS -->
@@ -88,8 +89,22 @@ module.exports = (options = {}, callback)->
         content = campaign?.content
         campaignData = {status, content}
 
-      html = createHTML()
-      return callback null, html
+      # get group logo and coverphoto
+      if slug # if not, it is koding
+        bongoModels.JGroup.one {slug}, (err, group) ->
+          if not err
+          currentGroup =
+            logo       : group.customize?.logo or ""
+            coverPhoto : group.customize?.coverPhoto or ""
+            id         : group.getId()
+
+          html = createHTML()
+          return callback null, html
+      else
+        html = createHTML()
+        return callback null, html
+
+
 
   {delegate} = options.client.connection
   # if user is exempt or super-admin do not cache his/her result set
