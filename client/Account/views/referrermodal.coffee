@@ -19,15 +19,17 @@ class ReferrerModalContent extends JView
 
     super options, data
 
+    url = KD.getReferralUrl KD.nick()
+
     @urlInput      = new KDInputView
-      defaultValue : KD.getReferralUrl KD.nick()
+      defaultValue : url
       cssClass     : "share-url-input"
       attributes   : readonly : "true"
       click        : -> @selectAll()
 
-    @twitter  = new TwitterShareLink  url: options.url, trackingName: "referrer"
-    @facebook = new FacebookShareLink url: options.url, trackingName: "referrer"
-    @linkedin = new LinkedInShareLink url: options.url, trackingName: "referrer"
+    @twitter  = new TwitterShareLink  { url , trackingName: "referrer" }
+    @facebook = new FacebookShareLink { url , trackingName: "referrer" }
+    @linkedin = new LinkedInShareLink { url , trackingName: "referrer" }
 
   pistachio: ->
     """
