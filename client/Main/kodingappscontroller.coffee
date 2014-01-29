@@ -234,7 +234,7 @@ class KodingAppsController extends KDController
                       title : "Application name is not provided."
 
                   type        = "blank"
-                  name        = name.replace /[^a-zA-Z0-9\/\-.]/g, ''
+                  name        = (name.replace /[^a-zA-Z]/g, '').capitalize()
                   manifestStr = defaultManifest type, name
                   manifest    = JSON.parse manifestStr
                   appPath     = @getAppPath manifest
@@ -287,7 +287,8 @@ class KodingAppsController extends KDController
         title : "Application name is not provided."
 
     type         = "blank"
-    name         = name.replace /[^a-zA-Z0-9\/\-.]/g, ''
+    name         = (name.replace /[^a-zA-Z]/g, '').capitalize()
+
     manifestStr  = defaultManifest type, name
     changeLogStr = @_createChangeLog name
     manifest     = JSON.parse manifestStr
