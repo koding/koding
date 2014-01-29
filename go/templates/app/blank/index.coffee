@@ -22,7 +22,7 @@ class %%APPNAME%%Controller extends AppController
 do ->
 
   # In live mode you can add your App view to window's appView
-  if appView
+  if appView?
 
     view = new %%APPNAME%%MainView
     appView.addSubView view
@@ -31,5 +31,7 @@ do ->
 
     KD.registerAppClass %%APPNAME%%Controller,
       name     : "%%APPNAME%%"
-      route    : "/%%APPNAME%%"
+      routes   :
+        "/%%APPNAME%%" : null
+        "/Apps/%%AUTHOR%%/%%APPNAME%%/run" : null
       behavior : "application"

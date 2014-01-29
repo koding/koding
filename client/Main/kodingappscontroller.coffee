@@ -68,18 +68,26 @@ class KodingAppsController extends KDController
       identifier : jApp.identifier
     }
 
+    if jApp.approved
+      route = "/#{jApp.name}"
+    else
+      route = "/Apps/#{jApp.manifest.authorNick}/#{jApp.name}/run"
+
     @putAppScript app, ->
+
       KD.utils.defer ->
-        unless options.dontUseRouter
-          KD.singletons.router.handleRoute "/#{jApp.name}"
-        else
+
+        if options.dontUseRouter
           KD.singletons.appManager.open jApp.name
+        else
+          KD.singletons.router.handleRoute route
+
         callback()
 
-  @runExternalApp = (jApp, callback = noop)->
+  @runExternalApp = (jApp, options = {}, callback = noop)->
 
     if jApp.approved or jApp.manifest.authorNick is KD.nick()
-      return @runApprovedApp jApp
+      return @runApprovedApp jApp, options
 
     modal = new KDModalView
       title          : "Run #{jApp.manifest.name}"
@@ -94,7 +102,7 @@ class KodingAppsController extends KDController
           loader     :
             color    : "#ffffff"
             diameter : 16
-          callback   : => @runApprovedApp jApp, {}, -> modal.destroy()
+          callback   : => @runApprovedApp jApp, options, -> modal.destroy()
 
         cancel       :
           style      : "modal-cancel"
@@ -312,7 +320,8 @@ class KodingAppsController extends KDController
         indexFile     = FSHelper.createFileFromPath "#{appPath}/index.coffee"
         indexFile.fetchContents (err, content)->
           return cb err  if err
-          content = content.replace /%%APPNAME%%/g, name
+          content = (content.replace /\%\%APPNAME\%\%/g, name)
+                            .replace /\%\%AUTHOR\%\%/g, KD.nick()
           indexFile.save content, cb
 
       (cb)->
