@@ -564,9 +564,9 @@ task 'run', (options)->
     queue.push ->
 
       buildMethod =
-        unless options.dontBuildSprites
-        then 'buildSprites'
-        else 'buildClient'
+        if options.dontBuildSprites
+        then 'buildClient'
+        else 'buildSprites'
 
       (new (require('./Builder')))[buildMethod] options
       queue.next()
@@ -580,7 +580,12 @@ task 'killGoProcesses', " Kill hanging go processes", (options) ->
   exec command
 
 task 'buildClient', "Build the static web pages for webserver", (options)->
-  (new (require('./Builder'))).buildClient options
+  buildMethod =
+    if options.dontBuildSprites
+    then 'buildClient'
+    else 'buildSprites'
+
+  (new (require('./Builder')))[buildMethod] options
 
 task 'deleteCache', "Delete the local webserver cache", (options)->
   exec "rm -rf #{__dirname}/.build",->
