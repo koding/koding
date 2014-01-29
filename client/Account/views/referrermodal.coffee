@@ -1,76 +1,37 @@
-class ReferrerModal extends KDModalViewWithForms
+class ReferrerModal extends KDModalView
+
   constructor: (options = {}, data) ->
+
     options.cssClass       = KD.utils.curry "referrer-modal", options.cssClass
     options.width          = 610
     options.overlay       ?= yes
-    options.title        or= "Get free disk space!"
+    options.title        or= "#Crazy100TBWeek"
     options.url          or= KD.getReferralUrl KD.nick()
     options.onlyInviteTab ?= no
-    options.tabs           =
-      navigable            : no
-      goToNextFormOnSubmit : no
-      hideHandleContainer  : yes
-      forms                :
-        share              :
-          customView       : KDCustomHTMLView
-          cssClass         : "clearfix"
-          partial          : options.partial or "<p class='description'>For each person registers with your referral code, \
-            you'll get <strong>250 MB</strong> free disk space for your VM, up to <strong>16 GB</strong> total.</p><p class='center'>Share this code or invite your gmail contacts.</p>"
-        invite             :
-          customView       : KDCustomHTMLView
+    options.content        = options.partial or """
+      <p class="description">
+        Only this week, share your link,
+        they get <strong>5GB</strong> instead of 4GB,
+        and you get <strong>1GB extra</strong>!
+      </p>
+    """
 
     options.cssClass = KD.utils.curry "hidden", options.cssClass if options.onlyInviteTab
 
     super options, data
 
-    {@share, @invite} = @modalTabs.forms
-
-    # @share.addSubView usageWrapper = new KDCustomHTMLView cssClass: "disk-usage-wrapper"
-    # vmc = KD.getSingleton "vmController"
-    # vmc.fetchDefaultVmName (name) ->
-    #   vmc.fetchDiskUsage name, (usage) ->
-    #     if usage.max
-    #       usageWrapper.addSubView new KDLabelView title: "You've claimed <strong>#{KD.utils.formatBytesToHumanReadable usage.max}</strong>
-    #         of your free <strong>16 GB</strong> disk space."
-
-    @share.addSubView leftColumn  = new KDCustomHTMLView cssClass : "left-column"
-    @share.addSubView rightColumn = new KDCustomHTMLView cssClass : "right-column"
-
-    # leftColumn.addSubView urlLabel = new KDLabelView
-    #   cssClass : "share-url-label"
-    #   title    : "Share this code to get your free storage!"
-
-    leftColumn.addSubView urlInput = new KDInputView
+    @addSubView urlInput = new KDInputView
       defaultValue : options.url
       cssClass     : "share-url-input"
       attributes   : readonly:"true"
       click        :-> @selectAll()
 
-    leftColumn.addSubView shareLinks = new KDCustomHTMLView
+    @addSubView shareLinks = new KDCustomHTMLView
       cssClass : "share-links"
-      partial  : "<span>Share your code on</span>"
 
     shareLinks.addSubView new TwitterShareLink  url: options.url, trackingName: "referrer"
     shareLinks.addSubView new FacebookShareLink url: options.url, trackingName: "referrer"
     shareLinks.addSubView new LinkedInShareLink url: options.url, trackingName: "referrer"
-
-    rightColumn.addSubView gmail = new KDButtonView
-      title    : "Invite Gmail Contacts"
-      style    : "invite-button gmail"
-      icon     : yes
-      callback : @bound "checkGoogleLinkStatus"
-
-    rightColumn.addSubView facebook = new KDButtonView
-      title    : "Invite Facebook Friends"
-      style    : "invite-button facebook hidden"
-      disabled : yes
-      icon     : yes
-
-    rightColumn.addSubView twitter = new KDButtonView
-      title    : "Invite Twitter Friends"
-      style    : "invite-button twitter hidden"
-      disabled : yes
-      icon     : yes
 
     KD.getSingleton("mainController").once "ForeignAuthSuccess.google", (data) =>
       @showGmailContactsList data
