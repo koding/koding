@@ -72,8 +72,7 @@ module.exports = class JPaymentPlan extends JPaymentBase
       priceIsVolatile   :
         type            : Boolean
         default         : no
-      discountCode      : String
-      vmCode            : String
+      couponCodes       : Object # "discount" => '2xdc'
       product           :
         prefix          : String
         category        : String
@@ -133,22 +132,14 @@ module.exports = class JPaymentPlan extends JPaymentBase
 
   @fetchPlanByCode = (planCode, callback) -> @one { planCode }, callback
 
-  userUnitAmount     =  500 # cents
-  resourceUnitAmount = 2000 # cents
-
-  calculateCustomPlanUnitAmount = (userQuantity, resourceQuantity) ->
-    (userQuantity * userUnitAmount) + (resourceQuantity * resourceUnitAmount)
-
   fetchToken: secure (client, data, callback) ->
     JPaymentToken.createToken client, planCode: @planCode, callback
 
   subscribe: (paymentMethodId, options = {}, callback) ->
     [callback, options] = [options, callback]  unless callback
     options.multiple ?= no
-    {planOptions, couponCode} = options
-    {userQuantity, resourceQuantity} = planOptions  if planOptions
 
-    couponCode = if couponCode is "discount" then @discountCode else @vmCode
+    { couponCode, feeAmount } = options
 
     JPaymentSubscription.one {
       paymentMethodId
@@ -172,6 +163,7 @@ module.exports = class JPaymentPlan extends JPaymentBase
 
         update = {
           @planCode
+          feeAmount
           couponCode
           quantity
           uuid: subscription.uuid
@@ -179,6 +171,7 @@ module.exports = class JPaymentPlan extends JPaymentBase
 
         recurly.updateSubscription paymentMethodId, update, (err) =>
           return callback err  if err
+
           subscription.update $set: { quantity }, (err)->
             if err
             then callback err
@@ -187,27 +180,16 @@ module.exports = class JPaymentPlan extends JPaymentBase
       else
         subOptions = {
           @planCode
+          feeAmount
           couponCode
           startsAt: options.startsAt
         }
-
-        if "custom-plan" in @tags
-          unless userQuantity or resourceQuantity
-            return callback "User and resource quantities not specified"
-
-          subOptions.unit_amount_in_cents = calculateCustomPlanUnitAmount userQuantity, resourceQuantity
 
         recurly.createSubscription paymentMethodId, subOptions, (err, result) =>
           return callback err  if err
 
           { planCode, uuid, quantity, status, activatedAt, expiresAt, renewAt,
             feeAmount, paymentMethodId } = result
-
-          createSubscription = (options) ->
-            subscription = new JPaymentSubscription options
-            subscription.save (err) ->
-              return callback err  if err
-              callback null, subscription
 
           subscriptionOptions = {
             planCode
@@ -220,37 +202,15 @@ module.exports = class JPaymentPlan extends JPaymentBase
             renewAt
             feeAmount
             paymentMethodId
+            quantities: options.quantities
             @tags
           }
 
-          if "vm" in @tags
-            resourceTag = "vm"
-          else if "custom-plan" in @tags
-            resourceTag = "sharedvm"
+          subscription = new JPaymentSubscription subscriptionOptions
+          subscription.save (err) ->
+            return callback err  if err
 
-          quantities = {}
-          dash queue = [
-            =>
-              @fetchProducts null, targetOptions: selector: tags: $in: [resourceTag], (err, products) =>
-                return callback err  if err
-                return callback "no products found"  unless products and products.length
-                for product in products
-                  continue unless product
-                  {planCode} = product
-                  quantities[planCode] = @quantities[planCode] * (resourceQuantity or 1)
-                queue.fin()
-            =>
-              return queue.fin()  unless "custom-plan" in @tags
-              @fetchProducts null, targetOptions: selector: tags: $in: ["user"], (err, products) =>
-                return callback err  if err
-                return callback "no products found"  unless products and products.length
-                product = products[0]
-                {planCode} = product
-                quantities[planCode] = @quantities[planCode] * (userQuantity or 1)
-                queue.fin()
-          ], =>
-            subscriptionOptions.quantities = quantities
-            createSubscription subscriptionOptions
+            callback null, subscription
 
   subscribe$: secure (client, paymentMethodId, data, callback) ->
     { connection:{ delegate } } = client

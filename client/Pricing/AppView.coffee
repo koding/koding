@@ -64,16 +64,6 @@ class PricingAppView extends KDView
           label             : "Address"
           itemClass         : KDCustomHTMLView
           partial           : "#{location.protocol}//#{location.host}/"
-        Privacy             :
-          itemClass         : KDSelectBox
-          label             : "Privacy"
-          type              : "select"
-          name              : "privacy"
-          defaultValue      : "public"
-          selectOptions     : [
-            { title : "Public",    value : "public"  }
-            { title : "Private",   value : "private" }
-          ]
         Visibility          :
           itemClass         : KDSelectBox
           label             : "Visibility"
@@ -90,7 +80,6 @@ class PricingAppView extends KDView
       return KD.showError "Subscription failed"
 
     groupName  = @groupForm.inputs.GroupName.getValue()
-    privacy    = @groupForm.inputs.Privacy.getValue()
     visibility = @groupForm.inputs.Visibility.getValue()
     slug       = @groupForm.inputs.GroupUrl.getValue()
 
@@ -98,7 +87,6 @@ class PricingAppView extends KDView
       title      : groupName
       body       : groupName
       slug       : slug
-      privacy    : privacy
       visibility : visibility
 
     KD.remote.api.JGroup.create options, (err, group) =>

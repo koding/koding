@@ -54,6 +54,7 @@ class CustomPlan extends JView
         @emit "PlanSelected", "custom-plan", {
           @userQuantity
           @resourceQuantity
+          planApi: KD.remote.api.JGroupPlan
           total: (@usersPrice + @resourcesPrice) * 100
         }
 

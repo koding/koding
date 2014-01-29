@@ -41,7 +41,9 @@ class ResourcePackPlan extends JView
       cssClass : 'solid buy-now'
       title    : 'BUY NOW'
       callback : =>
-        @emit "PlanSelected", "rp#{@planIndex + 1}"
+        @emit "PlanSelected", "rp#{@planIndex + 1}", {
+          planApi: KD.remote.api.JResourcePlan
+        }
 
   updateContent: ->
     @cpuQuantity.updatePartial @plans[@planIndex].cpu

@@ -137,6 +137,9 @@ module.exports = class JNewStatusUpdate extends JPost
       options.urls = urls
       api.extract options, callback
 
+  @create$ = secure (client, data, callback)->
+    @create client, data, callback
+
   @create = secure (client, data, callback)->
     statusUpdate  =
       meta        : data.meta
