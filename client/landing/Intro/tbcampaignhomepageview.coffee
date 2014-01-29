@@ -12,8 +12,7 @@ class TBCampaignHomePageView extends JView
     [left]     = leftInTB.split " "
     left       = "99.99"  if left is "100.00"
     [tb, gb]   = left.split "."
-
-    tb = ["0", tb.first]  if tb.length is 1
+    tb         = ["0", tb.first]  if tb.length is 1
 
     return """
         <div class="digit">#{tb[0] or 0}</div>
@@ -21,6 +20,7 @@ class TBCampaignHomePageView extends JView
         <div class="separator">,</div>
         <div class="digit">#{gb[0] or 0}</div>
         <div class="digit">#{gb[1] or 0}</div>
+        <div class="digit">9</div>
     """
 
   getDaysLeft: ->
