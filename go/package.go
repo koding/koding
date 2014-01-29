@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"errors"
 	"flag"
 	"fmt"
@@ -120,6 +121,17 @@ func (p *pkg) build() error {
 
 	// create config and include into config folder
 	config, err := exec.Command("node", "-e", "require('koding-config-manager').printJson('main."+*profile+"')").CombinedOutput()
+	if err != nil {
+		return err
+	}
+
+	// prettify content of "config"
+	var d map[string]interface{}
+	if err := json.Unmarshal(config, &d); err != nil {
+		return err
+	}
+
+	config, err = json.MarshalIndent(d, "", "  ")
 	if err != nil {
 		return err
 	}
