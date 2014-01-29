@@ -11,19 +11,28 @@ class PricingAppView extends KDView
   showThankYou: (@workflowData, @subscription) ->
     @hideWorkflow()
 
+    @goToVmButton = new KDButtonView
+      style       : "solid green"
+      title       : "GO TO MY VM"
+      callback    : ->
+        KD.singleton("router").handleRoute "/Environments"
+
     @thankYou = new KDCustomHTMLView
+      cssClass: "pricing-thank-you"
       partial:
         """
-        <h1>Thank you!</h1>
-        <p>
-          Your order has been processed.
-        </p>
+        <i class="check-icon"></i>
+        <h3 class="pricing-title">So much wow, so much horse-power!</h3>
+        <h6 class="pricing-subtitle">Now it’s time, time to start Koding!</h6>
+
         #{
           if @subscription.createAccount
-          then "<p>Please check your email for your registration link.</p>"
-          else "<p>We hope you enjoy your new subscription</p>"
+          then '<p>Please check your email for your registration link.</p>'
+          else ''
         }
         """
+
+    @thankYou.addSubView @goToVmButton
 
     if "custom-plan" in @workflowData.productData.plan.tags
       @thankYou.addSubView @createGroupNameForm()
