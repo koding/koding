@@ -340,8 +340,8 @@ module.exports = class JReferral extends jraphical.Message
 
   decreaseLeftSpaceInTimeout =(options, callback)->
     oneDayInMs = 86400000
-    sevenDay = oneDayInMs*7
-    totalTimeInMs = sevenDay
+    sevenDayInMs = oneDayInMs*7
+    totalTimeInMs = sevenDayInMs
 
     totalMBPerMS = CAMPAIGN_TOTAL_DISK_SIZE_IN_MB/totalTimeInMs
     socialServerCount = 2
