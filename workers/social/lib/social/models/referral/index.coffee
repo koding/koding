@@ -278,7 +278,8 @@ module.exports = class JReferral extends jraphical.Message
   CAMPAIGN_NAME                   = "100_TB_CAMPAIGN"
   CAMPAIGN_TOTAL_DISK_SIZE_IN_MB  = 1024*1024*100 # 100TB
   CAMPAIGN_DISK_SIZE_IN_MB        = 1024
-  CAMPAIGN_START_DATE             = new Date("Jan 29 2014 16:00:00")
+  CAMPAIGN_START_DATE             = new Date("Jan 28 2014 16:00:00 GMT")
+  CAMPAIGN_END_DATE               = new Date("Feb 04 2014 16:00:00 GMT")
   OLD_DISK_SIZE_IN_MB             = 250
 
   # this functions checks default vm and updates disk size
@@ -337,7 +338,27 @@ module.exports = class JReferral extends jraphical.Message
       , callback
 
 
+  decreaseLeftSpaceInTimeout =(options, callback)->
+    oneDayInMs = 86400000
+    sevenDayInMs = oneDayInMs*7
+    totalTimeInMs = sevenDayInMs
+
+    totalMBPerMS = CAMPAIGN_TOTAL_DISK_SIZE_IN_MB/totalTimeInMs
+    socialServerCount = 2
+    totalMBPerMSPerSocialWorker = totalMBPerMS/KONFIG.social.numberOfWorkers/socialServerCount
+    cachingTimeInMS = 10000
+
+    toBeDecreasedSize= parseInt(totalMBPerMSPerSocialWorker*cachingTimeInMS, 10)
+    decreaseLeftSpace toBeDecreasedSize
+    callback null, {}
+
   @fetchTBCampaign = fetchTBCampaign= (callback)->
+
+    Cache  = require '../../cache/main'
+    cacheKey = "fetchTBCampaign"
+
+    Cache.fetch cacheKey, decreaseLeftSpaceInTimeout, {}, ->
+
     JStorage = require '../storage'
     JStorage.one {name: CAMPAIGN_NAME}, (err, campaign) ->
       return callback err if err
@@ -345,8 +366,9 @@ module.exports = class JReferral extends jraphical.Message
         cmp = new JStorage
           name: CAMPAIGN_NAME
           content:
-            diskSpaceLeftMB: CAMPAIGN_TOTAL_DISK_SIZE_IN_MB
-            endDate: CAMPAIGN_START_DATE
+            diskSpaceLeftMB : CAMPAIGN_TOTAL_DISK_SIZE_IN_MB
+            endDate         : CAMPAIGN_END_DATE
+            startDate       : CAMPAIGN_START_DATE
 
         cmp.save (err)->
           return callback err if err
