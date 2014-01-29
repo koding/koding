@@ -71,16 +71,26 @@ class MainView extends KDView
     @header.addSubView @innerContainer = new KDCustomHTMLView
       cssClass  : "inner-container"
 
-    @innerContainer.addSubView @logo = new KDCustomHTMLView
-      tagName   : "a"
-      domId     : "koding-logo"
-      cssClass  : if entryPoint?.type is 'group' then 'group' else ''
-      partial   : '<cite></cite>'
-      click     : (event)=>
-        KD.utils.stopDOMEvent event
-        if KD.isLoggedIn()
-        then KD.getSingleton('router').handleRoute "/Activity", {entryPoint}
-        else location.replace '/'
+    {groupsController} = KD.singletons
+    groupsController.ready =>
+      @logo = new KDCustomHTMLView
+        tagName   : "a"
+        domId     : "koding-logo"
+        cssClass  : if entryPoint?.type is 'group' then 'group' else ''
+        partial   : '<cite></cite>'
+        click     : (event)=>
+          KD.utils.stopDOMEvent event
+          if KD.isLoggedIn()
+          then KD.getSingleton('router').handleRoute "/Activity", {entryPoint}
+          else location.replace '/'
+
+      group = groupsController.getCurrentGroup()
+      groupLogo = group.customize?.logo or ""
+      @logo.setCss 'background-image', "url(#{groupLogo})"
+
+      @innerContainer.addSubView @logo
+      @logo.setClass KD.config.environment
+
 
     @innerContainer.addSubView @logotype = new KDCustomHTMLView
       tagName   : "a"
@@ -90,7 +100,7 @@ class MainView extends KDView
         KD.utils.stopDOMEvent event
         KD.getSingleton('router').handleRoute "/", {entryPoint}
 
-    @logo.setClass KD.config.environment
+
 
     # REFACTOR NOTE: login link
 

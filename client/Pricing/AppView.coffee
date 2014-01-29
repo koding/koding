@@ -89,11 +89,20 @@ class PricingAppView extends KDView
       slug       : slug
       visibility : visibility
 
-    KD.remote.api.JGroup.create options, (err, group) =>
+    {JGroup} = KD.remote.api
+    JGroup.create options, (err, group) =>
       return KD.showError err  if err
       group.addSubscription @subscription.getId(), (err) =>
         return KD.showError err  if err
         @showSummaryModal group
+        # enter first post of group.
+        JGroup.createGroupBotAndPostMessage
+          "title": "Welcome"
+          "body" : "Welcome to your group."
+          "botname":"groupbot"
+        ,(err, update)->
+          return KD.showError err if err
+
 
   showSummaryModal: (group)->
     {planOptions: {userQuantity, resourceQuantity}} = @workflowData.productData
