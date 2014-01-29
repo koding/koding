@@ -43,8 +43,6 @@ class GroupCreationModal extends KDModalView
 
     @on 'ready', @buttons.next.enable.bind @buttons.next
 
-  charge:(plan, callback)-> plan.subscribe { pin: '0000' }, callback
-
   setPositions:->
     super
     $scroller = @$('.kdmodal-content').eq(0)
