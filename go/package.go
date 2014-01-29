@@ -151,8 +151,10 @@ func (p *pkg) build() error {
 		log.Println("linux:", err)
 	}
 
-	fmt.Printf("success:\n\t'%s' is ready\n", debFile)
-	fmt.Printf("\tcheck with 'dpkg -c %s' before you install the package\n", debFile)
+	fmt.Printf("success '%s' is ready. Some helpful commands for you:\n\n", debFile)
+	fmt.Printf("  show deb content   : dpkg -c %s\n", debFile)
+	fmt.Printf("  show basic info    : dpkg -f %s\n", debFile)
+	fmt.Printf("  install to machine : dpkg -i %s\n\n", debFile)
 
 	return nil
 }
