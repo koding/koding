@@ -254,5 +254,4 @@ module.exports = class JPaymentPlan extends JPaymentBase
         callback err, unless err then group.slug
 
   fetchCoupon: (type, callback) ->
-    code = if type is "discount" then @discountCode else @vmCode
-    recurly.fetchCoupon code, callback
+    recurly.fetchCoupon @couponCodes[type], callback
