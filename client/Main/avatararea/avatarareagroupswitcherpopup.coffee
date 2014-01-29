@@ -141,7 +141,7 @@ class AvatarPopupGroupSwitcher extends AvatarPopup
     @avatarPopupContent.addSubView dashboardLink = new KDCustomHTMLView
       tagName  : "a"
       cssClass : "bottom hidden"
-      partial  : "Dashboard"
+      partial  : "Group dashboard"
       click    : (event) =>
         KD.utils.stopDOMEvent event
         KD.getSingleton("router").handleRoute "/Dashboard"
