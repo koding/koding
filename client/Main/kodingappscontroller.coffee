@@ -36,28 +36,27 @@ class KodingAppsController extends KDController
   # Please make sure about your changes on it.
   @putAppScript = (app, callback = noop)->
 
-    # Remove app from head if exists, just for sure
-    # $("head .internal-#{app.identifier}").remove()
+    identifier = app.identifier.replace /\./g, '_'
 
-    if $("head .internal-style-#{app.identifier}").length is 0 and app.style
+    @unloadAppScript app
+
+    if app.style and $("head .internal-style-#{identifier}").length is 0
 
       style        = new KDCustomHTMLView
         tagName    : "link"
-        cssClass   : "internal-style-#{app.identifier}"
-        bind       : 'load'
-        # load       : ->
+        cssClass   : "internal-style-#{identifier}"
         attributes :
           rel      : "stylesheet"
           href     : "#{app.style}?#{KD.utils.uniqueId()}"
 
       $('head')[0].appendChild style.getElement()
 
-    if $("head .internal-script-#{app.identifier}").length is 0 and app.script
+    if app.script and $("head .internal-script-#{identifier}").length is 0
 
       script       = new KDCustomHTMLView
         tagName    : "script"
-        cssClass   : "internal-script-#{app.identifier}"
-        bind       : 'load'
+        cssClass   : "internal-script-#{identifier}"
+        bind       : "load"
         load       : -> callback null
         attributes :
           type     : "text/javascript"
@@ -67,8 +66,12 @@ class KodingAppsController extends KDController
 
   @unloadAppScript = (app, callback = noop)->
 
-    $("head .internal-style-#{app.identifier}").remove()
-    $("head .internal-script-#{app.identifier}").remove()
+    identifier = app.identifier.replace /\./g, '_'
+
+    $("head .internal-style-#{identifier}").remove()
+    $("head .internal-script-#{identifier}").remove()
+
+    KD.utils.defer -> callback()
 
   @runApprovedApp = (jApp, options = {}, callback = noop)->
 
