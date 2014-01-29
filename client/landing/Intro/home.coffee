@@ -32,6 +32,18 @@ class HomePage extends JView
         KD.mixpanel "Github auth button in /, click"
         KD.singletons.oauthController.openPopup "github"
 
+    @play = new KDCustomHTMLView
+      tagName : 'a'
+      cssClass : 'play-button'
+      attributes : href : 'http://www.youtube.com/embed/w6sl_Yt_gNo'
+      click : (event)->
+        KD.utils.stopDOMEvent event
+        w = 853
+        h = 480
+        window.open "/teamwork.html",
+          "Koding Teamwork",
+          "width=#{w},height=#{h},left=#{Math.floor (screen.width/2) - (w/2)},top=#{Math.floor (screen.height/2) - (h/2)}"
+
     @markers = new MarkerController
 
   show:->
@@ -88,8 +100,8 @@ class HomePage extends JView
       wait      : 1900
       message   : 'INSTANTLY SPIN UP PLAYGROUNDS'
       offset    :
-        top     : 275
-        left    : 500
+        top     : 375
+        left    : 600
 
     logoMarker = @markers.create 'logo',
       client    : '#home-page .browser'
@@ -135,6 +147,7 @@ class HomePage extends JView
         </div>
       </main>
       <figure class='laptop'>
+        {{> @play}}
         <section class='teamwork'></section>
       </figure>
       <section id='home-features' class='clearfix'>
