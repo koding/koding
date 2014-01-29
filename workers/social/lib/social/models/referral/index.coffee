@@ -344,7 +344,8 @@ module.exports = class JReferral extends jraphical.Message
     totalTimeInMs = sevenDay
 
     totalMBPerMS = CAMPAIGN_TOTAL_DISK_SIZE_IN_MB/totalTimeInMs
-    totalMBPerMSPerSocialWorker = totalMBPerMS/KONFIG.social.numberOfWorkers
+    socialServerCount = 2
+    totalMBPerMSPerSocialWorker = totalMBPerMS/KONFIG.social.numberOfWorkers/socialServerCount
     cachingTimeInMS = 10000
 
     toBeDecreasedSize= parseInt(totalMBPerMSPerSocialWorker*cachingTimeInMS, 10)
