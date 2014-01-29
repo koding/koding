@@ -143,8 +143,15 @@ class HomePage extends JView
       <main>
         <div class="clearfix">
           <div class="headings-container">
-            <h1 class='big-header'>Coding environment<br/>from the future</h1>
-            <h2>Social development in your browser, sign up to join a great community and code on powerful VMs.</h2>
+            <h1 class='big-header'>Develop, Together!</h1>
+
+            <h2>Learn programming or make apps.
+              <br/>Hack Ruby, Go, Java, NodeJS, PHP, C, and Python.
+              <br/>Install Wordpress, Laravel, Django, and Bootstrap.
+              <br/>Play with MySQL, Mongo, and enjoy root access.
+              <br/>Sign up now and join the fun!
+            </h2>
+
           </div>
           <div class="register-container">
             {{> @registerForm}}
