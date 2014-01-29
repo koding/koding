@@ -2,13 +2,24 @@ class AppsAppController extends AppController
 
   handler = (callback)-> KD.singleton('appManager').open 'Apps', callback
 
+  getAppInstance = (route, callback)->
+    {app, username} = route.params
+    return callback null  unless app
+    KD.remote.api.JNewApp.one slug:"Apps/#{username}/#{app}", callback
+
   KD.registerAppClass this,
     name         : "Apps"
     enforceLogin : yes
     routes       :
-      "/:name?/Apps"             : ({params, query})->
+      "/:name?/Apps" : ({params, query})->
         handler (app)-> app.handleQuery query
-      "/:name?/Apps/:username/:app?" : (arg)-> handler (app)-> app.handleRoute arg
+      "/:name?/Apps/:username/:app?" : (arg)->
+        handler (app)-> app.handleRoute arg
+      "/:name?/Apps/:username/:app/run" : (arg)->
+        getAppInstance arg, (err, app)->
+          if not err and app
+            KodingAppsController.runExternalApp app, dontUseRouter:yes
+
     hiddenHandle : yes
     searchRoute  : "/Apps?q=:text:"
     behaviour    : 'application'
@@ -120,22 +131,13 @@ class AppsAppController extends AppController
   handleQuery:(query)->
     @ready =>
       {q} = query
-      if q
-        @emit "searchFilterChanged", q
-      else
-        @emit "searchFilterChanged", ""
+      q or= ""
+      @emit "searchFilterChanged", q
 
   handleRoute:(route)->
 
-    {app, username} = route.params
-    {JNewApp}      = KD.remote.api
-    if app
-      log "slug:", slug = "Apps/#{username}/#{app}"
-      JNewApp.one {slug}, (err, app)=>
-        log "FOUND THIS JAPP", err, app
-        if app then @showContentDisplay app
-
-    log "HANDLING", route
+    getAppInstance route, (err, app)=>
+      if not err and app then @showContentDisplay app
 
   showContentDisplay:(content)->
 
