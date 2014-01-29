@@ -26,6 +26,7 @@ module.exports = class JVM extends Module
 
   handleError = (err)-> console.error err  if err
 
+  VMDefaultDiskSize = @VMDefaultDiskSize = 4096
   @set
     softDelete          : yes
     indexes             :
@@ -64,6 +65,8 @@ module.exports = class JVM extends Module
         count:
           (signature Object, Function)
         fetchDefaultVm:
+          (signature Function)
+        resetDefaultVMLimits:
           (signature Function)
         fetchVmRegion:
           (signature String, Function)
@@ -118,7 +121,7 @@ module.exports = class JVM extends Module
         default         : KONFIG.defaultVMConfigs.freeVM.ram ? 1024
       diskSizeInMB      :
         type            : Number
-        default         : KONFIG.defaultVMConfigs.freeVM.storage ? 3600
+        default         : KONFIG.defaultVMConfigs.freeVM.storage ? VMDefaultDiskSize
       numCPUs           :
         type            : Number
         default         : KONFIG.defaultVMConfigs.freeVM.cpu ? 1
@@ -131,6 +134,30 @@ module.exports = class JVM extends Module
         @hostnameAlias
       }
       return callback null
+
+  @fetchDefaultVm_ = (client, callback)->
+    {delegate} = client.connection
+    delegate.fetchUser (err, user) ->
+      return callback err  if err
+      return callback new Error "User not found" unless user
+
+      JGroup = require './group'
+      JGroup.one slug:'koding', (err, fetchedGroup)=>
+        return callback err  if err
+        JVM.one
+          users    : { $elemMatch: id: user.getId() }
+          groups   : { $elemMatch: id: fetchedGroup.getId() }
+          planCode : 'free'
+        , callback
+
+
+  @resetDefaultVMLimits = secure (client, callback)->
+    @fetchDefaultVm_ client, (err, vm)->
+      return callback err  if err
+      return callback new Error "VM not found" unless vm
+      vm.update {$set: diskSizeInMB: VMDefaultDiskSize}, (err) ->
+        return callback err if err
+        callback null, vm.hostnameAlias
 
   @createDomains = (account, domains, hostnameAlias)->
 
@@ -478,21 +505,9 @@ module.exports = class JVM extends Module
       callback null, vm.region
 
   @fetchDefaultVm = secure (client, callback)->
-    {delegate} = client.connection
-    delegate.fetchUser (err, user) ->
+    @fetchDefaultVm_ client, (err, vm)->
       return callback err  if err
-      return callback new Error "user not found" unless user
-
-      JGroup = require './group'
-      JGroup.one slug:'koding', (err, fetchedGroup)=>
-        return callback err  if err
-        JVM.one
-          users    : { $elemMatch: id: user.getId() }
-          groups   : { $elemMatch: id: fetchedGroup.getId() }
-          planCode : 'free'
-        , (err, vm)->
-          return callback err  if err
-          callback err, vm?.hostnameAlias
+      callback null, vm?.hostnameAlias
 
   @fetchAccountVmsBySelector = (account, selector, options, callback) ->
     [callback, options] = [options, callback]  unless callback

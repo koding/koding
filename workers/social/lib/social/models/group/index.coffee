@@ -716,7 +716,7 @@ module.exports = class JGroup extends Module
   # fetchMyFollowees: permit 'list members'
   #   success:(client, options, callback)->
 
-  fetchHomepageView: (section, account, callback)->
+  fetchHomepageView: ({section, account, bongoModels}, callback)->
     kallback = =>
       @fetchMembershipPolicy (err, policy)=>
         return callback err if err
@@ -730,6 +730,7 @@ module.exports = class JGroup extends Module
           @body
           @counts
           @customize
+          bongoModels
         }
         prefix = if account.type is 'unregistered' then 'loggedOut' else 'loggedIn'
         JGroup.render[prefix].groupHome options, callback

@@ -6,6 +6,7 @@ module.exports = [
   "views/customplan.coffee"
   "views/pricingboxwithslider.coffee"
   "markercontroller.coffee"
+  "tbcampaignhomepageview.coffee"
   "home.coffee"
   "styl/home.styl"
 
