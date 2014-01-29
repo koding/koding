@@ -51,7 +51,7 @@ class TBCampaignHomePageView extends JView
             </div>
             <div class="text">
               <span>Giving away <span>100 TB</span></span>
-              <p class="rounded">5GB for each signup</p>
+              <p class="rounded">4GB for every sign up</p>
             </div>
             <div class="divider last">
               <div class="icon"></div>
@@ -60,13 +60,13 @@ class TBCampaignHomePageView extends JView
               <div class="digits">
                 #{digits}
               </div>
-              <p class="rounded digits">TB left, get yours now!</p>
+              <p class="rounded digits">GB left, get yours now!</p>
             </div>
           </div>
         </div>
         <div id="signup">
           <div class="container">
-            <span class="label">Sign up now and get your extra <span>5GB storage</span></span>
+            <span class="label">Sign up now and get your VM with <span>4GB storage</span></span>
             <p>
               <span class="icon timer"></span>
               <span class="remaining">#{daysLeft} left, hurry up!</span>
