@@ -31,5 +31,5 @@ module.exports = (options, callback)->
 
     """
 
-  fetchScripts {bongoModels, client}, (err, scripts)->
+  fetchScripts {bongoModels, client, slug}, (err, scripts)->
     callback null, prepareHTML scripts
