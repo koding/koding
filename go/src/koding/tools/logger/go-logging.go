@@ -113,5 +113,5 @@ func (g *GoLogger) LogError(err interface{}, stackOffset int, additionalData ...
 		data = append(data, fmt.Sprintf("at %s (%s:%d)\n", name, file, line))
 	}
 	data = append(data, additionalData...)
-	g.Error("LogError %v", data)
+	g.Error("%v", data)
 }
