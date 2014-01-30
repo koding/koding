@@ -163,6 +163,7 @@ class MainController extends KDController
 
           {entryPoint} = KD.config
           KD.getSingleton('router').handleRoute firstRoute or '/Activity', {replaceState: yes, entryPoint}
+          localStorage?.removeItem "routeToBeContinued"
 
   setVisitor:(visitor)-> @visitor = visitor
   getVisitor: -> @visitor
