@@ -6,20 +6,22 @@ class TBCampaignHomePageView extends JView
 
     super options, data
 
-    @counterContainer = new KDCustomHTMLView
-    @createCounter()
-
-  createCounter: ->
+  createDigitsMarkup: ->
     leftInByte = @getData().content.diskSpaceLeftMB * 1024 * 1024
-    leftInTB   = KD.utils.formatBytesToHumanReadable leftInByte, 3
+    leftInTB   = KD.utils.formatBytesToHumanReadable leftInByte
     [left]     = leftInTB.split " "
-    left       = "99.999"  if left is "100.000"
+    left       = "99.99"  if left is "100.00"
+    [tb, gb]   = left.split "."
+    tb         = ["0", tb.first]  if tb.length is 1
 
-    @counterContainer.addSubView new KDCounterView
-      from     : left.replace ".", ""
-      to       : 9999
-      interval : 10000
-      step     : 2
+    return """
+        <div class="digit">#{tb[0] or 0}</div>
+        <div class="digit">#{tb[1] or 0}</div>
+        <div class="separator">,</div>
+        <div class="digit">#{gb[0] or 0}</div>
+        <div class="digit">#{gb[1] or 0}</div>
+        <div class="digit">9</div>
+    """
 
   getDaysLeft: ->
     oneDayInMs = 86400000 # 24 * 60 * 60 * 1000
@@ -36,6 +38,7 @@ class TBCampaignHomePageView extends JView
       return if hoursLeft is 1 then "1 hour" else "#{hoursLeft} hours"
 
   pistachio: ->
+    digits   = @createDigitsMarkup()
     daysLeft = @getDaysLeft()
 
     return """
@@ -54,7 +57,9 @@ class TBCampaignHomePageView extends JView
               <div class="icon"></div>
             </div>
             <div class="counter">
-              {{> @counterContainer}}
+              <div class="digits">
+                #{digits}
+              </div>
               <p class="rounded digits">GB left, get yours now!</p>
             </div>
           </div>
