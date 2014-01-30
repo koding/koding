@@ -11,7 +11,7 @@
     "feeAmount"   : 2000, 
     "feeUnit"     : "months",
     "couponCodes" : {}, 
-    "tags"        : ["vm, rp1"],
+    "tags"        : ["vm", "rp1"],
     "count"       : 1
   },
   {
@@ -19,7 +19,7 @@
     "feeAmount"   : 4000,
     "feeUnit"     : "months", 
     "couponCodes" : {"discount": "rp2", "vm": "1freevm"}, 
-    "tags"        : ["vm, rp2"],
+    "tags"        : ["vm", "rp2"],
     "count"       : 2
   },
   {
@@ -27,7 +27,7 @@
     "feeAmount"   : 6000, 
     "feeUnit"     : "months",
     "couponCodes" : {"discount": "rp3", "vm": "2freevms"}, 
-    "tags"        : ["vm, rp3"],
+    "tags"        : ["vm", "rp3"],
     "count"       : 3
   },
   {
@@ -35,7 +35,7 @@
     "feeAmount"   : 8000, 
     "feeUnit"     : "months",
     "couponCodes" : {"discount": "rp4", "vm": "3freevms"}, 
-    "tags"        : ["vm, rp4"],
+    "tags"        : ["vm", "rp4"],
     "count"       : 4
   },
   {
@@ -43,7 +43,7 @@
     "feeAmount"   : 10000, 
     "feeUnit"     : "months",
     "couponCodes" : {"discount": "rp5", "vm": "4freevms"}, 
-    "tags"        : ["vm, rp5"],
+    "tags"        : ["vm", "rp5"],
     "count"       : 5
   }
 ]
