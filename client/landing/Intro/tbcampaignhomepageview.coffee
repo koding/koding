@@ -6,22 +6,20 @@ class TBCampaignHomePageView extends JView
 
     super options, data
 
-  createDigitsMarkup: ->
+    @counterContainer = new KDCustomHTMLView
+    @createCounter()
+
+  createCounter: ->
     leftInByte = @getData().content.diskSpaceLeftMB * 1024 * 1024
-    leftInTB   = KD.utils.formatBytesToHumanReadable leftInByte
+    leftInTB   = KD.utils.formatBytesToHumanReadable leftInByte, 3
     [left]     = leftInTB.split " "
-    left       = "99.99"  if left is "100.00"
-    [tb, gb]   = left.split "."
+    left       = "99.999"  if left is "100.000"
 
-    tb = ["0", tb.first]  if tb.length is 1
-
-    return """
-        <div class="digit">#{tb[0] or 0}</div>
-        <div class="digit">#{tb[1] or 0}</div>
-        <div class="separator">,</div>
-        <div class="digit">#{gb[0] or 0}</div>
-        <div class="digit">#{gb[1] or 0}</div>
-    """
+    @counterContainer.addSubView new KDCounterView
+      from     : left.replace ".", ""
+      to       : 9999
+      interval : 10000
+      step     : 2
 
   getDaysLeft: ->
     oneDayInMs = 86400000 # 24 * 60 * 60 * 1000
@@ -38,7 +36,6 @@ class TBCampaignHomePageView extends JView
       return if hoursLeft is 1 then "1 hour" else "#{hoursLeft} hours"
 
   pistachio: ->
-    digits   = @createDigitsMarkup()
     daysLeft = @getDaysLeft()
 
     return """
@@ -51,22 +48,20 @@ class TBCampaignHomePageView extends JView
             </div>
             <div class="text">
               <span>Giving away <span>100 TB</span></span>
-              <p class="rounded">5GB for each signup</p>
+              <p class="rounded">4GB for every sign up</p>
             </div>
             <div class="divider last">
               <div class="icon"></div>
             </div>
             <div class="counter">
-              <div class="digits">
-                #{digits}
-              </div>
-              <p class="rounded digits">TB left, get yours now!</p>
+              {{> @counterContainer}}
+              <p class="rounded digits">GB left, get yours now!</p>
             </div>
           </div>
         </div>
         <div id="signup">
           <div class="container">
-            <span class="label">Sign up now and get your extra <span>5GB storage</span></span>
+            <span class="label">Sign up now and get your VM with <span>4GB storage</span></span>
             <p>
               <span class="icon timer"></span>
               <span class="remaining">#{daysLeft} left, hurry up!</span>

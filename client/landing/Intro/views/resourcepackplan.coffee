@@ -1,4 +1,4 @@
-class ResourcePackPlan extends JView
+class IntroResourcePackPlan extends JView
   constructor: (options = {}, data) ->
     options.cssClass = KD.utils.curry "resource-pack-plan", options.cssClass
     super options, data
@@ -42,9 +42,9 @@ class ResourcePackPlan extends JView
       title    : 'BUY NOW'
       callback : =>
         appManager = KD.singleton "appManager"
-        return   unless appManager
         appManager.open "Pricing", (app) =>
-          app.selectPlan "rp#{@planIndex + 1}"
+          KD.singleton("router").handleRoute "/Pricing/Developer", suppressListeners: yes
+          app.selectPlan "rp#{@planIndex + 1}", planApi: KD.remote.api.JResourcePlan
 
   updateContent: ->
     @cpuQuantity.updatePartial @plans[@planIndex].cpu
