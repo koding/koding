@@ -80,8 +80,8 @@ class HelpModal extends AnimatedModalView
     ]
     commons : [
       { title : 'FAQ', url : 'http://learn.koding.com/faq/' }
-      { title : 'Ftp', url : '/Terminal', command:'help ftp' }
-      { title : 'MySql', url : '/Terminal', command:'help mysql' }
+      { title : 'FTP', url : '/Terminal', command:'help ftp' }
+      { title : 'MySQL', url : '/Terminal', command:'help mysql' }
       { title : 'phpMyAdmin', url : '/Terminal', command:'help phpmyadmin' }
       { title : 'MongoDB', url : '/Terminal', command:'help mongodb' }
       { title : 'VM Specs', url : '/Terminal', command:'help specs' }
@@ -104,7 +104,7 @@ class HelpModal extends AnimatedModalView
     @addSubView new KDCustomHTMLView
       partial      : """
         <h2>Welcome on board!</h2>
-        <p>Let us try to help you find your way in Koding. You are:</p>
+        <p>Let us try to help you find your way in Koding. Are you:</p>
         """
 
     @addSubView buttonContainer = new KDCustomHTMLView
@@ -181,5 +181,5 @@ class HelpModal extends AnimatedModalView
     @addSubView new KDCustomHTMLView
       tagName  :'footer'
       partial  : """
-        <h4>Find more at <a href='http://learn.koding.com'>Koding University</a>, also, we would love to hear your <a href='https://docs.google.com/forms/d/1jxdnXLm-cgHDpokzKIJSaShEirb66huoEMhPkQF5f_I/viewform'target='_blank'>feedback</a>.</h4>
+        <h4>Find more at <a href='http://learn.koding.com'>Koding University</a>, also we would love to hear your <a href='https://docs.google.com/forms/d/1jxdnXLm-cgHDpokzKIJSaShEirb66huoEMhPkQF5f_I/viewform'target='_blank'>feedback</a>.</h4>
       """

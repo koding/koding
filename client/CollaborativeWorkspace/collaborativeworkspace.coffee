@@ -42,11 +42,11 @@ class CollaborativeWorkspace extends Workspace
   syncWorkspace: ->
     @workspaceRef.once "value", (snapshot) =>
       if @getOptions().sessionKey
-        unless snapshot.val()?.keys
+        unless @reviveSnapshot(snapshot)?.keys
           @showNotActiveView()
           return false
 
-      isOldSession = keys = snapshot.val()?.keys
+      isOldSession = keys = @reviveSnapshot(snapshot)?.keys
       if isOldSession
         @isOldSession = yes
         @sessionData  = keys
@@ -79,7 +79,7 @@ class CollaborativeWorkspace extends Workspace
       return if username is @nickname
 
       @usersRef.child(username).child("status").on "value", (snapshot) =>
-        status = snapshot.val()
+        status = @reviveSnapshot snapshot
         if status is "online"
           @once "WorkspaceUsersFetched", =>
             @activeUsers[username] = @users[username]
@@ -99,7 +99,7 @@ class CollaborativeWorkspace extends Workspace
             @addToHistory { message, by: KD.nick() }
 
     @broadcastRef.on "value", (snapshot) =>
-      message = snapshot.val()
+      message = @reviveSnapshot snapshot
       return if not message or not message.data or message.data.sender is @nickname
       @displayBroadcastMessage message.data
 
@@ -120,9 +120,9 @@ class CollaborativeWorkspace extends Workspace
       @userRef.child("timestamp").set Date.now()
 
     @usersRef.child(@getHost()).child("timestamp").on "value", (snapshot) =>
-      return if @amIHost() or @connected or snapshot.val() is null
+      return if @amIHost() or @connected or @reviveSnapshot(snapshot) is null
 
-      if Date.now() - snapshot.val() > 20000
+      if Date.now() - @reviveSnapshot(snapshot) > 20000
         return @pingHostTimer = KD.utils.wait 10000, =>
           @showNotActiveView()
 
@@ -131,7 +131,7 @@ class CollaborativeWorkspace extends Workspace
       KD.utils.killWait @pingHostTimer
 
     @usersRef.on "value", (snapshot) =>
-      data   = snapshot.val()
+      data   = @reviveSnapshot snapshot
       return unless data
       count  = 0
       count++ for username, state of data when state.status is "online"
@@ -139,10 +139,12 @@ class CollaborativeWorkspace extends Workspace
 
   requestPingFromHost: ->
     @requestPingRef.set Date.now()
+    KD.utils.wait 10000, =>
+      @showNotActiveView()  unless @connected
 
   fetchUsers: ->
     @workspaceRef.once "value", (snapshot) =>
-      val = snapshot.val()
+      val = @reviveSnapshot snapshot
       return  unless val
 
       usernames = []
@@ -334,7 +336,7 @@ class CollaborativeWorkspace extends Workspace
       @killPresenceTimer()
 
   checkHost: (snapshot, callback) ->
-    host = snapshot.val()
+    host = @reviveSnapshot snapshot
     return @showNotActiveView()  unless host
 
     diff = Date.now() - host.timestamp
@@ -383,3 +385,6 @@ class CollaborativeWorkspace extends Workspace
 
   hideNotification: ->
     @notification?.destroy()
+
+  reviveSnapshot: (snapshot) ->
+    return KD.remote.revive snapshot.val()

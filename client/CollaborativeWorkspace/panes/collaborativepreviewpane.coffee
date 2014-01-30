@@ -25,7 +25,7 @@ class CollaborativePreviewPane extends CollaborativePane
     @workspaceRef.on "value", (snapshot)   => @openPathFromSnapshot snapshot
 
   openPathFromSnapshot: (snapshot) ->
-    value = snapshot.val()
+    value = @workspace.reviveSnapshot snapshot
 
     if value?.url
       @recreateIframe()

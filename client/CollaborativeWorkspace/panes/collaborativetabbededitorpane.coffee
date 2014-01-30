@@ -14,7 +14,7 @@ class CollaborativeTabbedEditorPane extends CollaborativePane
     @createEditorInstance()  unless @isJoinedASession
 
     @tabsRef.on "child_added", (snapshot) =>
-      data = snapshot.val()
+      data = @workspace.reviveSnapshot snapshot
       return unless data
 
       if data.path and @openedFiles.indexOf(data.path) is -1
@@ -22,8 +22,9 @@ class CollaborativeTabbedEditorPane extends CollaborativePane
         @createEditorInstance file, null, data.sessionKey
 
     @tabsRef.on "child_removed", (snapshot) =>
-      return  unless snapshot.val()
-      basePath  = snapshot.val().path
+      snapshot = @workspace.reviveSnapshot snapshot
+      return  unless snapshot
+      basePath  = snapshot.path
       filePath  = if @amIHost then basePath else FSHelper.plainPath basePath
       fileIndex = @openedFiles.indexOf filePath
       fileTab   = @tabView.getPaneByIndex fileIndex
@@ -31,12 +32,12 @@ class CollaborativeTabbedEditorPane extends CollaborativePane
       return unless fileTab
       @tabView.removePane fileTab
       @workspaceRef.once "value", (snapshot) =>
-        if snapshot.val()?.keys
+        if @workspace.reviveSnapshot(snapshot)?.keys
           @indexRef.set @tabView.getPaneIndex @tabView.getActivePane()
 
     @indexRef.on "value", (snapshot) =>
-      return if snapshot.val() is null
-      @tabView.showPaneByIndex snapshot.val()
+      snapshot = @workspace.reviveSnapshot snapshot
+      @tabView.showPaneByIndex snapshot  if snapshot
 
   getActivePaneEditor: ->
     return @editors[@getActivePaneIndex()] or null
@@ -117,7 +118,8 @@ class CollaborativeTabbedEditorPane extends CollaborativePane
       removedPaneIndex = @tabView.getPaneIndex pane
       @editors.splice removedPaneIndex, 1
       @workspaceRef.once "value", (snapshot) =>
-        {tabs} = snapshot.val()
+        snapshot = @workspace.reviveSnapshot snapshot
+        {tabs}   = snapshot
         return unless tabs
         for own key, value of tabs when value.sessionKey is editor.sessionKey
           fileName = FSHelper.getFileNameFromPath tabs[key].path
