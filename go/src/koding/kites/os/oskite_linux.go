@@ -53,7 +53,7 @@ type VMInfo struct {
 var (
 	infos            = make(map[bson.ObjectId]*VMInfo)
 	infosMutex       sync.Mutex
-	templateDir      = config.Current.ProjectRoot + "/go/templates"
+	templateDir      = "files/templates" // should be in the same dir as the binary
 	firstContainerIP net.IP
 	containerSubnet  *net.IPNet
 	shuttingDown     = false
