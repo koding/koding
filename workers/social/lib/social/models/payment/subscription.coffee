@@ -250,7 +250,7 @@ module.exports = class JPaymentSubscription extends jraphical.Module
 
       options.shouldCreateNonce ?= yes
 
-      @debit options, callback, multiplyFactor
+      @debit options, callback
 
   credit: (options, callback) ->
     @debit { pack, multiplyFactor: -1 }, callback
