@@ -163,10 +163,18 @@ func (p *pkg) build() error {
 		log.Println("linux:", err)
 	}
 
-	fmt.Printf("success '%s' is ready. Some helpful commands for you:\n\n", debFile)
-	fmt.Printf("  show deb content   : dpkg -c %s\n", debFile)
-	fmt.Printf("  show basic info    : dpkg -f %s\n", debFile)
-	fmt.Printf("  install to machine : dpkg -i %s\n\n", debFile)
+	// rename file to see for which region and env it is created
+	oldname := debFile
+	newname := fmt.Sprintf("%s_%s_%s-%s_%s.deb", p.appName, p.version, *profile, *region, deb.Arch)
+
+	if err := os.Rename(oldname, newname); err != nil {
+		return err
+	}
+
+	fmt.Printf("success '%s' is ready. Some helpful commands for you:\n\n", newname)
+	fmt.Printf("  show deb content   : dpkg -c %s\n", newname)
+	fmt.Printf("  show basic info    : dpkg -f %s\n", newname)
+	fmt.Printf("  install to machine : dpkg -i %s\n\n", newname)
 
 	return nil
 }
