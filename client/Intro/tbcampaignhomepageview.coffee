@@ -10,7 +10,7 @@ class TBCampaignHomePageView extends JView
     leftInByte = @getData().content.diskSpaceLeftMB * 1024 * 1024
     leftInTB   = KD.utils.formatBytesToHumanReadable leftInByte, 3
     [left]     = leftInTB.split " "
-    left       = "99.99"  if left is "100.00"
+    left       = "99.999"  if left is "100.000"
     [tb, gb]   = left.split "."
     tb         = ["0", tb.first]  if tb.length is 1
 
