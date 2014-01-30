@@ -52,7 +52,7 @@ class PaymentWorkflow extends FormWorkflow
 
     @requireData [
       'productData'
-      'loggedIn'
+      any 'createAccount', 'loggedIn'
       any 'paymentMethod', 'subscription'
       'userConfirmation'
     ]
@@ -60,10 +60,10 @@ class PaymentWorkflow extends FormWorkflow
     if KD.whoami().type is 'unregistered'
       existingAccountWorkflow = new ExistingAccountWorkflow
       existingAccountWorkflow.on 'DataCollected', @bound "collectData"
-      @addForm 'createAccount', existingAccountWorkflow, ['loggedIn']
+      @addForm 'createAccount', existingAccountWorkflow, ['createAccount', 'loggedIn']
     else
       # TODO: this is an awful hack for now C.T.
-      @addForm 'existingAccount', (@skip createAccount: no), ['loggedIn']
+      @addForm 'existingAccount', (@skip createAccount: no, loggedIn: yes), ['createAccount', 'loggedIn']
 
     # - "product form" can be used for collecting some product-related data
     # before the payment method collection/selection process begins.  If you
