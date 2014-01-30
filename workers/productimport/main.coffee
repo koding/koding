@@ -107,6 +107,23 @@ importPlans = (callback) ->
 
     insertPlans plan for plan in data
 
+createBot = (callback) ->
+  {JUser} = worker.models
+
+  userInfo = 
+    username  : "bot"
+    email     : "bot@koding.com"
+    firstName : "bot"
+
+  JUser.createUser userInfo, (err) ->
+    return console.log err if err
+    JUser.one username : "bot", (err, user) ->
+      user.confirmEmail (err) ->
+        return console.error err if err
+        console.log "bot created"
+        callback null
+
+
 initProducts = ->
   worker.on 'dbClientReady', ->
     queue = [
@@ -119,7 +136,9 @@ initProducts = ->
       -> importPacks ->
         console.log 'All Packs are added'
         queue.next()
-      -> process.kill()
+      -> createBot ->
+        queue.next()
+      -> process.exit(1)
     ]
 
     daisy queue
