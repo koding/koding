@@ -476,16 +476,39 @@ module.exports = class JGroup extends Module
     JAccount = require '../account'
     {delegate} = client.connection
 
-    @one {slug:"koding"}, (err, kodingGroup)=>
-      delegate.checkPermission kodingGroup, 'create groups', (err, hasPermission)=>
-        unless hasPermission
-          return callback new KodingError 'Access denied'
+    @one slug: 'koding', (err, koding) =>
+      return callback err  if err
 
-        @create formData, delegate, callback
+      packOptions = targetOptions: selector: tags: 'group'
+      
+      koding.fetchPack {}, packOptions, (err, pack) =>
+        return callback err  if err
+        return callback message: "Pack not found!"  unless pack?
 
-    #unless delegate instanceof JAccount
-    #  return callback new KodingError 'Access denied'
+        subOptions = targetOptions: selector: tags: 'custom-plan'
 
+        delegate.fetchSubscription {}, subOptions, (err, subscription) =>
+          return callback err  if err
+          unless subscription?
+            return callback message: "Subscription required!"
+
+          subscription.checkUsage pack, (err, nonce) =>
+            return callback err  if err
+
+            @create formData, delegate, (err, group) =>
+              return callback err  if err
+
+              debitOptions = {
+                pack
+                # avoid creating a nonce, we'll debit the subscription and 
+                # create the group all at once.
+                shouldCreateNonce: no
+              }
+
+              subscription.debit debitOptions, (err) ->
+                return callback err  if err
+
+                callback null, group, subscription
 
   @findSuggestions = (client, seed, options, callback)->
     {limit, blacklist, skip}  = options
@@ -707,15 +730,6 @@ module.exports = class JGroup extends Module
               $in : targetIds
           , {}, (err,memberAccounts)=>
             callback err,memberAccounts
-
-  # fetchMyFollowees: permit 'list members'
-  #   success:(client, options, callback)->
-  #     [callback, options] = [options, callback]  unless callback
-  #     options ?=
-
-
-  # fetchMyFollowees: permit 'list members'
-  #   success:(client, options, callback)->
 
   fetchHomepageView: ({section, account, bongoModels}, callback)->
     kallback = =>

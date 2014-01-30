@@ -219,7 +219,7 @@ class PaymentController extends KDController
       }, callback
 
   debitSubscription: (subscription, pack, callback) ->
-    subscription.debit pack, (err, nonce) =>
+    subscription.debit { pack }, (err, nonce) =>
       return  if KD.showError err
 
       @emit 'SubscriptionDebited', subscription

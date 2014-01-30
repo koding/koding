@@ -6,7 +6,8 @@ class PricingAppController extends KDViewController
   KD.registerAppClass this,
     name                         : "Pricing"
     routes                       :
-      "/:name?/Pricing"          : -> KD.singletons.router.handleRoute '/Pricing/Developer'
+      "/:name?/Pricing"          : -> 
+        (KD.getSingleton 'router').handleRoute '/Pricing/Developer'
       "/:name?/Pricing/:section" : ({params:{section}})->
         handler (app)->
           app.resourcePackPlan.hide()
@@ -16,7 +17,17 @@ class PricingAppController extends KDViewController
               app.resourcePackPlan.show()
             when 'Enterprise'
               app.customPlan.show()
-      "/:name?/KDBackend/Create"      : -> log "asdasd"
+            else
+              (KD.getSingleton 'router').handleRoute '/Pricing'
+      '/:name?/Pricing/CreateGroup': ->
+        { JGroupPlan } = KD.remote.api
+
+        JGroupPlan.hasGroupCredit (err, hasCredit) ->
+          if hasCredit
+            handler (app) ->
+              app.getView().showGroupCreateForm()
+          else
+            (KD.getSingleton 'router').handleRoute '/Pricing/Enterprise'
 
   constructor: (options = {}, data) ->
     options.appInfo = title: "Pricing"
