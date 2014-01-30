@@ -1,5 +1,6 @@
 # Wrapper for pushing events to Rollbar
 KD.logToExternal = (msg, args) ->
+  return
   return  unless KD.config.logToExternal and _rollbar
   return  if KD.isGuest()
 
@@ -12,6 +13,7 @@ KD.logToExternal = (msg, args) ->
 # log ping times so we know if failure was due to user's slow
 # internet or our internals timing out
 KD.logToExternalWithTime = (name, options)->
+  return
   KD.troubleshoot (times)->
     KD.logToExternal {
       options
