@@ -64,7 +64,8 @@ module.exports = class ActiveItems extends Base
   @fetchRandomTopics = (callback, options)->
     group = options.group or "koding"
     {select: selector} = nameMapping.topic
-    JTag.some {group, selector}, {limit:10}, callback
+    selector.group = group
+    JTag.some selector, {limit:10}, callback
 
   @_fetchUsers = (options={}, callback)->
     {client}   = options
