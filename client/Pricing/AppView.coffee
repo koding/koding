@@ -97,7 +97,6 @@ class PricingAppView extends KDView
           label             : "Group Name"
           type              : "text"
           name              : "groupName"
-          placeholder       : "enter group name..."
           validate          :
             rules           :
               required      : yes
@@ -107,7 +106,7 @@ class PricingAppView extends KDView
           label             : "Group URL"
           type              : "text"
           name              : "groupURL"
-          placeholder       : "enter group url..."
+          placeholder       : "{window.location.origin}"
           keyup             : KD.utils.defer.bind this, @bound "checkSlug"
           validate          :
             rules           :

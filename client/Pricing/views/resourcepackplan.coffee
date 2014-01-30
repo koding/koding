@@ -20,7 +20,23 @@ class ResourcePackPlan extends JView
       snapOnDrag  : yes
       handles     : [@planIndex]
       drawBar     : no
-      width       : 272
+      width       : 319 #712 for team
+
+    @sliderTwo     = new KDSliderBarView
+      minValue    : 0
+      maxValue    : @plans.length - 1
+      interval    : 1
+      snapOnDrag  : yes
+      handles     : [@planIndex]
+      drawBar     : no
+      width       : 319 #712 for team
+
+    @toggle       = new KDMultipleChoice
+      cssClass    : "pricing-toggle"
+      labels      : ['DEVELOPER', 'TEAM']
+      defaultValue: ['TEAM']
+      multiple    : no
+      callback    : ->
 
     @slider.on "ValueChanged", (handle) =>
       @planIndex = handle.getSnappedValue()
@@ -58,28 +74,63 @@ class ResourcePackPlan extends JView
   pistachio: ->
     """
     <div class="inner-container">
-      <p>
-        We'll give you a base resource pack of
-        <strong>1 GB RAM and 1x CPU Share for free when you <a href="#">sign up</a></strong>
-        But you can start with a pro-pack right away
-      </p>
-      <div class="plan-selection">
-        <div class="resource-pack">
-          <h6>Resource Pack</h6>
-          <span class="resource cpu"><i></i> x{{> @cpuQuantity}}</span>
-          <span class="resource ram"><i></i> x{{> @ramQuantity}}</span>
-          <span class="resource disk"><i></i> x{{> @diskQuantity}}</span>
-          <span class="resource always-on"><i></i> {{> @alwaysOn}}</span>
+      <header class="clearfix">
+        <h2>Flexible Pricing for Developers and Teams</h2>
+        <p>
+          Either you are coding by yourself or coding with<br>
+          your team, we got plans for you.
+        </p>
+        {{> @toggle}}
+      </header>
+      <div class="plan-selection team">
+
+        <div class="plan-selection-box">
+          <h4>Resource Packs <cite>3x</cite></h4>
+          <h5>$30/Month</h5>
+          {{> @slider}}
+          <p class="description">
+            1x Resource pack contains 1 GB RAM, 1x CPU, 1TB Disk
+            and we shut it off after an hour for obvious reasons
+          </p>
         </div>
-        <div class="sliderbar-outer-container">{{> @slider}}</div>
-        <div class="selected-plan">
-          <div class="price">
-            <cite>$</cite>{{> @price}}
-            <span class="period">/MONTH</span>
-          </div>
-          {{> @promotion}}
+
+        <div class="plan-selection-box">
+          <h4>Resource Packs <cite>3x</cite></h4>
+          <h5>$30/Month</h5>
+          {{> @sliderTwo}}
+          <p class="description">
+            1x Resource pack contains 1 GB RAM, 1x CPU, 1TB Disk
+            and we shut it off after an hour for obvious reasons
+          </p>
+        </div>
+
+        <div class="plan-selection-box selected">
+          <h4>3x Resource Packs</h4>
+          <h5>$30/Month</h5>
+          <p class="description">
+            TREAT: $4 OFF OR 2 SHARED VMS
+          </p>
           {{> @buyNow}}
         </div>
       </div>
     </div>
     """
+
+# <div class="plan-selection">
+#         <div class="resource-pack">
+#           <h6>Resource Pack</h6>
+#           <span class="resource cpu"><i></i> x{{> @cpuQuantity}}</span>
+#           <span class="resource ram"><i></i> x{{> @ramQuantity}}</span>
+#           <span class="resource disk"><i></i> x{{> @diskQuantity}}</span>
+#           <span class="resource always-on"><i></i> {{> @alwaysOn}}</span>
+#         </div>
+#         <div class="sliderbar-outer-container">{{> @slider}}</div>
+#         <div class="selected-plan">
+#           <div class="price">
+#             <cite>$</cite>{{> @price}}
+#             <span class="period">/MONTH</span>
+#           </div>
+#           {{> @promotion}}
+#           {{> @buyNow}}
+#         </div>
+#       </div>
