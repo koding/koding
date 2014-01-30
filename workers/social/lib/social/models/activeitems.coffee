@@ -10,9 +10,7 @@ Cache          = require "../cache/main"
 
 module.exports = class ActiveItems extends Base
   @share()
-  JPermissionSet = require './group/permissionset'
   JGroup         = require './group'
-
   @set
     sharedMethods   :
       static        :
@@ -44,7 +42,6 @@ module.exports = class ActiveItems extends Base
     options.fallbackFn = @fetchRandomTopics
     cacheId            = "#{options.group}-activeItems.fetchTopics"
 
-    {connection:{delegate}} = client
     JTag.canReadTags client, (err, hasPermission)=>
       if err or not hasPermission
         return callback new Error "Not allowed to read tags of this group"
