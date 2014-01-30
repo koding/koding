@@ -118,7 +118,8 @@ initProducts = ->
         queue.next()
       -> importPacks ->
         console.log 'All Packs are added'
-      -> process.kill(1)
+        queue.next()
+      -> process.kill()
     ]
 
     daisy queue
