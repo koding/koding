@@ -11,6 +11,8 @@ module.exports = class JPaymentPlan extends JPaymentBase
 
   {secure, dash, signature}        = require 'bongo'
 
+  {partition} = require 'bongo/lib/util'
+
   {permit}              = require '../group/permissionset'
 
   JUser                 = require '../user'
@@ -46,6 +48,8 @@ module.exports = class JPaymentPlan extends JPaymentBase
           (signature Object, Object, Function)
         ]
         updateProducts:
+          (signature Object, Function)
+        checkQuota:
           (signature Object, Function)
         fetchCoupon:
           (signature String, Function)
@@ -252,6 +256,25 @@ module.exports = class JPaymentPlan extends JPaymentBase
       JGroup = require '../group'
       JGroup.one _id: @product.category, (err, group)->
         callback err, unless err then group.slug
+
+  checkQuota: (options, callback) ->
+    {usage, spend, couponCode, multiplyFactor} = options
+    multiplyFactor ?= 1
+
+    usages = for own planCode, quantity of spend
+      planSize    = @quantities[planCode] ? 0
+      usageAmount = usage[planCode] ? 0
+      spendAmount = (spend[planCode] ? 0) * multiplyFactor
+
+      total = planSize - usageAmount - spendAmount
+
+      { planCode, total }
+
+    [ok, over] = partition usages, ({ total }) -> total >= 0
+
+    if over.length > 0
+    then callback { message: 'quota exceeded', ok, over }
+    else callback null
 
   fetchCoupon: (type, callback) ->
     recurly.fetchCoupon @couponCodes[type], callback
