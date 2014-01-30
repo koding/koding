@@ -135,7 +135,6 @@ module.exports = class ActivityTicker extends Base
         do kallback
 
   @_fetch = (requestOptions = {}, callback)->
-    return callback null, []
     {options, client} = requestOptions
     sources = constructorNames
     as      = relationshipNames
