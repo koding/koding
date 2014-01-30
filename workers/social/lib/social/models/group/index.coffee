@@ -1178,6 +1178,10 @@ module.exports = class JGroup extends Module
     else
       as = fallbackRole
 
+    # remove this
+    if @getId().toString() is "51f41f195f07655e560001c1"
+      return callback null
+
     selector =
       targetName : target.bongo_.constructorName
       sourceId   : @getId()

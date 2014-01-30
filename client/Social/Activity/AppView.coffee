@@ -27,6 +27,7 @@ class ActivityAppView extends KDScrollView
     @referalBox       = new ReferalBox
     @topicsBox        = new ActiveTopics
     @usersBox         = new ActiveUsers
+    @tickerBox        = new ActivityTicker
 
     @mainBlock        = new KDCustomHTMLView tagName : "main" #"activity-left-block"
     @sideBlock        = new KDCustomHTMLView tagName : "aside"   #"activity-right-block"
