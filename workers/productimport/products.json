@@ -2,7 +2,7 @@
   {
       "title"            : "VM",
       "priceIsVolatile"  : true,
-      "tags"             : ["VM"],
+      "tags"             : ["vm"],
       "subscriptionType" : "mo",
       "feeInterval"      : 1,
       "feeUnit"          : "months",
@@ -11,7 +11,7 @@
   {
       "title"            : "User",
       "priceIsVolatile"  : true,
-      "tags"             : ["USER"],
+      "tags"             : ["user", "custom-plan"],
       "subscriptionType" : "mo",
       "feeInterval"      : 1,
       "feeUnit"          : "months",
@@ -20,7 +20,7 @@
   {
       "title"            : "Group",
       "priceIsVolatile"  : true,
-      "tags"             : ["GROUP"],
+      "tags"             : ["group"],
       "subscriptionType" : "mo",
       "feeInterval"      : 1,
       "feeUnit"          : "months",

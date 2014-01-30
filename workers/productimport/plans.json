@@ -4,14 +4,14 @@
     "feeAmount"   : 0, 
     "feeUnit"     : "months",
     "couponCodes" : {}, 
-    "tags"        : []
+    "tags"        : ["custom-plan"]
   },
   {
     "title"       : "1 x Resource Pack", 
     "feeAmount"   : 2000, 
     "feeUnit"     : "months",
     "couponCodes" : {}, 
-    "tags"        : ["VM", "RP1"],
+    "tags"        : ["vm", "rp1"],
     "count"       : 1
   },
   {
@@ -19,7 +19,7 @@
     "feeAmount"   : 4000,
     "feeUnit"     : "months", 
     "couponCodes" : {"discount": "rp2", "vm": "1FREEVM"}, 
-    "tags"        : ["VM", "RP2"],
+    "tags"        : ["vm", "rp2"],
     "count"       : 2
   },
   {
@@ -27,7 +27,7 @@
     "feeAmount"   : 6000, 
     "feeUnit"     : "months",
     "couponCodes" : {"discount": "rp3", "vm": "2FREEVMS"}, 
-    "tags"        : ["VM", "RP3"],
+    "tags"        : ["vm", "rp3"],
     "count"       : 3
   },
   {
@@ -35,7 +35,7 @@
     "feeAmount"   : 8000, 
     "feeUnit"     : "months",
     "couponCodes" : {"discount": "rp4", "vm": "3FREEVMS"}, 
-    "tags"        : ["VM", "RP4"],
+    "tags"        : ["vm", "rp4"],
     "count"       : 4
   },
   {
@@ -43,7 +43,7 @@
     "feeAmount"   : 10000, 
     "feeUnit"     : "months",
     "couponCodes" : {"discount": "rp5", "vm": "4FREEVMS"}, 
-    "tags"        : ["VM", "RP5"],
+    "tags"        : ["vm", "rp5"],
     "count"       : 5
   }
 ]

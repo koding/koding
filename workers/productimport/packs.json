@@ -1,14 +1,14 @@
 [
   {
     "title": "VM", 
-    "tags": ["VM"]
+    "tags": ["vm"]
   },
   {
     "title": "User",
-    "tags": ["USER"]
+    "tags": ["user"]
   },
   {
     "title": "Group", 
-    "tags": ["GROUP"]
+    "tags": ["group"]
   }
 ]
