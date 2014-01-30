@@ -48,7 +48,7 @@ class CollaborativeWorkspaceUserList extends JView
 
   fetchUsers: ->
     @workspaceRef.once "value", (snapshot) =>
-      val       = snapshot.val()
+      val       = @getDelegate().reviveSnapshot snapshot
       userList  = {}
       userNames = []
 

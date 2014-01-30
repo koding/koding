@@ -28,7 +28,7 @@ class ChatPane extends JView
       unless @isVisible() or @getOptions().floating
         @updateCount ++@unreadCount
 
-      @addNew snapshot.val()
+      @addNew @workspace.reviveSnapshot snapshot
 
   updateCount: (count) ->
     @title.updatePartial "Chat (#{++@unreadCount})"
@@ -108,7 +108,7 @@ class ChatPane extends JView
   appendToChatItem: (params) ->
     {details}  = params
     @lastChatItem.messageList.addSubView @lastMessage = new KDCustomHTMLView
-      partial  : Encoder.XSSEncode details.body
+      partial  : details.body
       cssClass : "tw-chat-message"
 
     @emit "NewChatItemCreated"
