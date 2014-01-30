@@ -75,13 +75,13 @@ module.exports = ->
       <article>
         <header><h3>Use it in your school</h3></header>
         <p>
-          Koding in the classroom, prepare your files online, share them with the whole class instantly. Collaborate live or just make your students watch what you're doing.
+          Prepare your files online and share them with the whole class instantly. Collaborate live with your students or let them follow along what you're doing.
         </p>
       </article>
       <article>
         <header><h3>Create project groups</h3></header>
         <p>
-          Want to work on a project with your buddies and use the same resources and running instances, share a VM between your fellow developers.
+          Want to work on a project with your buddies and use the same workspace? Share your VM with your fellow developers.
         </p>
       </article>
       <p>
