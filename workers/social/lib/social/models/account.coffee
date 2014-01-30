@@ -534,7 +534,7 @@ module.exports = class JAccount extends jraphical.Module
       @cachedUserCount = count
       callback null, count
 
-  fetchHomepageView:(account, callback)->
+  fetchHomepageView:({account, bongoModels}, callback)->
 
     JReferral = require './referral'
     JGroup = require './group'
@@ -544,7 +544,7 @@ module.exports = class JAccount extends jraphical.Module
       renderedAccount : account
       account         : this
       isLoggedIn      : account.type is 'unregistered'
-      bongoModels     : {JReferral, JGroup, JNewStatusUpdate}
+      bongoModels     : bongoModels
     , callback
 
   fetchGroups: secure (client, options, callback)->
