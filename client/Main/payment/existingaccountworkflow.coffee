@@ -11,9 +11,7 @@ class ExistingAccountForm extends JView
               @loginForm[err.field].decorateValidation err
           else
             localStorage?.setItem "routeToBeContinued", KD.singleton("router").currentPath
-            @emit "DataCollected",
-              loggedIn      : yes
-              email         : no
+            @emit "DataCollected", loggedIn: yes
 
     @emailCollectionForm = new KDFormViewWithFields
       fields:
@@ -29,10 +27,7 @@ class ExistingAccountForm extends JView
       callback             : ({ email }) =>
         KD.remote.api.JUser.changeEmail { email }, (err) =>
           return  if KD.showError err
-          @emit 'DataCollected',
-            loggedIn      : yes
-            account       : yes
-            email         : email
+          @emit 'DataCollected', createAccount: yes, email: email
 
     super
 
