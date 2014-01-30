@@ -42,8 +42,8 @@ class IntroResourcePackPlan extends JView
       title    : 'BUY NOW'
       callback : =>
         appManager = KD.singleton "appManager"
-        return   unless appManager
         appManager.open "Pricing", (app) =>
+          KD.singleton("router").handleRoute "/Pricing/Developer", suppressListeners: yes
           app.selectPlan "rp#{@planIndex + 1}", planApi: KD.remote.api.JResourcePlan
 
   updateContent: ->

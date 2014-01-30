@@ -46,11 +46,13 @@ class PricingAppView extends KDView
   createGroupNameForm: ->
     @groupForm              = new KDFormViewWithFields
       title                 : "Enter new group name"
+      cssClass              : "pricing-create-group"
       callback              : @bound "createGroup"
       buttons               :
         Create              :
           title             : "Create"
           type              : "submit"
+          style             : "solid green"
       fields                :
         GroupName           :
           label             : "Group Name"
