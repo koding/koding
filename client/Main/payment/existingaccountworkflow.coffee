@@ -10,6 +10,7 @@ class ExistingAccountForm extends JView
             if err?.field of @loginForm
               @loginForm[err.field].decorateValidation err
           else
+            localStorage?.setItem "routeToBeContinued", KD.singleton("router").currentPath
             @emit "DataCollected",
               loggedIn      : yes
               createAccount : no
