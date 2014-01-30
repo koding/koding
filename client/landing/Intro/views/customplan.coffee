@@ -52,8 +52,8 @@ class IntroCustomPlan extends JView
       title    : "BUY NOW"
       callback : =>
         appManager = KD.singleton "appManager"
-        return   unless appManager
         appManager.open "Pricing", (app) =>
+          KD.singleton("router").handleRoute "/Pricing/Enterprise", suppressListeners: yes
           app.selectPlan "custom-plan", {
             @userQuantity
             @resourceQuantity
