@@ -6,7 +6,8 @@ class ExistingAccountForm extends JView
       callback : (credentials) =>
         KD.getSingleton('mainController').handleLogin credentials, (err) =>
           @loginForm.button.hideLoader()
-          if (KD.showError err) and err?.field of @loginForm
+          if (KD.showError err)
+            if err?.field of @loginForm
               @loginForm[err.field].decorateValidation err
           else
             @emit "DataCollected",
