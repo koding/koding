@@ -138,6 +138,8 @@ class CollaborativeWorkspace extends Workspace
 
   requestPingFromHost: ->
     @requestPingRef.set Date.now()
+    KD.utils.wait 10000, =>
+      @showNotActiveView()  unless @connected
 
   fetchUsers: ->
     @workspaceRef.once "value", (snapshot) =>
