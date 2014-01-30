@@ -195,9 +195,7 @@ class PaymentController extends KDController
           return callback err  if err
 
           JUser.logout (err) ->
-            return callback err  if err
-
-            callback null
+            callback err, subscription
       else
         callback err, subscription
 
