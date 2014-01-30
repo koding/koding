@@ -536,10 +536,14 @@ module.exports = class JAccount extends jraphical.Module
 
   fetchHomepageView:(account, callback)->
 
+    # FIXME ~ I know this is not looking good but I only have this right now ~ GG
+    bongo = require './../../../../../server/lib/server/bongo'
+
     JAccount.renderHomepage
       renderedAccount : account
       account         : this
       isLoggedIn      : account.type is 'unregistered'
+      bongoModels     : bongo.models
     , callback
 
   fetchGroups: secure (client, options, callback)->
