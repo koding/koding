@@ -42,6 +42,9 @@ module.exports = class JGroup extends Module
       'list members'                      :
         public                            : ['moderator']
         private                           : ['moderator']
+      'read group activity'               :
+        public                            : ['guest','member','moderator']
+        private                           : ['member','moderator']
       'create groups'                     : ['moderator']
       'edit groups'                       : ['moderator']
       'edit own groups'                   : ['member','moderator']
@@ -858,7 +861,9 @@ module.exports = class JGroup extends Module
 
   canEditGroup: permit 'grant permissions'
 
-  canReadActivity: permit 'read activity'
+  @canReadGroupActivity = permit 'read group activity'
+  canReadGroupActivity  : permit 'read group activity'
+  @canListMembers       = permit 'list members'
 
   canOpenGroup: permit 'open group',
     failure:(client, callback)->

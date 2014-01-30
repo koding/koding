@@ -64,7 +64,7 @@ module.exports = class Activity extends Graph
       JGroup.one slug : groupName, (err, group)=>
         if err then return callback err
         unless group then return callback {error: "Group not found"}
-        group.canReadActivity client, (err, res)->
+        group.canReadGroupActivity client, (err, res)->
           if err then return callback {error: "Not allowed to open this group"}
           else callback null, group
 

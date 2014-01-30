@@ -206,7 +206,7 @@ module.exports = class JNewStatusUpdate extends JPost
       # if group is not koding check for security
       {delegate} = client.connection
       return callback {error: "Request not valid"} unless delegate
-      group.canReadActivity client, (err, res)->
+      group.canReadGroupActivity client, (err, res)->
         if err then return callback {error: "Not allowed to open this group"}
         else callback null, group
 
