@@ -160,15 +160,15 @@ class PaymentController extends KDController
           callback null, subscription
 
   createSubscription: (options, callback) ->
-    { plan, planOptions, couponCode, email, paymentMethod, createAccount } = options
+    { plan, planOptions, promotionType, email, paymentMethod, createAccount } = options
     { paymentMethodId, billing } = paymentMethod
     { planApi } = planOptions
-    
+
     throw new Error "Must provide a plan API!"  unless planApi?
-    
+
     options = {
       planOptions
-      couponCode
+      promotionType
       paymentMethodId
       planCode: plan.planCode
     }
@@ -202,7 +202,7 @@ class PaymentController extends KDController
         callback err, subscription
 
   transitionSubscription: (formData, callback) ->
-    { productData, oldSubscription, couponCode, paymentMethod, createAccount, email } = formData
+    { productData, oldSubscription, promotionType, paymentMethod, createAccount, email } = formData
     { plan, planOptions } = productData
     { planCode } = plan
     { paymentMethodId } = paymentMethod
@@ -212,14 +212,14 @@ class PaymentController extends KDController
       @createSubscription {
         plan
         planOptions
-        couponCode
+        promotionType
         email
         paymentMethod
         createAccount
       }, callback
 
   debitSubscription: (subscription, pack, callback) ->
-    subscription.debit pack, (err, nonce) =>
+    subscription.debit { pack }, (err, nonce) =>
       return  if KD.showError err
 
       @emit 'SubscriptionDebited', subscription

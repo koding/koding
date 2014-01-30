@@ -98,7 +98,7 @@ class PaymentWorkflow extends FormWorkflow
 
     @addForm 'confirm', confirmForm, ['userConfirmation']
 
-    confirmForm.on 'CouponOptionChanged', (name) => @collectData couponCode: name
+    confirmForm.on 'CouponOptionChanged', (name) => @collectData promotionType: name
     confirmForm.on 'PaymentConfirmed', => @collectData userConfirmation: yes
 
     @forwardEvent confirmForm, 'Cancel'

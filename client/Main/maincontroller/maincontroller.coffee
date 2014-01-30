@@ -90,7 +90,11 @@ class MainController extends KDController
       @emit "#{eventPrefix}.#{eventSuffix}", account, connectedState, firstLoad
 
       KD.utils.wait 5000, =>
-        new TBCampaignController  if KD.isLoggedIn()
+        if KD.isLoggedIn()
+          KD.remote.api.JReferral.isCampaingValid (err, isValid, details) =>
+            return if err or not isValid
+
+            new TBCampaignController {}, details
 
   createMainViewController:->
     KD.registerSingleton "dock", new DockController
@@ -153,9 +157,7 @@ class MainController extends KDController
         # window location path is set to last route to ensure visitor is not
         # redirected to another page
         @utils.defer ->
-          firstRoute = KD.getSingleton("router").visitedRoutes.first
-
-          firstRoute = KD.getSingleton("router").visitedRoutes.first
+          firstRoute = localStorage?.routeToBeContinued or KD.getSingleton("router").visitedRoutes.first
           if firstRoute and /^\/(?:Reset|Register|Verify|Confirm)\//.test firstRoute
             firstRoute = "/Activity"
 

@@ -4,7 +4,7 @@ module.exports = class JGroupPlan extends JResourcePlan
 
   { calculateQuantities, subscribeToPlan } = JResourcePlan
 
-  { secure, signature } = require 'bongo'
+  { dash, secure, signature } = require 'bongo'
 
   @share()
 
@@ -13,9 +13,33 @@ module.exports = class JGroupPlan extends JResourcePlan
       static      :
         subscribe :
           (signature Object, Function)
+        hasGroupCredit:
+          (signature Function)
+
+  @hasGroupCredit = secure (client, callback) ->
+    { delegate } = client.connection
+
+    JGroup = require '../group'
+
+    JGroup.one slug: 'koding', (err, koding) ->
+      return callback err  if err
+
+      packOptions = targetOptions: selector: tags: 'group'
+
+      koding.fetchPack {}, packOptions, (err, pack) ->
+        return callback err  if err
+
+        subOptions = targetOptions: selector: tags: 'custom-plan'
+
+        delegate.fetchSubscription {}, subOptions, (err, subscription) ->
+          return callback err  if err
+          return callback null, no  unless subscription
+
+          subscription.checkUsage pack, (err) ->
+            callback err, !err?
 
   @calculateQuantities = (calcOptions, callback) ->
-    calculateQuantities.call this, calcOptions, (err, quantities) ->
+    calculateQuantities.call this, calcOptions, (err, quantities) =>
       return callback err  if err
 
       { plan, userQuantity } = calcOptions
@@ -23,23 +47,40 @@ module.exports = class JGroupPlan extends JResourcePlan
       unless 'custom-plan' in plan.tags
         return callback message: 'This plan is not tagged with "custom-plan"'
 
-      queryOptions = targetOptions: selector: tags: "user"
+      queue = [
+        =>
+          @fetchProductCode plan, "user", (err, productCode) ->
+            return callback err  if err
 
-      plan.fetchProducts null, queryOptions, (err, products) ->
-        return callback err  if err
-        return callback message: "no products found"  unless products?.length
+            quantities[productCode] =
+              plan.quantities[productCode] * (userQuantity or 1)
 
-        [product] = products
-        { planCode } = product
-        quantities[planCode] = plan.quantities[planCode] * (userQuantity or 1)
+            queue.fin()
+        =>
+          @fetchProductCode plan, "group", (err, productCode) ->
+            return callback err  if err
 
-        callback null, quantities
+            quantities[productCode] = plan.quantities[productCode]
+
+            queue.fin()
+      ]
+      dash queue, -> callback null, quantities
+
+  @fetchProductCode = (plan, tags, callback) ->
+    queryOptions = targetOptions: selector: { tags }
+    plan.fetchProducts null, queryOptions, (err, products) ->
+      return callback err  if err
+      unless products?.length
+        return callback message: "no products found"
+
+      callback null, products[0].planCode
 
   @getCalculationOptions = (plan, planOptions) ->
-    { userQuantity } = planOptions
+    { userQuantity, resourceQuantity } = planOptions
     {
       plan
       userQuantity
+      resourceQuantity
     }
 
   calculateCustomPlanUnitAmount = do (

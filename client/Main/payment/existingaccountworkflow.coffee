@@ -6,7 +6,7 @@ class ExistingAccountForm extends JView
       callback : (credentials) =>
         KD.getSingleton('mainController').handleLogin credentials, (err) =>
           @loginForm.button.hideLoader()
-          if (KD.showError err) and err?.field of loginForm
+          if (KD.showError err) and err?.field of @loginForm
               @loginForm[err.field].decorateValidation err
           else
             @emit "DataCollected",
@@ -38,14 +38,12 @@ class ExistingAccountForm extends JView
 
   pistachio: ->
     """
-    <div class="pricing-horizontal-divider"></div>
     <section class="pricing-sign-in clearfix">
-      <h3>Sign in or Signup to proceed with your checkout</h3>
+      <h3 class="pricing-title">Sign in or Signup to proceed with your checkout</h3>
       {{> @loginForm}}
       <span class="divider">or</span>
       {{> @emailCollectionForm}}
     </section>
-    <div class="pricing-horizontal-divider"></div>
     """
 
 class ExistingAccountWorkflow extends FormWorkflow
