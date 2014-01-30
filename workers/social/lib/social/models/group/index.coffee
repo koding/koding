@@ -733,7 +733,7 @@ module.exports = class JGroup extends Module
           @customize
           bongoModels
         }
-        prefix = if account.type is 'unregistered' then 'loggedOut' else 'loggedIn'
+        prefix = if account?.type is 'unregistered' then 'loggedOut' else 'loggedIn'
         JGroup.render[prefix].groupHome options, callback
 
     if @visibility is 'hidden' and section isnt 'Invitation'
@@ -932,6 +932,7 @@ module.exports = class JGroup extends Module
               kallback null
 
   isMember: (account, callback)->
+    return callback new Error "No account found!"  unless account
     selector =
       sourceId  : @getId()
       targetId  : account.getId()
