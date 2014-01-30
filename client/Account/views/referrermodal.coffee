@@ -32,6 +32,9 @@ class ReferrerModalContent extends JView
     @linkedin = new LinkedInShareLink { url , trackingName: "referrer" }
 
   pistachio: ->
+    subject = "Want an awesome 5GB server to code on#{encodeURIComponent("?")}"
+    body    = "Koding is giving away 100TB this week - my link gets you a 5GB VM! It's really cool! Click this link to get it (before it's over) #{KD.getReferralUrl KD.nick()}"
+
     """
       <div class="left">
         <div class="logo"></div>
@@ -53,6 +56,9 @@ class ReferrerModalContent extends JView
             {{> @facebook}}
             {{> @linkedin}}
           </div>
+          <a href="mailto:?subject=#{subject}&body=#{body}">
+            Invite via email...
+          </a>
         </div>
       </div>
     """
