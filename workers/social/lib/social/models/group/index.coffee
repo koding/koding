@@ -848,7 +848,8 @@ module.exports = class JGroup extends Module
   canEditGroup: permit 'grant permissions'
 
   @canReadGroupActivity = permit 'read group activity'
-  canListMembers: permit 'list members'
+  canReadGroupActivity  : permit 'read group activity'
+  @canListMembers       = permit 'list members'
 
   canOpenGroup: permit 'open group',
     failure:(client, callback)->
