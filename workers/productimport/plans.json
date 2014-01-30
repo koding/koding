@@ -18,7 +18,7 @@
     "title"       : "2 x Resource Pack", 
     "feeAmount"   : 4000,
     "feeUnit"     : "months", 
-    "couponCodes" : {"discount": "rp2", "vm": "1freevm"}, 
+    "couponCodes" : {"discount": "rp2", "vm": "1FREEVM"}, 
     "tags"        : ["VM", "RP2"],
     "count"       : 2
   },
@@ -26,7 +26,7 @@
     "title"       : "3 x Resource Pack", 
     "feeAmount"   : 6000, 
     "feeUnit"     : "months",
-    "couponCodes" : {"discount": "rp3", "vm": "2freevms"}, 
+    "couponCodes" : {"discount": "rp3", "vm": "2FREEVMS"}, 
     "tags"        : ["VM", "RP3"],
     "count"       : 3
   },
@@ -34,7 +34,7 @@
     "title"       : "4 x Resource Pack", 
     "feeAmount"   : 8000, 
     "feeUnit"     : "months",
-    "couponCodes" : {"discount": "rp4", "vm": "3freevms"}, 
+    "couponCodes" : {"discount": "rp4", "vm": "3FREEVMS"}, 
     "tags"        : ["VM", "RP4"],
     "count"       : 4
   },
@@ -42,7 +42,7 @@
     "title"       : "5 x Resource Pack", 
     "feeAmount"   : 10000, 
     "feeUnit"     : "months",
-    "couponCodes" : {"discount": "rp5", "vm": "4freevms"}, 
+    "couponCodes" : {"discount": "rp5", "vm": "4FREEVMS"}, 
     "tags"        : ["VM", "RP5"],
     "count"       : 5
   }
