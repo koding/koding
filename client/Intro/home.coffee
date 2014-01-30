@@ -35,7 +35,7 @@ class HomePage extends JView
     @play = new KDCustomHTMLView
       tagName : 'a'
       cssClass : 'play-button'
-      attributes : href : 'http://www.youtube.com/embed/w6sl_Yt_gNo'
+      attributes : href : 'http://www.youtube.com/embed/5E85g_ddV3A'
       click : (event)->
         KD.utils.stopDOMEvent event
         w = 853
