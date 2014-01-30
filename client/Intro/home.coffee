@@ -46,8 +46,8 @@ class HomePage extends JView
 
     @markers = new MarkerController
 
-    @resourcePackPlan  = new ResourcePackPlan
-    @customPlan        = new CustomPlan
+    @resourcePackPlan  = new IntroResourcePackPlan
+    @customPlan        = new IntroCustomPlan
     @campaignContainer = new KDCustomHTMLView
 
     if KD.campaign?.status

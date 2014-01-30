@@ -46,6 +46,7 @@ class PlanUpgradeConfirmForm extends PaymentConfirmForm
     super data
 
   addCouponOptions: ->
+    return  unless Object.keys(@coupons).length
     {discount: {discountInCents}} = @coupons
 
     @plan.addSubView giftWrapper = new KDCustomHTMLView cssClass: "coupon-options clearfix"
