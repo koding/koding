@@ -23,13 +23,13 @@ class WorkspaceFloatingPaneLauncher extends KDCustomHTMLView
 
     if @isJoinedASession
       @keysRef.once "value", (snapshot) =>
-        @sessionKeys = snapshot.val()
+        @sessionKeys = @workspace.reviveSnapsot snapshot
         @createPanes()
     else
       @createPanes()
 
     @paneStateRef.on "value", (snapshot) =>
-      state  = snapshot.val()
+      state  = @workspace.reviveSnapsot snapshot
       return unless state
 
       for own key, value of state
