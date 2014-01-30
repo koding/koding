@@ -35,7 +35,7 @@ class HomePage extends JView
     @play = new KDCustomHTMLView
       tagName : 'a'
       cssClass : 'play-button'
-      attributes : href : 'http://www.youtube.com/embed/w6sl_Yt_gNo'
+      attributes : href : 'http://www.youtube.com/embed/5E85g_ddV3A'
       click : (event)->
         KD.utils.stopDOMEvent event
         w = 853
@@ -200,14 +200,14 @@ class HomePage extends JView
             <span class='icon'></span>
             <article>
               <h4>USE IT IN YOUR SCHOOL</h4>
-              Koding in the classroom, prepare your files online, share them with the whole class instantly. Collaborate live or just make your students watch what you're doing.
+              Prepare your files online and share them with the whole class instantly. Collaborate live with your students or let them follow along what you're doing.
             </article>
           </div>
           <div class='project clearfix'>
             <span class='icon'></span>
             <article>
               <h4>CREATE PROJECT GROUPS</h4>
-              Want to work on a project with your buddies and use the same resources and running instances, share a VM between your fellow developers.
+              Want to work on a project with your buddies and use the same workspace? Share your VM with your fellow developers.
             </article>
           </div>
         </div>
