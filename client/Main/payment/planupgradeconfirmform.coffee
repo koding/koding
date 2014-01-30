@@ -53,17 +53,18 @@ class PlanUpgradeConfirmForm extends PaymentConfirmForm
     giftWrapper.addSubView new KDLabelView
       title: "Select your gift"
       cssClass: "select-gift"
+
     giftWrapper.addSubView couponOptions = new KDInputRadioGroup
       name       : "coupon-options"
       radios     : [
         title    : "#{@coupons.discount.name}"
         value    : "discount"
-        callback : => @changeCouponOption "discount"
       ,
         title    : "#{@coupons.vm.name}"
         value    : "vm"
-        callback : => @changeCouponOption "vm"
       ]
+
+    couponOptions.on "change", @bound "changeCouponOption"
 
     @plan.addSubView totalWrapper = new KDCustomHTMLView cssClass: "total-wrapper"
 
