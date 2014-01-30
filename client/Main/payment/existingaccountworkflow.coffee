@@ -6,12 +6,13 @@ class ExistingAccountForm extends JView
       callback : (credentials) =>
         KD.getSingleton('mainController').handleLogin credentials, (err) =>
           @loginForm.button.hideLoader()
-          if (KD.showError err) and err?.field of loginForm
+          if (KD.showError err)
+            if err?.field of @loginForm
               @loginForm[err.field].decorateValidation err
           else
+            localStorage?.setItem "routeToBeContinued", KD.singleton("router").currentPath
             @emit "DataCollected",
               loggedIn      : yes
-              createAccount : no
               email         : no
 
     @emailCollectionForm = new KDFormViewWithFields
@@ -29,8 +30,7 @@ class ExistingAccountForm extends JView
         KD.remote.api.JUser.changeEmail { email }, (err) =>
           return  if KD.showError err
           @emit 'DataCollected',
-            loggedIn      : no
-            createAccount : yes
+            loggedIn      : yes
             account       : yes
             email         : email
 
@@ -38,14 +38,12 @@ class ExistingAccountForm extends JView
 
   pistachio: ->
     """
-    <div class="pricing-horizontal-divider"></div>
     <section class="pricing-sign-in clearfix">
-      <h3>Sign in or Signup to proceed with your checkout</h3>
+      <h3 class="pricing-title">Sign in or Signup to proceed with your checkout</h3>
       {{> @loginForm}}
       <span class="divider">or</span>
       {{> @emailCollectionForm}}
     </section>
-    <div class="pricing-horizontal-divider"></div>
     """
 
 class ExistingAccountWorkflow extends FormWorkflow

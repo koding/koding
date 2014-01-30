@@ -52,24 +52,18 @@ class PaymentWorkflow extends FormWorkflow
 
     @requireData [
       'productData'
-
-      'createAccount'
-
-      any('paymentMethod', 'subscription')
-      
+      'loggedIn'
+      any 'paymentMethod', 'subscription'
       'userConfirmation'
     ]
 
     if KD.whoami().type is 'unregistered'
       existingAccountWorkflow = new ExistingAccountWorkflow
-
-      existingAccountWorkflow.on 'DataCollected', (data) =>
-        @collectData createAccount: data.createAccount
-
-      @addForm 'createAccount', existingAccountWorkflow, ['createAccount']
+      existingAccountWorkflow.on 'DataCollected', @bound "collectData"
+      @addForm 'createAccount', existingAccountWorkflow, ['loggedIn']
     else
       # TODO: this is an awful hack for now C.T.
-      @addForm 'existingAccount', (@skip createAccount: no), ['createAccount']
+      @addForm 'existingAccount', (@skip createAccount: no), ['loggedIn']
 
     # - "product form" can be used for collecting some product-related data
     # before the payment method collection/selection process begins.  If you
@@ -98,7 +92,7 @@ class PaymentWorkflow extends FormWorkflow
 
     @addForm 'confirm', confirmForm, ['userConfirmation']
 
-    confirmForm.on 'CouponOptionChanged', (name) => @collectData couponCode: name
+    confirmForm.on 'CouponOptionChanged', (name) => @collectData promotionType: name
     confirmForm.on 'PaymentConfirmed', => @collectData userConfirmation: yes
 
     @forwardEvent confirmForm, 'Cancel'

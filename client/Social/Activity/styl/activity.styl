@@ -188,6 +188,10 @@ resurrection.activity.styl
 
       strong
         color           #1aaf5d
+        font-size       26px
+        margin-bottom   5px
+        font-weight     300
+        display         inline-block
 
       &:hover .hide
         visible()
@@ -202,21 +206,17 @@ resurrection.activity.styl
         hidden()
         abs()
 
-      > figure
-        sprite          activity 'refer-friend'
-        margin          0 9px 0 15px
-        position        relative
-        left            -5px
-        fl()
-
       > p
         overflow        hidden
         width           auto
-        font-size       13px
-        line-height     1.25em
-        padding-right   20px
+        font-size       18px
+        line-height     1.4em
+        padding-bottom  14px
+        font-weight     300
         borderBox()
+
         a
+          display       inline-block
           color         logoBg
           noTextDeco()
 
@@ -225,7 +225,7 @@ resurrection.activity.styl
         size                100% 31px
         border              none
         rounded             16px
-        margin-top          16px
+        margin-top          10px
         gradient            #cfcece #cfcece
         borderBox()
         rel()
@@ -1361,6 +1361,10 @@ body.profile
 
 // Group Activity
 body.group
+  .dashboard
+    .content-page
+      > aside
+        padding-top        3px
   .content-page
     margin-top             55px
     min-height             2070px
@@ -1368,7 +1372,7 @@ body.group
     main
       margin-top           24px
 
-    >aside
+    > aside
       padding-top          306px
 
       .group-description

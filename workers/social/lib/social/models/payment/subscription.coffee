@@ -212,9 +212,10 @@ module.exports = class JPaymentSubscription extends jraphical.Module
 
       callback null, nonce.nonce
 
-  debit: (pack, multiplyFactor, callback) ->
-    [callback, multiplyFactor] = [multiplyFactor, callback]  unless callback
-    multiplyFactor ?= 1
+  debit: ({ pack, multiplyFactor, shouldCreateNonce }, callback) ->
+
+    multiplyFactor    ?= 1
+    shouldCreateNonce ?= no
 
     @checkUsage pack, multiplyFactor, (err, usage) =>
       return callback err  if err
@@ -231,9 +232,12 @@ module.exports = class JPaymentSubscription extends jraphical.Module
       @update op, (err) =>
         return callback err  if err
 
-        @createFulfillmentNonce pack, (multiplyFactor > 0), callback
+        if shouldCreateNonce
+          @createFulfillmentNonce pack, (multiplyFactor > 0), callback
+        else
+          callback null
 
-  debit$: secure (client, pack, multiplyFactor, callback) ->
+  debit$: secure (client, options, callback) ->
     JPaymentPlan = require './plan'
 
     { delegate } = client.connection
@@ -242,12 +246,14 @@ module.exports = class JPaymentSubscription extends jraphical.Module
       return callback err  if err
       return callback { message: 'Access denied!' }  unless hasTarget
 
-      @debit pack, callback, multiplyFactor
+      options.shouldCreateNonce ?= yes
 
-  credit: (pack, callback) ->
-    @debit pack, -1, callback
+      @debit options, callback, multiplyFactor
 
-  credit$: secure (client, pack, callback) ->
+  credit: (options, callback) ->
+    @debit { pack, multiplyFactor: -1 }, callback
+
+  credit$: secure (client, options, callback) ->
     @debit$ client, pack, -1, callback
 
   applyTransition: (options, callback) ->

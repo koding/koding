@@ -443,6 +443,7 @@ func (p *Proxy) vm(req *http.Request, target *resolver.Target) http.Handler {
 	hostnameAlias := target.HostnameAlias[0]
 	hostkite := target.Properties["hostkite"].(string)
 	alwaysOn := target.Properties["alwaysOn"].(bool)
+	disableSecurePage := target.Properties["disableSecurePage"].(bool)
 
 	var port string
 	var err error
@@ -506,8 +507,10 @@ func (p *Proxy) vm(req *http.Request, target *resolver.Target) http.Handler {
 		return websocketHandler(target.URL.Host)
 	}
 
-	// no cookies for alwaysOn VMs
-	if alwaysOn {
+	// no cookies for alwaysOn or disabledSecurePage VMs
+	if alwaysOn || disableSecurePage {
+		log.Debug("secure page disabled for '%s'. alwaysOn: %v disableSecurePage: %v",
+			hostnameAlias, alwaysOn, disableSecurePage)
 		return reverseProxyHandler(nil, target.URL)
 	}
 
