@@ -17,7 +17,7 @@ class CollaborativeClientFinderPane extends Pane
     @createLoader()
 
     @workspaceRef.on "value", (snapshot) =>
-      files = snapshot.val()?.files
+      files = workspace.reviveSnapshot(snapshot)?.files
       return  unless files
 
       fileInstances = []

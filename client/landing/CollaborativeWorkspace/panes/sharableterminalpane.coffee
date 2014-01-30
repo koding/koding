@@ -21,7 +21,7 @@ class SharableTerminalPane extends TerminalPane
     keysRef = @workspace.workspaceRef.child "keys"
 
     keysRef.once "value", (snapshot) =>
-      keyChain = snapshot.val()
+      keyChain = @workspace.reviveSnapshot snapshot
       keys     = keyChain[@workspace.lastCreatedPanelIndex]
 
       for key, index in keys when key is @sessionKey
