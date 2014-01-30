@@ -39,7 +39,7 @@ class CollaborativeDrawingPane extends CollaborativePane
   redrawCanvas: ->
     @context.closePath()
     @linesRef.once "value", (snapshot) =>
-      value = snapshot.val()
+      value = @workspace.reviveSnapshot snapshot
       return unless value
       @context.beginPath()
       for own key, points of value
@@ -95,7 +95,7 @@ class CollaborativeDrawingPane extends CollaborativePane
 
     @pointRef.on "value", (snapshot) =>
       return if @startDrawing
-      value = snapshot.val()
+      value = @workspace.reviveSnapshot snapshot
       if value
         unless @isContextMoved
           @context.beginPath()
@@ -105,10 +105,10 @@ class CollaborativeDrawingPane extends CollaborativePane
         @addPoint value.x, value.y, value.nickname
 
     @stateRef.on "value", (snapshot) =>
-      @isContextMoved = snapshot.val() isnt no
+      @isContextMoved = @workspace.reviveSnapshot(snapshot) isnt no
 
     @usersRef.on "value", (snapshot) =>
-      value = snapshot.val()
+      value = @workspace.reviveSnapshot snapshot
       return unless value
       for own key, userData of value
         @userColors[userData.nickname] = userData.color
