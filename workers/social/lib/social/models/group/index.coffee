@@ -510,8 +510,9 @@ module.exports = class JGroup extends Module
 
               subscription.debit debitOptions, (err) ->
                 return callback err  if err
-
-                callback null, group, subscription
+                group.addSubscription subscription, (err) ->
+                  return callback err  if err
+                  callback null, group, subscription
 
   @findSuggestions = (client, seed, options, callback)->
     {limit, blacklist, skip}  = options
