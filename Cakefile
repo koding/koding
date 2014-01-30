@@ -641,8 +641,6 @@ task 'importProducts', "creates default products", (options)->
       enabled      : if config.runKontrol is yes then yes else no
       startMode    : "one"
     verbose        : yes
-    onExit         : ->
-      process.exit()
 
 # ------------------- TEST STUFF --------------------------
 
