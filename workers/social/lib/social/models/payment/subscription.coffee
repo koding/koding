@@ -175,8 +175,10 @@ module.exports = class JPaymentSubscription extends jraphical.Module
     @checkQuota {@usage, @couponCode, spend, multiplyFactor}, callback
 
   vmCouponQuota =
-    "1freevm"   : 1
-    "2freevms"  : 2
+    "1FREEVM"   : 1
+    "2FREEVMS"  : 2
+    "3FREEVMS"  : 3
+    "4FREEVMS"  : 4
 
   checkQuota: (options, callback) ->
     {usage, spend, couponCode, multiplyFactor} = options
