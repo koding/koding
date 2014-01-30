@@ -157,9 +157,7 @@ class MainController extends KDController
         # window location path is set to last route to ensure visitor is not
         # redirected to another page
         @utils.defer ->
-          firstRoute = KD.getSingleton("router").visitedRoutes.first
-
-          firstRoute = KD.getSingleton("router").visitedRoutes.first
+          firstRoute = localStorage?.routeToBeContinued or KD.getSingleton("router").visitedRoutes.first
           if firstRoute and /^\/(?:Reset|Register|Verify|Confirm)\//.test firstRoute
             firstRoute = "/Activity"
 
