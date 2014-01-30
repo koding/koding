@@ -8,7 +8,7 @@ class TBCampaignHomePageView extends JView
 
   createDigitsMarkup: ->
     leftInByte = @getData().content.diskSpaceLeftMB * 1024 * 1024
-    leftInTB   = KD.utils.formatBytesToHumanReadable leftInByte
+    leftInTB   = KD.utils.formatBytesToHumanReadable leftInByte, 3
     [left]     = leftInTB.split " "
     left       = "99.99"  if left is "100.00"
     [tb, gb]   = left.split "."
@@ -20,7 +20,7 @@ class TBCampaignHomePageView extends JView
         <div class="separator">,</div>
         <div class="digit">#{gb[0] or 0}</div>
         <div class="digit">#{gb[1] or 0}</div>
-        <div class="digit">9</div>
+        <div class="digit">#{gb[2] or 0}</div>
     """
 
   getDaysLeft: ->
