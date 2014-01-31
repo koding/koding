@@ -108,7 +108,7 @@ importPlans = (callback) ->
     insertPlans plan for plan in data
 
 createBot = (callback) ->
-  {JUser} = worker.models
+  {JUser, JAccount} = worker.models
 
   userInfo = 
     username  : "bot"
@@ -121,8 +121,11 @@ createBot = (callback) ->
     JUser.one username : "bot", (err, user) ->
       user.confirmEmail (err) ->
         return console.error err if err
-        console.log "bot created"
-        callback null
+        JAccount.update "profile.nickname" : "bot", {$set: type: "registered"}, \
+          {multi: no}, (err, account) ->
+            return callback err if err
+            console.log "bot created"
+            callback null
 
 
 initProducts = ->
