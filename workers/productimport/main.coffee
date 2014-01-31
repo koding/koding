@@ -111,7 +111,7 @@ createBot = (callback) ->
   {JUser} = worker.models
 
   userInfo = 
-    username  : "Bot"
+    username  : "bot"
     email     : "bot@koding.com"
     firstName : "Bot"
     lastName  : " "
