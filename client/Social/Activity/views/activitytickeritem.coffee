@@ -191,12 +191,10 @@ class ActivityTickerUserCommentItem extends ActivityTickerBaseItem
     @subj     = new ActivityLinkView null, @source
 
   pistachio: ->
-    """
-    {{> @avatar}}
-    <div class='text-overflow'>
-      #{if @target.getId() is KD.whoami().getId() then "You" else @origin } commented on {{> @subj}}
-    </div>
-    """
+    if @target.getId() is KD.whoami().getId()
+      "{{> @avatar}} <div class='text-overflow'>You commented on {{> @subj}} </div>"
+    else
+      "{{> @avatar}} <div class='text-overflow'> {{> @origin}} commented on {{> @subj}} </div>"
 
 
 class ActivityTickerItem extends KDListItemView
