@@ -30,6 +30,10 @@ var (
 	routeMap               = make(map[string]([]*sockjs.Session))
 	socketSubscriptionsMap = make(map[string]*map[string]bool)
 	globalMapMutex         sync.Mutex
+
+	changeClientsGauge          = lifecycle.CreateClientsGauge()
+	changeNewClientsGauge       = logger.CreateCounterGauge("newClients", logger.NoUnit, true)
+	changeWebsocketClientsGauge = logger.CreateCounterGauge("websocketClients", logger.NoUnit, false)
 )
 
 type Broker struct {
@@ -143,6 +147,7 @@ func (b *Broker) startAMQP() {
 	}
 }
 
+// startSockJS starts a new HTTPS listener that implies the SockJS protocol.
 func (b *Broker) startSockJS() {
 	service := sockjs.NewService(
 		config.Current.Client.StaticFilesBaseUrl+"/js/sock.js",
@@ -198,6 +203,8 @@ func (b *Broker) startSockJS() {
 
 }
 
+// sendToClient sends the given payload back to the client. It attachs the
+// routintKey along with the payload. It closes the session if sending fails.
 func sendToClient(session *sockjs.Session, routingKey string, payload interface{}) {
 	var message struct {
 		RoutingKey string      `json:"routingKey"`
@@ -211,6 +218,7 @@ func sendToClient(session *sockjs.Session, routingKey string, payload interface{
 	}
 }
 
+// randomString() returns a new 16 char length random string
 func randomString() string {
 	r := make([]byte, 128/8)
 	rand.Read(r)
@@ -222,10 +230,6 @@ func randomString() string {
 // sessionGaugeStart and calls the returned function in a defer statement.
 func sessionGaugeStart(session *sockjs.Session) (sessionGaugeEnd func()) {
 	log.Debug("Client connected: %v", session.Tag)
-	changeClientsGauge := lifecycle.CreateClientsGauge()
-	changeNewClientsGauge := logger.CreateCounterGauge("newClients", logger.NoUnit, true)
-	changeWebsocketClientsGauge := logger.CreateCounterGauge("websocketClients", logger.NoUnit, false)
-
 	changeClientsGauge(1)
 	changeNewClientsGauge(1)
 	if session.IsWebsocket {
