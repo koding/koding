@@ -1065,7 +1065,7 @@ module.exports = class JGroup extends Module
   updateCounts:->
     # remove this guest shit if required
     if @getId().toString() is "51f41f195f07655e560001c1"
-      return callback null
+      return
 
     Relationship.count
       as         : 'member'
