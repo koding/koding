@@ -50,7 +50,48 @@ func buildPackages() error {
 		return err
 	}
 
+	if err := buildOsKite(); err != nil {
+		return err
+	}
+
 	return nil
+}
+
+func buildOsKite() error {
+	gopath := os.Getenv("GOPATH")
+	if gopath == "" {
+		return errors.New("GOPATH is not set")
+	}
+
+	oskitePath := "koding/kites/os"
+	temps := struct {
+		Profile string
+		Region  string
+	}{
+		Profile: *profile,
+		Region:  *region,
+	}
+
+	var files = make([]string, 0)
+	files = append(files, filepath.Join(gopath, "src", oskitePath, "files"))
+
+	// change our upstartscript because it's a template
+	oskiteUpstart := filepath.Join(gopath, "src", oskitePath, "files/oskite.conf")
+	configUpstart, err := prepareUpstart(oskiteUpstart, temps)
+	if err != nil {
+		return err
+	}
+	defer os.Remove(configUpstart)
+
+	oskite := pkg{
+		appName:       "oskite",
+		importPath:    oskitePath,
+		files:         files,
+		version:       "0.0.1",
+		upstartScript: configUpstart,
+	}
+
+	return oskite.build()
 }
 
 func buildKontrolProxy() error {
@@ -59,7 +100,7 @@ func buildKontrolProxy() error {
 		return errors.New("GOPATH is not set")
 	}
 
-	kdproxyPath := "koding/kontrol/kontrolproxy/"
+	kdproxyPath := "koding/kontrol/kontrolproxy"
 
 	// include certs
 	if *proxy == "" {
@@ -105,25 +146,6 @@ func buildKontrolProxy() error {
 	}
 
 	return kontrolproxy.build()
-}
-
-func prepareUpstart(path string, v interface{}) (string, error) {
-	file, err := ioutil.TempFile(".", "gopackage_")
-	if err != nil {
-		return "", err
-	}
-	defer file.Close()
-
-	t, err := template.ParseFiles(path)
-	if err != nil {
-		return "", err
-	}
-
-	if err := t.Execute(file, v); err != nil {
-		return "", err
-	}
-
-	return file.Name(), nil
 }
 
 func (p *pkg) build() error {
@@ -204,4 +226,23 @@ func (p *pkg) build() error {
 	fmt.Printf("  install to machine : dpkg -i %s\n\n", newname)
 
 	return nil
+}
+
+func prepareUpstart(path string, v interface{}) (string, error) {
+	file, err := ioutil.TempFile(".", "gopackage_")
+	if err != nil {
+		return "", err
+	}
+	defer file.Close()
+
+	t, err := template.ParseFiles(path)
+	if err != nil {
+		return "", err
+	}
+
+	if err := t.Execute(file, v); err != nil {
+		return "", err
+	}
+
+	return file.Name(), nil
 }

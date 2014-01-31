@@ -9,7 +9,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"koding/tools/config"
 	"koding/tools/dnode"
 	"koding/tools/kite"
 	"koding/virt"
@@ -277,7 +276,7 @@ func registerAppMethods(k *kite.Kite) {
 		if err := moveToBackup(params.AppPath, vos); err != nil {
 			return nil, err
 		}
-		if err := recursiveCopy(config.Current.ProjectRoot+"/go/templates/app/"+params.Type, vos, params.AppPath); err != nil {
+		if err := recursiveCopy(templateDir+"/app/"+params.Type, vos, params.AppPath); err != nil {
 			return nil, err
 		}
 
