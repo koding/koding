@@ -107,8 +107,6 @@ module.exports = class JGroup extends Module
           (signature String, Function)
           (signature String, Number, Function)
         ]
-        createGroupBotAndPostMessage:
-          (signature Object, Function)
       instance      :
         join: [
           (signature Function)
@@ -407,7 +405,7 @@ module.exports = class JGroup extends Module
           console.log "#{label} is saved"
           queue.next()
 
-    create = (groupData, owner, callback) ->
+    create = (client, groupData, owner, callback) ->
       JPermissionSet        = require './permissionset'
       JMembershipPolicy     = require './membershippolicy'
       JName                 = require '../name'
@@ -464,6 +462,12 @@ module.exports = class JGroup extends Module
             else
               console.log 'roles are added'
               queue.next()
+        -> 
+          # CtF hacked because we need client to create a post
+          group.createGroupBotAndPostMessage client, (err) ->
+            return callback err if err
+            console.log 'bot is added and posted its first message'
+            queue.next()
       ]
 
       if 'private' is group.privacy
@@ -498,7 +502,7 @@ module.exports = class JGroup extends Module
           subscription.checkUsage pack, (err, nonce) =>
             return callback err  if err
 
-            @create formData, delegate, (err, group) =>
+            @create client, formData, delegate, (err, group) =>
               return callback err  if err
 
               debitOptions = {
@@ -1472,22 +1476,24 @@ module.exports = class JGroup extends Module
       JPaymentSubscription.one _id: id, (err, subscription) =>
         @addSubscription subscription, callback
 
-  @createGroupBotAndPostMessage: permit 'create bot',
-    success: (client, options, callback)->
-      # get groupbot account
-      JAccount = require '../account'
-      JAccount.one "profile.nickname" : options.botname, (err, account) ->
+  createGroupBotAndPostMessage: (client, callback) ->
+    # get groupbot account
+    JAccount = require '../account'
+    JAccount.one "profile.nickname" : "bot", (err, account) =>
+      return callback err if err
+      return callback new KodingError "Can't find bot account" if not account
+        
+      @addMember account, "member", (err, member)=>
         return callback err if err
-        return callback new KodingError "Can't find bot account" if not account
-        {group} = client.context
-        JGroup.one slug : group, (err, group)->
-          group.addMember account, "member", (err, member)->
-            return callback err if err
-            JNewStatusUpdate = require '../messages/newstatusupdate'
-            # set client's delegate to bot account
-            client.connection.delegate = account
-            data          =
-              title       : options.title
-              body        : options.body
-              group       : group
-            JNewStatusUpdate.create client, data, callback
+        JNewStatusUpdate = require '../messages/newstatusupdate'
+        # set client's delegate to bot account
+        # CtF this really is a hack
+        client.context.group = @slug
+        client.context.user = "bot"
+        client.connection.delegate = account
+        client.groupName = @slug
+
+        data = 
+          body  : "Welcome to your group"
+          group : @slug 
+        JNewStatusUpdate.create client, data, callback
