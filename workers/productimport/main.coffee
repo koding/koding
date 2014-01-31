@@ -111,9 +111,10 @@ createBot = (callback) ->
   {JUser} = worker.models
 
   userInfo = 
-    username  : "bot"
+    username  : "Bot"
     email     : "bot@koding.com"
-    firstName : "bot"
+    firstName : "Bot"
+    lastName  : " "
 
   JUser.createUser userInfo, (err) ->
     return console.log err if err
