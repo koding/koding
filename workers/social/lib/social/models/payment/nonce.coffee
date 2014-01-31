@@ -18,3 +18,7 @@ module.exports = class JPaymentFulfillmentNonce extends Module
                      'debit'
                      'credit'
                    ]]
+    relationships  :
+      owner        :
+        targetType : "JAccount"
+        as         : "owner"
