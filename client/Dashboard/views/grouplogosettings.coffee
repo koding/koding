@@ -1,34 +1,58 @@
 class GroupLogoSettings extends KDView
-  constructor:(options = {}, data)->
+
+  constructor: (options = {}, data) ->
+
+    options.cssClass   = "group-logo"
+
     super options, data
 
     {groupsController} = KD.singletons
-    groupsController.ready =>
-      group = groupsController.getCurrentGroup()
+    @group = groupsController.getCurrentGroup()
 
-      groupLogoView = new KDCustomHTMLView
-        tagName     : 'figure'
-        size        :
-            width   : 55
-            height  : 55
-        attributes  :
-          style     : "background-image: url(#{group.customize?.logo});"
-        click       : (event) ->
-          new UploadImageModalView
-            title      : "Change Group Logo"
-            image      :
-              type     : "logo"
-              size     :
-                width  : 55
-                height : 55
-            preview    :
-              size     :
-                width  : 220
-                height : 220
+    attributes    = {}
+    if @group.customize?.logo
+      attributes  =
+        style     : "background-image: url(#{@group.customize.logo});"
+    else
+      @setClass "default"
 
-      @addSubView groupLogoView
+    @groupLogoView = new KDCustomHTMLView
+      tagName      : 'figure'
+      size         :
+        width      : 55
+        height     : 55
+      attributes   : attributes
 
-      group.on "update", ->
-        groupLogoView.setCss 'background-image', "url(#{group.customize?.logo})"
+    @uploadButton  =  new KDButtonView
+      cssClass     : "upload-button solid green"
+      title        : "Change"
+      callback     : @bound "showUploadView"
 
-  viewAppended:JView::viewAppended
+    @addSubView @groupLogoView
+    @addSubView @uploadButton
+
+    @group.on "update", =>
+      @groupLogoView.setCss 'background-image', "url(#{@group.customize?.logo})"
+
+  showUploadView: ->
+    @groupLogoView.hide()
+    @uploadButton.hide()
+
+    @addSubView @uploader = new GroupsUploadView
+      uploaderOptions :
+        cssClass      : "group-logo-uploader"
+        title         : "Drop your new logo here!"
+        size          :
+          width       : 120
+          height      : 80
+
+    @uploader.on "UploadCancelled", @bound "revealViews"
+    @uploader.on "FileUploadDone",  @bound "handleFileUploadDone"
+
+  revealViews: ->
+    @groupLogoView.show()
+    @uploadButton.show()
+
+  handleFileUploadDone: (url) ->
+    @revealViews()
+    @group.modify "customize.logo" : "#{url}?#{Date.now()}"

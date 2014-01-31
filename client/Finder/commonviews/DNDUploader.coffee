@@ -2,7 +2,7 @@ class DNDUploader extends KDView
 
   constructor: (options={}, data)->
 
-    options.cssClass      = "file-droparea"
+    options.cssClass      = KD.utils.curry "file-droparea", options.cssClass
     options.bind          = "dragenter dragover dragleave dragend drop"
     options.hoverDetect  ?= yes
     options.uploadToVM   ?= yes
