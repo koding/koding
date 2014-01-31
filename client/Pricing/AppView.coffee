@@ -8,7 +8,7 @@ class PricingAppView extends KDView
   hideWorkflow: ->
     @workflow.hide()
 
-  workflowFinished: (@formData, @subscription) ->
+  workflowFinished: (@formData, @subscription, @nonce) ->
     @hideWorkflow()
 
     {productData: {plan: {tags}}} = @formData
@@ -139,6 +139,7 @@ class PricingAppView extends KDView
       body       : groupName
       slug       : slug
       visibility : visibility
+      nonce      : @nonce
 
     {JGroup} = KD.remote.api
     JGroup.create options, (err, group, subscription) =>
