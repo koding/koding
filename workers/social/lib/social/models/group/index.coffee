@@ -11,6 +11,10 @@ module.exports = class JGroup extends Module
 
   JPermissionSet = require './permissionset'
   {permit}       = JPermissionSet
+
+  JAccount = require '../account'
+  JPaymentFulfillmentNonce = require '../payment/nonce'
+
   KodingError    = require '../../error'
   Validators     = require './validators'
   {throttle}     = require 'underscore'
@@ -476,14 +480,30 @@ module.exports = class JGroup extends Module
       daisy queue
 
   @create$ = secure (client, formData, callback)->
-    JAccount = require '../account'
     {delegate} = client.connection
+
+    {nonce} = formData
+
+    if nonce
+      JPaymentFulfillmentNonce.one {nonce}, (err, nonce) =>
+        return callback err  if err
+        return callback "Payment fulfillment nonce is invalid"  unless nonce.action is "debit"
+        nonce.fetchOwner (err, owner) =>
+          return callback err  if err
+          subOptions = targetOptions: selector: tags: 'custom-plan'
+          owner.fetchSubscription {}, subOptions, (err, subscription) =>
+            return callback err  if err
+            @create formData, owner, (err, group) ->
+              nonce.update $set: action: "used", (err) ->
+                return callback err  if err
+                callback null, group, subscription
+      return
 
     @one slug: 'koding', (err, koding) =>
       return callback err  if err
 
       packOptions = targetOptions: selector: tags: 'group'
-      
+
       koding.fetchPack {}, packOptions, (err, pack) =>
         return callback err  if err
         return callback message: "Pack not found!"  unless pack?
