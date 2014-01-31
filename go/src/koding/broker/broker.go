@@ -221,6 +221,7 @@ func randomString() string {
 // function which ends the gauge for the given session. Usually one invokes
 // sessionGaugeStart and calls the returned function in a defer statement.
 func sessionGaugeStart(session *sockjs.Session) (sessionGaugeEnd func()) {
+	log.Debug("Client connected: %v", session.Tag)
 	changeClientsGauge := lifecycle.CreateClientsGauge()
 	changeNewClientsGauge := logger.CreateCounterGauge("newClients", logger.NoUnit, true)
 	changeWebsocketClientsGauge := logger.CreateCounterGauge("websocketClients", logger.NoUnit, false)
@@ -243,12 +244,11 @@ func sessionGaugeStart(session *sockjs.Session) (sessionGaugeEnd func()) {
 func (b *Broker) sockjsSession(session *sockjs.Session) {
 	defer log.RecoverAndLog()
 
-	sessionGaugeEnd := sessionGaugeStart(session)
-	defer sessionGaugeEnd()
-
 	socketId := randomString()
 	session.Tag = socketId
-	log.Debug("Client connected: %v", socketId)
+
+	sessionGaugeEnd := sessionGaugeStart(session)
+	defer sessionGaugeEnd()
 
 	var controlChannel *amqp.Channel
 	var lastPayload string
