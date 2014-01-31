@@ -495,15 +495,15 @@ module.exports = class JGroup extends Module
           unless subscription?
             return callback message: "Subscription required!"
 
-          subscription.checkUsage pack, (err, nonce) =>
+          subscription.checkUsage pack, (err) =>
             return callback err  if err
 
-            @create formData, delegate, (err, group) =>
+            @create formData, delegate, (err, group) ->
               return callback err  if err
 
               debitOptions = {
                 pack
-                # avoid creating a nonce, we'll debit the subscription and 
+                # avoid creating a nonce, we'll debit the subscription and
                 # create the group all at once.
                 shouldCreateNonce: no
               }
