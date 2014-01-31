@@ -137,12 +137,6 @@ class ActivityTickerCommentItem extends ActivityTickerBaseItem
     activity = "commented on"
     #another copy/paste. this must be changed
     # i did something
-    if  source.getId() is KD.whoami().getId()
-      # if user commented his/her post
-      if source.getId() is target.getId() then \
-        return "{{> @avatar}} <div class='text-overflow'>You #{activity} your {{> @subj}}</div>"
-      else
-        return "{{> @avatar}} <div class='text-overflow'>You #{activity} {{> @subj}}</div>"
 
     # someone did something to you
     if target.getId() is KD.whoami().getId() then \
