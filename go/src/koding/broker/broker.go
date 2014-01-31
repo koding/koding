@@ -154,6 +154,7 @@ func (b *Broker) startSockJS() {
 	service.MaxReceivedPerSecond = 50
 	service.ErrorHandler = log.LogError
 
+	// TODO use http.Mux instead of sockjs.Mux.
 	server := &http.Server{
 		Handler: &sockjs.Mux{
 			Handlers: map[string]http.Handler{
@@ -210,31 +211,44 @@ func sendToClient(session *sockjs.Session, routingKey string, payload interface{
 	}
 }
 
-func (b *Broker) sockjsSession(session *sockjs.Session) {
+func randomString() string {
+	r := make([]byte, 128/8)
+	rand.Read(r)
+	return base64.StdEncoding.EncodeToString(r)
+}
+
+// sessionGaugeStart starts the gauge for a given session. It returns a new
+// function which ends the gauge for the given session. Usually one invokes
+// sessionGaugeStart and calls the returned function in a defer statement.
+func sessionGaugeStart(session *sockjs.Session) (sessionGaugeEnd func()) {
 	changeClientsGauge := lifecycle.CreateClientsGauge()
 	changeNewClientsGauge := logger.CreateCounterGauge("newClients", logger.NoUnit, true)
 	changeWebsocketClientsGauge := logger.CreateCounterGauge("websocketClients", logger.NoUnit, false)
 
-	defer log.RecoverAndLog()
-
-	r := make([]byte, 128/8)
-	rand.Read(r)
-	socketId := base64.StdEncoding.EncodeToString(r)
-	session.Tag = socketId
-
-	log.Debug("Client connected: %v", socketId)
 	changeClientsGauge(1)
 	changeNewClientsGauge(1)
 	if session.IsWebsocket {
 		changeWebsocketClientsGauge(1)
 	}
-	defer func() {
-		log.Debug("Client disconnected: %v", socketId)
+
+	return func() {
+		log.Debug("Client disconnected: %v", session.Tag)
 		changeClientsGauge(-1)
 		if session.IsWebsocket {
 			changeWebsocketClientsGauge(-1)
 		}
-	}()
+	}
+}
+
+func (b *Broker) sockjsSession(session *sockjs.Session) {
+	defer log.RecoverAndLog()
+
+	sessionGaugeEnd := sessionGaugeStart(session)
+	defer sessionGaugeEnd()
+
+	socketId := randomString()
+	session.Tag = socketId
+	log.Debug("Client connected: %v", socketId)
 
 	var controlChannel *amqp.Channel
 	var lastPayload string
