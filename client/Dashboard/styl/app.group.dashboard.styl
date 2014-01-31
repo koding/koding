@@ -169,6 +169,43 @@ Dashboard Settings Styles
             font-size         12px
             line-height       33px
 
+  .group-logo
+    figure
+      size                    55px, 55px
+      rounded                 6px 6px 0 0
+      bg                      position, center center
+    &.default
+      figure
+        sprite                "dashboard", "group-default-logo-bg"
+        bg                    color, #CACACA
+        bg                    position, center center
+  .upload-button
+    size                      55px, 25px
+    rounded                   0
+    padding                   0
+    span
+      font-size               10px !important
+      line-height             25px !important
+      text-align              center
+      text-transform          uppercase
+      width                   55px
+      display                 block
+    &.save, &.cancel
+      margin-top              3px
+      rounded                 36px
+      margin-right            10px
+
+  .group-image-preview
+    vendor                    transform, translate(-50%, -50%)
+    abs()
+    left                      50%
+    top                       50%
+    max-width                 120px
+
+  .group-logo-uploader
+    .file-drop
+      font-size               14px
+      margin-top              -14px
 
 @css {
 /*
