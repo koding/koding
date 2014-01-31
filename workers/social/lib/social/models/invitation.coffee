@@ -136,13 +136,13 @@ module.exports = class JInvitation extends jraphical.Module
     operation.$set = status: 'redeemed'  if isRedeemed
 
     JGroup.one slug: @group, (err, group) =>
-      callback err  if err
+      return callback err  if err
       group.fetchSubscription (err, subscription) =>
-        callback err  if err
+        return callback err  if err
         JPaymentPack.one tags: "user", (err, pack) =>
-          callback err  if err
-          subscription.debit pack, (err) =>
-            callback err  if err
+          return callback err  if err
+          subscription.debit {pack}, (err) =>
+            return callback err  if err
             @update operation, (err) =>
               return callback err  if err
               @addRedeemer delegate, callback
