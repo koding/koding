@@ -91,6 +91,9 @@ Dashboard main styles
 Dashboard Readme Styles
 */
 }
+body.group.dashboard
+  vendor                      transform, translateX(0)
+
 .dashboard-tabs
   .kdtabpaneview.readme
     borderBox()
@@ -985,9 +988,19 @@ Dashboard Invitations Modal Styles
     .permissions-form
       overflow              visible
 
+      .permission-switch
+        fl()
+        margin              0 61px
+        size                38px, 18px
+        a
+          size              14px, 14px
+        &.on
+          a
+            vendor          transform, translateX(19px)
+
       .formline
         borderBox()
-        padding             7px 0
+        padding             10px 0
         border              none
 
         &:nth-child(2n+1):not(.permissions-module):not(.permissions-header)
@@ -997,7 +1010,7 @@ Dashboard Invitations Modal Styles
           border-left       none
           > .kdview
             borderBox()
-            line-height     15px
+            line-height     18px
             display         inline-block
             width           160px
             text-align      left
@@ -1005,6 +1018,7 @@ Dashboard Invitations Modal Styles
             overflow        hidden
             text-overflow   ellipsis
             white-space     nowrap
+            fl()
 
 
 
