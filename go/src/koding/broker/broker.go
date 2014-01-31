@@ -221,7 +221,6 @@ func (b *Broker) sockjsSession(session *sockjs.Session) {
 	rand.Read(r)
 	socketId := base64.StdEncoding.EncodeToString(r)
 	session.Tag = socketId
-	clientVersion := 0
 
 	log.Debug("Client connected: %v", socketId)
 	changeClientsGauge(1)
@@ -337,71 +336,67 @@ func (b *Broker) sockjsSession(session *sockjs.Session) {
 		if data == nil || session.Closed {
 			break
 		}
-		func() {
-			defer log.RecoverAndLog()
 
-			message := data.(map[string]interface{})
-			log.Debug("Received message: %v", message)
+		defer log.RecoverAndLog()
 
-			action := message["action"]
-			switch action {
-			case "clientInfo":
-				clientVersion = message["version"].(int)
+		message := data.(map[string]interface{})
+		log.Debug("Received message: %v", message)
 
-			case "subscribe":
-				globalMapMutex.Lock()
-				defer globalMapMutex.Unlock()
-				for _, routingKeyPrefix := range strings.Split(message["routingKeyPrefix"].(string), " ") {
+		action := message["action"]
+		switch action {
+		case "subscribe":
+			globalMapMutex.Lock()
+			defer globalMapMutex.Unlock()
+			for _, routingKeyPrefix := range strings.Split(message["routingKeyPrefix"].(string), " ") {
+				subscribe(routingKeyPrefix)
+			}
+			sendToClient(session, "broker.subscribed", message["routingKeyPrefix"])
+
+		case "resubscribe":
+			globalMapMutex.Lock()
+			defer globalMapMutex.Unlock()
+			oldSubscriptions, found := socketSubscriptionsMap[message["socketId"].(string)]
+			if found {
+				for routingKeyPrefix := range *oldSubscriptions {
 					subscribe(routingKeyPrefix)
 				}
-				sendToClient(session, "broker.subscribed", message["routingKeyPrefix"])
-
-			case "resubscribe":
-				globalMapMutex.Lock()
-				defer globalMapMutex.Unlock()
-				oldSubscriptions, found := socketSubscriptionsMap[message["socketId"].(string)]
-				if found {
-					for routingKeyPrefix := range *oldSubscriptions {
-						subscribe(routingKeyPrefix)
-					}
-				}
-				sendToClient(session, "broker.resubscribed", found)
-
-			case "unsubscribe":
-				globalMapMutex.Lock()
-				defer globalMapMutex.Unlock()
-				for _, routingKeyPrefix := range strings.Split(message["routingKeyPrefix"].(string), " ") {
-					unsubscribe(routingKeyPrefix)
-				}
-
-			case "publish":
-				exchange := message["exchange"].(string)
-				routingKey := message["routingKey"].(string)
-				if !strings.HasPrefix(routingKey, "client.") {
-					log.Warning("Invalid routing key: message: %v socketId: %v", message, socketId)
-					return
-				}
-				for {
-					lastPayload = ""
-					err := controlChannel.Publish(exchange, routingKey, false, false, amqp.Publishing{CorrelationId: socketId, Body: []byte(message["payload"].(string))})
-					if err == nil {
-						lastPayload = message["payload"].(string)
-						break
-					}
-					if amqpError, isAmqpError := err.(*amqp.Error); !isAmqpError || amqpError.Code != 504 {
-						log.Warning("payload: %v routing key: %v exchange: %v err: %v", message["payload"], message["routingKey"], message["exchange"], err)
-					}
-					time.Sleep(time.Second / 4) // penalty for crashing the AMQP channel
-					resetControlChannel()
-				}
-
-			case "ping":
-				sendToClient(session, "broker.pong", nil)
-
-			default:
-				log.Warning("Invalid action. message: %v socketId: %v", message, socketId)
-
 			}
-		}()
+			sendToClient(session, "broker.resubscribed", found)
+
+		case "unsubscribe":
+			globalMapMutex.Lock()
+			defer globalMapMutex.Unlock()
+			for _, routingKeyPrefix := range strings.Split(message["routingKeyPrefix"].(string), " ") {
+				unsubscribe(routingKeyPrefix)
+			}
+
+		case "publish":
+			exchange := message["exchange"].(string)
+			routingKey := message["routingKey"].(string)
+			if !strings.HasPrefix(routingKey, "client.") {
+				log.Warning("Invalid routing key: message: %v socketId: %v", message, socketId)
+				return
+			}
+			for {
+				lastPayload = ""
+				err := controlChannel.Publish(exchange, routingKey, false, false, amqp.Publishing{CorrelationId: socketId, Body: []byte(message["payload"].(string))})
+				if err == nil {
+					lastPayload = message["payload"].(string)
+					break
+				}
+				if amqpError, isAmqpError := err.(*amqp.Error); !isAmqpError || amqpError.Code != 504 {
+					log.Warning("payload: %v routing key: %v exchange: %v err: %v", message["payload"], message["routingKey"], message["exchange"], err)
+				}
+				time.Sleep(time.Second / 4) // penalty for crashing the AMQP channel
+				resetControlChannel()
+			}
+
+		case "ping":
+			sendToClient(session, "broker.pong", nil)
+
+		default:
+			log.Warning("Invalid action. message: %v socketId: %v", message, socketId)
+
+		}
 	}
 }
