@@ -36,6 +36,7 @@ class TBCampaignController extends KDController
       if hasUnder4GB
         KD.getSingleton("vmController").resizeDisk targetVMName, (err, res) =>
           return warn err  if err
+          KD.getSingleton("vmController").emit "ReferralCountUpdated"
           @showModal { userType: "under4GB" }
       else
         @showModal { userType: "above4GB" }
