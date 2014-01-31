@@ -347,13 +347,20 @@ class VirtualizationController extends KDController
 
     payment = KD.getSingleton 'paymentController'
 
-    payment.fetchSubscriptionsWithPlans tags: ['vm'], (err, subscriptions) ->
-      productForm.setCurrentSubscriptions subscriptions
+    group = KD.singleton("groupsController").getCurrentGroup()
+    if group.slug is "koding"
+      payment.fetchSubscriptionsWithPlans tags: ['vm'], (err, subscriptions) ->
+        return KD.showError err  if err
+        productForm.setCurrentSubscriptions subscriptions
+    else
+      group.fetchSubscription (err, subscription) ->
+        return KD.showError err  if err
+        productForm.setCurrentSubscriptions [subscription]
 
     productForm.on 'PackOfferingRequested', (subscription) ->
-      KD.getGroup().fetchProducts 'pack', tags: 'vm', (err, packs) ->
-        return  if KD.showError err
-        productForm.setContents 'packs', packs
+      KD.remote.api.JPaymentPack.one tags: 'vm', (err, pack) ->
+        return KD.showError err  if err
+        productForm.setContents 'packs', [pack]
 
     workflow = new PaymentWorkflow
       productForm: productForm

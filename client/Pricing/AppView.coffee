@@ -11,33 +11,48 @@ class PricingAppView extends KDView
   showThankYou: (@workflowData, @subscription) ->
     @hideWorkflow()
 
+    @goToVmButton = new KDButtonView
+      style       : "solid green"
+      title       : "GO TO MY VM"
+      callback    : ->
+        KD.singleton("router").handleRoute "/Environments"
+
     @thankYou = new KDCustomHTMLView
+      cssClass: "pricing-thank-you"
       partial:
         """
-        <h1>Thank you!</h1>
-        <p>
-          Your order has been processed.
-        </p>
+        <i class="check-icon"></i>
+        <h3 class="pricing-title">So much wow, so much horse-power!</h3>
+        <h6 class="pricing-subtitle">Now it’s time, time to start Koding!</h6>
+
         #{
           if @subscription.createAccount
-          then "<p>Please check your email for your registration link.</p>"
-          else "<p>We hope you enjoy your new subscription</p>"
+          then '<p>Please check your email for your registration link.</p>'
+          else ''
         }
         """
+
+    @thankYou.addSubView @goToVmButton
 
     if "custom-plan" in @workflowData.productData.plan.tags
       @thankYou.addSubView @createGroupNameForm()
 
     @addSubView @thankYou
 
+  showGroupCreateForm: ->
+    unless @groupForm?
+      @addSubView @groupForm = @createGroupNameForm()
+
   createGroupNameForm: ->
     @groupForm              = new KDFormViewWithFields
       title                 : "Enter new group name"
+      cssClass              : "pricing-create-group"
       callback              : @bound "createGroup"
       buttons               :
         Create              :
           title             : "Create"
           type              : "submit"
+          style             : "solid green"
       fields                :
         GroupName           :
           label             : "Group Name"
@@ -76,9 +91,6 @@ class PricingAppView extends KDView
           ]
 
   createGroup: ->
-    unless @subscription
-      return KD.showError "Subscription failed"
-
     groupName  = @groupForm.inputs.GroupName.getValue()
     visibility = @groupForm.inputs.Visibility.getValue()
     slug       = @groupForm.inputs.GroupUrl.getValue()
@@ -89,33 +101,44 @@ class PricingAppView extends KDView
       slug       : slug
       visibility : visibility
 
-    KD.remote.api.JGroup.create options, (err, group) =>
+    {JGroup} = KD.remote.api
+    JGroup.create options, (err, group, subscription) =>
       return KD.showError err  if err
-      group.addSubscription @subscription.getId(), (err) =>
-        return KD.showError err  if err
-        @showSummaryModal group
 
-  showSummaryModal: (group)->
-    {planOptions: {userQuantity, resourceQuantity}} = @workflowData.productData
+      @showSummaryModal group, subscription
 
-    modal              = new KDModalView
-      title            : "Group successfully created"
-      width            : 600
-      overlay          : yes
-      buttons          :
-        "Go to Group"  :
-          style        : "modal-clean-red"
-          callback     : ->
-            window.open "#{window.location.origin}/#{group.slug}", "_blank"
-        Close          :
-          style        : "modal-cancel"
-          callback     : -> modal.destroy()
-      content          :
-        """
-          <div>https://koding.com/#{group.slug}</div>
-          <div>Users: #{userQuantity}</div>
-          <div>Resource packs: #{resourceQuantity}</div>
-        """
+      # enter first post of group.
+      JGroup.createGroupBotAndPostMessage
+        title   : "Welcome"
+        body    : "Welcome to your group."
+        botname : "groupbot"
+      , (err, update)->
+        return KD.showError err if err
+
+  showSummaryModal: (group, subscription) ->
+    { JPaymentProduct } = KD.remote.api
+
+    planCodes = Object.keys subscription.quantities
+
+    JPaymentProduct.some { planCode: $in: planCodes }, { limit: 30 },
+      (err, products) ->
+        return  if KD.showError err
+
+        modal              = new KDModalView
+          title            : "Group successfully created"
+          width            : 600
+          overlay          : yes
+          buttons          :
+            "Go to Group"  :
+              style        : "modal-clean-red"
+              callback     : ->
+                window.open "#{window.location.origin}/#{group.slug}", "_blank"
+            Close          :
+              style        : "modal-cancel"
+              callback     : -> modal.destroy()
+          content          : products.map (product) ->
+            "<div>#{ subscription.quantities[product.planCode] }x #{ product.title }</div>" 
+
 
   checkSlug: ->
     slug      = @groupForm.inputs.GroupUrl

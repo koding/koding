@@ -47,10 +47,6 @@ class GroupGeneralSettingsView extends JView
         #           location.replace('/')
         #     , data
       fields:
-        Logo                :
-          label             : "Logo"
-          itemClass         : GroupLogoSettings
-
         Title               :
           label             : "Group Name"
           name              : "title"
@@ -73,6 +69,11 @@ class GroupGeneralSettingsView extends JView
             { title : "Visible",    value : "visible" }
             { title : "Hidden",     value : "hidden" }
           ]
+
+    if group.slug isnt "koding"
+      formOptions.fields["Logo"] =
+        label       : "Logo"
+        itemClass   : GroupLogoSettings
 
     @settingsForm = new KDFormViewWithFields formOptions, group
 

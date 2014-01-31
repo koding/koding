@@ -369,9 +369,9 @@ module.exports = class JVM extends Module
         group.fetchSubscription (err, subscription) =>
           return callback err  if err or not subscription
 
-          JPaymentPack.one tags: $in: ["sharedvm"], (err, pack) =>
+          JPaymentPack.one tags: "vm", (err, pack) =>
             return callback err  if err or not pack
-            subscription.debit pack, 1, (err) =>
+            subscription.debit {pack}, (err) =>
               return callback err  if err
               @createVm {
                 type      : "group"
@@ -497,6 +497,7 @@ module.exports = class JVM extends Module
           hostnameAlias    : vm.hostnameAlias
           underMaintenance : vm.hostKite is "(maintenance)"
           region           : vm.region or 'sj'
+          diskSizeInMB     : vm.diskSizeInMB
 
   @fetchVmRegion = secure (client, hostnameAlias, callback)->
     {delegate} = client.connection

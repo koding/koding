@@ -73,11 +73,11 @@ class GroupProductEditForm extends KDFormViewWithFields
     if options.canApplyCoupon
       options.fields.discountCode ?=
         label         : "Discount code"
-        defaultValue  : data.discountCode
+        defaultValue  : data.couponCodes?.discount
 
       options.fields.vmCode ?=
         label         : "VM code"
-        defaultValue  : data.vmCode
+        defaultValue  : data.couponCodes?.vm
 
     options.fields.tags ?=
       label         : "Tags"
@@ -106,9 +106,10 @@ class GroupProductEditForm extends KDFormViewWithFields
       overageEnabled  = i.overageEnabled?.getValue()
       soldAlone       = i.soldAlone?.getValue()
       priceIsVolatile = i.priceIsVolatile?.getValue()
-      discountCode    = i.discountCode?.getValue()
-      vmCode          = i.vmCode?.getValue()
       tags            = i.tags.getValue()
+      couponCodes     =
+        discount      : i.discountCode?.getValue()
+        vm            : i.vmCode?.getValue()
       feeAmount       =
         unless priceIsVolatile
         then i.feeAmount.getValue() * 100
@@ -125,8 +126,7 @@ class GroupProductEditForm extends KDFormViewWithFields
         overageEnabled
         soldAlone
         priceIsVolatile
-        discountCode
-        vmCode
+        couponCodes
         tags
       }
 

@@ -86,7 +86,7 @@ class PaymentController extends KDController
 
     form = new PlanUpgradeForm { tag }
 
-    KD.getGroup().fetchProducts 'plan', tags: tag, (err, plans) =>
+    KD.getGroup().fetchProducts 'plan', tags: $in: [tag], (err, plans) =>
       return  if KD.showError err
 
       queue = plans.map (plan) -> ->
@@ -98,7 +98,7 @@ class PaymentController extends KDController
 
       subscription = null
       queue.push =>
-        @fetchSubscriptionsWithPlans tags: tag, (err, [subscription_]) ->
+        @fetchSubscriptionsWithPlans tags: [tag], (err, [subscription_]) ->
           subscription = subscription_
           queue.fin()
 
@@ -160,15 +160,15 @@ class PaymentController extends KDController
           callback null, subscription
 
   createSubscription: (options, callback) ->
-    { plan, planOptions, couponCode, email, paymentMethod, createAccount } = options
+    { plan, planOptions, promotionType, email, paymentMethod, createAccount } = options
     { paymentMethodId, billing } = paymentMethod
     { planApi } = planOptions
-    
+
     throw new Error "Must provide a plan API!"  unless planApi?
-    
+
     options = {
       planOptions
-      couponCode
+      promotionType
       paymentMethodId
       planCode: plan.planCode
     }
@@ -195,14 +195,12 @@ class PaymentController extends KDController
           return callback err  if err
 
           JUser.logout (err) ->
-            return callback err  if err
-
-            callback null
+            callback err, subscription
       else
         callback err, subscription
 
   transitionSubscription: (formData, callback) ->
-    { productData, oldSubscription, couponCode, paymentMethod, createAccount, email } = formData
+    { productData, oldSubscription, promotionType, paymentMethod, createAccount, email } = formData
     { plan, planOptions } = productData
     { planCode } = plan
     { paymentMethodId } = paymentMethod
@@ -212,14 +210,14 @@ class PaymentController extends KDController
       @createSubscription {
         plan
         planOptions
-        couponCode
+        promotionType
         email
         paymentMethod
         createAccount
       }, callback
 
   debitSubscription: (subscription, pack, callback) ->
-    subscription.debit pack, (err, nonce) =>
+    subscription.debit { pack }, (err, nonce) =>
       return  if KD.showError err
 
       @emit 'SubscriptionDebited', subscription

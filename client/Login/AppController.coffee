@@ -89,7 +89,8 @@ class LoginAppsController extends AppController
           #handler (app)-> app.getView().animateToForm 'login'
       '/:name?/Login/:token?'    : handler (app)-> app.getView().animateToForm 'login'
       '/:name?/Redeem'           : handler (app)-> app.getView().animateToForm 'redeem'
-      '/:name?/Register/:token?' : handler (app)-> app.getView().animateToForm 'register'
+      '/:name?/Register'         : handler (app)-> app.getView().animateToForm 'register'
+      '/:name?/Register/:token?' : handleFinishRegistration
       '/:name?/Recover'          : handleRecovery
       '/:name?/Reset'            : handler (app)-> app.getView().animateToForm 'reset'
       '/:name?/Reset/:token'     : handleResetRoute

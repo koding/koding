@@ -46,8 +46,8 @@ class HomePage extends JView
 
     @markers = new MarkerController
 
-    @resourcePackPlan  = new ResourcePackPlan
-    @customPlan        = new CustomPlan
+    @resourcePackPlan  = new IntroResourcePackPlan
+    @customPlan        = new IntroCustomPlan
     @campaignContainer = new KDCustomHTMLView
 
     if KD.campaign?.status
@@ -145,8 +145,15 @@ class HomePage extends JView
       <main>
         <div class="clearfix">
           <div class="headings-container">
-            <h1 class='big-header'>Coding environment<br/>from the future</h1>
-            <h2>Social development in your browser, sign up to join a great community and code on powerful VMs.</h2>
+            <h1 class='big-header'>Develop, Together!</h1>
+
+            <h2>Learn programming or make apps.
+              <br/>Hack Ruby, Go, Java, NodeJS, PHP, C, and Python.
+              <br/>Install Wordpress, Laravel, Django, and Bootstrap.
+              <br/>Play with MySQL, Mongo, and enjoy root access.
+              <br/>Sign up now and join the fun!
+            </h2>
+
           </div>
           <div class="register-container">
             {{> @registerForm}}
@@ -195,14 +202,14 @@ class HomePage extends JView
             <span class='icon'></span>
             <article>
               <h4>USE IT IN YOUR SCHOOL</h4>
-              Koding in the classroom, prepare your files online, share them with the whole class instantly. Collaborate live or just make your students watch what you're doing.
+              Prepare your files online and share them with the whole class instantly. Collaborate live with your students or let them follow along what you're doing.
             </article>
           </div>
           <div class='project clearfix'>
             <span class='icon'></span>
             <article>
               <h4>CREATE PROJECT GROUPS</h4>
-              Want to work on a project with your buddies and use the same resources and running instances, share a VM between your fellow developers.
+              Want to work on a project with your buddies and use the same workspace? Share your VM with your fellow developers.
             </article>
           </div>
         </div>

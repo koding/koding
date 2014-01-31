@@ -1,7 +1,10 @@
 class AccountReferralSystemListController extends AccountListViewController
 
   constructor: (options, data)->
-    options.noItemFoundText = "You dont have any referal."
+    options.noItemFoundText = """You haven't got any referral points to claim,
+      click <a href="/Account/Referrer">here</a> to share Koding and get some!
+    """
+
     super options, data
 
   loadItems: ->
@@ -32,13 +35,12 @@ class AccountReferralSystemListController extends AccountListViewController
     @getView().addSubView wrapper, '', yes
 
     wrapper.addSubView getYourReferrerCode = new CustomLinkView
-      title       : "Get Your Referrer Code"
+      title       : "Get Your Referral Code"
       tooltip     :
         title     :
           """
-          If anyone registers with your referrer code,
-          you will get 250MB Free disk space for your VM.
-          Up to 16GB!.
+          Only this week, share your link, they get 5GB instead
+          of 4GB, and you get 1GB extra!
           """
       click       : ->
         appManager = KD.getSingleton "appManager"
@@ -46,7 +48,7 @@ class AccountReferralSystemListController extends AccountListViewController
           linkView    : getYourReferrerCode
 
     wrapper.addSubView redeem = new CustomLinkView
-      title : "Redeem Your Referrer Points"
+      title : "Redeem your VM space"
       click : => @showRedeemReferralPointModal()
 
 class AccountReferralSystemList extends KDListView

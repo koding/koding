@@ -225,7 +225,9 @@ __utils.extend __utils,
     return  str unless tokenMatches = str.match /\|.+?\|/g
 
     tagMap = {}
-    data.tags?.forEach (tag) -> tagMap[tag.getId()] = tag
+    data.tags?.forEach (tag) ->
+      unless tag.lazyNode?
+        tagMap[tag.getId()] = tag
 
     viewParams = []
     for tokenString in tokenMatches
@@ -577,7 +579,7 @@ __utils.extend __utils,
     then KD.config.entryPoint.slug
     else 'koding'
 
-    KD.remote.api.JStatusUpdate.create {body, group}, (err,reply)=>
+    KD.remote.api.JNewStatusUpdate.create {body, group}, (err,reply)=>
       unless err
       then KD.getSingleton("appManager").tell 'Activity', 'ownActivityArrived', reply
       else new KDNotificationView type : "mini", title : "There was an error, try again later!"

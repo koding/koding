@@ -10,30 +10,18 @@ class PlanUpgradeConfirmForm extends PaymentConfirmForm
     data = @getData()
 
     @plan = new KDView
-      cssClass  : 'payment-confirm-plan'
       partial   :
         """
-        <h3>Plan</h3>
-        <p>
-          #{ @getExplanation 'plan' }
-        </p>
+          <h3 class="pricing-title">#{ @getExplanation 'plan' }</h3>
+          <h6 class="pricing-subtitle">Almost there, review your purchase and get going</h6>
         """
-
-    @payment = new KDView
-      cssClass  : 'payment-confirm-method'
-      partial   : 
-        """
-        <h3>Payment method</h3>
-        <p>#{ @getExplanation 'payment' }</p>
-        """
-
     super()
 
   getExplanation: (key) -> switch key
     when 'plan'
-      "You selected this plan:"
+      "You selected this plan"
     when 'payment'
-      "This payment method will be charged:"
+      "This payment method will be charged"
     else
       super key
 
@@ -44,7 +32,9 @@ class PlanUpgradeConfirmForm extends PaymentConfirmForm
       {productData: {plan, planOptions}, oldSubscription} = data
       @plan.addSubView new VmPlanView {planOptions}, plan
 
-      if plan.discountCode and plan.vmCode
+      {couponCodes} = plan
+
+      if couponCodes and couponCodes.discount and couponCodes.vm
         @fetchCoupons plan, ["discount", "vm"], @bound "addCouponOptions"
 
       if oldSubscription
@@ -53,32 +43,28 @@ class PlanUpgradeConfirmForm extends PaymentConfirmForm
     else
       @plan.hide()
 
-    {paymentMethod} = data
-    if paymentMethod
-    then @payment.addSubView new PaymentMethodView {}, paymentMethod
-    else @payment.hide()
-
     super data
 
   addCouponOptions: ->
+    return  unless Object.keys(@coupons).length
     {discount: {discountInCents}} = @coupons
 
-    @plan.addSubView giftWrapper = new KDCustomHTMLView cssClass: "coupon-options"
-    giftWrapper.addSubView new KDLabelView title: "Select your gift"
+    @plan.addSubView giftWrapper = new KDCustomHTMLView cssClass: "coupon-options clearfix"
+    giftWrapper.addSubView new KDLabelView
+      title: "Select your gift"
+      cssClass: "select-gift"
+
     giftWrapper.addSubView couponOptions = new KDInputRadioGroup
       name       : "coupon-options"
       radios     : [
         title    : "#{@coupons.discount.name}"
         value    : "discount"
-        callback : => @changeCouponOption "discount"
       ,
         title    : "#{@coupons.vm.name}"
         value    : "vm"
-        callback : => @changeCouponOption "vm"
       ]
 
-    couponOptions.setDefaultValue "discount"
-    @changeCouponOption "discount"
+    couponOptions.on "change", @bound "changeCouponOption"
 
     @plan.addSubView totalWrapper = new KDCustomHTMLView cssClass: "total-wrapper"
 
@@ -93,6 +79,9 @@ class PlanUpgradeConfirmForm extends PaymentConfirmForm
     subtotal.addSubView @subtotal = new KDCustomHTMLView
       tagName  : "span"
       partial  : (@getData().productData.plan.feeAmount - @utils.formatMoney discountInCents) / 100
+
+    couponOptions.setDefaultValue "discount"
+    @changeCouponOption "discount"
 
     @updateTotals couponOptions.getValue()
 
@@ -120,6 +109,5 @@ class PlanUpgradeConfirmForm extends PaymentConfirmForm
   pistachio: ->
     """
     {{> @plan}}
-    {{> @payment}}
     {{> @buttonBar}}
     """
