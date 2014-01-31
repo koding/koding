@@ -1,7 +1,6 @@
 module.exports = [
 
   "AppController.coffee"
-  "AppView.coffee"
 
   "views/scene/colortagselectorview.coffee"
   "views/scene/environmentcontainer.coffee"
