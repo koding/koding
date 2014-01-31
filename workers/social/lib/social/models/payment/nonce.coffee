@@ -1,8 +1,8 @@
-{ Model } = require 'bongo'
+{ Module } = require 'jraphical'
 
-module.exports = class JPaymentFulfillmentNonce extends Model
+module.exports = class JPaymentFulfillmentNonce extends Module
 
-  { ObjectId } = require 'bongo'
+  { ObjectId, signature } = require 'bongo'
 
   @set
     schema       :
