@@ -10,27 +10,42 @@ class SubscriptionUsageView extends KDView
       memo
     , {})
 
-    usage = (Object.keys subscription.usage).map (key) ->
+    usage = (Object.keys subscription.quantities).map (key) ->
       usage =
         component : componentsByPlanCode[key]
-        quota     : plan.quantities[key]
+        quota     : subscription.quantities[key]
         usage     : subscription.usage[key]
 
+      usage.usage ?= 0
       usage.usageRatio = usage.usage / usage.quota
-      
+
+      if isNaN usage.usageRatio then usage.usageRatio = 0
+
       return usage
 
   createGaugeListController: ->
+
     controller = new KDListViewController
       itemClass: SubscriptionGaugeItem
 
-    controller.instantiateListItems @getGauges()
+    items = @getGauges()
+    controller.instantiateListItems items
 
     controller
 
-  viewAppended: ->
-    @setClass 'subscription-gauges'
-    
-    @gaugeListController = @createGaugeListController()
 
+  viewAppended: ->
+
+    @setClass 'subscription-gauges'
+
+    title = if 'custom-plan' in @getOption('subscription').tags
+    then 'Group resources'
+    else 'Your resource packs'
+
+    @addSubView new KDCustomHTMLView
+      tagName  : 'span'
+      cssClass : 'title'
+      partial  : title
+
+    @gaugeListController = @createGaugeListController()
     @addSubView @gaugeListController.getListView()

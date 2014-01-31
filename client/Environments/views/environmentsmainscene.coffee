@@ -50,6 +50,9 @@ class EnvironmentsMainScene extends JView
 
     @refreshContainers()
 
+
+    @addSubView @resourcesContainer = new ResourcesContainer
+
     @domainCreateForm.on 'DomainSaved', @domainsContainer.bound 'loadItems'
     KD.getSingleton("vmController").on 'VMListChanged', \
                                         @bound 'refreshContainers'
@@ -96,8 +99,6 @@ class EnvironmentsMainScene extends JView
         vmc = KD.getSingleton("vmController")
         vmc.emit 'VMListChanged'
 
-      # TODO Add shared VM creation here.
-      # vmController.createNewVM()
 
   refreshContainers:->
     # After Domains and Machines container load finished
