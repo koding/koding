@@ -1433,7 +1433,6 @@ module.exports = class JAccount extends jraphical.Module
           {_id           : $in: (rel.targetId for rel in rels)},
           {hostnameAlias : $in : vms}
         ]
-        console.log 'selector', selector
         JDomain.some selector, {}, (err, domains)->
           return callback err if err
 
