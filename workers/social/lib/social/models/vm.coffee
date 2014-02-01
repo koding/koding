@@ -849,7 +849,7 @@ module.exports = class JVM extends Module
               group.fetchVms (err, vms)->
                 if err then handleError err
                 else vms.forEach (vm)->
-                  if vm.type is 'group'
+                  if vm.vmType is 'group'
                     vm.update {
                       $addToSet: users: { id: user.getId(), sudo: hasPermission }
                     }, handleError
