@@ -222,8 +222,8 @@ class VirtualizationController extends KDController
         cb err, vms  for cb in waiting
         waiting = []
 
-  fetchGroupVMs:(callback = noop)->
-    if @groupVms.length > 0
+  fetchGroupVMs:(force, callback = noop)->
+    if @groupVms.length > 0 and not force
       return @utils.defer =>
         callback null, @groupVms
 

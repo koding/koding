@@ -14,7 +14,7 @@ class EnvironmentDomainContainer extends EnvironmentContainer
 
       addedCount = 0
 
-      KD.singletons.vmController.fetchGroupVMs (err, vms)=>
+      KD.singletons.vmController.fetchGroupVMs yes, (err, vms)=>
 
         @removeAllItems()
 
