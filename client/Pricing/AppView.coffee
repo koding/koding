@@ -125,8 +125,8 @@ class PricingAppView extends KDView
           name              : "visibility"
           defaultValue      : "hidden"
           selectOptions     : [
-            title : "Hidden" ,   value : "hidden"
-            title : "Visible",   value : "visible"
+            { title : "Hidden" ,   value : "hidden"  }
+            { title : "Visible",   value : "visible" }
           ]
 
   createGroup: ->
