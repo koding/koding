@@ -23,9 +23,9 @@ class GroupGeneralSettingsView extends JView
 
   createFormFields: (formOptions) ->
     group = @getData()
+    formOptions.fields = {}
 
     if group.slug isnt "koding"
-      formOptions.fields      = {}
       formOptions.fields.Logo =
         label                 : "Logo"
         itemClass             : GroupLogoSettings
