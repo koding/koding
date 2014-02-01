@@ -22,7 +22,7 @@ class GroupGeneralSettingsView extends JView
     #   @settingsForm.buttons.Remove.hide()
 
   createFormFields: (formOptions) ->
-    group = @getData()
+    group              = @getData()
     formOptions.fields = {}
 
     if group.slug isnt "koding"

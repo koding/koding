@@ -1,7 +1,6 @@
 module.exports = [
 
   "AppController.coffee"
-  "AppView.coffee"
 
   "views/scene/colortagselectorview.coffee"
   "views/scene/environmentcontainer.coffee"
@@ -16,6 +15,8 @@ module.exports = [
   "views/scene/environmentdomainitem.coffee"
   "views/scene/environmentmachineitem.coffee"
   "views/scene/environmentsceneview.coffee"
+  "views/resourcesview.coffee"
+  "views/resourcescontainer.coffee"
   "views/environmentsmainscene.coffee"
 
   "views/domains/domaincreateform.coffee"

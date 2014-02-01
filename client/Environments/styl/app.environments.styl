@@ -8,6 +8,104 @@ app.environments.styl
 */
 }
 
+section.resources-container
+  size                 100% 105px
+  bg                   color #ebebeb
+  bottom               0
+  z-index              1
+  border-top           1px solid #c1c1c1
+  shadow               0 -5px 21px rgba(0, 0, 0, .11)
+  fix()
+
+  header
+    bg                 color headerBg
+    size               180px 100%
+    color              white
+    padding            20px 25px
+    borderBox()
+    fl()
+
+    h3
+      font-size        18px
+      line-height      1
+    h4
+      font-size        12px
+      line-height      1
+      color            #888
+      margin           3px 0 13px
+
+  > section
+    overflow           hidden
+    width              auto
+    height             100%
+
+    .subscription-gauges
+      height           100%
+      kalc             width, \(100% \- 180px\)\/2
+      padding-top      22px
+      padding-right    30px
+      border-right     1px solid #c1c1c1
+      fl()
+      &:last-child
+        border-right   none
+
+
+      span.title
+        top            5px
+        font-size      12px
+        color          #aaa
+        text-transform uppercase
+        margin-left    90px
+        abs()
+
+      .kdlistitemview
+        margin          0 0 12px
+        width           50%
+
+        fl()
+        &.kdlistitemview-group
+        &.kdlistitemview-user
+          hidden()
+        &.kdlistitemview-cpu
+          .bar
+            bg          color #ea8779
+        &.kdlistitemview-disk
+          .bar
+            bg          color #73cb9b
+        &.kdlistitemview-ram
+          .bar
+            bg          color #f8cf81
+        &.kdlistitemview-vm
+          .bar
+            bg          color #77d8e1
+
+      label
+        text-transform  uppercase
+        font-size       12px
+        line-height     25px
+        min-width       90px
+        text-align      center
+        color           headerBg
+        font-weight     400
+
+
+        fl()
+
+      .progressbar-container
+        height          25px
+        kalc            width, 100% \- 90px
+        border          none
+        bg              color #d5d5d5
+        bg              image none
+        rounded         4px
+        fl()
+        .bar
+          bg            image none
+          bg            color #ea8779
+          rounded       4px
+          shadow        none
+
+
 .vm-details-modal
   width                200px
 
@@ -159,6 +257,8 @@ app.environments.styl
     z-index             0
     vendor              transform-style, preserve-3d
     vendor              perspective, 1000px
+    top                 0
+    padding-top         55px
     borderBox()
     abs()
     &.in
@@ -175,7 +275,7 @@ app.environments.styl
     &.out
       left              500px
       border-left       1px solid #ccc
-      box-shadow        0 0 10px 1px #ccc
+      shadow            0 0 10px 1px #ccc
 
   .record-form-view
     padding             0

@@ -11,6 +11,10 @@ module.exports = class JGroup extends Module
 
   JPermissionSet = require './permissionset'
   {permit}       = JPermissionSet
+
+  JAccount = require '../account'
+  JPaymentFulfillmentNonce = require '../payment/nonce'
+
   KodingError    = require '../../error'
   Validators     = require './validators'
   {throttle}     = require 'underscore'
@@ -107,8 +111,6 @@ module.exports = class JGroup extends Module
           (signature String, Function)
           (signature String, Number, Function)
         ]
-        createGroupBotAndPostMessage:
-          (signature Object, Function)
       instance      :
         join: [
           (signature Function)
@@ -407,7 +409,7 @@ module.exports = class JGroup extends Module
           console.log "#{label} is saved"
           queue.next()
 
-    create = (groupData, owner, callback) ->
+    create = (client, groupData, owner, callback) ->
       JPermissionSet        = require './permissionset'
       JMembershipPolicy     = require './membershippolicy'
       JName                 = require '../name'
@@ -464,6 +466,12 @@ module.exports = class JGroup extends Module
             else
               console.log 'roles are added'
               queue.next()
+        -> 
+          # CtF hacked because we need client to create a post
+          group.createGroupBotAndPostMessage client, (err) ->
+            return callback err if err
+            console.log 'bot is added and posted its first message'
+            queue.next()
       ]
 
       if 'private' is group.privacy
@@ -476,14 +484,30 @@ module.exports = class JGroup extends Module
       daisy queue
 
   @create$ = secure (client, formData, callback)->
-    JAccount = require '../account'
     {delegate} = client.connection
+
+    {nonce} = formData
+
+    if nonce
+      JPaymentFulfillmentNonce.one {nonce}, (err, nonce) =>
+        return callback err  if err
+        return callback "Payment fulfillment nonce is invalid"  unless nonce.action is "debit"
+        nonce.fetchOwner (err, owner) =>
+          return callback err  if err
+          subOptions = targetOptions: selector: tags: 'custom-plan'
+          owner.fetchSubscription {}, subOptions, (err, subscription) =>
+            return callback err  if err
+            @create formData, owner, (err, group) ->
+              nonce.update $set: action: "used", (err) ->
+                return callback err  if err
+                callback null, group, subscription
+      return
 
     @one slug: 'koding', (err, koding) =>
       return callback err  if err
 
       packOptions = targetOptions: selector: tags: 'group'
-      
+
       koding.fetchPack {}, packOptions, (err, pack) =>
         return callback err  if err
         return callback message: "Pack not found!"  unless pack?
@@ -495,23 +519,24 @@ module.exports = class JGroup extends Module
           unless subscription?
             return callback message: "Subscription required!"
 
-          subscription.checkUsage pack, (err, nonce) =>
+          subscription.checkUsage pack, (err) =>
             return callback err  if err
 
-            @create formData, delegate, (err, group) =>
+            @create client, formData, delegate, (err, group) ->
               return callback err  if err
 
               debitOptions = {
                 pack
-                # avoid creating a nonce, we'll debit the subscription and 
+                # avoid creating a nonce, we'll debit the subscription and
                 # create the group all at once.
                 shouldCreateNonce: no
               }
 
               subscription.debit debitOptions, (err) ->
                 return callback err  if err
-
-                callback null, group, subscription
+                group.addSubscription subscription, (err) ->
+                  return callback err  if err
+                  callback null, group, subscription
 
   @findSuggestions = (client, seed, options, callback)->
     {limit, blacklist, skip}  = options
@@ -970,7 +995,7 @@ module.exports = class JGroup extends Module
         return callback new KodingError 'Invitation code is invalid!'  unless invite
         delegate.fetchUser (err, user)=>
           return callback err  if err
-          unless user.email is invite.email
+          unless invite.type is 'multiuse' or user.email is invite.email
             return callback new KodingError 'Are you sure invitation e-mail is for you?'
           @approveMember delegate, (err)->
             return callback err  if err
@@ -1471,22 +1496,24 @@ module.exports = class JGroup extends Module
       JPaymentSubscription.one _id: id, (err, subscription) =>
         @addSubscription subscription, callback
 
-  @createGroupBotAndPostMessage: permit 'create bot',
-    success: (client, options, callback)->
-      # get groupbot account
-      JAccount = require '../account'
-      JAccount.one "profile.nickname" : options.botname, (err, account) ->
+  createGroupBotAndPostMessage: (client, callback) ->
+    # get groupbot account
+    JAccount = require '../account'
+    JAccount.one "profile.nickname" : "bot", (err, account) =>
+      return callback err if err
+      return callback new KodingError "Can't find bot account" if not account
+        
+      @addMember account, "member", (err, member)=>
         return callback err if err
-        return callback new KodingError "Can't find bot account" if not account
-        {group} = client.context
-        JGroup.one slug : group, (err, group)->
-          group.addMember account, "member", (err, member)->
-            return callback err if err
-            JNewStatusUpdate = require '../messages/newstatusupdate'
-            # set client's delegate to bot account
-            client.connection.delegate = account
-            data          =
-              title       : options.title
-              body        : options.body
-              group       : group
-            JNewStatusUpdate.create client, data, callback
+        JNewStatusUpdate = require '../messages/newstatusupdate'
+        # set client's delegate to bot account
+        # CtF this really is a hack
+        client.context.group = @slug
+        client.context.user = "bot"
+        client.connection.delegate = account
+        client.groupName = @slug
+
+        data = 
+          body  : "Welcome to your group"
+          group : @slug 
+        JNewStatusUpdate.create client, data, callback

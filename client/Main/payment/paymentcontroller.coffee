@@ -134,9 +134,9 @@ class PaymentController extends KDController
 
     workflow
       .on 'DataCollected', (data) =>
-        @transitionSubscription data, (err, subscription) ->
+        @transitionSubscription data, (err, subscription, rest...) ->
           return  if KD.showError err
-          workflow.emit 'Finished', data, subscription
+          workflow.emit 'Finished', data, subscription, rest...
       .enter()
 
     workflow
@@ -173,7 +173,7 @@ class PaymentController extends KDController
       planCode: plan.planCode
     }
 
-    planApi.subscribe options, (err, subscription) =>
+    planApi.subscribe options, (err, subscription, rest...) =>
       if err?.short is 'existing_subscription'
         { existingSubscription } = err
 
@@ -195,7 +195,7 @@ class PaymentController extends KDController
           return callback err  if err
 
           JUser.logout (err) ->
-            callback err, subscription
+            callback err, subscription, rest...
       else
         callback err, subscription
 

@@ -137,12 +137,6 @@ class ActivityTickerCommentItem extends ActivityTickerBaseItem
     activity = "commented on"
     #another copy/paste. this must be changed
     # i did something
-    if  source.getId() is KD.whoami().getId()
-      # if user commented his/her post
-      if source.getId() is target.getId() then \
-        return "{{> @avatar}} <div class='text-overflow'>You #{activity} your {{> @subj}}</div>"
-      else
-        return "{{> @avatar}} <div class='text-overflow'>You #{activity} {{> @subj}}</div>"
 
     # someone did something to you
     if target.getId() is KD.whoami().getId() then \
@@ -191,12 +185,10 @@ class ActivityTickerUserCommentItem extends ActivityTickerBaseItem
     @subj     = new ActivityLinkView null, @source
 
   pistachio: ->
-    """
-    {{> @avatar}}
-    <div class='text-overflow'>
-      #{if @target.getId() is KD.whoami().getId() then "You" else @origin } commented on {{> @subj}}
-    </div>
-    """
+    if @target.getId() is KD.whoami().getId()
+      "{{> @avatar}} <div class='text-overflow'>You commented on {{> @subj}} </div>"
+    else
+      "{{> @avatar}} <div class='text-overflow'> {{> @origin}} commented on {{> @subj}} </div>"
 
 
 class ActivityTickerItem extends KDListItemView
