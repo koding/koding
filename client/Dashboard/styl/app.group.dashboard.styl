@@ -326,7 +326,8 @@ Dashboard member listing related common styles
 
 .member-related
   overflow                    visible
-
+  .listview-wrapper
+    margin-top                30px
   .listview-wrapper .lazy-loader
     font-weight               600
     font-size                 12px
@@ -338,7 +339,6 @@ Dashboard member listing related common styles
     line-height               24px
     position                  relative
     overflow                  visible
-    width                     50%
     min-width                 350px
     height                    auto
     display                   inline-block
@@ -500,7 +500,7 @@ Dashboard invitations tab styles
 .kdtabview.dashboard-tabs .invitations
 
   .kdtabhandlecontainer
-    padding                   20px 0 0 10px
+    padding-top               20px
     height                    50px
     borderBox()
 
@@ -562,8 +562,9 @@ Dashboard invitations tab styles
   .member-related
     section
       padding                 10px
-      border-bottom           1px solid #f2f2f2
-      border-right            1px solid #f2f2f2
+      margin-bottom           1px
+      background              #fff
+      rounded                 6px
       min-height              40px
 
       &:hover
@@ -571,31 +572,27 @@ Dashboard invitations tab styles
 
       .buttons
         fr()
-        margin                8px 2px 0 0
         button
-          height              24px
-          .icon
-            width             20px
-            &.approve
-              bg              position, -77px -502px
-            &.decline
-              bg              position, -77px -482px
-            &.edit
-              height          15px
-              bg              position, -116px -402px
-            &.share
-              height          15px
-              bg              position, -97px -582px
-
+          height              35px
+          margin-top          2px
+          span
+            font-size         16px
+            line-height       35px
+          &.delete
+            bg                color, #EC492C
+            padding           0
       .status
-        font-size             11px
-        margin-top            10px
+        font-size             14px
+        height                35px
+        line-height           35px
+        margin-right          10px
         fr()
         &.sent
-          margin-right        5px
-          color               #ff9101
           .icon
-            bg                position, -100px -580px
+            sprite            "dashboard", "ok"
+            top               4px
+            left              2px
+            position          relative
         &.accepted
         &.approved
           color               #40af00
@@ -617,8 +614,9 @@ Dashboard invitations tab styles
             size              20px, 20px
             kdfsprite()
           &.title
-            vertical-align top
-            line-height       20px
+            color             #1aaf5d
+            font-weight       400
+            margin            0 10px
       .details
         margin-left           50px
         .requested-at
