@@ -31,7 +31,7 @@ pricing.styl
     opacity             .5
     margin-bottom       55px
 
-.resource-pack-plan
+.pricing .product-form
   size                  100%, auto
   min-height            100vh
   background            url('/a/images/home/speedometer.jpg') no-repeat center center
@@ -92,12 +92,12 @@ pricing.styl
 
     .plan-selection
       .plan-selection-box
-        max-width       712px
+        width           715px
         padding-top     42px
         fl()
 
         &:nth-of-type(2)
-          margin-left   92px
+          margin-left   70px
 
         h4
           font-size     28px
@@ -128,7 +128,7 @@ pricing.styl
           height        7px
           border        none
           shadow        none
-          margin-top    62px
+          margin        62px auto 0
 
           .handle
             size        26px, 26px
@@ -154,7 +154,6 @@ pricing.styl
 
         .description
           display           block
-          max-width         352px
           font-size         14px
           font-weight       200px
           color             rgba(197, 197, 197, .3)
@@ -171,6 +170,7 @@ pricing.styl
             margin            16px 0
 
           .description
+            min-height        18px
             margin            0
             color             rgba(242, 242, 242, .3)
 
@@ -194,9 +194,9 @@ pricing.styl
               font-size       inherit
               font-weight     inherit
 
-      &.team
-        .plan-selection-box
-          max-width           319px
+    .team-plan
+      .plan-selection-box
+        width                 350px
 
 .pricing-horizontal-divider
   size                656px, 1px

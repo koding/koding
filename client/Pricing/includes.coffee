@@ -1,7 +1,8 @@
 module.exports = [
-  "views/resourcepackplan.coffee"
-  "views/customplan.coffee"
-  "views/pricingboxwithslider.coffee"
+  "views/developerplan.coffee"
+  "views/teamplan.coffee"
+  "views/productform.coffee"
+  "views/planselection.coffee"
   "AppController.coffee"
   "AppView.coffee"
   "styl/pricing.styl"
