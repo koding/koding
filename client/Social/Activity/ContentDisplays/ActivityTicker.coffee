@@ -331,8 +331,11 @@ class ActivityTicker extends ActivityRightBase
 
 
   getItemId: (item) ->
-    {source, target, subject, as} = item
-    "#{source.getId()}_#{target.getId()}_#{as}_#{subject?.getId()}"
+    {source, target, subject, as, timestamp} = item
+    if as is "like"
+      "#{source.getId()}_#{target.getId()}_#{as}_#{subject?.getId()}"
+    else
+      "#{source.getId()}_#{target.getId()}_#{as}_#{timestamp}"
 
   isFiltered: (filter) ->
     if @filters and @filters.length
