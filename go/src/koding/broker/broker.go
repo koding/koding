@@ -1,11 +1,8 @@
 package main
 
 import (
-	"crypto/rand"
 	"crypto/tls"
-	"encoding/base64"
 	"encoding/json"
-	"fmt"
 	"koding/kontrol/kontrolhelper"
 	"koding/tools/amqputil"
 	"koding/tools/config"
@@ -204,6 +201,31 @@ func (b *Broker) startSockJS() {
 
 }
 
+func (b *Broker) sockjsSession(session *sockjs.Session) {
+	defer log.RecoverAndLog()
+
+	client := NewClient(session, b)
+	sessionGaugeEnd := client.gaugeStart()
+
+	defer sessionGaugeEnd()
+	defer client.Close()
+
+	err := client.ControlChannel.Publish(config.Current.Broker.AuthAllExchange, "broker.clientConnected", false, false, amqp.Publishing{Body: []byte(client.SocketId)})
+	if err != nil {
+		panic(err)
+	}
+
+	sendToClient(session, "broker.connected", client.SocketId)
+
+	for data := range session.ReceiveChan {
+		if data == nil || session.Closed {
+			break
+		}
+
+		client.handleSessionMessage(data)
+	}
+}
+
 // sendToClient sends the given payload back to the client. It attachs the
 // routintKey along with the payload. It closes the session if sending fails.
 func sendToClient(session *sockjs.Session, routingKey string, payload interface{}) {
@@ -217,265 +239,4 @@ func sendToClient(session *sockjs.Session, routingKey string, payload interface{
 		session.Close()
 		log.Warning("Dropped session because of broker to client buffer overflow. %v", session.Tag)
 	}
-}
-
-type Client struct {
-	Session        *sockjs.Session
-	ControlChannel *amqp.Channel
-	SocketId       string
-	Broker         *Broker
-	LastPayload    string
-	Subscriptions  map[string]bool
-}
-
-// NewClient retuns a new client that is defined on a given session.
-func NewClient(session *sockjs.Session, broker *Broker) *Client {
-	socketID := randomString()
-	session.Tag = socketID
-
-	controlChannel, err := broker.PublishConn.Channel()
-	if err != nil {
-		panic(err)
-	}
-
-	subscriptions := make(map[string]bool)
-
-	fmt.Println("adding to subscriptionsMap")
-	globalMapMutex.Lock()
-	socketSubscriptionsMap[socketID] = &subscriptions
-	globalMapMutex.Unlock()
-
-	fmt.Println("returning new client")
-	return &Client{
-		Session:        session,
-		SocketId:       socketID,
-		ControlChannel: controlChannel,
-		Broker:         broker,
-		Subscriptions:  subscriptions,
-	}
-}
-
-func (c *Client) Close() {
-	globalMapMutex.Lock()
-	for routingKeyPrefix := range c.Subscriptions {
-		c.RemoveFromRoute(routingKeyPrefix)
-	}
-	globalMapMutex.Unlock()
-
-	time.AfterFunc(5*time.Minute, func() {
-		globalMapMutex.Lock()
-		delete(socketSubscriptionsMap, c.SocketId)
-		globalMapMutex.Unlock()
-	})
-
-	for {
-		err := c.ControlChannel.Publish(config.Current.Broker.AuthAllExchange, "broker.clientDisconnected", false, false, amqp.Publishing{Body: []byte(c.SocketId)})
-		if err == nil {
-			break
-		}
-		if amqpError, isAmqpError := err.(*amqp.Error); !isAmqpError || amqpError.Code != 504 {
-			panic(err)
-		}
-		c.resetControlChannel()
-	}
-}
-
-func (b *Broker) sockjsSession(session *sockjs.Session) {
-	defer log.RecoverAndLog()
-
-	client := NewClient(session, b)
-
-	sessionGaugeEnd := client.gaugeStart()
-	defer sessionGaugeEnd()
-	defer client.ControlChannel.Close()
-	defer client.Close()
-
-	defer func() {
-	}()
-
-	fmt.Println("publishing broker client connected")
-	err := client.ControlChannel.Publish(config.Current.Broker.AuthAllExchange, "broker.clientConnected", false, false, amqp.Publishing{Body: []byte(client.SocketId)})
-	if err != nil {
-		panic(err)
-	}
-
-	fmt.Println("sending to client broker.Connected")
-	sendToClient(session, "broker.connected", client.SocketId)
-
-	for data := range session.ReceiveChan {
-		if data == nil || session.Closed {
-			break
-		}
-
-		func() {
-			defer log.RecoverAndLog()
-
-			message := data.(map[string]interface{})
-			log.Debug("Received message: %v", message)
-
-			action := message["action"]
-			switch action {
-			case "subscribe":
-				globalMapMutex.Lock()
-				defer globalMapMutex.Unlock()
-				for _, routingKeyPrefix := range strings.Split(message["routingKeyPrefix"].(string), " ") {
-					client.Subscribe(routingKeyPrefix)
-				}
-
-				sendToClient(session, "broker.subscribed", message["routingKeyPrefix"])
-
-			case "resubscribe":
-				globalMapMutex.Lock()
-				defer globalMapMutex.Unlock()
-				oldSubscriptions, found := socketSubscriptionsMap[message["socketId"].(string)]
-				if found {
-					for routingKeyPrefix := range *oldSubscriptions {
-						client.Subscribe(routingKeyPrefix)
-					}
-				}
-				sendToClient(session, "broker.resubscribed", found)
-
-			case "unsubscribe":
-				globalMapMutex.Lock()
-				defer globalMapMutex.Unlock()
-				for _, routingKeyPrefix := range strings.Split(message["routingKeyPrefix"].(string), " ") {
-					client.Unsubscribe(routingKeyPrefix)
-				}
-
-			case "publish":
-				exchange := message["exchange"].(string)
-				routingKey := message["routingKey"].(string)
-				payload := message["payload"].(string)
-
-				publish := func(exchange, routingKey, payload string) error {
-					if !strings.HasPrefix(routingKey, "client.") {
-						return fmt.Errorf("Invalid routing key: %v socketId: %v", routingKey, client.SocketId)
-					}
-
-					for {
-						client.LastPayload = ""
-						err := client.ControlChannel.Publish(exchange, routingKey, false, false, amqp.Publishing{CorrelationId: client.SocketId, Body: []byte(payload)})
-						if err == nil {
-							client.LastPayload = payload
-							break
-						}
-
-						if amqpError, isAmqpError := err.(*amqp.Error); !isAmqpError || amqpError.Code != 504 {
-							log.Warning("payload: %v routing key: %v exchange: %v err: %v",
-								payload, routingKey, exchange, err)
-						}
-
-						time.Sleep(time.Second / 4) // penalty for crashing the AMQP channel
-						client.resetControlChannel()
-					}
-
-					return nil
-				}
-
-				publish(exchange, routingKey, payload)
-
-			case "ping":
-				sendToClient(session, "broker.pong", nil)
-
-			default:
-				log.Warning("Invalid action. message: %v socketId: %v", message, client.SocketId)
-
-			}
-		}()
-	}
-}
-
-// randomString() returns a new 16 char length random string
-func randomString() string {
-	r := make([]byte, 128/8)
-	rand.Read(r)
-	return base64.StdEncoding.EncodeToString(r)
-}
-
-// gaugeStart starts the gauge for a given session. It returns a new
-// function which ends the gauge for the given session. Usually one invokes
-// gaugeStart and calls the returned function in a defer statement.
-func (c *Client) gaugeStart() (gaugeEnd func()) {
-	log.Debug("Client connected: %v", c.Session.Tag)
-	changeClientsGauge(1)
-	changeNewClientsGauge(1)
-	if c.Session.IsWebsocket {
-		changeWebsocketClientsGauge(1)
-	}
-
-	return func() {
-		log.Debug("Client disconnected: %v", c.Session.Tag)
-		changeClientsGauge(-1)
-		if c.Session.IsWebsocket {
-			changeWebsocketClientsGauge(-1)
-		}
-	}
-}
-
-// resetControlChannel closes the current client's control channel and creates
-// a new channel. It also listens to any server side error and publish back
-// the error to the client.
-func (c *Client) resetControlChannel() {
-	if c.ControlChannel != nil {
-		c.ControlChannel.Close()
-	}
-
-	var err error
-	c.ControlChannel, err = c.Broker.PublishConn.Channel()
-	if err != nil {
-		panic(err)
-	}
-	go func() {
-		defer log.RecoverAndLog()
-
-		for amqpErr := range c.ControlChannel.NotifyClose(make(chan *amqp.Error)) {
-			if !(strings.Contains(amqpErr.Error(), "NOT_FOUND") && (strings.Contains(amqpErr.Error(), "koding-social-") || strings.Contains(amqpErr.Error(), "auth-"))) {
-				log.Warning("AMQP channel: %v Last publish payload: %v", amqpErr.Error(), c.LastPayload)
-			}
-
-			sendToClient(c.Session, "broker.error", map[string]interface{}{
-				"code":    amqpErr.Code,
-				"reason":  amqpErr.Reason,
-				"server":  amqpErr.Server,
-				"recover": amqpErr.Recover,
-			})
-		}
-	}()
-}
-
-func (c *Client) RemoveFromRoute(routingKeyPrefix string) {
-	routeSessions := routeMap[routingKeyPrefix]
-	for i, routeSession := range routeSessions {
-		if routeSession == c.Session {
-			routeSessions[i] = routeSessions[len(routeSessions)-1]
-			routeSessions = routeSessions[:len(routeSessions)-1]
-			break
-		}
-	}
-	if len(routeSessions) == 0 {
-		delete(routeMap, routingKeyPrefix)
-		return
-	}
-	routeMap[routingKeyPrefix] = routeSessions
-}
-
-func (c *Client) Subscribe(routingKeyPrefix string) {
-	if c.Subscriptions[routingKeyPrefix] {
-		log.Warning("Duplicate subscription to same routing key. %v %v", c.Session.Tag, routingKeyPrefix)
-		return
-	}
-
-	if len(c.Subscriptions) > 0 && len(c.Subscriptions)%2000 == 0 {
-		log.Warning("Client with more than %v subscriptions %v",
-			strconv.Itoa(len(c.Subscriptions)), c.Session.Tag)
-	}
-
-	routeMap[routingKeyPrefix] = append(routeMap[routingKeyPrefix], c.Session)
-	c.Subscriptions[routingKeyPrefix] = true
-
-}
-
-func (c *Client) Unsubscribe(routingKeyPrefix string) {
-	c.RemoveFromRoute(routingKeyPrefix)
-	delete(c.Subscriptions, routingKeyPrefix)
 }
