@@ -1412,21 +1412,32 @@ module.exports = class JAccount extends jraphical.Module
     client.context.group = 'koding'
     oldAddTags.call this, client, tags, options, callback
 
-  fetchUserDomains: (callback) ->
+  fetchUserDomains: (client, callback) ->
+    {group} = client.context
+    
     JDomain = require './domain'
 
-    Relationship.some
-      targetName: "JDomain"
-      sourceId  : @getId()
-      sourceName: "JAccount"
-    ,
-      targetId : 1
-    , (err, rels)->
+    JVM = require './vm'  
+    JVM.fetchVmsByContext client, {}, (err, vms) =>
       return callback err if err
+      Relationship.some
+        targetName: "JDomain"
+        sourceId  : @getId()
+        sourceName: "JAccount"
+      ,
+        targetId : 1
+      , (err, rels)->
+        return callback err if err
 
-      JDomain.some {_id: $in: (rel.targetId for rel in rels)}, {}, (err, domains)->
-        domainList = []
-        unless err
+        selector = $or : [
+          {_id           : $in: (rel.targetId for rel in rels)},
+          {hostnameAlias : $in : vms}
+        ]
+        console.log 'selector', selector
+        JDomain.some selector, {}, (err, domains)->
+          return callback err if err
+
+          domainList = []
           # we don't allow users to work on domains such as
           # shared-x/vm-x.groupSlug.kd.io or x.koding.kd.io
           # so we are filtering them here.
@@ -1435,14 +1446,14 @@ module.exports = class JAccount extends jraphical.Module
             !(/^shared|vm[\-]?([0-9]+)?/.test domainName) and \
             !(/(.*)\.(koding|guests)\.kd\.io$/.test domainName)
 
-        callback err, domainList
+          callback err, domainList
 
   fetchDomains$: permit
     advanced: [
       { permission: 'list own domains', validateWith: Validators.own }
     ]
     success: (client, callback) ->
-      @fetchUserDomains callback
+      @fetchUserDomains client, callback
 
 
   {Member, OAuth} = require "./graph"
