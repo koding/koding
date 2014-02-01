@@ -90,7 +90,7 @@ class LoginAppsController extends AppController
       '/:name?/Login/:token?'    : handler (app)-> app.getView().animateToForm 'login'
       '/:name?/Redeem'           : handler (app)-> app.getView().animateToForm 'redeem'
       '/:name?/Register'         : handler (app)-> app.getView().animateToForm 'register'
-      '/:name?/Register/:token?' : handleFinishRegistration
+      '/:name?/Register/:token'  : handleFinishRegistration
       '/:name?/Recover'          : handleRecovery
       '/:name?/Reset'            : handler (app)-> app.getView().animateToForm 'reset'
       '/:name?/Reset/:token'     : handleResetRoute
@@ -115,9 +115,12 @@ class LoginAppsController extends AppController
   prepareFinishRegistrationForm: (token) ->
     { JPasswordRecovery } = KD.remote.api
     JPasswordRecovery.fetchRegistrationDetails token, (err, details) =>
-      return  if KD.showError err
-
       view = @getView()
+      if err
+        KD.showError err
+        view.animateToForm 'login'
+        return
+
       view.finishRegistrationForm.setRegistrationDetails details
       view.setCustomDataToForm 'finishRegistration', recoveryToken: token
       view.animateToForm 'finishRegistration'
