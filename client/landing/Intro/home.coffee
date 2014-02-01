@@ -46,8 +46,8 @@ class HomePage extends JView
 
     @markers = new MarkerController
 
-    @resourcePackPlan  = new IntroResourcePackPlan
-    @customPlan        = new IntroCustomPlan
+    @productForm = new IntroPricingProductForm
+
     @campaignContainer = new KDCustomHTMLView
 
     if KD.campaign?.status
@@ -216,8 +216,7 @@ class HomePage extends JView
         {{> @pricingButton}}
       </section>
       <section id="pricing" class="clearfix">
-        {{> @resourcePackPlan}}
-        {{> @customPlan}}
+        {{> @productForm}}
       </section>
       <section id='home-bottom'>
         <h2 class='big-header'>If you are ready to go, let’s do this</h2>
