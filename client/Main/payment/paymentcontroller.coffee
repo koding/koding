@@ -86,7 +86,7 @@ class PaymentController extends KDController
 
     form = new PlanUpgradeForm { tag }
 
-    KD.getGroup().fetchProducts 'plan', tags: tag, (err, plans) =>
+    KD.getGroup().fetchProducts 'plan', tags: $in: [tag], (err, plans) =>
       return  if KD.showError err
 
       queue = plans.map (plan) -> ->
@@ -98,7 +98,7 @@ class PaymentController extends KDController
 
       subscription = null
       queue.push =>
-        @fetchSubscriptionsWithPlans tags: tag, (err, [subscription_]) ->
+        @fetchSubscriptionsWithPlans tags: [tag], (err, [subscription_]) ->
           subscription = subscription_
           queue.fin()
 
@@ -195,9 +195,7 @@ class PaymentController extends KDController
           return callback err  if err
 
           JUser.logout (err) ->
-            return callback err  if err
-
-            callback null
+            callback err, subscription
       else
         callback err, subscription
 
@@ -219,7 +217,7 @@ class PaymentController extends KDController
       }, callback
 
   debitSubscription: (subscription, pack, callback) ->
-    subscription.debit pack, (err, nonce) =>
+    subscription.debit { pack }, (err, nonce) =>
       return  if KD.showError err
 
       @emit 'SubscriptionDebited', subscription

@@ -15,9 +15,15 @@ class TeamworkImporter extends KDObject
   parseUrl: ->
     extension      = FSItem.getFileExtension @url
     gitHubUrlRegex = /http(s)?:\/\/github.com/
+    gistUrlRegex   = /http(s)?:\/\/gist.github.com/
     isGitHubUrl    = gitHubUrlRegex.test @url
+    isGistUrl      = gistUrlRegex.test @url
 
-    if isGitHubUrl and extension isnt "zip"
+    if isGistUrl
+      gistId = @url.split("/").last
+      @url   = "https://gist.github.com/#{gistId}.git"
+      @cloneRepo()
+    else if isGitHubUrl and extension isnt "zip"
       if extension is "git" then @cloneRepo()
       else
         @url = "#{@url}.git" # convert Github url to git url

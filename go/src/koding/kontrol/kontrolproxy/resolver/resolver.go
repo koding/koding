@@ -245,6 +245,7 @@ func (t *Target) resolveVM(host, port string) (*url.URL, error) {
 
 	t.Properties["hostkite"] = vm.HostKite
 	t.Properties["alwaysOn"] = vm.AlwaysOn
+	t.Properties["disableSecurePage"] = vm.DisableSecurePage
 
 	if vm.HostKite == "" || vm.IP == nil {
 		return nil, ErrVMOff

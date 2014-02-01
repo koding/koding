@@ -6,13 +6,12 @@ class ExistingAccountForm extends JView
       callback : (credentials) =>
         KD.getSingleton('mainController').handleLogin credentials, (err) =>
           @loginForm.button.hideLoader()
-          if (KD.showError err) and err?.field of loginForm
+          if (KD.showError err)
+            if err?.field of @loginForm
               @loginForm[err.field].decorateValidation err
           else
-            @emit "DataCollected",
-              loggedIn      : yes
-              createAccount : no
-              email         : no
+            localStorage?.setItem "routeToBeContinued", KD.singleton("router").currentPath
+            @emit "DataCollected", loggedIn: yes
 
     @emailCollectionForm = new KDFormViewWithFields
       fields:
@@ -28,11 +27,7 @@ class ExistingAccountForm extends JView
       callback             : ({ email }) =>
         KD.remote.api.JUser.changeEmail { email }, (err) =>
           return  if KD.showError err
-          @emit 'DataCollected',
-            loggedIn      : no
-            createAccount : yes
-            account       : yes
-            email         : email
+          @emit 'DataCollected', createAccount: yes, email: email
 
     super
 

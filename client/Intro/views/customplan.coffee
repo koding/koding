@@ -1,4 +1,4 @@
-class CustomPlan extends JView
+class IntroCustomPlan extends JView
   unitPrices     =
     user         : 5
     resourcePack : 20
@@ -52,11 +52,12 @@ class CustomPlan extends JView
       title    : "BUY NOW"
       callback : =>
         appManager = KD.singleton "appManager"
-        return   unless appManager
         appManager.open "Pricing", (app) =>
+          KD.singleton("router").handleRoute "/Pricing/Enterprise", suppressListeners: yes
           app.selectPlan "custom-plan", {
             @userQuantity
             @resourceQuantity
+            planApi: KD.remote.api.JGroupPlan
             total: (@usersPrice + @resourcesPrice) * 100
           }
 

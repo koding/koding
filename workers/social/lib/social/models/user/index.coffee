@@ -857,13 +857,11 @@ module.exports = class JUser extends jraphical.Module
         if res is no
           callback createKodingError "Email is already in use!"
         else
-          @fetchUser client, (err,user)->
-            account = client.connection.delegate
-            user.changeEmail account, options, callback
-            if account.status is 'registered'
-              # don't send an email when guests change their emails, which we
-              # need to allow for the pricing workflow.
-              sendChangeEmail user.email, "email"
+          user.changeEmail account, options, callback
+          if account.status is 'registered'
+            # don't send an email when guests change their emails, which we
+            # need to allow for the pricing workflow.
+            sendChangeEmail user.email, "email"
 
   @emailAvailable = (email, callback)->
     @count {email}, (err, count)->

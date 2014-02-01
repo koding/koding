@@ -39,14 +39,20 @@ class PricingAppView extends KDView
 
     @addSubView @thankYou
 
+  showGroupCreateForm: ->
+    unless @groupForm?
+      @addSubView @groupForm = @createGroupNameForm()
+
   createGroupNameForm: ->
     @groupForm              = new KDFormViewWithFields
       title                 : "Enter new group name"
+      cssClass              : "pricing-create-group"
       callback              : @bound "createGroup"
       buttons               :
         Create              :
           title             : "Create"
           type              : "submit"
+          style             : "solid green"
       fields                :
         GroupName           :
           label             : "Group Name"
@@ -85,9 +91,6 @@ class PricingAppView extends KDView
           ]
 
   createGroup: ->
-    unless @subscription
-      return KD.showError "Subscription failed"
-
     groupName  = @groupForm.inputs.GroupName.getValue()
     visibility = @groupForm.inputs.Visibility.getValue()
     slug       = @groupForm.inputs.GroupUrl.getValue()
@@ -99,41 +102,43 @@ class PricingAppView extends KDView
       visibility : visibility
 
     {JGroup} = KD.remote.api
-    JGroup.create options, (err, group) =>
+    JGroup.create options, (err, group, subscription) =>
       return KD.showError err  if err
-      group.addSubscription @subscription.getId(), (err) =>
-        return KD.showError err  if err
-        @showSummaryModal group
-        # enter first post of group.
-        JGroup.createGroupBotAndPostMessage
-          "title": "Welcome"
-          "body" : "Welcome to your group."
-          "botname":"groupbot"
-        ,(err, update)->
-          return KD.showError err if err
 
+      @showSummaryModal group, subscription
 
-  showSummaryModal: (group)->
-    {planOptions: {userQuantity, resourceQuantity}} = @workflowData.productData
+      # enter first post of group.
+      JGroup.createGroupBotAndPostMessage
+        title   : "Welcome"
+        body    : "Welcome to your group."
+        botname : "groupbot"
+      , (err, update)->
+        return KD.showError err if err
 
-    modal              = new KDModalView
-      title            : "Group successfully created"
-      width            : 600
-      overlay          : yes
-      buttons          :
-        "Go to Group"  :
-          style        : "modal-clean-red"
-          callback     : ->
-            window.open "#{window.location.origin}/#{group.slug}", "_blank"
-        Close          :
-          style        : "modal-cancel"
-          callback     : -> modal.destroy()
-      content          :
-        """
-          <div>https://koding.com/#{group.slug}</div>
-          <div>Users: #{userQuantity}</div>
-          <div>Resource packs: #{resourceQuantity}</div>
-        """
+  showSummaryModal: (group, subscription) ->
+    { JPaymentProduct } = KD.remote.api
+
+    planCodes = Object.keys subscription.quantities
+
+    JPaymentProduct.some { planCode: $in: planCodes }, { limit: 30 },
+      (err, products) ->
+        return  if KD.showError err
+
+        modal              = new KDModalView
+          title            : "Group successfully created"
+          width            : 600
+          overlay          : yes
+          buttons          :
+            "Go to Group"  :
+              style        : "modal-clean-red"
+              callback     : ->
+                window.open "#{window.location.origin}/#{group.slug}", "_blank"
+            Close          :
+              style        : "modal-cancel"
+              callback     : -> modal.destroy()
+          content          : products.map (product) ->
+            "<div>#{ subscription.quantities[product.planCode] }x #{ product.title }</div>" 
+
 
   checkSlug: ->
     slug      = @groupForm.inputs.GroupUrl

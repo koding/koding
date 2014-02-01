@@ -73,7 +73,7 @@ class AvatarPopupGroupSwitcher extends AvatarPopup
       partial    : 'Create a group'
       click      : (event)=>
         KD.utils.stopDOMEvent event
-        router.handleRoute '/Pricing/Enterprise', entryPoint : 'koding'
+        router.handleRoute '/Pricing/CreateGroup', entryPoint : 'koding'
         @hide()
 
     backToKoding = new KDCustomHTMLView

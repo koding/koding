@@ -19,17 +19,22 @@ class ReferrerModalContent extends JView
 
     super options, data
 
+    url = KD.getReferralUrl KD.nick()
+
     @urlInput      = new KDInputView
-      defaultValue : KD.getReferralUrl KD.nick()
+      defaultValue : url
       cssClass     : "share-url-input"
       attributes   : readonly : "true"
       click        : -> @selectAll()
 
-    @twitter  = new TwitterShareLink  url: options.url, trackingName: "referrer"
-    @facebook = new FacebookShareLink url: options.url, trackingName: "referrer"
-    @linkedin = new LinkedInShareLink url: options.url, trackingName: "referrer"
+    @twitter  = new TwitterShareLink  { url , trackingName: "referrer" }
+    @facebook = new FacebookShareLink { url , trackingName: "referrer" }
+    @linkedin = new LinkedInShareLink { url , trackingName: "referrer" }
 
   pistachio: ->
+    subject = "Want an awesome 5GB server to code on#{encodeURIComponent("?")}"
+    body    = "Koding is giving away 100TB this week - my link gets you a 5GB VM! It's really cool! Click this link to get it (before it's over) #{KD.getReferralUrl KD.nick()}"
+
     """
       <div class="left">
         <div class="logo"></div>
@@ -51,6 +56,9 @@ class ReferrerModalContent extends JView
             {{> @facebook}}
             {{> @linkedin}}
           </div>
+          <a href="mailto:?subject=#{subject}&body=#{body}">
+            Invite via email...
+          </a>
         </div>
       </div>
     """

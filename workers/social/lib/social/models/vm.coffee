@@ -371,7 +371,7 @@ module.exports = class JVM extends Module
 
           JPaymentPack.one tags: "vm", (err, pack) =>
             return callback err  if err or not pack
-            subscription.debit pack, 1, (err) =>
+            subscription.debit {pack}, (err) =>
               return callback err  if err
               @createVm {
                 type      : "group"

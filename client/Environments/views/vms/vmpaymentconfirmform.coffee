@@ -5,7 +5,7 @@ class VmPaymentConfirmForm extends PlanUpgradeConfirmForm
 
     @pack = new KDView
       cssClass  : 'payment-confirm-pack'
-      partial   : 
+      partial   :
         """
         <h2>VM</h2>
         <p>#{ @getExplanation 'pack' }</p>
@@ -31,7 +31,7 @@ class VmPaymentConfirmForm extends PlanUpgradeConfirmForm
     else
       super key
 
-  setData: (data) ->    
+  setData: (data) ->
     super data
 
     throw new Error 'Product data was not provided!'  unless data.productData?
@@ -53,6 +53,5 @@ class VmPaymentConfirmForm extends PlanUpgradeConfirmForm
     {{> @pack}}
     {{> @plan}}
     {{> @subscription}}
-    {{> @payment}}
     {{> @buttonBar}}
     """

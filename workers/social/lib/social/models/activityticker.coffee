@@ -71,20 +71,19 @@ module.exports = class ActivityTicker extends Base
     JGroup            = require './group'
     from              = options.from or +(new Date())
 
-    relOptions        =    # do not fetch more than 15 at once
-      limit           : 10 # Math.min options.limit ? 15, 15
-      sort            : timestamp : -1
+    JGroup.canReadGroupActivity client, (err, hasPermission)->
+      return callback new Error "Not allowed to open this group"  if err or not hasPermission
 
-    JGroup.one slug : groupSlug, (err, group)->
-      return callback err if err
-      return callback new Error "Group not found" if not group
-
-      selector    =
+      relSelector =
         timestamp : {"$lt" : new Date(from)}
         data      :
           group   : groupSlug
 
-      Relationship.some selector, relOptions, (err, relationships) ->
+      relOptions  =    # do not fetch more than 15 at once
+        limit     : 5 # Math.min options.limit ? 15, 15
+        sort      : timestamp : -1
+
+      Relationship.some relSelector, relOptions, (err, relationships) ->
         buckets = []
         return  callback err, buckets  if err
         queue = relationships.map (relationship) ->
