@@ -1,0 +1,29 @@
+[
+  {
+      "title"            : "VM",
+      "priceIsVolatile"  : true,
+      "tags"             : ["vm"],
+      "subscriptionType" : "mo",
+      "feeInterval"      : 1,
+      "feeUnit"          : "months",
+      "group"            : "koding"
+  },
+  {
+      "title"            : "User",
+      "priceIsVolatile"  : true,
+      "tags"             : ["user", "custom-plan"],
+      "subscriptionType" : "mo",
+      "feeInterval"      : 1,
+      "feeUnit"          : "months",
+      "group"            : "koding"
+  },
+  {
+      "title"            : "Group",
+      "priceIsVolatile"  : true,
+      "tags"             : ["group"],
+      "subscriptionType" : "mo",
+      "feeInterval"      : 1,
+      "feeUnit"          : "months",
+      "group"            : "koding"
+  }
+]

@@ -107,14 +107,6 @@ class PricingAppView extends KDView
 
       @showSummaryModal group, subscription
 
-      # enter first post of group.
-      JGroup.createGroupBotAndPostMessage
-        title   : "Welcome"
-        body    : "Welcome to your group."
-        botname : "groupbot"
-      , (err, update)->
-        return KD.showError err if err
-
   showSummaryModal: (group, subscription) ->
     { JPaymentProduct } = KD.remote.api
 
