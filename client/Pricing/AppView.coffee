@@ -2,49 +2,88 @@ class PricingAppView extends KDView
 
   addWorkflow: (@workflow) ->
     @addSubView @workflow
-    @workflow.on 'Finished', @bound "showThankYou"
+    @workflow.on 'Finished', @bound "workflowFinished"
     @workflow.on 'Cancel', @bound "showCancellation"
 
   hideWorkflow: ->
     @workflow.hide()
 
-  showThankYou: (@workflowData, @subscription) ->
+  workflowFinished: (@formData, @subscription, @nonce) ->
     @hideWorkflow()
 
-    @goToVmButton = new KDButtonView
-      style       : "solid green"
-      title       : "GO TO MY VM"
-      callback    : ->
-        KD.singleton("router").handleRoute "/Environments"
+    {productData: {plan: {tags}}} = @formData
+    if "vm" in tags
+    then @showPaymentSucceded()
+    else if "custom-plan" in tags
+    then @showGroupForm()
 
-    @thankYou = new KDCustomHTMLView
-      cssClass: "pricing-thank-you"
-      partial:
+  showCancellation: ->
+    return  if @cancellation
+    @hideWorkflow()
+    @cancellation = new KDView partial: "<h1>This order has been cancelled.</h1>"
+    @addSubView @cancellation
+
+  showGroupForm: ->
+    return  if @groupForm and not @groupForm.isDestroyed
+    @hideWorkflow()
+    @addSubView @groupForm = @createGroupForm()
+
+  showPaymentSucceded: ->
+    subtitle =
+      if @formData.createAccount
+      then "Please check your email to complete your registration."
+      else "Now it’s time, time to start Koding!"
+
+    @addSubView thankYou = new KDCustomHTMLView
+      cssClass : "pricing-thank-you"
+      partial  :
         """
         <i class="check-icon"></i>
         <h3 class="pricing-title">So much wow, so much horse-power!</h3>
-        <h6 class="pricing-subtitle">Now it’s time, time to start Koding!</h6>
-
-        #{
-          if @subscription.createAccount
-          then '<p>Please check your email for your registration link.</p>'
-          else ''
-        }
+        <h6 class="pricing-subtitle">#{subtitle}</h6>
         """
 
-    @thankYou.addSubView @goToVmButton
+    if @formData.loggedIn
+      thankYou.addSubView new KDButtonView
+        style    : "solid green"
+        title    : "Go to your environment"
+        callback : ->
+          KD.singleton("router").handleRoute "/Environments"
 
-    if "custom-plan" in @workflowData.productData.plan.tags
-      @thankYou.addSubView @createGroupNameForm()
+  showGroupCreated: (group, subscription) ->
+    planCodes = Object.keys subscription.quantities
+    KD.remote.api.JPaymentProduct.some {planCode: $in: planCodes}, limit: 30, (err, products) =>
+      return  if KD.showError err
 
-    @addSubView @thankYou
+      subtitle =
+        if @formData.createAccount
+        then "Please check your email to complete your registration."
+        else ""
 
-  showGroupCreateForm: ->
-    unless @groupForm?
-      @addSubView @groupForm = @createGroupNameForm()
+      @addSubView thankYou = new KDCustomHTMLView
+        cssClass : "pricing-thank-you"
+        partial  :
+          """
+          <i class="check-icon"></i>
+          <h3 class="pricing-title"><strong>#{group.title}</strong> has been successfully created</h3>
+          <h6 class="pricing-subtitle">#{subtitle}</h6>
+          """
 
-  createGroupNameForm: ->
-    @groupForm              = new KDFormViewWithFields
+      productList = products.map (product) ->
+        "<div>#{subscription.quantities[product.planCode]}x #{product.title}</div>"
+
+      thankYou.addSubView new KDCustomHTMLView
+        cssClass : "product-list"
+        partial  : productList.join ""
+
+      if @formData.loggedIn
+        thankYou.addSubView new KDButtonView
+          title    : "Go to Group"
+          callback : ->
+            window.open "#{window.location.origin}/#{group.slug}", "_blank"
+
+  createGroupForm: ->
+    return new KDFormViewWithFields
       title                 : "Enter new group name"
       cssClass              : "pricing-create-group"
       callback              : @bound "createGroup"
@@ -78,7 +117,7 @@ class PricingAppView extends KDView
         Slug                :
           label             : "Address"
           itemClass         : KDCustomHTMLView
-          partial           : "#{location.protocol}//#{location.host}/"
+          partial           : "#{window.location.origin}"
         Visibility          :
           itemClass         : KDSelectBox
           label             : "Visibility"
@@ -86,8 +125,8 @@ class PricingAppView extends KDView
           name              : "visibility"
           defaultValue      : "hidden"
           selectOptions     : [
-            { title : "Hidden",    value : "hidden"  }
-            { title : "Visible",   value : "visible" }
+            title : "Hidden" ,   value : "hidden"
+            title : "Visible",   value : "visible"
           ]
 
   createGroup: ->
@@ -100,37 +139,22 @@ class PricingAppView extends KDView
       body       : groupName
       slug       : slug
       visibility : visibility
+      nonce      : @nonce
 
     {JGroup} = KD.remote.api
     JGroup.create options, (err, group, subscription) =>
       return KD.showError err  if err
 
-      @showSummaryModal group, subscription
+      @groupForm.destroy()
+      @showGroupCreated group, subscription
 
-  showSummaryModal: (group, subscription) ->
-    { JPaymentProduct } = KD.remote.api
-
-    planCodes = Object.keys subscription.quantities
-
-    JPaymentProduct.some { planCode: $in: planCodes }, { limit: 30 },
-      (err, products) ->
-        return  if KD.showError err
-
-        modal              = new KDModalView
-          title            : "Group successfully created"
-          width            : 600
-          overlay          : yes
-          buttons          :
-            "Go to Group"  :
-              style        : "modal-clean-red"
-              callback     : ->
-                window.open "#{window.location.origin}/#{group.slug}", "_blank"
-            Close          :
-              style        : "modal-cancel"
-              callback     : -> modal.destroy()
-          content          : products.map (product) ->
-            "<div>#{ subscription.quantities[product.planCode] }x #{ product.title }</div>" 
-
+      # enter first post of group.
+      JGroup.createGroupBotAndPostMessage
+        title   : "Welcome"
+        body    : "Welcome to your group."
+        botname : "groupbot"
+      , (err) ->
+        KD.showError err
 
   checkSlug: ->
     slug      = @groupForm.inputs.GroupUrl
@@ -142,9 +166,3 @@ class PricingAppView extends KDView
       KD.remote.api.JGroup.suggestUniqueSlug slugy, (err, newSlug)->
         slugView.updatePartial "#{location.origin}/#{newSlug}"
         slug.setValue newSlug
-
-  showCancellation: ->
-    @hideWorkflow()
-    return  if @cancellation
-    @cancellation = new KDView partial: "<h1>This order has been cancelled.</h1>"
-    @addSubView @cancellation

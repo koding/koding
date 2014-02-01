@@ -11,6 +11,10 @@ module.exports = class JGroup extends Module
 
   JPermissionSet = require './permissionset'
   {permit}       = JPermissionSet
+
+  JAccount = require '../account'
+  JPaymentFulfillmentNonce = require '../payment/nonce'
+
   KodingError    = require '../../error'
   Validators     = require './validators'
   {throttle}     = require 'underscore'
@@ -480,14 +484,30 @@ module.exports = class JGroup extends Module
       daisy queue
 
   @create$ = secure (client, formData, callback)->
-    JAccount = require '../account'
     {delegate} = client.connection
+
+    {nonce} = formData
+
+    if nonce
+      JPaymentFulfillmentNonce.one {nonce}, (err, nonce) =>
+        return callback err  if err
+        return callback "Payment fulfillment nonce is invalid"  unless nonce.action is "debit"
+        nonce.fetchOwner (err, owner) =>
+          return callback err  if err
+          subOptions = targetOptions: selector: tags: 'custom-plan'
+          owner.fetchSubscription {}, subOptions, (err, subscription) =>
+            return callback err  if err
+            @create formData, owner, (err, group) ->
+              nonce.update $set: action: "used", (err) ->
+                return callback err  if err
+                callback null, group, subscription
+      return
 
     @one slug: 'koding', (err, koding) =>
       return callback err  if err
 
       packOptions = targetOptions: selector: tags: 'group'
-      
+
       koding.fetchPack {}, packOptions, (err, pack) =>
         return callback err  if err
         return callback message: "Pack not found!"  unless pack?
@@ -499,15 +519,15 @@ module.exports = class JGroup extends Module
           unless subscription?
             return callback message: "Subscription required!"
 
-          subscription.checkUsage pack, (err, nonce) =>
+          subscription.checkUsage pack, (err) =>
             return callback err  if err
 
-            @create client, formData, delegate, (err, group) =>
+            @create client, formData, delegate, (err, group) ->
               return callback err  if err
 
               debitOptions = {
                 pack
-                # avoid creating a nonce, we'll debit the subscription and 
+                # avoid creating a nonce, we'll debit the subscription and
                 # create the group all at once.
                 shouldCreateNonce: no
               }

@@ -6,7 +6,7 @@ class PricingAppController extends KDViewController
   KD.registerAppClass this,
     name                         : "Pricing"
     routes                       :
-      "/:name?/Pricing"          : -> 
+      "/:name?/Pricing"          : ->
         (KD.getSingleton 'router').handleRoute '/Pricing/Developer'
       "/:name?/Pricing/:section" : ({params:{section}})->
         handler (app)->
@@ -53,12 +53,3 @@ class PricingAppController extends KDViewController
     KD.remote.api.JPaymentPlan.one tags: $in: [tag], (err, plan) =>
       return  if KD.showError err
       @productForm.emit "PlanSelected", plan, options
-
-    # TODO : remove after test
-    # workflow.emit "Finished",
-    #     productData          :
-    #       planOptions        :
-    #         userQuantity     :  5 # arabada
-    #         resourceQuantity : 15 # evde
-    #       plan               :
-    #         tags             : ["custom-plan"]

@@ -1,4 +1,6 @@
 JResourcePlan = require './resourceplan'
+JPaymentPack  = require './pack'
+JPaymentFulfillmentNonce = require './nonce'
 
 module.exports = class JGroupPlan extends JResourcePlan
 
@@ -100,4 +102,12 @@ module.exports = class JGroupPlan extends JResourcePlan
 
       options.feeAmount = calculateCustomPlanUnitAmount userQuantity, resourceQuantity
 
-    subscribeToPlan.call this, client, options, callback
+    subscribeToPlan.call this, client, options, (err, subscription) ->
+      return callback err  if err
+      JPaymentPack.one tags: "group", (err, pack) ->
+        return callback err  if err
+        subscription.debit {pack, shouldCreateNonce: yes}, (err, nonce) ->
+          JPaymentFulfillmentNonce.one {nonce}, (err, nonce) ->
+            return callback err  if err
+            nonce.addOwner client.connection.delegate, (err) ->
+              callback err, subscription, nonce.nonce
