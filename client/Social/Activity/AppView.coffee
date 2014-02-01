@@ -175,8 +175,7 @@ class ReferalBox extends JView
       title       : '0 GB / 16 GB'
       determinate : yes
 
-  click : -> @showReferrerModal()
-
+  # click : -> @showReferrerModal()
 
   showRedeemReferralPointModal:->
     KD.mixpanel "Referer Redeem Point modal, click"
@@ -222,10 +221,16 @@ class ReferalBox extends JView
 
   pistachio:->
     """
-    <strong>#Crazy100TBWeek</strong>
+
     <p>
-    Only this week, share your link, they get 5GB instead of 4GB, and you get 1GB extra! {{> @modalLink}}
-    {{> @redeemPointsModal}}
+      <a href="http://blog.koding.com/2014/01/100tb-is-gone-in-1-day-crazy100tbweek-is-over/">
+        100TB is gone in 1 Day
+      </a>
+      <a href="https://twitter.com/search?q=%23Crazy100TBWeek">#Crazy100TBWeek</a>
+      is Over :( we will enable invitations again soon! Follow us on
+      <a href="http://twitter.com/koding">Twitter</a>, we might do some
+      more fun stuff soon :)
+      {{> @redeemPointsModal}}
     </p>
     {{> @progressBar}}
     """

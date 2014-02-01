@@ -1,0 +1,60 @@
+
+.class-model-panel {
+    border-top:1px solid #DDD;
+}
+
+.class-model-panel .kdsplitview-resizer {
+    width: 5px;
+}
+
+.class-item {
+    padding: 2px;
+    padding-left: 6px;
+}
+
+.class-item a {
+    text-decoration:none;
+}
+
+.test-input {
+    margin: 6px;
+    width: 98%;
+}
+
+.test-switch {
+    position: absolute;
+    right: 4px;
+    top: 4px;   
+    z-index:1000;
+}
+
+.test-button {
+    position: absolute;
+    right: 8px;   
+}
+
+.test-input-view {
+    background-color: lightgray;
+}
+
+.command-input, .output-screen {
+    font-family: monospace;
+}
+
+.output-screen {
+    min-height: 200px;
+}
+
+.button-area {
+    text-align: center;   
+}
+
+.information-box {
+    width: auto;
+    height: auto;
+    padding: 10px;
+    background-color: #EEE;
+    border: 1px solid #DDD;
+    border-radius: 4px;
+    margin: 4px;
+}
