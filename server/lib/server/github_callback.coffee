@@ -56,6 +56,8 @@ module.exports = (req, res) ->
       resp["username"]  = login
       resp["profile"]   = userInfo
 
+      headers["Accept"] = "application/vnd.github.v3.full+json"
+
       # Some users don't have email in public profile, so we make 2nd call
       # to get them.
       if not email? or email is ""
@@ -74,9 +76,8 @@ module.exports = (req, res) ->
     userEmailResp.on "data", (chunk) -> rawResp += chunk
     userEmailResp.on "end", ->
       emails = JSON.parse(rawResp)
-      emails = emails.filter (email)-> !/noreply.github/.test email
-
-      originalResp.email = emails[0]
+      for email in emails when email.verified and email.primary
+        originalResp.email = email
 
       saveOauthAndRenderPopup originalResp, res, clientId
 
