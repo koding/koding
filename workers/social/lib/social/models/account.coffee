@@ -1424,9 +1424,7 @@ module.exports = class JAccount extends jraphical.Module
         targetName: "JDomain"
         sourceId  : @getId()
         sourceName: "JAccount"
-      ,
-        targetId : 1
-      , (err, rels)->
+      , {}, (err, rels)->
         return callback err if err
 
         selector = $or : [
