@@ -238,13 +238,158 @@ func NewClient(session *sockjs.Session, broker *Broker) *Client {
 		panic(err)
 	}
 
+	subscriptions := make(map[string]bool)
+
+	fmt.Println("adding to subscriptionsMap")
+	globalMapMutex.Lock()
+	socketSubscriptionsMap[socketID] = &subscriptions
+	globalMapMutex.Unlock()
+
+	fmt.Println("returning new client")
 	return &Client{
 		Session:        session,
 		SocketId:       socketID,
 		ControlChannel: controlChannel,
 		Broker:         broker,
-		Subscriptions:  make(map[string]bool),
+		Subscriptions:  subscriptions,
 	}
+}
+
+func (c *Client) Close() {
+	globalMapMutex.Lock()
+	for routingKeyPrefix := range c.Subscriptions {
+		c.RemoveFromRoute(routingKeyPrefix)
+	}
+	globalMapMutex.Unlock()
+
+	time.AfterFunc(5*time.Minute, func() {
+		globalMapMutex.Lock()
+		delete(socketSubscriptionsMap, c.SocketId)
+		globalMapMutex.Unlock()
+	})
+
+	for {
+		err := c.ControlChannel.Publish(config.Current.Broker.AuthAllExchange, "broker.clientDisconnected", false, false, amqp.Publishing{Body: []byte(c.SocketId)})
+		if err == nil {
+			break
+		}
+		if amqpError, isAmqpError := err.(*amqp.Error); !isAmqpError || amqpError.Code != 504 {
+			panic(err)
+		}
+		c.resetControlChannel()
+	}
+}
+
+func (b *Broker) sockjsSession(session *sockjs.Session) {
+	defer log.RecoverAndLog()
+
+	client := NewClient(session, b)
+
+	sessionGaugeEnd := client.gaugeStart()
+	defer sessionGaugeEnd()
+	defer client.ControlChannel.Close()
+	defer client.Close()
+
+	defer func() {
+	}()
+
+	fmt.Println("publishing broker client connected")
+	err := client.ControlChannel.Publish(config.Current.Broker.AuthAllExchange, "broker.clientConnected", false, false, amqp.Publishing{Body: []byte(client.SocketId)})
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Println("sending to client broker.Connected")
+	sendToClient(session, "broker.connected", client.SocketId)
+
+	for data := range session.ReceiveChan {
+		if data == nil || session.Closed {
+			break
+		}
+
+		func() {
+			defer log.RecoverAndLog()
+
+			message := data.(map[string]interface{})
+			log.Debug("Received message: %v", message)
+
+			action := message["action"]
+			switch action {
+			case "subscribe":
+				globalMapMutex.Lock()
+				defer globalMapMutex.Unlock()
+				for _, routingKeyPrefix := range strings.Split(message["routingKeyPrefix"].(string), " ") {
+					client.Subscribe(routingKeyPrefix)
+				}
+
+				sendToClient(session, "broker.subscribed", message["routingKeyPrefix"])
+
+			case "resubscribe":
+				globalMapMutex.Lock()
+				defer globalMapMutex.Unlock()
+				oldSubscriptions, found := socketSubscriptionsMap[message["socketId"].(string)]
+				if found {
+					for routingKeyPrefix := range *oldSubscriptions {
+						client.Subscribe(routingKeyPrefix)
+					}
+				}
+				sendToClient(session, "broker.resubscribed", found)
+
+			case "unsubscribe":
+				globalMapMutex.Lock()
+				defer globalMapMutex.Unlock()
+				for _, routingKeyPrefix := range strings.Split(message["routingKeyPrefix"].(string), " ") {
+					client.Unsubscribe(routingKeyPrefix)
+				}
+
+			case "publish":
+				exchange := message["exchange"].(string)
+				routingKey := message["routingKey"].(string)
+				payload := message["payload"].(string)
+
+				publish := func(exchange, routingKey, payload string) error {
+					if !strings.HasPrefix(routingKey, "client.") {
+						return fmt.Errorf("Invalid routing key: %v socketId: %v", routingKey, client.SocketId)
+					}
+
+					for {
+						client.LastPayload = ""
+						err := client.ControlChannel.Publish(exchange, routingKey, false, false, amqp.Publishing{CorrelationId: client.SocketId, Body: []byte(payload)})
+						if err == nil {
+							client.LastPayload = payload
+							break
+						}
+
+						if amqpError, isAmqpError := err.(*amqp.Error); !isAmqpError || amqpError.Code != 504 {
+							log.Warning("payload: %v routing key: %v exchange: %v err: %v",
+								payload, routingKey, exchange, err)
+						}
+
+						time.Sleep(time.Second / 4) // penalty for crashing the AMQP channel
+						client.resetControlChannel()
+					}
+
+					return nil
+				}
+
+				publish(exchange, routingKey, payload)
+
+			case "ping":
+				sendToClient(session, "broker.pong", nil)
+
+			default:
+				log.Warning("Invalid action. message: %v socketId: %v", message, client.SocketId)
+
+			}
+		}()
+	}
+}
+
+// randomString() returns a new 16 char length random string
+func randomString() string {
+	r := make([]byte, 128/8)
+	rand.Read(r)
+	return base64.StdEncoding.EncodeToString(r)
 }
 
 // gaugeStart starts the gauge for a given session. It returns a new
@@ -333,137 +478,4 @@ func (c *Client) Subscribe(routingKeyPrefix string) {
 func (c *Client) Unsubscribe(routingKeyPrefix string) {
 	c.RemoveFromRoute(routingKeyPrefix)
 	delete(c.Subscriptions, routingKeyPrefix)
-}
-
-func (b *Broker) sockjsSession(session *sockjs.Session) {
-	defer log.RecoverAndLog()
-
-	client := NewClient(session, b)
-
-	sessionGaugeEnd := client.gaugeStart()
-	defer sessionGaugeEnd()
-
-	defer client.ControlChannel.Close()
-
-	globalMapMutex.Lock()
-	socketSubscriptionsMap[client.SocketId] = &client.Subscriptions
-	globalMapMutex.Unlock()
-
-	defer func() {
-		globalMapMutex.Lock()
-		for routingKeyPrefix := range client.Subscriptions {
-			client.RemoveFromRoute(routingKeyPrefix)
-		}
-		globalMapMutex.Unlock()
-
-		time.AfterFunc(5*time.Minute, func() {
-			globalMapMutex.Lock()
-			delete(socketSubscriptionsMap, client.SocketId)
-			globalMapMutex.Unlock()
-		})
-
-		for {
-			err := client.ControlChannel.Publish(config.Current.Broker.AuthAllExchange, "broker.clientDisconnected", false, false, amqp.Publishing{Body: []byte(client.SocketId)})
-			if err == nil {
-				break
-			}
-			if amqpError, isAmqpError := err.(*amqp.Error); !isAmqpError || amqpError.Code != 504 {
-				panic(err)
-			}
-			client.resetControlChannel()
-		}
-	}()
-
-	err := client.ControlChannel.Publish(config.Current.Broker.AuthAllExchange, "broker.clientConnected", false, false, amqp.Publishing{Body: []byte(client.SocketId)})
-	if err != nil {
-		panic(err)
-	}
-
-	sendToClient(session, "broker.connected", client.SocketId)
-
-	for data := range session.ReceiveChan {
-		if data == nil || session.Closed {
-			break
-		}
-
-		defer log.RecoverAndLog()
-
-		message := data.(map[string]interface{})
-		log.Debug("Received message: %v", message)
-
-		action := message["action"]
-		switch action {
-		case "subscribe":
-			globalMapMutex.Lock()
-			defer globalMapMutex.Unlock()
-			for _, routingKeyPrefix := range strings.Split(message["routingKeyPrefix"].(string), " ") {
-				client.Subscribe(routingKeyPrefix)
-			}
-			sendToClient(session, "broker.subscribed", message["routingKeyPrefix"])
-
-		case "resubscribe":
-			globalMapMutex.Lock()
-			defer globalMapMutex.Unlock()
-			oldSubscriptions, found := socketSubscriptionsMap[message["socketId"].(string)]
-			if found {
-				for routingKeyPrefix := range *oldSubscriptions {
-					client.Subscribe(routingKeyPrefix)
-				}
-			}
-			sendToClient(session, "broker.resubscribed", found)
-
-		case "unsubscribe":
-			globalMapMutex.Lock()
-			defer globalMapMutex.Unlock()
-			for _, routingKeyPrefix := range strings.Split(message["routingKeyPrefix"].(string), " ") {
-				client.Unsubscribe(routingKeyPrefix)
-			}
-
-		case "publish":
-			exchange := message["exchange"].(string)
-			routingKey := message["routingKey"].(string)
-			payload := message["payload"].(string)
-
-			publish := func(exchange, routingKey, payload string) error {
-				if !strings.HasPrefix(routingKey, "client.") {
-					return fmt.Errorf("Invalid routing key: %v socketId: %v", routingKey, client.SocketId)
-				}
-
-				for {
-					client.LastPayload = ""
-					err := client.ControlChannel.Publish(exchange, routingKey, false, false, amqp.Publishing{CorrelationId: client.SocketId, Body: []byte(payload)})
-					if err == nil {
-						client.LastPayload = payload
-						break
-					}
-
-					if amqpError, isAmqpError := err.(*amqp.Error); !isAmqpError || amqpError.Code != 504 {
-						log.Warning("payload: %v routing key: %v exchange: %v err: %v",
-							payload, routingKey, exchange, err)
-					}
-
-					time.Sleep(time.Second / 4) // penalty for crashing the AMQP channel
-					client.resetControlChannel()
-				}
-
-				return nil
-			}
-
-			publish(exchange, routingKey, payload)
-
-		case "ping":
-			sendToClient(session, "broker.pong", nil)
-
-		default:
-			log.Warning("Invalid action. message: %v socketId: %v", message, client.SocketId)
-
-		}
-	}
-}
-
-// randomString() returns a new 16 char length random string
-func randomString() string {
-	r := make([]byte, 128/8)
-	rand.Read(r)
-	return base64.StdEncoding.EncodeToString(r)
 }
