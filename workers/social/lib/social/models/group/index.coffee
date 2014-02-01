@@ -971,7 +971,7 @@ module.exports = class JGroup extends Module
         return callback new KodingError 'Invitation code is invalid!'  unless invite
         delegate.fetchUser (err, user)=>
           return callback err  if err
-          unless user.email is invite.email
+          unless invite.type is 'multiuse' or user.email is invite.email
             return callback new KodingError 'Are you sure invitation e-mail is for you?'
           @approveMember delegate, (err)->
             return callback err  if err
