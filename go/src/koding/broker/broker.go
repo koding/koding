@@ -158,17 +158,17 @@ func (b *Broker) startSockJS() {
 	service.ErrorHandler = log.LogError
 
 	// TODO use http.Mux instead of sockjs.Mux.
-	server := &http.Server{
-		Handler: &sockjs.Mux{
-			Handlers: map[string]http.Handler{
-				"/subscribe": service,
-				"/buildnumber": http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-					w.Header().Set("Content-Type", "text/plain")
-					w.Write([]byte(strconv.Itoa(config.Current.BuildNumber)))
-				}),
-			},
+	mux := &sockjs.Mux{
+		Handlers: map[string]http.Handler{
+			"/subscribe": service,
+			"/buildnumber": http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				w.Header().Set("Content-Type", "text/plain")
+				w.Write([]byte(strconv.Itoa(config.Current.BuildNumber)))
+			}),
 		},
 	}
+
+	server := &http.Server{Handler: mux}
 
 	var listener net.Listener
 	listener, err := net.ListenTCP("tcp", &net.TCPAddr{IP: net.ParseIP(config.Current.Broker.IP), Port: config.Current.Broker.Port})

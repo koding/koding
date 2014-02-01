@@ -49,6 +49,7 @@ func NewClient(session *sockjs.Session, broker *Broker) *Client {
 	}
 }
 
+// Close should be called whenever a client disconnects.
 func (c *Client) Close() {
 	globalMapMutex.Lock()
 	for routingKeyPrefix := range c.Subscriptions {
