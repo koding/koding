@@ -17,6 +17,6 @@ class VmProductView extends KDListItemView
   pistachio: ->
     """
     {h3{ #(title) }}
-    {p{ #(description) }}
+    {p{ #(description) or "" }}
     {{> @chooseButton}}
     """
