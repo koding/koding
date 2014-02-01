@@ -46,8 +46,8 @@ class HomePage extends JView
 
     @markers = new MarkerController
 
-    @resourcePackPlan  = new ResourcePackPlan
-    @customPlan        = new CustomPlan
+    @resourcePackPlan  = new IntroResourcePackPlan
+    @customPlan        = new IntroCustomPlan
     @campaignContainer = new KDCustomHTMLView
 
     if KD.campaign?.status
@@ -202,14 +202,14 @@ class HomePage extends JView
             <span class='icon'></span>
             <article>
               <h4>USE IT IN YOUR SCHOOL</h4>
-              Koding in the classroom, prepare your files online, share them with the whole class instantly. Collaborate live or just make your students watch what you're doing.
+              Prepare your files online and share them with the whole class instantly. Collaborate live with your students or let them follow along what you're doing.
             </article>
           </div>
           <div class='project clearfix'>
             <span class='icon'></span>
             <article>
               <h4>CREATE PROJECT GROUPS</h4>
-              Want to work on a project with your buddies and use the same resources and running instances, share a VM between your fellow developers.
+              Want to work on a project with your buddies and use the same workspace? Share your VM with your fellow developers.
             </article>
           </div>
         </div>
