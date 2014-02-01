@@ -80,7 +80,7 @@ module.exports = class ActivityTicker extends Base
           group   : groupSlug
 
       relOptions  =    # do not fetch more than 15 at once
-        limit     : 10 # Math.min options.limit ? 15, 15
+        limit     : 5 # Math.min options.limit ? 15, 15
         sort      : timestamp : -1
 
       Relationship.some relSelector, relOptions, (err, relationships) ->
