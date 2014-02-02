@@ -487,56 +487,22 @@ module.exports = class JGroup extends Module
     {delegate} = client.connection
 
     {nonce} = formData
+    delete formData.nonce
 
-    if nonce
-      JPaymentFulfillmentNonce.one {nonce}, (err, nonce) =>
+    JPaymentFulfillmentNonce.one {nonce}, (err, nonce) =>
+      return callback err  if err
+      return callback "Payment fulfillment nonce is invalid"  unless nonce.action is "debit"
+      nonce.fetchOwner (err, owner) =>
         return callback err  if err
-        return callback "Payment fulfillment nonce is invalid"  unless nonce.action is "debit"
-        nonce.fetchOwner (err, owner) =>
+        subOptions = targetOptions: selector: tags: "custom-plan"
+        owner.fetchSubscription {}, subOptions, (err, subscription) =>
           return callback err  if err
-          subOptions = targetOptions: selector: tags: 'custom-plan'
-          owner.fetchSubscription {}, subOptions, (err, subscription) =>
-            return callback err  if err
-            @create formData, owner, (err, group) ->
-              nonce.update $set: action: "used", (err) ->
+          @create client, formData, owner, (err, group) ->
+            nonce.update $set: action: "used", (err) ->
+              return callback err  if err
+              group.addSubscription subscription, (err) ->
                 return callback err  if err
                 callback null, group, subscription
-      return
-
-    @one slug: 'koding', (err, koding) =>
-      return callback err  if err
-
-      packOptions = targetOptions: selector: tags: 'group'
-
-      koding.fetchPack {}, packOptions, (err, pack) =>
-        return callback err  if err
-        return callback message: "Pack not found!"  unless pack?
-
-        subOptions = targetOptions: selector: tags: 'custom-plan'
-
-        delegate.fetchSubscription {}, subOptions, (err, subscription) =>
-          return callback err  if err
-          unless subscription?
-            return callback message: "Subscription required!"
-
-          subscription.checkUsage pack, (err) =>
-            return callback err  if err
-
-            @create client, formData, delegate, (err, group) ->
-              return callback err  if err
-
-              debitOptions = {
-                pack
-                # avoid creating a nonce, we'll debit the subscription and
-                # create the group all at once.
-                shouldCreateNonce: no
-              }
-
-              subscription.debit debitOptions, (err) ->
-                return callback err  if err
-                group.addSubscription subscription, (err) ->
-                  return callback err  if err
-                  callback null, group, subscription
 
   @findSuggestions = (client, seed, options, callback)->
     {limit, blacklist, skip}  = options

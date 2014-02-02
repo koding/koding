@@ -199,7 +199,7 @@ class PaymentController extends KDController
           JUser.logout (err) ->
             callback err, subscription, rest...
       else
-        callback err, subscription
+        callback err, subscription, rest...
 
   transitionSubscription: (formData, callback) ->
     { productData, oldSubscription, promotionType, paymentMethod, createAccount, email } = formData
