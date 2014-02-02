@@ -30,6 +30,10 @@ class SubscriptionUsageView extends KDView
 
     items = @getGauges()
     controller.instantiateListItems items
+    KD.getSingleton("vmController").on 'VMListChanged', => 
+      items = @getGauges()
+      controller.removeAllItems()
+      controller.instantiateListItems items
 
     controller
 
