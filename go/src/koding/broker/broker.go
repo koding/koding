@@ -92,6 +92,11 @@ func (b *Broker) Run() {
 func (b *Broker) Start() {
 	go b.Run()
 	<-b.listenerReady
+
+	// I don't know why this is happening because of recovering panics.
+	// Putting this sleep here to prevent it from happening.
+	// Remove this hack after getting rid of defer recoverAndLog() statements.
+	time.Sleep(1 * time.Second)
 }
 
 // Close close all amqp connections and closes the SockJS server listener

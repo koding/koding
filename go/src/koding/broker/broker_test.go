@@ -2,9 +2,12 @@ package main
 
 import (
 	"bytes"
+	crand "crypto/rand"
+	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"math/rand"
 	"testing"
 	"time"
 
@@ -13,17 +16,23 @@ import (
 
 // sock.js protocol is described here:
 // http://sockjs.github.io/sockjs-protocol/sockjs-protocol-0.3.3.html#section-36
-const url = "ws://localhost:8008/subscribe/0/0/websocket"
-const origin = "http://localhost/"
+const url = "ws://localhost:8008/subscribe/%d/%s/websocket"
+const origin = "http://localhost/" // not checked on broker
+
+// returna a new sockjs url for client
+func newURL() string {
+	return fmt.Sprintf(url, rand.Intn(1000), RandomStringLength(8))
+}
 
 func init() {
-	// Start broker before tests
-	go main()
-	time.Sleep(1e9)
+	rand.Seed(time.Now().UnixNano())
 }
 
 func TestBroker(t *testing.T) {
-	client, err := dialSockJS(url, origin)
+	broker := NewBroker()
+	broker.Start()
+
+	client, err := dialSockJS(newURL(), origin)
 	if err != nil {
 		t.Errorf(err.Error())
 		return
@@ -45,6 +54,7 @@ func TestBroker(t *testing.T) {
 	}
 
 	client.Close()
+	broker.Close()
 }
 
 // cheap imitation of sockjs-client js library
@@ -84,6 +94,16 @@ func (c *sockJSClient) Run() error {
 
 func (c *sockJSClient) Close() {
 	c.ws.Close()
+}
+
+// Send a []byte message to server
+func (c *sockJSClient) Send(data []byte) error {
+	return websocket.Message.Send(c.ws, data)
+}
+
+// Send a string message to server
+func (c *sockJSClient) SendString(s string) error {
+	return websocket.Message.Send(c.ws, s)
 }
 
 // adapted from: https://github.com/sockjs/sockjs-client/blob/master/lib/sockjs.js#L146
@@ -126,13 +146,14 @@ func (c *sockJSClient) SendAndExpectString(sent, expected string) error {
 
 // send a []byte and expect reply
 func (c *sockJSClient) SendAndExpect(sent []byte, expected []byte) error {
-	err := websocket.Message.Send(c.ws, sent)
+	err := c.Send(sent)
 	if err != nil {
 		return err
 	}
 	fmt.Printf("--- sent data: %+v\n", string(sent))
 
 	for {
+		timeout := time.After(1e9)
 		select {
 		case msg := <-c.messages:
 			fmt.Printf("--- msg: %+v\n", string(msg))
@@ -140,10 +161,16 @@ func (c *sockJSClient) SendAndExpect(sent []byte, expected []byte) error {
 			if bytes.Compare(msg, expected) == 0 {
 				return nil
 			}
-		case <-time.After(1e9):
+		case <-timeout:
 			return errors.New("timeout")
 		}
 	}
 
 	return nil
+}
+
+func RandomStringLength(length int) string {
+	r := make([]byte, length*6/8)
+	crand.Read(r)
+	return base64.URLEncoding.EncodeToString(r)
 }
