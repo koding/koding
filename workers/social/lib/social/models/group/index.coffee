@@ -415,8 +415,8 @@ module.exports = class JGroup extends Module
       JName                 = require '../name'
       group                 = new this groupData
       group.privacy         = 'private'
-      permissionSet         = new JPermissionSet {}, {privacy: group.privacy}
-      defaultPermissionSet  = new JPermissionSet {}, {privacy: group.privacy}
+      permissionSet         = new JPermissionSet {}, {privacy: group.privacy, isCustom: true}
+      defaultPermissionSet  = new JPermissionSet {}, {privacy: group.privacy, isCustom: true}
 
       queue = [
         -> group.useSlug group.slug, (err, slug)->
