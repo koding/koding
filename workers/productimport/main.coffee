@@ -42,42 +42,55 @@ importPacks = (callback) ->
   data = require(__dirname + '/packs');
 
   queue = []
-  insertPacks = race (i, pack, fin) ->
-    {title} = pack  
-    {JPaymentPack, JPaymentProduct} = worker.models
-    JPaymentPack.one title: title, (err, paymentPack) ->
-      return console.error err if err
-      if paymentPack? 
-        console.log "#{pack.title} pack is already added" 
-        fin()
-      else
-        JPaymentPack.create "koding", pack, (err, pack) ->
-          return console.error err if err
-          console.log "#{pack.title} pack added successfully" 
-          JPaymentProduct.one title : pack.title, (err, product) ->
-            return console.error "product cannot be added to pack" if err or not product
+  fetchAllProducts (err, productPlanCodes) ->
+    return console.error err if err
+    insertPacks = race (i, pack, fin) ->
+      {title} = pack  
+      {JPaymentPack, JPaymentProduct} = worker.models
+      JPaymentPack.one title: title, (err, paymentPack) ->
+        return console.error err if err
+        if paymentPack? 
+          console.log "#{pack.title} pack is already added" 
+          fin()
+        else
+          JPaymentPack.create "koding", pack, (err, pack) ->
+            return console.error err if err
+            console.log "#{pack.title} pack added successfully" 
+
             quantities = {}
-            quantities[product.planCode] = 1
+            if pack.title is "VM"
+              quantities[productPlanCodes["CPU"]] = 1
+              quantities[productPlanCodes["RAM"]] = 1
+              quantities[productPlanCodes["Disk"]] = 1
+              quantities[productPlanCodes["VM"]] = 1
+              quantities[productPlanCodes["Data Transfer"]] = 1
+            else
+              quantities[productPlanCodes[pack.title]] = 1
             pack.updateProducts quantities, (err) ->
               return console.error err if err
               console.log "#{pack.title} pack products are added"
               fin()
-          
-  , -> callback null
+            
+    , -> callback null
 
-  insertPacks pack for pack in data
+    insertPacks pack for pack in data
 
-importPlans = (callback) ->
-  data = require(__dirname + '/plans');
-  {JPaymentPlan, JPaymentProduct} = worker.models
-
+fetchAllProducts = (callback) ->
+  {JPaymentProduct} = worker.models
   productPlanCodes = {}
-  JPaymentProduct.all title : $in : ["User", "Group", "VM"], (err, products) ->
+  JPaymentProduct.all {}, (err, products) ->
     return console.error "products cannot be fetched" if err
     for product in products
       productPlanCodes[product.title] = product.planCode
 
-    console.log 'Codes', productPlanCodes
+    callback null, productPlanCodes
+
+importPlans = (callback) ->
+  data = require(__dirname + '/plans');
+  {JPaymentPlan} = worker.models
+
+  fetchAllProducts (err, productPlanCodes) ->
+    return console.error err if err
     queue = []
     insertPlans = race (i, plan, fin) ->
       {title} = plan  
@@ -92,11 +105,22 @@ importPlans = (callback) ->
             console.log "#{plan.title} plan added successfully" 
             quantities = {}
             if plan.title is "Custom Plan" 
-              quantities[productPlanCodes["VM"]] = 1
-              quantities[productPlanCodes["Group"]] = 1
+              quantities[productPlanCodes["CPU"]] = 1
+              quantities[productPlanCodes["RAM"]] = 1
+              quantities[productPlanCodes["Disk"]] = 1
+              quantities[productPlanCodes["Always On"]] = 1
+              quantities[productPlanCodes["VM"]] = 5
               quantities[productPlanCodes["User"]] = 1
+              quantities[productPlanCodes["Group"]] = 1
+              quantities[productPlanCodes["Data Transfer"]] = 1
             else
-              quantities[productPlanCodes["VM"]] = plan.count
+              {count} = plan
+              quantities[productPlanCodes["CPU"]] = count
+              quantities[productPlanCodes["RAM"]] = count
+              quantities[productPlanCodes["Disk"]] = count
+              quantities[productPlanCodes["Always On"]] = count
+              quantities[productPlanCodes["VM"]] = count * 5
+              quantities[productPlanCodes["Data Transfer"]] = count
             
             console.log 'quantities', quantities
             newPlan.updateProducts quantities, (err) ->

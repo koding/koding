@@ -1,17 +1,68 @@
 [
   {
+      "title"            : "CPU",
+      "priceIsVolatile"  : true,
+      "tags"             : ["vm"],
+      "subscriptionType" : "mo",
+      "feeInterval"      : 1,
+      "feeUnit"          : "months",
+      "group"            : "koding",
+      "description"      : "1 CPU core"
+  },
+  {
+      "title"            : "RAM",
+      "priceIsVolatile"  : true,
+      "tags"             : ["vm"],
+      "subscriptionType" : "mo",
+      "feeInterval"      : 1,
+      "feeUnit"          : "months",
+      "group"            : "koding",
+      "description"      : "1 GB RAM"
+  },
+  {
+      "title"            : "Disk",
+      "priceIsVolatile"  : true,
+      "tags"             : ["vm"],
+      "subscriptionType" : "mo",
+      "feeInterval"      : 1,
+      "feeUnit"          : "months",
+      "group"            : "koding",
+      "description"      : "50 GB Disk"
+  },
+  {
+      "title"            : "Always On",
+      "priceIsVolatile"  : true,
+      "tags"             : ["vm"],
+      "subscriptionType" : "mo",
+      "feeInterval"      : 1,
+      "feeUnit"          : "months",
+      "group"            : "koding",
+      "description"      : "Always On"
+  },
+  {
       "title"            : "VM",
       "priceIsVolatile"  : true,
       "tags"             : ["vm"],
       "subscriptionType" : "mo",
       "feeInterval"      : 1,
       "feeUnit"          : "months",
-      "group"            : "koding"
+      "group"            : "koding",
+      "description"      : "VM"
+  },
+  {
+      "title"            : "Data Transfer",
+      "priceIsVolatile"  : true,
+      "tags"             : ["vm"],
+      "subscriptionType" : "mo",
+      "feeInterval"      : 1,
+      "feeUnit"          : "months",
+      "group"            : "koding",
+      "description"      : "2 TB Data Transfer"
   },
   {
       "title"            : "User",
       "priceIsVolatile"  : true,
-      "tags"             : ["user", "custom-plan"],
+      "tags"             : ["user"],
       "subscriptionType" : "mo",
       "feeInterval"      : 1,
       "feeUnit"          : "months",
