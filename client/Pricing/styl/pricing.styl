@@ -587,14 +587,18 @@ section.pricing-sign-in
   .input-wrapper
     margin-bottom     16px
 
-  .kdinput
-    size              100%, 50px !important
-    border            1px solid #a0a0a0 !important
-    background        #fff !important
-    color             #4c555f !important
-    font-size         14px !important
-    min-width         0 !important
+  input.kdinput.text
+  textarea.kdinput.text
+    size              100%, 50px
+    border            1px solid #a0a0a0
+    background        #fff
+    color             #4c555f
+    font-size         14px
+    min-width         0
     borderBox()
+    &.validation-error
+      border-color    #ea8779
+
 
   .formline
     margin            0
@@ -608,6 +612,24 @@ section.pricing-sign-in
         fl()
         &:nth-child(2)
           margin-left 20px
+
+    &.cardnumber
+      span.icon
+        top             6px
+        right           6px
+        size            60px 38px
+        z-index         1
+        abs()
+        &.visa
+          r-sprite      pricing visa
+        &.mastercard
+          r-sprite      pricing mastercard
+        &.discover
+          r-sprite      pricing discover
+        &.cirrus
+          r-sprite      pricing cirrus
+        &.amex
+          r-sprite      pricing amex
 
     &.cardmonth
       fl()
