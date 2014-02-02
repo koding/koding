@@ -117,33 +117,7 @@ func (c *Client) handleSessionMessage(data interface{}) {
 		exchange := message["exchange"].(string)
 		routingKey := message["routingKey"].(string)
 		payload := message["payload"].(string)
-
-		publish := func(exchange, routingKey, payload string) error {
-			if !strings.HasPrefix(routingKey, "client.") {
-				return fmt.Errorf("Invalid routing key: %v socketId: %v", routingKey, c.SocketId)
-			}
-
-			for {
-				c.LastPayload = ""
-				err := c.ControlChannel.Publish(exchange, routingKey, false, false, amqp.Publishing{CorrelationId: c.SocketId, Body: []byte(payload)})
-				if err == nil {
-					c.LastPayload = payload
-					break
-				}
-
-				if amqpError, isAmqpError := err.(*amqp.Error); !isAmqpError || amqpError.Code != amqp.ChannelError {
-					log.Warning("payload: %v routing key: %v exchange: %v err: %v",
-						payload, routingKey, exchange, err)
-				}
-
-				time.Sleep(time.Second / 4) // penalty for crashing the AMQP channel
-				c.resetControlChannel()
-			}
-
-			return nil
-		}
-
-		publish(exchange, routingKey, payload)
+		c.Publish(exchange, routingKey, payload)
 
 	case "ping":
 		sendToClient(c.Session, "broker.pong", nil)
@@ -154,11 +128,55 @@ func (c *Client) handleSessionMessage(data interface{}) {
 	}
 }
 
-// randomString() returns a new 16 char length random string
-func randomString() string {
-	r := make([]byte, 128/8)
-	rand.Read(r)
-	return base64.StdEncoding.EncodeToString(r)
+// Subscribe add the given routingKeyPrefix to the list of subscriptions
+// associated with this client.
+func (c *Client) Subscribe(routingKeyPrefix string) {
+	if c.Subscriptions[routingKeyPrefix] {
+		log.Warning("Duplicate subscription to same routing key. %v %v", c.Session.Tag, routingKeyPrefix)
+		return
+	}
+
+	if len(c.Subscriptions) > 0 && len(c.Subscriptions)%2000 == 0 {
+		log.Warning("Client with more than %v subscriptions %v",
+			strconv.Itoa(len(c.Subscriptions)), c.Session.Tag)
+	}
+
+	routeMap[routingKeyPrefix] = append(routeMap[routingKeyPrefix], c.Session)
+	c.Subscriptions[routingKeyPrefix] = true
+
+}
+
+// Unsubscribe deletes the given routingKey prefix from the subscription list
+// and removes it from the global route map
+func (c *Client) Unsubscribe(routingKeyPrefix string) {
+	c.RemoveFromRoute(routingKeyPrefix)
+	delete(c.Subscriptions, routingKeyPrefix)
+}
+
+// Publish publish the given payload for to the given exchange and routingkey.
+func (c *Client) Publish(exchange, routingKey, payload string) error {
+	if !strings.HasPrefix(routingKey, "client.") {
+		return fmt.Errorf("Invalid routing key: %v socketId: %v", routingKey, c.SocketId)
+	}
+
+	for {
+		c.LastPayload = ""
+		err := c.ControlChannel.Publish(exchange, routingKey, false, false, amqp.Publishing{CorrelationId: c.SocketId, Body: []byte(payload)})
+		if err == nil {
+			c.LastPayload = payload
+			break
+		}
+
+		if amqpError, isAmqpError := err.(*amqp.Error); !isAmqpError || amqpError.Code != amqp.ChannelError {
+			log.Warning("payload: %v routing key: %v exchange: %v err: %v",
+				payload, routingKey, exchange, err)
+		}
+
+		time.Sleep(time.Second / 4) // penalty for crashing the AMQP channel
+		c.resetControlChannel()
+	}
+
+	return nil
 }
 
 // gaugeStart starts the gauge for a given session. It returns a new
@@ -230,27 +248,9 @@ func (c *Client) RemoveFromRoute(routingKeyPrefix string) {
 	routeMap[routingKeyPrefix] = routeSessions
 }
 
-// Subscribe add the given routingKeyPrefix to the list of subscriptions
-// associated with this client.
-func (c *Client) Subscribe(routingKeyPrefix string) {
-	if c.Subscriptions[routingKeyPrefix] {
-		log.Warning("Duplicate subscription to same routing key. %v %v", c.Session.Tag, routingKeyPrefix)
-		return
-	}
-
-	if len(c.Subscriptions) > 0 && len(c.Subscriptions)%2000 == 0 {
-		log.Warning("Client with more than %v subscriptions %v",
-			strconv.Itoa(len(c.Subscriptions)), c.Session.Tag)
-	}
-
-	routeMap[routingKeyPrefix] = append(routeMap[routingKeyPrefix], c.Session)
-	c.Subscriptions[routingKeyPrefix] = true
-
-}
-
-// Unsubscribe deletes the given routingKey prefix from the subscription list
-// and removes it from the global route map
-func (c *Client) Unsubscribe(routingKeyPrefix string) {
-	c.RemoveFromRoute(routingKeyPrefix)
-	delete(c.Subscriptions, routingKeyPrefix)
+// randomString() returns a new 16 char length random string
+func randomString() string {
+	r := make([]byte, 128/8)
+	rand.Read(r)
+	return base64.StdEncoding.EncodeToString(r)
 }
