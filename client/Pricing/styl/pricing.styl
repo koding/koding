@@ -31,374 +31,172 @@ pricing.styl
     opacity             .5
     margin-bottom       55px
 
-.content-page.pricing .resource-pack-plan
-  size                  100% auto
-  padding               150px 0 84px
-  margin-top            -100px
+.pricing .product-form
+  size                  100%, auto
+  min-height            100vh
   background            url('/a/images/home/speedometer.jpg') no-repeat center center
   background-size       cover
+  margin                -55px 0 0
+  padding               142px 0 87px
+  borderBox()
 
   .inner-container
-    max-width           1091px
+    max-width           1096px
     margin              0 auto
 
-    >p
-      text-align        center
-      font-size         28px
-      color             #dfdfdf
-      font-weight       200
-      line-height       38px
-      margin-bottom     84px
+    >header
+      padding-bottom    41px
+      border-bottom     1px solid #202729
 
-      a
-        font-weight     400
-        color           #1aaf5d
-        border-bottom   1px solid #1aaf5d
-        padding-bottom  2px
-        noTextDeco()
+      h2
+        font-size       28px
+        font-weight     200
+        color           #fff
+        margin-bottom   8px
 
-      strong
+      p
         font-size       20px
-        color           #a0a0a0
-        display         block
-
-  .plan-selection
-    rel()
-    size                380px 204px
-    border-top          1px solid transparent
-    rounded             12px 0 12px 12px
-    margin              0 auto
-    overflow            visible
-    background          #27ae60
-    vendor              transform, translateX(-85px)
-
-    h6
-      font-size         24px
-      font-weight       400
-      color             #fff
-      margin            32px 0 0 34px
-      display           block
-      width             100%
-
-    .resource
-      color             #135830
-      font-size         15px
-      font-weight       500
-      line-height       25px
-      margin-left       22px
-      margin-top        24px
-      border-top        1px solid transparent
-      fl()
-
-      &.disk
-        min-width       88px
-
-      &:first-of-type
-        margin-left     34px
-
-      i
-        margin-right    12px
+        color           #c5c5c5
+        font-weight     200px
+        line-height     26px
+        width           702px
         fl()
 
-      &.cpu i
-        r-sprite        "home", "cpu"
+      .pricing-toggle
+        font-family     inherit
+        rounded         12px
+        background      #242a2c
+        size            303px, 59px
+        shadow          inset 0 0 13px rgba(0, 0, 0, .36)
+        fr()
 
-      &.ram i
-        r-sprite        "home", "ram"
+        a
+          background    transparent
+          border        none
+          shadow        none
+          size          50%, 59px
+          margin        0
+          padding       0
+          line-height   59px
+          text-shadow   none
+          color         #fff
+          font-size     16px
+          font-weight   200
 
-      &.disk i
-        r-sprite        "home", "disk"
-        margin-top      3px
+        a.active
+          background    #27ae60
+          color         #242a2c
+          rounded       12px
+          font-weight   400
 
-      &.always-on i
-        r-sprite        "home", "alwayson"
-        margin-top      6px
 
-    .sliderbar-outer-container
-      abs               0 0 0px 0px
-      size              100%, 70px
-      bg                color, #1c2224
-      rounded           0 0 12px 12px
+    .plan-selection
+      .plan-selection-box
+        width           715px
+        padding-top     42px
+        fl()
 
-    .sliderbar-container
-      height            7px
-      border            none
-      background        #1e884b
-      margin            32px auto 0
-      shadow            -24px 0 0 #1e884b \,
-                        24px 0 0 #1e884b
+        &:nth-of-type(2)
+          margin-left   70px
 
-    .handle
-      size              36px, 43px
-      top               -19px
-      margin            0 0 0 -17px
-      border            none
-      background        #27ae60
-      shadow            none
+        h4
+          font-size     28px
+          color         #fff
+          font-weight   200
+          line-height   34px
+          display       inline-block
+          position      relative
 
-      &:after
-        background      none
-        width           0
-        height          0
-        border          8px solid transparent
-        border-bottom   8px solid #27ae60
-        top             -16px
-        margin          0 0 0 -8px
+          cite
+            display     block
+            abs         -4px -53px 0 0
+            size        43px, 43px
+            line-height 43px
+            text-align  center
+            font-size   18px
+            background  #242a2c
+            rounded     50%
 
-      &:before
-        background      #1b8247
-        border          none
-        height          14px
-        top             14px
-        margin          0
-        shadow          4px 0 0 #1b8247 \,
-                        -4px 0 0 #1b8247
+        h5
+          font-size     22px
+          font-weight   200
+          color         rgba(242, 242, 242, .4)
+          margin        4px 0 0
 
-    .sliderbar-label
-      color             transparent
-      top               -32px
+        .sliderbar-container
+          background    #1e884b
+          height        7px
+          border        none
+          shadow        none
+          margin        62px auto 0
 
-      &:after
-        size            2px, 4px
-        background      #1c2224
+          .handle
+            size        26px, 26px
+            shadow      none
+            border      none
+            rounded     50%
+            background  #27ae60
+            top         -10px
+            margin      0 0 0 -12px
 
-  .selected-plan
-    size                170px, 180px
-    rounded             0 12px 12px 0
-    abs                 0px 0 0 100%
-    background          #283032
+            &:after
+            &:before
+              hidden()
 
-    .price
-      color             #fff
-      font-size         62px
-      font-weight       600
-      margin            22px 0 0
-      width             100%
-      text-align        center
+          .sliderbar-label
+            color           transparent
+            margin-top      -45px
+            margin-bottom   0
 
-      cite
-        font-size       20px
-        font-weight     200
-        vertical-align  super
+            &:after
+              size          2px, 14px
+              background    rgba(39, 174, 96, .5)
 
-      .period
-        display         block
-        font-size       15px
-        font-weight     400
-        color           rgba(255, 255, 255, .5)
+        .description
+          display           block
+          font-size         14px
+          font-weight       200px
+          color             rgba(197, 197, 197, .3)
+          line-height       18px
+          margin            46px 0 0
 
-    .promotion
-      display           block
-      text-align        center
-      font-size         14px
-      color             rgba(255, 255, 255, .4)
-      margin-top        8px
-      line-height       17px
+        &.selected
+          width               275px
+          fr()
 
-    .buy-now
-      abs               100% 0 0 50%
-      margin            -24px 0 0 -63px
+          h5
+            font-size         24px
+            color             #27ae60
+            margin            16px 0
 
-.content-page.pricing .custom-plan
-  size                  1161px auto
-  position              relative
-  padding               62px 0 105px
-  margin                0 auto
-  bg                    color, #e4e4e4
+          .description
+            min-height        18px
+            margin            0
+            color             rgba(242, 242, 242, .3)
 
-  .plus-icon
-    fl()
-    r-sprite            "home", "plan-plus"
+          .kdbutton.solid.buy-now
+            size              126px, 48px
+            line-height       48px
+            font-size         18px
+            color             #935600
+            background        #ffa200
+            padding           0
+            rounded           6px
+            font-weight       600
+            margin            29px 0 0
+            text-align        center
+            text-transform    uppercase
+            fl()
 
-  .equal-icon
-    fl()
-    r-sprite            "home", "plan-equal"
+            .button-title
+              line-height     inherit
+              color           inherit
+              font-size       inherit
+              font-weight     inherit
 
-  .plus-icon, .equal-icon
-    margin              65px 20px
-
-  .customize-box
-    size                336px, 177px
-    background          #ffffff
-    rounded             12px
-    position            relative
-    overflow            visible
-    fl()
-
-    &:first-of-type
-      margin-left       0
-
-    .icon
-      margin            16px 22px 0 29px
-      fl()
-
-    .plan-values
-      margin            34px 0 0
-      width             204px
-      font-weight       400
-      letter-spacing    -.3px
-      fl()
-
-      .unit-display
-        font-size       23px
-        color           #666b6c
-        display         block
-
-        strong
-          color         #1aaf5d
-
-      .calculated-price
-        display         block
-        margin          4px 0 0
-        font-size       19px
-        color           #adadad
-
-    &.users
-      .icon
-        r-sprite        "home", "users"
-
-    &.resources
-      .icon
-        r-sprite        "home", "resources"
-
-    .sliderbar-outer-container
-      abs               0 0 0px 0px
-      size              100%, 50px
-      bg                color, #d1d1d1
-      rounded           0 0 12px 12px
-
-    .sliderbar-container
-      height            7px
-      border            none
-      background        #ebebeb
-      margin            18px auto 0
-
-    .handle
-      size              36px, 43px
-      top               -19px
-      margin            0 0 0 -17px
-      border            none
-      background        #27ae60
-      shadow            0 1px 0 #8d9f95
-
-      &:after
-        background      none
-        width           0
-        height          0
-        border          8px solid transparent
-        border-bottom   8px solid #27ae60
-        top             -16px
-        margin          0 0 0 -8px
-
-      &:before
-        background      #1b8247
-        border          none
-        height          14px
-        top             14px
-        margin          0
-        shadow          4px 0 0 #1b8247 \,
-                        -4px 0 0 #1b8247
-
-    .sliderbar-label
-      color             transparent
-      top               -18px
-
-      &:after
-        height          11px
-        background      #ebebeb
-
-  .summary
-    size                337px, 162px
-    background          #283032
-    rounded             12px
-    overflow            hidden
-    text-align          left
-    letter-spacing      .2px
-    position            relative
-    fl()
-
-    .plan-top
-      background        #27ae60
-      size              100%, 81px
-
-    h2
-      fl()
-      line-height       81px
-      padding           0 0 0 36px
-      margin            0
-      color             white
-      font-family       openSansFamily
-      font-weight       600
-      font-size         24px
-      text-align        left
-      text-shadow       none
-
-    .buy-now
-      cursor            pointer
-      size              126px, 48px
-      line-height       48px
-      color             #935600
-      background        #ffa200
-      padding           0
-      rounded           6px
-      font-weight       600
-      margin            16px 0 0 15px
-      text-align        center
-      text-transform    uppercase
-      fl()
-
-    .price
-      color             #fff
-      font-size         46px
-      font-weight       600
-      margin            13px 13px 0 0
-      fr()
-
-      cite
-        font-size       20px
-        font-weight     400
-        vertical-align  super
-
-      .period
-        display         block
-        text-align      right
-        padding         0 0 0 14px
-        font-size       11px
-        font-weight     400
-        color           rgba(255, 255, 255, .5)
-
-    .description
-      text-align        right
-      font-size         16px
-      color             rgba(255, 255, 255, .7)
-      font-weight       400
-      width             140px
-      abs               81px 20px 0 0
-      line-height       76px
-      height            81px
-
-      span
-        display         inline-block
-        line-height     normal
-        vertical-align  middle
-
-.resource-pack-plan, .custom-plan
-  .buy-now
-    size              126px, 48px
-    line-height       48px
-    color             #935600
-    background        #ffa200
-    padding           0
-    rounded           6px
-    font-weight       600
-
-    span.button-title
-      color           inherit
-      line-height     inherit
-      padding         0
-      font-weight     inherit
-
-/* Pricing sign-in - register */
+    .team-plan
+      .plan-selection-box
+        width                 350px
 
 .pricing-horizontal-divider
   size                656px, 1px
@@ -417,7 +215,7 @@ pricing.styl
     display           block
     vendor            transform, translateX(-50%) translateY(-50%)
 
-
+/* Pricing sign-in - register */
 section.pricing-sign-in
   kalc                padding-left, \(100% \- 1030px\)/2
   kalc                padding-right, \(100% \- 1030px\)/2
@@ -883,9 +681,6 @@ section.pricing-sign-in
 
       .kdlabel
         line-height   30px
-
-
-
 
 /*
 .content-page.pricing

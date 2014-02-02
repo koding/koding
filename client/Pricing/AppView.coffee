@@ -3,7 +3,7 @@ class PricingAppView extends KDView
   addWorkflow: (@workflow) ->
     @addSubView @workflow
     @workflow.on 'Finished', @bound "workflowFinished"
-    @workflow.on 'Cancel', @bound "showCancellation"
+    @workflow.on 'Cancel', @bound "cancel"
 
   hideWorkflow: ->
     @workflow.hide()
@@ -17,11 +17,8 @@ class PricingAppView extends KDView
     else if "custom-plan" in tags
     then @showGroupForm()
 
-  showCancellation: ->
-    return  if @cancellation
-    @hideWorkflow()
-    @cancellation = new KDView partial: "<h1>This order has been cancelled.</h1>"
-    @addSubView @cancellation
+  cancel: ->
+    KD.singleton("router").handleRoute "/Pricing/Developer"
 
   showGroupForm: ->
     return  if @groupForm and not @groupForm.isDestroyed
@@ -97,7 +94,6 @@ class PricingAppView extends KDView
           label             : "Group Name"
           type              : "text"
           name              : "groupName"
-          placeholder       : "enter group name..."
           validate          :
             rules           :
               required      : yes
@@ -107,7 +103,7 @@ class PricingAppView extends KDView
           label             : "Group URL"
           type              : "text"
           name              : "groupURL"
-          placeholder       : "enter group url..."
+          placeholder       : "#{window.location.origin}"
           keyup             : KD.utils.defer.bind this, @bound "checkSlug"
           validate          :
             rules           :
