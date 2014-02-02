@@ -37,9 +37,9 @@ var (
 // Broker is a router/multiplexer that routes messages coming from a SockJS
 // server to an AMQP exchange and vice versa. Broker basically listens to
 // client messages (Koding users) from the SockJS server. The message is
-// either passed to the appropriate exchange our a response back is sent back
-// to the client. Each message has an "action" field that defines how to act
-// for a received message.
+// either passed to the appropriate exchange or a response is sent back to the
+// client. Each message has an "action" field that defines how to act for a
+// received message.
 type Broker struct {
 	Hostname          string
 	ServiceUniqueName string
@@ -55,7 +55,8 @@ type Broker struct {
 
 // NewBroker returns a new Broker instance with ServiceUniqueName and Hostname
 // prepopulated. After creating a Broker instance, one has to call
-// broker.Run() or broker.Start() to start the broker instance.
+// broker.Run() or broker.Start() to start the broker instance and call
+// broker.Close() for a graceful stop.
 func NewBroker() *Broker {
 	// returns os.Hostname() if config.BrokerDomain is empty, otherwise it just
 	// returns config.BrokerDomain back
@@ -239,7 +240,9 @@ func (b *Broker) startSockJS() {
 	for {
 		err := server.Serve(b.listener)
 		if err != nil {
-			// comes when the broker is closed with Close() method
+			// comes when the broker is closed with Close() method. This error
+			// is defined in net/net.go as "var errClosing", unfortunaly it's
+			// not exported.
 			if strings.Contains(err.Error(), "use of closed network connection") {
 				return
 			}
