@@ -38,6 +38,13 @@ type Broker struct {
 	Hostname          string
 	ServiceUniqueName string
 	PublishConn       *amqp.Connection
+	ConsumeConn       *amqp.Connection
+
+	// Accepts SockJS connections
+	listener net.Listener
+
+	// Closed when listener is ready to acccept connections
+	listenerReady chan struct{}
 }
 
 func NewBroker() *Broker {
@@ -50,20 +57,35 @@ func NewBroker() *Broker {
 	return &Broker{
 		Hostname:          brokerHostname,
 		ServiceUniqueName: serviceUniqueName,
+		listenerReady:     make(chan struct{}),
 	}
 }
 
-func main() {
+func (b *Broker) Run() {
 	lifecycle.Startup("broker", false)
 	logger.RunGaugesLoop(log)
 
-	broker := NewBroker()
-	broker.registerToKontrol()
+	b.registerToKontrol()
 
-	go broker.startSockJS()
-	broker.startAMQP() // blocking
+	go b.startSockJS()
+	b.startAMQP() // blocking
 
 	time.Sleep(5 * time.Second) // give amqputil time to log connection error
+}
+
+func (b *Broker) Start() {
+	go b.Run()
+	<-b.listenerReady
+}
+
+func (b *Broker) Close() {
+	b.PublishConn.Close()
+	b.ConsumeConn.Close()
+	b.listener.Close()
+}
+
+func main() {
+	NewBroker().Run()
 }
 
 func (b *Broker) registerToKontrol() {
@@ -83,10 +105,10 @@ func (b *Broker) startAMQP() {
 	b.PublishConn = amqputil.CreateConnection("broker")
 	defer b.PublishConn.Close()
 
-	consumeConn := amqputil.CreateConnection("broker")
-	defer consumeConn.Close()
+	b.ConsumeConn = amqputil.CreateConnection("broker")
+	defer b.ConsumeConn.Close()
 
-	consumeChannel := amqputil.CreateChannel(consumeConn)
+	consumeChannel := amqputil.CreateChannel(b.ConsumeConn)
 	defer consumeChannel.Close()
 
 	presenceQueue := amqputil.JoinPresenceExchange(
@@ -170,8 +192,8 @@ func (b *Broker) startSockJS() {
 
 	server := &http.Server{Handler: mux}
 
-	var listener net.Listener
-	listener, err := net.ListenTCP("tcp", &net.TCPAddr{IP: net.ParseIP(config.Current.Broker.IP), Port: config.Current.Broker.Port})
+	var err error
+	b.listener, err = net.ListenTCP("tcp", &net.TCPAddr{IP: net.ParseIP(config.Current.Broker.IP), Port: config.Current.Broker.Port})
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -181,15 +203,17 @@ func (b *Broker) startSockJS() {
 		if err != nil {
 			log.Fatal(err)
 		}
-		listener = tls.NewListener(listener, &tls.Config{
+		b.listener = tls.NewListener(b.listener, &tls.Config{
 			NextProtos:   []string{"http/1.1"},
 			Certificates: []tls.Certificate{cert},
 		})
 	}
 
+	close(b.listenerReady)
+
 	lastErrorTime := time.Now()
 	for {
-		err := server.Serve(listener)
+		err := server.Serve(b.listener)
 		if err != nil {
 			log.Warning("Server error: %v", err)
 			if time.Now().Sub(lastErrorTime) < time.Second {
