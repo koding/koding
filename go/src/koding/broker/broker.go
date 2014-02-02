@@ -239,6 +239,11 @@ func (b *Broker) startSockJS() {
 	for {
 		err := server.Serve(b.listener)
 		if err != nil {
+			// comes when the broker is closed with Close() method
+			if strings.Contains(err.Error(), "use of closed network connection") {
+				return
+			}
+
 			log.Warning("Server error: %v", err)
 			if time.Now().Sub(lastErrorTime) < time.Second {
 				log.Fatal(nil)
