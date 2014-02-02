@@ -34,12 +34,10 @@ func NewClient(session *sockjs.Session, broker *Broker) *Client {
 
 	subscriptions := make(map[string]bool)
 
-	fmt.Println("adding to subscriptionsMap")
 	globalMapMutex.Lock()
 	socketSubscriptionsMap[socketID] = &subscriptions
 	globalMapMutex.Unlock()
 
-	fmt.Println("returning new client")
 	return &Client{
 		Session:        session,
 		SocketId:       socketID,
