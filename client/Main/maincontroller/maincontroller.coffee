@@ -159,7 +159,6 @@ class MainController extends KDController
         @utils.defer ->
           lastRoute = KD.getSingleton("router").visitedRoutes.last
 
-          lastRoute = KD.getSingleton("router").visitedRoutes.last
           if lastRoute and /^\/(?:Reset|Register|Verify|Confirm)\//.test lastRoute
             lastRoute = "/Activity"
 
