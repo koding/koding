@@ -68,7 +68,7 @@ func (c *Client) Close() {
 		if err == nil {
 			break
 		}
-		if amqpError, isAmqpError := err.(*amqp.Error); !isAmqpError || amqpError.Code != 504 {
+		if amqpError, isAmqpError := err.(*amqp.Error); !isAmqpError || amqpError.Code != amqp.ChannelError {
 			panic(err)
 		}
 		c.resetControlChannel()
@@ -133,7 +133,7 @@ func (c *Client) handleSessionMessage(data interface{}) {
 					break
 				}
 
-				if amqpError, isAmqpError := err.(*amqp.Error); !isAmqpError || amqpError.Code != 504 {
+				if amqpError, isAmqpError := err.(*amqp.Error); !isAmqpError || amqpError.Code != amqp.ChannelError {
 					log.Warning("payload: %v routing key: %v exchange: %v err: %v",
 						payload, routingKey, exchange, err)
 				}
