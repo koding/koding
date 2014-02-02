@@ -34,6 +34,12 @@ var (
 	changeWebsocketClientsGauge = logger.CreateCounterGauge("websocketClients", logger.NoUnit, false)
 )
 
+// Broker is a router/multiplexer that routes messages coming from a SockJS
+// server to an AMQP exchange and vice versa. Broker basically listens to
+// client messages (Koding users) from the SockJS server. The message is
+// either passed to the appropriate exchange our a response back is sent back
+// to the client. Each message has an "action" field that defines how to act
+// for a received message.
 type Broker struct {
 	Hostname          string
 	ServiceUniqueName string
@@ -47,6 +53,9 @@ type Broker struct {
 	listenerReady chan struct{}
 }
 
+// NewBroker returns a new Broker instance with ServiceUniqueName and Hostname
+// prepopulated. After creating a Broker instance, one has to call
+// broker.Run() or broker.Start() to start the broker instance.
 func NewBroker() *Broker {
 	// returns os.Hostname() if config.BrokerDomain is empty, otherwise it just
 	// returns config.BrokerDomain back
@@ -61,6 +70,11 @@ func NewBroker() *Broker {
 	}
 }
 
+func main() {
+	NewBroker().Run()
+}
+
+// Run starts the broker.
 func (b *Broker) Run() {
 	lifecycle.Startup("broker", false)
 	logger.RunGaugesLoop(log)
@@ -73,21 +87,23 @@ func (b *Broker) Run() {
 	time.Sleep(5 * time.Second) // give amqputil time to log connection error
 }
 
+// Start is like Run() but waits until the SockJS listener is ready to be
+// used.
 func (b *Broker) Start() {
 	go b.Run()
 	<-b.listenerReady
 }
 
+// Close close all amqp connections and closes the SockJS server listener
 func (b *Broker) Close() {
 	b.PublishConn.Close()
 	b.ConsumeConn.Close()
 	b.listener.Close()
 }
 
-func main() {
-	NewBroker().Run()
-}
-
+// registerToKontrol registers the broker to KontrolDaemon. This is needed to
+// populate a list of brokers and show them to the client. The list is
+// available at: https://koding.com/-/services/broker?all
 func (b *Broker) registerToKontrol() {
 	if err := kontrolhelper.RegisterToKontrol(
 		"broker", // servicename
@@ -101,6 +117,8 @@ func (b *Broker) registerToKontrol() {
 	}
 }
 
+// startAMQP setups the the neccesary publisher and consumer connections for
+// the broker broker.
 func (b *Broker) startAMQP() {
 	b.PublishConn = amqputil.CreateConnection("broker")
 	defer b.PublishConn.Close()
@@ -209,6 +227,7 @@ func (b *Broker) startSockJS() {
 		})
 	}
 
+	// signal that we are ready now
 	close(b.listenerReady)
 
 	lastErrorTime := time.Now()
@@ -225,6 +244,8 @@ func (b *Broker) startSockJS() {
 
 }
 
+// sockjsSession is called for every client connection and handles all the
+// message trafic for a single client connection.
 func (b *Broker) sockjsSession(session *sockjs.Session) {
 	defer log.RecoverAndLog()
 
