@@ -144,17 +144,8 @@ class PricingAppView extends KDView
     {JGroup} = KD.remote.api
     JGroup.create options, (err, group, subscription) =>
       return KD.showError err  if err
-
       @groupForm.destroy()
       @showGroupCreated group, subscription
-
-      # enter first post of group.
-      JGroup.createGroupBotAndPostMessage
-        title   : "Welcome"
-        body    : "Welcome to your group."
-        botname : "groupbot"
-      , (err) ->
-        KD.showError err
 
   checkSlug: ->
     slug      = @groupForm.inputs.GroupUrl
