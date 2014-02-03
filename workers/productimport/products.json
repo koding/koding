@@ -50,16 +50,6 @@
       "description"      : "VM"
   },
   {
-      "title"            : "Data Transfer",
-      "priceIsVolatile"  : true,
-      "tags"             : ["vm"],
-      "subscriptionType" : "mo",
-      "feeInterval"      : 1,
-      "feeUnit"          : "months",
-      "group"            : "koding",
-      "description"      : "2 TB Data Transfer"
-  },
-  {
       "title"            : "User",
       "priceIsVolatile"  : true,
       "tags"             : ["user"],
