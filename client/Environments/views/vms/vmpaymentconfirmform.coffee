@@ -7,8 +7,7 @@ class VmPaymentConfirmForm extends PlanUpgradeConfirmForm
       cssClass  : 'payment-confirm-pack'
       partial   :
         """
-        <h2>VM</h2>
-        <p>#{ @getExplanation 'pack' }</p>
+        <h2>#{ @getExplanation 'pack' }</h2>
         """
 
     @subscription = new KDView

@@ -1,8 +1,5 @@
 { Base } = require 'bongo'
 
-vmCode = '1freevm'
-discountCode = 'rp1'
-
 module.exports = class JResourcePlan extends Base
 
   { signature, secure } = require 'bongo'
