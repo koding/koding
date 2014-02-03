@@ -415,7 +415,6 @@ module.exports = class JGroup extends Module
       JName                 = require '../name'
       group                 = new this groupData
       group.privacy         = 'private'
-      permissionSet         = new JPermissionSet {}, {privacy: group.privacy}
       defaultPermissionSet  = new JPermissionSet {}, {privacy: group.privacy}
 
       queue = [
@@ -600,7 +599,7 @@ module.exports = class JGroup extends Module
     success:(client, permissions, callback=->)->
       @fetchPermissionSet (err, permissionSet)=>
         return callback err if err
-        if permissionSet?
+        if permissionSet
           permissionSet.update $set:{permissions}, callback
         else
           permissionSet = new JPermissionSet {permissions, isCustom: true}
