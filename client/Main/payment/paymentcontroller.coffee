@@ -82,33 +82,30 @@ class PaymentController extends KDController
 
   createPaymentInfoModal: -> new PaymentFormModal
 
-  createUpgradeForm: (tag, options = {}) ->
+  createUpgradeForm: (tag, options = {}) -> @createUpgradeWarning tag, options
 
-    { dash } = Bongo
+  createUpgradeWarning: (tag, options = {}) ->
+    buyPacksButton = new KDButtonView
+      cssClass      : "buy-packs"
+      style         : "solid green medium"
+      title         : "Buy Resource Packs"
+      callback      : ->
+        @parent.emit 'Cancel'
+        router      = KD.singleton "router"
+        router.handleRoute "/Pricing"
 
-    form = new PlanUpgradeForm { tag }
-
-    KD.getGroup().fetchProducts 'plan', tags: $in: [tag], (err, plans) =>
-      return  if KD.showError err
-
-      queue = plans.map (plan) -> ->
-        plan.fetchProducts (err, products) ->
-          return  if KD.showError err
-
-          plan.childProducts = products
-          queue.fin()
-
-      subscription = null
-      queue.push =>
-        @fetchSubscriptionsWithPlans tags: [tag], (err, [subscription_]) ->
-          subscription = subscription_
-          queue.fin()
-
-      dash queue, ->
-        form.setPlans plans
-        form.setCurrentSubscription subscription, options  if subscription
+    form = new JView
+      pistachio :
+        """
+        <h2>
+          You do not have enough resources, you need to buy at least one "Resource Pack" to be able to create an extra VM.
+        </h2>
+        {{> @getData().buyPacksButton}}
+        """
+      , { buyPacksButton : buyPacksButton }
 
     return form
+
 
   createUpgradeWorkflow: (options = {}) ->
     {tag, productForm, confirmForm} = options

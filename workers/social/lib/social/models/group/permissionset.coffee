@@ -68,6 +68,19 @@ module.exports = class JPermissionSet extends Module
   @checkPermission =(client, advanced, target, callback)->
     JGroup = require '../group'
     advanced = wrapPermission advanced  if 'string' is typeof advanced
+    kallback = (group, permissionSet)->
+      queue = advanced.map ({permission, validateWith})->->
+        validateWith ?= (require './validators').any
+        validateWith.call target, client, group, permission, permissionSet,
+          (err, hasPermission)->
+            if err then queue.next err
+            else if hasPermission
+              callback null, yes  # we can stop here.  One permission is enough.
+            else queue.next()
+      queue.push ->
+        # if we ever get this far, it means the user doesn't have permission.
+        callback null, no
+      daisy queue
     # permission = [permission]  unless Array.isArray permission
     groupName =\
       if 'function' is typeof target
@@ -88,20 +101,12 @@ module.exports = class JPermissionSet extends Module
       else
         group.fetchPermissionSet (err, permissionSet)->
           if err then callback err, no
-          else unless permissionSet then callback null, no
+          else unless permissionSet 
+            group.fetchDefaultPermissionSet (err, permissionSet) ->
+              return callback err if err
+              kallback group, permissionSet
           else
-            queue = advanced.map ({permission, validateWith})->->
-              validateWith ?= (require './validators').any
-              validateWith.call target, client, group, permission, permissionSet,
-                (err, hasPermission)->
-                  if err then queue.next err
-                  else if hasPermission
-                    callback null, yes  # we can stop here.  One permission is enough.
-                  else queue.next()
-            queue.push ->
-              # if we ever get this far, it means the user doesn't have permission.
-              callback null, no
-            daisy queue
+            kallback group, permissionSet
 
   @permit =(permission, promise)->
     # parameter hockey to allow either parameter to be optional
