@@ -477,3 +477,10 @@ module.exports = class JDomain extends jraphical.Module
     success: (client, params, callback)->
       params.domainName = @domain
       JProxyRestriction.deleteRule params, (err)-> callback err
+
+  @fetchGroupDomains: secure (client, callback)->
+    JVM = require './vm'  
+    JVM.fetchVmsByContext client, {}, (err, vms) ->
+      return callback err if err
+      JDomain.some hostnameAlias : $in : vms, {}, callback
+

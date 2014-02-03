@@ -9,7 +9,7 @@ error = (err)->
 initKodingGroup2 = (groupData, admins)->
   JGroup = require './models/group'
   [owner, admins...] = admins
-  JGroup.create groupData, owner, (err, group)->
+  JGroup.create null, groupData, owner, (err, group)->
     console.error err  if err
 
     continuation = -> console.log 'group is created and initialized'

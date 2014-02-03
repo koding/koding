@@ -368,9 +368,11 @@ class VirtualizationController extends KDController
 
     modal = new FormWorkflowModal
       title   : "Create a new VM"
+      cssClass: "create-vm"
       view    : workflow
       height  : "auto"
       width   : 500
+      showNav : no
       overlay : yes
 
     workflow
