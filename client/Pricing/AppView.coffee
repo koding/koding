@@ -79,7 +79,7 @@ class PricingAppView extends KDView
       callback              : @bound "createGroup"
       buttons               :
         Create              :
-          title             : "Create"
+          title             : "CREATE"
           type              : "submit"
           style             : "solid green"
       fields                :
