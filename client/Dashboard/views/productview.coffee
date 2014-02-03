@@ -2,6 +2,7 @@ class GroupProductView extends JView
 
   constructor: (options = {}, data) ->
     options.tagName ?= 'span'
+    options.cssClass = KD.utils.curry "product-title", options.cssClass
     super options, data
 
   prepareData: ->
@@ -19,13 +20,13 @@ class GroupProductView extends JView
       then "Single payment"
       else if product.feeUnit is 'months'
         switch product.feeInterval
-          when 1        then "monthly"
-          when 3        then "every 3 months"
-          when 6        then "every 6 months"
-          when 12       then "yearly"
-          when 12 * 2   then "every 2 years"
-          when 12 * 5   then "every 5 years"
-          else               "every #{ product.feeInterval } months"
+          when 1        then "month"
+          when 3        then "3 months"
+          when 6        then "6 months"
+          when 12       then "year"
+          when 12 * 2   then "2 years"
+          when 12 * 5   then "5 years"
+          else               "#{ product.feeInterval } months"
       else '' # we don't support renewals by the day (yet)
 
     { title, price, displayPrice, subscriptionType }
@@ -34,5 +35,5 @@ class GroupProductView extends JView
     { title, displayPrice, subscriptionType } = @prepareData()
 
     """
-    #{title} — #{displayPrice} #{subscriptionType}
+    #{title} <span class="price-and-type">#{displayPrice}/#{subscriptionType}</span>
     """

@@ -4,6 +4,17 @@ class PlanUpgradeConfirmForm extends PaymentConfirmForm
     super options, data
     @coupons = {}
 
+    @buttonBar = new KDButtonBar
+      buttons       :
+        Buy         :
+          title     : "CONFIRM ORDER"
+          cssClass  : "modal-clean-green"
+          callback  : => @emit 'PaymentConfirmed'
+        cancel      :
+          title     : "CANCEL"
+          cssClass  : "modal-clean-gray"
+          callback  : => @emit 'Cancel'
+
   viewAppended: ->
     @unsetClass 'kdview'
 

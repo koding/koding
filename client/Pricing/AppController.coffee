@@ -1,33 +1,29 @@
 class PricingAppController extends KDViewController
 
-  handler = (callback)->
+  handler = (callback) ->
     KD.singleton('appManager').open 'Pricing', callback
 
   KD.registerAppClass this,
-    name                         : "Pricing"
-    routes                       :
-      "/:name?/Pricing"          : -> 
-        (KD.getSingleton 'router').handleRoute '/Pricing/Developer'
-      "/:name?/Pricing/:section" : ({params:{section}})->
-        handler (app)->
-          app.resourcePackPlan.hide()
-          app.customPlan.hide()
-          switch section
-            when 'Developer'
-              app.resourcePackPlan.show()
-            when 'Enterprise'
-              app.customPlan.show()
-            else
-              (KD.getSingleton 'router').handleRoute '/Pricing'
-      '/:name?/Pricing/CreateGroup': ->
-        { JGroupPlan } = KD.remote.api
+    name                : "Pricing"
+    routes              :
+      "/:name?/Pricing" : ->
+        (KD.getSingleton "router").handleRoute "/Pricing/Developer"
 
-        JGroupPlan.hasGroupCredit (err, hasCredit) ->
+      "/:name?/Pricing/:section": ({params:{section}}) ->
+        handler (app) ->
+          {productForm} = app
+          switch section
+            when "Developer" then productForm.showDeveloperPlan()
+            when "Team"      then productForm.showTeamPlan()
+            else (KD.getSingleton "router").handleRoute "/Pricing/Developer"
+
+      "/:name?/Pricing/CreateGroup": ->
+        KD.remote.api.JGroupPlan.hasGroupCredit (err, hasCredit) ->
           if hasCredit
             handler (app) ->
-              app.getView().showGroupCreateForm()
+              app.getView().showGroupForm()
           else
-            (KD.getSingleton 'router').handleRoute '/Pricing/Enterprise'
+            (KD.getSingleton "router").handleRoute "/Pricing/Enterprise"
 
   constructor: (options = {}, data) ->
     options.appInfo = title: "Pricing"
@@ -37,28 +33,8 @@ class PricingAppController extends KDViewController
 
     super options, data
 
-    @productForm      = new KDView
-    @resourcePackPlan = new ResourcePackPlan cssClass: "hidden"
-    @customPlan       = new CustomPlan cssClass: "hidden"
-
-    @productForm.addSubView @resourcePackPlan
-    @resourcePackPlan.on "PlanSelected", @bound "selectPlan"
-
-    @productForm.addSubView @customPlan
-    @customPlan.on "PlanSelected", @bound "selectPlan"
-
+    @productForm = new PricingProductForm
     @getView().addWorkflow workflow = KD.singleton("paymentController").createUpgradeWorkflow {@productForm}
 
   selectPlan: (tag, options) ->
-    KD.remote.api.JPaymentPlan.one tags: $in: [tag], (err, plan) =>
-      return  if KD.showError err
-      @productForm.emit "PlanSelected", plan, options
-
-    # TODO : remove after test
-    # workflow.emit "Finished",
-    #     productData          :
-    #       planOptions        :
-    #         userQuantity     :  5 # arabada
-    #         resourceQuantity : 15 # evde
-    #       plan               :
-    #         tags             : ["custom-plan"]
+    @productForm.selectPlan tag, options

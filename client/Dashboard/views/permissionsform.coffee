@@ -149,14 +149,14 @@ class PermissionsForm extends KDFormViewWithFields
 
     isChecked = checkForPermission set.permissions, module, permission, current
 
-    cssClass = 'permission-checkbox '+__utils.slugify(permission)+' '+current
+    cssClass = 'permission-switch '+__utils.slugify(permission)+' '+current
 
     name = _getCheckboxName module, permission, current
 
     cascadeData[current]= {
       name
       cssClass
-      itemClass    : KDCheckBox
+      itemClass    : KodingSwitch
       defaultValue : isChecked ? no
     }
 

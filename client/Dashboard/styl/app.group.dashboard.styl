@@ -91,6 +91,9 @@ Dashboard main styles
 Dashboard Readme Styles
 */
 }
+body.group.dashboard
+  vendor                      transform, translateX(0)
+
 .dashboard-tabs
   .kdtabpaneview.readme
     borderBox()
@@ -175,7 +178,7 @@ Dashboard Settings Styles
       bg                      position, center center
     &.default
       figure
-        sprite                "dashboard", "group-default-logo-bg"
+        r-sprite              "dashboard", "group-default-logo-bg"
         bg                    color, #CACACA
         bg                    position, center center
   .upload-button
@@ -322,7 +325,8 @@ Dashboard member listing related common styles
 
 .member-related
   overflow                    visible
-
+  .listview-wrapper
+    margin-top                30px
   .listview-wrapper .lazy-loader
     font-weight               600
     font-size                 12px
@@ -334,7 +338,6 @@ Dashboard member listing related common styles
     line-height               24px
     position                  relative
     overflow                  visible
-    width                     50%
     min-width                 350px
     height                    auto
     display                   inline-block
@@ -496,7 +499,7 @@ Dashboard invitations tab styles
 .kdtabview.dashboard-tabs .invitations
 
   .kdtabhandlecontainer
-    padding                   20px 0 0 10px
+    padding-top               20px
     height                    50px
     borderBox()
 
@@ -558,8 +561,9 @@ Dashboard invitations tab styles
   .member-related
     section
       padding                 10px
-      border-bottom           1px solid #f2f2f2
-      border-right            1px solid #f2f2f2
+      margin-bottom           1px
+      background              #fff
+      rounded                 6px
       min-height              40px
 
       &:hover
@@ -567,31 +571,27 @@ Dashboard invitations tab styles
 
       .buttons
         fr()
-        margin                8px 2px 0 0
         button
-          height              24px
-          .icon
-            width             20px
-            &.approve
-              bg              position, -77px -502px
-            &.decline
-              bg              position, -77px -482px
-            &.edit
-              height          15px
-              bg              position, -116px -402px
-            &.share
-              height          15px
-              bg              position, -97px -582px
-
+          height              35px
+          margin-top          2px
+          span
+            font-size         16px
+            line-height       35px
+          &.delete
+            bg                color, #EC492C
+            padding           0
       .status
-        font-size             11px
-        margin-top            10px
+        font-size             14px
+        height                35px
+        line-height           35px
+        margin-right          10px
         fr()
         &.sent
-          margin-right        5px
-          color               #ff9101
           .icon
-            bg                position, -100px -580px
+            r-sprite          "dashboard", "ok"
+            top               4px
+            left              2px
+            position          relative
         &.accepted
         &.approved
           color               #40af00
@@ -613,8 +613,9 @@ Dashboard invitations tab styles
             size              20px, 20px
             kdfsprite()
           &.title
-            vertical-align top
-            line-height       20px
+            color             #1aaf5d
+            font-weight       400
+            margin            0 10px
       .details
         margin-left           50px
         .requested-at
@@ -984,9 +985,19 @@ Dashboard Invitations Modal Styles
     .permissions-form
       overflow              visible
 
+      .permission-switch
+        fl()
+        margin              0 61px
+        size                38px, 18px
+        a
+          size              14px, 14px
+        &.on
+          a
+            vendor          transform, translateX(19px)
+
       .formline
         borderBox()
-        padding             7px 0
+        padding             10px 0
         border              none
 
         &:nth-child(2n+1):not(.permissions-module):not(.permissions-header)
@@ -996,7 +1007,7 @@ Dashboard Invitations Modal Styles
           border-left       none
           > .kdview
             borderBox()
-            line-height     15px
+            line-height     18px
             display         inline-block
             width           160px
             text-align      left
@@ -1004,6 +1015,7 @@ Dashboard Invitations Modal Styles
             overflow        hidden
             text-overflow   ellipsis
             white-space     nowrap
+            fl()
 
 
 

@@ -44,11 +44,32 @@ class PaymentMethodEntryForm extends KDFormViewWithFields
       cardMonth           :
         placeholder       : "MM"
         maxLength         : 2
+        validate          :
+          event           : 'blur'
+          rules           :
+            required      : yes
+            maxLength     : 2
+            regExp        : do ->
+              remainingMonths = KD.utils
+                .getMonthOptions()
+                  .slice((new Date).getMonth() - 1)
+                .map((item)-> item.title)
+                .join '|'
+                log remainingMonths
+              return ///#{remainingMonths}///
         nextElementFlat   :
           cardYear        :
             placeholder   : "YY"
             maxLength     : 2
-
+            validate      :
+              event       : 'blur'
+              rules       :
+                required  : yes
+                regExp    : do ->
+                  twoDigitsYear = (new Date).getFullYear()%100
+                  yearOptions   = [twoDigitsYear...twoDigitsYear+15].join '|'
+                  log yearOptions
+                  return ///#{yearOptions}///
       cardCV              :
         placeholder       : 'CVC'
         validate          :
@@ -75,9 +96,12 @@ class PaymentMethodEntryForm extends KDFormViewWithFields
     super()
 
     { cardNumber: cardNumberInput } = @inputs
-
     cardNumberInput.on 'keyup', @bound 'handleCardKeyup'
-    @on 'FormValidationFailed', => @buttons.Save.hideLoader()
+
+    @on 'FormValidationFailed', =>
+      KD.utils.wait 500, => @unsetClass 'animate shake'
+      @setClass 'animate shake'
+      @buttons.Save.hideLoader()
 
     cardNumberInput.on "ValidationError", ->
       @parent.unsetClass "visa mastercard amex diners discover jcb"
