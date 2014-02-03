@@ -326,13 +326,13 @@ class KodingAppsController extends KDController
 
       (cb)->
 
-        manifestFile  = FSHelper.createFileFromPath "#{appPath}/manifest.json"
-        manifestFile.save  manifestStr,  cb
+        FSHelper.createFileFromPath("#{appPath}/manifest.json")
+                .save manifestStr,  cb
 
       (cb)->
 
-        changeLogFile = FSHelper.createFileFromPath "#{appPath}/ChangeLog"
-        changeLogFile.save changeLogStr, cb
+        FSHelper.createFileFromPath("#{appPath}/ChangeLog")
+                .save changeLogStr, cb
 
     ]
 
