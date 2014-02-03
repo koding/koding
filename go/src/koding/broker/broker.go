@@ -35,12 +35,32 @@ var (
 	changeWebsocketClientsGauge = logger.CreateCounterGauge("websocketClients", logger.NoUnit, false)
 )
 
+// Broker is a router/multiplexer that routes messages coming from a SockJS
+// server to an AMQP exchange and vice versa. Broker basically listens to
+// client messages (Koding users) from the SockJS server. The message is
+// either passed to the appropriate exchange or a response is sent back to the
+// client. Each message has an "action" field that defines how to act for a
+// received message.
 type Broker struct {
 	Hostname          string
 	ServiceUniqueName string
 	PublishConn       *amqp.Connection
+	ConsumeConn       *amqp.Connection
+
+	// Accepts SockJS connections
+	listener net.Listener
+
+	// Closed when SockJS server is ready to acccept connections
+	ready chan struct{}
+
+	// Closed when AMQP connection and channel are setup
+	amqpReady chan struct{}
 }
 
+// NewBroker returns a new Broker instance with ServiceUniqueName and Hostname
+// prepopulated. After creating a Broker instance, one has to call
+// broker.Run() or broker.Start() to start the broker instance and call
+// broker.Close() for a graceful stop.
 func NewBroker() *Broker {
 	// returns os.Hostname() if config.BrokerDomain is empty, otherwise it just
 	// returns config.BrokerDomain back
@@ -51,22 +71,51 @@ func NewBroker() *Broker {
 	return &Broker{
 		Hostname:          brokerHostname,
 		ServiceUniqueName: serviceUniqueName,
+		ready:             make(chan struct{}),
+		amqpReady:         make(chan struct{}),
 	}
 }
 
 func main() {
+	NewBroker().Run()
+}
+
+// Run starts the broker.
+func (b *Broker) Run() {
 	lifecycle.Startup("broker", false)
 	logger.RunGaugesLoop(log)
 
-	broker := NewBroker()
-	broker.registerToKontrol()
+	b.registerToKontrol()
 
-	go broker.startSockJS()
-	broker.startAMQP() // blocking
+	go b.startAMQP()
+	<-b.amqpReady
+	b.startSockJS() // blocking
 
 	time.Sleep(5 * time.Second) // give amqputil time to log connection error
 }
 
+// Start is like Run() but waits until the SockJS listener is ready to be
+// used.
+func (b *Broker) Start() {
+	go b.Run()
+	<-b.ready
+
+	// I don't know why this is happening because of recovering panics.
+	// Putting this sleep here to prevent it from happening.
+	// Remove this hack after getting rid of defer recoverAndLog() statements.
+	time.Sleep(1 * time.Second)
+}
+
+// Close close all amqp connections and closes the SockJS server listener
+func (b *Broker) Close() {
+	b.PublishConn.Close()
+	b.ConsumeConn.Close()
+	b.listener.Close()
+}
+
+// registerToKontrol registers the broker to KontrolDaemon. This is needed to
+// populate a list of brokers and show them to the client. The list is
+// available at: https://koding.com/-/services/broker?all
 func (b *Broker) registerToKontrol() {
 	if err := kontrolhelper.RegisterToKontrol(
 		"broker", // servicename
@@ -80,14 +129,16 @@ func (b *Broker) registerToKontrol() {
 	}
 }
 
+// startAMQP setups the the neccesary publisher and consumer connections for
+// the broker broker.
 func (b *Broker) startAMQP() {
 	b.PublishConn = amqputil.CreateConnection("broker")
 	defer b.PublishConn.Close()
 
-	consumeConn := amqputil.CreateConnection("broker")
-	defer consumeConn.Close()
+	b.ConsumeConn = amqputil.CreateConnection("broker")
+	defer b.ConsumeConn.Close()
 
-	consumeChannel := amqputil.CreateChannel(consumeConn)
+	consumeChannel := amqputil.CreateChannel(b.ConsumeConn)
 	defer consumeChannel.Close()
 
 	presenceQueue := amqputil.JoinPresenceExchange(
@@ -124,6 +175,9 @@ func (b *Broker) startAMQP() {
 		panic(err)
 	}
 
+	// signal that we are ready now
+	close(b.amqpReady)
+
 	// start to listen from "broker" topic exchange
 	for amqpMessage := range stream {
 		routingKey := amqpMessage.RoutingKey
@@ -159,20 +213,20 @@ func (b *Broker) startSockJS() {
 	service.ErrorHandler = log.LogError
 
 	// TODO use http.Mux instead of sockjs.Mux.
-	server := &http.Server{
-		Handler: &sockjs.Mux{
-			Handlers: map[string]http.Handler{
-				"/subscribe": service,
-				"/buildnumber": http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-					w.Header().Set("Content-Type", "text/plain")
-					w.Write([]byte(strconv.Itoa(config.Current.BuildNumber)))
-				}),
-			},
+	mux := &sockjs.Mux{
+		Handlers: map[string]http.Handler{
+			"/subscribe": service,
+			"/buildnumber": http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				w.Header().Set("Content-Type", "text/plain")
+				w.Write([]byte(strconv.Itoa(config.Current.BuildNumber)))
+			}),
 		},
 	}
 
-	var listener net.Listener
-	listener, err := net.ListenTCP("tcp", &net.TCPAddr{IP: net.ParseIP(config.Current.Broker.IP), Port: config.Current.Broker.Port})
+	server := &http.Server{Handler: mux}
+
+	var err error
+	b.listener, err = net.ListenTCP("tcp", &net.TCPAddr{IP: net.ParseIP(config.Current.Broker.IP), Port: config.Current.Broker.Port})
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -182,16 +236,26 @@ func (b *Broker) startSockJS() {
 		if err != nil {
 			log.Fatal(err)
 		}
-		listener = tls.NewListener(listener, &tls.Config{
+		b.listener = tls.NewListener(b.listener, &tls.Config{
 			NextProtos:   []string{"http/1.1"},
 			Certificates: []tls.Certificate{cert},
 		})
 	}
 
+	// signal that we are ready now
+	close(b.ready)
+
 	lastErrorTime := time.Now()
 	for {
-		err := server.Serve(listener)
+		err := server.Serve(b.listener)
 		if err != nil {
+			// comes when the broker is closed with Close() method. This error
+			// is defined in net/net.go as "var errClosing", unfortunaly it's
+			// not exported.
+			if strings.Contains(err.Error(), "use of closed network connection") {
+				return
+			}
+
 			log.Warning("Server error: %v", err)
 			if time.Now().Sub(lastErrorTime) < time.Second {
 				log.Fatal(nil)
@@ -202,6 +266,8 @@ func (b *Broker) startSockJS() {
 
 }
 
+// sockjsSession is called for every client connection and handles all the
+// message trafic for a single client connection.
 func (b *Broker) sockjsSession(session *sockjs.Session) {
 	defer log.RecoverAndLog()
 
