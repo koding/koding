@@ -44,8 +44,8 @@ module.exports = class JGroup extends Module
       'grant permissions'                 : []
       'open group'                        : ['member','moderator']
       'list members'                      :
-        public                            : ['moderator']
-        private                           : ['moderator']
+        public                            : ['moderator', 'member']
+        private                           : ['moderator', 'member']
       'read group activity'               :
         public                            : ['guest','member','moderator']
         private                           : ['member','moderator']
@@ -415,8 +415,8 @@ module.exports = class JGroup extends Module
       JName                 = require '../name'
       group                 = new this groupData
       group.privacy         = 'private'
-      permissionSet         = new JPermissionSet {}, {privacy: group.privacy, isCustom: true}
-      defaultPermissionSet  = new JPermissionSet {}, {privacy: group.privacy, isCustom: true}
+      permissionSet         = new JPermissionSet {}, {privacy: group.privacy}
+      defaultPermissionSet  = new JPermissionSet {}, {privacy: group.privacy}
 
       queue = [
         -> group.useSlug group.slug, (err, slug)->
@@ -448,14 +448,8 @@ module.exports = class JGroup extends Module
             else
               console.log 'owner is added'
               queue.next()
-        -> save_ 'permission set', permissionSet, queue, callback
         -> save_ 'default permission set', defaultPermissionSet, queue,
                   callback
-        -> group.addPermissionSet permissionSet, (err)->
-            if err then callback err
-            else
-              console.log 'permissionSet is added'
-              queue.next()
         -> group.addDefaultPermissionSet defaultPermissionSet, (err)->
             if err then callback err
             else
@@ -498,6 +492,7 @@ module.exports = class JGroup extends Module
         owner.fetchSubscription {}, subOptions, (err, subscription) =>
           return callback err  if err
           @create client, formData, owner, (err, group) ->
+            return callback err if err
             nonce.update $set: action: "used", (err) ->
               return callback err  if err
               group.addSubscription subscription, (err) ->
@@ -604,13 +599,17 @@ module.exports = class JGroup extends Module
   updatePermissions: permit 'grant permissions',
     success:(client, permissions, callback=->)->
       @fetchPermissionSet (err, permissionSet)=>
-        if err
-          callback err
-        else if permissionSet?
+        return callback err if err
+        if permissionSet?
           permissionSet.update $set:{permissions}, callback
         else
-          permissionSet = new JPermissionSet {permissions}
-          permissionSet.save callback
+          permissionSet = new JPermissionSet {permissions, isCustom: true}
+          permissionSet.save (err) => 
+            return callback err if err
+            @addPermissionSet permissionSet, (err)->
+              return callback err if err
+              console.log 'permissionSet is added'
+              callback null
 
   fetchPermissions:do->
     fixDefaultPermissions_ =(model, permissionSet, callback)->
@@ -645,6 +644,7 @@ module.exports = class JGroup extends Module
               else if model?
                 console.log 'already had defaults'
                 defaultPermissionSet = model
+                permissionSet = model unless permissionSet
                 queue.next()
               else
                 console.log 'needed defaults fixed'
