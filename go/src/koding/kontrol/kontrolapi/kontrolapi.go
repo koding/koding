@@ -25,15 +25,11 @@ type ProxyPostMessage struct {
 	Hostdata      string
 }
 
-var amqpWrapper *AmqpWrapper
-
 func init() {
 	log.SetPrefix("kontrol-api ")
 }
 
 func main() {
-	amqpWrapper = setupAmqp()
-
 	rout := mux.NewRouter()
 	rout.HandleFunc("/", home).Methods("GET")
 
@@ -48,8 +44,6 @@ func main() {
 	workers := rout.PathPrefix("/workers").Subrouter()
 	workers.HandleFunc("/", changeHandler(GetWorkers)).Methods("GET")
 	workers.HandleFunc("/{uuid}", changeHandler(GetWorker)).Methods("GET")
-	workers.HandleFunc("/{uuid}/{action}", changeHandler(UpdateWorker)).Methods("PUT")
-	workers.HandleFunc("/{uuid}", changeHandler(DeleteWorker)).Methods("DELETE")
 	workers.HandleFunc("/url/{workername}", changeHandler(GetWorkerURL)).Methods("GET")
 
 	// Proxy handlers
