@@ -9,6 +9,5 @@ class VmPlanView extends JView
     total = KD.utils.formatMoney total / 100
     """
     {h4{#(title) or #(plan.title)}}
-    {p{#(description) or #(plan.description) or ""}}
     <span class="price">#{total}</span>
     """

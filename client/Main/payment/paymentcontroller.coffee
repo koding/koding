@@ -27,7 +27,9 @@ class PaymentController extends KDController
   observePaymentSave: (modal, callback) ->
     modal.on 'PaymentInfoSubmitted', (paymentMethodId, updatedPaymentInfo) =>
       @updatePaymentInfo paymentMethodId, updatedPaymentInfo, (err, savedPaymentInfo) =>
-        return callback err  if err
+        if err
+          modal.emit 'FormValidationFailed'
+          return callback err
         callback null, savedPaymentInfo
         @emit 'PaymentDataChanged'
 
