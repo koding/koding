@@ -788,7 +788,7 @@ module.exports = class JUser extends jraphical.Module
         user.fetchOwnAccount (err, account) =>
           return callback err  if err
 
-          options = { account, username, clientId }
+          options = { account, username, clientId, isRegistration : yes}
 
           @changeUsernameByAccount options, (err, replacementToken) ->
             return callback err  if err
