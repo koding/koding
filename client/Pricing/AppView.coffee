@@ -66,13 +66,6 @@ class PricingAppView extends KDView
           <h6 class="pricing-subtitle">#{subtitle}</h6>
           """
 
-      productList = products.map (product) ->
-        "<div>#{subscription.quantities[product.planCode]}x #{product.title}</div>"
-
-      thankYou.addSubView new KDCustomHTMLView
-        cssClass : "product-list"
-        partial  : productList.join ""
-
       if @formData.loggedIn
         thankYou.addSubView new KDButtonView
           title    : "Go to Group"
