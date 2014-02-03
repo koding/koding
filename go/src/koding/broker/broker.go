@@ -49,8 +49,11 @@ type Broker struct {
 	// Accepts SockJS connections
 	listener net.Listener
 
-	// Closed when listener is ready to acccept connections
-	listenerReady chan struct{}
+	// Closed when SockJS server is ready to acccept connections
+	ready chan struct{}
+
+	// Closed when AMQP connection and channel are setup
+	amqpReady chan struct{}
 }
 
 // NewBroker returns a new Broker instance with ServiceUniqueName and Hostname
@@ -67,7 +70,8 @@ func NewBroker() *Broker {
 	return &Broker{
 		Hostname:          brokerHostname,
 		ServiceUniqueName: serviceUniqueName,
-		listenerReady:     make(chan struct{}),
+		ready:             make(chan struct{}),
+		amqpReady:         make(chan struct{}),
 	}
 }
 
@@ -82,8 +86,9 @@ func (b *Broker) Run() {
 
 	b.registerToKontrol()
 
-	go b.startSockJS()
-	b.startAMQP() // blocking
+	go b.startAMQP()
+	<-b.amqpReady
+	b.startSockJS() // blocking
 
 	time.Sleep(5 * time.Second) // give amqputil time to log connection error
 }
@@ -92,7 +97,7 @@ func (b *Broker) Run() {
 // used.
 func (b *Broker) Start() {
 	go b.Run()
-	<-b.listenerReady
+	<-b.ready
 
 	// I don't know why this is happening because of recovering panics.
 	// Putting this sleep here to prevent it from happening.
@@ -169,6 +174,9 @@ func (b *Broker) startAMQP() {
 		panic(err)
 	}
 
+	// signal that we are ready now
+	close(b.amqpReady)
+
 	// start to listen from "broker" topic exchange
 	for amqpMessage := range stream {
 		routingKey := amqpMessage.RoutingKey
@@ -234,7 +242,7 @@ func (b *Broker) startSockJS() {
 	}
 
 	// signal that we are ready now
-	close(b.listenerReady)
+	close(b.ready)
 
 	lastErrorTime := time.Now()
 	for {
