@@ -60,7 +60,7 @@ module.exports = class ActiveItems extends Base
     @fetchRandomUsers callback
 
   @fetchRandomUsers = (callback)->
-    JAccount.some {"profile.username":{"$not":/guest-/}}, {limit:10}, callback
+    JAccount.some {"type":"registered"}, {limit:10}, callback
 
   @fetchRandomTopics = (callback, options)->
     group = options.group or "koding"
