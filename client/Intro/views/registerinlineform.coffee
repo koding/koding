@@ -135,6 +135,12 @@ class HomeRegisterForm extends KDFormView
       else
         KD.mixpanel.alias account.profile.nickname
         KD.mixpanel "Signup, success"
+
+        try
+          mixpanel.track "Alternate Signup, success"
+        catch
+          KD.logToExternal "mixpanel doesn't exist"
+
         _gaq.push ['_trackEvent', 'Sign-up']
 
         $.cookie 'newRegister', yes
