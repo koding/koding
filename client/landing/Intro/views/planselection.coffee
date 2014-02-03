@@ -25,7 +25,7 @@ class IntroPricingPlanSelection extends JView
 
     @slider = new KDSliderBarView options.slider
     @slider.on "ValueChanged", (handle) =>
-      value = handle.getSnappedValue()
+      value = Math.floor handle.value
       price = value * unitPrice
       @count.updatePartial "#{value}x"
       @price.updatePartial "$#{price}/Month"
