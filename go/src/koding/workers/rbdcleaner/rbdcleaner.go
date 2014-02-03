@@ -44,7 +44,7 @@ func rbdCleaner() error {
 		return err
 	}
 
-	log.Info("cleaner started. total images: %d", s.Size())
+	log.Info("cleaner started. total images in rbd pool: %d", s.Size())
 	cleanCount := 0
 	errCount := 0
 	s.Each(func(rbdName interface{}) bool {
@@ -57,7 +57,7 @@ func rbdCleaner() error {
 			return true //  rbd image does exists in jVMS, don't touch it and continue
 		}
 
-		log.Info("removing image '%s' from rbd", vmName)
+		log.Info("Removing image '%s' from rbd", vmName)
 		res, err := removeRBDImage(vmName)
 		if err != nil {
 			errCount++
@@ -66,7 +66,7 @@ func rbdCleaner() error {
 		}
 
 		cleanCount++
-		log.Info(res)
+		log.Info("%s", res)
 		return true
 	})
 	log.Info("cleaner ended. images cleaned: %d images with err: %d", cleanCount, errCount)
