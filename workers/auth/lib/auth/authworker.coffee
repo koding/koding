@@ -278,7 +278,7 @@ module.exports = class AuthWorker extends EventEmitter
     ensureGroupPermission = (group, account, callback) ->
       {JPermissionSet, JGroup} = @bongo.models
       client = {context: group.slug, connection: delegate: account}
-      JPermissionSet.checkPermission client, "read activity", group,
+      JPermissionSet.checkPermission client, "read group activity", group,
         (err, hasPermission) ->
           if err then callback err
           else if hasPermission
