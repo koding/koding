@@ -8,6 +8,7 @@ import (
 	"os/exec"
 	"strings"
 	"time"
+	"labix.org/v2/mgo"
 
 	"github.com/fatih/set"
 	"github.com/op/go-logging"
@@ -44,7 +45,7 @@ func rbdCleaner() error {
 		return err
 	}
 
-	log.Info("cleaner started. total images in rbd pool: %d", s.Size())
+	log.Info("cleaner started. going to iterate over %d images in 'vms' pool.", s.Size())
 	cleanCount := 0
 	errCount := 0
 	s.Each(func(rbdName interface{}) bool {
@@ -55,6 +56,11 @@ func rbdCleaner() error {
 		err := mongodb.One("jVMs", vmId, vm)
 		if err == nil {
 			return true //  rbd image does exists in jVMS, don't touch it and continue
+		}
+
+		if err != mgo.ErrNotFound {
+			log.Error("MongoDB lookup err: %s", err.Error())
+			return true
 		}
 
 		log.Info("Removing image '%s' from rbd", vmName)
