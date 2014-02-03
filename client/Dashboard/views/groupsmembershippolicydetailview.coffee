@@ -116,6 +116,9 @@ class GroupsMembershipPolicyDetailView extends KDView
 
   pistachio:->
     """
+    <div class="policy-overlay">
+      <div><p><span class="icon"></span>Coming Soon</p></div>
+    </div>
     {{> @enableAccessRequests}}
     <section class="formline">
       <h2>Users may request access</h2>
@@ -151,10 +154,6 @@ class GroupsMembershipPolicyDetailView extends KDView
     <section class="formline clearfix">
       <h2>Policy language</h2>
       <div class="formline">
-        <div class='policy-language-image-wrapper'>
-          <img src='/a/images/policy-language-modal.jpg' alt='the policy language modal' class='policy-language-image'/>
-          <span class='legend'>This modal will be presented to people who request access.</span>
-        </div>
         <p>It's possible to compose custom policy language (copy) to help your
         users better understand how they may become members of your group.</p>
         <p>The screenshot on the right shows where this text will be presented to the user.</p>
