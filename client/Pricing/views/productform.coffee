@@ -12,7 +12,6 @@ class PricingProductForm extends JView
     @toggle        = new KDMultipleChoice
       cssClass     : "pricing-toggle"
       labels       : ["DEVELOPER", "TEAM"]
-      defaultValue : ["DEVELOPER"]
       multiple     : no
       callback     : =>
         KD.singleton("router").handleRoute switch @toggle.getValue()
@@ -20,10 +19,12 @@ class PricingProductForm extends JView
             when "TEAM" then "/Pricing/Team"
 
   showDeveloperPlan: ->
+    @toggle.setValue "DEVELOPER"
     @developerPlan.show()
     @teamPlan.hide()
 
   showTeamPlan: ->
+    @toggle.setValue "TEAM"
     @developerPlan.hide()
     @teamPlan.show()
 
