@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"math/rand"
+	"os/exec"
 	"testing"
 	"time"
 
@@ -28,9 +29,33 @@ func init() {
 	rand.Seed(time.Now().UnixNano())
 }
 
-func TestBroker(t *testing.T) {
+func runBroker(t *testing.T) (b *Broker, closer func()) {
+	// Run authWorker (Authworker must be running when broker is running.)
+	cmd := exec.Command("cake", "authWorker")
+	cmd.Dir = "/opt/koding"
+	err := cmd.Start()
+	if err != nil {
+		panic(err)
+	}
+	t.Log("authWorker is running")
+
+	// Run broker
 	broker := NewBroker()
 	broker.Start()
+	t.Log("broker is running")
+
+	return broker, func() {
+		// Close authWorker
+		if err := cmd.Process.Kill(); err != nil {
+			t.Errorf(err.Error())
+		}
+		broker.Close()
+	}
+}
+
+func TestBroker(t *testing.T) {
+	_, closer := runBroker(t)
+	defer closer()
 
 	client, err := dialSockJS(newURL(), origin)
 	if err != nil {
@@ -39,6 +64,7 @@ func TestBroker(t *testing.T) {
 	}
 
 	go client.Run()
+	defer client.Close()
 
 	type testCase struct{ send, expect string }
 	cases := []testCase{
@@ -52,9 +78,86 @@ func TestBroker(t *testing.T) {
 			return
 		}
 	}
+}
 
-	client.Close()
-	broker.Close()
+func TestPubSub(t *testing.T) {
+	// Run authWorker and broker
+	_, closer := runBroker(t)
+	defer closer()
+
+	// Run subscriber
+	subscriber, err := dialSockJS(newURL(), origin)
+	if err != nil {
+		t.Errorf(err.Error())
+		return
+	}
+	go subscriber.Run()
+	defer subscriber.Close()
+	msg, err := subscriber.ReadJSON()
+	if err != nil {
+		t.Errorf(err.Error())
+		return
+	}
+	if msg["routingKey"].(string) != "broker.connected" {
+		t.Errorf(err.Error())
+		return
+	}
+	t.Log("subscriber is running")
+
+	// Run publisher
+	publisher, err := dialSockJS(newURL(), origin)
+	if err != nil {
+		t.Errorf(err.Error())
+		return
+	}
+	go publisher.Run()
+	defer publisher.Close()
+	msg, err = publisher.ReadJSON()
+	if err != nil {
+		t.Errorf(err.Error())
+		return
+	}
+	if msg["routingKey"].(string) != "broker.connected" {
+		t.Errorf(err.Error())
+		return
+	}
+	t.Log("publisher is running")
+
+	// Subscribe
+	err = subscriber.SendString(`{"action": "subscribe", "routingKeyPrefix": "client.foo"}`)
+	if err != nil {
+		t.Errorf(err.Error())
+		return
+	}
+	str, err := subscriber.ReadString()
+	if err != nil {
+		t.Errorf(err.Error())
+		return
+	}
+	if str != `{"routingKey":"broker.subscribed","payload":"client.foo"}` {
+		t.Errorf("unexpected msg: %s", str)
+		return
+	}
+	t.Log("subscribed")
+
+	// Publish a message
+	err = publisher.SendString(`{"action": "publish", "exchange": "broker", "routingKey": "client.foo", "payload": "{\"bar\": \"baz\"}"}`)
+	if err != nil {
+		t.Errorf(err.Error())
+		return
+	}
+	t.Log("published a message")
+
+	// Receive published message
+	str, err = subscriber.ReadString()
+	if err != nil {
+		t.Errorf(err.Error())
+		return
+	}
+	if str != `{"routingKey":"client.foo","payload":{"bar":"baz"}}` {
+		t.Errorf("unexpected msg: %s", str)
+		return
+	}
 }
 
 // cheap imitation of sockjs-client js library
@@ -87,7 +190,7 @@ func (c *sockJSClient) Run() error {
 		if err != nil {
 			return err
 		}
-		fmt.Printf("--- read data: %+v\n", string(data))
+		// fmt.Printf("--- read data: %+v\n", string(data))
 		c.didMessage(data)
 	}
 }
@@ -139,6 +242,39 @@ func (c *sockJSClient) didMessage(data []byte) error {
 	return nil
 }
 
+// Get next JSON message from server as map[string]interface{}
+func (c *sockJSClient) ReadJSON() (map[string]interface{}, error) {
+	msg, err := c.Read()
+	if err != nil {
+		return nil, err
+	}
+	m := make(map[string]interface{})
+	err = json.Unmarshal(msg, &m)
+	if err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+// Get next message from server as string
+func (c *sockJSClient) ReadString() (string, error) {
+	msg, err := c.Read()
+	if err != nil {
+		return "", err
+	}
+	return string(msg), nil
+}
+
+// Get next message from server as []byte
+func (c *sockJSClient) Read() ([]byte, error) {
+	select {
+	case msg := <-c.messages:
+		return msg, nil
+	case <-time.After(1e9):
+		return nil, errors.New("timeout")
+	}
+}
+
 // send a string and expect reply
 func (c *sockJSClient) SendAndExpectString(sent, expected string) error {
 	return c.SendAndExpect([]byte(sent), []byte(expected))
@@ -150,19 +286,14 @@ func (c *sockJSClient) SendAndExpect(sent []byte, expected []byte) error {
 	if err != nil {
 		return err
 	}
-	fmt.Printf("--- sent data: %+v\n", string(sent))
 
 	for {
-		timeout := time.After(1e9)
-		select {
-		case msg := <-c.messages:
-			fmt.Printf("--- msg: %+v\n", string(msg))
-
-			if bytes.Compare(msg, expected) == 0 {
-				return nil
-			}
-		case <-timeout:
-			return errors.New("timeout")
+		msg, err := c.Read()
+		if err != nil {
+			return err
+		}
+		if bytes.Compare(msg, expected) == 0 {
+			return nil
 		}
 	}
 
