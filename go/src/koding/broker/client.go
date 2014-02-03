@@ -90,7 +90,9 @@ func (c *Client) handleSessionMessage(data interface{}) {
 		globalMapMutex.Lock()
 		defer globalMapMutex.Unlock()
 		for _, routingKeyPrefix := range strings.Split(message["routingKeyPrefix"].(string), " ") {
-			c.Subscribe(routingKeyPrefix)
+			if err := c.Subscribe(routingKeyPrefix); err != nil {
+				log.Error(err.Error())
+			}
 		}
 
 		sendToClient(c.Session, "broker.subscribed", message["routingKeyPrefix"])
@@ -101,7 +103,9 @@ func (c *Client) handleSessionMessage(data interface{}) {
 		oldSubscriptions, found := socketSubscriptionsMap[message["socketId"].(string)]
 		if found {
 			for routingKeyPrefix := range *oldSubscriptions {
-				c.Subscribe(routingKeyPrefix)
+				if err := c.Subscribe(routingKeyPrefix); err != nil {
+					log.Error(err.Error())
+				}
 			}
 		}
 		sendToClient(c.Session, "broker.resubscribed", found)
@@ -117,7 +121,10 @@ func (c *Client) handleSessionMessage(data interface{}) {
 		exchange := message["exchange"].(string)
 		routingKey := message["routingKey"].(string)
 		payload := message["payload"].(string)
-		c.Publish(exchange, routingKey, payload)
+		err := c.Publish(exchange, routingKey, payload)
+		if err != nil {
+			log.Error(err.Error())
+		}
 
 	case "ping":
 		sendToClient(c.Session, "broker.pong", nil)
@@ -130,10 +137,9 @@ func (c *Client) handleSessionMessage(data interface{}) {
 
 // Subscribe add the given routingKeyPrefix to the list of subscriptions
 // associated with this client.
-func (c *Client) Subscribe(routingKeyPrefix string) {
+func (c *Client) Subscribe(routingKeyPrefix string) error {
 	if c.Subscriptions[routingKeyPrefix] {
-		log.Warning("Duplicate subscription to same routing key. %v %v", c.Session.Tag, routingKeyPrefix)
-		return
+		return fmt.Errorf("Duplicate subscription to same routing key. %v %v", c.Session.Tag, routingKeyPrefix)
 	}
 
 	if len(c.Subscriptions) > 0 && len(c.Subscriptions)%2000 == 0 {
@@ -144,6 +150,7 @@ func (c *Client) Subscribe(routingKeyPrefix string) {
 	routeMap[routingKeyPrefix] = append(routeMap[routingKeyPrefix], c.Session)
 	c.Subscriptions[routingKeyPrefix] = true
 
+	return nil
 }
 
 // Unsubscribe deletes the given routingKey prefix from the subscription list
