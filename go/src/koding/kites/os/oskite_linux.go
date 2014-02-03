@@ -53,7 +53,7 @@ type VMInfo struct {
 var (
 	infos            = make(map[bson.ObjectId]*VMInfo)
 	infosMutex       sync.Mutex
-	templateDir      = config.Current.ProjectRoot + "/go/templates"
+	templateDir      = "files/templates" // should be in the same dir as the binary
 	firstContainerIP net.IP
 	containerSubnet  *net.IPNet
 	shuttingDown     = false
@@ -236,7 +236,7 @@ func handleCurrentVMS(k *kite.Kite) {
 			}
 
 			if err := mongodb.Run("jVMs", query); err != nil || vm.HostKite != k.ServiceUniqueName {
-				log.Info("oskite started, calling unprepare. VmID: '%s', vm.Hoskite: '%s', k.ServiceUniqueName: '%s', error '%s'", vmId, vm.HostKite, k.ServiceUniqueName, err)
+				log.Info("oskite started. I'm calling unprepare for leftover VM: '%s', vm.Hoskite: '%s', k.ServiceUniqueName: '%s', error '%s'", vmId, vm.HostKite, k.ServiceUniqueName, err.Error())
 
 				if err := virt.UnprepareVM(vmId); err != nil {
 					log.Error("%v", err)
@@ -748,7 +748,7 @@ func (info *VMInfo) startTimeout() {
 
 	// After 1 hour we are shutting down the VM (unprepareVM does it.)
 	// 5 Minutes from kite.go, 50 + 5 Minutes from here, makes a total of 60 Mins (1 Hour)
-	info.timeout = time.AfterFunc(50*time.Minute, func() {
+	info.timeout = time.AfterFunc(5*time.Minute, func() {
 		if info.useCounter != 0 || info.vm.AlwaysOn {
 			return
 		}

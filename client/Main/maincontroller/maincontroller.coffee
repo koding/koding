@@ -157,14 +157,13 @@ class MainController extends KDController
         # window location path is set to last route to ensure visitor is not
         # redirected to another page
         @utils.defer ->
-          firstRoute = KD.getSingleton("router").visitedRoutes.first
+          lastRoute = KD.getSingleton("router").visitedRoutes.last
 
-          firstRoute = KD.getSingleton("router").visitedRoutes.first
-          if firstRoute and /^\/(?:Reset|Register|Verify|Confirm)\//.test firstRoute
-            firstRoute = "/Activity"
+          if lastRoute and /^\/(?:Reset|Register|Verify|Confirm)\//.test lastRoute
+            lastRoute = "/Activity"
 
           {entryPoint} = KD.config
-          KD.getSingleton('router').handleRoute firstRoute or '/Activity', {replaceState: yes, entryPoint}
+          KD.getSingleton('router').handleRoute lastRoute or '/Activity', {replaceState: yes, entryPoint}
 
   setVisitor:(visitor)-> @visitor = visitor
   getVisitor: -> @visitor

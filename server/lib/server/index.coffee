@@ -269,6 +269,8 @@ app.all '/:name/:section?*', (req, res, next)->
 
   # Checks if its an internal request like /Activity, /Terminal ...
   #
+  bongoModels = koding.models
+
   if isInAppRoute name
 
     if name in ['Activity', 'Topics']
@@ -282,7 +284,6 @@ app.all '/:name/:section?*', (req, res, next)->
 
     else
 
-      bongoModels = koding.models
       generateFakeClient req, res, (err, client)->
 
         isLoggedIn req, res, (err, loggedIn, account)->
@@ -314,10 +315,11 @@ app.all '/:name/:section?*', (req, res, next)->
         else if models.last?
           if models.last.bongo_?.constructorName isnt "JGroup" and not loggedIn
             return Crawler.crawl koding, req, res, name
-          models.last.fetchHomepageView account, (err, view)->
+
+          models.last.fetchHomepageView {section, account, bongoModels}, (err, view)->
             if err then next err
             else if view? then res.send view
-            else res.send 500, error_500()
+            else res.send 404, error_404()
         else next()
 
 # Main Handler for Koding.com

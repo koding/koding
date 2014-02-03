@@ -408,20 +408,21 @@ module.exports = class JReferral extends jraphical.Message
 
     JUser.on 'EmailConfirmed', (user)->
       return console.log "User is not defined in event" unless user
-
-      user.fetchOwnAccount (err, me)->
-        return console.error err if err
-        # if account not fonud then do nothing and return
-        return console.error "Account couldnt found" unless me
-        referrerUsername = me.referrerUsername
-        return console.info "User doesn't have any referrer" unless referrerUsername
-        # get referrer
-        JAccount.one {'profile.nickname': referrerUsername }, (err, referrer)->
-          # if error occured than do nothing and return
-          return console.error "Error while fetching referrer", err if err
-          # if referrer not fonud then do nothing and return
-          return console.error "Referrer couldnt found" if not referrer
-          persistReferrals referrer, me, (err)->
-            return console.error err if err
-            persistReferrals me, referrer, (err)->
+      isCampaingValid (err, status)->
+        return if err or not status
+        user.fetchOwnAccount (err, me)->
+          return console.error err if err
+          # if account not fonud then do nothing and return
+          return console.error "Account couldnt found" unless me
+          referrerUsername = me.referrerUsername
+          return console.info "User doesn't have any referrer" unless referrerUsername
+          # get referrer
+          JAccount.one {'profile.nickname': referrerUsername }, (err, referrer)->
+            # if error occured than do nothing and return
+            return console.error "Error while fetching referrer", err if err
+            # if referrer not fonud then do nothing and return
+            return console.error "Referrer couldnt found" if not referrer
+            persistReferrals referrer, me, (err)->
               return console.error err if err
+              persistReferrals me, referrer, (err)->
+                return console.error err if err
