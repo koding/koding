@@ -77,7 +77,7 @@ module.exports = (req, res) ->
     userEmailResp.on "end", ->
       emails = JSON.parse(rawResp)
       for email in emails when email.verified and email.primary
-        originalResp.email = email
+        originalResp.email = email.email
 
       saveOauthAndRenderPopup originalResp, res, clientId
 
