@@ -4,6 +4,7 @@ import (
 	"crypto/rand"
 	"encoding/base64"
 	"fmt"
+	"koding/broker/cache"
 	"koding/tools/config"
 	"koding/tools/sockjs"
 	"strconv"
@@ -19,7 +20,7 @@ type Client struct {
 	SocketId       string
 	Broker         *Broker
 	LastPayload    string
-	Subscriptions  map[string]bool
+	Subscriptions  *cache.SubscriptionSet
 }
 
 // NewClient retuns a new client that is defined on a given session.
@@ -32,11 +33,11 @@ func NewClient(session *sockjs.Session, broker *Broker) *Client {
 		panic(err)
 	}
 
-	subscriptions := make(map[string]bool)
+	subscriptions := cache.NewSubscriptionSet()
 
 	fmt.Println("adding to subscriptionsMap")
 	globalMapMutex.Lock()
-	socketSubscriptionsMap[socketID] = &subscriptions
+	socketSubscriptionsMap[socketID] = subscriptions
 	globalMapMutex.Unlock()
 
 	fmt.Println("returning new client")
@@ -50,11 +51,10 @@ func NewClient(session *sockjs.Session, broker *Broker) *Client {
 }
 
 func (c *Client) Close() {
-	globalMapMutex.Lock()
-	for routingKeyPrefix := range c.Subscriptions {
-		c.RemoveFromRoute(routingKeyPrefix)
-	}
-	globalMapMutex.Unlock()
+	c.Subscriptions.Each(func(routingKeyPrefix interface{}) bool {
+		c.RemoveFromRoute(routingKeyPrefix.(string))
+		return true
+	})
 
 	time.AfterFunc(5*time.Minute, func() {
 		globalMapMutex.Lock()
@@ -101,9 +101,10 @@ func (c *Client) handleSessionMessage(data interface{}) {
 		defer globalMapMutex.Unlock()
 		oldSubscriptions, found := socketSubscriptionsMap[message["socketId"].(string)]
 		if found {
-			for routingKeyPrefix := range *oldSubscriptions {
-				c.Subscribe(routingKeyPrefix)
-			}
+			oldSubscriptions.Each(func(routingKeyPrefix interface{}) bool {
+				c.Subscribe(routingKeyPrefix.(string))
+				return true
+			})
 		}
 		sendToClient(c.Session, "broker.resubscribed", found)
 
@@ -234,18 +235,18 @@ func (c *Client) RemoveFromRoute(routingKeyPrefix string) {
 // Subscribe add the given routingKeyPrefix to the list of subscriptions
 // associated with this client.
 func (c *Client) Subscribe(routingKeyPrefix string) {
-	if c.Subscriptions[routingKeyPrefix] {
+	if c.Subscriptions.Has(routingKeyPrefix) {
 		log.Warning("Duplicate subscription to same routing key. %v %v", c.Session.Tag, routingKeyPrefix)
 		return
 	}
 
-	if len(c.Subscriptions) > 0 && len(c.Subscriptions)%2000 == 0 {
+	if length := c.Subscriptions.Len(); length > 0 && length%2000 == 0 {
 		log.Warning("Client with more than %v subscriptions %v",
-			strconv.Itoa(len(c.Subscriptions)), c.Session.Tag)
+			strconv.Itoa(length), c.Session.Tag)
 	}
 
 	routeMap[routingKeyPrefix] = append(routeMap[routingKeyPrefix], c.Session)
-	c.Subscriptions[routingKeyPrefix] = true
+	c.Subscriptions.Subscribe(routingKeyPrefix)
 
 }
 
@@ -253,5 +254,5 @@ func (c *Client) Subscribe(routingKeyPrefix string) {
 // and removes it from the global route map
 func (c *Client) Unsubscribe(routingKeyPrefix string) {
 	c.RemoveFromRoute(routingKeyPrefix)
-	delete(c.Subscriptions, routingKeyPrefix)
+	c.Subscriptions.Unsubscribe(routingKeyPrefix)
 }
