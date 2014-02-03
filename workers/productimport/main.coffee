@@ -61,9 +61,7 @@ importPacks = (callback) ->
             if pack.title is "VM"
               quantities[productPlanCodes["CPU"]] = 1
               quantities[productPlanCodes["RAM"]] = 1
-              quantities[productPlanCodes["Disk"]] = 1
               quantities[productPlanCodes["VM"]] = 1
-              quantities[productPlanCodes["Data Transfer"]] = 1
             else
               quantities[productPlanCodes[pack.title]] = 1
             pack.updateProducts quantities, (err) ->
@@ -112,7 +110,6 @@ importPlans = (callback) ->
               quantities[productPlanCodes["VM"]] = 5
               quantities[productPlanCodes["User"]] = 1
               quantities[productPlanCodes["Group"]] = 1
-              quantities[productPlanCodes["Data Transfer"]] = 1
             else
               {count} = plan
               quantities[productPlanCodes["CPU"]] = count
@@ -120,7 +117,6 @@ importPlans = (callback) ->
               quantities[productPlanCodes["Disk"]] = count
               quantities[productPlanCodes["Always On"]] = count
               quantities[productPlanCodes["VM"]] = count * 5
-              quantities[productPlanCodes["Data Transfer"]] = count
             
             console.log 'quantities', quantities
             newPlan.updateProducts quantities, (err) ->
