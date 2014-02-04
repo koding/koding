@@ -35,7 +35,6 @@ func NewClient(session *sockjs.Session, broker *Broker) *Client {
 
 	subscriptions, err := cache.NewStorage("redis", socketID)
 	if err != nil {
-		// i personaly hate panic
 		panic(err)
 	}
 
@@ -255,20 +254,20 @@ func (c *Client) Subscribe(routingKeyPrefix string) error {
 	}
 
 	if length > 0 && length%2000 == 0 {
-		log.Warning("Client with more than %v subscriptions %v",
-			strconv.Itoa(length), c.Session.Tag)
+		log.Warning("Client with more than %v subscriptions %v", strconv.Itoa(length), c.Session.Tag)
 	}
 
 	routeMap[routingKeyPrefix] = append(routeMap[routingKeyPrefix], c.Session)
-	c.Subscriptions.Subscribe(routingKeyPrefix)
-	return nil
+	return c.Subscriptions.Subscribe(routingKeyPrefix)
 }
 
 // Unsubscribe deletes the given routingKey prefix from the subscription list
 // and removes it from the global route map
 func (c *Client) Unsubscribe(routingKeyPrefix string) {
 	c.RemoveFromRoute(routingKeyPrefix)
-	c.Subscriptions.Unsubscribe(routingKeyPrefix)
+	if err := c.Subscriptions.Unsubscribe(routingKeyPrefix); err != nil {
+		fmt.Errorf("%v", err)
+	}
 }
 
 // randomString() returns a new 16 char length random string
