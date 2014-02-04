@@ -92,8 +92,6 @@ Dashboard Readme Styles
 */
 }
 body.group.dashboard
-  vendor                      transform, translateX(0)
-
 .dashboard-tabs
   .kdtabpaneview.readme
     borderBox()
@@ -180,7 +178,6 @@ Dashboard Settings Styles
       figure
         r-sprite              "dashboard", "group-default-logo-bg"
         bg                    color, #CACACA
-        bg                    position, center center
   .upload-button
     size                      55px, 25px
     rounded                   0
@@ -470,6 +467,32 @@ Dashboard Membership Policy styles
         margin-left       20px
         display           inline-block
         hidden()
+  .policy-overlay
+    size                  100%, 100vh
+    position              fixed
+    top                   58px
+    margin-left           -34px
+    z-index               10000
+    background            rgba(0,0,0,.2)
+    div
+      size                460px, 128px
+      bg                  color, #E4E4E4
+      rounded             6px
+      top                 50%
+      left                50%
+      margin              -64px 0 0 -460px
+      abs()
+      p
+        font-size         30px
+        color             #1aaf5d
+        line-height       128px
+        text-align        center
+        .icon
+          r-sprite        "dashboard", "coming-soon"
+          display         inline-block
+          margin-right    22px
+          position        relative
+          top             4px
 
   .policy-language-image-wrapper
     fr()
@@ -976,11 +999,14 @@ Dashboard Invitations Modal Styles
     form > .permissions-header:first-child
       position              fixed
       z-index               99
-      height                33px
       bg                    color, rgba(255, 255, 255, .75)
+      size                  876px, 33px
 
       .header-item
         text-align          center !important
+
+      .role-admin
+        margin-left         160px
 
     .permissions-form
       overflow              visible
