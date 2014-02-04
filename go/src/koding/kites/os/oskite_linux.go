@@ -580,11 +580,15 @@ func startVM(k *kite.Kite, vm *virt.VM, channel *kite.Channel) error {
 	}
 
 	if !isPrepared || info.currentHostname != vm.HostnameAlias {
-		log.Info("putting %s into queue. totals vm in queue: %d of %d",
+		log.Info("putting %s into queue. total vms in queue: %d of %d",
 			vm.HostnameAlias, len(prepareQueue), prepareQueueLimit)
 
+		wait := make(chan struct{}, 0)
 		prepareQueue <- func(done chan struct{}) {
-			defer func() { done <- struct{}{} }()
+			defer func() {
+				done <- struct{}{}
+				wait <- struct{}{}
+			}()
 
 			startTime := time.Now()
 			vm.Prepare(false, log.Warning)
@@ -603,6 +607,9 @@ func startVM(k *kite.Kite, vm *virt.VM, channel *kite.Channel) error {
 
 			info.currentHostname = vm.HostnameAlias
 		}
+
+		// wait until the prepareWorker has picked us and we finished
+		<-wait
 	}
 
 	return nil
