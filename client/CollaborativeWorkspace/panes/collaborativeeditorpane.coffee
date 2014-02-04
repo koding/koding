@@ -19,7 +19,7 @@ class CollaborativeEditorPane extends CollaborativePane
 
       if @amIHost
         @ref.on "value", (snapshot) =>
-          value = snapshot.val()
+          value = @workspace.reviveSnapshot snapshot
           return unless value
           if value.WaitingSaveRequest is yes
             return @save()

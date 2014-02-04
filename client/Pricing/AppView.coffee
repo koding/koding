@@ -1,6 +1,8 @@
 class PricingAppView extends KDView
 
-  addWorkflow: (@workflow) ->
+  setWorkflow: (workflow) ->
+    @workflow.destroy()  if @workflow
+    @workflow = workflow
     @addSubView @workflow
     @workflow.on 'Finished', @bound "workflowFinished"
     @workflow.on 'Cancel', @bound "cancel"
@@ -66,13 +68,6 @@ class PricingAppView extends KDView
           <h6 class="pricing-subtitle">#{subtitle}</h6>
           """
 
-      productList = products.map (product) ->
-        "<div>#{subscription.quantities[product.planCode]}x #{product.title}</div>"
-
-      thankYou.addSubView new KDCustomHTMLView
-        cssClass : "product-list"
-        partial  : productList.join ""
-
       if @formData.loggedIn
         thankYou.addSubView new KDButtonView
           title    : "Go to Group"
@@ -86,7 +81,7 @@ class PricingAppView extends KDView
       callback              : @bound "createGroup"
       buttons               :
         Create              :
-          title             : "Create"
+          title             : "CREATE"
           type              : "submit"
           style             : "solid green"
       fields                :

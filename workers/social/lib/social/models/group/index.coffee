@@ -44,8 +44,8 @@ module.exports = class JGroup extends Module
       'grant permissions'                 : []
       'open group'                        : ['member','moderator']
       'list members'                      :
-        public                            : ['moderator']
-        private                           : ['moderator']
+        public                            : ['moderator', 'member']
+        private                           : ['moderator', 'member']
       'read group activity'               :
         public                            : ['guest','member','moderator']
         private                           : ['member','moderator']
@@ -221,6 +221,8 @@ module.exports = class JGroup extends Module
         addSubscription:
           (signature String, Function)
         fetchSubscription:
+          (signature Function)
+        getPermissionSet:
           (signature Function)
     schema          :
       title         :
@@ -415,7 +417,6 @@ module.exports = class JGroup extends Module
       JName                 = require '../name'
       group                 = new this groupData
       group.privacy         = 'private'
-      permissionSet         = new JPermissionSet {}, {privacy: group.privacy}
       defaultPermissionSet  = new JPermissionSet {}, {privacy: group.privacy}
 
       queue = [
@@ -448,14 +449,8 @@ module.exports = class JGroup extends Module
             else
               console.log 'owner is added'
               queue.next()
-        -> save_ 'permission set', permissionSet, queue, callback
         -> save_ 'default permission set', defaultPermissionSet, queue,
                   callback
-        -> group.addPermissionSet permissionSet, (err)->
-            if err then callback err
-            else
-              console.log 'permissionSet is added'
-              queue.next()
         -> group.addDefaultPermissionSet defaultPermissionSet, (err)->
             if err then callback err
             else
@@ -466,7 +461,7 @@ module.exports = class JGroup extends Module
             else
               console.log 'roles are added'
               queue.next()
-        -> 
+        ->
           # CtF hacked because we need client to create a post
           group.createGroupBotAndPostMessage client, (err) ->
             return callback err if err
@@ -498,6 +493,7 @@ module.exports = class JGroup extends Module
         owner.fetchSubscription {}, subOptions, (err, subscription) =>
           return callback err  if err
           @create client, formData, owner, (err, group) ->
+            return callback err if err
             nonce.update $set: action: "used", (err) ->
               return callback err  if err
               group.addSubscription subscription, (err) ->
@@ -604,13 +600,17 @@ module.exports = class JGroup extends Module
   updatePermissions: permit 'grant permissions',
     success:(client, permissions, callback=->)->
       @fetchPermissionSet (err, permissionSet)=>
-        if err
-          callback err
-        else if permissionSet?
+        return callback err if err
+        if permissionSet
           permissionSet.update $set:{permissions}, callback
         else
-          permissionSet = new JPermissionSet {permissions}
-          permissionSet.save callback
+          permissionSet = new JPermissionSet {permissions, isCustom: true}
+          permissionSet.save (err) =>
+            return callback err if err
+            @addPermissionSet permissionSet, (err)->
+              return callback err if err
+              console.log 'permissionSet is added'
+              callback null
 
   fetchPermissions:do->
     fixDefaultPermissions_ =(model, permissionSet, callback)->
@@ -645,6 +645,7 @@ module.exports = class JGroup extends Module
               else if model?
                 console.log 'already had defaults'
                 defaultPermissionSet = model
+                permissionSet = model unless permissionSet
                 queue.next()
               else
                 console.log 'needed defaults fixed'
@@ -1083,6 +1084,10 @@ module.exports = class JGroup extends Module
       @fetchRolesHelper delegate, callback
 
   updateCounts:->
+    # remove this guest shit if required
+    if @getId().toString() is "51f41f195f07655e560001c1"
+      return
+
     Relationship.count
       as         : 'member'
       targetName : 'JAccount'
@@ -1197,6 +1202,10 @@ module.exports = class JGroup extends Module
       {as} = options
     else
       as = fallbackRole
+
+    # remove this
+    if @getId().toString() is "51f41f195f07655e560001c1"
+      return callback null
 
     selector =
       targetName : target.bongo_.constructorName
@@ -1468,7 +1477,7 @@ module.exports = class JGroup extends Module
     JAccount.one "profile.nickname" : "bot", (err, account) =>
       return callback err if err
       return callback new KodingError "Can't find bot account" if not account
-        
+
       @addMember account, "member", (err, member)=>
         return callback err if err
         JNewStatusUpdate = require '../messages/newstatusupdate'
@@ -1479,7 +1488,15 @@ module.exports = class JGroup extends Module
         client.connection.delegate = account
         client.groupName = @slug
 
-        data = 
+        data =
           body  : "Welcome to your group"
-          group : @slug 
+          group : @slug
         JNewStatusUpdate.create client, data, callback
+
+  getPermissionSet : (callback)->
+    @fetchPermissionSet (err, permissionSet) =>
+      callback err, null if err
+      if permissionSet
+        callback null, permissionSet
+      else
+        @fetchDefaultPermissionSet callback

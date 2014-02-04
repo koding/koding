@@ -258,16 +258,13 @@ module.exports = class JPaymentPlan extends JPaymentBase
         callback err, unless err then group.slug
 
   checkQuota: (options, callback) ->
-    {usage, spend, couponCode, multiplyFactor} = options
+    {usage, couponCode, multiplyFactor} = options
     multiplyFactor ?= 1
 
-    usages = for own planCode, quantity of spend
+    usages = for own planCode, quantity of usage
       planSize    = @quantities[planCode] ? 0
       usageAmount = usage[planCode] ? 0
-      spendAmount = (spend[planCode] ? 0) * multiplyFactor
-
-      total = planSize - usageAmount - spendAmount
-
+      total       = planSize - usageAmount
       { planCode, total }
 
     [ok, over] = partition usages, ({ total }) -> total >= 0

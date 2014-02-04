@@ -41,7 +41,7 @@ gravatar  = (m, size = 20) ->
 
 Templates =
 
-  linkStyle    : """ style="text-decoration:none; color:#ff9200;" """
+  linkStyle    : """ style="text-decoration:none; color:#1AAF5D;" """
   mainTemplate : (m, content, footer, description)->
 
     description ?= ''
@@ -58,21 +58,19 @@ Templates =
                         height:100%; color: #666; width:100%;" cellspacing="0">
             <!-- HEADER -->
             <tr>
-              <td style="width: 40px; text-align:right; border-right: 1px
+              <td style="width: 58px; text-align:right; border-right: 1px
                          solid #CCC; margin-left:12px; vertical-align:top;">
                 <!-- Koding Logo with pure table -->
-                <table width="28px" height="38px" style="margin-left:12px; text-align:right; height:38px; border:none; font-size:0px; " cellspacing="2">
-                  <tr><td height="19%" style="height:19%; background-color:#FE6E00;" colspan="3">&nbsp;</td></tr>
-                  <tr><td height="10%" style="height:10%; background-color:#403A32;" colspan="3">&nbsp;</td></tr>
+                <table width="44px" height="40px" style="margin-left:12px; width:44px; text-align:right; height:40px; border:none; font-size:0px; background-color:#1AAF5D; padding:9px;" cellspacing="2" cellpadding="2">
                   <tr>
-                      <td height="10%" style="height:10%; background-color:#403A32; width: 80%;" colspan="2">&nbsp;</td>
-                      <td height="10%" style="height:10%; background-color:white; width: 20%;">&nbsp;</td>
+                      <td height="2px" style="max-height:2px;height:2px; background-color:white;" colspan="3">&nbsp;</td>
                   </tr>
-                  <tr><td height="10%" style="height:10%; background-color:#403A32;" colspan="3">&nbsp;</td></tr>
-                  <tr><td height="10%" style="height:10%; background-color:#403A32;" colspan="3">&nbsp;</td></tr>
                   <tr>
-                      <td height="10%" style="height:10%; background-color:#403A32; width: 80%;">&nbsp;</td>
-                      <td height="10%" style="height:10%; background-color:white; width: 20%;" colspan="2">&nbsp;</td>
+                      <td height="2px" style="max-height:2px;height:2px; background-color:white;  width: 75%;" >&nbsp;</td>
+                      <td height="2px" style="max-height:2px;height:2px; background-color:#1AAF5D; width: 25%;" colspan="2">&nbsp;</td>
+                  </tr>
+                  <tr>
+                      <td height="2px" style="max-height:2px;height:2px; background-color:white;" colspan="3">&nbsp;</td>
                   </tr>
                 </table><br/>
               </td>

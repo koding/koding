@@ -99,9 +99,7 @@ if basicAuth
   app.use express.basicAuth basicAuth.username, basicAuth.password
 
 process.on 'uncaughtException', (err) ->
-  console.log 'there was an uncaught exception'
-  console.log process.pid
-  console.error err
+  console.error "there was an uncaught exception #{err}"
   process.exit(1)
 
 

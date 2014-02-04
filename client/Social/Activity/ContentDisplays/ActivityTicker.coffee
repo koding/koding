@@ -22,14 +22,14 @@ class ActivityTicker extends ActivityRightBase
 
     @listController.on "LazyLoadThresholdReached", @bound "continueLoading"
 
-    @settingsButton = new KDButtonViewWithMenu
-      cssClass    : 'ticker-settings-menu'
-      title       : ''
-      icon        : yes
-      iconClass   : "arrow"
-      delegate    : @
-      menu        : @settingsMenu data
-      callback    : (event)=> @settingsButton.contextMenu event
+    # @settingsButton = new KDButtonViewWithMenu
+    #   cssClass    : 'ticker-settings-menu'
+    #   title       : ''
+    #   icon        : yes
+    #   iconClass   : "arrow"
+    #   delegate    : @
+    #   menu        : @settingsMenu data
+    #   callback    : (event)=> @settingsButton.contextMenu event
 
     @indexedItems = {}
 
@@ -307,7 +307,7 @@ class ActivityTicker extends ActivityRightBase
   pistachio:->
     """
     <div class="activity-ticker right-block-box">
-      <h3>What's happening {{> @settingsButton}}</h3>
+      <h3>What's happening </h3>
       {{> @listView}}
     </div>
     """

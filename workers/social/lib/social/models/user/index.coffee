@@ -69,6 +69,9 @@ module.exports = class JUser extends jraphical.Module
       'foreignAuth.github.foreignId'   : 1
       'foreignAuth.odesk.foreignId'    : 1
       'foreignAuth.facebook.foreignId' : 1
+      'foreignAuth.google.foreignId'   : 1
+      'foreignAuth.linkedin.foreignId' : 1
+      'foreignAuth.twitter.foreignId'  : 1
 
     sharedEvents    :
       static        : [
@@ -788,7 +791,7 @@ module.exports = class JUser extends jraphical.Module
         user.fetchOwnAccount (err, account) =>
           return callback err  if err
 
-          options = { account, username, clientId }
+          options = { account, username, clientId, isRegistration : yes}
 
           @changeUsernameByAccount options, (err, replacementToken) ->
             return callback err  if err

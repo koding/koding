@@ -536,6 +536,10 @@ module.exports = class JAccount extends jraphical.Module
 
   fetchHomepageView:({account, bongoModels}, callback)->
 
+    JReferral = require './referral'
+    JGroup = require './group'
+    JNewStatusUpdate = require './messages/newstatusupdate'
+
     JAccount.renderHomepage
       renderedAccount : account
       account         : this
@@ -1392,14 +1396,10 @@ module.exports = class JAccount extends jraphical.Module
           perms = Protected.permissionsByModule
           callback null, flatten(perms), roles
         else
-          group.fetchPermissionSet (err, permissionSet)=>
-            return callback err  if err
-            perms = (perm.permissions.slice()\
-                  for perm in permissionSet.permissions\
-                    # if user is an admin, add all
-                    # roles into permission set
-                  when perm.role in roles or 'admin' in roles)
-
+          group.getPermissionSet (err, permissionSet)->
+            return callback err if err
+            perms = (perm.permissions.slice() for perm in permissionSet.permissions \
+              when perm.role in roles or 'admin' in roles)
             callback null, flatten(perms), roles
 
       if this instanceof JAccount
@@ -1414,10 +1414,10 @@ module.exports = class JAccount extends jraphical.Module
 
   fetchUserDomains: (client, callback) ->
     {group} = client.context
-    
+
     JDomain = require './domain'
 
-    JVM = require './vm'  
+    JVM = require './vm'
     JVM.fetchVmsByContext client, {}, (err, vms) =>
       return callback err if err
       Relationship.some

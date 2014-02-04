@@ -16,6 +16,11 @@ class GroupsInvitationCodeListItemView extends KDListItemView
       title       : 'Share'
       callback    : @bound 'showShareModal'
 
+    @deleteButton = new KDButtonView
+      style       : 'solid red'
+      title       : 'Delete'
+      callback    : @bound 'deleteInvitation'
+
     @statusText    = new KDCustomHTMLView
       partial     : '<span class="icon"></span><span class="title"></span>'
       cssClass    : 'status hidden'
@@ -109,6 +114,31 @@ class GroupsInvitationCodeListItemView extends KDListItemView
     @editButton.hide()
     @shareButton.hide()
 
+  deleteInvitation:->
+    {group, code} = @getData()
+    KD.remote.api.JInvitation.byCode code, (err, invitation) =>
+      return KD.showError err if err
+
+      modal                  = new KDModalViewWithForms
+        cssClass             : 'invitation-remove-modal'
+        title                : "Remove Invitation Code #{code}"
+        overlay              : yes
+        tabs                 :
+          forms              :
+            Remove           :
+              buttons        :
+                Confirm      :
+                  itemClass  : KDButtonView
+                  style      : 'modal-clean-green'
+                  loader     :
+                    color    : '#ffffff'
+                    diameter : 12
+                  callback   : =>
+                    invitation.remove (err) =>
+                      return KD.showError err if err
+                      modal.destroy()
+                      @destroy()
+
   viewAppended: JView::viewAppended
 
   pistachio:->
@@ -116,7 +146,7 @@ class GroupsInvitationCodeListItemView extends KDListItemView
     codeSuffix = if memo then " (#{memo})" else ''
     """
     <section>
-      <div class="buttons">{{> @shareButton}} {{> @editButton}}</div>
+      <div class="buttons">{{> @deleteButton}} {{> @shareButton}} {{> @editButton}}</div>
       {{> @statusText}}
       <div class="details">
         <div class="code">#{code}#{codeSuffix}</div>

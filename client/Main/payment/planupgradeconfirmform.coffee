@@ -6,14 +6,14 @@ class PlanUpgradeConfirmForm extends PaymentConfirmForm
 
     @buttonBar = new KDButtonBar
       buttons       :
-        Buy         :
-          title     : "CONFIRM ORDER"
-          cssClass  : "modal-clean-green"
-          callback  : => @emit 'PaymentConfirmed'
         cancel      :
           title     : "CANCEL"
-          cssClass  : "modal-clean-gray"
+          cssClass  : "solid"
           callback  : => @emit 'Cancel'
+        Buy         :
+          title     : "CONFIRM ORDER"
+          cssClass  : "solid green"
+          callback  : => @emit 'PaymentConfirmed'
 
   viewAppended: ->
     @unsetClass 'kdview'

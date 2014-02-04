@@ -29,7 +29,7 @@ class TeamPlan extends JView
       title             : "Team Size"
       unitPrice         : unitPrices.user
       slider            :
-        minValue        : 1
+        minValue        : 5
         maxValue        : 500
         interval        : 10
         snapOnDrag      : yes
@@ -53,6 +53,11 @@ class TeamPlan extends JView
         }
 
     @updateContent()
+
+    payment = KD.singleton "paymentController"
+    payment.fetchSubscriptionsWithPlans tags: $in: "custom-plan", (err, subscriptions) =>
+      return KD.showError err  if err
+      @emit "CurrentSubscriptionSet", subscriptions.first  if subscriptions.length
 
   updateContent: ->
     @total = (@resourceQuantity * unitPrices.resourcePack) + (@userQuantity * unitPrices.user)

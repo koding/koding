@@ -42,6 +42,11 @@ class DeveloperPlan extends JView
 
     @updateContent()
 
+    payment = KD.singleton "paymentController"
+    payment.fetchSubscriptionsWithPlans tags: $in: "vm", (err, subscriptions) =>
+      return KD.showError err  if err
+      @emit "CurrentSubscriptionSet", subscriptions.first  if subscriptions.length
+
   updateContent: ->
     @title.updatePartial "#{@planIndex + 1}x Resource Pack"
     @price.updatePartial "$#{@plans[@planIndex].price}/Month"

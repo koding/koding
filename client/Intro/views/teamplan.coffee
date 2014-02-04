@@ -16,8 +16,9 @@ class IntroTeamPlan extends JView
       description       : "1x Resource pack contains 1 GB RAM 1x CPU, 1 GB RAM, 50 GB Disk, 2 TB Transfer, 5 total VMs and we shut it off after an hour for obvious reasons"
       unitPrice         : unitPrices.resourcePack
       slider            :
-        minValue        : 1
+        minValue        : 5
         maxValue        : 250
+        initialValue    : 5
         interval        : 5
         snapOnDrag      : yes
         handles         : [@resourceQuantity]
@@ -29,7 +30,7 @@ class IntroTeamPlan extends JView
       title             : "Team Size"
       unitPrice         : unitPrices.user
       slider            :
-        minValue        : 1
+        minValue        : 5
         maxValue        : 500
         interval        : 10
         snapOnDrag      : yes
