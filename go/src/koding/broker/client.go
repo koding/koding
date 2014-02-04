@@ -93,22 +93,16 @@ func (c *Client) handleSessionMessage(data interface{}) {
 		sendToClient(c.Session, "broker.subscribed", message["routingKeyPrefix"])
 
 	case "resubscribe":
-		globalMapMutex.Lock()
-		defer globalMapMutex.Unlock()
 		clientId := message["socketId"].(string)
-
 		log.Debug("Resubscribe event for clientId: %v SocketId: %v", clientId, c.SocketId)
 		found, err := c.Resubscribe(clientId)
-		log.Debug("Resubscribe found for socketID: %v, %v", clientId, found)
-
 		if err != nil {
 			log.Error(err.Error())
 		}
+		log.Debug("Resubscribe found for socketID: %v, %v", clientId, found)
 		sendToClient(c.Session, "broker.resubscribed", found)
 
 	case "unsubscribe":
-		globalMapMutex.Lock()
-		defer globalMapMutex.Unlock()
 		routingKeyPrefixes := message["routingKeyPrefix"].(string)
 		log.Debug("Unsubscribe event for socketID: %v, and prefixes", c.SocketId, routingKeyPrefixes)
 		for _, routingKeyPrefix := range strings.Split(routingKeyPrefixes, " ") {
@@ -235,6 +229,19 @@ func (c *Client) RemoveFromRoute(routingKeyPrefix string) {
 	routeMap[routingKeyPrefix] = routeSessions
 }
 
+// Add to route
+// todo ~ check for multiple subscriptions
+func (c *Client) AddToRoute() {
+	globalMapMutex.Lock()
+	c.Subscriptions.Each(func(routingKeyPrefix interface{}) bool {
+		rkp := routingKeyPrefix.(string)
+		routeMap[rkp] = append(routeMap[rkp], c.Session)
+		return true
+	})
+	globalMapMutex.Unlock()
+
+}
+
 // Subscribe add the given routingKeyPrefix to the list of subscriptions
 // associated with this client.
 func (c *Client) Subscribe(routingKeyPrefix string) error {
@@ -263,7 +270,17 @@ func (c *Client) Subscribe(routingKeyPrefix string) error {
 }
 
 func (c *Client) Resubscribe(sessionId string) (bool, error) {
-	return c.Subscriptions.Resubscribe(sessionId)
+	found, err := c.Subscriptions.Resubscribe(sessionId)
+	if err != nil {
+		return false, err
+	}
+
+	if !found {
+		return false, nil
+	}
+
+	c.AddToRoute()
+	return true, nil
 }
 
 // Unsubscribe deletes the given routingKey prefix from the subscription list
