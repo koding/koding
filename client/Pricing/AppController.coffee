@@ -24,7 +24,7 @@ class PricingAppController extends KDViewController
             handler (app) ->
               app.getView().showGroupForm()
           else
-            (KD.getSingleton "router").handleRoute "/Pricing/Enterprise"
+            (KD.getSingleton "router").handleRoute "/Pricing/Team"
 
   constructor: (options = {}, data) ->
     options.appInfo = title: "Pricing"
