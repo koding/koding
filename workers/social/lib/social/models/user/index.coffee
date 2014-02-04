@@ -460,7 +460,7 @@ module.exports = class JUser extends jraphical.Module
           callback null
 
   @addToGroups = (account, invite, email, callback)->
-    @addToGroup account, 'koding', email, invite, (err)=>
+    @addToGroup account, 'koding', email, null, (err)=>
       if err then callback err
       else if invite?.group and invite?.group isnt 'koding'
         @addToGroup account, invite.group, email, invite, callback
