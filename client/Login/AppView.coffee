@@ -350,6 +350,7 @@ class LoginView extends KDView
           duration  : 2000
 
         KD.getSingleton('router').clear()
+        @headBanner.hide()
 
         setTimeout =>
           @hide()
