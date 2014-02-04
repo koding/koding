@@ -22,7 +22,7 @@ class ChatItem extends JView
       cssClass   : "time-ago"
     , new Date time
 
-    body = Encoder.XSSEncode(body).split("\n").map (text) =>
+    body = body.split("\n").map (text) =>
       "<p class='tw-chat-para'>#{text}</p>"
 
     @messageList.addSubView @message = new KDCustomHTMLView
