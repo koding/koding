@@ -12,12 +12,12 @@ type SubscriptionStorage struct {
 	storage SubscriptionInterface
 }
 
-func NewStorage(typeOf, socketID string) (*SubscriptionStorage, error) {
+func NewStorage(cacheType, socketID string) (*SubscriptionStorage, error) {
 
 	var err error
 	var be SubscriptionInterface
 
-	switch typeOf {
+	switch cacheType {
 	case "redis":
 		be, err = NewRedis(socketID)
 	default:
