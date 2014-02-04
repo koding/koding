@@ -14,7 +14,7 @@ class TeamworkWorkspace extends CollaborativeWorkspace
 
     @on "WorkspaceSyncedWithRemote", =>
       @watchRef.once "value", (snapshot) =>
-        map = snapshot.val() or {}
+        map = @reviveSnapshot(snapshot) or {}
         unless map[@nickname]
           @watchRef.child(@nickname).set @nickname
 
@@ -72,7 +72,7 @@ class TeamworkWorkspace extends CollaborativeWorkspace
       @chatView.createWatchLabel "You are now watching #{userNickname} | ", userNickname
 
     @watchRef.on "value", (snapshot) =>
-      @watchMap = snapshot.val() or {}
+      @watchMap = @reviveSnapshot(snapshot) or {}
 
   setWatchMode: (targetUsername) ->
     username = KD.nick()
@@ -102,7 +102,7 @@ class TeamworkWorkspace extends CollaborativeWorkspace
 
     @forceDisconnect()
     @firebaseRef.child(sessionKey).once "value", (snapshot) =>
-      value = snapshot.val()
+      value = @reviveSnapshot snapshot
       {playground, playgroundManifest} = value  if value
 
       teamworkClass     = TeamworkWorkspace

@@ -11,7 +11,9 @@ class AccountAppController extends AppController
     routes                       :
       "/:name?/Account"          : -> KD.singletons.router.handleRoute '/Account/Profile'
       "/:name?/Account/:section" : ({params:{section}})-> handler (app)-> app.openSection section
-      "/:name?/Account/Referrer" : -> handler (app) -> app.showReferrerModal()
+      "/:name?/Account/Referrer" : -> KD.singletons.router.handleRoute '/'
+    behavior                     : "hideTabs"
+    hiddenHandle                 : yes
 
   items =
     personal :
@@ -91,6 +93,7 @@ class AccountAppController extends AppController
       """
 
   showReferrerModal:(options={})->
+    return
     return  if @referrerModal and not @referrerModal.isDestroyed
 
     options.top         ?= 50
@@ -154,7 +157,7 @@ class AccountAppController extends AppController
         KD.notify_ """
             #{refRes.addedSize} #{refRes.unit} extra #{refRes.type} is successfully added to your #{refRes.vm} VM.
           """
-        @showReferrerModal title: "Want more?"
+        # @showReferrerModal title: "Want more?"
 
 
   showRedeemReferralPointModal:->

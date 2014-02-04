@@ -38,6 +38,18 @@ func registerVmMethods(k *kite.Kite) {
 		return true, nil
 	})
 
+	registerVmMethod(k, "vm.unprepare", false, func(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
+		if !vos.Permissions.Sudo {
+			return nil, &kite.PermissionError{}
+		}
+
+		if err := vos.VM.Unprepare(); err != nil {
+			return nil, err
+		}
+
+		return true, nil
+	})
+
 	registerVmMethod(k, "vm.stop", false, func(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
 		if !vos.Permissions.Sudo {
 			return nil, &kite.PermissionError{}
