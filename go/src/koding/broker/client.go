@@ -20,7 +20,7 @@ type Client struct {
 	SocketId       string
 	Broker         *Broker
 	LastPayload    string
-	Subscriptions  *cache.SubscriptionSet
+	Subscriptions  *cache.SubscriptionStorage
 }
 
 // NewClient retuns a new client that is defined on a given session.
@@ -33,7 +33,11 @@ func NewClient(session *sockjs.Session, broker *Broker) *Client {
 		panic(err)
 	}
 
-	subscriptions := cache.NewSubscriptionSet()
+	subscriptions, err := cache.NewStorage("redis", socketID)
+	if err != nil {
+		// i personaly hate panic
+		panic(err)
+	}
 
 	globalMapMutex.Lock()
 	socketSubscriptionsMap[socketID] = subscriptions
@@ -236,11 +240,21 @@ func (c *Client) RemoveFromRoute(routingKeyPrefix string) {
 // Subscribe add the given routingKeyPrefix to the list of subscriptions
 // associated with this client.
 func (c *Client) Subscribe(routingKeyPrefix string) error {
-	if c.Subscriptions.Has(routingKeyPrefix) {
+	res, err := c.Subscriptions.Has(routingKeyPrefix)
+	if err != nil {
+		return err
+	}
+
+	if res {
 		return fmt.Errorf("Duplicate subscription to same routing key. %v %v", c.Session.Tag, routingKeyPrefix)
 	}
 
-	if length := c.Subscriptions.Len(); length > 0 && length%2000 == 0 {
+	length, err := c.Subscriptions.Len()
+	if err != nil {
+		return err
+	}
+
+	if length > 0 && length%2000 == 0 {
 		log.Warning("Client with more than %v subscriptions %v",
 			strconv.Itoa(length), c.Session.Tag)
 	}
