@@ -19,7 +19,6 @@ class IntroPricingPlanSelection extends JView
 
     options.slider       or= {}
     options.slider.drawBar = no
-    options.slider.handles = [options.slider.initialValue]
 
     {unitPrice} = options
 
