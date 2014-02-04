@@ -183,6 +183,7 @@ module.exports = class JPaymentSubscription extends jraphical.Module
   checkQuota: (options, callback) ->
     {usage, spend, couponCode, multiplyFactor} = options
     multiplyFactor ?= 1
+    spend ?= {}
 
     usages = for own planCode, quantity of spend
       planSize    = @quantities[planCode] or @plan.quantities[planCode] or 0
