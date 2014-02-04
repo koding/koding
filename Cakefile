@@ -595,27 +595,31 @@ task 'deleteCache', "Delete the local webserver cache", (options)->
 task 'installSikuli', "", ->
   path = "/Applications/Sikuli-IDE.app"
   exec "ls #{path}", (error, stdout, stderr)->
-    unless error
-      console.log "Sikuli is already installed at #{path}...exiting."
-      return
+    if error
+      sikuliUrl  = "https://launchpad.net/sikuli/sikulix/x1.0-rc3/+download/Sikuli-X-1.0rc3%20%28r905%29-osx-10.6.dmg"
+      sikuliFile = "sikuli.dmg"
 
-    sikuliUrl  = "https://launchpad.net/sikuli/sikulix/x1.0-rc3/+download/Sikuli-X-1.0rc3%20%28r905%29-osx-10.6.dmg"
-    sikuliFile = "sikuli.dmg"
+      wget = spawn "wget", [sikuliUrl, "-O#{sikuliFile}"]
 
-    wget = spawn "wget", [sikuliUrl, "-O#{sikuliFile}"]
+      wget.stderr.on 'data', (data)->
+        process.stdout.write data.toString()
+        process.exit
 
-    wget.stderr.on 'data', (data)->
-      process.stdout.write data.toString()
-      process.exit
+      wget.stdout.on 'data', (data)->
+        process.stdout.write data.toString()
 
-    wget.stdout.on 'data', (data)->
-      process.stdout.write data.toString()
+      wget.on 'close', (code)->
+        exec "open #{sikuliFile}", (error, stdout, stderr)->
+          afterSikuliInstall ->
+            console.log "Sikuli is now installed. Run 'cake test'"
+    else
+      afterSikuliInstall ->
+        console.log "Sikuli is already installed at #{path}...exiting."
 
-    wget.on 'close', (code)->
-      exec "open #{sikuliFile}", (error, stdout, stderr)->
-        exec "git submodule init; git submodule update", (error, stdout, stderr)->
-          console.log "Sikuli is now installed. Run 'cake test'"
-          process.exit code
+afterSikuliInstall = (callback)->
+  exec "git submodule init; git submodule update", (error, stdout, stderr)->
+    exec "mongo koding migrate/insert-testuser.js", (error, stdout, stderr)->
+      callback()
 
 task 'test', "", ->
   url =  "http://localhost:3020"
