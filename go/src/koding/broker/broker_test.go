@@ -1,5 +1,11 @@
 package main
 
+///////////////////////////////////////////////////////////////
+// Make sure authWorker is running before running the tests. //
+// You can run it with the following command:                //
+//   cd /opt/koding && cake -c vagrant authWorker            //
+///////////////////////////////////////////////////////////////
+
 import (
 	"bytes"
 	crand "crypto/rand"
@@ -8,7 +14,6 @@ import (
 	"errors"
 	"fmt"
 	"math/rand"
-	"os/exec"
 	"testing"
 	"time"
 
@@ -25,38 +30,16 @@ func newURL() string {
 	return fmt.Sprintf(url, rand.Intn(1000), RandomStringLength(8))
 }
 
+// This global instance of broker is run once when the tests are run by init() function.
+var broker *Broker
+
 func init() {
 	rand.Seed(time.Now().UnixNano())
-}
-
-func runBroker(t *testing.T) (b *Broker, closer func()) {
-	// Run authWorker (Authworker must be running when broker is running.)
-	cmd := exec.Command("cake", "authWorker")
-	cmd.Dir = "/opt/koding"
-	err := cmd.Start()
-	if err != nil {
-		panic(err)
-	}
-	t.Log("authWorker is running")
-
-	// Run broker
 	broker := NewBroker()
 	broker.Start()
-	t.Log("broker is running")
-
-	return broker, func() {
-		// Close authWorker
-		if err := cmd.Process.Kill(); err != nil {
-			t.Errorf(err.Error())
-		}
-		broker.Close()
-	}
 }
 
-func TestBroker(t *testing.T) {
-	_, closer := runBroker(t)
-	defer closer()
-
+func TestPingPong(t *testing.T) {
 	client, err := dialSockJS(newURL(), origin)
 	if err != nil {
 		t.Errorf(err.Error())
@@ -81,10 +64,6 @@ func TestBroker(t *testing.T) {
 }
 
 func TestPubSub(t *testing.T) {
-	// Run authWorker and broker
-	_, closer := runBroker(t)
-	defer closer()
-
 	// Run subscriber
 	subscriber, err := dialSockJS(newURL(), origin)
 	if err != nil {
@@ -160,6 +139,62 @@ func TestPubSub(t *testing.T) {
 	}
 }
 
+func BenchmarkBroker_1_1(b *testing.B)       { benchmarkBroker(b, 1, 1) }
+func BenchmarkBroker_10_10(b *testing.B)     { benchmarkBroker(b, 10, 10) }
+func BenchmarkBroker_100_100(b *testing.B)   { benchmarkBroker(b, 100, 100) }
+func BenchmarkBroker_1000_1000(b *testing.B) { benchmarkBroker(b, 1000, 1000) }
+
+var nPublished int
+
+func benchmarkBroker(b *testing.B, nClient, nKey int) {
+	var err error
+
+	b.Logf("connecting with %d clients", nClient)
+	clients := make([]*sockJSClient, nClient)
+	for i := 0; i < nClient; i++ {
+		clients[i], err = dialSockJS(newURL(), origin)
+		if err != nil {
+			b.Errorf(err.Error())
+			return
+		}
+		go clients[i].Run()
+		defer clients[i].Close()
+	}
+
+	b.Logf("generating %d keys", nKey)
+	keys := make([]string, nKey)
+	for i := 0; i < nKey; i++ {
+		keys[i] = "client." + RandomStringLength(8)
+	}
+
+	b.Logf("each client subscribes %d keys", nKey)
+	for _, client := range clients {
+		for _, key := range keys {
+			client.SendString(fmt.Sprintf(`{"action": "subscribe", "routingKeyPrefix": "%s"}`, key))
+		}
+	}
+
+	b.Logf("publishing %d random messages to random keys", b.N)
+	// conn := amqputil.CreateConnection("broker")
+	// defer conn.Close()
+	// ch := amqputil.CreateChannel(conn)
+	// defer ch.Close()
+	// payload := fmt.Sprintf(`{"random": "%s"}`, RandomStringLength(1024)) // Must be JSON
+	body := fmt.Sprintf(`{"action": "publish", "exchange": "broker", "routingKey": "%s", "payload": "{\"random\": \"%s\"}"}`, keys[rand.Intn(nKey)], RandomStringLength(1024))
+
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		// err := ch.Publish("broker", keys[rand.Intn(nKey)], false, false, amqp.Publishing{Body: []byte(payload)})
+		err := clients[rand.Intn(nClient)].SendString(body)
+		if err != nil {
+			b.Errorf(err.Error())
+			return
+		}
+		nPublished++
+	}
+	fmt.Println("--- total published:", nPublished)
+}
+
 // cheap imitation of sockjs-client js library
 type sockJSClient struct {
 	ws       *websocket.Conn
@@ -190,7 +225,6 @@ func (c *sockJSClient) Run() error {
 		if err != nil {
 			return err
 		}
-		// fmt.Printf("--- read data: %+v\n", string(data))
 		c.didMessage(data)
 	}
 }
