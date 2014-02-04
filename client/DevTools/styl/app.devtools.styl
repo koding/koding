@@ -11,17 +11,49 @@ app.devtools.styl
 .devtools
 
   .inner-header
+
+    background    white
+    border        none
+    border-bottom 1px solid #ccc
+    height        35px
+
     .title
-      display: inline-block;
-      float: left;
-      padding: 11px;
-      font-weight: 500;
+      display     inline-block
+      float       left
+      padding     11px
+      font-weight 500
+    .users
+      display     none
 
   .tw-header-buttons
     .kdbutton
-      margin-top: 7px;
+      margin-top  7px
 
   .CodeMirror
     font-size     12px
     line-height   16px
     font-family   'Monaco', 'monospace'
+
+  .kdsplitview-horizontal
+    > .kdsplitview-resizer
+      height      3px
+
+  .kdsplitview-vertical
+    > .kdsplitview-resizer
+      width       3px
+
+  .kdbutton.solid
+
+    height        22px
+    padding       0 5px
+    font-weight   300
+
+    &.live
+      background  white
+      border      1px solid #ddd
+      .button-title
+        color     #999
+
+    .button-title
+      line-height 22px
+      font-size   12px

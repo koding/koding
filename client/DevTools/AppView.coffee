@@ -13,30 +13,24 @@ class DevToolsMainView extends KDView
         buttons                 : [
           {
             title               : "Create"
+            cssClass            : "solid"
             callback            : ->
               KD.singletons.kodingAppsController.makeNewApp()
+
           }
           {
             title               : "Run"
-            callback            : @bound 'previewApp'
+            cssClass            : "solid green"
+            callback            : => @previewApp yes; @previewCss yes
           }
           {
-            title               : "Hide Filetree"
-            itemClass           : KDToggleButton
-            states              : [
-              {
-                title           : 'Hide Filetree'
-                callback        : (cb)=>
-                  @workspace.activePanel.layoutContainer
-                    .splitViews.BaseSplit.resizePanel 0, 0, cb
-              }
-              {
-                title           : 'Show Filetree'
-                callback        : (cb)=>
-                  @workspace.activePanel.layoutContainer
-                    .splitViews.BaseSplit.resizePanel "258px", 0, cb
-              }
-            ]
+            title               : 'Run as I type'
+            cssClass            : "solid live"
+            callback            : =>
+              button = @workspace.panels.first.headerButtons['Run as I type']
+              button.unsetClass 'live green'
+              button.setClass if @liveMode then 'live' else 'green'
+              @liveMode = button.hasClass 'green'
           }
         ]
         layout                  :
@@ -85,8 +79,9 @@ class DevToolsMainView extends KDView
                       # ]
                     }
                     {
-                      type      : "editor"
+                      type      : "custom"
                       name      : "CSSEditor"
+                      paneClass : DevToolsCssEditorPane
                     }
                   ]
                 }
@@ -105,19 +100,18 @@ class DevToolsMainView extends KDView
       {JSEditor, CSSEditor} = panes = @workspace.activePanel.panesByName
 
       JSEditor.codeMirrorEditor.on "change", \
-        _.debounce (@bound 'previewApp'), 500
+        _.debounce (@lazyBound 'previewApp', no), 500
 
       CSSEditor.codeMirrorEditor.on "change", \
-        _.debounce (@bound 'previewCss'), 500
+        _.debounce (@lazyBound 'previewCss', no), 500
 
-      CSSEditor.setEditorTheme 'vibrant-ink'
+  previewApp:(force = no)->
 
-  previewApp:->
-
-    time 'Compile took:'
-
+    return  if not force and not @liveMode
     return  if @_inprogress
     @_inprogress = yes
+
+    time 'Compile took:'
 
     {JSEditor, PreviewPane} = @workspace.activePanel.panesByName
 
@@ -147,7 +141,9 @@ class DevToolsMainView extends KDView
 
         timeEnd 'Compile took:'
 
-  previewCss:->
+  previewCss:(force = no)->
+
+    return  if not force and not @liveMode
 
     {CSSEditor, PreviewPane} = @workspace.activePanel.panesByName
 
@@ -173,7 +169,7 @@ class DevToolsEditorPane extends CollaborativeEditorPane
       scrollPastEnd   : yes
       cursorHeight    : 1
       tabSize         : 2
-      mode            : "coffeescript"
+      mode            : @_mode ? "coffeescript"
       extraKeys       :
         "Cmd-S"       : @bound "handleSave"
         "Ctrl-S"      : @bound "handleSave"
@@ -181,5 +177,7 @@ class DevToolsEditorPane extends CollaborativeEditorPane
           spaces = Array(cm.getOption("indentUnit") + 1).join " "
           cm.replaceSelection spaces, "end", "+input"
 
-    @setEditorMode  'coffee'
-    @setEditorTheme 'vibrant-ink'
+    @setEditorMode @_mode ? "coffee"
+
+class DevToolsCssEditorPane extends DevToolsEditorPane
+  constructor:-> super; @_mode = 'css'
