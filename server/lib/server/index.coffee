@@ -358,3 +358,7 @@ app.get '*', (req,res)->
 
 app.listen webPort
 console.log '[WEBSERVER] running', "http://localhost:#{webPort} pid:#{process.pid}"
+
+# NOTE: in the event of errors, send 500 to the client rather
+#       than the stack trace.
+app.use (err, req, res, next) -> res.send 500, error_500()
