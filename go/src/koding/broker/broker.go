@@ -3,7 +3,6 @@ package main
 import (
 	"crypto/tls"
 	"encoding/json"
-	"koding/broker/cache"
 	"koding/kontrol/kontrolhelper"
 	"koding/tools/amqputil"
 	"koding/tools/config"
@@ -25,10 +24,10 @@ import (
 )
 
 var (
-	log                    = logger.New("broker")
-	routeMap               = make(map[string]([]*sockjs.Session))
-	socketSubscriptionsMap = make(map[string]*cache.SubscriptionStorage)
-	globalMapMutex         sync.Mutex
+	log             = logger.New("broker")
+	STORAGE_BACKEND = "redis"
+	routeMap        = make(map[string]([]*sockjs.Session))
+	globalMapMutex  sync.Mutex
 
 	changeClientsGauge          = lifecycle.CreateClientsGauge()
 	changeNewClientsGauge       = logger.CreateCounterGauge("newClients", logger.NoUnit, true)
