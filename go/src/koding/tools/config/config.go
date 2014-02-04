@@ -122,7 +122,9 @@ type Config struct {
 		Channel string
 	}
 
-	LogLevel map[string]string
+	LogLevel    map[string]string
+	Redis       string
+	Environment string
 }
 
 var Profile string

@@ -3,6 +3,7 @@ package cache
 import (
 	"fmt"
 	"koding/databases/redis"
+	"koding/tools/config"
 
 	redigo "github.com/garyburd/redigo/redis"
 )
@@ -16,7 +17,7 @@ type Cache struct {
 // NewRedis creates a redis backend for storing
 // client subscriptions
 func NewRedis(socketID string) (*Cache, error) {
-	session, err := redis.NewRedisSession("6379")
+	session, err := redis.NewRedisSession(config.Current.Redis)
 	if err != nil {
 		return nil, err
 	}
@@ -24,7 +25,11 @@ func NewRedis(socketID string) (*Cache, error) {
 	cache := &Cache{
 		socketID: socketID,
 		session:  session,
-		key:      fmt.Sprintf("broker-client-%s", socketID),
+		key: fmt.Sprintf(
+			"%s-broker-client-%s",
+			config.Current.Environment,
+			socketID,
+		),
 	}
 
 	return cache, nil
