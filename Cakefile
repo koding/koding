@@ -606,7 +606,7 @@ task 'installSikuli', "", ->
 
     wget.stderr.on 'data', (data)->
       process.stdout.write data.toString()
-      process.exit code
+      process.exit
 
     wget.stdout.on 'data', (data)->
       process.stdout.write data.toString()
@@ -614,10 +614,13 @@ task 'installSikuli', "", ->
     wget.on 'close', (code)->
       exec "open #{sikuliFile}", (error, stdout, stderr)->
         exec "git submodule init; git submodule update", (error, stdout, stderr)->
+          console.log "Sikuli is now installed. Run 'cake test'"
           process.exit code
 
-task 'sikuli', "", ->
-  exec 'open -a "Google Chrome" "http://localhost:3020"', ->
+task 'test', "", ->
+  url =  "http://localhost:3020"
+  console.log "Opening '#{url}' in Google Chrome to run the tests'"
+  exec 'open -a "Google Chrome"', ->
     exec '/Applications/Sikuli-IDE.app/sikuli-ide.sh -r `pwd`/tests/signup_login.sikuli --stderr', (error, stdout, stderr)->
       if /Runtime Error/.test stderr
         console.log stderr
