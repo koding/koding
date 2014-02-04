@@ -33,14 +33,10 @@ func NewClient(session *sockjs.Session, broker *Broker) *Client {
 		panic(err)
 	}
 
-	subscriptions, err := cache.NewStorage("redis", socketID)
+	subscriptions, err := cache.NewStorage(STORAGE_BACKEND, socketID)
 	if err != nil {
 		panic(err)
 	}
-
-	globalMapMutex.Lock()
-	socketSubscriptionsMap[socketID] = subscriptions
-	globalMapMutex.Unlock()
 
 	return &Client{
 		Session:        session,
@@ -53,16 +49,13 @@ func NewClient(session *sockjs.Session, broker *Broker) *Client {
 
 // Close should be called whenever a client disconnects.
 func (c *Client) Close() {
+	log.Debug("Client Close Request for socketID: %v", c.SocketId)
 	c.Subscriptions.Each(func(routingKeyPrefix interface{}) bool {
 		c.RemoveFromRoute(routingKeyPrefix.(string))
 		return true
 	})
 
-	time.AfterFunc(5*time.Minute, func() {
-		globalMapMutex.Lock()
-		delete(socketSubscriptionsMap, c.SocketId)
-		globalMapMutex.Unlock()
-	})
+	c.Subscriptions.ClearWithTimeout()
 
 	for {
 		err := c.ControlChannel.Publish(config.Current.Broker.AuthAllExchange, "broker.clientDisconnected", false, false, amqp.Publishing{Body: []byte(c.SocketId)})
@@ -75,6 +68,7 @@ func (c *Client) Close() {
 		c.resetControlChannel()
 	}
 
+	log.Debug("Closing control channel for socketID: %v", c.SocketId)
 	c.ControlChannel.Close()
 }
 
@@ -90,8 +84,6 @@ func (c *Client) handleSessionMessage(data interface{}) {
 	action := message["action"]
 	switch action {
 	case "subscribe":
-		globalMapMutex.Lock()
-		defer globalMapMutex.Unlock()
 		for _, routingKeyPrefix := range strings.Split(message["routingKeyPrefix"].(string), " ") {
 			if err := c.Subscribe(routingKeyPrefix); err != nil {
 				log.Error(err.Error())
@@ -103,23 +95,23 @@ func (c *Client) handleSessionMessage(data interface{}) {
 	case "resubscribe":
 		globalMapMutex.Lock()
 		defer globalMapMutex.Unlock()
-		oldSubscriptions, found := socketSubscriptionsMap[message["socketId"].(string)]
-		if found {
-			oldSubscriptions.Each(func(routingKeyPrefix interface{}) bool {
-				if err := c.Subscribe(routingKeyPrefix.(string)); err != nil {
-					log.Error(err.Error())
-					return false
-				}
-				return true
+		clientId := message["socketId"].(string)
 
-			})
+		log.Debug("Resubscribe event for clientId: %v SocketId: %v", clientId, c.SocketId)
+		found, err := c.Resubscribe(clientId)
+		log.Debug("Resubscribe found for socketID: %v, %v", clientId, found)
+
+		if err != nil {
+			log.Error(err.Error())
 		}
 		sendToClient(c.Session, "broker.resubscribed", found)
 
 	case "unsubscribe":
 		globalMapMutex.Lock()
 		defer globalMapMutex.Unlock()
-		for _, routingKeyPrefix := range strings.Split(message["routingKeyPrefix"].(string), " ") {
+		routingKeyPrefixes := message["routingKeyPrefix"].(string)
+		log.Debug("Unsubscribe event for socketID: %v, and prefixes", c.SocketId, routingKeyPrefixes)
+		for _, routingKeyPrefix := range strings.Split(routingKeyPrefixes, " ") {
 			c.Unsubscribe(routingKeyPrefix)
 		}
 
@@ -127,6 +119,13 @@ func (c *Client) handleSessionMessage(data interface{}) {
 		exchange := message["exchange"].(string)
 		routingKey := message["routingKey"].(string)
 		payload := message["payload"].(string)
+
+		log.Debug("Publish Event: Exchange: %v, RoutingKey %v, Payload %v",
+			exchange,
+			routingKey,
+			payload,
+		)
+
 		err := c.Publish(exchange, routingKey, payload)
 		if err != nil {
 			log.Error(err.Error())
@@ -257,8 +256,14 @@ func (c *Client) Subscribe(routingKeyPrefix string) error {
 		log.Warning("Client with more than %v subscriptions %v", strconv.Itoa(length), c.Session.Tag)
 	}
 
+	globalMapMutex.Lock()
 	routeMap[routingKeyPrefix] = append(routeMap[routingKeyPrefix], c.Session)
+	globalMapMutex.Unlock()
 	return c.Subscriptions.Subscribe(routingKeyPrefix)
+}
+
+func (c *Client) Resubscribe(sessionId string) (bool, error) {
+	return c.Subscriptions.Resubscribe(sessionId)
 }
 
 // Unsubscribe deletes the given routingKey prefix from the subscription list

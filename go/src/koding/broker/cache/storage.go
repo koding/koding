@@ -6,6 +6,8 @@ type SubscriptionInterface interface {
 	Unsubscribe(routingKeyPrefix string) error
 	Has(routingKeyPrefix string) (bool, error)
 	Len() (int, error)
+	Resubscribe(socketID string) (bool, error)
+	ClearWithTimeout() error
 }
 
 type SubscriptionStorage struct {
@@ -51,4 +53,12 @@ func (s *SubscriptionStorage) Has(routingKeyPrefix string) (bool, error) {
 
 func (s *SubscriptionStorage) Len() (int, error) {
 	return s.storage.Len()
+}
+
+func (s *SubscriptionStorage) Resubscribe(socketID string) (bool, error) {
+	return s.storage.Resubscribe(socketID)
+}
+
+func (s *SubscriptionStorage) ClearWithTimeout() error {
+	return s.storage.ClearWithTimeout()
 }

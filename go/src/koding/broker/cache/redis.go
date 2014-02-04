@@ -1,6 +1,7 @@
 package cache
 
 import (
+	"errors"
 	"fmt"
 	"koding/databases/redis"
 	"koding/tools/config"
@@ -14,6 +15,14 @@ type Cache struct {
 	key      string
 }
 
+func generateKey(SocketID string) string {
+	return fmt.Sprintf(
+		"%s-broker-client-%s",
+		config.Current.Environment,
+		SocketID,
+	)
+}
+
 // NewRedis creates a redis backend for storing
 // client subscriptions
 func NewRedis(socketID string) (*Cache, error) {
@@ -25,11 +34,7 @@ func NewRedis(socketID string) (*Cache, error) {
 	cache := &Cache{
 		socketID: socketID,
 		session:  session,
-		key: fmt.Sprintf(
-			"%s-broker-client-%s",
-			config.Current.Environment,
-			socketID,
-		),
+		key:      generateKey(socketID),
 	}
 
 	return cache, nil
@@ -103,4 +108,44 @@ func (c *Cache) Len() (int, error) {
 	}
 
 	return reply, nil
+}
+
+func (c *Cache) Resubscribe(clientID string) (bool, error) {
+	key := generateKey(clientID)
+	reply, err := redigo.Int(c.session.Do("EXISTS", key))
+	if err != nil {
+		return false, err
+	}
+
+	if reply == 0 {
+		return false, nil
+	}
+
+	routingKeyPrefixes, err := redigo.Strings(c.session.Do("SMEMBERS", key))
+	if err != nil {
+		return false, err
+	}
+
+	for _, routingKeyPrefix := range routingKeyPrefixes {
+		if err := c.Subscribe(routingKeyPrefix); err != nil {
+			return false, err
+		}
+	}
+
+	return true, nil
+}
+
+func (c *Cache) ClearWithTimeout() error {
+	// expire after 5 min
+	reply, err := redigo.Int(c.session.Do("EXPIRE", c.key, 5*60))
+	if err != nil {
+		return err
+	}
+
+	if reply == 0 {
+		return errors.New("Timeout could not be set")
+	}
+
+	return nil
+
 }
