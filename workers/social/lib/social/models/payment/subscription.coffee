@@ -288,7 +288,8 @@ module.exports = class JPaymentSubscription extends jraphical.Module
       ->
         account.addSubscription newSubscription, (err) -> queue.next err
       =>
-        newSubscription.update $set: { @usage }, (err) -> queue.next err
+        {quantities} = newPlan
+        newSubscription.update $set: { @usage, quantities }, (err) -> queue.next err
       ->
         callback null, newSubscription
     ]
