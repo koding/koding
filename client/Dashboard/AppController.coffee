@@ -58,6 +58,7 @@ class DashboardAppController extends AppController
           callback   : @bound 'paymentViewAdded'
       ,
         name         : 'Products'
+        kodingOnly   : yes
         viewOptions  :
           viewClass  : GroupProductSettingsView
           lazy       : yes
