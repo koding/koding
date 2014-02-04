@@ -53,6 +53,7 @@ module.exports =
   buildClient   : yes
   runOsKite     : no
   runProxy      : no
+  redis         : "localhost:6379"
   misc          :
     claimGlobalNamesForUsers: no
     updateAllSlugs : no
