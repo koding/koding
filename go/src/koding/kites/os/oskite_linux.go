@@ -82,6 +82,9 @@ func main() {
 	registerFileSystemMethods(k)
 	registerWebtermMethods(k)
 	registerAppMethods(k)
+
+	startWorkers()
+
 	k.Run()
 }
 
@@ -574,25 +577,61 @@ func startVM(k *kite.Kite, vm *virt.VM, channel *kite.Channel) error {
 	}
 
 	if !isPrepared || info.currentHostname != vm.HostnameAlias {
-		startTime := time.Now()
-		vm.Prepare(false, log.Warning)
-		if err := vm.Start(); err != nil {
-			log.LogError(err, 0)
+		log.Info("putting '%s' into queue", vm.HostnameAlias)
+		log.Info("total vm's in prepare queue: %d", len(prepare))
+
+		prepare <- func(done, cancel chan struct{}) {
+			startTime := time.Now()
+			vm.Prepare(false, log.Warning)
+			if err := vm.Start(); err != nil {
+				log.LogError(err, 0)
+			}
+
+			// wait until network is up
+			if err := vm.WaitForNetwork(time.Second * 5); err != nil {
+				log.Error("%v", err)
+			}
+
+			endTime := time.Now()
+			log.Info("VM PREPARE and START: %s [%s] - ElapsedTime: %.10f seconds.",
+				vm, vm.HostnameAlias, endTime.Sub(startTime).Seconds())
+
+			info.currentHostname = vm.HostnameAlias
+			done <- struct{}{}
 		}
 
-		// wait until network is up
-		if err := vm.WaitForNetwork(time.Second * 5); err != nil {
-			log.Error("%v", err)
-		}
-
-		endTime := time.Now()
-		log.Info("VM PREPARE and START: %s [%s] - ElapsedTime: %.10f seconds.",
-			vm, vm.HostnameAlias, endTime.Sub(startTime).Seconds())
-
-		info.currentHostname = vm.HostnameAlias
 	}
 
 	return nil
+}
+
+type prepareFunc func(chan struct{}, chan struct{})
+
+var (
+	numberOfWorkers = 30
+	prepare         = make(chan prepareFunc)
+)
+
+func queueWorker() {
+	for fn := range prepare {
+		done, cancel := make(chan struct{}, 1), make(chan struct{}, 1)
+		go fn(done, cancel)
+
+		select {
+		case <-done:
+			log.Info("done preparing vm")
+		case <-cancel:
+			log.Info("cancel perparing vm")
+		case <-time.After(time.Second * 20):
+			log.Error("timing out preparing vm")
+		}
+	}
+}
+
+func startWorkers() {
+	for i := 0; i < numberOfWorkers; i++ {
+		go queueWorker()
+	}
 }
 
 func createUserHome(user *virt.User, rootVos, userVos *virt.VOS) {
