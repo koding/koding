@@ -592,6 +592,37 @@ task 'deleteCache', "Delete the local webserver cache", (options)->
   exec "rm -rf #{__dirname}/.build",->
     console.log "Cache is pruned."
 
+task 'installSikuli', "", ->
+  path = "/Applications/Sikuli-IDE.app"
+  exec "ls #{path}", (error, stdout, stderr)->
+    unless error
+      console.log "Sikuli is already installed at #{path}...exiting."
+      return
+
+    sikuliUrl  = "https://launchpad.net/sikuli/sikulix/x1.0-rc3/+download/Sikuli-X-1.0rc3%20%28r905%29-osx-10.6.dmg"
+    sikuliFile = "sikuli.dmg"
+
+    wget = spawn "wget", [sikuliUrl, "-O#{sikuliFile}"]
+
+    wget.stderr.on 'data', (data)->
+      process.stdout.write data.toString()
+      process.exit code
+
+    wget.stdout.on 'data', (data)->
+      process.stdout.write data.toString()
+
+    wget.on 'close', (code)->
+      exec "open #{sikuliFile}", (error, stdout, stderr)->
+        exec "git submodule init; git submodule update", (error, stdout, stderr)->
+          process.exit code
+
+task 'sikuli', "", ->
+  exec 'open -a "Google Chrome" "http://localhost:3020"', ->
+    exec '/Applications/Sikuli-IDE.app/sikuli-ide.sh -r `pwd`/tests/signup_login.sikuli --stderr', (error, stdout, stderr)->
+      if /Runtime Error/.test stderr
+        console.log stderr
+        exec 'say "FAIL"', ->
+
 task 'buildAll',"build chris's modules", ->
 
   buildables = ["pistachio","scrubber","sinkrow","mongoop","koding-dnode-protocol","jspath","bongo-client"]
