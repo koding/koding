@@ -27,7 +27,7 @@ import (
 var (
 	log                    = logger.New("broker")
 	routeMap               = make(map[string]([]*sockjs.Session))
-	socketSubscriptionsMap = make(map[string]*cache.SubscriptionSet)
+	socketSubscriptionsMap = make(map[string]*cache.SubscriptionStorage)
 	globalMapMutex         sync.Mutex
 
 	changeClientsGauge          = lifecycle.CreateClientsGauge()
