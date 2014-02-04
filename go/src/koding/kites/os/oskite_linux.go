@@ -58,6 +58,9 @@ var (
 	containerSubnet  *net.IPNet
 	shuttingDown     = false
 	requestWaitGroup sync.WaitGroup
+
+	prepareQueueLimit = 8 + 1 // number of concurrent VM preparations, shoulde be CPU + 1
+	prepareQueue      = make(chan func(chan struct{}))
 )
 
 func main() {
@@ -83,7 +86,7 @@ func main() {
 	registerWebtermMethods(k)
 	registerAppMethods(k)
 
-	startWorkers()
+	startPrepareWorkers()
 
 	k.Run()
 }
@@ -577,10 +580,12 @@ func startVM(k *kite.Kite, vm *virt.VM, channel *kite.Channel) error {
 	}
 
 	if !isPrepared || info.currentHostname != vm.HostnameAlias {
-		log.Info("putting '%s' into queue", vm.HostnameAlias)
-		log.Info("total vm's in prepare queue: %d", len(prepare))
+		log.Info("putting %s into queue. totals vm in queue: %d of %d",
+			vm.HostnameAlias, len(prepareQueue), prepareQueueLimit)
 
-		prepare <- func(done, cancel chan struct{}) {
+		prepareQueue <- func(done chan struct{}) {
+			defer func() { done <- struct{}{} }()
+
 			startTime := time.Now()
 			vm.Prepare(false, log.Warning)
 			if err := vm.Start(); err != nil {
@@ -597,40 +602,32 @@ func startVM(k *kite.Kite, vm *virt.VM, channel *kite.Channel) error {
 				vm, vm.HostnameAlias, endTime.Sub(startTime).Seconds())
 
 			info.currentHostname = vm.HostnameAlias
-			done <- struct{}{}
 		}
-
 	}
 
 	return nil
 }
 
-type prepareFunc func(chan struct{}, chan struct{})
-
-var (
-	numberOfWorkers = 30
-	prepare         = make(chan prepareFunc)
-)
-
-func queueWorker() {
-	for fn := range prepare {
-		done, cancel := make(chan struct{}, 1), make(chan struct{}, 1)
-		go fn(done, cancel)
+// prepareWorker listens from prepareQueue channel and runs the functions it receives
+func prepareWorker() {
+	for fn := range prepareQueue {
+		done := make(chan struct{}, 1)
+		go fn(done)
 
 		select {
 		case <-done:
 			log.Info("done preparing vm")
-		case <-cancel:
-			log.Info("cancel perparing vm")
 		case <-time.After(time.Second * 20):
 			log.Error("timing out preparing vm")
 		}
 	}
 }
 
-func startWorkers() {
-	for i := 0; i < numberOfWorkers; i++ {
-		go queueWorker()
+// startPrepareWorkers starts multiple workers (based on prepareQueueLimit)
+// that accepts prepare functions.
+func startPrepareWorkers() {
+	for i := 0; i < prepareQueueLimit; i++ {
+		go prepareWorker()
 	}
 }
 
