@@ -11,6 +11,7 @@ class PricingAppController extends KDViewController
 
       "/:name?/Pricing/:section": ({params:{section}}) ->
         handler (app) ->
+          app.createProductForm()
           {productForm} = app
           switch section
             when "Developer" then productForm.showDeveloperPlan()
@@ -32,9 +33,12 @@ class PricingAppController extends KDViewController
       cssClass      : "content-page pricing"
 
     super options, data
+    @createProductForm()
 
+  createProductForm: ->
+    @productForm.destroy()  if @productForm and not @productForm.isDestroyed
     @productForm = new PricingProductForm
-    @getView().addWorkflow workflow = KD.singleton("paymentController").createUpgradeWorkflow {@productForm}
+    @getView().setWorkflow workflow = KD.singleton("paymentController").createUpgradeWorkflow {@productForm}
 
   selectPlan: (tag, options) ->
     @productForm.selectPlan tag, options

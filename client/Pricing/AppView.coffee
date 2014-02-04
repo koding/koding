@@ -1,6 +1,8 @@
 class PricingAppView extends KDView
 
-  addWorkflow: (@workflow) ->
+  setWorkflow: (workflow) ->
+    @workflow.destroy()  if @workflow
+    @workflow = workflow
     @addSubView @workflow
     @workflow.on 'Finished', @bound "workflowFinished"
     @workflow.on 'Cancel', @bound "cancel"
