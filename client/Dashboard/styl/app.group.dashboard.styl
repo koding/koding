@@ -1198,7 +1198,7 @@ Dashboard Invitations Modal Styles
     background-color      #eee
 
 
-.paymment-settings-view
+.payment-settings-view
   .product-title
   .product-price
   .product-button
@@ -1209,6 +1209,25 @@ Dashboard Invitations Modal Styles
 
   .product-embed
     border                1px solid #aaa
+
+  .linked
+    .payment-method
+      background          #FFF
+  .payment-method
+    padding               20px
+    box-sizing            border-box
+    rounded               6px
+    .billing-link
+      width               300px
+      fl()
+    .payment-links
+      fr()
+      pointer()
+      line-height         40px
+      &.link
+        color             #1AAE5D
+      &.unlink
+        color             #EB4731
 
 body.dashboard
   .dashboard-tabs
