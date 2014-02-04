@@ -18,6 +18,7 @@ class IntroTeamPlan extends JView
       slider            :
         minValue        : 5
         maxValue        : 250
+        initialValue    : 5
         interval        : 5
         snapOnDrag      : yes
         handles         : [@resourceQuantity]
