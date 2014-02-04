@@ -58,6 +58,9 @@ var (
 	containerSubnet  *net.IPNet
 	shuttingDown     = false
 	requestWaitGroup sync.WaitGroup
+
+	prepareQueueLimit = 8 + 1 // number of concurrent VM preparations, shoulde be CPU + 1
+	prepareQueue      = make(chan func(chan struct{}))
 )
 
 func main() {
@@ -82,6 +85,9 @@ func main() {
 	registerFileSystemMethods(k)
 	registerWebtermMethods(k)
 	registerAppMethods(k)
+
+	startPrepareWorkers()
+
 	k.Run()
 }
 
@@ -574,25 +580,62 @@ func startVM(k *kite.Kite, vm *virt.VM, channel *kite.Channel) error {
 	}
 
 	if !isPrepared || info.currentHostname != vm.HostnameAlias {
-		startTime := time.Now()
-		vm.Prepare(false, log.Warning)
-		if err := vm.Start(); err != nil {
-			log.LogError(err, 0)
+		log.Info("putting %s into queue. total vms in queue: %d of %d",
+			vm.HostnameAlias, len(prepareQueue), prepareQueueLimit)
+
+		wait := make(chan struct{}, 0)
+		prepareQueue <- func(done chan struct{}) {
+			defer func() {
+				done <- struct{}{}
+				wait <- struct{}{}
+			}()
+
+			startTime := time.Now()
+			vm.Prepare(false, log.Warning)
+			if err := vm.Start(); err != nil {
+				log.LogError(err, 0)
+			}
+
+			// wait until network is up
+			if err := vm.WaitForNetwork(time.Second * 5); err != nil {
+				log.Error("%v", err)
+			}
+
+			endTime := time.Now()
+			log.Info("VM PREPARE and START: %s [%s] - ElapsedTime: %.10f seconds.",
+				vm, vm.HostnameAlias, endTime.Sub(startTime).Seconds())
+
+			info.currentHostname = vm.HostnameAlias
 		}
 
-		// wait until network is up
-		if err := vm.WaitForNetwork(time.Second * 5); err != nil {
-			log.Error("%v", err)
-		}
-
-		endTime := time.Now()
-		log.Info("VM PREPARE and START: %s [%s] - ElapsedTime: %.10f seconds.",
-			vm, vm.HostnameAlias, endTime.Sub(startTime).Seconds())
-
-		info.currentHostname = vm.HostnameAlias
+		// wait until the prepareWorker has picked us and we finished
+		<-wait
 	}
 
 	return nil
+}
+
+// prepareWorker listens from prepareQueue channel and runs the functions it receives
+func prepareWorker() {
+	for fn := range prepareQueue {
+		done := make(chan struct{}, 1)
+		go fn(done)
+
+		select {
+		case <-done:
+			log.Info("done preparing vm")
+		case <-time.After(time.Second * 20):
+			log.Error("timing out preparing vm")
+		}
+	}
+}
+
+// startPrepareWorkers starts multiple workers (based on prepareQueueLimit)
+// that accepts prepare functions.
+func startPrepareWorkers() {
+	for i := 0; i < prepareQueueLimit; i++ {
+		go prepareWorker()
+	}
 }
 
 func createUserHome(user *virt.User, rootVos, userVos *virt.VOS) {
