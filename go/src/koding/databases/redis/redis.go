@@ -3,9 +3,10 @@ package redis
 import (
 	"errors"
 	"fmt"
-	"github.com/garyburd/redigo/redis"
 	"strconv"
 	"time"
+
+	"github.com/garyburd/redigo/redis"
 )
 
 type RedisSession struct {
@@ -13,10 +14,10 @@ type RedisSession struct {
 	prefix string
 }
 
-func NewRedisSession(port string) (*RedisSession, error) {
+func NewRedisSession(url string) (*RedisSession, error) {
 	var err error
 	s := &RedisSession{}
-	s.conn, err = redis.Dial("tcp", ":"+port)
+	s.conn, err = redis.Dial("tcp", url)
 	if err != nil {
 		return s, err
 	}
@@ -24,9 +25,9 @@ func NewRedisSession(port string) (*RedisSession, error) {
 }
 
 // Dial is used to connect a certaing redis port
-func (r *RedisSession) Dial(port string) error {
+func (r *RedisSession) Dial(url string) error {
 	var err error
-	r.conn, err = redis.Dial("tcp", ":"+port)
+	r.conn, err = redis.Dial("tcp", url)
 	if err != nil {
 		return err
 	}
