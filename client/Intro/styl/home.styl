@@ -820,7 +820,7 @@ body.about #main-header
 #home-page #campaign
   size                    100%, 369px
   .container
-    width                 960px
+    width                 926px
     margin                0 auto
     position              relative
   .divider
@@ -851,17 +851,12 @@ body.about #main-header
     margin-top            8px
     text-align            center
     &.digits
-      top                 3px
-      position            relative
-      left                2px
-      size                223px, 20px
-      padding             7px 0
-      overflow            hidden
+      margin-top          1px
   #banner
     size                  100%, 296px
     bg                    image, url('/a/images/campaign/100tb/bg.png')
     .container
-      height              296px
+      size                956px 296px
     .campaign-logo
       size                251px, 250px
       bg                  image, url('/a/images/campaign/100tb/logo.png')
@@ -883,6 +878,24 @@ body.about #main-header
     .counter
       fl()
       margin              90px 0 0 2px
+      .digits
+        overflow          hidden
+      .digit
+        size              42px, 85px
+        bg                color, #1A1D1E
+        rounded           6px
+        margin-left       1px
+        font-size         60px
+        color             #fff
+        font-weight       bold
+        line-height       85px
+        text-align        center
+        fl()
+      .separator
+        fl()
+        font-size         46px
+        color             #AAABAC
+        margin-top        33px
   #signup
     size                  100%, 73px
     bg                    color, #1A1D1E
@@ -894,8 +907,6 @@ body.about #main-header
       letter-spacing      0.7px
       span
         font-weight       300
-      &.label
-        margin-left       38px
     p
       abs()
       top                 -2px
@@ -918,14 +929,3 @@ body.about #main-header
         top               67px
         left              123px
         abs()
-  .kd-counter
-    ul
-      size                42px, 84px
-    li
-      size                42px, 84px
-      span
-        font-size         52px
-        size              42px, 42px
-        font-weight       bold
-        &.top
-          line-height     84px

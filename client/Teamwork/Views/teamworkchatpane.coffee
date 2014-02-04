@@ -103,7 +103,8 @@ class TeamworkChatPane extends ChatPane
     if sessionKey.indexOf("_") > -1
       @botReply getMessage "validateKey", sessionKey
       @workspace.firebaseRef.child(sessionKey).once "value", (snapshot) =>
-        if snapshot.val() is null or not snapshot.val().keys
+        snapshot = @workspace.reviveSnapshot snapshot
+        if snapshot is null or not snapshot.keys
           @botReply messages.noSession
         else
           @botReply getMessage "joinSession", sessionKey
@@ -161,7 +162,7 @@ class TeamworkChatPane extends ChatPane
     delegate = @getDelegate()
 
     delegate.onlineCountRef.on "value", (snapshot) =>
-      userCount = snapshot.val()
+      userCount = @workspace.reviveSnapshot snapshot
       if userCount > 4
         @setClass "expanded"
         @usersAreaExpanded = yes
@@ -227,7 +228,7 @@ class TeamworkChatPane extends ChatPane
   handleWatchLabel: ->
     workspace      = @getDelegate()
     workspace.watchRef.once "value", (snapshot) =>
-      watchingMap  = snapshot.val() or {}
+      watchingMap  = @workspace.reviveSnapshot(snapshot) or {}
       nickname     = KD.nick()
       watchingUser = watchingMap[nickname]
 
