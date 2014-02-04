@@ -30,7 +30,7 @@ class VmProductForm extends FormWorkflow
         callback err, usage
 
   createPackChoiceForm: -> new PackChoiceForm
-    title     : 'Choose your VM'
+    title     : 'Choose your subscription'
     itemClass : VmProductView
 
   setCurrentSubscriptions: (subscriptions) ->

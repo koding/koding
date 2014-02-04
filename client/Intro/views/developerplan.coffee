@@ -14,17 +14,17 @@ class IntroDeveloperPlan extends JView
     @planIndex = 0
 
     @slider        = new IntroPricingPlanSelection
-      title        : "Resource Pack"
-      description  : "1x Resource pack contains 1 GB RAM 1x CPU, 1 GB RAM, 50 GB Disk, 2 TB Transfer, 5 total VMs and we shut it off after an hour for obvious reasons"
-      unitPrice    : 20
-      slider       :
-        minValue   : 1
-        maxValue   : @plans.length
-        interval   : 1
-        initial    : 1
-        snapOnDrag : yes
-        handles    : [1]
-        width      : 685
+      title          : "Resource Pack"
+      description    : "1x Resource pack contains 1 GB RAM 1x CPU, 1 GB RAM, 50 GB Disk, 2 TB Transfer, 5 total VMs and we shut it off after an hour for obvious reasons"
+      unitPrice      : 20
+      slider         :
+        minValue     : 1
+        maxValue     : @plans.length
+        interval     : 1
+        initialValue : 1
+        snapOnDrag   : yes
+        handles      : [1]
+        width        : 685
 
     @slider.on "ValueChanged", (index) =>
       @planIndex = Math.max index - 1, 0

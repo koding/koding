@@ -1,10 +1,11 @@
-class IntroPricingPlanSelection extends JView
+class IntroPricingPlanSelection extends KDCustomHTMLView
   constructor : (options = {}, data = {}) ->
     options.cssClass      = KD.utils.curry "plan-selection-box", options.cssClass
     options.title       or= ""
     options.description or= ""
     options.unitPrice    ?= 1
     options.period      or= "Month"
+    options.unit        or= 'x'
     super options, data
 
     @title    = new KDCustomHTMLView
@@ -20,13 +21,13 @@ class IntroPricingPlanSelection extends JView
     options.slider       or= {}
     options.slider.drawBar = no
 
-    {unitPrice} = options
+    {unitPrice, unit} = options
 
     @slider = new KDSliderBarView options.slider
     @slider.on "ValueChanged", (handle) =>
       value = Math.floor handle.value
       price = value * unitPrice
-      @count.updatePartial "#{value}x"
+      @count.updatePartial "#{value}#{unit}"
       @price.updatePartial "$#{price}/Month"
       @emit "ValueChanged", value
 
@@ -35,9 +36,7 @@ class IntroPricingPlanSelection extends JView
       cssClass   : "description"
       partial    : options.description
 
-  viewAppended: ->
-    super
-    @unsetClass "kdview"
+  viewAppended: JView::viewAppended
 
   pistachio: ->
     """
