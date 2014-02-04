@@ -139,7 +139,7 @@ class MainController extends KDController
 
     # async clientId change checking procedures causes
     # race conditions between window reloading and post-login callbacks
-    @utils.repeat 3000, do (cookie = $.cookie 'clientId') => =>
+    cookieChangeHandler = do (cookie = $.cookie 'clientId') => =>
       cookieExists = cookie?
       cookieMatches = cookie is ($.cookie 'clientId')
       cookie = $.cookie 'clientId'
@@ -165,6 +165,11 @@ class MainController extends KDController
           {entryPoint} = KD.config
           KD.getSingleton('router').handleRoute lastRoute or '/Activity', {replaceState: yes, entryPoint}
 
+        @utils.wait 3000, cookieChangeHandler
+    # Note: I am using wait instead of repeat, for the subtle difference.  See this StackOverflow answer for more info: 
+    #       http://stackoverflow.com/questions/729921/settimeout-or-setinterval/731625#731625
+    @utils.wait 3000, cookieChangeHandler
+
   setVisitor:(visitor)-> @visitor = visitor
   getVisitor: -> @visitor
   getAccount: -> KD.whoami()
@@ -174,7 +179,8 @@ class MainController extends KDController
 
     { account, replacementToken } = options
 
-    $.cookie 'clientId', replacementToken  if replacementToken
+    if replacementToken and replacementToken isnt $.cookie 'clientId'
+      $.cookie 'clientId', replacementToken
 
     @accountChanged account
 
@@ -239,24 +245,17 @@ class MainController extends KDController
         @emit "ShowInstructionsBook", pages.first.index
 
   setFailTimer: do->
-    modal = null
+    notification = null
     fail  = ->
-      modal = new KDBlockingModalView
-        title   : "Couldn't connect to the backend!"
-        content : "<div class='modalformline'>
-                     We don't know why, but your browser couldn't reach our server.<br><br>Please try again.
-                   </div>"
-        height  : "auto"
-        width   : 600
-        overlay : yes
-        buttons :
-          "Refresh Now" :
-            style       : "modal-clean-red"
-            callback    : ->
-              modal.destroy()
-              location.reload yes
-      # if location.hostname is "localhost"
-      #   KD.utils.wait 5000, -> location.reload yes
+
+      notification = new KDNotificationView
+        title         : "Couldn't connect to backend!"
+        type          : "tray"
+        closeManually : no
+        content       : """We don't know why, but your browser couldn't reach our server.
+                           <br>Still trying but if you want you can click here to refresh the page."""
+        duration      : 0
+        click         : -> location.reload yes
 
     checkConnectionState = ->
       unless connectedState.connected
@@ -265,10 +264,4 @@ class MainController extends KDController
 
     return ->
       @utils.wait @getOptions().failWait, checkConnectionState
-      @on "AccountChanged", =>
-        if modal
-          modal.setTitle "Connection Established"
-          modal.$('.modalformline').html "<b>It just connected</b>, don't worry about this warning."
-          modal.buttons["Refresh Now"].destroy()
-
-          @utils.wait 2500, -> modal?.destroy()
+      @on "AccountChanged", -> notification.destroy()  if notification
