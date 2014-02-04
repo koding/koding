@@ -222,6 +222,8 @@ module.exports = class JGroup extends Module
           (signature String, Function)
         fetchSubscription:
           (signature Function)
+        getPermissionSet:
+          (signature Function)
     schema          :
       title         :
         type        : String
