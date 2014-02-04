@@ -21,7 +21,7 @@ class ExistingAccountForm extends JView
           name             : "email"
           testPath         : "account-email-input"
       buttons              :
-        Save               :
+        'SIGN UP'          :
           type             : 'submit'
           style            : 'solid green fr'
       callback             : ({ email }) =>
@@ -34,7 +34,7 @@ class ExistingAccountForm extends JView
   pistachio: ->
     """
     <section class="pricing-sign-in clearfix">
-      <h3 class="pricing-title">Sign in or Signup to proceed with your checkout</h3>
+      <h3 class="pricing-title">Sign in or create an account to proceed with your checkout</h3>
       {{> @loginForm}}
       <span class="divider">or</span>
       {{> @emailCollectionForm}}
