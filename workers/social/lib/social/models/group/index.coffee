@@ -1482,3 +1482,10 @@ module.exports = class JGroup extends Module
           body  : "Welcome to your group"
           group : @slug 
         JNewStatusUpdate.create client, data, callback
+  getPermissionSet : (callback)->
+    @fetchPermissionSet (err, permissionSet) =>
+      callback err, null if err
+      if permissionSet
+        callback null, permissionSet
+      else
+        @fetchDefaultPermissionSet callback
