@@ -14,8 +14,6 @@ import (
 	"strconv"
 	"strings"
 	"time"
-
-	"log"
 	"github.com/streadway/amqp"
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
@@ -477,7 +475,6 @@ func heartBeatChecker() {
 
 	for {
 		kontrolDB.RunOnDatabase(WorkersDB, WorkersCollection, queryFunc)
-		log.Printf("mgo.GetStats() %+v\n", mgo.GetStats())
 		time.Sleep(workerconfig.HEARTBEAT_INTERVAL)
 	}
 }

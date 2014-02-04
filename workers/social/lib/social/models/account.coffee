@@ -536,6 +536,10 @@ module.exports = class JAccount extends jraphical.Module
 
   fetchHomepageView:({account, bongoModels}, callback)->
 
+    JReferral = require './referral'
+    JGroup = require './group'
+    JNewStatusUpdate = require './messages/newstatusupdate'
+
     JAccount.renderHomepage
       renderedAccount : account
       account         : this
