@@ -9,6 +9,9 @@ class PricingProductForm extends JView
     @teamPlan = new TeamPlan cssClass: "hidden"
     @teamPlan.on "PlanSelected", @bound "selectPlan"
 
+    @forwardEvent @developerPlan, "CurrentSubscriptionSet"
+    @forwardEvent @teamPlan, "CurrentSubscriptionSet"
+
     @toggle        = new KDMultipleChoice
       cssClass     : "pricing-toggle"
       labels       : ["DEVELOPER", "TEAM"]

@@ -54,6 +54,11 @@ class TeamPlan extends JView
 
     @updateContent()
 
+    payment = KD.singleton "paymentController"
+    payment.fetchSubscriptionsWithPlans tags: $in: "custom-plan", (err, subscriptions) =>
+      return KD.showError err  if err
+      @emit "CurrentSubscriptionSet", subscriptions.first  if subscriptions.length
+
   updateContent: ->
     @total = (@resourceQuantity * unitPrices.resourcePack) + (@userQuantity * unitPrices.user)
     @title.updatePartial "#{@resourceQuantity}x Resource Pack<br>for #{@userQuantity} People"
