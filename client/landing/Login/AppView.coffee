@@ -327,14 +327,13 @@ class LoginView extends KDView
       account = KD.whoami()
       @registerForm.button.hideLoader()
 
-      if err
-
+      if err and err.code isnt 999
         {message} = err
         warn "An error occured while registering:", err
         @registerForm.notificationsDisabled = no
         @registerForm.emit "SubmitFailed", message
-
       else
+
         KD.mixpanel.alias account.profile.nickname
         KD.mixpanel "Signup, success"
         _gaq.push ['_trackEvent', 'Sign-up']
@@ -343,14 +342,20 @@ class LoginView extends KDView
         $.cookie 'clientId', replacementToken
         KD.getSingleton('mainController').accountChanged account
 
+        title = '<span></span>'
+        title += unless err then 'Good to go, Enjoy!' \
+                else 'Quota exceeded and could not join to the group. Please contact with group admin'
+
         new KDNotificationView
           cssClass  : "login"
-          title     : '<span></span>Good to go, Enjoy!'
+          title     : title
           # content   : 'Successfully registered!'
           duration  : 2000
 
         KD.getSingleton('router').clear()
         @headBanner.hide()
+        #could not joined to the group. Directing to Koding 
+        window.location.href = "/" if err
 
         setTimeout =>
           @hide()
