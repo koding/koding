@@ -14,6 +14,7 @@ import (
 	"errors"
 	"fmt"
 	"math/rand"
+	"sync"
 	"testing"
 	"time"
 
@@ -35,8 +36,15 @@ var broker *Broker
 
 func init() {
 	rand.Seed(time.Now().UnixNano())
+	fmt.Println("staring broker")
 	broker := NewBroker()
 	broker.Start()
+}
+
+func check(err error) {
+	if err != nil {
+		panic(err)
+	}
 }
 
 func TestPingPong(t *testing.T) {
@@ -139,60 +147,82 @@ func TestPubSub(t *testing.T) {
 	}
 }
 
-func BenchmarkBroker_1_1(b *testing.B)       { benchmarkBroker(b, 1, 1) }
-func BenchmarkBroker_10_10(b *testing.B)     { benchmarkBroker(b, 10, 10) }
-func BenchmarkBroker_100_100(b *testing.B)   { benchmarkBroker(b, 100, 100) }
-func BenchmarkBroker_1000_1000(b *testing.B) { benchmarkBroker(b, 1000, 1000) }
-
-var nPublished int
+func BenchmarkBroker_1_1(b *testing.B)     { benchmarkBroker(b, 1, 1) }
+func BenchmarkBroker_10_10(b *testing.B)   { benchmarkBroker(b, 10, 10) }
+func BenchmarkBroker_100_100(b *testing.B) { benchmarkBroker(b, 100, 100) }
 
 func benchmarkBroker(b *testing.B, nClient, nKey int) {
 	var err error
+	var wg sync.WaitGroup
 
-	b.Logf("connecting with %d clients", nClient)
+	fmt.Printf("connecting with %d clients\n", nClient)
 	clients := make([]*sockJSClient, nClient)
 	for i := 0; i < nClient; i++ {
 		clients[i], err = dialSockJS(newURL(), origin)
-		if err != nil {
-			b.Errorf(err.Error())
-			return
-		}
+		check(err)
 		go clients[i].Run()
 		defer clients[i].Close()
-	}
 
-	b.Logf("generating %d keys", nKey)
-	keys := make([]string, nKey)
-	for i := 0; i < nKey; i++ {
-		keys[i] = "client." + RandomStringLength(8)
-	}
-
-	b.Logf("each client subscribes %d keys", nKey)
-	for _, client := range clients {
-		for _, key := range keys {
-			client.SendString(fmt.Sprintf(`{"action": "subscribe", "routingKeyPrefix": "%s"}`, key))
-		}
-	}
-
-	b.Logf("publishing %d random messages to random keys", b.N)
-	// conn := amqputil.CreateConnection("broker")
-	// defer conn.Close()
-	// ch := amqputil.CreateChannel(conn)
-	// defer ch.Close()
-	// payload := fmt.Sprintf(`{"random": "%s"}`, RandomStringLength(1024)) // Must be JSON
-	body := fmt.Sprintf(`{"action": "publish", "exchange": "broker", "routingKey": "%s", "payload": "{\"random\": \"%s\"}"}`, keys[rand.Intn(nKey)], RandomStringLength(1024))
-
-	b.ResetTimer()
-	for i := 0; i < b.N; i++ {
-		// err := ch.Publish("broker", keys[rand.Intn(nKey)], false, false, amqp.Publishing{Body: []byte(payload)})
-		err := clients[rand.Intn(nClient)].SendString(body)
-		if err != nil {
-			b.Errorf(err.Error())
+		// discard "broker.connected" message
+		msg, err := clients[i].ReadJSON()
+		check(err)
+		if msg["routingKey"].(string) != "broker.connected" {
+			b.Errorf("invalid key: %s", msg["routingKey"].(string))
 			return
 		}
-		nPublished++
 	}
-	fmt.Println("--- total published:", nPublished)
+
+	fmt.Printf("generating %d keys\n", nKey)
+	keys := make([]string, nKey)
+	for i := 0; i < nKey; i++ {
+		keys[i] = "client." + RandomStringLength(32)
+	}
+
+	fmt.Printf("each client subscribes %d keys\n", nKey)
+	for _, client := range clients {
+		for _, key := range keys {
+			// subscribe to key
+			err := client.SendString(fmt.Sprintf(`{"action": "subscribe", "routingKeyPrefix": "%s"}`, key))
+			check(err)
+
+			// discard "broker.subscribed" message
+			msg, err := client.ReadJSON()
+			check(err)
+			if msg["routingKey"].(string) != "broker.subscribed" {
+				b.Errorf("invalid key: %s", msg["routingKey"].(string))
+				return
+			}
+		}
+	}
+
+	// read all messages
+	for _, client := range clients {
+		// read all messages for all clients
+		go func(client *sockJSClient) {
+			for {
+				_, err := client.Read()
+				if err != nil {
+					return
+				}
+				wg.Done()
+			}
+		}(client)
+	}
+
+	fmt.Printf("publishing %d random messages to random keys\n", b.N)
+	body := fmt.Sprintf(`{"action": "publish", "exchange": "broker", "routingKey": "%s", "payload": "{\"random\": \"%s\"}"}`, keys[rand.Intn(nKey)], RandomStringLength(8))
+
+	b.ResetTimer()
+	wg.Add(b.N * nClient)
+	for i := 0; i < b.N; i++ {
+		go func() {
+			err := clients[rand.Intn(nClient)].SendString(body)
+			check(err)
+		}()
+	}
+
+	fmt.Println("--- waiting for messages")
+	wg.Wait()
 }
 
 // cheap imitation of sockjs-client js library
@@ -245,6 +275,11 @@ func (c *sockJSClient) SendString(s string) error {
 
 // adapted from: https://github.com/sockjs/sockjs-client/blob/master/lib/sockjs.js#L146
 func (c *sockJSClient) didMessage(data []byte) error {
+	queue := func(data []byte) {
+		// fmt.Printf("- msg: %+v\n", string(data))
+		c.messages <- data
+	}
+
 	switch string(data[:1]) {
 	case "o":
 		// that._dispatchOpen();
@@ -256,7 +291,7 @@ func (c *sockJSClient) didMessage(data []byte) error {
 			return err
 		}
 		for _, msg := range messages {
-			c.messages <- msg
+			queue(msg)
 		}
 	case "m":
 		data = data[1:]
@@ -265,7 +300,7 @@ func (c *sockJSClient) didMessage(data []byte) error {
 		if err != nil {
 			return err
 		}
-		c.messages <- msg
+		queue(msg)
 	case "c":
 		// var payload = JSON.parse(data.slice(1) || "[]")
 		// that._didClose(payload[0], payload[1])
@@ -302,9 +337,12 @@ func (c *sockJSClient) ReadString() (string, error) {
 // Get next message from server as []byte
 func (c *sockJSClient) Read() ([]byte, error) {
 	select {
-	case msg := <-c.messages:
+	case msg, ok := <-c.messages:
+		if !ok {
+			return nil, errors.New("closed")
+		}
 		return msg, nil
-	case <-time.After(1e9):
+	case <-time.After(10e9):
 		return nil, errors.New("timeout")
 	}
 }
