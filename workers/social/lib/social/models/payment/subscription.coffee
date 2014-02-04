@@ -183,6 +183,7 @@ module.exports = class JPaymentSubscription extends jraphical.Module
   checkQuota: (options, callback) ->
     {usage, spend, couponCode, multiplyFactor} = options
     multiplyFactor ?= 1
+    spend ?= {}
 
     usages = for own planCode, quantity of spend
       planSize    = @quantities[planCode] or @plan.quantities[planCode] or 0
@@ -287,7 +288,8 @@ module.exports = class JPaymentSubscription extends jraphical.Module
       ->
         account.addSubscription newSubscription, (err) -> queue.next err
       =>
-        newSubscription.update $set: { @usage }, (err) -> queue.next err
+        {quantities} = newPlan
+        newSubscription.update $set: { @usage, quantities }, (err) -> queue.next err
       ->
         callback null, newSubscription
     ]

@@ -123,8 +123,8 @@ class PaymentController extends KDController
         unless oldSubscription
         then callback()
         else
-          spend = oldSubscription?.usage ? {}
-          oldSubscription.checkQuota {spend, multiplyFactor: 1}, (err) ->
+          usage = oldSubscription?.usage ? {}
+          plan.checkQuota {usage}, (err) ->
             return  if KD.showError err
             callback()
 

@@ -29,7 +29,7 @@ class IntroTeamPlan extends JView
       title             : "Team Size"
       unitPrice         : unitPrices.user
       slider            :
-        minValue        : 1
+        minValue        : 5
         maxValue        : 500
         interval        : 10
         snapOnDrag      : yes
