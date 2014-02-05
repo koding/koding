@@ -688,9 +688,9 @@ module.exports = class JUser extends jraphical.Module
     if /^guest-/.test username
       return callback createKodingError "Reserved username!"
 
-    newToken  = null
-    invite    = null
-    user      = null
+    newToken       = null
+    invite         = null
+    user           = null
     quotaExceedErr = null
 
     queue = [
