@@ -1,4 +1,4 @@
-var testUser = db.jUsers.findOne({username:"testuser1011"});
+var testUser = db.jUsers.findOne({username:"testuser101"});
 
 if (testUser) {
   print("'testuser101' already in database...existing.");
