@@ -18,8 +18,8 @@ func UpsertByItemId(r *models.RollbarItem) error {
 	return Mongo.Run(RollbarIemCollection, query)
 }
 
-func FindByCodeVersion(r *models.RollbarItem) ([]*RollbarItem, error) {
-	var foundItems []*RollbarItem
+func FindByCodeVersion(r *models.RollbarItem) ([]*models.RollbarItem, error) {
+	var foundItems []*models.RollbarItem
 	var findQuery = func(c *mgo.Collection) error {
 		return c.Find(bson.M{"codeVersion": r.CodeVersion}).All(&foundItems)
 	}

@@ -62,7 +62,7 @@ func ClientMessage(data amqp.Delivery) {
 			slog.Printf("bad json client msg: %s err: %s\n", string(data.Body), err)
 		}
 
-		odelhelper.AddClient(info)
+		modelhelper.AddClient(info)
 	}
 }
 

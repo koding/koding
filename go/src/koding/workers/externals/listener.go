@@ -1,15 +1,30 @@
 package main
 
 import (
+	"flag"
+	"koding/db/mongodb"
+	"koding/tools/config"
 	"koding/tools/dnode"
 	"koding/tools/kite"
+	"koding/workers/neo4jfeeder/mongohelper"
 	"log"
 )
 
 // k = KD.getSingleton("kiteController").run({kiteName:"externals", method:"import", withArgs:{value:"7b010664e515af5f46c8f1e2ad124a7b30676929", serviceName:"github", userId:KD.whoami().getId()}}, console.log.bind(console))
 
+var mongoDB *mongodb.MongoDB
+var configProfile string
+
+func init() {
+	f := flag.NewFlagSet("externals", flag.ContinueOnError)
+	f.StringVar(&configProfile, "c", "", "Configuration profile from file")
+}
+
 func main() {
 	log.Println("Starting worker...")
+	conf := config.MustConfig(configProfile)
+	mongoDB = mongodb.NewMongoDB(conf.Mongo)
+	mongohelper.MongoHelperInit(conf.Mongo)
 
 	externals := kite.New("externals", false)
 	externals.Handle("import", false, func(args *dnode.Partial, channel *kite.Channel) (interface{}, error) {

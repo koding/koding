@@ -7,7 +7,7 @@ import (
 	"labix.org/v2/mgo/bson"
 )
 
-var RollbarDeployCollection = "roll"
+var RollbarDeployCollection = "deploys"
 
 func SaveUniqueByDeployId(r *models.RollbarDeploy) error {
 	var count int
@@ -18,7 +18,7 @@ func SaveUniqueByDeployId(r *models.RollbarDeploy) error {
 		return err
 	}
 
-	err = Mongo.Run(r.CollectionName(), findQuery)
+	err = Mongo.Run(RollbarDeployCollection, findQuery)
 	if err != nil {
 		return err
 	}
@@ -31,7 +31,7 @@ func SaveUniqueByDeployId(r *models.RollbarDeploy) error {
 		return c.Insert(r)
 	}
 
-	return Mongo.Run(r.CollectionName(), insertQuery)
+	return Mongo.Run(RollbarDeployCollection, insertQuery)
 }
 
 func UpdateAlertStatus(r *models.RollbarDeploy) error {
@@ -42,7 +42,7 @@ func UpdateAlertStatus(r *models.RollbarDeploy) error {
 		return c.Update(findQuery, updateQuery)
 	}
 
-	return Mongo.Run(r.CollectionName(), query)
+	return Mongo.Run(RollbarDeployCollection, query)
 }
 
 func GetLatestDeploy() (*models.RollbarDeploy, error) {
@@ -52,7 +52,7 @@ func GetLatestDeploy() (*models.RollbarDeploy, error) {
 		return c.Find(nil).Sort("-deployId").One(&r)
 	}
 
-	if err := Mongo.Run(r.CollectionName(), findQuery); err != nil {
+	if err := Mongo.Run(RollbarDeployCollection, findQuery); err != nil {
 		return r, err
 	}
 

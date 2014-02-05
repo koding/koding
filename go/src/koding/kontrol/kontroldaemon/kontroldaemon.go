@@ -20,6 +20,9 @@ func init() {
 	f.StringVar(&configProfile, "c", "", "Configuration profile from file")
 }
 
+var configProfile string
+var mongo *mongodb.MongoDB
+
 func main() {
 	flag.Parse()
 	conf := config.MustConfig(configProfile)

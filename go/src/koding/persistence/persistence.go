@@ -2,14 +2,17 @@ package main
 
 import (
 	"encoding/json"
-	"github.com/streadway/amqp"
+	"flag"
 	"koding/db/mongodb"
 	"koding/tools/amqputil"
-	"labix.org/v2/mgo"
-	"labix.org/v2/mgo/bson"
+	"koding/tools/config"
 	"log"
 	"strings"
 	"time"
+
+	"github.com/streadway/amqp"
+	"labix.org/v2/mgo"
+	"labix.org/v2/mgo/bson"
 )
 
 type Meta struct {
@@ -29,7 +32,19 @@ type ConversationSlice struct {
 	To         time.Time
 }
 
+func init() {
+	f := flag.NewFlagSet("persistence", flag.ContinueOnError)
+	f.StringVar(&configProfile, "c", "", "Configuration profile from file")
+}
+
+var mongo *mongodb.MongoDB
+var configProfile string
+
 func main() {
+	flag.Parse()
+	conf := config.MustConfig(configProfile)
+	mongo = mongodb.NewMongoDB(conf.Mongo)
+
 	conn := amqputil.CreateConnection("persistence")
 
 	startPersisting(conn)
@@ -144,7 +159,7 @@ func persistMessages(
 		message := Message{from, d.RoutingKey, string(d.Body), Meta{t, t}}
 
 		info := new(mgo.ChangeInfo)
-		err := mongodb.Run("jMessages", func(c *mgo.Collection) error {
+		err := mongo.Run("jMessages", func(c *mgo.Collection) error {
 			info, err = c.Upsert(bson.M{"_id": nil}, message)
 			return err
 		})
@@ -162,7 +177,7 @@ func persistMessages(
 		}
 
 		sliceInfo := new(mgo.ChangeInfo)
-		err = mongodb.Run("jMessages", func(c *mgo.Collection) error {
+		err = mongo.Run("jMessages", func(c *mgo.Collection) error {
 			sliceInfo, err = c.Upsert(bson.M{"routingKey": sliceKey}, bson.M{"$set": slice})
 			return err
 		})
@@ -173,7 +188,7 @@ func persistMessages(
 		}
 
 		if sliceInfo.UpsertedId != nil {
-			err := mongodb.Run("jConversationSlices", func(c *mgo.Collection) error {
+			err := mongo.Run("jConversationSlices", func(c *mgo.Collection) error {
 				return c.Update(
 					bson.M{"_id": sliceInfo.UpsertedId},
 					bson.M{"$set": bson.M{"from": t}})
