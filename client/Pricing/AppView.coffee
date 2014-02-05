@@ -70,6 +70,7 @@ class PricingAppView extends KDView
 
       if @formData.loggedIn
         thankYou.addSubView new KDButtonView
+          style    : "solid green"
           title    : "Go to Group"
           callback : ->
             window.open "#{window.location.origin}/#{group.slug}", "_blank"
