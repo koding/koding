@@ -39,14 +39,14 @@ func PublishToGraphite(name string, value int, timestamp int64) error {
 	var host = config.Current.Graphite.Host
 	var port = config.Current.Graphite.Port
 
-	if config.Current.Graphite.Use {
-		graphiteServer, err = graphite.NewGraphite(host, port)
-		if err != nil {
-			log.Error("Connecting to graphite, falling back to noop: %v", err)
-			graphiteServer = graphite.NewGraphiteNop(host, port)
-		}
-	} else {
-		graphiteServer = graphite.NewGraphiteNop(host, port)
+	if !config.Current.Graphite.Use {
+		return nil
+	}
+
+	graphiteServer, err = graphite.NewGraphite(host, port)
+	if err != nil {
+		log.Error("Publish to graphite failed: %v", err)
+		return err
 	}
 
 	if timestamp == 0 {

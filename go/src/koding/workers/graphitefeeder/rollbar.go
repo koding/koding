@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"github.com/sent-hil/rollbar"
 	"time"
 )
