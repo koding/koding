@@ -173,11 +173,10 @@ Dashboard Settings Styles
     figure
       size                    55px, 55px
       rounded                 6px 6px 0 0
-      bg                      position, center center
     &.default
       figure
-        r-sprite              "dashboard", "group-default-logo-bg"
-        bg                    color, #CACACA
+        sprite              "dashboard", "group-default-logo-bg"
+        background-color      #CACACA !important
   .upload-button
     size                      55px, 25px
     rounded                   0
@@ -221,32 +220,35 @@ Dashboard Member List styles
         opacity              .2
 
     .kdlistitemview-member
-      min-width              0
-      width                  40%
-      margin-right           16px
-      border-bottom          1px solid #cacaca
-      position               relative
       vendor                 transition, opacity .2s ease
-      fl()
+      width                  100%
+      background             #FFF
+      rounded                6px
+      padding                20px
+      box-sizing             border-box
+      margin                 0 0 1px 0
 
       .profile
       .user-numbers
-        kalc                 width, 100% \- 50px
         margin               0
+        width                300px
         height               auto
+        float                none
+        line-height          16px
 
       .avatarview
-        top                  24px !important
-        left                 -36px
+        position             relative
+        top                  0 !important
+        left                 0
+        fl()
+        margin-right         20px
 
       .edit-link
       .cancel-link
-        abs                  22px 0px 0 0
         padding              1px 8px
-        rounded              3px
         color                #3c4752
-        border               1px solid #3c4752
-        font-size            12px
+        font-size            14px
+        line-height          30px
 
       .edit-link
         hidden()
@@ -321,9 +323,6 @@ Dashboard member listing related common styles
 }
 
 .member-related
-  overflow                    visible
-  .listview-wrapper
-    margin-top                30px
   .listview-wrapper .lazy-loader
     font-weight               600
     font-size                 12px
@@ -332,14 +331,6 @@ Dashboard member listing related common styles
       display                 inline-block
 
   .kdview.kdlistitemview
-    line-height               24px
-    position                  relative
-    overflow                  visible
-    min-width                 350px
-    height                    auto
-    display                   inline-block
-    vertical-align            top
-    borderBox()
     &.editing
       bg                      color, rgba(255, 146, 0, 0.1)
 
@@ -398,6 +389,7 @@ Dashboard Membership Policy styles
 
 .kdtabpaneview.membership-policy
   .policy-view-wrapper
+    height                95vh
 
     .koding-on-off
       margin-top          14px
@@ -1198,7 +1190,7 @@ Dashboard Invitations Modal Styles
     background-color      #eee
 
 
-.paymment-settings-view
+.payment-settings-view
   .product-title
   .product-price
   .product-button
@@ -1209,6 +1201,25 @@ Dashboard Invitations Modal Styles
 
   .product-embed
     border                1px solid #aaa
+
+  .linked
+    .payment-method
+      background          #FFF
+  .payment-method
+    padding               20px
+    box-sizing            border-box
+    rounded               6px
+    .billing-link
+      width               300px
+      fl()
+    .payment-links
+      fr()
+      pointer()
+      line-height         40px
+      &.link
+        color             #1AAE5D
+      &.unlink
+        color             #EB4731
 
 body.dashboard
   .dashboard-tabs
