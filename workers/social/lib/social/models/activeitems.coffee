@@ -59,7 +59,8 @@ module.exports = class ActiveItems extends Base
 
     @fetchRandomUsers callback
 
-  @fetchRandomUsers = (callback)-> JAccount.some {}, {limit:10}, callback
+  @fetchRandomUsers = (callback)->
+    JAccount.some {"type":"registered"}, {limit:10}, callback
 
   @fetchRandomTopics = (callback, options)->
     group = options.group or "koding"
