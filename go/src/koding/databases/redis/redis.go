@@ -10,28 +10,29 @@ import (
 )
 
 type RedisSession struct {
-	conn   redis.Conn
+	pool   *redis.Pool
 	prefix string
 }
 
-func NewRedisSession(url string) (*RedisSession, error) {
-	var err error
+func NewRedisSession(server string) (*RedisSession, error) {
 	s := &RedisSession{}
-	s.conn, err = redis.Dial("tcp", url)
-	if err != nil {
-		return s, err
-	}
-	return s, nil
-}
 
-// Dial is used to connect a certaing redis port
-func (r *RedisSession) Dial(url string) error {
-	var err error
-	r.conn, err = redis.Dial("tcp", url)
-	if err != nil {
-		return err
+	pool := &redis.Pool{
+		MaxIdle:     3,
+		IdleTimeout: 240 * time.Second,
+		Dial: func() (redis.Conn, error) {
+			c, err := redis.Dial("tcp", server)
+			if err != nil {
+				return nil, err
+			}
+			return c, err
+		},
 	}
-	return nil
+	s.pool = pool
+	// when we use connection pooling
+	// dialing and returning an error will be
+	// with the request
+	return s, nil
 }
 
 // SetPrefix is used to add a prefix to all keys to be used. It is useful for
@@ -44,28 +45,21 @@ func (r *RedisSession) addPrefix(name string) string {
 	return r.prefix + name
 }
 
-// Close is used to close the current redis connection
-func (r *RedisSession) Close() {
-	r.conn.Close()
-}
-
 // Do is a wrapper around redigo's redis.Do method that executes any redis
 // command. Do does not support prefix support. Example usage: redis.Do("INCR",
 // "counter").
 func (r *RedisSession) Do(cmd string, args ...interface{}) (interface{}, error) {
-	if r.conn == nil {
-		return nil, errors.New("connection is not established.")
-	}
-	return r.conn.Do(cmd, args...)
+	conn := r.pool.Get()
+	defer conn.Close()
+	return conn.Do(cmd, args...)
 }
 
 // Send is a wrapper around redigo's redis.Send method that writes the
 // command to the client's output buffer.
 func (r *RedisSession) Send(cmd string, args ...interface{}) error {
-	if r.conn == nil {
-		return errors.New("connection is not established.")
-	}
-	return r.conn.Send(cmd, args...)
+	conn := r.pool.Get()
+	defer conn.Close()
+	return conn.Send(cmd, args...)
 }
 
 // Set is used to hold the string value. If key already holds a value, it is
