@@ -454,7 +454,7 @@ module.exports = class JUser extends jraphical.Module
     JGroup.one {slug}, (err, group)->
       return callback err if err or not group 
       if invite
-        invite.redeem connection:delegate:account, (err) ->
+        invite.redeem account, (err) ->
           return callback err if err
           group.approveMember account, callback
       else

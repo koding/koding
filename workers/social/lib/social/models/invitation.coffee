@@ -126,7 +126,10 @@ module.exports = class JInvitation extends jraphical.Module
     protocol ?= protocol.split(':').shift()+':'
     return {host, protocol}
 
-  redeem: secure ({connection:{delegate}}, callback=->)->
+  redeem$: secure ({connection:{delegate}}, callback=->)->
+    @redeem delegate, callback
+
+  redeem: (account, callback) ->
     operation = $inc: uses: 1
 
     if @type is 'multiuse'
@@ -145,7 +148,8 @@ module.exports = class JInvitation extends jraphical.Module
             return callback err  if err
             @update operation, (err) =>
               return callback err  if err
-              @addRedeemer delegate, callback
+              @addRedeemer account, callback
+
 
   # send invites from group dashboard
   @create = secure (client, group, email, options, callback)->
