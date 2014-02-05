@@ -629,12 +629,12 @@ task 'test', "", ->
 
   # So people can see the above log messages.
   setTimeout ->
-    exec 'open -a "Google Chrome"', ->
-      exec '/Applications/Sikuli-IDE.app/sikuli-ide.sh -r `pwd`/tests/signup_login.sikuli --stderr', (error, stdout, stderr)->
-        if /Runtime Error/.test stderr
+    exec 'open -a "Google Chrome" "https://latest.koding.com"', ->
+      exec '/Applications/Sikuli-IDE.app/sikuli-ide.sh -r `pwd`/tests/mac/signup_login.sikuli --stderr', (error, stdout, stderr)->
+        if stderr
           console.log stderr, "\n"
           console.log "Tests failed. It's possible Sikuli image matching failed. If you think that's the case, please try again."
-          exec 'say "TESTS FAIL"', ->
+          exec 'say "TESTS FAILED"', ->
   , 3000
 
 task 'buildAll',"build chris's modules", ->
