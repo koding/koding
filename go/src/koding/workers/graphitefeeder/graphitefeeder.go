@@ -1,17 +1,25 @@
 package main
 
 import (
+	"flag"
 	"fmt"
-	"github.com/peterbourgon/g2s"
+	"koding/db/mongodb"
 	"koding/tools/config"
+	"koding/tools/logger"
 	"strconv"
 	"time"
+
+	"github.com/peterbourgon/g2s"
 )
 
 var (
 	ip     = config.Current.Statsd.Ip
 	port   = config.Current.Statsd.Port
 	STATSD g2s.Statter
+
+	mongo         *mongodb.MongoDB
+	configProfile string
+	log           = logger.New("graphitefeeder")
 )
 
 func init() {
@@ -21,9 +29,19 @@ func init() {
 	if err != nil {
 		panic(err)
 	}
+
+	f := flag.NewFlagSet("graphitefeeder", flag.ContinueOnError)
+	f.StringVar(&configProfile, "c", "", "Configuration profile from file")
 }
 
 func main() {
+	flag.Parse()
+	c := config.MustConfig(configProfile)
+	mongo = mongodb.NewMongoDB(c.Mongo)
+
+	l := log.GetLoggingLevelFromConfig("graphitefeeder", c.Environment)
+	log.SetLevel()
+
 	for _, fn := range listOfAnalytics {
 		name, count := fn()
 		log.Info("%v %v", name, count)

@@ -1,14 +1,12 @@
 package main
 
 import (
-	"koding/db/mongodb"
-	"koding/tools/logger"
+	"koding/tools/log"
+	"time"
+
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
-	"time"
 )
-
-var log = logger.New("graphitefeeder")
 
 func init() {
 	registerAnalytic(numberOfReferrableEmails)
@@ -30,7 +28,7 @@ func numberOfReferrableEmails() (string, int) {
 		return err
 	}
 
-	mongodb.Run("jReferrableEmails", query)
+	mongo.Run("jReferrableEmails", query)
 
 	return identifier, count
 }
@@ -45,7 +43,7 @@ func numberOfInvitesSent() (string, int) {
 		return err
 	}
 
-	mongodb.Run("jReferrableEmails", query)
+	mongo.Run("jReferrableEmails", query)
 
 	return identifier, count
 }
@@ -60,7 +58,7 @@ func numberOfReferrals() (string, int) {
 		return err
 	}
 
-	mongodb.Run("jReferrals", query)
+	mongo.Run("jReferrals", query)
 
 	return identifier, count
 }
@@ -78,7 +76,7 @@ func numberOfReferralsToday() (string, int) {
 		return err
 	}
 
-	mongodb.Run("jReferrals", query)
+	mongo.Run("jReferrals", query)
 
 	return identifier, count
 }
@@ -119,7 +117,7 @@ func numberOfMembersFromReferrableEmailsByTime(greaterThanDate time.Time) int {
 		return err
 	}
 
-	mongodb.Run("jReferrableEmails", query)
+	mongo.Run("jReferrableEmails", query)
 
 	var totalCount int
 	for _, item := range results {
@@ -144,7 +142,7 @@ func numberOfMembersFromReferrableEmailsByTime(greaterThanDate time.Time) int {
 			return err
 		}
 
-		mongodb.Run("jUsers", query)
+		mongo.Run("jUsers", query)
 	}
 
 	return totalCount

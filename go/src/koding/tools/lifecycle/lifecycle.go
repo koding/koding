@@ -8,12 +8,15 @@ import (
 	"time"
 )
 
-var log = logger.New("lifecycle")
+var (
+	log                logger.Log
+	version            string
+	changeClientsGauge func(int)
+)
 
-var version string
-var changeClientsGauge func(int)
+func Startup(serviceName, profile string, needRoot bool) {
+	log = logger.New(serviceName)
 
-func Startup(serviceName string, needRoot bool) {
 	if needRoot && os.Getuid() != 0 {
 		log.Fatal("Must be run as root.")
 	}

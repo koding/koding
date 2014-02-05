@@ -2,16 +2,20 @@ package main
 
 import (
 	"encoding/json"
+	"flag"
 	"fmt"
-	"github.com/streadway/amqp"
 	"koding/databases/neo4j"
+	"koding/db/mongodb"
 	"koding/tools/amqputil"
+	"koding/tools/config"
 	"koding/tools/logger"
 	"koding/tools/statsd"
 	"koding/workers/neo4jfeeder/mongohelper"
-	"labix.org/v2/mgo/bson"
 	"strings"
 	"time"
+
+	"github.com/streadway/amqp"
+	"labix.org/v2/mgo/bson"
 )
 
 var (
@@ -30,9 +34,20 @@ type Message struct {
 	Payload []map[string]interface{} `json:"payload"`
 }
 
+func init() {
+	f := flag.NewFlagSet("graphitefeeder", flag.ContinueOnError)
+	f.StringVar(&configProfile, "c", "", "Configuration profile from file")
+}
+
 var log = logger.New("neo4jfeeder")
 
 func main() {
+	flag.Parse()
+	conf := config.MustConfig(configProfile)
+	mongo = mongodb.NewMongoDB(conf.Mongo)
+
+	mongohelper.MongoHelperInit(conf.Mongo)
+
 	statsd.SetAppName("neo4jFeeder")
 	startConsuming()
 }

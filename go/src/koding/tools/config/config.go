@@ -124,7 +124,6 @@ type Config struct {
 		Token   string
 		Channel string
 	}
-
 	LogLevel map[string]string
 }
 

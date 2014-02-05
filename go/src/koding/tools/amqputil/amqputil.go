@@ -2,13 +2,14 @@ package amqputil
 
 import (
 	"fmt"
-	"github.com/streadway/amqp"
 	"koding/tools/config"
 	"koding/tools/logger"
 	"strings"
+
+	"github.com/streadway/amqp"
 )
 
-var log = logger.New("amqputil")
+var log = logger.New("ampqutil")
 
 func CreateConnection(component string) *amqp.Connection {
 	conn, err := amqp.Dial(amqp.URI{
