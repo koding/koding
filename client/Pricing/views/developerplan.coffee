@@ -38,14 +38,13 @@ class DeveloperPlan extends JView
       cssClass : "solid buy-now"
       title    : "BUY NOW"
       callback : =>
-        @emit "PlanSelected", "rp#{@planIndex + 1}", planApi: KD.remote.api.JResourcePlan
+        payment = KD.singleton "paymentController"
+        payment.fetchSubscriptionsWithPlans tags: $in: "vm", (err, subscriptions) =>
+          return KD.showError err  if err
+          @emit "CurrentSubscriptionSet", subscriptions.first  if subscriptions.length
+          @emit "PlanSelected", "rp#{@planIndex + 1}", planApi: KD.remote.api.JResourcePlan
 
     @updateContent()
-
-    payment = KD.singleton "paymentController"
-    payment.fetchSubscriptionsWithPlans tags: $in: "vm", (err, subscriptions) =>
-      return KD.showError err  if err
-      @emit "CurrentSubscriptionSet", subscriptions.first  if subscriptions.length
 
   updateContent: ->
     @title.updatePartial "#{@planIndex + 1}x Resource Pack"
