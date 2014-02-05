@@ -623,12 +623,19 @@ afterSikuliInstall = (callback)->
 
 task 'test', "", ->
   url =  "http://localhost:3020"
-  console.log "Opening '#{url}' in Google Chrome to run the tests'"
-  exec 'open -a "Google Chrome"', ->
-    exec '/Applications/Sikuli-IDE.app/sikuli-ide.sh -r `pwd`/tests/signup_login.sikuli --stderr', (error, stdout, stderr)->
-      if /Runtime Error/.test stderr
-        console.log stderr
-        exec 'say "FAIL"', ->
+
+  console.log "Opening '#{url}' in Google Chrome to run the tests."
+  console.log "Running tests. Be sure you're logged out of Koding or this test will fail.\n"
+
+  # So people can see the above log messages.
+  setTimeout ->
+    exec 'open -a "Google Chrome"', ->
+      exec '/Applications/Sikuli-IDE.app/sikuli-ide.sh -r `pwd`/tests/signup_login.sikuli --stderr', (error, stdout, stderr)->
+        if /Runtime Error/.test stderr
+          console.log stderr, "\n"
+          console.log "Tests failed. It's possible Sikuli image matching failed. If you think that's the case, please try again."
+          exec 'say "TESTS FAIL"', ->
+  , 3000
 
 task 'buildAll',"build chris's modules", ->
 
