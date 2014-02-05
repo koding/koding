@@ -342,9 +342,9 @@ class LoginView extends KDView
         $.cookie 'clientId', replacementToken
         KD.getSingleton('mainController').accountChanged account
 
-        title = '<span></span>'
-        title += unless err then 'Good to go, Enjoy!' \
-                else 'Quota exceeded and could not join to the group. Please contact with group admin'
+        titleText = unless err then 'Good to go, Enjoy!' \
+                    else 'Quota exceeded and could not join to the group. Please contact with group admin'
+        title = '<span>#{titleText}</span>'
 
         new KDNotificationView
           cssClass  : "login"
