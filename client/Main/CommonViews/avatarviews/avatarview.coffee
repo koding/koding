@@ -68,7 +68,7 @@ class AvatarView extends LinkView
     # and you need to upload them to koding-cdn/images bucket.
     # Thanks to gravatar to not support svg's, damn.
 
-    defaultAvatarUri = "//koding-cdn.s3.amazonaws.com/images/default.avatar.#{size}.png"
+    defaultAvatarUri = "https://koding-cdn.s3.amazonaws.com/images/default.avatar.#{size}.png"
     return "//gravatar.com/avatar/#{profile.hash}?size=#{size}&d=#{defaultAvatarUri}&r=g"
 
   render:->
