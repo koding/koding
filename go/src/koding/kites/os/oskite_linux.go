@@ -26,7 +26,6 @@ import (
 	"sync"
 	"syscall"
 	"time"
-	"github.com/op/go-logging"
 
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
@@ -53,6 +52,7 @@ type VMInfo struct {
 
 var (
 	log         = logger.New(OSKITE_NAME)
+	logLevel    logger.Level
 	mongodbConn *mongodb.MongoDB
 	conf        *config.Config
 
@@ -83,6 +83,9 @@ func main() {
 		log.Error("Please specify profile via -c and region via -r. Aborting.")
 		os.Exit(1)
 	}
+
+	logLevel = logger.GetLoggingLevelFromConfig(OSKITE_NAME, conf.Environment)
+	log.SetLevel(logLevel)
 
 	conf = config.MustConfig(flagProfile)
 	mongodbConn = mongodb.NewMongoDB(conf.Mongo)
@@ -172,7 +175,7 @@ func runNewKite(serviceUniqueName string) {
 	k.Start()
 
 	// TODO: remove this later, this is needed in order to reinitiliaze the logger package
-	logging.SetLevel(logging.INFO, OSKITE_NAME)
+	log.SetLevel(logLevel)
 }
 
 func initializeSettings() {
