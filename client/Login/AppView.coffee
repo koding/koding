@@ -344,7 +344,7 @@ class LoginView extends KDView
 
         titleText = unless err then 'Good to go, Enjoy!' \
                     else 'Quota exceeded and could not join to the group. Please contact with group admin'
-        title = '<span>#{titleText}</span>'
+        title = "<span>#{titleText}</span>"
 
         new KDNotificationView
           cssClass  : "login"
