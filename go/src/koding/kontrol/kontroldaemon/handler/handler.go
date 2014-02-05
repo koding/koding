@@ -9,11 +9,11 @@ import (
 	"koding/db/mongodb/modelhelper"
 	"koding/kontrol/kontroldaemon/workerconfig"
 	"koding/kontrol/kontrolhelper"
-	"koding/tools/config"
 	"koding/tools/slog"
 	"strconv"
 	"strings"
 	"time"
+
 	"github.com/streadway/amqp"
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
@@ -32,7 +32,7 @@ const (
 	WorkersDB         = "kontrol"
 )
 
-func Startup() {
+func Startup(kontrolURL string) {
 	var err error
 	producer, err = kontrolhelper.CreateProducer("worker")
 	if err != nil {
@@ -44,7 +44,8 @@ func Startup() {
 		slog.Printf("clientExchange exchange.declare: %s\n", err)
 	}
 
-	kontrolDB = mongodb.NewMongoDB(config.Current.MongoKontrol)
+	kontrolDB = mongodb.NewMongoDB(kontrolURL)
+	modelhelper.KontrolWorkersInit(kontrolURL)
 
 	go heartBeatChecker()
 	go deploymentCleaner()
@@ -61,7 +62,7 @@ func ClientMessage(data amqp.Delivery) {
 			slog.Printf("bad json client msg: %s err: %s\n", string(data.Body), err)
 		}
 
-		modelhelper.AddClient(info)
+		odelhelper.AddClient(info)
 	}
 }
 

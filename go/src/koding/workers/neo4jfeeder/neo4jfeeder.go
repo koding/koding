@@ -40,12 +40,13 @@ func init() {
 }
 
 var log = logger.New("neo4jfeeder")
+var mongo *mongodb.MongoDB
+var configProfile string
 
 func main() {
 	flag.Parse()
 	conf := config.MustConfig(configProfile)
 	mongo = mongodb.NewMongoDB(conf.Mongo)
-
 	mongohelper.MongoHelperInit(conf.Mongo)
 
 	statsd.SetAppName("neo4jFeeder")
@@ -64,7 +65,6 @@ func jsonDecode(data string) (*Message, error) {
 }
 
 func startConsuming() {
-
 	c := &Consumer{
 		conn:    nil,
 		channel: nil,

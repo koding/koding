@@ -50,8 +50,6 @@ func main() {
 
 	startMonitoring(mainAmqpConn)
 	startControlling(mainAmqpConn)
-
-	select {}
 }
 
 func startMonitoring(mainAmqpConn *amqp.Connection) {
@@ -296,7 +294,6 @@ func changeFollowFeedExchangeBindings(username, action string) error {
 }
 
 func startControlling(mainAmqpConn *amqp.Connection) {
-
 	socketIdsByUser = make(map[string]socketIds)
 	timersByUser = make(map[string]*time.Timer)
 
@@ -352,7 +349,7 @@ func startControlling(mainAmqpConn *amqp.Connection) {
 		panic(err)
 	}
 
-	go handleControl(deliveries, mainAmqpConn, make(chan error))
+	handleControl(deliveries, mainAmqpConn, make(chan error))
 
 }
 

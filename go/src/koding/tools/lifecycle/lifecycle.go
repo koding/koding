@@ -14,7 +14,7 @@ var (
 	changeClientsGauge func(int)
 )
 
-func Startup(serviceName, profile string, needRoot bool) {
+func Startup(serviceName string, needRoot bool) {
 	log = logger.New(serviceName)
 
 	if needRoot && os.Getuid() != 0 {

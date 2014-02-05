@@ -1,19 +1,32 @@
 package main
 
 import (
-	"github.com/streadway/amqp"
+	"flag"
+	"koding/db/mongodb"
+	"koding/db/mongodb/modelhelper"
 	"koding/kontrol/kontroldaemon/handler"
 	"koding/kontrol/kontrolhelper"
+	"koding/tools/config"
 	"koding/tools/slog"
+
+	"github.com/streadway/amqp"
 )
 
 func init() {
 	slog.SetPrefixName("kontrold")
 	slog.Println(slog.SetOutputFile("/var/log/koding/kontroldaemon.log"))
+
+	f := flag.NewFlagSet("graphitefeeder", flag.ContinueOnError)
+	f.StringVar(&configProfile, "c", "", "Configuration profile from file")
 }
 
 func main() {
-	handler.Startup()
+	flag.Parse()
+	conf := config.MustConfig(configProfile)
+	mongo = mongodb.NewMongoDB(conf.Mongo)
+	modelhelper.Initialize(conf.Mongo)
+
+	handler.Startup(conf.MongoKontrol)
 	startRouting()
 }
 

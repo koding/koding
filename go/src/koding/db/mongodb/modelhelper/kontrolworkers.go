@@ -3,7 +3,7 @@ package modelhelper
 import (
 	"fmt"
 	"koding/db/models"
-	"koding/tools/config"
+	"koding/db/mongodb"
 	"log"
 
 	"labix.org/v2/mgo"
@@ -15,10 +15,10 @@ const (
 	WorkersDB         = "kontrol"
 )
 
-var kontrolDB *Mongo.MongoDB
+var kontrolDB *mongodb.MongoDB
 
-func init() {
-	kontrolDB = Mongo.NewMongoDB(config.Current.MongoKontrol)
+func KontrolWorkersInit(url string) {
+	kontrolDB = mongodb.NewMongoDB(url)
 }
 
 func GetWorker(uuid string) (models.Worker, error) {
