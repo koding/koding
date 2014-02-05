@@ -3,7 +3,6 @@ package modelhelper
 import (
 	"fmt"
 	"koding/db/models"
-	"koding/db/mongodb"
 	"koding/tools/config"
 	"log"
 
@@ -16,10 +15,10 @@ const (
 	WorkersDB         = "kontrol"
 )
 
-var kontrolDB *mongodb.MongoDB
+var kontrolDB *Mongo.MongoDB
 
 func init() {
-	kontrolDB = mongodb.NewMongoDB(config.Current.MongoKontrol)
+	kontrolDB = Mongo.NewMongoDB(config.Current.MongoKontrol)
 }
 
 func GetWorker(uuid string) (models.Worker, error) {

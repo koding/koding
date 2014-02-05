@@ -3,10 +3,10 @@ package modelhelper
 import (
 	"fmt"
 	"koding/db/models"
-	"koding/db/mongodb"
+	"time"
+
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
-	"time"
 )
 
 func NewFilter(filtertype, name, match string) *models.Filter {
@@ -37,7 +37,7 @@ func AddFilter(r *models.Filter) (models.Filter, error) {
 		return err
 	}
 
-	err := mongodb.Run("jProxyFilters", query)
+	err := Mongo.Run("jProxyFilters", query)
 	if err != nil {
 		fmt.Println("AddFilter error", err)
 		return models.Filter{}, fmt.Errorf("filter %s exists already", r.Match)
@@ -51,7 +51,7 @@ func DeleteFilterByField(key, value string) error {
 		return c.Remove(bson.M{key: value})
 	}
 
-	return mongodb.Run("jProxyFilters", query)
+	return Mongo.Run("jProxyFilters", query)
 }
 
 func GetFilterByField(key, value string) (models.Filter, error) {
@@ -60,7 +60,7 @@ func GetFilterByField(key, value string) (models.Filter, error) {
 		return c.Find(bson.M{key: value}).One(&filter)
 	}
 
-	err := mongodb.Run("jProxyFilters", query)
+	err := Mongo.Run("jProxyFilters", query)
 	if err != nil {
 		return models.Filter{}, err
 	}
@@ -80,7 +80,7 @@ func GetFilters() []models.Filter {
 		return nil
 	}
 
-	mongodb.Run("jProxyFilters", query)
+	Mongo.Run("jProxyFilters", query)
 	return filters
 }
 
@@ -90,7 +90,7 @@ func GetFilterByID(id bson.ObjectId) (models.Filter, error) {
 		return c.FindId(id).One(&filter)
 	}
 
-	err := mongodb.Run("jProxyFilters", query)
+	err := Mongo.Run("jProxyFilters", query)
 	if err != nil {
 		return models.Filter{}, err
 	}
