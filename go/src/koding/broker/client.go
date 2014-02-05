@@ -28,14 +28,21 @@ func NewClient(session *sockjs.Session, broker *Broker) *Client {
 	socketID := randomString()
 	session.Tag = socketID
 
+	var err error
 	controlChannel, err := broker.PublishConn.Channel()
 	if err != nil {
 		panic(err)
 	}
 
-	subscriptions, err := cache.NewStorage(STORAGE_BACKEND, socketID)
+	var subscriptions *cache.SubscriptionStorage
+
+	subscriptions, err = cache.NewStorage(STORAGE_BACKEND, socketID)
 	if err != nil {
-		panic(err)
+		STORAGE_BACKEND = "set"
+		subscriptions, err = cache.NewStorage(STORAGE_BACKEND, socketID)
+		if err != nil {
+
+		}
 	}
 
 	return &Client{
