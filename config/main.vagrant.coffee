@@ -15,9 +15,9 @@ embedlyApiKey   = '94991069fb354d4e8fdb825e52d4134a'
 
 environment     = "vagrant"
 regions         =
-  vagrant       = "vagrant"
-  sj            = "sj"
-  aws           = "aws"
+  vagrant       : "vagrant"
+  sj            : "sj"
+  aws           : "aws"
 
 module.exports =
   environment   : environment
