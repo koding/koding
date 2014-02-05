@@ -12,11 +12,13 @@ import (
 	"io"
 	"koding/dns/responder"
 	"koding/dns/types"
-	"koding/tools/log"
+	"koding/tools/logger"
 	"net"
 	"os"
 	"strings"
 )
+
+var log = logger.New("dnsserver")
 
 const defaultTTL = 3600
 
