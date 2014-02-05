@@ -39,8 +39,8 @@ func main() {
 	c := config.MustConfig(configProfile)
 	mongo = mongodb.NewMongoDB(c.Mongo)
 
-	l := log.GetLoggingLevelFromConfig("graphitefeeder", c.Environment)
-	log.SetLevel()
+	l := logger.GetLoggingLevelFromConfig("graphitefeeder", c.Environment)
+	log.SetLevel(l)
 
 	for _, fn := range listOfAnalytics {
 		name, count := fn()

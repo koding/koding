@@ -1,7 +1,6 @@
 package main
 
 import (
-	"koding/db/mongodb"
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
 )
@@ -33,7 +32,7 @@ func numberOfAccounts() (string, int) {
 		return err
 	}
 
-	mongodb.Run("jAccounts", query)
+	mongo.Run("jAccounts", query)
 
 	return identifier, count
 }
@@ -48,7 +47,7 @@ func numberOfUsersWhoLinkedOauth() (string, int) {
 		return err
 	}
 
-	mongodb.Run("jUsers", query)
+	mongo.Run("jUsers", query)
 
 	return identifier, count
 }
@@ -63,7 +62,7 @@ func numberOfUsersWhoLinkedOauthGithub() (string, int) {
 		return err
 	}
 
-	mongodb.Run("jUsers", query)
+	mongo.Run("jUsers", query)
 
 	return identifier, count
 }
@@ -81,7 +80,7 @@ func numberOfUsersWhoJoinedToday() (string, int) {
 		return err
 	}
 
-	mongodb.Run("jAccounts", query)
+	mongo.Run("jAccounts", query)
 
 	return identifier, count
 }
@@ -99,7 +98,7 @@ func numberOfGuestAccountsCreatedToday() (string, int) {
 		return err
 	}
 
-	mongodb.Run("jAccounts", query)
+	mongo.Run("jAccounts", query)
 
 	return identifier, count
 }
@@ -114,7 +113,7 @@ func numberOfUsersWhoDeletedTheirAccount() (string, int) {
 		return err
 	}
 
-	mongodb.Run("jUsers", query)
+	mongo.Run("jUsers", query)
 
 	return identifier, count
 }
@@ -132,7 +131,7 @@ func numberOfUsersWhoDidASocialActivityToday() (string, int) {
 		return err
 	}
 
-	mongodb.Run("jAccounts", query)
+	mongo.Run("jAccounts", query)
 
 	return identifier, count
 }
@@ -147,7 +146,7 @@ func numberOfUsersWhoAreOnline() (string, int) {
 		return err
 	}
 
-	mongodb.Run("jAccounts", query)
+	mongo.Run("jAccounts", query)
 
 	return identifier, count
 }
@@ -165,7 +164,7 @@ func numberOfUsersWhoLoggedInToday() (string, int) {
 		return err
 	}
 
-	mongodb.Run("jUsers", query)
+	mongo.Run("jUsers", query)
 
 	return identifier, count
 }
@@ -182,7 +181,7 @@ func numberOfGuestAccounts() (string, int) {
 		return err
 	}
 
-	mongodb.Run("jAccounts", query)
+	mongo.Run("jAccounts", query)
 
 	return identifier, count
 }

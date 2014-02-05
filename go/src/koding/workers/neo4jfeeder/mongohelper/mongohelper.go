@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"koding/db/mongodb"
+	"koding/tools/config"
 	"koding/tools/logger"
 	"koding/tools/mapping"
 	"strings"
@@ -14,6 +15,7 @@ import (
 )
 
 var log = logger.New("mongohelper")
+var mongo *mongodb.MongoDB
 
 var (
 	DATA     = make(map[string]interface{})
@@ -21,7 +23,8 @@ var (
 )
 
 func MongoHelperInit(profile string) {
-
+	conf := config.MustConfig(profile)
+	mongo = mongodb.NewMongoDB(conf.Mongo)
 }
 
 func FetchOneContentBy(queryFunc func() map[string]interface{}) (map[string]interface{}, error) {
@@ -68,7 +71,7 @@ func Fetch(idHex, name string) (map[string]interface{}, error) {
 		return c.FindId(id).One(result)
 	}
 
-	err := mongodb.Run(getCollectionName(name), query)
+	err := mongo.Run(getCollectionName(name), query)
 	if err != nil {
 		return nil, err
 	}

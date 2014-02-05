@@ -2,18 +2,22 @@ package main
 
 import (
 	"encoding/json"
-	"github.com/streadway/amqp"
+	"flag"
 	"koding/db/mongodb"
 	"koding/tools/amqputil"
 	"koding/tools/config"
 	"koding/tools/logger"
-	"labix.org/v2/mgo"
-	"labix.org/v2/mgo/bson"
 	"strings"
 	"time"
+
+	"github.com/streadway/amqp"
+	"labix.org/v2/mgo"
+	"labix.org/v2/mgo/bson"
 )
 
 var log = logger.New("userpresence")
+var mongo *mongodb.MongoDB
+var configProfile string
 
 type socketIds map[string]bool
 
@@ -24,7 +28,15 @@ var (
 	timersByUser          map[string]*time.Timer
 )
 
+func init() {
+	f := flag.NewFlagSet("graphitefeeder", flag.ContinueOnError)
+	f.StringVar(&configProfile, "c", "", "Configuration profile from file")
+}
+
 func main() {
+	flag.Parse()
+	conf := config.MustConfig(configProfile)
+	mongo = mongodb.NewMongoDB(conf.Mongo)
 
 	var err error
 
@@ -161,14 +173,14 @@ func updateOnlineStatus(channel *amqp.Channel, username, status string) error {
 	userQuery := func(c *mgo.Collection) error {
 		return c.Find(bson.M{"username": username}).One(&user)
 	}
-	if err := mongodb.Run("jUsers", userQuery); err != nil {
+	if err := mongo.Run("jUsers", userQuery); err != nil {
 		return err
 	}
 
 	accountQuery := func(c *mgo.Collection) error {
 		return c.Find(bson.M{"profile.nickname": username}).One(&account)
 	}
-	if err := mongodb.Run("jAccounts", accountQuery); err != nil {
+	if err := mongo.Run("jAccounts", accountQuery); err != nil {
 		return err
 	}
 
@@ -179,7 +191,7 @@ func updateOnlineStatus(channel *amqp.Channel, username, status string) error {
 		)
 		return nil
 	}
-	mongodb.Run("jUsers", userUpdateQuery)
+	mongo.Run("jUsers", userUpdateQuery)
 
 	onlineStatus := make(bson.M)
 
@@ -203,7 +215,7 @@ func updateOnlineStatus(channel *amqp.Channel, username, status string) error {
 		)
 		return nil
 	}
-	mongodb.Run("jAccounts", accountUpdateQuery)
+	mongo.Run("jAccounts", accountUpdateQuery)
 
 	if err := broadcastStatusChange(channel, account, &update); err != nil {
 		return err
