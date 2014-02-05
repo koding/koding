@@ -110,6 +110,6 @@ module.exports = class JGroupPlan extends JResourcePlan
           return callback err  if err
           JPaymentFulfillmentNonce.one nonce:nonceStr, (err, nonce) ->
             return callback err  if err
-            return callback "nonce not found"  unless nonce
+            return callback message: "nonce not found"  unless nonce
             nonce.addOwner client.connection.delegate, (err) ->
               callback err, subscription, nonce.nonce
