@@ -42,7 +42,7 @@ func NewGoLog(name string) *GoLogger {
 	// re-setting the log level for already set modules.
 	modules = append(modules, name)
 	for _, mod := range modules {
-		logging.SetLevel(DefaultLoggingLevel, mod)
+		logging.SetLevel(gologgingLevel[DefaultLoggingLevel], mod)
 	}
 
 	var goLog = &GoLogger{
@@ -67,7 +67,7 @@ func (g *GoLogger) SetLevel(level Level) {
 	var l, ok = gologgingLevel[level]
 	if !ok {
 		g.log.Error("SetLevel argument is false: %s", level)
-		l = DefaultLoggingLevel
+		l = gologgingLevel[DefaultLoggingLevel]
 	}
 
 	logging.SetLevel(l, g.name)

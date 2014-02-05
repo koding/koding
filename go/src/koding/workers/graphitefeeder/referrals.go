@@ -1,7 +1,6 @@
 package main
 
 import (
-	"koding/tools/log"
 	"time"
 
 	"labix.org/v2/mgo"

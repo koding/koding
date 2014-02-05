@@ -14,10 +14,10 @@ func GetLoggingLevelFromConfig(name, profile string) Level {
 		return DefaultLoggingLevel
 	}
 
-	currentLogLevel, ok = nameToLevelMapping[logLevelString]
+	LogLevel, ok = nameToLevelMapping[logLevelString]
 	if !ok {
 		return DefaultLoggingLevel
 	}
 
-	return currentLogLevel
+	return LogLevel
 }
