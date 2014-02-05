@@ -1,21 +1,35 @@
 package main
 
 import (
+	"flag"
 	"koding/db/mongodb"
+	"koding/tools/config"
 	"koding/tools/fastproxy"
 	"koding/tools/lifecycle"
 	"koding/tools/logger"
 	"koding/virt"
-	"labix.org/v2/mgo"
-	"labix.org/v2/mgo/bson"
 	"net"
 	"strings"
+
+	"labix.org/v2/mgo"
+	"labix.org/v2/mgo/bson"
 )
 
 var log = logger.New("vmproxy")
+var mongo *mongodb.MongoDB
+var configProfile string
+
+func init() {
+	f := flag.NewFlagSet("vmproxy", flag.ContinueOnError)
+	f.StringVar(&configProfile, "c", "", "Configuration profile from file")
+}
 
 func main() {
+	flag.Parse()
+
 	lifecycle.Startup("proxy", true)
+	conf := config.MustConfig(configProfile)
+	mongo = mongodb.NewMongoDB(conf.Mongo)
 
 	// go fastproxy.ListenFTP(&net.TCPAddr{IP: net.IPv4(10, 0, 2, 15), Port: 21}, net.IPv4(10, 0, 2, 15), nil, func(req *fastproxy.FTPRequest) {
 	// 	defer log.RecoverAndLog()
@@ -44,7 +58,7 @@ func main() {
 		vmName := strings.SplitN(req.Host, ".", 2)[0]
 
 		var vm virt.VM
-		if err := mongodb.Run("jVMs", func(c *mgo.Collection) error {
+		if err := mongo.Run("jVMs", func(c *mgo.Collection) error {
 			return c.Find(bson.M{"name": vmName}).One(&vm)
 		}); err != nil {
 			req.Redirect("http://www.koding.com/notfound.html")

@@ -2,6 +2,7 @@ package main
 
 import (
 	"errors"
+	"flag"
 	"fmt"
 	"html/template"
 	"io"
@@ -13,6 +14,7 @@ import (
 	"koding/kontrol/kontrolproxy/utils"
 	"koding/tools/config"
 	"koding/tools/logger"
+	"koding/workers/neo4jfeeder/mongohelper"
 	"math/rand"
 	"net"
 	"net/http"
@@ -74,6 +76,14 @@ var (
 		"files/templates/quotaExceeded.html",
 		"files/templates/maintenance.html",
 	))
+
+	// readed config
+	conf *config.Config
+
+	// flag variables
+	flagProfile   string
+	flagRegion    string
+	flagVMProxies bool
 )
 
 // Proxy is implementing the http.Handler interface (via ServeHTTP). This is
@@ -113,8 +123,26 @@ type interval struct {
 	duration int64
 }
 
+func init() {
+	f := flag.NewFlagSet("neo4jfeeder", flag.ContinueOnError)
+	f.StringVar(&flagProfile, "c", "", "Configuration profile from file")
+	f.StringVar(&flagRegion, "r", "", "Region")
+	f.BoolVar(&flagVMProxies, "v", false, "Enable ports for VM users (1024-10000)")
+
+}
+
 func main() {
-	runtime.GOMAXPROCS(runtime.NumCPU())
+	flag.Parse()
+	if flagProfile == "" || flagRegion == "" {
+		log.Error("No flags defined. -c, -r and -v is not set. Aborting")
+		os.Exit(1)
+	}
+
+	conf := config.MustConfig(flagProfile)
+	mongohelper.MongoHelperInit(conf.Mongo)
+
+	l := logger.GetLoggingLevelFromConfig("kontrolproxy", conf.Environment)
+	log.SetLevel(l)
 
 	log.Info("Kontrolproxy started.")
 	log.Info("I'm using %d cpus for goroutines", runtime.NumCPU())
@@ -143,10 +171,13 @@ func main() {
 }
 
 func (p *Proxy) runNewKite() {
-	k := kodingkite.New(kodingkite.Options{
-		Kitename: "kontrolproxy",
-		Version:  "0.0.1",
-	})
+	k := kodingkite.New(
+		conf,
+		kodingkite.Options{
+			Kitename: "kontrolproxy",
+			Version:  "0.0.1",
+		},
+	)
 
 	k.Start()
 
@@ -155,10 +186,10 @@ func (p *Proxy) runNewKite() {
 
 	query := protocol.KontrolQuery{
 		Username:    "koding-kites",
-		Environment: config.Profile,
+		Environment: flagProfile,
 		Name:        "oskite",
 		Version:     "0.0.1",
-		Region:      config.Region,
+		Region:      flagRegion,
 	}
 
 	onEvent := func(e *kite.Event) {
@@ -355,7 +386,7 @@ func (p *Proxy) startHTTP() {
 	// HTTP Handling for VM port forwardings
 	log.Info("normal mode is enabled. serving ports between 1024-10000 for vms...")
 
-	if config.VMProxies {
+	if flagVMProxies {
 		for i := 1024; i <= 10000; i++ {
 			go func(i int) {
 				port := strconv.Itoa(i)
@@ -398,7 +429,7 @@ func (p *Proxy) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	// our main handler mux function goes and picks the correct handler
 	if h := p.getHandler(r); h != nil {
-		if config.VMProxies {
+		if flagVMProxies {
 			// don't wrap this around CLH logging handler, because it breaks websocket
 			h.ServeHTTP(w, r)
 		} else {
