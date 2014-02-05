@@ -29,7 +29,7 @@ var (
 )
 
 func init() {
-	f := flag.NewFlagSet("graphitefeeder", flag.ContinueOnError)
+	f := flag.NewFlagSet("userpresence", flag.ContinueOnError)
 	f.StringVar(&configProfile, "c", "", "Configuration profile from file")
 }
 

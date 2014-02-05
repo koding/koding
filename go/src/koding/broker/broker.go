@@ -5,6 +5,7 @@ import (
 	"crypto/tls"
 	"encoding/base64"
 	"encoding/json"
+	"flag"
 	"koding/kontrol/kontrolhelper"
 	"koding/tools/amqputil"
 	"koding/tools/config"
@@ -26,8 +27,21 @@ import (
 )
 
 var log = logger.New("broker")
+var configProfile string
+var brokerDomain string
+var kontrolUuid string
+
+func init() {
+	f := flag.NewFlagSet("broker", flag.ContinueOnError)
+	f.StringVar(&configProfile, "c", "", "Configuration profile from file")
+	f.StringVar(&brokerDomain, "a", "", "Send kontrol a custom domain istead of os.Hostname")
+	f.StringVar(&kontrolUuid, "u", "", "Enable kontrol mode")
+}
 
 func main() {
+	flag.Parse()
+	conf := config.MustConfig(configProfile)
+
 	lifecycle.Startup("broker", false)
 	changeClientsGauge := lifecycle.CreateClientsGauge()
 	changeNewClientsGauge := logger.CreateCounterGauge("newClients", logger.NoUnit, true)
@@ -41,7 +55,7 @@ func main() {
 	socketSubscriptionsMap := make(map[string]*map[string]bool)
 	var globalMapMutex sync.Mutex
 
-	service := sockjs.NewService(config.Current.Client.StaticFilesBaseUrl+"/js/sock.js", 10*time.Minute, func(session *sockjs.Session) {
+	service := sockjs.NewService(conf.Client.StaticFilesBaseUrl+"/js/sock.js", 10*time.Minute, func(session *sockjs.Session) {
 		defer log.RecoverAndLog()
 
 		r := make([]byte, 128/8)
@@ -142,7 +156,7 @@ func main() {
 			})
 
 			for {
-				err := controlChannel.Publish(config.Current.Broker.AuthAllExchange, "broker.clientDisconnected", false, false, amqp.Publishing{Body: []byte(socketId)})
+				err := controlChannel.Publish(conf.Broker.AuthAllExchange, "broker.clientDisconnected", false, false, amqp.Publishing{Body: []byte(socketId)})
 				if err == nil {
 					break
 				}
@@ -153,7 +167,7 @@ func main() {
 			}
 		}()
 
-		err := controlChannel.Publish(config.Current.Broker.AuthAllExchange, "broker.clientConnected", false, false, amqp.Publishing{Body: []byte(socketId)})
+		err := controlChannel.Publish(conf.Broker.AuthAllExchange, "broker.clientConnected", false, false, amqp.Publishing{Body: []byte(socketId)})
 		if err != nil {
 			panic(err)
 		}
@@ -243,20 +257,20 @@ func main() {
 					"/subscribe": service,
 					"/buildnumber": http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 						w.Header().Set("Content-Type", "text/plain")
-						w.Write([]byte(strconv.Itoa(config.Current.BuildNumber)))
+						w.Write([]byte(strconv.Itoa(conf.BuildNumber)))
 					}),
 				},
 			},
 		}
 
 		var listener net.Listener
-		listener, err := net.ListenTCP("tcp", &net.TCPAddr{IP: net.ParseIP(config.Current.Broker.IP), Port: config.Current.Broker.Port})
+		listener, err := net.ListenTCP("tcp", &net.TCPAddr{IP: net.ParseIP(conf.Broker.IP), Port: conf.Broker.Port})
 		if err != nil {
 			log.Fatal(err)
 		}
 
-		if config.Current.Broker.CertFile != "" {
-			cert, err := tls.LoadX509KeyPair(config.Current.Broker.CertFile, config.Current.Broker.KeyFile)
+		if conf.Broker.CertFile != "" {
+			cert, err := tls.LoadX509KeyPair(conf.Broker.CertFile, conf.Broker.KeyFile)
 			if err != nil {
 				log.Fatal(err)
 			}
@@ -295,7 +309,7 @@ func main() {
 
 	// returns os.Hostname() if config.BrokerDomain is empty, otherwise it just
 	// returns config.BrokerDomain back
-	brokerHostname := kontrolhelper.CustomHostname(config.BrokerDomain)
+	brokerHostname := kontrolhelper.CustomHostname(brokerDomain)
 
 	sanitizedHostname := strings.Replace(brokerHostname, ".", "_", -1)
 	serviceUniqueName := "broker" /* + strconv.Itoa(os.Getpid()) */ + "|" + sanitizedHostname
@@ -304,9 +318,9 @@ func main() {
 		"broker", // servicename
 		"broker",
 		serviceUniqueName,
-		config.Uuid,
+		kontrolUuid,
 		brokerHostname,
-		config.Current.Broker.Port,
+		conf.Broker.Port,
 	); err != nil {
 		panic(err)
 	}

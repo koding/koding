@@ -35,7 +35,7 @@ type Message struct {
 }
 
 func init() {
-	f := flag.NewFlagSet("graphitefeeder", flag.ContinueOnError)
+	f := flag.NewFlagSet("neo4jfeeder", flag.ContinueOnError)
 	f.StringVar(&configProfile, "c", "", "Configuration profile from file")
 }
 

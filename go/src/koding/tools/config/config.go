@@ -255,8 +255,6 @@ func exists(path string) (bool, error) {
 // 	flag.BoolVar(&LogDebug, "d", false, "Log debug messages")
 // 	flag.StringVar(&Uuid, "u", "", "Enable kontrol mode")
 // 	flag.StringVar(&Host, "h", "", "Hostname to be resolved")
-// 	flag.StringVar(&BrokerDomain, "a", "", "Send kontrol a custom domain istead of os.Hostname")
-// 	flag.StringVar(&BrokerDomain, "domain", "", "Alias for -a")
 // 	flag.StringVar(&Region, "r", "", "Region")
 // 	flag.IntVar(&Skip, "s", 0, "Define how far to skip ahead")
 // 	flag.IntVar(&Count, "l", 1000, "Count for items to process")

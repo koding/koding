@@ -16,7 +16,7 @@ func init() {
 	slog.SetPrefixName("kontrold")
 	slog.Println(slog.SetOutputFile("/var/log/koding/kontroldaemon.log"))
 
-	f := flag.NewFlagSet("graphitefeeder", flag.ContinueOnError)
+	f := flag.NewFlagSet("kontrold", flag.ContinueOnError)
 	f.StringVar(&configProfile, "c", "", "Configuration profile from file")
 }
 
