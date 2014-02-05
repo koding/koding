@@ -45,11 +45,13 @@ const (
 	MagicCookieValue = "KEbPptvE7dGLM5YFtcfz"
 )
 
+const KONTROLPROXY_NAME = "kontrolproxy"
+
 var (
 	proxyName, _ = os.Hostname()
 
 	// used for all our log
-	log = logger.New("kontrolproxy")
+	log = logger.New(KONTROLPROXY_NAME)
 
 	// redis client, connects once
 	redisClient = redis.Client{
@@ -124,7 +126,7 @@ type interval struct {
 }
 
 func init() {
-	f := flag.NewFlagSet("neo4jfeeder", flag.ContinueOnError)
+	f := flag.NewFlagSet(KONTROLPROXY_NAME, flag.ContinueOnError)
 	f.StringVar(&flagProfile, "c", "", "Configuration profile from file")
 	f.StringVar(&flagRegion, "r", "", "Region")
 	f.BoolVar(&flagVMProxies, "v", false, "Enable ports for VM users (1024-10000)")
@@ -141,7 +143,7 @@ func main() {
 	conf := config.MustConfig(flagProfile)
 	mongohelper.MongoHelperInit(conf.Mongo)
 
-	l := logger.GetLoggingLevelFromConfig("kontrolproxy", conf.Environment)
+	l := logger.GetLoggingLevelFromConfig(KONTROLPROXY_NAME, conf.Environment)
 	log.SetLevel(l)
 
 	log.Info("Kontrolproxy started.")
@@ -174,7 +176,7 @@ func (p *Proxy) runNewKite() {
 	k := kodingkite.New(
 		conf,
 		kodingkite.Options{
-			Kitename: "kontrolproxy",
+			Kitename: KONTROLPROXY_NAME,
 			Version:  "0.0.1",
 		},
 	)
@@ -182,7 +184,7 @@ func (p *Proxy) runNewKite() {
 	k.Start()
 
 	// TODO: remove this later, this is needed in order to reinitiliaze the logger package
-	logging.SetLevel(logging.DEBUG, "kontrolproxy")
+	logging.SetLevel(logging.DEBUG, KONTROLPROXY_NAME)
 
 	query := protocol.KontrolQuery{
 		Username:    "koding-kites",
