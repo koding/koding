@@ -964,9 +964,9 @@ module.exports = class JGroup extends Module
           return callback err  if err
           unless invite.type is 'multiuse' or user.email is invite.email
             return callback new KodingError 'Are you sure invitation e-mail is for you?'
-          @approveMember delegate, (err)->
-            return callback err  if err
-            invite.redeem client, callback
+          invite.redeem delegate, (err) =>
+            return callback err if err
+            @approveMember delegate, callback
 
   bulkApprove: permit 'send invitations',
     success: (client, count, options, callback)->
