@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/binary"
 	"errors"
+	"flag"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -31,7 +32,7 @@ import (
 	"labix.org/v2/mgo/bson"
 )
 
-var log = logger.New("oskite")
+const OSKITE_NAME = "oskite"
 
 type VMInfo struct {
 	vm              *virt.VM
@@ -51,6 +52,13 @@ type VMInfo struct {
 }
 
 var (
+	log         = logger.New(OSKITE_NAME)
+	mongodbConn *mongodb.MongoDB
+	conf        *config.Config
+
+	flagProfile string
+	flagRegion  string
+
 	infos            = make(map[bson.ObjectId]*VMInfo)
 	infosMutex       sync.Mutex
 	templateDir      = "files/templates" // should be in the same dir as the binary
@@ -63,7 +71,22 @@ var (
 	prepareQueue      = make(chan func(chan struct{}))
 )
 
+func init() {
+	f := flag.NewFlagSet(OSKITE_NAME, flag.ContinueOnError)
+	f.StringVar(&flagProfile, "c", "", "Configuration profile from file")
+	f.StringVar(&flagRegion, "r", "", "Configuration region from file")
+}
+
 func main() {
+	flag.Parse()
+	if flagProfile == "" || flagRegion == "" {
+		log.Error("Please specify profile via -c and region via -r. Aborting.")
+		os.Exit(1)
+	}
+
+	conf = config.MustConfig(flagProfile)
+	mongodbConn = mongodb.NewMongoDB(conf.Mongo)
+
 	initializeSettings()
 
 	k := prepareOsKite()
@@ -92,11 +115,14 @@ func main() {
 }
 
 func runNewKite(serviceUniqueName string) {
-	k := kodingkite.New(kodingkite.Options{
-		Kitename: "oskite",
-		Version:  "0.0.1",
-		Port:     "5000",
-	})
+	k := kodingkite.New(
+		conf,
+		kodingkite.Options{
+			Kitename: OSKITE_NAME,
+			Version:  "0.0.1",
+			Port:     "5000",
+		},
+	)
 
 	k.HandleFunc("startVM", func(r *kitelib.Request) (interface{}, error) {
 		hostnameAlias := r.Args.One().MustString()
@@ -146,32 +172,32 @@ func runNewKite(serviceUniqueName string) {
 	k.Start()
 
 	// TODO: remove this later, this is needed in order to reinitiliaze the logger package
-	logging.SetLevel(logging.INFO, "oskite")
+	logging.SetLevel(logging.INFO, OSKITE_NAME)
 }
 
 func initializeSettings() {
 	lifecycle.Startup("kite.os", true)
 
 	var err error
-	if firstContainerIP, containerSubnet, err = net.ParseCIDR(config.Current.ContainerSubnet); err != nil {
+	if firstContainerIP, containerSubnet, err = net.ParseCIDR(conf.ContainerSubnet); err != nil {
 		log.LogError(err, 0)
 		return
 	}
 
-	virt.VMPool = config.Current.VmPool
+	virt.VMPool = conf.VmPool
 	if err := virt.LoadTemplates(templateDir); err != nil {
 		log.LogError(err, 0)
 		return
 	}
 
-	go ldapserver.Listen()
+	go ldapserver.Listen(conf.Mongo)
 	go LimiterLoop()
 }
 
 func prepareOsKite() *kite.Kite {
 	kiteName := "os"
-	if config.Region != "" {
-		kiteName += "-" + config.Region
+	if flagRegion != "" {
+		kiteName += "-" + flagRegion
 	}
 
 	k := kite.New(kiteName, true)
@@ -179,13 +205,13 @@ func prepareOsKite() *kite.Kite {
 	k.LoadBalancer = func(correlationName string, username string, deadService string) string {
 		var vm *virt.VM
 		if bson.IsObjectIdHex(correlationName) {
-			mongodb.Run("jVMs", func(c *mgo.Collection) error {
+			mongodbConn.Run("jVMs", func(c *mgo.Collection) error {
 				return c.FindId(bson.ObjectIdHex(correlationName)).One(&vm)
 			})
 		}
 
 		if vm == nil {
-			if err := mongodb.Run("jVMs", func(c *mgo.Collection) error {
+			if err := mongodbConn.Run("jVMs", func(c *mgo.Collection) error {
 				return c.Find(bson.M{"hostnameAlias": correlationName}).One(&vm)
 			}); err != nil {
 				return k.ServiceUniqueName
@@ -211,7 +237,7 @@ func prepareOsKite() *kite.Kite {
 				return c.Update(bson.M{"_id": vm.Id}, bson.M{"$set": bson.M{"hostKite": nil}})
 			}
 
-			if err := mongodb.Run("jVMs", query); err != nil {
+			if err := mongodbConn.Run("jVMs", query); err != nil {
 				log.LogError(err, 0, vm.Id.Hex())
 			}
 
@@ -225,7 +251,7 @@ func prepareOsKite() *kite.Kite {
 }
 
 // handleCurrentVMS removes and unprepare any vm in the lxc dir that doesn't
-// have any associated document which in mongodb.
+// have any associated document which in mongodbConn.
 func handleCurrentVMS(k *kite.Kite) {
 	dirs, err := ioutil.ReadDir("/var/lib/lxc")
 	if err != nil {
@@ -241,7 +267,7 @@ func handleCurrentVMS(k *kite.Kite) {
 				return c.FindId(vmId).One(&vm)
 			}
 
-			if err := mongodb.Run("jVMs", query); err != nil || vm.HostKite != k.ServiceUniqueName {
+			if err := mongodbConn.Run("jVMs", query); err != nil || vm.HostKite != k.ServiceUniqueName {
 
 				log.Info("cleaning up leftover VM: '%s', vm.Hoskite: '%s', k.ServiceUniqueName: '%s', error '%v'",
 					vmId, vm.HostKite, k.ServiceUniqueName, err)
@@ -261,7 +287,7 @@ func handleCurrentVMS(k *kite.Kite) {
 }
 
 func startPinnedVMS(k *kite.Kite) {
-	mongodb.Run("jVMs", func(c *mgo.Collection) error {
+	mongodbConn.Run("jVMs", func(c *mgo.Collection) error {
 		iter := c.Find(bson.M{"pinnedToHost": k.ServiceUniqueName, "alwaysOn": true}).Iter()
 		for {
 			var vm virt.VM
@@ -304,7 +330,7 @@ func setupSignalHandler(k *kite.Kite) {
 				return err
 			}
 
-			err := mongodb.Run("jVMs", query)
+			err := mongodbConn.Run("jVMs", query)
 			if err != nil {
 				log.LogError(err, 0)
 			}
@@ -367,7 +393,7 @@ func registerVmMethod(k *kite.Kite, method string, concurrent bool, callback fun
 					return nil, errors.New("VM not running.")
 				}
 
-				if err := mongodb.Run("jUsers", func(c *mgo.Collection) error {
+				if err := mongodbConn.Run("jUsers", func(c *mgo.Collection) error {
 					return c.Find(bson.M{"username": params.JoinUser}).One(&user)
 				}); err != nil {
 					panic(err)
@@ -421,7 +447,7 @@ func registerVmMethod(k *kite.Kite, method string, concurrent bool, callback fun
 
 func getUser(username string) (*virt.User, error) {
 	var user *virt.User
-	if err := mongodb.Run("jUsers", func(c *mgo.Collection) error {
+	if err := mongodbConn.Run("jUsers", func(c *mgo.Collection) error {
 		return c.Find(bson.M{"username": username}).One(&user)
 	}); err != nil {
 		if err != mgo.ErrNotFound {
@@ -454,7 +480,7 @@ func getVM(channel *kite.Channel) (*virt.VM, error) {
 		query = bson.M{"_id": info.vm.Id}
 	}
 
-	if err := mongodb.Run("jVMs", func(c *mgo.Collection) error {
+	if err := mongodbConn.Run("jVMs", func(c *mgo.Collection) error {
 		return c.Find(query).One(&vm)
 	}); err != nil {
 		return nil, &VMNotFoundError{Name: channel.CorrelationName}
@@ -464,7 +490,7 @@ func getVM(channel *kite.Channel) (*virt.VM, error) {
 }
 
 func validateVM(vm *virt.VM, serviceUniqueName string) error {
-	if vm.Region != config.Region {
+	if vm.Region != flagRegion {
 		time.Sleep(time.Second) // to avoid rapid cycle channel loop
 		return &kite.WrongChannelError{}
 	}
@@ -482,13 +508,13 @@ func validateVM(vm *virt.VM, serviceUniqueName string) error {
 		ipInt := NextCounterValue("vm_ip", int(binary.BigEndian.Uint32(firstContainerIP.To4())))
 		ip := net.IPv4(byte(ipInt>>24), byte(ipInt>>16), byte(ipInt>>8), byte(ipInt))
 
-		updateErr := mongodb.Run("jVMs", func(c *mgo.Collection) error {
+		updateErr := mongodbConn.Run("jVMs", func(c *mgo.Collection) error {
 			return c.Update(bson.M{"_id": vm.Id, "ip": nil}, bson.M{"$set": bson.M{"ip": ip}})
 		})
 
 		if updateErr != nil {
 			var logVM *virt.VM
-			err := mongodb.One("jVMs", vm.Id.Hex(), &logVM)
+			err := mongodbConn.One("jVMs", vm.Id.Hex(), &logVM)
 			if err != nil {
 				errLog := fmt.Sprintf("Vm %s does not exist for updating IP. This is a race condition", vm.Id.Hex())
 				log.LogError(errLog, 0)
@@ -509,7 +535,7 @@ func validateVM(vm *virt.VM, serviceUniqueName string) error {
 
 	if vm.LdapPassword == "" {
 		ldapPassword := utils.RandomString()
-		if err := mongodb.Run("jVMs", func(c *mgo.Collection) error {
+		if err := mongodbConn.Run("jVMs", func(c *mgo.Collection) error {
 			return c.Update(bson.M{"_id": vm.Id}, bson.M{"$set": bson.M{"ldapPassword": ldapPassword}})
 		}); err != nil {
 			panic(err)
@@ -518,7 +544,7 @@ func validateVM(vm *virt.VM, serviceUniqueName string) error {
 	}
 
 	if vm.HostKite != serviceUniqueName {
-		err := mongodb.Run("jVMs", func(c *mgo.Collection) error {
+		err := mongodbConn.Run("jVMs", func(c *mgo.Collection) error {
 			return c.Update(bson.M{"_id": vm.Id, "hostKite": nil}, bson.M{"$set": bson.M{"hostKite": serviceUniqueName}})
 		})
 		if err != nil {
@@ -818,7 +844,7 @@ func (info *VMInfo) unprepareVM() {
 		log.Warning("%v", err)
 	}
 
-	if err := mongodb.Run("jVMs", func(c *mgo.Collection) error {
+	if err := mongodbConn.Run("jVMs", func(c *mgo.Collection) error {
 		return c.Update(bson.M{"_id": info.vm.Id}, bson.M{"$set": bson.M{"hostKite": nil}})
 	}); err != nil {
 		log.LogError(err, 0, info.vm.Id.Hex())
@@ -839,17 +865,17 @@ type Counter struct {
 func NextCounterValue(counterName string, initialValue int) int {
 	var counter Counter
 
-	if err := mongodb.Run("counters", func(c *mgo.Collection) error {
+	if err := mongodbConn.Run("counters", func(c *mgo.Collection) error {
 		_, err := c.FindId(counterName).Apply(mgo.Change{Update: bson.M{"$inc": bson.M{"seq": 1}}}, &counter)
 		return err
 	}); err != nil {
 		if err == mgo.ErrNotFound {
-			mongodb.Run("counters", func(c *mgo.Collection) error {
+			mongodbConn.Run("counters", func(c *mgo.Collection) error {
 				c.Insert(Counter{Name: counterName, Value: initialValue})
 				return nil // ignore error and try to do atomic update again
 			})
 
-			if err := mongodb.Run("counters", func(c *mgo.Collection) error {
+			if err := mongodbConn.Run("counters", func(c *mgo.Collection) error {
 				_, err := c.FindId(counterName).Apply(mgo.Change{Update: bson.M{"$inc": bson.M{"seq": 1}}}, &counter)
 				return err
 			}); err != nil {
