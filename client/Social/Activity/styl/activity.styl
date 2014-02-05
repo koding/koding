@@ -329,6 +329,7 @@ resurrection.activity.styl
         bg              color, transparent
         border          2px solid #b5b5b5
         right           4px
+        overflow        hidden
         vendor          transition, width .1s ease \,\
                                     border-color .3s ease
         abs()
@@ -340,7 +341,6 @@ resurrection.activity.styl
           abs()
 
         .button-title
-          z-index       -1
           opacity       0
           right         0
           top           4px
@@ -354,7 +354,6 @@ resurrection.activity.styl
           background    #ebebeb
           .button-title
             right       4px
-            z-index     1
             opacity     1
 
         &.following-account
