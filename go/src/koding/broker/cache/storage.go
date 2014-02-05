@@ -1,6 +1,6 @@
 package cache
 
-type SubscriptionInterface interface {
+type Subscriptionable interface {
 	Each(f func(item interface{}) bool) error
 	Subscribe(routingKeyPrefix string) error
 	Unsubscribe(routingKeyPrefix string) error
@@ -11,13 +11,13 @@ type SubscriptionInterface interface {
 }
 
 type SubscriptionStorage struct {
-	storage SubscriptionInterface
+	storage Subscriptionable
 }
 
 func NewStorage(cacheType, socketID string) (*SubscriptionStorage, error) {
 
 	var err error
-	var be SubscriptionInterface
+	var be Subscriptionable
 
 	switch cacheType {
 	case "redis":
