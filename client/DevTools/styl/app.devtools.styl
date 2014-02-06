@@ -29,16 +29,65 @@ app.devtools.styl
     .kdbutton
       margin-top  7px
 
-  .CodeMirror
-    font-size     12px
-    line-height   16px
-    font-family   'Monaco', 'monospace'
+  .devtools-editor
+
     .ws-header.inner-header
       height        20px
       padding       3px
       text-align    right
       background    #efefef
 
+    .CodeMirror
+      font-size     12px
+      line-height   16px
+      font-family   'Monaco', 'monospace'
+
+      .CodeMirror-activeline-background
+        background  rgba(0,0,0,.05)
+
+  .error-pane
+
+    background       white
+    width            400px
+    height           auto
+    padding          10px
+    margin           40px auto
+    border           1px solid #ccc
+    border-radius    3px
+
+    h1
+      font-weight    400
+      border-bottom  1px solid #ccc
+      margin-bottom  10px
+      padding-bottom 10px
+
+    pre
+      font-family    monospace
+      font-size      12px
+      overflow       auto
+
+    .stack
+      h2
+        text-align   right
+        font-size    12px
+        border-top   1px solid #eee
+        margin-top   10px
+        padding-top  4px
+        color        darkblue
+        cursor       pointer
+
+      pre
+        display      none
+        background   #eee
+        padding      4px
+        margin-top   10px
+
+    &.in
+      .stack
+        pre
+          display    block
+        h2
+          display    none
 
   .kdsplitview-horizontal
     > .kdsplitview-resizer

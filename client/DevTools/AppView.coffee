@@ -100,11 +100,13 @@ class DevToolsMainView extends KDView
 
       {JSEditor, CSSEditor} = panes = @workspace.activePanel.panesByName
 
-      JSEditor.codeMirrorEditor.on "change", \
-        _.debounce (@lazyBound 'previewApp', no), 500
+      JSEditor.ready =>
+        JSEditor.codeMirrorEditor.on "change", \
+          _.debounce (@lazyBound 'previewApp', no), 500
 
-      CSSEditor.codeMirrorEditor.on "change", \
-        _.debounce (@lazyBound 'previewCss', no), 500
+      CSSEditor.ready =>
+        CSSEditor.codeMirrorEditor.on "change", \
+          _.debounce (@lazyBound 'previewCss', no), 500
 
   previewApp:(force = no)->
 
@@ -165,22 +167,39 @@ class DevToolsMainView extends KDView
 
 class DevToolsEditorPane extends CollaborativeEditorPane
 
-  createEditor: ->
+  constructor:(options = {}, data)->
+    options.cssClass = 'devtools-editor'
+    super options, data
 
-    @codeMirrorEditor = CodeMirror @container.getDomElement()[0],
-      lineNumbers     : yes
-      scrollPastEnd   : yes
-      cursorHeight    : 1
-      tabSize         : 2
-      mode            : @_mode ? "coffeescript"
-      extraKeys       :
-        "Cmd-S"       : @bound "handleSave"
-        "Ctrl-S"      : @bound "handleSave"
-        "Tab"         : (cm)->
-          spaces = Array(cm.getOption("indentUnit") + 1).join " "
-          cm.replaceSelection spaces, "end", "+input"
+  createEditor: (callback)->
 
-    @setEditorMode @_mode ? "coffee"
+    {cdnRoot} = CollaborativeEditorPane
+
+    KodingAppsController.appendScriptElement 'script',
+      url        : "#{cdnRoot}/addon/selection/active-line.js"
+      identifier : "codemirror-activeline-addon"
+      callback   : =>
+
+        @codeMirrorEditor = CodeMirror @container.getDomElement()[0],
+          lineNumbers     : yes
+          lineWrapping    : yes
+          styleActiveLine : yes
+          scrollPastEnd   : yes
+          cursorHeight    : 1
+          tabSize         : 2
+          mode            : @_mode ? "coffeescript"
+          extraKeys       :
+            "Cmd-S"       : @bound "handleSave"
+            "Ctrl-S"      : @bound "handleSave"
+            "Tab"         : (cm)->
+              spaces = Array(cm.getOption("indentUnit") + 1).join " "
+              cm.replaceSelection spaces, "end", "+input"
+
+        @setEditorMode @_mode ? "coffee"
+
+        callback?()
+
+        @emit 'ready'
 
 class DevToolsCssEditorPane extends DevToolsEditorPane
   constructor:-> super; @_mode = 'css'
