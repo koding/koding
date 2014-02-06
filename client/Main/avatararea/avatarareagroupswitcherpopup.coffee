@@ -68,7 +68,7 @@ class AvatarPopupGroupSwitcher extends AvatarPopup
     {entryPoint} = KD.config
     createGroupLink = new KDCustomHTMLView
       tagName    : 'a'
-      attributes : href : '/Pricing/Enterprise'
+      attributes : href : '/Pricing/Team'
       cssClass   : 'bottom bb'
       partial    : 'Create a group'
       click      : (event)=>

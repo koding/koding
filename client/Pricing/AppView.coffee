@@ -2,6 +2,8 @@ class PricingAppView extends KDView
 
   setWorkflow: (workflow) ->
     @workflow.destroy()  if @workflow
+    @groupForm?.destroy()
+    @thankYou?.destroy()
     @workflow = workflow
     @addSubView @workflow
     @workflow.on 'Finished', @bound "workflowFinished"
@@ -33,7 +35,7 @@ class PricingAppView extends KDView
       then "Please check your email to complete your registration."
       else "Now it’s time, time to start Koding!"
 
-    @addSubView thankYou = new KDCustomHTMLView
+    @addSubView @thankYou = new KDCustomHTMLView
       cssClass : "pricing-thank-you"
       partial  :
         """
@@ -70,6 +72,7 @@ class PricingAppView extends KDView
 
       if @formData.loggedIn
         thankYou.addSubView new KDButtonView
+          style    : "solid green"
           title    : "Go to Group"
           callback : ->
             window.open "#{window.location.origin}/#{group.slug}", "_blank"

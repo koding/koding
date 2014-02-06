@@ -198,7 +198,7 @@ module.exports = class JPaymentSubscription extends jraphical.Module
     [ok, over] = partition usages, ({ total }) -> total >= 0
 
     if over.length > 0
-    then callback { message: 'quota exceeded', ok, over }
+    then callback { message: 'quota exceeded', ok, over, code: 999 }
     else callback null
 
   createFulfillmentNonce: ({ planCode }, isDebit, callback) ->

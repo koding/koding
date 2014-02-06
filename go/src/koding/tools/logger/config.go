@@ -1,7 +1,7 @@
 package logger
 
 import (
-	"github.com/op/go-logging"
+	"github.com/sent-hil/go-logging"
 	"koding/tools/config"
 )
 

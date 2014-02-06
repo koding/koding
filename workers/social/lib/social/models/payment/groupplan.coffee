@@ -106,8 +106,10 @@ module.exports = class JGroupPlan extends JResourcePlan
       return callback err  if err
       JPaymentPack.one tags: "group", (err, pack) ->
         return callback err  if err
-        subscription.debit {pack, shouldCreateNonce: yes}, (err, nonce) ->
-          JPaymentFulfillmentNonce.one {nonce}, (err, nonce) ->
+        subscription.debit {pack, shouldCreateNonce: yes}, (err, nonceStr) ->
+          return callback err  if err
+          JPaymentFulfillmentNonce.one nonce:nonceStr, (err, nonce) ->
             return callback err  if err
+            return callback message: "nonce not found"  unless nonce
             nonce.addOwner client.connection.delegate, (err) ->
               callback err, subscription, nonce.nonce
