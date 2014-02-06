@@ -133,14 +133,13 @@ type Config struct {
 	Redis    string
 }
 
-var Current Config
-
 func MustConfig(profile string) *Config {
-	if err := readConfig(profile); err != nil {
+	conf, err := readConfig(profile)
+	if err != nil {
 		panic(err)
 	}
 
-	return &Current
+	return conf
 }
 
 // readConfig reads and unmarshalls the appropriate config into the Config
@@ -148,7 +147,7 @@ func MustConfig(profile string) *Config {
 // koding-config-manager  with command line flag -c. If there is no flag
 // specified it tries to get the config from the environment variable
 // "CONFIG".
-func readConfig(profile string) error {
+func readConfig(profile string) (*Config, error) {
 	if profile == "" {
 		// this is needed also if you can't pass a flag into other packages, like testing.
 		// otherwise it's impossible to inject the config paramater. For example:
@@ -156,7 +155,7 @@ func readConfig(profile string) error {
 		// but this will work : CONFIG="vagrant" go test
 		envProfile := os.Getenv("CONFIG")
 		if envProfile == "" {
-			return errors.New("config.go: please specify a configuration profile via -c or set a CONFIG environment.")
+			return nil, errors.New("config.go: please specify a configuration profile via -c or set a CONFIG environment.")
 		}
 
 		profile = envProfile
@@ -164,71 +163,74 @@ func readConfig(profile string) error {
 
 	cwd, err := os.Getwd()
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	configPath := filepath.Join(cwd, "config", fmt.Sprintf("main.%s.json", profile))
 	ok, err := exists(configPath)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
+	var conf *Config
 	if ok {
 		fmt.Printf("config.go: reading config from %s\n", configPath)
-		err := ReadJson(profile)
+		conf, err = ReadJson(profile)
 		if err != nil {
-			return err
+			return nil, err
 		}
 	} else {
 		fmt.Println("config.go: reading config with koding-config-manager")
-		err := ReadConfigManager(profile)
+		conf, err = ReadConfigManager(profile)
 		if err != nil {
-			return err
+			return nil, err
 		}
 	}
 
-	return nil
+	return conf, nil
 }
 
-func ReadJson(profile string) error {
+func ReadJson(profile string) (*Config, error) {
 	pwd, err := os.Getwd()
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	configPath := filepath.Join(pwd, "config", fmt.Sprintf("main.%s.json", profile))
 
 	data, err := ioutil.ReadFile(configPath)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	err = json.Unmarshal(data, &Current)
+	conf := new(Config)
+	err = json.Unmarshal(data, &conf)
 	if err != nil {
-		return fmt.Errorf("Could not unmarshal configuration: %s\nConfiguration source output:\n%s\n",
+		return nil, fmt.Errorf("Could not unmarshal configuration: %s\nConfiguration source output:\n%s\n",
 			err.Error(), string(data))
 	}
 
-	return nil
+	return conf, nil
 }
 
-func ReadConfigManager(profile string) error {
+func ReadConfigManager(profile string) (*Config, error) {
 	cmd := exec.Command("node", "-e", "require('koding-config-manager').printJson('main."+profile+"')")
 
-	config, err := cmd.CombinedOutput()
+	data, err := cmd.CombinedOutput()
 	if err != nil {
-		return fmt.Errorf("Could not execute configuration source: %s\nConfiguration source output:\n%s\n",
-			err.Error(), config)
+		return nil, fmt.Errorf("Could not execute configuration source: %s\nConfiguration source output:\n%s\n",
+			err.Error(), data)
 	}
 
-	err = json.Unmarshal(config, &Current)
+	conf := new(Config)
+	err = json.Unmarshal(data, &conf)
 	if err != nil {
-		return fmt.Errorf("Could not unmarshal configuration: %s\nConfiguration source output:\n%s\n",
-			err.Error(), string(config))
+		return nil, fmt.Errorf("Could not unmarshal configuration: %s\nConfiguration source output:\n%s\n",
+			err.Error(), string(data))
 	}
 
 	// successfully unmarshalled into Current
-	return nil
+	return conf, nil
 }
 
 // exists returns whether the given file or directory exists or not.
