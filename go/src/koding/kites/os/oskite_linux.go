@@ -77,11 +77,11 @@ func main() {
 		log.Fatal("Please specify profile via -c and region via -r. Aborting.")
 	}
 
-	logLevel = logger.GetLoggingLevelFromConfig(OSKITE_NAME, conf.Environment)
-	log.SetLevel(logLevel)
-
 	conf = config.MustConfig(*flagProfile)
 	mongodbConn = mongodb.NewMongoDB(conf.Mongo)
+
+	logLevel = logger.GetLoggingLevelFromConfig(OSKITE_NAME, conf.Environment)
+	log.SetLevel(logLevel)
 
 	initializeSettings()
 
