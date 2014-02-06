@@ -196,7 +196,7 @@ func prepareOsKite() *kite.Kite {
 		kiteName += "-" + *flagRegion
 	}
 
-	k := kite.New(kiteName, *flagProfile, true)
+	k := kite.New(kiteName, conf, true)
 
 	k.LoadBalancer = func(correlationName string, username string, deadService string) string {
 		var vm *virt.VM

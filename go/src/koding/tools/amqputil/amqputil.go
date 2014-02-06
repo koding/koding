@@ -10,15 +10,10 @@ import (
 )
 
 var (
-	log  = logger.New("ampqutil")
-	conf *config.Config
+	log = logger.New("ampqutil")
 )
 
-func SetupAMQP(profile string) {
-	conf = config.MustConfig(profile)
-}
-
-func CreateConnection(component string) *amqp.Connection {
+func CreateConnection(conf *config.Config, component string) *amqp.Connection {
 	if conf == nil {
 		log.Fatal("Configuration is not defined. Please call SetupAMQP() before you proceed.")
 	}

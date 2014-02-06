@@ -93,8 +93,6 @@ func main() {
 	}
 
 	conf = config.MustConfig(*flagProfile)
-	amqputil.SetupAMQP(*flagProfile)
-
 	logLevel := logger.GetLoggingLevelFromConfig(BROKER_NAME, *flagProfile)
 	log.SetLevel(logLevel)
 
@@ -103,7 +101,7 @@ func main() {
 
 // Run starts the broker.
 func (b *Broker) Run() {
-	lifecycle.Startup("broker", false)
+	lifecycle.Startup(BROKER_NAME, false)
 	logger.RunGaugesLoop(log)
 
 	b.registerToKontrol()
@@ -132,8 +130,8 @@ func (b *Broker) Close() {
 // available at: https://koding.com/-/services/broker?all
 func (b *Broker) registerToKontrol() {
 	if err := kontrolhelper.RegisterToKontrol(
-		"broker", // servicename
-		"broker",
+		BROKER_NAME,
+		BROKER_NAME, // servicGenericName
 		b.ServiceUniqueName,
 		*flagKontrolUUID,
 		b.Hostname,
@@ -146,10 +144,10 @@ func (b *Broker) registerToKontrol() {
 // startAMQP setups the the neccesary publisher and consumer connections for
 // the broker broker.
 func (b *Broker) startAMQP() {
-	b.PublishConn = amqputil.CreateConnection("broker")
+	b.PublishConn = amqputil.CreateConnection(conf, BROKER_NAME)
 	defer b.PublishConn.Close()
 
-	b.ConsumeConn = amqputil.CreateConnection("broker")
+	b.ConsumeConn = amqputil.CreateConnection(conf, BROKER_NAME)
 	defer b.ConsumeConn.Close()
 
 	consumeChannel := amqputil.CreateChannel(b.ConsumeConn)
@@ -158,8 +156,8 @@ func (b *Broker) startAMQP() {
 	presenceQueue := amqputil.JoinPresenceExchange(
 		consumeChannel,      // channel
 		"services-presence", // exchange
-		"broker",            // serviceType
-		"broker",            // serviceGenericName
+		BROKER_NAME,         // serviceType
+		BROKER_NAME,         // serviceGenericName
 		b.ServiceUniqueName, // serviceUniqueName
 		false,               // loadBalancing
 	)
@@ -171,7 +169,7 @@ func (b *Broker) startAMQP() {
 		consumeChannel.QueueDelete(presenceQueue, false, false, false)
 	}()
 
-	stream := amqputil.DeclareBindConsumeQueue(consumeChannel, "topic", "broker", "#", false)
+	stream := amqputil.DeclareBindConsumeQueue(consumeChannel, "topic", BROKER_NAME, "#", false)
 
 	if err := consumeChannel.ExchangeDeclare(
 		"updateInstances", // name
@@ -185,7 +183,7 @@ func (b *Broker) startAMQP() {
 		panic(err)
 	}
 
-	if err := consumeChannel.ExchangeBind("broker", "", "updateInstances", false, nil); err != nil {
+	if err := consumeChannel.ExchangeBind(BROKER_NAME, "", "updateInstances", false, nil); err != nil {
 		panic(err)
 	}
 

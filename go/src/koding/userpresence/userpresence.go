@@ -36,8 +36,6 @@ func main() {
 		log.Fatal("Please define config file with -c")
 	}
 
-	amqputil.SetupAMQP(*configProfile)
-
 	conf := config.MustConfig(*configProfile)
 	mongo = mongodb.NewMongoDB(conf.Mongo)
 
@@ -47,7 +45,7 @@ func main() {
 		panic(err)
 	}
 
-	mainAmqpConn := amqputil.CreateConnection("userpresence")
+	mainAmqpConn := amqputil.CreateConnection(conf, "userpresence")
 
 	resourceName = "users-presence"
 
@@ -56,7 +54,6 @@ func main() {
 }
 
 func startMonitoring(mainAmqpConn *amqp.Connection) {
-
 	channel, err := mainAmqpConn.Channel()
 	if err != nil {
 		panic(err)

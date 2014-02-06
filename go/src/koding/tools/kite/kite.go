@@ -3,6 +3,7 @@ package kite
 import (
 	"encoding/json"
 	"koding/tools/amqputil"
+	"koding/tools/config"
 	"koding/tools/dnode"
 	"koding/tools/lifecycle"
 	"koding/tools/logger"
@@ -14,7 +15,10 @@ import (
 	"github.com/streadway/amqp"
 )
 
-var log = logger.New("kite")
+var (
+	log  = logger.New("kite")
+	conf *config.Config
+)
 
 type Kite struct {
 	Name              string
@@ -43,8 +47,10 @@ type Control struct {
 	HostnameAlias string
 }
 
-func New(name, profile string, onePerHost bool) *Kite {
-	amqputil.SetupAMQP(profile)
+func New(name string, conf *config.Config, onePerHost bool) *Kite {
+	if conf == nil {
+		log.Fatal("Conf is not initialized. Aborting")
+	}
 
 	hostname, _ := os.Hostname()
 	serviceUniqueName := "kite-" + name + "-" + strconv.Itoa(os.Getpid()) + "|" + strings.Replace(hostname, ".", "_", -1)
@@ -64,10 +70,10 @@ func (k *Kite) Handle(method string, concurrent bool, callback func(args *dnode.
 }
 
 func (k *Kite) Run() {
-	consumeConn := amqputil.CreateConnection("kite-" + k.Name)
+	consumeConn := amqputil.CreateConnection(conf, "kite-"+k.Name)
 	defer consumeConn.Close()
 
-	publishConn := amqputil.CreateConnection("kite-" + k.Name)
+	publishConn := amqputil.CreateConnection(conf, "kite-"+k.Name)
 	defer publishConn.Close()
 
 	publishChannel := amqputil.CreateChannel(publishConn)

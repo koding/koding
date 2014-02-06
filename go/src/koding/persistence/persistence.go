@@ -45,9 +45,7 @@ func main() {
 
 	conf := config.MustConfig(*configProfile)
 	mongo = mongodb.NewMongoDB(conf.Mongo)
-
-	amqputil.SetupAMQP(*configProfile)
-	conn := amqputil.CreateConnection("persistence")
+	conn := amqputil.CreateConnection(conf, "persistence")
 
 	startPersisting(conn)
 }

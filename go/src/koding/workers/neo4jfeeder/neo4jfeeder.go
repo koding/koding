@@ -37,6 +37,7 @@ type Message struct {
 var (
 	log           = logger.New("neo4jfeeder")
 	mongo         *mongodb.MongoDB
+	conf          *config.Config
 	configProfile = flag.String("c", "", "Configuration profile from file")
 )
 
@@ -46,8 +47,7 @@ func main() {
 		log.Fatal("Please define config file with -c")
 	}
 
-	amqputil.SetupAMQP(*configProfile)
-	conf := config.MustConfig(*configProfile)
+	conf = config.MustConfig(*configProfile)
 	mongo = mongodb.NewMongoDB(conf.Mongo)
 	mongohelper.MongoHelperInit(*configProfile)
 
@@ -72,7 +72,7 @@ func startConsuming() {
 		channel: nil,
 	}
 
-	c.conn = amqputil.CreateConnection("neo4jFeeding")
+	c.conn = amqputil.CreateConnection(conf, "neo4jFeeding")
 	c.channel = amqputil.CreateChannel(c.conn)
 	// exchangeName, ExchangeType, durable, autoDelete, internal, noWait, args
 	err := c.channel.ExchangeDeclare(EXCHANGE_NAME, "fanout", true, false, false, false, nil)

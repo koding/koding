@@ -48,8 +48,6 @@ type Router struct {
 }
 
 func NewRouter(c *Consumer, p *Producer, profile string) *Router {
-	amqputil.SetupAMQP(profile)
-
 	return &Router{
 		routes:   M{},
 		consumer: c,
@@ -58,7 +56,6 @@ func NewRouter(c *Consumer, p *Producer, profile string) *Router {
 }
 
 func (r *Router) AddRoute(msg *amqp.Delivery) error {
-
 	join, err := createAuthMsg(msg)
 	if err != nil {
 		return err
