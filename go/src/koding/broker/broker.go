@@ -138,7 +138,7 @@ func (b *Broker) registerToKontrol() {
 		b.ServiceUniqueName,
 		*flagKontrolUUID,
 		b.Hostname,
-		config.Current.Broker.Port,
+		conf.Broker.Port,
 	); err != nil {
 		panic(err)
 	}
@@ -224,7 +224,7 @@ func (b *Broker) startAMQP() {
 // startSockJS starts a new HTTPS listener that implies the SockJS protocol.
 func (b *Broker) startSockJS() {
 	service := sockjs.NewService(
-		config.Current.Client.StaticFilesBaseUrl+"/js/sock.js",
+		conf.Client.StaticFilesBaseUrl+"/js/sock.js",
 		10*time.Minute,
 		b.sockjsSession,
 	)
@@ -239,7 +239,7 @@ func (b *Broker) startSockJS() {
 			"/subscribe": service,
 			"/buildnumber": http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 				w.Header().Set("Content-Type", "text/plain")
-				w.Write([]byte(strconv.Itoa(config.Current.BuildNumber)))
+				w.Write([]byte(strconv.Itoa(conf.BuildNumber)))
 			}),
 		},
 	}
@@ -247,13 +247,13 @@ func (b *Broker) startSockJS() {
 	server := &http.Server{Handler: mux}
 
 	var err error
-	b.listener, err = net.ListenTCP("tcp", &net.TCPAddr{IP: net.ParseIP(config.Current.Broker.IP), Port: config.Current.Broker.Port})
+	b.listener, err = net.ListenTCP("tcp", &net.TCPAddr{IP: net.ParseIP(conf.Broker.IP), Port: conf.Broker.Port})
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	if config.Current.Broker.CertFile != "" {
-		cert, err := tls.LoadX509KeyPair(config.Current.Broker.CertFile, config.Current.Broker.KeyFile)
+	if conf.Broker.CertFile != "" {
+		cert, err := tls.LoadX509KeyPair(conf.Broker.CertFile, conf.Broker.KeyFile)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -298,7 +298,7 @@ func (b *Broker) sockjsSession(session *sockjs.Session) {
 	defer sessionGaugeEnd()
 	defer client.Close()
 
-	err := client.ControlChannel.Publish(config.Current.Broker.AuthAllExchange, "broker.clientConnected", false, false, amqp.Publishing{Body: []byte(client.SocketId)})
+	err := client.ControlChannel.Publish(conf.Broker.AuthAllExchange, "broker.clientConnected", false, false, amqp.Publishing{Body: []byte(client.SocketId)})
 	if err != nil {
 		panic(err)
 	}

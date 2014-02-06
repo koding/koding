@@ -23,15 +23,19 @@ import (
 )
 
 var (
-	use      = config.Current.Statsd.Use
-	ip       = config.Current.Statsd.Ip
-	port     = config.Current.Statsd.Port
-	STATSD   = client.New(ip, port)
+	STATSD   *client.StatsdClient
 	APP_NAME string
+	USE      bool
 )
 
-func init() {
-	if use {
+func SetupSTATSD(conf *config.Config) {
+	USE = conf.Statsd.Use
+	ip := conf.Statsd.Ip
+	port := conf.Statsd.Port
+
+	STATSD = client.New(ip, port)
+
+	if USE {
 		fmt.Printf("Logging to statsd on %v:%v\n", ip, port)
 	}
 }
@@ -43,13 +47,13 @@ func SetAppName(name string) {
 }
 
 func Increment(name string) {
-	if use {
+	if USE {
 		STATSD.Increment(name)
 	}
 }
 
 func Decrement(name string) {
-	if use {
+	if USE {
 		STATSD.Decrement(name)
 	}
 }
@@ -89,7 +93,7 @@ func (s *StatdsTimer) End(status string) {
 	duration := int64(s.EndTime.Sub(s.StartTime) / time.Millisecond)
 	name := buildName(s.Name, status)
 
-	if use {
+	if USE {
 		STATSD.Timing(name, duration)
 	}
 }

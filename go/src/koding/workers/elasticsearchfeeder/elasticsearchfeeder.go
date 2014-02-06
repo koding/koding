@@ -5,15 +5,16 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/mattbaird/elastigo/api"
-	"github.com/mattbaird/elastigo/indices"
-	"github.com/streadway/amqp"
 	"koding/databases/elasticsearch"
 	"koding/messaging/rabbitmq"
 	"koding/tools/config"
-	"labix.org/v2/mgo/bson"
 	"strconv"
 	"time"
+
+	"github.com/mattbaird/elastigo/api"
+	"github.com/mattbaird/elastigo/indices"
+	"github.com/streadway/amqp"
+	"labix.org/v2/mgo/bson"
 )
 
 var (

@@ -2,14 +2,16 @@ package topicmodifier
 
 import (
 	"encoding/json"
-	"github.com/streadway/amqp"
 	"koding/messaging/rabbitmq"
+	"koding/tools/config"
+	"github.com/streadway/amqp"
 )
 
 var (
 	Done      chan error
 	Consumer  *rabbitmq.Consumer
 	Publisher *rabbitmq.Producer
+	Conf      *config.Config
 )
 
 type Status string
@@ -35,8 +37,9 @@ func createConnections() {
 	initGraphPublisher()
 }
 
-func ConsumeMessage() {
+func ConsumeMessage(conf *config.Config) {
 	log.Notice("Topic Modifier: Checking for message")
+	Conf = conf
 	createConnections()
 	if err := Consumer.Get(messageConsumer); err != nil {
 		log.Critical("%v", err)
@@ -160,7 +163,8 @@ func initConsumer() {
 	}
 
 	var err error
-	Consumer, err = rabbitmq.NewConsumer(exchange, queue, binding, consumerOptions)
+	r := rabbitmq.New(Conf)
+	Consumer, err = r.NewConsumer(exchange, queue, binding, consumerOptions)
 	if err != nil {
 		log.Error("%v", err)
 		return

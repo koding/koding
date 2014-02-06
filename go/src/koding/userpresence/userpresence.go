@@ -18,6 +18,7 @@ import (
 var (
 	log           = logger.New("userpresence")
 	mongo         *mongodb.MongoDB
+	conf          *config.Config
 	configProfile = flag.String("c", "", "Configuration profile from file")
 )
 
@@ -36,7 +37,7 @@ func main() {
 		log.Fatal("Please define config file with -c")
 	}
 
-	conf := config.MustConfig(*configProfile)
+	conf = config.MustConfig(*configProfile)
 	mongo = mongodb.NewMongoDB(conf.Mongo)
 
 	var err error
@@ -59,7 +60,7 @@ func startMonitoring(mainAmqpConn *amqp.Connection) {
 		panic(err)
 	}
 
-	queueName := resourceName + config.Current.Version
+	queueName := resourceName + conf.Version
 
 	if err := channel.ExchangeDeclare(
 		resourceName, // the exchange name
@@ -149,11 +150,11 @@ func createFollowFeedChannel(component string) (*amqp.Channel, error) {
 
 	conn, err := amqp.Dial(amqp.URI{
 		Scheme:   "amqp",
-		Host:     config.Current.FollowFeed.Host,
-		Port:     config.Current.FollowFeed.Port,
-		Username: strings.Replace(config.Current.FollowFeed.ComponentUser, "<component>", component, 1),
-		Password: config.Current.FollowFeed.Password,
-		Vhost:    config.Current.FollowFeed.Vhost,
+		Host:     conf.FollowFeed.Host,
+		Port:     conf.FollowFeed.Port,
+		Username: strings.Replace(conf.FollowFeed.ComponentUser, "<component>", component, 1),
+		Password: conf.FollowFeed.Password,
+		Vhost:    conf.FollowFeed.Vhost,
 	}.String())
 
 	if err != nil {

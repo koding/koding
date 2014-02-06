@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"koding/db/mongodb/modelhelper"
 	"koding/tools/config"
@@ -12,14 +13,18 @@ import (
 )
 
 var logs *syslog.Writer
+var flagProfile = flag.String("c", "", "Configuration profile from file")
 
 func main() {
+	flag.Parse()
 	fmt.Println("Starting FTP proxy")
 	var err error
 
+	conf := config.MustConfig(*flagProfile)
+
 	logs, err = syslog.New(syslog.LOG_DEBUG|syslog.LOG_USER, "KONTROL_FTP")
 
-	err = startFTP()
+	err = startFTP(conf)
 	if err != nil {
 		logs.Alert(err.Error())
 		log.Fatalln(err)
@@ -27,9 +32,9 @@ func main() {
 }
 
 // startFTP is used to reverse proxy FTP connections on port 21
-func startFTP() error {
+func startFTP(conf *config.Config) error {
 	logs.Info("ftp mode is enabled. serving at :21...")
-	return fastproxy.ListenFTP(&net.TCPAddr{IP: nil, Port: 21}, net.ParseIP(config.Current.Kontrold.Proxy.FTPIP), nil, func(req *fastproxy.FTPRequest) {
+	return fastproxy.ListenFTP(&net.TCPAddr{IP: nil, Port: 21}, net.ParseIP(conf.Kontrold.Proxy.FTPIP), nil, func(req *fastproxy.FTPRequest) {
 		userName := req.User
 		vmName := req.User
 		if userParts := strings.SplitN(userName, "@", 2); len(userParts) == 2 {
