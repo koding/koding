@@ -126,7 +126,9 @@ type Config struct {
 		Host string
 		Port int
 	}
-	LogLevel map[string]string
+	LogLevel    map[string]string
+	Redis       string
+	Environment string
 }
 
 var Profile string

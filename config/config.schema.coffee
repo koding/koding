@@ -77,6 +77,7 @@ config =
     buildClient   : 1
     runOsKite     : 0
     runProxy      : 0
+    redis         : 1
     misc          :
       claimGlobalNamesForUsers: 1
       updateAllSlugs : 1
