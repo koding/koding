@@ -54,8 +54,10 @@ class DomainCreateForm extends KDCustomHTMLView
     {message}             = @newDomainEntryForm
     {createButton}        = @newDomainEntryForm.buttons
     {domains, domainName} = @newDomainEntryForm.inputs
-    domainName            = "#{domainName.getValue()}.#{domains.getValue()}"
     {getDomainInfo, getDomainSuggestions} = KD.remote.api.JDomain
+
+    domainName =
+      Encoder.XSSEncode "#{domainName.getValue()}.#{domains.getValue()}"
 
     @newDomainEntryForm.domainListView?.unsetClass 'in'
 
@@ -93,14 +95,17 @@ class DomainCreateForm extends KDCustomHTMLView
   createSubDomain: ->
     {domains, domainName} = @subDomainEntryForm.inputs
     {createButton}        = @subDomainEntryForm.buttons
-    domainName            = domainName.getValue()
+
+    domainName = domainName.getValue()
 
     # Check given subdomain
     unless subDomainPattern.test domainName
       createButton.hideLoader()
       return notifyUser "#{domainName} is an invalid subdomain."
 
-    domainName = "#{domainName}.#{domains.getValue()}"
+    domainName =
+      Encoder.XSSEncode "#{domainName}.#{domains.getValue()}"
+
     domainType = 'subdomain'
     regYears   = 0
 
@@ -131,8 +136,9 @@ class DomainCreateForm extends KDCustomHTMLView
     , callback
 
   showSuccess:(domain) ->
+    domainName =
+      Encoder.XSSEncode @subDomainEntryForm.inputs.domainName.getValue()
 
-    {domainName} = @subDomainEntryForm.inputs
     @emit 'DomainSaved', domain
     @successNote?.destroy()
 
@@ -140,7 +146,7 @@ class DomainCreateForm extends KDCustomHTMLView
       tagName  : 'p'
       cssClass : 'success'
       partial  : """
-        Your subdomain <strong>#{domainName.getValue()}</strong> has been added.
+        Your subdomain <strong>#{domainName}</strong> has been added.
         You can dismiss this panel and point your new domain to one of your VMs
         on the right.
       """

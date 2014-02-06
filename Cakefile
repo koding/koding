@@ -361,10 +361,11 @@ task 'persistence', "Run persistence", (options)->
       startMode    : "one"
 
 
+# start oskite in /opt/koding/go/src/koding/kites/os because the templates are now inside our oskite repository
 task 'osKite', "Run the osKite", ({configFile})->
   processes.spawn
     name  : 'osKite'
-    cmd   : if configFile == "vagrant" then "vagrant ssh default -c 'cd /opt/koding; sudo killall -q -KILL os; sudo ./go/bin-vagrant/os -c #{configFile} -r vagrant'" else "./go/bin/os -c #{configFile}"
+    cmd   : if configFile == "vagrant" then "vagrant ssh default -c 'cd /opt/koding/go/src/koding/kites/os; sudo killall -q -KILL os; sudo /opt/koding/go/bin-vagrant/os -c #{configFile} -r vagrant'" else "./go/bin/os -c #{configFile}"
     restart: no
     stdout  : process.stdout
     stderr  : process.stderr
@@ -742,3 +743,9 @@ task 'analyzeCss','Checks lengthy css and suggests improvements',(options)->
     log.info "#{counter.fns} selectors contain identical CSS properties"
     log.info "possible savings:",Math.floor(counter.chars/1024)+" kbytes"
     log.info "this tool works only if u did 'cake -usd vpn beta' before running analyzeCss."
+
+
+
+{installSikuli, runSikuli} = require "./cake_tasks/sikuli"
+task 'installSikuli', "Downloads and installs Sikuli", -> installSikuli()
+task 'runTest', "Opens http://localhost:3020 and runs tests", -> runSikuli()

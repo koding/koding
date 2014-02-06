@@ -7,7 +7,7 @@ module.exports = class GuestCleanerWorker
   {Relationship} = jraphical
   constructor: (@bongo, @options = {}) ->
 
-  whitlistedModels = ["JSession", "JUser", "JVM", "JDomain", "JAppStorage", "JLimit"]
+  whitlistedModels = ["JSession", "JUser", "JVM", "JDomain", "JAppStorage", "JLimit", "JName"]
 
   collectDataAndRelationships:(relationships, callback)->
     toBeDeletedData = {}
@@ -41,7 +41,7 @@ module.exports = class GuestCleanerWorker
       deleteEntry {ids: ids, modelName: modelName}
 
   clean:=>
-    {JAccount, JSession} = @bongo.models
+    {JAccount, JSession, JName} = @bongo.models
 
     usageLimitInMinutes = @options.usageLimitInMinutes or 60
     filterDate = new Date(Date.now()-(1000*60*usageLimitInMinutes))
@@ -101,6 +101,11 @@ module.exports = class GuestCleanerWorker
               guestId = account.profile.nickname.split("-")[1]
               # one user can have multiple sessions but, guest account can only has one session!
               JSession.remove {guestId:guestId},(err)->
+                if err then console.error err
+                queue.next()
+            =>
+              #If we don't delete JNames, we eventually have millions of them.
+              JName.remove {name : account.profile.nickname},(err)->
                 if err then console.error err
                 queue.next()
             ->

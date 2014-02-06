@@ -121,7 +121,11 @@ type Config struct {
 		Token   string
 		Channel string
 	}
-
+	Graphite struct {
+		Use  bool
+		Host string
+		Port int
+	}
 	LogLevel map[string]string
 }
 
@@ -192,7 +196,12 @@ func readConfig() error {
 		Profile = envProfile
 	}
 
-	configPath := fmt.Sprintf("./config/main.%s.json", Profile)
+	cwd, err := os.Getwd()
+	if err != nil {
+		return err
+	}
+
+	configPath := filepath.Join(cwd, "config", fmt.Sprintf("main.%s.json", Profile))
 	ok, err := exists(configPath)
 	if err != nil {
 		return err

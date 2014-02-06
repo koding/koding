@@ -19,6 +19,9 @@ import (
 var (
 	profile = flag.String("c", "", "Define config profile to be included")
 	region  = flag.String("r", "", "Define region profile to be included")
+
+	// Proxy only
+	proxy = flag.String("p", "", "Select user proxy or koding proxy")
 )
 
 type pkg struct {
@@ -31,8 +34,7 @@ type pkg struct {
 
 func main() {
 	flag.Parse()
-
-	if flag.NFlag() != 2 {
+	if *profile == "" || *region == "" {
 		fmt.Println("Please define config -c and region -r")
 		os.Exit(1)
 	}
@@ -44,27 +46,101 @@ func main() {
 }
 
 func buildPackages() error {
+	if err := buildKontrolProxy(); err != nil {
+		return err
+	}
+
+	if err := buildOsKite(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func buildOsKite() error {
 	gopath := os.Getenv("GOPATH")
 	if gopath == "" {
 		return errors.New("GOPATH is not set")
 	}
 
-	kdproxyPath := "koding/kontrol/kontrolproxy/"
-	kdproxyUpstart := filepath.Join(gopath, "src", kdproxyPath, "files/kontrolproxy.conf")
+	oskitePath := "koding/kites/os"
+	temps := struct {
+		Profile string
+		Region  string
+	}{
+		Profile: *profile,
+		Region:  *region,
+	}
+
+	var files = make([]string, 0)
+	files = append(files, filepath.Join(gopath, "src", oskitePath, "files"))
 
 	// change our upstartscript because it's a template
-	configUpstart, err := prepareUpstart(kdproxyUpstart)
+	oskiteUpstart := filepath.Join(gopath, "src", oskitePath, "files/oskite.conf")
+	configUpstart, err := prepareUpstart(oskiteUpstart, temps)
+	if err != nil {
+		return err
+	}
+	defer os.Remove(configUpstart)
+
+	oskite := pkg{
+		appName:       "oskite",
+		importPath:    oskitePath,
+		files:         files,
+		version:       "0.0.1",
+		upstartScript: configUpstart,
+	}
+
+	return oskite.build()
+}
+
+func buildKontrolProxy() error {
+	gopath := os.Getenv("GOPATH")
+	if gopath == "" {
+		return errors.New("GOPATH is not set")
+	}
+
+	kdproxyPath := "koding/kontrol/kontrolproxy"
+
+	// include certs
+	if *proxy == "" {
+		return errors.New("Please define proxy target. Example: -p koding or -p user")
+	}
+
+	temps := struct {
+		Profile   string
+		Region    string
+		UserProxy string
+	}{
+		Profile: *profile,
+		Region:  *region,
+	}
+
+	var files = make([]string, 0)
+	switch *proxy {
+	case "koding":
+		files = append(files, "certs/koding_com_cert.pem", "certs/koding_com_key.pem")
+	case "user":
+		temps.UserProxy = "-v"
+		files = append(files, "certs/kd_io_cert.pem", "certs/kd_io_key.pem")
+	default:
+		return errors.New("-p can accept either user or koding")
+	}
+
+	files = append(files, filepath.Join(gopath, "src", kdproxyPath, "files"))
+
+	// change our upstartscript because it's a template
+	kdproxyUpstart := filepath.Join(gopath, "src", kdproxyPath, "files/kontrolproxy.conf")
+	configUpstart, err := prepareUpstart(kdproxyUpstart, temps)
 	if err != nil {
 		return err
 	}
 	defer os.Remove(configUpstart)
 
 	kontrolproxy := pkg{
-		appName:    "kontrolproxy",
-		importPath: kdproxyPath,
-		files: []string{
-			filepath.Join(gopath, "src", kdproxyPath, "files"),
-		},
+		appName:       "kontrolproxy",
+		importPath:    kdproxyPath,
+		files:         files,
 		version:       "0.0.1",
 		upstartScript: configUpstart,
 	}
@@ -72,35 +148,8 @@ func buildPackages() error {
 	return kontrolproxy.build()
 }
 
-func prepareUpstart(path string) (string, error) {
-	temps := struct {
-		Profile string
-		Region  string
-	}{
-		*profile,
-		*region,
-	}
-
-	file, err := ioutil.TempFile(".", "gopackage_")
-	if err != nil {
-		return "", err
-	}
-	defer file.Close()
-
-	t, err := template.ParseFiles(path)
-	if err != nil {
-		return "", err
-	}
-
-	if err := t.Execute(file, temps); err != nil {
-		return "", err
-	}
-
-	return file.Name(), nil
-}
-
 func (p *pkg) build() error {
-	fmt.Printf("building '%s' for config '%s' and regions '%s'\n", p.appName, *profile, *region)
+	fmt.Printf("building '%s' for config '%s' and region '%s'\n", p.appName, *profile, *region)
 
 	// prepare config folder
 	tempDir, err := ioutil.TempDir(".", "gopackage_")
@@ -177,4 +226,23 @@ func (p *pkg) build() error {
 	fmt.Printf("  install to machine : dpkg -i %s\n\n", newname)
 
 	return nil
+}
+
+func prepareUpstart(path string, v interface{}) (string, error) {
+	file, err := ioutil.TempFile(".", "gopackage_")
+	if err != nil {
+		return "", err
+	}
+	defer file.Close()
+
+	t, err := template.ParseFiles(path)
+	if err != nil {
+		return "", err
+	}
+
+	if err := t.Execute(file, v); err != nil {
+		return "", err
+	}
+
+	return file.Name(), nil
 }
