@@ -133,7 +133,6 @@ class PricingAppView extends KDView
       body       : groupName
       slug       : slug
       visibility : visibility
-      nonce      : @nonce
 
     {JGroup} = KD.remote.api
     JGroup.create options, (err, group, subscription) =>

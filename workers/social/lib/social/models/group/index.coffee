@@ -12,8 +12,8 @@ module.exports = class JGroup extends Module
   JPermissionSet = require './permissionset'
   {permit}       = JPermissionSet
 
-  JAccount = require '../account'
-  JPaymentFulfillmentNonce = require '../payment/nonce'
+  JAccount     = require '../account'
+  JPaymentPack = require '../payment/pack'
 
   KodingError    = require '../../error'
   Validators     = require './validators'
@@ -481,24 +481,20 @@ module.exports = class JGroup extends Module
   @create$ = secure (client, formData, callback)->
     {delegate} = client.connection
 
-    {nonce} = formData
-    delete formData.nonce
-
-    JPaymentFulfillmentNonce.one {nonce}, (err, nonce) =>
+    subOptions = targetOptions: selector: tags: "custom-plan"
+    delegate.fetchSubscription null, subOptions, (err, subscription) =>
       return callback err  if err
-      return callback "Payment fulfillment nonce is invalid"  unless nonce.action is "debit"
-      nonce.fetchOwner (err, owner) =>
+      return callback new KodingError "Subscription is not found"  unless subscription
+      JPaymentPack.one tags: "group", (err, pack) =>
         return callback err  if err
-        subOptions = targetOptions: selector: tags: "custom-plan"
-        owner.fetchSubscription {}, subOptions, (err, subscription) =>
+        return callback new KodingError "Group pack is not found"  unless pack
+        subscription.debit {pack}, (err) =>
           return callback err  if err
-          @create client, formData, owner, (err, group) ->
+          @create client, formData, delegate, (err, group) ->
             return callback err if err
-            nonce.update $set: action: "used", (err) ->
+            group.addSubscription subscription, (err) ->
               return callback err  if err
-              group.addSubscription subscription, (err) ->
-                return callback err  if err
-                callback null, group, subscription
+              callback null, group, subscription
 
   @findSuggestions = (client, seed, options, callback)->
     {limit, blacklist, skip}  = options
