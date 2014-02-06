@@ -27,10 +27,10 @@ module.exports = (bongo, page, contentType, callback)=>
     return callback new Error "Unknown content type.", null
 
   pageContent = ""
-  model.count {}, (error, count)=>
+  model.count group: "koding", (error, count)=>
     return callback error, null  if error
     return callback null, getEmptyPage contentType  if count is 0
-    model.some {}, options, (err, contents)=>
+    model.some group: "koding", options, (err, contents)=>
       return callback err, null  if err
       return callback null, getEmptyPage contentType  if count is 0
       queue = [0..contents.length - 1].map (index)=>=>
