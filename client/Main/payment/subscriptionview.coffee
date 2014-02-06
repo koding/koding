@@ -23,17 +23,17 @@ class SubscriptionView extends JView
       if plan.type isnt 'single'
         switch status
           when 'active'
-            "Plan will renew on #{dateFormat renew}"
+            "Will renew on #{dateFormat renew}"
           when 'canceled'
-            "Plan will be available till #{dateFormat expires}"
+            "Will be available till #{dateFormat expires}"
           when 'future'
-            "Plan will become available on #{dateFormat startsAt}"
+            "Will become available on #{dateFormat startsAt}"
       else ''
 
     displayAmount = KD.utils.formatMoney feeAmount / 100
 
     """
-    <h4>{{#(plan.title)}} - #{displayAmount}</h4>
-    <span class='payment-type'>#{statusNotice}</span>
-    <p>#{dateNotice}</p>
+      <h4>{{#(plan.title)}}</h4>
+      <span class="price">#{displayAmount}</span>
+      <p>#{dateNotice}</p>
     """

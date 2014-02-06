@@ -35,7 +35,7 @@ class PricingAppView extends KDView
       then "Please check your email to complete your registration."
       else "Now it’s time, time to start Koding!"
 
-    @addSubView @thankYou = new KDCustomHTMLView
+    @addSubView thankYou = new KDCustomHTMLView
       cssClass : "pricing-thank-you"
       partial  :
         """
