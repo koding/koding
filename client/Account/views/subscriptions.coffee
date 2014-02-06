@@ -10,11 +10,6 @@ class AccountSubscriptionsListController extends AccountListViewController
     @getListView().on 'ItemWasAdded', (item) =>
       subscription = item.getData()
 
-      subscription.plan.fetchProducts (err, products) ->
-        return  if KD.showError err
-
-        item.setProductComponents subscription, products
-
       item
         .on 'UnsubscribeRequested', =>
           @confirm 'cancel', subscription
@@ -78,14 +73,6 @@ class AccountSubscriptionsListController extends AccountListViewController
   loadView:->
     super
 
-    @getView().parent.addSubView reloadButton = new KDButtonView
-      style     : 'solid green small account-header-button'
-      title     : ''
-      icon      : yes
-      iconOnly  : yes
-      iconClass : 'refresh'
-      callback  : @bound 'loadItems'
-
 class AccountSubscriptionsList extends KDListView
 
   constructor:(options={}, data)->
@@ -98,6 +85,7 @@ class AccountSubscriptionsListItem extends KDListItemView
 
   constructor:(options={}, data)->
     options.tagName or= 'li'
+    options.type    or= 'subscription'
 
     super options, data
 
@@ -117,18 +105,10 @@ class AccountSubscriptionsListItem extends KDListItemView
 
   viewAppended: JView::viewAppended
 
-  setProductComponents: (subscription, components) ->
-    @addSubView new SubscriptionUsageView {
-      subscription
-      components
-    }
-
   pistachio:->
     """
-    <div class='payment-details'>
       {{> @subscription}}
       {{> @controls}}
-    </div>
     """
 
 class SubscriptionControls extends JView
@@ -136,10 +116,12 @@ class SubscriptionControls extends JView
   getStatusInfo: (subscription = @getData()) ->
     switch subscription.status
       when 'active', 'future'
+        cssClass    : 'red'
         text        : 'unsubscribe'
         event       : 'UnsubscribeRequested'
         showChange  : yes
       when 'canceled', 'expired'
+        cssClass    : 'yellow'
         text        : 'reactivate'
         event       : 'ReactivateRequested'
         showChange  : no
@@ -148,20 +130,21 @@ class SubscriptionControls extends JView
     @unsetClass 'kdview'
     @setClass 'controls'
 
-    { text, event, showChange } = @getStatusInfo()
-
-    if showChange
-      @changeLink = new CustomLinkView
-        title     : 'change plan'
-        click     : (e) =>
-          e.preventDefault()
-          @emit 'PlanChangeRequested'
-      @addSubView @changeLink
-      @setPartial ' | '
+    { text, cssClass, event, showChange } = @getStatusInfo()
 
     @statusLink = new CustomLinkView
+      cssClass  : cssClass
       title     : text
       click     : (e) =>
         e.preventDefault()
         @emit event
     @addSubView @statusLink
+
+    if showChange
+      @changeLink = new CustomLinkView
+        cssClass  : 'green'
+        title     : 'change plan'
+        click     : (e) =>
+          e.preventDefault()
+          @emit 'PlanChangeRequested'
+      @addSubView @changeLink
