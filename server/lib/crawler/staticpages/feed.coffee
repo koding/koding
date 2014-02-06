@@ -13,7 +13,6 @@ module.exports = (bongo, page, contentType, callback)=>
   if page > 0
     skip = (page - 1) * ITEMSPERPAGE
 
-
   options = {
     limit : ITEMSPERPAGE
     skip  : skip
@@ -30,10 +29,10 @@ module.exports = (bongo, page, contentType, callback)=>
   pageContent = ""
   model.count {}, (error, count)=>
     return callback error, null  if error
-    return callback null, null  if count is 0
+    return callback null, getEmptyPage contentType  if count is 0
     model.some {}, options, (err, contents)=>
       return callback err, null  if err
-      return callback null, null  if contents.length is 0
+      return callback null, getEmptyPage contentType  if count is 0
       queue = [0..contents.length - 1].map (index)=>=>
         queue.pageContent or= ""
 
@@ -208,6 +207,8 @@ getDock = ->
       </div>
   </header>
   """
+getEmptyPage = (contentType) ->
+  putContentIntoFullPage "There is no activity yet", "", contentType
 
 putContentIntoFullPage = (content, pagination, contentType)->
   getGraphMeta  = require './graphmeta'
