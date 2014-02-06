@@ -82,17 +82,14 @@ class PaymentController extends KDController
 
   createPaymentInfoModal: -> new PaymentFormModal
 
-  createUpgradeForm: (tag, options = {}) -> @createUpgradeWarning tag, options
-
-  createUpgradeWarning: (tag, options = {}) ->
+  createUpgradeForm: (tag, options = {}) ->
     buyPacksButton = new KDButtonView
-      cssClass      : "buy-packs"
-      style         : "solid green medium"
-      title         : "Buy Resource Packs"
-      callback      : ->
-        @parent.emit 'Cancel'
-        router      = KD.singleton "router"
-        router.handleRoute "/Pricing"
+      cssClass     : "buy-packs"
+      style        : "solid green medium"
+      title        : "Buy Resource Packs"
+      callback     : =>
+        @emit 'Cancel'
+        KD.singleton("router").handleRoute "/Pricing"
 
     return new JView
       pistachioParams:
@@ -133,7 +130,27 @@ class PaymentController extends KDController
       .on 'DataCollected', (data) =>
         @transitionSubscription data, (err, subscription, rest...) ->
           return  if KD.showError err
-          workflow.emit 'Finished', data, subscription, rest...
+          workflow.emit 'SubscriptionTransitionCompleted', subscription
+          workflow.emit 'Finished', data, err, subscription, rest...
+
+      .on 'Finished', (data, err, subscription, rest...) =>
+        { plan, email, createAccount, paymentMethod: {billing} } = data
+        if err?.short is 'existing_subscription'
+          { existingSubscription } = err
+          if existingSubscription.status is 'active'
+            new KDNotificationView title: "You are already subscribed to this plan!"
+            KD.getSingleton('router').handleRoute '/Account/Subscriptions'
+          else
+            existingSubscription.plan = plan
+            @confirmReactivation existingSubscription, (err, subscription) =>
+              return KD.showError err  if err
+              @emit "SubscriptionReactivated", subscription
+        else if createAccount
+          { cardFirstName: firstName, cardLastName: lastName } = billing
+          { JUser } = KD.remote.api
+          JUser.convert { firstName, lastName, email }, (err) ->
+            JUser.logout()
+
       .enter()
 
     workflow
@@ -157,8 +174,8 @@ class PaymentController extends KDController
           callback null, subscription
 
   createSubscription: (options, callback) ->
-    { plan, planOptions, promotionType, email, paymentMethod, createAccount } = options
-    { paymentMethodId, billing } = paymentMethod
+    { plan, planOptions, promotionType, paymentMethod } = options
+    { paymentMethodId } = paymentMethod
     { planApi } = planOptions
 
     throw new Error "Must provide a plan API!"  unless planApi?
@@ -170,31 +187,7 @@ class PaymentController extends KDController
       planCode: plan.planCode
     }
 
-    planApi.subscribe options, (err, subscription, rest...) =>
-      if err?.short is 'existing_subscription'
-        { existingSubscription } = err
-
-        if existingSubscription.status is 'active'
-          new KDNotificationView
-            title: "You are already subscribed to this plan!"
-          KD.getSingleton('router').handleRoute '/Account/Subscriptions'
-
-        else
-          existingSubscription.plan = plan
-          @confirmReactivation existingSubscription, callback
-
-      else if createAccount
-        { JUser } = KD.remote.api
-
-        { cardFirstName: firstName, cardLastName: lastName } = billing
-
-        JUser.convert { firstName, lastName, email }, (err) ->
-          return callback err  if err
-
-          JUser.logout (err) ->
-            callback err, subscription, rest...
-      else
-        callback err, subscription, rest...
+    planApi.subscribe options, callback
 
   transitionSubscription: (formData, callback) ->
     { productData, oldSubscription, promotionType, paymentMethod, createAccount, email } = formData
