@@ -117,18 +117,6 @@ class HomePage extends JView
         top     : 25
         left    : 25
 
-    new MixpanelScrollTracker
-      attribute: 'section',
-      event: '/ scroll to',
-      markers: [
-        { position: 362,  value: 'Teamwork screenshot'    }
-        { position: 627,  value: 'Feature explanation'    }
-        { position: 1495, value: 'Activity screenshot'    }
-        { position: 1995, value: 'Enterprise explanation' }
-        { position: 2270, value: 'Enterprise contact'     }
-        { position: 2864, value: 'Scrolled to bottom'     }
-      ]
-
   pistachio:->
 
     """
