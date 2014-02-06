@@ -4,6 +4,8 @@ JAccount = require '../account'
 JUser = require '../user'
 JVM = require '../vm'
 KodingError = require '../../error'
+{argv}   = require 'optimist'
+KONFIG = require('koding-config-manager').load("main.#{argv.c}")
 
 
 module.exports = class JReferral extends jraphical.Message
