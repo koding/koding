@@ -5,10 +5,10 @@ class SubscriptionView extends JView
     Subscription for #{ KD.utils.formatPlural quantity, 'plan' } #{verbPhrase}
     """
 
-  pistachio:->
-    { quantity, plan, status, renew, expires, usage, startsAt } = @getData()
+  datePattern = "mmmm dS, yyyy, h:MM TT"
 
-    { feeAmount } = plan
+  pistachio:->
+    { feeAmount, quantity, plan, status, renew, expires, startsAt } = @getData()
 
     statusNotice = switch status
       when 'active', 'modified'
@@ -23,11 +23,11 @@ class SubscriptionView extends JView
       if plan.type isnt 'single'
         switch status
           when 'active'
-            "Will renew on #{dateFormat renew}"
+            "Will renew on #{dateFormat renew, datePattern}"
           when 'canceled'
-            "Will be available till #{dateFormat expires}"
+            "Will be available till #{dateFormat expires, datePattern}"
           when 'future'
-            "Will become available on #{dateFormat startsAt}"
+            "Will become available on #{dateFormat startsAt, datePattern}"
       else ''
 
     displayAmount = KD.utils.formatMoney feeAmount / 100
