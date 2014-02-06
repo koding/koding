@@ -35,7 +35,7 @@ class DevToolsMainView extends KDView
         ]
         layout                  :
           direction             : "vertical"
-          sizes                 : [ "258px", null ]
+          sizes                 : [ "264px", null ]
           splitName             : "BaseSplit"
           cssClass              : 'basesplit-gokmen'
           views                 : [

@@ -1,0 +1,21 @@
+.%%appname%%.main-view {
+  background: white;
+}
+
+.%%appname%% .welcome-view {
+
+  background: #eee;
+
+  height: auto;
+  width: 200px;
+
+  margin: 50px auto;
+
+  border: 1px solid #ccc;
+  border-radius: 4px;
+
+  padding:10px;
+
+  text-align:center;
+
+}

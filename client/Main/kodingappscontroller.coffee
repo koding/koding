@@ -295,10 +295,10 @@ class KodingAppsController extends KDController
         title : "Application name is not provided."
 
     type         = "blank"
-    name         = (name.replace /[^a-zA-Z]/g, '').capitalize()
-
-    manifestStr  = defaultManifest type, name
-    changeLogStr = @_createChangeLog name
+    appname      = KD.utils.slugify name.replace /[^a-zA-Z]/g, ''
+    APPNAME      = appname.capitalize()
+    manifestStr  = defaultManifest type, APPNAME
+    changeLogStr = @_createChangeLog APPNAME
     manifest     = JSON.parse manifestStr
     appPath      = @getAppPath manifest
 
@@ -317,12 +317,21 @@ class KodingAppsController extends KDController
 
       (cb)->
 
-        indexFile     = FSHelper.createFileFromPath "#{appPath}/index.coffee"
+        indexFile = FSHelper.createFileFromPath "#{appPath}/index.coffee"
         indexFile.fetchContents (err, content)->
           return cb err  if err
-          content = (content.replace /\%\%APPNAME\%\%/g, name)
-                            .replace /\%\%AUTHOR\%\%/g, KD.nick()
+          content = content.replace(/\%\%APPNAME\%\%/g, APPNAME)
+                           .replace(/\%\%appname\%\%/g, appname)
+                           .replace(/\%\%AUTHOR\%\%/g , KD.nick())
           indexFile.save content, cb
+
+      (cb)->
+
+        styleFile = FSHelper.createFileFromPath "#{appPath}/resources/style.css"
+        styleFile.fetchContents (err, content)->
+          return cb err  if err
+          content = content.replace(/\%\%appname\%\%/g, appname)
+          styleFile.save content, cb
 
       (cb)->
 

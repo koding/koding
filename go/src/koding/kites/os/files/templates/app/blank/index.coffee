@@ -1,23 +1,23 @@
 class %%APPNAME%%MainView extends KDView
 
   constructor:(options = {}, data)->
-    options.cssClass = '%%APPNAME%% main-view'
+    options.cssClass = '%%appname%% main-view'
     super options, data
 
   viewAppended:->
     @addSubView new KDView
-      partial : "Welcome to %%APPNAME%% app!"
+      partial  : "Welcome to %%APPNAME%% app!"
+      cssClass : "welcome-view"
 
 class %%APPNAME%%Controller extends AppController
 
   constructor:(options = {}, data)->
     options.view    = new %%APPNAME%%MainView
     options.appInfo =
-      name     : "%%APPNAME%%"
-      type     : "application"
+      name : "%%APPNAME%%"
+      type : "application"
 
     super options, data
-
 
 do ->
 
@@ -30,8 +30,8 @@ do ->
   else
 
     KD.registerAppClass %%APPNAME%%Controller,
-      name     : "%%APPNAME%%"
-      routes   :
+      name : "%%APPNAME%%"
+      routes :
         "/%%APPNAME%%" : null
         "/Apps/%%AUTHOR%%/%%APPNAME%%/run" : null
       behavior : "application"
