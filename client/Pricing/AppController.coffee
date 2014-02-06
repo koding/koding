@@ -36,9 +36,15 @@ class PricingAppController extends KDViewController
     @createProductForm()
 
   createProductForm: ->
+    view = @getView()
     @productForm.destroy()  if @productForm and not @productForm.isDestroyed
     @productForm = new PricingProductForm
-    @getView().setWorkflow workflow = KD.singleton("paymentController").createUpgradeWorkflow {@productForm}
+
+    workflow = KD.singleton("paymentController").createUpgradeWorkflow {@productForm}
+    view.setWorkflow workflow
+
+    @productForm.on "PlanSelected", (plan) =>
+      view.addGroupForm()  if "custom-plan" in plan.tags
 
   selectPlan: (tag, options) ->
     @productForm.selectPlan tag, options
