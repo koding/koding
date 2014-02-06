@@ -247,7 +247,7 @@ module.exports = class JPasswordRecovery extends jraphical.Module
         if mail.dateDelivered
         then mail.dateDelivered
         else
-          console.warn "We have no record of this message"
+          console.warn "We have no record of this message", @token
           mail.dateAttempted
 
       if (Date.now() - dateThen > @expiryPeriod)

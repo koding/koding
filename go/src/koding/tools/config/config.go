@@ -121,7 +121,11 @@ type Config struct {
 		Token   string
 		Channel string
 	}
-
+	Graphite struct {
+		Use  bool
+		Host string
+		Port int
+	}
 	LogLevel map[string]string
 }
 

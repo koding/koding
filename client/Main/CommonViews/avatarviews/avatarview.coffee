@@ -37,8 +37,6 @@ class AvatarView extends LinkView
 
     super options, data
 
-    src = @getGravatarUri()
-
     if @detailedAvatar?
       @on 'TooltipReady', =>
         @utils.defer =>
@@ -55,10 +53,23 @@ class AvatarView extends LinkView
 
   getGravatarUri:->
     {profile} = @getData()
+    return no  unless profile?.hash?
+
     {width} = @getOptions().size
-    if profile.hash
-    then "//gravatar.com/avatar/#{profile.hash}?size=#{width * @dpr}&d=404&r=g"
-    else no
+    size    = width * @dpr
+
+    # We have 16-512 all versions of avatar on our CDN ~ GG
+    # If you need to update them; after creating a largest version of avatar
+    # image (512x512) you can run following command (on OSX pre-installed) to
+    # create other sizes
+    #
+    # $ for i in {16..511}; do; sips -Z $i default.avatar.512.png --out default.avatar.$i.png; done
+    #
+    # and you need to upload them to koding-cdn/images bucket.
+    # Thanks to gravatar to not support svg's, damn.
+
+    defaultAvatarUri = "https://koding-cdn.s3.amazonaws.com/images/default.avatar.#{size}.png"
+    return "//gravatar.com/avatar/#{profile.hash}?size=#{size}&d=#{defaultAvatarUri}&r=g"
 
   render:->
 

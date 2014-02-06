@@ -139,7 +139,7 @@ class MainController extends KDController
 
     # async clientId change checking procedures causes
     # race conditions between window reloading and post-login callbacks
-    @utils.repeat 3000, do (cookie = $.cookie 'clientId') => =>
+    cookieChangeHandler = do (cookie = $.cookie 'clientId') => =>
       cookieExists = cookie?
       cookieMatches = cookie is ($.cookie 'clientId')
       cookie = $.cookie 'clientId'
@@ -166,6 +166,11 @@ class MainController extends KDController
           KD.getSingleton('router').handleRoute lastRoute or '/Activity', {replaceState: yes, entryPoint}
           localStorage?.removeItem "routeToBeContinued"
 
+        @utils.wait 3000, cookieChangeHandler
+    # Note: I am using wait instead of repeat, for the subtle difference.  See this StackOverflow answer for more info: 
+    #       http://stackoverflow.com/questions/729921/settimeout-or-setinterval/731625#731625
+    @utils.wait 3000, cookieChangeHandler
+
   setVisitor:(visitor)-> @visitor = visitor
   getVisitor: -> @visitor
   getAccount: -> KD.whoami()
@@ -175,7 +180,8 @@ class MainController extends KDController
 
     { account, replacementToken } = options
 
-    $.cookie 'clientId', replacementToken  if replacementToken
+    if replacementToken and replacementToken isnt $.cookie 'clientId'
+      $.cookie 'clientId', replacementToken
 
     @accountChanged account
 

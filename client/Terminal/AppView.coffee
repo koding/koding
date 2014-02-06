@@ -228,10 +228,12 @@ class WebTermAppView extends JView
     @checkVM()
     path = location.pathname + location.search + "?"
     mainController = KD.getSingleton("mainController")
-    mainController.on "accountChanged.to.loggedIn", =>
-      wc = KD.singleton 'windowController'
-      wc.clearUnloadListeners()
-      location.replace path
+
+    unless KD.isLoggedIn()
+      mainController.once "accountChanged.to.loggedIn", =>
+        wc = KD.singleton 'windowController'
+        wc.clearUnloadListeners()
+        location.replace path
 
 
   createNewTab: (options = {}) ->
