@@ -6,7 +6,6 @@ import (
 	"koding/db/mongodb"
 	"koding/tools/config"
 	"koding/tools/logger"
-	"os"
 	"strconv"
 	"time"
 
@@ -19,9 +18,8 @@ var (
 	STATSD g2s.Statter
 
 	mongo         *mongodb.MongoDB
-	configProfile string
-	flagSet       *flag.FlagSet
 	log           = logger.New("graphitefeeder")
+	configProfile = flag.String("c", "", "Configuration profile from file")
 )
 
 func init() {
@@ -31,18 +29,15 @@ func init() {
 	if err != nil {
 		panic(err)
 	}
-
-	flagSet = flag.NewFlagSet("graphitefeeder", flag.ContinueOnError)
-	flagSet.StringVar(&configProfile, "c", "", "Configuration profile from file")
 }
 
 func main() {
-	flagSet.Parse(os.Args)
-	if configProfile == "" {
+	flag.Parse()
+	if *configProfile == "" {
 		log.Fatal("Please define config file with -c")
 	}
 
-	c := config.MustConfig(configProfile)
+	c := config.MustConfig(*configProfile)
 	mongo = mongodb.NewMongoDB(c.Mongo)
 
 	l := logger.GetLoggingLevelFromConfig("graphitefeeder", c.Environment)

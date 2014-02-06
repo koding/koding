@@ -6,6 +6,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"flag"
+	"fmt"
 	"koding/kontrol/kontrolhelper"
 	"koding/tools/amqputil"
 	"koding/tools/config"
@@ -28,27 +29,20 @@ import (
 
 var (
 	log           = logger.New("broker")
-	configProfile string
-	brokerDomain  string
-	kontrolUuid   string
-	flagSet       *flag.FlagSet
+	configProfile = flag.String("c", "", "Configuration profile from file")
+	brokerDomain  = flag.String("a", "", "Send kontrol a custom domain istead of os.Hostname")
+	kontrolUuid   = flag.String("u", "", "Enable kontrol mode")
 )
 
-func init() {
-	flagSet = flag.NewFlagSet("broker", flag.ContinueOnError)
-	flagSet.StringVar(&configProfile, "c", "", "Configuration profile from file")
-	flagSet.StringVar(&brokerDomain, "a", "", "Send kontrol a custom domain istead of os.Hostname")
-	flagSet.StringVar(&kontrolUuid, "u", "", "Enable kontrol mode")
-}
-
 func main() {
-	flagSet.Parse(os.Args)
-	conf := config.MustConfig(configProfile)
-	if configProfile == "" || kontrolUuid == "" {
+	fmt.Println(os.Args, "broker")
+	flag.Parse()
+	if *configProfile == "" || *kontrolUuid == "" {
 		log.Fatal("Please define config file with -c or kontrolUUID with -u")
 	}
 
-	amqputil.SetupAMQP(configProfile)
+	conf := config.MustConfig(*configProfile)
+	amqputil.SetupAMQP(*configProfile)
 
 	lifecycle.Startup("broker", false)
 	changeClientsGauge := lifecycle.CreateClientsGauge()
@@ -317,7 +311,7 @@ func main() {
 
 	// returns os.Hostname() if config.BrokerDomain is empty, otherwise it just
 	// returns config.BrokerDomain back
-	brokerHostname := kontrolhelper.CustomHostname(brokerDomain)
+	brokerHostname := kontrolhelper.CustomHostname(*brokerDomain)
 
 	sanitizedHostname := strings.Replace(brokerHostname, ".", "_", -1)
 	serviceUniqueName := "broker" /* + strconv.Itoa(os.Getpid()) */ + "|" + sanitizedHostname
@@ -326,7 +320,7 @@ func main() {
 		"broker", // servicename
 		"broker",
 		serviceUniqueName,
-		kontrolUuid,
+		*kontrolUuid,
 		brokerHostname,
 		conf.Broker.Port,
 	); err != nil {

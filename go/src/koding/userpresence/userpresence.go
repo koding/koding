@@ -7,7 +7,6 @@ import (
 	"koding/tools/amqputil"
 	"koding/tools/config"
 	"koding/tools/logger"
-	"os"
 	"strings"
 	"time"
 
@@ -19,8 +18,7 @@ import (
 var (
 	log           = logger.New("userpresence")
 	mongo         *mongodb.MongoDB
-	configProfile string
-	flagSet       *flag.FlagSet
+	configProfile = flag.String("c", "", "Configuration profile from file")
 )
 
 type socketIds map[string]bool
@@ -32,20 +30,15 @@ var (
 	timersByUser          map[string]*time.Timer
 )
 
-func init() {
-	flagSet = flag.NewFlagSet("userpresence", flag.ContinueOnError)
-	flagSet.StringVar(&configProfile, "c", "", "Configuration profile from file")
-}
-
 func main() {
-	flagSet.Parse(os.Args)
-	if configProfile == "" {
+	flag.Parse()
+	if *configProfile == "" {
 		log.Fatal("Please define config file with -c")
 	}
 
-	amqputil.SetupAMQP(configProfile)
+	amqputil.SetupAMQP(*configProfile)
 
-	conf := config.MustConfig(configProfile)
+	conf := config.MustConfig(*configProfile)
 	mongo = mongodb.NewMongoDB(conf.Mongo)
 
 	var err error

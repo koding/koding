@@ -55,10 +55,9 @@ var (
 	logLevel    logger.Level
 	mongodbConn *mongodb.MongoDB
 	conf        *config.Config
-	flagSet     *flag.FlagSet
 
-	flagProfile string
-	flagRegion  string
+	flagProfile = flag.String("c", "", "Configuration profile from file")
+	flagRegion  = flag.String("r", "", "Configuration region from file")
 
 	infos            = make(map[bson.ObjectId]*VMInfo)
 	infosMutex       sync.Mutex
@@ -72,22 +71,16 @@ var (
 	prepareQueue      = make(chan func(chan struct{}))
 )
 
-func init() {
-	flagSet = flag.NewFlagSet(OSKITE_NAME, flag.ContinueOnError)
-	flagSet.StringVar(&flagProfile, "c", "", "Configuration profile from file")
-	flagSet.StringVar(&flagRegion, "r", "", "Configuration region from file")
-}
-
 func main() {
-	flagSet.Parse(os.Args)
-	if flagProfile == "" || flagRegion == "" {
+	flag.Parse()
+	if *flagProfile == "" || *flagRegion == "" {
 		log.Fatal("Please specify profile via -c and region via -r. Aborting.")
 	}
 
 	logLevel = logger.GetLoggingLevelFromConfig(OSKITE_NAME, conf.Environment)
 	log.SetLevel(logLevel)
 
-	conf = config.MustConfig(flagProfile)
+	conf = config.MustConfig(*flagProfile)
 	mongodbConn = mongodb.NewMongoDB(conf.Mongo)
 
 	initializeSettings()
@@ -199,11 +192,11 @@ func initializeSettings() {
 
 func prepareOsKite() *kite.Kite {
 	kiteName := "os"
-	if flagRegion != "" {
-		kiteName += "-" + flagRegion
+	if *flagRegion != "" {
+		kiteName += "-" + *flagRegion
 	}
 
-	k := kite.New(kiteName, flagProfile, true)
+	k := kite.New(kiteName, *flagProfile, true)
 
 	k.LoadBalancer = func(correlationName string, username string, deadService string) string {
 		var vm *virt.VM
@@ -493,7 +486,7 @@ func getVM(channel *kite.Channel) (*virt.VM, error) {
 }
 
 func validateVM(vm *virt.VM, serviceUniqueName string) error {
-	if vm.Region != flagRegion {
+	if vm.Region != *flagRegion {
 		time.Sleep(time.Second) // to avoid rapid cycle channel loop
 		return &kite.WrongChannelError{}
 	}

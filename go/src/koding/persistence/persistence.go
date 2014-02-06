@@ -7,7 +7,6 @@ import (
 	"koding/tools/amqputil"
 	"koding/tools/config"
 	"log"
-	"os"
 	"strings"
 	"time"
 
@@ -35,25 +34,19 @@ type ConversationSlice struct {
 
 var (
 	mongo         *mongodb.MongoDB
-	configProfile string
-	flagSet       *flag.FlagSet
+	configProfile = flag.String("c", "", "Configuration profile from file")
 )
 
-func init() {
-	flagSet = flag.NewFlagSet("persistence", flag.ContinueOnError)
-	flagSet.StringVar(&configProfile, "c", "", "Configuration profile from file")
-}
-
 func main() {
-	flagSet.Parse(os.Args)
-	if configProfile == "" {
+	flag.Parse()
+	if *configProfile == "" {
 		log.Fatal("Please define config file with -c")
 	}
 
-	conf := config.MustConfig(configProfile)
+	conf := config.MustConfig(*configProfile)
 	mongo = mongodb.NewMongoDB(conf.Mongo)
 
-	amqputil.SetupAMQP(configProfile)
+	amqputil.SetupAMQP(*configProfile)
 	conn := amqputil.CreateConnection("persistence")
 
 	startPersisting(conn)

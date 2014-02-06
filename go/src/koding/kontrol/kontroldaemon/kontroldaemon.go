@@ -8,28 +8,28 @@ import (
 	"koding/kontrol/kontrolhelper"
 	"koding/tools/config"
 	"koding/tools/slog"
-	"os"
+	"log"
 
 	"github.com/streadway/amqp"
 )
 
 var (
-	configProfile string
 	mongo         *mongodb.MongoDB
-	flagSet       *flag.FlagSet
+	configProfile = flag.String("c", "", "Configuration profile from file")
 )
 
 func init() {
 	slog.SetPrefixName("kontrold")
 	slog.Println(slog.SetOutputFile("/var/log/koding/kontroldaemon.log"))
-
-	flagSet = flag.NewFlagSet("kontrold", flag.ContinueOnError)
-	flagSet.StringVar(&configProfile, "c", "", "Configuration profile from file")
 }
 
 func main() {
-	flagSet.Parse(os.Args)
-	conf := config.MustConfig(configProfile)
+	flag.Parse()
+	if *configProfile == "" {
+		log.Fatal("Please define config file with -c")
+	}
+
+	conf := config.MustConfig(*configProfile)
 	mongo = mongodb.NewMongoDB(conf.Mongo)
 	modelhelper.Initialize(conf.Mongo)
 

@@ -9,7 +9,6 @@ import (
 	"koding/tools/logger"
 	"koding/virt"
 	"net"
-	"os"
 	"strings"
 
 	"labix.org/v2/mgo"
@@ -19,20 +18,17 @@ import (
 var (
 	log           = logger.New("vmproxy")
 	mongo         *mongodb.MongoDB
-	configProfile string
-	flagSet       *flag.FlagSet
+	configProfile = flag.String("c", "", "Configuration profile from file")
 )
 
-func init() {
-	flagSet = flag.NewFlagSet("vmproxy", flag.ContinueOnError)
-	flagSet.StringVar(&configProfile, "c", "", "Configuration profile from file")
-}
-
 func main() {
-	flagSet.Parse(os.Args)
+	flag.Parse()
+	if *configProfile == "" {
+		log.Fatal("Please define config file with -c")
+	}
 
 	lifecycle.Startup("proxy", true)
-	conf := config.MustConfig(configProfile)
+	conf := config.MustConfig(*configProfile)
 	mongo = mongodb.NewMongoDB(conf.Mongo)
 
 	// go fastproxy.ListenFTP(&net.TCPAddr{IP: net.IPv4(10, 0, 2, 15), Port: 21}, net.IPv4(10, 0, 2, 15), nil, func(req *fastproxy.FTPRequest) {

@@ -11,7 +11,6 @@ import (
 	"koding/tools/logger"
 	"koding/tools/statsd"
 	"koding/workers/neo4jfeeder/mongohelper"
-	"os"
 	"strings"
 	"time"
 
@@ -35,26 +34,20 @@ type Message struct {
 	Payload []map[string]interface{} `json:"payload"`
 }
 
-func init() {
-	flagSet = flag.NewFlagSet("neo4jfeeder", flag.ContinueOnError)
-	flagSet.StringVar(&configProfile, "c", "", "Configuration profile from file")
-}
-
 var (
 	log           = logger.New("neo4jfeeder")
 	mongo         *mongodb.MongoDB
-	configProfile string
-	flagSet       *flag.FlagSet
+	configProfile = flag.String("c", "", "Configuration profile from file")
 )
 
 func main() {
-	flagSet.Parse(os.Args)
-	if configProfile == "" {
+	flag.Parse()
+	if *configProfile == "" {
 		log.Fatal("Please define config file with -c")
 	}
 
-	amqputil.SetupAMQP(configProfile)
-	conf := config.MustConfig(configProfile)
+	amqputil.SetupAMQP(*configProfile)
+	conf := config.MustConfig(*configProfile)
 	mongo = mongodb.NewMongoDB(conf.Mongo)
 	mongohelper.MongoHelperInit(conf.Mongo)
 

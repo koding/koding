@@ -83,10 +83,9 @@ var (
 	conf *config.Config
 
 	// flag variables
-	flagSet       *flag.FlagSet
-	flagProfile   string
-	flagRegion    string
-	flagVMProxies bool
+	flagProfile   = flag.String("c", "", "Configuration profile from file")
+	flagRegion    = flag.String("r", "", "Region")
+	flagVMProxies = flag.Bool("v", false, "Enable ports for VM users (1024-10000)")
 )
 
 // Proxy is implementing the http.Handler interface (via ServeHTTP). This is
@@ -126,22 +125,14 @@ type interval struct {
 	duration int64
 }
 
-func init() {
-	flagSet = flag.NewFlagSet(KONTROLPROXY_NAME, flag.ContinueOnError)
-	flagSet.StringVar(&flagProfile, "c", "", "Configuration profile from file")
-	flagSet.StringVar(&flagRegion, "r", "", "Region")
-	flagSet.BoolVar(&flagVMProxies, "v", false, "Enable ports for VM users (1024-10000)")
-
-}
-
 func main() {
-	flagSet.Parse(os.Args)
-	if flagProfile == "" || flagRegion == "" {
+	flag.Parse()
+	if *flagProfile == "" || *flagRegion == "" {
 		log.Error("No flags defined. -c, -r and -v is not set. Aborting")
 		os.Exit(1)
 	}
 
-	conf := config.MustConfig(flagProfile)
+	conf := config.MustConfig(*flagProfile)
 	mongohelper.MongoHelperInit(conf.Mongo)
 
 	l := logger.GetLoggingLevelFromConfig(KONTROLPROXY_NAME, conf.Environment)
@@ -189,10 +180,10 @@ func (p *Proxy) runNewKite() {
 
 	query := protocol.KontrolQuery{
 		Username:    "koding-kites",
-		Environment: flagProfile,
+		Environment: *flagProfile,
 		Name:        "oskite",
 		Version:     "0.0.1",
-		Region:      flagRegion,
+		Region:      *flagRegion,
 	}
 
 	onEvent := func(e *kite.Event) {
@@ -389,7 +380,7 @@ func (p *Proxy) startHTTP() {
 	// HTTP Handling for VM port forwardings
 	log.Info("normal mode is enabled. serving ports between 1024-10000 for vms...")
 
-	if flagVMProxies {
+	if *flagVMProxies {
 		for i := 1024; i <= 10000; i++ {
 			go func(i int) {
 				port := strconv.Itoa(i)
@@ -432,7 +423,7 @@ func (p *Proxy) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	// our main handler mux function goes and picks the correct handler
 	if h := p.getHandler(r); h != nil {
-		if flagVMProxies {
+		if *flagVMProxies {
 			// don't wrap this around CLH logging handler, because it breaks websocket
 			h.ServeHTTP(w, r)
 		} else {
