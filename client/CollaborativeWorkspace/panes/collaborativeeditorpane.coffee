@@ -7,22 +7,24 @@ class CollaborativeEditorPane extends CollaborativePane
     super options, data
 
     @container.on "viewAppended", =>
-      @createEditor()
-      @ref        = @workspace.firebaseRef.child @sessionKey
-      @firepad    = Firepad.fromCodeMirror @ref, @codeMirrorEditor
+      @createEditor =>
+        @ref        = @workspace.firebaseRef.child @sessionKey
+        @firepad    = Firepad.fromCodeMirror @ref, @codeMirrorEditor
 
-      @firepad.on "ready", =>
-        @firepad.setText " " if @firepad.isHistoryEmpty() # fix for a firepad bug
-        @codeMirrorEditor.scrollTo 0, 0
-        {file, content} = @getOptions()
-        return @openFile file, content  if file
+        @firepad.on "ready", =>
+          if @firepad.isHistoryEmpty() # fix for a firepad bug
+            @firepad.setText " "
+            @firepad.setText ""
+          @codeMirrorEditor.scrollTo 0, 0
+          {file, content} = @getOptions()
+          return @openFile file, content  if file
 
-      if @amIHost
-        @ref.on "value", (snapshot) =>
-          value = @workspace.reviveSnapshot snapshot
-          return unless value
-          if value.WaitingSaveRequest is yes
-            return @save()
+        if @amIHost
+          @ref.on "value", (snapshot) =>
+            value = @workspace.reviveSnapshot snapshot
+            return unless value
+            if value.WaitingSaveRequest is yes
+              return @save()
 
   openFile: (file, content) ->
     @setData file
@@ -60,7 +62,8 @@ class CollaborativeEditorPane extends CollaborativePane
   setValue: (value) ->
     @codeMirrorEditor.setValue value
 
-  createEditor: ->
+  createEditor: (callback)->
+
     @codeMirrorEditor = CodeMirror @container.getDomElement()[0],
       lineNumbers     : yes
       scrollPastEnd   : yes
@@ -71,6 +74,8 @@ class CollaborativeEditorPane extends CollaborativePane
 
     @setEditorTheme()
     @setEditorMode 'html'
+
+    callback?()
 
   handleSave: ->
     @save()
