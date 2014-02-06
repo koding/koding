@@ -101,7 +101,7 @@ class PricingAppView extends KDView
           label             : "Group URL"
           type              : "text"
           name              : "groupURL"
-          placeholder       : "#{window.location.origin}"
+          placeholder       : window.location.origin
           keyup             : KD.utils.defer.bind this, @bound "checkSlug"
           validate          :
             rules           :
