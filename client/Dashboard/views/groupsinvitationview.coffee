@@ -138,6 +138,7 @@ class GroupsInvitationView extends KDView
       callback           : ({emails, message, saveMessage})=>
 
         KD.whoami().fetchFromUser "email", (err, userEmail)=>
+          emails = emails.trim()
           emailList = emails.split(/\n/).map (email)-> email.trim()
           if userEmail in emailList
             @inviteByEmail.modalTabs.forms.invite.buttons.Send.hideLoader()
