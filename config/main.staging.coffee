@@ -235,12 +235,12 @@ module.exports =
   newkontrol      :
     host          : "kontrol-internal.sj.koding.com"
     port          : 4000
-    certFile      : "/opt/koding/go/src/koding/kontrol/kontrolproxy/files/10.0.5.231_cert.pem"
-    keyFile       : "/opt/koding/go/src/koding/kontrol/kontrolproxy/files/10.0.5.231_key.pem"
+    certFile      : "/opt/koding/certs/y_koding_com_cert.pem"
+    keyFile       : "/opt/koding/certs/y_koding_com_key.pem"
   proxyKite       :
     domain        : "127.0.0.1"
-    certFile      : "/opt/koding/go/src/koding/kontrol/kontrolproxy/files/10.0.5.102_cert.pem"
-    keyFile       : "/opt/koding/go/src/koding/kontrol/kontrolproxy/files/10.0.5.102_key.pem"
+    certFile      : "/opt/koding/certs/y_koding_com_cert.pem"
+    keyFile       : "/opt/koding/certs/y_koding_com_key.pem"
   etcd            : [ {host: "127.0.0.1", port: 4001} ]
   kontrold        :
     vhost         : "/"
@@ -315,7 +315,7 @@ module.exports =
     channel      : "C024LG80K"
   logLevel        :
     neo4jfeeder   : "info"
-    oskite        : "debug"
+    oskite        : "info"
     kontrolproxy  : "debug"
     userpresence  : "info"
     vmproxy       : "info"
@@ -335,3 +335,7 @@ module.exports =
       storage     : 4096
       ram         : 1024
       cpu         : 1
+  graphite       :
+    use          : true
+    host         : "172.168.2.7"
+    port         : 2003

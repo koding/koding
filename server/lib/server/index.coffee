@@ -164,8 +164,8 @@ app.get "/-/auth/register/:hostname/:key", (req, res)->
         res.send 200, authTemplate data
 
 
-app.get "/:name?/Logout", (req, res)->
-  res.clearCookie 'clientId'
+app.all "/:name?/Logout", (req, res)->
+  res.clearCookie 'clientId'  if req.method is 'POST'
   res.redirect 302, '/'
 
 app.get "/humans.txt", (req, res)->
@@ -358,3 +358,7 @@ app.get '*', (req,res)->
 
 app.listen webPort
 console.log '[WEBSERVER] running', "http://localhost:#{webPort} pid:#{process.pid}"
+
+# NOTE: in the event of errors, send 500 to the client rather
+#       than the stack trace.
+app.use (err, req, res, next) -> res.send 500, error_500()

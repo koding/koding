@@ -314,6 +314,10 @@ module.exports =
     use          : false
     ip           : "localhost"
     port         : 8125
+  graphite       :
+    use          : false
+    host         : "localhost"
+    port         : 2003
   linkedin       :
     client_id    : "f4xbuwft59ui"
     client_secret: "fBWSPkARTnxdfomg"
