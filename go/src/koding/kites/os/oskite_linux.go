@@ -80,7 +80,8 @@ func main() {
 	conf = config.MustConfig(*flagProfile)
 	mongodbConn = mongodb.NewMongoDB(conf.Mongo)
 
-	logLevel = logger.GetLoggingLevelFromConfig(OSKITE_NAME, conf.Environment)
+	logLevel = logger.GetLoggingLevelFromConfig(OSKITE_NAME, *flagProfile)
+	fmt.Println("SETTING LOGLEVEL TO", logLevel, conf.Environment)
 	log.SetLevel(logLevel)
 
 	initializeSettings()

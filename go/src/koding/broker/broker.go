@@ -45,6 +45,10 @@ func main() {
 	amqputil.SetupAMQP(*configProfile)
 
 	lifecycle.Startup("broker", false)
+
+	logLevel := logger.GetLoggingLevelFromConfig("broker", *configProfile)
+	log.SetLevel(logLevel)
+
 	changeClientsGauge := lifecycle.CreateClientsGauge()
 	changeNewClientsGauge := logger.CreateCounterGauge("newClients", logger.NoUnit, true)
 	changeWebsocketClientsGauge := logger.CreateCounterGauge("websocketClients", logger.NoUnit, false)

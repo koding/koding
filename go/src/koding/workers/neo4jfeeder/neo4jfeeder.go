@@ -49,7 +49,7 @@ func main() {
 	amqputil.SetupAMQP(*configProfile)
 	conf := config.MustConfig(*configProfile)
 	mongo = mongodb.NewMongoDB(conf.Mongo)
-	mongohelper.MongoHelperInit(conf.Mongo)
+	mongohelper.MongoHelperInit(*configProfile)
 
 	statsd.SetAppName("neo4jFeeder")
 	startConsuming()

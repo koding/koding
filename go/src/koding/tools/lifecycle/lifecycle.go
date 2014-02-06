@@ -16,6 +16,7 @@ var (
 
 func Startup(serviceName string, needRoot bool) {
 	log = logger.New(serviceName)
+	log.SetLevel(logger.DEBUG)
 
 	if needRoot && os.Getuid() != 0 {
 		log.Fatal("Must be run as root.")
