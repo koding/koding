@@ -379,10 +379,9 @@ class VirtualizationController extends KDController
       .on 'DataCollected', (data) =>
         @provisionVm data
         modal.destroy()
-
-      .on('Cancel', modal.bound 'destroy')
-
       .enter()
+
+    productForm.on "Cancel", modal.bound "destroy"
 
   provisionVm: ({ subscription, paymentMethod, productData })->
     { JVM } = KD.remote.api
