@@ -482,16 +482,22 @@ module.exports = class JGroup extends Module
     delegate.fetchSubscription null, subOptions, (err, subscription) =>
       return callback err  if err
       return callback new KodingError "Subscription is not found"  unless subscription
-      JPaymentPack.one tags: "group", (err, pack) =>
+      subscription.debitPack tag: "group", (err) =>
         return callback err  if err
-        return callback new KodingError "Group pack is not found"  unless pack
-        subscription.debit {pack}, (err) =>
-          return callback err  if err
-          @create client, formData, delegate, (err, group) ->
-            return callback err if err
-            group.addSubscription subscription, (err) ->
+        @create client, formData, delegate, (err, group) ->
+          return callback err if err
+          group.addSubscription subscription, (err) ->
+            return callback err  if err
+            subscription.debitPack tag: "user", (err) =>
               return callback err  if err
               callback null, group, subscription
+
+  creditUserPack: (delegate, callback) ->
+    subOptions = targetOptions: selector: tags: "custom-plan"
+    delegate.fetchSubscription null, subOptions, (err, subscription) =>
+      return callback err  if err
+      return callback new KodingError "Subscription is not found"  unless subscription
+      subscription.creditPack tag: "user", callback
 
   @findSuggestions = (client, seed, options, callback)->
     {limit, blacklist, skip}  = options
@@ -1118,6 +1124,7 @@ module.exports = class JGroup extends Module
 
   kickMember: permit 'grant permissions',
     success: (client, accountId, callback)->
+      {connection:{delegate}} = client
       JAccount = require '../account'
 
       if @slug is 'koding'
@@ -1141,9 +1148,11 @@ module.exports = class JGroup extends Module
             callback err
 
           queue = roles.map (role)=>=>
-            @removeMember account, role, (err)->
+            @removeMember account, role, (err)=>
               return kallback err if err
-              queue.fin()
+              @creditUserPack delegate, (err) ->
+                return callback err  if err
+                queue.fin()
 
           dash queue, kallback
 
