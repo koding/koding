@@ -63,6 +63,7 @@ module.exports =
   buildClient   : yes
   runOsKite     : no
   runProxy      : no
+  redis         : "172.16.3.13:6379"
   misc          :
     claimGlobalNamesForUsers: no
     updateAllSlugs : no
@@ -303,6 +304,10 @@ module.exports =
     use          : true
     ip           : "172.168.2.7"
     port         : 8125
+  graphite       :
+    use          : true
+    host         : "172.168.2.7"
+    port         : 2003
   linkedin       :
     client_id    : "aza9cks1zb3d"
     client_secret: "zIMa5kPYbZjHfOsq"

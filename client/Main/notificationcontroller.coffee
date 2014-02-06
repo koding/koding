@@ -20,6 +20,7 @@ class NotificationController extends KDObject
     KD.getSingleton('mainController').on "AccountChanged", =>
       @off 'NotificationHasArrived'
       @notificationChannel?.close().off()
+      @notificationChannel?.off()
       @setListeners()
 
   setListeners:->
@@ -28,6 +29,9 @@ class NotificationController extends KDObject
       serviceType : 'notification'
       isExclusive : yes
 
+
+
+    @notificationChannel.off()
     @notificationChannel.on 'message', (notification)=>
       log 'Notification has arrived', notification
       @emit "NotificationHasArrived", notification

@@ -1,6 +1,8 @@
 package main
 
 import (
+	"fmt"
+
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
 )
@@ -39,17 +41,38 @@ func numberOfAccounts() (string, int) {
 
 func numberOfUsersWhoLinkedOauth() (string, int) {
 	var identifier string = "number_of_users_who_linked_oauth"
-	var count int
-	var err error
-	var query = func(c *mgo.Collection) error {
-		count, err = c.Find(bson.M{"foreignAuth": bson.M{"$exists": true}}).Count()
+	var totalCount int
 
-		return err
+	var getProviderCount = func(provider string) int {
+		var count int
+		var err error
+
+		var query = func(c *mgo.Collection) error {
+			var key = fmt.Sprintf("foreignAuth.%v.foreignId", provider)
+			count, err = c.Find(bson.M{key: bson.M{"$exists": true}}).Count()
+
+			return err
+		}
+
+		mongo.Run("jUsers", query)
+		return count
 	}
 
-	mongo.Run("jUsers", query)
+	var providers = []string{
+		"github",
+		"odesk",
+		"facebook",
+		"google",
+		"linkedin",
+		"twitter",
+	}
 
-	return identifier, count
+	for _, provider := range providers {
+		var count = getProviderCount(provider)
+		totalCount += count
+	}
+
+	return identifier, totalCount
 }
 
 func numberOfUsersWhoLinkedOauthGithub() (string, int) {
@@ -57,7 +80,7 @@ func numberOfUsersWhoLinkedOauthGithub() (string, int) {
 	var count int
 	var err error
 	var query = func(c *mgo.Collection) error {
-		count, err = c.Find(bson.M{"foreignAuth.github": bson.M{"$exists": true}}).Count()
+		count, err = c.Find(bson.M{"foreignAuth.github.foreignId": bson.M{"$exists": true}}).Count()
 
 		return err
 	}

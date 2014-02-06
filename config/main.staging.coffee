@@ -58,6 +58,7 @@ module.exports =
   buildClient   : yes
   runOsKite     : no
   runProxy      : no
+  redis         : "172.16.3.13:6379"
   misc          :
     claimGlobalNamesForUsers: no
     updateAllSlugs : no
@@ -335,3 +336,7 @@ module.exports =
     rabbitMQ      : "info"
     ldapserver    : "info"
     broker        : "info"
+  graphite       :
+    use          : true
+    host         : "172.168.2.7"
+    port         : 2003

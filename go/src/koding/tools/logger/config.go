@@ -1,9 +1,6 @@
 package logger
 
-import (
-	"koding/tools/config"
-)
-
+import "koding/tools/config"
 
 // Get logging level from config file for the given worker name & find the
 // appropriate logging.Level

@@ -81,6 +81,7 @@ config =
     buildClient   : 1
     runOsKite     : 0
     runProxy      : 0
+    redis         : 1
     misc          :
       claimGlobalNamesForUsers: 1
       updateAllSlugs : 1
@@ -312,6 +313,10 @@ config =
     statsd          :
       use           : 1
       ip            : 1
+      port          : 1
+    graphite        :
+      use           : 1
+      host          : 1
       port          : 1
     linkedin        :
       client_id     : 1

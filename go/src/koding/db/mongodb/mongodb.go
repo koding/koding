@@ -1,6 +1,7 @@
 package mongodb
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"sync"
@@ -85,4 +86,27 @@ func (m *MongoDB) One(collection, id string, result interface{}) error {
 	session := m.GetSession()
 	defer session.Close()
 	return session.DB("").C(collection).FindId(bson.ObjectIdHex(id)).One(result)
+}
+
+func Iter(cl string, q func(*mgo.Collection) *mgo.Query, i func(*mgo.Iter) error) error {
+	session := Mongo.GetSession()
+	defer session.Close()
+	c := session.DB("").C(cl)
+
+	var iter = q(c).Iter()
+	var err = i(iter)
+	if err != nil {
+		return err
+	}
+
+	err = iter.Close()
+	if err != nil {
+		return err
+	}
+
+	if iter.Timeout() {
+		return errors.New("iter timed out")
+	}
+
+	return nil
 }

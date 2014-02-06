@@ -3,10 +3,11 @@ package logger
 import (
 	"fmt"
 	stdlog "log"
+	"log/syslog"
 	"os"
 	"runtime"
 
-	"github.com/op/go-logging"
+	"github.com/sent-hil/go-logging"
 )
 
 var modules []string
@@ -29,7 +30,7 @@ func NewGoLog(name string) *GoLogger {
 	logBackend.Color = true
 
 	// Send log to syslog
-	var syslogBackend, err = logging.NewSyslogBackend("")
+	var syslogBackend, err = logging.NewSyslogBackend("", syslog.LOG_DEBUG|syslog.LOG_LOCAL0)
 	if err != nil {
 		panic(err)
 	}
@@ -134,5 +135,5 @@ func (g *GoLogger) LogError(err interface{}, stackOffset int, additionalData ...
 		data = append(data, fmt.Sprintf("at %s (%s:%d)\n", name, file, line))
 	}
 	data = append(data, additionalData...)
-	g.Error("LogError %v", data)
+	g.Error("%v", data)
 }
