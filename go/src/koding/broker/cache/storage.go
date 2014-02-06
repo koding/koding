@@ -21,10 +21,11 @@ type SubscriptionStorage struct {
 	storage Subscriptionable
 }
 
-func NewStorage(conf *config.Config, cacheType, socketID string) (*SubscriptionStorage, error) {
-	if conf == nil {
+func NewStorage(c *config.Config, cacheType, socketID string) (*SubscriptionStorage, error) {
+	if c == nil {
 		return nil, errors.New("Config is passed as nil. Aborting.")
 	}
+	conf = c
 
 	var err error
 	var s Subscriptionable

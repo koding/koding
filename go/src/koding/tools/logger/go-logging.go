@@ -6,6 +6,7 @@ import (
 	"log/syslog"
 	"os"
 	"runtime"
+	"runtime/debug"
 
 	"github.com/sent-hil/go-logging"
 )
@@ -116,6 +117,7 @@ func (g *GoLogger) Name() string {
 
 func (g *GoLogger) RecoverAndLog() {
 	if err := recover(); err != nil {
+		debug.PrintStack()
 		g.Critical("Panicked %v", err)
 	}
 }
