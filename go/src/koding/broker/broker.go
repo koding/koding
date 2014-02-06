@@ -4,7 +4,6 @@ import (
 	"crypto/tls"
 	"encoding/json"
 	"flag"
-	"fmt"
 	"koding/kontrol/kontrolhelper"
 	"koding/tools/amqputil"
 	"koding/tools/config"
@@ -98,8 +97,6 @@ func main() {
 	conf = config.MustConfig(*flagProfile)
 	logLevel := logger.GetLoggingLevelFromConfig(BROKER_NAME, *flagProfile)
 	log.SetLevel(logLevel)
-
-	fmt.Println("LOGLEVEL of broker", logLevel)
 
 	NewBroker().Run()
 }
