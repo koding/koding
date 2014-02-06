@@ -2,9 +2,9 @@ package topicmodifier
 
 import (
 	"encoding/json"
+	"github.com/streadway/amqp"
 	"koding/messaging/rabbitmq"
 	"koding/tools/config"
-	"github.com/streadway/amqp"
 )
 
 var (

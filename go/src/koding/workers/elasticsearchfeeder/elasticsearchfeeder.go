@@ -12,11 +12,11 @@ import (
 	"strconv"
 	"time"
 
-	"log"
 	"github.com/mattbaird/elastigo/api"
 	"github.com/mattbaird/elastigo/indices"
 	"github.com/streadway/amqp"
 	"labix.org/v2/mgo/bson"
+	"log"
 )
 
 var (

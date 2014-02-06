@@ -2,8 +2,8 @@ package main
 
 import (
 	"flag"
-	"koding/kite/kd/util"
 	"koding/kite"
+	"koding/kite/kd/util"
 	"koding/kite/kodingkey"
 	"os/exec"
 

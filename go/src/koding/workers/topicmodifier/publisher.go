@@ -2,8 +2,8 @@ package topicmodifier
 
 import (
 	"encoding/json"
-	"koding/messaging/rabbitmq"
 	"github.com/streadway/amqp"
+	"koding/messaging/rabbitmq"
 )
 
 type PublisherConfig struct {

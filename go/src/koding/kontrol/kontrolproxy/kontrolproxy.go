@@ -4,6 +4,8 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"github.com/gorilla/context"
+	"github.com/op/go-logging"
 	"html/template"
 	"io"
 	"koding/db/mongodb/modelhelper"
@@ -29,8 +31,6 @@ import (
 	"sync"
 	"syscall"
 	"time"
-	"github.com/gorilla/context"
-	"github.com/op/go-logging"
 
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/sessions"

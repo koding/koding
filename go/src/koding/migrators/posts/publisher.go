@@ -2,8 +2,8 @@ package main
 
 import (
 	"encoding/json"
-	"koding/messaging/rabbitmq"
 	"github.com/streadway/amqp"
+	"koding/messaging/rabbitmq"
 )
 
 var (
