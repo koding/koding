@@ -76,6 +76,8 @@ class VmProductForm extends FormWorkflow
       else
         @collectData { plan }
 
+    @forwardEvent upgradeForm, "Cancel"
+
     @addForm 'upgrade', upgradeForm, ['plan', 'subscription']
 
     packChoiceForm = @createPackChoiceForm()
