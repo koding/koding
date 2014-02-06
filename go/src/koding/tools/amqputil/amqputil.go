@@ -20,7 +20,7 @@ func SetupAMQP(profile string) {
 
 func CreateConnection(component string) *amqp.Connection {
 	if conf == nil {
-		log.Fatal("Configuration is not defined. Please call AMQPUtilInit() before you proceed.")
+		log.Fatal("Configuration is not defined. Please call SetupAMQP() before you proceed.")
 	}
 
 	conn, err := amqp.Dial(amqp.URI{
