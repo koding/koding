@@ -36,22 +36,20 @@ class KodingAppsController extends KDController
   # Please make sure about your changes on it.
   @putAppScript = (app, callback = noop)->
 
-    @unloadAppScript app
-
-    identifier = app.identifier
-
     if app.style
-      @appendScriptElement 'style',  { url:app.style, identifier, callback }
+      @appendScriptElement 'style',  \
+        { url:app.style, identifier:app.identifier, callback }, yes
 
     if app.script
-      @appendScriptElement 'script', { url:app.script, identifier, callback }
+      @appendScriptElement 'script', \
+        { url:app.script, identifier:app.identifier, callback }, yes
 
   @unloadAppScript = (app, callback = noop)->
 
     identifier = app.identifier.replace /\./g, '_'
 
-    $("head .internal-style-#{identifier}").remove()
-    $("head .internal-script-#{identifier}").remove()
+    @destroyScriptElement "style", identifier
+    @destroyScriptElement "script", identifier
 
     KD.utils.defer -> callback()
 
@@ -108,7 +106,7 @@ class KodingAppsController extends KDController
           style      : "modal-cancel"
           callback   : -> modal.destroy()
 
-  @appendScriptElement = (type, {identifier, url, callback})->
+  @appendScriptElement = (type, {identifier, url, callback}, force)->
 
     identifier = identifier.replace /\./g, '_'
     domId      = "internal-#{type}-#{identifier}"
@@ -119,9 +117,11 @@ class KodingAppsController extends KDController
     if vmName
 
       file = FSHelper.createFileFromPath url
-      file.fetchContents (err, partial)->
+      file.fetchContents (err, partial)=>
         return  if err
         obj = new KDCustomHTMLView {domId, tagName, partial}
+
+        @destroyScriptElement type, identifier  if force
 
         if type is 'script'
           obj.once 'viewAppended', -> callback null
@@ -144,12 +144,16 @@ class KodingAppsController extends KDController
           type     : "text/javascript"
           src      : url
         bind       = "load"
-        load       = -> callback null
+        load       = -> callback? null
 
+      @destroyScriptElement type, identifier  if force
 
       document.head.appendChild (new KDCustomHTMLView {
         domId, tagName, attributes, bind, load
       }).getElement()
+
+  @destroyScriptElement = (type, identifier)->
+    (document.getElementById "internal-#{type}-#{identifier}")?.remove()
 
   # #
   # MAKE NEW APP
