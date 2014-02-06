@@ -129,10 +129,12 @@ class DevToolsMainView extends KDView
 
         PreviewPane.container.addSubView window.appView
 
-      catch e
+      catch error
 
         try window.appView.destroy?()
-        warn "Compile failed:", e
+        warn "Failed to run:", error
+
+        PreviewPane.container.addSubView new ErrorPaneWidget {}, {code, error}
 
       finally
 
@@ -181,3 +183,22 @@ class DevToolsEditorPane extends CollaborativeEditorPane
 
 class DevToolsCssEditorPane extends DevToolsEditorPane
   constructor:-> super; @_mode = 'css'
+
+class ErrorPaneWidget extends JView
+  constructor:(options = {}, data)->
+    options.cssClass = KD.utils.curry 'error-pane', options.cssClass
+    super
+
+  pistachio:->
+    {error} = @getData()
+    line = if error.location then "at line: #{error.location.last_line+1}" else ""
+    """
+      {h1{#(error.name)}}
+      <pre>#{error.message} #{line}</pre>
+      <div class='stack'>
+        <h2>Full Stack</h2>
+        {pre{#(error.stack)}}
+      </div>
+    """
+
+  click:-> @setClass 'in'
