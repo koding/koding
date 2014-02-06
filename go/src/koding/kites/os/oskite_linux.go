@@ -55,6 +55,7 @@ var (
 	logLevel    logger.Level
 	mongodbConn *mongodb.MongoDB
 	conf        *config.Config
+	flagSet     *flag.FlagSet
 
 	flagProfile string
 	flagRegion  string
@@ -72,13 +73,13 @@ var (
 )
 
 func init() {
-	f := flag.NewFlagSet(OSKITE_NAME, flag.ContinueOnError)
-	f.StringVar(&flagProfile, "c", "", "Configuration profile from file")
-	f.StringVar(&flagRegion, "r", "", "Configuration region from file")
+	flagSet = flag.NewFlagSet(OSKITE_NAME, flag.ContinueOnError)
+	flagSet.StringVar(&flagProfile, "c", "", "Configuration profile from file")
+	flagSet.StringVar(&flagRegion, "r", "", "Configuration region from file")
 }
 
 func main() {
-	flag.Parse()
+	flagSet.Parse(os.Args)
 	if flagProfile == "" || flagRegion == "" {
 		log.Fatal("Please specify profile via -c and region via -r. Aborting.")
 	}

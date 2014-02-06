@@ -11,6 +11,7 @@ import (
 	"koding/tools/logger"
 	"koding/tools/statsd"
 	"koding/workers/neo4jfeeder/mongohelper"
+	"os"
 	"strings"
 	"time"
 
@@ -35,16 +36,19 @@ type Message struct {
 }
 
 func init() {
-	f := flag.NewFlagSet("neo4jfeeder", flag.ContinueOnError)
-	f.StringVar(&configProfile, "c", "", "Configuration profile from file")
+	flagSet = flag.NewFlagSet("neo4jfeeder", flag.ContinueOnError)
+	flagSet.StringVar(&configProfile, "c", "", "Configuration profile from file")
 }
 
-var log = logger.New("neo4jfeeder")
-var mongo *mongodb.MongoDB
-var configProfile string
+var (
+	log           = logger.New("neo4jfeeder")
+	mongo         *mongodb.MongoDB
+	configProfile string
+	flagSet       *flag.FlagSet
+)
 
 func main() {
-	flag.Parse()
+	flagSet.Parse(os.Args)
 	if configProfile == "" {
 		log.Fatal("Please define config file with -c")
 	}

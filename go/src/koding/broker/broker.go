@@ -26,20 +26,23 @@ import (
 	"github.com/streadway/amqp"
 )
 
-var log = logger.New("broker")
-var configProfile string
-var brokerDomain string
-var kontrolUuid string
+var (
+	log           = logger.New("broker")
+	configProfile string
+	brokerDomain  string
+	kontrolUuid   string
+	flagSet       *flag.FlagSet
+)
 
 func init() {
-	f := flag.NewFlagSet("broker", flag.ContinueOnError)
-	f.StringVar(&configProfile, "c", "", "Configuration profile from file")
-	f.StringVar(&brokerDomain, "a", "", "Send kontrol a custom domain istead of os.Hostname")
-	f.StringVar(&kontrolUuid, "u", "", "Enable kontrol mode")
+	flagSet = flag.NewFlagSet("broker", flag.ContinueOnError)
+	flagSet.StringVar(&configProfile, "c", "", "Configuration profile from file")
+	flagSet.StringVar(&brokerDomain, "a", "", "Send kontrol a custom domain istead of os.Hostname")
+	flagSet.StringVar(&kontrolUuid, "u", "", "Enable kontrol mode")
 }
 
 func main() {
-	flag.Parse()
+	flagSet.Parse(os.Args)
 	conf := config.MustConfig(configProfile)
 	if configProfile == "" || kontrolUuid == "" {
 		log.Fatal("Please define config file with -c or kontrolUUID with -u")

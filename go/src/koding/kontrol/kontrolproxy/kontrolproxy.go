@@ -83,6 +83,7 @@ var (
 	conf *config.Config
 
 	// flag variables
+	flagSet       *flag.FlagSet
 	flagProfile   string
 	flagRegion    string
 	flagVMProxies bool
@@ -126,15 +127,15 @@ type interval struct {
 }
 
 func init() {
-	f := flag.NewFlagSet(KONTROLPROXY_NAME, flag.ContinueOnError)
-	f.StringVar(&flagProfile, "c", "", "Configuration profile from file")
-	f.StringVar(&flagRegion, "r", "", "Region")
-	f.BoolVar(&flagVMProxies, "v", false, "Enable ports for VM users (1024-10000)")
+	flagSet = flag.NewFlagSet(KONTROLPROXY_NAME, flag.ContinueOnError)
+	flagSet.StringVar(&flagProfile, "c", "", "Configuration profile from file")
+	flagSet.StringVar(&flagRegion, "r", "", "Region")
+	flagSet.BoolVar(&flagVMProxies, "v", false, "Enable ports for VM users (1024-10000)")
 
 }
 
 func main() {
-	flag.Parse()
+	flagSet.Parse(os.Args)
 	if flagProfile == "" || flagRegion == "" {
 		log.Error("No flags defined. -c, -r and -v is not set. Aborting")
 		os.Exit(1)

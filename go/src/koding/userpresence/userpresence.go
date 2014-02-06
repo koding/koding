@@ -7,6 +7,7 @@ import (
 	"koding/tools/amqputil"
 	"koding/tools/config"
 	"koding/tools/logger"
+	"os"
 	"strings"
 	"time"
 
@@ -15,9 +16,12 @@ import (
 	"labix.org/v2/mgo/bson"
 )
 
-var log = logger.New("userpresence")
-var mongo *mongodb.MongoDB
-var configProfile string
+var (
+	log           = logger.New("userpresence")
+	mongo         *mongodb.MongoDB
+	configProfile string
+	flagSet       *flag.FlagSet
+)
 
 type socketIds map[string]bool
 
@@ -29,12 +33,12 @@ var (
 )
 
 func init() {
-	f := flag.NewFlagSet("userpresence", flag.ContinueOnError)
-	f.StringVar(&configProfile, "c", "", "Configuration profile from file")
+	flagSet = flag.NewFlagSet("userpresence", flag.ContinueOnError)
+	flagSet.StringVar(&configProfile, "c", "", "Configuration profile from file")
 }
 
 func main() {
-	flag.Parse()
+	flagSet.Parse(os.Args)
 	if configProfile == "" {
 		log.Fatal("Please define config file with -c")
 	}

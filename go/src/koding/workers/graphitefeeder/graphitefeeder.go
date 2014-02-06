@@ -6,6 +6,7 @@ import (
 	"koding/db/mongodb"
 	"koding/tools/config"
 	"koding/tools/logger"
+	"os"
 	"strconv"
 	"time"
 
@@ -19,6 +20,7 @@ var (
 
 	mongo         *mongodb.MongoDB
 	configProfile string
+	flagSet       *flag.FlagSet
 	log           = logger.New("graphitefeeder")
 )
 
@@ -30,12 +32,16 @@ func init() {
 		panic(err)
 	}
 
-	f := flag.NewFlagSet("graphitefeeder", flag.ContinueOnError)
-	f.StringVar(&configProfile, "c", "", "Configuration profile from file")
+	flagSet = flag.NewFlagSet("graphitefeeder", flag.ContinueOnError)
+	flagSet.StringVar(&configProfile, "c", "", "Configuration profile from file")
 }
 
 func main() {
-	flag.Parse()
+	flagSet.Parse(os.Args)
+	if configProfile == "" {
+		log.Fatal("Please define config file with -c")
+	}
+
 	c := config.MustConfig(configProfile)
 	mongo = mongodb.NewMongoDB(c.Mongo)
 

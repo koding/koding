@@ -9,23 +9,27 @@ import (
 	"koding/tools/logger"
 	"koding/virt"
 	"net"
+	"os"
 	"strings"
 
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
 )
 
-var log = logger.New("vmproxy")
-var mongo *mongodb.MongoDB
-var configProfile string
+var (
+	log           = logger.New("vmproxy")
+	mongo         *mongodb.MongoDB
+	configProfile string
+	flagSet       *flag.FlagSet
+)
 
 func init() {
-	f := flag.NewFlagSet("vmproxy", flag.ContinueOnError)
-	f.StringVar(&configProfile, "c", "", "Configuration profile from file")
+	flagSet = flag.NewFlagSet("vmproxy", flag.ContinueOnError)
+	flagSet.StringVar(&configProfile, "c", "", "Configuration profile from file")
 }
 
 func main() {
-	flag.Parse()
+	flagSet.Parse(os.Args)
 
 	lifecycle.Startup("proxy", true)
 	conf := config.MustConfig(configProfile)
