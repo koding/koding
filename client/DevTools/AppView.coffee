@@ -114,9 +114,14 @@ class DevToolsMainView extends KDView
     return  if @_inprogress
     @_inprogress = yes
 
-    time 'Compile took:'
-
     {JSEditor, PreviewPane} = @workspace.activePanel.panesByName
+    extension = JSEditor.getData()?.getExtension() or 'coffee'
+
+    if extension not in ['js', 'coffee']
+      @_inprogress = no
+      log "Not supported!"
+      PreviewPane.container.destroySubViews()
+      return
 
     @compiler (coffee)=>
 
@@ -127,8 +132,9 @@ class DevToolsMainView extends KDView
 
       try
 
-        coffee.compile code
-        coffee.run code
+        switch extension
+          when 'js' then eval code
+          when 'coffee' then coffee.run code
 
         PreviewPane.container.addSubView window.appView
 
@@ -144,7 +150,6 @@ class DevToolsMainView extends KDView
         delete window.appView
         @_inprogress = no
 
-        timeEnd 'Compile took:'
 
   previewCss:(force = no)->
 
