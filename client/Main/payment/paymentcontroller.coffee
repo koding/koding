@@ -82,17 +82,14 @@ class PaymentController extends KDController
 
   createPaymentInfoModal: -> new PaymentFormModal
 
-  createUpgradeForm: (tag, options = {}) -> @createUpgradeWarning tag, options
-
-  createUpgradeWarning: (tag, options = {}) ->
+  createUpgradeForm: (tag, options = {}) ->
     buyPacksButton = new KDButtonView
-      cssClass      : "buy-packs"
-      style         : "solid green medium"
-      title         : "Buy Resource Packs"
-      callback      : ->
-        @parent.emit 'Cancel'
-        router      = KD.singleton "router"
-        router.handleRoute "/Pricing"
+      cssClass     : "buy-packs"
+      style        : "solid green medium"
+      title        : "Buy Resource Packs"
+      callback     : =>
+        @emit 'Cancel'
+        KD.singleton("router").handleRoute "/Pricing"
 
     form = new JView
       pistachio :
