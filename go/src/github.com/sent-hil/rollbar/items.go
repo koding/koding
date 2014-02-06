@@ -1,6 +1,9 @@
 package rollbar
 
-import "encoding/json"
+import (
+	"encoding/json"
+	"fmt"
+)
 
 type ItemsService struct {
 	C *Client
@@ -9,6 +12,11 @@ type ItemsService struct {
 type ItemsResponse struct {
 	Err    int         `json:"err"`
 	Result ItemsResult `json:"result"`
+}
+
+type SingleItemResponse struct {
+	Err    int  `json:"err"`
+	Result Item `json:"result"`
 }
 
 type ItemsResult struct {
@@ -33,6 +41,25 @@ func (i *ItemsService) All() (*ItemsResponse, error) {
 	response := &ItemsResponse{}
 
 	body, err := i.C.Request("GET", "items")
+	if err != nil {
+		return response, err
+	}
+
+	defer body.Close()
+
+	err = json.NewDecoder(body).Decode(&response)
+	if err != nil {
+		return response, err
+	}
+
+	return response, nil
+}
+
+func (i *ItemsService) GetItem(itemId int) (*SingleItemResponse, error) {
+	response := &SingleItemResponse{}
+
+	var url = fmt.Sprintf("item/%v", itemId)
+	body, err := i.C.Request("GET", url)
 	if err != nil {
 		return response, err
 	}
