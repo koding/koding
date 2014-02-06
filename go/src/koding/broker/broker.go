@@ -55,6 +55,7 @@ var (
 type Broker struct {
 	Hostname          string
 	ServiceUniqueName string
+	AuthAllExchange   string
 	PublishConn       *amqp.Connection
 	ConsumeConn       *amqp.Connection
 
@@ -82,6 +83,7 @@ func NewBroker() *Broker {
 	return &Broker{
 		Hostname:          brokerHostname,
 		ServiceUniqueName: serviceUniqueName,
+		AuthAllExchange:   conf.Broker.AuthAllExchange,
 		ready:             make(chan struct{}),
 		amqpReady:         make(chan struct{}),
 	}
@@ -133,6 +135,7 @@ func (b *Broker) Close() {
 // available at: https://koding.com/-/services/broker?all
 func (b *Broker) registerToKontrol() {
 	if err := kontrolhelper.RegisterToKontrol(
+		conf,
 		BROKER_NAME,
 		BROKER_NAME, // servicGenericName
 		b.ServiceUniqueName,
@@ -298,7 +301,7 @@ func (b *Broker) sockjsSession(session *sockjs.Session) {
 	defer sessionGaugeEnd()
 	defer client.Close()
 
-	err := client.ControlChannel.Publish(conf.Broker.AuthAllExchange, "broker.clientConnected", false, false, amqp.Publishing{Body: []byte(client.SocketId)})
+	err := client.ControlChannel.Publish(b.AuthAllExchange, "broker.clientConnected", false, false, amqp.Publishing{Body: []byte(client.SocketId)})
 	if err != nil {
 		panic(err)
 	}

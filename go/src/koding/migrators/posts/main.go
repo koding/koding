@@ -2,9 +2,11 @@ package main
 
 import (
 	"errors"
+	"flag"
 	"fmt"
 	. "koding/db/models"
 	helper "koding/db/mongodb/modelhelper"
+	"koding/tools/config"
 
 	"labix.org/v2/mgo/bson"
 )
@@ -24,9 +26,20 @@ type JPost struct {
 	OpinionCount int    `bson:"opinionCount,omitempty"`
 }
 
-var ErrAlreadyMigrated = errors.New("already migrated")
+var (
+	flagProfile        = flag.String("c", "", "Configuration profile from file")
+	conf               *config.Config
+	ErrAlreadyMigrated = errors.New("already migrated")
+)
 
 func main() {
+	flag.Parse()
+	if *flagProfile == "" {
+		log.Fatal("Please specify profile via -c. Aborting.")
+	}
+
+	conf = config.MustConfig(*flagProfile)
+
 	initPublisher()
 	defer shutdown()
 

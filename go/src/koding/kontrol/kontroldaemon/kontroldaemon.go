@@ -33,11 +33,11 @@ func main() {
 	mongo = mongodb.NewMongoDB(conf.Mongo)
 	modelhelper.Initialize(conf.Mongo)
 
-	handler.Startup(conf.MongoKontrol)
-	startRouting()
+	handler.Startup(conf)
+	startRouting(conf)
 }
 
-func startRouting() {
+func startRouting(conf *config.Config) {
 	type bind struct {
 		name     string
 		queue    string
@@ -53,7 +53,7 @@ func startRouting() {
 		bind{"client", "kontrol-client", "", "clientExchange", "fanout"},
 	}
 
-	connection := kontrolhelper.CreateAmqpConnection()
+	connection := kontrolhelper.CreateAmqpConnection(conf)
 	channel := kontrolhelper.CreateChannel(connection)
 
 	for _, b := range bindings {

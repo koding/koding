@@ -39,10 +39,10 @@ func main() {
 		log.Fatal("Please define config file with -c")
 	}
 
-	conf = config.MustConfig(*flagProfile)
+	conf := config.MustConfig(*configProfile)
 
 	var err error
-	producer, err = kontrolhelper.CreateProducer("client")
+	producer, err = kontrolhelper.CreateProducer(conf, "client")
 	if err != nil {
 		log.Fatalf(err.Error())
 	}
@@ -118,7 +118,7 @@ func gatherData() ([]byte, error) {
 }
 
 func startConsuming() {
-	connection := kontrolhelper.CreateAmqpConnection()
+	connection := kontrolhelper.CreateAmqpConnection(conf)
 	channel := kontrolhelper.CreateChannel(connection)
 
 	err := channel.ExchangeDeclare("clientExchange", "fanout", true, false, false, false, nil)

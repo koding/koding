@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"io"
 	"koding/tools/config"
 	"log"
@@ -29,7 +30,16 @@ func init() {
 	log.SetPrefix("kontrol-api ")
 }
 
+var flagProfile = flag.String("c", "", "Configuration profile from file")
+var conf *config.Config
+
 func main() {
+	flag.Parse()
+	if *flagProfile == "" {
+		log.Fatal("Please define config file with -c")
+	}
+
+	conf = config.MustConfig(*flagProfile)
 	rout := mux.NewRouter()
 	rout.HandleFunc("/", home).Methods("GET")
 
@@ -96,7 +106,7 @@ func main() {
 	stats.HandleFunc("/proxies/{proxy}", changeHandler(GetProxyStat)).Methods("GET")
 	stats.HandleFunc("/proxies/{proxy}", changeHandler(DeleteProxyStat)).Methods("DELETE")
 
-	port := strconv.Itoa(config.Current.Kontrold.Api.Port)
+	port := strconv.Itoa(conf.Kontrold.Api.Port)
 	log.Printf("kontrol api is started. serving at :%s ...", port)
 
 	http.Handle("/", rout)

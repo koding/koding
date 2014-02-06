@@ -4,6 +4,7 @@ package main
 
 import (
 	"encoding/json"
+	"flag"
 	"fmt"
 	"koding/databases/elasticsearch"
 	"koding/messaging/rabbitmq"
@@ -11,6 +12,7 @@ import (
 	"strconv"
 	"time"
 
+	"log"
 	"github.com/mattbaird/elastigo/api"
 	"github.com/mattbaird/elastigo/indices"
 	"github.com/streadway/amqp"
@@ -19,8 +21,9 @@ import (
 
 var (
 	EXCHANGE_NAME     = "graphFeederExchange"
-	WORKER_QUEUE_NAME = config.Current.ElasticSearch.Queue
 	TIME_FORMAT       = "2006-01-02T15:04:05.000Z"
+	WORKER_QUEUE_NAME string
+	configProfile     = flag.String("c", "", "Configuration profile from file")
 )
 
 type Consumer struct {
@@ -40,6 +43,30 @@ var RoutingTable = map[string]Action{
 	"RelationshipRemoved": (*elasticsearch.Controller).ActionDeleteRelationship,
 	"updateInstance":      (*elasticsearch.Controller).ActionUpdateNode,
 	"deleteNode":          (*elasticsearch.Controller).ActionDeleteNode,
+}
+
+func main() {
+	flag.Parse()
+	if *configProfile == "" {
+		log.Fatal("Please define config file with -c")
+	}
+
+	conf := config.MustConfig(*configProfile)
+
+	// this is for ElasticSearch
+	api.Domain = conf.ElasticSearch.Host
+	api.Port = strconv.Itoa(conf.ElasticSearch.Port)
+
+	WORKER_QUEUE_NAME = conf.ElasticSearch.Queue
+	// ping before we start
+	_, err := indices.Status(true)
+	if err != nil {
+		fmt.Println("cant connect to elasticsearch server, cowardly refusing to start")
+		fmt.Println(err)
+		return
+	}
+	// everything's ok lets run
+	startConsuming(conf)
 }
 
 //here, mapping of decoded json
@@ -82,7 +109,7 @@ var handler = func(msg amqp.Delivery) {
 	}
 }
 
-func startConsuming() {
+func startConsuming(conf *config.Config) {
 	exchange := rabbitmq.Exchange{
 		Name:    EXCHANGE_NAME,
 		Type:    "fanout",
@@ -100,7 +127,8 @@ func startConsuming() {
 		Tag: "ElasticSearchFeeder",
 	}
 
-	consumer, err := rabbitmq.NewConsumer(exchange, queue, binding, consumerOptions)
+	r := rabbitmq.New(conf)
+	consumer, err := r.NewConsumer(exchange, queue, binding, consumerOptions)
 	if err != nil {
 		fmt.Print(err)
 	}
@@ -129,20 +157,4 @@ func getCreatedAtDate(data map[string]interface{}) time.Time {
 
 	fmt.Print("Couldnt determine the createdAt time, returning Now() as createdAt")
 	return time.Now().UTC()
-}
-
-func main() {
-	// this is for ElasticSearch
-	api.Domain = config.Current.ElasticSearch.Host
-	api.Port = strconv.Itoa(config.Current.ElasticSearch.Port)
-
-	// ping before we start
-	_, err := indices.Status(true)
-	if err != nil {
-		fmt.Println("cant connect to elasticsearch server, cowardly refusing to start")
-		fmt.Println(err)
-		return
-	}
-	// everything's ok lets run
-	startConsuming()
 }

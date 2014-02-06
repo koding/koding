@@ -132,7 +132,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	conf := config.MustConfig(*flagProfile)
+	conf = config.MustConfig(*flagProfile)
 	mongohelper.MongoHelperInit(conf.Mongo)
 
 	l := logger.GetLoggingLevelFromConfig(KONTROLPROXY_NAME, conf.Environment)
@@ -345,7 +345,7 @@ func (p *Proxy) setupLogging() {
 // a seperate goroutine, thus the functions is nonblocking.
 func (p *Proxy) startHTTPS() {
 	// HTTPS handling, it is always 443, standart port for HTTPS protocol
-	portssl := strconv.Itoa(config.Current.Kontrold.Proxy.PortSSL)
+	portssl := strconv.Itoa(conf.Kontrold.Proxy.PortSSL)
 	log.Info("https mode is enabled. serving at :%s ...", portssl)
 
 	// don't change it to "*.pem", otherwise you'll get duplicate IP's
@@ -393,7 +393,7 @@ func (p *Proxy) startHTTP() {
 	}
 
 	// HTTP handling (port 80, main)
-	port := strconv.Itoa(config.Current.Kontrold.Proxy.Port)
+	port := strconv.Itoa(conf.Kontrold.Proxy.Port)
 	log.Info("normal mode is enabled. serving at :%s ...", port)
 	err := http.ListenAndServe(":"+port, p.mux)
 	if err != nil {

@@ -75,7 +75,7 @@ func PublishToGraphite(name string, value int, timestamp int64) error {
 	var host = conf.Graphite.Host
 	var port = conf.Graphite.Port
 
-	if !config.Current.Graphite.Use {
+	if !conf.Graphite.Use {
 		return nil
 	}
 

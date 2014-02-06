@@ -9,6 +9,7 @@ import (
 	"koding/db/mongodb/modelhelper"
 	"koding/kontrol/kontroldaemon/workerconfig"
 	"koding/kontrol/kontrolhelper"
+	"koding/tools/config"
 	"koding/tools/slog"
 	"strconv"
 	"strings"
@@ -32,9 +33,9 @@ const (
 	WorkersDB         = "kontrol"
 )
 
-func Startup(kontrolURL string) {
+func Startup(conf *config.Config) {
 	var err error
-	producer, err = kontrolhelper.CreateProducer("worker")
+	producer, err = kontrolhelper.CreateProducer(conf, "worker")
 	if err != nil {
 		slog.Println(err)
 	}
@@ -44,8 +45,8 @@ func Startup(kontrolURL string) {
 		slog.Printf("clientExchange exchange.declare: %s\n", err)
 	}
 
-	kontrolDB = mongodb.NewMongoDB(kontrolURL)
-	modelhelper.KontrolWorkersInit(kontrolURL)
+	kontrolDB = mongodb.NewMongoDB(conf.MongoKontrol)
+	modelhelper.KontrolWorkersInit(conf.MongoKontrol)
 
 	go heartBeatChecker()
 	go deploymentCleaner()
