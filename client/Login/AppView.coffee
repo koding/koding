@@ -327,7 +327,8 @@ class LoginView extends KDView
       account = KD.whoami()
       @registerForm.button.hideLoader()
 
-      if err and err.code isnt 999
+      if err
+
         {message} = err
         warn "An error occured while registering:", err
         @registerForm.notificationsDisabled = no
@@ -362,11 +363,10 @@ class LoginView extends KDView
         #could not joined to the group. Directing to Koding 
         window.location.href = "/" if err
 
-        setTimeout =>
-          @hide()
+        KD.utils.wait 1000, =>
           @registerForm.reset()
           @registerForm.button.hideLoader()
-        , 1000
+          @hide()
 
   doFinishRegistration: (formData) ->
     (KD.getSingleton 'mainController').handleFinishRegistration formData, @bound 'afterLoginCallback'
