@@ -94,18 +94,16 @@ class PaymentController extends KDController
         router      = KD.singleton "router"
         router.handleRoute "/Pricing"
 
-    form = new JView
+    return new JView
+      pistachioParams:
+        button  : buyPacksButton
       pistachio :
         """
         <h2>
           You do not have enough resources, you need to buy at least one "Resource Pack" to be able to create an extra VM.
         </h2>
-        {{> @getData().buyPacksButton}}
+        {{> button}}
         """
-      , { buyPacksButton : buyPacksButton }
-
-    return form
-
 
   createUpgradeWorkflow: (options = {}) ->
     {tag, productForm, confirmForm} = options
