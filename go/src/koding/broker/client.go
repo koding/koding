@@ -281,11 +281,15 @@ func (c *Client) Subscribe(routingKeyPrefix string) error {
 		log.Warning("Client with more than %v subscriptions %v", strconv.Itoa(length), c.Session.Tag)
 	}
 
+	if err := c.Subscriptions.Subscribe(routingKeyPrefix); err != nil {
+		return err
+	}
+
 	globalMapMutex.Lock()
 	c.AddToRouteMapNOTS(routingKeyPrefix)
 	globalMapMutex.Unlock()
 
-	return c.Subscriptions.Subscribe(routingKeyPrefix)
+	return nil
 }
 
 func (c *Client) Resubscribe(sessionId string) (bool, error) {
