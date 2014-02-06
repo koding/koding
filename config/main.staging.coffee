@@ -330,3 +330,7 @@ module.exports =
     rabbitMQ      : "info"
     ldapserver    : "info"
     broker        : "info"
+  graphite       :
+    use          : true
+    host         : "172.168.2.7"
+    port         : 2003

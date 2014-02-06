@@ -743,3 +743,9 @@ task 'analyzeCss','Checks lengthy css and suggests improvements',(options)->
     log.info "#{counter.fns} selectors contain identical CSS properties"
     log.info "possible savings:",Math.floor(counter.chars/1024)+" kbytes"
     log.info "this tool works only if u did 'cake -usd vpn beta' before running analyzeCss."
+
+
+
+{installSikuli, runSikuli} = require "./cake_tasks/sikuli"
+task 'installSikuli', "Downloads and installs Sikuli", -> installSikuli()
+task 'runTest', "Opens http://localhost:3020 and runs tests", -> runSikuli()

@@ -2,13 +2,10 @@ package main
 
 import (
 	"koding/db/mongodb"
-	"koding/tools/logger"
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
 	"time"
 )
-
-var log = logger.New("graphitefeeder")
 
 func init() {
 	registerAnalytic(numberOfReferrableEmails)

@@ -12,7 +12,7 @@ var (
 )
 
 func TestGettingInstancesOfItem(t *testing.T) {
-	mux.HandleFunc("/item/272364549/instances", func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("/item/272364549/instances/", func(w http.ResponseWriter, r *http.Request) {
 		if m := "GET"; m != r.Method {
 			t.Errorf("Request method = %v, want %v", r.Method, m)
 		}
