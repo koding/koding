@@ -87,8 +87,8 @@ class PaymentController extends KDController
       cssClass     : "buy-packs"
       style        : "solid green medium"
       title        : "Buy Resource Packs"
-      callback     : =>
-        @emit 'Cancel'
+      callback     : ->
+        @parent.emit "Cancel"
         KD.singleton("router").handleRoute "/Pricing"
 
     return new JView
