@@ -68,9 +68,9 @@ class UploadImageModalView extends KDModalView
         group   = KD.singletons.groupsController.getCurrentGroup()
 
         if @getOptions().image.type is "coverPhoto"
-          group.modify "customize.coverPhoto" : "#{url}?#{Date.now()}", callback
+          group.modify "customize.coverPhoto" : "#{resized}?#{Date.now()}", callback
         else
-          group.modify "customize.logo" : "#{url}?#{Date.now()}", callback
+          group.modify "customize.logo" : "#{resized}?#{Date.now()}", callback
 
   upload:(callback)->
 
