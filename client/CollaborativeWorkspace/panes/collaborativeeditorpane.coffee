@@ -1,6 +1,6 @@
 class CollaborativeEditorPane extends CollaborativePane
 
-  cdnRoot = "https://koding-cdn.s3.amazonaws.com/codemirror/latest"
+  @cdnRoot = cdnRoot = "https://koding-cdn.s3.amazonaws.com/codemirror/latest"
 
   constructor: (options = {}, data) ->
 
