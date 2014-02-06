@@ -3,6 +3,7 @@ package main
 import (
 	"crypto/tls"
 	"encoding/json"
+	"flag"
 	"koding/kontrol/kontrolhelper"
 	"koding/tools/amqputil"
 	"koding/tools/config"
@@ -24,8 +25,12 @@ import (
 	"github.com/streadway/amqp"
 )
 
+const BROKER_NAME = "broker"
+
 var (
-	log             = logger.New("broker")
+	conf *config.Config
+	log  = logger.New(BROKER_NAME)
+
 	STORAGE_BACKEND = "redis"
 	routeMap        = make(map[string]*set.Set)
 	sessionsMap     = make(map[string]*sockjs.Session)
@@ -34,6 +39,10 @@ var (
 	changeClientsGauge          = lifecycle.CreateClientsGauge()
 	changeNewClientsGauge       = logger.CreateCounterGauge("newClients", logger.NoUnit, true)
 	changeWebsocketClientsGauge = logger.CreateCounterGauge("websocketClients", logger.NoUnit, false)
+
+	flagProfile      = flag.String("c", "", "Configuration profile from file")
+	flagBrokerDomain = flag.String("a", "", "Send kontrol a custom domain istead of os.Hostname")
+	flagKontrolUUID  = flag.String("u", "", "Enable Kontrol mode")
 )
 
 // Broker is a router/multiplexer that routes messages coming from a SockJS
@@ -65,9 +74,9 @@ type Broker struct {
 func NewBroker() *Broker {
 	// returns os.Hostname() if config.BrokerDomain is empty, otherwise it just
 	// returns config.BrokerDomain back
-	brokerHostname := kontrolhelper.CustomHostname(config.BrokerDomain)
+	brokerHostname := kontrolhelper.CustomHostname(*flagBrokerDomain)
 	sanitizedHostname := strings.Replace(brokerHostname, ".", "_", -1)
-	serviceUniqueName := "broker" + "|" + sanitizedHostname
+	serviceUniqueName := BROKER_NAME + "|" + sanitizedHostname
 
 	return &Broker{
 		Hostname:          brokerHostname,
@@ -78,6 +87,17 @@ func NewBroker() *Broker {
 }
 
 func main() {
+	flag.Parse()
+	if *flagProfile == "" {
+		log.Fatal("Please specify profile via -c. Aborting.")
+	}
+
+	conf = config.MustConfig(*flagProfile)
+	amqputil.SetupAMQP(*flagProfile)
+
+	logLevel := logger.GetLoggingLevelFromConfig(BROKER_NAME, *flagProfile)
+	log.SetLevel(logLevel)
+
 	NewBroker().Run()
 }
 
@@ -115,7 +135,7 @@ func (b *Broker) registerToKontrol() {
 		"broker", // servicename
 		"broker",
 		b.ServiceUniqueName,
-		config.Uuid,
+		*flagKontrolUUID,
 		b.Hostname,
 		config.Current.Broker.Port,
 	); err != nil {
