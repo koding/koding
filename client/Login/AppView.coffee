@@ -351,16 +351,14 @@ class LoginView extends KDView
         new KDNotificationView
           cssClass  : "login"
           title     : '<span></span>Good to go, Enjoy!'
-          # content   : 'Successfully registered!'
           duration  : 2000
 
         KD.getSingleton('router').clear()
 
-        setTimeout =>
-          @hide()
+        KD.utils.wait 1000, =>
           @registerForm.reset()
           @registerForm.button.hideLoader()
-        , 1000
+          @hide()
 
   doFinishRegistration: (formData) ->
     (KD.getSingleton 'mainController').handleFinishRegistration formData, @bound 'afterLoginCallback'

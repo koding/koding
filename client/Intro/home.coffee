@@ -48,8 +48,8 @@ class HomePage extends JView
 
     @campaignContainer = new KDCustomHTMLView
 
-    # if KD.campaign?.status
-    @campaignContainer.addSubView new TBCampaignHomePageView {}, KD.campaign
+    if KD.campaign?.status
+      @campaignContainer.addSubView new TBCampaignHomePageView {}, KD.campaign
 
   show:->
 
