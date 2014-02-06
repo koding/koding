@@ -5,7 +5,7 @@ installSikuli =->
   exec "ls #{path}", (error, stdout, stderr)->
     if error
       sikuliUrl  = "https://launchpad.net/sikuli/sikulix/x1.0-rc3/+download/Sikuli-X-1.0rc3%20%28r905%29-osx-10.6.dmg"
-      sikuliFile = "sikuli.dmg"
+      sikuliFile = "/tmp/sikuli.dmg"
 
       wget = spawn "wget", [sikuliUrl, "-O#{sikuliFile}"]
 
