@@ -83,6 +83,13 @@ class GroupsInvitationView extends KDView
             itemClass     : KDInputView
             name          : "maxUses"
             placeholder   : "How many times can this code be redeemed?"
+            validate      :
+              rules       :
+                required  : yes
+                regExp    : /\d+/i
+              messages    :
+                required  : 'Max usage is required'
+                regExp    : 'numbers only please'
           memo            :
             label         : "Memo"
             itemClass     : KDInputView
