@@ -9,7 +9,7 @@ module.exports = (options = {})->
 
   """
   <meta name="title" content="Koding - A new way for developers to work.">
-  <meta name="description" content="A developer community and cloud development environment where developers come together and code in the browser – with a real development server to run their code.">
+  <meta name="description" content="Koding is a developer community and cloud development environment where developers come together and code in the browser.">
   <meta name="keywords" content="online IDE, collaborative IDE, online code editor, web based php editor, browser-based terminal, free virtual machine, online java IDE, coffeescript, nodejs, golang">
   <meta name="author" content="Koding">
   <meta name="fragment" content="!">
