@@ -76,8 +76,14 @@ module.exports = class Likeable
                   console.log err
                 else
                   @update ($set: 'meta.likes': count), callback
-                  delegate.update ($inc: 'counts.likes': -1), (err)->
+                  delegate.update ($inc: 'counts.likes': -1), (err)=>
                     console.log err if err
+                    @fetchOrigin? (err, origin)=>
+                      if err then log "Couldn't fetch the origin"
+                      else @emit 'LikeIsRemoved',
+                        origin
+                        subject : @
+                        liker   : delegate
                   @flushOriginSnapshot constructor
 
   flushOriginSnapshot:(constructor)->
