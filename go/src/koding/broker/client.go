@@ -11,6 +11,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/fatih/set"
 	"github.com/streadway/amqp"
 )
 
@@ -25,8 +26,8 @@ type Client struct {
 
 // NewClient retuns a new client that is defined on a given session.
 func NewClient(session *sockjs.Session, broker *Broker) *Client {
-	socketID := randomString()
-	session.Tag = socketID
+	socketId := randomString()
+	session.Tag = socketId
 
 	var err error
 	controlChannel, err := broker.PublishConn.Channel()
@@ -36,18 +37,22 @@ func NewClient(session *sockjs.Session, broker *Broker) *Client {
 
 	var subscriptions *cache.SubscriptionStorage
 
-	subscriptions, err = cache.NewStorage(STORAGE_BACKEND, socketID)
+	subscriptions, err = cache.NewStorage(STORAGE_BACKEND, socketId)
 	if err != nil {
 		STORAGE_BACKEND = "set"
-		subscriptions, err = cache.NewStorage(STORAGE_BACKEND, socketID)
+		subscriptions, err = cache.NewStorage(STORAGE_BACKEND, socketId)
 		if err != nil {
-
+			panic(err)
 		}
 	}
 
+	globalMapMutex.Lock()
+	sessionsMap[socketId] = session
+	globalMapMutex.Unlock()
+
 	return &Client{
 		Session:        session,
-		SocketId:       socketID,
+		SocketId:       socketId,
 		ControlChannel: controlChannel,
 		Broker:         broker,
 		Subscriptions:  subscriptions,
@@ -77,6 +82,10 @@ func (c *Client) Close() {
 
 	log.Debug("Closing control channel for socketID: %v", c.SocketId)
 	c.ControlChannel.Close()
+
+	globalMapMutex.Lock()
+	defer globalMapMutex.Unlock()
+	delete(sessionsMap, c.SocketId)
 }
 
 // handleSessionMessage handles the received message from the client. It
@@ -221,19 +230,15 @@ func (c *Client) resetControlChannel() {
 
 // RemoveFromRoute removes the sessions for the given routingKeyPrefix.
 func (c *Client) RemoveFromRoute(routingKeyPrefix string) {
-	routeSessions := routeMap[routingKeyPrefix]
-	for i, routeSession := range routeSessions {
-		if routeSession == c.Session {
-			routeSessions[i] = routeSessions[len(routeSessions)-1]
-			routeSessions = routeSessions[:len(routeSessions)-1]
-			break
-		}
-	}
-	if len(routeSessions) == 0 {
-		delete(routeMap, routingKeyPrefix)
+	if _, ok := routeMap[routingKeyPrefix]; !ok {
 		return
 	}
-	routeMap[routingKeyPrefix] = routeSessions
+
+	routeMap[routingKeyPrefix].Remove(c.SocketId)
+
+	if routeMap[routingKeyPrefix].Size() == 0 {
+		delete(routeMap, routingKeyPrefix)
+	}
 }
 
 // Add to route
@@ -241,12 +246,18 @@ func (c *Client) RemoveFromRoute(routingKeyPrefix string) {
 func (c *Client) AddToRoute() {
 	globalMapMutex.Lock()
 	c.Subscriptions.Each(func(routingKeyPrefix interface{}) bool {
-		rkp := routingKeyPrefix.(string)
-		routeMap[rkp] = append(routeMap[rkp], c.Session)
+		c.AddToRouteMapNOTS(routingKeyPrefix.(string))
 		return true
 	})
 	globalMapMutex.Unlock()
 
+}
+
+func (c *Client) AddToRouteMapNOTS(routingKeyPrefix string) {
+	if _, ok := routeMap[routingKeyPrefix]; !ok {
+		routeMap[routingKeyPrefix] = set.New()
+	}
+	routeMap[routingKeyPrefix].Add(c.SocketId)
 }
 
 // Subscribe add the given routingKeyPrefix to the list of subscriptions
@@ -271,8 +282,9 @@ func (c *Client) Subscribe(routingKeyPrefix string) error {
 	}
 
 	globalMapMutex.Lock()
-	routeMap[routingKeyPrefix] = append(routeMap[routingKeyPrefix], c.Session)
+	c.AddToRouteMapNOTS(routingKeyPrefix)
 	globalMapMutex.Unlock()
+
 	return c.Subscriptions.Subscribe(routingKeyPrefix)
 }
 

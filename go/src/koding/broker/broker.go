@@ -20,13 +20,15 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/fatih/set"
 	"github.com/streadway/amqp"
 )
 
 var (
 	log             = logger.New("broker")
 	STORAGE_BACKEND = "redis"
-	routeMap        = make(map[string]([]*sockjs.Session))
+	routeMap        = make(map[string]*set.Set)
+	sessionsMap     = make(map[string]*sockjs.Session)
 	globalMapMutex  sync.Mutex
 
 	changeClientsGauge          = lifecycle.CreateClientsGauge()
@@ -182,10 +184,16 @@ func (b *Broker) startAMQP() {
 			if index == -1 {
 				pos = len(routingKey)
 			}
-			prefix := routingKey[:pos]
+			routingKeyPrefix := routingKey[:pos]
 			globalMapMutex.Lock()
-			for _, routeSession := range routeMap[prefix] {
-				sendToClient(routeSession, routingKey, &payload)
+
+			if routes, ok := routeMap[routingKeyPrefix]; ok {
+				routes.Each(func(sessionId interface{}) bool {
+					if routeSession, ok := sessionsMap[sessionId.(string)]; ok {
+						sendToClient(routeSession, routingKey, &payload)
+					}
+					return true
+				})
 			}
 			globalMapMutex.Unlock()
 		}
