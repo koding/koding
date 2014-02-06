@@ -41,6 +41,11 @@ func init() {
 func main() {
 	flag.Parse()
 	conf := config.MustConfig(configProfile)
+	if configProfile == "" || kontrolUuid == "" {
+		log.Fatal("Please define config file with -c or kontrolUUID with -u")
+	}
+
+	amqputil.SetupAMQP(configProfile)
 
 	lifecycle.Startup("broker", false)
 	changeClientsGauge := lifecycle.CreateClientsGauge()

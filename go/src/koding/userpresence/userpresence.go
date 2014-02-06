@@ -35,6 +35,12 @@ func init() {
 
 func main() {
 	flag.Parse()
+	if configProfile == "" {
+		log.Fatal("Please define config file with -c")
+	}
+
+	amqputil.SetupAMQP(configProfile)
+
 	conf := config.MustConfig(configProfile)
 	mongo = mongodb.NewMongoDB(conf.Mongo)
 

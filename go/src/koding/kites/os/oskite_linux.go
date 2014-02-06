@@ -80,8 +80,7 @@ func init() {
 func main() {
 	flag.Parse()
 	if flagProfile == "" || flagRegion == "" {
-		log.Error("Please specify profile via -c and region via -r. Aborting.")
-		os.Exit(1)
+		log.Fatal("Please specify profile via -c and region via -r. Aborting.")
 	}
 
 	logLevel = logger.GetLoggingLevelFromConfig(OSKITE_NAME, conf.Environment)
@@ -203,7 +202,7 @@ func prepareOsKite() *kite.Kite {
 		kiteName += "-" + flagRegion
 	}
 
-	k := kite.New(kiteName, true)
+	k := kite.New(kiteName, flagProfile, true)
 
 	k.LoadBalancer = func(correlationName string, username string, deadService string) string {
 		var vm *virt.VM

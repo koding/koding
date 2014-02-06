@@ -42,9 +42,14 @@ var configProfile string
 
 func main() {
 	flag.Parse()
+	if configProfile == "" {
+		log.Fatal("Please define config file with -c")
+	}
+
 	conf := config.MustConfig(configProfile)
 	mongo = mongodb.NewMongoDB(conf.Mongo)
 
+	amqputil.SetupAMQP(configProfile)
 	conn := amqputil.CreateConnection("persistence")
 
 	startPersisting(conn)

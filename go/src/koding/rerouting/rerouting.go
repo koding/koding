@@ -1,19 +1,34 @@
 package main
 
 import (
+	"flag"
 	"koding/rerouting/router"
 	"koding/tools/amqputil"
 	"koding/tools/logger"
 )
 
-var log = logger.New("rerouting")
+var (
+	log           = logger.New("rerouting")
+	configProfile string
 
-var producer *rerouting.Producer
-var defaultPublishingExchange string
-var router *rerouting.Router
+	defaultPublishingExchange string
+	producer                  *rerouting.Producer
+	router                    *rerouting.Router
+)
+
+func init() {
+	f := flag.NewFlagSet("rerouting", flag.ContinueOnError)
+	f.StringVar(&configProfile, "c", "", "Configuration profile from file")
+}
 
 func main() {
+	flag.Parse()
 	log.Info("routing worker started")
+	if configProfile == "" {
+		log.Fatal("Please define config file with -c")
+	}
+
+	amqputil.SetupAMQP(configProfile)
 
 	var err error
 	producer, err = createProducer()
@@ -46,7 +61,7 @@ func startRouting() {
 		Channel: nil,
 	}
 
-	router = rerouting.NewRouter(c, producer)
+	router = rerouting.NewRouter(c, producer, configProfile)
 
 	var err error
 

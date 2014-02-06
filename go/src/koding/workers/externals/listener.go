@@ -26,7 +26,7 @@ func main() {
 	mongoDB = mongodb.NewMongoDB(conf.Mongo)
 	mongohelper.MongoHelperInit(conf.Mongo)
 
-	externals := kite.New("externals", false)
+	externals := kite.New("externals", configProfile, false)
 	externals.Handle("import", false, func(args *dnode.Partial, channel *kite.Channel) (interface{}, error) {
 		var token Token
 		err := args.Unmarshal(&token)
