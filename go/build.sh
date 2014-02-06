@@ -17,6 +17,7 @@ services=(
   koding/kites/kodingkontrol
   koding/virt/vmproxy
   koding/virt/vmtool
+  koding/overview
   koding/kontrol/kontrolproxy
   koding/kontrol/kontrolftp
   koding/kontrol/kontroldaemon

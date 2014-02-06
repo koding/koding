@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	"flag"
 	"fmt"
 	"html/template"
 	"io/ioutil"
@@ -34,9 +35,10 @@ func NewServerInfo() *ServerInfo {
 }
 
 var (
-	switchHost string
-	apiUrl     = "http://kontrol0.sj.koding.com:80" // default
-	templates  = template.Must(template.ParseFiles(
+	switchHost    string
+	apiUrl        = "http://kontrol0.sj.koding.com:80" // default
+	configProfile = flag.String("c", "", "Configuration profile from file")
+	templates     = template.Must(template.ParseFiles(
 		"go/templates/overview/index.html",
 		"go/templates/overview/login.html",
 	))
@@ -47,17 +49,24 @@ const uptimeLayout = "03:04:00"
 var store = sessions.NewCookieStore([]byte("user"))
 
 func main() {
+	flag.Parse()
+	if *configProfile == "" {
+		log.Fatal("Please define config file with -c")
+	}
+
+	conf := config.MustConfig(*configProfile)
+
 	var err error
 	// used for kontrolapi
-	apiHost := config.Current.Kontrold.Overview.ApiHost
-	apiPort := config.Current.Kontrold.Overview.ApiPort
+	apiHost := conf.Kontrold.Overview.ApiHost
+	apiPort := conf.Kontrold.Overview.ApiPort
 	apiUrl = "http://" + apiHost + ":" + strconv.Itoa(apiPort)
 
 	// used to create the listener
-	port := config.Current.Kontrold.Overview.Port
+	port := conf.Kontrold.Overview.Port
 
 	// domain to be switched, like 'koding.com'
-	switchHost = config.Current.Kontrold.Overview.SwitchHost
+	switchHost = conf.Kontrold.Overview.SwitchHost
 
 	bootstrapFolder := "go/templates/overview/bootstrap/"
 
