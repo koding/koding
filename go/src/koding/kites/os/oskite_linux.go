@@ -77,6 +77,7 @@ func main() {
 		log.Fatal("Please specify profile via -c and region via -r. Aborting.")
 	}
 
+	fmt.Println("flags", *flagProfile)
 	conf = config.MustConfig(*flagProfile)
 	mongodbConn = mongodb.NewMongoDB(conf.Mongo)
 

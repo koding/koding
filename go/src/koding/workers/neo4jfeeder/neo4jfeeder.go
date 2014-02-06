@@ -50,6 +50,7 @@ func main() {
 	conf = config.MustConfig(*configProfile)
 	mongo = mongodb.NewMongoDB(conf.Mongo)
 	mongohelper.MongoHelperInit(*configProfile)
+	neo4j.SetupNeo4j(conf)
 
 	statsd.SetAppName("neo4jFeeder")
 	startConsuming()

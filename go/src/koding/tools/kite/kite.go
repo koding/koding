@@ -47,10 +47,11 @@ type Control struct {
 	HostnameAlias string
 }
 
-func New(name string, conf *config.Config, onePerHost bool) *Kite {
-	if conf == nil {
-		log.Fatal("Conf is not initialized. Aborting")
+func New(name string, c *config.Config, onePerHost bool) *Kite {
+	if c == nil {
+		log.Fatal("Conf is not initialized. Aborting ", name)
 	}
+	conf = c
 
 	hostname, _ := os.Hostname()
 	serviceUniqueName := "kite-" + name + "-" + strconv.Itoa(os.Getpid()) + "|" + strings.Replace(hostname, ".", "_", -1)
