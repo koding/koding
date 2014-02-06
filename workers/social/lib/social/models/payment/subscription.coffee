@@ -361,8 +361,7 @@ module.exports = class JPaymentSubscription extends jraphical.Module
     JPaymentPack.one tags: tag, (err, pack) =>
       console.err err if err
       return callback new KodingError "#{tag} pack not found"  unless pack
-      console.log 'pack', pack
       @debit {pack, multiplyFactor}, callback
-  
+
   creditPack: ({tag}, callback) ->
     @debitPack {tag, multiplyFactor: -1}, callback
