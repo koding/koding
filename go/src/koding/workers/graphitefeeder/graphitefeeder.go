@@ -14,25 +14,13 @@ import (
 )
 
 var (
-	ip     string
-	port   string
 	log    = logger.New("graphitefeeder")
 	STATSD g2s.Statter
 	conf   *config.Config
 
 	mongo         *mongodb.MongoDB
-	log           = logger.New("graphitefeeder")
 	configProfile = flag.String("c", "", "Configuration profile from file")
 )
-
-func init() {
-	var err error
-
-	STATSD, err = g2s.Dial("udp", fmt.Sprintf("%v:%v", ip, port))
-	if err != nil {
-		panic(err)
-	}
-}
 
 func main() {
 	flag.Parse()
@@ -46,8 +34,11 @@ func main() {
 	l := logger.GetLoggingLevelFromConfig("graphitefeeder", *configProfile)
 	log.SetLevel(l)
 
-	ip = conf.Statsd.Ip
-	port = conf.Statsd.Port
+	var err error
+	STATSD, err = g2s.Dial("udp", fmt.Sprintf("%v:%v", conf.Statsd.Ip, conf.Statsd.Port))
+	if err != nil {
+		panic(err)
+	}
 
 	for _, fn := range listOfAnalytics {
 		name, count := fn()
