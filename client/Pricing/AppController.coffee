@@ -41,6 +41,8 @@ class PricingAppController extends KDViewController
     @productForm = new PricingProductForm
 
     workflow = KD.singleton("paymentController").createUpgradeWorkflow {@productForm}
+    workflow.on "SubscriptionTransitionCompleted", view.bound "createGroup"
+
     view.setWorkflow workflow
 
     @productForm.on "PlanSelected", (plan) =>

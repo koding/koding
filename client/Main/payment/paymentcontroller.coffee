@@ -135,6 +135,7 @@ class PaymentController extends KDController
       .on 'DataCollected', (data) =>
         @transitionSubscription data, (err, subscription, rest...) ->
           return  if KD.showError err
+          workflow.emit 'SubscriptionTransitionCompleted', subscription
           workflow.emit 'Finished', data, err, subscription, rest...
 
       .on 'Finished', (data, err, subscription, rest...) =>
