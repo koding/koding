@@ -338,6 +338,11 @@ class LoginView extends KDView
         KD.mixpanel "Signup, success"
         _gaq.push ['_trackEvent', 'Sign-up']
 
+        try
+          mixpanel.track "Alternate Signup, success"
+        catch
+          KD.logToExternal "mixpanel doesn't exist"
+
         $.cookie 'newRegister', yes
         $.cookie 'clientId', replacementToken
         KD.getSingleton('mainController').accountChanged account
