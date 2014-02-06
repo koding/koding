@@ -111,7 +111,7 @@ class KodingAppsController extends KDController
   @appendScriptElement = (type, {identifier, url, callback})->
 
     identifier = identifier.replace /\./g, '_'
-    cssClass   = "internal-#{type}-#{identifier}"
+    domId      = "internal-#{type}-#{identifier}"
     vmName     = FSHelper.getVMNameFromPath url
     tagName    = type
 
@@ -121,7 +121,7 @@ class KodingAppsController extends KDController
       file = FSHelper.createFileFromPath url
       file.fetchContents (err, partial)->
         return  if err
-        obj = new KDCustomHTMLView {cssClass, tagName, partial}
+        obj = new KDCustomHTMLView {domId, tagName, partial}
 
         if type is 'script'
           obj.once 'viewAppended', -> callback null
@@ -146,8 +146,9 @@ class KodingAppsController extends KDController
         bind       = "load"
         load       = -> callback null
 
-      $('head')[0].appendChild (new KDCustomHTMLView {
-        cssClass, tagName, attributes, bind, load
+
+      document.head.appendChild (new KDCustomHTMLView {
+        domId, tagName, attributes, bind, load
       }).getElement()
 
   # #
