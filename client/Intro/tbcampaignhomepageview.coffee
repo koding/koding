@@ -7,13 +7,9 @@ class TBCampaignHomePageView extends JView
     super options, data
 
   createDigitsMarkup: ->
-    leftInByte = @getData().content.diskSpaceLeftMB * 1024 * 1024
-    leftInTB   = KD.utils.formatBytesToHumanReadable leftInByte
-    [left]     = leftInTB.split " "
-    left       = "99.99"  if left is "100.00"
+    left       = "00.000"
     [tb, gb]   = left.split "."
-
-    tb = ["0", tb.first]  if tb.length is 1
+    tb         = ["0", tb.first]  if tb.length is 1
 
     return """
         <div class="digit">#{tb[0] or 0}</div>
@@ -21,12 +17,13 @@ class TBCampaignHomePageView extends JView
         <div class="separator">,</div>
         <div class="digit">#{gb[0] or 0}</div>
         <div class="digit">#{gb[1] or 0}</div>
+        <div class="digit">#{gb[2] or 0}</div>
     """
 
   getDaysLeft: ->
     oneDayInMs = 86400000 # 24 * 60 * 60 * 1000
-    endDate    = @getData().content.endDate # smt like 2014-01-30T00:00:00.000Z
-    diffInMs   = new Date(endDate).getTime() - Date.now()
+    # endDate    = Date().now() # 2014-01-30T00:00:00.000Z
+    diffInMs   = 0 # new Date(endDate).getTime() - Date.now()
     daysLeft   = (diffInMs / oneDayInMs).toFixed 2
 
     if daysLeft > 2
@@ -51,7 +48,7 @@ class TBCampaignHomePageView extends JView
             </div>
             <div class="text">
               <span>Giving away <span>100 TB</span></span>
-              <p class="rounded">5GB for each signup</p>
+              <p class="rounded">4GB for every sign up</p>
             </div>
             <div class="divider last">
               <div class="icon"></div>
@@ -60,18 +57,19 @@ class TBCampaignHomePageView extends JView
               <div class="digits">
                 #{digits}
               </div>
-              <p class="rounded digits">TB left, get yours now!</p>
+              <p class="rounded digits">No space left</p>
             </div>
           </div>
         </div>
         <div id="signup">
-          <div class="container">
-            <span class="label">Sign up now and get your extra <span>5GB storage</span></span>
-            <p>
-              <span class="icon timer"></span>
-              <span class="remaining">#{daysLeft} left, hurry up!</span>
-              <span class="icon arrow"></span>
-            </p>
+          <div class="container" style="text-align:center">
+
+            <span class="label">
+              <a href="http://blog.koding.com/2014/01/100tb-is-gone-in-1-day-crazy100tbweek-is-over/" style="text-decoration:none; color:#1AAF5D;">
+                100TB is gone <span>#Crazy100TBWeek</span> is Over :(
+              </a>
+            </span>
+
           </div>
         </div>
       </section>

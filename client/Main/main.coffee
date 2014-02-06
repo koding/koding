@@ -117,8 +117,8 @@ do ->
 
   modals =
     big   :
-      disconnected    : bigDisconnectedModal
-      reconnected     : bigReconnectedModal
+      disconnected    : smallDisconnectedModal
+      reconnected     : smallReconnectedModal
     small :
       disconnected    : smallDisconnectedModal
       reconnected     : smallReconnectedModal

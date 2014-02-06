@@ -37,7 +37,7 @@ resurrection.activity.styl
 
   > main
     size                  689px, auto
-    kalc                  margin-right, 37% \+ 34px
+    kalc                  margin-right, 50% \- 122px
     fr()
 
     >.activity-input-widget
@@ -173,7 +173,8 @@ resurrection.activity.styl
     top                 55px
     padding             0 0 0 35px
     bg                  color, #ebebeb
-    size                37%, 100%
+    height              100%
+    kalc                width, 50% \- 156px
     border-left         1px solid #d5d5d5
     borderBox()
     abs()
@@ -188,6 +189,10 @@ resurrection.activity.styl
 
       strong
         color           #1aaf5d
+        font-size       26px
+        margin-bottom   5px
+        font-weight     300
+        display         inline-block
 
       &:hover .hide
         visible()
@@ -202,21 +207,17 @@ resurrection.activity.styl
         hidden()
         abs()
 
-      > figure
-        sprite          activity 'refer-friend'
-        margin          0 9px 0 15px
-        position        relative
-        left            -5px
-        fl()
-
       > p
         overflow        hidden
         width           auto
-        font-size       13px
-        line-height     1.25em
-        padding-right   20px
+        font-size       18px
+        line-height     1.4em
+        padding-bottom  14px
+        font-weight     300
         borderBox()
+
         a
+          display       inline-block
           color         logoBg
           noTextDeco()
 
@@ -225,7 +226,7 @@ resurrection.activity.styl
         size                100% 31px
         border              none
         rounded             16px
-        margin-top          16px
+        margin-top          10px
         gradient            #cfcece #cfcece
         borderBox()
         rel()
@@ -275,8 +276,7 @@ resurrection.activity.styl
 
     .kdlistitemview-activity-ticker-item
     .kdlistitemview-member
-      size              auto auto
-      min-height        60px
+      size              auto 60px
       position          relative
       padding           14px 0 11px
       margin            0 0 0 42px
@@ -290,8 +290,10 @@ resurrection.activity.styl
 
       .action
         overflow        visible
-        width           auto
+        size            100% auto
         line-height     18px
+        abs             50% 0 0
+        vendor          transform, translateY(-50%)
 
         .kdview
           font-weight   300
@@ -378,7 +380,8 @@ resurrection.activity.styl
         display       inline
 
       .avatarview
-        top           3px
+        abs           50% 0 0
+        vendor        transform, translateY(-50%)
 
       .action
         a.ttag

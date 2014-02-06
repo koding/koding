@@ -33,9 +33,18 @@ campaign.styl
     size                   500px, 340px
     padding                10px
     box-sizing             border-box
+    fl()
     p
       line-height          1.18em
-    fl()
+      strong
+        font-weight        500
+      &.sharing-is-care
+        font-size          18px
+    .share-title
+      margin-bottom        10px
+      display              inline-block
+      font-weight          500
+      font-size            22px
     .content
       padding              25px 0 0 27px
       font-size            21px
@@ -65,3 +74,9 @@ campaign.styl
       height               45px
       font-size            18px
       margin               15px 0 0 338px
+  a
+    text-decoration        none
+    color                  #606060
+    font-weight            500
+    top                    30px
+    position               relative

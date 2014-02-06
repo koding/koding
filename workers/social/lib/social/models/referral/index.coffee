@@ -278,7 +278,8 @@ module.exports = class JReferral extends jraphical.Message
   CAMPAIGN_NAME                   = "100_TB_CAMPAIGN"
   CAMPAIGN_TOTAL_DISK_SIZE_IN_MB  = 1024*1024*100 # 100TB
   CAMPAIGN_DISK_SIZE_IN_MB        = 1024
-  CAMPAIGN_START_DATE             = new Date("Jan 29 2014 16:00:00")
+  CAMPAIGN_START_DATE             = new Date("Jan 28 2014 16:00:00 GMT")
+  CAMPAIGN_END_DATE               = new Date("Feb 04 2014 16:00:00 GMT")
   OLD_DISK_SIZE_IN_MB             = 250
 
   # this functions checks default vm and updates disk size
@@ -323,7 +324,7 @@ module.exports = class JReferral extends jraphical.Message
       return callback null, OLD_DISK_SIZE_IN_MB if err or not status
       return callback null, CAMPAIGN_DISK_SIZE_IN_MB
 
-  decreaseLeftSpace = (size, callback)->
+  decreaseLeftSpace = (size, callback = ->)->
     isCampaingValid (err, status)->
       return callback err if err
       return callback null unless status
@@ -337,7 +338,27 @@ module.exports = class JReferral extends jraphical.Message
       , callback
 
 
+  decreaseLeftSpaceInTimeout = (options, callback = ->)->
+    oneDayInMs = 86400000
+    sevenDayInMs = oneDayInMs*7
+    totalTimeInMs = sevenDayInMs
+
+    totalMBPerMS = CAMPAIGN_TOTAL_DISK_SIZE_IN_MB/totalTimeInMs
+    socialServerCount = 2
+    totalMBPerMSPerSocialWorker = totalMBPerMS/KONFIG.social.numberOfWorkers/socialServerCount
+    cachingTimeInMS = 10000
+
+    toBeDecreasedSize= parseInt(totalMBPerMSPerSocialWorker*cachingTimeInMS, 10)
+    decreaseLeftSpace toBeDecreasedSize
+    callback null, {}
+
   @fetchTBCampaign = fetchTBCampaign= (callback)->
+
+    Cache  = require '../../cache/main'
+    cacheKey = "fetchTBCampaign"
+
+    Cache.fetch cacheKey, decreaseLeftSpaceInTimeout, {}, ->
+
     JStorage = require '../storage'
     JStorage.one {name: CAMPAIGN_NAME}, (err, campaign) ->
       return callback err if err
@@ -345,8 +366,9 @@ module.exports = class JReferral extends jraphical.Message
         cmp = new JStorage
           name: CAMPAIGN_NAME
           content:
-            diskSpaceLeftMB: CAMPAIGN_TOTAL_DISK_SIZE_IN_MB
-            endDate: CAMPAIGN_START_DATE
+            diskSpaceLeftMB : CAMPAIGN_TOTAL_DISK_SIZE_IN_MB
+            endDate         : CAMPAIGN_END_DATE
+            startDate       : CAMPAIGN_START_DATE
 
         cmp.save (err)->
           return callback err if err
@@ -386,20 +408,21 @@ module.exports = class JReferral extends jraphical.Message
 
     JUser.on 'EmailConfirmed', (user)->
       return console.log "User is not defined in event" unless user
-
-      user.fetchOwnAccount (err, me)->
-        return console.error err if err
-        # if account not fonud then do nothing and return
-        return console.error "Account couldnt found" unless me
-        referrerUsername = me.referrerUsername
-        return console.info "User doesn't have any referrer" unless referrerUsername
-        # get referrer
-        JAccount.one {'profile.nickname': referrerUsername }, (err, referrer)->
-          # if error occured than do nothing and return
-          return console.error "Error while fetching referrer", err if err
-          # if referrer not fonud then do nothing and return
-          return console.error "Referrer couldnt found" if not referrer
-          persistReferrals referrer, me, (err)->
-            return console.error err if err
-            persistReferrals me, referrer, (err)->
+      isCampaingValid (err, status)->
+        return if err or not status
+        user.fetchOwnAccount (err, me)->
+          return console.error err if err
+          # if account not fonud then do nothing and return
+          return console.error "Account couldnt found" unless me
+          referrerUsername = me.referrerUsername
+          return console.info "User doesn't have any referrer" unless referrerUsername
+          # get referrer
+          JAccount.one {'profile.nickname': referrerUsername }, (err, referrer)->
+            # if error occured than do nothing and return
+            return console.error "Error while fetching referrer", err if err
+            # if referrer not fonud then do nothing and return
+            return console.error "Referrer couldnt found" if not referrer
+            persistReferrals referrer, me, (err)->
               return console.error err if err
+              persistReferrals me, referrer, (err)->
+                return console.error err if err

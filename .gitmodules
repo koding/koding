@@ -4,3 +4,6 @@
 [submodule "go/src/koding/kite"]
 	path = go/src/koding/kite
 	url = git@git.sj.koding.com:koding/kite.git
+[submodule "tests"]
+  path = tests
+  url = git@github.com:koding/tests.git

@@ -99,9 +99,7 @@ if basicAuth
   app.use express.basicAuth basicAuth.username, basicAuth.password
 
 process.on 'uncaughtException', (err) ->
-  console.log 'there was an uncaught exception'
-  console.log process.pid
-  console.error err
+  console.error "there was an uncaught exception #{err}"
   process.exit(1)
 
 
@@ -166,8 +164,8 @@ app.get "/-/auth/register/:hostname/:key", (req, res)->
         res.send 200, authTemplate data
 
 
-app.get "/Logout", (req, res)->
-  res.clearCookie 'clientId'
+app.all "/Logout", (req, res)->
+  res.clearCookie 'clientId'  if req.method is 'POST'
   res.redirect 302, '/'
 
 app.get "/humans.txt", (req, res)->
@@ -269,6 +267,8 @@ app.all '/:name/:section?*', (req, res, next)->
 
   # Checks if its an internal request like /Activity, /Terminal ...
   #
+  bongoModels = koding.models
+
   if isInAppRoute name
 
     if name in ['Activity', 'Topics']
@@ -282,7 +282,6 @@ app.all '/:name/:section?*', (req, res, next)->
 
     else
 
-      bongoModels = koding.models
       generateFakeClient req, res, (err, client)->
 
         isLoggedIn req, res, (err, loggedIn, account)->
@@ -314,10 +313,11 @@ app.all '/:name/:section?*', (req, res, next)->
         else if models.last?
           if models.last.bongo_?.constructorName isnt "JGroup" and not loggedIn
             return Crawler.crawl koding, req, res, name
-          models.last.fetchHomepageView account, (err, view)->
+
+          models.last.fetchHomepageView {section, account, bongoModels}, (err, view)->
             if err then next err
             else if view? then res.send view
-            else res.send 500, error_500()
+            else res.send 404, error_404()
         else next()
 
 # Main Handler for Koding.com
@@ -358,3 +358,7 @@ app.get '*', (req,res)->
 
 app.listen webPort
 console.log '[WEBSERVER] running', "http://localhost:#{webPort} pid:#{process.pid}"
+
+# NOTE: in the event of errors, send 500 to the client rather
+#       than the stack trace.
+app.use (err, req, res, next) -> res.send 500, error_500()

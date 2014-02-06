@@ -324,23 +324,28 @@ func (p *Proxy) startHTTPS() {
 	log.Info("https mode is enabled. serving at :%s ...", portssl)
 
 	// don't change it to "*.pem", otherwise you'll get duplicate IP's
-	pemFiles, _ := filepath.Glob("*_cert.pem")
-
-	for _, file := range pemFiles {
-		s := strings.Split(file, "_")
-		if len(s) != 2 {
-			log.Debug("file is malformed", file)
-			continue
-		}
-
-		ip := s[0] // contains the IP of the interface
-		go func(ip string) {
-			err := http.ListenAndServeTLS(ip+":"+portssl, ip+"_cert.pem", ip+"_key.pem", p.mux)
-			if err != nil {
-				log.Critical(err.Error())
-			}
-		}(ip)
+	pemFiles, err := filepath.Glob("*_cert.pem")
+	if err != nil {
+		log.Critical(err.Error())
 	}
+
+	// hostname example: "koding_com_" or "kd_com_"
+	hostname := strings.TrimSuffix(pemFiles[0], "cert.pem")
+	if hostname == pemFiles[0] {
+		log.Critical("file is malformed: %s", pemFiles[0])
+	}
+
+	go func() {
+		err := http.ListenAndServeTLS(
+			"0.0.0.0:"+portssl,  // addr
+			hostname+"cert.pem", // cert file
+			hostname+"key.pem",  // key file
+			p.mux,               // http handler
+		)
+		if err != nil {
+			log.Critical(err.Error())
+		}
+	}()
 }
 
 // startHTTP is used to reverse proxy incoming requests on the port 80 and
@@ -443,6 +448,7 @@ func (p *Proxy) vm(req *http.Request, target *resolver.Target) http.Handler {
 	hostnameAlias := target.HostnameAlias[0]
 	hostkite := target.Properties["hostkite"].(string)
 	alwaysOn := target.Properties["alwaysOn"].(bool)
+	disableSecurePage := target.Properties["disableSecurePage"].(bool)
 
 	var port string
 	var err error
@@ -506,8 +512,10 @@ func (p *Proxy) vm(req *http.Request, target *resolver.Target) http.Handler {
 		return websocketHandler(target.URL.Host)
 	}
 
-	// no cookies for alwaysOn VMs
-	if alwaysOn {
+	// no cookies for alwaysOn or disabledSecurePage VMs
+	if alwaysOn || disableSecurePage {
+		log.Debug("secure page disabled for '%s'. alwaysOn: %v disableSecurePage: %v",
+			hostnameAlias, alwaysOn, disableSecurePage)
 		return reverseProxyHandler(nil, target.URL)
 	}
 

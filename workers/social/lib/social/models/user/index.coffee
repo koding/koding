@@ -69,6 +69,9 @@ module.exports = class JUser extends jraphical.Module
       'foreignAuth.github.foreignId'   : 1
       'foreignAuth.odesk.foreignId'    : 1
       'foreignAuth.facebook.foreignId' : 1
+      'foreignAuth.google.foreignId'   : 1
+      'foreignAuth.linkedin.foreignId' : 1
+      'foreignAuth.twitter.foreignId'  : 1
 
     sharedEvents    :
       static        : [
@@ -965,10 +968,11 @@ module.exports = class JUser extends jraphical.Module
         else
           callback createKodingError 'PIN is not confirmed.'
 
-  fetchHomepageView:(account, callback)->
+  fetchHomepageView:({account, bongoModels}, callback)->
+
     @fetchAccount 'koding', (err, account)->
       if err then callback err
-      else account.fetchHomepageView account, callback
+      else account.fetchHomepageView {account, bongoModels}, callback
 
   confirmEmail: (callback)->
     @update {$set: status: 'confirmed'}, (err, res)=>

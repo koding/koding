@@ -721,7 +721,7 @@ module.exports = class JGroup extends Module
   # fetchMyFollowees: permit 'list members'
   #   success:(client, options, callback)->
 
-  fetchHomepageView: (account, callback)->
+  fetchHomepageView: ({section, account, bongoModels}, callback)->
     @fetchMembershipPolicy (err, policy)=>
       if err then callback err
       else
@@ -734,6 +734,7 @@ module.exports = class JGroup extends Module
           @body
           @counts
           @customize
+          bongoModels
         }
         prefix = if account.type is 'unregistered' then 'loggedOut' else 'loggedIn'
         JGroup.render[prefix].groupHome options, callback
@@ -1062,6 +1063,10 @@ module.exports = class JGroup extends Module
       @fetchRolesHelper delegate, callback
 
   updateCounts:->
+    # remove this guest shit if required
+    if @getId().toString() is "51f41f195f07655e560001c1"
+      return
+
     Relationship.count
       as         : 'member'
       targetName : 'JAccount'
@@ -1176,6 +1181,10 @@ module.exports = class JGroup extends Module
       {as} = options
     else
       as = fallbackRole
+
+    # remove this
+    if @getId().toString() is "51f41f195f07655e560001c1"
+      return callback null
 
     selector =
       targetName : target.bongo_.constructorName

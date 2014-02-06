@@ -175,8 +175,7 @@ class ReferalBox extends JView
       title       : '0 GB / 16 GB'
       determinate : yes
 
-  click : -> @showReferrerModal()
-
+  # click : -> @showReferrerModal()
 
   showRedeemReferralPointModal:->
     KD.mixpanel "Referer Redeem Point modal, click"
@@ -203,11 +202,12 @@ class ReferalBox extends JView
     @progressBar.updateBar 0
     vmc = KD.getSingleton "vmController"
     vmc.fetchDefaultVmName (name) =>
-      vmc.fetchDiskUsage name, (usage) =>
-        return  unless usage.max
-
-        usagePercent = usage.max / (16*1e9) * 90
-        used         = KD.utils.formatBytesToHumanReadable usage.max
+      vmc.fetchVmInfo name, (err , vmInfo) =>
+        return  if err or not vmInfo?.diskSizeInMB
+        max          = vmInfo?.diskSizeInMB or 4096
+        max          = max*1024*1024
+        usagePercent = max / (16*1e9) * 90
+        used         = KD.utils.formatBytesToHumanReadable max
 
         @progressBar.updateBar usagePercent + 10, null, "#{used} / 16 GB"
 
@@ -221,11 +221,16 @@ class ReferalBox extends JView
 
   pistachio:->
     """
-    <figure></figure>
-    <strong>#Crazy100TBWeek</strong>
+
     <p>
-    Only this week, share your link, they get 5GB instead of 4GB, and you get 1GB extra! {{> @modalLink}}
-    {{> @redeemPointsModal}}
+      <a href="http://blog.koding.com/2014/01/100tb-is-gone-in-1-day-crazy100tbweek-is-over/">
+        100TB is gone in 1 Day
+      </a>
+      <a href="https://twitter.com/search?q=%23Crazy100TBWeek">#Crazy100TBWeek</a>
+      is Over :( we will enable invitations again soon! Follow us on
+      <a href="http://twitter.com/koding">Twitter</a>, we might do some
+      more fun stuff soon :)
+      {{> @redeemPointsModal}}
     </p>
     {{> @progressBar}}
     """

@@ -441,6 +441,7 @@ module.exports = class JVM extends Module
           hostnameAlias    : vm.hostnameAlias
           underMaintenance : vm.hostKite is "(maintenance)"
           region           : vm.region or 'sj'
+          diskSizeInMB     : vm.diskSizeInMB
 
   @fetchVmRegion = secure (client, hostnameAlias, callback)->
     {delegate} = client.connection

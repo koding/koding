@@ -35,7 +35,7 @@ class HomePage extends JView
     @play = new KDCustomHTMLView
       tagName : 'a'
       cssClass : 'play-button'
-      attributes : href : 'http://www.youtube.com/embed/w6sl_Yt_gNo'
+      attributes : href : 'http://www.youtube.com/embed/5E85g_ddV3A'
       click : (event)->
         KD.utils.stopDOMEvent event
         w = 853
@@ -48,8 +48,8 @@ class HomePage extends JView
 
     @campaignContainer = new KDCustomHTMLView
 
-    if KD.campaign?.status
-      @campaignContainer.addSubView new TBCampaignHomePageView {}, KD.campaign
+    # if KD.campaign?.status
+    @campaignContainer.addSubView new TBCampaignHomePageView {}, KD.campaign
 
   show:->
 
@@ -117,18 +117,6 @@ class HomePage extends JView
         top     : 25
         left    : 25
 
-    new MixpanelScrollTracker
-      attribute: 'section',
-      event: '/ scroll to',
-      markers: [
-        { position: 362,  value: 'Teamwork screenshot'    }
-        { position: 627,  value: 'Feature explanation'    }
-        { position: 1495, value: 'Activity screenshot'    }
-        { position: 1995, value: 'Enterprise explanation' }
-        { position: 2270, value: 'Enterprise contact'     }
-        { position: 2864, value: 'Scrolled to bottom'     }
-      ]
-
   pistachio:->
 
     """
@@ -143,8 +131,15 @@ class HomePage extends JView
       <main>
         <div class="clearfix">
           <div class="headings-container">
-            <h1 class='big-header'>Coding environment<br/>from the future</h1>
-            <h2>Social development in your browser, sign up to join a great community and code on powerful VMs.</h2>
+            <h1 class='big-header'>Develop, Together!</h1>
+
+            <h2>Learn programming or make apps.
+              <br/>Hack Ruby, Go, Java, NodeJS, PHP, C, and Python.
+              <br/>Install Wordpress, Laravel, Django, and Bootstrap.
+              <br/>Play with MySQL, Mongo, and enjoy root access.
+              <br/>Sign up now and join the fun!
+            </h2>
+
           </div>
           <div class="register-container">
             {{> @registerForm}}
@@ -193,14 +188,14 @@ class HomePage extends JView
             <span class='icon'></span>
             <article>
               <h4>USE IT IN YOUR SCHOOL</h4>
-              Koding in the classroom, prepare your files online, share them with the whole class instantly. Collaborate live or just make your students watch what you're doing.
+              Prepare your files online and share them with the whole class instantly. Collaborate live with your students or let them follow along what you're doing.
             </article>
           </div>
           <div class='project clearfix'>
             <span class='icon'></span>
             <article>
               <h4>CREATE PROJECT GROUPS</h4>
-              Want to work on a project with your buddies and use the same resources and running instances, share a VM between your fellow developers.
+              Want to work on a project with your buddies and use the same workspace? Share your VM with your fellow developers.
             </article>
           </div>
         </div>

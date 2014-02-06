@@ -11,6 +11,7 @@ class AccountAppController extends AppController
     routes                       :
       "/:name?/Account"          : -> KD.singletons.router.handleRoute '/Account/Profile'
       "/:name?/Account/:section" : ({params:{section}})-> handler (app)-> app.openSection section
+      "/:name?/Account/Referrer" : -> KD.singletons.router.handleRoute '/'
     behavior                     : "hideTabs"
     hiddenHandle                 : yes
 
@@ -92,12 +93,14 @@ class AccountAppController extends AppController
       """
 
   showReferrerModal:(options={})->
+    return
+    return  if @referrerModal and not @referrerModal.isDestroyed
+
     options.top         ?= 50
     options.left        ?= 35
     options.arrowMargin ?= 110
 
-    new ReferrerModal options
-
+    @referrerModal = new ReferrerModal options
 
   displayConfirmEmailModal:(name, username, callback=noop)->
     name or= KD.whoami().profile.firstName
@@ -154,7 +157,7 @@ class AccountAppController extends AppController
         KD.notify_ """
             #{refRes.addedSize} #{refRes.unit} extra #{refRes.type} is successfully added to your #{refRes.vm} VM.
           """
-        @showReferrerModal title: "Want more?"
+        # @showReferrerModal title: "Want more?"
 
 
   showRedeemReferralPointModal:->
@@ -236,10 +239,16 @@ class AccountAppController extends AppController
       modal.destroy()
       KD.utils.wait 5000, KD.getSingleton("router").handleRoute route
 
-    message = "Please login to proceed to the next step"
     @modal = new KDBlockingModalView
-      title           : "Koding Registration"
-      content         : "<div class='modalformline'>#{message}</div>"
+      title           : "Please Login or Register"
+      content : """
+Every Koding user gets a private virtual machine with root access. Let's give you one in 10 seconds so that you can
+code, collaborate and have fun! :)
+<br><br>
+
+<iframe width="560" height="315" src="//www.youtube.com/embed/5E85g_ddV3A" frameborder="0" allowfullscreen></iframe><br>
+Click play to see what Koding is all about in 2 minutes!
+      """
       height          : "auto"
       overlay         : yes
       buttons         :
