@@ -462,10 +462,7 @@ module.exports = class JGroup extends Module
               console.log 'roles are added'
               queue.next()
         ->
-          # CtF hacked because we need client to create a post
-          group.createGroupBotAndPostMessage client, (err) ->
-            return callback err if err
-            console.log 'bot is added and posted its first message'
+          group.createGroupBotAndPostMessage client, ->
             queue.next()
       ]
 
