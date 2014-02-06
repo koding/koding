@@ -50,7 +50,7 @@ const (
 )
 
 var (
-	kontrolDB = mongodb.NewMongoDB(conf.MongoKontrol)
+	kontrolDB *mongodb.MongoDB
 
 	// used for loadbalance modes, like roundrobin or random
 	index AtomicUint32
