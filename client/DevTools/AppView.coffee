@@ -69,7 +69,7 @@ class DevToolsMainView extends KDView
                       type      : "custom"
                       name      : "JSEditor"
                       paneClass : DevToolsEditorPane
-                      # title   : "JavaScript"
+                      title     : "JavaScript"
                       # buttons : [
                       #   {
                       #     itemClass: KDOnOffSwitch
@@ -81,6 +81,7 @@ class DevToolsMainView extends KDView
                     {
                       type      : "custom"
                       name      : "CSSEditor"
+                      title     : "Style"
                       paneClass : DevToolsCssEditorPane
                     }
                   ]
