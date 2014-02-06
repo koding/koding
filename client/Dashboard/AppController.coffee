@@ -56,27 +56,30 @@ class DashboardAppController extends AppController
           viewClass  : GroupPaymentSettingsView
           lazy       : yes
           callback   : @bound 'paymentViewAdded'
-      ,
-        name         : 'Products'
-        kodingOnly   : yes
-        viewOptions  :
-          viewClass  : GroupProductSettingsView
-          lazy       : yes
-          callback   : @bound 'productViewAdded'
-      ,
-        name         : 'Blocked Users'
-        hiddenHandle : @getData().privacy is 'public'
-        kodingOnly   : yes # this is only intended for koding group, we assume koding group is super-group
-        viewOptions  :
-          viewClass  : GroupsBlockedUserView
-          lazy       : yes
-      ,
-        name         : 'Badges'
-        hiddenHandle : @getData().privacy is 'public'
-        kodingOnly   : yes # this is only intended for koding group, we assume koding group is super-group
-        viewOptions  :
-          viewClass  : BadgeDashboardView
-          lazy       : yes
+      ]
+
+      if data.slug is "koding"
+        @tabData.push 
+            name         : 'Products'
+            kodingOnly   : yes
+            viewOptions  :
+              viewClass  : GroupProductSettingsView
+              lazy       : yes
+              callback   : @bound 'productViewAdded'
+          ,
+            name         : 'Blocked Users'
+            hiddenHandle : @getData().privacy is 'public'
+            kodingOnly   : yes # this is only intended for koding group, we assume koding group is super-group
+            viewOptions  :
+              viewClass  : GroupsBlockedUserView
+              lazy       : yes
+          ,
+            name         : 'Badges'
+            hiddenHandle : @getData().privacy is 'public'
+            kodingOnly   : yes # this is only intended for koding group, we assume koding group is super-group
+            viewOptions  :
+              viewClass  : BadgeDashboardView
+              lazy       : yes
 
       # CURRENTLY DISABLED
 
@@ -92,7 +95,7 @@ class DashboardAppController extends AppController
       #     viewClass : GroupsBundleView
       #     lazy      : yes
       #     callback  : @bundleViewAdded
-    ]
+    
 
   fetchTabData: (callback) -> @utils.defer => callback @tabData
 

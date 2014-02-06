@@ -83,6 +83,13 @@ class GroupsInvitationView extends KDView
             itemClass     : KDInputView
             name          : "maxUses"
             placeholder   : "How many times can this code be redeemed?"
+            validate      :
+              rules       :
+                required  : yes
+                regExp    : /\d+/i
+              messages    :
+                required  : 'Max usage is required'
+                regExp    : 'numbers only please'
           memo            :
             label         : "Memo"
             itemClass     : KDInputView
@@ -138,6 +145,7 @@ class GroupsInvitationView extends KDView
       callback           : ({emails, message, saveMessage})=>
 
         KD.whoami().fetchFromUser "email", (err, userEmail)=>
+          emails = emails.trim()
           emailList = emails.split(/\n/).map (email)-> email.trim()
           if userEmail in emailList
             @inviteByEmail.modalTabs.forms.invite.buttons.Send.hideLoader()
