@@ -23,15 +23,12 @@ class AccountSubscriptionsListController extends AccountListViewController
           @confirm 'resume', subscription
 
         .on 'PlanChangeRequested', ->
-          payment = KD.getSingleton 'paymentController'
-
-          workflow = payment.createUpgradeWorkflow tag: 'vm'
-
-          modal = new KDModalView
-            view    : workflow
-            overlay : yes
-
-          workflow.on 'Finished', modal.bound 'destroy'
+          route =
+            if "vm" in subscription.tags
+            then "/Pricing/Developer"
+            else if "custom-plan" in subscription.tags
+            then "/Pricing/Team"
+          KD.singleton("router").handleRoute route
 
   getConfirmationText = (action, subscription) -> switch action
     when 'cancel'
