@@ -6,4 +6,4 @@
 	url = git@git.sj.koding.com:koding/kite.git
 [submodule "tests"]
   path = tests
-  url = https://@github.com/koding/tests
+  url = https://github.com/koding/tests.git
