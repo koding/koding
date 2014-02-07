@@ -103,9 +103,9 @@ func main() {
 
 	switch *flagBrokerType {
 	case "brokerKite":
-		broker.Config = &conf.Broker
-	default:
 		broker.Config = &conf.BrokerKite
+	default:
+		broker.Config = &conf.Broker
 	}
 
 	broker.Run()
