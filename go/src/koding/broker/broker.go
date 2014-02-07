@@ -107,6 +107,8 @@ func main() {
 	default:
 		broker.Config = &conf.BrokerKite
 	}
+
+	broker.Run()
 }
 
 // Run starts the broker.
