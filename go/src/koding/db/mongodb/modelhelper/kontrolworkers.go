@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"koding/db/models"
 	"koding/db/mongodb"
-	"koding/tools/config"
 	"log"
 
 	"labix.org/v2/mgo"
@@ -18,8 +17,8 @@ const (
 
 var kontrolDB *mongodb.MongoDB
 
-func init() {
-	kontrolDB = mongodb.NewMongoDB(config.Current.MongoKontrol)
+func KontrolWorkersInit(url string) {
+	kontrolDB = mongodb.NewMongoDB(url)
 }
 
 func GetWorker(uuid string) (models.Worker, error) {

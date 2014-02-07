@@ -2,13 +2,16 @@ package main
 
 import (
 	"encoding/json"
-	"github.com/streadway/amqp"
+	"flag"
 	"koding/db/models"
 	"koding/kontrol/kontroldaemon/workerconfig"
 	"koding/kontrol/kontrolhelper"
+	"koding/tools/config"
 	"koding/tools/process"
 	"log"
 	"os"
+
+	"github.com/streadway/amqp"
 )
 
 type ConfigFile struct {
@@ -27,10 +30,19 @@ func init() {
 }
 
 var producer *kontrolhelper.Producer
+var configProfile = flag.String("c", "", "Configuration profile from file")
+var conf *config.Config
 
 func main() {
+	flag.Parse()
+	if *configProfile == "" {
+		log.Fatal("Please define config file with -c")
+	}
+
+	conf := config.MustConfig(*configProfile)
+
 	var err error
-	producer, err = kontrolhelper.CreateProducer("client")
+	producer, err = kontrolhelper.CreateProducer(conf, "client")
 	if err != nil {
 		log.Fatalf(err.Error())
 	}
@@ -106,7 +118,7 @@ func gatherData() ([]byte, error) {
 }
 
 func startConsuming() {
-	connection := kontrolhelper.CreateAmqpConnection()
+	connection := kontrolhelper.CreateAmqpConnection(conf)
 	channel := kontrolhelper.CreateChannel(connection)
 
 	err := channel.ExchangeDeclare("clientExchange", "fanout", true, false, false, false, nil)

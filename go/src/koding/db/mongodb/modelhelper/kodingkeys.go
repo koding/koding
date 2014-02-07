@@ -3,7 +3,7 @@ package modelhelper
 import (
 	"fmt"
 	"koding/db/models"
-	"koding/db/mongodb"
+
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
 )
@@ -31,7 +31,7 @@ func GetKodingKeysByUsername(username, hostname string) (*models.KodingKeys, err
 		}).One(kodingKeys)
 	}
 
-	err = mongodb.Run("jKodingKeys", query)
+	err = Mongo.Run("jKodingKeys", query)
 	if err != nil {
 		return nil, err
 	}
@@ -45,7 +45,7 @@ func GetKodingKeysByKey(key string) (*models.KodingKeys, error) {
 		return c.Find(bson.M{"key": key}).One(kodingKeys)
 	}
 
-	err := mongodb.Run("jKodingKeys", query)
+	err := Mongo.Run("jKodingKeys", query)
 	if err != nil {
 		return nil, err
 	}
@@ -65,5 +65,5 @@ func AddKodingKeys(k *models.KodingKeys) error {
 		return nil
 	}
 
-	return mongodb.Run("jKodingKeys", query)
+	return Mongo.Run("jKodingKeys", query)
 }

@@ -5,7 +5,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"koding/db/models"
-	"koding/db/mongodb"
+
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
 )
@@ -36,7 +36,7 @@ func GetUser(username string) (*models.User, error) {
 		return c.Find(bson.M{"username": username}).One(&user)
 	}
 
-	err := mongodb.Run("jUsers", query)
+	err := Mongo.Run("jUsers", query)
 	if err != nil {
 		return nil, err
 	}
@@ -46,7 +46,7 @@ func GetUser(username string) (*models.User, error) {
 
 func GetUserById(id string) (*models.User, error) {
 	user := new(models.User)
-	err := mongodb.One("jUsers", id, user)
+	err := Mongo.One("jUsers", id, user)
 	if err != nil {
 		return nil, err
 	}

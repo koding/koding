@@ -6,7 +6,6 @@ import (
 	"io"
 	"koding/db/models"
 	"koding/db/mongodb"
-	"koding/tools/config"
 	"math"
 	"net/http"
 	"net/url"
@@ -51,7 +50,7 @@ const (
 )
 
 var (
-	kontrolDB = mongodb.NewMongoDB(config.Current.MongoKontrol)
+	kontrolDB *mongodb.MongoDB
 
 	// used for loadbalance modes, like roundrobin or random
 	index AtomicUint32
@@ -96,8 +95,8 @@ func GetWorkerURL(writer http.ResponseWriter, req *http.Request) {
 
 	// broker has ssl cert and a custom url scheme, look what it's it
 	if workerName == "broker" {
-		if config.Current.Broker.WebProtocol != "" {
-			protocolScheme = config.Current.Broker.WebProtocol
+		if conf.Broker.WebProtocol != "" {
+			protocolScheme = conf.Broker.WebProtocol
 		} else {
 			protocolScheme = "https:" // fallback
 		}

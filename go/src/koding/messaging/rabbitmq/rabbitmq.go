@@ -3,16 +3,37 @@ package rabbitmq
 import (
 	"errors"
 	"fmt"
-	"github.com/streadway/amqp"
 	"koding/tools/config"
 	"koding/tools/logger"
 	"os"
 	"os/signal"
 	"strings"
 	"syscall"
+
+	"github.com/streadway/amqp"
 )
 
 var log = logger.New("rabbitMQ")
+
+func New(c *config.Config) *RabbitMQ {
+	return &RabbitMQ{
+		config: c,
+	}
+}
+
+type RabbitMQ struct {
+	// The connection between client and the server
+	conn *amqp.Connection
+
+	// The communication channel over connection
+	channel *amqp.Channel
+
+	// Client's tag for current connection
+	tag string
+
+	// config stores the current koding configuration based on the given profile
+	config *config.Config
+}
 
 type Exchange struct {
 	// Exchange name
@@ -103,29 +124,6 @@ type BindingOptions struct {
 	Args amqp.Table
 }
 
-// getConnectionString builds connection string
-func getConnectionString() string {
-	return amqp.URI{
-		Scheme:   "amqp",
-		Host:     config.Current.Mq.Host,
-		Port:     config.Current.Mq.Port,
-		Username: config.Current.Mq.ComponentUser,
-		Password: config.Current.Mq.Password,
-		Vhost:    config.Current.Mq.Vhost,
-	}.String()
-}
-
-type RabbitMQ struct {
-	// The connection between client and the server
-	conn *amqp.Connection
-
-	// The communication channel over connection
-	channel *amqp.Channel
-
-	// Client's tag for current connection
-	tag string
-}
-
 // Controls how many messages the server will try to keep on
 // the network for consumers before receiving delivery acks.  The intent of Qos is
 // to make sure the network buffers stay full between the server and client.
@@ -137,31 +135,38 @@ func (r *RabbitMQ) QOS(messageCount int) error {
 // In order to prevent developers from misconfiguration
 // and using same channel for publishing and consuming it opens a new channel for
 // every connection
-func newRabbitMQConnection(tag string) (*RabbitMQ, error) {
+// TODO this should not return RabbitMQ struct - cihangir,arslan config changes
+func (r *RabbitMQ) newConnection(tag string) (*RabbitMQ, error) {
 	if tag == "" {
 		return nil, errors.New("Tag is not defined in consumer options")
 	}
 
-	rmq := &RabbitMQ{}
-	rmq.tag = tag
+	r.tag = tag
+	conf := amqp.URI{
+		Scheme:   "amqp",
+		Host:     r.config.Mq.Host,
+		Port:     r.config.Mq.Port,
+		Username: r.config.Mq.ComponentUser,
+		Password: r.config.Mq.Password,
+		Vhost:    r.config.Mq.Vhost,
+	}.String()
 
 	var err error
-
 	// get connection
 	// Connects opens an AMQP connection from the credentials in the URL.
-	rmq.conn, err = amqp.Dial(getConnectionString())
+	r.conn, err = amqp.Dial(conf)
 	if err != nil {
 		return nil, err
 	}
 
-	handleErrors(rmq.conn)
+	handleErrors(r.conn)
 	// getting channel
-	rmq.channel, err = rmq.conn.Channel()
+	r.channel, err = r.conn.Channel()
 	if err != nil {
 		return nil, err
 	}
 
-	return rmq, nil
+	return r, nil
 }
 
 // Session is holding the current Exchange, Queue,

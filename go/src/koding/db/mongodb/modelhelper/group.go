@@ -2,7 +2,7 @@ package modelhelper
 
 import (
 	"koding/db/models"
-	"koding/db/mongodb"
+
 	"labix.org/v2/mgo"
 )
 
@@ -13,7 +13,7 @@ func GetGroup(groupname string) (*models.Group, error) {
 		return c.Find(Selector{"title": groupname}).One(&group)
 	}
 
-	return group, mongodb.Run("jGroups", query)
+	return group, Mongo.Run("jGroups", query)
 }
 
 func CheckGroupExistence(groupname string) (bool, error) {
@@ -27,5 +27,5 @@ func CheckGroupExistence(groupname string) (bool, error) {
 		return nil
 	}
 
-	return count > 0, mongodb.Run("jGroups", query)
+	return count > 0, Mongo.Run("jGroups", query)
 }

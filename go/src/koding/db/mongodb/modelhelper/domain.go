@@ -3,7 +3,7 @@ package modelhelper
 import (
 	"fmt"
 	"koding/db/models"
-	"koding/db/mongodb"
+
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
 )
@@ -51,7 +51,7 @@ func AddDomain(d *models.Domain) error {
 		return nil
 	}
 
-	return mongodb.Run("jDomains", query)
+	return Mongo.Run("jDomains", query)
 }
 
 // UpdateDomain updates an already avalaible domain document. If not available
@@ -93,7 +93,7 @@ func UpdateDomain(d *models.Domain) error {
 		return nil
 	}
 
-	return mongodb.Run("jDomains", query)
+	return Mongo.Run("jDomains", query)
 }
 
 // DeleteDomain deletes the document with the given "domainname" argument.
@@ -102,7 +102,7 @@ func DeleteDomain(domainname string) error {
 		return c.Remove(bson.M{"domain": domainname})
 	}
 
-	return mongodb.Run("jDomains", query)
+	return Mongo.Run("jDomains", query)
 }
 
 // GetDomain return a single document that match the given "domainname"
@@ -114,7 +114,7 @@ func GetDomain(domainname string) (*models.Domain, error) {
 		return c.Find(bson.M{"domain": domainname}).One(&domain)
 	}
 
-	err := mongodb.Run("jDomains", query)
+	err := Mongo.Run("jDomains", query)
 	if err != nil {
 		return domain, err
 	}
@@ -136,7 +136,7 @@ func GetDomains() []models.Domain {
 		return nil
 	}
 
-	mongodb.Run("jDomains", query)
+	Mongo.Run("jDomains", query)
 
 	return domains
 }
@@ -148,7 +148,7 @@ func GetDomainRestrictionId(sourceId bson.ObjectId) (bson.ObjectId, error) {
 		return c.Find(bson.M{"sourceID": sourceId, "targetName": "JProxyRestrictions"}).One(&relationship)
 	}
 
-	err := mongodb.Run("relationships", query)
+	err := Mongo.Run("relationships", query)
 	if err != nil {
 		return "", err
 	}

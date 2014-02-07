@@ -2,13 +2,14 @@ package kontrolhelper
 
 import (
 	"encoding/json"
-	"github.com/streadway/amqp"
 	"io/ioutil"
 	"koding/tools/config"
 	"koding/tools/slog"
 	"os"
 	"strconv"
 	"strings"
+
+	"github.com/streadway/amqp"
 )
 
 type Producer struct {
@@ -27,14 +28,14 @@ func NewProducer(name string) *Producer {
 	}
 }
 
-func CreateAmqpConnection() *amqp.Connection {
+func CreateAmqpConnection(conf *config.Config) *amqp.Connection {
 	amqpURI := amqp.URI{
 		Scheme:   "amqp",
-		Host:     config.Current.Mq.Host,
-		Port:     config.Current.Mq.Port,
-		Username: config.Current.Mq.ComponentUser,
-		Password: config.Current.Mq.Password,
-		Vhost:    config.Current.Kontrold.Vhost,
+		Host:     conf.Mq.Host,
+		Port:     conf.Mq.Port,
+		Username: conf.Mq.ComponentUser,
+		Password: conf.Mq.Password,
+		Vhost:    conf.Kontrold.Vhost,
 	}
 
 	conn, err := amqp.Dial(amqpURI.String())
@@ -121,17 +122,19 @@ func ReadFile(config string) string {
 	return strings.TrimSpace(string(file))
 }
 
-func CreateProducer(name string) (*Producer, error) {
+func CreateProducer(conf *config.Config, name string) (*Producer, error) {
 	p := NewProducer(name)
 	slog.Printf("creating connection for sending %s messages\n", p.Name)
-	p.Conn = CreateAmqpConnection()
+	p.Conn = CreateAmqpConnection(conf)
 	p.Channel = CreateChannel(p.Conn)
 
 	return p, nil
 }
 
-func RegisterToKontrol(name, serviceGenericName, serviceUniqueName, uuid, hostname string, port int) error {
-	connection := CreateAmqpConnection()
+// TODO: refactor this, it's ugly and I hate functions that take more than tree args.
+func RegisterToKontrol(conf *config.Config, name, serviceGenericName, serviceUniqueName, uuid, hostname string, port int) error {
+
+	connection := CreateAmqpConnection(conf)
 	channel := CreateChannel(connection)
 
 	type workerMessage struct {

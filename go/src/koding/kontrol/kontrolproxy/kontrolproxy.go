@@ -2,6 +2,7 @@ package main
 
 import (
 	"errors"
+	"flag"
 	"fmt"
 	"html/template"
 	"io"
@@ -43,11 +44,13 @@ const (
 	MagicCookieValue = "KEbPptvE7dGLM5YFtcfz"
 )
 
+const KONTROLPROXY_NAME = "kontrolproxy"
+
 var (
 	proxyName, _ = os.Hostname()
 
 	// used for all our log
-	log = logger.New("kontrolproxy")
+	log = logger.New(KONTROLPROXY_NAME)
 
 	// redis client, connects once
 	redisClient = redis.Client{
@@ -74,6 +77,14 @@ var (
 		"files/templates/quotaExceeded.html",
 		"files/templates/maintenance.html",
 	))
+
+	// readed config
+	conf *config.Config
+
+	// flag variables
+	flagProfile   = flag.String("c", "", "Configuration profile from file")
+	flagRegion    = flag.String("r", "", "Region")
+	flagVMProxies = flag.Bool("v", false, "Enable ports for VM users (1024-10000)")
 )
 
 // Proxy is implementing the http.Handler interface (via ServeHTTP). This is
@@ -114,7 +125,17 @@ type interval struct {
 }
 
 func main() {
-	runtime.GOMAXPROCS(runtime.NumCPU())
+	flag.Parse()
+	if *flagProfile == "" || *flagRegion == "" {
+		log.Error("No flags defined. -c, -r and -v is not set. Aborting")
+		os.Exit(1)
+	}
+
+	conf = config.MustConfig(*flagProfile)
+	modelhelper.Initialize(conf.Mongo)
+
+	l := logger.GetLoggingLevelFromConfig(KONTROLPROXY_NAME, conf.Environment)
+	log.SetLevel(l)
 
 	log.Info("Kontrolproxy started.")
 	log.Info("I'm using %d cpus for goroutines", runtime.NumCPU())
@@ -143,22 +164,25 @@ func main() {
 }
 
 func (p *Proxy) runNewKite() {
-	k := kodingkite.New(kodingkite.Options{
-		Kitename: "kontrolproxy",
-		Version:  "0.0.1",
-	})
+	k := kodingkite.New(
+		conf,
+		kodingkite.Options{
+			Kitename: KONTROLPROXY_NAME,
+			Version:  "0.0.1",
+		},
+	)
 
 	k.Start()
 
 	// TODO: remove this later, this is needed in order to reinitiliaze the logger package
-	logging.SetLevel(logging.DEBUG, "kontrolproxy")
+	logging.SetLevel(logging.DEBUG, KONTROLPROXY_NAME)
 
 	query := protocol.KontrolQuery{
 		Username:    "koding-kites",
-		Environment: config.Profile,
+		Environment: *flagProfile,
 		Name:        "oskite",
 		Version:     "0.0.1",
-		Region:      config.Region,
+		Region:      *flagRegion,
 	}
 
 	onEvent := func(e *kite.Event) {
@@ -320,7 +344,7 @@ func (p *Proxy) setupLogging() {
 // a seperate goroutine, thus the functions is nonblocking.
 func (p *Proxy) startHTTPS() {
 	// HTTPS handling, it is always 443, standart port for HTTPS protocol
-	portssl := strconv.Itoa(config.Current.Kontrold.Proxy.PortSSL)
+	portssl := strconv.Itoa(conf.Kontrold.Proxy.PortSSL)
 	log.Info("https mode is enabled. serving at :%s ...", portssl)
 
 	// don't change it to "*.pem", otherwise you'll get duplicate IP's
@@ -355,7 +379,7 @@ func (p *Proxy) startHTTP() {
 	// HTTP Handling for VM port forwardings
 	log.Info("normal mode is enabled. serving ports between 1024-10000 for vms...")
 
-	if config.VMProxies {
+	if *flagVMProxies {
 		for i := 1024; i <= 10000; i++ {
 			go func(i int) {
 				port := strconv.Itoa(i)
@@ -368,7 +392,7 @@ func (p *Proxy) startHTTP() {
 	}
 
 	// HTTP handling (port 80, main)
-	port := strconv.Itoa(config.Current.Kontrold.Proxy.Port)
+	port := strconv.Itoa(conf.Kontrold.Proxy.Port)
 	log.Info("normal mode is enabled. serving at :%s ...", port)
 	err := http.ListenAndServe(":"+port, p.mux)
 	if err != nil {
@@ -398,7 +422,7 @@ func (p *Proxy) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	// our main handler mux function goes and picks the correct handler
 	if h := p.getHandler(r); h != nil {
-		if config.VMProxies {
+		if *flagVMProxies {
 			// don't wrap this around CLH logging handler, because it breaks websocket
 			h.ServeHTTP(w, r)
 		} else {

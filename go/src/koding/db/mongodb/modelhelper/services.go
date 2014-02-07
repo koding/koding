@@ -3,7 +3,6 @@ package modelhelper
 import (
 	"fmt"
 	"koding/db/models"
-	"koding/db/mongodb"
 	"sort"
 	"strconv"
 
@@ -46,7 +45,7 @@ func GetServices() []models.Service {
 		return nil
 	}
 
-	mongodb.Run("jProxyServices", query)
+	Mongo.Run("jProxyServices", query)
 	return services
 }
 
@@ -56,7 +55,7 @@ func GetService(username string) (models.Service, error) {
 		return c.Find(bson.M{"username": username}).One(&service)
 	}
 
-	err := mongodb.Run("jProxyServices", query)
+	err := Mongo.Run("jProxyServices", query)
 	return service, err
 }
 
@@ -239,7 +238,7 @@ func UpsertService(username string, service models.Service) error {
 		return err
 	}
 
-	return mongodb.Run("jProxyServices", query)
+	return Mongo.Run("jProxyServices", query)
 }
 
 func DeleteServices(username string) error {
@@ -247,5 +246,5 @@ func DeleteServices(username string) error {
 		return c.Remove(bson.M{"username": username})
 	}
 
-	return mongodb.Run("jProxyServices", query)
+	return Mongo.Run("jProxyServices", query)
 }

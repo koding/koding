@@ -38,6 +38,10 @@ config =
           mongodb       : [{ host : 1, user : 1, password:1}]
   main            :
     environment   : 1
+    regions       :
+      vagrant     : 1
+      sj          : 1
+      aws         : 1
     version       : 1
     haproxy       :
       webPort     : 1
@@ -77,6 +81,7 @@ config =
     buildClient   : 1
     runOsKite     : 0
     runProxy      : 0
+    redis         : 1
     misc          :
       claimGlobalNamesForUsers: 1
       updateAllSlugs : 1
