@@ -66,6 +66,10 @@ func New(name string, c *config.Config, onePerHost bool) *Kite {
 	}
 }
 
+func EnableDebug() {
+	log.SetLevel(logger.DEBUG)
+}
+
 func (k *Kite) Handle(method string, concurrent bool, callback func(args *dnode.Partial, channel *Channel) (interface{}, error)) {
 	k.Handlers[method] = Handler{concurrent, callback}
 }

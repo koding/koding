@@ -206,6 +206,10 @@ func prepareOsKite() *kite.Kite {
 
 	k := kite.New(kiteName, conf, true)
 
+	if *flagDebug {
+		kite.EnableDebug()
+	}
+
 	k.LoadBalancer = func(correlationName string, username string, deadService string) string {
 		var vm *virt.VM
 		if bson.IsObjectIdHex(correlationName) {
