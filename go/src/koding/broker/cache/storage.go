@@ -2,8 +2,8 @@ package cache
 
 type Subscriptionable interface {
 	Each(f func(item interface{}) bool) error
-	Subscribe(routingKeyPrefix string) error
-	Unsubscribe(routingKeyPrefix string) error
+	Subscribe(routingKeyPrefix ...string) error
+	Unsubscribe(routingKeyPrefix ...string) error
 	Has(routingKeyPrefix string) (bool, error)
 	Len() (int, error)
 	Resubscribe(socketID string) (bool, error)
@@ -40,11 +40,15 @@ func (s *SubscriptionStorage) Each(f func(item interface{}) bool) error {
 	return s.storage.Each(f)
 }
 
-func (s *SubscriptionStorage) Subscribe(routingKeyPrefix string) error {
-	return s.storage.Subscribe(routingKeyPrefix)
+func (s *SubscriptionStorage) Subscribe(routingKeyPrefixes ...string) error {
+	return s.storage.Subscribe(routingKeyPrefixes...)
 }
-func (s *SubscriptionStorage) Unsubscribe(routingKeyPrefix string) error {
-	return s.storage.Unsubscribe(routingKeyPrefix)
+func (s *SubscriptionStorage) Unsubscribe(routingKeyPrefixes ...string) error {
+	return s.storage.Unsubscribe(routingKeyPrefixes...)
+}
+
+func (s *SubscriptionStorage) Resubscribe(socketID string) (bool, error) {
+	return s.storage.Resubscribe(socketID)
 }
 
 func (s *SubscriptionStorage) Has(routingKeyPrefix string) (bool, error) {
@@ -53,10 +57,6 @@ func (s *SubscriptionStorage) Has(routingKeyPrefix string) (bool, error) {
 
 func (s *SubscriptionStorage) Len() (int, error) {
 	return s.storage.Len()
-}
-
-func (s *SubscriptionStorage) Resubscribe(socketID string) (bool, error) {
-	return s.storage.Resubscribe(socketID)
 }
 
 func (s *SubscriptionStorage) ClearWithTimeout() error {
