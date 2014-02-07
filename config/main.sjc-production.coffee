@@ -55,6 +55,7 @@ module.exports =
   mongoReplSet  : mongoReplSet
   runNeo4jFeeder: yes
   runGoBroker   : no
+  runGoBrokerKite : no
   runKontrol    : yes
   runRerouting  : yes
   runUserPresence: yes

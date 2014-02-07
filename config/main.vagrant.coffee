@@ -51,6 +51,7 @@ module.exports =
     port        : 7474
   runNeo4jFeeder: yes
   runGoBroker   : yes
+  runGoBrokerKite: yes
   runKontrol    : no
   runRerouting  : yes
   runUserPresence: yes

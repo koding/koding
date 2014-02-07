@@ -73,6 +73,7 @@ config =
       port        : 1
     runNeo4jFeeder: 1
     runGoBroker   : 1
+    runGoBrokerKite: 1
     runKontrol    : 1
     runRerouting  : 1
     runUserPresence: 1

@@ -44,6 +44,7 @@ var (
 	flagBrokerDomain = flag.String("a", "", "Send kontrol a custom domain istead of os.Hostname")
 	flagKontrolUUID  = flag.String("u", "", "Enable Kontrol mode")
 	flagBrokerType   = flag.String("b", "broker", "Define broker type. Available: broker and brokerKite. B")
+	flagDebug        = flag.Bool("d", false, "Debug mode")
 )
 
 // Broker is a router/multiplexer that routes messages coming from a SockJS
@@ -96,9 +97,6 @@ func main() {
 	}
 
 	conf = config.MustConfig(*flagProfile)
-	logLevel := logger.GetLoggingLevelFromConfig(BROKER_NAME, *flagProfile)
-	log.SetLevel(logLevel)
-
 	broker := NewBroker()
 
 	switch *flagBrokerType {
@@ -108,6 +106,16 @@ func main() {
 		broker.Config = &conf.Broker
 	}
 
+	// update broker name
+	log = logger.New(broker.Config.Name)
+	var logLevel logger.Level
+	if *flagDebug {
+		logLevel = logger.DEBUG
+	} else {
+		logLevel = logger.GetLoggingLevelFromConfig(BROKER_NAME, *flagProfile)
+	}
+
+	log.SetLevel(logLevel)
 	broker.Run()
 }
 

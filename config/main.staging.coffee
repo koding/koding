@@ -50,6 +50,7 @@ module.exports =
   mongoReplSet  : null
   runNeo4jFeeder: yes
   runGoBroker   : no
+  runGoBrokerKite: no
   runKontrol    : yes
   runRerouting  : yes
   runUserPresence: yes
