@@ -45,9 +45,9 @@ class ActivityAppView extends KDScrollView
     @tickerBox.once 'viewAppended', =>
       topOffset = @tickerBox.$().position().top
       windowController.on 'ScrollHappened', =>
-        if document.body.scrollTop > topOffset
         # sanity check
         topOffset = @tickerBox.$().position().top  if topOffset < 200
+        if document.documentElement.scrollTop > topOffset
         then @tickerBox.setClass 'fixed'
         else @tickerBox.unsetClass 'fixed'
 
