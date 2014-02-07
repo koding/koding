@@ -1,19 +1,31 @@
 package main
 
 import (
+	"flag"
 	"koding/rerouting/router"
 	"koding/tools/amqputil"
+	"koding/tools/config"
 	"koding/tools/logger"
 )
 
-var log = logger.New("rerouting")
+var (
+	log           = logger.New("rerouting")
+	conf          *config.Config
+	configProfile = flag.String("c", "", "Configuration profile from file")
 
-var producer *rerouting.Producer
-var defaultPublishingExchange string
-var router *rerouting.Router
+	defaultPublishingExchange string
+	producer                  *rerouting.Producer
+	router                    *rerouting.Router
+)
 
 func main() {
+	flag.Parse()
 	log.Info("routing worker started")
+	if *configProfile == "" {
+		log.Fatal("Please define config file with -c")
+	}
+
+	conf = config.MustConfig(*configProfile)
 
 	var err error
 	producer, err = createProducer()
@@ -34,7 +46,7 @@ func createProducer() (*rerouting.Producer, error) {
 
 	log.Info("creating publisher connections")
 
-	p.Conn = amqputil.CreateConnection("routing")
+	p.Conn = amqputil.CreateConnection(conf, "routing")
 	p.Channel = amqputil.CreateChannel(p.Conn)
 
 	return p, nil
@@ -46,12 +58,12 @@ func startRouting() {
 		Channel: nil,
 	}
 
-	router = rerouting.NewRouter(c, producer)
+	router = rerouting.NewRouter(c, producer, *configProfile)
 
 	var err error
 
 	log.Info("creating consumer connections")
-	c.Conn = amqputil.CreateConnection("routing")
+	c.Conn = amqputil.CreateConnection(conf, "routing")
 	c.Channel = amqputil.CreateChannel(c.Conn)
 
 	err = c.Channel.ExchangeDeclare("routing-control", "fanout", false, true, false, false, nil)

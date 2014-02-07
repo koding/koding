@@ -14,6 +14,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
 	"github.com/streadway/amqp"
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
@@ -32,9 +33,9 @@ const (
 	WorkersDB         = "kontrol"
 )
 
-func Startup() {
+func Startup(conf *config.Config) {
 	var err error
-	producer, err = kontrolhelper.CreateProducer("worker")
+	producer, err = kontrolhelper.CreateProducer(conf, "worker")
 	if err != nil {
 		slog.Println(err)
 	}
@@ -44,7 +45,8 @@ func Startup() {
 		slog.Printf("clientExchange exchange.declare: %s\n", err)
 	}
 
-	kontrolDB = mongodb.NewMongoDB(config.Current.MongoKontrol)
+	kontrolDB = mongodb.NewMongoDB(conf.MongoKontrol)
+	modelhelper.KontrolWorkersInit(conf.MongoKontrol)
 
 	go heartBeatChecker()
 	go deploymentCleaner()

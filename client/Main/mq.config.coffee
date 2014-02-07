@@ -1,3 +1,5 @@
+getSessionToken=-> $.cookie('clientId')
+
 KD.remote = new Bongo
 
   precompileApi: KD.config.precompiledApi ? no
@@ -6,7 +8,7 @@ KD.remote = new Bongo
 
   getUserArea:-> KD.getSingleton('groupsController').getUserArea()
 
-  getSessionToken:-> $.cookie('clientId')
+  getSessionToken: getSessionToken
 
   # createRoutingKey:(service, event)->
     # "client.#{Bongo.createId()}.#{KD.whoami().profile.nickname}.#{service}.#{event}"
@@ -51,5 +53,5 @@ KD.remote = new Bongo
 
   mq: do->
     { broker:{ servicesEndpoint }, authExchange } = KD.config
-    options = { servicesEndpoint, authExchange, autoReconnect: yes }
+    options = { servicesEndpoint, authExchange, autoReconnect: yes, getSessionToken }
     broker = new KDBroker.Broker null, options

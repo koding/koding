@@ -1,7 +1,10 @@
 package main
 
 import (
+	"flag"
 	"io"
+	"koding/db/mongodb"
+	"koding/db/mongodb/modelhelper"
 	"koding/tools/config"
 	"log"
 	"net"
@@ -29,7 +32,15 @@ func init() {
 	log.SetPrefix("kontrol-api ")
 }
 
+var flagProfile = flag.String("c", "", "Configuration profile from file")
+var conf *config.Config
+
 func main() {
+	flag.Parse()
+	if *flagProfile == "" {
+		log.Fatal("Please define config file with -c")
+	}
+
 	rout := mux.NewRouter()
 	rout.HandleFunc("/", home).Methods("GET")
 
@@ -96,7 +107,11 @@ func main() {
 	stats.HandleFunc("/proxies/{proxy}", changeHandler(GetProxyStat)).Methods("GET")
 	stats.HandleFunc("/proxies/{proxy}", changeHandler(DeleteProxyStat)).Methods("DELETE")
 
-	port := strconv.Itoa(config.Current.Kontrold.Api.Port)
+	conf = config.MustConfig(*flagProfile)
+	kontrolDB = mongodb.NewMongoDB(conf.MongoKontrol)
+	modelhelper.Initialize(conf.Mongo)
+
+	port := strconv.Itoa(conf.Kontrold.Api.Port)
 	log.Printf("kontrol api is started. serving at :%s ...", port)
 
 	http.Handle("/", rout)

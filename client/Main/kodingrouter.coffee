@@ -15,9 +15,8 @@ class KodingRouter extends KDRouter
     @openRoutes     = {}
     @openRoutesById = {}
     KD.singleton('display').on 'DisplayIsDestroyed', @bound 'cleanupRoute'
-    @ready = no
+
     KD.getSingleton('mainController').once 'AccountChanged', =>
-      @ready = yes
       @utils.defer => @emit 'ready'
 
     super()
@@ -81,22 +80,15 @@ class KodingRouter extends KDRouter
     delete @openRoutes[@openRoutesById[contentDisplay.id]]
 
   openSection:(app, group, query)->
-    return @once 'ready', @openSection.bind this, arguments...  unless @ready
 
-    KD.getSingleton('groupsController').changeGroup group, (err)=>
-      if err then new KDNotificationView title: err.message
-      else
-        # temp fix for not showing homepage to loggedin users
-        # app = 'Activity' if app is 'Home' and KD.isLoggedIn()
-
+    @ready =>
+      {appManager, groupsController} = KD.singletons
+      groupsController.ready =>
         @setPageTitle nicenames[app] ? app
-        appManager  = KD.getSingleton "appManager"
         handleQuery = appManager.tell.bind appManager, app, "handleQuery", query
 
         appManager.once "AppCreated", handleQuery  unless appWasOpen = appManager.get app
-
-        appManager.open app, (appInstance)=>
-          appInstance.setOption "initialRoute", @getCurrentPath()
+        appManager.open app
 
         handleQuery()  if appWasOpen
 
@@ -288,7 +280,6 @@ class KodingRouter extends KDRouter
       '/:name?/Logout'         : ({params:{name}})-> requireLogin -> mainController.doLogout()
 
       '/:name?/Topics/:slug'   : createContentHandler 'Topics'
-      '/:name?/Activity/:slug' : createContentHandler 'Activity'
 
       '/:name/Groups'          : createSectionHandler 'Groups'
       '/:name/Followers'       : createContentHandler 'Members', yes

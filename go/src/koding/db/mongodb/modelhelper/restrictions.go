@@ -3,10 +3,10 @@ package modelhelper
 import (
 	"fmt"
 	"koding/db/models"
-	"koding/db/mongodb"
+	"time"
+
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
-	"time"
 )
 
 func NewRule(enabled bool, action, name string) *models.Rule {
@@ -82,7 +82,7 @@ func AddOrUpdateRule(enabled bool, domainname, action, name string, index int, m
 		return err
 	}
 
-	err = mongodb.Run("jProxyRestrictions", query)
+	err = Mongo.Run("jProxyRestrictions", query)
 	return rule, err
 }
 
@@ -92,7 +92,7 @@ func DeleteRuleByName(domainname, name string) error {
 			bson.M{"$pull": bson.M{"ruleList": bson.M{"name": name}}})
 	}
 
-	return mongodb.Run("jProxyRestrictions", query)
+	return Mongo.Run("jProxyRestrictions", query)
 }
 
 func DeleteRestriction(domainname string) error {
@@ -100,7 +100,7 @@ func DeleteRestriction(domainname string) error {
 		return c.Remove(bson.M{"domainName": domainname})
 	}
 
-	return mongodb.Run("jProxyRestrictions", query)
+	return Mongo.Run("jProxyRestrictions", query)
 }
 
 func GetRestrictionByDomain(domainname string) (models.Restriction, error) {
@@ -109,7 +109,7 @@ func GetRestrictionByDomain(domainname string) (models.Restriction, error) {
 		return c.Find(bson.M{"domainName": domainname}).One(&restriction)
 	}
 
-	err := mongodb.Run("jProxyRestrictions", query)
+	err := Mongo.Run("jProxyRestrictions", query)
 	if err != nil {
 		return restriction, err
 	}
@@ -122,7 +122,7 @@ func GetRestrictionByID(id bson.ObjectId) (models.Restriction, error) {
 		return c.FindId(id).One(&restriction)
 	}
 
-	err := mongodb.Run("jProxyRestrictions", query)
+	err := Mongo.Run("jProxyRestrictions", query)
 	if err != nil {
 		return restriction, err
 	}
@@ -141,7 +141,7 @@ func GetRestrictions() []models.Restriction {
 		return nil
 	}
 
-	mongodb.Run("jProxyRestrictions", query)
+	Mongo.Run("jProxyRestrictions", query)
 	return restrictions
 }
 

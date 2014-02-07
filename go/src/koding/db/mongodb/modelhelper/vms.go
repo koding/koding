@@ -3,7 +3,7 @@ package modelhelper
 import (
 	"fmt"
 	"koding/db/models"
-	"koding/db/mongodb"
+
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
 )
@@ -22,7 +22,7 @@ func GetVM(hostname string) (*models.VM, error) {
 		return c.Find(bson.M{"hostnameAlias": hostname}).One(vm)
 	}
 
-	err := mongodb.Run("jVMs", query)
+	err := Mongo.Run("jVMs", query)
 	if err != nil {
 		return vm, fmt.Errorf("vm for hostname %s is not found", hostname)
 	}
@@ -39,7 +39,7 @@ func AddVM(vm *models.VM) error {
 		return nil
 	}
 
-	return mongodb.Run("jVMs", query)
+	return Mongo.Run("jVMs", query)
 }
 
 func DeleteVM(hostnameAlias string) error {
@@ -47,5 +47,5 @@ func DeleteVM(hostnameAlias string) error {
 		return c.Remove(bson.M{"hostnameAlias": hostnameAlias})
 	}
 
-	return mongodb.Run("jVMs", query)
+	return Mongo.Run("jVMs", query)
 }
