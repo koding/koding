@@ -76,6 +76,8 @@ class VmProductForm extends FormWorkflow
       else
         @collectData { plan }
 
+    @forwardEvent upgradeForm, "Cancel"
+
     @addForm 'upgrade', upgradeForm, ['plan', 'subscription']
 
     packChoiceForm = @createPackChoiceForm()
@@ -83,8 +85,7 @@ class VmProductForm extends FormWorkflow
 
     packChoiceForm.on 'PackSelected', (pack) =>
       @checkUsageLimits pack, (err) =>
-        KD.showError err # don't return
-
+        return KD.showError err  if err and err.message isnt "quota exceeded"
         @collectData { pack }
 
     @addForm 'pack choice', packChoiceForm, ['pack']
