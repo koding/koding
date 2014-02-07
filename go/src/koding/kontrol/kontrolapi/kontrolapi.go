@@ -4,6 +4,7 @@ import (
 	"flag"
 	"io"
 	"koding/db/mongodb"
+	"koding/db/mongodb/modelhelper"
 	"koding/tools/config"
 	"log"
 	"net"
@@ -108,6 +109,7 @@ func main() {
 
 	conf = config.MustConfig(*flagProfile)
 	kontrolDB = mongodb.NewMongoDB(conf.MongoKontrol)
+	modelhelper.Initialize(conf.Mongo)
 
 	port := strconv.Itoa(conf.Kontrold.Api.Port)
 	log.Printf("kontrol api is started. serving at :%s ...", port)
