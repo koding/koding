@@ -37,7 +37,6 @@ class DevToolsMainView extends KDView
           direction             : "vertical"
           sizes                 : [ "264px", null ]
           splitName             : "BaseSplit"
-          cssClass              : 'basesplit-gokmen'
           views                 : [
             {
               type              : "finder"
@@ -57,6 +56,7 @@ class DevToolsMainView extends KDView
                 direction       : "vertical"
                 sizes           : [ "50%", "50%" ]
                 splitName       : "InnerSplit"
+                cssClass        : "inner-split"
               views             : [
                 {
                   type          : "split"
@@ -64,6 +64,7 @@ class DevToolsMainView extends KDView
                     direction   : "horizontal"
                     sizes       : [ "50%", "50%" ]
                     splitName   : "EditorSplit"
+                    cssClass    : "editor-split"
                   views         : [
                     {
                       type      : "custom"

@@ -29,6 +29,14 @@ app.devtools.styl
     .kdbutton
       margin-top  7px
 
+  .inner-split
+    .panel-1
+      border-left    1px solid #ccc
+
+  .editor-split
+    .panel-1
+      border-top    1px solid #ccc
+
   .devtools-editor
 
     .ws-header.inner-header
@@ -89,13 +97,10 @@ app.devtools.styl
         h2
           display    none
 
-  .kdsplitview-horizontal
-    > .kdsplitview-resizer
-      height      3px
-
-  .kdsplitview-vertical
-    > .kdsplitview-resizer
-      width       3px
+  .kdsplitview-resizer
+    opacity     .05
+    &:hover
+      opacity   .1
 
   .kdbutton.solid
 
