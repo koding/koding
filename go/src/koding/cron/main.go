@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"koding/db/mongodb/modelhelper"
 	"koding/tools/config"
 	"koding/tools/logger"
 	"koding/workers/topicmodifier"
@@ -31,6 +32,9 @@ func main() {
 	}
 
 	conf := config.MustConfig(*configProfile)
+
+	// needed for topicModifer until it's done.
+	modelhelper.Initialize(conf.Mongo)
 	log.Notice("Starting Cron Scheduler")
 
 	addFunc(conf.TopicModifier.CronSchedule, func() { topicmodifier.ConsumeMessage(conf) })

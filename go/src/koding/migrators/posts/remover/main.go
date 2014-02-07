@@ -38,6 +38,7 @@ func main() {
 	}
 
 	conf = config.MustConfig(*flagProfile)
+	helper.Initialize(conf.Mongo)
 
 	log.Notice("Started Obsolete Post Remover")
 	defer shutdown()

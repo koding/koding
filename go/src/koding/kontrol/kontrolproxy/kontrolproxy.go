@@ -4,8 +4,6 @@ import (
 	"errors"
 	"flag"
 	"fmt"
-	"github.com/gorilla/context"
-	"github.com/op/go-logging"
 	"html/template"
 	"io"
 	"koding/db/mongodb/modelhelper"
@@ -16,7 +14,6 @@ import (
 	"koding/kontrol/kontrolproxy/utils"
 	"koding/tools/config"
 	"koding/tools/logger"
-	"koding/workers/neo4jfeeder/mongohelper"
 	"math/rand"
 	"net"
 	"net/http"
@@ -31,6 +28,8 @@ import (
 	"sync"
 	"syscall"
 	"time"
+	"github.com/gorilla/context"
+	"github.com/op/go-logging"
 
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/sessions"
@@ -133,7 +132,7 @@ func main() {
 	}
 
 	conf = config.MustConfig(*flagProfile)
-	mongohelper.MongoHelperInit(conf.Mongo)
+	modelhelper.Initialize(conf.Mongo)
 
 	l := logger.GetLoggingLevelFromConfig(KONTROLPROXY_NAME, conf.Environment)
 	log.SetLevel(l)

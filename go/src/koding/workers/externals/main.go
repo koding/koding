@@ -3,10 +3,10 @@ package main
 import (
 	"flag"
 	"koding/db/mongodb"
+	"koding/db/mongodb/modelhelper"
 	"koding/tools/config"
 	"koding/tools/dnode"
 	"koding/tools/kite"
-	"koding/workers/neo4jfeeder/mongohelper"
 	"log"
 )
 
@@ -26,7 +26,7 @@ func main() {
 
 	conf := config.MustConfig(*configProfile)
 	mongoDB = mongodb.NewMongoDB(conf.Mongo)
-	mongohelper.MongoHelperInit(conf.Mongo)
+	modelhelper.Initialize(conf.Mongo)
 
 	externals := kite.New("externals", conf, false)
 	externals.Handle("import", false, func(args *dnode.Partial, channel *kite.Channel) (interface{}, error) {

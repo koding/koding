@@ -80,6 +80,7 @@ func main() {
 	fmt.Println("flags", *flagProfile)
 	conf = config.MustConfig(*flagProfile)
 	mongodbConn = mongodb.NewMongoDB(conf.Mongo)
+	modelhelper.Initialize(conf.Mongo)
 
 	logLevel = logger.GetLoggingLevelFromConfig(OSKITE_NAME, *flagProfile)
 	log.SetLevel(logLevel)

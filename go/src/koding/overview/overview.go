@@ -55,6 +55,7 @@ func main() {
 	}
 
 	conf := config.MustConfig(*configProfile)
+	modelhelper.Initialize(conf.Mongo)
 
 	var err error
 	// used for kontrolapi

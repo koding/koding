@@ -39,6 +39,7 @@ func main() {
 	}
 
 	conf = config.MustConfig(*flagProfile)
+	helper.Initialize(conf.Mongo)
 
 	initPublisher()
 	defer shutdown()

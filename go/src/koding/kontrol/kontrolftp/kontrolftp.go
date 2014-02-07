@@ -21,6 +21,7 @@ func main() {
 	var err error
 
 	conf := config.MustConfig(*flagProfile)
+	modelhelper.Initialize(conf.Mongo)
 
 	logs, err = syslog.New(syslog.LOG_DEBUG|syslog.LOG_USER, "KONTROL_FTP")
 
