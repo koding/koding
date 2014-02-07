@@ -34,7 +34,7 @@ module.exports = (bongo, page, contentType, callback)=>
     model.some selector, options, (err, contents)=>
       return callback err, null  if err
       return callback null, getEmptyPage contentType  if count is 0
-      queue = [0..contents.length].map (index)=>=>
+      queue = [0...contents.length].map (index)=>=>
         queue.pageContent or= ""
 
         content = contents[index]
