@@ -1,5 +1,12 @@
 package cache
 
+import (
+	"errors"
+	"koding/tools/config"
+)
+
+var conf *config.Config
+
 type Subscriptionable interface {
 	Each(f func(item interface{}) bool) error
 	Subscribe(routingKeyPrefix ...string) error
@@ -14,16 +21,20 @@ type SubscriptionStorage struct {
 	storage Subscriptionable
 }
 
-func NewStorage(cacheType, socketID string) (*SubscriptionStorage, error) {
+func NewStorage(c *config.Config, cacheType, socketID string) (*SubscriptionStorage, error) {
+	if c == nil {
+		return nil, errors.New("Config is passed as nil. Aborting.")
+	}
+	conf = c
 
 	var err error
-	var be Subscriptionable
+	var s Subscriptionable
 
 	switch cacheType {
 	case "redis":
-		be, err = NewRedis(socketID)
+		s, err = newRedis(socketID)
 	default:
-		be, err = NewSubscriptionSet(socketID)
+		s, err = newSubscriptionSet(socketID)
 	}
 
 	if err != nil {
@@ -31,7 +42,7 @@ func NewStorage(cacheType, socketID string) (*SubscriptionStorage, error) {
 	}
 
 	return &SubscriptionStorage{
-		storage: be,
+		storage: s,
 	}, nil
 
 }

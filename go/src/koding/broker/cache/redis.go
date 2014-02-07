@@ -4,12 +4,11 @@ import (
 	"errors"
 	"fmt"
 	"koding/databases/redis"
-	"koding/tools/config"
 
 	redigo "github.com/garyburd/redigo/redis"
 )
 
-type Cache struct {
+type cache struct {
 	socketID string
 	session  *redis.RedisSession
 	key      string
@@ -18,7 +17,7 @@ type Cache struct {
 func generateKey(SocketID string) string {
 	return fmt.Sprintf(
 		"%s-broker-client-%s",
-		config.Current.Environment,
+		conf.Environment,
 		SocketID,
 	)
 }
@@ -35,13 +34,13 @@ func convertData(commandName string, data ...string) []interface{} {
 
 // NewRedis creates a redis backend for storing
 // client subscriptions
-func NewRedis(socketID string) (*Cache, error) {
-	session, err := redis.NewRedisSession(config.Current.Redis)
+func newRedis(socketID string) (*cache, error) {
+	session, err := redis.NewRedisSession(conf.Redis)
 	if err != nil {
 		return nil, err
 	}
 
-	cache := &Cache{
+	cache := &cache{
 		socketID: socketID,
 		session:  session,
 		key:      generateKey(socketID),
@@ -52,7 +51,7 @@ func NewRedis(socketID string) (*Cache, error) {
 
 // Each traverses on all subscribed items
 // if given function returns false, breaks from the iteration
-func (c *Cache) Each(f func(item interface{}) bool) error {
+func (c *cache) Each(f func(item interface{}) bool) error {
 	members, err := redigo.Strings(c.session.Do("SMEMBERS", c.key))
 	if err != nil {
 		return err
@@ -69,7 +68,7 @@ func (c *Cache) Each(f func(item interface{}) bool) error {
 
 // Subscribe adds one item to the subscription set
 // todo - do a performace test for subscribing 2K items at once
-func (c *Cache) Subscribe(routingKeyPrefixes ...string) error {
+func (c *cache) Subscribe(routingKeyPrefixes ...string) error {
 	command := convertData(c.key, routingKeyPrefixes...)
 	_, err := redigo.Int(c.session.Do("SADD", command...))
 	if err != nil {
@@ -82,7 +81,7 @@ func (c *Cache) Subscribe(routingKeyPrefixes ...string) error {
 }
 
 // Unsubscribe removes one item from the subscription set
-func (c *Cache) Unsubscribe(routingKeyPrefixes ...string) error {
+func (c *cache) Unsubscribe(routingKeyPrefixes ...string) error {
 	command := convertData(c.key, routingKeyPrefixes...)
 	_, err := redigo.Int(c.session.Do("SREM", command...))
 	if err != nil {
@@ -93,7 +92,7 @@ func (c *Cache) Unsubscribe(routingKeyPrefixes ...string) error {
 	return nil
 }
 
-func (c *Cache) Resubscribe(clientID string) (bool, error) {
+func (c *cache) Resubscribe(clientID string) (bool, error) {
 	key := generateKey(clientID)
 	reply, err := redigo.Int(c.session.Do("EXISTS", key))
 	if err != nil {
@@ -105,10 +104,6 @@ func (c *Cache) Resubscribe(clientID string) (bool, error) {
 	}
 
 	routingKeyPrefixes, err := redigo.Strings(c.session.Do("SMEMBERS", key))
-	if err != nil {
-		return false, err
-	}
-
 	if err := c.Subscribe(routingKeyPrefixes...); err != nil {
 		return false, err
 	}
@@ -118,7 +113,7 @@ func (c *Cache) Resubscribe(clientID string) (bool, error) {
 
 // Has returns bool result indicating the given routingKeyPrefix is
 // subscribed by the client or not
-func (c *Cache) Has(routingKeyPrefix string) (bool, error) {
+func (c *cache) Has(routingKeyPrefix string) (bool, error) {
 	reply, err := redigo.Int(c.session.Do("SISMEMBER", c.key, routingKeyPrefix))
 	if err != nil {
 		return false, err
@@ -132,7 +127,7 @@ func (c *Cache) Has(routingKeyPrefix string) (bool, error) {
 }
 
 // Len returns subscription count for client
-func (c *Cache) Len() (int, error) {
+func (c *cache) Len() (int, error) {
 	reply, err := redigo.Int(c.session.Do("SCARD", c.key))
 	if err != nil {
 		return 0, err
@@ -141,7 +136,7 @@ func (c *Cache) Len() (int, error) {
 	return reply, nil
 }
 
-func (c *Cache) ClearWithTimeout() error {
+func (c *cache) ClearWithTimeout() error {
 	// expire after 5 min
 	reply, err := redigo.Int(c.session.Do("EXPIRE", c.key, 5*60))
 	if err != nil {

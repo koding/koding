@@ -1,10 +1,21 @@
 package main
 
 import (
-	"github.com/streadway/amqp"
+	"flag"
+	"koding/db/mongodb"
+	"koding/db/mongodb/modelhelper"
 	"koding/kontrol/kontroldaemon/handler"
 	"koding/kontrol/kontrolhelper"
+	"koding/tools/config"
 	"koding/tools/slog"
+	"log"
+
+	"github.com/streadway/amqp"
+)
+
+var (
+	mongo         *mongodb.MongoDB
+	configProfile = flag.String("c", "", "Configuration profile from file")
 )
 
 func init() {
@@ -13,11 +24,20 @@ func init() {
 }
 
 func main() {
-	handler.Startup()
-	startRouting()
+	flag.Parse()
+	if *configProfile == "" {
+		log.Fatal("Please define config file with -c")
+	}
+
+	conf := config.MustConfig(*configProfile)
+	mongo = mongodb.NewMongoDB(conf.Mongo)
+	modelhelper.Initialize(conf.Mongo)
+
+	handler.Startup(conf)
+	startRouting(conf)
 }
 
-func startRouting() {
+func startRouting(conf *config.Config) {
 	type bind struct {
 		name     string
 		queue    string
@@ -33,7 +53,7 @@ func startRouting() {
 		bind{"client", "kontrol-client", "", "clientExchange", "fanout"},
 	}
 
-	connection := kontrolhelper.CreateAmqpConnection()
+	connection := kontrolhelper.CreateAmqpConnection(conf)
 	channel := kontrolhelper.CreateChannel(connection)
 
 	for _, b := range bindings {

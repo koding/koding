@@ -8,17 +8,17 @@ import (
 )
 
 var (
-	socketSubscriptionsMap      = make(map[string]*SubscriptionSet)
+	socketSubscriptionsMap      = make(map[string]*subscriptionSet)
 	socketSubscriptionsMapMutex sync.Mutex
 )
 
-type SubscriptionSet struct {
+type subscriptionSet struct {
 	set      *set.Set
 	socketID string
 }
 
-func NewSubscriptionSet(socketID string) (*SubscriptionSet, error) {
-	s := &SubscriptionSet{
+func newSubscriptionSet(socketID string) (*subscriptionSet, error) {
+	s := &subscriptionSet{
 		set:      set.New(),
 		socketID: socketID,
 	}
@@ -29,13 +29,13 @@ func NewSubscriptionSet(socketID string) (*SubscriptionSet, error) {
 	return s, nil
 }
 
-func (s *SubscriptionSet) Each(f func(item interface{}) bool) error {
+func (s *subscriptionSet) Each(f func(item interface{}) bool) error {
 	s.set.Each(f)
 	// each doesnt return anything
 	return nil
 }
 
-func (s *SubscriptionSet) Subscribe(routingKeyPrefixes ...string) error {
+func (s *subscriptionSet) Subscribe(routingKeyPrefixes ...string) error {
 	for _, routingKeyPrefix := range routingKeyPrefixes {
 		s.set.Add(routingKeyPrefix)
 	}
@@ -43,7 +43,7 @@ func (s *SubscriptionSet) Subscribe(routingKeyPrefixes ...string) error {
 	return nil
 }
 
-func (s *SubscriptionSet) Unsubscribe(routingKeyPrefixes ...string) error {
+func (s *subscriptionSet) Unsubscribe(routingKeyPrefixes ...string) error {
 	for _, routingKeyPrefix := range routingKeyPrefixes {
 		s.set.Remove(routingKeyPrefix)
 	}
@@ -51,7 +51,7 @@ func (s *SubscriptionSet) Unsubscribe(routingKeyPrefixes ...string) error {
 	return nil
 }
 
-func (s *SubscriptionSet) Resubscribe(socketID string) (bool, error) {
+func (s *subscriptionSet) Resubscribe(socketID string) (bool, error) {
 	socketSubscription, ok := socketSubscriptionsMap[socketID]
 	if !ok {
 		return false, nil
@@ -66,17 +66,17 @@ func (s *SubscriptionSet) Resubscribe(socketID string) (bool, error) {
 	return true, nil
 }
 
-func (s *SubscriptionSet) Has(routingKeyPrefix string) (bool, error) {
+func (s *subscriptionSet) Has(routingKeyPrefix string) (bool, error) {
 	// has only returns bool
 	return s.set.Has(routingKeyPrefix), nil
 }
 
-func (s *SubscriptionSet) Len() (int, error) {
+func (s *subscriptionSet) Len() (int, error) {
 	// size only returns count
 	return s.set.Size(), nil
 }
 
-func (s *SubscriptionSet) ClearWithTimeout() error {
+func (s *subscriptionSet) ClearWithTimeout() error {
 	time.AfterFunc(5*time.Minute, func() {
 		socketSubscriptionsMapMutex.Lock()
 		delete(socketSubscriptionsMap, s.socketID)

@@ -2,25 +2,32 @@ package amqputil
 
 import (
 	"fmt"
-	"github.com/streadway/amqp"
 	"koding/tools/config"
 	"koding/tools/logger"
 	"strings"
+
+	"github.com/streadway/amqp"
 )
 
-var log = logger.New("amqputil")
+var (
+	log = logger.New("ampqutil")
+)
 
-func CreateConnection(component string) *amqp.Connection {
+func CreateConnection(conf *config.Config, component string) *amqp.Connection {
+	if conf == nil {
+		log.Fatal("Configuration is not defined. Please pass a prepared conf struct. %v", component)
+	}
+
 	conn, err := amqp.Dial(amqp.URI{
 		Scheme:   "amqp",
-		Host:     config.Current.Mq.Host,
-		Port:     config.Current.Mq.Port,
-		Username: strings.Replace(config.Current.Mq.ComponentUser, "<component>", component, 1),
-		Password: config.Current.Mq.Password,
-		Vhost:    config.Current.Mq.Vhost,
+		Host:     conf.Mq.Host,
+		Port:     conf.Mq.Port,
+		Username: strings.Replace(conf.Mq.ComponentUser, "<component>", component, 1),
+		Password: conf.Mq.Password,
+		Vhost:    conf.Mq.Vhost,
 	}.String())
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal("%v", err)
 	}
 
 	go func() {

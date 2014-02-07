@@ -5,7 +5,6 @@ import (
 	"encoding/base64"
 	"fmt"
 	"koding/broker/cache"
-	"koding/tools/config"
 	"koding/tools/sockjs"
 	"strconv"
 	"strings"
@@ -37,10 +36,10 @@ func NewClient(session *sockjs.Session, broker *Broker) *Client {
 
 	var subscriptions *cache.SubscriptionStorage
 
-	subscriptions, err = cache.NewStorage(STORAGE_BACKEND, socketId)
+	subscriptions, err = cache.NewStorage(conf, STORAGE_BACKEND, socketId)
 	if err != nil {
 		STORAGE_BACKEND = "set"
-		subscriptions, err = cache.NewStorage(STORAGE_BACKEND, socketId)
+		subscriptions, err = cache.NewStorage(conf, STORAGE_BACKEND, socketId)
 		if err != nil {
 			panic(err)
 		}
@@ -70,7 +69,7 @@ func (c *Client) Close() {
 	c.Subscriptions.ClearWithTimeout()
 
 	for {
-		err := c.ControlChannel.Publish(config.Current.Broker.AuthAllExchange, "broker.clientDisconnected", false, false, amqp.Publishing{Body: []byte(c.SocketId)})
+		err := c.ControlChannel.Publish(c.Broker.AuthAllExchange, "broker.clientDisconnected", false, false, amqp.Publishing{Body: []byte(c.SocketId)})
 		if err == nil {
 			break
 		}

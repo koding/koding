@@ -22,7 +22,8 @@ func createPublisher(options *PublisherConfig) *rabbitmq.Producer {
 		RoutingKey: options.RoutingKey,
 	}
 
-	producer, err := rabbitmq.NewProducer(exchange, queue, publishingOptions)
+	r := rabbitmq.New(Conf)
+	producer, err := r.NewProducer(exchange, queue, publishingOptions)
 	if err != nil {
 		panic(err)
 	}

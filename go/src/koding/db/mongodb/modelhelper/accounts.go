@@ -2,7 +2,6 @@ package modelhelper
 
 import (
 	"koding/db/models"
-	"koding/db/mongodb"
 
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
@@ -12,7 +11,7 @@ const AccountsCollection = "jAccounts"
 
 func GetAccountById(id string) (*models.Account, error) {
 	account := new(models.Account)
-	return account, mongodb.One(AccountsCollection, id, account)
+	return account, Mongo.One(AccountsCollection, id, account)
 }
 
 func GetAccount(username string) (*models.Account, error) {
@@ -20,18 +19,18 @@ func GetAccount(username string) (*models.Account, error) {
 	query := func(c *mgo.Collection) error {
 		return c.Find(bson.M{"profile.nickname": username}).One(&account)
 	}
-	return account, mongodb.Run(AccountsCollection, query)
+	return account, Mongo.Run(AccountsCollection, query)
 }
 
 func CheckAccountExistence(id string) (bool, error) {
 	var exists bool
 	query := checkExistence(id, &exists)
-	return exists, mongodb.Run("jAccounts", query)
+	return exists, Mongo.Run("jAccounts", query)
 }
 
 func UpdateAccount(selector, options Selector) error {
 	query := func(c *mgo.Collection) error {
 		return c.Update(selector, options)
 	}
-	return mongodb.Run("jAccounts", query)
+	return Mongo.Run("jAccounts", query)
 }

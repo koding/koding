@@ -33,7 +33,8 @@ func initPublisher() {
 
 	//used for creating exchange/queue. it would be much better if there is another solution
 	var err error
-	Consumer, err = rabbitmq.NewConsumer(exchange, queue, binding, consumerOptions)
+	r := rabbitmq.New(conf)
+	Consumer, err = r.NewConsumer(exchange, queue, binding, consumerOptions)
 	if err != nil {
 		panic(err)
 	}
@@ -48,7 +49,7 @@ func initPublisher() {
 		RoutingKey: "",
 	}
 
-	Producer, err = rabbitmq.NewProducer(exchange, queue, publishingOptions)
+	Producer, err = r.NewProducer(exchange, queue, publishingOptions)
 	if err != nil {
 		panic(err)
 	}

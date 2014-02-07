@@ -4,21 +4,21 @@ import (
 	"koding/tools/logger"
 	"math/rand"
 	"os"
-	"runtime"
 	"time"
 )
 
-var log = logger.New("lifecycle")
-
-var version string
-var changeClientsGauge func(int)
+var (
+	log                logger.Log
+	version            string
+	changeClientsGauge func(int)
+)
 
 func Startup(serviceName string, needRoot bool) {
+	log = logger.New(serviceName)
 	if needRoot && os.Getuid() != 0 {
 		log.Fatal("Must be run as root.")
 	}
 
-	runtime.GOMAXPROCS(runtime.NumCPU())
 	rand.Seed(time.Now().UnixNano())
 
 	log.Notice("Process '%v' started (version '%v').", serviceName, version)

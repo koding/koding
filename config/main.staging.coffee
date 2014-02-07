@@ -13,9 +13,14 @@ authAllExchange = "authAll-#{version}"
 embedlyApiKey   = '94991069fb354d4e8fdb825e52d4134a'
 
 environment     = "staging"
+regions         =
+  vagrant       : "vagrant"
+  sj            : "sj"
+  aws           : "aws"
 
 module.exports =
   environment   : environment
+  regions       : regions
   version       : version
   aws           :
     key         : 'AKIAJSUVKX6PD254UGAA'

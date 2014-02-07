@@ -2,18 +2,25 @@ package main
 
 import (
 	"encoding/json"
-	"github.com/streadway/amqp"
+	"flag"
 	"koding/db/mongodb"
 	"koding/tools/amqputil"
 	"koding/tools/config"
 	"koding/tools/logger"
-	"labix.org/v2/mgo"
-	"labix.org/v2/mgo/bson"
 	"strings"
 	"time"
+
+	"github.com/streadway/amqp"
+	"labix.org/v2/mgo"
+	"labix.org/v2/mgo/bson"
 )
 
-var log = logger.New("userpresence")
+var (
+	log           = logger.New("userpresence")
+	mongo         *mongodb.MongoDB
+	conf          *config.Config
+	configProfile = flag.String("c", "", "Configuration profile from file")
+)
 
 type socketIds map[string]bool
 
@@ -25,6 +32,13 @@ var (
 )
 
 func main() {
+	flag.Parse()
+	if *configProfile == "" {
+		log.Fatal("Please define config file with -c")
+	}
+
+	conf = config.MustConfig(*configProfile)
+	mongo = mongodb.NewMongoDB(conf.Mongo)
 
 	var err error
 
@@ -32,24 +46,21 @@ func main() {
 		panic(err)
 	}
 
-	mainAmqpConn := amqputil.CreateConnection("userpresence")
+	mainAmqpConn := amqputil.CreateConnection(conf, "userpresence")
 
 	resourceName = "users-presence"
 
 	startMonitoring(mainAmqpConn)
 	startControlling(mainAmqpConn)
-
-	select {}
 }
 
 func startMonitoring(mainAmqpConn *amqp.Connection) {
-
 	channel, err := mainAmqpConn.Channel()
 	if err != nil {
 		panic(err)
 	}
 
-	queueName := resourceName + config.Current.Version
+	queueName := resourceName + conf.Version
 
 	if err := channel.ExchangeDeclare(
 		resourceName, // the exchange name
@@ -139,11 +150,11 @@ func createFollowFeedChannel(component string) (*amqp.Channel, error) {
 
 	conn, err := amqp.Dial(amqp.URI{
 		Scheme:   "amqp",
-		Host:     config.Current.FollowFeed.Host,
-		Port:     config.Current.FollowFeed.Port,
-		Username: strings.Replace(config.Current.FollowFeed.ComponentUser, "<component>", component, 1),
-		Password: config.Current.FollowFeed.Password,
-		Vhost:    config.Current.FollowFeed.Vhost,
+		Host:     conf.FollowFeed.Host,
+		Port:     conf.FollowFeed.Port,
+		Username: strings.Replace(conf.FollowFeed.ComponentUser, "<component>", component, 1),
+		Password: conf.FollowFeed.Password,
+		Vhost:    conf.FollowFeed.Vhost,
 	}.String())
 
 	if err != nil {
@@ -161,14 +172,14 @@ func updateOnlineStatus(channel *amqp.Channel, username, status string) error {
 	userQuery := func(c *mgo.Collection) error {
 		return c.Find(bson.M{"username": username}).One(&user)
 	}
-	if err := mongodb.Run("jUsers", userQuery); err != nil {
+	if err := mongo.Run("jUsers", userQuery); err != nil {
 		return err
 	}
 
 	accountQuery := func(c *mgo.Collection) error {
 		return c.Find(bson.M{"profile.nickname": username}).One(&account)
 	}
-	if err := mongodb.Run("jAccounts", accountQuery); err != nil {
+	if err := mongo.Run("jAccounts", accountQuery); err != nil {
 		return err
 	}
 
@@ -179,7 +190,7 @@ func updateOnlineStatus(channel *amqp.Channel, username, status string) error {
 		)
 		return nil
 	}
-	mongodb.Run("jUsers", userUpdateQuery)
+	mongo.Run("jUsers", userUpdateQuery)
 
 	onlineStatus := make(bson.M)
 
@@ -203,7 +214,7 @@ func updateOnlineStatus(channel *amqp.Channel, username, status string) error {
 		)
 		return nil
 	}
-	mongodb.Run("jAccounts", accountUpdateQuery)
+	mongo.Run("jAccounts", accountUpdateQuery)
 
 	if err := broadcastStatusChange(channel, account, &update); err != nil {
 		return err
@@ -284,7 +295,6 @@ func changeFollowFeedExchangeBindings(username, action string) error {
 }
 
 func startControlling(mainAmqpConn *amqp.Connection) {
-
 	socketIdsByUser = make(map[string]socketIds)
 	timersByUser = make(map[string]*time.Timer)
 
@@ -340,7 +350,7 @@ func startControlling(mainAmqpConn *amqp.Connection) {
 		panic(err)
 	}
 
-	go handleControl(deliveries, mainAmqpConn, make(chan error))
+	handleControl(deliveries, mainAmqpConn, make(chan error))
 
 }
 
