@@ -1,5 +1,7 @@
 class HomePage extends JView
 
+  iframe = """<iframe src="//www.youtube.com/embed/5E85g_ddV3A?autoplay=1&origin=https://koding.com&showinfo=0&theme=dark&modestbranding=1&autohide=1&loop=1" width="853" height="480" frameborder="0" webkitAllowFullScreen mozallowfullscreen allowFullScreen></iframe>"""
+
   constructor:(options = {}, data)->
 
     options.domId = 'home-page'
@@ -36,13 +38,14 @@ class HomePage extends JView
       tagName : 'a'
       cssClass : 'play-button'
       attributes : href : 'http://www.youtube.com/embed/5E85g_ddV3A'
-      click : (event)->
+      click : (event)=>
         KD.utils.stopDOMEvent event
-        w = 853
-        h = 480
-        window.open "/teamwork.html",
-          "Koding Teamwork",
-          "width=#{w},height=#{h},left=#{Math.floor (screen.width/2) - (w/2)},top=#{Math.floor (screen.height/2) - (h/2)}"
+        if window.innerWidth > 1024
+        then @showVideo()
+        else
+          window.open "/teamwork.html",
+            "Koding Teamwork",
+            "width=#{w},height=#{h},left=#{Math.floor (screen.width/2) - (w/2)},top=#{Math.floor (screen.height/2) - (h/2)}"
 
     @markers = new MarkerController
 
@@ -51,15 +54,35 @@ class HomePage extends JView
     if KD.campaign?.status
       @campaignContainer.addSubView new TBCampaignHomePageView {}, KD.campaign
 
+
+  showVideo:->
+
+    @play.hide()
+    @markers.hide 'teamwork'
+    @$('figure.laptop section.teamwork').hide()
+    @$('figure.laptop').append iframe
+
+
+
+  hideVideo:->
+
+    @play.show()
+    @$('figure.laptop section.teamwork').show()
+    @$('figure.laptop iframe').remove()
+    KD.utils.wait 1000, => @markers.show 'teamwork'
+
+
   show:->
 
     @appendToDomBody()  unless document.getElementById 'home-page'
 
     @unsetClass 'out'
     document.body.classList.add 'intro'
-    KD.utils.defer => @markers.reset()
 
     super
+
+    KD.utils.defer => @markers.reset()
+
 
   hide:->
 
@@ -68,11 +91,14 @@ class HomePage extends JView
 
     super
 
+    @hideVideo()
+
+
   viewAppended:->
 
     super
 
-    vmMarker = @markers.create 'vms',
+    vms = @markers.create 'vms',
       client    : '#home-page .laptop .teamwork'
       container : this
       wait      : 1000
@@ -81,7 +107,7 @@ class HomePage extends JView
         top     : 150
         left    : 50
 
-    navMarker = @markers.create 'nav',
+    nav = @markers.create 'nav',
       client    : '#home-page .laptop .teamwork'
       container : this
       wait      : 1300
@@ -90,7 +116,7 @@ class HomePage extends JView
         top     : -30
         left    : 240
 
-    chatMarker = @markers.create 'chat',
+    chat = @markers.create 'chat',
       client    : '#home-page .laptop .teamwork'
       container : this
       wait      : 1600
@@ -99,7 +125,7 @@ class HomePage extends JView
         top     : 150
         left    : 700
 
-    playMarker = @markers.create 'play',
+    play = @markers.create 'play',
       client    : '#home-page .laptop .teamwork'
       container : this
       wait      : 1900
@@ -108,7 +134,7 @@ class HomePage extends JView
         top     : 375
         left    : 600
 
-    logoMarker = @markers.create 'logo',
+    logo = @markers.create 'logo',
       client    : '#home-page .browser'
       container : this
       wait      : 2200
@@ -116,6 +142,8 @@ class HomePage extends JView
       offset    :
         top     : 25
         left    : 25
+
+    @markers.group 'teamwork', vms, nav, chat, play
 
   pistachio:->
 
