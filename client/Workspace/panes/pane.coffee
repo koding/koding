@@ -20,7 +20,12 @@ class Pane extends JView
     @header    = new KDCustomHTMLView
       tagName  : "span"  if title is ''
       cssClass : "ws-header inner-header"
-      partial  : "<h4>#{title}</h4>"
+
+    @header.title = new KDCustomHTMLView
+      partial : "#{title}"
+      tagName : "h4"
+
+    @header.addSubView @header.title
 
   createButtons: ->
     # TODO: c/p from panel, should refactor both of them.
