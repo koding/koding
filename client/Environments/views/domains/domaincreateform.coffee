@@ -106,13 +106,10 @@ class DomainCreateForm extends KDCustomHTMLView
     domainName =
       Encoder.XSSEncode "#{domainName}.#{domains.getValue()}"
 
-    match = domainName.match /(.*)\.([a-z0-9\-]+)\.kd\.io$/
-    [rest..., slug] = match
-
     domainType = 'subdomain'
     regYears   = 0
 
-    @createJDomain {domainName, regYears, domainType, slug}, (err, domain)=>
+    @createJDomain {domainName, regYears, domainType}, (err, domain)=>
       createButton.hideLoader()
       if err
         warn "An error occured while creating domain:", err
@@ -140,7 +137,6 @@ class DomainCreateForm extends KDCustomHTMLView
       hostnameAlias  : []
       domainType     : params.domainType
       loadBalancer   : mode : ""
-      slug           : params.slug
     , callback
 
   showSuccess:(domain) ->
