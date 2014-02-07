@@ -35,8 +35,10 @@ func (s *SubscriptionSet) Each(f func(item interface{}) bool) error {
 	return nil
 }
 
-func (s *SubscriptionSet) Subscribe(routingKeyPrefix string) error {
-	s.set.Add(routingKeyPrefix)
+func (s *SubscriptionSet) Subscribe(routingKeyPrefixes ...string) error {
+	for _, routingKeyPrefix := range routingKeyPrefixes {
+		s.set.Add(routingKeyPrefix)
+	}
 	// add doesnt return any error
 	return nil
 }
