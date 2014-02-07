@@ -671,9 +671,9 @@ module.exports = class JUser extends jraphical.Module
       return callback message: "Guests group not found!"  unless guestsGroup?
       guestsGroup.removeMember account, callback
 
-  mixpanel  = Mixpanel.init KONFIG.mixpanel
-
   @convert = secure (client, userFormData, callback) ->
+    mixpanel  = Mixpanel.init KONFIG.mixpanel
+
     { connection, sessionToken : clientId } = client
     { delegate : account } = connection
     { nickname : oldUsername } = account.profile
