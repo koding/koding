@@ -14,10 +14,6 @@ class IntroPricingPlanSelection extends KDCustomHTMLView
 
     @title.addSubView @count = new KDCustomHTMLView tagName : "cite"
 
-    @price    = new KDCustomHTMLView
-      tagName : "h5"
-      partial : "$#{options.slider.initialValue * options.unitPrice}/#{options.period}"
-
     options.slider       or= {}
     options.slider.drawBar = no
 
@@ -28,7 +24,6 @@ class IntroPricingPlanSelection extends KDCustomHTMLView
       value = Math.floor handle.value
       price = value * unitPrice
       @count.updatePartial "#{value}#{unit}"
-      @price.updatePartial "$#{price}/Month"
       @emit "ValueChanged", value
 
     @description = new KDCustomHTMLView
@@ -41,7 +36,6 @@ class IntroPricingPlanSelection extends KDCustomHTMLView
   pistachio: ->
     """
     {{> @title}}
-    {{> @price}}
     {{> @slider}}
     {{> @description}}
     """

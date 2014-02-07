@@ -1559,6 +1559,7 @@ module.exports = class JAccount extends jraphical.Module
 
     [callback, options] = [options, callback]  unless callback
 
+    options ?= {}
     { tags, status } = options
 
     selector = {}
