@@ -1,5 +1,6 @@
-jraphical = require 'jraphical'
-payment   = require 'koding-payment'
+jraphical   = require 'jraphical'
+payment     = require 'koding-payment'
+KodingError = require '../../error'
 
 forceRefresh  = yes
 forceInterval = 60 * 3
@@ -353,3 +354,14 @@ module.exports = class JPaymentSubscription extends jraphical.Module
             @downgrade transitionOptions, callback
           else
             @upgrade transitionOptions, callback
+
+  debitPack: ({tag, multiplyFactor}, callback) ->
+    multiplyFactor ?= 1
+    JPaymentPack = require './pack'
+    JPaymentPack.one tags: tag, (err, pack) =>
+      console.err err if err
+      return callback new KodingError "#{tag} pack not found"  unless pack
+      @debit {pack, multiplyFactor}, callback
+
+  creditPack: ({tag}, callback) ->
+    @debitPack {tag, multiplyFactor: -1}, callback

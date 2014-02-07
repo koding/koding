@@ -369,15 +369,13 @@ module.exports = class JVM extends Module
         group.fetchSubscription (err, subscription) =>
           return callback err  if err or not subscription
 
-          JPaymentPack.one tags: "vm", (err, pack) =>
-            return callback err  if err or not pack
-            subscription.debit {pack}, (err) =>
-              return callback err  if err
-              @createVm {
-                type      : "group"
-                groupSlug : group.slug
-                account
-              }, callback
+          subscription.debitPack tag: "vm", (err) =>
+            return callback err  if err
+            @createVm {
+              type      : "group"
+              groupSlug : group.slug
+              account
+            }, callback
 
   # TODO: this needs to be rethought in terms of bundles, as per the
   # discussion between Devrim, Chris T. and Badahir  C.T.
