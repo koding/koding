@@ -3,7 +3,7 @@ package modelhelper
 import (
 	"fmt"
 	"koding/db/models"
-	"koding/db/mongodb"
+
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
 )
@@ -15,7 +15,7 @@ func GetSession(token string) (*models.Session, error) {
 		return c.Find(bson.M{"clientId": token}).One(&session)
 	}
 
-	err := mongodb.Run("jSessions", query)
+	err := Mongo.Run("jSessions", query)
 	if err != nil {
 		return nil, fmt.Errorf("sessionID '%s' is not validated", token)
 	}

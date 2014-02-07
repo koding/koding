@@ -1,6 +1,10 @@
 package main
 
 import (
+	"flag"
+	"koding/db/mongodb"
+	"koding/db/mongodb/modelhelper"
+	"koding/tools/config"
 	"koding/tools/dnode"
 	"koding/tools/kite"
 	"log"
@@ -8,10 +12,23 @@ import (
 
 // k = KD.getSingleton("kiteController").run({kiteName:"externals", method:"import", withArgs:{value:"7b010664e515af5f46c8f1e2ad124a7b30676929", serviceName:"github", userId:KD.whoami().getId()}}, console.log.bind(console))
 
+var (
+	mongoDB       *mongodb.MongoDB
+	configProfile = flag.String("c", "", "Configuration profile from file")
+)
+
 func main() {
 	log.Println("Starting worker...")
+	flag.Parse()
+	if *configProfile == "" {
+		log.Fatal("Please define config file with -c")
+	}
 
-	externals := kite.New("externals", false)
+	conf := config.MustConfig(*configProfile)
+	mongoDB = mongodb.NewMongoDB(conf.Mongo)
+	modelhelper.Initialize(conf.Mongo)
+
+	externals := kite.New("externals", conf, false)
 	externals.Handle("import", false, func(args *dnode.Partial, channel *kite.Channel) (interface{}, error) {
 		var token Token
 		err := args.Unmarshal(&token)

@@ -2,10 +2,10 @@ package modelhelper
 
 import (
 	"koding/db/models"
-	"koding/db/mongodb"
+	"time"
+
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
-	"time"
 )
 
 func AddClient(info models.ServerInfo) error {
@@ -15,7 +15,7 @@ func AddClient(info models.ServerInfo) error {
 		return err
 	}
 
-	return mongodb.Run("jKontrolClients", query)
+	return Mongo.Run("jKontrolClients", query)
 }
 
 func GetClient(buildnumber string) (models.ServerInfo, error) {
@@ -25,7 +25,7 @@ func GetClient(buildnumber string) (models.ServerInfo, error) {
 		return c.Find(bson.M{"buildnumber": buildnumber}).One(&serverinfo)
 	}
 
-	err := mongodb.Run("jKontrolClients", query)
+	err := Mongo.Run("jKontrolClients", query)
 	if err != nil {
 		return serverinfo, err
 	}
@@ -45,7 +45,7 @@ func GetClients() []models.ServerInfo {
 		return nil
 	}
 
-	mongodb.Run("jKontrolClients", query)
+	Mongo.Run("jKontrolClients", query)
 
 	return infos
 }
@@ -55,5 +55,5 @@ func DeleteClient(build string) error {
 		return c.Remove(bson.M{"buildnumber": build})
 	}
 
-	return mongodb.Run("jKontrolClients", query)
+	return Mongo.Run("jKontrolClients", query)
 }

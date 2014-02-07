@@ -7,10 +7,10 @@
 package types
 
 import (
+	"encoding/binary"
+	"fmt"
 	"net"
 	"strings"
-	"fmt"
-	"encoding/binary"
 )
 
 // This type is used for the communication between the server (the
@@ -21,6 +21,7 @@ type DNSresponse struct {
 	Ansection    []RR
 	// TODO: allow to have other sections?
 }
+
 // TODO: provides a String() method
 
 // This type is used for the communication between the server (the
@@ -33,6 +34,7 @@ type DNSquery struct {
 	Qtype      uint16
 	BufferSize uint16
 }
+
 // TODO: provides a String() method
 
 // Probably obsolete, will be deleted

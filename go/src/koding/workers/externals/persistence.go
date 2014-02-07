@@ -2,11 +2,11 @@ package main
 
 import (
 	"fmt"
-	"koding/db/mongodb"
 	"koding/workers/neo4jfeeder/mongohelper"
+	"log"
+
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
-	"log"
 )
 
 func init() {
@@ -40,7 +40,7 @@ func (n *Mongo) GetUser(userId string) (strToInf, bool) {
 func (n *Mongo) GetTagByName(title, name string) (strToInf, bool) {
 	query := func() map[string]interface{} {
 		var tag map[string]interface{}
-		mongodb.Run("jTags", func(c *mgo.Collection) error {
+		mongoDB.Run("jTags", func(c *mgo.Collection) error {
 			return c.Find(
 				bson.M{"title": bson.RegEx{
 					Pattern: "^" + title, Options: "i"},
@@ -62,7 +62,7 @@ func (n *Mongo) GetUserByProviderId(id, provider string) (strToInf, bool) {
 	query := func() map[string]interface{} {
 		var user map[string]interface{}
 
-		mongodb.Run("jUsers", func(c *mgo.Collection) error {
+		mongoDB.Run("jUsers", func(c *mgo.Collection) error {
 			field := fmt.Sprintf("foreignAuth.%v.foreignId", provider)
 			return c.Find(bson.M{field: id}).Limit(1).One(&user)
 		})

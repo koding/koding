@@ -11,9 +11,9 @@ import (
 type Options kite.Options
 
 // New returns a new kite instance based on for the given Koding configurations
-func New(options Options) *kite.Kite {
-	kontrolPort := strconv.Itoa(config.Current.NewKontrol.Port)
-	kontrolHost := config.Current.NewKontrol.Host
+func New(config *config.Config, options Options) *kite.Kite {
+	kontrolPort := strconv.Itoa(config.NewKontrol.Port)
+	kontrolHost := config.NewKontrol.Host
 	kontrolURL := &url.URL{
 		Scheme: "ws",
 		Host:   fmt.Sprintf("%s:%s", kontrolHost, kontrolPort),
@@ -21,8 +21,8 @@ func New(options Options) *kite.Kite {
 	}
 
 	// Update config
-	options.Environment = config.Profile
-	options.Region = config.Region
+	options.Environment = config.Environment
+	options.Region = config.Regions.SJ
 	options.KontrolURL = kontrolURL
 
 	o := kite.Options(options)

@@ -2,27 +2,38 @@ package main
 
 import (
 	"errors"
+	"flag"
 	"fmt"
 	"koding/db/mongodb/modelhelper"
 	"koding/kite"
 	"koding/kite/kontrol"
 	"koding/tools/config"
+	"log"
 	"strconv"
 )
 
+var flagProfile = flag.String("c", "", "Configuration profile from file")
+
 func main() {
+	flag.Parse()
+	if *flagProfile == "" {
+		log.Fatal("Please specify profile via -c. Aborting.")
+	}
+
+	conf := config.MustConfig(*flagProfile)
+
 	kiteOptions := &kite.Options{
 		Kitename:    "kontrol",
 		Version:     "0.0.1",
-		Port:        strconv.Itoa(config.Current.NewKontrol.Port),
+		Port:        strconv.Itoa(conf.NewKontrol.Port),
 		Region:      "sj",
 		Environment: "development",
 		Username:    "koding",
 	}
 
 	// Read list of etcd servers from config.
-	machines := make([]string, len(config.Current.Etcd))
-	for i, s := range config.Current.Etcd {
+	machines := make([]string, len(conf.Etcd))
+	for i, s := range conf.Etcd {
 		machines[i] = "http://" + s.Host + ":" + strconv.FormatUint(uint64(s.Port), 10)
 	}
 

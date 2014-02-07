@@ -14,7 +14,7 @@ class Pinger extends KDObject
 
     @unresponsiveTimeoutId = setTimeout =>
       @emit "possibleUnresponsive"
-    , 5000
+    , 15000
 
   handleMessageArrived: ->
     @reset()
@@ -24,10 +24,14 @@ class Pinger extends KDObject
 
     @pingTimeoutId = setTimeout =>
       @ping()
-    , 10000
+    , 30000
+
+  ping: -> throw new Error "The subclass must implement #ping"
+
+  run: -> throw new Error "The subclass must implement #run"
 
   handleSuspectChannel: ->
-    @unresponded ||= 0
+    @unresponded ?= 0
     log "broker possibleUnresponsive: #{@unresponded} times"
     @unresponded++
     if @unresponded > 1 then @emit 'unresponsive' else @run()
