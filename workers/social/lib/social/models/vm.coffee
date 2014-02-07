@@ -76,6 +76,9 @@ module.exports = class JVM extends Module
           (signature Function)
         createSharedVm:
           (signature Function)
+        setAlwaysOn:
+          (signature Object, Function)
+
     schema              :
       ip                :
         type            : String
@@ -134,6 +137,31 @@ module.exports = class JVM extends Module
         @hostnameAlias
       }
       return callback null
+
+  @setAlwaysOn = secure (client, options, callback)->
+    {connection: delegate: account} = client
+    {vmName, status} = options
+
+    selector =
+      hostnameAlias : vmName
+      webHome       : account.profile.nickname
+
+    @one selector, (err, vm) ->
+      return callback err if err
+      return callback new KodingError "VM Not FOUND" unless vm
+      subscriptionOptions = targetOptions: selector: tags: $in: ["vm"]
+      account.fetchSubscriptions null, subscriptionOptions, (err, subscriptions) ->
+        return callback err  if err
+        return callback new KodingError "Subscription not found"  unless subscriptions.length
+        [subscription] = subscriptions
+        JPaymentPack.one tags: "alwayson", (err, pack) ->
+          return callback err  if err
+          return callback new KodingError "Always On pack not found"  unless pack
+          {debit, credit} = subscription
+          fn = if status then debit else credit
+          fn.call subscription, {pack}, (err) ->
+            return callback err  if err
+            vm.update $set: alwaysOn: status, callback
 
   @fetchDefaultVm_ = (client, callback)->
     {delegate} = client.connection
@@ -496,6 +524,7 @@ module.exports = class JVM extends Module
           underMaintenance : vm.hostKite is "(maintenance)"
           region           : vm.region or 'sj'
           diskSizeInMB     : vm.diskSizeInMB
+          alwaysOn         : vm.alwaysOn
 
   @fetchVmRegion = secure (client, hostnameAlias, callback)->
     {delegate} = client.connection

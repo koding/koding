@@ -254,11 +254,11 @@ module.exports = class JPaymentSubscription extends jraphical.Module
 
       @debit options, callback
 
-  credit: (options, callback) ->
+  credit: ({pack}, callback) ->
     @debit { pack, multiplyFactor: -1 }, callback
 
   credit$: secure (client, options, callback) ->
-    @debit$ client, pack, -1, callback
+    @debit$ client, options, -1, callback
 
   applyTransition: (options, callback) ->
 
