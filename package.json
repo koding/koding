@@ -65,7 +65,8 @@
     "node-uuid"       : "1.4.1",
     "newrelic"        : "1.1.1",
     "sync"            : "0.2.2",
-    "fibers"          : "1.0.1"
+    "fibers"          : "1.0.1",
+    "mixpanel"        : "0.0.18"
   },
   "devDependencies": {},
   "optionalDependencies": {},

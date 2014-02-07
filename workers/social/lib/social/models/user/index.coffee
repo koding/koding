@@ -1,4 +1,5 @@
 jraphical = require 'jraphical'
+Mixpanel  = require 'mixpanel'
 
 Flaggable = require '../../traits/flaggable'
 
@@ -670,6 +671,8 @@ module.exports = class JUser extends jraphical.Module
       return callback message: "Guests group not found!"  unless guestsGroup?
       guestsGroup.removeMember account, callback
 
+  mixpanel  = Mixpanel.init KONFIG.mixpanel
+
   @convert = secure (client, userFormData, callback) ->
     { connection, sessionToken : clientId } = client
     { delegate : account } = connection
@@ -762,6 +765,9 @@ module.exports = class JUser extends jraphical.Module
           queue.next()
       ->
         JAccount.emit "AccountRegistered", account, referrer
+        queue.next()
+      ->
+        mixpanel.track "Signup from server, success"
         queue.next()
       =>
         callback null, newToken
