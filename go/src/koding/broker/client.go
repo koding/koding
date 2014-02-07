@@ -308,9 +308,9 @@ func (c *Client) Resubscribe(sessionId string) (bool, error) {
 
 // Unsubscribe deletes the given routingKey prefix from the subscription list
 // and removes it from the global route map
-func (c *Client) Unsubscribe(routingKeyPrefix string) {
-	c.RemoveFromRoute(routingKeyPrefix)
-	if err := c.Subscriptions.Unsubscribe(routingKeyPrefix); err != nil {
+func (c *Client) Unsubscribe(routingKeyPrefixes ...string) {
+	c.RemoveFromRoute(routingKeyPrefixes...)
+	if err := c.Subscriptions.Unsubscribe(routingKeyPrefixes...); err != nil {
 		fmt.Errorf("%v", err)
 	}
 }
