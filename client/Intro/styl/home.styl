@@ -438,6 +438,12 @@ body.about #main-header
 
 
     .plan-selection
+      >.kdview // .team-plan, .developer-plan
+        overflow        visible
+
+      .sliderbar-container
+        width           100% !important
+
       .plan-selection-box
         width           715px
         padding-top     42px
@@ -547,7 +553,7 @@ body.about #main-header
 
 #home-groups
   bg                    color, homeHeaderBg
-  padding               100px 0
+  padding               100px 0 53px
 
   h2, h3
     text-shadow         none
@@ -672,33 +678,66 @@ body.about #main-header
 @media all and (max-width: 1020px)
   .intro
     .big-header
-      font-size         26px !important
-      line-height       36px !important
+      font-size             26px !important
+      line-height           36px !important
 
       ~h2
-        font-size       18px !important
-        line-height     28px !important
-        margin-bottom   30px !important
+        font-size           18px !important
+        line-height         28px !important
+        margin-bottom       30px !important
 
     .laptop
     .intro-marker
-      display             none !important
+      display               none !important
 
     main
-      height              auto !important
+      height                auto !important
 
     #home-features
-      padding             0 30px
+      padding               0 30px
 
     figure.browser
-      display             none
+      display               none
 
     figure.education
-      height              778px !important
-      margin-top          100px !important
+      height                778px !important
+      margin-top            100px !important
 
     .group-features
-      margin-top          200px !important
+      margin-top            200px !important
+
+    #pricing
+      header
+        margin-left         3%
+
+      .pricing-toggle
+        abs                 110px 20px 0 0
+
+      .plan-selection-box
+        margin-left         5% !important
+        float               left !important
+
+        h4
+          font-size         22px !important
+
+@media all and (max-width: 1020px) and (min-width: 720px)
+  .intro
+    #pricing
+      .plan-selection-box
+        float               left !important
+
+      .developer-plan
+        .plan-selection-box
+          width             62% !important
+
+          &.selected
+            width           28% !important
+
+      .team-plan
+        .plan-selection-box
+          width             28% !important
+
+
 
 @media all and (max-width: 900px) and (min-width: 510px)
   .intro
@@ -725,44 +764,99 @@ body.about #main-header
         &.social .icon
           margin-bottom   15px
 
+    #pricing
+      header
+        h2
+          font-size       24px !important
+
+        p
+          font-size       18px !important
+
+      .pricing-toggle
+        width             233px !important
+
 @media all and (max-width: 720px)
   .intro
     .headings-container
     .register-container
-      float               none !important
-      width               75% !important
-      margin-left         auto !important
-      margin-right        auto !important
+      float                 none !important
+      width                 75% !important
+      margin-left           auto !important
+      margin-right          auto !important
 
       h1,h2
-        text-align        center !important
+        text-align          center !important
 
     .big-header
-      font-size         26px !important
-      margin-bottom     24px !important
+      font-size             26px !important
+      margin-bottom         24px !important
 
       ~h2
-        font-size       18px !important
-        margin-bottom   30px !important
+        font-size           18px !important
+        margin-bottom       30px !important
 
     main
-      padding             36px 60px 44px !important
+      padding               36px 60px 44px !important
 
     .group-features
       >div
-        width             100% !important
-        float             none !important
-        text-align        center
+        width               100% !important
+        float               none !important
+        text-align          center
 
         article
-          width           auto !important
+          width             auto !important
 
     .kdbutton.pricing
-      margin              20px auto !important
-      width               90% !important
+      margin                20px auto !important
+      width                 90% !important
 
     figure.education
-      height              1035px !important
+      height                1035px !important
+
+    #pricing
+      .product-form
+        padding-top         60px !important
+        height              auto !important
+
+      header
+        text-align          center
+        margin-right        5% !important
+
+        h2
+          text-align        center !important
+
+        p
+          width             100% !important
+
+      .pricing-toggle
+        position            static
+        margin              104px auto 0
+        width               60% !important
+        float               none !important
+
+      div.plan-selection-box
+        width               90% !important
+        float               none !important
+
+        &.selected
+          text-align        center
+
+          .kdbutton
+            margin          42px auto 0 !important
+            float           none !important
+            width           50% !important
+
+        br
+          content           ""
+          display           inline-block
+          margin-left       8px
+
+        h5
+          margin            0 !important
+
+        .description
+          margin            20px 0 0 !important
 
 
 @media all and (max-width: 510px)
