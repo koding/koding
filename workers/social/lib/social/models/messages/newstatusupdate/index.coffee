@@ -29,6 +29,7 @@ module.exports = class JNewStatusUpdate extends JPost
         { name: 'RemovedFromCollection' }
         { name: 'PostIsDeleted' }
         { name: 'PostIsCreated'}
+        { name: 'LikeIsRemoved'}
       ]
       static          : [
         { name: 'updateInstance' }
@@ -117,7 +118,7 @@ module.exports = class JNewStatusUpdate extends JPost
 
   constructor:->
     super
-    @notifyGroupWhen 'LikeIsAdded', 'PostIsCreated', 'ReplyIsAdded', 'PostIsDeleted'
+    @notifyGroupWhen 'LikeIsAdded', 'PostIsCreated', 'ReplyIsAdded', 'PostIsDeleted', 'LikeIsRemoved'
 
   @getActivityType =-> require './statusactivity'
 

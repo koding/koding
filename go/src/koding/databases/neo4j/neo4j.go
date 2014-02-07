@@ -7,16 +7,18 @@ import (
 	"koding/tools/config"
 	"koding/tools/logger"
 	"koding/tools/statsd"
-	"labix.org/v2/mgo/bson"
 	"net"
 	"net/http"
 	"strconv"
 	"strings"
 	"time"
+
+	"labix.org/v2/mgo/bson"
 )
 
 var (
-	BASE_URL         = config.Current.Neo4j.Write + ":" + strconv.Itoa(config.Current.Neo4j.Port)
+	BASE_URL         string
+	CYPHER_URL       string
 	INDEX_NODE_PATH  = "/db/data/index/node/koding"
 	UNIQUE_NODE_PATH = "/db/data/index/node/koding?unique"
 	INDEX_PATH       = "/db/data/index/node"
@@ -25,7 +27,6 @@ var (
 	TIMEOUT          = 20
 	DEADLINE         = 40
 	CYPHER_PATH      = "db/data/cypher"
-	CYPHER_URL       = fmt.Sprintf("%v/%v", BASE_URL, CYPHER_PATH)
 )
 
 func init() {
@@ -43,6 +44,19 @@ type Relationship struct {
 	As         string        `bson:"as"`
 	Timestamp  time.Time     `bson:"timestamp"`
 	Data       bson.Binary
+}
+
+func SetupNeo4j(c *config.Config) {
+	BASE_URL = c.Neo4j.Write + ":" + strconv.Itoa(c.Neo4j.Port)
+	CYPHER_URL = fmt.Sprintf("%v/%v", BASE_URL, CYPHER_PATH)
+}
+
+func GetBaseURL() string {
+	if BASE_URL == "" {
+		log.Fatal("Base url is not set. Please call SetupNeo4j() before you use this pkg.")
+	}
+
+	return BASE_URL
 }
 
 // Setup the dial timeout
@@ -148,7 +162,7 @@ func CreateRelationshipWithData(relation, source, target, data string) map[strin
 func CreateUniqueNode(id string, name string) map[string]interface{} {
 	sTimer := statsd.StartTimer("CreateUniqueNode")
 
-	url := BASE_URL + UNIQUE_NODE_PATH
+	url := GetBaseURL() + UNIQUE_NODE_PATH
 
 	postData := generatePostJsonData(id, name)
 
@@ -233,7 +247,7 @@ func DeleteRelationship(sourceId, targetId, relationship string) bool {
 //response will be object
 func GetNode(id string) []map[string]interface{} {
 
-	url := BASE_URL + INDEX_NODE_PATH + "/id/" + id
+	url := GetBaseURL() + INDEX_NODE_PATH + "/id/" + id
 
 	response := sendRequest("GET", url, "", 1)
 
@@ -317,7 +331,7 @@ func DeleteNode(id string) bool {
 // it is called once during runtime while initializing
 func CreateUniqueIndex(name string) {
 	//create unique index
-	url := BASE_URL + INDEX_PATH
+	url := GetBaseURL() + INDEX_PATH
 
 	bd := sendRequest("POST", url, `{"name":"`+name+`"}`, 1)
 

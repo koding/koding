@@ -2,16 +2,20 @@ package main
 
 import (
 	"encoding/json"
+	"flag"
 	"fmt"
-	"github.com/streadway/amqp"
 	"koding/databases/neo4j"
+	"koding/db/mongodb"
 	"koding/tools/amqputil"
+	"koding/tools/config"
 	"koding/tools/logger"
 	"koding/tools/statsd"
 	"koding/workers/neo4jfeeder/mongohelper"
-	"labix.org/v2/mgo/bson"
 	"strings"
 	"time"
+
+	"github.com/streadway/amqp"
+	"labix.org/v2/mgo/bson"
 )
 
 var (
@@ -30,9 +34,24 @@ type Message struct {
 	Payload []map[string]interface{} `json:"payload"`
 }
 
-var log = logger.New("neo4jfeeder")
+var (
+	log           = logger.New("neo4jfeeder")
+	mongo         *mongodb.MongoDB
+	conf          *config.Config
+	configProfile = flag.String("c", "", "Configuration profile from file")
+)
 
 func main() {
+	flag.Parse()
+	if *configProfile == "" {
+		log.Fatal("Please define config file with -c")
+	}
+
+	conf = config.MustConfig(*configProfile)
+	mongo = mongodb.NewMongoDB(conf.Mongo)
+	mongohelper.MongoHelperInit(*configProfile)
+	neo4j.SetupNeo4j(conf)
+
 	statsd.SetAppName("neo4jFeeder")
 	startConsuming()
 }
@@ -49,13 +68,12 @@ func jsonDecode(data string) (*Message, error) {
 }
 
 func startConsuming() {
-
 	c := &Consumer{
 		conn:    nil,
 		channel: nil,
 	}
 
-	c.conn = amqputil.CreateConnection("neo4jFeeding")
+	c.conn = amqputil.CreateConnection(conf, "neo4jFeeding")
 	c.channel = amqputil.CreateChannel(c.conn)
 	// exchangeName, ExchangeType, durable, autoDelete, internal, noWait, args
 	err := c.channel.ExchangeDeclare(EXCHANGE_NAME, "fanout", true, false, false, false, nil)

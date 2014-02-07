@@ -3,18 +3,21 @@ package config
 import (
 	"encoding/json"
 	"errors"
-	"flag"
 	"fmt"
 	"io/ioutil"
 	"os"
 	"os/exec"
-	"os/signal"
 	"path/filepath"
-	"syscall"
 )
 
 type Config struct {
-	BuildNumber     int
+	BuildNumber int
+	Environment string
+	Regions     struct {
+		Vagrant string
+		SJ      string
+		AWS     string
+	}
 	ProjectRoot     string
 	UserSitesDomain string
 	ContainerSubnet string
@@ -127,50 +130,16 @@ type Config struct {
 		Port int
 	}
 	LogLevel map[string]string
+	Redis    string
 }
 
-var Profile string
-var Current Config
-var LogDebug bool
-var Uuid string
-var Host string
-var BrokerDomain string
-var Region string
-var VMProxies bool // used to enable ports for users
-var Skip int
-var Count int
-
-func init() {
-	flag.StringVar(&Profile, "c", "", "Configuration profile from file")
-	flag.StringVar(&Profile, "config", "", "Alias for -c")
-
-	flag.BoolVar(&LogDebug, "d", false, "Log debug messages")
-	flag.StringVar(&Uuid, "u", "", "Enable kontrol mode")
-	flag.StringVar(&Host, "h", "", "Hostname to be resolved")
-	flag.StringVar(&BrokerDomain, "a", "", "Send kontrol a custom domain istead of os.Hostname")
-	flag.StringVar(&BrokerDomain, "domain", "", "Alias for -a")
-	flag.StringVar(&Region, "r", "", "Region")
-	flag.IntVar(&Skip, "s", 0, "Define how far to skip ahead")
-	flag.IntVar(&Count, "l", 1000, "Count for items to process")
-	flag.BoolVar(&VMProxies, "v", false, "Enable ports for VM users (1024-10000)")
-
-	flag.Parse()
-
-	err := readConfig()
+func MustConfig(profile string) *Config {
+	conf, err := readConfig(profile)
 	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
+		panic(err)
 	}
 
-	sigChannel := make(chan os.Signal)
-	signal.Notify(sigChannel, syscall.SIGUSR2)
-	go func() {
-		for _ = range sigChannel {
-			LogDebug = !LogDebug
-			fmt.Printf("config.LogDebug: %v\n", LogDebug)
-		}
-	}()
-
+	return conf
 }
 
 // readConfig reads and unmarshalls the appropriate config into the Config
@@ -178,91 +147,90 @@ func init() {
 // koding-config-manager  with command line flag -c. If there is no flag
 // specified it tries to get the config from the environment variable
 // "CONFIG".
-func readConfig() error {
-	if flag.NArg() != 0 {
-		return errors.New("config.go: you passed extra unused arguments.")
-	}
-
-	if Profile == "" {
+func readConfig(profile string) (*Config, error) {
+	if profile == "" {
 		// this is needed also if you can't pass a flag into other packages, like testing.
 		// otherwise it's impossible to inject the config paramater. For example:
 		// this doesn't work  : go test -c "vagrant"
 		// but this will work : CONFIG="vagrant" go test
 		envProfile := os.Getenv("CONFIG")
 		if envProfile == "" {
-			return errors.New("config.go: please specify a configuration profile via -c or set a CONFIG environment.")
+			return nil, errors.New("config.go: please specify a configuration profile via -c or set a CONFIG environment.")
 		}
 
-		Profile = envProfile
+		profile = envProfile
 	}
 
 	cwd, err := os.Getwd()
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	configPath := filepath.Join(cwd, "config", fmt.Sprintf("main.%s.json", Profile))
+	configPath := filepath.Join(cwd, "config", fmt.Sprintf("main.%s.json", profile))
 	ok, err := exists(configPath)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
+	var conf *Config
 	if ok {
 		fmt.Printf("config.go: reading config from %s\n", configPath)
-		err := readJson(Profile)
+		conf, err = ReadJson(profile)
 		if err != nil {
-			return err
+			return nil, err
 		}
 	} else {
 		fmt.Println("config.go: reading config with koding-config-manager")
-		err := readConfigManager(Profile)
+		conf, err = ReadConfigManager(profile)
 		if err != nil {
-			return err
+			return nil, err
 		}
 	}
 
-	return nil
+	return conf, nil
 }
 
-func readJson(profile string) error {
+func ReadJson(profile string) (*Config, error) {
 	pwd, err := os.Getwd()
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	configPath := filepath.Join(pwd, "config", fmt.Sprintf("main.%s.json", profile))
 
 	data, err := ioutil.ReadFile(configPath)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	err = json.Unmarshal(data, &Current)
+	conf := new(Config)
+	err = json.Unmarshal(data, &conf)
 	if err != nil {
-		return fmt.Errorf("Could not unmarshal configuration: %s\nConfiguration source output:\n%s\n",
+		return nil, fmt.Errorf("Could not unmarshal configuration: %s\nConfiguration source output:\n%s\n",
 			err.Error(), string(data))
 	}
 
-	return nil
+	return conf, nil
 }
 
-func readConfigManager(profile string) error {
+func ReadConfigManager(profile string) (*Config, error) {
 	cmd := exec.Command("node", "-e", "require('koding-config-manager').printJson('main."+profile+"')")
 
-	config, err := cmd.CombinedOutput()
+	data, err := cmd.CombinedOutput()
 	if err != nil {
-		return fmt.Errorf("Could not execute configuration source: %s\nConfiguration source output:\n%s\n",
-			err.Error(), config)
+		return nil, fmt.Errorf("Could not execute configuration source: %s\nConfiguration source output:\n%s\n",
+			err.Error(), data)
 	}
 
-	err = json.Unmarshal(config, &Current)
+	conf := new(Config)
+	err = json.Unmarshal(data, &conf)
 	if err != nil {
-		return fmt.Errorf("Could not unmarshal configuration: %s\nConfiguration source output:\n%s\n",
-			err.Error(), string(config))
+		return nil, fmt.Errorf("Could not unmarshal configuration: %s\nConfiguration source output:\n%s\n",
+			err.Error(), string(data))
 	}
 
 	// successfully unmarshalled into Current
-	return nil
+	return conf, nil
 }
 
 // exists returns whether the given file or directory exists or not.

@@ -2,14 +2,14 @@ package modelhelper
 
 import (
 	"koding/db/models"
-	"koding/db/mongodb"
+
 	"labix.org/v2/mgo"
 )
 
 func GetTagById(id string) (*models.Tag, error) {
 	tag := new(models.Tag)
 
-	return tag, mongodb.One("jTags", id, tag)
+	return tag, Mongo.One("jTags", id, tag)
 }
 
 func UpdateTag(t *models.Tag) error {
@@ -17,7 +17,7 @@ func UpdateTag(t *models.Tag) error {
 		return c.UpdateId(t.Id, t)
 	}
 
-	return mongodb.Run("jTags", query)
+	return Mongo.Run("jTags", query)
 }
 
 func GetSomeTags(s Selector, o Options) ([]models.Tag, error) {
@@ -27,11 +27,11 @@ func GetSomeTags(s Selector, o Options) ([]models.Tag, error) {
 		decorateQuery(q, o)
 		return q.All(&tags)
 	}
-	return tags, mongodb.Run("jTags", query)
+	return tags, Mongo.Run("jTags", query)
 }
 
 func CheckTagExistence(id string) (bool, error) {
 	var exists bool
 	query := checkExistence(id, &exists)
-	return exists, mongodb.Run("jTags", query)
+	return exists, Mongo.Run("jTags", query)
 }

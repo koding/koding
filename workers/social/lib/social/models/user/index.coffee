@@ -1,4 +1,5 @@
 jraphical = require 'jraphical'
+Mixpanel  = require 'mixpanel'
 
 Flaggable = require '../../traits/flaggable'
 
@@ -672,6 +673,8 @@ module.exports = class JUser extends jraphical.Module
       guestsGroup.removeMember account, callback
 
   @convert = secure (client, userFormData, callback) ->
+    mixpanel  = Mixpanel.init KONFIG.mixpanel
+
     { connection, sessionToken : clientId } = client
     { delegate : account } = connection
     { nickname : oldUsername } = account.profile
@@ -768,6 +771,9 @@ module.exports = class JUser extends jraphical.Module
           queue.next()
       ->
         JAccount.emit "AccountRegistered", account, referrer
+        queue.next()
+      ->
+        mixpanel.track "Signup from server, success"
         queue.next()
       =>
         callback quotaExceedErr, newToken

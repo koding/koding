@@ -1,15 +1,35 @@
 package logger
 
-// Example:
-//    var log = New("tester")
-//    log.Info("Started")
-func New(name string) Log {
-	return NewGoLog(name)
-}
+import "koding/tools/config"
 
-//----------------------------------------------------------
-// Interface
-//----------------------------------------------------------
+type Level int
+
+const (
+	CRITICAL Level = iota
+	ERROR
+	WARNING
+	NOTICE
+	INFO
+	DEBUG
+)
+
+var (
+	// Mappings of strings in config file to internal types.
+	nameToLevelMapping = map[string]Level{
+		"critical": CRITICAL,
+		"debug":    DEBUG,
+		"error":    ERROR,
+		"info":     INFO,
+		"notice":   NOTICE,
+		"warning":  WARNING,
+	}
+
+	// Default is always Warning, however the package can change it with SetLevel()
+	DefaultLoggingLevel = WARNING
+
+	// Stores current logging level.
+	LogLevel Level
+)
 
 type Log interface {
 	// Same as calling Critical() followed by a call to os.Exit(1).
@@ -32,4 +52,30 @@ type Log interface {
 	LogError(interface{}, int, ...interface{})
 
 	Name() string
+
+	SetLevel(level Level)
+}
+
+// Example:
+//    var log = New("tester")
+//    log.Info("Started")
+func New(name string) Log {
+	return NewGoLog(name)
+}
+
+// Get logging level from config file for the given worker name & find the
+// appropriate logging.Level
+func GetLoggingLevelFromConfig(name, profile string) Level {
+	c := config.MustConfig(profile)
+	var logLevelString, ok = c.LogLevel[name]
+	if !ok {
+		return DefaultLoggingLevel
+	}
+
+	LogLevel, ok = nameToLevelMapping[logLevelString]
+	if !ok {
+		return DefaultLoggingLevel
+	}
+
+	return LogLevel
 }
