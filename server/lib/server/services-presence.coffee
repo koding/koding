@@ -1,6 +1,6 @@
 request = require 'request'
 
-supportedServices = ['broker']
+supportedServices = ['broker', 'brokerKite']
 
 getFailoverUrl = ->
   { webProtocol: protocol, webHostname: hostname, webPort: port } =
@@ -10,7 +10,7 @@ getFailoverUrl = ->
   url = "#{ protocol }//#{ hostname }#{ if port then ":#{port}" else "" }"
 
 failover = (req, res, multi) ->  
-  if req.params.service is 'broker'
+  if req.params.service in supportedServices
     url = getFailoverUrl()
     res.set 'Content-Type', 'application/json'
     res.send if multi then [url] else JSON.stringify url
