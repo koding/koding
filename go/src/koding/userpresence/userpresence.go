@@ -16,10 +16,11 @@ import (
 )
 
 var (
-	log           = logger.New("userpresence")
-	mongo         *mongodb.MongoDB
-	conf          *config.Config
-	configProfile = flag.String("c", "", "Configuration profile from file")
+	log         = logger.New("userpresence")
+	mongo       *mongodb.MongoDB
+	conf        *config.Config
+	flagProfile = flag.String("c", "", "Configuration profile from file")
+	flagDebug   = flag.Bool("d", false, "Debug mode")
 )
 
 type socketIds map[string]bool
@@ -33,12 +34,19 @@ var (
 
 func main() {
 	flag.Parse()
-	if *configProfile == "" {
+	if *flagProfile == "" {
 		log.Fatal("Please define config file with -c")
 	}
 
-	conf = config.MustConfig(*configProfile)
+	conf = config.MustConfig(*flagProfile)
 	mongo = mongodb.NewMongoDB(conf.Mongo)
+	var logLevel logger.Level
+	if *flagDebug {
+		logLevel = logger.DEBUG
+	} else {
+		logLevel = logger.GetLoggingLevelFromConfig("userpresence", *flagProfile)
+	}
+	log.SetLevel(logLevel)
 
 	var err error
 
