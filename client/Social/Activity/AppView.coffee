@@ -175,7 +175,12 @@ class ReferalBox extends JView
       title       : '0 GB / 16 GB'
       determinate : yes
 
-  # click : -> @showReferrerModal()
+    @showMore = new KDCustomHTMLView
+      tagName : "a"
+      partial : "show more..."
+
+  click : ->
+    @showReferrerModal()
 
   showRedeemReferralPointModal:->
     KD.mixpanel "Referer Redeem Point modal, click"
@@ -221,15 +226,10 @@ class ReferalBox extends JView
 
   pistachio:->
     """
-
+    <span class="title">Get free disk space!</span>
     <p>
-      <a href="http://blog.koding.com/2014/01/100tb-is-gone-in-1-day-crazy100tbweek-is-over/">
-        100TB is gone in 1 Day
-      </a>
-      <a href="https://twitter.com/search?q=%23Crazy100TBWeek">#Crazy100TBWeek</a>
-      is Over :( we will enable invitations again soon! Follow us on
-      <a href="http://twitter.com/koding">Twitter</a>, we might do some
-      more fun stuff soon :)
+      Invite your friends and get 250MB up to 16GB for free!
+      {{> @showMore}}
       {{> @redeemPointsModal}}
     </p>
     {{> @progressBar}}
