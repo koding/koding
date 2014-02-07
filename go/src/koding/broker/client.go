@@ -100,10 +100,9 @@ func (c *Client) handleSessionMessage(data interface{}) {
 	action := message["action"]
 	switch action {
 	case "subscribe":
-		for _, routingKeyPrefix := range strings.Split(message["routingKeyPrefix"].(string), " ") {
-			if err := c.Subscribe(routingKeyPrefix); err != nil {
-				log.Error(err.Error())
-			}
+		routingKeyPrefixes := strings.Split(message["routingKeyPrefix"].(string), " ")
+		if err := c.Subscribe(routingKeyPrefixes...); err != nil {
+			log.Error(err.Error())
 		}
 
 		sendToClient(c.Session, "broker.subscribed", message["routingKeyPrefix"])
@@ -229,15 +228,16 @@ func (c *Client) resetControlChannel() {
 }
 
 // RemoveFromRoute removes the sessions for the given routingKeyPrefix.
-func (c *Client) RemoveFromRoute(routingKeyPrefix string) {
-	if _, ok := routeMap[routingKeyPrefix]; !ok {
-		return
-	}
+func (c *Client) RemoveFromRoute(routingKeyPrefixes ...string) {
+	for _, routingKeyPrefix := range routingKeyPrefixes {
+		if _, ok := routeMap[routingKeyPrefix]; !ok {
+			continue
+		}
+		routeMap[routingKeyPrefix].Remove(c.SocketId)
 
-	routeMap[routingKeyPrefix].Remove(c.SocketId)
-
-	if routeMap[routingKeyPrefix].Size() == 0 {
-		delete(routeMap, routingKeyPrefix)
+		if routeMap[routingKeyPrefix].Size() == 0 {
+			delete(routeMap, routingKeyPrefix)
+		}
 	}
 }
 
@@ -253,41 +253,48 @@ func (c *Client) AddToRoute() {
 
 }
 
-func (c *Client) AddToRouteMapNOTS(routingKeyPrefix string) {
-	if _, ok := routeMap[routingKeyPrefix]; !ok {
-		routeMap[routingKeyPrefix] = set.New()
+func (c *Client) AddToRouteMapNOTS(routingKeyPrefixes ...string) {
+	for _, routingKeyPrefix := range routingKeyPrefixes {
+		if _, ok := routeMap[routingKeyPrefix]; !ok {
+			routeMap[routingKeyPrefix] = set.New()
+		}
+		routeMap[routingKeyPrefix].Add(c.SocketId)
 	}
-	routeMap[routingKeyPrefix].Add(c.SocketId)
 }
 
 // Subscribe add the given routingKeyPrefix to the list of subscriptions
 // associated with this client.
-func (c *Client) Subscribe(routingKeyPrefix string) error {
-	res, err := c.Subscriptions.Has(routingKeyPrefix)
-	if err != nil {
-		return err
+func (c *Client) Subscribe(routingKeyPrefixes ...string) error {
+	for _, routingKeyPrefix := range routingKeyPrefixes {
+		res, err := c.Subscriptions.Has(routingKeyPrefix)
+		if err != nil {
+			return err
+		}
+
+		if res {
+			return fmt.Errorf("Duplicate subscription to same routing key. %v %v", c.Session.Tag, routingKeyPrefix)
+		}
 	}
 
-	if res {
-		return fmt.Errorf("Duplicate subscription to same routing key. %v %v", c.Session.Tag, routingKeyPrefix)
-	}
-
-	length, err := c.Subscriptions.Len()
-	if err != nil {
-		return err
-	}
-
-	if length > 0 && length%2000 == 0 {
-		log.Warning("Client with more than %v subscriptions %v", strconv.Itoa(length), c.Session.Tag)
-	}
-
-	if err := c.Subscriptions.Subscribe(routingKeyPrefix); err != nil {
+	if err := c.Subscriptions.Subscribe(routingKeyPrefixes...); err != nil {
 		return err
 	}
 
 	globalMapMutex.Lock()
-	c.AddToRouteMapNOTS(routingKeyPrefix)
+	c.AddToRouteMapNOTS(routingKeyPrefixes...)
 	globalMapMutex.Unlock()
+
+	// Log some information about the Client
+	go func() {
+		length, err := c.Subscriptions.Len()
+		if err != nil {
+			log.Warning("Error while trying to get Subscriptions.Len() for: %v Error: %v", c.Session.Tag, err)
+		}
+
+		if length > 0 && length%2000 == 0 {
+			log.Warning("Client with more than %v subscriptions %v", strconv.Itoa(length), c.Session.Tag)
+		}
+	}()
 
 	return nil
 }
