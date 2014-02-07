@@ -90,28 +90,33 @@ class PricingAppView extends KDView
       fields                :
         GroupName           :
           label             : "Group Name"
-          type              : "text"
           name              : "groupName"
+          keyup             : =>
+            @checkSlug @groupForm.inputs.GroupName.getValue()
           validate          :
             rules           :
               required      : yes
             messages        :
               required      : "Group name required"
-        GroupUrl            :
-          label             : "Group URL"
-          type              : "text"
-          name              : "groupURL"
-          placeholder       : window.location.origin
-          keyup             : KD.utils.defer.bind this, @bound "checkSlug"
-          validate          :
-            rules           :
-              required      : yes
-            messages        :
-              required      : "Group name required"
-        Slug                :
+        GroupURL            :
           label             : "Address"
-          itemClass         : KDCustomHTMLView
-          partial           : "#{window.location.origin}"
+          defaultValue      : "#{window.location.origin}"
+          disabled          : yes
+          keyup             : =>
+            splittedUrl = @groupForm.inputs.GroupURL.getValue().split "/"
+            @checkSlug splittedUrl.last
+          nextElement       :
+            changeURL       :
+              itemClass     : KDCustomHTMLView
+              tagName       : "a"
+              partial       : 'change'
+              click         : =>
+                @groupForm.inputs.GroupURL.makeEnabled()
+                @groupForm.inputs.GroupURL.focus()
+        GroupSlug           :
+          type              : "hidden"
+          name              : "groupSlug"
+
         Visibility          :
           itemClass         : KDSelectBox
           label             : "Visibility"
@@ -127,7 +132,7 @@ class PricingAppView extends KDView
     return  unless @groupForm
     groupName  = @groupForm.inputs.GroupName.getValue()
     visibility = @groupForm.inputs.Visibility.getValue()
-    slug       = @groupForm.inputs.GroupUrl.getValue()
+    slug       = @groupForm.inputs.GroupSlug.getValue()
 
     options      =
       title      : groupName
@@ -140,13 +145,12 @@ class PricingAppView extends KDView
       return KD.showError err  if err
       @showGroupCreated group, subscription
 
-  checkSlug: ->
-    slug      = @groupForm.inputs.GroupUrl
-    slugView  = @groupForm.inputs.Slug
-    tmpSlug   = slug.getValue()
+  checkSlug: (testSlug)->
+    {GroupURL, GroupSlug} = @groupForm.inputs
 
-    if tmpSlug.length > 2
-      slugy = KD.utils.slugify tmpSlug
+    if testSlug.length > 2
+      slugy = KD.utils.slugify testSlug
       KD.remote.api.JGroup.suggestUniqueSlug slugy, (err, newSlug)->
-        slugView.updatePartial "#{location.origin}/#{newSlug}"
-        slug.setValue newSlug
+        GroupURL.setValue "#{location.origin}/#{newSlug}"
+        GroupSlug.setValue newSlug
+
