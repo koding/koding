@@ -156,48 +156,38 @@ module.exports = class JDomain extends jraphical.Module
         default     : -> new Date
 
   @isDomainEligible: (params, callback)->
-    {delegate, domain, slug} = params
+    {domain} = params
 
-    {nickname} = delegate.profile
-
-    prefix = unless slug is "koding" then slug else nickname
-
-    unless ///\.#{prefix}\.kd\.io$///.test domain
+    unless /([a-z0-9\-]+)\.kd\.io$/.test domain
       return callback new KodingError("Invalid domain: #{domain}.", "INVALIDDOMAIN")
 
     match = domain.match /(.*)\.([a-z0-9\-]+)\.kd\.io$/
 
-    unless match
-      return callback new KodingError("Invalid domain: #{domain}.", "INVALIDDOMAIN")
-
     [rest..., prefix, slug] = match
 
-    callback null, !/^shared|vm[\-]?([0-9]+)?/.test prefix
+    unless !/^shared|vm[\-]?([0-9]+)?/.test prefix
+      return callback new KodingError("Domain name must be started with shared|vm", "INVALIDDOMAIN")
+
+    callback null, slug
 
   @createDomain: secure (client, options, callback)->
     [callback, options] = [options, callback]  unless callback
     {delegate} = client.connection
-    {slug} = options
+    {domain} = options
 
-    slug = "koding"  if delegate.profile.nickname is slug 
-    slug ?= "koding"
-
-    JGroup.one {slug}, (err, group)->
+    JDomain.isDomainEligible {domain}, (err, parentDomain)->
       return callback err  if err
 
-      return callback new KodingError("No group found.")  unless group
+      {nickname} = delegate.profile
+      slug = if nickname is parentDomain then "koding" else parentDomain
 
-      delegate.checkPermission group, 'create domains', (err, hasPermission)->
+      JGroup.one {slug}, (err, group)->
         return callback err  if err
-        return callback new KodingError "Access denied",  "ACCESSDENIED" unless hasPermission
+        return callback new KodingError("No group found.")  unless group
 
-        JDomain.isDomainEligible
-          delegate   : delegate
-          domain     : options.domain
-          slug       : slug
-        , (err, isEligible)->
+        delegate.checkPermission group, 'create domains', (err, hasPermission)->
           return callback err  if err
-          return callback new KodingError "You can't create this domain."  unless isEligible
+          return callback new KodingError "Access denied",  "ACCESSDENIED" unless hasPermission
 
           model = new JDomain options
           model.save (err) ->
