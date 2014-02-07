@@ -43,12 +43,21 @@ class DevToolsMainView extends KDView
               name              : "finder"
               editor            : "JSEditor"
               handleFileOpen    : (file, content) =>
-                # log file, content
-                panes = @workspace.activePanel.panesByName
+
+                {CSSEditor, JSEditor} = @workspace.activePanel.panesByName
+                log file, JSEditor.header
+
                 switch FSItem.getFileExtension file.path
                   when 'css', 'styl'
-                  then panes.CSSEditor.openFile file, content
-                  else panes.JSEditor.openFile file, content
+                  then editor = CSSEditor
+                  else editor = JSEditor
+
+                path = (FSHelper.plainPath file.path).replace \
+                  "/home/#{KD.nick()}/Applications/", ""
+
+                editor.openFile file, content
+                editor.header.title.updatePartial path
+
             }
             {
               type              : "split"
@@ -116,12 +125,17 @@ class DevToolsMainView extends KDView
     @_inprogress = yes
 
     {JSEditor, PreviewPane} = @workspace.activePanel.panesByName
-    extension = JSEditor.getData()?.getExtension() or 'coffee'
+    editorData = JSEditor.getData()
+    extension = if editorData then editorData.getExtension() else 'coffee'
 
     if extension not in ['js', 'coffee']
       @_inprogress = no
-      log "Not supported!"
-      PreviewPane.container.destroySubViews()
+      pc = PreviewPane.container
+      pc.destroySubViews()
+      pc.addSubView new ErrorPaneWidget {},
+        error     :
+          name    : "Preview not supported"
+          message : "You can only preview .coffee and .js files."
       return
 
     @compiler (coffee)=>
@@ -217,14 +231,18 @@ class ErrorPaneWidget extends JView
 
   pistachio:->
     {error} = @getData()
-    line = if error.location then "at line: #{error.location.last_line+1}" else ""
+    line    = if error.location then "at line: #{error.location.last_line+1}" else ""
+    stack   = if error.stack? then """
+      <div class='stack'>
+        <h2>Full Stack</h2>
+        <pre>#{error.stack}</pre>
+      </div>
+    """ else ""
+
     """
       {h1{#(error.name)}}
       <pre>#{error.message} #{line}</pre>
-      <div class='stack'>
-        <h2>Full Stack</h2>
-        {pre{#(error.stack)}}
-      </div>
+      #{stack}
     """
 
   click:-> @setClass 'in'
