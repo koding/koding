@@ -88,8 +88,8 @@ func (m *MongoDB) One(collection, id string, result interface{}) error {
 	return session.DB("").C(collection).FindId(bson.ObjectIdHex(id)).One(result)
 }
 
-func Iter(cl string, q func(*mgo.Collection) *mgo.Query, i func(*mgo.Iter) error) error {
-	session := Mongo.GetSession()
+func (m *MongoDB) Iter(cl string, q func(*mgo.Collection) *mgo.Query, i func(*mgo.Iter) error) error {
+	session := m.GetSession()
 	defer session.Close()
 	c := session.DB("").C(cl)
 

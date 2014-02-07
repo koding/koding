@@ -15,7 +15,7 @@ var (
 
 func CreateConnection(conf *config.Config, component string) *amqp.Connection {
 	if conf == nil {
-		log.Fatal("Configuration is not defined. Please pass a prepared conf struct. ", component)
+		log.Fatal("Configuration is not defined. Please pass a prepared conf struct. %v", component)
 	}
 
 	conn, err := amqp.Dial(amqp.URI{
@@ -27,7 +27,7 @@ func CreateConnection(conf *config.Config, component string) *amqp.Connection {
 		Vhost:    conf.Mq.Vhost,
 	}.String())
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal("%v", err)
 	}
 
 	go func() {
