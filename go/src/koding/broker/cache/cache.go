@@ -43,6 +43,14 @@ func (s *SubscriptionSet) Subscribe(routingKeyPrefixes ...string) error {
 	return nil
 }
 
+func (s *SubscriptionSet) Unsubscribe(routingKeyPrefixes ...string) error {
+	for _, routingKeyPrefix := range routingKeyPrefixes {
+		s.set.Remove(routingKeyPrefix)
+	}
+	// remove doesnt return any error
+	return nil
+}
+
 func (s *SubscriptionSet) Resubscribe(socketID string) (bool, error) {
 	socketSubscription, ok := socketSubscriptionsMap[socketID]
 	if !ok {
@@ -56,12 +64,6 @@ func (s *SubscriptionSet) Resubscribe(socketID string) (bool, error) {
 		return true
 	})
 	return true, nil
-}
-
-func (s *SubscriptionSet) Unsubscribe(routingKeyPrefix string) error {
-	s.set.Remove(routingKeyPrefix)
-	// remove doesnt return any error
-	return nil
 }
 
 func (s *SubscriptionSet) Has(routingKeyPrefix string) (bool, error) {
