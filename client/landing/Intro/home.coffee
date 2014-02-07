@@ -46,11 +46,6 @@ class HomePage extends JView
 
     @markers = new MarkerController
 
-    @campaignContainer = new KDCustomHTMLView
-
-    if KD.campaign?.status
-      @campaignContainer.addSubView new TBCampaignHomePageView {}, KD.campaign
-
   show:->
 
     @appendToDomBody()  unless document.getElementById 'home-page'
@@ -127,7 +122,6 @@ class HomePage extends JView
           <a href="/Login" class="login fr">LOGIN</a>
         </div>
       </header>
-      {{> @campaignContainer}}
       <main>
         <div class="clearfix">
           <div class="headings-container">
