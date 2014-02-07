@@ -42,7 +42,7 @@ class MainViewController extends KDViewController
       currentHeight = 0
 
       _.throttle (event)->
-        el = document.body
+        el = document.documentElement
         {scrollHeight, scrollTop} = el
 
         return  if scrollHeight <= window.innerHeight or scrollTop <= 0
