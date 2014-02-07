@@ -23,6 +23,16 @@ func generateKey(SocketID string) string {
 	)
 }
 
+// convertData changes slice of string to slice of interface
+func convertData(commandName string, data ...string) []interface{} {
+	newData := make([]interface{}, len(data)+1)
+	newData[0] = interface{}(commandName)
+	for i, v := range data {
+		newData[i+1] = interface{}(v)
+	}
+	return newData
+}
+
 // NewRedis creates a redis backend for storing
 // client subscriptions
 func NewRedis(socketID string) (*Cache, error) {
@@ -59,10 +69,9 @@ func (c *Cache) Each(f func(item interface{}) bool) error {
 
 // Subscribe adds one item to the subscription set
 // todo - do a performace test for subscribing 2K items at once
-// todo - change this signature to
-// func (c *Cache) Subscribe(routingKeyPrefix ...string) error {
-func (c *Cache) Subscribe(routingKeyPrefix string) error {
-	_, err := redigo.Int(c.session.Do("SADD", c.key, routingKeyPrefix))
+func (c *Cache) Subscribe(routingKeyPrefixes ...string) error {
+	command := convertData(c.key, routingKeyPrefixes...)
+	_, err := redigo.Int(c.session.Do("SADD", command...))
 	if err != nil {
 		return err
 	}
@@ -73,16 +82,38 @@ func (c *Cache) Subscribe(routingKeyPrefix string) error {
 }
 
 // Unsubscribe removes one item from the subscription set
-// todo - change this signature to
-// func (c *Cache) Unsubscribe(routingKeyPrefix ...string) error {
-func (c *Cache) Unsubscribe(routingKeyPrefix string) error {
-	_, err := redigo.Int(c.session.Do("SREM", c.key, routingKeyPrefix))
+func (c *Cache) Unsubscribe(routingKeyPrefixes ...string) error {
+	command := convertData(c.key, routingKeyPrefixes...)
+	_, err := redigo.Int(c.session.Do("SREM", command...))
 	if err != nil {
 		return err
 	}
 	// discard 0 reply
 	// becase, we dont care if it has been removed before or not
 	return nil
+}
+
+func (c *Cache) Resubscribe(clientID string) (bool, error) {
+	key := generateKey(clientID)
+	reply, err := redigo.Int(c.session.Do("EXISTS", key))
+	if err != nil {
+		return false, err
+	}
+
+	if reply == 0 {
+		return false, nil
+	}
+
+	routingKeyPrefixes, err := redigo.Strings(c.session.Do("SMEMBERS", key))
+	if err != nil {
+		return false, err
+	}
+
+	if err := c.Subscribe(routingKeyPrefixes...); err != nil {
+		return false, err
+	}
+
+	return true, nil
 }
 
 // Has returns bool result indicating the given routingKeyPrefix is
@@ -108,31 +139,6 @@ func (c *Cache) Len() (int, error) {
 	}
 
 	return reply, nil
-}
-
-func (c *Cache) Resubscribe(clientID string) (bool, error) {
-	key := generateKey(clientID)
-	reply, err := redigo.Int(c.session.Do("EXISTS", key))
-	if err != nil {
-		return false, err
-	}
-
-	if reply == 0 {
-		return false, nil
-	}
-
-	routingKeyPrefixes, err := redigo.Strings(c.session.Do("SMEMBERS", key))
-	if err != nil {
-		return false, err
-	}
-
-	for _, routingKeyPrefix := range routingKeyPrefixes {
-		if err := c.Subscribe(routingKeyPrefix); err != nil {
-			return false, err
-		}
-	}
-
-	return true, nil
 }
 
 func (c *Cache) ClearWithTimeout() error {
