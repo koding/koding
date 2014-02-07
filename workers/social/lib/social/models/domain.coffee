@@ -156,11 +156,13 @@ module.exports = class JDomain extends jraphical.Module
         default     : -> new Date
 
   @isDomainEligible: (params, callback)->
-    {delegate, domain} = params
+    {delegate, domain, slug} = params
 
     {nickname} = delegate.profile
 
-    unless ///\.#{nickname}\.kd\.io$///.test domain
+    prefix = unless slug is "koding" then slug else nickname
+
+    unless ///\.#{prefix}\.kd\.io$///.test domain
       return callback new KodingError("Invalid domain: #{domain}.", "INVALIDDOMAIN")
 
     match = domain.match /(.*)\.([a-z0-9\-]+)\.kd\.io$/
@@ -170,40 +172,38 @@ module.exports = class JDomain extends jraphical.Module
 
     [rest..., prefix, slug] = match
 
-    if slug is nickname
-      callback null, !/^vm[\-]([0-9]+)$/.test prefix
-    else
-      JGroup.one {slug:'koding'}, (err, group)->
-        return callback err  if err
-
-        unless group
-          return callback new KodingError("No group found.")
-
-        delegate.checkPermission group, 'create domains', (err, hasPermission)->
-          return callback err  if err
-          return callback null, no  unless hasPermission
-          callback null, !/shared[\-]?([0-9]+)?$/.test prefix
+    callback null, !/^shared|vm[\-]?([0-9]+)?/.test prefix
 
   @createDomain: secure (client, options, callback)->
     [callback, options] = [options, callback]  unless callback
     {delegate} = client.connection
+    {slug} = options
 
-    JGroup.one {slug:'koding'}, (err, group)->
+    slug = "koding"  if delegate.profile.nickname is slug 
+    slug ?= "koding"
+
+    JGroup.one {slug}, (err, group)->
       return callback err  if err
+
+      return callback new KodingError("No group found.")  unless group
 
       delegate.checkPermission group, 'create domains', (err, hasPermission)->
         return callback err  if err
-        return callback new KodingError "Access denied"  unless hasPermission
+        return callback new KodingError "Access denied",  "ACCESSDENIED" unless hasPermission
 
         JDomain.isDomainEligible
-          delegate : delegate
-          domain   : options.domain
+          delegate   : delegate
+          domain     : options.domain
+          slug       : slug
         , (err, isEligible)->
           return callback err  if err
           return callback new KodingError "You can't create this domain."  unless isEligible
 
           model = new JDomain options
           model.save (err) ->
+            if err?.code is 11000
+              return callback new KodingError("The domain #{options.domain} already exists", "DUPLICATEDOMAIN") 
+
             return callback err if err
 
             account = client.connection.delegate

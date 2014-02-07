@@ -106,18 +106,25 @@ class DomainCreateForm extends KDCustomHTMLView
     domainName =
       Encoder.XSSEncode "#{domainName}.#{domains.getValue()}"
 
+    match = domainName.match /(.*)\.([a-z0-9\-]+)\.kd\.io$/
+    [rest..., slug] = match
+
     domainType = 'subdomain'
     regYears   = 0
 
-    @createJDomain {domainName, regYears, domainType}, (err, domain)=>
+    @createJDomain {domainName, regYears, domainType, slug}, (err, domain)=>
       createButton.hideLoader()
       if err
         warn "An error occured while creating domain:", err
-        if err.code is 11000
-          return notifyUser "The domain #{domainName} already exists."
-        else if err.name is "INVALIDDOMAIN"
-          return notifyUser "#{domainName} is an invalid subdomain."
-        return notifyUser "An unknown error occured. Please try again later."
+        switch err.name
+          when "DUPLICATEDOMAIN"
+            return notifyUser "The domain #{domainName} already exists."
+          when "INVALIDDOMAIN"
+            return notifyUser "#{domainName} is an invalid subdomain."
+          when "ACCESSDENIED"
+            return notifyUser "You do not have permission to create a subdomain in this domain"
+          else
+            return notifyUser "An unknown error occured. Please try again later."
       else
         @showSuccess domain
         @updateDomains()
@@ -133,6 +140,7 @@ class DomainCreateForm extends KDCustomHTMLView
       hostnameAlias  : []
       domainType     : params.domainType
       loadBalancer   : mode : ""
+      slug           : params.slug
     , callback
 
   showSuccess:(domain) ->
