@@ -205,6 +205,7 @@ module.exports =
     heartbeat   : 0
     vhost       : '/'
   broker        :
+    name        : "broker"
     ip          : ""
     port        : 8008
     certFile    : ""
@@ -212,6 +213,17 @@ module.exports =
     webProtocol : 'http:'
     webHostname : 'localhost'
     webPort     : 8008
+    authExchange: authExchange
+    authAllExchange: authAllExchange
+  brokerKite    :
+    name        : "brokerKite"
+    ip          : ""
+    port        : 8009
+    certFile    : ""
+    keyFile     : ""
+    webProtocol : 'http:'
+    webHostname : 'localhost'
+    webPort     : 8009
     authExchange: authExchange
     authAllExchange: authAllExchange
   kites:

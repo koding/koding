@@ -43,6 +43,7 @@ var (
 	flagProfile      = flag.String("c", "", "Configuration profile from file")
 	flagBrokerDomain = flag.String("a", "", "Send kontrol a custom domain istead of os.Hostname")
 	flagKontrolUUID  = flag.String("u", "", "Enable Kontrol mode")
+	flagBrokerType   = flag.String("b", "broker", "Define broker type. Available: broker and brokerKite. B")
 )
 
 // Broker is a router/multiplexer that routes messages coming from a SockJS
@@ -52,6 +53,7 @@ var (
 // client. Each message has an "action" field that defines how to act for a
 // received message.
 type Broker struct {
+	Config            *config.Broker
 	Hostname          string
 	ServiceUniqueName string
 	AuthAllExchange   string
@@ -82,7 +84,6 @@ func NewBroker() *Broker {
 	return &Broker{
 		Hostname:          brokerHostname,
 		ServiceUniqueName: serviceUniqueName,
-		AuthAllExchange:   conf.Broker.AuthAllExchange,
 		ready:             make(chan struct{}),
 		amqpReady:         make(chan struct{}),
 	}
@@ -98,7 +99,14 @@ func main() {
 	logLevel := logger.GetLoggingLevelFromConfig(BROKER_NAME, *flagProfile)
 	log.SetLevel(logLevel)
 
-	NewBroker().Run()
+	broker := NewBroker()
+
+	switch *flagBrokerType {
+	case "brokerKite":
+		broker.Config = &conf.Broker
+	default:
+		broker.Config = &conf.BrokerKite
+	}
 }
 
 // Run starts the broker.
@@ -133,12 +141,12 @@ func (b *Broker) Close() {
 func (b *Broker) registerToKontrol() {
 	if err := kontrolhelper.RegisterToKontrol(
 		conf,
-		BROKER_NAME,
-		BROKER_NAME, // servicGenericName
+		b.Config.Name,
+		b.Config.Name, // servicGenericName
 		b.ServiceUniqueName,
 		*flagKontrolUUID,
 		b.Hostname,
-		conf.Broker.Port,
+		b.Config.Port,
 	); err != nil {
 		panic(err)
 	}
@@ -147,10 +155,10 @@ func (b *Broker) registerToKontrol() {
 // startAMQP setups the the neccesary publisher and consumer connections for
 // the broker broker.
 func (b *Broker) startAMQP() {
-	b.PublishConn = amqputil.CreateConnection(conf, BROKER_NAME)
+	b.PublishConn = amqputil.CreateConnection(conf, b.Config.Name)
 	defer b.PublishConn.Close()
 
-	b.ConsumeConn = amqputil.CreateConnection(conf, BROKER_NAME)
+	b.ConsumeConn = amqputil.CreateConnection(conf, b.Config.Name)
 	defer b.ConsumeConn.Close()
 
 	consumeChannel := amqputil.CreateChannel(b.ConsumeConn)
@@ -159,8 +167,8 @@ func (b *Broker) startAMQP() {
 	presenceQueue := amqputil.JoinPresenceExchange(
 		consumeChannel,      // channel
 		"services-presence", // exchange
-		BROKER_NAME,         // serviceType
-		BROKER_NAME,         // serviceGenericName
+		b.Config.Name,       // serviceType
+		b.Config.Name,       // serviceGenericName
 		b.ServiceUniqueName, // serviceUniqueName
 		false,               // loadBalancing
 	)
@@ -172,7 +180,7 @@ func (b *Broker) startAMQP() {
 		consumeChannel.QueueDelete(presenceQueue, false, false, false)
 	}()
 
-	stream := amqputil.DeclareBindConsumeQueue(consumeChannel, "topic", BROKER_NAME, "#", false)
+	stream := amqputil.DeclareBindConsumeQueue(consumeChannel, "topic", b.Config.Name, "#", false)
 
 	if err := consumeChannel.ExchangeDeclare(
 		"updateInstances", // name
@@ -247,13 +255,13 @@ func (b *Broker) startSockJS() {
 	server := &http.Server{Handler: mux}
 
 	var err error
-	b.listener, err = net.ListenTCP("tcp", &net.TCPAddr{IP: net.ParseIP(conf.Broker.IP), Port: conf.Broker.Port})
+	b.listener, err = net.ListenTCP("tcp", &net.TCPAddr{IP: net.ParseIP(b.Config.IP), Port: b.Config.Port})
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	if conf.Broker.CertFile != "" {
-		cert, err := tls.LoadX509KeyPair(conf.Broker.CertFile, conf.Broker.KeyFile)
+	if b.Config.CertFile != "" {
+		cert, err := tls.LoadX509KeyPair(b.Config.CertFile, b.Config.KeyFile)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -298,7 +306,7 @@ func (b *Broker) sockjsSession(session *sockjs.Session) {
 	defer sessionGaugeEnd()
 	defer client.Close()
 
-	err := client.ControlChannel.Publish(b.AuthAllExchange, "broker.clientConnected", false, false, amqp.Publishing{Body: []byte(client.SocketId)})
+	err := client.ControlChannel.Publish(b.Config.AuthAllExchange, "broker.clientConnected", false, false, amqp.Publishing{Body: []byte(client.SocketId)})
 	if err != nil {
 		panic(err)
 	}

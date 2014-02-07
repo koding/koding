@@ -209,12 +209,24 @@ module.exports =
     heartbeat   : 20
     vhost       : 'new'
   broker        :
+    name        : "broker"
     ip          : ""
     port        : 443
     certFile    : "/opt/ssl_certs/wildcard.koding.com.cert"
     keyFile     : "/opt/ssl_certs/wildcard.koding.com.key"
     webProtocol : 'https:'
     webHostname : "broker-#{version}a.koding.com"
+    webPort     : null
+    authExchange: authExchange
+    authAllExchange: authAllExchange
+  brokerKite    :
+    name        : "brokerKite"
+    ip          : ""
+    port        : 443
+    certFile    : "/opt/ssl_certs/wildcard.koding.com.cert"
+    keyFile     : "/opt/ssl_certs/wildcard.koding.com.key"
+    webProtocol : 'https:'
+    webHostname : "brokerKite-#{version}a.koding.com"
     webPort     : null
     authExchange: authExchange
     authAllExchange: authAllExchange

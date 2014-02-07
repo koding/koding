@@ -223,6 +223,18 @@ config =
       heartbeat   : 1
       vhost       : 1
     broker        :
+      name        : 1
+      ip          : 1
+      port        : 1
+      certFile    : 1
+      keyFile     : 1
+      webProtocol : 1
+      webHostname : 1
+      webPort     : 1
+      authExchange: 1
+      authAllExchange: 1
+    brokerKite    :
+      name        : 1
       ip          : 1
       port        : 1
       certFile    : 1
