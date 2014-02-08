@@ -9,9 +9,10 @@ import (
 )
 
 var (
-	log           = logger.New("rerouting")
-	conf          *config.Config
-	configProfile = flag.String("c", "", "Configuration profile from file")
+	log         = logger.New("rerouting")
+	conf        *config.Config
+	flagProfile = flag.String("c", "", "Configuration profile from file")
+	flagDebug   = flag.Bool("d", false, "Debug mode")
 
 	defaultPublishingExchange string
 	producer                  *rerouting.Producer
@@ -21,11 +22,19 @@ var (
 func main() {
 	flag.Parse()
 	log.Info("routing worker started")
-	if *configProfile == "" {
+	if *flagProfile == "" {
 		log.Fatal("Please define config file with -c")
 	}
 
-	conf = config.MustConfig(*configProfile)
+	conf = config.MustConfig(*flagProfile)
+
+	var logLevel logger.Level
+	if *flagDebug {
+		logLevel = logger.DEBUG
+	} else {
+		logLevel = logger.GetLoggingLevelFromConfig("rerouting", *flagProfile)
+	}
+	log.SetLevel(logLevel)
 
 	var err error
 	producer, err = createProducer()
@@ -58,7 +67,7 @@ func startRouting() {
 		Channel: nil,
 	}
 
-	router = rerouting.NewRouter(c, producer, *configProfile)
+	router = rerouting.NewRouter(c, producer, *flagProfile)
 
 	var err error
 

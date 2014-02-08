@@ -23,9 +23,10 @@ class MarkerController extends KDController
 
     return @collection[name]
 
+
   reset:->
 
-    for own name, marker of @collection when name.search 'm_' is 0
+    for own name, marker of @collection when name.slice(2) is 'm_'
 
       marker._windowDidResize()
 
@@ -35,21 +36,35 @@ class MarkerController extends KDController
     groupName = "g_#{groupName}"
     @collection[groupName] = markers
 
-    return @groups[groupName]
+    return markers
+
 
   hide:(name)->
 
     # hide group if it is a group name
     if markers = @collection["g_#{name}"]
-
       marker.hide() for marker in markers
 
       return markers
 
     # hide marker if it is a marker name
     if marker = @collection["m_#{name}"]
-
       marker.hide()
+
+      return marker
+
+
+  show:(name)->
+
+    # show group if it is a group name
+    if markers = @collection["g_#{name}"]
+      marker.show() for marker in markers
+
+      return markers
+
+    # show marker if it is a marker name
+    if marker = @collection["m_#{name}"]
+      marker.show()
 
       return marker
 

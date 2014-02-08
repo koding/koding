@@ -508,9 +508,14 @@ task 'migratePost', "Migrate Posts to JNewStatusUpdate", ({configFile})->
     verbose : yes
 
 run =({configFile})->
+  process.stdout.setMaxListeners 100
+  process.stderr.setMaxListeners 100
+
   config = require('koding-config-manager').load("main.#{configFile}")
 
   compileGoBinaries configFile, ->
+    invoke 'kontrolDaemon'                    if config.runKontrol
+    invoke 'kontrolApi'                       if config.runKontrol
     invoke 'goBroker'                         if config.runGoBroker
     invoke 'osKite'                           if config.runOsKite
     invoke 'rerouting'                        if config.runRerouting
