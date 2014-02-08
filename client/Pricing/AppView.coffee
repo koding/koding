@@ -22,6 +22,8 @@ class BreadcrumbView extends JView
 
   selectItem : (name) ->
 
+    return  unless name
+
     @$('li').removeClass "active"
     @$("li.#{name}").addClass "active"
 
@@ -44,8 +46,7 @@ class BreadcrumbView extends JView
   pistachio : ->
     """
       <ul class='clearfix logged-#{if KD.isLoggedIn() then 'in' else 'out'}'>
-        <li class='plan active'>Select plan</li>
-        <li class='login'>Login/Register</li>
+        <li class='login active'>Login/Register</li>
         <li class='method'>Payment method</li>
         <li class='overview'>Overview</li>
         <li class='details hidden'>Group details</li>
@@ -78,7 +79,8 @@ class PricingAppView extends KDView
 
     workflow.off 'FormIsShown'
 
-    workflow.on 'FormIsShown', =>
+    workflow.on 'FormIsShown', (form)=>
+      return  unless workflow.active
       @breadcrumb.selectItem workflow.active.getOption 'name'
 
 
