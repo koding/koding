@@ -20,54 +20,72 @@ worker = new Bongo {
 
 importProducts = (callback) ->
   data = require(__dirname + '/products');
-
   queue = []
   insertProducts = race (i, product, fin) ->
-    {title} = product  
     {JPaymentProduct} = worker.models
-    JPaymentProduct.one title: title, (err, paymentProduct) ->
-      return console.error err if err
-      if paymentProduct? 
-        console.log "#{product.title} product is already added" 
+    kreate = ->
+      JPaymentProduct.create "koding", product, (err) ->
+        console.log "#{product.title} product added successfully" unless err
         fin()
+
+    {title} = product  
+    JPaymentProduct.one title: title, (err, paymentProduct) ->
+      if err 
+        console.error err 
+        return fin()
+
+      if paymentProduct? 
+        paymentProduct.remove (err) ->
+          if err
+            console.error "#{product.title} cannot be added" 
+            fin()
+          else
+            kreate()
       else
-        JPaymentProduct.create "koding", product, (err) ->
-          console.log "#{product.title} product added successfully" unless err
-          fin()
+        kreate()
   , -> callback null
 
   insertProducts product for product in data
 
 importPacks = (callback) ->
   data = require(__dirname + '/packs');
-
   queue = []
   fetchAllProducts (err, productPlanCodes) ->
     return console.error err if err
     insertPacks = race (i, pack, fin) ->
       {title} = pack  
       {JPaymentPack, JPaymentProduct} = worker.models
-      JPaymentPack.one title: title, (err, paymentPack) ->
-        return console.error err if err
-        if paymentPack? 
-          console.log "#{pack.title} pack is already added" 
-          fin()
-        else
-          JPaymentPack.create "koding", pack, (err, pack) ->
-            return console.error err if err
-            console.log "#{pack.title} pack added successfully" 
 
-            quantities = {}
-            if pack.title is "VM"
-              quantities[productPlanCodes["CPU"]] = 1
-              quantities[productPlanCodes["RAM"]] = 1
-              quantities[productPlanCodes["VM"]] = 1
-            else
-              quantities[productPlanCodes[pack.title]] = 1
-            pack.updateProducts quantities, (err) ->
-              return console.error err if err
-              console.log "#{pack.title} pack products are added"
+      kreate = ->
+        JPaymentPack.create "koding", pack, (err, pack) ->
+          if err 
+            console.error err 
+            return fin()
+
+          console.log "#{pack.title} pack added successfully" 
+
+          quantities = {}
+          quantities[productPlanCodes[pack.title]] = 1
+          pack.updateProducts quantities, (err) ->
+            return console.error err if err
+            console.log "#{pack.title} pack products are added"
+            fin()
+
+      JPaymentPack.one title: title, (err, paymentPack) ->
+        if err 
+          console.error err
+          fin()
+
+        if paymentPack
+          paymentPack.remove (err) ->
+            if err 
+              console.error err
+              console.error "#{pack.title} cannot be added"  
               fin()
+            else 
+              kreate()
+        else
+          kreate()
             
     , -> callback null
 
@@ -89,40 +107,54 @@ importPlans = (callback) ->
 
   fetchAllProducts (err, productPlanCodes) ->
     return console.error err if err
+
     queue = []
     insertPlans = race (i, plan, fin) ->
+      kreate = ->
+        JPaymentPlan.create "koding", plan, (err, newPlan) ->
+          if err 
+            console.error err
+            return fin()
+
+          console.log "#{plan.title} plan added successfully" 
+          quantities = {}
+          if plan.title is "Team Plan" 
+            quantities[productPlanCodes["CPU"]] = 4
+            quantities[productPlanCodes["RAM"]] = 2
+            quantities[productPlanCodes["Disk"]] = 50
+            quantities[productPlanCodes["Always On"]] = 1
+            quantities[productPlanCodes["Max VM"]] = 10
+            quantities[productPlanCodes["User"]] = 1
+            quantities[productPlanCodes["Group"]] = 1
+          else
+            {count} = plan
+            quantities[productPlanCodes["CPU"]] = count * 4
+            quantities[productPlanCodes["RAM"]] = count * 2
+            quantities[productPlanCodes["Disk"]] = count * 50
+            quantities[productPlanCodes["Always On"]] = count
+            quantities[productPlanCodes["Max VM"]] = count * 10
+          
+          console.log 'quantities', quantities
+          newPlan.updateProducts quantities, (err) ->
+            if err then console.error err
+            else console.log "#{plan.title} plan products are added"
+            fin()
+
       {title} = plan  
       JPaymentPlan.one title: title, (err, paymentPlan) ->
-        return console.error err if err
+        if err 
+          console.error err
+          return fin()
+
         if paymentPlan? 
-          console.log "#{plan.title} plan is already added" 
-          fin()
-        else
-          JPaymentPlan.create "koding", plan, (err, newPlan) ->
-            return console.error err if err
-            console.log "#{plan.title} plan added successfully" 
-            quantities = {}
-            if plan.title is "Custom Plan" 
-              quantities[productPlanCodes["CPU"]] = 1
-              quantities[productPlanCodes["RAM"]] = 1
-              quantities[productPlanCodes["Disk"]] = 1
-              quantities[productPlanCodes["Always On"]] = 1
-              quantities[productPlanCodes["VM"]] = 5
-              quantities[productPlanCodes["User"]] = 1
-              quantities[productPlanCodes["Group"]] = 1
-            else
-              {count} = plan
-              quantities[productPlanCodes["CPU"]] = count
-              quantities[productPlanCodes["RAM"]] = count
-              quantities[productPlanCodes["Disk"]] = count
-              quantities[productPlanCodes["Always On"]] = count
-              quantities[productPlanCodes["VM"]] = count * 5
-            
-            console.log 'quantities', quantities
-            newPlan.updateProducts quantities, (err) ->
-              return console.error err if err
-              console.log "#{plan.title} plan products are added"
+          paymentPlan.remove (err) ->
+            if err
+              console.error "#{plan.title} cannot be added" 
               fin()
+            else
+              kreate()
+        else
+          kreate()
     , -> callback null
 
     insertPlans plan for plan in data
@@ -137,10 +169,10 @@ createBot = (callback) ->
     lastName  : " "
 
   JUser.createUser userInfo, (err) ->
-    return console.log err if err
+    return callback err if err
     JUser.one username : "bot", (err, user) ->
       user.confirmEmail (err) ->
-        return console.error err if err
+        return callback err if err
         JAccount.update "profile.nickname" : "bot", {$set: type: "registered"}, \
           {multi: no}, (err, account) ->
             return callback err if err
@@ -160,14 +192,14 @@ initProducts = ->
       -> importPacks ->
         console.log 'All Packs are added'
         queue.next()
-      -> createBot ->
+      -> createBot (err) ->
+        console.error err  if err
         queue.next()
       -> process.exit(1)
     ]
 
     daisy queue
     
-
 initProducts()
 
  
