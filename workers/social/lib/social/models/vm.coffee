@@ -141,27 +141,34 @@ module.exports = class JVM extends Module
   @setAlwaysOn = secure (client, options, callback)->
     {connection: delegate: account} = client
     {vmName, status} = options
-
-    selector =
-      hostnameAlias : vmName
-      webHome       : account.profile.nickname
-
-    @one selector, (err, vm) ->
+    JDomain = require './domain'
+    JDomain.isDomainEligible {domain: vmName}, (err, webHome) =>
       return callback err if err
-      return callback new KodingError "VM Not FOUND" unless vm
-      subscriptionOptions = targetOptions: selector: tags: $in: ["vm"]
-      account.fetchSubscriptions null, subscriptionOptions, (err, subscriptions) ->
-        return callback err  if err
-        return callback new KodingError "Subscription not found"  unless subscriptions.length
-        [subscription] = subscriptions
-        JPaymentPack.one tags: "alwayson", (err, pack) ->
+
+      selector =
+        hostnameAlias : vmName
+        webHome       : webHome
+      @one selector, (err, vm) ->
+        return callback err if err
+        return callback new KodingError "VM Not FOUND" unless vm
+
+        [{ id: groupId }] = vm.groups
+        JGroup = require './group'
+        JGroup.one { _id: groupId }, (err, group)->
           return callback err  if err
-          return callback new KodingError "Always On pack not found"  unless pack
-          {debit, credit} = subscription
-          fn = if status then debit else credit
-          fn.call subscription, {pack}, (err) ->
+          return callback new KodingError "Group not found"  unless group
+          group.fetchSubscription (err, subscription) ->
             return callback err  if err
-            vm.update $set: alwaysOn: status, callback
+            return callback new KodingError "Group subscription not found"  unless subscription
+
+            JPaymentPack.one tags: "alwayson", (err, pack) ->
+              return callback err  if err
+              return callback new KodingError "Always On pack not found"  unless pack
+              {debit, credit} = subscription
+              fn = if status then debit else credit
+              fn.call subscription, {pack}, (err) ->
+                return callback err  if err
+                vm.update $set: alwaysOn: status, callback
 
   @fetchDefaultVm_ = (client, callback)->
     {delegate} = client.connection
