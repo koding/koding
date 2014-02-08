@@ -21,11 +21,11 @@ type Subscriptionable interface {
 	Unsubscribe(routingKeyPrefix ...string) error
 	Has(routingKeyPrefix string) (bool, error)
 	Len() (int, error)
-	Resubscribe(socketID string) (bool, error)
+	Resubscribe(socketId string) (bool, error)
 	ClearWithTimeout(duration time.Duration) error
 }
 
-func NewStorage(c *config.Config, cacheType Backend, socketID string) (Subscriptionable, error) {
+func NewStorage(c *config.Config, cacheType Backend, socketId string) (Subscriptionable, error) {
 	if c == nil {
 		return nil, errors.New("Config is passed as nil. Aborting.")
 	}
@@ -33,8 +33,8 @@ func NewStorage(c *config.Config, cacheType Backend, socketID string) (Subscript
 
 	switch cacheType {
 	case REDIS:
-		return newRedis(socketID)
+		return newRedis(socketId)
 	default:
-		return newSubscriptionSet(socketID)
+		return newSet(socketId)
 	}
 }
