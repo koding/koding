@@ -93,7 +93,6 @@ class AccountAppController extends AppController
       """
 
   showReferrerModal:(options={})->
-    return
     return  if @referrerModal and not @referrerModal.isDestroyed
 
     options.top         ?= 50
