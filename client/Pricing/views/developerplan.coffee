@@ -1,7 +1,12 @@
 class DeveloperPlan extends JView
+
   constructor: (options = {}, data) ->
+
     options.cssClass = KD.utils.curry "developer-plan", options.cssClass
+
     super options, data
+
+    @planIndex = 0
 
     @plans = [
       { cpu: 1, ram: 1, disk: "50 GB" , alwaysOn: 1, price: 19 }
@@ -10,8 +15,6 @@ class DeveloperPlan extends JView
       { cpu: 4, ram: 4, disk: "200 GB", alwaysOn: 4, price: 79 , discount: 12, vm: 3 }
       { cpu: 5, ram: 5, disk: "250 GB", alwaysOn: 5, price: 99 , discount: 16, vm: 4 }
     ]
-
-    @planIndex = 0
 
     @slider        = new PricingPlanSelection
       title          : "Resource Pack"
@@ -28,20 +31,23 @@ class DeveloperPlan extends JView
         width        : 715
         drawOpposite : yes
 
-    @slider.on "ValueChanged", (index) =>
-      @planIndex = Math.max index - 1, 0
+    @slider.on "ValueChanged", (index)=>
+      @planIndex = Math.max index, 0
       @updateContent()
 
     @summary = new KDCustomHTMLView cssClass: "plan-selection-box selected"
     @summary.addSubView @title     = new KDCustomHTMLView tagName: "h4"
     @summary.addSubView @price     = new KDCustomHTMLView tagName: "h5"
-    @summary.addSubView @promotion = new KDCustomHTMLView tagName: "p", cssClass: "description"
+    # @summary.addSubView @promotion = new KDCustomHTMLView tagName: "p", cssClass: "description"
     @summary.addSubView @buyNow    = new KDButtonView
       cssClass : "buy-now"
       style    : "solid green"
       title    : "BUY NOW"
       callback : =>
-        payment = KD.singleton "paymentController"
+        { payment, router } = KD.singletons
+        if @planIndex is 0
+          return router.handleRoute '/Register'
+
         payment.fetchSubscriptionsWithPlans tags: $in: "vm", (err, subscriptions) =>
           return KD.showError err  if err
           @emit "CurrentSubscriptionSet", subscriptions.first  if subscriptions.length
@@ -49,16 +55,26 @@ class DeveloperPlan extends JView
 
     @updateContent()
 
-  updateContent: ->
-    @title.updatePartial "#{@planIndex + 1}x Resource Pack"
-    @price.updatePartial "$#{@plans[@planIndex].price}/Month"
+  updateContent: (index = @planIndex)->
 
-    plan = @plans[@planIndex]
-    {discount, vm} = plan
+    if index is 0
+      title = 'Free Account'
+      desc  = 'Good for development'
+      @buyNow.setTitle 'SIGN UP'
+    else
+      title = "#{index}x Resource Pack"
+      desc  = "$#{@plans[index-1].price}/Month"
+      @buyNow.setTitle 'BUY NOW'
 
-    @promotion.updatePartial if discount and vm
-    then "TREAT: $#{discount} OFF OR #{vm} FREE VM#{if vm > 1 then 's' else ''}"
-    else ""
+    @title.updatePartial title
+    @price.updatePartial desc
+
+    # plan = @plans[index-1]
+    # {discount, vm} = plan
+
+    # @promotion.updatePartial if discount and vm
+    # then "TREAT: $#{discount} OFF OR #{vm} FREE VM#{if vm > 1 then 's' else ''}"
+    # else ""
 
   pistachio: ->
     """
