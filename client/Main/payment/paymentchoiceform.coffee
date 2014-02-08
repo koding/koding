@@ -21,6 +21,11 @@ class PaymentChoiceForm extends KDView
 
   viewAppended: ->
     @addSubView new KDCustomHTMLView
+      tagName  : "h4"
+      cssClass : "pricing-title"
+      partial  : "<h4 class='pricing-title'><span class='current'>sign in</span> - payment info - place order</h4>"
+
+    @addSubView new KDCustomHTMLView
       tagName  : "h3"
       cssClass : "pricing-title"
       partial  : "Choose a payment method"
