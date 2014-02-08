@@ -43,7 +43,8 @@ class IntroTeamPlan extends JView
     @summary.addSubView @title  = new KDCustomHTMLView tagName: "h4"
     @summary.addSubView @price  = new KDCustomHTMLView tagName: "h5"
     @summary.addSubView @buyNow = new KDButtonView
-      cssClass : "solid buy-now"
+      cssClass : "buy-now"
+      style    : "solid green"
       title    : "BUY NOW"
       callback : =>
         @emit "PlanSelected", "custom-plan", {
