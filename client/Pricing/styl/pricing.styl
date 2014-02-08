@@ -92,7 +92,6 @@ pricing.styl
       .developer-plan
       .team-plan
         overflow        visible
-
       .plan-selection-box
         width           715px
         padding-top     42px
@@ -123,16 +122,16 @@ pricing.styl
 
         h5
           font-size     22px
-          font-weight   200
+          font-weight   400
           color         #757575
           margin        4px 0 0
 
         .sliderbar-container
           width         100% !important
-          background    -webkit-linear-gradient(left, #00ba4e 0%, #fdd901 50%, #ff0300 100%)
+          background    #1e884b
           height        7px
           border        none
-          shadow        inset 1px 1px 0 0 rgba(0, 0, 0, .2)
+          shadow        none
           margin        96px auto 0
 
           .handle
@@ -205,7 +204,20 @@ pricing.styl
 
     .team-plan
       .plan-selection-box
-        width                 350px
+        width                 323px
+
+        .description
+          top                 250px
+
+    .developer-plan
+      .sliderbar-container
+        shadow                inset 1px 1px 0 rgba(0, 0, 0, .16) !important
+        background            -webkit-linear-gradient(left, #00c052 0%, #ffd800 50%, #fe0000 100%) !important
+
+        .opposite.bar
+          background          #dadada
+          shadow              inset 1px 1px 0 rgba(0, 0, 0, .16) \,
+                              0 0 0 1px #dadada
 
 .pricing-horizontal-divider
   size                656px, 1px

@@ -17,8 +17,8 @@ class PricingPlanSelection extends JView
       tagName : "h5"
       partial : "$#{options.slider.initialValue * options.unitPrice}/#{options.period}"
 
-    options.slider       or= {}
-    options.slider.drawBar = no
+    options.slider         or= {}
+    options.slider.drawBar  ?= no
 
     {unitPrice} = options
 

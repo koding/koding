@@ -24,7 +24,7 @@ class IntroDeveloperPlan extends JView
         initialValue : 1
         snapOnDrag   : yes
         handles      : [1]
-        width        : 685
+        width        : 715
 
     @slider.on "ValueChanged", (index) =>
       @planIndex = Math.max index - 1, 0
