@@ -4,7 +4,7 @@ import (
 	"crypto/rand"
 	"encoding/base64"
 	"fmt"
-	"koding/broker/cache"
+	"koding/broker/storage"
 	"koding/tools/sockjs"
 	"strconv"
 	"strings"
@@ -20,7 +20,7 @@ type Client struct {
 	SocketId       string
 	Broker         *Broker
 	LastPayload    string
-	Subscriptions  *cache.SubscriptionStorage
+	Subscriptions  storage.Subscriptionable
 }
 
 // NewClient retuns a new client that is defined on a given session.
@@ -34,13 +34,15 @@ func NewClient(session *sockjs.Session, broker *Broker) *Client {
 		panic(err)
 	}
 
-	var subscriptions *cache.SubscriptionStorage
+	var subscriptions storage.Subscriptionable
 
-	subscriptions, err = cache.NewStorage(conf, STORAGE_BACKEND, socketId)
+	subscriptions, err = storage.NewStorage(conf, STORAGE_BACKEND, socketId)
 	if err != nil {
+		log.Critical("Couldnt access to redis/create a key for client %v", session.Tag)
 		STORAGE_BACKEND = "set"
-		subscriptions, err = cache.NewStorage(conf, STORAGE_BACKEND, socketId)
+		subscriptions, err = storage.NewStorage(conf, STORAGE_BACKEND, socketId)
 		if err != nil {
+			// this will never fail to here
 			panic(err)
 		}
 	}
