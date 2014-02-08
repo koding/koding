@@ -87,6 +87,7 @@ Vagrant.configure("2") do |config|
     default.vm.network :forwarded_port, :guest => 9200, :host => 9200 # elastic search
     default.vm.network :forwarded_port, :guest => 4000, :host => 4000 # kontrol kite
     default.vm.network :forwarded_port, :guest => 4005, :host => 4005 # provisioning kite
+    default.vm.network :forwarded_port, :guest => 5000, :host => 5000 # oskite
     default.vm.hostname = "vagrant"
 
     default.vm.synced_folder ".", "/opt/koding"
