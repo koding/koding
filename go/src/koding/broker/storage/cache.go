@@ -14,18 +14,18 @@ var (
 
 type subscriptionSet struct {
 	set      *set.Set
-	socketID string
+	socketId string
 }
 
-func newSubscriptionSet(socketID string) (*subscriptionSet, error) {
+func newSet(socketId string) (*subscriptionSet, error) {
 	s := &subscriptionSet{
 		set:      set.New(),
-		socketID: socketID,
+		socketId: socketId,
 	}
 	socketSubscriptionsMapMutex.Lock()
 	defer socketSubscriptionsMapMutex.Unlock()
 
-	socketSubscriptionsMap[socketID] = s
+	socketSubscriptionsMap[socketId] = s
 	return s, nil
 }
 
@@ -51,8 +51,8 @@ func (s *subscriptionSet) Unsubscribe(routingKeyPrefixes ...string) error {
 	return nil
 }
 
-func (s *subscriptionSet) Resubscribe(socketID string) (bool, error) {
-	socketSubscription, ok := socketSubscriptionsMap[socketID]
+func (s *subscriptionSet) Resubscribe(socketId string) (bool, error) {
+	socketSubscription, ok := socketSubscriptionsMap[socketId]
 	if !ok {
 		return false, nil
 	}
@@ -79,7 +79,7 @@ func (s *subscriptionSet) Len() (int, error) {
 func (s *subscriptionSet) ClearWithTimeout(duration time.Duration) error {
 	time.AfterFunc(duration, func() {
 		socketSubscriptionsMapMutex.Lock()
-		delete(socketSubscriptionsMap, s.socketID)
+		delete(socketSubscriptionsMap, s.socketId)
 		socketSubscriptionsMapMutex.Unlock()
 	})
 	return nil
