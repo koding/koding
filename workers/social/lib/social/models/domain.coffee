@@ -165,8 +165,8 @@ module.exports = class JDomain extends jraphical.Module
 
     [rest..., prefix, slug] = match
     
-    unless /^shared|vm[\-]?([0-9]+)?/.test prefix
-      return callback new KodingError("Domain name must be started with shared|vm", "INVALIDDOMAIN")
+    if /^shared|vm[\-]?([0-9]+)?/.test prefix
+      return callback new KodingError("Domain name cannot start with shared|vm", "INVALIDDOMAIN")
 
     callback null, slug
 
