@@ -234,7 +234,6 @@ module.exports =
   kites:
     disconnectTimeout: 3e3
     vhost       : 'kite'
-    brokerExchange: 'brokerKite'
   email         :
     host        : 'localhost'
     protocol    : 'http:'
