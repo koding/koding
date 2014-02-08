@@ -69,7 +69,7 @@ func (c *Client) Close() {
 	c.Subscriptions.ClearWithTimeout()
 
 	for {
-		err := c.ControlChannel.Publish(c.Broker.AuthAllExchange, "broker.clientDisconnected", false, false, amqp.Publishing{Body: []byte(c.SocketId)})
+		err := c.ControlChannel.Publish(c.Broker.Config.AuthAllExchange, "broker.clientDisconnected", false, false, amqp.Publishing{Body: []byte(c.SocketId)})
 		if err == nil {
 			break
 		}

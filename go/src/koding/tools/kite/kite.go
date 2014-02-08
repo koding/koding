@@ -24,6 +24,7 @@ type Kite struct {
 	Name              string
 	Handlers          map[string]Handler
 	ServiceUniqueName string
+	PublishExchange   string
 	LoadBalancer      func(correlationName string, username string, deadService string) string
 }
 
@@ -63,6 +64,7 @@ func New(name string, c *config.Config, onePerHost bool) *Kite {
 		Name:              name,
 		Handlers:          make(map[string]Handler),
 		ServiceUniqueName: serviceUniqueName,
+		PublishExchange:   "broker", // default is broker, should be changed by others after initializing.
 	}
 }
 
@@ -231,7 +233,7 @@ func (k *Kite) startRouting(stream <-chan amqp.Delivery, publishChannel *amqp.Ch
 
 							if err != nil {
 								if _, ok := err.(*WrongChannelError); ok {
-									if err := publishChannel.Publish("broker", channel.RoutingKey+".cycleChannel", false, false, amqp.Publishing{Body: []byte("null")}); err != nil {
+									if err := publishChannel.Publish(k.PublishExchange, channel.RoutingKey+".cycleChannel", false, false, amqp.Publishing{Body: []byte("null")}); err != nil {
 										log.LogError(err, 0)
 									}
 									return
@@ -264,7 +266,7 @@ func (k *Kite) startRouting(stream <-chan amqp.Delivery, publishChannel *amqp.Ch
 						defer log.RecoverAndLog()
 						for data := range d.SendChan {
 							log.Debug("Write %s %s", channel.RoutingKey, data)
-							if err := publishChannel.Publish("broker", channel.RoutingKey, false, false, amqp.Publishing{Body: data}); err != nil {
+							if err := publishChannel.Publish(k.PublishExchange, channel.RoutingKey, false, false, amqp.Publishing{Body: data}); err != nil {
 								log.LogError(err, 0)
 							}
 						}

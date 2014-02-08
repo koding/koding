@@ -24,7 +24,7 @@ class Kite extends Pinger
 
     @channelName    = @getChannelName()
 
-    @channel = KD.remote.mq.subscribe @channelName
+    @channel = KD.kite.mq.subscribe @channelName
     @channel.setAuthenticationInfo
       serviceType       : 'kite'
       name              : @qualifiedName

@@ -206,6 +206,9 @@ func prepareOsKite() *kite.Kite {
 
 	k := kite.New(kiteName, conf, true)
 
+	// Default is "broker", we are going to use another one. In our case its "brokerKite"
+	k.PublishExchange = conf.BrokerKite.Name
+
 	if *flagDebug {
 		kite.EnableDebug()
 	}
