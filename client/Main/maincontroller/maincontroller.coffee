@@ -89,13 +89,6 @@ class MainController extends KDController
       eventSuffix = if @isUserLoggedIn() then "loggedIn" else "loggedOut"
       @emit "#{eventPrefix}.#{eventSuffix}", account, connectedState, firstLoad
 
-      KD.utils.wait 5000, =>
-        if KD.isLoggedIn()
-          KD.remote.api.JReferral.isCampaingValid (err, isValid, details) =>
-            return if err or not isValid
-
-            new TBCampaignController {}, details
-
   createMainViewController:->
     KD.registerSingleton "dock", new DockController
     @mainViewController  = new MainViewController

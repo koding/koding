@@ -2,63 +2,59 @@ class ReferrerModal extends KDModalView
 
   constructor: (options = {}, data) ->
 
-    options.domId    = "terabyte-campaign-modal"
     options.overlay  = yes
-    options.width    = 780
+    options.width    = 550
+    options.cssClass = KD.utils.curry "referrer-modal", options.cssClass
+    options.title    = "Get free disk space!"
+    options.content  = """
+      <p>
+        For each person registers with your referral code,
+        you both will get <strong>250 MB</strong> free disk space for your VM,
+        up to <strong>16 GB</strong> total.
+      </p>
+      <p>Share your url or share on social media.</p>
+    """
 
     super options, data
 
-    @addSubView new ReferrerModalContent
+    @shareUrl = KD.getReferralUrl KD.nick()
+    @createUrlInput()
+    @createSocials()
+    @createEmailLink()
 
-
-class ReferrerModalContent extends JView
-
-  constructor: (options = {}, data) ->
-
-    options.cssClass = "referrer-modal"
-
-    super options, data
-
-    url = KD.getReferralUrl KD.nick()
-
-    @urlInput      = new KDInputView
-      defaultValue : url
+  createUrlInput: ->
+    @addSubView new KDInputView
+      defaultValue : @shareUrl
       cssClass     : "share-url-input"
       attributes   : readonly : "true"
       click        : -> @selectAll()
 
-    @twitter  = new TwitterShareLink  { url , trackingName: "referrer" }
-    @facebook = new FacebookShareLink { url , trackingName: "referrer" }
-    @linkedin = new LinkedInShareLink { url , trackingName: "referrer" }
+  createSocials: ->
+    config         =
+      url          : @shareUrl
+      trackingName : "referrer"
 
-  pistachio: ->
-    subject = "Want an awesome 5GB server to code on#{encodeURIComponent("?")}"
-    body    = "Koding is giving away 100TB this week - my link gets you a 5GB VM! It's really cool! Click this link to get it (before it's over) #{KD.getReferralUrl KD.nick()}"
+    linksContainer = new KDCustomHTMLView
+      cssClass     : "share-links"
 
+    linksContainer.addSubView new TwitterShareLink  config
+    linksContainer.addSubView new FacebookShareLink config
+    linksContainer.addSubView new LinkedInShareLink config
+
+    @addSubView linksContainer
+
+  createEmailLink: ->
+    subject      = "Sign up for Koding, get 250MB more"
+    body         = """
+      #{KD.nick()} has invited you to Koding.
+      As a special offer, if you sign up to Koding today, we'll give you
+      an additional 250MB of cloud storage.
+      Use this link to register and claim your reward. #{KD.getReferralUrl KD.nick()}
     """
-      <div class="left">
-        <div class="logo"></div>
-      </div>
-      <div class="right">
-        <div class="content">
-          <div class="title">
-            <span class="icon"></span>
-            <span>#Crazy100TBWeek</span>
-          </div>
-          <p class="content-text">
-            Only this week, share your link,
-            they get <strong>5GB</strong> instead of 4GB,
-            and you get <strong>1GB extra</strong>!
-          </p>
-          {{> @urlInput}}
-          <div class="share-links">
-            {{> @twitter}}
-            {{> @facebook}}
-            {{> @linkedin}}
-          </div>
-          <a href="mailto:?subject=#{subject}&body=#{body}">
-            Invite via email...
-          </a>
-        </div>
-      </div>
-    """
+
+    @addSubView new KDCustomHTMLView
+      tagName    : "a"
+      cssClass   : "mail"
+      partial    : "Invite via email..."
+      attributes :
+        href     : "mailto:?subject=#{subject}&body=#{body}"

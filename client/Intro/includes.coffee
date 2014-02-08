@@ -7,7 +7,6 @@ module.exports = [
   "views/productform.coffee"
   "views/planselection.coffee"
   "markercontroller.coffee"
-  "tbcampaignhomepageview.coffee"
   "home.coffee"
   "styl/home.styl"
 
