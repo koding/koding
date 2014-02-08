@@ -36,11 +36,10 @@ func NewClient(session *sockjs.Session, broker *Broker) *Client {
 
 	var subscriptions storage.Subscriptionable
 
-	subscriptions, err = storage.NewStorage(conf, STORAGE_BACKEND, socketId)
+	subscriptions, err = storage.NewStorage(conf, storage.REDIS, socketId)
 	if err != nil {
 		log.Critical("Couldnt access to redis/create a key for client %v", session.Tag)
-		STORAGE_BACKEND = "set"
-		subscriptions, err = storage.NewStorage(conf, STORAGE_BACKEND, socketId)
+		subscriptions, err = storage.NewStorage(conf, storage.SET, socketId)
 		if err != nil {
 			// this will never fail to here
 			panic(err)
@@ -246,13 +245,10 @@ func (c *Client) RemoveFromRoute(routingKeyPrefixes ...string) {
 // Add to route
 // todo ~ check for multiple subscriptions
 func (c *Client) AddToRoute() {
-	globalMapMutex.Lock()
 	c.Subscriptions.Each(func(routingKeyPrefix interface{}) bool {
 		c.AddToRouteMapNOTS(routingKeyPrefix.(string))
 		return true
 	})
-	globalMapMutex.Unlock()
-
 }
 
 func (c *Client) AddToRouteMapNOTS(routingKeyPrefixes ...string) {

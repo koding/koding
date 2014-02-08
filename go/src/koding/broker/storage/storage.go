@@ -8,6 +8,13 @@ import (
 
 var conf *config.Config
 
+type Backend int
+
+const (
+	REDIS Backend = iota
+	SET
+)
+
 type Subscriptionable interface {
 	Each(f func(item interface{}) bool) error
 	Subscribe(routingKeyPrefix ...string) error
@@ -18,25 +25,16 @@ type Subscriptionable interface {
 	ClearWithTimeout(duration time.Duration) error
 }
 
-func NewStorage(c *config.Config, cacheType, socketID string) (Subscriptionable, error) {
+func NewStorage(c *config.Config, cacheType Backend, socketID string) (Subscriptionable, error) {
 	if c == nil {
 		return nil, errors.New("Config is passed as nil. Aborting.")
 	}
 	conf = c
 
-	var err error
-	var s Subscriptionable
-
 	switch cacheType {
-	case "redis":
-		s, err = newRedis(socketID)
+	case REDIS:
+		return newRedis(socketID)
 	default:
-		s, err = newSubscriptionSet(socketID)
+		return newSubscriptionSet(socketID)
 	}
-
-	if err != nil {
-		return nil, err
-	}
-
-	return s, nil
 }
