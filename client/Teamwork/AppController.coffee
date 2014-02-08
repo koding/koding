@@ -16,6 +16,10 @@ class TeamworkAppController extends AppController
 
     super options, data
 
+    KD.singletons.appManager.on 'AppIsBeingShown', (app)=>
+      if app.getId() is @getId()
+        KD.utils.defer -> $(window).trigger 'resize'
+
 
   handleQuery: (query) ->
 

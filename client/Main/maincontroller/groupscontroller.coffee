@@ -21,6 +21,8 @@ class GroupsController extends KDController
       then router.handleRoute "#{pageInfo.path}"
       else router.handleRoute "#{pageInfo.path}", {entryPoint}
 
+    mainController.ready => @changeGroup entryPoint?.slug
+
   getCurrentGroup:->
     throw 'FIXME: array should never be passed'  if Array.isArray @currentGroupData.data
     return @currentGroupData.data
@@ -60,6 +62,8 @@ class GroupsController extends KDController
           callback null, groupName, group
           @emit 'GroupChanged', groupName, group
           @openGroupChannel group, => @emit 'GroupChannelReady'
+
+        @emit 'ready'
 
   getUserArea:->
     @userArea ? group:

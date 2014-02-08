@@ -611,19 +611,6 @@ span.collapsedtext
     line-height       22px
     margin-bottom     16px
 
-    > *
-      padding       0 21px
-
-    > ol
-    > ul
-      padding       10px 42px
-
-    > blockquote
-      padding       0 10px
-
-    > pre
-      padding       10px 0
-
   >.profile
     color         #1aaf5d
     font-weight   400
@@ -1120,15 +1107,19 @@ body.profile
 .activity-item > article
 .activity-input-widget .update-preview
 
+  > *
+    padding               0 21px
+
   /* Headings */
   h1, h2, h3, h4, h5, h6
-    color         #50595a
-    font-size     14px
+    color                 #50595a
+    font-size             14px
 
   /* Lists */
+
   ol
   ul
-    padding               0 25px 12px
+    padding               10px 42px
     list-style            none
     display               block
     position              relative
@@ -1165,6 +1156,7 @@ body.profile
   blockquote
     border-left           4px solid #DDD
     margin                4px 21px
+    padding               0 10px
   p
     code
       padding             2px 5px
@@ -1175,6 +1167,7 @@ body.profile
       vertical-align      top
       font-size           12px
   pre
+    padding               10px 0
     code
       display             block
       line-height         16px

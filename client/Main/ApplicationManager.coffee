@@ -31,18 +31,6 @@ class ApplicationManager extends KDObject
         break
       return safeToUnload ? yes
 
-    # @on 'AppIsBeingShown', @bound "setMissingRoute"
-
-  # setMissingRoute:(appController, appView, appOptions)->
-  #   router       = KD.getSingleton('router')
-  #   {entryPoint} = KD.config
-
-  #   route = appOptions.route.slug.replace /:\w+.?\//g, ''
-  #   comparedRoute = router.getCurrentPath().split('?').first
-  #   if route isnt comparedRoute
-  #     missingRoute = appController.getOption('initialRoute') or route
-  #     router.handleRoute missingRoute, { suppressListeners : yes, entryPoint }
-
   isAppInternal : (name='')->
     return KD.config.apps[name] and (name not in Object.keys KD.appClasses)
 
@@ -109,21 +97,6 @@ class ApplicationManager extends KDObject
         switch appOptions.openWith
           when "lastActive" then do defaultCallback
           when "prompt"     then do defaultCallback
-          # when "prompt"
-          #   log "prompting"
-          #   if @appControllers[name]?.instances.length > 1
-          #     log "more than one, namely", @appControllers[name].instances.length
-          #     @createPromptModal appOptions, (appInstanceIndex, openNew)=>
-          #       if typeof appInstanceIndex is "number"
-          #         appInstance = @appControllers[name].instances[appInstanceIndex]
-          #         # user selected appInstance to open
-          #         @show appInstance, callback
-          #       else if openNew
-          #         # user wants to open a fresh instance
-          #         @create name, appParams, callback
-          #       else
-          #         warn "user cancelled app to open"
-          #  else do defaultCallback
 
       else do defaultCallback
 
