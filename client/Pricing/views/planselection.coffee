@@ -4,6 +4,7 @@ class PricingPlanSelection extends JView
     options.title       or= ""
     options.description or= ""
     options.unitPrice    ?= 1
+    options.hidePrice    ?= no
     options.period      or= "Month"
     super options, data
 
@@ -14,8 +15,9 @@ class PricingPlanSelection extends JView
     @title.addSubView @count = new KDCustomHTMLView tagName : "cite"
 
     @price    = new KDCustomHTMLView
-      tagName : "h5"
-      partial : "$#{options.slider.initialValue * options.unitPrice}/#{options.period}"
+      tagName  : "h5"
+      cssClass : "hidden"  if options.hidePrice
+      partial  : "$#{options.slider.initialValue * options.unitPrice}/#{options.period}"
 
     options.slider         or= {}
     options.slider.drawBar  ?= no
