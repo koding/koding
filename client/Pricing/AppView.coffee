@@ -15,6 +15,10 @@ class BreadcrumbView extends JView
     @planName       = new KDCustomHTMLView
       tagName   : "span"
 
+    @planProducts   = new KDCustomHTMLView
+      tagName   : "span"
+      cssClass  : "products"
+
     @planPrice      = new KDCustomHTMLView
       tagName   : "span"
       cssClass  : "price"
@@ -42,6 +46,20 @@ class BreadcrumbView extends JView
     then @setClass 'team'
     else @unsetClass 'team'
 
+    plan.fetchProducts (err, products) =>
+
+      partial = ""
+
+      for product in products
+
+        {title, planCode} = product
+        quantity          = plan.quantities[planCode]
+        partial          += "#{quantity} #{title} - "
+
+      partial = partial.substring(0, partial.length - 2)
+
+      @planProducts.updatePartial partial
+
 
   pistachio : ->
     """
@@ -55,6 +73,7 @@ class BreadcrumbView extends JView
       <section>
         <h4>Your plan</h4>
         {{> @planName }}
+        {{> @planProducts }}
         {{> @planPrice }}
       </section>
     """

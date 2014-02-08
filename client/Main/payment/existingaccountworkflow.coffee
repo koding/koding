@@ -53,10 +53,6 @@ class ExistingAccountWorkflow extends FormWorkflow
     @addForm 'existingAccount', @existingAccountForm, ['createAccount', 'loggedIn']
     @enter()
 
-  createProductView: (plan)->
-    productList = new PlanProductListView {plan}
-    @existingAccountForm.addSubView productList
-
 
 class PlanProductListView extends KDView
   constructor: (options = {}, data) ->
