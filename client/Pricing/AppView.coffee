@@ -1,14 +1,87 @@
+class BreadcrumbView extends JView
+
+
+  constructor : (options = {}, data) ->
+
+    options.cssClass  = KD.utils.curry "pricing-breadcrumb hidden", options.cssClass
+
+    super options, data
+
+    @checkOutButton = new KDButtonView
+      title     : "CHECK OUT"
+      cssClass  : "checkout-button"
+      style     : "small solid yellow"
+
+    @planName       = new KDCustomHTMLView
+      tagName   : "span"
+
+    @planPrice      = new KDCustomHTMLView
+      tagName   : "span"
+      cssClass  : "price"
+
+
+  selectItem : (name) ->
+
+    @$('li').removeClass "active"
+    @$("li.#{name}").addClass "active"
+
+
+  showPlan : (plan) ->
+
+    {title, feeAmount, feeUnit} = plan
+
+    feeAmount = feeAmount/100
+
+    @show()
+    @planName.updatePartial title
+    @planPrice.updatePartial "#{feeAmount}$/#{feeUnit}"
+
+    if 'custom-plan' in plan.tags
+    then @setClass 'team'
+    else @unsetClass 'team'
+
+
+  pistachio : ->
+    """
+      <ul class='clearfix logged-#{if KD.isLoggedIn() then 'in' else 'out'}'>
+        <li class='plan active'>Select plan</li>
+        <li class='login'>Login/Register</li>
+        <li class='method'>Payment method</li>
+        <li class='overview'>Overview</li>
+        <li class='details hidden'>Group details</li>
+        <li class='thanks'>Thank you</li>
+      </ul>
+      <section>
+        <h4>Your plan</h4>
+        {{> @planName }}
+        {{> @planPrice }}
+      </section>
+    """
+
 class PricingAppView extends KDView
+
+  createBreadcrumb: ->
+    @addSubView @breadcrumb = new BreadcrumbView
+
 
   setWorkflow: (workflow) ->
     @workflow.destroy()  if @workflow
     @groupForm?.destroy()
     @thankYou?.destroy()
 
+    @breadcrumb.hide()
+
     @workflow = workflow
     @addSubView @workflow
     workflow.on 'Finished', @bound "workflowFinished"
     workflow.on 'Cancel', @bound "cancel"
+
+    workflow.off 'FormIsShown'
+
+    workflow.on 'FormIsShown', =>
+      @breadcrumb.selectItem workflow.active.getOption 'name'
+
+
 
   hideWorkflow: ->
     @workflow.hide()
@@ -21,12 +94,16 @@ class PricingAppView extends KDView
     KD.singleton("router").handleRoute "/Pricing/Developer"
 
   showGroupForm: ->
+
     return  if @groupForm and not @groupForm.isDestroyed
     @hideWorkflow()
     @addSubView @groupForm = @createGroupForm()
 
   showPaymentSucceded: ->
     {createAccount, loggedIn} = @formData
+
+    @breadcrumb.selectItem 'thanks'
+
     subtitle =
       if createAccount
       then "Please check your email to complete your registration."
@@ -49,6 +126,9 @@ class PricingAppView extends KDView
           KD.singleton("router").handleRoute "/Environments"
 
   showGroupCreated: (group, subscription) ->
+
+    @breadcrumb.selectItem 'thanks'
+
     planCodes = Object.keys subscription.quantities
     subtitle =
       if @formData.createAccount

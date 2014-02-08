@@ -42,9 +42,9 @@ class PricingPlanSelection extends JView
   pistachio: ->
     """
     {{> @title}}
+    {{> @description}}
     {{> @price}}
     {{> @slider}}
-    {{> @description}}
     """
 
     # """

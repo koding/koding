@@ -107,6 +107,7 @@ class PaymentController extends KDController
 
     productForm or= @createUpgradeForm tag, options
     confirmForm or= new PlanUpgradeConfirmForm
+      name : 'overview'
     workflow      = new PaymentWorkflow {productForm, confirmForm}
 
     productForm

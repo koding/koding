@@ -34,8 +34,7 @@ pricing.styl
 .pricing .product-form
   size                  100%, auto
   min-height            100vh
-  background            url('/a/images/home/speedometer.jpg') no-repeat center center
-  background-size       cover
+  background            #e4e4e4
   padding               142px 0 87px
   borderBox()
 
@@ -45,17 +44,17 @@ pricing.styl
 
     >header
       padding-bottom    41px
-      border-bottom     1px solid rgba(32, 39, 41, .44)
+      border-bottom     1px solid #d4d4d4
 
       h2
         font-size       28px
         font-weight     200
-        color           #fff
+        color           #1c2021
         margin-bottom   8px
 
       p
         font-size       20px
-        color           #c5c5c5
+        color           #757575
         font-weight     200px
         line-height     26px
         width           702px
@@ -90,9 +89,14 @@ pricing.styl
 
 
     .plan-selection
+      .developer-plan
+      .team-plan
+        overflow        visible
+
       .plan-selection-box
         width           715px
         padding-top     42px
+        position        relative
         fl()
 
         &:nth-of-type(2)
@@ -100,7 +104,7 @@ pricing.styl
 
         h4
           font-size     28px
-          color         #fff
+          color         #1c2021
           font-weight   200
           line-height   34px
           display       inline-block
@@ -115,19 +119,21 @@ pricing.styl
             font-size   18px
             background  #242a2c
             rounded     50%
+            color       #fff
 
         h5
           font-size     22px
           font-weight   200
-          color         rgba(242, 242, 242, .4)
+          color         #757575
           margin        4px 0 0
 
         .sliderbar-container
-          background    #1e884b
+          width         100% !important
+          background    -webkit-linear-gradient(left, #00ba4e 0%, #fdd901 50%, #ff0300 100%)
           height        7px
           border        none
-          shadow        none
-          margin        62px auto 0
+          shadow        inset 1px 1px 0 0 rgba(0, 0, 0, .2)
+          margin        96px auto 0
 
           .handle
             size        26px, 26px
@@ -149,18 +155,23 @@ pricing.styl
 
             &:after
               size          2px, 14px
-              background    rgba(39, 174, 96, .5)
+              background    #bababa
 
         .description
           display           block
-          font-size         14px
+          font-size         12px
           font-weight       200px
-          color             rgba(197, 197, 197, .3)
+          color             #969696
           line-height       18px
-          margin            46px 0 0
+          max-width         340px
+          text-align        right
+          abs               50px 0px 0 0
 
         &.selected
+          margin              0
+          padding             40px 0 0 50px
           width               275px
+          border-left         1px solid #d4d4d4
           fr()
 
           h5
@@ -177,8 +188,7 @@ pricing.styl
             size              126px, 48px
             line-height       48px
             font-size         18px
-            color             #935600
-            background        #ffa200
+            color             #056233
             padding           0
             rounded           6px
             font-weight       600
@@ -742,7 +752,92 @@ section.pricing-sign-in
     display           block
     margin            34px auto 0
 
+/* Pricing Breadcrumb */
+.pricing-breadcrumb
+  size                100%, auto
+  background          #2d3b3e
+  color               #a4a5a7
+  font-size           14px
+  font-weight         400
+  kalc                padding-left, \(100% \- 1096px\)\/2
+  borderBox()
 
+  ul
+    fl()
+    margin              40px 0
+
+    li
+      size              138px, 100px
+      rounded           8px
+      text-align        center
+      line-height       144px
+      position          relative
+      opacity           .4
+      fl()
+
+      &:after
+        content         ""
+        display         block
+        size            14px, 14px
+        background      #888
+        rounded         50%
+        abs             25px 0 0 62px
+
+      &.active
+        color           #dddee3
+        background      #232e30
+        opacity         1
+
+        &:after
+          background    #07b65b
+
+        &~li
+          opacity       1
+
+          &:after
+            background  #1e282a
+            opacity     1
+
+    &.logged-in
+      li.login
+        display       none
+
+  &.team
+    .details
+      display         block !important
+      visibility      visible !important
+
+  section
+    size              142px, auto
+    abs               50% 0 0
+    kalc              right, \(100% \- 1096px\)\/2
+    vendor            transform, translateY(-50%)
+    padding           0 0 0 22px
+    border-left       2px solid #404e51
+    color             #dddee3
+    font-size         14px
+    line-height       17px
+    fr()
+
+    &:before
+      content         ""
+      abs             50% 188px 0 0
+      vendor          transform, translateY(-50%)
+      r-sprite        "pricing", "shopping-bag"
+
+    h4
+      font-size       inherit
+      color           #00b757
+      margin          0 0 6px
+
+    .price
+      font-size       12px
+      color           #a4a5a7
+
+    .checkout-button
+      display         inline-block
+      margin          6px 0 0 !important
+      rounded         4px !important
 
 /*
 .content-page.pricing

@@ -35,7 +35,8 @@ class DeveloperPlan extends JView
     @summary.addSubView @price     = new KDCustomHTMLView tagName: "h5"
     @summary.addSubView @promotion = new KDCustomHTMLView tagName: "p", cssClass: "description"
     @summary.addSubView @buyNow    = new KDButtonView
-      cssClass : "solid buy-now"
+      cssClass : "buy-now"
+      style    : "solid green"
       title    : "BUY NOW"
       callback : =>
         payment = KD.singleton "paymentController"
