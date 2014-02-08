@@ -91,6 +91,9 @@ class PaymentMethodEntryForm extends KDFormViewWithFields
           loader            :
             color           : '#ffffff'
             diameter        : 26
+        BACK                :
+          style             : 'solid'
+          callback          : => @parent.showForm 'choice'
 
   viewAppended:->
     super()
@@ -118,6 +121,7 @@ class PaymentMethodEntryForm extends KDFormViewWithFields
     # @paymentForm.fields.country.addSubView @countryLoader
 
     @updateDescription()
+
 
   activate: ->
     { cardFirstName, cardLastName, cardNumber } = @inputs
