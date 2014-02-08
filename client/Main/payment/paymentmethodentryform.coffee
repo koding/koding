@@ -55,7 +55,6 @@ class PaymentMethodEntryForm extends KDFormViewWithFields
                   .slice((new Date).getMonth() - 1)
                 .map((item)-> item.title)
                 .join '|'
-                log remainingMonths
               return ///#{remainingMonths}///
         nextElementFlat   :
           cardYear        :
@@ -68,7 +67,6 @@ class PaymentMethodEntryForm extends KDFormViewWithFields
                 regExp    : do ->
                   twoDigitsYear = (new Date).getFullYear()%100
                   yearOptions   = [twoDigitsYear...twoDigitsYear+15].join '|'
-                  log yearOptions
                   return ///#{yearOptions}///
       cardCV              :
         placeholder       : 'CVC'

@@ -25,6 +25,11 @@ class TeamworkTabView extends CollaborativePane
         @keysRefChildAddedCallback value  for key, value of data
         @bindRemoteEvents()
 
+    {mainTabView} = KD.getSingleton "mainView"
+    mainTabView.on "PaneDidShow", (pane) =>
+      if pane.name is "Teamwork"
+        @recoverPaneState @tabView.getActivePane()
+
   listenRequestRef: ->
     @requestRef.on "value", (snapshot) =>
       if @amIHost
@@ -106,15 +111,17 @@ class TeamworkTabView extends CollaborativePane
           if pane.getOptions().indexKey is data.indexKey
             index = @tabView.getPaneIndex pane
             @tabView.showPaneByIndex index
-
-            if pane.terminalView
-              {terminal} = pane.terminalView.webterm
-              terminal.scrollToBottom()
-              terminal.setFocused yes  if document.activeElement is document.body
-            else if pane.editor
-              pane.editor.codeMirrorEditor.refresh()
+            @recoverPaneState pane
 
       @updateTabAvatars()
+
+  recoverPaneState: (pane) ->
+    if pane.terminalView
+      {terminal} = pane.terminalView.webterm
+      terminal.scrollToBottom()
+      terminal.setFocused yes  if document.activeElement is document.body
+    else if pane.editor
+      pane.editor.codeMirrorEditor.refresh()
 
   createElements: ->
     @tabHandleHolder = new ApplicationTabHandleHolder delegate: this

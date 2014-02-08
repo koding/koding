@@ -33,10 +33,6 @@ class MainTabView extends KDTabView
 
   showPane:(pane)->
 
-    # this is to hide stale static tabs
-    @$("> .kdtabpaneview").removeClass "active"
-    @$("> .kdtabpaneview").addClass "kdhiddentab"
-
     super pane
 
     @emit "MainTabPaneShown", pane

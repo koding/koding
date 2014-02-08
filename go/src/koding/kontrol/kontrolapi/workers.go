@@ -104,7 +104,7 @@ func GetWorkerURL(writer http.ResponseWriter, req *http.Request) {
 
 	hostnames := make([]string, len(workers))
 	for i, worker := range workers {
-		hostnames[i] = fmt.Sprintf("%s//%s", protocolScheme, worker.Hostname)
+		hostnames[i] = fmt.Sprintf("%s//%s:%d", protocolScheme, worker.Hostname, worker.Port)
 	}
 
 	var data []byte
