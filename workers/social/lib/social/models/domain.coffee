@@ -164,8 +164,8 @@ module.exports = class JDomain extends jraphical.Module
     match = domain.match /(.*)\.([a-z0-9\-]+)\.kd\.io$/
 
     [rest..., prefix, slug] = match
-
-    unless !/^shared|vm[\-]?([0-9]+)?/.test prefix
+    
+    unless /^shared|vm[\-]?([0-9]+)?/.test prefix
       return callback new KodingError("Domain name must be started with shared|vm", "INVALIDDOMAIN")
 
     callback null, slug
