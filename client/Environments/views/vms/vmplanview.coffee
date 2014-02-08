@@ -8,7 +8,9 @@ class VmPlanView extends JView
     {planOptions, hiddenPrice} = @getOptions()
     total = if planOptions?.total then planOptions.total else @getData().feeAmount
     total = KD.utils.formatMoney total / 100
+    @planDetail = new PlanProductListView plan : @getData()
     """
     {h4{#(title) or #(plan.title)}}
+    {{> @planDetail}}
     <span class="price#{if hiddenPrice then ' hidden' else ''}">#{total}</span>
     """
