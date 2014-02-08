@@ -209,6 +209,10 @@ func prepareOsKite() *kite.Kite {
 	// Default is "broker", we are going to use another one. In our case its "brokerKite"
 	k.PublishExchange = conf.BrokerKite.Name
 
+	if *flagDebug {
+		kite.EnableDebug()
+	}
+
 	k.LoadBalancer = func(correlationName string, username string, deadService string) string {
 		var vm *virt.VM
 		if bson.IsObjectIdHex(correlationName) {

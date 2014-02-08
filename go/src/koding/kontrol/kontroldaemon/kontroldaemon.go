@@ -7,29 +7,34 @@ import (
 	"koding/kontrol/kontroldaemon/handler"
 	"koding/kontrol/kontrolhelper"
 	"koding/tools/config"
-	"koding/tools/slog"
-	"log"
+	"koding/tools/logger"
 
 	"github.com/streadway/amqp"
 )
 
 var (
-	mongo         *mongodb.MongoDB
-	configProfile = flag.String("c", "", "Configuration profile from file")
+	mongo       *mongodb.MongoDB
+	flagProfile = flag.String("c", "", "Configuration profile from file")
+	flagDebug   = flag.Bool("d", false, "Debug mode")
+	log         = logger.New("kontroldaemon")
 )
-
-func init() {
-	slog.SetPrefixName("kontrold")
-	slog.Println(slog.SetOutputFile("/var/log/koding/kontroldaemon.log"))
-}
 
 func main() {
 	flag.Parse()
-	if *configProfile == "" {
+	if *flagProfile == "" {
 		log.Fatal("Please define config file with -c")
 	}
 
-	conf := config.MustConfig(*configProfile)
+	conf := config.MustConfig(*flagProfile)
+
+	var logLevel logger.Level
+	if *flagDebug {
+		logLevel = logger.DEBUG
+	} else {
+		logLevel = logger.GetLoggingLevelFromConfig("kontroldaemon", *flagProfile)
+	}
+	log.SetLevel(logLevel)
+
 	mongo = mongodb.NewMongoDB(conf.Mongo)
 	modelhelper.Initialize(conf.Mongo)
 
@@ -62,10 +67,10 @@ func startRouting(conf *config.Config) {
 
 	err := channel.Qos(len(bindings), 0, false)
 	if err != nil {
-		slog.Fatalf("basic.qos: %s", err)
+		log.Fatal("basic.qos: %s", err.Error())
 	}
 
-	slog.Println("started")
+	log.Info("kontroldaemon routing started")
 	for {
 		select {
 		case d := <-streams["api"]:
