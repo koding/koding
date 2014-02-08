@@ -45,10 +45,64 @@ class ExistingAccountForm extends JView
     </section>
     """
 
+
 class ExistingAccountWorkflow extends FormWorkflow
   prepareWorkflow: ->
     @requireData Junction.any 'createAccount', 'loggedIn'
-    existingAccountForm = new ExistingAccountForm
-    existingAccountForm.on 'DataCollected', @bound "collectData"
-    @addForm 'existingAccount', existingAccountForm, ['createAccount', 'loggedIn']
+    @existingAccountForm = new ExistingAccountForm
+    @existingAccountForm.on 'DataCollected', @bound "collectData"
+    @addForm 'existingAccount', @existingAccountForm, ['createAccount', 'loggedIn']
     @enter()
+
+  createProductView: (plan)->
+    productList = new PlanProductListView {plan}
+    @existingAccountForm.addSubView productList
+
+
+class PlanProductListView extends KDView
+  constructor: (options = {}, data) ->
+    super options, data
+
+    {@plan} = @getOptions()
+
+    @quantititesList = new KDListViewController
+      startWithLazyLoader    : no
+      view                   : new KDListView
+        type                 : "products"
+        cssClass             : "product-item-list"
+        itemClass            : PlanProductListItemView
+
+    @plan.fetchProducts (err,products)=>
+      return new KDNotificationView title : err if err
+      for product in products
+        quantity = @plan.quantities[product.planCode]
+        @quantititesList.addItem {product,quantity}
+
+    @listView = @quantititesList.getView()
+
+
+  viewAppended:JView::viewAppended
+
+  pistachio:->
+    total = KD.utils.formatMoney @plan.feeAmount / 100
+    """
+      #{@plan.title}
+      {{> @listView}}
+      Total Amount : #{total}
+    """
+
+
+class PlanProductListItemView extends KDListItemView
+  constructor:(options = {}, data)->
+    options.tagName    = 'span'
+    super options, data
+
+    {@title} = @getData().product
+    {@quantity} = @getData()
+
+  viewAppended:JView::viewAppended
+
+  pistachio:->
+    """
+    #{@title} - #{@quantity}
+    """
