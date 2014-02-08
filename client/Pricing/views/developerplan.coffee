@@ -44,11 +44,11 @@ class DeveloperPlan extends JView
       style    : "solid green"
       title    : "BUY NOW"
       callback : =>
-        { payment, router } = KD.singletons
+        { paymentController, router } = KD.singletons
         if @planIndex is 0
           return router.handleRoute '/Register'
 
-        payment.fetchSubscriptionsWithPlans tags: $in: "vm", (err, subscriptions) =>
+        paymentController.fetchSubscriptionsWithPlans tags: $in: "vm", (err, subscriptions) =>
           return KD.showError err  if err
           @emit "CurrentSubscriptionSet", subscriptions.first  if subscriptions.length
           @emit "PlanSelected", "rp#{@planIndex + 1}", planApi: KD.remote.api.JResourcePlan
