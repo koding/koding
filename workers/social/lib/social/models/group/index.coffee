@@ -1473,6 +1473,16 @@ module.exports = class JGroup extends Module
       JPaymentSubscription.one _id: id, (err, subscription) =>
         @addSubscription subscription, callback
 
+  fetchSubscription$: secure (client, callback) ->
+    @fetchSubscription (err, subscription) ->
+      return callback err  if err
+      {planCode} = subscription
+      JPaymentPlan = require '../payment/plan'
+      JPaymentPlan.one {planCode}, (err, plan) ->
+        return callback err  if err
+        subscription.plan = plan
+        callback null, subscription
+
   createGroupBotAndPostMessage: (client, callback) ->
     # get groupbot account
     JAccount = require '../account'

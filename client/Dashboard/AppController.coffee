@@ -1,8 +1,9 @@
 class DashboardAppController extends AppController
 
   handler = (group, callback)->
-    KD.getSingleton('groupsController').changeGroup group, (err)=>
-      KD.singleton('appManager').open 'Dashboard', callback
+    KD.getSingleton('groupsController').changeGroup group, (err)->
+      KD.getSingleton('groupsController').ready ->
+        KD.singleton('appManager').open 'Dashboard', callback
 
   KD.registerAppClass this,
     name         : "Dashboard"
@@ -18,7 +19,7 @@ class DashboardAppController extends AppController
     options.view = new DashboardAppView
       testPath   : "groups-dashboard"
 
-    data or= (KD.getSingleton "groupsController").getCurrentGroup()
+    data or= KD.getSingleton('groupsController').getCurrentGroup()
 
     super options, data
 
@@ -59,7 +60,7 @@ class DashboardAppController extends AppController
       ]
 
       if data.slug is "koding"
-        @tabData.push 
+        @tabData.push
             name         : 'Products'
             kodingOnly   : yes
             viewOptions  :
@@ -95,7 +96,7 @@ class DashboardAppController extends AppController
       #     viewClass : GroupsBundleView
       #     lazy      : yes
       #     callback  : @bundleViewAdded
-    
+
 
   fetchTabData: (callback) -> @utils.defer => callback @tabData
 
