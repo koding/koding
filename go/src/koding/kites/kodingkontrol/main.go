@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"kite"
 	"kite/kontrol"
+	"koding/db/mongodb"
 	"koding/db/mongodb/modelhelper"
 	"koding/tools/config"
 	"log"
@@ -14,13 +15,18 @@ import (
 
 var flagProfile = flag.String("c", "", "Configuration profile from file")
 
+var conf *config.Config
+var mongodbConn *mongodb.MongoDB
+
 func main() {
 	flag.Parse()
 	if *flagProfile == "" {
 		log.Fatal("Please specify profile via -c. Aborting.")
 	}
 
-	conf := config.MustConfig(*flagProfile)
+	conf = config.MustConfig(*flagProfile)
+	mongodbConn = mongodb.NewMongoDB(conf.Mongo)
+	modelhelper.Initialize(conf.Mongo)
 
 	kiteOptions := &kite.Options{
 		Kitename:    "kontrol",
