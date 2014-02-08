@@ -467,12 +467,12 @@ module.exports = class JVM extends Module
               return callback err  if err
               JVM.ensureDomainSettings {account, vm, type, nickname, groupSlug}
               if type is 'group'
-                @addVmUsers vm, group, ->
+                @addVmUsers user, vm, group, ->
                   callback null, vm
               else
                 callback null, vm
 
-  @addVmUsers = (vm, group, callback)->
+  @addVmUsers = (user, vm, group, callback)->
     # todo - do this operation in batches
     selector =
       sourceId    : group.getId()
@@ -506,7 +506,8 @@ module.exports = class JVM extends Module
             vmUsers = []
 
             vmUsers = sourceIds.map (rec)->
-              { id: rec.sourceId, sudo: yes }
+              owner = if rec.sourceId.equals user.getId() then yes else no
+              { id: rec.sourceId, sudo: yes, owner }
 
             return vm.update {
               $set: users: vmUsers
@@ -638,63 +639,46 @@ module.exports = class JVM extends Module
     JVM.removeRelatedDomains this
     super callback
 
-  @deleteVM = (vm, callback)->
-    if vm.planCode is 'free'
-      vm.remove callback
-    else
-      JPaymentSubscription.one
-        planCode : vm.subscriptionCode
-        $or      : [
-          {status: 'active'}
-          {status: 'canceled'}
-        ]
-      , (err, subscription)->
-        if err or not subscription
-          return callback { message: 'Unable to update subscription.' }
+  credit: (group, callback)->
+    group.fetchSubscription (err, subscription)=>
+      return callback err  if err
+      return callback new KodingError 'Group subscription not found'  unless subscription
 
-        if subscription.status is 'canceled'
-          vm.remove callback
-        else
-          JPaymentPack.one { planCode: vm.planCode }, (err, pack) ->
-            return callback err  if err
-
-            subscription.credit pack, (err) ->
-              return callback err  if err
-
-              vm.remove callback
+      if subscription.status is 'canceled'
+        @remove callback
+      else
+        subscription.creditPack tag : "vm", (err) =>
+          return callback err  if err
+          @remove callback
 
   @removeByHostname = secure (client, hostnameAlias, callback)->
     {delegate} = client.connection
 
-    delegate.fetchUser (err, user) =>
+    fetchVmByHostname delegate, hostnameAlias, (err, vm) ->
       return callback err  if err
-      return callback { message: "user not found" }  unless user
+      return callback new KodingError 'No such VM'  unless vm
+
+      [{ id: groupId }] = vm.groups
+      JGroup = require './group'
+      JGroup.one { _id: groupId }, (err, group)->
+        return callback err  if err
+        return callback new KodingError "Group not found"  unless group
+        JPermissionSet.checkPermission client, "delete vms", group, (err, hasPermission)->
+          return callback err  if err
+          return callback new KodingError "You do not have permission to delete this vm"  unless hasPermission
+          if vm.planCode is 'free' then vm.remove callback
+          else vm.credit group, callback
+   
+  fetchVmByHostname = (account, hostnameAlias, callback) ->
+    account.fetchUser (err, user) =>
+      return callback err  if err
+      return callback new KodingError "user not found"  unless user
 
       selector =
         hostnameAlias : hostnameAlias
         users         : { $elemMatch: id: user.getId(), owner: yes }
 
-      JVM.one selector, (err, vm) =>
-        return callback err  if err
-        return callback new KodingError 'No such VM'  unless vm
-
-        delegate.hasTarget vm, 'owner', (err, hasTarget) =>
-          return callback err  if err
-
-          if hasTarget
-            @deleteVM vm, callback
-          else
-            [{ id: groupId }] = vm.groups
-
-            JGroup = require './group'
-            JGroup.one { _id: groupId }, (err, group)=>
-              return callback err  if err
-
-              JPermissionSet.checkPermission client, "delete vms", group,
-              (err, hasPermission)=>
-                return callback err  if err
-
-                @deleteVM vm, callback  if hasPermission
+      JVM.one selector, callback
 
   @addVm = ({ account, target, user, sudo, groups, groupSlug
              type, planCode, planOwner, webHome, uid }, callback)->
