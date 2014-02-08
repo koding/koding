@@ -1,9 +1,10 @@
-package cache
+package storage
 
 import (
 	"errors"
 	"fmt"
 	"koding/databases/redis"
+	"time"
 
 	redigo "github.com/garyburd/redigo/redis"
 )
@@ -136,9 +137,8 @@ func (c *cache) Len() (int, error) {
 	return reply, nil
 }
 
-func (c *cache) ClearWithTimeout() error {
-	// expire after 5 min
-	reply, err := redigo.Int(c.session.Do("EXPIRE", c.key, 5*60))
+func (c *cache) ClearWithTimeout(duration time.Duration) error {
+	reply, err := redigo.Int(c.session.Do("EXPIRE", c.key, duration.Seconds()))
 	if err != nil {
 		return err
 	}

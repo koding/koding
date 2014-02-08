@@ -1,4 +1,4 @@
-package cache
+package storage
 
 import (
 	"sync"
@@ -76,8 +76,8 @@ func (s *subscriptionSet) Len() (int, error) {
 	return s.set.Size(), nil
 }
 
-func (s *subscriptionSet) ClearWithTimeout() error {
-	time.AfterFunc(5*time.Minute, func() {
+func (s *subscriptionSet) ClearWithTimeout(duration time.Duration) error {
+	time.AfterFunc(duration, func() {
 		socketSubscriptionsMapMutex.Lock()
 		delete(socketSubscriptionsMap, s.socketID)
 		socketSubscriptionsMapMutex.Unlock()
