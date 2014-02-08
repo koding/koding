@@ -4,7 +4,7 @@ import (
 	"crypto/rand"
 	"encoding/base64"
 	"fmt"
-	"koding/broker/cache"
+	"koding/broker/storage"
 	"koding/tools/sockjs"
 	"strconv"
 	"strings"
@@ -20,7 +20,7 @@ type Client struct {
 	SocketId       string
 	Broker         *Broker
 	LastPayload    string
-	Subscriptions  *cache.SubscriptionStorage
+	Subscriptions  storage.Subscriptionable
 }
 
 // NewClient retuns a new client that is defined on a given session.
@@ -34,13 +34,14 @@ func NewClient(session *sockjs.Session, broker *Broker) *Client {
 		panic(err)
 	}
 
-	var subscriptions *cache.SubscriptionStorage
+	var subscriptions storage.Subscriptionable
 
-	subscriptions, err = cache.NewStorage(conf, STORAGE_BACKEND, socketId)
+	subscriptions, err = storage.NewStorage(conf, storage.REDIS, socketId)
 	if err != nil {
-		STORAGE_BACKEND = "set"
-		subscriptions, err = cache.NewStorage(conf, STORAGE_BACKEND, socketId)
+		log.Critical("Couldnt access to redis/create a key for client %v", session.Tag)
+		subscriptions, err = storage.NewStorage(conf, storage.SET, socketId)
 		if err != nil {
+			// this will never fail to here
 			panic(err)
 		}
 	}
@@ -66,7 +67,7 @@ func (c *Client) Close() {
 		return true
 	})
 
-	c.Subscriptions.ClearWithTimeout()
+	c.Subscriptions.ClearWithTimeout(time.Minute * 5)
 
 	for {
 		err := c.ControlChannel.Publish(c.Broker.Config.AuthAllExchange, "broker.clientDisconnected", false, false, amqp.Publishing{Body: []byte(c.SocketId)})
@@ -99,10 +100,9 @@ func (c *Client) handleSessionMessage(data interface{}) {
 	action := message["action"]
 	switch action {
 	case "subscribe":
-		for _, routingKeyPrefix := range strings.Split(message["routingKeyPrefix"].(string), " ") {
-			if err := c.Subscribe(routingKeyPrefix); err != nil {
-				log.Error(err.Error())
-			}
+		routingKeyPrefixes := strings.Split(message["routingKeyPrefix"].(string), " ")
+		if err := c.Subscribe(routingKeyPrefixes...); err != nil {
+			log.Error(err.Error())
 		}
 
 		sendToClient(c.Session, "broker.subscribed", message["routingKeyPrefix"])
@@ -118,11 +118,10 @@ func (c *Client) handleSessionMessage(data interface{}) {
 		sendToClient(c.Session, "broker.resubscribed", found)
 
 	case "unsubscribe":
-		routingKeyPrefixes := message["routingKeyPrefix"].(string)
-		log.Debug("Unsubscribe event for socketID: %v, and prefixes", c.SocketId, routingKeyPrefixes)
-		for _, routingKeyPrefix := range strings.Split(routingKeyPrefixes, " ") {
-			c.Unsubscribe(routingKeyPrefix)
-		}
+		routingKeyPrefix := message["routingKeyPrefix"].(string)
+		log.Debug("Unsubscribe event for socketID: %v, and prefixes", c.SocketId, routingKeyPrefix)
+		routingKeyPrefixes := strings.Split(routingKeyPrefix, " ")
+		c.Unsubscribe(routingKeyPrefixes...)
 
 	case "publish":
 		exchange := message["exchange"].(string)
@@ -142,7 +141,8 @@ func (c *Client) handleSessionMessage(data interface{}) {
 
 	case "ping":
 		sendToClient(c.Session, "broker.pong", nil)
-
+		// TOOD - may be we need to revisit this part later about duration and request count
+		go c.Subscriptions.ClearWithTimeout(time.Minute * 30)
 	default:
 		log.Warning("Invalid action. message: %v socketId: %v", message, c.SocketId)
 
@@ -228,65 +228,59 @@ func (c *Client) resetControlChannel() {
 }
 
 // RemoveFromRoute removes the sessions for the given routingKeyPrefix.
-func (c *Client) RemoveFromRoute(routingKeyPrefix string) {
-	if _, ok := routeMap[routingKeyPrefix]; !ok {
-		return
-	}
+func (c *Client) RemoveFromRoute(routingKeyPrefixes ...string) {
+	for _, routingKeyPrefix := range routingKeyPrefixes {
+		if _, ok := routeMap[routingKeyPrefix]; !ok {
+			continue
+		}
+		routeMap[routingKeyPrefix].Remove(c.SocketId)
 
-	routeMap[routingKeyPrefix].Remove(c.SocketId)
-
-	if routeMap[routingKeyPrefix].Size() == 0 {
-		delete(routeMap, routingKeyPrefix)
+		if routeMap[routingKeyPrefix].Size() == 0 {
+			delete(routeMap, routingKeyPrefix)
+		}
 	}
 }
 
 // Add to route
 // todo ~ check for multiple subscriptions
 func (c *Client) AddToRoute() {
-	globalMapMutex.Lock()
 	c.Subscriptions.Each(func(routingKeyPrefix interface{}) bool {
 		c.AddToRouteMapNOTS(routingKeyPrefix.(string))
 		return true
 	})
-	globalMapMutex.Unlock()
-
 }
 
-func (c *Client) AddToRouteMapNOTS(routingKeyPrefix string) {
-	if _, ok := routeMap[routingKeyPrefix]; !ok {
-		routeMap[routingKeyPrefix] = set.New()
+func (c *Client) AddToRouteMapNOTS(routingKeyPrefixes ...string) {
+	for _, routingKeyPrefix := range routingKeyPrefixes {
+		if _, ok := routeMap[routingKeyPrefix]; !ok {
+			routeMap[routingKeyPrefix] = set.New()
+		}
+		routeMap[routingKeyPrefix].Add(c.SocketId)
 	}
-	routeMap[routingKeyPrefix].Add(c.SocketId)
 }
 
 // Subscribe add the given routingKeyPrefix to the list of subscriptions
 // associated with this client.
-func (c *Client) Subscribe(routingKeyPrefix string) error {
-	res, err := c.Subscriptions.Has(routingKeyPrefix)
-	if err != nil {
-		return err
-	}
-
-	if res {
-		return fmt.Errorf("Duplicate subscription to same routing key. %v %v", c.Session.Tag, routingKeyPrefix)
-	}
-
-	length, err := c.Subscriptions.Len()
-	if err != nil {
-		return err
-	}
-
-	if length > 0 && length%2000 == 0 {
-		log.Warning("Client with more than %v subscriptions %v", strconv.Itoa(length), c.Session.Tag)
-	}
-
-	if err := c.Subscriptions.Subscribe(routingKeyPrefix); err != nil {
+func (c *Client) Subscribe(routingKeyPrefixes ...string) error {
+	if err := c.Subscriptions.Subscribe(routingKeyPrefixes...); err != nil {
 		return err
 	}
 
 	globalMapMutex.Lock()
-	c.AddToRouteMapNOTS(routingKeyPrefix)
+	c.AddToRouteMapNOTS(routingKeyPrefixes...)
 	globalMapMutex.Unlock()
+
+	// Log some information about the Client
+	go func() {
+		length, err := c.Subscriptions.Len()
+		if err != nil {
+			log.Warning("Error while trying to get Subscriptions.Len() for: %v Error: %v", c.Session.Tag, err)
+		}
+
+		if length > 0 && length%2000 == 0 {
+			log.Warning("Client with more than %v subscriptions %v", strconv.Itoa(length), c.Session.Tag)
+		}
+	}()
 
 	return nil
 }
@@ -307,9 +301,9 @@ func (c *Client) Resubscribe(sessionId string) (bool, error) {
 
 // Unsubscribe deletes the given routingKey prefix from the subscription list
 // and removes it from the global route map
-func (c *Client) Unsubscribe(routingKeyPrefix string) {
-	c.RemoveFromRoute(routingKeyPrefix)
-	if err := c.Subscriptions.Unsubscribe(routingKeyPrefix); err != nil {
+func (c *Client) Unsubscribe(routingKeyPrefixes ...string) {
+	c.RemoveFromRoute(routingKeyPrefixes...)
+	if err := c.Subscriptions.Unsubscribe(routingKeyPrefixes...); err != nil {
 		fmt.Errorf("%v", err)
 	}
 }
