@@ -10,6 +10,17 @@ import (
 	"path/filepath"
 )
 
+type Broker struct {
+	Name            string
+	IP              string
+	Port            int
+	CertFile        string
+	KeyFile         string
+	AuthExchange    string
+	AuthAllExchange string
+	WebProtocol     string
+}
+
 type Config struct {
 	BuildNumber int
 	Environment string
@@ -43,16 +54,9 @@ type Config struct {
 		Enabled bool
 	}
 	GoLogLevel string
-	Broker     struct {
-		IP              string
-		Port            int
-		CertFile        string
-		KeyFile         string
-		AuthExchange    string
-		AuthAllExchange string
-		WebProtocol     string
-	}
-	Loggr struct {
+	Broker     Broker
+	BrokerKite Broker
+	Loggr      struct {
 		Push   bool
 		Url    string
 		ApiKey string
