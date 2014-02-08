@@ -8,8 +8,7 @@ class Kontrol extends KDObject
 
     kite =
       name     : "kontrol"
-      publicIP : "#{KD.config.newkontrol.host}"
-      port     : "#{KD.config.newkontrol.port}"
+      url      : "#{KD.config.newkontrol.url}"
 
     authentication =
       type     : "sessionID"
