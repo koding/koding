@@ -414,10 +414,7 @@ class LoginView extends KDView
       KD.getSingleton('appManager').quitAll()
       KD.getSingleton('router').handleRoute firstRoute or '/Activity', {replaceState: yes, entryPoint}
       KD.getSingleton('groupsController').on 'GroupChanged', =>
-        new KDNotificationView
-          cssClass  : "login"
-          title     : "<span></span>Happy Coding!"
-          duration  : 2000
+        @headBanner?.hide()
         @loginForm.reset()
 
       new KDNotificationView
