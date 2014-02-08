@@ -1,6 +1,7 @@
 class PaymentChoiceForm extends KDView
   constructor: (options = {}, data) ->
     options.cssClass = KD.utils.curry "pricing-payment-choice clearfix", options.cssClass
+    options.name     = 'method'
     super options, data
 
 

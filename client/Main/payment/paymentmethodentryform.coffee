@@ -80,6 +80,7 @@ class PaymentMethodEntryForm extends KDFormViewWithFields
 
     super
       cssClass              : KD.utils.curry 'payment-method-entry-form', options.cssClass
+      name                  : 'method'
       fields                : fields
       callback              : (formData) =>
         @emit 'PaymentInfoSubmitted', @paymentMethodId, formData
