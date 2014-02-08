@@ -25,6 +25,7 @@ func main() {
 	kiteOptions := &kite.Options{
 		Kitename:    "kontrol",
 		Version:     "0.0.1",
+		PublicIP:    "0.0.0.0",
 		Port:        strconv.Itoa(conf.NewKontrol.Port),
 		Region:      "sj",
 		Environment: "development",
