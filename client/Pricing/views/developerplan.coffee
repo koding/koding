@@ -4,11 +4,11 @@ class DeveloperPlan extends JView
     super options, data
 
     @plans = [
-      {cpu: 1, ram: 1, disk: "50 GB" , alwaysOn: 1, price: 20},
-      {cpu: 2, ram: 2, disk: "100 GB", alwaysOn: 2, price: 40 , discount:  4, vm: 1},
-      {cpu: 3, ram: 3, disk: "150 GB", alwaysOn: 3, price: 60 , discount:  8, vm: 2},
-      {cpu: 4, ram: 4, disk: "200 GB", alwaysOn: 4, price: 80 , discount: 12, vm: 3},
-      {cpu: 5, ram: 5, disk: "250 GB", alwaysOn: 5, price: 100, discount: 16, vm: 4}
+      { cpu: 1, ram: 1, disk: "50 GB" , alwaysOn: 1, price: 19 }
+      { cpu: 2, ram: 2, disk: "100 GB", alwaysOn: 2, price: 39 , discount:  4, vm: 1 }
+      { cpu: 3, ram: 3, disk: "150 GB", alwaysOn: 3, price: 59 , discount:  8, vm: 2 }
+      { cpu: 4, ram: 4, disk: "200 GB", alwaysOn: 4, price: 79 , discount: 12, vm: 3 }
+      { cpu: 5, ram: 5, disk: "250 GB", alwaysOn: 5, price: 99 , discount: 16, vm: 4 }
     ]
 
     @planIndex = 0
