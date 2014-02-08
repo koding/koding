@@ -68,7 +68,7 @@ func (c *Client) Close() {
 		return true
 	})
 
-	c.Subscriptions.ClearWithTimeout()
+	c.Subscriptions.ClearWithTimeout(time.Minute * 5)
 
 	for {
 		err := c.ControlChannel.Publish(c.Broker.AuthAllExchange, "broker.clientDisconnected", false, false, amqp.Publishing{Body: []byte(c.SocketId)})
@@ -143,7 +143,8 @@ func (c *Client) handleSessionMessage(data interface{}) {
 
 	case "ping":
 		sendToClient(c.Session, "broker.pong", nil)
-
+		// TOOD - may be we need to revisit this part later about duration and request count
+		go c.Subscriptions.ClearWithTimeout(time.Minute * 30)
 	default:
 		log.Warning("Invalid action. message: %v socketId: %v", message, c.SocketId)
 
