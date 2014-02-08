@@ -92,10 +92,6 @@ class PaymentWorkflow extends FormWorkflow
 
     @addForm 'confirm', confirmForm, ['userConfirmation']
 
-    productForm.on "PlanSelected", (plan, options)->
-      # [FIX ME] This throws for registered users
-      existingAccountWorkflow?.createProductView plan
-
     confirmForm.on 'CouponOptionChanged', (name) => @collectData promotionType: name
     confirmForm.on 'PaymentConfirmed', => @collectData userConfirmation: yes
 
