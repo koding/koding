@@ -1,4 +1,4 @@
-package cache
+package storage
 
 import (
 	"sync"
@@ -14,18 +14,18 @@ var (
 
 type subscriptionSet struct {
 	set      *set.Set
-	socketID string
+	socketId string
 }
 
-func newSubscriptionSet(socketID string) (*subscriptionSet, error) {
+func newSet(socketId string) (*subscriptionSet, error) {
 	s := &subscriptionSet{
 		set:      set.New(),
-		socketID: socketID,
+		socketId: socketId,
 	}
 	socketSubscriptionsMapMutex.Lock()
 	defer socketSubscriptionsMapMutex.Unlock()
 
-	socketSubscriptionsMap[socketID] = s
+	socketSubscriptionsMap[socketId] = s
 	return s, nil
 }
 
@@ -35,14 +35,24 @@ func (s *subscriptionSet) Each(f func(item interface{}) bool) error {
 	return nil
 }
 
-func (s *subscriptionSet) Subscribe(routingKeyPrefix string) error {
-	s.set.Add(routingKeyPrefix)
+func (s *subscriptionSet) Subscribe(routingKeyPrefixes ...string) error {
+	for _, routingKeyPrefix := range routingKeyPrefixes {
+		s.set.Add(routingKeyPrefix)
+	}
 	// add doesnt return any error
 	return nil
 }
 
-func (s *subscriptionSet) Resubscribe(socketID string) (bool, error) {
-	socketSubscription, ok := socketSubscriptionsMap[socketID]
+func (s *subscriptionSet) Unsubscribe(routingKeyPrefixes ...string) error {
+	for _, routingKeyPrefix := range routingKeyPrefixes {
+		s.set.Remove(routingKeyPrefix)
+	}
+	// remove doesnt return any error
+	return nil
+}
+
+func (s *subscriptionSet) Resubscribe(socketId string) (bool, error) {
+	socketSubscription, ok := socketSubscriptionsMap[socketId]
 	if !ok {
 		return false, nil
 	}
@@ -56,12 +66,6 @@ func (s *subscriptionSet) Resubscribe(socketID string) (bool, error) {
 	return true, nil
 }
 
-func (s *subscriptionSet) Unsubscribe(routingKeyPrefix string) error {
-	s.set.Remove(routingKeyPrefix)
-	// remove doesnt return any error
-	return nil
-}
-
 func (s *subscriptionSet) Has(routingKeyPrefix string) (bool, error) {
 	// has only returns bool
 	return s.set.Has(routingKeyPrefix), nil
@@ -72,10 +76,10 @@ func (s *subscriptionSet) Len() (int, error) {
 	return s.set.Size(), nil
 }
 
-func (s *subscriptionSet) ClearWithTimeout() error {
-	time.AfterFunc(5*time.Minute, func() {
+func (s *subscriptionSet) ClearWithTimeout(duration time.Duration) error {
+	time.AfterFunc(duration, func() {
 		socketSubscriptionsMapMutex.Lock()
-		delete(socketSubscriptionsMap, s.socketID)
+		delete(socketSubscriptionsMap, s.socketId)
 		socketSubscriptionsMapMutex.Unlock()
 	})
 	return nil

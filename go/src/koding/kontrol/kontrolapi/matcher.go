@@ -1,7 +1,6 @@
 package main
 
 import (
-	"log"
 	"reflect"
 	"strconv"
 	"strings"
@@ -35,7 +34,7 @@ func (matcher *Matcher) ByInt(base, modified string) *Matcher {
 		field := v.FieldByName(base)
 
 		if !field.IsValid() {
-			log.Println("There is no field with name ", base)
+			log.Info("There is no field with name %s", base)
 		}
 		return matchInt(int(field.Int()), modifiedInt)
 	}
@@ -54,7 +53,7 @@ func (matcher *Matcher) ByString(base, modified string) *Matcher {
 		field := v.FieldByName(base)
 
 		if !field.IsValid() {
-			log.Println("There is no field with name ", base)
+			log.Info("There is no field with name %s", base)
 		}
 		return matchString(field.String(), modified)
 	}

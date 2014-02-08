@@ -7,9 +7,9 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	kitelib "kite"
 	"koding/db/mongodb"
 	"koding/db/mongodb/modelhelper"
-	kitelib "koding/kite"
 	"koding/kites/os/ldapserver"
 	"koding/kodingkite"
 	"koding/tools/config"
@@ -58,6 +58,7 @@ var (
 
 	flagProfile = flag.String("c", "", "Configuration profile from file")
 	flagRegion  = flag.String("r", "", "Configuration region from file")
+	flagDebug   = flag.Bool("d", false, "Debug mode")
 
 	infos            = make(map[bson.ObjectId]*VMInfo)
 	infosMutex       sync.Mutex
@@ -82,7 +83,12 @@ func main() {
 	mongodbConn = mongodb.NewMongoDB(conf.Mongo)
 	modelhelper.Initialize(conf.Mongo)
 
-	logLevel = logger.GetLoggingLevelFromConfig(OSKITE_NAME, *flagProfile)
+	var logLevel logger.Level
+	if *flagDebug {
+		logLevel = logger.DEBUG
+	} else {
+		logLevel = logger.GetLoggingLevelFromConfig(OSKITE_NAME, *flagProfile)
+	}
 	log.SetLevel(logLevel)
 
 	initializeSettings()
@@ -115,7 +121,7 @@ func main() {
 func runNewKite(serviceUniqueName string) {
 	k := kodingkite.New(
 		conf,
-		kodingkite.Options{
+		kitelib.Options{
 			Kitename: OSKITE_NAME,
 			Version:  "0.0.1",
 			Port:     "5000",
@@ -199,6 +205,13 @@ func prepareOsKite() *kite.Kite {
 	}
 
 	k := kite.New(kiteName, conf, true)
+
+	// Default is "broker", we are going to use another one. In our case its "brokerKite"
+	k.PublishExchange = conf.BrokerKite.Name
+
+	if *flagDebug {
+		kite.EnableDebug()
+	}
 
 	k.LoadBalancer = func(correlationName string, username string, deadService string) string {
 		var vm *virt.VM
