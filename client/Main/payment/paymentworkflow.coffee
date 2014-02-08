@@ -58,7 +58,7 @@ class PaymentWorkflow extends FormWorkflow
     ]
 
     if KD.whoami().type is 'unregistered'
-      existingAccountWorkflow = new ExistingAccountWorkflow
+      existingAccountWorkflow = new ExistingAccountWorkflow name : 'login' # why, because i had to! srsly, this goes as a form to workflow.on 'FormIsShown' on PricingAppView, and fixes breadcrumb navigation
       existingAccountWorkflow.on 'DataCollected', @bound "collectData"
       @addForm 'createAccount', existingAccountWorkflow, ['createAccount', 'loggedIn']
     else

@@ -48,7 +48,7 @@ class ExistingAccountForm extends JView
 class ExistingAccountWorkflow extends FormWorkflow
   prepareWorkflow: ->
     @requireData Junction.any 'createAccount', 'loggedIn'
-    @existingAccountForm = new ExistingAccountForm
+    @existingAccountForm = new ExistingAccountForm name : 'login'
     @existingAccountForm.on 'DataCollected', @bound "collectData"
     @addForm 'existingAccount', @existingAccountForm, ['createAccount', 'loggedIn']
     @enter()
