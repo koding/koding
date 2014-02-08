@@ -234,6 +234,7 @@ module.exports =
   kites:
     disconnectTimeout: 3e3
     vhost       : 'kite'
+    brokerExchange: 'brokerKite'
   email         :
     host        : 'localhost'
     protocol    : 'http:'
@@ -361,7 +362,7 @@ module.exports =
     channel      : "C024LG80K"
   logLevel        :
     neo4jfeeder   : "notice"
-    oskite        : "debug"
+    oskite        : "notice"
     kontrolproxy  : "notice"
     userpresence  : "notice"
     vmproxy       : "notice"
