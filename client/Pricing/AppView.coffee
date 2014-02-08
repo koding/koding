@@ -39,6 +39,7 @@ class BreadcrumbView extends JView
     feeAmount = feeAmount/100
 
     @show()
+    document.body.classList.add 'flow'
     @planName.updatePartial title
     @planPrice.updatePartial "#{feeAmount}$/#{feeUnit}"
 
@@ -90,6 +91,7 @@ class PricingAppView extends KDView
     @thankYou?.destroy()
 
     @breadcrumb.hide()
+    document.body.classList.remove 'flow'
 
     @workflow = workflow
     @addSubView @workflow

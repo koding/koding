@@ -385,10 +385,10 @@ body.about #main-header
     margin-bottom       55px
 
 #pricing .product-form
-  height                650px
-  background            url('/a/images/home/speedometer.jpg') no-repeat center center
-  background-size       cover
+  height                610px
+  background            #e4e4e4
   padding               90px 0 87px
+  font-family           'Helvetica Neue', Helvetica, Arial
   borderBox()
 
   .inner-container
@@ -397,18 +397,20 @@ body.about #main-header
 
     >header
       padding-bottom    41px
-      border-bottom     1px solid #202729
+      border-bottom     1px solid #d4d4d4
 
       h2
-        text-align      left
-        color           #fff
+        font-family     'Helvetica Neue', Helvetica, Arial
         font-size       28px
         font-weight     200
+        color           #1c2021
         margin-bottom   8px
+        text-align      left
+        text-shadow     none
 
       p
         font-size       20px
-        color           #c5c5c5
+        color           #757575
         font-weight     200px
         line-height     26px
         width           702px
@@ -443,15 +445,13 @@ body.about #main-header
 
 
     .plan-selection
-      >.kdview // .team-plan, .developer-plan
+      .developer-plan
+      .team-plan
         overflow        visible
-
-      .sliderbar-container
-        width           100% !important
-
       .plan-selection-box
         width           715px
         padding-top     42px
+        position        relative
         fl()
 
         &:nth-of-type(2)
@@ -459,7 +459,7 @@ body.about #main-header
 
         h4
           font-size     28px
-          color         #fff
+          color         #1c2021
           font-weight   200
           line-height   34px
           display       inline-block
@@ -474,26 +474,32 @@ body.about #main-header
             font-size   18px
             background  #242a2c
             rounded     50%
+            color       #fff
 
         h5
           font-size     22px
-          font-weight   200
-          color         rgba(242, 242, 242, .4)
+          font-weight   400
+          color         #757575
           margin        4px 0 0
 
         .sliderbar-container
-          background    #1e884b
+          width         100% !important
+          background    #dadada
+          shadow        inset 1px 1px 0 rgba(0, 0, 0, .16)
           height        7px
           border        none
-          shadow        none
-          margin        62px auto 0
+          margin        67px auto 0
 
           .handle
             size        26px, 26px
             shadow      none
             border      none
             rounded     50%
-            background  #27ae60
+            background  #00ba4e
+            shadow      inset 0 -1px 2px 1px rgba(0, 0, 0, .1) \,
+                        inset 0 -8px 17px #00ba4e \,
+                        inset 0  0 0 1px #00ba4e \,
+                        inset 0 1px 0 2px rgba(255, 255, 255, .3)
             top         -10px
             margin      0 0 0 -12px
 
@@ -508,18 +514,21 @@ body.about #main-header
 
             &:after
               size          2px, 14px
-              background    rgba(39, 174, 96, .5)
+              background    #bababa
 
         .description
           display           block
-          font-size         14px
+          font-size         12px
           font-weight       200px
-          color             rgba(197, 197, 197, .3)
+          color             #969696
           line-height       18px
-          margin            46px 0 0
+          margin            20px 0 0
 
         &.selected
+          margin              0
+          padding             40px 0 0 50px
           width               275px
+          border-left         1px solid #d4d4d4
           fr()
 
           h5
@@ -536,8 +545,7 @@ body.about #main-header
             size              126px, 48px
             line-height       48px
             font-size         18px
-            color             #935600
-            background        #ffa200
+            color             #056233
             padding           0
             rounded           6px
             font-weight       600
@@ -554,7 +562,24 @@ body.about #main-header
 
     .team-plan
       .plan-selection-box
-        width                 350px
+        width                 323px
+
+        .description
+          max-width           340px
+          text-align          right
+          abs                 200px 0px 0 0
+          margin              0
+
+    .developer-plan
+
+      .sliderbar-container
+        shadow                inset 1px 1px 0 rgba(0, 0, 0, .16) !important
+        background            -webkit-linear-gradient(left, #00c052 0%, #ffd800 50%, #fe0000 100%) !important
+
+        .opposite.bar
+          background          #dadada
+          shadow              inset 1px 1px 0 rgba(0, 0, 0, .16) \,
+                              0 0 0 1px #dadada
 
 #home-groups
   bg                    color, homeHeaderBg
@@ -730,17 +755,22 @@ body.about #main-header
     #pricing
       .plan-selection-box
         float               left !important
+        borderBox()
 
       .developer-plan
         .plan-selection-box
-          width             62% !important
+          width             54% !important
 
           &.selected
-            width           28% !important
+            width           36% !important
+            padding         35px 35px 0 !important
 
       .team-plan
         .plan-selection-box
           width             28% !important
+
+          &.selected
+            padding         35px 35px 0 !important
 
 
 
@@ -846,6 +876,8 @@ body.about #main-header
 
         &.selected
           text-align        center
+          padding           40px 0 0 !important
+          border            none !important
 
           .kdbutton
             margin          42px auto 0 !important
@@ -862,7 +894,11 @@ body.about #main-header
           hidden()
 
         .description
-          margin            20px 0 0 !important
+          max-width         90% !important
+          width             90% !important
+          text-align        center !important
+          margin            24px auto 0 !important
+          position          static !important
 
 
 @media all and (max-width: 510px)

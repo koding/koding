@@ -15,7 +15,7 @@ class IntroDeveloperPlan extends JView
 
     @slider        = new IntroPricingPlanSelection
       title          : "Resource Pack"
-      description    : "1x Resource pack contains 1 GB RAM 1x CPU, 1 GB RAM, 50 GB Disk, 2 TB Transfer, 5 total VMs and we shut it off after an hour for obvious reasons"
+      description    : "1x Resource pack contains 1 GB RAM 1x CPU, 1 GB RAM, 50 GB Disk, 2 TB Transfer, 5 total VMs, 1 Always on VM, Same day support"
       unitPrice      : 20
       slider         :
         minValue     : 1
@@ -25,6 +25,7 @@ class IntroDeveloperPlan extends JView
         snapOnDrag   : yes
         handles      : [1]
         width        : 715
+        drawOpposite : yes
 
     @slider.on "ValueChanged", (index) =>
       @planIndex = Math.max index - 1, 0
@@ -35,7 +36,8 @@ class IntroDeveloperPlan extends JView
     @summary.addSubView @price     = new KDCustomHTMLView tagName: "h5"
     @summary.addSubView @promotion = new KDCustomHTMLView tagName: "p", cssClass: "description"
     @summary.addSubView @buyNow    = new KDButtonView
-      cssClass : "solid buy-now"
+      cssClass : "buy-now"
+      style    : "solid green"
       title    : "BUY NOW"
       callback : =>
         @emit "PlanSelected", "rp#{@planIndex + 1}", planApi: KD.remote.api.JResourcePlan

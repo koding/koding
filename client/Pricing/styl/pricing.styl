@@ -7,7 +7,7 @@ Pricing stylesheet
 pricing.styl
 */
 }
-body.pricing
+body.pricing.flow
   #main-header
     shadow              none
 
@@ -137,18 +137,22 @@ body.pricing
 
         .sliderbar-container
           width         100% !important
-          background    #1e884b
+          background    #dadada
+          shadow        inset 1px 1px 0 rgba(0, 0, 0, .16)
           height        7px
           border        none
-          shadow        none
-          margin        96px auto 0
+          margin        67px auto 0
 
           .handle
             size        26px, 26px
             shadow      none
             border      none
             rounded     50%
-            background  #27ae60
+            background  #00ba4e
+            shadow      inset 0 -1px 2px 1px rgba(0, 0, 0, .1) \,
+                        inset 0 -8px 17px #00ba4e \,
+                        inset 0  0 0 1px #00ba4e \,
+                        inset 0 1px 0 2px rgba(255, 255, 255, .3)
             top         -10px
             margin      0 0 0 -12px
 
@@ -171,9 +175,7 @@ body.pricing
           font-weight       200px
           color             #969696
           line-height       18px
-          max-width         340px
-          text-align        right
-          abs               50px 0px 0 0
+          margin            20px 0 0
 
         &.selected
           margin              0
@@ -216,7 +218,10 @@ body.pricing
         width                 323px
 
         .description
-          top                 250px
+          max-width           340px
+          text-align          right
+          abs                 200px 0px 0 0
+          margin              0
 
     .developer-plan
 
