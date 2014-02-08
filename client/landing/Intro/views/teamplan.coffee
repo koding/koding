@@ -13,7 +13,7 @@ class IntroTeamPlan extends JView
 
     @resourcePackSlider = new IntroPricingPlanSelection
       title             : "Resource Pack"
-      description       : "1x Resource pack contains 1 GB RAM 1x CPU, 1 GB RAM, 50 GB Disk, 2 TB Transfer, 5 total VMs and we shut it off after an hour for obvious reasons"
+      description       : "1x Resource pack contains 1 GB RAM 1x CPU, 1 GB RAM, 50 GB Disk, 2 TB Transfer, 5 total VMs, 1 Always on VM, Same day support"
       unitPrice         : unitPrices.resourcePack
       slider            :
         minValue        : 5
