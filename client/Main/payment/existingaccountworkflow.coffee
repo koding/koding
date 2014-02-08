@@ -1,5 +1,8 @@
 class ExistingAccountForm extends JView
   viewAppended: ->
+
+    KD.singletons.dock.getView().hide()
+
     @loginForm = new LoginInlineForm
       cssClass : "login-form clearfix"
       testPath : "login-form"
