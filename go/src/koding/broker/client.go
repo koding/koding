@@ -118,11 +118,10 @@ func (c *Client) handleSessionMessage(data interface{}) {
 		sendToClient(c.Session, "broker.resubscribed", found)
 
 	case "unsubscribe":
-		routingKeyPrefixes := message["routingKeyPrefix"].(string)
-		log.Debug("Unsubscribe event for socketID: %v, and prefixes", c.SocketId, routingKeyPrefixes)
-		for _, routingKeyPrefix := range strings.Split(routingKeyPrefixes, " ") {
-			c.Unsubscribe(routingKeyPrefix)
-		}
+		routingKeyPrefix := message["routingKeyPrefix"].(string)
+		log.Debug("Unsubscribe event for socketID: %v, and prefixes", c.SocketId, routingKeyPrefix)
+		routingKeyPrefixes := strings.Split(routingKeyPrefix, " ")
+		c.Unsubscribe(routingKeyPrefixes...)
 
 	case "publish":
 		exchange := message["exchange"].(string)
