@@ -6,9 +6,9 @@ import (
 	"fmt"
 	"html/template"
 	"io"
+	"kite"
+	"kite/protocol"
 	"koding/db/mongodb/modelhelper"
-	"koding/kite"
-	"koding/kite/protocol"
 	"koding/kodingkite"
 	"koding/kontrol/kontrolproxy/resolver"
 	"koding/kontrol/kontrolproxy/utils"
@@ -166,7 +166,7 @@ func main() {
 func (p *Proxy) runNewKite() {
 	k := kodingkite.New(
 		conf,
-		kodingkite.Options{
+		kite.Options{
 			Kitename: KONTROLPROXY_NAME,
 			Version:  "0.0.1",
 		},

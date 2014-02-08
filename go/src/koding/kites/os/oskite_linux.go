@@ -7,9 +7,9 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	kitelib "kite"
 	"koding/db/mongodb"
 	"koding/db/mongodb/modelhelper"
-	kitelib "koding/kite"
 	"koding/kites/os/ldapserver"
 	"koding/kodingkite"
 	"koding/tools/config"
@@ -121,7 +121,7 @@ func main() {
 func runNewKite(serviceUniqueName string) {
 	k := kodingkite.New(
 		conf,
-		kodingkite.Options{
+		kitelib.Options{
 			Kitename: OSKITE_NAME,
 			Version:  "0.0.1",
 			Port:     "5000",

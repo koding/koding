@@ -13,6 +13,8 @@ option '-s', '--dontBuildSprites', 'dont build sprites'
 
 {spawn, exec} = require 'child_process'
 
+process.env.KITE_HOME = "./kite_home/"
+
 log =
   info  : console.log
   error : console.log
