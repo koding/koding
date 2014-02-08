@@ -262,17 +262,6 @@ func (c *Client) AddToRouteMapNOTS(routingKeyPrefixes ...string) {
 // Subscribe add the given routingKeyPrefix to the list of subscriptions
 // associated with this client.
 func (c *Client) Subscribe(routingKeyPrefixes ...string) error {
-	for _, routingKeyPrefix := range routingKeyPrefixes {
-		res, err := c.Subscriptions.Has(routingKeyPrefix)
-		if err != nil {
-			return err
-		}
-
-		if res {
-			return fmt.Errorf("Duplicate subscription to same routing key. %v %v", c.Session.Tag, routingKeyPrefix)
-		}
-	}
-
 	if err := c.Subscriptions.Subscribe(routingKeyPrefixes...); err != nil {
 		return err
 	}
