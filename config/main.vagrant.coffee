@@ -165,6 +165,10 @@ module.exports =
       broker    :
         servicesEndpoint: 'http://localhost:3020/-/services/broker'
         sockJS  : 'http://localhost:8008/subscribe'
+      brokerKite:
+        servicesEndpoint: 'http://localhost:3020/-/services/brokerKite'
+        brokerExchange: 'brokerKite'
+        sockJS  : 'http://localhost:8009/subscribe'
       apiUri    : 'http://localhost:3020'
       version   : version
       mainUri   : 'http://localhost:3020'
@@ -357,7 +361,7 @@ module.exports =
     channel      : "C024LG80K"
   logLevel        :
     neo4jfeeder   : "notice"
-    oskite        : "notice"
+    oskite        : "debug"
     kontrolproxy  : "notice"
     userpresence  : "notice"
     vmproxy       : "notice"

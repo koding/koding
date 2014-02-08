@@ -51,7 +51,19 @@ KD.remote = new Bongo
 
         dash queue, -> callback err, models, name
 
-  mq: do->
+  mq: do ->
     { broker:{ servicesEndpoint }, authExchange } = KD.config
     options = { servicesEndpoint, authExchange, autoReconnect: yes, getSessionToken }
+    broker = new KDBroker.Broker null, options
+
+KD.kite =
+  mq: do ->
+    { brokerKite:{ servicesEndpoint, brokerExchange }, authExchange } = KD.config
+    options = {
+      servicesEndpoint
+      authExchange
+      autoReconnect: yes
+      getSessionToken
+      brokerExchange
+    }
     broker = new KDBroker.Broker null, options

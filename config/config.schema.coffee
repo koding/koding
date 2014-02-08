@@ -187,6 +187,10 @@ config =
         broker        :
           servicesEndpoint: 1
           sockJS      : 1
+        brokerKite    :
+          servicesEndpoint: 1
+          brokerExchange: 1
+          sockJS      : 1
         apiUri        : 1
         appsUri       : 1
         uploadsUri    : 1

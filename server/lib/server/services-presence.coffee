@@ -9,7 +9,7 @@ getFailoverUrl = ->
   # piece the url together from the config:
   url = "#{ protocol }//#{ hostname }#{ if port then ":#{port}" else "" }"
 
-failover = (req, res, multi) ->  
+failover = (req, res, multi) ->
   if req.params.service in supportedServices
     url = getFailoverUrl()
     res.set 'Content-Type', 'application/json'
@@ -29,7 +29,9 @@ module.exports = (req, res, next) ->
 
   if KONFIG.runKontrol # let kontrol provide the url
 
-    url = "#{ KONFIG.kontrold.api.url }/workers/url/#{ service }#{
+    { url, port } = KONFIG.kontrold.api
+
+    url = "#{ url }:#{ port }/workers/url/#{ service }#{
       if multi
       then '?all'
       else ''
