@@ -70,12 +70,12 @@ class PaymentWorkflow extends FormWorkflow
     # use this feature, make sure to emit the "DataCollected" event with any
     # data that you want aggregated (that you want to be able to access from
     # the "PaymentConfirmed" listeners).
-    # - "confirm form" is required.  This form should render a summary, and 
+    # - "confirm form" is required.  This form should render a summary, and
     # emit a "PaymentConfirmed" after user approval.
     { productForm, confirmForm } = @getOptions()
 
     if productForm?
-      
+
       @addForm 'product', productForm, ['productData', 'subscription']
 
       productForm.on 'DataCollected', (productData) =>
@@ -91,6 +91,9 @@ class PaymentWorkflow extends FormWorkflow
     @addForm 'entry', @createEntryForm(), ['paymentMethod']
 
     @addForm 'confirm', confirmForm, ['userConfirmation']
+
+    productForm.on "PlanSelected", (plan, options)->
+      existingAccountWorkflow.createProductView plan
 
     confirmForm.on 'CouponOptionChanged', (name) => @collectData promotionType: name
     confirmForm.on 'PaymentConfirmed', => @collectData userConfirmation: yes
