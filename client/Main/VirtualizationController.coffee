@@ -354,52 +354,25 @@ class VirtualizationController extends KDController
           callback  : =>
             modal.destroy()
 
-  createPaidVM:->
+  createPaidVM: ->
+    @payment.fetchSubscriptionsWithPlans tags: ["vm"], (err, subscriptions) =>
+      return  if KD.showError err
+      [subscription] = subscriptions
 
-    productForm = new VmProductForm
+      KD.remote.api.JPaymentPack.one tags: "vm", (err, pack) =>
+        return  if KD.showError err
+        @provisionVm {subscription, productData: {pack}}, (err, nonce) =>
+          return  unless err
+          modal      = new KDModalView
+            title    : "Create a new VM"
+            cssClass : "create-vm"
+            view     : upgradeForm = @payment.createUpgradeForm()
+            height   : "auto"
+            width    : 500
+            showNav  : no
+            overlay  : yes
 
-    payment = KD.getSingleton 'paymentController'
-
-    group = KD.singleton("groupsController").getCurrentGroup()
-    if group.slug is "koding"
-      payment.fetchSubscriptionsWithPlans tags: ['vm'], (err, subscriptions) ->
-        return KD.showError err  if err
-        productForm.setCurrentSubscriptions subscriptions
-    else
-      group.fetchSubscription (err, subscription) ->
-        return KD.showError err  if err
-        productForm.setCurrentSubscriptions [subscription]
-
-    productForm.on 'PackOfferingRequested', (subscription) ->
-      KD.remote.api.JPaymentPack.one tags: 'vm', (err, pack) ->
-        return KD.showError err  if err
-        [subscription] = productForm.currentSubscriptions
-        return KD.showError "subscription not found"  unless subscription
-        subscription.checkUsage pack, (err) ->
-          if err
-          then productForm.showForm "upgrade"
-          else productForm.collectData {pack}
-
-    workflow = new PaymentWorkflow
-      productForm: productForm
-      confirmForm: new VmPaymentConfirmForm
-
-    modal = new FormWorkflowModal
-      title   : "Create a new VM"
-      cssClass: "create-vm"
-      view    : workflow
-      height  : "auto"
-      width   : 500
-      showNav : no
-      overlay : yes
-
-    workflow
-      .on 'DataCollected', (data) =>
-        @provisionVm data
-        modal.destroy()
-      .enter()
-
-    productForm.on "Cancel", modal.bound "destroy"
+          upgradeForm.on "Cancel", modal.bound "destroy"
 
   provisionVm: ({ subscription, paymentMethod, productData }, callback) ->
     { JVM } = KD.remote.api
