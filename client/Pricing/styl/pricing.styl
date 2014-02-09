@@ -663,20 +663,30 @@ section.pricing-sign-in
       &.gray
         background      #b4b4b4
 
-.pricing-thank-you
+.pricing-final
+  padding               10px
+
+  .error-icon
+    display             block
+    margin              62px auto 0
+    r-sprite            "pricing" "error"
 
   .check-icon
     display             block
     margin              62px auto 0
-    r-sprite            "pricing", "check"
+    r-sprite            "pricing" "check"
+
 
   h3.pricing-title
     margin-top          25px !important
 
   h6.pricing-subtitle
     margin-bottom       0 !important
+    line-height         1.4
+    a
+      color             #F13A18
 
-  .kdbutton.solid.green
+  .kdbutton.solid
     display             block
     margin              40px auto 0
     height              44px
@@ -703,9 +713,9 @@ section.pricing-sign-in
   .input-wrapper
     margin-bottom     16px
 
-  .kdinput
+  .kdinput.text
     size              100%, 50px !important
-    border            1px solid #a0a0a0 !important
+    border            1px solid #a0a0a0
     background        #fff !important
     color             #4c555f !important
     font-size         14px !important

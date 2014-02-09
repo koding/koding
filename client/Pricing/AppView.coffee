@@ -89,9 +89,8 @@ class PricingAppView extends KDView
     @workflow.destroy()  if @workflow
     @groupForm?.destroy()
     @thankYou?.destroy()
-
-    @breadcrumb.hide()
-    document.body.classList.remove 'flow'
+    @sorry?.destroy()
+    @hideBreadcrumb()
 
     @workflow = workflow
     @addSubView @workflow
@@ -100,11 +99,17 @@ class PricingAppView extends KDView
 
     workflow.off 'FormIsShown'
 
+    workflow.on 'GroupCreationFailed', =>
+      @hideWorkflow()
+      @showGroupCreationFailed()
+
     workflow.on 'FormIsShown', (form)=>
       return  unless workflow.active
       @breadcrumb.selectItem workflow.active.getOption 'name'
 
-
+  hideBreadcrumb:->
+    @breadcrumb.hide()
+    document.body.classList.remove 'flow'
 
   hideWorkflow: ->
     @workflow.hide()
@@ -122,6 +127,29 @@ class PricingAppView extends KDView
     @hideWorkflow()
     @addSubView @groupForm = @createGroupForm()
 
+    @breadcrumb.selectItem 'details'
+
+  showGroupCreationFailed: ->
+
+    @addSubView @sorry = new KDCustomHTMLView
+      name     : "thanks"
+      cssClass : "pricing-final"
+      partial  :
+        """
+        <i class="error-icon"></i>
+        <h3 class="pricing-title">Something went wrong!</h3>
+        <h6 class="pricing-subtitle">We're sorry to tell that something unexpected has happened,<br/>please contact our support <a href='mailto:support@koding.com' target='_self'>support@koding.com</a>, we'll sort it out ASAP.</h6>
+        """
+
+    @sorry.addSubView new KDButtonView
+      style    : "solid"
+      title    : "Go back"
+      callback : ->
+        KD.singleton("router").handleRoute "/"
+
+    @hideBreadcrumb()
+
+
   showPaymentSucceded: ->
     {createAccount, loggedIn} = @formData
 
@@ -133,7 +161,7 @@ class PricingAppView extends KDView
       else "Now it’s time, time to start Koding!"
 
     @addSubView @thankYou = new KDCustomHTMLView
-      cssClass : "pricing-thank-you"
+      cssClass : "pricing-final"
       partial  :
         """
         <i class="check-icon"></i>
@@ -159,7 +187,7 @@ class PricingAppView extends KDView
       else ""
 
     @addSubView @thankYou = new KDCustomHTMLView
-      cssClass : "pricing-thank-you"
+      cssClass : "pricing-final"
       partial  :
         """
         <i class="check-icon"></i>
@@ -195,6 +223,9 @@ class PricingAppView extends KDView
           label             : "Group Name"
           name              : "groupName"
           placeholder       : "My Awesome Group"
+          validate          :
+            rules           :
+              required      : yes
           keyup             : =>
             @checkSlug @groupForm.inputs.GroupName.getValue()
           validate          :
@@ -223,6 +254,9 @@ class PricingAppView extends KDView
         GroupSlug           :
           type              : "hidden"
           name              : "groupSlug"
+          validate          :
+            rules           :
+              minLength     : 4
 
         Visibility          :
           itemClass         : KDSelectBox
@@ -249,6 +283,7 @@ class PricingAppView extends KDView
 
     {JGroup} = KD.remote.api
     JGroup.create options, (err, group, subscription) =>
+      log err, group, subscription, '>>>>>>>>>>>>>>>>>>'
       return KD.showError err  if err
       @showGroupCreated group, subscription
 
