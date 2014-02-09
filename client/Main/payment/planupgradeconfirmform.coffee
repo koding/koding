@@ -8,10 +8,10 @@ class PlanUpgradeConfirmForm extends PaymentConfirmForm
       buttons       :
         cancel      :
           title     : "CANCEL"
-          cssClass  : "solid"
+          cssClass  : "solid light-gray"
           callback  : => @emit 'Cancel'
         Buy         :
-          title     : "CONFIRM ORDER"
+          title     : "PLACE YOUR ORDER"
           cssClass  : "solid green"
           loader    :
             color   : "#ffffff"
