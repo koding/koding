@@ -401,7 +401,7 @@ class VirtualizationController extends KDController
 
     productForm.on "Cancel", modal.bound "destroy"
 
-  provisionVm: ({ subscription, paymentMethod, productData })->
+  provisionVm: ({ subscription, paymentMethod, productData }, callback) ->
     { JVM } = KD.remote.api
 
     { plan, pack } = productData
@@ -413,18 +413,20 @@ class VirtualizationController extends KDController
       plan.subscribe paymentMethod.paymentMethodId, (err, subscription) =>
         return  if KD.showError err
 
-        @provisionVm { subscription, productData }
+        @provisionVm { subscription, productData }, callback
 
       return
 
     payment.debitSubscription subscription, pack, (err, nonce) =>
-      return  if KD.showError err
+      return callback err  if err
 
       JVM.createVmByNonce nonce, (err, vm) =>
         return  if KD.showError err
 
         @emit 'VMListChanged'
         @showVMDetails vm
+
+        callback null, nonce
 
   askForApprove:(command, callback)->
 
