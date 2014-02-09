@@ -373,7 +373,12 @@ class VirtualizationController extends KDController
     productForm.on 'PackOfferingRequested', (subscription) ->
       KD.remote.api.JPaymentPack.one tags: 'vm', (err, pack) ->
         return KD.showError err  if err
-        productForm.setContents 'packs', [pack]
+        [subscription] = productForm.currentSubscriptions
+        return KD.showError "subscription not found"  unless subscription
+        subscription.checkUsage pack, (err) ->
+          if err
+          then productForm.showForm "upgrade"
+          else productForm.collectData {pack}
 
     workflow = new PaymentWorkflow
       productForm: productForm
