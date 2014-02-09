@@ -93,7 +93,7 @@ class PaymentMethodEntryForm extends KDFormViewWithFields
             color           : '#ffffff'
             diameter        : 26
         BACK                :
-          style             : 'solid'
+          style             : 'solid light-gray'
           callback          : => @parent.showForm 'choice'
 
   viewAppended:->
