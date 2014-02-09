@@ -1,6 +1,8 @@
 class PaymentWorkflow extends FormWorkflow
 
   constructor: (options = {}, data) ->
+
+    options.cssClass = KD.utils.curry 'payment-workflow', options.cssClass
     unless options.confirmForm
       throw new Error "You must provide a confirmForm option!"
 
@@ -10,7 +12,10 @@ class PaymentWorkflow extends FormWorkflow
 
     paymentController = KD.getSingleton 'paymentController'
 
+    @showLoader()
+
     paymentController.fetchPaymentMethods (err, paymentMethods) =>
+      @hideLoader()
       return if KD.showError err
 
       if paymentMethods.methods.length > 0
