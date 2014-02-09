@@ -9,6 +9,7 @@ class SubscriptionGaugeItem extends KDListItemView
     @progressBar  = new KDProgressBarView
       determinate : yes
       initial     : data.usageRatio * 100
+      title       : "#{data.usage} / #{data.quota}"
 
   viewAppended: JView::viewAppended
 

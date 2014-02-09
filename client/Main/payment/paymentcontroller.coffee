@@ -210,11 +210,15 @@ class PaymentController extends KDController
 
   debitSubscription: (subscription, pack, callback) ->
     subscription.debit { pack }, (err, nonce) =>
-      return  if KD.showError err
-
+      return callback err  if err
       @emit 'SubscriptionDebited', subscription
-
       callback null, nonce
+
+  creditSubscription: (subscription, pack, callback) ->
+    subscription.credit { pack }, (err) =>
+      return callback err  if err
+      @emit 'SubscriptionCredited', subscription
+      callback()
 
   fetchSubscriptionsWithPlans: (options, callback) ->
     [callback, options] = [options, callback]  unless callback
@@ -241,3 +245,26 @@ class PaymentController extends KDController
       subscription.plan = plansByCode[subscription.planCode]
 
     { plans, subscriptions }
+
+  debitWrapper: (options = {}, callback) ->
+    options.fn = @debitSubscription.bind this
+    @_runWrapper options, callback
+
+  creditWrapper: (options = {}, callback) ->
+    options.fn = @creditSubscription.bind this
+    @_runWrapper options, callback
+
+  _runWrapper: (options, callback) ->
+    {fn, subscriptionTag, packTag} = options
+    @fetchSubscriptionsWithPlans tags: [subscriptionTag], (err, subscriptions) =>
+      return  if KD.showError err
+      [subscription] = subscriptions
+
+      if subscription
+        KD.remote.api.JPaymentPack.one tags: packTag, (err, pack) =>
+          return  if KD.showError err
+          fn subscription, pack, (err, nonce) =>
+            return  if KD.showError err
+            callback null, nonce
+      else
+        callback()

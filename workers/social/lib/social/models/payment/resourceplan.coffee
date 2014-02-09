@@ -15,9 +15,7 @@ module.exports = class JResourcePlan extends Base
   @calculateQuantities = (options, callback) ->
     { plan, resourceQuantity } = options
 
-    queryOptions = targetOptions: selector: tags: 'vm'
-
-    plan.fetchProducts null, queryOptions, (err, products) ->
+    plan.fetchProducts (err, products) ->
       return callback err  if err
       return callback message: "no products found"  unless products?.length
 
