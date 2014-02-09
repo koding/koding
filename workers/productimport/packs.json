@@ -10,5 +10,9 @@
   {
     "title": "Group", 
     "tags": ["group"]
+  },
+  {
+    "title": "Always On", 
+    "tags": ["alwayson"]
   }
 ]

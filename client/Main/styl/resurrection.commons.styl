@@ -305,7 +305,6 @@ finderSelectedColor2 = #3AAAAB
 //
 // THIN BUTTON STYLES
 //
-
 .kdbutton.thin
   bg                   color transparent
   border               2px solid logoBg
@@ -372,7 +371,22 @@ finderSelectedColor2 = #3AAAAB
   &:focus
     shadow             0 0 10px -2px logoBg
 
-.kdbutton.solid.green.small
+.kdbutton.solid.yellow
+  bg                   color #ff9f00
+  span.button-title
+    color              #ac4a00
+  span.icon
+    margin             18px 0 0 0
+  &:hover
+  &:active
+  &:focus
+    bg                 color #ac4a00
+    span.button-title
+      color            #ff9f00
+  &:focus
+    shadow             0 0 10px -2px #ff9f00
+
+.kdbutton.solid.small
   margin              0
   padding             0 25px
   size                auto 26px
@@ -384,7 +398,7 @@ finderSelectedColor2 = #3AAAAB
   span.icon
     margin            2px 0 0 0
 
-.kdbutton.solid.green.medium
+.kdbutton.solid.medium
   margin              0
   padding             0 25px
   size                auto 44px
@@ -416,6 +430,9 @@ finderSelectedColor2 = #3AAAAB
     .button-title
       text-shadow      0 -1px 2px rgba(0, 0, 0, .75)
 
+.kdbutton.w-loader.loading
+  .button-title
+    opacity            0
 
 /*  */
 

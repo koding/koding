@@ -80,6 +80,7 @@ class PaymentMethodEntryForm extends KDFormViewWithFields
 
     super
       cssClass              : KD.utils.curry 'payment-method-entry-form', options.cssClass
+      name                  : 'method'
       fields                : fields
       callback              : (formData) =>
         @emit 'PaymentInfoSubmitted', @paymentMethodId, formData
@@ -88,7 +89,12 @@ class PaymentMethodEntryForm extends KDFormViewWithFields
           title             : 'ADD CARD'
           style             : 'solid green'
           type              : 'submit'
-          loader            : { color : '#fff', diameter : 12 }
+          loader            :
+            color           : '#ffffff'
+            diameter        : 26
+        BACK                :
+          style             : 'solid'
+          callback          : => @parent.showForm 'choice'
 
   viewAppended:->
     super()
@@ -116,6 +122,7 @@ class PaymentMethodEntryForm extends KDFormViewWithFields
     # @paymentForm.fields.country.addSubView @countryLoader
 
     @updateDescription()
+
 
   activate: ->
     { cardFirstName, cardLastName, cardNumber } = @inputs
