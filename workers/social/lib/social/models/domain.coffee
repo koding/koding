@@ -156,7 +156,7 @@ module.exports = class JDomain extends jraphical.Module
         default     : -> new Date
 
   @isDomainEligible: (params, callback)->
-    {domain} = params
+    {domain, newDomain} = params
 
     unless /([a-z0-9\-]+)\.kd\.io$/.test domain
       return callback new KodingError("Invalid domain: #{domain}.", "INVALIDDOMAIN")
@@ -165,7 +165,7 @@ module.exports = class JDomain extends jraphical.Module
 
     [rest..., prefix, slug] = match
     
-    if /^shared|vm[\-]?([0-9]+)?/.test prefix
+    if newDomain and /^shared|vm[\-]?([0-9]+)?/.test prefix
       return callback new KodingError("Domain name cannot start with shared|vm", "INVALIDDOMAIN")
 
     callback null, slug
