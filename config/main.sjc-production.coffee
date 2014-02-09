@@ -174,6 +174,10 @@ module.exports =
       broker    :
         servicesEndpoint: "/-/services/broker"
         sockJS   : "https://broker-#{version}.koding.com/subscribe"
+      brokerKite:
+        servicesEndpoint: "/-/services/broker"
+        brokerExchange: 'brokerKite'
+        sockJS   : "https://brokerkite-#{version}.koding.com/subscribe"
       apiUri    : 'https://koding.com'
       appsUri   : 'https://koding-apps.s3.amazonaws.com'
       uploadsUri: 'https://koding-uploads.s3.amazonaws.com'

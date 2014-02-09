@@ -82,7 +82,7 @@ var (
 	conf *config.Config
 
 	// flag variables
-	flagProfile   = flag.String("c", "", "Configuration profile from file")
+	flagConfig    = flag.String("c", "", "Configuration profile from file")
 	flagRegion    = flag.String("r", "", "Region")
 	flagVMProxies = flag.Bool("v", false, "Enable ports for VM users (1024-10000)")
 )
@@ -126,12 +126,12 @@ type interval struct {
 
 func main() {
 	flag.Parse()
-	if *flagProfile == "" || *flagRegion == "" {
+	if *flagConfig == "" || *flagRegion == "" {
 		log.Error("No flags defined. -c, -r and -v is not set. Aborting")
 		os.Exit(1)
 	}
 
-	conf = config.MustConfig(*flagProfile)
+	conf = config.MustConfig(*flagConfig)
 	modelhelper.Initialize(conf.Mongo)
 
 	l := logger.GetLoggingLevelFromConfig(KONTROLPROXY_NAME, conf.Environment)
@@ -179,7 +179,7 @@ func (p *Proxy) runNewKite() {
 
 	query := protocol.KontrolQuery{
 		Username:    "koding-kites",
-		Environment: *flagProfile,
+		Environment: *flagConfig,
 		Name:        "oskite",
 		Version:     "0.0.1",
 		Region:      *flagRegion,

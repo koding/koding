@@ -6,10 +6,10 @@ import (
 	"flag"
 	"fmt"
 	"io/ioutil"
-	"koding/kite/kd/build"
+	"kite/cmd/build"
+	"koding/tools/config"
 	"log"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"runtime"
 	"strings"
@@ -38,6 +38,8 @@ func main() {
 		fmt.Println("Please define config -c and region -r")
 		os.Exit(1)
 	}
+
+	fmt.Println(*profile, *region, *proxy)
 
 	err := buildPackages()
 	if err != nil {
@@ -168,25 +170,18 @@ func (p *pkg) build() error {
 	}
 	defer os.Remove("VERSION")
 
-	// create config and include into config folder
-	config, err := exec.Command("node", "-e", "require('koding-config-manager').printJson('main."+*profile+"')").CombinedOutput()
+	c, err := config.ReadConfigManager(*profile)
 	if err != nil {
 		return err
 	}
 
-	// prettify content of "config"
-	var d map[string]interface{}
-	if err := json.Unmarshal(config, &d); err != nil {
-		return err
-	}
-
-	config, err = json.MarshalIndent(d, "", "  ")
+	configPretty, err := json.MarshalIndent(c, "", "  ")
 	if err != nil {
 		return err
 	}
 
 	configFile := filepath.Join(configDir, fmt.Sprintf("main.%s.json", *profile))
-	err = ioutil.WriteFile(configFile, config, 0644)
+	err = ioutil.WriteFile(configFile, configPretty, 0644)
 	if err != nil {
 		return err
 	}
