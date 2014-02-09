@@ -142,13 +142,10 @@ module.exports = class JVM extends Module
     {connection: delegate: account} = client
     {vmName, status} = options
     JDomain = require './domain'
-    JDomain.isDomainEligible {domain: vmName}, (err, webHome) =>
-      return callback err if err
-
-      selector =
-        hostnameAlias : vmName
-        webHome       : webHome
-      @one selector, (err, vm) ->
+    JDomain.isDomainEligible {domain: vmName, newDomain: no}, (err, webHome) =>
+      return callback err  if err
+        
+      @one hostnameAlias: vmName, (err, vm) ->
         return callback err if err
         return callback new KodingError "VM Not FOUND" unless vm
 
@@ -157,9 +154,11 @@ module.exports = class JVM extends Module
         JGroup.one { _id: groupId }, (err, group)->
           return callback err  if err
           return callback new KodingError "Group not found"  unless group
-          group.fetchSubscription (err, subscription) ->
+          object = if group.slug is "koding" then account else group
+
+          object.fetchSubscription (err, subscription) ->
             return callback err  if err
-            return callback new KodingError "Group subscription not found"  unless subscription
+            return callback new KodingError("Subscription not found","NOTSUBSCRIBED")  unless subscription
 
             JPaymentPack.one tags: "alwayson", (err, pack) ->
               return callback err  if err
@@ -639,17 +638,25 @@ module.exports = class JVM extends Module
     JVM.removeRelatedDomains this
     super callback
 
-  credit: (group, callback)->
-    group.fetchSubscription (err, subscription)=>
-      return callback err  if err
-      return callback new KodingError 'Group subscription not found'  unless subscription
-
+  removeFromSubscription: (account, group, callback)->
+    kallback = (subscription) =>
       if subscription.status is 'canceled'
         @remove callback
       else
         subscription.creditPack tag : "vm", (err) =>
           return callback err  if err
           @remove callback
+
+    if group.slug is "koding"
+      account.fetchSubscription (err, subscription) =>
+        return callback err  if err
+        return @remove callback  unless subscription # so this is a free account
+        kallback subscription
+    else
+      group.fetchSubscription (err, subscription) =>
+        return callback err  if err
+        return callback new KodingError "Group subscription not found"  unless subscription
+        kallback subscription
 
   @removeByHostname = secure (client, hostnameAlias, callback)->
     {delegate} = client.connection
@@ -666,8 +673,8 @@ module.exports = class JVM extends Module
         JPermissionSet.checkPermission client, "delete vms", group, (err, hasPermission)->
           return callback err  if err
           return callback new KodingError "You do not have permission to delete this vm"  unless hasPermission
-          if vm.planCode is 'free' then vm.remove callback
-          else vm.credit group, callback
+          vm.removeFromSubscription delegate, group, callback
+
    
   fetchVmByHostname = (account, hostnameAlias, callback) ->
     account.fetchUser (err, user) =>
