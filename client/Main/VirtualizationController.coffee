@@ -276,7 +276,7 @@ class VirtualizationController extends KDController
       @info vm, callback? rest...
 
   fetchDiskUsage:(vmName, callback = noop)->
-    command = """df | grep aufs | awk '{print $2, $3}'"""
+    command = "df | grep aufs | awk '{print $2, $3}'"
     @run { vmName, withArgs:command }, (err, res)->
       if err or not res then [max, current] = [0, 0]
       else [max, current] = res.trim().split " "
