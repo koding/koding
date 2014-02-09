@@ -121,7 +121,19 @@ class FormWorkflow extends KDView
 
     return this
 
+  addLoader:->
+    @addSubView @loader = new KDLoaderView
+      size          :
+        width       : 60
+        height      : 60
+      loaderOptions :
+        color       : "#1aaf5d"
+
+  showLoader:-> @loader.show()
+  hideLoader:-> @loader.hide()
+
   viewAppended:->
+    @addLoader()
     @prepareWorkflow?()
     @emit 'ready'
 
