@@ -210,15 +210,15 @@ class PaymentController extends KDController
 
   debitSubscription: (subscription, pack, callback) ->
     subscription.debit { pack }, (err, nonce) =>
-      return  if KD.showError err
+      return callback err  if err
       @emit 'SubscriptionDebited', subscription
       callback null, nonce
 
   creditSubscription: (subscription, pack, callback) ->
     subscription.credit { pack }, (err) =>
-      return  if KD.showError err
+      return callback err  if err
       @emit 'SubscriptionCredited', subscription
-      callback null
+      callback()
 
   fetchSubscriptionsWithPlans: (options, callback) ->
     [callback, options] = [options, callback]  unless callback
