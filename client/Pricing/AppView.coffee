@@ -187,13 +187,14 @@ class PricingAppView extends KDView
       callback              : -> @emit "Submit"
       buttons               :
         Create              :
-          title             : "CREATE"
+          title             : "CREATE YOUR GROUP"
           type              : "submit"
           style             : "solid green"
       fields                :
         GroupName           :
           label             : "Group Name"
           name              : "groupName"
+          placeholder       : "My Awesome Group"
           keyup             : =>
             @checkSlug @groupForm.inputs.GroupName.getValue()
           validate          :
@@ -202,20 +203,23 @@ class PricingAppView extends KDView
             messages        :
               required      : "Group name required"
         GroupURL            :
-          label             : "Address"
-          defaultValue      : "#{window.location.origin}"
-          disabled          : yes
+          label             : "Group address"
+          defaultValue      : "#{window.location.origin}/"
+          # disabled          : yes
           keyup             : =>
             splittedUrl = @groupForm.inputs.GroupURL.getValue().split "/"
             @checkSlug splittedUrl.last
-          nextElement       :
-            changeURL       :
-              itemClass     : KDCustomHTMLView
-              tagName       : "a"
-              partial       : 'change'
-              click         : =>
-                @groupForm.inputs.GroupURL.makeEnabled()
-                @groupForm.inputs.GroupURL.focus()
+
+          # don't push it in if you can't do it right! - SY
+
+          # nextElement       :
+          #   changeURL       :
+          #     itemClass     : KDCustomHTMLView
+          #     tagName       : "a"
+          #     partial       : 'change'
+          #     click         : =>
+          #       @groupForm.inputs.GroupURL.makeEnabled()
+          #       @groupForm.inputs.GroupURL.focus()
         GroupSlug           :
           type              : "hidden"
           name              : "groupSlug"
