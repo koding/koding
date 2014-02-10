@@ -60,7 +60,7 @@ module.exports = class JCustomPartials extends Model
       return callback err if err
       @update {$set:data}, callback
 
-  remove$: secure (client, data, callback)->
+  remove$: secure (client, callback)->
     @checkPermission client, (err, res)=>
       return callback err if err
       @remove callback
