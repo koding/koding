@@ -149,6 +149,8 @@ func (b *Broker) Close() {
 // populate a list of brokers and show them to the client. The list is
 // available at: https://koding.com/-/services/broker?all
 func (b *Broker) registerToKontrol() {
+	defer log.RecoverAndLog()
+
 	if err := kontrolhelper.RegisterToKontrol(
 		conf,
 		b.Config.Name,
@@ -165,6 +167,8 @@ func (b *Broker) registerToKontrol() {
 // startAMQP setups the the neccesary publisher and consumer connections for
 // the broker broker.
 func (b *Broker) startAMQP() {
+	defer log.RecoverAndLog()
+
 	b.PublishConn = amqputil.CreateConnection(conf, b.Config.Name)
 	defer b.PublishConn.Close()
 
