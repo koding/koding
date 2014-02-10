@@ -372,7 +372,7 @@ class VirtualizationController extends KDController
           upgradeForm.on "Cancel", modal.bound "destroy"
 
     if KD.getGroup().slug is "koding"
-      @payment.fetchSubscriptionsWithPlans tags: [tag], (err, subscriptions) ->
+      @payment.fetchSubscriptionsWithPlans tags: ["vm"], (err, subscriptions) ->
         return  if KD.showError err
         [subscription] = subscriptions
         callback subscription
