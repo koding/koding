@@ -9,7 +9,7 @@ class ResourcesContainer extends KDView
     payment = KD.singleton "paymentController"
     payment.fetchSubscriptionsWithPlans tags: [tag], (err, [subscription]) =>
       return new KDNotificationView title: err  if err
-      @subscriptions.addSubView new SubscriptionUsageView null, subscription
+      @subscriptions.addSubView new SubscriptionUsageView null, subscription  if subscription
 
   viewAppended: ->
     @addSubView @titleBar = new KDCustomHTMLView
