@@ -62,10 +62,10 @@ type LeveledBackend interface {
 }
 
 type moduleLeveled struct {
-	levels  map[string]Level
-	backend Backend
+	levels    map[string]Level
+	backend   Backend
 	formatter Formatter
-	once sync.Once
+	once      sync.Once
 }
 
 // AddModuleLevel wraps a log backend with knobs to have different log levels

@@ -309,6 +309,24 @@ task 'goBroker', "Run the goBroker", (options)->
       binary          : uuid
     verbose           : yes
 
+task 'goBrokerKite', "Run the goBrokerKite", (options)->
+  {configFile} = options
+  config = require('koding-config-manager').load("main.#{configFile}")
+  {broker} = config
+  uuid = hat()
+
+  processes.spawn
+    name              : 'brokerKite'
+    cmd               : "./go/bin/broker -c #{configFile} -u #{uuid} -b brokerKite #{addFlags options}"
+    restart           : yes
+    restartTimeout    : 100
+    stdout            : process.stdout
+    stderr            : process.stderr
+    kontrol           :
+      enabled         : if config.runKontrol is yes then yes else no
+      binary          : uuid
+    verbose           : yes
+
 task 'rerouting', "Run rerouting", (options)->
 
   {configFile} = options
@@ -508,10 +526,16 @@ task 'migratePost', "Migrate Posts to JNewStatusUpdate", ({configFile})->
     verbose : yes
 
 run =({configFile})->
+  process.stdout.setMaxListeners 100
+  process.stderr.setMaxListeners 100
+
   config = require('koding-config-manager').load("main.#{configFile}")
 
   compileGoBinaries configFile, ->
+    invoke 'kontrolDaemon'                    if config.runKontrol
+    invoke 'kontrolApi'                       if config.runKontrol
     invoke 'goBroker'                         if config.runGoBroker
+    invoke 'goBrokerKite'                     if config.runGoBrokerKite
     invoke 'osKite'                           if config.runOsKite
     invoke 'rerouting'                        if config.runRerouting
     invoke 'userpresence'                     if config.runUserPresence
@@ -743,3 +767,9 @@ task 'analyzeCss','Checks lengthy css and suggests improvements',(options)->
     log.info "#{counter.fns} selectors contain identical CSS properties"
     log.info "possible savings:",Math.floor(counter.chars/1024)+" kbytes"
     log.info "this tool works only if u did 'cake -usd vpn beta' before running analyzeCss."
+
+
+
+{installSikuli, runSikuli} = require "./cake_tasks/sikuli"
+task 'installSikuli', "Downloads and installs Sikuli", -> installSikuli()
+task 'runTest', "Opens http://localhost:3020 and runs tests", -> runSikuli()

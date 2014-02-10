@@ -1,8 +1,6 @@
 package rabbitmq
 
-import (
-	"github.com/streadway/amqp"
-)
+import "github.com/streadway/amqp"
 
 type Producer struct {
 	// Base struct for Producer
@@ -36,8 +34,8 @@ type PublishingOptions struct {
 // to be able to change the settings only in one place.
 // We can declare those settings on both place to ensure they are same. But this
 // package will not support it.
-func NewProducer(e Exchange, q Queue, po PublishingOptions) (*Producer, error) {
-	rmq, err := newRabbitMQConnection(po.Tag)
+func (r *RabbitMQ) NewProducer(e Exchange, q Queue, po PublishingOptions) (*Producer, error) {
+	rmq, err := r.newConnection(po.Tag)
 	if err != nil {
 		return nil, err
 	}

@@ -33,6 +33,7 @@ func NewClient(token string) *Client {
 
 func (c *Client) Request(verb, url string) (io.ReadCloser, error) {
 	url = c.BuildUrl(url)
+
 	req, err := http.NewRequest(verb, url, nil)
 	if err != nil {
 		return nil, err
@@ -46,6 +47,12 @@ func (c *Client) Request(verb, url string) (io.ReadCloser, error) {
 	return resp.Body, nil
 }
 
+// Rollbar api has a bug where all urls needs to have an extra slash
+// before access token; for example this will return a result:
+//    api.rollbar.com/api/1/deploys/?access_token=...
+// however this will not:
+//    api.rollbar.com/api/1/deploys?access_token=...
+// I've emailed them about it on Jan 14, 2014.
 func (c *Client) BuildUrl(url string) string {
 	return fmt.Sprintf("%v/%v/?access_token=%v", c.Endpoint, url, c.Token)
 }

@@ -18,9 +18,14 @@ authAllExchange = "authAll-#{version}"
 embedlyApiKey   = '94991069fb354d4e8fdb825e52d4134a'
 
 environment     = "sjc-production"
+regions         =
+  vagrant       : "vagrant"
+  sj            : "sj"
+  aws           : "aws"
 
 module.exports =
   environment   : environment
+  regions       : regions
   version       : version
   aws           :
     key         : 'AKIAJSUVKX6PD254UGAA'
@@ -50,6 +55,7 @@ module.exports =
   mongoReplSet  : mongoReplSet
   runNeo4jFeeder: yes
   runGoBroker   : no
+  runGoBrokerKite : no
   runKontrol    : yes
   runRerouting  : yes
   runUserPresence: yes
@@ -58,6 +64,7 @@ module.exports =
   buildClient   : yes
   runOsKite     : no
   runProxy      : no
+  redis         : "172.16.3.13:6379"
   misc          :
     claimGlobalNamesForUsers: no
     updateAllSlugs : no
@@ -167,6 +174,10 @@ module.exports =
       broker    :
         servicesEndpoint: "/-/services/broker"
         sockJS   : "https://broker-#{version}.koding.com/subscribe"
+      brokerKite:
+        servicesEndpoint: "/-/services/broker"
+        brokerExchange: 'brokerKite'
+        sockJS   : "https://brokerkite-#{version}.koding.com/subscribe"
       apiUri    : 'https://koding.com'
       appsUri   : 'https://koding-apps.s3.amazonaws.com'
       uploadsUri: 'https://koding-uploads.s3.amazonaws.com'
@@ -203,12 +214,24 @@ module.exports =
     heartbeat   : 20
     vhost       : 'new'
   broker        :
+    name        : "broker"
     ip          : ""
     port        : 443
     certFile    : "/opt/ssl_certs/wildcard.koding.com.cert"
     keyFile     : "/opt/ssl_certs/wildcard.koding.com.key"
     webProtocol : 'https:'
     webHostname : "broker-#{version}a.koding.com"
+    webPort     : null
+    authExchange: authExchange
+    authAllExchange: authAllExchange
+  brokerKite    :
+    name        : "brokerKite"
+    ip          : ""
+    port        : 443
+    certFile    : "/opt/ssl_certs/wildcard.koding.com.cert"
+    keyFile     : "/opt/ssl_certs/wildcard.koding.com.key"
+    webProtocol : 'https:'
+    webHostname : "brokerkite-#{version}a.koding.com"
     webPort     : null
     authExchange: authExchange
     authAllExchange: authAllExchange
@@ -298,6 +321,10 @@ module.exports =
     use          : true
     ip           : "172.168.2.7"
     port         : 8125
+  graphite       :
+    use          : true
+    host         : "172.168.2.7"
+    port         : 2003
   linkedin       :
     client_id    : "aza9cks1zb3d"
     client_secret: "zIMa5kPYbZjHfOsq"

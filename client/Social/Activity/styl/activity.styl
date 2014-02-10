@@ -207,6 +207,15 @@ resurrection.activity.styl
         hidden()
         abs()
 
+      span.title
+        display         inline-block
+        color           logoBg
+        font-size       20px
+        margin-bottom   4px
+        noTextDeco()
+      a
+        color           logoBg
+
       > p
         overflow        hidden
         width           auto
@@ -215,11 +224,6 @@ resurrection.activity.styl
         padding-bottom  14px
         font-weight     300
         borderBox()
-
-        a
-          display       inline-block
-          color         logoBg
-          noTextDeco()
 
       .progressbar-container
         overflow            hidden
@@ -276,8 +280,7 @@ resurrection.activity.styl
 
     .kdlistitemview-activity-ticker-item
     .kdlistitemview-member
-      size              auto auto
-      min-height        60px
+      size              auto 60px
       position          relative
       padding           14px 0 11px
       margin            0 0 0 42px
@@ -291,8 +294,10 @@ resurrection.activity.styl
 
       .action
         overflow        visible
-        width           auto
+        size            100% auto
         line-height     18px
+        abs             50% 0 0
+        vendor          transform, translateY(-50%)
 
         .kdview
           font-weight   300
@@ -379,7 +384,8 @@ resurrection.activity.styl
         display       inline
 
       .avatarview
-        top           3px
+        abs           50% 0 0
+        vendor        transform, translateY(-50%)
 
       .action
         a.ttag
@@ -608,19 +614,6 @@ span.collapsedtext
     max-height        400px
     line-height       22px
     margin-bottom     16px
-
-    > *
-      padding       0 21px
-
-    > ol
-    > ul
-      padding       10px 42px
-
-    > blockquote
-      padding       0 10px
-
-    > pre
-      padding       10px 0
 
   >.profile
     color         #1aaf5d
@@ -1118,15 +1111,19 @@ body.profile
 .activity-item > article
 .activity-input-widget .update-preview
 
+  > *
+    padding               0 21px
+
   /* Headings */
   h1, h2, h3, h4, h5, h6
-    color         #50595a
-    font-size     14px
+    color                 #50595a
+    font-size             14px
 
   /* Lists */
+
   ol
   ul
-    padding               0 25px 12px
+    padding               10px 42px
     list-style            none
     display               block
     position              relative
@@ -1163,6 +1160,7 @@ body.profile
   blockquote
     border-left           4px solid #DDD
     margin                4px 21px
+    padding               0 10px
   p
     code
       padding             2px 5px
@@ -1173,6 +1171,7 @@ body.profile
       vertical-align      top
       font-size           12px
   pre
+    padding               10px 0
     code
       display             block
       line-height         16px

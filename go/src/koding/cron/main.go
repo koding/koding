@@ -1,6 +1,8 @@
 package main
 
 import (
+	"flag"
+	"koding/db/mongodb/modelhelper"
 	"koding/tools/config"
 	"koding/tools/logger"
 	"koding/workers/topicmodifier"
@@ -12,9 +14,9 @@ import (
 )
 
 var (
-	log                     = logger.New("go-cron")
-	Cron                    *cron.Cron
-	TOPIC_MODIFIER_SCHEDULE = config.Current.TopicModifier.CronSchedule
+	log           = logger.New("go-cron")
+	configProfile = flag.String("c", "", "Configuration profile from file")
+	Cron          *cron.Cron
 )
 
 // later on this could be implemented as kite, and then we will no longer need hard coded
@@ -24,16 +26,21 @@ func init() {
 }
 
 func main() {
+	flag.Parse()
+	if *configProfile == "" {
+		log.Fatal("Please define config file with -c")
+	}
+
+	conf := config.MustConfig(*configProfile)
+
+	// needed for topicModifer until it's done.
+	modelhelper.Initialize(conf.Mongo)
 	log.Notice("Starting Cron Scheduler")
 
-	addTopicModifierConsumer()
+	addFunc(conf.TopicModifier.CronSchedule, func() { topicmodifier.ConsumeMessage(conf) })
 
 	Cron.Start()
 	registerSignalHandler()
-}
-
-func addTopicModifierConsumer() {
-	addFunc(TOPIC_MODIFIER_SCHEDULE, topicmodifier.ConsumeMessage)
 }
 
 func registerSignalHandler() {

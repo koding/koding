@@ -46,7 +46,7 @@ module.exports = class Likeable
                   callback err
                 else
                   @update ($set: 'meta.likes': count), callback
-                  if constructor.name in ["JComment", "JOpinion"]
+                  if constructor.name is "JComment"
                     constructor.fetchRelated? @getId(), (err, activity)->
                       activity.triggerCache(constructor.name == "JComment")
                   delegate.update ($inc: 'counts.likes': 1), (err)->
@@ -76,8 +76,14 @@ module.exports = class Likeable
                   console.log err
                 else
                   @update ($set: 'meta.likes': count), callback
-                  delegate.update ($inc: 'counts.likes': -1), (err)->
+                  delegate.update ($inc: 'counts.likes': -1), (err)=>
                     console.log err if err
+                    @fetchOrigin? (err, origin)=>
+                      if err then log "Couldn't fetch the origin"
+                      else @emit 'LikeIsRemoved',
+                        origin
+                        subject : @
+                        liker   : delegate
                   @flushOriginSnapshot constructor
 
   flushOriginSnapshot:(constructor)->
@@ -85,16 +91,6 @@ module.exports = class Likeable
       Relationship.one
         targetId: @getId()
         as: 'reply'
-      , (err, rel)->
-        if not err and rel
-          rel.fetchSource (err, source)->
-            if not err and source
-              source.flushSnapshot?()
-
-    if constructor.name is 'JOpinion'
-      Relationship.one
-        targetId: @getId()
-        as: 'opinion'
       , (err, rel)->
         if not err and rel
           rel.fetchSource (err, source)->

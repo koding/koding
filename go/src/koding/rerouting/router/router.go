@@ -4,11 +4,12 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/fatih/set"
-	"github.com/streadway/amqp"
 	"koding/tools/amqputil"
 	"koding/tools/logger"
 	"sync"
+
+	"github.com/fatih/set"
+	"github.com/streadway/amqp"
 )
 
 var log = logger.New("router")
@@ -46,7 +47,7 @@ type Router struct {
 	sync.RWMutex // protects routes
 }
 
-func NewRouter(c *Consumer, p *Producer) *Router {
+func NewRouter(c *Consumer, p *Producer, profile string) *Router {
 	return &Router{
 		routes:   M{},
 		consumer: c,
@@ -55,7 +56,6 @@ func NewRouter(c *Consumer, p *Producer) *Router {
 }
 
 func (r *Router) AddRoute(msg *amqp.Delivery) error {
-
 	join, err := createAuthMsg(msg)
 	if err != nil {
 		return err

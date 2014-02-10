@@ -347,8 +347,7 @@ module.exports = class AuthWorker extends EventEmitter
           }
 
     joinClient =(messageData, socketId)->
-      { channel, routingKey, serviceType
-        wrapperRoutingKeyPrefix } = messageData
+      { routingKey, brokerExchange, serviceType, wrapperRoutingKeyPrefix } = messageData
 
       switch serviceType
         when 'bongo', 'kite'

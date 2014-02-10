@@ -13,9 +13,14 @@ authAllExchange = "authAll-#{version}"
 embedlyApiKey   = '94991069fb354d4e8fdb825e52d4134a'
 
 environment     = "staging"
+regions         =
+  vagrant       : "vagrant"
+  sj            : "sj"
+  aws           : "aws"
 
 module.exports =
   environment   : environment
+  regions       : regions
   version       : version
   aws           :
     key         : 'AKIAJSUVKX6PD254UGAA'
@@ -45,6 +50,7 @@ module.exports =
   mongoReplSet  : null
   runNeo4jFeeder: yes
   runGoBroker   : no
+  runGoBrokerKite: no
   runKontrol    : yes
   runRerouting  : yes
   runUserPresence: yes
@@ -53,6 +59,7 @@ module.exports =
   buildClient   : yes
   runOsKite     : no
   runProxy      : no
+  redis         : "172.16.3.13:6379"
   misc          :
     claimGlobalNamesForUsers: no
     updateAllSlugs : no
@@ -162,6 +169,10 @@ module.exports =
       broker    :
         servicesEndpoint: "/-/services/broker"
         sockJS   : "http://stage-broker-#{version}.sj.koding.com/subscribe"
+      brokerKite:
+        servicesEndpoint: "/-/services/broker"
+        brokerExchange: 'brokerKite'
+        sockJS   : "http://stage-brokerkite-#{version}.sj.koding.com/subscribe"
       apiUri    : 'https://koding.com'
       appsUri   : 'https://koding-apps.s3.amazonaws.com'
       uploadsUri: 'https://koding-uploads.s3.amazonaws.com'
@@ -200,12 +211,24 @@ module.exports =
     heartbeat   : 20
     vhost       : 'new'
   broker        :
+    name        : "broker"
     ip          : ""
     port        : 443
     certFile    : "/opt/ssl_certs/wildcard.koding.com.cert"
     keyFile     : "/opt/ssl_certs/wildcard.koding.com.key"
     webProtocol : 'https:'
     webHostname : "broker-#{version}.sj.koding.com"
+    webPort     : null
+    authExchange: authExchange
+    authAllExchange: authAllExchange
+  brokerKite    :
+    name        : "brokerKite"
+    ip          : ""
+    port        : 443
+    certFile    : "/opt/ssl_certs/wildcard.koding.com.cert"
+    keyFile     : "/opt/ssl_certs/wildcard.koding.com.key"
+    webProtocol : 'https:'
+    webHostname : "brokerKite-#{version}.sj.koding.com"
     webPort     : null
     authExchange: authExchange
     authAllExchange: authAllExchange
@@ -235,12 +258,12 @@ module.exports =
   newkontrol      :
     host          : "kontrol-internal.sj.koding.com"
     port          : 4000
-    certFile      : "/opt/koding/go/src/koding/kontrol/kontrolproxy/files/10.0.5.231_cert.pem"
-    keyFile       : "/opt/koding/go/src/koding/kontrol/kontrolproxy/files/10.0.5.231_key.pem"
+    certFile      : "/opt/koding/certs/y_koding_com_cert.pem"
+    keyFile       : "/opt/koding/certs/y_koding_com_key.pem"
   proxyKite       :
     domain        : "127.0.0.1"
-    certFile      : "/opt/koding/go/src/koding/kontrol/kontrolproxy/files/10.0.5.102_cert.pem"
-    keyFile       : "/opt/koding/go/src/koding/kontrol/kontrolproxy/files/10.0.5.102_key.pem"
+    certFile      : "/opt/koding/certs/y_koding_com_cert.pem"
+    keyFile       : "/opt/koding/certs/y_koding_com_key.pem"
   etcd            : [ {host: "127.0.0.1", port: 4001} ]
   kontrold        :
     vhost         : "/"
@@ -315,7 +338,7 @@ module.exports =
     channel      : "C024LG80K"
   logLevel        :
     neo4jfeeder   : "info"
-    oskite        : "debug"
+    oskite        : "info"
     kontrolproxy  : "debug"
     userpresence  : "info"
     vmproxy       : "info"
@@ -330,3 +353,7 @@ module.exports =
     rabbitMQ      : "info"
     ldapserver    : "info"
     broker        : "info"
+  graphite       :
+    use          : true
+    host         : "172.168.2.7"
+    port         : 2003

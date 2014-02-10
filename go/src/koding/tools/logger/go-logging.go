@@ -3,10 +3,12 @@ package logger
 import (
 	"fmt"
 	stdlog "log"
+	"log/syslog"
 	"os"
 	"runtime"
+	"runtime/debug"
 
-	"github.com/op/go-logging"
+	"github.com/sent-hil/go-logging"
 )
 
 var modules []string
@@ -17,7 +19,8 @@ func init() {
 
 // Default Log implementation.
 type GoLogger struct {
-	log *logging.Logger
+	log  *logging.Logger
+	name string
 }
 
 func NewGoLog(name string) *GoLogger {
@@ -28,14 +31,12 @@ func NewGoLog(name string) *GoLogger {
 	logBackend.Color = true
 
 	// Send log to syslog
-	var syslogBackend, err = logging.NewSyslogBackend("")
+	var syslogBackend, err = logging.NewSyslogBackend("", syslog.LOG_DEBUG|syslog.LOG_LOCAL0)
 	if err != nil {
 		panic(err)
 	}
 
 	logging.SetBackend(logBackend, syslogBackend)
-
-	loggingLevel = getLoggingLevelFromConfig(name)
 
 	// go-logging calls Reset() each time it is imported. So if this
 	// pkg is imported in a library and then in a worker, the library
@@ -43,12 +44,35 @@ func NewGoLog(name string) *GoLogger {
 	// re-setting the log level for already set modules.
 	modules = append(modules, name)
 	for _, mod := range modules {
-		logging.SetLevel(loggingLevel, mod)
+		logging.SetLevel(gologgingLevel[DefaultLoggingLevel], mod)
 	}
 
-	var goLog = &GoLogger{logging.MustGetLogger(name)}
+	var goLog = &GoLogger{
+		log:  logging.MustGetLogger(name),
+		name: name,
+	}
 
 	return goLog
+}
+
+// Mappings of internal Level to go-logging level
+var gologgingLevel = map[Level]logging.Level{
+	CRITICAL: logging.CRITICAL,
+	DEBUG:    logging.DEBUG,
+	ERROR:    logging.ERROR,
+	INFO:     logging.INFO,
+	NOTICE:   logging.NOTICE,
+	WARNING:  logging.WARNING,
+}
+
+func (g *GoLogger) SetLevel(level Level) {
+	var l, ok = gologgingLevel[level]
+	if !ok {
+		g.log.Error("SetLevel argument is false: %s", level)
+		l = gologgingLevel[DefaultLoggingLevel]
+	}
+
+	logging.SetLevel(l, g.name)
 }
 
 func (g *GoLogger) Fatal(args ...interface{}) {
@@ -93,6 +117,7 @@ func (g *GoLogger) Name() string {
 
 func (g *GoLogger) RecoverAndLog() {
 	if err := recover(); err != nil {
+		debug.PrintStack()
 		g.Critical("Panicked %v", err)
 	}
 }
@@ -112,5 +137,5 @@ func (g *GoLogger) LogError(err interface{}, stackOffset int, additionalData ...
 		data = append(data, fmt.Sprintf("at %s (%s:%d)\n", name, file, line))
 	}
 	data = append(data, additionalData...)
-	g.Error("LogError %v", data)
+	g.Error("%v", data)
 }

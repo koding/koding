@@ -1,26 +1,30 @@
 package ldapserver
 
 import (
-	ber "github.com/hsoj/asn1-ber"
 	"io"
 	"koding/db/mongodb"
 	"koding/tools/logger"
 	"koding/virt"
-	"labix.org/v2/mgo"
-	"labix.org/v2/mgo/bson"
 	"net"
 	"strconv"
 	"strings"
 	"time"
+
+	ber "github.com/hsoj/asn1-ber"
+	"labix.org/v2/mgo"
+	"labix.org/v2/mgo/bson"
 )
 
 var log = logger.New("ldapserver")
+var mongo *mongodb.MongoDB
 
 var vmCache = make(map[bson.ObjectId]*virt.VM)
 var userByUidCache = make(map[int]*virt.User)
 var userByNameCache = make(map[string]*virt.User)
 
-func Listen() {
+func Listen(mongodbUrl string) {
+	mongo = mongodb.NewMongoDB(mongodbUrl)
+
 	go func() {
 		for {
 			ClearCache()
@@ -113,7 +117,7 @@ func authenticate(name, password string) (bool, *virt.VM) {
 		id := bson.ObjectIdHex(name[3:])
 		vm, found := vmCache[id]
 		if !found {
-			err := mongodb.Run("jVMs", func(c *mgo.Collection) error {
+			err := mongo.Run("jVMs", func(c *mgo.Collection) error {
 				return c.FindId(id).One(&vm)
 			})
 			if err != nil {
@@ -218,7 +222,7 @@ func findUserInFilter(filter *ber.Packet) (*virt.User, error) {
 
 func findUser(query interface{}) (*virt.User, error) {
 	var user virt.User
-	err := mongodb.Run("jUsers", func(c *mgo.Collection) error {
+	err := mongo.Run("jUsers", func(c *mgo.Collection) error {
 		return c.Find(query).One(&user)
 	})
 	if err != nil {

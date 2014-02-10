@@ -1,8 +1,8 @@
 package mongodb
 
 import (
+	"errors"
 	"fmt"
-	"koding/tools/config"
 	"os"
 	"sync"
 
@@ -20,16 +20,12 @@ var (
 	mu    sync.Mutex
 )
 
-func init() {
-	Mongo = NewMongoDB(config.Current.Mongo)
-	mgo.SetStats(true)
-}
-
 func NewMongoDB(url string) *MongoDB {
 	m := &MongoDB{
 		URL: url,
 	}
 
+	mgo.SetStats(true)
 	m.CreateSession(m.URL)
 	return m
 }
@@ -78,6 +74,7 @@ func (m *MongoDB) Run(collection string, s func(*mgo.Collection) error) error {
 	return s(c)
 }
 
+// RunOnDatabase runs command on given database, instead of current database
 func (m *MongoDB) RunOnDatabase(database, collection string, s func(*mgo.Collection) error) error {
 	session := m.GetSession()
 	defer session.Close()
@@ -85,27 +82,31 @@ func (m *MongoDB) RunOnDatabase(database, collection string, s func(*mgo.Collect
 	return s(c)
 }
 
-// RunOnDatabase runs command on given database, instead of current database
-// this is needed for kite datastores currently, since it uses another database
-// on the same connection. mongodb has database level write lock, which locks
-// the entire database while flushing data, if kites tend to send too many
-// set/get/delete commands this wont lock our koding database - hopefully
-func RunOnDatabase(database, collection string, s func(*mgo.Collection) error) error {
-	session := Mongo.GetSession()
-	defer session.Close()
-	c := session.DB(database).C(collection)
-	return s(c)
-}
-
-func Run(collection string, s func(*mgo.Collection) error) error {
-	session := Mongo.GetSession()
-	defer session.Close()
-	c := session.DB("").C(collection)
-	return s(c)
-}
-
-func One(collection, id string, result interface{}) error {
-	session := Mongo.GetSession()
+func (m *MongoDB) One(collection, id string, result interface{}) error {
+	session := m.GetSession()
 	defer session.Close()
 	return session.DB("").C(collection).FindId(bson.ObjectIdHex(id)).One(result)
+}
+
+func (m *MongoDB) Iter(cl string, q func(*mgo.Collection) *mgo.Query, i func(*mgo.Iter) error) error {
+	session := m.GetSession()
+	defer session.Close()
+	c := session.DB("").C(cl)
+
+	var iter = q(c).Iter()
+	var err = i(iter)
+	if err != nil {
+		return err
+	}
+
+	err = iter.Close()
+	if err != nil {
+		return err
+	}
+
+	if iter.Timeout() {
+		return errors.New("iter timed out")
+	}
+
+	return nil
 }
