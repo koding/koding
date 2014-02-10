@@ -18,9 +18,6 @@ var (
 	conf *config.Config
 )
 
-// TODO take it from config
-const kodingUsername = "koding-kites"
-
 func main() {
 	flag.Parse()
 	if *profile == "" {
@@ -67,5 +64,5 @@ func (b *exampleBackend) PrivateKey() string { return b.privateKey }
 
 // TODO authenticate with username and password
 func (b *exampleBackend) Authenticate(r *kite.Request) (string, error) {
-	return kodingUsername, nil
+	return "koding-kites", nil
 }
