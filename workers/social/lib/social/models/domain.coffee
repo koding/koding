@@ -189,25 +189,26 @@ module.exports = class JDomain extends jraphical.Module
           return callback err  if err
           return callback new KodingError "Access denied",  "ACCESSDENIED" unless hasPermission
 
-          model = new JDomain options
-          model.save (err) ->
-            if err?.code is 11000
+          JDomain.one {domain}, (err, model) ->
+            return callback err  if err
+            if model
               return callback new KodingError("The domain #{options.domain} already exists", "DUPLICATEDOMAIN") 
-
-            return callback err if err
-
-            account = client.connection.delegate
-            rel = new Relationship
-              targetId: model.getId()
-              targetName: 'JDomain'
-              sourceId: account.getId()
-              sourceName: 'JAccount'
-              as: 'owner'
-
-            rel.save (err)->
+            model = new JDomain options
+            model.save (err) ->
               return callback err if err
 
-            callback err, model
+              account = client.connection.delegate
+              rel = new Relationship
+                targetId: model.getId()
+                targetName: 'JDomain'
+                sourceId: account.getId()
+                sourceName: 'JAccount'
+                as: 'owner'
+
+              rel.save (err)->
+                return callback err if err
+
+              callback err, model
 
   @getTldList = (callback)->
     domainManager.domainService.getAvailableTlds callback
