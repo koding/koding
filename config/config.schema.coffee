@@ -270,10 +270,13 @@ config =
     pidFile       : 1
     etcd            : [{ host : 1, port : 1}]
     newkontrol      :
-      host          : 1
-      port          : 1
-      certFile      : 1
-      keyFile       : 1
+      username        : 1
+      port            : 1
+      useTLS          : 1
+      certFile        : 1
+      keyFile         : 1
+      publicKeyFile   : 1
+      privateKeyFile  : 1
     proxyKite       :
       domain        : 1
       certFile      : 1
