@@ -24,10 +24,17 @@ module.exports = class JCustomPartials extends Model
         some      :
           (signature Object, Object, Function)
       instance     :
-        update     :
-          (signature Object, Object, Function)
-        remove     :
+        update     : [
           (signature Object, Function)
+          (signature Object, Object, Function)
+        ]
+        remove     : [
+          (signature Function)
+          (signature Object, Function)
+        ]
+    sharedEvents    :
+      static        : []
+      instance      : []
 
   @create = secure (client, data, callback) ->
     checkPermission client, (err, res)=>
