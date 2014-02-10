@@ -11,10 +11,13 @@ class VMAlwaysOnToggleButtonView extends JView
     
     KD.remote.api.JVM.setAlwaysOn {vmName, status}, (err) =>
       if err
-        if err.name is "NOTSUBSCRIBED"
-          KD.showError "You have to upgrade your account for getting Always On VM"
-        else 
-          KD.showError "You have exceeded your \"Always On\" VM quota"
+        switch err.name
+          when "NOTPERMITTED"
+            KD.showError "You are not allowed for this operation"
+          when "NOTSUBSCRIBED"
+            KD.showError "You have to upgrade your account for getting Always On VM"
+          else 
+            KD.showError "You have exceeded your \"Always On\" VM quota"
         @decorate off
 
   decorate: (status) ->
