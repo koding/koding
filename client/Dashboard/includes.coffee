@@ -57,6 +57,9 @@ module.exports = [
   "views/groupsmembershippolicyeditor.coffee"
   "views/groupsformgeneratorview.coffee"
 
+  # home pages
+  "views/homepages/homepagesdashboardview.coffee",
+
   "views/permissionsform.coffee",
 
   "styl/app.group.dashboard.styl",
