@@ -1,9 +1,6 @@
 class DeveloperPlan extends JView
-
   constructor: (options = {}, data) ->
-
     options.cssClass = KD.utils.curry "developer-plan", options.cssClass
-
     super options, data
 
     @planIndex = 0
@@ -40,7 +37,7 @@ class DeveloperPlan extends JView
         drawOpposite : yes
 
     @slider.on "ValueChanged", (index)=>
-      @planIndex = Math.max index+1, 0
+      @planIndex = Math.max index, 0
       @updateContent()
 
     @summary = new KDCustomHTMLView cssClass: "plan-selection-box selected"
@@ -59,7 +56,7 @@ class DeveloperPlan extends JView
         paymentController.fetchSubscriptionsWithPlans tags: $in: "vm", (err, subscriptions) =>
           return KD.showError err  if err
           @emit "CurrentSubscriptionSet", subscriptions.first  if subscriptions.length
-          @emit "PlanSelected", "rp#{@planIndex + 1}", planApi: KD.remote.api.JResourcePlan
+          @emit "PlanSelected", "rp#{@planIndex}", planApi: KD.remote.api.JResourcePlan
 
     @updateContent()
 
@@ -71,13 +68,13 @@ class DeveloperPlan extends JView
       @buyNow.setTitle 'SIGN UP'
     else
       title = "#{index}x Resource Pack"
-      desc  = "$#{@plans[index-1].price}/Month"
+      desc  = "$#{@plans[index].price}/Month"
       @buyNow.setTitle 'BUY NOW'
 
     @title.updatePartial title
     @price.updatePartial desc
 
-    # plan = @plans[index-1]
+    # plan = @plans[index]
     # {discount, vm} = plan
 
     # @promotion.updatePartial if discount and vm

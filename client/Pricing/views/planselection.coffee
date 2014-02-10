@@ -14,7 +14,7 @@ class PricingPlanSelection extends JView
 
     @title.addSubView @count = new KDCustomHTMLView tagName : "cite"
 
-    @price    = new KDCustomHTMLView
+    @price     = new KDCustomHTMLView
       tagName  : "h5"
       cssClass : "hidden"  if options.hidePrice
       partial  : "$#{options.slider.initialValue * options.unitPrice}/#{options.period}"
@@ -39,10 +39,6 @@ class PricingPlanSelection extends JView
       partial    : options.description
 
   updateDescription:(value)->
-
-    # return log @parent.plans
-
-
     unless @parent.plans?[value]
       @description.updatePartial @getOption 'description'
     else
@@ -56,7 +52,6 @@ class PricingPlanSelection extends JView
       <cite>#{alwaysOn}x</cite>Always on VMs
       """
 
-
   viewAppended: ->
     super
     @unsetClass "kdview"
@@ -68,12 +63,3 @@ class PricingPlanSelection extends JView
     {{> @slider}}
     {{> @description}}
     """
-
-    # """
-    #   <span class="icon"></span>
-    #   <div class="plan-values">
-    #     <span class="unit-display">{{> @count }}</span>
-    #     <span class="calculated-price">{{> @price}}</span>
-    #   </div>
-    #   <div class="sliderbar-outer-container">{{> @slider}}</div>
-    # """
