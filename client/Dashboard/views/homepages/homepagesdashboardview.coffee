@@ -21,7 +21,9 @@ class AddNewHomePageView extends JView
     @cancelButton = new KDButtonView
       title       : "CANCEL"
       cssClass    : "solid red"
-      callback    : => @destroy()
+      callback    : =>
+        @destroy()
+        @getDelegate().emit "AddingNewHomePageCancelled"
 
     @saveButton   = new KDButtonView
       title       : "SAVE"
@@ -90,11 +92,13 @@ class HomePagesDashboardView extends JView
     @noPageLabel.hide()
     @fetchHomePages()
 
+    @bindEventHandlers()
+
+  bindEventHandlers: ->
     @on "NewHomePageAdded", =>
-      page.destroy() for page in @homePages
       @addNewHomePageView.destroy()
-      @loader.show()
-      @fetchHomePages()
+      @addNewButton.show()
+      @reloadViews()
 
     @on "HomePageDeleted", (homePage) ->
       @homePages.splice @homePages.indexOf(homePage), 1
@@ -104,15 +108,43 @@ class HomePagesDashboardView extends JView
     @on "HomePageEditRequested", (homePageData) =>
       @addNew homePageData
 
+    @on "ChangeHomePageState", (homePageData) =>
+      query     = { isActive: yes }
+      for homePage in @homePages when homePage.getData().isActive is yes
+        oldActive = homePage
+
+      activate  = =>
+        homePageData.update { "$set": { isActive: !homePageData.isActive } }, (err, res) =>
+          return warn err  if err
+          @reloadViews()
+
+      if oldActive
+        oldActive.getData().update { "$set": { isActive: no } }, (err, res) =>
+          return warn err  if err
+          activate()
+      else
+        activate()
+
+
+    @on "AddingNewHomePageCancelled", =>
+      page.show() for page in @homePages
+      @addNewButton.show()
+
   addNew: (data) ->
     homePage.hide() for homePage in @homePages
     @noPageLabel.hide()
+    @addNewButton.hide()
 
     appManager = KD.singleton "appManager"
     appManager.require "Teamwork", (app) =>
       @addNewHomePageView = new AddNewHomePageView { delegate: this }, data
 
       @addSubView @addNewHomePageView
+
+  reloadViews: ->
+    page.destroy() for page in @homePages
+    @loader.show()
+    @fetchHomePages()
 
   fetchHomePages: ->
     query = { partialType: "HOME" }
@@ -170,6 +202,16 @@ class HomePageItem extends JView
       icon         : yes
       callback     : @bound "edit"
 
+    @activateButton = new KDButtonView
+      title        : if @getData().isActive then "Deactivate" else "Activate"
+      cssClass     : "activate solid green"
+      iconClass    : "activate"
+      icon         : yes
+      callback     : @bound "updateState"
+
+  updateState: ->
+    @getDelegate().emit "ChangeHomePageState", @getData()
+
   edit: ->
     @getDelegate().emit "HomePageEditRequested", @getData()
 
@@ -185,6 +227,7 @@ class HomePageItem extends JView
     """
       <p>#{data.name}</p>
       <div class="button-container">
+        {{> @activateButton}}
         {{> @deleteButton}}
         {{> @previewButton}}
         {{> @editButton}}
