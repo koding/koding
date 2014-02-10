@@ -6,6 +6,7 @@ class CommonDomainCreateForm extends KDFormViewWithFields
         domainName          :
           name              : "domainInput"
           cssClass          : "domain-input"
+          label             : options.label or "Subdomain"
           placeholder       : options.placeholder or "Type your domain"
           validate          :
             rules           : required : yes
@@ -15,14 +16,6 @@ class CommonDomainCreateForm extends KDFormViewWithFields
               itemClass     : KDSelectBox
               cssClass      : "main-domain-select"
               selectOptions : options.selectOptions
-      buttons               :
-        createButton        :
-          name              : "createButton"
-          title             : options.buttonTitle or "Check availability"
-          style             : "cupid-green"
-          cssClass          : "add-domain"
-          type              : "submit"
-          loader            : {color : "#ffffff", diameter : 10}
       , data
 
     @addSubView @message = new KDCustomHTMLView
