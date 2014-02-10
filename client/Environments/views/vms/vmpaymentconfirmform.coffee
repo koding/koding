@@ -42,7 +42,7 @@ class VmPaymentConfirmForm extends PlanUpgradeConfirmForm
       @pack.hide()
 
     if data.productData.subscription
-      @subscription.addSubView new VmPlanView {hiddenPrice : yes}, data.productData.subscription
+      @subscription.addSubView new VmPlanView {hiddenPrice : yes}, data.productData.subscription.plan
     else
       @subscription.hide()
 
