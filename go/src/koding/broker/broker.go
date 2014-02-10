@@ -66,9 +66,6 @@ type Broker struct {
 
 	// Closed when SockJS server is ready to acccept connections
 	ready chan struct{}
-
-	// Closed when AMQP connection and channel are setup
-	amqpReady chan struct{}
 }
 
 // NewBroker returns a new Broker instance with ServiceUniqueName and Hostname
@@ -86,7 +83,6 @@ func NewBroker() *Broker {
 		Hostname:          brokerHostname,
 		ServiceUniqueName: serviceUniqueName,
 		ready:             make(chan struct{}),
-		amqpReady:         make(chan struct{}),
 	}
 }
 
@@ -124,10 +120,16 @@ func (b *Broker) Run() {
 	lifecycle.Startup(BROKER_NAME, false)
 	logger.RunGaugesLoop(log)
 
-	b.registerToKontrol()
+	if err := b.registerToKontrol(); err != nil {
+		log.Critical("Couldnt register to kontrol, stopping... %v", err)
+		return
+	}
 
-	go b.startAMQP()
-	<-b.amqpReady
+	if err := b.startAMQP(); err != nil {
+		log.Critical("Couldnt create amqp bindings, stopping... %v", err)
+		return
+	}
+
 	b.startSockJS() // blocking
 }
 
