@@ -234,6 +234,9 @@ class PaymentController extends KDController
 
       callback null, subscriptions
 
+  fetchGroupSubscription: (callback) ->
+    KD.getGroup().fetchSubscription callback
+
   groupPlansBySubscription: (plansAndSubscriptions = {}) ->
 
     { plans, subscriptions } = plansAndSubscriptions
