@@ -114,12 +114,20 @@ class PaymentMethodEntryForm extends KDFormViewWithFields
       @setClass 'animate shake'
       @buttons.Save.hideLoader()
 
-      modal      = new KDModalView
-        title    : "Form Submission Failed"
-        overlay  : yes
-        partial  : err.first.message # we should overwrite all
-        # the possible error messages that can be returned by recurly.
+      errMessage     = err.first.message
+      errMessage     = errMessage.replace errMessage[0], errMessage[0].toUpperCase()
 
+      modal          = new KDModalView
+        title        : "Form Submission Failed"
+        overlay      : yes
+        content      : errMessage # we should overwrite all
+        # the possible error messages that can be returned by recurly.
+        buttons      :
+          ok         :
+            title    : "OK"
+            style    : "modal-clean-green"
+            callback : =>
+              modal.destroy()
 
     cardNumberInput.on "ValidationError", ->
       @parent.unsetClass "visa mastercard amex diners discover jcb"
