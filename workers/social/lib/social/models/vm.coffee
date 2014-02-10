@@ -141,33 +141,29 @@ module.exports = class JVM extends Module
   @setAlwaysOn = secure (client, options, callback)->
     {connection: delegate: account} = client
     {vmName, status} = options
-    JDomain = require './domain'
-    JDomain.isDomainEligible {domain: vmName, newDomain: no}, (err, webHome) =>
-      return callback err  if err
-        
-      @one hostnameAlias: vmName, (err, vm) ->
-        return callback err if err
-        return callback new KodingError "VM Not FOUND" unless vm
+    fetchVmByHostname account, vmName, (err, vm) ->
+      return callback err if err
+      return callback new KodingError "VM Not FOUND" unless vm
 
-        [{ id: groupId }] = vm.groups
-        JGroup = require './group'
-        JGroup.one { _id: groupId }, (err, group)->
+      [{ id: groupId }] = vm.groups
+      JGroup = require './group'
+      JGroup.one { _id: groupId }, (err, group)->
+        return callback err  if err
+        return callback new KodingError "Group not found"  unless group
+        object = if group.slug is "koding" then account else group
+
+        object.fetchSubscription (err, subscription) ->
           return callback err  if err
-          return callback new KodingError "Group not found"  unless group
-          object = if group.slug is "koding" then account else group
+          return callback new KodingError("Subscription not found","NOTSUBSCRIBED")  unless subscription
 
-          object.fetchSubscription (err, subscription) ->
+          JPaymentPack.one tags: "alwayson", (err, pack) ->
             return callback err  if err
-            return callback new KodingError("Subscription not found","NOTSUBSCRIBED")  unless subscription
-
-            JPaymentPack.one tags: "alwayson", (err, pack) ->
+            return callback new KodingError "Always On pack not found"  unless pack
+            {debit, credit} = subscription
+            fn = if status then debit else credit
+            fn.call subscription, {pack}, (err) ->
               return callback err  if err
-              return callback new KodingError "Always On pack not found"  unless pack
-              {debit, credit} = subscription
-              fn = if status then debit else credit
-              fn.call subscription, {pack}, (err) ->
-                return callback err  if err
-                vm.update $set: alwaysOn: status, callback
+              vm.update $set: alwaysOn: status, callback
 
   @fetchDefaultVm_ = (client, callback)->
     {delegate} = client.connection
