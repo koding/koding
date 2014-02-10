@@ -232,7 +232,6 @@ class LoginView extends KDView
     <div class='tint'></div>
     <div class="flex-wrapper">
       <div class="login-box-header">
-        <a class="betatag">beta</a>
         {{> @logo}}
       </div>
       <div class="login-form-holder lf">
@@ -360,7 +359,7 @@ class LoginView extends KDView
 
         KD.getSingleton('router').clear()
         @headBanner.hide()
-        #could not joined to the group. Directing to Koding 
+        #could not joined to the group. Directing to Koding
         window.location.href = "/" if err
 
         KD.utils.wait 1000, =>
