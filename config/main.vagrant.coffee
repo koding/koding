@@ -176,7 +176,7 @@ module.exports =
       uploadsUri: 'https://koding-uploads.s3.amazonaws.com'
       sourceUri : 'http://localhost:3526'
       newkontrol:
-        url     : 'wss://127.0.0.1:80/dnode'
+        url     : 'ws://127.0.0.1:4000/kontrol'
       fileFetchTimeout: 15 * 1000 # seconds
       externalProfiles  :
         github          :

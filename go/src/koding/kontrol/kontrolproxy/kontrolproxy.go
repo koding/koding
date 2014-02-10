@@ -29,7 +29,6 @@ import (
 	"syscall"
 	"time"
 	"github.com/gorilla/context"
-	"github.com/op/go-logging"
 
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/sessions"
@@ -50,7 +49,8 @@ var (
 	proxyName, _ = os.Hostname()
 
 	// used for all our log
-	log = logger.New(KONTROLPROXY_NAME)
+	log      = logger.New(KONTROLPROXY_NAME)
+	logLevel logger.Level
 
 	// redis client, connects once
 	redisClient = redis.Client{
@@ -85,6 +85,7 @@ var (
 	flagConfig    = flag.String("c", "", "Configuration profile from file")
 	flagRegion    = flag.String("r", "", "Region")
 	flagVMProxies = flag.Bool("v", false, "Enable ports for VM users (1024-10000)")
+	flagDebug     = flag.Bool("d", false, "Debug mode")
 )
 
 // Proxy is implementing the http.Handler interface (via ServeHTTP). This is
@@ -134,8 +135,12 @@ func main() {
 	conf = config.MustConfig(*flagConfig)
 	modelhelper.Initialize(conf.Mongo)
 
-	l := logger.GetLoggingLevelFromConfig(KONTROLPROXY_NAME, conf.Environment)
-	log.SetLevel(l)
+	if *flagDebug {
+		logLevel = logger.DEBUG
+	} else {
+		logLevel = logger.GetLoggingLevelFromConfig(KONTROLPROXY_NAME, *flagConfig)
+	}
+	log.SetLevel(logLevel)
 
 	log.Info("Kontrolproxy started.")
 	log.Info("I'm using %d cpus for goroutines", runtime.NumCPU())
@@ -175,7 +180,7 @@ func (p *Proxy) runNewKite() {
 	k.Start()
 
 	// TODO: remove this later, this is needed in order to reinitiliaze the logger package
-	logging.SetLevel(logging.DEBUG, KONTROLPROXY_NAME)
+	log.SetLevel(logLevel)
 
 	query := protocol.KontrolQuery{
 		Username:    "koding-kites",
