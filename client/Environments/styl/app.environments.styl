@@ -248,11 +248,42 @@ section.resources-container
         .icon
           bg            position, -60px -500px
 
+  .environment-help
+    text-align          center
+    height              auto
+
+    h1
+      padding           60px 60px 20px 60px
+      font-size         28px
+      border-bottom     1px solid #ccc
+
+    .content
+      border-bottom     1px solid #ccc
+      background        #EBEBEB
+      height            250px
+      padding           14px
+      line-height       22px
+      // display           none
+
+      .video
+        width           260px
+        height          120px
+        margin          45px auto
+        border-radius   10px
+        r-sprite        environments, "play"
+
+  .bottom-warning
+    bottom              5px
+    text-align          center
+    height              30px
+    abs()
+
+    a
+      text-decoration   underline
+      color             black
+
   .action-area
-    bg                  color, #bbb
     z-index             0
-    vendor              transform-style, preserve-3d
-    vendor              perspective, 1000px
     top                 0
     padding-top         55px
     borderBox()
@@ -266,12 +297,7 @@ section.resources-container
   .kddia-scene
     left                0
     border-radius       0
-    vendor              transition, left .3s ease
-    bg                  color, white
-    &.out
-      left              500px
-      border-left       1px solid #ccc
-      shadow            0 0 10px 1px #ccc
+    margin-top          20px
 
   .record-form-view
     padding             0
@@ -560,7 +586,6 @@ section.resources-container
     padding    5px
     height     25px
     color      #fff
-    border     1px solid #eee
     border            1px solid #ccc
     text-transform    uppercase
     color             #000
@@ -981,8 +1006,17 @@ div.environments-add-domain-form
 
 div.environments-scene
 
-  bg                image, url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAgAAAAICAYAAADED76LAAAAHElEQVQYV2M8fPhwmq2t7SwGHIARlwRMfHgoAAAWpAQJz4XcBAAAAABJRU5ErkJggg==")
-  background-color  white
+  // bg                image, url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAgAAAAICAYAAADED76LAAAAHElEQVQYV2M8fPhwmq2t7SwGHIARlwRMfHgoAAAWpAQJz4XcBAAAAABJRU5ErkJggg==")
+  background-color      #E4E4E4
+
+  width                 1042px
+  margin                0 auto
+  height                500px
+  border-bottom         1px solid #ccc
+
+  canvas
+    left                -8px
+    top                 -2px
 
   .zoom-slider
     right               50px
@@ -1046,23 +1080,48 @@ div.environments-scene
 
 div.environments-container
 
-  width           240px
+  width           250px
   height          100%
-  border          1px dashed #ccc
-  border-top      none
-  border-bottom   none
-  border-radius   0
-  background      rgba(205,205,205,.07)
   overflow-y      scroll
   noTextSelection()
 
   &::-webkit-scrollbar
     width         0
 
+  &.firewall
+    .kdheaderview
+      color               #E94D39
+      .new-item-plus
+        background-color  #E94D39
+        border            1px solid #E94D39
+
+  &.domains
+    .kdheaderview
+      color               #3395DD
+      .new-item-plus
+        background-color  #3395DD
+        border            1px solid #3395DD
+
+  &.machines
+    .kdheaderview
+      color               #1BAF5E
+      .new-item-plus
+        background-color  #1BAF5E
+        border            1px solid #1BAF5E
+
+  &.extras
+    .kdheaderview
+      color               #E4158A
+      .new-item-plus
+        background-color  #E4158A
+        border            1px solid #E4158A
+
+
   .kdheaderview
     padding       14px 0
     text-indent   14px
     border        none
+    font-weight   200
 
     .new-item-plus
       size                20px, 20px
@@ -1154,28 +1213,41 @@ div.environments-container
 div.environments-item
 
   cursor          default
-  width           200px
-  height          40px
-  border          1px solid rgba(217, 216, 217, 1.0)
-  border-left     5px solid rgba(217, 216, 217, 1.0)
-  gradient        rgba(252, 253, 253, 1.0), rgba(228, 229, 230, 1.0)
-  rounded         2px
+  width           210px
+  height          44px
+  background      white
+  border          none
+  rounded         10px
   vendor          transition, opacity .3s ease
   noTextSelection()
   borderBox()
 
+  span.url
   span.chevron
-    display       none
+  span.terminal
+    // display       none
     size          14px, 14px
-    bottom        2px
-    right         2px
-    bg            position, -182px -363px
-    kdfsprite()
+    bottom        13px
+    right         10px
+    r-sprite      environments 'gear'
+    display       block
+
+  span.terminal
+    r-sprite      environments 'terminal'
+    cursor        pointer
+    right         32px
+
+  span.url
+    r-sprite      environments 'link'
+    right         56px
 
   &:hover
-    gradient      white, #efefef // rgba(254, 255, 255, 1.0), rgba(222, 233, 234, 1.0)
-    span.chevron
-      display     block
+    // gradient      white, #efefef // rgba(254, 255, 255, 1.0), rgba(222, 233, 234, 1.0)
+    background    rgba(255,255,255,.6)
+    .environments-joint
+      opacity     1
+    // span.chevron
+    //   display     block
 
   .status-indicator
 
@@ -1199,29 +1271,58 @@ div.environments-item
   &.highlight
     gradient      white, white // rgba(244, 244, 244, 1.0)
     shadow        0 0 6px #eee
-    border-top    1px solid #aaa
-    border-right  1px solid #aaa
-    border-bottom 1px solid #aaa
+
+  span.toggle
+    size          16px, 16px
+    background    #eee
+    border-radius 13px
+    top           14px
 
   h3
-    margin-top    -2px
-    font-size     12px
-    margin-bottom  2px
-    width         100%
+    font-size     13px
+    width         130px
+    line-height   16px
     overflow      hidden
     white-space   nowrap
     text-overflow ellipsis
+    padding-left  26px
 
   div.details
-    padding       8px
+    padding       14px
     span
       font-size   10px
       color       #aaa
-      margin-top  -2px
       abs()
 
+  &.rule
+    span.chevron
+      display         none
+    span.toggle
+      background      #E94D39
+
+  &.domain
+    span.toggle
+      background      #3395DD
+
+  &.extras
+    span.chevron
+      display         none
+    span.toggle
+      background      #E4158A
+
   &.machine
-    height            50px
+    // height            50px
+
+    span.url
+    span.chevron
+    span.terminal
+      bottom          15px
+
+    span.chevron
+      r-sprite        environments 'menu'
+
+    span.toggle
+      background      #1BAF5E
 
     div.progressbar-container
       top             25px
@@ -1243,12 +1344,15 @@ div.environments-item
       height          10px
 
 div.environments-joint
+
   size              4px, 4px
   background-color  #ccc
   border            none
+  opacity           0
 
   &.deleteMode
     size             14px,14px
+    opacity          1
     z-index          2
     border           1px solid white
     borderBox()
@@ -1264,10 +1368,10 @@ div.environments-joint
       right         -7px
 
   &.left
-    left            -7px
+    left            -3px
     margin-top      -2px
     &.deleteMode
-      left          -12px
+      left          -8px
       margin-top    -7px
 
 .environments-cs-container

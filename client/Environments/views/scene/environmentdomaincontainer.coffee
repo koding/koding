@@ -1,6 +1,7 @@
 class EnvironmentDomainContainer extends EnvironmentContainer
 
   constructor:(options={}, data)->
+    options.cssClass  = 'domains'
     options.itemClass = EnvironmentDomainItem
     options.title     = 'Domains'
     super options, data
@@ -19,12 +20,6 @@ class EnvironmentDomainContainer extends EnvironmentContainer
         @removeAllItems()
 
         domains.forEach (domain)=>
-
-          if KD.checkFlag('nostradamus') and not err
-            for vm in domain.hostnameAlias
-              if vm not in vms
-                domain = null
-                break
 
           if domain
             @addItem

@@ -2,8 +2,9 @@ class EnvironmentMachineContainer extends EnvironmentContainer
 
   constructor:(options={}, data)->
 
+    options.cssClass   = 'machines'
     options.itemClass  = EnvironmentMachineItem
-    options.title      = 'Machines'
+    options.title      = 'Virtual Machines'
     options.itemHeight = 50
 
     super options, data

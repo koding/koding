@@ -6,6 +6,18 @@ class EnvironmentsMainScene extends JView
 
   viewAppended:->
 
+    @addSubView new KDView
+      cssClass : 'environment-help'
+      partial  : """
+        <h1>Environments</h1>
+        <div class='content'>
+          <p>Welcome to environments.</p>
+          <p>Here you can setup your development environment.</p>
+          <p>Watch this quick video to learn more.</p>
+          <div class='video'></div>
+        </div>
+      """
+
     # Action Area for Domains
     @addSubView actionArea = new KDView cssClass : 'action-area'
 
@@ -22,11 +34,20 @@ class EnvironmentsMainScene extends JView
     # Main scene for DIA
     @addSubView @scene = new EnvironmentScene
 
-    if KD.checkFlag 'nostradamus'
-      # Rules Container
-      rulesContainer = new EnvironmentRuleContainer
-      @scene.addContainer rulesContainer
-      # rulesContainer.on "itemRemoved", @domainCreateForm.bound "updateDomains"
+    @addSubView new KDView
+      cssClass : 'bottom-warning'
+      partial  : """
+        You are on a free plan, see your usage or <a href="/Pricing">upgrade</a>.
+      """
+
+    # if KD.checkFlag 'nostradamus'
+    # Rules Container
+    rulesContainer = new EnvironmentRuleContainer
+    @scene.addContainer rulesContainer
+    rulesContainer.on 'PlusButtonClicked', ->
+      new KDNotificationView title: "Adding more rules will be available soon."
+
+    # rulesContainer.on "itemRemoved", @domainCreateForm.bound "updateDomains"
 
     # Domains Container
     @domainsContainer = new EnvironmentDomainContainer
@@ -39,11 +60,14 @@ class EnvironmentsMainScene extends JView
 
     @_containers = [@machinesContainer, @domainsContainer]
 
-    if KD.checkFlag 'nostradamus'
-      # Rules Container
-      extrasContainer = new EnvironmentExtraContainer
-      @scene.addContainer extrasContainer
-      @_containers = @_containers.concat [rulesContainer, extrasContainer]
+    # if KD.checkFlag 'nostradamus'
+    # Rules Container
+    extrasContainer = new EnvironmentExtraContainer
+    @scene.addContainer extrasContainer
+    extrasContainer.on 'PlusButtonClicked', ->
+      new KDNotificationView title: "Adding more resource will be available soon."
+
+    @_containers = @_containers.concat [rulesContainer, extrasContainer]
 
     for container in @_containers
       container.on 'DataLoaded', @scene.bound 'updateConnections'
@@ -51,7 +75,7 @@ class EnvironmentsMainScene extends JView
     @refreshContainers()
 
 
-    @addSubView @resourcesContainer = new ResourcesContainer
+    # @addSubView @resourcesContainer = new ResourcesContainer
 
     @domainCreateForm.on 'DomainSaved', @domainsContainer.bound 'loadItems'
     KD.getSingleton("vmController").on 'VMListChanged', \
