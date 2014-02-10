@@ -143,7 +143,6 @@ module.exports = class JVM extends Module
     {vmName, status} = options
     fetchVmByHostname account, vmName, (err, vm) ->
       return callback err if err
-      return callback new KodingError "VM Not FOUND" unless vm
 
       [{ id: groupId }] = vm.groups
       JGroup = require './group'
@@ -660,8 +659,6 @@ module.exports = class JVM extends Module
 
     fetchVmByHostname delegate, hostnameAlias, (err, vm) ->
       return callback err  if err
-      return callback new KodingError 'No such VM'  unless vm
-
       [{ id: groupId }] = vm.groups
       JGroup = require './group'
       JGroup.one { _id: groupId }, (err, group)->
@@ -680,9 +677,17 @@ module.exports = class JVM extends Module
 
       selector =
         hostnameAlias : hostnameAlias
-        users         : { $elemMatch: id: user.getId(), owner: yes }
+        users         : { $elemMatch: id: user.getId() }
 
-      JVM.one selector, callback
+      JVM.one selector, (err, vm) ->
+        return callback err  if err
+        return callback new KodingError "VM not found"  unless vm
+
+        isOwner = vm.users.filter (vmUser) ->
+          vmUser.id.equals(user.getId()) && vmUser.owner is true
+        
+        err = new KodingError("You are not owner of this VM", "NOTPERMITTED")  unless isOwner.length
+        callback err, vm
 
   @addVm = ({ account, target, user, sudo, groups, groupSlug
              type, planCode, planOwner, webHome, uid }, callback)->
