@@ -13,7 +13,14 @@ class TeamPlan extends JView
 
     @resourcePackSlider = new PricingPlanSelection
       title             : "Resource Pack"
-      description       : "1x Resource pack contains 1 GB RAM 1x CPU, 1 GB RAM, 50 GB Disk, 2 TB Transfer, 5 total VMs, 1 Always on VM, Same day support"
+      description       : """
+        <span>1 Resource pack contains</span>
+        <br/><cite>4x</cite>CPU
+        <cite>2x</cite>GB RAM
+        <cite>50</cite>GB Disk
+        <br/><cite>10x</cite>Total VMs
+        <cite>1x</cite>Always on VMs
+        """
       unitPrice         : unitPrices.resourcePack
       slider            :
         minValue        : 1
