@@ -149,8 +149,6 @@ func (b *Broker) Close() {
 // populate a list of brokers and show them to the client. The list is
 // available at: https://koding.com/-/services/broker?all
 func (b *Broker) registerToKontrol() {
-	defer log.RecoverAndLog()
-
 	if err := kontrolhelper.RegisterToKontrol(
 		conf,
 		b.Config.Name,
@@ -160,15 +158,13 @@ func (b *Broker) registerToKontrol() {
 		b.Hostname,
 		b.Config.Port,
 	); err != nil {
-		panic(err)
+		log.Critical("Couldnt register to kontrol %v", err)
 	}
 }
 
 // startAMQP setups the the neccesary publisher and consumer connections for
 // the broker broker.
 func (b *Broker) startAMQP() {
-	defer log.RecoverAndLog()
-
 	b.PublishConn = amqputil.CreateConnection(conf, b.Config.Name)
 	defer b.PublishConn.Close()
 
@@ -205,11 +201,11 @@ func (b *Broker) startAMQP() {
 		false,             // noWait
 		nil,               // args
 	); err != nil {
-		panic(err)
+		log.Critical("Couldnt create updateInstances exchange  %v", err)
 	}
 
 	if err := consumeChannel.ExchangeBind(BROKER_NAME, "", "updateInstances", false, nil); err != nil {
-		panic(err)
+		log.Critical("Couldnt bind to updateInstances exchange  %v", err)
 	}
 
 	// signal that we are ready now
@@ -312,7 +308,6 @@ func (b *Broker) startSockJS() {
 // sockjsSession is called for every client connection and handles all the
 // message trafic for a single client connection.
 func (b *Broker) sockjsSession(session *sockjs.Session) {
-	defer log.RecoverAndLog()
 
 	client := NewClient(session, b)
 	sessionGaugeEnd := client.gaugeStart()
@@ -322,7 +317,7 @@ func (b *Broker) sockjsSession(session *sockjs.Session) {
 
 	err := client.ControlChannel.Publish(b.Config.AuthAllExchange, "broker.clientConnected", false, false, amqp.Publishing{Body: []byte(client.SocketId)})
 	if err != nil {
-		panic(err)
+		log.Critical("Couldnt publish to control channel %v", err)
 	}
 
 	sendToClient(session, "broker.connected", client.SocketId)
