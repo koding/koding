@@ -14,6 +14,12 @@ class PaymentMethodEntryForm extends KDFormViewWithFields
         placeholder       : 'First name'
         defaultValue      : KD.whoami().profile.firstName
         required          : 'First name is required!'
+        validate          :
+          event           : "blur"
+          rules           :
+            required      : yes
+          messages        :
+            required      : 'First name is required!'
         keyup             : @bound 'updateDescription'
         cssClass          : "card-name"
         nextElementFlat   :
@@ -25,6 +31,12 @@ class PaymentMethodEntryForm extends KDFormViewWithFields
       # cardDescription     :
       #   label             : 'Description'
       #   cssClass          : 'hidden'
+            validate      :
+              event       : "blur"
+              rules       :
+                required  : yes
+              messages    :
+                required  : 'Last name is required!'
 
       cardNumber          :
         placeholder       : 'Credit card number'
