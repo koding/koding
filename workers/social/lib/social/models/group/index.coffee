@@ -482,13 +482,13 @@ module.exports = class JGroup extends Module
     delegate.fetchSubscription null, subOptions, (err, subscription) =>
       return callback err  if err
       return callback new KodingError "Subscription is not found"  unless subscription
-      subscription.debitPack tag: "group", (err) =>
+      subscription.debitPack tags: "group", (err) =>
         return callback err  if err
         @create client, formData, delegate, (err, group) ->
           return callback err if err
           group.addSubscription subscription, (err) ->
             return callback err  if err
-            subscription.debitPack tag: "user", (err) =>
+            subscription.debitPack tags: "user", (err) =>
               return callback err  if err
               callback null, group, subscription
 
@@ -497,7 +497,7 @@ module.exports = class JGroup extends Module
     delegate.fetchSubscription null, subOptions, (err, subscription) =>
       return callback err  if err
       return callback new KodingError "Subscription is not found"  unless subscription
-      subscription.creditPack tag: "user", callback
+      subscription.creditPack tags: "user", callback
 
   @findSuggestions = (client, seed, options, callback)->
     {limit, blacklist, skip}  = options

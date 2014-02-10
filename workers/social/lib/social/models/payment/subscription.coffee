@@ -356,13 +356,19 @@ module.exports = class JPaymentSubscription extends jraphical.Module
           else
             @upgrade transitionOptions, callback
 
-  debitPack: ({tag, multiplyFactor}, callback) ->
+  debitPack: ({tags, multiplyFactor}, callback) ->
+    tags = [tags]  unless Array.isArray tags
     multiplyFactor ?= 1
     JPaymentPack = require './pack'
-    JPaymentPack.one tags: tag, (err, pack) =>
-      console.err err if err
-      return callback new KodingError "#{tag} pack not found"  unless pack
-      @debit {pack, multiplyFactor}, callback
+    JPaymentPack.some tags: $in: tags, {}, (err, packs) =>
+      return callback err  if err
+      return callback new KodingError "pack not found"  unless packs.length
+      queue = []
+      queue = packs.map (pack) =>=>
+        @debit {pack, multiplyFactor}, (err) -> queue.next err
+      queue.push (err) -> 
+        callback null
+      daisy queue
 
-  creditPack: ({tag}, callback) ->
-    @debitPack {tag, multiplyFactor: -1}, callback
+  creditPack: ({tags}, callback) ->
+    @debitPack {tags, multiplyFactor: -1}, callback

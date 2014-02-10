@@ -113,11 +113,15 @@ class DomainCreateForm extends KDCustomHTMLView
       createButton.hideLoader()
       if err
         warn "An error occured while creating domain:", err
-        if err.code is 11000
-          return notifyUser "The domain #{domainName} already exists."
-        else if err.name is "INVALIDDOMAIN"
-          return notifyUser "#{domainName} is an invalid subdomain."
-        return notifyUser "An unknown error occured. Please try again later."
+        switch err.name
+          when "DUPLICATEDOMAIN"
+            return notifyUser "The domain #{domainName} already exists."
+          when "INVALIDDOMAIN"
+            return notifyUser "#{domainName} is an invalid subdomain."
+          when "ACCESSDENIED"
+            return notifyUser "You do not have permission to create a subdomain in this domain"
+          else
+            return notifyUser "An unknown error occured. Please try again later."
       else
         @showSuccess domain
         @updateDomains()

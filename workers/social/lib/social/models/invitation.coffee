@@ -143,7 +143,7 @@ module.exports = class JInvitation extends jraphical.Module
       group.fetchSubscription (err, subscription) =>
         return callback err  if err
         return callback new KodingError "Subscription is not found"  unless subscription
-        subscription.debitPack tag: "user", (err) =>
+        subscription.debitPack tags: "user", (err) =>
           return callback err  if err
           @update operation, (err) =>
             return callback err  if err
