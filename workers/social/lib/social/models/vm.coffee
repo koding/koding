@@ -466,12 +466,10 @@ module.exports = class JVM extends Module
 
       selector.users = $elemMatch: id: user.getId()
 
-      JVM.someData selector, { hostnameAlias: 1 }, options, (err, cursor)->
+      JVM.someData selector, { hostnameAlias: 1, region: 1 }, options, (err, cursor)->
         return callback err  if err
 
-        cursor.toArray (err, arr)->
-          return callback err  if err
-          callback null, arr.map (vm)-> vm.hostnameAlias
+        cursor.toArray callback
 
   @fetchVmsByContext = secure (client, options, callback) ->
     {connection:{delegate}, context:{group}} = client

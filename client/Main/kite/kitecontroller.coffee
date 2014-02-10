@@ -29,7 +29,8 @@ class KiteController extends KDController
     delete @kiteInstances[kite.kiteKey]
 
   createKite:(kiteName, correlationName, kiteKey)->
-    kite = new Kite { kiteName, correlationName, kiteKey }
+    kite = new KDKite.constructors[kiteName] { correlationName, kiteKey }
+
     kite.on 'destroy', =>
       @destroyKite kite
       @emit "channelDeleted", kite, kiteName

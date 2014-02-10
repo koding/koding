@@ -12,7 +12,6 @@ class VirtualizationController extends KDController
 
     @on 'VMListChanged', @bound 'resetVMData'
 
-
   run:(options, callback = noop)->
     [callback, options] = [options, callback]  unless callback
     options ?= {}
@@ -153,7 +152,7 @@ class VirtualizationController extends KDController
     currentGroup   = if entryPoint?.type is 'group' then entryPoint.slug
     currentGroup or= KD.defaultSlug
 
-    @fetchVMs (err, vmNames)=>
+    @fetchVmNames (err, vmNames)=>
       if err or not vmNames
         return callback null
 
@@ -202,6 +201,21 @@ class VirtualizationController extends KDController
     defaultVMOptions = {planCode}
     group = KD.getSingleton("groupsController").getCurrentGroup()
     group.createVM {type, planCode}, vmCreateCallback
+
+  getKite: ({ region, hostnameAlias }) ->
+    (KD.getSingleton 'kiteController').getKite "os-#{ region }", hostnameAlias
+
+  fetchOsKites: (callback) ->
+    @fetchVMs (err, vms) =>
+      return callback err  if err
+      @osKites ?= (@getKite vm for vm in vms)
+      callback null, @osKites
+
+  fetchVmNames: (force, callback) ->
+    [callback, force] = [force, callback]  unless callback?
+    @fetchVMs force, (err, vms) ->
+      return callback err  if err
+      callback null, (vm.hostnameAlias for vm in vms)
 
   fetchVMs: do (waiting = []) -> (force, callback)->
     [callback, force] = [force, callback]  unless callback?
