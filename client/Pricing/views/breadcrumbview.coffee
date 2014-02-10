@@ -32,35 +32,22 @@ class BreadcrumbView extends JView
     @$("li.#{name}").addClass "active"
 
 
-  showPlan : (plan) ->
-
-    {title, feeAmount, feeUnit} = plan
-
-    feeAmount = feeAmount/100
+  showPlan : (plan, options) ->
+    {title, feeUnit} = plan
+    feeAmount = (options.total or plan.feeAmount) / 100
 
     @show()
     document.body.classList.add 'flow'
     @planName.updatePartial title
-    @planPrice.updatePartial "#{feeAmount}$/#{feeUnit}"
+    @planPrice.updatePartial "$#{feeAmount}/#{feeUnit}"
 
     if 'custom-plan' in plan.tags
     then @setClass 'team'
     else @unsetClass 'team'
 
-    plan.fetchProducts (err, products) =>
-
-      partial = ""
-
-      for product in products
-
-        {title, planCode} = product
-        quantity          = plan.quantities[planCode]
-        partial          += "#{quantity} #{title} - "
-
-      partial = partial.substring(0, partial.length - 2)
-
-      @planProducts.updatePartial partial
-
+    {resourceQuantity, userQuantity} = options
+    if userQuantity
+      @planProducts.updatePartial "#{userQuantity}x User<br>#{resourceQuantity}x Resource Packs"
 
   pistachio : ->
     """
