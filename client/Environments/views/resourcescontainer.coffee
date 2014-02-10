@@ -5,12 +5,11 @@ class ResourcesContainer extends KDView
     super options, data
 
   addSubscriptions: ->
-    KD.singleton("paymentController").fetchSubscriptionsWithPlans
-      tags : ['vm', 'custom-plan']
-    , (err, subscriptions) =>
+    tag = if KD.getGroup().slug is "koding" then "vm" else "custom-plan"
+    payment = KD.singleton "paymentController"
+    payment.fetchSubscriptionsWithPlans tags: [tag], (err, [subscription]) =>
       return new KDNotificationView title: err  if err
-      for subscription in subscriptions
-        @subscriptions.addSubView new SubscriptionUsageView null, subscription
+      @subscriptions.addSubView new SubscriptionUsageView null, subscription
 
   viewAppended: ->
     @addSubView @titleBar = new KDCustomHTMLView
