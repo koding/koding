@@ -4,6 +4,7 @@ import (
 	"crypto/tls"
 	"encoding/json"
 	"flag"
+	"fmt"
 	"koding/kontrol/kontrolhelper"
 	"koding/tools/amqputil"
 	"koding/tools/config"
@@ -198,16 +199,13 @@ func (b *Broker) startAMQP() error {
 		false,             // noWait
 		nil,               // args
 	); err != nil {
-		log.Critical("Couldnt create updateInstances exchange  %v", err)
-		return err
+		return fmt.Errorf("Couldnt create updateInstances exchange  %v", err)
 	}
 
 	if err := consumeChannel.ExchangeBind(BROKER_NAME, "", "updateInstances", false, nil); err != nil {
-		log.Critical("Couldnt bind to updateInstances exchange  %v", err)
-		return err
+		return fmt.Errorf("Couldnt bind to updateInstances exchange  %v", err)
 	}
 
-	done := make(chan bool, 1)
 	go func(stream <-chan amqp.Delivery) {
 		// start to listen from "broker" topic exchange
 		for amqpMessage := range stream {
@@ -235,13 +233,10 @@ func (b *Broker) startAMQP() error {
 				globalMapMutex.Unlock()
 			}
 		}
-		done <- true
-	}(stream)
 
-	go func() {
-		<-done
 		b.Close()
-	}()
+
+	}(stream)
 
 	return nil
 }

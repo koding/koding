@@ -31,8 +31,7 @@ func NewClient(session *sockjs.Session, broker *Broker) (*Client, error) {
 	var err error
 	controlChannel, err := broker.PublishConn.Channel()
 	if err != nil {
-		log.Critical("Couldnt create publish channel %v", err)
-		return nil, err
+		return nil, fmt.Errorf("Couldnt create publish channel %v", err)
 	}
 
 	var subscriptions storage.Subscriptionable
@@ -43,8 +42,7 @@ func NewClient(session *sockjs.Session, broker *Broker) (*Client, error) {
 		subscriptions, err = storage.NewStorage(conf, storage.SET, socketId)
 		if err != nil {
 			// this will never fail to here
-			log.Critical("Couldnt subscription storage %v", err)
-			return nil, err
+			return nil, fmt.Errorf("Couldnt create subscription storage %v", err)
 		}
 	}
 
@@ -134,8 +132,7 @@ func (c *Client) handleSessionMessage(data interface{}) {
 			payload,
 		)
 
-		err := c.Publish(exchange, routingKey, payload)
-		if err != nil {
+		if err := c.Publish(exchange, routingKey, payload); err != nil {
 			log.Error(err.Error())
 		}
 
