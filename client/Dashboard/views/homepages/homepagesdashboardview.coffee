@@ -31,6 +31,10 @@ class AddNewHomePageView extends JView
       cssClass    : "solid green"
       callback    : @bound "addNew"
 
+    @editor.on "viewAppended", =>
+      @editor.ace.on "ace.ready", =>
+        @editor.ace.setSyntax "html"
+
   addNew: ->
     isUpdate       = @getData()
     data           =
