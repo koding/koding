@@ -126,7 +126,7 @@ class HomePagesDashboardView extends JView
         toggleState()
 
     @on "AddingNewHomePageCancelled", =>
-      page.show() for page in @homePages
+      @reloadViews()
       @addNewButton.show()
 
   addNew: (data) ->
