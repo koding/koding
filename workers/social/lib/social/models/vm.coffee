@@ -403,7 +403,7 @@ module.exports = class JVM extends Module
         group.fetchSubscription (err, subscription) =>
           return callback err  if err or not subscription
 
-          subscription.debitPack tag: "vm", (err) =>
+          subscription.debitPack tags: "vm", (err) =>
             return callback err  if err
             @createVm {
               type      : "group"
