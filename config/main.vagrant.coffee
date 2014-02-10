@@ -264,10 +264,13 @@ module.exports =
   haproxy         :
     webPort       : 3020
   newkontrol      :
-    host          : "127.0.0.1"
-    port          : 4000
-    certFile      : "/opt/koding/certs/vagrant_127.0.0.1_cert.pem"
-    keyFile       : "/opt/koding/certs/vagrant_127.0.0.1_key.pem"
+    username        : "devrim"
+    port            : 4000
+    useTLS          : no
+    certFile        : ""
+    keyFile         : ""
+    publicKeyFile   : "/opt/koding/certs/test_kontrol_rsa_public.pem"
+    privateKeyFile  : "/opt/koding/certs/test_kontrol_rsa_private.pem"
   proxyKite       :
     domain        : "127.0.0.1"
     certFile      : "/opt/koding/certs/vagrant_127.0.0.1_cert.pem"
