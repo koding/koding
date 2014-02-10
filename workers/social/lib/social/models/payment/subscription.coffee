@@ -175,12 +175,6 @@ module.exports = class JPaymentSubscription extends jraphical.Module
     spend = quantities
     @checkQuota {@usage, @couponCode, spend, multiplyFactor}, callback
 
-  vmCouponQuota =
-    "1FREEVM"   : 1
-    "2FREEVMS"  : 2
-    "3FREEVMS"  : 3
-    "4FREEVMS"  : 4
-
   checkQuota: (options, callback) ->
     {usage, spend, couponCode, multiplyFactor} = options
     multiplyFactor ?= 1
@@ -191,7 +185,6 @@ module.exports = class JPaymentSubscription extends jraphical.Module
       usageAmount = usage[planCode] ? 0
       spendAmount = (spend[planCode] ? 0) * multiplyFactor
 
-      planSize += vmCouponQuota[couponCode]  if couponCode of vmCouponQuota
       total = planSize - usageAmount - spendAmount
 
       { planCode, total }
@@ -366,7 +359,7 @@ module.exports = class JPaymentSubscription extends jraphical.Module
       queue = []
       queue = packs.map (pack) =>=>
         @debit {pack, multiplyFactor}, (err) -> queue.next err
-      queue.push (err) -> 
+      queue.push (err) ->
         callback null
       daisy queue
 
