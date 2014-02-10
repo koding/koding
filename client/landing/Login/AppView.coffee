@@ -339,6 +339,11 @@ class LoginView extends KDView
         KD.mixpanel "Signup, success"
         _gaq.push ['_trackEvent', 'Sign-up']
 
+        try
+          mixpanel.track "Alternate Signup, success"
+        catch
+          KD.logToExternal "mixpanel doesn't exist"
+
         $.cookie 'newRegister', yes
         $.cookie 'clientId', replacementToken
         KD.getSingleton('mainController').accountChanged account
@@ -346,16 +351,14 @@ class LoginView extends KDView
         new KDNotificationView
           cssClass  : "login"
           title     : '<span></span>Good to go, Enjoy!'
-          # content   : 'Successfully registered!'
           duration  : 2000
 
         KD.getSingleton('router').clear()
 
-        setTimeout =>
-          @hide()
+        KD.utils.wait 1000, =>
           @registerForm.reset()
           @registerForm.button.hideLoader()
-        , 1000
+          @hide()
 
   doFinishRegistration: (formData) ->
     (KD.getSingleton 'mainController').handleFinishRegistration formData, @bound 'afterLoginCallback'
