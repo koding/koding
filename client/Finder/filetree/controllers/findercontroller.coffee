@@ -80,7 +80,29 @@ class NFinderController extends KDViewController
     @cleanup()
     @mountVm vm  for vm in vms
 
-  loadVms:(vmNames, callback)->
+  parseSavedVms = (vms) ->
+    vms.reduce (memo, str) ->
+      [vmName, path] = str.split ':'
+      memo[0].push vmName
+      memo[1].push path
+      memo
+    , [[],[]]
+
+  fetchSavedVms: (savedVms, callback) ->
+    { JVM } = KD.remote.api
+
+    [vmNames, paths] = parseSavedVms savedVms
+    
+    JVM.fetchVmsByName vmNames, (err, vms) =>
+      return callback? err  if err
+
+      vms[i].path = paths[i]  for _, i in vms
+
+      callback null, vms
+
+  loadVms:(vmNames, callback = (->))->
+    { JVM } = KD.remote.api
+
     if vmNames then @mountVms vmNames
     else
       groupSlug  = KD.getSingleton("groupsController").getGroupSlug()
@@ -88,11 +110,16 @@ class NFinderController extends KDViewController
       @appStorage.fetchValue "mountedVM", (vms)=>
         vms            or= {}
         vms[groupSlug] or= []
-        if vms[groupSlug].length > 0
-          @mountVms vms[groupSlug]
+        groupVms = vms[groupSlug]
+        if groupVms.length > 0
+          @fetchSavedVms groupVms, (err, vms) =>
+            return callback err  if err
+
+            @mountVms vms
         else
-          KD.remote.api.JVM.fetchVmsByContext {}, (err, vms)=>
-            return callback? err  if err
+          JVM.fetchVmsByContext {}, (err, vms)=>
+            return callback err  if err
+
             if not vms or vms.length is 0
               KD.getSingleton('vmController').fetchDefaultVmName (vm)=>
                 if vm then @mountVms [vm]
@@ -125,13 +152,14 @@ class NFinderController extends KDViewController
       when "MAINTENANCE" then @unmountVm vm
 
   mountVm:(vm, fetchContent = yes)->
-    return warn 'VM path required! e.g VMNAME[:PATH]'  unless vm
 
-    [vmName, path] = vm.split ":"
+    { region, hostnameAlias: vmName, path } = vm
+
+    k = (KD.getSingleton 'kiteController').getKite "os-#{ region }", vmName
 
     vmRoots = (@appStorage.getValue 'vmRoots') or {}
     pipedVm = @_pipedVmName vmName
-    path or= vmRoots[pipedVm] or "/home/#{KD.nick()}"
+    path    ?= "/home/#{KD.nick()}"
 
     if vmItem = @getVmNode vmName
       return warn "VM #{vmName} is already mounted!"
@@ -142,7 +170,8 @@ class NFinderController extends KDViewController
       name   : "#{path}"
       path   : "[#{vmName}]#{path}"
       type   : "vm"
-      vmName : vmName
+      vmName : vm.hostnameAlias
+      vm     : vm
       treeController: @treeController
 
     @noVMFoundWidget.hide()

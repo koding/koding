@@ -50,6 +50,9 @@ module.exports = class JVM extends Module
           (signature Function)
           (signature Object, Function)
         ]
+        fetchVmsByName: [
+          (signature Object, Function)
+        ]
         fetchVmInfo:
           (signature String, Function)
         fetchDomains:
@@ -487,11 +490,9 @@ module.exports = class JVM extends Module
     {delegate} = client.connection
     @fetchAccountVmsBySelector delegate, {}, options, callback
 
-    # TODO: let's implement something like this:
-    # failure: (client, callback) ->
-    #   @fetchDefaultVmByContext client, (err, vm)->
-    #     return callback err  if err
-    #     callback null, [vm]
+  @fetchVmsByName = secure (client, names, callback) ->
+    { delegate } = client.connection
+    @fetchAccountVmsBySelector delegate, { hostnameAlias: $in: names }, callback
 
   # Private static method to fetch domains
   @fetchDomains = (selector, callback)->

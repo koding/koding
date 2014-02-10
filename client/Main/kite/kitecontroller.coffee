@@ -29,7 +29,11 @@ class KiteController extends KDController
     delete @kiteInstances[kite.kiteKey]
 
   createKite:(kiteName, correlationName, kiteKey)->
-    kite = new KDKite.constructors[kiteName] { correlationName, kiteKey }
+    konstructor = KDKite.constructors[kiteName]
+    
+    throw new Error "Unknown constructor: #{ kiteName }"  unless konstructor?
+
+    kite = new konstructor { correlationName, kiteKey }
 
     kite.on 'destroy', =>
       @destroyKite kite

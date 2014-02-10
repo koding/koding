@@ -4,6 +4,7 @@ module.exports = [
   "libs/async.js",
   "libs/md5-min.js",
   "libs/accounting.js",
+  "libs/promise-0.1.1.js"
 
   # --- Application ---
   "utils.coffee"
