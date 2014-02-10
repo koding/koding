@@ -347,6 +347,7 @@ module.exports =
     neo4jfeeder   : "info"
     oskite        : "info"
     kontrolproxy  : "debug"
+    kontroldaemon : "info"
     userpresence  : "info"
     vmproxy       : "info"
     graphitefeeder: "info"

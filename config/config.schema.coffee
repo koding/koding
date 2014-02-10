@@ -357,6 +357,7 @@ config =
       neo4jfeeder   : 1
       oskite        : 1
       kontrolproxy  : 1
+      kontroldaemon : 1
       userpresence  : 1
       vmproxy       : 1
       graphitefeeder: 1
