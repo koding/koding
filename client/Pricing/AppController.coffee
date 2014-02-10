@@ -47,8 +47,8 @@ class PricingAppController extends KDViewController
 
     view.setWorkflow workflow
 
-    @productForm.on "PlanSelected", (plan) =>
-      view.breadcrumb.showPlan plan
+    @productForm.on "PlanSelected", (plan, options) =>
+      view.breadcrumb.showPlan plan, options
       view.addGroupForm()  if "custom-plan" in plan.tags
 
   selectPlan: (tag, options) ->

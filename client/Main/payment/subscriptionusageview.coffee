@@ -1,11 +1,15 @@
 class SubscriptionUsageView extends KDView
-  getProductList: ->
+  fetchProductList: (callback) ->
     subscription = @getData()
     {plan}       = subscription
 
     list = []
-    list.push {productKey, subscription} for own productKey of plan.quantities
-    return list
+
+    options = targetOptions: selector: planCode: {$in: Object.keys plan.quantities}, tags: $in: ["vm"]
+    plan.fetchProducts null, options, (err, products) ->
+      return  if KD.showError err
+      list.push {product, subscription} for product in products
+      callback list
 
   viewAppended: ->
     @setClass 'subscription-gauges'
@@ -20,5 +24,6 @@ class SubscriptionUsageView extends KDView
       partial  : title
 
     controller = new KDListViewController itemClass: SubscriptionGaugeItem
-    controller.instantiateListItems @getProductList()
     @addSubView controller.getView()
+    @fetchProductList (list) ->
+      controller.instantiateListItems list

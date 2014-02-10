@@ -56,7 +56,9 @@ class DeveloperPlan extends JView
         paymentController.fetchSubscriptionsWithPlans tags: $in: "vm", (err, subscriptions) =>
           return KD.showError err  if err
           @emit "CurrentSubscriptionSet", subscriptions.first  if subscriptions.length
-          @emit "PlanSelected", "rp#{@planIndex}", planApi: KD.remote.api.JResourcePlan
+          @emit "PlanSelected", "rp#{@planIndex}",
+            planApi: KD.remote.api.JResourcePlan
+            resourceQuantity: @planIndex
 
     @updateContent()
 
