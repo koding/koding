@@ -264,9 +264,9 @@ class PaymentController extends KDController
 
       if subscription
         KD.remote.api.JPaymentPack.one tags: packTag, (err, pack) =>
-          return  if KD.showError err
+          return callback err  if err
           fn subscription, pack, (err, nonce) =>
-            return  if KD.showError err
+            return callback err  if err
             callback null, nonce
       else
         callback()

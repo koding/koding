@@ -53,7 +53,7 @@ class PlanUpgradeConfirmForm extends PaymentConfirmForm
           cssClass: 'mini-title'
           partial : 'Your current plan'
 
-        @plan.addSubView new VmPlanView {cssClass:"old-plan"}, oldSubscription
+        @plan.addSubView new VmPlanView {cssClass:"old-plan"}, oldSubscription.plan
 
         @plan.addSubView new KDCustomHTMLView
           tagName : 'h6'

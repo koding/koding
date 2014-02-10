@@ -11,21 +11,20 @@ class IntroTeamPlan extends JView
     @userQuantity     = 10
     @total            = (@resourceQuantity * unitPrices.resourcePack) + (@userQuantity * unitPrices.user)
 
-    @resourcePackSlider = new IntroPricingPlanSelection
+    @resourcePackSlider = new IntroPlanSelection
       title             : "Resource Pack"
       description       : """
         <span>1 Resource pack contains</span>
-        <cite>4x</cite>CPU
+        <br/><cite>4x</cite>CPU
         <cite>2x</cite>GB RAM
         <cite>50</cite>GB Disk
-        <cite>10x</cite>Total VMs
-        <cite>1x</cite>Always on VMs</p>
+        <br/><cite>10x</cite>Total VMs
+        <cite>1x</cite>Always on VMs
         """
       unitPrice         : unitPrices.resourcePack
       slider            :
-        minValue        : 5
+        minValue        : 1
         maxValue        : 250
-        initialValue    : 5
         interval        : 5
         snapOnDrag      : yes
         handles         : [@resourceQuantity]
@@ -33,7 +32,7 @@ class IntroTeamPlan extends JView
 
     @resourcePackSlider.on "ValueChanged", (@resourceQuantity) => @updateContent()
 
-    @userSlider         = new IntroPricingPlanSelection
+    @userSlider         = new IntroPlanSelection
       title             : "Team Size"
       unitPrice         : unitPrices.user
       slider            :
