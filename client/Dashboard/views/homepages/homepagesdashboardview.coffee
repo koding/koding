@@ -11,9 +11,10 @@ class AddNewHomePageView extends JView
       type        : "input"
       defaultValue: @getData()?.name or ""
 
+    editorValue   = if @getData()?.partial then Encoder.htmlDecode @getData().partial else ""
     @editor       = new EditorPane
       cssClass    : "editor-container"
-      content     : @getData()?.partial or ""
+      content     : editorValue
       size        :
         width     : 876
         height    : 400
