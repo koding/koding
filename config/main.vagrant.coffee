@@ -366,7 +366,7 @@ module.exports =
     neo4jfeeder   : "notice"
     oskite        : "notice"
     kontrolproxy  : "notice"
-    kontroldaemon : "info"
+    kontroldaemon : "notice"
     userpresence  : "notice"
     vmproxy       : "notice"
     graphitefeeder: "notice"
