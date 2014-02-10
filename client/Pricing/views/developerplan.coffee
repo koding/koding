@@ -31,7 +31,7 @@ class DeveloperPlan extends JView
         maxValue     : @plans.length - 1
         interval     : 1
         initial      : 1
-        snapOnDrag   : yes
+        snapOnDrag   : no
         handles      : [1]
         width        : 715
         drawOpposite : yes
