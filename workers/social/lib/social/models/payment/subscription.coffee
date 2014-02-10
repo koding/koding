@@ -181,7 +181,7 @@ module.exports = class JPaymentSubscription extends jraphical.Module
     spend ?= {}
 
     usages = for own planCode, quantity of spend
-      planSize    = @quantities[planCode] or @plan.quantities[planCode] or 0
+      planSize    = @quantities[planCode]
       usageAmount = usage[planCode] ? 0
       spendAmount = (spend[planCode] ? 0) * multiplyFactor
 
