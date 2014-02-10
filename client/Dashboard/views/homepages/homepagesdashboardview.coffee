@@ -105,8 +105,10 @@ class HomePagesDashboardView extends JView
       @addNew homePageData
 
   addNew: (data) ->
-    appManager = KD.singleton "appManager"
+    homePage.hide() for homePage in @homePages
+    @noPageLabel.hide()
 
+    appManager = KD.singleton "appManager"
     appManager.require "Teamwork", (app) =>
       @addNewHomePageView = new AddNewHomePageView { delegate: this }, data
 
