@@ -167,16 +167,10 @@ func (b *Broker) registerToKontrol() error {
 
 // startAMQP setups the the neccesary publisher and consumer connections for
 // the broker broker.
-func (b *Broker) startAMQP() {
+func (b *Broker) startAMQP() error {
 	b.PublishConn = amqputil.CreateConnection(conf, b.Config.Name)
-	defer b.PublishConn.Close()
-
 	b.ConsumeConn = amqputil.CreateConnection(conf, b.Config.Name)
-	defer b.ConsumeConn.Close()
-
 	consumeChannel := amqputil.CreateChannel(b.ConsumeConn)
-	defer consumeChannel.Close()
-
 	presenceQueue := amqputil.JoinPresenceExchange(
 		consumeChannel,      // channel
 		"services-presence", // exchange
@@ -205,41 +199,51 @@ func (b *Broker) startAMQP() {
 		nil,               // args
 	); err != nil {
 		log.Critical("Couldnt create updateInstances exchange  %v", err)
+		return err
 	}
 
 	if err := consumeChannel.ExchangeBind(BROKER_NAME, "", "updateInstances", false, nil); err != nil {
 		log.Critical("Couldnt bind to updateInstances exchange  %v", err)
+		return err
 	}
 
-	// signal that we are ready now
-	close(b.amqpReady)
+	done := make(chan bool, 1)
+	go func(stream <-chan amqp.Delivery) {
+		// start to listen from "broker" topic exchange
+		for amqpMessage := range stream {
+			routingKey := amqpMessage.RoutingKey
+			payload := json.RawMessage(utils.FilterInvalidUTF8(amqpMessage.Body))
 
-	// start to listen from "broker" topic exchange
-	for amqpMessage := range stream {
-		routingKey := amqpMessage.RoutingKey
-		payload := json.RawMessage(utils.FilterInvalidUTF8(amqpMessage.Body))
+			pos := strings.IndexRune(routingKey, '.') // skip first dot, since we want at least two components to always include the secret
+			for pos != -1 && pos < len(routingKey) {
+				index := strings.IndexRune(routingKey[pos+1:], '.')
+				pos += index + 1
+				if index == -1 {
+					pos = len(routingKey)
+				}
+				routingKeyPrefix := routingKey[:pos]
+				globalMapMutex.Lock()
 
-		pos := strings.IndexRune(routingKey, '.') // skip first dot, since we want at least two components to always include the secret
-		for pos != -1 && pos < len(routingKey) {
-			index := strings.IndexRune(routingKey[pos+1:], '.')
-			pos += index + 1
-			if index == -1 {
-				pos = len(routingKey)
+				if routes, ok := routeMap[routingKeyPrefix]; ok {
+					routes.Each(func(sessionId interface{}) bool {
+						if routeSession, ok := sessionsMap[sessionId.(string)]; ok {
+							sendToClient(routeSession, routingKey, &payload)
+						}
+						return true
+					})
+				}
+				globalMapMutex.Unlock()
 			}
-			routingKeyPrefix := routingKey[:pos]
-			globalMapMutex.Lock()
-
-			if routes, ok := routeMap[routingKeyPrefix]; ok {
-				routes.Each(func(sessionId interface{}) bool {
-					if routeSession, ok := sessionsMap[sessionId.(string)]; ok {
-						sendToClient(routeSession, routingKey, &payload)
-					}
-					return true
-				})
-			}
-			globalMapMutex.Unlock()
 		}
-	}
+		done <- true
+	}(stream)
+
+	go func() {
+		<-done
+		b.Close()
+	}()
+
+	return nil
 }
 
 // startSockJS starts a new HTTPS listener that implies the SockJS protocol.
@@ -311,14 +315,18 @@ func (b *Broker) startSockJS() {
 // sockjsSession is called for every client connection and handles all the
 // message trafic for a single client connection.
 func (b *Broker) sockjsSession(session *sockjs.Session) {
+	client, err := NewClient(session, b)
+	if err != nil {
+		log.Critical("Couldnt create client %v", err)
+		return
+	}
 
-	client := NewClient(session, b)
 	sessionGaugeEnd := client.gaugeStart()
 
 	defer sessionGaugeEnd()
 	defer client.Close()
 
-	err := client.ControlChannel.Publish(b.Config.AuthAllExchange, "broker.clientConnected", false, false, amqp.Publishing{Body: []byte(client.SocketId)})
+	err = client.ControlChannel.Publish(b.Config.AuthAllExchange, "broker.clientConnected", false, false, amqp.Publishing{Body: []byte(client.SocketId)})
 	if err != nil {
 		log.Critical("Couldnt publish to control channel %v", err)
 	}
