@@ -50,7 +50,9 @@ class IntroDeveloperPlan extends JView
       title    : "BUY NOW"
       callback : =>
         if @planIndex is 0 then KD.singleton("router").handleRoute '/Register'
-        else @emit "PlanSelected", "rp#{@planIndex}", planApi: KD.remote.api.JResourcePlan
+        else @emit "PlanSelected", "rp#{@planIndex}",
+          planApi: KD.remote.api.JResourcePlan
+          resourceQuantity: @planIndex
 
     @updateContent()
 
