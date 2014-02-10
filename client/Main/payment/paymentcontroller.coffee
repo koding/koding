@@ -262,7 +262,7 @@ class PaymentController extends KDController
   _runWrapper: (options, callback) ->
     {fn, subscriptionTag, packTag} = options
 
-    kallback (err, subscription) =>
+    kallback = (err, subscription) =>
       return callback err  if err
       if subscription
         KD.remote.api.JPaymentPack.one tags: packTag, (err, pack) =>
