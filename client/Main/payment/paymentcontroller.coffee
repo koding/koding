@@ -261,10 +261,9 @@ class PaymentController extends KDController
 
   _runWrapper: (options, callback) ->
     {fn, subscriptionTag, packTag} = options
-    @fetchSubscriptionsWithPlans tags: [subscriptionTag], (err, subscriptions) =>
-      return  if KD.showError err
-      [subscription] = subscriptions
 
+    kallback (err, subscription) =>
+      return callback err  if err
       if subscription
         KD.remote.api.JPaymentPack.one tags: packTag, (err, pack) =>
           return callback err  if err
@@ -273,3 +272,12 @@ class PaymentController extends KDController
             callback null, nonce
       else
         callback()
+
+    group = KD.getGroup()
+    if group.slug is "koding"
+      @fetchSubscriptionsWithPlans tags: [subscriptionTag], (err, subscriptions) =>
+        return  if KD.showError err
+        [subscription] = subscriptions
+        kallback subscription
+    else
+      @fetchGroupSubscription kallback
