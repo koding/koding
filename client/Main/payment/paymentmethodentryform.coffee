@@ -13,7 +13,6 @@ class PaymentMethodEntryForm extends KDFormViewWithFields
       cardFirstName       :
         placeholder       : 'First name'
         defaultValue      : KD.whoami().profile.firstName
-        required          : 'First name is required!'
         validate          :
           event           : "blur"
           rules           :
@@ -26,11 +25,6 @@ class PaymentMethodEntryForm extends KDFormViewWithFields
           cardLastName    :
             placeholder   : 'Last name'
             defaultValue  : KD.whoami().profile.lastName
-            required      : 'Last name is required!'
-
-      # cardDescription     :
-      #   label             : 'Description'
-      #   cssClass          : 'hidden'
             validate      :
               event       : "blur"
               rules       :
@@ -83,6 +77,7 @@ class PaymentMethodEntryForm extends KDFormViewWithFields
       cardCV              :
         placeholder       : 'CVC'
         validate          :
+          event           : 'blur'
           rules           :
             required      : yes
             regExp        : /[0-9]{3,4}/
@@ -114,10 +109,17 @@ class PaymentMethodEntryForm extends KDFormViewWithFields
     { cardNumber: cardNumberInput } = @inputs
     cardNumberInput.on 'keyup', @bound 'handleCardKeyup'
 
-    @on 'FormValidationFailed', =>
+    @on 'FormValidationFailed', (err)=>
       KD.utils.wait 500, => @unsetClass 'animate shake'
       @setClass 'animate shake'
       @buttons.Save.hideLoader()
+
+      modal      = new KDModalView
+        title    : "Form Submission Failed"
+        overlay  : yes
+        partial  : err.first.message # we should overwrite all
+        # the possible error messages that can be returned by recurly.
+
 
     cardNumberInput.on "ValidationError", ->
       @parent.unsetClass "visa mastercard amex diners discover jcb"
