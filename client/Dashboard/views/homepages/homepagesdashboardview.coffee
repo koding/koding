@@ -109,11 +109,11 @@ class HomePagesDashboardView extends JView
       @addNew homePageData
 
     @on "ChangeHomePageState", (homePageData) =>
-      query     = { isActive: yes }
+      query = { isActive: yes }
       for homePage in @homePages when homePage.getData().isActive is yes
         oldActive = homePage
 
-      activate  = =>
+      toggleState = =>
         homePageData.update { isActive: !homePageData.isActive }, (err, res) =>
           return warn err  if err
           @reloadViews()
@@ -121,10 +121,9 @@ class HomePagesDashboardView extends JView
       if oldActive
         oldActive.getData().update { isActive: no }, (err, res) =>
           return warn err  if err
-          activate()
+          toggleState()
       else
-        activate()
-
+        toggleState()
 
     @on "AddingNewHomePageCancelled", =>
       page.show() for page in @homePages
@@ -170,6 +169,7 @@ class HomePagesDashboardView extends JView
       {{> @noPageLabel}}
       {{> @container}}
     """
+
 
 class HomePageItem extends JView
 
