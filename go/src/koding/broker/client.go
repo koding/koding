@@ -24,7 +24,7 @@ type Client struct {
 }
 
 // NewClient retuns a new client that is defined on a given session.
-func NewClient(session *sockjs.Session, broker *Broker) *Client {
+func NewClient(session *sockjs.Session, broker *Broker) (*Client, error) {
 	socketId := randomString()
 	session.Tag = socketId
 
@@ -32,7 +32,7 @@ func NewClient(session *sockjs.Session, broker *Broker) *Client {
 	controlChannel, err := broker.PublishConn.Channel()
 	if err != nil {
 		log.Critical("Couldnt create publish channel %v", err)
-		return nil
+		return nil, err
 	}
 
 	var subscriptions storage.Subscriptionable
@@ -44,7 +44,7 @@ func NewClient(session *sockjs.Session, broker *Broker) *Client {
 		if err != nil {
 			// this will never fail to here
 			log.Critical("Couldnt subscription storage %v", err)
-			return nil
+			return nil, err
 		}
 	}
 
@@ -58,7 +58,7 @@ func NewClient(session *sockjs.Session, broker *Broker) *Client {
 		ControlChannel: controlChannel,
 		Broker:         broker,
 		Subscriptions:  subscriptions,
-	}
+	}, nil
 }
 
 // Close should be called whenever a client disconnects.
