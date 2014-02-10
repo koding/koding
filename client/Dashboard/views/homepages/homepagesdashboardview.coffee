@@ -39,7 +39,7 @@ class AddNewHomePageView extends JView
 
     # TODO: fatihacet - DRY callbacks
     if isUpdate
-      @getData().update { "$set": data } , (err, customPartial) =>
+      @getData().update data, (err, customPartial) =>
         return warn err  if err
         @getDelegate().emit "NewHomePageAdded", customPartial
     else
