@@ -636,12 +636,13 @@ module.exports = class JVM extends Module
 
   removeFromSubscription: (account, group, callback)->
     kallback = (subscription) =>
-      if subscription.status is 'canceled'
-        @remove callback
-      else
-        subscription.creditPack tag : "vm", (err) =>
-          return callback err  if err
-          @remove callback
+      @remove (err) =>
+        return callback err  if err
+        tags = ["vm"]
+        tags.push "alwayson"  if @alwaysOn
+        # tags.push "vmturnon"  if @turnOn #CtF set this field in VM first
+        subscription.creditPack {tags}, callback
+
 
     if group.slug is "koding"
       account.fetchSubscription (err, subscription) =>
