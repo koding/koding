@@ -150,7 +150,7 @@ func (b *Broker) Close() {
 // registerToKontrol registers the broker to KontrolDaemon. This is needed to
 // populate a list of brokers and show them to the client. The list is
 // available at: https://koding.com/-/services/broker?all
-func (b *Broker) registerToKontrol() {
+func (b *Broker) registerToKontrol() error {
 	if err := kontrolhelper.RegisterToKontrol(
 		conf,
 		b.Config.Name,
@@ -160,8 +160,9 @@ func (b *Broker) registerToKontrol() {
 		b.Hostname,
 		b.Config.Port,
 	); err != nil {
-		log.Critical("Couldnt register to kontrol %v", err)
+		return err
 	}
+	return nil
 }
 
 // startAMQP setups the the neccesary publisher and consumer connections for
