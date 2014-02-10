@@ -114,12 +114,12 @@ class HomePagesDashboardView extends JView
         oldActive = homePage
 
       activate  = =>
-        homePageData.update { "$set": { isActive: !homePageData.isActive } }, (err, res) =>
+        homePageData.update { isActive: !homePageData.isActive }, (err, res) =>
           return warn err  if err
           @reloadViews()
 
       if oldActive
-        oldActive.getData().update { "$set": { isActive: no } }, (err, res) =>
+        oldActive.getData().update { isActive: no }, (err, res) =>
           return warn err  if err
           activate()
       else
