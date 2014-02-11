@@ -140,8 +140,11 @@ func main() {
 	registerVmMethod(k, "app.publish", false, appPublish)
 	registerVmMethod(k, "app.skeleton", false, appSkeleton)
 
+	// this method is special cased in oskite.go to allow foreign access
+	registerVmMethod(k, "webterm.connect", false, webtermConnect)
+	registerVmMethod(k, "webterm.getSessions", false, webtermGetSessions)
+
 	registerS3Methods(k)
-	registerWebtermMethods(k)
 
 	startPrepareWorkers()
 
