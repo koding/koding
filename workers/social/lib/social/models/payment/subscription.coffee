@@ -273,7 +273,7 @@ module.exports = class JPaymentSubscription extends jraphical.Module
       =>
         newPlan.checkQuota {@usage}, (err) -> queue.next err
       =>
-        operation.call this, (err) -> queue.next err
+        operation?.call this, (err) -> queue.next err
       ->
         newPlan.subscribe paymentMethodId, subOptions, (err, newSub) ->
           newSubscription = newSub
@@ -296,14 +296,16 @@ module.exports = class JPaymentSubscription extends jraphical.Module
     options.subOptions =
       startsAt: @getEndDate()
 
-    options.operation = (continuation) =>
-      @cancel continuation
+    if "nosync" not in @tags
+      options.operation = (continuation) =>
+        @cancel continuation
 
     @applyTransition options, callback
 
   upgrade: (options, callback) ->
-    options.operation = (continuation) =>
-      @terminate options.oldPlan, continuation
+    if "nosync" not in @tags
+      options.operation = (continuation) =>
+        @terminate options.oldPlan, continuation
 
     @applyTransition options, callback
 
