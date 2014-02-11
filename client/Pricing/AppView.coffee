@@ -134,15 +134,21 @@ class PricingAppView extends KDView
     @workflow.addForm "group", @groupForm, ["group"]
 
   createGroupForm: ->
-    return new KDFormViewWithFields
+    return groupForm = new KDFormViewWithFields
       title                 : "Enter new group name"
       cssClass              : "pricing-create-group"
-      callback              : -> @emit "Submit"
+      callback              : -> 
+        groupForm.buttons.Create.showLoader()
+        @emit "Submit"
       buttons               :
         Create              :
           title             : "CREATE YOUR GROUP"
           type              : "submit"
           style             : "solid green"
+          loader            :
+            color           : "#ffffff"
+            diameter        : 26
+          callback          : ->
       fields                :
         GroupName           :
           label             : "Group Name"
