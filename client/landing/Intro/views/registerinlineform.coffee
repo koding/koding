@@ -160,11 +160,10 @@ class HomeRegisterForm extends KDFormView
         {entryPoint} = KD.config
         KD.getSingleton('router').handleRoute firstRoute or '/Activity', {replaceState: yes, entryPoint}
 
-        setTimeout =>
-          @hide()
+        KD.utils.wait 1000, =>
           @reset()
           @button.hideLoader()
-        , 1000
+          @hide()
 
 
   viewAppended: JView::viewAppended

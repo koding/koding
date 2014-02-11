@@ -41,7 +41,11 @@ class LoginAppsController extends AppController
             if err
               KD.notify_ err.message or err
               return window.location.href = "/"
-            KD.notify_ 'Success!'
+
+            new KDNotificationView
+              title : 'Success!'
+              type  : 'tray'
+
             KD.getSingleton('router').handleRoute "/#{group.slug}"
             KD.getSingleton('mainController').accountChanged KD.whoami()
       else
