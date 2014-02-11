@@ -20,6 +20,11 @@ failover = (req, res, multi) ->
   else
     no
 
+sendBody = (res, body)->
+  res.set 'Content-Type', 'application/json'
+  return res.send 200, body
+
+
 module.exports = (req, res, next) ->
   { params, query } = req
 
@@ -41,8 +46,18 @@ module.exports = (req, res, next) ->
 
     request url, (error, response, body) ->
       if not error and response.statusCode is 200 and body
-        res.set 'Content-Type', 'application/json'
-        return res.send 200, body
+
+        # we can query for multiple services
+        if multi
+          try kontrolResponse = JSON.parse body
+
+          if Array.isArray kontrolResponse
+            if kontrolResponse.length isnt 0
+              return sendBody res, body
+
+        # if query is not multiple then
+        # no need for checking array length
+        else return sendBody res, body
 
       return  if failover req, res, multi
       return next()
