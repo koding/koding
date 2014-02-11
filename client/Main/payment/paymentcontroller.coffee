@@ -270,7 +270,7 @@ class PaymentController extends KDController
             return callback err  if err
             callback null, nonce
       else
-        callback()
+        callback "Subscription not found"
 
     group = KD.getGroup()
     if group.slug is "koding"
