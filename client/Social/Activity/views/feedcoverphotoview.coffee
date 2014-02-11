@@ -13,7 +13,9 @@ class FeedCoverPhotoView extends KDView
 
       @decorateHeader()  if @group.slug isnt "koding"
 
-      @group.on "update", @bound "decorateHeader"
+      @group.on "update", =>
+        if @group.slug isnt "koding"
+          @decorateHeader()
 
   decorateHeader:->
 
