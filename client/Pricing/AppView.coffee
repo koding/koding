@@ -71,7 +71,6 @@ class PricingAppView extends KDView
 
   showPaymentSucceded: ->
     {createAccount, loggedIn} = @formData
-
     @breadcrumb.selectItem 'thanks'
 
     subtitle =
@@ -87,6 +86,15 @@ class PricingAppView extends KDView
         <h3 class="pricing-title">So much wow, so much horse-power!</h3>
         <h6 class="pricing-subtitle">#{subtitle}</h6>
         """
+
+    # write group name and other payment details to appstorage
+    if @groupForm
+      storageController = KD.singletons.appStorageController
+      storage = storageController.storage 'PaymentDetails', '1.0'
+      {GroupURL, GroupSlug} = @groupForm.inputs
+      groupSlug = GroupSlug.getValue()
+      storage.setValue 'groupSlug', groupSlug
+
 
     if loggedIn
       @thankYou.addSubView new KDButtonView
