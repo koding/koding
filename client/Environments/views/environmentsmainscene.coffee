@@ -137,8 +137,8 @@ class EnvironmentsMainScene extends JView
           <h3>Small <cite>1x</cite></h3>
           <ul>
             <li><strong>1</strong> CPU</li>
-            <li><strong>5GB</strong> RAM</li>
-            <li><strong>1TB</strong> Storage</li>
+            <li><strong>1GB</strong> RAM</li>
+            <li><strong>4GB</strong> Storage</li>
           </ul>
         """
 
@@ -149,8 +149,8 @@ class EnvironmentsMainScene extends JView
           <h3>Large <cite>2x</cite></h3>
           <ul>
             <li><strong>2</strong> CPU</li>
-            <li><strong>5GB</strong> RAM</li>
-            <li><strong>1TB</strong> Storage</li>
+            <li><strong>2GB</strong> RAM</li>
+            <li><strong>8GB</strong> Storage</li>
           </ul>
         """
 
@@ -160,9 +160,9 @@ class EnvironmentsMainScene extends JView
         """
           <h3>Extra Large <cite>3x</cite></h3>
           <ul>
-            <li><strong>3</strong> CPU</li>
-            <li><strong>5GB</strong> RAM</li>
-            <li><strong>1TB</strong> Storage</li>
+            <li><strong>4</strong> CPU</li>
+            <li><strong>4GB</strong> RAM</li>
+            <li><strong>16GB</strong> Storage</li>
           </ul>
         """
 
