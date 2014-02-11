@@ -256,10 +256,18 @@ class PopupGroupListItem extends KDListItemView
     options.tagName or= "li"
     super
 
-    {group:{title, avatar, slug}, roles, admin} = @getData()
-
+    {group:{title, avatar, slug, customize}, roles, admin} = @getData()
     roleClasses = roles.map((role)-> "role-#{role}").join ' '
     @setClass "role #{roleClasses}"
+
+    defaultLogo  = "https://koding.s3.amazonaws.com/grouplogo_.png"
+    @groupLogo  = new KDCustomHTMLView
+      tagName    : "img"
+      size       :
+        height   : 30
+        width    : 30
+      attributes :
+        src      : customize?.logo or defaultLogo
 
     @switchLink = new CustomLinkView
       title       : title
@@ -291,7 +299,7 @@ class PopupGroupListItem extends KDListItemView
 
   pistachio: ->
     """
-    {{> @switchLink}}{{> @adminLink}}
+    {{> @groupLogo}}{{> @switchLink}}{{> @adminLink}}
     """
 
 class PopupGroupListItemPending extends PopupGroupListItem
