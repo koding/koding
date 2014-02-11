@@ -1,5 +1,9 @@
 class PricingAppView extends KDView
 
+  constructor:(options = {}, data) ->
+    super options, data
+    @appStorage = KD.getSingleton('appStorageController').storage 'PaidRegistration', '1.0'
+
   createBreadcrumb: ->
     @addSubView @breadcrumb = new BreadcrumbView
 
@@ -110,6 +114,10 @@ class PricingAppView extends KDView
         <i class="check-icon"></i>
         <h3 class="pricing-title"><strong>#{group.title}</strong> has been successfully created</h3>
         """
+
+    @appStorage.fetchStorage (storage) =>
+      @appStorage.setValue "group", group.slug, (err) ->
+        warn "Failed to set group information"
 
     if loggedIn
       @thankYou.addSubView new KDButtonView
