@@ -222,6 +222,27 @@ class PaymentController extends KDController
       @emit 'SubscriptionCredited', subscription
       callback()
 
+  fetchActiveSubscription: (tags, callback) ->
+    if KD.getGroup().slug is "koding"
+      status = $in: ["active", "canceled"]
+      @fetchSubscriptionsWithPlans {tags, status}, (err, subscriptions) ->
+        return callback err  if err
+        noSync = null
+        active = null
+
+        for subscription in subscriptions
+          if "nosync" in subscription.tags
+            noSync = subscription
+          else
+            active = subscription
+
+        callback err, active or noSync
+    else
+      @fetchGroupSubscription callback
+
+  fetchGroupSubscription: (callback) ->
+    KD.getGroup().fetchSubscription callback
+
   fetchSubscriptionsWithPlans: (options, callback) ->
     [callback, options] = [options, callback]  unless callback
 
@@ -233,9 +254,6 @@ class PaymentController extends KDController
       { subscriptions } = @groupPlansBySubscription plansAndSubs
 
       callback null, subscriptions
-
-  fetchGroupSubscription: (callback) ->
-    KD.getGroup().fetchSubscription callback
 
   groupPlansBySubscription: (plansAndSubscriptions = {}) ->
 
