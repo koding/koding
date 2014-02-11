@@ -111,6 +111,12 @@ func main() {
 	// handle SIGUSR1 and other signals. Shutdown gracely when USR1 is received
 	setupSignalHandler(k)
 
+	// startPrepareWorkers starts multiple workers (based on prepareQueueLimit)
+	// that accepts vmPrepare/vmStart functions.
+	for i := 0; i < prepareQueueLimit; i++ {
+		go prepareWorker()
+	}
+
 	// register current client-side methods
 	registerVmMethod(k, "vm.start", false, vmStart)
 	registerVmMethod(k, "vm.shutdown", false, vmShutdown)
@@ -144,9 +150,8 @@ func main() {
 	registerVmMethod(k, "webterm.connect", false, webtermConnect)
 	registerVmMethod(k, "webterm.getSessions", false, webtermGetSessions)
 
-	registerS3Methods(k)
-
-	startPrepareWorkers()
+	registerVmMethod(k, "s3.store", true, s3Store)
+	registerVmMethod(k, "s3.delete", true, s3Delete)
 
 	k.Run()
 }
@@ -703,14 +708,6 @@ func prepareWorker() {
 		case <-time.After(time.Second * 20):
 			log.Error("timing out preparing vm")
 		}
-	}
-}
-
-// startPrepareWorkers starts multiple workers (based on prepareQueueLimit)
-// that accepts prepare functions.
-func startPrepareWorkers() {
-	for i := 0; i < prepareQueueLimit; i++ {
-		go prepareWorker()
 	}
 }
 
