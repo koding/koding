@@ -135,9 +135,13 @@ func main() {
 	registerVmMethod(k, "fs.rename", false, fsRename)
 	registerVmMethod(k, "fs.createDirectory", false, fsCreateDirectory)
 
+	registerVmMethod(k, "app.install", false, appInstall)
+	registerVmMethod(k, "app.download", false, appDownload)
+	registerVmMethod(k, "app.publish", false, appPublish)
+	registerVmMethod(k, "app.skeleton", false, appSkeleton)
+
 	registerS3Methods(k)
 	registerWebtermMethods(k)
-	registerAppMethods(k)
 
 	startPrepareWorkers()
 
