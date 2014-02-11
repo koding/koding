@@ -89,6 +89,12 @@ module.exports = (options = {}, callback)->
         content = campaign?.content
         campaignData = {status, content}
 
+
+
+      kallback = ->
+        html = createHTML()
+        callback null, html
+
       # get group logo and coverphoto
       if slug # if not, it is koding
         bongoModels.JGroup.one {slug}, (err, group) ->
@@ -98,12 +104,9 @@ module.exports = (options = {}, callback)->
               logo       : group.customize?.logo or ""
               coverPhoto : group.customize?.coverPhoto or ""
               id         : group.getId()
-
-          html = createHTML()
-          return callback null, html
+        kallback()
       else
-        html = createHTML()
-        return callback null, html
+        kallback()
 
 
 
