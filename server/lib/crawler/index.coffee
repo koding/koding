@@ -21,15 +21,17 @@ fetchLastStatusUpdatesOfUser = (account, Relationship, JNewStatusUpdate, callbac
   return callback null, null  unless account?._id
   originId = account._id
 
-  feedOptions =
-    sort  : 'timestamp' : -1
-    limit : 20
+  feedOptions  =
+    sort       : 'timestamp' : -1
+    limit      : 20
 
-  selector =
-    "targetId"   : originId
-    "targetName" : "JAccount"
-    "sourceName" : "JNewStatusUpdate"
-    "as"         : "author"
+  selector     =
+    targetId   : originId
+    targetName : "JAccount"
+    sourceName : "JNewStatusUpdate"
+    as         : "author"
+    data       :          # we should filter by group because when the group is
+      group    : "koding" # private publishing on profile page will cause data leak ~EA
 
   Relationship.some selector, feedOptions, (err, relationships)->
     return callback err, null  if err

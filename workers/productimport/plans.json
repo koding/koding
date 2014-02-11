@@ -1,0 +1,49 @@
+[
+  {
+    "title"       : "Team Plan", 
+    "feeAmount"   : 0, 
+    "feeUnit"     : "months",
+    "couponCodes" : {}, 
+    "tags"        : ["custom-plan"]
+  },
+  {
+    "title"       : "1 x Resource Pack", 
+    "feeAmount"   : 1900, 
+    "feeUnit"     : "months",
+    "couponCodes" : {}, 
+    "tags"        : ["vm", "rp1"],
+    "count"       : 1
+  },
+  {
+    "title"       : "2 x Resource Pack", 
+    "feeAmount"   : 3900,
+    "feeUnit"     : "months", 
+    "couponCodes" : {"discount": "rp2", "vm": "1FREEVM"}, 
+    "tags"        : ["vm", "rp2"],
+    "count"       : 2
+  },
+  {
+    "title"       : "3 x Resource Pack", 
+    "feeAmount"   : 5900, 
+    "feeUnit"     : "months",
+    "couponCodes" : {"discount": "rp3", "vm": "2FREEVMS"}, 
+    "tags"        : ["vm", "rp3"],
+    "count"       : 3
+  },
+  {
+    "title"       : "4 x Resource Pack", 
+    "feeAmount"   : 7900, 
+    "feeUnit"     : "months",
+    "couponCodes" : {"discount": "rp4", "vm": "3FREEVMS"}, 
+    "tags"        : ["vm", "rp4"],
+    "count"       : 4
+  },
+  {
+    "title"       : "5 x Resource Pack", 
+    "feeAmount"   : 9900, 
+    "feeUnit"     : "months",
+    "couponCodes" : {"discount": "rp5", "vm": "4FREEVMS"}, 
+    "tags"        : ["vm", "rp5"],
+    "count"       : 5
+  }
+]

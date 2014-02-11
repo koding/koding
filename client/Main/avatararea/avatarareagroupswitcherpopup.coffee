@@ -8,9 +8,12 @@ class AvatarPopupGroupSwitcher extends AvatarPopup
 
     super
 
-    @pending = 0
-    @notPopulated = yes
+    @pending             = 0
+    @notPopulated        = yes
     @notPopulatedPending = yes
+    groupsController     = KD.getSingleton "groupsController"
+    router               = KD.getSingleton "router"
+
 
     @_popupList = new PopupList
       itemClass  : PopupGroupListItem
@@ -18,9 +21,9 @@ class AvatarPopupGroupSwitcher extends AvatarPopup
     @_popupListPending = new PopupList
       itemClass  : PopupGroupListItemPending
 
-    @_popupListPending.on 'PendingCountDecreased', @bound 'decreasePendingCount'
-    @_popupListPending.on 'UpdateGroupList',       @bound 'populateGroups'
-    # does not work
+    # does not work yet
+    # @_popupListPending.on 'PendingCountDecreased', @bound 'decreasePendingCount'
+    # @_popupListPending.on 'UpdateGroupList',       @bound 'populateGroups'
     # KD.whoami().on        'NewPendingInvitation',  @bound 'populatePendingGroups'
 
     @listControllerPending = new KDListViewController
@@ -50,22 +53,73 @@ class AvatarPopupGroupSwitcher extends AvatarPopup
       cssClass : "sublink top hidden"
       partial  : "You have pending group invitations:"
 
-    @avatarPopupContent.addSubView @listControllerPending.getView()
-
     @avatarPopupContent.addSubView new KDCustomHTMLView
       tagName    : 'span'
       cssClass   : 'icon help'
       tooltip    :
         title    : "Here you'll find the groups that you are a member of, clicking one of them will take you to a new browser tab."
 
-    @avatarPopupContent.addSubView @listController.getView()
+    @addSubView @groupSubMenuWrapper = new KDCustomHTMLView
+      partial  : '<div class="kdview content"></div>'
+      cssClass : 'avatararea-popup notifications group-switcher submenu' # this is a hack, just to use the same position w/ notifications dropdown
 
-    groupsController = KD.getSingleton("groupsController")
-    groupsController.once 'GroupChanged', () =>
-      group =  groupsController.getCurrentGroup()
-      # TODO : do we really need backToKoding ? Erdinc
-      # if group?.slug isnt "koding"
-      #   backToKodingView.updatePartial "<a class='right' target='_blank' href='/Activity'>Back to Koding</a>"
+    @groupSubMenuWrapper.setCss 'right', 293
+
+    {entryPoint} = KD.config
+    createGroupLink = new KDCustomHTMLView
+      tagName    : 'a'
+      attributes : href : '/Pricing/Team'
+      cssClass   : 'bottom bb hidden'
+      partial    : 'Create a group'
+      click      : (event)=>
+        KD.utils.stopDOMEvent event
+        router.handleRoute '/Pricing/CreateGroup', entryPoint : 'koding'
+        @hide()
+
+    KD.singleton("paymentController").fetchSubscriptionsWithPlans tags: ["custom-plan"], (err, subscriptions) ->
+      createGroupLink.show()  unless subscriptions.length
+
+    backToKoding = new KDCustomHTMLView
+      tagName    : 'a'
+      attributes : href : '/'
+      cssClass   : 'bottom bb'
+      partial    : 'Go back to Koding'
+      click      : (event)=>
+        KD.utils.stopDOMEvent event
+        location.href = '/'
+
+    groupsController.ready ->
+      backToKoding.destroy()  if groupsController.getCurrentGroup().slug is 'koding'
+
+
+    @groupSubMenuWrapper.addSubView createGroupLink, '.content'
+    @groupSubMenuWrapper.addSubView backToKoding, '.content'
+    @groupSubMenuWrapper.addSubView @listControllerPending.getView(), '.content'
+    @groupSubMenuWrapper.addSubView @listController.getView(), '.content'
+
+
+    submenuShown = no
+
+    @avatarPopupContent.bindEvent 'mousemove'
+    @avatarPopupContent.on 'mousemove', (event)=>
+      return  if $(event.target).closest().is '.submenu'
+      @groupSubMenuWrapper.unsetClass 'active'
+
+    handleSubMenu = (event)=>
+      KD.utils.stopDOMEvent event
+      submenuShown = yes
+      @groupSubMenuWrapper.setClass 'active'
+      @populateGroups()
+
+    @avatarPopupContent.addSubView new KDCustomHTMLView
+      tagName    : 'a'
+      attributes : href : '#'
+      cssClass   : 'bottom'
+      partial    : 'Your groups'
+      bind       : 'mouseenter mousemove'
+      mouseenter : handleSubMenu
+      click      : handleSubMenu
+      mousemove  : KD.utils.stopDOMEvent
 
     @avatarPopupContent.addSubView new KDCustomHTMLView
       tagName    : 'a'
@@ -74,7 +128,7 @@ class AvatarPopupGroupSwitcher extends AvatarPopup
       partial    : 'Account settings'
       click      : (event)=>
         KD.utils.stopDOMEvent event
-        KD.getSingleton('router').handleRoute '/Account'
+        router.handleRoute '/Account'
         @hide()
 
 
@@ -85,51 +139,25 @@ class AvatarPopupGroupSwitcher extends AvatarPopup
       partial    : 'Environments'
       click      : (event)=>
         KD.utils.stopDOMEvent event
-        KD.getSingleton('router').handleRoute '/Environments'
+        router.handleRoute '/Environments'
         @hide()
 
 
-    @avatarPopupContent.addSubView dashboard = new KDCustomHTMLView
+    @avatarPopupContent.addSubView dashboardLink = new KDCustomHTMLView
       tagName  : "a"
       cssClass : "bottom hidden"
-      partial  : "Dashboard"
+      partial  : "Group dashboard"
       click    : (event) =>
         KD.utils.stopDOMEvent event
         KD.getSingleton("router").handleRoute "/Dashboard"
         @hide()
 
     # FIXME:
-    KD.utils.wait 2000, =>
-      group = KD.getSingleton("groupsController").getCurrentGroup()
-      group?.canEditGroup (err, success)=>
+    groupsController.ready ->
+      group = groupsController.getCurrentGroup()
+      group.canEditGroup (err, success)=>
         return  unless success
-        dashboard.show()
-
-    # @avatarPopupContent.addSubView new KDCustomHTMLView
-    #   tagName    : 'a'
-    #   attributes : href : '#'
-    #   cssClass   : 'bottom'
-    #   partial    : 'Go back to old Koding'
-    #   click      : (event)=>
-    #     KD.utils.stopDOMEvent event
-    #     modal = new KDModalView
-    #       title   : "Go back to old Koding"
-    #       cssClass: "go-back-survey"
-    #       content : """
-    #         Please take a short survey about <a href="http://bit.ly/1jsjlna">New Koding.</a><br><br>
-    #         """
-    #       buttons :
-    #         "Switch":
-    #           cssClass: "modal-clean-gray"
-    #           callback: ->
-    #             KD.mixpanel "Switch to old Koding, click"
-    #             KD.utils.goBackToOldKoding()
-    #             modal.destroy()
-    #         "Cancel":
-    #           cssClass: "modal-cancel"
-    #           callback: ->
-    #             modal.destroy()
-    #     @hide()
+        dashboardLink.show()
 
     cookieName = "kdproxy-usehttp"
     if $.cookie(cookieName) is "1"
@@ -149,7 +177,7 @@ class AvatarPopupGroupSwitcher extends AvatarPopup
       partial    : 'Logout'
       click      : (event)=>
         KD.utils.stopDOMEvent event
-        KD.getSingleton('router').handleRoute '/Logout'
+        router.handleRoute '/Logout'
         @hide()
 
   populatePendingGroups:->
@@ -170,7 +198,7 @@ class AvatarPopupGroupSwitcher extends AvatarPopup
 
 
   populateGroups:->
-    return  unless KD.isLoggedIn() or @isLoading
+    return  if not KD.isLoggedIn() or @isLoading
 
     @listController.removeAllItems()
 
@@ -218,19 +246,33 @@ class AvatarPopupGroupSwitcher extends AvatarPopup
     @populateGroups() if @notPopulated
     @populatePendingGroups() if @notPopulatedPending
 
+  hide:->
+    super
+    @groupSubMenuWrapper.unsetClass 'active'
+
 class PopupGroupListItem extends KDListItemView
 
   constructor:(options = {}, data)->
     options.tagName or= "li"
     super
 
-    {group:{title, avatar, slug}, roles, admin} = @getData()
-
+    {group:{title, avatar, slug, customize}, roles, admin} = @getData()
     roleClasses = roles.map((role)-> "role-#{role}").join ' '
     @setClass "role #{roleClasses}"
 
+    defaultLogo  = "https://koding.s3.amazonaws.com/grouplogo_.png"
+    @groupLogo  = new KDCustomHTMLView
+      tagName    : "img"
+      cssClass   : "avatararea-group-logo"
+      size       :
+        height   : 30
+        width    : 30
+      attributes :
+        src      : customize?.logo or defaultLogo
+
     @switchLink = new CustomLinkView
       title       : title
+      cssClass    : "avatararea-group-name"
       href        : "/#{if slug is KD.defaultSlug then '' else slug+'/'}Activity"
       target      : slug
       icon        :
@@ -240,29 +282,26 @@ class PopupGroupListItem extends KDListItemView
           title   : "Opens in a new browser window."
           delayIn : 300
 
-    @adminLink = new CustomLinkView
-      title       : ''
-      href        : "/#{if slug is KD.defaultSlug then '' else slug+'/'}Dashboard"
-      target      : slug
-      cssClass    : 'fr'
-      iconOnly    : yes
-      icon        :
-        cssClass  : 'dashboard-page'
-        placement : 'right'
-        tooltip   :
-          title   : "Opens admin dashboard in new browser window."
-          delayIn : 300
-    unless admin
-      @adminLink.hide()
+    @adminLink = if admin
+      new CustomLinkView
+        title       : ''
+        href        : "/#{if slug is KD.defaultSlug then '' else slug+'/'}Dashboard"
+        target      : slug
+        cssClass    : 'admin-icon'
+        iconOnly    : yes
+        icon        :
+          cssClass  : 'dashboard-page'
+          placement : 'right'
+          tooltip   :
+            title   : "Opens admin dashboard in new browser window."
+            delayIn : 300
+    else new KDCustomHTMLView
 
   viewAppended: JView::viewAppended
 
   pistachio: ->
     """
-    <div class='right-overflow'>
-      {{> @switchLink}}
-      {{> @adminLink}}
-    </div>
+    {{> @groupLogo}}{{> @switchLink}}{{> @adminLink}}
     """
 
 class PopupGroupListItemPending extends PopupGroupListItem

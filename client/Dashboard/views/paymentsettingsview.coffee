@@ -2,7 +2,7 @@ class GroupPaymentSettingsView extends JView
 
   constructor:->
     super
-    @setClass "paymment-settings-view group-admin-modal"
+    @setClass "payment-settings-view group-admin-modal"
     group = @getData()
 
     formOptions =
@@ -35,7 +35,6 @@ class GroupPaymentSettingsView extends JView
       #       diameter        : 12
       fields                :
         billing             :
-          label             : "Billing method"
           itemClass         : LinkablePaymentMethodView
         # history             :
         #   label             : "Payment history"

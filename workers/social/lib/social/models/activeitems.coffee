@@ -10,7 +10,7 @@ Cache          = require "../cache/main"
 
 module.exports = class ActiveItems extends Base
   @share()
-
+  JGroup         = require './group'
   @set
     sharedMethods   :
       static        :
@@ -36,14 +36,22 @@ module.exports = class ActiveItems extends Base
   #   * Active topics in the last day
   #   * Random topics
   @fetchTopics = secure (client, options, callback)->
-    # [callback, options] = [options, callback]  unless callback
-    # options.fallbackFn = @fetchRandomTopics
-    # cacheId            = "#{options.group}-activeItems.fetchTopics"
-    # Cache.fetch cacheId, (@fetchItems.bind this), options, callback
+    JTag.canReadTags client, (err, hasPermission)=>
+      if err or not hasPermission
+        return callback new Error "Not allowed to read tags of this group"
+      Cache.fetch cacheId, (@fetchItems.bind this), options, callback
 
-    options.name  = "topic"
-    options.group = client.context.group
-    @fetchRandomTopics callback, options
+    [callback, options] = [options, callback]  unless callback
+    options.name       = "topic"
+    options.group      = client.context.group
+    options.fallbackFn = @fetchRandomTopics
+    cacheId            = "#{options.group}-activeItems.fetchTopics"
+
+    JTag.canReadTags client, (err, hasPermission)=>
+      if err or not hasPermission
+        return callback new Error "Not allowed to read tags of this group"
+      @fetchRandomTopics callback, options
+      # Cache.fetch cacheId, (@fetchItems.bind this), options, callback
 
   # Returns users in following order:
   #   * Client's followers who are online
@@ -55,9 +63,12 @@ module.exports = class ActiveItems extends Base
     # options.group       = client.context.group
     # options.fallbackFn  = @fetchRandomUsers
 
-    # Cache.fetch "activeItems.fetchUsers", (@_fetchUsers.bind this), options, callback
+    JGroup.canListMembers client, (err, hasPermission)=>
+      if err or not hasPermission
+        return callback new Error "Not allowed to list members of this group"
+        # Cache.fetch "activeItems.fetchUsers", (@_fetchUsers.bind this), options, callback
 
-    @fetchRandomUsers callback
+      @fetchRandomUsers callback
 
   @fetchRandomUsers = (callback)->
     JAccount.some {"type":"registered"}, {limit:10}, callback

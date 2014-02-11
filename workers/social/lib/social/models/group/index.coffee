@@ -11,6 +11,10 @@ module.exports = class JGroup extends Module
 
   JPermissionSet = require './permissionset'
   {permit}       = JPermissionSet
+
+  JAccount     = require '../account'
+  JPaymentPack = require '../payment/pack'
+
   KodingError    = require '../../error'
   Validators     = require './validators'
   {throttle}     = require 'underscore'
@@ -40,8 +44,11 @@ module.exports = class JGroup extends Module
       'grant permissions'                 : []
       'open group'                        : ['member','moderator']
       'list members'                      :
-        public                            : ['moderator']
-        private                           : ['moderator']
+        public                            : ['moderator', 'member']
+        private                           : ['moderator', 'member']
+      'read group activity'               :
+        public                            : ['guest','member','moderator']
+        private                           : ['member','moderator']
       'create groups'                     : ['moderator']
       'edit groups'                       : ['moderator']
       'edit own groups'                   : ['member','moderator']
@@ -211,6 +218,12 @@ module.exports = class JGroup extends Module
           (signature String, Function)
         unlinkPaymentMethod:
           (signature String, Function)
+        addSubscription:
+          (signature String, Function)
+        fetchSubscription:
+          (signature Function)
+        getPermissionSet:
+          (signature Function)
     schema          :
       title         :
         type        : String
@@ -237,22 +250,8 @@ module.exports = class JGroup extends Module
       counts        :
         members     : Number
       customize     :
-        background  :
-          customImages    : [String]
-          customColors    : [String]
-          customType      :
-            type          : String
-            default       : 'defaultImage'
-            enum          : ['Invalid type', [
-              'defaultImage'
-              'customImage'
-              'defaultColor'
-              'customColor'
-            ]]
-          customValue     :
-            type          : String
-            default       : '1'
-          customOptions   : Object
+        coverPhoto  : String
+        logo        : String
       payment       :
         plan        : String
         paymentQuota: Number
@@ -314,6 +313,9 @@ module.exports = class JGroup extends Module
       plan          :
         targetType  : 'JPaymentPlan'
         as          : 'group plan'
+      subscription  :
+        targetType  : 'JPaymentSubscription'
+        as          : 'payment plan subscription'
 
   constructor:->
     super
@@ -409,12 +411,12 @@ module.exports = class JGroup extends Module
           console.log "#{label} is saved"
           queue.next()
 
-    create = (groupData, owner, callback) ->
+    create = (client, groupData, owner, callback) ->
       JPermissionSet        = require './permissionset'
       JMembershipPolicy     = require './membershippolicy'
       JName                 = require '../name'
       group                 = new this groupData
-      permissionSet         = new JPermissionSet {}, {privacy: group.privacy}
+      group.privacy         = 'private'
       defaultPermissionSet  = new JPermissionSet {}, {privacy: group.privacy}
 
       queue = [
@@ -447,14 +449,8 @@ module.exports = class JGroup extends Module
             else
               console.log 'owner is added'
               queue.next()
-        -> save_ 'permission set', permissionSet, queue, callback
         -> save_ 'default permission set', defaultPermissionSet, queue,
                   callback
-        -> group.addPermissionSet permissionSet, (err)->
-            if err then callback err
-            else
-              console.log 'permissionSet is added'
-              queue.next()
         -> group.addDefaultPermissionSet defaultPermissionSet, (err)->
             if err then callback err
             else
@@ -465,6 +461,9 @@ module.exports = class JGroup extends Module
             else
               console.log 'roles are added'
               queue.next()
+        ->
+          group.createGroupBotAndPostMessage client, ->
+            queue.next()
       ]
 
       if 'private' is group.privacy
@@ -477,19 +476,28 @@ module.exports = class JGroup extends Module
       daisy queue
 
   @create$ = secure (client, formData, callback)->
-    JAccount = require '../account'
     {delegate} = client.connection
 
-    @one {slug:"koding"}, (err, kodingGroup)=>
-      delegate.checkPermission kodingGroup, 'create groups', (err, hasPermission)=>
-        unless hasPermission
-          return callback new KodingError 'Access denied'
+    subOptions = targetOptions: selector: tags: "custom-plan"
+    delegate.fetchSubscription null, subOptions, (err, subscription) =>
+      return callback err  if err
+      return callback new KodingError "Subscription is not found"  unless subscription
+      subscription.debitPack tags: "group", (err) =>
+        return callback err  if err
+        @create client, formData, delegate, (err, group) ->
+          return callback err if err
+          group.addSubscription subscription, (err) ->
+            return callback err  if err
+            subscription.debitPack tags: "user", (err) =>
+              return callback err  if err
+              callback null, group, subscription
 
-        @create formData, delegate, callback
-
-    #unless delegate instanceof JAccount
-    #  return callback new KodingError 'Access denied'
-
+  creditUserPack: (delegate, callback) ->
+    subOptions = targetOptions: selector: tags: "custom-plan"
+    delegate.fetchSubscription null, subOptions, (err, subscription) =>
+      return callback err  if err
+      return callback new KodingError "Subscription is not found"  unless subscription
+      subscription.creditPack tags: "user", callback
 
   @findSuggestions = (client, seed, options, callback)->
     {limit, blacklist, skip}  = options
@@ -591,13 +599,17 @@ module.exports = class JGroup extends Module
   updatePermissions: permit 'grant permissions',
     success:(client, permissions, callback=->)->
       @fetchPermissionSet (err, permissionSet)=>
-        if err
-          callback err
-        else if permissionSet?
+        return callback err if err
+        if permissionSet
           permissionSet.update $set:{permissions}, callback
         else
-          permissionSet = new JPermissionSet {permissions}
-          permissionSet.save callback
+          permissionSet = new JPermissionSet {permissions, isCustom: true}
+          permissionSet.save (err) =>
+            return callback err if err
+            @addPermissionSet permissionSet, (err)->
+              return callback err if err
+              console.log 'permissionSet is added'
+              callback null
 
   fetchPermissions:do->
     fixDefaultPermissions_ =(model, permissionSet, callback)->
@@ -632,6 +644,7 @@ module.exports = class JGroup extends Module
               else if model?
                 console.log 'already had defaults'
                 defaultPermissionSet = model
+                permissionSet = model unless permissionSet
                 queue.next()
               else
                 console.log 'needed defaults fixed'
@@ -712,19 +725,11 @@ module.exports = class JGroup extends Module
           , {}, (err,memberAccounts)=>
             callback err,memberAccounts
 
-  # fetchMyFollowees: permit 'list members'
-  #   success:(client, options, callback)->
-  #     [callback, options] = [options, callback]  unless callback
-  #     options ?=
-
-
-  # fetchMyFollowees: permit 'list members'
-  #   success:(client, options, callback)->
-
   fetchHomepageView: ({section, account, bongoModels}, callback)->
-    @fetchMembershipPolicy (err, policy)=>
-      if err then callback err
-      else
+    kallback = =>
+      @fetchMembershipPolicy (err, policy)=>
+        return callback err if err
+
         options = {
           account
           @slug
@@ -736,8 +741,16 @@ module.exports = class JGroup extends Module
           @customize
           bongoModels
         }
-        prefix = if account.type is 'unregistered' then 'loggedOut' else 'loggedIn'
+        prefix = if account?.type is 'unregistered' then 'loggedOut' else 'loggedIn'
         JGroup.render[prefix].groupHome options, callback
+
+    if @visibility is 'hidden' and section isnt 'Invitation'
+      @isMember account, (err, isMember)->
+        return callback err if err
+        if isMember then kallback()
+        else do callback
+    else
+      kallback()
 
   fetchRolesByClientId:(clientId, callback)->
     [callback, clientId] = [clientId, callback]  unless callback
@@ -839,7 +852,9 @@ module.exports = class JGroup extends Module
 
   canEditGroup: permit 'grant permissions'
 
-  canReadActivity: permit 'read activity'
+  @canReadGroupActivity = permit 'read group activity'
+  canReadGroupActivity  : permit 'read group activity'
+  @canListMembers       = permit 'list members'
 
   canOpenGroup: permit 'open group',
     failure:(client, callback)->
@@ -927,6 +942,7 @@ module.exports = class JGroup extends Module
               kallback null
 
   isMember: (account, callback)->
+    return callback new Error "No account found!"  unless account
     selector =
       sourceId  : @getId()
       targetId  : account.getId()
@@ -943,9 +959,13 @@ module.exports = class JGroup extends Module
       @fetchInvitations {}, selector, (err, [invite])=>
         return callback err  if err
         return callback new KodingError 'Invitation code is invalid!'  unless invite
-        @approveMember delegate, (err)->
+        delegate.fetchUser (err, user)=>
           return callback err  if err
-          invite.redeem client, callback
+          unless invite.type is 'multiuse' or user.email is invite.email
+            return callback new KodingError 'Are you sure invitation e-mail is for you?'
+          invite.redeem delegate, (err) =>
+            return callback err if err
+            @approveMember delegate, callback
 
   bulkApprove: permit 'send invitations',
     success: (client, count, options, callback)->
@@ -1104,6 +1124,7 @@ module.exports = class JGroup extends Module
 
   kickMember: permit 'grant permissions',
     success: (client, accountId, callback)->
+      {connection:{delegate}} = client
       JAccount = require '../account'
 
       if @slug is 'koding'
@@ -1127,9 +1148,11 @@ module.exports = class JGroup extends Module
             callback err
 
           queue = roles.map (role)=>=>
-            @removeMember account, role, (err)->
+            @removeMember account, role, (err)=>
               return kallback err if err
-              queue.fin()
+              @creditUserPack delegate, (err) ->
+                return callback err  if err
+                queue.fin()
 
           dash queue, kallback
 
@@ -1443,3 +1466,49 @@ module.exports = class JGroup extends Module
         @fetchPacks {}, options, callback
       when 'plan'
         @fetchPlans {}, options, callback
+
+  addSubscription$: permit 'edit own groups',
+    success: (client, id, callback) ->
+      JPaymentSubscription = require '../payment/subscription'
+      JPaymentSubscription.one _id: id, (err, subscription) =>
+        @addSubscription subscription, callback
+
+  fetchSubscription$: secure (client, callback) ->
+    @fetchSubscription (err, subscription) ->
+      return callback err  if err
+      {planCode} = subscription
+      JPaymentPlan = require '../payment/plan'
+      JPaymentPlan.one {planCode}, (err, plan) ->
+        return callback err  if err
+        subscription.plan = plan
+        callback null, subscription
+
+  createGroupBotAndPostMessage: (client, callback) ->
+    # get groupbot account
+    JAccount = require '../account'
+    JAccount.one "profile.nickname" : "bot", (err, account) =>
+      return callback err if err
+      return callback new KodingError "Can't find bot account" if not account
+
+      @addMember account, "member", (err, member)=>
+        return callback err if err
+        JNewStatusUpdate = require '../messages/newstatusupdate'
+        # set client's delegate to bot account
+        # CtF this really is a hack
+        client.context.group = @slug
+        client.context.user = "bot"
+        client.connection.delegate = account
+        client.groupName = @slug
+
+        data =
+          body  : "Welcome to your group"
+          group : @slug
+        JNewStatusUpdate.create client, data, callback
+
+  getPermissionSet : (callback)->
+    @fetchPermissionSet (err, permissionSet) =>
+      callback err, null if err
+      if permissionSet
+        callback null, permissionSet
+      else
+        @fetchDefaultPermissionSet callback

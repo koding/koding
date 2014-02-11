@@ -22,14 +22,14 @@ class ActivityTicker extends ActivityRightBase
 
     @listController.on "LazyLoadThresholdReached", @bound "continueLoading"
 
-    @settingsButton = new KDButtonViewWithMenu
-      cssClass    : 'ticker-settings-menu'
-      title       : ''
-      icon        : yes
-      iconClass   : "arrow"
-      delegate    : @
-      menu        : @settingsMenu data
-      callback    : (event)=> @settingsButton.contextMenu event
+    # @settingsButton = new KDButtonViewWithMenu
+    #   cssClass    : 'ticker-settings-menu'
+    #   title       : ''
+    #   icon        : yes
+    #   iconClass   : "arrow"
+    #   delegate    : @
+    #   menu        : @settingsMenu data
+    #   callback    : (event)=> @settingsButton.contextMenu event
 
     @indexedItems = {}
 
@@ -319,7 +319,7 @@ class ActivityTicker extends ActivityRightBase
   pistachio:->
     """
     <div class="activity-ticker right-block-box">
-      <h3>What's happening on Koding {{> @settingsButton}}</h3>
+      <h3>What's happening </h3>
       {{> @listView}}
     </div>
     """
@@ -343,8 +343,11 @@ class ActivityTicker extends ActivityRightBase
 
 
   getItemId: (item) ->
-    {source, target, subject, as} = item
-    "#{source.getId()}_#{target.getId()}_#{as}_#{subject?.getId()}"
+    {source, target, subject, as, timestamp} = item
+    if as is "like"
+      "#{source.getId()}_#{target.getId()}_#{as}_#{subject?.getId()}"
+    else
+      "#{source.getId()}_#{target.getId()}_#{as}_#{timestamp}"
 
   isFiltered: (filter) ->
     if @filters and @filters.length

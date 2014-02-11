@@ -129,6 +129,7 @@ class PermissionsForm extends KDFormViewWithFields
       "JGroupBundle": "Group Bundles"
       "JDomain"     : "Domains"
       "JProxyFilter": "Proxy Filters"
+      "JInvitation" : "Invitations"
     return dictionary[text] or text.charAt(0).toUpperCase()+text.slice(1)
 
   _getCheckboxName =(module, permission, role)->
@@ -148,14 +149,14 @@ class PermissionsForm extends KDFormViewWithFields
 
     isChecked = checkForPermission set.permissions, module, permission, current
 
-    cssClass = 'permission-checkbox '+__utils.slugify(permission)+' '+current
+    cssClass = 'permission-switch '+__utils.slugify(permission)+' '+current
 
     name = _getCheckboxName module, permission, current
 
     cascadeData[current]= {
       name
       cssClass
-      itemClass    : KDCheckBox
+      itemClass    : KodingSwitch
       defaultValue : isChecked ? no
     }
 

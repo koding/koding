@@ -64,6 +64,8 @@ class KodingAppsController extends KDController
           src      : "#{app.script}?#{KD.utils.uniqueId()}"
 
       $('head')[0].appendChild script.getElement()
+    
+    return
 
   @unloadAppScript = (app, callback = noop)->
 

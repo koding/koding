@@ -1,5 +1,6 @@
-jraphical = require 'jraphical'
-payment   = require 'koding-payment'
+jraphical   = require 'jraphical'
+payment     = require 'koding-payment'
+KodingError = require '../../error'
 
 forceRefresh  = yes
 forceInterval = 60 * 3
@@ -7,6 +8,9 @@ forceInterval = 60 * 3
 module.exports = class JPaymentSubscription extends jraphical.Module
 
   {secure, dash, daisy, signature} = require 'bongo'
+
+  {partition} = require 'bongo/lib/util'
+
   JUser    = require '../user'
   JPayment = require './index'
 
@@ -30,6 +34,8 @@ module.exports = class JPaymentSubscription extends jraphical.Module
           (signature Object, Function)
           (signature Object, Number, Function)
         ]
+        checkQuota  :
+          (signature Object, Function)
         debit: [
           (signature Object, Function)
           (signature Object, Number, Function)
@@ -42,6 +48,7 @@ module.exports = class JPaymentSubscription extends jraphical.Module
       uuid          : String
       planCode      : String
       userCode      : String
+      couponCode    : String
       quantity      :
         type        : Number
         default     : 1
@@ -62,6 +69,9 @@ module.exports = class JPaymentSubscription extends jraphical.Module
       renewAt       : Date
       feeAmount     : Number
       lastUpdate    : Number
+      quantities    :
+        type        : Object
+        default     : -> {}
       usage         :
         type        : Object # "usage" is designed to mirror "quantities" from JPaymentPlan
         default     : {}
@@ -132,7 +142,7 @@ module.exports = class JPaymentSubscription extends jraphical.Module
       if applyRefund
         @refund { amount, description }, (err) ->
           return callback err  if err
-        
+
           callback null, amount
       else
         callback null, 0
@@ -154,23 +164,36 @@ module.exports = class JPaymentSubscription extends jraphical.Module
         @invokeMethod 'reactivateSubscription', callback
 
   checkUsage: (product, multiplyFactor, callback) ->
-    JPaymentPlan = require './plan'
-
     [callback, multiplyFactor] = [multiplyFactor, callback]  unless callback
-
     multiplyFactor ?= 1
-
-    { quantities } = product
+    {quantities} = product
 
     unless quantities?
       quantities = {}
       quantities[product.planCode] = 1
 
-    JPaymentPlan.fetchPlanByCode @planCode, (err, plan) =>
-      return callback err  if err
-      return callback { message: 'unknown plan code', @planCode }  unless plan
+    spend = quantities
+    @checkQuota {@usage, @couponCode, spend, multiplyFactor}, callback
 
-      plan.checkQuota @usage, quantities, multiplyFactor, callback
+  checkQuota: (options, callback) ->
+    {usage, spend, couponCode, multiplyFactor} = options
+    multiplyFactor ?= 1
+    spend ?= {}
+
+    usages = for own planCode, quantity of spend
+      planSize    = @quantities[planCode]
+      usageAmount = usage[planCode] ? 0
+      spendAmount = (spend[planCode] ? 0) * multiplyFactor
+
+      total = planSize - usageAmount - spendAmount
+
+      { planCode, total }
+
+    [ok, over] = partition usages, ({ total }) -> total >= 0
+
+    if over.length > 0
+    then callback { message: 'quota exceeded', ok, over, code: 999 }
+    else callback null
 
   createFulfillmentNonce: ({ planCode }, isDebit, callback) ->
     JFulfillmentNonce = require './nonce'
@@ -186,9 +209,10 @@ module.exports = class JPaymentSubscription extends jraphical.Module
 
       callback null, nonce.nonce
 
-  debit: (pack, multiplyFactor, callback) ->
-    [callback, multiplyFactor] = [multiplyFactor, callback]  unless callback
-    multiplyFactor ?= 1
+  debit: ({ pack, multiplyFactor, shouldCreateNonce }, callback) ->
+
+    multiplyFactor    ?= 1
+    shouldCreateNonce ?= no
 
     @checkUsage pack, multiplyFactor, (err, usage) =>
       return callback err  if err
@@ -205,9 +229,12 @@ module.exports = class JPaymentSubscription extends jraphical.Module
       @update op, (err) =>
         return callback err  if err
 
-        @createFulfillmentNonce pack, (multiplyFactor > 0), callback
+        if shouldCreateNonce
+          @createFulfillmentNonce pack, (multiplyFactor > 0), callback
+        else
+          callback null
 
-  debit$: secure (client, pack, multiplyFactor, callback) ->
+  debit$: secure (client, options, callback) ->
     JPaymentPlan = require './plan'
 
     { delegate } = client.connection
@@ -216,13 +243,16 @@ module.exports = class JPaymentSubscription extends jraphical.Module
       return callback err  if err
       return callback { message: 'Access denied!' }  unless hasTarget
 
-      @debit pack, callback, multiplyFactor
+      options.shouldCreateNonce ?= yes
 
-  credit: (pack, callback) ->
-    @debit pack, -1, callback
+      @debit options, callback
 
-  credit$: secure (client, pack, callback) ->
-    @debit$ client, pack, -1, callback
+  credit: ({pack}, callback) ->
+    @debit { pack, multiplyFactor: -1 }, callback
+
+  credit$: secure (client, options, callback) ->
+    options.multiplyFactor or= -1
+    @debit$ client, options, callback
 
   applyTransition: (options, callback) ->
 
@@ -241,7 +271,7 @@ module.exports = class JPaymentSubscription extends jraphical.Module
 
     queue = [
       =>
-        newPlan.checkQuota @usage, {}, (err) -> queue.next err
+        newPlan.checkQuota {@usage}, (err) -> queue.next err
       =>
         operation.call this, (err) -> queue.next err
       ->
@@ -250,21 +280,22 @@ module.exports = class JPaymentSubscription extends jraphical.Module
           queue.next err
       =>
         @addLinkedSubscription newSubscription, (err) -> queue.next err
-      -> 
+      ->
         account.addSubscription newSubscription, (err) -> queue.next err
       =>
-        newSubscription.update $set: { @usage }, (err) -> queue.next err
+        {quantities} = newPlan
+        newSubscription.update $set: { @usage, quantities }, (err) -> queue.next err
       ->
         callback null, newSubscription
     ]
 
-    daisy queue 
+    daisy queue
 
   downgrade: (options, callback) ->
-    
+
     options.subOptions =
       startsAt: @getEndDate()
-    
+
     options.operation = (continuation) =>
       @cancel continuation
 
@@ -273,7 +304,7 @@ module.exports = class JPaymentSubscription extends jraphical.Module
   upgrade: (options, callback) ->
     options.operation = (continuation) =>
       @terminate options.oldPlan, continuation
-    
+
     @applyTransition options, callback
 
   transitionTo: secure (client, { planCode, paymentMethodId }, callback) ->
@@ -317,3 +348,20 @@ module.exports = class JPaymentSubscription extends jraphical.Module
             @downgrade transitionOptions, callback
           else
             @upgrade transitionOptions, callback
+
+  debitPack: ({tags, multiplyFactor}, callback) ->
+    tags = [tags]  unless Array.isArray tags
+    multiplyFactor ?= 1
+    JPaymentPack = require './pack'
+    JPaymentPack.some tags: $in: tags, {}, (err, packs) =>
+      return callback err  if err
+      return callback new KodingError "pack not found"  unless packs.length
+      queue = []
+      queue = packs.map (pack) =>=>
+        @debit {pack, multiplyFactor}, (err) -> queue.next err
+      queue.push (err) ->
+        callback null
+      daisy queue
+
+  creditPack: ({tags}, callback) ->
+    @debitPack {tags, multiplyFactor: -1}, callback

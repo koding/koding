@@ -374,4 +374,9 @@ config =
       rabbitMQ      : 1
       ldapserver    : 1
       broker        : 1
+    defaultVMConfigs:
+      freeVM        :
+        storage     : 1
+        ram         : 1
+        cpu         : 1
 module.exports = config

@@ -193,7 +193,12 @@ module.exports = class JPost extends jraphical.Message
               CActivity.emit "ActivityIsCreated", activity
               queue.next()
           ->
-            status.addParticipant delegate, 'author'
+            options   =
+              as      : 'author'
+              data    :
+                group : status.group
+
+            status.addParticipant delegate, options
         ]
 
   constructor:->
@@ -394,7 +399,13 @@ module.exports = class JPost extends jraphical.Message
             return callback err if err
             queue.next()
         =>
-          @addParticipant delegate, 'commenter', (err)->
+          # add group to relationship data field to filter by groups on
+          # activity ticker
+          options =
+            as    : 'commenter'
+            data  : {@group}
+
+          @addParticipant delegate, options, (err)->
             return callback err if err
             queue.next()
         ->

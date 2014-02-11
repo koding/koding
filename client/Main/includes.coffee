@@ -55,6 +55,7 @@ module.exports = [
 
   "CommonViews/activitywidgetitem.coffee",
   "CommonViews/activitywidget.coffee",
+  "CommonViews/uploadimagemodalview.coffee",
 
   # junction
   "junction/junction.coffee"
@@ -166,6 +167,7 @@ module.exports = [
   "payment/planupgradeform.coffee",
   "payment/planupgradeconfirmform.coffee",
   "payment/packchoiceform.coffee",
+  "payment/planproductlist.coffee",
   "payment/existingaccountworkflow.coffee",
 
 

@@ -652,6 +652,20 @@ task 'runExternals', "runs externals kite which imports info about github, will 
       enabled         : if config.runKontrol is yes then yes else no
     verbose           : yes
 
+task 'importProducts', "creates default products", (options)->
+  {configFile} = options
+  config = require('koding-config-manager').load("main.#{configFile}")
+
+  processes.spawn
+    name           : 'importProducts'
+    cmd            : "node ./workers/productimport/index -c #{configFile}"
+    stdout         : process.stdout
+    stderr         : process.stderr
+    kontrol        :
+      enabled      : if config.runKontrol is yes then yes else no
+      startMode    : "one"
+    verbose        : yes
+
 # ------------------- TEST STUFF --------------------------
 
 # ----- run all tests ----

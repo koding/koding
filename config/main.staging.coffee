@@ -283,7 +283,7 @@ module.exports =
       portssl     : 443
       ftpip       : '54.208.3.200'
   recurly       :
-    apiKey      : '0cb2777651034e6889fb0d091126481a' # koding.recurly.com
+    apiKey      : '4a0b7965feb841238eadf94a46ef72ee' # koding-test.recurly.com
   embedly       :
     apiKey      : embedlyApiKey
   opsview :
@@ -357,6 +357,11 @@ module.exports =
     rabbitMQ      : "info"
     ldapserver    : "info"
     broker        : "info"
+  defaultVMConfigs:
+    freeVM        :
+      storage     : 4096
+      ram         : 1024
+      cpu         : 1
   graphite       :
     use          : true
     host         : "172.168.2.7"

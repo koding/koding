@@ -1,47 +1,22 @@
 class ExistingAccountForm extends JView
   viewAppended: ->
 
-    @exitingAccountButton = new KDButtonView
-      title : "I have an account"
-      callback: => @emit 'DataCollected',
-        createAccount : no
-        email         : no
+    KD.singletons.dock.getView().hide()
 
-    @createAccountButton = new KDButtonView
-      title : "I'll create an account"
-      callback: => @emit 'DataCollected',
-        createAccount : yes
-        account       : yes
+    @loginForm = new LoginInlineForm
+      cssClass : "login-form clearfix"
+      testPath : "login-form"
+      callback : (credentials) =>
+        KD.getSingleton('mainController').handleLogin credentials, (err) =>
+          @loginForm.button.hideLoader()
+          if (KD.showError err)
+            if err?.field of @loginForm
+              @loginForm[err.field].decorateValidation err
+          else
+            localStorage?.setItem "routeToBeContinued", KD.singleton("router").currentPath
+            @emit "DataCollected", loggedIn: yes
 
-    super()
-
-  pistachio: ->
-    """
-    Are you an existing user?
-    {{> @exitingAccountButton}}
-    {{> @createAccountButton}}
-    """
-
-class ExistingAccountWorkflow extends FormWorkflow
-
-  prepareWorkflow: ->
-    { all, any } = Junction
-
-    @requireData all(
-      'createAccount'
-      'email'
-      'loggedIn'
-    )
-
-    existingAccountForm = new ExistingAccountForm
-    existingAccountForm.on 'DataCollected', (data) =>
-      @collectData data
-
-    @addForm 'existingAccount', existingAccountForm, [
-      'createAccount'
-    ]
-
-    emailCollectionForm = new KDFormViewWithFields
+    @emailCollectionForm = new KDFormViewWithFields
       fields:
         email:
           cssClass         : "thin"
@@ -49,34 +24,30 @@ class ExistingAccountWorkflow extends FormWorkflow
           name             : "email"
           testPath         : "account-email-input"
       buttons              :
-        Save               :
+        'SIGN UP'          :
           type             : 'submit'
           style            : 'solid green fr'
       callback             : ({ email }) =>
-        { JUser } = KD.remote.api
-
-        JUser.changeEmail { email }, (err) =>
+        KD.remote.api.JUser.changeEmail { email }, (err) =>
           return  if KD.showError err
+          @emit 'DataCollected', createAccount: yes, email: email
 
-          @collectData { email, loggedIn: no }
+    super
 
-    emailCollectionForm.activate = -> @inputs.email.setFocus()
+  pistachio: ->
+    """
+    <section class="pricing-sign-in clearfix">
+      <h3 class="pricing-title">Sign in or create an account to proceed with your checkout</h3>
+      {{> @loginForm}}
+      <span class="divider">or</span>
+      {{> @emailCollectionForm}}
+    </section>
+    """
 
-    @addForm 'email', emailCollectionForm, ['email']
-
-    loginForm = new LoginInlineForm
-      cssClass : "login-form"
-      testPath : "login-form"
-      callback : (credentials) =>
-        KD.getSingleton('mainController').handleLogin credentials, (err) =>
-
-          loginForm.button.hideLoader()
-          
-          if (KD.showError err) and err?.field of loginForm
-              loginForm[err.field].decorateValidation err
-          else
-            @collectData loggedIn: yes
-
-    @addForm 'login', loginForm, ['loggedIn']
-
+class ExistingAccountWorkflow extends FormWorkflow
+  prepareWorkflow: ->
+    @requireData Junction.any 'createAccount', 'loggedIn'
+    @existingAccountForm = new ExistingAccountForm name : 'login'
+    @existingAccountForm.on 'DataCollected', @bound "collectData"
+    @addForm 'existingAccount', @existingAccountForm, ['createAccount', 'loggedIn']
     @enter()

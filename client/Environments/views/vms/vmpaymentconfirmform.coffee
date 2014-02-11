@@ -5,10 +5,9 @@ class VmPaymentConfirmForm extends PlanUpgradeConfirmForm
 
     @pack = new KDView
       cssClass  : 'payment-confirm-pack'
-      partial   : 
+      partial   :
         """
-        <h2>VM</h2>
-        <p>#{ @getExplanation 'pack' }</p>
+        <h2>#{ @getExplanation 'pack' }</h2>
         """
 
     @subscription = new KDView
@@ -31,7 +30,7 @@ class VmPaymentConfirmForm extends PlanUpgradeConfirmForm
     else
       super key
 
-  setData: (data) ->    
+  setData: (data) ->
     super data
 
     throw new Error 'Product data was not provided!'  unless data.productData?
@@ -43,7 +42,7 @@ class VmPaymentConfirmForm extends PlanUpgradeConfirmForm
       @pack.hide()
 
     if data.productData.subscription
-      @subscription.addSubView new VmPlanView {}, data.productData.subscription
+      @subscription.addSubView new VmPlanView {hiddenPrice : yes}, data.productData.subscription.plan
     else
       @subscription.hide()
 
@@ -53,6 +52,5 @@ class VmPaymentConfirmForm extends PlanUpgradeConfirmForm
     {{> @pack}}
     {{> @plan}}
     {{> @subscription}}
-    {{> @payment}}
     {{> @buttonBar}}
     """

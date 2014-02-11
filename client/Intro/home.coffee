@@ -8,23 +8,9 @@ class HomePage extends JView
 
     super options, data
 
-    @pricingButton = new KDButtonView
-      title       : "<a href='mailto:sales@koding.com?subject=Koding, white label' target='_self'>Get your own Koding for your team<cite>Contact us for details</cite></a>"
-      cssClass    : 'solid green shadowed pricing'
-      icon        : 'yes'
-      iconClass   : 'dollar'
-      click       : (event)->
-        KD.mixpanel "Sales contact, click"
-        KD.utils.stopDOMEvent event
-
     @registerForm = new HomeRegisterForm
       callback    : (formData)->
         KD.mixpanel "Register button in / a, click"
-        @doRegister formData
-
-    @registerFormBottom = new HomeRegisterForm
-      callback    : (formData)->
-        KD.mixpanel "Register button in / b, click"
         @doRegister formData
 
     @githubLink   = new KDCustomHTMLView
@@ -48,6 +34,8 @@ class HomePage extends JView
             "width=#{w},height=#{h},left=#{Math.floor (screen.width/2) - (w/2)},top=#{Math.floor (screen.height/2) - (h/2)}"
 
     @markers = new MarkerController
+
+    @productForm = new IntroPricingProductForm
 
 
   showVideo:->
@@ -221,12 +209,9 @@ class HomePage extends JView
             </article>
           </div>
         </div>
-        {{> @pricingButton}}
       </section>
-      <section id='home-bottom'>
-        <h2 class='big-header'>If you are ready to go, let’s do this</h2>
-        <h3 class='hidden'>Something super simple and super descriptive goes here</h3>
-        {{> @registerFormBottom}}
+      <section id="pricing" class="clearfix">
+        {{> @productForm}}
       </section>
       <footer class='clearfix'>
         <div class='fl'>

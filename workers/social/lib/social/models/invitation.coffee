@@ -20,8 +20,10 @@ module.exports = class JInvitation extends jraphical.Module
 
   {ObjectRef, dash, daisy, secure, signature} = require 'bongo'
 
-  KodingError = require '../error'
-  JMail       = require './email'
+  KodingError  = require '../error'
+  JMail        = require './email'
+  JGroup       = require './group'
+  JPaymentPack = require './payment/pack'
 
   @share()
 
@@ -124,7 +126,10 @@ module.exports = class JInvitation extends jraphical.Module
     protocol ?= protocol.split(':').shift()+':'
     return {host, protocol}
 
-  redeem: secure ({connection:{delegate}}, callback=->)->
+  redeem$: secure ({connection:{delegate}}, callback=->)->
+    @redeem delegate, callback
+
+  redeem: (account, callback) ->
     operation = $inc: uses: 1
 
     if @type is 'multiuse'
@@ -133,9 +138,17 @@ module.exports = class JInvitation extends jraphical.Module
       isRedeemed = yes
     operation.$set = status: 'redeemed'  if isRedeemed
 
-    @update operation, (err)=>
+    JGroup.one slug: @group, (err, group) =>
       return callback err  if err
-      @addRedeemer delegate, callback
+      group.fetchSubscription (err, subscription) =>
+        return callback err  if err
+        return callback new KodingError "Subscription is not found"  unless subscription
+        subscription.debitPack tags: "user", (err) =>
+          return callback err  if err
+          @update operation, (err) =>
+            return callback err  if err
+            @addRedeemer account, callback
+
 
   # send invites from group dashboard
   @create = secure (client, group, email, options, callback)->

@@ -3,8 +3,8 @@ class EnvironmentDomainItem extends EnvironmentItem
   constructor:(options={}, data)->
 
     options.cssClass           = 'domain'
-    options.joints             = ['right']
-    if KD.checkFlag 'nostradamus' then options.joints.push 'left'
+    options.joints             = ['left','right']
+    options.staticJoints       = ['left']
 
     options.allowedConnections =
       EnvironmentRuleItem    : ['right']

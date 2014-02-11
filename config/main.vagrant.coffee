@@ -380,3 +380,8 @@ module.exports =
     rabbitMQ      : "notice"
     ldapserver    : "notice"
     broker        : "notice"
+  defaultVMConfigs:
+    freeVM        :
+      storage     : 4096
+      ram         : 1024
+      cpu         : 1

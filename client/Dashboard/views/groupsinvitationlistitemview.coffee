@@ -44,12 +44,10 @@ class GroupsInvitationListItemView extends KDListItemView
           @getDelegate().emit 'InvitationStatusChanged'  unless err
 
     @deleteButton = new KDButtonView
-      style       : 'clean-gray'
-      title       : 'Delete'
-      icon        : yes
-      iconClass   : 'decline'
+      style       : 'solid red'
+      title       : "Delete"
       callback    : =>
-        @getData().remove (err)=>
+        @getData().remove (err) =>
           @updateButtons err, 'deleted'
           @getDelegate().emit 'InvitationStatusChanged'  unless err
 

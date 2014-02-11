@@ -12,7 +12,7 @@ class GroupsInvitationView extends KDView
         tabHandleContainer
       }, data
 
-      unless @policy.communications?.inviteApprovedMessage
+      unless @policy?.communications?.inviteApprovedMessage
         @saveInviteMessage 'inviteApprovedMessage', @getDefaultInvitationMessage()
 
     @on 'SearchInputChanged', (value)=>
@@ -83,6 +83,13 @@ class GroupsInvitationView extends KDView
             itemClass     : KDInputView
             name          : "maxUses"
             placeholder   : "How many times can this code be redeemed?"
+            validate      :
+              rules       :
+                required  : yes
+                regExp    : /\d+/i
+              messages    :
+                required  : 'Max usage is required'
+                regExp    : 'numbers only please'
           memo            :
             label         : "Memo"
             itemClass     : KDInputView
@@ -90,14 +97,15 @@ class GroupsInvitationView extends KDView
             placeholder   : "(optional)"
 
   getDefaultInvitationMessage:->
+    fullName = "#{KD.whoami().profile.firstName} #{KD.whoami().profile.lastName}"
     """
     Hi there,
 
-    #INVITER# has invited you to the group #{@getData().title}.
+    #{fullName} has invited you to the group #{@getData().title}.
 
     This link will allow you to join the group: #URL#
 
-    If you reply to this email, it will go to #INVITER#.
+    If you reply to this email, it will go to #{fullName}.
 
     Enjoy! :)
     """
@@ -134,16 +142,17 @@ class GroupsInvitationView extends KDView
     @inviteByEmail = @showModalForm
       title              : 'Invite by Email'
       cssClass           : 'invite-by-email'
-      callback           : ({emails, message, saveMessage, bcc})=>
+      callback           : ({emails, message, saveMessage})=>
 
         KD.whoami().fetchFromUser "email", (err, userEmail)=>
+          emails = emails.trim()
           emailList = emails.split(/\n/).map (email)-> email.trim()
           if userEmail in emailList
             @inviteByEmail.modalTabs.forms.invite.buttons.Send.hideLoader()
             return new KDNotificationView
               title: "You cannot invite yourself!"
 
-          @getData().inviteByEmails emails, {message, bcc}, (err)=>
+          @getData().inviteByEmails emails, {message}, (err)=>
             @modalCallback @inviteByEmail, noop, err
             @saveInviteMessage 'invitationMessage', message  if saveMessage
       fields             :
@@ -180,10 +189,6 @@ class GroupsInvitationView extends KDView
               title      : 'Remember this message'
               click      : (event)=>
                 @inviteByEmail.modalTabs.forms.invite.fields.saveMessage.subViews.first.subViews.first.getDomElement().click()
-        bcc            :
-          label        : 'BCC'
-          type         : 'text'
-          placeholder  : '(optional)'
         report           :
           itemClass      : KDScrollView
           cssClass       : 'report'

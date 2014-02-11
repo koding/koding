@@ -305,28 +305,27 @@ finderSelectedColor2 = #3AAAAB
 //
 // THIN BUTTON STYLES
 //
-
 .kdbutton.thin
   bg                   color transparent
-  border               2px solid #36B298
+  border               2px solid logoBg
   rounded              28px
   padding              0
   height               55px
   borderBox()
   span.button-title
     padding            0
-    color              #36B298
+    color              logoBg
     font-size          18px
     text-decoration    uppercase
     letter-spacing     1px
   &:hover
     bg                 color white
   &:active
-    bg                 color #36B298
+    bg                 color logoBg
     span.button-title
       color            white
   &:focus
-    shadow             0 0 10px -2px #36b298
+    shadow             0 0 10px -2px logoBg
 
 //
 // SOLID BUTTON STYLES
@@ -351,18 +350,16 @@ finderSelectedColor2 = #3AAAAB
   &:hover
     bg                 color #4A4E52
   &:active
-    bg                 color #36B298
+    bg                 color logoBg
     span.button-title
       color            white
   &:focus
-    shadow             0 0 10px -2px #36b298
+    shadow             0 0 10px -2px logoBg
 
 .kdbutton.solid.green
-  bg                   color #36B298
+  bg                   color logoBg
   span.button-title
     color              white
-  span.icon
-    margin             18px 0 0 0
   &:hover
   &:active
   &:focus
@@ -370,7 +367,59 @@ finderSelectedColor2 = #3AAAAB
     span.button-title
       color            white
   &:focus
-    shadow             0 0 10px -2px #36b298
+    shadow             0 0 10px -2px logoBg
+
+.kdbutton.solid.yellow
+  bg                   color #ff9f00
+  span.button-title
+    color              #ac4a00
+  &:hover
+  &:active
+  &:focus
+    bg                 color #ac4a00
+    span.button-title
+      color            #ff9f00
+  &:focus
+    shadow             0 0 10px -2px #ff9f00
+
+.kdbutton.solid.light-gray
+  bg                   color #C0C0C0
+  span.button-title
+    color              white
+  &:hover
+  &:active
+  &:focus
+    bg                 color #a0a0a0
+    span.button-title
+      color            whitesmoke
+  &:focus
+    shadow             0 0 10px -2px #ff9f00
+
+.kdbutton.solid.small
+  margin              0
+  padding             0 25px
+  size                auto 26px
+  rounded             10px
+  text-align          center
+  span.button-title
+    font-size         13px
+    line-height       1
+  span.icon
+    margin            2px 0 0 0
+
+.kdbutton.solid.medium
+  margin              0
+  padding             0 25px
+  size                auto 44px
+  rounded             10px
+  text-align          center
+  span.button-title
+    font-size         16px
+    font-weight       500
+    line-height       1
+  span.icon
+    margin            2px 0 0 0
+
 
 .kdbutton.solid.red
   bg                   color #E94835
@@ -383,13 +432,16 @@ finderSelectedColor2 = #3AAAAB
   &:focus
     bg                 color #e14a35
   &:focus
-    shadow             0 0 10px -2px #36b298
+    shadow             0 0 10px -2px logoBg
 
   &.shadowed
     shadow             0 2px 0 0 #a33e2f
     .button-title
       text-shadow      0 -1px 2px rgba(0, 0, 0, .75)
 
+.kdbutton.w-loader.loading
+  .button-title
+    opacity            0
 
 /*  */
 
@@ -552,7 +604,6 @@ input.kdinput.text
   rel()
   z-index             1
   padding             11px 6px
-  // border              1px solid #bdc3c7
   color               #3E4F55
   font-size           16px
   box-shadow          none
@@ -564,8 +615,8 @@ input.kdinput.text
   text-align          left
   bg                  color, #f4f4f4
   borderBox()
-  // &.validation-error
-  //   bg                color,#ffe4bf
+  &.validation-error
+    border            1px solid #F13A18
 
 
   input.kdinput.text.thin::-webkit-input-placeholder
@@ -671,14 +722,14 @@ input.kdinput.text
 
 
   .kdmodal-buttons
-  .kdformview .button-field
+  .formline.button-field
     margin              24px 0 0 0 !important
     background          none !important
     // looks better i think w/o - SY
     // border-top          2px solid #f3f4f5 !important
     height              73px !important
 
-    .kdbutton
+    .kdbutton:not(.solid)
       size              auto, 45px
       background        none
       border            3px solid
@@ -824,12 +875,13 @@ input.kdinput.text
   kalc            height, 100% \- 20px
   kalc            width,  100% \- 20px
   borderBox()
-  border          3px dashed #333
+  border          3px dashed #afafaf
   border-radius   5px
   noTextSelection()
 
   &.hover
     border-color  #444
+    shadow        inset 0 0 0 6px rgba(26, 175, 93, .2)
 
   .file-drop
     width         100%
@@ -845,7 +897,9 @@ input.kdinput.text
       font-size   12px
       font-weight 200
       word-wrap   break-word
-      margin-top  10px
+      max-width   400px
+      margin      10px auto
+      color       #888
 
   .cancel
     width         100%
@@ -860,7 +914,7 @@ a.action-link.verify-email
   line-height       50px
   text-decoration   none
   span
-    color           #36B298
+    color           logoBg
 
 .animated-modalview
 
@@ -1137,3 +1191,4 @@ a.action-link.verify-email
     .profile
     .user-numbers
       width         340px
+

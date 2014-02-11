@@ -237,6 +237,8 @@ module.exports = class JTag extends jraphical.Module
         , -> callback null, teasers
         collectTeasers node for node in contents
 
+  @canReadTags = permit 'read tags'
+
   @handleFreetags = permit 'freetag content',
     success: (client, tagRefs, callbackForEach=->)->
       existingTagIds = []

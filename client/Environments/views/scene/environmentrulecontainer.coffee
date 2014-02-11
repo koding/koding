@@ -1,8 +1,9 @@
 class EnvironmentRuleContainer extends EnvironmentContainer
 
   constructor:(options={}, data)->
+    options.cssClass  = 'firewall'
     options.itemClass = EnvironmentRuleItem
-    options.title     = 'Rules'
+    options.title     = 'Firewall'
     super options, data
 
   loadItems:->
@@ -10,16 +11,12 @@ class EnvironmentRuleContainer extends EnvironmentContainer
 
     dummyRules = [
       {
-        title: "Allow Turkey",
-        description: "allow from 5.2.80.0/21"
-      },
+        title: "Allow All",
+        description: "allow from *"
+      }
       {
-        title: "Block China",
-        description: "deny from 65.19.146.2 220.248.0.0/14"
-      },
-      {
-        title: "Allow Gokmen's Machine",
-        description: "allow from 1.2.3.4"
+        title: "Allow Only Me",
+        description: "allow my requests"
       }
     ]
 

@@ -2,7 +2,7 @@ class EnvironmentContainer extends KDDiaContainer
 
   constructor:(options={}, data)->
 
-    options.cssClass   = 'environments-container'
+    options.cssClass   = KD.utils.curry 'environments-container', options.cssClass
     options.bind       = 'scroll mousewheel wheel'
     # options.draggable  = yes
 
@@ -11,10 +11,16 @@ class EnvironmentContainer extends KDDiaContainer
     title   = @getOption 'title'
     @header = new KDHeaderView {type : "medium", title}
 
-    @itemHeight = options.itemHeight ? 40
+    @itemHeight = options.itemHeight ? 44
 
     @on "DataLoaded", => @_dataLoaded = yes
     # @on "DragFinished", @bound 'savePosition'
+
+    @newItemPlusForGroups = new KDCustomHTMLView
+      cssClass   : 'new-item-plus-for-groups'
+      partial    : "<i></i><span>Shared VM</span>"
+      click      : =>
+        @emit 'PlusButtonForGroupsClicked'
 
     @newItemPlus = new KDCustomHTMLView
       cssClass   : 'new-item-plus'
@@ -23,6 +29,7 @@ class EnvironmentContainer extends KDDiaContainer
         @once 'transitionend', @emit 'PlusButtonClicked'
 
     @newItemPlus.bindTransitionEnd()
+    @newItemPlusForGroups.bindTransitionEnd()
 
     @loader = new KDLoaderView
       cssClass   : 'new-item-loader hidden'
@@ -35,6 +42,18 @@ class EnvironmentContainer extends KDDiaContainer
 
     @addSubView @header
     @header.addSubView @newItemPlus
+    KD.getSingleton("groupsController").ready =>
+      currentGroup = KD.getSingleton("groupsController").getCurrentGroup()
+
+      currentGroup.fetchAdmin (err, admin)=>
+        unless err and admin?.profile
+          me = KD.whoami()
+          if admin.profile?.nickname is me.profile?.nickname
+            title   = @getOption 'title'
+            # FIXME remove magic string.
+            if title is "Machines"
+              @header.addSubView @newItemPlusForGroups
+
     @header.addSubView @loader
 
     {@appStorage} = @parent
@@ -49,7 +68,7 @@ class EnvironmentContainer extends KDDiaContainer
     @loader.hide()
 
   addDia:(diaObj, pos)->
-    pos = x: 20, y: 60 + @diaCount() * (@itemHeight + 10)
+    pos = x: 20, y: 68 + @diaCount() * (@itemHeight + 20)
     super diaObj, pos
 
     diaObj.on "KDObjectWillBeDestroyed", @bound 'updatePositions'
@@ -61,7 +80,7 @@ class EnvironmentContainer extends KDDiaContainer
     index = 0
     for _key, dia of @dias
       dia.setX 20
-      dia.setY 60 + index * 50
+      dia.setY 68 + index * 64
       index++
     # @updateHeight()
 
