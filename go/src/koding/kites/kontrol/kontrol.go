@@ -4,31 +4,38 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"io/ioutil"
+	"kite"
+	"kite/kontrol"
 	"koding/db/mongodb/modelhelper"
-	"koding/kite"
-	"koding/kite/kontrol"
 	"koding/tools/config"
 	"log"
 	"strconv"
 )
 
-var flagProfile = flag.String("c", "", "Configuration profile from file")
+var (
+	profile = flag.String("c", "", "Configuration profile")
+	region  = flag.String("r", "", "Region")
+)
 
 func main() {
 	flag.Parse()
-	if *flagProfile == "" {
+	if *profile == "" {
 		log.Fatal("Please specify profile via -c. Aborting.")
 	}
+	if *region == "" {
+		log.Fatal("Please specify region via -r. Aborting.")
+	}
 
-	conf := config.MustConfig(*flagProfile)
+	conf := config.MustConfig(*profile)
+	modelhelper.Initialize(conf.Mongo)
 
 	kiteOptions := &kite.Options{
 		Kitename:    "kontrol",
 		Version:     "0.0.1",
 		Port:        strconv.Itoa(conf.NewKontrol.Port),
-		Region:      "sj",
-		Environment: "development",
-		Username:    "koding",
+		Environment: conf.Environment,
+		Region:      *region,
 	}
 
 	// Read list of etcd servers from config.
@@ -37,10 +44,24 @@ func main() {
 		machines[i] = "http://" + s.Host + ":" + strconv.FormatUint(uint64(s.Port), 10)
 	}
 
-	kon := kontrol.New(kiteOptions, machines)
+	publicKey, err := ioutil.ReadFile(conf.NewKontrol.PublicKeyFile)
+	if err != nil {
+		log.Fatalln(err.Error())
+	}
+
+	privateKey, err := ioutil.ReadFile(conf.NewKontrol.PrivateKeyFile)
+	if err != nil {
+		log.Fatalln(err.Error())
+	}
+
+	kon := kontrol.New(kiteOptions, machines, string(publicKey), string(privateKey))
 
 	kon.AddAuthenticator("kodingKey", authenticateFromKodingKey)
 	kon.AddAuthenticator("sessionID", authenticateFromSessionID)
+
+	if conf.NewKontrol.UseTLS {
+		kon.EnableTLS(conf.NewKontrol.CertFile, conf.NewKontrol.KeyFile)
+	}
 
 	kon.Run()
 }

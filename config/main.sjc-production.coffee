@@ -17,7 +17,7 @@ authAllExchange = "authAll-#{version}"
 
 embedlyApiKey   = '94991069fb354d4e8fdb825e52d4134a'
 
-environment     = "sjc-production"
+environment     = "production"
 regions         =
   vagrant       : "vagrant"
   sj            : "sj"
@@ -55,6 +55,7 @@ module.exports =
   mongoReplSet  : mongoReplSet
   runNeo4jFeeder: yes
   runGoBroker   : no
+  runGoBrokerKite : no
   runKontrol    : yes
   runRerouting  : yes
   runUserPresence: yes
@@ -173,12 +174,16 @@ module.exports =
       broker    :
         servicesEndpoint: "/-/services/broker"
         sockJS   : "https://broker-#{version}.koding.com/subscribe"
+      brokerKite:
+        servicesEndpoint: "/-/services/broker"
+        brokerExchange: 'brokerKite'
+        sockJS   : "https://brokerkite-#{version}.koding.com/subscribe"
       apiUri    : 'https://koding.com'
       appsUri   : 'https://koding-apps.s3.amazonaws.com'
       uploadsUri: 'https://koding-uploads.s3.amazonaws.com'
       sourceUri : "http://webserver-#{version}a.sj.koding.com:1337"
       newkontrol:
-        url     : 'wss://newkontrol.sj.koding.com:80/dnode'
+        url         : 'wss://newkontrol.sj.koding.com/kontrol'
       fileFetchTimeout: 15 * 1000 # seconds
       externalProfiles  :
         github          :
@@ -209,12 +214,24 @@ module.exports =
     heartbeat   : 20
     vhost       : 'new'
   broker        :
+    name        : "broker"
     ip          : ""
     port        : 443
     certFile    : "/opt/ssl_certs/wildcard.koding.com.cert"
     keyFile     : "/opt/ssl_certs/wildcard.koding.com.key"
     webProtocol : 'https:'
     webHostname : "broker-#{version}a.koding.com"
+    webPort     : null
+    authExchange: authExchange
+    authAllExchange: authAllExchange
+  brokerKite    :
+    name        : "brokerKite"
+    ip          : ""
+    port        : 443
+    certFile    : "/opt/ssl_certs/wildcard.koding.com.cert"
+    keyFile     : "/opt/ssl_certs/wildcard.koding.com.key"
+    webProtocol : 'https:'
+    webHostname : "brokerkite-#{version}a.koding.com"
     webPort     : null
     authExchange: authExchange
     authAllExchange: authAllExchange
@@ -242,10 +259,13 @@ module.exports =
   haproxy:
     webPort     : 3020
   newkontrol      :
-    host          : "kontrol-internal.sj.koding.com"
-    port          : 4000
-    certFile      : "/opt/koding/go/src/koding/kontrol/kontrolproxy/files/10.0.5.231_cert.pem"
-    keyFile       : "/opt/koding/go/src/koding/kontrol/kontrolproxy/files/10.0.5.231_key.pem"
+    username        : "koding"
+    port            : 443
+    useTLS          : yes
+    certFile        : "/opt/koding/certs/koding_com_cert.pem"
+    keyFile         : "/opt/koding/certs/koding_com_key.pem"
+    publicKeyFile   : "/opt/koding/certs/prod_kontrol_rsa_public.pem"
+    privateKeyFile  : "/opt/koding/certs/prod_kontrol_rsa_private.pem"
   proxyKite       :
     domain        : "x.koding.com"
     certFile      : "/opt/koding/go/src/koding/kontrol/kontrolproxy/files/10.0.5.102_cert.pem"
@@ -330,6 +350,7 @@ module.exports =
     neo4jfeeder   : "info"
     oskite        : "info"
     kontrolproxy  : "debug"
+    kontroldaemon : "info"
     userpresence  : "info"
     vmproxy       : "info"
     graphitefeeder: "info"

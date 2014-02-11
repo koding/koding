@@ -1,6 +1,6 @@
 [submodule "client/Framework"]
 	path = client/Framework
 	url = git@git.sj.koding.com:koding/kdframework.git
-[submodule "go/src/koding/kite"]
-	path = go/src/koding/kite
+[submodule "go/src/kite"]
+	path = go/src/kite
 	url = git@git.sj.koding.com:koding/kite.git

@@ -35,21 +35,30 @@ type Message struct {
 }
 
 var (
-	log           = logger.New("neo4jfeeder")
-	mongo         *mongodb.MongoDB
-	conf          *config.Config
-	configProfile = flag.String("c", "", "Configuration profile from file")
+	log         = logger.New("neo4jfeeder")
+	mongo       *mongodb.MongoDB
+	conf        *config.Config
+	flagProfile = flag.String("c", "", "Configuration profile from file")
+	flagDebug   = flag.Bool("d", false, "Debug mode")
 )
 
 func main() {
 	flag.Parse()
-	if *configProfile == "" {
+	if *flagProfile == "" {
 		log.Fatal("Please define config file with -c")
 	}
 
-	conf = config.MustConfig(*configProfile)
+	conf = config.MustConfig(*flagProfile)
+	var logLevel logger.Level
+	if *flagDebug {
+		logLevel = logger.DEBUG
+	} else {
+		logLevel = logger.GetLoggingLevelFromConfig("neo4jfeeder", *flagProfile)
+	}
+	log.SetLevel(logLevel)
+
 	mongo = mongodb.NewMongoDB(conf.Mongo)
-	mongohelper.MongoHelperInit(*configProfile)
+	mongohelper.MongoHelperInit(*flagProfile)
 	neo4j.SetupNeo4j(conf)
 
 	statsd.SetAppName("neo4jFeeder")

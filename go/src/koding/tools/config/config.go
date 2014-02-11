@@ -10,6 +10,17 @@ import (
 	"path/filepath"
 )
 
+type Broker struct {
+	Name            string
+	IP              string
+	Port            int
+	CertFile        string
+	KeyFile         string
+	AuthExchange    string
+	AuthAllExchange string
+	WebProtocol     string
+}
+
 type Config struct {
 	BuildNumber int
 	Environment string
@@ -25,6 +36,11 @@ type Config struct {
 	Version         string
 	Client          struct {
 		StaticFilesBaseUrl string
+		RuntimeOptions     struct {
+			NewKontrol struct {
+				Url string
+			}
+		}
 	}
 	Mongo        string
 	MongoKontrol string
@@ -43,16 +59,9 @@ type Config struct {
 		Enabled bool
 	}
 	GoLogLevel string
-	Broker     struct {
-		IP              string
-		Port            int
-		CertFile        string
-		KeyFile         string
-		AuthExchange    string
-		AuthAllExchange string
-		WebProtocol     string
-	}
-	Loggr struct {
+	Broker     Broker
+	BrokerKite Broker
+	Loggr      struct {
 		Push   bool
 		Url    string
 		ApiKey string
@@ -73,10 +82,13 @@ type Config struct {
 		Queue string
 	}
 	NewKontrol struct {
-		Host     string
-		Port     int
-		CertFile string
-		KeyFile  string
+		Username       string
+		Port           int
+		UseTLS         bool
+		CertFile       string
+		KeyFile        string
+		PublicKeyFile  string
+		PrivateKeyFile string
 	}
 	ProxyKite struct {
 		Domain   string

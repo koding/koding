@@ -309,6 +309,24 @@ task 'goBroker', "Run the goBroker", (options)->
       binary          : uuid
     verbose           : yes
 
+task 'goBrokerKite', "Run the goBrokerKite", (options)->
+  {configFile} = options
+  config = require('koding-config-manager').load("main.#{configFile}")
+  {broker} = config
+  uuid = hat()
+
+  processes.spawn
+    name              : 'brokerKite'
+    cmd               : "./go/bin/broker -c #{configFile} -u #{uuid} -b brokerKite #{addFlags options}"
+    restart           : yes
+    restartTimeout    : 100
+    stdout            : process.stdout
+    stderr            : process.stderr
+    kontrol           :
+      enabled         : if config.runKontrol is yes then yes else no
+      binary          : uuid
+    verbose           : yes
+
 task 'rerouting', "Run rerouting", (options)->
 
   {configFile} = options
@@ -365,7 +383,7 @@ task 'persistence', "Run persistence", (options)->
 task 'osKite', "Run the osKite", ({configFile})->
   processes.spawn
     name  : 'osKite'
-    cmd   : if configFile == "vagrant" then "vagrant ssh default -c 'cd /opt/koding/go/src/koding/kites/os; sudo killall -q -KILL os; sudo /opt/koding/go/bin-vagrant/os -c #{configFile} -r vagrant'" else "./go/bin/os -c #{configFile}"
+    cmd   : if configFile == "vagrant" then "vagrant ssh default -c 'cd /opt/koding/go/src/koding/kites/os; sudo killall -q -KILL os; sudo KITE_HOME=/opt/koding/kite_home /opt/koding/go/bin-vagrant/os -c #{configFile} -r vagrant'" else "./go/bin/os -c #{configFile}"
     restart: no
     stdout  : process.stdout
     stderr  : process.stderr
@@ -508,10 +526,16 @@ task 'migratePost', "Migrate Posts to JNewStatusUpdate", ({configFile})->
     verbose : yes
 
 run =({configFile})->
+  process.stdout.setMaxListeners 100
+  process.stderr.setMaxListeners 100
+
   config = require('koding-config-manager').load("main.#{configFile}")
 
   compileGoBinaries configFile, ->
+    invoke 'kontrolDaemon'                    if config.runKontrol
+    invoke 'kontrolApi'                       if config.runKontrol
     invoke 'goBroker'                         if config.runGoBroker
+    invoke 'goBrokerKite'                     if config.runGoBrokerKite
     invoke 'osKite'                           if config.runOsKite
     invoke 'rerouting'                        if config.runRerouting
     invoke 'userpresence'                     if config.runUserPresence

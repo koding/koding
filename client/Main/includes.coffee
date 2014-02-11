@@ -242,10 +242,6 @@ module.exports = [
   "mixpanel.coffee",
   "analytic.coffee",
 
-  # ---------- Campaign --------------- #
-  "CommonViews/tbcampaigncontroller.coffee",
-  "CommonViews/tbcampaignmodal.coffee",
-
   # ---------- Main APP ENDS ---------- #
 
   # STYLES

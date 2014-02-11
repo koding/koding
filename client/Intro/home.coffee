@@ -49,11 +49,6 @@ class HomePage extends JView
 
     @markers = new MarkerController
 
-    @campaignContainer = new KDCustomHTMLView
-
-    if KD.campaign?.status
-      @campaignContainer.addSubView new TBCampaignHomePageView {}, KD.campaign
-
 
   showVideo:->
 
@@ -155,7 +150,6 @@ class HomePage extends JView
           <a href="/Login" class="login fr">LOGIN</a>
         </div>
       </header>
-      {{> @campaignContainer}}
       <main>
         <div class="clearfix">
           <div class="headings-container">
@@ -248,6 +242,7 @@ class HomePage extends JView
           <a href="http://learn.koding.com/">University</a>
           <a href="http://koding.github.io/jobs/">Jobs</a>
           <a href="http://blog.koding.com">Blog</a>
+          <a href="http://status.koding.com">Status</a>
         </nav>
       </footer>
     """

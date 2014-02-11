@@ -6,9 +6,9 @@ import (
 	"fmt"
 	"html/template"
 	"io"
+	"kite"
+	"kite/protocol"
 	"koding/db/mongodb/modelhelper"
-	"koding/kite"
-	"koding/kite/protocol"
 	"koding/kodingkite"
 	"koding/kontrol/kontrolproxy/resolver"
 	"koding/kontrol/kontrolproxy/utils"
@@ -29,7 +29,6 @@ import (
 	"syscall"
 	"time"
 	"github.com/gorilla/context"
-	"github.com/op/go-logging"
 
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/sessions"
@@ -50,7 +49,8 @@ var (
 	proxyName, _ = os.Hostname()
 
 	// used for all our log
-	log = logger.New(KONTROLPROXY_NAME)
+	log      = logger.New(KONTROLPROXY_NAME)
+	logLevel logger.Level
 
 	// redis client, connects once
 	redisClient = redis.Client{
@@ -82,9 +82,10 @@ var (
 	conf *config.Config
 
 	// flag variables
-	flagProfile   = flag.String("c", "", "Configuration profile from file")
+	flagConfig    = flag.String("c", "", "Configuration profile from file")
 	flagRegion    = flag.String("r", "", "Region")
 	flagVMProxies = flag.Bool("v", false, "Enable ports for VM users (1024-10000)")
+	flagDebug     = flag.Bool("d", false, "Debug mode")
 )
 
 // Proxy is implementing the http.Handler interface (via ServeHTTP). This is
@@ -126,16 +127,20 @@ type interval struct {
 
 func main() {
 	flag.Parse()
-	if *flagProfile == "" || *flagRegion == "" {
+	if *flagConfig == "" || *flagRegion == "" {
 		log.Error("No flags defined. -c, -r and -v is not set. Aborting")
 		os.Exit(1)
 	}
 
-	conf = config.MustConfig(*flagProfile)
+	conf = config.MustConfig(*flagConfig)
 	modelhelper.Initialize(conf.Mongo)
 
-	l := logger.GetLoggingLevelFromConfig(KONTROLPROXY_NAME, conf.Environment)
-	log.SetLevel(l)
+	if *flagDebug {
+		logLevel = logger.DEBUG
+	} else {
+		logLevel = logger.GetLoggingLevelFromConfig(KONTROLPROXY_NAME, *flagConfig)
+	}
+	log.SetLevel(logLevel)
 
 	log.Info("Kontrolproxy started.")
 	log.Info("I'm using %d cpus for goroutines", runtime.NumCPU())
@@ -166,7 +171,7 @@ func main() {
 func (p *Proxy) runNewKite() {
 	k := kodingkite.New(
 		conf,
-		kodingkite.Options{
+		kite.Options{
 			Kitename: KONTROLPROXY_NAME,
 			Version:  "0.0.1",
 		},
@@ -175,11 +180,11 @@ func (p *Proxy) runNewKite() {
 	k.Start()
 
 	// TODO: remove this later, this is needed in order to reinitiliaze the logger package
-	logging.SetLevel(logging.DEBUG, KONTROLPROXY_NAME)
+	log.SetLevel(logLevel)
 
 	query := protocol.KontrolQuery{
 		Username:    "koding-kites",
-		Environment: *flagProfile,
+		Environment: *flagConfig,
 		Name:        "oskite",
 		Version:     "0.0.1",
 		Region:      *flagRegion,
