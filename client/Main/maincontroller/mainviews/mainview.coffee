@@ -80,18 +80,14 @@ class MainView extends KDView
         KD.utils.stopDOMEvent event
         if KD.isLoggedIn()
         then KD.getSingleton('router').handleRoute "/Activity", {entryPoint}
-
         else location.replace '/'
 
     @innerContainer.addSubView @logo
 
-    {groupsController} = KD.singletons
-    groupsController.ready =>
-      group     = groupsController.getCurrentGroup()
-      groupLogo = group.customize?.logo or ""
-      @logo.setCss 'background-image', "url(#{groupLogo})"
+    groupLogo = KD.currentGroup?.logo or ""
+    @logo.setCss 'background-image', "url(#{groupLogo})"
 
-      @logo.setClass KD.config.environment
+    @logo.setClass KD.config.environment
 
 
     @innerContainer.addSubView @logotype = new KDCustomHTMLView
