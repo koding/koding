@@ -112,7 +112,17 @@ func main() {
 	setupSignalHandler(k)
 
 	// register current client-side methods
-	registerVmMethods(k)
+	registerVmMethod(k, "vm.start", false, vmStart)
+	registerVmMethod(k, "vm.shutdown", false, vmShutdown)
+	registerVmMethod(k, "vm.unprepare", false, vmUnprepare)
+	registerVmMethod(k, "vm.stop", false, vmStop)
+	registerVmMethod(k, "vm.reinitialize", false, vmReinitialize)
+	registerVmMethod(k, "vm.info", false, vmInfo)
+	registerVmMethod(k, "vm.resizeDisk", false, vmResizeDisk)
+	registerVmMethod(k, "vm.createSnapshot", false, vmCreateSnaphost)
+	registerVmMethod(k, "spawn", true, spawn)
+	registerVmMethod(k, "exec", true, exec)
+
 	registerS3Methods(k)
 	registerFileSystemMethods(k)
 	registerWebtermMethods(k)
@@ -358,7 +368,8 @@ func setupSignalHandler(k *kite.Kite) {
 }
 
 func registerVmMethod(k *kite.Kite, method string, concurrent bool, callback func(*dnode.Partial, *kite.Channel, *virt.VOS) (interface{}, error)) {
-	k.Handle(method, concurrent, func(args *dnode.Partial, channel *kite.Channel) (methodReturnValue interface{}, methodError error) {
+
+	wrapperMethod := func(args *dnode.Partial, channel *kite.Channel) (methodReturnValue interface{}, methodError error) {
 
 		if shuttingDown {
 			return nil, errors.New("Kite is shutting down.")
@@ -459,7 +470,9 @@ func registerVmMethod(k *kite.Kite, method string, concurrent bool, callback fun
 			defer requestWaitGroup.Add(1)
 		}
 		return callback(args, channel, userVos)
-	})
+	}
+
+	k.Handle(method, concurrent, wrapperMethod)
 }
 
 func getUser(username string) (*virt.User, error) {
