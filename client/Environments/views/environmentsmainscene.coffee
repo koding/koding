@@ -18,19 +18,6 @@ class EnvironmentsMainScene extends JView
         </div>
       """
 
-    # Action Area for Domains
-    @addSubView actionArea = new KDView cssClass : 'action-area'
-
-    # Domain Creation form in actionArea
-    actionArea.addSubView @domainCreateForm = new DomainCreateForm
-
-    # Domain Creation form connections
-    @domainCreateForm.on 'CloseClicked', =>
-      @unsetClass 'in-progress'
-      @scene.unsetClass 'out'
-      @domainCreateForm.unsetClass 'opened'
-      @scene.off "click"
-
     # Main scene for DIA
     @addSubView @scene = new EnvironmentScene
 
@@ -40,19 +27,17 @@ class EnvironmentsMainScene extends JView
         You are on a free plan, see your usage or <a href="/Pricing">upgrade</a>.
       """
 
-    # if KD.checkFlag 'nostradamus'
     # Rules Container
     rulesContainer = new EnvironmentRuleContainer
     @scene.addContainer rulesContainer
     rulesContainer.on 'PlusButtonClicked', ->
       new KDNotificationView title: "Adding more rules will be available soon."
-
     # rulesContainer.on "itemRemoved", @domainCreateForm.bound "updateDomains"
 
     # Domains Container
     @domainsContainer = new EnvironmentDomainContainer
     @scene.addContainer @domainsContainer
-    @domainsContainer.on "itemRemoved", @domainCreateForm.bound "updateDomains"
+    @domainsContainer.on "itemRemoved", @scene.bound 'updateConnections'
 
     # VMs / Machines Container
     @machinesContainer = new EnvironmentMachineContainer
@@ -60,7 +45,6 @@ class EnvironmentsMainScene extends JView
 
     @_containers = [@machinesContainer, @domainsContainer]
 
-    # if KD.checkFlag 'nostradamus'
     # Rules Container
     extrasContainer = new EnvironmentExtraContainer
     @scene.addContainer extrasContainer
@@ -74,14 +58,16 @@ class EnvironmentsMainScene extends JView
 
     @refreshContainers()
 
-
     # @addSubView @resourcesContainer = new ResourcesContainer
 
-    @domainCreateForm.on 'DomainSaved', @domainsContainer.bound 'loadItems'
+    @domainCreateForm = new DomainCreateForm
+    @domainsContainer.on "itemRemoved", @domainCreateForm.bound "updateDomains"
+    @domainCreateForm.on "DomainSaved", @domainsContainer.bound "loadItems"
+
     KD.getSingleton("vmController").on 'VMListChanged', \
                                         @bound 'refreshContainers'
 
-    # Plus button on @domainsContainer opens up the action area
+    # Plus button on @domainsContainer opens up the domainCreateModal
     @domainsContainer.on 'PlusButtonClicked', =>
       return unless KD.isLoggedIn()
         new KDNotificationView title: "You need to login to add a new domain."
@@ -90,12 +76,17 @@ class EnvironmentsMainScene extends JView
         new KDNotificationView
           title: "You need to have at least one VM to manage domains."
 
-      @setClass 'in-progress'
-      @scene.setClass 'out'
-      @domainCreateForm.setClass 'opened'
-      @domainCreateForm.emit 'DomainNameShouldFocus'
-      @utils.defer =>
-        @scene.once 'click', => @domainCreateForm.emit 'CloseClicked'
+      new KDModalView
+        title          : "Add Domain"
+        view           : @domainCreateForm
+        width          : 700
+        overlay        : yes
+        buttons        :
+          createButton :
+            title      : "Create"
+            style      : "modal-clean-green"
+            callback   : =>
+              @domainCreateForm.createSubDomain()
 
     vmController = KD.getSingleton 'vmController'
 
@@ -104,14 +95,6 @@ class EnvironmentsMainScene extends JView
 
     vmController.on "VMPlansFetchEnd", =>
       @machinesContainer.hideLoader()
-
-    # Plus button on @machinesContainer uses the vmController
-    @machinesContainer.on 'PlusButtonClicked', =>
-      return unless KD.isLoggedIn()
-        new KDNotificationView
-          title: "You need to login to create a new machine."
-
-      vmController.createNewVM()
 
     @machinesContainer.on 'PlusButtonForGroupsClicked', ->
       return unless KD.isLoggedIn()
@@ -167,26 +150,24 @@ class EnvironmentsMainScene extends JView
       tagName      : "h5"
       partial      : "Coming soon..."
 
-    # @addVmModal = new KDModalView
-    #   title        : 'Add Virtual Machine'
-    #   cssClass     : 'add-vm-modal'
-    #   view         : addVmSelection
-    #   overlay      : yes
-    #   width        : 786
-    #   buttons      :
-    #     create     :
-    #       title    : "Create"
-    #       style    : "modal-clean-green"
+    # Plus button on @machinesContainer uses the vmController
+    @machinesContainer.on 'PlusButtonClicked', =>
+      return unless KD.isLoggedIn()
+        new KDNotificationView
+          title: "You need to login to create a new machine."
 
-    @addDomainModal = new KDModalView
-      title          : "Add Domain"
-      view           : new DomainCreateForm
-      width          : 700
-      overlay        : yes
-      buttons        :
-        createButton :
-          title      : "Create"
-          style      : "modal-clean-green"
+      # vmController.createNewVM()
+
+      @addVmModal = new KDModalView
+        title        : 'Add Virtual Machine'
+        cssClass     : 'add-vm-modal'
+        view         : addVmSelection
+        overlay      : yes
+        width        : 786
+        buttons      :
+          create     :
+            title    : "Create"
+            style    : "modal-clean-green"
 
   refreshContainers:->
     # After Domains and Machines container load finished

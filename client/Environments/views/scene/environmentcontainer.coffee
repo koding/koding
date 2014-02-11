@@ -11,7 +11,7 @@ class EnvironmentContainer extends KDDiaContainer
     title   = @getOption 'title'
     @header = new KDHeaderView {type : "medium", title}
 
-    @itemHeight = options.itemHeight ? 40
+    @itemHeight = options.itemHeight ? 44
 
     @on "DataLoaded", => @_dataLoaded = yes
     # @on "DragFinished", @bound 'savePosition'
@@ -68,7 +68,7 @@ class EnvironmentContainer extends KDDiaContainer
     @loader.hide()
 
   addDia:(diaObj, pos)->
-    pos = x: 20, y: 60 + @diaCount() * (@itemHeight + 20)
+    pos = x: 20, y: 68 + @diaCount() * (@itemHeight + 20)
     super diaObj, pos
 
     diaObj.on "KDObjectWillBeDestroyed", @bound 'updatePositions'
@@ -80,7 +80,7 @@ class EnvironmentContainer extends KDDiaContainer
     index = 0
     for _key, dia of @dias
       dia.setX 20
-      dia.setY 60 + index * 50
+      dia.setY 68 + index * 64
       index++
     # @updateHeight()
 

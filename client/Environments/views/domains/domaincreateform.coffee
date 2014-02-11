@@ -75,8 +75,7 @@ class DomainCreateForm extends KDCustomHTMLView
       cssClass : 'success'
       partial  : """
         Your subdomain <strong>#{domainName}</strong> has been added.
-        You can dismiss this panel and point your new domain to one of your VMs
-        on the right.
+        You can dismiss this modal and point your new domain to one of your VMs.
       """
       click    : @bound 'reset'
 
