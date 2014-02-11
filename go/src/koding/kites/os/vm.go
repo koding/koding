@@ -8,7 +8,6 @@ import (
 	"koding/tools/kite"
 	"koding/virt"
 	"os"
-	"time"
 
 	"labix.org/v2/mgo/bson"
 )
@@ -19,13 +18,30 @@ func vmStart(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interfa
 	if !vos.Permissions.Sudo {
 		return nil, &kite.PermissionError{}
 	}
-	if err := vos.VM.Start(); err != nil {
+
+	if err := startVM(vos.VM, channel); err != nil {
+		return nil, err
+	}
+
+	rootVos, err := vos.VM.OS(&virt.RootUser)
+	if err != nil {
 		panic(err)
 	}
 
-	// wait until network is up
-	if err := vos.VM.WaitForNetwork(time.Second * 5); err != nil {
-		panic(err)
+	vmWebDir := "/home/" + vos.VM.WebHome + "/Web"
+	userWebDir := "/home/" + vos.User.Name + "/Web"
+
+	vmWebVos := rootVos
+	if vmWebDir == userWebDir {
+		vmWebVos = vos
+	}
+
+	rootVos.Chmod("/", 0755)     // make sure that executable flag is set
+	rootVos.Chmod("/home", 0755) // make sure that executable flag is set
+	createUserHome(vos.User, rootVos, vos)
+	createVmWebDir(vos.VM, vmWebDir, rootVos, vmWebVos)
+	if vmWebDir != userWebDir {
+		createUserWebDir(vos.User, vmWebDir, userWebDir, rootVos, vos)
 	}
 
 	return true, nil

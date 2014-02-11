@@ -425,40 +425,15 @@ func registerVmMethod(k *kite.Kite, method string, concurrent bool, callback fun
 			}
 		}()
 
-		// this method is special cased in oskite.go to allow foreign access
-		// do not check for permisisons
+		// this method is special cased in oskite.go to allow foreign access,
+		// that's why do not check for permisisons.
 		if method == "webterm.connect" {
 			return callback(args, channel, &virt.VOS{VM: vm, User: user})
 		}
 
-		if err := startVM(vm, channel); err != nil {
-			return nil, err
-		}
-
-		rootVos, err := vm.OS(&virt.RootUser)
-		if err != nil {
-			panic(err)
-		}
-
 		userVos, err := vm.OS(user)
 		if err != nil {
-			panic(err)
-		}
-
-		vmWebDir := "/home/" + vm.WebHome + "/Web"
-		userWebDir := "/home/" + user.Name + "/Web"
-
-		vmWebVos := rootVos
-		if vmWebDir == userWebDir {
-			vmWebVos = userVos
-		}
-
-		rootVos.Chmod("/", 0755)     // make sure that executable flag is set
-		rootVos.Chmod("/home", 0755) // make sure that executable flag is set
-		createUserHome(user, rootVos, userVos)
-		createVmWebDir(vm, vmWebDir, rootVos, vmWebVos)
-		if vmWebDir != userWebDir {
-			createUserWebDir(user, vmWebDir, userWebDir, rootVos, userVos)
+			return nil, err
 		}
 
 		return callback(args, channel, userVos)
