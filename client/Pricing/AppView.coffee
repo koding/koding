@@ -103,10 +103,11 @@ class PricingAppView extends KDView
         callback : ->
           KD.singleton("router").handleRoute "/Environments"
     else
-      me = KD.whoami()
-      me.on "tokenCreated", (token) ->
-        KD.singleton('appManager').open 'Login', (app) ->
-          app.prepareFinishRegistrationForm token.token
+      storageController = KD.singletons.appStorageController
+      paymentApp = storageController.storage "PaymentDetails", "1.0"
+      token = paymentApp.getValue "UserToken"
+      KD.singletons.appManager.open 'Login', (app) ->
+        app.prepareFinishRegistrationForm token
 
   showGroupCreated: (group, subscription) ->
 
@@ -133,6 +134,7 @@ class PricingAppView extends KDView
         title    : "Go to Group"
         callback : ->
           window.open "#{window.location.origin}/#{group.slug}", "_blank"
+
 
   addGroupForm: ->
     @groupForm = @createGroupForm()
