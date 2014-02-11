@@ -51,26 +51,14 @@ class VirtualizationController extends KDController
   resizeDisk:(vm, callback)->
     @_runWrapper 'vm.resizeDisk', vm, callback
 
-  turnOnOptions = subscriptionTag: "vm", packTag: "vmturnon"
-
   start:(vm, callback)->
-    @payment.debitWrapper turnOnOptions, (err, nonce) =>
-      return  if KD.showError err
-      @_runWrapper 'vm.start', vm, callback
+    @_runWrapper 'vm.start', vm, callback
 
   stop:(vm, callback)->
-    @_runWrapper 'vm.shutdown', vm, =>
-      args = arguments
-      @payment.creditWrapper turnOnOptions, (err, nonce) =>
-        return  if KD.showError err
-        callback?.apply args
+    @_runWrapper 'vm.shutdown', vm, callback
 
   halt:(vm, callback)->
-    @_runWrapper 'vm.stop', vm, =>
-      args = arguments
-      @payment.creditWrapper turnOnOptions, (err, nonce) =>
-        return  if KD.showError err
-        callback?.apply args
+    @_runWrapper 'vm.stop', vm, callback
 
   reinitialize:(vm, callback)->
     @_runWrapper 'vm.reinitialize', vm, callback

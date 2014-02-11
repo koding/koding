@@ -640,7 +640,6 @@ module.exports = class JVM extends Module
         return callback err  if err
         tags = ["vm"]
         tags.push "alwayson"  if @alwaysOn
-        # tags.push "vmturnon"  if @turnOn #CtF set this field in VM first
         subscription.creditPack {tags}, callback
 
 
@@ -672,7 +671,7 @@ module.exports = class JVM extends Module
           return callback new KodingError "You do not have permission to delete this vm"  unless hasPermission
           vm.removeFromSubscription delegate, group, callback
 
-   
+
   fetchVmByHostname = (account, hostnameAlias, callback) ->
     account.fetchUser (err, user) =>
       return callback err  if err
