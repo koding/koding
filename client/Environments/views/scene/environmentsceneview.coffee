@@ -15,7 +15,7 @@ class EnvironmentScene extends KDDiaScene
   constructor:->
     super
       cssClass  : 'environments-scene'
-      lineWidth : 1
+      lineWidth : 2
 
     @boxes = {}
 
@@ -57,11 +57,15 @@ class EnvironmentScene extends KDDiaScene
 
     if not @allowedToConnect source, target
       return new KDNotificationView
-        title : "It's not allowed connect this two item."
+        title : "It's not allowed connect this two joint."
 
     items = parseItems source, target
     return  if Object.keys(items).length < 2
     {domain, machine, rule, extra} = items
+
+    return  if rule or extra
+      new KDNotificationView
+        title : "Assigning #{if rule then 'rules' else 'resources'} will be available soon."
 
     if domain and machine and not KD.checkFlag 'nostradamus'
       if domain.dia.getData().domain.hostnameAlias.length > 0
@@ -95,11 +99,16 @@ class EnvironmentScene extends KDDiaScene
         modal.destroy()
 
   updateConnections:->
+
     for _mkey, machine of @boxes.machines.dias
       for _dkey, domain of @boxes.domains.dias
         if domain.getData().aliases and machine.getData().title in domain.getData().aliases
           @connect {dia : domain , joint : 'right'}, \
                    {dia : machine, joint : 'left' }, yes
+        for _rkey, rule of @boxes.rules.dias
+          if rule.getData().title is "Allow All"
+            @connect {dia : rule,   joint : 'right'}, \
+                     {dia : domain, joint : 'left' }, yes
 
   createApproveModal:(items, action)->
     return unless KD.isLoggedIn()

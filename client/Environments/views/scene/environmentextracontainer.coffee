@@ -1,8 +1,9 @@
 class EnvironmentExtraContainer extends EnvironmentContainer
 
   constructor:(options={}, data)->
+    options.cssClass  = 'extras'
     options.itemClass = EnvironmentExtraItem
-    options.title     = 'Extras'
+    options.title     = 'Shared Storage'
     super options, data
 
   loadItems:->
@@ -10,20 +11,8 @@ class EnvironmentExtraContainer extends EnvironmentContainer
 
     dummyAdditionals = [
       {
-        title: "20 GB Extra Space",
-        description: "additional 20 GB"
-      },
-      {
-        title: "10 GB Extra Space",
-        description: "additional 20 GB"
-      },
-      {
-        title: "512 MB Extra Memory",
-        description: "additional 512 MB Ram"
-      },
-      {
-        title: "4 GB Extra Memory",
-        description: "additional 4 GB Ram"
+        title: "Shared Space",
+        description: "additional "
       }
     ]
 
