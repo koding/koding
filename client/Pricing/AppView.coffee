@@ -202,7 +202,6 @@ class PricingAppView extends KDView
 
     {JGroup} = KD.remote.api
     JGroup.create options, (err, group, subscription) =>
-      log err, group, subscription, '>>>>>>>>>>>>>>>>>>'
       return KD.showError err  if err
       @showGroupCreated group, subscription
 
