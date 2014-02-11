@@ -153,8 +153,8 @@ class PaymentController extends KDController
           { cardFirstName: firstName, cardLastName: lastName } = billing
           { JUser } = KD.remote.api
           JUser.convert { firstName, lastName, email }, (err) ->
-            JUser.logout()
-            KD.singletons.dock.getView().show()
+            JUser.logout ->
+              KD.singletons.dock.getView().show()
       .enter()
 
     workflow
