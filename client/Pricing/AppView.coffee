@@ -94,6 +94,11 @@ class PricingAppView extends KDView
         title    : "Go to your environment"
         callback : ->
           KD.singleton("router").handleRoute "/Environments"
+    else
+      me = KD.whoami()
+      me.on "tokenCreated", (token) ->
+        KD.singleton('appManager').open 'Login', (app) ->
+          app.prepareFinishRegistrationForm token.token
 
   showGroupCreated: (group, subscription) ->
 
