@@ -114,8 +114,9 @@ module.exports = class JPasswordRecovery extends jraphical.Module
         @create client, options, callback
 
   @create = (client, options, callback)->
-    JUser = require './user'
-    token = createId()
+    {delegate} = client.connection
+    JUser      = require './user'
+    token      = createId()
 
     {email, verb, expiryPeriod} = options
 
@@ -142,6 +143,9 @@ module.exports = class JPasswordRecovery extends jraphical.Module
           if err
             callback err
           else
+            # emit certificate to user form to complete registartion process
+            # at paymentConfirmation
+            delegate.emit "tokenCreated", certificate
             messageOptions =
               url           : "#{protocol}//#{host}/#{verb}/#{encodeURIComponent token}"
               resetPassword : options.resetPassword
@@ -156,7 +160,9 @@ module.exports = class JPasswordRecovery extends jraphical.Module
               redemptionToken : token
               force           : yes
 
-            email.save callback
+            email.save (err)->
+              callback new KodingError "Email cannot saved" if err
+
 
   @validate = secure ({connection:{delegate}}, token, callback)->
     @one {token}, (err, certificate)->
