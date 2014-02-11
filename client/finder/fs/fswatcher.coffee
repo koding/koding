@@ -42,7 +42,11 @@ class FSWatcher extends KDObject
     , (err, response)=>
 
       if not err and response?.files
-        files = FSHelper.parseWatcher @vmName, @path, response.files
+        files = FSHelper.parseWatcher {
+          @vmName
+          parentPath  : @path
+          files       : response.files
+        }
         FSWatcher.registerWatcher @getFullPath(), response.stopWatching
         callback? err, files
       else

@@ -25,27 +25,33 @@ class FSFile extends FSItem
   fetchContentsBinary: (callback)->
     @fetchContents callback, no
 
-  fetchContents:(callback, useEncoding=yes)->
-
+  fetchContents: (callback, useEncoding=yes)->
     @emit "fs.job.started"
-    @vmController.run
-      method    : 'fs.readFile'
-      vmName    : @vmName
-      withArgs  :
-        path    : FSHelper.plainPath @path
-    , (err, response)=>
 
-      if err then warn err
-      else
-        content = atob response.content
+    @osKite.vmStart()
 
-        if useEncoding
-          content = KD.utils.utf8Decode content # Convert to String
+    .then =>
+      @osKite.fsReadFile({
+        path: FSHelper.plainPath @path
+      })
 
-        KD.mixpanel "Fetch contents, success"
+    .then (response) ->
+      content = atob response.content
 
-      callback.call @, err, content
-      @emit "fs.job.finished", err, content
+      content = KD.utils.utf8Decode content  if useEncoding # Convert to String
+
+      KD.mixpanel "Fetch contents, success"
+      
+      callback null, content
+
+    .catch (err) ->
+      warn err
+
+      callback err
+    
+    .then =>
+      @emit 'fs.job.finished'
+
 
   saveAs:(contents, name, parentPath, callback)->
 
@@ -67,24 +73,34 @@ class FSFile extends FSItem
           else
             @emit "fs.saveAs.finished", newFile, @
 
+
+  # webtermConnect: (results, callback) ->
+  #   @osKite.webtermConnect({ arg1: 42 }))
+  #   .then (callback)
+
   append: (contents, callback)->
     @emit "fs.append.started"
 
     # Convert to base64
     content = btoa contents
 
-    @vmController.run
-      method    : 'fs.writeFile'
-      vmName    : @vmName
-      withArgs  :
-        path    : FSHelper.plainPath @path
-        content : content
-        append  : yes
-    , (err, res)=>
+    @osKite.startVm()
 
-      if err then warn err
-      @emit "fs.append.finished", err, res
-      callback? err,res
+    .then =>
+      @osKite.fsWriteFile({
+        path    : FSHelper.plainPath @path
+        content : btoa contents
+        append  : yes
+      })
+
+    .then (response) =>
+      callback null, response
+      @emit 'fs.append.finished', null, response
+
+    .catch (err) ->
+      warn err
+      callback err
+      @emit 'fs.append.finished', err
 
   @createChunkQueue: (data, chunkSize=1024*1024, skip=0)->
 
@@ -155,24 +171,26 @@ class FSFile extends FSItem
 
   abort: -> @emit "AbortRequested"
 
-  save:(contents, callback, useEncoding=yes)->
+  save: (contents, callback = (->), useEncoding = yes) ->
 
     @emit "fs.save.started"
 
-    if useEncoding
-      contents = KD.utils.utf8Encode contents
+    @osKite.vmStart()
 
-    # Convert to base64
-    content = btoa contents
+    .then =>
+      contents = KD.utils.utf8Encode contents  if useEncoding
+      # Convert to base64
+      content = btoa contents
 
-    @vmController.run
-      method    : 'fs.writeFile'
-      vmName    : @vmName
-      withArgs  :
-        path    : FSHelper.plainPath @path
-        content : content
-    , (err, res)=>
+      @osKite.fsWriteFile({
+        path: FSHelper.plainPath @path
+        content
+      })
 
-      if err then warn err
-      @emit "fs.save.finished", err, res
-      callback? err,res
+    .then (response) =>
+      callback null, response
+      @emit "fs.save.finished", null, response
+
+    .catch (err) =>
+      callback err
+      @emit "fs.save.finished", err
