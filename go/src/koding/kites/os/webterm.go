@@ -17,6 +17,9 @@ import (
 	"syscall"
 	"time"
 	"unicode/utf8"
+
+	"labix.org/v2/mgo"
+	"labix.org/v2/mgo/bson"
 )
 
 const (
@@ -56,16 +59,36 @@ func webtermGetSessions(args *dnode.Partial, channel *kite.Channel, vos *virt.VO
 	return sessions, nil
 }
 
+// this method is special cased in oskite.go to allow foreign access
 func webtermConnect(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
 	var params struct {
 		Remote       WebtermRemote
 		Session      string
 		SizeX, SizeY int
 		Mode         string
+		JoinUser     string
 	}
 
 	if args.Unmarshal(&params) != nil || params.SizeX <= 0 || params.SizeY <= 0 {
 		return nil, &kite.ArgumentError{Expected: "{ remote: [object], session: [string], sizeX: [integer], sizeY: [integer], noScreen: [boolean] }"}
+	}
+
+	if params.JoinUser != "" {
+		if len(params.Session) != utils.RandomStringLength {
+			return nil, &kite.BaseError{
+				Message: "Invalid session identifier",
+				CodeErr: ErrInvalidSession,
+			}
+		}
+
+		user := new(virt.User)
+		if err := mongodbConn.Run("jUsers", func(c *mgo.Collection) error {
+			return c.Find(bson.M{"username": params.JoinUser}).One(&user)
+		}); err != nil {
+			return nil, err
+		}
+
+		vos.User = user
 	}
 
 	screen, err := newScreen(vos, params.Mode, params.Session)

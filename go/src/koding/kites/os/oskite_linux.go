@@ -102,11 +102,8 @@ func main() {
 
 	runNewKite(k.ServiceUniqueName)
 
-	// handle leftover VMs
-	handleCurrentVMS(k)
-
-	// start pinned always-on VMs
-	startPinnedVMS(k)
+	handleCurrentVMS(k) // handle leftover VMs
+	startPinnedVMS(k)   // start pinned always-on VMs
 
 	// handle SIGUSR1 and other signals. Shutdown gracely when USR1 is received
 	setupSignalHandler(k)
@@ -146,7 +143,6 @@ func main() {
 	registerVmMethod(k, "app.publish", false, appPublish)
 	registerVmMethod(k, "app.skeleton", false, appSkeleton)
 
-	// this method is special cased in oskite.go to allow foreign access
 	registerVmMethod(k, "webterm.connect", false, webtermConnect)
 	registerVmMethod(k, "webterm.getSessions", false, webtermGetSessions)
 
@@ -398,12 +394,9 @@ func registerVmMethod(k *kite.Kite, method string, concurrent bool, callback fun
 			return nil, errors.New("Kite is shutting down.")
 		}
 
+		// Needed when we oskite get closed via a SIGNAL. It waits until all methods are done.
 		requestWaitGroup.Add(1)
 		defer requestWaitGroup.Done()
-
-		if shuttingDown { // check second time after sync to avoid additional mutex
-			return nil, errors.New("Kite is shutting down.")
-		}
 
 		user, err := getUser(channel.Username)
 		if err != nil {
@@ -424,34 +417,10 @@ func registerVmMethod(k *kite.Kite, method string, concurrent bool, callback fun
 			}
 		}()
 
+		// this method is special cased in oskite.go to allow foreign access
+		// do not check for permisisons
 		if method == "webterm.connect" {
-			var params struct {
-				JoinUser string
-				Session  string
-			}
-
-			args.Unmarshal(&params)
-
-			if params.JoinUser != "" {
-				if len(params.Session) != utils.RandomStringLength {
-					return nil, &kite.BaseError{
-						Message: "Invalid session identifier",
-						CodeErr: ErrInvalidSession,
-					}
-				}
-
-				if vm.GetState() != "RUNNING" {
-					return nil, errors.New("VM not running.")
-				}
-
-				if err := mongodbConn.Run("jUsers", func(c *mgo.Collection) error {
-					return c.Find(bson.M{"username": params.JoinUser}).One(&user)
-				}); err != nil {
-					panic(err)
-				}
-
-				return callback(args, channel, &virt.VOS{VM: vm, User: user})
-			}
+			return callback(args, channel, &virt.VOS{VM: vm, User: user})
 		}
 
 		permissions := vm.GetPermissions(user)
@@ -488,10 +457,6 @@ func registerVmMethod(k *kite.Kite, method string, concurrent bool, callback fun
 			createUserWebDir(user, vmWebDir, userWebDir, rootVos, userVos)
 		}
 
-		if concurrent {
-			requestWaitGroup.Done()
-			defer requestWaitGroup.Add(1)
-		}
 		return callback(args, channel, userVos)
 	}
 
