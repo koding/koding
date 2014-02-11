@@ -145,7 +145,7 @@ module.exports = class JPasswordRecovery extends jraphical.Module
           else
             # emit certificate to user form to complete registartion process
             # at paymentConfirmation
-            delegate.emit "tokenCreated", certificate
+            delegate.emit "tokenCreated", certificate.token
             messageOptions =
               url           : "#{protocol}//#{host}/#{verb}/#{encodeURIComponent token}"
               resetPassword : options.resetPassword
