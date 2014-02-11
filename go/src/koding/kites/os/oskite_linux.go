@@ -69,6 +69,9 @@ var (
 	shuttingDown     = false
 	requestWaitGroup sync.WaitGroup
 
+	// kite unique name of this main process, will be set with kite.ServiceUniqueName
+	serviceUniqueName string
+
 	prepareQueueLimit = 8 + 1 // number of concurrent VM preparations, shoulde be CPU + 1
 	prepareQueue      = make(chan func(chan struct{}))
 )
@@ -99,14 +102,18 @@ func main() {
 	initializeSettings()
 
 	k := prepareOsKite()
+	if k.ServiceUniqueName == "" {
+		log.Fatal("service unique name is empty!!!!")
+	}
+	serviceUniqueName = k.ServiceUniqueName
 
-	runNewKite(k.ServiceUniqueName)
+	runNewKite()
 
-	handleCurrentVMS(k) // handle leftover VMs
-	startPinnedVMS(k)   // start pinned always-on VMs
+	handleCurrentVMS() // handle leftover VMs
+	startPinnedVMS()   // start pinned always-on VMs
 
 	// handle SIGUSR1 and other signals. Shutdown gracely when USR1 is received
-	setupSignalHandler(k)
+	setupSignalHandler()
 
 	// startPrepareWorkers starts multiple workers (based on prepareQueueLimit)
 	// that accepts vmPrepare/vmStart functions.
@@ -153,7 +160,7 @@ func main() {
 	k.Run()
 }
 
-func runNewKite(serviceUniqueName string) {
+func runNewKite() {
 	k := kodingkite.New(
 		conf,
 		kitelib.Options{
@@ -177,7 +184,7 @@ func runNewKite(serviceUniqueName string) {
 		vm := virt.VM(*v)
 		vm.ApplyDefaults()
 
-		err = validateVM(&vm, serviceUniqueName)
+		err = validateVM(&vm)
 		if err != nil {
 			return nil, err
 		}
@@ -299,7 +306,7 @@ func prepareOsKite() *kite.Kite {
 
 // handleCurrentVMS removes and unprepare any vm in the lxc dir that doesn't
 // have any associated document which in mongodbConn.
-func handleCurrentVMS(k *kite.Kite) {
+func handleCurrentVMS() {
 	dirs, err := ioutil.ReadDir("/var/lib/lxc")
 	if err != nil {
 		log.LogError(err, 0)
@@ -314,10 +321,10 @@ func handleCurrentVMS(k *kite.Kite) {
 				return c.FindId(vmId).One(&vm)
 			}
 
-			if err := mongodbConn.Run("jVMs", query); err != nil || vm.HostKite != k.ServiceUniqueName {
+			if err := mongodbConn.Run("jVMs", query); err != nil || vm.HostKite != serviceUniqueName {
 
 				log.Info("cleaning up leftover VM: '%s', vm.Hoskite: '%s', k.ServiceUniqueName: '%s', error '%v'",
-					vmId, vm.HostKite, k.ServiceUniqueName, err)
+					vmId, vm.HostKite, serviceUniqueName, err)
 
 				if err := virt.UnprepareVM(vmId); err != nil {
 					log.Error("%v", err)
@@ -333,15 +340,15 @@ func handleCurrentVMS(k *kite.Kite) {
 	}
 }
 
-func startPinnedVMS(k *kite.Kite) {
+func startPinnedVMS() {
 	mongodbConn.Run("jVMs", func(c *mgo.Collection) error {
-		iter := c.Find(bson.M{"pinnedToHost": k.ServiceUniqueName, "alwaysOn": true}).Iter()
+		iter := c.Find(bson.M{"pinnedToHost": serviceUniqueName, "alwaysOn": true}).Iter()
 		for {
 			var vm virt.VM
 			if !iter.Next(&vm) {
 				break
 			}
-			if err := startVM(k, &vm, nil); err != nil {
+			if err := startVM(&vm, nil); err != nil {
 				log.LogError(err, 0)
 			}
 		}
@@ -355,7 +362,7 @@ func startPinnedVMS(k *kite.Kite) {
 
 }
 
-func setupSignalHandler(k *kite.Kite) {
+func setupSignalHandler() {
 	sigtermChannel := make(chan os.Signal)
 	signal.Notify(sigtermChannel, syscall.SIGINT, syscall.SIGTERM, syscall.SIGUSR1)
 	go func() {
@@ -371,7 +378,7 @@ func setupSignalHandler(k *kite.Kite) {
 
 			query := func(c *mgo.Collection) error {
 				_, err := c.UpdateAll(
-					bson.M{"hostKite": k.ServiceUniqueName},
+					bson.M{"hostKite": serviceUniqueName},
 					bson.M{"$set": bson.M{"hostKite": nil}},
 				) // ensure that really all are set to nil
 				return err
@@ -424,17 +431,9 @@ func registerVmMethod(k *kite.Kite, method string, concurrent bool, callback fun
 			return callback(args, channel, &virt.VOS{VM: vm, User: user})
 		}
 
-		permissions := vm.GetPermissions(user)
-		if permissions == nil {
-			return nil, &kite.PermissionError{}
-		}
-
-		if err := startVM(k, vm, channel); err != nil {
+		if err := startVM(vm, channel); err != nil {
 			return nil, err
 		}
-
-		vmWebDir := "/home/" + vm.WebHome + "/Web"
-		userWebDir := "/home/" + user.Name + "/Web"
 
 		rootVos, err := vm.OS(&virt.RootUser)
 		if err != nil {
@@ -445,6 +444,10 @@ func registerVmMethod(k *kite.Kite, method string, concurrent bool, callback fun
 		if err != nil {
 			panic(err)
 		}
+
+		vmWebDir := "/home/" + vm.WebHome + "/Web"
+		userWebDir := "/home/" + user.Name + "/Web"
+
 		vmWebVos := rootVos
 		if vmWebDir == userWebDir {
 			vmWebVos = userVos
@@ -508,7 +511,7 @@ func getVM(channel *kite.Channel) (*virt.VM, error) {
 	return vm, nil
 }
 
-func validateVM(vm *virt.VM, serviceUniqueName string) error {
+func validateVM(vm *virt.VM) error {
 	if vm.Region != *flagRegion {
 		time.Sleep(time.Second) // to avoid rapid cycle channel loop
 		return &kite.WrongChannelError{}
@@ -577,8 +580,8 @@ func validateVM(vm *virt.VM, serviceUniqueName string) error {
 	return nil
 }
 
-func startVM(k *kite.Kite, vm *virt.VM, channel *kite.Channel) error {
-	err := validateVM(vm, k.ServiceUniqueName)
+func startVM(vm *virt.VM, channel *kite.Channel) error {
+	err := validateVM(vm)
 	if err != nil {
 		return err
 	}

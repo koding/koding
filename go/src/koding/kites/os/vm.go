@@ -13,6 +13,8 @@ import (
 	"labix.org/v2/mgo/bson"
 )
 
+var ErrVmAlreadyPrepared = errors.New("vm is already prepared")
+
 func vmStart(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
 	if !vos.Permissions.Sudo {
 		return nil, &kite.PermissionError{}
@@ -71,8 +73,6 @@ func vmReinitialize(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (
 	}
 	return true, nil
 }
-
-var ErrVmAlreadyPrepared = errors.New("vm is already prepared")
 
 func vmPrepare(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
 	if !vos.Permissions.Sudo {
