@@ -24,16 +24,14 @@ type Client struct {
 }
 
 // NewClient retuns a new client that is defined on a given session.
-func NewClient(session *sockjs.Session, broker *Broker) *Client {
-	defer log.RecoverAndLog()
-
+func NewClient(session *sockjs.Session, broker *Broker) (*Client, error) {
 	socketId := randomString()
 	session.Tag = socketId
 
 	var err error
 	controlChannel, err := broker.PublishConn.Channel()
 	if err != nil {
-		panic(err)
+		return nil, fmt.Errorf("Couldnt create publish channel %v", err)
 	}
 
 	var subscriptions storage.Subscriptionable
@@ -44,7 +42,7 @@ func NewClient(session *sockjs.Session, broker *Broker) *Client {
 		subscriptions, err = storage.NewStorage(conf, storage.SET, socketId)
 		if err != nil {
 			// this will never fail to here
-			panic(err)
+			return nil, fmt.Errorf("Couldnt create subscription storage %v", err)
 		}
 	}
 
@@ -58,13 +56,11 @@ func NewClient(session *sockjs.Session, broker *Broker) *Client {
 		ControlChannel: controlChannel,
 		Broker:         broker,
 		Subscriptions:  subscriptions,
-	}
+	}, nil
 }
 
 // Close should be called whenever a client disconnects.
 func (c *Client) Close() {
-	defer log.RecoverAndLog()
-
 	log.Debug("Client Close Request for socketID: %v", c.SocketId)
 	c.Subscriptions.Each(func(routingKeyPrefix interface{}) bool {
 		c.RemoveFromRoute(routingKeyPrefix.(string))
@@ -79,7 +75,7 @@ func (c *Client) Close() {
 			break
 		}
 		if amqpError, isAmqpError := err.(*amqp.Error); !isAmqpError || amqpError.Code != amqp.ChannelError {
-			panic(err)
+			log.Critical("Error while publising -not rabbitmq error- %v", err)
 		}
 		c.resetControlChannel()
 	}
@@ -96,8 +92,6 @@ func (c *Client) Close() {
 // passes a response back to the client or publish the received message to a
 // rabbitmq exchange for further process.
 func (c *Client) handleSessionMessage(data interface{}) {
-	defer log.RecoverAndLog()
-
 	message := data.(map[string]interface{})
 	log.Debug("Received message: %v", message)
 
@@ -138,8 +132,7 @@ func (c *Client) handleSessionMessage(data interface{}) {
 			payload,
 		)
 
-		err := c.Publish(exchange, routingKey, payload)
-		if err != nil {
+		if err := c.Publish(exchange, routingKey, payload); err != nil {
 			log.Error(err.Error())
 		}
 
@@ -212,7 +205,7 @@ func (c *Client) resetControlChannel() {
 	var err error
 	c.ControlChannel, err = c.Broker.PublishConn.Channel()
 	if err != nil {
-		panic(err)
+		log.Critical("Couldnt create publishing channel %v", err)
 	}
 
 	go func() {
