@@ -117,6 +117,7 @@ func main() {
 	// register current client-side methods
 	registerVmMethod(k, "vm.start", false, vmStart)
 	registerVmMethod(k, "vm.shutdown", false, vmShutdown)
+	registerVmMethod(k, "vm.prepare", false, vmPrepare)
 	registerVmMethod(k, "vm.unprepare", false, vmUnprepare)
 	registerVmMethod(k, "vm.stop", false, vmStop)
 	registerVmMethod(k, "vm.reinitialize", false, vmReinitialize)

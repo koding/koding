@@ -3,9 +3,11 @@
 package main
 
 import (
+	"errors"
 	"koding/tools/dnode"
 	"koding/tools/kite"
 	"koding/virt"
+	"os"
 	"time"
 
 	"labix.org/v2/mgo/bson"
@@ -68,6 +70,30 @@ func vmReinitialize(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (
 		panic(err)
 	}
 	return true, nil
+}
+
+var ErrVmAlreadyPrepared = errors.New("vm is already prepared")
+
+func vmPrepare(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
+	if !vos.Permissions.Sudo {
+		return nil, &kite.PermissionError{}
+	}
+
+	isPrepared := true
+	if _, err := os.Stat(vos.VM.File("rootfs/dev")); err != nil {
+		if !os.IsNotExist(err) {
+			return nil, err
+		}
+
+		isPrepared = false
+	}
+
+	if !isPrepared {
+		vos.VM.Prepare(false, log.Warning)
+		return true, nil
+	} else {
+		return false, ErrVmAlreadyPrepared
+	}
 }
 
 func vmInfo(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
