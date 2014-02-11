@@ -8,6 +8,8 @@ getFailoverUrl = ->
 
   # piece the url together from the config:
   url = "#{ protocol }//#{ hostname }#{ if port then ":#{port}" else "" }"
+  console.warn "Serving failover url", url
+  return url
 
 failover = (req, res, multi) ->
   if req.params.service in supportedServices
@@ -37,8 +39,12 @@ module.exports = (req, res, next) ->
       else ''
     }"
 
-    request(url)
-      .on('error', (err) -> next err  unless failover req, res, multi)
-      .pipe(res)
-  
+    request url, (error, response, body) ->
+      if not error and response.statusCode is 200 and body
+        res.set 'Content-Type', 'application/json'
+        return res.send 200, body
+
+      return  if failover req, res, multi
+      return next()
+
   else next()  unless failover req, res, multi
