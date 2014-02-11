@@ -58,14 +58,7 @@ class EnvironmentsMainScene extends JView
 
     @refreshContainers()
 
-    # @addSubView @resourcesContainer = new ResourcesContainer
-
-    @domainCreateForm = new DomainCreateForm
-    @domainsContainer.on "itemRemoved", @domainCreateForm.bound "updateDomains"
-    @domainCreateForm.on "DomainSaved", @domainsContainer.bound "loadItems"
-
-    KD.getSingleton("vmController").on 'VMListChanged', \
-                                        @bound 'refreshContainers'
+    KD.getSingleton("vmController").on 'VMListChanged', @bound 'refreshContainers'
 
     # Plus button on @domainsContainer opens up the domainCreateModal
     @domainsContainer.on 'PlusButtonClicked', =>
@@ -78,7 +71,7 @@ class EnvironmentsMainScene extends JView
 
       new KDModalView
         title          : "Add Domain"
-        view           : @domainCreateForm
+        view           : @getDomainCreateForm()
         width          : 700
         overlay        : yes
         buttons        :
@@ -105,6 +98,12 @@ class EnvironmentsMainScene extends JView
         return KD.showError err  if err
         vmc = KD.getSingleton("vmController")
         vmc.emit 'VMListChanged'
+
+  getDomainCreateForm: ->
+    domainCreateForm = new DomainCreateForm
+    @domainsContainer.on "itemRemoved", domainCreateForm.bound "updateDomains"
+    domainCreateForm.on "DomainSaved", @domainsContainer.bound "loadItems"
+    return domainCreateForm
 
     addVmSelection = new KDCustomHTMLView
       cssClass   : "new-vm-selection"
