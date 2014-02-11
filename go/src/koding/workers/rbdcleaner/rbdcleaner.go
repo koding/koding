@@ -5,10 +5,10 @@ import (
 	"koding/db/models"
 	"koding/db/mongodb"
 	"koding/tools/logger"
+	"labix.org/v2/mgo"
 	"os/exec"
 	"strings"
 	"time"
-	"labix.org/v2/mgo"
 
 	"github.com/fatih/set"
 	"github.com/op/go-logging"

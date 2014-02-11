@@ -14,9 +14,14 @@ authAllExchange = "authAll"
 embedlyApiKey   = '94991069fb354d4e8fdb825e52d4134a'
 
 environment     = "vagrant"
+regions         =
+  vagrant       : "vagrant"
+  sj            : "sj"
+  aws           : "aws"
 
 module.exports =
   environment   : environment
+  regions       : regions
   version       : version
   aws           :
     key         : 'AKIAJSUVKX6PD254UGAA'
@@ -46,7 +51,8 @@ module.exports =
     port        : 7474
   runNeo4jFeeder: yes
   runGoBroker   : yes
-  runKontrol    : no
+  runGoBrokerKite: yes
+  runKontrol    : yes
   runRerouting  : yes
   runUserPresence: yes
   runPersistence: no
@@ -54,6 +60,7 @@ module.exports =
   buildClient   : yes
   runOsKite     : yes
   runProxy      : yes
+  redis         : "localhost:6379"
   misc          :
     claimGlobalNamesForUsers: no
     updateAllSlugs : no
@@ -158,6 +165,10 @@ module.exports =
       broker    :
         servicesEndpoint: 'http://localhost:3020/-/services/broker'
         sockJS  : 'http://localhost:8008/subscribe'
+      brokerKite:
+        servicesEndpoint: 'http://localhost:3020/-/services/brokerKite'
+        brokerExchange: 'brokerKite'
+        sockJS  : 'http://localhost:8009/subscribe'
       apiUri    : 'http://localhost:3020'
       version   : version
       mainUri   : 'http://localhost:3020'
@@ -199,6 +210,7 @@ module.exports =
     heartbeat   : 0
     vhost       : '/'
   broker        :
+    name        : "broker"
     ip          : ""
     port        : 8008
     certFile    : ""
@@ -206,6 +218,17 @@ module.exports =
     webProtocol : 'http:'
     webHostname : 'localhost'
     webPort     : 8008
+    authExchange: authExchange
+    authAllExchange: authAllExchange
+  brokerKite    :
+    name        : "brokerKite"
+    ip          : ""
+    port        : 8009
+    certFile    : ""
+    keyFile     : ""
+    webProtocol : 'http:'
+    webHostname : 'localhost'
+    webPort     : 8009
     authExchange: authExchange
     authAllExchange: authAllExchange
   kites:

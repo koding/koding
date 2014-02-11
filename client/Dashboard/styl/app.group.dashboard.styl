@@ -17,7 +17,7 @@ Dashboard main styles
   .content-page
     min-height            100%
     max-width             1100px
-    padding-top           90px
+    padding-top           150px
 
   .list-group-title
     hidden()
@@ -137,7 +137,6 @@ Dashboard Settings Styles
 
   > .kdformview
     min-height                100%
-    max-width                 764px
 
     > .formline
 
@@ -214,24 +213,29 @@ Dashboard Member List styles
 .kdtabpaneview.members .listview-wrapper
   .kdlistview
     overflow                 visible
+    padding-bottom           200px
 
     &.item-editing
       .kdlistitemview-member
-        opacity              .2
+        opacity              .5
 
     .kdlistitemview-member
       vendor                 transition, opacity .2s ease
-      width                  100%
+      kalc                   width, 50% \- 12px
       background             #FFF
       rounded                6px
       padding                20px
       box-sizing             border-box
-      margin                 0 0 1px 0
+      margin                 0 0 12px 0
+      fl()
+
+      &:nth-child(2n)
+        margin-left          12px
 
       .profile
       .user-numbers
         margin               0
-        width                300px
+        width                auto
         height               auto
         float                none
         line-height          16px
@@ -261,9 +265,7 @@ Dashboard Member List styles
           visible()
 
       &.editing
-        height               155px
         border-bottom        none
-        background           transparent
         opacity              1
 
       .edit-container
@@ -271,6 +273,7 @@ Dashboard Member List styles
         background           #fff
         top                  64px
         height               90px
+        left                 0
         abs()
 
         .kdbutton

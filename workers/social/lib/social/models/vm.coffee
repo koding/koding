@@ -76,6 +76,9 @@ module.exports = class JVM extends Module
           (signature Function)
         createSharedVm:
           (signature Function)
+        setAlwaysOn:
+          (signature Object, Function)
+
     schema              :
       ip                :
         type            : String
@@ -134,6 +137,33 @@ module.exports = class JVM extends Module
         @hostnameAlias
       }
       return callback null
+
+  @setAlwaysOn = secure (client, options, callback)->
+    {connection: delegate: account} = client
+    {vmName, status} = options
+    fetchVmByHostname account, vmName, (err, vm) ->
+      return callback err if err
+      return callback new KodingError "VM Not FOUND" unless vm
+
+      [{ id: groupId }] = vm.groups
+      JGroup = require './group'
+      JGroup.one { _id: groupId }, (err, group)->
+        return callback err  if err
+        return callback new KodingError "Group not found"  unless group
+        object = if group.slug is "koding" then account else group
+
+        object.fetchSubscription (err, subscription) ->
+          return callback err  if err
+          return callback new KodingError("Subscription not found","NOTSUBSCRIBED")  unless subscription
+
+          JPaymentPack.one tags: "alwayson", (err, pack) ->
+            return callback err  if err
+            return callback new KodingError "Always On pack not found"  unless pack
+            {debit, credit} = subscription
+            fn = if status then debit else credit
+            fn.call subscription, {pack}, (err) ->
+              return callback err  if err
+              vm.update $set: alwaysOn: status, callback
 
   @fetchDefaultVm_ = (client, callback)->
     {delegate} = client.connection
@@ -369,15 +399,13 @@ module.exports = class JVM extends Module
         group.fetchSubscription (err, subscription) =>
           return callback err  if err or not subscription
 
-          JPaymentPack.one tags: "vm", (err, pack) =>
-            return callback err  if err or not pack
-            subscription.debit {pack}, (err) =>
-              return callback err  if err
-              @createVm {
-                type      : "group"
-                groupSlug : group.slug
-                account
-              }, callback
+          subscription.debitPack tags: "vm", (err) =>
+            return callback err  if err
+            @createVm {
+              type      : "group"
+              groupSlug : group.slug
+              account
+            }, callback
 
   # TODO: this needs to be rethought in terms of bundles, as per the
   # discussion between Devrim, Chris T. and Badahir  C.T.
@@ -434,12 +462,12 @@ module.exports = class JVM extends Module
               return callback err  if err
               JVM.ensureDomainSettings {account, vm, type, nickname, groupSlug}
               if type is 'group'
-                @addVmUsers vm, group, ->
+                @addVmUsers user, vm, group, ->
                   callback null, vm
               else
                 callback null, vm
 
-  @addVmUsers = (vm, group, callback)->
+  @addVmUsers = (user, vm, group, callback)->
     # todo - do this operation in batches
     selector =
       sourceId    : group.getId()
@@ -473,7 +501,8 @@ module.exports = class JVM extends Module
             vmUsers = []
 
             vmUsers = sourceIds.map (rec)->
-              { id: rec.sourceId, sudo: yes }
+              owner = if rec.sourceId.equals user.getId() then yes else no
+              { id: rec.sourceId, sudo: yes, owner }
 
             return vm.update {
               $set: users: vmUsers
@@ -498,6 +527,7 @@ module.exports = class JVM extends Module
           underMaintenance : vm.hostKite is "(maintenance)"
           region           : vm.region or 'sj'
           diskSizeInMB     : vm.diskSizeInMB
+          alwaysOn         : vm.alwaysOn
 
   @fetchVmRegion = secure (client, hostnameAlias, callback)->
     {delegate} = client.connection
@@ -604,63 +634,55 @@ module.exports = class JVM extends Module
     JVM.removeRelatedDomains this
     super callback
 
-  @deleteVM = (vm, callback)->
-    if vm.planCode is 'free'
-      vm.remove callback
+  removeFromSubscription: (account, group, callback)->
+    kallback = (subscription) =>
+      @remove (err) =>
+        return callback err  if err
+        tags = ["vm"]
+        tags.push "alwayson"  if @alwaysOn
+        # tags.push "vmturnon"  if @turnOn #CtF set this field in VM first
+        subscription.creditPack {tags}, callback
+
+
+    if group.slug is "koding"
+      account.fetchSubscription (err, subscription) =>
+        return callback err  if err
+        return @remove callback  unless subscription # so this is a free account
+        kallback subscription
     else
-      JPaymentSubscription.one
-        planCode : vm.subscriptionCode
-        $or      : [
-          {status: 'active'}
-          {status: 'canceled'}
-        ]
-      , (err, subscription)->
-        if err or not subscription
-          return callback { message: 'Unable to update subscription.' }
-
-        if subscription.status is 'canceled'
-          vm.remove callback
-        else
-          JPaymentPack.one { planCode: vm.planCode }, (err, pack) ->
-            return callback err  if err
-
-            subscription.credit pack, (err) ->
-              return callback err  if err
-
-              vm.remove callback
+      group.fetchSubscription (err, subscription) =>
+        return callback err  if err
+        return callback new KodingError "Group subscription not found"  unless subscription
+        kallback subscription
 
   @removeByHostname = secure (client, hostnameAlias, callback)->
     {delegate} = client.connection
 
-    delegate.fetchUser (err, user) =>
+    fetchVmByHostname delegate, hostnameAlias, (err, vm) ->
       return callback err  if err
-      return callback { message: "user not found" }  unless user
+      return callback new KodingError 'No such VM'  unless vm
+
+      [{ id: groupId }] = vm.groups
+      JGroup = require './group'
+      JGroup.one { _id: groupId }, (err, group)->
+        return callback err  if err
+        return callback new KodingError "Group not found"  unless group
+        JPermissionSet.checkPermission client, "delete vms", group, (err, hasPermission)->
+          return callback err  if err
+          return callback new KodingError "You do not have permission to delete this vm"  unless hasPermission
+          vm.removeFromSubscription delegate, group, callback
+
+   
+  fetchVmByHostname = (account, hostnameAlias, callback) ->
+    account.fetchUser (err, user) =>
+      return callback err  if err
+      return callback new KodingError "user not found"  unless user
 
       selector =
         hostnameAlias : hostnameAlias
         users         : { $elemMatch: id: user.getId(), owner: yes }
 
-      JVM.one selector, (err, vm) =>
-        return callback err  if err
-        return callback new KodingError 'No such VM'  unless vm
-
-        delegate.hasTarget vm, 'owner', (err, hasTarget) =>
-          return callback err  if err
-
-          if hasTarget
-            @deleteVM vm, callback
-          else
-            [{ id: groupId }] = vm.groups
-
-            JGroup = require './group'
-            JGroup.one { _id: groupId }, (err, group)=>
-              return callback err  if err
-
-              JPermissionSet.checkPermission client, "delete vms", group,
-              (err, hasPermission)=>
-                return callback err  if err
-
-                @deleteVM vm, callback  if hasPermission
+      JVM.one selector, callback
 
   @addVm = ({ account, target, user, sudo, groups, groupSlug
              type, planCode, planOwner, webHome, uid }, callback)->

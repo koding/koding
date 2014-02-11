@@ -3,11 +3,11 @@ package modelhelper
 import (
 	"fmt"
 	"koding/db/models"
-	"koding/db/mongodb"
-	"labix.org/v2/mgo"
-	"labix.org/v2/mgo/bson"
 	"strconv"
 	"time"
+
+	"labix.org/v2/mgo"
+	"labix.org/v2/mgo/bson"
 )
 
 func NewDomainDenied(ip, country, reason string) *models.DomainDenied {
@@ -54,7 +54,7 @@ func AddDomainDenied(domainname, ip, country, reason string) error {
 		return err
 	}
 
-	return mongodb.Run("jDomainStats", query)
+	return Mongo.Run("jDomainStats", query)
 }
 
 func AddDomainRequests(domainname string) error {
@@ -80,7 +80,7 @@ func AddDomainRequests(domainname string) error {
 		return err
 	}
 
-	return mongodb.Run("jDomainStats", query)
+	return Mongo.Run("jDomainStats", query)
 }
 
 func DeleteDomainStat(domainname string) error {
@@ -88,7 +88,7 @@ func DeleteDomainStat(domainname string) error {
 		return c.Remove(bson.M{"domainname": domainname})
 	}
 
-	return mongodb.Run("jDomainStats", query)
+	return Mongo.Run("jDomainStats", query)
 }
 
 func GetDomainStat(domainname string) (models.DomainStat, error) {
@@ -97,7 +97,7 @@ func GetDomainStat(domainname string) (models.DomainStat, error) {
 		return c.Find(bson.M{"domainname": domainname}).One(&domainstat)
 	}
 
-	err := mongodb.Run("jDomainStats", query)
+	err := Mongo.Run("jDomainStats", query)
 	if err != nil {
 		if err.Error() == "not found" {
 			return domainstat, nil //return empty struct
@@ -121,7 +121,7 @@ func GetDomainStats() []models.DomainStat {
 		return nil
 	}
 
-	mongodb.Run("jDomainStats", query)
+	Mongo.Run("jDomainStats", query)
 	return domainstats
 }
 
@@ -157,7 +157,7 @@ func AddProxyStat(proxyname, country string) error {
 		return err
 	}
 
-	return mongodb.Run("jProxyStats", query)
+	return Mongo.Run("jProxyStats", query)
 }
 
 func DeleteProxyStat(proxyname string) error {
@@ -165,7 +165,7 @@ func DeleteProxyStat(proxyname string) error {
 		return c.Remove(bson.M{"proxyname": proxyname})
 	}
 
-	return mongodb.Run("jProxyStats", query)
+	return Mongo.Run("jProxyStats", query)
 }
 
 func GetProxyStat(proxyname string) (models.ProxyStat, error) {
@@ -175,7 +175,7 @@ func GetProxyStat(proxyname string) (models.ProxyStat, error) {
 		return c.Find(bson.M{"proxyname": proxyname}).One(&proxystat)
 	}
 
-	err := mongodb.Run("jProxyStats", query)
+	err := Mongo.Run("jProxyStats", query)
 	if err != nil {
 		if err.Error() == "not found" {
 			return proxystat, nil //return empty struct
@@ -198,6 +198,6 @@ func GetProxyStats() []models.ProxyStat {
 		return nil
 	}
 
-	mongodb.Run("jProxyStats", query)
+	Mongo.Run("jProxyStats", query)
 	return proxystats
 }

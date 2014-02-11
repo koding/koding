@@ -127,7 +127,6 @@ body.about #main-header
     hidden()
 
 
-  #home-bottom
   main
     padding             55px 16%
     background          url('/a/images/home/photo-small.jpg') no-repeat center center
@@ -140,23 +139,6 @@ body.about #main-header
     max-width           830px
     margin              0 auto
 
-  #home-bottom
-    background          url('/a/images/home/photo-large.jpg') no-repeat center center
-    size                100% 530px
-    padding-top         80px
-    border-bottom       none
-    background-size     cover
-    shadow              inset 0 5px 16px rgba(0, 0, 0, .47)
-    borderBox()
-    h2
-      margin-bottom     30px
-      font-size         30px
-    h3
-      margin-top        0
-    form
-      .login-input-view
-      button.kdbutton
-        kalc            width, 33% \- 15px
 
   h1, h2, h3
     text-align          center
@@ -268,6 +250,11 @@ body.about #main-header
       display           block
       abs()
 
+    iframe
+      display           block
+      rel()
+
+    iframe
     section
       size              919px 588px
       margin            39px auto
@@ -285,10 +272,17 @@ body.about #main-header
     max-width           1280px
     margin              0 auto
     padding             45px
-    margin-top          -200px
 
     .logo
       margin            0 17px 0 0
+      size              45px 45px
+      bg                color, logoBg
+      fl()
+
+      cite
+        r-sprite        home 'logo'
+        margin          14px
+        display         block
 
     address
       overflow          hidden
@@ -380,10 +374,9 @@ body.about #main-header
     margin-bottom       55px
 
 #pricing .product-form
-  height                650px
-  background            url('/a/images/home/speedometer.jpg') no-repeat center center
-  background-size       cover
-  padding               90px 0 87px
+  size                  100%, auto
+  background            #e4e4e4
+  padding               22px 0 87px
   borderBox()
 
   .inner-container
@@ -392,18 +385,18 @@ body.about #main-header
 
     >header
       padding-bottom    41px
-      border-bottom     1px solid #202729
+      border-bottom     1px solid #d4d4d4
 
       h2
-        text-align      left
-        color           #fff
         font-size       28px
         font-weight     200
+        color           #1c2021
         margin-bottom   8px
+        text-shadow     none
 
       p
         font-size       20px
-        color           #c5c5c5
+        color           #757575
         font-weight     200px
         line-height     26px
         width           702px
@@ -412,8 +405,8 @@ body.about #main-header
       .pricing-toggle
         font-family     inherit
         rounded         12px
-        background      #242a2c
-        size            303px, 59px
+        background      emphasized
+        size            302px, 59px
         shadow          inset 0 0 13px rgba(0, 0, 0, .36)
         fr()
 
@@ -421,133 +414,185 @@ body.about #main-header
           background    transparent
           border        none
           shadow        none
-          size          50%, 59px
-          margin        0
+          height        55px
+          kalc          width, 50% \- 2px
+          margin        2px 2px 0 0
           padding       0
-          line-height   59px
+          line-height   55px
           text-shadow   none
           color         #fff
           font-size     16px
           font-weight   200
 
+          &:first-child
+            margin      2px 0 0 2px
+
         a.active
           background    #27ae60
-          color         #242a2c
-          rounded       12px
+          color         emphasized
+          rounded       10px
           font-weight   400
 
 
     .plan-selection
-      .plan-selection-box
-        width           715px
-        padding-top     42px
-        fl()
+      .developer-plan
+      .team-plan
+        overflow        visible
+    .plan-selection-box
+      width           715px
+      padding-top     42px
+      position        relative
+      fl()
 
-        &:nth-of-type(2)
-          margin-left   70px
+      &:nth-of-type(2)
+        margin-left   70px
 
-        h4
-          font-size     28px
-          color         #fff
-          font-weight   200
-          line-height   34px
-          display       inline-block
-          position      relative
+      h4
+        font-size     28px
+        color         #1c2021
+        font-weight   200
+        line-height   34px
+        display       inline-block
+        position      relative
 
-          cite
-            display     block
-            abs         -4px -53px 0 0
-            size        43px, 43px
-            line-height 43px
-            text-align  center
-            font-size   18px
-            background  #242a2c
-            rounded     50%
+        cite
+          display     block
+          abs         -4px -53px 0 0
+          size        43px, 43px
+          line-height 43px
+          text-align  center
+          font-size   18px
+          background  emphasized
+          rounded     50%
+          color       #fff
+
+      h5
+        font-size     22px
+        font-weight   400
+        color         #757575
+        margin        4px 0 0
+
+      .sliderbar-container
+        width         100% !important
+        background    #dadada
+        shadow        inset 1px 1px 0 rgba(0, 0, 0, .16)
+        height        7px
+        border        none
+        margin        67px auto 0
+
+        .handle
+          size        26px, 26px
+          shadow      none
+          border      none
+          rounded     50%
+          background  #00ba4e
+          shadow      inset 0 -1px 2px 1px rgba(0, 0, 0, .1) \,
+                      inset 0 -8px 17px #00ba4e \,
+                      inset 0  0 0 1px #00ba4e \,
+                      inset 0 1px 0 2px rgba(255, 255, 255, .3)
+          top         -10px
+          margin      0 0 0 -12px
+
+          &:after
+          &:before
+            hidden()
+
+        .sliderbar-label
+          color           transparent
+          margin-top      -45px
+          margin-bottom   0
+
+          &:after
+            size          2px, 14px
+            background    #bababa
+
+      .description
+        display           block
+        font-size         12px
+        font-weight       400
+        color             #727575
+        line-height       23px
+        margin            20px 0 0
+        span
+          color           #999
+        cite
+          bg              color, #d3d3d3
+          rounded         12px
+          font-size       10px
+          display         inline-block
+          min-width       23px
+          height          23px
+          line-height     23px
+          text-align      center
+          padding         0 5px
+          margin          0 5px 0 15px
+          borderBox()
+
+      &.selected
+        margin              0
+        padding             40px 0 0 50px
+        width               275px
+        border-left         1px solid #d4d4d4
+        fr()
 
         h5
-          font-size     22px
-          font-weight   200
-          color         rgba(242, 242, 242, .4)
-          margin        4px 0 0
-
-        .sliderbar-container
-          background    #1e884b
-          height        7px
-          border        none
-          shadow        none
-          margin        62px auto 0
-
-          .handle
-            size        26px, 26px
-            shadow      none
-            border      none
-            rounded     50%
-            background  #27ae60
-            top         -10px
-            margin      0 0 0 -12px
-
-            &:after
-            &:before
-              hidden()
-
-          .sliderbar-label
-            color           transparent
-            margin-top      -45px
-            margin-bottom   0
-
-            &:after
-              size          2px, 14px
-              background    rgba(39, 174, 96, .5)
+          font-size         24px
+          color             #27ae60
+          margin            16px 0
+          cite
+            font-size       18px
+            font-style      italic
+            font-weight     200
 
         .description
-          display           block
-          font-size         14px
-          font-weight       200px
-          color             rgba(197, 197, 197, .3)
-          line-height       18px
-          margin            46px 0 0
+          min-height        18px
+          margin            0
+          color             rgba(242, 242, 242, .3)
 
-        &.selected
-          width               275px
-          fr()
+        .kdbutton.solid.buy-now
+          size              126px, 48px
+          line-height       48px
+          font-size         18px
+          color             #056233
+          padding           0
+          rounded           6px
+          font-weight       600
+          margin            29px 0 0
+          text-align        center
+          text-transform    uppercase
+          fl()
 
-          h5
-            font-size         24px
-            color             #27ae60
-            margin            16px 0
-
-          .description
-            min-height        18px
-            margin            0
-            color             rgba(242, 242, 242, .3)
-
-          .kdbutton.solid.buy-now
-            size              126px, 48px
-            line-height       48px
-            font-size         18px
-            color             #935600
-            background        #ffa200
-            padding           0
-            rounded           6px
-            font-weight       600
-            margin            29px 0 0
-            text-align        center
-            text-transform    uppercase
-            fl()
-
-            .button-title
-              line-height     inherit
-              color           inherit
-              font-size       inherit
-              font-weight     inherit
+          .button-title
+            line-height     inherit
+            color           inherit
+            font-size       inherit
+            font-weight     inherit
 
     .team-plan
       .plan-selection-box
-        width                 350px
+        width                 323px
+
+        .description
+          max-width           340px
+          text-align          right
+          abs                 200px 0px 0 0
+          line-height         2
+          margin              0
+
+    .developer-plan
+
+      .sliderbar-container
+        shadow                inset 1px 1px 0 rgba(0, 0, 0, .16) !important
+        background            -webkit-linear-gradient(left, #00c052 0%, #ffd800 50%, #fe0000 100%) !important
+
+        .opposite.bar
+          background          #dadada
+          shadow              inset 1px 1px 0 rgba(0, 0, 0, .16) \,
+                              0 0 0 1px #dadada
 
 #home-groups
   bg                    color, homeHeaderBg
-  padding               100px 0
+  padding               100px 0 53px
 
   h2, h3
     text-shadow         none
@@ -637,68 +682,77 @@ body.about #main-header
         span.icon
           r-sprite          home 'text-balloons'
 
-  .kdbutton.pricing
-    display               block
-    margin                100px auto
-    size                  494px 92px
-    bg                    color logoBg
-    text-align            left
-    rounded               10px
-    a
-      noTextDeco()
-      color               white
-
-    span.button-title
-      text-align          left
-      font-family         openSansFamily
-      font-size           20px
-      line-height         1.4
-      letter-spacing      1px
-      margin-left         90px
-      font-weight         300
-      display             block
-      cite
-        display           block
-        color             homeHeaderBg
-        // font-weight       300
-
-    span.icon.dollar
-      margin              0
-      padding             0
-      r-sprite              home 'dollar'
 
 /* Media Queries */
 
 @media all and (max-width: 1020px)
   .intro
     .big-header
-      font-size         26px !important
-      line-height       36px !important
+      font-size             26px !important
+      line-height           36px !important
 
       ~h2
-        font-size       18px !important
-        line-height     28px !important
-        margin-bottom   30px !important
+        font-size           18px !important
+        line-height         28px !important
+        margin-bottom       30px !important
 
     .laptop
     .intro-marker
-      display             none !important
+      display               none !important
 
     main
-      height              auto !important
+      height                auto !important
 
     #home-features
-      padding             0 30px
+      padding               0 30px
 
     figure.browser
-      display             none
+      display               none
 
     figure.education
-      height              778px !important
-      margin-top          100px !important
+      height                778px !important
+      margin-top            100px !important
 
     .group-features
-      margin-top          200px !important
+      margin-top            200px !important
+
+    #pricing
+      header
+        margin-left         3%
+
+      .pricing-toggle
+        abs                 110px 20px 0 0
+
+      .plan-selection-box
+        margin-left         5% !important
+        float               left !important
+
+        h4
+          font-size         22px !important
+
+@media all and (max-width: 1020px) and (min-width: 720px)
+  .intro
+    #pricing
+      .plan-selection-box
+        float               left !important
+        borderBox()
+
+      .developer-plan
+        .plan-selection-box
+          width             54% !important
+
+          &.selected
+            width           36% !important
+            padding         35px 35px 0 !important
+
+      .team-plan
+        .plan-selection-box
+          width             28% !important
+
+          &.selected
+            padding         35px 35px 0 !important
+
+
 
 @media all and (max-width: 900px) and (min-width: 510px)
   .intro
@@ -725,44 +779,106 @@ body.about #main-header
         &.social .icon
           margin-bottom   15px
 
+    #pricing
+      header
+        h2
+          font-size       24px !important
+
+        p
+          font-size       18px !important
+
+      .pricing-toggle
+        width             233px !important
+
 @media all and (max-width: 720px)
   .intro
     .headings-container
     .register-container
-      float               none !important
-      width               75% !important
-      margin-left         auto !important
-      margin-right        auto !important
+      float                 none !important
+      width                 75% !important
+      margin-left           auto !important
+      margin-right          auto !important
 
       h1,h2
-        text-align        center !important
+        text-align          center !important
 
     .big-header
-      font-size         26px !important
-      margin-bottom     24px !important
+      font-size             26px !important
+      margin-bottom         24px !important
 
       ~h2
-        font-size       18px !important
-        margin-bottom   30px !important
+        font-size           18px !important
+        margin-bottom       30px !important
 
     main
-      padding             36px 60px 44px !important
+      padding               36px 60px 44px !important
 
     .group-features
       >div
-        width             100% !important
-        float             none !important
-        text-align        center
+        width               100% !important
+        float               none !important
+        text-align          center
 
         article
-          width           auto !important
+          width             auto !important
 
     .kdbutton.pricing
-      margin              20px auto !important
-      width               90% !important
+      margin                20px auto !important
+      width                 90% !important
 
     figure.education
-      height              1035px !important
+      height                1035px !important
+
+    #pricing
+      .product-form
+        padding-top         60px !important
+        height              auto !important
+
+      header
+        text-align          center
+        margin-right        5% !important
+
+        h2
+          text-align        center !important
+
+        p
+          width             100% !important
+
+      .pricing-toggle
+        position            static
+        margin              104px auto 0
+        width               60% !important
+        float               none !important
+
+      div.plan-selection-box
+        width               90% !important
+        float               none !important
+
+        &.selected
+          text-align        center
+          padding           40px 0 0 !important
+          border            none !important
+
+          .kdbutton
+            margin          42px auto 0 !important
+            float           none !important
+            width           50% !important
+
+        br
+          content           ""
+          display           inline-block
+          margin-left       8px
+
+        h5
+          margin            0 !important
+          hidden()
+
+        .description
+          max-width         90% !important
+          width             90% !important
+          text-align        center !important
+          margin            24px auto 0 !important
+          position          static !important
 
 
 @media all and (max-width: 510px)
@@ -800,10 +916,6 @@ body.about #main-header
         &.social .icon
           margin-right    22px
           margin-left     6px
-
-
-    #home-bottom
-      padding-top         690px !important
 
 
 // campaign related stuff

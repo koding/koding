@@ -4,6 +4,7 @@ class PricingPlanSelection extends JView
     options.title       or= ""
     options.description or= ""
     options.unitPrice    ?= 1
+    options.hidePrice    ?= no
     options.period      or= "Month"
     super options, data
 
@@ -13,12 +14,13 @@ class PricingPlanSelection extends JView
 
     @title.addSubView @count = new KDCustomHTMLView tagName : "cite"
 
-    @price    = new KDCustomHTMLView
-      tagName : "h5"
-      partial : "$#{options.slider.initialValue * options.unitPrice}/#{options.period}"
+    @price     = new KDCustomHTMLView
+      tagName  : "h5"
+      cssClass : "hidden"  if options.hidePrice
+      partial  : "$#{options.slider.initialValue * options.unitPrice}/#{options.period}"
 
-    options.slider       or= {}
-    options.slider.drawBar = no
+    options.slider         or= {}
+    options.slider.drawBar  ?= no
 
     {unitPrice} = options
 
@@ -26,14 +28,29 @@ class PricingPlanSelection extends JView
     @slider.on "ValueChanged", (handle) =>
       value = Math.floor handle.value
       price = value * unitPrice
-      @count.updatePartial "#{value}x"
+      @count.updatePartial if value then "#{value}x" else 'Free'
       @price.updatePartial "$#{price}/Month"
+      @updateDescription value
       @emit "ValueChanged", value
 
     @description = new KDCustomHTMLView
       tagName    : "p"
       cssClass   : "description"
       partial    : options.description
+
+  updateDescription:(value)->
+    unless @parent.plans?[value]
+      @description.updatePartial @getOption 'description'
+    else
+      {cpu, ram, disk, totalVMs, alwaysOn} = @parent.plans[value]
+      @description.updatePartial """
+      <span>Resource pack contains</span>
+      <cite>#{cpu}x</cite>CPU
+      <cite>#{ram}x</cite>GB RAM
+      <cite>#{disk}</cite>GB Disk
+      <cite>#{totalVMs}x</cite>Total VMs
+      <cite>#{alwaysOn}x</cite>Always on VMs
+      """
 
   viewAppended: ->
     super
@@ -46,12 +63,3 @@ class PricingPlanSelection extends JView
     {{> @slider}}
     {{> @description}}
     """
-
-    # """
-    #   <span class="icon"></span>
-    #   <div class="plan-values">
-    #     <span class="unit-display">{{> @count }}</span>
-    #     <span class="calculated-price">{{> @price}}</span>
-    #   </div>
-    #   <div class="sliderbar-outer-container">{{> @slider}}</div>
-    # """

@@ -2,8 +2,8 @@ package main
 
 import (
 	"fmt"
-	"koding/kite/dnode"
 	"koding/kite"
+	"koding/kite/dnode"
 	"strings"
 	"testing"
 	"time"

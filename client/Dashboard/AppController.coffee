@@ -1,8 +1,9 @@
 class DashboardAppController extends AppController
 
   handler = (group, callback)->
-    KD.getSingleton('groupsController').changeGroup group, (err)=>
-      KD.singleton('appManager').open 'Dashboard', callback
+    KD.getSingleton('groupsController').changeGroup group, (err)->
+      KD.getSingleton('groupsController').ready ->
+        KD.singleton('appManager').open 'Dashboard', callback
 
   KD.registerAppClass this,
     name         : "Dashboard"
@@ -18,7 +19,7 @@ class DashboardAppController extends AppController
     options.view = new DashboardAppView
       testPath   : "groups-dashboard"
 
-    data or= (KD.getSingleton "groupsController").getCurrentGroup()
+    data or= KD.getSingleton('groupsController').getCurrentGroup()
 
     super options, data
 
@@ -56,27 +57,30 @@ class DashboardAppController extends AppController
           viewClass  : GroupPaymentSettingsView
           lazy       : yes
           callback   : @bound 'paymentViewAdded'
-      ,
-        name         : 'Products'
-        kodingOnly   : yes
-        viewOptions  :
-          viewClass  : GroupProductSettingsView
-          lazy       : yes
-          callback   : @bound 'productViewAdded'
-      ,
-        name         : 'Blocked Users'
-        hiddenHandle : @getData().privacy is 'public'
-        kodingOnly   : yes # this is only intended for koding group, we assume koding group is super-group
-        viewOptions  :
-          viewClass  : GroupsBlockedUserView
-          lazy       : yes
-      ,
-        name         : 'Badges'
-        hiddenHandle : @getData().privacy is 'public'
-        kodingOnly   : yes # this is only intended for koding group, we assume koding group is super-group
-        viewOptions  :
-          viewClass  : BadgeDashboardView
-          lazy       : yes
+      ]
+
+      if data.slug is "koding"
+        @tabData.push
+            name         : 'Products'
+            kodingOnly   : yes
+            viewOptions  :
+              viewClass  : GroupProductSettingsView
+              lazy       : yes
+              callback   : @bound 'productViewAdded'
+          ,
+            name         : 'Blocked Users'
+            hiddenHandle : @getData().privacy is 'public'
+            kodingOnly   : yes # this is only intended for koding group, we assume koding group is super-group
+            viewOptions  :
+              viewClass  : GroupsBlockedUserView
+              lazy       : yes
+          ,
+            name         : 'Badges'
+            hiddenHandle : @getData().privacy is 'public'
+            kodingOnly   : yes # this is only intended for koding group, we assume koding group is super-group
+            viewOptions  :
+              viewClass  : BadgeDashboardView
+              lazy       : yes
 
       # CURRENTLY DISABLED
 
@@ -92,7 +96,7 @@ class DashboardAppController extends AppController
       #     viewClass : GroupsBundleView
       #     lazy      : yes
       #     callback  : @bundleViewAdded
-    ]
+
 
   fetchTabData: (callback) -> @utils.defer => callback @tabData
 

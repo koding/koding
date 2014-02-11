@@ -232,7 +232,6 @@ class LoginView extends KDView
     <div class='tint'></div>
     <div class="flex-wrapper">
       <div class="login-box-header">
-        <a class="betatag">beta</a>
         {{> @logo}}
       </div>
       <div class="login-form-holder lf">
@@ -327,7 +326,8 @@ class LoginView extends KDView
       account = KD.whoami()
       @registerForm.button.hideLoader()
 
-      if err and err.code isnt 999
+      if err
+
         {message} = err
         warn "An error occured while registering:", err
         @registerForm.notificationsDisabled = no
@@ -337,6 +337,11 @@ class LoginView extends KDView
         KD.mixpanel.alias account.profile.nickname
         KD.mixpanel "Signup, success"
         _gaq.push ['_trackEvent', 'Sign-up']
+
+        try
+          mixpanel.track "Alternate Signup, success"
+        catch
+          KD.logToExternal "mixpanel doesn't exist"
 
         $.cookie 'newRegister', yes
         $.cookie 'clientId', replacementToken
@@ -354,14 +359,13 @@ class LoginView extends KDView
 
         KD.getSingleton('router').clear()
         @headBanner.hide()
-        #could not joined to the group. Directing to Koding 
+        #could not joined to the group. Directing to Koding
         window.location.href = "/" if err
 
-        setTimeout =>
-          @hide()
+        KD.utils.wait 1000, =>
           @registerForm.reset()
           @registerForm.button.hideLoader()
-        , 1000
+          @hide()
 
   doFinishRegistration: (formData) ->
     (KD.getSingleton 'mainController').handleFinishRegistration formData, @bound 'afterLoginCallback'
@@ -409,10 +413,7 @@ class LoginView extends KDView
       KD.getSingleton('appManager').quitAll()
       KD.getSingleton('router').handleRoute firstRoute or '/Activity', {replaceState: yes, entryPoint}
       KD.getSingleton('groupsController').on 'GroupChanged', =>
-        new KDNotificationView
-          cssClass  : "login"
-          title     : "<span></span>Happy Coding!"
-          duration  : 2000
+        @headBanner?.hide()
         @loginForm.reset()
 
       new KDNotificationView

@@ -13,7 +13,14 @@ class TeamPlan extends JView
 
     @resourcePackSlider = new PricingPlanSelection
       title             : "Resource Pack"
-      description       : "1x Resource pack contains 1 GB RAM 1x CPU, 1 GB RAM, 50 GB Disk, 2 TB Transfer, 5 total VMs and we shut it off after an hour for obvious reasons"
+      description       : """
+        <span>1 Resource pack contains</span>
+        <br/><cite>4x</cite>CPU
+        <cite>2x</cite>GB RAM
+        <cite>50</cite>GB Disk
+        <br/><cite>10x</cite>Total VMs
+        <cite>1x</cite>Always on VMs
+        """
       unitPrice         : unitPrices.resourcePack
       slider            :
         minValue        : 1
@@ -42,7 +49,8 @@ class TeamPlan extends JView
     @summary.addSubView @title  = new KDCustomHTMLView tagName: "h4"
     @summary.addSubView @price  = new KDCustomHTMLView tagName: "h5"
     @summary.addSubView @buyNow = new KDButtonView
-      cssClass : "solid buy-now"
+      cssClass : "buy-now"
+      style    : "solid green"
       title    : "BUY NOW"
       callback : =>
         @emit "PlanSelected", "custom-plan", {

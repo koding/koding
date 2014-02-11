@@ -41,7 +41,6 @@ body.account
 
 
 .kdtabpaneview.account
-
   color                   #828B8B
 
   .content-page
@@ -223,6 +222,12 @@ button.kdbutton.solid.green.account-header-button
       &.linkedin
         r-sprite    "account", "inv-linkedin"
 
+  a.mail
+    color           #606060
+    font-weight     500
+    position        relative
+    line-height     40px
+
 // FIX THESE STYLES FOR
 // TOO MUCH REPITITION
 // for .settings-list-wrapper - SY
@@ -286,18 +291,47 @@ button.kdbutton.solid.green.account-header-button
           color         rgba(255,255,255,.5)
 
   &.your-subscriptions
-    ul
-      li
-        margin-bottom        15px
-        h4
-          font-weight     400
-          font-size       16px
-          line-height     1.6
-          width           auto
-        a
-          display         inline
-          float           none
-          margin-left     0
+    .kdlistitemview-subscription
+      size              100%, auto
+      padding           19px 22px
+      background        #fff
+      rounded           6px
+      font-weight       400
+      color             #6f6f6f
+      margin            0 0 2px 0
+
+      h4
+        font-size       14px
+        margin-bottom   4px
+
+      p
+        font-size       12px
+        color           #c6c6c6
+        min-height      20px
+
+      .price
+        display         block
+        abs             0px 0px 0 0
+        font-size       18px
+
+      .controls
+        abs             0 22px 19px 0
+
+        .custom-link-view
+          font-size     12px
+          noTextDeco()
+
+          &.red
+            color       #ed492c
+
+          &.green
+            color       #01b05a
+
+          &.yellow
+            color       #eeb844
+
+
+
 
   &.referral-system
     header

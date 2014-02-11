@@ -15,7 +15,6 @@ module.exports = [
   "views/scene/environmentdomainitem.coffee"
   "views/scene/environmentmachineitem.coffee"
   "views/scene/environmentsceneview.coffee"
-  "views/resourcesview.coffee"
   "views/resourcescontainer.coffee"
   "views/environmentsmainscene.coffee"
 
@@ -32,6 +31,7 @@ module.exports = [
   "views/vms/vmpaymentconfirmform.coffee"
   "views/vms/vmproductview.coffee"
   "views/vms/vmplanview.coffee"
+  "views/vms/vmalwaysontogglebuttonview.coffee"
 
   "styl/app.environments.styl"
   "styl/app.envsettings.styl"

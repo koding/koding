@@ -4,7 +4,6 @@ package main
 
 import (
 	"errors"
-	"koding/db/mongodb"
 	"koding/tools/dnode"
 	"koding/tools/kite"
 	"koding/virt"
@@ -74,7 +73,7 @@ func UserAccountId(user *virt.User) bson.ObjectId {
 	var account struct {
 		Id bson.ObjectId `bson:"_id"`
 	}
-	if err := mongodb.Run("jAccounts", func(c *mgo.Collection) error {
+	if err := mongodbConn.Run("jAccounts", func(c *mgo.Collection) error {
 		return c.Find(bson.M{"profile.nickname": user.Name}).One(&account)
 	}); err != nil {
 		panic(err)

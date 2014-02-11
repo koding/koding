@@ -3,7 +3,7 @@ package modelhelper
 import (
 	"fmt"
 	"koding/db/models"
-	"koding/db/mongodb"
+
 	"labix.org/v2/mgo"
 )
 
@@ -22,7 +22,7 @@ func GetPostById(id string, postType string) (*models.Post, error) {
 	if err != nil {
 		return post, err
 	}
-	return post, mongodb.One(coll, id, post)
+	return post, Mongo.One(coll, id, post)
 }
 
 func UpdatePost(p *models.Post, postType string) error {
@@ -64,5 +64,5 @@ func runQuery(postType string, query func(c *mgo.Collection) error) error {
 	if err != nil {
 		return err
 	}
-	return mongodb.Run(coll, query)
+	return Mongo.Run(coll, query)
 }

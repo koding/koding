@@ -12,8 +12,8 @@ module.exports = class JGroup extends Module
   JPermissionSet = require './permissionset'
   {permit}       = JPermissionSet
 
-  JAccount = require '../account'
-  JPaymentFulfillmentNonce = require '../payment/nonce'
+  JAccount     = require '../account'
+  JPaymentPack = require '../payment/pack'
 
   KodingError    = require '../../error'
   Validators     = require './validators'
@@ -462,10 +462,7 @@ module.exports = class JGroup extends Module
               console.log 'roles are added'
               queue.next()
         ->
-          # CtF hacked because we need client to create a post
-          group.createGroupBotAndPostMessage client, (err) ->
-            return callback err if err
-            console.log 'bot is added and posted its first message'
+          group.createGroupBotAndPostMessage client, ->
             queue.next()
       ]
 
@@ -481,24 +478,26 @@ module.exports = class JGroup extends Module
   @create$ = secure (client, formData, callback)->
     {delegate} = client.connection
 
-    {nonce} = formData
-    delete formData.nonce
-
-    JPaymentFulfillmentNonce.one {nonce}, (err, nonce) =>
+    subOptions = targetOptions: selector: tags: "custom-plan"
+    delegate.fetchSubscription null, subOptions, (err, subscription) =>
       return callback err  if err
-      return callback "Payment fulfillment nonce is invalid"  unless nonce.action is "debit"
-      nonce.fetchOwner (err, owner) =>
+      return callback new KodingError "Subscription is not found"  unless subscription
+      subscription.debitPack tags: "group", (err) =>
         return callback err  if err
-        subOptions = targetOptions: selector: tags: "custom-plan"
-        owner.fetchSubscription {}, subOptions, (err, subscription) =>
-          return callback err  if err
-          @create client, formData, owner, (err, group) ->
-            return callback err if err
-            nonce.update $set: action: "used", (err) ->
+        @create client, formData, delegate, (err, group) ->
+          return callback err if err
+          group.addSubscription subscription, (err) ->
+            return callback err  if err
+            subscription.debitPack tags: "user", (err) =>
               return callback err  if err
-              group.addSubscription subscription, (err) ->
-                return callback err  if err
-                callback null, group, subscription
+              callback null, group, subscription
+
+  creditUserPack: (delegate, callback) ->
+    subOptions = targetOptions: selector: tags: "custom-plan"
+    delegate.fetchSubscription null, subOptions, (err, subscription) =>
+      return callback err  if err
+      return callback new KodingError "Subscription is not found"  unless subscription
+      subscription.creditPack tags: "user", callback
 
   @findSuggestions = (client, seed, options, callback)->
     {limit, blacklist, skip}  = options
@@ -1125,6 +1124,7 @@ module.exports = class JGroup extends Module
 
   kickMember: permit 'grant permissions',
     success: (client, accountId, callback)->
+      {connection:{delegate}} = client
       JAccount = require '../account'
 
       if @slug is 'koding'
@@ -1148,9 +1148,11 @@ module.exports = class JGroup extends Module
             callback err
 
           queue = roles.map (role)=>=>
-            @removeMember account, role, (err)->
+            @removeMember account, role, (err)=>
               return kallback err if err
-              queue.fin()
+              @creditUserPack delegate, (err) ->
+                return callback err  if err
+                queue.fin()
 
           dash queue, kallback
 
@@ -1470,6 +1472,16 @@ module.exports = class JGroup extends Module
       JPaymentSubscription = require '../payment/subscription'
       JPaymentSubscription.one _id: id, (err, subscription) =>
         @addSubscription subscription, callback
+
+  fetchSubscription$: secure (client, callback) ->
+    @fetchSubscription (err, subscription) ->
+      return callback err  if err
+      {planCode} = subscription
+      JPaymentPlan = require '../payment/plan'
+      JPaymentPlan.one {planCode}, (err, plan) ->
+        return callback err  if err
+        subscription.plan = plan
+        callback null, subscription
 
   createGroupBotAndPostMessage: (client, callback) ->
     # get groupbot account

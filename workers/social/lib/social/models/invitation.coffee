@@ -142,13 +142,12 @@ module.exports = class JInvitation extends jraphical.Module
       return callback err  if err
       group.fetchSubscription (err, subscription) =>
         return callback err  if err
-        JPaymentPack.one tags: "user", (err, pack) =>
+        return callback new KodingError "Subscription is not found"  unless subscription
+        subscription.debitPack tags: "user", (err) =>
           return callback err  if err
-          subscription.debit {pack}, (err) =>
+          @update operation, (err) =>
             return callback err  if err
-            @update operation, (err) =>
-              return callback err  if err
-              @addRedeemer account, callback
+            @addRedeemer account, callback
 
 
   # send invites from group dashboard

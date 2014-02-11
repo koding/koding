@@ -156,68 +156,59 @@ module.exports = class JDomain extends jraphical.Module
         default     : -> new Date
 
   @isDomainEligible: (params, callback)->
-    {delegate, domain} = params
+    {domain, newDomain} = params
 
-    {nickname} = delegate.profile
-
-    unless ///\.#{nickname}\.kd\.io$///.test domain
+    unless /([a-z0-9\-]+)\.kd\.io$/.test domain
       return callback new KodingError("Invalid domain: #{domain}.", "INVALIDDOMAIN")
 
     match = domain.match /(.*)\.([a-z0-9\-]+)\.kd\.io$/
 
-    unless match
-      return callback new KodingError("Invalid domain: #{domain}.", "INVALIDDOMAIN")
-
     [rest..., prefix, slug] = match
+    
+    if newDomain and /^shared|vm[\-]?([0-9]+)?/.test prefix
+      return callback new KodingError("Domain name cannot start with shared|vm", "INVALIDDOMAIN")
 
-    if slug is nickname
-      callback null, !/^vm[\-]([0-9]+)$/.test prefix
-    else
-      JGroup.one {slug:'koding'}, (err, group)->
-        return callback err  if err
-
-        unless group
-          return callback new KodingError("No group found.")
-
-        delegate.checkPermission group, 'create domains', (err, hasPermission)->
-          return callback err  if err
-          return callback null, no  unless hasPermission
-          callback null, !/shared[\-]?([0-9]+)?$/.test prefix
+    callback null, slug
 
   @createDomain: secure (client, options, callback)->
     [callback, options] = [options, callback]  unless callback
     {delegate} = client.connection
+    {domain} = options
 
-    JGroup.one {slug:'koding'}, (err, group)->
+    JDomain.isDomainEligible {domain}, (err, parentDomain)->
       return callback err  if err
 
-      delegate.checkPermission group, 'create domains', (err, hasPermission)->
+      {nickname} = delegate.profile
+      slug = if nickname is parentDomain then "koding" else parentDomain
+
+      JGroup.one {slug}, (err, group)->
         return callback err  if err
-        return callback new KodingError "Access denied"  unless hasPermission
+        return callback new KodingError("No group found.")  unless group
 
-        JDomain.isDomainEligible
-          delegate : delegate
-          domain   : options.domain
-        , (err, isEligible)->
+        delegate.checkPermission group, 'create domains', (err, hasPermission)->
           return callback err  if err
-          return callback new KodingError "You can't create this domain."  unless isEligible
+          return callback new KodingError "Access denied",  "ACCESSDENIED" unless hasPermission
 
-          model = new JDomain options
-          model.save (err) ->
-            return callback err if err
-
-            account = client.connection.delegate
-            rel = new Relationship
-              targetId: model.getId()
-              targetName: 'JDomain'
-              sourceId: account.getId()
-              sourceName: 'JAccount'
-              as: 'owner'
-
-            rel.save (err)->
+          JDomain.one {domain}, (err, model) ->
+            return callback err  if err
+            if model
+              return callback new KodingError("The domain #{options.domain} already exists", "DUPLICATEDOMAIN") 
+            model = new JDomain options
+            model.save (err) ->
               return callback err if err
 
-            callback err, model
+              account = client.connection.delegate
+              rel = new Relationship
+                targetId: model.getId()
+                targetName: 'JDomain'
+                sourceId: account.getId()
+                sourceName: 'JAccount'
+                as: 'owner'
+
+              rel.save (err)->
+                return callback err if err
+
+              callback err, model
 
   @getTldList = (callback)->
     domainManager.domainService.getAvailableTlds callback

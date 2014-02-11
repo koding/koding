@@ -166,6 +166,7 @@ module.exports = [
   "payment/planupgradeform.coffee",
   "payment/planupgradeconfirmform.coffee",
   "payment/packchoiceform.coffee",
+  "payment/planproductlist.coffee",
   "payment/existingaccountworkflow.coffee",
 
 
@@ -242,10 +243,6 @@ module.exports = [
   "rollbar.coffee",
   "mixpanel.coffee",
   "analytic.coffee",
-
-  # ---------- Campaign --------------- #
-  "CommonViews/tbcampaigncontroller.coffee",
-  "CommonViews/tbcampaignmodal.coffee",
 
   # ---------- Main APP ENDS ---------- #
 

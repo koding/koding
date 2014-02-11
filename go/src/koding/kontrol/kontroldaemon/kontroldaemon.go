@@ -1,23 +1,48 @@
 package main
 
 import (
-	"github.com/streadway/amqp"
+	"flag"
+	"koding/db/mongodb"
+	"koding/db/mongodb/modelhelper"
 	"koding/kontrol/kontroldaemon/handler"
 	"koding/kontrol/kontrolhelper"
-	"koding/tools/slog"
+	"koding/tools/config"
+	"koding/tools/logger"
+
+	"github.com/streadway/amqp"
 )
 
-func init() {
-	slog.SetPrefixName("kontrold")
-	slog.Println(slog.SetOutputFile("/var/log/koding/kontroldaemon.log"))
-}
+var (
+	mongo       *mongodb.MongoDB
+	flagProfile = flag.String("c", "", "Configuration profile from file")
+	flagDebug   = flag.Bool("d", false, "Debug mode")
+	log         = logger.New("kontroldaemon")
+)
 
 func main() {
-	handler.Startup()
-	startRouting()
+	flag.Parse()
+	if *flagProfile == "" {
+		log.Fatal("Please define config file with -c")
+	}
+
+	conf := config.MustConfig(*flagProfile)
+
+	var logLevel logger.Level
+	if *flagDebug {
+		logLevel = logger.DEBUG
+	} else {
+		logLevel = logger.GetLoggingLevelFromConfig("kontroldaemon", *flagProfile)
+	}
+	log.SetLevel(logLevel)
+
+	mongo = mongodb.NewMongoDB(conf.Mongo)
+	modelhelper.Initialize(conf.Mongo)
+
+	handler.Startup(conf)
+	startRouting(conf)
 }
 
-func startRouting() {
+func startRouting(conf *config.Config) {
 	type bind struct {
 		name     string
 		queue    string
@@ -33,7 +58,7 @@ func startRouting() {
 		bind{"client", "kontrol-client", "", "clientExchange", "fanout"},
 	}
 
-	connection := kontrolhelper.CreateAmqpConnection()
+	connection := kontrolhelper.CreateAmqpConnection(conf)
 	channel := kontrolhelper.CreateChannel(connection)
 
 	for _, b := range bindings {
@@ -42,10 +67,10 @@ func startRouting() {
 
 	err := channel.Qos(len(bindings), 0, false)
 	if err != nil {
-		slog.Fatalf("basic.qos: %s", err)
+		log.Fatal("basic.qos: %s", err.Error())
 	}
 
-	slog.Println("started")
+	log.Info("kontroldaemon routing started")
 	for {
 		select {
 		case d := <-streams["api"]:

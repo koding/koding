@@ -40,8 +40,8 @@ class MainController extends KDController
     KD.registerSingleton "localStorageController",    new LocalStorageController
     KD.registerSingleton "oauthController",           new OAuthController
     KD.registerSingleton "groupsController",          new GroupsController
-    KD.registerSingleton "vmController",              new VirtualizationController
     KD.registerSingleton "paymentController",         new PaymentController
+    KD.registerSingleton "vmController",              new VirtualizationController
     KD.registerSingleton "locationController",        new LocationController
     KD.registerSingleton "badgeController",           new BadgeController
     KD.registerSingleton "helpController",            new HelpController
@@ -88,13 +88,6 @@ class MainController extends KDController
       eventPrefix = if firstLoad then "pageLoaded.as" else "accountChanged.to"
       eventSuffix = if @isUserLoggedIn() then "loggedIn" else "loggedOut"
       @emit "#{eventPrefix}.#{eventSuffix}", account, connectedState, firstLoad
-
-      KD.utils.wait 5000, =>
-        if KD.isLoggedIn()
-          KD.remote.api.JReferral.isCampaingValid (err, isValid, details) =>
-            return if err or not isValid
-
-            new TBCampaignController {}, details
 
   createMainViewController:->
     KD.registerSingleton "dock", new DockController

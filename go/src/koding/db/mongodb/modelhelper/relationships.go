@@ -2,7 +2,6 @@ package modelhelper
 
 import (
 	"koding/db/models"
-	"koding/db/mongodb"
 
 	"labix.org/v2/mgo"
 )
@@ -14,7 +13,7 @@ func GetAllRelationships(selector Selector) ([]models.Relationship, error) {
 		return c.Find(selector).Sort("timestamp").All(&relationships)
 	}
 
-	err := mongodb.Run("relationships", query)
+	err := Mongo.Run("relationships", query)
 
 	return relationships, err
 }
@@ -26,7 +25,7 @@ func GetSomeRelationships(selector Selector, limit int) ([]models.Relationship, 
 		return c.Find(selector).Limit(limit).All(&relationships)
 	}
 
-	err := mongodb.Run("relationships", query)
+	err := Mongo.Run("relationships", query)
 
 	return relationships, err
 }
@@ -38,7 +37,7 @@ func GetRelationship(selector Selector) (models.Relationship, error) {
 		return c.Find(selector).One(&relationship)
 	}
 
-	err := mongodb.Run("relationships", query)
+	err := Mongo.Run("relationships", query)
 
 	return relationship, err
 }
@@ -49,18 +48,18 @@ func DeleteRelationship(selector Selector) error {
 		return err
 	}
 
-	return mongodb.Run("relationships", query)
+	return Mongo.Run("relationships", query)
 }
 
 func AddRelationship(r *models.Relationship) error {
 	query := insertQuery(r)
 
-	return mongodb.Run("relationships", query)
+	return Mongo.Run("relationships", query)
 }
 
 func UpdateRelationship(r *models.Relationship) error {
 	query := updateByIdQuery(r.Id.Hex(), r)
-	return mongodb.Run("relationships", query)
+	return Mongo.Run("relationships", query)
 }
 
 func UpdateRelationships(selector, options Selector) error {
@@ -68,7 +67,7 @@ func UpdateRelationships(selector, options Selector) error {
 		_, err := c.UpdateAll(selector, options)
 		return err
 	}
-	return mongodb.Run("relationships", query)
+	return Mongo.Run("relationships", query)
 }
 
 func RelationshipCount(selector Selector) (int, error) {
@@ -78,5 +77,5 @@ func RelationshipCount(selector Selector) (int, error) {
 		count, err = c.Find(selector).Count()
 		return err
 	}
-	return count, mongodb.Run("relationships", query)
+	return count, Mongo.Run("relationships", query)
 }

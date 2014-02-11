@@ -55,7 +55,6 @@ class PaymentMethodEntryForm extends KDFormViewWithFields
                   .slice((new Date).getMonth() - 1)
                 .map((item)-> item.title)
                 .join '|'
-                log remainingMonths
               return ///#{remainingMonths}///
         nextElementFlat   :
           cardYear        :
@@ -68,7 +67,6 @@ class PaymentMethodEntryForm extends KDFormViewWithFields
                 regExp    : do ->
                   twoDigitsYear = (new Date).getFullYear()%100
                   yearOptions   = [twoDigitsYear...twoDigitsYear+15].join '|'
-                  log yearOptions
                   return ///#{yearOptions}///
       cardCV              :
         placeholder       : 'CVC'
@@ -82,6 +80,7 @@ class PaymentMethodEntryForm extends KDFormViewWithFields
 
     super
       cssClass              : KD.utils.curry 'payment-method-entry-form', options.cssClass
+      name                  : 'method'
       fields                : fields
       callback              : (formData) =>
         @emit 'PaymentInfoSubmitted', @paymentMethodId, formData
@@ -90,7 +89,12 @@ class PaymentMethodEntryForm extends KDFormViewWithFields
           title             : 'ADD CARD'
           style             : 'solid green'
           type              : 'submit'
-          loader            : { color : '#fff', diameter : 12 }
+          loader            :
+            color           : '#ffffff'
+            diameter        : 26
+        BACK                :
+          style             : 'solid light-gray'
+          callback          : => @parent.showForm 'choice'
 
   viewAppended:->
     super()
@@ -118,6 +122,7 @@ class PaymentMethodEntryForm extends KDFormViewWithFields
     # @paymentForm.fields.country.addSubView @countryLoader
 
     @updateDescription()
+
 
   activate: ->
     { cardFirstName, cardLastName, cardNumber } = @inputs

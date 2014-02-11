@@ -2,7 +2,7 @@ package modelhelper
 
 import (
 	"koding/db/models"
-	"koding/db/mongodb"
+
 	"labix.org/v2/mgo"
 )
 
@@ -12,16 +12,16 @@ func DeleteOpinion(selector Selector) error {
 		return err
 	}
 
-	return mongodb.Run("jOpinions", query)
+	return Mongo.Run("jOpinions", query)
 }
 
 func CheckOpinionExistence(id string) (bool, error) {
 	var exists bool
 	query := checkExistence(id, &exists)
-	return exists, mongodb.Run("jOpinions", query)
+	return exists, Mongo.Run("jOpinions", query)
 }
 
 func GetOpinionById(id string) (*models.Post, error) {
 	opinion := new(models.Post)
-	return opinion, mongodb.One("jOpinions", id, opinion)
+	return opinion, Mongo.One("jOpinions", id, opinion)
 }

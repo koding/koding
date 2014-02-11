@@ -207,6 +207,15 @@ resurrection.activity.styl
         hidden()
         abs()
 
+      span.title
+        display         inline-block
+        color           logoBg
+        font-size       20px
+        margin-bottom   4px
+        noTextDeco()
+      a
+        color           logoBg
+
       > p
         overflow        hidden
         width           auto
@@ -215,11 +224,6 @@ resurrection.activity.styl
         padding-bottom  14px
         font-weight     300
         borderBox()
-
-        a
-          display       inline-block
-          color         logoBg
-          noTextDeco()
 
       .progressbar-container
         overflow            hidden
@@ -330,6 +334,7 @@ resurrection.activity.styl
         bg              color, transparent
         border          2px solid #b5b5b5
         right           4px
+        overflow        hidden
         vendor          transition, width .1s ease \,\
                                     border-color .3s ease
         abs()
@@ -341,7 +346,6 @@ resurrection.activity.styl
           abs()
 
         .button-title
-          z-index       -1
           opacity       0
           right         0
           top           4px
@@ -355,7 +359,6 @@ resurrection.activity.styl
           background    #ebebeb
           .button-title
             right       4px
-            z-index     1
             opacity     1
 
         &.following-account
@@ -614,19 +617,6 @@ span.collapsedtext
     max-height        400px
     line-height       22px
     margin-bottom     16px
-
-    > *
-      padding       0 21px
-
-    > ol
-    > ul
-      padding       10px 42px
-
-    > blockquote
-      padding       0 10px
-
-    > pre
-      padding       10px 0
 
   >.profile
     color         #1aaf5d
@@ -1124,15 +1114,19 @@ body.profile
 .activity-item > article
 .activity-input-widget .update-preview
 
+  > *
+    padding               0 21px
+
   /* Headings */
   h1, h2, h3, h4, h5, h6
-    color         #50595a
-    font-size     14px
+    color                 #50595a
+    font-size             14px
 
   /* Lists */
+
   ol
   ul
-    padding               0 25px 12px
+    padding               10px 42px
     list-style            none
     display               block
     position              relative
@@ -1169,6 +1163,7 @@ body.profile
   blockquote
     border-left           4px solid #DDD
     margin                4px 21px
+    padding               0 10px
   p
     code
       padding             2px 5px
@@ -1179,6 +1174,7 @@ body.profile
       vertical-align      top
       font-size           12px
   pre
+    padding               10px 0
     code
       display             block
       line-height         16px
@@ -1365,11 +1361,7 @@ body.profile
 
 
 // Group Activity
-body.group
-  .dashboard
-    .content-page
-      > aside
-        padding-top        3px
+body.group.activity
   .content-page
     margin-top             55px
     min-height             2070px

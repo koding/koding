@@ -7,11 +7,17 @@ class PaymentConfirmForm extends JView
       buttons       :
         cancel      :
           title     : "CANCEL"
-          cssClass  : "solid gray"
+          cssClass  : "solid light-gray"
           callback  : => @emit 'Cancel'
         Buy         :
-          title     : "CONFIRM ORDER"
+          title     : "PLACE YOUR ORDER"
           cssClass  : "solid green"
-          callback  : => @emit 'PaymentConfirmed'
+          loader    :
+            color   : "#ffffff"
+            diameter: "26"
+
+          callback  : =>
+            @buttonBar.buttons['Buy'].showLoader()
+            @emit 'PaymentConfirmed'
 
   getExplanation: (key) -> # doesn't define any copy

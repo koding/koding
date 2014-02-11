@@ -1,5 +1,8 @@
 class ExistingAccountForm extends JView
   viewAppended: ->
+
+    KD.singletons.dock.getView().hide()
+
     @loginForm = new LoginInlineForm
       cssClass : "login-form clearfix"
       testPath : "login-form"
@@ -44,7 +47,7 @@ class ExistingAccountForm extends JView
 class ExistingAccountWorkflow extends FormWorkflow
   prepareWorkflow: ->
     @requireData Junction.any 'createAccount', 'loggedIn'
-    existingAccountForm = new ExistingAccountForm
-    existingAccountForm.on 'DataCollected', @bound "collectData"
-    @addForm 'existingAccount', existingAccountForm, ['createAccount', 'loggedIn']
+    @existingAccountForm = new ExistingAccountForm name : 'login'
+    @existingAccountForm.on 'DataCollected', @bound "collectData"
+    @addForm 'existingAccount', @existingAccountForm, ['createAccount', 'loggedIn']
     @enter()

@@ -1,8 +1,6 @@
 package rabbitmq
 
-import (
-	"github.com/streadway/amqp"
-)
+import "github.com/streadway/amqp"
 
 type Consumer struct {
 	// Base struct for Producer
@@ -28,8 +26,8 @@ func (c *Consumer) Deliveries() <-chan amqp.Delivery {
 
 // NewConsumer is a constructor for consumer creation
 // Accepts Exchange, Queue, BindingOptions and ConsumerOptions
-func NewConsumer(e Exchange, q Queue, bo BindingOptions, co ConsumerOptions) (*Consumer, error) {
-	rmq, err := newRabbitMQConnection(co.Tag)
+func (r *RabbitMQ) NewConsumer(e Exchange, q Queue, bo BindingOptions, co ConsumerOptions) (*Consumer, error) {
+	rmq, err := r.newConnection(co.Tag)
 	if err != nil {
 		return nil, err
 	}

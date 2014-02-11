@@ -1,11 +1,11 @@
-class IntroPricingPlanSelection extends KDCustomHTMLView
+class IntroPlanSelection extends JView
   constructor : (options = {}, data = {}) ->
     options.cssClass      = KD.utils.curry "plan-selection-box", options.cssClass
     options.title       or= ""
     options.description or= ""
     options.unitPrice    ?= 1
+    options.hidePrice    ?= no
     options.period      or= "Month"
-    options.unit        or= 'x'
     super options, data
 
     @title    = new KDCustomHTMLView
@@ -14,21 +14,23 @@ class IntroPricingPlanSelection extends KDCustomHTMLView
 
     @title.addSubView @count = new KDCustomHTMLView tagName : "cite"
 
-    @price    = new KDCustomHTMLView
-      tagName : "h5"
-      partial : "$#{options.slider.initialValue * options.unitPrice}/#{options.period}"
+    @price     = new KDCustomHTMLView
+      tagName  : "h5"
+      cssClass : "hidden"  if options.hidePrice
+      partial  : "$#{options.slider.initialValue * options.unitPrice}/#{options.period}"
 
-    options.slider       or= {}
-    options.slider.drawBar = no
+    options.slider         or= {}
+    options.slider.drawBar  ?= no
 
-    {unitPrice, unit} = options
+    {unitPrice} = options
 
     @slider = new KDSliderBarView options.slider
     @slider.on "ValueChanged", (handle) =>
       value = Math.floor handle.value
       price = value * unitPrice
-      @count.updatePartial "#{value}#{unit}"
+      @count.updatePartial if value then "#{value}x" else 'Free'
       @price.updatePartial "$#{price}/Month"
+      @updateDescription value
       @emit "ValueChanged", value
 
     @description = new KDCustomHTMLView
@@ -36,7 +38,23 @@ class IntroPricingPlanSelection extends KDCustomHTMLView
       cssClass   : "description"
       partial    : options.description
 
-  viewAppended: JView::viewAppended
+  updateDescription:(value)->
+    unless @parent.plans?[value]
+      @description.updatePartial @getOption 'description'
+    else
+      {cpu, ram, disk, totalVMs, alwaysOn} = @parent.plans[value]
+      @description.updatePartial """
+      <span>Resource pack contains</span>
+      <cite>#{cpu}x</cite>CPU
+      <cite>#{ram}x</cite>GB RAM
+      <cite>#{disk}</cite>GB Disk
+      <cite>#{totalVMs}x</cite>Total VMs
+      <cite>#{alwaysOn}x</cite>Always on VMs
+      """
+
+  viewAppended: ->
+    super
+    @unsetClass "kdview"
 
   pistachio: ->
     """
@@ -45,12 +63,3 @@ class IntroPricingPlanSelection extends KDCustomHTMLView
     {{> @slider}}
     {{> @description}}
     """
-
-    # """
-    #   <span class="icon"></span>
-    #   <div class="plan-values">
-    #     <span class="unit-display">{{> @count }}</span>
-    #     <span class="calculated-price">{{> @price}}</span>
-    #   </div>
-    #   <div class="sliderbar-outer-container">{{> @slider}}</div>
-    # """

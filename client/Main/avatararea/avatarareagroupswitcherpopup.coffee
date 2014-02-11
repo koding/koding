@@ -69,12 +69,15 @@ class AvatarPopupGroupSwitcher extends AvatarPopup
     createGroupLink = new KDCustomHTMLView
       tagName    : 'a'
       attributes : href : '/Pricing/Team'
-      cssClass   : 'bottom bb'
+      cssClass   : 'bottom bb hidden'
       partial    : 'Create a group'
       click      : (event)=>
         KD.utils.stopDOMEvent event
         router.handleRoute '/Pricing/CreateGroup', entryPoint : 'koding'
         @hide()
+
+    KD.singleton("paymentController").fetchSubscriptionsWithPlans tags: ["custom-plan"], (err, subscriptions) ->
+      createGroupLink.show()  unless subscriptions.length
 
     backToKoding = new KDCustomHTMLView
       tagName    : 'a'
@@ -102,6 +105,11 @@ class AvatarPopupGroupSwitcher extends AvatarPopup
       return  if $(event.target).closest().is '.submenu'
       @groupSubMenuWrapper.unsetClass 'active'
 
+    handleSubMenu = (event)=>
+      KD.utils.stopDOMEvent event
+      submenuShown = yes
+      @groupSubMenuWrapper.setClass 'active'
+      @populateGroups()
 
     @avatarPopupContent.addSubView new KDCustomHTMLView
       tagName    : 'a'
@@ -109,12 +117,9 @@ class AvatarPopupGroupSwitcher extends AvatarPopup
       cssClass   : 'bottom'
       partial    : 'Your groups'
       bind       : 'mouseenter mousemove'
-      mouseenter : (event)=>
-        KD.utils.stopDOMEvent event
-        submenuShown = yes
-        @groupSubMenuWrapper.setClass 'active'
-        @populateGroups()
-      mousemove : KD.utils.stopDOMEvent
+      mouseenter : handleSubMenu
+      click      : handleSubMenu
+      mousemove  : KD.utils.stopDOMEvent
 
     @avatarPopupContent.addSubView new KDCustomHTMLView
       tagName    : 'a'

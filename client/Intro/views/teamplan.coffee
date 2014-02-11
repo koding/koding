@@ -11,14 +11,20 @@ class IntroTeamPlan extends JView
     @userQuantity     = 10
     @total            = (@resourceQuantity * unitPrices.resourcePack) + (@userQuantity * unitPrices.user)
 
-    @resourcePackSlider = new IntroPricingPlanSelection
+    @resourcePackSlider = new IntroPlanSelection
       title             : "Resource Pack"
-      description       : "1x Resource pack contains 1 GB RAM 1x CPU, 1 GB RAM, 50 GB Disk, 2 TB Transfer, 5 total VMs and we shut it off after an hour for obvious reasons"
+      description       : """
+        <span>1 Resource pack contains</span>
+        <br/><cite>4x</cite>CPU
+        <cite>2x</cite>GB RAM
+        <cite>50</cite>GB Disk
+        <br/><cite>10x</cite>Total VMs
+        <cite>1x</cite>Always on VMs
+        """
       unitPrice         : unitPrices.resourcePack
       slider            :
-        minValue        : 5
+        minValue        : 1
         maxValue        : 250
-        initialValue    : 5
         interval        : 5
         snapOnDrag      : yes
         handles         : [@resourceQuantity]
@@ -26,7 +32,7 @@ class IntroTeamPlan extends JView
 
     @resourcePackSlider.on "ValueChanged", (@resourceQuantity) => @updateContent()
 
-    @userSlider         = new IntroPricingPlanSelection
+    @userSlider         = new IntroPlanSelection
       title             : "Team Size"
       unitPrice         : unitPrices.user
       slider            :
@@ -43,7 +49,8 @@ class IntroTeamPlan extends JView
     @summary.addSubView @title  = new KDCustomHTMLView tagName: "h4"
     @summary.addSubView @price  = new KDCustomHTMLView tagName: "h5"
     @summary.addSubView @buyNow = new KDButtonView
-      cssClass : "solid buy-now"
+      cssClass : "buy-now"
+      style    : "solid green"
       title    : "BUY NOW"
       callback : =>
         @emit "PlanSelected", "custom-plan", {

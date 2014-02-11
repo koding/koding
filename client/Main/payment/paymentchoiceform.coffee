@@ -1,12 +1,18 @@
 class PaymentChoiceForm extends KDView
+
   constructor: (options = {}, data) ->
+
     options.cssClass = KD.utils.curry "pricing-payment-choice clearfix", options.cssClass
+    options.name     = 'method'
+
     super options, data
 
 
   activate: (activator) -> @emit 'Activated', activator
 
+
   setPaymentMethods: (paymentMethods) ->
+
     @paymentMethodsContainer.addSubView new KDCustomHTMLView
       cssClass : "new payment-method"
       partial  : "Add a Payment method"
@@ -19,7 +25,9 @@ class PaymentChoiceForm extends KDView
 
     return this
 
+
   viewAppended: ->
+
     @addSubView new KDCustomHTMLView
       tagName  : "h3"
       cssClass : "pricing-title"
@@ -28,7 +36,7 @@ class PaymentChoiceForm extends KDView
     @addSubView new KDCustomHTMLView
       tagName  : "h6"
       cssClass : "pricing-subtitle"
-      partial  : "Or add a new one, whatever works"
+      partial  : "Click on one of your credit cards to use it or add a new one"
 
     @addSubView @paymentMethodsContainer = new KDCustomHTMLView
       cssClass  : "payment-methods"

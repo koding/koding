@@ -3,7 +3,7 @@ package modelhelper
 import (
 	"fmt"
 	"koding/db/models"
-	"koding/db/mongodb"
+
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
 )
@@ -21,7 +21,7 @@ func AddProxy(proxyname string) error {
 		_, err := c.Upsert(bson.M{"name": proxyname}, proxy)
 		return err
 	}
-	return mongodb.Run("jProxies", query)
+	return Mongo.Run("jProxies", query)
 }
 
 func DeleteProxy(proxyname string) error {
@@ -29,7 +29,7 @@ func DeleteProxy(proxyname string) error {
 		return c.Remove(bson.M{"name": proxyname})
 	}
 
-	return mongodb.Run("jProxies", query)
+	return Mongo.Run("jProxies", query)
 }
 
 func GetProxy(proxyname string) (models.Proxy, error) {
@@ -38,7 +38,7 @@ func GetProxy(proxyname string) (models.Proxy, error) {
 		return c.Find(bson.M{"name": proxyname}).One(&proxy)
 	}
 
-	err := mongodb.Run("jProxies", query)
+	err := Mongo.Run("jProxies", query)
 	if err != nil {
 		return proxy, fmt.Errorf("no proxy with name %s exist.", proxyname)
 	}
@@ -58,7 +58,7 @@ func GetProxies() []models.Proxy {
 		return nil
 	}
 
-	mongodb.Run("jProxies", query)
+	Mongo.Run("jProxies", query)
 
 	return proxies
 }

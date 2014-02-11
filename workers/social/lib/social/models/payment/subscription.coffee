@@ -1,5 +1,6 @@
-jraphical = require 'jraphical'
-payment   = require 'koding-payment'
+jraphical   = require 'jraphical'
+payment     = require 'koding-payment'
+KodingError = require '../../error'
 
 forceRefresh  = yes
 forceInterval = 60 * 3
@@ -174,23 +175,16 @@ module.exports = class JPaymentSubscription extends jraphical.Module
     spend = quantities
     @checkQuota {@usage, @couponCode, spend, multiplyFactor}, callback
 
-  vmCouponQuota =
-    "1FREEVM"   : 1
-    "2FREEVMS"  : 2
-    "3FREEVMS"  : 3
-    "4FREEVMS"  : 4
-
   checkQuota: (options, callback) ->
     {usage, spend, couponCode, multiplyFactor} = options
     multiplyFactor ?= 1
     spend ?= {}
 
     usages = for own planCode, quantity of spend
-      planSize    = @quantities[planCode] or @plan.quantities[planCode] or 0
+      planSize    = @quantities[planCode]
       usageAmount = usage[planCode] ? 0
       spendAmount = (spend[planCode] ? 0) * multiplyFactor
 
-      planSize += vmCouponQuota[couponCode]  if couponCode of vmCouponQuota
       total = planSize - usageAmount - spendAmount
 
       { planCode, total }
@@ -253,11 +247,12 @@ module.exports = class JPaymentSubscription extends jraphical.Module
 
       @debit options, callback
 
-  credit: (options, callback) ->
+  credit: ({pack}, callback) ->
     @debit { pack, multiplyFactor: -1 }, callback
 
   credit$: secure (client, options, callback) ->
-    @debit$ client, pack, -1, callback
+    options.multiplyFactor or= -1
+    @debit$ client, options, callback
 
   applyTransition: (options, callback) ->
 
@@ -353,3 +348,20 @@ module.exports = class JPaymentSubscription extends jraphical.Module
             @downgrade transitionOptions, callback
           else
             @upgrade transitionOptions, callback
+
+  debitPack: ({tags, multiplyFactor}, callback) ->
+    tags = [tags]  unless Array.isArray tags
+    multiplyFactor ?= 1
+    JPaymentPack = require './pack'
+    JPaymentPack.some tags: $in: tags, {}, (err, packs) =>
+      return callback err  if err
+      return callback new KodingError "pack not found"  unless packs.length
+      queue = []
+      queue = packs.map (pack) =>=>
+        @debit {pack, multiplyFactor}, (err) -> queue.next err
+      queue.push (err) ->
+        callback null
+      daisy queue
+
+  creditPack: ({tags}, callback) ->
+    @debitPack {tags, multiplyFactor: -1}, callback

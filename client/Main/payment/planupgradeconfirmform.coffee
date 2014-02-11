@@ -8,12 +8,17 @@ class PlanUpgradeConfirmForm extends PaymentConfirmForm
       buttons       :
         cancel      :
           title     : "CANCEL"
-          cssClass  : "solid"
+          cssClass  : "solid light-gray"
           callback  : => @emit 'Cancel'
         Buy         :
-          title     : "CONFIRM ORDER"
+          title     : "PLACE YOUR ORDER"
           cssClass  : "solid green"
-          callback  : => @emit 'PaymentConfirmed'
+          loader    :
+            color   : "#ffffff"
+            diameter: "26"
+          callback  : =>
+            @buttonBar.buttons['Buy'].showLoader()
+            @emit 'PaymentConfirmed'
 
   viewAppended: ->
     @unsetClass 'kdview'
@@ -41,16 +46,32 @@ class PlanUpgradeConfirmForm extends PaymentConfirmForm
   setData: (data) ->
     if data.productData?.plan
       {productData: {plan, planOptions}, oldSubscription} = data
+
+      if oldSubscription
+        @plan.addSubView new KDCustomHTMLView
+          tagName : 'h6'
+          cssClass: 'mini-title'
+          partial : 'Your current plan'
+
+        @plan.addSubView new VmPlanView {cssClass:"old-plan"}, oldSubscription.plan
+
+        @plan.addSubView new KDCustomHTMLView
+          tagName : 'h6'
+          cssClass: 'mini-title'
+          partial : 'Upgrading to'
+
       @plan.addSubView new VmPlanView {planOptions}, plan
 
       {couponCodes} = plan
 
       if couponCodes and couponCodes.discount and couponCodes.vm
+        @plan.addSubView @giftWrapper = new KDCustomHTMLView cssClass: "coupon-options clearfix hidden"
+        @giftWrapper.addSubView new KDLabelView
+          title: "Select your gift"
+          cssClass: "select-gift"
+
         @fetchCoupons plan, ["discount", "vm"], @bound "addCouponOptions"
 
-      if oldSubscription
-        @plan.addSubView new KDView partial: "<p>Your old plan was:</p>"
-        @plan.addSubView new VmPlanView {}, oldSubscription
     else
       @plan.hide()
 
@@ -60,12 +81,9 @@ class PlanUpgradeConfirmForm extends PaymentConfirmForm
     return  unless Object.keys(@coupons).length
     {discount: {discountInCents}} = @coupons
 
-    @plan.addSubView giftWrapper = new KDCustomHTMLView cssClass: "coupon-options clearfix"
-    giftWrapper.addSubView new KDLabelView
-      title: "Select your gift"
-      cssClass: "select-gift"
+    @giftWrapper.show()
 
-    giftWrapper.addSubView couponOptions = new KDInputRadioGroup
+    @giftWrapper.addSubView couponOptions = new KDInputRadioGroup
       name       : "coupon-options"
       radios     : [
         title    : "#{@coupons.discount.name}"

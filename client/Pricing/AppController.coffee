@@ -33,12 +33,23 @@ class PricingAppController extends KDViewController
       cssClass      : "content-page pricing"
 
     super options, data
+    @getView().createBreadcrumb()
     @createProductForm()
 
   createProductForm: ->
+    view = @getView()
     @productForm.destroy()  if @productForm and not @productForm.isDestroyed
     @productForm = new PricingProductForm
-    @getView().setWorkflow workflow = KD.singleton("paymentController").createUpgradeWorkflow {@productForm}
+      name : 'plan'
+
+    workflow = KD.singleton("paymentController").createUpgradeWorkflow {@productForm}
+    workflow.on "SubscriptionTransitionCompleted", view.bound "createGroup"
+
+    view.setWorkflow workflow
+
+    @productForm.on "PlanSelected", (plan, options) =>
+      view.breadcrumb.showPlan plan, options
+      view.addGroupForm()  if "custom-plan" in plan.tags
 
   selectPlan: (tag, options) ->
     @productForm.selectPlan tag, options

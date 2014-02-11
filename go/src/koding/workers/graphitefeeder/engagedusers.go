@@ -3,8 +3,6 @@ package main
 import (
 	"time"
 
-	"koding/db/mongodb"
-
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
 )
@@ -41,7 +39,7 @@ func numberOfTwoWeekEngagedUsers() (string, int) {
 		return nil
 	}
 
-	var err = mongodb.Iter("jSessionHistories", iterQuery, iterFn)
+	var err = mongo.Iter("jSessionHistories", iterQuery, iterFn)
 	if err != nil {
 		log.Error("Closing mongo iter: %v", err)
 	}
@@ -86,7 +84,7 @@ func numberOfTwoWeekEngagedUsers() (string, int) {
 			return nil
 		}
 
-		err = mongodb.Iter("jSessionHistories", secondIterQuery, secondIterFn)
+		err = mongo.Iter("jSessionHistories", secondIterQuery, secondIterFn)
 		if err != nil {
 			log.Error("Closing mongo iter: %v", err)
 			break
@@ -108,8 +106,8 @@ func numberOfTwoWeekEngagedUsers() (string, int) {
 
 	var engagedUsernamesLength = len(engagedUsernames)
 
-	var session = mongodb.Mongo.GetSession()
-	defer session.Close()
+	// var session = mongodb.Mongo.GetSession()
+	// defer session.Close()
 
 	return identifier, engagedUsernamesLength
 }

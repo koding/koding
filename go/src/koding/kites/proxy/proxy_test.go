@@ -1,9 +1,9 @@
 package main
 
 import (
-	"koding/kites/kontrol"
 	"koding/kite"
 	"koding/kite/protocol"
+	"koding/kites/kontrol"
 	"net"
 	"os"
 	"testing"

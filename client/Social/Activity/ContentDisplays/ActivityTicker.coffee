@@ -42,6 +42,7 @@ class ActivityTicker extends ActivityRightBase
     # and comments doesnt have slug
     # group.on "ReplyIsAdded"       , @bound "addComment"
     group.on "PostIsDeleted"        , @bound "deleteActivity"
+    group.on "LikeIsRemoved"        , @bound "removeLike"
 
     @listController.listView.on 'ItemWasAdded', (view, index) =>
       if viewData = view.getData()
@@ -214,6 +215,17 @@ class ActivityTicker extends ActivityRightBase
               @addNewItem eventObj
           else
             @addNewItem eventObj
+
+  removeLike : (data)->
+    {origin, subject, liker} = data
+    unless @getConstructorName(origin) and @getConstructorName(subject)
+      return console.warn "data is not valid"
+    source  = KD.remote.revive liker
+    target  = KD.remote.revive origin
+    subject = KD.remote.revive subject
+    as      = "like"
+
+    @removeItem {source, target, as, subject}
 
   addComment: (data) ->
     {origin, reply, subject, replier} = data
