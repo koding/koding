@@ -3,7 +3,6 @@ module.exports = [
   "views/logininputs.coffee"
   "views/registerinlineform.coffee"
   "markercontroller.coffee"
-  "tbcampaignhomepageview.coffee"
   "home.coffee"
   "styl/home.styl"
 
