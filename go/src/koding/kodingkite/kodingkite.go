@@ -9,7 +9,6 @@ import (
 func New(config *config.Config, options kite.Options) *kite.Kite {
 	// Update config
 	options.Environment = config.Environment
-	options.Region = config.Regions.SJ
 
 	o := kite.Options(options)
 	return kite.New(&o)

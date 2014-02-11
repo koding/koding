@@ -925,8 +925,12 @@ module.exports = class JAccount extends jraphical.Module
     callback null, @isExempt
 
   # returns troll users ids
+  #
+  # Adding a temporary limit of 100. We currently've 24 trolls, by the
+  # time this limit runs out we'll have switched to a scalable model of
+  # filtering troll users. SA
   @getExemptUserIds: (callback)->
-    JAccount.someData {isExempt:true}, {_id:1}, (err, cursor)->
+    JAccount.someData {isExempt:true}, {_id:1, limit:100}, {sort:_id:-1}, (err, cursor)->
       return callback err, null if err
       ids = []
       cursor.each (err, account)->

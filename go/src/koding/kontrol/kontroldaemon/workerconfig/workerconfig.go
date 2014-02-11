@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"koding/db/models"
 	"koding/db/mongodb/modelhelper"
-	"koding/tools/slog"
+	"koding/tools/logger"
 	"time"
 )
 
@@ -30,6 +30,8 @@ type ClientRequest struct {
 	Pid      int
 }
 
+var log = logger.New("kontroldaemon")
+
 func NewWorkerResponse(name, uuid, command, log string) *WorkerResponse {
 	return &WorkerResponse{
 		Name:    name,
@@ -45,7 +47,7 @@ func Delete(uuid string) error {
 		return fmt.Errorf("delete method error '%s'", err)
 	}
 
-	slog.Printf("deleting worker '%s' with hostname '%s' from the db\n", worker.Name, worker.Hostname)
+	log.Info("deleting worker '%s' with hostname '%s' from the db", worker.Name, worker.Hostname)
 	modelhelper.DeleteWorker(uuid)
 	return nil
 }
@@ -55,7 +57,7 @@ func Kill(uuid, mode string) (WorkerResponse, error) {
 	if err != nil {
 		return WorkerResponse{}, fmt.Errorf("kill method error '%s'", err)
 	}
-	slog.Printf("killing worker with pid: %d on hostname: %s\n", worker.Pid, worker.Hostname)
+	log.Info("killing worker with pid: %d on hostname: %s", worker.Pid, worker.Hostname)
 
 	// create response to be sent
 	command := "kill"
@@ -79,7 +81,7 @@ func Start(uuid string) (WorkerResponse, error) {
 
 	var command string
 	if worker.Status == models.Dead || worker.Status == models.Killed {
-		slog.Printf("starting worker: '%s' on '%s'\n", worker.Name, worker.Hostname)
+		log.Info("starting worker: '%s' on '%s'", worker.Name, worker.Hostname)
 		worker.Status = models.Waiting
 		modelhelper.UpdateWorker(worker)
 		command = "start"
@@ -106,7 +108,7 @@ func Update(worker models.Worker) error {
 	r.Uuid = worker.Uuid
 	r.Version = worker.Version
 
-	slog.Printf("[%s (%d)] update allowed from: '%s' - '%s'\n",
+	log.Info("[%s (%d)] update allowed from: '%s' - '%s'",
 		worker.Name,
 		worker.Version,
 		worker.Hostname,

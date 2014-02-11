@@ -10,7 +10,7 @@ import (
 	"koding/kontrol/kontroldaemon/workerconfig"
 	"koding/kontrol/kontrolhelper"
 	"koding/tools/config"
-	"koding/tools/slog"
+	"koding/tools/logger"
 	"strconv"
 	"strings"
 	"time"
@@ -27,6 +27,7 @@ type IncomingMessage struct {
 
 var producer *kontrolhelper.Producer
 var kontrolDB *mongodb.MongoDB
+var log = logger.New("kontroldaemon")
 
 const (
 	WorkersCollection = "jKontrolWorkers"
@@ -37,12 +38,12 @@ func Startup(conf *config.Config) {
 	var err error
 	producer, err = kontrolhelper.CreateProducer(conf, "worker")
 	if err != nil {
-		slog.Println(err)
+		log.Error(err.Error())
 	}
 
 	err = producer.Channel.ExchangeDeclare("clientExchange", "fanout", true, false, false, false, nil)
 	if err != nil {
-		slog.Printf("clientExchange exchange.declare: %s\n", err)
+		log.Error("clientExchange exchange.declare: %s", err)
 	}
 
 	kontrolDB = mongodb.NewMongoDB(conf.MongoKontrol)
@@ -51,7 +52,7 @@ func Startup(conf *config.Config) {
 	go heartBeatChecker()
 	go deploymentCleaner()
 
-	slog.Println("handler is initialized")
+	log.Info("handler is initialized")
 }
 
 // ClientMessage is handling messages coming from the clientExchange
@@ -60,7 +61,7 @@ func ClientMessage(data amqp.Delivery) {
 		var info models.ServerInfo
 		err := json.Unmarshal(data.Body, &info)
 		if err != nil {
-			slog.Printf("bad json client msg: %s err: %s\n", string(data.Body), err)
+			log.Error("bad json client msg: %s err: %s", string(data.Body), err)
 		}
 
 		modelhelper.AddClient(info)
@@ -72,21 +73,21 @@ func WorkerMessage(data []byte) {
 	var msg IncomingMessage
 	err := json.Unmarshal(data, &msg)
 	if err != nil {
-		slog.Printf("bad json incoming msg: %s err: %s\n", string(data), err)
+		log.Error("bad json incoming msg: %s err: %s", string(data), err)
 	}
 
 	if msg.Monitor != nil {
 		err := handleMonitorData(msg.Monitor)
 		if err != nil {
-			slog.Println(err)
+			log.Error(err.Error())
 		}
 	} else if msg.Worker != nil {
 		err = handleCommand(msg.Worker.Message.Command, *msg.Worker)
 		if err != nil {
-			slog.Println(err)
+			log.Error(err.Error())
 		}
 	} else {
-		slog.Println("incoming message is in wrong format")
+		log.Warning("incoming message is in wrong format")
 	}
 }
 
@@ -146,7 +147,7 @@ func handleCommand(command string, worker models.Worker) error {
 			return err
 		}
 	case "update":
-		slog.Printf("[%s (%d)] update request from: '%s' - '%s'\n",
+		log.Info("[%s (%d)] update request from: '%s' - '%s'",
 			worker.Name,
 			worker.Version,
 			worker.Hostname,
@@ -185,7 +186,7 @@ func handleAddCommand(worker models.Worker) (workerconfig.WorkerResponse, error)
 // worker exclusive on all machines and no other worker with the same
 // name can run anymore.
 func handleForceOption(worker models.Worker) (workerconfig.WorkerResponse, error) {
-	slog.Printf("[%s (%d)] killing all other workers except hostname '%s'\n",
+	log.Info("[%s (%d)] killing all other workers except hostname '%s'",
 		worker.Name, worker.Version, worker.Hostname)
 
 	result := models.Worker{}
@@ -198,13 +199,13 @@ func handleForceOption(worker models.Worker) (workerconfig.WorkerResponse, error
 		for iter.Next(&result) {
 			res, err := workerconfig.Kill(result.Uuid, "force")
 			if err != nil {
-				slog.Println(err)
+				log.Error(err.Error())
 			}
 			go deliver(res)
 
 			err = workerconfig.Delete(result.Uuid)
 			if err != nil {
-				slog.Println(err)
+				log.Error(err.Error())
 			}
 		}
 
@@ -214,14 +215,14 @@ func handleForceOption(worker models.Worker) (workerconfig.WorkerResponse, error
 
 	kontrolDB.RunOnDatabase(WorkersDB, WorkersCollection, query)
 
-	startLog := fmt.Sprintf("[%s (%d) - (%s)] starting at '%s' - '%s'\n",
+	startLog := fmt.Sprintf("[%s (%d) - (%s)] starting at '%s' - '%s'",
 		worker.Name,
 		worker.Version,
 		worker.Message.Option,
 		worker.Hostname,
 		worker.Uuid,
 	)
-	slog.Println(startLog)
+	log.Info(startLog)
 
 	worker.Status = models.Started
 	worker.ObjectId = bson.NewObjectId()
@@ -254,7 +255,7 @@ func handleExclusiveOption(worker models.Worker) (workerconfig.WorkerResponse, e
 			"status": bson.M{"$in": []int{int(models.Started), int(models.Waiting)}},
 		}
 
-		reason = fmt.Sprintf("you are in mode '%s' and they are workers with the same name running: ", option)
+		reason = fmt.Sprintf("workers with the same name running: ")
 	}
 
 	// version is like one, but it's allow only workers of the same name
@@ -270,7 +271,7 @@ func handleExclusiveOption(worker models.Worker) (workerconfig.WorkerResponse, e
 			"status":  bson.M{"$in": []int{int(models.Started), int(models.Waiting)}},
 		}
 
-		reason = fmt.Sprintf("you are in mode '%s' and they are workers with different name and versions running: ", option)
+		reason = fmt.Sprintf("workers with different name and versions running: ")
 	}
 
 	// If the query above for 'one' and 'version' doesn't match anything,
@@ -306,8 +307,8 @@ func handleExclusiveOption(worker models.Worker) (workerconfig.WorkerResponse, e
 	})
 
 	if err == nil {
-		startLog := fmt.Sprintf("[%s (%d) - (%s)] starting at '%s' - '%s'\n", worker.Name, worker.Version, option, worker.Hostname, worker.Uuid)
-		slog.Println(startLog)
+		startLog := fmt.Sprintf("[%s (%d) - (%s)] starting at '%s' - '%s'", worker.Name, worker.Version, option, worker.Hostname, worker.Uuid)
+		log.Info(startLog)
 		response := *workerconfig.NewWorkerResponse(worker.Name, worker.Uuid, "start", startLog)
 		return response, nil
 	}
@@ -327,7 +328,7 @@ func handleManyOption(worker models.Worker) (workerconfig.WorkerResponse, error)
 		worker.Hostname,
 		worker.Uuid,
 	)
-	slog.Println(startLog)
+	log.Info(startLog)
 
 	worker.ObjectId = bson.NewObjectId()
 	worker.Status = models.Started
@@ -348,12 +349,12 @@ func ApiMessage(data []byte) {
 	var req workerconfig.ApiRequest
 	err := json.Unmarshal(data, &req)
 	if err != nil {
-		slog.Printf("bad json api msg: %s err: %s\n", string(data), err)
+		log.Error("bad json api msg: %s err: %s", string(data), err)
 	}
 
 	err = handleApiRequest(req.Command, req.Uuid)
 	if err != nil {
-		slog.Println(err)
+		log.Error(err.Error())
 	}
 }
 
@@ -364,7 +365,7 @@ func handleApiRequest(command, uuid string) error {
 		errors.New("empty uuid is not allowed.")
 	}
 
-	slog.Printf("[%s] received: %s\n", uuid, command)
+	log.Info("[%s] received: %s", uuid, command)
 	switch command {
 	case "delete":
 		err := workerconfig.Delete(uuid)
@@ -374,13 +375,13 @@ func handleApiRequest(command, uuid string) error {
 	case "kill":
 		res, err := workerconfig.Kill(uuid, "normal")
 		if err != nil {
-			slog.Println(err)
+			log.Error(err.Error())
 		}
 		go deliver(res)
 	case "start":
 		res, err := workerconfig.Start(uuid)
 		if err != nil {
-			slog.Println(err)
+			log.Error(err.Error())
 		}
 		go deliver(res)
 	default:
@@ -392,7 +393,7 @@ func handleApiRequest(command, uuid string) error {
 func deliver(res workerconfig.WorkerResponse) {
 	data, err := json.Marshal(res)
 	if err != nil {
-		slog.Printf("could not marshall worker: %s", err)
+		log.Error("could not marshall worker: %s", err)
 	}
 
 	msg := amqp.Publishing{
@@ -405,12 +406,13 @@ func deliver(res workerconfig.WorkerResponse) {
 	}
 
 	if res.Uuid == "" {
-		slog.Printf("can't send to worker. appId is missing")
+		log.Error("can't send to worker. appId is missing")
 	}
+
 	workerOut := "output.worker." + res.Uuid
 	err = producer.Channel.Publish("workerExchange", workerOut, false, false, msg)
 	if err != nil {
-		slog.Printf("error while publishing message: %s", err)
+		log.Error("error while publishing message: %s", err)
 	}
 }
 
@@ -445,7 +447,7 @@ func heartBeatChecker() {
 			}
 
 			if countWorkers[worker.Uuid] != 3 {
-				slog.Printf("[%s (%d)] inactive hearbeat (%d) '%s' - '%s' (pid: %d).\n",
+				log.Info("[%s (%d)] inactive hearbeat (%d) '%s' - '%s' (pid: %d).",
 					worker.Name,
 					worker.Version,
 					countWorkers[worker.Uuid],
@@ -457,7 +459,7 @@ func heartBeatChecker() {
 				continue
 			}
 
-			slog.Printf("[%s (%d)] deleting after three inactive heartbeats '%s' - '%s' (pid: %d).\n",
+			log.Info("[%s (%d)] deleting after three inactive heartbeats '%s' - '%s' (pid: %d).",
 				worker.Name,
 				worker.Version,
 				worker.Hostname,
@@ -487,7 +489,7 @@ func heartBeatChecker() {
 // deployment information .
 func deploymentCleaner() {
 	for {
-		slog.Println("cleaner started to remove unused deployments and dead workers")
+		log.Info("cleaner started to remove unused deployments and dead workers")
 		infos := modelhelper.GetClients()
 		for _, info := range infos {
 			var numberOfWorkers int
@@ -507,10 +509,10 @@ func deploymentCleaner() {
 
 			// remove deployment information only if there is no worker alive for that version
 			if numberOfWorkers == 0 {
-				slog.Printf("removing deployment info for build number %s\n", info.BuildNumber)
+				log.Info("removing deployment info for build number %s", info.BuildNumber)
 				err := modelhelper.DeleteClient(info.BuildNumber)
 				if err != nil {
-					slog.Println(err)
+					log.Error(err.Error())
 				}
 			}
 		}
