@@ -263,6 +263,7 @@ class PopupGroupListItem extends KDListItemView
     defaultLogo  = "https://koding.s3.amazonaws.com/grouplogo_.png"
     @groupLogo  = new KDCustomHTMLView
       tagName    : "img"
+      cssClass   : "avatararea-group-logo"
       size       :
         height   : 30
         width    : 30
@@ -271,6 +272,7 @@ class PopupGroupListItem extends KDListItemView
 
     @switchLink = new CustomLinkView
       title       : title
+      cssClass    : "avatararea-group-name"
       href        : "/#{if slug is KD.defaultSlug then '' else slug+'/'}Activity"
       target      : slug
       icon        :
