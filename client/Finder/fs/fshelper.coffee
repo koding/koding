@@ -1,6 +1,6 @@
 class FSHelper
 
-  parseWatcherFile = (vmName, parentPath, file, user, treeController)->
+  parseWatcherFile = ({ vmName, parentPath, file, user, treeController, osKite })->
 
     {name, size, mode} = file
     type      = if file.isBroken then 'brokenLink' else \
@@ -10,10 +10,9 @@ class FSHelper
     group     = user
     createdAt = file.time
     return { size, user, group, createdAt, mode, type, \
-             parentPath, path, name, vmName:vmName, treeController }
+             parentPath, path, name, vmName:vmName, treeController, osKite }
 
-  @parseWatcher = (vmName, parentPath, files, treeController)->
-
+  @parseWatcher = ({ vmName, parentPath, files, treeController, osKite })->
     data = []
     return data unless files
     files = [files] unless Array.isArray files
@@ -27,14 +26,27 @@ class FSHelper
     nickname = KD.nick()
     for file in sortedFiles
       data.push FSHelper.createFile \
-        parseWatcherFile vmName, parentPath, file, nickname, treeController
+        parseWatcherFile {
+          vmName
+          parentPath
+          file
+          nickname
+          treeController
+          osKite
+        }
 
     return data
 
-  @folderOnChange = (vmName, path, change, treeController)->
+  @folderOnChange = ({ vmName, path, files, treeController, osKite })->
     return  unless treeController
-    file = (@parseWatcher vmName, path, change.file, treeController).first
-    switch change.event
+    [ file ] = (@parseWatcher {
+      vmName
+      parentPath  : path
+      files
+      treeController
+      osKite
+    })
+    switch files.event
       when "added"
         treeController.addNode file
       when "removed"

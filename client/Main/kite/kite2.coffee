@@ -55,22 +55,29 @@ class KDKite extends Kite
     os: @createConstructor 'os'
     'os-vagrant': @createConstructor 'os-vagrant'
 
-  tell2: (method, restParams...) ->
-
+  tell2: (method, params) ->
+    # #tell2 is wrapping #tell with a promise-based api
     new Promise (resolve, reject) =>
 
-      { correlationName, kiteName } = @getOptions()
+      { correlationName, kiteName, timeout: classTimeout } = @getOptions()
 
       options = {
         method
         kiteName
         correlationName
-        withArgs: restParams[0]
+        withArgs: params
       }
 
+      # handle timeout:
+      timeOk = yes
+      if params?.timeout not in [null, Infinity]
+        timeout = params?.timeout ? classTimeout ? 5000
+        KD.utils.wait timeout, ->
+          timeOk = no
+          reject new Error "Request timeout exceeded (#{ timeout }ms)"
+
       callback = (err, restResponse...) ->
-        return reject err  if err
-        return resolve restResponse...
+        return reject err               if err?
+        return resolve restResponse...  if timeOk
 
       @tell options, callback
-

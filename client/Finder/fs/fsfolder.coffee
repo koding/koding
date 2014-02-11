@@ -3,36 +3,59 @@ class FSFolder extends FSFile
   fetchContents:(callback, dontWatch=yes)->
     { treeController } = @getOptions()
 
-    @emit "fs.job.started"
-    @vmController.run
-      method     : 'fs.readDirectory'
-      vmName     : @vmName
-      withArgs   :
-        onChange : if dontWatch then null else (change)=>
-          FSHelper.folderOnChange @vmName, @path, change, treeController
-        path     : FSHelper.plainPath @path
-    , (err, response)=>
-      if not err and response?.files
-        files = FSHelper.parseWatcher @vmName, @path, response.files, treeController
-        @registerWatcher response
-        @emit "fs.job.finished", err, files
-      else
-        @emit "fs.job.finished", err
-      callback? err, files
+    @osKite.vmStart()
+
+    .then =>
+      @osKite.fsReadDirectory
+        path      : FSHelper.plainPath @path
+        onChange  : if dontWatch then null else (files) =>
+          FSHelper.folderOnChange {
+            @vmName
+            @path
+            files
+            treeController
+            @osKite
+          }
+
+    .then (response) =>
+      files =
+        if response?.files?
+        then FSHelper.parseWatcher {
+          @vmName
+          parentPath: @path
+          files: response.files
+          treeController
+          @osKite
+        }
+        else []
+      callback null, files
+
+    .catch (err) ->
+      callback err
+
+    .then =>
+      @emit 'fs.job.finished'
+
 
   save:(callback)->
 
     @emit "fs.save.started"
 
-    @vmController.run
-      vmName    : @vmName
-      method    : 'fs.createDirectory'
-      withArgs  :
-        path    : FSHelper.plainPath @path
-    , (err, res)=>
-      if err then warn err
-      @emit "fs.save.finished", err, res
-      callback? err, res
+    @osKite.vmStart()
+
+    .then =>
+      @vmController.fsCreateDirectory({
+        path: FSHelper.plainPath @path
+      })
+
+    .then (response) =>
+      callback null, response
+      @emit "fs.save.finished", null, response
+
+    .catch (err) =>
+      warn err
+      callback err
+      @emit "fs.save.finished", err
 
   saveAs:(callback)->
     log 'Not implemented yet.'
