@@ -56,9 +56,10 @@ var (
 	mongodbConn *mongodb.MongoDB
 	conf        *config.Config
 
-	flagProfile = flag.String("c", "", "Configuration profile from file")
-	flagRegion  = flag.String("r", "", "Configuration region from file")
-	flagDebug   = flag.Bool("d", false, "Debug mode")
+	flagProfile   = flag.String("c", "", "Configuration profile from file")
+	flagRegion    = flag.String("r", "", "Configuration region from file")
+	flagDebug     = flag.Bool("d", false, "Debug mode")
+	flagTemplates = flag.String("t", "", "Change template directory")
 
 	infos            = make(map[bson.ObjectId]*VMInfo)
 	infosMutex       sync.Mutex
@@ -90,6 +91,10 @@ func main() {
 		logLevel = logger.GetLoggingLevelFromConfig(OSKITE_NAME, *flagProfile)
 	}
 	log.SetLevel(logLevel)
+
+	if *flagTemplates != "" {
+		templateDir = *flagTemplates
+	}
 
 	initializeSettings()
 
@@ -125,6 +130,7 @@ func runNewKite(serviceUniqueName string) {
 			Kitename: OSKITE_NAME,
 			Version:  "0.0.1",
 			Port:     "5000",
+			Region:   *flagRegion,
 		},
 	)
 

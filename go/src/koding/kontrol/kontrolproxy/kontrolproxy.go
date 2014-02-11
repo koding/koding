@@ -174,6 +174,7 @@ func (p *Proxy) runNewKite() {
 		kite.Options{
 			Kitename: KONTROLPROXY_NAME,
 			Version:  "0.0.1",
+			Region:   *flagRegion,
 		},
 	)
 
