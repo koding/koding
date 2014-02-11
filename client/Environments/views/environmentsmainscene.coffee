@@ -99,12 +99,34 @@ class EnvironmentsMainScene extends JView
         vmc = KD.getSingleton("vmController")
         vmc.emit 'VMListChanged'
 
+    # Plus button on @machinesContainer uses the vmController
+    @machinesContainer.on 'PlusButtonClicked', =>
+      return unless KD.isLoggedIn()
+        new KDNotificationView
+          title: "You need to login to create a new machine."
+
+      @addVmModal = new KDModalView
+        title        : 'Add Virtual Machine'
+        cssClass     : 'add-vm-modal'
+        view         : @getVmSelectionView()
+        overlay      : yes
+        width        : 786
+        buttons      :
+          create     :
+            title    : "Create"
+            style    : "modal-clean-green"
+            callback : =>
+              @addVmModal.destroy()
+              KD.singleton("vmController").createNewVM (err) ->
+                KD.showError err
+
   getDomainCreateForm: ->
     domainCreateForm = new DomainCreateForm
     @domainsContainer.on "itemRemoved", domainCreateForm.bound "updateDomains"
     domainCreateForm.on "DomainSaved", @domainsContainer.bound "loadItems"
     return domainCreateForm
 
+  getVmSelectionView: ->
     addVmSelection = new KDCustomHTMLView
       cssClass   : "new-vm-selection"
 
@@ -149,24 +171,7 @@ class EnvironmentsMainScene extends JView
       tagName      : "h5"
       partial      : "Coming soon..."
 
-    # Plus button on @machinesContainer uses the vmController
-    @machinesContainer.on 'PlusButtonClicked', =>
-      return unless KD.isLoggedIn()
-        new KDNotificationView
-          title: "You need to login to create a new machine."
-
-      # vmController.createNewVM()
-
-      @addVmModal = new KDModalView
-        title        : 'Add Virtual Machine'
-        cssClass     : 'add-vm-modal'
-        view         : addVmSelection
-        overlay      : yes
-        width        : 786
-        buttons      :
-          create     :
-            title    : "Create"
-            style    : "modal-clean-green"
+    return addVmSelection
 
   refreshContainers:->
     # After Domains and Machines container load finished
