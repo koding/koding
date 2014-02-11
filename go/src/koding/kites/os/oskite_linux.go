@@ -123,8 +123,19 @@ func main() {
 	registerVmMethod(k, "spawn", true, spawn)
 	registerVmMethod(k, "exec", true, exec)
 
+	syscall.Umask(0) // don't know why richard calls this
+	registerVmMethod(k, "fs.readDirectory", false, fsReadDirectory)
+	registerVmMethod(k, "fs.glob", false, fsGlob)
+	registerVmMethod(k, "fs.readFile", false, fsReadFile)
+	registerVmMethod(k, "fs.writeFile", false, fsWriteFile)
+	registerVmMethod(k, "fs.ensureNonexistentPath", false, fsEnsureNonexistentPath)
+	registerVmMethod(k, "fs.getInfo", false, fsGetInfo)
+	registerVmMethod(k, "fs.setPermissions", false, fsSetPermissions)
+	registerVmMethod(k, "fs.remove", false, fsRemove)
+	registerVmMethod(k, "fs.rename", false, fsRename)
+	registerVmMethod(k, "fs.createDirectory", false, fsCreateDirectory)
+
 	registerS3Methods(k)
-	registerFileSystemMethods(k)
 	registerWebtermMethods(k)
 	registerAppMethods(k)
 
