@@ -25,6 +25,8 @@ type Client struct {
 
 // NewClient retuns a new client that is defined on a given session.
 func NewClient(session *sockjs.Session, broker *Broker) *Client {
+	defer log.RecoverAndLog()
+
 	socketId := randomString()
 	session.Tag = socketId
 
@@ -61,6 +63,8 @@ func NewClient(session *sockjs.Session, broker *Broker) *Client {
 
 // Close should be called whenever a client disconnects.
 func (c *Client) Close() {
+	defer log.RecoverAndLog()
+
 	log.Debug("Client Close Request for socketID: %v", c.SocketId)
 	c.Subscriptions.Each(func(routingKeyPrefix interface{}) bool {
 		c.RemoveFromRoute(routingKeyPrefix.(string))
@@ -199,6 +203,8 @@ func (c *Client) gaugeStart() (gaugeEnd func()) {
 // a new channel. It also listens to any server side error and publish back
 // the error to the client.
 func (c *Client) resetControlChannel() {
+	defer log.RecoverAndLog()
+
 	if c.ControlChannel != nil {
 		c.ControlChannel.Close()
 	}
