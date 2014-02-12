@@ -102,12 +102,6 @@ class PricingAppView extends KDView
         title    : "Go to your environment"
         callback : ->
           KD.singleton("router").handleRoute "/Environments"
-    else
-      storageController = KD.singletons.appStorageController
-      paymentApp = storageController.storage "PaymentDetails", "1.0"
-      token = paymentApp.getValue "UserToken"
-      KD.singletons.appManager.open 'Login', (app) ->
-        app.prepareFinishRegistrationForm token
 
   showGroupCreated: (group, subscription) ->
 
