@@ -87,15 +87,6 @@ class PricingAppView extends KDView
         <h6 class="pricing-subtitle">#{subtitle}</h6>
         """
 
-    # write group name and other payment details to appstorage
-    if @groupForm
-      storageController = KD.singletons.appStorageController
-      storage = storageController.storage 'PaymentDetails', '1.0'
-      {GroupURL, GroupSlug} = @groupForm.inputs
-      groupSlug = GroupSlug.getValue()
-      storage.setValue 'groupSlug', groupSlug
-
-
     if loggedIn
       @thankYou.addSubView new KDButtonView
         style    : "solid green"
@@ -128,7 +119,6 @@ class PricingAppView extends KDView
         title    : "Go to Group"
         callback : ->
           window.open "#{window.location.origin}/#{group.slug}", "_blank"
-
 
   addGroupForm: ->
     @groupForm = @createGroupForm()
