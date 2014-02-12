@@ -245,7 +245,7 @@ KD.extend
 
     if Array.isArray err
       @showError er  for er in err
-      return
+      return err.length
 
     if 'string' is typeof err
       message = err
