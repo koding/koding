@@ -92,7 +92,6 @@ class ActiveTopics extends ActivityRightBase
       , @bound 'renderItems'
 
 
-
 class GroupDescription extends KDView
 
   constructor:(options={}, data)->
@@ -143,7 +142,18 @@ class GroupMembers extends ActivityRightBase
 
     {groupsController} = KD.singletons
     groupsController.ready =>
-      groupsController.getCurrentGroup().fetchMembersFromGraph limit : 12, @bound 'renderItems'
+      group = groupsController.getCurrentGroup()
+      group.fetchMembersFromGraph limit : 12, (err, members) =>
+        @renderItems err, members
+
+        if members.length < 12
+          groupsController.on "MemberJoinedGroup", (data) =>
+            {constructorName, id} = data.member
+            KD.remote.cacheable constructorName, id, (err, account)=>
+              return console.error "account is not found", err if err or not account
+              @tickerController.addItem account
+
+
 
 
 class GroupMembersListItemView extends KDListItemView
