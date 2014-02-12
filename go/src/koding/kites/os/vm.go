@@ -39,19 +39,46 @@ func vmPrepareOld(args *dnode.Partial, c *kite.Channel, vos *virt.VOS) (interfac
 }
 
 func vmInfoOld(args *dnode.Partial, c *kite.Channel, vos *virt.VOS) (interface{}, error) {
-	info := c.KiteData.(*VMInfo)
-	info.State = vos.VM.GetState()
-	return info, nil
+	return vmInfo(vos)
 }
 
 func vmResizeDiskOld(args *dnode.Partial, c *kite.Channel, vos *virt.VOS) (interface{}, error) {
-	if !vos.Permissions.Sudo {
-		return nil, &kite.PermissionError{}
-	}
-	return true, vos.VM.ResizeRBD()
+	return vmResize(vos)
 }
 
 func vmCreateSnaphostOld(args *dnode.Partial, c *kite.Channel, vos *virt.VOS) (interface{}, error) {
+	return vmCreateSnaphost(vos)
+}
+
+func spawnOld(args *dnode.Partial, c *kite.Channel, vos *virt.VOS) (interface{}, error) {
+	var command []string
+	if args.Unmarshal(&command) != nil {
+		return nil, &kite.ArgumentError{Expected: "[array of strings]"}
+	}
+
+	return spwan(command, vos)
+}
+
+func execOld(args *dnode.Partial, c *kite.Channel, vos *virt.VOS) (interface{}, error) {
+	var line string
+	if args.Unmarshal(&line) != nil {
+		return nil, &kite.ArgumentError{Expected: "[string]"}
+	}
+
+	return exec(line, vos)
+}
+
+// Base functions to be plugged to old and newkite methods
+
+func exec(line string, vos *virt.VOS) (interface{}, error) {
+	return vos.VM.AttachCommand(vos.User.Uid, "", "/bin/bash", "-c", line).CombinedOutput()
+}
+
+func spwan(command []string, vos *virt.VOS) (interface{}, error) {
+	return vos.VM.AttachCommand(vos.User.Uid, "", command...).CombinedOutput()
+}
+
+func vmCreateSnaphost(vos *virt.VOS) (interface{}, error) {
 	if !vos.Permissions.Sudo {
 		return nil, &kite.PermissionError{}
 	}
@@ -64,23 +91,28 @@ func vmCreateSnaphostOld(args *dnode.Partial, c *kite.Channel, vos *virt.VOS) (i
 	return snippetId, nil
 }
 
-func spawnOld(args *dnode.Partial, c *kite.Channel, vos *virt.VOS) (interface{}, error) {
-	var command []string
-	if args.Unmarshal(&command) != nil {
-		return nil, &kite.ArgumentError{Expected: "[array of strings]"}
+func vmResize(vos *virt.VOS) (interface{}, error) {
+	if !vos.Permissions.Sudo {
+		return nil, &kite.PermissionError{}
 	}
-	return vos.VM.AttachCommand(vos.User.Uid, "", command...).CombinedOutput()
+	return true, vos.VM.ResizeRBD()
 }
 
-func execOld(args *dnode.Partial, c *kite.Channel, vos *virt.VOS) (interface{}, error) {
-	var line string
-	if args.Unmarshal(&line) != nil {
-		return nil, &kite.ArgumentError{Expected: "[string]"}
-	}
-	return vos.VM.AttachCommand(vos.User.Uid, "", "/bin/bash", "-c", line).CombinedOutput()
-}
+func vmInfo(vos *virt.VOS) (interface{}, error) {
+	var info *VMInfo
+	var ok bool
 
-// Base functions to be plugged to old and newkite methods
+	info, ok = infos[vos.VM.Id]
+	if !ok {
+		info = newInfo(vos.VM)
+		info.State = vos.VM.GetState()
+		infos[vos.VM.Id] = info
+	} else {
+		info.State = vos.VM.GetState()
+	}
+
+	return info, nil
+}
 
 func vmPrepare(vos *virt.VOS) (interface{}, error) {
 	if !vos.Permissions.Sudo {
