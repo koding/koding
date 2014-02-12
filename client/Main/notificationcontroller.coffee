@@ -2,7 +2,7 @@ class NotificationController extends KDObject
 
   subjectMap = ->
 
-    JNewStatusUpdate       : "<a href='#'>status</a>"
+    JNewStatusUpdate    : "<a href='#'>status</a>"
     JCodeSnip           : "<a href='#'>code snippet</a>"
     JQuestionActivity   : "<a href='#'>question</a>"
     JDiscussion         : "<a href='#'>discussion</a>"
@@ -29,11 +29,9 @@ class NotificationController extends KDObject
       serviceType : 'notification'
       isExclusive : yes
 
-
-
     @notificationChannel.off()
     @notificationChannel.on 'message', (notification)=>
-      log 'Notification has arrived', notification
+      # log 'Notification has arrived', notification
       @emit "NotificationHasArrived", notification
       if notification.contents
         @emit notification.event, notification.contents
