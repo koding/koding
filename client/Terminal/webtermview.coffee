@@ -234,6 +234,7 @@ class WebTermView extends KDView
 
   restoreRange: ->
     range = @utils.getSelectionRange()
+    return  unless range
     return  if range.startOffset is range.endOffset and range.startContainer is range.endContainer
     @utils.defer =>
       @utils.addRange range
