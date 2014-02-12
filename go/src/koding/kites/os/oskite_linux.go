@@ -437,14 +437,14 @@ func registerMethod(k *kite.Kite, method string, concurrent bool, callback func(
 			return callback(args, channel, &virt.VOS{VM: vm, User: user})
 		}
 
-		// userVos has now "vm", "user" and "permissions" document.
-		userVos, err := vm.OS(user)
+		// vos has now "vm", "user" and "permissions" document.
+		vos, err := vm.OS(user)
 		if err != nil {
 			return nil, err // returns an error if the permisisons are not set for the user
 		}
 
 		// now call our final method. run forrest run ....!
-		return callback(args, channel, userVos)
+		return callback(args, channel, vos)
 	}
 
 	k.Handle(method, concurrent, wrapperMethod)
