@@ -8,11 +8,11 @@ class FSFolder extends FSFile
     .then =>
       @osKite.fsReadDirectory
         path      : FSHelper.plainPath @path
-        onChange  : if dontWatch then null else (files) =>
+        onChange  : if dontWatch then null else (change) =>
           FSHelper.folderOnChange {
             @vmName
             @path
-            files
+            change
             treeController
             @osKite
           }

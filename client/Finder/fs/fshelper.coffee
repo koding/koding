@@ -37,16 +37,16 @@ class FSHelper
 
     return data
 
-  @folderOnChange = ({ vmName, path, files, treeController, osKite })->
+  @folderOnChange = ({ vmName, path, change, treeController, osKite })->
     return  unless treeController
-    [ file ] = (@parseWatcher {
+    [ file ] = @parseWatcher {
       vmName
       parentPath  : path
-      files
+      files       : change.file
       treeController
       osKite
-    })
-    switch files.event
+    }
+    switch change.event
       when "added"
         treeController.addNode file
       when "removed"
@@ -55,8 +55,8 @@ class FSHelper
             treeController.removeNodeView node
             break
 
-  @plainPath:(path)-> path.replace /\[.*\]/, ''
-  @getVMNameFromPath:(path)-> (/\[([^\]]+)\]/g.exec path)?[1]
+  @plainPath:(path)-> path.replace /^\[.*\]/, ''
+  @getVMNameFromPath:(path)-> (/^\[([^\]]+)\]/g.exec path)?[1]
 
   @minimizePath: (path)-> @plainPath(path).replace ///^\/home\/#{KD.nick()}///, '~'
 

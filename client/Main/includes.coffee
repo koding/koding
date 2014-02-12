@@ -231,6 +231,7 @@ module.exports = [
   # KITE CONTROLLER
   "kite/kite.coffee",
   "kite/kite2.coffee",
+  "kite/oskite.coffee",
   "kite/kitecontroller.coffee",
   "kite/newkite.coffee"
   "kite/kontrol.coffee"
