@@ -697,6 +697,7 @@ module.exports = class JUser extends jraphical.Module
     invite         = null
     user           = null
     quotaExceedErr = null
+    recoveryToken  = null
 
     queue = [
       =>
@@ -769,7 +770,8 @@ module.exports = class JUser extends jraphical.Module
           resetPassword : no
           expiryPeriod  : 1000 * 60 * 60 * 24 * 14 # 2 weeks in milliseconds
 
-        JPasswordRecovery.create client, passwordOptions, (err)->
+        JPasswordRecovery.create client, passwordOptions, (err, token)->
+          recoveryToken = token
           queue.next()
       ->
         JPaymentSubscription.createFreeSubscription account, (err) ->
@@ -792,7 +794,7 @@ module.exports = class JUser extends jraphical.Module
         mixpanel.track "Signup from server, success"
         queue.next()
       ->
-        callback quotaExceedErr, newToken
+        callback quotaExceedErr, newToken, recoveryToken
         queue.next()
     ]
 

@@ -53,6 +53,7 @@ module.exports = class JAccount extends jraphical.Module
         { name: 'updateInstance' }
         { name: 'notification' }
         { name : "RemovedFromCollection" }
+
       ]
     sharedMethods :
       static:
