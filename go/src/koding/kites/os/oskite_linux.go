@@ -153,8 +153,8 @@ func main() {
 	registerMethod(k, "webterm.connect", false, webtermConnect)
 	registerMethod(k, "webterm.getSessions", false, webtermGetSessions)
 
-	registerMethod(k, "s3.store", true, s3Store)
-	registerMethod(k, "s3.delete", true, s3Delete)
+	registerMethod(k, "s3.store", true, s3StoreOld)
+	registerMethod(k, "s3.delete", true, s3DeleteOld)
 
 	k.Run()
 }

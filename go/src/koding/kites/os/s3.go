@@ -27,15 +27,42 @@ var (
 	appsBucket    = s3store.Bucket("koding-apps")
 )
 
-func s3Store(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
-	var params struct {
-		Name    string
-		Content []byte
-	}
+func s3StoreOld(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
+	var params s3params
 	if args.Unmarshal(&params) != nil || params.Name == "" || len(params.Content) == 0 || strings.Contains(params.Name, "/") {
 		return nil, &kite.ArgumentError{Expected: "{ name: [string], content: [base64 string] }"}
 	}
 
+	return s3Store(params, vos)
+}
+
+func s3DeleteOld(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
+	var params s3params
+	if args.Unmarshal(&params) != nil || params.Name == "" || strings.Contains(params.Name, "/") {
+		return nil, &kite.ArgumentError{Expected: "{ name: [string] }"}
+	}
+
+	return s3Delete(params, vos)
+}
+
+func UserAccountId(user *virt.User) bson.ObjectId {
+	var account struct {
+		Id bson.ObjectId `bson:"_id"`
+	}
+	if err := mongodbConn.Run("jAccounts", func(c *mgo.Collection) error {
+		return c.Find(bson.M{"profile.nickname": user.Name}).One(&account)
+	}); err != nil {
+		panic(err)
+	}
+	return account.Id
+}
+
+type s3params struct {
+	Name    string
+	Content []byte
+}
+
+func s3Store(params s3params, vos *virt.VOS) (interface{}, error) {
 	if len(params.Content) > 2*1024*1024 {
 		return nil, errors.New("Content size larger than maximum of 2MB.")
 	}
@@ -54,27 +81,9 @@ func s3Store(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interfa
 	return true, nil
 }
 
-func s3Delete(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
-	var params struct {
-		Name string
-	}
-	if args.Unmarshal(&params) != nil || params.Name == "" || strings.Contains(params.Name, "/") {
-		return nil, &kite.ArgumentError{Expected: "{ name: [string] }"}
-	}
+func s3Delete(params s3params, vos *virt.VOS) (interface{}, error) {
 	if err := uploadsBucket.Del(UserAccountId(vos.User).Hex() + "/" + params.Name); err != nil {
 		return nil, err
 	}
 	return true, nil
-}
-
-func UserAccountId(user *virt.User) bson.ObjectId {
-	var account struct {
-		Id bson.ObjectId `bson:"_id"`
-	}
-	if err := mongodbConn.Run("jAccounts", func(c *mgo.Collection) error {
-		return c.Find(bson.M{"profile.nickname": user.Name}).One(&account)
-	}); err != nil {
-		panic(err)
-	}
-	return account.Id
 }

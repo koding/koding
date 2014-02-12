@@ -10,6 +10,7 @@ import (
 	"koding/virt"
 	"os"
 	"path"
+	"strings"
 
 	"code.google.com/p/go.exp/inotify"
 )
@@ -316,4 +317,22 @@ func appSkeletonNew(r *kitelib.Request, vos *virt.VOS) (interface{}, error) {
 	}
 
 	return appSkeleton(params, vos)
+}
+
+func s3StoreNew(r *kitelib.Request, vos *virt.VOS) (interface{}, error) {
+	var params s3params
+	if r.Args.Unmarshal(&params) != nil || params.Name == "" || len(params.Content) == 0 || strings.Contains(params.Name, "/") {
+		return nil, &kite.ArgumentError{Expected: "{ name: [string], content: [base64 string] }"}
+	}
+
+	return s3Store(params, vos)
+}
+
+func s3DeleteNew(r *kitelib.Request, vos *virt.VOS) (interface{}, error) {
+	var params s3params
+	if r.Args.Unmarshal(&params) != nil || params.Name == "" || strings.Contains(params.Name, "/") {
+		return nil, &kite.ArgumentError{Expected: "{ name: [string] }"}
+	}
+
+	return s3Delete(params, vos)
 }
