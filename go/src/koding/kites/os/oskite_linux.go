@@ -198,6 +198,13 @@ func runNewKite() {
 	vosMethod(k, "app.publish", appPublishNew)
 	vosMethod(k, "app.skeleton", appSkeletonNew)
 
+	vosMethod(k, "webterm.connect", webtermConnectNew)
+	vosMethod(k, "webterm.getSessions", webtermGetSessionsNew)
+
+	vosMethod(k, "s3.store", s3StoreNew)
+	vosMethod(k, "s3.delete", s3DeleteNew)
+
+	k.DisableConcurrency() // needed for webterm.connect
 	k.Start()
 
 	// TODO: remove this later, this is needed in order to reinitiliaze the logger package
