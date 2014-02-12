@@ -47,102 +47,99 @@ type WebtermRemote struct {
 	SessionEnded dnode.Callback
 }
 
-func registerWebtermMethods(k *kite.Kite) {
-	registerVmMethod(k, "webterm.getSessions", false, func(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
-		sessions := screenSessions(vos)
-		if len(sessions) == 0 {
-			return nil, errors.New("no sessions available")
-		}
+func webtermGetSessions(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
+	sessions := screenSessions(vos)
+	if len(sessions) == 0 {
+		return nil, errors.New("no sessions available")
+	}
 
-		return sessions, nil
-	})
+	return sessions, nil
+}
 
-	// this method is special cased in oskite.go to allow foreign access
-	registerVmMethod(k, "webterm.connect", false, func(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
-		var params struct {
-			Remote       WebtermRemote
-			Session      string
-			SizeX, SizeY int
-			Mode         string
-		}
+func webtermConnect(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
+	var params struct {
+		Remote       WebtermRemote
+		Session      string
+		SizeX, SizeY int
+		Mode         string
+	}
 
-		if args.Unmarshal(&params) != nil || params.SizeX <= 0 || params.SizeY <= 0 {
-			return nil, &kite.ArgumentError{Expected: "{ remote: [object], session: [string], sizeX: [integer], sizeY: [integer], noScreen: [boolean] }"}
-		}
+	if args.Unmarshal(&params) != nil || params.SizeX <= 0 || params.SizeY <= 0 {
+		return nil, &kite.ArgumentError{Expected: "{ remote: [object], session: [string], sizeX: [integer], sizeY: [integer], noScreen: [boolean] }"}
+	}
 
-		screen, err := newScreen(vos, params.Mode, params.Session)
-		if err != nil {
-			return nil, err
-		}
+	screen, err := newScreen(vos, params.Mode, params.Session)
+	if err != nil {
+		return nil, err
+	}
 
-		server := &WebtermServer{
-			Session:          screen.Session,
-			remote:           params.Remote,
-			vm:               vos.VM,
-			user:             vos.User,
-			isForeignSession: vos.User.Name != channel.Username,
-			pty:              pty.New(vos.VM.PtsDir()),
-			screenPath:       screen.ScreenPath,
-		}
+	server := &WebtermServer{
+		Session:          screen.Session,
+		remote:           params.Remote,
+		vm:               vos.VM,
+		user:             vos.User,
+		isForeignSession: vos.User.Name != channel.Username,
+		pty:              pty.New(vos.VM.PtsDir()),
+		screenPath:       screen.ScreenPath,
+	}
 
-		server.SetSize(float64(params.SizeX), float64(params.SizeY))
-		server.pty.Slave.Chown(vos.User.Uid, -1)
+	server.SetSize(float64(params.SizeX), float64(params.SizeY))
+	server.pty.Slave.Chown(vos.User.Uid, -1)
 
-		cmd := vos.VM.AttachCommand(vos.User.Uid, "/dev/pts/"+strconv.Itoa(server.pty.No), screen.Command...)
-		err = cmd.Start()
-		if err != nil {
-			panic(err)
-		}
+	cmd := vos.VM.AttachCommand(vos.User.Uid, "/dev/pts/"+strconv.Itoa(server.pty.No), screen.Command...)
+	err = cmd.Start()
+	if err != nil {
+		panic(err)
+	}
 
-		go func() {
-			defer log.RecoverAndLog()
+	go func() {
+		defer log.RecoverAndLog()
 
-			cmd.Wait()
-			server.pty.Slave.Close()
-			server.pty.Master.Close()
-			server.remote.SessionEnded()
-		}()
+		cmd.Wait()
+		server.pty.Slave.Close()
+		server.pty.Master.Close()
+		server.remote.SessionEnded()
+	}()
 
-		go func() {
-			defer log.RecoverAndLog()
+	go func() {
+		defer log.RecoverAndLog()
 
-			buf := make([]byte, (1<<12)-utf8.UTFMax, 1<<12)
-			for {
-				n, err := server.pty.Master.Read(buf)
-				for n < cap(buf)-1 {
-					r, _ := utf8.DecodeLastRune(buf[:n])
-					if r != utf8.RuneError {
-						break
-					}
-					server.pty.Master.Read(buf[n : n+1])
-					n++
-				}
-
-				s := time.Now().Unix()
-				if server.currentSecond != s {
-					server.currentSecond = s
-					server.messageCounter = 0
-					server.byteCounter = 0
-					server.lineFeeedCounter = 0
-				}
-				server.messageCounter += 1
-				server.byteCounter += n
-				server.lineFeeedCounter += bytes.Count(buf[:n], []byte{'\n'})
-				if server.messageCounter > 100 || server.byteCounter > 1<<18 || server.lineFeeedCounter > 300 {
-					time.Sleep(time.Second / 100)
-				}
-
-				server.remote.Output(string(utils.FilterInvalidUTF8(buf[:n])))
-				if err != nil {
+		buf := make([]byte, (1<<12)-utf8.UTFMax, 1<<12)
+		for {
+			n, err := server.pty.Master.Read(buf)
+			for n < cap(buf)-1 {
+				r, _ := utf8.DecodeLastRune(buf[:n])
+				if r != utf8.RuneError {
 					break
 				}
+				server.pty.Master.Read(buf[n : n+1])
+				n++
 			}
-		}()
 
-		channel.OnDisconnect(func() { server.Close() })
+			s := time.Now().Unix()
+			if server.currentSecond != s {
+				server.currentSecond = s
+				server.messageCounter = 0
+				server.byteCounter = 0
+				server.lineFeeedCounter = 0
+			}
+			server.messageCounter += 1
+			server.byteCounter += n
+			server.lineFeeedCounter += bytes.Count(buf[:n], []byte{'\n'})
+			if server.messageCounter > 100 || server.byteCounter > 1<<18 || server.lineFeeedCounter > 300 {
+				time.Sleep(time.Second / 100)
+			}
 
-		return server, nil
-	})
+			server.remote.Output(string(utils.FilterInvalidUTF8(buf[:n])))
+			if err != nil {
+				break
+			}
+		}
+	}()
+
+	channel.OnDisconnect(func() { server.Close() })
+
+	return server, nil
 }
 
 func (server *WebtermServer) Input(data string) {

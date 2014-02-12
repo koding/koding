@@ -18,20 +18,24 @@
 html, body {
   margin: 0;
   padding: 0;
-  font-family:"Open Sans",Helvetica,sans-serif;
+  font-family:"Helvetica Neue", Helvetica, Arial, sans-serif;
+  background: #e9e9e7;
 }
 
-body > header{margin:0;
-  background:#332f2a url("../images/koding-new-bg.png") repeat-x scroll 0 0;
-  width:100%;
-  height:51px;
-  -moz-box-shadow:inset 0 -7px 15px rgba(0,0,0,0.3);
-  -webkit-box-shadow:inset 0 -7px 15px rgba(0,0,0,0.3);
-  box-shadow:inset 0 -7px 15px rgba(0,0,0,0.3);
+body > header{
+  margin:0;
+  width: 100%;
+  height: 55px;
+  z-index: 10;
+  box-shadow: 0 3px 0 rgba(0, 0, 0, .15);
+  position: fixed;
+  background: #1f2628;
+  top: 0;
+  left: 0
 }
 body > .tos {
-  padding: 0 30px;
-  font-size: 13px;
+  padding: 55px 30px;
+  font-size: 14px;
   max-width: 800px;
 }
 
@@ -48,39 +52,21 @@ body > .tos p strong{
   color: #000;
 }
 
-#koding-logo{position:absolute;
-  display:block;
-  top:10px;
-  left:31px;
-  width:auto;
-  height:30px;
-  font-family:Ubuntu;
-  font-size:24px;
-  vertical-align:top;
-  padding:0 0 0 35px;
-  line-height:30px;
-  font-weight:600;
-  -moz-opacity:.99;
-  color:#f2f2f2;
-  -webkit-transition:left .15s linear;
-  -moz-transition:left .15s linear;
-  -o-transition:left .15s linear;
-  -ms-transition:left .15s linear;
-  transition:left .15s linear;
+#koding-logo {
+  background: #1aaf5d;
+  width: 57px;
+  height: 55px;
+  display: block
 }
 
-#koding-logo span{position:absolute;
-  top:2px;
-  left:0;
-  width:120px;
-  height:30px;
-  display:inline-block;
-  background-position:-240px -40px;
-  background-image:url("../images/_kd.sprites.png");
-  background-color:transparent;
-  background-repeat:no-repeat
+#koding-logo span {
+  display: block;
+  width: 57px;
+  height: 55px;
+  background: url(../images/logos/nav-logo.png) no-repeat center center;
 }
 
 #iubenda_policy.iubenda_fluid_policy .iub_container {
   margin-top: 0!important;
+  padding-top: 55px;
 }
