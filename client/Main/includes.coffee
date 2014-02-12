@@ -129,7 +129,6 @@ module.exports = [
   "CommonViews/ModalViewWithTerminal.coffee",
   "CommonViews/clonerepomodal.coffee",
 
-  "kodingappcontroller.coffee",
   "CommonViews/adminmodal.coffee",
 
   "navigation/navigationlist.coffee",
