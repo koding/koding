@@ -63,10 +63,27 @@ class TeamPlan extends JView
 
     @updateContent()
 
+  resourcePackUnits =
+    cpu             : 1
+    ram             : 1
+    disk            : 50
+    totalVMs        : 10
+    alwaysOn        : 1
+
   updateContent: ->
     @total = (@resourceQuantity * unitPrices.resourcePack) + (@userQuantity * unitPrices.user)
     @title.updatePartial "Resource Pack x #{@resourceQuantity}<br>for #{@userQuantity} People"
     @price.updatePartial "$#{@total}/Month"
+
+    {cpu, ram, disk, totalVMs, alwaysOn} = resourcePackUnits
+    @resourcePackSlider.description.updatePartial """
+    <span>Resource pack contains</span>
+    <cite>#{cpu * @resourceQuantity}x</cite>CPU
+    <cite>#{ram * @resourceQuantity}x</cite>GB RAM
+    <cite>#{disk * @resourceQuantity}</cite>GB Disk
+    <cite>#{totalVMs * @resourceQuantity}x</cite>Total VMs
+    <cite>#{alwaysOn * @resourceQuantity}x</cite>Always on VMs
+    """
 
   pistachio: ->
     """
