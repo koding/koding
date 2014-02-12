@@ -65,7 +65,7 @@ class TeamPlan extends JView
 
   updateContent: ->
     @total = (@resourceQuantity * unitPrices.resourcePack) + (@userQuantity * unitPrices.user)
-    @title.updatePartial "#{@resourceQuantity}x Resource Pack<br>for #{@userQuantity} People"
+    @title.updatePartial "Resource Pack x #{@resourceQuantity}<br>for #{@userQuantity} People"
     @price.updatePartial "$#{@total}/Month"
 
   pistachio: ->
