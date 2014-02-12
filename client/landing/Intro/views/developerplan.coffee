@@ -26,6 +26,7 @@ class IntroDeveloperPlan extends JView
         """
       unitPrice      : 20
       hidePrice      : yes
+      amountSuffix   : "x"
       slider         :
         minValue     : 0
         maxValue     : @plans.length - 1
