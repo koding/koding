@@ -69,9 +69,11 @@ class EnvironmentsMainScene extends JView
         new KDNotificationView
           title: "You need to have at least one VM to manage domains."
 
+      domainCreateForm = @getDomainCreateForm()
+
       new KDModalView
         title          : "Add Domain"
-        view           : @getDomainCreateForm()
+        view           : domainCreateForm
         width          : 700
         overlay        : yes
         buttons        :
@@ -79,7 +81,7 @@ class EnvironmentsMainScene extends JView
             title      : "Create"
             style      : "modal-clean-green"
             callback   : =>
-              @domainCreateForm.createSubDomain()
+              domainCreateForm.createSubDomain()
 
     vmController = KD.getSingleton 'vmController'
 
