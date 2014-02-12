@@ -87,7 +87,6 @@ func main() {
 	mongodbConn = mongodb.NewMongoDB(conf.Mongo)
 	modelhelper.Initialize(conf.Mongo)
 
-	var logLevel logger.Level
 	if *flagDebug {
 		logLevel = logger.DEBUG
 	} else {
@@ -122,40 +121,40 @@ func main() {
 	}
 
 	// register current client-side methods
-	registerVmMethod(k, "vm.start", false, vmStart)
-	registerVmMethod(k, "vm.shutdown", false, vmShutdown)
-	registerVmMethod(k, "vm.prepare", false, vmPrepare)
-	registerVmMethod(k, "vm.unprepare", false, vmUnprepare)
-	registerVmMethod(k, "vm.stop", false, vmStop)
-	registerVmMethod(k, "vm.reinitialize", false, vmReinitialize)
-	registerVmMethod(k, "vm.info", false, vmInfo)
-	registerVmMethod(k, "vm.resizeDisk", false, vmResizeDisk)
-	registerVmMethod(k, "vm.createSnapshot", false, vmCreateSnaphost)
-	registerVmMethod(k, "spawn", true, spawn)
-	registerVmMethod(k, "exec", true, exec)
+	registerMethod(k, "vm.start", false, vmStart)
+	registerMethod(k, "vm.shutdown", false, vmShutdown)
+	registerMethod(k, "vm.prepare", false, vmPrepare)
+	registerMethod(k, "vm.unprepare", false, vmUnprepare)
+	registerMethod(k, "vm.stop", false, vmStop)
+	registerMethod(k, "vm.reinitialize", false, vmReinitialize)
+	registerMethod(k, "vm.info", false, vmInfo)
+	registerMethod(k, "vm.resizeDisk", false, vmResizeDisk)
+	registerMethod(k, "vm.createSnapshot", false, vmCreateSnaphost)
+	registerMethod(k, "spawn", true, spawn)
+	registerMethod(k, "exec", true, exec)
 
 	syscall.Umask(0) // don't know why richard calls this
-	registerVmMethod(k, "fs.readDirectory", false, fsReadDirectory)
-	registerVmMethod(k, "fs.glob", false, fsGlob)
-	registerVmMethod(k, "fs.readFile", false, fsReadFile)
-	registerVmMethod(k, "fs.writeFile", false, fsWriteFile)
-	registerVmMethod(k, "fs.ensureNonexistentPath", false, fsEnsureNonexistentPath)
-	registerVmMethod(k, "fs.getInfo", false, fsGetInfo)
-	registerVmMethod(k, "fs.setPermissions", false, fsSetPermissions)
-	registerVmMethod(k, "fs.remove", false, fsRemove)
-	registerVmMethod(k, "fs.rename", false, fsRename)
-	registerVmMethod(k, "fs.createDirectory", false, fsCreateDirectory)
+	registerMethod(k, "fs.readDirectory", false, fsReadDirectory)
+	registerMethod(k, "fs.glob", false, fsGlob)
+	registerMethod(k, "fs.readFile", false, fsReadFile)
+	registerMethod(k, "fs.writeFile", false, fsWriteFile)
+	registerMethod(k, "fs.ensureNonexistentPath", false, fsEnsureNonexistentPath)
+	registerMethod(k, "fs.getInfo", false, fsGetInfo)
+	registerMethod(k, "fs.setPermissions", false, fsSetPermissions)
+	registerMethod(k, "fs.remove", false, fsRemove)
+	registerMethod(k, "fs.rename", false, fsRename)
+	registerMethod(k, "fs.createDirectory", false, fsCreateDirectory)
 
-	registerVmMethod(k, "app.install", false, appInstall)
-	registerVmMethod(k, "app.download", false, appDownload)
-	registerVmMethod(k, "app.publish", false, appPublish)
-	registerVmMethod(k, "app.skeleton", false, appSkeleton)
+	registerMethod(k, "app.install", false, appInstall)
+	registerMethod(k, "app.download", false, appDownload)
+	registerMethod(k, "app.publish", false, appPublish)
+	registerMethod(k, "app.skeleton", false, appSkeleton)
 
-	registerVmMethod(k, "webterm.connect", false, webtermConnect)
-	registerVmMethod(k, "webterm.getSessions", false, webtermGetSessions)
+	registerMethod(k, "webterm.connect", false, webtermConnect)
+	registerMethod(k, "webterm.getSessions", false, webtermGetSessions)
 
-	registerVmMethod(k, "s3.store", true, s3Store)
-	registerVmMethod(k, "s3.delete", true, s3Delete)
+	registerMethod(k, "s3.store", true, s3Store)
+	registerMethod(k, "s3.delete", true, s3Delete)
 
 	k.Run()
 }
@@ -394,10 +393,15 @@ func setupSignalHandler() {
 	}()
 }
 
-func registerVmMethod(k *kite.Kite, method string, concurrent bool, callback func(*dnode.Partial, *kite.Channel, *virt.VOS) (interface{}, error)) {
+// registerMethod is wrapper around our final methods. It's basically creates
+// a "vos" struct and pass it to the our method. The VOS has "vm", "user" and
+// "permissions" document embedded, with this info our final method has all
+// the necessary needed bits.
+which has all the necessary bits a method needs. I
+func registerMethod(k *kite.Kite, method string, concurrent bool, callback func(*dnode.Partial, *kite.Channel, *virt.VOS) (interface{}, error)) {
 
 	wrapperMethod := func(args *dnode.Partial, channel *kite.Channel) (methodReturnValue interface{}, methodError error) {
-
+		// set to true when a SIGNAL is received
 		if shuttingDown {
 			return nil, errors.New("Kite is shutting down.")
 		}
@@ -417,6 +421,8 @@ func registerVmMethod(k *kite.Kite, method string, concurrent bool, callback fun
 		}
 		vm.ApplyDefaults()
 
+		log.Info("[%s] method %s get called", vm.Id.Hex(), method)
+
 		defer func() {
 			if err := recover(); err != nil {
 				log.LogError(err, 1, channel.Username, channel.CorrelationName, vm.String())
@@ -431,11 +437,13 @@ func registerVmMethod(k *kite.Kite, method string, concurrent bool, callback fun
 			return callback(args, channel, &virt.VOS{VM: vm, User: user})
 		}
 
+		// userVos has now "vm", "user" and "permissions" document.
 		userVos, err := vm.OS(user)
 		if err != nil {
-			return nil, err
+			return nil, err // returns an error if the permisisons are not set for the user
 		}
 
+		// now call our final method. run forrest run ....!
 		return callback(args, channel, userVos)
 	}
 
@@ -617,26 +625,26 @@ func startVM(vm *virt.VM, channel *kite.Channel) error {
 
 			startTime := time.Now()
 			vm.Prepare(false, log.Warning)
-			if err := vm.Start(); err != nil {
-				log.LogError(err, 0)
-			}
 
-			// wait until network is up
-			if err := vm.WaitForNetwork(time.Second * 5); err != nil {
-				log.Error("%v", err)
-			}
-
-			endTime := time.Now()
 			log.Info("VM PREPARE and START: %s [%s] - ElapsedTime: %.10f seconds.",
-				vm, vm.HostnameAlias, endTime.Sub(startTime).Seconds())
-
-			info.currentHostname = vm.HostnameAlias
+				vm, vm.HostnameAlias, time.Since(startTime).Seconds())
 		}
 
 		// wait until the prepareWorker has picked us and we finished
 		<-wait
 	}
 
+	// if it's started already it will not do anything
+	if err := vm.Start(); err != nil {
+		log.LogError(err, 0)
+	}
+
+	// wait until network is up
+	if err := vm.WaitForNetwork(time.Second * 5); err != nil {
+		log.Error("%v", err)
+	}
+
+	info.currentHostname = vm.HostnameAlias
 	return nil
 }
 
