@@ -197,6 +197,82 @@ class DevToolsMainView extends KDView
     require [COFFEE], (@coffee)=> callback @coffee
 
 
+  compileApp:->
+
+    {JSEditor} = @workspace.activePanel.panesByName
+    app = KodingAppsController.getAppInfoFromPath JSEditor.getData()?.path
+
+    if app
+
+      @compileAppOnServer app, ->
+        log "COMPILE", arguments
+
+
+  compileAppOnServer:(app, callback)->
+
+    loader = new KDNotificationView
+      duration : 18000
+      title    : "Compiling #{app.name}..."
+      type     : "mini"
+
+    {vmController} = KD.singletons
+    vmController.run "kdc #{app.path}", (err, response)=>
+
+      unless err
+
+        loader.notificationSetTitle "App compiled successfully"
+        loader.notificationSetTimer 2000
+        callback()
+
+      else
+
+        loader.destroy()
+
+        if err.message is "exit status 127"
+          @installKDC()
+          callback? err
+          return
+
+        new KDModalView
+          title    : "An error occured while compiling #{app.name}"
+          width    : 600
+          overlay  : yes
+          cssClass : 'compiler-modal'
+          content  : if response then "<pre>#{response}</pre>" \
+                                 else "<p>#{err.message}</p>"
+
+        callback? err
+
+  installKDC:->
+    modal = new ModalViewWithTerminal
+      title   : "Koding app compiler is not installed in your VM."
+      width   : 500
+      overlay : yes
+      terminal:
+        hidden: yes
+      content : """
+                  <p>
+                    If you want to install it now, click <strong>Install Compiler</strong> button.
+                  </p>
+                  <p>
+                    <strong>Remember to enter your password when asked.</strong>
+                  </p>
+                """
+      buttons:
+        "Install Compiler":
+          cssClass: "modal-clean-green"
+          callback: =>
+            modal.run "sudo npm install -g kdc; echo $?|kdevent;" # find a clean/better way to do it.
+
+    modal.on "terminal.event", (data)=>
+      if data is "0"
+        new KDNotificationView title: "Installed successfully!"
+        modal.destroy()
+      else
+        new KDNotificationView
+          title   : "An error occured."
+          content : "Something went wrong while installing Koding App Compiler. Please try again."
+
 class DevToolsEditorPane extends CollaborativeEditorPane
 
   constructor:(options = {}, data)->
