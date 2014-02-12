@@ -26,6 +26,8 @@ class PricingAppView extends KDView
       return  unless workflow.active
       @breadcrumb.selectItem workflow.active.getOption 'name'
 
+    workflow.once "PasswordRecoveryToken", (@recoveryToken) =>
+
   hideBreadcrumb:->
     @breadcrumb.hide()
     document.body.classList.remove 'flow'
@@ -74,9 +76,8 @@ class PricingAppView extends KDView
     @breadcrumb.selectItem 'thanks'
 
     subtitle =
-      if createAccount
-      then "Please check your email to complete your registration."
-      else "Now it’s time, time to start Koding!"
+      if loggedIn then "Now it’s time, time to start Koding!"
+      else ""
 
     @addSubView @thankYou = new KDCustomHTMLView
       cssClass : "pricing-final"
@@ -93,16 +94,14 @@ class PricingAppView extends KDView
         title    : "Go to your environment"
         callback : ->
           KD.singleton("router").handleRoute "/Environments"
+    else if createAccount
+      @thankYou.addSubView @getCompleteYourRegistrationButton()
 
   showGroupCreated: (group, subscription) ->
-
+    {createAccount, loggedIn} = @formData
     @breadcrumb.selectItem 'thanks'
 
     planCodes = Object.keys subscription.quantities
-    subtitle =
-      if @formData.createAccount
-      then "Please check your email to complete your registration."
-      else ""
 
     @addSubView @thankYou = new KDCustomHTMLView
       cssClass : "pricing-final"
@@ -110,15 +109,23 @@ class PricingAppView extends KDView
         """
         <i class="check-icon"></i>
         <h3 class="pricing-title"><strong>#{group.title}</strong> has been successfully created</h3>
-        <h6 class="pricing-subtitle">#{subtitle}</h6>
         """
 
-    if @formData.loggedIn
+    if loggedIn
       @thankYou.addSubView new KDButtonView
         style    : "solid green"
         title    : "Go to Group"
         callback : ->
           window.open "#{window.location.origin}/#{group.slug}", "_blank"
+    else if createAccount
+      @thankYou.addSubView @getCompleteYourRegistrationButton()
+
+  getCompleteYourRegistrationButton: ->
+    return new KDButtonView
+      style    : "solid green"
+      title    : "Complete your registration"
+      callback : =>
+        window.location.href = "/Register/#{encodeURIComponent @recoveryToken}"  if @recoveryToken
 
   addGroupForm: ->
     @groupForm = @createGroupForm()
@@ -174,7 +181,7 @@ class PricingAppView extends KDView
           name              : "groupSlug"
           validate          :
             rules           :
-              minLength     : 4
+              minLength     : 3
 
         Visibility          :
           itemClass         : KDSelectBox
