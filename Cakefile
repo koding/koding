@@ -571,8 +571,6 @@ run =({configFile})->
     invoke 'addTagCategories'
     invoke 'webserver'
     invoke 'cronJobs'
-    invoke 'kontrolKite'
-    invoke 'regservKite'
 
 task 'importDB', (options) ->
   if options.configFile is 'vagrant'
