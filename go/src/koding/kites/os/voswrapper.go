@@ -197,3 +197,12 @@ func fsReadFileNew(r *kitelib.Request, vos *virt.VOS) (interface{}, error) {
 
 	return fsReadFile(params.Path, vos)
 }
+
+func fsWriteFileNew(r *kitelib.Request, vos *virt.VOS) (interface{}, error) {
+	var params writeFileParams
+	if r.Args.Unmarshal(&params) != nil || params.Path == "" {
+		return nil, &kite.ArgumentError{Expected: "{ path: [string] }"}
+	}
+
+	return fsWriteFile(params, vos)
+}

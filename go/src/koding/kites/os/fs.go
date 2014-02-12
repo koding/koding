@@ -153,41 +153,14 @@ func fsReadFileOld(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (i
 	return fsReadFile(params.Path, vos)
 }
 
-func fsWriteFile(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
-	var params struct {
-		Path           string
-		Content        []byte
-		DoNotOverwrite bool
-		Append         bool
-	}
+func fsWriteFileOld(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
+	var params writeFileParams
+
 	if args.Unmarshal(&params) != nil || params.Path == "" || params.Content == nil {
 		return nil, &kite.ArgumentError{Expected: "{ path: [string], content: [base64], doNotOverwrite: [bool], append: [bool] }"}
 	}
 
-	flags := os.O_RDWR | os.O_CREATE
-	if params.DoNotOverwrite {
-		flags |= os.O_EXCL
-	}
-	if !params.Append {
-		flags |= os.O_TRUNC
-	}
-	dirInfo, err := vos.Stat(path.Dir(params.Path))
-	if err != nil {
-		return nil, err
-	}
-	file, err := vos.OpenFile(params.Path, flags, dirInfo.Mode().Perm()&0666)
-	if err != nil {
-		return nil, err
-	}
-	defer file.Close()
-
-	if params.Append {
-		_, err := file.Seek(0, 2)
-		if err != nil {
-			return nil, err
-		}
-	}
-	return file.Write(params.Content)
+	return fsWriteFile(params, vos)
 }
 
 var suffixRegexp = regexp.MustCompile(`.((_\d+)?)(\.\w*)?$`)
@@ -385,4 +358,42 @@ func fsReadFile(path string, vos *virt.VOS) (interface{}, error) {
 	}
 
 	return map[string]interface{}{"content": buf}, nil
+}
+
+type writeFileParams struct {
+	Path           string
+	Content        []byte
+	DoNotOverwrite bool
+	Append         bool
+}
+
+func fsWriteFile(params writeFileParams, vos *virt.VOS) (interface{}, error) {
+	flags := os.O_RDWR | os.O_CREATE
+	if params.DoNotOverwrite {
+		flags |= os.O_EXCL
+	}
+
+	if !params.Append {
+		flags |= os.O_TRUNC
+	}
+
+	dirInfo, err := vos.Stat(path.Dir(params.Path))
+	if err != nil {
+		return nil, err
+	}
+
+	file, err := vos.OpenFile(params.Path, flags, dirInfo.Mode().Perm()&0666)
+	if err != nil {
+		return nil, err
+	}
+	defer file.Close()
+
+	if params.Append {
+		_, err := file.Seek(0, 2)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return file.Write(params.Content)
 }
