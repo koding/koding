@@ -18,6 +18,9 @@ worker = new Bongo {
   models : '../social/lib/social/models'
 }
 
+handleError = (err) ->
+  console.error err
+
 importProducts = (callback) ->
   data = require(__dirname + '/products');
   queue = []
@@ -31,18 +34,13 @@ importProducts = (callback) ->
     {title} = product  
     JPaymentProduct.one title: title, (err, paymentProduct) ->
       if err 
-        console.error err 
+        handleError err  
         return fin()
 
-      if paymentProduct? 
-        paymentProduct.remove (err) ->
-          if err
-            console.error "#{product.title} cannot be added" 
-            fin()
-          else
-            kreate()
-      else
-        kreate()
+      return kreate()  unless paymentProduct
+
+      console.error "#{product.title} already exists" 
+      fin()
   , -> callback null
 
   insertProducts product for product in data
@@ -51,42 +49,31 @@ importPacks = (callback) ->
   data = require(__dirname + '/packs');
   queue = []
   fetchAllProducts (err, productPlanCodes) ->
-    return console.error err if err
+    if err 
+      console.error err 
+      return callback err
     insertPacks = race (i, pack, fin) ->
       {title} = pack  
       {JPaymentPack, JPaymentProduct} = worker.models
 
       kreate = ->
         JPaymentPack.create "koding", pack, (err, pack) ->
-          if err 
-            console.error err 
-            return fin()
+          return handleError err  if err 
 
           console.log "#{pack.title} pack added successfully" 
 
           quantities = {}
           quantities[productPlanCodes[pack.title]] = 1
           pack.updateProducts quantities, (err) ->
-            return console.error err if err
+            return handleError err  if err
             console.log "#{pack.title} pack products are added"
             fin()
 
       JPaymentPack.one title: title, (err, paymentPack) ->
-        if err 
-          console.error err
-          fin()
-
-        if paymentPack
-          paymentPack.remove (err) ->
-            if err 
-              console.error err
-              console.error "#{pack.title} cannot be added"  
-              fin()
-            else 
-              kreate()
-        else
-          kreate()
-            
+        return handleError err  if err 
+        return kreate()  unless paymentPack
+        handleError "#{pack.title} already exists"  
+        fin()
     , -> callback null
 
     insertPacks pack for pack in data
@@ -106,15 +93,15 @@ importPlans = (callback) ->
   {JPaymentPlan} = worker.models
 
   fetchAllProducts (err, productPlanCodes) ->
-    return console.error err if err
+    return console.error err  if err
 
     queue = []
     insertPlans = race (i, plan, fin) ->
       kreate = ->
         JPaymentPlan.create "koding", plan, (err, newPlan) ->
           if err 
-            console.error err
-            return fin()
+            handleError err  
+            fin()
 
           console.log "#{plan.title} plan added successfully" 
           quantities = {}
@@ -143,18 +130,13 @@ importPlans = (callback) ->
       {title} = plan  
       JPaymentPlan.one title: title, (err, paymentPlan) ->
         if err 
-          console.error err
-          return fin()
+          handleError err  
+          fin()
+        return kreate() unless paymentPlan  
 
-        if paymentPlan? 
-          paymentPlan.remove (err) ->
-            if err
-              console.error "#{plan.title} cannot be added" 
-              fin()
-            else
-              kreate()
-        else
-          kreate()
+        handleError "#{plan.title} already exists" 
+        fin()
+          
     , -> callback null
 
     insertPlans plan for plan in data
@@ -176,11 +158,38 @@ createBot = (callback) ->
         JAccount.update "profile.nickname" : "bot", {$set: type: "registered"}, \
           {multi: no}, (err, account) ->
             return callback err if err
-            console.log "bot created"
             callback null
 
+initFreeSubscriptions = (callback=->) ->
+  worker.on 'dbClientReady', ->
+    {JPaymentSubscription, JAccount, Relationship} = worker.models
+    
+    count = 0
+    index = 0
+    batchHandler = (skip) ->
+      JAccount.some {"profile.nickname": $not: /^guest-*/ }, {limit: 100, skip}, (err, accounts) ->
+        return callback err  if err
 
-initProducts = ->
+        count += accounts.length
+        unless accounts.length
+          console.log "added free plan for #{count} accounts"  
+          return callback null
+        
+        queue = accounts.map (account) ->->
+          JPaymentSubscription.createFreeSubscription account, (err) ->
+            console.log "#{++index}"
+            console.warn "error occurred for #{account?.profile?.nickname}: #{err}"  if err
+            queue.next()
+
+        queue.push ->  
+          console.log "next"
+          batchHandler skip + 100
+
+        daisy queue
+    
+    batchHandler 0
+    
+initPaymentData = ->
   worker.on 'dbClientReady', ->
     queue = [
       -> importProducts ->  
@@ -199,7 +208,12 @@ initProducts = ->
     ]
 
     daisy queue
-    
-initProducts()
 
+switch argv.i 
+  when "payment"
+    initPaymentData()
+  when "subscription"
+    initFreeSubscriptions()
+  else
+    console.error "unknown -i value"
  
