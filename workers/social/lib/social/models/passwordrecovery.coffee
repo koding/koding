@@ -143,9 +143,6 @@ module.exports = class JPasswordRecovery extends jraphical.Module
           if err
             callback err
           else
-            # emit certificate to user form to complete registartion process
-            # at paymentConfirmation
-            delegate.emit "tokenCreated", certificate.token
             messageOptions =
               url           : "#{protocol}//#{host}/#{verb}/#{encodeURIComponent token}"
               resetPassword : options.resetPassword
@@ -161,7 +158,9 @@ module.exports = class JPasswordRecovery extends jraphical.Module
               force           : yes
 
             email.save (err)->
-              callback new KodingError "Email cannot saved" if err
+              return callback new KodingError "Email cannot saved" if err
+              callback err, token
+
 
 
   @validate = secure ({connection:{delegate}}, token, callback)->
