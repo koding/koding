@@ -167,20 +167,27 @@ initFreeSubscriptions = (callback=->) ->
 
     count = 0
     index = 0
+    queue = []
     batchHandler = (skip) ->
       JAccount.some {"type": "registered"}, {limit: 100, skip}, (err, accounts) ->
         return callback err  if err
 
         count += accounts.length
         unless accounts.length
-          console.log "added free plan for #{count} accounts"
+          console.log "found #{count} registered accounts and added free plan for #{index} accounts"
+          queue.next()
           return callback null
 
         queue = accounts.map (account) ->->
-          JPaymentSubscription.createFreeSubscription account, (err) ->
-            console.log "#{++index}"
+          options = targetOptions: selector: tags: "nosync"
+          account.fetchSubscription null, options, (err, subscription) ->
             console.warn "error occurred for #{account?.profile?.nickname}: #{err}"  if err
-            queue.next()
+            return queue.next()  if subscription
+
+            JPaymentSubscription.createFreeSubscription account, (err) ->
+              console.log "#{++index}"
+              console.warn "error occurred for #{account?.profile?.nickname}: #{err}"  if err
+              queue.next()
 
         queue.push ->
           console.log "next"
@@ -214,6 +221,7 @@ switch argv.i
   when "payment"
     initPaymentData()
   when "subscription"
-    initFreeSubscriptions()
+    initFreeSubscriptions (err) ->
+      process.exit(1)
   else
     console.error "unknown -i value"
