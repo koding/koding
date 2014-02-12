@@ -772,26 +772,9 @@ module.exports = class JUser extends jraphical.Module
         JPasswordRecovery.create client, passwordOptions, (err)->
           queue.next()
       ->
-        options = targetOptions: selector: tags: "vm"
-        JPaymentPlan.one tags: "nosync", (err, plan) ->
-          return \
-            if err then console.warn err
-            else if not plan then console.warn "nosync plan not found"
-
-          {planCode, quantities, tags} = plan
-          freePlanSubscription = new JPaymentSubscription
-            planCode   : planCode
-            quantity   : 1
-            status     : "active" # status
-            feeAmount  : 0
-            quantities : quantities
-            tags       : tags
-
-          freePlanSubscription.save (err) ->
-            return console.warn "nosync subscription failed: #{err}"  if err
-            account.addSubscription freePlanSubscription, (err) ->
-              console.warn "couldn't add subscription to account: #{err}"  if err
-              queue.next()
+        JPaymentSubscription.createFreeSubscription account, (err) ->
+          console.warn err  if err
+          queue.next()
       ->
         options = targetOptions: selector: tags: "vm"
         account.fetchSubscriptions null, options, (err = "", [subscription]) ->
