@@ -1,10 +1,11 @@
+{argv} = require 'optimist'
+{uri, client:{version}} = require('koding-config-manager').load("main.#{argv.c}")
 encoder      = require 'htmlencode'
 
-#module.exports = (title = "A new way for developers to work.", shareUrl = "https://koding.com")->
 module.exports = (options = {})->
   options.title ?= "A new way for developers to work."
   options.shareUrl ?= "https://koding.com"
-  options.image ?= "/a/images/koding_share_green.png"
+  options.image ?= "#{uri.address}/a/images/koding_share_green.png"
   options.body ?= "Koding is a developer community and cloud development environment where developers come together and code in the browser."
 
   """
@@ -19,7 +20,7 @@ module.exports = (options = {})->
 
   <meta itemprop="name" content="Koding">
   <meta itemprop="description" content="#{encoder.XSSEncode options.body}">
-  <meta itemprop="image" content="https://koding.com/a/images/koding_share_green.png">
+  <meta itemprop="image" content="#{uri.address}/a/images/koding_share_green.png">
 
   <!-- og meta tags -->
   <meta property="fb:app_id" content="109012155844171" />

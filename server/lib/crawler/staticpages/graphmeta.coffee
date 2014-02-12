@@ -1,6 +1,6 @@
 
 {argv} = require 'optimist'
-{client:{version}} = require('koding-config-manager').load("main.#{argv.c}")
+{uri, client:{version}} = require('koding-config-manager').load("main.#{argv.c}")
 
 module.exports = ->
 
@@ -16,14 +16,14 @@ module.exports = ->
 
   <meta itemprop="name" content="Koding">
   <meta itemprop="description" content="Koding is a developer community and cloud development environment where developers come together and code in the browser.">
-  <meta itemprop="image" content="/a/images/koding_share_green.png">
+  <meta itemprop="image" content="#{uri.address}/a/images/koding_share_green.png">
 
   <!-- og meta tags -->
   <meta property="fb:app_id" content="109012155844171" />
   <meta property="og:title" content="Koding - A new way for developers to work."/>
   <meta property="og:type" content="website"/>
   <meta property="og:url" content="https://koding.com"/>
-  <meta property="og:image" content="/a/images/koding_share_green.png"/>
+  <meta property="og:image" content="#{uri.address}/a/images/koding_share_green.png"/>
   <meta property="og:description" content="Koding is a developer community and cloud development environment where developers come together and code in the browser."/>
   <meta property="og:image:type" content="png">
   <meta property="og:image:width" content="400"/>
@@ -35,7 +35,7 @@ module.exports = ->
   <meta name="twitter:title" content="Koding - A new way for developers to work."/>
   <meta name="twitter:creator" content="@koding"/>
   <meta name="twitter:card" content="summary"/>
-  <meta name="twitter:image" content="/a/images/koding_share_green.png"/>
+  <meta name="twitter:image" content="#{uri.address}/a/images/koding_share_green.png"/>
   <meta name="twitter:description" content="Koding is a developer community and cloud development environment where developers come together and code in the browser."/>
   <meta name="twitter:domain" content="koding.com">
 
@@ -46,8 +46,8 @@ module.exports = ->
   <meta name="apple-mobile-web-app-title" content="Koding">
   <meta name="viewport" content="user-scalable=no, width=device-width, initial-scale=1">
 
-  <link rel="shortcut icon" href="/a/images/favicon.ico">
-  <link rel="fluid-icon" href="/a/images/koding_share_green.png" title="Koding">
+  <link rel="shortcut icon" href="#{uri.address}/a/images/favicon.ico">
+  <link rel="fluid-icon" href="#{uri.address}/a/images/koding_share_green.png" title="Koding">
   <link rel="stylesheet" href="/a/css/kd.#{version}.css">
   <link rel="stylesheet" href="/a/css/introapp.#{version}.css">
   <link rel="stylesheet" href="/a/css/koding.#{version}.css">
