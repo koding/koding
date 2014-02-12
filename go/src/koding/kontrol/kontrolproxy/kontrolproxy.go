@@ -476,10 +476,6 @@ func (p *Proxy) redirect(req *http.Request, target *resolver.Target) http.Handle
 func (p *Proxy) vm(req *http.Request, target *resolver.Target) http.Handler {
 	userIP := getIP(req.RemoteAddr)
 	hostnameAlias := target.HostnameAlias[0]
-	hostkite := target.Properties["hostkite"].(string)
-	alwaysOn := target.Properties["alwaysOn"].(bool)
-	disableSecurePage := target.Properties["disableSecurePage"].(bool)
-
 	var port string
 	var err error
 
@@ -496,6 +492,11 @@ func (p *Proxy) vm(req *http.Request, target *resolver.Target) http.Handler {
 		log.Warning("ModeVM err: %s (%s) %s", req.Host, userIP, target.Err)
 		return templateHandler("notfound.html", req.Host, 404)
 	}
+
+	// these are set in resolver.go
+	hostkite := target.Properties["hostkite"].(string)
+	alwaysOn := target.Properties["alwaysOn"].(bool)
+	disableSecurePage := target.Properties["disableSecurePage"].(bool)
 
 	if target.Err == resolver.ErrVMOff {
 		log.Debug("vm %s is off, going to start", hostnameAlias)

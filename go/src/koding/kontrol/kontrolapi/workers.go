@@ -6,6 +6,7 @@ import (
 	"io"
 	"koding/db/models"
 	"koding/db/mongodb"
+	"koding/tools/config"
 	"math"
 	"net/http"
 	"net/url"
@@ -93,10 +94,19 @@ func GetWorkerURL(writer http.ResponseWriter, req *http.Request) {
 	// use http for all workers because they don't have ssl certs
 	protocolScheme := "http:"
 
+	brokerConf := config.Broker{}
+	switch workerName {
+	case "brokerKite":
+		brokerConf = conf.BrokerKite
+	case "broker":
+		brokerConf = conf.Broker
+	default:
+	}
+
 	// broker has ssl cert and a custom url scheme, look what it's it
-	if workerName == "broker" {
-		if conf.Broker.WebProtocol != "" {
-			protocolScheme = conf.Broker.WebProtocol
+	if workerName == "broker" || workerName == "brokerKite" {
+		if brokerConf.WebProtocol != "" {
+			protocolScheme = brokerConf.WebProtocol
 		} else {
 			protocolScheme = "https:" // fallback
 		}
