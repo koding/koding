@@ -105,22 +105,22 @@ importPlans = (callback) ->
 
           console.log "#{plan.title} plan added successfully" 
           quantities = {}
-          if plan.title is "Team Plan" 
-            quantities[productPlanCodes["CPU"]] = 4
-            quantities[productPlanCodes["RAM"]] = 2
-            quantities[productPlanCodes["Disk"]] = 50
-            quantities[productPlanCodes["Always On"]] = 1
-            quantities[productPlanCodes["Max VM"]] = 10
-            quantities[productPlanCodes["User"]] = 1
-            quantities[productPlanCodes["Group"]] = 1
-          else
-            {count} = plan
-            quantities[productPlanCodes["CPU"]] = count * 4
-            quantities[productPlanCodes["RAM"]] = count * 2
-            quantities[productPlanCodes["Disk"]] = count * 50
-            quantities[productPlanCodes["Always On"]] = count
-            quantities[productPlanCodes["Max VM"]] = count * 10
-          
+          switch plan.title 
+            when "Team Plan" 
+              quantities[productPlanCodes["Always On"]] = 1 
+              quantities[productPlanCodes["VM"]] = 10 
+              quantities[productPlanCodes["User"]] = 1 
+              quantities[productPlanCodes["Group"]] = 1 
+              quantities[productPlanCodes["VM Turn On"]] = 3 
+            when "Free plan"
+              quantities[productPlanCodes["VM"]] = 3 
+              quantities[productPlanCodes["VM Turn On"]] = 1 
+            else
+              {count} = plan
+              quantities[productPlanCodes["Always On"]] = count
+              quantities[productPlanCodes["VM"]] = count * 10
+              quantities[productPlanCodes["VM Turn On"]] = count * 3
+        
           console.log 'quantities', quantities
           newPlan.updateProducts quantities, (err) ->
             if err then console.error err

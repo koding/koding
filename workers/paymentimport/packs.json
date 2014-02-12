@@ -1,5 +1,9 @@
 [
   {
+    "title": "VM Turn On", 
+    "tags": ["vmturnon"]
+  },
+  {
     "title": "VM", 
     "tags": ["vm"]
   },
