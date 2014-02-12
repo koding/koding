@@ -160,16 +160,14 @@ class KodingAppsController extends KDController
   # #
 
   defaultManifest = (type, name)->
+
     {profile} = KD.whoami()
     fullName  = KD.utils.getFullnameFromAccount()
     raw =
-      devMode       : yes
       experimental  : no
-      multiple      : no
       background    : no
       hiddenHandle  : no
       forceUpdate   : no
-      openWith      : "lastActive"
       behavior      : "application"
       version       : "0.1"
       title         : "#{name or type.capitalize()}"
@@ -185,9 +183,7 @@ class KodingAppsController extends KDController
       source        :
         blocks      :
           app       :
-            # pre     : ""
             files   : [ "./index.coffee" ]
-            # post    : ""
         stylesheets : [ "./resources/style.css" ]
       options       :
         type        : "tab"
