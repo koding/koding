@@ -5,12 +5,13 @@ package main
 import (
 	"errors"
 	kitelib "kite"
+	"koding/tools/kite"
 	"koding/virt"
 )
 
-type VosFunc func(*kitelib.Request, *virt.VOS) (interface{}, error)
+type vosFunc func(*kitelib.Request, *virt.VOS) (interface{}, error)
 
-func VosMethod(k *kitelib.Kite, method string, vosFunc VosFunc) {
+func vosMethod(k *kitelib.Kite, method string, vosFn vosFunc) {
 	handler := func(r *kitelib.Request) (interface{}, error) {
 		var params struct {
 			// might be vm ID or hostnameAlias
@@ -26,7 +27,7 @@ func VosMethod(k *kitelib.Kite, method string, vosFunc VosFunc) {
 			return nil, err
 		}
 
-		return vosFunc(r, vos)
+		return vosFn(r, vos)
 	}
 
 	k.HandleFunc(method, handler)
@@ -34,4 +35,60 @@ func VosMethod(k *kitelib.Kite, method string, vosFunc VosFunc) {
 
 func vmStartNew(r *kitelib.Request, vos *virt.VOS) (interface{}, error) {
 	return vmStart(vos)
+}
+
+func vmStopNew(r *kitelib.Request, vos *virt.VOS) (interface{}, error) {
+	return vmStop(vos)
+}
+
+func vmShutdownNew(r *kitelib.Request, vos *virt.VOS) (interface{}, error) {
+	return vmShutdown(vos)
+}
+
+func vmUnprepareNew(r *kitelib.Request, vos *virt.VOS) (interface{}, error) {
+	return vmUnprepare(vos)
+}
+
+func vmReinitializeNew(r *kitelib.Request, vos *virt.VOS) (interface{}, error) {
+	return vmReinitialize(vos)
+}
+
+func vmInfoNew(r *kitelib.Request, vos *virt.VOS) (interface{}, error) {
+	return vmInfo(vos)
+}
+
+func vmPrepareNew(r *kitelib.Request, vos *virt.VOS) (interface{}, error) {
+	return vmPrepare(vos)
+}
+
+func vmResizeDiskNew(r *kitelib.Request, vos *virt.VOS) (interface{}, error) {
+	return vmResizeDisk(vos)
+}
+
+func vmCreateSnapshotNew(r *kitelib.Request, vos *virt.VOS) (interface{}, error) {
+	return vmCreateSnapshot(vos)
+}
+
+func spawnNew(r *kitelib.Request, vos *virt.VOS) (interface{}, error) {
+	var params struct {
+		Command []string
+	}
+
+	if r.Args.One().Unmarshal(&params) != nil || len(params.Command) == 0 {
+		return nil, &kite.ArgumentError{Expected: "[array of strings]"}
+	}
+
+	return spawn(params.Command, vos)
+}
+
+func execNew(r *kitelib.Request, vos *virt.VOS) (interface{}, error) {
+	var params struct {
+		Line string
+	}
+
+	if r.Args.One().Unmarshal(&params) != nil || params.Line == "" {
+		return nil, &kite.ArgumentError{Expected: "[string]"}
+	}
+
+	return exec(params.Line, vos)
 }

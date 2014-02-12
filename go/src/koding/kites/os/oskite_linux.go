@@ -129,7 +129,7 @@ func main() {
 	registerMethod(k, "vm.reinitialize", false, vmReinitializeOld)
 	registerMethod(k, "vm.info", false, vmInfoOld)
 	registerMethod(k, "vm.resizeDisk", false, vmResizeDiskOld)
-	registerMethod(k, "vm.createSnapshot", false, vmCreateSnaphostOld)
+	registerMethod(k, "vm.createSnapshot", false, vmCreateSnapshotOld)
 	registerMethod(k, "spawn", true, spawnOld)
 	registerMethod(k, "exec", true, execOld)
 
@@ -170,7 +170,17 @@ func runNewKite() {
 		},
 	)
 
-	VosMethod(k, "vm.start", vmStartNew)
+	vosMethod(k, "vm.start", vmStartNew)
+	vosMethod(k, "vm.shutdown", vmShutdownNew)
+	vosMethod(k, "vm.prepare", vmPrepareNew)
+	vosMethod(k, "vm.unprepare", vmUnprepareNew)
+	vosMethod(k, "vm.stop", vmStopNew)
+	vosMethod(k, "vm.reinitialize", vmReinitializeNew)
+	vosMethod(k, "vm.info", vmInfoNew)
+	vosMethod(k, "vm.resizeDisk", vmResizeDiskNew)
+	vosMethod(k, "vm.createSnapshot", vmCreateSnapshotNew)
+	vosMethod(k, "spawn", spawnNew)
+	vosMethod(k, "exec", execNew)
 
 	k.Start()
 

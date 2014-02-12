@@ -43,11 +43,11 @@ func vmInfoOld(args *dnode.Partial, c *kite.Channel, vos *virt.VOS) (interface{}
 }
 
 func vmResizeDiskOld(args *dnode.Partial, c *kite.Channel, vos *virt.VOS) (interface{}, error) {
-	return vmResize(vos)
+	return vmResizeDisk(vos)
 }
 
-func vmCreateSnaphostOld(args *dnode.Partial, c *kite.Channel, vos *virt.VOS) (interface{}, error) {
-	return vmCreateSnaphost(vos)
+func vmCreateSnapshotOld(args *dnode.Partial, c *kite.Channel, vos *virt.VOS) (interface{}, error) {
+	return vmCreateSnapshot(vos)
 }
 
 func spawnOld(args *dnode.Partial, c *kite.Channel, vos *virt.VOS) (interface{}, error) {
@@ -56,7 +56,7 @@ func spawnOld(args *dnode.Partial, c *kite.Channel, vos *virt.VOS) (interface{},
 		return nil, &kite.ArgumentError{Expected: "[array of strings]"}
 	}
 
-	return spwan(command, vos)
+	return spawn(command, vos)
 }
 
 func execOld(args *dnode.Partial, c *kite.Channel, vos *virt.VOS) (interface{}, error) {
@@ -69,16 +69,15 @@ func execOld(args *dnode.Partial, c *kite.Channel, vos *virt.VOS) (interface{}, 
 }
 
 // Base functions to be plugged to old and newkite methods
-
 func exec(line string, vos *virt.VOS) (interface{}, error) {
 	return vos.VM.AttachCommand(vos.User.Uid, "", "/bin/bash", "-c", line).CombinedOutput()
 }
 
-func spwan(command []string, vos *virt.VOS) (interface{}, error) {
+func spawn(command []string, vos *virt.VOS) (interface{}, error) {
 	return vos.VM.AttachCommand(vos.User.Uid, "", command...).CombinedOutput()
 }
 
-func vmCreateSnaphost(vos *virt.VOS) (interface{}, error) {
+func vmCreateSnapshot(vos *virt.VOS) (interface{}, error) {
 	if !vos.Permissions.Sudo {
 		return nil, &kite.PermissionError{}
 	}
@@ -91,7 +90,7 @@ func vmCreateSnaphost(vos *virt.VOS) (interface{}, error) {
 	return snippetId, nil
 }
 
-func vmResize(vos *virt.VOS) (interface{}, error) {
+func vmResizeDisk(vos *virt.VOS) (interface{}, error) {
 	if !vos.Permissions.Sudo {
 		return nil, &kite.PermissionError{}
 	}
