@@ -152,16 +152,11 @@ class PaymentController extends KDController
         else if createAccount
           { cardFirstName: firstName, cardLastName: lastName } = billing
           { JUser } = KD.remote.api
-
-          me = KD.whoami()
-          me.once "tokenCreated", (token) ->
-            storageController = KD.singletons.appStorageController
-            paymentApp = storageController.storage "PaymentDetails", "1.0"
-            paymentApp.setValue "UserToken", token
-
-          JUser.convert { firstName, lastName, email }, (err) ->
+          JUser.convert { firstName, lastName, email }, (err, newToken, recoveryToken) ->
             JUser.logout ->
+              window.location.href = "/Register/#{encodeURIComponent(recoveryToken)}"
               KD.singletons.dock.getView().show()
+
       .enter()
 
     workflow
