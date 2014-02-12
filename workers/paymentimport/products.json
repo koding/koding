@@ -1,5 +1,16 @@
 [
   {
+      "title"            : "VM Turn On",
+      "priceIsVolatile"  : false,
+      "tags"             : ["vm", "vmturnon"],
+      "subscriptionType" : "mo",
+      "feeInterval"      : 1,
+      "feeUnit"          : "months",
+      "group"            : "koding",
+      "description"      : "User",
+      "feeAmount"        : 0
+  },
+  {
       "title"            : "User",
       "priceIsVolatile"  : true,
       "tags"             : ["user"],
@@ -24,7 +35,7 @@
   {
       "title"            : "VM",
       "priceIsVolatile"  : false,
-      "tags"             : ["maxvm"],
+      "tags"             : ["vm","maxvm"],
       "soldAlone"        : true,
       "subscriptionType" : "mo",
       "feeInterval"      : 1,
@@ -36,7 +47,7 @@
   {
       "title"            : "Always On",
       "priceIsVolatile"  : false,
-      "tags"             : ["alwayson"],
+      "tags"             : ["vm", "alwayson"],
       "subscriptionType" : "mo",
       "feeInterval"      : 1,
       "feeUnit"          : "months",
