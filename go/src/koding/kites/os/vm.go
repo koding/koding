@@ -14,37 +14,8 @@ import (
 
 var ErrVmAlreadyPrepared = errors.New("vm is already prepared")
 
-func vmStart(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
-	if !vos.Permissions.Sudo {
-		return nil, &kite.PermissionError{}
-	}
-
-	if err := startVM(vos.VM, channel); err != nil {
-		return nil, err
-	}
-
-	rootVos, err := vos.VM.OS(&virt.RootUser)
-	if err != nil {
-		panic(err)
-	}
-
-	vmWebDir := "/home/" + vos.VM.WebHome + "/Web"
-	userWebDir := "/home/" + vos.User.Name + "/Web"
-
-	vmWebVos := rootVos
-	if vmWebDir == userWebDir {
-		vmWebVos = vos
-	}
-
-	rootVos.Chmod("/", 0755)     // make sure that executable flag is set
-	rootVos.Chmod("/home", 0755) // make sure that executable flag is set
-	createUserHome(vos.User, rootVos, vos)
-	createVmWebDir(vos.VM, vmWebDir, rootVos, vmWebVos)
-	if vmWebDir != userWebDir {
-		createUserWebDir(vos.User, vmWebDir, userWebDir, rootVos, vos)
-	}
-
-	return true, nil
+func vmStartOldKite(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
+	return vmStart(vos)
 }
 
 func vmShutdown(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {

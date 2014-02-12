@@ -121,7 +121,7 @@ func main() {
 	}
 
 	// register current client-side methods
-	registerMethod(k, "vm.start", false, vmStart)
+	registerMethod(k, "vm.start", false, vmStartOldKite)
 	registerMethod(k, "vm.shutdown", false, vmShutdown)
 	registerMethod(k, "vm.prepare", false, vmPrepare)
 	registerMethod(k, "vm.unprepare", false, vmUnprepare)
@@ -170,50 +170,7 @@ func runNewKite() {
 		},
 	)
 
-	k.HandleFunc("startVM", func(r *kitelib.Request) (interface{}, error) {
-		hostnameAlias := r.Args.One().MustString()
-		// just print hostnameAlias for now
-		fmt.Println("got request from", r.RemoteKite.Name, "starting:", hostnameAlias)
-
-		v, err := modelhelper.GetVM(hostnameAlias)
-		if err != nil {
-			return nil, err
-		}
-
-		vm := virt.VM(*v)
-		vm.ApplyDefaults()
-
-		err = validateVM(&vm)
-		if err != nil {
-			return nil, err
-		}
-
-		isPrepared := true
-		if _, err := os.Stat(vm.File("rootfs/dev")); err != nil {
-			if !os.IsNotExist(err) {
-				panic(err)
-			}
-			isPrepared = false
-		}
-
-		if !isPrepared {
-			fmt.Println("preparing ", hostnameAlias)
-			vm.Prepare(false, log.Warning)
-		}
-
-		fmt.Println("starting ", hostnameAlias)
-		if err := vm.Start(); err != nil {
-			log.LogError(err, 0)
-		}
-
-		// wait until network is up
-		if err := vm.WaitForNetwork(time.Second * 5); err != nil {
-			log.LogError(err, 0)
-		}
-
-		// return back the IP address of the started vm
-		return vm.IP.String(), nil
-	})
+	k.HandleFunc("startVM", vmStartNewKite)
 
 	k.Start()
 
@@ -347,7 +304,7 @@ func startPinnedVMS() {
 			if !iter.Next(&vm) {
 				break
 			}
-			if err := startVM(&vm, nil); err != nil {
+			if err := startAndPrepareVM(&vm, nil); err != nil {
 				log.LogError(err, 0)
 			}
 		}
@@ -418,7 +375,6 @@ func registerMethod(k *kite.Kite, method string, concurrent bool, callback func(
 		if err != nil {
 			return nil, err
 		}
-		vm.ApplyDefaults()
 
 		log.Info("[%s] method %s get called", vm.Id.Hex(), method)
 
@@ -515,6 +471,7 @@ func getVM(correlationName string) (*virt.VM, error) {
 		return nil, &VMNotFoundError{Name: correlationName}
 	}
 
+	vm.ApplyDefaults()
 	return vm, nil
 }
 
@@ -587,16 +544,13 @@ func validateVM(vm *virt.VM) error {
 	return nil
 }
 
-func startVM(vm *virt.VM, channel *kite.Channel) error {
+func startAndPrepareVM(vm *virt.VM, channel *kite.Channel) error {
 	err := validateVM(vm)
 	if err != nil {
 		return err
 	}
 
 	var info *VMInfo
-	if channel != nil {
-		info, _ = channel.KiteData.(*VMInfo)
-	}
 
 	if info == nil {
 		infosMutex.Lock()
