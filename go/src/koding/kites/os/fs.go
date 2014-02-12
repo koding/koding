@@ -5,6 +5,8 @@ package main
 import (
 	"fmt"
 	"io"
+	kitelib "kite"
+	kitednode "kite/dnode"
 	"koding/tools/dnode"
 	"koding/tools/kite"
 	"koding/virt"
@@ -64,7 +66,7 @@ func makeFileEntry(vos *virt.VOS, fullPath string, fi os.FileInfo) FileEntry {
 	return entry
 }
 
-func fsReadDirectory(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
+func fsReadDirectoryOld(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
 	var params struct {
 		Path                string
 		OnChange            dnode.Callback
@@ -372,4 +374,75 @@ func fsCreateDirectory(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS
 		return nil, err
 	}
 	return true, nil
+}
+
+// New kite functions
+
+// TODO: replace watcher with fsnotify.
+func fsReadDirectoryNew(r *kitelib.Request, vos *virt.VOS) (interface{}, error) {
+	var params struct {
+		Path                string
+		OnChange            kitednode.Function
+		WatchSubdirectories bool
+	}
+
+	if r.Args.Unmarshal(&params) != nil || params.Path == "" {
+		return nil, &kite.ArgumentError{Expected: "{ path: [string], onChange: [function], watchSubdirectories: [bool] }"}
+	}
+
+	response := make(map[string]interface{})
+
+	if params.OnChange != nil {
+		watch, err := vos.WatchDirectory(params.Path, params.WatchSubdirectories, func(ev *inotify.Event, info os.FileInfo) {
+			defer log.RecoverAndLog()
+
+			if (ev.Mask & (inotify.IN_CREATE | inotify.IN_MOVED_TO | inotify.IN_ATTRIB)) != 0 {
+				if info == nil {
+					return // skip this event, file was deleted and deletion event will follow
+				}
+				event := "added"
+				if ev.Mask&inotify.IN_ATTRIB != 0 {
+					event = "attributesChanged"
+				}
+				params.OnChange(map[string]interface{}{
+					"event": event,
+					"file":  makeFileEntry(vos, ev.Name, info),
+				})
+				return
+			}
+			if (ev.Mask & (inotify.IN_DELETE | inotify.IN_MOVED_FROM)) != 0 {
+				params.OnChange(map[string]interface{}{
+					"event": "removed",
+					"file":  FileEntry{Name: path.Base(ev.Name), FullPath: ev.Name},
+				})
+				return
+			}
+		})
+		if err != nil {
+			return nil, err
+		}
+
+		r.RemoteKite.OnDisconnect(func() { watch.Close() })
+		response["stopWatching"] = func() { watch.Close() }
+	}
+
+	dir, err := vos.Open(params.Path)
+	if err != nil {
+		return nil, err
+	}
+	defer dir.Close()
+
+	infos, err := dir.Readdir(0)
+	if err != nil {
+		return nil, err
+	}
+
+	files := make([]FileEntry, len(infos))
+	for i, info := range infos {
+		files[i] = makeFileEntry(vos, path.Join(params.Path, info.Name()), info)
+	}
+	response["files"] = files
+
+	return response, nil
+
 }

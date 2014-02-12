@@ -134,7 +134,7 @@ func main() {
 	registerMethod(k, "exec", true, execOld)
 
 	syscall.Umask(0) // don't know why richard calls this
-	registerMethod(k, "fs.readDirectory", false, fsReadDirectory)
+	registerMethod(k, "fs.readDirectory", false, fsReadDirectoryOld)
 	registerMethod(k, "fs.glob", false, fsGlob)
 	registerMethod(k, "fs.readFile", false, fsReadFile)
 	registerMethod(k, "fs.writeFile", false, fsWriteFile)
@@ -181,6 +181,17 @@ func runNewKite() {
 	vosMethod(k, "vm.createSnapshot", vmCreateSnapshotNew)
 	vosMethod(k, "spawn", spawnNew)
 	vosMethod(k, "exec", execNew)
+
+	vosMethod(k, "fs.readDirectory", fsReadDirectoryNew)
+	// vosMethod(k, "fs.glob", fsGlobNew)
+	// vosMethod(k, "fs.readFile", fsReadFileNew)
+	// vosMethod(k, "fs.writeFile", fsWriteFileNew)
+	// vosMethod(k, "fs.ensureNonexistentPath", fsEnsureNonexistentPathNew)
+	// vosMethod(k, "fs.getInfo", fsGetInfoNew)
+	// vosMethod(k, "fs.setPermissions", fsSetPermissionsNew)
+	// vosMethod(k, "fs.remove", fsRemoveNew)
+	// vosMethod(k, "fs.rename", fsRenameNew)
+	// vosMethod(k, "fs.createDirectory", fsCreateDirectoryNew)
 
 	k.Start()
 

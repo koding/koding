@@ -9,8 +9,11 @@ import (
 	"koding/virt"
 )
 
+// vosFunc is used to associate each request with a VOS instance.
 type vosFunc func(*kitelib.Request, *virt.VOS) (interface{}, error)
 
+// vosMethod is compat wrapper around the new kite library. It's basically
+// creates a vos instance that is the plugged into the the base functions.
 func vosMethod(k *kitelib.Kite, method string, vosFn vosFunc) {
 	handler := func(r *kitelib.Request) (interface{}, error) {
 		var params struct {
