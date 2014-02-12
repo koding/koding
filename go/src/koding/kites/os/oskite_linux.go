@@ -121,17 +121,17 @@ func main() {
 	}
 
 	// register current client-side methods
-	registerMethod(k, "vm.start", false, vmStartOldKite)
-	registerMethod(k, "vm.shutdown", false, vmShutdown)
-	registerMethod(k, "vm.prepare", false, vmPrepare)
-	registerMethod(k, "vm.unprepare", false, vmUnprepare)
-	registerMethod(k, "vm.stop", false, vmStop)
-	registerMethod(k, "vm.reinitialize", false, vmReinitialize)
-	registerMethod(k, "vm.info", false, vmInfo)
-	registerMethod(k, "vm.resizeDisk", false, vmResizeDisk)
-	registerMethod(k, "vm.createSnapshot", false, vmCreateSnaphost)
-	registerMethod(k, "spawn", true, spawn)
-	registerMethod(k, "exec", true, exec)
+	registerMethod(k, "vm.start", false, vmStartOld)
+	registerMethod(k, "vm.shutdown", false, vmShutdownOld)
+	registerMethod(k, "vm.prepare", false, vmPrepareOld)
+	registerMethod(k, "vm.unprepare", false, vmUnprepareOld)
+	registerMethod(k, "vm.stop", false, vmStopOld)
+	registerMethod(k, "vm.reinitialize", false, vmReinitializeOld)
+	registerMethod(k, "vm.info", false, vmInfoOld)
+	registerMethod(k, "vm.resizeDisk", false, vmResizeDiskOld)
+	registerMethod(k, "vm.createSnapshot", false, vmCreateSnaphostOld)
+	registerMethod(k, "spawn", true, spawnOld)
+	registerMethod(k, "exec", true, execOld)
 
 	syscall.Umask(0) // don't know why richard calls this
 	registerMethod(k, "fs.readDirectory", false, fsReadDirectory)
@@ -170,7 +170,7 @@ func runNewKite() {
 		},
 	)
 
-	k.HandleFunc("startVM", vmStartNewKite)
+	VosMethod(k, "vm.start", vmStartNew)
 
 	k.Start()
 

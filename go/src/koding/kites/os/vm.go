@@ -14,54 +14,75 @@ import (
 
 var ErrVmAlreadyPrepared = errors.New("vm is already prepared")
 
-func vmStartOldKite(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
+func vmStartOld(args *dnode.Partial, c *kite.Channel, vos *virt.VOS) (interface{}, error) {
 	return vmStart(vos)
 }
 
-func vmShutdown(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
-	if !vos.Permissions.Sudo {
-		return nil, &kite.PermissionError{}
-	}
-	if err := vos.VM.Shutdown(); err != nil {
-		panic(err)
-	}
-	return true, nil
+func vmShutdownOld(args *dnode.Partial, c *kite.Channel, vos *virt.VOS) (interface{}, error) {
+	return vmShutdown(vos)
 }
 
-func vmUnprepare(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
+func vmUnprepareOld(args *dnode.Partial, c *kite.Channel, vos *virt.VOS) (interface{}, error) {
+	return vmUnprepare(vos)
+}
+
+func vmStopOld(args *dnode.Partial, c *kite.Channel, vos *virt.VOS) (interface{}, error) {
+	return vmStop(vos)
+}
+
+func vmReinitializeOld(args *dnode.Partial, c *kite.Channel, vos *virt.VOS) (interface{}, error) {
+	return vmReinitialize(vos)
+}
+
+func vmPrepareOld(args *dnode.Partial, c *kite.Channel, vos *virt.VOS) (interface{}, error) {
+	return vmPrepare(vos)
+}
+
+func vmInfoOld(args *dnode.Partial, c *kite.Channel, vos *virt.VOS) (interface{}, error) {
+	info := c.KiteData.(*VMInfo)
+	info.State = vos.VM.GetState()
+	return info, nil
+}
+
+func vmResizeDiskOld(args *dnode.Partial, c *kite.Channel, vos *virt.VOS) (interface{}, error) {
+	if !vos.Permissions.Sudo {
+		return nil, &kite.PermissionError{}
+	}
+	return true, vos.VM.ResizeRBD()
+}
+
+func vmCreateSnaphostOld(args *dnode.Partial, c *kite.Channel, vos *virt.VOS) (interface{}, error) {
 	if !vos.Permissions.Sudo {
 		return nil, &kite.PermissionError{}
 	}
 
-	if err := vos.VM.Unprepare(); err != nil {
+	snippetId := bson.NewObjectId().Hex()
+	if err := vos.VM.CreateConsistentSnapshot(snippetId); err != nil {
 		return nil, err
 	}
 
-	return true, nil
+	return snippetId, nil
 }
 
-func vmStop(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
-	if !vos.Permissions.Sudo {
-		return nil, &kite.PermissionError{}
+func spawnOld(args *dnode.Partial, c *kite.Channel, vos *virt.VOS) (interface{}, error) {
+	var command []string
+	if args.Unmarshal(&command) != nil {
+		return nil, &kite.ArgumentError{Expected: "[array of strings]"}
 	}
-	if err := vos.VM.Stop(); err != nil {
-		panic(err)
-	}
-	return true, nil
+	return vos.VM.AttachCommand(vos.User.Uid, "", command...).CombinedOutput()
 }
 
-func vmReinitialize(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
-	if !vos.Permissions.Sudo {
-		return nil, &kite.PermissionError{}
+func execOld(args *dnode.Partial, c *kite.Channel, vos *virt.VOS) (interface{}, error) {
+	var line string
+	if args.Unmarshal(&line) != nil {
+		return nil, &kite.ArgumentError{Expected: "[string]"}
 	}
-	vos.VM.Prepare(true, log.Warning)
-	if err := vos.VM.Start(); err != nil {
-		panic(err)
-	}
-	return true, nil
+	return vos.VM.AttachCommand(vos.User.Uid, "", "/bin/bash", "-c", line).CombinedOutput()
 }
 
-func vmPrepare(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
+// Base functions to be plugged to old and newkite methods
+
+func vmPrepare(vos *virt.VOS) (interface{}, error) {
 	if !vos.Permissions.Sudo {
 		return nil, &kite.PermissionError{}
 	}
@@ -75,52 +96,95 @@ func vmPrepare(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (inter
 		isPrepared = false
 	}
 
-	if !isPrepared {
-		vos.VM.Prepare(false, log.Warning)
-		return true, nil
-	} else {
+	if isPrepared {
 		return false, ErrVmAlreadyPrepared
 	}
+
+	// TODO, change that it returns an error
+	vos.VM.Prepare(false, log.Warning)
+	return true, nil
 }
 
-func vmInfo(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
-	info := channel.KiteData.(*VMInfo)
-	info.State = vos.VM.GetState()
-	return info, nil
-}
-
-func vmResizeDisk(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
-	if !vos.Permissions.Sudo {
-		return nil, &kite.PermissionError{}
-	}
-	return true, vos.VM.ResizeRBD()
-}
-
-func vmCreateSnaphost(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
+func vmReinitialize(vos *virt.VOS) (interface{}, error) {
 	if !vos.Permissions.Sudo {
 		return nil, &kite.PermissionError{}
 	}
 
-	snippetId := bson.NewObjectId().Hex()
-	if err := vos.VM.CreateConsistentSnapshot(snippetId); err != nil {
+	vos.VM.Prepare(true, log.Warning)
+	if err := vos.VM.Start(); err != nil {
 		return nil, err
 	}
 
-	return snippetId, nil
+	return true, nil
 }
 
-func spawn(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
-	var command []string
-	if args.Unmarshal(&command) != nil {
-		return nil, &kite.ArgumentError{Expected: "[array of strings]"}
+func vmUnprepare(vos *virt.VOS) (interface{}, error) {
+	if !vos.Permissions.Sudo {
+		return nil, &kite.PermissionError{}
 	}
-	return vos.VM.AttachCommand(vos.User.Uid, "", command...).CombinedOutput()
+
+	if err := vos.VM.Unprepare(); err != nil {
+		return nil, err
+	}
+
+	return true, nil
+
 }
 
-func exec(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
-	var line string
-	if args.Unmarshal(&line) != nil {
-		return nil, &kite.ArgumentError{Expected: "[string]"}
+func vmStop(vos *virt.VOS) (interface{}, error) {
+	if !vos.Permissions.Sudo {
+		return nil, &kite.PermissionError{}
 	}
-	return vos.VM.AttachCommand(vos.User.Uid, "", "/bin/bash", "-c", line).CombinedOutput()
+
+	if err := vos.VM.Stop(); err != nil {
+		return nil, err
+	}
+
+	return true, nil
+}
+
+func vmShutdown(vos *virt.VOS) (interface{}, error) {
+	if !vos.Permissions.Sudo {
+		return nil, &kite.PermissionError{}
+	}
+
+	if err := vos.VM.Shutdown(); err != nil {
+		return nil, err
+	}
+
+	return true, nil
+}
+
+func vmStart(vos *virt.VOS) (interface{}, error) {
+	if !vos.Permissions.Sudo {
+		return nil, &kite.PermissionError{}
+	}
+
+	if err := startAndPrepareVM(vos.VM, nil); err != nil {
+		return nil, err
+	}
+
+	rootVos, err := vos.VM.OS(&virt.RootUser)
+	if err != nil {
+		return nil, err
+	}
+
+	vmWebDir := "/home/" + vos.VM.WebHome + "/Web"
+	userWebDir := "/home/" + vos.User.Name + "/Web"
+
+	vmWebVos := rootVos
+	if vmWebDir == userWebDir {
+		vmWebVos = vos
+	}
+
+	rootVos.Chmod("/", 0755)     // make sure that executable flag is set
+	rootVos.Chmod("/home", 0755) // make sure that executable flag is set
+	createUserHome(vos.User, rootVos, vos)
+	createVmWebDir(vos.VM, vmWebDir, rootVos, vmWebVos)
+	if vmWebDir != userWebDir {
+		createUserWebDir(vos.User, vmWebDir, userWebDir, rootVos, vos)
+	}
+
+	// send true if vm is ready
+	return true, nil
 }
