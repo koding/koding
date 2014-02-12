@@ -271,7 +271,9 @@ module.exports = class JPaymentSubscription extends jraphical.Module
       =>
         newPlan.checkQuota {@usage}, (err) -> queue.next err
       =>
-        operation?.call this, (err) -> queue.next err
+        if operation
+        then operation.call this, (err) -> queue.next err
+        else queue.next()
       ->
         newPlan.subscribe paymentMethodId, subOptions, (err, newSub) ->
           newSubscription = newSub
