@@ -343,7 +343,7 @@ class VirtualizationController extends KDController
             modal.destroy()
 
   createPaidVM: ->
-    callback = (subscription) =>
+    @payment.fetchActiveSubscription tags: "vm", (err, subscription) =>
       KD.remote.api.JPaymentPack.one tags: "vm", (err, pack) =>
         return  if KD.showError err
         @provisionVm {subscription, productData: {pack}}, (err, nonce) =>
@@ -358,16 +358,6 @@ class VirtualizationController extends KDController
             overlay  : yes
 
           upgradeForm.on "Cancel", modal.bound "destroy"
-
-    if KD.getGroup().slug is "koding"
-      @payment.fetchSubscriptionsWithPlans tags: ["vm"], (err, subscriptions) ->
-        return  if KD.showError err
-        [subscription] = subscriptions
-        callback subscription
-    else
-      @payment.fetchGroupSubscription (err, subscription) ->
-        return  if KD.showError err
-        callback subscription
 
   provisionVm: ({ subscription, paymentMethod, productData }, callback) ->
     { JVM } = KD.remote.api

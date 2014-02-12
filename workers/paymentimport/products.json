@@ -22,7 +22,7 @@
       "feeAmount"        : 500
   },
   {
-      "title"            : "Max VM",
+      "title"            : "VM",
       "priceIsVolatile"  : false,
       "tags"             : ["maxvm"],
       "soldAlone"        : true,

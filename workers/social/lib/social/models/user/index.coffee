@@ -14,6 +14,8 @@ module.exports = class JUser extends jraphical.Module
   JLog            = require '../log'
   JMail           = require '../email'
   JSessionHistory = require '../sessionhistory'
+  JPaymentPlan    = require '../payment/plan'
+  JPaymentSubscription = require '../payment/subscription'
 
   { v4: createId } = require 'node-uuid'
 
@@ -453,7 +455,7 @@ module.exports = class JUser extends jraphical.Module
 
   @addToGroup = (account, slug, email, invite, callback)->
     JGroup.one {slug}, (err, group)->
-      return callback err if err or not group 
+      return callback err if err or not group
       if invite
         invite.redeem account, (err) ->
           return callback err if err
@@ -740,10 +742,10 @@ module.exports = class JUser extends jraphical.Module
       =>
         @addToGroups account, invite, user.email, (err) =>
           # for the cases where the quota exceeded, we must progress on registering user
-          # and then show the quota exceeded message to new user 
+          # and then show the quota exceeded message to new user
           if err
             if err.code is 999 then quotaExceedErr = err
-            else return callback err 
+            else return callback err
           queue.next()
       =>
         @removeFromGuestsGroup account, (err) =>
@@ -770,12 +772,26 @@ module.exports = class JUser extends jraphical.Module
         JPasswordRecovery.create client, passwordOptions, (err)->
           queue.next()
       ->
+        JPaymentSubscription.createFreeSubscription account, (err) ->
+          console.warn err  if err
+          queue.next()
+      ->
+        options = targetOptions: selector: tags: "vm"
+        account.fetchSubscriptions null, options, (err = "", [subscription]) ->
+          return \
+            if err then console.warn err
+            else if not subscription then console.warn "VM subscription not found, cannot debit"
+
+          subscription.debitPack tags: "vm", (err) ->
+            console.warn "VM pack couldn't be debited from subscription: #{err}"  if err
+            queue.next()
+      ->
         JAccount.emit "AccountRegistered", account, referrer
         queue.next()
       ->
         mixpanel.track "Signup from server, success"
         queue.next()
-      =>
+      ->
         callback quotaExceedErr, newToken
         queue.next()
     ]
