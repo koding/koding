@@ -200,8 +200,27 @@ class DevToolsMainView extends KDView
 class DevToolsEditorPane extends CollaborativeEditorPane
 
   constructor:(options = {}, data)->
+
     options.cssClass = 'devtools-editor'
     super options, data
+
+    @_mode   = "coffeescript"
+    @storage = KD.singletons.localStorageController.storage "DevTools"
+
+  loadLastOpenFile:->
+
+    path = @storage.getAt "lastFileOn#{@_mode}"
+    return  unless path
+
+    lastOpenFile = FSHelper.createFileFromPath path
+    lastOpenFile.fetchContents (err, content)=>
+      if err
+        KD.showError err, "Failed to load last open file: #{path}"
+      else
+        # Override the path to keep VM Info
+        lastOpenFile.path = path
+
+        @openFile lastOpenFile, content
 
   createEditor: (callback)->
 
@@ -219,7 +238,7 @@ class DevToolsEditorPane extends CollaborativeEditorPane
           scrollPastEnd   : yes
           cursorHeight    : 1
           tabSize         : 2
-          mode            : @_mode ? "coffeescript"
+          mode            : @_mode
           extraKeys       :
             "Cmd-S"       : @bound "handleSave"
             "Ctrl-S"      : @bound "handleSave"
@@ -232,7 +251,10 @@ class DevToolsEditorPane extends CollaborativeEditorPane
         callback?()
 
         @emit 'ready'
+        @loadLastOpenFile()
+
   openFile: (file, content)->
+    @storage.setValue "lastFileOn#{@_mode}", file.path
     super
 
     path = (FSHelper.plainPath file.path).replace \
