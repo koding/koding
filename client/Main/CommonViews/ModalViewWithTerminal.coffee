@@ -19,7 +19,7 @@
 
 class ModalViewWithTerminal extends KDModalView
 
-  constructor: (@options={}, data)->
+  constructor: (options={}, data)->
 
     options.cssClass = KD.utils.curry "terminal", options.cssClass
 
@@ -28,7 +28,7 @@ class ModalViewWithTerminal extends KDModalView
     {@terminal} = options
 
     @terminal        or= {}
-    @terminal.height or= 150
+    @terminal.height or= 200
     @terminal.screen or= no
 
     @on "terminal.connected", (remote)=>
