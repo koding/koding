@@ -30,19 +30,19 @@ class DevToolsMainView extends KDView
             callback            : => @compileApp()
           }
           {
-            title               : "Run"
-            cssClass            : "solid green"
-            callback            : => @previewApp yes; @previewCss yes
-          }
-          {
             title               : 'Run as I type'
             cssClass            : "solid #{if @liveMode then 'green' else 'live'}"
             callback            : =>
+
               button = @workspace.panels.first.headerButtons['Run as I type']
               button.unsetClass 'live green'
               button.setClass if @liveMode then 'live' else 'green'
               @liveMode = button.hasClass 'green'
               @storage.setValue 'liveMode', @liveMode
+
+              if @liveMode
+                @previewApp yes; @previewCss yes
+
           }
         ]
         layout                  :
