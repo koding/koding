@@ -225,7 +225,7 @@ class PaymentController extends KDController
       callback()
 
   fetchActiveSubscription: (tags, callback) ->
-    if KD.getGroup().slug is "koding"
+    if KD.getGroup()?.slug is "koding"
       status = $in: ["active", "canceled"]
       @fetchSubscriptionsWithPlans {tags, status}, (err, subscriptions) ->
         return callback err  if err
@@ -238,7 +238,7 @@ class PaymentController extends KDController
           else
             active = subscription
 
-        callback err, active or noSync
+        callback null, active or noSync
     else
       @fetchGroupSubscription callback
 
@@ -290,7 +290,7 @@ class PaymentController extends KDController
             return callback err  if err
             callback null, nonce
       else
-        callback "Subscription not found"
+        callback new Error "Subscription not found"
 
     group = KD.getGroup()
     if group.slug is "koding"

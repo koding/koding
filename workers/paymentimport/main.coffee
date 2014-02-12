@@ -18,9 +18,6 @@ worker = new Bongo {
   models : '../social/lib/social/models'
 }
 
-handleError = (err) ->
-  console.error err
-
 importProducts = (callback) ->
   data = require(__dirname + '/products');
   queue = []
@@ -31,15 +28,15 @@ importProducts = (callback) ->
         console.log "#{product.title} product added successfully" unless err
         fin()
 
-    {title} = product  
+    {title} = product
     JPaymentProduct.one title: title, (err, paymentProduct) ->
-      if err 
-        handleError err  
+      if err
+        console.err err
         return fin()
 
       return kreate()  unless paymentProduct
 
-      console.error "#{product.title} already exists" 
+      console.error "#{product.title} already exists"
       fin()
   , -> callback null
 
@@ -49,30 +46,34 @@ importPacks = (callback) ->
   data = require(__dirname + '/packs');
   queue = []
   fetchAllProducts (err, productPlanCodes) ->
-    if err 
-      console.error err 
+    if err
+      console.error err
       return callback err
     insertPacks = race (i, pack, fin) ->
-      {title} = pack  
+      {title} = pack
       {JPaymentPack, JPaymentProduct} = worker.models
 
       kreate = ->
         JPaymentPack.create "koding", pack, (err, pack) ->
-          return handleError err  if err 
+          if err
+            console.err err
+            fin()
 
-          console.log "#{pack.title} pack added successfully" 
+          console.log "#{pack.title} pack added successfully"
 
           quantities = {}
           quantities[productPlanCodes[pack.title]] = 1
           pack.updateProducts quantities, (err) ->
-            return handleError err  if err
+            return console.err err  if err
             console.log "#{pack.title} pack products are added"
             fin()
 
       JPaymentPack.one title: title, (err, paymentPack) ->
-        return handleError err  if err 
+        if err
+          console.err err  if err
+          fin()
         return kreate()  unless paymentPack
-        handleError "#{pack.title} already exists"  
+        handleError "#{pack.title} already exists"
         fin()
     , -> callback null
 
@@ -99,44 +100,44 @@ importPlans = (callback) ->
     insertPlans = race (i, plan, fin) ->
       kreate = ->
         JPaymentPlan.create "koding", plan, (err, newPlan) ->
-          if err 
-            handleError err  
+          if err
+            console.err err
             fin()
 
-          console.log "#{plan.title} plan added successfully" 
+          console.log "#{plan.title} plan added successfully"
           quantities = {}
-          switch plan.title 
-            when "Team Plan" 
-              quantities[productPlanCodes["Always On"]] = 1 
-              quantities[productPlanCodes["VM"]] = 10 
-              quantities[productPlanCodes["User"]] = 1 
-              quantities[productPlanCodes["Group"]] = 1 
-              quantities[productPlanCodes["VM Turn On"]] = 3 
+          switch plan.title
+            when "Team Plan"
+              quantities[productPlanCodes["Always On"]] = 1
+              quantities[productPlanCodes["VM"]] = 10
+              quantities[productPlanCodes["User"]] = 1
+              quantities[productPlanCodes["Group"]] = 1
+              quantities[productPlanCodes["VM Turn On"]] = 3
             when "Free plan"
-              quantities[productPlanCodes["VM"]] = 3 
-              quantities[productPlanCodes["VM Turn On"]] = 1 
+              quantities[productPlanCodes["VM"]] = 3
+              quantities[productPlanCodes["VM Turn On"]] = 1
             else
               {count} = plan
               quantities[productPlanCodes["Always On"]] = count
               quantities[productPlanCodes["VM"]] = count * 10
               quantities[productPlanCodes["VM Turn On"]] = count * 3
-        
+
           console.log 'quantities', quantities
           newPlan.updateProducts quantities, (err) ->
             if err then console.error err
             else console.log "#{plan.title} plan products are added"
             fin()
 
-      {title} = plan  
+      {title} = plan
       JPaymentPlan.one title: title, (err, paymentPlan) ->
-        if err 
-          handleError err  
+        if err
+          console.err err
           fin()
-        return kreate() unless paymentPlan  
+        return kreate() unless paymentPlan
 
-        handleError "#{plan.title} already exists" 
+        console.err "#{plan.title} already exists"
         fin()
-          
+
     , -> callback null
 
     insertPlans plan for plan in data
@@ -144,7 +145,7 @@ importPlans = (callback) ->
 createBot = (callback) ->
   {JUser, JAccount} = worker.models
 
-  userInfo = 
+  userInfo =
     username  : "bot"
     email     : "bot@koding.com"
     firstName : "Bot"
@@ -163,36 +164,36 @@ createBot = (callback) ->
 initFreeSubscriptions = (callback=->) ->
   worker.on 'dbClientReady', ->
     {JPaymentSubscription, JAccount, Relationship} = worker.models
-    
+
     count = 0
     index = 0
     batchHandler = (skip) ->
-      JAccount.some {"profile.nickname": $not: /^guest-*/ }, {limit: 100, skip}, (err, accounts) ->
+      JAccount.some {"type": "registered"}, {limit: 100, skip}, (err, accounts) ->
         return callback err  if err
 
         count += accounts.length
         unless accounts.length
-          console.log "added free plan for #{count} accounts"  
+          console.log "added free plan for #{count} accounts"
           return callback null
-        
+
         queue = accounts.map (account) ->->
           JPaymentSubscription.createFreeSubscription account, (err) ->
             console.log "#{++index}"
             console.warn "error occurred for #{account?.profile?.nickname}: #{err}"  if err
             queue.next()
 
-        queue.push ->  
+        queue.push ->
           console.log "next"
           batchHandler skip + 100
 
         daisy queue
-    
+
     batchHandler 0
-    
+
 initPaymentData = ->
   worker.on 'dbClientReady', ->
     queue = [
-      -> importProducts ->  
+      -> importProducts ->
         console.log 'Payment products are imported'
         queue.next()
       -> importPlans ->
@@ -209,11 +210,10 @@ initPaymentData = ->
 
     daisy queue
 
-switch argv.i 
+switch argv.i
   when "payment"
     initPaymentData()
   when "subscription"
     initFreeSubscriptions()
   else
     console.error "unknown -i value"
- 

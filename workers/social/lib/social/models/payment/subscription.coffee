@@ -235,8 +235,6 @@ module.exports = class JPaymentSubscription extends jraphical.Module
           callback null
 
   debit$: secure (client, options, callback) ->
-    JPaymentPlan = require './plan'
-
     { delegate } = client.connection
 
     @isOwnedBy delegate, (err, hasTarget) =>
@@ -368,22 +366,24 @@ module.exports = class JPaymentSubscription extends jraphical.Module
   creditPack: ({tags}, callback) ->
     @debitPack {tags, multiplyFactor: -1}, callback
 
-  @createFreeSubscription: (account, callback) ->
+  @createFreeSubscription = (account, callback) ->
     JPaymentPlan = require './plan'
-    
-    JPaymentPlan.one tags: "nosync", (err = "", plan) ->
-      return callback "nosync plan not found: #{err}"  if err or not plan
+    JPaymentPlan.one tags: "nosync", (err, plan) ->
+      return \
+        if err then callback err
+        else if not plan then callback new KodingError "nosync plan not found"
+
       {planCode, quantities, tags} = plan
       freePlanSubscription = new JPaymentSubscription
         planCode   : planCode
         quantity   : 1
-        status     : "active" # status
+        status     : "active"
         feeAmount  : 0
         quantities : quantities
         tags       : tags
 
       freePlanSubscription.save (err) ->
-        return callback "nosync subscription failed: #{err}"  if err
+        return callback new KodingError "nosync subscription failed: #{err}"  if err
         account.addSubscription freePlanSubscription, (err) ->
-          return callback "couldn't add subscription to account: #{err}"  if err
-          callback null
+          return callback new KodingError "couldn't add subscription to account: #{err}"  if err
+          callback()
