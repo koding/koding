@@ -19,7 +19,6 @@ class NFinderTreeController extends JTreeViewController
     mainController.on "SelectedFileChanged", @bound "highlightFile"
 
   addNode:(nodeData, index)->
-
     fc = @getDelegate()
     return if @getOption('foldersOnly') and nodeData.type is "file"
     return if nodeData.isHidden() and fc.isNodesHiddenFor nodeData.vmName
@@ -268,7 +267,7 @@ class NFinderTreeController extends JTreeViewController
   createFile:(nodeView, type = "file")->
     @notify "creating a new #{type}!"
     nodeData = nodeView.getData()
-    {vmName} = nodeData
+    {osKite} = nodeData
 
     if nodeData.type is "file"
       {parentPath} = nodeData
@@ -278,7 +277,7 @@ class NFinderTreeController extends JTreeViewController
     path = FSHelper.plainPath \
       "#{parentPath}/New#{type.capitalize()}#{if type is 'file' then '.txt' else ''}"
 
-    FSItem.create { path, type, vmName, treeController: this }, (err, file)=>
+    FSItem.create { path, type, osKite, treeController: this }, (err, file)=>
       if err
         @notify null, null, err
       else
@@ -492,7 +491,6 @@ class NFinderTreeController extends JTreeViewController
   cmOpenFileWithApp: (nodeView, contextMenuItem)-> @openFileWithApp  nodeView, contextMenuItem
   cmCloneRepo:     (nodeView, contextMenuItem)-> @cloneRepo nodeView
   cmDropboxChooser:(nodeView, contextMenuItem)-> @chooseFromDropbox nodeView
-  cmDropboxSaver:  (nodeView, contextMenuItem)-> __saveToDropbox nodeView
   cmOpenTerminal:  (nodeView, contextMenuItem)-> @openTerminalFromHere nodeView
   # cmShowOpenWithModal: (nodeView, contextMenuItem)-> @showOpenWithModal nodeView
   # cmOpenFileWithApp: (nodeView, contextMenuItem)-> @openFileWithApp  nodeView, contextMenuItem
