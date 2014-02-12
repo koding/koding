@@ -383,7 +383,7 @@ task 'persistence', "Run persistence", (options)->
 task 'osKite', "Run the osKite", ({configFile})->
   processes.spawn
     name  : 'osKite'
-    cmd   : if configFile == "vagrant" then "vagrant ssh default -c 'cd /opt/koding/go/src/koding/kites/os; sudo killall -q -KILL os; sudo /opt/koding/go/bin-vagrant/os -c #{configFile} -r vagrant'" else "./go/bin/os -c #{configFile}"
+    cmd   : if configFile == "vagrant" then "vagrant ssh default -c 'cd /opt/koding/go/src/koding/kites/os; sudo killall -q -KILL os; sudo KITE_HOME=/opt/koding/kite_home /opt/koding/go/bin-vagrant/os -c #{configFile} -r vagrant'" else "./go/bin/os -c #{configFile}"
     restart: no
     stdout  : process.stdout
     stderr  : process.stderr

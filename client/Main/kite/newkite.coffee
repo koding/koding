@@ -37,9 +37,9 @@ class NewKite extends KDObject
       log "proto remoteEerror", {err}
 
   connect: ->
-    addr = @kite.publicIP + ":" + @kite.port
+    addr = @kite.url
     log "Trying to connect to #{addr}"
-    @ws = new WebSocket "ws://#{addr}/dnode"
+    @ws = new WebSocket addr
     @ws.onopen    = @bound 'onOpen'
     @ws.onclose   = @bound 'onClose'
     @ws.onmessage = @bound 'onMessage'

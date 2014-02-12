@@ -170,7 +170,7 @@ module.exports =
         servicesEndpoint: "/-/services/broker"
         sockJS   : "http://stage-broker-#{version}.sj.koding.com/subscribe"
       brokerKite:
-        servicesEndpoint: "/-/services/broker"
+        servicesEndpoint: "/-/services/brokerKite"
         brokerExchange: 'brokerKite'
         sockJS   : "http://stage-brokerkite-#{version}.sj.koding.com/subscribe"
       apiUri    : 'https://koding.com'
@@ -180,7 +180,7 @@ module.exports =
       github    :
         clientId: "f733c52d991ae9642365"
       newkontrol:
-        url     : 'wss://127.0.0.1:80/dnode'
+        url         : 'ws://stage-kontrol.sj.koding.com:4000/kontrol'
       fileFetchTimeout: 15 * 1000 # seconds
       externalProfiles  :
         github          :
@@ -256,10 +256,13 @@ module.exports =
   haproxy:
     webPort     : 3020
   newkontrol      :
-    host          : "kontrol-internal.sj.koding.com"
-    port          : 4000
-    certFile      : "/opt/koding/certs/y_koding_com_cert.pem"
-    keyFile       : "/opt/koding/certs/y_koding_com_key.pem"
+    username        : "koding-kites"
+    port            : 4000
+    useTLS          : no
+    certFile        : ""
+    keyFile         : ""
+    publicKeyFile   : "/opt/koding/certs/test_kontrol_rsa_public.pem"
+    privateKeyFile  : "/opt/koding/certs/test_kontrol_rsa_private.pem"
   proxyKite       :
     domain        : "127.0.0.1"
     certFile      : "/opt/koding/certs/y_koding_com_cert.pem"
@@ -340,6 +343,7 @@ module.exports =
     neo4jfeeder   : "info"
     oskite        : "info"
     kontrolproxy  : "debug"
+    kontroldaemon : "info"
     userpresence  : "info"
     vmproxy       : "info"
     graphitefeeder: "info"

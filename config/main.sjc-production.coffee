@@ -17,7 +17,7 @@ authAllExchange = "authAll-#{version}"
 
 embedlyApiKey   = '94991069fb354d4e8fdb825e52d4134a'
 
-environment     = "sjc-production"
+environment     = "production"
 regions         =
   vagrant       : "vagrant"
   sj            : "sj"
@@ -47,8 +47,8 @@ module.exports =
     enabled     : no
     port        : 1337
   neo4j         :
-    read        : "http://kgraph.sj.koding.com"
-    write       : "http://kgraph.sj.koding.com"
+    read        : "http://172.16.3.14"
+    write       : "http://172.16.3.14"
     port        : 7474
   mongo         : mongo
   mongoKontrol  : mongoKontrol
@@ -183,7 +183,7 @@ module.exports =
       uploadsUri: 'https://koding-uploads.s3.amazonaws.com'
       sourceUri : "http://webserver-#{version}a.sj.koding.com:1337"
       newkontrol:
-        url     : 'wss://newkontrol.sj.koding.com:80/dnode'
+        url         : 'wss://newkontrol.sj.koding.com/kontrol'
       fileFetchTimeout: 15 * 1000 # seconds
       externalProfiles  :
         github          :
@@ -259,10 +259,13 @@ module.exports =
   haproxy:
     webPort     : 3020
   newkontrol      :
-    host          : "kontrol-internal.sj.koding.com"
-    port          : 4000
-    certFile      : "/opt/koding/go/src/koding/kontrol/kontrolproxy/files/10.0.5.231_cert.pem"
-    keyFile       : "/opt/koding/go/src/koding/kontrol/kontrolproxy/files/10.0.5.231_key.pem"
+    username        : "koding"
+    port            : 443
+    useTLS          : yes
+    certFile        : "/opt/koding/certs/koding_com_cert.pem"
+    keyFile         : "/opt/koding/certs/koding_com_key.pem"
+    publicKeyFile   : "/opt/koding/certs/prod_kontrol_rsa_public.pem"
+    privateKeyFile  : "/opt/koding/certs/prod_kontrol_rsa_private.pem"
   proxyKite       :
     domain        : "x.koding.com"
     certFile      : "/opt/koding/go/src/koding/kontrol/kontrolproxy/files/10.0.5.102_cert.pem"
@@ -347,6 +350,7 @@ module.exports =
     neo4jfeeder   : "info"
     oskite        : "info"
     kontrolproxy  : "debug"
+    kontroldaemon : "info"
     userpresence  : "info"
     vmproxy       : "info"
     graphitefeeder: "info"

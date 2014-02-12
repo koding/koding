@@ -8,8 +8,7 @@ class Kontrol extends KDObject
 
     kite =
       name     : "kontrol"
-      publicIP : "#{KD.config.newkontrol.host}"
-      port     : "#{KD.config.newkontrol.port}"
+      url      : "#{KD.config.newkontrol.url}"
 
     authentication =
       type     : "sessionID"
@@ -69,8 +68,8 @@ class Kontrol extends KDObject
     new NewKite k.kite, {type: "token", key: k.token.key}
 
   _sanitizeQuery: (query) ->
-    query.username    = "#{KD.nick()}"  unless query.username
-    query.environment = "production"    unless query.environment
+    query.username    = "#{KD.nick()}"              unless query.username
+    query.environment = "#{KD.config.environment}"  unless query.environment
 
   KiteAction :
     Register   : "REGISTER"
