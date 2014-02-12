@@ -114,7 +114,7 @@ importPlans = (callback) ->
               quantities[productPlanCodes["Group"]] = 1
               quantities[productPlanCodes["VM Turn On"]] = 3
             when "Free plan"
-              quantities[productPlanCodes["VM"]] = 3
+              quantities[productPlanCodes["VM"]] = 1
               quantities[productPlanCodes["VM Turn On"]] = 1
             else
               {count} = plan
