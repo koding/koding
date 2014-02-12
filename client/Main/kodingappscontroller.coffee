@@ -354,17 +354,19 @@ class KodingAppsController extends KDController
       warn err  if err
       callback? err, result
 
+  @getAppInfoFromPath = (path)->
+
+    return  unless path
+
+    vm    = FSHelper.getVMNameFromPath path
+    path  = FSHelper.plainPath path
+    reg   = /// ^\/home\/#{KD.nick()}\/Applications\/(.*)\.kdapp\/ ///
+    parts = reg.exec path
+    return  unless parts
+
+    {path:parts[0], name:parts[1], vm}
+
   ###
-
-  @manifests = {}
-
-  @getManifestFromPath = getManifestFromPath = (path)->
-    folderName = (p for p in path.split("/") when /\.kdapp/.test p)[0]
-    app        = null
-    return app unless folderName
-    for own name, manifest of KodingAppsController.manifests
-      do -> app = manifest  if manifest.path.search(folderName) > -1
-    return app
 
   constructor:->
 

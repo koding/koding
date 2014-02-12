@@ -22,7 +22,12 @@ class DevToolsMainView extends KDView
             cssClass            : "solid"
             callback            : ->
               KD.singletons.kodingAppsController.makeNewApp()
-
+          }
+          {
+            title               : "Compile"
+            cssClass            : "solid green"
+            disabled            : yes
+            callback            : => @compileApp()
           }
           {
             title               : "Run"
@@ -115,6 +120,11 @@ class DevToolsMainView extends KDView
       JSEditor.ready =>
         JSEditor.codeMirrorEditor.on "change", \
           _.debounce (@lazyBound 'previewApp', no), 500
+
+        JSEditor.on "OpenedAFile", (file, content)->
+          app = KodingAppsController.getAppInfoFromPath file.path
+          button = @workspace.panels.first.headerButtons['Compile']
+          if app then button.enable() else button.disable()
 
       CSSEditor.ready =>
         CSSEditor.codeMirrorEditor.on "change", \
