@@ -52,18 +52,13 @@ class DevToolsMainView extends KDView
               handleFileOpen    : (file, content) =>
 
                 {CSSEditor, JSEditor} = @workspace.activePanel.panesByName
-                log file, JSEditor.header
 
                 switch FSItem.getFileExtension file.path
                   when 'css', 'styl'
                   then editor = CSSEditor
                   else editor = JSEditor
 
-                path = (FSHelper.plainPath file.path).replace \
-                  "/home/#{KD.nick()}/Applications/", ""
-
                 editor.openFile file, content
-                editor.header.title.updatePartial path
 
             }
             {
@@ -227,6 +222,13 @@ class DevToolsEditorPane extends CollaborativeEditorPane
         callback?()
 
         @emit 'ready'
+  openFile: (file, content)->
+    super
+
+    path = (FSHelper.plainPath file.path).replace \
+      "/home/#{KD.nick()}/Applications/", ""
+
+    @header.title.updatePartial path
 
 class DevToolsCssEditorPane extends DevToolsEditorPane
   constructor:-> super; @_mode = 'css'
