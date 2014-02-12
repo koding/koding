@@ -218,3 +218,25 @@ func fsEnsureNonexistentPathNew(r *kitelib.Request, vos *virt.VOS) (interface{},
 
 	return fsEnsureNonexistentPath(params.Path, vos)
 }
+
+func fsGetInfoNew(r *kitelib.Request, vos *virt.VOS) (interface{}, error) {
+	var params struct {
+		Path string
+	}
+
+	if r.Args.Unmarshal(&params) != nil || params.Path == "" {
+		return nil, &kite.ArgumentError{Expected: "{ path: [string] }"}
+	}
+
+	return fsGetInfo(params.Path, vos)
+}
+
+func fsSetPermissionsNew(r *kitelib.Request, vos *virt.VOS) (interface{}, error) {
+	var params setPermissionsParams
+
+	if r.Args.Unmarshal(&params) != nil || params.Path == "" {
+		return nil, &kite.ArgumentError{Expected: "{ path: [string], mode: [integer], recursive: [bool] }"}
+	}
+
+	return fsSetPermissions(params, vos)
+}

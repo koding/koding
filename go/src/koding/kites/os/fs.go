@@ -174,7 +174,7 @@ func fsEnsureNonexistentPathOld(args *dnode.Partial, channel *kite.Channel, vos 
 	return fsEnsureNonexistentPath(params.Path, vos)
 }
 
-func fsGetInfo(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
+func fsGetInfoOld(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
 	var params struct {
 		Path string
 	}
@@ -182,65 +182,17 @@ func fsGetInfo(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (inter
 		return nil, &kite.ArgumentError{Expected: "{ path: [string] }"}
 	}
 
-	fi, err := vos.Stat(params.Path)
-	if err != nil {
-		if os.IsNotExist(err) {
-			return nil, nil
-		}
-		return nil, err
-	}
-
-	return makeFileEntry(vos, params.Path, fi), nil
+	return fsGetInfo(params.Path, vos)
 }
 
-func fsSetPermissions(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
-	var params struct {
-		Path      string
-		Mode      os.FileMode
-		Recursive bool
-	}
+func fsSetPermissionsOld(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
+	var params setPermissionsParams
+
 	if args.Unmarshal(&params) != nil || params.Path == "" {
 		return nil, &kite.ArgumentError{Expected: "{ path: [string], mode: [integer], recursive: [bool] }"}
 	}
 
-	var doChange func(name string) error
-	doChange = func(name string) error {
-		if err := vos.Chmod(name, params.Mode); err != nil {
-			return err
-		}
-		if !params.Recursive {
-			return nil
-		}
-		fi, err := vos.Stat(name)
-		if err != nil {
-			return err
-		}
-		if !fi.IsDir() {
-			return nil
-		}
-		dir, err := vos.Open(name)
-		if err != nil {
-			return err
-		}
-		defer dir.Close()
-		entries, err := dir.Readdirnames(0)
-		if err != nil {
-			return err
-		}
-		var firstErr error
-		for _, entry := range entries {
-			err := doChange(name + "/" + entry)
-			if err != nil && firstErr == nil {
-				firstErr = err
-			}
-		}
-		return firstErr
-	}
-	if err := doChange(params.Path); err != nil {
-		return nil, err
-	}
-
-	return true, nil
+	return fsSetPermissions(params, vos)
 }
 
 func fsRemove(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
@@ -400,4 +352,64 @@ func fsEnsureNonexistentPath(path string, vos *virt.VOS) (interface{}, error) {
 	}
 
 	return name, nil
+}
+
+func fsGetInfo(path string, vos *virt.VOS) (interface{}, error) {
+	fi, err := vos.Stat(path)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return nil, nil
+		}
+		return nil, err
+	}
+
+	return makeFileEntry(vos, path, fi), nil
+}
+
+type setPermissionsParams struct {
+	Path      string
+	Mode      os.FileMode
+	Recursive bool
+}
+
+func fsSetPermissions(params setPermissionsParams, vos *virt.VOS) (interface{}, error) {
+	var doChange func(name string) error
+	doChange = func(name string) error {
+		if err := vos.Chmod(name, params.Mode); err != nil {
+			return err
+		}
+		if !params.Recursive {
+			return nil
+		}
+		fi, err := vos.Stat(name)
+		if err != nil {
+			return err
+		}
+		if !fi.IsDir() {
+			return nil
+		}
+		dir, err := vos.Open(name)
+		if err != nil {
+			return err
+		}
+		defer dir.Close()
+		entries, err := dir.Readdirnames(0)
+		if err != nil {
+			return err
+		}
+		var firstErr error
+		for _, entry := range entries {
+			err := doChange(name + "/" + entry)
+			if err != nil && firstErr == nil {
+				firstErr = err
+			}
+		}
+		return firstErr
+	}
+
+	if err := doChange(params.Path); err != nil {
+		return nil, err
+	}
+
+	return true, nil
 }
