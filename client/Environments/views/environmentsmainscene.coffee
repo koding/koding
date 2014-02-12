@@ -75,7 +75,6 @@ class EnvironmentsMainScene extends JView
         title          : "Add Domain"
         view           : domainCreateForm
         width          : 700
-        overlay        : yes
         buttons        :
           createButton :
             title      : "Create"
@@ -111,7 +110,6 @@ class EnvironmentsMainScene extends JView
         title        : 'Add Virtual Machine'
         cssClass     : 'add-vm-modal'
         view         : @getVmSelectionView()
-        overlay      : yes
         width        : 786
         buttons      :
           create     :
