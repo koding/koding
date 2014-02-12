@@ -195,7 +195,7 @@ func fsSetPermissionsOld(args *dnode.Partial, channel *kite.Channel, vos *virt.V
 	return fsSetPermissions(params, vos)
 }
 
-func fsRemove(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
+func fsRemoveOld(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
 	var params struct {
 		Path      string
 		Recursive bool
@@ -204,20 +204,10 @@ func fsRemove(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interf
 		return nil, &kite.ArgumentError{Expected: "{ path: [string], recursive: [bool] }"}
 	}
 
-	if params.Recursive {
-		if err := vos.RemoveAll(params.Path); err != nil {
-			return nil, err
-		}
-		return true, nil
-	}
-
-	if err := vos.Remove(params.Path); err != nil {
-		return nil, err
-	}
-	return true, nil
+	return fsRemove(params.Path, params.Recursive, vos)
 }
 
-func fsRename(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
+func fsRenameOld(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
 	var params struct {
 		OldPath string
 		NewPath string
@@ -226,14 +216,10 @@ func fsRename(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interf
 		return nil, &kite.ArgumentError{Expected: "{ oldPath: [string], newPath: [string] }"}
 	}
 
-	if err := vos.Rename(params.OldPath, params.NewPath); err != nil {
-		return nil, err
-	}
-
-	return true, nil
+	return fsRename(params.OldPath, params.NewPath, vos)
 }
 
-func fsCreateDirectory(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
+func fsCreateDirectoryOld(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
 	var params struct {
 		Path      string
 		Recursive bool
@@ -242,21 +228,7 @@ func fsCreateDirectory(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS
 		return nil, &kite.ArgumentError{Expected: "{ path: [string], recursive: [bool] }"}
 	}
 
-	if params.Recursive {
-		if err := vos.MkdirAll(params.Path, 0755); err != nil {
-			return nil, err
-		}
-		return true, nil
-	}
-
-	dirInfo, err := vos.Stat(path.Dir(params.Path))
-	if err != nil {
-		return nil, err
-	}
-	if err := vos.Mkdir(params.Path, dirInfo.Mode().Perm()); err != nil {
-		return nil, err
-	}
-	return true, nil
+	return fsCreateDirectory(params.Path, params.Recursive, vos)
 }
 
 //////////////////////
@@ -411,5 +383,45 @@ func fsSetPermissions(params setPermissionsParams, vos *virt.VOS) (interface{}, 
 		return nil, err
 	}
 
+	return true, nil
+}
+
+func fsRemove(removePath string, recursive bool, vos *virt.VOS) (interface{}, error) {
+	if recursive {
+		if err := vos.RemoveAll(removePath); err != nil {
+			return nil, err
+		}
+		return true, nil
+	}
+
+	if err := vos.Remove(removePath); err != nil {
+		return nil, err
+	}
+	return true, nil
+}
+
+func fsRename(oldpath, newpath string, vos *virt.VOS) (interface{}, error) {
+	if err := vos.Rename(oldpath, newpath); err != nil {
+		return nil, err
+	}
+
+	return true, nil
+}
+
+func fsCreateDirectory(newPath string, recursive bool, vos *virt.VOS) (interface{}, error) {
+	if recursive {
+		if err := vos.MkdirAll(newPath, 0755); err != nil {
+			return nil, err
+		}
+		return true, nil
+	}
+
+	dirInfo, err := vos.Stat(path.Dir(newPath))
+	if err != nil {
+		return nil, err
+	}
+	if err := vos.Mkdir(newPath, dirInfo.Mode().Perm()); err != nil {
+		return nil, err
+	}
 	return true, nil
 }

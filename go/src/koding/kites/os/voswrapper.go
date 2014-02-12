@@ -240,3 +240,42 @@ func fsSetPermissionsNew(r *kitelib.Request, vos *virt.VOS) (interface{}, error)
 
 	return fsSetPermissions(params, vos)
 }
+
+func fsRemoveNew(r *kitelib.Request, vos *virt.VOS) (interface{}, error) {
+	var params struct {
+		Path      string
+		Recursive bool
+	}
+
+	if r.Args.Unmarshal(&params) != nil || params.Path == "" {
+		return nil, &kite.ArgumentError{Expected: "{ path: [string], recursive: [bool] }"}
+	}
+
+	return fsRemove(params.Path, params.Recursive, vos)
+}
+
+func fsRenameNew(r *kitelib.Request, vos *virt.VOS) (interface{}, error) {
+	var params struct {
+		OldPath string
+		NewPath string
+	}
+
+	if r.Args.Unmarshal(&params) != nil || params.OldPath == "" || params.NewPath == "" {
+		return nil, &kite.ArgumentError{Expected: "{ oldPath: [string], newPath: [string] }"}
+	}
+
+	return fsRename(params.OldPath, params.NewPath, vos)
+}
+
+func fsCreateDirectoryNew(r *kitelib.Request, vos *virt.VOS) (interface{}, error) {
+	var params struct {
+		Path      string
+		Recursive bool
+	}
+
+	if r.Args.Unmarshal(&params) != nil || params.Path == "" {
+		return nil, &kite.ArgumentError{Expected: "{ path: [string], recursive: [bool] }"}
+	}
+
+	return fsCreateDirectory(params.Path, params.Recursive, vos)
+}

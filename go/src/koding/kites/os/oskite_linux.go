@@ -141,9 +141,9 @@ func main() {
 	registerMethod(k, "fs.ensureNonexistentPath", false, fsEnsureNonexistentPathOld)
 	registerMethod(k, "fs.getInfo", false, fsGetInfoOld)
 	registerMethod(k, "fs.setPermissions", false, fsSetPermissionsOld)
-	registerMethod(k, "fs.remove", false, fsRemove)
-	registerMethod(k, "fs.rename", false, fsRename)
-	registerMethod(k, "fs.createDirectory", false, fsCreateDirectory)
+	registerMethod(k, "fs.remove", false, fsRemoveOld)
+	registerMethod(k, "fs.rename", false, fsRenameOld)
+	registerMethod(k, "fs.createDirectory", false, fsCreateDirectoryOld)
 
 	registerMethod(k, "app.install", false, appInstall)
 	registerMethod(k, "app.download", false, appDownload)
@@ -189,9 +189,9 @@ func runNewKite() {
 	vosMethod(k, "fs.ensureNonexistentPath", fsEnsureNonexistentPathNew)
 	vosMethod(k, "fs.getInfo", fsGetInfoNew)
 	vosMethod(k, "fs.setPermissions", fsSetPermissionsNew)
-	// vosMethod(k, "fs.remove", fsRemoveNew)
-	// vosMethod(k, "fs.rename", fsRenameNew)
-	// vosMethod(k, "fs.createDirectory", fsCreateDirectoryNew)
+	vosMethod(k, "fs.remove", fsRemoveNew)
+	vosMethod(k, "fs.rename", fsRenameNew)
+	vosMethod(k, "fs.createDirectory", fsCreateDirectoryNew)
 
 	k.Start()
 
