@@ -124,11 +124,8 @@ class FSItem extends KDObject
     [isTarGz, extractFolder] =
       if tarPattern.test file.name
         [yes, path.replace tarPattern, '']
-
       else if zipPattern.test file.name
         [no, path.replace zipPattern, '']
-
-    debugger
 
     osKite.vmStart()
 
