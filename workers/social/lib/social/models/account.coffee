@@ -1418,37 +1418,30 @@ module.exports = class JAccount extends jraphical.Module
     oldAddTags.call this, client, tags, options, callback
 
   fetchUserDomains: (client, callback) ->
+    {connection: {delegate}} = client
     {group} = client.context
 
     JDomain = require './domain'
+    delegate.fetchDomains (err, domains) ->
+      return callback err  if err
+      domainList = []
+      domainList = filterDomains domains, delegate, group  if domains
+      
+      callback null, domainList
 
-    JVM = require './vm'
-    JVM.fetchVmsByContext client, {}, (err, vms) =>
-      return callback err if err
-      Relationship.some
-        targetName: "JDomain"
-        sourceId  : @getId()
-        sourceName: "JAccount"
-      , {}, (err, rels)->
-        return callback err if err
-
-        selector = $or : [
-          {_id           : $in: (rel.targetId for rel in rels)},
-          {hostnameAlias : $in : vms}
-        ]
-        JDomain.some selector, {}, (err, domains)->
-          return callback err if err
-
-          domainList = []
-          # we don't allow users to work on domains such as
-          # shared-x/vm-x.groupSlug.kd.io or x.koding.kd.io
-          # so we are filtering them here.
-          domainList = domains.filter (domain)->
-            domainName = domain.domain
-            !(/^shared|vm[\-]?([0-9]+)?/.test domainName) and \
-            !(/(.*)\.(koding|guests)\.kd\.io$/.test domainName)
-
-          callback err, domainList
+  # filters domains such as shared-x/vm-x.groupSlug.kd.io
+  # or x.koding.kd.io. Also shows only group related
+  # domains to users
+  filterDomains = (domains, account, group)->
+    domainList = []
+    domainList = domains.filter (domain)->
+      {domain} = domain
+      re = if group is "koding" then new RegExp(account.profile.nickname + '\.kd\.io$') \
+           else new RegExp('(.*)\.' + group + '\.kd\.io$')
+      isVmAlias         = (/^shared|vm[\-]?([0-9]+)?/.test domain)
+      isKodingSubdomain = (/(.*)\.(koding|guests)\.kd\.io$/.test domain)
+      isGroupAlias      = re.test domain
+      not isVmAlias and not isKodingSubdomain and isGroupAlias
 
   fetchDomains$: permit
     advanced: [
