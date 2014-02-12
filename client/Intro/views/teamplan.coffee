@@ -22,6 +22,7 @@ class IntroTeamPlan extends JView
         <cite>1x</cite>Always on VMs
         """
       unitPrice         : unitPrices.resourcePack
+      amountSuffix      : "x"
       slider            :
         minValue        : 1
         maxValue        : 250

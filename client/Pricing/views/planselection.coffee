@@ -1,11 +1,12 @@
 class PricingPlanSelection extends JView
   constructor : (options = {}, data = {}) ->
     options.cssClass      = KD.utils.curry "plan-selection-box", options.cssClass
-    options.title       or= ""
-    options.description or= ""
+    options.title        ?= ""
+    options.description  ?= ""
     options.unitPrice    ?= 1
     options.hidePrice    ?= no
-    options.period      or= "Month"
+    options.period       ?= "Month"
+    options.amountSuffix ?= ""
     super options, data
 
     @title    = new KDCustomHTMLView
@@ -28,7 +29,7 @@ class PricingPlanSelection extends JView
     @slider.on "ValueChanged", (handle) =>
       value = Math.floor handle.value
       price = value * unitPrice
-      @count.updatePartial if value then "#{value}x" else 'Free'
+      @count.updatePartial if value then "#{value}#{options.amountSuffix}" else 'Free'
       @price.updatePartial "$#{price}/Month"
       @updateDescription value
       @emit "ValueChanged", value

@@ -25,6 +25,7 @@ class DeveloperPlan extends JView
         <cite>1x</cite>Always on VMs</p>
         """
       unitPrice      : 20
+      amountSuffix   : "x"
       hidePrice      : yes
       slider         :
         minValue     : 0
