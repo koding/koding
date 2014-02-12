@@ -163,9 +163,7 @@ func fsWriteFileOld(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (
 	return fsWriteFile(params, vos)
 }
 
-var suffixRegexp = regexp.MustCompile(`.((_\d+)?)(\.\w*)?$`)
-
-func fsEnsureNonexistentPath(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
+func fsEnsureNonexistentPathOld(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
 	var params struct {
 		Path string
 	}
@@ -173,23 +171,7 @@ func fsEnsureNonexistentPath(args *dnode.Partial, channel *kite.Channel, vos *vi
 		return nil, &kite.ArgumentError{Expected: "{ path: [string] }"}
 	}
 
-	name := params.Path
-	index := 1
-	for {
-		_, err := vos.Stat(name)
-		if err != nil {
-			if os.IsNotExist(err) {
-				break
-			}
-			return nil, err
-		}
-
-		loc := suffixRegexp.FindStringSubmatchIndex(name)
-		name = name[:loc[2]] + "_" + strconv.Itoa(index) + name[loc[3]:]
-		index++
-	}
-
-	return name, nil
+	return fsEnsureNonexistentPath(params.Path, vos)
 }
 
 func fsGetInfo(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
@@ -396,4 +378,26 @@ func fsWriteFile(params writeFileParams, vos *virt.VOS) (interface{}, error) {
 	}
 
 	return file.Write(params.Content)
+}
+
+var suffixRegexp = regexp.MustCompile(`.((_\d+)?)(\.\w*)?$`)
+
+func fsEnsureNonexistentPath(path string, vos *virt.VOS) (interface{}, error) {
+	name := path
+	index := 1
+	for {
+		_, err := vos.Stat(name)
+		if err != nil {
+			if os.IsNotExist(err) {
+				break
+			}
+			return nil, err
+		}
+
+		loc := suffixRegexp.FindStringSubmatchIndex(name)
+		name = name[:loc[2]] + "_" + strconv.Itoa(index) + name[loc[3]:]
+		index++
+	}
+
+	return name, nil
 }

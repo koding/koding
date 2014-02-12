@@ -206,3 +206,15 @@ func fsWriteFileNew(r *kitelib.Request, vos *virt.VOS) (interface{}, error) {
 
 	return fsWriteFile(params, vos)
 }
+
+func fsEnsureNonexistentPathNew(r *kitelib.Request, vos *virt.VOS) (interface{}, error) {
+	var params struct {
+		Path string
+	}
+
+	if r.Args.Unmarshal(&params) != nil || params.Path == "" {
+		return nil, &kite.ArgumentError{Expected: "{ path: [string] }"}
+	}
+
+	return fsEnsureNonexistentPath(params.Path, vos)
+}
