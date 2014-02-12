@@ -397,7 +397,6 @@ func setupSignalHandler() {
 // a "vos" struct and pass it to the our method. The VOS has "vm", "user" and
 // "permissions" document embedded, with this info our final method has all
 // the necessary needed bits.
-which has all the necessary bits a method needs. I
 func registerMethod(k *kite.Kite, method string, concurrent bool, callback func(*dnode.Partial, *kite.Channel, *virt.VOS) (interface{}, error)) {
 
 	wrapperMethod := func(args *dnode.Partial, channel *kite.Channel) (methodReturnValue interface{}, methodError error) {
@@ -415,7 +414,7 @@ func registerMethod(k *kite.Kite, method string, concurrent bool, callback func(
 			return nil, err
 		}
 
-		vm, err := getVM(channel)
+		vm, err := getVM(channel.CorrelationName)
 		if err != nil {
 			return nil, err
 		}
@@ -450,13 +449,39 @@ func registerMethod(k *kite.Kite, method string, concurrent bool, callback func(
 	k.Handle(method, concurrent, wrapperMethod)
 }
 
+// getVos returns a new VOS based on the given username and correlationName
+// which is used to pick up the correct VM.
+func getVos(username, correlationName string) (*virt.VOS, error) {
+	user, err := getUser(username)
+	if err != nil {
+		return nil, err
+	}
+
+	vm, err := getVM(correlationName)
+	if err != nil {
+		return nil, err
+	}
+
+	permissions := vm.GetPermissions(user)
+	if permissions == nil && user.Uid != virt.RootIdOffset {
+		return nil, errors.New("Permission denied.")
+	}
+
+	return &virt.VOS{
+		VM:          vm,
+		User:        user,
+		Permissions: permissions,
+	}, nil
+}
+
+// getUser returns a new *virt.User struct based on the given username
 func getUser(username string) (*virt.User, error) {
 	var user *virt.User
 	if err := mongodbConn.Run("jUsers", func(c *mgo.Collection) error {
 		return c.Find(bson.M{"username": username}).One(&user)
 	}); err != nil {
 		if err != mgo.ErrNotFound {
-			panic(err)
+			return nil, err
 		}
 
 		if !strings.HasPrefix(username, "guest-") {
@@ -468,27 +493,26 @@ func getUser(username string) (*virt.User, error) {
 	}
 
 	if user.Uid < virt.UserIdOffset {
-		panic("User with too low uid.")
+		return nil, errors.New("User with too low uid.")
 	}
 
 	return user, nil
 }
 
-func getVM(channel *kite.Channel) (*virt.VM, error) {
+// getVM returns a new virt.VM struct based on on the given correlationName.
+// Here correlationName can be either the hostnameAlias or the given VM
+// documents ID.
+func getVM(correlationName string) (*virt.VM, error) {
 	var vm *virt.VM
-	query := bson.M{"hostnameAlias": channel.CorrelationName}
-	if bson.IsObjectIdHex(channel.CorrelationName) {
-		query = bson.M{"_id": bson.ObjectIdHex(channel.CorrelationName)}
-	}
-
-	if info, _ := channel.KiteData.(*VMInfo); info != nil {
-		query = bson.M{"_id": info.vm.Id}
+	query := bson.M{"hostnameAlias": correlationName}
+	if bson.IsObjectIdHex(correlationName) {
+		query = bson.M{"_id": bson.ObjectIdHex(correlationName)}
 	}
 
 	if err := mongodbConn.Run("jVMs", func(c *mgo.Collection) error {
 		return c.Find(query).One(&vm)
 	}); err != nil {
-		return nil, &VMNotFoundError{Name: channel.CorrelationName}
+		return nil, &VMNotFoundError{Name: correlationName}
 	}
 
 	return vm, nil
