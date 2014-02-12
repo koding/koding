@@ -5,8 +5,6 @@ package main
 import (
 	"fmt"
 	"io"
-	kitelib "kite"
-	kitednode "kite/dnode"
 	"koding/tools/dnode"
 	"koding/tools/kite"
 	"koding/virt"
@@ -131,50 +129,28 @@ func fsReadDirectoryOld(args *dnode.Partial, channel *kite.Channel, vos *virt.VO
 	return response, nil
 }
 
-func fsGlob(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
+func fsGlobOld(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
 	var params struct {
 		Pattern string
 	}
+
 	if args.Unmarshal(&params) != nil || params.Pattern == "" {
 		return nil, &kite.ArgumentError{Expected: "{ pattern: [string] }"}
 	}
 
-	matches, err := vos.Glob(params.Pattern)
-	if err == nil && matches == nil {
-		matches = []string{}
-	}
-	return matches, err
+	return fsGlob(params.Pattern, vos)
 }
 
-func fsReadFile(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
+func fsReadFileOld(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
 	var params struct {
 		Path string
 	}
+
 	if args.Unmarshal(&params) != nil || params.Path == "" {
 		return nil, &kite.ArgumentError{Expected: "{ path: [string] }"}
 	}
 
-	file, err := vos.Open(params.Path)
-	if err != nil {
-		return nil, err
-	}
-	defer file.Close()
-
-	fi, err := file.Stat()
-	if err != nil {
-		return nil, err
-	}
-
-	if fi.Size() > 10*1024*1024 {
-		return nil, fmt.Errorf("File larger than 10MiB.")
-	}
-
-	buf := make([]byte, fi.Size())
-	if _, err := io.ReadFull(file, buf); err != nil {
-		return nil, err
-	}
-
-	return map[string]interface{}{"content": buf}, nil
+	return fsReadFile(params.Path, vos)
 }
 
 func fsWriteFile(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
@@ -376,73 +352,37 @@ func fsCreateDirectory(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS
 	return true, nil
 }
 
-// New kite functions
+//////////////////////
 
-// TODO: replace watcher with fsnotify.
-func fsReadDirectoryNew(r *kitelib.Request, vos *virt.VOS) (interface{}, error) {
-	var params struct {
-		Path                string
-		OnChange            kitednode.Function
-		WatchSubdirectories bool
+func fsGlob(pattern string, vos *virt.VOS) (interface{}, error) {
+	matches, err := vos.Glob(pattern)
+	if err == nil && matches == nil {
+		matches = []string{}
 	}
 
-	if r.Args.Unmarshal(&params) != nil || params.Path == "" {
-		return nil, &kite.ArgumentError{Expected: "{ path: [string], onChange: [function], watchSubdirectories: [bool] }"}
-	}
+	return matches, err
+}
 
-	response := make(map[string]interface{})
-
-	if params.OnChange != nil {
-		watch, err := vos.WatchDirectory(params.Path, params.WatchSubdirectories, func(ev *inotify.Event, info os.FileInfo) {
-			defer log.RecoverAndLog()
-
-			if (ev.Mask & (inotify.IN_CREATE | inotify.IN_MOVED_TO | inotify.IN_ATTRIB)) != 0 {
-				if info == nil {
-					return // skip this event, file was deleted and deletion event will follow
-				}
-				event := "added"
-				if ev.Mask&inotify.IN_ATTRIB != 0 {
-					event = "attributesChanged"
-				}
-				params.OnChange(map[string]interface{}{
-					"event": event,
-					"file":  makeFileEntry(vos, ev.Name, info),
-				})
-				return
-			}
-			if (ev.Mask & (inotify.IN_DELETE | inotify.IN_MOVED_FROM)) != 0 {
-				params.OnChange(map[string]interface{}{
-					"event": "removed",
-					"file":  FileEntry{Name: path.Base(ev.Name), FullPath: ev.Name},
-				})
-				return
-			}
-		})
-		if err != nil {
-			return nil, err
-		}
-
-		r.RemoteKite.OnDisconnect(func() { watch.Close() })
-		response["stopWatching"] = func() { watch.Close() }
-	}
-
-	dir, err := vos.Open(params.Path)
+func fsReadFile(path string, vos *virt.VOS) (interface{}, error) {
+	file, err := vos.Open(path)
 	if err != nil {
 		return nil, err
 	}
-	defer dir.Close()
+	defer file.Close()
 
-	infos, err := dir.Readdir(0)
+	fi, err := file.Stat()
 	if err != nil {
 		return nil, err
 	}
 
-	files := make([]FileEntry, len(infos))
-	for i, info := range infos {
-		files[i] = makeFileEntry(vos, path.Join(params.Path, info.Name()), info)
+	if fi.Size() > 10*1024*1024 {
+		return nil, fmt.Errorf("File larger than 10MiB.")
 	}
-	response["files"] = files
 
-	return response, nil
+	buf := make([]byte, fi.Size())
+	if _, err := io.ReadFull(file, buf); err != nil {
+		return nil, err
+	}
 
+	return map[string]interface{}{"content": buf}, nil
 }

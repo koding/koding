@@ -135,8 +135,8 @@ func main() {
 
 	syscall.Umask(0) // don't know why richard calls this
 	registerMethod(k, "fs.readDirectory", false, fsReadDirectoryOld)
-	registerMethod(k, "fs.glob", false, fsGlob)
-	registerMethod(k, "fs.readFile", false, fsReadFile)
+	registerMethod(k, "fs.glob", false, fsGlobOld)
+	registerMethod(k, "fs.readFile", false, fsReadFileOld)
 	registerMethod(k, "fs.writeFile", false, fsWriteFile)
 	registerMethod(k, "fs.ensureNonexistentPath", false, fsEnsureNonexistentPath)
 	registerMethod(k, "fs.getInfo", false, fsGetInfo)
@@ -183,8 +183,8 @@ func runNewKite() {
 	vosMethod(k, "exec", execNew)
 
 	vosMethod(k, "fs.readDirectory", fsReadDirectoryNew)
-	// vosMethod(k, "fs.glob", fsGlobNew)
-	// vosMethod(k, "fs.readFile", fsReadFileNew)
+	vosMethod(k, "fs.glob", fsGlobNew)
+	vosMethod(k, "fs.readFile", fsReadFileNew)
 	// vosMethod(k, "fs.writeFile", fsWriteFileNew)
 	// vosMethod(k, "fs.ensureNonexistentPath", fsEnsureNonexistentPathNew)
 	// vosMethod(k, "fs.getInfo", fsGetInfoNew)
