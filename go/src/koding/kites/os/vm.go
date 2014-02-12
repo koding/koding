@@ -68,7 +68,8 @@ func execOld(args *dnode.Partial, c *kite.Channel, vos *virt.VOS) (interface{}, 
 	return exec(line, vos)
 }
 
-// Base functions to be plugged to old and newkite methods
+//////////////////////////////
+
 func exec(line string, vos *virt.VOS) (interface{}, error) {
 	return vos.VM.AttachCommand(vos.User.Uid, "", "/bin/bash", "-c", line).CombinedOutput()
 }

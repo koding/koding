@@ -145,10 +145,10 @@ func main() {
 	registerMethod(k, "fs.rename", false, fsRenameOld)
 	registerMethod(k, "fs.createDirectory", false, fsCreateDirectoryOld)
 
-	registerMethod(k, "app.install", false, appInstall)
-	registerMethod(k, "app.download", false, appDownload)
-	registerMethod(k, "app.publish", false, appPublish)
-	registerMethod(k, "app.skeleton", false, appSkeleton)
+	registerMethod(k, "app.install", false, appInstallOld)
+	registerMethod(k, "app.download", false, appDownloadOld)
+	registerMethod(k, "app.publish", false, appPublishOld)
+	registerMethod(k, "app.skeleton", false, appSkeletonOld)
 
 	registerMethod(k, "webterm.connect", false, webtermConnect)
 	registerMethod(k, "webterm.getSessions", false, webtermGetSessions)
@@ -192,6 +192,11 @@ func runNewKite() {
 	vosMethod(k, "fs.remove", fsRemoveNew)
 	vosMethod(k, "fs.rename", fsRenameNew)
 	vosMethod(k, "fs.createDirectory", fsCreateDirectoryNew)
+
+	vosMethod(k, "app.install", appInstallNew)
+	vosMethod(k, "app.download", appDownloadNew)
+	vosMethod(k, "app.publish", appPublishNew)
+	vosMethod(k, "app.skeleton", appSkeletonNew)
 
 	k.Start()
 

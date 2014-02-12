@@ -279,3 +279,41 @@ func fsCreateDirectoryNew(r *kitelib.Request, vos *virt.VOS) (interface{}, error
 
 	return fsCreateDirectory(params.Path, params.Recursive, vos)
 }
+
+// APP METHODS
+func appInstallNew(r *kitelib.Request, vos *virt.VOS) (interface{}, error) {
+	var params appParams
+	if r.Args.Unmarshal(&params) != nil || params.Owner == "" || params.Identifier == "" || params.Version == "" || params.AppPath == "" {
+		return nil, &kite.ArgumentError{Expected: "{ owner: [string], identifier: [string], version: [string], appPath: [string] }"}
+	}
+
+	return appInstall(params, vos)
+
+}
+
+func appDownloadNew(r *kitelib.Request, vos *virt.VOS) (interface{}, error) {
+	var params appParams
+	if r.Args.Unmarshal(&params) != nil || params.Owner == "" || params.Identifier == "" || params.Version == "" || params.AppPath == "" {
+		return nil, &kite.ArgumentError{Expected: "{ owner: [string], identifier: [string], version: [string], appPath: [string] }"}
+	}
+
+	return appDownload(params, vos)
+}
+
+func appPublishNew(r *kitelib.Request, vos *virt.VOS) (interface{}, error) {
+	var params appParams
+	if r.Args.Unmarshal(&params) != nil || params.AppPath == "" {
+		return nil, &kite.ArgumentError{Expected: "{ appPath: [string] }"}
+	}
+
+	return appPublish(params, vos)
+}
+
+func appSkeletonNew(r *kitelib.Request, vos *virt.VOS) (interface{}, error) {
+	var params appParams
+	if r.Args.Unmarshal(&params) != nil || params.AppPath == "" {
+		return nil, &kite.ArgumentError{Expected: "{ type: [string], appPath: [string] }"}
+	}
+
+	return appSkeleton(params, vos)
+}
