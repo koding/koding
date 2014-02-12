@@ -152,9 +152,9 @@ class PaymentController extends KDController
         else if createAccount
           { cardFirstName: firstName, cardLastName: lastName } = billing
           { JUser } = KD.remote.api
-          JUser.convert { firstName, lastName, email }, (err, newToken, recoveryToken) ->
+          JUser.convert { firstName, lastName, email }, (err, newToken, recoveryToken) =>
+            workflow.emit "PasswordRecoveryToken", recoveryToken
             JUser.logout ->
-              window.location.href = "/Register/#{encodeURIComponent(recoveryToken)}"
               KD.singletons.dock.getView().show()
 
       .enter()
