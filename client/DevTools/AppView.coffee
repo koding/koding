@@ -2,10 +2,16 @@ class DevToolsMainView extends KDView
 
   COFFEE = "//cdnjs.cloudflare.com/ajax/libs/coffee-script/1.6.3/coffee-script.min.js"
 
+  constructor:->
+    super
+
+    @storage = KD.singletons.localStorageController.storage "DevTools"
+    @liveMode = @storage.getAt 'liveMode'
+
   viewAppended:->
 
     @addSubView @workspace      = new CollaborativeWorkspace
-      name                      : "Kodepad"
+      name                      : "Koding DevTools"
       delegate                  : this
       firebaseInstance          : "tw-local"
       panels                    : [
@@ -25,12 +31,13 @@ class DevToolsMainView extends KDView
           }
           {
             title               : 'Run as I type'
-            cssClass            : "solid live"
+            cssClass            : "solid #{if @liveMode then 'green' else 'live'}"
             callback            : =>
               button = @workspace.panels.first.headerButtons['Run as I type']
               button.unsetClass 'live green'
               button.setClass if @liveMode then 'live' else 'green'
               @liveMode = button.hasClass 'green'
+              @storage.setValue 'liveMode', @liveMode
           }
         ]
         layout                  :
