@@ -1,9 +1,10 @@
 class DevToolsController extends AppController
 
-  KD.registerAppClass this,
-    name     : "DevTools"
-    route    : "/DevTools"
-    behavior : "application"
+  name    = "DevTools"
+  version = "0.1"
+  route   = "/#{name}"
+
+  KD.registerAppClass this, {name, version, behavior: "application", route}
 
   constructor:(options = {}, data)->
     options.view    = new DevToolsMainView
