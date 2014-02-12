@@ -90,7 +90,7 @@ class DomainCreateForm extends KDCustomHTMLView
   reset:->
     @successNote?.destroy()
     for form in [@subDomainEntryForm, @newDomainEntryForm]
-      form.inputs.domainName.setValue ''
+      form.inputs?.domainName.setValue ''
     @emit 'CloseClicked'
 
   updateDomains: ->
