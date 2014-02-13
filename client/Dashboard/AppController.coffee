@@ -77,11 +77,11 @@ class DashboardAppController extends AppController
           viewClass  : BadgeDashboardView
           lazy       : yes
       ,
-        name         : 'Home Pages'
+        name         : 'CustomPartials'
         hiddenHandle : @getData().privacy is 'public'
         kodingOnly   : yes # this is only intended for koding group, we assume koding group is super-group
         viewOptions  :
-          viewClass  : HomePagesDashboardView
+          viewClass  : CustomViewsManager
           lazy       : yes
 
       # CURRENTLY DISABLED
