@@ -69,7 +69,7 @@ class NewKite extends KDObject
         username       : "#{KD.nick()}"
         environment    : "#{KD.config.environment}"
         name           : "browser"
-        version        : "0.0.1"
+        version        : "#{KD.config.version}"
         region         : "browser"
         hostname       : "browser"
         id             : uniqueID
