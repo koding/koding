@@ -8,6 +8,8 @@ import (
 	kitednode "kite/dnode"
 	"koding/tools/kite"
 	"koding/virt"
+	"labix.org/v2/mgo"
+	"labix.org/v2/mgo/bson"
 	"os"
 	"path"
 	"strings"
@@ -21,18 +23,16 @@ type vosFunc func(*kitelib.Request, *virt.VOS) (interface{}, error)
 // vosMethod is compat wrapper around the new kite library. It's basically
 // creates a vos instance that is the plugged into the the base functions.
 func vosMethod(k *kitelib.Kite, method string, vosFn vosFunc) {
-
 	handler := func(r *kitelib.Request) (interface{}, error) {
 		var params struct {
-			// might be vm ID or hostnameAlias
-			CorrelationName string
+			VmName string
 		}
 
-		if r.Args.One().Unmarshal(&params) != nil || params.CorrelationName == "" {
-			return nil, errors.New("{ correlationName: [string]}")
+		if r.Args.One().Unmarshal(&params) != nil || params.VmName == "" {
+			return nil, errors.New("{ vmName: [string]}")
 		}
 
-		vos, err := getVos(r.Username, params.CorrelationName)
+		vos, err := getVos(r.Username, params.VmName)
 		if err != nil {
 			return nil, err
 		}
@@ -41,6 +41,52 @@ func vosMethod(k *kitelib.Kite, method string, vosFn vosFunc) {
 	}
 
 	k.HandleFunc(method, handler)
+}
+
+// getVos returns a new VOS based on the given username and vmName
+// which is used to pick up the correct VM.
+func getVos(username, vmName string) (*virt.VOS, error) {
+	user, err := getUser(username)
+	if err != nil {
+		return nil, err
+	}
+
+	vm, err := checkAndGetVM(username, vmName)
+	if err != nil {
+		return nil, err
+	}
+
+	permissions := vm.GetPermissions(user)
+	if permissions == nil && user.Uid != virt.RootIdOffset {
+		return nil, errors.New("Permission denied.")
+	}
+
+	return &virt.VOS{
+		VM:          vm,
+		User:        user,
+		Permissions: permissions,
+	}, nil
+}
+
+// checkAndGetVM returns a new virt.VM struct based on on the given username
+// and vm name. If the user doesn't have any associated VM it returns a
+// VMNotFoundError.
+func checkAndGetVM(username, vmName string) (*virt.VM, error) {
+	var vm *virt.VM
+
+	query := func(c *mgo.Collection) error {
+		return c.Find(bson.M{
+			"hostnameAlias": vmName,
+			"webHome":       username,
+		}).One(&vm)
+	}
+
+	if err := mongodbConn.Run("jVMs", query); err != nil {
+		return nil, &VMNotFoundError{Name: vmName}
+	}
+
+	vm.ApplyDefaults()
+	return vm, nil
 }
 
 // VM METHODS

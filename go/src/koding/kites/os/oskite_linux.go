@@ -438,31 +438,6 @@ func registerMethod(k *kite.Kite, method string, concurrent bool, callback func(
 	k.Handle(method, concurrent, wrapperMethod)
 }
 
-// getVos returns a new VOS based on the given username and correlationName
-// which is used to pick up the correct VM.
-func getVos(username, correlationName string) (*virt.VOS, error) {
-	user, err := getUser(username)
-	if err != nil {
-		return nil, err
-	}
-
-	vm, err := getVM(correlationName)
-	if err != nil {
-		return nil, err
-	}
-
-	permissions := vm.GetPermissions(user)
-	if permissions == nil && user.Uid != virt.RootIdOffset {
-		return nil, errors.New("Permission denied.")
-	}
-
-	return &virt.VOS{
-		VM:          vm,
-		User:        user,
-		Permissions: permissions,
-	}, nil
-}
-
 // getUser returns a new *virt.User struct based on the given username
 func getUser(username string) (*virt.User, error) {
 	var user *virt.User
