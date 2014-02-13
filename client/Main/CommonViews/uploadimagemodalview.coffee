@@ -29,23 +29,24 @@ class UploadImageModalView extends KDModalView
       if origin is "external"
         @previewData = "data:image/png;base64,#{btoa content}"
         @uploaderView.updatePartial ""
-        @updateLogoImage()
+        @updateImage()
 
     @addSubView @uploaderView
     @addSubView @loaderView
 
-  updateLogoImage : =>
-    @logoPreview?.destroy()
-    @logoPreview = new KDCustomHTMLView
-      tagName    : "img"
-      attributes :
-        src      : @previewData
+  updateImage : =>
+    @imagePreview?.destroy()
+    @imagePreview = new KDCustomHTMLView
+      tagName    : "figure"
       size       : @getOptions().preview.size
 
-    @uploaderView.addSubView @logoPreview
+    @imagePreview.setStyle
+      "background-image" : "url(#{@previewData})"
+
+    @uploaderView.addSubView @imagePreview
 
   uploadToS3: (avatarData, callback)->
-    #TODO : change the address and name of the logo
+    #TODO : change the address and name of the image
     {groupsController} = KD.singletons
     groupsController.ready =>
 
@@ -71,7 +72,7 @@ class UploadImageModalView extends KDModalView
     return new KDNotificationView title : 'Please drag & drop an image to upload!'  unless @previewData
 
     @loaderView.show()
-    [_, logoBase64] = @previewData.split ","
-    @uploadToS3 logoBase64, (err)=>
+    [_, imageBase64] = @previewData.split ","
+    @uploadToS3 imageBase64, (err)=>
       @loaderView.hide()
       callback? err
