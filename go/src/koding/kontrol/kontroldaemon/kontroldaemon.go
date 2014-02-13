@@ -55,7 +55,6 @@ func startRouting(conf *config.Config) {
 	bindings := []bind{
 		bind{"api", "kontrol-api", "input.api", "infoExchange", "topic"},
 		bind{"worker", "kontrol-worker", "input.worker", "workerExchange", "topic"},
-		bind{"client", "kontrol-client", "", "clientExchange", "fanout"},
 	}
 
 	connection := kontrolhelper.CreateAmqpConnection(conf)
@@ -65,11 +64,6 @@ func startRouting(conf *config.Config) {
 		streams[b.name] = kontrolhelper.CreateStream(channel, b.kind, b.exchange, b.queue, b.key, true, false)
 	}
 
-	err := channel.Qos(len(bindings), 0, false)
-	if err != nil {
-		log.Fatal("basic.qos: %s", err.Error())
-	}
-
 	log.Info("kontroldaemon routing started")
 	for {
 		select {
@@ -77,8 +71,6 @@ func startRouting(conf *config.Config) {
 			go handler.ApiMessage(d.Body)
 		case d := <-streams["worker"]:
 			go handler.WorkerMessage(d.Body)
-		case d := <-streams["client"]:
-			go handler.ClientMessage(d)
 		}
 	}
 }
