@@ -344,6 +344,7 @@ class VirtualizationController extends KDController
 
   createPaidVM: ->
     @payment.fetchActiveSubscription tags: "vm", (err, subscription) =>
+      return  if KD.showError err
       KD.remote.api.JPaymentPack.one tags: "vm", (err, pack) =>
         return  if KD.showError err
         @provisionVm {subscription, productData: {pack}}, (err, nonce) =>

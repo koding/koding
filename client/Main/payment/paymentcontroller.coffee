@@ -132,7 +132,6 @@ class PaymentController extends KDController
         @transitionSubscription data, (err, subscription, rest...) ->
 
           return workflow.emit 'GroupCreationFailed'  if err
-
           workflow.emit 'SubscriptionTransitionCompleted', subscription
           workflow.emit 'Finished', data, err, subscription, rest...
 
@@ -238,7 +237,11 @@ class PaymentController extends KDController
           else
             active = subscription
 
-        callback null, active or noSync
+        subscription = active or noSync
+
+        if subscription
+        then callback null, subscription
+        else callback "No subscription found"
     else
       @fetchGroupSubscription callback
 
