@@ -31,27 +31,12 @@ class PricingPlanSelection extends JView
       price = value * unitPrice
       @count.updatePartial if value then "#{value}#{options.amountSuffix}" else 'Free'
       @price.updatePartial "$#{price}/Month"
-      @updateDescription value
       @emit "ValueChanged", value
 
     @description = new KDCustomHTMLView
       tagName    : "p"
       cssClass   : "description"
       partial    : options.description
-
-  updateDescription:(value)->
-    unless @parent.plans?[value]
-      @description.updatePartial @getOption 'description'
-    else
-      {cpu, ram, disk, totalVMs, alwaysOn} = @parent.plans[value]
-      @description.updatePartial """
-      <span>Resource pack contains</span>
-      <cite>#{cpu}x</cite>CPU
-      <cite>#{ram}x</cite>GB RAM
-      <cite>#{disk}</cite>GB Disk
-      <cite>#{totalVMs}x</cite>Total VMs
-      <cite>#{alwaysOn}x</cite>Always on VMs
-      """
 
   viewAppended: ->
     super

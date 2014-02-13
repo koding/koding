@@ -14,7 +14,7 @@ class DeveloperPlan extends JView
       { cpu: 20, ram: 10, disk: 250, alwaysOn: 5, totalVMs: 50,price: 99 , discount: 16, vm: 4 }
     ]
 
-    @slider        = new PricingPlanSelection
+    @slider          = new PricingPlanSelection
       title          : "Resource Pack"
       description    : """
         <span>1 Resource pack contains</span>
@@ -25,8 +25,8 @@ class DeveloperPlan extends JView
         <cite>1x</cite>Always on VMs</p>
         """
       unitPrice      : 20
-      amountSuffix   : "x"
       hidePrice      : yes
+      amountSuffix   : "x"
       slider         :
         minValue     : 0
         maxValue     : @plans.length - 1
@@ -64,7 +64,6 @@ class DeveloperPlan extends JView
     @updateContent()
 
   updateContent: (index = @planIndex)->
-
     if index is 0
       title = 'Free Account'
       desc  = '<cite>"free" as in "free speech"</cite>'
@@ -76,6 +75,16 @@ class DeveloperPlan extends JView
 
     @title.updatePartial title
     @price.updatePartial desc
+
+    {cpu, ram, disk, totalVMs, alwaysOn} = @plans[index]
+    @slider.description.updatePartial """
+    <span>Resource pack contains</span>
+    <cite>#{cpu}x</cite>CPU
+    <cite>#{ram}x</cite>GB RAM
+    <cite>#{disk}</cite>GB Disk
+    <cite>#{totalVMs}x</cite>Total VMs
+    <cite>#{alwaysOn}x</cite>Always on VMs
+    """
 
     # plan = @plans[index]
     # {discount, vm} = plan

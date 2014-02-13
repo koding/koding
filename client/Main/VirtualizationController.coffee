@@ -159,8 +159,8 @@ class VirtualizationController extends KDController
         return callback null
 
       # If there is just one return it
-      if vmNames.length is 1
-        return callback @defaultVmName = vmNames.first
+      # if vmNames.length is 1
+      #   return callback @defaultVmName = vmNames.first
 
       # If current group is 'koding' ask to backend for the default one
       KD.remote.api.JVM.fetchDefaultVm (err, defaultVmName)=>
@@ -181,11 +181,11 @@ class VirtualizationController extends KDController
           return callback @defaultVmName = vm.alias
 
         # Check for personal VMs in Koding or Guests group
-        for vm in userVMs when vm.groupSlug in ['koding', 'guests']
-          return callback @defaultVmName = vm.alias
+        # for vm in userVMs when vm.groupSlug in ['koding', 'guests']
+        #   return callback @defaultVmName = vm.alias
 
         # Fallback to Koding VM if exists
-        return callback @defaultVmName = defaultVmName
+        return callback()
 
   createGroupVM:(type='user', planCode, callback=->)->
     vmCreateCallback = (err, vm)->
@@ -348,6 +348,7 @@ class VirtualizationController extends KDController
         return  if KD.showError err
         @provisionVm {subscription, productData: {pack}}, (err, nonce) =>
           return  unless err
+          return KD.showError err  if err and err.message isnt "quota exceeded"
           modal      = new KDModalView
             title    : "Create a new VM"
             cssClass : "create-vm"

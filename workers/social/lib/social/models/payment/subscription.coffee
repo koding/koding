@@ -77,6 +77,9 @@ module.exports = class JPaymentSubscription extends jraphical.Module
         default     : {}
       paymentMethodId: String
       tags          : (require './schema').tags
+      transactionLock:
+        type        : Boolean
+        default     : no
     relationships   :
       linkedSubscription:
         targetType  : this
@@ -210,29 +213,35 @@ module.exports = class JPaymentSubscription extends jraphical.Module
       callback null, nonce.nonce
 
   debit: ({ pack, multiplyFactor, shouldCreateNonce }, callback) ->
+    return callback new KodingError "Your subscription is currently locked"  if @transactionLock
 
-    multiplyFactor    ?= 1
-    shouldCreateNonce ?= no
-
-    @checkUsage pack, multiplyFactor, (err, usage) =>
+    @update $set: transactionLock: yes, (err) =>
       return callback err  if err
 
-      { quantities } = pack
+      multiplyFactor    ?= 1
+      shouldCreateNonce ?= no
 
-      op = $set: (Object.keys quantities)
-        .reduce( (memo, key) =>
-          memo["usage.#{ key }"] =
-            (@usage[key] ? 0) + quantities[key] * multiplyFactor
-          memo
-        , {})
-
-      @update op, (err) =>
+      @checkUsage pack, multiplyFactor, (err, usage) =>
         return callback err  if err
 
-        if shouldCreateNonce
-          @createFulfillmentNonce pack, (multiplyFactor > 0), callback
-        else
-          callback null
+        { quantities } = pack
+
+        op = $set: (Object.keys quantities)
+          .reduce( (memo, key) =>
+            memo["usage.#{ key }"] =
+              (@usage[key] ? 0) + quantities[key] * multiplyFactor
+            memo
+          , {})
+
+        op.$set.transactionLock = no
+
+        @update op, (err) =>
+          return callback err  if err
+
+          if shouldCreateNonce
+            @createFulfillmentNonce pack, (multiplyFactor > 0), callback
+          else
+            callback null
 
   debit$: secure (client, options, callback) ->
     { delegate } = client.connection
