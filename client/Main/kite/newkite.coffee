@@ -4,6 +4,7 @@ class NewKite extends KDObject
 
   {setAt} = Bongo.JsPath
   [NOTREADY, READY, CLOSED] = [0,1,3]
+  uniqueID = Bongo.createId()  # will be different for each tab
 
   constructor: (kite, authentication, options={})->
     super options
@@ -64,6 +65,14 @@ class NewKite extends KDObject
       authentication   : @authentication
       withArgs         : args
       responseCallback : cb
+      kite             :
+        username       : "#{KD.nick()}"
+        environment    : "#{KD.config.environment}"
+        name           : "browser"
+        version        : "0.0.1"
+        region         : "browser"
+        hostname       : "browser"
+        id             : uniqueID
 
     # Normally the request is made with the following statement:
     #   @proto.request method, [options, cb]
