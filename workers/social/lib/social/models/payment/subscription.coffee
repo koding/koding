@@ -215,14 +215,18 @@ module.exports = class JPaymentSubscription extends jraphical.Module
   debit: ({ pack, multiplyFactor, shouldCreateNonce }, callback) ->
     return callback new KodingError "Your subscription is currently locked"  if @transactionLock
 
+    multiplyFactor    ?= 1
+    shouldCreateNonce ?= no
+
     @update $set: transactionLock: yes, (err) =>
       return callback err  if err
 
-      multiplyFactor    ?= 1
-      shouldCreateNonce ?= no
-
       @checkUsage pack, multiplyFactor, (err, usage) =>
-        return callback err  if err
+        if err
+          callback err  if err
+          @update $set: transactionLock: no, (err) ->
+            console.warn "Transaction lock reset failed"  if err
+          return
 
         { quantities } = pack
 
@@ -236,7 +240,11 @@ module.exports = class JPaymentSubscription extends jraphical.Module
         op.$set.transactionLock = no
 
         @update op, (err) =>
-          return callback err  if err
+          if err
+            callback err  if err
+            @update $set: transactionLock: no, (err) ->
+              console.warn "Transaction lock reset failed"  if err
+            return
 
           if shouldCreateNonce
             @createFulfillmentNonce pack, (multiplyFactor > 0), callback
