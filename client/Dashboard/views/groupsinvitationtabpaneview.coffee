@@ -57,7 +57,8 @@ class GroupsInvitationTabPaneView extends KDView
     @controller.showLazyLoader no
 
     options = {@timestamp , @requestLimit, search: @searchValue, }
-    options.showResolved = @options.showResolved
+    options.showResolved = @getOptions().showResolved
+    options.type = @getOptions().type
 
     @getData().fetchInvitationsByStatus options, (err, results)=>
       @controller.hideLazyLoader()
