@@ -144,7 +144,6 @@ class GroupsInvitationView extends KDView
       title              : 'Invite by Email'
       cssClass           : 'invite-by-email'
       callback           : ({emails, message, saveMessage})=>
-
         KD.whoami().fetchFromUser "email", (err, userEmail)=>
           emails = emails.trim()
           emailList = emails.split(/\n/).map (email)-> email.trim()
@@ -164,6 +163,7 @@ class GroupsInvitationView extends KDView
           testPath       : "groups-dashboard-invite-list"
           placeholder    : 'Enter each email address on a new line...'
           validate       :
+            notifications: yes
             rules        :
               required   : yes
             messages     :
@@ -174,6 +174,7 @@ class GroupsInvitationView extends KDView
           cssClass       : 'message-input'
           defaultValue   : Encoder.htmlDecode @policy.communications?.invitationMessage or @getDefaultInvitationMessage()
           validate       :
+            notifications: yes
             rules        :
               required   : yes
               regExp     : /(#URL#)+/
