@@ -71,6 +71,16 @@ class IntroDeveloperPlan extends JView
     @title.updatePartial title
     @price.updatePartial desc
 
+    {cpu, ram, disk, totalVMs, alwaysOn} = @plans[index]
+    @slider.description.updatePartial """
+    <span>Resource pack contains</span>
+    <cite>#{cpu}x</cite>CPU
+    <cite>#{ram}x</cite>GB RAM
+    <cite>#{disk}</cite>GB Disk
+    <cite>#{totalVMs}x</cite>Total VMs
+    <cite>#{alwaysOn}x</cite>Always on VMs
+    """
+
     # plan = @plans[index]
     # {discount, vm} = plan
 
