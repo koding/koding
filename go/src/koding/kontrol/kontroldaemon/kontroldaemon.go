@@ -53,7 +53,6 @@ func startRouting(conf *config.Config) {
 
 	streams := make(map[string]<-chan amqp.Delivery)
 	bindings := []bind{
-		bind{"api", "kontrol-api", "input.api", "infoExchange", "topic"},
 		bind{"worker", "kontrol-worker", "input.worker", "workerExchange", "topic"},
 	}
 
@@ -65,12 +64,8 @@ func startRouting(conf *config.Config) {
 	}
 
 	log.Info("kontroldaemon routing started")
-	for {
-		select {
-		case d := <-streams["api"]:
-			go handler.ApiMessage(d.Body)
-		case d := <-streams["worker"]:
-			go handler.WorkerMessage(d.Body)
-		}
+
+	for d := range streams["worker"] {
+		go handler.WorkerMessage(d.Body)
 	}
 }
