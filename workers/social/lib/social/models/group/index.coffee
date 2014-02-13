@@ -1405,10 +1405,9 @@ module.exports = class JGroup extends Module
       JInvitation.some
         group  : @slug
         type   : type
-        status :
-          $in  : status
-        , options
-        , callback
+        status : $in : status
+      , options
+      , callback
 
   fetchInvitationsFromGraph: permit 'send invitations',
     success: (client, type, options, callback)->
