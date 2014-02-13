@@ -146,7 +146,17 @@ class GroupsInvitationView extends KDView
       callback           : ({emails, message, saveMessage})=>
         KD.whoami().fetchFromUser "email", (err, userEmail)=>
           emails = emails.trim()
+          invalidEmails = []
           emailList = emails.split(/\n/).map (email)-> email.trim()
+          emailList = emailList.filter (email) ->
+            isValid = KD.utils.doesEmailValid email 
+            invalidEmails.push email  unless isValid
+            isValid
+           
+          if invalidEmails.length   
+            @inviteByEmail.modalTabs.forms.invite.buttons.Send.hideLoader()
+            return KD.showError "Your invitations includes some invalid emails: #{invalidEmails}"  
+            
           if userEmail in emailList
             @inviteByEmail.modalTabs.forms.invite.buttons.Send.hideLoader()
             return new KDNotificationView
