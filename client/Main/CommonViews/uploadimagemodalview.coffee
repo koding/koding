@@ -37,10 +37,11 @@ class UploadImageModalView extends KDModalView
   updateLogoImage : =>
     @logoPreview?.destroy()
     @logoPreview = new KDCustomHTMLView
-      tagName    : "img"
-      attributes :
-        src      : @previewData
+      tagName    : "figure"
       size       : @getOptions().preview.size
+
+    @logoPreview.setStyle
+      "background-image" : "url(#{@previewData})"
 
     @uploaderView.addSubView @logoPreview
 

@@ -35,12 +35,13 @@ class GroupsInvitationView extends KDView
                 itemClass    : KDButtonView
                 testPath     : "groups-dashboard-invite-button"
                 title        : options.submitButtonLabel or 'Send'
+                style        : "modal-clean-green"
                 type         : 'submit'
                 loader       :
                   color      : '#444444'
                   diameter   : 12
               Cancel         :
-                style        : 'modal-cancel'
+                style        : "modal-clean-red"
                 callback     : -> modal.destroy()
             fields           : options.fields
 

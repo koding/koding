@@ -342,7 +342,7 @@ Dashboard member listing related common styles
       float                   right
 
     .profile
-      font-size               13px
+      font-size               16px
 
     .role
       color                   #999
@@ -515,7 +515,6 @@ Dashboard invitations tab styles
 }
 
 .kdtabview.dashboard-tabs .invitations
-
   .kdtabhandlecontainer
     padding-top               20px
     height                    50px
@@ -549,9 +548,7 @@ Dashboard invitations tab styles
     .button-bar
       height                  auto
       width                   auto
-      position                absolute
-      top                     15px
-      right                   5px
+      abs                     15px 0px 0 0
 
       button
         margin-left           5px
@@ -577,6 +574,9 @@ Dashboard invitations tab styles
         display               inline-block
 
   .member-related
+    .invitation-request-list
+      margin-top              24px
+
     section
       padding                 10px
       margin-bottom           1px
@@ -639,8 +639,12 @@ Dashboard invitations tab styles
         .requested-at
         .usage
           color               #999
-          font-size           10px
-          line-height         10px
+          font-size           12px
+          line-height         18px
+          margin-top          4px
+
+        .code
+          margin-top          4px
 
         a
           color               logoBg
@@ -698,7 +702,11 @@ Dashboard Invitations Modal Styles
     border-bottom             none
     padding-bottom            0
   div.save-message
-    padding-left              113px
+    padding                   0 0 0 124px
+
+    .kdlabel
+      line-height             48px
+
     input.save-message
       width                   auto
       display                 inline-block
@@ -994,13 +1002,15 @@ Dashboard Invitations Modal Styles
     form > .permissions-header:first-child
       position              fixed
       z-index               99
-      bg                    color, rgba(255, 255, 255, .75)
+      bg                    color, #e4e4e4
       size                  876px, 33px
+      top                   0
+      padding               167px 0 30px
 
       .header-item
         text-align          center !important
 
-      .role-admin
+      .role-member
         margin-left         160px
 
     .permissions-form
