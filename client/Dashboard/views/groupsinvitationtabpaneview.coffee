@@ -30,6 +30,10 @@ class GroupsInvitationTabPaneView extends KDView
 
     @on 'SearchInputChanged', (@searchValue)=> @refresh()
 
+    groupController = KD.getSingleton("groupsController")
+    groupController.on "MemberJoinedGroup", (data) =>
+      @refresh()
+
   viewAppended:->
     super()
     @addListeners()
