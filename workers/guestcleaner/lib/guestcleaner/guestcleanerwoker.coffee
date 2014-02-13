@@ -7,7 +7,7 @@ module.exports = class GuestCleanerWorker
   {Relationship} = jraphical
   constructor: (@bongo, @options = {}) ->
 
-  whitlistedModels = ["JSession", "JUser", "JVM", "JDomain", "JAppStorage", "JLimit", "JName"]
+  whitlistedModels = ["JSession", "JUser", "JVM", "JDomain", "JAppStorage", "JName"]
 
   collectDataAndRelationships:(relationships, callback)->
     toBeDeletedData = {}
