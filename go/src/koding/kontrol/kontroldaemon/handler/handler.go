@@ -195,7 +195,7 @@ func handleCommand(command string, worker models.Worker) error {
 }
 
 func workerLog(msg string, worker models.Worker) string {
-	msgLog := fmt.Sprintf("%s : %s - (hostname: %s version: %d uuid: %s pid: %d)",
+	msgLog := fmt.Sprintf("%s: %s (hostname: %s version: %d uuid: %s pid: %d)",
 		msg,
 		worker.Name,
 		worker.Hostname,
@@ -351,11 +351,6 @@ func heartBeatChecker() {
 
 		iter := c.Find(nil).Iter()
 		for iter.Next(&worker) {
-			if time.Now().Before(worker.Timestamp) {
-				continue
-			}
-			workerLog("NO HEARTBEAT", worker)
-
 			if time.Now().Before(worker.Timestamp.Add(HEARTBEAT_DELAY)) {
 				continue // this one is alive, pick up the next one
 			}
