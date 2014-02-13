@@ -11,8 +11,13 @@ class GroupLogoSettings extends KDView
 
     attributes    = {}
     if @group.customize?.logo
+      proxifyOptions =
+        crop         : yes
+        width        : 55
+        height       : 55
+      resized = KD.utils.proxifyUrl @group.customize.logo, proxifyOptions
       attributes  =
-        style     : "background-image: url(#{@group.customize.logo});"
+        style     : "background-image: url(#{resized});"
     else
       @setClass "default"
 

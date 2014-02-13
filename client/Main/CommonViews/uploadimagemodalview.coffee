@@ -59,18 +59,12 @@ class UploadImageModalView extends KDModalView
           @loaderView.hide()
           return
 
-        proxifyOptions =
-          crop         : yes
-          width        : @getOptions().image.size.width
-          height       : @getOptions().image.size.height
-
-        resized = KD.utils.proxifyUrl url, proxifyOptions
-        group   = KD.singletons.groupsController.getCurrentGroup()
+        group = KD.singletons.groupsController.getCurrentGroup()
 
         if @getOptions().image.type is "coverPhoto"
-          group.modify "customize.coverPhoto" : "#{resized}", callback
+          group.modify "customize.coverPhoto" : "#{url}", callback
         else
-          group.modify "customize.logo" : "#{resized}", callback
+          group.modify "customize.logo" : "#{url}", callback
 
   upload:(callback)->
 
