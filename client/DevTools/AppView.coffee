@@ -30,7 +30,7 @@ class DevToolsMainView extends KDView
             callback            : => @compileApp()
           }
           {
-            title               : 'Run as I type'
+            title               : "Run as I type"
             cssClass            : "solid #{if @liveMode then 'green' else 'live'}"
             callback            : =>
 
@@ -115,11 +115,18 @@ class DevToolsMainView extends KDView
 
     @workspace.ready =>
 
+      toggleAutoRun = =>
+        @workspace.panels.first.headerButtons['Run as I type'].click()
+
       {JSEditor, CSSEditor} = panes = @workspace.activePanel.panesByName
 
       JSEditor.ready =>
+
         JSEditor.codeMirrorEditor.on "change", \
           _.debounce (@lazyBound 'previewApp', no), 500
+
+        JSEditor.on "RunRequested", @lazyBound 'previewApp', yes
+        JSEditor.on "AutoRunRequested", toggleAutoRun
 
         JSEditor.on "OpenedAFile", (file, content)->
           app = KodingAppsController.getAppInfoFromPath file.path
@@ -127,8 +134,13 @@ class DevToolsMainView extends KDView
           if app then button.enable() else button.disable()
 
       CSSEditor.ready =>
+
         CSSEditor.codeMirrorEditor.on "change", \
           _.debounce (@lazyBound 'previewCss', no), 500
+
+        CSSEditor.on "RunRequested", @lazyBound 'previewCss', yes
+        CSSEditor.on "AutoRunRequested", toggleAutoRun
+
 
   previewApp:(force = no)->
 
@@ -280,18 +292,20 @@ class DevToolsEditorPane extends CollaborativeEditorPane
     options.cssClass = 'devtools-editor'
     super options, data
 
-    @_mode   = "coffeescript"
+    @_mode or= "coffeescript"
+    @_lastFileKey = "lastFileOn#{@_mode}"
     @storage = KD.singletons.localStorageController.storage "DevTools"
 
   loadLastOpenFile:->
 
-    path = @storage.getAt "lastFileOn#{@_mode}"
+    path = @storage.getAt @_lastFileKey
     return  unless path
 
     lastOpenFile = FSHelper.createFileFromPath path
     lastOpenFile.fetchContents (err, content)=>
       if err
         KD.showError err, "Failed to load last open file: #{path}"
+        @storage.unsetKey @_lastFileKey
       else
         # Override the path to keep VM Info
         lastOpenFile.path = path
@@ -318,6 +332,8 @@ class DevToolsEditorPane extends CollaborativeEditorPane
           extraKeys       :
             "Cmd-S"       : @bound "handleSave"
             "Ctrl-S"      : @bound "handleSave"
+            "Alt-R"       : => @emit "RunRequested"
+            "Shift-Ctrl-R": => @emit "AutoRunRequested"
             "Tab"         : (cm)->
               spaces = Array(cm.getOption("indentUnit") + 1).join " "
               cm.replaceSelection spaces, "end", "+input"
@@ -330,7 +346,7 @@ class DevToolsEditorPane extends CollaborativeEditorPane
         @loadLastOpenFile()
 
   openFile: (file, content)->
-    @storage.setValue "lastFileOn#{@_mode}", file.path
+    @storage.setValue @_lastFileKey, file.path
     super
 
     path = (FSHelper.plainPath file.path).replace \
@@ -339,7 +355,7 @@ class DevToolsEditorPane extends CollaborativeEditorPane
     @header.title.updatePartial path
 
 class DevToolsCssEditorPane extends DevToolsEditorPane
-  constructor:-> super; @_mode = 'css'
+  constructor:-> @_mode = 'css'; super
 
 class ErrorPaneWidget extends JView
   constructor:(options = {}, data)->
