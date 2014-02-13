@@ -59,7 +59,7 @@ func webtermConnectNew(r *kitelib.Request, vos *virt.VOS) (interface{}, error) {
 		JoinUser     string
 	}
 
-	if r.Args.Unmarshal(&params) != nil || params.SizeX <= 0 || params.SizeY <= 0 {
+	if r.Args.One().Unmarshal(&params) != nil || params.SizeX <= 0 || params.SizeY <= 0 {
 		return nil, &kite.ArgumentError{Expected: "{ remote: [object], session: [string], sizeX: [integer], sizeY: [integer], noScreen: [boolean] }"}
 	}
 

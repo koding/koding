@@ -21,6 +21,7 @@ type vosFunc func(*kitelib.Request, *virt.VOS) (interface{}, error)
 // vosMethod is compat wrapper around the new kite library. It's basically
 // creates a vos instance that is the plugged into the the base functions.
 func vosMethod(k *kitelib.Kite, method string, vosFn vosFunc) {
+
 	handler := func(r *kitelib.Request) (interface{}, error) {
 		var params struct {
 			// might be vm ID or hostnameAlias
@@ -114,7 +115,7 @@ func fsReadDirectoryNew(r *kitelib.Request, vos *virt.VOS) (interface{}, error) 
 		WatchSubdirectories bool
 	}
 
-	if r.Args.Unmarshal(&params) != nil || params.Path == "" {
+	if r.Args.One().Unmarshal(&params) != nil || params.Path == "" {
 		return nil, &kite.ArgumentError{Expected: "{ path: [string], onChange: [function], watchSubdirectories: [bool] }"}
 	}
 
@@ -180,7 +181,7 @@ func fsGlobNew(r *kitelib.Request, vos *virt.VOS) (interface{}, error) {
 		Pattern string
 	}
 
-	if r.Args.Unmarshal(&params) != nil || params.Pattern == "" {
+	if r.Args.One().Unmarshal(&params) != nil || params.Pattern == "" {
 		return nil, &kite.ArgumentError{Expected: "{ pattern: [string] }"}
 	}
 
@@ -192,7 +193,7 @@ func fsReadFileNew(r *kitelib.Request, vos *virt.VOS) (interface{}, error) {
 		Path string
 	}
 
-	if r.Args.Unmarshal(&params) != nil || params.Path == "" {
+	if r.Args.One().Unmarshal(&params) != nil || params.Path == "" {
 		return nil, &kite.ArgumentError{Expected: "{ path: [string] }"}
 	}
 
@@ -201,7 +202,7 @@ func fsReadFileNew(r *kitelib.Request, vos *virt.VOS) (interface{}, error) {
 
 func fsWriteFileNew(r *kitelib.Request, vos *virt.VOS) (interface{}, error) {
 	var params writeFileParams
-	if r.Args.Unmarshal(&params) != nil || params.Path == "" {
+	if r.Args.One().Unmarshal(&params) != nil || params.Path == "" {
 		return nil, &kite.ArgumentError{Expected: "{ path: [string] }"}
 	}
 
@@ -213,7 +214,7 @@ func fsEnsureNonexistentPathNew(r *kitelib.Request, vos *virt.VOS) (interface{},
 		Path string
 	}
 
-	if r.Args.Unmarshal(&params) != nil || params.Path == "" {
+	if r.Args.One().Unmarshal(&params) != nil || params.Path == "" {
 		return nil, &kite.ArgumentError{Expected: "{ path: [string] }"}
 	}
 
@@ -225,7 +226,7 @@ func fsGetInfoNew(r *kitelib.Request, vos *virt.VOS) (interface{}, error) {
 		Path string
 	}
 
-	if r.Args.Unmarshal(&params) != nil || params.Path == "" {
+	if r.Args.One().Unmarshal(&params) != nil || params.Path == "" {
 		return nil, &kite.ArgumentError{Expected: "{ path: [string] }"}
 	}
 
@@ -235,7 +236,7 @@ func fsGetInfoNew(r *kitelib.Request, vos *virt.VOS) (interface{}, error) {
 func fsSetPermissionsNew(r *kitelib.Request, vos *virt.VOS) (interface{}, error) {
 	var params setPermissionsParams
 
-	if r.Args.Unmarshal(&params) != nil || params.Path == "" {
+	if r.Args.One().Unmarshal(&params) != nil || params.Path == "" {
 		return nil, &kite.ArgumentError{Expected: "{ path: [string], mode: [integer], recursive: [bool] }"}
 	}
 
@@ -248,7 +249,7 @@ func fsRemoveNew(r *kitelib.Request, vos *virt.VOS) (interface{}, error) {
 		Recursive bool
 	}
 
-	if r.Args.Unmarshal(&params) != nil || params.Path == "" {
+	if r.Args.One().Unmarshal(&params) != nil || params.Path == "" {
 		return nil, &kite.ArgumentError{Expected: "{ path: [string], recursive: [bool] }"}
 	}
 
@@ -261,7 +262,7 @@ func fsRenameNew(r *kitelib.Request, vos *virt.VOS) (interface{}, error) {
 		NewPath string
 	}
 
-	if r.Args.Unmarshal(&params) != nil || params.OldPath == "" || params.NewPath == "" {
+	if r.Args.One().Unmarshal(&params) != nil || params.OldPath == "" || params.NewPath == "" {
 		return nil, &kite.ArgumentError{Expected: "{ oldPath: [string], newPath: [string] }"}
 	}
 
@@ -274,7 +275,7 @@ func fsCreateDirectoryNew(r *kitelib.Request, vos *virt.VOS) (interface{}, error
 		Recursive bool
 	}
 
-	if r.Args.Unmarshal(&params) != nil || params.Path == "" {
+	if r.Args.One().Unmarshal(&params) != nil || params.Path == "" {
 		return nil, &kite.ArgumentError{Expected: "{ path: [string], recursive: [bool] }"}
 	}
 
@@ -284,7 +285,7 @@ func fsCreateDirectoryNew(r *kitelib.Request, vos *virt.VOS) (interface{}, error
 // APP METHODS
 func appInstallNew(r *kitelib.Request, vos *virt.VOS) (interface{}, error) {
 	var params appParams
-	if r.Args.Unmarshal(&params) != nil || params.Owner == "" || params.Identifier == "" || params.Version == "" || params.AppPath == "" {
+	if r.Args.One().Unmarshal(&params) != nil || params.Owner == "" || params.Identifier == "" || params.Version == "" || params.AppPath == "" {
 		return nil, &kite.ArgumentError{Expected: "{ owner: [string], identifier: [string], version: [string], appPath: [string] }"}
 	}
 
@@ -294,7 +295,7 @@ func appInstallNew(r *kitelib.Request, vos *virt.VOS) (interface{}, error) {
 
 func appDownloadNew(r *kitelib.Request, vos *virt.VOS) (interface{}, error) {
 	var params appParams
-	if r.Args.Unmarshal(&params) != nil || params.Owner == "" || params.Identifier == "" || params.Version == "" || params.AppPath == "" {
+	if r.Args.One().Unmarshal(&params) != nil || params.Owner == "" || params.Identifier == "" || params.Version == "" || params.AppPath == "" {
 		return nil, &kite.ArgumentError{Expected: "{ owner: [string], identifier: [string], version: [string], appPath: [string] }"}
 	}
 
@@ -303,7 +304,7 @@ func appDownloadNew(r *kitelib.Request, vos *virt.VOS) (interface{}, error) {
 
 func appPublishNew(r *kitelib.Request, vos *virt.VOS) (interface{}, error) {
 	var params appParams
-	if r.Args.Unmarshal(&params) != nil || params.AppPath == "" {
+	if r.Args.One().Unmarshal(&params) != nil || params.AppPath == "" {
 		return nil, &kite.ArgumentError{Expected: "{ appPath: [string] }"}
 	}
 
@@ -312,7 +313,7 @@ func appPublishNew(r *kitelib.Request, vos *virt.VOS) (interface{}, error) {
 
 func appSkeletonNew(r *kitelib.Request, vos *virt.VOS) (interface{}, error) {
 	var params appParams
-	if r.Args.Unmarshal(&params) != nil || params.AppPath == "" {
+	if r.Args.One().Unmarshal(&params) != nil || params.AppPath == "" {
 		return nil, &kite.ArgumentError{Expected: "{ type: [string], appPath: [string] }"}
 	}
 
@@ -321,7 +322,7 @@ func appSkeletonNew(r *kitelib.Request, vos *virt.VOS) (interface{}, error) {
 
 func s3StoreNew(r *kitelib.Request, vos *virt.VOS) (interface{}, error) {
 	var params s3params
-	if r.Args.Unmarshal(&params) != nil || params.Name == "" || len(params.Content) == 0 || strings.Contains(params.Name, "/") {
+	if r.Args.One().Unmarshal(&params) != nil || params.Name == "" || len(params.Content) == 0 || strings.Contains(params.Name, "/") {
 		return nil, &kite.ArgumentError{Expected: "{ name: [string], content: [base64 string] }"}
 	}
 
@@ -330,7 +331,7 @@ func s3StoreNew(r *kitelib.Request, vos *virt.VOS) (interface{}, error) {
 
 func s3DeleteNew(r *kitelib.Request, vos *virt.VOS) (interface{}, error) {
 	var params s3params
-	if r.Args.Unmarshal(&params) != nil || params.Name == "" || strings.Contains(params.Name, "/") {
+	if r.Args.One().Unmarshal(&params) != nil || params.Name == "" || strings.Contains(params.Name, "/") {
 		return nil, &kite.ArgumentError{Expected: "{ name: [string] }"}
 	}
 
