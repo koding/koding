@@ -1,9 +1,7 @@
 package main
 
 import (
-	"errors"
 	"flag"
-	"fmt"
 	"io/ioutil"
 	"kite"
 	"kite/kontrol"
@@ -56,7 +54,6 @@ func main() {
 
 	kon := kontrol.New(kiteOptions, machines, string(publicKey), string(privateKey))
 
-	kon.AddAuthenticator("kodingKey", authenticateFromKodingKey)
 	kon.AddAuthenticator("sessionID", authenticateFromSessionID)
 
 	if conf.NewKontrol.UseTLS {
@@ -84,33 +81,4 @@ func findUsernameFromSessionID(sessionID string) (string, error) {
 	}
 
 	return session.Username, nil
-}
-
-func authenticateFromKodingKey(r *kite.Request) error {
-	username, err := findUsernameFromKey(r.Authentication.Key)
-	if err != nil {
-		return err
-	}
-
-	r.Username = username
-
-	return nil
-}
-
-func findUsernameFromKey(key string) (string, error) {
-	kodingKey, err := modelhelper.GetKodingKeysByKey(key)
-	if err != nil {
-		return "", errors.New("kodingkey not found in kontrol db")
-	}
-
-	account, err := modelhelper.GetAccountById(kodingKey.Owner)
-	if err != nil {
-		return "", fmt.Errorf("register get user err %s", err)
-	}
-
-	if account.Profile.Nickname == "" {
-		return "", errors.New("nickname is empty, could not register kite")
-	}
-
-	return account.Profile.Nickname, nil
 }

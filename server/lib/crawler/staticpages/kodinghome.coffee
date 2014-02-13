@@ -9,9 +9,9 @@ module.exports = ->
 
   """
   <!DOCTYPE html>
-  <html lang="en">
+  <html lang="en" itemscope itemtype="http://schema.org/LocalBusiness">
     <head>
-      <title>Koding</title>
+      <title>Koding - A new way for developers to work.</title>
       #{getGraphMeta()}
       <style rel="stylesheet">
         #koding-logo {

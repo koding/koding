@@ -170,7 +170,7 @@ module.exports =
         servicesEndpoint: "/-/services/broker"
         sockJS   : "http://stage-broker-#{version}.sj.koding.com/subscribe"
       brokerKite:
-        servicesEndpoint: "/-/services/broker"
+        servicesEndpoint: "/-/services/brokerKite"
         brokerExchange: 'brokerKite'
         sockJS   : "http://stage-brokerkite-#{version}.sj.koding.com/subscribe"
       apiUri    : 'https://koding.com'

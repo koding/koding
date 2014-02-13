@@ -17,6 +17,9 @@ import (
 	"syscall"
 	"time"
 	"unicode/utf8"
+
+	"labix.org/v2/mgo"
+	"labix.org/v2/mgo/bson"
 )
 
 const (
@@ -47,102 +50,119 @@ type WebtermRemote struct {
 	SessionEnded dnode.Callback
 }
 
-func registerWebtermMethods(k *kite.Kite) {
-	registerVmMethod(k, "webterm.getSessions", false, func(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
-		sessions := screenSessions(vos)
-		if len(sessions) == 0 {
-			return nil, errors.New("no sessions available")
+func webtermGetSessions(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
+	sessions := screenSessions(vos)
+	if len(sessions) == 0 {
+		return nil, errors.New("no sessions available")
+	}
+
+	return sessions, nil
+}
+
+// this method is special cased in oskite.go to allow foreign access
+func webtermConnect(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
+	var params struct {
+		Remote       WebtermRemote
+		Session      string
+		SizeX, SizeY int
+		Mode         string
+		JoinUser     string
+	}
+
+	if args.Unmarshal(&params) != nil || params.SizeX <= 0 || params.SizeY <= 0 {
+		return nil, &kite.ArgumentError{Expected: "{ remote: [object], session: [string], sizeX: [integer], sizeY: [integer], noScreen: [boolean] }"}
+	}
+
+	if params.JoinUser != "" {
+		if len(params.Session) != utils.RandomStringLength {
+			return nil, &kite.BaseError{
+				Message: "Invalid session identifier",
+				CodeErr: ErrInvalidSession,
+			}
 		}
 
-		return sessions, nil
-	})
-
-	// this method is special cased in oskite.go to allow foreign access
-	registerVmMethod(k, "webterm.connect", false, func(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
-		var params struct {
-			Remote       WebtermRemote
-			Session      string
-			SizeX, SizeY int
-			Mode         string
-		}
-
-		if args.Unmarshal(&params) != nil || params.SizeX <= 0 || params.SizeY <= 0 {
-			return nil, &kite.ArgumentError{Expected: "{ remote: [object], session: [string], sizeX: [integer], sizeY: [integer], noScreen: [boolean] }"}
-		}
-
-		screen, err := newScreen(vos, params.Mode, params.Session)
-		if err != nil {
+		user := new(virt.User)
+		if err := mongodbConn.Run("jUsers", func(c *mgo.Collection) error {
+			return c.Find(bson.M{"username": params.JoinUser}).One(&user)
+		}); err != nil {
 			return nil, err
 		}
 
-		server := &WebtermServer{
-			Session:          screen.Session,
-			remote:           params.Remote,
-			vm:               vos.VM,
-			user:             vos.User,
-			isForeignSession: vos.User.Name != channel.Username,
-			pty:              pty.New(vos.VM.PtsDir()),
-			screenPath:       screen.ScreenPath,
-		}
+		vos.User = user
+	}
 
-		server.SetSize(float64(params.SizeX), float64(params.SizeY))
-		server.pty.Slave.Chown(vos.User.Uid, -1)
+	screen, err := newScreen(vos, params.Mode, params.Session)
+	if err != nil {
+		return nil, err
+	}
 
-		cmd := vos.VM.AttachCommand(vos.User.Uid, "/dev/pts/"+strconv.Itoa(server.pty.No), screen.Command...)
-		err = cmd.Start()
-		if err != nil {
-			panic(err)
-		}
+	server := &WebtermServer{
+		Session:          screen.Session,
+		remote:           params.Remote,
+		vm:               vos.VM,
+		user:             vos.User,
+		isForeignSession: vos.User.Name != channel.Username,
+		pty:              pty.New(vos.VM.PtsDir()),
+		screenPath:       screen.ScreenPath,
+	}
 
-		go func() {
-			defer log.RecoverAndLog()
+	server.SetSize(float64(params.SizeX), float64(params.SizeY))
+	server.pty.Slave.Chown(vos.User.Uid, -1)
 
-			cmd.Wait()
-			server.pty.Slave.Close()
-			server.pty.Master.Close()
-			server.remote.SessionEnded()
-		}()
+	cmd := vos.VM.AttachCommand(vos.User.Uid, "/dev/pts/"+strconv.Itoa(server.pty.No), screen.Command...)
+	err = cmd.Start()
+	if err != nil {
+		panic(err)
+	}
 
-		go func() {
-			defer log.RecoverAndLog()
+	go func() {
+		defer log.RecoverAndLog()
 
-			buf := make([]byte, (1<<12)-utf8.UTFMax, 1<<12)
-			for {
-				n, err := server.pty.Master.Read(buf)
-				for n < cap(buf)-1 {
-					r, _ := utf8.DecodeLastRune(buf[:n])
-					if r != utf8.RuneError {
-						break
-					}
-					server.pty.Master.Read(buf[n : n+1])
-					n++
-				}
+		cmd.Wait()
+		server.pty.Slave.Close()
+		server.pty.Master.Close()
+		server.remote.SessionEnded()
+	}()
 
-				s := time.Now().Unix()
-				if server.currentSecond != s {
-					server.currentSecond = s
-					server.messageCounter = 0
-					server.byteCounter = 0
-					server.lineFeeedCounter = 0
-				}
-				server.messageCounter += 1
-				server.byteCounter += n
-				server.lineFeeedCounter += bytes.Count(buf[:n], []byte{'\n'})
-				if server.messageCounter > 100 || server.byteCounter > 1<<18 || server.lineFeeedCounter > 300 {
-					time.Sleep(time.Second / 100)
-				}
+	go func() {
+		defer log.RecoverAndLog()
 
-				server.remote.Output(string(utils.FilterInvalidUTF8(buf[:n])))
-				if err != nil {
+		buf := make([]byte, (1<<12)-utf8.UTFMax, 1<<12)
+		for {
+			n, err := server.pty.Master.Read(buf)
+			for n < cap(buf)-1 {
+				r, _ := utf8.DecodeLastRune(buf[:n])
+				if r != utf8.RuneError {
 					break
 				}
+				server.pty.Master.Read(buf[n : n+1])
+				n++
 			}
-		}()
 
-		channel.OnDisconnect(func() { server.Close() })
+			s := time.Now().Unix()
+			if server.currentSecond != s {
+				server.currentSecond = s
+				server.messageCounter = 0
+				server.byteCounter = 0
+				server.lineFeeedCounter = 0
+			}
+			server.messageCounter += 1
+			server.byteCounter += n
+			server.lineFeeedCounter += bytes.Count(buf[:n], []byte{'\n'})
+			if server.messageCounter > 100 || server.byteCounter > 1<<18 || server.lineFeeedCounter > 300 {
+				time.Sleep(time.Second / 100)
+			}
 
-		return server, nil
-	})
+			server.remote.Output(string(utils.FilterInvalidUTF8(buf[:n])))
+			if err != nil {
+				break
+			}
+		}
+	}()
+
+	channel.OnDisconnect(func() { server.Close() })
+
+	return server, nil
 }
 
 func (server *WebtermServer) Input(data string) {
