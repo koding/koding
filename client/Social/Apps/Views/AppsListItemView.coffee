@@ -1,6 +1,6 @@
 class AppsListItemView extends KDListItemView
 
-  constructor:(options = {},data)->
+  constructor:(options = {}, data)->
 
     options.type = "appstore"
 
@@ -20,23 +20,24 @@ class AppsListItemView extends KDListItemView
         KodingAppsController.runExternalApp @getData()
         KD.mixpanel "App run, click"
 
-  viewAppended:->
-    @setTemplate @pistachio()
-    @template.update()
+  # Override KDView::render since I'm updating all the manifest at once ~ GG
+  render:-> @template.update()
+
+  viewAppended: JView::viewAppended
 
   pistachio:->
     """
-    <figure>
-      {{> @thumbnail}}
-    </figure>
-    <div class="appmeta clearfix">
-      <h3><a href="/#{@getData().slug}">#{@getData().name}</a></h3>
-      <h4>{{#(manifest.author)}}</h4>
-      <div class="appdetails">
-        <article>{{@utils.shortenText #(manifest.description)}}</article>
+      <figure>
+        {{> @thumbnail}}
+      </figure>
+      <div class="appmeta clearfix">
+        <h3><a href="/#{@getData().slug}">#{@getData().name}</a></h3>
+        <h4>{{#(manifest.author)}}</h4>
+        <div class="appdetails">
+          <article>{{@utils.shortenText #(manifest.description)}}</article>
+        </div>
       </div>
-    </div>
-    <div class='bottom'>
-      {{> @runButton}}
-    </div>
+      <div class='bottom'>
+        {{> @runButton}}
+      </div>
     """
