@@ -32,7 +32,7 @@ module.exports = class GuestCleanerWorker
       {ids, modelName} = data
       modelConstructor = Base.constructors[modelName]
       unless modelConstructor
-        console.log "No data found for guest."
+        console.log "No data found for guest, model name: ", modelName
         return callback null
       modelConstructor.remove {_id: $in : ids}, (err)->
         if err then callback err
