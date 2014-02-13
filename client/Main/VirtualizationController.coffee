@@ -348,6 +348,7 @@ class VirtualizationController extends KDController
         return  if KD.showError err
         @provisionVm {subscription, productData: {pack}}, (err, nonce) =>
           return  unless err
+          return KD.showError err  if err and err.message isnt "quota exceeded"
           modal      = new KDModalView
             title    : "Create a new VM"
             cssClass : "create-vm"
