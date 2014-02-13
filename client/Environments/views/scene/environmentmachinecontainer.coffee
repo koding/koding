@@ -5,7 +5,6 @@ class EnvironmentMachineContainer extends EnvironmentContainer
     options.cssClass   = 'machines'
     options.itemClass  = EnvironmentMachineItem
     options.title      = 'Virtual Machines'
-    options.itemHeight = 50
 
     super options, data
 
