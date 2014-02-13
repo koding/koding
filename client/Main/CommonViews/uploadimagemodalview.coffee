@@ -51,7 +51,7 @@ class UploadImageModalView extends KDModalView
 
       group     = groupsController.getCurrentGroup()
       imageType = @getOptions().image.type
-      imageName = "#{group.slug}-#{imageType}"
+      imageName = "#{group.slug}-#{imageType}-#{Date.now()}.png"
 
       FSHelper.s3.upload imageName, avatarData, (err, url)=>
         if err
@@ -68,9 +68,9 @@ class UploadImageModalView extends KDModalView
         group   = KD.singletons.groupsController.getCurrentGroup()
 
         if @getOptions().image.type is "coverPhoto"
-          group.modify "customize.coverPhoto" : "#{resized}?#{Date.now()}", callback
+          group.modify "customize.coverPhoto" : "#{resized}", callback
         else
-          group.modify "customize.logo" : "#{resized}?#{Date.now()}", callback
+          group.modify "customize.logo" : "#{resized}", callback
 
   upload:(callback)->
 
