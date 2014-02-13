@@ -224,6 +224,8 @@ module.exports = class JGroup extends Module
           (signature Function)
         getPermissionSet:
           (signature Function)
+        fetchInvitationsByStatus:
+          (signature Object, Function)
     schema          :
       title         :
         type        : String
@@ -1389,6 +1391,15 @@ module.exports = class JGroup extends Module
       options.groupId = @getId()
       {Invitation} = require "../graph"
       Invitation["fetchOrCount#{type}s"] method, options, callback
+
+  fetchInvitationsByStatus: permit 'send invitations',
+    success: (client, options, callback)->
+      JInvitation = require '../invitation'
+      JInvitation.some
+        status:
+          $in: if options.showResolved then ["sent", "redeemed"] else ["sent"]
+        , options
+        , callback
 
   fetchInvitationsFromGraph: permit 'send invitations',
     success: (client, type, options, callback)->
