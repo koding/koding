@@ -1,5 +1,7 @@
 class FSFile extends FSItem
 
+  { promiseToCallback } = KD.utils
+
   constructor:->
     super
 
@@ -28,50 +30,63 @@ class FSFile extends FSItem
   fetchContents: (callback, useEncoding=yes)->
     @emit "fs.job.started"
 
-    @osKite.vmStart()
-
+    ok = @osKite.vmStart()
     .then =>
-      @osKite.fsReadFile({
-        path: FSHelper.plainPath @path
-      })
 
-    .then (response) ->
+      @osKite.fsReadFile {
+        path: FSHelper.plainPath @path
+      }
+
+    .then (response) =>
       content = atob response.content
 
       content = KD.utils.utf8Decode content  if useEncoding # Convert to String
 
       KD.mixpanel "Fetch contents, success"
       
-      callback null, content
+      promiseToCallback(ok, content, callback)  if callback?
+      
+      @emit "fs.job.finished"
 
-    .catch (err) ->
-      warn err
-
-      callback err
-    
-    .then =>
-      @emit 'fs.job.finished'
+      return content
 
 
   saveAs:(contents, name, parentPath, callback)->
-
-    @vmName = FSHelper.getVMNameFromPath parentPath  if parentPath
-    newPath = FSHelper.plainPath "#{parentPath}/#{name}"
     @emit "fs.saveAs.started"
 
-    FSHelper.ensureNonexistentPath "#{newPath}", @vmName, (err, path)=>
-      if err
-        callback? err, path
-        warn err
-      else
-        newFile = FSHelper.createFile
+    newPath = FSHelper.plainPath "#{parentPath}/#{name}"
+
+    file = null
+
+    @osKite.vmStart()
+    .then =>
+
+      ok = @osKite.fsEnsureNonexistentPath(path: "#{newPath}")
+      .then (actualPath) =>
+
+        file = FSHelper.createFile {
           type   : 'file'
-          path   : path
-          vmName : @vmName
-        newFile.save contents, (err, res)=>
-          if err then warn err
-          else
-            @emit "fs.saveAs.finished", newFile, @
+          path   : actualPath
+          @osKite
+        }
+
+        ok = file.save contents
+
+        if callback?
+
+          ok = ok
+          .catch (err) ->
+            callback err
+
+          .then (response) =>
+            callback null, file, this
+
+        ok
+
+      .then (response) =>
+        @emit "fs.saveAs.finished", file, this
+
+        return file
 
 
   # webtermConnect: (results, callback) ->
@@ -84,23 +99,31 @@ class FSFile extends FSItem
     # Convert to base64
     content = btoa contents
 
-    @osKite.startVm()
-
+    ok = @osKite.startVm()
     .then =>
+
       @osKite.fsWriteFile({
         path    : FSHelper.plainPath @path
         content : btoa contents
         append  : yes
       })
 
-    .then (response) =>
-      callback null, response
-      @emit 'fs.append.finished', null, response
+    if callback?
+      ok
+      .then (response) =>
+        callback null, response
+        @emit 'fs.append.finished', null, response
 
-    .catch (err) ->
-      warn err
-      callback err
-      @emit 'fs.append.finished', err
+      .catch (err) ->
+        warn err
+        callback err
+        @emit 'fs.append.finished', err
+
+    else
+      ok
+      .then (response) =>
+        @emit 'fs.append.finished', null, response
+        Promise.cast response
 
   @createChunkQueue: (data, chunkSize=1024*1024, skip=0)->
 
@@ -123,6 +146,8 @@ class FSFile extends FSItem
     info       = @getLocalFileInfo()
     chunkQueue = FSFile.createChunkQueue contents, null, info.lastUploadedChunk
     total      = chunkQueue.length
+
+    debugger
 
     @setLocalFileInfo totalChunks: total
 
@@ -171,14 +196,16 @@ class FSFile extends FSItem
 
   abort: -> @emit "AbortRequested"
 
-  save: (contents, callback = (->), useEncoding = yes) ->
-
+  save: (contents, callback = null, useEncoding = yes) ->
     @emit "fs.save.started"
 
-    @osKite.vmStart()
+    ok =
 
+    @osKite.vmStart()
     .then =>
+
       contents = KD.utils.utf8Encode contents  if useEncoding
+
       # Convert to base64
       content = btoa contents
 
@@ -187,10 +214,20 @@ class FSFile extends FSItem
         content
       })
 
-    .then (response) =>
-      callback null, response
-      @emit "fs.save.finished", null, response
+    if callback?
 
-    .catch (err) =>
-      callback err
-      @emit "fs.save.finished", err
+      ok
+      .then (response) =>
+        callback null, response
+        @emit "fs.save.finished", null, response
+
+      .catch (err) =>
+        callback err
+        @emit "fs.save.finished", err
+
+    else
+      ok
+      .then (response) =>
+        @emit "fs.save.finished", null, response
+        Promise.cast response
+
