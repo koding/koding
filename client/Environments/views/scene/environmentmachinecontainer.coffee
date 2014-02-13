@@ -14,10 +14,7 @@ class EnvironmentMachineContainer extends EnvironmentContainer
 
     vmc = KD.getSingleton 'vmController'
 
-    {entryPoint} = KD.config
-    cmd = if entryPoint then 'fetchGroupVMs' else 'fetchVMs'
-
-    vmc[cmd] yes, (err, vms)=>
+    vmc.fetchGroupVMs yes, (err, vms)=>
       if err or vms.length is 0
         @emit "DataLoaded"
         return warn "Failed to fetch VMs", err  if err
