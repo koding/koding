@@ -34,6 +34,7 @@ module.exports = class JNewApp extends jraphical.Module
 
     sharedEvents        :
       instance          : [
+        { name: 'updateInstance' }
         { name: 'ReviewIsAdded' }
       ]
       static            : []
@@ -53,6 +54,8 @@ module.exports = class JNewApp extends jraphical.Module
 
       static            :
         create          :
+          (signature Object, Function)
+        publish         :
           (signature Object, Function)
         one             :
           (signature Object, Function)
@@ -111,6 +114,7 @@ module.exports = class JNewApp extends jraphical.Module
         installed       :
           type          : Number
           default       : 0
+
       versions          : [String]
 
       meta              : require "bongo/bundles/meta"
@@ -178,9 +182,81 @@ module.exports = class JNewApp extends jraphical.Module
       },{skip, limit}, callback
 
 
+  checkData = (data, profile)->
+    unless data.name or data.urls?.script or data.manifest
+      return new KodingError 'Name, Url and Manifest is required!'
+    unless typeof(data.manifest) is 'object'
+      return new KodingError 'Manifest should be an object!'
+    unless data.manifest.authorNick is profile.nickname
+      return new KodingError 'Authornick in manifest is different from your username!'
+
   @byRelevance$ = permit 'list apps',
     success: (client, seed, options, callback)->
       @byRelevance client, seed, options, callback
+
+  # TODO ~ GG
+  # - Add updated version field, and do not allow to change urls if it approved
+
+  @publish = permit 'create apps',
+
+    success: (client, data, callback)->
+
+      console.log "publishing the JNewApp"
+
+      {connection:{delegate}} = client
+      {profile} = delegate
+
+      if validationError = checkData data, profile
+        return callback validationError
+
+      data.name = capitalize @slugify data.name
+      {name, manifest:{authorNick}} = data
+
+      # Overwrite the user/app information in manifest
+      data.manifest.name       = data.name
+      data.manifest.authorNick = profile.nickname
+      data.manifest.author     = "#{profile.firstName} #{profile.lastName}"
+
+      # Optionals
+      data.manifest.version   ?= "1.0"
+      data.identifier         ?= "com.koding.apps.#{data.name.toLowerCase()}"
+
+      JNewApp.one {name, 'manifest.authorNick':authorNick}, (err, app)->
+
+        return callback err  if err
+
+        appData =
+          name        : data.name
+          title       : data.name
+          urls        : data.urls
+          type        : data.type or 'web-app'
+          manifest    : data.manifest
+          identifier  : data.identifier
+          version     : data.manifest.version
+          originId    : delegate.getId()
+          group       : client.context.group
+
+        if app
+
+          app.update $set: appData, (err)->
+            return callback err  if err
+            callback null, app
+
+        else
+
+          app = new JNewApp appData
+          app.save (err)->
+            return callback err  if err
+            slug = "Apps/#{app.manifest.authorNick}/#{app.name}"
+            app.useSlug slug, (err, slugobj)->
+              if err then return app.remove -> callback err
+              slug = slugobj.slug
+              app.update {$set: {slug, slug_: slug}}, (err)->
+                console.warn "Slug update failed for #{slug}", err  if err
+              app.addCreator delegate, (err)->
+                return callback err  if err
+                callback null, app
+
 
   @create = permit 'create apps',
 
