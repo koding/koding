@@ -56,10 +56,10 @@ class GroupsInvitationTabPaneView extends KDView
   fetchAndPopulate:->
     @controller.showLazyLoader no
 
-    options = {@timestamp, @requestLimit, search: @searchValue}
-    options.status = @options.unresolvedStatus  unless @options.showResolved
+    options = {@timestamp , @requestLimit, search: @searchValue, }
+    options.showResolved = @options.showResolved
 
-    @getData().fetchInvitationsFromGraph @options.type, options, (err, results)=>
+    @getData().fetchInvitationsByStatus options, (err, results)=>
       @controller.hideLazyLoader()
       results = results.filter (res)-> res isnt null
       if err or results.length is 0
