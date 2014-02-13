@@ -339,16 +339,14 @@ module.exports = class JNewApp extends jraphical.Module
     success: (client, callback)->
       @remove callback
 
-      JName.one {@name}, (err, jname)->
-        return console.error "Failed to get JName: ", err  if err
-        jname?.remove (err)->
-          console.error "Failed to remove JName: ", err  if err
+      removeJNames: (names)->
+        names.forEach (name)->
+          JName.one {name}, (err, jname)->
+            return console.error "Failed to get JName: ", err  if err
+            jname?.remove (err)->
+              console.error "Failed to remove JName: ", err  if err
 
-      JName.one {name:@slug}, (err, jname)->
-        return console.error "Failed to get JName: ", err  if err
-        jname?.remove (err)->
-          console.error "Failed to remove JName: ", err  if err
-
+      removeJNames [@name, @slug]
 
   approve: permit 'approve apps',
 
