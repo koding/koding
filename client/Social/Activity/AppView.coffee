@@ -58,13 +58,23 @@ class ActivityAppView extends KDScrollView
     @addSubView @mainBlock
     @addSubView @sideBlock
 
+    topWidgetPlaceholder  = new KDCustomHTMLView
+    leftWidgetPlaceholder = new KDCustomHTMLView
+
+    @mainBlock.addSubView topWidgetPlaceholder
     @mainBlock.addSubView @inputWidget
     @mainBlock.addSubView @feedWrapper
 
     @sideBlock.addSubView @referalBox  if KD.isLoggedIn()
+    @sideBlock.addSubView leftWidgetPlaceholder
     @sideBlock.addSubView @topicsBox
     @sideBlock.addSubView @usersBox
     @sideBlock.addSubView @tickerBox
+
+    KD.getSingleton("widgetController").showWidgets [
+      { view: topWidgetPlaceholder,  key: "ActivityTop"  }
+      { view: leftWidgetPlaceholder, key: "ActivityLeft" }
+    ]
 
   decorate:->
     @unsetClass "guest"
