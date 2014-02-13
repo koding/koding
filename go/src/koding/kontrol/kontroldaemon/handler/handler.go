@@ -372,8 +372,8 @@ func heartBeatChecker() {
 	}
 
 	for {
-		kontrolDB.RunOnDatabase(WorkersDB, WorkersCollection, query)
 		time.Sleep(time.Second * 2)
+		kontrolDB.RunOnDatabase(WorkersDB, WorkersCollection, query)
 	}
 }
 
