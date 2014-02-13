@@ -101,11 +101,73 @@ var keyPressTests = []struct {
 		line:           "line1xxx",
 		throwAwayLines: 2,
 	},
+	{
+		// Ctrl-A to move to beginning of line followed by ^K to kill
+		// line.
+		in:   "a b \001\013\r",
+		line: "",
+	},
+	{
+		// Ctrl-A to move to beginning of line, Ctrl-E to move to end,
+		// finally ^K to kill nothing.
+		in:   "a b \001\005\013\r",
+		line: "a b ",
+	},
+	{
+		in:   "\027\r",
+		line: "",
+	},
+	{
+		in:   "a\027\r",
+		line: "",
+	},
+	{
+		in:   "a \027\r",
+		line: "",
+	},
+	{
+		in:   "a b\027\r",
+		line: "a ",
+	},
+	{
+		in:   "a b \027\r",
+		line: "a ",
+	},
+	{
+		in:   "one two thr\x1b[D\027\r",
+		line: "one two r",
+	},
+	{
+		in:   "\013\r",
+		line: "",
+	},
+	{
+		in:   "a\013\r",
+		line: "a",
+	},
+	{
+		in:   "ab\x1b[D\013\r",
+		line: "a",
+	},
+	{
+		in:   "Ξεσκεπάζω\r",
+		line: "Ξεσκεπάζω",
+	},
+	{
+		in:             "£\r\x1b[A\177\r", // non-ASCII char, enter, up, backspace.
+		line:           "",
+		throwAwayLines: 1,
+	},
+	{
+		in:             "£\r££\x1b[A\x1b[B\177\r", // non-ASCII char, enter, 2x non-ASCII, up, down, backspace, enter.
+		line:           "£",
+		throwAwayLines: 1,
+	},
 }
 
 func TestKeyPresses(t *testing.T) {
 	for i, test := range keyPressTests {
-		for j := 0; j < len(test.in); j++ {
+		for j := 1; j < len(test.in); j++ {
 			c := &MockTerminal{
 				toSend:       []byte(test.in),
 				bytesPerRead: j,
