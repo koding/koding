@@ -1395,9 +1395,18 @@ module.exports = class JGroup extends Module
   fetchInvitationsByStatus: permit 'send invitations',
     success: (client, options, callback)->
       JInvitation = require '../invitation'
+      if options.type is "InvitationCode"
+        type   = "multiuse"
+        status = if options.showResolved then ["active" , "redeemed"] else ['active']
+      else
+        type   = "admin"
+        status = if options.showResolved then ["sent", "redeemed"] else ["sent"]
+
       JInvitation.some
-        status:
-          $in: if options.showResolved then ["sent", "redeemed"] else ["sent"]
+        group  : @slug
+        type   : type
+        status :
+          $in  : status
         , options
         , callback
 
