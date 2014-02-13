@@ -1,1 +1,0 @@
-../../../node_modules/es6-promise/dist/promise-0.1.1.js

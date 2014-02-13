@@ -6,39 +6,42 @@ class FSItem extends KDObject
 
   { escapeFilePath } = FSHelper
 
+  { promiseToCallback } = KD.utils
+
+
   @create:({ path, type, osKite, treeController }, callback)->
 
-    osKite.vmStart()
-
+    ok = osKite.vmStart()
     .then =>
-      osKite.fsEnsureNonexistentPath({ path })
-      .then (actualPath) =>
 
-        plainPath = FSHelper.plainPath actualPath
+      osKite.fsEnsureNonexistentPath { path }
 
-        method = 
-          if type is "folder"
-          then "fsCreateDirectory"
-          else "fsWriteFile"
+    .then (actualPath) =>
 
-        options =
-          path            : plainPath
-          content         : ''
-          donotoverwrite  : yes
+      plainPath = FSHelper.plainPath actualPath
 
-        osKite[method](options)
-        .then ->
-          file = FSHelper.createFile {
-            path: plainPath
-            type
-            osKite
-          }
+      method = 
+        if type is "folder"
+        then "fsCreateDirectory"
+        else "fsWriteFile"
 
-          callback null, file
+      options =
+        path            : plainPath
+        content         : ''
+        donotoverwrite  : yes
 
-    .catch (err) ->
-      warn err
-      callback err
+      osKite[method](options)
+      .then ->
+
+        file = FSHelper.createFile {
+          path: plainPath
+          type
+          osKite
+        }
+
+        promiseToCallback(ok, file, callback)  if callback?
+
+        return file
 
   @copyOrMove:(sourceItem, targetItem, commandPrefix, callback)->
     sourceItem.emit "fs.job.started"
@@ -47,15 +50,25 @@ class FSItem extends KDObject
 
     targetPath = FSHelper.plainPath "#{targetItem.path}/#{sourceItem.name}"
     
-    osKite.vmStart()
+    file = null
 
+    debugger
+
+    ok = osKite.vmStart()
     .then ->
+
+      debugger
+
       osKite.fsEnsureNonexistentPath(path: targetPath)
       .then (actualPath) ->
         command = "#{ commandPrefix } #{ escapeFilePath sourceItem.path } #{ escapeFilePath actualPath }"
 
+        debugger
+
         osKite.exec(command)
         .then ->
+
+          debugger
 
           file = FSHelper.createFile {
             path        : actualPath
@@ -65,19 +78,26 @@ class FSItem extends KDObject
             osKite
           }
 
-          callback null, file
+          window.FILE = file
 
-    .catch (err) ->
-      warn err
-      callback err
+          callback null, file  if callback?
 
-    .then ->
+    if callback?
+      ok
+      .catch (err) ->
+        warn err
+        callback err
+
+    ok.then ->
       sourceItem.emit "fs.job.finished"
+
+      return file
 
   @copy: (sourceItem, targetItem, callback) ->
     @copyOrMove sourceItem, targetItem, 'cp -R', callback
 
   @move:(sourceItem, targetItem, callback)->
+    window.FOLDER = sourceItem
     @copyOrMove sourceItem, targetItem, 'mv', callback
 
   @compress:(file, type, callback)->
@@ -138,8 +158,6 @@ class FSItem extends KDObject
             "cd #{escapeFilePath file.parentPath};mkdir -p #{escapeFilePath actualPath};tar -zxf #{escapeFilePath file.name} -C #{escapeFilePath actualPath}"
           else
             "cd #{escapeFilePath file.parentPath};unzip -o #{escapeFilePath file.name} -d #{escapeFilePath actualPath}"
-
-        console.log command
 
         osKite.exec(command)
         .then ->

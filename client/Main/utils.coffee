@@ -593,3 +593,13 @@ __utils.extend __utils,
   # creates string from tag so that new status updates can
   # show the tags properly
   tokenizeTag: (tag)-> "|#:JTag:#{tag.getId()}|"
+
+
+  promiseToCallback: (promise, value, callback) ->
+    promise
+    .then (response) ->
+      callback null, value ? response
+
+    .catch (err) ->
+      warn err
+      callback err

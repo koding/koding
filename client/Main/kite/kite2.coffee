@@ -2,37 +2,6 @@ class KDKite extends Kite
 
   osKiteMethods =
 
-    appInstall      : 'app.install'
-    appDownload     : 'app.download'
-    appPublish      : 'app.publish'
-    appSkeleton     : 'app.skeleton'
-
-    fsReadDirectory : 'fs.readDirectory'
-    fsGlob          : 'fs.glob'
-    fsReadFile      : 'fs.readFile'
-    fsWriteFile     : 'fs.writeFile'
-    fsEnsureNonexistantPath: 'fs.ensureNonexistantPath'
-    fsGetInfo       : 'fs.getInfo'
-    fsSetPermissions: 'fs.setPermissions'
-    fsRemove        : 'fs.remove'
-    fsRename        : 'fs.rename'
-    fsCreateDirectory: 'fs.createDirectory'
-
-    s3Store         : 's3.store'
-    s3Delete        : 's3.delete'
-    
-    vmStart         : 'vm.start'
-    vmShutdown      : 'vm.shutdown' 
-    vmUnprepare     : 'vm.unprepare'
-    vmStop          : 'vm.stop'
-    vmReinitialize  : 'vm.reinitialize'
-    vmInfo          : 'vm.info'
-    vmResizeDisk    : 'vm.resizeDisk'
-    vmCreateSnapshot: 'vm.createSnapshot'
-
-    webtermGetSessions: 'webterm.getSessions'
-    webtermConnect    : 'webterm.connect'
-
   @createMethod = (ctx, { method, rpcMethod }) ->
     ctx[method] = (rest...) -> @tell2 rpcMethod, rest...
 
@@ -51,9 +20,7 @@ class KDKite extends Kite
       for own method, rpcMethod of api
         @::[method] = @createMethod @prototype, { method, rpcMethod }
 
-  @constructors =
-    os: @createConstructor 'os'
-    'os-vagrant': @createConstructor 'os-vagrant'
+  @constructors = {}
 
   tell2: (method, params) ->
     # #tell2 is wrapping #tell with a promise-based api

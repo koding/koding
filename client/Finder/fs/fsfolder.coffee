@@ -1,5 +1,9 @@
 class FSFolder extends FSFile
 
+  constructor: ->
+    { @stack } = new Error
+    super
+
   fetchContents:(callback, dontWatch=yes)->
     { treeController } = @getOptions()
 
