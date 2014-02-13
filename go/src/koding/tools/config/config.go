@@ -186,13 +186,11 @@ func readConfig(profile string) (*Config, error) {
 
 	var conf *Config
 	if ok {
-		fmt.Printf("config.go: reading config from %s\n", configPath)
 		conf, err = ReadJson(profile)
 		if err != nil {
 			return nil, err
 		}
 	} else {
-		fmt.Println("config.go: reading config with koding-config-manager")
 		conf, err = ReadConfigManager(profile)
 		if err != nil {
 			return nil, err
