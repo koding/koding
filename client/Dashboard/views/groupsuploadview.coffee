@@ -55,20 +55,12 @@ class GroupsUploadView extends JView
     #TODO : change the address and name of the logo
     {groupsController} = KD.singletons
     group              = groupsController.getCurrentGroup()
-    imageName          = @getOption("fileName") or KD.utils.generatePassword 16, yes
+    imageName          = "#{group.slug}-logo-#{Date.now()}.png"
 
     FSHelper.s3.upload imageName, @btoaContent, (err, url) =>
       if err
         @loader.hide()
         return new KDNotificationView title : "Error while uploading photo."
-
-      proxifyOptions =
-        crop   : yes
-        width  : 55
-        height : 55
-
-      # FIXME - fatihacet - Resized url is not working for now
-      resized  = KD.utils.proxifyUrl url, proxifyOptions
 
       @loader.hide()
       @destroy()
