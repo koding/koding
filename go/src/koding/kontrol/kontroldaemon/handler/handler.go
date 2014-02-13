@@ -169,6 +169,8 @@ func handleCommand(command string, worker models.Worker) error {
 			workerLog("NOT REGISTERED, ADDING AGAIN", worker)
 			return modelhelper.UpsertWorker(worker)
 		}
+
+		// workerLog("PING", worker)
 		return err
 	case "update":
 		//  Update kontrold worker information with our newly created pid.
@@ -195,11 +197,11 @@ func handleCommand(command string, worker models.Worker) error {
 }
 
 func workerLog(msg string, worker models.Worker) string {
-	msgLog := fmt.Sprintf("%s: %s (hostname: %s version: %d uuid: %s pid: %d)",
+	msgLog := fmt.Sprintf("%7s ▶ %s  [version: %d hostname: %s uuid: %s pid: %d]",
 		msg,
 		worker.Name,
-		worker.Hostname,
 		worker.Version,
+		worker.Hostname,
 		worker.Uuid,
 		worker.Pid,
 	)
