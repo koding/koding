@@ -47,7 +47,7 @@ class LocalStorage extends AppStorage
     storage[@getSignature key] = (JSON.stringify value) or ''
     KD.utils.defer => callback? null
 
-  unsetKey: (key, callback)->
+  unsetKey: (key)->
     delete storage[@getSignature key]
     delete @_storageData[key]
 
