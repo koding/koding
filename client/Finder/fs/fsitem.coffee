@@ -57,6 +57,7 @@ class FSItem extends KDObject
 
       osKite.fsEnsureNonexistentPath(path: targetPath)
       .then (actualPath) ->
+        
         command = "#{ commandPrefix } #{ escapeFilePath sourceItem.path } #{ escapeFilePath actualPath }"
 
         osKite.exec(command)
@@ -70,13 +71,10 @@ class FSItem extends KDObject
             osKite
           }
 
-          window.FILE = file
-
           callback null, file  if callback?
 
     if callback?
-      ok
-      .catch (err) ->
+      ok.catch (err) ->
         warn err
         callback err
 
@@ -89,7 +87,6 @@ class FSItem extends KDObject
     @copyOrMove sourceItem, targetItem, 'cp -R', callback
 
   @move:(sourceItem, targetItem, callback)->
-    window.FOLDER = sourceItem
     @copyOrMove sourceItem, targetItem, 'mv', callback
 
   @compress:(file, type, callback)->
@@ -133,10 +130,12 @@ class FSItem extends KDObject
 
     path = FSHelper.plainPath file.path
     
-    [isTarGz, extractFolder] =
-      if tarPattern.test file.name
+    [isTarGz, extractFolder] = switch
+
+      when tarPattern .test file.name
         [yes, path.replace tarPattern, '']
-      else if zipPattern.test file.name
+
+      when zipPattern .test file.name
         [no, path.replace zipPattern, '']
 
     osKite.vmStart()
