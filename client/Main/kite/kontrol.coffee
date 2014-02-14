@@ -48,13 +48,7 @@ class Kontrol extends KDObject
 
     onEvent = (options)=>
       e = options.withArgs[0]
-      kite =
-        kite   : e.kite
-        token  :
-          key  : e.token?.key
-          ttl  : e.token?.ttl
-
-      callback null, {action: e.action, kite: @_createKite kite}
+      callback null, {action: e.action, kite: @_createKite e}
 
     @kite.tell "getKites", [query, onEvent], (err, kites)=>
       return callback err, null  if err
@@ -65,7 +59,7 @@ class Kontrol extends KDObject
   # Returns a new NewKite instance from Kite data structure coming from
   # getKites() and watchKites() methods.
   _createKite: (k)->
-    new NewKite k.kite, {type: "token", key: k.token.key}
+    new NewKite k.kite, {type: "token", key: k.token}
 
   _sanitizeQuery: (query) ->
     query.username    = "#{KD.nick()}"              unless query.username

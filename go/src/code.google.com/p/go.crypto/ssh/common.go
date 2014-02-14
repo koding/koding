@@ -5,70 +5,47 @@
 package ssh
 
 import (
-	"crypto/dsa"
-	"crypto/ecdsa"
-	"crypto/rsa"
-	"errors"
+	"crypto"
 	"fmt"
-	"math/big"
 	"sync"
+
+	_ "crypto/sha1"
+	_ "crypto/sha256"
+	_ "crypto/sha512"
 )
 
 // These are string constants in the SSH protocol.
 const (
-	keyAlgoDH1SHA1  = "diffie-hellman-group1-sha1"
-	kexAlgoDH14SHA1 = "diffie-hellman-group14-sha1"
-	hostAlgoRSA     = "ssh-rsa"
-	hostAlgoDSA     = "ssh-dss"
 	compressionNone = "none"
 	serviceUserAuth = "ssh-userauth"
 	serviceSSH      = "ssh-connection"
 )
 
-var supportedKexAlgos = []string{kexAlgoDH14SHA1, keyAlgoDH1SHA1}
-var supportedHostKeyAlgos = []string{hostAlgoRSA}
+var supportedKexAlgos = []string{
+	kexAlgoECDH256, kexAlgoECDH384, kexAlgoECDH521,
+	kexAlgoDH14SHA1, kexAlgoDH1SHA1,
+}
+
+var supportedHostKeyAlgos = []string{
+	KeyAlgoECDSA256, KeyAlgoECDSA384, KeyAlgoECDSA521,
+	KeyAlgoRSA, KeyAlgoDSA,
+}
+
 var supportedCompressions = []string{compressionNone}
 
-// dhGroup is a multiplicative group suitable for implementing Diffie-Hellman key agreement.
-type dhGroup struct {
-	g, p *big.Int
-}
-
-func (group *dhGroup) diffieHellman(theirPublic, myPrivate *big.Int) (*big.Int, error) {
-	if theirPublic.Sign() <= 0 || theirPublic.Cmp(group.p) >= 0 {
-		return nil, errors.New("ssh: DH parameter out of bounds")
-	}
-	return new(big.Int).Exp(theirPublic, myPrivate, group.p), nil
-}
-
-// dhGroup1 is the group called diffie-hellman-group1-sha1 in RFC 4253 and
-// Oakley Group 2 in RFC 2409.
-var dhGroup1 *dhGroup
-
-var dhGroup1Once sync.Once
-
-func initDHGroup1() {
-	p, _ := new(big.Int).SetString("FFFFFFFFFFFFFFFFC90FDAA22168C234C4C6628B80DC1CD129024E088A67CC74020BBEA63B139B22514A08798E3404DDEF9519B3CD3A431B302B0A6DF25F14374FE1356D6D51C245E485B576625E7EC6F44C42E9A637ED6B0BFF5CB6F406B7EDEE386BFB5A899FA5AE9F24117C4B1FE649286651ECE65381FFFFFFFFFFFFFFFF", 16)
-
-	dhGroup1 = &dhGroup{
-		g: new(big.Int).SetInt64(2),
-		p: p,
-	}
-}
-
-// dhGroup14 is the group called diffie-hellman-group14-sha1 in RFC 4253 and
-// Oakley Group 14 in RFC 3526.
-var dhGroup14 *dhGroup
-
-var dhGroup14Once sync.Once
-
-func initDHGroup14() {
-	p, _ := new(big.Int).SetString("FFFFFFFFFFFFFFFFC90FDAA22168C234C4C6628B80DC1CD129024E088A67CC74020BBEA63B139B22514A08798E3404DDEF9519B3CD3A431B302B0A6DF25F14374FE1356D6D51C245E485B576625E7EC6F44C42E9A637ED6B0BFF5CB6F406B7EDEE386BFB5A899FA5AE9F24117C4B1FE649286651ECE45B3DC2007CB8A163BF0598DA48361C55D39A69163FA8FD24CF5F83655D23DCA3AD961C62F356208552BB9ED529077096966D670C354E4ABC9804F1746C08CA18217C32905E462E36CE3BE39E772C180E86039B2783A2EC07A28FB5C55DF06F4C52C9DE2BCBF6955817183995497CEA956AE515D2261898FA051015728E5A8AACAA68FFFFFFFFFFFFFFFF", 16)
-
-	dhGroup14 = &dhGroup{
-		g: new(big.Int).SetInt64(2),
-		p: p,
-	}
+// hashFuncs keeps the mapping of supported algorithms to their respective
+// hashes needed for signature verification.
+var hashFuncs = map[string]crypto.Hash{
+	KeyAlgoRSA:          crypto.SHA1,
+	KeyAlgoDSA:          crypto.SHA1,
+	KeyAlgoECDSA256:     crypto.SHA256,
+	KeyAlgoECDSA384:     crypto.SHA384,
+	KeyAlgoECDSA521:     crypto.SHA512,
+	CertAlgoRSAv01:      crypto.SHA1,
+	CertAlgoDSAv01:      crypto.SHA1,
+	CertAlgoECDSA256v01: crypto.SHA256,
+	CertAlgoECDSA384v01: crypto.SHA384,
+	CertAlgoECDSA521v01: crypto.SHA512,
 }
 
 // UnexpectedMessageError results when the SSH message that we received didn't
@@ -88,11 +65,6 @@ type ParseError struct {
 
 func (p ParseError) Error() string {
 	return fmt.Sprintf("ssh: parse error in message type %d", p.msgType)
-}
-
-type handshakeMagics struct {
-	clientVersion, serverVersion []byte
-	clientKexInit, serverKexInit []byte
 }
 
 func findCommonAlgorithm(clientAlgos []string, serverAlgos []string) (commonAlgo string, ok bool) {
@@ -118,53 +90,69 @@ func findCommonCipher(clientCiphers []string, serverCiphers []string) (commonCip
 	return
 }
 
-func findAgreedAlgorithms(transport *transport, clientKexInit, serverKexInit *kexInitMsg) (kexAlgo, hostKeyAlgo string, ok bool) {
-	kexAlgo, ok = findCommonAlgorithm(clientKexInit.KexAlgos, serverKexInit.KexAlgos)
+type algorithms struct {
+	kex          string
+	hostKey      string
+	wCipher      string
+	rCipher      string
+	rMAC         string
+	wMAC         string
+	rCompression string
+	wCompression string
+}
+
+func findAgreedAlgorithms(clientKexInit, serverKexInit *kexInitMsg) (algs *algorithms) {
+	var ok bool
+	result := &algorithms{}
+	result.kex, ok = findCommonAlgorithm(clientKexInit.KexAlgos, serverKexInit.KexAlgos)
 	if !ok {
 		return
 	}
 
-	hostKeyAlgo, ok = findCommonAlgorithm(clientKexInit.ServerHostKeyAlgos, serverKexInit.ServerHostKeyAlgos)
+	result.hostKey, ok = findCommonAlgorithm(clientKexInit.ServerHostKeyAlgos, serverKexInit.ServerHostKeyAlgos)
 	if !ok {
 		return
 	}
 
-	transport.writer.cipherAlgo, ok = findCommonCipher(clientKexInit.CiphersClientServer, serverKexInit.CiphersClientServer)
+	result.wCipher, ok = findCommonCipher(clientKexInit.CiphersClientServer, serverKexInit.CiphersClientServer)
 	if !ok {
 		return
 	}
 
-	transport.reader.cipherAlgo, ok = findCommonCipher(clientKexInit.CiphersServerClient, serverKexInit.CiphersServerClient)
+	result.rCipher, ok = findCommonCipher(clientKexInit.CiphersServerClient, serverKexInit.CiphersServerClient)
 	if !ok {
 		return
 	}
 
-	transport.writer.macAlgo, ok = findCommonAlgorithm(clientKexInit.MACsClientServer, serverKexInit.MACsClientServer)
+	result.wMAC, ok = findCommonAlgorithm(clientKexInit.MACsClientServer, serverKexInit.MACsClientServer)
 	if !ok {
 		return
 	}
 
-	transport.reader.macAlgo, ok = findCommonAlgorithm(clientKexInit.MACsServerClient, serverKexInit.MACsServerClient)
+	result.rMAC, ok = findCommonAlgorithm(clientKexInit.MACsServerClient, serverKexInit.MACsServerClient)
 	if !ok {
 		return
 	}
 
-	transport.writer.compressionAlgo, ok = findCommonAlgorithm(clientKexInit.CompressionClientServer, serverKexInit.CompressionClientServer)
+	result.wCompression, ok = findCommonAlgorithm(clientKexInit.CompressionClientServer, serverKexInit.CompressionClientServer)
 	if !ok {
 		return
 	}
 
-	transport.reader.compressionAlgo, ok = findCommonAlgorithm(clientKexInit.CompressionServerClient, serverKexInit.CompressionServerClient)
+	result.rCompression, ok = findCommonAlgorithm(clientKexInit.CompressionServerClient, serverKexInit.CompressionServerClient)
 	if !ok {
 		return
 	}
 
-	ok = true
-	return
+	return result
 }
 
 // Cryptographic configuration common to both ServerConfig and ClientConfig.
 type CryptoConfig struct {
+	// The allowed key exchanges algorithms. If unspecified then a
+	// default set of algorithms is used.
+	KeyExchanges []string
+
 	// The allowed cipher algorithms. If unspecified then DefaultCipherOrder is
 	// used.
 	Ciphers []string
@@ -180,6 +168,13 @@ func (c *CryptoConfig) ciphers() []string {
 	return c.Ciphers
 }
 
+func (c *CryptoConfig) kexes() []string {
+	if c.KeyExchanges == nil {
+		return defaultKeyExchangeOrder
+	}
+	return c.KeyExchanges
+}
+
 func (c *CryptoConfig) macs() []string {
 	if c.MACs == nil {
 		return DefaultMACOrder
@@ -187,95 +182,59 @@ func (c *CryptoConfig) macs() []string {
 	return c.MACs
 }
 
-// serialize a signed slice according to RFC 4254 6.6.
-func serializeSignature(algoname string, sig []byte) []byte {
-	switch algoname {
-	// The corresponding private key to a public certificate is always a normal
-	// private key.  For signature serialization purposes, ensure we use the
-	// proper key algorithm name in case the public cert algorithm name is passed.
-	case CertAlgoRSAv01:
-		algoname = KeyAlgoRSA
-	case CertAlgoDSAv01:
-		algoname = KeyAlgoDSA
-	case CertAlgoECDSA256v01:
-		algoname = KeyAlgoECDSA256
-	case CertAlgoECDSA384v01:
-		algoname = KeyAlgoECDSA384
-	case CertAlgoECDSA521v01:
-		algoname = KeyAlgoECDSA521
-	}
-	length := stringLength(len(algoname))
+// serialize a signed slice according to RFC 4254 6.6. The name should
+// be a key type name, rather than a cert type name.
+func serializeSignature(name string, sig []byte) []byte {
+	length := stringLength(len(name))
 	length += stringLength(len(sig))
 
 	ret := make([]byte, length)
-	r := marshalString(ret, []byte(algoname))
+	r := marshalString(ret, []byte(name))
 	r = marshalString(r, sig)
 
 	return ret
 }
 
-// serialize a *rsa.PublicKey or *dsa.PublicKey according to RFC 4253 6.6.
-func serializePublickey(key interface{}) []byte {
-	var pubKeyBytes []byte
-	algoname := algoName(key)
-	switch key := key.(type) {
-	case *rsa.PublicKey:
-		pubKeyBytes = marshalPubRSA(key)
-	case *dsa.PublicKey:
-		pubKeyBytes = marshalPubDSA(key)
-	case *ecdsa.PublicKey:
-		pubKeyBytes = marshalPubECDSA(key)
-	case *OpenSSHCertV01:
-		pubKeyBytes = marshalOpenSSHCertV01(key)
-	default:
-		panic("unexpected key type")
-	}
+// MarshalPublicKey serializes a supported key or certificate for use
+// by the SSH wire protocol. It can be used for comparison with the
+// pubkey argument of ServerConfig's PublicKeyCallback as well as for
+// generating an authorized_keys or host_keys file.
+func MarshalPublicKey(key PublicKey) []byte {
+	// See also RFC 4253 6.6.
+	algoname := key.PublicKeyAlgo()
+	blob := key.Marshal()
 
 	length := stringLength(len(algoname))
-	length += len(pubKeyBytes)
+	length += len(blob)
 	ret := make([]byte, length)
 	r := marshalString(ret, []byte(algoname))
-	copy(r, pubKeyBytes)
+	copy(r, blob)
 	return ret
 }
 
-func algoName(key interface{}) string {
-	switch key.(type) {
-	case *rsa.PublicKey:
+// pubAlgoToPrivAlgo returns the private key algorithm format name that
+// corresponds to a given public key algorithm format name.  For most
+// public keys, the private key algorithm name is the same.  For some
+// situations, such as openssh certificates, the private key algorithm and
+// public key algorithm names differ.  This accounts for those situations.
+func pubAlgoToPrivAlgo(pubAlgo string) string {
+	switch pubAlgo {
+	case CertAlgoRSAv01:
 		return KeyAlgoRSA
-	case *dsa.PublicKey:
+	case CertAlgoDSAv01:
 		return KeyAlgoDSA
-	case *ecdsa.PublicKey:
-		switch key.(*ecdsa.PublicKey).Params().BitSize {
-		case 256:
-			return KeyAlgoECDSA256
-		case 384:
-			return KeyAlgoECDSA384
-		case 521:
-			return KeyAlgoECDSA521
-		}
-	case *OpenSSHCertV01:
-		switch key.(*OpenSSHCertV01).Key.(type) {
-		case *rsa.PublicKey:
-			return CertAlgoRSAv01
-		case *dsa.PublicKey:
-			return CertAlgoDSAv01
-		case *ecdsa.PublicKey:
-			switch key.(*OpenSSHCertV01).Key.(*ecdsa.PublicKey).Params().BitSize {
-			case 256:
-				return CertAlgoECDSA256v01
-			case 384:
-				return CertAlgoECDSA384v01
-			case 521:
-				return CertAlgoECDSA521v01
-			}
-		}
+	case CertAlgoECDSA256v01:
+		return KeyAlgoECDSA256
+	case CertAlgoECDSA384v01:
+		return KeyAlgoECDSA384
+	case CertAlgoECDSA521v01:
+		return KeyAlgoECDSA521
 	}
-	panic("unexpected key type")
+	return pubAlgo
 }
 
 // buildDataSignedForAuth returns the data that is signed in order to prove
-// posession of a private key. See RFC 4252, section 7.
+// possession of a private key. See RFC 4252, section 7.
 func buildDataSignedForAuth(sessionId []byte, req userAuthRequestMsg, algo, pubKey []byte) []byte {
 	user := []byte(req.User)
 	service := []byte(req.Service)

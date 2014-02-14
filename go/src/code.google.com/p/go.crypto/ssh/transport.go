@@ -6,7 +6,6 @@ package ssh
 
 import (
 	"bufio"
-	"crypto"
 	"crypto/cipher"
 	"crypto/subtle"
 	"encoding/binary"
@@ -29,13 +28,16 @@ const (
 	maxPacket = 256 * 1024
 )
 
-// conn represents an ssh transport that implements packet based
+// packetConn represents a transport that implements packet based
 // operations.
-type conn interface {
+type packetConn interface {
 	// Encrypt and send a packet of data to the remote peer.
 	writePacket(packet []byte) error
 
-	// Close closes the connection.
+	// Read a packet from the connection
+	readPacket() ([]byte, error)
+
+	// Close closes the write-side of the connection.
 	Close() error
 }
 
@@ -45,6 +47,10 @@ type transport struct {
 	writer
 
 	net.Conn
+
+	// Initial H used for the session ID. Once assigned this does
+	// not change, even during subsequent key exchanges.
+	sessionID []byte
 }
 
 // reader represents the incoming connection state.
@@ -61,6 +67,28 @@ type writer struct {
 	common
 }
 
+// prepareKeyChange sets up key material for a keychange. The key changes in
+// both directions are triggered by reading and writing a msgNewKey packet
+// respectively.
+func (t *transport) prepareKeyChange(algs *algorithms, kexResult *kexResult) error {
+	t.writer.cipherAlgo = algs.wCipher
+	t.writer.macAlgo = algs.wMAC
+	t.writer.compressionAlgo = algs.wCompression
+
+	t.reader.cipherAlgo = algs.rCipher
+	t.reader.macAlgo = algs.rMAC
+	t.reader.compressionAlgo = algs.rCompression
+
+	if t.sessionID == nil {
+		t.sessionID = kexResult.H
+	}
+
+	kexResult.SessionID = t.sessionID
+	t.reader.pendingKeyChange <- kexResult
+	t.writer.pendingKeyChange <- kexResult
+	return nil
+}
+
 // common represents the cipher state needed to process messages in a single
 // direction.
 type common struct {
@@ -71,10 +99,13 @@ type common struct {
 	cipherAlgo      string
 	macAlgo         string
 	compressionAlgo string
+
+	dir              direction
+	pendingKeyChange chan *kexResult
 }
 
 // Read and decrypt a single packet from the remote peer.
-func (r *reader) readOnePacket() ([]byte, error) {
+func (r *reader) readPacket() ([]byte, error) {
 	var lengthBytes = make([]byte, 5)
 	var macSize uint32
 	if _, err := io.ReadFull(r, lengthBytes); err != nil {
@@ -122,19 +153,32 @@ func (r *reader) readOnePacket() ([]byte, error) {
 	}
 
 	r.seqNum++
-	return packet[:length-paddingLength-1], nil
+	packet = packet[:length-paddingLength-1]
+
+	if len(packet) > 0 && packet[0] == msgNewKeys {
+		select {
+		case k := <-r.pendingKeyChange:
+			if err := r.setupKeys(r.dir, k); err != nil {
+				return nil, err
+			}
+		default:
+			return nil, errors.New("ssh: got bogus newkeys message.")
+		}
+	}
+	return packet, nil
 }
 
 // Read and decrypt next packet discarding debug and noop messages.
 func (t *transport) readPacket() ([]byte, error) {
 	for {
-		packet, err := t.readOnePacket()
+		packet, err := t.reader.readPacket()
 		if err != nil {
 			return nil, err
 		}
 		if len(packet) == 0 {
 			return nil, errors.New("ssh: zero length packet")
 		}
+
 		if packet[0] != msgIgnore && packet[0] != msgDebug {
 			return packet, nil
 		}
@@ -144,6 +188,8 @@ func (t *transport) readPacket() ([]byte, error) {
 
 // Encrypt and send a packet of data to the remote peer.
 func (w *writer) writePacket(packet []byte) error {
+	changeKeys := len(packet) > 0 && packet[0] == msgNewKeys
+
 	if len(packet) > maxPacket {
 		return errors.New("ssh: packet too large")
 	}
@@ -206,26 +252,49 @@ func (w *writer) writePacket(packet []byte) error {
 	}
 
 	w.seqNum++
-	return w.Flush()
+	if err = w.Flush(); err != nil {
+		return err
+	}
+
+	if changeKeys {
+		select {
+		case k := <-w.pendingKeyChange:
+			err = w.setupKeys(w.dir, k)
+		default:
+			panic("ssh: no key material for msgNewKeys")
+		}
+	}
+	return err
 }
 
-func newTransport(conn net.Conn, rand io.Reader) *transport {
-	return &transport{
+func newTransport(conn net.Conn, rand io.Reader, isClient bool) *transport {
+	t := &transport{
 		reader: reader{
 			Reader: bufio.NewReader(conn),
 			common: common{
-				cipher: noneCipher{},
+				cipher:           noneCipher{},
+				pendingKeyChange: make(chan *kexResult, 1),
 			},
 		},
 		writer: writer{
 			Writer: bufio.NewWriter(conn),
 			rand:   rand,
 			common: common{
-				cipher: noneCipher{},
+				cipher:           noneCipher{},
+				pendingKeyChange: make(chan *kexResult, 1),
 			},
 		},
 		Conn: conn,
 	}
+	if isClient {
+		t.reader.dir = serverKeys
+		t.writer.dir = clientKeys
+	} else {
+		t.reader.dir = clientKeys
+		t.writer.dir = serverKeys
+	}
+
+	return t
 }
 
 type direction struct {
@@ -243,7 +312,7 @@ var (
 // setupKeys sets the cipher and MAC keys from kex.K, kex.H and sessionId, as
 // described in RFC 4253, section 6.4. direction should either be serverKeys
 // (to setup server->client keys) or clientKeys (for client->server keys).
-func (c *common) setupKeys(d direction, K, H, sessionId []byte, hashFunc crypto.Hash) error {
+func (c *common) setupKeys(d direction, r *kexResult) error {
 	cipherMode := cipherModes[c.cipherAlgo]
 	macMode := macModes[c.macAlgo]
 
@@ -251,10 +320,10 @@ func (c *common) setupKeys(d direction, K, H, sessionId []byte, hashFunc crypto.
 	key := make([]byte, cipherMode.keySize)
 	macKey := make([]byte, macMode.keySize)
 
-	h := hashFunc.New()
-	generateKeyMaterial(iv, d.ivTag, K, H, sessionId, h)
-	generateKeyMaterial(key, d.keyTag, K, H, sessionId, h)
-	generateKeyMaterial(macKey, d.macKeyTag, K, H, sessionId, h)
+	h := r.Hash.New()
+	generateKeyMaterial(iv, d.ivTag, r.K, r.H, r.SessionID, h)
+	generateKeyMaterial(key, d.keyTag, r.K, r.H, r.SessionID, h)
+	generateKeyMaterial(macKey, d.macKeyTag, r.K, r.H, r.SessionID, h)
 
 	c.mac = macMode.new(macKey)
 
@@ -289,18 +358,41 @@ func generateKeyMaterial(out, tag []byte, K, H, sessionId []byte, h hash.Hash) {
 	}
 }
 
-// maxVersionStringBytes is the maximum number of bytes that we'll accept as a
-// version string. In the event that the client is talking a different protocol
-// we need to set a limit otherwise we will keep using more and more memory
-// while searching for the end of the version handshake.
-const maxVersionStringBytes = 1024
+const packageVersion = "SSH-2.0-Go"
+
+// Sends and receives a version line.  The versionLine string should
+// be US ASCII, start with "SSH-2.0-", and should not include a
+// newline. exchangeVersions returns the other side's version line.
+func exchangeVersions(rw io.ReadWriter, versionLine []byte) (them []byte, err error) {
+	// Contrary to the RFC, we do not ignore lines that don't
+	// start with "SSH-2.0-" to make the library usable with
+	// nonconforming servers.
+	for _, c := range versionLine {
+		// The spec disallows non US-ASCII chars, and
+		// specifically forbids null chars.
+		if c < 32 {
+			return nil, errors.New("ssh: junk character in version line")
+		}
+	}
+	if _, err = rw.Write(append(versionLine, '\r', '\n')); err != nil {
+		return
+	}
+
+	them, err = readVersion(rw)
+	return them, err
+}
+
+// maxVersionStringBytes is the maximum number of bytes that we'll
+// accept as a version string. RFC 4253 section 4.2 limits this at 255
+// chars
+const maxVersionStringBytes = 255
 
 // Read version string as specified by RFC 4253, section 4.2.
 func readVersion(r io.Reader) ([]byte, error) {
 	versionString := make([]byte, 0, 64)
 	var ok bool
 	var buf [1]byte
-forEachByte:
+
 	for len(versionString) < maxVersionStringBytes {
 		_, err := io.ReadFull(r, buf[:])
 		if err != nil {
@@ -310,13 +402,20 @@ forEachByte:
 		// but several SSH servers actually only send a \n.
 		if buf[0] == '\n' {
 			ok = true
-			break forEachByte
+			break
 		}
+
+		// non ASCII chars are disallowed, but we are lenient,
+		// since Go doesn't use null-terminated strings.
+
+		// The RFC allows a comment after a space, however,
+		// all of it (version and comments) goes into the
+		// session hash.
 		versionString = append(versionString, buf[0])
 	}
 
 	if !ok {
-		return nil, errors.New("ssh: failed to read version string")
+		return nil, errors.New("ssh: overflow reading version string")
 	}
 
 	// There might be a '\r' on the end which we should remove.
