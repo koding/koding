@@ -25,16 +25,16 @@ class MembersListItemView extends KDListItemView
       pistachio : "{{ #(counts.followers)}} followers {{ #(counts.following)}} following"
     , data
 
-    # unless data.getId() is KD.whoami().getId()
-    @followButton = new FollowButton
-      title          : "follow"
-      icon           : yes
-      stateOptions   :
-        unfollow     :
-          title      : "unfollow"
-          cssClass   : 'following-account'
-      dataType       : 'JAccount'
-    , data
+    unless data.getId() is KD.whoami().getId()
+      @followButton = new FollowButton
+        title          : "follow"
+        icon           : yes
+        stateOptions   :
+          unfollow     :
+            title      : "unfollow"
+            cssClass   : 'following-account'
+        dataType       : 'JAccount'
+      , data
 
   viewAppended:->
     @addSubView @avatar if @getOption 'avatar'

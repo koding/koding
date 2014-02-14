@@ -8,18 +8,19 @@ class GroupMembersPageListItemView extends MembersListItemView
 
     super options, data
 
-    @followButton = new FollowButton
-      style          : "solid green medium"
-      title          : "follow"
-      cssClass       : "follow-button"
-      stateOptions   :
-        unfollow     :
-          title      : "following"
-          cssClass   : "solid light-gray medium"
-        following    :
-          title      : "unfollow"
-          cssClass   : "solid red medium"
-      dataType       : 'JAccount'
-    , data
+    unless data.getId() is KD.whoami().getId()
+      @followButton = new FollowButton
+        style          : "solid green medium"
+        title          : "follow"
+        cssClass       : "follow-button"
+        stateOptions   :
+          unfollow     :
+            title      : "following"
+            cssClass   : "solid light-gray medium"
+          following    :
+            title      : "unfollow"
+            cssClass   : "solid red medium"
+        dataType       : 'JAccount'
+      , data
 
-    @followButton.unsetClass 'follow-btn'
+      @followButton.unsetClass 'follow-btn'

@@ -41,7 +41,7 @@ class MembersAppController extends AppController
           placement         : "above"
       filter                :
         everything          :
-          title             : "All members <span class='member-numbers-all'></span>"
+          title             : ""
           optional_title    : if @_searchValue then "<span class='optional_title'></span>" else null
           dataSource        : (selector, options, callback)=>
             {JAccount} = KD.remote.api
