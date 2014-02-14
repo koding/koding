@@ -1,12 +1,19 @@
 class MembersListItemView extends KDListItemView
   constructor: (options = {}, data) ->
     options.type        = "member"
+    options.avatar     ?=
+      size              :
+        width           : 30
+        height          : 30
+
     super options, data
 
     data = @getData()
 
-    @avatar  = new AvatarView
-      size       : width: 30, height: 30
+    avatarSize = @getOption('avatar').size
+
+    if @getOption 'avatar' then @avatar  = new AvatarView
+      size       : width: avatarSize.width, height: avatarSize.height
       cssClass   : "avatarview"
       showStatus : yes
     , data
@@ -18,19 +25,19 @@ class MembersListItemView extends KDListItemView
       pistachio : "{{ #(counts.followers)}} followers {{ #(counts.following)}} following"
     , data
 
-    unless data.getId() is KD.whoami().getId()
-      @followButton = new FollowButton
-        title          : "follow"
-        icon           : yes
-        stateOptions   :
-          unfollow     :
-            title      : "unfollow"
-            cssClass   : 'following-account'
-        dataType       : 'JAccount'
-      , data
+    # unless data.getId() is KD.whoami().getId()
+    @followButton = new FollowButton
+      title          : "follow"
+      icon           : yes
+      stateOptions   :
+        unfollow     :
+          title      : "unfollow"
+          cssClass   : 'following-account'
+      dataType       : 'JAccount'
+    , data
 
   viewAppended:->
-    @addSubView @avatar
+    @addSubView @avatar if @getOption 'avatar'
     @addSubView @followButton  if @followButton
     @addSubView @actor
     @addSubView @followersAndFollowing

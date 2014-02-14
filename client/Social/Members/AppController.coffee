@@ -27,7 +27,7 @@ class MembersAppController extends AppController
   createFeed:(view, loadFeed = no)->
     @appManager.tell 'Feeder', 'createContentFeedController', {
       feedId                : 'members.main'
-      itemClass             : MembersListItemView
+      itemClass             : GroupMembersPageListItemView
       listControllerClass   : MembersListViewController
       useHeaderNav          : yes
       noItemFoundText       : "There is no member."
