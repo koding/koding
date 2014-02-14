@@ -63,7 +63,7 @@ class FeedCoverPhotoView extends KDView
       @coverView.hide()
       @listController.getView().show()
       @listController.removeAllItems()
-      @group.fetchMembersFromGraph limit : 20, (err, accounts) =>
+      @group.fetchMembers {},limit : 20, (err, accounts) =>
         @listController.instantiateListItems accounts
 
 

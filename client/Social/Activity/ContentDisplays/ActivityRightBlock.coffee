@@ -143,9 +143,8 @@ class GroupMembers extends ActivityRightBase
     {groupsController} = KD.singletons
     groupsController.ready =>
       group = groupsController.getCurrentGroup()
-      group.fetchMembersFromGraph limit : 12, (err, members) =>
+      group.fetchMembers {}, limit : 12, (err, members) =>
         @renderItems err, members
-
         if members.length < 12
           groupsController.on "MemberJoinedGroup", (data) =>
             {constructorName, id} = data.member
