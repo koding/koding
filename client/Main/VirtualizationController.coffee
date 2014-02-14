@@ -7,6 +7,8 @@ class VirtualizationController extends KDController
     @payment = KD.singleton "paymentController"
     @resetVMData()
 
+    @kites = {}
+
     KD.getSingleton('mainController')
       .once('AppIsReady', @bound 'fetchVMs')
       .on('AccountChanged', => @emit 'VMListChanged')
@@ -216,13 +218,13 @@ class VirtualizationController extends KDController
     group.createVM {type, planCode}, vmCreateCallback
 
   getKite: ({ region, hostnameAlias }) ->
-    (KD.getSingleton 'kiteController').getKite "os-#{ region }", hostnameAlias
+    kite = (KD.getSingleton 'kiteController')
+      .getKite "os-#{ region }", hostnameAlias
 
-  fetchOsKites: (callback) ->
-    @fetchVMs (err, vms) =>
-      return callback err  if err
-      @osKites ?= (@getKite vm for vm in vms)
-      callback null, @osKites
+  registerKite: (vm) ->
+    @kites[vm.hostnameAlias] = @getKite vm
+
+  getKiteByVmName: (vmName) -> @kites[vmName]
 
   fetchVmNames: (force, callback) ->
     [callback, force] = [force, callback]  unless callback?
@@ -246,8 +248,11 @@ class VirtualizationController extends KDController
       if force
       then callback err, vms
       else
+        @registerKite vm  for vm in vms
         cb err, vms  for cb in waiting
         waiting = []
+
+
 
   fetchGroupVMs:(force, callback = noop)->
     if @groupVms.length > 0 and not force
@@ -268,6 +273,16 @@ class VirtualizationController extends KDController
       else
         @vmDomains[vmName] = domains.sort (x, y)-> x.length>y.length
         callback null, @vmDomains[vmName]
+
+  fetchVmsByName: (vmName, callback) ->
+    { JVM } = KD.remote.api
+
+    JVM.fetchVmsByName vmName, (err, vms) =>
+      return callback err  if err
+
+      @registerKite vm  for vm in vms
+
+      callback null, vms
 
   resetVMData:->
     @vms      = []

@@ -16,9 +16,9 @@ class OsKite extends KDKite
     fsRemove        : 'fs.remove'
     
     fsEnsureNonexistentPath: 'fs.ensureNonexistentPath'
-    fsWriteFile     : 'fs.oldWriteFile'
-    fsRename        : 'fs.oldRename'
-    fsCreateDirectory: 'fs.oldCreateDirectory'
+    fsWriteFile     : 'fs.writeFile'
+    fsRename        : 'fs.rename'
+    fsCreateDirectory: 'fs.createDirectory'
 
     s3Store         : 's3.store'
     s3Delete        : 's3.delete'

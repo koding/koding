@@ -34,10 +34,12 @@ class FSFile extends FSItem
 
     @emit "fs.job.started"
 
-    ok = @osKite.vmStart()
+    kite = @getKite()
+
+    ok = kite.vmStart()
     .then =>
 
-      @osKite.fsReadFile {
+      kite.fsReadFile {
         path: FSHelper.plainPath @path
       }
 
@@ -62,16 +64,18 @@ class FSFile extends FSItem
 
     file = null
 
-    @osKite.vmStart()
+    kite = @getKite()
+
+    kite.vmStart()
     .then =>
 
-      ok = @osKite.fsEnsureNonexistentPath(path: "#{newPath}")
+      ok = kite.fsEnsureNonexistentPath(path: "#{newPath}")
       .then (actualPath) =>
 
         file = FSHelper.createFile {
           type   : 'file'
           path   : actualPath
-          @osKite
+          @vmName
         }
 
         ok = file.save contents
@@ -98,14 +102,16 @@ class FSFile extends FSItem
     # Convert to base64
     content = btoa contents
 
-    ok = @osKite.startVm()
+    kite = @getKite()
+
+    ok = kite.startVm()
     .then =>
 
-      @osKite.fsWriteFile({
+      kite.fsWriteFile {
         path    : FSHelper.plainPath @path
         content : btoa contents
         append  : yes
-      })
+      }
 
     if callback?
       ok
@@ -193,12 +199,11 @@ class FSFile extends FSItem
 
   abort: -> @emit "AbortRequested"
 
-  save: (contents, callback = null, useEncoding = yes) ->
+  save: (contents = '', callback = null, useEncoding = yes) ->
+
     @emit "fs.save.started"
 
-    ok =
-
-    @osKite.vmStart()
+    ok = @getKite().vmStart()
     .then =>
 
       contents = KD.utils.utf8Encode contents  if useEncoding
@@ -206,10 +211,10 @@ class FSFile extends FSItem
       # Convert to base64
       content = btoa contents
 
-      @osKite.fsWriteFile({
+      @getKite().fsWriteFile {
         path: FSHelper.plainPath @path
         content
-      })
+      }
 
     if callback?
 
@@ -226,5 +231,6 @@ class FSFile extends FSItem
       ok
       .then (response) =>
         @emit "fs.save.finished", null, response
-        Promise.cast response
+
+        return response
 
