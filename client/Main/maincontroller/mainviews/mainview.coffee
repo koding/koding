@@ -86,6 +86,10 @@ class MainView extends KDView
 
     groupLogo = KD.currentGroup?.logo or ""
     @logo.setCss 'background-image', "url(#{groupLogo})"
+      groupLogo = KD.utils.proxifyUrl KD.currentGroup.logo,
+        crop         : yes
+        width        : 55
+        height       : 55
 
     @logo.setClass KD.config.environment
 
