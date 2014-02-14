@@ -17,7 +17,7 @@ class GroupLogoSettings extends KDView
         height       : 55
       resized = KD.utils.proxifyUrl @group.customize.logo, proxifyOptions
       attributes  =
-        style     : "background-image: url(#{resized});"
+        style     : "background-image: url(#{resized}); background-position: 0 0;"
     else
       @setClass "default"
 
