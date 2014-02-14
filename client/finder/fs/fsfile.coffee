@@ -25,9 +25,13 @@ class FSFile extends FSItem
     @localStorage.unsetKey btoa KD.utils.utf8Encode FSHelper.plainPath @path
 
   fetchContentsBinary: (callback)->
-    @fetchContents callback, no
+    @fetchContents no, callback
 
-  fetchContents: (callback, useEncoding=yes)->
+  fetchContents: (useEncoding, callback)->
+    [callback, useEncoding] = [useEncoding, callback]  unless callback
+
+    useEncoding = yes
+
     @emit "fs.job.started"
 
     ok = @osKite.vmStart()
@@ -88,11 +92,6 @@ class FSFile extends FSItem
 
         return file
 
-
-  # webtermConnect: (results, callback) ->
-  #   @osKite.webtermConnect({ arg1: 42 }))
-  #   .then (callback)
-
   append: (contents, callback)->
     @emit "fs.append.started"
 
@@ -146,8 +145,6 @@ class FSFile extends FSItem
     info       = @getLocalFileInfo()
     chunkQueue = FSFile.createChunkQueue contents, null, info.lastUploadedChunk
     total      = chunkQueue.length
-
-    debugger
 
     @setLocalFileInfo totalChunks: total
 

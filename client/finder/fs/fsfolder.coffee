@@ -4,12 +4,16 @@ class FSFolder extends FSFile
     { @stack } = new Error
     super
 
-  fetchContents:(callback, dontWatch=yes)->
+  fetchContents:(dontWatch, callback)->
+    [callback, dontWatch] = [dontWatch, callback]  unless callback?
+
+    dontWatch ?= yes
+
     { treeController } = @getOptions()
 
     @osKite.vmStart()
-
     .then =>
+
       @osKite.fsReadDirectory
         path      : FSHelper.plainPath @path
         onChange  : if dontWatch then null else (change) =>
