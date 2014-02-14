@@ -104,7 +104,7 @@ module.exports = (options = {}, callback)->
               logo       : group.customize?.logo or ""
               coverPhoto : group.customize?.coverPhoto or ""
               id         : group.getId()
-        kallback()
+          kallback()
       else
         kallback()
 

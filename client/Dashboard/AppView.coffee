@@ -65,9 +65,6 @@ class DashboardAppView extends JView
     @searchWrapper.addSubView @searchIcon
     @header.addSubView @searchWrapper
 
-    @on "groupSettingsUpdated", (group)->
-      @setData group
-      @createTabs()
 
   setListeners:->
 

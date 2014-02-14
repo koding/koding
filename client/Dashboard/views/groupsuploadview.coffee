@@ -53,18 +53,14 @@ class GroupsUploadView extends JView
 
   uploadToS3: ->
     #TODO : change the address and name of the logo
-    {groupsController} = KD.singletons
-    group              = groupsController.getCurrentGroup()
-    imageName          = "#{group.slug}-logo-#{Date.now()}.png"
+    group     = KD.singletons.groupsController.getCurrentGroup()
+    imageName = "#{group.slug}-logo-#{Date.now()}.png"
 
     FSHelper.s3.upload imageName, @btoaContent, (err, url) =>
-      if err
-        @loader.hide()
-        return new KDNotificationView title : "Error while uploading photo."
-
       @loader.hide()
-      @destroy()
+      return new KDNotificationView title : "Error while uploading photo." if err
       @emit "FileUploadDone", url
+      @destroy()
 
   pistachio: ->
     """
