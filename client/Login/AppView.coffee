@@ -412,7 +412,7 @@ class LoginView extends KDView
 
       KD.getSingleton('appManager').quitAll()
       KD.getSingleton('router').handleRoute firstRoute or '/Activity', {replaceState: yes, entryPoint}
-      KD.getSingleton('groupsController').on 'GroupChanged', =>
+      KD.getSingleton('groupsController').ready =>
         @headBanner?.hide()
         @loginForm.reset()
 

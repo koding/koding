@@ -54,16 +54,13 @@ class GroupsController extends KDController
       else if models?
         [group] = models
         if group.bongo_.constructorName isnt 'JGroup'
-          @isReady = yes
+          @changeGroup 'koding'
         else
           @setGroup groupName
           @currentGroupData.setGroup group
-          @isReady = yes
           callback null, groupName, group
-          @emit 'GroupChanged', groupName, group
-          @openGroupChannel group, => @emit 'ready'
+          @openGroupChannel KD.getGroup(), => @emit 'ready'
 
-        @emit 'ready'
 
   getUserArea:->
     @userArea ? group:
