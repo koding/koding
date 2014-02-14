@@ -56,15 +56,6 @@ func startRouting(conf *config.Config) {
 		bind{"worker", "kontrol-worker", "input.worker", "workerExchange", "topic"},
 	}
 
-	// remove old queue before we use our new auto-delete queue
-	deleteConn := kontrolhelper.CreateAmqpConnection(conf)
-	deleteChan := kontrolhelper.CreateChannel(deleteConn)
-	_, err := deleteChan.QueueDelete("kontrol-worker", false, false, true)
-	if err != nil {
-		log.Info("queue deleting err:", err.Error)
-	}
-	deleteConn.Close()
-
 	connection := kontrolhelper.CreateAmqpConnection(conf)
 	channel := kontrolhelper.CreateChannel(connection)
 

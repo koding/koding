@@ -57,10 +57,9 @@ func CreateChannel(conn *amqp.Connection) *amqp.Channel {
 	if err != nil {
 		panic(err)
 	}
-
 	go func() {
 		for err := range channel.NotifyClose(make(chan *amqp.Error)) {
-			slog.Printf("AMQP channel: %s\n", err.Error())
+			slog.Fatalf("AMQP channel: %s", err.Error())
 		}
 	}()
 	return channel
@@ -71,14 +70,7 @@ func CreateStream(channel *amqp.Channel, kind, exchange, queue, key string, dura
 		panic(err)
 	}
 
-	if _, err := channel.QueueDeclare(
-		queue,
-		true,  // durable
-		true,  // autoDelete
-		false, // exclusive
-		false, // noWait
-		nil,   // args table
-	); err != nil {
+	if _, err := channel.QueueDeclare(queue, true, false, false, false, nil); err != nil {
 		panic(err)
 	}
 
