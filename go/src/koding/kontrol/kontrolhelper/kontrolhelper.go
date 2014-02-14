@@ -57,9 +57,10 @@ func CreateChannel(conn *amqp.Connection) *amqp.Channel {
 	if err != nil {
 		panic(err)
 	}
+
 	go func() {
 		for err := range channel.NotifyClose(make(chan *amqp.Error)) {
-			slog.Fatalf("AMQP channel: %s", err.Error())
+			slog.Printf("AMQP channel: %s\n", err.Error())
 		}
 	}()
 	return channel
