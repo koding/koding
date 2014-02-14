@@ -36,6 +36,11 @@ type Config struct {
 	Version         string
 	Client          struct {
 		StaticFilesBaseUrl string
+		RuntimeOptions     struct {
+			NewKontrol struct {
+				Url string
+			}
+		}
 	}
 	Mongo        string
 	MongoKontrol string
@@ -77,10 +82,13 @@ type Config struct {
 		Queue string
 	}
 	NewKontrol struct {
-		Host     string
-		Port     int
-		CertFile string
-		KeyFile  string
+		Username       string
+		Port           int
+		UseTLS         bool
+		CertFile       string
+		KeyFile        string
+		PublicKeyFile  string
+		PrivateKeyFile string
 	}
 	ProxyKite struct {
 		Domain   string
@@ -178,13 +186,11 @@ func readConfig(profile string) (*Config, error) {
 
 	var conf *Config
 	if ok {
-		fmt.Printf("config.go: reading config from %s\n", configPath)
 		conf, err = ReadJson(profile)
 		if err != nil {
 			return nil, err
 		}
 	} else {
-		fmt.Println("config.go: reading config with koding-config-manager")
 		conf, err = ReadConfigManager(profile)
 		if err != nil {
 			return nil, err

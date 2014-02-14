@@ -5,9 +5,6 @@
 package ssh
 
 import (
-	"crypto/dsa"
-	"crypto/ecdsa"
-	"crypto/rsa"
 	"time"
 )
 
@@ -38,21 +35,145 @@ type tuple struct {
 	Data string
 }
 
+const (
+	maxUint64 = 1<<64 - 1
+	maxInt64  = 1<<63 - 1
+)
+
+// CertTime represents an unsigned 64-bit time value in seconds starting from
+// UNIX epoch.  We use CertTime instead of time.Time in order to properly handle
+// the "infinite" time value ^0, which would become negative when expressed as
+// an int64.
+type CertTime uint64
+
+func (ct CertTime) Time() time.Time {
+	if ct > maxInt64 {
+		return time.Unix(maxInt64, 0)
+	}
+	return time.Unix(int64(ct), 0)
+}
+
+func (ct CertTime) IsInfinite() bool {
+	return ct == maxUint64
+}
+
 // An OpenSSHCertV01 represents an OpenSSH certificate as defined in
 // [PROTOCOL.certkeys]?rev=1.8.
 type OpenSSHCertV01 struct {
 	Nonce                   []byte
-	Key                     interface{} // rsa, dsa, or ecdsa *PublicKey
+	Key                     PublicKey
 	Serial                  uint64
 	Type                    uint32
 	KeyId                   string
 	ValidPrincipals         []string
-	ValidAfter, ValidBefore time.Time
+	ValidAfter, ValidBefore CertTime
 	CriticalOptions         []tuple
 	Extensions              []tuple
 	Reserved                []byte
-	SignatureKey            interface{} // rsa, dsa, or ecdsa *PublicKey
+	SignatureKey            PublicKey
 	Signature               *signature
+}
+
+// validateOpenSSHCertV01Signature uses the cert's SignatureKey to verify that
+// the cert's Signature.Blob is the result of signing the cert bytes starting
+// from the algorithm string and going up to and including the SignatureKey.
+func validateOpenSSHCertV01Signature(cert *OpenSSHCertV01) bool {
+	return cert.SignatureKey.Verify(cert.BytesForSigning(), cert.Signature.Blob)
+}
+
+var certAlgoNames = map[string]string{
+	KeyAlgoRSA:      CertAlgoRSAv01,
+	KeyAlgoDSA:      CertAlgoDSAv01,
+	KeyAlgoECDSA256: CertAlgoECDSA256v01,
+	KeyAlgoECDSA384: CertAlgoECDSA384v01,
+	KeyAlgoECDSA521: CertAlgoECDSA521v01,
+}
+
+// certToPrivAlgo returns the underlying algorithm for a certificate algorithm.
+// Panics if a non-certificate algorithm is passed.
+func certToPrivAlgo(algo string) string {
+	for privAlgo, pubAlgo := range certAlgoNames {
+		if pubAlgo == algo {
+			return privAlgo
+		}
+	}
+	panic("unknown cert algorithm")
+}
+
+func (cert *OpenSSHCertV01) marshal(includeAlgo, includeSig bool) []byte {
+	algoName := cert.PublicKeyAlgo()
+	pubKey := cert.Key.Marshal()
+	sigKey := MarshalPublicKey(cert.SignatureKey)
+
+	var length int
+	if includeAlgo {
+		length += stringLength(len(algoName))
+	}
+	length += stringLength(len(cert.Nonce))
+	length += len(pubKey)
+	length += 8 // Length of Serial
+	length += 4 // Length of Type
+	length += stringLength(len(cert.KeyId))
+	length += lengthPrefixedNameListLength(cert.ValidPrincipals)
+	length += 8 // Length of ValidAfter
+	length += 8 // Length of ValidBefore
+	length += tupleListLength(cert.CriticalOptions)
+	length += tupleListLength(cert.Extensions)
+	length += stringLength(len(cert.Reserved))
+	length += stringLength(len(sigKey))
+	if includeSig {
+		length += signatureLength(cert.Signature)
+	}
+
+	ret := make([]byte, length)
+	r := ret
+	if includeAlgo {
+		r = marshalString(r, []byte(algoName))
+	}
+	r = marshalString(r, cert.Nonce)
+	copy(r, pubKey)
+	r = r[len(pubKey):]
+	r = marshalUint64(r, cert.Serial)
+	r = marshalUint32(r, cert.Type)
+	r = marshalString(r, []byte(cert.KeyId))
+	r = marshalLengthPrefixedNameList(r, cert.ValidPrincipals)
+	r = marshalUint64(r, uint64(cert.ValidAfter))
+	r = marshalUint64(r, uint64(cert.ValidBefore))
+	r = marshalTupleList(r, cert.CriticalOptions)
+	r = marshalTupleList(r, cert.Extensions)
+	r = marshalString(r, cert.Reserved)
+	r = marshalString(r, sigKey)
+	if includeSig {
+		r = marshalSignature(r, cert.Signature)
+	}
+	if len(r) > 0 {
+		panic("ssh: internal error, marshaling certificate did not fill the entire buffer")
+	}
+	return ret
+}
+
+func (cert *OpenSSHCertV01) BytesForSigning() []byte {
+	return cert.marshal(true, false)
+}
+
+func (cert *OpenSSHCertV01) Marshal() []byte {
+	return cert.marshal(false, true)
+}
+
+func (c *OpenSSHCertV01) PublicKeyAlgo() string {
+	algo, ok := certAlgoNames[c.Key.PublicKeyAlgo()]
+	if !ok {
+		panic("unknown cert key type")
+	}
+	return algo
+}
+
+func (c *OpenSSHCertV01) PrivateKeyAlgo() string {
+	return c.Key.PrivateKeyAlgo()
+}
+
+func (c *OpenSSHCertV01) Verify(data []byte, sig []byte) bool {
+	return c.Key.Verify(data, sig)
 }
 
 func parseOpenSSHCertV01(in []byte, algo string) (out *OpenSSHCertV01, rest []byte, ok bool) {
@@ -62,26 +183,14 @@ func parseOpenSSHCertV01(in []byte, algo string) (out *OpenSSHCertV01, rest []by
 		return
 	}
 
-	switch algo {
-	case CertAlgoRSAv01:
-		var rsaPubKey *rsa.PublicKey
-		if rsaPubKey, in, ok = parseRSA(in); !ok {
-			return
-		}
-		cert.Key = rsaPubKey
-	case CertAlgoDSAv01:
-		var dsaPubKey *dsa.PublicKey
-		if dsaPubKey, in, ok = parseDSA(in); !ok {
-			return
-		}
-		cert.Key = dsaPubKey
-	case CertAlgoECDSA256v01, CertAlgoECDSA384v01, CertAlgoECDSA521v01:
-		var ecdsaPubKey *ecdsa.PublicKey
-		if ecdsaPubKey, in, ok = parseECDSA(in); !ok {
-			return
-		}
-		cert.Key = ecdsaPubKey
-	default:
+	privAlgo := certToPrivAlgo(algo)
+	cert.Key, in, ok = parsePubKey(in, privAlgo)
+	if !ok {
+		return
+	}
+
+	// We test PublicKeyAlgo to make sure we don't use some weird sub-cert.
+	if cert.Key.PublicKeyAlgo() != privAlgo {
 		ok = false
 		return
 	}
@@ -90,7 +199,7 @@ func parseOpenSSHCertV01(in []byte, algo string) (out *OpenSSHCertV01, rest []by
 		return
 	}
 
-	if cert.Type, in, ok = parseUint32(in); !ok || cert.Type != UserCert && cert.Type != HostCert {
+	if cert.Type, in, ok = parseUint32(in); !ok {
 		return
 	}
 
@@ -108,13 +217,13 @@ func parseOpenSSHCertV01(in []byte, algo string) (out *OpenSSHCertV01, rest []by
 	if !ok {
 		return
 	}
-	cert.ValidAfter = time.Unix(int64(va), 0)
+	cert.ValidAfter = CertTime(va)
 
 	vb, in, ok := parseUint64(in)
 	if !ok {
 		return
 	}
-	cert.ValidBefore = time.Unix(int64(vb), 0)
+	cert.ValidBefore = CertTime(vb)
 
 	if cert.CriticalOptions, in, ok = parseTupleList(in); !ok {
 		return
@@ -132,7 +241,7 @@ func parseOpenSSHCertV01(in []byte, algo string) (out *OpenSSHCertV01, rest []by
 	if !ok {
 		return
 	}
-	if cert.SignatureKey, _, ok = parsePubKey(sigKey); !ok {
+	if cert.SignatureKey, _, ok = ParsePublicKey(sigKey); !ok {
 		return
 	}
 
@@ -142,59 +251,6 @@ func parseOpenSSHCertV01(in []byte, algo string) (out *OpenSSHCertV01, rest []by
 
 	ok = true
 	return cert, in, ok
-}
-
-func marshalOpenSSHCertV01(cert *OpenSSHCertV01) []byte {
-	var pubKey []byte
-	switch cert.Key.(type) {
-	case *rsa.PublicKey:
-		k := cert.Key.(*rsa.PublicKey)
-		pubKey = marshalPubRSA(k)
-	case *dsa.PublicKey:
-		k := cert.Key.(*dsa.PublicKey)
-		pubKey = marshalPubDSA(k)
-	case *ecdsa.PublicKey:
-		k := cert.Key.(*ecdsa.PublicKey)
-		pubKey = marshalPubECDSA(k)
-	default:
-		panic("ssh: unknown public key type in cert")
-	}
-
-	sigKey := serializePublickey(cert.SignatureKey)
-
-	length := stringLength(len(cert.Nonce))
-	length += len(pubKey)
-	length += 8 // Length of Serial
-	length += 4 // Length of Type
-	length += stringLength(len(cert.KeyId))
-	length += lengthPrefixedNameListLength(cert.ValidPrincipals)
-	length += 8 // Length of ValidAfter
-	length += 8 // Length of ValidBefore
-	length += tupleListLength(cert.CriticalOptions)
-	length += tupleListLength(cert.Extensions)
-	length += stringLength(len(cert.Reserved))
-	length += stringLength(len(sigKey))
-	length += signatureLength(cert.Signature)
-
-	ret := make([]byte, length)
-	r := marshalString(ret, cert.Nonce)
-	copy(r, pubKey)
-	r = r[len(pubKey):]
-	r = marshalUint64(r, cert.Serial)
-	r = marshalUint32(r, cert.Type)
-	r = marshalString(r, []byte(cert.KeyId))
-	r = marshalLengthPrefixedNameList(r, cert.ValidPrincipals)
-	r = marshalUint64(r, uint64(cert.ValidAfter.Unix()))
-	r = marshalUint64(r, uint64(cert.ValidBefore.Unix()))
-	r = marshalTupleList(r, cert.CriticalOptions)
-	r = marshalTupleList(r, cert.Extensions)
-	r = marshalString(r, cert.Reserved)
-	r = marshalString(r, sigKey)
-	r = marshalSignature(r, cert.Signature)
-	if len(r) > 0 {
-		panic("internal error")
-	}
-	return ret
 }
 
 func lengthPrefixedNameListLength(namelist []string) int {
@@ -291,22 +347,32 @@ func marshalSignature(to []byte, sig *signature) []byte {
 	return to
 }
 
-func parseSignature(in []byte) (out *signature, rest []byte, ok bool) {
-	var sigBytes, format []byte
-	sig := new(signature)
+func parseSignatureBody(in []byte) (out *signature, rest []byte, ok bool) {
+	var format []byte
+	if format, in, ok = parseString(in); !ok {
+		return
+	}
 
+	out = &signature{
+		Format: string(format),
+	}
+
+	if out.Blob, in, ok = parseString(in); !ok {
+		return
+	}
+
+	return out, in, ok
+}
+
+func parseSignature(in []byte) (out *signature, rest []byte, ok bool) {
+	var sigBytes []byte
 	if sigBytes, rest, ok = parseString(in); !ok {
 		return
 	}
 
-	if format, sigBytes, ok = parseString(sigBytes); !ok {
-		return
+	out, sigBytes, ok = parseSignatureBody(sigBytes)
+	if !ok || len(sigBytes) > 0 {
+		return nil, nil, false
 	}
-	sig.Format = string(format)
-
-	if sig.Blob, sigBytes, ok = parseString(sigBytes); !ok {
-		return
-	}
-
-	return sig, rest, ok
+	return
 }

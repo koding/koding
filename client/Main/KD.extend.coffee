@@ -243,6 +243,10 @@ KD.extend
   showError:(err, messages)->
     return no  unless err
 
+    if Array.isArray err
+      @showError er  for er in err
+      return
+
     if 'string' is typeof err
       message = err
       err     = {message}

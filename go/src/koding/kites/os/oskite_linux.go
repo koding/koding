@@ -56,9 +56,10 @@ var (
 	mongodbConn *mongodb.MongoDB
 	conf        *config.Config
 
-	flagProfile = flag.String("c", "", "Configuration profile from file")
-	flagRegion  = flag.String("r", "", "Configuration region from file")
-	flagDebug   = flag.Bool("d", false, "Debug mode")
+	flagProfile   = flag.String("c", "", "Configuration profile from file")
+	flagRegion    = flag.String("r", "", "Configuration region from file")
+	flagDebug     = flag.Bool("d", false, "Debug mode")
+	flagTemplates = flag.String("t", "", "Change template directory")
 
 	infos            = make(map[bson.ObjectId]*VMInfo)
 	infosMutex       sync.Mutex
@@ -91,6 +92,10 @@ func main() {
 	}
 	log.SetLevel(logLevel)
 
+	if *flagTemplates != "" {
+		templateDir = *flagTemplates
+	}
+
 	initializeSettings()
 
 	k := prepareOsKite()
@@ -106,14 +111,47 @@ func main() {
 	// handle SIGUSR1 and other signals. Shutdown gracely when USR1 is received
 	setupSignalHandler(k)
 
-	// register current client-side methods
-	registerVmMethods(k)
-	registerS3Methods(k)
-	registerFileSystemMethods(k)
-	registerWebtermMethods(k)
-	registerAppMethods(k)
+	// startPrepareWorkers starts multiple workers (based on prepareQueueLimit)
+	// that accepts vmPrepare/vmStart functions.
+	for i := 0; i < prepareQueueLimit; i++ {
+		go prepareWorker()
+	}
 
-	startPrepareWorkers()
+	// register current client-side methods
+	registerVmMethod(k, "vm.start", false, vmStart)
+	registerVmMethod(k, "vm.shutdown", false, vmShutdown)
+	registerVmMethod(k, "vm.unprepare", false, vmUnprepare)
+	registerVmMethod(k, "vm.stop", false, vmStop)
+	registerVmMethod(k, "vm.reinitialize", false, vmReinitialize)
+	registerVmMethod(k, "vm.info", false, vmInfo)
+	registerVmMethod(k, "vm.resizeDisk", false, vmResizeDisk)
+	registerVmMethod(k, "vm.createSnapshot", false, vmCreateSnaphost)
+	registerVmMethod(k, "spawn", true, spawn)
+	registerVmMethod(k, "exec", true, exec)
+
+	syscall.Umask(0) // don't know why richard calls this
+	registerVmMethod(k, "fs.readDirectory", false, fsReadDirectory)
+	registerVmMethod(k, "fs.glob", false, fsGlob)
+	registerVmMethod(k, "fs.readFile", false, fsReadFile)
+	registerVmMethod(k, "fs.writeFile", false, fsWriteFile)
+	registerVmMethod(k, "fs.ensureNonexistentPath", false, fsEnsureNonexistentPath)
+	registerVmMethod(k, "fs.getInfo", false, fsGetInfo)
+	registerVmMethod(k, "fs.setPermissions", false, fsSetPermissions)
+	registerVmMethod(k, "fs.remove", false, fsRemove)
+	registerVmMethod(k, "fs.rename", false, fsRename)
+	registerVmMethod(k, "fs.createDirectory", false, fsCreateDirectory)
+
+	registerVmMethod(k, "app.install", false, appInstall)
+	registerVmMethod(k, "app.download", false, appDownload)
+	registerVmMethod(k, "app.publish", false, appPublish)
+	registerVmMethod(k, "app.skeleton", false, appSkeleton)
+
+	// this method is special cased in oskite.go to allow foreign access
+	registerVmMethod(k, "webterm.connect", false, webtermConnect)
+	registerVmMethod(k, "webterm.getSessions", false, webtermGetSessions)
+
+	registerVmMethod(k, "s3.store", true, s3Store)
+	registerVmMethod(k, "s3.delete", true, s3Delete)
 
 	k.Run()
 }
@@ -125,6 +163,7 @@ func runNewKite(serviceUniqueName string) {
 			Kitename: OSKITE_NAME,
 			Version:  "0.0.1",
 			Port:     "5000",
+			Region:   *flagRegion,
 		},
 	)
 
@@ -352,7 +391,8 @@ func setupSignalHandler(k *kite.Kite) {
 }
 
 func registerVmMethod(k *kite.Kite, method string, concurrent bool, callback func(*dnode.Partial, *kite.Channel, *virt.VOS) (interface{}, error)) {
-	k.Handle(method, concurrent, func(args *dnode.Partial, channel *kite.Channel) (methodReturnValue interface{}, methodError error) {
+
+	wrapperMethod := func(args *dnode.Partial, channel *kite.Channel) (methodReturnValue interface{}, methodError error) {
 
 		if shuttingDown {
 			return nil, errors.New("Kite is shutting down.")
@@ -453,7 +493,9 @@ func registerVmMethod(k *kite.Kite, method string, concurrent bool, callback fun
 			defer requestWaitGroup.Add(1)
 		}
 		return callback(args, channel, userVos)
-	})
+	}
+
+	k.Handle(method, concurrent, wrapperMethod)
 }
 
 func getUser(username string) (*virt.User, error) {
@@ -666,14 +708,6 @@ func prepareWorker() {
 		case <-time.After(time.Second * 20):
 			log.Error("timing out preparing vm")
 		}
-	}
-}
-
-// startPrepareWorkers starts multiple workers (based on prepareQueueLimit)
-// that accepts prepare functions.
-func startPrepareWorkers() {
-	for i := 0; i < prepareQueueLimit; i++ {
-		go prepareWorker()
 	}
 }
 

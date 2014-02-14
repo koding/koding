@@ -29,7 +29,6 @@ import (
 	"syscall"
 	"time"
 	"github.com/gorilla/context"
-	"github.com/op/go-logging"
 
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/sessions"
@@ -50,7 +49,8 @@ var (
 	proxyName, _ = os.Hostname()
 
 	// used for all our log
-	log = logger.New(KONTROLPROXY_NAME)
+	log      = logger.New(KONTROLPROXY_NAME)
+	logLevel logger.Level
 
 	// redis client, connects once
 	redisClient = redis.Client{
@@ -85,6 +85,7 @@ var (
 	flagConfig    = flag.String("c", "", "Configuration profile from file")
 	flagRegion    = flag.String("r", "", "Region")
 	flagVMProxies = flag.Bool("v", false, "Enable ports for VM users (1024-10000)")
+	flagDebug     = flag.Bool("d", false, "Debug mode")
 )
 
 // Proxy is implementing the http.Handler interface (via ServeHTTP). This is
@@ -134,8 +135,12 @@ func main() {
 	conf = config.MustConfig(*flagConfig)
 	modelhelper.Initialize(conf.Mongo)
 
-	l := logger.GetLoggingLevelFromConfig(KONTROLPROXY_NAME, conf.Environment)
-	log.SetLevel(l)
+	if *flagDebug {
+		logLevel = logger.DEBUG
+	} else {
+		logLevel = logger.GetLoggingLevelFromConfig(KONTROLPROXY_NAME, *flagConfig)
+	}
+	log.SetLevel(logLevel)
 
 	log.Info("Kontrolproxy started.")
 	log.Info("I'm using %d cpus for goroutines", runtime.NumCPU())
@@ -169,13 +174,14 @@ func (p *Proxy) runNewKite() {
 		kite.Options{
 			Kitename: KONTROLPROXY_NAME,
 			Version:  "0.0.1",
+			Region:   *flagRegion,
 		},
 	)
 
 	k.Start()
 
 	// TODO: remove this later, this is needed in order to reinitiliaze the logger package
-	logging.SetLevel(logging.DEBUG, KONTROLPROXY_NAME)
+	log.SetLevel(logLevel)
 
 	query := protocol.KontrolQuery{
 		Username:    "koding-kites",
@@ -470,10 +476,6 @@ func (p *Proxy) redirect(req *http.Request, target *resolver.Target) http.Handle
 func (p *Proxy) vm(req *http.Request, target *resolver.Target) http.Handler {
 	userIP := getIP(req.RemoteAddr)
 	hostnameAlias := target.HostnameAlias[0]
-	hostkite := target.Properties["hostkite"].(string)
-	alwaysOn := target.Properties["alwaysOn"].(bool)
-	disableSecurePage := target.Properties["disableSecurePage"].(bool)
-
 	var port string
 	var err error
 
@@ -490,6 +492,11 @@ func (p *Proxy) vm(req *http.Request, target *resolver.Target) http.Handler {
 		log.Warning("ModeVM err: %s (%s) %s", req.Host, userIP, target.Err)
 		return templateHandler("notfound.html", req.Host, 404)
 	}
+
+	// these are set in resolver.go
+	hostkite := target.Properties["hostkite"].(string)
+	alwaysOn := target.Properties["alwaysOn"].(bool)
+	disableSecurePage := target.Properties["disableSecurePage"].(bool)
 
 	if target.Err == resolver.ErrVMOff {
 		log.Debug("vm %s is off, going to start", hostnameAlias)

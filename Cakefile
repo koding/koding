@@ -383,7 +383,7 @@ task 'persistence', "Run persistence", (options)->
 task 'osKite', "Run the osKite", ({configFile})->
   processes.spawn
     name  : 'osKite'
-    cmd   : if configFile == "vagrant" then "vagrant ssh default -c 'cd /opt/koding/go/src/koding/kites/os; sudo killall -q -KILL os; sudo /opt/koding/go/bin-vagrant/os -c #{configFile} -r vagrant'" else "./go/bin/os -c #{configFile}"
+    cmd   : if configFile == "vagrant" then "vagrant ssh default -c 'cd /opt/koding/go/src/koding/kites/os; sudo killall -q -KILL os; sudo KITE_HOME=/opt/koding/kite_home KITE_KONTROL_URL='ws://192.168.50.1:4000/kontrol' /opt/koding/go/bin-vagrant/os -c #{configFile} -r vagrant'" else "./go/bin/os -c #{configFile}"
     restart: no
     stdout  : process.stdout
     stderr  : process.stderr
@@ -488,6 +488,24 @@ task 'kontrolApi', "Run the kontrolApi", (options) ->
   processes.spawn
     name    : 'kontrolApi'
     cmd     : "./go/bin/kontrolapi -c #{configFile}"
+    stdout  : process.stdout
+    stderr  : process.stderr
+    verbose : yes
+
+task 'kontrolKite', "Run the kontrol kite", (options) ->
+  {configFile} = options
+  processes.spawn
+    name    : 'kontrolKite'
+    cmd     : "KITE_HOME=kite_home ./go/bin/kontrol -c #{configFile} -r vagrant"
+    stdout  : process.stdout
+    stderr  : process.stderr
+    verbose : yes
+
+task 'regservKite', "Run the regserv kite", (options) ->
+  {configFile} = options
+  processes.spawn
+    name    : 'regservKite'
+    cmd     : "KITE_HOME=kite_home ./go/bin/regserv -c #{configFile} -region vagrant -port 8090"
     stdout  : process.stdout
     stderr  : process.stderr
     verbose : yes

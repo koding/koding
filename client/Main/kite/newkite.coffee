@@ -4,6 +4,7 @@ class NewKite extends KDObject
 
   {setAt} = Bongo.JsPath
   [NOTREADY, READY, CLOSED] = [0,1,3]
+  uniqueID = Bongo.createId()  # will be different for each tab
 
   constructor: (kite, authentication, options={})->
     super options
@@ -37,9 +38,9 @@ class NewKite extends KDObject
       log "proto remoteEerror", {err}
 
   connect: ->
-    addr = @kite.publicIP + ":" + @kite.port
+    addr = @kite.url
     log "Trying to connect to #{addr}"
-    @ws = new WebSocket "ws://#{addr}/dnode"
+    @ws = new WebSocket addr
     @ws.onopen    = @bound 'onOpen'
     @ws.onclose   = @bound 'onClose'
     @ws.onmessage = @bound 'onMessage'
@@ -64,6 +65,14 @@ class NewKite extends KDObject
       authentication   : @authentication
       withArgs         : args
       responseCallback : cb
+      kite             :
+        username       : "#{KD.nick()}"
+        environment    : "#{KD.config.environment}"
+        name           : "browser"
+        version        : "1.0.#{KD.config.version}"
+        region         : "browser"
+        hostname       : "browser"
+        id             : uniqueID
 
     # Normally the request is made with the following statement:
     #   @proto.request method, [options, cb]
