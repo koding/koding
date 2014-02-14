@@ -247,19 +247,9 @@ class NFinderTreeController extends JTreeViewController
     oldPath = nodeData.path
     nodeView.showRenameView (newValue)=>
       return if newValue is nodeData.name
-      if @nodes["#{nodeData.parentPath}/#{newValue}"]
-        caretPos = nodeView.renameView.input.getCaretPosition()
-        @notify "#{nodeData.type.capitalize()} exist!", "error"
-        return KD.utils.defer =>
-          @showRenameDialog nodeView
-          nodeView.renameView.input.setCaretPosition caretPos
 
-      nodeData.rename newValue, (err)=>
+      nodeData.rename name: newValue, (err)=>
         if err then @notify null, null, err
-        # else
-        #   delete @nodes[oldPath]
-        #   @nodes[nodeView.getData().path] = nodeView
-        #   nodeView.childView.render()
 
       # @setKeyView()
       @beingEdited = null
@@ -267,7 +257,8 @@ class NFinderTreeController extends JTreeViewController
   createFile:(nodeView, type = "file")->
     @notify "creating a new #{type}!"
     nodeData = nodeView.getData()
-    {osKite} = nodeData
+    
+    { vmName } = nodeData
 
     if nodeData.type is "file"
       {parentPath} = nodeData
@@ -277,7 +268,7 @@ class NFinderTreeController extends JTreeViewController
     path = FSHelper.plainPath \
       "#{parentPath}/New#{type.capitalize()}#{if type is 'file' then '.txt' else ''}"
 
-    FSItem.create { path, type, osKite, treeController: this }, (err, file)=>
+    FSItem.create { path, type, vmName, treeController: this }, (err, file)=>
       if err
         @notify null, null, err
       else
