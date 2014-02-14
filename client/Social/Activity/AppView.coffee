@@ -230,20 +230,26 @@ class ReferalBox extends JView
 
 
   showReferrerModal: (event)->
+    return
     KD.utils.stopDOMEvent event
     KD.mixpanel "Referer modal, click"
 
     appManager = KD.getSingleton "appManager"
     appManager.tell "Account", "showReferrerModal"
 
-  pistachio:->
-    """
-    <span class="title">Get free disk space!</span>
-    <p>
-      Invite your friends and get 250MB up to 16GB for free!
-      {{> @showMore}}
-      {{> @redeemPointsModal}}
-    </p>
-    {{> @progressBar}}
-    """
+  # pistachio:->
+  #   """
+  #   <span class="title">Get free disk space!</span>
+  #   <p>
+  #     Invite your friends and get 250MB up to 16GB for free!
+  #     {{> @showMore}}
+  #     {{> @redeemPointsModal}}
+  #   </p>
+  #   {{> @progressBar}}
+  #   """
 
+  pistachio: ->
+    return """
+      <span class="title">Your disk space</span>
+      {{> @progressBar}}
+    """
