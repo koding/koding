@@ -18,7 +18,7 @@ import (
 var (
 	log         = logger.New("rbd-cleaner")
 	flagProfile = flag.String("c", "", "Configuration profile from file")
-	interval    = time.Minute * 30
+	flagtimer   = flag.String("i", "30m", "Configuration profile from file")
 	mongo       *mongodb.MongoDB
 )
 
@@ -26,6 +26,11 @@ func main() {
 	flag.Parse()
 	if *flagProfile == "" {
 		log.Fatal("Please define config file with -c")
+	}
+
+	interval, err := time.ParseDuration(*flagtimer)
+	if err != nil {
+		log.Fatal(err.Error())
 	}
 
 	conf := config.MustConfig(*flagProfile)
@@ -36,7 +41,7 @@ func main() {
 	log.Info("interval set to %s", interval)
 
 	// first start
-	err := rbdCleaner()
+	err = rbdCleaner()
 	if err != nil {
 		log.Error(err.Error())
 	}
