@@ -72,13 +72,16 @@ class AccountAppController extends AppController
     # SET UP VIEWS
     @navController = new KDListViewController
       view        : new KDListView
-        tagName   : 'aside'
+        tagName   : 'nav'
         type      : 'inner-nav'
         itemClass : AccountNavigationItem
       wrapper     : no
       scrollView  : no
 
-    mainView.addSubView navView = @navController.getView()
+    mainView.addSubView aside = new KDView tagName : 'aside'
+
+
+    aside.addSubView navView = @navController.getView()
 
     mainView.addSubView @tabView = new KDTabView
       hideHandleContainer : yes
