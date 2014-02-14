@@ -11,16 +11,18 @@ module.exports = (options = {}, callback)->
   {argv} = require 'optimist'
 
   prefetchedFeeds = {}
+  customPartial   = {}
   campaignData    = {}
   currentGroup    = {}
   {bongoModels, client, intro, landing, slug} = options
 
   createHTML = ->
-    replacer            = (k, v)-> if 'string' is typeof v then encoder.XSSEncode v else v
-    encodedFeed         = JSON.stringify prefetchedFeeds, replacer
-    encodedCampaignData = JSON.stringify campaignData, replacer
-    currentGroup        = JSON.stringify currentGroup, replacer
-    landingOptions      = page : landing
+    replacer             = (k, v)-> if 'string' is typeof v then encoder.XSSEncode v else v
+    encodedFeed          = JSON.stringify prefetchedFeeds, replacer
+    encodedCampaignData  = JSON.stringify campaignData, replacer
+    encodedCustomPartial = JSON.stringify customPartial, replacer
+    currentGroup         = JSON.stringify currentGroup, replacer
+    landingOptions       = page : landing
 
     if client.connection?.delegate?.profile?.nickname
       {connection: {delegate}} = client
@@ -37,13 +39,13 @@ module.exports = (options = {}, callback)->
     <!-- MIXPANEL -->
     <script>(function(e,b){if(!b.__SV){var a,f,i,g;window.mixpanel=b;a=e.createElement("script");a.type="text/javascript";a.async=!0;a.src=("https:"===e.location.protocol?"https:":"http:")+'//cdn.mxpnl.com/libs/mixpanel-2.2.min.js';f=e.getElementsByTagName("script")[0];f.parentNode.insertBefore(a,f);b._i=[];b.init=function(a,e,d){function f(b,h){var a=h.split(".");2==a.length&&(b=b[a[0]],h=a[1]);b[h]=function(){b.push([h].concat(Array.prototype.slice.call(arguments,0)))}}var c=b;"undefined"!==typeof d?c=b[d]=[]:d="mixpanel";c.people=c.people||[];c.toString=function(b){var a="mixpanel";"mixpanel"!==d&&(a+="."+d);b||(a+=" (stub)");return a};c.people.toString=function(){return c.toString(1)+".people (stub)"};i="disable track track_pageview track_links track_forms register register_once alias unregister identify name_tag set_config people.set people.set_once people.increment people.append people.track_charge people.clear_charges people.delete_user".split(" ");for(g=0;g<i.length;g++)f(c,i[g]);b._i.push([a,e,d])};b.__SV=1.2}})(document,window.mixpanel||[]);mixpanel.init("#{KONFIG.mixpanel}");</script>
 
-    <script>KD.campaign={}</script>
+    <script>KD.customPartial=#{encodedCustomPartial}</script>
     <script src='/a/js/kd.#{KONFIG.version}.js'></script>
     #{if intro then "<script src='/a/js/introapp.#{ KONFIG.version }.js'></script>" else ''}
+    <script>KD.currentGroup=#{currentGroup};</script>
     <script src='/a/js/koding.#{KONFIG.version}.js'></script>
     #{if landing then "<script src='/a/js/landingapp.#{ KONFIG.version }.js'></script>" else ''}
     <script>KD.prefetchedFeeds=#{encodedFeed};</script>
-    <script>KD.currentGroup=#{currentGroup};</script>
 
 
     <!-- GOOGLE ANALYTICS -->
@@ -84,29 +86,27 @@ module.exports = (options = {}, callback)->
     """
 
   generateScript = ->
-    bongoModels.JReferral.isCampaingValid (err, status, campaign)->
-      if not err
-        content = campaign?.content
-        campaignData = {status, content}
+    selector =
+      partialType : "HOME"
 
+    if options.isCustomPreview
+      selector.isPreview = yes
+    else
+      selector.isActive  = yes
 
+    bongoModels.JCustomPartials.one selector, (err, partial)->
+      customPartial = partial.data  if not err and partial
+      html = createHTML()
+      return callback null, html
 
-      kallback = ->
-        html = createHTML()
-        callback null, html
-
-      # get group logo and coverphoto
-      if slug # if not, it is koding
-        bongoModels.JGroup.one {slug}, (err, group) ->
-          console.log err if err
-          if group
-            currentGroup =
-              logo       : group.customize?.logo or ""
-              coverPhoto : group.customize?.coverPhoto or ""
-              id         : group.getId()
-        kallback()
-      else
-        kallback()
+      bongoModels.JGroup.one {slug : slug or 'koding'}, (err, group) ->
+        console.log err if err
+        if group
+          currentGroup =
+            logo       : group.customize?.logo or ""
+            coverPhoto : group.customize?.coverPhoto or ""
+            id         : group.getId()
+        callback null, createHTML()
 
 
 

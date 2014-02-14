@@ -64,15 +64,25 @@ class ActivityAppView extends KDScrollView
     @addSubView @mainBlock
     @addSubView @sideBlock
 
+    topWidgetPlaceholder  = new KDCustomHTMLView
+    leftWidgetPlaceholder = new KDCustomHTMLView
+
+    @mainBlock.addSubView topWidgetPlaceholder
     @mainBlock.addSubView @inputWidget
     @mainBlock.addSubView @feedWrapper
 
     @sideBlock.addSubView @referalBox  if KD.isLoggedIn() and not @isPrivateGroup()
+    @sideBlock.addSubView leftWidgetPlaceholder
     @sideBlock.addSubView @groupDescription if @isPrivateGroup()
     @sideBlock.addSubView @groupMembers if @isPrivateGroup() and ("list members" in KD.config.permissions)
     @sideBlock.addSubView @topicsBox
     @sideBlock.addSubView @usersBox if "list members" in KD.config.permissions
     @sideBlock.addSubView @tickerBox
+
+    KD.getSingleton("widgetController").showWidgets [
+      { view: topWidgetPlaceholder,  key: "ActivityTop"  }
+      { view: leftWidgetPlaceholder, key: "ActivityLeft" }
+    ]
 
   isPrivateGroup :->
     {entryPoint} = KD.config

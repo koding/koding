@@ -129,6 +129,8 @@ class HomePage extends JView
     @markers.group 'teamwork', vms, nav, chat, play
 
   pistachio:->
+    if KD.customPartial?.partial
+      return Encoder.htmlDecode KD.customPartial.partial
 
     """
       <header id='home-header'>
