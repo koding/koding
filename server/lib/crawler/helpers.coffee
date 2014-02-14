@@ -30,7 +30,7 @@ getFullName = (account) ->
   return fullName
 
 getNickname = (account) ->
-  nickname = "/"
+  nickname = "A koding user"
   if account?.data?.profile?.nickname?
     nickname = account.data.profile.nickname
   return nickname
@@ -86,56 +86,49 @@ createActivityContent = (JAccount, model, comments, createFullHTML=no, putBody=y
     tags = []
     tags = teaser.tags  if teaser?.tags?
 
-    Relationship.one selector, (err, rel) =>
+    sel =
+      "_id" : model.originId
+
+    JAccount.one sel, (err, acc) =>
       if err
         console.error err
         return callback err, null
-      unless rel
-        console.error "Rel not found"
-        return callback new Error "Rel not found", null
-      sel =
-        "_id" : rel.targetId
 
-      JAccount.one sel, (err, acc) =>
-        if err
-          console.error err
-          callback err, null
+      # No need to return if acc is not found.
+      # Write default values instead.
+      fullName = getFullName acc
+      nickname = getNickname acc
+      hash     = getUserHash acc
+      slug     = teaser?.slug or "#"
 
-        fullName = getFullName acc
-        nickname = getNickname acc
-        slug = "#"
-        slug = teaser.slug  if teaser?.slug?
+      if model?.body? and putBody
+        body = marked model.body,
+          gfm       : true
+          pedantic  : false
+          sanitize  : true
+        body = normalizeActivityBody model, body
+      else
+        body = ""
 
-        hash = getUserHash acc
+      activityContent =
+        slug             : teaser.slug
+        fullName         : fullName
+        nickname         : nickname
+        hash             : hash
+        title            :  if model?.title? then model.title else model.body or ""
+        body             : body
+        createdAt        : if model?.meta?.createdAt? then formatDate model.meta.createdAt else ""
+        numberOfComments : teaser.repliesCount or 0
+        numberOfLikes    : model?.meta?.likes or 0
+        comments         : comments
+        tags             : tags
+        type             : model?.bongo_?.constructorName
 
-        if model?.body? and putBody
-          body = marked model.body,
-            gfm       : true
-            pedantic  : false
-            sanitize  : true
-          body = normalizeActivityBody model, body
-        else
-          body = ""
-
-        activityContent =
-          slug             : teaser.slug
-          fullName         : fullName
-          nickname         : nickname
-          hash             : hash
-          title            :  if model?.title? then model.title else model.body or ""
-          body             : body
-          createdAt        : if model?.meta?.createdAt? then formatDate model.meta.createdAt else ""
-          numberOfComments : teaser.repliesCount or 0
-          numberOfLikes    : model?.meta?.likes or 0
-          comments         : comments
-          tags             : tags
-          type             : model?.bongo_?.constructorName
-
-        if createFullHTML
-          content = getSingleActivityPage {activityContent, model}
-        else
-          content = getSingleActivityContent activityContent, model
-        return callback null, content
+      if createFullHTML
+        content = getSingleActivityPage {activityContent, model}
+      else
+        content = getSingleActivityContent activityContent, model
+      return callback null, content
 
 decorateComment = (JAccount, comment, callback) ->
   { Relationship } = require 'jraphical'
