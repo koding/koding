@@ -123,7 +123,16 @@ class KiteController extends KDController
              """
       log "Kite Request:", options
 
-    kite.tell options, (err, response)=>
+    ok =
+      if options.kiteName is 'os'
+      then kite.vmStart()
+      else Promise.cast()
+
+    ok
+    .then =>
+      kite.tell2 options.method, options.withArgs
+
+    .nodeify (err, response) =>
       @parseKiteResponse {err, response}, options, callback
 
   setListeners:->
