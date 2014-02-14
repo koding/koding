@@ -51,8 +51,17 @@ class EditorPane extends Pane
       @tabView.addPane pane
       @editors[name] = editor  if name
 
+  # use this for single editor
   getValue: ->
     return  @ace.editor.getSession().getValue()
+
+  # use this for multiple editor tabs
+  getValues: ->
+    data = {}
+    for name, editorInstance of @editors
+      data[name] = editorInstance.editor.getValue()
+
+    return data
 
   pistachio: ->
     single   = "{{> @ace}}"
