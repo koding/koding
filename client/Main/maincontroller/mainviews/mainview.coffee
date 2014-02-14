@@ -153,6 +153,7 @@ class MainView extends KDView
     @createLoggedInAccountArea()
 
   createLoggedInAccountArea:->
+    @accountArea.destroySubViews()
 
     @accountArea.addSubView @accountMenu = new AvatarAreaIconMenu
     @accountMenu.accountChanged KD.whoami()
@@ -351,4 +352,3 @@ class MainView extends KDView
           duration = 400
           KDScrollView::scrollTo.call mainView, {top, duration}
           break
-
