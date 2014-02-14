@@ -70,7 +70,6 @@ normalizeActivityBody = (activity, bodyString="") ->
     return tagContent
 
 createActivityContent = (JAccount, model, comments, createFullHTML=no, putBody=yes, callback) ->
-  # console.log "model", model
   {Relationship} = require 'jraphical'
   {htmlEncode}   = require 'htmlencode'
   marked         = require 'marked'
