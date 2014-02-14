@@ -68,11 +68,9 @@ class GroupGeneralSettingsView extends JView
     saveButton = @settingsForm.buttons.Save
     group      = @getData()
 
-    # fix me:  make this a single call
-    group.modify formData, (err)=>
-      if err
-        saveButton.hideLoader()
-        return new KDNotificationView { title: err.message, duration: 1000 }
+    group.modify formData, (err)->
+      saveButton.hideLoader()
+      return KD.showError err if err
 
       new KDNotificationView
         title    : "Group settings saved"
