@@ -66,8 +66,6 @@ class GroupGeneralSettingsView extends JView
 
   saveSettings: (formData) ->
     saveButton = @settingsForm.buttons.Save
-    appManager = KD.getSingleton "appManager"
-    delegate   = @getDelegate()
     group      = @getData()
 
     # fix me:  make this a single call
@@ -81,7 +79,5 @@ class GroupGeneralSettingsView extends JView
         type     : "mini"
         cssClass : "success"
         duration : 4000
-
-      delegate.emit "groupSettingsUpdated", group
 
   pistachio:-> "{{> @settingsForm}}"
