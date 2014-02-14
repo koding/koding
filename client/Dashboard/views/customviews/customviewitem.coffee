@@ -47,25 +47,44 @@ class HomePageCustomViewItem extends CustomViewItem
   creteElements: ->
     super
 
-    @activateToggle = new KodingSwitch
-      cssClass      : "dark"
-      defaultValue  : @getData().isActive
-      callback      : @bound "updateState"
+    @previewToggle  = new KodingSwitch
+      cssClass      : "dark preview-toggle"
+      defaultValue  : @getData().isPreview
+      callback      : => @updateState "isPreview"
 
-  updateState: ->
+    @activateToggle = new KodingSwitch
+      cssClass      : "dark publish"
+      defaultValue  : @getData().isActive
+      callback      : => @updateState "isActive"
+
+    @previewToggle.addSubView new KDCustomHTMLView
+      tagName       : "span"
+      partial       : "Preview"
+
+    @activateToggle.addSubView new KDCustomHTMLView
+      tagName       : "span"
+      partial       : "Publish"
+
+  updateState: (key) ->
     delegate = @getDelegate()
     data     = @getData()
 
     for customView in delegate.customViews
-      oldActive = customView  if customView.getData().isActive is yes
+      oldActive = customView  if customView.getData()[key] is yes
 
     toggleState = =>
-      data.update { isActive: !data.isActive }, (err, res) =>
+      changeSet      = {}
+      changeSet[key] = !data[key]
+
+      data.update changeSet, (err, res) =>
         return warn err  if err
         delegate.reloadViews()
 
     if oldActive
-      oldActive.getData().update { isActive: no }, (err, res) =>
+      changeSet      = {}
+      changeSet[key] = no
+
+      oldActive.getData().update changeSet, (err, res) =>
         return warn err  if err
         toggleState()
     else
@@ -75,6 +94,7 @@ class HomePageCustomViewItem extends CustomViewItem
     data = @getData()
     """
       <p>#{data.name}</p>
+      {{> @previewToggle}}
       {{> @activateToggle}}
       <div class="button-container">
         {{> @deleteButton}}
@@ -93,27 +113,62 @@ class WidgetCustomViewItem extends CustomViewItem
     for key, widget of widgetController.getPlaceholders()
       selectOptions.push { title: widget.title, value: widget.key }
 
+    data = @getData()
+
     @assignSelect   = new KDSelectBox
+      preview       : "Publish"
       cssClass      : "assign solid green"
       selectOptions : selectOptions
-      defaultValue  : @getData().viewInstance ? "NOT_VISIBLE"
-      callback      : @bound "updateState"
+      defaultValue  : data.isActive and data.viewInstance ? "NOT_VISIBLE"
+      callback      : (value) => @updateState value
 
-  updateState: (value) ->
+    @previewSelect  = new KDSelectBox
+      title         : "Preview"
+      cssClass      : "solid green preview-select"
+      selectOptions : selectOptions
+      defaultValue  : data.isPreview and data.previewInstance ? "NOT_VISIBLE"
+      callback      : (value) => @updateState value, yes
+
+    @previewLabel   = new KDCustomHTMLView
+      tagName       : "span"
+      cssClass      : "select-label"
+      partial       : "Preview"
+
+    @assignLabel    = new KDCustomHTMLView
+      tagName       : "span"
+      cssClass      : "select-label assign"
+      partial       : "Publish"
+
+  updateState: (value, previewRequest) ->
     delegate = @getDelegate()
     data     = @getData()
 
+    stateKey = "isActive"
+    viewKey  = "viewInstance"
+
+    if previewRequest
+      stateKey = "isPreview"
+      viewKey  = "previewInstance"
+
     for customView in delegate.customViews
-      if customView.getData().viewInstance is value
+      if customView.getData()[viewKey] is value
         oldActive = customView
 
     toggleState = =>
-      data.update { isActive: yes, viewInstance: value }, (err, res) =>
+      changeSet = {}
+      changeSet[stateKey] = yes
+      changeSet[viewKey]  = value
+
+      data.update changeSet, (err, res) =>
         return warn err  if err
         delegate.reloadViews()
 
     if oldActive
-      oldActive.getData().update { isActive: no, viewInstance: "NOT_VISIBLE" }, (err, res) =>
+      changeSet = {}
+      changeSet[viewKey]  = "NOT_VISIBLE"
+      changeSet[stateKey] = no
+
+      oldActive.getData().update changeSet, (err, res) =>
         return warn err  if err
         toggleState()
     else
@@ -123,7 +178,10 @@ class WidgetCustomViewItem extends CustomViewItem
     data = @getData()
     """
       <p>#{data.name}</p>
+      {{> @previewSelect}}
+      {{> @previewLabel}}
       {{> @assignSelect}}
+      {{> @assignLabel}}
       <div class="button-container">
         {{> @deleteButton}}
         {{> @editButton}}
