@@ -2,25 +2,36 @@ package main
 
 import (
 	"bytes"
+	"flag"
 	"koding/db/models"
 	"koding/db/mongodb"
+	"koding/tools/config"
 	"koding/tools/logger"
-	"labix.org/v2/mgo"
 	"os/exec"
 	"strings"
 	"time"
+	"labix.org/v2/mgo"
 
 	"github.com/fatih/set"
-	"github.com/op/go-logging"
 )
 
 var (
-	log      = logger.New("rbd-cleaner")
-	interval = time.Minute * 30
+	log         = logger.New("rbd-cleaner")
+	flagProfile = flag.String("c", "", "Configuration profile from file")
+	interval    = time.Minute * 30
+	mongo       *mongodb.MongoDB
 )
 
 func main() {
-	logging.SetLevel(logging.INFO, "rbd-cleaner")
+	flag.Parse()
+	if *flagProfile == "" {
+		log.Fatal("Please define config file with -c")
+	}
+
+	conf := config.MustConfig(*flagProfile)
+	mongo = mongodb.NewMongoDB(conf.Mongo)
+
+	log.SetLevel(logger.INFO)
 	log.Info("starting rbd-cleaner")
 	log.Info("interval set to %s", interval)
 
@@ -53,7 +64,7 @@ func rbdCleaner() error {
 		vmId := strings.TrimPrefix(vmName, "vm-")
 		vm := new(models.VM)
 
-		err := mongodb.One("jVMs", vmId, vm)
+		err := mongo.One("jVMs", vmId, vm)
 		if err == nil {
 			return true //  rbd image does exists in jVMS, don't touch it and continue
 		}
