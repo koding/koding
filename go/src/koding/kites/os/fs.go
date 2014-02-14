@@ -285,6 +285,12 @@ type writeFileParams struct {
 }
 
 func fsWriteFile(params writeFileParams, vos *virt.VOS) (interface{}, error) {
+	newPath, err := vos.EnsureNonexistentPath(params.Path)
+	if err != nil {
+		return nil, err
+	}
+	params.Path = newPath
+
 	flags := os.O_RDWR | os.O_CREATE
 	if params.DoNotOverwrite {
 		flags |= os.O_EXCL
@@ -394,6 +400,12 @@ func fsRemove(removePath string, recursive bool, vos *virt.VOS) (interface{}, er
 }
 
 func fsRename(oldpath, newpath string, vos *virt.VOS) (interface{}, error) {
+	var err error
+	oldpath, err = vos.EnsureNonexistentPath(oldpath)
+	if err != nil {
+		return nil, err
+	}
+
 	if err := vos.Rename(oldpath, newpath); err != nil {
 		return nil, err
 	}
@@ -402,6 +414,13 @@ func fsRename(oldpath, newpath string, vos *virt.VOS) (interface{}, error) {
 }
 
 func fsCreateDirectory(newPath string, recursive bool, vos *virt.VOS) (interface{}, error) {
+
+	var err error
+	newPath, err = vos.EnsureNonexistentPath(newPath)
+	if err != nil {
+		return nil, err
+	}
+
 	if recursive {
 		if err := vos.MkdirAll(newPath, 0755); err != nil {
 			return nil, err
