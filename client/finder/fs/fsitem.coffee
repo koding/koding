@@ -8,17 +8,14 @@ class FSItem extends KDObject
 
   { promiseToCallback } = KD.utils
 
+  @create:({ path, type, vmName, treeController }, callback)->
 
-  @create:({ path, type, osKite, treeController }, callback)->
+    kite = KD.getSingleton('vmController').getKiteByVmName vmName
 
-    ok = osKite.vmStart()
+    ok = kite.vmStart()
     .then =>
 
-      osKite.fsEnsureNonexistentPath { path }
-
-    .then (actualPath) =>
-
-      plainPath = FSHelper.plainPath actualPath
+      plainPath = FSHelper.plainPath path
 
       method = 
         if type is "folder"
@@ -30,37 +27,36 @@ class FSItem extends KDObject
         content         : ''
         donotoverwrite  : yes
 
-      osKite[method](options)
-      .then ->
+      kite[method](options)
+      .then (stat) ->
 
-        file = FSHelper.createFile {
-          path: plainPath
+        file = FSHelper.createFile({
+          path: stat.fullPath
           type
-          osKite
-        }
-
-        promiseToCallback(ok, file, callback)  if callback?
+          vmName
+        })
+        .nodeify(callback)
 
         return file
 
   @copyOrMove:(sourceItem, targetItem, commandPrefix, callback)->
     sourceItem.emit "fs.job.started"
     
-    { osKite } = sourceItem
+    kite = sourceItem.getKite()
 
     targetPath = FSHelper.plainPath "#{targetItem.path}/#{sourceItem.name}"
     
     file = null
 
-    ok = osKite.vmStart()
+    kite.vmStart()
     .then ->
 
-      osKite.fsEnsureNonexistentPath(path: targetPath)
+      kite.fsEnsureNonexistentPath(path: targetPath)
       .then (actualPath) ->
         
         command = "#{ commandPrefix } #{ escapeFilePath sourceItem.path } #{ escapeFilePath actualPath }"
 
-        osKite.exec(command)
+        kite.exec(command)
         .then ->
 
           file = FSHelper.createFile {
@@ -68,17 +64,14 @@ class FSItem extends KDObject
             parentPath  : targetItem.path
             name        : sourceItem.name
             type        : sourceItem.type
-            osKite
+            vmName      : sourceItem.vmName
           }
 
-          callback null, file  if callback?
+          return file
 
-    if callback?
-      ok.catch (err) ->
-        warn err
-        callback err
+    .nodeify(callback)
 
-    ok.then ->
+    .then ->
       sourceItem.emit "fs.job.finished"
 
       return file
@@ -87,20 +80,23 @@ class FSItem extends KDObject
     @copyOrMove sourceItem, targetItem, 'cp -R', callback
 
   @move:(sourceItem, targetItem, callback)->
-    @copyOrMove sourceItem, targetItem, 'mv', callback
+    
+    newName = FSHelper.plainPath "#{ targetItem.
+     }/#{ sourceItem.name }"
+    sourceItem.rename path: newName, callback
 
   @compress:(file, type, callback)->
 
     file.emit "fs.job.started"
 
-    { osKite }  = file
+    kite = file.getKite()
 
     path = FSHelper.plainPath "#{file.path}.#{type}"
 
-    osKite.vmStart()
-
+    kite.vmStart()
     .then ->
-      osKite.fsEnsureNonexistentPath({ path })
+
+      kite.fsEnsureNonexistentPath({ path })
       .then (actualPath) ->
 
         command =
@@ -109,13 +105,11 @@ class FSItem extends KDObject
           else
             "zip -r #{escapeFilePath actualPath} #{escapeFilePath file.path}"
 
-        osKite.exec(command)
+        kite.exec(command)
         .then (response) ->
           callback null, response
 
-    .catch (err) ->
-      warn err
-      callback err
+    .nodeify(callback)
 
     .then ->
       file.emit "fs.job.finished"
@@ -123,7 +117,7 @@ class FSItem extends KDObject
   @extract: (file, callback = (->)) ->
     file.emit "fs.job.started"
 
-    { osKite } = file
+    kite = file.getKite()
 
     tarPattern = /\.tar\.gz$/
     zipPattern = /\.zip$/
@@ -138,10 +132,10 @@ class FSItem extends KDObject
       when zipPattern .test file.name
         [no, path.replace zipPattern, '']
 
-    osKite.vmStart()
+    kite.vmStart()
 
     .then ->
-      osKite.fsEnsureNonexistentPath(path: "#{ extractFolder }")
+      kite.fsEnsureNonexistentPath(path: "#{ extractFolder }")
       .then (actualPath) ->
 
         command =
@@ -150,21 +144,19 @@ class FSItem extends KDObject
           else
             "cd #{escapeFilePath file.parentPath};unzip -o #{escapeFilePath file.name} -d #{escapeFilePath actualPath}"
 
-        osKite.exec(command)
+        kite.exec(command)
         .then ->
 
           file = FSHelper.createFile {
             path            : actualPath
             parentPath      : file.parentPath
             type            : 'folder'
-            osKite
+            vmName          : file.vmName
           }
 
-          callback null, file
+          return file
 
-    .catch (err) ->
-      warn err
-      callback err
+    .nodeify(callback)
 
     .then ->
       file.emit "fs.job.finished"
@@ -233,71 +225,54 @@ class FSItem extends KDObject
   isHidden:-> FSItem.isHidden @name
 
   exists:(callback=noop)->
-    @osKite.vmStart()
+    @getKite().vmStart()
 
     .fsExists(path: @getPath())
 
-    .then (result) ->
-      callback null, result
-
-    .catch (err) ->
-      warn err
-      callback err
+    .nodeify(callback)
 
   stat:(callback=noop)->
-    @osKite.vmStart()
+    kite = @getKite()
+    
+    kite.vmStart()
 
     .then =>
-      @osKite.fsGetInfo path: @getPath()
+      kite.fsGetInfo path: @getPath()
 
-    .then (result) ->
-      callback null, result
-    
-    .catch (err) ->
-      warn err
-      callback err
+    .nodeify(callback)
 
   remove:(callback, recursive=no)->
     @emit "fs.delete.started"
 
-    @osKite.vmStart()
+    kite = @getKite()
+
+    kite.vmStart()
 
     .then =>
-      @osKite.fsRemove { path: @getPath(), recursive }
+      kite.fsRemove { path: @getPath(), recursive }
 
-    .then (result) ->
-      callback null, result
-
-    .catch (err) ->
-      warn err
-      callback err
+    .nodeify(callback)
 
     .then =>
       @emit "fs.delete.finished"
 
-  rename:(newName, callback)->
+  rename: ({ name: newName, path: newPath }, callback)->
 
-    newPath = FSHelper.plainPath "#{@parentPath}/#{newName}"
+    newPath ?= FSHelper.plainPath "#{@parentPath}/#{newName}"
 
     @emit "fs.job.started"
 
-    @osKite.vmStart()
+    kite = @getKite()
+
+    kite.vmStart()
 
     .then =>
-      @osKite.fsEnsureNonexistentPath(path: newpath)
-
-    .then (response) =>
-      @osKite.fsRename(
+      kite.fsRename(
         oldpath: @getPath()
         newpath: newPath
       )
 
-    .then ->
-      callback null
-
-    .catch (err) ->
-      warn err
-      callback err
+    .nodeify(callback)
 
     .then =>
       @emit "fs.job.finished"
@@ -312,21 +287,21 @@ class FSItem extends KDObject
 
     @emit "fs.job.started"
 
-    @osKite.vmStart()
+    kite = @getKite()
+
+    kite.vmStart()
 
     .then =>
-      @osKite.fsSetPermissions({
+      kite.fsSetPermissions({
         path: @getPath()
         recursive
         mode
       })
 
-    .then (response) =>
-      callback null, response
-
-    .catch (err) ->
-      warn err
-      callback err
+    .nodeify(callback)
 
     .then =>
       @emit "fs.job.started"
+
+  getKite: ->
+    KD.getSingleton('vmController').getKiteByVmName @vmName
