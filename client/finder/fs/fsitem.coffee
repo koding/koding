@@ -285,7 +285,7 @@ class FSItem extends KDObject
     @osKite.vmStart()
 
     .then =>
-      @osKite.fsEnsureNonexistentPath(path: @getPath())
+      @osKite.fsEnsureNonexistentPath(path: newpath)
 
     .then (response) =>
       @osKite.fsRename(
