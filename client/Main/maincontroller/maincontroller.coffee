@@ -138,11 +138,7 @@ class MainController extends KDController
       cookie = $.cookie 'clientId'
 
       if cookieExists and not cookieMatches
-        KD.logToExternal "cookie changes", {stackTraces:cookieChanges, username:KD.nick()}
-
         return @isLoggingIn off  if @isLoggingIn() is on
-
-        KD.logToExternal "cookie changes", {stackTraces:cookieChanges, username:KD.nick(), inlogin:true}
 
         window.removeEventListener 'beforeunload', wc.bound 'beforeUnload'
         @emit "clientIdChanged"
