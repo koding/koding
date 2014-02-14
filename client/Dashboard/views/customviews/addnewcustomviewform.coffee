@@ -36,13 +36,15 @@ class AddNewCustomViewForm extends JView
         @editor.ace.setSyntax "html"
 
   addNew: ->
-    isUpdate       = @getData()
-    data           =
-      name         : @input.getValue()
-      partial      : @editor.getValue()
-      partialType  : @getOption "viewType"
-      isActive     : no
-      viewInstance : ""
+    isUpdate          = @getData()
+    data              =
+      name            : @input.getValue()
+      partial         : @editor.getValue()
+      partialType     : @getOption "viewType"
+      isActive        : no
+      viewInstance    : ""
+      isPreview       : no
+      previewInstance : no
 
     # TODO: fatihacet - DRY callbacks
     if isUpdate
