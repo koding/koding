@@ -60,6 +60,8 @@ module.exports = [
   # customviews
   "views/customviews/customviewsdashboardview.coffee",
   "views/customviews/customviewitem.coffee",
+  "views/customviews/homepagecustomviewitem.coffee",
+  "views/customviews/widgetcustomviewitem.coffee",
   "views/customviews/addnewcustomviewform.coffee",
   "views/customviews/customviewsmanager.coffee",
 
