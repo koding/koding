@@ -57,7 +57,6 @@ class DashboardAppController extends AppController
       #     lazy       : yes
       #     callback   : @bound 'paymentViewAdded'
       ]
-      ]
 
       if data.slug is "koding"
         @tabData.push
