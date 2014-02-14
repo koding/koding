@@ -606,14 +606,17 @@ __utils.extend __utils,
 
   sortFiles: (a, b) ->
 
-    la = a.name.toLowerCase()
-    lb = b.name.toLowerCase()
+    { name: na } = a
+    { name: nb } = b
+
+    la = na.toLowerCase()
+    lb = nb.toLowerCase()
 
     switch
       when la is lb 
         switch
-          when a.name is b.name  then 0
-          when a.name > b.name   then 1
-          when a.name < b.name   then -1
-      when la > lb               then 1
-      when la < lb               then -1
+          when na is nb  then 0
+          when na > nb   then 1
+          when na < nb   then -1
+      when la > lb       then 1
+      when la < lb       then -1
