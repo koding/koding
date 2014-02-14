@@ -1,5 +1,7 @@
 class CustomViewsManager extends JView
 
+  cookieName = "custom-partials-preview-mode"
+
   constructor: (options = {}, data) ->
 
     options.cssClass = "custom-views"
@@ -9,9 +11,11 @@ class CustomViewsManager extends JView
     @previewButton = new KDButtonView
       title        : "PREVIEW"
       cssClass     : "solid green preview"
-      callback     : ->
-        new KDNotificationView
-          title    : "Coming Soon!"
+      callback     : @bound "togglePreview"
+
+    if $.cookie cookieName
+      @previewButton.setTitle "CANCEL PREVIEW"
+      @previewButton.unsetClass "green"
 
     @homePages  = new CustomViewsDashboardView
       viewType  : "HOME"
@@ -22,6 +26,18 @@ class CustomViewsManager extends JView
       viewType  : "WIDGET"
       cssClass  : "widgets"
       itemClass : WidgetCustomViewItem
+
+  togglePreview: ->
+    isPreview = $.cookie cookieName
+
+    if isPreview
+      $.cookie cookieName, no
+      @previewButton.setTitle "PREVIEW"
+      @previewButton.setClass "green"
+    else
+      $.cookie cookieName, yes
+      @previewButton.setTitle   "CANCEL PREVIEW"
+      @previewButton.unsetClass "green"
 
   pistachio: ->
     """
