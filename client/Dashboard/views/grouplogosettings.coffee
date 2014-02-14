@@ -37,7 +37,8 @@ class GroupLogoSettings extends KDView
     @addSubView @uploadButton
 
     @group.on "update", =>
-      @groupLogoView.setCss 'background-image', "url(#{@group.customize?.logo})"
+      resized = KD.utils.proxifyUrl @group.customize.logo, proxifyOptions
+      @groupLogoView.setCss 'background-image', "url(#{resized})"
 
   showUploadView: ->
     @groupLogoView.hide()
@@ -46,11 +47,9 @@ class GroupLogoSettings extends KDView
     @addSubView @uploader = new GroupsUploadView
       uploaderOptions :
         cssClass      : "group-logo-uploader"
-        title         : "Drop your new logo here!"
         title         : "Drop your 55x55 logo here!"
         size          :
           width       : 120
-          height      : 80
           height      : 120
 
     @uploader.on "UploadCancelled", @bound "revealViews"
