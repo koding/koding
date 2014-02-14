@@ -261,11 +261,10 @@ class PopupGroupListItem extends KDListItemView
     @setClass "role #{roleClasses}"
 
     defaultLogo  = "https://koding.s3.amazonaws.com/grouplogo_.png"
-    @groupLogo  = new KDCustomHTMLView
-      tagName    : "img"
-      cssClass   : "avatararea-group-logo"
 
-    @groupLogo.setCss 'background', customize?.logo ? KD.utils.getColorFromString slug
+    @groupLogo  = new KDCustomHTMLView
+      tagName    : "figure"
+      cssClass   : "avatararea-group-logo"
 
     @switchLink = new CustomLinkView
       title       : title
@@ -297,6 +296,8 @@ class PopupGroupListItem extends KDListItemView
   viewAppended: JView::viewAppended
 
   pistachio: ->
+    {group : {slug}} = @getData()
+    @groupLogo.setCss 'background', customize?.logo ? KD.utils.stringToColor slug
     """
     {{> @groupLogo}}{{> @switchLink}}{{> @adminLink}}
     """
