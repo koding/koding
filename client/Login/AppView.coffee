@@ -410,22 +410,28 @@ class LoginView extends KDView
       if firstRoute and /^\/(?:Reset|Register|Confirm|R)\//.test firstRoute
         firstRoute = "/Activity"
 
-      KD.getSingleton('appManager').quitAll()
-      KD.getSingleton('router').handleRoute firstRoute or '/Activity', {replaceState: yes, entryPoint}
-      KD.getSingleton('groupsController').on 'GroupChanged', =>
-        @headBanner?.hide()
+      @appStorage = KD.getSingleton('appStorageController').storage 'Login', '1.0'
+      @appStorage.fetchValue "redirectTo", (redirectTo) =>
+        if redirectTo
+          firstRoute = "/#{redirectTo}"
+          @appStorage.unsetKey "redirectTo", (err) ->
+            warn "Failed to reset redirectTo", err  if err
+
+        KD.getSingleton('appManager').quitAll()
+        KD.getSingleton('router').handleRoute firstRoute or '/Activity', {replaceState: yes, entryPoint}
+        KD.getSingleton('groupsController').on 'GroupChanged', =>
+          @headBanner?.hide()
+          @loginForm.reset()
+
+        new KDNotificationView
+          cssClass  : "login"
+          title     : "<span></span>Happy Coding!"
+          # content   : "Successfully logged in."
+          duration  : 2000
         @loginForm.reset()
 
-      new KDNotificationView
-        cssClass  : "login"
-        title     : "<span></span>Happy Coding!"
-        # content   : "Successfully logged in."
-        duration  : 2000
-      @loginForm.reset()
-
-      @hide()
-
-      KD.mixpanel "Login, success"
+        KD.mixpanel "Login, success"
+        window.location.reload()  if redirectTo
 
   doRedeem:({inviteCode})->
     return  unless KD.config.entryPoint?.slug or KD.isLoggedIn()
@@ -554,8 +560,6 @@ class LoginView extends KDView
       return "/#{route}"
 
   showError = (err)->
-
-
     if err.code and err.code is 403
       {name, nickname}  = err.data
       KD.getSingleton('appManager').tell 'Account', 'displayConfirmEmailModal', name, nickname
