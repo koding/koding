@@ -10,8 +10,6 @@ import (
 	"koding/virt"
 	"os"
 	"path"
-	"regexp"
-	"strconv"
 	"time"
 
 	"code.google.com/p/go.exp/inotify"
@@ -317,26 +315,8 @@ func fsWriteFile(params writeFileParams, vos *virt.VOS) (interface{}, error) {
 	return file.Write(params.Content)
 }
 
-var suffixRegexp = regexp.MustCompile(`.((_\d+)?)(\.\w*)?$`)
-
 func fsEnsureNonexistentPath(path string, vos *virt.VOS) (interface{}, error) {
-	name := path
-	index := 1
-	for {
-		_, err := vos.Stat(name)
-		if err != nil {
-			if os.IsNotExist(err) {
-				break
-			}
-			return nil, err
-		}
-
-		loc := suffixRegexp.FindStringSubmatchIndex(name)
-		name = name[:loc[2]] + "_" + strconv.Itoa(index) + name[loc[3]:]
-		index++
-	}
-
-	return name, nil
+	return vos.EnsureNonexistentPath(path)
 }
 
 func fsGetInfo(path string, vos *virt.VOS) (interface{}, error) {
