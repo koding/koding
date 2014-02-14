@@ -264,11 +264,8 @@ class PopupGroupListItem extends KDListItemView
     @groupLogo  = new KDCustomHTMLView
       tagName    : "img"
       cssClass   : "avatararea-group-logo"
-      size       :
-        height   : 30
-        width    : 30
-      attributes :
-        src      : customize?.logo or defaultLogo
+
+    @groupLogo.setCss 'background', customize?.logo ? KD.utils.getColorFromString slug
 
     @switchLink = new CustomLinkView
       title       : title
