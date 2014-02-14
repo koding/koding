@@ -307,6 +307,7 @@ task 'goBroker', "Run the goBroker", (options)->
     kontrol           :
       enabled         : if config.runKontrol is yes then yes else no
       binary          : uuid
+      port            : broker.port
     verbose           : yes
 
 task 'goBrokerKite', "Run the goBrokerKite", (options)->
@@ -325,6 +326,7 @@ task 'goBrokerKite', "Run the goBrokerKite", (options)->
     kontrol           :
       enabled         : if config.runKontrol is yes then yes else no
       binary          : uuid
+      port            : broker.port
     verbose           : yes
 
 task 'rerouting', "Run rerouting", (options)->
