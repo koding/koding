@@ -318,7 +318,17 @@ func fsWriteFile(params writeFileParams, vos *virt.VOS) (interface{}, error) {
 		}
 	}
 
-	return file.Write(params.Content)
+	_, err = file.Write(params.Content)
+	if err != nil {
+		return nil, err
+	}
+
+	fi, err := file.Stat()
+	if err != nil {
+		return nil, err
+	}
+
+	return makeFileEntry(vos, params.Path, fi), nil
 }
 
 func fsEnsureNonexistentPath(path string, vos *virt.VOS) (interface{}, error) {
@@ -432,10 +442,12 @@ func fsCreateDirectory(newPath string, recursive bool, vos *virt.VOS) (interface
 	if err != nil {
 		return nil, err
 	}
+
 	if err := vos.Mkdir(newPath, dirInfo.Mode().Perm()); err != nil {
 		return nil, err
 	}
-	return true, nil
+
+	return makeFileEntry(vos, newPath, dirInfo), nil
 }
 
 func fsMove(oldPath, newPath string, vos *virt.VOS) (interface{}, error) {
