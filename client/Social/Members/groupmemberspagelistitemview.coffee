@@ -13,12 +13,12 @@ class GroupMembersPageListItemView extends MembersListItemView
       title          : "follow"
       cssClass       : "follow-button"
       stateOptions   :
-        following    :
-          title      : "following"
-          style      : "solid light-gray medium"
         unfollow     :
+          title      : "following"
+          cssClass   : "solid light-gray medium"
+        following    :
           title      : "unfollow"
-          style      : "solid red medium"
+          cssClass   : "solid red medium"
       dataType       : 'JAccount'
     , data
 
