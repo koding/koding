@@ -59,7 +59,8 @@ class GroupsController extends KDController
           @setGroup groupName
           @currentGroupData.setGroup group
           callback null, groupName, group
-          @openGroupChannel KD.getGroup(), => @emit 'ready'
+          @openGroupChannel KD.getGroup()
+          @emit 'ready'
 
 
   getUserArea:->
