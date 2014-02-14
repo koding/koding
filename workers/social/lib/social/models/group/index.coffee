@@ -733,7 +733,7 @@ module.exports = class JGroup extends Module
       @fetchMembershipPolicy (err, policy)=>
         if err then callback err
         else
-          homePageOptions = extend options {
+          homePageOptions = extend options, {
             @slug
             @title
             policy
