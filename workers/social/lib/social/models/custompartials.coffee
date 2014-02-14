@@ -6,14 +6,16 @@ module.exports = class JCustomPartials extends Model
   @share()
 
   @set
-    indexes         :
-      partialType   : 'sparse'
-    schema          :
-      name          : String
-      partialType   : String
-      partial       : String
-      isActive      : Boolean
-      viewInstance  : String
+    indexes           :
+      partialType     : 'sparse'
+    schema            :
+      name            : String
+      partialType     : String
+      partial         : String
+      isActive        : Boolean
+      isPreview       : Boolean
+      previewInstance : String
+      viewInstance    : String
 
     sharedMethods :
       static      :
