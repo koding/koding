@@ -11,10 +11,12 @@ class FSFolder extends FSFile
 
     { treeController } = @getOptions()
 
-    @osKite.vmStart()
+    kite = @getKite()
+
+    kite.vmStart()
     .then =>
 
-      @osKite.fsReadDirectory
+      kite.fsReadDirectory
         path      : FSHelper.plainPath @path
         onChange  : if dontWatch then null else (change) =>
           FSHelper.folderOnChange {
@@ -22,7 +24,6 @@ class FSFolder extends FSFile
             @path
             change
             treeController
-            @osKite
           }
 
     .then (response) =>
@@ -33,13 +34,10 @@ class FSFolder extends FSFile
           parentPath: @path
           files: response.files
           treeController
-          @osKite
         }
         else []
-      callback null, files
 
-    .catch (err) ->
-      callback err
+    .nodeify(callback)
 
     .then =>
       @emit 'fs.job.finished'
@@ -49,21 +47,16 @@ class FSFolder extends FSFile
 
     @emit "fs.save.started"
 
-    @osKite.vmStart()
+    @getKite().vmStart()
 
     .then =>
-      @vmController.fsCreateDirectory({
+      @vmController.fsCreateDirectory {
         path: FSHelper.plainPath @path
-      })
+      }
 
-    .then (response) =>
+    .nodeify (err, response) ->
       callback null, response
       @emit "fs.save.finished", null, response
-
-    .catch (err) =>
-      warn err
-      callback err
-      @emit "fs.save.finished", err
 
   saveAs:(callback)->
     log 'Not implemented yet.'
