@@ -60,4 +60,4 @@ class GroupLogoSettings extends KDView
 
   handleFileUploadDone: (url) ->
     @revealViews()
-    @group.modify "customize.logo" : "#{url}?#{Date.now()}"
+    @group.modify "customize.logo" : "#{url}"
