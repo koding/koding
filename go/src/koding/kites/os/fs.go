@@ -411,7 +411,7 @@ func fsRemove(removePath string, recursive bool, vos *virt.VOS) (interface{}, er
 
 func fsRename(oldpath, newpath string, vos *virt.VOS) (interface{}, error) {
 	var err error
-	oldpath, err = vos.EnsureNonexistentPath(oldpath)
+	newpath, err = vos.EnsureNonexistentPath(newpath)
 	if err != nil {
 		return nil, err
 	}
