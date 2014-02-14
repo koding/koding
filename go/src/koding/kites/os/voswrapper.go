@@ -8,11 +8,11 @@ import (
 	kitednode "kite/dnode"
 	"koding/tools/kite"
 	"koding/virt"
-	"labix.org/v2/mgo"
-	"labix.org/v2/mgo/bson"
 	"os"
 	"path"
 	"strings"
+	"labix.org/v2/mgo"
+	"labix.org/v2/mgo/bson"
 
 	"code.google.com/p/go.exp/inotify"
 )
@@ -326,6 +326,19 @@ func fsCreateDirectoryNew(r *kitelib.Request, vos *virt.VOS) (interface{}, error
 	}
 
 	return fsCreateDirectory(params.Path, params.Recursive, vos)
+}
+
+func fsMoveNew(r *kitelib.Request, vos *virt.VOS) (interface{}, error) {
+	var params struct {
+		OldPath string
+		NewPath string
+	}
+
+	if r.Args.One().Unmarshal(&params) != nil || params.OldPath == "" || params.NewPath == "" {
+		return nil, &kite.ArgumentError{Expected: "{ oldPath: [string], newPath: [string] }"}
+	}
+
+	return fsMove(params.OldPath, params.NewPath, vos)
 }
 
 // APP METHODS

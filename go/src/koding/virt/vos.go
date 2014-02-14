@@ -4,6 +4,7 @@ package virt
 
 import (
 	"errors"
+	"io"
 	"os"
 	"path"
 	"strings"
@@ -156,6 +157,70 @@ func (vos *VOS) Symlink(oldname, newname string) error {
 		}
 		return os.Lchown(resolved, vos.User.Uid, vos.User.Uid)
 	})
+}
+
+// IsFile checks whether the given file is a directory or not.
+func (vos *VOS) IsFile(file string) (bool, error) {
+	sf, err := vos.Open(file)
+	if err != nil {
+		return false, err
+	}
+	defer sf.Close()
+
+	fi, err := sf.Stat()
+	if err != nil {
+		return false, err
+	}
+
+	if fi.IsDir() {
+		return false, nil
+	}
+
+	return true, nil
+}
+
+// Exists checks whether the given file exists or not.
+func (vos *VOS) Exists(file string) (bool, error) {
+	_, err := vos.Stat(file)
+	if err == nil {
+		return true, nil // file exist
+	}
+
+	if os.IsNotExist(err) {
+		return false, nil // file does not exist
+	}
+
+	return false, err
+}
+
+// CopyFile copies the file from src to dst.
+func (vos *VOS) CopyFile(src, dst string) error {
+	sf, err := vos.Open(src)
+	if err != nil {
+		return err
+	}
+	defer sf.Close()
+
+	fi, err := sf.Stat()
+	if err != nil {
+		return err
+	}
+
+	if fi.IsDir() {
+		return errors.New("src is a directory, please provide a file")
+	}
+
+	df, err := vos.OpenFile(dst, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, fi.Mode())
+	if err != nil {
+		return err
+	}
+	defer df.Close()
+
+	if _, err := io.Copy(df, sf); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (vos *VOS) Stat(name string) (fi os.FileInfo, err error) {
