@@ -52,23 +52,15 @@ class FSItem extends KDObject
     
     file = null
 
-    debugger
-
     ok = osKite.vmStart()
     .then ->
-
-      debugger
 
       osKite.fsEnsureNonexistentPath(path: targetPath)
       .then (actualPath) ->
         command = "#{ commandPrefix } #{ escapeFilePath sourceItem.path } #{ escapeFilePath actualPath }"
 
-        debugger
-
         osKite.exec(command)
         .then ->
-
-          debugger
 
           file = FSHelper.createFile {
             path        : actualPath
@@ -272,7 +264,7 @@ class FSItem extends KDObject
     @osKite.vmStart()
 
     .then =>
-      @osKite.fsRemove(path: @getPath())
+      @osKite.fsRemove { path: @getPath(), recursive }
 
     .then (result) ->
       callback null, result
