@@ -50,7 +50,7 @@ class MembersAppController extends AppController
               JAccount.byRelevance @_searchValue, options, callback
             else
               group = KD.getSingleton('groupsController').getCurrentGroup()
-              group.fetchMembersFromGraph options, (err, res)=>
+              group.fetchMembers selector, options, (err, res)=>
                 callback err, res
 
               group.countMembers (err, count) =>
