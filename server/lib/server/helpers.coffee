@@ -94,6 +94,7 @@ serve = (content, res)->
 
 serveHome = (req, res, next)->
   {JGroup} = bongoModels = koding.models
+  isCustomPreview = req.cookies["custom-partials-preview-mode"]
   {generateFakeClient}   = require "./client"
 
   generateFakeClient req, res, (err, client)->
@@ -108,7 +109,7 @@ serveHome = (req, res, next)->
       {loggedIn, loggedOut} = JGroup.render
       {params}              = req
       fn                    = if state then loggedIn else loggedOut
-      fn.kodingHome {client, account, bongoModels, params}, (err, subPage)->
+      fn.kodingHome {client, account, bongoModels, params, isCustomPreview}, (err, subPage)->
         return next()  if err
         serve subPage, res
 

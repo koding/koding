@@ -46,12 +46,12 @@ class MainController extends KDController
     KD.registerSingleton "badgeController",           new BadgeController
     KD.registerSingleton "helpController",            new HelpController
 
-
     # appManager.create 'Chat', (chatController)->
     #   KD.registerSingleton "chatController", chatController
 
     @ready =>
       router.listen()
+      KD.registerSingleton "widgetController",        new WidgetController
       KD.registerSingleton "activityController",      new ActivityController
       KD.registerSingleton "appStorageController",    new AppStorageController
       KD.registerSingleton "kodingAppsController",    new KodingAppsController
