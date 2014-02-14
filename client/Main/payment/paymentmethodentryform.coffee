@@ -14,6 +14,7 @@ class PaymentMethodEntryForm extends KDFormViewWithFields
         placeholder       : 'First name'
         defaultValue      : KD.whoami().profile.firstName
         validate          :
+          notifications   : yes
           event           : "blur"
           rules           :
             required      : yes
@@ -26,6 +27,7 @@ class PaymentMethodEntryForm extends KDFormViewWithFields
             placeholder   : 'Last name'
             defaultValue  : KD.whoami().profile.lastName
             validate      :
+              notifications: yes
               event       : "blur"
               rules       :
                 required  : yes
@@ -40,6 +42,7 @@ class PaymentMethodEntryForm extends KDFormViewWithFields
         focus             : ->
           @setValue @oldValue  if @oldValue
         validate          :
+          notifications   : yes
           event           : 'blur'
           rules           :
             creditCard    : yes
@@ -51,9 +54,9 @@ class PaymentMethodEntryForm extends KDFormViewWithFields
         placeholder       : "MM"
         maxLength         : 2
         validate          :
+          notifications   : yes
           event           : 'blur'
           rules           :
-            required      : yes
             maxLength     : 2
             regExp        : do ->
               remainingMonths = KD.utils
@@ -62,28 +65,31 @@ class PaymentMethodEntryForm extends KDFormViewWithFields
                 .map((item)-> item.title)
                 .join '|'
               return ///#{remainingMonths}///
+          messages        :
+            regExp        : "Expiration month should be 2 digits and between 01 to 12"
         nextElementFlat   :
           cardYear        :
             placeholder   : "YY"
             maxLength     : 2
             validate      :
+              notifications: yes
               event       : 'blur'
               rules       :
-                required  : yes
                 regExp    : do ->
                   twoDigitsYear = (new Date).getFullYear()%100
                   yearOptions   = [twoDigitsYear...twoDigitsYear+15].join '|'
                   return ///#{yearOptions}///
+              messages    :
+                regExp    : "Expiration year should be between #{twoDigitsYear = (new Date).getFullYear()%100} to #{twoDigitsYear+14}"
       cardCV              :
         placeholder       : 'CVC'
         validate          :
+          notifications   : yes
           event           : 'blur'
           rules           :
-            required      : yes
-            regExp        : /[0-9]{3,4}/
+            regExp        : /^[0-9]{3,4}$/
           messages        :
-            required      : 'Card verification code (CVC) is required!'
-            regExp        : 'Card verification code (CVC) should be a 3- or 4-digit number!'
+            regExp        : 'Card verification code (CVC) should be a 3 or 4-digit number!'
 
     super
       cssClass              : KD.utils.curry 'payment-method-entry-form', options.cssClass

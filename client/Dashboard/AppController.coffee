@@ -51,12 +51,12 @@ class DashboardAppController extends AppController
           viewClass  : GroupsMembershipPolicyDetailView
           lazy       : yes
           callback   : @bound 'policyViewAdded'
-      ,
-        name         : 'Payment'
-        viewOptions  :
-          viewClass  : GroupPaymentSettingsView
-          lazy       : yes
-          callback   : @bound 'paymentViewAdded'
+      # ,
+      #   name         : 'Payment'
+      #   viewOptions  :
+      #     viewClass  : GroupPaymentSettingsView
+      #     lazy       : yes
+      #     callback   : @bound 'paymentViewAdded'
       ]
 
       if data.slug is "koding"

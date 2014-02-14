@@ -155,6 +155,8 @@ class PaymentController extends KDController
             workflow.emit "PasswordRecoveryToken", recoveryToken
             JUser.logout ->
               KD.singletons.dock.getView().show()
+        else
+          @emit "SubscriptionCompleted"
 
       .enter()
 
