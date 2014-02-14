@@ -57,6 +57,7 @@ class DashboardAppController extends AppController
       #     lazy       : yes
       #     callback   : @bound 'paymentViewAdded'
       ]
+      ]
 
       if data.slug is "koding"
         @tabData.push
@@ -79,6 +80,13 @@ class DashboardAppController extends AppController
             kodingOnly   : yes # this is only intended for koding group, we assume koding group is super-group
             viewOptions  :
               viewClass  : BadgeDashboardView
+              lazy       : yes
+          ,
+            name         : 'CustomPartials'
+            hiddenHandle : @getData().privacy is 'public'
+            kodingOnly   : yes # this is only intended for koding group, we assume koding group is super-group
+            viewOptions  :
+              viewClass  : CustomViewsManager
               lazy       : yes
 
       # CURRENTLY DISABLED

@@ -46,12 +46,12 @@ class MainController extends KDController
     KD.registerSingleton "badgeController",           new BadgeController
     KD.registerSingleton "helpController",            new HelpController
 
-
     # appManager.create 'Chat', (chatController)->
     #   KD.registerSingleton "chatController", chatController
 
     @ready =>
       router.listen()
+      KD.registerSingleton "widgetController",        new WidgetController
       KD.registerSingleton "activityController",      new ActivityController
       KD.registerSingleton "appStorageController",    new AppStorageController
       KD.registerSingleton "kodingAppsController",    new KodingAppsController
@@ -138,11 +138,7 @@ class MainController extends KDController
       cookie = $.cookie 'clientId'
 
       if cookieExists and not cookieMatches
-        KD.logToExternal "cookie changes", {stackTraces:cookieChanges, username:KD.nick()}
-
         return @isLoggingIn off  if @isLoggingIn() is on
-
-        KD.logToExternal "cookie changes", {stackTraces:cookieChanges, username:KD.nick(), inlogin:true}
 
         window.removeEventListener 'beforeunload', wc.bound 'beforeUnload'
         @emit "clientIdChanged"

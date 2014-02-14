@@ -17,7 +17,7 @@ module.exports = class JGroup extends Module
 
   KodingError    = require '../../error'
   Validators     = require './validators'
-  {throttle}     = require 'underscore'
+  {throttle, extend}     = require 'underscore'
 
   PERMISSION_EDIT_GROUPS = [
     {permission: 'edit groups'}
@@ -727,24 +727,23 @@ module.exports = class JGroup extends Module
           , {}, (err,memberAccounts)=>
             callback err,memberAccounts
 
-  fetchHomepageView: ({section, account, bongoModels}, callback)->
+  fetchHomepageView: (options, callback)->
+    {account, section} = options
     kallback = =>
       @fetchMembershipPolicy (err, policy)=>
-        return callback err if err
-
-        options = {
-          account
-          @slug
-          @title
-          policy
-          @avatar
-          @body
-          @counts
-          @customize
-          bongoModels
-        }
-        prefix = if account?.type is 'unregistered' then 'loggedOut' else 'loggedIn'
-        JGroup.render[prefix].groupHome options, callback
+        if err then callback err
+        else
+          homePageOptions = extend options {
+            @slug
+            @title
+            policy
+            @avatar
+            @body
+            @counts
+            @customize
+          }
+          prefix = if account?.type is 'unregistered' then 'loggedOut' else 'loggedIn'
+          JGroup.render[prefix].groupHome homePageOptions, callback
 
     if @visibility is 'hidden' and section isnt 'Invitation'
       @isMember account, (err, isMember)->
