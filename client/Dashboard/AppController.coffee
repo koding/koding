@@ -1,12 +1,12 @@
 class DashboardAppController extends AppController
 
   handler = (group, callback)->
-    KD.getSingleton('groupsController').changeGroup group, (err)=>
+    KD.getSingleton('groupsController').ready ->
       KD.singleton('appManager').open 'Dashboard', callback
 
   KD.registerAppClass this,
     name         : "Dashboard"
-    routes                         :
+    routes       :
       "/:name?/Dashboard"          : null
       "/:name?/Dashboard/:section" : ({params : {section,name}})->
         handler name, (app)-> app.loadSection title : section
@@ -74,6 +74,13 @@ class DashboardAppController extends AppController
         kodingOnly   : yes # this is only intended for koding group, we assume koding group is super-group
         viewOptions  :
           viewClass  : BadgeDashboardView
+          lazy       : yes
+      ,
+        name         : 'CustomPartials'
+        hiddenHandle : @getData().privacy is 'public'
+        kodingOnly   : yes # this is only intended for koding group, we assume koding group is super-group
+        viewOptions  :
+          viewClass  : CustomViewsManager
           lazy       : yes
 
       # CURRENTLY DISABLED

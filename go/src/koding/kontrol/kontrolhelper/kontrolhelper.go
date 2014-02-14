@@ -70,7 +70,14 @@ func CreateStream(channel *amqp.Channel, kind, exchange, queue, key string, dura
 		panic(err)
 	}
 
-	if _, err := channel.QueueDeclare(queue, true, false, false, false, nil); err != nil {
+	if _, err := channel.QueueDeclare(
+		queue,
+		true,  // durable
+		true,  // autoDelete
+		false, // exclusive
+		false, // noWait
+		nil,   // args table
+	); err != nil {
 		panic(err)
 	}
 

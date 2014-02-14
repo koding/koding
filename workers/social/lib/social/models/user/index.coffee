@@ -974,11 +974,11 @@ module.exports = class JUser extends jraphical.Module
         else
           callback createKodingError 'PIN is not confirmed.'
 
-  fetchHomepageView:({account, bongoModels}, callback)->
-
+  fetchHomepageView:(options, callback)->
+    {account, bongoModels} = options
     @fetchAccount 'koding', (err, account)->
       if err then callback err
-      else account.fetchHomepageView {account, bongoModels}, callback
+      else account.fetchHomepageView options, callback
 
   confirmEmail: (callback)->
     @update {$set: status: 'confirmed'}, (err, res)=>

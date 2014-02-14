@@ -58,13 +58,23 @@ class ActivityAppView extends KDScrollView
     @addSubView @mainBlock
     @addSubView @sideBlock
 
+    topWidgetPlaceholder  = new KDCustomHTMLView
+    leftWidgetPlaceholder = new KDCustomHTMLView
+
+    @mainBlock.addSubView topWidgetPlaceholder
     @mainBlock.addSubView @inputWidget
     @mainBlock.addSubView @feedWrapper
 
     @sideBlock.addSubView @referalBox  if KD.isLoggedIn()
+    @sideBlock.addSubView leftWidgetPlaceholder
     @sideBlock.addSubView @topicsBox
     @sideBlock.addSubView @usersBox
     @sideBlock.addSubView @tickerBox
+
+    KD.getSingleton("widgetController").showWidgets [
+      { view: topWidgetPlaceholder,  key: "ActivityTop"  }
+      { view: leftWidgetPlaceholder, key: "ActivityLeft" }
+    ]
 
   decorate:->
     @unsetClass "guest"
@@ -220,20 +230,26 @@ class ReferalBox extends JView
 
 
   showReferrerModal: (event)->
+    return
     KD.utils.stopDOMEvent event
     KD.mixpanel "Referer modal, click"
 
     appManager = KD.getSingleton "appManager"
     appManager.tell "Account", "showReferrerModal"
 
-  pistachio:->
-    """
-    <span class="title">Get free disk space!</span>
-    <p>
-      Invite your friends and get 250MB up to 16GB for free!
-      {{> @showMore}}
-      {{> @redeemPointsModal}}
-    </p>
-    {{> @progressBar}}
-    """
+  # pistachio:->
+  #   """
+  #   <span class="title">Get free disk space!</span>
+  #   <p>
+  #     Invite your friends and get 250MB up to 16GB for free!
+  #     {{> @showMore}}
+  #     {{> @redeemPointsModal}}
+  #   </p>
+  #   {{> @progressBar}}
+  #   """
 
+  pistachio: ->
+    return """
+      <span class="title">Your disk space</span>
+      {{> @progressBar}}
+    """

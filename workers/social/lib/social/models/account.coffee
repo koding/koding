@@ -32,6 +32,7 @@ module.exports = class JAccount extends jraphical.Module
   {permit} = require './group/permissionset'
   Validators = require './group/validators'
   Protected = require '../traits/protected'
+  {extend} = require 'underscore'
 
   @share()
 
@@ -534,18 +535,19 @@ module.exports = class JAccount extends jraphical.Module
       @cachedUserCount = count
       callback null, count
 
-  fetchHomepageView:({account, bongoModels}, callback)->
-
+  fetchHomepageView:(options, callback)->
+    {account} = options
     JReferral = require './referral'
     JGroup = require './group'
     JNewStatusUpdate = require './messages/newstatusupdate'
 
-    JAccount.renderHomepage
+    homePageOptions = extend options, {
       renderedAccount : account
       account         : this
       isLoggedIn      : account.type is 'unregistered'
-      bongoModels     : bongoModels
-    , callback
+    }
+
+    JAccount.renderHomepage homePageOptions, callback
 
   fetchGroups: secure (client, options, callback)->
     [callback, options] = [options, callback]  unless callback
