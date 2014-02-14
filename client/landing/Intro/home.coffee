@@ -142,7 +142,7 @@ class HomePage extends JView
 
   pistachio:->
     if KD.customPartial?.partial
-      return Encoder.htmlDecode KD.customPartial.partial
+      return Encoder.htmlDecode KD.customPartial.partial.html
 
     """
       <header id='home-header'>
