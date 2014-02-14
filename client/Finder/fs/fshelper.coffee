@@ -31,19 +31,17 @@ class FSHelper
           file
           nickname
           treeController
-          osKite
         }
 
     return data
 
-  @folderOnChange = ({ vmName, path, change, treeController, osKite })->
+  @folderOnChange = ({ vmName, path, change, treeController })->
     return  unless treeController
     [ file ] = @parseWatcher {
       vmName
       parentPath  : path
       files       : change.file
       treeController
-      osKite
     }
     switch change.event
       when "added"

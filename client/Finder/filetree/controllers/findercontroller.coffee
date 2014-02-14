@@ -89,11 +89,9 @@ class NFinderController extends KDViewController
     , [[],[]]
 
   fetchSavedVms: (savedVms, callback) ->
-    { JVM } = KD.remote.api
-
     [vmNames, paths] = parseSavedVms savedVms
     
-    JVM.fetchVmsByName vmNames, (err, vms) =>
+    KD.getSingleton('vmController').fetchVmsByName vmNames, (err, vms) =>
       return callback? err  if err
 
       vms[i].path = paths[i]  for _, i in vms
@@ -159,8 +157,6 @@ class NFinderController extends KDViewController
 
     { region, hostnameAlias: vmName, path } = vm
 
-    osKite = (KD.getSingleton 'kiteController').getKite "os-#{ region }", vmName
-
     vmRoots = (@appStorage.getValue 'vmRoots') or {}
     pipedVm = @_pipedVmName vmName
     path    ?= "/home/#{KD.nick()}"
@@ -174,9 +170,8 @@ class NFinderController extends KDViewController
       name   : "#{path}"
       path   : "[#{vmName}]#{path}"
       type   : "vm"
-      vmName : vm.hostnameAlias
+      vmName : vmName
       vm     : vm
-      osKite : osKite
       treeController: @treeController
 
     @noVMFoundWidget.hide()
