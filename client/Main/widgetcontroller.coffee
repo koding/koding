@@ -4,17 +4,32 @@ class WidgetController extends KDObject
 
     super options, data
 
-    @widgets      = {}
     @placeholders = {}
+    @widgets      =
+      preview     : {}
+      published   : {}
 
     @registerPlaceholders()
     @fetchWidgets()
 
   fetchWidgets: ->
-    query = { isActive: yes, partialType: "WIDGET" }
+    query =
+      partialType : "WIDGET"
+      "$or"       : [
+        { isActive: yes  }
+        { isPreview: yes }
+      ]
 
     KD.remote.api.JCustomPartials.some query, {}, (err, widgets) =>
-      @widgets[widget.viewInstance] = widget  for widget in widgets
+      for widget in widgets
+        target   = "published"
+        key      = "viewInstance"
+
+        if widget.isPreview
+          target = "preview"
+          key    = "previewInstance"
+
+        @widgets[target][widget[key]] = widget
 
   registerPlaceholders: ->
     @placeholders.ActivityTop  = { title: "Activity Top",  key: "ActivityTop"  }
@@ -24,9 +39,12 @@ class WidgetController extends KDObject
     return @placeholders
 
   showWidgets: (widgets) ->
+    isPreviewMode = $.cookie "custom-partials-preview-mode"
+    targetKey     = if isPreviewMode then "preview" else "published"
+
     for widget in widgets
       {view, key}    = widget
-      widgetData     = @widgets[key]
+      widgetData     = @widgets[targetKey][key]
       hasPlaceholder = @placeholders[key]
 
       if view and key and widgetData and hasPlaceholder
