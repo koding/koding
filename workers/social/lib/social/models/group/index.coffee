@@ -1038,13 +1038,20 @@ module.exports = class JGroup extends Module
   approveMember:(member, roles, callback)->
     [callback, roles] = [roles, callback]  unless callback
     roles ?= ['member']
+
+    kallback = =>
+      callback()
+      @updateCounts()
+      @emit 'MemberAdded', member  if 'member' in roles
+
     queue = roles.map (role)=>=>
       @addMember member, role, queue.fin.bind queue
 
     dash queue, =>
-      callback()
-      @updateCounts()
-      @emit 'MemberAdded', member  if 'member' in roles
+      if @slug not in ["koding", "guests"]
+        @finalizeMemberApproval member, kallback
+      else
+        kallback()
 
   each:(selector, rest...)->
     selector.visibility = 'visible'
@@ -1535,3 +1542,28 @@ module.exports = class JGroup extends Module
         callback null, permissionSet
       else
         @fetchDefaultPermissionSet callback
+
+  finalizeMemberApproval: (account, callback) ->
+    subscription = null
+
+    daisy queue = [
+      =>
+        @fetchSubscription (err, sub) =>
+          console.warn "Error when fetching group's subscription: #{err}"  if err
+          console.warn "Group #{@slug}'s subscription is not found"  unless subscription
+          subscription = sub
+          queue.next()
+    , =>
+        subscription.debitPack tags: "user", (err) =>
+          return callback err  if err
+          queue.next()
+    , =>
+        subscription.debitPack tags: "vm", (err) =>
+          return callback err  if err
+          JVM = require '../vm'
+          JVM.createVm {account, groupSlug: @slug, @planCode}, (err) =>
+            console.warn "Group #{@slug} member #{account.profile.nickname} VM is not created: #{err}"  if err
+            queue.next()
+    ,
+      callback
+    ]

@@ -138,17 +138,9 @@ module.exports = class JInvitation extends jraphical.Module
       isRedeemed = yes
     operation.$set = status: 'redeemed'  if isRedeemed
 
-    JGroup.one slug: @group, (err, group) =>
+    @update operation, (err) =>
       return callback err  if err
-      group.fetchSubscription (err, subscription) =>
-        return callback err  if err
-        return callback new KodingError "Subscription is not found"  unless subscription
-        subscription.debitPack tags: "user", (err) =>
-          return callback err  if err
-          @update operation, (err) =>
-            return callback err  if err
-            @addRedeemer account, callback
-
+      @addRedeemer account, callback
 
   # send invites from group dashboard
   @create = secure (client, group, email, options, callback)->
