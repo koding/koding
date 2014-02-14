@@ -91,7 +91,7 @@ class EditCommentForm extends NewCommentForm
       cssClass  : "cancel-description"
       pistachio : "Press Esc to cancel"
 
-    @commentInput.setValue data.body
+    @commentInput.setValue Encoder.htmlDecode data.body
     @commentInput.on "EscapePerformed", @bound "cancel"
     @commentInput.setFocus()
 
