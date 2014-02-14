@@ -1,5 +1,12 @@
 class PricingAppView extends KDView
 
+  constructor:(options = {}, data) ->
+    super options, data
+    # CtF I know this does not belongs here, but the problem was for the partial registration
+    # there is an async situation of app storage operations caused by guest users/registered 
+    # members conversion
+    @appStorage = KD.getSingleton('appStorageController').storage 'Login', '1.0'
+
   createBreadcrumb: ->
     @addSubView @breadcrumb = new BreadcrumbView
 
@@ -111,6 +118,8 @@ class PricingAppView extends KDView
         <h3 class="pricing-title"><strong>#{group.title}</strong> has been successfully created</h3>
         """
 
+    KD.singleton("appManager").tell "Login", "setStorageData", "redirectTo", group.slug
+
     if loggedIn
       @thankYou.addSubView new KDButtonView
         style    : "solid green"
@@ -134,15 +143,21 @@ class PricingAppView extends KDView
     @workflow.addForm "group", @groupForm, ["group"]
 
   createGroupForm: ->
-    return new KDFormViewWithFields
+    return groupForm = new KDFormViewWithFields
       title                 : "Enter new group name"
       cssClass              : "pricing-create-group"
-      callback              : -> @emit "Submit"
+      callback              : -> 
+        groupForm.buttons.Create.showLoader()
+        @emit "Submit"
       buttons               :
         Create              :
           title             : "CREATE YOUR GROUP"
           type              : "submit"
           style             : "solid green"
+          loader            :
+            color           : "#ffffff"
+            diameter        : 26
+          callback          : ->
       fields                :
         GroupName           :
           label             : "Group Name"

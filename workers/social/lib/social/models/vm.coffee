@@ -335,11 +335,6 @@ module.exports = class JVM extends Module
 
         callback new KodingError('Default VM already exists'), vm
 
-  vmProductMap =
-    "f34ba4e35041fea7e519dc20a96d3e1b": { core  : 1 }
-    "04d5a80edbde8c2b4be2c4fc0da4d527": { ram   : 1024 }
-    "7029c74b6f16ed328cd1c41a454c02f3": { disk  : 1200 }
-
   @createVmByNonce = secure (client, nonce, callback) ->
     JPaymentFulfillmentNonce  = require './payment/nonce'
     JPaymentPack              = require './payment/pack'
@@ -359,28 +354,15 @@ module.exports = class JVM extends Module
           { delegate: account } = client.connection
           { group: groupSlug } = client.context
 
-          attributes = products
-            .map (product) ->
-              vmProductMap[product.planCode]
-            .reduce( (memo, attr) ->
-              memo[key] = val  for own key, val of attr
-              memo
-            , {})
-
           @createVm {
             account
             groupSlug
             planCode
             subscriptionCode
             type          : 'user'
-            maxMemoryInMB : attributes.ram
-            diskSizeInMB  : attributes.disk
-            numCPUs       : attributes.core
           }, (err, vm) ->
             return callback err  if err
-
             callback null, vm
-
 
   @createSharedVm = secure (client, callback)->
     {connection:{delegate:account}, context:{group}} = client
@@ -684,7 +666,7 @@ module.exports = class JVM extends Module
 
         isOwner = vm.users.filter (vmUser) ->
           vmUser.id.equals(user.getId()) && vmUser.owner is true
-        
+
         err = new KodingError("You are not owner of this VM", "NOTPERMITTED")  unless isOwner.length
         callback err, vm
 

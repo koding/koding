@@ -11,7 +11,7 @@ module.exports = (options = {}, callback)->
   {argv} = require 'optimist'
 
   prefetchedFeeds = {}
-  customPartial = {}
+  customPartial   = {}
   campaignData    = {}
   currentGroup    = {}
   {bongoModels, client, intro, landing, slug} = options
