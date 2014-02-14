@@ -170,7 +170,6 @@ class ActivityInputWidget extends KDView
     # @submit.setTitle "Post"
     @submit.focus()
     setTimeout (@bound "unlockSubmit"), 8000
-    @setData null
     @unlockSubmit()  if lock
 
   lockSubmit: ->
