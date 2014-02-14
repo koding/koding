@@ -603,3 +603,17 @@ __utils.extend __utils,
     .catch (err) ->
       warn err
       callback err
+
+  sortFiles: (a, b) ->
+
+    la = a.name.toLowerCase()
+    lb = b.name.toLowerCase()
+
+    switch
+      when la is lb 
+        switch
+          when a.name is b.name  then 0
+          when a.name > b.name   then 1
+          when a.name < b.name   then -1
+      when la > lb               then 1
+      when la < lb               then -1
