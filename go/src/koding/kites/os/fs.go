@@ -10,8 +10,6 @@ import (
 	"koding/virt"
 	"os"
 	"path"
-	"regexp"
-	"strconv"
 	"time"
 
 	"code.google.com/p/go.exp/inotify"
@@ -231,6 +229,19 @@ func fsCreateDirectoryOld(args *dnode.Partial, channel *kite.Channel, vos *virt.
 	return fsCreateDirectory(params.Path, params.Recursive, vos)
 }
 
+func fsMoveOld(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
+	var params struct {
+		OldPath string
+		NewPath string
+	}
+
+	if args.Unmarshal(&params) != nil || params.OldPath == "" || params.NewPath == "" {
+		return nil, &kite.ArgumentError{Expected: "{ oldPath: [string], newPath: [string] }"}
+	}
+
+	return fsMove(params.OldPath, params.NewPath, vos)
+}
+
 //////////////////////
 
 func fsGlob(pattern string, vos *virt.VOS) (interface{}, error) {
@@ -274,6 +285,12 @@ type writeFileParams struct {
 }
 
 func fsWriteFile(params writeFileParams, vos *virt.VOS) (interface{}, error) {
+	newPath, err := vos.EnsureNonexistentPath(params.Path)
+	if err != nil {
+		return nil, err
+	}
+	params.Path = newPath
+
 	flags := os.O_RDWR | os.O_CREATE
 	if params.DoNotOverwrite {
 		flags |= os.O_EXCL
@@ -301,29 +318,21 @@ func fsWriteFile(params writeFileParams, vos *virt.VOS) (interface{}, error) {
 		}
 	}
 
-	return file.Write(params.Content)
-}
-
-var suffixRegexp = regexp.MustCompile(`.((_\d+)?)(\.\w*)?$`)
-
-func fsEnsureNonexistentPath(path string, vos *virt.VOS) (interface{}, error) {
-	name := path
-	index := 1
-	for {
-		_, err := vos.Stat(name)
-		if err != nil {
-			if os.IsNotExist(err) {
-				break
-			}
-			return nil, err
-		}
-
-		loc := suffixRegexp.FindStringSubmatchIndex(name)
-		name = name[:loc[2]] + "_" + strconv.Itoa(index) + name[loc[3]:]
-		index++
+	_, err = file.Write(params.Content)
+	if err != nil {
+		return nil, err
 	}
 
-	return name, nil
+	fi, err := file.Stat()
+	if err != nil {
+		return nil, err
+	}
+
+	return makeFileEntry(vos, params.Path, fi), nil
+}
+
+func fsEnsureNonexistentPath(path string, vos *virt.VOS) (interface{}, error) {
+	return vos.EnsureNonexistentPath(path)
 }
 
 func fsGetInfo(path string, vos *virt.VOS) (interface{}, error) {
@@ -401,6 +410,12 @@ func fsRemove(removePath string, recursive bool, vos *virt.VOS) (interface{}, er
 }
 
 func fsRename(oldpath, newpath string, vos *virt.VOS) (interface{}, error) {
+	var err error
+	oldpath, err = vos.EnsureNonexistentPath(oldpath)
+	if err != nil {
+		return nil, err
+	}
+
 	if err := vos.Rename(oldpath, newpath); err != nil {
 		return nil, err
 	}
@@ -409,6 +424,13 @@ func fsRename(oldpath, newpath string, vos *virt.VOS) (interface{}, error) {
 }
 
 func fsCreateDirectory(newPath string, recursive bool, vos *virt.VOS) (interface{}, error) {
+
+	var err error
+	newPath, err = vos.EnsureNonexistentPath(newPath)
+	if err != nil {
+		return nil, err
+	}
+
 	if recursive {
 		if err := vos.MkdirAll(newPath, 0755); err != nil {
 			return nil, err
@@ -420,8 +442,18 @@ func fsCreateDirectory(newPath string, recursive bool, vos *virt.VOS) (interface
 	if err != nil {
 		return nil, err
 	}
+
 	if err := vos.Mkdir(newPath, dirInfo.Mode().Perm()); err != nil {
 		return nil, err
 	}
+
+	return makeFileEntry(vos, newPath, dirInfo), nil
+}
+
+func fsMove(oldPath, newPath string, vos *virt.VOS) (interface{}, error) {
+	if err := vos.Rename(oldPath, newPath); err != nil {
+		return nil, err
+	}
+
 	return true, nil
 }
