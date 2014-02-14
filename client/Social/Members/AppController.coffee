@@ -31,7 +31,7 @@ class MembersAppController extends AppController
       listControllerClass   : MembersListViewController
       useHeaderNav          : yes
       noItemFoundText       : "There is no member."
-      limitPerPage          : 10
+      limitPerPage          : 20
       delegate              : this
       help                  :
         subtitle            : "Learn About Members"
