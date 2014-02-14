@@ -10,19 +10,23 @@ class EditorPane extends Pane
 
     if Array.isArray @files then @createEditorTabs() else @createSingleEditor()
 
-  createEditorInstance: (file) ->
-    return new Ace
+  createEditorInstance: (file, content) ->
+    ace = new Ace
       delegate        : this
       enableShortcuts : no
     , file
 
+    if content
+      ace.once "ace.ready", ->
+        ace.editor.setValue content
+
+    return ace
+
   createSingleEditor: ->
     path      = @files or "localfile:/Untitled.txt"
     file      = FSHelper.createFileFromPath path
-    @ace      = @createEditorInstance file
     {content} = @getOptions()
-    @ace.on "ace.ready", =>
-      @ace.editor.setValue content  if content
+    @ace      = @createEditorInstance file, content
 
   createEditorTabs: ->
     @editors                  = {}
