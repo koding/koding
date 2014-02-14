@@ -17,9 +17,6 @@ do ->
     mainController.accountChanged account, firstLoad
     firstLoad = no
 
-    # enable sending logs from frontend to backend
-    KD.enabledBackendLogger KD.remote.api.FrontLogger
-
   status.on 'sessionTokenChanged', (token)->
     # this is disabled for now to test user log-out problem.
     KD.logToExternal "sessionTokenChanged event"

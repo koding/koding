@@ -12,12 +12,12 @@ import (
 )
 
 // authenticate authenticates with the remote server. See RFC 4252.
-func (c *ClientConn) authenticate(session []byte) error {
+func (c *ClientConn) authenticate() error {
 	// initiate user auth session
-	if err := c.writePacket(marshal(msgServiceRequest, serviceRequestMsg{serviceUserAuth})); err != nil {
+	if err := c.transport.writePacket(marshal(msgServiceRequest, serviceRequestMsg{serviceUserAuth})); err != nil {
 		return err
 	}
-	packet, err := c.readPacket()
+	packet, err := c.transport.readPacket()
 	if err != nil {
 		return err
 	}
@@ -29,7 +29,7 @@ func (c *ClientConn) authenticate(session []byte) error {
 	// then any untried methods suggested by the server.
 	tried, remain := make(map[string]bool), make(map[string]bool)
 	for auth := ClientAuth(new(noneAuth)); auth != nil; {
-		ok, methods, err := auth.auth(session, c.config.User, c.transport, c.config.rand())
+		ok, methods, err := auth.auth(c.transport.sessionID, c.config.User, c.transport, c.config.rand())
 		if err != nil {
 			return err
 		}
@@ -81,7 +81,7 @@ type ClientAuth interface {
 	// Returns true if authentication is successful.
 	// If authentication is not successful, a []string of alternative
 	// method names is returned.
-	auth(session []byte, user string, t *transport, rand io.Reader) (bool, []string, error)
+	auth(session []byte, user string, p packetConn, rand io.Reader) (bool, []string, error)
 
 	// method returns the RFC 4252 method name.
 	method() string
@@ -90,8 +90,8 @@ type ClientAuth interface {
 // "none" authentication, RFC 4252 section 5.2.
 type noneAuth int
 
-func (n *noneAuth) auth(session []byte, user string, t *transport, rand io.Reader) (bool, []string, error) {
-	if err := t.writePacket(marshal(msgUserAuthRequest, userAuthRequestMsg{
+func (n *noneAuth) auth(session []byte, user string, c packetConn, rand io.Reader) (bool, []string, error) {
+	if err := c.writePacket(marshal(msgUserAuthRequest, userAuthRequestMsg{
 		User:    user,
 		Service: serviceSSH,
 		Method:  "none",
@@ -99,7 +99,7 @@ func (n *noneAuth) auth(session []byte, user string, t *transport, rand io.Reade
 		return false, nil, err
 	}
 
-	return handleAuthResponse(t)
+	return handleAuthResponse(c)
 }
 
 func (n *noneAuth) method() string {
@@ -111,7 +111,7 @@ type passwordAuth struct {
 	ClientPassword
 }
 
-func (p *passwordAuth) auth(session []byte, user string, t *transport, rand io.Reader) (bool, []string, error) {
+func (p *passwordAuth) auth(session []byte, user string, c packetConn, rand io.Reader) (bool, []string, error) {
 	type passwordAuthMsg struct {
 		User     string
 		Service  string
@@ -125,7 +125,7 @@ func (p *passwordAuth) auth(session []byte, user string, t *transport, rand io.R
 		return false, nil, err
 	}
 
-	if err := t.writePacket(marshal(msgUserAuthRequest, passwordAuthMsg{
+	if err := c.writePacket(marshal(msgUserAuthRequest, passwordAuthMsg{
 		User:     user,
 		Service:  serviceSSH,
 		Method:   "password",
@@ -135,7 +135,7 @@ func (p *passwordAuth) auth(session []byte, user string, t *transport, rand io.R
 		return false, nil, err
 	}
 
-	return handleAuthResponse(t)
+	return handleAuthResponse(c)
 }
 
 func (p *passwordAuth) method() string {
@@ -155,9 +155,8 @@ func ClientAuthPassword(impl ClientPassword) ClientAuth {
 
 // ClientKeyring implements access to a client key ring.
 type ClientKeyring interface {
-	// Key returns the i'th *rsa.Publickey or *dsa.Publickey, or nil if
-	// no key exists at i.
-	Key(i int) (key interface{}, err error)
+	// Key returns the i'th Publickey, or nil if no key exists at i.
+	Key(i int) (key PublicKey, err error)
 
 	// Sign returns a signature of the given data using the i'th key
 	// and the supplied random source.
@@ -173,7 +172,7 @@ type publickeyAuthMsg struct {
 	User    string
 	Service string
 	Method  string
-	// HasSig indicates to the reciver packet that the auth request is signed and
+	// HasSig indicates to the receiver packet that the auth request is signed and
 	// should be used for authentication of the request.
 	HasSig   bool
 	Algoname string
@@ -182,7 +181,7 @@ type publickeyAuthMsg struct {
 	Sig []byte `ssh:"rest"`
 }
 
-func (p *publickeyAuth) auth(session []byte, user string, t *transport, rand io.Reader) (bool, []string, error) {
+func (p *publickeyAuth) auth(session []byte, user string, c packetConn, rand io.Reader) (bool, []string, error) {
 	// Authentication is performed in two stages. The first stage sends an
 	// enquiry to test if each key is acceptable to the remote. The second
 	// stage attempts to authenticate with the valid keys obtained in the
@@ -190,7 +189,7 @@ func (p *publickeyAuth) auth(session []byte, user string, t *transport, rand io.
 
 	var index int
 	// a map of public keys to their index in the keyring
-	validKeys := make(map[int]interface{})
+	validKeys := make(map[int]PublicKey)
 	for {
 		key, err := p.Key(index)
 		if err != nil {
@@ -201,7 +200,7 @@ func (p *publickeyAuth) auth(session []byte, user string, t *transport, rand io.
 			break
 		}
 
-		if ok, err := p.validateKey(key, user, t); ok {
+		if ok, err := p.validateKey(key, user, c); ok {
 			validKeys[index] = key
 		} else {
 			if err != nil {
@@ -214,18 +213,19 @@ func (p *publickeyAuth) auth(session []byte, user string, t *transport, rand io.
 	// methods that may continue if this auth is not successful.
 	var methods []string
 	for i, key := range validKeys {
-		pubkey := serializePublickey(key)
-		algoname := algoName(key)
-		sign, err := p.Sign(i, rand, buildDataSignedForAuth(session, userAuthRequestMsg{
+		pubkey := MarshalPublicKey(key)
+		algoname := key.PublicKeyAlgo()
+		data := buildDataSignedForAuth(session, userAuthRequestMsg{
 			User:    user,
 			Service: serviceSSH,
 			Method:  p.method(),
-		}, []byte(algoname), pubkey))
+		}, []byte(algoname), pubkey)
+		sigBlob, err := p.Sign(i, rand, data)
 		if err != nil {
 			return false, nil, err
 		}
 		// manually wrap the serialized signature in a string
-		s := serializeSignature(algoname, sign)
+		s := serializeSignature(key.PublicKeyAlgo(), sigBlob)
 		sig := make([]byte, stringLength(len(s)))
 		marshalString(sig, s)
 		msg := publickeyAuthMsg{
@@ -238,10 +238,10 @@ func (p *publickeyAuth) auth(session []byte, user string, t *transport, rand io.
 			Sig:      sig,
 		}
 		p := marshal(msgUserAuthRequest, msg)
-		if err := t.writePacket(p); err != nil {
+		if err := c.writePacket(p); err != nil {
 			return false, nil, err
 		}
-		success, methods, err := handleAuthResponse(t)
+		success, methods, err := handleAuthResponse(c)
 		if err != nil {
 			return false, nil, err
 		}
@@ -253,9 +253,9 @@ func (p *publickeyAuth) auth(session []byte, user string, t *transport, rand io.
 }
 
 // validateKey validates the key provided it is acceptable to the server.
-func (p *publickeyAuth) validateKey(key interface{}, user string, t *transport) (bool, error) {
-	pubkey := serializePublickey(key)
-	algoname := algoName(key)
+func (p *publickeyAuth) validateKey(key PublicKey, user string, c packetConn) (bool, error) {
+	pubkey := MarshalPublicKey(key)
+	algoname := key.PublicKeyAlgo()
 	msg := publickeyAuthMsg{
 		User:     user,
 		Service:  serviceSSH,
@@ -264,19 +264,19 @@ func (p *publickeyAuth) validateKey(key interface{}, user string, t *transport) 
 		Algoname: algoname,
 		Pubkey:   string(pubkey),
 	}
-	if err := t.writePacket(marshal(msgUserAuthRequest, msg)); err != nil {
+	if err := c.writePacket(marshal(msgUserAuthRequest, msg)); err != nil {
 		return false, err
 	}
 
-	return p.confirmKeyAck(key, t)
+	return p.confirmKeyAck(key, c)
 }
 
-func (p *publickeyAuth) confirmKeyAck(key interface{}, t *transport) (bool, error) {
-	pubkey := serializePublickey(key)
-	algoname := algoName(key)
+func (p *publickeyAuth) confirmKeyAck(key PublicKey, c packetConn) (bool, error) {
+	pubkey := MarshalPublicKey(key)
+	algoname := key.PublicKeyAlgo()
 
 	for {
-		packet, err := t.readPacket()
+		packet, err := c.readPacket()
 		if err != nil {
 			return false, err
 		}
@@ -313,9 +313,9 @@ func ClientAuthKeyring(impl ClientKeyring) ClientAuth {
 // handleAuthResponse returns whether the preceding authentication request succeeded
 // along with a list of remaining authentication methods to try next and
 // an error if an unexpected response was received.
-func handleAuthResponse(t *transport) (bool, []string, error) {
+func handleAuthResponse(c packetConn) (bool, []string, error) {
 	for {
-		packet, err := t.readPacket()
+		packet, err := c.readPacket()
 		if err != nil {
 			return false, nil, err
 		}
@@ -340,7 +340,7 @@ func handleAuthResponse(t *transport) (bool, []string, error) {
 	panic("unreachable")
 }
 
-// ClientAuthKeyring returns a ClientAuth using public key authentication via
+// ClientAuthAgent returns a ClientAuth using public key authentication via
 // an agent.
 func ClientAuthAgent(agent *AgentClient) ClientAuth {
 	return ClientAuthKeyring(&agentKeyring{agent: agent})
@@ -352,7 +352,7 @@ type agentKeyring struct {
 	keys  []*AgentKey
 }
 
-func (kr *agentKeyring) Key(i int) (key interface{}, err error) {
+func (kr *agentKeyring) Key(i int) (key PublicKey, err error) {
 	if kr.keys == nil {
 		if kr.keys, err = kr.agent.RequestIdentities(); err != nil {
 			return
@@ -365,7 +365,7 @@ func (kr *agentKeyring) Key(i int) (key interface{}, err error) {
 }
 
 func (kr *agentKeyring) Sign(i int, rand io.Reader, data []byte) (sig []byte, err error) {
-	var key interface{}
+	var key PublicKey
 	if key, err = kr.Key(i); err != nil {
 		return
 	}
@@ -412,11 +412,11 @@ type keyboardInteractiveAuth struct {
 	ClientKeyboardInteractive
 }
 
-func (c *keyboardInteractiveAuth) method() string {
+func (k *keyboardInteractiveAuth) method() string {
 	return "keyboard-interactive"
 }
 
-func (c *keyboardInteractiveAuth) auth(session []byte, user string, t *transport, rand io.Reader) (bool, []string, error) {
+func (k *keyboardInteractiveAuth) auth(session []byte, user string, c packetConn, rand io.Reader) (bool, []string, error) {
 	type initiateMsg struct {
 		User       string
 		Service    string
@@ -425,7 +425,7 @@ func (c *keyboardInteractiveAuth) auth(session []byte, user string, t *transport
 		Submethods string
 	}
 
-	if err := t.writePacket(marshal(msgUserAuthRequest, initiateMsg{
+	if err := c.writePacket(marshal(msgUserAuthRequest, initiateMsg{
 		User:    user,
 		Service: serviceSSH,
 		Method:  "keyboard-interactive",
@@ -434,13 +434,16 @@ func (c *keyboardInteractiveAuth) auth(session []byte, user string, t *transport
 	}
 
 	for {
-		packet, err := t.readPacket()
+		packet, err := c.readPacket()
 		if err != nil {
 			return false, nil, err
 		}
 
 		// like handleAuthResponse, but with less options.
 		switch packet[0] {
+		case msgUserAuthBanner:
+			// TODO: Print banners during userauth.
+			continue
 		case msgUserAuthInfoRequest:
 			// OK
 		case msgUserAuthFailure:
@@ -478,7 +481,7 @@ func (c *keyboardInteractiveAuth) auth(session []byte, user string, t *transport
 			return false, nil, fmt.Errorf("ssh: junk following message %q", rest)
 		}
 
-		answers, err := c.Challenge(msg.User, msg.Instruction, prompts, echos)
+		answers, err := k.Challenge(msg.User, msg.Instruction, prompts, echos)
 		if err != nil {
 			return false, nil, err
 		}
@@ -499,7 +502,7 @@ func (c *keyboardInteractiveAuth) auth(session []byte, user string, t *transport
 			p = marshalString(p, []byte(a))
 		}
 
-		if err := t.writePacket(serialized); err != nil {
+		if err := c.writePacket(serialized); err != nil {
 			return false, nil, err
 		}
 	}

@@ -78,6 +78,71 @@ func TestMarshalUnmarshal(t *testing.T) {
 	}
 }
 
+func TestUnmarshalEmptyPacket(t *testing.T) {
+	var b []byte
+	var m channelRequestSuccessMsg
+	err := unmarshal(&m, b, msgChannelRequest)
+	want := ParseError{msgChannelRequest}
+	if _, ok := err.(ParseError); !ok {
+		t.Fatalf("got %T, want %T", err, want)
+	}
+	if got := err.(ParseError); want != got {
+		t.Fatal("got %#v, want %#v", got, want)
+	}
+}
+
+func TestUnmarshalUnexpectedPacket(t *testing.T) {
+	type S struct {
+		I uint32
+		S string
+		B bool
+	}
+
+	s := S{42, "hello", true}
+	packet := marshal(42, s)
+	roundtrip := S{}
+	err := unmarshal(&roundtrip, packet, 43)
+	if err == nil {
+		t.Fatal("expected error, not nil")
+	}
+	want := UnexpectedMessageError{43, 42}
+	if got, ok := err.(UnexpectedMessageError); !ok || want != got {
+		t.Fatal("expected %q, got %q", want, got)
+	}
+}
+
+func TestBareMarshalUnmarshal(t *testing.T) {
+	type S struct {
+		I uint32
+		S string
+		B bool
+	}
+
+	s := S{42, "hello", true}
+	packet := marshal(0, s)
+	roundtrip := S{}
+	unmarshal(&roundtrip, packet, 0)
+
+	if !reflect.DeepEqual(s, roundtrip) {
+		t.Errorf("got %#v, want %#v", roundtrip, s)
+	}
+}
+
+func TestBareMarshal(t *testing.T) {
+	type S2 struct {
+		I uint32
+	}
+	s := S2{42}
+	packet := marshal(0, s)
+	i, rest, ok := parseUint32(packet)
+	if len(rest) > 0 || !ok {
+		t.Errorf("parseInt(%q): parse error", packet)
+	}
+	if i != s.I {
+		t.Errorf("got %d, want %d", i, s.I)
+	}
+}
+
 func randomBytes(out []byte, rand *rand.Rand) {
 	for i := 0; i < len(out); i++ {
 		out[i] = byte(rand.Int31())

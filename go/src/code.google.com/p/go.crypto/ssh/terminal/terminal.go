@@ -7,6 +7,7 @@ package terminal
 import (
 	"io"
 	"sync"
+	"unicode/utf8"
 )
 
 // EscapeCodes contains escape sequences that can be written to the terminal in
@@ -35,11 +36,12 @@ var vt100EscapeCodes = EscapeCodes{
 // Terminal contains the state for running a VT100 terminal that is capable of
 // reading lines of input.
 type Terminal struct {
-	// AutoCompleteCallback, if non-null, is called for each keypress
-	// with the full input line and the current position of the cursor.
-	// If it returns a nil newLine, the key press is processed normally.
-	// Otherwise it returns a replacement line and the new cursor position.
-	AutoCompleteCallback func(line []byte, pos, key int) (newLine []byte, newPos int)
+	// AutoCompleteCallback, if non-null, is called for each keypress with
+	// the full input line and the current position of the cursor (in
+	// bytes, as an index into |line|). If it returns ok=false, the key
+	// press is processed normally. Otherwise it returns a replacement line
+	// and the new cursor position.
+	AutoCompleteCallback func(line string, pos int, key rune) (newLine string, newPos int, ok bool)
 
 	// Escape contains a pointer to the escape codes for this terminal.
 	// It's always a valid pointer, although the escape codes themselves
@@ -54,7 +56,7 @@ type Terminal struct {
 	prompt string
 
 	// line is the current line being entered.
-	line []byte
+	line []rune
 	// pos is the logical position of the cursor in line
 	pos int
 	// echo is true if local echo is enabled
@@ -109,7 +111,7 @@ const (
 	keyEnter     = '\r'
 	keyEscape    = 27
 	keyBackspace = 127
-	keyUnknown   = 256 + iota
+	keyUnknown   = 0xd800 /* UTF-16 surrogate area */ + iota
 	keyUp
 	keyDown
 	keyLeft
@@ -118,17 +120,36 @@ const (
 	keyAltRight
 	keyHome
 	keyEnd
+	keyDeleteWord
+	keyDeleteLine
 )
 
 // bytesToKey tries to parse a key sequence from b. If successful, it returns
-// the key and the remainder of the input. Otherwise it returns -1.
-func bytesToKey(b []byte) (int, []byte) {
+// the key and the remainder of the input. Otherwise it returns utf8.RuneError.
+func bytesToKey(b []byte) (rune, []byte) {
 	if len(b) == 0 {
-		return -1, nil
+		return utf8.RuneError, nil
+	}
+
+	switch b[0] {
+	case 1: // ^A
+		return keyHome, b[1:]
+	case 5: // ^E
+		return keyEnd, b[1:]
+	case 8: // ^H
+		return keyBackspace, b[1:]
+	case 11: // ^K
+		return keyDeleteLine, b[1:]
+	case 23: // ^W
+		return keyDeleteWord, b[1:]
 	}
 
 	if b[0] != keyEscape {
-		return int(b[0]), b[1:]
+		if !utf8.FullRune(b) {
+			return utf8.RuneError, b
+		}
+		r, l := utf8.DecodeRune(b)
+		return r, b[l:]
 	}
 
 	if len(b) >= 3 && b[0] == keyEscape && b[1] == '[' {
@@ -172,19 +193,20 @@ func bytesToKey(b []byte) (int, []byte) {
 		}
 	}
 
-	return -1, b
+	return utf8.RuneError, b
 }
 
 // queue appends data to the end of t.outBuf
-func (t *Terminal) queue(data []byte) {
-	t.outBuf = append(t.outBuf, data...)
+func (t *Terminal) queue(data []rune) {
+	t.outBuf = append(t.outBuf, []byte(string(data))...)
 }
 
-var eraseUnderCursor = []byte{' ', keyEscape, '[', 'D'}
-var space = []byte{' '}
+var eraseUnderCursor = []rune{' ', keyEscape, '[', 'D'}
+var space = []rune{' '}
 
-func isPrintable(key int) bool {
-	return key >= 32 && key < 127
+func isPrintable(key rune) bool {
+	isInSurrogateArea := key >= 0xd800 && key <= 0xdbff
+	return key >= 32 && !isInSurrogateArea
 }
 
 // moveCursorToPos appends data to t.outBuf which will move the cursor to the
@@ -224,7 +246,7 @@ func (t *Terminal) moveCursorToPos(pos int) {
 }
 
 func (t *Terminal) move(up, down, left, right int) {
-	movement := make([]byte, 3*(up+down+left+right))
+	movement := make([]rune, 3*(up+down+left+right))
 	m := movement
 	for i := 0; i < up; i++ {
 		m[0] = keyEscape
@@ -255,13 +277,13 @@ func (t *Terminal) move(up, down, left, right int) {
 }
 
 func (t *Terminal) clearLineToRight() {
-	op := []byte{keyEscape, '[', 'K'}
+	op := []rune{keyEscape, '[', 'K'}
 	t.queue(op)
 }
 
 const maxLineLength = 4096
 
-func (t *Terminal) setLine(newLine []byte, newPos int) {
+func (t *Terminal) setLine(newLine []rune, newPos int) {
 	if t.echo {
 		t.moveCursorToPos(0)
 		t.writeLine(newLine)
@@ -274,58 +296,89 @@ func (t *Terminal) setLine(newLine []byte, newPos int) {
 	t.pos = newPos
 }
 
+func (t *Terminal) eraseNPreviousChars(n int) {
+	if n == 0 {
+		return
+	}
+
+	if t.pos < n {
+		n = t.pos
+	}
+	t.pos -= n
+	t.moveCursorToPos(t.pos)
+
+	copy(t.line[t.pos:], t.line[n+t.pos:])
+	t.line = t.line[:len(t.line)-n]
+	if t.echo {
+		t.writeLine(t.line[t.pos:])
+		for i := 0; i < n; i++ {
+			t.queue(space)
+		}
+		t.cursorX += n
+		t.moveCursorToPos(t.pos)
+	}
+}
+
+// countToLeftWord returns then number of characters from the cursor to the
+// start of the previous word.
+func (t *Terminal) countToLeftWord() int {
+	if t.pos == 0 {
+		return 0
+	}
+
+	pos := t.pos - 1
+	for pos > 0 {
+		if t.line[pos] != ' ' {
+			break
+		}
+		pos--
+	}
+	for pos > 0 {
+		if t.line[pos] == ' ' {
+			pos++
+			break
+		}
+		pos--
+	}
+
+	return t.pos - pos
+}
+
+// countToRightWord returns then number of characters from the cursor to the
+// start of the next word.
+func (t *Terminal) countToRightWord() int {
+	pos := t.pos
+	for pos < len(t.line) {
+		if t.line[pos] == ' ' {
+			break
+		}
+		pos++
+	}
+	for pos < len(t.line) {
+		if t.line[pos] != ' ' {
+			break
+		}
+		pos++
+	}
+	return pos - t.pos
+}
+
 // handleKey processes the given key and, optionally, returns a line of text
 // that the user has entered.
-func (t *Terminal) handleKey(key int) (line string, ok bool) {
+func (t *Terminal) handleKey(key rune) (line string, ok bool) {
 	switch key {
 	case keyBackspace:
 		if t.pos == 0 {
 			return
 		}
-		t.pos--
-		t.moveCursorToPos(t.pos)
-
-		copy(t.line[t.pos:], t.line[1+t.pos:])
-		t.line = t.line[:len(t.line)-1]
-		if t.echo {
-			t.writeLine(t.line[t.pos:])
-		}
-		t.queue(eraseUnderCursor)
-		t.moveCursorToPos(t.pos)
+		t.eraseNPreviousChars(1)
 	case keyAltLeft:
 		// move left by a word.
-		if t.pos == 0 {
-			return
-		}
-		t.pos--
-		for t.pos > 0 {
-			if t.line[t.pos] != ' ' {
-				break
-			}
-			t.pos--
-		}
-		for t.pos > 0 {
-			if t.line[t.pos] == ' ' {
-				t.pos++
-				break
-			}
-			t.pos--
-		}
+		t.pos -= t.countToLeftWord()
 		t.moveCursorToPos(t.pos)
 	case keyAltRight:
 		// move right by a word.
-		for t.pos < len(t.line) {
-			if t.line[t.pos] == ' ' {
-				break
-			}
-			t.pos++
-		}
-		for t.pos < len(t.line) {
-			if t.line[t.pos] != ' ' {
-				break
-			}
-			t.pos++
-		}
+		t.pos += t.countToRightWord()
 		t.moveCursorToPos(t.pos)
 	case keyLeft:
 		if t.pos == 0 {
@@ -360,24 +413,27 @@ func (t *Terminal) handleKey(key int) (line string, ok bool) {
 			t.historyPending = string(t.line)
 		}
 		t.historyIndex++
-		t.setLine([]byte(entry), len(entry))
+		runes := []rune(entry)
+		t.setLine(runes, len(runes))
 	case keyDown:
 		switch t.historyIndex {
 		case -1:
 			return
 		case 0:
-			t.setLine([]byte(t.historyPending), len(t.historyPending))
+			runes := []rune(t.historyPending)
+			t.setLine(runes, len(runes))
 			t.historyIndex--
 		default:
 			entry, ok := t.history.NthPreviousEntry(t.historyIndex - 1)
 			if ok {
 				t.historyIndex--
-				t.setLine([]byte(entry), len(entry))
+				runes := []rune(entry)
+				t.setLine(runes, len(runes))
 			}
 		}
 	case keyEnter:
 		t.moveCursorToPos(len(t.line))
-		t.queue([]byte("\r\n"))
+		t.queue([]rune("\r\n"))
 		line = string(t.line)
 		ok = true
 		t.line = t.line[:0]
@@ -385,14 +441,29 @@ func (t *Terminal) handleKey(key int) (line string, ok bool) {
 		t.cursorX = 0
 		t.cursorY = 0
 		t.maxLine = 0
+	case keyDeleteWord:
+		// Delete zero or more spaces and then one or more characters.
+		t.eraseNPreviousChars(t.countToLeftWord())
+	case keyDeleteLine:
+		// Delete everything from the current cursor position to the
+		// end of line.
+		for i := t.pos; i < len(t.line); i++ {
+			t.queue(space)
+			t.cursorX++
+		}
+		t.line = t.line[:t.pos]
+		t.moveCursorToPos(t.pos)
 	default:
 		if t.AutoCompleteCallback != nil {
+			prefix := string(t.line[:t.pos])
+			suffix := string(t.line[t.pos:])
+
 			t.lock.Unlock()
-			newLine, newPos := t.AutoCompleteCallback(t.line, t.pos, key)
+			newLine, newPos, completeOk := t.AutoCompleteCallback(prefix+suffix, len(prefix), key)
 			t.lock.Lock()
 
-			if newLine != nil {
-				t.setLine(newLine, newPos)
+			if completeOk {
+				t.setLine([]rune(newLine), utf8.RuneCount([]byte(newLine)[:newPos]))
 				return
 			}
 		}
@@ -403,13 +474,13 @@ func (t *Terminal) handleKey(key int) (line string, ok bool) {
 			return
 		}
 		if len(t.line) == cap(t.line) {
-			newLine := make([]byte, len(t.line), 2*(1+len(t.line)))
+			newLine := make([]rune, len(t.line), 2*(1+len(t.line)))
 			copy(newLine, t.line)
 			t.line = newLine
 		}
 		t.line = t.line[:len(t.line)+1]
 		copy(t.line[t.pos+1:], t.line[t.pos:])
-		t.line[t.pos] = byte(key)
+		t.line[t.pos] = key
 		if t.echo {
 			t.writeLine(t.line[t.pos:])
 		}
@@ -419,7 +490,7 @@ func (t *Terminal) handleKey(key int) (line string, ok bool) {
 	return
 }
 
-func (t *Terminal) writeLine(line []byte) {
+func (t *Terminal) writeLine(line []rune) {
 	for len(line) != 0 {
 		remainingOnLine := t.termWidth - t.cursorX
 		todo := len(line)
@@ -471,7 +542,7 @@ func (t *Terminal) Write(buf []byte) (n int, err error) {
 		return
 	}
 
-	t.queue([]byte(t.prompt))
+	t.queue([]rune(t.prompt))
 	chars := len(t.prompt)
 	if t.echo {
 		t.queue(t.line)
@@ -518,7 +589,7 @@ func (t *Terminal) readLine() (line string, err error) {
 	// t.lock must be held at this point
 
 	if t.cursorX == 0 && t.cursorY == 0 {
-		t.writeLine([]byte(t.prompt))
+		t.writeLine([]rune(t.prompt))
 		t.c.Write(t.outBuf)
 		t.outBuf = t.outBuf[:0]
 	}
@@ -527,9 +598,9 @@ func (t *Terminal) readLine() (line string, err error) {
 		rest := t.remainder
 		lineOk := false
 		for !lineOk {
-			var key int
+			var key rune
 			key, rest = bytesToKey(rest)
-			if key < 0 {
+			if key == utf8.RuneError {
 				break
 			}
 			if key == keyCtrlD {

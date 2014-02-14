@@ -19,7 +19,6 @@ module.exports = ->
   <meta itemprop="image" content="#{uri.address}/a/images/koding_share_green.png">
 
   <!-- og meta tags -->
-  <meta property="fb:app_id" content="109012155844171" />
   <meta property="og:title" content="Koding - A new way for developers to work."/>
   <meta property="og:type" content="website"/>
   <meta property="og:url" content="https://koding.com"/>
