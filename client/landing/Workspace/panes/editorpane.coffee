@@ -25,21 +25,27 @@ class EditorPane extends Pane
       @ace.editor.setValue content  if content
 
   createEditorTabs: ->
-    @tabHandleContainer = new ApplicationTabHandleHolder
-      delegate      : this
-      addPlusHandle : no
+    @editors                  = {}
+    @tabHandleContainer       = new ApplicationTabHandleHolder
+      delegate                : this
+      addPlusHandle           : no
 
-    @tabView = new ApplicationTabView
-      delegate           : this
-      tabHandleContainer : @tabHandleContainer
+    @tabView                  = new ApplicationTabView
+      delegate                : this
+      tabHandleContainer      : @tabHandleContainer
+      removePaneOnTabChange   : no
 
-    for fileOptions in @files
-      file   = FSHelper.createFileFromPath fileOptions.path
-      pane   = new KDTabPaneView
-        name : file.name or "Untitled.txt"
+    @files.forEach (options) =>
+      {name, path, content}   = options
+      file                    = FSHelper.createFileFromPath path
+      pane                    = new KDTabPaneView
+        name                  : file.name or "Untitled.txt"
+        removePaneOnTabChange : no
 
-      pane.addSubView @createEditorInstance file
+      editor = @createEditorInstance file, content
+      pane.addSubView editor
       @tabView.addPane pane
+      @editors[name] = editor  if name
 
   getValue: ->
     return  @ace.editor.getSession().getValue()
