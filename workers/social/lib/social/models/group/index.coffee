@@ -1038,13 +1038,20 @@ module.exports = class JGroup extends Module
   approveMember:(member, roles, callback)->
     [callback, roles] = [roles, callback]  unless callback
     roles ?= ['member']
+
+    kallback = =>
+      callback()
+      @updateCounts()
+      @emit 'MemberAdded', member  if 'member' in roles
+
     queue = roles.map (role)=>=>
       @addMember member, role, queue.fin.bind queue
 
     dash queue, =>
-      callback()
-      @updateCounts()
-      @emit 'MemberAdded', member  if 'member' in roles
+      if @slug not in ["koding", "guests"]
+        @finalizeMemberApproval member, kallback
+      else
+        kallback()
 
   each:(selector, rest...)->
     selector.visibility = 'visible'
