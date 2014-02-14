@@ -92,7 +92,7 @@ createActivityContent = (JAccount, model, comments, createFullHTML=no, putBody=y
     JAccount.one sel, (err, acc) =>
       if err
         console.error err
-        callback err, null
+        return callback err, null
 
       # No need to return if acc is not found.
       # Write default values instead.
