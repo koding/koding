@@ -161,7 +161,7 @@ func fsWriteFileOld(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (
 	return fsWriteFile(params, vos)
 }
 
-func fsEnsureNonexistentPathOld(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
+func fsUniquePathOld(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
 	var params struct {
 		Path string
 	}
@@ -169,7 +169,7 @@ func fsEnsureNonexistentPathOld(args *dnode.Partial, channel *kite.Channel, vos 
 		return nil, &kite.ArgumentError{Expected: "{ path: [string] }"}
 	}
 
-	return fsEnsureNonexistentPath(params.Path, vos)
+	return fsUniquePath(params.Path, vos)
 }
 
 func fsGetInfoOld(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
@@ -285,7 +285,7 @@ type writeFileParams struct {
 }
 
 func fsWriteFile(params writeFileParams, vos *virt.VOS) (interface{}, error) {
-	newPath, err := vos.EnsureNonexistentPath(params.Path)
+	newPath, err := vos.UniquePath(params.Path)
 	if err != nil {
 		return nil, err
 	}
@@ -331,8 +331,8 @@ func fsWriteFile(params writeFileParams, vos *virt.VOS) (interface{}, error) {
 	return makeFileEntry(vos, params.Path, fi), nil
 }
 
-func fsEnsureNonexistentPath(path string, vos *virt.VOS) (interface{}, error) {
-	return vos.EnsureNonexistentPath(path)
+func fsUniquePath(path string, vos *virt.VOS) (interface{}, error) {
+	return vos.UniquePath(path)
 }
 
 func fsGetInfo(path string, vos *virt.VOS) (interface{}, error) {
@@ -411,7 +411,7 @@ func fsRemove(removePath string, recursive bool, vos *virt.VOS) (interface{}, er
 
 func fsRename(oldpath, newpath string, vos *virt.VOS) (interface{}, error) {
 	var err error
-	newpath, err = vos.EnsureNonexistentPath(newpath)
+	newpath, err = vos.UniquePath(newpath)
 	if err != nil {
 		return nil, err
 	}
@@ -420,13 +420,17 @@ func fsRename(oldpath, newpath string, vos *virt.VOS) (interface{}, error) {
 		return nil, err
 	}
 
-	return true, nil
+	fi, err := vos.Stat(newpath)
+	if err != nil {
+		return nil, err
+	}
+
+	return makeFileEntry(vos, newpath, fi), nil
 }
 
 func fsCreateDirectory(newPath string, recursive bool, vos *virt.VOS) (interface{}, error) {
-
 	var err error
-	newPath, err = vos.EnsureNonexistentPath(newPath)
+	newPath, err = vos.UniquePath(newPath)
 	if err != nil {
 		return nil, err
 	}

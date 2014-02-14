@@ -44,9 +44,9 @@ func (vos *VOS) IsWritable(info os.FileInfo) bool {
 
 var suffixRegexp = regexp.MustCompile(`.((_\d+)?)(\.\w*)?$`)
 
-// EnsureNonexistentPath returns a new path if the given path does exist. The
+// UniquePath returns a new path if the given path does exist. The
 // returned path is to be ensured to be not existent.
-func (vos *VOS) EnsureNonexistentPath(path string) (string, error) {
+func (vos *VOS) UniquePath(path string) (string, error) {
 	name := path
 	index := 1
 	for {
