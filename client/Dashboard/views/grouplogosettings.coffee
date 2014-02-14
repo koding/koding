@@ -47,9 +47,11 @@ class GroupLogoSettings extends KDView
       uploaderOptions :
         cssClass      : "group-logo-uploader"
         title         : "Drop your new logo here!"
+        title         : "Drop your 55x55 logo here!"
         size          :
           width       : 120
           height      : 80
+          height      : 120
 
     @uploader.on "UploadCancelled", @bound "revealViews"
     @uploader.on "FileUploadDone",  @bound "handleFileUploadDone"
