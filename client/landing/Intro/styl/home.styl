@@ -771,10 +771,33 @@ body.about #main-header
     &.home-pages
       margin-top          0
 
-  .koding-on-off, .kdselectbox
+  .kdselectbox
+  .koding-on-off
     abs()
     top                   20px
     right                 130px
+
+  .koding-on-off
+    &.preview-toggle
+      right               200px
+    span
+      font-size           11px
+      top                 2px
+      left                7px
+      position            relative
+
+  .kdselectbox
+    width                 90px
+    &.preview-select
+      right               230px
+
+  .select-label
+    font-size             11px
+    abs()
+    top                   50px
+    right                 260px
+    &.assign
+      right               160px
 
   .button-container
     text-align            right
@@ -783,8 +806,9 @@ body.about #main-header
     bg                    color, #1AAF5D
 
   .preview
-    bg                    color, #1AAF5D !important
-    size                  120px, 40px !important
+    &.green
+      bg                  color, #1AAF5D !important
+    size                  150px, 40px !important
     padding               0 !important
     rounded               30px !important
     span
