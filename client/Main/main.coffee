@@ -19,7 +19,6 @@ do ->
 
   status.on 'sessionTokenChanged', (token)->
     # this is disabled for now to test user log-out problem.
-    # KD.logToExternal "sessionTokenChanged event"
     # $.cookie 'clientId', token
 
   status.on 'connected', ->
