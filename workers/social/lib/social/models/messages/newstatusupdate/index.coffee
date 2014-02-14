@@ -200,10 +200,6 @@ module.exports = class JNewStatusUpdate extends JPost
       if err then return callback err
       unless group then return callback {error: "Group not found"}
 
-      # this is not a security hole
-      # everybody can read koding activity feed
-      return callback null, group if groupName is "koding"
-
       # if group is not koding check for security
       {delegate} = client.connection
       return callback {error: "Request not valid"} unless delegate
