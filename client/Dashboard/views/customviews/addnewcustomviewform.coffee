@@ -11,13 +11,25 @@ class AddNewCustomViewForm extends JView
       type        : "input"
       defaultValue: @getData()?.name or ""
 
-    editorValue   = if @getData()?.partial then Encoder.htmlDecode @getData().partial else ""
+    editorValues  = @encode @getData()?.partial
     @editor       = new EditorPane
       cssClass    : "editor-container"
-      content     : editorValue
       size        :
         width     : 876
         height    : 400
+      files       : [
+          path    : "localfile://index.html"
+          name    : "html"
+          content : editorValues.html
+        ,
+          path    : "localfile://main.css"
+          name    : "css"
+          content : editorValues.css
+        ,
+          path    : "localfile://main.js"
+          name    : "js"
+          content : editorValues.js
+      ]
 
     @cancelButton = new KDButtonView
       title       : "CANCEL"
@@ -31,22 +43,18 @@ class AddNewCustomViewForm extends JView
       cssClass    : "solid green"
       callback    : @bound "addNew"
 
-    @editor.on "viewAppended", =>
-      @editor.ace.on "ace.ready", =>
-        @editor.ace.setSyntax "html"
-
   addNew: ->
     isUpdate          = @getData()
     data              =
       name            : @input.getValue()
-      partial         : @editor.getValue()
+      partial         : @encode @editor.getValues()
       partialType     : @getOption "viewType"
+      # TODO: Update sets this options to default
       isActive        : no
       viewInstance    : ""
       isPreview       : no
       previewInstance : no
 
-    # TODO: fatihacet - DRY callbacks
     if isUpdate
       @getData().update data, (err, customPartial) =>
         return warn err  if err
@@ -55,6 +63,15 @@ class AddNewCustomViewForm extends JView
       KD.remote.api.JCustomPartials.create data, (err, customPartial) =>
         return warn err  if err
         @getDelegate().emit "NewViewAdded", customPartial
+
+  encode: (data) ->
+    encoded = {}
+    return encoded unless data
+
+    for key, value of data
+      encoded[key] = Encoder.htmlDecode value
+
+    return encoded
 
   pistachio: ->
     """
