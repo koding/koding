@@ -2,7 +2,10 @@ class PricingAppView extends KDView
 
   constructor:(options = {}, data) ->
     super options, data
-    @appStorage = KD.getSingleton('appStorageController').storage 'PaidRegistration', '1.0'
+    # CtF I know this does not belongs here, but the problem was for the partial registration
+    # there is an async situation of app storage operations caused by guest users/registered 
+    # members conversion
+    @appStorage = KD.getSingleton('appStorageController').storage 'Login', '1.0'
 
   createBreadcrumb: ->
     @addSubView @breadcrumb = new BreadcrumbView
@@ -115,9 +118,7 @@ class PricingAppView extends KDView
         <h3 class="pricing-title"><strong>#{group.title}</strong> has been successfully created</h3>
         """
 
-    @appStorage.fetchStorage (storage) =>
-      @appStorage.setValue "group", group.slug, (err) ->
-        warn "Failed to set group information"
+    KD.singleton("appManager").tell "Login", "setStorageData", "redirectTo", group.slug
 
     if loggedIn
       @thankYou.addSubView new KDButtonView
