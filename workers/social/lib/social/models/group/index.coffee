@@ -13,7 +13,7 @@ module.exports = class JGroup extends Module
   {permit}       = JPermissionSet
   KodingError    = require '../../error'
   Validators     = require './validators'
-  {throttle}     = require 'underscore'
+  {throttle, extend}     = require 'underscore'
 
   PERMISSION_EDIT_GROUPS = [
     {permission: 'edit groups'}
@@ -721,23 +721,21 @@ module.exports = class JGroup extends Module
   # fetchMyFollowees: permit 'list members'
   #   success:(client, options, callback)->
 
-  fetchHomepageView: ({section, account, bongoModels}, callback)->
+  fetchHomepageView: (options, callback)->
+    {account} = options
     @fetchMembershipPolicy (err, policy)=>
       if err then callback err
       else
-        options = {
-          account
+        homePageOptions = extend options {
           @slug
           @title
-          policy
           @avatar
           @body
           @counts
           @customize
-          bongoModels
         }
         prefix = if account.type is 'unregistered' then 'loggedOut' else 'loggedIn'
-        JGroup.render[prefix].groupHome options, callback
+        JGroup.render[prefix].groupHome homePageOptions, callback
 
   fetchRolesByClientId:(clientId, callback)->
     [callback, clientId] = [clientId, callback]  unless callback

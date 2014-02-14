@@ -85,7 +85,11 @@ module.exports = (options = {}, callback)->
   generateScript = ->
     selector =
       partialType : "HOME"
-      isActive    : true
+
+    if options.isCustomPreview
+      selector.isPreview = yes
+    else
+      selector.isActive  = yes
 
     bongoModels.JCustomPartials.one selector, (err, partial)->
       customPartial = partial.data  if not err and partial
