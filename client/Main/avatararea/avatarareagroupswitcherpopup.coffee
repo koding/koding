@@ -296,8 +296,14 @@ class PopupGroupListItem extends KDListItemView
   viewAppended: JView::viewAppended
 
   pistachio: ->
-    {group : {slug}} = @getData()
-    @groupLogo.setCss 'background', customize?.logo ? KD.utils.stringToColor slug
+    {group} = @getData()
+    {slug, customize} = group
+
+    if customize?.logo
+      @groupLogo.setCss 'background-image', "url(#{customize?.logo})"
+    else
+      @groupLogo.setCss 'background-color', KD.utils.stringToColor slug
+
     """
     {{> @groupLogo}}{{> @switchLink}}{{> @adminLink}}
     """
