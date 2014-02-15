@@ -271,12 +271,6 @@ class PopupGroupListItem extends KDListItemView
       cssClass    : "avatararea-group-name"
       href        : "/#{if slug is KD.defaultSlug then '' else slug+'/'}Activity"
       target      : slug
-      icon        :
-        cssClass  : 'new-page'
-        placement : 'right'
-        tooltip   :
-          title   : "Opens in a new browser window."
-          delayIn : 300
 
     @adminLink = if admin
       new CustomLinkView
