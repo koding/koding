@@ -29,22 +29,21 @@ class EditorPane extends Pane
     @ace      = @createEditorInstance file, content
 
   createEditorTabs: ->
-    @editors                  = {}
-    @tabHandleContainer       = new ApplicationTabHandleHolder
-      delegate                : this
-      addPlusHandle           : no
+    @editors              = {}
+    @tabHandleContainer   = new ApplicationTabHandleHolder
+      delegate            : this
+      addPlusHandle       : no
 
-    @tabView                  = new ApplicationTabView
-      delegate                : this
-      tabHandleContainer      : @tabHandleContainer
-      removePaneOnTabChange   : no
+    @tabView              = new ApplicationTabView
+      delegate            : this
+      tabHandleContainer  : @tabHandleContainer
+      detachPanes         : no
 
     @files.forEach (options) =>
-      {name, path, content}   = options
-      file                    = FSHelper.createFileFromPath path
-      pane                    = new KDTabPaneView
-        name                  : file.name or "Untitled.txt"
-        removePaneOnTabChange : no
+      {name, path, content} = options
+      file                  = FSHelper.createFileFromPath path
+      pane                  = new KDTabPaneView
+        name                : file.name or "Untitled.txt"
 
       editor = @createEditorInstance file, content
       pane.addSubView editor
