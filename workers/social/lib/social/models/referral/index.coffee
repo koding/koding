@@ -10,7 +10,7 @@ module.exports = class JReferral extends jraphical.Message
 
   {Relationship} = jraphical
 
-  {race, secure, dash, signature} = require 'bongo'
+  {race, secure, daisy, dash, signature} = require 'bongo'
 
   @share()
 
@@ -22,6 +22,9 @@ module.exports = class JReferral extends jraphical.Message
       type            : String
     amount            :
       type            : Number
+    sourceCampaign    :
+      type            : String
+      default         : "register"
     createdAt         :
       type            : Date
       default         : -> new Date
@@ -31,12 +34,6 @@ module.exports = class JReferral extends jraphical.Message
       static          :
         redeem:
           (signature Object, Function)
-        add1GBDisk:
-          (signature Function)
-        fetchTBCampaign:
-          (signature Function)
-        isCampaingValid:
-          (signature Function)
         resetVMDefaults:
           (signature Function)
         fetchRedeemableReferrals:
@@ -93,7 +90,8 @@ module.exports = class JReferral extends jraphical.Message
           usableReferralSize = limit - totalUsedReferalAmount
           # if user consumed their quota return an error
           # this is a special case for used up quota
-          return callback new KodingError "You have used your quota for referral system" if usableReferralSize <= 0
+          if usableReferralSize <= 0
+            return callback new KodingError "You have used your quota for referral system"
 
           # gather usable referrals
           usableReferrals = []
@@ -261,42 +259,75 @@ module.exports = class JReferral extends jraphical.Message
         return console.error err if err
         console.log "referal saved successfully for #{me.profile.nickname} from #{referrerCode}"
 
-    persistReferrals = (source, target, callback)->
-      getReferralDiskSizeAmount (err, amount)->
-        return callback err if err
-        referral = new JReferral { type: "disk", unit: "MB", amount}
-        referral.save (err) ->
-          return callback err if err
-          #add referrer as referrer to the referral system
+    persistReferrals = (campaign, source, target, callback)->
+      referral = null
+      queue = [
+        ->
+          referral = new JReferral
+            amount        : campaign?.campaignPerEventAmount or 256
+            type          : campaign.campaignType
+            unit          : campaign.campaignUnit
+            sourceCampaign: campaign.name
+
+          referral.save (err) ->
+            return callback err if err
+            queue.next()
+        ->
           source.addReferrer referral, (err)->
             return callback err if err
-            # add me as referred to the referral system
-            target.addReferred referral, (err)->
-              return callback err if err
-              console.info "referal saved successfully for #{target.profile.nickname} from #{source.profile.nickname}"
-              callback null
-
-              # do this async
-              decreaseLeftSpace amount, (err)->
-                return console.error err if err
+            queue.next()
+        ->
+          target.addReferred referral, (err)->
+            return callback err if err
+            console.info "referal saved successfully for #{target.profile.nickname} from #{source.profile.nickname}"
+            queue.next()
+        ->
+          campaign.increaseGivenAmountSpace (err)->
+            return console.error "Couldnt decrease the left space" if err
+            callback null
+      ]
+      daisy queue
 
     JUser.on 'EmailConfirmed', (user)->
       return console.log "User is not defined in event" unless user
-      isCampaingValid (err, status)->
-        return if err or not status
-        user.fetchOwnAccount (err, me)->
-          return console.error err if err
-          # if account not fonud then do nothing and return
-          return console.error "Account couldnt found" unless me
+
+      me       = null
+      referrer = null
+      campaign = null
+      queue = [
+        ->
+          JReferralCampaign = require "./campaign"
+          JReferralCampaign.isCampaignValid (err, valid, campaign_)->
+            return console.error err if err
+            if not valid
+              return console.info "Campaign is not valid, not giving any space"
+            campaign = campaign_
+            queue.next()
+        ->
+          user.fetchOwnAccount (err, myAccount)->
+            return console.error err if err
+            # if account not fonud then do nothing and return
+            return console.error "Account couldnt found" unless myAccount
+            me = myAccount
+            queue.next()
+        ->
           referrerUsername = me.referrerUsername
           return console.info "User doesn't have any referrer" unless referrerUsername
           # get referrer
-          JAccount.one {'profile.nickname': referrerUsername }, (err, referrer)->
+          JAccount.one {'profile.nickname': referrerUsername }, (err, referrer_)->
             # if error occured than do nothing and return
             return console.error "Error while fetching referrer", err if err
             # if referrer not fonud then do nothing and return
-            return console.error "Referrer couldnt found" if not referrer
-            persistReferrals referrer, me, (err)->
-              return console.error err if err
-              persistReferrals me, referrer, (err)->
-                return console.error err if err
+            return console.error "Referrer couldnt found" if not referrer_
+            referrer = referrer_
+            queue.next()
+        ->
+          persistReferrals campaign, referrer, me, (err)->
+            return console.error err if err
+            queue.next()
+        ->
+          persistReferrals campaign, me, referrer, (err)->
+            return console.error err if err
+            queue.next()
+      ]
+      daisy queue
