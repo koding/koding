@@ -831,7 +831,18 @@ module.exports = class JUser extends jraphical.Module
               account.update $set: { firstName, lastName }, (err) ->
                 return callback err  if err
 
-                callback null, { account, replacementToken }
+                client.connection.delegate = account
+
+                account.fetchGroups client, (err, groups) ->
+                  queue = groups.map ({group}) ->
+                    ->
+                      return queue.fin()  unless group
+                      return queue.fin()  if group.slug in ["koding", "guests"]
+                      group.finalizeMemberApproval account, ->
+                        queue.fin()
+
+                  dash queue, ->
+                    callback null, { account, replacementToken }
 
   @removeUnsubscription:({email}, callback)->
     JUnsubscribedMail = require '../unsubscribedmail'
