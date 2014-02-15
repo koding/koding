@@ -41,7 +41,7 @@ class ActivityController extends KDObject
                                 """
       overlay                 : yes
       cssClass                : "modalformline"
-      width                   : 500
+      width                   : 600
       height                  : "auto"
       tabs                    :
         forms                 :
@@ -104,9 +104,9 @@ class ActivityController extends KDObject
       button = modal.modalTabs.forms.BlockUser.buttons.blockUser
       if blockingTime > 0
         date = new Date (Date.now() + blockingTime)
-        button.setTitle "Block User to: #{date.toUTCString()}"
+        button.setTitle "Block until: #{date.toUTCString()}"
       else
-        button.setTitle "Block User"
+        button.setTitle "Block"
 
 
     calculateBlockingTime = (value)->
