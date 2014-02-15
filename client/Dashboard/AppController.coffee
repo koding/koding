@@ -2,8 +2,7 @@ class DashboardAppController extends AppController
 
   handler = (group, callback)->
     KD.getSingleton('groupsController').ready =>
-      KD.getSingleton('groupsController').changeGroup group, (err)=>
-        KD.singleton('appManager').open 'Dashboard', callback
+      KD.singleton('appManager').open 'Dashboard', callback
 
   KD.registerAppClass this,
     name         : "Dashboard"

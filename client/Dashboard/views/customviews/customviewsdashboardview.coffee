@@ -7,7 +7,6 @@ class CustomViewsDashboardView extends JView
     super options, data
 
     @addNewButton = new KDButtonView
-      icon        : yes
       iconOnly    : yes
       cssClass    : "add-new"
       callback    : => @addNew()
