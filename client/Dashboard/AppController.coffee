@@ -1,11 +1,11 @@
 class DashboardAppController extends AppController
 
   handler = (group, callback)->
-    KD.getSingleton('groupsController').ready =>
+    KD.getSingleton('groupsController').ready ->
       KD.singleton('appManager').open 'Dashboard', callback
 
   KD.registerAppClass this,
-    name         : "Dashboard"
+    name                           : "Dashboard"
     routes                         :
       "/:name?/Dashboard"          : null
       "/:name?/Dashboard/:section" : ({params : {section,name}})->
