@@ -116,9 +116,8 @@ class GroupsMembershipPolicyDetailView extends KDView
 
   pistachio:->
     """
-    <div class="policy-overlay">
-      <div><p><span class="icon"></span>Coming Soon</p></div>
-    </div>
+    <div class="policy-overlay"></div>
+    <p class="coming-soon"><span class="icon"></span>Coming Soon</p>
     {{> @enableAccessRequests}}
     <section class="formline">
       <h2>Users may request access</h2>

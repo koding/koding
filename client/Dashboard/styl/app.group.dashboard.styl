@@ -22,6 +22,8 @@ Dashboard main styles
   .list-group-title
     hidden()
 
+  .kdformview .button-field
+    bg                    color transparent
 
 //////////////////////////////////////
 //                                  //
@@ -467,28 +469,27 @@ Dashboard Membership Policy styles
     size                  100%, 100vh
     position              fixed
     top                   58px
-    margin-left           -34px
+    margin-left           -31px
     z-index               10
     bg                    color, rgba(0,0,0,.05)
-    div
-      size                460px, 128px
-      rounded             6px
-      top                 50%
-      left                50%
-      margin              -64px 0 0 -460px
-      abs()
-      p
-        font-size         30px
-        color             #1aaf5d
-        line-height       128px
-        text-align        center
-        background-color  rgba(255,255,255,.75)
-        .icon
-          r-sprite        "dashboard", "coming-soon"
-          display         inline-block
-          margin-right    22px
-          position        relative
-          top             4px
+  p.coming-soon
+    size              460px, 128px
+    rounded           6px
+    top               55px
+    left              50%
+    margin            0 0 0 -230px
+    font-size         30px
+    color             #1aaf5d
+    line-height       128px
+    text-align        center
+    background-color  rgba(255,255,255,.75)
+    abs()
+    .icon
+      r-sprite        "dashboard", "coming-soon"
+      display         inline-block
+      margin-right    22px
+      position        relative
+      top             4px
 
   .policy-language-image-wrapper
     fr()
@@ -1008,7 +1009,7 @@ Dashboard Invitations Modal Styles
       gradient              rgba(228, 228, 228, .8) #e4e4e4
       size                  876px, 33px
       top                   0
-      padding               167px 0 30px
+      padding               77px 0 30px
 
       .header-item
         text-align          center !important
@@ -1065,16 +1066,21 @@ Dashboard Invitations Modal Styles
             vertical-align  middle
 
       .permissions-module
-        // background          linear-gradient(top, #555 0%,#666 93.7%)
-        color               #444
-        font-weight         bold
-        padding-top         25px !important
+        color               white
+        bg                  color logoBg
+        padding             0 10px !important
+        font-size           16px
 
         &:nth-child(2) // Header is first, first subgroup is 2
           padding-top       0
 
-        .input-wrapper
+        .input-wrapper:first-child
           text-align        left
+          overflow          visible
+          > .kdview
+            line-height     40px
+            overflow        visible
+            padding         0 6px!important
 
   .vocabulary > .kdview
     padding                 0 20px
