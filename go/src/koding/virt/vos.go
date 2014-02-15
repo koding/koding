@@ -284,22 +284,9 @@ func (vos *VOS) Copy(src, dst string) error {
 
 	// deny these cases:
 	// "/home/arslan/Web" to "/home/arslan"
-	// "/home/arslan/"    to "/home/arslan"
+	// "/home/arslan"    to "/home/arslan"
 	if src == dst || filepath.Dir(src) == dst {
 		return fmt.Errorf("%s and %s are identical (not copied).", src, dst)
-	}
-
-	// get vos paths
-	srcVosPath, err := vos.inVosPath(src, false, false)
-	if err != nil {
-		fmt.Println("error 1", err)
-		return errors.New("copy error [1]")
-	}
-
-	dstVosPath, err := vos.inVosPath(dst, false, false)
-	if err != nil {
-		fmt.Println("error 2", err)
-		return errors.New("copy error [2]")
 	}
 
 	if srcInfo.IsDir && dstInfo.Exists {
@@ -314,6 +301,19 @@ func (vos *VOS) Copy(src, dst string) error {
 		if strings.HasPrefix(dst, src) {
 			return errors.New("cycle detected")
 		}
+	}
+
+	// get vos paths
+	srcVosPath, err := vos.inVosPath(src, false, false)
+	if err != nil {
+		fmt.Println("error 1", err)
+		return errors.New("copy error [1]")
+	}
+
+	dstVosPath, err := vos.inVosPath(dst, false, false)
+	if err != nil {
+		fmt.Println("error 2", err)
+		return errors.New("copy error [2]")
 	}
 
 	srcBase, _ := filepath.Split(src)
