@@ -10,7 +10,7 @@ class DashboardAppController extends AppController
       "/:name?/Dashboard"          : ({params : {section,name}})->
         handler name, (app)-> app.loadSection title : "Settings"
       "/:name?/Dashboard/:section" : ({params : {section,name}})->
-        handler name, (app)-> app.loadSection title : section
+        handler name, (app)-> app.loadSection title : decodeURIComponent section
     hiddenHandle : yes
 
   constructor: (options = {}, data) ->
