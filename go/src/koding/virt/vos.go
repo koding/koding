@@ -243,30 +243,44 @@ func (vos *VOS) Exists(file string) (bool, error) {
 
 // CopyFile copies the file from src to dst.
 func (vos *VOS) Copy(src, dst string) error {
-	if dst == "." {
-		dst = filepath.Base(src)
-	}
-
-	if src == dst {
-		return fmt.Errorf("%s and %s are identical (not copied).", src, dst)
-	}
-
+	// if the given path doesn't exist, there is nothing to be copied.
 	if ok, err := vos.Exists(src); !ok || err != nil {
 		return fmt.Errorf("%s: no such file or directory.", src)
 	}
 
-	// if vos.Exists(dst) && vos.IsFile(dst) {
-	// 	return fmt.Errorf("%s is a directory (not copied).", src)
-	// }
+	if !filepath.IsAbs(dst) || !filepath.IsAbs(src) {
+		return errors.New("The given paths should be absoule. Relative paths is not allowed.")
+	}
 
+	// cleanup paths before we continue. That means the followings will be equal:
+	// "./arslan" == "arslan"
+	// "arslan/" == "arslan"
+	// "./arslan/" == "arslan/."
+	src = filepath.Clean(src)
+	dst = filepath.Clean(dst)
+
+	// get vos paths
 	srcVosPath, err := vos.inVosPath(src, false, false)
 	if err != nil {
-		return nil
+		return err
 	}
 
 	dstVosPath, err := vos.inVosPath(dst, true, false)
 	if err != nil {
-		return nil
+		return err
+	}
+
+	if ok, err := vos.Exists(dst); !ok || err != nil {
+		return errors.New("Destination folder should exist for folder copying.")
+	}
+
+	fmt.Println("srcVosPath, src", srcVosPath, src)
+	fmt.Println("dstVostPath, dst", dstVosPath, dst)
+	fmt.Println("____________")
+
+	// return if the paths are identical
+	if srcVosPath == dstVosPath {
+		return fmt.Errorf("%s and %s are identical (not copied).", src, dst)
 	}
 
 	srcBase, _ := filepath.Split(srcVosPath)
@@ -314,7 +328,7 @@ func (vos *VOS) Copy(src, dst string) error {
 
 // CopyFile copies the file from src to dst.
 func (vos *VOS) CopyFile(src, dst string) error {
-	sf, err := vos.Open(src)
+	sf, err := os.Open(src)
 	if err != nil {
 		return err
 	}
@@ -329,7 +343,7 @@ func (vos *VOS) CopyFile(src, dst string) error {
 		return errors.New("src is a directory, please provide a file")
 	}
 
-	df, err := vos.OpenFile(dst, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, fi.Mode())
+	df, err := os.OpenFile(dst, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, fi.Mode())
 	if err != nil {
 		return err
 	}
