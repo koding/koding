@@ -462,15 +462,16 @@ Dashboard Membership Policy styles
         margin-left       20px
         display           inline-block
         hidden()
+
   .policy-overlay
     size                  100%, 100vh
     position              fixed
     top                   58px
     margin-left           -34px
-    z-index               10000
+    z-index               10
+    bg                    color, rgba(0,0,0,.05)
     div
       size                460px, 128px
-      bg                  color, #E4E4E4
       rounded             6px
       top                 50%
       left                50%
@@ -481,7 +482,7 @@ Dashboard Membership Policy styles
         color             #1aaf5d
         line-height       128px
         text-align        center
-        background-color  #fff
+        background-color  rgba(255,255,255,.75)
         .icon
           r-sprite        "dashboard", "coming-soon"
           display         inline-block
