@@ -248,7 +248,7 @@ module.exports = class JGroup extends Module
           'visible'
           'hidden'
         ]]
-      parent        : ObjectRef
+      # parent        : ObjectRef
       counts        :
         members     : Number
       customize     :
