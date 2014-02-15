@@ -217,7 +217,6 @@ class PricingAppView extends KDView
 
     options      =
       title      : groupName
-      body       : groupName
       slug       : slug
       visibility : visibility
 
