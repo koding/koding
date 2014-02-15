@@ -12,24 +12,29 @@ class AddNewCustomViewForm extends JView
       defaultValue: @getData()?.name or ""
 
     editorValues  = @encode @getData()?.partial
+
+    files         = [
+        path      : "localfile://index.html"
+        name      : "html"
+        content   : editorValues.html
+      ,
+        path      : "localfile://main.css"
+        name      : "css"
+        content   : editorValues.css
+      ,
+        path      : "localfile://main.js"
+        name      : "js"
+        content   : editorValues.js
+    ]
+
+    files.splice 0, 1  if @getOptions().viewType is "WIDGET"
+
     @editor       = new EditorPane
       cssClass    : "editor-container"
       size        :
         width     : 876
         height    : 400
-      files       : [
-          path    : "localfile://index.html"
-          name    : "html"
-          content : editorValues.html
-        ,
-          path    : "localfile://main.css"
-          name    : "css"
-          content : editorValues.css
-        ,
-          path    : "localfile://main.js"
-          name    : "js"
-          content : editorValues.js
-      ]
+      files       : files
 
     @cancelButton = new KDButtonView
       title       : "CANCEL"
