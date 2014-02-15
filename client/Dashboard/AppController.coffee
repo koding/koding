@@ -5,8 +5,8 @@ class DashboardAppController extends AppController
       KD.singleton('appManager').open 'Dashboard', callback
 
   KD.registerAppClass this,
-    name         : "Dashboard"
-    routes       :
+    name                           : "Dashboard"
+    routes                         :
       "/:name?/Dashboard"          : null
       "/:name?/Dashboard/:section" : ({params : {section,name}})->
         handler name, (app)-> app.loadSection title : section

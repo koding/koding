@@ -11,7 +11,7 @@ module.exports = class JCustomPartials extends Model
     schema            :
       name            : String
       partialType     : String
-      partial         : String
+      partial         : Object
       isActive        : Boolean
       isPreview       : Boolean
       previewInstance : String

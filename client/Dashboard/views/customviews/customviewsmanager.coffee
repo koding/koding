@@ -14,7 +14,7 @@ class CustomViewsManager extends JView
       callback     : @bound "togglePreview"
 
     if $.cookie cookieName
-      @previewButton.setTitle "CANCEL PREVIEW"
+      @previewButton.setTitle   "CANCEL PREVIEW"
       @previewButton.unsetClass "green"
 
     @homePages  = new CustomViewsDashboardView
