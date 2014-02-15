@@ -4,9 +4,11 @@ package virt
 
 import (
 	"errors"
+	"fmt"
 	"io"
 	"os"
 	"path"
+	"path/filepath"
 	"regexp"
 	"strconv"
 	"strings"
@@ -135,6 +137,26 @@ func (vos *VOS) ensureWritable(name string) error {
 	return nil
 }
 
+// inVosPath returns a modified and secure path for the given name argument.
+func (vos *VOS) inVosPath(name string, writeAccess, followLastSymlink bool) (string, error) {
+	vmRoot := vos.VM.File("rootfs")
+	vmPath, err := vos.resolve(name, followLastSymlink)
+	if err != nil {
+		return "", err
+	}
+	vosPath := vmRoot + vmPath
+
+	if !writeAccess {
+		return vosPath, nil // don't check
+	}
+
+	if err := vos.ensureWritable(vosPath); err != nil {
+		return "", err
+	}
+
+	return vosPath, nil
+}
+
 func (vos *VOS) inVosContext(name string, writeAccess, followLastSymlink bool, f func(name string) error) error {
 	vmRoot := vos.VM.File("rootfs")
 	vmPath, err := vos.resolve(name, followLastSymlink)
@@ -217,6 +239,77 @@ func (vos *VOS) Exists(file string) (bool, error) {
 	}
 
 	return false, err
+}
+
+// CopyFile copies the file from src to dst.
+func (vos *VOS) Copy(src, dst string) error {
+	if dst == "." {
+		dst = filepath.Base(src)
+	}
+
+	if src == dst {
+		return fmt.Errorf("%s and %s are identical (not copied).", src, dst)
+	}
+
+	if ok, err := vos.Exists(src); !ok || err != nil {
+		return fmt.Errorf("%s: no such file or directory.", src)
+	}
+
+	// if vos.Exists(dst) && vos.IsFile(dst) {
+	// 	return fmt.Errorf("%s is a directory (not copied).", src)
+	// }
+
+	srcVosPath, err := vos.inVosPath(src, false, false)
+	if err != nil {
+		return nil
+	}
+
+	dstVosPath, err := vos.inVosPath(dst, true, false)
+	if err != nil {
+		return nil
+	}
+
+	srcBase, _ := filepath.Split(srcVosPath)
+	walks := 0
+
+	// dstPath returns the rewritten destination path for the given source path
+	dstPath := func(srcPath string) string {
+		srcPath = strings.TrimPrefix(srcPath, srcBase)
+
+		// foo/example/hello.txt -> bar/example/hello.txt
+		if walks != 0 {
+			return filepath.Join(dstVosPath, srcPath)
+		}
+
+		// hello.txt -> example/hello.txt
+		// if vos.Exists(dst) && !IsFile(dst) {
+		// 	return filepath.Join(dst, filepath.Base(srcPath))
+		// }
+
+		// hello.txt -> test.txt
+		return dstVosPath
+	}
+
+	filepath.Walk(srcVosPath, func(srcPath string, file os.FileInfo, err error) error {
+		defer func() { walks++ }()
+
+		if file.IsDir() {
+			fmt.Println("Dir  ", dstPath(srcPath))
+			// vos.MkdirAll(dstPath(srcPath), 0755)
+		} else {
+			fmt.Printf("From:\t%s\nto:\t%s\n", srcPath, dstPath(srcPath))
+			// err = vos.CopyFile(srcPath, dstPath(srcPath))
+			// if err != nil {
+			// 	fmt.Println(err)
+			// }
+		}
+
+		return nil
+	})
+
+	fmt.Println("-----")
+
+	return nil
 }
 
 // CopyFile copies the file from src to dst.
