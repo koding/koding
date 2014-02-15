@@ -103,9 +103,20 @@ class GroupDescription extends KDView
 
       @innerContaner = new KDCustomHTMLView cssClass : "right-block-box"
 
+      hasBody = group.body.trim() isnt ""
+      isAdmin = "admin" in KD.config.roles
+
+      edit = new CustomLinkView
+        title    : "Group settings"
+        cssClass : if isAdmin then "show-all-link" else "show-all-link hidden"
+        click    : (event)->
+          KD.utils.stopDOMEvent event
+          KD.singletons.router.handleRoute "/Dashboard"  if isAdmin
+
       @titleView = new KDCustomHTMLView
-        tagName   : "h3"
-        pistachio : "{{ #(title)}}"
+        tagName         : "h3"
+        pistachioParams : { edit }
+        pistachio       : "{{ #(title)}} {{> edit}}"
       , group
 
       @bodyView = new KDCustomHTMLView
@@ -115,20 +126,12 @@ class GroupDescription extends KDView
       , group
 
 
-
       @innerContaner.addSubView @titleView
       @innerContaner.addSubView @bodyView
       @addSubView @innerContaner
 
       if "admin" in KD.config.roles
-        hasBody = group.body.trim() isnt ""
         @bodyView.setPartial "You can have a short description for your group here"  unless hasBody
-        @bodyView.setPartial " - "
-        @bodyView.addSubView new CustomLinkView
-          title    : if hasBody then "edit" else "Add a description"
-          click    : (event)->
-            KD.utils.stopDOMEvent event
-            KD.singletons.router.handleRoute "/Dashboard"
 
 
 class GroupMembers extends ActivityRightBase
