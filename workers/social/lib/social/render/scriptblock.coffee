@@ -96,8 +96,6 @@ module.exports = (options = {}, callback)->
 
     bongoModels.JCustomPartials.one selector, (err, partial)->
       customPartial = partial.data  if not err and partial
-      html = createHTML()
-      return callback null, html
 
       bongoModels.JGroup.one {slug : slug or 'koding'}, (err, group) ->
         console.log err if err
