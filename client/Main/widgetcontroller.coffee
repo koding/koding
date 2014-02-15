@@ -65,6 +65,6 @@ class WidgetController extends KDObject
 
     tag           = document.createElement "style"
     tag.id        = domId
-    tag.innerHTML = css
+    tag.innerHTML = Encoder.htmlDecode css
 
     document.head.appendChild tag
