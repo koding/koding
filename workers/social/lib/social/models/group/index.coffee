@@ -1546,8 +1546,8 @@ module.exports = class JGroup extends Module
     daisy queue = [
       =>
         @fetchSubscription (err, sub) =>
-          console.warn "Error when fetching group's subscription: #{err}"  if err
-          console.warn "Group #{@slug}'s subscription is not found"  unless subscription
+          return callback new KodingError "Error when fetching group's subscription: #{err}"  if err
+          return callback new KodingError "Group #{@slug}'s subscription is not found"  unless sub
           subscription = sub
           queue.next()
     , =>
