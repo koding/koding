@@ -20,6 +20,9 @@ class GroupMembersPageListItemView extends MembersListItemView
           following    :
             title      : "unfollow"
             cssClass   : "solid red medium"
+          follow       :
+            title      : "follow"
+            cssClass   : "solid green medium"
         dataType       : 'JAccount'
       , data
 
