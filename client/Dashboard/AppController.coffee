@@ -87,6 +87,13 @@ class DashboardAppController extends AppController
             viewOptions  :
               viewClass  : CustomViewsManager
               lazy       : yes
+          ,
+            name         : 'Administration'
+            hiddenHandle : no
+            kodingOnly   : yes # this is only intended for koding group, we assume koding group is super-group
+            viewOptions  :
+              viewClass  : AdministrationView
+              lazy       : yes
 
       # CURRENTLY DISABLED
 

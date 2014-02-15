@@ -15,6 +15,7 @@ module.exports = [
   "controllers/productscontroller.coffee",
   "controllers/invitationrequestlistcontroller.coffee",
   # views:
+  "views/administrationview.coffee",
   "views/generalsettingsview.coffee",
   "views/productsettingsview.coffee",
   "views/productsectionview.coffee",
