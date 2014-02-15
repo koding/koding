@@ -27,11 +27,11 @@ class MembersAppController extends AppController
   createFeed:(view, loadFeed = no)->
     @appManager.tell 'Feeder', 'createContentFeedController', {
       feedId                : 'members.main'
-      itemClass             : MembersListItemView
+      itemClass             : GroupMembersPageListItemView
       listControllerClass   : MembersListViewController
       useHeaderNav          : yes
       noItemFoundText       : "There is no member."
-      limitPerPage          : 10
+      limitPerPage          : 20
       delegate              : this
       help                  :
         subtitle            : "Learn About Members"
@@ -41,7 +41,7 @@ class MembersAppController extends AppController
           placement         : "above"
       filter                :
         everything          :
-          title             : "All members <span class='member-numbers-all'></span>"
+          title             : ""
           optional_title    : if @_searchValue then "<span class='optional_title'></span>" else null
           dataSource        : (selector, options, callback)=>
             {JAccount} = KD.remote.api
@@ -50,7 +50,7 @@ class MembersAppController extends AppController
               JAccount.byRelevance @_searchValue, options, callback
             else
               group = KD.getSingleton('groupsController').getCurrentGroup()
-              group.fetchMembersFromGraph options, (err, res)=>
+              group.fetchMembers selector, options, (err, res)=>
                 callback err, res
 
               group.countMembers (err, count) =>

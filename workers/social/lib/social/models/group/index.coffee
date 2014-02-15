@@ -490,9 +490,7 @@ module.exports = class JGroup extends Module
           return callback err if err
           group.addSubscription subscription, (err) ->
             return callback err  if err
-            subscription.debitPack tags: "user", (err) =>
-              return callback err  if err
-              callback null, group, subscription
+            callback null, group, subscription
 
   creditUserPack: (delegate, callback) ->
     subOptions = targetOptions: selector: tags: "custom-plan"
@@ -1548,8 +1546,8 @@ module.exports = class JGroup extends Module
     daisy queue = [
       =>
         @fetchSubscription (err, sub) =>
-          console.warn "Error when fetching group's subscription: #{err}"  if err
-          console.warn "Group #{@slug}'s subscription is not found"  unless subscription
+          return callback new KodingError "Error when fetching group's subscription: #{err}"  if err
+          return callback new KodingError "Group #{@slug}'s subscription is not found"  unless sub
           subscription = sub
           queue.next()
     , =>
