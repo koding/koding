@@ -233,31 +233,6 @@ module.exports = class JReferral extends jraphical.Message
 
     dash queue, kallback
 
-  @checkFor1GBStatus = (delegate, callback)->
-    delegate.fetchReferrers (err, referrers)=>
-      return callback err  if err
-      for ref in referrers
-        {type, unit, amount} = ref
-        return callback null, yes  if type is "disk" and unit is "MB" and amount is CAMPAIGN_DISK_SIZE_IN_MB
-      callback err, no
-
-  @add1GBDisk = secure (client, callback)->
-    {delegate} = client.connection
-    @checkFor1GBStatus delegate, (err, used) =>
-      return callback new Error "An error occured while trying to add your 1GB please try again" if err
-      if used
-        err = new Error "You have already redeemed your 1GB extra storage"
-        err.code = 600
-        return callback err
-
-      referral = new JReferral { type: "disk", unit: "MB", amount: CAMPAIGN_DISK_SIZE_IN_MB }
-      referral.save (err) ->
-        return callback err if err
-        #add referrer as referrer to the referral system
-        delegate.addReferrer referral, (err)->
-          return callback err if err
-          return callback null, yes
-
   @fetchUserVM = (client, vmName, callback)->
     account = client.connection.delegate
 
