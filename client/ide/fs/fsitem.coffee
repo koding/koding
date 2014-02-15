@@ -81,8 +81,7 @@ class FSItem extends KDObject
 
   @move:(sourceItem, targetItem, callback)->
     
-    newName = FSHelper.plainPath "#{ targetItem.
-     }/#{ sourceItem.name }"
+    newName = FSHelper.plainPath "#{ targetItem.path }/#{ sourceItem.name }"
     sourceItem.rename path: newName, callback
 
   @compress:(file, type, callback)->
