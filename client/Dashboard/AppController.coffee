@@ -45,7 +45,6 @@ class DashboardAppController extends AppController
           lazy       : yes
       ,
         name         : 'Membership policy'
-        hiddenHandle : @getData().privacy is 'public'
         viewOptions  :
           viewClass  : GroupsMembershipPolicyDetailView
           lazy       : yes
@@ -67,29 +66,25 @@ class DashboardAppController extends AppController
               lazy       : yes
               callback   : @bound 'productViewAdded'
           ,
-            name         : 'Blocked Users'
-            hiddenHandle : @getData().privacy is 'public'
+            name         : 'Blocked users'
             kodingOnly   : yes # this is only intended for koding group, we assume koding group is super-group
             viewOptions  :
               viewClass  : GroupsBlockedUserView
               lazy       : yes
           ,
             name         : 'Badges'
-            hiddenHandle : @getData().privacy is 'public'
             kodingOnly   : yes # this is only intended for koding group, we assume koding group is super-group
             viewOptions  :
               viewClass  : BadgeDashboardView
               lazy       : yes
           ,
-            name         : 'CustomPartials'
-            hiddenHandle : @getData().privacy is 'public'
+            name         : 'Widgets'
             kodingOnly   : yes # this is only intended for koding group, we assume koding group is super-group
             viewOptions  :
               viewClass  : CustomViewsManager
               lazy       : yes
           ,
             name         : 'Administration'
-            hiddenHandle : no
             kodingOnly   : yes # this is only intended for koding group, we assume koding group is super-group
             viewOptions  :
               viewClass  : AdministrationView
