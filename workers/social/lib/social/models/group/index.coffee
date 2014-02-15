@@ -490,9 +490,7 @@ module.exports = class JGroup extends Module
           return callback err if err
           group.addSubscription subscription, (err) ->
             return callback err  if err
-            subscription.debitPack tags: "user", (err) =>
-              return callback err  if err
-              callback null, group, subscription
+            callback null, group, subscription
 
   creditUserPack: (delegate, callback) ->
     subOptions = targetOptions: selector: tags: "custom-plan"
