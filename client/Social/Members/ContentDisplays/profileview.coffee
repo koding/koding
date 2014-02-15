@@ -354,7 +354,7 @@ class ProfileView extends JView
       input.setEditingMode yes
       input.focus()
 
-    if @memberData is KD.whoami().getId()
+    if @memberData.getId() is KD.whoami().getId()
       @firstName.on "NextTabStop",     => focus @lastName
       @firstName.on "PreviousTabStop", => focus @bio
       @lastName.on "NextTabStop",      => focus @bio
