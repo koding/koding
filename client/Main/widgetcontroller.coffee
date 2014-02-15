@@ -49,6 +49,22 @@ class WidgetController extends KDObject
 
       if view and key and widgetData and hasPlaceholder
         try
-          view.addSubView eval Encoder.htmlDecode widgetData.partial
+          {css, js}  = widgetData.partial
+          @evalJS    view, js  if js
+          @appendCSS css, key  if css
         catch
           warn "#{key} widget failed to load"
+
+  evalJS: (view, js) ->
+    view.addSubView eval Encoder.htmlDecode js
+
+  appendCSS: (css, key) ->
+    domId         = "#{key}WidgetStyle"
+    oldElement    = document.getElementById domId
+    document.head.removeChild oldElement  if oldElement
+
+    tag           = document.createElement "style"
+    tag.id        = domId
+    tag.innerHTML = css
+
+    document.head.appendChild tag

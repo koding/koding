@@ -11,13 +11,11 @@ class CustomViewItem extends JView
   creteElements: ->
     @deleteButton = new KDButtonView
       cssClass    : "delete"
-      icon        : yes
       iconOnly    : yes
       callback    : @bound "delete"
 
     @editButton   = new KDButtonView
       cssClass    : "edit"
-      icon        : yes
       iconOnly    : yes
       callback    : @bound "edit"
 
