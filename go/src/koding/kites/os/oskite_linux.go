@@ -145,6 +145,7 @@ func main() {
 	registerMethod(k, "fs.rename", false, fsRenameOld)
 	registerMethod(k, "fs.createDirectory", false, fsCreateDirectoryOld)
 	registerMethod(k, "fs.move", false, fsMoveOld)
+	registerMethod(k, "fs.copy", false, fsCopyOld)
 
 	registerMethod(k, "app.install", false, appInstallOld)
 	registerMethod(k, "app.download", false, appDownloadOld)
@@ -194,6 +195,7 @@ func runNewKite() {
 	vosMethod(k, "fs.rename", fsRenameNew)
 	vosMethod(k, "fs.createDirectory", fsCreateDirectoryNew)
 	vosMethod(k, "fs.move", fsMoveNew)
+	vosMethod(k, "fs.copy", fsCopyNew)
 
 	vosMethod(k, "app.install", appInstallNew)
 	vosMethod(k, "app.download", appDownloadNew)

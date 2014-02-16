@@ -2,7 +2,6 @@ package virt
 
 import (
 	"fmt"
-	"io"
 	"io/ioutil"
 	"koding/db/models"
 	"net"
@@ -600,35 +599,6 @@ func chown(p string, uid, gid int) {
 	if err := os.Chown(p, uid, gid); err != nil {
 		panic(err)
 	}
-}
-
-func copyFile(src, dst string, id int) error {
-	sf, err := os.Open(src)
-	if err != nil {
-		return err
-	}
-	defer sf.Close()
-
-	fi, err := sf.Stat()
-	if err != nil {
-		return err
-	}
-
-	df, err := os.OpenFile(dst, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, fi.Mode())
-	if err != nil {
-		return err
-	}
-	defer df.Close()
-
-	if _, err := io.Copy(df, sf); err != nil {
-		return err
-	}
-
-	if err := df.Chown(id, id); err != nil {
-		return err
-	}
-
-	return nil
 }
 
 // the following two functions are used to track how long it takes a function to

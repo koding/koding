@@ -341,6 +341,19 @@ func fsMoveNew(r *kitelib.Request, vos *virt.VOS) (interface{}, error) {
 	return fsMove(params.OldPath, params.NewPath, vos)
 }
 
+func fsCopyNew(r *kitelib.Request, vos *virt.VOS) (interface{}, error) {
+	var params struct {
+		SrcPath string
+		DstPath string
+	}
+
+	if r.Args.One().Unmarshal(&params) != nil || params.SrcPath == "" || params.DstPath == "" {
+		return nil, &kite.ArgumentError{Expected: "{ srcPath: [string], dstPath: [string] }"}
+	}
+
+	return fsCopy(params.SrcPath, params.DstPath, vos)
+}
+
 // APP METHODS
 func appInstallNew(r *kitelib.Request, vos *virt.VOS) (interface{}, error) {
 	var params appParams

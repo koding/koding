@@ -4,9 +4,11 @@ package virt
 
 import (
 	"errors"
+	"fmt"
 	"io"
 	"os"
 	"path"
+	"path/filepath"
 	"regexp"
 	"strconv"
 	"strings"
@@ -135,6 +137,26 @@ func (vos *VOS) ensureWritable(name string) error {
 	return nil
 }
 
+// inVosPath returns a modified and secure path for the given name argument.
+func (vos *VOS) inVosPath(name string, writeAccess, followLastSymlink bool) (string, error) {
+	vmRoot := vos.VM.File("rootfs")
+	vmPath, err := vos.resolve(name, followLastSymlink)
+	if err != nil {
+		return "", err
+	}
+	vosPath := vmRoot + vmPath
+
+	if !writeAccess {
+		return vosPath, nil // don't check
+	}
+
+	if err := vos.ensureWritable(vosPath); err != nil {
+		return "", err
+	}
+
+	return vosPath, nil
+}
+
 func (vos *VOS) inVosContext(name string, writeAccess, followLastSymlink bool, f func(name string) error) error {
 	vmRoot := vos.VM.File("rootfs")
 	vmPath, err := vos.resolve(name, followLastSymlink)
@@ -219,9 +241,126 @@ func (vos *VOS) Exists(file string) (bool, error) {
 	return false, err
 }
 
+func (vos *VOS) Vosinfo(file string) *info {
+	fi, err := vos.Stat(file)
+	if err == nil {
+		return &info{
+			IsDir:  fi.IsDir(),
+			Exists: true,
+		}
+	}
+
+	if os.IsNotExist(err) {
+		return &info{
+			IsDir:  false, // don't care
+			Exists: false,
+		}
+	}
+
+	return nil
+}
+
+type info struct {
+	Exists bool
+	IsDir  bool
+}
+
 // CopyFile copies the file from src to dst.
-func (vos *VOS) CopyFile(src, dst string) error {
-	sf, err := vos.Open(src)
+func (vos *VOS) Copy(src, dst string) error {
+	srcInfo, dstInfo := vos.Vosinfo(src), vos.Vosinfo(dst)
+
+	// if the given path doesn't exist, there is nothing to be copied.
+	if !srcInfo.Exists {
+		return fmt.Errorf("%s: no such file or directory.", src)
+	}
+
+	if !filepath.IsAbs(dst) || !filepath.IsAbs(src) {
+		return errors.New("paths must be absolute.")
+	}
+
+	// cleanup paths before we continue. That means the followings will be equal:
+	// "/home/arslan/" and "/home/arslan"
+	src, dst = filepath.Clean(src), filepath.Clean(dst)
+
+	// deny these cases:
+	// "/home/arslan/Web" to "/home/arslan"
+	// "/home/arslan"    to "/home/arslan"
+	if src == dst || filepath.Dir(src) == dst {
+		return fmt.Errorf("%s and %s are identical (not copied).", src, dst)
+	}
+
+	if srcInfo.IsDir && dstInfo.Exists {
+		// deny this case:
+		// "/home/arslan/Web" to "/home/arslan/server.go"
+		if !dstInfo.IsDir {
+			return errors.New("can't copy a folder to a file")
+		}
+
+		// deny this case:
+		// "/home/arslan" to "/home/arslan/Web"
+		if strings.HasPrefix(dst, src) {
+			return errors.New("cycle detected")
+		}
+	}
+
+	// get vos paths
+	srcVosPath, err := vos.inVosPath(src, false, false)
+	if err != nil {
+		fmt.Println("error 1", err)
+		return errors.New("copy error [1]")
+	}
+
+	dstVosPath, err := vos.inVosPath(dst, false, false)
+	if err != nil {
+		fmt.Println("error 2", err)
+		return errors.New("copy error [2]")
+	}
+
+	srcBase, _ := filepath.Split(src)
+	walks := 0
+
+	// dstPath returns the rewritten destination path for the given source path
+	dstPath := func(srcPath string) string {
+		srcPath = strings.TrimPrefix(srcPath, srcBase)
+
+		// foo/example/hello.txt -> bar/example/hello.txt
+		if walks != 0 {
+			return filepath.Join(dstVosPath, srcPath)
+		}
+
+		// hello.txt -> example/hello.txt
+		if dstInfo.Exists && dstInfo.IsDir {
+			return filepath.Join(dstVosPath, filepath.Base(srcPath))
+		}
+
+		// hello.txt -> test.txt
+		return dstVosPath
+	}
+
+	return filepath.Walk(srcVosPath, func(srcPath string, file os.FileInfo, err error) error {
+		defer func() { walks++ }()
+
+		if file.IsDir() {
+			err := os.MkdirAll(dstPath(srcPath), 0755)
+			if err != nil {
+				fmt.Println("error 3", err)
+				return errors.New("copy error [3]")
+			}
+		} else {
+			err = copyFile(srcPath, dstPath(srcPath))
+			if err != nil {
+				fmt.Println("error 4", err)
+				return errors.New("copy error [4]")
+			}
+		}
+
+		return nil
+	})
+}
+
+// CopyFile copies the file from src to dst.
+func copyFile(src, dst string) error {
+	sf, err := os.Open(src)
 	if err != nil {
 		return err
 	}
@@ -236,7 +375,7 @@ func (vos *VOS) CopyFile(src, dst string) error {
 		return errors.New("src is a directory, please provide a file")
 	}
 
-	df, err := vos.OpenFile(dst, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, fi.Mode())
+	df, err := os.OpenFile(dst, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, fi.Mode())
 	if err != nil {
 		return err
 	}
