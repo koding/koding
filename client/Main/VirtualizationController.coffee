@@ -282,7 +282,7 @@ class VirtualizationController extends KDController
 
   handleFetchedVms: (vms, callback) ->
     if KD.useNewKites
-      kites = vms.map (vm) =>
+      Promise.cast(vms).map (vm) =>
 
         hostname = @getKiteHostname vm
 
@@ -295,7 +295,7 @@ class VirtualizationController extends KDController
           os.ready().then =>
             @kites[vm.hostnameAlias] = new VM options
 
-      Promise.all(kites).nodeify callback
+      .nodeify callback
     else
       @registerKite vm  for vm in vms
       KD.utils.defer -> callback null
