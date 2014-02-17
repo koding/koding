@@ -8,10 +8,6 @@ app.environments.styl
 */
 }
 
-.environments
-  #kdmaincontainer
-    height             auto
-
 section.resources-container
   size                 100% 105px
   bg                   color #ebebeb
@@ -280,7 +276,9 @@ section.resources-container
   .bottom-warning
     bottom              5px
     text-align          center
-    height              30px
+    height              20px
+    background          rgba(0,0,0,0.1)
+    padding-top         3px
     abs()
 
     a
@@ -866,8 +864,8 @@ div.environments-scene
 
   width                 1042px
   margin                0 auto
-  height                500px
   border-bottom         1px solid #ccc
+  kalc                  height, 100% \- 160px
 
   canvas
     left                -8px

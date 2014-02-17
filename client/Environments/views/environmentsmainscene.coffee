@@ -10,17 +10,11 @@ class EnvironmentsMainScene extends JView
       cssClass : 'environment-help'
       partial  : """
         <h1>Environments</h1>
-        <div class='content'>
-          <p>Welcome to environments.</p>
-          <p>Here you can setup your development environment.</p>
-          <p>Watch this quick video to learn more.</p>
-          <div class='video'></div>
-        </div>
       """
 
     # Main scene for DIA
     @addSubView @scene = new EnvironmentScene
-    
+
     @paymentController = KD.getSingleton("paymentController")
     @paymentController.fetchActiveSubscription tags: "vm", (err, subscription) =>
       return console.error err  if err
@@ -32,7 +26,7 @@ class EnvironmentsMainScene extends JView
           """
 
     @paymentController.on "SubscriptionCompleted", =>
-      @freePlanView?.hide() 
+      @freePlanView?.hide()
 
     # Rules Container
     rulesContainer = new EnvironmentRuleContainer

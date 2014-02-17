@@ -14,10 +14,6 @@ class EnvironmentRuleContainer extends EnvironmentContainer
         title: "Allow All",
         description: "allow from *"
       }
-      {
-        title: "Allow Only Me",
-        description: "allow my requests"
-      }
     ]
 
     @addItem rule for rule in dummyRules
