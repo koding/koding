@@ -16,21 +16,6 @@ class EnvironmentContainer extends KDDiaContainer
     @on "DataLoaded", => @_dataLoaded = yes
     # @on "DragFinished", @bound 'savePosition'
 
-    @newItemPlusForGroups = new KDCustomHTMLView
-      cssClass   : 'new-item-plus-for-groups'
-      partial    : "<i></i><span>Shared VM</span>"
-      click      : =>
-        @emit 'PlusButtonForGroupsClicked'
-
-    @newItemPlus = new KDCustomHTMLView
-      cssClass   : 'new-item-plus'
-      partial    : "<i></i><span>Add new</span>"
-      click      : =>
-        @once 'transitionend', @emit 'PlusButtonClicked'
-
-    @newItemPlus.bindTransitionEnd()
-    @newItemPlusForGroups.bindTransitionEnd()
-
     @loader = new KDLoaderView
       cssClass   : 'new-item-loader hidden'
       size       :
@@ -41,23 +26,15 @@ class EnvironmentContainer extends KDDiaContainer
     super
 
     @addSubView @header
-    @header.addSubView @newItemPlus
-    KD.getSingleton("groupsController").ready =>
-      currentGroup = KD.getSingleton("groupsController").getCurrentGroup()
-
-      currentGroup.fetchAdmin (err, admin)=>
-        unless err and admin?.profile
-          me = KD.whoami()
-          if admin.profile?.nickname is me.profile?.nickname
-            title   = @getOption 'title'
-            # FIXME remove magic string.
-            if title is "Machines"
-              @header.addSubView @newItemPlusForGroups
-
     @header.addSubView @loader
 
+    @addButton = new KDButtonView
+      title    : "Add more"
+      cssClass : 'add-button'
+      callback : => @emit 'PlusButtonClicked'
+    @addSubView @addButton
+
     {@appStorage} = @parent
-    # @appStorage.ready @bound 'loadPosition'
 
   showLoader: ->
     @newItemPlus.hide()
@@ -73,6 +50,7 @@ class EnvironmentContainer extends KDDiaContainer
 
     diaObj.on "KDObjectWillBeDestroyed", @bound 'updatePositions'
     diaObj.on "KDObjectWillBeDestroyed", => @emit "itemRemoved"
+    @updateAddButton()
     # @updateHeight()
 
   updatePositions:->
@@ -82,6 +60,8 @@ class EnvironmentContainer extends KDDiaContainer
       dia.setX 20
       dia.setY 68 + index * 64
       index++
+
+    @updateAddButton()
     # @updateHeight()
 
   diaCount:-> Object.keys(@dias).length
@@ -92,6 +72,9 @@ class EnvironmentContainer extends KDDiaContainer
 
   loadItems:->
     @removeAllItems()
+
+  updateAddButton:->
+    @addButton.setY 68 + @diaCount() * (@itemHeight + 20)
 
   # updateHeight:->
 
