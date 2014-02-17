@@ -234,6 +234,7 @@ module.exports = [
   "kite/oskite.coffee",
   "kite/kitecontroller.coffee",
   "kite/newkite.coffee"
+  "kite/vm.coffee", # TODO: this doesn't really belong here.
   "kite/kontrol.coffee"
   "kite/kitehelper.coffee"
   # Virtualization CONTROLLER

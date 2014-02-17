@@ -6,14 +6,11 @@ class FSItem extends KDObject
 
   { escapeFilePath } = FSHelper
 
-  { promiseToCallback } = KD.utils
-
   @create:({ path, type, vmName, treeController }, callback)->
 
     kite = KD.getSingleton('vmController').getKiteByVmName vmName
 
-    ok = kite.vmStart()
-    .then =>
+    kite.vmStart().then =>
 
       plainPath = FSHelper.plainPath path
 
@@ -27,17 +24,17 @@ class FSItem extends KDObject
         content         : ''
         donotoverwrite  : yes
 
-      kite[method](options)
-      .then (stat) ->
+      kite[method](options).then (stat) ->
 
-        file = FSHelper.createFile({
+        file = FSHelper.createFile {
           path: stat.fullPath
           type
           vmName
-        })
-        .nodeify(callback)
+        }
 
-        return file
+        file.save().then -> return file
+      
+      .nodeify(callback)
 
   @copyOrMove:(sourceItem, targetItem, commandPrefix, callback)->
     sourceItem.emit "fs.job.started"
@@ -48,16 +45,13 @@ class FSItem extends KDObject
     
     file = null
 
-    kite.vmStart()
-    .then ->
+    kite.vmStart().then ->
 
-      kite.fsEnsureNonexistentPath(path: targetPath)
-      .then (actualPath) ->
+      kite.fsEnsureNonexistentPath(path: targetPath).then (actualPath) ->
         
         command = "#{ commandPrefix } #{ escapeFilePath sourceItem.path } #{ escapeFilePath actualPath }"
 
-        kite.exec(command)
-        .then ->
+        kite.exec(command).then ->
 
           file = FSHelper.createFile {
             path        : actualPath
@@ -92,21 +86,19 @@ class FSItem extends KDObject
 
     path = FSHelper.plainPath "#{file.path}.#{type}"
 
-    kite.vmStart()
-    .then ->
+    kite.vmStart().then ->
 
-      kite.fsEnsureNonexistentPath({ path })
-      .then (actualPath) ->
+      kite.fsEnsureNonexistentPath { path }
 
-        command =
-          if type is "tar.gz"
-            "tar -pczf #{escapeFilePath actualPath} #{escapeFilePath file.path}"
-          else
-            "zip -r #{escapeFilePath actualPath} #{escapeFilePath file.path}"
+    .then (actualPath) ->
 
-        kite.exec(command)
-        .then (response) ->
-          callback null, response
+      command =
+        if type is "tar.gz"
+          "tar -pczf #{escapeFilePath actualPath} #{escapeFilePath file.path}"
+        else
+          "zip -r #{escapeFilePath actualPath} #{escapeFilePath file.path}"
+
+      kite.exec command
 
     .nodeify(callback)
 
@@ -135,25 +127,27 @@ class FSItem extends KDObject
 
     .then ->
       kite.fsEnsureNonexistentPath(path: "#{ extractFolder }")
-      .then (actualPath) ->
+      
+    .then (actualPath) ->
 
-        command =
-          if isTarGz
-            "cd #{escapeFilePath file.parentPath};mkdir -p #{escapeFilePath actualPath};tar -zxf #{escapeFilePath file.name} -C #{escapeFilePath actualPath}"
-          else
-            "cd #{escapeFilePath file.parentPath};unzip -o #{escapeFilePath file.name} -d #{escapeFilePath actualPath}"
+      command =
+        if isTarGz
+          "cd #{escapeFilePath file.parentPath};mkdir -p #{escapeFilePath actualPath};tar -zxf #{escapeFilePath file.name} -C #{escapeFilePath actualPath}"
+        else
+          "cd #{escapeFilePath file.parentPath};unzip -o #{escapeFilePath file.name} -d #{escapeFilePath actualPath}"
 
-        kite.exec(command)
-        .then ->
+      kite.exec(command)
 
-          file = FSHelper.createFile {
-            path            : actualPath
-            parentPath      : file.parentPath
-            type            : 'folder'
-            vmName          : file.vmName
-          }
+    .then ->
 
-          return file
+      file = FSHelper.createFile {
+        path            : actualPath
+        parentPath      : file.parentPath
+        type            : 'folder'
+        vmName          : file.vmName
+      }
+
+      return file
 
     .nodeify(callback)
 
@@ -233,9 +227,8 @@ class FSItem extends KDObject
   stat:(callback=noop)->
     kite = @getKite()
     
-    kite.vmStart()
+    kite.vmStart().then =>
 
-    .then =>
       kite.fsGetInfo path: @getPath()
 
     .nodeify(callback)
@@ -245,9 +238,8 @@ class FSItem extends KDObject
 
     kite = @getKite()
 
-    kite.vmStart()
+    kite.vmStart().then =>
 
-    .then =>
       kite.fsRemove { path: @getPath(), recursive }
 
     .nodeify(callback)
@@ -288,14 +280,13 @@ class FSItem extends KDObject
 
     kite = @getKite()
 
-    kite.vmStart()
+    kite.vmStart().then =>
 
-    .then =>
-      kite.fsSetPermissions({
+      kite.fsSetPermissions {
         path: @getPath()
         recursive
         mode
-      })
+      }
 
     .nodeify(callback)
 

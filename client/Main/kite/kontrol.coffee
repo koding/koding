@@ -16,7 +16,7 @@ class Kontrol extends KDObject
 
     @kite = new NewKite kite, authentication
     @kite.connect()
-
+    @kite.on "ready", => @emit "ready"
   # getKites Calls the callback function with the list of NewKite instances.
   # The returned kites are not connected. You must connect with
   # NewKite.connect().
@@ -34,10 +34,14 @@ class Kontrol extends KDObject
   getKites: (query={}, callback = noop)->
     @_sanitizeQuery query
 
-    @kite.tell "getKites", [query], (err, kites)=>
-      return callback err, null  if err
+    @kite.tell("getKites", [query]).then (kites) =>
+      (@_createKite k for k in kites)
 
-      callback null, (@_createKite k for k in kites)
+    .nodeify(callback)
+
+  getKite: (query, callback) ->
+    @getKites(query).then (kites) ->
+      return kites[0] ? throw new Error "no kite found!"
 
   # watchKites watches for Kites that matches the query. The onEvent functions
   # is called for current kites and every new kite event.

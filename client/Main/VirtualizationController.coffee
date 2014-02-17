@@ -9,6 +9,8 @@ class VirtualizationController extends KDController
 
     @kites = {}
 
+    @osKites = {}
+
     KD.getSingleton('mainController')
       .once('AppIsReady', @bound 'fetchVMs')
       .on('AccountChanged', => @emit 'VMListChanged')
@@ -218,13 +220,14 @@ class VirtualizationController extends KDController
     group.createVM {type, planCode}, vmCreateCallback
 
   getKite: ({ region, hostnameAlias }) ->
-    kite = (KD.getSingleton 'kiteController')
+    (KD.getSingleton 'kiteController')
       .getKite "os-#{ region }", hostnameAlias
 
   registerKite: (vm) ->
     @kites[vm.hostnameAlias] = @getKite vm
 
-  getKiteByVmName: (vmName) -> @kites[vmName]
+  getKiteByVmName: (vmName) ->
+    @kites[vmName]
 
   fetchVmNames: (force, callback) ->
     [callback, force] = [force, callback]  unless callback?
@@ -232,7 +235,7 @@ class VirtualizationController extends KDController
       return callback err  if err
       callback null, (vm.hostnameAlias for vm in vms)
 
-  fetchVMs: do (waiting = []) -> (force, callback)->
+  fetchVMs: do (waiting = []) -> (force, callback) ->
     [callback, force] = [force, callback]  unless callback?
 
     return  unless callback?
@@ -243,16 +246,60 @@ class VirtualizationController extends KDController
 
     return  if not force and (waiting.push callback) > 1
 
-    KD.remote.api.JVM.fetchVms (err, vms)=>
+    KD.remote.api.JVM.fetchVms (err, vms) =>
       @vms = vms  unless err
       if force
       then callback err, vms
       else
-        @registerKite vm  for vm in vms
-        cb err, vms  for cb in waiting
-        waiting = []
+        @handleFetchedVms vms, (err) ->
+          return callback err  if err
+          cb err, vms  for cb in waiting
+          waiting = []
 
+  getKiteHostname: (vm) ->
+    return null  unless vm.hostKite?
+    return vm.hostKite.split('|')[1]
 
+  getOsKite: ({ hostname, region }) ->
+    new Promise (resolve) =>
+      kite = @osKites[hostname]
+      
+      return resolve kite  if kite?
+
+      kontrol = KD.getSingleton 'kontrol'
+
+      kontrol.getKite
+        name      : 'oskite'
+        username  : 'devrim'
+        version   : '0.0.1'
+        hostname  : hostname
+        region    : region
+
+      .then (kite) =>
+        @osKites[hostname] = kite
+
+      .then (kite) ->
+        kite.connect().then -> resolve kite
+
+  handleFetchedVms: (vms, callback) ->
+    if KD.useNewKites
+      kites = vms.map (vm) =>
+
+        hostname = @getKiteHostname vm
+
+        @getOsKite({ hostname, region: vm.region }).then (os) =>
+
+          options   =
+            vmName  : vm.hostnameAlias
+            kite    : os
+          
+          os.ready().then =>
+            @kites[vm.hostnameAlias] = new VM options
+
+      Promise.all(kites).nodeify callback
+    else
+      @registerKite vm  for vm in vms
+      KD.utils.defer -> callback null
 
   fetchGroupVMs:(force, callback = noop)->
     if @groupVms.length > 0 and not force
@@ -280,9 +327,7 @@ class VirtualizationController extends KDController
     JVM.fetchVmsByName vmName, (err, vms) =>
       return callback err  if err
 
-      @registerKite vm  for vm in vms
-
-      callback null, vms
+      @handleFetchedVms vms, (err) -> callback null, vms
 
   resetVMData:->
     @vms      = []

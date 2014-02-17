@@ -594,16 +594,6 @@ __utils.extend __utils,
   # show the tags properly
   tokenizeTag: (tag)-> "|#:JTag:#{tag.getId()}|"
 
-
-  promiseToCallback: (promise, value, callback) ->
-    promise
-    .then (response) ->
-      callback null, value ? response
-
-    .catch (err) ->
-      warn err
-      callback err
-
   sortFiles: (a, b) ->
 
     { name: na } = a

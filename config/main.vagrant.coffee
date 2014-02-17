@@ -269,8 +269,8 @@ module.exports =
     useTLS          : no
     certFile        : ""
     keyFile         : ""
-    publicKeyFile   : "/opt/koding/certs/test_kontrol_rsa_public.pem"
-    privateKeyFile  : "/opt/koding/certs/test_kontrol_rsa_private.pem"
+    publicKeyFile   : "./certs/test_kontrol_rsa_public.pem"
+    privateKeyFile  : "./certs/test_kontrol_rsa_private.pem"
   proxyKite       :
     domain        : "127.0.0.1"
     certFile      : "/opt/koding/certs/vagrant_127.0.0.1_cert.pem"

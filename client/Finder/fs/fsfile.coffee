@@ -49,12 +49,13 @@ class FSFile extends FSItem
       content = KD.utils.utf8Decode content  if useEncoding # Convert to String
 
       KD.mixpanel "Fetch contents, success"
-      
-      promiseToCallback(ok, content, callback)  if callback?
-      
+
       @emit "fs.job.finished"
 
       return content
+
+    .nodeify(callback)
+
 
 
   saveAs:(contents, name, parentPath, callback)->
