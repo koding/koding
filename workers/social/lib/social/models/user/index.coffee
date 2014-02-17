@@ -840,7 +840,7 @@ module.exports = class JUser extends jraphical.Module
                     ->
                       return queue.fin()  unless group
                       return queue.fin()  if group.slug in ["koding", "guests"]
-                      group.finalizeMemberApproval account, ->
+                      group.createMemberVm account, ->
                         queue.fin()
 
                   dash queue, ->
