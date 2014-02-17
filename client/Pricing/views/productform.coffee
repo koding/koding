@@ -33,7 +33,7 @@ class PricingProductForm extends JView
 
   selectPlan: (tag, options) ->
     KD.singleton("paymentController").fetchSubscriptionsWithPlans tags: [tag], (err, subscriptions) =>
-      return KD.showError "You have already subscribed to this plan"  if subscriptions.length
+      return KD.showError "You are already subscribed to this plan"  if subscriptions.length
       KD.remote.api.JPaymentPlan.one tags: $in: [tag], (err, plan) =>
         return  if KD.showError err
         @emit "PlanSelected", plan, options
