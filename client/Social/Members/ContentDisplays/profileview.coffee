@@ -354,24 +354,25 @@ class ProfileView extends JView
       input.setEditingMode yes
       input.focus()
 
-    @firstName.on "NextTabStop",     => focus @lastName
-    @firstName.on "PreviousTabStop", => focus @bio
-    @lastName.on "NextTabStop",      => focus @bio
-    @lastName.on "PreviousTabStop",  => focus @firstName
-    @bio.on "NextTabStop",           => focus @firstName
-    @bio.on "PreviousTabStop",       => focus @lastName
+    if @memberData.getId() is KD.whoami().getId()
+      @firstName.on "NextTabStop",     => focus @lastName
+      @firstName.on "PreviousTabStop", => focus @bio
+      @lastName.on "NextTabStop",      => focus @bio
+      @lastName.on "PreviousTabStop",  => focus @firstName
+      @bio.on "NextTabStop",           => focus @firstName
+      @bio.on "PreviousTabStop",       => focus @lastName
 
-    @firstName.on "click", -> @setEditingMode yes
-    @lastName.on "click",  -> @setEditingMode yes
-    @bio.on "click",       -> @setEditingMode yes
+      @firstName.on "click", -> @setEditingMode yes
+      @lastName.on "click",  -> @setEditingMode yes
+      @bio.on "click",       -> @setEditingMode yes
 
-    @firstName.on "EnterPressed", save
-    @lastName.on "EnterPressed", save
-    @bio.on "EnterPressed", save
+      @firstName.on "EnterPressed", save
+      @lastName.on "EnterPressed", save
+      @bio.on "EnterPressed", save
 
-    @firstName.on "BlurHappened", save
-    @lastName.on "BlurHappened", save
-    @bio.on "BlurHappened", save
+      @firstName.on "BlurHappened", save
+      @lastName.on "BlurHappened", save
+      @bio.on "BlurHappened", save
 
     avatarOptions  =
       showStatus      : yes
