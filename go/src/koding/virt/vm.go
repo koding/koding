@@ -115,7 +115,7 @@ func (vm *VM) ApplyDefaults() {
 	}
 
 	if vm.DiskSizeInMB == 0 {
-		vm.DiskSizeInMB = 3600
+		vm.DiskSizeInMB = 3072
 	}
 
 	if vm.VMRoot == "" {
