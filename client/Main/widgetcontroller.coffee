@@ -56,7 +56,8 @@ class WidgetController extends KDObject
           warn "#{key} widget failed to load"
 
   evalJS: (view, js) ->
-    view.addSubView eval Encoder.htmlDecode js
+    jsCode = "viewId = '#{view.getId()}'; #{js}"
+    eval Encoder.htmlDecode jsCode
 
   appendCSS: (css, key) ->
     domId         = "#{key}WidgetStyle"
