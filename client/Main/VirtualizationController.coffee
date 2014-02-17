@@ -278,7 +278,6 @@ class VirtualizationController extends KDController
       .then (kite) =>
         @osKites[hostname] = kite
 
-      .then (kite) ->
         kite.connect().then -> resolve kite
 
   handleFetchedVms: (vms, callback) ->
