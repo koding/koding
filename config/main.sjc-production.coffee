@@ -285,8 +285,9 @@ module.exports =
       port        : 80
       portssl     : 443
       ftpip       : '54.208.3.200'
-  recurly       :
-    apiKey      : '0cb2777651034e6889fb0d091126481a' # koding.recurly.com
+  recurly         :
+    apiKey        : '0cb2777651034e6889fb0d091126481a' # koding.recurly.com
+    loggedRequests: /^(subscriptions|transactions)/
   embedly       :
     apiKey      : embedlyApiKey
   opsview	:

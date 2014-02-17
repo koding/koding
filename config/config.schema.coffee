@@ -297,6 +297,7 @@ config =
         ftpip       : 1
     recurly         :
       apiKey        : 1
+      loggedRequests: 1
     embedly         :
       apiKey        : 1
     followFeed      :
