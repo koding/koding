@@ -26,9 +26,10 @@ class NewKite extends KDObject
         alert options.withArgs...
         options.responseCallback({withArgs: [{error: null, result: null}]})
 
+    @messageHandler = log
+
     @proto = new Session null, @handlers
     @proto.on 'request', (req)=>
-      log "proto request", {req}
       @ready =>
         @ws.send JSON.stringify req
     @proto.on 'fail', (err)=>
@@ -64,6 +65,12 @@ class NewKite extends KDObject
       @ws.addEventListener 'close', handler = =>
         @ws.removeEventListener handler
         resolve()
+
+  enableLogs: ->
+    @ws.addEventListener 'message', @messageHandler
+
+  disableLogs: ->
+    @ws.removeEventListener 'message', @messageHandler
 
   onOpen: ->
     log "Connected to Kite: #{@kite.name}"
@@ -135,7 +142,7 @@ class NewKite extends KDObject
   initBackoff: (options)->
     backoff = options.backoff ? {}
     totalReconnectAttempts = 0
-    initalDelayMs = backoff.initialDelayMs ? 700
+    initialDelayMs = backoff.initialDelayMs ? 700
     multiplyFactor = backoff.multiplyFactor ? 1.4
     maxDelayMs = backoff.maxDelayMs ? 1000 * 15 # 15 seconds
     maxReconnectAttempts = backoff.maxReconnectAttempts ? 50
@@ -145,7 +152,7 @@ class NewKite extends KDObject
 
     @setBackoffTimeout = (fn)=>
       if totalReconnectAttempts < maxReconnectAttempts
-        timeout = Math.min initalDelayMs * Math.pow(
+        timeout = Math.min initialDelayMs * Math.pow(
           multiplyFactor, totalReconnectAttempts
         ), maxDelayMs
         setTimeout fn, timeout

@@ -233,9 +233,10 @@ module.exports = [
   "kite/kite2.coffee",
   "kite/oskite.coffee",
   "kite/kitecontroller.coffee",
-  "kite/newkite.coffee"
+  "kite/newkite.coffee",
   "kite/vm.coffee", # TODO: this doesn't really belong here.
   "kite/kontrol.coffee"
+  "kite/kitewrapper.coffee"
   "kite/kitehelper.coffee"
   # Virtualization CONTROLLER
   "VirtualizationController.coffee",
