@@ -18,13 +18,13 @@ class FSFolder extends FSFile
 
       kite.fsReadDirectory
         path      : FSHelper.plainPath @path
-        # onChange  : if dontWatch then null else (change) =>
-        #   FSHelper.folderOnChange {
-        #     @vmName
-        #     @path
-        #     change
-        #     treeController
-        #   }
+        onChange  : if dontWatch then null else (change) =>
+          FSHelper.folderOnChange {
+            @vmName
+            @path
+            change
+            treeController
+          }
 
     .then (response) =>
       files =
