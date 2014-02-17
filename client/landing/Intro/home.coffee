@@ -55,7 +55,7 @@ class HomePage extends JView
 
     if partialData.css
       tag           = document.createElement "style"
-      tag.innerHTML = partialData.css
+      tag.innerHTML = Encoder.htmlDecode partialData.css
 
       document.head.appendChild tag
 
