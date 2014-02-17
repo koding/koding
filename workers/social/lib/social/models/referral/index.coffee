@@ -34,6 +34,10 @@ module.exports = class JReferral extends jraphical.Message
       static          :
         redeem:
           (signature Object, Function)
+        changeBaseVMForUsers:[
+          (signature Function)
+          (signature Object, Function)
+        ]
         resetVMDefaults:
           (signature Function)
         fetchRedeemableReferrals:
@@ -48,6 +52,69 @@ module.exports = class JReferral extends jraphical.Message
       redeemedOn      :
         targetType    : 'JVM'
         as            : 'redeemedOn'
+
+
+  @checkFor1GBStatus = (account, callback)->
+    account.fetchReferrers (err, referrers)=>
+      return callback err  if err
+      for ref in referrers
+        {sourceCampaign} = ref
+        return callback null, yes  if sourceCampaign is "baseVMSizeDecrease"
+      callback err, no
+
+  @add1GBDisk = (delegate, callback)->
+
+    @checkFor1GBStatus delegate, (err, used) =>
+      return callback err if err
+      if used
+        console.info "#{delegate.profile.nickname} is already get baseVMSizeDecrease point"
+        return callback null, yes
+
+      referral = new JReferral {
+        type   : "disk"
+        unit   : "MB"
+        amount : 1024
+        sourceCampaign : "baseVMSizeDecrease"
+      }
+      referral.save (err) ->
+        return callback err if err
+        #add referrer as referrer to the referral system
+        delegate.addReferrer referral, (err)->
+          return callback err if err
+          return callback null, yes
+
+  @changeBaseVMForUsers = secure (client, callback)->
+    {delegate} = client.connection
+    unless delegate.profile.nickname is "cihangirsavas"
+      return callback new Error "youcannotcallthisfunction"
+
+    selector = {
+      diskSizeInMB : $gte : 4096
+      vmType       : "user"
+      webHome      : $not : ///guest-///
+    }
+
+    JVM.someData selector, {webHome:1}, {}, (err, cursor)=>
+      if err then callback err
+      else
+        cursor.each (err, vm)=>
+          if err then callback err
+          else if vm?
+            nickname = vm.webHome
+            JAccount.one {'profile.nickname':nickname}, (err, account)=>
+              if err console.error err
+              else if account?
+                @add1GBDisk account, (err, res)=>
+                  if err console.error err
+                  else if res console.info "decreaseVMsize point is added for", nickname
+                  else console.info "decreaseVMsize point is not added for", nickname
+              else
+                console.warn "couldnt find account", nickname
+          else
+            return callback null, "done"
+
+
+
 
   @getReferralEarningLimits = (type) ->
     switch type
