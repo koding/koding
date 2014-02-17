@@ -221,7 +221,7 @@ class ReferalBox extends JView
     vmc.fetchDefaultVmName (name) =>
       vmc.fetchVmInfo name, (err , vmInfo) =>
         return  if err or not vmInfo?.diskSizeInMB
-        max          = vmInfo?.diskSizeInMB or 4096
+        max          = vmInfo?.diskSizeInMB or 3072
         max          = max*1024*1024
         usagePercent = max / (16*1e9) * 90
         used         = KD.utils.formatBytesToHumanReadable max
