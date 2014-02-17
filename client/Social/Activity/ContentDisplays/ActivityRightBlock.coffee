@@ -103,7 +103,9 @@ class GroupDescription extends KDView
 
       @innerContaner = new KDCustomHTMLView cssClass : "right-block-box"
 
-      hasBody = group.body.trim() isnt ""
+      {body}  = group
+      body   ?= ""
+      hasBody = Boolean body.trim().length
       isAdmin = "admin" in KD.config.roles
 
       edit = new CustomLinkView
@@ -121,7 +123,7 @@ class GroupDescription extends KDView
 
       @bodyView = new KDCustomHTMLView
         tagName   : "p"
-        pistachio : "{{ #(body)}}"
+        pistachio : "{{ #(body) or ''}}"
         cssClass  : "group-description"
       , group
 

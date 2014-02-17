@@ -359,7 +359,7 @@ module.exports = class JVM extends Module
         group.fetchSubscription (err, subscription) =>
           return callback err  if err or not subscription
 
-          subscription.debitPack tags: "vm", (err) =>
+          subscription.debitPack tag: "vm", (err) =>
             return callback err  if err
             @createVm {
               type      : "group"
@@ -610,10 +610,26 @@ module.exports = class JVM extends Module
     kallback = (subscription) =>
       @remove (err) =>
         return callback err  if err
-        tags = ["vm"]
-        tags.push "alwayson"  if @alwaysOn
-        subscription.creditPack {tags}, callback
 
+        errs = []
+
+        dash queue = [
+          ->
+            subscription.creditPack tag: "vm", (err) ->
+              errs.push new KodingError "VM usage couldn't be credited"  if err
+              console.warn "VM cannot be credited to user #{account.profile.nickname}: #{err}"  if err
+              queue.fin()
+        ,
+          =>
+            return queue.fin()  unless @alwaysOn
+            subscription.creditPack tag: "alwayson", (err) ->
+              errs.push new KodingError "Always On usage couldn't be credited"  if err
+              console.warn "Always On pack couldn't be credited to user #{account.profile.nickname}: #{err}"  if err
+              queue.fin()
+        ], ->
+          if errs.length
+          then callback errs
+          else callback()
 
     if group.slug is "koding"
       account.fetchSubscription (err, subscription) =>
@@ -640,7 +656,6 @@ module.exports = class JVM extends Module
           return callback err  if err
           return callback new KodingError "You do not have permission to delete this vm"  unless hasPermission
           vm.removeFromSubscription delegate, group, callback
-
 
   fetchVmByHostname = (account, hostnameAlias, callback) ->
     account.fetchUser (err, user) =>
