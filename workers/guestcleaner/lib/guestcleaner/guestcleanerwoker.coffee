@@ -55,7 +55,7 @@ module.exports = class GuestCleanerWorker
       status : {$ne : 'tobedeleted'}
     }
 
-    options = {limit:25}
+    options = {limit:250}
 
     JAccount.some selector, options, (err, accounts)=>
       if err then return console.error err
@@ -73,7 +73,9 @@ module.exports = class GuestCleanerWorker
               queue.next()
             ->
               # delete user cookie
-              account.sendNotification "GuestTimePeriodHasEnded", account
+              # instead of sending account as content, just send nickname
+              # it causes FRAME_ERROR frame_too_large error
+              account.sendNotification "GuestTimePeriodHasEnded", username:account.profile.nickname
               queue.next()
             =>
                # collect relationships and to be deletedData
