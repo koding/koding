@@ -484,7 +484,7 @@ module.exports = class JGroup extends Module
     delegate.fetchSubscription null, subOptions, (err, subscription) =>
       return callback err  if err
       return callback new KodingError "Subscription is not found"  unless subscription
-      subscription.debitPack tags: "group", (err) =>
+      subscription.debitPack tag: "group", (err) =>
         return callback err  if err
         @create client, formData, delegate, (err, group) ->
           return callback err if err
@@ -497,7 +497,7 @@ module.exports = class JGroup extends Module
     delegate.fetchSubscription null, subOptions, (err, subscription) =>
       return callback err  if err
       return callback new KodingError "Subscription is not found"  unless subscription
-      subscription.creditPack tags: "user", callback
+      subscription.creditPack tag: "user", callback
 
   @findSuggestions = (client, seed, options, callback)->
     {limit, blacklist, skip}  = options
@@ -962,9 +962,11 @@ module.exports = class JGroup extends Module
           return callback err  if err
           unless invite.type is 'multiuse' or user.email is invite.email
             return callback new KodingError 'Are you sure invitation e-mail is for you?'
-          invite.redeem delegate, (err) =>
-            return callback err if err
-            @approveMember delegate, callback
+          @debitPack "user", (err) =>
+            return callback err  if err
+            invite.redeem delegate, (err) =>
+              return callback err if err
+              @approveMember delegate, callback
 
   bulkApprove: permit 'send invitations',
     success: (client, count, options, callback)->
@@ -1046,9 +1048,8 @@ module.exports = class JGroup extends Module
 
     dash queue, =>
       if @slug not in ["koding", "guests"]
-        @finalizeMemberApproval member, kallback
-      else
-        kallback()
+      then @createMemberVm member, kallback
+      else kallback()
 
   each:(selector, rest...)->
     selector.visibility = 'visible'
@@ -1540,27 +1541,16 @@ module.exports = class JGroup extends Module
       else
         @fetchDefaultPermissionSet callback
 
-  finalizeMemberApproval: (account, callback) ->
-    subscription = null
+  debitPack: (tag, callback) ->
+    @fetchSubscription (err, subscription) =>
+      return callback new KodingError "Error when fetching group's subscription: #{err}"  if err
+      return callback new KodingError "Group #{@slug}'s subscription is not found"  unless subscription
+      subscription.debitPack {tag}, callback
 
-    daisy queue = [
-      =>
-        @fetchSubscription (err, sub) =>
-          return callback new KodingError "Error when fetching group's subscription: #{err}"  if err
-          return callback new KodingError "Group #{@slug}'s subscription is not found"  unless sub
-          subscription = sub
-          queue.next()
-    , =>
-        subscription.debitPack tags: "user", (err) =>
-          return callback err  if err
-          queue.next()
-    , =>
-        subscription.debitPack tags: "vm", (err) =>
-          return callback err  if err
-          JVM = require '../vm'
-          JVM.createVm {account, groupSlug: @slug, @planCode}, (err) =>
-            console.warn "Group #{@slug} member #{account.profile.nickname} VM is not created: #{err}"  if err
-            queue.next()
-    ,
-      callback
-    ]
+  createMemberVm: (account, callback) ->
+    @debitPack "vm", (err) =>
+      return callback err  if err
+      JVM = require '../vm'
+      JVM.createVm {account, groupSlug: @slug, @planCode}, (err) =>
+        console.warn "Group #{@slug} member #{account.profile.nickname} VM is not created: #{err}"  if err
+        callback()

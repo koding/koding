@@ -236,7 +236,7 @@ module.exports =
     disconnectTimeout: 3e3
     vhost       : 'kite'
   email         :
-    host        : "koding.com"
+    host        : "latest.koding.com"
     protocol    : 'https:'
     defaultFromAddress: 'hello@koding.com'
   emailWorker   :
