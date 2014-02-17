@@ -61,7 +61,7 @@ class DeleteModalView extends KDModalViewWithForms
             {username}      = dangerForm.inputs
             {confirmButton} = dangerForm.buttons
 
-            JUser.unregister username.getValue(), (err)->
+            JUser.unregister username.getValue(), (err)=>
               if err then new KDNotificationView title : 'There was a problem, please try again!'
               else
                 surveyLink = "https://docs.google.com/forms/d/1fiC6wSThfXxtLpdRlQ7qnNvJrClqdUrmOT_L-_cu1tw/viewform"
