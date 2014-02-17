@@ -13,7 +13,7 @@ module.exports = class JGroup extends Module
   {permit}       = JPermissionSet
   KodingError    = require '../../error'
   Validators     = require './validators'
-  {throttle}     = require 'underscore'
+  {throttle, extend}     = require 'underscore'
 
   PERMISSION_EDIT_GROUPS = [
     {permission: 'edit groups'}
@@ -721,23 +721,21 @@ module.exports = class JGroup extends Module
   # fetchMyFollowees: permit 'list members'
   #   success:(client, options, callback)->
 
-  fetchHomepageView: ({section, account, bongoModels}, callback)->
+  fetchHomepageView: (options, callback)->
+    {account} = options
     @fetchMembershipPolicy (err, policy)=>
       if err then callback err
       else
-        options = {
-          account
+        homePageOptions = extend options {
           @slug
           @title
-          policy
           @avatar
           @body
           @counts
           @customize
-          bongoModels
         }
         prefix = if account.type is 'unregistered' then 'loggedOut' else 'loggedIn'
-        JGroup.render[prefix].groupHome options, callback
+        JGroup.render[prefix].groupHome homePageOptions, callback
 
   fetchRolesByClientId:(clientId, callback)->
     [callback, clientId] = [clientId, callback]  unless callback
@@ -1221,6 +1219,7 @@ module.exports = class JGroup extends Module
   remove_ = @::remove
   remove: secure (client, callback)->
     JName = require '../name'
+    JNewStatusUpdate = require '../messages/newstatusupdate'
 
     @fetchOwner (err, owner)=>
       return callback err if err
@@ -1275,14 +1274,20 @@ module.exports = class JGroup extends Module
           JNewApp = require '../app'
           removeHelperMany JNewApp, apps, err, callback, queue
 
-        # needs to be tested once subgroups are supported
-        # => @fetchSubgroups (err, groups)=>
-        #   return callback err if err
-        #   return queue.next() unless groups
-        #   ids = (model._id for model in groups)
-        #   JGroup.remove client, (_id: $in: ids), (err)->
-        #     return callback err if err
-        #     queue.next()
+        => JNewStatusUpdate.count group:@slug, (err, count)=>
+          numberOfNamePages = Math.ceil(count / 50)
+
+          deleteQueue = [1..numberOfNamePages].map (pageNumber)=>=>
+            skip = (pageNumber - 1) * 50
+            option = {
+              limit : 50,
+              skip  : skip
+            }
+            JNewStatusUpdate.some group:@slug, option, (err, statusUpdates)=>
+              removeHelperMany JNewStatusUpdate, statusUpdates, err, callback, deleteQueue
+
+          deleteQueue.push => queue.next()
+          daisy deleteQueue
 
         =>
           @constructor.emit 'GroupDestroyed', this

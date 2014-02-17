@@ -16,6 +16,7 @@ module.exports = [
   "notificationcontroller.coffee",
   "linkcontroller.coffee",
   "oauthcontroller.coffee",
+  "widgetcontroller.coffee",
 
   # COMMON VIEWS
   "CommonViews/applicationview/applicationtabview.coffee",
