@@ -236,7 +236,7 @@ class Ace extends KDView
       @syntaxMode = mode
 
   setTheme:(themeName, save = yes)->
-    themeName or= @appStorage.getValue('theme') or 'merbivore_soft'
+    themeName or= @appStorage.getValue('theme') or 'koding'
     require ["ace/theme/#{themeName}"], (callback) =>
       @editor.setTheme "ace/theme/#{themeName}"
       return  unless save
