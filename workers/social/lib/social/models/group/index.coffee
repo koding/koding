@@ -1048,9 +1048,8 @@ module.exports = class JGroup extends Module
 
     dash queue, =>
       if @slug not in ["koding", "guests"]
-        @finalizeMemberApproval member, kallback
-      else
-        kallback()
+      then @createMemberVm member, kallback
+      else kallback()
 
   each:(selector, rest...)->
     selector.visibility = 'visible'
@@ -1542,27 +1541,16 @@ module.exports = class JGroup extends Module
       else
         @fetchDefaultPermissionSet callback
 
-  finalizeMemberApproval: (account, callback) ->
-    subscription = null
+  debitPack: (tag, callback) ->
+    @fetchSubscription (err, subscription) =>
+      return callback new KodingError "Error when fetching group's subscription: #{err}"  if err
+      return callback new KodingError "Group #{@slug}'s subscription is not found"  unless subscription
+      subscription.debitPack {tag}, callback
 
-    daisy queue = [
-      =>
-        @fetchSubscription (err, sub) =>
-          return callback new KodingError "Error when fetching group's subscription: #{err}"  if err
-          return callback new KodingError "Group #{@slug}'s subscription is not found"  unless sub
-          subscription = sub
-          queue.next()
-    , =>
-        subscription.debitPack tags: "user", (err) =>
-          return callback err  if err
-          queue.next()
-    , =>
-        subscription.debitPack tags: "vm", (err) =>
-          return callback err  if err
-          JVM = require '../vm'
-          JVM.createVm {account, groupSlug: @slug, @planCode}, (err) =>
-            console.warn "Group #{@slug} member #{account.profile.nickname} VM is not created: #{err}"  if err
-            queue.next()
-    ,
-      callback
-    ]
+  createMemberVm: (account, callback) ->
+    @debitPack "vm", (err) =>
+      return callback err  if err
+      JVM = require '../vm'
+      JVM.createVm {account, groupSlug: @slug, @planCode}, (err) =>
+        console.warn "Group #{@slug} member #{account.profile.nickname} VM is not created: #{err}"  if err
+        callback()
