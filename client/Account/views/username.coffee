@@ -51,7 +51,8 @@ class AccountEditUsername extends JView
         Save               :
           title            : 'SAVE CHANGES'
           type             : 'submit'
-          style            : 'solid green fr'
+          cssClass         : 'profile-save-changes'
+          style            : 'solid green'
       callback             : @bound 'update'
 
 

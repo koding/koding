@@ -70,7 +70,7 @@ class PricingAppView extends KDView
         """
 
     @sorry.addSubView new KDButtonView
-      style    : "solid"
+      style    : "solid medium"
       title    : "Go back"
       callback : ->
         KD.singleton("router").handleRoute "/"
@@ -122,7 +122,7 @@ class PricingAppView extends KDView
 
     if loggedIn
       @thankYou.addSubView new KDButtonView
-        style    : "solid green"
+        style    : "solid medium green"
         title    : "Go to Group"
         callback : ->
           window.open "#{window.location.origin}/#{group.slug}", "_blank"
