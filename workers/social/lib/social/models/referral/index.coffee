@@ -269,7 +269,7 @@ module.exports = class JReferral extends jraphical.Message
       queue = [
         ->
           referral = new JReferral
-            amount        : campaign?.campaignPerEventAmount or 256
+            amount        : campaign.campaignPerEventAmount or 256
             type          : campaign.campaignType
             unit          : campaign.campaignUnit
             sourceCampaign: campaign.name
