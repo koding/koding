@@ -8,11 +8,11 @@ import (
 	kitednode "kite/dnode"
 	"koding/tools/kite"
 	"koding/virt"
+	"labix.org/v2/mgo"
+	"labix.org/v2/mgo/bson"
 	"os"
 	"path"
 	"strings"
-	"labix.org/v2/mgo"
-	"labix.org/v2/mgo/bson"
 
 	"code.google.com/p/go.exp/inotify"
 )
@@ -199,7 +199,11 @@ func fsReadDirectoryNew(r *kitelib.Request, vos *virt.VOS) (interface{}, error) 
 		}
 
 		r.RemoteKite.OnDisconnect(func() { watch.Close() })
-		response["stopWatching"] = func() { watch.Close() }
+
+		response["stopWatching"] = kitednode.Callback(func(args kitednode.Arguments) {
+			watch.Close()
+		})
+
 	}
 
 	dir, err := vos.Open(params.Path)
