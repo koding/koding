@@ -385,7 +385,7 @@ module.exports = class JReferral extends jraphical.Message
     selector = {
       diskSizeInMB : $gte : 4096
       vmType       : "user"
-      webHome      : "$not" : new RegExp "guest-"
+      webHome      : $not : new RegExp "guest-"
     }
 
     JVM.someData selector, {webHome:1}, {}, (err, cursor)=>
