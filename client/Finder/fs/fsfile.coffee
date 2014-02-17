@@ -1,7 +1,5 @@
 class FSFile extends FSItem
 
-  { promiseToCallback } = KD.utils
-
   constructor:->
     super
 

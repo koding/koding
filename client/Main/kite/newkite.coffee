@@ -39,16 +39,14 @@ class NewKite extends KDObject
       log "proto remoteEerror", {err}
 
   connect: ->
-    addr = @kite.url
-    log "Trying to connect to #{addr}"
+    new Promise (resolve, reject) =>
+      addr = @kite.url
+      log "Trying to connect to #{addr}"
 
-    @ws = new WebSocket addr
-    @ws.onopen    = @bound 'onOpen'
-    @ws.onclose   = @bound 'onClose'
-    @ws.onmessage = @bound 'onMessage'
-    @ws.onerror   = @bound 'onError'
+      @ws = new WebSocket addr
+      @ws.onclose   = @bound 'onClose'
+      @ws.onmessage = @bound 'onMessage'
 
-    return new Promise (resolve, reject) =>
       @ws.onopen = (event) =>
         @onOpen event
         resolve()
@@ -58,12 +56,13 @@ class NewKite extends KDObject
         reject error
 
   disconnect: (reconnect=true)->
-    @autoReconnect = !!reconnect  if reconnect?
-    @ws.close()
+    new Promise (resolve, reject) =>
+      @autoReconnect = !!reconnect  if reconnect?
 
-    return new Promise (resolve, reject) =>
-      @ws.addEventListener 'close', handleEvent: =>
-        @ws.removeEventListener this
+      @ws.close()
+
+      @ws.addEventListener 'close', handler = =>
+        @ws.removeEventListener handler
         resolve()
 
   onOpen: ->
@@ -82,7 +81,6 @@ class NewKite extends KDObject
     if @autoReconnect
       KD.utils.defer => @setBackoffTimeout @bound "connect"
     return
-
 
   onMessage: (evt)->
     data = evt.data
@@ -154,11 +152,11 @@ class NewKite extends KDObject
         totalReconnectAttempts++
       else
         @emit "connectionFailed"
+    return
 
   # Call a method on the connected Kite.
   tell = (method, args, cb) ->
     throw new Error "Not connected"  unless @readyState is READY
-
     # some methods doesn't need any argument(s), therefore you can omit args
     # completely. If you omit args, then you'll going to pass cb as the second
     # argument to the function, therefore we'll assign it back to cb and make
@@ -212,16 +210,15 @@ class NewKite extends KDObject
         # original handler
         fn = @proto.localStore.items[id]
         # replace the handler. when called it will remove the handler.
-        @proto.localStore.items[id] = ()=>
+        @proto.localStore.items[id] = =>
           delete @proto.localStore.items[id]
           response = arguments[0]
-          fn.apply null, [response.error, response.result]
+          fn response.error, response.result
 
   tell: (method, params, callback) ->
     new Promise (resolve, reject) =>
-      tell.call this, method, params, (err, restResponse...) ->
-        return reject err               if err?
-        return resolve restResponse...
-
+      tell.call this, method, params, (err, rest...) ->
+        return reject err  if err?
+        return resolve rest...
     .timeout(5000)
     .nodeify(callback)
