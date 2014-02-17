@@ -629,8 +629,8 @@ module.exports = class JVM extends Module
               console.warn "VM cannot be credited to user #{account.profile.nickname}: #{err}"  if err
               queue.fin()
         ,
-          ->
-            return  unless @alwaysOn
+          =>
+            return queue.fin()  unless @alwaysOn
             subscription.creditPack tag: "alwayson", (err) ->
               errs.push new KodingError "Always On usage couldn't be credited"  if err
               console.warn "Always On pack couldn't be credited to user #{account.profile.nickname}: #{err}"  if err
