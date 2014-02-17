@@ -217,32 +217,6 @@ module.exports = class JVM extends Module
         then console.error err  unless err.code is 11000
         else updateRelationship domainObj
 
-  @fixUserDomains = permit 'change bundle',
-    success: (client, callback)->
-
-      unless client.context.group is "koding"
-        return callback new KodingError "You are not Koding admin."
-
-      JDomain = require './domain'
-      JUser   = require './user'
-
-      JVM.each {}, {}, (err, vm) =>
-        return callback err  if err
-        return callback null, null  unless vm
-        {nickname, groupSlug, uid, type} = @parseAlias vm.hostnameAlias
-        hostnameAliases = JVM.createAliases {
-          nickname, type, uid, groupSlug
-        }
-        [vmUser] = vm.users.filter (u) -> u.owner is yes
-        if vmUser?
-          JUser.one { _id: vmUser.id }, (err, user) =>
-            if not err and user
-              user.fetchAccount 'koding', (err, account) =>
-                console.log "WORKING ON VM FOR #{nickname} - #{hostnameAliases[0]}"
-                if not err and account
-                  @ensureDomainSettings {account, vm, type, nickname, groupSlug}
-                  @createDomains account, hostnameAliases, hostnameAliases[0]
-
   @ensureDomainSettings = ({account, vm, type, nickname, groupSlug, stack})->
     domain = 'kd.io'
     if type in ['user', 'expensed']
