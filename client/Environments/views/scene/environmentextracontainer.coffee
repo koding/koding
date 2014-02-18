@@ -6,6 +6,9 @@ class EnvironmentExtraContainer extends EnvironmentContainer
     options.title     = 'Shared Storage'
     super options, data
 
+    @on 'PlusButtonClicked', ->
+      new KDNotificationView title: "Adding more resource will be available soon."
+
   loadItems:->
     super
 

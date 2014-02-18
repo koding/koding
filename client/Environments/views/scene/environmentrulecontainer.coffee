@@ -6,6 +6,9 @@ class EnvironmentRuleContainer extends EnvironmentContainer
     options.title     = 'Firewall'
     super options, data
 
+    @on 'PlusButtonClicked', ->
+      new KDNotificationView title: "Adding more rules will be available soon."
+
   loadItems:->
     super
 
