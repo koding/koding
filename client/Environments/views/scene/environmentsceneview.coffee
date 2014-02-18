@@ -95,10 +95,12 @@ class EnvironmentScene extends KDDiaScene
         if domain.getData().aliases and machine.getData().title in domain.getData().aliases
           @connect {dia : domain , joint : 'right'}, \
                    {dia : machine, joint : 'left' }, yes
-        for _rkey, rule of @boxes.rules.dias
-          if rule.getData().title is "Allow All"
-            @connect {dia : rule,   joint : 'right'}, \
-                     {dia : domain, joint : 'left' }, yes
+
+    {dias} = @boxes.rules
+    rule = dias[Object.keys(dias).first]
+    for _dkey, domain of @boxes.domains.dias
+      @connect {dia : rule,   joint : 'right'}, \
+               {dia : domain, joint : 'left' }, yes
 
   createApproveModal:(items, action)->
     return unless KD.isLoggedIn()
