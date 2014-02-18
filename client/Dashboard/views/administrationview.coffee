@@ -99,10 +99,10 @@ class AdministrationView extends KDTabViewWithForms
                 {inputs, buttons} = @forms["Broadcast Message"]
 
                 KD.remote.api.JSystemStatus.create
-                  scheduledAt : Date.now()+inputs.Duration.getValue()*1000
-                  title     : inputs.Title.getValue()
-                  content   : inputs.Description.getValue()
-                  type      : inputs.Type.getValue()
+                  scheduledAt : Date.now() + inputs.Duration.getValue() * 1000
+                  title       : inputs.Title.getValue()
+                  content     : inputs.Description.getValue()
+                  type        : inputs.Type.getValue()
                 , ->
                   buttons["Broadcast Message"].hideLoader()
 

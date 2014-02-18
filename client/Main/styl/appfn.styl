@@ -31,6 +31,12 @@ r-sprite(folder, name)
     sprite(folder+"@2x", name, false)
     background-size sprite-dimensions(folder+"@2x", name)
 
+vCenter()
+  top             50%
+  vendor          transform, translateY(-50%)
+  size            100% auto
+  abs()
+
 fadeIn()
   opacity         0
   vendor          transition, opacity .177s ease

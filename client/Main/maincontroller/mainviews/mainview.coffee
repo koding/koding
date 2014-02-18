@@ -1,5 +1,11 @@
 class MainView extends KDView
 
+  constructor:->
+
+    super
+
+    @notifications = []
+
   viewAppended:->
 
     @bindPulsingRemove()
@@ -68,7 +74,7 @@ class MainView extends KDView
 
     @header.clear()
 
-    @header.addSubView @innerContainer = new KDCustomHTMLView
+    @header.addSubView @headerContainer = new KDCustomHTMLView
       cssClass  : "inner-container"
 
     @logo = new KDCustomHTMLView
@@ -82,7 +88,7 @@ class MainView extends KDView
         then KD.getSingleton('router').handleRoute "/Activity", {entryPoint}
         else location.replace '/'
 
-    @innerContainer.addSubView @logo
+    @headerContainer.addSubView @logo
 
     groupLogo = ""
     if KD.currentGroup?.logo
@@ -97,7 +103,7 @@ class MainView extends KDView
     @logo.setClass KD.config.environment
 
 
-    @innerContainer.addSubView @logotype = new KDCustomHTMLView
+    @headerContainer.addSubView @logotype = new KDCustomHTMLView
       tagName   : "a"
       cssClass  : "logotype"
       partial   : "Koding"
@@ -105,31 +111,9 @@ class MainView extends KDView
         KD.utils.stopDOMEvent event
         KD.getSingleton('router').handleRoute "/", {entryPoint}
 
-
-
-    # REFACTOR NOTE: login link
-
-    # wrapper.addSubView loginLink = new CustomLinkView
-    #   title       : 'Login'
-    #   cssClass    : 'header-sign-in'
-    #   attributes  :
-    #     href      : '/Login'
-    #   click       : (event)->
-    #     KD.utils.stopDOMEvent event
-    #     KD.getSingleton('router').handleRoute "/Login"
-
-    # REFACTOR NOTE: this put the group name next to logo
-
-    # if entryPoint?.slug? and entryPoint.type is "group"
-    #   KD.remote.cacheable entryPoint.slug, (err, models)=>
-    #     if err then callback err
-    #     else if models?
-    #       [group] = models
-    #       @logo.updatePartial "<cite></cite>#{group.title}"
-
   createDock:->
 
-    @innerContainer.addSubView KD.singleton('dock').getView()
+    @headerContainer.addSubView KD.singleton('dock').getView()
 
 
   createAccountArea:->
@@ -137,7 +121,7 @@ class MainView extends KDView
     @accountArea = new KDCustomHTMLView
       cssClass : 'account-area'
 
-    @innerContainer.addSubView @accountArea
+    @headerContainer.addSubView @accountArea
 
     unless KD.isLoggedIn()
       @loginLink = new CustomLinkView
@@ -270,31 +254,34 @@ class MainView extends KDView
     @panelWrapper.addSubView @appSettingsMenuButton
 
   createChatPanel:->
+
     @addSubView @chatPanel   = new MainChatPanel
     # @addSubView @chatHandler = new MainChatHandler
     @chatHandler = new MainChatHandler
 
-  setStickyNotification:->
-    # sticky = KD.getSingleton('windowController')?.stickyNotification
-    return if not KD.isLoggedIn() # don't show it to guests
+  hideAllNotifications:->
 
-    @utils.defer => getStatus()
+    notification.hide() for notification in @notifications
 
-    {JSystemStatus} = KD.remote.api
+  createGlobalNotification:(message, options = {})->
 
-    JSystemStatus.on 'restartScheduled', (systemStatus)=>
-      sticky = KD.getSingleton('windowController')?.stickyNotification
+    options.type     or= ''  # err or warn
+    options.cssClass   = KD.utils.curry "header-notification", options.type
+    options.cssClass   = KD.utils.curry options.cssClass, 'fx'  if options.animated
 
-      if systemStatus.status isnt 'active'
-        getSticky()?.emit 'restartCanceled'
-      else
-        systemStatus.on 'restartCanceled', =>
-          getSticky()?.emit 'restartCanceled'
-        new GlobalNotification
-          targetDate : systemStatus.scheduledAt
-          title      : systemStatus.title
-          content    : systemStatus.content
-          type       : systemStatus.type
+    @notifications.push notification = new GlobalNotificationView options, {message}
+
+    @header.addSubView notification
+    @hideAllNotifications()
+
+    notification.once 'KDObjectWillBeDestroyed', =>
+      for n, i in @notifications
+        if n.getId() is notification.getId()
+          @notifications[i-1]?.show()
+          break
+
+    KD.utils.wait 177, notification.bound 'show'
+
 
   enableFullscreen: ->
     @setClass "fullscreen no-anim"
@@ -359,3 +346,32 @@ class MainView extends KDView
           duration = 400
           KDScrollView::scrollTo.call mainView, {top, duration}
           break
+
+class GlobalNotificationView extends JView
+
+  constructor:->
+
+    super
+
+    @close = new CustomLinkView
+      title      : ''
+      icon       :
+        cssClass : 'close'
+      click      : (event)=>
+        KD.utils.stopDOMEvent event
+        @once 'transitionend', @bound 'destroy'
+        @hide()
+
+    @bindTransitionEnd()
+
+  show:-> @setClass 'in'
+
+  hide:-> @unsetClass 'in'
+
+  pistachio:->
+    """
+    <div>
+    {{ #(message)}}
+    {{> @close}}
+    </div>
+    """
