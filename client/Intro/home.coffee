@@ -1,6 +1,6 @@
 class HomePage extends JView
 
-  iframe = """<iframe src="//www.youtube.com/embed/5E85g_ddV3A?autoplay=1&origin=https://koding.com&showinfo=0&theme=dark&modestbranding=1&autohide=1&loop=1" width="853" height="480" frameborder="0" webkitAllowFullScreen mozallowfullscreen allowFullScreen></iframe>"""
+  iframe = """<iframe src="//www.youtube.com/embed/5E85g_ddV3A?autoplay=1&origin=https://koding.com&showinfo=0&rel=0&theme=dark&modestbranding=1&autohide=1&loop=1" width="853" height="480" frameborder="0" webkitAllowFullScreen mozallowfullscreen allowFullScreen></iframe>"""
 
   partialData = KD.customPartial?.partial or {}
 
@@ -55,7 +55,7 @@ class HomePage extends JView
 
     if partialData.css
       tag           = document.createElement "style"
-      tag.innerHTML = partialData.css
+      tag.innerHTML = Encoder.htmlDecode partialData.css
 
       document.head.appendChild tag
 
