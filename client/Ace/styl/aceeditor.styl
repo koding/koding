@@ -286,19 +286,23 @@ body.ace #main-header
 
 
 .kdmodal.goto
+  .kdmodal-content
+    margin-top            0 !important
+  .kdmodal-inner
+    margin                0 !important
   .close-icon
     hidden()
-
   .title
     line-height           30px
-
   button
-    abs                   14px, 14px
-    width                 auto
+    abs                   12px, 9px
+    size                  auto, 42px
     padding               2px 10px !important
-
+    span
+      line-height         42px !important
+      text-transform      uppercase !important
   .kdformview .formline
     padding               11px
-
     .input-wrapper > input
       min-width           0
+      max-width           98px
