@@ -882,7 +882,7 @@ func (info *VMInfo) startTimeout() {
 	// * [0, 30] random duration to avoid hickups during mass unprepares
 	// In Total it's [60, 90] minutes.
 	totalTimeout := vmTimeout + randomMinutes(30)
-	log.Info("Time is started. VM %s will be shut down in %s minutes",
+	log.Info("Timer is started. VM %s will be shut down in %s minutes",
 		info.vm.Id.Hex(), totalTimeout)
 
 	info.timeout = time.AfterFunc(totalTimeout, func() {
