@@ -74,7 +74,7 @@ module.exports = class JPasswordRecovery extends jraphical.Module
 
     #{url}
 
-    If you can't click the link, please copy it and paste it on your browser.
+    If you can't click the link, please copy it and paste it on your browser. If you didn't request this, please ignore this email.
     """
 
   @recoverPassword = secure (client, usernameOrEmail, callback)->
