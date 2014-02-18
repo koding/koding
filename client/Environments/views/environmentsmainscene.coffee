@@ -27,7 +27,6 @@ class EnvironmentsMainScene extends JView
       @freePlanView.hide()
 
     @addSubView new StackView {}, title:"Your default stack"
-    # @addSubView new StackView {}, title:"Extended stack"
 
 class StackView extends KDView
 

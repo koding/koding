@@ -3,8 +3,6 @@ class EnvironmentContainer extends KDDiaContainer
   constructor:(options={}, data)->
 
     options.cssClass   = KD.utils.curry 'environments-container', options.cssClass
-    # options.bind       = 'scroll mousewheel wheel'
-    # options.draggable  = yes
 
     super options, data
 
@@ -14,7 +12,6 @@ class EnvironmentContainer extends KDDiaContainer
     @itemHeight = options.itemHeight ? 44
 
     @on "DataLoaded", => @_dataLoaded = yes
-    # @on "DragFinished", @bound 'savePosition'
 
     @loader = new KDLoaderView
       cssClass   : 'new-item-loader hidden'
@@ -51,7 +48,6 @@ class EnvironmentContainer extends KDDiaContainer
     diaObj.on "KDObjectWillBeDestroyed", @bound 'updatePositions'
     diaObj.on "KDObjectWillBeDestroyed", => @emit "itemRemoved"
     @updateAddButton()
-    # @updateHeight()
 
   updatePositions:->
 
@@ -62,47 +58,11 @@ class EnvironmentContainer extends KDDiaContainer
       index++
 
     @updateAddButton()
-    # @updateHeight()
 
   diaCount:-> Object.keys(@dias).length
-
-  # mouseWheel:(e)->
-  #   @emit "UpdateScene"
-  #   super e
 
   loadItems:->
     @removeAllItems()
 
   updateAddButton:->
     @addButton.setY 68 + @diaCount() * (@itemHeight + 20)
-
-  # updateHeight:->
-
-  #   @setHeight 80 + @diaCount() * 50
-  #   @emit 'UpdateScene'
-
-  # savePosition:->
-
-  #   name      = @constructor.name
-  #   bounds    = x: @getRelativeX(), y: @getRelativeY()
-  #   positions = (@appStorage.getValue 'containerPositions') or {}
-  #   positions[name] = bounds
-  #   @appStorage.setValue 'containerPositions', positions
-
-  # loadPosition:->
-
-  #   name     = @constructor.name
-  #   position = ((@appStorage.getValue 'containerPositions') or {})[name]
-  #   return  unless position
-  #   @setX position.x; @setY position.y
-
-  # resetPosition:->
-
-  #   @setX @_initialPosition.x
-  #   @setY @_initialPosition.y
-
-  #   name      = @constructor.name
-  #   positions = (@appStorage.getValue 'containerPositions') or {}
-
-  #   delete positions[name]
-  #   @appStorage.setValue 'containerPositions', positions
