@@ -518,13 +518,8 @@ finderSelectedColor2 = #3AAAAB
       font-size           12px
       padding             3px 20px
       borderBox()
-      .on-off
-        width             52px
-        margin            0
+      .koding-on-off
         fr()
-        a
-          padding         5px 0px 4px 0px
-          width           24px
       a.shortcuts
         color             #444
         noTextDeco()
@@ -671,12 +666,20 @@ input.kdinput.text
     transition          transform .1s ease
 
   &.small
-    size                  52px 28px
-    rounded               14px
+    size                52px 28px
+    rounded             14px
     &.on a.knob
-      vendor              transform, translateX(24px)
+      vendor            transform, translateX(24px)
     a.knob
-      size                24px 24px
+      size              24px 24px
+
+  &.tiny
+    size                34px, 18px
+    rounded             9px
+    &.on a.knob
+      vendor            transform, translateX(16px)
+    a.knob
+      size              14px 14px
 
 //
 // KODING RESURRECTION MODAL THEME
