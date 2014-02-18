@@ -383,7 +383,7 @@ class Ace extends KDView
                     Go              :
                       itemClass     : KDButtonView
                       title         : "Go"
-                      style         : "modal-clean-gray fl"
+                      style         : "solid green"
                       type          : "submit"
 
       @gotoLineModal.on "KDModalViewDestroyed", =>
