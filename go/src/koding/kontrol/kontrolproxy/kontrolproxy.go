@@ -28,8 +28,8 @@ import (
 	"sync"
 	"syscall"
 	"time"
-	"github.com/gorilla/context"
 
+	"github.com/gorilla/context"
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/sessions"
 	"github.com/hoisie/redis"
