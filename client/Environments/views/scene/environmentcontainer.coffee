@@ -19,6 +19,8 @@ class EnvironmentContainer extends KDDiaContainer
         height   : 20
         width    : 20
 
+    @on 'viewAppended', @bound 'loadItems'
+
   viewAppended:->
     super
 
