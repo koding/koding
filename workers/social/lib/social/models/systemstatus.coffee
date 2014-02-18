@@ -19,8 +19,8 @@ module.exports = class JSystemStatus extends Model
           (do signature)
 
     sharedEvents     :
-      static         : ['forceReload']
-      instance       : ['restartCanceled', 'restartScheduled']
+      static         : ['forceReload', "restartScheduled"]
+      instance       : ['restartCanceled']
 
     schema           :
       title          : String
