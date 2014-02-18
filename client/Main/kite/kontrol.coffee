@@ -3,6 +3,10 @@
 # reachable from KD.getSingleton("kontrol").
 class Kontrol extends KDObject
 
+  # TODO We need to send "watch" commands again on re-connection because old watchers will be removed on disconnect.
+  # TODO Tokens need to be renewed before they expire.
+  # TODO A token must be renewed when we get "authenticationError" from remote kite.
+
   constructor: (options={})->
     super options
 
@@ -56,7 +60,7 @@ class Kontrol extends KDObject
     @kite.tell "getKites", [query, onEvent], (err, result)=>
       return callback err, null  if err
 
-      # Watcher ID is here but I don't know where to store it. (Cenk)
+      # TODO Watcher ID is here but I don't know where to store it. (Cenk)
       # result.watcherID
 
       for kite in result.kites
