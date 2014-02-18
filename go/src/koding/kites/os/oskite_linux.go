@@ -57,11 +57,12 @@ var (
 	mongodbConn *mongodb.MongoDB
 	conf        *config.Config
 
-	flagProfile   = flag.String("c", "", "Configuration profile from file")
-	flagRegion    = flag.String("r", "", "Configuration region from file")
-	flagDebug     = flag.Bool("d", false, "Debug mode")
-	flagTemplates = flag.String("t", "", "Change template directory")
-	flagTimeout   = flag.String("s", "50m", "Shut down timeout for a single VM")
+	flagProfile      = flag.String("c", "", "Configuration profile from file")
+	flagRegion       = flag.String("r", "", "Configuration region from file")
+	flagDebug        = flag.Bool("d", false, "Debug mode")
+	flagTemplates    = flag.String("t", "", "Change template directory")
+	flagTimeout      = flag.String("s", "50m", "Shut down timeout for a single VM")
+	flagDisableGuest = flag.Bool("noguest", false, "Disable Guest VM creation")
 
 	infos            = make(map[bson.ObjectId]*VMInfo)
 	infosMutex       sync.Mutex
@@ -109,7 +110,7 @@ func main() {
 		vmTimeout = newTimeout
 	}
 
-	// set seed for even randomness
+	// set seed for even randomness, needed for randomMinutes() function.
 	rand.Seed(time.Now().UnixNano())
 
 	initializeSettings()
@@ -509,6 +510,11 @@ func registerVmMethod(k *kite.Kite, method string, concurrent bool, callback fun
 }
 
 func getUser(username string) (*virt.User, error) {
+	// Do not create guest vms if its turned of
+	if *flagDisableGuest && strings.HasPrefix(username, "guest-") {
+		return nil, errors.New("vm creation for guests are disabled.")
+	}
+
 	var user *virt.User
 	if err := mongodbConn.Run("jUsers", func(c *mgo.Collection) error {
 		return c.Find(bson.M{"username": username}).One(&user)
