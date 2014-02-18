@@ -182,6 +182,9 @@ class LoginView extends KDView
       cssClass : "invite-recovery-notification-bar hidden"
       partial  : "..."
 
+    @failureNotice = new KDCustomHTMLView
+      cssClass     : "failure-notice hidden"
+
     KD.getSingleton("mainController").on "landingSidebarClicked", => @unsetClass 'landed'
 
     setValue = (field, value)=>
@@ -255,6 +258,7 @@ class LoginView extends KDView
       <div class="login-form-holder resend-confirmation-form">
         {{> @resendForm}}
       </div>
+      {{> @failureNotice}}
       <div class="login-footer">
         <div class='first-row clearfix'>
           <div class='fl'>{{> @goToRecoverLink}}</div><div class='fr'>{{> @goToRegisterLink}}<i>•</i>{{> @backToLoginLink}}</div>
@@ -551,6 +555,10 @@ class LoginView extends KDView
         when "resendEmail"
           @$('.flex-wrapper').addClass 'one'
           @resendForm.usernameOrEmail.input.setFocus()
+        when "failureNotice"
+          @$('.flex-wrapper').addClass 'one'
+          @failureNotice.show()
+          @github.hide()
 
   getRouteWithEntryPoint:(route)->
     {entryPoint} = KD.config
@@ -575,3 +583,11 @@ class LoginView extends KDView
       new KDNotificationView
         title   : err.message
         duration: 1000
+
+  setFailureNotice: ({cssClass, title, message}) ->
+    @failureNotice.setClass cssClass  if cssClass
+    @failureNotice.updatePartial \
+      """
+      <strong>#{title}</strong>
+      <p>#{message}</p>
+      """
