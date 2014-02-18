@@ -58,7 +58,7 @@ class GroupGeneralSettingsView extends JView
   createFormButtons: (formOptions) ->
     formOptions.buttons   =
       Save                :
-        style             : "solid green"
+        style             : "solid medium green"
         type              : "submit"
         loader            :
           color           : "#444444"
