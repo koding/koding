@@ -13,14 +13,6 @@ class IntroTeamPlan extends JView
 
     @resourcePackSlider = new IntroPlanSelection
       title             : "Resource Pack"
-      description       : """
-        <span>1 Resource pack contains</span>
-        <br/><cite>4x</cite>CPU
-        <cite>2x</cite>GB RAM
-        <cite>50</cite>GB Disk
-        <br/><cite>10x</cite>Total VMs
-        <cite>1x</cite>Always on VMs
-        """
       unitPrice         : unitPrices.resourcePack
       amountSuffix      : "x"
       slider            :
@@ -64,11 +56,11 @@ class IntroTeamPlan extends JView
     @updateContent()
 
   resourcePackUnits =
-    cpu             : 1
-    ram             : 1
-    disk            : 50
-    totalVMs        : 10
+    cpu             : 2
+    ram             : 2
+    disk            : 10
     alwaysOn        : 1
+    totalVMs        : 2
 
   updateContent: ->
     @total = (@resourceQuantity * unitPrices.resourcePack) + (@userQuantity * unitPrices.user)
