@@ -22,7 +22,7 @@ module.exports = class JVM extends Module
 
   handleError = (err)-> console.error err  if err
 
-  VMDefaultDiskSize = @VMDefaultDiskSize = 4096
+  VMDefaultDiskSize = @VMDefaultDiskSize = 3072
   @set
     softDelete          : yes
     indexes             :

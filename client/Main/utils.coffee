@@ -492,10 +492,10 @@ __utils.extend __utils,
       height        : "auto"
       buttons       :
         Save        :
-          style     : "modal-clean-gray"
+          style     : "solid green medium"
           callback  : => callback input, finderController, dialog
         Cancel      :
-          style     : "modal-cancel"
+          style     : "solid medium"
           callback  : =>
             finderController.stopAllWatchers()
             delete finderController
