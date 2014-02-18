@@ -28,8 +28,8 @@ import (
 	"sync"
 	"syscall"
 	"time"
-	"github.com/gorilla/context"
 
+	"github.com/gorilla/context"
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/sessions"
 	"github.com/hoisie/redis"
@@ -191,7 +191,12 @@ func (p *Proxy) runNewKite() {
 		Region:      *flagRegion,
 	}
 
-	onEvent := func(e *kite.Event) {
+	onEvent := func(e *kite.Event, err error) {
+		if err != nil {
+			log.Error(err.Error())
+			return
+		}
+
 		serviceUniqueHostname := strings.Replace(e.Kite.Hostname, ".", "_", -1)
 		if serviceUniqueHostname == "" {
 			k.Log.Warning("serviceUniqueHostname is empty for %s", e)
@@ -230,7 +235,7 @@ func (p *Proxy) runNewKite() {
 		}
 	}
 
-	err := k.Kontrol.WatchKites(query, onEvent)
+	_, err := k.Kontrol.WatchKites(query, onEvent)
 	if err != nil {
 		log.Warning(err.Error())
 	}
