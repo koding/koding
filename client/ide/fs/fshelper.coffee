@@ -212,11 +212,13 @@ class FSHelper
     get    : (name)->
       "#{KD.config.uploadsUri}/#{KD.whoami().getId()}/#{name}"
 
-    upload : (name, content, callback)->
+    upload : (name, content, type, slug, callback)->
       vmController = KD.getSingleton 'vmController'
+      # TODO : change before merging
+      args = {name, bucket: "groups", "groupName", content}
       vmController.run
         method    : 's3.store'
-        withArgs  : {name, content}
+        withArgs  : args
       , (err, res)->
         if err then callback err
         else callback null, FSHelper.s3.get name
