@@ -77,6 +77,16 @@ class TeamPlan extends JView
     <cite>#{alwaysOn * @resourceQuantity}x</cite>Always on VMs
     """
 
+  viewAppended: ->
+    super
+
+    @resourcePackSlider.addSubView new KDCustomHTMLView
+      tagName : "a"
+      cssClass: "pricing-show-details"
+      partial : "What is This?"
+      click   : =>
+        @emit "ShowHowItWorks"
+
   pistachio: ->
     """
     {{> @resourcePackSlider}}

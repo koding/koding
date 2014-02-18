@@ -85,6 +85,16 @@ class DeveloperPlan extends JView
     # then "TREAT: $#{discount} OFF OR #{vm} FREE VM#{if vm > 1 then 's' else ''}"
     # else ""
 
+  viewAppended: ->
+    super
+
+    @slider.addSubView new KDCustomHTMLView
+      tagName : "a"
+      cssClass: "pricing-show-details"
+      partial : "What is This?"
+      click   : =>
+        @emit "ShowHowItWorks"
+
   pistachio: ->
     """
     {{> @slider}}
