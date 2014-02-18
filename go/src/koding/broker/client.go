@@ -14,6 +14,8 @@ import (
 	"github.com/streadway/amqp"
 )
 
+var currentStorage storage.Backend
+
 type Client struct {
 	Session        *sockjs.Session
 	ControlChannel *amqp.Channel
@@ -36,14 +38,9 @@ func NewClient(session *sockjs.Session, broker *Broker) (*Client, error) {
 
 	var subscriptions storage.Subscriptionable
 
-	subscriptions, err = storage.NewStorage(conf, storage.REDIS, socketId)
+	subscriptions, err = createSubscriptionStorage(socketId)
 	if err != nil {
-		log.Critical("Couldnt access to redis/create a key for client %v", session.Tag)
-		subscriptions, err = storage.NewStorage(conf, storage.SET, socketId)
-		if err != nil {
-			// this will never fail to here
-			return nil, fmt.Errorf("Couldnt create subscription storage %v", err)
-		}
+		return nil, err
 	}
 
 	globalMapMutex.Lock()
@@ -57,6 +54,24 @@ func NewClient(session *sockjs.Session, broker *Broker) (*Client, error) {
 		Broker:         broker,
 		Subscriptions:  subscriptions,
 	}, nil
+}
+
+func createSubscriptionStorage(socketId string) (storage.Subscriptionable, error) {
+	subscriptions, err := storage.NewStorage(conf, storage.REDIS, socketId)
+	if err == nil {
+		currentStorage = storage.REDIS
+		return subscriptions, nil
+	}
+	log.Critical("Couldnt access to redis/create a key for client %v", socketId)
+
+	subscriptions, err = storage.NewStorage(conf, storage.SET, socketId)
+	if err == nil {
+		currentStorage = storage.SET
+		return subscriptions, nil
+	}
+
+	// this will never fail to here
+	return nil, fmt.Errorf("Couldnt create subscription storage %v", err)
 }
 
 // Close should be called whenever a client disconnects.
@@ -139,7 +154,9 @@ func (c *Client) handleSessionMessage(data interface{}) {
 	case "ping":
 		sendToClient(c.Session, "broker.pong", nil)
 		// TOOD - may be we need to revisit this part later about duration and request count
-		go c.Subscriptions.ClearWithTimeout(time.Minute * 30)
+		if currentStorage == storage.REDIS {
+			go c.Subscriptions.ClearWithTimeout(time.Minute * 59)
+		}
 	default:
 		log.Warning("Invalid action. message: %v socketId: %v", message, c.SocketId)
 
