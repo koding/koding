@@ -61,6 +61,10 @@ func newRedis(socketId string) (*cache, error) {
 	return cache, nil
 }
 
+func (s *cache) Backend() Backend {
+	return REDIS
+}
+
 // Each traverses on all subscribed items
 // if given function returns false, breaks from the iteration
 func (c *cache) Each(f func(item interface{}) bool) error {

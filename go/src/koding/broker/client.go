@@ -14,8 +14,6 @@ import (
 	"github.com/streadway/amqp"
 )
 
-var currentStorage storage.Backend
-
 type Client struct {
 	Session        *sockjs.Session
 	ControlChannel *amqp.Channel
@@ -59,14 +57,12 @@ func NewClient(session *sockjs.Session, broker *Broker) (*Client, error) {
 func createSubscriptionStorage(socketId string) (storage.Subscriptionable, error) {
 	subscriptions, err := storage.NewStorage(conf, storage.REDIS, socketId)
 	if err == nil {
-		currentStorage = storage.REDIS
 		return subscriptions, nil
 	}
 	log.Critical("Couldnt access to redis/create a key for client %v", socketId)
 
 	subscriptions, err = storage.NewStorage(conf, storage.SET, socketId)
 	if err == nil {
-		currentStorage = storage.SET
 		return subscriptions, nil
 	}
 
@@ -153,8 +149,8 @@ func (c *Client) handleSessionMessage(data interface{}) {
 
 	case "ping":
 		sendToClient(c.Session, "broker.pong", nil)
-		// TOOD - may be we need to revisit this part later about duration and request count
-		if currentStorage == storage.REDIS {
+		if c.Subscriptions.Backend() == storage.REDIS {
+			// TOOD - may be we need to revisit this part later about duration and request count
 			go c.Subscriptions.ClearWithTimeout(time.Minute * 59)
 		}
 	default:
