@@ -115,53 +115,7 @@ section.resources-container
     float              right
 
 .environment-content
-  background           #1F2628
   overflow             auto
-
-  .domains-no-record
-    text-align         center
-    padding            20px
-    display            block
-    font-size          18px
-    color              #aaa
-    text-shadow        0 1px 0 #fff
-
-  .formline
-    border              none
-
-  .formline.suggestionbox
-    padding-top         0
-
-  .formline.domainname
-    padding-left        25px
-    input.text
-      max-width         400px
-      padding           2px 10px
-      line-height       32px
-      height            36px
-      font-size         14px
-
-      &.domain
-        padding-right   117px
-        margin-right    0
-
-    .kdselectbox.domains
-      position          absolute
-      top               6px
-      right             -4px
-
-    > .input-wrapper
-      width             400px
-      height            36px
-      margin-right      0
-      rel()
-
-      > *
-        margin-right    10px
-
-  &.in-progress
-    .new-item-plus
-      display           none !important
 
   h1.kdheaderview
     z-index               2
@@ -251,13 +205,14 @@ section.resources-container
           bg            position, -60px -500px
 
   .environment-help
-    text-align          center
     height              auto
-    color               white
+    width               1046px
+    margin              0 auto
 
     h1
       padding           30px
       font-size         28px
+      padding-left      0
 
     .content
       border-bottom     1px solid #ccc
@@ -274,15 +229,12 @@ section.resources-container
         r-sprite        environments, "play"
 
   .top-warning
-    text-align          center
-    height              20px
-    background          rgba(0,0,0,0.1)
     padding-top         3px
-    color               white
-
+    height              20px
+    width               1046px
+    margin              0 auto
     a
       text-decoration   underline
-      color             white
 
   .action-area
     z-index             0
@@ -917,7 +869,7 @@ div.environment-stack
   border                1px solid
   width                 1045px
   margin                8px auto
-  border-radius         10px
+  border-radius         3px
   background            #2E3537
   vendor                transition, height .2s ease
 
@@ -925,7 +877,7 @@ div.environment-stack
     height              auto
     padding             10px
     color               white
-    border-bottom       1px solid
+    border-bottom       1px solid #777
 
   .stack-toggle
     top                 8px

@@ -68,14 +68,6 @@ class EnvironmentScene extends KDDiaScene
         return new KDNotificationView
           title : "A domain name can only be bound to one VM."
 
-    # @addFakeConnection {
-    #   source, target,
-    #   options : {
-    #     lineColor  : "#cdcdcd"
-    #     lineDashes : [5]
-    #   }
-    # }
-
     if domain and machine
       jDomain = domain.dia.getData().domain # JDomain
       vmName  = machine.dia.getData().title # JVM.hostnameAlias
