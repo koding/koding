@@ -359,18 +359,16 @@ finderSelectedColor2 = #3AAAAB
   &:hover
     bg                 color #4A4E52
   &:active
-    bg                 color #36B298
+    bg                 color logoBg
     span.button-title
       color            white
   &:focus
-    shadow             0 0 10px -2px #36b298
+    shadow             0 0 10px -2px logoBg
 
 .kdbutton.solid.green
-  bg                   color #36B298
+  bg                   color logoBg
   span.button-title
     color              white
-  span.icon
-    margin             18px 0 0 0
   &:hover
   &:active
   &:focus
@@ -378,7 +376,59 @@ finderSelectedColor2 = #3AAAAB
     span.button-title
       color            white
   &:focus
-    shadow             0 0 10px -2px #36b298
+    shadow             0 0 10px -2px logoBg
+
+.kdbutton.solid.yellow
+  bg                   color #ff9f00
+  span.button-title
+    color              #ac4a00
+  &:hover
+  &:active
+  &:focus
+    bg                 color #ac4a00
+    span.button-title
+      color            #ff9f00
+  &:focus
+    shadow             0 0 10px -2px #ff9f00
+
+.kdbutton.solid.light-gray
+  bg                   color #C0C0C0
+  span.button-title
+    color              white
+  &:hover
+  &:active
+  &:focus
+    bg                 color #a0a0a0
+    span.button-title
+      color            whitesmoke
+  &:focus
+    shadow             0 0 10px -2px #ff9f00
+
+.kdbutton.solid.small
+  margin              0
+  padding             0 25px
+  size                auto 26px
+  rounded             10px
+  text-align          center
+  span.button-title
+    font-size         13px
+    line-height       1
+  span.icon
+    margin            2px 0 0 0
+
+.kdbutton.solid.medium
+  margin              0
+  padding             0 25px
+  size                auto 44px
+  rounded             10px
+  text-align          center
+  span.button-title
+    font-size         16px
+    font-weight       500
+    line-height       1
+  span.icon
+    margin            2px 0 0 0
+
 
 .kdbutton.solid.red
   bg                   color #E94835
@@ -391,7 +441,7 @@ finderSelectedColor2 = #3AAAAB
   &:focus
     bg                 color #e14a35
   &:focus
-    shadow             0 0 10px -2px #36b298
+    shadow             0 0 10px -2px logoBg
 
   &.shadowed
     shadow             0 2px 0 0 #a33e2f
