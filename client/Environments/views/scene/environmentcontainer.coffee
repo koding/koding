@@ -3,7 +3,7 @@ class EnvironmentContainer extends KDDiaContainer
   constructor:(options={}, data)->
 
     options.cssClass   = KD.utils.curry 'environments-container', options.cssClass
-    options.bind       = 'scroll mousewheel wheel'
+    # options.bind       = 'scroll mousewheel wheel'
     # options.draggable  = yes
 
     super options, data
@@ -66,9 +66,9 @@ class EnvironmentContainer extends KDDiaContainer
 
   diaCount:-> Object.keys(@dias).length
 
-  mouseWheel:(e)->
-    @emit "UpdateScene"
-    super e
+  # mouseWheel:(e)->
+  #   @emit "UpdateScene"
+  #   super e
 
   loadItems:->
     @removeAllItems()
