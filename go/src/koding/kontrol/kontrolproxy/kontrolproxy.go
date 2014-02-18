@@ -1,15 +1,20 @@
 package main
 
 import (
+	"errors"
+	"flag"
 	"fmt"
 	"html/template"
 	"io"
+	"kite"
+	"kite/protocol"
 	"koding/db/mongodb/modelhelper"
+	"koding/kodingkite"
 	"koding/kontrol/kontrolproxy/resolver"
 	"koding/kontrol/kontrolproxy/utils"
 	"koding/tools/config"
-	"log"
-	"log/syslog"
+	"koding/tools/logger"
+	"math/rand"
 	"net"
 	"net/http"
 	"net/http/httputil"
@@ -20,54 +25,32 @@ import (
 	"runtime"
 	"strconv"
 	"strings"
+	"sync"
 	"syscall"
 	"time"
+	"github.com/gorilla/context"
 
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/sessions"
 	"github.com/hoisie/redis"
-	libgeo "github.com/nranchev/go-libGeoIP"
 )
 
-func init() {
-	log.SetPrefix(fmt.Sprintf("proxy [%5d] ", os.Getpid()))
-}
+const (
+	CookieVM      = "kdproxy-vm"
+	CookieUseHTTP = "kdproxy-usehttp"
 
-// Proxy is implementing the http.Handler interface (via ServeHTTP). This is
-// used as the main handler for our HTTP and HTTPS listeners.
-type Proxy struct {
-	// mux implies the http.Handler interface. Currently we use the default
-	// http.ServeMux but it can be swapped with any other mux that satisfies the
-	// http.Handler
-	mux *http.ServeMux
+	// Used as a value for CookieVM
+	MagicCookieValue = "KEbPptvE7dGLM5YFtcfz"
+)
 
-	// enableFirewall is used to activate the internal validator that uses the
-	// restrictions and filter collections to validate the incoming requests
-	// accoding to ip, country, requests and so on..
-	enableFirewall bool
-
-	// logDestination specifies the destination of requests logs in the
-	// Combined Log Format.
-	logDestination io.Writer
-
-	// cacheTransports is used to enable cache based roundtrips for certaing
-	// request hosts, such as koding.com.
-	cacheTransports map[string]http.RoundTripper
-}
-
-// used by redis counter
-type interval struct {
-	name     string
-	duration int64
-}
-
-const CookieUseHTTP = "kdproxy-usehttp"
+const KONTROLPROXY_NAME = "kontrolproxy"
 
 var (
-	// used to extract the Country information via the IP
-	geoIP *libgeo.GeoIP
-
 	proxyName, _ = os.Hostname()
+
+	// used for all our log
+	log      = logger.New(KONTROLPROXY_NAME)
+	logLevel logger.Level
 
 	// redis client, connects once
 	redisClient = redis.Client{
@@ -85,63 +68,97 @@ var (
 	// cookie handling is used for features like securePage
 	store = sessions.NewCookieStore([]byte("kontrolproxy-secret-key"))
 
-	// used for all our logs, currently it uses our local syslog server
-	logs *syslog.Writer
-
 	// used for various kinds of use cases like validator, 404 pages,
 	// maintenance,...
 	templates = template.Must(template.ParseFiles(
-		"go/templates/proxy/securepage.html",
-		"go/templates/proxy/notfound.html",
-		"go/templates/proxy/notactiveVM.html",
-		"go/templates/proxy/notOnVM.html",
-		"go/templates/proxy/quotaExceeded.html",
-		"website/maintenance.html",
+		"files/templates/notfound.html",
+		"files/templates/notactiveVM.html",
+		"files/templates/securepage.html",
+		"files/templates/quotaExceeded.html",
+		"files/templates/maintenance.html",
 	))
+
+	// readed config
+	conf *config.Config
+
+	// flag variables
+	flagConfig    = flag.String("c", "", "Configuration profile from file")
+	flagRegion    = flag.String("r", "", "Region")
+	flagVMProxies = flag.Bool("v", false, "Enable ports for VM users (1024-10000)")
+	flagDebug     = flag.Bool("d", false, "Debug mode")
 )
 
+// Proxy is implementing the http.Handler interface (via ServeHTTP). This is
+// used as the main handler for our HTTP and HTTPS listeners.
+type Proxy struct {
+	// mux implies the http.Handler interface. Currently we use the default
+	// http.ServeMux but it can be swapped with any other mux that satisfies the
+	// http.Handler
+	mux *http.ServeMux
+
+	// resolvers are needed to resolve for different cases
+	resolvers map[string]Resolver
+
+	// enableFirewall is used to activate the internal validator that uses the
+	// restrictions and filter collections to validate the incoming requests
+	// accoding to ip, country, requests and so on..
+	enableFirewall bool
+
+	// logDestination specifies the destination of requests log in the
+	// Combined Log Format.
+	logDestination io.Writer
+
+	// cacheTransports is used to enable cache based roundtrips for certaing
+	// request hosts, such as koding.com.
+	cacheTransports map[string]http.RoundTripper
+
+	// oskite references
+	oskites   map[string]*kite.RemoteKite
+	oskitesMu sync.Mutex
+}
+
+type Resolver func(*http.Request, *resolver.Target) http.Handler
+
+// used by redis counter
+type interval struct {
+	name     string
+	duration int64
+}
+
 func main() {
-	runtime.GOMAXPROCS(runtime.NumCPU())
-	fmt.Printf("[%s] I'm using %d cpus for goroutines\n", time.Now().Format(time.Stamp), runtime.NumCPU())
-
-	configureProxy()
-	startProxy()
-}
-
-// configureProxy is used to setup all necessary configuration procedures, like
-// mongodb connection, syslog enabling and so on..
-func configureProxy() {
-	var err error
-	logs, err = syslog.New(syslog.LOG_DEBUG|syslog.LOG_USER, "KONTROL_PROXY")
-	if err != nil {
-		fmt.Println(err)
+	flag.Parse()
+	if *flagConfig == "" || *flagRegion == "" {
+		log.Error("No flags defined. -c, -r and -v is not set. Aborting")
+		os.Exit(1)
 	}
 
-	res := "kontrol proxy started"
-	fmt.Printf("[%s] %s\n", time.Now().Format(time.Stamp), res)
-	logs.Info(res)
+	conf = config.MustConfig(*flagConfig)
+	modelhelper.Initialize(conf.Mongo)
 
-	err = modelhelper.AddProxy(proxyName)
-	if err != nil {
-		logs.Warning(err.Error())
+	if *flagDebug {
+		logLevel = logger.DEBUG
+	} else {
+		logLevel = logger.GetLoggingLevelFromConfig(KONTROLPROXY_NAME, *flagConfig)
 	}
+	log.SetLevel(logLevel)
 
-	// load GeoIP db into memory
-	dbFile := "GeoIP.dat"
-	geoIP, err = libgeo.Load(dbFile)
-	if err != nil {
-		res := fmt.Sprintf("load GeoIP.dat: %s\n", err.Error())
-		logs.Warning(res)
-	}
-}
+	log.Info("Kontrolproxy started.")
+	log.Info("I'm using %d cpus for goroutines", runtime.NumCPU())
 
-// startProxy is used to fire off all our ftp, https and http proxies
-func startProxy() {
 	p := &Proxy{
 		mux:             http.NewServeMux(),
 		enableFirewall:  false,
 		cacheTransports: make(map[string]http.RoundTripper),
+		oskites:         make(map[string]*kite.RemoteKite),
+		resolvers:       make(map[string]Resolver),
 	}
+
+	p.resolvers[resolver.ModeMaintenance] = p.maintenance
+	p.resolvers[resolver.ModeRedirect] = p.redirect
+	p.resolvers[resolver.ModeVM] = p.vm
+	p.resolvers[resolver.ModeInternal] = p.internal
+
+	go p.runNewKite()
 
 	p.mux.Handle("/", p)
 	p.mux.Handle("/_resetcache_/", p.resetCacheHandler())
@@ -151,6 +168,140 @@ func startProxy() {
 	p.startHTTP()
 }
 
+func (p *Proxy) runNewKite() {
+	k := kodingkite.New(
+		conf,
+		kite.Options{
+			Kitename: KONTROLPROXY_NAME,
+			Version:  "0.0.1",
+			Region:   *flagRegion,
+		},
+	)
+
+	k.Start()
+
+	// TODO: remove this later, this is needed in order to reinitiliaze the logger package
+	log.SetLevel(logLevel)
+
+	query := protocol.KontrolQuery{
+		Username:    "koding-kites",
+		Environment: *flagConfig,
+		Name:        "oskite",
+		Version:     "0.0.1",
+		Region:      *flagRegion,
+	}
+
+	onEvent := func(e *kite.Event) {
+		serviceUniqueHostname := strings.Replace(e.Kite.Hostname, ".", "_", -1)
+		if serviceUniqueHostname == "" {
+			k.Log.Warning("serviceUniqueHostname is empty for %s", e)
+			return
+		}
+
+		switch e.Action {
+		case protocol.Register:
+			k.Log.Info("Oskite registered.")
+
+			p.oskitesMu.Lock()
+			defer p.oskitesMu.Unlock()
+
+			oskite, ok := p.oskites[serviceUniqueHostname]
+			if ok && oskite != nil {
+				k.Log.Info("Oskite registered already, discarding ...")
+				return
+			}
+
+			// update oskite instance with new one
+			oskite = e.RemoteKite()
+			err := oskite.Dial()
+			if err != nil {
+				log.Warning(err.Error())
+			}
+
+			p.oskites[serviceUniqueHostname] = oskite
+		case protocol.Deregister:
+			k.Log.Warning("Oskite deregistered.")
+			p.oskitesMu.Lock()
+			defer p.oskitesMu.Unlock()
+
+			// make sure we don't send msg's to a dead service
+			p.oskites[serviceUniqueHostname] = nil
+			delete(p.oskites, serviceUniqueHostname)
+		}
+	}
+
+	err := k.Kontrol.WatchKites(query, onEvent)
+	if err != nil {
+		log.Warning(err.Error())
+	}
+}
+
+func (p *Proxy) randomOskite() (*kite.RemoteKite, bool) {
+	p.oskitesMu.Lock()
+	defer p.oskitesMu.Unlock()
+
+	log.Debug("getting a random oskite")
+	i := 0
+	n := len(p.oskites)
+	if n == 0 {
+		return nil, false
+	}
+
+	exit := rand.Intn(n)
+	for _, oskite := range p.oskites {
+		if i == exit {
+			return oskite, true
+		}
+		i++
+	}
+
+	return nil, false
+}
+
+// startVM starts the vm and returns back the iniprandtalized IP
+func (p *Proxy) startVM(hostnameAlias, hostkite string) (string, error) {
+	log.Debug("starting vm", hostnameAlias)
+	var oskite *kite.RemoteKite
+	var ok bool
+
+	if hostkite == "" {
+		log.Debug("hostkite %s is empty", hostkite)
+		oskite, ok = p.randomOskite()
+		if !ok {
+			return "", fmt.Errorf("no random oskite available")
+		}
+	} else {
+		// hostkite is in form: "kite-os-sj|kontainer1_sj_koding_com"
+		log.Debug("splitting hostkite %s to get serviceUniqueName", hostkite)
+		s := strings.Split(hostkite, "|")
+		if len(s) < 2 {
+			return "", fmt.Errorf("hostkite '%s' is malformed", hostkite)
+		}
+
+		serviceUniqueHostname := s[1] // gives kontainer1_sj_koding_com
+
+		p.oskitesMu.Lock()
+		oskite, ok = p.oskites[serviceUniqueHostname]
+		if !ok {
+			p.oskitesMu.Unlock()
+			return "", fmt.Errorf("oskite not available for %s", serviceUniqueHostname)
+		}
+		p.oskitesMu.Unlock()
+	}
+
+	if oskite == nil {
+		return "", errors.New("oskite not connected")
+	}
+
+	log.Debug("oskite [%s] tell startVM %s", oskite.Hostname, hostnameAlias)
+	response, err := oskite.Tell("startVM", hostnameAlias)
+	if err != nil {
+		return "", err
+	}
+
+	return response.MustString(), nil
+}
+
 // setupLogging creates a new file for CLH logging and also sets a new signal
 // listener for SIGHUP signals. It closes the old file and creates a new file
 // for logging.
@@ -158,13 +309,13 @@ func (p *Proxy) setupLogging() {
 	// no-op if exists
 	err := os.MkdirAll("/var/log/koding/", 0755)
 	if err != nil {
-		log.Println(err)
+		log.Warning(err.Error())
 	}
 
 	logPath := "/var/log/koding/kontrolproxyCLH.log"
 	logFile, err := os.OpenFile(logPath, os.O_WRONLY|os.O_APPEND|os.O_CREATE, 0755)
 	if err != nil {
-		log.Printf("err: '%s'. \nusing stderr for log destination\n", err)
+		log.Warning("err: '%s'. \nusing stderr for CLH log destination.", err)
 		p.logDestination = os.Stderr
 	} else {
 		p.logDestination = logFile
@@ -177,13 +328,13 @@ func (p *Proxy) setupLogging() {
 			signal := <-signals
 			switch signal {
 			case syscall.SIGHUP:
-				log.Println("got an sighup")
+				log.Debug("got an sighup")
 				logFile.Close()
 				newFile, err := os.Create(logPath)
 				if err != nil {
-					log.Println(err)
+					log.Warning(err.Error())
 				} else {
-					log.Println("creating new file")
+					log.Debug("creating new log file")
 					p.logDestination = newFile
 				}
 			case syscall.SIGINT, syscall.SIGTERM:
@@ -199,28 +350,32 @@ func (p *Proxy) setupLogging() {
 // a seperate goroutine, thus the functions is nonblocking.
 func (p *Proxy) startHTTPS() {
 	// HTTPS handling, it is always 443, standart port for HTTPS protocol
-	portssl := strconv.Itoa(config.Current.Kontrold.Proxy.PortSSL)
-	logs.Info(fmt.Sprintf("https mode is enabled. serving at :%s ...", portssl))
+	portssl := strconv.Itoa(conf.Kontrold.Proxy.PortSSL)
+	log.Info("https mode is enabled. serving at :%s ...", portssl)
 
 	// don't change it to "*.pem", otherwise you'll get duplicate IP's
-	pemFiles, _ := filepath.Glob("*_cert.pem")
-
-	for _, file := range pemFiles {
-		s := strings.Split(file, "_")
-		if len(s) != 2 {
-			fmt.Println("file is malformed", file)
-			continue
-		}
-
-		ip := s[0] // contains the IP of the interface
-		go func(ip string) {
-			err := http.ListenAndServeTLS(ip+":"+portssl, ip+"_cert.pem", ip+"_key.pem", p.mux)
-			if err != nil {
-				logs.Alert(err.Error())
-				fmt.Printf("[%s] %s\n", time.Now().Format(time.Stamp))
-			}
-		}(ip)
+	pemFiles, err := filepath.Glob("*_cert.pem")
+	if err != nil {
+		log.Critical(err.Error())
 	}
+
+	// hostname example: "koding_com_" or "kd_com_"
+	hostname := strings.TrimSuffix(pemFiles[0], "cert.pem")
+	if hostname == pemFiles[0] {
+		log.Critical("file is malformed: %s", pemFiles[0])
+	}
+
+	go func() {
+		err := http.ListenAndServeTLS(
+			"0.0.0.0:"+portssl,  // addr
+			hostname+"cert.pem", // cert file
+			hostname+"key.pem",  // key file
+			p.mux,               // http handler
+		)
+		if err != nil {
+			log.Critical(err.Error())
+		}
+	}()
 }
 
 // startHTTP is used to reverse proxy incoming requests on the port 80 and
@@ -228,35 +383,34 @@ func (p *Proxy) startHTTPS() {
 // seperate go routine, and thus is blocking.
 func (p *Proxy) startHTTP() {
 	// HTTP Handling for VM port forwardings
-	logs.Info("normal mode is enabled. serving ports between 1024-10000 for vms...")
+	log.Info("normal mode is enabled. serving ports between 1024-10000 for vms...")
 
-	if config.VMProxies {
+	if *flagVMProxies {
 		for i := 1024; i <= 10000; i++ {
 			go func(i int) {
 				port := strconv.Itoa(i)
-				err := http.ListenAndServe(":"+port, p)
+				err := http.ListenAndServe("0.0.0.0:"+port, p)
 				if err != nil {
-					logs.Alert(err.Error())
-					log.Println(err)
+					log.Critical(err.Error())
 				}
 			}(i)
 		}
 	}
 
 	// HTTP handling (port 80, main)
-	port := strconv.Itoa(config.Current.Kontrold.Proxy.Port)
-	logs.Info(fmt.Sprintf("normal mode is enabled. serving at :%s ...", port))
+	port := strconv.Itoa(conf.Kontrold.Proxy.Port)
+	log.Info("normal mode is enabled. serving at :%s ...", port)
 	err := http.ListenAndServe(":"+port, p.mux)
 	if err != nil {
-		logs.Alert(err.Error())
 		// don't use panic. It output full stack which we don't care.
-		fmt.Printf("[%s] %s\n", time.Now().Format(time.Stamp), err.Error())
+		log.Critical("[%s] %s\n", time.Now().Format(time.Stamp), err.Error())
 		os.Exit(1)
 	}
 }
 
 // ServeHTTP is needed to satisfy the http.Handler interface.
 func (p *Proxy) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	// redirect http to https
 	if r.TLS == nil && (r.Host == "koding.com" || r.Host == "www.koding.com") {
 
 		// check if this cookie is set, if yes do not redirect to https
@@ -267,9 +421,14 @@ func (p *Proxy) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	// remove www from the hostname (i.e. www.foo.com -> foo.com)
+	if strings.HasPrefix(r.Host, "www.") {
+		r.Host = strings.TrimPrefix(r.Host, "www.")
+	}
+
 	// our main handler mux function goes and picks the correct handler
 	if h := p.getHandler(r); h != nil {
-		if config.VMProxies {
+		if *flagVMProxies {
 			// don't wrap this around CLH logging handler, because it breaks websocket
 			h.ServeHTTP(w, r)
 		} else {
@@ -280,84 +439,197 @@ func (p *Proxy) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	logs.Alert("couldn't find any handler")
+	// it should never reach here, if yes something badly happens and needs to be fixed
+	log.Critical("couldn't find any handler")
 	http.Error(w, "Not found.", http.StatusNotFound)
 	return
 }
 
-// getHandler returns the appropriate Handler for the given Request,
-// or nil if none found.
+// getHandler returns the appropriate Handler for the given Request or nil if
+// none found.
 func (p *Proxy) getHandler(req *http.Request) http.Handler {
 	userIP := getIP(req.RemoteAddr)
 
-	// remove www from the hostname (i.e. www.foo.com -> foo.com)
-	if strings.HasPrefix(req.Host, "www.") {
-		req.Host = strings.TrimPrefix(req.Host, "www.")
-	}
-
 	target, err := resolver.GetTarget(req)
 	if err != nil {
-		logs.Info(fmt.Sprintf("resolver error of %s (%s): %s", req.Host, userIP, err))
-
-		if err == resolver.ErrVMOff {
-			return templateHandler("notOnVM.html", req.Host, 404)
-		}
-
-		if err == resolver.ErrNoHost {
-			return templateHandler("maintenance.html", nil, 503)
-		}
-
+		log.Error("getTarget err: %s (%s) %s", req.Host, userIP, err)
 		return templateHandler("notfound.html", req.Host, 404)
 	}
 
-	defer func() {
-		logs.Notice(fmt.Sprintf("mode '%s' [%s] via %s : %s --> %s\n",
-			target.Proxy.Mode, userIP, target.FetchedSource, req.Host, target.URL.String()))
-	}()
+	resolver, ok := p.resolvers[target.Proxy.Mode]
+	if !ok {
+		log.Warning("target not defined: %s (%s) %v", req.Host, userIP, target)
+		return templateHandler("notfound.html", req.Host, 404)
+	}
 
-	if p.enableFirewall {
-		_, err = validate(userIP, req.Host)
-		if err == ErrSecurePage {
-			return securePageHandler(userIP)
-		}
+	return resolver(req, target)
+}
 
+func (p *Proxy) maintenance(req *http.Request, target *resolver.Target) http.Handler {
+	return templateHandler("maintenance.html", nil, 503)
+}
+
+func (p *Proxy) redirect(req *http.Request, target *resolver.Target) http.Handler {
+	return http.RedirectHandler(target.URL.String()+req.RequestURI, http.StatusFound)
+}
+
+func (p *Proxy) vm(req *http.Request, target *resolver.Target) http.Handler {
+	userIP := getIP(req.RemoteAddr)
+	hostnameAlias := target.HostnameAlias[0]
+	var port string
+	var err error
+
+	if !utils.HasPort(req.Host) {
+		port = "80"
+	} else {
+		_, port, err = net.SplitHostPort(req.Host)
 		if err != nil {
-			logs.Info(fmt.Sprintf("error validating user: %s", err.Error()))
-			return templateHandler("quotaExceeded.html", req.Host, 509)
+			log.Warning(err.Error())
 		}
 	}
 
-	switch target.Proxy.Mode {
-	case resolver.ModeMaintenance:
-		return templateHandler("maintenance.html", nil, 503)
-	case resolver.ModeRedirect:
-		return http.RedirectHandler(target.URL.String()+req.RequestURI, http.StatusFound)
-	case resolver.ModeVM:
-		err := utils.CheckServer(target.URL.Host)
+	if target.Err == resolver.ErrVMNotFound {
+		log.Warning("ModeVM err: %s (%s) %s", req.Host, userIP, target.Err)
+		return templateHandler("notfound.html", req.Host, 404)
+	}
+
+	// these are set in resolver.go
+	hostkite := target.Properties["hostkite"].(string)
+	alwaysOn := target.Properties["alwaysOn"].(bool)
+	disableSecurePage := target.Properties["disableSecurePage"].(bool)
+
+	if target.Err == resolver.ErrVMOff {
+		log.Debug("vm %s is off, going to start", hostnameAlias)
+		// target.URL might be nil, however if we start the VM, oskite sends a
+		// new IP that we can use and update the current one. It will be nil
+		// if an error is occured.
+		target.URL, err = p.checkAndStartVM(hostnameAlias, hostkite, port)
 		if err != nil {
-			logs.Info(fmt.Sprintf("vm host %s is down: '%s'", req.Host, err))
+			log.Warning("vm %s couldn't be started [ErrVMOff]: %s", hostnameAlias, err)
 			return templateHandler("notactiveVM.html", req.Host, 404)
 		}
-	case resolver.ModeInternal:
-		// roundrobin to next target
-		err := target.Resolve(req.Host)
+	}
+
+	log.Debug("checking if vm %s is alive.", hostnameAlias)
+	err = utils.CheckServer(target.URL.Host)
+	if err != nil {
+		oerr, ok := err.(*net.OpError)
+		if !ok {
+			log.Warning("vm host %s is down, non-net.OpError: '%s'", req.Host, err)
+			return templateHandler("notactiveVM.html", req.Host, 404)
+		}
+
+		if oerr.Err == syscall.ECONNREFUSED {
+			log.Debug("vm host %s is down net.OpError ECONNREFUSED: '%s'", req.Host, err)
+			return templateHandler("notactiveVM.html", req.Host, 404)
+		}
+
+		if oerr.Err != syscall.EHOSTUNREACH {
+			log.Error("vm host %s is down net.OpError %s: '%s'", req.Host, oerr.Err.Error(), err)
+			return templateHandler("notactiveVM.html", req.Host, 404)
+		}
+
+		// EHOSTUNREACH means "no route to host". This error is passed
+		// when the VM is down, therefore turn it on.
+		target.URL, err = p.checkAndStartVM(hostnameAlias, hostkite, port)
 		if err != nil {
-			logs.Info(fmt.Sprintf("internal resolver error for %s (%s) - %s", req.Host, userIP, err))
-
-			statusCode := 503
-			if err == resolver.ErrGone {
-				statusCode = 410 // Gone
-			}
-
-			return templateHandler("maintenance.html", nil, statusCode)
+			log.Warning("vm %s couldn't be started, err: %s", hostnameAlias, err)
+			return templateHandler("notactiveVM.html", req.Host, 404)
 		}
 	}
 
+	// switch to websocket before we even show the cookie
 	if isWebsocket(req) {
 		return websocketHandler(target.URL.Host)
 	}
 
+	// no cookies for alwaysOn or disabledSecurePage VMs
+	if alwaysOn || disableSecurePage {
+		log.Debug("secure page disabled for '%s'. alwaysOn: %v disableSecurePage: %v",
+			hostnameAlias, alwaysOn, disableSecurePage)
+		return reverseProxyHandler(nil, target.URL)
+	}
+
+	session, _ := store.Get(req, CookieVM)
+	log.Debug("getting cookie for: %s", req.Host)
+	cookieValue, ok := session.Values[req.Host]
+	if !ok || cookieValue != MagicCookieValue {
+		return context.ClearHandler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			log.Debug("saving cookie for %s", req.Host)
+			session.Values[req.Host] = MagicCookieValue
+			session.Options = &sessions.Options{MaxAge: 3600} //seconds -> 1h
+			session.Save(r, w)
+
+			err := templates.ExecuteTemplate(w, "securepage.html", tempData{Host: r.Host, Url: r.Host + r.URL.String()})
+			if err != nil {
+				log.Warning("template notOnVM could not be executed %s", err)
+				http.Error(w, "error code - 5", 404)
+				return
+			}
+		}))
+	}
+
+	log.Debug("mode '%s' [%s] via %s : %s --> %s",
+		target.Proxy.Mode, userIP, target.FetchedSource, req.Host, target.URL.String())
+
 	return reverseProxyHandler(nil, target.URL)
+}
+
+type tempData struct {
+	Host string
+	Url  string
+}
+
+func (p *Proxy) internal(req *http.Request, target *resolver.Target) http.Handler {
+	userIP := getIP(req.RemoteAddr)
+
+	// roundrobin to next target
+	target.Resolve(req.Host)
+	if target.Err != nil {
+		log.Info("internal resolver error for %s (%s) - %s", req.Host, userIP, target.Err)
+		statusCode := 503
+		if target.Err == resolver.ErrGone {
+			statusCode = 410 // Gone
+		}
+
+		return templateHandler("maintenance.html", nil, statusCode)
+	}
+
+	log.Debug("mode '%s' [%s] via %s : %s --> %s",
+		target.Proxy.Mode, userIP, target.FetchedSource, req.Host, target.URL.String())
+
+	return reverseProxyHandler(nil, target.URL)
+}
+
+func (p *Proxy) checkAndStartVM(hostnameAlias, hostkite, port string) (*url.URL, error) {
+	vmAddr, err := p.startVM(hostnameAlias, hostkite)
+	if err != nil {
+		return nil, err
+	}
+
+	if !utils.HasPort(vmAddr) {
+		vmAddr = utils.AddPort(vmAddr, port)
+	}
+
+	targetURL, _ := url.Parse("http://" + vmAddr)
+
+	// now check until the server is up
+	ticker := time.NewTicker(500 * time.Millisecond).C
+	timeout := time.After(15 * time.Second)
+
+	for {
+		select {
+		case <-ticker:
+			log.Debug("ticker is checking vm %s is alive", hostnameAlias)
+			err := utils.CheckServer(targetURL.Host)
+			if err != nil {
+				continue
+			}
+			return targetURL, nil
+		case <-timeout:
+			return nil, errors.New("timeout")
+		}
+	}
 }
 
 // reverseProxyHandler is the main handler that is used for copy the response
@@ -378,46 +650,6 @@ func reverseProxyHandler(transport http.RoundTripper, target *url.URL) http.Hand
 	}
 }
 
-// resetCacheHandler is reseting the cache transport for the given host.
-func (p *Proxy) resetCacheHandler() http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.Host != proxyName {
-			logs.Debug(fmt.Sprintf("resetcache handler: got hostame %s, expected %s\n",
-				r.Host, proxyName))
-			logs.Debug("resetcache handler: fallback to reverse proxy handler")
-			p.ServeHTTP(w, r)
-			return
-		}
-
-		logs.Debug(fmt.Sprintf("resetCache is invoked %s - %s\n", r.Host, r.URL.String()))
-		cacheHost := filepath.Base(r.URL.String())
-		resolver.CleanCache(cacheHost)
-
-		w.Write([]byte(fmt.Sprintf("cache is cleaned for %s", cacheHost)))
-	})
-}
-
-// securePageHandler is used currently for the securepage feature of our
-// validator/firewall. It is used to setup cookies to invalidate users visits.
-func securePageHandler(userIP string) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		sessionName := fmt.Sprintf("kodingproxy-%s-%s", r.Host, userIP)
-		session, _ := store.Get(r, sessionName)
-		session.Options = &sessions.Options{MaxAge: 20} //seconds
-		_, ok := session.Values["securePage"]
-		if !ok {
-			session.Values["securePage"] = time.Now().String()
-		}
-		session.Save(r, w)
-		err := templates.ExecuteTemplate(w, "securepage.html", r.Host)
-		if err != nil {
-			logs.Err(fmt.Sprintf("template securepage could not be executed %s", err))
-			http.Error(w, "error code - 2", 404)
-			return
-		}
-	})
-}
-
 // websocketHandler is used to reverseProxy websocket connection. It hijacks
 // the underlying http connection and copies forth and back the response
 func websocketHandler(target string) http.Handler {
@@ -425,14 +657,14 @@ func websocketHandler(target string) http.Handler {
 		hj, ok := w.(http.Hijacker)
 		if !ok {
 			http.Error(w, "not a hijacker?", 500)
-			logs.Notice(fmt.Sprintf("websocket: [%s] not a hijacker?", target))
+			log.Error("websocket: [%s] not a hijacker?", target)
 			return
 		}
 
 		nc, _, err := hj.Hijack()
 		if err != nil {
 			http.Error(w, "Error contacting backend server.", 500)
-			logs.Notice(fmt.Sprintf("websocket: [%s] hijack error: %v", target, err))
+			log.Error("websocket: [%s] hijack error: %v", target, err)
 			return
 		}
 		defer nc.Close()
@@ -440,8 +672,7 @@ func websocketHandler(target string) http.Handler {
 		d, err := net.Dial("tcp", target)
 		if err != nil {
 			http.Error(w, "Error contacting backend server.", 500)
-			logs.Notice(fmt.Sprintf("websocket: [%s] error dialing websocket backend: %v",
-				target, err))
+			log.Error("websocket: [%s] error dialing websocket backend: %v", target, err)
 			return
 		}
 		defer d.Close()
@@ -450,7 +681,7 @@ func websocketHandler(target string) http.Handler {
 		err = r.Write(d)
 		if err != nil {
 			http.Error(w, "Error contacting backend server.", 500)
-			logs.Notice(fmt.Sprintf("websocket [%s] error copying request to target: %v", target, err))
+			log.Error("websocket [%s] error copying request to target: %v", target, err)
 			return
 		}
 
@@ -473,10 +704,28 @@ func templateHandler(path string, data interface{}, code int) http.Handler {
 		w.WriteHeader(code)
 		err := templates.ExecuteTemplate(w, path, data)
 		if err != nil {
-			logs.Warning(fmt.Sprintf("template %s could not be executed", path))
+			log.Error("template %s could not be executed", path)
 			http.Error(w, "error code - 1", 404)
 			return
 		}
+	})
+}
+
+// resetCacheHandler is reseting the cache transport for the given host.
+func (p *Proxy) resetCacheHandler() http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Host != proxyName {
+			log.Debug("resetcache handler: got hostame %s, expected %s", r.Host, proxyName)
+			log.Debug("resetcache handler: fallback to reverse proxy handler")
+			p.ServeHTTP(w, r)
+			return
+		}
+
+		log.Debug("resetCache is invoked %s - %s", r.Host, r.URL.String())
+		cacheHost := filepath.Base(r.URL.String())
+		resolver.CleanCache(cacheHost)
+
+		w.Write([]byte(fmt.Sprintf("cache is cleaned for %s", cacheHost)))
 	})
 }
 

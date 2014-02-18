@@ -13,7 +13,6 @@ module.exports = (bongo, page, contentType, callback)=>
   if page > 0
     skip = (page - 1) * ITEMSPERPAGE
 
-
   options = {
     limit : ITEMSPERPAGE
     skip  : skip
@@ -28,13 +27,14 @@ module.exports = (bongo, page, contentType, callback)=>
     return callback new Error "Unknown content type.", null
 
   pageContent = ""
-  model.count {}, (error, count)=>
+  selector = group : "koding"
+  model.count selector, (error, count)=>
     return callback error, null  if error
-    return callback null, null  if count is 0
-    model.some {}, options, (err, contents)=>
+    return callback null, getEmptyPage contentType  if count is 0
+    model.some selector, options, (err, contents)=>
       return callback err, null  if err
-      return callback null, null  if contents.length is 0
-      queue = [0..contents.length - 1].map (index)=>=>
+      return callback null, getEmptyPage contentType  if count is 0
+      queue = [0...contents.length].map (index)=>=>
         queue.pageContent or= ""
 
         content = contents[index]
@@ -65,14 +65,14 @@ getPagination = (currentPage, numberOfItems, contentType)->
   # E.g. let current page be 9, then pagination will look like this:
   # First Prev ... 4 5 6 7 8 9 10 11 12 13 14 ... Next Last
   # (Except 3-dots, they are useless for bots.)
-  PAGERWINDOW = 5
+  PAGERWINDOW = 4
 
   numberOfPages = Math.ceil(numberOfItems / ITEMSPERPAGE)
   firstLink = prevLink = nextLink = lastLink = ""
 
   if currentPage > 1
     firstLink = getSinglePageLink 1, contentType, "First"
-    prevLink  = getSinglePageLink (currentPage - 1), contentType, "Previous"
+    prevLink  = getSinglePageLink (currentPage - 1), contentType, "Prev"
 
   if currentPage < numberOfPages
     lastLink  = getSinglePageLink numberOfPages, contentType, "Last"
@@ -88,14 +88,22 @@ getPagination = (currentPage, numberOfItems, contentType)->
   if currentPage + PAGERWINDOW < numberOfPages
     end   = currentPage + PAGERWINDOW
 
+  if start > 1
+    pagination += getNoHrefLink " ... "
+
   [start..end].map (pageNumber)=>
     pagination += getSinglePageLink pageNumber, contentType
+
+  if end < numberOfPages
+    pagination += getNoHrefLink " ... "
 
   pagination += nextLink
   pagination += lastLink
 
   return pagination
 
+getNoHrefLink = (linkText)->
+  "<a href='#'>#{linkText}  </a>"
 
 getSinglePageLink = (pageNumber, contentType, linkText=pageNumber)->
   link = "<a href='#{uri.address}/#{contentType}?page=#{pageNumber}'>#{linkText}  </a>"
@@ -200,6 +208,8 @@ getDock = ->
       </div>
   </header>
   """
+getEmptyPage = (contentType) ->
+  putContentIntoFullPage "There is no activity yet", "", contentType
 
 putContentIntoFullPage = (content, pagination, contentType)->
   getGraphMeta  = require './graphmeta'

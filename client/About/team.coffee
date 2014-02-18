@@ -31,23 +31,20 @@ KD.extend
         username  : 'geraint'
         title     : 'Director of Infrastructure'
       ,
-        username  : 'aleksey-m'
-        title     : 'System Administrator'
-      ,
-        username  : 'ybrs'
+        username  : 'erdinc'
         title     : 'Software Engineer'
       ,
-        username  : 'erdinc'
+        username  : 'ybrs'
         title     : 'Software Engineer'
       ,
         username  : 'szkl'
         title     : 'Software Engineer'
       ,
-        username  : 'burakcan'
-        title     : 'CSS Wizard'
-      ,
         username  : 'leventyalcin'
         title     : 'System Administrator'
+      ,
+        username  : 'burakcan'
+        title     : 'CSS Wizard'
       ,
         username  : 'samet'
         title     : 'Software Engineer'
@@ -61,11 +58,8 @@ KD.extend
         username  : 'canthefason'
         title     : 'Software Engineer'
       ,
-        username  : 'pablostanley'
-        title     : 'Illustrator'
-      ,
-        username  : 'pedrosanchez'
-        title     : 'Growth Engineer'
+        username  : 'nesli'
+        title     : 'Chef de Cuisine'
       ,
         username  : 'dicle'
         title     : 'Business Analyst'
@@ -73,26 +67,32 @@ KD.extend
         username  : 'niltuncer'
         title     : 'Business Analyst'
       ,
+        username  : 'leeolayvar'
+        title     : 'Community Manager'
+      ,
+        username  : 'stefanbc'
+        title     : 'Community Manager'
+      ,
         username  : 'zeynep'
         title     : 'Finance Assistant'
       ,
-        username  : 'selin'
-        title     : 'Data scientist'
-      ,
-        username  : 'juliapracht'
+        username  : 'juliap'
         title     : 'Recruiting & HR'
       ,
-        username  : 'nesli'
-        title     : 'Chef de Cuisine'
+        username  : 'psanchezdl'
+        title     : 'Growth Engineer'
+      ,
+        username  : 'selin'
+        title     : 'Data Scientist'
       # ,
-      #   username  : 'leeolayvar'
-      #   title     : 'Community Manager'
+      #   username  : 'pablostanley'
+      #   title     : 'Illustrator'
       # ,
-      #   username  : 'stefanbc'
-      #   title     : 'Community Manager'
+      #   username  : 'aleksey-m'
+      #   title     : 'System Administrator'
       ]
 
-    suspended     : []
+    # suspended     : []
 
       #   username  : 'aleksey-m'
       #   title     : 'Sys Admin &amp; node.js Developer'

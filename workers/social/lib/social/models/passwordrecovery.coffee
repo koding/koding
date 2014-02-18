@@ -6,7 +6,7 @@ module.exports = class JPasswordRecovery extends jraphical.Module
   {secure, signature} = require 'bongo'
 
   dateFormat  = require 'dateformat'
-  createId    = require 'hat'
+  { v4: createId } = require 'node-uuid'
 
   KodingError = require '../error'
   JUser       = require './user'
@@ -156,7 +156,9 @@ module.exports = class JPasswordRecovery extends jraphical.Module
               redemptionToken : token
               force           : yes
 
-            email.save callback
+            email.save (err)->
+              return callback new KodingError "Email cannot saved" if err
+              callback err, token
 
   @validate = secure ({connection:{delegate}}, token, callback)->
     @one {token}, (err, certificate)->
@@ -247,7 +249,7 @@ module.exports = class JPasswordRecovery extends jraphical.Module
         if mail.dateDelivered
         then mail.dateDelivered
         else
-          console.warn "We have no record of this message"
+          console.warn "We have no record of this message", @token
           mail.dateAttempted
 
       if (Date.now() - dateThen > @expiryPeriod)

@@ -18,11 +18,18 @@ class PreviewPane extends Pane
 
     @container.addSubView @previewer = new PreviewerView viewerOptions
 
-    @container.addSubView @secureInfo = new KDCustomHTMLView
+    @createSecureWarning()  unless $.cookie("kdproxy-usehttp") is "1"
+
+  createSecureWarning: ->
+    @secureInfo = new KDCustomHTMLView
       tagName  : "div"
       cssClass : "tw-browser-splash"
       partial  : """
-        <p>You can only preview links starting with "https".</p> <span>In order to view non-secure (http) content you can </span>"""
+        <p>You can only preview links starting with "https".</p> """
+
+    infoText   = new KDCustomHTMLView
+      tagName  : "span"
+      partial  : "In order to view non-secure (http) content you can "
 
     httpLink   = new KDCustomHTMLView
       tagName  : "a"
@@ -41,12 +48,13 @@ class PreviewPane extends Pane
       attributes:
         href   : "http://security.stackexchange.com/questions/38317/specific-risks-of-embedding-an-https-iframe-in-an-http-page"
 
+    @secureInfo.addSubView infoText
     @secureInfo.addSubView httpLink
     @secureInfo.addSubView separator
     @secureInfo.addSubView infoLink
+    @container.addSubView  @secureInfo
 
   useHttp: ->
-    KD.getSingleton("appManager").quitByName "Teamwork"
     KD.getSingleton("router").handleRoute "/Activity"
     $.cookie "kdproxy-usehttp", "1"
 

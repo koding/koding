@@ -17,7 +17,7 @@ class AboutView extends KDView
     @logoPackButton = new KDCustomHTMLView
       tagName       : 'a'
       attributes    :
-        href        : '/a/koding-logo.pdf'
+        href        : '/a/images/koding-logo.pdf'
         target      : '_blank'
       partial       : "<span class='icon'></span>Download Logo Pack"
       cssClass      : "solid green kdbutton"
@@ -33,6 +33,10 @@ class AboutView extends KDView
       icon          : yes
 
     super
+
+    @once 'viewAppended', => document.body.scrollTop = 0
+
+
 
   viewAppended: JView::viewAppended
 
@@ -62,7 +66,7 @@ class AboutView extends KDView
             <div class="lines">
               <i></i>
               <h6>VMs spinned up</h6>
-              1,000,000,000+
+              1,000,000+
             </div>
           </aside>
           <cite>photo by - <a href='http://www.tidyclub.com/' target='_blank'>Isaak Dury</a></cite>
@@ -71,7 +75,7 @@ class AboutView extends KDView
       <section class="member-list">
         <div class='wrapper'>
           <h2>The A-Team</h2>
-          <h4>Look at them geniuses</h4>
+          <h4>Look at them geniuses <cite>*in order of appearance</cite></h4>
           {{> @memberList}}
         </div>
       </section>
@@ -86,7 +90,7 @@ class AboutView extends KDView
       <section class="careers">
         <div class='wrapper'>
           <h2>Careers</h2>
-          <h4>Shoot us an <a href='mailto:hr@koding.com?subject=Koding%20needs%20me!'>email</a> if you think you should be a part of Koding!</h4>
+          <h4>Shoot us an <a href='mailto:hr@koding.com?subject=Koding%20needs%20me!' target='_self'>email</a> if you think you should be a part of Koding!</h4>
         </div>
       </section>
     """
@@ -100,30 +104,30 @@ class FoundersView extends JView
 
     super options, data
 
-    @devrim = new KDCustomHTMLView
-      tagName    : 'img'
-      cssClass   : 'devrim'
-      attributes :
-        src      : '/a/team/devrim.jpg'
+    # @devrim = new KDCustomHTMLView
+    #   tagName    : 'img'
+    #   cssClass   : 'devrim'
+    #   attributes :
+    #     src      : '/a/team/devrim.jpg'
 
-    @sinan = new KDCustomHTMLView
-      tagName    : 'img'
-      cssClass   : 'sinan'
-      attributes :
-        src      : '/a/team/sinan.jpg'
+    # @sinan = new KDCustomHTMLView
+    #   tagName    : 'img'
+    #   cssClass   : 'sinan'
+    #   attributes :
+    #     src      : '/a/team/sinan.jpg'
 
   pistachio : ->
 
+    # <aside>
+    #   {{> @devrim}}
+    #   {{> @sinan}}
+    # </aside>
     """
     <div class='wrapper'>
-      <aside>
-        {{> @devrim}}
-        {{> @sinan}}
-      </aside>
-      <h2>About Koding</h2>
-      <h4>Founded by <a href='/devrim'>Devrim</a> & <a href='/sinan'>Sinan</a> in 2009</h4>
+      <h2>About <i>Koding</i></h2>
+      <h4>Social development in your browser</h4>
       <article>
-        <p>Koding is a developer community and cloud development environment where developers come together and code in the browser – with a real development server to run their code. Developers can work, collaborate, write and run apps without jumping through hoops and spending unnecessary money.</p>
+        Koding is a developer community and cloud development environment where developers come together and code in the browser – with a real development server to run their code. Developers can work, collaborate, write and run apps without jumping through hoops and spending unnecessary money.
       </article>
     </div>
     """

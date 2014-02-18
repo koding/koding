@@ -19,7 +19,7 @@ html.app
     height          100%
 
 body
-  font-family       "Helvetica Neue", Helvetica, Arial, sans-serif
+  font-family       neueFamily
   font-weight       300
   bg                color, #e4e4e4
 
@@ -29,13 +29,14 @@ body
 input
 textarea
 button
-  font-family       "Helvetica Neue", Helvetica, Arial, sans-serif
+  font-family       neueFamily
 
 .no-anim
   noAnim()
 
 #kdmaincontainer
   width             auto
+  // vendor            transform, translateX(0)
   &.fullscreen
     width             100%!important
     left              0!important
@@ -99,10 +100,17 @@ button
   fl()
 
   &.staging
-    bg              color, #ff9200 // old koding orange
+    bg              color #ff9200 // old koding orange
 
   &.vagrant
-    bg              color, purple
+    bg              color purple
+
+  &.custom
+    bg              color transparent
+    bg              position, center center
+    bg              repeat, no-repeat
+    cite
+      hidden()
 
   cite
     r-sprite        app 'nav-logo'
@@ -321,7 +329,7 @@ button
                        opacity .5s ease
 
   .avatar-area
-    bg                 color, #2e3537
+    bg                 color, headerBg
     padding            15px 20px
     height             55px
     width              238px
@@ -341,6 +349,7 @@ button
       display         block
       overflow        hidden
       margin-top      -3px
+      line-height     15px
       fl()
       h2, h3
         margin        0
@@ -360,7 +369,7 @@ button
         color         #828a93
         font-size     12px
         font-weight   300
-        margin-top    4px
+        margin-top    2px
 
   &.search-open
     right             400px
@@ -377,6 +386,9 @@ button
 
 #kdmaincontainer.logout-tv
   vendor                  animation, logoutTv .5s 1 forwards ease
+  abs                     0px 0 0 0px
+  size                    100vw, 100vh
+
   &~.turn-off-line
     top                   50%
     left                  0

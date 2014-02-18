@@ -41,7 +41,7 @@ gravatar  = (m, size = 20) ->
 
 Templates =
 
-  linkStyle    : """ style="text-decoration:none; color:#ff9200;" """
+  linkStyle    : """ style="text-decoration:none; color:#1AAF5D;" """
   mainTemplate : (m, content, footer, description)->
 
     description ?= ''
@@ -58,21 +58,19 @@ Templates =
                         height:100%; color: #666; width:100%;" cellspacing="0">
             <!-- HEADER -->
             <tr>
-              <td style="width: 40px; text-align:right; border-right: 1px
+              <td style="width: 58px; text-align:right; border-right: 1px
                          solid #CCC; margin-left:12px; vertical-align:top;">
                 <!-- Koding Logo with pure table -->
-                <table width="28px" height="38px" style="margin-left:12px; text-align:right; height:38px; border:none; font-size:0px; " cellspacing="2">
-                  <tr><td height="19%" style="height:19%; background-color:#FE6E00;" colspan="3">&nbsp;</td></tr>
-                  <tr><td height="10%" style="height:10%; background-color:#403A32;" colspan="3">&nbsp;</td></tr>
+                <table width="44px" height="40px" style="margin-left:12px; width:44px; text-align:right; height:40px; border:none; font-size:0px; background-color:#1AAF5D; padding:9px;" cellspacing="2" cellpadding="2">
                   <tr>
-                      <td height="10%" style="height:10%; background-color:#403A32; width: 80%;" colspan="2">&nbsp;</td>
-                      <td height="10%" style="height:10%; background-color:white; width: 20%;">&nbsp;</td>
+                      <td height="2px" style="max-height:2px;height:2px; background-color:white;" colspan="3">&nbsp;</td>
                   </tr>
-                  <tr><td height="10%" style="height:10%; background-color:#403A32;" colspan="3">&nbsp;</td></tr>
-                  <tr><td height="10%" style="height:10%; background-color:#403A32;" colspan="3">&nbsp;</td></tr>
                   <tr>
-                      <td height="10%" style="height:10%; background-color:#403A32; width: 80%;">&nbsp;</td>
-                      <td height="10%" style="height:10%; background-color:white; width: 20%;" colspan="2">&nbsp;</td>
+                      <td height="2px" style="max-height:2px;height:2px; background-color:white;  width: 75%;" >&nbsp;</td>
+                      <td height="2px" style="max-height:2px;height:2px; background-color:#1AAF5D; width: 25%;" colspan="2">&nbsp;</td>
+                  </tr>
+                  <tr>
+                      <td height="2px" style="max-height:2px;height:2px; background-color:white;" colspan="3">&nbsp;</td>
                   </tr>
                 </table><br/>
               </td>
@@ -111,6 +109,14 @@ Templates =
 
   singleEvent : (m)->
     action       = ''
+    group        = ''
+
+    getGroupLink = ->
+      unless m.group?.slug is "koding"
+        "in <a href='#{uri.address}/#{m.group.slug}' #{Templates.linkStyle}>#{m.group.title}</a> group"
+      else
+        ""
+
     if m.sender.profile?
       sender     = link "#{uri.address}/#{m.sender.profile.nickname}", \
                         "#{m.sender.profile.firstName} #{m.sender.profile.lastName}"
@@ -133,6 +139,7 @@ Templates =
         preview = ''
       when 'LikeIsAdded'
         action = "liked your"
+        group  = getGroupLink()
       when 'PrivateMessageSent'
         action = "sent you a"
       when 'ReplyIsAdded'
@@ -140,6 +147,8 @@ Templates =
           action = "commented on your"
         else
           action = "also commented on"
+
+        group = getGroupLink()
           # FIXME GG Implement the details
           # if m.realContent.origin?._id is m.sender._id
           #   action = "#{action} own"
@@ -178,7 +187,7 @@ Templates =
         <td style="padding-left: 10px; color: #666; " colspan="2">
             #{avatar}
             <div style="line-height: 20px; padding-left:28px; padding-top:4px;">
-              #{sender} #{action} #{m.contentLink}
+              #{sender} #{action} #{m.contentLink} #{group}
             </div>
             #{preview}
         </td>
@@ -214,9 +223,10 @@ Templates =
       contentName = m.realContent?.title
       sentence = eventFlag.fullDefinition
       return "#{sender} #{sentence} #{contentName}!"
-
     eventName   = eventFlag.definition
-    return """You have a new #{if eventName is "follow" then "follower" else eventName}"""
+    header = """You have a new #{if eventName is "follow" then "follower" else eventName}"""
+    header = "#{header} in #{m.group?.title} group"  if m.group and m.group.slug isnt "koding"
+    return header
 
   dailyHeader  : (m)->
     currentDate  = dateFormat m.notification.dateIssued, "mmm dd"

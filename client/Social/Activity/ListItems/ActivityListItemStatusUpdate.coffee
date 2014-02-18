@@ -62,7 +62,6 @@ class StatusActivityItemView extends ActivityItemChild
         element.setAttribute "target", "_blank"
 
   click: (event) ->
-    super event
     {target} = event
     if $(target).is "article a.internal"
       @utils.stopDOMEvent event

@@ -16,6 +16,7 @@ module.exports = [
   "notificationcontroller.coffee",
   "linkcontroller.coffee",
   "oauthcontroller.coffee",
+  "widgetcontroller.coffee",
 
   # COMMON VIEWS
   "CommonViews/applicationview/applicationtabview.coffee",
@@ -54,6 +55,7 @@ module.exports = [
 
   "CommonViews/activitywidgetitem.coffee",
   "CommonViews/activitywidget.coffee",
+  "CommonViews/uploadimagemodalview.coffee",
 
   # junction
   "junction/junction.coffee"
@@ -130,7 +132,6 @@ module.exports = [
   "CommonViews/clonerepomodal.coffee",
 
   "kodingappcontroller.coffee",
-  "CommonViews/adminmodal.coffee",
 
   "navigation/navigationlist.coffee",
   "navigation/navigationlink.coffee",
@@ -165,6 +166,7 @@ module.exports = [
   "payment/planupgradeform.coffee",
   "payment/planupgradeconfirmform.coffee",
   "payment/packchoiceform.coffee",
+  "payment/planproductlist.coffee",
   "payment/existingaccountworkflow.coffee",
 
 
@@ -248,6 +250,7 @@ module.exports = [
 
   "styl/appfn.styl",
   "styl/resurrection.styl",
+  "styl/campaign.styl"
   # "styl/resurrection.activity.styl",
   "styl/resurrection.account.dropdown.styl",
   "styl/resurrection.anims.styl",

@@ -1,7 +1,10 @@
 class AccountReferralSystemListController extends AccountListViewController
 
   constructor: (options, data)->
-    options.noItemFoundText = "You dont have any referal."
+    options.noItemFoundText = ""# """You haven't got any referral points to claim,
+      # click <a href="/Account/Referrer">here</a> to share Koding and get some!
+    # """
+
     super options, data
 
   loadItems: ->
@@ -14,39 +17,39 @@ class AccountReferralSystemListController extends AccountListViewController
       @instantiateListItems referals or []
     @hideLazyLoader()
 
-    @on "ShowRedeemReferralPointModal", KD.utils.showRedeemReferralPointModal
-
   loadView: ->
     super
     @addHeader()
     @loadItems()
+
+  showRedeemReferralPointModal:->
+    KD.mixpanel "Referer Redeem Point modal, click"
+
+    appManager = KD.getSingleton "appManager"
+    appManager.tell "Account", "showRedeemReferralPointModal"
+
 
   addHeader:->
 
     wrapper = new KDCustomHTMLView tagName : 'header', cssClass : 'clearfix'
     @getView().addSubView wrapper, '', yes
 
-    wrapper.addSubView getYourReferrerCode = new CustomLinkView
-      title       : "Get Your Referrer Code"
-      tooltip     :
-        title     :
-          """
-          If anyone registers with your referrer code,
-          you will get 250MB Free disk space for your VM.
-          Up to 16GB!.
-          """
-      click       : ->
-        appManager = KD.getSingleton "appManager"
-        appManager.tell "Account", "showReferrerModal",
-          linkView    : getYourReferrerCode
-          top         : 50
-          left        : 35
-          arrowMargin : 110
-
+    # wrapper.addSubView getYourReferrerCode = new CustomLinkView
+    #   title       : "Get Your Referral Code"
+    #   tooltip     :
+    #     title     :
+    #       """
+    #       Only this week, share your link, they get 5GB instead
+    #       of 4GB, and you get 1GB extra!
+    #       """
+    #   click       : ->
+    #     appManager = KD.getSingleton "appManager"
+    #     appManager.tell "Account", "showReferrerModal",
+    #       linkView    : getYourReferrerCode
 
     wrapper.addSubView redeem = new CustomLinkView
-      title : "Redeem Your Referrer Points"
-      click : KD.utils.showRedeemReferralPointModal
+      title : "Redeem your VM space"
+      click : => @showRedeemReferralPointModal()
 
 class AccountReferralSystemList extends KDListView
 

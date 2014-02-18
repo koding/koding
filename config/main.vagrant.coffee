@@ -14,9 +14,14 @@ authAllExchange = "authAll"
 embedlyApiKey   = '94991069fb354d4e8fdb825e52d4134a'
 
 environment     = "vagrant"
+regions         =
+  vagrant       : "vagrant"
+  sj            : "sj"
+  aws           : "aws"
 
 module.exports =
   environment   : environment
+  regions       : regions
   version       : version
   aws           :
     key         : 'AKIAJSUVKX6PD254UGAA'
@@ -46,7 +51,8 @@ module.exports =
     port        : 7474
   runNeo4jFeeder: yes
   runGoBroker   : yes
-  runKontrol    : no
+  runGoBrokerKite: yes
+  runKontrol    : yes
   runRerouting  : yes
   runUserPresence: yes
   runPersistence: no
@@ -54,6 +60,7 @@ module.exports =
   buildClient   : yes
   runOsKite     : yes
   runProxy      : yes
+  redis         : "localhost:6379"
   misc          :
     claimGlobalNamesForUsers: no
     updateAllSlugs : no
@@ -158,6 +165,10 @@ module.exports =
       broker    :
         servicesEndpoint: 'http://localhost:3020/-/services/broker'
         sockJS  : 'http://localhost:8008/subscribe'
+      brokerKite:
+        servicesEndpoint: 'http://localhost:3020/-/services/brokerKite'
+        brokerExchange: 'brokerKite'
+        sockJS  : 'http://localhost:8009/subscribe'
       apiUri    : 'http://localhost:3020'
       version   : version
       mainUri   : 'http://localhost:3020'
@@ -165,7 +176,7 @@ module.exports =
       uploadsUri: 'https://koding-uploads.s3.amazonaws.com'
       sourceUri : 'http://localhost:3526'
       newkontrol:
-        url     : 'wss://127.0.0.1:80/dnode'
+        url     : 'ws://127.0.0.1:4000/kontrol'
       fileFetchTimeout: 15 * 1000 # seconds
       externalProfiles  :
         github          :
@@ -199,6 +210,7 @@ module.exports =
     heartbeat   : 0
     vhost       : '/'
   broker        :
+    name        : "broker"
     ip          : ""
     port        : 8008
     certFile    : ""
@@ -206,6 +218,17 @@ module.exports =
     webProtocol : 'http:'
     webHostname : 'localhost'
     webPort     : 8008
+    authExchange: authExchange
+    authAllExchange: authAllExchange
+  brokerKite    :
+    name        : "brokerKite"
+    ip          : ""
+    port        : 8009
+    certFile    : ""
+    keyFile     : ""
+    webProtocol : 'http:'
+    webHostname : 'localhost'
+    webPort     : 8009
     authExchange: authExchange
     authAllExchange: authAllExchange
   kites:
@@ -241,10 +264,13 @@ module.exports =
   haproxy         :
     webPort       : 3020
   newkontrol      :
-    host          : "127.0.0.1"
-    port          : 4000
-    certFile      : "/opt/koding/certs/vagrant_127.0.0.1_cert.pem"
-    keyFile       : "/opt/koding/certs/vagrant_127.0.0.1_key.pem"
+    username        : "devrim"
+    port            : 4000
+    useTLS          : no
+    certFile        : ""
+    keyFile         : ""
+    publicKeyFile   : "/opt/koding/certs/test_kontrol_rsa_public.pem"
+    privateKeyFile  : "/opt/koding/certs/test_kontrol_rsa_private.pem"
   proxyKite       :
     domain        : "127.0.0.1"
     certFile      : "/opt/koding/certs/vagrant_127.0.0.1_cert.pem"
@@ -261,7 +287,7 @@ module.exports =
       port        : 8888
       url         : "http://localhost"
     proxy         :
-      port        : 80
+      port        : 5000
       portssl     : 8081
       ftpip       : '127.0.0.1'
   # crypto :
@@ -281,8 +307,9 @@ module.exports =
   #     decipher.update(str,'hex')
   #     b = decipher.final('utf-8')
   #     return b
-  recurly       :
-    apiKey      : '4a0b7965feb841238eadf94a46ef72ee' # koding-test.recurly.com
+  recurly         : 
+    apiKey        : '4a0b7965feb841238eadf94a46ef72ee' # koding-test.recurly.com
+    loggedRequests: /^(subscriptions|transactions)/
   embedly       :
     apiKey      : embedlyApiKey
   opsview       :
@@ -314,6 +341,10 @@ module.exports =
     use          : false
     ip           : "localhost"
     port         : 8125
+  graphite       :
+    use          : false
+    host         : "localhost"
+    port         : 2003
   linkedin       :
     client_id    : "f4xbuwft59ui"
     client_secret: "fBWSPkARTnxdfomg"
@@ -330,7 +361,28 @@ module.exports =
   mixpanel       : "a57181e216d9f713e19d5ce6d6fb6cb3"
   rollbar        : "71c25e4dc728431b88f82bd3e7a600c9"
   slack          :
-	  token        : "xoxp-2155583316-2155760004-2158149487-a72cf4"
-	  channel      : "C024LG80K"
-  logLevel       :
-    neo4jfeeder  : "warning"
+    token        : "xoxp-2155583316-2155760004-2158149487-a72cf4"
+    channel      : "C024LG80K"
+  logLevel        :
+    neo4jfeeder   : "notice"
+    oskite        : "notice"
+    kontrolproxy  : "notice"
+    kontroldaemon : "notice"
+    userpresence  : "notice"
+    vmproxy       : "notice"
+    graphitefeeder: "notice"
+    sync          : "notice"
+    topicModifier : "notice"
+    postModifier  : "notice"
+    router        : "notice"
+    rerouting     : "notice"
+    overview      : "notice"
+    amqputil      : "notice"
+    rabbitMQ      : "notice"
+    ldapserver    : "notice"
+    broker        : "notice"
+  defaultVMConfigs:
+    freeVM        :
+      storage     : 4096
+      ram         : 1024
+      cpu         : 1

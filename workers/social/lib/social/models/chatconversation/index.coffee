@@ -4,7 +4,7 @@ module.exports = class JChatConversation extends Module
 
   {ObjectId, ObjectRef, secure, signature} = require 'bongo'
 
-  createId = require 'hat'
+  { v4: createId } = require 'node-uuid'
 
   KodingError = require '../../error'
 

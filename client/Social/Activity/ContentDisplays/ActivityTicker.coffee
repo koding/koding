@@ -22,14 +22,14 @@ class ActivityTicker extends ActivityRightBase
 
     @listController.on "LazyLoadThresholdReached", @bound "continueLoading"
 
-    @settingsButton = new KDButtonViewWithMenu
-      cssClass    : 'ticker-settings-menu'
-      title       : ''
-      icon        : yes
-      iconClass   : "arrow"
-      delegate    : @
-      menu        : @settingsMenu data
-      callback    : (event)=> @settingsButton.contextMenu event
+    # @settingsButton = new KDButtonViewWithMenu
+    #   cssClass    : 'ticker-settings-menu'
+    #   title       : ''
+    #   icon        : yes
+    #   iconClass   : "arrow"
+    #   delegate    : @
+    #   menu        : @settingsMenu data
+    #   callback    : (event)=> @settingsButton.contextMenu event
 
     @indexedItems = {}
 
@@ -42,6 +42,7 @@ class ActivityTicker extends ActivityRightBase
     # and comments doesnt have slug
     # group.on "ReplyIsAdded"       , @bound "addComment"
     group.on "PostIsDeleted"        , @bound "deleteActivity"
+    group.on "LikeIsRemoved"        , @bound "removeLike"
 
     @listController.listView.on 'ItemWasAdded', (view, index) =>
       if viewData = view.getData()
@@ -136,8 +137,9 @@ class ActivityTicker extends ActivityRightBase
     {constructorName, id} = member
     KD.remote.cacheable constructorName, id, (err, account)=>
       return console.error "account is not found", err if err or not account
-      source = KD.getSingleton("groupsController").getCurrentGroup()
-      @addNewItem {as: "member", target: account, source  }
+      KD.getSingleton("groupsController").ready =>
+        source = KD.getSingleton("groupsController").getCurrentGroup()
+        @addNewItem {as: "member", target: account, source  }
 
   checkGuestUser: (account) ->
     if account.profile and accountNickname = account.profile.nickname
@@ -214,6 +216,17 @@ class ActivityTicker extends ActivityRightBase
               @addNewItem eventObj
           else
             @addNewItem eventObj
+
+  removeLike : (data)->
+    {origin, subject, liker} = data
+    unless @getConstructorName(origin) and @getConstructorName(subject)
+      return console.warn "data is not valid"
+    source  = KD.remote.revive liker
+    target  = KD.remote.revive origin
+    subject = KD.remote.revive subject
+    as      = "like"
+
+    @removeItem {source, target, as, subject}
 
   addComment: (data) ->
     {origin, reply, subject, replier} = data
@@ -307,7 +320,7 @@ class ActivityTicker extends ActivityRightBase
   pistachio:->
     """
     <div class="activity-ticker right-block-box">
-      <h3>What's happening on Koding {{> @settingsButton}}</h3>
+      <h3>What's happening </h3>
       {{> @listView}}
     </div>
     """
@@ -331,8 +344,11 @@ class ActivityTicker extends ActivityRightBase
 
 
   getItemId: (item) ->
-    {source, target, subject, as} = item
-    "#{source.getId()}_#{target.getId()}_#{as}_#{subject?.getId()}"
+    {source, target, subject, as, timestamp} = item
+    if as is "like"
+      "#{source.getId()}_#{target.getId()}_#{as}_#{subject?.getId()}"
+    else
+      "#{source.getId()}_#{target.getId()}_#{as}_#{timestamp}"
 
   isFiltered: (filter) ->
     if @filters and @filters.length

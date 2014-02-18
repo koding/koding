@@ -8,8 +8,7 @@ class Kontrol extends KDObject
 
     kite =
       name     : "kontrol"
-      publicIP : "#{KD.config.newkontrol.host}"
-      port     : "#{KD.config.newkontrol.port}"
+      url      : "#{KD.config.newkontrol.url}"
 
     authentication =
       type     : "sessionID"
@@ -49,13 +48,7 @@ class Kontrol extends KDObject
 
     onEvent = (options)=>
       e = options.withArgs[0]
-      kite =
-        kite   : e.kite
-        token  :
-          key  : e.token?.key
-          ttl  : e.token?.ttl
-
-      callback null, {action: e.action, kite: @_createKite kite}
+      callback null, {action: e.action, kite: @_createKite e}
 
     @kite.tell "getKites", [query, onEvent], (err, kites)=>
       return callback err, null  if err
@@ -66,11 +59,11 @@ class Kontrol extends KDObject
   # Returns a new NewKite instance from Kite data structure coming from
   # getKites() and watchKites() methods.
   _createKite: (k)->
-    new NewKite k.kite, {type: "token", key: k.token.key}
+    new NewKite k.kite, {type: "token", key: k.token}
 
   _sanitizeQuery: (query) ->
-    query.username    = "#{KD.nick()}"  unless query.username
-    query.environment = "production"    unless query.environment
+    query.username    = "#{KD.nick()}"              unless query.username
+    query.environment = "#{KD.config.environment}"  unless query.environment
 
   KiteAction :
     Register   : "REGISTER"

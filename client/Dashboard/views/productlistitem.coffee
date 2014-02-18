@@ -33,5 +33,4 @@ class GroupProductListItem extends KDListItemView
       {{> @productView}}
       {{> @controls}}
     </div>
-    <hr>
     """

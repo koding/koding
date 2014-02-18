@@ -99,10 +99,21 @@ if basicAuth
   app.use express.basicAuth basicAuth.username, basicAuth.password
 
 process.on 'uncaughtException', (err) ->
-  console.log 'there was an uncaught exception'
-  console.log process.pid
-  console.error err
+  console.error "there was an uncaught exception #{err}"
   process.exit(1)
+
+
+# this is for creating session for incoming user if it doesnt have
+app.use (req, res, next) ->
+  {JSession} = koding.models
+  {clientId} = req.cookies
+  # fetchClient will validate the clientId.
+  # if it is in our db it will return the session it
+  # it it is not in db, creates a new one and returns it
+  JSession.fetchSession clientId, (err, session)->
+    return next() if err or not session
+    res.cookie "clientId", session.clientId, {}
+    next()
 
 app.use (req, res, next) ->
   # add referral code into session if there is one
@@ -153,8 +164,8 @@ app.get "/-/auth/register/:hostname/:key", (req, res)->
         res.send 200, authTemplate data
 
 
-app.get "/Logout", (req, res)->
-  res.clearCookie 'clientId'
+app.all "/:name?/Logout", (req, res)->
+  res.clearCookie 'clientId'  if req.method is 'POST'
   res.redirect 302, '/'
 
 app.get "/humans.txt", (req, res)->
@@ -234,6 +245,15 @@ app.get "/Landing/:page", (req, res, next) ->
       JGroup.render.landing {account, page, client, bongoModels}, (err, body) ->
         serve body, res
 
+
+isInAppRoute = (name)->
+  [firstLetter] = name
+  # user nicknames can start with numbers
+  intRegex = /^\d/
+  return false if intRegex.test firstLetter
+  return true  if firstLetter.toUpperCase() is firstLetter
+  return false
+
 # Handles all internal pages
 # /USER || /SECTION || /GROUP[/SECTION] || /APP
 #
@@ -241,14 +261,16 @@ app.all '/:name/:section?*', (req, res, next)->
 
   {JName, JGroup} = koding.models
   {name, section} = req.params
-  path = if section then "#{name}/#{section}" else name
+  isCustomPreview = req.cookies["custom-partials-preview-mode"]
+  path            = if section then "#{name}/#{section}" else name
 
   return res.redirect 302, req.url.substring 7  if name in ['koding', 'guests']
-  [firstLetter] = name
 
   # Checks if its an internal request like /Activity, /Terminal ...
   #
-  if firstLetter.toUpperCase() is firstLetter
+  bongoModels = koding.models
+
+  if isInAppRoute name
 
     if name in ['Activity', 'Topics']
 
@@ -261,7 +283,6 @@ app.all '/:name/:section?*', (req, res, next)->
 
     else
 
-      bongoModels = koding.models
       generateFakeClient req, res, (err, client)->
 
         isLoggedIn req, res, (err, loggedIn, account)->
@@ -275,11 +296,13 @@ app.all '/:name/:section?*', (req, res, next)->
 
           JName.fetchModels path, (err, models)->
             if err
-              options = {account, name, section, client, bongoModels}
+              options = { account, name, section, client,
+                          bongoModels, isCustomPreview }
               JGroup.render[prefix].subPage options, serveSub
             else if not models? then next()
             else
-              options = {account, name, section, models, client, bongoModels}
+              options = { account, name, section, models,
+                          client, bongoModels, isCustomPreview }
               JGroup.render[prefix].subPage options, serveSub
 
   # Checks if its a User or Group from JName collection
@@ -291,12 +314,14 @@ app.all '/:name/:section?*', (req, res, next)->
         if err then next err
         else unless models? then res.send 404, error_404()
         else if models.last?
-          unless loggedIn
+          if models.last.bongo_?.constructorName isnt "JGroup" and not loggedIn
             return Crawler.crawl koding, req, res, name
-          models.last.fetchHomepageView account, (err, view)->
+
+          homePageOptions = {section, account, bongoModels, isCustomPreview}
+          models.last.fetchHomepageView homePageOptions, (err, view)->
             if err then next err
             else if view? then res.send view
-            else res.send 500, error_500()
+            else res.send 404, error_404()
         else next()
 
 # Main Handler for Koding.com
@@ -337,3 +362,7 @@ app.get '*', (req,res)->
 
 app.listen webPort
 console.log '[WEBSERVER] running', "http://localhost:#{webPort} pid:#{process.pid}"
+
+# NOTE: in the event of errors, send 500 to the client rather
+#       than the stack trace.
+app.use (err, req, res, next) -> res.send 500, error_500()

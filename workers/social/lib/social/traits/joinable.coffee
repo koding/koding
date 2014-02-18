@@ -33,7 +33,7 @@ module.exports = class Joinable
       else
         addToGroup_.call this, (err)->
           if err then callback err
-          else invite.redeem client, (err)-> callback err
+          else invite.redeem delegate, (err)-> callback err
 
   join: secure (client, options, callback)->
     {delegate} = client.connection

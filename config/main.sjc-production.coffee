@@ -17,10 +17,15 @@ authAllExchange = "authAll-#{version}"
 
 embedlyApiKey   = '94991069fb354d4e8fdb825e52d4134a'
 
-environment     = "sjc-production"
+environment     = "production"
+regions         =
+  vagrant       : "vagrant"
+  sj            : "sj"
+  aws           : "aws"
 
 module.exports =
   environment   : environment
+  regions       : regions
   version       : version
   aws           :
     key         : 'AKIAJSUVKX6PD254UGAA'
@@ -42,14 +47,15 @@ module.exports =
     enabled     : no
     port        : 1337
   neo4j         :
-    read        : "http://kgraph.sj.koding.com"
-    write       : "http://kgraph.sj.koding.com"
+    read        : "http://172.16.3.14"
+    write       : "http://172.16.3.14"
     port        : 7474
   mongo         : mongo
   mongoKontrol  : mongoKontrol
   mongoReplSet  : mongoReplSet
   runNeo4jFeeder: yes
   runGoBroker   : no
+  runGoBrokerKite : no
   runKontrol    : yes
   runRerouting  : yes
   runUserPresence: yes
@@ -58,6 +64,7 @@ module.exports =
   buildClient   : yes
   runOsKite     : no
   runProxy      : no
+  redis         : "172.16.3.13:6379"
   misc          :
     claimGlobalNamesForUsers: no
     updateAllSlugs : no
@@ -167,12 +174,16 @@ module.exports =
       broker    :
         servicesEndpoint: "/-/services/broker"
         sockJS   : "https://broker-#{version}.koding.com/subscribe"
+      brokerKite:
+        servicesEndpoint: "/-/services/broker"
+        brokerExchange: 'brokerKite'
+        sockJS   : "https://brokerkite-#{version}.koding.com/subscribe"
       apiUri    : 'https://koding.com'
       appsUri   : 'https://koding-apps.s3.amazonaws.com'
       uploadsUri: 'https://koding-uploads.s3.amazonaws.com'
       sourceUri : "http://webserver-#{version}a.sj.koding.com:1337"
       newkontrol:
-        url     : 'wss://newkontrol.sj.koding.com:80/dnode'
+        url         : 'wss://newkontrol.sj.koding.com/kontrol'
       fileFetchTimeout: 15 * 1000 # seconds
       externalProfiles  :
         github          :
@@ -203,12 +214,24 @@ module.exports =
     heartbeat   : 20
     vhost       : 'new'
   broker        :
+    name        : "broker"
     ip          : ""
     port        : 443
     certFile    : "/opt/ssl_certs/wildcard.koding.com.cert"
     keyFile     : "/opt/ssl_certs/wildcard.koding.com.key"
     webProtocol : 'https:'
     webHostname : "broker-#{version}a.koding.com"
+    webPort     : null
+    authExchange: authExchange
+    authAllExchange: authAllExchange
+  brokerKite    :
+    name        : "brokerKite"
+    ip          : ""
+    port        : 443
+    certFile    : "/opt/ssl_certs/wildcard.koding.com.cert"
+    keyFile     : "/opt/ssl_certs/wildcard.koding.com.key"
+    webProtocol : 'https:'
+    webHostname : "brokerkite-#{version}a.koding.com"
     webPort     : null
     authExchange: authExchange
     authAllExchange: authAllExchange
@@ -236,10 +259,13 @@ module.exports =
   haproxy:
     webPort     : 3020
   newkontrol      :
-    host          : "newkontrol.sj.koding.com"
-    port          : 80
-    certFile      : "/opt/koding/go/src/koding/kontrol/kontrolproxy/files/10.0.5.231_cert.pem"
-    keyFile       : "/opt/koding/go/src/koding/kontrol/kontrolproxy/files/10.0.5.231_key.pem"
+    username        : "koding"
+    port            : 443
+    useTLS          : yes
+    certFile        : "/opt/koding/certs/koding_com_cert.pem"
+    keyFile         : "/opt/koding/certs/koding_com_key.pem"
+    publicKeyFile   : "/opt/koding/certs/prod_kontrol_rsa_public.pem"
+    privateKeyFile  : "/opt/koding/certs/prod_kontrol_rsa_private.pem"
   proxyKite       :
     domain        : "x.koding.com"
     certFile      : "/opt/koding/go/src/koding/kontrol/kontrolproxy/files/10.0.5.102_cert.pem"
@@ -259,8 +285,9 @@ module.exports =
       port        : 80
       portssl     : 443
       ftpip       : '54.208.3.200'
-  recurly       :
-    apiKey      : '0cb2777651034e6889fb0d091126481a' # koding.recurly.com
+  recurly         :
+    apiKey        : '0cb2777651034e6889fb0d091126481a' # koding.recurly.com
+    loggedRequests: /^(subscriptions|transactions)/
   embedly       :
     apiKey      : embedlyApiKey
   opsview	:
@@ -298,6 +325,10 @@ module.exports =
     use          : true
     ip           : "172.168.2.7"
     port         : 8125
+  graphite       :
+    use          : true
+    host         : "172.168.2.7"
+    port         : 2003
   linkedin       :
     client_id    : "aza9cks1zb3d"
     client_secret: "zIMa5kPYbZjHfOsq"
@@ -312,9 +343,30 @@ module.exports =
     version      : "1.0"
     signature    : "HMAC-SHA1"
   mixpanel       : "d35a8d0b14e284f32ab5380590c6848a"
-  rollbar        : "4a8a1f8400fc4e64bae05d47b9345538"
+  rollbar        : "cc4daee549e3405e9e139d34c5bce45b"
   slack          :
-	  token        : "xoxp-2155583316-2155760004-2158149487-a72cf4"
-	  channel      : "C024LG80K"
-  logLevel       :
-    neo4jfeeder  : "info"
+    token        : "xoxp-2155583316-2155760004-2158149487-a72cf4"
+    channel      : "C024LG80K"
+  logLevel        :
+    neo4jfeeder   : "info"
+    oskite        : "info"
+    kontrolproxy  : "debug"
+    kontroldaemon : "info"
+    userpresence  : "info"
+    vmproxy       : "info"
+    graphitefeeder: "info"
+    sync          : "info"
+    topicModifier : "info"
+    postModifier  : "info"
+    router        : "info"
+    rerouting     : "info"
+    overview      : "info"
+    amqputil      : "info"
+    rabbitMQ      : "info"
+    ldapserver    : "info"
+    broker        : "info"
+  defaultVMConfigs:
+    freeVM        :
+      storage     : 4096
+      ram         : 1024
+      cpu         : 1

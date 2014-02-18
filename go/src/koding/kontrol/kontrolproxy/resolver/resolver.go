@@ -17,9 +17,10 @@ import (
 )
 
 var (
-	ErrGone   = errors.New("target is gone")
-	ErrNoHost = errors.New("no healthy hostname available")
-	ErrVMOff  = errors.New("vm is off")
+	ErrGone       = errors.New("target is gone")
+	ErrNoHost     = errors.New("no healthy hostname available")
+	ErrVMOff      = errors.New("vm is off")
+	ErrVMNotFound = errors.New("vm not found")
 
 	// cache lookup tables
 	targets   = make(map[string]*Target)
@@ -47,6 +48,10 @@ type Target struct {
 	// URL contains the final target
 	URL *url.URL
 
+	// Contains errors specific for the given mode. For example if the mode is
+	// "vm" and the vm is off, this field will be set to: "ErrVMOff"
+	Err error
+
 	// A list of hosts, mainly used for vm mode
 	HostnameAlias []string
 
@@ -66,27 +71,15 @@ type Target struct {
 
 	// HostCacheDisabled is used to disable caching host based targets.
 	HostCacheDisabled bool
+
+	// To store additional data about target
+	Properties map[string]interface{}
 }
 
 // GetTarget is used to get the target according to the incoming request it
 // looks if a request has set cookies to change the target. If not it
 // fallbacks to request host data.
 func GetTarget(req *http.Request) (*Target, error) {
-	cookieBuild, err := req.Cookie(CookieBuildName)
-	if err == nil {
-		service := service{
-			username:    "koding",
-			servicename: "server",
-			build:       cookieBuild.Value,
-		}
-
-		t, err := service.target()
-		if err == nil {
-			log.Printf("proxy target is overridden by cookie build: '%s'\n", cookieBuild.Value)
-			return t, nil
-		}
-	}
-
 	cookieDomain, err := req.Cookie(CookieDomainName)
 	if err == nil {
 		t, err := TargetByHost(cookieDomain.Value)
@@ -136,7 +129,7 @@ func getFromCache(host string) (*Target, error) {
 		return target, nil
 	}
 
-	return nil, fmt.Errorf("target cache invalidaiton for host %s", host)
+	return nil, fmt.Errorf("target cache invalidation for host %s", host)
 }
 
 func getFromDB(host string) (*Target, error) {
@@ -151,6 +144,7 @@ func getFromDB(host string) (*Target, error) {
 		CacheTimeout:  time.Second * 10,
 		FetchedAt:     time.Now(),
 		FetchedSource: "MongoDB",
+		Properties:    make(map[string]interface{}),
 	}
 
 	err = target.Resolve(host)
@@ -211,23 +205,11 @@ func (t *Target) Resolve(host string) error {
 	case ModeMaintenance:
 		t.URL, _ = url.Parse("http://localhost/maintenance")
 	case ModeRedirect:
-		t.URL, err = url.Parse(utils.CheckScheme(t.Proxy.FullUrl))
-		if err != nil {
-			return err
-		}
+		t.URL, t.Err = url.Parse(utils.CheckScheme(t.Proxy.FullUrl))
 	case ModeVM:
-		t.URL, err = t.vm(host, port)
-		if err != nil {
-			return err
-		}
+		t.URL, t.Err = t.resolveVM(host, port)
 	case ModeInternal:
-		s := t.getService()
-
-		t.URL, err = s.resolve()
-		if err != nil {
-			return err
-		}
-
+		t.URL, t.Err = t.getService().resolve()
 		t.CacheTimeout = time.Second * 0
 		t.HostCacheDisabled = true
 	default:
@@ -250,7 +232,7 @@ func (t *Target) getService() *service {
 // in form of "arslan.kd.io" -> "10.56.12.12". The default cacheTimeout is set
 // to 0 seconds, means it will be cached forever (because it uses an IP that
 // never change.)
-func (t *Target) vm(host, port string) (*url.URL, error) {
+func (t *Target) resolveVM(host, port string) (*url.URL, error) {
 	if len(t.HostnameAlias) == 0 {
 		return nil, fmt.Errorf("no hostnameAlias defined for host (vm): %s", host)
 	}
@@ -258,8 +240,12 @@ func (t *Target) vm(host, port string) (*url.URL, error) {
 	hostname := t.HostnameAlias[0]
 	vm, err := modelhelper.GetVM(hostname)
 	if err != nil {
-		return nil, err
+		return nil, ErrVMNotFound
 	}
+
+	t.Properties["hostkite"] = vm.HostKite
+	t.Properties["alwaysOn"] = vm.AlwaysOn
+	t.Properties["disableSecurePage"] = vm.DisableSecurePage
 
 	if vm.HostKite == "" || vm.IP == nil {
 		return nil, ErrVMOff

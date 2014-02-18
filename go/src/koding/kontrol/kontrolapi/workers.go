@@ -6,9 +6,7 @@ import (
 	"io"
 	"koding/db/models"
 	"koding/db/mongodb"
-	"koding/kontrol/kontroldaemon/workerconfig"
 	"koding/tools/config"
-	"log"
 	"math"
 	"net/http"
 	"net/url"
@@ -53,7 +51,7 @@ const (
 )
 
 var (
-	kontrolDB = mongodb.NewMongoDB(config.Current.MongoKontrol)
+	kontrolDB *mongodb.MongoDB
 
 	// used for loadbalance modes, like roundrobin or random
 	index AtomicUint32
@@ -96,19 +94,27 @@ func GetWorkerURL(writer http.ResponseWriter, req *http.Request) {
 	// use http for all workers because they don't have ssl certs
 	protocolScheme := "http:"
 
+	brokerConf := config.Broker{}
+	switch workerName {
+	case "brokerKite":
+		brokerConf = conf.BrokerKite
+	case "broker":
+		brokerConf = conf.Broker
+	default:
+	}
+
 	// broker has ssl cert and a custom url scheme, look what it's it
-	if workerName == "broker" {
-		if config.Current.Broker.WebProtocol != "" {
-			protocolScheme = config.Current.Broker.WebProtocol
+	if workerName == "broker" || workerName == "brokerKite" {
+		if brokerConf.WebProtocol != "" {
+			protocolScheme = brokerConf.WebProtocol
 		} else {
 			protocolScheme = "https:" // fallback
 		}
 	}
 
-	// ann
 	hostnames := make([]string, len(workers))
 	for i, worker := range workers {
-		hostnames[i] = fmt.Sprintf("%s//%s", protocolScheme, worker.Hostname)
+		hostnames[i] = fmt.Sprintf("%s//%s:%d", protocolScheme, worker.Hostname, worker.Port)
 	}
 
 	var data []byte
@@ -123,6 +129,12 @@ func GetWorkerURL(writer http.ResponseWriter, req *http.Request) {
 			return
 		}
 	} else {
+		// quit early when there is no workers available
+		if len(workers) == 0 {
+			writer.Write([]byte(string("")))
+			return
+		}
+
 		// return only one hostname back, roundrobin
 		oldIndex := index.Get() // gives 0 for first time
 
@@ -280,33 +292,4 @@ func GetWorker(writer http.ResponseWriter, req *http.Request) {
 		return
 	}
 	writer.Write(data)
-}
-
-func UpdateWorker(writer http.ResponseWriter, req *http.Request) {
-	vars := mux.Vars(req)
-	uuid, action := vars["uuid"], vars["action"]
-
-	buildSendCmd(action, uuid)
-	resp := fmt.Sprintf("worker: '%s' is updated in db", uuid)
-	io.WriteString(writer, resp)
-}
-
-func DeleteWorker(writer http.ResponseWriter, req *http.Request) {
-	vars := mux.Vars(req)
-	uuid := vars["uuid"]
-
-	buildSendCmd("delete", uuid)
-	resp := fmt.Sprintf("worker: '%s' is deleted from db", uuid)
-	io.WriteString(writer, resp)
-}
-
-func buildSendCmd(action, uuid string) {
-	cmd := workerconfig.ApiRequest{Uuid: uuid, Command: action}
-	data, err := json.Marshal(cmd)
-	if err != nil {
-		log.Println("Json marshall error", data)
-	}
-
-	log.Println("Sending cmd to kontrold:", cmd)
-	amqpWrapper.Publish(data)
 }

@@ -4,9 +4,6 @@ package main
 
 import (
 	"errors"
-	"fmt"
-	"koding/db/mongodb"
-	"koding/db/mongodb/modelhelper"
 	"koding/tools/dnode"
 	"koding/tools/kite"
 	"koding/virt"
@@ -139,11 +136,22 @@ func registerS3Methods(k *kite.Kite) {
 		if strings.Contains(params.Name, "/") {
 			return nil, &kite.ArgumentError{Expected: "{ name should not contain \"/\"}"}
 		}
+=======
+func s3Store(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
+	var params struct {
+		Name    string
+		Content []byte
+	}
+	if args.Unmarshal(&params) != nil || params.Name == "" || len(params.Content) == 0 || strings.Contains(params.Name, "/") {
+		return nil, &kite.ArgumentError{Expected: "{ name: [string], content: [base64 string] }"}
+	}
+>>>>>>> 72b6fac18a7321eab4b07c79b5fd029a1d415958
 
-		if len(params.Content) > 2*1024*1024 {
-			return nil, errors.New("Content size larger than maximum of 2MB.")
-		}
+	if len(params.Content) > 2*1024*1024 {
+		return nil, errors.New("Content size larger than maximum of 2MB.")
+	}
 
+<<<<<<< HEAD
 		bucketFunc, ok := bucketsFunc[params.Bucket]
 		if !ok {
 			return nil, fmt.Errorf("bucket does not exist: '%s'", params.Bucket)
@@ -156,26 +164,40 @@ func registerS3Methods(k *kite.Kite) {
 
 		return true, nil
 	})
+=======
+	result, err := uploadsBucket.List(UserAccountId(vos.User).Hex()+"/", "", "", 100)
+	if err != nil {
+		return nil, err
+	}
+	if len(result.Contents) >= 100 {
+		return nil, errors.New("Maximum of 100 stored files reached.")
+	}
 
-	registerVmMethod(k, "s3.delete", true, func(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
-		var params struct {
-			Name string
-		}
-		if args.Unmarshal(&params) != nil || params.Name == "" || strings.Contains(params.Name, "/") {
-			return nil, &kite.ArgumentError{Expected: "{ name: [string] }"}
-		}
-		if err := uploadsBucket.Del(UserAccountId(vos.User).Hex() + "/" + params.Name); err != nil {
-			return nil, err
-		}
-		return true, nil
-	})
+	if err := uploadsBucket.Put(UserAccountId(vos.User).Hex()+"/"+params.Name, params.Content, "", s3.Private); err != nil {
+		return nil, err
+	}
+	return true, nil
+}
+>>>>>>> 72b6fac18a7321eab4b07c79b5fd029a1d415958
+
+func s3Delete(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
+	var params struct {
+		Name string
+	}
+	if args.Unmarshal(&params) != nil || params.Name == "" || strings.Contains(params.Name, "/") {
+		return nil, &kite.ArgumentError{Expected: "{ name: [string] }"}
+	}
+	if err := uploadsBucket.Del(UserAccountId(vos.User).Hex() + "/" + params.Name); err != nil {
+		return nil, err
+	}
+	return true, nil
 }
 
 func UserAccountId(user *virt.User) bson.ObjectId {
 	var account struct {
 		Id bson.ObjectId `bson:"_id"`
 	}
-	if err := mongodb.Run("jAccounts", func(c *mgo.Collection) error {
+	if err := mongodbConn.Run("jAccounts", func(c *mgo.Collection) error {
 		return c.Find(bson.M{"profile.nickname": user.Name}).One(&account)
 	}); err != nil {
 		panic(err)

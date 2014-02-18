@@ -8,7 +8,7 @@ class ActivityInputWidget extends KDView
 
     options.destroyOnSubmit ?= no
 
-    @input    = new ActivityInputView defaultValue: options.defaultValue
+    @input = new ActivityInputView defaultValue: options.defaultValue
     @input.on "Escape", @bound "reset"
 
     @input.on "TokenAdded", (type, token) =>
@@ -53,10 +53,9 @@ class ActivityInputWidget extends KDView
       tagName  : "span"
       cssClass : "preview-icon"
       tooltip  :
-        title     : "Preview"
+        title  : "Markdown preview"
       click    : =>
-        if not @preview then @showPreview()
-        else @hidePreview()
+        if not @preview then @showPreview() else @hidePreview()
 
   submit: (callback) ->
     return  unless value = @input.getValue().trim()
@@ -170,7 +169,6 @@ class ActivityInputWidget extends KDView
     # @submit.setTitle "Post"
     @submit.focus()
     setTimeout (@bound "unlockSubmit"), 8000
-    @setData null
     @unlockSubmit()  if lock
 
   lockSubmit: ->
@@ -184,6 +182,7 @@ class ActivityInputWidget extends KDView
   showPreview: ->
     return unless value = @input.getValue().trim()
     markedValue = KD.utils.applyMarkdown value
+    return  if markedValue.trim() is "<p>#{value}</p>"
     tags = @input.getTokens().map (token) -> token.data if token.type is "tag"
     tagsExpanded = @utils.expandTokens markedValue, {tags}
     if not @preview
@@ -192,7 +191,6 @@ class ActivityInputWidget extends KDView
         partial  : tagsExpanded
         click    : => @hidePreview()
       @input.addSubView @preview
-
     else
       @preview.updatePartial tagsExpanded
 

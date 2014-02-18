@@ -2,13 +2,15 @@ package main
 
 import (
 	"encoding/json"
-	"github.com/streadway/amqp"
+	"flag"
 	"koding/db/models"
-	"koding/kontrol/kontroldaemon/workerconfig"
 	"koding/kontrol/kontrolhelper"
+	"koding/tools/config"
 	"koding/tools/process"
 	"log"
 	"os"
+
+	"github.com/streadway/amqp"
 )
 
 type ConfigFile struct {
@@ -27,10 +29,19 @@ func init() {
 }
 
 var producer *kontrolhelper.Producer
+var configProfile = flag.String("c", "", "Configuration profile from file")
+var conf *config.Config
 
 func main() {
+	flag.Parse()
+	if *configProfile == "" {
+		log.Fatal("Please define config file with -c")
+	}
+
+	conf := config.MustConfig(*configProfile)
+
 	var err error
-	producer, err = kontrolhelper.CreateProducer("client")
+	producer, err = kontrolhelper.CreateProducer(conf, "client")
 	if err != nil {
 		log.Fatalf(err.Error())
 	}
@@ -106,7 +117,7 @@ func gatherData() ([]byte, error) {
 }
 
 func startConsuming() {
-	connection := kontrolhelper.CreateAmqpConnection()
+	connection := kontrolhelper.CreateAmqpConnection(conf)
 	channel := kontrolhelper.CreateChannel(connection)
 
 	err := channel.ExchangeDeclare("clientExchange", "fanout", true, false, false, false, nil)
@@ -134,41 +145,7 @@ func startConsuming() {
 			d.DeliveryTag,
 			d.Body,
 			d.AppId)
-
-		var req workerconfig.ClientRequest
-		err := json.Unmarshal(d.Body, &req)
-		if err != nil {
-			log.Print("bad json incoming msg: ", err)
-		}
-
-		matchAction(req.Action, req.Cmd, req.Hostname, req.Pid)
-
 	}
-}
-
-func matchAction(action, cmd, hostname string, pid int) {
-	funcs := map[string]func(cmd, hostname string, pid int) error{
-		"start": start,
-		"check": check,
-		"kill":  kill,
-		"stop":  stop,
-	}
-
-	host, _ := os.Hostname()
-	if hostname != "" && hostname != host {
-		log.Println("command is for a different machine")
-		return
-	}
-
-	if pid == 0 && action != "start" {
-		log.Printf("please provide pid number for '%s'\n", action)
-	}
-
-	err := funcs[action](cmd, hostname, pid)
-	if err != nil {
-		log.Println("call function err", err)
-	}
-
 }
 
 func start(cmd, hostname string, pid int) error {

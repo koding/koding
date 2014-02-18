@@ -1,6 +1,8 @@
 class PaymentWorkflow extends FormWorkflow
 
   constructor: (options = {}, data) ->
+
+    options.cssClass = KD.utils.curry 'payment-workflow', options.cssClass
     unless options.confirmForm
       throw new Error "You must provide a confirmForm option!"
 
@@ -10,7 +12,10 @@ class PaymentWorkflow extends FormWorkflow
 
     paymentController = KD.getSingleton 'paymentController'
 
+    @showLoader()
+
     paymentController.fetchPaymentMethods (err, paymentMethods) =>
+      @hideLoader()
       return if KD.showError err
 
       if paymentMethods.methods.length > 0
@@ -52,36 +57,30 @@ class PaymentWorkflow extends FormWorkflow
 
     @requireData [
       'productData'
-
-      'createAccount'
-
-      any('paymentMethod', 'subscription')
-      
+      any 'createAccount', 'loggedIn'
+      any 'paymentMethod', 'subscription'
       'userConfirmation'
     ]
 
     if KD.whoami().type is 'unregistered'
-      existingAccountWorkflow = new ExistingAccountWorkflow
-
-      existingAccountWorkflow.on 'DataCollected', (data) =>
-        @collectData createAccount: data.createAccount
-
-      @addForm 'createAccount', existingAccountWorkflow, ['createAccount']
+      existingAccountWorkflow = new ExistingAccountWorkflow name : 'login' # why, because i had to! srsly, this goes as a form to workflow.on 'FormIsShown' on PricingAppView, and fixes breadcrumb navigation
+      existingAccountWorkflow.on 'DataCollected', @bound "collectData"
+      @addForm 'createAccount', existingAccountWorkflow, ['createAccount', 'loggedIn']
     else
       # TODO: this is an awful hack for now C.T.
-      @addForm 'existingAccount', (@skip createAccount: no), ['createAccount']
+      @addForm 'existingAccount', (@skip loggedIn: yes), ['createAccount', 'loggedIn']
 
     # - "product form" can be used for collecting some product-related data
     # before the payment method collection/selection process begins.  If you
     # use this feature, make sure to emit the "DataCollected" event with any
     # data that you want aggregated (that you want to be able to access from
     # the "PaymentConfirmed" listeners).
-    # - "confirm form" is required.  This form should render a summary, and 
+    # - "confirm form" is required.  This form should render a summary, and
     # emit a "PaymentConfirmed" after user approval.
     { productForm, confirmForm } = @getOptions()
 
     if productForm?
-      
+
       @addForm 'product', productForm, ['productData', 'subscription']
 
       productForm.on 'DataCollected', (productData) =>
@@ -98,8 +97,9 @@ class PaymentWorkflow extends FormWorkflow
 
     @addForm 'confirm', confirmForm, ['userConfirmation']
 
+    confirmForm.on 'CouponOptionChanged', (name) => @collectData promotionType: name
     confirmForm.on 'PaymentConfirmed', => @collectData userConfirmation: yes
-    
+
     @forwardEvent confirmForm, 'Cancel'
 
     return this

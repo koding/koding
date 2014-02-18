@@ -54,8 +54,8 @@ __utils.extend __utils,
       location.reload(true)
 
   showMoreClickHandler:(event)->
-    __utils.stopDOMEvent event
     $trg = $(event.target)
+    __utils.stopDOMEvent event  if $trg.is ".more-link, .less-link"
     more = "span.collapsedtext a.more-link"
     less = "span.collapsedtext a.less-link"
     $trg.parent().addClass("show").removeClass("hide") if $trg.is(more)
@@ -225,7 +225,9 @@ __utils.extend __utils,
     return  str unless tokenMatches = str.match /\|.+?\|/g
 
     tagMap = {}
-    data.tags?.forEach (tag) -> tagMap[tag.getId()] = tag
+    data.tags?.forEach (tag) ->
+      unless tag.lazyNode?
+        tagMap[tag.getId()] = tag
 
     viewParams = []
     for tokenString in tokenMatches
@@ -476,97 +478,6 @@ __utils.extend __utils,
 
     return img
 
-  redeemReferralPoint:(modal)->
-    {vmToResize, sizes} = modal.modal.modalTabs.forms.Redeem.inputs
-
-    data = {
-      vmName : vmToResize.getValue(),
-      size   : sizes.getValue(),
-      type   : "disk"
-    }
-
-    KD.remote.api.JReferral.redeem data, (err, refRes)->
-      return KD.showError errr if err
-      modal.modal.destroy()
-      KD.getSingleton("vmController").resizeDisk data.vm, (err, res)->
-        return KD.showError err if err
-        KD.getSingleton("vmController").emit "ReferralCountUpdated"
-        KD.notify_ """
-          #{refRes.addedSize} #{refRes.unit} extra #{refRes.type} is successfully added to your #{refRes.vm} VM.
-        """
-
-  showRedeemReferralPointModal:->
-    vmController = KD.getSingleton("vmController")
-    vmController.fetchVMs yes, (err, vms)=>
-      return KD.showError err if err
-      return KD.notify_ "You don't have any VMs. Please create one VM" if not vms or vms.length < 1
-
-      KD.remote.api.JReferral.fetchRedeemableReferrals { type: "disk" }, (err, referals)=>
-        return KD.showError err if err
-        return KD.notify_ "You dont have any referrals" if not referals or referals.length < 1
-
-        @modal = modal = new KDModalViewWithForms
-          title                   : "Redeem Your Referral Points"
-          cssClass                : "redeem-modal"
-          content                 : ""
-          overlay                 : yes
-          width                   : 500
-          height                  : "auto"
-          tabs                    :
-            forms                 :
-              Redeem               :
-                callback          : =>
-                  @modal.modalTabs.forms.Redeem.buttons.redeemButton.showLoader()
-                  KD.utils.redeemReferralPoint @
-                buttons           :
-                  redeemButton    :
-                    title         : "Redeem"
-                    style         : "modal-clean-gray"
-                    type          : "submit"
-                    loader        :
-                      color       : "#444444"
-                      diameter    : 12
-                    callback      : -> @hideLoader()
-                  cancel          :
-                    title         : "Cancel"
-                    style         : "modal-cancel"
-                    callback      : (event)-> modal.destroy()
-                fields            :
-                  vmToResize    :
-                    label         : "Select a WM to resize"
-                    cssClass      : "clearfix"
-                    itemClass     : KDSelectBox
-                    type          : "select"
-                    name          : "vmToResize"
-                    validate      :
-                      rules       :
-                        required  : yes
-                      messages    :
-                        required  : "You must select a VM!"
-                    selectOptions : (cb)->
-                      options = for vm in vms
-                        ( title : vm, value : vm)
-                      cb options
-                  sizes           :
-                    label         : "Select Size"
-                    cssClass      : "clearfix"
-                    itemClass     : KDSelectBox
-                    type          : "select"
-                    name          : "size"
-                    validate      :
-                      rules       :
-                        required  : yes
-                      messages    :
-                        required  : "You must select a size!"
-                    selectOptions : (cb)=>
-                      options = []
-                      previousTotal = 0
-                      referals.forEach (referal, i)->
-                        previousTotal += referal.amount
-                        options.push ( title : "#{previousTotal} #{referal.unit}" , value : previousTotal)
-                      cb options
-
-
 
   compileCoffeeOnClient: (coffeeCode, callback = noop) ->
     require ["//cdnjs.cloudflare.com/ajax/libs/coffee-script/1.6.3/coffee-script.min.js"], (coffeeCompiler) ->
@@ -659,6 +570,18 @@ __utils.extend __utils,
 
   formatMoney: accounting.formatMoney
 
+  stringToColor:(str)->
+    hash = 0
+    for i in [0...str.length]
+      hash = str.charCodeAt(i) + ((hash << 5) - hash)
+
+    color = '#'
+    for i in [0...3]
+      value = (hash >> (i * 8)) & 0xFF
+      color += ('00' + value.toString(16)).substr(-2)
+
+    return color
+
   postDummyStatusUpdate:->
 
     return if location.hostname isnt "localhost"
@@ -668,7 +591,7 @@ __utils.extend __utils,
     then KD.config.entryPoint.slug
     else 'koding'
 
-    KD.remote.api.JStatusUpdate.create {body, group}, (err,reply)=>
+    KD.remote.api.JNewStatusUpdate.create {body, group}, (err,reply)=>
       unless err
       then KD.getSingleton("appManager").tell 'Activity', 'ownActivityArrived', reply
       else new KDNotificationView type : "mini", title : "There was an error, try again later!"
@@ -682,3 +605,6 @@ __utils.extend __utils,
   # creates string from tag so that new status updates can
   # show the tags properly
   tokenizeTag: (tag)-> "|#:JTag:#{tag.getId()}|"
+
+  doesEmailValid: (email) ->
+    /^((([a-z]|\d|[!#\$%&'\*\+\-\/=\?\^_`{\|}~]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])+(\.([a-z]|\d|[!#\$%&'\*\+\-\/=\?\^_`{\|}~]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])+)*)|((\x22)((((\x20|\x09)*(\x0d\x0a))?(\x20|\x09)+)?(([\x01-\x08\x0b\x0c\x0e-\x1f\x7f]|\x21|[\x23-\x5b]|[\x5d-\x7e]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(\\([\x01-\x09\x0b\x0c\x0d-\x7f]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF]))))*(((\x20|\x09)*(\x0d\x0a))?(\x20|\x09)+)?(\x22)))@((([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])*([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])))\.)+(([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])*([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])))\.?$/i.test email

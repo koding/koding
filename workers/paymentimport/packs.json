@@ -1,0 +1,22 @@
+[
+  {
+    "title": "VM Turn On", 
+    "tags": ["vmturnon"]
+  },
+  {
+    "title": "VM", 
+    "tags": ["vm"]
+  },
+  {
+    "title": "User",
+    "tags": ["user"]
+  },
+  {
+    "title": "Group", 
+    "tags": ["group"]
+  },
+  {
+    "title": "Always On", 
+    "tags": ["alwayson"]
+  }
+]

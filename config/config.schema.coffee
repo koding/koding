@@ -38,6 +38,10 @@ config =
           mongodb       : [{ host : 1, user : 1, password:1}]
   main            :
     environment   : 1
+    regions       :
+      vagrant     : 1
+      sj          : 1
+      aws         : 1
     version       : 1
     haproxy       :
       webPort     : 1
@@ -69,6 +73,7 @@ config =
       port        : 1
     runNeo4jFeeder: 1
     runGoBroker   : 1
+    runGoBrokerKite: 1
     runKontrol    : 1
     runRerouting  : 1
     runUserPresence: 1
@@ -77,6 +82,7 @@ config =
     buildClient   : 1
     runOsKite     : 0
     runProxy      : 0
+    redis         : 1
     misc          :
       claimGlobalNamesForUsers: 1
       updateAllSlugs : 1
@@ -181,6 +187,10 @@ config =
         broker        :
           servicesEndpoint: 1
           sockJS      : 1
+        brokerKite    :
+          servicesEndpoint: 1
+          brokerExchange: 1
+          sockJS      : 1
         apiUri        : 1
         appsUri       : 1
         uploadsUri    : 1
@@ -218,6 +228,18 @@ config =
       heartbeat   : 1
       vhost       : 1
     broker        :
+      name        : 1
+      ip          : 1
+      port        : 1
+      certFile    : 1
+      keyFile     : 1
+      webProtocol : 1
+      webHostname : 1
+      webPort     : 1
+      authExchange: 1
+      authAllExchange: 1
+    brokerKite    :
+      name        : 1
       ip          : 1
       port        : 1
       certFile    : 1
@@ -248,10 +270,13 @@ config =
     pidFile       : 1
     etcd            : [{ host : 1, port : 1}]
     newkontrol      :
-      host          : 1
-      port          : 1
-      certFile      : 1
-      keyFile       : 1
+      username        : 1
+      port            : 1
+      useTLS          : 1
+      certFile        : 1
+      keyFile         : 1
+      publicKeyFile   : 1
+      privateKeyFile  : 1
     proxyKite       :
       domain        : 1
       certFile      : 1
@@ -272,6 +297,7 @@ config =
         ftpip       : 1
     recurly         :
       apiKey        : 1
+      loggedRequests: 1
     embedly         :
       apiKey        : 1
     followFeed      :
@@ -309,6 +335,10 @@ config =
       use           : 1
       ip            : 1
       port          : 1
+    graphite        :
+      use           : 1
+      host          : 1
+      port          : 1
     linkedin        :
       client_id     : 1
       client_secret : 1
@@ -329,4 +359,25 @@ config =
       channel       : 1
     logLevel        :
       neo4jfeeder   : 1
+      oskite        : 1
+      kontrolproxy  : 1
+      kontroldaemon : 1
+      userpresence  : 1
+      vmproxy       : 1
+      graphitefeeder: 1
+      sync          : 1
+      topicModifier : 1
+      postModifier  : 1
+      router        : 1
+      rerouting     : 1
+      overview      : 1
+      amqputil      : 1
+      rabbitMQ      : 1
+      ldapserver    : 1
+      broker        : 1
+    defaultVMConfigs:
+      freeVM        :
+        storage     : 1
+        ram         : 1
+        cpu         : 1
 module.exports = config

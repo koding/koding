@@ -71,7 +71,7 @@ class MainView extends KDView
     @header.addSubView @innerContainer = new KDCustomHTMLView
       cssClass  : "inner-container"
 
-    @innerContainer.addSubView @logo = new KDCustomHTMLView
+    @logo = new KDCustomHTMLView
       tagName   : "a"
       domId     : "koding-logo"
       cssClass  : if entryPoint?.type is 'group' then 'group' else ''
@@ -82,6 +82,21 @@ class MainView extends KDView
         then KD.getSingleton('router').handleRoute "/Activity", {entryPoint}
         else location.replace '/'
 
+    @innerContainer.addSubView @logo
+
+    groupLogo = ""
+    if KD.currentGroup?.logo
+      groupLogo = KD.utils.proxifyUrl KD.currentGroup.logo,
+        crop         : yes
+        width        : 55
+        height       : 55
+
+      @logo.setCss 'background-image', "url(#{groupLogo})"
+      @logo.setClass 'custom'
+
+    @logo.setClass KD.config.environment
+
+
     @innerContainer.addSubView @logotype = new KDCustomHTMLView
       tagName   : "a"
       cssClass  : "logotype"
@@ -90,7 +105,7 @@ class MainView extends KDView
         KD.utils.stopDOMEvent event
         KD.getSingleton('router').handleRoute "/", {entryPoint}
 
-    @logo.setClass KD.config.environment
+
 
     # REFACTOR NOTE: login link
 
@@ -145,6 +160,7 @@ class MainView extends KDView
     @createLoggedInAccountArea()
 
   createLoggedInAccountArea:->
+    @accountArea.destroySubViews()
 
     @accountArea.addSubView @accountMenu = new AvatarAreaIconMenu
     @accountMenu.accountChanged KD.whoami()
@@ -343,4 +359,3 @@ class MainView extends KDView
           duration = 400
           KDScrollView::scrollTo.call mainView, {top, duration}
           break
-

@@ -11,94 +11,103 @@ import (
 	"labix.org/v2/mgo/bson"
 )
 
-func registerVmMethods(k *kite.Kite) {
-	registerVmMethod(k, "vm.start", false, func(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
-		if !vos.Permissions.Sudo {
-			return nil, &kite.PermissionError{}
-		}
-		if err := vos.VM.Start(); err != nil {
-			panic(err)
-		}
+func vmStart(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
+	if !vos.Permissions.Sudo {
+		return nil, &kite.PermissionError{}
+	}
+	if err := vos.VM.Start(); err != nil {
+		panic(err)
+	}
 
-		// wait until network is up
-		if err := vos.VM.WaitForNetwork(time.Second * 5); err != nil {
-			panic(err)
-		}
+	// wait until network is up
+	if err := vos.VM.WaitForNetwork(time.Second * 5); err != nil {
+		panic(err)
+	}
 
-		return true, nil
-	})
+	return true, nil
+}
 
-	registerVmMethod(k, "vm.shutdown", false, func(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
-		if !vos.Permissions.Sudo {
-			return nil, &kite.PermissionError{}
-		}
-		if err := vos.VM.Shutdown(); err != nil {
-			panic(err)
-		}
-		return true, nil
-	})
+func vmShutdown(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
+	if !vos.Permissions.Sudo {
+		return nil, &kite.PermissionError{}
+	}
+	if err := vos.VM.Shutdown(); err != nil {
+		panic(err)
+	}
+	return true, nil
+}
 
-	registerVmMethod(k, "vm.stop", false, func(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
-		if !vos.Permissions.Sudo {
-			return nil, &kite.PermissionError{}
-		}
-		if err := vos.VM.Stop(); err != nil {
-			panic(err)
-		}
-		return true, nil
-	})
+func vmUnprepare(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
+	if !vos.Permissions.Sudo {
+		return nil, &kite.PermissionError{}
+	}
 
-	registerVmMethod(k, "vm.reinitialize", false, func(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
-		if !vos.Permissions.Sudo {
-			return nil, &kite.PermissionError{}
-		}
-		vos.VM.Prepare(true, log.Warning)
-		if err := vos.VM.Start(); err != nil {
-			panic(err)
-		}
-		return true, nil
-	})
+	if err := vos.VM.Unprepare(); err != nil {
+		return nil, err
+	}
 
-	registerVmMethod(k, "vm.info", false, func(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
-		info := channel.KiteData.(*VMInfo)
-		info.State = vos.VM.GetState()
-		return info, nil
-	})
+	return true, nil
+}
 
-	registerVmMethod(k, "vm.resizeDisk", false, func(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
-		if !vos.Permissions.Sudo {
-			return nil, &kite.PermissionError{}
-		}
-		return true, vos.VM.ResizeRBD()
-	})
+func vmStop(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
+	if !vos.Permissions.Sudo {
+		return nil, &kite.PermissionError{}
+	}
+	if err := vos.VM.Stop(); err != nil {
+		panic(err)
+	}
+	return true, nil
+}
 
-	registerVmMethod(k, "vm.createSnapshot", false, func(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
-		if !vos.Permissions.Sudo {
-			return nil, &kite.PermissionError{}
-		}
+func vmReinitialize(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
+	if !vos.Permissions.Sudo {
+		return nil, &kite.PermissionError{}
+	}
+	vos.VM.Prepare(true, log.Warning)
+	if err := vos.VM.Start(); err != nil {
+		panic(err)
+	}
+	return true, nil
+}
 
-		snippetId := bson.NewObjectId().Hex()
-		if err := vos.VM.CreateConsistentSnapshot(snippetId); err != nil {
-			return nil, err
-		}
+func vmInfo(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
+	info := channel.KiteData.(*VMInfo)
+	info.State = vos.VM.GetState()
+	return info, nil
+}
 
-		return snippetId, nil
-	})
+func vmResizeDisk(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
+	if !vos.Permissions.Sudo {
+		return nil, &kite.PermissionError{}
+	}
+	return true, vos.VM.ResizeRBD()
+}
 
-	registerVmMethod(k, "spawn", true, func(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
-		var command []string
-		if args.Unmarshal(&command) != nil {
-			return nil, &kite.ArgumentError{Expected: "[array of strings]"}
-		}
-		return vos.VM.AttachCommand(vos.User.Uid, "", command...).CombinedOutput()
-	})
+func vmCreateSnaphost(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
+	if !vos.Permissions.Sudo {
+		return nil, &kite.PermissionError{}
+	}
 
-	registerVmMethod(k, "exec", true, func(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
-		var line string
-		if args.Unmarshal(&line) != nil {
-			return nil, &kite.ArgumentError{Expected: "[string]"}
-		}
-		return vos.VM.AttachCommand(vos.User.Uid, "", "/bin/bash", "-c", line).CombinedOutput()
-	})
+	snippetId := bson.NewObjectId().Hex()
+	if err := vos.VM.CreateConsistentSnapshot(snippetId); err != nil {
+		return nil, err
+	}
 
+	return snippetId, nil
+}
+
+func spawn(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
+	var command []string
+	if args.Unmarshal(&command) != nil {
+		return nil, &kite.ArgumentError{Expected: "[array of strings]"}
+	}
+	return vos.VM.AttachCommand(vos.User.Uid, "", command...).CombinedOutput()
+}
+
+func exec(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
+	var line string
+	if args.Unmarshal(&line) != nil {
+		return nil, &kite.ArgumentError{Expected: "[string]"}
+	}
+	return vos.VM.AttachCommand(vos.User.Uid, "", "/bin/bash", "-c", line).CombinedOutput()
 }

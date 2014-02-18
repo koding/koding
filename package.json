@@ -33,7 +33,7 @@
     "librato-metrics" : "0.0.6",
     "log"             : "1.2.0",
     "log4js"          : "0.6.9",
-    "log4js-node-syslog" : "0.0.3",
+    "log4js-node-syslog" : "0.0.5",
     "marked"          : "0.2.8",
     "mime"            : "1.2.9",
     "mkdirp"          : "0.3.2",
@@ -50,7 +50,6 @@
     "source-map"      : "0.1.9",
     "sqwish"          : "0.2.0",
     "stylus"          : "0.37.0",
-    "traverse"        : "0.6.6",
     "portchecker"     : "0.1.1",
     "uglify-js"       : "2.3.6",
     "underscore"      : "1.5.2",
@@ -66,7 +65,8 @@
     "node-uuid"       : "1.4.1",
     "newrelic"        : "1.1.1",
     "sync"            : "0.2.2",
-    "fibers"          : "1.0.1"
+    "fibers"          : "1.0.1",
+    "mixpanel"        : "0.0.18"
   },
   "devDependencies": {},
   "optionalDependencies": {},

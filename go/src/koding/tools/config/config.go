@@ -3,16 +3,32 @@ package config
 import (
 	"encoding/json"
 	"errors"
-	"flag"
 	"fmt"
+	"io/ioutil"
 	"os"
 	"os/exec"
-	"os/signal"
-	"syscall"
+	"path/filepath"
 )
 
+type Broker struct {
+	Name            string
+	IP              string
+	Port            int
+	CertFile        string
+	KeyFile         string
+	AuthExchange    string
+	AuthAllExchange string
+	WebProtocol     string
+}
+
 type Config struct {
-	BuildNumber     int
+	BuildNumber int
+	Environment string
+	Regions     struct {
+		Vagrant string
+		SJ      string
+		AWS     string
+	}
 	ProjectRoot     string
 	UserSitesDomain string
 	ContainerSubnet string
@@ -20,6 +36,11 @@ type Config struct {
 	Version         string
 	Client          struct {
 		StaticFilesBaseUrl string
+		RuntimeOptions     struct {
+			NewKontrol struct {
+				Url string
+			}
+		}
 	}
 	Mongo        string
 	MongoKontrol string
@@ -38,16 +59,9 @@ type Config struct {
 		Enabled bool
 	}
 	GoLogLevel string
-	Broker     struct {
-		IP              string
-		Port            int
-		CertFile        string
-		KeyFile         string
-		AuthExchange    string
-		AuthAllExchange string
-		WebProtocol     string
-	}
-	Loggr struct {
+	Broker     Broker
+	BrokerKite Broker
+	Loggr      struct {
 		Push   bool
 		Url    string
 		ApiKey string
@@ -68,10 +82,13 @@ type Config struct {
 		Queue string
 	}
 	NewKontrol struct {
-		Host     string
-		Port     int
-		CertFile string
-		KeyFile  string
+		Username       string
+		Port           int
+		UseTLS         bool
+		CertFile       string
+		KeyFile        string
+		PublicKeyFile  string
+		PrivateKeyFile string
 	}
 	ProxyKite struct {
 		Domain   string
@@ -113,134 +130,129 @@ type Config struct {
 		Port int
 	}
 	TopicModifier struct {
-		LogLevel     string
 		CronSchedule string
 	}
 	Slack struct {
 		Token   string
 		Channel string
 	}
-
+	Graphite struct {
+		Use  bool
+		Host string
+		Port int
+	}
 	LogLevel map[string]string
+	Redis    string
 }
 
-var FileProfile string
-var PillarProfile string
-var Profile string
-var Current Config
-var LogDebug bool
-var Uuid string
-var Host string
-var BrokerDomain string
-var Region string
-var VMProxies bool // used to enable ports for users
-var Skip int
-var Count int
-
-func init() {
-	flag.StringVar(&FileProfile, "c", "", "Configuration profile from file")
-	flag.StringVar(&FileProfile, "config", "", "Alias for -c")
-	flag.StringVar(&PillarProfile, "p", "", "Configuration profile from saltstack pillar")
-	flag.BoolVar(&LogDebug, "d", false, "Log debug messages")
-	flag.StringVar(&Uuid, "u", "", "Enable kontrol mode")
-	flag.StringVar(&Host, "h", "", "Hostname to be resolved")
-	flag.StringVar(&BrokerDomain, "a", "", "Send kontrol a custom domain istead of os.Hostname")
-	flag.StringVar(&BrokerDomain, "domain", "", "Alias for -a")
-	flag.StringVar(&Region, "r", "", "Region")
-	flag.IntVar(&Skip, "s", 0, "Define how far to skip ahead")
-	flag.IntVar(&Count, "l", 1000, "Count for items to process")
-	flag.BoolVar(&VMProxies, "v", false, "Enable ports for VM users (1024-10000)")
-
-	flag.Parse()
-
-	err := readConfig()
+func MustConfig(profile string) *Config {
+	conf, err := readConfig(profile)
 	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
+		panic(err)
 	}
 
-	sigChannel := make(chan os.Signal)
-	signal.Notify(sigChannel, syscall.SIGUSR2)
-	go func() {
-		for _ = range sigChannel {
-			LogDebug = !LogDebug
-			fmt.Printf("config.LogDebug: %v\n", LogDebug)
-		}
-	}()
-
+	return conf
 }
 
 // readConfig reads and unmarshalls the appropriate config into the Config
-// struct (which is used in many applications). It either reads the config
-// from the koding-config-manager or from salt-pillar with command line flag
-// -c and -p. They are exclusive, which means you only can use one. If there
-// is no flag specified it tries to get the config from the environment
-// variable "CONFIG".
-func readConfig() error {
-	if flag.NArg() != 0 {
-		return errors.New("You passed extra unused arguments.")
-	}
-
-	if FileProfile == "" && PillarProfile == "" {
+// struct (which is used in many applications). It reads the config from the
+// koding-config-manager  with command line flag -c. If there is no flag
+// specified it tries to get the config from the environment variable
+// "CONFIG".
+func readConfig(profile string) (*Config, error) {
+	if profile == "" {
 		// this is needed also if you can't pass a flag into other packages, like testing.
 		// otherwise it's impossible to inject the config paramater. For example:
 		// this doesn't work  : go test -c "vagrant"
 		// but this will work : CONFIG="vagrant" go test
 		envProfile := os.Getenv("CONFIG")
 		if envProfile == "" {
-			return errors.New("Please specify a configuration profile via -c or -p or set a CONFIG environment.")
+			return nil, errors.New("config.go: please specify a configuration profile via -c or set a CONFIG environment.")
 		}
 
-		FileProfile = envProfile
+		profile = envProfile
 	}
 
-	if FileProfile != "" && PillarProfile != "" {
-		return errors.New("The flags -c and -p are exclusive.")
+	cwd, err := os.Getwd()
+	if err != nil {
+		return nil, err
 	}
 
-	if FileProfile != "" {
-		Profile = FileProfile
-		err := readConfigManager(FileProfile)
+	configPath := filepath.Join(cwd, "config", fmt.Sprintf("main.%s.json", profile))
+	ok, err := exists(configPath)
+	if err != nil {
+		return nil, err
+	}
+
+	var conf *Config
+	if ok {
+		conf, err = ReadJson(profile)
 		if err != nil {
-			return err
+			return nil, err
 		}
-	}
-
-	if PillarProfile != "" {
-		Profile = PillarProfile
-		err := readPillar(PillarProfile)
+	} else {
+		conf, err = ReadConfigManager(profile)
 		if err != nil {
-			return err
+			return nil, err
 		}
 	}
 
-	return nil
-
+	return conf, nil
 }
 
-func readConfigManager(profile string) error {
+func ReadJson(profile string) (*Config, error) {
+	pwd, err := os.Getwd()
+	if err != nil {
+		return nil, err
+	}
+
+	configPath := filepath.Join(pwd, "config", fmt.Sprintf("main.%s.json", profile))
+
+	data, err := ioutil.ReadFile(configPath)
+	if err != nil {
+		return nil, err
+	}
+
+	conf := new(Config)
+	err = json.Unmarshal(data, &conf)
+	if err != nil {
+		return nil, fmt.Errorf("Could not unmarshal configuration: %s\nConfiguration source output:\n%s\n",
+			err.Error(), string(data))
+	}
+
+	return conf, nil
+}
+
+func ReadConfigManager(profile string) (*Config, error) {
 	cmd := exec.Command("node", "-e", "require('koding-config-manager').printJson('main."+profile+"')")
-	return initializeConfig(cmd)
-}
 
-func readPillar(profile string) error {
-	cmd := exec.Command("salt-call", "pillar.get", profile, "--output=json", "--log-level=warning")
-	return initializeConfig(cmd)
-}
-
-func initializeConfig(cmd *exec.Cmd) error {
-	config, err := cmd.CombinedOutput()
+	data, err := cmd.CombinedOutput()
 	if err != nil {
-		return fmt.Errorf("Could not execute configuration source: %s\nConfiguration source output:\n%s\n",
-			err.Error(), config)
+		return nil, fmt.Errorf("Could not execute configuration source: %s\nConfiguration source output:\n%s\n",
+			err.Error(), data)
 	}
 
-	err = json.Unmarshal(config, &Current)
+	conf := new(Config)
+	err = json.Unmarshal(data, &conf)
 	if err != nil {
-		return fmt.Errorf("Could not unmarshal configuration: %s\nConfiguration source output:\n%s\n",
-			err.Error(), config)
+		return nil, fmt.Errorf("Could not unmarshal configuration: %s\nConfiguration source output:\n%s\n",
+			err.Error(), string(data))
 	}
 
 	// successfully unmarshalled into Current
-	return nil
+	return conf, nil
+}
+
+// exists returns whether the given file or directory exists or not.
+func exists(path string) (bool, error) {
+	_, err := os.Stat(path)
+	if err == nil {
+		return true, nil
+	}
+
+	if os.IsNotExist(err) {
+		return false, nil
+	}
+
+	return false, err
 }

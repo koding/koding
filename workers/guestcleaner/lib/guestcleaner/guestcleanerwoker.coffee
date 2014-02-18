@@ -7,7 +7,7 @@ module.exports = class GuestCleanerWorker
   {Relationship} = jraphical
   constructor: (@bongo, @options = {}) ->
 
-  whitlistedModels = ["JSession", "JUser", "JVM", "JDomain", "JAppStorage", "JLimit"]
+  whitlistedModels = ["JSession", "JUser", "JVM", "JDomain", "JAppStorage", "JName"]
 
   collectDataAndRelationships:(relationships, callback)->
     toBeDeletedData = {}
@@ -31,6 +31,9 @@ module.exports = class GuestCleanerWorker
     deleteEntry = race (i, data, fin)->
       {ids, modelName} = data
       modelConstructor = Base.constructors[modelName]
+      unless modelConstructor
+        console.log "No data found for guest, model name: ", modelName
+        return callback null
       modelConstructor.remove {_id: $in : ids}, (err)->
         if err then callback err
         fin()
@@ -41,7 +44,7 @@ module.exports = class GuestCleanerWorker
       deleteEntry {ids: ids, modelName: modelName}
 
   clean:=>
-    {JAccount, JSession} = @bongo.models
+    {JAccount, JSession, JName} = @bongo.models
 
     usageLimitInMinutes = @options.usageLimitInMinutes or 60
     filterDate = new Date(Date.now()-(1000*60*usageLimitInMinutes))
@@ -66,7 +69,7 @@ module.exports = class GuestCleanerWorker
         accounts.forEach (account) =>
           queue = [
             ->
-              console.log "Removing " + account.profile.nickname
+              console.debug "Removing " + account.profile.nickname
               queue.next()
             ->
               # delete user cookie
@@ -92,6 +95,7 @@ module.exports = class GuestCleanerWorker
                 if err then console.error err
                 queue.next()
             =>
+              {Relationship} = jraphical
               unless @toBeDeletedRelationshipIds.length > 0 then queue.next()
               Relationship.remove {_id : $in : @toBeDeletedRelationshipIds}, (err)->
                 if err then console.error err
@@ -103,13 +107,18 @@ module.exports = class GuestCleanerWorker
               JSession.remove {guestId:guestId},(err)->
                 if err then console.error err
                 queue.next()
+            =>
+              #If we don't delete JNames, we eventually have millions of them.
+              JName.remove {name : account.profile.nickname},(err)->
+                if err then console.error err
+                queue.next()
             ->
               #Delete JAccount itself
               account.remove (err)->
                 if err then console.error err
                 queue.next()
             ->
-              console.log "Removed " + account.profile.nickname
+              console.debug "Removed " + account.profile.nickname
               queue.next()
           ]
           daisy queue

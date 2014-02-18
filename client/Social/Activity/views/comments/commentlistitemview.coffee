@@ -151,9 +151,7 @@ class CommentListItemView extends KDListItemView
     @template.update()
 
   click:(event)->
-
-    KD.utils.showMoreClickHandler.call this, event
-
+    KD.utils.showMoreClickHandler event
     if $(event.target).is "span.avatar a, a.user-fullname"
       {originType, originId} = @getData()
       KD.remote.cacheable originType, originId, (err, origin)->

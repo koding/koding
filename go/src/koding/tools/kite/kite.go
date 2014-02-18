@@ -2,12 +2,11 @@ package kite
 
 import (
 	"encoding/json"
-	"koding/db/mongodb/modelhelper"
 	"koding/tools/amqputil"
+	"koding/tools/config"
 	"koding/tools/dnode"
 	"koding/tools/lifecycle"
 	"koding/tools/logger"
-	"koding/virt"
 	"os"
 	"strconv"
 	"strings"
@@ -16,12 +15,16 @@ import (
 	"github.com/streadway/amqp"
 )
 
-var log = logger.New("kite")
+var (
+	log  = logger.New("kite")
+	conf *config.Config
+)
 
 type Kite struct {
 	Name              string
 	Handlers          map[string]Handler
 	ServiceUniqueName string
+	PublishExchange   string
 	LoadBalancer      func(correlationName string, username string, deadService string) string
 }
 
@@ -45,7 +48,12 @@ type Control struct {
 	HostnameAlias string
 }
 
-func New(name string, onePerHost bool) *Kite {
+func New(name string, c *config.Config, onePerHost bool) *Kite {
+	if c == nil {
+		log.Fatal("Conf is not initialized. Aborting ", name)
+	}
+	conf = c
+
 	hostname, _ := os.Hostname()
 	serviceUniqueName := "kite-" + name + "-" + strconv.Itoa(os.Getpid()) + "|" + strings.Replace(hostname, ".", "_", -1)
 	if onePerHost {
@@ -56,7 +64,12 @@ func New(name string, onePerHost bool) *Kite {
 		Name:              name,
 		Handlers:          make(map[string]Handler),
 		ServiceUniqueName: serviceUniqueName,
+		PublishExchange:   "broker", // default is broker, should be changed by others after initializing.
 	}
+}
+
+func EnableDebug() {
+	log.SetLevel(logger.DEBUG)
 }
 
 func (k *Kite) Handle(method string, concurrent bool, callback func(args *dnode.Partial, channel *Channel) (interface{}, error)) {
@@ -64,10 +77,10 @@ func (k *Kite) Handle(method string, concurrent bool, callback func(args *dnode.
 }
 
 func (k *Kite) Run() {
-	consumeConn := amqputil.CreateConnection("kite-" + k.Name)
+	consumeConn := amqputil.CreateConnection(conf, "kite-"+k.Name)
 	defer consumeConn.Close()
 
-	publishConn := amqputil.CreateConnection("kite-" + k.Name)
+	publishConn := amqputil.CreateConnection(conf, "kite-"+k.Name)
 	defer publishConn.Close()
 
 	publishChannel := amqputil.CreateChannel(publishConn)
@@ -78,43 +91,44 @@ func (k *Kite) Run() {
 	amqputil.JoinPresenceExchange(consumeChannel, "services-presence", "kite", "kite-"+k.Name, k.ServiceUniqueName, k.LoadBalancer != nil)
 
 	stream := amqputil.DeclareBindConsumeQueue(consumeChannel, "fanout", k.ServiceUniqueName, "", true)
-	go k.startRouting(stream, publishChannel)
 
-	// listen to an external control channel
-	controlChannel := amqputil.CreateChannel(consumeConn)
-	defer controlChannel.Close()
+	k.startRouting(stream, publishChannel)
 
-	controlStream := amqputil.DeclareBindConsumeQueue(controlChannel, "fanout", "control", "", true)
-	controlRouting(controlStream) // blocking
+	// // listen to an external control channel
+	// controlChannel := amqputil.CreateChannel(consumeConn)
+	// defer controlChannel.Close()
+
+	// controlStream := amqputil.DeclareBindConsumeQueue(controlChannel, "fanout", "control", "", true)
+	// controlRouting(controlStream) // blocking
 }
 
-func controlRouting(stream <-chan amqp.Delivery) {
-	for msg := range stream {
-		switch msg.RoutingKey {
-		// those are temporary here
-		// and should not be here
-		case "control.suspendVM":
-			var control Control
-			err := json.Unmarshal(msg.Body, &control)
-			if err != nil || control.HostnameAlias == "" {
-				log.Error("Invalid control message '%s'", string(msg.Body))
-				continue
-			}
+// func controlRouting(stream <-chan amqp.Delivery) {
+// 	for msg := range stream {
+// 		switch msg.RoutingKey {
+// 		// those are temporary here
+// 		// and should not be here
+// 		case "control.suspendVM":
+// 			var control Control
+// 			err := json.Unmarshal(msg.Body, &control)
+// 			if err != nil || control.HostnameAlias == "" {
+// 				log.Error("Invalid control message '%s'", string(msg.Body))
+// 				continue
+// 			}
 
-			v, err := modelhelper.GetVM(control.HostnameAlias)
-			if err != nil {
-				log.Error("vm not found '%s'", control.HostnameAlias)
-				continue
-			}
+// 			v, err := modelhelper.GetVM(control.HostnameAlias)
+// 			if err != nil {
+// 				log.Error("vm not found '%s'", control.HostnameAlias)
+// 				continue
+// 			}
 
-			vm := virt.VM(*v)
-			if err := vm.Stop(); err != nil {
-				log.Error("could not stop vm '%s'", control.HostnameAlias)
-				continue
-			}
-		}
-	}
-}
+// 			vm := virt.VM(*v)
+// 			if err := vm.Stop(); err != nil {
+// 				log.Error("could not stop vm '%s'", control.HostnameAlias)
+// 				continue
+// 			}
+// 		}
+// 	}
+// }
 
 func (k *Kite) startRouting(stream <-chan amqp.Delivery, publishChannel *amqp.Channel) {
 	changeClientsGauge := lifecycle.CreateClientsGauge()
@@ -219,7 +233,7 @@ func (k *Kite) startRouting(stream <-chan amqp.Delivery, publishChannel *amqp.Ch
 
 							if err != nil {
 								if _, ok := err.(*WrongChannelError); ok {
-									if err := publishChannel.Publish("broker", channel.RoutingKey+".cycleChannel", false, false, amqp.Publishing{Body: []byte("null")}); err != nil {
+									if err := publishChannel.Publish(k.PublishExchange, channel.RoutingKey+".cycleChannel", false, false, amqp.Publishing{Body: []byte("null")}); err != nil {
 										log.LogError(err, 0)
 									}
 									return
@@ -251,8 +265,8 @@ func (k *Kite) startRouting(stream <-chan amqp.Delivery, publishChannel *amqp.Ch
 					go func() {
 						defer log.RecoverAndLog()
 						for data := range d.SendChan {
-							log.Debug("Write %v %v", channel.RoutingKey, data)
-							if err := publishChannel.Publish("broker", channel.RoutingKey, false, false, amqp.Publishing{Body: data}); err != nil {
+							log.Debug("Write %s %s", channel.RoutingKey, data)
+							if err := publishChannel.Publish(k.PublishExchange, channel.RoutingKey, false, false, amqp.Publishing{Body: data}); err != nil {
 								log.LogError(err, 0)
 							}
 						}
@@ -275,7 +289,7 @@ func (k *Kite) startRouting(stream <-chan amqp.Delivery, publishChannel *amqp.Ch
 								}
 							}()
 
-							log.Debug("Read %v %v", channel.RoutingKey, message)
+							log.Debug("Read %s %s", channel.RoutingKey, message)
 							d.ProcessMessage(message)
 							pingAlreadySent = false
 						case <-time.After(5 * time.Minute):

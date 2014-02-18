@@ -20,6 +20,7 @@ borderize(clr)
 
 
 body.about
+  -webkit-font-smoothing antialiased
   #main-header
     .inner-container
       bg            color, transparent
@@ -68,6 +69,11 @@ body.about
         p
           line-height   28px
           word-spacing  -1px
+          color         rgba(255, 255, 255, 0.64)
+          vendor        font-smoothing, antialiased
+          vendor        text-rendering, geometricPrecision
+          font-weight   200
+
 
       aside
         abs()
@@ -88,7 +94,7 @@ body.about
       display         block
       font-size       36px
       color           #bbd5c7
-      font-weight     100
+      font-weight     200
       margin          8px 0 53px
       letter-spacing  1.1px
       word-spacing    -2px
@@ -111,7 +117,7 @@ body.about
       position          relative
       font-size         24px
       color             #fff
-      font-weight       100
+      font-weight       200
       letter-spacing    .9px
       a
         borderize       #fff
@@ -152,7 +158,7 @@ body.about
         color           #fff
         opacity         .5
         font-size       18px
-        font-weight     100
+        font-weight     200
         margin          0 0 6px
 
 
@@ -163,6 +169,12 @@ body.about
       border-bottom     1px solid transparent
       h4
         color            #8a8a8a
+        rel()
+        cite
+          abs()
+          font-size     16px
+          right         0
+          bottom        0
 
       .kdlistview-team
         kalc             width, 100% \+ 90px
@@ -184,6 +196,11 @@ body.about
 
         .avatarview
           display         block
+          vendor          filter, grayscale(100%)
+          vendor          transition, all .177s ease
+          &:hover
+            vendor        filter, grayscale(0%)
+
 
         figcaption
           overflow        visible
@@ -192,14 +209,14 @@ body.about
           color           #8a8a8a
           font-size       24px
           line-height     32px
-          font-weight     100
+          font-weight     200
           display         block
           margin          28px 0 7px
           white-space     nowrap
           noTextDeco()
 
         cite
-          font-weight     100
+          font-weight     200
           color           #8a8a8a
           line-height     22px
           letter-spacing  .9px
@@ -277,13 +294,14 @@ body.about
 
       cite
         font-size      24px
-        font-weight    100
+        font-weight    200
         color          #323b3d
         letter-spacing 1.2px
 
       article
+        padding-right 0!important
         font-size     24px
-        font-weight   100
+        font-weight   200
         color         #323b3d
         line-height   28px
         margin        42px 0 0 0

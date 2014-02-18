@@ -2,9 +2,9 @@ class EnvironmentMachineContainer extends EnvironmentContainer
 
   constructor:(options={}, data)->
 
+    options.cssClass   = 'machines'
     options.itemClass  = EnvironmentMachineItem
-    options.title      = 'Machines'
-    options.itemHeight = 50
+    options.title      = 'Virtual Machines'
 
     super options, data
 
@@ -12,8 +12,8 @@ class EnvironmentMachineContainer extends EnvironmentContainer
     super
 
     vmc = KD.getSingleton 'vmController'
-    cmd = if KD.checkFlag('nostradamus') then 'fetchGroupVMs' else 'fetchVMs'
-    vmc[cmd] yes, (err, vms)=>
+
+    vmc.fetchGroupVMs yes, (err, vms)=>
       if err or vms.length is 0
         @emit "DataLoaded"
         return warn "Failed to fetch VMs", err  if err

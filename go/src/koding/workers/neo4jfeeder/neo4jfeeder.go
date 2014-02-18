@@ -2,16 +2,20 @@ package main
 
 import (
 	"encoding/json"
+	"flag"
 	"fmt"
-	"github.com/streadway/amqp"
 	"koding/databases/neo4j"
+	"koding/db/mongodb"
 	"koding/tools/amqputil"
+	"koding/tools/config"
 	"koding/tools/logger"
 	"koding/tools/statsd"
 	"koding/workers/neo4jfeeder/mongohelper"
-	"labix.org/v2/mgo/bson"
 	"strings"
 	"time"
+
+	"github.com/streadway/amqp"
+	"labix.org/v2/mgo/bson"
 )
 
 var (
@@ -30,9 +34,33 @@ type Message struct {
 	Payload []map[string]interface{} `json:"payload"`
 }
 
-var log = logger.New("neo4jfeeder")
+var (
+	log         = logger.New("neo4jfeeder")
+	mongo       *mongodb.MongoDB
+	conf        *config.Config
+	flagProfile = flag.String("c", "", "Configuration profile from file")
+	flagDebug   = flag.Bool("d", false, "Debug mode")
+)
 
 func main() {
+	flag.Parse()
+	if *flagProfile == "" {
+		log.Fatal("Please define config file with -c")
+	}
+
+	conf = config.MustConfig(*flagProfile)
+	var logLevel logger.Level
+	if *flagDebug {
+		logLevel = logger.DEBUG
+	} else {
+		logLevel = logger.GetLoggingLevelFromConfig("neo4jfeeder", *flagProfile)
+	}
+	log.SetLevel(logLevel)
+
+	mongo = mongodb.NewMongoDB(conf.Mongo)
+	mongohelper.MongoHelperInit(*flagProfile)
+	neo4j.SetupNeo4j(conf)
+
 	statsd.SetAppName("neo4jFeeder")
 	startConsuming()
 }
@@ -49,13 +77,12 @@ func jsonDecode(data string) (*Message, error) {
 }
 
 func startConsuming() {
-
 	c := &Consumer{
 		conn:    nil,
 		channel: nil,
 	}
 
-	c.conn = amqputil.CreateConnection("neo4jFeeding")
+	c.conn = amqputil.CreateConnection(conf, "neo4jFeeding")
 	c.channel = amqputil.CreateChannel(c.conn)
 	// exchangeName, ExchangeType, durable, autoDelete, internal, noWait, args
 	err := c.channel.ExchangeDeclare(EXCHANGE_NAME, "fanout", true, false, false, false, nil)
@@ -156,7 +183,7 @@ func createNode(data map[string]interface{}) {
 	targetName := fmt.Sprintf("%s", data["targetName"])
 
 	if sourceId == "" || sourceName == "" || targetId == "" || targetName == "" {
-		log.Error("invalid data: %v", data)
+		log.Error("createNode invalid data: %v", data)
 		return
 	}
 
@@ -173,7 +200,8 @@ func createNode(data map[string]interface{}) {
 	sourceContent, err := mongohelper.FetchContent(bson.ObjectIdHex(sourceId), sourceName)
 	if err != nil {
 		sTimer.Failed()
-		log.Error("sourceContent %v", err)
+		log.Error("createNode sourceContent %v\nid: %v, name: %v, data:%v",
+			err, sourceId, sourceName, data)
 
 		return
 	}
@@ -183,7 +211,8 @@ func createNode(data map[string]interface{}) {
 	targetContent, err := mongohelper.FetchContent(bson.ObjectIdHex(targetId), targetName)
 	if err != nil {
 		sTimer.Failed()
-		log.Error("targetContent %v", err)
+		log.Error("createNode targetContent %v\nid: %v, name: %v, data:%v",
+			err, targetId, targetName, data)
 
 		return
 	}
@@ -195,7 +224,7 @@ func createNode(data map[string]interface{}) {
 
 	if _, ok := data["as"]; !ok {
 		sTimer.Failed()
-		log.Error("as value is not set on this relationship. Discarding this record data: %v", data)
+		log.Error("createNode as value is not set on this relationship. Discarding this record data: %v", data)
 
 		return
 	}
@@ -203,7 +232,7 @@ func createNode(data map[string]interface{}) {
 
 	if _, ok := data["_id"]; !ok {
 		sTimer.Failed()
-		log.Error("id value is not set on this relationship. Discarding this record: %v", data)
+		log.Error("createNode id value is not set on this relationship. Discarding this record: %v", data)
 
 		return
 	}
@@ -252,7 +281,7 @@ func deleteRelationship(data map[string]interface{}) {
 	targetId := fmt.Sprintf("%s", data["targetId"])
 
 	if sourceId == "" || targetId == "" {
-		log.Error("invalid data: %v", data)
+		log.Error("deleteRelationship invalid data: %v", data)
 		return
 	}
 
@@ -292,7 +321,7 @@ func updateNode(data map[string]interface{}) {
 	sourceName := fmt.Sprintf("%s", bongo["constructorName"])
 
 	if sourceId == "" || sourceName == "" {
-		log.Error("invalid data: %v", data)
+		log.Error("updateNode invalid data: %v", data)
 		return
 	}
 
@@ -309,7 +338,7 @@ func updateNode(data map[string]interface{}) {
 	sourceContent, err := mongohelper.FetchContent(bson.ObjectIdHex(sourceId), sourceName)
 	if err != nil {
 		sTimer.Failed()
-		log.Error("sourceContent %v", err)
+		log.Error("updateNode sourceContent %v\ndata:%v", err, data)
 
 		return
 	}

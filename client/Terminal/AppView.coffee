@@ -122,32 +122,29 @@ class WebTermAppView extends JView
 
   showApprovalModal: (remote, command)->
     modal = new KDModalView
+      cssClass: "terminal-command-warning"
       title   : "Warning!"
       content : """
-      <div class="modalformline">
-        <p>
-          If you <strong>don't trust this app</strong>, or if you clicked on this
-          link <strong>not knowing what it would do</strong> - be careful it <strong>can
-          damage/destroy</strong> your Koding VM.
-        </p>
-      </div>
-      <div class="modalformline">
-        <p>
-          This URL is set to execute the command below:
-        </p>
-      </div>
+      <p>
+        If you <strong>don't trust this app</strong>, or if you clicked on this
+        link <strong>not knowing what it would do</strong> - be careful it <strong>can
+        damage/destroy</strong> your Koding VM.
+      </p>
+      <p>
+        This URL is set to execute the command below:
+      </p>
       <pre>
         #{Encoder.XSSEncode command}
       </pre>
       """
       buttons :
         "Run" :
-          cssClass: "modal-clean-gray"
+          cssClass: "modal-clean-green"
           callback: ->
             remote.input "#{command}\n"
             modal.destroy()
         "Cancel":
-          cssClass: "modal-cancel"
+          cssClass: "modal-clean-red"
           callback: ->
             modal.destroy()
 
@@ -226,6 +223,15 @@ class WebTermAppView extends JView
   viewAppended: ->
     super
     @checkVM()
+    path = location.pathname + location.search + "?"
+    mainController = KD.getSingleton("mainController")
+
+    unless KD.isLoggedIn()
+      mainController.once "accountChanged.to.loggedIn", =>
+        wc = KD.singleton 'windowController'
+        wc.clearUnloadListeners()
+        location.replace path
+
 
   createNewTab: (options = {}) ->
     @messagePane.hide()

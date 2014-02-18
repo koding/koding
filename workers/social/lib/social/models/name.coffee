@@ -6,7 +6,7 @@ module.exports = class JName extends Model
 
   {secure, JsPath:{getAt}, dash, signature} = require 'bongo'
 
-  createId = require 'hat'
+  { v4: createId } = require 'node-uuid'
 
   @share()
 
@@ -29,6 +29,9 @@ module.exports = class JName extends Model
       slugs           : Array # [collectionName, constructorName, slug, usedAsPath]
       constructorName : String
       usedAsPath      : String
+    registeredAt      :
+      type            : Date
+      default         : -> new Date
 
   @cycleSecretName =(name, callback)->
     JSecretName = require './secretname'
@@ -107,7 +110,7 @@ module.exports = class JName extends Model
     @remove {name}, callback
 
   @validateName =(candidate)->
-    3 < candidate.length < 26 and /^[a-z0-9][a-z0-9-]+$/.test candidate
+    2 < candidate.length < 26 and /^[a-z0-9][a-z0-9-]+$/.test candidate
 
   @claimNames = secure (client, callback=->)->
     unless client.connection.delegate.can 'administer names'

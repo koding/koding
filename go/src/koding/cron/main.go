@@ -1,8 +1,10 @@
 package main
 
 import (
-	"fmt"
+	"flag"
+	"koding/db/mongodb/modelhelper"
 	"koding/tools/config"
+	"koding/tools/logger"
 	"koding/workers/topicmodifier"
 	"os"
 	"os/signal"
@@ -12,8 +14,9 @@ import (
 )
 
 var (
-	Cron                    *cron.Cron
-	TOPIC_MODIFIER_SCHEDULE = config.Current.TopicModifier.CronSchedule
+	log           = logger.New("go-cron")
+	configProfile = flag.String("c", "", "Configuration profile from file")
+	Cron          *cron.Cron
 )
 
 // later on this could be implemented as kite, and then we will no longer need hard coded
@@ -23,16 +26,21 @@ func init() {
 }
 
 func main() {
-	fmt.Println("Starting Cron Scheduler")
+	flag.Parse()
+	if *configProfile == "" {
+		log.Fatal("Please define config file with -c")
+	}
 
-	addTopicModifierConsumer()
+	conf := config.MustConfig(*configProfile)
+
+	// needed for topicModifer until it's done.
+	modelhelper.Initialize(conf.Mongo)
+	log.Notice("Starting Cron Scheduler")
+
+	addFunc(conf.TopicModifier.CronSchedule, func() { topicmodifier.ConsumeMessage(conf) })
 
 	Cron.Start()
 	registerSignalHandler()
-}
-
-func addTopicModifierConsumer() {
-	addFunc(TOPIC_MODIFIER_SCHEDULE, topicmodifier.ConsumeMessage)
 }
 
 func registerSignalHandler() {
@@ -53,7 +61,7 @@ func addFunc(spec string, cmd func()) {
 
 func shutdown() {
 	Cron.Stop()
-	fmt.Println("Stopping it")
+	log.Notice("Stopping it")
 	err := topicmodifier.Shutdown()
 	if err != nil {
 		panic(err)

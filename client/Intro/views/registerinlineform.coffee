@@ -135,6 +135,12 @@ class HomeRegisterForm extends KDFormView
       else
         KD.mixpanel.alias account.profile.nickname
         KD.mixpanel "Signup, success"
+
+        try
+          mixpanel.track "Alternate Signup, success"
+        catch
+          KD.logToExternal "mixpanel doesn't exist"
+
         _gaq.push ['_trackEvent', 'Sign-up']
 
         $.cookie 'newRegister', yes
@@ -147,13 +153,17 @@ class HomeRegisterForm extends KDFormView
           # content   : 'Successfully registered!'
           duration  : 2000
 
-        KD.getSingleton('router').handleRoute "/Activity"
+        firstRoute = KD.getSingleton("router").visitedRoutes.first
+        if firstRoute and /^\/(?:Reset|Register|Confirm|R)\//.test firstRoute
+          firstRoute = "/Activity"
 
-        setTimeout =>
-          @hide()
+        {entryPoint} = KD.config
+        KD.getSingleton('router').handleRoute firstRoute or '/Activity', {replaceState: yes, entryPoint}
+
+        KD.utils.wait 1000, =>
           @reset()
           @button.hideLoader()
-        , 1000
+          @hide()
 
 
   viewAppended: JView::viewAppended

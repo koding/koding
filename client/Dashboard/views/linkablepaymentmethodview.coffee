@@ -1,17 +1,24 @@
 class LinkablePaymentMethodView extends PaymentMethodView
+
   viewAppended:->
     super()
 
-    @linkButton = new KDButtonView
-      title     : 'Link a payment method'
-      callback  : =>
+    @linkButton = new KDCustomHTMLView
+      tagName   : "span"
+      cssClass  : "payment-links link"
+      partial   : "Link a payment method"
+      click     : =>
         @emit 'PaymentMethodEditRequested', @getData()
+
     @addSubView @linkButton
 
-    @unlinkButton = new KDButtonView
-      title     : "Unlink this payment method"
-      callback  : =>
+    @unlinkButton = new KDCustomHTMLView
+      tagName     : "span"
+      cssClass    : "payment-links unlink"
+      partial     : "Unlink this payment method"
+      click       : =>
         @emit 'PaymentMethodUnlinkRequested', @getData()
+
     @unlinkButton.hide()
     @addSubView @unlinkButton
 
@@ -21,10 +28,12 @@ class LinkablePaymentMethodView extends PaymentMethodView
     @loader.hide()
     switch state
       when 'unlink'
+        @parent.setClass "linked"
         @linkButton.hide()
         @unlinkButton.show()
         @paymentMethodInfo.show()
       when 'link'
+        @parent.unsetClass "linked"
         @linkButton.show()
         @unlinkButton.hide()
         @paymentMethodInfo.hide()

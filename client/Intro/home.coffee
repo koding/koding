@@ -1,28 +1,16 @@
 class HomePage extends JView
 
+  iframe = """<iframe src="//www.youtube.com/embed/5E85g_ddV3A?autoplay=1&origin=https://koding.com&showinfo=0&theme=dark&modestbranding=1&autohide=1&loop=1" width="853" height="480" frameborder="0" webkitAllowFullScreen mozallowfullscreen allowFullScreen></iframe>"""
+
   constructor:(options = {}, data)->
 
     options.domId = 'home-page'
 
     super options, data
 
-    @pricingButton = new KDButtonView
-      title       : "<a href='mailto:sales@koding.com?subject=Koding, white label' target='_self'>Get your own Koding for your team<cite>Contact us for details</cite></a>"
-      cssClass    : 'solid green shadowed pricing'
-      icon        : 'yes'
-      iconClass   : 'dollar'
-      click       : (event)->
-        KD.mixpanel "Sales contact, click"
-        KD.utils.stopDOMEvent event
-
     @registerForm = new HomeRegisterForm
       callback    : (formData)->
         KD.mixpanel "Register button in / a, click"
-        @doRegister formData
-
-    @registerFormBottom = new HomeRegisterForm
-      callback    : (formData)->
-        KD.mixpanel "Register button in / b, click"
         @doRegister formData
 
     @githubLink   = new KDCustomHTMLView
@@ -32,7 +20,40 @@ class HomePage extends JView
         KD.mixpanel "Github auth button in /, click"
         KD.singletons.oauthController.openPopup "github"
 
+    @play = new KDCustomHTMLView
+      tagName : 'a'
+      cssClass : 'play-button'
+      attributes : href : 'http://www.youtube.com/embed/5E85g_ddV3A'
+      click : (event)=>
+        KD.utils.stopDOMEvent event
+        if window.innerWidth > 1024
+        then @showVideo()
+        else
+          window.open "/teamwork.html",
+            "Koding Teamwork",
+            "width=#{w},height=#{h},left=#{Math.floor (screen.width/2) - (w/2)},top=#{Math.floor (screen.height/2) - (h/2)}"
+
     @markers = new MarkerController
+
+    @productForm = new IntroPricingProductForm
+
+
+  showVideo:->
+
+    @play.hide()
+    @markers.hide 'teamwork'
+    @$('figure.laptop section.teamwork').hide()
+    @$('figure.laptop').append iframe
+
+
+
+  hideVideo:->
+
+    @play.show()
+    @$('figure.laptop section.teamwork').show()
+    @$('figure.laptop iframe').remove()
+    KD.utils.wait 1000, => @markers.show 'teamwork'
+
 
   show:->
 
@@ -40,9 +61,11 @@ class HomePage extends JView
 
     @unsetClass 'out'
     document.body.classList.add 'intro'
-    KD.utils.defer => @markers.reset()
 
     super
+
+    KD.utils.defer => @markers.reset()
+
 
   hide:->
 
@@ -51,11 +74,14 @@ class HomePage extends JView
 
     super
 
+    @hideVideo()
+
+
   viewAppended:->
 
     super
 
-    vmMarker = @markers.create 'vms',
+    vms = @markers.create 'vms',
       client    : '#home-page .laptop .teamwork'
       container : this
       wait      : 1000
@@ -64,7 +90,7 @@ class HomePage extends JView
         top     : 150
         left    : 50
 
-    navMarker = @markers.create 'nav',
+    nav = @markers.create 'nav',
       client    : '#home-page .laptop .teamwork'
       container : this
       wait      : 1300
@@ -73,7 +99,7 @@ class HomePage extends JView
         top     : -30
         left    : 240
 
-    chatMarker = @markers.create 'chat',
+    chat = @markers.create 'chat',
       client    : '#home-page .laptop .teamwork'
       container : this
       wait      : 1600
@@ -82,16 +108,16 @@ class HomePage extends JView
         top     : 150
         left    : 700
 
-    playMarker = @markers.create 'play',
+    play = @markers.create 'play',
       client    : '#home-page .laptop .teamwork'
       container : this
       wait      : 1900
       message   : 'INSTANTLY SPIN UP PLAYGROUNDS'
       offset    :
-        top     : 275
-        left    : 500
+        top     : 375
+        left    : 600
 
-    logoMarker = @markers.create 'logo',
+    logo = @markers.create 'logo',
       client    : '#home-page .browser'
       container : this
       wait      : 2200
@@ -100,19 +126,11 @@ class HomePage extends JView
         top     : 25
         left    : 25
 
-    new MixpanelScrollTracker
-      attribute: 'section',
-      event: '/ scroll to',
-      markers: [
-        { position: 362,  value: 'Teamwork screenshot'    }
-        { position: 627,  value: 'Feature explanation'    }
-        { position: 1495, value: 'Activity screenshot'    }
-        { position: 1995, value: 'Enterprise explanation' }
-        { position: 2270, value: 'Enterprise contact'     }
-        { position: 2864, value: 'Scrolled to bottom'     }
-      ]
+    @markers.group 'teamwork', vms, nav, chat, play
 
   pistachio:->
+    if KD.customPartial?.partial
+      return Encoder.htmlDecode KD.customPartial.partial
 
     """
       <header id='home-header'>
@@ -125,8 +143,15 @@ class HomePage extends JView
       <main>
         <div class="clearfix">
           <div class="headings-container">
-            <h1 class='big-header'>Coding environment<br/>from the future</h1>
-            <h2>Social development in your browser, sign up to join a great community and code on powerful VMs.</h2>
+            <h1 class='big-header'>Develop, Together!</h1>
+
+            <h2>Learn programming or make apps.
+              <br/>Hack Ruby, Go, Java, NodeJS, PHP, C, and Python.
+              <br/>Install Wordpress, Laravel, Django, and Bootstrap.
+              <br/>Play with MySQL, Mongo, and enjoy root access.
+              <br/>Sign up now and join the fun!
+            </h2>
+
           </div>
           <div class="register-container">
             {{> @registerForm}}
@@ -135,6 +160,7 @@ class HomePage extends JView
         </div>
       </main>
       <figure class='laptop'>
+        {{> @play}}
         <section class='teamwork'></section>
       </figure>
       <section id='home-features' class='clearfix'>
@@ -174,23 +200,20 @@ class HomePage extends JView
             <span class='icon'></span>
             <article>
               <h4>USE IT IN YOUR SCHOOL</h4>
-              Koding in the classroom, prepare your files online, share them with the whole class instantly. Collaborate live or just make your students watch what you're doing.
+              Prepare your files online and share them with the whole class instantly. Collaborate live with your students or let them follow along what you're doing.
             </article>
           </div>
           <div class='project clearfix'>
             <span class='icon'></span>
             <article>
               <h4>CREATE PROJECT GROUPS</h4>
-              Want to work on a project with your buddies and use the same resources and running instances, share a VM between your fellow developers.
+              Want to work on a project with your buddies and use the same workspace? Share your VM with your fellow developers.
             </article>
           </div>
         </div>
-        {{> @pricingButton}}
       </section>
-      <section id='home-bottom'>
-        <h2 class='big-header'>If you are ready to go, let’s do this</h2>
-        <h3 class='hidden'>Something super simple and super descriptive goes here</h3>
-        {{> @registerFormBottom}}
+      <section id="pricing" class="clearfix">
+        {{> @productForm}}
       </section>
       <footer class='clearfix'>
         <div class='fl'>
@@ -202,10 +225,11 @@ class HomePage extends JView
         <nav>
           <a href="/Activity">Activity</a>
           <a href="/About">About</a>
-          <a href="mailto:hello@koding.com">Contact</a>
+          <a href="mailto:hello@koding.com" target='_self'>Contact</a>
           <a href="http://learn.koding.com/">University</a>
           <a href="http://koding.github.io/jobs/">Jobs</a>
           <a href="http://blog.koding.com">Blog</a>
+          <a href="http://status.koding.com">Status</a>
         </nav>
       </footer>
     """

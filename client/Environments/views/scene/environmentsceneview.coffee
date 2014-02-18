@@ -15,7 +15,7 @@ class EnvironmentScene extends KDDiaScene
   constructor:->
     super
       cssClass  : 'environments-scene'
-      lineWidth : 1
+      lineWidth : 2
 
     @boxes = {}
 
@@ -33,35 +33,37 @@ class EnvironmentScene extends KDDiaScene
     return  if Object.keys(items).length < 2
     {domain, machine, rule, extra} = items
 
-    modal = @createApproveModal items, 'delete'
-    modal.once 'Approved', =>
-      if domain and machine
-        jDomain = domain.dia.getData().domain # JDomain
-        vmName  = machine.dia.getData().title # JVM.hostnameAlias
-        jDomain.unbindVM hostnameAlias: vmName, (err)=>
-          modal.destroy()
-          return KD.showError err  if err
-          jDomain.hostnameAlias.splice jDomain.hostnameAlias.indexOf(vmName), 1
-          removeConnection()
-      else if domain and rule
+    if domain and machine
+      jDomain = domain.dia.getData().domain # JDomain
+      vmName  = machine.dia.getData().title # JVM.hostnameAlias
+      jDomain.unbindVM hostnameAlias: vmName, (err)=>
+        return KD.showError err  if err
+        jDomain.hostnameAlias.splice jDomain.hostnameAlias.indexOf(vmName), 1
         removeConnection()
-        modal.destroy()
-      else if machine and extra
-        removeConnection()
-        modal.destroy()
+    else if domain and rule
+      removeConnection()
+    else if machine and extra
+      removeConnection()
 
   connect:(source, target, internal = no)->
 
-    createConnection = => KDDiaScene::connect.call this, source, target
+    createConnection = =>
+      KDDiaScene::connect.call this, source, target
+      @resetScene()
+
     return createConnection()  if internal
 
     if not @allowedToConnect source, target
       return new KDNotificationView
-        title : "It's not allowed connect this two item."
+        title : "It's not allowed connect this two joint."
 
     items = parseItems source, target
     return  if Object.keys(items).length < 2
     {domain, machine, rule, extra} = items
+
+    return  if rule or extra
+      new KDNotificationView
+        title : "Assigning #{if rule then 'rules' else 'resources'} will be available soon."
 
     if domain and machine and not KD.checkFlag 'nostradamus'
       if domain.dia.getData().domain.hostnameAlias.length > 0
@@ -76,30 +78,29 @@ class EnvironmentScene extends KDDiaScene
       }
     }
 
-    modal = @createApproveModal items, 'create'
-    modal.once "KDObjectWillBeDestroyed", @bound 'resetScene'
-    modal.once 'Approved', =>
-      if domain and machine
-        jDomain = domain.dia.getData().domain # JDomain
-        vmName  = machine.dia.getData().title # JVM.hostnameAlias
-        jDomain.bindVM hostnameAlias: vmName, (err)=>
-          modal.destroy()
-          return KD.showError err  if err
-          jDomain.hostnameAlias.push vmName
-          createConnection()
-      else if domain and rule
+    if domain and machine
+      jDomain = domain.dia.getData().domain # JDomain
+      vmName  = machine.dia.getData().title # JVM.hostnameAlias
+      jDomain.bindVM hostnameAlias: vmName, (err)=>
+        return  if KD.showError err
+        jDomain.hostnameAlias.push vmName
         createConnection()
-        modal.destroy()
-      else if machine and extra
-        createConnection()
-        modal.destroy()
+    else if domain and rule
+      createConnection()
+    else if machine and extra
+      createConnection()
 
   updateConnections:->
+
     for _mkey, machine of @boxes.machines.dias
       for _dkey, domain of @boxes.domains.dias
         if domain.getData().aliases and machine.getData().title in domain.getData().aliases
           @connect {dia : domain , joint : 'right'}, \
                    {dia : machine, joint : 'left' }, yes
+        for _rkey, rule of @boxes.rules.dias
+          if rule.getData().title is "Allow All"
+            @connect {dia : rule,   joint : 'right'}, \
+                     {dia : domain, joint : 'left' }, yes
 
   createApproveModal:(items, action)->
     return unless KD.isLoggedIn()

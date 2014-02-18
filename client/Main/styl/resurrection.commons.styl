@@ -36,9 +36,13 @@ resurrection.commons.styl
     width                 190px
     height                auto
     padding               3px
-    border-right          1px solid #D6D6D6
     fl()
     borderBox()
+
+    nav
+      width               190px
+      border-right        1px solid #D6D6D6
+      fix()
 
   .kdlistview-inner-nav
 
@@ -144,6 +148,14 @@ resurrection.commons.styl
         right               8px
         bg                  color, transparent
         r-sprite              app '20-close-tab'
+    &.modified:before
+      content               ""
+      size                  5px, 5px
+      rounded               50%
+      background            #616f74
+      abs                   14px 0 0 5px
+      fl()
+
 
 .header-facets
   right                     0
@@ -305,28 +317,27 @@ finderSelectedColor2 = #3AAAAB
 //
 // THIN BUTTON STYLES
 //
-
 .kdbutton.thin
   bg                   color transparent
-  border               2px solid #36B298
+  border               2px solid logoBg
   rounded              28px
   padding              0
   height               55px
   borderBox()
   span.button-title
     padding            0
-    color              #36B298
+    color              logoBg
     font-size          18px
     text-decoration    uppercase
     letter-spacing     1px
   &:hover
     bg                 color white
   &:active
-    bg                 color #36B298
+    bg                 color logoBg
     span.button-title
       color            white
   &:focus
-    shadow             0 0 10px -2px #36b298
+    shadow             0 0 10px -2px logoBg
 
 //
 // SOLID BUTTON STYLES
@@ -351,18 +362,16 @@ finderSelectedColor2 = #3AAAAB
   &:hover
     bg                 color #4A4E52
   &:active
-    bg                 color #36B298
+    bg                 color logoBg
     span.button-title
       color            white
   &:focus
-    shadow             0 0 10px -2px #36b298
+    shadow             0 0 10px -2px logoBg
 
 .kdbutton.solid.green
-  bg                   color #36B298
+  bg                   color logoBg
   span.button-title
     color              white
-  span.icon
-    margin             18px 0 0 0
   &:hover
   &:active
   &:focus
@@ -370,7 +379,58 @@ finderSelectedColor2 = #3AAAAB
     span.button-title
       color            white
   &:focus
-    shadow             0 0 10px -2px #36b298
+    shadow             0 0 10px -2px logoBg
+
+.kdbutton.solid.yellow
+  bg                   color #ff9f00
+  span.button-title
+    color              #ac4a00
+  &:hover
+  &:active
+  &:focus
+    bg                 color #ac4a00
+    span.button-title
+      color            #ff9f00
+  &:focus
+    shadow             0 0 10px -2px #ff9f00
+
+.kdbutton.solid.light-gray
+  bg                   color #C0C0C0
+  span.button-title
+    color              white
+  &:hover
+  &:active
+  &:focus
+    bg                 color #a0a0a0
+    span.button-title
+      color            whitesmoke
+  &:focus
+    shadow             0 0 10px -2px #ff9f00
+
+.kdbutton.solid.small
+  margin              0
+  padding             0 25px
+  size                auto 26px
+  rounded             10px
+  text-align          center
+  span.button-title
+    font-size         13px
+    line-height       1
+  span.icon
+    margin            2px 0 0 0
+
+.kdbutton.solid.medium
+  margin              0
+  padding             0 25px
+  size                auto 44px
+  rounded             10px
+  text-align          center
+  span.button-title
+    font-size         14px
+    font-weight       400
+    line-height       1
+  span.icon
+    margin            2px 0 0 0
 
 .kdbutton.solid.red
   bg                   color #E94835
@@ -383,12 +443,26 @@ finderSelectedColor2 = #3AAAAB
   &:focus
     bg                 color #e14a35
   &:focus
-    shadow             0 0 10px -2px #36b298
+    shadow             0 0 10px -2px logoBg
 
   &.shadowed
     shadow             0 2px 0 0 #a33e2f
     .button-title
       text-shadow      0 -1px 2px rgba(0, 0, 0, .75)
+
+.kdbutton.w-loader.loading
+  .button-title
+    opacity            0
+
+.formline.button-field
+  .kdbutton
+    margin-left       12px
+    fr()
+
+    &.to-left
+      margin-left     0
+      margin-right    12px
+      fl()
 
 
 /*  */
@@ -552,7 +626,6 @@ input.kdinput.text
   rel()
   z-index             1
   padding             11px 6px
-  // border              1px solid #bdc3c7
   color               #3E4F55
   font-size           16px
   box-shadow          none
@@ -564,8 +637,8 @@ input.kdinput.text
   text-align          left
   bg                  color, #f4f4f4
   borderBox()
-  // &.validation-error
-  //   bg                color,#ffe4bf
+  &.validation-error
+    border            1px solid #F13A18
 
 
   input.kdinput.text.thin::-webkit-input-placeholder
@@ -620,6 +693,14 @@ input.kdinput.text
     a.knob
       size                24px 24px
 
+  &.tiny
+    size                  34px 18px
+    rounded               9px
+    &.on a.knob
+      vendor              transform, translateX(16px)
+    a.knob
+      size                14px 14px
+
 //
 // KODING RESURRECTION MODAL THEME
 //
@@ -671,7 +752,7 @@ input.kdinput.text
 
 
   .kdmodal-buttons
-  .kdformview .button-field
+  .formline.button-field
     margin              24px 0 0 0 !important
     background          none !important
     // looks better i think w/o - SY
@@ -679,16 +760,23 @@ input.kdinput.text
     height              73px !important
 
     .kdbutton
-      size              auto, 45px
-      background        none
-      border            3px solid
-      margin            22px 0 0 12px !important
-      padding           0 24px !important
-      rounded           23px
-      font-size         18px
-      text-transform    uppercase
-      font-family       'Proxima Nova'
       fr()
+
+      &.to-left
+        margin-left     0
+        margin-right    12px
+        fl()
+
+      &:not(.solid)
+        size            auto, 45px
+        background      none
+        border          3px solid
+        margin          22px 0 0 12px !important
+        padding         0 24px !important
+        rounded         23px
+        font-size       18px
+        text-transform  uppercase
+        font-family     'Proxima Nova'
 
     .modal-clean-red
       border-color      #e94b35
@@ -713,9 +801,10 @@ input.kdinput.text
 
 .kdformview .formline
   border-bottom         none
-  padding               15px 0
+  padding               0
   size                  auto auto
   overflow              visible
+  background            none
 
   > label
     min-width           90px
@@ -724,7 +813,8 @@ input.kdinput.text
     fl()
 
   .input-wrapper
-    overflow          hidden
+    margin-bottom       16px
+    overflow            hidden
 
     > input
     > textarea
@@ -759,9 +849,24 @@ input.kdinput.text
     blockMidTop()
 
   div.kdselectbox
-    span.title
-      line-height     23px
-      height          22px
+    background        #fff
+    border            1px solid #d7d7d7
+    shadow            none
+    border-radius     6px
+    height            32px
+
+    .title
+      font-size       12px
+      font-weight     200
+      color           #606060
+      text-shadow     none
+      line-height     34px !important
+      padding         0 40px 0 15px
+
+    .arrows
+      r-sprite      "app", "select-arrows"
+      top           9px
+      right         6px
 
   .linkholder
     padding           0 0 10px 0
@@ -775,6 +880,12 @@ input.kdinput.text
   >cite.hint
     font-size         11px
     color             #999
+
+.formline.button-field //This can be created without a formview sometimes
+  border-top            1px solid #eaeaea
+  padding               18px 0 0
+
+// * //
 
 .kdnotification.mini.tray
   bg                  color, #fff
@@ -824,12 +935,13 @@ input.kdinput.text
   kalc            height, 100% \- 20px
   kalc            width,  100% \- 20px
   borderBox()
-  border          3px dashed #333
+  border          3px dashed #afafaf
   border-radius   5px
   noTextSelection()
 
   &.hover
     border-color  #444
+    shadow        inset 0 0 0 6px rgba(26, 175, 93, .2)
 
   .file-drop
     width         100%
@@ -845,7 +957,9 @@ input.kdinput.text
       font-size   12px
       font-weight 200
       word-wrap   break-word
-      margin-top  10px
+      max-width   400px
+      margin      10px auto
+      color       #888
 
   .cancel
     width         100%
@@ -860,7 +974,7 @@ a.action-link.verify-email
   line-height       50px
   text-decoration   none
   span
-    color           #36B298
+    color           logoBg
 
 .animated-modalview
 
@@ -1124,10 +1238,11 @@ a.action-link.verify-email
     color           #3c4752
     opacity         .8
     letter-spacing  0
+    line-height     15px
     fl()
   .user-numbers
     height          18px
-    margin          6px 0 0
+    margin          3px 0 0
     font-weight     200
     span
       font-weight   400
@@ -1137,3 +1252,4 @@ a.action-link.verify-email
     .profile
     .user-numbers
       width         340px
+

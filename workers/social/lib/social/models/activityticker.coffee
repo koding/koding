@@ -15,35 +15,7 @@ module.exports = class ActivityTicker extends Base
           (signature Object, Function)
         ]
 
-  relationshipNames = ["follower", "like", "member", "author"]
-  constructorNames  = ["JAccount", "JGroup", "JTag", "JNewStatusUpdate"]
-
   JAccount = require './account'
-
-  mapSourceNames = (filters)=>
-    relationshipMap =
-      "follower" : ["JAccount", "JTag"]
-      "like"     : ["JAccount", "JNewStatusUpdate"]
-      "member"   : ["JGroup"]
-
-    sources = []
-    for filter in filters
-      sources.concat relationshipMap[filter]
-
-    if sources.length is 0
-      return constructorNames
-    return sources
-
-  mapTargetNames = (filters) ->
-    validFilters = ["follower", "like", "member"]
-    targets = []
-    # The only possible options are either returning only "JAccount" or
-    # returning whole constructorNames. I left this function for future-cases.
-    for filter in filters
-      if filter in validFilters
-        targets.push "JAccount"
-        return targets
-    return constructorNames
 
   decorateEvents = (relationship, callback) ->
     {source, target, as, timestamp} = relationship
@@ -65,47 +37,6 @@ module.exports = class ActivityTicker extends Base
       return callback err if err
       source.tags = tags
       callback null, {source, target, as, timestamp}
-
-
-  decorateCommentEvent = (relationship, callback) ->
-    # it will be decorated as
-    # source is JAccount          -- doer
-    # target is JAccount          -- owner of the status update
-    # object is JComment          -- the actual comment
-    # subject is JNewStatusUpdate -- post that is commented on
-    {source, target, as, timestamp} = relationship
-    modifiedEvent =
-      as        : as
-      subject   : source
-      object    : target
-      timestamp : timestamp
-
-    # rewrite this part without dash ~ C.S
-    queue = [
-      ->
-        source.fetchTags (err, tags) ->
-          return callback err if err
-          modifiedEvent.subject.tags = tags
-          queue.fin()
-      # disable for now
-      # ->
-      #   target.fetchTags (err, tags) ->
-      #     return callback err if err
-      #     modifiedEvent.object.tags = tags
-      #     queue.fin()
-      ->
-        JAccount.one "_id": source.originId, (err, targetAccount) ->
-          return callback err if err
-          modifiedEvent.target = targetAccount
-          queue.fin()
-      ->
-        JAccount.one "_id": target.originId, (err, sourceAccount) ->
-          return callback err if err
-          modifiedEvent.source = sourceAccount
-          queue.fin()
-    ]
-
-    dash queue, -> callback null, modifiedEvent
 
   decorateLikeEvent = (relationship, callback) ->
     {source, target, as, timestamp} = relationship
@@ -136,41 +67,23 @@ module.exports = class ActivityTicker extends Base
 
   @_fetch = (requestOptions = {}, callback)->
     {options, client} = requestOptions
-    sources = constructorNames
-    as      = relationshipNames
-    targets = constructorNames
+    groupSlug         = client.context.group
+    JGroup            = require './group'
+    from              = options.from or +(new Date())
 
-    filters = []
-    if options.filters
-      for filter in options.filters  when filter in relationshipNames
-        filters.push filter
+    JGroup.canReadGroupActivity client, (err, hasPermission)->
+      return callback new Error "Not allowed to open this group"  if err or not hasPermission
 
-    if filters.length > 0
-      sources = mapSourceNames filters
-      as      = filters
-      targets = mapTargetNames filters
+      relSelector =
+        timestamp : {"$lt" : new Date(from)}
+        data      :
+          group   : groupSlug
 
+      relOptions  =    # do not fetch more than 15 at once
+        limit     : 5  # Math.min options.limit ? 15, 15
+        sort      : timestamp : -1
 
-    from = options.from or +(new Date())
-    selector     =
-      sourceName : "$in": sources
-      as         : "$in": as
-      targetName : "$in": targets
-      timestamp : {"$lt" : new Date(from)}
-
-    relOptions      =
-      # do not fetch more than 15 at once
-      limit      : 10 # Math.min options.limit ? 15, 15
-      sort       : timestamp  : -1
-
-    JGroup = require './group'
-    JGroup.one slug:'guests', (err, group)->
-      return callback err if err
-      return callback new Error "Group not found" if not group
-      # do not include guest group results to data set
-      selector.sourceId = { "$ne" : group.getId() }
-
-      Relationship.some selector, relOptions, (err, relationships) ->
+      Relationship.some relSelector, relOptions, (err, relationships) ->
         buckets = []
         return  callback err, buckets  if err
         queue = relationships.map (relationship) ->
@@ -191,12 +104,12 @@ module.exports = class ActivityTicker extends Base
     [callback, options] = [options, callback]  unless callback
     # TODO - add group security here
     requestOptions = { client, options }
-
+    {group}        = client.context
     if options.from or options.filters
       @_fetch requestOptions, callback
     else
-      Cache  = require '../cache/main'
-      cacheKey = "activityticker"
+      Cache    = require '../cache/main'
+      cacheKey = "#{group}-activityticker"
       Cache.fetch cacheKey, @_fetch, requestOptions, (err, data)=>
         # if data is not set, or it is empty
         # fetch from db

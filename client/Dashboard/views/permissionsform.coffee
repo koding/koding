@@ -13,93 +13,6 @@ class PermissionsForm extends KDFormViewWithFields
 
     addRoleDialog = null
     options.buttons or=
-      "Add Role"          :
-        style             : "solid"
-        cssClass          : 'add-role'
-        callback          : =>
-          addRoleDialog?.destroy()
-          KD.getSingleton('contentPanel').addSubView addRoleDialog = new KDDialogView
-            cssClass      : "add-role-dialog"
-            duration      : 200
-            topOffset     : 0
-            overlay       : yes
-            height        : 'auto'
-            buttons       :
-              "Add Role"   :
-                style      : "add-role-button modal-clean-gray"
-                cssClass   : 'add-role-button'
-                loader     :
-                  color    : "#444444"
-                  diameter : 12
-
-                callback   : =>
-                  name     = @inputRoleName.getValue()
-                  nameSlug = @utils.slugify name
-                  copy     = @inputCopyPermissions.getValue()
-
-                  group.addCustomRole
-                    title           : nameSlug
-                    isConfigureable : yes
-                  , (err,role)=>
-
-                    log err if err
-                    # TODO add copied permissions here
-
-                    unless copy is null
-                      log 'copying permissions from ',copy,' to ',role
-
-                    @on 'RoleViewRefreshed', =>
-                      @utils.wait 500, =>
-                        addRoleDialog.buttons["Add Role"].hideLoader()
-                        addRoleDialog.hide()
-
-                    @emit 'RoleWasAdded',@reducedList(),nameSlug,copy
-
-              Cancel :
-                style     : "add-role-cancel modal-cancel"
-                cssClass  : 'add-role-cancel'
-                callback  : =>
-                  addRoleDialog.hide()
-
-          addRoleDialog.addSubView wrapper = new KDView
-            cssClass      : "kddialog-wrapper"
-
-          wrapper.addSubView title = new KDCustomHTMLView
-            tagName       : 'h1'
-            cssClass      : 'add-role-header'
-            partial       : 'Add new Role'
-
-          wrapper.addSubView form = new KDFormView
-          form.addSubView inputFormline = new KDView
-            cssClass : 'formline'
-
-          inputFormline.addSubView labelRoleName = new KDLabelView
-            cssClass      : 'label-role-name'
-            title         : "Role Name:"
-
-          inputFormline.addSubView @inputRoleName = inputRoleName = new KDInputView
-            cssClass      : 'role-name'
-            label         : labelRoleName
-            defaultValue  : ''
-            placeholder   : 'new-role'
-
-          form.addSubView copyFormline = new KDView
-            cssClass : 'formline'
-
-          copyFormline.addSubView labelCopyPermissions = new KDLabelView
-            cssClass      : 'label-copy-permissions'
-            title         : "Copy Permissions from"
-
-          selectOptions   = [{title:'None',value:null}]
-          selectOptions.push {title:readableText(role),value:role} for role in roles
-
-          copyFormline.addSubView @inputCopyPermissions = new KDSelectBox
-            cssClass      : 'copy-permissions'
-            selectOptions : selectOptions
-            defaultValue  : null
-
-          addRoleDialog.show()
-
       Save          :
         style       : "solid green"
         loader      :
@@ -129,6 +42,7 @@ class PermissionsForm extends KDFormViewWithFields
       "JGroupBundle": "Group Bundles"
       "JDomain"     : "Domains"
       "JProxyFilter": "Proxy Filters"
+      "JInvitation" : "Invitations"
     return dictionary[text] or text.charAt(0).toUpperCase()+text.slice(1)
 
   _getCheckboxName =(module, permission, role)->
@@ -148,14 +62,15 @@ class PermissionsForm extends KDFormViewWithFields
 
     isChecked = checkForPermission set.permissions, module, permission, current
 
-    cssClass = 'permission-checkbox '+__utils.slugify(permission)+' '+current
+    cssClass = 'permission-switch '+__utils.slugify(permission)+' '+current
 
     name = _getCheckboxName module, permission, current
 
     cascadeData[current]= {
       name
       cssClass
-      itemClass    : KDCheckBox
+      size         : "tiny"
+      itemClass    : KodingSwitch
       defaultValue : isChecked ? no
     }
 

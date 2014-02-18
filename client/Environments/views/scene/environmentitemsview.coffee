@@ -98,8 +98,8 @@ class EnvironmentItem extends KDDiaObject
   pistachio:->
     """
       <div class='details'>
+        <span class='toggle'></span>
         {h3{#(title)}}
-        {{#(description)}}
         <span class='chevron'></span>
       </div>
     """

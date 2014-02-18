@@ -26,6 +26,7 @@ KD.extend
         warn "Removing the old one. It was ", KD.appClasses[options.name]
         @unregisterAppClass options.name
 
+    options.enforceLogin  ?= no           # a Boolean
     options.multiple      ?= no           # a Boolean
     options.background    ?= no           # a Boolean
     options.hiddenHandle  ?= no           # a Boolean
@@ -40,10 +41,20 @@ KD.extend
     options.routes       or= null         # <string> or <Object{slug: string, handler: function}>
     options.styles       or= []           # <Array<string>> list of stylesheets
 
+    enforceLogin=->
+      return  if KD.isLoggedIn()
+      if $.cookie("doNotForceRegistration") or location.search.indexOf("sr=1") > -1
+        $.cookie("doNotForceRegistration", "true")
+        return
+
+      appManager = KD.getSingleton "appManager"
+      appManager.tell "Account", "showRegistrationNeededModal"
+
     wrapHandler = (fn, options) -> ->
       router = KD.getSingleton 'router'
       router.setPageTitle? options.navItem.title  if options.navItem.title
       fn.apply this, arguments
+      enforceLogin()  if options.enforceLogin
 
     registerRoute = (route, handler)=>
       slug        = if "string" is typeof route then route else route.slug
@@ -61,6 +72,7 @@ KD.extend
             else
               ({params:{name}, query})->
                 router.openSection options.name, name, query
+                enforceLogin()  if options.enforceLogin
 
           router.addRoute slug, handler
 
@@ -128,6 +140,18 @@ KD.extend
     KD.timeEnd = window.timeEnd = console.timeEnd.bind console
     KD.logsEnabled = yes
     return "Logs are enabled now."
+
+  # Rewrites console.log to send logs to backend and also browser console.
+  enabledBackendLogger: (backendLoggerClass)->
+    oldConsoleLog = console.log
+    frontloggerConsoleLog = (args...)->
+      return unless KD.logsEnabled
+      oldConsoleLog.apply this, arguments
+      backendLoggerClass.info.apply backendLoggerClass, arguments
+
+    console.log = frontloggerConsoleLog
+
+    return "Logs are logged to backend too."
 
   impersonate : (username)->
     KD.remote.api.JAccount.impersonate username, (err)->
@@ -219,6 +243,10 @@ KD.extend
   showError:(err, messages)->
     return no  unless err
 
+    if Array.isArray err
+      @showError er  for er in err
+      return err.length
+
     if 'string' is typeof err
       message = err
       err     = {message}
@@ -235,6 +263,9 @@ KD.extend
                                       or defaultMessages.KodingError
     messages or= defaultMessages
     errMessage or= err.message or messages[err.name] or messages.KodingError
+
+    # log error to backend
+    KD.remote.api.FrontLogger.error errMessage
 
     if errMessage?
       if 'string' is typeof errMessage

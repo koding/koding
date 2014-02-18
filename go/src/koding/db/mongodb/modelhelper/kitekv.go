@@ -4,10 +4,10 @@ import (
 	"errors"
 	"fmt"
 	"koding/db/models"
-	"koding/db/mongodb"
+	"time"
+
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
-	"time"
 )
 
 const (
@@ -17,7 +17,7 @@ const (
 )
 
 func NewKeyValue(userName, kiteName, environment, key string) *models.KiteKeyValue {
-	// mongodb has 24k number of collection limit in a single database
+	// Mongo has 24k number of collection limit in a single database
 	// http://stackoverflow.com/questions/9858393/limits-of-number-of-collections-in-databases
 	// thats why we have a single collection and use single index
 	return &models.KiteKeyValue{
@@ -45,7 +45,7 @@ func UpsertKeyValue(kv *models.KiteKeyValue) error {
 		return err
 	}
 
-	return mongodb.RunOnDatabase(KiteKeyValueDatabase, KiteKeyValueCollection, query)
+	return Mongo.RunOnDatabase(KiteKeyValueDatabase, KiteKeyValueCollection, query)
 }
 
 func GetKeyValue(userName, kiteName, environment, key string) (*models.KiteKeyValue, error) {
@@ -60,7 +60,7 @@ func GetKeyValue(userName, kiteName, environment, key string) (*models.KiteKeyVa
 		}).One(&kv)
 	}
 
-	err := mongodb.RunOnDatabase(KiteKeyValueDatabase, KiteKeyValueCollection, query)
+	err := Mongo.RunOnDatabase(KiteKeyValueDatabase, KiteKeyValueCollection, query)
 	if err != nil {
 		return nil, err
 	}
@@ -82,10 +82,10 @@ func EnsureKeyValueIndexes() {
 		return err
 	}
 
-	mongodb.RunOnDatabase(KiteKeyValueDatabase, KiteKeyValueCollection, query)
+	Mongo.RunOnDatabase(KiteKeyValueDatabase, KiteKeyValueCollection, query)
 
 	if AutoExpire {
-		// we create an auto-expire index, so mongodb will handle the expiration on
+		// we create an auto-expire index, so Mongo will handle the expiration on
 		// key values.
 		query := func(c *mgo.Collection) error {
 			index := mgo.Index{
@@ -100,6 +100,6 @@ func EnsureKeyValueIndexes() {
 			return err
 		}
 
-		mongodb.RunOnDatabase(KiteKeyValueDatabase, KiteKeyValueCollection, query)
+		Mongo.RunOnDatabase(KiteKeyValueDatabase, KiteKeyValueCollection, query)
 	}
 }

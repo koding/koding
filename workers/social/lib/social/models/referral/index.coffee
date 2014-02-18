@@ -4,6 +4,8 @@ JAccount = require '../account'
 JUser = require '../user'
 JVM = require '../vm'
 KodingError = require '../../error'
+{argv}   = require 'optimist'
+KONFIG = require('koding-config-manager').load("main.#{argv.c}")
 
 
 module.exports = class JReferral extends jraphical.Message
@@ -31,7 +33,13 @@ module.exports = class JReferral extends jraphical.Message
       static          :
         redeem:
           (signature Object, Function)
-        add5GBDisk:
+        add1GBDisk:
+          (signature Function)
+        fetchTBCampaign:
+          (signature Function)
+        isCampaingValid:
+          (signature Function)
+        resetVMDefaults:
           (signature Function)
         fetchRedeemableReferrals:
           (signature Object, Function)
@@ -227,20 +235,24 @@ module.exports = class JReferral extends jraphical.Message
 
     dash queue, kallback
 
-  @checkFor5GBStatus = (delegate, callback)->
+  @checkFor1GBStatus = (delegate, callback)->
     delegate.fetchReferrers (err, referrers)=>
       return callback err  if err
       for ref in referrers
         {type, unit, amount} = ref
-        return callback null, yes  if type is "disk" and unit is "MB" and amount is 5000
+        return callback null, yes  if type is "disk" and unit is "MB" and amount is CAMPAIGN_DISK_SIZE_IN_MB
       callback err, no
 
-  @add5GBDisk = secure (client, callback)->
+  @add1GBDisk = secure (client, callback)->
     {delegate} = client.connection
-    @checkFor5GBStatus delegate, (err, used) =>
-      return callback new Error "An error occured while trying to add your 5GB please try again" if err
-      return callback new Error "You have already redeemed your 5GB extra storage" if used
-      referral = new JReferral { type: "disk", unit: "MB", amount: 5000 }
+    @checkFor1GBStatus delegate, (err, used) =>
+      return callback new Error "An error occured while trying to add your 1GB please try again" if err
+      if used
+        err = new Error "You have already redeemed your 1GB extra storage"
+        err.code = 600
+        return callback err
+
+      referral = new JReferral { type: "disk", unit: "MB", amount: CAMPAIGN_DISK_SIZE_IN_MB }
       referral.save (err) ->
         return callback err if err
         #add referrer as referrer to the referral system
@@ -265,6 +277,107 @@ module.exports = class JReferral extends jraphical.Message
         return callback new KodingError "#{vm} is not found" unless vm
         callback null, vm
 
+  CAMPAIGN_NAME                   = "100_TB_CAMPAIGN"
+  CAMPAIGN_TOTAL_DISK_SIZE_IN_MB  = 1024*1024*100 # 100TB
+  CAMPAIGN_DISK_SIZE_IN_MB        = 1024
+  CAMPAIGN_START_DATE             = new Date("Jan 28 2014 16:00:00 GMT")
+  CAMPAIGN_END_DATE               = new Date("Feb 04 2014 16:00:00 GMT")
+  OLD_DISK_SIZE_IN_MB             = 250
+
+  # this functions checks default vm and updates disk size
+  # if required, when vm disk size is updated, returns hostname
+  # why this is here, because it will be deleted after 100TB campaign ends
+  @resetVMDefaults = secure (client, callback)->
+    JVM.fetchDefaultVm_ client, (err, vm)->
+      return callback err if err
+      return callback new Error "VM not found" unless vm
+      if vm.diskSizeInMB and vm.diskSizeInMB >= JVM.VMDefaultDiskSize
+        return callback null, no
+      else
+        JVM.resetDefaultVMLimits client, (er, vmName)->
+          return callback err if err
+          return callback null, yes, vmName
+
+  @isCampaingValid = isCampaingValid = (callback)->
+    fetchTBCampaign (err, campaign)->
+      return callback err if err
+      return callback null, no unless campaign
+      {diskSpaceLeftMB, endDate} = campaign.content
+      # if campaign has more disk space
+      if diskSpaceLeftMB > 0
+        # if campaign is valid
+        if endDate.getTime() > +(new Date())
+          return callback null, yes, campaign
+        else
+          return callback null, no
+
+      # this is an edge case, if campaing has negative
+      # disk size set it back to 0
+      else
+        return callback null, no
+        # do not allow negative numbers
+        JStorage.update
+          name: CAMPAIGN_NAME
+        , $set : "content.diskSpaceLeftMB" : 0
+        , ->
+
+  getReferralDiskSizeAmount=(callback)->
+    isCampaingValid (err, status)->
+      return callback null, OLD_DISK_SIZE_IN_MB if err or not status
+      return callback null, CAMPAIGN_DISK_SIZE_IN_MB
+
+  decreaseLeftSpace = (size, callback = ->)->
+    isCampaingValid (err, status)->
+      return callback err if err
+      return callback null unless status
+
+      # change value with negative
+      size = -size if size > 0
+      JStorage = require '../storage'
+      JStorage.update
+        name: CAMPAIGN_NAME
+      , $inc : "content.diskSpaceLeftMB" : size
+      , callback
+
+
+  decreaseLeftSpaceInTimeout = (options, callback = ->)->
+    oneDayInMs = 86400000
+    sevenDayInMs = oneDayInMs*7
+    totalTimeInMs = sevenDayInMs
+
+    totalMBPerMS = CAMPAIGN_TOTAL_DISK_SIZE_IN_MB/totalTimeInMs
+    socialServerCount = 2
+    totalMBPerMSPerSocialWorker = totalMBPerMS/KONFIG.social.numberOfWorkers/socialServerCount
+    cachingTimeInMS = 10000
+
+    toBeDecreasedSize= parseInt(totalMBPerMSPerSocialWorker*cachingTimeInMS, 10)
+    decreaseLeftSpace toBeDecreasedSize
+    callback null, {}
+
+  @fetchTBCampaign = fetchTBCampaign= (callback)->
+
+    Cache  = require '../../cache/main'
+    cacheKey = "fetchTBCampaign"
+
+    Cache.fetch cacheKey, decreaseLeftSpaceInTimeout, {}, ->
+
+    JStorage = require '../storage'
+    JStorage.one {name: CAMPAIGN_NAME}, (err, campaign) ->
+      return callback err if err
+      unless campaign
+        cmp = new JStorage
+          name: CAMPAIGN_NAME
+          content:
+            diskSpaceLeftMB : CAMPAIGN_TOTAL_DISK_SIZE_IN_MB
+            endDate         : CAMPAIGN_END_DATE
+            startDate       : CAMPAIGN_START_DATE
+
+        cmp.save (err)->
+          return callback err if err
+          return callback null, cmp
+      else
+        return callback null, campaign
+
   do =>
     JAccount.on 'AccountRegistered', (me, referrerCode)->
       return console.error "Account is not defined in event" unless me
@@ -276,28 +389,42 @@ module.exports = class JReferral extends jraphical.Message
         return console.error err if err
         console.log "referal saved successfully for #{me.profile.nickname} from #{referrerCode}"
 
+    persistReferrals = (source, target, callback)->
+      getReferralDiskSizeAmount (err, amount)->
+        return callback err if err
+        referral = new JReferral { type: "disk", unit: "MB", amount}
+        referral.save (err) ->
+          return callback err if err
+          #add referrer as referrer to the referral system
+          source.addReferrer referral, (err)->
+            return callback err if err
+            # add me as referred to the referral system
+            target.addReferred referral, (err)->
+              return callback err if err
+              console.info "referal saved successfully for #{target.profile.nickname} from #{source.profile.nickname}"
+              callback null
+
+              # do this async
+              decreaseLeftSpace amount, (err)->
+                return console.error err if err
+
     JUser.on 'EmailConfirmed', (user)->
       return console.log "User is not defined in event" unless user
-
-      user.fetchOwnAccount (err, me)->
-        return console.error err if err
-        # if account not fonud then do nothing and return
-        return console.error "Account couldnt found" unless me
-        referrerUsername = me.referrerUsername
-        return console.log "User doesn't have any referrer" unless referrerUsername
-        # get referrer
-        JAccount.one {'profile.nickname': referrerUsername }, (err, referrer)->
-          # if error occured than do nothing and return
-          return console.error "Error while fetching referrer", err if err
-          # if referrer not fonud then do nothing and return
-          return console.error "Referrer couldnt found" if not referrer
-          referral = new JReferral { type: "disk", unit: "MB", amount: 250 }
-          referral.save (err) ->
-            return console.error err if err
-            #add referrer as referrer to the referral system
-            referrer.addReferrer referral, (err)->
+      isCampaingValid (err, status)->
+        return if err or not status
+        user.fetchOwnAccount (err, me)->
+          return console.error err if err
+          # if account not fonud then do nothing and return
+          return console.error "Account couldnt found" unless me
+          referrerUsername = me.referrerUsername
+          return console.info "User doesn't have any referrer" unless referrerUsername
+          # get referrer
+          JAccount.one {'profile.nickname': referrerUsername }, (err, referrer)->
+            # if error occured than do nothing and return
+            return console.error "Error while fetching referrer", err if err
+            # if referrer not fonud then do nothing and return
+            return console.error "Referrer couldnt found" if not referrer
+            persistReferrals referrer, me, (err)->
               return console.error err if err
-              # add me as referred to the referral system
-              me.addReferred referral, (err)->
+              persistReferrals me, referrer, (err)->
                 return console.error err if err
-                console.log "referal saved successfully for #{me.profile.nickname} from #{referrerUsername}"

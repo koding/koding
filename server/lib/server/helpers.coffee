@@ -34,10 +34,10 @@ authenticationFailed = (res, err)->
 findUsernameFromKey = (req, res, callback) ->
   fetchJAccountByKiteUserNameAndKey req, (err, account)->
     if err
-      console.log "we have a problem houston", err
+      console.error "we have a problem houston", err
       callback err, null
     else if not account
-      console.log "couldnt find the account"
+      console.error "couldnt find the account"
       res.send 401
       callback false, null
     else
@@ -71,7 +71,7 @@ fetchJAccountByKiteUserNameAndKey = (req, callback)->
     username: username
     key     : key
   , (err, kodingKey)=>
-    console.log err, kodingKey.owner
+    console.error err, kodingKey.owner
     #if err or not kodingKey
     #  return callback(err, kodingKey)
 
@@ -94,11 +94,12 @@ serve = (content, res)->
 
 serveHome = (req, res, next)->
   {JGroup} = bongoModels = koding.models
+  isCustomPreview = req.cookies["custom-partials-preview-mode"]
   {generateFakeClient}   = require "./client"
 
   generateFakeClient req, res, (err, client)->
     if err or not client
-      console.log err
+      console.error err
       return next()
     isLoggedIn req, res, (err, state, account)->
       if err
@@ -108,7 +109,7 @@ serveHome = (req, res, next)->
       {loggedIn, loggedOut} = JGroup.render
       {params}              = req
       fn                    = if state then loggedIn else loggedOut
-      fn.kodingHome {client, account, bongoModels, params}, (err, subPage)->
+      fn.kodingHome {client, account, bongoModels, params, isCustomPreview}, (err, subPage)->
         return next()  if err
         serve subPage, res
 
@@ -147,13 +148,10 @@ getAlias = do->
       alias = "#{url.charAt(0).toUpperCase()}#{url.slice 1}"
     if alias and rooted then "/#{alias}" else alias
 
-
 # adds referral code into cookie if exists
 addReferralCode = (req, res)->
   match = req.path.match(/\/R\/(.*)/)
-  if match and match[1]
-    refCode = match[1]
-    console.log "refCode: #{refCode}"
+  if match and refCode = match[1]
     res.cookie "referrer", refCode, { maxAge: 900000, httpOnly: false }
 
 module.exports = {

@@ -21,7 +21,8 @@ class CollaborativeFinderPane extends CollaborativePane
     @finder = @container = @finderController.getView()
 
     @workspaceRef.on "value", (snapshot) =>
-      clientData = snapshot.val()?.ClientWantsToInteractWithRemoteFileTree
+      snapshot   = @workspace.reviveSnapshot snapshot
+      clientData = snapshot?.ClientWantsToInteractWithRemoteFileTree
       if clientData
         path             = "[#{clientData.vmName}]#{clientData.path}"
         {treeController} = @finderController

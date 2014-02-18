@@ -21,15 +21,17 @@ fetchLastStatusUpdatesOfUser = (account, Relationship, JNewStatusUpdate, callbac
   return callback null, null  unless account?._id
   originId = account._id
 
-  feedOptions =
-    sort  : 'timestamp' : -1
-    limit : 20
+  feedOptions  =
+    sort       : 'timestamp' : -1
+    limit      : 20
 
-  selector =
-    "targetId"   : originId
-    "targetName" : "JAccount"
-    "sourceName" : "JNewStatusUpdate"
-    "as"         : "author"
+  selector     =
+    targetId   : originId
+    targetName : "JAccount"
+    sourceName : "JNewStatusUpdate"
+    as         : "author"
+    data       :          # we should filter by group because when the group is
+      group    : "koding" # private publishing on profile page will cause data leak ~EA
 
   Relationship.some selector, feedOptions, (err, relationships)->
     return callback err, null  if err
@@ -50,11 +52,19 @@ fetchLastStatusUpdatesOfUser = (account, Relationship, JNewStatusUpdate, callbac
       return callback null, queue.statusUpdates
     daisy queue
 
+isInAppRoute = (firstLetter)->
+  # user nicknames can start with numbers
+  intRegex = /^\d/
+  return false if intRegex.test firstLetter
+  return true  if firstLetter.toUpperCase() is firstLetter
+  return false
+
 module.exports =
   crawl: (bongo, req, res, slug)->
     {query} = req
     {page}  = query
-    page   ?= 1
+    page = parseInt( page, 10 );
+    page   or= 1
     {Base, race, dash, daisy} = require "bongo"
     {JName, JAccount} = bongo.models
     {Relationship} = require 'jraphical'
@@ -69,7 +79,7 @@ module.exports =
       content = kodinghome()
       return res.send 200, content
 
-    if firstLetter.toUpperCase() is firstLetter
+    if isInAppRoute firstLetter
       if section
         isLoggedIn req, res, (err, loggedIn, account)->
           # Serve homepage for Develop tab, instead of empty content.

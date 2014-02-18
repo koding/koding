@@ -78,9 +78,9 @@ module.exports = (req, res) ->
             for e in i["gd:email"]
               email = e["$"].address
               JReferrableEmail.create clientId, {email, title}, (err)->
-                console.log "error saving JReferrableEmail", err  if err
+                console.error "saving JReferrableEmail", err  if err
       catch e
-        console.log "google callback error parsing emails"
+        console.error "google callback error parsing emails", e
 
       renderOauthPopup res, {error:null, provider}
 
@@ -127,4 +127,4 @@ module.exports = (req, res) ->
   r.write postData
   r.end()
 
-  r.on 'error', (e)-> console.log 'problem with request: ' + e.message
+  r.on 'error', (e)-> console.error 'problem with request: ' + e.message
