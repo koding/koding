@@ -426,8 +426,8 @@ finderSelectedColor2 = #3AAAAB
   rounded             10px
   text-align          center
   span.button-title
-    font-size         16px
-    font-weight       500
+    font-size         14px
+    font-weight       400
     line-height       1
   span.icon
     margin            2px 0 0 0
@@ -454,6 +454,17 @@ finderSelectedColor2 = #3AAAAB
 .kdbutton.w-loader.loading
   .button-title
     opacity            0
+
+.formline.button-field
+  .kdbutton
+    margin-left       12px
+    fr()
+
+    &.to-left
+      margin-left     0
+      margin-right    12px
+      fl()
+
 
 /*  */
 
@@ -683,6 +694,14 @@ input.kdinput.text
     a.knob
       size                24px 24px
 
+  &.tiny
+    size                  34px 18px
+    rounded               9px
+    &.on a.knob
+      vendor              transform, translateX(16px)
+    a.knob
+      size                14px 14px
+
 //
 // KODING RESURRECTION MODAL THEME
 //
@@ -741,17 +760,24 @@ input.kdinput.text
     // border-top          2px solid #f3f4f5 !important
     height              73px !important
 
-    .kdbutton:not(.solid)
-      size              auto, 45px
-      background        none
-      border            3px solid
-      margin            22px 0 0 12px !important
-      padding           0 24px !important
-      rounded           23px
-      font-size         18px
-      text-transform    uppercase
-      font-family       'Proxima Nova'
+    .kdbutton
       fr()
+
+      &.to-left
+        margin-left     0
+        margin-right    12px
+        fl()
+
+      &:not(.solid)
+        size            auto, 45px
+        background      none
+        border          3px solid
+        margin          22px 0 0 12px !important
+        padding         0 24px !important
+        rounded         23px
+        font-size       18px
+        text-transform  uppercase
+        font-family     'Proxima Nova'
 
     .modal-clean-red
       border-color      #e94b35
@@ -776,9 +802,10 @@ input.kdinput.text
 
 .kdformview .formline
   border-bottom         none
-  padding               15px 0
+  padding               0
   size                  auto auto
   overflow              visible
+  background            none
 
   > label
     min-width           90px
@@ -787,7 +814,8 @@ input.kdinput.text
     fl()
 
   .input-wrapper
-    overflow          hidden
+    margin-bottom       16px
+    overflow            hidden
 
     > input
     > textarea
@@ -822,9 +850,24 @@ input.kdinput.text
     blockMidTop()
 
   div.kdselectbox
-    span.title
-      line-height     23px
-      height          22px
+    background        #fff
+    border            1px solid #d7d7d7
+    shadow            none
+    border-radius     6px
+    height            32px
+
+    .title
+      font-size       12px
+      font-weight     200
+      color           #606060
+      text-shadow     none
+      line-height     34px !important
+      padding         0 40px 0 15px
+
+    .arrows
+      r-sprite      "app", "select-arrows"
+      top           9px
+      right         6px
 
   .linkholder
     padding           0 0 10px 0
@@ -838,6 +881,12 @@ input.kdinput.text
   >cite.hint
     font-size         11px
     color             #999
+
+.formline.button-field //This can be created without a formview sometimes
+  border-top            1px solid #eaeaea
+  padding               18px 0 0
+
+// * //
 
 .kdnotification.mini.tray
   bg                  color, #fff
