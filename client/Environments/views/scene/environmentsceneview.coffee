@@ -47,7 +47,7 @@ class EnvironmentScene extends KDDiaScene
 
   connect:(source, target, internal = no)->
 
-    createConnection = => KDDiaScene::connect.call this, source, target
+    createConnection = => KDDiaScene::connect.call this, source, target, !internal
 
     return createConnection()  if internal
 
@@ -89,6 +89,8 @@ class EnvironmentScene extends KDDiaScene
       createConnection()
 
   updateConnections:->
+
+    @reset no
 
     for _mkey, machine of @boxes.machines.dias
       for _dkey, domain of @boxes.domains.dias
