@@ -29,6 +29,10 @@ func newSet(socketId string) (*subscriptionSet, error) {
 	return s, nil
 }
 
+func (s *subscriptionSet) Backend() Backend {
+	return SET
+}
+
 func (s *subscriptionSet) Each(f func(item interface{}) bool) error {
 	s.set.Each(f)
 	// each doesnt return anything
