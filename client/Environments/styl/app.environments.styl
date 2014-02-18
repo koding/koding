@@ -115,7 +115,8 @@ section.resources-container
     float              right
 
 .environment-content
-  overflow             visible
+  background           #1F2628
+  overflow             auto
 
   .domains-no-record
     text-align         center
@@ -252,11 +253,11 @@ section.resources-container
   .environment-help
     text-align          center
     height              auto
+    color               white
 
     h1
-      padding           60px 60px 20px 60px
+      padding           30px
       font-size         28px
-      border-bottom     1px solid #ccc
 
     .content
       border-bottom     1px solid #ccc
@@ -273,17 +274,16 @@ section.resources-container
         border-radius   10px
         r-sprite        environments, "play"
 
-  .bottom-warning
-    bottom              5px
+  .top-warning
     text-align          center
     height              20px
     background          rgba(0,0,0,0.1)
     padding-top         3px
-    abs()
+    color               white
 
     a
       text-decoration   underline
-      color             black
+      color             white
 
   .action-area
     z-index             0
@@ -300,7 +300,6 @@ section.resources-container
   .kddia-scene
     left                0
     border-radius       0
-    margin-top          20px
 
   .record-form-view
     padding             0
@@ -843,12 +842,11 @@ section.resources-container
 div.environments-scene
 
   // bg                image, url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAgAAAAICAYAAADED76LAAAAHElEQVQYV2M8fPhwmq2t7SwGHIARlwRMfHgoAAAWpAQJz4XcBAAAAABJRU5ErkJggg==")
-  background-color      #E4E4E4
+  background-color      #2E3537
 
-  width                 1042px
+  width                 1052px
   margin                0 auto
-  border-bottom         1px solid #ccc
-  kalc                  height, 100% \- 160px
+  height                100%
 
   canvas
     left                -8px
@@ -913,6 +911,27 @@ div.environments-scene
       position          relative
     span.button-title
       line-height       19px
+
+div.environment-stack
+
+  height                36px
+  border                1px solid
+  width                 1045px
+  margin                8px auto
+  border-radius         10px
+  background            #2E3537
+  vendor                transition, height .2s ease
+
+  .stack-title
+    height              auto
+    padding             10px
+    color               white
+    border-bottom       1px solid
+
+  .stack-toggle
+    top                 8px
+    right               10px
+    abs()
 
 div.environments-container
 
