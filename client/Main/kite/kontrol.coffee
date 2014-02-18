@@ -47,14 +47,24 @@ class Kontrol extends KDObject
     @_sanitizeQuery query
 
     onEvent = (options)=>
+      err = options.withArgs[1]
+      return callback err, null  if err
+
       e = options.withArgs[0]
       callback null, {action: e.action, kite: @_createKite e}
 
-    @kite.tell "getKites", [query, onEvent], (err, kites)=>
+    @kite.tell "getKites", [query, onEvent], (err, result)=>
       return callback err, null  if err
 
-      for kite in kites
+      # Watcher ID is here but I don't know where to store it. (Cenk)
+      # result.watcherID
+
+      for kite in result.kites
         callback null, {action: @KiteAction.Register, kite: @_createKite kite}
+
+  cancelWatcher: (id, callback)->
+    @kite.tell "cancelWatcher", [id], (err, result)=>
+      return callback err  # result will always be "null"
 
   # Returns a new NewKite instance from Kite data structure coming from
   # getKites() and watchKites() methods.
