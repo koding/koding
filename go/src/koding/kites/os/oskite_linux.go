@@ -86,7 +86,6 @@ func main() {
 	mongodbConn = mongodb.NewMongoDB(conf.Mongo)
 	modelhelper.Initialize(conf.Mongo)
 
-	var logLevel logger.Level
 	if *flagDebug {
 		logLevel = logger.DEBUG
 	} else {
