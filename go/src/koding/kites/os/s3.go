@@ -4,6 +4,8 @@ package main
 
 import (
 	"errors"
+	"fmt"
+	"koding/db/mongodb/modelhelper"
 	"koding/tools/dnode"
 	"koding/tools/kite"
 	"koding/virt"
@@ -36,7 +38,10 @@ var (
 	groupsBucket  = s3store.Bucket(groupsBucketName)
 
 	// each bucket should have their own logic
-	bucketsFunc = make(map[string]func(*storeParams, *virt.VOS) error)
+	bucketsFunc = map[string]func(*storeParams, *virt.VOS) error{
+		"user":   userBucketFunc,
+		"groups": groupBucketFunc,
+	}
 )
 
 type storeParams struct {
@@ -122,63 +127,33 @@ func groupBucketFunc(params *storeParams, vos *virt.VOS) error {
 	return nil
 }
 
-func registerS3Methods(k *kite.Kite) {
-	bucketsFunc["user"] = userBucketFunc
-	bucketsFunc["groups"] = groupBucketFunc
-
-	registerVmMethod(k, "s3.store", true, func(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
-		params := new(storeParams)
-
-		if args.Unmarshal(&params) != nil || params.Name == "" || len(params.Content) == 0 || params.Bucket == "" {
-			return nil, &kite.ArgumentError{Expected: "{ name: [string], bucket: [string], content: [base64 string] }"}
-		}
-
-		if strings.Contains(params.Name, "/") {
-			return nil, &kite.ArgumentError{Expected: "{ name should not contain \"/\"}"}
-		}
-=======
 func s3Store(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
-	var params struct {
-		Name    string
-		Content []byte
+	params := new(storeParams)
+
+	if args.Unmarshal(&params) != nil || params.Name == "" || len(params.Content) == 0 || params.Bucket == "" {
+		return nil, &kite.ArgumentError{Expected: "{ name: [string], bucket: [string], content: [base64 string] }"}
 	}
-	if args.Unmarshal(&params) != nil || params.Name == "" || len(params.Content) == 0 || strings.Contains(params.Name, "/") {
-		return nil, &kite.ArgumentError{Expected: "{ name: [string], content: [base64 string] }"}
+
+	if strings.Contains(params.Name, "/") {
+		return nil, &kite.ArgumentError{Expected: "{ name should not contain \"/\"}"}
 	}
->>>>>>> 72b6fac18a7321eab4b07c79b5fd029a1d415958
 
 	if len(params.Content) > 2*1024*1024 {
 		return nil, errors.New("Content size larger than maximum of 2MB.")
 	}
 
-<<<<<<< HEAD
-		bucketFunc, ok := bucketsFunc[params.Bucket]
-		if !ok {
-			return nil, fmt.Errorf("bucket does not exist: '%s'", params.Bucket)
-		}
+	bucketFunc, ok := bucketsFunc[params.Bucket]
+	if !ok {
+		return nil, fmt.Errorf("bucket does not exist: '%s'", params.Bucket)
+	}
 
-		err := bucketFunc(params, vos)
-		if err != nil {
-			return nil, err
-		}
-
-		return true, nil
-	})
-=======
-	result, err := uploadsBucket.List(UserAccountId(vos.User).Hex()+"/", "", "", 100)
+	err := bucketFunc(params, vos)
 	if err != nil {
 		return nil, err
 	}
-	if len(result.Contents) >= 100 {
-		return nil, errors.New("Maximum of 100 stored files reached.")
-	}
 
-	if err := uploadsBucket.Put(UserAccountId(vos.User).Hex()+"/"+params.Name, params.Content, "", s3.Private); err != nil {
-		return nil, err
-	}
 	return true, nil
 }
->>>>>>> 72b6fac18a7321eab4b07c79b5fd029a1d415958
 
 func s3Delete(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
 	var params struct {
