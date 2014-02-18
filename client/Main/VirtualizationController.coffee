@@ -106,10 +106,9 @@ class VirtualizationController extends KDController
           message = "Your VM is under maintenance, not allowed to delete."
           new KDNotificationView title: message
           callback { message }
-
         else
-          @confirmVmDeletion vmInfo
-
+          @deleteVmByHostname vmInfo.hostnameAlias, (err) ->
+            return  if KD.showError err
       else
         new KDNotificationView title: 'Failed to remove!'
         callback { message: "No such VM!" }

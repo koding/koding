@@ -33,26 +33,24 @@ class EnvironmentScene extends KDDiaScene
     return  if Object.keys(items).length < 2
     {domain, machine, rule, extra} = items
 
-    modal = @createApproveModal items, 'delete'
-    modal.once 'Approved', =>
-      if domain and machine
-        jDomain = domain.dia.getData().domain # JDomain
-        vmName  = machine.dia.getData().title # JVM.hostnameAlias
-        jDomain.unbindVM hostnameAlias: vmName, (err)=>
-          modal.destroy()
-          return KD.showError err  if err
-          jDomain.hostnameAlias.splice jDomain.hostnameAlias.indexOf(vmName), 1
-          removeConnection()
-      else if domain and rule
+    if domain and machine
+      jDomain = domain.dia.getData().domain # JDomain
+      vmName  = machine.dia.getData().title # JVM.hostnameAlias
+      jDomain.unbindVM hostnameAlias: vmName, (err)=>
+        return KD.showError err  if err
+        jDomain.hostnameAlias.splice jDomain.hostnameAlias.indexOf(vmName), 1
         removeConnection()
-        modal.destroy()
-      else if machine and extra
-        removeConnection()
-        modal.destroy()
+    else if domain and rule
+      removeConnection()
+    else if machine and extra
+      removeConnection()
 
   connect:(source, target, internal = no)->
 
-    createConnection = => KDDiaScene::connect.call this, source, target
+    createConnection = =>
+      KDDiaScene::connect.call this, source, target
+      @resetScene()
+
     return createConnection()  if internal
 
     if not @allowedToConnect source, target
@@ -80,23 +78,17 @@ class EnvironmentScene extends KDDiaScene
       }
     }
 
-    modal = @createApproveModal items, 'create'
-    modal.once "KDObjectWillBeDestroyed", @bound 'resetScene'
-    modal.once 'Approved', =>
-      if domain and machine
-        jDomain = domain.dia.getData().domain # JDomain
-        vmName  = machine.dia.getData().title # JVM.hostnameAlias
-        jDomain.bindVM hostnameAlias: vmName, (err)=>
-          modal.destroy()
-          return KD.showError err  if err
-          jDomain.hostnameAlias.push vmName
-          createConnection()
-      else if domain and rule
+    if domain and machine
+      jDomain = domain.dia.getData().domain # JDomain
+      vmName  = machine.dia.getData().title # JVM.hostnameAlias
+      jDomain.bindVM hostnameAlias: vmName, (err)=>
+        return  if KD.showError err
+        jDomain.hostnameAlias.push vmName
         createConnection()
-        modal.destroy()
-      else if machine and extra
-        createConnection()
-        modal.destroy()
+    else if domain and rule
+      createConnection()
+    else if machine and extra
+      createConnection()
 
   updateConnections:->
 

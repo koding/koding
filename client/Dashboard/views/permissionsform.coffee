@@ -69,6 +69,7 @@ class PermissionsForm extends KDFormViewWithFields
     cascadeData[current]= {
       name
       cssClass
+      size         : "tiny"
       itemClass    : KodingSwitch
       defaultValue : isChecked ? no
     }
