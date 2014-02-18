@@ -54,6 +54,7 @@ module.exports = class JStack extends jraphical.Module
       callback null, stacks or []
 
   @getStackId = (selector, callback)->
+
     @getStack selector, (err, stack)->
       callback err, stack?.getId()
 
@@ -79,12 +80,16 @@ module.exports = class JStack extends jraphical.Module
 
     success: (client, callback)->
 
-      {user, group} = client.context
+      {group} = client.context
+      user    = client.connection.delegate.profile.nickname
+
       @getStack {user, group}, callback
 
   @getStacks$ = permit 'get stacks',
 
     success: (client, callback)->
 
-      {user, group} = client.context
+      {group} = client.context
+      user    = client.connection.delegate.profile.nickname
+
       @getStacks {user, group}, callback
