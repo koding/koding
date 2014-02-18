@@ -94,7 +94,7 @@ module.exports = class JSystemStatus extends Model
     {connection:{delegate}} = client
     unless delegate.checkFlag('super-admin')
       log 'status: not authorized to create a system status'
-      callback no
+      callback new KodingError "Not authorized to create a system status"
     else
       # log 'status: creating new status',data
       {title,content,scheduledAt,type} = data
@@ -142,7 +142,7 @@ module.exports = class JSystemStatus extends Model
             =>
               # log 'emitting'
               JSystemStatus.emit 'restartScheduled',status
-              callback status
+              callback null, status
             ]
 
         else
