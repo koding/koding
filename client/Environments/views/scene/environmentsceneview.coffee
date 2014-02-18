@@ -47,9 +47,7 @@ class EnvironmentScene extends KDDiaScene
 
   connect:(source, target, internal = no)->
 
-    createConnection = =>
-      KDDiaScene::connect.call this, source, target
-      @resetScene()
+    createConnection = => KDDiaScene::connect.call this, source, target
 
     return createConnection()  if internal
 
@@ -70,13 +68,13 @@ class EnvironmentScene extends KDDiaScene
         return new KDNotificationView
           title : "A domain name can only be bound to one VM."
 
-    @addFakeConnection {
-      source, target,
-      options : {
-        lineColor  : "#cdcdcd"
-        lineDashes : [5]
-      }
-    }
+    # @addFakeConnection {
+    #   source, target,
+    #   options : {
+    #     lineColor  : "#cdcdcd"
+    #     lineDashes : [5]
+    #   }
+    # }
 
     if domain and machine
       jDomain = domain.dia.getData().domain # JDomain
