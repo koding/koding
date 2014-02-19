@@ -1263,10 +1263,6 @@ module.exports = class JGroup extends Module
           JInvitation = require '../invitation'
           removeHelperMany JInvitation, requests, err, callback, queue
 
-        => @fetchVocabularies (err, vocabularies)->
-          JVocabulary = require '../vocabulary'
-          removeHelperMany JVocabulary, vocabularies, err, callback, queue
-
         => @fetchTags (err, tags)->
           JTag = require '../tag'
           removeHelperMany JTag, tags, err, callback, queue
