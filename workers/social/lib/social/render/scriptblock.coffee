@@ -22,7 +22,7 @@ module.exports = (options = {}, callback)->
     encodedCustomPartial = JSON.stringify customPartial, replacer
     encodedCampaignData = JSON.stringify campaignData, replacer
 
-    isPremiumBroker = options.client.context.group is "koding"
+    isPremiumBroker = options.client.context.group isnt "koding"
     landingOptions =
       page         : landing
 
