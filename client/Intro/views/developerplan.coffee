@@ -24,7 +24,7 @@ class IntroDeveloperPlan extends JView
         maxValue     : @plans.length - 1
         interval     : 1
         initial      : 1
-        snapOnDrag   : yes
+        snapOnDrag   : no
         handles      : [1]
         width        : 715
         drawOpposite : yes
@@ -50,7 +50,6 @@ class IntroDeveloperPlan extends JView
     @updateContent()
 
   updateContent: (index = @planIndex)->
-
     if index is 0
       title = 'Free Account'
       desc  = '<cite>"free" as in "free speech"</cite>'
@@ -79,6 +78,16 @@ class IntroDeveloperPlan extends JView
     # @promotion.updatePartial if discount and vm
     # then "TREAT: $#{discount} OFF OR #{vm} FREE VM#{if vm > 1 then 's' else ''}"
     # else ""
+
+  viewAppended: ->
+    super
+
+    @slider.addSubView new KDCustomHTMLView
+      tagName : "a"
+      cssClass: "pricing-show-details"
+      partial : "What is This?"
+      click   : =>
+        @emit "ShowHowItWorks"
 
   pistachio: ->
     """
