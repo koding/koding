@@ -56,7 +56,7 @@ class GroupsUploadView extends JView
     group     = KD.singletons.groupsController.getCurrentGroup()
     imageName = "#{group.slug}-logo-#{Date.now()}.png"
 
-    FSHelper.s3.upload imageName, @btoaContent, (err, url) =>
+    FSHelper.s3.upload imageName, @btoaContent, "groups", group.slug, (err, url) =>
       @loader.hide()
       if err 
         message = if err.code is 100 then "First you have to create a VM"

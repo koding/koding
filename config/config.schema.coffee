@@ -194,6 +194,7 @@ config =
         apiUri        : 1
         appsUri       : 1
         uploadsUri    : 1
+        uploadsUriForGroup: 1
         sourceUri     : 1
         newkontrol    :
           url         : 1
