@@ -63,7 +63,7 @@ class TeamworkExportModal extends KDModalView
     vmController.run commands.join("&&"), (err, res) =>
       file = FSHelper.createFileFromPath "#{tempPath}/#{name}.zip"
       file.fetchContents (err, contents) =>
-        FSHelper.s3.upload "#{name}.zip", btoa(contents), (err, res) =>
+        FSHelper.s3.upload "#{name}.zip", btoa(contents), "user", "", (err, res) =>
           file.remove ->
           KD.utils.shortenUrl res, (shorten) =>
             @handleExportDone shorten

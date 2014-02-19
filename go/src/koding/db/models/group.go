@@ -5,6 +5,6 @@ import (
 )
 
 type Group struct {
-	ObjectId bson.ObjectId `bson:"_id" json:"-"`
-	Title    string        `bson:"string" json:"string"`
+	Id    bson.ObjectId `bson:"_id" json:"-"`
+	Title string        `bson:"string" json:"string"`
 }

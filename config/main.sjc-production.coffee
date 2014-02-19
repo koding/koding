@@ -181,6 +181,7 @@ module.exports =
       apiUri    : 'https://koding.com'
       appsUri   : 'https://koding-apps.s3.amazonaws.com'
       uploadsUri: 'https://koding-uploads.s3.amazonaws.com'
+      uploadsUriForGroup: 'https://koding-groups.s3.amazonaws.com'
       sourceUri : "http://webserver-#{version}a.sj.koding.com:1337"
       newkontrol:
         url         : 'wss://newkontrol.sj.koding.com/kontrol'
