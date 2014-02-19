@@ -19,9 +19,13 @@ class EnvironmentsMainScene extends JView
       cssClass : "top-warning"
       partial  : """
         <div class="content">
-          You are on a free developer plan, see your usage or <a href="/Pricing">upgrade</a>.
+          You are on a free developer plan, see your <a class="usage" href="#">usage</a> or <a class="pricing" href="/Pricing">upgrade</a>.
         </div>
       """
+      click: (event) ->
+        if "usage" in event.target.classList
+          KD.utils.stopDOMEvent event
+          new KDNotificationView title: "Coming soon..."
 
     @paymentController = KD.getSingleton("paymentController")
     @paymentController.fetchActiveSubscription tags: "vm", (err, subscription) =>

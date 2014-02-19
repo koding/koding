@@ -147,17 +147,16 @@ class PaymentController extends KDController
             @confirmReactivation existingSubscription, (err, subscription) =>
               return KD.showError err  if err
               @emit "SubscriptionReactivated", subscription
-          KD.singletons.dock.getView().show()
         else if createAccount
           { cardFirstName: firstName, cardLastName: lastName } = billing
           { JUser } = KD.remote.api
           JUser.convert { firstName, lastName, email }, (err, newToken, recoveryToken) =>
             workflow.emit "PasswordRecoveryToken", recoveryToken
             JUser.logout ->
-              KD.singletons.dock.getView().show()
         else
           @emit "SubscriptionCompleted"
 
+        KD.singletons.dock.getView().show()
       .enter()
 
     workflow
