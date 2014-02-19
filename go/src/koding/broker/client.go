@@ -59,7 +59,7 @@ func createSubscriptionStorage(socketId string) (storage.Subscriptionable, error
 		log.Critical("Couldnt access to redis/create a key for client %v: Error: %v", socketId, err)
 	}
 
-	if subscriptions, err := storage.NewStorage(conf, storage.SET, socketId); err != nil {
+	if subscriptions, err := storage.NewStorage(conf, storage.SET, socketId); err == nil {
 		return subscriptions, nil
 	}
 
