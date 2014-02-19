@@ -1037,7 +1037,8 @@ module.exports = class JUser extends jraphical.Module
     , (err) =>
         return callback err if err
         JUser.emit "UserBlocked", @
-        return callback err
+        # clear all of the cookies of the blocked user
+        JSession.remove {username: @username}, callback
 
   unblock:(callback)->
     @update

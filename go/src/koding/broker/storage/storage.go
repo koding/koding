@@ -16,6 +16,7 @@ const (
 )
 
 type Subscriptionable interface {
+	Backend() Backend
 	Each(f func(item interface{}) bool) error
 	Subscribe(routingKeyPrefix ...string) error
 	Unsubscribe(routingKeyPrefix ...string) error

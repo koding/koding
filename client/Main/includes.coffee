@@ -125,8 +125,8 @@ module.exports = [
   # "CommonViews/fatih/fatih.coffee",
 
   # INTRODUCTION TOOLTIP
-  "CommonViews/introductiontooltip/introductiontooltip.coffee",
-  "CommonViews/introductiontooltip/introductiontooltipcontroller.coffee",
+  # "CommonViews/introductiontooltip/introductiontooltip.coffee",
+  # "CommonViews/introductiontooltip/introductiontooltipcontroller.coffee",
 
   "CommonViews/ModalViewWithTerminal.coffee",
   "CommonViews/clonerepomodal.coffee",
@@ -250,7 +250,6 @@ module.exports = [
 
   "styl/appfn.styl",
   "styl/resurrection.styl",
-  "styl/campaign.styl"
   # "styl/resurrection.activity.styl",
   "styl/resurrection.account.dropdown.styl",
   "styl/resurrection.anims.styl",

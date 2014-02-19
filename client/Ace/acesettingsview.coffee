@@ -6,21 +6,29 @@ class AceSettingsView extends JView
 
     button = @getDelegate()
 
-    @useSoftTabs    = new KDOnOffSwitch
+    @useSoftTabs    = new KodingSwitch
+      cssClass      : "tiny"
       callback      : (state) -> button.emit "ace.changeSetting", "useSoftTabs", state
-    @showGutter     = new KDOnOffSwitch
+    @showGutter     = new KodingSwitch
+      cssClass      : "tiny"
       callback      : (state) -> button.emit "ace.changeSetting", "showGutter", state
-    @useWordWrap    = new KDOnOffSwitch
+    @useWordWrap    = new KodingSwitch
+      cssClass      : "tiny"
       callback      : (state) -> button.emit "ace.changeSetting", "useWordWrap", state
-    @showPrintMargin= new KDOnOffSwitch
+    @showPrintMargin= new KodingSwitch
+      cssClass      : "tiny"
       callback      : (state) -> button.emit "ace.changeSetting", "showPrintMargin", state
-    @highlightActiveLine = new KDOnOffSwitch
+    @highlightActiveLine = new KodingSwitch
+      cssClass      : "tiny"
       callback      : (state) -> button.emit "ace.changeSetting", "highlightActiveLine", state
-    @highlightWord  = new KDOnOffSwitch
+    @highlightWord  = new KodingSwitch
+      cssClass      : "tiny"
       callback      : (state) -> button.emit "ace.changeSetting", "highlightSelectedWord", state
-    @showInvisibles = new KDOnOffSwitch
+    @showInvisibles = new KodingSwitch
+      cssClass      : "tiny"
       callback      : (state) -> button.emit "ace.changeSetting", "showInvisibles", state
-    @scrollPastEnd  = new KDOnOffSwitch
+    @scrollPastEnd  = new KodingSwitch
+      cssClass      : "tiny"
       callback      : (state) -> button.emit "ace.changeSetting", "scrollPastEnd", state
 
     @keyboardHandler= new KDSelectBox

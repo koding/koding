@@ -8,12 +8,16 @@ import (
 	"koding/db/mongodb/modelhelper"
 	"koding/tools/config"
 	"log"
+	"os"
+	"path/filepath"
 	"strconv"
+	"strings"
 )
 
 var (
-	profile = flag.String("c", "", "Configuration profile")
-	region  = flag.String("r", "", "Region")
+	profile     = flag.String("c", "", "Configuration profile")
+	region      = flag.String("r", "", "Region")
+	peersString = flag.String("p", "", "Peers (comma seperated)")
 )
 
 func main() {
@@ -36,12 +40,6 @@ func main() {
 		Region:      *region,
 	}
 
-	// Read list of etcd servers from config.
-	machines := make([]string, len(conf.Etcd))
-	for i, s := range conf.Etcd {
-		machines[i] = "http://" + s.Host + ":" + strconv.FormatUint(uint64(s.Port), 10)
-	}
-
 	publicKey, err := ioutil.ReadFile(conf.NewKontrol.PublicKeyFile)
 	if err != nil {
 		log.Fatalln(err.Error())
@@ -52,7 +50,24 @@ func main() {
 		log.Fatalln(err.Error())
 	}
 
-	kon := kontrol.New(kiteOptions, machines, string(publicKey), string(privateKey))
+	hostname, err := os.Hostname()
+	if err != nil {
+		log.Fatalln(err.Error())
+	}
+
+	cwd, err := os.Getwd()
+	if err != nil {
+		log.Fatalln(err.Error())
+	}
+
+	datadir := filepath.Join(cwd, "kontrol-data-"+hostname)
+
+	var peers []string
+	if *peersString != "" {
+		peers = strings.Split(*peersString, ",")
+	}
+
+	kon := kontrol.New(kiteOptions, hostname, datadir, peers, string(publicKey), string(privateKey))
 
 	kon.AddAuthenticator("sessionID", authenticateFromSessionID)
 
