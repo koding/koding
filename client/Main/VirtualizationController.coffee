@@ -356,7 +356,10 @@ class VirtualizationController extends KDController
         @provisionVm {subscription, productData: {pack}}, (err, nonce) =>
           return  unless err
           if err.message is "quota exceeded"
-          then @showUpgradeModal()
+            if KD.getGroup().slug is "koding"
+              @showUpgradeModal()
+            else
+              new KDNotificationView title: "Your group is out of VM quota"
           else KD.showError err
 
   showUpgradeModal: ->
