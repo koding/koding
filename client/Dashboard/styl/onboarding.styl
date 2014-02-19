@@ -1,0 +1,46 @@
+@import "../../Framework/themes/default/kdfn"
+@import "../../Main/styl/appfn"
+@import "../../Main/styl/app.fonts"
+
+@css {
+/*
+Onboarding styles
+*/
+}
+
+.onboarding-view
+  &.form-visible
+    .no-view, h3, .add-new, .views
+      display             none
+    .cancel
+      margin-right        10px
+  h3
+    top                   0
+    margin                0
+    line-height           44px
+    fl()
+  button.add-new
+    fr()
+  .no-view
+    margin-top            80px
+  .section-form
+    .show-items-together
+    .add-overlay
+      margin-top          2px !important
+    .kdlabel
+      width               140px
+    .koding-on-off
+      position            relative
+      top                 0
+      left                0
+    .button-field
+      background          none
+  .views
+    margin-top            80px
+    .no-view
+      margin-top          50px
+  .onboarding-items
+    margin-right          10px
+    .add-new
+      margin-top          5px
+      fl()

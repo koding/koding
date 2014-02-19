@@ -65,7 +65,11 @@ module.exports = [
   "views/customviews/addnewcustomviewform.coffee",
   "views/customviews/customviewsmanager.coffee",
 
+  # onboarding
+  "views/onboarding/onboardingdashboardview.coffee",
+
   "views/permissionsform.coffee",
 
   "styl/app.group.dashboard.styl",
+  "styl/onboarding.styl"
 ]
