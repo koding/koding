@@ -82,6 +82,13 @@ class DashboardAppController extends AppController
         viewOptions  :
           viewClass  : CustomViewsManager
           lazy       : yes
+      ,
+        name         : 'Onboarding'
+        hiddenHandle : @getData().privacy is 'public'
+        kodingOnly   : yes # this is only intended for koding group, we assume koding group is super-group
+        viewOptions  :
+          viewClass  : OnboardingDashboardView
+          lazy       : yes
 
       # CURRENTLY DISABLED
 
