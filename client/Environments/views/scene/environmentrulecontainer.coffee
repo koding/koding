@@ -19,5 +19,6 @@ class EnvironmentRuleContainer extends EnvironmentContainer
       }
     ]
 
-    @addItem rule for rule in dummyRules
-    @emit "DataLoaded"
+    new Promise (resolve, reject)=>
+      @addItem rule for rule in dummyRules
+      resolve()
