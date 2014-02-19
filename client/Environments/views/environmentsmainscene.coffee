@@ -17,12 +17,7 @@ class EnvironmentsMainScene extends JView
 
     @addSubView @freePlanView = new KDView
       cssClass : "top-warning"
-      partial  : """
-        <div class="content">
-          You are on a free developer plan, see your <a class="usage" href="#">usage</a> or <a class="pricing" href="/Pricing">upgrade</a>.
-        </div>
-      """
-      click: (event) ->
+      click    : (event) ->
         if "usage" in event.target.classList
           KD.utils.stopDOMEvent event
           new KDNotificationView title: "Coming soon..."
@@ -30,7 +25,12 @@ class EnvironmentsMainScene extends JView
     @paymentController = KD.getSingleton("paymentController")
     @paymentController.fetchActiveSubscription tags: "vm", (err, subscription) =>
       return console.error err  if err
-      @freePlanView.show()  if not subscription or "nosync" in subscription.tags
+      if not subscription or "nosync" in subscription.tags
+        @freePlanView.updatePartial """
+          <div class="content">
+            You are on a free developer plan, see your <a class="usage" href="#">usage</a> or <a class="pricing" href="/Pricing">upgrade</a>.
+          </div>
+        """
 
     @paymentController.on "SubscriptionCompleted", =>
       @freePlanView.updatePartial ""
