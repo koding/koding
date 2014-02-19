@@ -139,30 +139,44 @@ module.exports = class JVM extends Module
       return callback null
 
   @setAlwaysOn = secure (client, options, callback)->
-    {connection: delegate: account} = client
+    {connection: {delegate}, context: {group}} = client
     {vmName, status} = options
-    fetchVmByHostname account, vmName, (err, vm) ->
+
+    fetchVmByHostname delegate, vmName, (err, vm) ->
       return callback err if err
 
-      [{ id: groupId }] = vm.groups
-      JGroup = require './group'
-      JGroup.one { _id: groupId }, (err, group)->
-        return callback err  if err
-        return callback new KodingError "Group not found"  unless group
-        object = if group.slug is "koding" then account else group
-
-        object.fetchSubscription (err, subscription) ->
+      kallback = (subscription) ->
+        JPaymentPack.one tags: "alwayson", (err, pack) ->
           return callback err  if err
-          return callback new KodingError("Subscription not found","NOTSUBSCRIBED")  unless subscription
-
-          JPaymentPack.one tags: "alwayson", (err, pack) ->
+          return callback new KodingError "Always On pack not found"  unless pack
+          {debit, credit} = subscription
+          fn = if status then debit else credit
+          fn.call subscription, {pack}, (err) ->
             return callback err  if err
-            return callback new KodingError "Always On pack not found"  unless pack
-            {debit, credit} = subscription
-            fn = if status then debit else credit
-            fn.call subscription, {pack}, (err) ->
-              return callback err  if err
-              vm.update $set: alwaysOn: status, callback
+            vm.update $set: alwaysOn: status, callback
+
+      if group is "koding"
+        delegate.fetchSubscriptions$ client, tags: ["vm"], (err, subscriptions) ->
+          noSyncSubscription = null
+          activeSubscription = null
+
+          for subscription in subscriptions
+            if "nosync" in subscription.tags
+              noSyncSubscription = subscription
+            else
+              activeSubscription = subscription
+
+          subscription = activeSubscription or noSyncSubscription
+          if subscription
+          then kallback subscription
+          else callback message: "Subscription not found", code: "no subscription"
+      else
+        JGroup = require './group'
+        JGroup.one slug: group, (err, group) ->
+          return callback err  if err
+          group.fetchSubscription (err, subscription) ->
+            return callback err  if err
+            kallback subscription
 
   @fetchDefaultVm_ = (client, callback)->
     {delegate} = client.connection
