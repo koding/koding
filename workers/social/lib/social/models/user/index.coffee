@@ -423,7 +423,8 @@ module.exports = class JUser extends jraphical.Module
                 account.updateCounts()
                 JUser.clearOauthFromSession session, ->
                   callback null, {account, replacementToken}
-                  account.fetchSubscriptions tags: ["nosync"], (err, subscriptions) ->
+                  options = targetOptions: selector: tags: $in: ["nosync"]
+                  account.fetchSubscriptions {}, options, (err, subscriptions) ->
                     console.warn err  if err
                     if subscriptions.length is 0
                       JPaymentSubscription.createFreeSubscription account, (err, subscription) ->
