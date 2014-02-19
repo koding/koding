@@ -6,6 +6,13 @@ class CustomViewsDashboardView extends JView
 
     super options, data
 
+    {cssClass, title} = options
+
+    @title        = new KDCustomHTMLView
+      tagName     : "h3"
+      cssClass    : cssClass
+      partial     : title
+
     @addNewButton = new KDButtonView
       iconOnly    : yes
       cssClass    : "add-new"
@@ -85,6 +92,7 @@ class CustomViewsDashboardView extends JView
 
   pistachio: ->
     """
+      {{> @title}}
       {{> @addNewButton}}
       {{> @loader}}
       {{> @noViewLabel}}
