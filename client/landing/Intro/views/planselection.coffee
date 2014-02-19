@@ -21,7 +21,7 @@ class IntroPlanSelection extends JView
       partial  : "$#{options.slider.initialValue * options.unitPrice}/#{options.period}"
 
     options.slider         or= {}
-    options.slider.drawBar  ?= no
+    options.slider.drawBar  ?= yes
 
     {unitPrice} = options
 
