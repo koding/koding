@@ -4,7 +4,6 @@ class HomeAppController extends ActivityAppController
     name         : "Home"
     route        : "/Home"          # slug removed intentionally
     hiddenHandle : yes
-    behavior     : "hideTabs"
     navItem      :
       title      : "Home"
       path       : "/Home"

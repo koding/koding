@@ -379,6 +379,23 @@ body.about #main-header
   padding               22px 0 87px
   borderBox()
 
+  h1
+    font-size       32px
+
+  h2
+    font-size       28px
+
+  h3
+    font-size       24px
+
+  h1
+  h2
+  h3
+    font-weight     200
+    color           #1c2021
+    margin-bottom   8px
+    text-shadow     none
+
   .inner-container
     max-width           1096px
     margin              0 auto
@@ -387,17 +404,10 @@ body.about #main-header
       padding-bottom    41px
       border-bottom     1px solid #d4d4d4
 
-      h2
-        font-size       28px
-        font-weight     200
-        color           #1c2021
-        margin-bottom   8px
-        text-shadow     none
-
       p
         font-size       20px
         color           #757575
-        font-weight     200px
+        font-weight     200
         line-height     26px
         width           702px
         fl()
@@ -437,7 +447,9 @@ body.about #main-header
     .plan-selection
       .developer-plan
       .team-plan
+        height          300px
         overflow        visible
+
     .plan-selection-box
       width           715px
       padding-top     42px
@@ -520,13 +532,19 @@ body.about #main-header
           rounded         12px
           font-size       10px
           display         inline-block
-          min-width       23px
+          min-width       33px
           height          23px
           line-height     23px
           text-align      center
           padding         0 5px
           margin          0 5px 0 15px
           borderBox()
+
+      a.pricing-show-details
+        font-size         12px
+        font-weight       200
+        color             #747474
+        abs               174px -30px 0 0
 
       &.selected
         margin              0
@@ -579,6 +597,9 @@ body.about #main-header
           line-height         2
           margin              0
 
+        .pricing-show-details
+          abs                 274px 0px 0 0
+
     .developer-plan
 
       .sliderbar-container
@@ -589,6 +610,59 @@ body.about #main-header
           background          #dadada
           shadow              inset 1px 1px 0 rgba(0, 0, 0, .16) \,
                               0 0 0 1px #dadada
+
+      .pricing-show-details
+          abs                 174px -30px 0 0
+
+  .how-it-works
+    bg                        color, #f1f1f1
+    border                    1px solid #d3d3d3
+    border-radius             12px
+    max-width                 913px
+    padding                   24px
+    color                     #747474
+    vendor                    column-count, 3
+    vendor                    column-gap, 24px
+    position                  relative
+    margin-top                -88px
+    borderBox()
+
+    &:after
+      content                 ""
+      display                 block
+      border                  11px solid transparent
+      border-bottom-color     #f1f1f1
+      abs                     -22px 192px 0 0
+
+    &:before
+      content                 ""
+      display                 block
+      border                  11px solid transparent
+      border-bottom-color     #d3d3d3
+      abs                     -23px 192px 0 0
+
+    &.team
+      margin-top              0
+
+      &:before
+      &:after
+        right                 612px
+
+    .item
+      font-size               12px
+      font-weight             200
+
+      &:not(.cpu)
+        vendor                column-break-inside, avoid
+
+      h4
+        font-size             18px
+        font-weight           400
+        margin                0 0 24px
+
+      p
+        margin-bottom         24px
+        line-height           1.2em
 
 #home-groups
   bg                    color, homeHeaderBg
@@ -929,119 +1003,6 @@ body.about #main-header
   border                  none
   &:after
     size                  20px, 20px
-#home-page #campaign
-  size                    100%, 369px
-  .container
-    width                 926px
-    margin                0 auto
-    position              relative
-  .divider
-    size                  2px, 174px
-    bg                    color, #1A1D1E
-    margin                63px 50px 0
-    fl()
-    .icon
-      size                45px, 45px
-      bg                  image,    url('/a/images/campaign/100tb/arrow.png')
-      bg                  repeat,   no-repeat
-      bg                  position, 18px 11px
-      bg                  color,    #1A1D1E
-      rounded             45px
-      top                 70px
-      left                -22px
-      position            relative
-    &.left
-      position            relative
-      left                7px
-  .rounded
-    font-size             22px
-    font-weight           100
-    color                 #fff
-    bg                    color, #1A1D1E
-    padding               7px 16px
-    rounded               6px
-    margin-top            8px
-    text-align            center
-    &.digits
-      margin-top          1px
-  #banner
-    size                  100%, 296px
-    bg                    image, url('/a/images/campaign/100tb/bg.png')
-    .container
-      size                956px 296px
-    .campaign-logo
-      size                251px, 250px
-      bg                  image, url('/a/images/campaign/100tb/logo.png')
-      position            relative
-      top                 26px
-      fl()
-    .text
-      fl()
-      margin-top          115px
-      position            relative
-      top                 7px
-      left                4px
-      span
-        font-size         26px
-        font-weight       400
-        color             #fff
-        span
-          color           #1aaf5d
-    .counter
-      fl()
-      margin              90px 0 0 2px
-      .digits
-        overflow          hidden
-      .digit
-        size              42px, 85px
-        bg                color, #1A1D1E
-        rounded           6px
-        margin-left       1px
-        font-size         60px
-        color             #fff
-        font-weight       bold
-        line-height       85px
-        text-align        center
-        fl()
-      .separator
-        fl()
-        font-size         46px
-        color             #AAABAC
-        margin-top        33px
-  #signup
-    size                  100%, 73px
-    bg                    color, #1A1D1E
-    line-height           73px
-    span
-      color               #BCBCBC
-      font-size           24px
-      font-weight         100
-      letter-spacing      0.7px
-      span
-        font-weight       300
-    p
-      abs()
-      top                 -2px
-      right               21px
-      span
-        font-size         30px
-        color             #1aaf5d
-        font-weight       100
-      .timer
-        bg                image, url('/a/images/campaign/100tb/timer.png')
-        size              32px, 32px
-        display           inline-block
-        top               7px
-        left              -5px
-        position          relative
-      .arrow
-        size              25px, 45px
-        bg                image, url('/a/images/campaign/100tb/down.png')
-        display           inline-block
-        top               67px
-        left              123px
-        abs()
-
 
 .custom-views
   h3
