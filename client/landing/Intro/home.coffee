@@ -10,6 +10,16 @@ class HomePage extends JView
 
     super options, data
 
+    @pricingButton = new KDButtonView
+      title       : "Get your own Koding for your Team<cite>or get extra resources for yourself</cite>"
+      cssClass    : 'solid green shadowed pricing'
+      icon        : 'yes'
+      iconClass   : 'dollar'
+      callback    : (event)->
+        KD.utils.stopDOMEvent event
+        KD.mixpanel "Pricing button in Home, click"
+        KD.singletons.router.handleRoute '/Pricing'
+
     @registerForm = new HomeRegisterForm
       callback    : (formData)->
         KD.mixpanel "Register button in / a, click"
@@ -38,8 +48,6 @@ class HomePage extends JView
     @markers = new MarkerController
     @widgetPlaceholder = new KDCustomHTMLView
       cssClass         : "home-widget-placeholder"
-    
-    @productForm = new IntroPricingProductForm
 
     if partialData.css
       tag           = document.createElement "style"
@@ -219,9 +227,7 @@ class HomePage extends JView
             </article>
           </div>
         </div>
-      </section>
-      <section id="pricing" class="clearfix">
-        {{> @productForm}}
+        {{> @pricingButton}}
       </section>
       <footer class='clearfix'>
         <div class='fl'>
