@@ -50,25 +50,27 @@ class Kontrol extends KDObject
   # watchKites watches for Kites that matches the query. The onEvent functions
   # is called for current kites and every new kite event.
   watchKites: (query={}, callback)->
-    return warn "callback is not defined "  unless callback
-
     @_sanitizeQuery query
+
+    changes = new KDEventEmitter
 
     onEvent = (options)=>
       err = options.withArgs[1]
       return callback err, null  if err
 
       e = options.withArgs[0]
-      callback null, {action: e.action, kite: @_createKite e}
+      changes.emit kiteAction[e.action], kite: @_createKite e
 
-    @kite.tell "getKites", [query, onEvent], (err, result)=>
-      return callback err, null  if err
+    @kite.tell("getKites", [query, onEvent])
+    .then ({ kites, watcherID }) =>
 
       # TODO Watcher ID is here but I don't know where to store it. (Cenk)
       # result.watcherID
 
-      for kite in result.kites
-        callback null, {action: @KiteAction.Register, kite: @_createKite kite}
+      for kite in kites
+        { action: kiteAction.register, kite: @_createKite kite, changes }
+
+    .nodeify callback
 
   cancelWatcher: (id, callback)->
     @kite.tell "cancelWatcher", [id], (err, result)=>
@@ -83,6 +85,6 @@ class Kontrol extends KDObject
     query.username    = "#{KD.nick()}"              unless query.username
     query.environment = "#{KD.config.environment}"  unless query.environment
 
-  KiteAction :
-    Register   : "REGISTER"
-    Deregister : "DEREGISTER"
+  kiteAction    =
+    REGISTER    : "register"
+    DEREGISTER  : "deregister"

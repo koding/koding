@@ -54,7 +54,7 @@ class NewKite extends KDObject
 
       @ws.onerror = (error) =>
         @onError error
-        reject error
+        reject error.data
 
   disconnect: (reconnect=true)->
     new Promise (resolve, reject) =>
@@ -86,7 +86,7 @@ class NewKite extends KDObject
     @emit 'disconnected'
     # enable below to autoReconnect when the socket has been closed
     if @autoReconnect
-      KD.utils.defer => @setBackoffTimeout @bound "connect"
+      KD.utils.defer => @setBackoffTimeout => @connect().catch warn
     return
 
   onMessage: (evt)->
@@ -133,11 +133,11 @@ class NewKite extends KDObject
             apply @proto.localStore.get(method), @proto.instance, args[0].withArgs
     return
 
-  apply =(fn, ctx, args)-> fn.apply ctx, args
-
   onError: (evt)->
     log "#{@kite.name} error: #{evt.data}"
     return
+
+  apply =(fn, ctx, args)-> fn.apply ctx, args
 
   initBackoff: (options)->
     backoff = options.backoff ? {}

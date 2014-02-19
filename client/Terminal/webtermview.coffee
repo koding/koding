@@ -120,7 +120,7 @@ class WebTermView extends KDView
           else throw err
 
         @terminal.eventHandler = (data)=> @emit "WebTermEvent", data
-        @terminal.server       = remote
+        @terminal.server = remote
         @sessionId = remote.session
         @emit "WebTermConnected", remote
 

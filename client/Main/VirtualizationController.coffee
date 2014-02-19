@@ -18,7 +18,6 @@ class VirtualizationController extends KDController
     @on 'VMListChanged', @bound 'resetVMData'
 
   run:(options, callback = noop)->
-    [callback, options] = [options, callback]  unless callback
     options ?= {}
     if "string" is typeof options
       command = options
@@ -30,12 +29,11 @@ class VirtualizationController extends KDController
       options.correlationName = vmName
       @fetchRegion vmName, (region)=>
         options.kiteName = "os-#{region}"
-        @kc.run options, (rest...) ->
-          # log rest...
-          callback rest...
+        @kc.run options, callback
 
   _runWrapper:(command, vm, callback)->
-    [callback, vm] = [vm, callback]  if vm and 'string' isnt typeof vm
+    if vm and 'string' isnt typeof vm
+      [callback, vm] = [vm, callback]
     @fetchDefaultVmName (defaultVm)=>
       vm or= defaultVm
       return  unless vm
@@ -278,7 +276,10 @@ class VirtualizationController extends KDController
       .then (kite) =>
         @osKites[hostname] = kite
 
-        kite.connect().then -> resolve kite
+        kite.connect()
+        .then(-> resolve kite)
+        .catch warn
+        
 
   handleFetchedVms: (vms, callback) ->
     if KD.useNewKites

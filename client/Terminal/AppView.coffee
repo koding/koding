@@ -301,9 +301,10 @@ class WebTermAppView extends JView
         if vmc.vms.length > 1
           return  if @vmselection and not @vmselection.isDestroyed
           @vmselection = new VMSelection
-          @vmselection.once 'VMSelected', (vm)=> @createNewTab vmName: vm, mode: 'create'
+          @vmselection.once 'VMSelected', ({ hostnameAlias }) =>
+            @createNewTab vmName: hostnameAlias, mode: 'create'
         else
-          @createNewTab vmName: vmc.vms.first, mode: 'create'
+          @createNewTab vmName: vmc.vms.first.hostnameAlias, mode: 'create'
 
     else
       @createNewTab vmName: vmName, mode: 'create'
