@@ -38,13 +38,16 @@ class EnvironmentsMainScene extends JView
     {JStack} = KD.remote.api
 
     JStack.getStacks (err, stacks)=>
-      return KD.showError err  if err
+      warn err  if err
+
+      if not stacks or stacks.length is 0
+        stacks = [{sid:0, group:'koding'}]
 
       stacks.forEach (stack)=>
 
         title   = stack.meta?.title
         number  = if stack.sid > 0 then "#{stack.sid}." else "default"
-        title or= "Your #{number} environment stack on #{stack.group}"
+        title or= "Your #{number} stack on #{stack.group}"
 
         @addSubView new StackView {}, {title, stack}
 
