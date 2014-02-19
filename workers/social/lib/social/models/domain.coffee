@@ -32,7 +32,7 @@ module.exports = class JDomain extends jraphical.Module
 
     sharedMethods:
 
-      static: 
+      static:
         one:
           (signature Object, Function)
         getDomainInfo:
@@ -154,6 +154,7 @@ module.exports = class JDomain extends jraphical.Module
       modifiedAt    :
         type        : Date
         default     : -> new Date
+      stack         : ObjectId
 
   @isDomainEligible: (params, callback)->
     {domain, newDomain} = params
@@ -164,7 +165,7 @@ module.exports = class JDomain extends jraphical.Module
     match = domain.match /(.*)\.([a-z0-9\-]+)\.kd\.io$/
 
     [rest..., prefix, slug] = match
-    
+
     if newDomain and /^shared|vm[\-]?([0-9]+)?/.test prefix
       return callback new KodingError("Domain name cannot start with shared|vm", "INVALIDDOMAIN")
 
@@ -192,7 +193,7 @@ module.exports = class JDomain extends jraphical.Module
           JDomain.one {domain}, (err, model) ->
             return callback err  if err
             if model
-              return callback new KodingError("The domain #{options.domain} already exists", "DUPLICATEDOMAIN") 
+              return callback new KodingError("The domain #{options.domain} already exists", "DUPLICATEDOMAIN")
             model = new JDomain options
             model.save (err) ->
               return callback err if err
@@ -470,7 +471,7 @@ module.exports = class JDomain extends jraphical.Module
       JProxyRestriction.deleteRule params, (err)-> callback err
 
   @fetchGroupDomains: secure (client, callback)->
-    JVM = require './vm'  
+    JVM = require './vm'
     JVM.fetchVmsByContext client, {}, (err, vms) ->
       return callback err if err
       JDomain.some hostnameAlias : $in : vms, {}, callback

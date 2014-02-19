@@ -8,10 +8,6 @@ app.environments.styl
 */
 }
 
-.environments
-  #kdmaincontainer
-    height             auto
-
 section.resources-container
   size                 100% 105px
   bg                   color #ebebeb
@@ -119,52 +115,7 @@ section.resources-container
     float              right
 
 .environment-content
-  overflow             visible
-
-  .domains-no-record
-    text-align         center
-    padding            20px
-    display            block
-    font-size          18px
-    color              #aaa
-    text-shadow        0 1px 0 #fff
-
-  .formline
-    border              none
-
-  .formline.suggestionbox
-    padding-top         0
-
-  .formline.domainname
-    padding-left        25px
-    input.text
-      max-width         400px
-      padding           2px 10px
-      line-height       32px
-      height            36px
-      font-size         14px
-
-      &.domain
-        padding-right   117px
-        margin-right    0
-
-    .kdselectbox.domains
-      position          absolute
-      top               6px
-      right             -4px
-
-    > .input-wrapper
-      width             400px
-      height            36px
-      margin-right      0
-      rel()
-
-      > *
-        margin-right    10px
-
-  &.in-progress
-    .new-item-plus
-      display           none !important
+  overflow             auto
 
   h1.kdheaderview
     z-index               2
@@ -254,21 +205,24 @@ section.resources-container
           bg            position, -60px -500px
 
   .environment-help
-    text-align          center
     height              auto
+    margin              0 auto
+    background          white
 
     h1
-      padding           60px 60px 20px 60px
-      font-size         28px
-      border-bottom     1px solid #ccc
+      padding           30px
+      font-size         42px
+      font-weight       100
+      padding-left      0
 
     .content
-      border-bottom     1px solid #ccc
-      background        #EBEBEB
-      height            250px
+      height            100px
       padding           14px
       line-height       22px
-      // display           none
+      width             936px
+      margin            0 auto
+      font-weight       100
+      font-size         21px
 
       .video
         width           260px
@@ -277,15 +231,20 @@ section.resources-container
         border-radius   10px
         r-sprite        environments, "play"
 
-  .bottom-warning
-    bottom              5px
-    text-align          center
-    height              30px
-    abs()
+  .top-warning
+    padding             10px 0 20px 0
+    height              auto
+    background          #FFF
+    margin-bottom       20px
+    padding-left        0
 
     a
       text-decoration   underline
-      color             black
+
+    .content
+      width             936px
+      margin            0 auto
+      font-weight       100
 
   .action-area
     z-index             0
@@ -302,7 +261,6 @@ section.resources-container
   .kddia-scene
     left                0
     border-radius       0
-    margin-top          20px
 
   .record-form-view
     padding             0
@@ -837,20 +795,20 @@ section.resources-container
     font-weight     500
 
   .kdselectbox.main-domain-select
-    abs             20px 5px 0 0
+    abs             5px 5px 0 0
 
 
 /*--- Scene -----*/
 
 div.environments-scene
 
-  // bg                image, url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAgAAAAICAYAAADED76LAAAAHElEQVQYV2M8fPhwmq2t7SwGHIARlwRMfHgoAAAWpAQJz4XcBAAAAABJRU5ErkJggg==")
-  background-color      #E4E4E4
+  bg                    image, url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAO0lEQVQYV2NkIA4YMxKhzhio5iwhhWBFIMPwKYQrwqcQRREuhRiKsCnEqghdIU5FyArxKoIpJKgIpBAAuKUJPnltMzUAAAAASUVORK5CYII=")
+  bg                    image, url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAQElEQVQYV2NkIALk5eUZMxJSB1I0adKks3gVwhSBDMOpEFkRToXoirAqxKYIQyEuRSgK8SmCKySkCKyQGEUghQAU3yWIL9S7NgAAAABJRU5ErkJggg==")
+  background-color      #EBEBEB
 
-  width                 1042px
+  width                 934px
   margin                0 auto
-  height                500px
-  border-bottom         1px solid #ccc
+  height                100%
 
   canvas
     left                -8px
@@ -916,11 +874,32 @@ div.environments-scene
     span.button-title
       line-height       19px
 
+div.environment-stack
+
+  height                36px
+  border                1px solid #BBB
+  width                 934px
+  margin                8px auto
+  border-radius         3px
+  vendor                transition, height .2s ease
+
+  .stack-title
+    height              auto
+    padding             10px
+    font-weight         100
+    font-size           29px
+
+  .stack-toggle
+    top                 8px
+    right               10px
+    abs()
+
 div.environments-container
 
-  width           250px
+  width           220px
   height          100%
   overflow-y      scroll
+  margin-top      15px
   noTextSelection()
 
   &::-webkit-scrollbar
@@ -928,134 +907,56 @@ div.environments-container
 
   &.firewall
     .kdheaderview
-      color               #E94D39
-      .new-item-plus
-        background-color  #E94D39
-        border            1px solid #E94D39
+      background          #4E89D3
 
   &.domains
     .kdheaderview
-      color               #3395DD
-      .new-item-plus
-        background-color  #3395DD
-        border            1px solid #3395DD
+      background          #4ED393
 
   &.machines
     .kdheaderview
-      color               #1BAF5E
-      .new-item-plus
-        background-color  #1BAF5E
-        border            1px solid #1BAF5E
+      background          #EBA612
 
   &.extras
     .kdheaderview
-      color               #E4158A
-      .new-item-plus
-        background-color  #E4158A
-        border            1px solid #E4158A
-
+      background          #FF676E
 
   .kdheaderview
-    padding       14px 0
-    text-indent   14px
     border        none
     font-weight   200
+    color         white
+    border-radius 2px
+    width         180px
+    margin-left   20px
+    height        33px
+    margin-top    13px
+    font-size     18px
 
-    .new-item-plus
-      size                20px, 20px
-      margin              5px 20px 0 0
-      rounded             12px
-      background-color    #555
-      border              1px solid #555
-      cursor              pointer
-      vendor              transition, width .2s ease-in
-      position            relative
-      overflow            hidden
-      fr()
+  .add-button
+    margin-left               20px
+    width                     180px
+    height                    30px
+    border                    1px dashed #ccc
+    border-radius             3px
+    background                #EEE
+    color                     #999
+    font-weight               bold
+    font-size                 16px
+    padding-bottom            7px
+    abs()
 
-      i
-        display                 block
-        size                    20px, 25px
-        kdfsprite()
-        background-position     -120px -440px
-        left                    0px
-        top                     0px
-        abs()
-
-      span
-        left                    5px
-        top                     0
-        height                  25px
-        line-height             20px
-        font-size               11px
-        text-align              left
-        white-space             nowrap
-        margin                  0
-        font-weight             600
-        color                   #fff
-        vendor                  transition, opacity  .1s ease-in
-        opacity                 0
-        abs()
-
-      &:hover
-        width                 73px
-
-        span
-          opacity             1
-
-    .new-item-plus-for-groups
-      size                20px, 20px
-      margin              5px 5px 0 0
-      rounded             12px
-      background-color    #555
-      border              1px solid #555
-      cursor              pointer
-      vendor              transition, width .2s ease-in
-      position            relative
-      overflow            hidden
-      fr()
-
-      i
-        display                 block
-        size                    20px, 25px
-        kdfsprite()
-        background-position     -120px -440px
-        left                    0px
-        top                     0px
-        abs()
-
-      span
-        left                    5px
-        top                     0
-        height                  25px
-        line-height             20px
-        font-size               11px
-        text-align              left
-        white-space             nowrap
-        margin                  0
-        font-weight             600
-        color                   #fff
-        vendor                  transition, opacity  .1s ease-in
-        opacity                 0
-        abs()
-
-      &:hover
-        width                 80px
-
-        span
-          opacity             1
-
-    .new-item-loader
-      abs         19px, 10px
+    &:hover
+      background              white
+      border                  1px solid #ccc
 
 div.environments-item
 
   cursor          default
-  width           210px
-  height          44px
+  width           180px
+  height          34px
   background      white
   border          none
-  rounded         10px
+  rounded         2px
   vendor          transition, opacity .3s ease
   noTextSelection()
   borderBox()
@@ -1063,9 +964,8 @@ div.environments-item
   span.url
   span.chevron
   span.terminal
-    // display       none
     size          14px, 14px
-    bottom        13px
+    bottom        10px
     right         10px
     r-sprite      environments 'gear'
     display       block
@@ -1108,25 +1008,28 @@ div.environments-item
 
   &.highlight
     gradient      white, white // rgba(244, 244, 244, 1.0)
-    shadow        0 0 6px #eee
+    // shadow        0 0 6px #eee
 
   span.toggle
-    size          16px, 16px
+    size          6px, 34px
     background    #eee
-    border-radius 13px
-    top           14px
+    border-radius 2px 0 0 2px
+    top           0
+    left          0
 
   h3
     font-size     13px
+    font-weight   200
+    color         #333
     width         130px
-    line-height   16px
+    line-height   17px
     overflow      hidden
     white-space   nowrap
     text-overflow ellipsis
-    padding-left  26px
+    padding-left  6px
 
   div.details
-    padding       14px
+    padding       8px
     span
       font-size   10px
       color       #aaa
@@ -1136,17 +1039,17 @@ div.environments-item
     span.chevron
       display         none
     span.toggle
-      background      #E94D39
+      background      #4E89D3
 
   &.domain
     span.toggle
-      background      #3395DD
+      background      #4ED393
 
   &.extras
     span.chevron
       display         none
     span.toggle
-      background      #E4158A
+      background      #FF676E
 
   &.machine
     // height            50px
@@ -1154,13 +1057,13 @@ div.environments-item
     span.url
     span.chevron
     span.terminal
-      bottom          15px
+      bottom          10px
 
     span.chevron
       r-sprite        environments 'menu'
 
     span.toggle
-      background      #1BAF5E
+      background      #EBA612
 
     div.progressbar-container
       top             25px

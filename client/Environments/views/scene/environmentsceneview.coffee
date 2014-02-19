@@ -16,6 +16,7 @@ class EnvironmentScene extends KDDiaScene
     super
       cssClass  : 'environments-scene'
       lineWidth : 2
+      lineColor : "#4ED393"
 
     @boxes = {}
 
@@ -47,9 +48,7 @@ class EnvironmentScene extends KDDiaScene
 
   connect:(source, target, internal = no)->
 
-    createConnection = =>
-      KDDiaScene::connect.call this, source, target
-      @resetScene()
+    createConnection = => KDDiaScene::connect.call this, source, target, !internal
 
     return createConnection()  if internal
 
@@ -70,14 +69,6 @@ class EnvironmentScene extends KDDiaScene
         return new KDNotificationView
           title : "A domain name can only be bound to one VM."
 
-    @addFakeConnection {
-      source, target,
-      options : {
-        lineColor  : "#cdcdcd"
-        lineDashes : [5]
-      }
-    }
-
     if domain and machine
       jDomain = domain.dia.getData().domain # JDomain
       vmName  = machine.dia.getData().title # JVM.hostnameAlias
@@ -92,15 +83,19 @@ class EnvironmentScene extends KDDiaScene
 
   updateConnections:->
 
+    @reset no
+
     for _mkey, machine of @boxes.machines.dias
       for _dkey, domain of @boxes.domains.dias
         if domain.getData().aliases and machine.getData().title in domain.getData().aliases
           @connect {dia : domain , joint : 'right'}, \
                    {dia : machine, joint : 'left' }, yes
-        for _rkey, rule of @boxes.rules.dias
-          if rule.getData().title is "Allow All"
-            @connect {dia : rule,   joint : 'right'}, \
-                     {dia : domain, joint : 'left' }, yes
+
+    {dias} = @boxes.rules
+    rule = dias[Object.keys(dias).first]
+    for _dkey, domain of @boxes.domains.dias
+      @connect {dia : rule,   joint : 'right'}, \
+               {dia : domain, joint : 'left' }, yes
 
   createApproveModal:(items, action)->
     return unless KD.isLoggedIn()
@@ -108,18 +103,8 @@ class EnvironmentScene extends KDDiaScene
         title : "You need to login to change domain settings."
     return new EnvironmentApprovalModal {action}, items
 
-  whenItemsLoadedFor:do->
-    # poor man's when/promise implementation ~ GG
-    (containers, callback)->
-      counter = containers.length
-      containers.forEach (container)->
-        container.once "DataLoaded", ->
-          if counter is 1 then do callback
-          counter--
-        container.loadItems()
-
   addContainer:(container, pos)->
-    pos ?= x: 10 + @containers.length * 260, y: 0
+    pos ?= x: 10 + @containers.length * 230, y: 0
     super container, pos
 
     {name} = container.constructor
@@ -136,8 +121,8 @@ class EnvironmentScene extends KDDiaScene
   type = (item)->
     itemMap[item.dia.constructor.name] or null
 
-  viewAppended:->
-    super
+  # viewAppended:->
+  #   super
 
     # @addSubView @slider = new KDSliderBarView
     #   cssClass   : 'zoom-slider'
