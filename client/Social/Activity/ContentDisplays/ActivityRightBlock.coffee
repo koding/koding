@@ -89,7 +89,11 @@ class ActiveTopics extends ActivityRightBase
       KD.remote.api.JTag.some {group},
         limit  : 16
         sort   : "counts.followers" : -1
-      , @bound 'renderItems'
+      , (err, topics)=>
+        if err or topics.length is 0
+          @hide()
+        else
+          @renderItems err, topics
 
 
 class GroupDescription extends KDView
@@ -103,7 +107,9 @@ class GroupDescription extends KDView
 
       @innerContaner = new KDCustomHTMLView cssClass : "right-block-box"
 
-      hasBody = group.body.trim() isnt ""
+      {body}  = group
+      body   ?= ""
+      hasBody = Boolean body.trim().length
       isAdmin = "admin" in KD.config.roles
 
       edit = new CustomLinkView
@@ -121,7 +127,7 @@ class GroupDescription extends KDView
 
       @bodyView = new KDCustomHTMLView
         tagName   : "p"
-        pistachio : "{{ #(body)}}"
+        pistachio : "{{ #(body) or ''}}"
         cssClass  : "group-description"
       , group
 

@@ -99,11 +99,13 @@ class AdministrationView extends KDTabViewWithForms
                 {inputs, buttons} = @forms["Broadcast Message"]
 
                 KD.remote.api.JSystemStatus.create
-                  scheduledAt : Date.now() + inputs.Duration.getValue() * 1000
+                  scheduledAt : Date.now()+inputs.Duration.getValue()*1000
                   title       : inputs.Title.getValue()
                   content     : inputs.Description.getValue()
                   type        : inputs.Type.getValue()
-                , ->
+                , (err, status) ->
+                  if err then KD.showError err  
+                  else KD.notify_ 'System Status is broadcasted to users'
                   buttons["Broadcast Message"].hideLoader()
 
             "Cancel Restart":

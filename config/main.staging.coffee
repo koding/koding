@@ -236,7 +236,7 @@ module.exports =
     disconnectTimeout: 3e3
     vhost       : 'kite'
   email         :
-    host        : "koding.com"
+    host        : "latest.koding.com"
     protocol    : 'https:'
     defaultFromAddress: 'hello@koding.com'
   emailWorker   :
@@ -282,8 +282,9 @@ module.exports =
       port        : 80
       portssl     : 443
       ftpip       : '54.208.3.200'
-  recurly       :
-    apiKey      : '4a0b7965feb841238eadf94a46ef72ee' # koding-test.recurly.com
+  recurly         :
+    apiKey        : '4a0b7965feb841238eadf94a46ef72ee' # koding-test.recurly.com
+    loggedRequests: /^(subscriptions|transactions)/
   embedly       :
     apiKey      : embedlyApiKey
   opsview :

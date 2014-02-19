@@ -141,7 +141,6 @@ Dashboard Settings Styles
     min-height                100%
 
     > .formline
-
       textarea.kdinput.text
         font-size             14px
         min-height            100px
@@ -153,22 +152,8 @@ Dashboard Settings Styles
         &.group-name
           margin-top          11px
 
-      &.button-field
-        bg color,             transparent
-        border                none
-        padding               0
-        margin                0
-
-        .kdbutton.solid.green
-          margin              0
-          padding             0
-          size                98px, 33px
-          rounded             26px
-          fr()
-
-          span
-            font-size         12px
-            line-height       33px
+        &.visibility
+          margin-top          6px
 
   .group-logo
     figure
@@ -277,16 +262,6 @@ Dashboard Member List styles
         height               90px
         left                 0
         abs()
-
-        .kdbutton
-          height             28px
-          padding            0 10px
-
-          span
-            font-size        12px
-            line-height      28px
-            padding          0
-
 
 
 //   .kdlistview
@@ -552,23 +527,17 @@ Dashboard invitations tab styles
       width                   auto
       abs                     15px 0px 0 0
 
-      button
-        margin-left           5px
-        height                40px
-        .button-title
-          line-height         40px
-
       .show-resolved
         height                auto
         width                 150px
 
         label
-          line-height         40px
+          line-height         45px
           font-size           11px
           fl()
 
         .koding-on-off.small
-          margin              6px
+          margin              8px
           fl()
 
       .show-resolved
@@ -597,9 +566,7 @@ Dashboard invitations tab styles
           span
             font-size         16px
             line-height       35px
-          &.delete
-            bg                color, #EC492C
-            padding           0
+
       .status
         font-size             14px
         height                35px
@@ -1020,12 +987,6 @@ Dashboard Invitations Modal Styles
       .permission-switch
         fl()
         margin              0 61px
-        size                38px, 18px
-        a
-          size              14px, 14px
-        &.on
-          a
-            vendor          transform, translateX(19px)
 
       .formline
         borderBox()
@@ -1041,7 +1002,7 @@ Dashboard Invitations Modal Styles
             borderBox()
             line-height     18px
             display         inline-block
-            width           160px
+            width           155px
             text-align      left
             padding         0 16px
             overflow        hidden
