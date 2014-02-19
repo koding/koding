@@ -236,7 +236,7 @@ class ActivityEditWidget extends ActivityInputWidget
     {body, link} = data
 
     content = ""
-    content += "<div>#{line}</div>" for line in body.split "\n"
+    content += "<div>#{Encoder.htmlEncode(line)}</div>" for line in body.split "\n"
     @input.setContent content, data
     @embedBox.loadEmbed link.link_url  if link
 
