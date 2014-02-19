@@ -1,6 +1,8 @@
 package virt
 
 import (
+	"bytes"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"koding/db/models"
@@ -9,6 +11,7 @@ import (
 	"os/exec"
 	"runtime"
 	"strconv"
+	"strings"
 	"syscall"
 	"text/template"
 	"time"
@@ -417,8 +420,7 @@ func (vm *VM) MountRBD(mountDir string) error {
 			if out, err := exec.Command("/usr/bin/rbd", "create", "--pool", VMPool, "--size", strconv.Itoa(vm.DiskSizeInMB), "--image", vm.String(), "--image-format", "1").CombinedOutput(); err != nil {
 				return commandError("rbd create failed.", err, out)
 			}
-		}
-		if vm.SnapshotName != "" {
+		} else {
 			if out, err := exec.Command("/usr/bin/rbd", "clone", "--pool", VMPool, "--image", VMName(vm.SnapshotVM), "--snap", vm.SnapshotName, "--dest-pool", VMPool, "--dest", vm.String()).CombinedOutput(); err != nil {
 				return commandError("rbd clone failed.", err, out)
 			}
@@ -468,6 +470,7 @@ func (vm *VM) MountRBD(mountDir string) error {
 	if err := os.Mkdir(mountDir, 0755); err != nil && !os.IsExist(err) {
 		return err
 	}
+
 	if out, err := exec.Command("/bin/mount", "-t", "ext4", vm.RbdDevice(), mountDir).CombinedOutput(); err != nil {
 		os.Remove(mountDir)
 		return commandError("mount rbd failed.", err, out)
@@ -499,6 +502,70 @@ func (vm *VM) ResizeRBD() error {
 
 	if out, err := exec.Command("/bin/mount", "-o", "remount", vm.OverlayFile("")).CombinedOutput(); err != nil {
 		return commandError("remount failed.", err, out)
+	}
+
+	return nil
+}
+
+// LockRBD is locking the specific image. The lock is propogated to the whole
+// cluster. Trying to lock a locked image returns an error.
+func (vm *VM) LockRBD() error {
+	// lock-id is going to be the VM-Hex ID to find it easily.
+	lockID := vm.String()
+
+	arg := []string{"lock", "add", "--pool", VMPool, "--image", vm.String(), lockID}
+	if out, err := exec.Command("/usr/bin/rbd", arg...).CombinedOutput(); err != nil {
+		return commandError("rbd lock failed.", err, out)
+	}
+
+	return nil
+}
+
+// getLockerRBD returns the locker id for the given VM. This is needed in
+// order unlock a lock.
+func (vm *VM) getLockerRBD() (locker string, err error) {
+	arg := []string{"lock", "list", "--pool", VMPool, "--image", vm.String()}
+
+	out, err := exec.Command("/usr/bin/rbd", arg...).CombinedOutput()
+	if err != nil {
+		return "", commandError("rbd lock failed.", err, out)
+	}
+
+	shellOut := string(bytes.TrimSpace(out))
+	if shellOut == "" {
+		return "", errors.New("no lock available")
+	}
+
+	lines := strings.Split(shellOut, "\n")
+	for _, line := range lines {
+		if !strings.HasPrefix(line, "client.") {
+			continue
+		}
+
+		lockInfo := strings.Split(line, " ")
+		if len(lockInfo) != 3 {
+			continue
+		}
+
+		// returns something like client.123456
+		return lockInfo[0], nil
+	}
+
+	return "", fmt.Errorf("could not find locker from output: %s\n", string(out))
+}
+
+// Unlock unlocks the given image. Trying to unlock on an image without a lock returns an error.
+func (vm *VM) UnlockRBD() error {
+	// lock-id is going to be the VM-Hex ID to find it easily.
+	lockID := vm.String()
+	locker, err := vm.getLockerRBD()
+	if err != nil {
+		return err
+	}
+
+	arg := []string{"lock", "rm", "--pool", VMPool, "--image", vm.String(), lockID, locker}
+	if out, err := exec.Command("/usr/bin/rbd", arg...).CombinedOutput(); err != nil {
+		return commandError("rbd lock failed.", err, out)
 	}
 
 	return nil

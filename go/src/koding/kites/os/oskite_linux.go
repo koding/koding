@@ -15,7 +15,6 @@ import (
 	"koding/tools/config"
 	"koding/tools/dnode"
 	"koding/tools/kite"
-	"koding/tools/lifecycle"
 	"koding/tools/logger"
 	"koding/tools/utils"
 	"koding/virt"
@@ -73,7 +72,7 @@ var (
 	serviceUniqueName string
 
 	prepareQueueLimit = 8 + 1 // number of concurrent VM preparations, shoulde be CPU + 1
-	prepareQueue      = make(chan func(chan struct{}))
+	prepareQueue      = make(chan func(chan string))
 )
 
 func main() {
@@ -82,7 +81,6 @@ func main() {
 		log.Fatal("Please specify profile via -c and region via -r. Aborting.")
 	}
 
-	fmt.Println("flags", *flagProfile)
 	conf = config.MustConfig(*flagProfile)
 	mongodbConn = mongodb.NewMongoDB(conf.Mongo)
 	modelhelper.Initialize(conf.Mongo)
@@ -216,8 +214,6 @@ func runNewKite() {
 }
 
 func initializeSettings() {
-	lifecycle.Startup("kite.os", true)
-
 	var err error
 	if firstContainerIP, containerSubnet, err = net.ParseCIDR(conf.ContainerSubnet); err != nil {
 		log.LogError(err, 0)
@@ -241,6 +237,8 @@ func prepareOsKite() *kite.Kite {
 	}
 
 	k := kite.New(kiteName, conf, true)
+
+	log.Info("oskite started with serviceUniqueName: %s", k.ServiceUniqueName)
 
 	// Default is "broker", we are going to use another one. In our case its "brokerKite"
 	k.PublishExchange = conf.BrokerKite.Name
@@ -554,103 +552,6 @@ func validateVM(vm *virt.VM) error {
 	}
 
 	return nil
-}
-
-func startAndPrepareVM(vm *virt.VM, channel *kite.Channel) error {
-	err := validateVM(vm)
-	if err != nil {
-		return err
-	}
-
-	var info *VMInfo
-
-	if info == nil {
-		infosMutex.Lock()
-		var found bool
-		info, found = infos[vm.Id]
-		if !found {
-			info = newInfo(vm)
-			infos[vm.Id] = info
-		}
-
-		if channel != nil {
-			info.useCounter += 1
-			info.timeout.Stop()
-
-			channel.KiteData = info
-			channel.OnDisconnect(func() {
-				info.mutex.Lock()
-				defer info.mutex.Unlock()
-
-				info.useCounter -= 1
-				info.startTimeout()
-			})
-		}
-
-		infosMutex.Unlock()
-	}
-
-	info.vm = vm
-	info.mutex.Lock()
-	defer info.mutex.Unlock()
-
-	isPrepared := true
-	if _, err := os.Stat(vm.File("rootfs/dev")); err != nil {
-		if !os.IsNotExist(err) {
-			panic(err)
-		}
-		isPrepared = false
-	}
-
-	if !isPrepared || info.currentHostname != vm.HostnameAlias {
-		log.Info("putting %s into queue. total vms in queue: %d of %d",
-			vm.HostnameAlias, len(prepareQueue), prepareQueueLimit)
-
-		wait := make(chan struct{}, 0)
-		prepareQueue <- func(done chan struct{}) {
-			defer func() {
-				done <- struct{}{}
-				wait <- struct{}{}
-			}()
-
-			startTime := time.Now()
-			vm.Prepare(false, log.Warning)
-
-			log.Info("VM PREPARE and START: %s [%s] - ElapsedTime: %.10f seconds.",
-				vm, vm.HostnameAlias, time.Since(startTime).Seconds())
-		}
-
-		// wait until the prepareWorker has picked us and we finished
-		<-wait
-	}
-
-	// if it's started already it will not do anything
-	if err := vm.Start(); err != nil {
-		log.LogError(err, 0)
-	}
-
-	// wait until network is up
-	if err := vm.WaitForNetwork(time.Second * 5); err != nil {
-		log.Error("%v", err)
-	}
-
-	info.currentHostname = vm.HostnameAlias
-	return nil
-}
-
-// prepareWorker listens from prepareQueue channel and runs the functions it receives
-func prepareWorker() {
-	for fn := range prepareQueue {
-		done := make(chan struct{}, 1)
-		go fn(done)
-
-		select {
-		case <-done:
-			log.Info("done preparing vm")
-		case <-time.After(time.Second * 20):
-			log.Error("timing out preparing vm")
-		}
-	}
 }
 
 func createUserHome(user *virt.User, rootVos, userVos *virt.VOS) {
