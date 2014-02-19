@@ -52,6 +52,7 @@ module.exports =
   runNeo4jFeeder: yes
   runGoBroker   : yes
   runGoBrokerKite: yes
+  runPremiumBrokerKite: yes
   runKontrol    : yes
   runRerouting  : yes
   runUserPresence: yes
@@ -169,6 +170,10 @@ module.exports =
         servicesEndpoint: 'http://localhost:3020/-/services/brokerKite'
         brokerExchange: 'brokerKite'
         sockJS  : 'http://localhost:8009/subscribe'
+      premiumBrokerKite:
+        servicesEndpoint: 'http://localhost:3020/-/services/premiumBrokerKite'
+        brokerExchange: 'premiumBrokerKite'
+        sockJS  : 'http://localhost:8010/subscribe'
       apiUri    : 'http://localhost:3020'
       version   : version
       mainUri   : 'http://localhost:3020'
@@ -230,6 +235,17 @@ module.exports =
     webProtocol : 'http:'
     webHostname : 'localhost'
     webPort     : 8009
+    authExchange: authExchange
+    authAllExchange: authAllExchange
+  premiumBrokerKite :
+    name        : "premiumBrokerKite"
+    ip          : ""
+    port        : 8010
+    certFile    : ""
+    keyFile     : ""
+    webProtocol : 'http:'
+    webHostname : 'localhost'
+    webPort     : 8010
     authExchange: authExchange
     authAllExchange: authAllExchange
   kites:

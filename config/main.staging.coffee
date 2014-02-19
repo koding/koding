@@ -51,6 +51,7 @@ module.exports =
   runNeo4jFeeder: yes
   runGoBroker   : no
   runGoBrokerKite: no
+  runPremiumBrokerKite: no
   runKontrol    : yes
   runRerouting  : yes
   runUserPresence: yes
@@ -173,6 +174,10 @@ module.exports =
         servicesEndpoint: "/-/services/brokerKite"
         brokerExchange: 'brokerKite'
         sockJS   : "http://stage-brokerkite-#{version}.sj.koding.com/subscribe"
+      premiumBrokerKite:
+        servicesEndpoint: "/-/services/premiumBrokerKite"
+        brokerExchange: 'premiumBrokerKite'
+        sockJS   : "http://stage-premiumbrokerkite-#{version}.sj.koding.com/subscribe"
       apiUri    : 'https://koding.com'
       appsUri   : 'https://koding-apps.s3.amazonaws.com'
       uploadsUri: 'https://koding-uploads.s3.amazonaws.com'
@@ -230,6 +235,17 @@ module.exports =
     keyFile     : "/opt/ssl_certs/wildcard.koding.com.key"
     webProtocol : 'https:'
     webHostname : "brokerKite-#{version}.sj.koding.com"
+    webPort     : null
+    authExchange: authExchange
+    authAllExchange: authAllExchange
+  premiumBrokerKite:
+    name        : "premiumBrokerKite"
+    ip          : ""
+    port        : 443
+    certFile    : "/opt/ssl_certs/wildcard.koding.com.cert"
+    keyFile     : "/opt/ssl_certs/wildcard.koding.com.key"
+    webProtocol : 'https:'
+    webHostname : "premiumbrokerkite-#{version}.sj.koding.com"
     webPort     : null
     authExchange: authExchange
     authAllExchange: authAllExchange

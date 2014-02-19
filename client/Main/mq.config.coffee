@@ -58,7 +58,12 @@ KD.remote = new Bongo
 
 KD.kite =
   mq: do ->
-    { brokerKite:{ servicesEndpoint, brokerExchange }, authExchange } = KD.config
+    {authExchange} = KD.config
+    if KD.config.premiumBroker
+      { servicesEndpoint, brokerExchange } = KD.config.premiumBrokerKite
+    else
+      { servicesEndpoint, brokerExchange } = KD.config.brokerKite
+
     options = {
       servicesEndpoint
       authExchange
