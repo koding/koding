@@ -1,6 +1,8 @@
 class HomePage extends JView
 
-  iframe = """<iframe src="//www.youtube.com/embed/5E85g_ddV3A?autoplay=1&origin=https://koding.com&showinfo=0&theme=dark&modestbranding=1&autohide=1&loop=1" width="853" height="480" frameborder="0" webkitAllowFullScreen mozallowfullscreen allowFullScreen></iframe>"""
+  iframe = """<iframe src="//www.youtube.com/embed/5E85g_ddV3A?autoplay=1&origin=https://koding.com&showinfo=0&rel=0&theme=dark&modestbranding=1&autohide=1&loop=1" width="853" height="480" frameborder="0" webkitAllowFullScreen mozallowfullscreen allowFullScreen></iframe>"""
+
+  partialData = KD.customPartial?.partial or {}
 
   constructor:(options = {}, data)->
 
@@ -34,29 +36,36 @@ class HomePage extends JView
             "width=#{w},height=#{h},left=#{Math.floor (screen.width/2) - (w/2)},top=#{Math.floor (screen.height/2) - (h/2)}"
 
     @markers = new MarkerController
-
+    @widgetPlaceholder = new KDCustomHTMLView
+      cssClass         : "home-widget-placeholder"
+    
     @productForm = new IntroPricingProductForm
 
+    if partialData.css
+      tag           = document.createElement "style"
+      tag.innerHTML = Encoder.htmlDecode partialData.css
+
+      document.head.appendChild tag
+
+    if partialData.js
+      try
+        eval Encoder.htmlDecode partialData.js
+      catch
+        console.warn "Home page custom code failed to execute"
 
   showVideo:->
-
     @play.hide()
     @markers.hide 'teamwork'
     @$('figure.laptop section.teamwork').hide()
     @$('figure.laptop').append iframe
 
-
-
   hideVideo:->
-
     @play.show()
     @$('figure.laptop section.teamwork').show()
     @$('figure.laptop iframe').remove()
     KD.utils.wait 1000, => @markers.show 'teamwork'
 
-
   show:->
-
     @appendToDomBody()  unless document.getElementById 'home-page'
 
     @unsetClass 'out'
@@ -66,9 +75,7 @@ class HomePage extends JView
 
     KD.utils.defer => @markers.reset()
 
-
   hide:->
-
     @setClass 'out'
     document.body.classList.remove 'intro'
 
@@ -129,8 +136,8 @@ class HomePage extends JView
     @markers.group 'teamwork', vms, nav, chat, play
 
   pistachio:->
-    if KD.customPartial?.partial
-      return Encoder.htmlDecode KD.customPartial.partial
+    if partialData.html
+      return Encoder.htmlDecode partialData.html
 
     """
       <header id='home-header'>
@@ -140,6 +147,7 @@ class HomePage extends JView
           <a href="/Login" class="login fr">LOGIN</a>
         </div>
       </header>
+      {{> @widgetPlaceholder}}
       <main>
         <div class="clearfix">
           <div class="headings-container">
