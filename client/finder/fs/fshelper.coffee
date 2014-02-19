@@ -215,16 +215,16 @@ class FSHelper
     getGroupRelated : (group, name)->
       "#{KD.config.uploadsUriForGroup}/#{group}/#{name}"
 
-      #user
-      # args = {name,  content}
+    upload : (name, content, bucket, path, callback)->
+      args = {name, bucket, path, content}
 
       KD.getSingleton('vmController').run
         method    : 's3.store'
         withArgs  : args
       , (err, res)->
-        console.log "upload", err, res
-        # if err then callback err
-        # else callback null, FSHelper.s3.get name
+        return callback err if err
+        filePath = if bucket is "groups" then FSHelper.s3.getGroupRelated path, name else FSHelper.s3.get name
+        callback null, filePath
 
     remove : (name, callback)->
       vmController = KD.getSingleton 'vmController'
