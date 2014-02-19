@@ -51,23 +51,20 @@ func NewClient(session *sockjs.Session, broker *Broker) (*Client, error) {
 	}, nil
 }
 
-func createSubscriptionStorage(socketId string) (s storage.Subscriptionable, errc error) {
-	defer func() {
-		log.Critical("Couldnt access to redis/create a key for client %v: Error: %v", socketId, errc)
-	}()
+func createSubscriptionStorage(socketId string) (storage.Subscriptionable, error) {
 
-	redisSubscriptions, err := storage.NewStorage(conf, storage.REDIS, socketId)
-	if err == nil {
-		return redisSubscriptions, nil
+	if subscriptions, err := storage.NewStorage(conf, storage.REDIS, socketId); err == nil {
+		return subscriptions, nil
+	} else {
+		log.Critical("Couldnt access to redis/create a key for client %v: Error: %v", socketId, err)
 	}
 
-	setSubscriptions, err := storage.NewStorage(conf, storage.SET, socketId)
-	if err == nil {
-		return setSubscriptions, nil
+	if subscriptions, err := storage.NewStorage(conf, storage.SET, socketId); err != nil {
+		return subscriptions, nil
 	}
 
 	// this will never fail to here
-	return nil, fmt.Errorf("Couldnt create subscription storage %v", err)
+	return nil, fmt.Errorf("Couldnt create subscription storage for Client: %v", socketId)
 }
 
 // Close should be called whenever a client disconnects.
