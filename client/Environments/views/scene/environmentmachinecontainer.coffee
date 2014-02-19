@@ -29,24 +29,28 @@ class EnvironmentMachineContainer extends EnvironmentContainer
                 KD.showError err
 
   loadItems:->
-    super
 
-    vmc = KD.getSingleton 'vmController'
+    new Promise (resolve, reject)=>
 
-    vmc.fetchGroupVMs yes, (err, vms)=>
-      if err or vms.length is 0
-        @emit "DataLoaded"
-        return warn "Failed to fetch VMs", err  if err
-      addedCount = 0
+      vmc = KD.getSingleton 'vmController'
 
-      vms.forEach (vm)=>
-        @addItem
-          title     : vm
-          cpuUsage  : KD.utils.getRandomNumber 100
-          memUsage  : KD.utils.getRandomNumber 100
-          activated : yes
-        addedCount++
-        @emit "DataLoaded"  if addedCount is vms.length
+      vmc.fetchGroupVMs yes, (err, vms)=>
+
+        if err or vms.length is 0
+          warn "Failed to fetch VMs", err  if err
+          return resolve()
+
+        @removeAllItems()
+
+        vms.forEach (vm, index)=>
+
+          @addItem
+            title     : vm
+            cpuUsage  : KD.utils.getRandomNumber 100
+            memUsage  : KD.utils.getRandomNumber 100
+            activated : yes
+
+          if index is vms.length - 1 then resolve()
 
   getVmSelectionView: ->
 
