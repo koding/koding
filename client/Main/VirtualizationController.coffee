@@ -143,7 +143,7 @@ class VirtualizationController extends KDController
       @fetchDefaultVmName (defaultVmName) ->
         if defaultVmName?
         then callback null, defaultVmName
-        else callback message: 'There is no VM for this account.'
+        else callback message: 'There is no VM for this account.', code: 100
 
   fetchDefaultVmName:(callback=noop, force=no)->
     if @defaultVmName and not force

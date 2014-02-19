@@ -56,7 +56,9 @@ class UploadImageModalView extends KDModalView
 
       FSHelper.s3.upload imageName, avatarData, (err, url)=>
         if err
-          new KDNotificationView title : "Error while uploading photo."
+          message = if err.code is 100 then "First you have to create a VM"
+          else "Error while uploading photo." 
+          KD.showError message
           @loaderView.hide()
           return
 
