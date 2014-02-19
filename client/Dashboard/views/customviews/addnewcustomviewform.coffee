@@ -33,7 +33,7 @@ class AddNewCustomViewForm extends JView
       cssClass    : "editor-container"
       size        :
         width     : 876
-        height    : 400
+        height    : 800
       files       : files
 
     @cancelButton = new KDButtonView
