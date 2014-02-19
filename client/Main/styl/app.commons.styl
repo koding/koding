@@ -1444,178 +1444,178 @@ figure.code-container
     bg                  position, -120px -460px
     sprite()
 
-.introduction-tooltip
-  max-width             300px
-  padding               5px
-  rounded               5px
-  bg                    color, rgba(0, 0, 0, .4) !important
-  .editor-button
-    margin-top          10px
-    float               right
-  .wrapper
-    bg                  color, #FBFBFB !important
-    padding-right       20px !important
-    border-color        rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.15) rgba(0, 0, 0, 0.15) !important
-    border-width        1px 1px 3px 1px !important
-    .kdview
-      overflow          visible
-      .close-icon
-        bg              position, -79px -223px !important
-        right           -20px
-        top             1px !important
-        &:hover
-          bg            position, -79px -243px !important
+// .introduction-tooltip
+//   max-width             300px
+//   padding               5px
+//   rounded               5px
+//   bg                    color, rgba(0, 0, 0, .4) !important
+//   .editor-button
+//     margin-top          10px
+//     float               right
+//   .wrapper
+//     bg                  color, #FBFBFB !important
+//     padding-right       20px !important
+//     border-color        rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.15) rgba(0, 0, 0, 0.15) !important
+//     border-width        1px 1px 3px 1px !important
+//     .kdview
+//       overflow          visible
+//       .close-icon
+//         bg              position, -79px -223px !important
+//         right           -20px
+//         top             1px !important
+//         &:hover
+//           bg            position, -79px -243px !important
 
-.admin-introduction-header .cell
-  border-bottom         1px solid #EEE
-.admin-introduction-item
-  overflow              hidden
-  line-height           20px
-  &:hover > .introduction-actions
-    display             block
-  .introItemText
-    float               left
-  .admin-introduction-child-item
-    text-indent         40px
-    &:hover > .introduction-actions
-      display           block
-  .cell
-    float               left
-    width               100px
-    .arrow
-      abs()
-      sprite()
-      size              16px, 16px
-      left              0
-      bg                position, -140px -562px
-      &.down
-        bg              position, -120px -563px
-    &.name
-      pointer()
-      padding-left      20px
-      position          relative
-      width             280px
-    &.icon
-      size              16px, 16px
-      top               4px
-      position          relative
-      margin            0 17px
-      sprite()
-      &.yep
-        bg              position, -82px -502px
-      &.nope
-        bg              position, -82px -481px
-      &.allTogether
-        bg              position, 0 -301px
-      &.stepByStep
-        bg              position, -40px -299px
-    &.mini
-      width             50px
-      text-align        center
+// .admin-introduction-header .cell
+//   border-bottom         1px solid #EEE
+// .admin-introduction-item
+//   overflow              hidden
+//   line-height           20px
+//   &:hover > .introduction-actions
+//     display             block
+//   .introItemText
+//     float               left
+//   .admin-introduction-child-item
+//     text-indent         40px
+//     &:hover > .introduction-actions
+//       display           block
+//   .cell
+//     float               left
+//     width               100px
+//     .arrow
+//       abs()
+//       sprite()
+//       size              16px, 16px
+//       left              0
+//       bg                position, -140px -562px
+//       &.down
+//         bg              position, -120px -563px
+//     &.name
+//       pointer()
+//       padding-left      20px
+//       position          relative
+//       width             280px
+//     &.icon
+//       size              16px, 16px
+//       top               4px
+//       position          relative
+//       margin            0 17px
+//       sprite()
+//       &.yep
+//         bg              position, -82px -502px
+//       &.nope
+//         bg              position, -82px -481px
+//       &.allTogether
+//         bg              position, 0 -301px
+//       &.stepByStep
+//         bg              position, -40px -299px
+//     &.mini
+//       width             50px
+//       text-align        center
 
-  .introduction-actions
-    abs()
-    right               0
-    display             none
-    text-align          right
-    span
-      font-size         11px
-      cursor            pointer
-    span.icon
-      display           inline-block
-      size              16px, 16px
-      sprite()
-      &.add
-        bg              position, -120px -458px
-      &.update
-        bg              position, -120px -398px
-      &.delete
-        bg              position, -78px -518px
-    span:first-child
-      margin-right      3px
+//   .introduction-actions
+//     abs()
+//     right               0
+//     display             none
+//     text-align          right
+//     span
+//       font-size         11px
+//       cursor            pointer
+//     span.icon
+//       display           inline-block
+//       size              16px, 16px
+//       sprite()
+//       &.add
+//         bg              position, -120px -458px
+//       &.update
+//         bg              position, -120px -398px
+//       &.delete
+//         bg              position, -78px -518px
+//     span:first-child
+//       margin-right      3px
 
-.introduction-admin-buttons
-  padding               10px 0
-  text-align            right
-  button
-    right               10px
-.introduction
-  .help-text
-    position            absolute
-    top                 14px
-    height              12px
-    rounded             4px
-    padding             3px
-    &.warning
-      width             415px
-      background        #a80000
-      left              171px
-      color             #FFF
-    &.info
-      width             300px
-      left              283px
-      background        #FEF0B1
-      color             #BE9C17
-.introduction-group-name
-  height                13px
-  .groupName
-    font-weight         bold
-    font-style          italic
-.introduction-admin-content
-  padding               0 10px 10px 20px
-  width                 auto
-  .kdloader
-    left                50%
-    margin-left         -18px
-.introduction-not-found
-  font-style            italic
-  font-size             13px
-.introduction-ace-editor
-  padding               0 !important
-  height                130px !important
-  width                 487px !important
-  .kdlabel.intro-snippet, .kdlabel.callback
-    margin              11px 4px 0px 20px
-.introduction-snippet-switch
-  position              absolute
-  z-index               12999
-  color                 #ff9200
-  left                  466px
-  top                   4px
-  cursor                pointer
-  height                12px
-  width                 134px
+// .introduction-admin-buttons
+//   padding               10px 0
+//   text-align            right
+//   button
+//     right               10px
+// .introduction
+//   .help-text
+//     position            absolute
+//     top                 14px
+//     height              12px
+//     rounded             4px
+//     padding             3px
+//     &.warning
+//       width             415px
+//       background        #a80000
+//       left              171px
+//       color             #FFF
+//     &.info
+//       width             300px
+//       left              283px
+//       background        #FEF0B1
+//       color             #BE9C17
+// .introduction-group-name
+//   height                13px
+//   .groupName
+//     font-weight         bold
+//     font-style          italic
+// .introduction-admin-content
+//   padding               0 10px 10px 20px
+//   width                 auto
+//   .kdloader
+//     left                50%
+//     margin-left         -18px
+// .introduction-not-found
+//   font-style            italic
+//   font-size             13px
+// .introduction-ace-editor
+//   padding               0 !important
+//   height                130px !important
+//   width                 487px !important
+//   .kdlabel.intro-snippet, .kdlabel.callback
+//     margin              11px 4px 0px 20px
+// .introduction-snippet-switch
+//   position              absolute
+//   z-index               12999
+//   color                 #ff9200
+//   left                  466px
+//   top                   4px
+//   cursor                pointer
+//   height                12px
+//   width                 134px
 
-// introduction tooltip arrows
-div.introduction-tooltip
-  .arrow
-    width               0 !important
-    height              0 !important
-  &.placement-top
-    div.arrow
-      border-left       8px solid transparent
-      border-right      8px solid transparent
-      border-top        8px solid rgba(0, 0, 0, .4)
-      bottom            -8px !important
-  &.placement-bottom
-    div.arrow
-      border-left       8px solid transparent
-      border-right      8px solid transparent
-      border-bottom     8px solid rgba(0, 0, 0, .4)
-      top              -8px !important
-  &.placement-right
-    div.arrow
-      border-top        8px solid transparent
-      border-bottom     8px solid transparent
-      border-right      8px solid rgba(0, 0, 0, .4)
-      left              -8px !important
-      background        none !important
-  &.placement-left
-    div.arrow
-      border-top        8px solid transparent
-      border-bottom     8px solid transparent
-      border-left       8px solid rgba(0, 0, 0, .4)
-      right             -8px !important
+// // introduction tooltip arrows
+// div.introduction-tooltip
+//   .arrow
+//     width               0 !important
+//     height              0 !important
+//   &.placement-top
+//     div.arrow
+//       border-left       8px solid transparent
+//       border-right      8px solid transparent
+//       border-top        8px solid rgba(0, 0, 0, .4)
+//       bottom            -8px !important
+//   &.placement-bottom
+//     div.arrow
+//       border-left       8px solid transparent
+//       border-right      8px solid transparent
+//       border-bottom     8px solid rgba(0, 0, 0, .4)
+//       top              -8px !important
+//   &.placement-right
+//     div.arrow
+//       border-top        8px solid transparent
+//       border-bottom     8px solid transparent
+//       border-right      8px solid rgba(0, 0, 0, .4)
+//       left              -8px !important
+//       background        none !important
+//   &.placement-left
+//     div.arrow
+//       border-top        8px solid transparent
+//       border-bottom     8px solid transparent
+//       border-left       8px solid rgba(0, 0, 0, .4)
+//       right             -8px !important
 
 .kdmodal.modal-with-text .kdmodal-content p
   padding               10px

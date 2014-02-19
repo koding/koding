@@ -43,6 +43,8 @@ module.exports = class JReferralCampaign extends jraphical.Module
         ]
         some      :
           (signature Object, Object, Function)
+        isCampaignValid:
+          (signature String, Function)
       instance     :
         update     : [
           (signature Object, Function)
@@ -59,14 +61,14 @@ module.exports = class JReferralCampaign extends jraphical.Module
   @create = secure (client, data, callback) ->
     checkPermission client, (err, res)=>
       return callback err if err
-      customPartial = new JReferralCampaign data
-      customPartial.save (err)->
+      campaign = new JReferralCampaign data
+      campaign.save (err)->
         return callback err if err
-        return callback null, customPartial
+        return callback null, campaign
 
   checkPermission: checkPermission = (client, callback)->
     {context:{group}} = client
-    JGroup = require "./group"
+    JGroup = require "../group"
     JGroup.one {slug:group}, (err, group)=>
       return callback err if err
       return callback new Error "group not found" unless group
@@ -89,13 +91,17 @@ module.exports = class JReferralCampaign extends jraphical.Module
 
   isCampaignValid = (campaignName, callback)->
     [campaignName, callback] = [REGISTER_CAMPAIGN, campaignName] unless callback
-    fetchCampaign (err, campaign)->
+    fetchCampaign campaignName, (err, campaign)->
       return callback err if err
       return callback null, no unless campaign
 
       { campaignGivenAmount,
         campaignInitialAmount
-        endDate } = campaign
+        endDate, startDate } = campaign
+
+      if Date.now() < startDate.getTime()
+        console.info "campaign is not started yet"
+        return callback null, no
 
       # if date is valid
       if Date.now() > endDate.getTime()
@@ -125,20 +131,8 @@ module.exports = class JReferralCampaign extends jraphical.Module
     [campaignName, callback] = [REGISTER_CAMPAIGN, campaignName] unless callback
     JReferralCampaign.one {name: campaignName}, (err, campaign) ->
       return callback err if err
-      unless campaign
-        cmp = new JReferralCampaign
-          name                  : campaignName
-          slug                  : campaignName
-          isActive              : true
-          campaignPerEventAmount: 1024
-          campaignInitialAmount : 0
-          endDate               : new Date("Jan 28 2099 16:00:00 GMT")
-
-        cmp.save (err)->
-          return callback err if err
-          return callback null, cmp
-      else
-        return callback null, campaign
+      return callback null, no  unless campaign
+      return callback null, campaign
 
    increaseGivenAmountSpace:(size, callback)->
     [size, callback] = [@campaignPerEventAmount, size] unless callback
