@@ -52,7 +52,7 @@ module.exports =
   runNeo4jFeeder: yes
   runGoBroker   : yes
   runGoBrokerKite: yes
-  runPremiumBrokerKite: no
+  runPremiumBrokerKite: yes
   runKontrol    : yes
   runRerouting  : yes
   runUserPresence: yes
