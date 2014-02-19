@@ -30,6 +30,7 @@ class EnvironmentContainer extends KDDiaContainer
       cssClass : 'add-button'
       callback : => @emit 'PlusButtonClicked'
     @addSubView @addButton
+    @addButton.setY 54
 
     {@appStorage} = @parent
 
@@ -42,7 +43,7 @@ class EnvironmentContainer extends KDDiaContainer
     @loader.hide()
 
   addDia:(diaObj, pos)->
-    pos = x: 20, y: 68 + @diaCount() * (@itemHeight + 20)
+    pos = x: 20, y: 50 + @diaCount() * (@itemHeight + 14)
     super diaObj, pos
 
     diaObj.on "KDObjectWillBeDestroyed", @bound 'updatePositions'
@@ -54,7 +55,7 @@ class EnvironmentContainer extends KDDiaContainer
     index = 0
     for _key, dia of @dias
       dia.setX 20
-      dia.setY 68 + index * (@itemHeight + 20)
+      dia.setY 50 + index * (@itemHeight + 14)
       index++
 
     @updateAddButton()
@@ -65,4 +66,4 @@ class EnvironmentContainer extends KDDiaContainer
     @removeAllItems()
 
   updateAddButton:->
-    @addButton.setY 68 + @diaCount() * (@itemHeight + 20)
+    @addButton.setY 54 + @diaCount() * (@itemHeight + 14)
