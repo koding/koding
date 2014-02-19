@@ -35,6 +35,7 @@ class IntroTeamPlan extends JView
         snapOnDrag      : yes
         handles         : [@userQuantity]
         width           : 319
+        drawBar         : yes
 
     @userSlider.on "ValueChanged", (@userQuantity) => @updateContent()
 
