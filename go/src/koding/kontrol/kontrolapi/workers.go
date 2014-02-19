@@ -204,7 +204,7 @@ func GetWorkers(writer http.ResponseWriter, req *http.Request) {
 				}
 				// if searched for social-1, social-2, then return all workers
 				// that begins with social
-				query[key] = bson.RegEx{Pattern: "^" + name, Options: "i"}
+				query[key] = bson.RegEx{Pattern: name, Options: "i"}
 			} else {
 				query[key] = value[0]
 			}
