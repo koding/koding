@@ -21,6 +21,7 @@ class WidgetController extends KDObject
       ]
 
     KD.remote.api.JCustomPartials.some query, {}, (err, widgets) =>
+      return  unless widgets or err
       for widget in widgets
         target   = "published"
         key      = "viewInstance"
