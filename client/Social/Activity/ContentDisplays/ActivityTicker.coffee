@@ -269,6 +269,9 @@ class ActivityTicker extends ActivityRightBase
     # relationships from guests should not be there
     return null if @checkGuestUser(source) or @checkGuestUser(target)
 
+    #CtF instead of filtering later on we should implement its view
+    return null  if as is "commenter" 
+
     # filter user followed status activity
     if @getConstructorName(source) is "JNewStatusUpdate" and \
         @getConstructorName(target) is "JAccount" and \

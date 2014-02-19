@@ -212,7 +212,7 @@ class ActivityTickerItem extends KDListItemView
 
     if itemClass
     then @addSubView new itemClass null, data
-    else @destroy()
+    else @hide()
 
   getClassName: (data)->
     {as, source, target} = data
