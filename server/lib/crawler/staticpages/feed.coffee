@@ -219,7 +219,7 @@ putContentIntoFullPage = (content, pagination, contentType)->
     <!DOCTYPE html>
     <html lang="en">
     <head>
-      <title>Koding</title>
+      <title>Koding | A new way for developers to work.</title>
       #{getGraphMeta()}
     </head>
     <body itemscope itemtype="http://schema.org/WebPage" class="super activity">

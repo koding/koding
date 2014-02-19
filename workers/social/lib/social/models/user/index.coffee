@@ -423,6 +423,13 @@ module.exports = class JUser extends jraphical.Module
                 account.updateCounts()
                 JUser.clearOauthFromSession session, ->
                   callback null, {account, replacementToken}
+                  account.fetchSubscriptions tags: ["nosync"], (err, subscriptions) ->
+                    console.warn err  if err
+                    if subscriptions.length is 0
+                      JPaymentSubscription.createFreeSubscription account, (err, subscription) ->
+                        console.warn err  if err
+                        subscription.debitPack tag: "vm", (err) ->
+                          console.warn "VM pack couldn't be debited from subscription: #{err}"  if err
 
   @logout = secure (client, callback)->
     if 'string' is typeof client
@@ -1029,7 +1036,8 @@ module.exports = class JUser extends jraphical.Module
     , (err) =>
         return callback err if err
         JUser.emit "UserBlocked", @
-        return callback err
+        # clear all of the cookies of the blocked user
+        JSession.remove {username: @username}, callback
 
   unblock:(callback)->
     @update

@@ -113,21 +113,8 @@ class AdminModal extends KDModalViewWithForms
                     content   : inputs.Description.getValue()
                     type      : inputs.Type.getValue()
                   , (err, status) ->
-                    if err then KD.showError err  
-                    else KD.notify_ 'System Status is broadcasted to users'
+                    KD.showError err  if err
                     buttons["Broadcast Message"].hideLoader()
-
-              "Cancel Restart":
-                title         : "Cancel Restart"
-                style         : "modal-clean-gray"
-                loader        :
-                  color       : "#444444"
-                  diameter    : 12
-
-                callback      : (event)=>
-                  {inputs, buttons} = @modalTabs.forms["Broadcast Message"]
-                  KD.remote.api.JSystemStatus.stopCurrentSystemStatus (err,res)->
-                    buttons["Cancel Restart"].hideLoader()
 
             fields            :
               Presets         :

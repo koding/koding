@@ -47,7 +47,7 @@ class PricingAppView extends KDView
     @showPaymentSucceded()  if "vm" in @formData.productData.plan.tags
 
   cancel: ->
-    KD.singleton("router").handleRoute "/Pricing/Developer"
+    KD.singleton("router").handleRoute "/Activity"
 
   showGroupForm: ->
 

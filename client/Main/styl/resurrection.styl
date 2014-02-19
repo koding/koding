@@ -58,8 +58,53 @@ button
   z-index             1000
   overflow            visible
   visibility          visible
-  shadow              0 3px 0 rgba(0, 0, 0, .15)
   fix()
+
+  .header-notification
+    size                100% 26px
+    bg                  color rgba(24, 148, 83, .9)
+    bg                  image url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAQAAAAngNWGAAAAT0lEQVQ4y43SOxIAIAxCQUruf+HYqBPNj6HdjgdjHLJpzCLMWYAV+2DNHtgxB3t24cQ2nJkRGjNCYyksThXZD5tERObhEJzIDhTyFRkhMi6JHdO5oh57CwAAAABJRU5ErkJggg==')
+    bg                  repeat repeat
+    bg                  scroll no-scroll
+    vendor              transition, top .077s ease-in
+    left                0
+    top                 29px
+    z-index             0
+    color               white
+    letter-spacing      .05em
+    text-align          center
+    line-height         26px
+    font-size           12px
+    borderBox()
+    abs()
+    &.in
+      top               55px
+    &.warn
+      bg                color rgba(187, 159, 9, .9)
+    &.err
+      bg                color rgba(238, 100, 98, .9)
+    &.fx
+      vendor            animation, progress 60s linear infinite
+    strong
+      font-weight       600
+    .cancel
+      right             10px
+      top               3px
+      abs()
+    a
+      border-bottom     1px solid white
+      color             white
+      noTextDeco()
+    .custom-link-view
+      display           inline-block
+      size              16px 16px
+      vertical-align    top
+      border-bottom     none
+      margin            5px 0 0 5px
+      span.close.icon
+        display         block
+        r-sprite        app '16-close-white'
+
 
   .inner-container
     bg                  color, #1f2628
@@ -68,6 +113,9 @@ button
     -webkit-transition  -webkit-transform .2s ease
     -moz-transition     -moz-transform .2s ease
     transition          transform .2s ease
+    z-index             1
+    shadow              0 3px 0 rgba(0, 0, 0, .15)
+    rel()
 
     .logotype
       hidden()
@@ -81,10 +129,11 @@ button
 
 
 #dock
-  size              auto, auto
+  size              auto auto
   kalc              width, 100% \- 380px
   overflow          visible
   position          relative
+  margin-left       58px
   fl()
 
 
@@ -97,7 +146,10 @@ button
 #koding-logo
   size              57px 55px
   bg                color, logoBg
-  fl()
+  z-index           11
+  top               0
+  left              0
+  abs()
 
   &.staging
     bg              color #ff9200 // old koding orange

@@ -419,6 +419,18 @@ finderSelectedColor2 = #3AAAAB
   span.icon
     margin            2px 0 0 0
 
+.kdbutton.solid.mini
+  margin              0
+  padding             0 10px
+  size                auto 20px
+  rounded             6px
+  text-align          center
+  span.button-title
+    font-size         12px
+    line-height       1
+  span.icon
+    margin            2px 0 0 0
+
 .kdbutton.solid.medium
   margin              0
   padding             0 25px
@@ -534,13 +546,8 @@ finderSelectedColor2 = #3AAAAB
       font-size           12px
       padding             3px 20px
       borderBox()
-      .on-off
-        width             52px
-        margin            0
+      .koding-on-off
         fr()
-        a
-          padding         5px 0px 4px 0px
-          width           24px
       a.shortcuts
         color             #444
         noTextDeco()
@@ -686,12 +693,12 @@ input.kdinput.text
     transition          transform .1s ease
 
   &.small
-    size                  52px 28px
-    rounded               14px
+    size                52px 28px
+    rounded             14px
     &.on a.knob
-      vendor              transform, translateX(24px)
+      vendor            transform, translateX(24px)
     a.knob
-      size                24px 24px
+      size              24px 24px
 
   &.tiny
     size                  34px 18px

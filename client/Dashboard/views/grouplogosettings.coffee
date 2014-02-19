@@ -37,8 +37,9 @@ class GroupLogoSettings extends KDView
     @addSubView @uploadButton
 
     @group.on "update", =>
-      resized = KD.utils.proxifyUrl @group.customize.logo, proxifyOptions
-      @groupLogoView.setCss 'background-image', "url(#{resized})"
+      if @group.customize?.logo
+        resized = KD.utils.proxifyUrl @group.customize.logo, proxifyOptions
+        @groupLogoView.setCss 'background-image', "url(#{resized})"
 
   showUploadView: ->
     @groupLogoView.hide()

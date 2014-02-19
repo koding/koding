@@ -6,24 +6,16 @@ class DeveloperPlan extends JView
     @planIndex = 0
 
     @plans = [
-      { cpu: 1,  ram: 1,  disk: 4 ,  alwaysOn: 0, totalVMs: 3,  price: 0 }
-      { cpu: 2,  ram: 2,  disk: 50 , alwaysOn: 1, totalVMs: 10, price: 19 }
-      { cpu: 4,  ram: 4,  disk: 100, alwaysOn: 2, totalVMs: 20, price: 39 , discount:  4, vm: 1 }
-      { cpu: 8,  ram: 6,  disk: 150, alwaysOn: 3, totalVMs: 30, price: 59 , discount:  8, vm: 2 }
-      { cpu: 16, ram: 8,  disk: 200, alwaysOn: 4, totalVMs: 40, price: 79 , discount: 12, vm: 3 }
-      { cpu: 20, ram: 10, disk: 250, alwaysOn: 5, totalVMs: 50, price: 99 , discount: 16, vm: 4 }
+      { cpu:  1,  ram:  1,  disk:   3, alwaysOn: 0, totalVMs:  1, price:  0 }
+      { cpu:  2,  ram:  2,  disk:  10, alwaysOn: 1, totalVMs:  2, price: 19 }
+      { cpu:  4,  ram:  4,  disk:  20, alwaysOn: 2, totalVMs:  4, price: 39 }
+      { cpu:  6,  ram:  6,  disk:  40, alwaysOn: 3, totalVMs:  6, price: 59 }
+      { cpu:  8,  ram:  8,  disk:  80, alwaysOn: 4, totalVMs:  8, price: 79 }
+      { cpu: 10,  ram: 10,  disk: 100, alwaysOn: 5, totalVMs: 10, price: 99 }
     ]
 
     @slider          = new PricingPlanSelection
       title          : "Resource Pack"
-      description    : """
-        <span>1 Resource pack contains</span>
-        <cite>4x</cite>CPU
-        <cite>2x</cite>GB RAM
-        <cite>50</cite>GB Disk
-        <cite>10x</cite>Total VMs
-        <cite>1x</cite>Always on VMs</p>
-        """
       unitPrice      : 20
       hidePrice      : yes
       amountSuffix   : "x"
@@ -92,6 +84,16 @@ class DeveloperPlan extends JView
     # @promotion.updatePartial if discount and vm
     # then "TREAT: $#{discount} OFF OR #{vm} FREE VM#{if vm > 1 then 's' else ''}"
     # else ""
+
+  viewAppended: ->
+    super
+
+    @slider.addSubView new KDCustomHTMLView
+      tagName : "a"
+      cssClass: "pricing-show-details"
+      partial : "What is This?"
+      click   : =>
+        @emit "ShowHowItWorks"
 
   pistachio: ->
     """

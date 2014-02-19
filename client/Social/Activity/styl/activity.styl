@@ -186,6 +186,7 @@ resurrection.activity.styl
       margin-top        33px
       color             #5b5b5b
       overflow          visible
+      display           none !important
 
       strong
         color           #1aaf5d
@@ -295,10 +296,8 @@ resurrection.activity.styl
 
       .action
         overflow        visible
-        size            100% auto
         line-height     18px
-        abs             50% 0 0
-        vendor          transform, translateY(-50%)
+        vCenter()
 
         .kdview
           font-weight   300

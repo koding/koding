@@ -31,7 +31,7 @@ KD.extend
     options.background    ?= no           # a Boolean
     options.hiddenHandle  ?= no           # a Boolean
     options.openWith     or= "lastActive" # a String "lastActive","forceNew" or "prompt"
-    options.behavior     or= ""           # a String "application", "hideTabs", or ""
+    options.behavior     or= ""           # a String "application", or ""
     options.thirdParty    ?= no           # a Boolean
     options.menu         or= null         # <Array<Object{title: string, eventName: string, shortcut: string}>>
     options.navItem      or= {}           # <Object{title: string, eventName: string, shortcut: string}>

@@ -751,6 +751,23 @@ module.exports = class JGroup extends Module
     else
       kallback()
 
+
+  fetchHomepageView: (options, callback)->
+    {account} = options
+    @fetchMembershipPolicy (err, policy)=>
+      if err then callback err
+      else
+        homePageOptions = extend options, {
+          @slug
+          @title
+          @avatar
+          @body
+          @counts
+          @customize
+        }
+        prefix = if account.type is 'unregistered' then 'loggedOut' else 'loggedIn'
+        JGroup.render[prefix].groupHome homePageOptions, callback
+
   fetchRolesByClientId:(clientId, callback)->
     [callback, clientId] = [clientId, callback]  unless callback
     return callback null, []  unless clientId
@@ -1256,7 +1273,8 @@ module.exports = class JGroup extends Module
     @fetchOwner (err, owner)=>
       return callback err if err
       unless owner.getId().equals client.connection.delegate.getId()
-        return callback new KodingError 'You must be the owner to perform this action!'
+        unless client.connection.delegate.can "reset groups"
+          return callback new KodingError 'You must be the owner to perform this action!'
 
       removeHelper = (model, err, callback, queue)->
         return callback err if err

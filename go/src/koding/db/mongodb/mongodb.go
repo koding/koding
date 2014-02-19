@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"os"
-	"sync"
 
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
@@ -14,11 +13,6 @@ type MongoDB struct {
 	Session *mgo.Session
 	URL     string
 }
-
-var (
-	Mongo *MongoDB
-	mu    sync.Mutex
-)
 
 func NewMongoDB(url string) *MongoDB {
 	m := &MongoDB{

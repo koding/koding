@@ -161,3 +161,18 @@ func (r *RedisSession) Exists(key string) bool {
 
 	return false // means reply is 0, key does not exist
 }
+
+// Ping pings the redis server to check if it is alive or not
+// If the server is not alive will return a proper error
+func (r *RedisSession) Ping() error {
+	reply, err := redis.String(r.Do("PING"))
+	if err != nil {
+		return err
+	}
+
+	if reply != "PONG" {
+		return fmt.Errorf("reply string is wrong!: %s", reply)
+	}
+
+	return nil
+}
