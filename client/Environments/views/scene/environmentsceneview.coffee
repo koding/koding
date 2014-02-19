@@ -102,16 +102,6 @@ class EnvironmentScene extends KDDiaScene
         title : "You need to login to change domain settings."
     return new EnvironmentApprovalModal {action}, items
 
-  whenItemsLoadedFor:do->
-    # poor man's when/promise implementation ~ GG
-    (containers, callback)->
-      counter = containers.length
-      containers.forEach (container)->
-        container.once "DataLoaded", ->
-          if counter is 1 then do callback
-          counter--
-        container.loadItems()
-
   addContainer:(container, pos)->
     pos ?= x: 10 + @containers.length * 260, y: 0
     super container, pos
@@ -130,8 +120,8 @@ class EnvironmentScene extends KDDiaScene
   type = (item)->
     itemMap[item.dia.constructor.name] or null
 
-  viewAppended:->
-    super
+  # viewAppended:->
+  #   super
 
     # @addSubView @slider = new KDSliderBarView
     #   cssClass   : 'zoom-slider'

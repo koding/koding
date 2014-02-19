@@ -9,13 +9,18 @@ class EnvironmentsMainScene extends JView
     @addSubView new KDView
       cssClass : 'environment-help'
       partial  : """
-        <h1>Environments</h1>
+        <div class="content">
+          <h1>Environments</h1>
+          Welcome to Environments. Here you can setup your servers and development environment.
+        </div>
       """
 
     @addSubView @freePlanView = new KDView
       cssClass : "top-warning"
       partial  : """
-        You are on a free developer plan, see your usage or <a href="/Pricing">upgrade</a>.
+        <div class="content">
+          You are on a free developer plan, see your usage or <a href="/Pricing">upgrade</a>.
+        </div>
       """
 
     @paymentController = KD.getSingleton("paymentController")
@@ -24,7 +29,7 @@ class EnvironmentsMainScene extends JView
       @freePlanView.show()  if not subscription or "nosync" in subscription.tags
 
     @paymentController.on "SubscriptionCompleted", =>
-      @freePlanView.hide()
+      @freePlanView.updatePartial ""
 
     @fetchStacks()
 
