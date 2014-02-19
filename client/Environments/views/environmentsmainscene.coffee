@@ -84,6 +84,12 @@ class StackView extends KDView
     extrasContainer = new EnvironmentExtraContainer
     @scene.addContainer extrasContainer
 
+    @loadContainers()
+
+  loadContainers:->
+    promises = (container.loadItems()  for container in @scene.containers)
+    Promise.all(promises).then => @updateView yes
+
   updateView:(updateData = no)->
 
     @scene.updateConnections()  if updateData
