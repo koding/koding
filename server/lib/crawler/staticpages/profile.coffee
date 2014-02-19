@@ -163,7 +163,7 @@ putContent = (account, sUpdates)->
   numberOfFollowers = if account.counts.followers then account.counts.followers else "0"
   numberOfFollowing = if account.counts.following then account.counts.following else "0"
 
-  imgURL   = "//gravatar.com/avatar/#{hash}?size=90&d=mm'}"
+  imgURL   = "//gravatar.com/avatar/#{hash}?size=90&d=https://koding-cdn.s3.amazonaws.com/images/default.avatar.140.png&r=g'}"
   if avatar
     imgURL = "//i.embed.ly/1/display/crop?grow=false&width=90&height=90&key=94991069fb354d4e8fdb825e52d4134a&url=#{encodeURIComponent avatar}"
 

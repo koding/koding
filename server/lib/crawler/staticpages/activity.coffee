@@ -101,7 +101,7 @@ createAccountName = (fullName)->
   return "#{fullName}"
 
 createAvatarImage = (hash)->
-  imgURL = "https://gravatar.com/avatar/#{hash}?size=90&amp;d=mm"
+  imgURL = "https://gravatar.com/avatar/#{hash}?size=90&amp;d=https://koding-cdn.s3.amazonaws.com/images/default.avatar.140.png&r=g"
   """
   <img width="70" height="70" src="#{imgURL}" style="opacity: 1;" itemprop="image" />
   """
@@ -150,7 +150,7 @@ getSingleActivityContent = (activityContent, model)->
   commentsList = ""
   if activityContent?.comments
     for comment in activityContent.comments
-      avatarUrl = "https://gravatar.com/avatar/#{comment.authorHash}?size=90&amp;d=https%3A%2F%2Fapi.koding.com%2Fimages%2Fdefaultavatar%2Fdefault.avatar.40.png"
+      avatarUrl = "https://gravatar.com/avatar/#{comment.authorHash}?size=90&amp;d=https://koding-cdn.s3.amazonaws.com/images/default.avatar.140.png&r=g"
       commentsList +=
         """
           <div class="kdview kdlistitemview kdlistitemview-comment">
