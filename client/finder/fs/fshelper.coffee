@@ -212,9 +212,8 @@ class FSHelper
     get    : (name)->
       "#{KD.config.uploadsUri}/#{KD.whoami().getId()}/#{name}"
 
-    upload : (name, content, type, slug, callback)->
-      # groups
-      args = {name, bucket : "groups", path : "buckets", content}
+    getGroupRelated : (group, name)->
+      "#{KD.config.uploadsUriForGroup}/#{group}/#{name}"
 
       #user
       # args = {name,  content}
