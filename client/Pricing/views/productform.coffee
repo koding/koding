@@ -56,7 +56,7 @@ class PricingProductForm extends JView
         <p>
           Your virtual machines (VMs) run on servers in our Premium cluster that are dedicated to our paying customers,
           so you won't be affected by network disruptions and traffic spikes that can happen on our free cluster.
-          This cluster also has less users per server than our free clusters so you are less likely to be disturbed by a "noisy neighbour".
+          This cluster also has less users per server than our free clusters so you are less likely to be disturbed by a "noisy neighbor".
           <br><br>
           If you want us to deploy Koding to your own servers, please contact us for our Enterprise plans.
         </p>

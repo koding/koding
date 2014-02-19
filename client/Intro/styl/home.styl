@@ -666,7 +666,7 @@ body.about #main-header
 
 #home-groups
   bg                    color, homeHeaderBg
-  padding               100px 0 53px
+  padding               100px 0 86px
 
   h2, h3
     text-shadow         none
@@ -705,6 +705,36 @@ body.about #main-header
     left                50%
     shadow              0 5px 16px rgba(0, 0, 0, .47)
     abs()
+
+  .kdbutton.pricing
+    display               block
+    margin                100px auto
+    size                  494px 92px
+    bg                    color logoBg
+    text-align            left
+    rounded               10px
+    a
+      noTextDeco()
+      color               white
+
+    span.button-title
+      text-align          left
+      font-family         openSansFamily
+      font-size           20px
+      line-height         1.4
+      letter-spacing      1px
+      margin-left         90px
+      font-weight         300
+      display             block
+      cite
+        display           block
+        color             homeHeaderBg
+        // font-weight       300
+
+    span.icon.dollar
+      margin              0
+      padding             0
+      r-sprite              home 'dollar'
 
   .group-features
     max-width           1053px
