@@ -53,7 +53,12 @@ addSubscription = ({db, cursor, plan}, cb) ->
     ,["targetId"]).toArray (err, rels) ->
       return cb err  if err
       return createFreeSubscription {db, cursor, plan, account}, cb  unless rels.length
-      (db.collection 'jPaymentSubscriptions').findOne {tags: "nosync"}, (err, subscription) ->
+      ids = rels.map (rel) ->
+        rel.targetId
+      selector = 
+        _id: $in : ids
+        tags    : "nosync"
+      (db.collection 'jPaymentSubscriptions').findOne selector, (err, subscription) ->
         return cb err  if err
         return createFreeSubscription {db, cursor, plan, account}, cb  unless subscription
         # console.log 'free subscription already exists'
