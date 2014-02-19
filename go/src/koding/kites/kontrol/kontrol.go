@@ -52,7 +52,7 @@ func main() {
 		log.Fatalln(err.Error())
 	}
 
-	kon := kontrol.New(kiteOptions, machines, string(publicKey), string(privateKey))
+	kon := kontrol.New(kiteOptions, "kontrol", "/tmp/kontrol-data", machines, string(publicKey), string(privateKey))
 
 	kon.AddAuthenticator("sessionID", authenticateFromSessionID)
 
