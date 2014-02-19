@@ -54,7 +54,7 @@ class UploadImageModalView extends KDModalView
       imageType = @getOptions().image.type
       imageName = "#{group.slug}-#{imageType}-#{Date.now()}.png"
 
-      FSHelper.s3.upload imageName, avatarData, (err, url)=>
+      FSHelper.s3.upload imageName, avatarData, "groups", group.slug, (err, url)=>
         if err
           new KDNotificationView title : "Error while uploading photo."
           @loaderView.hide()

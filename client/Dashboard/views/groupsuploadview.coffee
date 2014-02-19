@@ -56,7 +56,7 @@ class GroupsUploadView extends JView
     group     = KD.singletons.groupsController.getCurrentGroup()
     imageName = "#{group.slug}-logo-#{Date.now()}.png"
 
-    FSHelper.s3.upload imageName, @btoaContent, (err, url) =>
+    FSHelper.s3.upload imageName, @btoaContent, "groups", group.slug, (err, url) =>
       @loader.hide()
       return new KDNotificationView title : "Error while uploading photo." if err
       @emit "FileUploadDone", url
