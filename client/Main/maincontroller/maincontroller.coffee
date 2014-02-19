@@ -26,8 +26,6 @@ class MainController extends KDController
     @setFailTimer()
     @attachListeners()
 
-    # @introductionTooltipController = new IntroductionTooltipController
-
   createSingletons:->
 
     KD.registerSingleton "mainController",            this
