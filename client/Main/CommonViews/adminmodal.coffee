@@ -112,7 +112,9 @@ class AdminModal extends KDModalViewWithForms
                     title     : inputs.Title.getValue()
                     content   : inputs.Description.getValue()
                     type      : inputs.Type.getValue()
-                  , ->
+                  , (err, status) ->
+                    if err then KD.showError err  
+                    else KD.notify_ 'System Status is broadcasted to users'
                     buttons["Broadcast Message"].hideLoader()
 
               "Cancel Restart":
