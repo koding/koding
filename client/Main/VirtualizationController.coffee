@@ -143,7 +143,7 @@ class VirtualizationController extends KDController
       @fetchDefaultVmName (defaultVmName) ->
         if defaultVmName?
         then callback null, defaultVmName
-        else callback message: 'There is no VM for this account.'
+        else callback message: 'There is no VM for this account.', code: 100
 
   fetchDefaultVmName:(callback=noop, force=no)->
     if @defaultVmName and not force
@@ -343,22 +343,34 @@ class VirtualizationController extends KDController
 
   createPaidVM: ->
     @payment.fetchActiveSubscription tags: "vm", (err, subscription) =>
-      return  if KD.showError err
+      if err
+        if err.code is "no subscription"
+        then @showUpgradeModal()
+        else KD.showError err
+        return
+      else if not subscription
+      then return @showUpgradeModal()
+
       KD.remote.api.JPaymentPack.one tags: "vm", (err, pack) =>
-        return  if KD.showError err
+        return KD.showError err  if err
         @provisionVm {subscription, productData: {pack}}, (err, nonce) =>
           return  unless err
-          return KD.showError err  if err and err.message isnt "quota exceeded"
-          modal      = new KDModalView
-            title    : "Create a new VM"
-            cssClass : "create-vm"
-            view     : upgradeForm = @payment.createUpgradeForm()
-            height   : "auto"
-            width    : 500
-            showNav  : no
-            overlay  : yes
+          if err.message is "quota exceeded"
+          then @showUpgradeModal()
+          else KD.showError err
 
-          upgradeForm.on "Cancel", modal.bound "destroy"
+  showUpgradeModal: ->
+    modal      = new KDModalView
+      title    : "Create a new VM"
+      cssClass : "create-vm"
+      view     : upgradeForm = @payment.createUpgradeForm()
+      height   : "auto"
+      width    : 500
+      showNav  : no
+      overlay  : yes
+
+    upgradeForm.on "Cancel", modal.bound "destroy"
+    return modal
 
   provisionVm: ({ subscription, paymentMethod, productData }, callback) ->
     { JVM } = KD.remote.api

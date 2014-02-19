@@ -20,10 +20,12 @@ class EnvironmentsMainScene extends JView
 
     # Main scene for DIA
     @addSubView @scene = new EnvironmentScene
-    
+
     @paymentController = KD.getSingleton("paymentController")
     @paymentController.fetchActiveSubscription tags: "vm", (err, subscription) =>
-      return console.error err  if err
+      if err and err.code isnt "no subscription"
+        return console.error err  if err
+
       if not subscription or "nosync" in subscription.tags
         @addSubView @freePlanView = new KDView
           cssClass : 'bottom-warning'
@@ -32,7 +34,7 @@ class EnvironmentsMainScene extends JView
           """
 
     @paymentController.on "SubscriptionCompleted", =>
-      @freePlanView?.hide() 
+      @freePlanView?.hide()
 
     # Rules Container
     rulesContainer = new EnvironmentRuleContainer

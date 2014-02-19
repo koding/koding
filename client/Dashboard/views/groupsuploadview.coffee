@@ -58,7 +58,10 @@ class GroupsUploadView extends JView
 
     FSHelper.s3.upload imageName, @btoaContent, (err, url) =>
       @loader.hide()
-      return new KDNotificationView title : "Error while uploading photo." if err
+      if err 
+        message = if err.code is 100 then "First you have to create a VM"
+        else "Error while uploading photo." 
+        return KD.showError message
       @emit "FileUploadDone", url
       @destroy()
 
