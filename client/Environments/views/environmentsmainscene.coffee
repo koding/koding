@@ -65,7 +65,7 @@ class StackView extends KDView
 
     @addSubView new KDButtonView
       title    : 'Details'
-      cssClass : 'stack-toggle'
+      cssClass : 'stack-toggle solid mini green hidden'
       callback : =>
         @setHeight if @getHeight() <= 50 then @getProperHeight() else 48
         KD.utils.wait 300, @bound 'updateView'

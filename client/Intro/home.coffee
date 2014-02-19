@@ -11,7 +11,7 @@ class HomePage extends JView
     super options, data
 
     @pricingButton = new KDButtonView
-      title       : "Get your own Koding for your Team<cite>or get extra resources for yourself</cite>"
+      title       : "Check our Pricing<cite>for you or for your team</cite>"
       cssClass    : 'solid green shadowed pricing'
       icon        : 'yes'
       iconClass   : 'dollar'
@@ -239,6 +239,7 @@ class HomePage extends JView
         <nav>
           <a href="/Activity">Activity</a>
           <a href="/About">About</a>
+          <a href="/Pricing">Pricing</a>
           <a href="mailto:hello@koding.com" target='_self'>Contact</a>
           <a href="http://learn.koding.com/">University</a>
           <a href="http://koding.github.io/jobs/">Jobs</a>
