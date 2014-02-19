@@ -463,9 +463,6 @@ module.exports = class JGroup extends Module
             else
               console.log 'roles are added'
               queue.next()
-        ->
-          group.createGroupBotAndPostMessage client, ->
-            queue.next()
       ]
 
       if 'private' is group.privacy
@@ -1528,28 +1525,6 @@ module.exports = class JGroup extends Module
         return callback err  if err
         subscription.plan = plan
         callback null, subscription
-
-  createGroupBotAndPostMessage: (client, callback) ->
-    # get groupbot account
-    JAccount = require '../account'
-    JAccount.one "profile.nickname" : "bot", (err, account) =>
-      return callback err if err
-      return callback new KodingError "Can't find bot account" if not account
-
-      @addMember account, "member", (err, member)=>
-        return callback err if err
-        JNewStatusUpdate = require '../messages/newstatusupdate'
-        # set client's delegate to bot account
-        # CtF this really is a hack
-        client.context.group = @slug
-        client.context.user = "bot"
-        client.connection.delegate = account
-        client.groupName = @slug
-
-        data =
-          body  : "Welcome to your group"
-          group : @slug
-        JNewStatusUpdate.create client, data, callback
 
   getPermissionSet : (callback)->
     @fetchPermissionSet (err, permissionSet) =>
