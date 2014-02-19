@@ -78,6 +78,8 @@ module.exports = class ActivityTicker extends Base
         timestamp : {"$lt" : new Date(from)}
         data      :
           group   : groupSlug
+        as        :
+          $ne     : "commenter"
 
       relOptions  =    # do not fetch more than 15 at once
         limit     : 5  # Math.min options.limit ? 15, 15
