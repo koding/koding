@@ -243,7 +243,7 @@ class PaymentController extends KDController
 
         if subscription
         then callback null, subscription
-        else callback "No subscription found"
+        else callback message: "Subscription not found", code: "no subscription"
     else
       @fetchGroupSubscription callback
 
@@ -287,23 +287,10 @@ class PaymentController extends KDController
   _runWrapper: (options, callback) ->
     {fn, subscriptionTag, packTag} = options
 
-    kallback = (subscription) =>
-      if subscription
-        KD.remote.api.JPaymentPack.one tags: packTag, (err, pack) =>
+    @fetchActiveSubscription (err, subscription) ->
+      return callback err  if err
+      KD.remote.api.JPaymentPack.one tags: packTag, (err, pack) =>
+        return callback err  if err
+        fn subscription, pack, (err, nonce) =>
           return callback err  if err
-          fn subscription, pack, (err, nonce) =>
-            return callback err  if err
-            callback null, nonce
-      else
-        callback new Error "Subscription not found"
-
-    group = KD.getGroup()
-    if group.slug is "koding"
-      @fetchSubscriptionsWithPlans tags: [subscriptionTag], (err, subscriptions) =>
-        return callback err  if err
-        [subscription] = subscriptions
-        kallback subscription
-    else
-      @fetchGroupSubscription (err, subscription) ->
-        return callback err  if err
-        kallback subscription
+          callback null, nonce
