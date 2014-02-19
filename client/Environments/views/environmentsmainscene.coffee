@@ -126,7 +126,7 @@ class EnvironmentsMainScene extends JView
             style    : "modal-clean-green"
             callback : =>
               @addVmModal.destroy()
-              KD.singleton("vmController").createNewVM (err) ->
+              KD.singleton("vmController").createPaidVM (err) ->
                 KD.showError err
 
   getDomainCreateForm: ->
