@@ -31,7 +31,7 @@ class GroupsInvitationCodeListItemView extends KDListItemView
       cssClass                : 'invitation-share-modal'
       title                   : 'Share Invitation Code'
       overlay                 : yes
-      width                   : 400
+      width                   : 640
       height                  : 'auto'
       tabs                    :
         forms                 :
@@ -83,7 +83,7 @@ class GroupsInvitationCodeListItemView extends KDListItemView
       cssClass               : 'invitation-share-modal'
       title                  : 'Share Invitation Code'
       overlay                : yes
-      width                  : 400
+      width                  : 640
       height                 : 'auto'
       tabs                   :
         forms                :
