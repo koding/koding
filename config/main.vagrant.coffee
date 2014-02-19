@@ -174,6 +174,7 @@ module.exports =
       mainUri   : 'http://localhost:3020'
       appsUri   : 'https://koding-apps.s3.amazonaws.com'
       uploadsUri: 'https://koding-uploads.s3.amazonaws.com'
+      uploadsUriForGroup: 'https://koding-groups.s3.amazonaws.com'
       sourceUri : 'http://localhost:3526'
       newkontrol:
         url     : 'ws://127.0.0.1:4000/kontrol'
