@@ -84,14 +84,12 @@ class StackView extends KDView
     # Domains Container
     domainsContainer = new EnvironmentDomainContainer
     @scene.addContainer domainsContainer
-
-    domainsContainer.on 'itemRemoved', @lazyBound('updateView', yes)
     domainsContainer.on 'itemAdded',   @lazyBound('updateView', yes)
 
     # VMs / Machines Container
     machinesContainer = new EnvironmentMachineContainer
     @scene.addContainer machinesContainer
-    machinesContainer.on 'VMListChanged', @lazyBound('updateView', yes)
+    machinesContainer.on 'VMListChanged', @bound 'loadContainers'
 
     # Rules Container
     extrasContainer = new EnvironmentExtraContainer
@@ -100,10 +98,16 @@ class StackView extends KDView
     @loadContainers()
 
   loadContainers:->
+
+    return  if @_inProgress
+    @_inProgress = yes
+
     promises = (container.loadItems()  for container in @scene.containers)
     Promise.all(promises).then =>
       @setHeight @getProperHeight()
-      KD.utils.wait 300, => @updateView yes
+      KD.utils.wait 300, =>
+        @_inProgress = no
+        @updateView yes
 
   updateView:(updateData = no)->
 

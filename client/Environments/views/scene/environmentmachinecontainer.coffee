@@ -39,11 +39,11 @@ class EnvironmentMachineContainer extends EnvironmentContainer
 
       vmc.fetchGroupVMs yes, (err, vms)=>
 
+        @removeAllItems()
+
         if err or vms.length is 0
           warn "Failed to fetch VMs", err  if err
           return resolve()
-
-        @removeAllItems()
 
         vms.forEach (vm, index)=>
 

@@ -39,11 +39,12 @@ class EnvironmentDomainContainer extends EnvironmentContainer
 
       KD.whoami().fetchDomains (err, domains)=>
 
+        @removeAllItems()
+
         if err or not domains or domains.length is 0
           warn "Failed to fetch domains", err  if err
           return resolve()
 
-        @removeAllItems()
         domains.forEach (domain, index)=>
           @addDomain domain
           if index is domains.length - 1 then resolve()
