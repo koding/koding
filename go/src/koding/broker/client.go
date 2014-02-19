@@ -28,15 +28,12 @@ func NewClient(session *sockjs.Session, broker *Broker) (*Client, error) {
 	socketId := randomString()
 	session.Tag = socketId
 
-	var err error
 	controlChannel, err := broker.PublishConn.Channel()
 	if err != nil {
 		return nil, fmt.Errorf("Couldnt create publish channel %v", err)
 	}
 
-	var subscriptions storage.Subscriptionable
-
-	subscriptions, err = createSubscriptionStorage(socketId)
+	subscriptions, err := createSubscriptionStorage(socketId)
 	if err != nil {
 		return nil, err
 	}
@@ -54,16 +51,19 @@ func NewClient(session *sockjs.Session, broker *Broker) (*Client, error) {
 	}, nil
 }
 
-func createSubscriptionStorage(socketId string) (storage.Subscriptionable, error) {
-	subscriptions, err := storage.NewStorage(conf, storage.REDIS, socketId)
-	if err == nil {
-		return subscriptions, nil
-	}
-	log.Critical("Couldnt access to redis/create a key for client %v", socketId)
+func createSubscriptionStorage(socketId string) (s storage.Subscriptionable, errc error) {
+	defer func() {
+		log.Critical("Couldnt access to redis/create a key for client %v: Error: %v", socketId, errc)
+	}()
 
-	subscriptions, err = storage.NewStorage(conf, storage.SET, socketId)
+	redisSubscriptions, err := storage.NewStorage(conf, storage.REDIS, socketId)
 	if err == nil {
-		return subscriptions, nil
+		return redisSubscriptions, nil
+	}
+
+	setSubscriptions, err := storage.NewStorage(conf, storage.SET, socketId)
+	if err == nil {
+		return setSubscriptions, nil
 	}
 
 	// this will never fail to here

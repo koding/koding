@@ -74,6 +74,7 @@ config =
     runNeo4jFeeder: 1
     runGoBroker   : 1
     runGoBrokerKite: 1
+    runPremiumBrokerKite: 1
     runKontrol    : 1
     runRerouting  : 1
     runUserPresence: 1
@@ -191,6 +192,10 @@ config =
           servicesEndpoint: 1
           brokerExchange: 1
           sockJS      : 1
+        premiumBrokerKite:
+          servicesEndpoint : 1
+          brokerExchange   : 1
+          sockJS           : 1
         apiUri        : 1
         appsUri       : 1
         uploadsUri    : 1
@@ -248,6 +253,17 @@ config =
       webHostname : 1
       webPort     : 1
       authExchange: 1
+      authAllExchange: 1
+    premiumBrokerKite :
+      name           : 1
+      ip             : 1
+      port           : 1
+      certFile       : 1
+      keyFile        : 1
+      webProtocol    : 1
+      webHostname    : 1
+      webPort        : 1
+      authExchange   : 1
       authAllExchange: 1
     kites:
       disconnectTimeout: 1

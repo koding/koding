@@ -6,5 +6,5 @@ module.exports = ->
   <meta name="author" content="" />
   <meta name="viewport" content="user-scalable=no, width=device-width, initial-scale=1" />
   <link rel="shortcut icon" href="/a/images/favicon.ico" />
-  <link rel="fluid-icon" href="/a/images/kd-fluid-icon512.png" title="Koding" />
+  <link rel="fluid-icon" href="/a/images/logos/fluid512.png" title="Koding" />
   """

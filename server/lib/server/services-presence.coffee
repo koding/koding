@@ -1,6 +1,6 @@
 request = require 'request'
 
-supportedServices = ['broker', 'brokerKite']
+supportedServices = ['broker', 'brokerKite', 'premiumBrokerKite']
 
 getFailoverUrl = ->
   { webProtocol: protocol, webHostname: hostname, webPort: port } =

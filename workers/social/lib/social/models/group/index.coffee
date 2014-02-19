@@ -726,7 +726,7 @@ module.exports = class JGroup extends Module
     @fetchMembershipPolicy (err, policy)=>
       if err then callback err
       else
-        homePageOptions = extend options {
+        homePageOptions = extend options, {
           @slug
           @title
           @avatar
@@ -1262,10 +1262,6 @@ module.exports = class JGroup extends Module
         => @fetchInvitations (err, requests)->
           JInvitation = require '../invitation'
           removeHelperMany JInvitation, requests, err, callback, queue
-
-        => @fetchVocabularies (err, vocabularies)->
-          JVocabulary = require '../vocabulary'
-          removeHelperMany JVocabulary, vocabularies, err, callback, queue
 
         => @fetchTags (err, tags)->
           JTag = require '../tag'
