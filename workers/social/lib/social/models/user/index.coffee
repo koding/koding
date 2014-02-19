@@ -426,8 +426,11 @@ module.exports = class JUser extends jraphical.Module
                   account.fetchSubscriptions tags: ["nosync"], (err, subscriptions) ->
                     console.warn err  if err
                     if subscriptions.length is 0
-                      JPaymentSubscription.createFreeSubscription account, (err) ->
+                      JPaymentSubscription.createFreeSubscription account, (err, subscription) ->
                         console.warn err  if err
+                        subscription.debitPack tag: "vm", (err) ->
+                          console.warn "VM pack couldn't be debited from subscription: #{err}"  if err
+                          queue.next()
 
   @logout = secure (client, callback)->
     if 'string' is typeof client

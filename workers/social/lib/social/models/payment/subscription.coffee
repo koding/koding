@@ -399,4 +399,4 @@ module.exports = class JPaymentSubscription extends jraphical.Module
         return callback new KodingError "nosync subscription failed: #{err}"  if err
         account.addSubscription freePlanSubscription, (err) ->
           return callback new KodingError "couldn't add subscription to account: #{err}"  if err
-          callback()
+          callback null, freePlanSubscription
