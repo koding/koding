@@ -123,10 +123,6 @@ module.exports = [
   # "CommonViews/fatih/fatihprefpane.coffee",
   # "CommonViews/fatih/fatih.coffee",
 
-  # INTRODUCTION TOOLTIP
-  # "CommonViews/introductiontooltip/introductiontooltip.coffee",
-  # "CommonViews/introductiontooltip/introductiontooltipcontroller.coffee",
-
   "CommonViews/ModalViewWithTerminal.coffee",
   "CommonViews/clonerepomodal.coffee",
 
