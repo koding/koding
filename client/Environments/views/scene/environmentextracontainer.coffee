@@ -3,7 +3,7 @@ class EnvironmentExtraContainer extends EnvironmentContainer
   constructor:(options={}, data)->
     options.cssClass  = 'extras'
     options.itemClass = EnvironmentExtraItem
-    options.title     = 'shared storages'
+    options.title     = 'shared storage'
     super options, data
 
     @on 'PlusButtonClicked', ->
