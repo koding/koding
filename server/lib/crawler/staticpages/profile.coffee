@@ -22,7 +22,7 @@ createStatusUpdateNode = (statusUpdate, authorFullName, authorNickname)->
   commentsList = ""
   if statusUpdate?.replies
     for comment in statusUpdate.replies
-      avatarUrl = "https://gravatar.com/avatar/#{comment.author.hash}?size=90&amp;d=https%3A%2F%2Fapi.koding.com%2Fimages%2Fdefaultavatar%2Fdefault.avatar.40.png"
+      avatarUrl = "https://gravatar.com/avatar/#{comment.author.hash}?size=90&amp;d=mm"
       commentsList +=
         """
           <div class="kdview kdlistitemview kdlistitemview-comment">
@@ -163,7 +163,7 @@ putContent = (account, sUpdates)->
   numberOfFollowers = if account.counts.followers then account.counts.followers else "0"
   numberOfFollowing = if account.counts.following then account.counts.following else "0"
 
-  imgURL   = "//gravatar.com/avatar/#{hash}?size=90&d=#{encodeURIComponent '//a/images/defaultavatar/default.avatar.90.png'}"
+  imgURL   = "//gravatar.com/avatar/#{hash}?size=90&d=mm'}"
   if avatar
     imgURL = "//i.embed.ly/1/display/crop?grow=false&width=90&height=90&key=94991069fb354d4e8fdb825e52d4134a&url=#{encodeURIComponent avatar}"
 

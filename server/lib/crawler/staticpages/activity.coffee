@@ -101,7 +101,7 @@ createAccountName = (fullName)->
   return "#{fullName}"
 
 createAvatarImage = (hash)->
-  imgURL = "https://gravatar.com/avatar/#{hash}?size=90&amp;d=https%3A%2F%2Fapi.koding.com%2Fimages%2Fdefaultavatar%2Fdefault.avatar.90.png"
+  imgURL = "https://gravatar.com/avatar/#{hash}?size=90&amp;d=mm"
   """
   <img width="70" height="70" src="#{imgURL}" style="opacity: 1;" itemprop="image" />
   """
