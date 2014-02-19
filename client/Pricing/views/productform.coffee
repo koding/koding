@@ -24,8 +24,8 @@ class PricingProductForm extends JView
       multiple     : no
       callback     : =>
         KD.singleton("router").handleRoute switch @toggle.getValue()
-            when "DEVELOPER" then "/Pricing/Developer"
-            when "TEAM" then "/Pricing/Team"
+          when "DEVELOPER" then "/Pricing/Developer"
+          when "TEAM" then "/Pricing/Team"
 
   showDeveloperPlan: ->
     @toggle.setValue "DEVELOPER"
