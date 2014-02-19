@@ -608,3 +608,47 @@ __utils.extend __utils,
 
   doesEmailValid: (email) ->
     /^((([a-z]|\d|[!#\$%&'\*\+\-\/=\?\^_`{\|}~]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])+(\.([a-z]|\d|[!#\$%&'\*\+\-\/=\?\^_`{\|}~]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])+)*)|((\x22)((((\x20|\x09)*(\x0d\x0a))?(\x20|\x09)+)?(([\x01-\x08\x0b\x0c\x0e-\x1f\x7f]|\x21|[\x23-\x5b]|[\x5d-\x7e]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(\\([\x01-\x09\x0b\x0c\x0d-\x7f]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF]))))*(((\x20|\x09)*(\x0d\x0a))?(\x20|\x09)+)?(\x22)))@((([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])*([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])))\.)+(([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])*([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])))\.?$/i.test email
+
+  nicetime: do ->
+
+    niceify = (duration)->
+
+      past = no
+
+      if duration < 0
+        past     = yes
+        duration = Math.abs duration
+
+      duration = new Number(duration).toFixed 2
+      durstr   = ''
+      second   = 1
+      minute   = second * 60
+      hour     = minute * 60
+      day      = hour * 24
+
+      durstr = if duration < minute then 'less than a minute'
+      else if duration < minute * 2 then 'about a minute';
+      else if duration < hour       then Math.floor(duration / minute) + ' minutes'
+      else if duration < hour * 2   then 'about an hour'
+      else if duration < day        then 'about ' + Math.floor(duration / hour) + ' hours';
+      else if duration < day * 2    then '1 day'
+      else if duration < day * 365  then Math.floor(duration / day) + ' days';
+      else 'over a year'
+
+      durstr += ' ago'  if past
+
+      return durstr
+
+    (duration, to)->
+
+      if not to
+        niceify duration
+      else if duration and to
+        from = duration
+        to   = to
+        niceify to - from
+      else if not duration and to
+        from = new Date().getTime() / 1000
+        to   = to
+        niceify to - from
+

@@ -104,21 +104,8 @@ class AdministrationView extends KDTabViewWithForms
                   content     : inputs.Description.getValue()
                   type        : inputs.Type.getValue()
                 , (err, status) ->
-                  if err then KD.showError err  
-                  else KD.notify_ 'System Status is broadcasted to users'
+                  KD.showError err  if err
                   buttons["Broadcast Message"].hideLoader()
-
-            "Cancel Restart":
-              title         : "Cancel Restart"
-              style         : "solid medium"
-              loader        :
-                color       : "#444444"
-                diameter    : 12
-
-              callback      : (event)=>
-                {inputs, buttons} = @forms["Broadcast Message"]
-                KD.remote.api.JSystemStatus.stopCurrentSystemStatus (err,res)->
-                  buttons["Cancel Restart"].hideLoader()
 
           fields            :
             Presets         :
@@ -145,7 +132,7 @@ class AdministrationView extends KDTabViewWithForms
                     duration: 300
                     type    : 'restart'
                   'reload'  :
-                    title   : 'Koding is updated. Please refresh!'
+                    title   : 'Koding is updated!'
                     content : 'Please refresh your browser to be able to use the newest features of Koding.'
                     duration: 10
                     type    : 'reload'
@@ -192,9 +179,12 @@ class AdministrationView extends KDTabViewWithForms
               cssClass      : 'type-select'
               selectOptions :
                 [
-                  { title   : "Restart",    value : "restart"   }
-                  { title   : "Info Text",  value : "info"  }
-                  { title   : "Reload",     value : "reload"    }
+                  { title   : "Restart",      value : "restart"   }
+                  { title   : "Info Text",    value : "info"  }
+                  { title   : "Reload",       value : "reload"    }
+                  { title   : "Error",        value : "red"  }
+                  { title   : "Warning",      value : "yellow"  }
+                  { title   : "Notification", value : "green"  }
                 ]
               defaultValue  : 'restart'
               change        : =>

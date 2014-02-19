@@ -253,11 +253,28 @@ class MainView extends KDView
     @panelWrapper.addSubView @mainTabView
     @panelWrapper.addSubView @appSettingsMenuButton
 
-  createChatPanel:->
+  setStickyNotification:->
 
-    @addSubView @chatPanel   = new MainChatPanel
-    # @addSubView @chatHandler = new MainChatHandler
-    @chatHandler = new MainChatHandler
+    return if not KD.isLoggedIn() # don't show it to guests
+
+    {JSystemStatus} = KD.remote.api
+
+    JSystemStatus.on 'restartScheduled', @bound 'handleSystemMessage'
+
+    KD.utils.wait 2000, =>
+      KD.remote.api.JSystemStatus.getCurrentSystemStatuses (err, statuses)=>
+        if err then log 'current system status:',err
+        else
+          {daisy} = Bongo
+          queue   = statuses.map (status)=>=>
+            @createGlobalNotification status
+            KD.utils.wait 500, -> queue.next()
+
+          daisy queue.reverse()
+
+  handleSystemMessage:(message)->
+
+    @createGlobalNotification message  if message.status is 'active'
 
   hideAllNotifications:->
 
@@ -265,11 +282,20 @@ class MainView extends KDView
 
   createGlobalNotification:(message, options = {})->
 
-    options.type     or= ''  # err or warn
-    options.cssClass   = KD.utils.curry "header-notification", options.type
-    options.cssClass   = KD.utils.curry options.cssClass, 'fx'  if options.animated
+    typeMap =
+      'restart' : 'warn'
+      'reload'  : ''
+      'info'    : ''
+      'red'     : 'err'
+      'yellow'  : 'warn'
+      'green'   : ''
 
-    @notifications.push notification = new GlobalNotificationView options, {message}
+    options.type      or= typeMap[message.type]
+    options.showTimer  ?= message.type isnt 'restart'
+    options.cssClass    = KD.utils.curry "header-notification", options.type
+    options.cssClass    = KD.utils.curry options.cssClass, 'fx'  if options.animated
+
+    @notifications.push notification = new GlobalNotificationView options, message
 
     @header.addSubView notification
     @hideAllNotifications()
@@ -297,25 +323,6 @@ class MainView extends KDView
 
   toggleFullscreen: ->
     if @isFullscreen() then @disableFullscreen() else @enableFullscreen()
-
-  getSticky = =>
-    KD.getSingleton('windowController')?.stickyNotification
-
-  getStatus = =>
-    KD.remote.api.JSystemStatus.getCurrentSystemStatus (err,systemStatus)=>
-      if err
-        if err.message is 'none_scheduled'
-          getSticky()?.emit 'restartCanceled'
-        else
-          log 'current system status:',err
-      else
-        systemStatus.on 'restartCanceled', =>
-          getSticky()?.emit 'restartCanceled'
-        new GlobalNotification
-          targetDate  : systemStatus.scheduledAt
-          title       : systemStatus.title
-          content     : systemStatus.content
-          type        : systemStatus.type
 
   removePulsing = ->
 
@@ -346,32 +353,3 @@ class MainView extends KDView
           duration = 400
           KDScrollView::scrollTo.call mainView, {top, duration}
           break
-
-class GlobalNotificationView extends JView
-
-  constructor:->
-
-    super
-
-    @close = new CustomLinkView
-      title      : ''
-      icon       :
-        cssClass : 'close'
-      click      : (event)=>
-        KD.utils.stopDOMEvent event
-        @once 'transitionend', @bound 'destroy'
-        @hide()
-
-    @bindTransitionEnd()
-
-  show:-> @setClass 'in'
-
-  hide:-> @unsetClass 'in'
-
-  pistachio:->
-    """
-    <div>
-    {{ #(message)}}
-    {{> @close}}
-    </div>
-    """
