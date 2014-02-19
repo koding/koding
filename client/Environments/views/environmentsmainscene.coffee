@@ -60,8 +60,7 @@ class StackView extends KDView
       cssClass : 'stack-toggle'
       callback : =>
         @setHeight if @getHeight() < 300 then 600 else 36
-        @scene.updateConnections()
-        KD.utils.wait 200, => @scene.updateScene()
+        KD.utils.wait 300, @bound 'updateView'
 
     # Main scene for DIA
     @addSubView @scene = new EnvironmentScene
@@ -74,6 +73,9 @@ class StackView extends KDView
     domainsContainer = new EnvironmentDomainContainer
     @scene.addContainer domainsContainer
 
+    domainsContainer.on 'itemRemoved', @lazyBound('updateView', yes)
+    domainsContainer.on 'itemAdded',   @lazyBound('updateView', yes)
+
     # VMs / Machines Container
     machinesContainer = new EnvironmentMachineContainer
     @scene.addContainer machinesContainer
@@ -82,5 +84,9 @@ class StackView extends KDView
     extrasContainer = new EnvironmentExtraContainer
     @scene.addContainer extrasContainer
 
-    # domainsContainer.on "itemRemoved", scene.bound 'updateConnections'
-    # KD.getSingleton("vmController").on 'VMListChanged', -> refreshContainers()
+  updateView:(updateData = no)->
+
+    @scene.updateConnections()  if updateData
+
+    @scene.highlightLines()
+    @scene.updateScene()
