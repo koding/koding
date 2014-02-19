@@ -15,9 +15,10 @@ class EnvironmentExtraContainer extends EnvironmentContainer
     dummyAdditionals = [
       {
         title: "Shared Space",
-        description: "additional "
+        description: "additional"
       }
     ]
 
-    @addItem addition for addition in dummyAdditionals
-    @emit "DataLoaded"
+    new Promise (resolve, reject)=>
+      @addItem addition for addition in dummyAdditionals
+      resolve()
