@@ -67,7 +67,7 @@ class StackView extends KDView
       title    : 'Details'
       cssClass : 'stack-toggle'
       callback : =>
-        @setHeight if @getHeight() < 300 then 600 else 36
+        @setHeight if @getHeight() <= 50 then @getProperHeight() else 48
         KD.utils.wait 300, @bound 'updateView'
 
     # Main scene for DIA
@@ -97,11 +97,19 @@ class StackView extends KDView
 
   loadContainers:->
     promises = (container.loadItems()  for container in @scene.containers)
-    Promise.all(promises).then => @updateView yes
+    Promise.all(promises).then =>
+      @setHeight @getProperHeight()
+      KD.utils.wait 300, => @updateView yes
 
   updateView:(updateData = no)->
 
     @scene.updateConnections()  if updateData
 
+    if @getHeight() > 50
+      @setHeight @getProperHeight()
+
     @scene.highlightLines()
     @scene.updateScene()
+
+  getProperHeight:->
+    (Math.max.apply null, (box.diaCount() for box in @scene.containers)) * 45 + 170
