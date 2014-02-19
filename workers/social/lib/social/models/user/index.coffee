@@ -430,7 +430,6 @@ module.exports = class JUser extends jraphical.Module
                         console.warn err  if err
                         subscription.debitPack tag: "vm", (err) ->
                           console.warn "VM pack couldn't be debited from subscription: #{err}"  if err
-                          queue.next()
 
   @logout = secure (client, callback)->
     if 'string' is typeof client
