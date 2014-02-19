@@ -264,7 +264,7 @@ class MainView extends KDView
     KD.utils.wait 2000, =>
       KD.remote.api.JSystemStatus.getCurrentSystemStatuses (err, statuses)=>
         if err then log 'current system status:',err
-        else
+        else if statuses and Array.isArray statuses
           {daisy} = Bongo
           queue   = statuses.map (status)=>=>
             @createGlobalNotification status
