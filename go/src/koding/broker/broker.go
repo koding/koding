@@ -16,6 +16,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"runtime"
 	"strconv"
 	"strings"
 	"sync"
@@ -120,6 +121,9 @@ func main() {
 
 // Run starts the broker.
 func (b *Broker) Run() {
+	// sets the maximum number of CPUs that can be executing simultaneously
+	runtime.GOMAXPROCS(runtime.NumCPU())
+
 	lifecycle.Startup(BROKER_NAME, false)
 	logger.RunGaugesLoop(log)
 
