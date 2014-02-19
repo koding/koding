@@ -109,18 +109,15 @@ importPlans = (callback) ->
           switch plan.title
             when "Team Plan"
               quantities[productPlanCodes["Always On"]] = 1
-              quantities[productPlanCodes["VM"]] = 10
+              quantities[productPlanCodes["VM"]] = 2
               quantities[productPlanCodes["User"]] = 1
               quantities[productPlanCodes["Group"]] = 1
-              quantities[productPlanCodes["VM Turn On"]] = 3
             when "Free plan"
               quantities[productPlanCodes["VM"]] = 1
-              quantities[productPlanCodes["VM Turn On"]] = 1
             else
               {count} = plan
               quantities[productPlanCodes["Always On"]] = count
-              quantities[productPlanCodes["VM"]] = count * 10
-              quantities[productPlanCodes["VM Turn On"]] = count * 3
+              quantities[productPlanCodes["VM"]] = count * 2
 
           console.log 'quantities', quantities
           newPlan.updateProducts quantities, (err) ->
