@@ -79,6 +79,7 @@ class StackView extends KDView
     # VMs / Machines Container
     machinesContainer = new EnvironmentMachineContainer
     @scene.addContainer machinesContainer
+    machinesContainer.on 'VMListChanged', @lazyBound('updateView', yes)
 
     # Rules Container
     extrasContainer = new EnvironmentExtraContainer

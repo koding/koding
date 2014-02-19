@@ -28,6 +28,9 @@ class EnvironmentMachineContainer extends EnvironmentContainer
               KD.singleton("vmController").createNewVM (err) ->
                 KD.showError err
 
+    KD.getSingleton("vmController").on 'VMListChanged', =>
+      @loadItems().then => @emit 'VMListChanged'
+
   loadItems:->
 
     new Promise (resolve, reject)=>
