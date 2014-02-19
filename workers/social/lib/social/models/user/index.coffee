@@ -423,6 +423,11 @@ module.exports = class JUser extends jraphical.Module
                 account.updateCounts()
                 JUser.clearOauthFromSession session, ->
                   callback null, {account, replacementToken}
+                  account.fetchSubscriptions tags: ["nosync"], (err, subscriptions) ->
+                    console.warn err  if err
+                    if subscriptions.length is 0
+                      JPaymentSubscription.createFreeSubscription account, (err) ->
+                        console.warn err  if err
 
   @logout = secure (client, callback)->
     if 'string' is typeof client
