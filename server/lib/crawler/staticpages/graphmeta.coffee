@@ -46,7 +46,7 @@ module.exports = ->
   <meta name="viewport" content="user-scalable=no, width=device-width, initial-scale=1">
 
   <link rel="shortcut icon" href="#{uri.address}/a/images/favicon.ico">
-  <link rel="fluid-icon" href="#{uri.address}/a/images/logos/share_logo.png" title="Koding">
+  <link rel="fluid-icon" href="#{uri.address}/a/images/logos/fluid512.png" title="Koding">
   <link rel="stylesheet" href="/a/css/kd.#{version}.css">
   <link rel="stylesheet" href="/a/css/introapp.#{version}.css">
   <link rel="stylesheet" href="/a/css/koding.#{version}.css">
