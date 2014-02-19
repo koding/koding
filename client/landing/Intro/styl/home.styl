@@ -379,6 +379,23 @@ body.about #main-header
   padding               22px 0 87px
   borderBox()
 
+  h1
+    font-size       32px
+
+  h2
+    font-size       28px
+
+  h3
+    font-size       24px
+
+  h1
+  h2
+  h3
+    font-weight     200
+    color           #1c2021
+    margin-bottom   8px
+    text-shadow     none
+
   .inner-container
     max-width           1096px
     margin              0 auto
@@ -387,17 +404,10 @@ body.about #main-header
       padding-bottom    41px
       border-bottom     1px solid #d4d4d4
 
-      h2
-        font-size       28px
-        font-weight     200
-        color           #1c2021
-        margin-bottom   8px
-        text-shadow     none
-
       p
         font-size       20px
         color           #757575
-        font-weight     200px
+        font-weight     200
         line-height     26px
         width           702px
         fl()
@@ -437,7 +447,9 @@ body.about #main-header
     .plan-selection
       .developer-plan
       .team-plan
+        height          300px
         overflow        visible
+
     .plan-selection-box
       width           715px
       padding-top     42px
@@ -520,13 +532,19 @@ body.about #main-header
           rounded         12px
           font-size       10px
           display         inline-block
-          min-width       23px
+          min-width       33px
           height          23px
           line-height     23px
           text-align      center
           padding         0 5px
           margin          0 5px 0 15px
           borderBox()
+
+      a.pricing-show-details
+        font-size         12px
+        font-weight       200
+        color             #747474
+        abs               174px -30px 0 0
 
       &.selected
         margin              0
@@ -579,6 +597,9 @@ body.about #main-header
           line-height         2
           margin              0
 
+        .pricing-show-details
+          abs                 274px 0px 0 0
+
     .developer-plan
 
       .sliderbar-container
@@ -589,6 +610,59 @@ body.about #main-header
           background          #dadada
           shadow              inset 1px 1px 0 rgba(0, 0, 0, .16) \,
                               0 0 0 1px #dadada
+
+      .pricing-show-details
+          abs                 174px -30px 0 0
+
+  .how-it-works
+    bg                        color, #f1f1f1
+    border                    1px solid #d3d3d3
+    border-radius             12px
+    max-width                 913px
+    padding                   24px
+    color                     #747474
+    vendor                    column-count, 3
+    vendor                    column-gap, 24px
+    position                  relative
+    margin-top                -88px
+    borderBox()
+
+    &:after
+      content                 ""
+      display                 block
+      border                  11px solid transparent
+      border-bottom-color     #f1f1f1
+      abs                     -22px 192px 0 0
+
+    &:before
+      content                 ""
+      display                 block
+      border                  11px solid transparent
+      border-bottom-color     #d3d3d3
+      abs                     -23px 192px 0 0
+
+    &.team
+      margin-top              0
+
+      &:before
+      &:after
+        right                 612px
+
+    .item
+      font-size               12px
+      font-weight             200
+
+      &:not(.cpu)
+        vendor                column-break-inside, avoid
+
+      h4
+        font-size             18px
+        font-weight           400
+        margin                0 0 24px
+
+      p
+        margin-bottom         24px
+        line-height           1.2em
 
 #home-groups
   bg                    color, homeHeaderBg
