@@ -3,7 +3,7 @@ class EnvironmentDomainContainer extends EnvironmentContainer
   constructor:(options={}, data)->
     options.cssClass  = 'domains'
     options.itemClass = EnvironmentDomainItem
-    options.title     = 'Domains'
+    options.title     = 'domains'
     super options, data
 
     # Plus button on domainsContainer opens up the domainCreateModal

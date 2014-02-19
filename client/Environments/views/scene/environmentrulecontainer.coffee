@@ -3,7 +3,7 @@ class EnvironmentRuleContainer extends EnvironmentContainer
   constructor:(options={}, data)->
     options.cssClass  = 'firewall'
     options.itemClass = EnvironmentRuleItem
-    options.title     = 'Firewall'
+    options.title     = 'firewall rules'
     super options, data
 
     @on 'PlusButtonClicked', ->

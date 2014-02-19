@@ -9,7 +9,7 @@ class EnvironmentContainer extends KDDiaContainer
     title   = @getOption 'title'
     @header = new KDHeaderView {type : "medium", title}
 
-    @itemHeight = options.itemHeight ? 44
+    @itemHeight = options.itemHeight ? 24
 
     @on "DataLoaded", => @_dataLoaded = yes
 
@@ -26,7 +26,7 @@ class EnvironmentContainer extends KDDiaContainer
     @header.addSubView @loader
 
     @addButton = new KDButtonView
-      title    : "Add more"
+      title    : "+"
       cssClass : 'add-button'
       callback : => @emit 'PlusButtonClicked'
     @addSubView @addButton

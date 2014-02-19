@@ -16,6 +16,7 @@ class EnvironmentScene extends KDDiaScene
     super
       cssClass  : 'environments-scene'
       lineWidth : 2
+      lineColor : "#4ED393"
 
     @boxes = {}
 
@@ -103,7 +104,7 @@ class EnvironmentScene extends KDDiaScene
     return new EnvironmentApprovalModal {action}, items
 
   addContainer:(container, pos)->
-    pos ?= x: 10 + @containers.length * 260, y: 0
+    pos ?= x: 10 + @containers.length * 230, y: 0
     super container, pos
 
     {name} = container.constructor
