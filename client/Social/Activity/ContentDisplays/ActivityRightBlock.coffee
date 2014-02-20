@@ -8,6 +8,7 @@ class ActivityRightBase extends JView
       startWithLazyLoader : yes
       lazyLoaderOptions   : partial : ''
       viewOptions         :
+        tagName           : options.viewTagName
         type              : "activities"
         cssClass          : "activities"
         itemClass         : @itemClass
@@ -28,6 +29,31 @@ class ActivityRightBase extends JView
       {{> @tickerListView}}
     </div>
     """
+
+class UserGroupList extends ActivityRightBase
+
+  constructor: (options = {}, data) ->
+
+    options.cssClass  = KD.utils.curry "user-group-list hidden", options.cssClass
+    options.title     = "Your Groups"
+    options.viewTagName = "ul"
+    options.itemType = "activity-ticker-item"
+
+    @itemClass = PopupGroupListItem
+
+    super options, data
+
+    @showAllLink = new KDCustomHTMLView
+
+  viewAppended:->
+
+    super
+
+    KD.whoami().fetchGroups (err, items) =>
+      @renderItems null, (item for item in items when item.group.slug isnt "koding")
+      if items.length - 1
+        @parent.emit 'TopOffsetShouldBeFixed'
+        @show()
 
 class ActiveUsers extends ActivityRightBase
 
@@ -89,8 +115,11 @@ class ActiveTopics extends ActivityRightBase
       KD.remote.api.JTag.some {group},
         limit  : 16
         sort   : "counts.followers" : -1
-      , @bound 'renderItems'
-
+      , (err, topics)=>
+        if err or topics.length is 0
+          @hide()
+        else
+          @renderItems err, topics
 
 
 class GroupDescription extends KDView
@@ -104,20 +133,37 @@ class GroupDescription extends KDView
 
       @innerContaner = new KDCustomHTMLView cssClass : "right-block-box"
 
+      {body}  = group
+      body   ?= ""
+      hasBody = Boolean body.trim().length
+      isAdmin = "admin" in KD.config.roles
+
+      edit = new CustomLinkView
+        title    : "Group settings"
+        cssClass : if isAdmin then "show-all-link" else "show-all-link hidden"
+        click    : (event)->
+          KD.utils.stopDOMEvent event
+          KD.singletons.router.handleRoute "/Dashboard"  if isAdmin
+
       @titleView = new KDCustomHTMLView
-        tagName  : "h3"
-        partial  : "#{group.title} Group"
+        tagName         : "h3"
+        pistachioParams : { edit }
+        pistachio       : "{{ #(title)}} {{> edit}}"
+      , group
 
       @bodyView = new KDCustomHTMLView
-        tagName  : "p"
-        partial  : group.body or ""
-        cssClass : "group-description"
+        tagName   : "p"
+        pistachio : "{{ #(body) or ''}}"
+        cssClass  : "group-description"
+      , group
+
 
       @innerContaner.addSubView @titleView
       @innerContaner.addSubView @bodyView
       @addSubView @innerContaner
 
-  viewAppended:JView::viewAppended
+      if "admin" in KD.config.roles
+        @bodyView.setPartial "You can have a short description for your group here"  unless hasBody
 
 
 class GroupMembers extends ActivityRightBase
@@ -143,7 +189,17 @@ class GroupMembers extends ActivityRightBase
 
     {groupsController} = KD.singletons
     groupsController.ready =>
-      groupsController.getCurrentGroup().fetchMembersFromGraph limit : 12, @bound 'renderItems'
+      group = groupsController.getCurrentGroup()
+      group.fetchMembers {}, limit : 12, (err, members) =>
+        @renderItems err, members
+        if members.length < 12
+          groupsController.on "MemberJoinedGroup", (data) =>
+            {constructorName, id} = data.member
+            KD.remote.cacheable constructorName, id, (err, account)=>
+              return console.error "account is not found", err if err or not account
+              @tickerController.addItem account
+
+
 
 
 class GroupMembersListItemView extends KDListItemView

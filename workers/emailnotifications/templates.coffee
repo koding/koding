@@ -109,6 +109,14 @@ Templates =
 
   singleEvent : (m)->
     action       = ''
+    group        = ''
+
+    getGroupLink = ->
+      unless m.group?.slug is "koding"
+        "in <a href='#{uri.address}/#{m.group.slug}' #{Templates.linkStyle}>#{m.group.title}</a> group"
+      else
+        ""
+
     if m.sender.profile?
       sender     = link "#{uri.address}/#{m.sender.profile.nickname}", \
                         "#{m.sender.profile.firstName} #{m.sender.profile.lastName}"
@@ -131,6 +139,7 @@ Templates =
         preview = ''
       when 'LikeIsAdded'
         action = "liked your"
+        group  = getGroupLink()
       when 'PrivateMessageSent'
         action = "sent you a"
       when 'ReplyIsAdded'
@@ -138,6 +147,8 @@ Templates =
           action = "commented on your"
         else
           action = "also commented on"
+
+        group = getGroupLink()
           # FIXME GG Implement the details
           # if m.realContent.origin?._id is m.sender._id
           #   action = "#{action} own"
@@ -176,7 +187,7 @@ Templates =
         <td style="padding-left: 10px; color: #666; " colspan="2">
             #{avatar}
             <div style="line-height: 20px; padding-left:28px; padding-top:4px;">
-              #{sender} #{action} #{m.contentLink}
+              #{sender} #{action} #{m.contentLink} #{group}
             </div>
             #{preview}
         </td>
@@ -212,9 +223,10 @@ Templates =
       contentName = m.realContent?.title
       sentence = eventFlag.fullDefinition
       return "#{sender} #{sentence} #{contentName}!"
-
     eventName   = eventFlag.definition
-    return """You have a new #{if eventName is "follow" then "follower" else eventName}"""
+    header = """You have a new #{if eventName is "follow" then "follower" else eventName}"""
+    header = "#{header} in #{m.group?.title} group"  if m.group and m.group.slug isnt "koding"
+    return header
 
   dailyHeader  : (m)->
     currentDate  = dateFormat m.notification.dateIssued, "mmm dd"

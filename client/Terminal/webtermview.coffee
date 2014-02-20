@@ -57,25 +57,6 @@ class WebTermView extends KDView
 
     KD.mixpanel "Open Webterm, click", {vmName}
 
-    vmController = KD.getSingleton 'vmController'
-    vmController.info vmName, KD.utils.getTimedOutCallback (err, vm, info)=>
-      if err
-        KD.logToExternal "oskite: Error opening Webterm", vmName, err
-        KD.mixpanel "Open Webterm, fail", {vmName}
-
-      if info?.state is 'RUNNING' then @connectToTerminal()
-      else
-        vmController.start vmName, (err, state)=>
-          warn "Failed to turn on vm:", err  if err
-          KD.utils.defer => @connectToTerminal()
-      KD.mixpanel "Open Webterm, success", {vmName}
-
-    , =>
-      KD.mixpanel "Open Webterm, fail", {vmName}
-      KD.logToExternalWithTime "oskite: Can't open Webterm", vmName
-      @emit 'message', "Couldn't connect to your VM, please try again later. <a class='close' href='#'>close this</a>", no, yes
-    , 10000
-
     @getDelegate().on 'KDTabPaneActive', =>
       # @terminal.setSize 100, 100
       @terminal.updateSize yes
@@ -120,7 +101,7 @@ class WebTermView extends KDView
           else throw err
 
         @terminal.eventHandler = (data)=> @emit "WebTermEvent", data
-        @terminal.server       = remote
+        @terminal.server = remote
         @sessionId = remote.session
         @emit "WebTermConnected", remote
 

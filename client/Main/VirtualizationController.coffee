@@ -9,6 +9,8 @@ class VirtualizationController extends KDController
 
     @kites = {}
 
+    @osKites = {}
+
     KD.getSingleton('mainController')
       .once('AppIsReady', @bound 'fetchVMs')
       .on('AccountChanged', => @emit 'VMListChanged')
@@ -16,7 +18,6 @@ class VirtualizationController extends KDController
     @on 'VMListChanged', @bound 'resetVMData'
 
   run:(options, callback = noop)->
-    [callback, options] = [options, callback]  unless callback
     options ?= {}
     if "string" is typeof options
       command = options
@@ -28,12 +29,11 @@ class VirtualizationController extends KDController
       options.correlationName = vmName
       @fetchRegion vmName, (region)=>
         options.kiteName = "os-#{region}"
-        @kc.run options, (rest...) ->
-          # log rest...
-          callback rest...
+        @kc.run options, callback
 
   _runWrapper:(command, vm, callback)->
-    [callback, vm] = [vm, callback]  if vm and 'string' isnt typeof vm
+    if vm and 'string' isnt typeof vm
+      [callback, vm] = [vm, callback]
     @fetchDefaultVmName (defaultVm)=>
       vm or= defaultVm
       return  unless vm
@@ -52,26 +52,14 @@ class VirtualizationController extends KDController
   resizeDisk:(vm, callback)->
     @_runWrapper 'vm.resizeDisk', vm, callback
 
-  turnOnOptions = subscriptionTag: "vm", packTag: "vmturnon"
-
   start:(vm, callback)->
-    @payment.debitWrapper turnOnOptions, (err, nonce) =>
-      return  if KD.showError err
-      @_runWrapper 'vm.start', vm, callback
+    @_runWrapper 'vm.start', vm, callback
 
   stop:(vm, callback)->
-    @_runWrapper 'vm.shutdown', vm, =>
-      args = arguments
-      @payment.creditWrapper turnOnOptions, (err, nonce) =>
-        return  if KD.showError err
-        callback?.apply args
+    @_runWrapper 'vm.shutdown', vm, callback
 
   halt:(vm, callback)->
-    @_runWrapper 'vm.stop', vm, =>
-      args = arguments
-      @payment.creditWrapper turnOnOptions, (err, nonce) =>
-        return  if KD.showError err
-        callback?.apply args
+    @_runWrapper 'vm.stop', vm, callback
 
   reinitialize:(vm, callback)->
     @_runWrapper 'vm.reinitialize', vm, callback
@@ -157,7 +145,7 @@ class VirtualizationController extends KDController
       @fetchDefaultVmName (defaultVmName) ->
         if defaultVmName?
         then callback null, defaultVmName
-        else callback message: 'There is no VM for this account.'
+        else callback message: 'There is no VM for this account.', code: 100
 
   fetchDefaultVmName:(callback=noop, force=no)->
     if @defaultVmName and not force
@@ -172,8 +160,8 @@ class VirtualizationController extends KDController
         return callback null
 
       # If there is just one return it
-      if vmNames.length is 1
-        return callback @defaultVmName = vmNames.first
+      # if vmNames.length is 1
+      #   return callback @defaultVmName = vmNames.first
 
       # If current group is 'koding' ask to backend for the default one
       KD.remote.api.JVM.fetchDefaultVm (err, defaultVmName)=>
@@ -194,11 +182,11 @@ class VirtualizationController extends KDController
           return callback @defaultVmName = vm.alias
 
         # Check for personal VMs in Koding or Guests group
-        for vm in userVMs when vm.groupSlug in ['koding', 'guests']
-          return callback @defaultVmName = vm.alias
+        # for vm in userVMs when vm.groupSlug in ['koding', 'guests']
+        #   return callback @defaultVmName = vm.alias
 
         # Fallback to Koding VM if exists
-        return callback @defaultVmName = defaultVmName
+        return callback()
 
   createGroupVM:(type='user', planCode, callback=->)->
     vmCreateCallback = (err, vm)->
@@ -218,13 +206,14 @@ class VirtualizationController extends KDController
     group.createVM {type, planCode}, vmCreateCallback
 
   getKite: ({ region, hostnameAlias }) ->
-    kite = (KD.getSingleton 'kiteController')
+    (KD.getSingleton 'kiteController')
       .getKite "os-#{ region }", hostnameAlias
 
   registerKite: (vm) ->
     @kites[vm.hostnameAlias] = @getKite vm
 
-  getKiteByVmName: (vmName) -> @kites[vmName]
+  getKiteByVmName: (vmName) ->
+    @kites[vmName]
 
   fetchVmNames: (force, callback) ->
     [callback, force] = [force, callback]  unless callback?
@@ -232,7 +221,7 @@ class VirtualizationController extends KDController
       return callback err  if err
       callback null, (vm.hostnameAlias for vm in vms)
 
-  fetchVMs: do (waiting = []) -> (force, callback)->
+  fetchVMs: do (waiting = []) -> (force, callback) ->
     [callback, force] = [force, callback]  unless callback?
 
     return  unless callback?
@@ -243,14 +232,63 @@ class VirtualizationController extends KDController
 
     return  if not force and (waiting.push callback) > 1
 
-    KD.remote.api.JVM.fetchVms (err, vms)=>
+    KD.remote.api.JVM.fetchVms (err, vms) =>
       @vms = vms  unless err
       if force
       then callback err, vms
       else
-        @registerKite vm  for vm in vms
-        cb err, vms  for cb in waiting
-        waiting = []
+        @handleFetchedVms vms, (err) ->
+          return callback err  if err
+          cb err, vms  for cb in waiting
+          waiting = []
+
+  getKiteHostname: (vm) ->
+    return null  unless vm.hostKite?
+    return vm.hostKite.split('|')[1]
+
+  getOsKite: ({ hostname, region }) ->
+    new Promise (resolve) =>
+      kite = @osKites[hostname]
+      
+      return resolve kite  if kite?
+
+      kontrol = KD.getSingleton 'kontrol'
+
+      kontrol.getKite
+        name      : 'oskite'
+        username  : 'devrim'
+        version   : '0.0.1'
+        hostname  : hostname
+        region    : region
+
+      .then (kite) =>
+        @osKites[hostname] = kite
+
+        kite.connect()
+        .then(-> resolve kite)
+        .catch warn
+        
+
+  handleFetchedVms: (vms, callback) ->
+    if KD.useNewKites
+      Promise.cast(vms).map (vm) =>
+
+        hostname = @getKiteHostname vm
+
+        @getOsKite({ hostname, region: vm.region }).then (os) =>
+
+          options   =
+            vmName  : vm.hostnameAlias
+            kite    : os
+          
+          os.ready().then =>
+            @kites[vm.hostnameAlias] = new VM options
+
+      .nodeify callback
+    else
+      @registerKite vm  for vm in vms
+      KD.utils.defer -> callback null
+>>>>>>> 9b97aa7513573d6ee591a07b59d34017e1ec2ace
 
 
 
@@ -280,9 +318,7 @@ class VirtualizationController extends KDController
     JVM.fetchVmsByName vmName, (err, vms) =>
       return callback err  if err
 
-      @registerKite vm  for vm in vms
-
-      callback null, vms
+      @handleFetchedVms vms, (err) -> callback null, vms
 
   resetVMData:->
     @vms      = []
@@ -384,31 +420,38 @@ class VirtualizationController extends KDController
             modal.destroy()
 
   createPaidVM: ->
-    callback = (subscription) =>
+    @payment.fetchActiveSubscription tags: "vm", (err, subscription) =>
+      if err
+        if err.code is "no subscription"
+        then @showUpgradeModal()
+        else KD.showError err
+        return
+      else if not subscription
+      then return @showUpgradeModal()
+
       KD.remote.api.JPaymentPack.one tags: "vm", (err, pack) =>
-        return  if KD.showError err
+        return KD.showError err  if err
         @provisionVm {subscription, productData: {pack}}, (err, nonce) =>
           return  unless err
-          modal      = new KDModalView
-            title    : "Create a new VM"
-            cssClass : "create-vm"
-            view     : upgradeForm = @payment.createUpgradeForm()
-            height   : "auto"
-            width    : 500
-            showNav  : no
-            overlay  : yes
+          if err.message is "quota exceeded"
+            if KD.getGroup().slug is "koding"
+              @showUpgradeModal()
+            else
+              new KDNotificationView title: "Your group is out of VM quota"
+          else KD.showError err
 
-          upgradeForm.on "Cancel", modal.bound "destroy"
+  showUpgradeModal: ->
+    modal      = new KDModalView
+      title    : "Create a new VM"
+      cssClass : "create-vm"
+      view     : upgradeForm = @payment.createUpgradeForm()
+      height   : "auto"
+      width    : 500
+      showNav  : no
+      overlay  : yes
 
-    if KD.getGroup().slug is "koding"
-      @payment.fetchSubscriptionsWithPlans tags: ["vm"], (err, subscriptions) ->
-        return  if KD.showError err
-        [subscription] = subscriptions
-        callback subscription
-    else
-      @payment.fetchGroupSubscription (err, subscription) ->
-        return  if KD.showError err
-        callback subscription
+    upgradeForm.on "Cancel", modal.bound "destroy"
+    return modal
 
   provisionVm: ({ subscription, paymentMethod, productData }, callback) ->
     { JVM } = KD.remote.api

@@ -28,8 +28,8 @@ import (
 	"sync"
 	"syscall"
 	"time"
-	"github.com/gorilla/context"
 
+	"github.com/gorilla/context"
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/sessions"
 	"github.com/hoisie/redis"
@@ -193,7 +193,7 @@ func (p *Proxy) runNewKite() {
 
 	onEvent := func(e *kite.Event, err error) {
 		if err != nil {
-			k.Log.Error(err.Error())
+			log.Error(err.Error())
 			return
 		}
 

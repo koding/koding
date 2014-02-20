@@ -2,15 +2,14 @@ package modelhelper
 
 import (
 	"koding/db/models"
-
 	"labix.org/v2/mgo"
 )
 
-func GetGroup(groupname string) (*models.Group, error) {
+func GetGroup(slugName string) (*models.Group, error) {
 	group := new(models.Group)
 
 	query := func(c *mgo.Collection) error {
-		return c.Find(Selector{"title": groupname}).One(&group)
+		return c.Find(Selector{"slug": slugName}).One(&group)
 	}
 
 	return group, Mongo.Run("jGroups", query)

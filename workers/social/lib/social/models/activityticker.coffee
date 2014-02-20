@@ -74,16 +74,18 @@ module.exports = class ActivityTicker extends Base
     JGroup.canReadGroupActivity client, (err, hasPermission)->
       return callback new Error "Not allowed to open this group"  if err or not hasPermission
 
+      relationshipNames = ["follower", "like", "member", "author"]
       relSelector =
         timestamp : {"$lt" : new Date(from)}
-        data      :
-          group   : groupSlug
+        as        : $in: relationshipNames
+        # data      :
+        #   group   : groupSlug
 
       relOptions  =    # do not fetch more than 15 at once
         limit     : 5  # Math.min options.limit ? 15, 15
         sort      : timestamp : -1
 
-      Relationship.some relSelector, relOptions, (err, relationships) ->
+      Relationship.some relSelector, relOptions, (err, relationships = []) ->
         buckets = []
         return  callback err, buckets  if err
         queue = relationships.map (relationship) ->

@@ -9,7 +9,7 @@ module.exports = ->
   <meta name="apple-mobile-web-app-title" content="Koding" />
   <meta name="viewport" content="user-scalable=no, width=device-width, initial-scale=1" />
   <link rel="shortcut icon" href="/a/images/favicon.ico" />
-  <link rel="fluid-icon" href="/a/images/kd-fluid-icon512.png" title="Koding" />
+  <link rel="fluid-icon" href="/a/images/logos/fluid512.png" title="Koding" />
   <link rel="stylesheet" href="/a/css/kd.#{KONFIG.version}.css" />
   <link rel="stylesheet" href="/a/css/introapp.#{KONFIG.version}.css" />
   <link rel="stylesheet" href="/a/css/koding.#{KONFIG.version}.css" />

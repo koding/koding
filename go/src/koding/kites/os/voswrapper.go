@@ -8,11 +8,11 @@ import (
 	kitednode "kite/dnode"
 	"koding/tools/kite"
 	"koding/virt"
+	"labix.org/v2/mgo"
+	"labix.org/v2/mgo/bson"
 	"os"
 	"path"
 	"strings"
-	"labix.org/v2/mgo"
-	"labix.org/v2/mgo/bson"
 
 	"code.google.com/p/go.exp/inotify"
 )
@@ -199,7 +199,11 @@ func fsReadDirectoryNew(r *kitelib.Request, vos *virt.VOS) (interface{}, error) 
 		}
 
 		r.RemoteKite.OnDisconnect(func() { watch.Close() })
-		response["stopWatching"] = func() { watch.Close() }
+
+		response["stopWatching"] = kitednode.Callback(func(args kitednode.Arguments) {
+			watch.Close()
+		})
+
 	}
 
 	dir, err := vos.Open(params.Path)
@@ -393,7 +397,7 @@ func appSkeletonNew(r *kitelib.Request, vos *virt.VOS) (interface{}, error) {
 }
 
 func s3StoreNew(r *kitelib.Request, vos *virt.VOS) (interface{}, error) {
-	var params s3params
+	params := new(storeParams)
 	if r.Args.One().Unmarshal(&params) != nil || params.Name == "" || len(params.Content) == 0 || strings.Contains(params.Name, "/") {
 		return nil, &kite.ArgumentError{Expected: "{ name: [string], content: [base64 string] }"}
 	}
@@ -402,7 +406,7 @@ func s3StoreNew(r *kitelib.Request, vos *virt.VOS) (interface{}, error) {
 }
 
 func s3DeleteNew(r *kitelib.Request, vos *virt.VOS) (interface{}, error) {
-	var params s3params
+	params := new(storeParams)
 	if r.Args.One().Unmarshal(&params) != nil || params.Name == "" || strings.Contains(params.Name, "/") {
 		return nil, &kite.ArgumentError{Expected: "{ name: [string] }"}
 	}

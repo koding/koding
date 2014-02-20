@@ -261,7 +261,8 @@ app.all '/:name/:section?*', (req, res, next)->
 
   {JName, JGroup} = koding.models
   {name, section} = req.params
-  path = if section then "#{name}/#{section}" else name
+  isCustomPreview = req.cookies["custom-partials-preview-mode"]
+  path            = if section then "#{name}/#{section}" else name
 
   return res.redirect 302, req.url.substring 7  if name in ['koding', 'guests']
 
@@ -295,11 +296,13 @@ app.all '/:name/:section?*', (req, res, next)->
 
           JName.fetchModels path, (err, models)->
             if err
-              options = {account, name, section, client, bongoModels}
+              options = { account, name, section, client,
+                          bongoModels, isCustomPreview }
               JGroup.render[prefix].subPage options, serveSub
             else if not models? then next()
             else
-              options = {account, name, section, models, client, bongoModels}
+              options = { account, name, section, models,
+                          client, bongoModels, isCustomPreview }
               JGroup.render[prefix].subPage options, serveSub
 
   # Checks if its a User or Group from JName collection
@@ -314,7 +317,8 @@ app.all '/:name/:section?*', (req, res, next)->
           if models.last.bongo_?.constructorName isnt "JGroup" and not loggedIn
             return Crawler.crawl koding, req, res, name
 
-          models.last.fetchHomepageView {section, account, bongoModels}, (err, view)->
+          homePageOptions = {section, account, bongoModels, isCustomPreview}
+          models.last.fetchHomepageView homePageOptions, (err, view)->
             if err then next err
             else if view? then res.send view
             else res.send 404, error_404()

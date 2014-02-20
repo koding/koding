@@ -515,10 +515,13 @@ module.exports = class JPost extends jraphical.Message
       @update selector, operation, options, callback
 
   @one$ = permit 'read posts',
-    success:(client, uniqueSelector, options, callback)->
-      # TODO: this needs more security?
-      uniqueSelector.group = makeGroupSelector client.context.group
-      @one uniqueSelector, options, callback
+    success:(client, uniqueSelector, callback)->
+      {delegate} = client.connection
+      @one uniqueSelector, (err, post) ->
+        return callback err  if err or not post
+        delegate.checkGroupMembership client, post.group, (err, isMember) ->
+          return callback err  if err or not isMember
+          callback null, post
 
   @all$ = permit 'read posts',
     success:(client, selector, callback)->

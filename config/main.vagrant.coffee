@@ -52,6 +52,7 @@ module.exports =
   runNeo4jFeeder: yes
   runGoBroker   : yes
   runGoBrokerKite: yes
+  runPremiumBrokerKite: yes
   runKontrol    : yes
   runRerouting  : yes
   runUserPresence: yes
@@ -169,11 +170,16 @@ module.exports =
         servicesEndpoint: 'http://localhost:3020/-/services/brokerKite'
         brokerExchange: 'brokerKite'
         sockJS  : 'http://localhost:8009/subscribe'
+      premiumBrokerKite:
+        servicesEndpoint: 'http://localhost:3020/-/services/premiumBrokerKite'
+        brokerExchange: 'premiumBrokerKite'
+        sockJS  : 'http://localhost:8010/subscribe'
       apiUri    : 'http://localhost:3020'
       version   : version
       mainUri   : 'http://localhost:3020'
       appsUri   : 'https://koding-apps.s3.amazonaws.com'
       uploadsUri: 'https://koding-uploads.s3.amazonaws.com'
+      uploadsUriForGroup: 'https://koding-groups.s3.amazonaws.com'
       sourceUri : 'http://localhost:3526'
       newkontrol:
         url     : 'ws://127.0.0.1:4000/kontrol'
@@ -231,11 +237,22 @@ module.exports =
     webPort     : 8009
     authExchange: authExchange
     authAllExchange: authAllExchange
+  premiumBrokerKite :
+    name        : "premiumBrokerKite"
+    ip          : ""
+    port        : 8010
+    certFile    : ""
+    keyFile     : ""
+    webProtocol : 'http:'
+    webHostname : 'localhost'
+    webPort     : 8010
+    authExchange: authExchange
+    authAllExchange: authAllExchange
   kites:
     disconnectTimeout: 3e3
     vhost       : 'kite'
   email         :
-    host        : 'localhost'
+    host        : 'localhost:3020'
     protocol    : 'http:'
     defaultFromAddress: 'hello@koding.com'
   emailWorker   :
@@ -269,8 +286,8 @@ module.exports =
     useTLS          : no
     certFile        : ""
     keyFile         : ""
-    publicKeyFile   : "/opt/koding/certs/test_kontrol_rsa_public.pem"
-    privateKeyFile  : "/opt/koding/certs/test_kontrol_rsa_private.pem"
+    publicKeyFile   : "./certs/test_kontrol_rsa_public.pem"
+    privateKeyFile  : "./certs/test_kontrol_rsa_private.pem"
   proxyKite       :
     domain        : "127.0.0.1"
     certFile      : "/opt/koding/certs/vagrant_127.0.0.1_cert.pem"
@@ -307,8 +324,9 @@ module.exports =
   #     decipher.update(str,'hex')
   #     b = decipher.final('utf-8')
   #     return b
-  recurly       :
-    apiKey      : '4a0b7965feb841238eadf94a46ef72ee' # koding-test.recurly.com
+  recurly         : 
+    apiKey        : '4a0b7965feb841238eadf94a46ef72ee' # koding-test.recurly.com
+    loggedRequests: /^(subscriptions|transactions)/
   embedly       :
     apiKey      : embedlyApiKey
   opsview       :

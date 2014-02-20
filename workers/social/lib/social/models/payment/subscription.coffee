@@ -77,6 +77,9 @@ module.exports = class JPaymentSubscription extends jraphical.Module
         default     : {}
       paymentMethodId: String
       tags          : (require './schema').tags
+      transactionLock:
+        type        : Boolean
+        default     : no
     relationships   :
       linkedSubscription:
         targetType  : this
@@ -210,33 +213,45 @@ module.exports = class JPaymentSubscription extends jraphical.Module
       callback null, nonce.nonce
 
   debit: ({ pack, multiplyFactor, shouldCreateNonce }, callback) ->
+    return callback new KodingError "Your subscription is currently locked"  if @transactionLock
 
     multiplyFactor    ?= 1
     shouldCreateNonce ?= no
 
-    @checkUsage pack, multiplyFactor, (err, usage) =>
+    @update $set: transactionLock: yes, (err) =>
       return callback err  if err
 
-      { quantities } = pack
+      @checkUsage pack, multiplyFactor, (err, usage) =>
+        if err
+          callback err  if err
+          @update $set: transactionLock: no, (err) ->
+            console.warn "Transaction lock reset failed"  if err
+          return
 
-      op = $set: (Object.keys quantities)
-        .reduce( (memo, key) =>
-          memo["usage.#{ key }"] =
-            (@usage[key] ? 0) + quantities[key] * multiplyFactor
-          memo
-        , {})
+        { quantities } = pack
 
-      @update op, (err) =>
-        return callback err  if err
+        op = $set: (Object.keys quantities)
+          .reduce( (memo, key) =>
+            memo["usage.#{ key }"] =
+              (@usage[key] ? 0) + quantities[key] * multiplyFactor
+            memo
+          , {})
 
-        if shouldCreateNonce
-          @createFulfillmentNonce pack, (multiplyFactor > 0), callback
-        else
-          callback null
+        op.$set.transactionLock = no
+
+        @update op, (err) =>
+          if err
+            callback err  if err
+            @update $set: transactionLock: no, (err) ->
+              console.warn "Transaction lock reset failed"  if err
+            return
+
+          if shouldCreateNonce
+            @createFulfillmentNonce pack, (multiplyFactor > 0), callback
+          else
+            callback null
 
   debit$: secure (client, options, callback) ->
-    JPaymentPlan = require './plan'
-
     { delegate } = client.connection
 
     @isOwnedBy delegate, (err, hasTarget) =>
@@ -273,7 +288,9 @@ module.exports = class JPaymentSubscription extends jraphical.Module
       =>
         newPlan.checkQuota {@usage}, (err) -> queue.next err
       =>
-        operation.call this, (err) -> queue.next err
+        if operation
+        then operation.call this, (err) -> queue.next err
+        else queue.next()
       ->
         newPlan.subscribe paymentMethodId, subOptions, (err, newSub) ->
           newSubscription = newSub
@@ -296,14 +313,16 @@ module.exports = class JPaymentSubscription extends jraphical.Module
     options.subOptions =
       startsAt: @getEndDate()
 
-    options.operation = (continuation) =>
-      @cancel continuation
+    if "nosync" not in @tags
+      options.operation = (continuation) =>
+        @cancel continuation
 
     @applyTransition options, callback
 
   upgrade: (options, callback) ->
-    options.operation = (continuation) =>
-      @terminate options.oldPlan, continuation
+    if "nosync" not in @tags
+      options.operation = (continuation) =>
+        @terminate options.oldPlan, continuation
 
     @applyTransition options, callback
 
@@ -349,19 +368,35 @@ module.exports = class JPaymentSubscription extends jraphical.Module
           else
             @upgrade transitionOptions, callback
 
-  debitPack: ({tags, multiplyFactor}, callback) ->
-    tags = [tags]  unless Array.isArray tags
+  debitPack: ({tag, multiplyFactor}, callback) ->
     multiplyFactor ?= 1
     JPaymentPack = require './pack'
-    JPaymentPack.some tags: $in: tags, {}, (err, packs) =>
+    JPaymentPack.one tags: $in: [tag], {}, (err, pack) =>
       return callback err  if err
-      return callback new KodingError "pack not found"  unless packs.length
-      queue = []
-      queue = packs.map (pack) =>=>
-        @debit {pack, multiplyFactor}, (err) -> queue.next err
-      queue.push (err) ->
-        callback null
-      daisy queue
+      return callback new KodingError "pack not found"  unless pack
+      @debit {pack, multiplyFactor}, callback
 
-  creditPack: ({tags}, callback) ->
-    @debitPack {tags, multiplyFactor: -1}, callback
+  creditPack: ({tag}, callback) ->
+    @debitPack {tag, multiplyFactor: -1}, callback
+
+  @createFreeSubscription = (account, callback) ->
+    JPaymentPlan = require './plan'
+    JPaymentPlan.one tags: "nosync", (err, plan) ->
+      return \
+        if err then callback err
+        else if not plan then callback new KodingError "nosync plan not found"
+
+      {planCode, quantities, tags} = plan
+      freePlanSubscription = new JPaymentSubscription
+        planCode   : planCode
+        quantity   : 1
+        status     : "active"
+        feeAmount  : 0
+        quantities : quantities
+        tags       : tags
+
+      freePlanSubscription.save (err) ->
+        return callback new KodingError "nosync subscription failed: #{err}"  if err
+        account.addSubscription freePlanSubscription, (err) ->
+          return callback new KodingError "couldn't add subscription to account: #{err}"  if err
+          callback null, freePlanSubscription

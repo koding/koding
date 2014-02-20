@@ -35,12 +35,13 @@ class GroupsInvitationView extends KDView
                 itemClass    : KDButtonView
                 testPath     : "groups-dashboard-invite-button"
                 title        : options.submitButtonLabel or 'Send'
+                style        : "modal-clean-green"
                 type         : 'submit'
                 loader       :
                   color      : '#444444'
                   diameter   : 12
               Cancel         :
-                style        : 'modal-cancel'
+                style        : "modal-clean-red"
                 callback     : -> modal.destroy()
             fields           : options.fields
 
@@ -143,10 +144,19 @@ class GroupsInvitationView extends KDView
       title              : 'Invite by Email'
       cssClass           : 'invite-by-email'
       callback           : ({emails, message, saveMessage})=>
-
         KD.whoami().fetchFromUser "email", (err, userEmail)=>
           emails = emails.trim()
+          invalidEmails = []
           emailList = emails.split(/\n/).map (email)-> email.trim()
+          emailList = emailList.filter (email) ->
+            isValid = KD.utils.doesEmailValid email 
+            invalidEmails.push email  unless isValid
+            isValid
+           
+          if invalidEmails.length   
+            @inviteByEmail.modalTabs.forms.invite.buttons.Send.hideLoader()
+            return KD.showError "Your invitations includes some invalid emails: #{invalidEmails}"  
+            
           if userEmail in emailList
             @inviteByEmail.modalTabs.forms.invite.buttons.Send.hideLoader()
             return new KDNotificationView
@@ -163,6 +173,7 @@ class GroupsInvitationView extends KDView
           testPath       : "groups-dashboard-invite-list"
           placeholder    : 'Enter each email address on a new line...'
           validate       :
+            notifications: yes
             rules        :
               required   : yes
             messages     :
@@ -173,6 +184,7 @@ class GroupsInvitationView extends KDView
           cssClass       : 'message-input'
           defaultValue   : Encoder.htmlDecode @policy.communications?.invitationMessage or @getDefaultInvitationMessage()
           validate       :
+            notifications: yes
             rules        :
               required   : yes
               regExp     : /(#URL#)+/

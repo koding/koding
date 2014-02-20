@@ -20,7 +20,7 @@ class Kontrol extends KDObject
 
     @kite = new NewKite kite, authentication
     @kite.connect()
-
+    @kite.on "ready", => @emit "ready"
   # getKites Calls the callback function with the list of NewKite instances.
   # The returned kites are not connected. You must connect with
   # NewKite.connect().
@@ -35,36 +35,43 @@ class Kontrol extends KDObject
   #   hostname    string
   #   id          string
   #
-  getKites: (query={}, callback = noop)->
+  getKites: (query={}, callback = noop) ->
     @_sanitizeQuery query
 
-    @kite.tell "getKites", [query], (err, kites)=>
-      return callback err, null  if err
+    @kite.tell("getKites", [query]).then (result) =>
+      (@_createKite k for k in result.kites)
 
-      callback null, (@_createKite k for k in kites)
+    .nodeify(callback)
+
+  getKite: (query, callback) ->
+    @getKites(query).then (kites) ->
+      return kites[0] ? throw new Error "no kite found!"
 
   # watchKites watches for Kites that matches the query. The onEvent functions
   # is called for current kites and every new kite event.
   watchKites: (query={}, callback)->
-    return warn "callback is not defined "  unless callback
-
     @_sanitizeQuery query
+
+    changes = new KDEventEmitter
 
     onEvent = (options)=>
       err = options.withArgs[1]
       return callback err, null  if err
 
       e = options.withArgs[0]
-      callback null, {action: e.action, kite: @_createKite e}
+      changes.emit kiteAction[e.action], kite: @_createKite e
 
-    @kite.tell "getKites", [query, onEvent], (err, result)=>
-      return callback err, null  if err
+    @kite.tell("getKites", [query, onEvent]).then ({ kites, watcherID }) =>
 
-      # TODO Watcher ID is here but I don't know where to store it. (Cenk)
-      # result.watcherID
+      for kite in kites
+        {
+          action    : kiteAction.REGISTER
+          kite      : @_createKite kite
+          changes
+          watcherID
+        }
 
-      for kite in result.kites
-        callback null, {action: @KiteAction.Register, kite: @_createKite kite}
+    .nodeify callback
 
   cancelWatcher: (id, callback)->
     @kite.tell "cancelWatcher", [id], (err, result)=>
@@ -79,6 +86,6 @@ class Kontrol extends KDObject
     query.username    = "#{KD.nick()}"              unless query.username
     query.environment = "#{KD.config.environment}"  unless query.environment
 
-  KiteAction :
-    Register   : "REGISTER"
-    Deregister : "DEREGISTER"
+  kiteAction    =
+    REGISTER    : "register"
+    DEREGISTER  : "deregister"

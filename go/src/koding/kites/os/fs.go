@@ -29,7 +29,7 @@ type FileEntry struct {
 	IsDir    bool        `json:"isDir"`
 	Size     int64       `json:"size"`
 	Mode     os.FileMode `json:"mode"`
-	Time     time.Time   `json:"time"`
+	Time     time.Time   `json:"time" dnode:"-"`
 	IsBroken bool        `json:"isBroken"`
 	Readable bool        `json:"readable"`
 	Writable bool        `json:"writable"`

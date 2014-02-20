@@ -12,7 +12,6 @@ class AccountAppController extends AppController
       "/:name?/Account"          : -> KD.singletons.router.handleRoute '/Account/Profile'
       "/:name?/Account/:section" : ({params:{section}})-> handler (app)-> app.openSection section
       "/:name?/Account/Referrer" : -> KD.singletons.router.handleRoute '/'
-    behavior                     : "hideTabs"
     hiddenHandle                 : yes
 
   items =
@@ -72,13 +71,16 @@ class AccountAppController extends AppController
     # SET UP VIEWS
     @navController = new KDListViewController
       view        : new KDListView
-        tagName   : 'aside'
+        tagName   : 'nav'
         type      : 'inner-nav'
         itemClass : AccountNavigationItem
       wrapper     : no
       scrollView  : no
 
-    mainView.addSubView navView = @navController.getView()
+    mainView.addSubView aside = new KDView tagName : 'aside'
+
+
+    aside.addSubView navView = @navController.getView()
 
     mainView.addSubView @tabView = new KDTabView
       hideHandleContainer : yes

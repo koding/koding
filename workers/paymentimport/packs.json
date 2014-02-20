@@ -1,6 +1,6 @@
 [
   {
-    "title": "VM", 
+    "title": "VM",
     "tags": ["vm"]
   },
   {
@@ -8,11 +8,11 @@
     "tags": ["user"]
   },
   {
-    "title": "Group", 
+    "title": "Group",
     "tags": ["group"]
   },
   {
-    "title": "Always On", 
+    "title": "Always On",
     "tags": ["alwayson"]
   }
 ]

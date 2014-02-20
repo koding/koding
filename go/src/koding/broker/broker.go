@@ -16,6 +16,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"runtime"
 	"strconv"
 	"strings"
 	"sync"
@@ -99,6 +100,8 @@ func main() {
 	switch *flagBrokerType {
 	case "brokerKite":
 		broker.Config = &conf.BrokerKite
+	case "premiumBrokerKite":
+		broker.Config = &conf.PremiumBrokerKite
 	default:
 		broker.Config = &conf.Broker
 	}
@@ -118,6 +121,9 @@ func main() {
 
 // Run starts the broker.
 func (b *Broker) Run() {
+	// sets the maximum number of CPUs that can be executing simultaneously
+	runtime.GOMAXPROCS(runtime.NumCPU())
+
 	lifecycle.Startup(BROKER_NAME, false)
 	logger.RunGaugesLoop(log)
 

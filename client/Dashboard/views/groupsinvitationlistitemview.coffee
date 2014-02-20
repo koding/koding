@@ -23,7 +23,7 @@ class GroupsInvitationListItemView extends KDListItemView
         @profileLink.render()
 
     @approveButton = new KDButtonView
-      style       : 'clean-gray'
+      style       : 'solid medium green'
       title       : 'Approve'
       icon        : yes
       iconClass   : 'approve'
@@ -34,7 +34,7 @@ class GroupsInvitationListItemView extends KDListItemView
           @getDelegate().emit 'InvitationStatusChanged'  unless err
 
     @declineButton = new KDButtonView
-      style       : 'clean-gray'
+      style       : 'solid medium light-gray'
       title       : 'Decline'
       icon        : yes
       iconClass   : 'decline'
@@ -44,7 +44,7 @@ class GroupsInvitationListItemView extends KDListItemView
           @getDelegate().emit 'InvitationStatusChanged'  unless err
 
     @deleteButton = new KDButtonView
-      style       : 'solid red'
+      style       : 'solid medium red'
       title       : "Delete"
       callback    : =>
         @getData().remove (err) =>

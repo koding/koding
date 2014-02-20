@@ -1,24 +1,22 @@
 class KDKite extends Kite
 
-  osKiteMethods =
-
   @createMethod = (ctx, { method, rpcMethod }) ->
     ctx[method] = (rest...) -> @tell2 rpcMethod, rest...
 
-  @createConstructor = (kiteName) ->
+  # @createConstructor = (kiteName) ->
     
-    class Kite extends this
+  #   class Kite extends this
 
-      constructor: (options = {}, data) ->
-        options.kiteName = kiteName
-        super options, data
+  #     constructor: (options = {}, data) ->
+  #       options.kiteName = kiteName
+  #       super options, data
 
-      api = switch kiteName
-        when 'os'           then osKiteMethods
-        when 'os-vagrant'   then osKiteMethods
+      # api = switch kiteName
+      #   when 'os'           then osKiteMethods
+      #   when 'os-vagrant'   then osKiteMethods
 
-      for own method, rpcMethod of api
-        @::[method] = @createMethod @prototype, { method, rpcMethod }
+      # for own method, rpcMethod of api
+      #   @::[method] = @createMethod @prototype, { method, rpcMethod }
 
   @constructors = {}
 

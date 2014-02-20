@@ -4,6 +4,7 @@ KD.extend
   apiUri       : KD.config.apiUri
   appsUri      : KD.config.appsUri
   singleton    : KD.getSingleton.bind KD
+  useNewKites  : yes
   appClasses   : {}
   appScripts   : {}
   appLabels    : {}
@@ -31,7 +32,7 @@ KD.extend
     options.background    ?= no           # a Boolean
     options.hiddenHandle  ?= no           # a Boolean
     options.openWith     or= "lastActive" # a String "lastActive","forceNew" or "prompt"
-    options.behavior     or= ""           # a String "application", "hideTabs", or ""
+    options.behavior     or= ""           # a String "application", or ""
     options.thirdParty    ?= no           # a Boolean
     options.menu         or= null         # <Array<Object{title: string, eventName: string, shortcut: string}>>
     options.navItem      or= {}           # <Object{title: string, eventName: string, shortcut: string}>
@@ -245,7 +246,7 @@ KD.extend
 
     if Array.isArray err
       @showError er  for er in err
-      return
+      return err.length
 
     if 'string' is typeof err
       message = err

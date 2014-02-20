@@ -53,26 +53,17 @@ class GroupsUploadView extends JView
 
   uploadToS3: ->
     #TODO : change the address and name of the logo
-    {groupsController} = KD.singletons
-    group              = groupsController.getCurrentGroup()
-    imageName          = @getOption("fileName") or KD.utils.generatePassword 16, yes
+    group     = KD.singletons.groupsController.getCurrentGroup()
+    imageName = "#{group.slug}-logo-#{Date.now()}.png"
 
-    FSHelper.s3.upload imageName, @btoaContent, (err, url) =>
-      if err
-        @loader.hide()
-        return new KDNotificationView title : "Error while uploading photo."
-
-      proxifyOptions =
-        crop   : yes
-        width  : 55
-        height : 55
-
-      # FIXME - fatihacet - Resized url is not working for now
-      resized  = KD.utils.proxifyUrl url, proxifyOptions
-
+    FSHelper.s3.upload imageName, @btoaContent, "groups", group.slug, (err, url) =>
       @loader.hide()
-      @destroy()
+      if err 
+        message = if err.code is 100 then "First you have to create a VM"
+        else "Error while uploading photo." 
+        return KD.showError message
       @emit "FileUploadDone", url
+      @destroy()
 
   pistachio: ->
     """

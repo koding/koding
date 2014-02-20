@@ -25,9 +25,10 @@ class ActivityAppView extends KDScrollView
     @inputWidget      = new ActivityInputWidget
 
     @referalBox       = new ReferalBox
+    @groupListBox     = new UserGroupList
     @topicsBox        = new ActiveTopics
     @usersBox         = new ActiveUsers
-    @tickerBox        = new ActivityTicker
+    # @tickerBox        = new ActivityTicker
     # TODO : if not on private group DO NOT create those ~EA
     @groupDescription = new GroupDescription
     @groupMembers     = new GroupMembers
@@ -47,14 +48,21 @@ class ActivityAppView extends KDScrollView
       {feedFilterNav}  = @activityHeader
       feedFilterNav.unsetClass 'multiple-choice on-off'
 
-    @tickerBox.once 'viewAppended', =>
-      topOffset = @tickerBox.$().position().top
-      windowController.on 'ScrollHappened', =>
-        # sanity check
-        topOffset = @tickerBox.$().position().top  if topOffset < 200
-        if document.documentElement.scrollTop > topOffset
-        then @tickerBox.setClass 'fixed'
-        else @tickerBox.unsetClass 'fixed'
+    # calculateTopOffset = =>
+    #   KD.utils.wait 3000, =>
+    #     @topOffset = @tickerBox.$().position().top
+
+
+    # @tickerBox.once 'viewAppended', =>
+    #   calculateTopOffset()
+    #   windowController.on 'ScrollHappened', =>
+    #     # sanity check
+    #     calculateTopOffset()  if @topOffset < 200
+    #     if document.documentElement.scrollTop > @topOffset
+    #     then @tickerBox.setClass 'fixed'
+    #     else @tickerBox.unsetClass 'fixed'
+
+    # @groupListBox.on 'TopOffsetShouldBeFixed', calculateTopOffset
 
     @decorate()
 
@@ -64,15 +72,26 @@ class ActivityAppView extends KDScrollView
     @addSubView @mainBlock
     @addSubView @sideBlock
 
+    topWidgetPlaceholder  = new KDCustomHTMLView
+    leftWidgetPlaceholder = new KDCustomHTMLView
+
+    @mainBlock.addSubView topWidgetPlaceholder
     @mainBlock.addSubView @inputWidget
     @mainBlock.addSubView @feedWrapper
 
     @sideBlock.addSubView @referalBox  if KD.isLoggedIn() and not @isPrivateGroup()
+    @sideBlock.addSubView leftWidgetPlaceholder
     @sideBlock.addSubView @groupDescription if @isPrivateGroup()
     @sideBlock.addSubView @groupMembers if @isPrivateGroup() and ("list members" in KD.config.permissions)
+    @sideBlock.addSubView @groupListBox  if KD.getGroup().slug is "koding"
     @sideBlock.addSubView @topicsBox
     @sideBlock.addSubView @usersBox if "list members" in KD.config.permissions
-    @sideBlock.addSubView @tickerBox
+    # @sideBlock.addSubView @tickerBox
+
+    KD.getSingleton("widgetController").showWidgets [
+      { view: topWidgetPlaceholder,  key: "ActivityTop"  }
+      { view: leftWidgetPlaceholder, key: "ActivityLeft" }
+    ]
 
   isPrivateGroup :->
     {entryPoint} = KD.config

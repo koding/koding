@@ -212,7 +212,7 @@ class ActivityTickerItem extends KDListItemView
 
     if itemClass
     then @addSubView new itemClass null, data
-    else @destroy()
+    else @hide()
 
   getClassName: (data)->
     {as, source, target} = data
@@ -260,3 +260,17 @@ class ActiveTopicItemView extends KDListItemView
         tagName   : "span"
         cssClass  : "total-following"
         partial   : tagInfoPartial
+
+class GroupListItemView extends KDListItemView
+  constructor: (options = {}, data) ->
+    options.type = "activity-ticker-item"
+    super options, data
+
+    @groupLink = new GroupLinkView null, data
+
+  viewAppended: JView::viewAppended
+
+  pistachio: ->
+      """
+      {{> @groupLink}}
+      """

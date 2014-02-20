@@ -45,5 +45,12 @@
     "couponCodes" : {"discount": "rp5", "vm": "4FREEVMS"}, 
     "tags"        : ["vm", "rp5"],
     "count"       : 5
+  },
+  {
+    "title"       : "Free plan", 
+    "feeAmount"   : 0, 
+    "feeUnit"     : "months",
+    "couponCodes" : {"discount": "", "vm":""}, 
+    "tags"        : ["vm", "nosync"]
   }
 ]

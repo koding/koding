@@ -58,6 +58,22 @@ body.pricing.flow
   padding               142px 0 87px
   borderBox()
 
+  h1
+    font-size       32px
+
+  h2
+    font-size       28px
+
+  h3
+    font-size       24px
+
+  h1
+  h2
+  h3
+    font-weight     200
+    color           #1c2021
+    margin-bottom   8px
+
   .inner-container
     max-width           1096px
     margin              0 auto
@@ -66,16 +82,10 @@ body.pricing.flow
       padding-bottom    41px
       border-bottom     1px solid #d4d4d4
 
-      h2
-        font-size       28px
-        font-weight     200
-        color           #1c2021
-        margin-bottom   8px
-
       p
         font-size       20px
         color           #757575
-        font-weight     200px
+        font-weight     200
         line-height     26px
         width           702px
         fl()
@@ -115,7 +125,9 @@ body.pricing.flow
     .plan-selection
       .developer-plan
       .team-plan
+        height          300px
         overflow        visible
+
     .plan-selection-box
       width           715px
       padding-top     42px
@@ -206,6 +218,12 @@ body.pricing.flow
           margin          0 5px 0 15px
           borderBox()
 
+      a.pricing-show-details
+        font-size         12px
+        font-weight       200
+        color             #747474
+        abs               174px -30px 0 0
+
       &.selected
         margin              0
         padding             40px 0 0 50px
@@ -257,6 +275,9 @@ body.pricing.flow
           line-height         2
           margin              0
 
+        .pricing-show-details
+          abs                 274px 0px 0 0
+
     .developer-plan
 
       .sliderbar-container
@@ -267,6 +288,59 @@ body.pricing.flow
           background          #dadada
           shadow              inset 1px 1px 0 rgba(0, 0, 0, .16) \,
                               0 0 0 1px #dadada
+
+      .pricing-show-details
+          abs                 174px -30px 0 0
+
+  .how-it-works
+    bg                        color, #f1f1f1
+    border                    1px solid #d3d3d3
+    border-radius             12px
+    max-width                 913px
+    padding                   24px
+    color                     #747474
+    vendor                    column-count, 3
+    vendor                    column-gap, 24px
+    position                  relative
+    margin-top                -88px
+    borderBox()
+
+    &:after
+      content                 ""
+      display                 block
+      border                  11px solid transparent
+      border-bottom-color     #f1f1f1
+      abs                     -22px 192px 0 0
+
+    &:before
+      content                 ""
+      display                 block
+      border                  11px solid transparent
+      border-bottom-color     #d3d3d3
+      abs                     -23px 192px 0 0
+
+    &.team
+      margin-top              0
+
+      &:before
+      &:after
+        right                 612px
+
+    .item
+      font-size               12px
+      font-weight             200
+
+      &:not(.cpu)
+        vendor                column-break-inside, avoid
+
+      h4
+        font-size             18px
+        font-weight           400
+        margin                0 0 24px
+
+      p
+        margin-bottom         24px
+        line-height           1.2em
 
 .pricing-horizontal-divider
   size                656px, 1px
@@ -340,10 +414,9 @@ section.pricing-sign-in
       size            98px, 47px
       line-height     47px
       font-size       14px
-      margin          1px 0 0 0
+      margin          1px 0 0 2px
       rounded         6px
       background      #1aaf5d
-      margin-left     2px
 
       .button-title
         line-height   inherit
@@ -476,9 +549,6 @@ section.pricing-sign-in
 
 
   .formline
-    margin            0
-    padding           0
-    size              auto, auto
     clear             both
 
     &.card-name
@@ -524,29 +594,6 @@ section.pricing-sign-in
         size          63px, auto
         .kdinput
           text-align  center
-
-    &.button-field
-      background      none
-      border-top      1px solid #eaeaea
-      padding         18px 0 0
-
-      .kdbutton.solid
-        size          110px, 46px
-        line-height   46px
-        margin        0
-        padding       0
-        font-size     14px
-        rounded       12px
-        font-weight   400
-        fl()
-        &.green
-          fr()
-
-        .button-title
-          line-height inherit
-          padding     inherit
-          font-size   inherit
-          font-weight inherit
 
 /* Confirm payment */
 .plan-upgrade-confirm-form
@@ -659,31 +706,11 @@ section.pricing-sign-in
   .button-field
     size                auto, auto
     max-width           805px
-    margin              14px auto 0
-    padding             0
-    text-align          right
-
-    .kdbutton.solid
-      height            44px
-      line-height       44px
-      rounded           12px
-      padding-top       0
-      padding-bottom    0
-      font-size         16px
-      margin            0 0 0 10px
-      color             #fff
-
-      .button-title
-        line-height     inherit
-        font-size       inherit
-        font-weight     inherit
-        color           inherit
-
-      &.gray
-        background      #b4b4b4
+    margin              14px auto 50px
 
 .pricing-final
   padding               10px
+  text-align            center
 
   .error-icon
     display             block
@@ -706,17 +733,7 @@ section.pricing-sign-in
       color             #F13A18
 
   .kdbutton.solid
-    display             block
-    margin              40px auto 0
-    height              44px
-    line-height         44px
-    rounded             12px
-    font-size           16px
-
-    .button-title
-      line-height     inherit
-      font-size       inherit
-      font-weight     inherit
+    margin              40px 0 0
 
 /* Pricing - Create group form */
 .kdformview.pricing-create-group
@@ -727,6 +744,7 @@ section.pricing-sign-in
   background        #fff
   margin            44px auto 0
   color             #666
+  border            1px solid #c7c7c7
   borderBox()
 
   .input-wrapper
@@ -734,7 +752,7 @@ section.pricing-sign-in
 
   .kdinput.text
     size              100%, 50px !important
-    border            1px solid #a0a0a0
+    border            1px solid #bcbcbc
     background        #fff !important
     color             #4c555f !important
     font-size         14px !important
@@ -746,36 +764,11 @@ section.pricing-sign-in
     margin-top        0
     margin-right      22px
     line-height       50px
+    color             #969696
+    font-size         14px
+    font-weight       400
 
   .formline
-    margin            0
-    padding           0
-    size              auto, auto
-    clear             both
-    line-height       50px
-
-    &.button-field
-      background      none
-      border-top      1px solid #eaeaea
-      padding         18px 0 0
-
-      .kdbutton.solid.green
-        size          auto 46px
-        line-height   46px
-        margin        0
-        padding       0 10px
-        font-size     14px
-        background    #1aaf5d
-        rounded       12px
-        font-weight   400
-        fr()
-
-        .button-title
-          line-height inherit
-          padding     inherit
-          font-size   inherit
-          font-weight inherit
-
     &.slug
     &.visibility
       line-height     30px
@@ -1180,3 +1173,4 @@ section.pricing-sign-in
     r-sprite      pricing paypal
   .american-express figure
     r-sprite      pricing amex
+

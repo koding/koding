@@ -138,7 +138,7 @@ module.exports = ->
 
       <div itemscope itemtype="http://schema.org/Organization">
         <span itemprop="name">Koding Inc.</span>
-        <img src="https://koding.com/a/images/kd-fluid-icon512.png" itemprop="image" width="100" height="100" />
+        <img src="https://koding.com/a/images/logos/fluid512.png" itemprop="image" width="100" height="100" />
         <div itemprop="address" itemscope itemtype="http://schema.org/PostalAddress">
           <span itemprop="streetAddress">
             Koding, Inc.

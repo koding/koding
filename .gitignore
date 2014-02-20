@@ -20,6 +20,7 @@
 /broker/apps/broker/src/broker.app.src
 /broker/deps
 /broker/log
+kontrol-data-*
 /erl_crash.dump
 /go/bin
 /go/bin-vagrant

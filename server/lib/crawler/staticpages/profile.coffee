@@ -22,7 +22,7 @@ createStatusUpdateNode = (statusUpdate, authorFullName, authorNickname)->
   commentsList = ""
   if statusUpdate?.replies
     for comment in statusUpdate.replies
-      avatarUrl = "https://gravatar.com/avatar/#{comment.author.hash}?size=90&amp;d=https%3A%2F%2Fapi.koding.com%2Fimages%2Fdefaultavatar%2Fdefault.avatar.40.png"
+      avatarUrl = "https://gravatar.com/avatar/#{comment.author.hash}?size=90&amp;d=https://koding-cdn.s3.amazonaws.com/images/default.avatar.140.png&r=g"
       commentsList +=
         """
           <div class="kdview kdlistitemview kdlistitemview-comment">
@@ -154,13 +154,18 @@ putContent = (account, sUpdates)->
   {profile:{nickname, firstName, lastName, about}} = account if account
   nickname  or= "A koding nickname"
   firstName or= "a koding "
-  lastName  or= "user"
-  about     or= ""
+  lastName or= "user"
+  about    or= ""
+  hash    = account?.profile.hash or ''
+  avatar  = account?.profile.avatar or no
 
   numberOfLikes     = if account.counts.likes     then account.counts.likes     else "0"
   numberOfFollowers = if account.counts.followers then account.counts.followers else "0"
   numberOfFollowing = if account.counts.following then account.counts.following else "0"
-  imgURL = "https://gravatar.com/avatar/#{account.profile.hash}?size=90&amp;d=https%3A%2F%2Fapi.koding.com%2Fimages%2Fdefaultavatar%2Fdefault.avatar.90.png"
+
+  imgURL   = "//gravatar.com/avatar/#{hash}?size=90&d=https://koding-cdn.s3.amazonaws.com/images/default.avatar.140.png&r=g'}"
+  if avatar
+    imgURL = "//i.embed.ly/1/display/crop?grow=false&width=90&height=90&key=94991069fb354d4e8fdb825e52d4134a&url=#{encodeURIComponent avatar}"
 
   content  =
     """

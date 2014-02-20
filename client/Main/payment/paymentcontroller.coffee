@@ -28,7 +28,7 @@ class PaymentController extends KDController
     modal.on 'PaymentInfoSubmitted', (paymentMethodId, updatedPaymentInfo) =>
       @updatePaymentInfo paymentMethodId, updatedPaymentInfo, (err, savedPaymentInfo) =>
         if err
-          modal.emit 'FormValidationFailed'
+          modal.emit 'FormValidationFailed', err
           return callback err
         callback null, savedPaymentInfo
         @emit 'PaymentDataChanged'
@@ -132,7 +132,6 @@ class PaymentController extends KDController
         @transitionSubscription data, (err, subscription, rest...) ->
 
           return workflow.emit 'GroupCreationFailed'  if err
-
           workflow.emit 'SubscriptionTransitionCompleted', subscription
           workflow.emit 'Finished', data, err, subscription, rest...
 
@@ -148,13 +147,16 @@ class PaymentController extends KDController
             @confirmReactivation existingSubscription, (err, subscription) =>
               return KD.showError err  if err
               @emit "SubscriptionReactivated", subscription
-          KD.singletons.dock.getView().show()
         else if createAccount
           { cardFirstName: firstName, cardLastName: lastName } = billing
           { JUser } = KD.remote.api
-          JUser.convert { firstName, lastName, email }, (err) ->
-            JUser.logout()
-            KD.singletons.dock.getView().show()
+          JUser.convert { firstName, lastName, email }, (err, newToken, recoveryToken) =>
+            workflow.emit "PasswordRecoveryToken", recoveryToken
+            JUser.logout ->
+        else
+          @emit "SubscriptionCompleted"
+
+        KD.singletons.dock.getView().show()
       .enter()
 
     workflow
@@ -222,6 +224,31 @@ class PaymentController extends KDController
       @emit 'SubscriptionCredited', subscription
       callback()
 
+  fetchActiveSubscription: (tags, callback) ->
+    if KD.getGroup()?.slug is "koding"
+      status = $in: ["active", "canceled"]
+      @fetchSubscriptionsWithPlans {tags, status}, (err, subscriptions) ->
+        return callback err  if err
+        noSync = null
+        active = null
+
+        for subscription in subscriptions
+          if "nosync" in subscription.tags
+            noSync = subscription
+          else
+            active = subscription
+
+        subscription = active or noSync
+
+        if subscription
+        then callback null, subscription
+        else callback message: "Subscription not found", code: "no subscription"
+    else
+      @fetchGroupSubscription callback
+
+  fetchGroupSubscription: (callback) ->
+    KD.getGroup().fetchSubscription callback
+
   fetchSubscriptionsWithPlans: (options, callback) ->
     [callback, options] = [options, callback]  unless callback
 
@@ -233,9 +260,6 @@ class PaymentController extends KDController
       { subscriptions } = @groupPlansBySubscription plansAndSubs
 
       callback null, subscriptions
-
-  fetchGroupSubscription: (callback) ->
-    KD.getGroup().fetchSubscription callback
 
   groupPlansBySubscription: (plansAndSubscriptions = {}) ->
 
@@ -262,23 +286,10 @@ class PaymentController extends KDController
   _runWrapper: (options, callback) ->
     {fn, subscriptionTag, packTag} = options
 
-    kallback = (subscription) =>
-      if subscription
-        KD.remote.api.JPaymentPack.one tags: packTag, (err, pack) =>
+    @fetchActiveSubscription (err, subscription) ->
+      return callback err  if err
+      KD.remote.api.JPaymentPack.one tags: packTag, (err, pack) =>
+        return callback err  if err
+        fn subscription, pack, (err, nonce) =>
           return callback err  if err
-          fn subscription, pack, (err, nonce) =>
-            return callback err  if err
-            callback null, nonce
-      else
-        callback()
-
-    group = KD.getGroup()
-    if group.slug is "koding"
-      @fetchSubscriptionsWithPlans tags: [subscriptionTag], (err, subscriptions) =>
-        return callback err  if err
-        [subscription] = subscriptions
-        kallback subscription
-    else
-      @fetchGroupSubscription (err, subscription) ->
-        return callback err  if err
-        kallback subscription
+          callback null, nonce
