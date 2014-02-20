@@ -63,7 +63,8 @@ do ->
         # reach from another class here o_0
         # 4 represents disconnected state
         return if status.state isnt 4
-        currentModal = showModal modalSize, state
+        # disable modal
+        # currentModal = showModal modalSize, state
       , 2000
 
     currentModalSize = "small"
