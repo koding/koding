@@ -44,14 +44,15 @@ class EnvironmentsMainScene extends JView
     JStack.getStacks (err, stacks)=>
       warn err  if err
 
+      group = KD.getGroup().title
       if not stacks or stacks.length is 0
-        stacks = [{sid:0, group:KD.getGroup().slug}]
+        stacks = [{sid:0, group}]
 
       stacks.forEach (stack)=>
 
         title   = stack.meta?.title
         number  = if stack.sid > 0 then "#{stack.sid}." else "default"
-        title or= "Your #{number} stack on #{stack.group}"
+        title or= "Your #{number} stack on #{group}"
 
         @addSubView new StackView {}, {title, stack}
 
