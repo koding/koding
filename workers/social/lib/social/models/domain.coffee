@@ -39,6 +39,8 @@ module.exports = class JDomain extends jraphical.Module
           (signature String, Function)
         registerDomain:
           (signature Object, Function)
+        fetchDomains:
+          (signature Function)
         getTldList:
           (signature Function)
         createDomain: [
@@ -156,6 +158,44 @@ module.exports = class JDomain extends jraphical.Module
         default     : -> new Date
       stack         : ObjectId
 
+  # filters domains such as shared-x/vm-x.groupSlug.kd.io
+  # or x.koding.kd.io. Also shows only group related
+  # domains to users
+  filterDomains = (domains, account, group)->
+    domainList = []
+    domainList = domains.filter (domain)->
+      {domain} = domain
+      re = if group is "koding" then new RegExp(account.profile.nickname + '\.kd\.io$') \
+           else new RegExp('(.*)\.' + group + '\.kd\.io$')
+      isVmAlias         = (/^shared|vm[\-]?([0-9]+)?/.test domain)
+      isKodingSubdomain = (/(.*)\.(koding|guests)\.kd\.io$/.test domain)
+      isGroupAlias      = re.test domain
+      not isVmAlias and not isKodingSubdomain and isGroupAlias
+
+  @fetchDomains: secure (client, callback)->
+
+    {group} = client.context
+    {connection: {delegate}} = client
+
+    JGroup.one {slug:group}, (err, group)->
+
+      return callback err  if err
+      return callback new KodingError("No group found.")  unless group
+
+      delegate.checkPermission group, 'list own domains', (err, hasPermission)->
+
+        return callback err  if err
+        unless hasPermission
+          return callback new KodingError "Access denied",  "ACCESSDENIED"
+
+        delegate.fetchDomains (err, domains) ->
+          return callback err  if err
+
+          domainList = []
+          domainList = filterDomains domains, delegate, group.slug  if domains
+
+          callback null, domainList
+
   @isDomainEligible: (params, callback)->
     {domain, newDomain} = params
 
@@ -172,6 +212,7 @@ module.exports = class JDomain extends jraphical.Module
     callback null, slug
 
   @createDomain: secure (client, options, callback)->
+
     [callback, options] = [options, callback]  unless callback
     {delegate} = client.connection
     {domain} = options
@@ -210,6 +251,49 @@ module.exports = class JDomain extends jraphical.Module
                 return callback err if err
 
               callback err, model
+
+  bindVM: (client, params, callback)->
+    domainName = @domain
+    operation  = {'$addToSet': hostnameAlias: params.hostnameAlias}
+    JDomain.update {domain:domainName}, operation, callback
+
+  unbindVM: (client, params, callback)->
+    domainName = @domain
+    operation  = {'$pull': hostnameAlias: params.hostnameAlias}
+    JDomain.update {domain:domainName}, operation, callback
+
+  bindVM$: permit
+    advanced: [
+      { permission: "edit own domains", validateWith: Validators.own }
+    ]
+    success: (rest...)-> @bindVM rest...
+
+  unbindVM$: permit
+    advanced: [
+      { permission: "edit own domains", validateWith: Validators.own }
+    ]
+    success: (rest...)-> @unbindVM rest...
+
+  @one$: permit 'list domains',
+    success: (client, selector, callback)->
+      {delegate} = client.connection
+      delegate.fetchDomains (err, domains)->
+        return callback err if err
+        for domain in domains
+          # console.log "Testing domain:", domain, selector.domainName
+          return callback null, domain if domain.domain is selector.domainName
+
+  remove$: permit
+    advanced: [
+      { permission: 'delete own domains', validateWith: Validators.own }
+    ]
+    success: (client, callback)->
+      {delegate} = client.connection
+      if /^([\w\-]+)\.kd\.io$/.test @domain
+        return callback message: "It's not allowed to delete root domains"
+      @remove (err)=> callback err
+
+  # DOMAIN REGISTER STUFF ~ WIP
 
   @getTldList = (callback)->
     domainManager.domainService.getAvailableTlds callback
@@ -292,47 +376,6 @@ module.exports = class JDomain extends jraphical.Module
     JPaymentCharge.charge client, data, callback
 
   bound: require 'koding-bound'
-
-  bindVM: (client, params, callback)->
-    domainName = @domain
-    operation  = {'$addToSet': hostnameAlias: params.hostnameAlias}
-    JDomain.update {domain:domainName}, operation, callback
-
-  unbindVM: (client, params, callback)->
-    domainName = @domain
-    operation  = {'$pull': hostnameAlias: params.hostnameAlias}
-    JDomain.update {domain:domainName}, operation, callback
-
-  bindVM$: permit
-    advanced: [
-      { permission: "edit own domains", validateWith: Validators.own }
-    ]
-    success: (rest...)-> @bindVM rest...
-
-  unbindVM$: permit
-    advanced: [
-      { permission: "edit own domains", validateWith: Validators.own }
-    ]
-    success: (rest...)-> @unbindVM rest...
-
-  @one$: permit 'list domains',
-    success: (client, selector, callback)->
-      {delegate} = client.connection
-      delegate.fetchDomains (err, domains)->
-        return callback err if err
-        for domain in domains
-          # console.log "Testing domain:", domain, selector.domainName
-          return callback null, domain if domain.domain is selector.domainName
-
-  remove$: permit
-    advanced: [
-      { permission: 'delete own domains', validateWith: Validators.own }
-    ]
-    success: (client, callback)->
-      {delegate} = client.connection
-      if /^([\w\-]+)\.kd\.io$/.test @domain
-        return callback message: "It's not allowed to delete root domains"
-      @remove (err)=> callback err
 
   # DNS Related Methods
 
@@ -469,10 +512,3 @@ module.exports = class JDomain extends jraphical.Module
     success: (client, params, callback)->
       params.domainName = @domain
       JProxyRestriction.deleteRule params, (err)-> callback err
-
-  @fetchGroupDomains: secure (client, callback)->
-    JVM = require './vm'
-    JVM.fetchVmsByContext client, {}, (err, vms) ->
-      return callback err if err
-      JDomain.some hostnameAlias : $in : vms, {}, callback
-
