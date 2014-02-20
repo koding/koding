@@ -232,7 +232,6 @@ class LoginView extends KDView
     <div class='tint'></div>
     <div class="flex-wrapper">
       <div class="login-box-header">
-        <a class="betatag">beta</a>
         {{> @logo}}
       </div>
       <div class="login-form-holder lf">
@@ -333,8 +332,8 @@ class LoginView extends KDView
         warn "An error occured while registering:", err
         @registerForm.notificationsDisabled = no
         @registerForm.emit "SubmitFailed", message
-
       else
+
         KD.mixpanel.alias account.profile.nickname
         KD.mixpanel "Signup, success"
         _gaq.push ['_trackEvent', 'Sign-up']
@@ -348,12 +347,20 @@ class LoginView extends KDView
         $.cookie 'clientId', replacementToken
         KD.getSingleton('mainController').accountChanged account
 
+        titleText = unless err then 'Good to go, Enjoy!' \
+                    else 'Quota exceeded and could not join to the group. Please contact with group admin'
+        title = "<span>#{titleText}</span>"
+
         new KDNotificationView
           cssClass  : "login"
-          title     : '<span></span>Good to go, Enjoy!'
+          title     : title
+          # content   : 'Successfully registered!'
           duration  : 2000
 
         KD.getSingleton('router').clear()
+        @headBanner.hide()
+        #could not joined to the group. Directing to Koding
+        window.location.href = "/" if err
 
         KD.utils.wait 1000, =>
           @registerForm.reset()
@@ -403,25 +410,28 @@ class LoginView extends KDView
       if firstRoute and /^\/(?:Reset|Register|Confirm|R)\//.test firstRoute
         firstRoute = "/Activity"
 
-      KD.getSingleton('appManager').quitAll()
-      KD.getSingleton('router').handleRoute firstRoute or '/Activity', {replaceState: yes, entryPoint}
-      KD.getSingleton('groupsController').on 'GroupChanged', =>
+      @appStorage = KD.getSingleton('appStorageController').storage 'Login', '1.0'
+      @appStorage.fetchValue "redirectTo", (redirectTo) =>
+        if redirectTo
+          firstRoute = "/#{redirectTo}"
+          @appStorage.unsetKey "redirectTo", (err) ->
+            warn "Failed to reset redirectTo", err  if err
+
+        KD.getSingleton('appManager').quitAll()
+        KD.getSingleton('router').handleRoute firstRoute or '/Activity', {replaceState: yes, entryPoint}
+        KD.getSingleton('groupsController').on 'GroupChanged', =>
+          @headBanner?.hide()
+          @loginForm.reset()
+
         new KDNotificationView
           cssClass  : "login"
           title     : "<span></span>Happy Coding!"
+          # content   : "Successfully logged in."
           duration  : 2000
         @loginForm.reset()
 
-      new KDNotificationView
-        cssClass  : "login"
-        title     : "<span></span>Happy Coding!"
-        # content   : "Successfully logged in."
-        duration  : 2000
-      @loginForm.reset()
-
-      @hide()
-
-      KD.mixpanel "Login, success"
+        KD.mixpanel "Login, success"
+        window.location.reload()  if redirectTo
 
   doRedeem:({inviteCode})->
     return  unless KD.config.entryPoint?.slug or KD.isLoggedIn()
@@ -436,30 +446,26 @@ class LoginView extends KDView
         KD.mixpanel "Redeem, success"
 
   showHeadBanner:(message, callback)->
+    $('body').addClass 'recovery'
     @headBannerMsg = message
     @headBanner.updatePartial @headBannerMsg
     @headBanner.unsetClass 'hidden'
     @headBanner.setClass 'show'
-    $('body').addClass 'recovery'
-    @headBanner.click = callback
+    @headBanner.off 'click'
+    @headBanner.once 'click', callback
     @headBanner.appendToDomBody()
 
-  headBannerShowGoBackGroup:(groupTitle)->
-    @showHeadBanner "<span>Go Back to</span> #{groupTitle}", =>
-      @headBanner.hide()
-
-      $('#group-landing').css 'height', '100%'
-      $('#group-landing').css 'opacity', 1
-
   headBannerShowInvitation:(invite)->
-    @showHeadBanner "Cool! you got an invite! <span>Click here to register your account.</span>", =>
+    @showHeadBanner "Cool! you got an invite! <span>If you already have an account click here to sign in.</span>", =>
+      @animateToForm "login"
       @headBanner.hide()
-      KD.getSingleton('router').clear @getRouteWithEntryPoint('Register')
-      $('body').removeClass 'recovery'
-      @show =>
-        @animateToForm "register"
-        @$('.flex-wrapper').addClass 'taller'
-        KD.getSingleton('mainController').emit 'InvitationReceived', invite
+
+    KD.getSingleton('router').clear @getRouteWithEntryPoint 'Register'
+    $('body').removeClass 'recovery'
+    @show =>
+      @animateToForm "register"
+      @$('.flex-wrapper').addClass 'taller'
+      KD.getSingleton('mainController').emit 'InvitationReceived', invite
 
   hide:(callback)->
 
@@ -554,8 +560,6 @@ class LoginView extends KDView
       return "/#{route}"
 
   showError = (err)->
-
-
     if err.code and err.code is 403
       {name, nickname}  = err.data
       KD.getSingleton('appManager').tell 'Account', 'displayConfirmEmailModal', name, nickname

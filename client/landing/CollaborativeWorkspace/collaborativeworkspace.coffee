@@ -34,6 +34,8 @@ class CollaborativeWorkspace extends Workspace
     @historyRef     = @workspaceRef.child "history"
     @chatRef        = @workspaceRef.child "chat"
     @usersRef       = @workspaceRef.child "users"
+    @keysRef        = @workspaceRef.child "keys"
+    @groupNameRef   = @workspaceRef.child "groupName"
     @userRef        = @usersRef.child KD.nick()
     @requestPingRef = @workspaceRef.child "requestPing"
     @onlineCountRef = @workspaceRef.child "onlineUserCount"
@@ -53,7 +55,8 @@ class CollaborativeWorkspace extends Workspace
         @createPanel()
       else
         @createPanel()
-        @workspaceRef.set "keys": @sessionData
+        @keysRef.set @sessionData
+        @groupNameRef.set KD.getSingleton("groupsController").currentGroupName
 
       if not isOldSession
         @addToHistory { message: "$0 started the session", by: KD.nick() }
@@ -126,9 +129,17 @@ class CollaborativeWorkspace extends Workspace
         return @pingHostTimer = KD.utils.wait 10000, =>
           @showNotActiveView()
 
-      @syncWorkspace()
-      @connected = yes
-      KD.utils.killWait @pingHostTimer
+      @groupNameRef.once "value", (snapshot) =>
+        groupName = snapshot.val()
+
+        KD.whoami().checkGroupMembership groupName, (err, isMember) =>
+          unless isMember
+            warn "you are not belong to this group"
+            return @showNotActiveView()
+
+          @syncWorkspace()
+          @connected = yes
+          KD.utils.killWait @pingHostTimer
 
     @usersRef.on "value", (snapshot) =>
       data   = @reviveSnapshot snapshot
