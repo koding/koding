@@ -6,6 +6,7 @@ module.exports = [
   "ContentDisplays/userbadgeview.coffee"
 
   "memberslistitemview.coffee"
+  "groupmemberspagelistitemview.coffee"
   "newmemberactivitylistitem.coffee"
   "memberslistcontroller.coffee"
 

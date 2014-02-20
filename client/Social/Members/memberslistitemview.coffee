@@ -1,12 +1,19 @@
 class MembersListItemView extends KDListItemView
   constructor: (options = {}, data) ->
     options.type        = "member"
+    options.avatar     ?=
+      size              :
+        width           : 30
+        height          : 30
+
     super options, data
 
     data = @getData()
 
+    avatarSize = @getOption('avatar').size
+
     @avatar  = new AvatarView
-      size       : width: 30, height: 30
+      size       : width: avatarSize.width, height: avatarSize.height
       cssClass   : "avatarview"
       showStatus : yes
     , data
@@ -31,6 +38,6 @@ class MembersListItemView extends KDListItemView
 
   viewAppended:->
     @addSubView @avatar
-    @addSubView @followButton  if @followButton
+    @addSubView @followButton if @followButton
     @addSubView @actor
     @addSubView @followersAndFollowing

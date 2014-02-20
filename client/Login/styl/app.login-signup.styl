@@ -10,7 +10,7 @@ app.login-signup.styl
 
 .kdview.login-screen
   background          #111617
-  bg                  size, cover
+  bg                  size cover
   text-align          center
   position            fixed
   padding             0
@@ -113,7 +113,7 @@ app.login-signup.styl
     .flex-wrapper
       height                400px
       &.taller
-        height              500px
+        height              470px
 
   &.finishRegistration
     .frf
@@ -121,9 +121,14 @@ app.login-signup.styl
     .login-options-holder.reg
       visible()
     .flex-wrapper
-      height                575px
+      height                525px
       &.taller
         height              600px
+    .email
+      .placeholder-helper
+        display             none
+    .kdbutton.github
+      hidden()
 
   &.redeem
     .rdf
@@ -195,21 +200,13 @@ app.login-signup.styl
   overflow                visible
   height                  72px
   borderBox()
-  .betatag
-    text-indent           -9999px
-    top                   -3px
-    right                 -3px
-    size                  64px,38px
-    bg                    position,-400px -120px
-    // sprite()
-    abs()
-    z-index               20002
+
   .logo
     font-size             0
     size                  110px 72px
     cursor                pointer
     rounded               0 0 5px 5px
-    bg                    color, #111617
+    bg                    color logoBg
     blockMid()
     cite
       margin              19px auto 0 auto

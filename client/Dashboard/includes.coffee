@@ -15,6 +15,7 @@ module.exports = [
   "controllers/productscontroller.coffee",
   "controllers/invitationrequestlistcontroller.coffee",
   # views:
+  "views/administrationview.coffee",
   "views/generalsettingsview.coffee",
   "views/productsettingsview.coffee",
   "views/productsectionview.coffee",
@@ -44,6 +45,7 @@ module.exports = [
   "views/groupsinvitationtabpaneview.coffee"
   "views/groupsinvitationtabview.coffee"
   "views/grouptabhandleview.coffee"
+  "views/groupsuploadview.coffee"
   # badge views
   "views/badge/badgedashboardview.coffee"
   "views/badge/badgelistitem.coffee"
@@ -69,6 +71,7 @@ module.exports = [
   "views/onboarding/onboardingdashboardview.coffee",
 
   "views/permissionsform.coffee",
+  "views/grouplogosettings.coffee",
 
   "styl/app.group.dashboard.styl",
   "styl/onboarding.styl"

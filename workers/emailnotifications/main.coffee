@@ -149,7 +149,7 @@ fetchSubjectContentLink = (content, type, callback)->
 
 prepareEmail = (notification, daily = no, cb, callback=->)->
 
-  {JAccount, JMailNotification} = worker.models
+  {JAccount, JMailNotification, JGroup} = worker.models
 
   {event}     = notification.data
   if event is 'FollowHappened'
@@ -203,16 +203,20 @@ prepareEmail = (notification, daily = no, cb, callback=->)->
                         if err then callback err
                         else
                           details.contentLink = link
-                          if event is 'ReplyIsAdded'
-                            # Fetch RealContent
-                            fetchContent notification.activity.content, \
-                            (err, content)->
-                              if err then callback err
-                              else
-                                details.realContent = content
-                                cb details
-                          else
-                            cb details
+                          JGroup.one slug: subjectContent.group, (err, group) ->
+                            return callback err  if err
+                            details.group = group  if group
+
+                            if event is 'ReplyIsAdded'
+                              # Fetch RealContent
+                              fetchContent notification.activity.content, \
+                              (err, content)->
+                                if err then callback err
+                                else
+                                  details.realContent = content
+                                  cb details
+                            else
+                              cb details
 
 instantEmails = ->
   {JMailNotification} = worker.models

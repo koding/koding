@@ -32,6 +32,9 @@ class GroupsMemberPermissionsView extends JView
         @fetchSomeMembers()
       else @refresh()
 
+    KD.singletons.groupsController.on "MemberJoinedGroup", (data) =>
+      @refresh()
+
   fetchRoles:(callback=->)->
     groupData = @getData()
     list = @listController.getListView()

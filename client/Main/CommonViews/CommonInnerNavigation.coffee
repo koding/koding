@@ -1,6 +1,5 @@
 class CommonInnerNavigation extends KDView
 
-
   constructor:(options = {}, data)->
 
     options.tagName  = 'aside'
@@ -29,8 +28,8 @@ class CommonInnerNavigation extends KDView
     if itemToBeSelected
       @sortController.selectItem itemToBeSelected
 
-class CommonInnerNavigationListController extends NavigationController
 
+class CommonInnerNavigationListController extends NavigationController
 
   constructor:(options={}, data)->
 
@@ -58,8 +57,8 @@ class CommonInnerNavigationListController extends NavigationController
     mainView.addSubView list
     @instantiateListItems(@getData().items or [])
 
-class CommonInnerNavigationList extends KDListView
 
+class CommonInnerNavigationList extends KDListView
 
   constructor : (options = {}, data)->
 

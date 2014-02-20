@@ -17,7 +17,7 @@ class PlanUpgradeForm extends JView
 
       else if options.forceUpgrade and lowerTier
         view.disable?()
-    
+
     @emit 'CurrentSubscriptionSet', subscription
 
     return this
@@ -33,9 +33,10 @@ class PlanUpgradeForm extends JView
       plan = item.getData()
 
       @planViewsByCode[plan.planCode] = item
-      
+
       item.setControls new KDButtonView
         title     : 'Upgrade'
+        style     : 'small solid green'
         callback  : =>
           @emit 'PlanSelected', plan
 

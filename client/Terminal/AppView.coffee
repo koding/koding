@@ -101,7 +101,7 @@ class WebTermAppView extends JView
       unless vmName
         return @setMessage "It seems you don't have a VM to use with Terminal."
 
-      @setTerminalTimeout vmName, 15000
+      @setTerminalTimeout vmName, 15000, => @restoreTabs vmName
 
   showApprovalModal: (remote, command)->
     modal = new KDModalView
@@ -229,7 +229,8 @@ class WebTermAppView extends JView
 
     terminalView.on 'WebTermConnected', @bound 'updateSessions'
 
-    @setTerminalTimeout options.vmName, 15000
+    @setTerminalTimeout options.vmName, 15000, ->
+      terminalView.connectToTerminal()
 
     @appendTerminalTab terminalView
 
@@ -293,7 +294,7 @@ class WebTermAppView extends JView
     else
       @createNewTab vmName: vmName, mode: 'create'
 
-  setTerminalTimeout: (vmName, delayMs) ->
+  setTerminalTimeout: (vmName, delayMs, isRunningCallback) ->
     vmController = KD.getSingleton 'vmController'
     vmController.info vmName, KD.utils.getTimedOutCallback (err, vm, info)=>
       if err
@@ -301,7 +302,7 @@ class WebTermAppView extends JView
         KD.mixpanel "Open Webterm, fail", {vmName}
 
       if info?.state is 'RUNNING'
-        @restoreTabs vmName
+        isRunningCallback()
       else
         vmController.start vmName, (err, state)=>
           warn "Failed to turn on vm:", err  if err

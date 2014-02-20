@@ -308,6 +308,7 @@ task 'goBroker', "Run the goBroker", (options)->
       enabled         : if config.runKontrol is yes then yes else no
       binary          : uuid
       port            : broker.port
+      hostname        : options.domain
     verbose           : yes
 
 task 'goBrokerKite', "Run the goBrokerKite", (options)->
@@ -327,6 +328,7 @@ task 'goBrokerKite', "Run the goBrokerKite", (options)->
       enabled         : if config.runKontrol is yes then yes else no
       binary          : uuid
       port            : broker.port
+      hostname        : options.domain
     verbose           : yes
 
 task 'premiumBrokerKite', "Run the premium broker kite", (options)->
@@ -346,6 +348,7 @@ task 'premiumBrokerKite', "Run the premium broker kite", (options)->
       enabled         : if config.runKontrol is yes then yes else no
       binary          : uuid
       port            : broker.port
+      hostname        : options.domain
     verbose           : yes
 
 task 'rerouting', "Run rerouting", (options)->
@@ -691,6 +694,20 @@ task 'runExternals', "runs externals kite which imports info about github, will 
     kontrol           :
       enabled         : if config.runKontrol is yes then yes else no
     verbose           : yes
+
+task 'importPaymentData', "creates default payment data", (options)->
+  {configFile} = options
+  config = require('koding-config-manager').load("main.#{configFile}")
+
+  processes.spawn
+    cmd            : "node ./workers/productimport/index -c #{configFile}"
+    name           : 'importPaymentData'
+    stdout         : process.stdout
+    stderr         : process.stderr
+    kontrol        :
+      enabled      : if config.runKontrol is yes then yes else no
+      startMode    : "one"
+    verbose        : yes
 
 # ------------------- TEST STUFF --------------------------
 

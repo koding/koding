@@ -11,22 +11,18 @@ class HomePage extends JView
     super options, data
 
     @pricingButton = new KDButtonView
-      title       : "<a href='mailto:sales@koding.com?subject=Koding, white label' target='_self'>Get your own Koding for your team<cite>Contact us for details</cite></a>"
+      title       : "Check our Pricing<cite>for you or for your team</cite>"
       cssClass    : 'solid green shadowed pricing'
       icon        : 'yes'
       iconClass   : 'dollar'
-      click       : (event)->
-        KD.mixpanel "Sales contact, click"
+      callback    : (event)->
         KD.utils.stopDOMEvent event
+        KD.mixpanel "Pricing button in Home, click"
+        KD.singletons.router.handleRoute '/Pricing'
 
     @registerForm = new HomeRegisterForm
       callback    : (formData)->
         KD.mixpanel "Register button in / a, click"
-        @doRegister formData
-
-    @registerFormBottom = new HomeRegisterForm
-      callback    : (formData)->
-        KD.mixpanel "Register button in / b, click"
         @doRegister formData
 
     @githubLink   = new KDCustomHTMLView
@@ -233,11 +229,6 @@ class HomePage extends JView
         </div>
         {{> @pricingButton}}
       </section>
-      <section id='home-bottom'>
-        <h2 class='big-header'>If you are ready to go, let’s do this</h2>
-        <h3 class='hidden'>Something super simple and super descriptive goes here</h3>
-        {{> @registerFormBottom}}
-      </section>
       <footer class='clearfix'>
         <div class='fl'>
           <a href="/" class="logo"><cite></cite></a>
@@ -248,6 +239,7 @@ class HomePage extends JView
         <nav>
           <a href="/Activity">Activity</a>
           <a href="/About">About</a>
+          <a href="/Pricing">Pricing</a>
           <a href="mailto:hello@koding.com" target='_self'>Contact</a>
           <a href="http://learn.koding.com/">University</a>
           <a href="http://koding.github.io/jobs/">Jobs</a>

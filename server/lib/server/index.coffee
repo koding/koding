@@ -164,7 +164,7 @@ app.get "/-/auth/register/:hostname/:key", (req, res)->
         res.send 200, authTemplate data
 
 
-app.all "/Logout", (req, res)->
+app.all "/:name?/Logout", (req, res)->
   res.clearCookie 'clientId'  if req.method is 'POST'
   res.redirect 302, '/'
 

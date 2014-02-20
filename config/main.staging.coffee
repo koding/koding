@@ -181,6 +181,7 @@ module.exports =
       apiUri    : 'https://koding.com'
       appsUri   : 'https://koding-apps.s3.amazonaws.com'
       uploadsUri: 'https://koding-uploads.s3.amazonaws.com'
+      uploadsUriForGroup: 'https://koding-groups.s3.amazonaws.com'
       sourceUri : "http://stage-webserver-#{version}.sj.koding.com:1337"
       github    :
         clientId: "f733c52d991ae9642365"
@@ -252,7 +253,7 @@ module.exports =
     disconnectTimeout: 3e3
     vhost       : 'kite'
   email         :
-    host        : "koding.com"
+    host        : "latest.koding.com"
     protocol    : 'https:'
     defaultFromAddress: 'hello@koding.com'
   emailWorker   :
@@ -298,8 +299,9 @@ module.exports =
       port        : 80
       portssl     : 443
       ftpip       : '54.208.3.200'
-  recurly       :
-    apiKey      : '0cb2777651034e6889fb0d091126481a' # koding.recurly.com
+  recurly         :
+    apiKey        : '4a0b7965feb841238eadf94a46ef72ee' # koding-test.recurly.com
+    loggedRequests: /^(subscriptions|transactions)/
   embedly       :
     apiKey      : embedlyApiKey
   opsview :
@@ -373,6 +375,11 @@ module.exports =
     rabbitMQ      : "info"
     ldapserver    : "info"
     broker        : "info"
+  defaultVMConfigs:
+    freeVM        :
+      storage     : 4096
+      ram         : 1024
+      cpu         : 1
   graphite       :
     use          : true
     host         : "172.168.2.7"

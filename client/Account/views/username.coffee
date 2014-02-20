@@ -51,7 +51,8 @@ class AccountEditUsername extends JView
         Save               :
           title            : 'SAVE CHANGES'
           type             : 'submit'
-          style            : 'solid green fr'
+          cssClass         : 'profile-save-changes'
+          style            : 'solid green'
       callback             : @bound 'update'
 
 
@@ -220,7 +221,7 @@ class AccountEditUsername extends JView
             @avatarChange.emit "LoadingEnd"
 
   uploadAvatar: (avatarData, callback)->
-    FSHelper.s3.upload "avatar.png", avatarData, (err, url)=>
+    FSHelper.s3.upload "avatar.png", avatarData, "user", "", (err, url)=>
       resized = KD.utils.proxifyUrl url,
         crop: true, width: 300, height: 300
 
