@@ -100,9 +100,11 @@ class DomainCreateForm extends KDCustomHTMLView
       domain = "#{context}.kd.io"
       domainList.push {title:".#{domain}", value: domain}
 
-    KD.whoami().fetchDomains (err, userDomains)=>
+    {JDomain} = KD.remote.api
+    JDomain.fetchDomains (err, userDomains)=>
+
       return warn "Failed to update domains:", err  if err
-      
+
       if userDomains
         for domain in userDomains
           if not domain.regYears > 0
@@ -110,14 +112,14 @@ class DomainCreateForm extends KDCustomHTMLView
 
       group = KD.getSingleton("groupsController").currentGroupName
       # adds group root domain to domain selections
-      unless group is "koding" 
-        pushDomainOption group  
+      unless group is "koding"
+        pushDomainOption group
       else
         slug = KD.whoami().profile.nickname              # if user domain root does not exist, it is added
-        rootDomain = userDomains.filter (domain) ->      # here. actually it is not possible to delete a root 
-          domain.domain is "#{slug}.kd.io"               # domain, but defensive checks are always good.      
-        pushDomainOption slug  unless rootDomain.length 
-        
+        rootDomain = userDomains.filter (domain) ->      # here. actually it is not possible to delete a root
+          domain.domain is "#{slug}.kd.io"               # domain, but defensive checks are always good.
+        pushDomainOption slug  unless rootDomain.length
+
       {domains, domainName} = @subDomainEntryForm.inputs
       domainName.setValue ""
       domains.removeSelectOptions()

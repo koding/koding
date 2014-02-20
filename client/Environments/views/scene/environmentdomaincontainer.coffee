@@ -37,7 +37,8 @@ class EnvironmentDomainContainer extends EnvironmentContainer
 
     new Promise (resolve, reject)=>
 
-      KD.whoami().fetchDomains (err, domains)=>
+      {JDomain} = KD.remote.api
+      JDomain.fetchDomains (err, domains)=>
 
         @removeAllItems()
 
