@@ -45,7 +45,7 @@ class EnvironmentsMainScene extends JView
       warn err  if err
 
       if not stacks or stacks.length is 0
-        stacks = [{sid:0, group:'koding'}]
+        stacks = [{sid:0, group:KD.getGroup().slug}]
 
       stacks.forEach (stack)=>
 
