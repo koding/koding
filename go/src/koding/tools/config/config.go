@@ -58,10 +58,11 @@ type Config struct {
 		Port    int
 		Enabled bool
 	}
-	GoLogLevel string
-	Broker     Broker
-	BrokerKite Broker
-	Loggr      struct {
+	GoLogLevel        string
+	Broker            Broker
+	BrokerKite        Broker
+	PremiumBrokerKite Broker
+	Loggr             struct {
 		Push   bool
 		Url    string
 		ApiKey string

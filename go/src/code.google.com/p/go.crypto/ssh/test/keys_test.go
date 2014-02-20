@@ -1,9 +1,6 @@
 package test
 
 import (
-	"crypto/rsa"
-	"crypto/x509"
-	"encoding/pem"
 	"reflect"
 	"strings"
 	"testing"
@@ -124,6 +121,7 @@ AwEHoUQDQgAEi9Hdw6KvZcWxfg2IDhA7UkpDtzzt6ZqJXSsFdLd+Kx4S3Sx4cVO+
 
 func TestMarshalParsePublicKey(t *testing.T) {
 	pub := getTestPublicKey(t)
+
 	authKeys := ssh.MarshalAuthorizedKey(pub)
 	actualFields := strings.Fields(string(authKeys))
 	if len(actualFields) == 0 {
@@ -170,17 +168,13 @@ func testAuthorizedKeys(t *testing.T, authKeys []byte, expected []authResult) {
 
 }
 
-func getTestPublicKey(t *testing.T) *rsa.PublicKey {
-	block, _ := pem.Decode([]byte(testClientPrivateKey))
-	if block == nil {
-		t.Fatalf("pem.Decode: %v", testClientPrivateKey)
-	}
-	priv, err := x509.ParsePKCS1PrivateKey(block.Bytes)
+func getTestPublicKey(t *testing.T) ssh.PublicKey {
+	priv, err := ssh.ParsePrivateKey([]byte(testClientPrivateKey))
 	if err != nil {
-		t.Fatalf("x509.ParsePKCS1PrivateKey: %v", err)
+		t.Fatalf("ParsePrivateKey: %v", err)
 	}
 
-	return &priv.PublicKey
+	return priv.PublicKey()
 }
 
 func TestAuth(t *testing.T) {

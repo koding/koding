@@ -19,6 +19,7 @@ import (
 	"koding/tools/logger"
 	"koding/tools/utils"
 	"koding/virt"
+	"math/rand"
 	"net"
 	"os"
 	"os/signal"
@@ -56,10 +57,12 @@ var (
 	mongodbConn *mongodb.MongoDB
 	conf        *config.Config
 
-	flagProfile   = flag.String("c", "", "Configuration profile from file")
-	flagRegion    = flag.String("r", "", "Configuration region from file")
-	flagDebug     = flag.Bool("d", false, "Debug mode")
-	flagTemplates = flag.String("t", "", "Change template directory")
+	flagProfile      = flag.String("c", "", "Configuration profile from file")
+	flagRegion       = flag.String("r", "", "Configuration region from file")
+	flagDebug        = flag.Bool("d", false, "Debug mode")
+	flagTemplates    = flag.String("t", "", "Change template directory")
+	flagTimeout      = flag.String("s", "50m", "Shut down timeout for a single VM")
+	flagDisableGuest = flag.Bool("noguest", false, "Disable Guest VM creation")
 
 	infos            = make(map[bson.ObjectId]*VMInfo)
 	infosMutex       sync.Mutex
@@ -69,6 +72,7 @@ var (
 	shuttingDown     = false
 	requestWaitGroup sync.WaitGroup
 
+	vmTimeout         = time.Minute * 50
 	prepareQueueLimit = 8 + 1 // number of concurrent VM preparations, shoulde be CPU + 1
 	prepareQueue      = make(chan func(chan struct{}))
 )
@@ -79,12 +83,10 @@ func main() {
 		log.Fatal("Please specify profile via -c and region via -r. Aborting.")
 	}
 
-	fmt.Println("flags", *flagProfile)
 	conf = config.MustConfig(*flagProfile)
 	mongodbConn = mongodb.NewMongoDB(conf.Mongo)
 	modelhelper.Initialize(conf.Mongo)
 
-	var logLevel logger.Level
 	if *flagDebug {
 		logLevel = logger.DEBUG
 	} else {
@@ -96,20 +98,29 @@ func main() {
 		templateDir = *flagTemplates
 	}
 
+	var newTimeout time.Duration
+	var err error
+	newTimeout, err = time.ParseDuration(*flagTimeout)
+	if err != nil {
+		log.Warning("Timeout parameter is not correct: %v", err.Error())
+		log.Notice("Using default VM timeout: %s", vmTimeout)
+	} else {
+		// use our new timeout
+		log.Info("Using default VM timeout: %s", vmTimeout)
+		vmTimeout = newTimeout
+	}
+
+	// set seed for even randomness, needed for randomMinutes() function.
+	rand.Seed(time.Now().UnixNano())
+
 	initializeSettings()
 
 	k := prepareOsKite()
 
 	runNewKite(k.ServiceUniqueName)
-
-	// handle leftover VMs
-	handleCurrentVMS(k)
-
-	// start pinned always-on VMs
-	startPinnedVMS(k)
-
-	// handle SIGUSR1 and other signals. Shutdown gracely when USR1 is received
-	setupSignalHandler(k)
+	handleCurrentVMS(k)   // handle leftover VMs
+	startPinnedVMS(k)     // start pinned always-on VMs
+	setupSignalHandler(k) // handle SIGUSR1 and other signals.
 
 	// startPrepareWorkers starts multiple workers (based on prepareQueueLimit)
 	// that accepts vmPrepare/vmStart functions.
@@ -499,6 +510,11 @@ func registerVmMethod(k *kite.Kite, method string, concurrent bool, callback fun
 }
 
 func getUser(username string) (*virt.User, error) {
+	// Do not create guest vms if its turned of
+	if *flagDisableGuest && strings.HasPrefix(username, "guest-") {
+		return nil, errors.New("vm creation for guests are disabled.")
+	}
+
 	var user *virt.User
 	if err := mongodbConn.Run("jUsers", func(c *mgo.Collection) error {
 		return c.Find(bson.M{"username": username}).One(&user)
@@ -857,28 +873,42 @@ func newInfo(vm *virt.VM) *VMInfo {
 	}
 }
 
+// randomMinutes returns a random duration between [0,n] in minutes. It panics if n <=  0.
+func randomMinutes(n int64) time.Duration { return time.Minute * time.Duration(rand.Int63n(n)) }
+
 func (info *VMInfo) startTimeout() {
 	if info.useCounter != 0 || info.vm.AlwaysOn {
 		return
 	}
 
-	// After 1 hour we are shutting down the VM (unprepareVM does it.)
-	// 5 Minutes from kite.go, 50 + 5 Minutes from here, makes a total of 60 Mins (1 Hour)
-	info.timeout = time.AfterFunc(50*time.Minute, func() {
+	// Shut down the VM (unprepareVM does it.) The timeout is calculated as:
+	// * 5  Minutes from kite.go
+	// * 50 Minutes pre-defined timeout
+	// * 5  Minutes after we give warning
+	// * [0, 30] random duration to avoid hickups during mass unprepares
+	// In Total it's [60, 90] minutes.
+	totalTimeout := vmTimeout + randomMinutes(30)
+	log.Info("Timer is started. VM %s will be shut down in %s minutes",
+		info.vm.Id.Hex(), totalTimeout)
+
+	info.timeout = time.AfterFunc(totalTimeout, func() {
 		if info.useCounter != 0 || info.vm.AlwaysOn {
 			return
 		}
+
 		if info.vm.GetState() == "RUNNING" {
 			if err := info.vm.SendMessageToVMUsers("========================================\nThis VM will be turned off in 5 minutes.\nLog in to Koding.com to keep it running.\n========================================\n"); err != nil {
 				log.Warning("%v", err)
 			}
 		}
+
 		info.timeout = time.AfterFunc(5*time.Minute, func() {
 			info.mutex.Lock()
 			defer info.mutex.Unlock()
 			if info.useCounter != 0 || info.vm.AlwaysOn {
 				return
 			}
+			log.Info("Timer is finished. Shutting down %s", info.vm.Id.Hex())
 			info.unprepareVM()
 		})
 	})

@@ -6,22 +6,15 @@ class ApplicationTabView extends KDTabView
     options.lastTabHandleMargin         ?= 80
     options.sortable                    ?= yes
     options.closeAppWhenAllTabsClosed   ?= yes
-    options.saveSession                 ?= no
-    options.sessionName                or= ""
     options.enableMoveTabHandle         ?= no
     options.cssClass = KD.utils.curry 'application-tabview', options.cssClass
 
     super options, data
 
     appManager        = KD.getSingleton "appManager"
-    @isSessionEnabled = options.saveSession and options.sessionName
-
-    @initSession() if @isSessionEnabled
 
     @on "PaneAdded", (pane) =>
       @tabHandleContainer.repositionPlusHandle @handles
-      @updateSession() if @isSessionEnabled and @sessionData
-
       tabView = this
       pane.on "KDTabPaneDestroy", ->
         # -1 because the pane is still there but will be destroyed after this event
@@ -38,9 +31,6 @@ class ApplicationTabView extends KDTabView
       tabHandle.on "DragFinished", ->
         plusHandle?.show()
 
-    @on "SaveSessionData", (data) =>
-      @appStorage.setValue "sessions", data if @isSessionEnabled
-
     focusActivePane = (pane)=>
       if mainView = pane.getMainView()
         {tabView} = pane.getMainView()
@@ -52,18 +42,3 @@ class ApplicationTabView extends KDTabView
 
     @on "KDObjectWillBeDestroyed", ->
       mainView.mainTabView.off "PaneDidShow", focusActivePane
-
-
-  initSession: ->
-    @appStorage = new AppStorage @getOptions().sessionName, "1.0"
-
-    @appStorage.fetchStorage (storage) =>
-      data = @appStorage.getValue "sessions"
-      @sessionData = data or {}
-      @restoreSession data
-
-  updateSession: ->
-    @getDelegate().emit "UpdateSessionData", @panes, @sessionData
-
-  restoreSession: ->
-    @getDelegate().emit "SessionDataCreated", @sessionData

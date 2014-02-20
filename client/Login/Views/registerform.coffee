@@ -148,6 +148,7 @@ class RegisterInlineForm extends LoginViewInlineForm
       {origin} = invite
       @invitationCode.input.setValue invite.code
       @email.input.setValue invite.email
+      @email.placeholder.setClass "out"
       if origin.constructorName is 'JAccount'# instanceof KD.remote.api.JAccount
         KD.remote.cacheable [origin], (err, [account])=>
           @addSubView new AvatarStaticView({size: width : 30, height : 30}, account), '.invited-by .wrapper'

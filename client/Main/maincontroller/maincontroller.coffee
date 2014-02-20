@@ -26,8 +26,6 @@ class MainController extends KDController
     @setFailTimer()
     @attachListeners()
 
-    @introductionTooltipController = new IntroductionTooltipController
-
   createSingletons:->
 
     KD.registerSingleton "mainController",            this
@@ -40,18 +38,18 @@ class MainController extends KDController
     KD.registerSingleton "localStorageController",    new LocalStorageController
     KD.registerSingleton "oauthController",           new OAuthController
     KD.registerSingleton "groupsController",          new GroupsController
-    KD.registerSingleton "vmController",              new VirtualizationController
     KD.registerSingleton "paymentController",         new PaymentController
+    KD.registerSingleton "vmController",              new VirtualizationController
     KD.registerSingleton "locationController",        new LocationController
     KD.registerSingleton "badgeController",           new BadgeController
     KD.registerSingleton "helpController",            new HelpController
-
 
     # appManager.create 'Chat', (chatController)->
     #   KD.registerSingleton "chatController", chatController
 
     @ready =>
       router.listen()
+      KD.registerSingleton "widgetController",        new WidgetController
       KD.registerSingleton "activityController",      new ActivityController
       KD.registerSingleton "appStorageController",    new AppStorageController
       KD.registerSingleton "kodingAppsController",    new KodingAppsController
@@ -138,11 +136,7 @@ class MainController extends KDController
       cookie = $.cookie 'clientId'
 
       if cookieExists and not cookieMatches
-        KD.logToExternal "cookie changes", {stackTraces:cookieChanges, username:KD.nick()}
-
         return @isLoggingIn off  if @isLoggingIn() is on
-
-        KD.logToExternal "cookie changes", {stackTraces:cookieChanges, username:KD.nick(), inlogin:true}
 
         window.removeEventListener 'beforeunload', wc.bound 'beforeUnload'
         @emit "clientIdChanged"
@@ -150,13 +144,14 @@ class MainController extends KDController
         # window location path is set to last route to ensure visitor is not
         # redirected to another page
         @utils.defer ->
-          lastRoute = KD.getSingleton("router").visitedRoutes.last
+          lastRoute = localStorage?.routeToBeContinued or KD.getSingleton("router").visitedRoutes.last
 
           if lastRoute and /^\/(?:Reset|Register|Verify|Confirm)\//.test lastRoute
             lastRoute = "/Activity"
 
           {entryPoint} = KD.config
           KD.getSingleton('router').handleRoute lastRoute or '/Activity', {replaceState: yes, entryPoint}
+          localStorage?.removeItem "routeToBeContinued"
 
         @utils.wait 3000, cookieChangeHandler
     # Note: I am using wait instead of repeat, for the subtle difference.  See this StackOverflow answer for more info: 

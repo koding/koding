@@ -28,22 +28,14 @@ func NewClient(session *sockjs.Session, broker *Broker) (*Client, error) {
 	socketId := randomString()
 	session.Tag = socketId
 
-	var err error
 	controlChannel, err := broker.PublishConn.Channel()
 	if err != nil {
 		return nil, fmt.Errorf("Couldnt create publish channel %v", err)
 	}
 
-	var subscriptions storage.Subscriptionable
-
-	subscriptions, err = storage.NewStorage(conf, storage.REDIS, socketId)
+	subscriptions, err := createSubscriptionStorage(socketId)
 	if err != nil {
-		log.Critical("Couldnt access to redis/create a key for client %v", session.Tag)
-		subscriptions, err = storage.NewStorage(conf, storage.SET, socketId)
-		if err != nil {
-			// this will never fail to here
-			return nil, fmt.Errorf("Couldnt create subscription storage %v", err)
-		}
+		return nil, err
 	}
 
 	globalMapMutex.Lock()
@@ -57,6 +49,22 @@ func NewClient(session *sockjs.Session, broker *Broker) (*Client, error) {
 		Broker:         broker,
 		Subscriptions:  subscriptions,
 	}, nil
+}
+
+func createSubscriptionStorage(socketId string) (storage.Subscriptionable, error) {
+
+	if subscriptions, err := storage.NewStorage(conf, storage.REDIS, socketId); err == nil {
+		return subscriptions, nil
+	} else {
+		log.Critical("Couldnt access to redis/create a key for client %v: Error: %v", socketId, err)
+	}
+
+	if subscriptions, err := storage.NewStorage(conf, storage.SET, socketId); err == nil {
+		return subscriptions, nil
+	}
+
+	// this will never fail to here
+	return nil, fmt.Errorf("Couldnt create subscription storage for Client: %v", socketId)
 }
 
 // Close should be called whenever a client disconnects.
@@ -138,8 +146,10 @@ func (c *Client) handleSessionMessage(data interface{}) {
 
 	case "ping":
 		sendToClient(c.Session, "broker.pong", nil)
-		// TOOD - may be we need to revisit this part later about duration and request count
-		go c.Subscriptions.ClearWithTimeout(time.Minute * 30)
+		if c.Subscriptions.Backend() == storage.REDIS {
+			// TOOD - may be we need to revisit this part later about duration and request count
+			go c.Subscriptions.ClearWithTimeout(time.Minute * 59)
+		}
 	default:
 		log.Warning("Invalid action. message: %v socketId: %v", message, c.SocketId)
 

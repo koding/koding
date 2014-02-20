@@ -19,7 +19,6 @@ do ->
 
   status.on 'sessionTokenChanged', (token)->
     # this is disabled for now to test user log-out problem.
-    KD.logToExternal "sessionTokenChanged event"
     # $.cookie 'clientId', token
 
   status.on 'connected', ->
@@ -42,7 +41,7 @@ do ->
     notifyUser = options.notifyUser
 
     if notifyUser or currentModal
-      showModal modalSize, state
+      currentModal = showModal modalSize, state
 
   status.on 'disconnected', (options={})->
     reason     = options.reason     or= "unknown"
@@ -60,7 +59,11 @@ do ->
       # if reconnected within 2 secs, reconnected event clears this
       modalTimerId = setTimeout =>
         currentModalSize = modalSize
-        showModal modalSize, state
+        # in Status class there is constants that we can not
+        # reach from another class here o_0
+        # 4 represents disconnected state
+        return if status.state isnt 4
+        currentModal = showModal modalSize, state
       , 2000
 
     currentModalSize = "small"

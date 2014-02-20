@@ -46,10 +46,7 @@ class ReferrerModal extends KDModalView
   createEmailLink: ->
     subject      = "Sign up for Koding, get 250MB more"
     body         = """
-      #{KD.nick()} has invited you to Koding.
-      As a special offer, if you sign up to Koding today, we'll give you
-      an additional 250MB of cloud storage.
-      Use this link to register and claim your reward. #{KD.getReferralUrl KD.nick()}
+      #{KD.nick()} has invited you to Koding. As a special offer, if you sign up to Koding today, we'll give you an additional 250MB of cloud storage. Use this link to register and claim your reward. #{KD.getReferralUrl KD.nick()}
     """
 
     @addSubView new KDCustomHTMLView

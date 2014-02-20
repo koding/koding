@@ -30,6 +30,10 @@ class GroupsInvitationTabPaneView extends KDView
 
     @on 'SearchInputChanged', (@searchValue)=> @refresh()
 
+    groupController = KD.getSingleton("groupsController")
+    groupController.on "MemberJoinedGroup", (data) =>
+      @refresh()
+
   viewAppended:->
     super()
     @addListeners()
@@ -52,10 +56,11 @@ class GroupsInvitationTabPaneView extends KDView
   fetchAndPopulate:->
     @controller.showLazyLoader no
 
-    options = {@timestamp, @requestLimit, search: @searchValue}
-    options.status = @options.unresolvedStatus  unless @options.showResolved
+    options = {@timestamp , @requestLimit, search: @searchValue, }
+    options.showResolved = @getOptions().showResolved
+    options.type = @getOptions().type
 
-    @getData().fetchInvitationsFromGraph @options.type, options, (err, results)=>
+    @getData().fetchInvitationsByStatus options, (err, results)=>
       @controller.hideLazyLoader()
       results = results.filter (res)-> res isnt null
       if err or results.length is 0

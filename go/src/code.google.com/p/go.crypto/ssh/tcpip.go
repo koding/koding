@@ -27,14 +27,6 @@ func (c *ClientConn) Listen(n, addr string) (net.Listener, error) {
 	return c.ListenTCP(laddr)
 }
 
-// RFC 4254 7.1
-type channelForwardMsg struct {
-	Message   string
-	WantReply bool
-	raddr     string
-	rport     uint32
-}
-
 // Automatic port allocation is broken with OpenSSH before 6.0. See
 // also https://bugzilla.mindrot.org/show_bug.cgi?id=2017.  In
 // particular, OpenSSH 5.9 sends a channelOpenMsg with port number 0,
@@ -81,6 +73,14 @@ func (c *ClientConn) autoPortListenWorkaround(laddr *net.TCPAddr) (net.Listener,
 		}
 	}
 	return nil, fmt.Errorf("ssh: listen on random port failed after %d tries: %v", tries, err)
+}
+
+// RFC 4254 7.1
+type channelForwardMsg struct {
+	Message   string
+	WantReply bool
+	raddr     string
+	rport     uint32
 }
 
 // ListenTCP requests the remote peer open a listening socket
@@ -232,15 +232,31 @@ func (l *tcpListener) Addr() net.Addr {
 }
 
 // Dial initiates a connection to the addr from the remote host.
-// addr is resolved using net.ResolveTCPAddr before connection.
-// This could allow an observer to observe the DNS name of the
-// remote host. Consider using ssh.DialTCP to avoid this.
+// The resulting connection has a zero LocalAddr() and RemoteAddr().
 func (c *ClientConn) Dial(n, addr string) (net.Conn, error) {
-	raddr, err := net.ResolveTCPAddr(n, addr)
+	// Parse the address into host and numeric port.
+	host, portString, err := net.SplitHostPort(addr)
 	if err != nil {
 		return nil, err
 	}
-	return c.DialTCP(n, nil, raddr)
+	port, err := strconv.ParseUint(portString, 10, 16)
+	if err != nil {
+		return nil, err
+	}
+	// Use a zero address for local and remote address.
+	zeroAddr := &net.TCPAddr{
+		IP:   net.IPv4zero,
+		Port: 0,
+	}
+	ch, err := c.dial(net.IPv4zero.String(), 0, host, int(port))
+	if err != nil {
+		return nil, err
+	}
+	return &tcpChanConn{
+		tcpChan: ch,
+		laddr:   zeroAddr,
+		raddr:   zeroAddr,
+	}, nil
 }
 
 // DialTCP connects to the remote address raddr on the network net,
@@ -277,14 +293,14 @@ type channelOpenDirectMsg struct {
 }
 
 // dial opens a direct-tcpip connection to the remote server. laddr and raddr are passed as
-// strings and are expected to be resolveable at the remote end.
+// strings and are expected to be resolvable at the remote end.
 func (c *ClientConn) dial(laddr string, lport int, raddr string, rport int) (*tcpChan, error) {
 	ch := c.newChan(c.transport)
-	if err := c.writePacket(marshal(msgChannelOpen, channelOpenDirectMsg{
+	if err := c.transport.writePacket(marshal(msgChannelOpen, channelOpenDirectMsg{
 		ChanType:      "direct-tcpip",
 		PeersId:       ch.localId,
-		PeersWindow:   1 << 14,
-		MaxPacketSize: 1 << 15, // RFC 4253 6.1
+		PeersWindow:   channelWindowSize,
+		MaxPacketSize: channelMaxPacketSize,
 		raddr:         raddr,
 		rport:         uint32(rport),
 		laddr:         laddr,

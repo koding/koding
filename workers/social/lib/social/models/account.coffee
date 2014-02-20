@@ -32,6 +32,7 @@ module.exports = class JAccount extends jraphical.Module
   {permit} = require './group/permissionset'
   Validators = require './group/validators'
   Protected = require '../traits/protected'
+  {extend} = require 'underscore'
 
   @share()
 
@@ -53,6 +54,7 @@ module.exports = class JAccount extends jraphical.Module
         { name: 'updateInstance' }
         { name: 'notification' }
         { name : "RemovedFromCollection" }
+
       ]
     sharedMethods :
       static:
@@ -534,18 +536,19 @@ module.exports = class JAccount extends jraphical.Module
       @cachedUserCount = count
       callback null, count
 
-  fetchHomepageView:({account, bongoModels}, callback)->
-
+  fetchHomepageView:(options, callback)->
+    {account} = options
     JReferral = require './referral'
     JGroup = require './group'
     JNewStatusUpdate = require './messages/newstatusupdate'
 
-    JAccount.renderHomepage
+    homePageOptions = extend options, {
       renderedAccount : account
       account         : this
       isLoggedIn      : account.type is 'unregistered'
-      bongoModels     : bongoModels
-    , callback
+    }
+
+    JAccount.renderHomepage homePageOptions, callback
 
   fetchGroups: secure (client, options, callback)->
     [callback, options] = [options, callback]  unless callback
@@ -1400,14 +1403,10 @@ module.exports = class JAccount extends jraphical.Module
           perms = Protected.permissionsByModule
           callback null, flatten(perms), roles
         else
-          group.fetchPermissionSet (err, permissionSet)=>
-            return callback err  if err
-            perms = (perm.permissions.slice()\
-                  for perm in permissionSet.permissions\
-                    # if user is an admin, add all
-                    # roles into permission set
-                  when perm.role in roles or 'admin' in roles)
-
+          group.getPermissionSet (err, permissionSet)->
+            return callback err if err
+            perms = (perm.permissions.slice() for perm in permissionSet.permissions \
+              when perm.role in roles or 'admin' in roles)
             callback null, flatten(perms), roles
 
       if this instanceof JAccount
@@ -1420,37 +1419,38 @@ module.exports = class JAccount extends jraphical.Module
     client.context.group = 'koding'
     oldAddTags.call this, client, tags, options, callback
 
-  fetchUserDomains: (callback) ->
+  fetchUserDomains: (client, callback) ->
+    {connection: {delegate}} = client
+    {group} = client.context
+
     JDomain = require './domain'
+    delegate.fetchDomains (err, domains) ->
+      return callback err  if err
+      domainList = []
+      domainList = filterDomains domains, delegate, group  if domains
+      
+      callback null, domainList
 
-    Relationship.some
-      targetName: "JDomain"
-      sourceId  : @getId()
-      sourceName: "JAccount"
-    ,
-      targetId : 1
-    , (err, rels)->
-      return callback err if err
-
-      JDomain.some {_id: $in: (rel.targetId for rel in rels)}, {}, (err, domains)->
-        domainList = []
-        unless err
-          # we don't allow users to work on domains such as
-          # shared-x/vm-x.groupSlug.kd.io or x.koding.kd.io
-          # so we are filtering them here.
-          domainList = domains.filter (domain)->
-            domainName = domain.domain
-            !(/^shared|vm[\-]?([0-9]+)?/.test domainName) and \
-            !(/(.*)\.(koding|guests)\.kd\.io$/.test domainName)
-
-        callback err, domainList
+  # filters domains such as shared-x/vm-x.groupSlug.kd.io
+  # or x.koding.kd.io. Also shows only group related
+  # domains to users
+  filterDomains = (domains, account, group)->
+    domainList = []
+    domainList = domains.filter (domain)->
+      {domain} = domain
+      re = if group is "koding" then new RegExp(account.profile.nickname + '\.kd\.io$') \
+           else new RegExp('(.*)\.' + group + '\.kd\.io$')
+      isVmAlias         = (/^shared|vm[\-]?([0-9]+)?/.test domain)
+      isKodingSubdomain = (/(.*)\.(koding|guests)\.kd\.io$/.test domain)
+      isGroupAlias      = re.test domain
+      not isVmAlias and not isKodingSubdomain and isGroupAlias
 
   fetchDomains$: permit
     advanced: [
       { permission: 'list own domains', validateWith: Validators.own }
     ]
     success: (client, callback) ->
-      @fetchUserDomains callback
+      @fetchUserDomains client, callback
 
 
   {Member, OAuth} = require "./graph"
@@ -1559,6 +1559,7 @@ module.exports = class JAccount extends jraphical.Module
 
     [callback, options] = [options, callback]  unless callback
 
+    options ?= {}
     { tags, status } = options
 
     selector = {}

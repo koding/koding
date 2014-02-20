@@ -128,7 +128,8 @@ class GroupProductsController extends KDController
         isRecurOptional     : no
         showOverage         : no
         showSoldAlone       : no
-        showPriceIsVolatile : no
+        showPriceIsVolatile : yes
+        canApplyCoupon      : yes
         placeholders        :
           title             : 'e.g. "Gold Plan"'
           description       : 'e.g. "2 VMs, and a tee shirt"'

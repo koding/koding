@@ -4,6 +4,7 @@ module.exports = [
   "activitylistcontroller.coffee",
 
   # Activity commons
+  "views/feedcoverphotoview.coffee",
   "views/activityactions.coffee",
   "views/activitylistheader.coffee",
   "views/activitysplitview.coffee",
@@ -12,6 +13,7 @@ module.exports = [
   "views/tutorialactivityactions.coffee",
   "views/newmemberbucket.coffee",
   "views/activitytickeritem.coffee",
+  "views/referalbox.coffee",
 
   "views/embedbox.coffee",
   "views/embedboxwidget.coffee",

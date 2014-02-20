@@ -7,7 +7,7 @@ class EnvironmentItem extends KDDiaObject
     options.bind           = KD.utils.curry "contextmenu", options.bind
     options.jointItemClass = EnvironmentItemJoint
     options.draggable      = no
-    options.colorTag      ?= "#a2a2a2"
+    options.colorTag      ?= "#1AAF5D"
 
     super options, data
 
@@ -98,8 +98,8 @@ class EnvironmentItem extends KDDiaObject
   pistachio:->
     """
       <div class='details'>
+        <span class='toggle'></span>
         {h3{#(title)}}
-        {{#(description)}}
         <span class='chevron'></span>
       </div>
     """

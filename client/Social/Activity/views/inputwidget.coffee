@@ -1,6 +1,5 @@
 class ActivityInputWidget extends KDView
   {daisy, dash}         = Bongo
-  {JNewStatusUpdate, JTag} = KD.remote.api
 
   constructor: (options = {}, data) ->
     options.cssClass = KD.utils.curry "activity-input-widget", options.cssClass
@@ -8,7 +7,7 @@ class ActivityInputWidget extends KDView
 
     options.destroyOnSubmit ?= no
 
-    @input    = new ActivityInputView defaultValue: options.defaultValue
+    @input = new ActivityInputView defaultValue: options.defaultValue
     @input.on "Escape", @bound "reset"
 
     @input.on "TokenAdded", (type, token) =>
@@ -53,13 +52,14 @@ class ActivityInputWidget extends KDView
       tagName  : "span"
       cssClass : "preview-icon"
       tooltip  :
-        title     : "Preview"
+        title  : "Markdown preview"
       click    : =>
-        if not @preview then @showPreview()
-        else @hidePreview()
+        if not @preview then @showPreview() else @hidePreview()
 
   submit: (callback) ->
     return  unless value = @input.getValue().trim()
+
+    {JTag} = KD.remote.api
 
     activity       = @getData()
     activity?.tags = []
@@ -138,7 +138,7 @@ class ActivityInputWidget extends KDView
       return  "|#{prefix}:JTag:#{tag.getId()}:#{title}|"
 
   create: (data, callback) ->
-    JNewStatusUpdate.create data, (err, activity) =>
+    KD.remote.api.JNewStatusUpdate.create data, (err, activity) =>
       @reset()  unless err
 
       callback? err, activity
@@ -170,7 +170,6 @@ class ActivityInputWidget extends KDView
     # @submit.setTitle "Post"
     @submit.focus()
     setTimeout (@bound "unlockSubmit"), 8000
-    @setData null
     @unlockSubmit()  if lock
 
   lockSubmit: ->
@@ -184,6 +183,7 @@ class ActivityInputWidget extends KDView
   showPreview: ->
     return unless value = @input.getValue().trim()
     markedValue = KD.utils.applyMarkdown value
+    return  if markedValue.trim() is "<p>#{value}</p>"
     tags = @input.getTokens().map (token) -> token.data if token.type is "tag"
     tagsExpanded = @utils.expandTokens markedValue, {tags}
     if not @preview
@@ -192,7 +192,6 @@ class ActivityInputWidget extends KDView
         partial  : tagsExpanded
         click    : => @hidePreview()
       @input.addSubView @preview
-
     else
       @preview.updatePartial tagsExpanded
 
@@ -237,7 +236,7 @@ class ActivityEditWidget extends ActivityInputWidget
     {body, link} = data
 
     content = ""
-    content += "<div>#{line}</div>" for line in body.split "\n"
+    content += "<div>#{Encoder.htmlEncode(line)}</div>" for line in body.split "\n"
     @input.setContent content, data
     @embedBox.loadEmbed link.link_url  if link
 

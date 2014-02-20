@@ -22,6 +22,12 @@ const (
 
 	// minPacketLength defines the smallest valid packet
 	minPacketLength = 9
+
+	// channelMaxPacketSize defines the maximum packet size advertised in open messages
+	channelMaxPacketSize = 1 << 15 // RFC 4253 6.1, minimum 32 KiB
+
+	// channelWindowSize defines the window size advertised in open messages
+	channelWindowSize = 64 * channelMaxPacketSize // Like OpenSSH
 )
 
 // A Channel is an ordered, reliable, duplex stream that is multiplexed over an
@@ -49,7 +55,7 @@ type Channel interface {
 	// ChannelType returns the type of the channel, as supplied by the
 	// client.
 	ChannelType() string
-	// ExtraData returns the arbitary payload for this channel, as supplied
+	// ExtraData returns the arbitrary payload for this channel, as supplied
 	// by the client. This data is specific to the channel type.
 	ExtraData() []byte
 }
@@ -77,8 +83,23 @@ const (
 	ResourceShortage
 )
 
+// String converts the rejection reason to human readable form.
+func (r RejectionReason) String() string {
+	switch r {
+	case Prohibited:
+		return "administratively prohibited"
+	case ConnectionFailed:
+		return "connect failed"
+	case UnknownChannelType:
+		return "unknown channel type"
+	case ResourceShortage:
+		return "resource shortage"
+	}
+	return fmt.Sprintf("unknown reason %d", int(r))
+}
+
 type channel struct {
-	conn              // the underlying transport
+	packetConn        // the underlying transport
 	localId, remoteId uint32
 	remoteWin         window
 	maxPacket         uint32
@@ -102,7 +123,7 @@ func (c *channel) sendEOF() error {
 
 // sendClose informs the remote side of our intent to close the channel.
 func (c *channel) sendClose() error {
-	return c.conn.writePacket(marshal(msgChannelClose, channelCloseMsg{
+	return c.packetConn.writePacket(marshal(msgChannelClose, channelCloseMsg{
 		PeersId: c.remoteId,
 	}))
 }
@@ -124,7 +145,7 @@ func (c *channel) writePacket(b []byte) error {
 	if uint32(len(b)) > c.maxPacket {
 		return fmt.Errorf("ssh: cannot write %d bytes, maxPacket is %d bytes", len(b), c.maxPacket)
 	}
-	return c.conn.writePacket(b)
+	return c.packetConn.writePacket(b)
 }
 
 func (c *channel) closed() bool {
@@ -447,12 +468,12 @@ type clientChan struct {
 // newClientChan returns a partially constructed *clientChan
 // using the local id provided. To be usable clientChan.remoteId
 // needs to be assigned once known.
-func newClientChan(cc conn, id uint32) *clientChan {
+func newClientChan(cc packetConn, id uint32) *clientChan {
 	c := &clientChan{
 		channel: channel{
-			conn:      cc,
-			localId:   id,
-			remoteWin: window{Cond: newCond()},
+			packetConn: cc,
+			localId:    id,
+			remoteWin:  window{Cond: newCond()},
 		},
 		msg: make(chan interface{}, 16),
 	}
@@ -516,7 +537,7 @@ func (w *chanWriter) Write(data []byte) (written int, err error) {
 			return
 		}
 		// never send more data than maxPacket even if
-		// there is sufficent window.
+		// there is sufficient window.
 		n := min(w.maxPacket-headerLength, len(data))
 		r := w.remoteWin.reserve(n)
 		n = r

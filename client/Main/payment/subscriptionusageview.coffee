@@ -1,36 +1,29 @@
 class SubscriptionUsageView extends KDView
+  fetchProductList: (callback) ->
+    subscription = @getData()
+    {plan}       = subscription
 
-  getGauges: ->
-    { subscription, components } = @getOptions()
+    list = []
 
-    { plan } = subscription
-
-    componentsByPlanCode = components.reduce( (memo, component) ->
-      memo[component.planCode] = component
-      memo
-    , {})
-
-    usage = (Object.keys subscription.usage).map (key) ->
-      usage =
-        component : componentsByPlanCode[key]
-        quota     : plan.quantities[key]
-        usage     : subscription.usage[key]
-
-      usage.usageRatio = usage.usage / usage.quota
-      
-      return usage
-
-  createGaugeListController: ->
-    controller = new KDListViewController
-      itemClass: SubscriptionGaugeItem
-
-    controller.instantiateListItems @getGauges()
-
-    controller
+    options = targetOptions: selector: planCode: {$in: Object.keys plan.quantities}, tags: $in: ["vm"]
+    plan.fetchProducts null, options, (err, products) ->
+      return  if KD.showError err
+      list.push {product, subscription} for product in products
+      callback list
 
   viewAppended: ->
     @setClass 'subscription-gauges'
-    
-    @gaugeListController = @createGaugeListController()
 
-    @addSubView @gaugeListController.getListView()
+    title = if 'custom-plan' in @getData().tags
+    then 'Group resources'
+    else 'Your resource packs'
+
+    @addSubView new KDCustomHTMLView
+      tagName  : 'span'
+      cssClass : 'title'
+      partial  : title
+
+    controller = new KDListViewController itemClass: SubscriptionGaugeItem
+    @addSubView controller.getView()
+    @fetchProductList (list) ->
+      controller.instantiateListItems list
