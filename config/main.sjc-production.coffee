@@ -226,7 +226,7 @@ module.exports =
     certFile    : "/opt/ssl_certs/wildcard.koding.com.cert"
     keyFile     : "/opt/ssl_certs/wildcard.koding.com.key"
     webProtocol : 'https:'
-    webHostname : "broker-#{version}a.koding.com"
+    webHostname : "broker.koding.com"
     webPort     : null
     authExchange: authExchange
     authAllExchange: authAllExchange
@@ -237,7 +237,7 @@ module.exports =
     certFile    : "/opt/ssl_certs/wildcard.koding.com.cert"
     keyFile     : "/opt/ssl_certs/wildcard.koding.com.key"
     webProtocol : 'https:'
-    webHostname : "brokerkite-#{version}a.koding.com"
+    webHostname : "brokerkite.koding.com"
     webPort     : null
     authExchange: authExchange
     authAllExchange: authAllExchange
