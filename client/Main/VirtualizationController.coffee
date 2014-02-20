@@ -268,7 +268,6 @@ class VirtualizationController extends KDController
         .then(-> resolve kite)
         .catch warn
         
-
   handleFetchedVms: (vms, callback) ->
     if KD.useNewKites
       Promise.cast(vms).map (vm) =>
@@ -288,9 +287,6 @@ class VirtualizationController extends KDController
     else
       @registerKite vm  for vm in vms
       KD.utils.defer -> callback null
->>>>>>> 9b97aa7513573d6ee591a07b59d34017e1ec2ace
-
-
 
   fetchGroupVMs:(force, callback = noop)->
     if @groupVms.length > 0 and not force
