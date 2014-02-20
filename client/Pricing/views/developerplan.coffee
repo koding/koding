@@ -58,7 +58,7 @@ class DeveloperPlan extends JView
   updateContent: (index = @planIndex)->
     if index is 0
       title = 'Free Account'
-      desc  = '<cite>"free" as in "free speech"</cite>'
+      desc  = '<cite>"free" as in "free beer"</cite>'
       @buyNow.setTitle 'SIGN UP'
     else
       title = "#{index}x Resource Pack"
