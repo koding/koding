@@ -22,7 +22,7 @@ createStatusUpdateNode = (statusUpdate, authorFullName, authorNickname)->
   commentsList = ""
   if statusUpdate?.replies
     for comment in statusUpdate.replies
-      avatarUrl = "https://gravatar.com/avatar/#{comment.author.hash}?size=90&amp;d=mm"
+      avatarUrl = "https://gravatar.com/avatar/#{comment.author.hash}?size=90&amp;d=https://koding-cdn.s3.amazonaws.com/images/default.avatar.140.png&r=g"
       commentsList +=
         """
           <div class="kdview kdlistitemview kdlistitemview-comment">
