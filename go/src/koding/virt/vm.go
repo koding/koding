@@ -316,27 +316,27 @@ func UnprepareVM(id bson.ObjectId) error {
 // tries to execute the next step until all steps are done.
 func (vm *VM) Unprepare() error {
 	defer un(trace(vm.String()))
-	var firstError error
+	var lastError error
 
 	// stop VM
 	if err := vm.Shutdown(); err != nil {
 		panic(err)
 	}
 
-	if err := vm.removeNetworkRules(); err != nil && firstError == nil {
-		firstError = err
+	if err := vm.removeNetworkRules(); err != nil && lastError == nil {
+		lastError = err
 	}
 
-	if err := vm.umountPts(); err != nil && firstError == nil {
-		firstError = err
+	if err := vm.umountPts(); err != nil && lastError == nil {
+		lastError = err
 	}
 
-	if err := vm.umountAufs(); err != nil && firstError == nil {
-		firstError = err
+	if err := vm.umountAufs(); err != nil && lastError == nil {
+		lastError = err
 	}
 
-	if err := vm.umountRBD(); err != nil && firstError == nil {
-		firstError = err
+	if err := vm.umountRBD(); err != nil && lastError == nil {
+		lastError = err
 	}
 
 	// remove VM directory
@@ -347,7 +347,7 @@ func (vm *VM) Unprepare() error {
 	os.Remove(vm.File("rootfs.hold"))
 	os.Remove(vm.File(""))
 
-	return firstError
+	return lastError
 }
 
 func (vm *VM) removeNetworkRules() error {
