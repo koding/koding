@@ -8,6 +8,7 @@ class ActivityRightBase extends JView
       startWithLazyLoader : yes
       lazyLoaderOptions   : partial : ''
       viewOptions         :
+        tagName           : options.viewTagName
         type              : "activities"
         cssClass          : "activities"
         itemClass         : @itemClass
@@ -28,6 +29,23 @@ class ActivityRightBase extends JView
       {{> @tickerListView}}
     </div>
     """
+
+class UserGroupList extends ActivityRightBase
+  constructor: (options = {}, data) ->
+    options.cssClass  = KD.utils.curry "user-group-list hidden", options.cssClass
+    options.title     = "Your Groups"
+    options.viewTagName = "ul"
+    options.itemType = "activity-ticker-item"
+
+    @itemClass = PopupGroupListItem
+
+    super options, data
+
+    @showAllLink = new KDCustomHTMLView
+
+    KD.whoami().fetchGroups (err, items) =>
+      @renderItems null, (item for item in items when item.group.slug isnt "koding")
+      @show()  if items.length - 1
 
 class ActiveUsers extends ActivityRightBase
 

@@ -254,6 +254,7 @@ class PopupGroupListItem extends KDListItemView
 
   constructor:(options = {}, data)->
     options.tagName or= "li"
+    options.type    or= "activity-ticker-item"
     super
 
     {group:{title, avatar, slug, customize}, roles, admin} = @getData()

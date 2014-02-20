@@ -25,6 +25,7 @@ class ActivityAppView extends KDScrollView
     @inputWidget      = new ActivityInputWidget
 
     @referalBox       = new ReferalBox
+    @groupListBox     = new UserGroupList
     @topicsBox        = new ActiveTopics
     @usersBox         = new ActiveUsers
     @tickerBox        = new ActivityTicker
@@ -75,6 +76,7 @@ class ActivityAppView extends KDScrollView
     @sideBlock.addSubView leftWidgetPlaceholder
     @sideBlock.addSubView @groupDescription if @isPrivateGroup()
     @sideBlock.addSubView @groupMembers if @isPrivateGroup() and ("list members" in KD.config.permissions)
+    @sideBlock.addSubView @groupListBox
     @sideBlock.addSubView @topicsBox
     @sideBlock.addSubView @usersBox if "list members" in KD.config.permissions
     @sideBlock.addSubView @tickerBox
