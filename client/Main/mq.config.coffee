@@ -70,5 +70,6 @@ KD.kite =
       autoReconnect: yes
       getSessionToken
       brokerExchange
+      tryResubscribing:no
     }
     broker = new KDBroker.Broker null, options
