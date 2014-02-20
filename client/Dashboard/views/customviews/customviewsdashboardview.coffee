@@ -33,6 +33,8 @@ class CustomViewsDashboardView extends JView
       cssClass    : "views"
 
     @noViewLabel.hide()
+
+    @customViews = []
     @fetchViews()
 
     @bindEventHandlers()
@@ -66,7 +68,8 @@ class CustomViewsDashboardView extends JView
         delegate : this
         viewType : @getOption "viewType"
 
-      @addSubView @addNewView = new AddNewCustomViewForm config, data
+      FormClass = @getOption("formClass") or AddNewCustomViewForm
+      @addSubView @addNewView = new FormClass config, data
 
   reloadViews: ->
     page.destroy() for page in @customViews
@@ -74,8 +77,7 @@ class CustomViewsDashboardView extends JView
     @fetchViews()
 
   fetchViews: ->
-    query        = { partialType: @getOption "viewType" }
-    @customViews = []
+    query = { partialType: @getOption "viewType" }
 
     KD.remote.api.JCustomPartials.some query, {}, (err, customViews) =>
       @loader.hide()
