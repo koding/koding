@@ -39,7 +39,8 @@ class MainController extends KDController
     KD.registerSingleton "oauthController",           new OAuthController
     KD.registerSingleton "groupsController",          new GroupsController
     KD.registerSingleton "paymentController",         new PaymentController
-    KD.registerSingleton "kontrol",                   new Kontrol
+    if KD.useNewKites
+      KD.registerSingleton "kontrol",                 new Kontrol
     KD.registerSingleton "vmController",              new VirtualizationController
     KD.registerSingleton "locationController",        new LocationController
     KD.registerSingleton "badgeController",           new BadgeController

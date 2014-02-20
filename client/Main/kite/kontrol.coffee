@@ -54,19 +54,25 @@ class Kontrol extends KDObject
 
     changes = new KDEventEmitter
 
-    onEvent = (options)=>
-      err = options.withArgs[1]
-      return callback err, null  if err
+    onEvent = (change, err)=>
+      if err?
+        if callback?
+          callback err, null  if err
+        else
+          throw err
 
-      e = options.withArgs[0]
-      changes.emit kiteAction[e.action], kite: @_createKite e
+      changes.emit kiteAction[change.action], kite: @_createKite change
 
     @kite.tell("getKites", [query, onEvent]).then ({ kites, watcherID }) =>
 
-      for kite in kites
+      for kiteData in kites
+        kite = @_createKite kiteData
+        
+        console.log kite
+
         {
           action    : kiteAction.REGISTER
-          kite      : @_createKite kite
+          kite 
           changes
           watcherID
         }
