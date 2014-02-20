@@ -48,14 +48,21 @@ class ActivityAppView extends KDScrollView
       {feedFilterNav}  = @activityHeader
       feedFilterNav.unsetClass 'multiple-choice on-off'
 
+    calculateTopOffset = =>
+      KD.utils.wait 3000, =>
+        @topOffset = @tickerBox.$().position().top
+
+
     @tickerBox.once 'viewAppended', =>
-      topOffset = @tickerBox.$().position().top
+      calculateTopOffset()
       windowController.on 'ScrollHappened', =>
         # sanity check
-        topOffset = @tickerBox.$().position().top  if topOffset < 200
-        if document.documentElement.scrollTop > topOffset
+        calculateTopOffset()  if @topOffset < 200
+        if document.documentElement.scrollTop > @topOffset
         then @tickerBox.setClass 'fixed'
         else @tickerBox.unsetClass 'fixed'
+
+    @groupListBox.on 'TopOffsetShouldBeFixed', calculateTopOffset
 
     @decorate()
 

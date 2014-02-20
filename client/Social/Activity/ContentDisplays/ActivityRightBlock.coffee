@@ -31,7 +31,9 @@ class ActivityRightBase extends JView
     """
 
 class UserGroupList extends ActivityRightBase
+
   constructor: (options = {}, data) ->
+
     options.cssClass  = KD.utils.curry "user-group-list hidden", options.cssClass
     options.title     = "Your Groups"
     options.viewTagName = "ul"
@@ -43,9 +45,15 @@ class UserGroupList extends ActivityRightBase
 
     @showAllLink = new KDCustomHTMLView
 
+  viewAppended:->
+
+    super
+
     KD.whoami().fetchGroups (err, items) =>
       @renderItems null, (item for item in items when item.group.slug isnt "koding")
-      @show()  if items.length - 1
+      if items.length - 1
+        @parent.emit 'TopOffsetShouldBeFixed'
+        @show()
 
 class ActiveUsers extends ActivityRightBase
 
