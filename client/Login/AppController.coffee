@@ -34,11 +34,18 @@ class LoginAppsController extends AppController
   handleRedeemRoute = ({params:{name, token}})->
     token = decodeURIComponent token
     KD.remote.api.JInvitation.byCode token, (err, invite)->
+      return callback err if err
       if KD.isLoggedIn()
         KD.remote.cacheable invite.group, (err, [group])->
           group.redeemInvitation token, (err)->
-            return KD.notify_ err.message or err  if err
-            KD.notify_ 'Success!'
+            if err
+              KD.notify_ err.message or err
+              return window.location.href = "/"
+
+            new KDNotificationView
+              title : 'Success!'
+              type  : 'tray'
+
             KD.getSingleton('router').handleRoute "/#{group.slug}"
             KD.getSingleton('mainController').accountChanged KD.whoami()
       else
@@ -86,7 +93,8 @@ class LoginAppsController extends AppController
           #handler (app)-> app.getView().animateToForm 'login'
       '/:name?/Login/:token?'    : handler (app)-> app.getView().animateToForm 'login'
       '/:name?/Redeem'           : handler (app)-> app.getView().animateToForm 'redeem'
-      '/:name?/Register/:token?' : handler (app)-> app.getView().animateToForm 'register'
+      '/:name?/Register'         : handler (app)-> app.getView().animateToForm 'register'
+      '/:name?/Register/:token'  : handleFinishRegistration
       '/:name?/Recover'          : handleRecovery
       '/:name?/Reset'            : handler (app)-> app.getView().animateToForm 'reset'
       '/:name?/Reset/:token'     : handleResetRoute
@@ -111,9 +119,12 @@ class LoginAppsController extends AppController
   prepareFinishRegistrationForm: (token) ->
     { JPasswordRecovery } = KD.remote.api
     JPasswordRecovery.fetchRegistrationDetails token, (err, details) =>
-      return  if KD.showError err
-
       view = @getView()
+      if err
+        KD.showError err
+        view.animateToForm 'login'
+        return
+
       view.finishRegistrationForm.setRegistrationDetails details
       view.setCustomDataToForm 'finishRegistration', recoveryToken: token
       view.animateToForm 'finishRegistration'
@@ -121,4 +132,10 @@ class LoginAppsController extends AppController
   headBannerShowInvitation:(invite)->
     view = @getView()
     view.headBannerShowInvitation invite
+
+  setStorageData: (key, value) ->
+    @appStorage = KD.getSingleton('appStorageController').storage 'Login', '1.0'
+    @appStorage.fetchStorage (storage) =>
+      @appStorage.setValue key, value, (err) ->
+        warn "Failed to set #{key} information"  if err
 

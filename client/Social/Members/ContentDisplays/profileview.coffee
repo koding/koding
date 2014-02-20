@@ -534,7 +534,7 @@ class ProfileView extends JView
     @createBadges()
 
   uploadAvatar: (avatarData, callback)->
-    FSHelper.s3.upload "avatar.png", avatarData, (err, url)=>
+    FSHelper.s3.upload "avatar.png", avatarData, "user", "", (err, url)=>
       resized = KD.utils.proxifyUrl url,
         crop: true, width: 300, height: 300
 

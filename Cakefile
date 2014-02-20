@@ -692,6 +692,20 @@ task 'runExternals', "runs externals kite which imports info about github, will 
       enabled         : if config.runKontrol is yes then yes else no
     verbose           : yes
 
+task 'importPaymentData', "creates default payment data", (options)->
+  {configFile} = options
+  config = require('koding-config-manager').load("main.#{configFile}")
+
+  processes.spawn
+    cmd            : "node ./workers/productimport/index -c #{configFile}"
+    name           : 'importPaymentData'
+    stdout         : process.stdout
+    stderr         : process.stderr
+    kontrol        :
+      enabled      : if config.runKontrol is yes then yes else no
+      startMode    : "one"
+    verbose        : yes
+
 # ------------------- TEST STUFF --------------------------
 
 # ----- run all tests ----

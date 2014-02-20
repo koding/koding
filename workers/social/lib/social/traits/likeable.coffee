@@ -8,26 +8,24 @@ module.exports = class Likeable
   {permit} = require '../models/group/permissionset'
 
   checkIfLikedBefore: secure ({connection}, callback)->
-    {delegate} = connection
+    {delegate}    = connection
     {constructor} = @
+
     if not delegate
       callback null, no
     else
       Relationship.one
-        sourceId: @getId()
-        targetId: delegate.getId()
-        as: 'like'
-      , (err, likedBy)=>
-        if likedBy
-          callback null, yes
-        else
-          callback err, no
+        sourceId : @getId()
+        targetId : delegate.getId()
+        as       : 'like'
+      , (err, likedBy)->
+        if likedBy then callback null, yes else callback err, no
 
   like: permit 'like posts',
     success:({connection, context}, callback)->
 
-      {group} = context
-      {delegate} = connection
+      {group}       = context
+      {delegate}    = connection
       {constructor} = @
       unless delegate instanceof JAccount
         callback new Error 'Only instances of JAccount can like things.'
@@ -41,7 +39,13 @@ module.exports = class Likeable
             callback err
           else
             unless likedBy
-              @addLikedBy delegate, respondWithCount: yes, (err, docs, count)=>
+              # adding group to data field because on group based queries,
+              # we need group slug, (see activityticker.coffee)
+              options =
+                respondWithCount : yes
+                data             : {group} if group
+
+              @addLikedBy delegate, options, (err, docs, count)=>
                 if err
                   callback err
                 else
@@ -56,7 +60,7 @@ module.exports = class Likeable
                       $set: 'sorts.likesCount': count
                     }, ->
                   @fetchOrigin? (err, origin)=>
-                    if err then log "Couldn't fetch the origin"
+                    if err then console.log "Couldn't fetch the origin"
                     else @emit 'LikeIsAdded', {
                       origin
                       subject       : ObjectRef(@).data

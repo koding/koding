@@ -11,16 +11,18 @@ module.exports = (options = {}, callback)->
   {argv} = require 'optimist'
 
   prefetchedFeeds = {}
-  customPartial = {}
-  campaignData = {}
-
-  {bongoModels, client, intro, landing} = options
+  customPartial   = {}
+  campaignData    = {}
+  currentGroup    = {}
+  {bongoModels, client, intro, landing, slug} = options
 
   createHTML = ->
-    replacer = (k, v)-> if 'string' is typeof v then encoder.XSSEncode v else v
+    replacer             = (k, v)-> if 'string' is typeof v then encoder.XSSEncode v else v
     encodedFeed          = JSON.stringify prefetchedFeeds, replacer
+    encodedCampaignData  = JSON.stringify campaignData, replacer
     encodedCustomPartial = JSON.stringify customPartial, replacer
-    encodedCampaignData = JSON.stringify campaignData, replacer
+    currentGroup         = JSON.stringify currentGroup, replacer
+    landingOptions       = page : landing
 
     isPremiumBroker = options.client.context.group isnt "koding"
     landingOptions =
@@ -47,6 +49,7 @@ module.exports = (options = {}, callback)->
     <script>KD.campaignData=#{encodedCampaignData}</script>
     <script src='/a/js/kd.#{KONFIG.version}.js'></script>
     #{if intro then "<script src='/a/js/introapp.#{ KONFIG.version }.js'></script>" else ''}
+    <script>KD.currentGroup=#{currentGroup};</script>
     <script src='/a/js/koding.#{KONFIG.version}.js'></script>
     #{if landing then "<script src='/a/js/landingapp.#{ KONFIG.version }.js'></script>" else ''}
     <script>KD.prefetchedFeeds=#{encodedFeed};</script>
@@ -101,12 +104,21 @@ module.exports = (options = {}, callback)->
     # add custom partials into body
     bongoModels.JCustomPartials.one selector, (err, partial)->
       customPartial = partial.data  if not err and partial
-      # add custom partial into referral campaign
-      bongoModels.JReferralCampaign.one {isActive:yes}, (err, campaignData_)->
-        if not err and campaignData_ and campaignData_.data
-          campaignData = campaignData_.data
-        html = createHTML()
-        return callback null, html
+
+      bongoModels.JGroup.one {slug : slug or 'koding'}, (err, group) ->
+        console.log err if err
+        # add custom partial into referral campaign
+        bongoModels.JReferralCampaign.one {isActive:yes}, (err, campaignData_)->
+          if not err and campaignData_ and campaignData_.data
+            campaignData = campaignData_.data
+          if group
+            currentGroup =
+              logo       : group.customize?.logo or ""
+              coverPhoto : group.customize?.coverPhoto or ""
+              id         : group.getId()
+          callback null, createHTML()
+
+
 
   {delegate} = options.client.connection
   # if user is exempt or super-admin do not cache his/her result set

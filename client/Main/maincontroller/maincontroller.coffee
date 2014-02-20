@@ -38,8 +38,8 @@ class MainController extends KDController
     KD.registerSingleton "localStorageController",    new LocalStorageController
     KD.registerSingleton "oauthController",           new OAuthController
     KD.registerSingleton "groupsController",          new GroupsController
-    KD.registerSingleton "vmController",              new VirtualizationController
     KD.registerSingleton "paymentController",         new PaymentController
+    KD.registerSingleton "vmController",              new VirtualizationController
     KD.registerSingleton "locationController",        new LocationController
     KD.registerSingleton "badgeController",           new BadgeController
     KD.registerSingleton "helpController",            new HelpController
@@ -144,13 +144,14 @@ class MainController extends KDController
         # window location path is set to last route to ensure visitor is not
         # redirected to another page
         @utils.defer ->
-          lastRoute = KD.getSingleton("router").visitedRoutes.last
+          lastRoute = localStorage?.routeToBeContinued or KD.getSingleton("router").visitedRoutes.last
 
           if lastRoute and /^\/(?:Reset|Register|Verify|Confirm)\//.test lastRoute
             lastRoute = "/Activity"
 
           {entryPoint} = KD.config
           KD.getSingleton('router').handleRoute lastRoute or '/Activity', {replaceState: yes, entryPoint}
+          localStorage?.removeItem "routeToBeContinued"
 
         @utils.wait 3000, cookieChangeHandler
     # Note: I am using wait instead of repeat, for the subtle difference.  See this StackOverflow answer for more info: 

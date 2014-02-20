@@ -13,88 +13,12 @@ class DomainCreateForm extends KDCustomHTMLView
     options.cssClass = "environments-add-domain-form"
     super options, data
 
-    @addSubView @header = new KDHeaderView
-      title             : "Add a domain"
-
-    @header.addSubView new KDButtonView
-      cssClass          : "small-gray"
-      title             : "Cancel"
-      callback          : => @emit 'CloseClicked'
-
-    @addSubView @typeSelector = new KDInputRadioGroup
-      name              : "DomainOption"
-      radios            : domainOptions
-      cssClass          : "domain-option-group"
-      defaultValue      : "subdomain"
-      change            : (actionType)=>
-        @successNote?.destroy()
-        switch actionType
-          when 'new'
-            @tabs.showPaneByName 'NewDomain'
-            @newDomainEntryForm.inputs.domainName.setFocus()
-          when 'subdomain'
-            @tabs.showPaneByName 'SubDomain'
-            @subDomainEntryForm.inputs.domainName.setFocus()
-
-    @addSubView @tabs = new KDTabView
-      cssClass            : 'domain-tabs'
-      hideHandleContainer : yes
-
-    @newDomainPane = new KDTabPaneView { name : "NewDomain" }
-    @newDomainPane.addSubView @newDomainEntryForm = new DomainBuyForm
-    @tabs.addPane @newDomainPane
-    @newDomainEntryForm.on 'registerDomain', @bound 'checkDomainAvailability'
-
-    @subDomainPane = new KDTabPaneView { name : "SubDomain" }
-    @subDomainPane.addSubView @subDomainEntryForm = new SubdomainCreateForm
+    @addSubView @subDomainEntryForm = new SubdomainCreateForm
     @subDomainEntryForm.on 'registerDomain', @bound 'createSubDomain'
-    @tabs.addPane @subDomainPane
-
-  checkDomainAvailability: ->
-    {message}             = @newDomainEntryForm
-    {createButton}        = @newDomainEntryForm.buttons
-    {domains, domainName} = @newDomainEntryForm.inputs
-    {getDomainInfo, getDomainSuggestions} = KD.remote.api.JDomain
-
-    domainName =
-      Encoder.XSSEncode "#{domainName.getValue()}.#{domains.getValue()}"
-
-    @newDomainEntryForm.domainListView?.unsetClass 'in'
-
-    # Maybe a CSS hero can remove these br with some alternative styles ~GG
-    message.updatePartial "<br/> Checking for availability..."
-    message.setClass 'in'
-
-    getDomainInfo domainName, (err, status)=>
-
-      if err
-        createButton.hideLoader()
-        message.updatePartial "<br/> Please just provide domain name."
-        return warn err
-
-      if status.available
-        @newDomainEntryForm.setAvailableDomainsData \
-          [{domain:domainName, price:status.price}]
-        createButton.hideLoader()
-        message.updatePartial "<br/> Yay it's available!"
-      else
-        message.updatePartial "<br/> Checking for alternatives..."
-        getDomainSuggestions domainName, (err, suggestions)=>
-          createButton.hideLoader()
-          return warn err if err
-          result = "Sorry, <b>#{domainName}</b> is taken,"
-          if suggestions.length is 1
-            result = "#{result}<br/>but we found an alternative:"
-          else if suggestions.length > 1
-            result = "#{result}<br/>but we found following alternatives:"
-          else
-            result = "#{result}<br/>and we couldn't find any alternative."
-          message.updatePartial result
-          @newDomainEntryForm.setAvailableDomainsData suggestions
 
   createSubDomain: ->
     {domains, domainName} = @subDomainEntryForm.inputs
-    {createButton}        = @subDomainEntryForm.buttons
+    {createButton}        = @parent.buttons
 
     domainName = domainName.getValue()
 
@@ -113,11 +37,15 @@ class DomainCreateForm extends KDCustomHTMLView
       createButton.hideLoader()
       if err
         warn "An error occured while creating domain:", err
-        if err.code is 11000
-          return notifyUser "The domain #{domainName} already exists."
-        else if err.name is "INVALIDDOMAIN"
-          return notifyUser "#{domainName} is an invalid subdomain."
-        return notifyUser "An unknown error occured. Please try again later."
+        switch err.name
+          when "DUPLICATEDOMAIN"
+            return notifyUser "The domain #{domainName} already exists."
+          when "INVALIDDOMAIN"
+            return notifyUser "#{domainName} is an invalid subdomain."
+          when "ACCESSDENIED"
+            return notifyUser "You do not have permission to create a subdomain in this domain"
+          else
+            return notifyUser "An unknown error occured. Please try again later."
       else
         @showSuccess domain
         @updateDomains()
@@ -147,8 +75,7 @@ class DomainCreateForm extends KDCustomHTMLView
       cssClass : 'success'
       partial  : """
         Your subdomain <strong>#{domainName}</strong> has been added.
-        You can dismiss this panel and point your new domain to one of your VMs
-        on the right.
+        You can dismiss this modal and point your new domain to one of your VMs.
       """
       click    : @bound 'reset'
 
@@ -163,22 +90,35 @@ class DomainCreateForm extends KDCustomHTMLView
   reset:->
     @successNote?.destroy()
     for form in [@subDomainEntryForm, @newDomainEntryForm]
-      form.inputs.domainName.setValue ''
+      form.inputs?.domainName.setValue ''
     @emit 'CloseClicked'
 
   updateDomains: ->
 
-    KD.whoami().fetchDomains (err, userDomains)=>
-      warn "Failed to update domains:", err  if err
-      domainList = []
+    domainList = []
+    pushDomainOption = (context) ->
+      domain = "#{context}.kd.io"
+      domainList.push {title:".#{domain}", value: domain}
 
+    KD.whoami().fetchDomains (err, userDomains)=>
+      return warn "Failed to update domains:", err  if err
+      
       if userDomains
         for domain in userDomains
           if not domain.regYears > 0
             domainList.push {title:".#{domain.domain}", value:domain.domain}
 
+      group = KD.getSingleton("groupsController").currentGroupName
+      # adds group root domain to domain selections
+      unless group is "koding" 
+        pushDomainOption group  
+      else
+        slug = KD.whoami().profile.nickname              # if user domain root does not exist, it is added
+        rootDomain = userDomains.filter (domain) ->      # here. actually it is not possible to delete a root 
+          domain.domain is "#{slug}.kd.io"               # domain, but defensive checks are always good.      
+        pushDomainOption slug  unless rootDomain.length 
+        
       {domains, domainName} = @subDomainEntryForm.inputs
-
       domainName.setValue ""
       domains.removeSelectOptions()
       domains.setSelectOptions domainList

@@ -10,9 +10,9 @@ module.exports = class JPaymentPlan extends JPaymentBase
   { v4: createId } = require 'node-uuid'
 
   {secure, dash, signature}        = require 'bongo'
-  {difference, extend}  = require 'underscore'
 
-  {partition}           = require 'bongo/lib/util'
+  {partition} = require 'bongo/lib/util'
+
   {permit}              = require '../group/permissionset'
 
   JUser                 = require '../user'
@@ -33,13 +33,13 @@ module.exports = class JPaymentPlan extends JPaymentBase
           (signature String, Function)
         fetchPlanByCode:
           (signature String, Function)
+        one         :
+          (signature Object, Function)
       instance      :
         fetchToken  :
           (signature Object, Function)
-        subscribe   : [
-          (signature String, Function)
+        subscribe   :
           (signature String, Object, Function)
-        ]
         modify      :
           (signature Object, Function)
         fetchProducts: [
@@ -49,48 +49,53 @@ module.exports = class JPaymentPlan extends JPaymentBase
         ]
         updateProducts:
           (signature Object, Function)
-        checkQuota  : [
-          (signature Object, Object, Function)
-          (signature Object, Object, Number, Function)
-        ]
+        checkQuota:
+          (signature Object, Function)
+        fetchCoupon:
+          (signature String, Function)
 
-    schema          :
-      planCode      :
-        type        : String
-        required    : yes
-      title         :
-        type        : String
-        required    : yes
-      description   : Object # TODO: see below*
-      feeAmount     :
-        type        : Number
-        validate    : (require './validators').fee
-      feeInitial    :
-        type        : Number
-        validate    : (require './validators').fee
-      feeInterval   :
-        type        : Number
-        default     : 1
-      feeUnit       : (require './schema').feeUnit
-      product       :
-        prefix      : String
-        category    : String
-        item        : String
-        version     : Number
-      lastUpdate    : Number
-      contents      : Object
-      group         :
-        type        : String
-        required    : yes
-      quantities    :
-        type        : Object
-        default     : -> {}
-      tags          : (require './schema').tags
-      sortWeight    : Number
-    relationships   :
-      product       :
-        targetType  : 'JPaymentProduct'
-        as          : 'plan product'
+    schema              :
+      planCode          :
+        type            : String
+        required        : yes
+      title             :
+        type            : String
+        required        : yes
+      description       : Object # TODO: see below*
+      feeAmount         :
+        type            : Number
+        validate        : (require './validators').fee
+        default         : 0
+      feeInitial        :
+        type            : Number
+        validate        : (require './validators').fee
+      feeInterval       :
+        type            : Number
+        default         : 1
+      feeUnit           : (require './schema').feeUnit
+      priceIsVolatile   :
+        type            : Boolean
+        default         : no
+      couponCodes       : Object # "discount" => '2xdc'
+      product           :
+        prefix          : String
+        category        : String
+        item            : String
+        version         : Number
+      lastUpdate        : Number
+      contents          : Object
+      group             :
+        type            : String
+        required        : yes
+      quantities        :
+        type            : Object
+        default         : -> {}
+      tags              : (require './schema').tags
+      sortWeight        : Number
+    relationships       :
+      product           :
+        targetType      : 'JPaymentProduct'
+        as              : 'plan product'
 
   # * It seems like we're stuffing some JSON into the description field
   #   on recurly.  I think that's a really bad idea, so let's store any
@@ -134,11 +139,11 @@ module.exports = class JPaymentPlan extends JPaymentBase
   fetchToken: secure (client, data, callback) ->
     JPaymentToken.createToken client, planCode: @planCode, callback
 
-  subscribe: (paymentMethodId, options, callback) ->
+  subscribe: (paymentMethodId, options = {}, callback) ->
     [callback, options] = [options, callback]  unless callback
-
-    options ?= {}
     options.multiple ?= no
+
+    { couponCode, feeAmount } = options
 
     JPaymentSubscription.one {
       paymentMethodId
@@ -162,28 +167,37 @@ module.exports = class JPaymentPlan extends JPaymentBase
 
         update = {
           @planCode
+          feeAmount
+          couponCode
           quantity
           uuid: subscription.uuid
         }
 
         recurly.updateSubscription paymentMethodId, update, (err) =>
           return callback err  if err
+
           subscription.update $set: { quantity }, (err)->
             if err
             then callback err
             else callback null, subscription
 
       else
-        subOptions = { @planCode, startsAt: options.startsAt }
-        
+        subOptions = {
+          @planCode
+          feeAmount
+          couponCode
+          startsAt: options.startsAt
+        }
+
         recurly.createSubscription paymentMethodId, subOptions, (err, result) =>
           return callback err  if err
 
           { planCode, uuid, quantity, status, activatedAt, expiresAt, renewAt,
             feeAmount, paymentMethodId } = result
 
-          subscription = new JPaymentSubscription {
+          subscriptionOptions = {
             planCode
+            couponCode
             uuid
             quantity
             status
@@ -192,10 +206,12 @@ module.exports = class JPaymentPlan extends JPaymentBase
             renewAt
             feeAmount
             paymentMethodId
-            tags      : @tags
+            quantities: options.quantities
+            @tags
           }
 
-          subscription.save (err)->
+          subscription = new JPaymentSubscription subscriptionOptions
+          subscription.save (err) ->
             return callback err  if err
 
             callback null, subscription
@@ -241,22 +257,21 @@ module.exports = class JPaymentPlan extends JPaymentBase
       JGroup.one _id: @product.category, (err, group)->
         callback err, unless err then group.slug
 
-  checkQuota: (usage, spend, multiplyFactor, callback) ->
-    [callback, multiplyFactor] = [multiplyFactor, callback]  unless callback
-    
+  checkQuota: (options, callback) ->
+    {usage, couponCode, multiplyFactor} = options
     multiplyFactor ?= 1
 
-    usages = for own planCode, quantity of spend
+    usages = for own planCode, quantity of usage
       planSize    = @quantities[planCode] ? 0
       usageAmount = usage[planCode] ? 0
-      spendAmount = (spend[planCode] ? 0) * multiplyFactor
-
-      total = planSize - usageAmount - spendAmount
-
+      total       = planSize - usageAmount
       { planCode, total }
 
     [ok, over] = partition usages, ({ total }) -> total >= 0
 
     if over.length > 0
-    then callback { message: 'quota exceeded', ok, over }
+    then callback { message: 'quota exceeded', ok, over, code: 999 }
     else callback null
+
+  fetchCoupon: (type, callback) ->
+    recurly.fetchCoupon @couponCodes[type], callback

@@ -18,6 +18,8 @@ module.exports = class JPaymentProduct extends JPaymentBase
           (signature Object, Function)
         removeByCode  :
           (signature String, Function)
+        some          :
+          (signature Object, Object, Function)
       instance        :
         remove        :
           (signature Function)

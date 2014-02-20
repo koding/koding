@@ -179,6 +179,7 @@ module.exports =
       mainUri   : 'http://localhost:3020'
       appsUri   : 'https://koding-apps.s3.amazonaws.com'
       uploadsUri: 'https://koding-uploads.s3.amazonaws.com'
+      uploadsUriForGroup: 'https://koding-groups.s3.amazonaws.com'
       sourceUri : 'http://localhost:3526'
       newkontrol:
         url     : 'ws://127.0.0.1:4000/kontrol'
@@ -323,8 +324,9 @@ module.exports =
   #     decipher.update(str,'hex')
   #     b = decipher.final('utf-8')
   #     return b
-  recurly       :
-    apiKey      : '4a0b7965feb841238eadf94a46ef72ee' # koding-test.recurly.com
+  recurly         : 
+    apiKey        : '4a0b7965feb841238eadf94a46ef72ee' # koding-test.recurly.com
+    loggedRequests: /^(subscriptions|transactions)/
   embedly       :
     apiKey      : embedlyApiKey
   opsview       :
@@ -395,4 +397,9 @@ module.exports =
     amqputil      : "notice"
     rabbitMQ      : "notice"
     ldapserver    : "notice"
-    broker        : "debug"
+    broker        : "notice"
+  defaultVMConfigs:
+    freeVM        :
+      storage     : 4096
+      ram         : 1024
+      cpu         : 1

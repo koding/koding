@@ -1,31 +1,24 @@
 class EnvironmentExtraContainer extends EnvironmentContainer
 
   constructor:(options={}, data)->
+    options.cssClass  = 'extras'
     options.itemClass = EnvironmentExtraItem
-    options.title     = 'Extras'
+    options.title     = 'shared storage'
     super options, data
+
+    @on 'PlusButtonClicked', ->
+      new KDNotificationView title: "Adding more resource will be available soon."
 
   loadItems:->
     super
 
     dummyAdditionals = [
       {
-        title: "20 GB Extra Space",
-        description: "additional 20 GB"
-      },
-      {
-        title: "10 GB Extra Space",
-        description: "additional 20 GB"
-      },
-      {
-        title: "512 MB Extra Memory",
-        description: "additional 512 MB Ram"
-      },
-      {
-        title: "4 GB Extra Memory",
-        description: "additional 4 GB Ram"
+        title: "Shared Space",
+        description: "additional"
       }
     ]
 
-    @addItem addition for addition in dummyAdditionals
-    @emit "DataLoaded"
+    new Promise (resolve, reject)=>
+      @addItem addition for addition in dummyAdditionals
+      resolve()

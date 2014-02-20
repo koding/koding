@@ -199,6 +199,7 @@ config =
         apiUri        : 1
         appsUri       : 1
         uploadsUri    : 1
+        uploadsUriForGroup: 1
         sourceUri     : 1
         newkontrol    :
           url         : 1
@@ -313,6 +314,7 @@ config =
         ftpip       : 1
     recurly         :
       apiKey        : 1
+      loggedRequests: 1
     embedly         :
       apiKey        : 1
     followFeed      :
@@ -390,4 +392,9 @@ config =
       rabbitMQ      : 1
       ldapserver    : 1
       broker        : 1
+    defaultVMConfigs:
+      freeVM        :
+        storage     : 1
+        ram         : 1
+        cpu         : 1
 module.exports = config

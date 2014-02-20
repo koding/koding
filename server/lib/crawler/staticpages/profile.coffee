@@ -152,14 +152,14 @@ getDock = ->
 putContent = (account, sUpdates)->
   getGraphMeta  = require './graphmeta'
   {profile:{nickname, firstName, lastName, about}} = account if account
-  nickname or= "A koding nickname"
+  nickname  or= "A koding nickname"
   firstName or= "a koding "
   lastName or= "user"
   about    or= ""
   hash    = account?.profile.hash or ''
   avatar  = account?.profile.avatar or no
 
-  numberOfLikes = if account.counts.likes then account.counts.likes else "0"
+  numberOfLikes     = if account.counts.likes     then account.counts.likes     else "0"
   numberOfFollowers = if account.counts.followers then account.counts.followers else "0"
   numberOfFollowing = if account.counts.following then account.counts.following else "0"
 

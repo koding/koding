@@ -4,6 +4,7 @@ module.exports = [
   "libs/async.js",
   "libs/md5-min.js",
   "libs/accounting.js",
+  "libs/bluebird.js",
 
   # --- Application ---
   "utils.coffee"
@@ -55,6 +56,7 @@ module.exports = [
 
   "CommonViews/activitywidgetitem.coffee",
   "CommonViews/activitywidget.coffee",
+  "CommonViews/uploadimagemodalview.coffee",
 
   # junction
   "junction/junction.coffee"
@@ -127,7 +129,6 @@ module.exports = [
   "CommonViews/clonerepomodal.coffee",
 
   "kodingappcontroller.coffee",
-  "CommonViews/adminmodal.coffee",
 
   "navigation/navigationlist.coffee",
   "navigation/navigationlink.coffee",
@@ -162,6 +163,7 @@ module.exports = [
   "payment/planupgradeform.coffee",
   "payment/planupgradeconfirmform.coffee",
   "payment/packchoiceform.coffee",
+  "payment/planproductlist.coffee",
   "payment/existingaccountworkflow.coffee",
 
 

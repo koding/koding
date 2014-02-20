@@ -22,14 +22,14 @@ class ActivityTicker extends ActivityRightBase
 
     @listController.on "LazyLoadThresholdReached", @bound "continueLoading"
 
-    @settingsButton = new KDButtonViewWithMenu
-      cssClass    : 'ticker-settings-menu'
-      title       : ''
-      icon        : yes
-      iconClass   : "arrow"
-      delegate    : @
-      menu        : @settingsMenu data
-      callback    : (event)=> @settingsButton.contextMenu event
+    # @settingsButton = new KDButtonViewWithMenu
+    #   cssClass    : 'ticker-settings-menu'
+    #   title       : ''
+    #   icon        : yes
+    #   iconClass   : "arrow"
+    #   delegate    : @
+    #   menu        : @settingsMenu data
+    #   callback    : (event)=> @settingsButton.contextMenu event
 
     @indexedItems = {}
 
@@ -137,8 +137,9 @@ class ActivityTicker extends ActivityRightBase
     {constructorName, id} = member
     KD.remote.cacheable constructorName, id, (err, account)=>
       return console.error "account is not found", err if err or not account
-      source = KD.getSingleton("groupsController").getCurrentGroup()
-      @addNewItem {as: "member", target: account, source  }
+      KD.getSingleton("groupsController").ready =>
+        source = KD.getSingleton("groupsController").getCurrentGroup()
+        @addNewItem {as: "member", target: account, source  }
 
   checkGuestUser: (account) ->
     if account.profile and accountNickname = account.profile.nickname
@@ -268,6 +269,9 @@ class ActivityTicker extends ActivityRightBase
     # relationships from guests should not be there
     return null if @checkGuestUser(source) or @checkGuestUser(target)
 
+    #CtF instead of filtering later on we should implement its view
+    return null  if as is "commenter" 
+
     # filter user followed status activity
     if @getConstructorName(source) is "JNewStatusUpdate" and \
         @getConstructorName(target) is "JAccount" and \
@@ -319,7 +323,7 @@ class ActivityTicker extends ActivityRightBase
   pistachio:->
     """
     <div class="activity-ticker right-block-box">
-      <h3>What's happening on Koding {{> @settingsButton}}</h3>
+      <h3>What's happening </h3>
       {{> @listView}}
     </div>
     """
@@ -343,8 +347,11 @@ class ActivityTicker extends ActivityRightBase
 
 
   getItemId: (item) ->
-    {source, target, subject, as} = item
-    "#{source.getId()}_#{target.getId()}_#{as}_#{subject?.getId()}"
+    {source, target, subject, as, timestamp} = item
+    if as is "like"
+      "#{source.getId()}_#{target.getId()}_#{as}_#{subject?.getId()}"
+    else
+      "#{source.getId()}_#{target.getId()}_#{as}_#{timestamp}"
 
   isFiltered: (filter) ->
     if @filters and @filters.length
