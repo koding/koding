@@ -22,9 +22,9 @@ class CommonDomainCreateForm extends KDFormViewWithFields
       cssClass : 'status-message'
 
   submit:->
-    @buttons.createButton.hideLoader()
+    @buttons?.createButton.hideLoader()
     @off  "FormValidationPassed"
     @once "FormValidationPassed", =>
       @emit 'registerDomain'
-      @buttons.createButton.showLoader()
+      @buttons?.createButton.showLoader()
     super

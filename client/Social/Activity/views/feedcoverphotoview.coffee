@@ -13,7 +13,16 @@ class FeedCoverPhotoView extends KDView
 
       @decorateHeader()  if @group.slug isnt "koding"
 
-      @group.on "update", @bound "decorateHeader"
+      @group.on "update", =>
+        if @group.slug isnt "koding"
+          @decorateHeader()
+
+  getResizedImage:(imageToCrop)->
+    proxifyOptions =
+      crop         : yes
+      width        : 950
+      height       : 315
+    KD.utils.proxifyUrl imageToCrop, proxifyOptions
 
   decorateHeader:->
 
@@ -22,10 +31,11 @@ class FeedCoverPhotoView extends KDView
         cssClass : "container"
         size     : height : 315
 
+      resizedImg = @getResizedImage(@group.customize?.coverPhoto)
       @coverView = new KDCustomHTMLView
         tagName    : 'figure'
         attributes :
-          style    : "background-image: url(#{@group.customize?.coverPhoto});"
+          style    : "background-image: url(#{resizedImg});"
 
       @listController = new KDListViewController
         startWithLazyLoader : no
@@ -46,13 +56,14 @@ class FeedCoverPhotoView extends KDView
 
     if @group.customize?.coverPhoto
       @listController.getView().hide()
-      @coverView.setCss 'background-image', "url(#{@group.customize.coverPhoto})"
+      resizedImg = @getResizedImage(@group.customize?.coverPhoto)
+      @coverView.setCss 'background-image', "url(#{resizedImg})"
       @coverView.show()
     else
       @coverView.hide()
       @listController.getView().show()
       @listController.removeAllItems()
-      @group.fetchMembersFromGraph limit : 20, (err, accounts) =>
+      @group.fetchMembers {},limit : 20, (err, accounts) =>
         @listController.instantiateListItems accounts
 
 

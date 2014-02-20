@@ -22,9 +22,9 @@
       "feeAmount"        : 500
   },
   {
-      "title"            : "Max VM",
+      "title"            : "VM",
       "priceIsVolatile"  : false,
-      "tags"             : ["maxvm"],
+      "tags"             : ["vm","maxvm"],
       "soldAlone"        : true,
       "subscriptionType" : "mo",
       "feeInterval"      : 1,
@@ -36,7 +36,7 @@
   {
       "title"            : "Always On",
       "priceIsVolatile"  : false,
-      "tags"             : ["alwayson"],
+      "tags"             : ["vm", "alwayson"],
       "subscriptionType" : "mo",
       "feeInterval"      : 1,
       "feeUnit"          : "months",
@@ -44,41 +44,5 @@
       "description"      : "Always On",
       "feeAmount"        : 500,
       "soldAlone"        : true
-  },
-  {
-      "title"            : "Disk",
-      "priceIsVolatile"  : true,
-      "tags"             : ["vm", "disk"],
-      "subscriptionType" : "mo",
-      "feeInterval"      : 1,
-      "feeUnit"          : "months",
-      "group"            : "koding",
-      "description"      : "50 GB Disk",
-      "feeAmount"        : 500,
-      "soldAlone"        : true
-  },
-  {
-      "title"            : "RAM",
-      "priceIsVolatile"  : true,
-      "tags"             : ["vm", "ram"],
-      "subscriptionType" : "mo",
-      "feeInterval"      : 1,
-      "feeUnit"          : "months",
-      "group"            : "koding",
-      "description"      : "1 GB RAM",
-      "soldAlone"        : true,
-      "feeAmount"        : 500
-  },
-  {
-      "title"            : "CPU",
-      "priceIsVolatile"  : true,
-      "tags"             : ["vm", "cpu"],
-      "subscriptionType" : "mo",
-      "feeInterval"      : 1,
-      "feeUnit"          : "months",
-      "group"            : "koding",
-      "description"      : "1 CPU core",
-      "soldAlone"        : true,
-      "feeAmount"        : 500
   }
 ]

@@ -7,7 +7,7 @@ class PricingAppController extends KDViewController
     name                : "Pricing"
     routes              :
       "/:name?/Pricing" : ->
-        (KD.getSingleton "router").handleRoute "/Pricing/Developer"
+        (KD.getSingleton "router").handleRoute "/Pricing/Developer", replaceState: yes
 
       "/:name?/Pricing/:section": ({params:{section}}) ->
         handler (app) ->
@@ -16,7 +16,7 @@ class PricingAppController extends KDViewController
           switch section
             when "Developer" then productForm.showDeveloperPlan()
             when "Team"      then productForm.showTeamPlan()
-            else (KD.getSingleton "router").handleRoute "/Pricing/Developer"
+            else (KD.getSingleton "router").handleRoute "/Pricing/Developer", replaceState: yes
 
       "/:name?/Pricing/CreateGroup": ->
         KD.remote.api.JGroupPlan.hasGroupCredit (err, hasCredit) ->
@@ -24,7 +24,7 @@ class PricingAppController extends KDViewController
             handler (app) ->
               app.getView().showGroupForm()
           else
-            (KD.getSingleton "router").handleRoute "/Pricing/Team"
+            (KD.getSingleton "router").handleRoute "/Pricing/Team", replaceState: yes
 
   constructor: (options = {}, data) ->
     options.appInfo = title: "Pricing"

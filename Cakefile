@@ -307,6 +307,8 @@ task 'goBroker', "Run the goBroker", (options)->
     kontrol           :
       enabled         : if config.runKontrol is yes then yes else no
       binary          : uuid
+      port            : broker.port
+      hostname        : options.domain
     verbose           : yes
 
 task 'goBrokerKite', "Run the goBrokerKite", (options)->
@@ -325,6 +327,28 @@ task 'goBrokerKite', "Run the goBrokerKite", (options)->
     kontrol           :
       enabled         : if config.runKontrol is yes then yes else no
       binary          : uuid
+      port            : broker.port
+      hostname        : options.domain
+    verbose           : yes
+
+task 'premiumBrokerKite', "Run the premium broker kite", (options)->
+  {configFile} = options
+  config = require('koding-config-manager').load("main.#{configFile}")
+  {broker} = config
+  uuid = hat()
+
+  processes.spawn
+    name              : 'premiumBrokerKite'
+    cmd               : "./go/bin/broker -c #{configFile} -u #{uuid} -b premiumBrokerKite #{addFlags options}"
+    restart           : yes
+    restartTimeout    : 100
+    stdout            : process.stdout
+    stderr            : process.stderr
+    kontrol           :
+      enabled         : if config.runKontrol is yes then yes else no
+      binary          : uuid
+      port            : broker.port
+      hostname        : options.domain
     verbose           : yes
 
 task 'rerouting', "Run rerouting", (options)->
@@ -554,6 +578,7 @@ run =({configFile})->
     invoke 'kontrolApi'                       if config.runKontrol
     invoke 'goBroker'                         if config.runGoBroker
     invoke 'goBrokerKite'                     if config.runGoBrokerKite
+    invoke 'premiumBrokerKite'                if config.runPremiumBrokerKite
     invoke 'osKite'                           if config.runOsKite
     invoke 'rerouting'                        if config.runRerouting
     invoke 'userpresence'                     if config.runUserPresence
@@ -670,13 +695,13 @@ task 'runExternals', "runs externals kite which imports info about github, will 
       enabled         : if config.runKontrol is yes then yes else no
     verbose           : yes
 
-task 'importProducts', "creates default products", (options)->
+task 'importPaymentData', "creates default payment data", (options)->
   {configFile} = options
   config = require('koding-config-manager').load("main.#{configFile}")
 
   processes.spawn
-    name           : 'importProducts'
     cmd            : "node ./workers/productimport/index -c #{configFile}"
+    name           : 'importPaymentData'
     stdout         : process.stdout
     stderr         : process.stderr
     kontrol        :

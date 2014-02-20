@@ -15,6 +15,7 @@ module.exports = [
   "controllers/productscontroller.coffee",
   "controllers/invitationrequestlistcontroller.coffee",
   # views:
+  "views/administrationview.coffee",
   "views/generalsettingsview.coffee",
   "views/productsettingsview.coffee",
   "views/productsectionview.coffee",
@@ -57,6 +58,14 @@ module.exports = [
   "views/groupseditablewebhookview.coffee"
   "views/groupsmembershippolicyeditor.coffee"
   "views/groupsformgeneratorview.coffee"
+
+  # customviews
+  "views/customviews/customviewsdashboardview.coffee",
+  "views/customviews/customviewitem.coffee",
+  "views/customviews/homepagecustomviewitem.coffee",
+  "views/customviews/widgetcustomviewitem.coffee",
+  "views/customviews/addnewcustomviewform.coffee",
+  "views/customviews/customviewsmanager.coffee",
 
   "views/permissionsform.coffee",
   "views/grouplogosettings.coffee",

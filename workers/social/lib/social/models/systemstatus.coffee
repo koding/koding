@@ -9,7 +9,7 @@ module.exports = class JSystemStatus extends Model
 
     sharedMethods    :
       static         :
-        getCurrentSystemStatus:
+        getCurrentSystemStatuses:
           (signature Function)
         create:
           (signature Object, Function)
@@ -17,10 +17,13 @@ module.exports = class JSystemStatus extends Model
           (signature Function)
         forceReload:
           (do signature)
+      instance       :
+        cancel:
+          (signature Function)
 
     sharedEvents     :
-      static         : ['forceReload']
-      instance       : ['restartCanceled', 'restartScheduled']
+      static         : ['forceReload', 'restartScheduled']
+      instance       : ['restartCanceled']
 
     schema           :
       title          : String
@@ -36,7 +39,7 @@ module.exports = class JSystemStatus extends Model
       type           :
         type         : String
         default      : 'restart'
-        enum         : ['Invalid type', ['restart','info','reload']]
+        enum         : ['Invalid type', ['restart','info','reload','red','green','yellow']]
 
   createKodingError =(err)->
     if 'string' is typeof err
@@ -60,9 +63,9 @@ module.exports = class JSystemStatus extends Model
     {connection:{delegate}} = client
     unless delegate.checkFlag('super-admin')
       log 'status: not authorized to stop a system status'
-      return callback no
+      return callback new KodingError "Not authorized to update a system status"
 
-    JSystemStatus.getCurrentSystemStatus (err,status)=>
+    JSystemStatus.getCurrentSystemStatuses (err,status)=>
       # log err,status
       if err
         # log 'no status to stop'
@@ -74,76 +77,36 @@ module.exports = class JSystemStatus extends Model
           status.emit 'restartCanceled', {}
           callback err
 
-  @getCurrentSystemStatus = (callback=->)->
-    JSystemStatus.one {
+  @getCurrentSystemStatuses = (callback=->)->
+    JSystemStatus.some {
       status: 'active'
+      scheduledAt : $gt : new Date()
     }, {
       sort: 'meta.createdAt': -1
-    }, (err,status)->
-      log err,status if err
+    }, (err,statuses)->
+      return callback new KodingError 'no queued messages available'  if err
 
-      if status and status.scheduledAt > new Date()
-        # log 'status: schedule in future, calling back'
-        callback err, status
-      else
-        # log 'schedule in the past. error. error.'
-        callback createKodingError('none_scheduled'), null
+      callback null, statuses
 
 
-  @create = secure (client, data, callback=->)->
+  @create = secure (client, data, callback)->
     {connection:{delegate}} = client
     unless delegate.checkFlag('super-admin')
-      log 'status: not authorized to create a system status'
-      callback no
-    else
-      # log 'status: creating new status',data
-      {title,content,scheduledAt,type} = data
+      return callback new KodingError "Not authorized to create a system status"
 
-      JSystemStatus.count {title, content, scheduledAt, type}, \
-      (err, count)=>
-        if not err and count is 0
-          status = new JSystemStatus {
-            title
-            content
-            scheduledAt : new Date(scheduledAt)
-            type
-            status : 'active'
-          }
-          # log 'status: created.'
-          daisy queue = [
-            ->
-              JSystemStatus.one {
-                status : 'active'
-                }, {
-                sort:
-                  'meta.createdAt' : -1
-                }
-              ,(err,previousStatus)->
-                if err
-                  callback err
-                else
-                  if previousStatus
-                    previousStatus.update
-                      $set :
-                        status : 'stopped'
-                    ,(err)->
-                      if err
-                        callback err
-                      else queue.next()
-                  else queue.next()
-           ->
-              status.save (err)->
-                if err
-                  console.error err
-                  callback err
-                else
-                  # log "status: saved."
-                  queue.next()
-            =>
-              # log 'emitting'
-              JSystemStatus.emit 'restartScheduled',status
-              callback status
-            ]
+    status = new JSystemStatus data
+    status.save (err)->
+      JSystemStatus.emit 'restartScheduled',status  unless err
+      callback err, status
 
-        else
-          log 'status: duplicate found. doing nothing.'
+  cancel: secure (client, callback) ->
+    {connection:{delegate}} = client
+    unless delegate.checkFlag('super-admin')
+      return callback new KodingError "Not authorized to cancel a system status"
+
+    @update $set : status : 'stopped', (err)=>
+      unless err
+        @emit 'restartCanceled'
+        callback()
+      else
+        callback callback new KodingError "Could not cancel the system status"

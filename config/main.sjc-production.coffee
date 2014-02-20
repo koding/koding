@@ -56,6 +56,7 @@ module.exports =
   runNeo4jFeeder: yes
   runGoBroker   : no
   runGoBrokerKite : no
+  runPremiumBrokerKite : no
   runKontrol    : yes
   runRerouting  : yes
   runUserPresence: yes
@@ -175,12 +176,17 @@ module.exports =
         servicesEndpoint: "/-/services/broker"
         sockJS   : "https://broker-#{version}.koding.com/subscribe"
       brokerKite:
-        servicesEndpoint: "/-/services/broker"
+        servicesEndpoint: "/-/services/brokerKite"
         brokerExchange: 'brokerKite'
         sockJS   : "https://brokerkite-#{version}.koding.com/subscribe"
+      premiumBrokerKite:
+        servicesEndpoint: "/-/services/premiumBrokerKite"
+        brokerExchange: 'premiumBrokerKite'
+        sockJS   : "https://premiumbrokerkite-#{version}.koding.com/subscribe"
       apiUri    : 'https://koding.com'
       appsUri   : 'https://koding-apps.s3.amazonaws.com'
       uploadsUri: 'https://koding-uploads.s3.amazonaws.com'
+      uploadsUriForGroup: 'https://koding-groups.s3.amazonaws.com'
       sourceUri : "http://webserver-#{version}a.sj.koding.com:1337"
       newkontrol:
         url         : 'wss://newkontrol.sj.koding.com/kontrol'
@@ -235,6 +241,17 @@ module.exports =
     webPort     : null
     authExchange: authExchange
     authAllExchange: authAllExchange
+  premiumBrokerKite    :
+    name        : "premiumBrokerKite"
+    ip          : ""
+    port        : 443
+    certFile    : "/opt/ssl_certs/wildcard.koding.com.cert"
+    keyFile     : "/opt/ssl_certs/wildcard.koding.com.key"
+    webProtocol : 'https:'
+    webHostname : "premiumbrokerkite-#{version}a.koding.com"
+    webPort     : null
+    authExchange: authExchange
+    authAllExchange: authAllExchange
   kites:
     disconnectTimeout: 3e3
     vhost       : 'kite'
@@ -285,8 +302,9 @@ module.exports =
       port        : 80
       portssl     : 443
       ftpip       : '54.208.3.200'
-  recurly       :
-    apiKey      : '0cb2777651034e6889fb0d091126481a' # koding.recurly.com
+  recurly         :
+    apiKey        : '0cb2777651034e6889fb0d091126481a' # koding.recurly.com
+    loggedRequests: /^(subscriptions|transactions)/
   embedly       :
     apiKey      : embedlyApiKey
   opsview	:

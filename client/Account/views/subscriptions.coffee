@@ -132,15 +132,18 @@ class SubscriptionControls extends JView
 
     { text, cssClass, event, showChange } = @getStatusInfo()
 
-    @statusLink = new CustomLinkView
-      cssClass  : cssClass
-      title     : text
-      click     : (e) =>
-        e.preventDefault()
-        @emit event
-    @addSubView @statusLink
+    nosync = "nosync" in @getData().plan.tags
 
-    if showChange
+    unless nosync
+      @statusLink = new CustomLinkView
+        cssClass  : cssClass
+        title     : text
+        click     : (e) =>
+          e.preventDefault()
+          @emit event
+      @addSubView @statusLink
+
+    if showChange and not nosync
       @changeLink = new CustomLinkView
         cssClass  : 'green'
         title     : 'change plan'

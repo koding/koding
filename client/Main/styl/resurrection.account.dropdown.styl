@@ -54,6 +54,9 @@ resurrection.account.dropdown.styl
     right                   55px
     width                   238px
     rounded                 0 0 5px 5px
+    &.submenu
+    &.submenu .content
+      rounded               0 0 0 5px
     .tab
       hidden()
     .content
@@ -72,7 +75,7 @@ resurrection.account.dropdown.styl
       max-height            322px !important
 
 
-    .avatararea-popup-list li a
+    .avatararea-popup-list li a.avatararea-group-name
     a.bottom
       display               block
       padding               10px 12px
@@ -92,6 +95,9 @@ resurrection.account.dropdown.styl
       li
         padding             0
         border-bottom       none
+        &:hover
+          text-decoration   none
+          bg                color, logoBg
         &~li
           border-top        none
         a.fr
@@ -104,6 +110,8 @@ resurrection.account.dropdown.styl
           size              20px, 20px
 
         .custom-link-view.admin-icon
+          display           block
+          padding           10px 12px
           top               0
           right             0
           abs()
@@ -112,13 +120,6 @@ resurrection.account.dropdown.styl
           size              20px 20px
           display           block
           kdfsprite()
-
-        .custom-link-view .icon.new-page
-          bg                position, -180px -518px
-          display           inline-block
-          vertical-align    top
-          margin-left       2px
-          opacity           .5
 
         .avatararea-group-name
           padding-right     40px
@@ -134,6 +135,9 @@ resurrection.account.dropdown.styl
         .avatararea-group-logo
           margin            4px 8px 0 6px
           rounded           4px
+          size              30px 30px
+          border            none
+          bg                size cover
           fl()
 
         .buttons

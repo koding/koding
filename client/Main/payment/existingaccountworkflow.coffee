@@ -23,6 +23,13 @@ class ExistingAccountForm extends JView
           placeholder      : "you@yourdomain.com"
           name             : "email"
           testPath         : "account-email-input"
+          validate         :
+            rules          :
+              required     : yes
+              email        : yes
+            messages       :
+              required     : "You should write an email address"
+              email        : "This is not a valid email address"
       buttons              :
         'SIGN UP'          :
           type             : 'submit'

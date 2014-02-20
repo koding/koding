@@ -104,6 +104,16 @@ func (vm *VM) GetPermissions(user *User) *Permissions {
 	return nil
 }
 
+func (vm *VM) GetGroupPermissions(groupdId bson.ObjectId) *Permissions {
+	for _, entry := range vm.Groups {
+		if entry.Id == groupdId {
+			p := Permissions(entry)
+			return &p
+		}
+	}
+	return nil
+}
+
 func (vm *VM) ApplyDefaults() {
 	if vm.NumCPUs == 0 {
 		vm.NumCPUs = 1
@@ -114,7 +124,7 @@ func (vm *VM) ApplyDefaults() {
 	}
 
 	if vm.DiskSizeInMB == 0 {
-		vm.DiskSizeInMB = 3600
+		vm.DiskSizeInMB = 3072
 	}
 
 	if vm.VMRoot == "" {

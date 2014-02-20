@@ -5,7 +5,7 @@ encoder      = require 'htmlencode'
 module.exports = (options = {})->
   options.title ?= "A new way for developers to work."
   options.shareUrl ?= "https://koding.com"
-  options.image ?= "#{uri.address}/a/images/koding_share_green.png"
+  options.image ?= "#{uri.address}/a/images/logos/share_logo.png"
   options.body ?= "Koding is a developer community and cloud development environment where developers come together and code in the browser."
 
   """
@@ -20,7 +20,7 @@ module.exports = (options = {})->
 
   <meta itemprop="name" content="Koding">
   <meta itemprop="description" content="#{encoder.XSSEncode options.body}">
-  <meta itemprop="image" content="#{uri.address}/a/images/koding_share_green.png">
+  <meta itemprop="image" content="#{uri.address}/a/images/logos/share_logo.png">
 
   <!-- og meta tags -->
   <meta property="og:title" content="Koding - #{encoder.XSSEncode options.title}"/>

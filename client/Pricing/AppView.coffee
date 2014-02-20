@@ -1,5 +1,12 @@
 class PricingAppView extends KDView
 
+  constructor:(options = {}, data) ->
+    super options, data
+    # CtF I know this does not belongs here, but the problem was for the partial registration
+    # there is an async situation of app storage operations caused by guest users/registered
+    # members conversion
+    @appStorage = KD.getSingleton('appStorageController').storage 'Login', '1.0'
+
   createBreadcrumb: ->
     @addSubView @breadcrumb = new BreadcrumbView
 
@@ -26,6 +33,8 @@ class PricingAppView extends KDView
       return  unless workflow.active
       @breadcrumb.selectItem workflow.active.getOption 'name'
 
+    workflow.once "PasswordRecoveryToken", (@recoveryToken) =>
+
   hideBreadcrumb:->
     @breadcrumb.hide()
     document.body.classList.remove 'flow'
@@ -38,7 +47,7 @@ class PricingAppView extends KDView
     @showPaymentSucceded()  if "vm" in @formData.productData.plan.tags
 
   cancel: ->
-    KD.singleton("router").handleRoute "/Pricing/Developer"
+    KD.singleton("router").handleRoute "/Activity"
 
   showGroupForm: ->
 
@@ -61,7 +70,7 @@ class PricingAppView extends KDView
         """
 
     @sorry.addSubView new KDButtonView
-      style    : "solid"
+      style    : "solid medium"
       title    : "Go back"
       callback : ->
         KD.singleton("router").handleRoute "/"
@@ -71,13 +80,11 @@ class PricingAppView extends KDView
 
   showPaymentSucceded: ->
     {createAccount, loggedIn} = @formData
-
     @breadcrumb.selectItem 'thanks'
 
     subtitle =
-      if createAccount
-      then "Please check your email to complete your registration."
-      else "Now it’s time, time to start Koding!"
+      if loggedIn then "Now it’s time, time to start Koding!"
+      else ""
 
     @addSubView @thankYou = new KDCustomHTMLView
       cssClass : "pricing-final"
@@ -90,20 +97,18 @@ class PricingAppView extends KDView
 
     if loggedIn
       @thankYou.addSubView new KDButtonView
-        style    : "solid green"
+        style    : "solid medium green"
         title    : "Go to your environment"
         callback : ->
           KD.singleton("router").handleRoute "/Environments"
+    else if createAccount
+      @thankYou.addSubView @getCompleteYourRegistrationButton()
 
   showGroupCreated: (group, subscription) ->
-
+    {createAccount, loggedIn} = @formData
     @breadcrumb.selectItem 'thanks'
 
     planCodes = Object.keys subscription.quantities
-    subtitle =
-      if @formData.createAccount
-      then "Please check your email to complete your registration."
-      else ""
 
     @addSubView @thankYou = new KDCustomHTMLView
       cssClass : "pricing-final"
@@ -111,15 +116,25 @@ class PricingAppView extends KDView
         """
         <i class="check-icon"></i>
         <h3 class="pricing-title"><strong>#{group.title}</strong> has been successfully created</h3>
-        <h6 class="pricing-subtitle">#{subtitle}</h6>
         """
 
-    if @formData.loggedIn
+    KD.singleton("appManager").tell "Login", "setStorageData", "redirectTo", group.slug
+
+    if loggedIn
       @thankYou.addSubView new KDButtonView
-        style    : "solid green"
+        style    : "solid medium green"
         title    : "Go to Group"
         callback : ->
           window.open "#{window.location.origin}/#{group.slug}", "_blank"
+    else if createAccount
+      @thankYou.addSubView @getCompleteYourRegistrationButton()
+
+  getCompleteYourRegistrationButton: ->
+    return new KDButtonView
+      style    : "solid green"
+      title    : "Complete your registration"
+      callback : =>
+        window.location.href = "/Register/#{encodeURIComponent @recoveryToken}"  if @recoveryToken
 
   addGroupForm: ->
     @groupForm = @createGroupForm()
@@ -128,15 +143,21 @@ class PricingAppView extends KDView
     @workflow.addForm "group", @groupForm, ["group"]
 
   createGroupForm: ->
-    return new KDFormViewWithFields
+    return groupForm = new KDFormViewWithFields
       title                 : "Enter new group name"
       cssClass              : "pricing-create-group"
-      callback              : -> @emit "Submit"
+      callback              : ->
+        groupForm.buttons.Create.showLoader()
+        @emit "Submit"
       buttons               :
         Create              :
           title             : "CREATE YOUR GROUP"
           type              : "submit"
-          style             : "solid green"
+          style             : "solid green medium"
+          loader            :
+            color           : "#ffffff"
+            diameter        : 26
+          callback          : ->
       fields                :
         GroupName           :
           label             : "Group Name"
@@ -175,7 +196,7 @@ class PricingAppView extends KDView
           name              : "groupSlug"
           validate          :
             rules           :
-              minLength     : 4
+              minLength     : 3
 
         Visibility          :
           itemClass         : KDSelectBox
@@ -196,13 +217,11 @@ class PricingAppView extends KDView
 
     options      =
       title      : groupName
-      body       : groupName
       slug       : slug
       visibility : visibility
 
     {JGroup} = KD.remote.api
     JGroup.create options, (err, group, subscription) =>
-      log err, group, subscription, '>>>>>>>>>>>>>>>>>>'
       return KD.showError err  if err
       @showGroupCreated group, subscription
 

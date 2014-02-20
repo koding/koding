@@ -14,6 +14,8 @@ module.exports = class JUser extends jraphical.Module
   JLog            = require '../log'
   JMail           = require '../email'
   JSessionHistory = require '../sessionhistory'
+  JPaymentPlan    = require '../payment/plan'
+  JPaymentSubscription = require '../payment/subscription'
 
   { v4: createId } = require 'node-uuid'
 
@@ -421,6 +423,14 @@ module.exports = class JUser extends jraphical.Module
                 account.updateCounts()
                 JUser.clearOauthFromSession session, ->
                   callback null, {account, replacementToken}
+                  options = targetOptions: selector: tags: $in: ["nosync"]
+                  account.fetchSubscriptions {}, options, (err, subscriptions) ->
+                    console.warn err  if err
+                    if subscriptions.length is 0
+                      JPaymentSubscription.createFreeSubscription account, (err, subscription) ->
+                        console.warn err  if err
+                        subscription.debitPack tag: "vm", (err) ->
+                          console.warn "VM pack couldn't be debited from subscription: #{err}"  if err
 
   @logout = secure (client, callback)->
     if 'string' is typeof client
@@ -453,11 +463,13 @@ module.exports = class JUser extends jraphical.Module
 
   @addToGroup = (account, slug, email, invite, callback)->
     JGroup.one {slug}, (err, group)->
-      return callback err if err or not group 
+      return callback err if err or not group
       if invite
-        invite.redeem account, (err) ->
-          return callback err if err
-          group.approveMember account, callback
+        group.debitPack "user", (err) ->
+          return callback err  if err
+          invite.redeem account, (err) ->
+            return callback err if err
+            group.approveMember account, callback
       else
         group.approveMember account, callback
 
@@ -695,6 +707,7 @@ module.exports = class JUser extends jraphical.Module
     invite         = null
     user           = null
     quotaExceedErr = null
+    recoveryToken  = null
 
     queue = [
       =>
@@ -740,10 +753,10 @@ module.exports = class JUser extends jraphical.Module
       =>
         @addToGroups account, invite, user.email, (err) =>
           # for the cases where the quota exceeded, we must progress on registering user
-          # and then show the quota exceeded message to new user 
+          # and then show the quota exceeded message to new user
           if err
             if err.code is 999 then quotaExceedErr = err
-            else return callback err 
+            else return callback err
           queue.next()
       =>
         @removeFromGuestsGroup account, (err) =>
@@ -767,16 +780,30 @@ module.exports = class JUser extends jraphical.Module
           resetPassword : no
           expiryPeriod  : 1000 * 60 * 60 * 24 * 14 # 2 weeks in milliseconds
 
-        JPasswordRecovery.create client, passwordOptions, (err)->
+        JPasswordRecovery.create client, passwordOptions, (err, token)->
+          recoveryToken = token
           queue.next()
+      ->
+        JPaymentSubscription.createFreeSubscription account, (err) ->
+          console.warn err  if err
+          queue.next()
+      ->
+        options = targetOptions: selector: tags: "vm"
+        account.fetchSubscriptions null, options, (err = "", [subscription]) ->
+          return callback err  if err
+          return callback new KodingError "VM subscription not found, cannot debit"  unless subscription
+
+          subscription.debitPack tag: "vm", (err) ->
+            console.warn "VM pack couldn't be debited from subscription: #{err}"  if err
+            queue.next()
       ->
         JAccount.emit "AccountRegistered", account, referrer
         queue.next()
       ->
         mixpanel.track "Signup from server, success"
         queue.next()
-      =>
-        callback quotaExceedErr, newToken
+      ->
+        callback quotaExceedErr, newToken, recoveryToken
         queue.next()
     ]
 
@@ -814,7 +841,18 @@ module.exports = class JUser extends jraphical.Module
               account.update $set: { firstName, lastName }, (err) ->
                 return callback err  if err
 
-                callback null, { account, replacementToken }
+                client.connection.delegate = account
+
+                account.fetchGroups client, (err, groups) ->
+                  queue = groups.map ({group}) ->
+                    ->
+                      return queue.fin()  unless group
+                      return queue.fin()  if group.slug in ["koding", "guests"]
+                      group.createMemberVm account, ->
+                        queue.fin()
+
+                  dash queue, ->
+                    callback null, { account, replacementToken }
 
   @removeUnsubscription:({email}, callback)->
     JUnsubscribedMail = require '../unsubscribedmail'
@@ -978,11 +1016,11 @@ module.exports = class JUser extends jraphical.Module
         else
           callback createKodingError 'PIN is not confirmed.'
 
-  fetchHomepageView:({account, bongoModels}, callback)->
-
+  fetchHomepageView:(options, callback)->
+    {account, bongoModels} = options
     @fetchAccount 'koding', (err, account)->
       if err then callback err
-      else account.fetchHomepageView {account, bongoModels}, callback
+      else account.fetchHomepageView options, callback
 
   confirmEmail: (callback)->
     @update {$set: status: 'confirmed'}, (err, res)=>
@@ -999,7 +1037,8 @@ module.exports = class JUser extends jraphical.Module
     , (err) =>
         return callback err if err
         JUser.emit "UserBlocked", @
-        return callback err
+        # clear all of the cookies of the blocked user
+        JSession.remove {username: @username}, callback
 
   unblock:(callback)->
     @update

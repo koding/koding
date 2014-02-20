@@ -52,26 +52,14 @@ class VirtualizationController extends KDController
   resizeDisk:(vm, callback)->
     @_runWrapper 'vm.resizeDisk', vm, callback
 
-  turnOnOptions = subscriptionTag: "vm", packTag: "vmturnon"
-
   start:(vm, callback)->
-    @payment.debitWrapper turnOnOptions, (err, nonce) =>
-      return  if KD.showError err
-      @_runWrapper 'vm.start', vm, callback
+    @_runWrapper 'vm.start', vm, callback
 
   stop:(vm, callback)->
-    @_runWrapper 'vm.shutdown', vm, =>
-      args = arguments
-      @payment.creditWrapper turnOnOptions, (err, nonce) =>
-        return  if KD.showError err
-        callback?.apply args
+    @_runWrapper 'vm.shutdown', vm, callback
 
   halt:(vm, callback)->
-    @_runWrapper 'vm.stop', vm, =>
-      args = arguments
-      @payment.creditWrapper turnOnOptions, (err, nonce) =>
-        return  if KD.showError err
-        callback?.apply args
+    @_runWrapper 'vm.stop', vm, callback
 
   reinitialize:(vm, callback)->
     @_runWrapper 'vm.reinitialize', vm, callback
@@ -157,7 +145,7 @@ class VirtualizationController extends KDController
       @fetchDefaultVmName (defaultVmName) ->
         if defaultVmName?
         then callback null, defaultVmName
-        else callback message: 'There is no VM for this account.'
+        else callback message: 'There is no VM for this account.', code: 100
 
   fetchDefaultVmName:(callback=noop, force=no)->
     if @defaultVmName and not force
@@ -172,8 +160,8 @@ class VirtualizationController extends KDController
         return callback null
 
       # If there is just one return it
-      if vmNames.length is 1
-        return callback @defaultVmName = vmNames.first
+      # if vmNames.length is 1
+      #   return callback @defaultVmName = vmNames.first
 
       # If current group is 'koding' ask to backend for the default one
       KD.remote.api.JVM.fetchDefaultVm (err, defaultVmName)=>
@@ -194,11 +182,11 @@ class VirtualizationController extends KDController
           return callback @defaultVmName = vm.alias
 
         # Check for personal VMs in Koding or Guests group
-        for vm in userVMs when vm.groupSlug in ['koding', 'guests']
-          return callback @defaultVmName = vm.alias
+        # for vm in userVMs when vm.groupSlug in ['koding', 'guests']
+        #   return callback @defaultVmName = vm.alias
 
         # Fallback to Koding VM if exists
-        return callback @defaultVmName = defaultVmName
+        return callback()
 
   createGroupVM:(type='user', planCode, callback=->)->
     vmCreateCallback = (err, vm)->
@@ -429,31 +417,38 @@ class VirtualizationController extends KDController
             modal.destroy()
 
   createPaidVM: ->
-    callback = (subscription) =>
+    @payment.fetchActiveSubscription tags: "vm", (err, subscription) =>
+      if err
+        if err.code is "no subscription"
+        then @showUpgradeModal()
+        else KD.showError err
+        return
+      else if not subscription
+      then return @showUpgradeModal()
+
       KD.remote.api.JPaymentPack.one tags: "vm", (err, pack) =>
-        return  if KD.showError err
+        return KD.showError err  if err
         @provisionVm {subscription, productData: {pack}}, (err, nonce) =>
           return  unless err
-          modal      = new KDModalView
-            title    : "Create a new VM"
-            cssClass : "create-vm"
-            view     : upgradeForm = @payment.createUpgradeForm()
-            height   : "auto"
-            width    : 500
-            showNav  : no
-            overlay  : yes
+          if err.message is "quota exceeded"
+            if KD.getGroup().slug is "koding"
+              @showUpgradeModal()
+            else
+              new KDNotificationView title: "Your group is out of VM quota"
+          else KD.showError err
 
-          upgradeForm.on "Cancel", modal.bound "destroy"
+  showUpgradeModal: ->
+    modal      = new KDModalView
+      title    : "Create a new VM"
+      cssClass : "create-vm"
+      view     : upgradeForm = @payment.createUpgradeForm()
+      height   : "auto"
+      width    : 500
+      showNav  : no
+      overlay  : yes
 
-    if KD.getGroup().slug is "koding"
-      @payment.fetchSubscriptionsWithPlans tags: ["vm"], (err, subscriptions) ->
-        return  if KD.showError err
-        [subscription] = subscriptions
-        callback subscription
-    else
-      @payment.fetchGroupSubscription (err, subscription) ->
-        return  if KD.showError err
-        callback subscription
+    upgradeForm.on "Cancel", modal.bound "destroy"
+    return modal
 
   provisionVm: ({ subscription, paymentMethod, productData }, callback) ->
     { JVM } = KD.remote.api

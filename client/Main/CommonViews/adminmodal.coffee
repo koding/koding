@@ -112,20 +112,9 @@ class AdminModal extends KDModalViewWithForms
                     title     : inputs.Title.getValue()
                     content   : inputs.Description.getValue()
                     type      : inputs.Type.getValue()
-                  , ->
+                  , (err, status) ->
+                    KD.showError err  if err
                     buttons["Broadcast Message"].hideLoader()
-
-              "Cancel Restart":
-                title         : "Cancel Restart"
-                style         : "modal-clean-gray"
-                loader        :
-                  color       : "#444444"
-                  diameter    : 12
-
-                callback      : (event)=>
-                  {inputs, buttons} = @modalTabs.forms["Broadcast Message"]
-                  KD.remote.api.JSystemStatus.stopCurrentSystemStatus (err,res)->
-                    buttons["Cancel Restart"].hideLoader()
 
             fields            :
               Presets         :
@@ -217,8 +206,6 @@ class AdminModal extends KDModalViewWithForms
                     cssClass  : 'type-explain'
                     itemClass : KDView
                     partial   : 'This will show a timer.'
-          # "Introduction":
-          #   fields            : {}
 
     super options, data
 

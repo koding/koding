@@ -13,15 +13,8 @@ class IntroTeamPlan extends JView
 
     @resourcePackSlider = new IntroPlanSelection
       title             : "Resource Pack"
-      description       : """
-        <span>1 Resource pack contains</span>
-        <br/><cite>4x</cite>CPU
-        <cite>2x</cite>GB RAM
-        <cite>50</cite>GB Disk
-        <br/><cite>10x</cite>Total VMs
-        <cite>1x</cite>Always on VMs
-        """
       unitPrice         : unitPrices.resourcePack
+      amountSuffix      : "x"
       slider            :
         minValue        : 1
         maxValue        : 250
@@ -42,6 +35,7 @@ class IntroTeamPlan extends JView
         snapOnDrag      : yes
         handles         : [@userQuantity]
         width           : 319
+        drawBar         : yes
 
     @userSlider.on "ValueChanged", (@userQuantity) => @updateContent()
 
@@ -62,10 +56,37 @@ class IntroTeamPlan extends JView
 
     @updateContent()
 
+  resourcePackUnits =
+    cpu             : 2
+    ram             : 2
+    disk            : 10
+    alwaysOn        : 1
+    totalVMs        : 2
+
   updateContent: ->
     @total = (@resourceQuantity * unitPrices.resourcePack) + (@userQuantity * unitPrices.user)
-    @title.updatePartial "#{@resourceQuantity}x Resource Pack<br>for #{@userQuantity} People"
+    @title.updatePartial "Resource Pack x #{@resourceQuantity}<br>for #{@userQuantity} People"
     @price.updatePartial "$#{@total}/Month"
+
+    {cpu, ram, disk, totalVMs, alwaysOn} = resourcePackUnits
+    @resourcePackSlider.description.updatePartial """
+    <span>Resource pack contains</span>
+    <cite>#{cpu * @resourceQuantity}x</cite>CPU
+    <cite>#{ram * @resourceQuantity}x</cite>GB RAM
+    <cite>#{disk * @resourceQuantity}</cite>GB Disk
+    <cite>#{totalVMs * @resourceQuantity}x</cite>Total VMs
+    <cite>#{alwaysOn * @resourceQuantity}x</cite>Always on VMs
+    """
+
+  viewAppended: ->
+    super
+
+    @resourcePackSlider.addSubView new KDCustomHTMLView
+      tagName : "a"
+      cssClass: "pricing-show-details"
+      partial : "What is This?"
+      click   : =>
+        @emit "ShowHowItWorks"
 
   pistachio: ->
     """

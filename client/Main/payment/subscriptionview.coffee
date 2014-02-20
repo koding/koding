@@ -21,16 +21,19 @@ class SubscriptionView extends JView
         describeSubscription quantity, "will begin soon"
       else ''
 
-    dateNotice =
-      if plan.type isnt 'single'
-        switch status
-          when 'active'
-            "Will renew on #{dateFormat renewAt, datePattern}"
-          when 'canceled'
-            "Will be available till #{dateFormat expires, datePattern}"
-          when 'future'
-            "Will become available on #{dateFormat startsAt, datePattern}"
-      else ''
+    if "nosync" in plan.tags
+      dateNotice = ""
+    else
+      dateNotice =
+        if plan.type isnt 'single'
+          switch status
+            when 'active'
+              "Will renew on #{dateFormat renewAt, datePattern}"
+            when 'canceled'
+              "Will be available till #{dateFormat expires, datePattern}"
+            when 'future'
+              "Will become available on #{dateFormat startsAt, datePattern}"
+        else ''
 
     displayAmount = KD.utils.formatMoney feeAmount / 100
 

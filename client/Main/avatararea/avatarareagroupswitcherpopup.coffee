@@ -254,6 +254,7 @@ class PopupGroupListItem extends KDListItemView
 
   constructor:(options = {}, data)->
     options.tagName or= "li"
+    options.type    or= "activity-ticker-item"
     super
 
     {group:{title, avatar, slug, customize}, roles, admin} = @getData()
@@ -261,26 +262,16 @@ class PopupGroupListItem extends KDListItemView
     @setClass "role #{roleClasses}"
 
     defaultLogo  = "https://koding.s3.amazonaws.com/grouplogo_.png"
+
     @groupLogo  = new KDCustomHTMLView
-      tagName    : "img"
+      tagName    : "figure"
       cssClass   : "avatararea-group-logo"
-      size       :
-        height   : 30
-        width    : 30
-      attributes :
-        src      : customize?.logo or defaultLogo
 
     @switchLink = new CustomLinkView
       title       : title
       cssClass    : "avatararea-group-name"
       href        : "/#{if slug is KD.defaultSlug then '' else slug+'/'}Activity"
       target      : slug
-      icon        :
-        cssClass  : 'new-page'
-        placement : 'right'
-        tooltip   :
-          title   : "Opens in a new browser window."
-          delayIn : 300
 
     @adminLink = if admin
       new CustomLinkView
@@ -300,6 +291,14 @@ class PopupGroupListItem extends KDListItemView
   viewAppended: JView::viewAppended
 
   pistachio: ->
+    {group} = @getData()
+    {slug, customize} = group
+
+    if customize?.logo
+      @groupLogo.setCss 'background-image', "url(#{customize?.logo})"
+    else
+      @groupLogo.setCss 'background-color', KD.utils.stringToColor slug
+
     """
     {{> @groupLogo}}{{> @switchLink}}{{> @adminLink}}
     """
