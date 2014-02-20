@@ -791,7 +791,7 @@ module.exports = class JUser extends jraphical.Module
         options = targetOptions: selector: tags: "vm"
         account.fetchSubscriptions null, options, (err = "", [subscription]) ->
           return callback err  if err
-          return callback new KodingError "VM subscription not found, cannot debit"  unless subscription
+          return callback createKodingError "VM subscription not found, cannot debit"  unless subscription
 
           subscription.debitPack tag: "vm", (err) ->
             console.warn "VM pack couldn't be debited from subscription: #{err}"  if err
