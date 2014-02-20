@@ -133,3 +133,9 @@ class LoginAppsController extends AppController
     view = @getView()
     view.headBannerShowInvitation invite
 
+  setStorageData: (key, value) ->
+    @appStorage = KD.getSingleton('appStorageController').storage 'Login', '1.0'
+    @appStorage.fetchStorage (storage) =>
+      @appStorage.setValue key, value, (err) ->
+        warn "Failed to set #{key} information"  if err
+
