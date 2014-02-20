@@ -543,7 +543,7 @@ module.exports = class JVM extends Module
 
         cursor.toArray (err, arr) ->
           return callback err  if err
-          callback null, arr.map ({ hostnameAlias, region, hostKite }) ->
+          callback null, arr.map ({ hostnameAlias, region, hostKite, stack }) ->
             hostKite = null  if hostKite in ['(banned)', '(maintenance)']
             { hostnameAlias, region, hostKite, stack }
 
