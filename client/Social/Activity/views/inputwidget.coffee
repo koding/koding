@@ -1,6 +1,5 @@
 class ActivityInputWidget extends KDView
   {daisy, dash}         = Bongo
-  {JNewStatusUpdate, JTag} = KD.remote.api
 
   constructor: (options = {}, data) ->
     options.cssClass = KD.utils.curry "activity-input-widget", options.cssClass
@@ -59,6 +58,8 @@ class ActivityInputWidget extends KDView
 
   submit: (callback) ->
     return  unless value = @input.getValue().trim()
+
+    {JTag} = KD.remote.api
 
     activity       = @getData()
     activity?.tags = []
@@ -137,7 +138,7 @@ class ActivityInputWidget extends KDView
       return  "|#{prefix}:JTag:#{tag.getId()}:#{title}|"
 
   create: (data, callback) ->
-    JNewStatusUpdate.create data, (err, activity) =>
+    KD.remote.api.JNewStatusUpdate.create data, (err, activity) =>
       @reset()  unless err
 
       callback? err, activity
