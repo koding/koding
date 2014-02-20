@@ -22,18 +22,19 @@ type SysGroup struct {
 	Users map[string]bool
 }
 
-func (vm *VM) MergePasswdFile(logWarning func(string, ...interface{})) {
+func (vm *VM) MergePasswdFile() error {
 	passwdFile := vm.OverlayFile("/etc/passwd")
 	users, err := ReadPasswd(passwdFile) // error ignored
 	if err != nil {
 		if os.IsNotExist(err) {
-			return // no file in upper, no need to merge
+			return nil
 		}
+
 		if err := os.Rename(passwdFile, passwdFile+"_corrupt_"+time.Now().Format(time.RFC3339)); err != nil {
 			panic(err)
 		}
-		logWarning("Renamed /etc/passwd file, because it was corrupted.", vm.String(), err)
-		return
+
+		return fmt.Errorf("Renamed /etc/passwd file, because it was corrupted.", vm.String(), err)
 	}
 
 	lowerUsers, err := ReadPasswd(vm.LowerdirFile("/etc/passwd"))
@@ -49,20 +50,21 @@ func (vm *VM) MergePasswdFile(logWarning func(string, ...interface{})) {
 		panic(err)
 	}
 	os.Chown(passwdFile, RootIdOffset, RootIdOffset)
+	return nil
 }
 
-func (vm *VM) MergeGroupFile(logWarning func(string, ...interface{})) {
+func (vm *VM) MergeGroupFile() error {
 	groupFile := vm.OverlayFile("/etc/group")
 	groups, err := ReadGroup(groupFile) // error ignored
 	if err != nil {
 		if os.IsNotExist(err) {
-			return // no file in upper, no need to merge
+			// no file in upper, no need to merge
+			return nil
 		}
 		if err := os.Rename(groupFile, groupFile+"_corrupt_"+time.Now().Format(time.RFC3339)); err != nil {
 			panic(err)
 		}
-		logWarning("Renamed /etc/group file, because it was corrupted.", vm.String(), err)
-		return
+		return fmt.Errorf("Renamed /etc/group file, because it was corrupted.", vm.String(), err)
 	}
 
 	lowerGroups, err := ReadGroup(vm.LowerdirFile("/etc/group"))
@@ -82,6 +84,7 @@ func (vm *VM) MergeGroupFile(logWarning func(string, ...interface{})) {
 		panic(err)
 	}
 	os.Chown(groupFile, RootIdOffset, RootIdOffset)
+	return nil
 }
 
 func ReadPasswd(fileName string) (users map[int]*SysUser, err error) {

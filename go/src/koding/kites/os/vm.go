@@ -135,7 +135,7 @@ func vmPrepare(vos *virt.VOS) (interface{}, error) {
 	}
 
 	// TODO, change that it returns an error
-	vos.VM.Prepare(false, log.Warning)
+	vos.VM.Prepare(false)
 	return true, nil
 }
 
@@ -144,7 +144,7 @@ func vmReinitialize(vos *virt.VOS) (interface{}, error) {
 		return nil, &kite.PermissionError{}
 	}
 
-	vos.VM.Prepare(true, log.Warning)
+	vos.VM.Prepare(true)
 	if err := vos.VM.Start(); err != nil {
 		return nil, err
 	}
@@ -277,9 +277,9 @@ func startAndPrepareVM(vm *virt.VM, channel *kite.Channel) error {
 		prepareQueue <- func(done chan string) {
 			startTime := time.Now()
 
-			vm.Prepare(false, log.Warning)
+			vm.Prepare(false)
 
-			res := fmt.Sprintf("VM PREPARE and START: %s [%s] - ElapsedTime: %.10f seconds.\n",
+			res := fmt.Sprintf("%s [%s] - ElapsedTime: %.10f seconds.\n",
 				vm, vm.HostnameAlias, time.Since(startTime).Seconds())
 
 			done <- res
@@ -312,7 +312,7 @@ func prepareWorker() {
 
 		select {
 		case vmRes := <-done:
-			log.Info("done preparing vm %s", vmRes)
+			log.Info("done preparing: %s", vmRes)
 		case <-time.After(time.Second * 20):
 			log.Error("timing out preparing vm")
 		}

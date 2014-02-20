@@ -314,7 +314,7 @@ func handleCurrentVMS() {
 
 			if err := mongodbConn.Run("jVMs", query); err != nil || vm.HostKite != serviceUniqueName {
 
-				log.Info("cleaning up leftover VM: '%s', vm.Hoskite: '%s', k.ServiceUniqueName: '%s', error '%v'",
+				log.Info("cleaning up leftover VM: %s, vm.Hoskite: %s, k.ServiceUniqueName: %s, error '%v'",
 					vmId, vm.HostKite, serviceUniqueName, err)
 
 				if err := virt.UnprepareVM(vmId); err != nil {
