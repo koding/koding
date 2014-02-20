@@ -35,11 +35,11 @@ class Kontrol extends KDObject
   #   hostname    string
   #   id          string
   #
-  getKites: (query={}, callback = noop)->
+  getKites: (query={}, callback = noop) ->
     @_sanitizeQuery query
 
-    @kite.tell("getKites", [query]).then (kites) =>
-      (@_createKite k for k in kites)
+    @kite.tell("getKites", [query]).then (result) =>
+      (@_createKite k for k in result.kites)
 
     .nodeify(callback)
 
@@ -61,14 +61,15 @@ class Kontrol extends KDObject
       e = options.withArgs[0]
       changes.emit kiteAction[e.action], kite: @_createKite e
 
-    @kite.tell("getKites", [query, onEvent])
-    .then ({ kites, watcherID }) =>
-
-      # TODO Watcher ID is here but I don't know where to store it. (Cenk)
-      # result.watcherID
+    @kite.tell("getKites", [query, onEvent]).then ({ kites, watcherID }) =>
 
       for kite in kites
-        { action: kiteAction.register, kite: @_createKite kite, changes }
+        {
+          action    : kiteAction.REGISTER
+          kite      : @_createKite kite
+          changes
+          watcherID
+        }
 
     .nodeify callback
 
