@@ -83,7 +83,7 @@ module.exports = class ActivityTicker extends Base
         limit     : 5  # Math.min options.limit ? 15, 15
         sort      : timestamp : -1
 
-      Relationship.some relSelector, relOptions, (err, relationships) ->
+      Relationship.some relSelector, relOptions, (err, relationships = []) ->
         buckets = []
         return  callback err, buckets  if err
         queue = relationships.map (relationship) ->
