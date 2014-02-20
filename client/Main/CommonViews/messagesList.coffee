@@ -200,7 +200,8 @@ class NotificationListItem extends KDListItemView
     showPost = (err, post)->
       if post
         internalApp = if post.constructor.name is "JNewApp" then "Apps" else "Activity"
-        KD.getSingleton('router').handleRoute "/#{internalApp}/#{post.slug}", state:post
+        groupSlug = if post.group is "koding" then "" else "/#{post.group}"
+        KD.getSingleton('router').handleRoute "#{groupSlug}/#{internalApp}/#{post.slug}", state:post
 
       else
         new KDNotificationView
