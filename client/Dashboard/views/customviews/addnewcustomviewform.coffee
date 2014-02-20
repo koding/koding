@@ -27,13 +27,13 @@ class AddNewCustomViewForm extends JView
         content   : editorValues.js
     ]
 
-    files.splice 0, 1  if @getOptions().viewType is "WIDGET"
+    files.splice 0, 1  unless @getOptions().viewType is "HOME"
 
     @editor       = new EditorPane
       cssClass    : "editor-container"
       size        :
         width     : 876
-        height    : 800
+        height    : 400
       files       : files
 
     @cancelButton = new KDButtonView
