@@ -397,7 +397,7 @@ func appSkeletonNew(r *kitelib.Request, vos *virt.VOS) (interface{}, error) {
 }
 
 func s3StoreNew(r *kitelib.Request, vos *virt.VOS) (interface{}, error) {
-	var params s3params
+	params := new(storeParams)
 	if r.Args.One().Unmarshal(&params) != nil || params.Name == "" || len(params.Content) == 0 || strings.Contains(params.Name, "/") {
 		return nil, &kite.ArgumentError{Expected: "{ name: [string], content: [base64 string] }"}
 	}
@@ -406,7 +406,7 @@ func s3StoreNew(r *kitelib.Request, vos *virt.VOS) (interface{}, error) {
 }
 
 func s3DeleteNew(r *kitelib.Request, vos *virt.VOS) (interface{}, error) {
-	var params s3params
+	params := new(storeParams)
 	if r.Args.One().Unmarshal(&params) != nil || params.Name == "" || strings.Contains(params.Name, "/") {
 		return nil, &kite.ArgumentError{Expected: "{ name: [string] }"}
 	}
