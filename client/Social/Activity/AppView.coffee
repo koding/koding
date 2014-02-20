@@ -28,7 +28,7 @@ class ActivityAppView extends KDScrollView
     @groupListBox     = new UserGroupList
     @topicsBox        = new ActiveTopics
     @usersBox         = new ActiveUsers
-    @tickerBox        = new ActivityTicker
+    # @tickerBox        = new ActivityTicker
     # TODO : if not on private group DO NOT create those ~EA
     @groupDescription = new GroupDescription
     @groupMembers     = new GroupMembers
@@ -48,21 +48,21 @@ class ActivityAppView extends KDScrollView
       {feedFilterNav}  = @activityHeader
       feedFilterNav.unsetClass 'multiple-choice on-off'
 
-    calculateTopOffset = =>
-      KD.utils.wait 3000, =>
-        @topOffset = @tickerBox.$().position().top
+    # calculateTopOffset = =>
+    #   KD.utils.wait 3000, =>
+    #     @topOffset = @tickerBox.$().position().top
 
 
-    @tickerBox.once 'viewAppended', =>
-      calculateTopOffset()
-      windowController.on 'ScrollHappened', =>
-        # sanity check
-        calculateTopOffset()  if @topOffset < 200
-        if document.documentElement.scrollTop > @topOffset
-        then @tickerBox.setClass 'fixed'
-        else @tickerBox.unsetClass 'fixed'
+    # @tickerBox.once 'viewAppended', =>
+    #   calculateTopOffset()
+    #   windowController.on 'ScrollHappened', =>
+    #     # sanity check
+    #     calculateTopOffset()  if @topOffset < 200
+    #     if document.documentElement.scrollTop > @topOffset
+    #     then @tickerBox.setClass 'fixed'
+    #     else @tickerBox.unsetClass 'fixed'
 
-    @groupListBox.on 'TopOffsetShouldBeFixed', calculateTopOffset
+    # @groupListBox.on 'TopOffsetShouldBeFixed', calculateTopOffset
 
     @decorate()
 
@@ -86,7 +86,7 @@ class ActivityAppView extends KDScrollView
     @sideBlock.addSubView @groupListBox  if KD.getGroup().slug is "koding"
     @sideBlock.addSubView @topicsBox
     @sideBlock.addSubView @usersBox if "list members" in KD.config.permissions
-    @sideBlock.addSubView @tickerBox
+    # @sideBlock.addSubView @tickerBox
 
     KD.getSingleton("widgetController").showWidgets [
       { view: topWidgetPlaceholder,  key: "ActivityTop"  }
