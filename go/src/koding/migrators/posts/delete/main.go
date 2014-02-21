@@ -53,7 +53,6 @@ func createQuery(directionName string) func(coll *mgo.Collection) error {
 	return func(coll *mgo.Collection) error {
 		filter := strToInf{
 			directionName: strToInf{"$in": ToBeDeletedNames},
-			// "sourceName": strToInf{"$in": ToBeDeletedNames},
 		}
 		query := coll.Find(filter)
 
@@ -169,7 +168,6 @@ func deleteRel(result *oldNeo.Relationship, directionName string) {
 
 }
 
-//TO-DO add plural name support for names that ends with "y"
 func getCollectionName(name string) string {
 	//in mongo collection names are hold as "<lowercase_first_letter>...<add (s)>
 	// sample if name is Koding, in database it is "kodings"
@@ -250,8 +248,6 @@ var ToBeDeletedNames = []string{
 	"JDomainStat",
 	"JInvitationRequest",
 	"JInvitation",
-	"JLocationStates",
-	"JLocation",
 	"JMails",
 	"JMarkdownDoc",
 	"JMessage",
@@ -259,7 +255,6 @@ var ToBeDeletedNames = []string{
 	"JStatusUpdate",
 	"JApp",
 
-	"JPrivateMessage",
 	"JMailNotification",
 	"JEmailNotification",
 	"JEmailConfirmation",
