@@ -6,7 +6,6 @@ import (
 	"flag"
 	"fmt"
 	"io/ioutil"
-	"kite/cmd/build"
 	"koding/tools/config"
 	"log"
 	"os"
@@ -14,6 +13,8 @@ import (
 	"runtime"
 	"strings"
 	"text/template"
+
+	"github.com/koding/kite/cmd/build"
 )
 
 var (
@@ -143,7 +144,7 @@ func buildKontrolProxy() error {
 		appName:       "kontrolproxy",
 		importPath:    kdproxyPath,
 		files:         files,
-		version:       "0.0.1",
+		version:       "0.0.2",
 		upstartScript: configUpstart,
 	}
 
