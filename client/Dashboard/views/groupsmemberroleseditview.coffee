@@ -75,11 +75,17 @@ class GroupsMemberRolesEditView extends JView
       callback : => @showKickModal()
     ), '.buttons'
 
-    #CtF this must be available only for koding group
-    if @status is "unconfirmed"
-      @addSubView confirmButton = new KDButtonView
+    if 'owner' in @roles.editorsRoles
+      @addSubView (new KDButtonView
+        title    : "Make Owner"
+        cssClass : 'solid small'
+        callback : => @showTransferOwnershipModal()
+      ), '.buttons'
+
+    if @group.slug is "koding" and @status is "unconfirmed"
+      @addSubView (confirmButton = new KDButtonView
         title    : "Confirm"
-        cssClass : 'solid'
+        cssClass : 'solid small'
         callback : =>
           KD.remote.api.JAccount.verifyEmailByUsername @member.profile.nickname, (err) =>
             return KD.showError err  if err
@@ -87,13 +93,6 @@ class GroupsMemberRolesEditView extends JView
             @status = "confirmed"
             @emit 'UserConfirmed', @member
             confirmButton.destroy()
-      , '.buttons'
-
-    if 'owner' in @roles.editorsRoles
-      @addSubView (new KDButtonView
-        title    : "Make Owner"
-        cssClass : 'solid small'
-        callback : => @showTransferOwnershipModal()
       ), '.buttons'
 
     @$('.buttons').removeClass 'hidden'
