@@ -1,4 +1,4 @@
-class GroupLogoSettings extends KDView
+class InlineImageSettings extends KDView
 
   constructor: (options = {}, data) ->
 
