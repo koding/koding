@@ -6,12 +6,24 @@ class NVMToggleButtonView extends JView
     @vm = KD.getSingleton 'vmController'
     @vm.on 'StateChanged', @bound 'checkVMState'
 
+    @menuTitle = new KDCustomHTMLView
+      tagName : 'span'
+      partial : 'Fetching VM state...'
+
     @toggle = new KDOnOffSwitch
-      cssClass : "tiny vm-toggle-item"
+      cssClass : "tiny vm-toggle-item hidden"
       callback : (state)=>
         if state
         then @vm.start @getData().vmName
         else @vm.stop  @getData().vmName
+
+    @loader = new KDLoaderView
+      cssClass      : 'vm-toggle-item'
+      showLoader    : yes
+      size          : width : 12
+      loaderOptions :
+        speed       : 0.7
+        FPS         : 24
 
   checkVMState:(err, vm, info)->
     return unless vm is @getData().vmName
@@ -30,13 +42,18 @@ class NVMToggleButtonView extends JView
       KD.logToExternal "oskite: vm failed to turn on", {error:err.message, vm}
       return warn err
 
+    @menuTitle.updatePartial 'Change state'
+    @toggle.show()
+    @loader.hide()
+
     if info.state is "RUNNING"
     then @toggle.setDefaultValue yes
     else @toggle.setDefaultValue no
 
   pistachio:->
-    """<span>Change state</span> {{> @toggle}}"""
+    """{{> @menuTitle}}{{> @toggle}}{{> @loader}}"""
 
   viewAppended:->
     super
+    @loader.show()
     @vm.info @getData().vmName, @bound 'checkVMState'
