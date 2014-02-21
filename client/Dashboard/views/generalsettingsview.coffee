@@ -26,9 +26,13 @@ class GroupGeneralSettingsView extends JView
     formOptions.fields = {}
 
     if group.slug isnt "koding"
-      formOptions.fields.Logo =
-        label                 : "Logo"
-        itemClass             : GroupLogoSettings
+      formOptions.fields.Logo    =
+        label                    : "Logo"
+        itemClass                : GroupLogoSettings
+
+      formOptions.fields.Favicon =
+        label                    : "Favicon"
+        itemClass                : GroupFaviconSettings
 
     formOptions.fields.Title  =
       label                   : "Group Name"
