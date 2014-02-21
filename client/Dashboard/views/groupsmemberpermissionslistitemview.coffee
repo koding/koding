@@ -66,7 +66,7 @@ class GroupsMemberPermissionsListItemView extends KDListItemView
     list.emit "EditMemberRolesViewShown", this
 
     @setClass 'editing'
-    @getDelegate().setClass 'item-editing'
+    @getDelegate().setClass 'item-editing clearfix'
     @editLink.hide()
     @cancelLink.show()
     @editContainer.show()
