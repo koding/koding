@@ -255,6 +255,45 @@ module.exports = class JDomain extends jraphical.Module
 
               callback err, model
 
+  @createDomains = ({account, domains, hostnameAlias, stack})->
+
+    updateRelationship = (domainObj)->
+      Relationship.one
+        targetName: "JDomain",
+        targetId: domainObj._id,
+        sourceName: "JAccount",
+        sourceId: account._id,
+        as: "owner"
+      , (err, rel)->
+        if err or not rel
+          account.addDomain domainObj, (err)->
+            console.log err  if err?
+
+    domains.forEach (domain) ->
+      domainObj = new JDomain
+        domain        : domain
+        hostnameAlias : [hostnameAlias]
+        proxy         : { mode: 'vm' }
+        regYears      : 0
+        loadBalancer  : { persistance: 'disabled' }
+        stack         : stack
+      domainObj.save (err)->
+        if err
+        then console.error err  unless err.code is 11000
+        else updateRelationship domainObj
+
+  @ensureDomainSettingsForVM = ({account, vm, type, nickname, groupSlug, stack})->
+    domain = 'kd.io'
+    if type in ['user', 'expensed']
+      requiredDomains = ["#{nickname}.#{groupSlug}.#{domain}"]
+      if groupSlug in ['koding', 'guests']
+        requiredDomains.push "#{nickname}.#{domain}"
+    else
+      requiredDomains = ["#{groupSlug}.#{domain}", "shared.#{groupSlug}.#{domain}"]
+
+    {hostnameAlias} = vm
+    @createDomains {account, domains:requiredDomains, hostnameAlias, stack}
+
   bindVM: (client, params, callback)->
     domainName = @domain
     operation  = {'$addToSet': hostnameAlias: params.hostnameAlias}

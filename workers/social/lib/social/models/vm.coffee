@@ -18,6 +18,8 @@ module.exports = class JVM extends Module
   JPaymentSubscription = require './payment/subscription'
   JPaymentPack         = require './payment/pack'
   JPermissionSet       = require './group/permissionset'
+  JDomain              = require './domain'
+
   @share()
 
   @trait __dirname, '../traits/protected'
@@ -202,46 +204,6 @@ module.exports = class JVM extends Module
       vm.update {$set: diskSizeInMB: VMDefaultDiskSize}, (err) ->
         return callback err if err
         callback null, vm.hostnameAlias
-
-  @createDomains = ({account, domains, hostnameAlias, stack})->
-
-    updateRelationship = (domainObj)->
-      Relationship.one
-        targetName: "JDomain",
-        targetId: domainObj._id,
-        sourceName: "JAccount",
-        sourceId: account._id,
-        as: "owner"
-      , (err, rel)->
-        if err or not rel
-          account.addDomain domainObj, (err)->
-            console.log err  if err?
-
-    JDomain = require './domain'
-    domains.forEach (domain) ->
-      domainObj = new JDomain
-        domain        : domain
-        hostnameAlias : [hostnameAlias]
-        proxy         : { mode: 'vm' }
-        regYears      : 0
-        loadBalancer  : { persistance: 'disabled' }
-        stack         : stack
-      domainObj.save (err)->
-        if err
-        then console.error err  unless err.code is 11000
-        else updateRelationship domainObj
-
-  @ensureDomainSettings = ({account, vm, type, nickname, groupSlug, stack})->
-    domain = 'kd.io'
-    if type in ['user', 'expensed']
-      requiredDomains = ["#{nickname}.#{groupSlug}.#{domain}"]
-      if groupSlug in ['koding', 'guests']
-        requiredDomains.push "#{nickname}.#{domain}"
-    else
-      requiredDomains = ["#{groupSlug}.#{domain}", "shared.#{groupSlug}.#{domain}"]
-
-    {hostnameAlias} = vm
-    @createDomains {account, domains:requiredDomains, hostnameAlias, stack}
 
   @createAliases = ({nickname, type, uid, groupSlug})->
     domain       = 'kd.io'
@@ -434,7 +396,7 @@ module.exports = class JVM extends Module
                 return console.warn "Failed to create VM for ", \
                                      {users, groups, hostnameAlias}
 
-              JVM.createDomains {
+              JDomain.createDomains {
                 account, stack,
                 domains:hostnameAliases
                 hostnameAlias:hostnameAliases[0]
@@ -442,7 +404,7 @@ module.exports = class JVM extends Module
 
               group.addVm vm, (err)=>
                 return callback err  if err
-                JVM.ensureDomainSettings {account, vm, type, nickname, groupSlug, stack}
+                JDomain.ensureDomainSettingsForVM {account, vm, type, nickname, groupSlug, stack}
                 if type is 'group'
                   @addVmUsers user, vm, group, ->
                     callback null, vm
@@ -728,9 +690,9 @@ module.exports = class JVM extends Module
         return console.warn "Failed to create VM for ", \
                              {users, groups, hostnameAlias}
 
-      JVM.ensureDomainSettings \
+      JDomain.ensureDomainSettingsForVM \
         {account, vm, type, nickname, groupSlug, stack}
-      JVM.createDomains \
+      JDomain.createDomains \
         {account, domains:hostnameAliases, hostnameAlias, stack}
       target.addVm vm, handleError
 
@@ -844,7 +806,7 @@ module.exports = class JVM extends Module
                     type:'user', uid, groupSlug:'koding'
                   }
 
-                  JVM.createDomains {
+                  JDomain.createDomains {
                     account, stack,
                     domains:hostnameAliases,
                     hostnameAlias:hostnameAliases[0]
