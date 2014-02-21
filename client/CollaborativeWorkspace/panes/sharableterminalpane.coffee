@@ -8,13 +8,6 @@ class SharableTerminalPane extends TerminalPane
     @workspace  = @panel.getDelegate()
     @sessionKey = "dummy-#{KD.utils.getRandomNumber 100}" # dummy key, real key will be set when webterm connected
 
-  createWebTermView: ->
-    @webterm           = new WebTermView
-      delegate         : this
-      cssClass         : "webterm"
-      mode             : "create"
-      advancedSettings : no
-
   onWebTermConnected: ->
     super
 

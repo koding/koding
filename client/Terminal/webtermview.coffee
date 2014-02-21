@@ -1,5 +1,23 @@
 class WebTermView extends KDView
 
+  @setTerminalTimeout = (vmName,  delayMs, isRunningCallback, isStartedCallback = (->), isFinishedCallback = (->)) ->
+    vmController = KD.getSingleton 'vmController'
+    vmController.info vmName, KD.utils.getTimedOutCallback (err, vm, info)=>
+      if err
+        KD.logToExternal "oskite: Error opening Webterm", vmName, err
+        KD.mixpanel "Open Webterm, fail", {vmName}
+
+      if info?.state is 'RUNNING'
+        isRunningCallback()
+      else
+        vmController.start vmName, (err, state)=>
+          warn "Failed to turn on vm:", err  if err
+          isStartedCallback()
+      KD.mixpanel "Open Webterm, success", {vmName}
+
+    , isFinishedCallback
+    , delayMs
+
   constructor: (options = {}, data) ->
     super options, data
 
@@ -13,6 +31,8 @@ class WebTermView extends KDView
     @container.on "scroll", =>
       @container.$().scrollLeft 0
     @addSubView @container
+
+    vmName = @getOption 'vmName'
 
     @terminal = new WebTerm.Terminal @container
     @options.advancedSettings ?= no
@@ -52,8 +72,6 @@ class WebTermView extends KDView
     , yes
 
     @forwardEvent @terminal, 'command'
-
-    vmName = @getOption 'vmName'
 
     KD.mixpanel "Open Webterm, click", {vmName}
 
