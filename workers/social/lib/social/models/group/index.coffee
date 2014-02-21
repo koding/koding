@@ -960,7 +960,7 @@ module.exports = class JGroup extends Module
           return callback err  if err
           unless invite.type is 'multiuse' or user.email is invite.email
             return callback new KodingError 'Are you sure invitation e-mail is for you?'
-          @debitPack "user", (err) =>
+          @debitPack tag: "user", (err) =>
             return callback err  if err
             invite.redeem delegate, (err) =>
               return callback err if err
@@ -1517,14 +1517,24 @@ module.exports = class JGroup extends Module
       else
         @fetchDefaultPermissionSet callback
 
-  debitPack: (tag, callback) ->
+  _fetchSubscription: (callback) ->
     @fetchSubscription (err, subscription) =>
       return callback new KodingError "Error when fetching group's subscription: #{err}"  if err
       return callback new KodingError "Group #{@slug}'s subscription is not found"  unless subscription
-      subscription.debitPack {tag}, callback
+      callback err, subscription
+
+  debitPack: (options, callback) ->
+    @_fetchSubscription (err, subscription) ->
+      return callback err  if err
+      subscription.debitPack options, callback
+
+  creditPack: (options, callback) ->
+    @_fetchSubscription (err, subscription) ->
+      return callback err  if err
+      subscription.creditPack options, callback
 
   createMemberVm: (account, callback) ->
-    @debitPack "vm", (err) =>
+    @debitPack tag: "vm", (err) =>
       return callback err  if err
       JVM = require '../vm'
       JVM.createVm {account, groupSlug: @slug, @planCode}, (err) =>
