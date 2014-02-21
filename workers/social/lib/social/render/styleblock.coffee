@@ -1,5 +1,5 @@
 module.exports = (options={})->
-  unless options.favicon then options.favicon = "/a/images/favicon.ico"
+  options.favicon or= "/a/images/favicon.ico"
   """
   <meta charset="utf-8" />
   <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
