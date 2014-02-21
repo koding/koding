@@ -6,8 +6,6 @@ import (
 	"fmt"
 	"html/template"
 	"io"
-	"kite"
-	"kite/protocol"
 	"koding/db/mongodb/modelhelper"
 	"koding/kodingkite"
 	"koding/kontrol/kontrolproxy/resolver"
@@ -33,6 +31,8 @@ import (
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/sessions"
 	"github.com/hoisie/redis"
+	"github.com/koding/kite"
+	"github.com/koding/kite/protocol"
 )
 
 const (

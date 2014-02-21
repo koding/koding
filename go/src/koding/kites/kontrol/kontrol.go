@@ -3,8 +3,6 @@ package main
 import (
 	"flag"
 	"io/ioutil"
-	"kite"
-	"kite/kontrol"
 	"koding/db/mongodb/modelhelper"
 	"koding/tools/config"
 	"log"
@@ -12,6 +10,9 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+
+	"github.com/koding/kite"
+	"github.com/koding/kite/kontrol"
 )
 
 var (
