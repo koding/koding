@@ -53,6 +53,9 @@ class GroupsMemberPermissionsListItemView extends KDListItemView
       if listItem isnt @
         @hideEditMemberRolesView()
 
+    @on 'OwnershipChanged', =>
+      @getDelegate().unsetClass 'item-editing'
+
   showEditMemberRolesView:->
 
     list           = @getDelegate()
@@ -66,7 +69,7 @@ class GroupsMemberPermissionsListItemView extends KDListItemView
     list.emit "EditMemberRolesViewShown", this
 
     @setClass 'editing'
-    @getDelegate().setClass 'item-editing'
+    @getDelegate().setClass 'item-editing clearfix'
     @editLink.hide()
     @cancelLink.show()
     @editContainer.show()
