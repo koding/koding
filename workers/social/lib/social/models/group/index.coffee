@@ -702,15 +702,15 @@ module.exports = class JGroup extends Module
 
   fetchMembers$: permit 'list members',
     success:(client, rest...)->
-      [selector, options, callback] = Module.limitEdges 100, rest
+      # when max limit is over 20 it starts giving "call stack exceeded" error
+      [selector, options, callback] = Module.limitEdges 10, 19, rest
       # delete options.targetOptions
       options.client = client
-      @fetchMembers selector, options, ->
-        callback arguments...
+      @fetchMembers selector, options, callback
 
   fetchNewestMembers$: permit 'list members',
     success:(client, rest...)->
-      [selector, options, callback] = Module.limitEdges 100, rest
+      [selector, options, callback] = Module.limitEdges 10, 19, rest
       selector            or= {}
       selector.as         = 'member'
       selector.sourceName = 'JGroup'
