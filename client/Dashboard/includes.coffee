@@ -69,6 +69,9 @@ module.exports = [
 
   # onboarding
   "views/onboarding/onboardingdashboardview.coffee",
+  "views/onboarding/onboardingsectionform.coffee",
+  "views/onboarding/onboardingitemview.coffee",
+  "views/onboarding/onboardingaddnewform.coffee",
 
   "views/permissionsform.coffee",
   "views/grouplogosettings.coffee",

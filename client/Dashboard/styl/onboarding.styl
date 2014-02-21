@@ -17,12 +17,9 @@ Onboarding styles
   h3
     top                   0
     margin                0
-    line-height           44px
     fl()
   button.add-new
     fr()
-  .no-view
-    margin-top            80px
   .section-form
     .show-items-together
     .add-overlay
@@ -35,12 +32,37 @@ Onboarding styles
       left                0
     .button-field
       background          none
-  .views
-    margin-top            80px
-    .no-view
-      margin-top          50px
   .onboarding-items
-    margin-right          10px
     .add-new
       margin-top          5px
       fl()
+  .add-new-view
+    .editor-pane
+      margin-top          20px
+    .inputs
+      overflow            hidden
+      p
+        &:first-child
+          margin-left     0
+        fl()
+        margin            12px
+      input
+        width             368px
+        fl()
+  div.onboarding-items
+    &:first-child
+      margin-top         0
+    margin-top           40px
+  .kdbutton.with-menu
+    padding-right        10px !important
+  .settings-menu
+    .settings-menu
+      opacity            0
+    .chevron
+      r-sprite           "app", "20-cog"
+    .chevron-separator
+      border             none
+
+.kdlistitemview-contextitem
+  i.add-into.icon
+      r-sprite          "dashboard", "16-add"

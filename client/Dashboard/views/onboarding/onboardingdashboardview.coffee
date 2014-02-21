@@ -8,10 +8,10 @@ class OnboardingDashboardView extends CustomViewsDashboardView
     super options, data
 
     @addNewButton  = new KDButtonView
-      title        : "ADD NEW SECTION"
+      title        : "ADD NEW GROUP"
       cssClass     : "add-new solid green medium"
       callback     : =>
-        @setClass "form-visible"
+        @setClass  "form-visible"
         @addSubView new OnboardingSectionForm
           delegate : this
 
