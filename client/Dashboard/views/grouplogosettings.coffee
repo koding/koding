@@ -82,3 +82,14 @@ class InlineImageSettings extends KDView
 
 
 
+class GroupLogoSettings extends InlineImageSettings
+  constructor: (options = {}, data) ->
+    options = uploaderTitle: "Drop your 55x55 logo here!"
+    super options, data
+
+class GroupFaviconSettings extends InlineImageSettings
+  constructor: (options = {}, data) ->
+    options         =
+      type          : "favicon"
+      uploaderTitle : "Drop your 5x5 favicon here!"
+    super options, data
