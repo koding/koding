@@ -15,6 +15,7 @@ class GroupsMemberPermissionsView extends JView
 
     @listController.getListView().on 'ItemWasAdded', (view)=>
       view.on 'RolesChanged', @memberRolesChange.bind this, view
+      view.on 'OwnershipChanged', @bound "refresh"
 
     @listController.on 'LazyLoadThresholdReached', @bound 'continueLoadingTeasers'
 
