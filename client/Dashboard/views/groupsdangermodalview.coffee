@@ -48,7 +48,7 @@ class GroupsDangerModalView extends KDModalViewWithForms
                   slugCheck  : 'keyup'
                   finalCheck : 'blur'
 
-    super
+    super options, data
 
   checkGroupSlug:(input, showError=yes)=>
 
