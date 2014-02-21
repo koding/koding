@@ -11,7 +11,7 @@ class HomePage extends JView
     super options, data
 
     @pricingButton = new KDButtonView
-      title       : "Check our Pricing<cite>for you or for your team</cite>"
+      title       : "Check our Pricing<cite>for you or your team</cite>"
       cssClass    : 'solid green shadowed pricing'
       icon        : 'yes'
       iconClass   : 'dollar'
