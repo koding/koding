@@ -101,7 +101,20 @@ class WebTermAppView extends JView
       unless vmName
         return @setMessage "It seems you don't have a VM to use with Terminal."
 
-      @setTerminalTimeout vmName, 15000, => @restoreTabs vmName
+      WebTermView.setTerminalTimeout vmName, 15000
+      , => @restoreTabs vmName
+      , (->)
+      , =>
+        KD.mixpanel "Open Webterm, fail", {vmName}
+        KD.logToExternalWithTime "oskite: Can't open Webterm", vmName
+        @emit 'message', """https://koding.slack.com/files/sinan/F025B6R70/pasted_image_at_2014_02_20_05_34pm.png
+          <p>Couldn't connect to your VM.</p>
+          <br>
+          <p>Preparing your VM can take anywhere from
+          5 to 60 seconds, depending on load.</p>
+          <br>
+          <p>Please wait, then <a class='plus' href='#'>try again</a>.</p>
+          """, no, yes
 
   showApprovalModal: (remote, command)->
     modal = new KDModalView
@@ -229,8 +242,21 @@ class WebTermAppView extends JView
 
     terminalView.on 'WebTermConnected', @bound 'updateSessions'
 
-    @setTerminalTimeout options.vmName, 15000, ->
+    WebTermView.setTerminalTimeout options.vmName, 15000, ->
       terminalView.connectToTerminal()
+    , =>
+      KD.utils.defer => @addNewTab vmName
+    , =>
+      KD.mixpanel "Open Webterm, fail", {vmName}
+      KD.logToExternalWithTime "oskite: Can't open Webterm", vmName
+      @setMessage """
+        <p>Couldn't connect to your VM.</p>
+        <br>
+        <p>Preparing your VM can take anywhere from
+        5 to 60 seconds, depending on load.</p>
+        <br>
+        <p>Please wait, then <a class='plus' href='#'>try again</a>.</p>
+        """, no, yes
 
     @appendTerminalTab terminalView
 
@@ -293,35 +319,6 @@ class WebTermAppView extends JView
 
     else
       @createNewTab vmName: vmName, mode: 'create'
-
-  setTerminalTimeout: (vmName, delayMs, isRunningCallback) ->
-    vmController = KD.getSingleton 'vmController'
-    vmController.info vmName, KD.utils.getTimedOutCallback (err, vm, info)=>
-      if err
-        KD.logToExternal "oskite: Error opening Webterm", vmName, err
-        KD.mixpanel "Open Webterm, fail", {vmName}
-
-      if info?.state is 'RUNNING'
-        isRunningCallback()
-      else
-        vmController.start vmName, (err, state)=>
-          warn "Failed to turn on vm:", err  if err
-          KD.utils.defer => @addNewTab vmName
-      KD.mixpanel "Open Webterm, success", {vmName}
-
-    , =>
-      KD.mixpanel "Open Webterm, fail", {vmName}
-      KD.logToExternalWithTime "oskite: Can't open Webterm", vmName
-      @setMessage """
-        <p>Couldn't connect to your VM.</p>
-        <br>
-        <p>Preparing your VM can take anywhere from
-        5 to 60 seconds, depending on load.</p>
-        <br>
-        <p>Please wait, then <a class='plus' href='#'>try again</a>.</p>
-        """, no, yes
-    , delayMs
-
 
   pistachio: ->
     """

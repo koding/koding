@@ -128,6 +128,8 @@ module.exports = [
   "CommonViews/ModalViewWithTerminal.coffee",
   "CommonViews/clonerepomodal.coffee",
 
+  "CommonViews/memberautocomplete.coffee",
+
   "kodingappcontroller.coffee",
 
   "navigation/navigationlist.coffee",

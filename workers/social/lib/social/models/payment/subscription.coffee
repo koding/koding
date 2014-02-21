@@ -376,8 +376,10 @@ module.exports = class JPaymentSubscription extends jraphical.Module
       return callback new KodingError "pack not found"  unless pack
       @debit {pack, multiplyFactor}, callback
 
-  creditPack: ({tag}, callback) ->
-    @debitPack {tag, multiplyFactor: -1}, callback
+  creditPack: ({tag, multiplyFactor}, callback) ->
+    multiplyFactor ?= 1
+    multiplyFactor *= -1
+    @debitPack {tag, multiplyFactor}, callback
 
   @createFreeSubscription = (account, callback) ->
     JPaymentPlan = require './plan'
