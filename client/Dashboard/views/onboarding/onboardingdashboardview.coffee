@@ -23,9 +23,12 @@ class OnboardingDashboardView extends CustomViewsDashboardView
   createList: (sections) ->
     @noViewLabel.hide()
     for section in sections
-      view = new CustomViewsDashboardView
-        title     : section.name
-        cssClass  : "onboarding-items"
+      view = new OnboardingItemView
+        delegate    : this
+        title       : section.name
+        cssClass    : "onboarding-items"
+        formClass   : OnboardingAddNewForm
+      , section
 
       @customViews.push view
       @container.addSubView view
