@@ -518,11 +518,17 @@ class LoginView extends KDView
           KD.remote.api.JUser.isRegistrationEnabled (status)=>
             if status is no
               log "Registrations are disabled!!!"
-              @registerForm.$('.main-part').addClass 'hidden'
-              @registerForm.disabledNotice.show()
+              @setFailureNotice
+                cssClass  : "registrations-disabled"
+                title     : "REGISTRATIONS ARE CURRENTLY DISABLED"
+                message   : "We're sorry for that, please follow us on <a href='http://twitter.com/koding' target='_blank'>twitter</a>
+                  if you want to be notified when registrations are enabled again."
+              @github.hide()
+              @$(".login-footer").addClass 'hidden'
+              @animateToForm "failureNotice"
             else
-              @registerForm.disabledNotice.hide()
-              @registerForm.$('.main-part').removeClass 'hidden'
+              @github.show()
+              @$(".login-footer").removeClass 'hidden'
 
           KD.mixpanel "Register form, click"
 
@@ -557,8 +563,9 @@ class LoginView extends KDView
           @resendForm.usernameOrEmail.input.setFocus()
         when "failureNotice"
           @$('.flex-wrapper').addClass 'one'
-          @failureNotice.show()
           @github.hide()
+          @$(".login-footer").addClass 'hidden'
+          @failureNotice.show()
 
   getRouteWithEntryPoint:(route)->
     {entryPoint} = KD.config
