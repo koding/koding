@@ -35,13 +35,13 @@ func NewServerInfo() *ServerInfo {
 }
 
 var (
-	switchHost    string
-	apiUrl        = "http://kontrol0.sj.koding.com:80" // default
-	configProfile = flag.String("c", "", "Configuration profile from file")
-	templates     = template.Must(template.ParseFiles(
-		"go/templates/overview/index.html",
-		"go/templates/overview/login.html",
-	))
+	switchHost string
+	apiUrl     = "http://kontrol0.sj.koding.com:80" // default
+
+	templates *template.Template
+
+	flagConfig    = flag.String("c", "", "Configuration profile from file")
+	flagTemplates = flag.String("template", "go/templates/overview", "Change template directory")
 )
 
 const uptimeLayout = "03:04:00"
@@ -50,11 +50,16 @@ var store = sessions.NewCookieStore([]byte("user"))
 
 func main() {
 	flag.Parse()
-	if *configProfile == "" {
+	if *flagConfig == "" {
 		log.Fatal("Please define config file with -c")
 	}
 
-	conf := config.MustConfig(*configProfile)
+	templates = template.Must(template.ParseFiles(
+		*flagTemplates+"/index.html",
+		*flagTemplates+"/login.html",
+	))
+
+	conf := config.MustConfig(*flagConfig)
 	modelhelper.Initialize(conf.Mongo)
 
 	var err error
