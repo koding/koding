@@ -54,7 +54,6 @@ class AddNewCustomViewForm extends JView
       name            : @input.getValue()
       partial         : @encode @editor.getValues()
       partialType     : @getOption "viewType"
-      # TODO: Update sets this options to default
       isActive        : jCustomPartial?.isActive        ? no
       viewInstance    : jCustomPartial?.viewInstance    or ""
       isPreview       : jCustomPartial?.isPreview       ? no
