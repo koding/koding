@@ -4,7 +4,7 @@ KD.extend
   apiUri       : KD.config.apiUri
   appsUri      : KD.config.appsUri
   singleton    : KD.getSingleton.bind KD
-  useNewKites  : yes
+  useNewKites  : no
   appClasses   : {}
   appScripts   : {}
   appLabels    : {}
