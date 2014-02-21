@@ -49,7 +49,6 @@ class GroupsMemberPermissionsView extends JView
     @on 'SearchInputChanged', (value)=>
       @_searchValue = value
       if value isnt ""
-        @timestamp = new Date
         @skip = 0
         @listController.removeAllItems()
         @fetchSomeMembers()
@@ -61,6 +60,8 @@ class GroupsMemberPermissionsView extends JView
     # CtF not very sure about this. just fetched it from ActivityTicker for lazy loading
     @once 'viewAppended', =>
       @$('.kdscrollview').height window.innerHeight - 120
+      
+    @refresh()
 
   fetchRoles:(callback=->)->
     groupData = @getData()
@@ -70,18 +71,20 @@ class GroupsMemberPermissionsView extends JView
       return warn err if err
       list.getOptions().roles = roles
 
-  fetchSomeMembers:(selector={})->
+  fetchSomeMembers:->
     @listController.showLazyLoader no
+    #some older accounts does not have proper timestamp values
+    #because of this skip parameter is used here for lazy loading
     options =
-      limit : 30
+      limit : 10
       sort  : { timestamp: -1 }
-    # return
+      skip  : @skip
+
     if @_searchValue
       {JAccount} = KD.remote.api
-      options = {limit : 30, skip: @skip}
       JAccount.byRelevance @_searchValue, options, (err, members)=> @populateMembers err, members
     else
-      @getData().fetchMembers selector, options, (err, members)=> @populateMembers err, members
+      @getData().fetchMembers {}, options, (err, members)=> @populateMembers err, members
 
   populateMembers:(err, members)->
     instantiateItems = (err) =>
@@ -134,14 +137,13 @@ class GroupsMemberPermissionsView extends JView
 
   refresh:->
     @listController.removeAllItems()
-    @timestamp = new Date
     @skip = 0
     @fetchRoles()
     @fetchSomeMembers()
 
   continueLoadingTeasers:->
     @listController.showLazyLoader no
-    @fetchSomeMembers {timestamp: $lt: @timestamp.getTime()}
+    @fetchSomeMembers()
 
   memberRolesChange:(view, member, roles)->
     @getData().changeMemberRoles member.getId(), roles, (err)=>
