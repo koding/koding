@@ -49,19 +49,19 @@ class AddNewCustomViewForm extends JView
       callback    : @bound "addNew"
 
   addNew: ->
-    isUpdate          = @getData()
+    jCustomPartial    =  @getData()
     data              =
       name            : @input.getValue()
       partial         : @encode @editor.getValues()
       partialType     : @getOption "viewType"
       # TODO: Update sets this options to default
-      isActive        : no
-      viewInstance    : ""
-      isPreview       : no
-      previewInstance : no
+      isActive        : jCustomPartial?.isActive        ? no
+      viewInstance    : jCustomPartial?.viewInstance    or ""
+      isPreview       : jCustomPartial?.isPreview       ? no
+      previewInstance : jCustomPartial?.previewInstance ? no
 
-    if isUpdate
-      @getData().update data, (err, customPartial) =>
+    if jCustomPartial
+      jCustomPartial.update data, (err, customPartial) =>
         return warn err  if err
         @getDelegate().emit "NewViewAdded", customPartial
     else
