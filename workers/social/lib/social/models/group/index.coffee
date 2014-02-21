@@ -1147,19 +1147,39 @@ module.exports = class JGroup extends Module
           if 'owner' in roles
             return callback new KodingError 'You cannot kick the owner of the group!'
 
-          kallback = (err)=>
-            @updateCounts()
-            @cycleChannel()
-            callback err
+          kallback = (err) =>
 
           queue = roles.map (role)=>=>
             @removeMember account, role, (err)=>
-              return kallback err if err
-              @creditUserPack delegate, (err) ->
-                return callback err  if err
-                queue.fin()
+              return callback err  if err
+              @updateCounts()
+              @cycleChannel()
+              queue.fin()
 
-          dash queue, kallback
+          queue.push =>
+            @creditUserPack delegate, (err) =>
+              console.warn "Failed to credit group with user pack", err  if err
+              queue.fin()
+
+          queue.push =>
+            JVM = require "../vm"
+            selector = groups: $elemMatch: id: @getId()
+            JVM.fetchAccountVmsBySelector account, selector, (err, hostnameAliases) =>
+              return callback err  if err
+              JVM.some hostnameAlias: $in: hostnameAliases, null, (err, vms) =>
+                return callback err  if err
+                vmSuspendQueue = vms.map (vm) ->
+                  ->
+                    vm.suspend (err) ->
+                      console.warn "VM couldn't be suspended #{vm.hostnameAlias}", err  if err
+                      vmSuspendQueue.fin()
+
+                dash vmSuspendQueue, =>
+                  @creditPack tag: "vm", multiplyFactor: vms.length, (err) ->
+                    console.warn "VM pack couldn't be credited for group #{@slug}", err  if err
+                    queue.fin()
+
+          dash queue, callback
 
   transferOwnership: permit 'grant permissions',
     success: (client, accountId, callback)->
