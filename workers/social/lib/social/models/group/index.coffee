@@ -1254,8 +1254,7 @@ module.exports = class JGroup extends Module
     @fetchOwner (err, owner)=>
       return callback err if err
       unless owner.getId().equals client.connection.delegate.getId()
-        unless client.connection.delegate.can "reset groups"
-          return callback new KodingError 'You must be the owner to perform this action!'
+        return callback new KodingError 'You must be the owner to perform this action!'
 
       removeHelper = (model, err, callback, queue)->
         return callback err if err
