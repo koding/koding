@@ -83,39 +83,53 @@ class GroupsMemberPermissionsView extends JView
       @getData().fetchMembers selector, options, (err, members)=> @populateMembers err, members
 
   populateMembers:(err, members)->
+    instantiateItems = (err) =>
+      return warn err  if err
+      @listController.instantiateListItems members
+      @emit 'teasersLoaded' if members.length is 10
+
     return warn err if err
     @listController.hideLazyLoader()
     @skip += members.length
-
     if members.length > 0
-      @timestamp = new Date members.last.timestamp_
-      ids = (member._id for member in members)
-      @getData().fetchUserRoles ids, (err, userRoles)=>
-        return warn err if err
-        userRolesHash = {}
-        for userRole in userRoles
-          userRolesHash[userRole.targetId] ?= []
-          userRolesHash[userRole.targetId].push userRole.as
+      @fetchUserRoles members, (err) =>
+        return warn err  if err
+        #no need to fetch user status for all group admins
+        if @getData().slug is "koding"
+          @fetchUserStatus members, instantiateItems
+        else
+          instantiateItems()
 
+  fetchUserRoles:(members, callback) ->
+    ids = (member._id for member in members)
+    @getData().fetchUserRoles ids, (err, userRoles)=>
+      return callback err  if err
+      userRolesHash = {}
+      for userRole in userRoles
+        userRolesHash[userRole.targetId] ?= []
+        userRolesHash[userRole.targetId].push userRole.as
 
-        list = @listController.getListView()
-        list.getOptions().userRoles ?= []
-        list.getOptions().userRoles = _.extend(
-          list.getOptions().userRoles, userRolesHash
-        )
+      list = @listController.getListView()
+      list.getOptions().userRoles ?= {}
+      {userRoles} = list.getOptions()
+      userRoles = _.extend(
+        userRoles, userRolesHash
+      )
+      callback null
 
-        nicknames = (member.profile.nickname for member in members)
-        @getData().fetchUserStatus nicknames, (err, users)=>
-          userStatusHash = {}
-          for user in users
-            userStatusHash[user.username] = user.status
+  fetchUserStatus: (members, callback) ->
+    nicknames = (member.profile.nickname for member in members)
+    @getData().fetchUserStatus nicknames, (err, users)=>
+      return callback err  if err
+      userStatusHash = {}
+      for user in users
+        userStatusHash[user.username] = user.status
 
-          listOptions = list.getOptions()
-          listOptions.userStatus ?= []
-          listOptions.userStatus = _.extend(listOptions.userStatus, userStatusHash)
-          @listController.instantiateListItems members
-          if members.length < 30
-            @continueLoadingTeasers()
+      list = @listController.getListView()
+      list.getOptions().userStatus ?= {}
+      {userStatus} = list.getOptions()
+      userStatus = _.extend(userStatus, userStatusHash)
+      callback null
 
   refresh:->
     @listController.removeAllItems()
