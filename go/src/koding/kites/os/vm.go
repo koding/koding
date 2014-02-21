@@ -4,10 +4,12 @@ package main
 
 import (
 	"errors"
+	"fmt"
 	"koding/tools/dnode"
 	"koding/tools/kite"
 	"koding/virt"
 	"os"
+	"time"
 
 	"labix.org/v2/mgo/bson"
 )
@@ -133,7 +135,7 @@ func vmPrepare(vos *virt.VOS) (interface{}, error) {
 	}
 
 	// TODO, change that it returns an error
-	vos.VM.Prepare(false, log.Warning)
+	vos.VM.Prepare(false)
 	return true, nil
 }
 
@@ -142,7 +144,7 @@ func vmReinitialize(vos *virt.VOS) (interface{}, error) {
 		return nil, &kite.PermissionError{}
 	}
 
-	vos.VM.Prepare(true, log.Warning)
+	vos.VM.Prepare(true)
 	if err := vos.VM.Start(); err != nil {
 		return nil, err
 	}
@@ -219,4 +221,100 @@ func vmStart(vos *virt.VOS) (interface{}, error) {
 
 	// send true if vm is ready
 	return true, nil
+}
+
+func startAndPrepareVM(vm *virt.VM, channel *kite.Channel) error {
+	err := validateVM(vm)
+	if err != nil {
+		return err
+	}
+
+	var info *VMInfo
+
+	if info == nil {
+		infosMutex.Lock()
+		var found bool
+		info, found = infos[vm.Id]
+		if !found {
+			info = newInfo(vm)
+			infos[vm.Id] = info
+		}
+
+		if channel != nil {
+			info.useCounter += 1
+			info.timeout.Stop()
+
+			channel.KiteData = info
+			channel.OnDisconnect(func() {
+				info.mutex.Lock()
+				defer info.mutex.Unlock()
+
+				info.useCounter -= 1
+				info.startTimeout()
+			})
+		}
+
+		infosMutex.Unlock()
+	}
+
+	info.vm = vm
+	info.mutex.Lock()
+	defer info.mutex.Unlock()
+
+	isPrepared := true
+	if _, err := os.Stat(vm.File("rootfs/dev")); err != nil {
+		if !os.IsNotExist(err) {
+			panic(err)
+		}
+		isPrepared = false
+	}
+
+	if !isPrepared || info.currentHostname != vm.HostnameAlias {
+		log.Info("putting %s into queue. total vms in queue: %d of %d",
+			vm.HostnameAlias, len(prepareQueue), prepareQueueLimit)
+
+		wait := make(chan struct{}, 0)
+		prepareQueue <- func(done chan string) {
+			startTime := time.Now()
+
+			vm.Prepare(false)
+
+			res := fmt.Sprintf("%s [%s] - ElapsedTime: %.10f seconds.\n",
+				vm, vm.HostnameAlias, time.Since(startTime).Seconds())
+
+			done <- res
+			wait <- struct{}{}
+		}
+
+		// wait until the prepareWorker has picked us and we finished
+		<-wait
+	}
+
+	// if it's started already it will not do anything
+	if err := vm.Start(); err != nil {
+		log.LogError(err, 0)
+	}
+
+	// wait until network is up
+	if err := vm.WaitForNetwork(time.Second * 5); err != nil {
+		log.Error("%v", err)
+	}
+
+	info.currentHostname = vm.HostnameAlias
+	return nil
+}
+
+// prepareWorker listens from prepareQueue channel and runs the functions it receives
+func prepareWorker() {
+	for fn := range prepareQueue {
+		done := make(chan string, 1)
+		go fn(done)
+
+		select {
+		case vmRes := <-done:
+			log.Info("done preparing: %s", vmRes)
+		case <-time.After(time.Second * 20):
+			log.Error("timing out preparing vm")
+		}
+	}
 }

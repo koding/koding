@@ -268,7 +268,6 @@ class VirtualizationController extends KDController
         .then(-> resolve kite)
         .catch warn
         
-
   handleFetchedVms: (vms, callback) ->
     if KD.useNewKites
       Promise.cast(vms).map (vm) =>
