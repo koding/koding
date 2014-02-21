@@ -42,13 +42,13 @@ class NVMToggleButtonView extends JView
       KD.logToExternal "oskite: vm failed to turn on", {error:err.message, vm}
       return warn err
 
-    @menuTitle.updatePartial 'Change state'
-    @toggle.show()
-    @loader.hide()
-
     if info.state is "RUNNING"
     then @toggle.setDefaultValue yes
     else @toggle.setDefaultValue no
+
+    @menuTitle.updatePartial 'Change state'
+    @toggle.show()
+    @loader.hide()
 
   pistachio:->
     """{{> @menuTitle}}{{> @toggle}}{{> @loader}}"""
