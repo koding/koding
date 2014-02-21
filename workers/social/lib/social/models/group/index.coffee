@@ -749,22 +749,6 @@ module.exports = class JGroup extends Module
       kallback()
 
 
-  fetchHomepageView: (options, callback)->
-    {account} = options
-    @fetchMembershipPolicy (err, policy)=>
-      if err then callback err
-      else
-        homePageOptions = extend options, {
-          @slug
-          @title
-          @avatar
-          @body
-          @counts
-          @customize
-        }
-        prefix = if account.type is 'unregistered' then 'loggedOut' else 'loggedIn'
-        JGroup.render[prefix].groupHome homePageOptions, callback
-
   fetchRolesByClientId:(clientId, callback)->
     [callback, clientId] = [clientId, callback]  unless callback
     return callback null, []  unless clientId
