@@ -465,7 +465,7 @@ module.exports = class JUser extends jraphical.Module
     JGroup.one {slug}, (err, group)->
       return callback err if err or not group
       if invite
-        group.debitPack "user", (err) ->
+        group.debitPack tag: "user", (err) ->
           return callback err  if err
           invite.redeem account, (err) ->
             return callback err if err

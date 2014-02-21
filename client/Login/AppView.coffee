@@ -457,7 +457,7 @@ class LoginView extends KDView
 
   headBannerShowInvitation:(invite)->
     @showHeadBanner "Cool! you got an invite! <span>If you already have an account click here to sign in.</span>", =>
-      @animateToForm "login"
+      KD.singleton("router").handleRoute "/Login"
       @headBanner.hide()
 
     KD.getSingleton('router').clear @getRouteWithEntryPoint 'Register'
