@@ -6,6 +6,29 @@ class GroupsMemberPermissionsView extends JView
 
     super options, data
 
+    @searchWrapper = new KDCustomHTMLView
+      tagName  : 'section'
+      cssClass : 'searchbar'
+
+    @search = new KDHitEnterInputView
+      placeholder  : "Search..."
+      name         : "searchInput"
+      cssClass     : "header-search-input"
+      type         : "text"
+      callback     : =>
+        @emit 'SearchInputChanged', @search.getValue()
+        @search.focus()
+      keyup        : =>
+        return unless @search.getValue() is ""
+        @emit 'SearchInputChanged', ''
+
+    @searchIcon = new KDCustomHTMLView
+      tagName  : 'span'
+      cssClass : 'icon search'
+
+    @searchWrapper.addSubView @search
+    @searchWrapper.addSubView @searchIcon
+
     @_searchValue = null
 
     @listController = new KDListViewController
@@ -111,5 +134,6 @@ class GroupsMemberPermissionsView extends JView
 
   pistachio:->
     """
+    {{> @searchWrapper}}
     {{> @listWrapper}}
     """
