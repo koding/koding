@@ -50,9 +50,11 @@ func main() {
 
 func createQuery(directionName string) func(coll *mgo.Collection) error {
 
+	oneMonthAgo := time.Now().Add(-time.Hour * 24 * 30).UTC()
 	return func(coll *mgo.Collection) error {
 		filter := strToInf{
 			directionName: strToInf{"$in": ToBeDeletedNames},
+			"timestamp":   strToInf{"$lte": oneMonthAgo},
 		}
 		query := coll.Find(filter)
 
@@ -122,7 +124,6 @@ func createQuery(directionName string) func(coll *mgo.Collection) error {
 }
 
 func deleteRel(result *oldNeo.Relationship, directionName string) {
-
 	var collectionName string
 	var collectionId bson.ObjectId
 
