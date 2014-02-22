@@ -5,7 +5,6 @@ import (
 	"errors"
 	"flag"
 	"fmt"
-	kitelib "github.com/koding/kite"
 	"io"
 	"io/ioutil"
 	"koding/db/mongodb"
@@ -27,6 +26,8 @@ import (
 	"sync"
 	"syscall"
 	"time"
+
+	kitelib "github.com/koding/kite"
 
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
@@ -264,6 +265,10 @@ func prepareOsKite() *kite.Kite {
 	}
 
 	k.LoadBalancer = func(correlationName string, username string, deadService string) string {
+		blog := func(v interface{}) {
+			log.Info("oskite loadbalancer for [correlationName: '%s' user: '%s' deadService: '%s'] results in --> %v.", correlationName, username, deadService, v)
+		}
+
 		var vm *virt.VM
 		if bson.IsObjectIdHex(correlationName) {
 			mongodbConn.Run("jVMs", func(c *mgo.Collection) error {
@@ -275,36 +280,45 @@ func prepareOsKite() *kite.Kite {
 			if err := mongodbConn.Run("jVMs", func(c *mgo.Collection) error {
 				return c.Find(bson.M{"hostnameAlias": correlationName}).One(&vm)
 			}); err != nil {
-				return k.ServiceUniqueName
+				blog(fmt.Sprintf("no hostnameAlias found, returning %s", k.ServiceUniqueName))
+				return k.ServiceUniqueName // no vm was found, return this oskite
 			}
 		}
 
-		if vm.HostKite == "" || vm.HostKite == "(maintenance)" || vm.HostKite == "(banned)" {
-			if vm.PinnedToHost != "" {
-				return vm.PinnedToHost
-			}
+		if vm.PinnedToHost != "" {
+			blog(fmt.Sprintf("returning pinnedHost '%s'", vm.PinnedToHost))
+			return vm.PinnedToHost
+		}
+
+		if vm.HostKite == "" {
+			blog(fmt.Sprintf("hostkite is empty returning '%s'", k.ServiceUniqueName))
+			return k.ServiceUniqueName
+		}
+
+		// maintenance and banned will be handled again in valideVM() function,
+		// which will return a permission error.
+		if vm.HostKite == "(maintenance)" || vm.HostKite == "(banned)" {
+			blog(fmt.Sprintf("hostkite is %s returning '%s'", vm.HostKite, k.ServiceUniqueName))
 			return k.ServiceUniqueName
 		}
 
 		// Set hostkite to nil if we detect a dead service. On the next call,
 		// Oskite will point to an health service in validateVM function()
-		// because it will detect that the hostkite is nil and change it to
-		// the healthy service given by the client.
+		// because it will detect that the hostkite is nil and change it to the
+		// healthy service given by the client, which is the returned
+		// k.ServiceUniqueName.
 		if vm.HostKite == deadService {
-			log.Warning("VM is registered as running on dead service. %v, %v, %v",
-				correlationName, username, deadService)
-
-			query := func(c *mgo.Collection) error {
+			blog(fmt.Sprintf("dead service detected %s returning '%s'", vm.HostKite, k.ServiceUniqueName))
+			if err := mongodbConn.Run("jVMs", func(c *mgo.Collection) error {
 				return c.Update(bson.M{"_id": vm.Id}, bson.M{"$set": bson.M{"hostKite": nil}})
-			}
-
-			if err := mongodbConn.Run("jVMs", query); err != nil {
+			}); err != nil {
 				log.LogError(err, 0, vm.Id.Hex())
 			}
 
 			return k.ServiceUniqueName
 		}
 
+		blog(fmt.Sprintf("returning existing hostkite '%s'", vm.HostKite))
 		return vm.HostKite
 	}
 

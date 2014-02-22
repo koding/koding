@@ -6,7 +6,6 @@ import (
 	"flag"
 	"fmt"
 	"io/ioutil"
-	"kite/cmd/build"
 	"koding/tools/config"
 	"log"
 	"os"
@@ -14,6 +13,8 @@ import (
 	"runtime"
 	"strings"
 	"text/template"
+
+	"github.com/koding/kite/cmd/build"
 )
 
 var (
@@ -89,7 +90,7 @@ func buildOsKite() error {
 		appName:       "oskite",
 		importPath:    oskitePath,
 		files:         files,
-		version:       "0.0.3",
+		version:       "0.0.4",
 		upstartScript: configUpstart,
 	}
 
@@ -122,6 +123,10 @@ func buildKontrolProxy() error {
 	switch *proxy {
 	case "koding":
 		files = append(files, "certs/koding_com_cert.pem", "certs/koding_com_key.pem")
+	case "y":
+		files = append(files, "certs/y_koding_com_cert.pem", "certs/y_koding_com_key.pem")
+	case "x":
+		files = append(files, "certs/x_koding_com_cert.pem", "certs/x_koding_com_key.pem")
 	case "user":
 		temps.UserProxy = "-v"
 		files = append(files, "certs/kd_io_cert.pem", "certs/kd_io_key.pem")
@@ -143,7 +148,7 @@ func buildKontrolProxy() error {
 		appName:       "kontrolproxy",
 		importPath:    kdproxyPath,
 		files:         files,
-		version:       "0.0.1",
+		version:       "0.0.2",
 		upstartScript: configUpstart,
 	}
 
