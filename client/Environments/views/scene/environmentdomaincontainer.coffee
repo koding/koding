@@ -15,14 +15,30 @@ class EnvironmentDomainContainer extends EnvironmentContainer
 
       new KDModalView
         title          : "Add Domain"
+        cssClass       : "domain-creation"
         view           : domainCreateForm
         width          : 700
         buttons        :
           createButton :
             title      : "Create"
             style      : "modal-clean-green"
+            type       : "button"
+            loader     :
+              color    : "#1aaf5d"
+              diameter : 25
             callback   : =>
-              domainCreateForm.createSubDomain()
+              paneType = domainCreateForm.tabView.getActivePane().getOption 'type'
+
+              # @buttons?.createButton.hideLoader()
+              # @off  "FormValidationPassed"
+              # @once "FormValidationPassed", =>
+              #   @emit 'registerDomain'
+              #   @buttons?.createButton.showLoader()
+
+              if paneType is "redirect"
+                domainCreateForm.handleRedirect()
+              else
+                domainCreateForm.createSubDomain()
 
   addDomain: (domain)->
 

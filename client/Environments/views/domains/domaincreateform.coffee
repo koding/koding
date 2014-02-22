@@ -1,29 +1,103 @@
 class DomainCreateForm extends KDCustomHTMLView
 
-  subDomainPattern = \
-    /^([a-z0-9]([_\-](?![_\-])|[a-z0-9]){0,60}[a-z0-9]|[a-z0-9])$/
-
   domainOptions = [
     { title : "Create a subdomain",     value : "subdomain" }
     { title : "Register a new domain",  value : "new", disabled: yes}
     { title : "Use an existing domain", value : "existing", disabled : yes }
   ]
 
+  notifyUser = (msg) ->
+    new KDNotificationView
+      type     : 'tray'
+      title    : msg
+      duration : 5000
+
   constructor:(options = {}, data)->
+
     options.cssClass = "environments-add-domain-form"
+
     super options, data
 
-    @addSubView @subDomainEntryForm = new SubdomainCreateForm
-    @subDomainEntryForm.on 'registerDomain', @bound 'createSubDomain'
+    @addSubView @tabView = new KDTabView
+      hideHandleCloseIcons : yes
+      maxHandleWidth       : 250
+
+    @tabView.addPane sub = new KDTabPaneView
+      name : "Create a subdomain"
+      type : "subdomain"
+      view : @subdomainForm = new SubdomainCreateForm
+
+    @tabView.addPane dom = new KDTabPaneView
+      name               : "Route own domain"
+      type               : "redirect"
+      view               : @domainForm = new CommonDomainCreateForm
+        label            : ""
+        placeholder      : "Type your domain name..."
+        noDomainSelector : yes
+
+
+    dom.addSubView @redirectNotice = (new KDCustomHTMLView
+      tagName  : "p"
+      cssClass : "status-message"
+      partial  : """
+        Before doing this you need to create either a <strong>CNAME</strong> pointing to: <strong>http://#{KD.nick()}.kd.io</strong> or an<br/>
+        <strong>A Record</strong> pointing to: <strong>0.0.0.0</strong>. Otherwise Koding won't be able to add your domain.
+        """
+    ), null, yes
+
+    @tabView.showPane sub
+
+    @subdomainForm.on 'registerDomain', @bound 'createSubDomain'
+    @tabView.on 'PaneDidShow', => @redirectNotice.unsetClass 'err'
+    # @domainForm.on 'registerDomain', @bound 'createDomain'
+
+  handleRedirect:->
+
+    {domains, domainName} = @domainForm.inputs
+    {createButton}        = @parent.buttons
+
+    domainName = domainName.getValue().trim()
+
+    unless KD.utils.domainWithTLDPattern.test domainName
+      createButton.hideLoader()
+      return notifyUser "#{domainName} is an invalid domain name"
+
+    regYears   = 1e6                          # ಠ_ಠ
+    domainType = "IdontKnowWhatADomainTypeIs" # ಠ_ಠ
+
+    @checkDomainAvailability domainName, =>
+      return  createButton.hideLoader()
+      @createJDomain {domainName, regYears, domainType}, (err, domain)=>
+        createButton.hideLoader()
+        return @showDomainError err.message  if err
+        @showSuccess domain
+        @updateDomains()
+
+
+
+  checkDomainAvailability:(name, callback)->
+
+    # make your check
+    KD.utils.wait KD.utils.getRandomNumber(5000), =>
+      # error handling
+      if !!(KD.utils.getRandomNumber(2)-1)
+        {createButton} = @parent.buttons
+        createButton.hideLoader()
+        @redirectNotice.setClass 'err'
+      else
+        log 'there was no problem'
+        callback()
+
+
 
   createSubDomain: ->
-    {domains, domainName} = @subDomainEntryForm.inputs
+    {domains, domainName} = @subdomainForm.inputs
     {createButton}        = @parent.buttons
 
     domainName = domainName.getValue()
 
     # Check given subdomain
-    unless subDomainPattern.test domainName
+    unless KD.utils.subdomainPattern.test domainName
       createButton.hideLoader()
       return notifyUser "#{domainName} is an invalid subdomain."
 
@@ -39,13 +113,13 @@ class DomainCreateForm extends KDCustomHTMLView
         warn "An error occured while creating domain:", err
         switch err.name
           when "DUPLICATEDOMAIN"
-            return notifyUser "The domain #{domainName} already exists."
+            return @showError "The domain #{domainName} already exists.", @subdomainForm
           when "INVALIDDOMAIN"
-            return notifyUser "#{domainName} is an invalid subdomain."
+            return @showError "#{domainName} is an invalid subdomain.", @subdomainForm
           when "ACCESSDENIED"
-            return notifyUser "You do not have permission to create a subdomain in this domain"
+            return @showError "You do not have permission to create a subdomain in this domain", @subdomainForm
           else
-            return notifyUser "An unknown error occured. Please try again later."
+            return @showError "An unknown error occured. Please try again later.", @subdomainForm
       else
         @showSuccess domain
         @updateDomains()
@@ -64,33 +138,42 @@ class DomainCreateForm extends KDCustomHTMLView
     , callback
 
   showSuccess:(domain) ->
+
     domainName =
-      Encoder.XSSEncode @subDomainEntryForm.inputs.domainName.getValue()
+      Encoder.XSSEncode @subdomainForm.inputs.domainName.getValue()
 
     @emit 'DomainSaved', domain
-    @successNote?.destroy()
-
-    @addSubView @successNote = new KDCustomHTMLView
-      tagName  : 'p'
-      cssClass : 'success'
-      partial  : """
-        Your subdomain <strong>#{domainName}</strong> has been added.
-        You can dismiss this modal and point your new domain to one of your VMs.
+    @subdomainForm.message.updatePartial """
+      Your subdomain <strong>#{domainName}</strong> has been added.
+      You can dismiss this modal and point your new domain to one of your VMs.
       """
-      click    : @bound 'reset'
+    @subdomainForm.message.show()
 
-    KD.utils.wait 7000, @successNote.bound 'destroy'
+    KD.utils.wait 7000, =>
+      @subdomainForm.message.updatePartial ''
+      @subdomainForm.message.hide()
 
-  notifyUser = (msg) ->
-    new KDNotificationView
-      type     : 'tray'
-      title    : msg
-      duration : 5000
+
+  showError:(message, view = @domainForm) ->
+
+    view.message.setClass 'err'
+    view.message.updatePartial message
+    view.message.show()
 
   reset:->
-    @successNote?.destroy()
-    for form in [@subDomainEntryForm, @newDomainEntryForm]
-      form.inputs?.domainName.setValue ''
+
+    paneType = @tabView.getActivePane().getOption 'type'
+
+    if paneType is 'redirect'
+      @domainForm.unsetClass 'err'
+      @domainForm.message.hide()
+      @domainForm.message.updatePartial ''
+      @domainForm.inputs.domainName.setValue ''
+    else
+      @subdomainForm.message.updatePartial ''
+      @subdomainForm.message.hide()
+      @subdomainForm.inputs.domainName.setValue ''
+
     @emit 'CloseClicked'
 
   updateDomains: ->
@@ -102,7 +185,7 @@ class DomainCreateForm extends KDCustomHTMLView
 
     KD.whoami().fetchDomains (err, userDomains)=>
       return warn "Failed to update domains:", err  if err
-      
+
       if userDomains
         for domain in userDomains
           if not domain.regYears > 0
@@ -110,15 +193,15 @@ class DomainCreateForm extends KDCustomHTMLView
 
       group = KD.getSingleton("groupsController").currentGroupName
       # adds group root domain to domain selections
-      unless group is "koding" 
-        pushDomainOption group  
+      unless group is "koding"
+        pushDomainOption group
       else
         slug = KD.whoami().profile.nickname              # if user domain root does not exist, it is added
-        rootDomain = userDomains.filter (domain) ->      # here. actually it is not possible to delete a root 
-          domain.domain is "#{slug}.kd.io"               # domain, but defensive checks are always good.      
-        pushDomainOption slug  unless rootDomain.length 
-        
-      {domains, domainName} = @subDomainEntryForm.inputs
+        rootDomain = userDomains.filter (domain) ->      # here. actually it is not possible to delete a root
+          domain.domain is "#{slug}.kd.io"               # domain, but defensive checks are always good.
+        pushDomainOption slug  unless rootDomain.length
+
+      {domains, domainName} = @subdomainForm.inputs
       domainName.setValue ""
       domains.removeSelectOptions()
       domains.setSelectOptions domainList
@@ -126,4 +209,4 @@ class DomainCreateForm extends KDCustomHTMLView
   viewAppended:->
     @updateDomains()
     KD.getSingleton("vmController").on 'VMListChanged', @bound 'updateDomains'
-    @subDomainEntryForm.inputs.domainName.setFocus()
+    @subdomainForm.inputs.domainName.setFocus()
