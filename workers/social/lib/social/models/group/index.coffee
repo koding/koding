@@ -226,6 +226,8 @@ module.exports = class JGroup extends Module
           (signature Function)
         fetchInvitationsByStatus:
           (signature Object, Function)
+        checkUserUsage:
+          (signature Function)
     schema          :
       title         :
         type        : String
@@ -1560,3 +1562,10 @@ module.exports = class JGroup extends Module
       JVM.createVm {account, groupSlug: @slug, @planCode}, (err) =>
         console.warn "Group #{@slug} member #{account.profile.nickname} VM is not created: #{err}"  if err
         callback()
+
+  checkUserUsage: (callback) ->
+    @fetchSubscription (err, subscription) ->
+      return callback err  if err
+      JPaymentPack.one tags: "user", (err, pack) ->
+        return callback err  if err
+        subscription.checkUsage pack, callback

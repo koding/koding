@@ -182,6 +182,9 @@ class LoginView extends KDView
       cssClass : "invite-recovery-notification-bar hidden"
       partial  : "..."
 
+    @failureNotice = new KDCustomHTMLView
+      cssClass     : "failure-notice hidden"
+
     KD.getSingleton("mainController").on "landingSidebarClicked", => @unsetClass 'landed'
 
     setValue = (field, value)=>
@@ -255,6 +258,7 @@ class LoginView extends KDView
       <div class="login-form-holder resend-confirmation-form">
         {{> @resendForm}}
       </div>
+      {{> @failureNotice}}
       <div class="login-footer">
         <div class='first-row clearfix'>
           <div class='fl'>{{> @goToRecoverLink}}</div><div class='fr'>{{> @goToRegisterLink}}<i>•</i>{{> @backToLoginLink}}</div>
@@ -514,11 +518,17 @@ class LoginView extends KDView
           KD.remote.api.JUser.isRegistrationEnabled (status)=>
             if status is no
               log "Registrations are disabled!!!"
-              @registerForm.$('.main-part').addClass 'hidden'
-              @registerForm.disabledNotice.show()
+              @setFailureNotice
+                cssClass  : "registrations-disabled"
+                title     : "REGISTRATIONS ARE CURRENTLY DISABLED"
+                message   : "We're sorry for that, please follow us on <a href='http://twitter.com/koding' target='_blank'>twitter</a>
+                  if you want to be notified when registrations are enabled again."
+              @github.hide()
+              @$(".login-footer").addClass 'hidden'
+              @animateToForm "failureNotice"
             else
-              @registerForm.disabledNotice.hide()
-              @registerForm.$('.main-part').removeClass 'hidden'
+              @github.show()
+              @$(".login-footer").removeClass 'hidden'
 
           KD.mixpanel "Register form, click"
 
@@ -551,6 +561,11 @@ class LoginView extends KDView
         when "resendEmail"
           @$('.flex-wrapper').addClass 'one'
           @resendForm.usernameOrEmail.input.setFocus()
+        when "failureNotice"
+          @$('.flex-wrapper').addClass 'one'
+          @github.hide()
+          @$(".login-footer").addClass 'hidden'
+          @failureNotice.show()
 
   getRouteWithEntryPoint:(route)->
     {entryPoint} = KD.config
@@ -575,3 +590,11 @@ class LoginView extends KDView
       new KDNotificationView
         title   : err.message
         duration: 1000
+
+  setFailureNotice: ({cssClass, title, message}) ->
+    @failureNotice.setClass cssClass  if cssClass
+    @failureNotice.updatePartial \
+      """
+      <strong>#{title}</strong>
+      <p>#{message}</p>
+      """

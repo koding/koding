@@ -466,7 +466,14 @@ module.exports = class JUser extends jraphical.Module
       return callback err if err or not group
       if invite
         group.debitPack tag: "user", (err) ->
-          return callback err  if err
+          if err
+            if err.message is "quota exceeded"
+              callback
+                code    : "user_quota_exceeded"
+                message : "Failed join to group #{slug}."
+            else
+              callback err
+            return
           invite.redeem account, (err) ->
             return callback err if err
             group.approveMember account, callback
@@ -476,7 +483,7 @@ module.exports = class JUser extends jraphical.Module
   @addToGroups = (account, invite, email, callback)->
     @addToGroup account, 'koding', email, null, (err)=>
       if err then callback err
-      else if invite?.group and invite?.group isnt 'koding'
+      else if invite?.group and invite.group isnt 'koding'
         @addToGroup account, invite.group, email, invite, callback
       else
         callback null
@@ -708,6 +715,7 @@ module.exports = class JUser extends jraphical.Module
     user           = null
     quotaExceedErr = null
     recoveryToken  = null
+    error          = null
 
     queue = [
       =>
@@ -752,11 +760,7 @@ module.exports = class JUser extends jraphical.Module
           queue.next()
       =>
         @addToGroups account, invite, user.email, (err) =>
-          # for the cases where the quota exceeded, we must progress on registering user
-          # and then show the quota exceeded message to new user
-          if err
-            if err.code is 999 then quotaExceedErr = err
-            else return callback err
+          error = err
           queue.next()
       =>
         @removeFromGuestsGroup account, (err) =>
@@ -803,7 +807,7 @@ module.exports = class JUser extends jraphical.Module
         mixpanel.track "Signup from server, success"
         queue.next()
       ->
-        callback quotaExceedErr, newToken, recoveryToken
+        callback error, newToken, recoveryToken
         queue.next()
     ]
 
