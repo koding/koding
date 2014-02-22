@@ -90,7 +90,7 @@ func buildOsKite() error {
 		appName:       "oskite",
 		importPath:    oskitePath,
 		files:         files,
-		version:       "0.0.3",
+		version:       "0.0.4",
 		upstartScript: configUpstart,
 	}
 
