@@ -123,6 +123,10 @@ func buildKontrolProxy() error {
 	switch *proxy {
 	case "koding":
 		files = append(files, "certs/koding_com_cert.pem", "certs/koding_com_key.pem")
+	case "y":
+		files = append(files, "certs/y_koding_com_cert.pem", "certs/y_koding_com_key.pem")
+	case "x":
+		files = append(files, "certs/x_koding_com_cert.pem", "certs/x_koding_com_key.pem")
 	case "user":
 		temps.UserProxy = "-v"
 		files = append(files, "certs/kd_io_cert.pem", "certs/kd_io_key.pem")
