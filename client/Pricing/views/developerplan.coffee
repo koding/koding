@@ -48,7 +48,7 @@ class DeveloperPlan extends JView
 
         paymentController.fetchActiveSubscription ["vm"], (err, subscription) =>
           return KD.showError err  if err
-          @emit "CurrentSubscriptionSet", subscription
+          @emit "CurrentSubscriptionSet", subscription  if subscription
           @emit "PlanSelected", "rp#{@planIndex}",
             planApi: KD.remote.api.JResourcePlan
             resourceQuantity: @planIndex
