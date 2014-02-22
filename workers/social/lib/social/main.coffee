@@ -146,6 +146,7 @@ console.info "Koding Social Worker #{process.pid} has started."
 express = require 'express'
 cors = require 'cors'
 app = express()
+app.use express.compress()
 app.use express.bodyParser()
 app.use cors()
 
