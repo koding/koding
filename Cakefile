@@ -140,6 +140,7 @@ task 'socialWorker', "Run the socialWorker", ({configFile}) ->
       kontrol        :
         enabled      : if KONFIG.runKontrol is yes then yes else no
         startMode    : "many"
+        registerToProxy: yes
       # onMessage: (msg) ->
       #   if msg.exiting
       #     exitingProcesses[msg.pid] = yes
