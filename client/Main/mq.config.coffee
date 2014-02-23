@@ -1,6 +1,10 @@
 getSessionToken=-> $.cookie('clientId')
 
+{ socialApiUri: apiEndpoint } = KD.config
+
 KD.remote = new Bongo
+
+  apiEndpoint: apiEndpoint
 
   precompileApi: KD.config.precompiledApi ? no
 
@@ -53,7 +57,12 @@ KD.remote = new Bongo
 
   mq: do ->
     { broker:{ servicesEndpoint }, authExchange } = KD.config
-    options = { servicesEndpoint, authExchange, autoReconnect: yes, getSessionToken }
+    options = {
+      servicesEndpoint
+      authExchange
+      autoReconnect: yes
+      getSessionToken
+    }
     broker = new KDBroker.Broker null, options
 
 KD.kite =

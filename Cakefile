@@ -95,7 +95,7 @@ task 'webserver', "Run the webserver", ({configFile, tests}) ->
       restart           : yes
       restartTimeout    : 100
       kontrol           :
-        enabled         : if KONFIG.runKontrol is yes then yes else no
+        enabled         : !!KONFIG.runKontrol
         startMode       : "many"
         registerToProxy : yes
         port            : port
@@ -134,12 +134,13 @@ task 'socialWorker', "Run the socialWorker", ({configFile}) ->
   for i in [1..social.numberOfWorkers]
     processes.fork
       name           : if social.numberOfWorkers is 1 then "social" else "social-#{i}"
-      cmd            : __dirname + "/workers/social/index -c #{configFile}"
+      cmd            : __dirname + "/workers/social/index -c #{configFile} -p #{3029 + i}"
       restart        : yes
       restartTimeout : 100
       kontrol        :
-        enabled      : if KONFIG.runKontrol is yes then yes else no
+        enabled      : !!KONFIG.runKontrol
         startMode    : "many"
+        registerToProxy: yes
       # onMessage: (msg) ->
       #   if msg.exiting
       #     exitingProcesses[msg.pid] = yes
@@ -175,7 +176,7 @@ task 'authWorker', "Run the authWorker", ({configFile}) ->
       restart 		 : yes
       restartTimeout : 1000
       kontrol        :
-        enabled      : if KONFIG.runKontrol is yes then yes else no
+        enabled      : !!KONFIG.runKontrol
         startMode    : "many"
       verbose        : yes
 
@@ -469,7 +470,7 @@ task 'cacheWorker', "Run the cacheWorker", ({configFile})->
     restart        : yes
     restartTimeout : 100
     kontrol        :
-      enabled      : if KONFIG.runKontrol is yes then yes else no
+      enabled      : !!KONFIG.runKontrol
       startMode    : "one"
 
   if cacheWorker.watch is yes
