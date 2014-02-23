@@ -96,7 +96,7 @@ func vmCreateSnaphost(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS)
 	return snippetId, nil
 }
 
-func spawn(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
+func spawnFunc(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
 	var command []string
 	if args.Unmarshal(&command) != nil {
 		return nil, &kite.ArgumentError{Expected: "[array of strings]"}
@@ -104,7 +104,7 @@ func spawn(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface
 	return vos.VM.AttachCommand(vos.User.Uid, "", command...).CombinedOutput()
 }
 
-func exec(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
+func execFunc(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
 	var line string
 	if args.Unmarshal(&line) != nil {
 		return nil, &kite.ArgumentError{Expected: "[string]"}

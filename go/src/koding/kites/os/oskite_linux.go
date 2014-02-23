@@ -74,7 +74,7 @@ var (
 	requestWaitGroup sync.WaitGroup
 
 	vmTimeout         = time.Minute * 50
-	prepareQueueLimit = 8 + 1 // number of concurrent VM preparations, shoulde be CPU + 1
+	prepareQueueLimit = 8 + 1 // number of concurrent VM preparations, should be CPU + 1
 	prepareQueue      = make(chan func(chan struct{}))
 )
 
@@ -138,8 +138,10 @@ func main() {
 	registerVmMethod(k, "vm.info", false, vmInfo)
 	registerVmMethod(k, "vm.resizeDisk", false, vmResizeDisk)
 	registerVmMethod(k, "vm.createSnapshot", false, vmCreateSnaphost)
-	registerVmMethod(k, "spawn", true, spawn)
-	registerVmMethod(k, "exec", true, exec)
+	registerVmMethod(k, "spawn", true, spawnFunc)
+	registerVmMethod(k, "exec", true, execFunc)
+
+	registerVmMethod(k, "oskite.Info", true, oskiteInfo)
 
 	syscall.Umask(0) // don't know why richard calls this
 	registerVmMethod(k, "fs.readDirectory", false, fsReadDirectory)
