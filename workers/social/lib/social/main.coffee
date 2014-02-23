@@ -152,4 +152,4 @@ app.use cors()
 
 app.post '/bongo', koding.expressify()
 
-app.listen 3030
+app.listen argv.p
