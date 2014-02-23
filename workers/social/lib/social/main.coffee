@@ -150,6 +150,6 @@ app.use express.compress()
 app.use express.bodyParser()
 app.use cors()
 
-app.post '/bongo', koding.expressify()
+app.post '/xhr', koding.expressify()
 
 app.listen argv.p

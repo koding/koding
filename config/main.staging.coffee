@@ -164,6 +164,7 @@ module.exports =
       useNeo4j: yes
       logToExternal : yes
       resourceName: socialQueueName
+      socialApiUri: 'https://stage-social.koding.com/xhr'
       suppressLogs: no
       version   : version
       mainUri   : "http://koding.com"

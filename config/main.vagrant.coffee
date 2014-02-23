@@ -162,7 +162,7 @@ module.exports =
       useNeo4j: yes
       logToExternal: no  # rollbar, mixpanel etc.
       resourceName: socialQueueName
-      socialApiUri: 'http://lvh.me:3030/bongo'
+      socialApiUri: 'http://lvh.me:3030/xhr'
       suppressLogs: no
       broker    :
         servicesEndpoint: 'http://lvh.me:3020/-/services/broker'
