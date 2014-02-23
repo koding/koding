@@ -242,7 +242,9 @@ class WebTermAppView extends JView
 
     terminalView.on 'WebTermConnected', @bound 'updateSessions'
 
-    WebTermView.setTerminalTimeout options.vmName, 15000, ->
+    {vmName} = options
+
+    WebTermView.setTerminalTimeout vmName, 15000, ->
       terminalView.connectToTerminal()
     , =>
       KD.utils.defer => @addNewTab vmName

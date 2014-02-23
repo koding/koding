@@ -134,7 +134,7 @@ task 'socialWorker', "Run the socialWorker", ({configFile}) ->
   for i in [1..social.numberOfWorkers]
     processes.fork
       name           : if social.numberOfWorkers is 1 then "social" else "social-#{i}"
-      cmd            : __dirname + "/workers/social/index -c #{configFile}"
+      cmd            : __dirname + "/workers/social/index -c #{configFile} -p #{3029 + i}"
       restart        : yes
       restartTimeout : 100
       kontrol        :
