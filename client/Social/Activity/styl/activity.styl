@@ -37,7 +37,7 @@ resurrection.activity.styl
 
   > main
     size                  689px, auto
-    kalc                  margin-right, 37% \+ 34px
+    kalc                  margin-right, 50% \- 122px
     fr()
 
     >.activity-input-widget
@@ -173,18 +173,27 @@ resurrection.activity.styl
     top                 55px
     padding             0 0 0 35px
     bg                  color, #ebebeb
-    size                37%, 100%
+    height              100%
+    kalc                width, 50% \- 146px
     border-left         1px solid #d5d5d5
     borderBox()
     abs()
 
     > div
-      size              269px, auto
+      size              280px, auto
 
     .referal-box
       margin-top        33px
       color             #5b5b5b
       overflow          visible
+      display           none !important
+
+      strong
+        color           #1aaf5d
+        font-size       26px
+        margin-bottom   5px
+        font-weight     300
+        display         inline-block
 
       &:hover .hide
         visible()
@@ -199,28 +208,30 @@ resurrection.activity.styl
         hidden()
         abs()
 
-      > figure
-        sprite          activity 'refer-friend'
-        margin          0 9px 0 15px
-        fl()
+      span.title
+        display         inline-block
+        color           logoBg
+        font-size       20px
+        margin-bottom   4px
+        noTextDeco()
+      a
+        color           logoBg
 
       > p
         overflow        hidden
         width           auto
-        font-size       13px
-        line-height     1.25em
-        padding-right   20px
+        font-size       18px
+        line-height     1.4em
+        padding-bottom  14px
+        font-weight     300
         borderBox()
-        a
-          color         logoBg
-          noTextDeco()
 
       .progressbar-container
         overflow            hidden
         size                100% 31px
         border              none
         rounded             16px
-        margin-top          16px
+        margin-top          10px
         gradient            #cfcece #cfcece
         borderBox()
         rel()
@@ -246,6 +257,7 @@ resurrection.activity.styl
     .right-block-box
       size              auto, auto
       margin            33px 0 0
+      bg                color, #ebebeb
 
       h3
         display         block
@@ -270,8 +282,7 @@ resurrection.activity.styl
 
     .kdlistitemview-activity-ticker-item
     .kdlistitemview-member
-      size              auto auto
-      min-height        60px
+      size              auto 60px
       position          relative
       padding           14px 0 11px
       margin            0 0 0 42px
@@ -285,8 +296,8 @@ resurrection.activity.styl
 
       .action
         overflow        visible
-        width           auto
         line-height     18px
+        vCenter()
 
         .kdview
           font-weight   300
@@ -303,12 +314,15 @@ resurrection.activity.styl
 
         &.profile
           font-weight   500
+          line-height   15px
+
 
         &.ttag.expandable
           display       block
           overflow      hidden
           text-overflow ellipsis
           width         240px
+          line-height   14px
 
       .avatarview
         display         block
@@ -323,6 +337,7 @@ resurrection.activity.styl
         bg              color, transparent
         border          2px solid #b5b5b5
         right           4px
+        overflow        hidden
         vendor          transition, width .1s ease \,\
                                     border-color .3s ease
         abs()
@@ -334,7 +349,6 @@ resurrection.activity.styl
           abs()
 
         .button-title
-          z-index       -1
           opacity       0
           right         0
           top           4px
@@ -348,7 +362,6 @@ resurrection.activity.styl
           background    #ebebeb
           .button-title
             right       4px
-            z-index     1
             opacity     1
 
         &.following-account
@@ -373,7 +386,8 @@ resurrection.activity.styl
         display       inline
 
       .avatarview
-        top           3px
+        abs           50% 0 0
+        vendor        transform, translateY(-50%)
 
       .action
         a.ttag
@@ -384,18 +398,39 @@ resurrection.activity.styl
 
     .active-users
       .kdscrollview
-        height        240px
+        height            auto
+        max-height        240px
 
       .profile
       .user-numbers
         width           170px
+
+    .user-group-list
+      .kdlistitemview-activity-ticker-item
+        margin          0
+
+        figure
+          display         inline-block
+          size            30px 30px
+          margin          0 8px 0 1px
+          vertical-align  top
+          rounded         15px
+          bg              position, 50% 50%
+          bg              size cover
+        a
+          line-height    30px
+
+      .kdscrollview
+        height          auto
+        max-height      252px
 
     .active-topics
       h3
         margin-bottom   4px
 
       .kdscrollview
-        height          252px
+        height          auto
+        max-height      252px
 
       .kdlistitemview-activity-ticker-item
         margin          0
@@ -419,6 +454,8 @@ resurrection.activity.styl
           font-weight   200
           color         #9a9a9a
           fl()
+          &:first-child
+            margin      0
 
     .kdbuttonwithmenu-wrapper.ticker-settings-menu
         abs()
@@ -439,10 +476,32 @@ resurrection.activity.styl
         .chevron
           r-sprite    activity chevron-icon
 
+div.kdtooltip.activity-helper
+  code
+    font-weight       400
+    font-family       monoFamily
+    font-size         12px
+    padding           5px
+
 .activity-input-widget
   size                auto auto
   position            relative
   margin              0
+  overflow            visible
+
+  .help-container
+    margin            5px
+    font-size         12px
+    line-height       1.6
+    color             footerLinkColor
+    margin-bottom     -24px
+    > a
+    > span
+      margin-left     8px
+      color           logoBg
+    > a
+      border-bottom   1px solid logoBg
+      noTextDeco()
 
   .avatarview
     top               6px
@@ -582,11 +641,9 @@ span.collapsedtext
 
   .author-avatar
     display       block
-    size          70px, 70px
     top           0
     right         100%
     margin        0 11px 0 0
-    border        1px solid #ddd
     borderBox()
     abs()
 
@@ -604,19 +661,6 @@ span.collapsedtext
     max-height        400px
     line-height       22px
     margin-bottom     16px
-
-    > *
-      padding       0 21px
-
-    > ol
-    > ul
-      padding       10px 42px
-
-    > blockquote
-      padding       0 10px
-
-    > pre
-      padding       10px 0
 
   >.profile
     color         #1aaf5d
@@ -1083,7 +1127,7 @@ body.profile
       abs()
 
     &.comment-menu
-      margin              94px 0 0 16px
+      margin              0 0 0 16px
 
     .kdlistitemview-contextitem
       color               #50595f
@@ -1114,15 +1158,19 @@ body.profile
 .activity-item > article
 .activity-input-widget .update-preview
 
+  > *
+    padding               0 21px
+
   /* Headings */
   h1, h2, h3, h4, h5, h6
-    color         #50595a
-    font-size     14px
+    color                 #50595a
+    font-size             14px
 
   /* Lists */
+
   ol
   ul
-    padding               0 25px 12px
+    padding               10px 42px
     list-style            none
     display               block
     position              relative
@@ -1159,6 +1207,7 @@ body.profile
   blockquote
     border-left           4px solid #DDD
     margin                4px 21px
+    padding               0 10px
   p
     code
       padding             2px 5px
@@ -1169,6 +1218,7 @@ body.profile
       vertical-align      top
       font-size           12px
   pre
+    padding               10px 0
     code
       display             block
       line-height         16px
@@ -1178,25 +1228,25 @@ body.profile
       color               white
       bg                  color, #28292A
 
-      .comment
-      .string
-      .regexp
+      .hljs-comment
+      .hljs-string
+      .hljs-regexp
         color             #96B486
 
-      .keyword
+      .hljs-keyword
         color             #9B8298
 
-      .title
-      .variable
+      .hljs-title
+      .hljs-variable
         color             #6096BE
 
-      .literal
-      .number
+      .hljs-literal
+      .hljs-number
         color             #D17819
 
-      .constant
-      .decorator
-      .typename
+      .hljs-constant
+      .hljs-decorator
+      .hljs-typename
         color             #DEB63A
 
       &.lang-go
@@ -1204,15 +1254,15 @@ body.profile
           color           #6096BE
 
       &.lang-css
-        .pseudo
+        .hljs-pseudo
           color           #DEB63A
 
-        .id
-        .tag
-        .class
+        .hljs-id
+        .hljs-tag
+        .hljs-class
           color           #9B8298
 
-        .attribute
+        .hljs-attribute
           color           #6096BE
 
 .activity-share-popup
@@ -1354,7 +1404,117 @@ body.profile
         border-top       1px solid #d3d3d3
 
 
+// Group Activity
+body.group.activity
+  .content-page
+    margin-top             55px
+    min-height             2070px
 
+    main
+      margin-top           24px
+
+    > aside
+      padding-top          306px
+
+      .group-description
+        font-size          13px
+        line-height        17px
+        letter-spacing     .2px
+        color              #4a4a4a
+        padding            17px 0 0
+        font-weight        400
+        opacity            .9
+
+      .group-members
+        .kdscrollview
+          height           auto
+          max-height       217px
+        .kdlistview
+          padding          20px 0 0
+        .kdlistitemview
+          display          inline-block
+          size             auto auto
+        .avatarview
+          margin           0 8px 8px 0
+          fl()
+          rounded          4px
+          img
+            rounded        4px
+
+          &:nth-of-type(4n)
+            margin-right   0
+
+
+    .group-cover-view
+      max-width            948px
+      line-height          0
+      height               316px
+      bg                   color, #e6e6e6
+      margin               0 auto
+      kalc                 margin-right, 50% \- 462px
+      z-index              3
+      bg                   size, 948px \, 316px
+      bg                   image, -webkit-linear-gradient(90deg\, rgba(0, 0, 0, .1) 50%\, transparent 50%) \,
+                                  -webkit-linear-gradient(0deg\, rgba(0, 0, 0, .1) 50%\, transparent 50% \, transparent 100% \, rgba(0, 0, 0, .1) 100%)
+      bg                   image, -moz-linear-gradient(90deg\, rgba(0, 0, 0, .1) 50%\, transparent 50%) \,
+                                  -moz-linear-gradient(0deg\, rgba(0, 0, 0, .1) 50%\, transparent 50% \, transparent 100% \, rgba(0, 0, 0, .1) 100%)
+      .avatarview
+      .avatarview img
+        rounded            0
+
+      .kdscrollview
+        overflow           hidden
+
+
+      figure
+        abs                0 0 0 0
+        size               100%, 100%
+        bg                 size cover
+
+      .kdlistview-collage
+        width              100%
+
+        .kdlistitemview
+          display          inline-block
+          size             auto auto
+
+      .kdbutton.update-cover
+        abs                0 27px 27px 0
+        margin             0
+        padding            0 0 0 14px
+        font-size          13px
+        font-weight        400
+        color              #fff
+        size               auto, 36px
+        line-height        35px
+        z-index            5
+        rounded            12px
+        bg                 color, #1aaf5d
+        border             1px solid #159950
+
+        .button-title
+          padding          0
+          line-height      35px
+          color            inherit
+          font-size        inherit
+          font-weight      inherit
+
+        .icon
+          r-sprite         activity image
+          margin           9px 13px 0 9px
+          padding          0
+          fr()
+
+  .kdmodal.group-cover-uploader
+    .kdmodal-content
+      figure
+        bg                size, cover
+      .kdloader
+        abs               50% 0 0 50%
+        margin            -47px 0 0 -47px
+        padding           15px
+        rounded           50%
+        background        rgba(255,255,255,.8)
 
 
 // Crawlable //
@@ -1370,3 +1530,99 @@ nav.crawler-pagination
     color                 #b1b1b1
     noTextDeco()
     fl()
+
+
+// Group Members //
+body.group.members
+  .content-page.members
+    .header-view-section
+      margin              42px 0 12px
+      border              none
+
+      .section-title
+        font-size         20px
+        color             #1aaf5d
+        font-weight       400
+
+  .kdlistitemview-member
+    margin                0 0 1px
+    background            #fff
+    rounded               6px
+    padding               24px 28px 20px 88px
+
+    .avatarview
+      left                20px
+      top                 17px !important
+
+    .profile
+      margin              6px 0 0
+      padding             0
+      font-size           14px
+      font-weight         400
+      color               #616161
+
+    .user-numbers
+      float               none
+      padding             0
+      font-size           12px
+      color               #b0b0b0
+      margin              24px 0 0
+      line-height         14px
+
+    .follow-button
+      fr()
+
+      &.light-gray:hover
+        bg                   color #E94835
+        span.button-title
+          color              white
+
+// referral-modal
+.referrer-modal
+  line-height         1.8em
+  p
+    margin-bottom     15px
+    &.center
+      color           #999
+      font-size       13px
+      text-align      center
+  .content .title
+    margin-bottom     36px !important
+
+  .share-url-input
+    width           320px !important
+
+  .share-url-label
+    display         block
+    font-weight     400
+    font-size       12px
+
+  .share-links
+    size            140px 30px
+    margin-top      -30px
+    position        relative
+    left            330px
+    top             -13px
+
+    .share-icon
+      border        none
+      size          30px 30px
+      rounded       50%
+      padding       0
+      margin        0 0 0 8px
+      background    none
+
+      &.twitter
+        r-sprite    "activity", "inv-twitter"
+      &.facebook
+        r-sprite    "activity", "inv-facebook"
+      &.linkedin
+        r-sprite    "activity", "inv-linkedin"
+
+  a.mail
+    color           #606060
+    font-weight     500
+    position        relative
+    line-height     40px
+
+

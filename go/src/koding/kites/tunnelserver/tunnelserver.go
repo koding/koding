@@ -6,7 +6,7 @@ import (
 	"flag"
 	"fmt"
 	"github.com/op/go-logging"
-	"koding/newkite/kite"
+	"koding/kite"
 	"koding/tunnel"
 	"net/http"
 )

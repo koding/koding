@@ -10,25 +10,31 @@ class PaymentMethodEntryForm extends KDFormViewWithFields
       expiresMonth  %= 12
 
     fields =
-
       cardFirstName       :
-        label             : 'Name'
         placeholder       : 'First name'
         defaultValue      : KD.whoami().profile.firstName
-        required          : 'First name is required!'
+        validate          :
+          notifications   : yes
+          event           : "blur"
+          rules           :
+            required      : yes
+          messages        :
+            required      : 'First name is required!'
         keyup             : @bound 'updateDescription'
+        cssClass          : "card-name"
         nextElementFlat   :
           cardLastName    :
             placeholder   : 'Last name'
             defaultValue  : KD.whoami().profile.lastName
-            required      : 'Last name is required!'
-
-      cardDescription     :
-        label             : 'Description'
-        cssClass          : 'hidden'
+            validate      :
+              notifications: yes
+              event       : "blur"
+              rules       :
+                required  : yes
+              messages    :
+                required  : 'Last name is required!'
 
       cardNumber          :
-        label             : 'Credit card'
         placeholder       : 'Credit card number'
         blur              : ->
           @oldValue = @getValue()
@@ -36,53 +42,83 @@ class PaymentMethodEntryForm extends KDFormViewWithFields
         focus             : ->
           @setValue @oldValue  if @oldValue
         validate          :
+          notifications   : yes
           event           : 'blur'
           rules           :
             creditCard    : yes
             maxLength     : 16
           messages        :
             maxLength     : 'Credit card number should be 12 to 16 digits long!'
-        nextElementFlat   :
-          cardCV          :
-            placeholder   : 'CVC'
-            validate      :
-              rules       :
-                required  : yes
-                regExp    : /[0-9]{3,4}/
-              messages    :
-                required  : 'Card verification code (CVC) is required!'
-                regExp    : 'Card verification code (CVC) should be a 3- or 4-digit number!'
 
       cardMonth           :
-        label             : 'Expires'
-        itemClass         : KDSelectBox
-        selectOptions     : __utils.getMonthOptions()
-        defaultValue      : expiresMonth
+        placeholder       : "MM"
+        maxLength         : 2
+        validate          :
+          notifications   : yes
+          event           : 'blur'
+          rules           :
+            maxLength     : 2
+            regExp        : do ->
+              remainingMonths = KD.utils
+                .getMonthOptions()
+                  .slice((new Date).getMonth() - 1)
+                .map((item)-> item.title)
+                .join '|'
+              return ///#{remainingMonths}///
+          messages        :
+            regExp        : "Expiration month should be 2 digits and between 01 to 12"
         nextElementFlat   :
           cardYear        :
-            itemClass     : KDSelectBox
-            selectOptions : (__utils.getYearOptions thisYear, thisYear + 25)
-            defaultValue  : expiresYear
+            placeholder   : "YY"
+            maxLength     : 2
+            validate      :
+              notifications: yes
+              event       : 'blur'
+              rules       :
+                regExp    : do ->
+                  twoDigitsYear = (new Date).getFullYear()%100
+                  yearOptions   = [twoDigitsYear...twoDigitsYear+15].join '|'
+                  return ///#{yearOptions}///
+              messages    :
+                regExp    : "Expiration year should be between #{twoDigitsYear = (new Date).getFullYear()%100} to #{twoDigitsYear+14}"
+      cardCV              :
+        placeholder       : 'CVC'
+        validate          :
+          notifications   : yes
+          event           : 'blur'
+          rules           :
+            regExp        : /^[0-9]{3,4}$/
+          messages        :
+            regExp        : 'Card verification code (CVC) should be a 3 or 4-digit number!'
 
     super
-      cssClass              : KD.utils.curry 'payment-form', options.cssClass
+      cssClass              : KD.utils.curry 'payment-method-entry-form', options.cssClass
+      name                  : 'method'
       fields                : fields
       callback              : (formData) =>
         @emit 'PaymentInfoSubmitted', @paymentMethodId, formData
       buttons               :
         Save                :
-          title             : 'Save'
-          style             : 'modal-clean-green'
+          title             : 'ADD CARD'
+          style             : 'solid medium green'
           type              : 'submit'
-          loader            : { color : '#fff', diameter : 12 }
+          loader            :
+            color           : '#ffffff'
+            diameter        : 26
+        BACK                :
+          style             : 'medium solid light-gray to-left'
+          callback          : => @parent.showForm 'choice'
 
   viewAppended:->
     super()
 
     { cardNumber: cardNumberInput } = @inputs
-
     cardNumberInput.on 'keyup', @bound 'handleCardKeyup'
-    @on 'FormValidationFailed', => @buttons.Save.hideLoader()
+
+    @on 'FormValidationFailed', (err)=>
+      KD.utils.wait 500, => @unsetClass 'animate shake'
+      @setClass 'animate shake'
+      @buttons.Save.hideLoader()
 
     cardNumberInput.on "ValidationError", ->
       @parent.unsetClass "visa mastercard amex diners discover jcb"
@@ -100,11 +136,12 @@ class PaymentMethodEntryForm extends KDFormViewWithFields
 
     @updateDescription()
 
+
   activate: ->
     { cardFirstName, cardLastName, cardNumber } = @inputs
     for input in [cardFirstName, cardLastName, cardNumber]
       return input.setFocus()  unless input.getValue()
-        
+
   getCardInputValue:->
     @inputs.cardNumber.getValue().replace /-|\s/g, ''
 
@@ -139,7 +176,7 @@ class PaymentMethodEntryForm extends KDFormViewWithFields
       when 'Unknown', undefined then 'credit card'
       else formData.cardType
     cardOwner = if cardFirstName then "#{ cardFirstName }'s " else ''
-    inputs.cardDescription.setPlaceHolder "#{ cardOwner }#{ cardType }"
+    # inputs.cardDescription.setPlaceHolder "#{ cardOwner }#{ cardType }"
 
   handleCardKeyup: (event) -> @updateCardTypeDisplay()
 

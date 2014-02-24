@@ -1,12 +1,14 @@
 package mapping
 
 import (
-	"fmt"
+	"koding/tools/logger"
 	"labix.org/v2/mgo/bson"
 	"reflect"
 	"strconv"
 	"time"
 )
+
+var log = logger.New("mapping")
 
 // converts multi dimensional array into 2D
 func ConvertTo2DMap(start string, data map[string]interface{}) map[string]interface{} {
@@ -73,8 +75,8 @@ func ConvertTo2DMap(start string, data map[string]interface{}) map[string]interf
 			result[k] = v.(time.Time).UTC().Format("2006-01-02T15:04:05.000Z")
 		default:
 			//there might be some others but, for now they are OK
-			fmt.Println(typeOfKey)
-			fmt.Println("...")
+			log.Info(typeOfKey)
+			log.Info("...")
 		}
 	}
 	return result

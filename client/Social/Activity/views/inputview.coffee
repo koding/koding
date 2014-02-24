@@ -1,7 +1,5 @@
 class ActivityInputView extends KDTokenizedInput
 
-  {JTag} = KD.remote.api
-
   constructor: (options = {}, data) ->
     options.cssClass         = KD.utils.curry "input-view", options.cssClass
     options.type           or= "html"
@@ -124,7 +122,7 @@ class ActivityInputView extends KDTokenizedInput
 
   getTokenFilter: ->
     switch @activeRule.prefix
-      when "#" then (token) -> token instanceof JTag
+      when "#" then (token) -> token instanceof KD.remote.api.JTag
       else noop
 
   fillTokenMap = (tokens, map) ->

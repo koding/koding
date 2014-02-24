@@ -48,12 +48,15 @@ resurrection.account.dropdown.styl
     right                   295px
     .tab span
       margin                19px 0 0 3px
-      r-sprite                app account-notifications
+      r-sprite              app account-notifications
 
   &.group-switcher
-    right                   54px
+    right                   55px
     width                   238px
     rounded                 0 0 5px 5px
+    &.submenu
+    &.submenu .content
+      rounded               0 0 0 5px
     .tab
       hidden()
     .content
@@ -63,23 +66,27 @@ resurrection.account.dropdown.styl
       shadow                none
 
     a.separator
-      border-top           1px solid #3c4647
+      border-top            1px solid #2F3435
+
+    .bb
+      border-bottom         1px solid #2F3435
 
     .kdscrollview
       max-height            322px !important
 
 
-
-    .avatararea-popup-list li a
+    .avatararea-popup-list li a.avatararea-group-name
     a.bottom
       display               block
       padding               10px 12px
       color                 white
       font-size             13px
+      line-height           20px
       font-weight           300
       text-decoration       none
       &:hover
-        text-decoration     underline
+        text-decoration     none
+        bg                  color, logoBg
       span
         font-weight         300
         color               white
@@ -88,6 +95,11 @@ resurrection.account.dropdown.styl
       li
         padding             0
         border-bottom       none
+        &:hover
+          text-decoration   none
+          bg                color, logoBg
+        &~li
+          border-top        none
         a.fr
           abs()
           top               7px
@@ -96,12 +108,38 @@ resurrection.account.dropdown.styl
           border            1px solid #e3e3e3
           margin-right      10px
           size              20px, 20px
-        .custom-link-view .icon.new-page
-          bg                position, -180px -520px
-          opacity           .2
+
+        .custom-link-view.admin-icon
+          display           block
+          padding           10px 12px
+          top               0
+          right             0
+          abs()
+
+        .custom-link-view .icon
+          size              20px 20px
+          display           block
+          kdfsprite()
+
+        .avatararea-group-name
+          padding-right     40px
+
+        &:hover
+          .custom-link-view .icon.dashboard-page
+            r-sprite        app '20-cog-white'
+
         .custom-link-view .icon.dashboard-page
-          bg                position, -180px -440px
-          opacity           .2
+          r-sprite          app '20-cog'
+          opacity           .5
+
+        .avatararea-group-logo
+          margin            4px 8px 0 6px
+          rounded           4px
+          size              30px 30px
+          border            none
+          bg                size cover
+          fl()
+
         .buttons
           fr()
           button span.accept
@@ -165,11 +203,10 @@ resurrection.account.dropdown.styl
       size                  45px 45px
       fl()
 
-    p, time
+    .fr
       kalc                  width, 100% \- 56px
-      fr()
 
-    p
+    div
       font-size             12px
       color                 #8f98a1
       line-height           15px

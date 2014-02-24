@@ -1,5 +1,17 @@
 log = -> logger.info arguments...
 
+log4js  = require 'log4js'
+logger  = log4js.getLogger('social')
+
+log4js.configure {
+  appenders: [
+    { type: 'console' }
+    { type: 'file', filename: 'logs/social.log', category: 'social' }
+    { type: "log4js-node-syslog", tag : "social", facility: "local0", hostname: "localhost", port: 514 }
+  ],
+  replaceConsole: true
+}
+
 {argv} = require 'optimist'
 
 {exec} = require 'child_process'
@@ -99,6 +111,8 @@ koding.on 'authenticateUser', (client, callback)->
   {delegate} = client.connection
   callback delegate
 
+koding.on "errFirstDetected", (err)-> console.error err
+
 koding.connect ->
   (require './init').init koding
 
@@ -116,13 +130,9 @@ koding.connect ->
     require('./traits/slugifiable').updateSlugsByBatch 100, [
       require './models/tag'
       require './models/app'
-      require './models/messages/codesnip'
-      require './models/messages/discussion'
-      require './models/messages/tutorial'
     ]
 
   if KONFIG.misc?.debugConnectionErrors then
-    # console.log 'ffaafafafaf'
     # TEST AMQP WITH THIS CODE. IT THROWS THE CHANNEL ERROR.
     # koding.disconnect ->
     #   console.log "[SOCIAL WORKER #{name}] is reached end of its life, will die in 10 secs."
@@ -130,7 +140,16 @@ koding.connect ->
     #     process.exit()
     #   ,10*1000
 
-console.log "Koding Social Worker #{process.pid} has started."
+console.info "Koding Social Worker #{process.pid} has started."
 
 # require './followfeed' # side effects
+express = require 'express'
+cors = require 'cors'
+app = express()
+app.use express.compress()
+app.use express.bodyParser()
+app.use cors()
 
+app.post '/xhr', koding.expressify()
+
+app.listen argv.p

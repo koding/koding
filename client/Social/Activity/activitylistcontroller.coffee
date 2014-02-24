@@ -34,17 +34,17 @@ class ActivityListController extends KDListViewController
       subject  = @prepareSubject post
       instance = @addItem subject, 0
 
+      return  unless instance
+
       if bugTag and not @isMine subject
         instance.hide()
         @hiddenItems.push instance
 
-      if @activityHeader?.liveUpdateToggle.getState().title isnt 'live' and\
-         not @isMine subject
-
+      liveUpdate = @activityHeader?.liveUpdateToggle.getState().title is 'live'
+      if not liveUpdate and not @isMine subject
         instance.hide()
         @hiddenItems.push instance
         @activityHeader.newActivityArrived() unless bugTag
-
 
   prepareSubject:(post)->
     {subject} = post

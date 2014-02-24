@@ -10,13 +10,15 @@ import (
 	"koding/db/mongodb"
 	"koding/tools/amqputil"
 	"koding/tools/config"
+	"koding/tools/logger"
 	"labix.org/v2/mgo"
-	"log"
 	"net/http"
 	"strconv"
 	"strings"
 	"time"
 )
+
+var log = logger.New("sync")
 
 type strToInf map[string]interface{}
 
@@ -29,14 +31,14 @@ var (
 )
 
 func main() {
-	log.Println("Sync worker started")
+	log.Info("Sync worker started")
 
 	amqpChannel := connectToRabbitMQ()
-	log.Println("Connected to Rabbit")
+	log.Info("Connected to Rabbit")
 
 	err := mongodb.Run("relationships", createQuery(amqpChannel))
 	if err != nil {
-		fmt.Println("Error >>>", err)
+		log.Fatal("Connecting to Mongo: %v", err)
 	}
 }
 
@@ -51,7 +53,7 @@ func createQuery(amqpChannel *amqp.Channel) func(coll *mgo.Collection) error {
 
 		totalCount, err := query.Count()
 		if err != nil {
-			log.Println("Err while getting count, exiting", err)
+			log.Error("While getting count, exiting: %v", err)
 			return err
 		}
 
@@ -69,7 +71,7 @@ func createQuery(amqpChannel *amqp.Channel) func(coll *mgo.Collection) error {
 		for {
 			// if we reach to the end of the all collection, exit
 			if index >= totalCount {
-				log.Println("All items are processed, exiting")
+				log.Info("All items are processed, exiting")
 				break
 			}
 
@@ -92,25 +94,25 @@ func createQuery(amqpChannel *amqp.Channel) func(coll *mgo.Collection) error {
 				}
 
 				index++
-				log.Println(index)
+				log.Info("Index: %v", index)
 			}
 
 			if err := iter.Close(); err != nil {
-				log.Println(err)
+				log.Error("Iteration failed: %v", err)
 			}
 
 			if iter.Timeout() {
 				continue
 			}
 
-			log.Printf("iter existed, starting over from %v  -- %v  item(s) are processsed on this iter", index+1, index-skip)
+			log.Info("iter existed, starting over from %v  -- %v  item(s) are processsed on this iter", index+1, index-skip)
 			iteration++
 		}
 
 		if iteration == MAX_ITERATION_COUNT {
-			log.Printf("Max iteration count %v reached, exiting", iteration)
+			log.Info("Max iteration count %v reached, exiting", iteration)
 		}
-		log.Printf("Synced %v entries on this process", index-skip)
+		log.Info("Synced %v entries on this process", index-skip)
 
 		return nil
 	}
@@ -140,7 +142,7 @@ func createRelationship(rel oldNeo.Relationship, amqpChannel *amqp.Channel) {
 
 	neoMessage, err := json.Marshal(eventData)
 	if err != nil {
-		log.Println("unmarshall error")
+		log.Error("unmarshall error: %v", err)
 		return
 	}
 
@@ -245,11 +247,11 @@ func checkRelationshipExists(sourceId, targetId, relType string, flipped bool) b
 	case 1:
 		return true
 	default:
-		log.Printf("multiple '%v' rel %v", relType, relIds)
+		log.Info("multiple '%v' rel %v", relType, relIds)
 
 		if relType == "member" || relType == "creator" || relType == "author" {
 			deleteDuplicateRel(relIds[1:])
-			log.Printf("deleted multiple '%v' rel", relType)
+			log.Info("deleted multiple '%v' rel", relType)
 		}
 	}
 
@@ -267,7 +269,7 @@ func deleteDuplicateRel(relIds []string) {
 
 	_, err := batch.Execute()
 	if err != nil {
-		log.Println("err deleting rel", err)
+		log.Error("err deleting rel: %v", err)
 	}
 }
 
@@ -308,5 +310,5 @@ func getRelIdFromUrl(nodeSelf string) string {
 }
 
 func logError(result oldNeo.Relationship, errMsg string) {
-	log.Printf("id: %v, type: %v, source: {%v %v} target: {%v %v}; err: %v", result.SourceId.Hex(), result.As, result.SourceId.Hex(), result.SourceName, result.TargetId.Hex(), result.TargetName, errMsg)
+	log.Error("id: %v, type: %v, source: {%v %v} target: {%v %v}; err: %v", result.SourceId.Hex(), result.As, result.SourceId.Hex(), result.SourceName, result.TargetId.Hex(), result.TargetName, errMsg)
 }

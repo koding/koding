@@ -5,8 +5,8 @@ import (
 	"flag"
 	"fmt"
 	"github.com/op/go-logging"
-	"koding/newkite/kite"
-	"koding/newkite/protocol"
+	"koding/kite"
+	"koding/kite/protocol"
 	"koding/tunnel"
 )
 

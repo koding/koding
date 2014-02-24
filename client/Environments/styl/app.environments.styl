@@ -8,6 +8,100 @@ app.environments.styl
 */
 }
 
+section.resources-container
+  size                 100% 105px
+  bg                   color #ebebeb
+  bottom               0
+  z-index              1
+  border-top           1px solid #c1c1c1
+  shadow               0 -5px 21px rgba(0, 0, 0, .11)
+  fix()
+
+  header
+    bg                 color headerBg
+    size               180px 100%
+    color              white
+    padding            20px 25px
+    borderBox()
+    fl()
+
+    h3
+      font-size        18px
+      line-height      1
+    h4
+      font-size        12px
+      line-height      1
+      color            #888
+      margin           3px 0 13px
+
+  > section
+    overflow           hidden
+    width              auto
+    height             100%
+
+    .subscription-gauges
+      height           100%
+      kalc             width, \(100% \- 180px\)\/2
+      padding-top      22px
+      padding-right    30px
+      border-right     1px solid #c1c1c1
+      fl()
+      &:last-child
+        border-right   none
+
+
+      span.title
+        top            5px
+        font-size      12px
+        color          #aaa
+        text-transform uppercase
+        margin-left    90px
+        abs()
+
+      .kdlistitemview
+        margin          0 0 12px
+        width           50%
+
+        fl()
+        &.kdlistitemview-group
+        &.kdlistitemview-user
+          hidden()
+        &.kdlistitemview.vm-turn-on
+          .bar
+            bg          color #ea8779
+        &.kdlistitemview.vm-usage
+          .bar
+            bg          color #73cb9b
+        &.kdlistitemview.always-on
+          .bar
+            bg          color #f8cf81
+
+      label
+        text-transform  uppercase
+        font-size       12px
+        line-height     25px
+        min-width       90px
+        text-align      center
+        color           headerBg
+        font-weight     400
+        margin-right    0
+        fl()
+
+      .progressbar-container
+        height          25px
+        kalc            width, 100% \- 90px
+        border          none
+        bg              color #d5d5d5
+        bg              image none
+        rounded         4px
+        fl()
+        .bar
+          bg            image none
+          bg            color #ea8779
+          rounded       4px
+          shadow        none
+
+
 .vm-details-modal
   width                200px
 
@@ -21,51 +115,7 @@ app.environments.styl
     float              right
 
 .environment-content
-
-  .domains-no-record
-    text-align         center
-    padding            20px
-    display            block
-    font-size          18px
-    color              #aaa
-    text-shadow        0 1px 0 #fff
-
-  .formline
-    border              none
-
-  .formline.suggestionbox
-    padding-top         0
-
-  .formline.domainname
-    padding-left        25px
-    input.text
-      max-width         400px
-      padding           2px 10px
-      line-height       32px
-      height            36px
-      font-size         14px
-
-      &.domain
-        padding-right   117px
-        margin-right    0
-
-    .kdselectbox.domains
-      position          absolute
-      top               6px
-      right             -4px
-
-    > .input-wrapper
-      width             400px
-      height            36px
-      margin-right      0
-      rel()
-
-      > *
-        margin-right    10px
-
-  &.in-progress
-    .new-item-plus
-      display           none !important
+  overflow             auto
 
   h1.kdheaderview
     z-index               2
@@ -154,11 +204,52 @@ app.environments.styl
         .icon
           bg            position, -60px -500px
 
+  .environment-help
+    height              auto
+    margin              0 auto
+    background          white
+
+    h1
+      padding           30px
+      font-size         42px
+      font-weight       100
+      padding-left      0
+
+    .content
+      height            100px
+      padding           14px
+      line-height       22px
+      width             936px
+      margin            0 auto
+      font-weight       100
+      font-size         21px
+
+      .video
+        width           260px
+        height          120px
+        margin          45px auto
+        border-radius   10px
+        r-sprite        environments, "play"
+
+  .top-warning
+    padding             10px 0 20px 0
+    height              20px
+    background          #FFF
+    margin-bottom       20px
+    padding-left        0
+
+    a
+      text-decoration   underline
+
+    .content
+      width             936px
+      margin            0 auto
+      font-weight       200
+
   .action-area
-    bg                  color, #bbb
     z-index             0
-    vendor              transform-style, preserve-3d
-    vendor              perspective, 1000px
+    top                 0
+    padding-top         55px
     borderBox()
     abs()
     &.in
@@ -170,12 +261,6 @@ app.environments.styl
   .kddia-scene
     left                0
     border-radius       0
-    vendor              transition, left .3s ease
-    bg                  color, white
-    &.out
-      left              500px
-      border-left       1px solid #ccc
-      box-shadow        0 0 10px 1px #ccc
 
   .record-form-view
     padding             0
@@ -464,7 +549,6 @@ app.environments.styl
     padding    5px
     height     25px
     color      #fff
-    border     1px solid #eee
     border            1px solid #ccc
     text-transform    uppercase
     color             #000
@@ -698,195 +782,37 @@ app.environments.styl
 
 
 /*--- Add a domain -----*/
+.environments-add-domain-form
+  input.kdinput
+    background      #fff !important
 
-div.environments-add-domain-form
+    &.text
+      padding-left  14px
 
-  width                 500px
-  height                100%
-  padding               30px
-  bg                    color, #e8e8e8
-  opacity               0
-  vendor                transform-origin-x, 0
-  vendor                transform, rotateY(90deg)
-  -webkit-transition    -webkit-transform .4s ease \,\
-                        opacity           .4s ease
-  -moz-transition       -moz-transform    .4s ease \,\
-                        opacity           .4s ease
-  transition            transform         .4s ease \,\
-                        opacity           .4s ease
-  borderBox()
+  label
+    font-size       14px
+    color           #969696
+    font-weight     500
 
-  &.opened
-    opacity             1
-    vendor              transform, rotateY(0)
+  .kdselectbox.main-domain-select
+    abs             5px 5px 0 0
 
-  h4.kdheaderview
-    display             block
-    height              30px
-    line-height         30px
-    border-bottom       1px solid #d9d9d9
-    shadow              0 1px 0 #f5f5f5
-
-    span
-      margin            0 11px
-
-    button.small-gray
-      margin            3px 0 0 0
-      fr()
-
-  fieldset.domain-option-group
-    padding           20px 0
-    padding-bottom    0
-
-    .kd-radio-holder
-      width           140px
-      padding         0
-      margin          0
-      font-size       11px
-      color           #8c8c8c
-      height          32px
-      line-height     32px
-      rounded         3px
-      background      #f7f7f7
-      text-align      center
-      shadow          0 1px 2px rgba(0, 0, 0, .2) \,\
-                      inset 0 -3px 0 #e8e8e8
-      text-shadow     0 1px 0 #fff
-      border-bottom
-      fl()
-
-      &~.kd-radio-holder
-        margin-left       10px
-
-      &.disabled
-        opacity           .5
-        cursor            default
-        *
-          cursor          default
-
-      &.active
-        shadow            0 1px 2px rgba(0, 0, 0, .2) \,\
-                          inset 0 -3px 0 #ffa800
-        position          relative
-
-      &.active:after
-        content         ""
-        display         block
-        border          5px solid transparent
-        border-top      7px solid #ffa800
-        left            64px
-        top             32px
-        abs()
-
-      input[type=radio]
-        display         none
-
-  .domain-tabs
-    height              auto
-    overflow            hidden
-
-    .status-message
-      top               64px
-      left              64px
-      opacity           0
-      vendor            transition, opacity  .2s ease-in\,
-                                    left     .3s ease-in
-      abs()
-
-      &.in
-        left            4px
-        opacity         1
-
-    .domain-list
-      left              30px
-      opacity           0
-      margin-top        5px
-      height            285px
-      vendor            transition, opacity  .3s ease-out\,
-                                    left     .2s ease-out
-      &.in
-        left            0
-        opacity         1
-
-      .kdlistview
-        padding-right   2px
-
-    .domain-buy-items
-      background        rgba(255,255,255,.6)
-      border-radius     2px
-      border            1px solid #ccc
-      margin-top        6px
-      height            36px
-
-      h1
-        font-size       14px
-        padding         10px
-
-      button
-        width           42px
-        right           6px
-        top             6px
-        abs()
-
-      .kdselectbox
-        height          22px
-        right           55px
-        top             6px
-        abs()
-
-  form.new-domain-form
-    padding             0
-    margin              0
-
-    .formline
-      padding           0
-      margin            0
-
-    label.domain-name
-      display             block
-      float               none
-      color               #8c8c8c
-      text-shadow         0 1px 0 #fff
-      font-size           11px
-
-    input.domain-input
-      height              35px
-      line-height         35px
-      shadow              0 1px 0 #fff
-      margin-top          19px
-      margin-bottom       1px
-      padding             0 140px 0 10px
-      borderBox()
-
-    .kdselectbox.main-domain-select
-      top                25px
-      right              5px
-      abs()
-
-  .formline.button-field
-    bg                   color, transparent
-
-    .kdbutton.add-domain
-      fr()
-      margin-top         10px
-      font-size          14px
-      font-weight        normal
-      width              174px
-
-  form+p.success
-    border               1px solid #bbb
-    shadow               inset 0 0 0 1px #fff
-    padding              20px
-    clear                both
-    border               1px solid rgba(89, 130, 77, 0.18);
-    fl()
 
 /*--- Scene -----*/
 
 div.environments-scene
 
-  bg                image, url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAgAAAAICAYAAADED76LAAAAHElEQVQYV2M8fPhwmq2t7SwGHIARlwRMfHgoAAAWpAQJz4XcBAAAAABJRU5ErkJggg==")
-  background-color  white
+  bg                    image, url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAO0lEQVQYV2NkIA4YMxKhzhio5iwhhWBFIMPwKYQrwqcQRREuhRiKsCnEqghdIU5FyArxKoIpJKgIpBAAuKUJPnltMzUAAAAASUVORK5CYII=")
+  bg                    image, url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAQElEQVQYV2NkIALk5eUZMxJSB1I0adKks3gVwhSBDMOpEFkRToXoirAqxKYIQyEuRSgK8SmCKySkCKyQGEUghQAU3yWIL9S7NgAAAABJRU5ErkJggg==")
+  background-color      #EBEBEB
+
+  width                 934px
+  margin                0 auto
+  height                100%
+
+  canvas
+    left                -8px
+    top                 -2px
 
   .zoom-slider
     right               50px
@@ -948,96 +874,118 @@ div.environments-scene
     span.button-title
       line-height       19px
 
+div.environment-stack
+
+  height                36px
+  border                1px solid #BBB
+  width                 934px
+  margin                8px auto
+  border-radius         3px
+  vendor                transition, height .2s ease
+
+  .stack-title
+    height              auto
+    padding             10px
+    font-weight         100
+    font-size           29px
+
+  .stack-toggle
+    top                 8px
+    right               10px
+    abs()
+
 div.environments-container
 
-  width           240px
+  width           220px
   height          100%
-  border          1px dashed #ccc
-  border-top      none
-  border-bottom   none
-  border-radius   0
-  background      rgba(205,205,205,.07)
   overflow-y      scroll
+  margin-top      15px
   noTextSelection()
 
   &::-webkit-scrollbar
     width         0
 
+  &.firewall
+    .kdheaderview
+      background          #4E89D3
+
+  &.domains
+    .kdheaderview
+      background          #4ED393
+
+  &.machines
+    .kdheaderview
+      background          #EBA612
+
+  &.extras
+    .kdheaderview
+      background          #FF676E
+
   .kdheaderview
-    padding       14px 0
-    text-indent   14px
     border        none
+    font-weight   200
+    color         white
+    border-radius 2px
+    width         180px
+    margin-left   20px
+    height        33px
+    margin-top    13px
+    font-size     18px
 
-    .new-item-plus
-      size                20px, 20px
-      margin              5px 20px 0 0
-      rounded             12px
-      background-color    #555
-      border              1px solid #555
-      cursor              pointer
-      vendor              transition, width .2s ease-in
-      position            relative
-      overflow            hidden
-      fr()
+  .add-button
+    margin-left               20px
+    width                     180px
+    height                    30px
+    border                    1px dashed #ccc
+    border-radius             3px
+    background                #EEE
+    color                     #999
+    font-weight               bold
+    font-size                 16px
+    padding-bottom            7px
+    abs()
 
-      i
-        display                 block
-        size                    20px, 25px
-        kdfsprite()
-        background-position     -120px -440px
-        left                    0px
-        top                     0px
-        abs()
-
-      span
-        left                    5px
-        top                     0
-        height                  25px
-        line-height             20px
-        font-size               11px
-        text-align              left
-        white-space             nowrap
-        margin                  0
-        font-weight             600
-        color                   #fff
-        vendor                  transition, opacity  .1s ease-in
-        opacity                 0
-        abs()
-
-      &:hover
-        width                 73px
-
-        span
-          opacity             1
-
-    .new-item-loader
-      abs         19px, 10px
+    &:hover
+      background              white
+      border                  1px solid #ccc
 
 div.environments-item
 
   cursor          default
-  width           200px
-  height          40px
-  border          1px solid rgba(217, 216, 217, 1.0)
-  border-left     5px solid rgba(217, 216, 217, 1.0)
-  gradient        rgba(252, 253, 253, 1.0), rgba(228, 229, 230, 1.0)
+  width           180px
+  height          34px
+  background      white
+  border          none
   rounded         2px
   vendor          transition, opacity .3s ease
   noTextSelection()
   borderBox()
 
+  span.url
   span.chevron
-    display       none
+  span.terminal
     size          14px, 14px
-    bottom        2px
-    right         2px
-    bg            position, -182px -363px
-    kdfsprite()
+    bottom        10px
+    right         10px
+    r-sprite      environments 'gear'
+    display       block
+
+  span.terminal
+    r-sprite      environments 'terminal'
+    cursor        pointer
+    right         32px
+
+  span.url
+    r-sprite      environments 'link'
+    right         56px
 
   &:hover
-    gradient      white, #efefef // rgba(254, 255, 255, 1.0), rgba(222, 233, 234, 1.0)
-    span.chevron
-      display     block
+    // gradient      white, #efefef // rgba(254, 255, 255, 1.0), rgba(222, 233, 234, 1.0)
+    background    rgba(255,255,255,.6)
+    .environments-joint
+      opacity     1
+    // span.chevron
+    //   display     block
 
   .status-indicator
 
@@ -1060,30 +1008,62 @@ div.environments-item
 
   &.highlight
     gradient      white, white // rgba(244, 244, 244, 1.0)
-    shadow        0 0 6px #eee
-    border-top    1px solid #aaa
-    border-right  1px solid #aaa
-    border-bottom 1px solid #aaa
+    // shadow        0 0 6px #eee
+
+  span.toggle
+    size          6px, 34px
+    background    #eee
+    border-radius 2px 0 0 2px
+    top           0
+    left          0
 
   h3
-    margin-top    -2px
-    font-size     12px
-    margin-bottom  2px
-    width         100%
+    font-size     13px
+    font-weight   200
+    color         #333
+    width         130px
+    line-height   17px
     overflow      hidden
     white-space   nowrap
     text-overflow ellipsis
+    padding-left  6px
 
   div.details
     padding       8px
     span
       font-size   10px
       color       #aaa
-      margin-top  -2px
       abs()
 
+  &.rule
+    span.chevron
+      display         none
+    span.toggle
+      background      #4E89D3
+
+  &.domain
+    span.toggle
+      background      #4ED393
+
+  &.extras
+    span.chevron
+      display         none
+    span.toggle
+      background      #FF676E
+
   &.machine
-    height            50px
+    // height            50px
+
+    span.url
+    span.chevron
+    span.terminal
+      bottom          10px
+
+    span.chevron
+      r-sprite        environments 'menu'
+
+    span.toggle
+      background      #EBA612
 
     div.progressbar-container
       top             25px
@@ -1105,12 +1085,15 @@ div.environments-item
       height          10px
 
 div.environments-joint
+
   size              4px, 4px
   background-color  #ccc
   border            none
+  opacity           0
 
   &.deleteMode
     size             14px,14px
+    opacity          1
     z-index          2
     border           1px solid white
     borderBox()
@@ -1126,10 +1109,10 @@ div.environments-joint
       right         -7px
 
   &.left
-    left            -7px
+    left            -3px
     margin-top      -2px
     &.deleteMode
-      left          -12px
+      left          -8px
       margin-top    -7px
 
 .environments-cs-container
@@ -1156,3 +1139,64 @@ div.environments-joint
   .kdmodal-content
     div
       padding          20px
+
+
+.add-vm-modal
+  .add-vm-box
+    background         #f3f7fa
+    size               220px, 227px
+    padding            25px 35px 0
+    color              #50595a
+    rounded            2px
+    borderBox()
+    fl()
+
+    &~.add-vm-box
+      margin-left      18px
+
+    &.passive
+      opacity          .3
+
+    &.selected
+      shadow           inset 0 0 0 3px rgba(17, 175, 94, .4)
+
+
+    h3
+      line-height      24px
+      display          block
+      border-bottom    1px solid #d7dcdf
+      font-size        16px
+      font-weight      500
+      padding          6px 0 12px
+
+      cite
+        display        inline-block
+        size           24px, 24px
+        line-height    24px
+        text-align     center
+        color          #fff
+        background     #646c6d
+        rounded        50%
+        font-size      12px
+        font-weight    200
+        margin         0 0 0 6px
+
+    ul
+      margin           20px 0 0
+      font-weight      200
+      line-height      34px
+      font-size        14px
+
+      strong
+        font-weight    500
+        font-size      16px
+
+  h5.coming-soon-title
+    display          block
+    abs              0px 0px 0 0
+    size             476px, 100%
+    text-align       center
+    line-height      227px
+    font-size        22px
+    color            rgba(80, 89, 90, 0.5)
+    font-weight      400

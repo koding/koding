@@ -1,4 +1,5 @@
 jraphical = require 'jraphical'
+Mixpanel  = require 'mixpanel'
 
 Flaggable = require '../../traits/flaggable'
 
@@ -13,8 +14,10 @@ module.exports = class JUser extends jraphical.Module
   JLog            = require '../log'
   JMail           = require '../email'
   JSessionHistory = require '../sessionhistory'
+  JPaymentPlan    = require '../payment/plan'
+  JPaymentSubscription = require '../payment/subscription'
 
-  createId       = require 'hat'
+  { v4: createId } = require 'node-uuid'
 
   {Relationship} = jraphical
 
@@ -69,6 +72,9 @@ module.exports = class JUser extends jraphical.Module
       'foreignAuth.github.foreignId'   : 1
       'foreignAuth.odesk.foreignId'    : 1
       'foreignAuth.facebook.foreignId' : 1
+      'foreignAuth.google.foreignId'   : 1
+      'foreignAuth.linkedin.foreignId' : 1
+      'foreignAuth.twitter.foreignId'  : 1
 
     sharedEvents    :
       static        : [
@@ -300,7 +306,7 @@ module.exports = class JUser extends jraphical.Module
     if /@/.test loginId
       JUser.someData {email: loginId}, {username: 1}, (err, cursor) ->
         return callback err  if err
-        
+
         cursor.nextObject (err, data) ->
           return callback err  if err?
           return callback { message: 'Unrecognized email' }  unless data?
@@ -317,13 +323,14 @@ module.exports = class JUser extends jraphical.Module
       return callback err  if err
 
       constructor = this
-      JSession.one {clientId}, (err, session)->
+      JSession.fetchSession clientId, (err, session)->
         return callback err  if err
         # temp fix:
         # this broke login, reverted. - SY
         # if not session? or session.username isnt username
         unless session
-          return callback { message: 'Could not restore your session!' }
+          console.error "login: session not found", username
+          return callback { message: "Couldn't restore your session!" }
 
         bruteForceControlData =
           ip        : session.clientIP
@@ -416,6 +423,14 @@ module.exports = class JUser extends jraphical.Module
                 account.updateCounts()
                 JUser.clearOauthFromSession session, ->
                   callback null, {account, replacementToken}
+                  options = targetOptions: selector: tags: $in: ["nosync"]
+                  account.fetchSubscriptions {}, options, (err, subscriptions) ->
+                    console.warn err  if err
+                    if subscriptions.length is 0
+                      JPaymentSubscription.createFreeSubscription account, (err, subscription) ->
+                        console.warn err  if err
+                        subscription.debitPack tag: "vm", (err) ->
+                          console.warn "VM pack couldn't be debited from subscription: #{err}"  if err
 
   @logout = secure (client, callback)->
     if 'string' is typeof client
@@ -448,17 +463,27 @@ module.exports = class JUser extends jraphical.Module
 
   @addToGroup = (account, slug, email, invite, callback)->
     JGroup.one {slug}, (err, group)->
-      if err or not group then callback err
+      return callback err if err or not group
+      if invite
+        group.debitPack tag: "user", (err) ->
+          if err
+            if err.message is "quota exceeded"
+              callback
+                code    : "user_quota_exceeded"
+                message : "Failed join to group #{slug}."
+            else
+              callback err
+            return
+          invite.redeem account, (err) ->
+            return callback err if err
+            group.approveMember account, callback
       else
-        group.approveMember account, (err)->
-          return callback err  if err
-          return invite.redeem connection:delegate:account, callback  if invite
-          callback null
+        group.approveMember account, callback
 
   @addToGroups = (account, invite, email, callback)->
-    @addToGroup account, 'koding', email, invite, (err)=>
+    @addToGroup account, 'koding', email, null, (err)=>
       if err then callback err
-      else if invite?.group and invite?.group isnt 'koding'
+      else if invite?.group and invite.group isnt 'koding'
         @addToGroup account, invite.group, email, invite, callback
       else
         callback null
@@ -565,8 +590,13 @@ module.exports = class JUser extends jraphical.Module
     {isUserLoggedIn, provider} = resp
     {sessionToken} = client
     JSession.one {clientId: sessionToken}, (err, session) =>
-      return callback err  if err
-      return callback createKodingError "Couldn't restore your session."  unless session
+      return callback createKodingError err  if err
+
+      unless session
+        {connection: {delegate: {profile: {nickname}}}} = client
+        console.error "authenticateWithOauth: session not found", nickname
+
+        return callback createKodingError "Couldn't restore your session!"
 
       kallback = (err, resp={}) ->
         {account, replacementToken} = resp
@@ -662,6 +692,8 @@ module.exports = class JUser extends jraphical.Module
       guestsGroup.removeMember account, callback
 
   @convert = secure (client, userFormData, callback) ->
+    mixpanel  = Mixpanel.init KONFIG.mixpanel
+
     { connection, sessionToken : clientId } = client
     { delegate : account } = connection
     { nickname : oldUsername } = account.profile
@@ -678,14 +710,17 @@ module.exports = class JUser extends jraphical.Module
     if /^guest-/.test username
       return callback createKodingError "Reserved username!"
 
-    newToken  = null
-    invite    = null
-    user      = null
+    newToken       = null
+    invite         = null
+    user           = null
+    quotaExceedErr = null
+    recoveryToken  = null
+    error          = null
 
     queue = [
       =>
         @validateAll userFormData, (err) =>
-          return callback err  if err?
+          return callback err  if err
           queue.next()
       =>
         # password is autogenerated before here
@@ -698,7 +733,7 @@ module.exports = class JUser extends jraphical.Module
         if username? and email?
           options = { account, oldUsername, email, username }
           @changeEmailByUsername options, (err) =>
-            return callback err  if err?
+            return callback err  if err
             queue.next()
         else process.nextTick -> queue.next()
       ->
@@ -714,7 +749,7 @@ module.exports = class JUser extends jraphical.Module
         if username?
           options = { account, username, clientId, isRegistration: yes }
           @changeUsernameByAccount options, (err, newToken_) =>
-            return callback err  if err?
+            return callback err  if err
             newToken = newToken_
             queue.next()
         else process.nextTick -> queue.next()
@@ -725,11 +760,11 @@ module.exports = class JUser extends jraphical.Module
           queue.next()
       =>
         @addToGroups account, invite, user.email, (err) =>
-          return callback err  if err?
+          error = err
           queue.next()
       =>
         @removeFromGuestsGroup account, (err) =>
-          return callback err  if err?
+          return callback err  if err
           queue.next()
       ->
         accountModifier = $set:
@@ -749,13 +784,30 @@ module.exports = class JUser extends jraphical.Module
           resetPassword : no
           expiryPeriod  : 1000 * 60 * 60 * 24 * 14 # 2 weeks in milliseconds
 
-        JPasswordRecovery.create client, passwordOptions, (err)->
+        JPasswordRecovery.create client, passwordOptions, (err, token)->
+          recoveryToken = token
           queue.next()
+      ->
+        JPaymentSubscription.createFreeSubscription account, (err) ->
+          console.warn err  if err
+          queue.next()
+      ->
+        options = targetOptions: selector: tags: "vm"
+        account.fetchSubscriptions null, options, (err = "", [subscription]) ->
+          return callback err  if err
+          return callback createKodingError "VM subscription not found, cannot debit"  unless subscription
+
+          subscription.debitPack tag: "vm", (err) ->
+            console.warn "VM pack couldn't be debited from subscription: #{err}"  if err
+            queue.next()
       ->
         JAccount.emit "AccountRegistered", account, referrer
         queue.next()
-      =>
-        callback null, newToken
+      ->
+        mixpanel.track "Signup from server, success"
+        queue.next()
+      ->
+        callback error, newToken, recoveryToken
         queue.next()
     ]
 
@@ -782,7 +834,7 @@ module.exports = class JUser extends jraphical.Module
         user.fetchOwnAccount (err, account) =>
           return callback err  if err
 
-          options = { account, username, clientId }
+          options = { account, username, clientId, isRegistration : yes}
 
           @changeUsernameByAccount options, (err, replacementToken) ->
             return callback err  if err
@@ -793,7 +845,18 @@ module.exports = class JUser extends jraphical.Module
               account.update $set: { firstName, lastName }, (err) ->
                 return callback err  if err
 
-                callback null, { account, replacementToken }
+                client.connection.delegate = account
+
+                account.fetchGroups client, (err, groups) ->
+                  queue = groups.map ({group}) ->
+                    ->
+                      return queue.fin()  unless group
+                      return queue.fin()  if group.slug in ["koding", "guests"]
+                      group.createMemberVm account, ->
+                        queue.fin()
+
+                  dash queue, ->
+                    callback null, { account, replacementToken }
 
   @removeUnsubscription:({email}, callback)->
     JUnsubscribedMail = require '../unsubscribedmail'
@@ -851,13 +914,11 @@ module.exports = class JUser extends jraphical.Module
         if res is no
           callback createKodingError "Email is already in use!"
         else
-          @fetchUser client, (err,user)->
-            account = client.connection.delegate
-            user.changeEmail account, options, callback
-            if account.status is 'registered'
-              # don't send an email when guests change their emails, which we
-              # need to allow for the pricing workflow.
-              sendChangeEmail user.email, "email"
+          user.changeEmail account, options, callback
+          if account.status is 'registered'
+            # don't send an email when guests change their emails, which we
+            # need to allow for the pricing workflow.
+            sendChangeEmail user.email, "email"
 
   @emailAvailable = (email, callback)->
     @count {email}, (err, count)->
@@ -959,10 +1020,11 @@ module.exports = class JUser extends jraphical.Module
         else
           callback createKodingError 'PIN is not confirmed.'
 
-  fetchHomepageView:(account, callback)->
+  fetchHomepageView:(options, callback)->
+    {account, bongoModels} = options
     @fetchAccount 'koding', (err, account)->
       if err then callback err
-      else account.fetchHomepageView account, callback
+      else account.fetchHomepageView options, callback
 
   confirmEmail: (callback)->
     @update {$set: status: 'confirmed'}, (err, res)=>
@@ -979,7 +1041,8 @@ module.exports = class JUser extends jraphical.Module
     , (err) =>
         return callback err if err
         JUser.emit "UserBlocked", @
-        return callback err
+        # clear all of the cookies of the blocked user
+        JSession.remove {username: @username}, callback
 
   unblock:(callback)->
     @update

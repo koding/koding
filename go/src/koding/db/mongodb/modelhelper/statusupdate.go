@@ -2,7 +2,7 @@ package modelhelper
 
 import (
 	"koding/db/models"
-	"koding/db/mongodb"
+
 	"labix.org/v2/mgo"
 )
 
@@ -13,12 +13,12 @@ var (
 func GetStatusUpdateById(id string) (*models.StatusUpdate, error) {
 	statusUpdate := new(models.StatusUpdate)
 
-	return statusUpdate, mongodb.One(POST_COLL, id, statusUpdate)
+	return statusUpdate, Mongo.One(POST_COLL, id, statusUpdate)
 }
 
 func UpdateStatusUpdate(s *models.StatusUpdate) error {
 	query := updateByIdQuery(s.Id.Hex(), s)
-	return mongodb.Run(POST_COLL, query)
+	return Mongo.Run(POST_COLL, query)
 }
 
 func DeleteStatusUpdateById(id string) error {
@@ -27,13 +27,13 @@ func DeleteStatusUpdateById(id string) error {
 		return c.Remove(selector)
 	}
 
-	return mongodb.Run(POST_COLL, query)
+	return Mongo.Run(POST_COLL, query)
 }
 
 func AddStatusUpdate(s *models.StatusUpdate) error {
 	query := insertQuery(s)
 
-	return mongodb.Run(POST_COLL, query)
+	return Mongo.Run(POST_COLL, query)
 }
 
 func GetStatusUpdate(s Selector) (models.StatusUpdate, error) {
@@ -43,5 +43,5 @@ func GetStatusUpdate(s Selector) (models.StatusUpdate, error) {
 		return c.Find(s).One(&su)
 	}
 
-	return su, mongodb.Run(POST_COLL, query)
+	return su, Mongo.Run(POST_COLL, query)
 }

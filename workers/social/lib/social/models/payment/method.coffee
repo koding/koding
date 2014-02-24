@@ -4,7 +4,7 @@ module.exports = class JPaymentMethod extends Module
 
   {secure, dash, signature} = require 'bongo'
   {extend} = require 'underscore'
-  createId = require 'hat'
+  { v4: createId } = require 'node-uuid'
 
   recurly = require 'koding-payment'
 

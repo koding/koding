@@ -5,12 +5,13 @@
 module.exports = ->
 
   getGraphMeta  = require './graphmeta'
+  analytics  = require './analytics'
 
   """
   <!DOCTYPE html>
-  <html lang="en">
+  <html lang="en" itemscope itemtype="http://schema.org/LocalBusiness">
     <head>
-      <title>Koding</title>
+      <title>Koding - A new way for developers to work.</title>
       #{getGraphMeta()}
       <style rel="stylesheet">
         #koding-logo {
@@ -74,13 +75,13 @@ module.exports = ->
       <article>
         <header><h3>Use it in your school</h3></header>
         <p>
-          Koding in the classroom, prepare your files online, share them with the whole class instantly. Collaborate live or just make your students watch what you're doing.
+          Prepare your files online and share them with the whole class instantly. Collaborate live with your students or let them follow along what you're doing.
         </p>
       </article>
       <article>
         <header><h3>Create project groups</h3></header>
         <p>
-          Want to work on a project with your buddies and use the same resources and running instances, share a VM between your fellow developers.
+          Want to work on a project with your buddies and use the same workspace? Share your VM with your fellow developers.
         </p>
       </article>
       <p>
@@ -137,7 +138,7 @@ module.exports = ->
 
       <div itemscope itemtype="http://schema.org/Organization">
         <span itemprop="name">Koding Inc.</span>
-        <img src="https://koding.com/a/images/kd-fluid-icon512.png" itemprop="image" width="100" height="100" />
+        <img src="https://koding.com/a/images/logos/fluid512.png" itemprop="image" width="100" height="100" />
         <div itemprop="address" itemscope itemtype="http://schema.org/PostalAddress">
           <span itemprop="streetAddress">
             Koding, Inc.
@@ -150,6 +151,7 @@ module.exports = ->
         <a href="mailto:hello@koding.com" itemprop="email">
           hello@koding.com
         </a>
+        #{analytics()}
     </body>
   </html>
   """

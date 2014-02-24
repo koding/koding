@@ -1,9 +1,13 @@
 package main
 
 import (
+	"flag"
+	"fmt"
 	"io"
+	"koding/db/mongodb"
+	"koding/db/mongodb/modelhelper"
 	"koding/tools/config"
-	"log"
+	"koding/tools/logger"
 	"net"
 	"net/http"
 	"strconv"
@@ -25,14 +29,16 @@ type ProxyPostMessage struct {
 	Hostdata      string
 }
 
-var amqpWrapper *AmqpWrapper
-
-func init() {
-	log.SetPrefix("kontrol-api ")
-}
+var flagProfile = flag.String("c", "", "Configuration profile from file")
+var flagDebug = flag.Bool("d", false, "Debug mode")
+var conf *config.Config
+var log = logger.New("kontrolapi")
 
 func main() {
-	amqpWrapper = setupAmqp()
+	flag.Parse()
+	if *flagProfile == "" {
+		log.Fatal("Please define config file with -c")
+	}
 
 	rout := mux.NewRouter()
 	rout.HandleFunc("/", home).Methods("GET")
@@ -48,8 +54,6 @@ func main() {
 	workers := rout.PathPrefix("/workers").Subrouter()
 	workers.HandleFunc("/", changeHandler(GetWorkers)).Methods("GET")
 	workers.HandleFunc("/{uuid}", changeHandler(GetWorker)).Methods("GET")
-	workers.HandleFunc("/{uuid}/{action}", changeHandler(UpdateWorker)).Methods("PUT")
-	workers.HandleFunc("/{uuid}", changeHandler(DeleteWorker)).Methods("DELETE")
 	workers.HandleFunc("/url/{workername}", changeHandler(GetWorkerURL)).Methods("GET")
 
 	// Proxy handlers
@@ -62,8 +66,8 @@ func main() {
 	// Service handlers
 	services := rout.PathPrefix("/services").Subrouter()
 	services.HandleFunc("/", changeHandler(GetUsers)).Methods("GET")
-	services.HandleFunc("/{username}", changeHandler(GetServices)).Methods("GET")
-	services.HandleFunc("/{username}", changeHandler(DeleteServices)).Methods("DELETE")
+	services.HandleFunc("/{username}/", changeHandler(GetServices)).Methods("GET")
+	services.HandleFunc("/{username}/", changeHandler(DeleteServices)).Methods("DELETE")
 	services.HandleFunc("/{username}/{servicename}", changeHandler(GetService)).Methods("GET")
 	services.HandleFunc("/{username}/{servicename}", changeHandler(DeleteService)).Methods("DELETE")
 	services.HandleFunc("/{username}/{servicename}/{key}", changeHandler(GetKey)).Methods("GET")
@@ -102,11 +106,29 @@ func main() {
 	stats.HandleFunc("/proxies/{proxy}", changeHandler(GetProxyStat)).Methods("GET")
 	stats.HandleFunc("/proxies/{proxy}", changeHandler(DeleteProxyStat)).Methods("DELETE")
 
-	port := strconv.Itoa(config.Current.Kontrold.Api.Port)
-	log.Printf("kontrol api is started. serving at :%s ...", port)
+	conf = config.MustConfig(*flagProfile)
+
+	var logLevel logger.Level
+	if *flagDebug {
+		logLevel = logger.DEBUG
+	} else {
+		logLevel = logger.GetLoggingLevelFromConfig("kontrolapi", *flagProfile)
+	}
+	log.SetLevel(logLevel)
+
+	kontrolDB = mongodb.NewMongoDB(conf.MongoKontrol)
+	modelhelper.Initialize(conf.Mongo)
+
+	port := strconv.Itoa(conf.Kontrold.Api.Port)
+	log.Info("kontrol api is started. serving at :%s ...", port)
+	fmt.Printf("Kontrolapi started at port: %s\n", port)
 
 	http.Handle("/", rout)
-	log.Println(http.ListenAndServe(":"+port, nil))
+	err := http.ListenAndServe(":"+port, nil)
+	if err != nil {
+		log.Error(err.Error())
+	}
+
 }
 
 func home(writer http.ResponseWriter, request *http.Request) {
@@ -120,7 +142,7 @@ func changeHandler(fn func(w http.ResponseWriter, r *http.Request)) http.Handler
 			ip = "non-ip"
 		}
 
-		log.Printf("%s %s '%s'\n", r.Method, r.URL.String(), ip)
+		log.Info("%s %s '%s'", r.Method, r.URL.String(), ip)
 		w.Header().Set("Access-Control-Allow-Origin", "*")
 		fn(w, r)
 	}

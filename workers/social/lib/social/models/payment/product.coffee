@@ -4,7 +4,7 @@ module.exports = class JPaymentProduct extends JPaymentBase
 
   { signature } = require 'bongo'
 
-  createId = require 'hat'
+  { v4: createId } = require 'node-uuid'
   recurly = require 'koding-payment'
 
   { permit } = require '../group/permissionset'
@@ -18,6 +18,8 @@ module.exports = class JPaymentProduct extends JPaymentBase
           (signature Object, Function)
         removeByCode  :
           (signature String, Function)
+        some          :
+          (signature Object, Object, Function)
       instance        :
         remove        :
           (signature Function)

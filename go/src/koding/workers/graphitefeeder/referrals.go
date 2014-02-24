@@ -1,11 +1,10 @@
 package main
 
 import (
-	"koding/db/mongodb"
+	"time"
+
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
-	"log"
-	"time"
 )
 
 func init() {
@@ -28,7 +27,7 @@ func numberOfReferrableEmails() (string, int) {
 		return err
 	}
 
-	mongodb.Run("jReferrableEmails", query)
+	mongo.Run("jReferrableEmails", query)
 
 	return identifier, count
 }
@@ -43,7 +42,7 @@ func numberOfInvitesSent() (string, int) {
 		return err
 	}
 
-	mongodb.Run("jReferrableEmails", query)
+	mongo.Run("jReferrableEmails", query)
 
 	return identifier, count
 }
@@ -58,7 +57,7 @@ func numberOfReferrals() (string, int) {
 		return err
 	}
 
-	mongodb.Run("jReferrals", query)
+	mongo.Run("jReferrals", query)
 
 	return identifier, count
 }
@@ -76,7 +75,7 @@ func numberOfReferralsToday() (string, int) {
 		return err
 	}
 
-	mongodb.Run("jReferrals", query)
+	mongo.Run("jReferrals", query)
 
 	return identifier, count
 }
@@ -117,7 +116,7 @@ func numberOfMembersFromReferrableEmailsByTime(greaterThanDate time.Time) int {
 		return err
 	}
 
-	mongodb.Run("jReferrableEmails", query)
+	mongo.Run("jReferrableEmails", query)
 
 	var totalCount int
 	for _, item := range results {
@@ -126,7 +125,7 @@ func numberOfMembersFromReferrableEmailsByTime(greaterThanDate time.Time) int {
 		var createdAtTime, ok = item["createdAt"].(time.Time)
 
 		if !ok {
-			log.Println("Unabled to get createdAtTime", item)
+			log.Info("Unabled to get createdAtTime: %v", item)
 			continue
 		}
 
@@ -142,7 +141,7 @@ func numberOfMembersFromReferrableEmailsByTime(greaterThanDate time.Time) int {
 			return err
 		}
 
-		mongodb.Run("jUsers", query)
+		mongo.Run("jUsers", query)
 	}
 
 	return totalCount

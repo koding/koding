@@ -1,12 +1,10 @@
 module.exports = [
-
-  "libs/highlightjs/highlight.pack.js"
-
   "AppController.coffee",
   "AppView.coffee",
   "activitylistcontroller.coffee",
 
   # Activity commons
+  "views/feedcoverphotoview.coffee",
   "views/activityactions.coffee",
   "views/activitylistheader.coffee",
   "views/activitysplitview.coffee",
@@ -15,6 +13,7 @@ module.exports = [
   "views/tutorialactivityactions.coffee",
   "views/newmemberbucket.coffee",
   "views/activitytickeritem.coffee",
+  "views/referalbox.coffee",
 
   "views/embedbox.coffee",
   "views/embedboxwidget.coffee",

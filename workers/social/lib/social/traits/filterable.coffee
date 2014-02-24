@@ -17,8 +17,8 @@ module.exports = class Filterable
     @findSuggestions client, startsWithSeedTest, startsWithOptions, (err, suggestions)=>
       if err
         callback err
-      else if limit is suggestions.length
-          callback null, suggestions
+      else if suggestions and limit is suggestions.length
+        callback null, suggestions
       else
         containsSeedTest = RegExp cleanSeed, 'i'
         containsOptions =

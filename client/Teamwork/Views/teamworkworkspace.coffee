@@ -5,13 +5,19 @@ class TeamworkWorkspace extends CollaborativeWorkspace
     super options, data
 
     {playground, playgroundManifest} = @getOptions()
-    @avatars = {}
+    @avatars   = {}
+    @watchRef  = @workspaceRef.child "watch"
 
     @on "PanelCreated", (panel) =>
       @createButtons panel
       @createRunButton panel  if playground
 
     @on "WorkspaceSyncedWithRemote", =>
+      @watchRef.once "value", (snapshot) =>
+        map = @reviveSnapshot(snapshot) or {}
+        unless map[@nickname]
+          @watchRef.child(@nickname).set @nickname
+
       if playground and @amIHost()
         @workspaceRef.child("playground").set playground
 
@@ -31,14 +37,42 @@ class TeamworkWorkspace extends CollaborativeWorkspace
       prefix   = if jAccount then "again" else ""
       @chatView.botReply "#{nickname} joined the session #{prefix}"
 
-      if jAccount then @createUserAvatar jAccount
+      if jAccount
+        @createUserAvatar jAccount
+        @activeUsers[nickname] = jAccount
       else
         @once "WorkspaceUsersFetched", =>
-          @createUserAvatar @users[nickname]
+          jAccount = @users[nickname]
+          @createUserAvatar jAccount
+          @activeUsers[nickname] = jAccount
 
     @on "SomeoneHasLeftTheSession", (nickname) =>
       @removeUserAvatar nickname
       @chatView.botReply "#{nickname} has left the session"
+
+    @on "StoppedWatching", =>
+      @watchingUserAvatar?.unsetClass "watching"
+      userNickname = @watchingUserAvatar.getData().profile.nickname
+      @watchRef.child(@nickname).set "nobody"
+      @chatView.botReply "You stopped watching #{userNickname}"
+      @watchingUserAvatar.setTooltip
+        title : "Click avatar to watch #{userNickname}"
+      @watchingUserAvatar = null
+      @chatView.createWatchLabel "Click user avatar to watch someone"
+
+    @on "WatchUserChanged", (avatarView) =>
+      @watchingUserAvatar?.unsetClass "watching"
+      userNickname = avatarView.getData().profile.nickname
+      @watchRef.child(@nickname).set userNickname
+      avatarView.setClass "watching"
+      @watchingUserAvatar = avatarView
+      @chatView.botReply "You started to watch #{userNickname}.  Type 'stop watching' or click on avatars to start/stop watching."
+      avatarView.setTooltip
+        title : "You are now watching #{userNickname}. Click again to stop watching."
+      @chatView.createWatchLabel "You are now watching #{userNickname} | ", userNickname
+
+    @watchRef.on "value", (snapshot) =>
+      @watchMap = @reviveSnapshot(snapshot) or {}
 
   setWatchMode: (targetUsername) ->
     username = KD.nick()
@@ -68,7 +102,7 @@ class TeamworkWorkspace extends CollaborativeWorkspace
 
     @forceDisconnect()
     @firebaseRef.child(sessionKey).once "value", (snapshot) =>
-      value = snapshot.val()
+      value = @reviveSnapshot snapshot
       {playground, playgroundManifest} = value  if value
 
       teamworkClass     = TeamworkWorkspace
@@ -109,45 +143,34 @@ class TeamworkWorkspace extends CollaborativeWorkspace
 
     userNickname = jAccount.profile.nickname
     return if userNickname is KD.nick()
-    followText   = "Click avatar to watch #{userNickname}"
 
     avatarView   = new AvatarStaticView
       size       :
         width    : 30
         height   : 30
       tooltip    :
-        title    : followText
+        title    : "Click avatar to watch #{userNickname}"
       click      : =>
-        @watchingUserAvatar?.unsetClass "watching"
         isAlreadyWatched = @watchingUserAvatar is avatarView
-
         if isAlreadyWatched
-          @watchRef.child(@nickname).set "nobody"
-          message = "You stopped watching #{userNickname}"
-          @watchingUserAvatar = null
-          avatarView.setTooltip
-            title : followText
+          @emit "StoppedWatching"
         else
-          @watchRef.child(@nickname).set userNickname
-          message = "You started to watch #{userNickname}.  Type 'stop watching' or click on avatars to start/stop watching."
-          avatarView.setClass "watching"
-          @watchingUserAvatar = avatarView
-          avatarView.setTooltip
-            title : "You are now watching #{userNickname}. Click again to stop watching."
+          @emit "WatchUserChanged", avatarView
 
-        @chatView.botReply message
     , jAccount
 
     @avatars[userNickname] = avatarView
     @avatarsView.addSubView avatarView
     @avatarsView.setClass "has-user"
     avatarView.bindTransitionEnd()
+    @emit "UserAvatarCreated", jAccount
 
   removeUserAvatar: (nickname) ->
     avatarView = @avatars[nickname]
     avatarView?.destroy()
     delete @avatars[nickname]
     @avatarsView.unsetClass "has-user" if @avatars.length is 0
+    @emit "UserAvatarRemoved"
 
   sendSystemMessage: (messageData) ->
     return unless @getOptions().enableChat

@@ -77,6 +77,9 @@ Vagrant.configure("2") do |config|
       default.vm.box_url = "http://salt-master.in.koding.com/downloads/koding-15.box"
     end
 
+    # private network for vm to reach to services on host computer
+    config.vm.network "private_network", ip: "192.168.50.4"
+
     default.vm.network :forwarded_port, :guest =>  3021, :host =>  3021 # vmproxy
     default.vm.network :forwarded_port, :guest => 27017, :host => 27017 # mongodb
     default.vm.network :forwarded_port, :guest =>  5672, :host =>  5672 # rabbitmq
@@ -85,7 +88,8 @@ Vagrant.configure("2") do |config|
     default.vm.network :forwarded_port, :guest => 7474, :host => 7474 # neo4j
     default.vm.network :forwarded_port, :guest => 6379, :host => 6379 # redis
     default.vm.network :forwarded_port, :guest => 9200, :host => 9200 # elastic search
-    default.vm.network :forwarded_port, :guest => 4005, :host => 4005 # provisioning
+    default.vm.network :forwarded_port, :guest => 4005, :host => 4005 # provisioning kite
+    default.vm.network :forwarded_port, :guest => 5000, :host => 5000 # oskite
     default.vm.hostname = "vagrant"
 
     default.vm.synced_folder ".", "/opt/koding"

@@ -47,8 +47,11 @@ module.exports = class SitemapGeneratorWorker extends EventEmitter
     name = "sitemap.xml"
     content = @generateSitemapIndexString sitemapNames
     @saveSitemap name, content
+    console.timeEnd 'Sitemap generator worker'
 
   generate:=>
+    console.time 'Sitemap generator worker'
+    console.log 'Sitemap generation started.'
     {JName, JSitemap} = @bongo.models
 
     feedLinksAdded = no
@@ -61,11 +64,16 @@ module.exports = class SitemapGeneratorWorker extends EventEmitter
           'slugs.group': 'koding',
           'slugs.constructorName': 'JNewStatusUpdate'
         }
-        { 'slugs.usedAsPath':'username' }
+        {
+          'slugs.usedAsPath':'username'
+          'slugs.slug':{ $not: /guest-*/ } # We don't want to count guests.
+        }
       ]
     }
 
     JName.count selector, (err, count)=>
+      console.log err  if err
+      console.log "There are ", count, " items to be added to sitemaps."
       numberOfNamePages = Math.ceil(count / NAMEPERPAGE)
 
       queue = [1..numberOfNamePages].map (pageNumber)=>=>

@@ -13,6 +13,7 @@ class AceAppController extends AppController
     name          : "Ace"
     multiple      : yes
     hiddenHandle  : no
+    enforceLogin  : yes
     openWith      : "lastActive"
     route         :
       slug        : "/:name?/Ace"
@@ -29,14 +30,10 @@ class AceAppController extends AppController
       { title     : "Find and replace...", eventName : "findAndReplace" }
       { title     : "Go to line",          eventName : "gotoLine" }
       { type      : "separator" }
-      # { title     : "Compile and Run",     eventName : "compileAndRun", condition: canCompile}
-      # { type      : "separator",                                        condition: canCompile}
       { title     : "Preview",             eventName : "preview" }
       { type      : "separator" }
       { title     : "Advanced settings",   id        : "advancedSettings" }
       { title     : "customViewAdvancedSettings", parentId: "advancedSettings"}
-      { type      : "separator" }
-      { title     : "Reopen previous files", eventName : "reopen" }
       { type      : "separator" }
       { title     : "customViewFullscreen" }
       { type      : "separator" }

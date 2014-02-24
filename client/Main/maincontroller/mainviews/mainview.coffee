@@ -1,5 +1,11 @@
 class MainView extends KDView
 
+  constructor:->
+
+    super
+
+    @notifications = []
+
   viewAppended:->
 
     @bindPulsingRemove()
@@ -68,10 +74,10 @@ class MainView extends KDView
 
     @header.clear()
 
-    @header.addSubView @innerContainer = new KDCustomHTMLView
+    @header.addSubView @headerContainer = new KDCustomHTMLView
       cssClass  : "inner-container"
 
-    @innerContainer.addSubView @logo = new KDCustomHTMLView
+    @logo = new KDCustomHTMLView
       tagName   : "a"
       domId     : "koding-logo"
       cssClass  : if entryPoint?.type is 'group' then 'group' else ''
@@ -82,31 +88,32 @@ class MainView extends KDView
         then KD.getSingleton('router').handleRoute "/Activity", {entryPoint}
         else location.replace '/'
 
+    @headerContainer.addSubView @logo
+
+    groupLogo = ""
+    if KD.currentGroup?.logo
+      groupLogo = KD.utils.proxifyUrl KD.currentGroup.logo,
+        crop         : yes
+        width        : 55
+        height       : 55
+
+      @logo.setCss 'background-image', "url(#{groupLogo})"
+      @logo.setClass 'custom'
+
     @logo.setClass KD.config.environment
 
-    # REFACTOR NOTE: login link
 
-    # wrapper.addSubView loginLink = new CustomLinkView
-    #   title       : 'Login'
-    #   cssClass    : 'header-sign-in'
-    #   attributes  :
-    #     href      : '/Login'
-    #   click       : (event)->
-    #     KD.utils.stopDOMEvent event
-    #     KD.getSingleton('router').handleRoute "/Login"
-
-    # REFACTOR NOTE: this put the group name next to logo
-
-    # if entryPoint?.slug? and entryPoint.type is "group"
-    #   KD.remote.cacheable entryPoint.slug, (err, models)=>
-    #     if err then callback err
-    #     else if models?
-    #       [group] = models
-    #       @logo.updatePartial "<cite></cite>#{group.title}"
+    @headerContainer.addSubView @logotype = new KDCustomHTMLView
+      tagName   : "a"
+      cssClass  : "logotype"
+      partial   : "Koding"
+      click     : (event)=>
+        KD.utils.stopDOMEvent event
+        KD.getSingleton('router').handleRoute "/", {entryPoint}
 
   createDock:->
 
-    @innerContainer.addSubView KD.singleton('dock').getView()
+    @headerContainer.addSubView KD.singleton('dock').getView()
 
 
   createAccountArea:->
@@ -114,7 +121,7 @@ class MainView extends KDView
     @accountArea = new KDCustomHTMLView
       cssClass : 'account-area'
 
-    @innerContainer.addSubView @accountArea
+    @headerContainer.addSubView @accountArea
 
     unless KD.isLoggedIn()
       @loginLink = new CustomLinkView
@@ -137,6 +144,7 @@ class MainView extends KDView
     @createLoggedInAccountArea()
 
   createLoggedInAccountArea:->
+    @accountArea.destroySubViews()
 
     @accountArea.addSubView @accountMenu = new AvatarAreaIconMenu
     @accountMenu.accountChanged KD.whoami()
@@ -245,32 +253,61 @@ class MainView extends KDView
     @panelWrapper.addSubView @mainTabView
     @panelWrapper.addSubView @appSettingsMenuButton
 
-  createChatPanel:->
-    @addSubView @chatPanel   = new MainChatPanel
-    # @addSubView @chatHandler = new MainChatHandler
-    @chatHandler = new MainChatHandler
-
   setStickyNotification:->
-    # sticky = KD.getSingleton('windowController')?.stickyNotification
-    return if not KD.isLoggedIn() # don't show it to guests
 
-    @utils.defer => getStatus()
+    return if not KD.isLoggedIn() # don't show it to guests
 
     {JSystemStatus} = KD.remote.api
 
-    JSystemStatus.on 'restartScheduled', (systemStatus)=>
-      sticky = KD.getSingleton('windowController')?.stickyNotification
+    JSystemStatus.on 'restartScheduled', @bound 'handleSystemMessage'
 
-      if systemStatus.status isnt 'active'
-        getSticky()?.emit 'restartCanceled'
-      else
-        systemStatus.on 'restartCanceled', =>
-          getSticky()?.emit 'restartCanceled'
-        new GlobalNotification
-          targetDate : systemStatus.scheduledAt
-          title      : systemStatus.title
-          content    : systemStatus.content
-          type       : systemStatus.type
+    KD.utils.wait 2000, =>
+      KD.remote.api.JSystemStatus.getCurrentSystemStatuses (err, statuses)=>
+        if err then log 'current system status:',err
+        else if statuses and Array.isArray statuses
+          {daisy} = Bongo
+          queue   = statuses.map (status)=>=>
+            @createGlobalNotification status
+            KD.utils.wait 500, -> queue.next()
+
+          daisy queue.reverse()
+
+  handleSystemMessage:(message)->
+
+    @createGlobalNotification message  if message.status is 'active'
+
+  hideAllNotifications:->
+
+    notification.hide() for notification in @notifications
+
+  createGlobalNotification:(message, options = {})->
+
+    typeMap =
+      'restart' : 'warn'
+      'reload'  : ''
+      'info'    : ''
+      'red'     : 'err'
+      'yellow'  : 'warn'
+      'green'   : ''
+
+    options.type      or= typeMap[message.type]
+    options.showTimer  ?= message.type isnt 'restart'
+    options.cssClass    = KD.utils.curry "header-notification", options.type
+    options.cssClass    = KD.utils.curry options.cssClass, 'fx'  if options.animated
+
+    @notifications.push notification = new GlobalNotificationView options, message
+
+    @header.addSubView notification
+    @hideAllNotifications()
+
+    notification.once 'KDObjectWillBeDestroyed', =>
+      for n, i in @notifications
+        if n.getId() is notification.getId()
+          @notifications[i-1]?.show()
+          break
+
+    KD.utils.wait 177, notification.bound 'show'
+
 
   enableFullscreen: ->
     @setClass "fullscreen no-anim"
@@ -286,25 +323,6 @@ class MainView extends KDView
 
   toggleFullscreen: ->
     if @isFullscreen() then @disableFullscreen() else @enableFullscreen()
-
-  getSticky = =>
-    KD.getSingleton('windowController')?.stickyNotification
-
-  getStatus = =>
-    KD.remote.api.JSystemStatus.getCurrentSystemStatus (err,systemStatus)=>
-      if err
-        if err.message is 'none_scheduled'
-          getSticky()?.emit 'restartCanceled'
-        else
-          log 'current system status:',err
-      else
-        systemStatus.on 'restartCanceled', =>
-          getSticky()?.emit 'restartCanceled'
-        new GlobalNotification
-          targetDate  : systemStatus.scheduledAt
-          title       : systemStatus.title
-          content     : systemStatus.content
-          type        : systemStatus.type
 
   removePulsing = ->
 
@@ -335,4 +353,3 @@ class MainView extends KDView
           duration = 400
           KDScrollView::scrollTo.call mainView, {top, duration}
           break
-

@@ -7,11 +7,11 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"kite"
 	"koding/db/models"
 	"koding/db/mongodb"
 	"koding/db/mongodb/modelhelper"
 	"koding/kites/provisioning/container"
-	"koding/newkite/kite"
 	"koding/tools/config"
 	"koding/tools/utils"
 	"net"
@@ -31,7 +31,7 @@ var (
 	firstContainerIP net.IP
 	states           = make(map[string]*State)
 	statesMu         sync.Mutex
-	k                = &kite.Kite{}
+	k                = *kite.Kite
 	log              *logging.Logger
 )
 
@@ -51,10 +51,6 @@ func init() {
 func main() {
 	flag.Parse()
 
-	kontrolPort := strconv.Itoa(config.Current.NewKontrol.Port)
-	kontrolHost := config.Current.NewKontrol.Host
-	kontrolAddr := fmt.Sprintf("%s:%s", kontrolHost, kontrolPort)
-
 	options := &kite.Options{
 		PublicIP:    "localhost",
 		Kitename:    "provisioning",
@@ -62,7 +58,6 @@ func main() {
 		Region:      config.Region,
 		Version:     "0.0.1",
 		Port:        *port,
-		KontrolAddr: kontrolAddr,
 	}
 
 	k = kite.New(options)

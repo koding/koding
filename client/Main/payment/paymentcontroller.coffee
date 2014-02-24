@@ -27,7 +27,9 @@ class PaymentController extends KDController
   observePaymentSave: (modal, callback) ->
     modal.on 'PaymentInfoSubmitted', (paymentMethodId, updatedPaymentInfo) =>
       @updatePaymentInfo paymentMethodId, updatedPaymentInfo, (err, savedPaymentInfo) =>
-        return callback err  if err
+        if err
+          modal.emit 'FormValidationFailed', err
+          return callback err
         callback null, savedPaymentInfo
         @emit 'PaymentDataChanged'
 
@@ -81,61 +83,80 @@ class PaymentController extends KDController
   createPaymentInfoModal: -> new PaymentFormModal
 
   createUpgradeForm: (tag, options = {}) ->
+    buyPacksButton = new KDButtonView
+      cssClass     : "buy-packs"
+      style        : "solid green medium"
+      title        : "Buy Resource Packs"
+      callback     : ->
+        @parent.emit "Cancel"
+        KD.singleton("router").handleRoute "/Pricing"
 
-    { dash } = Bongo
+    return new JView
+      pistachioParams:
+        button  : buyPacksButton
+      pistachio :
+        """
+        <h2>
+          You do not have enough resources, you need to buy at least one "Resource Pack" to be able to create an extra VM.
+        </h2>
+        {{> button}}
+        """
 
-    form = new PlanUpgradeForm { tag }
+  createUpgradeWorkflow: (options = {}) ->
+    {tag, productForm, confirmForm} = options
 
-    KD.getGroup().fetchProducts 'plan', tags: tag, (err, plans) =>
-      return  if KD.showError err
+    productForm or= @createUpgradeForm tag, options
+    confirmForm or= new PlanUpgradeConfirmForm
+      name : 'overview'
+    workflow      = new PaymentWorkflow {productForm, confirmForm}
 
-      queue = plans.map (plan) -> ->
-        plan.fetchProducts (err, products) ->
-          return  if KD.showError err
+    productForm
+      .on 'PlanSelected', (plan, planOptions) ->
+        callback = ->
+          workflow.collectData productData: { plan, planOptions }
 
-          plan.childProducts = products
-          queue.fin()
-
-      subscription = null
-      queue.push =>
-        @fetchSubscriptionsWithPlans tags: tag, (err, [subscription_]) ->
-          subscription = subscription_
-          queue.fin()
-
-      dash queue, ->
-        form.setPlans plans
-        form.setCurrentSubscription subscription, options  if subscription
-
-    return form
-
-  createUpgradeWorkflow: (tag, options = {}) ->
-    upgradeForm = @createUpgradeForm tag, options
-
-    workflow = new PaymentWorkflow
-      productForm: upgradeForm
-      confirmForm: new PlanUpgradeConfirmForm
-
-    upgradeForm
-      .on 'PlanSelected', (plan) ->
-        { oldSubscription } = workflow.collector.data
-
-        spend = oldSubscription?.usage ? {}
-
-        plan.checkQuota {}, spend, 1, (err) ->
-          return  if KD.showError err
-
-          workflow.collectData productData: { plan }
+        {oldSubscription} = workflow.collector.data
+        unless oldSubscription
+        then callback()
+        else
+          usage = oldSubscription?.usage ? {}
+          plan.checkQuota {usage}, (err) ->
+            return  if KD.showError err
+            callback()
 
       .on 'CurrentSubscriptionSet', (oldSubscription) ->
         workflow.collectData { oldSubscription }
 
     workflow
       .on 'DataCollected', (data) =>
-        @transitionSubscription data, (err, subscription) ->
-          return  if KD.showError err
+        @transitionSubscription data, (err, subscription, rest...) ->
 
-          workflow.emit 'Finished'
+          return workflow.emit 'GroupCreationFailed'  if err
+          workflow.emit 'SubscriptionTransitionCompleted', subscription
+          workflow.emit 'Finished', data, err, subscription, rest...
 
+      .on 'Finished', (data, err, subscription, rest...) =>
+        { plan, email, createAccount, paymentMethod: {billing} } = data
+        if err?.short is 'existing_subscription'
+          { existingSubscription } = err
+          if existingSubscription.status is 'active'
+            new KDNotificationView title: "You are already subscribed to this plan!"
+            KD.getSingleton('router').handleRoute '/Account/Subscriptions'
+          else
+            existingSubscription.plan = plan
+            @confirmReactivation existingSubscription, (err, subscription) =>
+              return KD.showError err  if err
+              @emit "SubscriptionReactivated", subscription
+        else if createAccount
+          { cardFirstName: firstName, cardLastName: lastName } = billing
+          { JUser } = KD.remote.api
+          JUser.convert { firstName, lastName, email }, (err, newToken, recoveryToken) =>
+            workflow.emit "PasswordRecoveryToken", recoveryToken
+            JUser.logout ->
+        else
+          @emit "SubscriptionCompleted"
+
+        KD.singletons.dock.getView().show()
       .enter()
 
     workflow
@@ -143,7 +164,7 @@ class PaymentController extends KDController
   confirmReactivation: (subscription, callback) ->
     modal = KDModalView.confirm
       title       : 'Inactive subscription'
-      description : 
+      description :
         """
         Your existing subscription for this plan has been canceled.  Would
         you like to reactivate it?
@@ -158,40 +179,25 @@ class PaymentController extends KDController
 
           callback null, subscription
 
-  createSubscription: ({ plan, email, paymentMethod, createAccount }, callback) ->
-    { paymentMethodId, billing } = paymentMethod
+  createSubscription: (options, callback) ->
+    { plan, planOptions, promotionType, paymentMethod } = options
+    { paymentMethodId } = paymentMethod
+    { planApi } = planOptions
 
-    plan.subscribe paymentMethodId, (err, subscription) =>
-      if err?.short is 'existing_subscription'
-        { existingSubscription } = err
+    throw new Error "Must provide a plan API!"  unless planApi?
 
-        if existingSubscription.status is 'active'
-          new KDNotificationView
-            title: "You are already subscribed to this plan!"
-          KD.getSingleton('router').handleRoute '/Account/Subscriptions'
+    options = {
+      planOptions
+      promotionType
+      paymentMethodId
+      planCode: plan.planCode
+    }
 
-        else
-          existingSubscription.plan = plan
-          @confirmReactivation existingSubscription, callback
-
-      else if createAccount
-        { JUser } = KD.remote.api
-
-        { cardFirstName: firstName, cardLastName: lastName } = billing
-
-        JUser.convert { firstName, lastName, email }, (err) ->
-          return callback err  if err
-
-          JUser.logout (err) ->
-            return callback err  if err
-            
-            callback null
-      else
-        callback err, subscription
+    planApi.subscribe options, callback
 
   transitionSubscription: (formData, callback) ->
-    { productData, oldSubscription, paymentMethod, createAccount, email } = formData
-    { plan } = productData
+    { productData, oldSubscription, promotionType, paymentMethod, createAccount, email } = formData
+    { plan, planOptions } = productData
     { planCode } = plan
     { paymentMethodId } = paymentMethod
     if oldSubscription
@@ -199,18 +205,50 @@ class PaymentController extends KDController
     else
       @createSubscription {
         plan
+        planOptions
+        promotionType
         email
         paymentMethod
         createAccount
       }, callback
 
   debitSubscription: (subscription, pack, callback) ->
-    subscription.debit pack, (err, nonce) =>
-      return  if KD.showError err
-
+    subscription.debit { pack }, (err, nonce) =>
+      return callback err  if err
       @emit 'SubscriptionDebited', subscription
-
       callback null, nonce
+
+  creditSubscription: (subscription, pack, callback) ->
+    subscription.credit { pack }, (err) =>
+      return callback err  if err
+      @emit 'SubscriptionCredited', subscription
+      callback()
+
+  fetchActiveSubscription: (tags, callback) ->
+    if KD.getGroup()?.slug is "koding"
+      return callback()  if KD.whoami().type isnt "registered"
+      status = $in: ["active", "canceled"]
+      @fetchSubscriptionsWithPlans {tags, status}, (err, subscriptions) ->
+        return callback err  if err
+        noSync = null
+        active = null
+
+        for subscription in subscriptions
+          if "nosync" in subscription.tags
+            noSync = subscription
+          else
+            active = subscription
+
+        subscription = active or noSync
+
+        if subscription
+        then callback null, subscription
+        else callback message: "Subscription not found", code: "no subscription"
+    else
+      @fetchGroupSubscription callback
+
+  fetchGroupSubscription: (callback) ->
+    KD.getGroup().fetchSubscription callback
 
   fetchSubscriptionsWithPlans: (options, callback) ->
     [callback, options] = [options, callback]  unless callback
@@ -219,21 +257,40 @@ class PaymentController extends KDController
 
     KD.whoami().fetchPlansAndSubscriptions options, (err, plansAndSubs) =>
       return callback err  if err
-      
+
       { subscriptions } = @groupPlansBySubscription plansAndSubs
 
       callback null, subscriptions
 
   groupPlansBySubscription: (plansAndSubscriptions = {}) ->
-    
+
     { plans, subscriptions } = plansAndSubscriptions
 
     plansByCode = plans.reduce( (memo, plan) ->
       memo[plan.planCode] = plan
       memo
     , {})
-    
+
     for subscription in subscriptions
       subscription.plan = plansByCode[subscription.planCode]
-    
+
     { plans, subscriptions }
+
+  debitWrapper: (options = {}, callback) ->
+    options.fn = @debitSubscription.bind this
+    @_runWrapper options, callback
+
+  creditWrapper: (options = {}, callback) ->
+    options.fn = @creditSubscription.bind this
+    @_runWrapper options, callback
+
+  _runWrapper: (options, callback) ->
+    {fn, subscriptionTag, packTag} = options
+
+    @fetchActiveSubscription (err, subscription) ->
+      return callback err  if err
+      KD.remote.api.JPaymentPack.one tags: packTag, (err, pack) =>
+        return callback err  if err
+        fn subscription, pack, (err, nonce) =>
+          return callback err  if err
+          callback null, nonce

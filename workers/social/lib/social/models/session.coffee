@@ -10,7 +10,7 @@ class JToken extends Model
 
 module.exports = class JSession extends Model
 
-  createId = require 'hat'
+  { v4: createId } = require 'node-uuid'
 
   # JUser    = require './guest'
 
@@ -86,6 +86,9 @@ module.exports = class JSession extends Model
             callback null, session, account
 
   @fetchSession =(clientId, callback)->
+    # if clientId is undefined or null
+    return @createSession callback  unless clientId
+
     selector = {clientId}
     @one selector, (err, session)=>
       if err

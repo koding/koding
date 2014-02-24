@@ -3,19 +3,29 @@ package mongohelper
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
-	"github.com/chuckpreslar/inflect"
 	"koding/db/mongodb"
+	"koding/tools/config"
+	"koding/tools/logger"
 	"koding/tools/mapping"
+	"strings"
+
+	"github.com/chuckpreslar/inflect"
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
-	"strings"
 )
+
+var log = logger.New("mongohelper")
+var mongo *mongodb.MongoDB
 
 var (
 	DATA     = make(map[string]interface{})
 	ERR_DATA = make(map[string]interface{})
 )
+
+func MongoHelperInit(profile string) {
+	conf := config.MustConfig(profile)
+	mongo = mongodb.NewMongoDB(conf.Mongo)
+}
 
 func FetchOneContentBy(queryFunc func() map[string]interface{}) (map[string]interface{}, error) {
 	result := queryFunc()
@@ -61,12 +71,12 @@ func Fetch(idHex, name string) (map[string]interface{}, error) {
 		return c.FindId(id).One(result)
 	}
 
-	err := mongodb.Run(getCollectionName(name), query)
+	err := mongo.Run(getCollectionName(name), query)
 	if err != nil {
 		return nil, err
 	}
 
-	fmt.Println("positive")
+	log.Info("positive")
 	result["id"] = idHex
 	result["name"] = name
 
@@ -98,7 +108,7 @@ func FetchContent(id bson.ObjectId, name string) (string, error) {
 		return c.FindId(id).One(result)
 	}
 
-	err := mongodb.Run(getCollectionName(name), query)
+	err := mongo.Run(getCollectionName(name), query)
 	if err != nil {
 		return "", err
 	}
@@ -148,7 +158,7 @@ func generateJSON(data map[string]interface{}) string {
 	// encode json
 	res, err := json.Marshal(decoratedArray)
 	if err != nil {
-		fmt.Println("Marshalling error:", err)
+		log.Error("Marshalling error: %v", err)
 	}
 	return string(res)
 }

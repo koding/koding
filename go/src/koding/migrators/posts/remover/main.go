@@ -2,18 +2,22 @@ package main
 
 import (
 	"encoding/json"
+	"flag"
 	"fmt"
-	logging "github.com/op/go-logging"
-	"github.com/streadway/amqp"
 	helper "koding/db/mongodb/modelhelper"
 	"koding/messaging/rabbitmq"
+	"koding/tools/config"
 	"koding/tools/logger"
+
+	"github.com/streadway/amqp"
 	"labix.org/v2/mgo/bson"
 )
 
 var (
-	Consumer *rabbitmq.Consumer
-	log      *logging.Logger
+	Consumer    *rabbitmq.Consumer
+	conf        *config.Config
+	log         = logger.New("postMigrator")
+	flagProfile = flag.String("c", "", "Configuration profile from file")
 )
 
 type Migrator struct {
@@ -28,7 +32,14 @@ type Migrator struct {
 }
 
 func main() {
-	log = logger.CreateLogger("PostMigrator", "warning")
+	flag.Parse()
+	if *flagProfile == "" {
+		log.Fatal("Please specify profile via -c. Aborting.")
+	}
+
+	conf = config.MustConfig(*flagProfile)
+	helper.Initialize(conf.Mongo)
+
 	log.Notice("Started Obsolete Post Remover")
 	defer shutdown()
 	initConsumer()
@@ -55,7 +66,8 @@ func initConsumer() {
 	}
 
 	var err error
-	Consumer, err = rabbitmq.NewConsumer(exchange, queue, binding, consumerOptions)
+	r := rabbitmq.New(conf)
+	Consumer, err = r.NewConsumer(exchange, queue, binding, consumerOptions)
 	if err != nil {
 		panic(err)
 	}

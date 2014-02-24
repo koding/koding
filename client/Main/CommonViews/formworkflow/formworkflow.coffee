@@ -25,7 +25,7 @@ class FormWorkflow extends KDView
       if (provider is @active and direction is 'back') or
          (direction is 'next')
 
-        provider.go direction 
+        provider.go direction
 
     @showForm provider, no
 
@@ -116,10 +116,24 @@ class FormWorkflow extends KDView
     @active = form
 
     @history.push form  if shouldPushState
-    
+
+    @emit 'FormIsShown', form
+
     return this
 
+  addLoader:->
+    @addSubView @loader = new KDLoaderView
+      size          :
+        width       : 60
+        height      : 60
+      loaderOptions :
+        color       : "#1aaf5d"
+
+  showLoader:-> @loader.show()
+  hideLoader:-> @loader.hide()
+
   viewAppended:->
+    @addLoader()
     @prepareWorkflow?()
     @emit 'ready'
 

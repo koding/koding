@@ -72,7 +72,7 @@ class MessagesListController extends KDListViewController
 class NotificationListItem extends KDListItemView
 
   activityNameMap =
-    JNewStatusUpdate   : "status."
+    JNewStatusUpdate: "status."
     JStatusUpdate   : "your status update."
     JCodeSnip       : "your status update."
     JAccount        : "started following you."
@@ -140,13 +140,12 @@ class NotificationListItem extends KDListItemView
     else
       @interactedGroups = new KDCustomHTMLView
 
-    @timeAgoView = new KDTimeAgoView {}, @getLatestTimeStamp @getData().dummy
+    @activityPlot = new KDCustomHTMLView tagName: "span"
+    @timeAgoView  = new KDTimeAgoView null, @getLatestTimeStamp @getData().dummy
 
-    @activityPlot = ""
-    @getActivityPlot()
-
-  viewAppended:->
+  viewAppended: ->
     @getActivityPlot (err) =>
+      return KD.showError err  if err
       @setTemplate @pistachio()
       @template.update()
 
@@ -156,7 +155,7 @@ class NotificationListItem extends KDListItemView
         {{> @avatar}}
       </div>
       <div class='right-overflow'>
-        <p>{{> @participants}} {{@getActionPhrase #(dummy)}} #{@activityPlot} {{> @interactedGroups}}</p>
+        <p>{{> @participants}} {{@getActionPhrase #(dummy)}} {{> @activityPlot}} {{> @interactedGroups}}</p>
         <footer>
           {{> @timeAgoView}}
         </footer>
@@ -183,27 +182,26 @@ class NotificationListItem extends KDListItemView
     {constructorName, id} = @snapshot.anchor
     if constructorName is "JNewStatusUpdate"
       KD.remote.cacheable constructorName, id, (err, post) =>
-        return callback err if err or not post?
+        return callback err  if err or not post
         KD.remote.cacheable "JAccount", post.originId, (err, origin) =>
-          return callback err if err or not origin?
+          return callback err  if err or not origin
           originatorName = KD.utils.getFullnameFromAccount origin
-          @activityPlot = if post.originId is KD.whoami()?.getId() then "your"
+          adjective = if post.originId is KD.whoami()?.getId() then "your"
           else if @group.length == 1 and @group[0].id is origin.getId() then "their own"
           else "#{originatorName}'s"
-          @activityPlot += " #{activityNameMap[constructorName]}"
-          callback null
+
+          @activityPlot.updatePartial "#{adjective} #{activityNameMap[constructorName]}"
+          callback()
     else
-      @activityPlot = activityNameMap[@snapshot.anchor.constructorName]
-      callback null
-
-
+      @activityPlot.updatePartial activityNameMap[@snapshot.anchor.constructorName]
+      callback()
 
   click:->
-
     showPost = (err, post)->
       if post
         internalApp = if post.constructor.name is "JNewApp" then "Apps" else "Activity"
-        KD.getSingleton('router').handleRoute "/#{internalApp}/#{post.slug}", state:post
+        groupSlug = if post.group is "koding" then "" else "/#{post.group}"
+        KD.getSingleton('router').handleRoute "#{groupSlug}/#{internalApp}/#{post.slug}", state:post
 
       else
         new KDNotificationView

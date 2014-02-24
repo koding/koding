@@ -14,16 +14,21 @@ authAllExchange = "authAll"
 embedlyApiKey   = '94991069fb354d4e8fdb825e52d4134a'
 
 environment     = "vagrant"
+regions         =
+  vagrant       : "vagrant"
+  sj            : "sj"
+  aws           : "aws"
 
 module.exports =
   environment   : environment
+  regions       : regions
   version       : version
   aws           :
     key         : 'AKIAJSUVKX6PD254UGAA'
     secret      : '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'
   uri           :
-    address     : "http://localhost:3020"
-  userSitesDomain: 'localhost'
+    address     : "http://lvh.me:3020"
+  userSitesDomain: 'lvh.me'
   containerSubnet: "10.128.2.0/9"
   vmPool        : "vms"
   projectRoot   : projectRoot
@@ -46,7 +51,9 @@ module.exports =
     port        : 7474
   runNeo4jFeeder: yes
   runGoBroker   : yes
-  runKontrol    : no
+  runGoBrokerKite: yes
+  runPremiumBrokerKite: yes
+  runKontrol    : yes
   runRerouting  : yes
   runUserPresence: yes
   runPersistence: no
@@ -54,6 +61,7 @@ module.exports =
   buildClient   : yes
   runOsKite     : yes
   runProxy      : yes
+  redis         : "localhost:6379"
   misc          :
     claimGlobalNamesForUsers: no
     updateAllSlugs : no
@@ -111,7 +119,6 @@ module.exports =
     cronSchedule         : '00 00 00 * * *'
   topicModifier          :
     cronSchedule         : '0 */5 * * * *'
-    logLevel             : "notice"
   social        :
     login       : 'prod-social'
     numberOfWorkers: 1
@@ -141,7 +148,7 @@ module.exports =
     indexMaster : "index-master.html"
     index       : "default.html"
     useStaticFileServer: no
-    staticFilesBaseUrl: 'http://localhost:3020'
+    staticFilesBaseUrl: 'http://lvh.me:3020'
     runtimeOptions:
       environment        : environment
       activityFetchCount : 20
@@ -151,22 +158,32 @@ module.exports =
         clientId     : "f8e440b796d953ea01e5"
       embedly        :
         apiKey       : embedlyApiKey
-      userSitesDomain: 'localhost'
+      userSitesDomain: 'lvh.me'
       useNeo4j: yes
       logToExternal: no  # rollbar, mixpanel etc.
       resourceName: socialQueueName
+      socialApiUri: 'http://lvh.me:3030/xhr'
       suppressLogs: no
       broker    :
-        servicesEndpoint: 'http://localhost:3020/-/services/broker'
-        sockJS  : 'http://localhost:8008/subscribe'
-      apiUri    : 'http://localhost:3020'
+        servicesEndpoint: 'http://lvh.me:3020/-/services/broker'
+        sockJS  : 'http://lvh.me:8008/subscribe'
+      brokerKite:
+        servicesEndpoint: 'http://lvh.me:3020/-/services/brokerKite'
+        brokerExchange: 'brokerKite'
+        sockJS  : 'http://lvh.me:8009/subscribe'
+      premiumBrokerKite:
+        servicesEndpoint: 'http://lvh.me:3020/-/services/premiumBrokerKite'
+        brokerExchange: 'premiumBrokerKite'
+        sockJS  : 'http://lvh.me:8010/subscribe'
+      apiUri    : 'http://lvh.me:3020'
       version   : version
-      mainUri   : 'http://localhost:3020'
+      mainUri   : 'http://lvh.me:3020'
       appsUri   : 'https://koding-apps.s3.amazonaws.com'
       uploadsUri: 'https://koding-uploads.s3.amazonaws.com'
-      sourceUri : 'http://localhost:3526'
+      uploadsUriForGroup: 'https://koding-groups.s3.amazonaws.com'
+      sourceUri : 'http://lvh.me:3526'
       newkontrol:
-        url     : 'wss://127.0.0.1:80/dnode'
+        url     : 'ws://127.0.0.1:4000/kontrol'
       fileFetchTimeout: 15 * 1000 # seconds
       externalProfiles  :
         github          :
@@ -199,22 +216,44 @@ module.exports =
     # so it'll disconnect from RabbitMQ if heartbeat is enabled.
     heartbeat   : 0
     vhost       : '/'
-    logLevel    : "notice"
   broker        :
+    name        : "broker"
     ip          : ""
     port        : 8008
     certFile    : ""
     keyFile     : ""
     webProtocol : 'http:'
-    webHostname : 'localhost'
+    webHostname : 'lvh.me'
     webPort     : 8008
+    authExchange: authExchange
+    authAllExchange: authAllExchange
+  brokerKite    :
+    name        : "brokerKite"
+    ip          : ""
+    port        : 8009
+    certFile    : ""
+    keyFile     : ""
+    webProtocol : 'http:'
+    webHostname : 'lvh.me'
+    webPort     : 8009
+    authExchange: authExchange
+    authAllExchange: authAllExchange
+  premiumBrokerKite :
+    name        : "premiumBrokerKite"
+    ip          : ""
+    port        : 8010
+    certFile    : ""
+    keyFile     : ""
+    webProtocol : 'http:'
+    webHostname : 'lvh.me'
+    webPort     : 8010
     authExchange: authExchange
     authAllExchange: authAllExchange
   kites:
     disconnectTimeout: 3e3
     vhost       : 'kite'
   email         :
-    host        : 'localhost'
+    host        : 'lvh.me:3020'
     protocol    : 'http:'
     defaultFromAddress: 'hello@koding.com'
   emailWorker   :
@@ -243,10 +282,13 @@ module.exports =
   haproxy         :
     webPort       : 3020
   newkontrol      :
-    host          : "127.0.0.1"
-    port          : 4000
-    certFile      : "/opt/koding/certs/vagrant_127.0.0.1_cert.pem"
-    keyFile       : "/opt/koding/certs/vagrant_127.0.0.1_key.pem"
+    username        : "devrim"
+    port            : 4000
+    useTLS          : no
+    certFile        : ""
+    keyFile         : ""
+    publicKeyFile   : "/opt/koding/certs/test_kontrol_rsa_public.pem"
+    privateKeyFile  : "/opt/koding/certs/test_kontrol_rsa_private.pem"
   proxyKite       :
     domain        : "127.0.0.1"
     certFile      : "/opt/koding/certs/vagrant_127.0.0.1_cert.pem"
@@ -261,9 +303,9 @@ module.exports =
       switchHost  : "example.com"
     api           :
       port        : 8888
-      url         : "http://localhost"
+      url         : "http://lvh.me"
     proxy         :
-      port        : 80
+      port        : 5000
       portssl     : 8081
       ftpip       : '127.0.0.1'
   # crypto :
@@ -283,8 +325,9 @@ module.exports =
   #     decipher.update(str,'hex')
   #     b = decipher.final('utf-8')
   #     return b
-  recurly       :
-    apiKey      : '4a0b7965feb841238eadf94a46ef72ee' # koding-test.recurly.com
+  recurly         :
+    apiKey        : '4a0b7965feb841238eadf94a46ef72ee' # koding-test.recurly.com
+    loggedRequests: /^(subscriptions|transactions)/
   embedly       :
     apiKey      : embedlyApiKey
   opsview       :
@@ -303,23 +346,27 @@ module.exports =
     secret_url   : "https://www.odesk.com/services/api/auth?oauth_token="
     version      : "1.0"
     signature    : "HMAC-SHA1"
-    redirect_uri : "http://localhost:3020/-/oauth/odesk/callback"
+    redirect_uri : "http://lvh.me:3020/-/oauth/odesk/callback"
   facebook       :
     clientId     : "475071279247628"
     clientSecret : "65cc36108bb1ac71920dbd4d561aca27"
-    redirectUri  : "http://localhost:3020/-/oauth/facebook/callback"
+    redirectUri  : "http://lvh.me:3020/-/oauth/facebook/callback"
   google         :
     client_id    : "1058622748167.apps.googleusercontent.com"
     client_secret: "vlF2m9wue6JEvsrcAaQ-y9wq"
-    redirect_uri : "http://localhost:3020/-/oauth/google/callback"
+    redirect_uri : "http://lvh.me:3020/-/oauth/google/callback"
   statsd         :
     use          : false
-    ip           : "localhost"
+    ip           : "lvh.me"
     port         : 8125
+  graphite       :
+    use          : false
+    host         : "lvh.me"
+    port         : 2003
   linkedin       :
     client_id    : "f4xbuwft59ui"
     client_secret: "fBWSPkARTnxdfomg"
-    redirect_uri : "http://localhost:3020/-/oauth/linkedin/callback"
+    redirect_uri : "http://lvh.me:3020/-/oauth/linkedin/callback"
   twitter        :
     key          : "aFVoHwffzThRszhMo2IQQ"
     secret       : "QsTgIITMwo2yBJtpcp9sUETSHqEZ2Fh7qEQtRtOi2E"
@@ -332,5 +379,28 @@ module.exports =
   mixpanel       : "a57181e216d9f713e19d5ce6d6fb6cb3"
   rollbar        : "71c25e4dc728431b88f82bd3e7a600c9"
   slack          :
-	  token        : "xoxp-2155583316-2155760004-2158149487-a72cf4"
-	  channel      : "C024LG80K"
+    token        : "xoxp-2155583316-2155760004-2158149487-a72cf4"
+    channel      : "C024LG80K"
+  logLevel        :
+    neo4jfeeder   : "notice"
+    oskite        : "notice"
+    kontrolproxy  : "notice"
+    kontroldaemon : "notice"
+    userpresence  : "notice"
+    vmproxy       : "notice"
+    graphitefeeder: "notice"
+    sync          : "notice"
+    topicModifier : "notice"
+    postModifier  : "notice"
+    router        : "notice"
+    rerouting     : "notice"
+    overview      : "notice"
+    amqputil      : "notice"
+    rabbitMQ      : "notice"
+    ldapserver    : "notice"
+    broker        : "notice"
+  defaultVMConfigs:
+    freeVM        :
+      storage     : 3072
+      ram         : 1024
+      cpu         : 1

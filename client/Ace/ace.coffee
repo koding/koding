@@ -19,13 +19,14 @@ class Ace extends KDView
     @domElement = $ "<figure class='kdview'><div id='editor#{@getId()}' class='code-wrapper'></div></figure>"
 
   viewAppended:->
-
     @hide()
     @appStorage.fetchStorage (storage)=>
       require ['ace/ace'], (ace)=>
         @fetchContents (err, contents)=>
           notification?.destroy()
-          @editor = ace.edit "editor#{@getId()}"
+          id = "editor#{@getId()}"
+          return  unless document.getElementById id
+          @editor = ace.edit id
           @prepareEditor()
           @utils.defer => @emit "ace.ready"
           if contents
@@ -235,7 +236,7 @@ class Ace extends KDView
       @syntaxMode = mode
 
   setTheme:(themeName, save = yes)->
-    themeName or= @appStorage.getValue('theme') or 'merbivore_soft'
+    themeName or= @appStorage.getValue('theme') or 'koding'
     require ["ace/theme/#{themeName}"], (callback) =>
       @editor.setTheme "ace/theme/#{themeName}"
       return  unless save
@@ -382,7 +383,7 @@ class Ace extends KDView
                     Go              :
                       itemClass     : KDButtonView
                       title         : "Go"
-                      style         : "modal-clean-gray fl"
+                      style         : "solid green"
                       type          : "submit"
 
       @gotoLineModal.on "KDModalViewDestroyed", =>

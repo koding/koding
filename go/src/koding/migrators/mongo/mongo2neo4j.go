@@ -5,7 +5,7 @@ import (
 	"koding/databases/neo4j"
 	"koding/db/mongodb"
 	"koding/tools/config"
-	"koding/tools/log"
+	"koding/tools/logger"
 	"koding/workers/neo4jfeeder/mongohelper"
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
@@ -30,6 +30,8 @@ var (
 	MONGO_COLLECTION_NAME = "relationships"
 	TIME_FORMAT           = "2006-01-02T15:04:05.000Z"
 )
+
+var log = logger.New("mongo2neo4j")
 
 func main() {
 
@@ -104,10 +106,10 @@ func main() {
 	}
 
 	if iter.Err() != nil {
-		log.Warn("Error during iteration: ", iter.Err())
+		log.Warning("Error during iteration: %v", iter.Err())
 	}
 
-	fmt.Println("Migration completed")
+	log.Info("Migration completed")
 }
 
 func getContent(objectId bson.ObjectId, name string) string {
@@ -121,7 +123,7 @@ func getContent(objectId bson.ObjectId, name string) string {
 
 		content, err = mongohelper.FetchContent(objectId, name)
 		if err != nil {
-			log.Debug("source err ", err)
+			log.Debug("source err %v", err)
 			content = ""
 		}
 	}
@@ -158,7 +160,7 @@ func checkIfEligible(sourceName, targetName string) bool {
 
 	for _, name := range notAllowedNames {
 		if name == sourceName || name == targetName {
-			log.Debug("not eligible " + name)
+			log.Debug("not eligible %v", name)
 			return false
 		}
 	}
@@ -166,7 +168,7 @@ func checkIfEligible(sourceName, targetName string) bool {
 	for _, name := range notAllowedSuffixes {
 
 		if strings.HasSuffix(sourceName, name) || strings.HasSuffix(targetName, name) {
-			log.Debug("not eligible " + name)
+			log.Debug("not eligible %v", name)
 			return false
 		}
 	}

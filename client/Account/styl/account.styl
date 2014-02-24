@@ -12,8 +12,6 @@ app.settings.styl
 }
 
 body.account
-  bg                      color, #E9E9E7
-
   // THIS IS TEMP - SY
 
   textarea.kdinput.text
@@ -41,7 +39,6 @@ body.account
 
 
 .kdtabpaneview.account
-
   color                   #828B8B
 
   .content-page
@@ -87,13 +84,10 @@ body.account
   .kdformview
     .formline
       border              none
-      padding             11px 0
       input.kdinput.text
         min-width         0
 
-  .button-field
-    bg                    color transparent
-    .kdbutton.solid.green
+    .profile-save-changes
       width               100%
 
 
@@ -182,184 +176,6 @@ button.kdbutton.solid.green.account-header-button
     &.escape
       left                -160px
 
-.referrer-modal
-  line-height         1.8em
-
-  .kdtabpaneview.share
-
-    p
-      margin-bottom     15px
-
-      &.center
-        color           #999
-        font-size       13px
-        text-align      center
-
-
-    .left-column
-    .right-column
-      width             50%
-      borderBox()
-
-    .left-column
-      padding-right     20px
-      border-right      1px solid #ddd
-      fl()
-
-      .share-url-label
-        display         block
-        font-weight     400
-        font-size       12px
-
-      .share-links
-        size            100% 30px
-        line-height     30px
-        margin-top      25px
-        font-size       14px
-
-        .share-icon
-          border        none
-          size          30px 30px
-          rounded       50%
-          padding       0
-          margin        0 0 0 8px
-          background    none
-
-          &.twitter
-            r-sprite    "account", "inv-twitter"
-          &.facebook
-            r-sprite    "account", "inv-facebook"
-          &.linkedin
-            r-sprite    "account", "inv-linkedin"
-
-    .right-column
-      padding-left      20px
-      fl()
-
-      .invite-button
-        size            100%, 50px
-        line-height     50px
-        rounded         3px
-        background      #5d5d5d
-        border          none
-        padding         0
-
-        .icon
-          padding       0
-          margin        14px
-
-        &.gmail .icon
-          r-sprite      "account", "inv-gmail"
-
-        .button-title
-          size          auto 50px
-          font-size     14px
-          color         #eee
-          padding       0
-          font-weight   400
-          border-left   1px solid #545454
-          line-height   50px
-          fl()
-
-  .kdtabpaneview.invite
-    .kdlistitemview-gmail
-      width             50%
-      height            58px
-      background        #fff
-      clear             none
-      border-bottom     1px solid #ebebeb
-      vendor            transition, background .3s ease
-      cursor            pointer
-      position          relative
-      borderBox()
-      fl()
-
-      &:nth-child(2n)
-        border-left     1px solid #ebebeb
-
-      &:nth-last-of-type(1)
-      &:nth-last-of-type(2)
-        border-bottom   none
-
-      .avatar
-        size            25px, 25px
-        margin          16px 10px 16px 16px
-        rounded         50%
-        background      #f0f0f0
-        fl()
-
-      .contact-info
-        kalc            width, 100% \-\ 51px
-        padding-top     10px
-        overflow        hidden
-        borderBox()
-        fl()
-
-        span
-          width         100%
-          font-size     12px
-          line-height   14px
-          white-space   nowrap
-          text-overflow ellipsis
-          overflow      hidden
-          display       block
-          color         #959595
-
-        .full-name
-          line-height   19px
-          font-size     16px
-          color         #393939
-
-      &:hover:before
-        content           "Send an Invite?"
-        size              100%
-        height            100%
-        line-height       58px
-        font-size         16px
-        background        rgba(242, 242, 242, .95)
-        color             #737373
-        text-align        center
-        abs               0 0 0 0
-        z-index           5
-
-
-      .invitation-sent-overlay
-        size              100%, 100%
-        abs               0 100% 0 0
-        line-height       16px
-        padding           16px 0
-        font-size         16px
-        text-align        center
-        color             #fff
-        background        #a8e071
-        z-index           6
-        vendor            transition, right .3s ease
-
-        span
-          display         block
-
-        .email
-          font-size       12px
-          white-space     nowrap
-          text-overflow   ellipsis
-
-      &.invitation-sent .invitation-sent-overlay
-        right             0
-
-
-.kdmodal.redeem-modal
-
-  .formline
-    overflow              visible
-    padding               15px 0 0
-    .input-wrapper
-      overflow            visible
-      margin-right        8px
-      fr()
-    label
-      margin              0
-
-
 // FIX THESE STYLES FOR
 // TOO MUCH REPITITION
 // for .settings-list-wrapper - SY
@@ -382,6 +198,7 @@ button.kdbutton.solid.green.account-header-button
   .no-item-found
     padding           10px 20px
     color             #888
+    borderBox()
 
   &.payment-methods
     .no-item-found
@@ -423,18 +240,47 @@ button.kdbutton.solid.green.account-header-button
           color         rgba(255,255,255,.5)
 
   &.your-subscriptions
-    ul
-      li
-        margin-bottom        15px
-        h4
-          font-weight     400
-          font-size       16px
-          line-height     1.6
-          width           auto
-        a
-          display         inline
-          float           none
-          margin-left     0
+    .kdlistitemview-subscription
+      size              100%, auto
+      padding           19px 22px
+      background        #fff
+      rounded           6px
+      font-weight       400
+      color             #6f6f6f
+      margin            0 0 2px 0
+
+      h4
+        font-size       14px
+        margin-bottom   4px
+
+      p
+        font-size       12px
+        color           #c6c6c6
+        min-height      20px
+
+      .price
+        display         block
+        abs             0px 0px 0 0
+        font-size       18px
+
+      .controls
+        abs             0 22px 19px 0
+
+        .custom-link-view
+          font-size     12px
+          noTextDeco()
+
+          &.red
+            color       #ed492c
+
+          &.green
+            color       #01b05a
+
+          &.yellow
+            color       #eeb844
+
+
+
 
   &.referral-system
     header

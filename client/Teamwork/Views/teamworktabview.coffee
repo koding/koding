@@ -19,16 +19,21 @@ class TeamworkTabView extends CollaborativePane
       @bindRemoteEvents()
     else
       @keysRef.once "value", (snapshot) =>
-        data = snapshot.val()
+        data = @workspace.reviveSnapshot snapshot
         return unless data
 
         @keysRefChildAddedCallback value  for key, value of data
         @bindRemoteEvents()
 
+    {mainTabView} = KD.getSingleton "mainView"
+    mainTabView.on "PaneDidShow", (pane) =>
+      if pane.name is "Teamwork"
+        @recoverPaneState @tabView.getActivePane()
+
   listenRequestRef: ->
     @requestRef.on "value", (snapshot) =>
       if @amIHost
-        request = snapshot.val()
+        request = @workspace.reviveSnapshot snapshot
         return unless request
 
         @createTabFromFirebaseData request
@@ -37,34 +42,36 @@ class TeamworkTabView extends CollaborativePane
   listenPaneDidShow: ->
     @tabView.on "PaneDidShow", (pane) =>
       @stateRef.child(KD.nick()).set pane.getOptions().indexKey
+      @updateTabAvatars()
 
-      # need to delay fetching state ref.
-      # otherwise clients might be in different tabs.
-      KD.utils.wait 600, =>
-        @stateRef.once "value", (snapshot) =>
-          map = snapshot.val()
-          return unless map
+  updateTabAvatars: ->
+    # need to delay fetching state ref.
+    # otherwise clients might be in different tabs.
+    KD.utils.wait 600, =>
+      @stateRef.once "value", (snapshot) =>
+        map = @workspace.reviveSnapshot snapshot
+        return unless map
 
-          data = {}
+        data = {}
 
-          for username, indexKey of map
-            data[indexKey] = []  unless data[indexKey]
-            jAccount       = @workspace.users[username]
-            data[indexKey].push jAccount  if jAccount
+        for username, indexKey of map
+          data[indexKey] = []  unless data[indexKey]
+          jAccount       = @workspace.users[username]
+          data[indexKey].push jAccount  if jAccount
 
-          for pane in @tabView.panes
-            {indexKey} = pane.getOptions()
-            if data[indexKey]
-              avatars = data[indexKey].filter (jAccount) ->
-                return if jAccount?.profile.nickname is KD.nick() then no else yes
-              pane.tabHandle.avatarView?.avatar?.destroy()
-              pane.tabHandle.setAccounts avatars
-            else
-              pane.tabHandle.avatarView?.avatar?.destroy()
+        for pane in @tabView.panes
+          {indexKey} = pane.getOptions()
+          if data[indexKey]
+            avatars = data[indexKey].filter (jAccount) ->
+              return if jAccount?.profile.nickname is KD.nick() then no else yes
+            pane.tabHandle.avatarView?.avatar?.destroy()
+            pane.tabHandle.setAccounts avatars
+          else
+            pane.tabHandle.avatarView?.avatar?.destroy()
 
   listenChildRemovedOnKeysRef: ->
     @keysRef.on "child_removed", (snapshot) =>
-      data = snapshot.val()
+      data = @workspace.reviveSnapshot snapshot
       return unless data
       {indexKey} = data
 
@@ -83,7 +90,7 @@ class TeamworkTabView extends CollaborativePane
 
   listenChildAddedOnKeysRef: ->
     @keysRef.on "child_added", (snapshot) =>
-      @keysRefChildAddedCallback snapshot.val()
+      @keysRefChildAddedCallback @workspace.reviveSnapshot snapshot
 
   keysRefChildAddedCallback: (data) ->
     key     = data.indexKey
@@ -94,23 +101,27 @@ class TeamworkTabView extends CollaborativePane
 
   listenIndexRef: ->
     @indexRef.on "value", (snapshot) =>
-      data       = snapshot.val()
+      data       = @workspace.reviveSnapshot snapshot
       {watchMap} = @workspace
       username   = KD.nick()
       return unless data
 
-      if watchMap[username] is "everybody" or watchMap[username] is data.by
+      if watchMap[username] is data.by or watchMap[watchMap[username]] is data.by
         for pane in @tabView.panes
           if pane.getOptions().indexKey is data.indexKey
             index = @tabView.getPaneIndex pane
             @tabView.showPaneByIndex index
+            @recoverPaneState pane
 
-            if pane.terminalView
-              {terminal} = pane.terminalView.webterm
-              terminal.scrollToBottom()
-              terminal.setFocused yes  if document.activeElement is document.body
-            else if pane.editor
-              pane.editor.codeMirrorEditor.refresh()
+      @updateTabAvatars()
+
+  recoverPaneState: (pane) ->
+    if pane.terminalView
+      {terminal} = pane.terminalView.webterm
+      terminal.scrollToBottom()
+      terminal.setFocused yes  if document.activeElement is document.body
+    else if pane.editor
+      pane.editor.codeMirrorEditor.refresh()
 
   createElements: ->
     @tabHandleHolder = new ApplicationTabHandleHolder delegate: this
@@ -237,7 +248,7 @@ class TeamworkTabView extends CollaborativePane
       paneIndexKey = pane.getOptions().indexKey
 
       @keysRef.once "value", (snapshot) =>
-        data = snapshot.val()
+        data = @workspace.reviveSnapshot snapshot
         return unless data
 
         for key, value of data
@@ -248,7 +259,7 @@ class TeamworkTabView extends CollaborativePane
     isLocal  = not file
     file     = file or FSHelper.createFileFromPath "localfile:/untitled.txt"
     indexKey = indexKey or @createSessionKey()
-    pane     = new KDTabPaneView { title: file.name, indexKey }
+    pane     = new KDTabPaneView { title: Encoder.XSSEncode(file.name), indexKey }
     delegate = @getDelegate()
     useFirepadContent = content is "FIREBASE_CONTENT"
     editor   = new CollaborativeEditorPane { delegate, sessionKey, file, content, useFirepadContent }

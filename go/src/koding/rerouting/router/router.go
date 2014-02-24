@@ -4,12 +4,15 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"koding/tools/amqputil"
+	"koding/tools/logger"
+	"sync"
+
 	"github.com/fatih/set"
 	"github.com/streadway/amqp"
-	"koding/tools/amqputil"
-	"log"
-	"sync"
 )
+
+var log = logger.New("router")
 
 type Consumer struct {
 	Conn    *amqp.Connection
@@ -44,7 +47,7 @@ type Router struct {
 	sync.RWMutex // protects routes
 }
 
-func NewRouter(c *Consumer, p *Producer) *Router {
+func NewRouter(c *Consumer, p *Producer, profile string) *Router {
 	return &Router{
 		routes:   M{},
 		consumer: c,
@@ -53,7 +56,6 @@ func NewRouter(c *Consumer, p *Producer) *Router {
 }
 
 func (r *Router) AddRoute(msg *amqp.Delivery) error {
-
 	join, err := createAuthMsg(msg)
 	if err != nil {
 		return err
@@ -90,7 +92,7 @@ func (r *Router) AddRoute(msg *amqp.Delivery) error {
 	if isNewBindingExchange {
 		go func() {
 			if err := r.addBinding(join.BindingExchange); err != nil {
-				log.Println(err)
+				log.Error("Error adding binding: %v", err)
 			}
 		}()
 	}
@@ -169,7 +171,7 @@ func (r *Router) addBinding(exchange string) error {
 		nil,      // args
 	)
 	if err != nil {
-		log.Fatalf("exchange.declare: %s", err)
+		log.Fatal("exchange.declare: %s", err)
 		return err
 	}
 
@@ -181,7 +183,7 @@ func (r *Router) addBinding(exchange string) error {
 		false, // no-wait
 		nil,   // args
 	); err != nil {
-		log.Fatalf("queue.declare: %s", err)
+		log.Fatal("queue.declare: %s", err)
 		return err
 	}
 
@@ -192,7 +194,7 @@ func (r *Router) addBinding(exchange string) error {
 		false,    // no-wait
 		nil,      // args
 	); err != nil {
-		log.Fatalf("queue.bind: %s", err)
+		log.Fatal("queue.bind: %s", err)
 		return err
 	}
 
@@ -206,7 +208,7 @@ func (r *Router) addBinding(exchange string) error {
 		nil,   // args
 	)
 	if err != nil {
-		log.Fatalf("basic.consume: %s", err)
+		log.Fatal("basic.consume: %s", err)
 		return err
 	}
 
@@ -236,7 +238,7 @@ func (r *Router) addBinding(exchange string) error {
 				for i := range list {
 					joinMsg := list[i].(AuthMsg)
 					if err := r.publishTo(&joinMsg, &msg); err != nil {
-						log.Printf("WARNING: %v", err)
+						log.Warning("WARNING: %v", err)
 					}
 				}
 			}

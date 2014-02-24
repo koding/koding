@@ -2,7 +2,10 @@ class AccountAppController extends AppController
 
   handler = (callback)->
     if KD.isLoggedIn()
-      KD.singleton('appManager').open 'Account', callback
+      appManager = KD.singleton('appManager')
+      if appManager.getFrontApp()?.getOption('name') is 'Account'
+        callback appManager.getFrontApp()
+      else appManager.open 'Account', callback
     else
       KD.singletons.router.handleRoute '/'
 
@@ -11,7 +14,7 @@ class AccountAppController extends AppController
     routes                       :
       "/:name?/Account"          : -> KD.singletons.router.handleRoute '/Account/Profile'
       "/:name?/Account/:section" : ({params:{section}})-> handler (app)-> app.openSection section
-    behavior                     : "hideTabs"
+      "/:name?/Account/Referrer" : -> KD.singletons.router.handleRoute '/'
     hiddenHandle                 : yes
 
   items =
@@ -71,13 +74,16 @@ class AccountAppController extends AppController
     # SET UP VIEWS
     @navController = new KDListViewController
       view        : new KDListView
-        tagName   : 'aside'
+        tagName   : 'nav'
         type      : 'inner-nav'
         itemClass : AccountNavigationItem
       wrapper     : no
       scrollView  : no
 
-    mainView.addSubView navView = @navController.getView()
+    mainView.addSubView aside = new KDView tagName : 'aside'
+
+
+    aside.addSubView navView = @navController.getView()
 
     mainView.addSubView @tabView = new KDTabView
       hideHandleContainer : yes
@@ -91,8 +97,14 @@ class AccountAppController extends AppController
       <a href="/privacy.html" target="_blank">Privacy policy <span class="icon new-page"></span></a>
       """
 
-  showReferrerModal:-> new ReferrerModal
+  showReferrerModal:(options={})->
+    return  if @referrerModal and not @referrerModal.isDestroyed
 
+    options.top         ?= 50
+    options.left        ?= 35
+    options.arrowMargin ?= 110
+
+    @referrerModal = new ReferrerModal options
 
   displayConfirmEmailModal:(name, username, callback=noop)->
     name or= KD.whoami().profile.firstName
@@ -130,3 +142,126 @@ class AccountAppController extends AppController
         title     : "Check your email"
         content   : "We've sent you a confirmation mail."
         duration  : 4500
+
+  redeemReferralPoint:(modal)->
+    {vmToResize, sizes} = modal.modal.modalTabs.forms.Redeem.inputs
+
+    data = {
+      vmName : vmToResize.getValue(),
+      size   : sizes.getValue(),
+      type   : "disk"
+    }
+
+    KD.remote.api.JReferral.redeem data, (err, refRes)=>
+      return KD.showError err if err
+      modal.modal.destroy()
+      KD.getSingleton("vmController").resizeDisk data.vm, (err, res)=>
+        return KD.showError err if err
+        KD.getSingleton("vmController").emit "ReferralCountUpdated"
+        KD.notify_ """
+            #{refRes.addedSize} #{refRes.unit} extra #{refRes.type} is successfully added to your #{refRes.vm} VM.
+          """
+        # @showReferrerModal title: "Want more?"
+
+
+  showRedeemReferralPointModal:->
+    vmController = KD.getSingleton("vmController")
+    vmController.fetchVMs yes, (err, vms)=>
+      return KD.showError err if err
+      return KD.notify_ "You don't have any VMs. Please create one VM" if not vms or vms.length < 1
+
+      KD.remote.api.JReferral.fetchRedeemableReferrals { type: "disk" }, (err, referals)=>
+        return KD.showError err if err
+        return KD.notify_ "You dont have any referrals" if not referals or referals.length < 1
+
+        @modal = modal = new KDModalViewWithForms
+          title                   : "Redeem Your Referral Points"
+          cssClass                : "redeem-modal"
+          content                 : ""
+          overlay                 : yes
+          width                   : 500
+          height                  : "auto"
+          tabs                    :
+            forms                 :
+              Redeem               :
+                callback          : =>
+                  @modal.modalTabs.forms.Redeem.buttons.redeemButton.showLoader()
+                  @redeemReferralPoint @
+                buttons           :
+                  redeemButton    :
+                    title         : "Redeem"
+                    style         : "modal-clean-gray"
+                    type          : "submit"
+                    loader        :
+                      color       : "#444444"
+                      diameter    : 12
+                    callback      : -> @hideLoader()
+                  cancel          :
+                    title         : "Cancel"
+                    style         : "modal-cancel"
+                    callback      : (event)-> modal.destroy()
+                fields            :
+                  vmToResize    :
+                    label         : "Select a WM to resize"
+                    cssClass      : "clearfix"
+                    itemClass     : KDSelectBox
+                    type          : "select"
+                    name          : "vmToResize"
+                    validate      :
+                      rules       :
+                        required  : yes
+                      messages    :
+                        required  : "You must select a VM!"
+                    selectOptions : (cb)->
+                      options = for vm in vms
+                        ( title : vm, value : vm)
+                      cb options
+                  sizes           :
+                    label         : "Select Size"
+                    cssClass      : "clearfix"
+                    itemClass     : KDSelectBox
+                    type          : "select"
+                    name          : "size"
+                    validate      :
+                      rules       :
+                        required  : yes
+                      messages    :
+                        required  : "You must select a size!"
+                    selectOptions : (cb)=>
+                      options = []
+                      previousTotal = 0
+                      referals.forEach (referal, i)->
+                        previousTotal += referal.amount
+                        options.push ( title : "#{previousTotal} #{referal.unit}" , value : previousTotal)
+                      cb options
+
+
+  showRegistrationNeededModal:->
+    return if @modal
+
+    handler = (modal, route)->
+      modal.destroy()
+      KD.utils.wait 5000, KD.getSingleton("router").handleRoute route
+
+    @modal = new KDBlockingModalView
+      title           : "Please Login or Register"
+      content : """
+Every Koding user gets a private virtual machine with root access. Let's give you one in 10 seconds so that you can
+code, collaborate and have fun! :)
+<br><br>
+
+<iframe width="560" height="315" src="//www.youtube.com/embed/5E85g_ddV3A" frameborder="0" allowfullscreen></iframe><br>
+Click play to see what Koding is all about in 2 minutes!
+      """
+      height          : "auto"
+      overlay         : yes
+      buttons         :
+        "Login"       :
+          style       : "modal-clean-gray"
+          callback    : => handler @modal, "/Login"
+        "Register"    :
+          style       : "modal-clean-gray"
+          callback    : => handler @modal, "/Register"
+
+
+    @modal.on "KDObjectWillBeDestroyed", => @modal = null

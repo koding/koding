@@ -29,6 +29,7 @@ module.exports = class JNewStatusUpdate extends JPost
         { name: 'RemovedFromCollection' }
         { name: 'PostIsDeleted' }
         { name: 'PostIsCreated'}
+        { name: 'LikeIsRemoved'}
       ]
       static          : [
         { name: 'updateInstance' }
@@ -117,7 +118,7 @@ module.exports = class JNewStatusUpdate extends JPost
 
   constructor:->
     super
-    @notifyGroupWhen 'LikeIsAdded', 'PostIsCreated', 'ReplyIsAdded', 'PostIsDeleted'
+    @notifyGroupWhen 'LikeIsAdded', 'PostIsCreated', 'ReplyIsAdded', 'PostIsDeleted', 'LikeIsRemoved'
 
   @getActivityType =-> require './statusactivity'
 
@@ -136,6 +137,9 @@ module.exports = class JNewStatusUpdate extends JPost
 
       options.urls = urls
       api.extract options, callback
+
+  @create$ = secure (client, data, callback)->
+    @create client, data, callback
 
   @create = secure (client, data, callback)->
     statusUpdate  =
@@ -196,14 +200,10 @@ module.exports = class JNewStatusUpdate extends JPost
       if err then return callback err
       unless group then return callback {error: "Group not found"}
 
-      # this is not a security hole
-      # everybody can read koding activity feed
-      return callback null, group if groupName is "koding"
-
       # if group is not koding check for security
       {delegate} = client.connection
       return callback {error: "Request not valid"} unless delegate
-      group.canReadActivity client, (err, res)->
+      group.canReadGroupActivity client, (err, res)->
         if err then return callback {error: "Not allowed to open this group"}
         else callback null, group
 

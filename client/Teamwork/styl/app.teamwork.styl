@@ -402,23 +402,27 @@ app.teamwork.styl
     color                       #7dbef1
     border-width                3px
 
-.tw-users
+.tw-users-area
   bg                            color, #282F31
   border-left                   11px solid #1B2224
   border-bottom                 11px solid #1B2224
   padding                       15px
-  height                        52px
+  height                        72px
   overflow                      hidden
-  p
+  position                      relative
+  span
     color                       #1aaf5d
     font-size                   12px
-    &:first-child
-      fl()
     &.tw-share-link
-      fr()
+      position                  absolute
+      top                       4px
+      right                     0
       pointer()
   .tw-action-links
+    position                    relative
+  .tw-users
     overflow                    hidden
+    float                       left
   .avatarview
     fl()
     margin                      10px 9px 0 0
@@ -429,13 +433,30 @@ app.teamwork.styl
       background-position       -2px -2px
   .tw-bot-avatar
     margin                      10px 9px 0 0
+  .tw-watch-info
+    position                    absolute
+    font-size                   12px
+    color                       #B7B7B7
+    bottom                      10px
+  .tw-stop-watch
+    color                       #B7B7B7
+    text-decoration             none
 
 .tw-chat
   width                         280px
   kalc                          height, 100% \- 58px
   bg                            color, #1B2224
   .messages
-    kalc                        height, 100% \- 203px
+    kalc                        height, 100% \- 223px
+
+  &.expanded
+    .tw-users-area
+      height                    112px !important
+    .messages
+      kalc                      height, 100% \- 264px
+    .tw-users
+      max-height                80px
+      overflow                  scroll
 
 .tw-chat-open
   .application-tabview
@@ -548,12 +569,13 @@ app.teamwork.styl
       .icon
         padding                 0 2px 0 0 !important
     &.modal-clean-green
-      bg                        color, #1AAE5D
+      bg                        color, #1AAF5D !important
       color                     #FFF
+      border                    none !important
     &.modal-cancel
-      bg                        color, #A9A9A9
+      bg                        color, #A9A9A9 !important
       color                     #FFF
-      border-color              #A9A9A9
+      border                    none !important
 
 .tw-invite-modal
   .kdmodal-buttons
@@ -722,7 +744,17 @@ app.teamwork.styl
   color                         #7e888a
   font-size                     18px
   margin-left                   -280px
-  z-index                       1
+  z-index                       2
+  height                        46px
+  margin-top                    -23px
+  p:first-child
+    margin-bottom               5px
+  span
+    font-size                   14px
+  a
+    color                       #fff
+    text-decoration             none
+    font-size                   14px
 
 .client-finder-pane
   .jtreeitem

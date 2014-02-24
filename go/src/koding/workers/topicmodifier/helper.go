@@ -10,19 +10,19 @@ import (
 func DeleteStatusUpdate(id string) error {
 	err := RemoveComments(id)
 	if err != nil {
-		log.Error("Empty Status Update Cannot be deleted: %s", err.Error())
+		log.Error("Empty Status Update Cannot be deleted: %v", err)
 		return err
 	}
 
 	err = RemovePostRelationships(id)
 	if err != nil {
-		log.Error("Empty Status Update Cannot be deleted: %s", err.Error())
+		log.Error("Empty Status Update Cannot be deleted: %v", err)
 		return err
 	}
 
 	err = helper.DeleteStatusUpdateById(id)
 	if err != nil {
-		log.Error("Empty Status Update Cannot be deleted: %s", err.Error())
+		log.Error("Empty Status Update Cannot be deleted: %v", err)
 		return err
 	}
 

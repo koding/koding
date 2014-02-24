@@ -9,13 +9,28 @@ about.styl
 */
 }
 
+innerWrapper(innerWidth = 1043px)
+  kalc              padding-left, \(100% \- innerWidth\)\/2  // (100px - 1043px)/2
+  kalc              padding-right, \(100% \- innerWidth\)\/2  // (100px - 1043px)/2
+
+borderize(clr)
+  noTextDeco()
+  color           clr
+  border-bottom   1px solid clr
+
+
 body.about
+  -webkit-font-smoothing antialiased
   #main-header
     .inner-container
       bg            color, transparent
+    .logotype
+      visible()
+
   #dock
   .account-area
     hidden()
+
   #koding-logo
     margin              10px
     size                45px 45px
@@ -28,47 +43,271 @@ body.about
       display           block
 
 .kdtabpaneview.about
-
   bg                color #f1f3f2
 
-h1.team-title
-  font-size         64px
-  line-height       128px
-  height            128px
-  text-align        center
-  font-weight       300
-  border-bottom     none
+.content-page.about
+  max-width         100%
+  width             100%
+  padding           0
 
-.kdlistview-team
-  margin           40px 0
+  > section
+    size              100%, auto
+    min-height        626px
+    borderBox()
 
-.kdlistitemview-team
-  fl()
-  size              190px auto
-  text-align        center
+    div.wrapper
+      padding         112px 15px 0
+      max-width       1043px
+      margin          0 auto
+      rel()
+      borderBox()
 
-  figure
-    margin          0 auto
-    rounded         4px
-    size            160px 160px
-    display         block
+      article
+        padding         0 378px 112px 0
+        opacity         .9
 
-  .avatarview
-    rounded         80px
-    size            160px 160px
-    display         block
-    // opacity         .00001
-    // vendor          transition, opacity .3s .3s ease
-    // &.in
-    //   opacity       1
+        p
+          line-height   28px
+          word-spacing  -1px
+          color         rgba(255, 255, 255, 0.64)
+          vendor        font-smoothing, antialiased
+          vendor        text-rendering, geometricPrecision
+          font-weight   200
 
-  figcaption
-    margin          15px 0
 
-  a.profile
-    text-decoration none
-    color           #333
-    display         block
-  cite
-    font-size       12px
-    color           #999
+      aside
+        abs()
+        top             0
+        right           0
+        opacity         .9
+
+
+    h2
+      display         block
+      font-size       36px
+      color           #1aaf5d
+      font-weight     400
+      letter-spacing  .9px
+      word-spacing    -2px
+
+    h4
+      display         block
+      font-size       36px
+      color           #bbd5c7
+      font-weight     200
+      margin          8px 0 53px
+      letter-spacing  1.1px
+      word-spacing    -2px
+      a
+        borderize     #8a8a8a
+
+    &.careers
+      background        #e3e3e3
+
+    &.careers
+    &.founders
+      h4
+        color           #8a8a8a
+        a
+          color         #8a8a8a
+
+    &.about-company
+      background        url('/a/images/city.jpg') no-repeat center bottom
+      bg                size, cover
+      position          relative
+      font-size         24px
+      color             #fff
+      font-weight       200
+      letter-spacing    .9px
+      a
+        borderize       #fff
+
+      > div.wrapper
+        padding-top       139px
+
+        > cite
+          right           20px
+          bottom          20px
+          font-size       12px
+          line-height     32px
+          color           #aaa
+          a
+            color         #ccc
+
+        aside
+          top             180px
+          >div
+            margin        0 0 41px
+            position      relative
+
+            i
+              display     block
+              top         50%
+              vendor      transform, translateX(-51px) translateY(-50%)
+              abs()
+
+            &.based i
+              r-sprite    "about", "pin"
+            &.talents i
+              r-sprite    "about", "card"
+              left        -2px
+            &.lines i
+              r-sprite    "about", "lines"
+              left        1px
+      h6
+        color           #fff
+        opacity         .5
+        font-size       18px
+        font-weight     200
+        margin          0 0 6px
+
+
+
+    &.member-list
+      size              100%, auto
+      background        #e3e3e3
+      border-bottom     1px solid transparent
+      h4
+        color            #8a8a8a
+        rel()
+        cite
+          abs()
+          font-size     16px
+          right         0
+          bottom        0
+
+      .kdlistview-team
+        kalc             width, 100% \+ 90px
+        margin           82px 0 44px -40px
+
+      .kdlistitemview-team
+        fl()
+        size              180px 290px
+        text-align        center
+        margin            0 0 0 40px
+        letter-spacing    .9px
+        word-spacing      -4px
+
+        figure
+          margin          0 auto
+          size            160px 160px
+          display         block
+          overflow        hidden
+
+        .avatarview
+          display         block
+          vendor          filter, grayscale(100%)
+          vendor          transition, all .177s ease
+          &:hover
+            vendor        filter, grayscale(0%)
+
+
+        figcaption
+          overflow        visible
+
+        a.profile
+          color           #8a8a8a
+          font-size       24px
+          line-height     32px
+          font-weight     200
+          display         block
+          margin          28px 0 7px
+          white-space     nowrap
+          noTextDeco()
+
+        cite
+          font-weight     200
+          color           #8a8a8a
+          line-height     22px
+          letter-spacing  .9px
+          word-spacing    1px
+          font-size       16px
+
+    &.press-kit
+      min-height          542px
+      h4
+        color            #8a8a8a
+        margin-bottom    68px
+
+      .kdbutton.solid.green
+        display          block
+        size             327px, 66px
+        line-height      66px
+        color            #fff
+        font-size        18px
+        font-weight      400
+        background       #1aaf5d
+        rounded          12px
+        padding          0 0 0 40px
+        text-align       left
+        margin-bottom    23px
+        noTextDeco()
+
+        .icon
+          r-sprite       about "download"
+          padding        0
+          margin         0
+          abs            17px 24px 0 0
+
+        .title
+          color          inherit
+          line-height    inherit
+          font-size      inherit
+          font-weight    inherit
+
+    &.founders
+      min-height        528px
+      letter-spacing    .9px
+      word-spacing      -3px
+
+      > div.wrapper
+        padding-top       96px
+
+      aside
+        > img
+          size          200px 200px
+          rounded       100px
+          right         0
+          abs()
+          &.devrim
+            top         60px
+          &.sinan
+            top         270px
+
+      h2
+        font-size     48px
+        line-height   70px
+
+
+      .avatarview
+        abs             114px 0 0 16px
+        fl()
+
+      .profile
+        display       block
+        font-size     36px
+        font-weight   400
+        color         #1aaf5d
+        text-transform capitalize
+        margin        0 0 10px
+        noTextDeco()
+
+      cite
+        font-size      24px
+        font-weight    200
+        color          #323b3d
+        letter-spacing 1.2px
+
+      article
+        padding-right 0!important
+        font-size     24px
+        font-weight   200
+        color         #323b3d
+        line-height   28px
+        margin        42px 0 0 0
+        word-spacing  -3.7px
+        a
+          borderize   #323b3d
+
+    &.careers
+      min-height      306px

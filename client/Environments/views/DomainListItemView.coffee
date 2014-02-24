@@ -17,14 +17,12 @@ class DomainListItemView extends KDListItemView
         cssClass   : "delete-link"
         attributes :
           title    : "Remove domain."
-        click      : (event)=>
-          domain = @getData()
-          event.preventDefault()
-          event.stopPropagation()
-          @deletionModal = new DomainDeletionModal {}, @getData()
-          @deletionModal.on "domainRemoved", =>
+        click      : (event) =>
+          KD.utils.stopDOMEvent event
+          domain.remove (err) =>
+            return  if KD.showError err
+            new KDNotificationView title: "<strong>#{domain}</strong> has been removed."
             @getDelegate().emit "domainRemoved", this
-
 
   click: (event)->
     listView = @getDelegate()

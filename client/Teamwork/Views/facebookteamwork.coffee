@@ -129,7 +129,7 @@ class FacebookTeamwork extends TeamworkWorkspace
 
   getAppInforFromCloud: (callback = noop) ->
     @workspaceRef.once "value", (snapshot) =>
-      facebookAppInfo = snapshot.val().FacebookAppInfo
+      facebookAppInfo = @reviveSnapshot(snapshot).FacebookAppInfo
       return unless facebookAppInfo
 
       @appId          = facebookAppInfo.appId

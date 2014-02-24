@@ -139,7 +139,7 @@ class WebTerm.Terminal extends KDObject
 
   setFocused: (value) ->
     @cursor.setFocused value
-    KD.utils.defer => @setKeyFocus()
+    if value then KD.utils.defer => @setKeyFocus()
 
   setSize: (x, y) ->
     return if x is @sizeX and y is @sizeY

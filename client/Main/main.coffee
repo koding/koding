@@ -17,7 +17,9 @@ do ->
     mainController.accountChanged account, firstLoad
     firstLoad = no
 
-  status.on 'sessionTokenChanged', (token)-> $.cookie 'clientId', token
+  status.on 'sessionTokenChanged', (token)->
+    # this is disabled for now to test user log-out problem.
+    # $.cookie 'clientId', token
 
   status.on 'connected', ->
     destroyCurrentModal()
@@ -35,17 +37,20 @@ do ->
     clearTimeout modalTimerId
     modalTimerId = null
 
-    modalSize  = currentModalSize or options.modalSize
-    notifyUser = options.notifyUser
+    # hide reconnected modal
+    # modalSize  = currentModalSize or options.modalSize
+    # notifyUser = options.notifyUser
 
-    if notifyUser or currentModal
-      showModal modalSize, state
+    # if notifyUser or currentModal
+    #   currentModal = showModal modalSize, state
 
   status.on 'disconnected', (options={})->
     reason     = options.reason     or= "unknown"
     modalSize  = options.modalSize  or= "big"
     notifyUser = options.notifyUser or= "yes"
     state      = "disconnected"
+
+    KD.logToExternalWithTime "User disconnected"
 
     log "disconnected",\
     "reason: #{reason}, modalSize: #{modalSize}, notifyUser: #{notifyUser}"
@@ -55,7 +60,12 @@ do ->
       # if reconnected within 2 secs, reconnected event clears this
       modalTimerId = setTimeout =>
         currentModalSize = modalSize
-        showModal modalSize, state
+        # in Status class there is constants that we can not
+        # reach from another class here o_0
+        # 4 represents disconnected state
+        return if status.state isnt 4
+        # disable modal
+        # currentModal = showModal modalSize, state
       , 2000
 
     currentModalSize = "small"
@@ -109,8 +119,8 @@ do ->
 
   modals =
     big   :
-      disconnected    : bigDisconnectedModal
-      reconnected     : bigReconnectedModal
+      disconnected    : smallDisconnectedModal
+      reconnected     : smallReconnectedModal
     small :
       disconnected    : smallDisconnectedModal
       reconnected     : smallReconnectedModal

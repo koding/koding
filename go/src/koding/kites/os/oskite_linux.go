@@ -3,30 +3,40 @@ package main
 import (
 	"encoding/binary"
 	"errors"
+	"flag"
 	"fmt"
 	"io"
 	"io/ioutil"
+	"koding/databases/redis"
 	"koding/db/mongodb"
+	"koding/db/mongodb/modelhelper"
 	"koding/kites/os/ldapserver"
+	"koding/kodingkite"
 	"koding/tools/config"
 	"koding/tools/dnode"
 	"koding/tools/kite"
 	"koding/tools/lifecycle"
-	"koding/tools/log"
+	"koding/tools/logger"
 	"koding/tools/utils"
 	"koding/virt"
-	logg "log"
+	"math/rand"
 	"net"
 	"os"
 	"os/signal"
+	"strconv"
 	"strings"
 	"sync"
 	"syscall"
 	"time"
 
+	redigo "github.com/garyburd/redigo/redis"
+	kitelib "github.com/koding/kite"
+
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
 )
+
+const OSKITE_NAME = "oskite"
 
 type VMInfo struct {
 	vm              *virt.VM
@@ -46,93 +56,373 @@ type VMInfo struct {
 }
 
 var (
+	log         = logger.New(OSKITE_NAME)
+	logLevel    logger.Level
+	mongodbConn *mongodb.MongoDB
+	conf        *config.Config
+
+	flagProfile      = flag.String("c", "", "Configuration profile from file")
+	flagRegion       = flag.String("r", "", "Configuration region from file")
+	flagDebug        = flag.Bool("d", false, "Debug mode")
+	flagTemplates    = flag.String("t", "", "Change template directory")
+	flagTimeout      = flag.String("s", "50m", "Shut down timeout for a single VM")
+	flagDisableGuest = flag.Bool("noguest", false, "Disable Guest VM creation")
+	flagLimit        = flag.Int("limit", 100, "Disable Guest VM creation")
+
 	infos            = make(map[bson.ObjectId]*VMInfo)
 	infosMutex       sync.Mutex
-	templateDir      = config.Current.ProjectRoot + "/go/templates"
+	templateDir      = "files/templates" // should be in the same dir as the binary
 	firstContainerIP net.IP
 	containerSubnet  *net.IPNet
 	shuttingDown     = false
 	requestWaitGroup sync.WaitGroup
+
+	vmTimeout         = time.Minute * 50
+	prepareQueueLimit = 8 + 1 // number of concurrent VM preparations, should be CPU + 1
+	prepareQueue      = make(chan func(chan struct{}))
 )
 
 func main() {
+	flag.Parse()
+	if *flagProfile == "" || *flagRegion == "" {
+		log.Fatal("Please specify profile via -c and region via -r. Aborting.")
+	}
+
+	conf = config.MustConfig(*flagProfile)
+	mongodbConn = mongodb.NewMongoDB(conf.Mongo)
+	modelhelper.Initialize(conf.Mongo)
+
+	if *flagDebug {
+		logLevel = logger.DEBUG
+	} else {
+		logLevel = logger.GetLoggingLevelFromConfig(OSKITE_NAME, *flagProfile)
+	}
+	log.SetLevel(logLevel)
+
+	if *flagTemplates != "" {
+		templateDir = *flagTemplates
+	}
+
+	var newTimeout time.Duration
+	var err error
+	newTimeout, err = time.ParseDuration(*flagTimeout)
+	if err != nil {
+		log.Warning("Timeout parameter is not correct: %v", err.Error())
+		log.Notice("Using default VM timeout: %s", vmTimeout)
+	} else {
+		// use our new timeout
+		log.Info("Using default VM timeout: %s", vmTimeout)
+		vmTimeout = newTimeout
+	}
+
+	// set seed for even randomness, needed for randomMinutes() function.
+	rand.Seed(time.Now().UnixNano())
+
 	initializeSettings()
+
+	// startPrepareWorkers starts multiple workers (based on prepareQueueLimit)
+	// that accepts vmPrepare/vmStart functions.
+	for i := 0; i < prepareQueueLimit; i++ {
+		go prepareWorker()
+	}
 
 	k := prepareOsKite()
 
-	// handle leftover VMs
-	handleCurrentVMS(k)
-
-	// start pinned always-on VMs
-	startPinnedVMS(k)
-
-	// handle SIGUSR1 and other signals. Shutdown gracely when USR1 is received
-	setupSignalHandler(k)
+	runNewKite(k.ServiceUniqueName)
+	handleCurrentVMS(k)   // handle leftover VMs
+	startPinnedVMS(k)     // start pinned always-on VMs
+	setupSignalHandler(k) // handle SIGUSR1 and other signals.
 
 	// register current client-side methods
-	registerVmMethods(k)
-	registerS3Methods(k)
-	registerFileSystemMethods(k)
-	registerWebtermMethods(k)
-	registerAppMethods(k)
+	registerVmMethod(k, "vm.start", false, vmStart)
+	registerVmMethod(k, "vm.shutdown", false, vmShutdown)
+	registerVmMethod(k, "vm.unprepare", false, vmUnprepare)
+	registerVmMethod(k, "vm.stop", false, vmStop)
+	registerVmMethod(k, "vm.reinitialize", false, vmReinitialize)
+	registerVmMethod(k, "vm.info", false, vmInfo)
+	registerVmMethod(k, "vm.resizeDisk", false, vmResizeDisk)
+	registerVmMethod(k, "vm.createSnapshot", false, vmCreateSnaphost)
+	registerVmMethod(k, "spawn", true, spawnFunc)
+	registerVmMethod(k, "exec", true, execFunc)
+
+	registerVmMethod(k, "oskite.Info", true, oskiteInfo)
+	registerVmMethod(k, "oskite.All", true, oskiteAll)
+
+	syscall.Umask(0) // don't know why richard calls this
+	registerVmMethod(k, "fs.readDirectory", false, fsReadDirectory)
+	registerVmMethod(k, "fs.glob", false, fsGlob)
+	registerVmMethod(k, "fs.readFile", false, fsReadFile)
+	registerVmMethod(k, "fs.writeFile", false, fsWriteFile)
+	registerVmMethod(k, "fs.ensureNonexistentPath", false, fsEnsureNonexistentPath)
+	registerVmMethod(k, "fs.getInfo", false, fsGetInfo)
+	registerVmMethod(k, "fs.setPermissions", false, fsSetPermissions)
+	registerVmMethod(k, "fs.remove", false, fsRemove)
+	registerVmMethod(k, "fs.rename", false, fsRename)
+	registerVmMethod(k, "fs.createDirectory", false, fsCreateDirectory)
+
+	registerVmMethod(k, "app.install", false, appInstall)
+	registerVmMethod(k, "app.download", false, appDownload)
+	registerVmMethod(k, "app.publish", false, appPublish)
+	registerVmMethod(k, "app.skeleton", false, appSkeleton)
+
+	// this method is special cased in oskite.go to allow foreign access
+	registerVmMethod(k, "webterm.connect", false, webtermConnect)
+	registerVmMethod(k, "webterm.getSessions", false, webtermGetSessions)
+
+	registerVmMethod(k, "s3.store", true, s3Store)
+	registerVmMethod(k, "s3.delete", true, s3Delete)
+
+	go oskiteRedis(k.ServiceUniqueName)
 
 	k.Run()
+}
+
+var oskites = make(map[string]*OskiteInfo)
+
+func oskiteRedis(serviceUniquename string) {
+	session, err := redis.NewRedisSession(conf.Redis)
+	if err != nil {
+		log.Error("redis SADD kontainers. err: %v", err.Error())
+	}
+	session.SetPrefix("oskite")
+
+	prefix := "oskite:" + conf.Environment + ":"
+	kontainerSet := "kontainers-" + conf.Environment
+
+	_, err = redigo.Int(session.Do("SADD", kontainerSet, prefix+serviceUniquename))
+	if err != nil {
+		log.Error("redis SADD kontainers. err: %v", err.Error())
+	}
+
+	// get list of kontainers
+	kontainers, err := redigo.Strings(session.Do("SMEMBERS", kontainerSet))
+	if err != nil {
+		log.Error("redis SMEMBER kontainers. err: %v", err.Error())
+	}
+
+	// and also update it every 20 seconds
+	go func() {
+		var err error
+		for _ = range time.Tick(20 * time.Second) {
+			kontainers, err = redigo.Strings(session.Do("SMEMBERS", kontainerSet))
+			if err != nil {
+				log.Error("redis SMEMBER kontainers. err: %v", err.Error())
+			}
+		}
+	}()
+
+	// update regularly our VMS info
+	expireDuration := time.Second * 12
+	go func() {
+		for _ = range time.Tick(5 * time.Second) {
+			key := prefix + serviceUniquename + ":vms"
+			reply, err := session.Do("SET", key, strconv.Itoa(currentVMS()))
+			if err != nil {
+				log.Error("redis Set %v. reply: %v err: %v", key, reply, err.Error())
+			}
+
+			reply, err = redigo.Int(session.Do("EXPIRE", key, expireDuration.Seconds()))
+			if err != nil {
+				log.Error("redis SET Expire %v. reply: %v err: %v", key, reply, err.Error())
+			}
+		}
+	}()
+
+	// get oskite statuses from others every 5 seconds
+	for _ = range time.Tick(5 * time.Second) {
+		for _, kontainerHostname := range kontainers {
+			key := kontainerHostname + ":vms"
+
+			vmCount, err := redigo.Int(session.Do("GET", key))
+			if err != nil {
+				log.Error("redis GET %v. err: %v", key, err.Error())
+				continue
+			}
+
+			remoteOskite := strings.TrimPrefix(kontainerHostname, prefix)
+
+			oskites[remoteOskite] = &OskiteInfo{
+				QueuedVMs:       len(prepareQueue),
+				QueueLimit:      prepareQueueLimit,
+				CurrentVMs:      vmCount,
+				CurrentVMsLimit: *flagLimit,
+			}
+
+		}
+	}
+
+}
+
+func lowestOskiteLoad() (serviceUniquename string) {
+	lowest := *flagLimit
+	lowestName := ""
+
+	for s, c := range oskites {
+		if c.CurrentVMs <= lowest {
+			lowest = c.CurrentVMs
+			lowestName = s
+		}
+	}
+
+	return lowestName
+}
+
+func runNewKite(serviceUniqueName string) {
+	k := kodingkite.New(
+		conf,
+		kitelib.Options{
+			Kitename: OSKITE_NAME,
+			Version:  "0.0.1",
+			Port:     "5000",
+			Region:   *flagRegion,
+		},
+	)
+
+	k.HandleFunc("startVM", func(r *kitelib.Request) (interface{}, error) {
+		hostnameAlias := r.Args.One().MustString()
+		// just print hostnameAlias for now
+		fmt.Println("got request from", r.RemoteKite.Name, "starting:", hostnameAlias)
+
+		v, err := modelhelper.GetVM(hostnameAlias)
+		if err != nil {
+			return nil, err
+		}
+
+		vm := virt.VM(*v)
+		vm.ApplyDefaults()
+
+		err = validateVM(&vm, serviceUniqueName)
+		if err != nil {
+			return nil, err
+		}
+
+		isPrepared := true
+		if _, err := os.Stat(vm.File("rootfs/dev")); err != nil {
+			if !os.IsNotExist(err) {
+				panic(err)
+			}
+			isPrepared = false
+		}
+
+		if !isPrepared {
+			fmt.Println("preparing ", hostnameAlias)
+			vm.Prepare(false, log.Warning)
+		}
+
+		fmt.Println("starting ", hostnameAlias)
+		if err := vm.Start(); err != nil {
+			log.LogError(err, 0)
+		}
+
+		// wait until network is up
+		if err := vm.WaitForNetwork(time.Second * 5); err != nil {
+			log.LogError(err, 0)
+		}
+
+		// return back the IP address of the started vm
+		return vm.IP.String(), nil
+	})
+
+	k.Start()
+
+	// TODO: remove this later, this is needed in order to reinitiliaze the logger package
+	log.SetLevel(logLevel)
 }
 
 func initializeSettings() {
 	lifecycle.Startup("kite.os", true)
 
 	var err error
-	if firstContainerIP, containerSubnet, err = net.ParseCIDR(config.Current.ContainerSubnet); err != nil {
+	if firstContainerIP, containerSubnet, err = net.ParseCIDR(conf.ContainerSubnet); err != nil {
 		log.LogError(err, 0)
 		return
 	}
 
-	virt.VMPool = config.Current.VmPool
+	virt.VMPool = conf.VmPool
 	if err := virt.LoadTemplates(templateDir); err != nil {
 		log.LogError(err, 0)
 		return
 	}
 
-	go ldapserver.Listen()
+	go ldapserver.Listen(conf.Mongo)
 	go LimiterLoop()
 }
 
 func prepareOsKite() *kite.Kite {
 	kiteName := "os"
-	if config.Region != "" {
-		kiteName += "-" + config.Region
+	if *flagRegion != "" {
+		kiteName += "-" + *flagRegion
 	}
 
-	k := kite.New(kiteName, true)
+	k := kite.New(kiteName, conf, true)
+
+	// Default is "broker", we are going to use another one. In our case its "brokerKite"
+	k.PublishExchange = conf.BrokerKite.Name
+
+	if *flagDebug {
+		kite.EnableDebug()
+	}
 
 	k.LoadBalancer = func(correlationName string, username string, deadService string) string {
+		blog := func(v interface{}) {
+			log.Info("oskite loadbalancer for [correlationName: '%s' user: '%s' deadService: '%s'] results in --> %v.", correlationName, username, deadService, v)
+		}
+
+		resultOskite := k.ServiceUniqueName
+		if lowestOskite := lowestOskiteLoad(); lowestOskite != "" {
+			resultOskite = lowestOskite
+		}
+
 		var vm *virt.VM
 		if bson.IsObjectIdHex(correlationName) {
-			mongodb.Run("jVMs", func(c *mgo.Collection) error {
+			mongodbConn.Run("jVMs", func(c *mgo.Collection) error {
 				return c.FindId(bson.ObjectIdHex(correlationName)).One(&vm)
 			})
 		}
 
 		if vm == nil {
-			if err := mongodb.Run("jVMs", func(c *mgo.Collection) error {
+			if err := mongodbConn.Run("jVMs", func(c *mgo.Collection) error {
 				return c.Find(bson.M{"hostnameAlias": correlationName}).One(&vm)
 			}); err != nil {
-				return k.ServiceUniqueName
+				blog(fmt.Sprintf("no hostnameAlias found, returning %s", resultOskite))
+				return resultOskite // no vm was found, return this oskite
 			}
 		}
 
-		if vm.HostKite == "" || vm.HostKite == "(maintenance)" || vm.HostKite == "(banned)" {
-			if vm.PinnedToHost != "" {
-				return vm.PinnedToHost
-			}
-			return k.ServiceUniqueName
+		if vm.PinnedToHost != "" {
+			blog(fmt.Sprintf("returning pinnedHost '%s'", vm.PinnedToHost))
+			return vm.PinnedToHost
 		}
 
+		if vm.HostKite == "" {
+			blog(fmt.Sprintf("hostkite is empty returning '%s'", resultOskite))
+			return resultOskite
+		}
+
+		// maintenance and banned will be handled again in valideVM() function,
+		// which will return a permission error.
+		if vm.HostKite == "(maintenance)" || vm.HostKite == "(banned)" {
+			blog(fmt.Sprintf("hostkite is %s returning '%s'", vm.HostKite, resultOskite))
+			return resultOskite
+		}
+
+		// Set hostkite to nil if we detect a dead service. On the next call,
+		// Oskite will point to an health service in validateVM function()
+		// because it will detect that the hostkite is nil and change it to the
+		// healthy service given by the client, which is the returned
+		// k.ServiceUniqueName.
 		if vm.HostKite == deadService {
-			log.Warn("VM is registered as running on dead service.", correlationName, username, deadService)
-			return k.ServiceUniqueName
+			blog(fmt.Sprintf("dead service detected %s returning '%s'", vm.HostKite, k.ServiceUniqueName))
+			if err := mongodbConn.Run("jVMs", func(c *mgo.Collection) error {
+				return c.Update(bson.M{"_id": vm.Id}, bson.M{"$set": bson.M{"hostKite": nil}})
+			}); err != nil {
+				log.LogError(err, 0, vm.Id.Hex())
+			}
+
+			return resultOskite
 		}
+
+		blog(fmt.Sprintf("returning existing hostkite '%s'", vm.HostKite))
 		return vm.HostKite
 	}
 
@@ -140,7 +430,7 @@ func prepareOsKite() *kite.Kite {
 }
 
 // handleCurrentVMS removes and unprepare any vm in the lxc dir that doesn't
-// have any associated document which in mongodb.
+// have any associated document which in mongodbConn.
 func handleCurrentVMS(k *kite.Kite) {
 	dirs, err := ioutil.ReadDir("/var/lib/lxc")
 	if err != nil {
@@ -156,11 +446,13 @@ func handleCurrentVMS(k *kite.Kite) {
 				return c.FindId(vmId).One(&vm)
 			}
 
-			if err := mongodb.Run("jVMs", query); err != nil || vm.HostKite != k.ServiceUniqueName {
-				logg.Printf("oskite started, calling unprepare. VmID: '%s', vm.Hoskite: '%s', k.ServiceUniqueName: '%s', error '%s'", vmId, vm.HostKite, k.ServiceUniqueName, err)
+			if err := mongodbConn.Run("jVMs", query); err != nil || vm.HostKite != k.ServiceUniqueName {
+
+				log.Info("cleaning up leftover VM: '%s', vm.Hoskite: '%s', k.ServiceUniqueName: '%s', error '%v'",
+					vmId, vm.HostKite, k.ServiceUniqueName, err)
 
 				if err := virt.UnprepareVM(vmId); err != nil {
-					log.Warn(err.Error())
+					log.Error("%v", err)
 				}
 				continue
 			}
@@ -174,7 +466,7 @@ func handleCurrentVMS(k *kite.Kite) {
 }
 
 func startPinnedVMS(k *kite.Kite) {
-	mongodb.Run("jVMs", func(c *mgo.Collection) error {
+	mongodbConn.Run("jVMs", func(c *mgo.Collection) error {
 		iter := c.Find(bson.M{"pinnedToHost": k.ServiceUniqueName, "alwaysOn": true}).Iter()
 		for {
 			var vm virt.VM
@@ -217,18 +509,19 @@ func setupSignalHandler(k *kite.Kite) {
 				return err
 			}
 
-			err := mongodb.Run("jVMs", query)
+			err := mongodbConn.Run("jVMs", query)
 			if err != nil {
 				log.LogError(err, 0)
 			}
 		}
 
-		log.SendLogsAndExit(0)
+		log.Fatal()
 	}()
 }
 
 func registerVmMethod(k *kite.Kite, method string, concurrent bool, callback func(*dnode.Partial, *kite.Channel, *virt.VOS) (interface{}, error)) {
-	k.Handle(method, concurrent, func(args *dnode.Partial, channel *kite.Channel) (methodReturnValue interface{}, methodError error) {
+
+	wrapperMethod := func(args *dnode.Partial, channel *kite.Channel) (methodReturnValue interface{}, methodError error) {
 
 		if shuttingDown {
 			return nil, errors.New("Kite is shutting down.")
@@ -239,6 +532,10 @@ func registerVmMethod(k *kite.Kite, method string, concurrent bool, callback fun
 
 		if shuttingDown { // check second time after sync to avoid additional mutex
 			return nil, errors.New("Kite is shutting down.")
+		}
+
+		if *flagLimit <= currentVMS() {
+			return nil, fmt.Errorf("Maximum capacity of %s has been reached.", *flagLimit)
 		}
 
 		user, err := getUser(channel.Username)
@@ -280,7 +577,7 @@ func registerVmMethod(k *kite.Kite, method string, concurrent bool, callback fun
 					return nil, errors.New("VM not running.")
 				}
 
-				if err := mongodb.Run("jUsers", func(c *mgo.Collection) error {
+				if err := mongodbConn.Run("jUsers", func(c *mgo.Collection) error {
 					return c.Find(bson.M{"username": params.JoinUser}).One(&user)
 				}); err != nil {
 					panic(err)
@@ -329,12 +626,19 @@ func registerVmMethod(k *kite.Kite, method string, concurrent bool, callback fun
 			defer requestWaitGroup.Add(1)
 		}
 		return callback(args, channel, userVos)
-	})
+	}
+
+	k.Handle(method, concurrent, wrapperMethod)
 }
 
 func getUser(username string) (*virt.User, error) {
+	// Do not create guest vms if its turned of
+	if *flagDisableGuest && strings.HasPrefix(username, "guest-") {
+		return nil, errors.New("vm creation for guests are disabled.")
+	}
+
 	var user *virt.User
-	if err := mongodb.Run("jUsers", func(c *mgo.Collection) error {
+	if err := mongodbConn.Run("jUsers", func(c *mgo.Collection) error {
 		return c.Find(bson.M{"username": username}).One(&user)
 	}); err != nil {
 		if err != mgo.ErrNotFound {
@@ -342,7 +646,7 @@ func getUser(username string) (*virt.User, error) {
 		}
 
 		if !strings.HasPrefix(username, "guest-") {
-			log.Warn("User not found.", username)
+			log.Warning("User not found: %v", username)
 		}
 
 		time.Sleep(time.Second) // to avoid rapid cycle channel loop
@@ -367,7 +671,7 @@ func getVM(channel *kite.Channel) (*virt.VM, error) {
 		query = bson.M{"_id": info.vm.Id}
 	}
 
-	if err := mongodb.Run("jVMs", func(c *mgo.Collection) error {
+	if err := mongodbConn.Run("jVMs", func(c *mgo.Collection) error {
 		return c.Find(query).One(&vm)
 	}); err != nil {
 		return nil, &VMNotFoundError{Name: channel.CorrelationName}
@@ -376,8 +680,8 @@ func getVM(channel *kite.Channel) (*virt.VM, error) {
 	return vm, nil
 }
 
-func startVM(k *kite.Kite, vm *virt.VM, channel *kite.Channel) error {
-	if vm.Region != config.Region {
+func validateVM(vm *virt.VM, serviceUniqueName string) error {
+	if vm.Region != *flagRegion {
 		time.Sleep(time.Second) // to avoid rapid cycle channel loop
 		return &kite.WrongChannelError{}
 	}
@@ -387,18 +691,68 @@ func startVM(k *kite.Kite, vm *virt.VM, channel *kite.Channel) error {
 	}
 
 	if vm.HostKite == "(banned)" {
-		log.Warn("vm '%s' is banned", vm.HostnameAlias)
+		log.Warning("vm '%s' is banned", vm.HostnameAlias)
 		return &AccessDeniedError{}
 	}
 
-	if vm.HostKite != k.ServiceUniqueName {
-		if err := mongodb.Run("jVMs", func(c *mgo.Collection) error {
-			return c.Update(bson.M{"_id": vm.Id, "hostKite": nil}, bson.M{"$set": bson.M{"hostKite": k.ServiceUniqueName}})
+	if vm.IP == nil {
+		ipInt := NextCounterValue("vm_ip", int(binary.BigEndian.Uint32(firstContainerIP.To4())))
+		ip := net.IPv4(byte(ipInt>>24), byte(ipInt>>16), byte(ipInt>>8), byte(ipInt))
+
+		updateErr := mongodbConn.Run("jVMs", func(c *mgo.Collection) error {
+			return c.Update(bson.M{"_id": vm.Id, "ip": nil}, bson.M{"$set": bson.M{"ip": ip}})
+		})
+
+		if updateErr != nil {
+			var logVM *virt.VM
+			err := mongodbConn.One("jVMs", vm.Id.Hex(), &logVM)
+			if err != nil {
+				errLog := fmt.Sprintf("Vm %s does not exist for updating IP. This is a race condition", vm.Id.Hex())
+				log.LogError(errLog, 0)
+			} else {
+				errLog := fmt.Sprintf("Vm %s does exist for updating IP but it tries to replace it. This is a race condition", vm.Id.Hex())
+				log.LogError(errLog, 0, logVM)
+			}
+
+			panic(updateErr)
+		}
+
+		vm.IP = ip
+	}
+
+	if !containerSubnet.Contains(vm.IP) {
+		panic("VM with IP that is not in the container subnet: " + vm.IP.String())
+	}
+
+	if vm.LdapPassword == "" {
+		ldapPassword := utils.RandomString()
+		if err := mongodbConn.Run("jVMs", func(c *mgo.Collection) error {
+			return c.Update(bson.M{"_id": vm.Id}, bson.M{"$set": bson.M{"ldapPassword": ldapPassword}})
 		}); err != nil {
+			panic(err)
+		}
+		vm.LdapPassword = ldapPassword
+	}
+
+	if vm.HostKite != serviceUniqueName {
+		err := mongodbConn.Run("jVMs", func(c *mgo.Collection) error {
+			return c.Update(bson.M{"_id": vm.Id, "hostKite": nil}, bson.M{"$set": bson.M{"hostKite": serviceUniqueName}})
+		})
+		if err != nil {
 			time.Sleep(time.Second) // to avoid rapid cycle channel loop
 			return &kite.WrongChannelError{}
 		}
-		vm.HostKite = k.ServiceUniqueName
+
+		vm.HostKite = serviceUniqueName
+	}
+
+	return nil
+}
+
+func startVM(k *kite.Kite, vm *virt.VM, channel *kite.Channel) error {
+	err := validateVM(vm, k.ServiceUniqueName)
+	if err != nil {
+		return err
 	}
 
 	var info *VMInfo
@@ -436,45 +790,6 @@ func startVM(k *kite.Kite, vm *virt.VM, channel *kite.Channel) error {
 	info.mutex.Lock()
 	defer info.mutex.Unlock()
 
-	if vm.IP == nil {
-		ipInt := NextCounterValue("vm_ip", int(binary.BigEndian.Uint32(firstContainerIP.To4())))
-		ip := net.IPv4(byte(ipInt>>24), byte(ipInt>>16), byte(ipInt>>8), byte(ipInt))
-
-		updateErr := mongodb.Run("jVMs", func(c *mgo.Collection) error {
-			return c.Update(bson.M{"_id": vm.Id, "ip": nil}, bson.M{"$set": bson.M{"ip": ip}})
-		})
-
-		if updateErr != nil {
-			var logVM *virt.VM
-			err := mongodb.One("jVMs", vm.Id.Hex(), &logVM)
-			if err != nil {
-				errLog := fmt.Sprintf("Vm %s does not exist for updating IP. This is a race condition", vm.Id.Hex())
-				log.LogError(errLog, 0)
-			} else {
-				errLog := fmt.Sprintf("Vm %s does exist for updating IP but it tries to replace it. This is a race condition", vm.Id.Hex())
-				log.LogError(errLog, 0, logVM)
-			}
-
-			panic(updateErr)
-		}
-
-		vm.IP = ip
-	}
-
-	if !containerSubnet.Contains(vm.IP) {
-		panic("VM with IP that is not in the container subnet: " + vm.IP.String())
-	}
-
-	if vm.LdapPassword == "" {
-		ldapPassword := utils.RandomString()
-		if err := mongodb.Run("jVMs", func(c *mgo.Collection) error {
-			return c.Update(bson.M{"_id": vm.Id}, bson.M{"$set": bson.M{"ldapPassword": ldapPassword}})
-		}); err != nil {
-			panic(err)
-		}
-		vm.LdapPassword = ldapPassword
-	}
-
 	isPrepared := true
 	if _, err := os.Stat(vm.File("rootfs/dev")); err != nil {
 		if !os.IsNotExist(err) {
@@ -484,25 +799,54 @@ func startVM(k *kite.Kite, vm *virt.VM, channel *kite.Channel) error {
 	}
 
 	if !isPrepared || info.currentHostname != vm.HostnameAlias {
-		startTime := time.Now()
-		logg.Printf("VM START: %s\n", vm)
-		vm.Prepare(false, log.Warn)
-		if err := vm.Start(); err != nil {
-			log.LogError(err, 0)
+		log.Info("putting %s into queue. total vms in queue: %d of %d",
+			vm.HostnameAlias, len(prepareQueue), prepareQueueLimit)
+
+		wait := make(chan struct{}, 0)
+		prepareQueue <- func(done chan struct{}) {
+			defer func() {
+				done <- struct{}{}
+				wait <- struct{}{}
+			}()
+
+			startTime := time.Now()
+			vm.Prepare(false, log.Warning)
+			if err := vm.Start(); err != nil {
+				log.LogError(err, 0)
+			}
+
+			// wait until network is up
+			if err := vm.WaitForNetwork(time.Second * 5); err != nil {
+				log.Error("%v", err)
+			}
+
+			endTime := time.Now()
+			log.Info("VM PREPARE and START: %s [%s] - ElapsedTime: %.10f seconds.",
+				vm, vm.HostnameAlias, endTime.Sub(startTime).Seconds())
+
+			info.currentHostname = vm.HostnameAlias
 		}
 
-		// wait until network is up
-		if err := vm.WaitForNetwork(time.Second * 5); err != nil {
-			log.LogError(err, 0)
-		}
-
-		endTime := time.Now()
-		logg.Printf("VM  END: %s [%s] - ElapsedTime: %.10f seconds \n", vm, vm.HostnameAlias, endTime.Sub(startTime).Seconds())
-
-		info.currentHostname = vm.HostnameAlias
+		// wait until the prepareWorker has picked us and we finished
+		<-wait
 	}
 
 	return nil
+}
+
+// prepareWorker listens from prepareQueue channel and runs the functions it receives
+func prepareWorker() {
+	for fn := range prepareQueue {
+		done := make(chan struct{}, 1)
+		go fn(done)
+
+		select {
+		case <-done:
+			log.Info("done preparing vm")
+		case <-time.After(time.Second * 20):
+			log.Error("timing out preparing vm")
+		}
+	}
 }
 
 func createUserHome(user *virt.User, rootVos, userVos *virt.VOS) {
@@ -651,28 +995,42 @@ func newInfo(vm *virt.VM) *VMInfo {
 	}
 }
 
+// randomMinutes returns a random duration between [0,n] in minutes. It panics if n <=  0.
+func randomMinutes(n int64) time.Duration { return time.Minute * time.Duration(rand.Int63n(n)) }
+
 func (info *VMInfo) startTimeout() {
 	if info.useCounter != 0 || info.vm.AlwaysOn {
 		return
 	}
 
-	// After 1 hour we are shutting down the VM (unprepareVM does it.)
-	// 5 Minutes from kite.go, 50 + 5 Minutes from here, makes a total of 60 Mins (1 Hour)
-	info.timeout = time.AfterFunc(50*time.Minute, func() {
+	// Shut down the VM (unprepareVM does it.) The timeout is calculated as:
+	// * 5  Minutes from kite.go
+	// * 50 Minutes pre-defined timeout
+	// * 5  Minutes after we give warning
+	// * [0, 30] random duration to avoid hickups during mass unprepares
+	// In Total it's [60, 90] minutes.
+	totalTimeout := vmTimeout + randomMinutes(30)
+	log.Info("Timer is started. VM %s will be shut down in %s minutes",
+		info.vm.Id.Hex(), totalTimeout)
+
+	info.timeout = time.AfterFunc(totalTimeout, func() {
 		if info.useCounter != 0 || info.vm.AlwaysOn {
 			return
 		}
+
 		if info.vm.GetState() == "RUNNING" {
 			if err := info.vm.SendMessageToVMUsers("========================================\nThis VM will be turned off in 5 minutes.\nLog in to Koding.com to keep it running.\n========================================\n"); err != nil {
-				log.Warn(err.Error())
+				log.Warning("%v", err)
 			}
 		}
+
 		info.timeout = time.AfterFunc(5*time.Minute, func() {
 			info.mutex.Lock()
 			defer info.mutex.Unlock()
 			if info.useCounter != 0 || info.vm.AlwaysOn {
 				return
 			}
+			log.Info("Timer is finished. Shutting down %s", info.vm.Id.Hex())
 			info.unprepareVM()
 		})
 	})
@@ -680,10 +1038,10 @@ func (info *VMInfo) startTimeout() {
 
 func (info *VMInfo) unprepareVM() {
 	if err := virt.UnprepareVM(info.vm.Id); err != nil {
-		log.Warn(err.Error())
+		log.Warning("%v", err)
 	}
 
-	if err := mongodb.Run("jVMs", func(c *mgo.Collection) error {
+	if err := mongodbConn.Run("jVMs", func(c *mgo.Collection) error {
 		return c.Update(bson.M{"_id": info.vm.Id}, bson.M{"$set": bson.M{"hostKite": nil}})
 	}); err != nil {
 		log.LogError(err, 0, info.vm.Id.Hex())
@@ -704,17 +1062,17 @@ type Counter struct {
 func NextCounterValue(counterName string, initialValue int) int {
 	var counter Counter
 
-	if err := mongodb.Run("counters", func(c *mgo.Collection) error {
+	if err := mongodbConn.Run("counters", func(c *mgo.Collection) error {
 		_, err := c.FindId(counterName).Apply(mgo.Change{Update: bson.M{"$inc": bson.M{"seq": 1}}}, &counter)
 		return err
 	}); err != nil {
 		if err == mgo.ErrNotFound {
-			mongodb.Run("counters", func(c *mgo.Collection) error {
+			mongodbConn.Run("counters", func(c *mgo.Collection) error {
 				c.Insert(Counter{Name: counterName, Value: initialValue})
 				return nil // ignore error and try to do atomic update again
 			})
 
-			if err := mongodb.Run("counters", func(c *mgo.Collection) error {
+			if err := mongodbConn.Run("counters", func(c *mgo.Collection) error {
 				_, err := c.FindId(counterName).Apply(mgo.Change{Update: bson.M{"$inc": bson.M{"seq": 1}}}, &counter)
 				return err
 			}); err != nil {

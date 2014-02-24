@@ -1,7 +1,10 @@
 class AccountReferralSystemListController extends AccountListViewController
 
   constructor: (options, data)->
-    options.noItemFoundText = "You dont have any referal."
+    options.noItemFoundText = ""# """You haven't got any referral points to claim,
+      # click <a href="/Account/Referrer">here</a> to share Koding and get some!
+    # """
+
     super options, data
 
   loadItems: ->
@@ -14,136 +17,39 @@ class AccountReferralSystemListController extends AccountListViewController
       @instantiateListItems referals or []
     @hideLazyLoader()
 
-    @on "RedeemReferralPointSubmitted", @bound "redeemReferralPoint"
-    @on "ShowRedeemReferralPointModal", @bound "showRedeemReferralPointModal"
-
-  notify_:(message)->
-    new KDNotificationView
-      title    : message
-      duration : 2500
-
-  redeemReferralPoint:(modal)->
-    {vmToResize, sizes} = modal.modal.modalTabs.forms.Redeem.inputs
-
-    data = {
-      vmName : vmToResize.getValue(),
-      size   : sizes.getValue(),
-      type   : "disk"
-    }
-
-    KD.remote.api.JReferral.redeem data, (err, refRes)=>
-      return KD.showError err if err
-      modal.modal.destroy()
-      KD.getSingleton("vmController").resizeDisk data.vm, (err, res)=>
-        return KD.showError err if err
-        @notify_ """
-          #{refRes.addedSize} #{refRes.unit} extra #{refRes.type} is successfully added to your #{refRes.vm} VM.
-        """
-
-
-  showRedeemReferralPointModal: ()->
-    vmController = KD.getSingleton("vmController")
-    vmController.fetchVMs yes, (err, vms)=>
-      return KD.showError err if err
-      return @notify_ "You don't have any VMs. Please create one VM" if not vms or vms.length < 1
-
-      KD.remote.api.JReferral.fetchRedeemableReferrals { type: "disk" }, (err, referals)=>
-        return KD.showError err if err
-        return @notify_ "You dont have any referrals" if not referals or referals.length < 1
-
-        @modal = modal = new KDModalViewWithForms
-          title                   : "Redeem Your Referral Points"
-          cssClass                : "redeem-modal"
-          content                 : ""
-          overlay                 : yes
-          width                   : 500
-          height                  : "auto"
-          tabs                    :
-            forms                 :
-              Redeem               :
-                callback          : =>
-                  @modal.modalTabs.forms.Redeem.buttons.redeemButton.showLoader()
-                  @emit "RedeemReferralPointSubmitted", @
-                buttons           :
-                  redeemButton    :
-                    title         : "Redeem"
-                    style         : "modal-clean-gray"
-                    type          : "submit"
-                    loader        :
-                      color       : "#444444"
-                      diameter    : 12
-                    callback      : -> @hideLoader()
-                  cancel          :
-                    title         : "Cancel"
-                    style         : "modal-cancel"
-                    callback      : (event)-> modal.destroy()
-                fields            :
-                  vmToResize    :
-                    label         : "Select a WM to resize"
-                    cssClass      : "clearfix"
-                    itemClass     : KDSelectBox
-                    type          : "select"
-                    name          : "vmToResize"
-                    validate      :
-                      rules       :
-                        required  : yes
-                      messages    :
-                        required  : "You must select a VM!"
-                    selectOptions : (cb)->
-                      options = for vm in vms
-                        ( title : vm, value : vm)
-                      cb options
-                  sizes           :
-                    label         : "Select Size"
-                    cssClass      : "clearfix"
-                    itemClass     : KDSelectBox
-                    type          : "select"
-                    name          : "size"
-                    validate      :
-                      rules       :
-                        required  : yes
-                      messages    :
-                        required  : "You must select a size!"
-                    selectOptions : (cb)=>
-                      options = []
-                      previousTotal = 0
-                      referals.forEach (referal, i)->
-                        previousTotal += referal.amount
-                        options.push ( title : "#{previousTotal} #{referal.unit}" , value : previousTotal)
-                      cb options
-
-
   loadView: ->
     super
     @addHeader()
     @loadItems()
+
+  showRedeemReferralPointModal:->
+    KD.mixpanel "Referer Redeem Point modal, click"
+
+    appManager = KD.getSingleton "appManager"
+    appManager.tell "Account", "showRedeemReferralPointModal"
+
 
   addHeader:->
 
     wrapper = new KDCustomHTMLView tagName : 'header', cssClass : 'clearfix'
     @getView().addSubView wrapper, '', yes
 
-    wrapper.addSubView getYourReferrerCode = new CustomLinkView
-      title       : "Get Your Referrer Code"
-      tooltip     :
-        title     :
-          """
-          If anyone registers with your referrer code,
-          you will get 250MB Free disk space for your VM.
-          Up to 16GB!.
-          """
-      click       : ->
-        appManager = KD.getSingleton "appManager"
-        appManager.tell "Account", "showReferrerModal",
-          linkView    : getYourReferrerCode
-          top         : 50
-          left        : 35
-          arrowMargin : 110
-
+    # wrapper.addSubView getYourReferrerCode = new CustomLinkView
+    #   title       : "Get Your Referral Code"
+    #   tooltip     :
+    #     title     :
+    #       """
+    #       Only this week, share your link, they get 5GB instead
+    #       of 4GB, and you get 1GB extra!
+    #       """
+    #   click       : ->
+    #     appManager = KD.getSingleton "appManager"
+    #     appManager.tell "Account", "showReferrerModal",
+    #       linkView    : getYourReferrerCode
 
     wrapper.addSubView redeem = new CustomLinkView
-      title : "Redeem Your Referrer Points"
-      click : => @emit "ShowRedeemReferralPointModal", this
+      title : "Redeem your VM space"
+      click : => @showRedeemReferralPointModal()
 
 class AccountReferralSystemList extends KDListView
 

@@ -2,9 +2,9 @@ package main
 
 import (
 	"flag"
-	"koding/newkite/kd/util"
-	"koding/newkite/kite"
-	"koding/newkite/kodingkey"
+	"koding/kite"
+	"koding/kite/kd/util"
+	"koding/kite/kodingkey"
 	"os/exec"
 
 	"github.com/op/go-logging"

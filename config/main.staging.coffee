@@ -13,9 +13,14 @@ authAllExchange = "authAll-#{version}"
 embedlyApiKey   = '94991069fb354d4e8fdb825e52d4134a'
 
 environment     = "staging"
+regions         =
+  vagrant       : "vagrant"
+  sj            : "sj"
+  aws           : "aws"
 
 module.exports =
   environment   : environment
+  regions       : regions
   version       : version
   aws           :
     key         : 'AKIAJSUVKX6PD254UGAA'
@@ -45,6 +50,8 @@ module.exports =
   mongoReplSet  : null
   runNeo4jFeeder: yes
   runGoBroker   : no
+  runGoBrokerKite: no
+  runPremiumBrokerKite: no
   runKontrol    : yes
   runRerouting  : yes
   runUserPresence: yes
@@ -53,6 +60,7 @@ module.exports =
   buildClient   : yes
   runOsKite     : no
   runProxy      : no
+  redis         : "172.16.3.13:6379"
   misc          :
     claimGlobalNamesForUsers: no
     updateAllSlugs : no
@@ -118,7 +126,6 @@ module.exports =
     watch                : yes
     cronSchedule         : '00 00 00 * * *'
   topicModifier          :
-    logLevel             : "info"
     cronSchedule         : '0 */5 * * * *'
   graphFeederWorker:
     numberOfWorkers: 2
@@ -147,7 +154,7 @@ module.exports =
     runtimeOptions:
       environment        : environment
       activityFetchCount : 20
-      precompiledApi     : yes
+      precompiledApi     : no
       authExchange       : authExchange
       github         :
         clientId     : "5891e574253e65ddb7ea"
@@ -157,20 +164,30 @@ module.exports =
       useNeo4j: yes
       logToExternal : yes
       resourceName: socialQueueName
+      socialApiUri: 'https://stage-social.koding.com/xhr'
       suppressLogs: no
       version   : version
       mainUri   : "http://koding.com"
       broker    :
         servicesEndpoint: "/-/services/broker"
         sockJS   : "http://stage-broker-#{version}.sj.koding.com/subscribe"
+      brokerKite:
+        servicesEndpoint: "/-/services/brokerKite"
+        brokerExchange: 'brokerKite'
+        sockJS   : "http://stage-brokerkite-#{version}.sj.koding.com/subscribe"
+      premiumBrokerKite:
+        servicesEndpoint: "/-/services/premiumBrokerKite"
+        brokerExchange: 'premiumBrokerKite'
+        sockJS   : "http://stage-premiumbrokerkite-#{version}.sj.koding.com/subscribe"
       apiUri    : 'https://koding.com'
       appsUri   : 'https://koding-apps.s3.amazonaws.com'
       uploadsUri: 'https://koding-uploads.s3.amazonaws.com'
+      uploadsUriForGroup: 'https://koding-groups.s3.amazonaws.com'
       sourceUri : "http://stage-webserver-#{version}.sj.koding.com:1337"
       github    :
         clientId: "f733c52d991ae9642365"
       newkontrol:
-        url     : 'wss://127.0.0.1:80/dnode'
+        url         : 'ws://stage-kontrol.sj.koding.com:4000/kontrol'
       fileFetchTimeout: 15 * 1000 # seconds
       externalProfiles  :
         github          :
@@ -200,8 +217,8 @@ module.exports =
     password    : 'djfjfhgh4455__5'
     heartbeat   : 20
     vhost       : 'new'
-    logLevel    : "info"
   broker        :
+    name        : "broker"
     ip          : ""
     port        : 443
     certFile    : "/opt/ssl_certs/wildcard.koding.com.cert"
@@ -211,11 +228,33 @@ module.exports =
     webPort     : null
     authExchange: authExchange
     authAllExchange: authAllExchange
+  brokerKite    :
+    name        : "brokerKite"
+    ip          : ""
+    port        : 443
+    certFile    : "/opt/ssl_certs/wildcard.koding.com.cert"
+    keyFile     : "/opt/ssl_certs/wildcard.koding.com.key"
+    webProtocol : 'https:'
+    webHostname : "brokerKite-#{version}.sj.koding.com"
+    webPort     : null
+    authExchange: authExchange
+    authAllExchange: authAllExchange
+  premiumBrokerKite:
+    name        : "premiumBrokerKite"
+    ip          : ""
+    port        : 443
+    certFile    : "/opt/ssl_certs/wildcard.koding.com.cert"
+    keyFile     : "/opt/ssl_certs/wildcard.koding.com.key"
+    webProtocol : 'https:'
+    webHostname : "premiumbrokerkite-#{version}.sj.koding.com"
+    webPort     : null
+    authExchange: authExchange
+    authAllExchange: authAllExchange
   kites:
     disconnectTimeout: 3e3
     vhost       : 'kite'
   email         :
-    host        : "koding.com"
+    host        : "latest.koding.com"
     protocol    : 'https:'
     defaultFromAddress: 'hello@koding.com'
   emailWorker   :
@@ -235,14 +274,17 @@ module.exports =
   haproxy:
     webPort     : 3020
   newkontrol      :
-    host          : "127.0.0.1"
-    port          : 80
-    certFile      : "/opt/koding/go/src/koding/kontrol/kontrolproxy/files/10.0.5.231_cert.pem"
-    keyFile       : "/opt/koding/go/src/koding/kontrol/kontrolproxy/files/10.0.5.231_key.pem"
+    username        : "koding-kites"
+    port            : 4000
+    useTLS          : no
+    certFile        : ""
+    keyFile         : ""
+    publicKeyFile   : "/opt/koding/certs/test_kontrol_rsa_public.pem"
+    privateKeyFile  : "/opt/koding/certs/test_kontrol_rsa_private.pem"
   proxyKite       :
     domain        : "127.0.0.1"
-    certFile      : "/opt/koding/go/src/koding/kontrol/kontrolproxy/files/10.0.5.102_cert.pem"
-    keyFile       : "/opt/koding/go/src/koding/kontrol/kontrolproxy/files/10.0.5.102_key.pem"
+    certFile      : "/opt/koding/certs/y_koding_com_cert.pem"
+    keyFile       : "/opt/koding/certs/y_koding_com_key.pem"
   etcd            : [ {host: "127.0.0.1", port: 4001} ]
   kontrold        :
     vhost         : "/"
@@ -258,8 +300,9 @@ module.exports =
       port        : 80
       portssl     : 443
       ftpip       : '54.208.3.200'
-  recurly       :
-    apiKey      : '0cb2777651034e6889fb0d091126481a' # koding.recurly.com
+  recurly         :
+    apiKey        : '4a0b7965feb841238eadf94a46ef72ee' # koding-test.recurly.com
+    loggedRequests: /^(subscriptions|transactions)/
   embedly       :
     apiKey      : embedlyApiKey
   opsview :
@@ -313,5 +356,32 @@ module.exports =
   mixpanel       : "113c2731b47a5151f4be44ddd5af0e7a"
   rollbar        : "8108a4c027604f59bac7a8315c205afe"
   slack          :
-	  token        : "xoxp-2155583316-2155760004-2158149487-a72cf4"
-	  channel      : "C024LG80K"
+    token        : "xoxp-2155583316-2155760004-2158149487-a72cf4"
+    channel      : "C024LG80K"
+  logLevel        :
+    neo4jfeeder   : "info"
+    oskite        : "info"
+    kontrolproxy  : "debug"
+    kontroldaemon : "info"
+    userpresence  : "info"
+    vmproxy       : "info"
+    graphitefeeder: "info"
+    sync          : "info"
+    topicModifier : "info"
+    postModifier  : "info"
+    router        : "info"
+    rerouting     : "info"
+    overview      : "info"
+    amqputil      : "info"
+    rabbitMQ      : "info"
+    ldapserver    : "info"
+    broker        : "info"
+  defaultVMConfigs:
+    freeVM        :
+      storage     : 3072
+      ram         : 1024
+      cpu         : 1
+  graphite       :
+    use          : true
+    host         : "172.168.2.7"
+    port         : 2003

@@ -5,17 +5,20 @@ import (
 	"fmt"
 	"io/ioutil"
 	"koding/tools/config"
+	"koding/tools/logger"
 	"koding/tools/statsd"
-	"labix.org/v2/mgo/bson"
 	"net"
 	"net/http"
 	"strconv"
 	"strings"
 	"time"
+
+	"labix.org/v2/mgo/bson"
 )
 
 var (
-	BASE_URL         = config.Current.Neo4j.Write + ":" + strconv.Itoa(config.Current.Neo4j.Port)
+	BASE_URL         string
+	CYPHER_URL       string
 	INDEX_NODE_PATH  = "/db/data/index/node/koding"
 	UNIQUE_NODE_PATH = "/db/data/index/node/koding?unique"
 	INDEX_PATH       = "/db/data/index/node"
@@ -24,12 +27,13 @@ var (
 	TIMEOUT          = 20
 	DEADLINE         = 40
 	CYPHER_PATH      = "db/data/cypher"
-	CYPHER_URL       = fmt.Sprintf("%v/%v", BASE_URL, CYPHER_PATH)
 )
 
 func init() {
 	statsd.SetAppName("neo4j")
 }
+
+var log = logger.New("neo4jfeeder")
 
 type Relationship struct {
 	Id         bson.ObjectId `bson:"_id,omitempty"`
@@ -40,6 +44,19 @@ type Relationship struct {
 	As         string        `bson:"as"`
 	Timestamp  time.Time     `bson:"timestamp"`
 	Data       bson.Binary
+}
+
+func SetupNeo4j(c *config.Config) {
+	BASE_URL = c.Neo4j.Write + ":" + strconv.Itoa(c.Neo4j.Port)
+	CYPHER_URL = fmt.Sprintf("%v/%v", BASE_URL, CYPHER_PATH)
+}
+
+func GetBaseURL() string {
+	if BASE_URL == "" {
+		log.Fatal("Base url is not set. Please call SetupNeo4j() before you use this pkg.")
+	}
+
+	return BASE_URL
 }
 
 // Setup the dial timeout
@@ -81,12 +98,12 @@ func sendRequest(requestType, url, data string, attempt int) string {
 	res, err := client.Do(req)
 	if err != nil && attempt <= MAX_RETRIES {
 		sTimer.Failed()
-		fmt.Print(err)
+		log.Error("Request timed out: %v", err)
 		attempt++
 		sendRequest(requestType, url, data, attempt)
 	}
 	if err != nil && attempt > MAX_RETRIES {
-		panic(fmt.Sprintf("req to %v timed out after %v retries", url, attempt))
+		log.Error("req to %v timed out after %v retries", url, attempt)
 	}
 
 	body, _ := ioutil.ReadAll(res.Body)
@@ -108,7 +125,7 @@ func CreateRelationship(relation, source, target string) map[string]interface{} 
 
 	relNode, err := jsonDecode(relRes)
 	if err != nil {
-		fmt.Println("Problem with relation response", relRes)
+		log.Error("Problem with relation response %v", relRes)
 		sTimer.Failed()
 
 		return relNode
@@ -130,7 +147,7 @@ func CreateRelationshipWithData(relation, source, target, data string) map[strin
 	relNode, err := jsonDecode(relRes)
 	if err != nil {
 		sTimer.Failed()
-		fmt.Println("Problem with relation response", relRes)
+		log.Error("Problem with relation response %v", relRes)
 
 		return relNode
 	}
@@ -145,7 +162,7 @@ func CreateRelationshipWithData(relation, source, target, data string) map[strin
 func CreateUniqueNode(id string, name string) map[string]interface{} {
 	sTimer := statsd.StartTimer("CreateUniqueNode")
 
-	url := BASE_URL + UNIQUE_NODE_PATH
+	url := GetBaseURL() + UNIQUE_NODE_PATH
 
 	postData := generatePostJsonData(id, name)
 
@@ -153,7 +170,7 @@ func CreateUniqueNode(id string, name string) map[string]interface{} {
 
 	node, err := jsonDecode(response)
 	if err != nil {
-		fmt.Println("Problem with unique node creation response", response)
+		log.Error("Problem with unique node creation response %v", response)
 		sTimer.Failed()
 	} else {
 		sTimer.Success()
@@ -192,7 +209,7 @@ func DeleteRelationship(sourceId, targetId, relationship string) bool {
 	//so use json array decoder
 	relationships, err := jsonArrayDecode(response)
 	if err != nil {
-		fmt.Println("Problem with unique node creation response", response)
+		log.Error("Problem with unique node creation response %v", response)
 		return false
 	}
 
@@ -218,7 +235,7 @@ func DeleteRelationship(sourceId, targetId, relationship string) bool {
 
 	if !foundNode {
 		sTimer.Failed()
-		fmt.Println("not found!", relationships[0]["self"])
+		log.Error("not found! %v", relationships[0]["self"])
 	} else {
 		sTimer.Success()
 	}
@@ -230,13 +247,13 @@ func DeleteRelationship(sourceId, targetId, relationship string) bool {
 //response will be object
 func GetNode(id string) []map[string]interface{} {
 
-	url := BASE_URL + INDEX_NODE_PATH + "/id/" + id
+	url := GetBaseURL() + INDEX_NODE_PATH + "/id/" + id
 
 	response := sendRequest("GET", url, "", 1)
 
 	nodeData, err := jsonArrayDecode(response)
 	if err != nil {
-		fmt.Println("Problem with response", response)
+		log.Error("Problem with response %v", response)
 	}
 
 	return nodeData
@@ -264,7 +281,7 @@ func UpdateNode(id, propertiesJSON string) map[string]interface{} {
 	if response != "" {
 		res, err := jsonDecode(response)
 		if err != nil {
-			fmt.Println("Problem with response", err, res)
+			log.Error("Problem with response %v, %v", err, res)
 		}
 	}
 
@@ -301,7 +318,7 @@ func DeleteNode(id string) bool {
 	err := json.Unmarshal([]byte(response), &result)
 	if err != nil {
 		sTimer.Failed()
-		fmt.Println("Deleting node Marshalling error:", err)
+		log.Error("Deleting node Marshalling error: %v", err)
 		return false
 	}
 
@@ -314,11 +331,11 @@ func DeleteNode(id string) bool {
 // it is called once during runtime while initializing
 func CreateUniqueIndex(name string) {
 	//create unique index
-	url := BASE_URL + INDEX_PATH
+	url := GetBaseURL() + INDEX_PATH
 
 	bd := sendRequest("POST", url, `{"name":"`+name+`"}`, 1)
 
-	fmt.Println("Created unique index for data", bd)
+	log.Info("Created unique index for data: %v", bd)
 }
 
 // This is a custom json string generator as http request body to neo4j
@@ -335,7 +352,7 @@ func jsonArrayDecode(data string) ([]map[string]interface{}, error) {
 	err := json.Unmarshal([]byte(data), &source)
 	if err != nil {
 		sTimer.Failed()
-		fmt.Println("Marshalling error:", err)
+		log.Error("Marshalling error: %v", err)
 		return nil, err
 	}
 
@@ -350,7 +367,7 @@ func jsonDecode(data string) (map[string]interface{}, error) {
 
 	err := json.Unmarshal([]byte(data), &source)
 	if err != nil {
-		fmt.Println("Marshalling error:", err)
+		log.Error("Marshalling error: %v", err)
 		return nil, err
 	}
 
@@ -359,21 +376,92 @@ func jsonDecode(data string) (map[string]interface{}, error) {
 
 var NotAllowedNames = []string{
 	"CStatusActivity",
+	"CStatus",
+
 	"CFolloweeBucketActivity",
+	"CFolloweeBucket",
+
 	"CFollowerBucketActivity",
-	"CCodeSnipActivity",
-	"CDiscussionActivity",
-	"CReplieeBucketActivity",
-	"CReplierBucketActivity",
-	"CBlogPostActivity",
-	"CNewMemberBucketActivity",
-	"CTutorialActivity",
-	"CLikeeBucketActivity",
-	"CLikerBucketActivity",
+	"CFollowerBucket",
+
+	"GroupJoineeBucketActivity",
+	"GroupJoineeBucket",
+
+	"GroupJoinerBucketActivity",
+	"GroupJoinerBucket",
+
 	"CInstalleeBucketActivity",
+	"CInstalleeBucket",
+
 	"CInstallerBucketActivity",
-	"CActivity",
+	"CInstallerBucket",
+
+	"CLikeeBucketActivity",
+	"CLikeeBucket",
+
+	"CLikerBucketActivity",
+	"CLikerBucket",
+
+	"CReplieeBucketActivity",
+	"CReplieeBucket",
+
+	"CReplierBucketActivity",
+	"CReplierBucket",
+
+	"CCodeSnipActivity",
+	"CCodeSnip",
+
+	"CDiscussionActivity",
+	"CDiscussion",
+
+	"CBlogPostActivity",
+	"CBlogPost",
+
+	"CNewMemberBucketActivity",
+	"CNewMemberBucket",
+
 	"CRunnableActivity",
+	"CRunnable",
+
+	"CTutorialActivity",
+	"CTutorial",
+
+	"CActivity",
 	"JAppStorage",
 	"JFeed",
+
+	"JBlogPost",
+	"JChatConversation",
+	"JCodeShare",
+	"JCodeSnip",
+	"JConversationSlice",
+	"JDiscussion",
+	"JDomainStat",
+	"JDomain",
+	"JEmailConfirmation",
+	"JEmailNotification",
+	"JEnvironment",
+	"JGroupBundle",
+	"JGuest",
+	"JInvitationRequest",
+	"JInvitation",
+	"JKodingKey",
+	"JLimit",
+	"JLocationStates",
+	"JLocation",
+	"JMailNotification",
+	"JMails",
+	"JMarkdownDoc",
+	"JMembershipPolicy",
+	"JMessage",
+	"JName",
+	"JOpinion",
+	"JPasswordRecovery",
+	"JPrivateMessage",
+	"JReferrableEmail",
+	"JReferral",
+	"JStatusUpdate",
+	"JStorage",
+	"JVM",
+	"JApp",
 }

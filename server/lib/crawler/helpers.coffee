@@ -1,3 +1,6 @@
+{argv} = require 'optimist'
+{uri} = require('koding-config-manager').load("main.#{argv.c}")
+
 forceTwoDigits = (val) ->
   if val < 10
     return "0#{val}"
@@ -27,7 +30,7 @@ getFullName = (account) ->
   return fullName
 
 getNickname = (account) ->
-  nickname = "/"
+  nickname = "A koding user"
   if account?.data?.profile?.nickname?
     nickname = account.data.profile.nickname
   return nickname
@@ -38,8 +41,12 @@ getUserHash = (account) ->
     hash = account.data.profile.hash
   return hash
 
-getPlainActivityBody = (activity) ->
-  {body} = activity
+normalizeActivityBody = (activity, bodyString="") ->
+  if bodyString
+    body = bodyString
+  else
+    {body} = activity
+
   tagMap = {}
   activity.tags?.forEach (tag) -> tagMap[tag.getId()] = tag
 
@@ -49,7 +56,18 @@ getPlainActivityBody = (activity) ->
     switch prefix
       when "#" then token = tagMap?[id]
 
-    return "#{prefix}#{if token then token.title else title or ''}"
+    tagTitle = if token then token.title else title
+
+    return ""  unless tagTitle
+    tagContent =
+      """
+        <span class="kdview token">
+          <a class="ttag expandable" href="#{uri.address}/#!/Activity?tagged=#{title}">
+            <span>#{tagTitle}</span>
+          </a>
+        </span>
+      """
+    return tagContent
 
 createActivityContent = (JAccount, model, comments, createFullHTML=no, putBody=yes, callback) ->
   {Relationship} = require 'jraphical'
@@ -68,53 +86,49 @@ createActivityContent = (JAccount, model, comments, createFullHTML=no, putBody=y
     tags = []
     tags = teaser.tags  if teaser?.tags?
 
-    Relationship.one selector, (err, rel) =>
-      if err or not rel
-          console.error err
-          return callback err, null
-      sel =
-        "_id" : rel.targetId
+    sel =
+      "_id" : model.originId
 
-      JAccount.one sel, (err, acc) =>
-        if err
-          console.error err
-          callback err, null
+    JAccount.one sel, (err, acc) =>
+      if err
+        console.error err
+        return callback err, null
 
-        fullName = getFullName acc
-        nickname = getNickname acc
-        slug = "#"
-        slug = teaser.slug  if teaser?.slug?
+      # No need to return if acc is not found.
+      # Write default values instead.
+      fullName = getFullName acc
+      nickname = getNickname acc
+      hash     = getUserHash acc
+      slug     = teaser?.slug or "#"
 
-        hash = getUserHash acc
+      if model?.body? and putBody
+        body = marked model.body,
+          gfm       : true
+          pedantic  : false
+          sanitize  : true
+        body = normalizeActivityBody model, body
+      else
+        body = ""
 
-        if model?.body? and putBody
-          body = getPlainActivityBody model
-          body = marked body,
-            gfm       : true
-            pedantic  : false
-            sanitize  : true
-        else
-          body = ""
+      activityContent =
+        slug             : teaser.slug
+        fullName         : fullName
+        nickname         : nickname
+        hash             : hash
+        title            :  if model?.title? then model.title else model.body or ""
+        body             : body
+        createdAt        : if model?.meta?.createdAt? then formatDate model.meta.createdAt else ""
+        numberOfComments : teaser.repliesCount or 0
+        numberOfLikes    : model?.meta?.likes or 0
+        comments         : comments
+        tags             : tags
+        type             : model?.bongo_?.constructorName
 
-        activityContent =
-          slug             : teaser.slug
-          fullName         : fullName
-          nickname         : nickname
-          hash             : hash
-          title            :  if model?.title? then model.title else model.body or ""
-          body             : body
-          createdAt        : if model?.meta?.createdAt? then formatDate model.meta.createdAt else ""
-          numberOfComments : teaser.repliesCount or 0
-          numberOfLikes    : model?.meta?.likes or 0
-          comments         : comments
-          tags             : tags
-          type             : model?.bongo_?.constructorName
-
-        if createFullHTML
-          content = getSingleActivityPage {activityContent, model}
-        else
-          content = getSingleActivityContent activityContent, model
-        return callback null, content
+      if createFullHTML
+        content = getSingleActivityPage {activityContent, model}
+      else
+        content = getSingleActivityContent activityContent, model
+      return callback null, content
 
 decorateComment = (JAccount, comment, callback) ->
   { Relationship } = require 'jraphical'

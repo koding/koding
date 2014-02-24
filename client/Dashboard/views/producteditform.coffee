@@ -70,6 +70,15 @@ class GroupProductEditForm extends KDFormViewWithFields
         itemClass     : KDOnOffSwitch
         defaultValue  : data.soldAlone
 
+    if options.canApplyCoupon
+      options.fields.discountCode ?=
+        label         : "Discount code"
+        defaultValue  : data.couponCodes?.discount
+
+      options.fields.vmCode ?=
+        label         : "VM code"
+        defaultValue  : data.couponCodes?.vm
+
     options.fields.tags ?=
       label         : "Tags"
       itemClass     : KDDelimitedInputView
@@ -98,6 +107,9 @@ class GroupProductEditForm extends KDFormViewWithFields
       soldAlone       = i.soldAlone?.getValue()
       priceIsVolatile = i.priceIsVolatile?.getValue()
       tags            = i.tags.getValue()
+      couponCodes     =
+        discount      : i.discountCode?.getValue()
+        vm            : i.vmCode?.getValue()
       feeAmount       =
         unless priceIsVolatile
         then i.feeAmount.getValue() * 100
@@ -114,6 +126,7 @@ class GroupProductEditForm extends KDFormViewWithFields
         overageEnabled
         soldAlone
         priceIsVolatile
+        couponCodes
         tags
       }
 
@@ -150,4 +163,3 @@ class GroupProductEditForm extends KDFormViewWithFields
   priceVolatilityChanged: ->
     enabled = @inputs.priceIsVolatile.getValue()
     do @fields.feeAmount[if enabled then 'hide' else 'show']
-    
