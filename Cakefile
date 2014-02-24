@@ -143,6 +143,7 @@ task 'socialWorker', "Run the socialWorker", ({configFile}) ->
         enabled      : !!KONFIG.runKontrol
         startMode    : "many"
         registerToProxy: yes
+        proxyName    : 'social'
         port         : port
       # onMessage: (msg) ->
       #   if msg.exiting;
