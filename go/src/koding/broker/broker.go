@@ -215,7 +215,7 @@ func (b *Broker) startAMQP() error {
 	go func(stream <-chan amqp.Delivery) {
 		// start to listen from "broker" topic exchange
 		for amqpMessage := range stream {
-			broadcastUpdateInstances(amqpMessage)
+			sendMessageToClient(amqpMessage)
 		}
 
 		b.Close()
@@ -225,26 +225,34 @@ func (b *Broker) startAMQP() error {
 	return nil
 }
 
-func broadcastUpdateInstances(amqpMessage amqp.Delivery) {
+func sendMessageToClient(amqpMessage amqp.Delivery) {
 	routingKey := amqpMessage.RoutingKey
 	payloadsByte := utils.FilterInvalidUTF8(amqpMessage.Body)
 
-	var payloads map[string]interface{}
-
-	if err := json.Unmarshal(payloadsByte, &payloads); err != nil {
-		log.Error("Error while unmarshalling %v", err)
-		return
-	}
-
-	// payloadsArr := payloads.([]interface{})
-	for _, payload := range payloads {
-		payloadByte, err := json.Marshal(payload)
-		if err != nil {
-			log.Error("Error while marshalling %v", err)
-			continue
+	if amqpMessage.Exchange == "updateInstances" {
+		var payloads []interface{}
+		if err := json.Unmarshal(payloadsByte, &payloads); err != nil {
+			log.Error("Error while unmarshalling %v", err)
+			log.Error("data %v", string(payloadsByte))
+			log.Error("routingKey %v", routingKey)
+			return
 		}
-		processMessage(routingKey, payloadByte)
+
+		for _, payload := range payloads {
+			payloadByte, err := json.Marshal(payload)
+			if err != nil {
+				log.Error("Error while marshalling %v", err)
+				log.Error("data %v", string(payloadByte))
+				log.Error("routingKey %v", routingKey)
+				continue
+			}
+			processMessage(routingKey, payloadByte)
+		}
+	} else {
+		payloadRaw := json.RawMessage(payloadsByte)
+		processMessage(routingKey, payloadRaw)
 	}
+
 }
 
 func processMessage(routingKey string, payload interface{}) {
