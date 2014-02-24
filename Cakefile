@@ -132,17 +132,20 @@ task 'socialWorker', "Run the socialWorker", ({configFile}) ->
   console.log 'CAKEFILE STARTING SOCIAL WORKERS'
 
   for i in [1..social.numberOfWorkers]
+    port = 3029 + i
+
     processes.fork
-      name           : if social.numberOfWorkers is 1 then "social" else "social-#{i}"
-      cmd            : __dirname + "/workers/social/index -c #{configFile} -p #{3029 + i}"
+      name           : 'social'#if social.numberOfWorkers is 1 then "social" else "social-#{i}"
+      cmd            : __dirname + "/workers/social/index -c #{configFile} -p #{port}"
       restart        : yes
       restartTimeout : 100
       kontrol        :
         enabled      : !!KONFIG.runKontrol
         startMode    : "many"
         registerToProxy: yes
+        port         : port
       # onMessage: (msg) ->
-      #   if msg.exiting
+      #   if msg.exiting;
       #     exitingProcesses[msg.pid] = yes
       #     runProcess(0)
       # onExit: (pid, name) ->
