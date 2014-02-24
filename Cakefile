@@ -135,7 +135,7 @@ task 'socialWorker', "Run the socialWorker", ({configFile}) ->
     port = 3029 + i
 
     processes.fork
-      name           : 'social'#if social.numberOfWorkers is 1 then "social" else "social-#{i}"
+      name           : if social.numberOfWorkers is 1 then "social" else "social-#{i}"
       cmd            : __dirname + "/workers/social/index -c #{configFile} -p #{port}"
       restart        : yes
       restartTimeout : 100
@@ -143,6 +143,7 @@ task 'socialWorker', "Run the socialWorker", ({configFile}) ->
         enabled      : !!KONFIG.runKontrol
         startMode    : "many"
         registerToProxy: yes
+        proxyName    : 'social'
         port         : port
       # onMessage: (msg) ->
       #   if msg.exiting;
