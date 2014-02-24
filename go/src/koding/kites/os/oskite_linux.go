@@ -187,15 +187,16 @@ func oskiteRedis(serviceUniquename string) {
 	}
 	session.SetPrefix("oskite")
 
-	prefix := "oskite:"
+	prefix := "oskite:" + conf.Environment + ":"
+	kontainerSet := "kontainers-" + conf.Environment
 
-	_, err = redigo.Int(session.Do("SADD", "kontainers", prefix+serviceUniquename))
+	_, err = redigo.Int(session.Do("SADD", kontainerSet, prefix+serviceUniquename))
 	if err != nil {
 		log.Error("redis SADD kontainers. err: %v", err.Error())
 	}
 
 	// get list of kontainers
-	kontainers, err := redigo.Strings(session.Do("SMEMBERS", "kontainers"))
+	kontainers, err := redigo.Strings(session.Do("SMEMBERS", kontainerSet))
 	if err != nil {
 		log.Error("redis SMEMBER kontainers. err: %v", err.Error())
 	}
@@ -204,7 +205,7 @@ func oskiteRedis(serviceUniquename string) {
 	go func() {
 		var err error
 		for _ = range time.Tick(20 * time.Second) {
-			kontainers, err = redigo.Strings(session.Do("SMEMBERS", "kontainers"))
+			kontainers, err = redigo.Strings(session.Do("SMEMBERS", kontainerSet))
 			if err != nil {
 				log.Error("redis SMEMBER kontainers. err: %v", err.Error())
 			}
