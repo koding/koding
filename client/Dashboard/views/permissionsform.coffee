@@ -199,3 +199,8 @@ class PermissionsForm extends KDFormViewWithFields
       when 'tree'         then return createTree values
       else throw new Error "Unknown structure #{structure}"
 
+  getPermissionsOfRole: (role)->
+    allValues = @list()
+    selectedRoleValues = []
+    selectedRoleValues.push permission for permission in allValues when permission.role is role
+    createReducedList selectedRoleValues
