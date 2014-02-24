@@ -69,27 +69,15 @@ class InlineImageSettings extends KDView
     imageType = @getOptions().type
     if imageType is "logo"
       return @group.customize?.logo
-    if imageType is "favicon"
-      return @group.customize?.favicon
 
   handleFileUploadDone: (url) ->
     @revealViews()
     imageType = @getOptions().type
     if imageType is "logo"
       @group.modify "customize.logo"    : "#{url}"
-    if imageType is "favicon"
-      @group.modify "customize.favicon" : "#{url}"
-
 
 
 class GroupLogoSettings extends InlineImageSettings
   constructor: (options = {}, data) ->
     options = uploaderTitle: "Drop your 55x55 logo here!"
-    super options, data
-
-class GroupFaviconSettings extends InlineImageSettings
-  constructor: (options = {}, data) ->
-    options         =
-      type          : "favicon"
-      uploaderTitle : "Drop your 5x5 favicon here!"
     super options, data
