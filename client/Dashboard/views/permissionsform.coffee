@@ -29,6 +29,42 @@ class PermissionsForm extends KDFormViewWithFields
     super options,data
     @setClass 'permissions-form col-'+@roles.length
 
+  showNewRoleModal:->
+    roleSelectOptions = []
+    @selectRoleModal  = new KDModalView title: "Select Role to Copy", overlay: yes
+    roleSelectOptions.push {title: role, value: role} for role in @roles
+
+    roleNameLabel   = new KDLabelView title: "give role a name"
+    @roleName       = new KDInputView
+      name          : "rolename"
+      placeholder   : "give new name to role.."
+
+    roleSelectLabel = new KDLabelView title: "Select role to copy from"
+    @roleSelectBox   = new KDSelectBox
+      name          : "roletocopy"
+      selectOptions : roleSelectOptions
+
+    confirmButton   = new KDButtonView
+      title         : "Select"
+      callback      : =>
+        titleOfRole = @roleName.getValue() or "NewRole"
+        @group.addCustomRole title: titleOfRole , (err, newRole)=>
+          return KD.showError err if err
+          duplicatedRole = @roleSelectBox.getValue()
+          newPermissions = @getPermissionsOfRole duplicatedRole
+          currentPermissionSet = @reducedList()
+          permission.role = titleOfRole for permission in newPermissions
+          currentPermissionSet.push perm for perm in newPermissions
+          @group.updatePermissions currentPermissionSet, (err,res)=>
+            return KD.showError err if err
+            @emit "RoleWasAdded", currentPermissionSet, newRole.title
+
+    @selectRoleModal.addSubView roleNameLabel
+    @selectRoleModal.addSubView @roleName
+    @selectRoleModal.addSubView roleSelectLabel
+    @selectRoleModal.addSubView @roleSelectBox
+    @selectRoleModal.addSubView confirmButton
+
   readableText = (text)->
     dictionary =
       "JTag"        : "Tags"
