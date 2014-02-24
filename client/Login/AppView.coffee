@@ -327,7 +327,6 @@ class LoginView extends KDView
     KD.getSingleton('groupsController').groupChannel?.close()
 
     KD.remote.api.JUser.convert formData, (err, replacementToken)=>
-      location.reload()  unless KD.remote.isConnected()
       account = KD.whoami()
       @registerForm.button.hideLoader()
 
@@ -362,15 +361,17 @@ class LoginView extends KDView
           # content   : 'Successfully registered!'
           duration  : 2000
 
-        KD.getSingleton('router').clear()
+        return location.reload()  unless KD.remote.isConnected()
+
         @headBanner.hide()
         #could not joined to the group. Directing to Koding
-        window.location.href = "/" if err
+        window.location.href= "/" if err
 
         KD.utils.wait 1000, =>
           @registerForm.reset()
           @registerForm.button.hideLoader()
           @hide()
+          KD.singleton("router").handleRoute "/Activity"
 
   doFinishRegistration: (formData) ->
     (KD.getSingleton 'mainController').handleFinishRegistration formData, @bound 'afterLoginCallback'
