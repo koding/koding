@@ -23,7 +23,6 @@ import (
 	"net"
 	"os"
 	"os/signal"
-	"strconv"
 	"strings"
 	"sync"
 	"syscall"
@@ -181,7 +180,6 @@ func main() {
 	registerVmMethod(k, "s3.store", true, s3Store)
 	registerVmMethod(k, "s3.delete", true, s3Delete)
 
-	log.Info("Starting redis client and handler in seperate thread!")
 	go oskiteRedis(k.ServiceUniqueName)
 
 	log.Info("Oskite started. Go!")
@@ -196,76 +194,69 @@ func oskiteRedis(serviceUniquename string) {
 		log.Error("redis SADD kontainers. err: %v", err.Error())
 	}
 	session.SetPrefix("oskite")
-	log.Info("Connected to Redis")
 
 	prefix := "oskite:" + conf.Environment + ":"
 	kontainerSet := "kontainers-" + conf.Environment
+
+	log.Info("Connected to Redis with %s", prefix+serviceUniquename)
 
 	_, err = redigo.Int(session.Do("SADD", kontainerSet, prefix+serviceUniquename))
 	if err != nil {
 		log.Error("redis SADD kontainers. err: %v", err.Error())
 	}
 
-	// get list of kontainers
-	kontainers, err := redigo.Strings(session.Do("SMEMBERS", kontainerSet))
-	if err != nil {
-		log.Error("redis SMEMBER kontainers. err: %v", err.Error())
-	}
-
-	// and also update it every 20 seconds
-	go func() {
-		var err error
-		for _ = range time.Tick(20 * time.Second) {
-			kontainers, err = redigo.Strings(session.Do("SMEMBERS", kontainerSet))
-			if err != nil {
-				log.Error("redis SMEMBER kontainers. err: %v", err.Error())
-			}
-		}
-	}()
-
 	// update regularly our VMS info
-	expireDuration := time.Second * 12
 	go func() {
+		expireDuration := time.Second * 12
 		for _ = range time.Tick(5 * time.Second) {
-			key := prefix + serviceUniquename + ":vms"
-			reply, err := session.Do("SET", key, strconv.Itoa(currentVMS()))
-			if err != nil {
-				log.Error("redis Set %v. reply: %v err: %v", key, reply, err.Error())
+			key := prefix + serviceUniquename
+			oskiteInfo := GetOskiteInfo()
+
+			if _, err := session.Do("HMSET", redigo.Args{key}.AddFlat(oskiteInfo)...); err != nil {
+				log.Error("redis HMSET err: %v", err.Error())
 			}
 
-			reply, err = redigo.Int(session.Do("EXPIRE", key, expireDuration.Seconds()))
+			reply, err := redigo.Int(session.Do("EXPIRE", key, expireDuration.Seconds()))
 			if err != nil {
 				log.Error("redis SET Expire %v. reply: %v err: %v", key, reply, err.Error())
 			}
 		}
 	}()
 
-	// get oskite statuses from others every 5 seconds
-	for _ = range time.Tick(5 * time.Second) {
-		for _, kontainerHostname := range kontainers {
-			key := kontainerHostname + ":vms"
+	// get oskite statuses from others every 10 seconds
+	for _ = range time.Tick(10 * time.Second) {
+		kontainers, err := redigo.Strings(session.Do("SMEMBERS", kontainerSet))
+		if err != nil {
+			log.Error("redis SMEMBER kontainers. err: %v", err.Error())
+		}
 
-			vmCount, err := redigo.Int(session.Do("GET", key))
+		for _, kontainerHostname := range kontainers {
+			// convert to serviceUniqueName formst
+			remoteOskite := strings.TrimPrefix(kontainerHostname, prefix)
+
+			values, err := redigo.Values(session.Do("HGETALL", kontainerHostname))
 			if err != nil {
-				log.Error("redis GET %v. err: %v", key, err.Error())
+				log.Error("redis HTGETALL %s. err: %v", kontainerHostname, err.Error())
+
+				// kontainer might be dead, key gets than expired, continue with the next one
+				delete(oskites, remoteOskite)
 				continue
 			}
 
-			remoteOskite := strings.TrimPrefix(kontainerHostname, prefix)
-
-			oskites[remoteOskite] = &OskiteInfo{
-				CurrentVMs:      vmCount,
-				CurrentVMsLimit: *flagLimit,
-				Version:         OSKITE_VERSION,
+			oskiteInfo := new(OskiteInfo)
+			if err := redigo.ScanStruct(values, oskiteInfo); err != nil {
+				log.Error("redis ScanStruct err: %v", err.Error())
 			}
 
+			log.Debug("%s: %+v", kontainerHostname, oskiteInfo)
+
+			oskites[remoteOskite] = oskiteInfo
 		}
 	}
-
 }
 
 func lowestOskiteLoad() (serviceUniquename string) {
-	lowest := *flagLimit
+	lowest := *flagLimit // TODO: fix that it takes it the highest oskites.CurrentVMs value
 	lowestName := ""
 
 	for s, c := range oskites {
