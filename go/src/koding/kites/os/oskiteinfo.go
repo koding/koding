@@ -3,6 +3,7 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
 	"koding/tools/dnode"
 	"koding/tools/kite"
@@ -12,16 +13,16 @@ import (
 )
 
 type OskiteInfo struct {
-	CurrentQueue int `json:"currentQueue"`
-	MaxQueue     int `json:"maxQueue"`
-	CurrentVMS   int `json:"currentVMS"`
+	QueuedVMs  int `json:"queuedVMs"`
+	QueueLimit int `json:"queueLimit"`
+	CurrentVMs int `json:"currentVMs"`
 }
 
 func GetOskiteInfo() *OskiteInfo {
 	return &OskiteInfo{
-		CurrentQueue: len(prepareQueue),
-		MaxQueue:     prepareQueueLimit,
-		CurrentVMS:   currentVMS(),
+		QueuedVMs:  len(prepareQueue),
+		QueueLimit: prepareQueueLimit,
+		CurrentVMs: currentVMS(),
 	}
 }
 
@@ -41,8 +42,13 @@ func currentVMS() int {
 		return 0
 	}
 
+	shellOut := string(bytes.TrimSpace(out))
+	if shellOut == "" {
+		return 0
+	}
+
 	count := 0
-	for _, container := range strings.Split(string(out), " ") {
+	for _, container := range strings.Split(shellOut, "\n") {
 		if strings.HasPrefix(container, "vm-") {
 			count++
 		}
