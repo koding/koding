@@ -239,7 +239,9 @@ func broadcastStatusChange(
 	oid := account["_id"].(bson.ObjectId)
 	routingKey := "oid." + oid.Hex() + ".event.updateInstance"
 
-	message, err := json.Marshal(update)
+	updateArr := make([]bson.M, 1)
+	updateArr[0] = *update
+	message, err := json.Marshal(updateArr)
 	if err != nil {
 		return err
 	}
