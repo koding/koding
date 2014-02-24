@@ -9,6 +9,7 @@ class GroupPermissionsView extends JView
 
     @addPermissionsView()
 
+  addPermissionsView: ->
     group = @getData()
 
     @loader           = new KDLoaderView
@@ -61,6 +62,19 @@ class GroupPermissionsView extends JView
     super
     @loader.show()
     @loaderText.show()
+    group.fetchRoles (err,roles)=>
+      return KD.showError err if err
+      group.fetchPermissions (err, permissionSet)=>
+        return KD.showError err if err
+        @addSubView permissions = new PermissionsForm {permissionSet,roles}, group
+        permissions.on 'RoleWasAdded', (newPermissions,role)=>
+          permissions.destroy()
+          @addPermissionsView()
+          @loader.show()
+          @loaderText.show()
+
+        @loader.hide()
+        @loaderText.hide()
 
   pistachio:->
     """
