@@ -38,6 +38,7 @@ module.exports = [
   "views/groupsmembershippolicydetailview.coffee",
   "views/groupsinvitationview.coffee",
   "views/permissionview.coffee",
+  "views/permissionswitch.coffee",
   "views/blockeduserslistitemview.coffee",
   "views/blockedusersview.coffee",
   "views/groupsinvitationcodelistitemview.coffee"
