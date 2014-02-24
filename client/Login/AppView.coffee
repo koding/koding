@@ -327,6 +327,7 @@ class LoginView extends KDView
     KD.getSingleton('groupsController').groupChannel?.close()
 
     KD.remote.api.JUser.convert formData, (err, replacementToken)=>
+      location.reload()  unless KD.remote.isConnected()
       account = KD.whoami()
       @registerForm.button.hideLoader()
 

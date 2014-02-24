@@ -48,7 +48,8 @@ class TeamworkDashboard extends JView
     """
       <div class="headline">
         <h1>Welcome to Teamwork</h1>
-        <p>Teamwork is a collaborative IDE for Koding. You can share your code, invite friends and code together.</p>
+        <p>Teamwork is a collaborative IDE for Koding. You can share your code, invite friends and code together. Please watch this quick video to learn more about Teamwork.</p><br />
+        <iframe src="//www.youtube.com/embed/w6sl_Yt_gNo?autoplay=0&origin=https://koding.com&showinfo=0&rel=0&theme=dark&modestbranding=1&autohide=1&loop=1" width="520" height="260" frameborder="0" webkitAllowFullScreen mozallowfullscreen allowFullScreen></iframe>
         <div class="separator"></div>
         <p>Start a new project from scratch, import a git repository or a zip from GitHub. You can also play with one of the ready to go templates below:</p>
       </div>
