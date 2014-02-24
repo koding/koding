@@ -11,12 +11,6 @@ class GroupPermissionsView extends JView
 
   addPermissionsView: ->
     group = @getData()
-
-
-  viewAppended:->
-    super
-    @loader.show()
-    @loaderText.show()
     group.fetchRoles (err,roles)=>
       return KD.showError err if err
       group.fetchPermissions (err, permissionSet)=>
