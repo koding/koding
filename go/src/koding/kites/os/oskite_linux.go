@@ -120,18 +120,18 @@ func main() {
 
 	initializeSettings()
 
+	// startPrepareWorkers starts multiple workers (based on prepareQueueLimit)
+	// that accepts vmPrepare/vmStart functions.
+	for i := 0; i < prepareQueueLimit; i++ {
+		go prepareWorker()
+	}
+
 	k := prepareOsKite()
 
 	runNewKite(k.ServiceUniqueName)
 	handleCurrentVMS(k)   // handle leftover VMs
 	startPinnedVMS(k)     // start pinned always-on VMs
 	setupSignalHandler(k) // handle SIGUSR1 and other signals.
-
-	// startPrepareWorkers starts multiple workers (based on prepareQueueLimit)
-	// that accepts vmPrepare/vmStart functions.
-	for i := 0; i < prepareQueueLimit; i++ {
-		go prepareWorker()
-	}
 
 	// register current client-side methods
 	registerVmMethod(k, "vm.start", false, vmStart)
@@ -212,12 +212,18 @@ func oskiteRedis(serviceUniquename string) {
 	}()
 
 	// update regularly our VMS info
+	expireDuration := time.Second * 12
 	go func() {
 		for _ = range time.Tick(5 * time.Second) {
 			key := prefix + serviceUniquename + ":vms"
 			reply, err := session.Do("SET", key, strconv.Itoa(currentVMS()))
 			if err != nil {
 				log.Error("redis Set %v. reply: %v err: %v", key, reply, err.Error())
+			}
+
+			reply, err = redigo.Int(session.Do("EXPIRE", key, expireDuration.Seconds()))
+			if err != nil {
+				log.Error("redis SET Expire %v. reply: %v err: %v", key, reply, err.Error())
 			}
 		}
 	}()
