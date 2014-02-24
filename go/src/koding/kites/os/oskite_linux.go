@@ -37,6 +37,7 @@ import (
 )
 
 const OSKITE_NAME = "oskite"
+const OSKITE_VERSION = "0.0.8"
 
 type VMInfo struct {
 	vm              *virt.VM
@@ -127,11 +128,19 @@ func main() {
 	}
 
 	k := prepareOsKite()
+	log.Info("Kite.go preperation is done")
 
 	runNewKite(k.ServiceUniqueName)
-	handleCurrentVMS(k)   // handle leftover VMs
-	startPinnedVMS(k)     // start pinned always-on VMs
+	log.Info("Run newkite is finished.")
+
+	handleCurrentVMS(k) // handle leftover VMs
+	log.Info("VMs in /var/lib/lxc are finished.")
+
+	startPinnedVMS(k) // start pinned always-on VMs
+	log.Info("Starting pinned hosts, if any...")
+
 	setupSignalHandler(k) // handle SIGUSR1 and other signals.
+	log.Info("Setting up signal handler")
 
 	// register current client-side methods
 	registerVmMethod(k, "vm.start", false, vmStart)
@@ -172,8 +181,10 @@ func main() {
 	registerVmMethod(k, "s3.store", true, s3Store)
 	registerVmMethod(k, "s3.delete", true, s3Delete)
 
+	log.Info("Starting redis client and handler in seperate thread!")
 	go oskiteRedis(k.ServiceUniqueName)
 
+	log.Info("Oskite started. Go!")
 	k.Run()
 }
 
@@ -185,6 +196,7 @@ func oskiteRedis(serviceUniquename string) {
 		log.Error("redis SADD kontainers. err: %v", err.Error())
 	}
 	session.SetPrefix("oskite")
+	log.Info("Connected to Redis")
 
 	prefix := "oskite:" + conf.Environment + ":"
 	kontainerSet := "kontainers-" + conf.Environment
@@ -242,10 +254,9 @@ func oskiteRedis(serviceUniquename string) {
 			remoteOskite := strings.TrimPrefix(kontainerHostname, prefix)
 
 			oskites[remoteOskite] = &OskiteInfo{
-				QueuedVMs:       len(prepareQueue),
-				QueueLimit:      prepareQueueLimit,
 				CurrentVMs:      vmCount,
 				CurrentVMsLimit: *flagLimit,
+				Version:         OSKITE_VERSION,
 			}
 
 		}
@@ -447,7 +458,6 @@ func handleCurrentVMS(k *kite.Kite) {
 			}
 
 			if err := mongodbConn.Run("jVMs", query); err != nil || vm.HostKite != k.ServiceUniqueName {
-
 				log.Info("cleaning up leftover VM: '%s', vm.Hoskite: '%s', k.ServiceUniqueName: '%s', error '%v'",
 					vmId, vm.HostKite, k.ServiceUniqueName, err)
 
@@ -799,10 +809,8 @@ func startVM(k *kite.Kite, vm *virt.VM, channel *kite.Channel) error {
 	}
 
 	if !isPrepared || info.currentHostname != vm.HostnameAlias {
-		log.Info("putting %s into queue. total vms in queue: %d of %d",
-			vm.HostnameAlias, len(prepareQueue), prepareQueueLimit)
-
 		wait := make(chan struct{}, 0)
+
 		prepareQueue <- func(done chan struct{}) {
 			defer func() {
 				done <- struct{}{}
@@ -826,6 +834,9 @@ func startVM(k *kite.Kite, vm *virt.VM, channel *kite.Channel) error {
 
 			info.currentHostname = vm.HostnameAlias
 		}
+
+		log.Info("putting %s into queue. total vms in queue: %d of %d",
+			vm.HostnameAlias, len(prepareQueue), prepareQueueLimit)
 
 		// wait until the prepareWorker has picked us and we finished
 		<-wait
