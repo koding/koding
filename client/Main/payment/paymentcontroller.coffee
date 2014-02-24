@@ -226,6 +226,7 @@ class PaymentController extends KDController
 
   fetchActiveSubscription: (tags, callback) ->
     if KD.getGroup()?.slug is "koding"
+      return callback()  if KD.whoami().type isnt "registered"
       status = $in: ["active", "canceled"]
       @fetchSubscriptionsWithPlans {tags, status}, (err, subscriptions) ->
         return callback err  if err

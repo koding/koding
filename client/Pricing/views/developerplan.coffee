@@ -46,9 +46,9 @@ class DeveloperPlan extends JView
         if @planIndex is 0
           return router.handleRoute '/Register'
 
-        paymentController.fetchSubscriptionsWithPlans tags: $in: "vm", (err, subscriptions) =>
+        paymentController.fetchActiveSubscription ["vm"], (err, subscription) =>
           return KD.showError err  if err
-          @emit "CurrentSubscriptionSet", subscriptions.first  if subscriptions.length
+          @emit "CurrentSubscriptionSet", subscription  if subscription
           @emit "PlanSelected", "rp#{@planIndex}",
             planApi: KD.remote.api.JResourcePlan
             resourceQuantity: @planIndex

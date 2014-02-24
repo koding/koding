@@ -55,6 +55,8 @@ class ActivityAppController extends AppController
     @lastFrom              = Date.now()
     @lastQuery             = null
 
+    KD.singletons.dock.getView().show()
+
     # if @mainController.appIsReady then @putListeners()
     # else @mainController.on 'AppIsReady', => @putListeners()
 
