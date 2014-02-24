@@ -246,11 +246,12 @@ func sendMessageToClient(amqpMessage amqp.Delivery) {
 				log.Error("routingKey %v", routingKey)
 				continue
 			}
-			processMessage(routingKey, payloadByte)
+			payloadByteRaw := json.RawMessage(payloadByte)
+			processMessage(routingKey, &payloadByteRaw)
 		}
 	} else {
 		payloadRaw := json.RawMessage(payloadsByte)
-		processMessage(routingKey, payloadRaw)
+		processMessage(routingKey, &payloadRaw)
 	}
 
 }
