@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"io"
 	"koding/db/mongodb"
 	"koding/db/mongodb/modelhelper"
@@ -65,8 +66,8 @@ func main() {
 	// Service handlers
 	services := rout.PathPrefix("/services").Subrouter()
 	services.HandleFunc("/", changeHandler(GetUsers)).Methods("GET")
-	services.HandleFunc("/{username}", changeHandler(GetServices)).Methods("GET")
-	services.HandleFunc("/{username}", changeHandler(DeleteServices)).Methods("DELETE")
+	services.HandleFunc("/{username}/", changeHandler(GetServices)).Methods("GET")
+	services.HandleFunc("/{username}/", changeHandler(DeleteServices)).Methods("DELETE")
 	services.HandleFunc("/{username}/{servicename}", changeHandler(GetService)).Methods("GET")
 	services.HandleFunc("/{username}/{servicename}", changeHandler(DeleteService)).Methods("DELETE")
 	services.HandleFunc("/{username}/{servicename}/{key}", changeHandler(GetKey)).Methods("GET")
@@ -120,6 +121,7 @@ func main() {
 
 	port := strconv.Itoa(conf.Kontrold.Api.Port)
 	log.Info("kontrol api is started. serving at :%s ...", port)
+	fmt.Printf("Kontrolapi started at port: %s\n", port)
 
 	http.Handle("/", rout)
 	err := http.ListenAndServe(":"+port, nil)

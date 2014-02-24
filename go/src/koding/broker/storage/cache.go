@@ -61,6 +61,20 @@ func (s *subscriptionSet) Resubscribe(socketId string) (bool, error) {
 		return false, nil
 	}
 
+	length, err := socketSubscription.Len()
+	if err != nil {
+		return false, err
+	}
+
+	// this is just an arbitary number for now
+	// sometimes client send 1 item for subscription
+	// and then if it tries to resubscribe, it wont get the
+	// realtime event/
+	// this is open for improvements
+	if length < 10 {
+		return false, nil
+	}
+
 	socketSubscription.Each(func(routingKeyPrefix interface{}) bool {
 		if err := s.Subscribe(routingKeyPrefix.(string)); err != nil {
 			return false

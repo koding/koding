@@ -90,6 +90,7 @@ class GroupsMemberRolesEditView extends JView
         @group.transferOwnership @member.getId(), (err)=>
           return @showErrorMessage err if err
           new KDNotificationView title:'Ownership transferred!'
+          @getDelegate().emit 'OwnershipChanged'
           modal.destroy()
     , @group
 

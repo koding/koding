@@ -415,7 +415,8 @@ resurrection.activity.styl
           margin          0 8px 0 1px
           vertical-align  top
           rounded         15px
-
+          bg              position, 50% 50%
+          bg              size cover
         a
           line-height    30px
 
@@ -475,10 +476,32 @@ resurrection.activity.styl
         .chevron
           r-sprite    activity chevron-icon
 
+div.kdtooltip.activity-helper
+  code
+    font-weight       400
+    font-family       monoFamily
+    font-size         12px
+    padding           5px
+
 .activity-input-widget
   size                auto auto
   position            relative
   margin              0
+  overflow            visible
+
+  .help-container
+    margin            5px
+    font-size         12px
+    line-height       1.6
+    color             footerLinkColor
+    margin-bottom     -24px
+    > a
+    > span
+      margin-left     8px
+      color           logoBg
+    > a
+      border-bottom   1px solid logoBg
+      noTextDeco()
 
   .avatarview
     top               6px

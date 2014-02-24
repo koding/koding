@@ -159,7 +159,7 @@ module.exports =
     runtimeOptions:
       environment        : environment
       activityFetchCount : 20
-      precompiledApi     : yes
+      precompiledApi     : no
       authExchange       : authExchange
       github        :
         clientId    : "5891e574253e65ddb7ea"
@@ -169,6 +169,7 @@ module.exports =
       useNeo4j: yes
       logToExternal : yes
       resourceName: socialQueueName
+      socialApiUri: 'http://social.koding.com/xhr'
       suppressLogs: yes
       version   : version
       mainUri   : "http://koding.com"
@@ -226,7 +227,7 @@ module.exports =
     certFile    : "/opt/ssl_certs/wildcard.koding.com.cert"
     keyFile     : "/opt/ssl_certs/wildcard.koding.com.key"
     webProtocol : 'https:'
-    webHostname : "broker-#{version}a.koding.com"
+    webHostname : "broker.koding.com"
     webPort     : null
     authExchange: authExchange
     authAllExchange: authAllExchange
@@ -237,7 +238,7 @@ module.exports =
     certFile    : "/opt/ssl_certs/wildcard.koding.com.cert"
     keyFile     : "/opt/ssl_certs/wildcard.koding.com.key"
     webProtocol : 'https:'
-    webHostname : "brokerkite-#{version}a.koding.com"
+    webHostname : "brokerkite.koding.com"
     webPort     : null
     authExchange: authExchange
     authAllExchange: authAllExchange
@@ -384,6 +385,6 @@ module.exports =
     broker        : "info"
   defaultVMConfigs:
     freeVM        :
-      storage     : 4096
+      storage     : 3072
       ram         : 1024
       cpu         : 1

@@ -27,8 +27,8 @@ module.exports =
     key         : 'AKIAJSUVKX6PD254UGAA'
     secret      : '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'
   uri           :
-    address     : "http://localhost:3020"
-  userSitesDomain: 'localhost'
+    address     : "http://lvh.me:3020"
+  userSitesDomain: 'lvh.me'
   containerSubnet: "10.128.2.0/9"
   vmPool        : "vms"
   projectRoot   : projectRoot
@@ -148,7 +148,7 @@ module.exports =
     indexMaster : "index-master.html"
     index       : "default.html"
     useStaticFileServer: no
-    staticFilesBaseUrl: 'http://localhost:3020'
+    staticFilesBaseUrl: 'http://lvh.me:3020'
     runtimeOptions:
       environment        : environment
       activityFetchCount : 20
@@ -158,29 +158,30 @@ module.exports =
         clientId     : "f8e440b796d953ea01e5"
       embedly        :
         apiKey       : embedlyApiKey
-      userSitesDomain: 'localhost'
+      userSitesDomain: 'lvh.me'
       useNeo4j: yes
       logToExternal: no  # rollbar, mixpanel etc.
       resourceName: socialQueueName
+      socialApiUri: 'http://lvh.me:3030/xhr'
       suppressLogs: no
       broker    :
-        servicesEndpoint: 'http://localhost:3020/-/services/broker'
-        sockJS  : 'http://localhost:8008/subscribe'
+        servicesEndpoint: 'http://lvh.me:3020/-/services/broker'
+        sockJS  : 'http://lvh.me:8008/subscribe'
       brokerKite:
-        servicesEndpoint: 'http://localhost:3020/-/services/brokerKite'
+        servicesEndpoint: 'http://lvh.me:3020/-/services/brokerKite'
         brokerExchange: 'brokerKite'
-        sockJS  : 'http://localhost:8009/subscribe'
+        sockJS  : 'http://lvh.me:8009/subscribe'
       premiumBrokerKite:
-        servicesEndpoint: 'http://localhost:3020/-/services/premiumBrokerKite'
+        servicesEndpoint: 'http://lvh.me:3020/-/services/premiumBrokerKite'
         brokerExchange: 'premiumBrokerKite'
-        sockJS  : 'http://localhost:8010/subscribe'
-      apiUri    : 'http://localhost:3020'
+        sockJS  : 'http://lvh.me:8010/subscribe'
+      apiUri    : 'http://lvh.me:3020'
       version   : version
-      mainUri   : 'http://localhost:3020'
+      mainUri   : 'http://lvh.me:3020'
       appsUri   : 'https://koding-apps.s3.amazonaws.com'
       uploadsUri: 'https://koding-uploads.s3.amazonaws.com'
       uploadsUriForGroup: 'https://koding-groups.s3.amazonaws.com'
-      sourceUri : 'http://localhost:3526'
+      sourceUri : 'http://lvh.me:3526'
       newkontrol:
         url     : 'ws://127.0.0.1:4000/kontrol'
       fileFetchTimeout: 15 * 1000 # seconds
@@ -222,7 +223,7 @@ module.exports =
     certFile    : ""
     keyFile     : ""
     webProtocol : 'http:'
-    webHostname : 'localhost'
+    webHostname : 'lvh.me'
     webPort     : 8008
     authExchange: authExchange
     authAllExchange: authAllExchange
@@ -233,7 +234,7 @@ module.exports =
     certFile    : ""
     keyFile     : ""
     webProtocol : 'http:'
-    webHostname : 'localhost'
+    webHostname : 'lvh.me'
     webPort     : 8009
     authExchange: authExchange
     authAllExchange: authAllExchange
@@ -244,7 +245,7 @@ module.exports =
     certFile    : ""
     keyFile     : ""
     webProtocol : 'http:'
-    webHostname : 'localhost'
+    webHostname : 'lvh.me'
     webPort     : 8010
     authExchange: authExchange
     authAllExchange: authAllExchange
@@ -252,7 +253,7 @@ module.exports =
     disconnectTimeout: 3e3
     vhost       : 'kite'
   email         :
-    host        : 'localhost:3020'
+    host        : 'lvh.me:3020'
     protocol    : 'http:'
     defaultFromAddress: 'hello@koding.com'
   emailWorker   :
@@ -302,7 +303,7 @@ module.exports =
       switchHost  : "example.com"
     api           :
       port        : 8888
-      url         : "http://localhost"
+      url         : "http://lvh.me"
     proxy         :
       port        : 5000
       portssl     : 8081
@@ -324,7 +325,7 @@ module.exports =
   #     decipher.update(str,'hex')
   #     b = decipher.final('utf-8')
   #     return b
-  recurly         : 
+  recurly         :
     apiKey        : '4a0b7965feb841238eadf94a46ef72ee' # koding-test.recurly.com
     loggedRequests: /^(subscriptions|transactions)/
   embedly       :
@@ -345,27 +346,27 @@ module.exports =
     secret_url   : "https://www.odesk.com/services/api/auth?oauth_token="
     version      : "1.0"
     signature    : "HMAC-SHA1"
-    redirect_uri : "http://localhost:3020/-/oauth/odesk/callback"
+    redirect_uri : "http://lvh.me:3020/-/oauth/odesk/callback"
   facebook       :
     clientId     : "475071279247628"
     clientSecret : "65cc36108bb1ac71920dbd4d561aca27"
-    redirectUri  : "http://localhost:3020/-/oauth/facebook/callback"
+    redirectUri  : "http://lvh.me:3020/-/oauth/facebook/callback"
   google         :
     client_id    : "1058622748167.apps.googleusercontent.com"
     client_secret: "vlF2m9wue6JEvsrcAaQ-y9wq"
-    redirect_uri : "http://localhost:3020/-/oauth/google/callback"
+    redirect_uri : "http://lvh.me:3020/-/oauth/google/callback"
   statsd         :
     use          : false
-    ip           : "localhost"
+    ip           : "lvh.me"
     port         : 8125
   graphite       :
     use          : false
-    host         : "localhost"
+    host         : "lvh.me"
     port         : 2003
   linkedin       :
     client_id    : "f4xbuwft59ui"
     client_secret: "fBWSPkARTnxdfomg"
-    redirect_uri : "http://localhost:3020/-/oauth/linkedin/callback"
+    redirect_uri : "http://lvh.me:3020/-/oauth/linkedin/callback"
   twitter        :
     key          : "aFVoHwffzThRszhMo2IQQ"
     secret       : "QsTgIITMwo2yBJtpcp9sUETSHqEZ2Fh7qEQtRtOi2E"
@@ -400,6 +401,6 @@ module.exports =
     broker        : "notice"
   defaultVMConfigs:
     freeVM        :
-      storage     : 4096
+      storage     : 3072
       ram         : 1024
       cpu         : 1

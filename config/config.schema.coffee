@@ -182,6 +182,7 @@ config =
         useNeo4j      : 1
         logToExternal : 1
         resourceName  : 1
+        socialApiUri  : 1
         suppressLogs  : 1
         version       : 1
         mainUri       : 1

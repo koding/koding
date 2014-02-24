@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
-	kitelib "kite"
+	"koding/databases/redis"
 	"koding/db/mongodb"
 	"koding/db/mongodb/modelhelper"
 	"koding/kites/os/ldapserver"
@@ -23,10 +23,14 @@ import (
 	"net"
 	"os"
 	"os/signal"
+	"strconv"
 	"strings"
 	"sync"
 	"syscall"
 	"time"
+
+	redigo "github.com/garyburd/redigo/redis"
+	kitelib "github.com/koding/kite"
 
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
@@ -63,6 +67,7 @@ var (
 	flagTemplates    = flag.String("t", "", "Change template directory")
 	flagTimeout      = flag.String("s", "50m", "Shut down timeout for a single VM")
 	flagDisableGuest = flag.Bool("noguest", false, "Disable Guest VM creation")
+	flagLimit        = flag.Int("limit", 100, "Disable Guest VM creation")
 
 	infos            = make(map[bson.ObjectId]*VMInfo)
 	infosMutex       sync.Mutex
@@ -73,7 +78,7 @@ var (
 	requestWaitGroup sync.WaitGroup
 
 	vmTimeout         = time.Minute * 50
-	prepareQueueLimit = 8 + 1 // number of concurrent VM preparations, shoulde be CPU + 1
+	prepareQueueLimit = 8 + 1 // number of concurrent VM preparations, should be CPU + 1
 	prepareQueue      = make(chan func(chan struct{}))
 )
 
@@ -115,18 +120,18 @@ func main() {
 
 	initializeSettings()
 
+	// startPrepareWorkers starts multiple workers (based on prepareQueueLimit)
+	// that accepts vmPrepare/vmStart functions.
+	for i := 0; i < prepareQueueLimit; i++ {
+		go prepareWorker()
+	}
+
 	k := prepareOsKite()
 
 	runNewKite(k.ServiceUniqueName)
 	handleCurrentVMS(k)   // handle leftover VMs
 	startPinnedVMS(k)     // start pinned always-on VMs
 	setupSignalHandler(k) // handle SIGUSR1 and other signals.
-
-	// startPrepareWorkers starts multiple workers (based on prepareQueueLimit)
-	// that accepts vmPrepare/vmStart functions.
-	for i := 0; i < prepareQueueLimit; i++ {
-		go prepareWorker()
-	}
 
 	// register current client-side methods
 	registerVmMethod(k, "vm.start", false, vmStart)
@@ -137,8 +142,11 @@ func main() {
 	registerVmMethod(k, "vm.info", false, vmInfo)
 	registerVmMethod(k, "vm.resizeDisk", false, vmResizeDisk)
 	registerVmMethod(k, "vm.createSnapshot", false, vmCreateSnaphost)
-	registerVmMethod(k, "spawn", true, spawn)
-	registerVmMethod(k, "exec", true, exec)
+	registerVmMethod(k, "spawn", true, spawnFunc)
+	registerVmMethod(k, "exec", true, execFunc)
+
+	registerVmMethod(k, "oskite.Info", true, oskiteInfo)
+	registerVmMethod(k, "oskite.All", true, oskiteAll)
 
 	syscall.Umask(0) // don't know why richard calls this
 	registerVmMethod(k, "fs.readDirectory", false, fsReadDirectory)
@@ -164,7 +172,99 @@ func main() {
 	registerVmMethod(k, "s3.store", true, s3Store)
 	registerVmMethod(k, "s3.delete", true, s3Delete)
 
+	go oskiteRedis(k.ServiceUniqueName)
+
 	k.Run()
+}
+
+var oskites = make(map[string]*OskiteInfo)
+
+func oskiteRedis(serviceUniquename string) {
+	session, err := redis.NewRedisSession(conf.Redis)
+	if err != nil {
+		log.Error("redis SADD kontainers. err: %v", err.Error())
+	}
+	session.SetPrefix("oskite")
+
+	prefix := "oskite:" + conf.Environment + ":"
+	kontainerSet := "kontainers-" + conf.Environment
+
+	_, err = redigo.Int(session.Do("SADD", kontainerSet, prefix+serviceUniquename))
+	if err != nil {
+		log.Error("redis SADD kontainers. err: %v", err.Error())
+	}
+
+	// get list of kontainers
+	kontainers, err := redigo.Strings(session.Do("SMEMBERS", kontainerSet))
+	if err != nil {
+		log.Error("redis SMEMBER kontainers. err: %v", err.Error())
+	}
+
+	// and also update it every 20 seconds
+	go func() {
+		var err error
+		for _ = range time.Tick(20 * time.Second) {
+			kontainers, err = redigo.Strings(session.Do("SMEMBERS", kontainerSet))
+			if err != nil {
+				log.Error("redis SMEMBER kontainers. err: %v", err.Error())
+			}
+		}
+	}()
+
+	// update regularly our VMS info
+	expireDuration := time.Second * 12
+	go func() {
+		for _ = range time.Tick(5 * time.Second) {
+			key := prefix + serviceUniquename + ":vms"
+			reply, err := session.Do("SET", key, strconv.Itoa(currentVMS()))
+			if err != nil {
+				log.Error("redis Set %v. reply: %v err: %v", key, reply, err.Error())
+			}
+
+			reply, err = redigo.Int(session.Do("EXPIRE", key, expireDuration.Seconds()))
+			if err != nil {
+				log.Error("redis SET Expire %v. reply: %v err: %v", key, reply, err.Error())
+			}
+		}
+	}()
+
+	// get oskite statuses from others every 5 seconds
+	for _ = range time.Tick(5 * time.Second) {
+		for _, kontainerHostname := range kontainers {
+			key := kontainerHostname + ":vms"
+
+			vmCount, err := redigo.Int(session.Do("GET", key))
+			if err != nil {
+				log.Error("redis GET %v. err: %v", key, err.Error())
+				continue
+			}
+
+			remoteOskite := strings.TrimPrefix(kontainerHostname, prefix)
+
+			oskites[remoteOskite] = &OskiteInfo{
+				QueuedVMs:       len(prepareQueue),
+				QueueLimit:      prepareQueueLimit,
+				CurrentVMs:      vmCount,
+				CurrentVMsLimit: *flagLimit,
+			}
+
+		}
+	}
+
+}
+
+func lowestOskiteLoad() (serviceUniquename string) {
+	lowest := *flagLimit
+	lowestName := ""
+
+	for s, c := range oskites {
+		if c.CurrentVMs <= lowest {
+			lowest = c.CurrentVMs
+			lowestName = s
+		}
+	}
+
+	return lowestName
 }
 
 func runNewKite(serviceUniqueName string) {
@@ -264,6 +364,15 @@ func prepareOsKite() *kite.Kite {
 	}
 
 	k.LoadBalancer = func(correlationName string, username string, deadService string) string {
+		blog := func(v interface{}) {
+			log.Info("oskite loadbalancer for [correlationName: '%s' user: '%s' deadService: '%s'] results in --> %v.", correlationName, username, deadService, v)
+		}
+
+		resultOskite := k.ServiceUniqueName
+		if lowestOskite := lowestOskiteLoad(); lowestOskite != "" {
+			resultOskite = lowestOskite
+		}
+
 		var vm *virt.VM
 		if bson.IsObjectIdHex(correlationName) {
 			mongodbConn.Run("jVMs", func(c *mgo.Collection) error {
@@ -275,36 +384,45 @@ func prepareOsKite() *kite.Kite {
 			if err := mongodbConn.Run("jVMs", func(c *mgo.Collection) error {
 				return c.Find(bson.M{"hostnameAlias": correlationName}).One(&vm)
 			}); err != nil {
-				return k.ServiceUniqueName
+				blog(fmt.Sprintf("no hostnameAlias found, returning %s", resultOskite))
+				return resultOskite // no vm was found, return this oskite
 			}
 		}
 
-		if vm.HostKite == "" || vm.HostKite == "(maintenance)" || vm.HostKite == "(banned)" {
-			if vm.PinnedToHost != "" {
-				return vm.PinnedToHost
-			}
-			return k.ServiceUniqueName
+		if vm.PinnedToHost != "" {
+			blog(fmt.Sprintf("returning pinnedHost '%s'", vm.PinnedToHost))
+			return vm.PinnedToHost
+		}
+
+		if vm.HostKite == "" {
+			blog(fmt.Sprintf("hostkite is empty returning '%s'", resultOskite))
+			return resultOskite
+		}
+
+		// maintenance and banned will be handled again in valideVM() function,
+		// which will return a permission error.
+		if vm.HostKite == "(maintenance)" || vm.HostKite == "(banned)" {
+			blog(fmt.Sprintf("hostkite is %s returning '%s'", vm.HostKite, resultOskite))
+			return resultOskite
 		}
 
 		// Set hostkite to nil if we detect a dead service. On the next call,
 		// Oskite will point to an health service in validateVM function()
-		// because it will detect that the hostkite is nil and change it to
-		// the healthy service given by the client.
+		// because it will detect that the hostkite is nil and change it to the
+		// healthy service given by the client, which is the returned
+		// k.ServiceUniqueName.
 		if vm.HostKite == deadService {
-			log.Warning("VM is registered as running on dead service. %v, %v, %v",
-				correlationName, username, deadService)
-
-			query := func(c *mgo.Collection) error {
+			blog(fmt.Sprintf("dead service detected %s returning '%s'", vm.HostKite, k.ServiceUniqueName))
+			if err := mongodbConn.Run("jVMs", func(c *mgo.Collection) error {
 				return c.Update(bson.M{"_id": vm.Id}, bson.M{"$set": bson.M{"hostKite": nil}})
-			}
-
-			if err := mongodbConn.Run("jVMs", query); err != nil {
+			}); err != nil {
 				log.LogError(err, 0, vm.Id.Hex())
 			}
 
-			return k.ServiceUniqueName
+			return resultOskite
 		}
 
+		blog(fmt.Sprintf("returning existing hostkite '%s'", vm.HostKite))
 		return vm.HostKite
 	}
 
@@ -414,6 +532,10 @@ func registerVmMethod(k *kite.Kite, method string, concurrent bool, callback fun
 
 		if shuttingDown { // check second time after sync to avoid additional mutex
 			return nil, errors.New("Kite is shutting down.")
+		}
+
+		if *flagLimit <= currentVMS() {
+			return nil, fmt.Errorf("Maximum capacity of %s has been reached.", *flagLimit)
 		}
 
 		user, err := getUser(channel.Username)

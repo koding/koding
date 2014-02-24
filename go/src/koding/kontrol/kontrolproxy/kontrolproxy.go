@@ -6,8 +6,6 @@ import (
 	"fmt"
 	"html/template"
 	"io"
-	"kite"
-	"kite/protocol"
 	"koding/db/mongodb/modelhelper"
 	"koding/kodingkite"
 	"koding/kontrol/kontrolproxy/resolver"
@@ -30,9 +28,10 @@ import (
 	"time"
 
 	"github.com/gorilla/context"
-	"github.com/gorilla/handlers"
 	"github.com/gorilla/sessions"
 	"github.com/hoisie/redis"
+	"github.com/koding/kite"
+	"github.com/koding/kite/protocol"
 )
 
 const (
@@ -70,13 +69,7 @@ var (
 
 	// used for various kinds of use cases like validator, 404 pages,
 	// maintenance,...
-	templates = template.Must(template.ParseFiles(
-		"files/templates/notfound.html",
-		"files/templates/notactiveVM.html",
-		"files/templates/securepage.html",
-		"files/templates/quotaExceeded.html",
-		"files/templates/maintenance.html",
-	))
+	templates *template.Template
 
 	// readed config
 	conf *config.Config
@@ -86,6 +79,8 @@ var (
 	flagRegion    = flag.String("r", "", "Region")
 	flagVMProxies = flag.Bool("v", false, "Enable ports for VM users (1024-10000)")
 	flagDebug     = flag.Bool("d", false, "Debug mode")
+	flagTemplates = flag.String("template", "files/templates", "Change template directory")
+	flagCerts     = flag.String("certs", ".", "Change Certificate directory")
 )
 
 // Proxy is implementing the http.Handler interface (via ServeHTTP). This is
@@ -142,8 +137,17 @@ func main() {
 	}
 	log.SetLevel(logLevel)
 
+	templates = template.Must(template.ParseFiles(
+		*flagTemplates+"/notfound.html",
+		*flagTemplates+"/notactiveVM.html",
+		*flagTemplates+"/securepage.html",
+		*flagTemplates+"/quotaExceeded.html",
+		*flagTemplates+"/maintenance.html",
+	))
+
 	log.Info("Kontrolproxy started.")
-	log.Info("I'm using %d cpus for goroutines", runtime.NumCPU())
+	log.Info("I'm using %d cpus for GOMACPROCS", runtime.NumCPU())
+	runtime.GOMAXPROCS(runtime.NumCPU())
 
 	p := &Proxy{
 		mux:             http.NewServeMux(),
@@ -177,6 +181,12 @@ func (p *Proxy) runNewKite() {
 			Region:   *flagRegion,
 		},
 	)
+
+	if k.Kontrol == nil {
+		k = nil
+		log.Error("new kite couldn't start")
+		return
+	}
 
 	k.Start()
 
@@ -359,11 +369,12 @@ func (p *Proxy) startHTTPS() {
 	log.Info("https mode is enabled. serving at :%s ...", portssl)
 
 	// don't change it to "*.pem", otherwise you'll get duplicate IP's
-	pemFiles, err := filepath.Glob("*_cert.pem")
+	pemFiles, err := filepath.Glob(filepath.Join(*flagCerts, "*_cert.pem"))
 	if err != nil {
 		log.Critical(err.Error())
 	}
 
+	log.Info("using pem files %v", pemFiles)
 	// hostname example: "koding_com_" or "kd_com_"
 	hostname := strings.TrimSuffix(pemFiles[0], "cert.pem")
 	if hostname == pemFiles[0] {
@@ -433,14 +444,7 @@ func (p *Proxy) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	// our main handler mux function goes and picks the correct handler
 	if h := p.getHandler(r); h != nil {
-		if *flagVMProxies {
-			// don't wrap this around CLH logging handler, because it breaks websocket
-			h.ServeHTTP(w, r)
-		} else {
-			loggingHandler := handlers.CombinedLoggingHandler(p.logDestination, h)
-			loggingHandler.ServeHTTP(w, r)
-		}
-
+		h.ServeHTTP(w, r)
 		return
 	}
 
@@ -603,6 +607,11 @@ func (p *Proxy) internal(req *http.Request, target *resolver.Target) http.Handle
 	log.Debug("mode '%s' [%s] via %s : %s --> %s",
 		target.Proxy.Mode, userIP, target.FetchedSource, req.Host, target.URL.String())
 
+	// switch to websocket before we even show the cookie
+	if isWebsocket(req) {
+		return websocketHandler(target.URL.Host)
+	}
+
 	return reverseProxyHandler(nil, target.URL)
 }
 
@@ -659,6 +668,7 @@ func reverseProxyHandler(transport http.RoundTripper, target *url.URL) http.Hand
 // the underlying http connection and copies forth and back the response
 func websocketHandler(target string) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		log.Debug("making websocket connection to %s", target)
 		hj, ok := w.(http.Hijacker)
 		if !ok {
 			http.Error(w, "not a hijacker?", 500)

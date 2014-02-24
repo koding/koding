@@ -37,11 +37,12 @@ do ->
     clearTimeout modalTimerId
     modalTimerId = null
 
-    modalSize  = currentModalSize or options.modalSize
-    notifyUser = options.notifyUser
+    # hide reconnected modal
+    # modalSize  = currentModalSize or options.modalSize
+    # notifyUser = options.notifyUser
 
-    if notifyUser or currentModal
-      currentModal = showModal modalSize, state
+    # if notifyUser or currentModal
+    #   currentModal = showModal modalSize, state
 
   status.on 'disconnected', (options={})->
     reason     = options.reason     or= "unknown"

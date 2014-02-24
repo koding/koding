@@ -10,9 +10,5 @@ class SharableClientTerminalPane extends TerminalPane
 
     super options, data
 
-  createWebTermView: ->
-    @webterm           = new WebTermView
-      cssClass         : "webterm"
-      advancedSettings : no
-      delegate         : this
-      mode             : "shared"
+
+  getMode: -> 'shared'

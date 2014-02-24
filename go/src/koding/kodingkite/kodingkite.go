@@ -1,8 +1,8 @@
 package kodingkite
 
 import (
-	"kite"
-	"kite/logging"
+	"github.com/koding/kite"
+	"github.com/koding/kite/logging"
 	"koding/tools/config"
 	"log"
 )

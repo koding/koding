@@ -215,29 +215,7 @@ func (b *Broker) startAMQP() error {
 	go func(stream <-chan amqp.Delivery) {
 		// start to listen from "broker" topic exchange
 		for amqpMessage := range stream {
-			routingKey := amqpMessage.RoutingKey
-			payload := json.RawMessage(utils.FilterInvalidUTF8(amqpMessage.Body))
-
-			pos := strings.IndexRune(routingKey, '.') // skip first dot, since we want at least two components to always include the secret
-			for pos != -1 && pos < len(routingKey) {
-				index := strings.IndexRune(routingKey[pos+1:], '.')
-				pos += index + 1
-				if index == -1 {
-					pos = len(routingKey)
-				}
-				routingKeyPrefix := routingKey[:pos]
-				globalMapMutex.Lock()
-
-				if routes, ok := routeMap[routingKeyPrefix]; ok {
-					routes.Each(func(sessionId interface{}) bool {
-						if routeSession, ok := sessionsMap[sessionId.(string)]; ok {
-							sendToClient(routeSession, routingKey, &payload)
-						}
-						return true
-					})
-				}
-				globalMapMutex.Unlock()
-			}
+			sendMessageToClient(amqpMessage)
 		}
 
 		b.Close()
@@ -245,6 +223,60 @@ func (b *Broker) startAMQP() error {
 	}(stream)
 
 	return nil
+}
+
+func sendMessageToClient(amqpMessage amqp.Delivery) {
+	routingKey := amqpMessage.RoutingKey
+	payloadsByte := utils.FilterInvalidUTF8(amqpMessage.Body)
+
+	if amqpMessage.Exchange == "updateInstances" {
+		var payloads []interface{}
+		if err := json.Unmarshal(payloadsByte, &payloads); err != nil {
+			log.Error("Error while unmarshalling %v", err)
+			log.Error("data %v", string(payloadsByte))
+			log.Error("routingKey %v", routingKey)
+			return
+		}
+
+		for _, payload := range payloads {
+			payloadByte, err := json.Marshal(payload)
+			if err != nil {
+				log.Error("Error while marshalling %v", err)
+				log.Error("data %v", string(payloadByte))
+				log.Error("routingKey %v", routingKey)
+				continue
+			}
+			payloadByteRaw := json.RawMessage(payloadByte)
+			processMessage(routingKey, &payloadByteRaw)
+		}
+	} else {
+		payloadRaw := json.RawMessage(payloadsByte)
+		processMessage(routingKey, &payloadRaw)
+	}
+
+}
+
+func processMessage(routingKey string, payload interface{}) {
+	pos := strings.IndexRune(routingKey, '.') // skip first dot, since we want at least two components to always include the secret
+	for pos != -1 && pos < len(routingKey) {
+		index := strings.IndexRune(routingKey[pos+1:], '.')
+		pos += index + 1
+		if index == -1 {
+			pos = len(routingKey)
+		}
+		routingKeyPrefix := routingKey[:pos]
+		globalMapMutex.Lock()
+
+		if routes, ok := routeMap[routingKeyPrefix]; ok {
+			routes.Each(func(sessionId interface{}) bool {
+				if routeSession, ok := sessionsMap[sessionId.(string)]; ok {
+					sendToClient(routeSession, routingKey, &payload)
+				}
+				return true
+			})
+		}
+		globalMapMutex.Unlock()
+	}
 }
 
 // startSockJS starts a new HTTPS listener that implies the SockJS protocol.

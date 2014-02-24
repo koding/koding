@@ -176,3 +176,13 @@ func (r *RedisSession) Ping() error {
 
 	return nil
 }
+
+// Scard gets the member count of a Set with given key
+func (r *RedisSession) Scard(key string) (int, error) {
+	reply, err := redis.Int(r.Do("SCARD", key))
+	if err != nil {
+		return 0, err
+	}
+
+	return reply, nil
+}

@@ -316,11 +316,13 @@ func (k *Kite) startRouting(stream <-chan amqp.Delivery, publishChannel *amqp.Ch
 					ServiceGenericName string `json:"serviceGenericName"`
 					ServiceUniqueName  string `json:"serviceUniqueName"` // used only for response
 				}
+
 				err := json.Unmarshal(message.Body, &client)
 				if err != nil || client.Username == "" || client.RoutingKey == "" || client.CorrelationName == "" {
 					log.Error("Invalid auth.who message. %v", message.Body)
 					continue
 				}
+
 				if k.LoadBalancer == nil {
 					log.Error("Got auth.who without having a load balancer. %v", message.Body)
 					continue
@@ -332,9 +334,11 @@ func (k *Kite) startRouting(stream <-chan amqp.Delivery, publishChannel *amqp.Ch
 					log.LogError(err, 0)
 					continue
 				}
+
 				if client.ReplyExchange == "" { // backwards-compatibility
 					client.ReplyExchange = "auth"
 				}
+
 				if err := publishChannel.Publish(client.ReplyExchange, "kite.who", false, false, amqp.Publishing{Body: response}); err != nil {
 					log.LogError(err, 0)
 				}
