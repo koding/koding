@@ -1,11 +1,13 @@
 class GroupPermissionsView extends JView
 
-  constructor:->
   constructor: (options={}, data)->
+    options.cssClass = "permissions-view"
+    super options, data
 
-    super
+    @loader     = new KDLoaderView showLoader: yes
+    @loaderText = new KDView partial: 'Loading Permissions...'
 
-    @setClass "permissions-view"
+    @addPermissionsView()
 
     group = @getData()
 
