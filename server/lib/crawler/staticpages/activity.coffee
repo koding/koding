@@ -1,6 +1,7 @@
 # account and models will be removed.
-{argv} = require 'optimist'
-{uri, client} = require('koding-config-manager').load("main.#{argv.c}")
+{argv}              = require 'optimist'
+{uri, client}       = require('koding-config-manager').load("main.#{argv.c}")
+{getAvatarImageUrl} = require '../helpers'
 
 getDock = ->
   """
@@ -100,8 +101,8 @@ createCommentNode = (comment)->
 createAccountName = (fullName)->
   return "#{fullName}"
 
-createAvatarImage = (hash)->
-  imgURL = "https://gravatar.com/avatar/#{hash}?size=90&amp;d=https://koding-cdn.s3.amazonaws.com/images/default.avatar.140.png&r=g"
+createAvatarImage = (hash, avatar)=>
+  imgURL = getAvatarImageUrl hash, avatar
   """
   <img width="70" height="70" src="#{imgURL}" style="opacity: 1;" itemprop="image" />
   """
@@ -132,13 +133,11 @@ createUserInteractionMeta = (numberOfLikes, numberOfComments)->
   return userInteractionMeta
 
 getSingleActivityContent = (activityContent, model)->
-
   slugWithDomain = "#{uri.address}/Activity/#{activityContent.slug}"
-
   body          = activityContent.body
   nickname      = activityContent.nickname
   accountName   = createAccountName activityContent.fullName
-  avatarImage   = createAvatarImage activityContent.hash
+  avatarImage   = createAvatarImage activityContent.hash, activityContent.avatar
   createdAt     = createCreationDate activityContent.createdAt, slugWithDomain
   commentsCount = createCommentsCount activityContent.numberOfComments
   likesCount    = createLikesCount activityContent.numberOfLikes
@@ -150,7 +149,7 @@ getSingleActivityContent = (activityContent, model)->
   commentsList = ""
   if activityContent?.comments
     for comment in activityContent.comments
-      avatarUrl = "https://gravatar.com/avatar/#{comment.authorHash}?size=90&amp;d=https://koding-cdn.s3.amazonaws.com/images/default.avatar.140.png&r=g"
+      avatarUrl = getAvatarImageUrl comment.authorHash, false
       commentsList +=
         """
           <div class="kdview kdlistitemview kdlistitemview-comment">
