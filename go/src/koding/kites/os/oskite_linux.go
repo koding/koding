@@ -187,7 +187,7 @@ func oskiteRedis(serviceUniquename string) {
 	}
 	session.SetPrefix("oskite")
 
-	prefix := "oskite:"
+	prefix := "oskite:" + conf.Environment + ":"
 
 	_, err = redigo.Int(session.Do("SADD", "kontainers", prefix+serviceUniquename))
 	if err != nil {
