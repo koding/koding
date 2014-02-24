@@ -256,7 +256,6 @@ module.exports = class JGroup extends Module
       customize     :
         coverPhoto  : String
         logo        : String
-        favicon     : String
       payment       :
         plan        : String
         paymentQuota: Number
