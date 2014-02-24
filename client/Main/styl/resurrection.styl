@@ -223,30 +223,27 @@ button
       borderBox()
 
       .quit-app-link
-        size        100%, 2px
+        size        100%, 16px
         line-height 16px
         font-size   12px
-        bg          color, #1aaf5d
-        color       transparent
-        abs         0px 0 0 0px
+        bg          color logoBg
+        color       white
+        abs         -14px 0 0 0px
         overflow    hidden
         text-align  center
         z-index     40
-        vendor      transition, height .3s 0 ease \,
-                                background-color .5s 0 ease
+        vendor              transform, translateY(0px)
+        -webkit-transition  -webkit-transform .2s 1s ease-in
+        -moz-transition     -moz-transform    .2s 1s ease-in
+        transition          transform         .2s 1s ease-in
 
       &.running-initial
         .quit-app-link
-          display   none !important
+          display       none !important
 
       &:hover
         .quit-app-link
-          height        16px
-          bg            color, #e94b35
-          color         rgba(255, 255, 255, .8)
-          vendor        transition, height .3s .3s cubic-bezier(0.68, -0.55, 0.265, 1.55) \,
-                                    background-color .5s .3s ease \,
-                                    color .3s .3s ease
+          vendor        transform, translateY(14px)
 
 
     &.no-anim
