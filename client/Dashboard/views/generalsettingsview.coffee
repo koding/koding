@@ -26,13 +26,9 @@ class GroupGeneralSettingsView extends JView
     formOptions.fields = {}
 
     if group.slug isnt "koding"
-      formOptions.fields.Logo    =
-        label                    : "Logo"
-        itemClass                : GroupLogoSettings
-
-      formOptions.fields.Favicon =
-        label                    : "Favicon"
-        itemClass                : GroupFaviconSettings
+      formOptions.fields.Logo =
+        label                 : "Logo"
+        itemClass             : GroupLogoSettings
 
     formOptions.fields.Title  =
       label                   : "Group Name"
@@ -55,8 +51,8 @@ class GroupGeneralSettingsView extends JView
       name                    : "visibility"
       defaultValue            : group.visibility ? "visible"
       selectOptions           : [
-        { title : "Visible"   ,    value : "visible" }
-        { title : "Hidden"    ,     value : "hidden" }
+        { title : "Visible"   , value : "visible" }
+        { title : "Hidden"    , value : "hidden"  }
       ]
 
   createFormButtons: (formOptions) ->
