@@ -78,7 +78,7 @@ class GroupsMemberRolesEditView extends JView
     if 'owner' in @roles.editorsRoles
       @addSubView (new KDButtonView
         title    : "Make Owner"
-        style    : 'solid small yellow'
+        style    : 'solid small'
         callback : => @showTransferOwnershipModal()
       ), '.buttons'
 
