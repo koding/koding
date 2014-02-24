@@ -581,7 +581,7 @@ run =({configFile})->
   compileGoBinaries configFile, ->
     invoke 'kontrolDaemon'                    if config.runKontrol
     invoke 'kontrolApi'                       if config.runKontrol
-    invoke 'goBroker'                         if config.runGoBroker
+    # invoke 'goBroker'                         if config.runGoBroker
     invoke 'goBrokerKite'                     if config.runGoBrokerKite
     invoke 'premiumBrokerKite'                if config.runPremiumBrokerKite
     invoke 'osKite'                           if config.runOsKite
