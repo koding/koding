@@ -107,7 +107,9 @@ class WebTermAppView extends JView
       , =>
         KD.mixpanel "Open Webterm, fail", {vmName}
         KD.logToExternalWithTime "oskite: Can't open Webterm", vmName
-        @emit 'message', """https://koding.slack.com/files/sinan/F025B6R70/pasted_image_at_2014_02_20_05_34pm.png
+
+
+        @emit 'message', """
           <p>Couldn't connect to your VM.</p>
           <br>
           <p>Preparing your VM can take anywhere from
