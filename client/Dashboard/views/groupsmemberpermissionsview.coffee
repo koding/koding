@@ -3,6 +3,7 @@ class GroupsMemberPermissionsView extends JView
   constructor:(options = {}, data)->
 
     options.cssClass = "member-related"
+    options.itemLimit ?= 10
 
     super options, data
 
@@ -76,7 +77,7 @@ class GroupsMemberPermissionsView extends JView
     #some older accounts does not have proper timestamp values
     #because of this skip parameter is used here for lazy loading
     options =
-      limit : 10
+      limit : @getOptions().itemLimit
       sort  : { timestamp: -1 }
       skip  : @skip
 
@@ -90,7 +91,7 @@ class GroupsMemberPermissionsView extends JView
     instantiateItems = (err) =>
       return warn err  if err
       @listController.instantiateListItems members
-      @emit 'teasersLoaded' if members.length is 10
+      @emit 'teasersLoaded' if members.length is @getOptions().itemLimit
 
     return warn err if err
     @listController.hideLazyLoader()
