@@ -12,6 +12,7 @@ import (
 	"koding/tools/logger"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/streadway/amqp"
@@ -46,6 +47,7 @@ type IncomingMessage struct {
 var producer *kontrolhelper.Producer
 var kontrolDB *mongodb.MongoDB
 var log = logger.New("kontroldaemon")
+var proxyMu sync.Mutex
 
 const (
 	WorkersCollection = "jKontrolWorkers"
@@ -144,6 +146,8 @@ func handleCommand(command string, worker models.Worker) error {
 
 		port := strconv.Itoa(worker.Port)
 		key := strconv.Itoa(worker.Version)
+
+		proxyMu.Lock()
 		err = modelhelper.UpsertKey(
 			"koding",  // username
 			proxyName, // servicename
@@ -152,6 +156,7 @@ func handleCommand(command string, worker models.Worker) error {
 			worker.Environment,       // hostdata, pass environment
 			true,                     // enable keyData to be used with proxy immediately
 		)
+		proxyMu.Unlock()
 		if err != nil {
 			return fmt.Errorf("register to kontrol proxy not possible: %s", err.Error())
 		}
