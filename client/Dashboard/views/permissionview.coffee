@@ -1,6 +1,7 @@
 class GroupPermissionsView extends JView
 
   constructor:->
+  constructor: (options={}, data)->
 
     super
 
