@@ -65,6 +65,7 @@ class GroupsMemberPermissionsListItemView extends KDListItemView
     @editView      = new GroupsMemberRolesEditView delegate : @
     @editView.setMember @getData()
     @editView.setGroup group
+    log @getData()
     @editView.setStatus userStatus[@getData().profile.nickname]
     @editView.on "UserConfirmed", (user)-> userStatus[user.profile.nickname] = "confirmed"
 
