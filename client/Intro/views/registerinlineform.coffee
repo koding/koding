@@ -124,7 +124,6 @@ class HomeRegisterForm extends KDFormView
     KD.getSingleton('groupsController').groupChannel?.close()
 
     KD.remote.api.JUser.convert formData, (err, replacementToken)=>
-      location.reload()  unless KD.remote.isConnected()
       account = KD.whoami()
       @button.hideLoader()
 
@@ -154,8 +153,12 @@ class HomeRegisterForm extends KDFormView
           # content   : 'Successfully registered!'
           duration  : 2000
 
+        return location.reload()  unless KD.remote.isConnected()
+
         firstRoute = KD.getSingleton("router").visitedRoutes.first
         if firstRoute and /^\/(?:Reset|Register|Confirm|R)\//.test firstRoute
+          firstRoute = "/Activity"
+        else if firstRoute is "/"
           firstRoute = "/Activity"
 
         {entryPoint} = KD.config

@@ -151,7 +151,6 @@ class PaymentController extends KDController
           { cardFirstName: firstName, cardLastName: lastName } = billing
           { JUser } = KD.remote.api
           JUser.convert { firstName, lastName, email }, (err, newToken, recoveryToken) =>
-            location.reload()  unless KD.remote.isConnected()
             workflow.emit "PasswordRecoveryToken", recoveryToken
             JUser.logout ->
         else
