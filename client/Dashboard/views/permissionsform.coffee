@@ -6,12 +6,10 @@ class PermissionsForm extends KDFormViewWithFields
 
   constructor:(options,data)->
 
-    group                   = data # @getData()
-    {privacy,permissionSet} = options #@getOptions()
+    @group           = data
+    {@permissionSet} = options
 
-    roles = (role.title for role in options.roles when role.title isnt 'owner')
-
-    addRoleDialog = null
+    @roles = (role.title for role in options.roles when role.title isnt 'owner')
     options.buttons or=
       Save          :
         style       : "solid green"
