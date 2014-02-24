@@ -402,24 +402,28 @@ __utils.extend __utils,
     gp = u.generatePassword
     gp(gr(10), yes)
 
-  registerDummyUser:->
-
-    return if location.hostname isnt "localhost"
+  generateDummyUserData:->
 
     u  = KD.utils
 
     uniqueness = (Date.now()+"").slice(6)
-    formData   =
+    return formData   =
       agree           : "on"
       email           : "sinanyasar+#{uniqueness}@gmail.com"
       firstName       : u.getDummyName()
       lastName        : u.getDummyName()
-      inviteCode      : "twitterfriends"
+      # inviteCode      : "twitterfriends"
       password        : "123123123"
       passwordConfirm : "123123123"
       username        : uniqueness
 
-    KD.remote.api.JUser.register formData, => location.reload yes
+  registerDummyUser:->
+
+    return if location.hostname is "koding.com"
+
+    u  = KD.utils
+
+    KD.remote.api.JUser.register u.generateDummyUserData(), => location.reload yes
 
   startRollbar: ->
     @replaceFromTempStorage "_rollbar"
