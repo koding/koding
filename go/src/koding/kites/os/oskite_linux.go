@@ -147,7 +147,6 @@ func main() {
 
 	registerVmMethod(k, "oskite.Info", true, oskiteInfo)
 	registerVmMethod(k, "oskite.All", true, oskiteAll)
-	registerVmMethod(k, "oskite.All", true, oskiteAll)
 
 	syscall.Umask(0) // don't know why richard calls this
 	registerVmMethod(k, "fs.readDirectory", false, fsReadDirectory)
