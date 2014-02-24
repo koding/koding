@@ -41,7 +41,9 @@ class PermissionsForm extends KDFormViewWithFields
       "JDomain"     : "Domains"
       "JProxyFilter": "Proxy Filters"
       "JInvitation" : "Invitations"
-      "JComments"   : "Comments"
+      "JComment"    : "Comments"
+      "JStack"      : "Stacks"
+
     return dictionary[text] or text.charAt(0).toUpperCase()+text.slice(1)
 
   _getCheckboxName =(module, permission, role)->
