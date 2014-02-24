@@ -33,7 +33,6 @@ class NotificationController extends KDObject
 
     @notificationChannel.off()
     @notificationChannel.on 'message', (notification)=>
-      log 'Notification has arrived', notification
       @emit "NotificationHasArrived", notification
       if notification.contents
         @emit notification.event, notification.contents
