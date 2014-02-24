@@ -137,12 +137,17 @@ func handleCommand(command string, worker models.Worker) error {
 			return fmt.Errorf("register to kontrol proxy not possible. port number is '0' for %s", worker.Name)
 		}
 
+		proxyName := worker.Name
+		if worker.ProxyName != "" {
+			proxyName = worker.ProxyName
+		}
+
 		port := strconv.Itoa(worker.Port)
 		key := strconv.Itoa(worker.Version)
 		err = modelhelper.UpsertKey(
-			"koding",    // username
-			worker.Name, // servicename
-			key,         // version (build number)
+			"koding",  // username
+			proxyName, // servicename
+			key,       // version (build number)
 			worker.Hostname+":"+port, // host
 			worker.Environment,       // hostdata, pass environment
 			true,                     // enable keyData to be used with proxy immediately
