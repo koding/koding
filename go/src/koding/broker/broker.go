@@ -226,17 +226,28 @@ func (b *Broker) startAMQP() error {
 }
 
 func broadcastUpdateInstances(amqpMessage amqp.Delivery) {
-	routingKeys := amqpMessage.RoutingKey
+	routingKey := amqpMessage.RoutingKey
+	payloadsByte := utils.FilterInvalidUTF8(amqpMessage.Body)
 
-	payload := json.RawMessage(utils.FilterInvalidUTF8(amqpMessage.Body))
+	var payloads map[string]interface{}
 
-	splittedRoutingKeys := strings.Split(routingKeys, " ")
-	for _, routingKey := range splittedRoutingKeys {
-		processMessage(routingKey, payload)
+	if err := json.Unmarshal(payloadsByte, &payloads); err != nil {
+		log.Error("Error while unmarshalling %v", err)
+		return
+	}
+
+	// payloadsArr := payloads.([]interface{})
+	for _, payload := range payloads {
+		payloadByte, err := json.Marshal(payload)
+		if err != nil {
+			log.Error("Error while marshalling %v", err)
+			continue
+		}
+		processMessage(routingKey, payloadByte)
 	}
 }
 
-func processMessage(routingKey string, payload json.RawMessage) {
+func processMessage(routingKey string, payload interface{}) {
 	pos := strings.IndexRune(routingKey, '.') // skip first dot, since we want at least two components to always include the secret
 	for pos != -1 && pos < len(routingKey) {
 		index := strings.IndexRune(routingKey[pos+1:], '.')
