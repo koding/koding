@@ -25,14 +25,14 @@ class PermissionsForm extends KDFormViewWithFields
         style       : "solid green"
         callback    : @bound "showNewRoleModal"
 
-    options.fields or= optionizePermissions roles, permissionSet
+    options.fields or= optionizePermissions @roles, @permissionSet
     super options,data
-    @setClass 'permissions-form col-'+roles.length
+    @setClass 'permissions-form col-'+@roles.length
 
   readableText = (text)->
     dictionary =
       "JTag"        : "Tags"
-      "JNewApp"        : "Apps"
+      "JNewApp"     : "Apps"
       "JGroup"      : "Groups"
       "JPost"       : "Posts"
       "JVM"         : "Compute"
@@ -95,12 +95,16 @@ class PermissionsForm extends KDFormViewWithFields
 
   optionizePermissions = (roles, set)->
     permissionOptions =
-      head              :
-        itemClass       : KDView
-        cssClass        : 'permissions-header col-'+roles.length
-        nextElement :
+      head            :
+        itemClass     : KDView
+        cssClass      : 'permissions-header col-'+roles.length
+        nextElement   :
           cascadeHeaderElements roles
 
+    # set.permissionsByModule is giving all the possible permissions
+    # module is collection name (JComment, JDomain etc..)
+    # var permissions is permission under collection (module)
+    # like "edit comments" for JComment
     for own module, permissions of set.permissionsByModule
       permissionOptions['header '+module.toLowerCase()] =
         itemClass       : KDView
@@ -157,6 +161,3 @@ class PermissionsForm extends KDFormViewWithFields
       when 'tree'         then return createTree values
       else throw new Error "Unknown structure #{structure}"
 
-  viewAppended:->
-    super
-    # @applyScrollShadow()
