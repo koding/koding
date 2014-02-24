@@ -15,13 +15,15 @@ class PermissionsForm extends KDFormViewWithFields
         style       : "solid green"
         loader      : yes
         callback    : =>
-
-          group.updatePermissions @reducedList(), (err,res)=>
+          @buttons["Save"].hideLoader()
+          @group.updatePermissions @reducedList(), (err,res)=>
             @buttons["Save"].hideLoader()
-            unless err
-              new KDNotificationView
-                title : "Group permissions have been updated."
-            KD.showError err
+            return KD.showError err if err
+            new KDNotificationView title: "Group permissions have been updated."
+      Add           :
+        title       : "Add"
+        style       : "solid green"
+        callback    : @bound "showNewRoleModal"
 
     options.fields or= optionizePermissions roles, permissionSet
     super options,data
