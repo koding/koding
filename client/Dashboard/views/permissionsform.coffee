@@ -107,7 +107,7 @@ class PermissionsForm extends KDFormViewWithFields
       name
       cssClass
       size         : "tiny"
-      itemClass    : KodingSwitch
+      itemClass    : PermissionSwitch
       defaultValue : isChecked ? no
     }
 
