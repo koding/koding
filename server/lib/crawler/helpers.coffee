@@ -1,6 +1,26 @@
 {argv} = require 'optimist'
 {uri} = require('koding-config-manager').load("main.#{argv.c}")
 
+getProfile = (account) ->
+  {profile:{nickname, firstName, lastName, about, hash, avatar}} = account if account
+
+  userProfile =
+    nickname    : nickname  or "A koding nickname"
+    firstName   : firstName or "a koding "
+    lastName    : lastName  or "user"
+    about       : ""
+    hash        : hash or ''
+    avatar      : avatar or no
+    fullName    : firstName + " " + lastName
+  userProfile.about = about  if about
+  return userProfile
+
+getAvatarImageUrl = (hash, avatar)->
+  imgURL   = "https://gravatar.com/avatar/#{hash}?size=90&d=https://koding-cdn.s3.amazonaws.com/images/default.avatar.140.png&r=g"
+  if avatar
+    imgURL = "//i.embed.ly/1/display/crop?grow=false&width=90&height=90&key=94991069fb354d4e8fdb825e52d4134a&url=#{encodeURIComponent avatar}"
+  return imgURL
+
 forceTwoDigits = (val) ->
   if val < 10
     return "0#{val}"
@@ -19,27 +39,6 @@ formatDate = (date) ->
     "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
   monthName = months[month]
   return "#{monthName} #{day}, #{year} #{hour}:#{minute}"
-
-getFullName = (account) ->
-  fullName = "A koding user"
-  if account?.data?.profile?.firstName?
-    fullName = account.data.profile.firstName + " "
-
-  if account?.data?.profile?.lastName?
-    fullName += account.data.profile.lastName
-  return fullName
-
-getNickname = (account) ->
-  nickname = "A koding user"
-  if account?.data?.profile?.nickname?
-    nickname = account.data.profile.nickname
-  return nickname
-
-getUserHash = (account) ->
-  hash = ""
-  if account?.data?.profile?.hash?
-    hash = account.data.profile.hash
-  return hash
 
 normalizeActivityBody = (activity, bodyString="") ->
   if bodyString
@@ -94,12 +93,11 @@ createActivityContent = (JAccount, model, comments, createFullHTML=no, putBody=y
         console.error err
         return callback err, null
 
-      # No need to return if acc is not found.
-      # Write default values instead.
-      fullName = getFullName acc
-      nickname = getNickname acc
-      hash     = getUserHash acc
-      slug     = teaser?.slug or "#"
+      profile = getProfile acc
+      slug    = teaser?.slug or "#"
+
+      {meta:{createdAt}} = model  if model
+      createdAt          = if createdAt then formatDate createdAt else ""
 
       if model?.body? and putBody
         body = marked model.body,
@@ -109,21 +107,20 @@ createActivityContent = (JAccount, model, comments, createFullHTML=no, putBody=y
         body = normalizeActivityBody model, body
       else
         body = ""
-
       activityContent =
         slug             : teaser.slug
-        fullName         : fullName
-        nickname         : nickname
-        hash             : hash
-        title            :  if model?.title? then model.title else model.body or ""
+        fullName         : profile.fullName
+        nickname         : profile.nickname
+        hash             : profile.hash
+        avatar           : profile.avatar
+        title            : if model?.title then model.title else model.body or ""
         body             : body
-        createdAt        : if model?.meta?.createdAt? then formatDate model.meta.createdAt else ""
+        createdAt        : createdAt
         numberOfComments : teaser.repliesCount or 0
         numberOfLikes    : model?.meta?.likes or 0
         comments         : comments
         tags             : tags
         type             : model?.bongo_?.constructorName
-
       if createFullHTML
         content = getSingleActivityPage {activityContent, model}
       else
@@ -150,19 +147,21 @@ decorateComment = (JAccount, comment, callback) ->
       if err
         console.error err
         callback err, null
-      commentSummary.authorName     = getFullName acc
-      commentSummary.authorNickname = getNickname acc
-      if acc?.data?.profile?.hash
-        commentSummary.authorHash   = acc.data.profile.hash
-      commentSummary.authorHash   or= ""
+
+      profile = getProfile acc
+
+      commentSummary.authorName     = profile.fullName
+      commentSummary.authorNickname = profile.nickname
+      commentSummary.authorHash     = profile.hash or ''
+      commentSummary.authorAvatar   = profile.avatar
+
       callback null, commentSummary
 
 module.exports = {
+  getProfile
+  getAvatarImageUrl
   forceTwoDigits
   formatDate
-  getFullName
-  getNickname
-  getUserHash
   createActivityContent
   decorateComment
 }
