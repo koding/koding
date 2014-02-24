@@ -13,16 +13,18 @@ import (
 )
 
 type OskiteInfo struct {
-	QueuedVMs  int `json:"queuedVMs"`
-	QueueLimit int `json:"queueLimit"`
-	CurrentVMs int `json:"currentVMs"`
+	QueuedVMs       int `json:"queuedVMs"`
+	QueueLimit      int `json:"queueLimit"`
+	CurrentVMs      int `json:"currentVMs"`
+	CurrentVMsLimit int `json:"currentVMsLimit"`
 }
 
 func GetOskiteInfo() *OskiteInfo {
 	return &OskiteInfo{
-		QueuedVMs:  len(prepareQueue),
-		QueueLimit: prepareQueueLimit,
-		CurrentVMs: currentVMS(),
+		QueuedVMs:       len(prepareQueue),
+		QueueLimit:      prepareQueueLimit,
+		CurrentVMs:      currentVMS(),
+		CurrentVMsLimit: *flagLimit,
 	}
 }
 
@@ -32,6 +34,14 @@ func oskiteInfo(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (inte
 	}
 
 	return GetOskiteInfo(), nil
+}
+
+func oskiteAll(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
+	if !vos.Permissions.Sudo {
+		return nil, &kite.PermissionError{}
+	}
+
+	return oskites, nil
 }
 
 // currentVMS returns the number of available lxc containers on the running machine
