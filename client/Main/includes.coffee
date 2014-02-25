@@ -22,6 +22,8 @@ module.exports = [
   # onboarding
   "onboarding/onboardingviewcontroller.coffee",
   "onboarding/onboardingcontroller.coffee",
+  "onboarding/onboardingitemview.coffee",
+
   # COMMON VIEWS
   "CommonViews/applicationview/applicationtabview.coffee",
   "CommonViews/applicationview/applicationtabhandleholder.coffee",
