@@ -38,6 +38,14 @@ class EnvironmentsMainScene extends JView
     paymentControl.on "SubscriptionCompleted", ->
       freePlanView.updatePartial ""
 
+    @addSubView controlPanel = new KDView
+      cssClass : "control-panel"
+
+    controlPanel.addSubView @createStackButton = new KDButtonView
+      cssClass : "create-stack-button solid mini green"
+      title    : "Create a new stack"
+      callback : => new KDNotificationView title: "Coming soon!"
+
     @fetchStacks()
 
   fetchStacks:->
@@ -71,12 +79,22 @@ class StackView extends KDView
       cssClass : 'stack-title'
       partial  : @getData().title
 
-    @addSubView new KDButtonView
-      title    : 'Details'
-      cssClass : 'stack-toggle solid mini green hidden'
+    @addSubView toggle = new KDButtonView
+      title    : 'Hide details'
+      cssClass : 'stack-toggle solid mini'
       callback : =>
-        @setHeight if @getHeight() <= 50 then @getProperHeight() else 48
+        if @getHeight() <= 50
+          @setHeight @getProperHeight()
+          toggle.setTitle 'Hide details'
+        else
+          toggle.setTitle 'Show details'
+          @setHeight 48
         KD.utils.wait 300, @bound 'updateView'
+
+    @addSubView dump = new KDButtonView
+      title    : 'Show dump'
+      cssClass : 'stack-dump solid mini'
+      callback : @bound 'dumpStack'
 
     # Main scene for DIA
     @addSubView @scene = new EnvironmentScene
