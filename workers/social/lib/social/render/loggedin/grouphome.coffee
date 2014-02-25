@@ -18,7 +18,7 @@ module.exports = (options, callback)->
     <html>
     <head>
       <title>#{encoder.XSSEncode title}</title>
-      #{getStyles()}
+      #{getStyles customize}
     </head>
     <body class="group">
 

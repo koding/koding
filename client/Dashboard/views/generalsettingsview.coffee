@@ -51,8 +51,8 @@ class GroupGeneralSettingsView extends JView
       name                    : "visibility"
       defaultValue            : group.visibility ? "visible"
       selectOptions           : [
-        { title : "Visible"   ,    value : "visible" }
-        { title : "Hidden"    ,     value : "hidden" }
+        { title : "Visible"   , value : "visible" }
+        { title : "Hidden"    , value : "hidden"  }
       ]
 
   createFormButtons: (formOptions) ->
