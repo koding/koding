@@ -270,9 +270,8 @@ func sendMessageToClient(amqpMessage amqp.Delivery) {
 	}
 }
 
-// processMessage gets routing key for the message and a payload to be send to
-// the client
-// Gets subscription bindings from routeMap
+// processMessage gets routingKey and a payload for sending them to the client
+// Gets subscription bindings from global routeMap
 func processMessage(routingKey string, payload interface{}) {
 	pos := strings.IndexRune(routingKey, '.') // skip first dot, since we want at least two components to always include the secret
 	for pos != -1 && pos < len(routingKey) {
