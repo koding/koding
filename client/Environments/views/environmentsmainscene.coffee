@@ -71,14 +71,20 @@ class EnvironmentsMainScene extends JView
 class StackView extends KDView
 
   constructor:(options={}, data)->
-    options.cssClass = 'environment-stack'
+    options.cssClass = KD.utils.curry 'environment-stack', options.cssClass
     super options, data
 
   viewAppended:->
 
+    {stack} = @getOptions()
+    title   = stack.meta?.title
+    number  = if stack.sid > 0 then "#{stack.sid}." else "default"
+    group   = KD.getGroup().title
+    title or= "Your #{number} stack on #{group}"
+
     @addSubView title = new KDView
       cssClass : 'stack-title'
-      partial  : @getData().title
+      partial  : title
 
     @addSubView toggle = new KDButtonView
       title    : 'Hide details'
@@ -101,36 +107,62 @@ class StackView extends KDView
     @addSubView @scene = new EnvironmentScene
 
     # Rules Container
-    rulesContainer = new EnvironmentRuleContainer
-    @scene.addContainer rulesContainer
+    @rules = new EnvironmentRuleContainer
+    @scene.addContainer @rules
 
     # Domains Container
-    domainsContainer = new EnvironmentDomainContainer
-    @scene.addContainer domainsContainer
-    domainsContainer.on 'itemAdded',   @lazyBound('updateView', yes)
+    @domains = new EnvironmentDomainContainer
+    @scene.addContainer @domains
+    @domains.on 'itemAdded', @lazyBound 'updateView', yes
 
     # VMs / Machines Container
-    machinesContainer = new EnvironmentMachineContainer
-    @scene.addContainer machinesContainer
-    machinesContainer.on 'VMListChanged', @bound 'loadContainers'
+    @vms = new EnvironmentMachineContainer
+    @scene.addContainer @vms
+
+    KD.getSingleton("vmController").on 'VMListChanged', =>
+      EnvironmentDataProvider.get (data) => @loadContainers data
 
     # Rules Container
-    extrasContainer = new EnvironmentExtraContainer
-    @scene.addContainer extrasContainer
+    @extras = new EnvironmentExtraContainer
+    @scene.addContainer @extras
 
     @loadContainers()
 
-  loadContainers:->
+  loadContainers: (data)->
 
-    return  if @_inProgress
-    @_inProgress = yes
+    env     = data or @getData()
+    orphans = domains: [], vms: []
+    {stack, isDefault} = @getOptions()
 
-    promises = (container.loadItems()  for container in @scene.containers)
-    Promise.all(promises).then =>
-      @setHeight @getProperHeight()
-      KD.utils.wait 300, =>
-        @_inProgress = no
-        @updateView yes
+    # Add rules
+    @rules.removeAllItems()
+    @rules.addItem rule  for rule in env.rules
+
+    # Add domains
+    @domains.removeAllItems()
+    for domain in env.domains
+      if domain.stack is stack._id or isDefault
+      then @domains.addDomain domain
+      else orphans.domains.push domain
+
+    # Add vms
+    @vms.removeAllItems()
+    for vm in env.vms
+      if vm.stack is stack._id or isDefault
+      then @vms.addItem title:vm.alias
+      else orphans.vms.push vm
+
+    # Add extras
+    @extras.removeAllItems()
+    @extras.addItem extra  for extra in env.extras
+
+    # log "ORPHANS", orphans
+
+    @setHeight @getProperHeight()
+    KD.utils.wait 300, =>
+      @_inProgress = no
+      @updateView yes
+
 
   updateView:(updateData = no)->
 
@@ -143,4 +175,5 @@ class StackView extends KDView
     @scene.updateScene()
 
   getProperHeight:->
-    (Math.max.apply null, (box.diaCount() for box in @scene.containers)) * 45 + 170
+    (Math.max.apply null, \
+      (box.diaCount() for box in @scene.containers)) * 45 + 170
