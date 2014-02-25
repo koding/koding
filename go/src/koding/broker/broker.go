@@ -129,16 +129,19 @@ func (b *Broker) Run() {
 	lifecycle.Startup(BROKER_NAME, false)
 	logger.RunGaugesLoop(log)
 
+	// Register broker to kontrol
 	if err := b.registerToKontrol(); err != nil {
 		log.Critical("Couldnt register to kontrol, stopping... %v", err)
 		return
 	}
 
+	// Create AMQP exchanges/queues/bindings
 	if err := b.startAMQP(); err != nil {
 		log.Critical("Couldnt create amqp bindings, stopping... %v", err)
 		return
 	}
 
+	// start listening/serving socket server
 	b.startSockJS() // blocking
 }
 
@@ -227,6 +230,8 @@ func (b *Broker) startAMQP() error {
 	return nil
 }
 
+// sendMessageToClient takes an amqp messsage and delivers it to the related
+// clients which are subscribed to the routing key
 func sendMessageToClient(amqpMessage amqp.Delivery) {
 	routingKey := amqpMessage.RoutingKey
 	payloadsByte := utils.FilterInvalidUTF8(amqpMessage.Body)
@@ -264,6 +269,9 @@ func sendMessageToClient(amqpMessage amqp.Delivery) {
 	}
 }
 
+// processMessage gets routing key for the message and a payload to be send to
+// the client
+// Gets subscription bindings from routeMap
 func processMessage(routingKey string, payload interface{}) {
 	pos := strings.IndexRune(routingKey, '.') // skip first dot, since we want at least two components to always include the secret
 	for pos != -1 && pos < len(routingKey) {
