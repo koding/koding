@@ -19,6 +19,8 @@ module.exports = [
   "oauthcontroller.coffee",
   "widgetcontroller.coffee",
 
+  # onboarding
+  "onboarding/onboardingcontroller.coffee",
   # COMMON VIEWS
   "CommonViews/applicationview/applicationtabview.coffee",
   "CommonViews/applicationview/applicationtabhandleholder.coffee",
