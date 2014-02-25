@@ -1394,6 +1394,7 @@ module.exports = class JAccount extends jraphical.Module
     slug = client.context.group ? 'koding'
     JGroup.one {slug}, (err, group)=>
       return callback err  if err
+      return callback {message: "group not found"}  unless group
       cb = (err, roles)=>
         return callback err  if err
         {flatten} = require 'underscore'

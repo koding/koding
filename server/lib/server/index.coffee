@@ -53,6 +53,7 @@ fs         = require 'fs'
 hat        = require 'hat'
 nodePath   = require 'path'
 http       = require "https"
+helmet     = require 'helmet'
 {JSession} = koding.models
 app        = express()
 
@@ -81,6 +82,7 @@ app        = express()
 
 app.configure ->
   app.set 'case sensitive routing', on
+  helmet.defaults app
   app.use express.cookieParser()
   app.use express.session {"secret":"foo"}
   app.use express.bodyParser()

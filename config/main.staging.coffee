@@ -154,7 +154,7 @@ module.exports =
     runtimeOptions:
       environment        : environment
       activityFetchCount : 20
-      precompiledApi     : no
+      precompiledApi     : yes
       authExchange       : authExchange
       github         :
         clientId     : "5891e574253e65ddb7ea"
