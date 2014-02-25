@@ -17,15 +17,20 @@ import (
 type Client struct {
 	// Holds SockJS session
 	Session *sockjs.Session
+
 	// ControlChannel for communicating with authworker
 	ControlChannel *amqp.Channel
+
 	// Holds the socket id for Client Session
 	SocketId string
+
 	// Main broker singleton
 	Broker *Broker
+
 	// LastPayload is used for trying to send the same payload again
 	// if any error occures while publishing
 	LastPayload string
+
 	// Subscriptions holds subscriptions of the current client
 	Subscriptions storage.Subscriptionable
 }
