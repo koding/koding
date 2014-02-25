@@ -93,7 +93,8 @@ class PermissionsForm extends KDFormViewWithFields
             return yes
         return no
 
-  cascadeFormElements = (set,roles,module,permission)->
+  cascadeFormElements = (set,roles,module,permission,roleCount=0)->
+
     [current,remainder...] = roles
     cascadeData = {}
 
@@ -102,20 +103,22 @@ class PermissionsForm extends KDFormViewWithFields
     cssClass = 'permission-switch '+__utils.slugify(permission)+' '+current
 
     name = _getCheckboxName module, permission, current
-
+    # TODO BURAK CHANGE THIS PART
+    widthForRows = (window.innerWidth - 345) / (roleCount * 100) / window.innerWidth
     cascadeData[current]= {
       name
       cssClass
       size         : "tiny"
       itemClass    : PermissionSwitch
       defaultValue : isChecked ? no
+      widthForRows
     }
 
     if current in ['admin','owner']
       cascadeData[current].defaultValue = yes
       cascadeData[current].disabled = yes
     if current and remainder.length > 0
-      cascadeData[current].nextElement = cascadeFormElements set, remainder, module, permission
+      cascadeData[current].nextElement = cascadeFormElements set, remainder, module, permission, roles.length
     return cascadeData
 
   cascadeHeaderElements = (roles)->
@@ -157,7 +160,7 @@ class PermissionsForm extends KDFormViewWithFields
           attributes    :
             title       : readableText permission
           nextElement :
-            cascadeFormElements set, roles, module, permission
+            cascadeFormElements set, roles, module, permission, roles.length
     permissionOptions
 
   createTree =(values)->
