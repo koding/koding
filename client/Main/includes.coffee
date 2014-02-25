@@ -20,6 +20,7 @@ module.exports = [
   "widgetcontroller.coffee",
 
   # onboarding
+  "onboarding/onboardingviewcontroller.coffee",
   "onboarding/onboardingcontroller.coffee",
   # COMMON VIEWS
   "CommonViews/applicationview/applicationtabview.coffee",
