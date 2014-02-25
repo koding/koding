@@ -27,7 +27,7 @@ var (
 	targetsMu sync.Mutex // protects targets map
 
 	// our load balancer roundrobin maps. Key is created for each index key.
-	rings   = make(map[string]*roundRing)
+	rings   = make(map[string]*RoundRing)
 	ringsMu sync.Mutex
 )
 
@@ -54,6 +54,9 @@ type Target struct {
 
 	// A list of hosts, mainly used for vm mode
 	HostnameAlias []string
+
+	// Length of given hosts or hostnamealis
+	Length int
 
 	// Information used to resolve to the final target.
 	Proxy *models.ProxyTable
@@ -209,22 +212,12 @@ func (t *Target) Resolve(host string) error {
 	case ModeVM:
 		t.URL, t.Err = t.resolveVM(host, port)
 	case ModeInternal:
-		t.URL, t.Err = t.getService().resolve()
-		t.CacheTimeout = time.Second * 0
-		t.HostCacheDisabled = true
+		return errors.New("not supported. Use Target.GetRoundRing()")
 	default:
 		return errors.New("no mode defined for target resolver")
 	}
 
 	return nil
-}
-
-func (t *Target) getService() *service {
-	return &service{
-		username:    t.Proxy.Username,
-		servicename: t.Proxy.Servicename,
-		build:       t.Proxy.Key,
-	}
 }
 
 // vm returns a target that is obtained via the jVMs collections. The
@@ -264,61 +257,35 @@ func (t *Target) resolveVM(host, port string) (*url.URL, error) {
 	return u, nil
 }
 
-type service struct {
-	username    string
-	servicename string
-	build       string
-}
-
-func (s *service) String() string {
-	return fmt.Sprintf("%s-%s-%s", s.username, s.servicename, s.build)
-}
-
-func (s *service) target() (*Target, error) {
-	u, err := s.resolve()
-	if err != nil {
-		return nil, err
+func (t *Target) GetService() *Service {
+	return &Service{
+		Username:    t.Proxy.Username,
+		Servicename: t.Proxy.Servicename,
+		Build:       t.Proxy.Key,
 	}
-
-	t := &Target{
-		URL:       u,
-		FetchedAt: time.Now(),
-	}
-
-	return t, nil
 }
 
-type roundRing struct {
-	r      *ring.Ring
-	ticker *time.Ticker
+type Service struct {
+	Username    string
+	Servicename string
+	Build       string
+	Length      int
 }
 
-func (r *roundRing) healtChecker(hosts []string, indexkey string) {
-	log.Println("starting healtcheck with", hosts)
-	r.ticker = time.NewTicker(HealthCheckInterval)
-
-	for _ = range r.ticker.C {
-		healtyHosts := checkHosts(hosts)
-		// replace hosts with healthy ones
-		r.r = newRing(healtyHosts)
-	}
-
-	fmt.Println("checker stopped for", indexkey)
+func (s *Service) String() string {
+	return fmt.Sprintf("%s-%s-%s", s.Username, s.Servicename, s.Build)
 }
 
-// buildTarget returns a target that is obtained via the jProxyServices
+// NextRoundRing returns a roundRing that is obtained via the jProxyServices
 // collection, which is used for internal services. An example service to
 // target could be in form: "koding, server, 950" ->
 // "webserver-950.sj.koding.com:3000".
-func (s *service) resolve() (*url.URL, error) {
-	var round *roundRing
-	var ok bool
+func (s *Service) NextRoundRing() (*RoundRing, error) {
+	ringsMu.Lock()
+	defer ringsMu.Unlock()
 
 	indexkey := s.String()
-
-	ringsMu.Lock()
-
-	round, ok = rings[indexkey]
+	r, ok := rings[indexkey]
 	if !ok {
 		// get the hosts to be roundrobined
 		hosts, err := s.serviceHosts()
@@ -327,60 +294,39 @@ func (s *service) resolve() (*url.URL, error) {
 			return nil, err
 		}
 
-		round = &roundRing{
-			r: newRing(checkHosts(hosts)),
+		r = &RoundRing{
+			Ring: newRing(checkHosts(hosts)),
 		}
-		rings[indexkey] = round
+		rings[indexkey] = r
+
+		s.Length = r.Ring.Len()
 
 		// start health checker for base hosts
-		go round.healtChecker(hosts, indexkey)
-	}
-	ringsMu.Unlock()
-
-	// means the healtChecker created a zero length ring. This is caused only
-	// when all hosts are sick.
-	if round.r == nil {
-		return nil, ErrNoHost
+		go r.healtChecker(hosts, indexkey)
 	}
 
-	// get hostname and forward ring to the next value. the next value will be
-	// used on the next request
-	hostname, ok := round.r.Value.(string)
-	if !ok {
-		return nil, fmt.Errorf("ring value is not string: %+v", round.r.Value)
-	}
+	r.Ring = r.Ring.Next()
+	rings[indexkey] = r
 
-	ringsMu.Lock()
-	round.r = round.r.Next()
-	rings[indexkey] = round
-	ringsMu.Unlock()
-
-	// be sure that the hostname has scheme prependend
-	hostname = utils.CheckScheme(hostname)
-	targetURL, err := url.Parse(hostname)
-	if err != nil {
-		return nil, err
-	}
-
-	return targetURL, nil
+	return r, nil
 }
 
 // buildHosts returns a list of target hosts for the given build parameters.
-func (s *service) serviceHosts() ([]string, error) {
-	latestKey := modelhelper.GetLatestKey(s.username, s.servicename)
+func (s *Service) serviceHosts() ([]string, error) {
+	latestKey := modelhelper.GetLatestKey(s.Username, s.Servicename)
 	if latestKey == "" {
-		latestKey = s.build
+		latestKey = s.Build
 	}
 
-	keyData, err := modelhelper.GetKey(s.username, s.servicename, s.build)
+	keyData, err := modelhelper.GetKey(s.Username, s.Servicename, s.Build)
 	if err != nil {
-		currentVersion, _ := strconv.Atoi(s.build)
+		currentVersion, _ := strconv.Atoi(s.Build)
 		latestVersion, _ := strconv.Atoi(latestKey)
 		if currentVersion < latestVersion {
 			return nil, ErrGone
 		} else {
 			return nil, fmt.Errorf("no keyData for username '%s', servicename '%s' and key '%s'",
-				s.username, s.servicename, s.build)
+				s.Username, s.Servicename, s.Build)
 		}
 	}
 
@@ -389,6 +335,24 @@ func (s *service) serviceHosts() ([]string, error) {
 	}
 
 	return keyData.Host, nil
+}
+
+type RoundRing struct {
+	Ring   *ring.Ring
+	ticker *time.Ticker
+}
+
+func (r *RoundRing) healtChecker(hosts []string, indexkey string) {
+	log.Println("starting healtcheck with", hosts)
+	r.ticker = time.NewTicker(HealthCheckInterval)
+
+	for _ = range r.ticker.C {
+		healtyHosts := checkHosts(hosts)
+		// replace hosts with healthy ones
+		r.Ring = newRing(healtyHosts)
+	}
+
+	fmt.Println("checker stopped for", indexkey)
 }
 
 // newSlice returns a new slice populated with the given ring items.
@@ -426,7 +390,7 @@ func CleanCache(host string) {
 
 	// only internal mode uses ring cache
 	if target.Proxy.Mode == ModeInternal {
-		ringKey := target.getService().String()
+		ringKey := target.GetService().String()
 		fmt.Println("cleaning also ", ringKey)
 
 		ringsMu.Lock()
