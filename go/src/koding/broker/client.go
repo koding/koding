@@ -15,15 +15,23 @@ import (
 )
 
 type Client struct {
-	Session        *sockjs.Session
+	// Holds SockJS session
+	Session *sockjs.Session
+	// ControlChannel for communicating with authworker
 	ControlChannel *amqp.Channel
-	SocketId       string
-	Broker         *Broker
-	LastPayload    string
-	Subscriptions  storage.Subscriptionable
+	// Holds the socket id for Client Session
+	SocketId string
+	// Main broker singleton
+	Broker *Broker
+	// LastPayload is used for trying to send the same payload again
+	// if any error occures while publishing
+	LastPayload string
+	// Subscriptions holds subscriptions of the current client
+	Subscriptions storage.Subscriptionable
 }
 
-// NewClient retuns a new client that is defined on a given session.
+// NewClient retuns a new client which represents the connected client
+// it holds required information about the client/session
 func NewClient(session *sockjs.Session, broker *Broker) (*Client, error) {
 	socketId := randomString()
 	session.Tag = socketId
