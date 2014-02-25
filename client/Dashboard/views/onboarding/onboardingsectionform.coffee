@@ -4,31 +4,47 @@ class OnboardingSectionForm extends KDFormViewWithFields
 
     options.cssClass   = "section-form"
 
-    options.fields     =
-      name             :
-        placeholder    : "Name of your set"
-        name           : "name"
-        cssClass       : "thin"
-        label          : "Name"
-      visibility       :
-        label          : "Show items together"
-        itemClass      : KodingSwitch
-        defaultValue   : no
-      overlay          :
-        label          : "Add Overlay"
-        itemClass      : KodingSwitch
-        defaultValue   : no
+    options.fields        =
+      name                :
+        placeholder       : "Name of your set"
+        name              : "name"
+        cssClass          : "thin"
+        label             : "Name"
+      app                 :
+        name              : "app"
+        label             : "App"
+        cssClass          : "app"
+        type              : "hidden"
+        nextElement       :
+          app             :
+            itemClass     : KDSelectBox
+            cssClass      : "apps"
+            selectOptions : [
+              { title     : "Activity", value: "Activity" }
+              { title     : "Teamwork", value: "Teamwork" }
+              { title     : "Ace",      value: "Ace"      }
+              { title     : "Terminal", value: "Terminal" }
+              { title     : "Apps",     value: "Apps"     }
+              { title     : "Bugs",     value: "Bugs"     }
+            ]
+      visibility          :
+        label             : "Show items together"
+        itemClass         : KodingSwitch
+        defaultValue      : no
+      overlay             :
+        label             : "Add Overlay"
+        itemClass         : KodingSwitch
+        defaultValue      : no
 
-    options.buttons    =
-      Save             :
-        title          : "SAVE CHANGES"
-        type           : "submit"
-        style          : "solid green medium fr"
-      Cancel           :
-        title          : "CANCEL"
-        style          : "solid medium fr cancel"
-        callback       : @bound "cancel"
-
+    options.buttons       =
+      Save                :
+        title             : "SAVE CHANGES"
+        type              : "submit"
+        style             : "solid green medium fr"
+      Cancel              :
+        title             : "CANCEL"
+        style             : "solid medium fr cancel"
+        callback          : @bound "cancel"
 
     options.callback   = @bound "addNew"
 
@@ -41,6 +57,7 @@ class OnboardingSectionForm extends KDFormViewWithFields
       partial         :
         visibility    : data.visibility
         overlay       : data.overlay
+        app           : data.app
         items         : []
       # TODO: Update sets this options to default
       isActive        : no
