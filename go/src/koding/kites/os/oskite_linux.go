@@ -36,7 +36,7 @@ import (
 )
 
 const OSKITE_NAME = "oskite"
-const OSKITE_VERSION = "0.0.9"
+const OSKITE_VERSION = "0.1.0"
 
 type VMInfo struct {
 	vm              *virt.VM
