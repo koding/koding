@@ -250,9 +250,7 @@ func sendMessageToClient(amqpMessage amqp.Delivery) {
 	var payloads []interface{}
 	// unmarshal data to slice of interface
 	if err := json.Unmarshal(payloadsByte, &payloads); err != nil {
-		log.Error("Error while unmarshalling %v", err)
-		log.Error("data %v", string(payloadsByte))
-		log.Error("routingKey %v", routingKey)
+		log.Error("Error while unmarshalling:%v data:%v routingKey:%v", err, string(payloadsByte), routingKey)
 		return
 	}
 
@@ -260,9 +258,7 @@ func sendMessageToClient(amqpMessage amqp.Delivery) {
 	for _, payload := range payloads {
 		payloadByte, err := json.Marshal(payload)
 		if err != nil {
-			log.Error("Error while marshalling %v", err)
-			log.Error("data %v", string(payloadByte))
-			log.Error("routingKey %v", routingKey)
+			log.Error("Error while marshalling:%v data:%v routingKey:%v", err, string(payloadByte), routingKey)
 			continue
 		}
 		payloadByteRaw := json.RawMessage(payloadByte)
