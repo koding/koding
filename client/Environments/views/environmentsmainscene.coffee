@@ -163,10 +163,27 @@ class StackView extends KDView
       @_inProgress = no
       @updateView yes
 
+  dumpStack:->
 
-  updateView:(updateData = no)->
+    {containers, connections} = @scene
 
-    @scene.updateConnections()  if updateData
+    dump = {}
+
+    for i, container of containers
+      name = EnvironmentScene.containerMap[container.constructor.name]
+      dump[name] = []
+      for j, dia of container.dias
+        dump[name].push \
+          if name is 'domains'
+            title   : dia.data.title
+            aliases : dia.data.aliases
+          else dia.data
+
+    log jsyaml.dump dump
+
+  updateView:(dataUpdated = no)->
+
+    @scene.updateConnections()  if dataUpdated
 
     if @getHeight() > 50
       @setHeight @getProperHeight()
