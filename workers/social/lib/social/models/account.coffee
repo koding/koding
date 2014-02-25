@@ -1396,6 +1396,7 @@ module.exports = class JAccount extends jraphical.Module
     slug = client.context.group ? 'koding'
     JGroup.one {slug}, (err, group)=>
       return callback err  if err
+      return callback {message: "group not found"}  unless group
       cb = (err, roles)=>
         return callback err  if err
         {flatten} = require 'underscore'
@@ -1428,7 +1429,7 @@ module.exports = class JAccount extends jraphical.Module
       return callback err  if err
       domainList = []
       domainList = filterDomains domains, delegate, group  if domains
-      
+
       callback null, domainList
 
   # filters domains such as shared-x/vm-x.groupSlug.kd.io
