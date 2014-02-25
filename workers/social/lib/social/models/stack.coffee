@@ -26,6 +26,8 @@ module.exports = class JStack extends jraphical.Module
           (signature Object, Function)
         getStack      :
           (signature Function)
+        createStack   :
+          (signature Function)
         getStacks     :
           (signature Function)
       instance        :
@@ -75,6 +77,21 @@ module.exports = class JStack extends jraphical.Module
       stack.save (err)->
         if err then callback err
         else callback null, stack
+
+  @createStack = permit 'create stacks',
+
+    success: (client, callback)->
+
+      {group} = client.context
+      user    = client.connection.delegate.profile.nickname
+
+      stackCounter = (require 'koding-counter')
+        db          : JStack.getClient()
+        counterName : "stacks~#{group}~#{user}~"
+
+      stackCounter.next (err, sid)=>
+        return callback err  if err
+        @getStack {user, group, sid}, callback
 
   @getStack$ = permit 'get stacks',
 
