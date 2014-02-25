@@ -1,16 +1,6 @@
 class EnvironmentRuleContainer extends EnvironmentContainer
 
-  constructor:(options={}, data)->
-    options.cssClass  = 'firewall'
-    options.itemClass = EnvironmentRuleItem
-    options.title     = 'firewall rules'
-    super options, data
-
-    @on 'PlusButtonClicked', ->
-      new KDNotificationView title: "Adding more rules will be available soon."
-
-  loadItems:->
-    super
+  EnvironmentDataProvider.addProvider "rules", ->
 
     dummyRules = [
       {
@@ -19,6 +9,16 @@ class EnvironmentRuleContainer extends EnvironmentContainer
       }
     ]
 
-    new Promise (resolve, reject)=>
-      @addItem rule for rule in dummyRules
-      resolve()
+    new Promise (resolve, reject)->
+      resolve dummyRules
+
+  constructor:(options={}, data)->
+
+    options.cssClass  = 'firewall'
+    options.itemClass = EnvironmentRuleItem
+    options.title     = 'firewall rules'
+
+    super options, data
+
+    @on 'PlusButtonClicked', ->
+      new KDNotificationView title: "Adding more rules will be available soon."
