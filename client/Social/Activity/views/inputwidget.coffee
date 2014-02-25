@@ -60,11 +60,11 @@ class ActivityInputWidget extends KDView
 
     @embedBox = new EmbedBoxWidget delegate: @input, data
 
-    @submit    = new KDButtonView
-      type     : "submit"
-      cssClass : "solid green"
-      iconOnly : yes
-      callback : @bound "submit"
+    @submitButton = new KDButtonView
+      type        : "submit"
+      cssClass    : "solid green"
+      iconOnly    : yes
+      callback    : @bound "submit"
 
     @avatar = new AvatarView
       size      :
@@ -258,18 +258,18 @@ class ActivityInputWidget extends KDView
     @input.setContent ""
     @input.blur()
     @embedBox.resetEmbedAndHide()
-    # @submit.setTitle "Post"
-    @submit.focus()
+    # @submitButton.setTitle "Post"
+    @submitButton.focus()
     setTimeout (@bound "unlockSubmit"), 8000
     @unlockSubmit()  if lock
 
   lockSubmit: ->
-    @submit.disable()
-    # @submit.setTitle "Wait"
+    @submitButton.disable()
+    # @submitButton.setTitle "Wait"
 
   unlockSubmit: ->
-    @submit.enable()
-    # @submit.setTitle "Post"
+    @submitButton.enable()
+    # @submitButton.setTitle "Post"
 
   showPreview: ->
     return unless value = @input.getValue().trim()
@@ -300,7 +300,7 @@ class ActivityInputWidget extends KDView
     @addSubView @embedBox
     @addSubView @bugNotification
     @addSubView @helpContainer
-    @input.addSubView @submit
+    @input.addSubView @submitButton
     @input.addSubView @previewIcon
     @hide()  unless KD.isLoggedIn()
 
@@ -311,14 +311,14 @@ class ActivityEditWidget extends ActivityInputWidget
 
     super options, data
 
-    @submit    = new KDButtonView
-      type     : "submit"
-      cssClass : "solid green"
-      iconOnly : no
-      title    : "Done editing"
-      callback : @bound "submit"
+    @submitButton = new KDButtonView
+      type        : "submit"
+      cssClass    : "solid green"
+      iconOnly    : no
+      title       : "Done editing"
+      callback    : @bound "submit"
 
-    @cancel = new KDButtonView
+    @cancelButton = new KDButtonView
       cssClass : "solid gray"
       title    : "Cancel"
       callback : => @emit "Cancel"
@@ -334,5 +334,5 @@ class ActivityEditWidget extends ActivityInputWidget
 
     @addSubView @input
     @addSubView @embedBox
-    @input.addSubView @submit
-    @input.addSubView @cancel
+    @input.addSubView @submitButton
+    @input.addSubView @cancelButton
