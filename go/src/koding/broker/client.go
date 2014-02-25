@@ -192,6 +192,11 @@ func (c *Client) Publish(exchange, routingKey, payload string) error {
 			break
 		}
 
+		if amqpError, isAmqpError := err.(*amqp.Error); !isAmqpError || amqpError.Code != amqp.ChannelError {
+			log.Warning("payload: %v routing key: %v exchange: %v err: %v",
+				payload, routingKey, exchange, err)
+		}
+
 		time.Sleep(time.Second / 4) // penalty for crashing the AMQP channel
 		c.resetControlChannel()
 	}
