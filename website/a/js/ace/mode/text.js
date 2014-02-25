@@ -40,7 +40,7 @@ var TokenIterator = require("../token_iterator").TokenIterator;
 var Range = require("../range").Range;
 
 var Mode = function() {
-    this.$tokenizer = new Tokenizer(new TextHighlightRules().getRules());
+    this.HighlightRules = TextHighlightRules;
     this.$behaviour = new Behaviour();
 };
 
@@ -57,10 +57,14 @@ var Mode = function() {
         + unicode.packages.L
         + unicode.packages.Mn + unicode.packages.Mc
         + unicode.packages.Nd
-        + unicode.packages.Pc + "\\$_]|\s])+", "g"
+        + unicode.packages.Pc + "\\$_]|\\s])+", "g"
     );
 
     this.getTokenizer = function() {
+        if (!this.$tokenizer) {
+            this.$highlightRules = new this.HighlightRules();
+            this.$tokenizer = new Tokenizer(this.$highlightRules.getRules());
+        }
         return this.$tokenizer;
     };
 
@@ -213,10 +217,10 @@ var Mode = function() {
                     var row = iterator.getCurrentTokenRow();
                     var column = iterator.getCurrentTokenColumn() + i;
                     startRange = new Range(row, column, row, column + comment.start.length);
-                    break
+                    break;
                 }
                 token = iterator.stepBackward();
-            };
+            }
 
             var iterator = new TokenIterator(session, cursor.row, cursor.column);
             var token = iterator.getCurrentToken();
@@ -235,10 +239,10 @@ var Mode = function() {
             if (startRange) {
                 session.remove(startRange);
                 startRow = startRange.start.row;
-                colDiff = -comment.start.length
+                colDiff = -comment.start.length;
             }
         } else {
-            colDiff = comment.start.length
+            colDiff = comment.start.length;
             startRow = range.start.row;
             session.insert(range.end, comment.end);
             session.insert(range.start, comment.start);
@@ -271,17 +275,17 @@ var Mode = function() {
     };
 
     this.createModeDelegates = function (mapping) {
-        if (!this.$embeds) {
-            return;
-        }
+        this.$embeds = [];
         this.$modes = {};
-        for (var i = 0; i < this.$embeds.length; i++) {
-            if (mapping[this.$embeds[i]]) {
-                this.$modes[this.$embeds[i]] = new mapping[this.$embeds[i]]();
+        for (var i in mapping) {
+            if (mapping[i]) {
+                this.$embeds.push(i);
+                this.$modes[i] = new mapping[i]();
             }
         }
 
-        var delegations = ['toggleCommentLines', 'getNextLineIndent', 'checkOutdent', 'autoOutdent', 'transformAction', 'getCompletions'];
+        var delegations = ['toggleBlockComment', 'toggleCommentLines', 'getNextLineIndent', 
+            'checkOutdent', 'autoOutdent', 'transformAction', 'getCompletions'];
 
         for (var i = 0; i < delegations.length; i++) {
             (function(scope) {
@@ -289,7 +293,7 @@ var Mode = function() {
               var defaultHandler = scope[functionName];
               scope[delegations[i]] = function() {
                   return this.$delegator(functionName, arguments, defaultHandler);
-              }
+              };
             } (this));
         }
     };
@@ -356,9 +360,15 @@ var Mode = function() {
             return this.$keywordList;
         return completionKeywords.concat(this.$keywordList || []);
     };
+    
+    this.$createKeywordList = function() {
+        if (!this.$highlightRules)
+            this.getTokenizer();
+        return this.$keywordList = this.$highlightRules.$keywordList || [];
+    };
 
     this.getCompletions = function(state, session, pos, prefix) {
-        var keywords = this.$keywordList || [];
+        var keywords = this.$keywordList || this.$createKeywordList();
         return keywords.map(function(word) {
             return {
                 name: word,
@@ -369,6 +379,7 @@ var Mode = function() {
         });
     };
 
+    this.$id = "ace/mode/text";
 }).call(Mode.prototype);
 
 exports.Mode = Mode;
