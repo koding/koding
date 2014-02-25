@@ -1,5 +1,7 @@
 module.exports = [
 
+  "libs/js-yaml.min.js"
+
   "AppController.coffee"
 
   "views/scene/colortagselectorview.coffee"
