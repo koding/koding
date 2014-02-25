@@ -37,7 +37,8 @@ var (
 	routeMap = make(map[string]*set.Set)
 
 	// sessionsMap holds sessions with their socketIds
-	sessionsMap    = make(map[string]*sockjs.Session)
+	sessionsMap = make(map[string]*sockjs.Session)
+
 	globalMapMutex sync.Mutex
 
 	changeClientsGauge          = lifecycle.CreateClientsGauge()
