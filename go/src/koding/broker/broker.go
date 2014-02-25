@@ -231,31 +231,37 @@ func sendMessageToClient(amqpMessage amqp.Delivery) {
 	routingKey := amqpMessage.RoutingKey
 	payloadsByte := utils.FilterInvalidUTF8(amqpMessage.Body)
 
-	if amqpMessage.Exchange == "updateInstances" {
-		var payloads []interface{}
-		if err := json.Unmarshal(payloadsByte, &payloads); err != nil {
-			log.Error("Error while unmarshalling %v", err)
-			log.Error("data %v", string(payloadsByte))
-			log.Error("routingKey %v", routingKey)
-			return
-		}
-
-		for _, payload := range payloads {
-			payloadByte, err := json.Marshal(payload)
-			if err != nil {
-				log.Error("Error while marshalling %v", err)
-				log.Error("data %v", string(payloadByte))
-				log.Error("routingKey %v", routingKey)
-				continue
-			}
-			payloadByteRaw := json.RawMessage(payloadByte)
-			processMessage(routingKey, &payloadByteRaw)
-		}
-	} else {
+	// We are sending multiple bodies for updateInstances exchange
+	// so that there will be another operations, if exchange is not "updateInstances"
+	// no need to add more overhead
+	if amqpMessage.Exchange != "updateInstances" {
 		payloadRaw := json.RawMessage(payloadsByte)
 		processMessage(routingKey, &payloadRaw)
+		return
 	}
 
+	// this part is only for updateInstances exchange
+	var payloads []interface{}
+	// unmarshal data to slice of interface
+	if err := json.Unmarshal(payloadsByte, &payloads); err != nil {
+		log.Error("Error while unmarshalling %v", err)
+		log.Error("data %v", string(payloadsByte))
+		log.Error("routingKey %v", routingKey)
+		return
+	}
+
+	// range over the slice and send all of them to the same routingkey
+	for _, payload := range payloads {
+		payloadByte, err := json.Marshal(payload)
+		if err != nil {
+			log.Error("Error while marshalling %v", err)
+			log.Error("data %v", string(payloadByte))
+			log.Error("routingKey %v", routingKey)
+			continue
+		}
+		payloadByteRaw := json.RawMessage(payloadByte)
+		processMessage(routingKey, &payloadByteRaw)
+	}
 }
 
 func processMessage(routingKey string, payload interface{}) {
