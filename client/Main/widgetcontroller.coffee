@@ -1,4 +1,4 @@
-class WidgetController extends KDObject
+class WidgetController extends KDController
 
   constructor: (options = {}, data) ->
 
