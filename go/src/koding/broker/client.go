@@ -88,7 +88,7 @@ func createSubscriptionStorage(socketId string) (storage.Subscriptionable, error
 // Close should be called whenever a client disconnects.
 // Close removes client's subscriptions from routeMap immediately
 // It waits for 5 minutes before clearing the client's subscriptions because if this
-// is a temp glicth on network client should be able to resubscribe to all of them again
+// is a temp glitch on network client should be able to resubscribe to all of them again
 func (c *Client) Close() {
 	log.Debug("Client Close Request for socketID: %v", c.SocketId)
 	c.Subscriptions.Each(func(routingKeyPrefix interface{}) bool {
