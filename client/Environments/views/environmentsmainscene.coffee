@@ -48,24 +48,25 @@ class EnvironmentsMainScene extends JView
 
     @fetchStacks()
 
-  fetchStacks:->
+  fetchStacks: (callback)->
 
-    {JStack} = KD.remote.api
+    EnvironmentDataProvider.get (data) =>
 
-    JStack.getStacks (err, stacks)=>
-      warn err  if err
+      {JStack} = KD.remote.api
+      JStack.getStacks (err, stacks)=>
+        warn err  if err
 
-      group = KD.getGroup().title
-      if not stacks or stacks.length is 0
-        stacks = [{sid:0, group}]
+        group = KD.getGroup().title
+        if not stacks or stacks.length is 0
+          stacks = [{sid:0, group}]
 
-      stacks.forEach (stack)=>
+        @_stacks = []
+        stacks.forEach (stack, index)=>
+          @_stacks.push @addSubView new StackView \
+            {stack, isDefault: index is 0}, data
 
-        title   = stack.meta?.title
-        number  = if stack.sid > 0 then "#{stack.sid}." else "default"
-        title or= "Your #{number} stack on #{group}"
+          callback?()  if index is stacks.length - 1
 
-        @addSubView new StackView {}, {title, stack}
 
 class StackView extends KDView
 
