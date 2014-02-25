@@ -11,29 +11,32 @@ class EnvironmentsMainScene extends JView
       partial  : """
         <div class="content">
           <h1>Environments</h1>
-          Welcome to Environments. Here you can setup your servers and development environment.
+          Welcome to Environments.
+          Here you can setup your servers and development environment.
         </div>
       """
 
-    @addSubView @freePlanView = new KDView
+    @addSubView freePlanView = new KDView
       cssClass : "top-warning"
       click    : (event) ->
         if "usage" in event.target.classList
           KD.utils.stopDOMEvent event
           new KDNotificationView title: "Coming soon..."
 
-    @paymentController = KD.getSingleton("paymentController")
-    @paymentController.fetchActiveSubscription tags: "vm", (err, subscription) =>
-      return console.error err  if err
+    paymentControl = KD.getSingleton("paymentController")
+    paymentControl.fetchActiveSubscription tags: "vm", (err, subscription) ->
+      return warn err  if err
       if not subscription or "nosync" in subscription.tags
-        @freePlanView.updatePartial """
+        freePlanView.updatePartial """
           <div class="content">
-            You are on a free developer plan, see your <a class="usage" href="#">usage</a> or <a class="pricing" href="/Pricing">upgrade</a>.
+            You are on a free developer plan,
+            see your <a class="usage" href="#">usage</a> or
+            <a class="pricing" href="/Pricing">upgrade</a>.
           </div>
         """
 
-    @paymentController.on "SubscriptionCompleted", =>
-      @freePlanView.updatePartial ""
+    paymentControl.on "SubscriptionCompleted", ->
+      freePlanView.updatePartial ""
 
     @fetchStacks()
 
