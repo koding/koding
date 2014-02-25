@@ -59,14 +59,19 @@ func NewClient(session *sockjs.Session, broker *Broker) (*Client, error) {
 	}, nil
 }
 
+// createSubscriptionStorage arranges a storage place for subscriptions
+// it can be Redis backend or inmemory Set storage
 func createSubscriptionStorage(socketId string) (storage.Subscriptionable, error) {
 
+	// first try to create a redis storage
 	if subscriptions, err := storage.NewStorage(conf, storage.REDIS, socketId); err == nil {
+		// if we success, just return the storage
 		return subscriptions, nil
 	} else {
 		log.Critical("Couldnt access to redis/create a key for client %v: Error: %v", socketId, err)
 	}
-
+	// if we try to create subscription storage backend with redis and fail
+	// create an inmemory storage system
 	if subscriptions, err := storage.NewStorage(conf, storage.SET, socketId); err == nil {
 		return subscriptions, nil
 	}
@@ -76,6 +81,9 @@ func createSubscriptionStorage(socketId string) (storage.Subscriptionable, error
 }
 
 // Close should be called whenever a client disconnects.
+// Close removes client's subscriptions from routeMap immediately
+// It waits for 5 minutes before clearing the client's subscriptions because if this
+// is a temp glicth on network client should be able to resubscribe to all of them again
 func (c *Client) Close() {
 	log.Debug("Client Close Request for socketID: %v", c.SocketId)
 	c.Subscriptions.Each(func(routingKeyPrefix interface{}) bool {
@@ -165,6 +173,7 @@ func (c *Client) handleSessionMessage(data interface{}) {
 }
 
 // Publish publish the given payload for to the given exchange and routingkey.
+// if publishing fails for given payload waits for quarter of a second
 func (c *Client) Publish(exchange, routingKey, payload string) error {
 	if !strings.HasPrefix(routingKey, "client.") {
 		return fmt.Errorf("Invalid routing key: %v socketId: %v", routingKey, c.SocketId)
@@ -176,11 +185,6 @@ func (c *Client) Publish(exchange, routingKey, payload string) error {
 		if err == nil {
 			c.LastPayload = payload
 			break
-		}
-
-		if amqpError, isAmqpError := err.(*amqp.Error); !isAmqpError || amqpError.Code != amqp.ChannelError {
-			log.Warning("payload: %v routing key: %v exchange: %v err: %v",
-				payload, routingKey, exchange, err)
 		}
 
 		time.Sleep(time.Second / 4) // penalty for crashing the AMQP channel
@@ -258,8 +262,7 @@ func (c *Client) RemoveFromRoute(routingKeyPrefixes ...string) {
 	}
 }
 
-// Add to route
-// todo ~ check for multiple subscriptions
+// AddToRoute ads routes to the routeMap for client
 func (c *Client) AddToRoute() {
 	c.Subscriptions.Each(func(routingKeyPrefix interface{}) bool {
 		c.AddToRouteMapNOTS(routingKeyPrefix.(string))
@@ -267,6 +270,9 @@ func (c *Client) AddToRoute() {
 	})
 }
 
+// AddToRouteMapNOTS adds given routingKeys to the global routemap
+// it is non-thread-safe function, developers should use it with their
+// own thread safe wrapping
 func (c *Client) AddToRouteMapNOTS(routingKeyPrefixes ...string) {
 	for _, routingKeyPrefix := range routingKeyPrefixes {
 		if _, ok := routeMap[routingKeyPrefix]; !ok {
@@ -302,6 +308,10 @@ func (c *Client) Subscribe(routingKeyPrefixes ...string) error {
 	return nil
 }
 
+// Resubscribe tries to resubscribe with another sessionId
+// it is useful when client disconnected and a while after
+// tries to subscribe again, so there will not be that many
+// communication between broker and the client
 func (c *Client) Resubscribe(sessionId string) (bool, error) {
 	found, err := c.Subscriptions.Resubscribe(sessionId)
 	if err != nil {
