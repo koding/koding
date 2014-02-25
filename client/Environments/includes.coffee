@@ -4,6 +4,7 @@ module.exports = [
 
   "AppController.coffee"
 
+  "views/environmentdataprovider.coffee"
   "views/scene/colortagselectorview.coffee"
   "views/scene/environmentcontainer.coffee"
   "views/scene/environmentdomaincontainer.coffee"
