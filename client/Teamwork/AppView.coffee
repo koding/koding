@@ -52,7 +52,9 @@ class TeamworkAppView extends KDView
     @setLocation @teamworkApp.getOption "sessionKey"
 
   setLocation: (sessionKey) ->
-    KD.singleton("router").handleRoute "/Teamwork?sessionKey=#{sessionKey}"
+    KD.singleton("router").handleRoute "/Teamwork?sessionKey=#{sessionKey}",
+      replaceState      : yes
+      suppressListeners : yes
 
   createApp: (query) ->
     return new TeamworkApp

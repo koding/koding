@@ -198,6 +198,8 @@ button.kdbutton.solid.green.account-header-button
   .no-item-found
     padding           10px 20px
     color             #888
+    text-align        center
+    font-weight       400
     borderBox()
 
   &.payment-methods
@@ -327,10 +329,30 @@ button.kdbutton.solid.green.account-header-button
         width         20%
 
   &.ssh-keys
-    a.action-link
-      abs()
-      top             0px
-      right           2px
+    .add-key-form
+      margin-bottom   42px
+
+    .ssh-key-item
+      background      #fff
+      margin          2px 0 0 0
+      padding         14px 120px 14px 14px
+      rounded         12px
+      position        relative
+
+      .title
+        font-weight   400
+        font-size     16px
+
+      .key
+        font-size     14px
+        font-weight   200
+        color         #bcbcbc
+
+
+      .kdbutton.edit
+        abs           50% 22px 0 0
+        vendor        transform, translateY(-50%)
+
 
 .koding-keys
   code

@@ -224,6 +224,8 @@ module.exports = class JGroup extends Module
           (signature Function)
         getPermissionSet:
           (signature Function)
+        fetchUserStatus:
+          (signature Object, Function)
         fetchInvitationsByStatus:
           (signature Object, Function)
         checkUserUsage:
@@ -691,17 +693,24 @@ module.exports = class JGroup extends Module
               if err then callback err
               else callback null, arr
 
+  fetchUserStatus: permit 'grant permissions',
+    success:(client, nicknames, callback)->
+      JUser    = require '../user'
+      JUser.someData username: $in: nicknames, {status:1, username:1}, (err, cursor) ->
+        return callback err  if err
+        cursor.toArray callback
+
   fetchMembers$: permit 'list members',
     success:(client, rest...)->
-      [selector, options, callback] = Module.limitEdges 100, rest
+      # when max limit is over 20 it starts giving "call stack exceeded" error
+      [selector, options, callback] = Module.limitEdges 10, 19, rest
       # delete options.targetOptions
       options.client = client
-      @fetchMembers selector, options, ->
-        callback arguments...
+      @fetchMembers selector, options, callback
 
   fetchNewestMembers$: permit 'list members',
     success:(client, rest...)->
-      [selector, options, callback] = Module.limitEdges 100, rest
+      [selector, options, callback] = Module.limitEdges 10, 19, rest
       selector            or= {}
       selector.as         = 'member'
       selector.sourceName = 'JGroup'
