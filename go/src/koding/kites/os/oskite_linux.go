@@ -23,7 +23,6 @@ import (
 	"net"
 	"os"
 	"os/signal"
-	"strconv"
 	"strings"
 	"sync"
 	"syscall"
@@ -37,6 +36,7 @@ import (
 )
 
 const OSKITE_NAME = "oskite"
+const OSKITE_VERSION = "0.1.0"
 
 type VMInfo struct {
 	vm              *virt.VM
@@ -127,11 +127,19 @@ func main() {
 	}
 
 	k := prepareOsKite()
+	log.Info("Kite.go preperation is done")
 
 	runNewKite(k.ServiceUniqueName)
-	handleCurrentVMS(k)   // handle leftover VMs
-	startPinnedVMS(k)     // start pinned always-on VMs
+	log.Info("Run newkite is finished.")
+
+	handleCurrentVMS(k) // handle leftover VMs
+	log.Info("VMs in /var/lib/lxc are finished.")
+
+	startPinnedVMS(k) // start pinned always-on VMs
+	log.Info("Starting pinned hosts, if any...")
+
 	setupSignalHandler(k) // handle SIGUSR1 and other signals.
+	log.Info("Setting up signal handler")
 
 	// register current client-side methods
 	registerVmMethod(k, "vm.start", false, vmStart)
@@ -174,9 +182,11 @@ func main() {
 
 	go oskiteRedis(k.ServiceUniqueName)
 
+	log.Info("Oskite started. Go!")
 	k.Run()
 }
 
+var oskitesMu sync.Mutex
 var oskites = make(map[string]*OskiteInfo)
 
 func oskiteRedis(serviceUniquename string) {
@@ -189,73 +199,74 @@ func oskiteRedis(serviceUniquename string) {
 	prefix := "oskite:" + conf.Environment + ":"
 	kontainerSet := "kontainers-" + conf.Environment
 
+	log.Info("Connected to Redis with %s", prefix+serviceUniquename)
+
 	_, err = redigo.Int(session.Do("SADD", kontainerSet, prefix+serviceUniquename))
 	if err != nil {
 		log.Error("redis SADD kontainers. err: %v", err.Error())
 	}
 
-	// get list of kontainers
-	kontainers, err := redigo.Strings(session.Do("SMEMBERS", kontainerSet))
-	if err != nil {
-		log.Error("redis SMEMBER kontainers. err: %v", err.Error())
-	}
-
-	// and also update it every 20 seconds
-	go func() {
-		var err error
-		for _ = range time.Tick(20 * time.Second) {
-			kontainers, err = redigo.Strings(session.Do("SMEMBERS", kontainerSet))
-			if err != nil {
-				log.Error("redis SMEMBER kontainers. err: %v", err.Error())
-			}
-		}
-	}()
-
 	// update regularly our VMS info
-	expireDuration := time.Second * 12
 	go func() {
-		for _ = range time.Tick(5 * time.Second) {
-			key := prefix + serviceUniquename + ":vms"
-			reply, err := session.Do("SET", key, strconv.Itoa(currentVMS()))
-			if err != nil {
-				log.Error("redis Set %v. reply: %v err: %v", key, reply, err.Error())
+		expireDuration := time.Second * 2
+		for _ = range time.Tick(2 * time.Second) {
+			key := prefix + serviceUniquename
+			oskiteInfo := GetOskiteInfo()
+
+			if _, err := session.Do("HMSET", redigo.Args{key}.AddFlat(oskiteInfo)...); err != nil {
+				log.Error("redis HMSET err: %v", err.Error())
 			}
 
-			reply, err = redigo.Int(session.Do("EXPIRE", key, expireDuration.Seconds()))
+			reply, err := redigo.Int(session.Do("EXPIRE", key, expireDuration.Seconds()))
 			if err != nil {
 				log.Error("redis SET Expire %v. reply: %v err: %v", key, reply, err.Error())
 			}
 		}
 	}()
 
-	// get oskite statuses from others every 5 seconds
-	for _ = range time.Tick(5 * time.Second) {
-		for _, kontainerHostname := range kontainers {
-			key := kontainerHostname + ":vms"
+	// get oskite statuses from others every 2 seconds
+	for _ = range time.Tick(2 * time.Second) {
+		kontainers, err := redigo.Strings(session.Do("SMEMBERS", kontainerSet))
+		if err != nil {
+			log.Error("redis SMEMBER kontainers. err: %v", err.Error())
+		}
 
-			vmCount, err := redigo.Int(session.Do("GET", key))
+		for _, kontainerHostname := range kontainers {
+			// convert to serviceUniqueName formst
+			remoteOskite := strings.TrimPrefix(kontainerHostname, prefix)
+
+			values, err := redigo.Values(session.Do("HGETALL", kontainerHostname))
 			if err != nil {
-				log.Error("redis GET %v. err: %v", key, err.Error())
+				log.Error("redis HTGETALL %s. err: %v", kontainerHostname, err.Error())
+
+				// kontainer might be dead, key gets than expired, continue with the next one
+
+				oskitesMu.Lock()
+				delete(oskites, remoteOskite)
+				oskitesMu.Unlock()
 				continue
 			}
 
-			remoteOskite := strings.TrimPrefix(kontainerHostname, prefix)
-
-			oskites[remoteOskite] = &OskiteInfo{
-				QueuedVMs:       len(prepareQueue),
-				QueueLimit:      prepareQueueLimit,
-				CurrentVMs:      vmCount,
-				CurrentVMsLimit: *flagLimit,
+			oskiteInfo := new(OskiteInfo)
+			if err := redigo.ScanStruct(values, oskiteInfo); err != nil {
+				log.Error("redis ScanStruct err: %v", err.Error())
 			}
 
+			log.Debug("%s: %+v", kontainerHostname, oskiteInfo)
+
+			oskitesMu.Lock()
+			oskites[remoteOskite] = oskiteInfo
+			oskitesMu.Unlock()
 		}
 	}
-
 }
 
 func lowestOskiteLoad() (serviceUniquename string) {
-	lowest := *flagLimit
+	lowest := *flagLimit // TODO: fix that it takes it the highest oskites.CurrentVMs value
 	lowestName := ""
+
+	oskitesMu.Lock()
+	defer oskitesMu.Unlock()
 
 	for s, c := range oskites {
 		if c.CurrentVMs <= lowest {
@@ -369,8 +380,14 @@ func prepareOsKite() *kite.Kite {
 		}
 
 		resultOskite := k.ServiceUniqueName
-		if lowestOskite := lowestOskiteLoad(); lowestOskite != "" {
-			resultOskite = lowestOskite
+		lowestOskite := lowestOskiteLoad()
+
+		if lowestOskite != "" {
+			if deadService == lowestOskite {
+				resultOskite = k.ServiceUniqueName
+			} else {
+				resultOskite = lowestOskite
+			}
 		}
 
 		var vm *virt.VM
@@ -447,7 +464,6 @@ func handleCurrentVMS(k *kite.Kite) {
 			}
 
 			if err := mongodbConn.Run("jVMs", query); err != nil || vm.HostKite != k.ServiceUniqueName {
-
 				log.Info("cleaning up leftover VM: '%s', vm.Hoskite: '%s', k.ServiceUniqueName: '%s', error '%v'",
 					vmId, vm.HostKite, k.ServiceUniqueName, err)
 
@@ -799,10 +815,8 @@ func startVM(k *kite.Kite, vm *virt.VM, channel *kite.Channel) error {
 	}
 
 	if !isPrepared || info.currentHostname != vm.HostnameAlias {
-		log.Info("putting %s into queue. total vms in queue: %d of %d",
-			vm.HostnameAlias, len(prepareQueue), prepareQueueLimit)
-
 		wait := make(chan struct{}, 0)
+
 		prepareQueue <- func(done chan struct{}) {
 			defer func() {
 				done <- struct{}{}
@@ -826,6 +840,9 @@ func startVM(k *kite.Kite, vm *virt.VM, channel *kite.Channel) error {
 
 			info.currentHostname = vm.HostnameAlias
 		}
+
+		log.Info("putting %s into queue. total vms in queue: %d of %d",
+			vm.HostnameAlias, len(prepareQueue), prepareQueueLimit)
 
 		// wait until the prepareWorker has picked us and we finished
 		<-wait
