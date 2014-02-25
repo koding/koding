@@ -33,10 +33,12 @@ var (
 	conf *config.Config
 	log  = logger.New(BROKER_NAME)
 
-	STORAGE_BACKEND = "redis"
-	routeMap        = make(map[string]*set.Set)
-	sessionsMap     = make(map[string]*sockjs.Session)
-	globalMapMutex  sync.Mutex
+	// routeMap holds the subscription list/set for any given routing key
+	routeMap = make(map[string]*set.Set)
+
+	// sessionsMap holds sessions with their socketIds
+	sessionsMap    = make(map[string]*sockjs.Session)
+	globalMapMutex sync.Mutex
 
 	changeClientsGauge          = lifecycle.CreateClientsGauge()
 	changeNewClientsGauge       = logger.CreateCounterGauge("newClients", logger.NoUnit, true)
