@@ -5,10 +5,10 @@ deepFreeze = require 'koding-deep-freeze'
 version = (fs.readFileSync nodePath.join(__dirname, '../VERSION'), 'utf-8').trim()
 projectRoot = nodePath.join __dirname, '..'
 
-mongo        = 'dev:k9lc4G1k32nyD72@172.16.3.9:27017/koding'
-mongoKontrol = 'dev:k9lc4G1k32nyD72@172.16.3.9:27017/kontrol'
+mongo        = 'dev:k9lc4G1k32nyD72@68.68.97.72:27017/koding'
+mongoKontrol = 'dev:k9lc4G1k32nyD72@68.68.97.72:27017/kontrol'
 
-mongoReplSet = 'mongodb://dev:k9lc4G1k32nyD72@172.16.3.9,172.16.3.10,172.16.3.3/koding?replicaSet=koodingrs0&readPreference=primaryPreferred'
+mongoReplSet = 'mongodb://dev:k9lc4G1k32nyD72@68.68.97.72,68.68.97.68,68.68.97.151/koding?replicaSet=koodingrs0&readPreference=primaryPreferred'
 
 socialQueueName = "koding-social-#{version}"
 
@@ -47,8 +47,8 @@ module.exports =
     enabled     : no
     port        : 1337
   neo4j         :
-    read        : "http://172.16.3.14"
-    write       : "http://172.16.3.14"
+    read        : "http://68.68.97.139"
+    write       : "http://68.68.97.139"
     port        : 7474
   mongo         : mongo
   mongoKontrol  : mongoKontrol
@@ -65,7 +65,7 @@ module.exports =
   buildClient   : yes
   runOsKite     : no
   runProxy      : no
-  redis         : "172.16.3.13:6379"
+  redis         : "68.68.97.51:6379"
   misc          :
     claimGlobalNamesForUsers: no
     updateAllSlugs : no
@@ -159,7 +159,7 @@ module.exports =
     runtimeOptions:
       environment        : environment
       activityFetchCount : 20
-      precompiledApi     : no
+      precompiledApi     : yes
       authExchange       : authExchange
       github        :
         clientId    : "5891e574253e65ddb7ea"
@@ -169,7 +169,6 @@ module.exports =
       useNeo4j: yes
       logToExternal : yes
       resourceName: socialQueueName
-      socialApiUri: 'https://social.koding.com/xhr'
       suppressLogs: yes
       version   : version
       mainUri   : "http://koding.com"
@@ -211,9 +210,9 @@ module.exports =
         # bitbucket     :
         #   nicename    : 'BitBucket'
   mq            :
-    host        : '172.16.3.4'
+    host        : '68.68.97.65'
     port        : 5672
-    apiAddress  : "172.16.3.4"
+    apiAddress  : "68.68.97.65"
     apiPort     : 15672
     login       : 'guest'
     componentUser: "guest"
@@ -292,7 +291,7 @@ module.exports =
   kontrold        :
     vhost         : "/"
     overview      :
-      apiHost     : "172.16.3.11"
+      apiHost     : "68.68.97.179"
       apiPort     : 80
       port        : 8080
       switchHost  : "koding.com"
@@ -308,13 +307,13 @@ module.exports =
     loggedRequests: /^(subscriptions|transactions)/
   embedly       :
     apiKey      : embedlyApiKey
-  opsview	:
-    push	: yes
-    host	: 'opsview.in.koding.com'
+  opsview       :
+    push        : yes
+    host        : 'opsview.in.koding.com'
     bin   : '/usr/local/nagios/bin/send_nsca'
     conf  : '/usr/local/nagios/etc/send_nsca.cfg'
   followFeed    :
-    host        : '172.16.3.4'
+    host        : '68.68.97.65'
     port        : 5672
     componentUser: 'guest'
     password    : 'Xah8ibeekelah'
@@ -341,11 +340,11 @@ module.exports =
     redirect_uri : "https://koding.com/-/oauth/google/callback"
   statsd         :
     use          : true
-    ip           : "172.168.2.7"
+    ip           : "68.68.97.111"
     port         : 8125
   graphite       :
     use          : true
-    host         : "172.168.2.7"
+    host         : "68.68.97.111"
     port         : 2003
   linkedin       :
     client_id    : "aza9cks1zb3d"
@@ -385,6 +384,6 @@ module.exports =
     broker        : "info"
   defaultVMConfigs:
     freeVM        :
-      storage     : 3072
+      storage     : 4096
       ram         : 1024
       cpu         : 1

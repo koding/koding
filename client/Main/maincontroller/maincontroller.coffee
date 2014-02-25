@@ -60,6 +60,8 @@ class MainController extends KDController
 
       console.timeEnd "Koding.com loaded"
 
+    @forwardEvents KD.remote, ['disconnected', 'reconnected']
+
   accountChanged:(account, firstLoad = no)->
     @userAccount             = account
     connectedState.connected = yes

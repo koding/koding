@@ -2,7 +2,10 @@ class AccountAppController extends AppController
 
   handler = (callback)->
     if KD.isLoggedIn()
-      KD.singleton('appManager').open 'Account', callback
+      appManager = KD.singleton('appManager')
+      if appManager.getFrontApp()?.getOption('name') is 'Account'
+        callback appManager.getFrontApp()
+      else appManager.open 'Account', callback
     else
       KD.singletons.router.handleRoute '/'
 
