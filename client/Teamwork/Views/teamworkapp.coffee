@@ -47,7 +47,9 @@ class TeamworkApp extends KDObject
     callback?()
 
     @setOption "sessionKey", @teamwork.sessionKey
-    KD.getSingleton("router").handleRoute "/Teamwork?sessionKey=#{@teamwork.sessionKey}"
+    KD.getSingleton("router").handleRoute "/Teamwork?sessionKey=#{@teamwork.sessionKey}",
+      replaceState      : yes
+      suppressListeners : yes
 
   getTeamworkOptions: ->
     options               = @getOptions()

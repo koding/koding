@@ -48,7 +48,7 @@ func oskiteAll(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (inter
 
 // currentVMS returns the number of available lxc containers on the running machine
 func currentVMS() int {
-	out, err := exec.Command("/usr/bin/lxc-ls").CombinedOutput()
+	out, err := exec.Command("/usr/bin/lxc-ls", "--active").CombinedOutput()
 	if err != nil {
 		fmt.Println(err)
 		return 0
