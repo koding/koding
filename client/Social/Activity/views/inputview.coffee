@@ -1,5 +1,7 @@
 class ActivityInputView extends KDTokenizedInput
 
+  TOKEN_LIMIT = 5
+
   constructor: (options = {}, data) ->
     options.cssClass         = KD.utils.curry "input-view", options.cssClass
     options.type           or= "html"
@@ -78,6 +80,10 @@ class ActivityInputView extends KDTokenizedInput
     if /\s/.test String.fromCharCode event.which
       if @tokenInput and /^\W+$/.test @tokenInput.textContent then @cancel()
       else if @selectToken() then KD.utils.stopDOMEvent event
+
+  keyUp: ->
+    return  if @getTokens().length >= TOKEN_LIMIT
+    super
 
   focus: ->
     return  if @focused
