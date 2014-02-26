@@ -1327,7 +1327,6 @@ a.action-link.verify-email
 // onboarding
 .onboarding-item
   padding               30px
-  border                1px solid #9E9E9E
   rounded               5px
   bg                    color, #FFF
   max-width             400px
@@ -1340,8 +1339,21 @@ a.action-link.verify-email
     font-weight         400
   p
     font-size           14px
+    line-height         18px
     color               #595959
   .buttons
     text-align          right
     button
       margin-top        25px !important
+
+.onboarding-wrapper
+  .kdlistview-contextmenu
+    rounded             5px !important
+  .arrow
+    bg                  image, none !important
+    top                 -5px !important
+    &.top
+      size              0, 0
+      border-left       10px solid transparent
+      border-right      10px solid transparent
+      border-bottom     10px solid #fff

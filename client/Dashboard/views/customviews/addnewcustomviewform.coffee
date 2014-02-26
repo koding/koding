@@ -7,7 +7,7 @@ class AddNewCustomViewForm extends JView
     super options, data
 
     @input        = new KDInputView
-      cssClass    : "page-name"
+      cssClass    : "big-input"
       type        : "input"
       defaultValue: @getData()?.name or ""
 

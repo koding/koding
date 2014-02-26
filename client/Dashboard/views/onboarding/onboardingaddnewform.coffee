@@ -5,9 +5,9 @@ class OnboardingAddNewForm extends AddNewCustomViewForm
     super options, data
 
     @viewId        = new KDInputView
-      cssClass     : "page-name"
       type         : "input"
       defaultValue : @getData()?.viewId or ""
+      cssClass     : "big-input"
 
   addNew: ->
     {data}    = @getDelegate()
