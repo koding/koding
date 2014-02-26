@@ -40,7 +40,7 @@ const (
 	ModeVM          = "vm"
 	ModeRedirect    = "redirect"
 
-	HealthCheckInterval = time.Second * 60
+	HealthCheckInterval = time.Second * 10
 )
 
 // Target is returned for every incoming request host.
