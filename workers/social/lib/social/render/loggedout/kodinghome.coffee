@@ -10,7 +10,7 @@ module.exports = (options, callback)->
     <!doctype html>
     <html lang="en" prefix="og: http://ogp.me/ns#">
     <head>
-      <title>Koding | A new way for developers to work.</title>
+      <title>Koding | A New Way For Developers To Work</title>
       #{getStyles()}
       #{getGraphMeta()}
     </head>
