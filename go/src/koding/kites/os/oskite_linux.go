@@ -23,6 +23,7 @@ import (
 	"net"
 	"os"
 	"os/signal"
+	"sort"
 	"strings"
 	"sync"
 	"sync/atomic"
@@ -37,7 +38,7 @@ import (
 )
 
 const OSKITE_NAME = "oskite"
-const OSKITE_VERSION = "0.1.1"
+const OSKITE_VERSION = "0.1.3"
 
 type VMInfo struct {
 	vm              *virt.VM
@@ -210,7 +211,7 @@ func oskiteRedis(serviceUniquename string) {
 	// update regularly our VMS info
 	go func() {
 		expireDuration := time.Second * 5
-		for _ = range time.Tick(5 * time.Second) {
+		for _ = range time.Tick(2 * time.Second) {
 			key := prefix + serviceUniquename
 			oskiteInfo := GetOskiteInfo()
 
@@ -226,7 +227,7 @@ func oskiteRedis(serviceUniquename string) {
 	}()
 
 	// get oskite statuses from others every 2 seconds
-	for _ = range time.Tick(5 * time.Second) {
+	for _ = range time.Tick(2 * time.Second) {
 		kontainers, err := redigo.Strings(session.Do("SMEMBERS", kontainerSet))
 		if err != nil {
 			log.Error("redis SMEMBER kontainers. err: %v", err.Error())
@@ -263,20 +264,34 @@ func oskiteRedis(serviceUniquename string) {
 }
 
 func lowestOskiteLoad() (serviceUniquename string) {
-	lowest := *flagLimit // TODO: fix that it takes it the highest oskites.CurrentVMs value
-	lowestName := ""
-
 	oskitesMu.Lock()
 	defer oskitesMu.Unlock()
 
-	for s, c := range oskites {
-		if c.CurrentVMs <= lowest {
-			lowest = c.CurrentVMs
-			lowestName = s
-		}
+	oskitesSlice := make([]*OskiteInfo, 0, len(oskites))
+
+	for s, v := range oskites {
+		v.ServiceUniquename = s
+		oskitesSlice = append(oskitesSlice, v)
 	}
 
-	return lowestName
+	sort.Sort(ByVM(oskitesSlice))
+
+	middle := len(oskitesSlice) / 2
+	if middle == 0 {
+		return ""
+	}
+
+	// return randomly one of the lowest
+	l := oskitesSlice[rand.Intn(middle)]
+
+	// also pick up the highest to log information
+	h := oskitesSlice[len(oskitesSlice)-1]
+
+	log.Info("oskite picked up as lowest load %s with %d VMs (highest was: %d / %s)",
+		l.ServiceUniquename, l.CurrentVMs, h.CurrentVMs, h.ServiceUniquename)
+
+	return l.ServiceUniquename
+
 }
 
 func runNewKite(serviceUniqueName string) {
@@ -382,7 +397,6 @@ func prepareOsKite() *kite.Kite {
 
 		resultOskite := k.ServiceUniqueName
 		lowestOskite := lowestOskiteLoad()
-
 		if lowestOskite != "" {
 			if deadService == lowestOskite {
 				resultOskite = k.ServiceUniqueName
