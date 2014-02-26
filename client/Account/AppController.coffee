@@ -202,7 +202,7 @@ class AccountAppController extends AppController
                     callback      : (event)-> modal.destroy()
                 fields            :
                   vmToResize    :
-                    label         : "Select a WM to resize"
+                    label         : "Select a VM to resize"
                     cssClass      : "clearfix"
                     itemClass     : KDSelectBox
                     type          : "select"
