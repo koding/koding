@@ -132,10 +132,31 @@ func getFromCache(host string) (*Target, error) {
 		return target, nil
 	}
 
+	// invalidate and delete from cache
+	delete(targets, host)
+
+	// only internal mode uses ring cache
+	if target.Proxy.Mode == ModeInternal {
+		ringKey := target.GetService().String()
+
+		ringsMu.Lock()
+		round, ok := rings[ringKey]
+		if ok {
+			round.ticker.Stop()
+		}
+		round = nil
+
+		delete(rings, ringKey)
+		ringsMu.Unlock()
+	}
+
 	return nil, fmt.Errorf("target cache invalidation for host %s", host)
 }
 
 func getFromDB(host string) (*Target, error) {
+	targetsMu.Lock()
+	defer targetsMu.Unlock()
+
 	domain, err := getDomain(host)
 	if err != nil {
 		return nil, err
@@ -155,9 +176,7 @@ func getFromDB(host string) (*Target, error) {
 		return nil, err
 	}
 
-	targetsMu.Lock()
 	targets[host] = target
-	targetsMu.Unlock()
 
 	return target, nil
 }
@@ -212,7 +231,7 @@ func (t *Target) Resolve(host string) error {
 	case ModeVM:
 		t.URL, t.Err = t.resolveVM(host, port)
 	case ModeInternal:
-		t.CacheTimeout = time.Second * 5
+		t.CacheTimeout = time.Second * 15
 	default:
 		return errors.New("no mode defined for target resolver")
 	}
@@ -354,7 +373,6 @@ func (r *RoundRing) Copy() *RoundRing {
 }
 
 func (r *RoundRing) healtChecker(hosts []string, indexkey string) {
-	log.Println("starting healtcheck with", hosts)
 	r.ticker = time.NewTicker(HealthCheckInterval)
 
 	for _ = range r.ticker.C {
@@ -362,8 +380,6 @@ func (r *RoundRing) healtChecker(hosts []string, indexkey string) {
 		// replace hosts with healthy ones
 		r.Ring = newRing(healtyHosts)
 	}
-
-	fmt.Println("checker stopped for", indexkey)
 }
 
 // newSlice returns a new slice populated with the given ring items.
