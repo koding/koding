@@ -4,16 +4,31 @@ class OnboardingAddNewForm extends AddNewCustomViewForm
 
     super options, data
 
-    @viewId        = new KDInputView
+    @path          = new KDInputView
       type         : "input"
-      defaultValue : @getData()?.viewId or ""
       cssClass     : "big-input"
+      # defaultValue : @getData()?.path or ""
+
+    @title         = new KDInputView
+      type         : "input"
+      cssClass     : "big-input"
+      # defaultValue : @getData()?.title or ""
+
+    @content       = new KDInputView
+      type         : "textarea"
+      cssClass     : "big-input"
+      # defaultValue : @getData()?.content or ""
+
+    @editor.setClass "hidden"
 
   addNew: ->
     {data}    = @getDelegate()
     {items}   = data.partial
     newItem   =
       name    : @input.getValue()
+      path    : @path.getValue()
+      title   : @title.getValue()
+      content : @content.getValue()
       partial : @encode @editor.getValues()
 
     items.push newItem
@@ -26,8 +41,12 @@ class OnboardingAddNewForm extends AddNewCustomViewForm
       <div class="inputs">
         <p>Name:</p>
         {{> @input}}
-        <p>View Id:</p>
-        {{> @viewId}}
+        <p>Parent Path:</p>
+        {{> @path}}
+        <p>Title:</p>
+        {{> @title}}
+        <p>Content:</p>
+        {{> @content}}
       </div>
       {{> @editor}}
       <div class="button-container">
