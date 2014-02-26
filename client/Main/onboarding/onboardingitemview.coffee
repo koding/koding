@@ -89,10 +89,10 @@ class OnboardingItemView extends JView
 
   listenEvents: ->
     @on "NavigationRequested", (direction) =>
-      @overlay.destroy()
+      @overlay?.destroy()
       @contextMenu.destroy()
       @getDelegate().emit "NavigationRequested", direction, @getData()
 
     @on "OnboardingCompleted", =>
-      @overlay.destroy()
+      @overlay?.destroy()
       @contextMenu.destroy()
