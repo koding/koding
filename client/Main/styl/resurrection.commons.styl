@@ -1343,10 +1343,22 @@ a.action-link.verify-email
     color               #595959
   .buttons
     text-align          right
+    position            relative
     button
       &:first-child
         margin-right    10px
       margin-top        25px !important
+  .steps
+    abs()
+    top                 34px
+    span
+      size              8px, 8px
+      rounded           8px
+      margin-right      8px
+      display           inline-block
+      bg                color, #E4E4E4
+      &.active
+        bg              color, #1AAF5D
 
 .onboarding-wrapper
   .kdlistview-contextmenu

@@ -70,10 +70,19 @@ class OnboardingItemView extends JView
         title      : "DONE"
         callback   : => @emit "OnboardingCompleted"
 
-    for button in [ prevButton, nextButton, doneButton ] when button
-      buttonsWrapper.addSubView button
+    if @items.length > 1
+      stepsWrapper = new KDCustomHTMLView
+        cssClass   : "steps"
 
-    for child  in [ title, content, buttonsWrapper ]
+      for item in @items
+        stepsWrapper.addSubView new KDCustomHTMLView
+          tagName  : "span"
+          cssClass : if item is @getData() then "active" else ""
+
+    for child in [ prevButton, nextButton, doneButton, stepsWrapper ] when child
+      buttonsWrapper.addSubView child
+
+    for child in [ title, content, buttonsWrapper ] when child
       view.addSubView child
 
     return view
