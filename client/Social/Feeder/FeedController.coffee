@@ -203,8 +203,9 @@ class FeedController extends KDViewController
         @emit "FilterLoaded"
       else unless feedId in USEDFEEDS
         USEDFEEDS.push feedId
-        unless prefetchedItems = KD.prefetchedFeeds[feedId]
-        then @loadFeed filter
-        else kallback null, (KD.remote.revive item for item in prefetchedItems)
+        if KD.prefetchedFeeds and prefetchedItems = KD.prefetchedFeeds[feedId]
+          kallback null, (KD.remote.revive item for item in prefetchedItems)
+        else
+          @loadFeed filter
       else
         filter.dataSource selector, options, kallback
