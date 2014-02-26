@@ -465,8 +465,6 @@ func (p *Proxy) getHandler(req *http.Request) http.Handler {
 		return templateHandler("notfound.html", req.Host, 404)
 	}
 
-	fmt.Println(target.FetchedAt, target.FetchedSource)
-
 	resolver, ok := p.resolvers[target.Proxy.Mode]
 	if !ok {
 		log.Warning("target not defined: %s (%s) %v", req.Host, userIP, target)
@@ -505,8 +503,8 @@ func (p *Proxy) internal(req *http.Request, target *resolver.Target) http.Handle
 		return templateHandler("maintenance.html", nil, 503)
 	}
 
-	log.Debug("mode internal [%s] goes to %s -->  [build: %s server: %s]",
-		userIP, resp.Request.Host, service.Build, backendServer)
+	log.Debug("internal - %s [%s] goes to %s -->  [build: %s server: %s]",
+		target.FetchedSource, userIP, resp.Request.Host, service.Build, backendServer)
 
 	return internelReverseProxy(resp)
 }
