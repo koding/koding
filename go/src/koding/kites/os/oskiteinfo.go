@@ -13,17 +13,17 @@ import (
 )
 
 type OskiteInfo struct {
-	QueuedVMs       int    `json:"queuedVMs,omitempty"`
-	QueueLimit      int    `json:"queueLimit,omitempty"`
+	QueuedVMs       int    `json:"queuedVMs"`
+	QueueLimit      int    `json:"queueLimit"`
 	CurrentVMs      int    `json:"currentVMs"` // by default 0
-	CurrentVMsLimit int    `json:"currentVMsLimit,omitempty"`
+	CurrentVMsLimit int    `json:"currentVMsLimit"`
 	Version         string `json:"version"`
 }
 
 func GetOskiteInfo() *OskiteInfo {
 	return &OskiteInfo{
-		QueuedVMs:       len(prepareQueue),
-		QueueLimit:      prepareQueueLimit,
+		QueuedVMs:       int(currentQueueCount.Get()),
+		QueueLimit:      len(prepareQueue),
 		CurrentVMs:      currentVMS(),
 		CurrentVMsLimit: *flagLimit,
 		Version:         OSKITE_VERSION,

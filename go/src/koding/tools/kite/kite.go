@@ -354,6 +354,14 @@ func (k *Kite) startRouting(stream <-chan amqp.Delivery, publishChannel *amqp.Ch
 						delete(routeMap, message.RoutingKey)
 						log.Warning("Dropped client because of message buffer overflow.")
 					}
+				} else {
+					// if user's routing key is old or doesnt exists, return a
+					// command to user for cycling the channel
+					log.Debug("Unknown routing key, send cycle channel for : %v", message.RoutingKey)
+					msg := []byte("{\"method\":\"cycleChannel\"}")
+					if err := publishChannel.Publish(k.PublishExchange, message.RoutingKey, false, false, amqp.Publishing{Body: msg}); err != nil {
+						log.LogError(err, 0)
+					}
 				}
 			}
 
