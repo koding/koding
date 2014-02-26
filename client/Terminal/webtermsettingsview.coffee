@@ -26,14 +26,16 @@ class WebtermSettingsView extends JView
         webtermView.updateSettings()
       defaultValue  : webtermView.appStorage.getValue 'theme'
 
-    @bell           = new KDOnOffSwitch
+    @bell           = new KodingSwitch
+      size          : "tiny"
       callback      : (value) =>
         webtermView.appStorage.setValue 'visualBell', value
         webtermView.updateSettings()
       defaultValue  : webtermView.appStorage.getValue 'visualBell'
 
     mainView        = KD.getSingleton "mainView"
-    @fullscreen     = new KDOnOffSwitch
+    @fullscreen     = new KodingSwitch
+      size          : "tiny"
       callback      : (state) =>
         if state
           mainView.enableFullscreen()
@@ -53,10 +55,11 @@ class WebtermSettingsView extends JView
 
   pistachio:->
     """
-    <p>Font                     {{> @font}}</p>
-    <p>Font size                {{> @fontSize}}</p>
-    <p>Theme                    {{> @theme}}</p>
-    <p>Scrollback               {{> @scrollback}}</p>
-    <p>Use visual bell          {{> @bell}}</p>
-    <p>Fullscreen               {{> @fullscreen}}</p>
+    <p class="with-select">Font               {{> @font}}</p>
+    <p class="with-select">Font size          {{> @fontSize}}</p>
+    <p class="with-select">Theme              {{> @theme}}</p>
+    <p class="with-select">Scrollback         {{> @scrollback}}</p>
+    <hr>
+    <p>Use visual bell                  {{> @bell}}</p>
+    <p>Fullscreen                       {{> @fullscreen}}</p>
     """

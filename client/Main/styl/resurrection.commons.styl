@@ -540,10 +540,9 @@ finderSelectedColor2 = logoBg
     borderBox()
 
     hr
-      margin              3px 10px
-
-      &~p
-        line-height       32px
+      border              none
+      border-top          1px solid #cacaca
+      margin              12px 10px
 
     p
       font-size           12px
@@ -551,6 +550,10 @@ finderSelectedColor2 = logoBg
       clear               both
       vertical-align      center
       borderBox()
+
+      &.with-select
+        line-height       32px
+
       .koding-on-off
         fr()
       a.shortcuts
@@ -564,17 +567,17 @@ finderSelectedColor2 = logoBg
       display             inline-block
       fr()
       .kdselectbox
-        width             110px
+        width             134px
         margin            0
         display           block
 
     .kdselectbox
-      min-width           100px
+      min-width           112px
       fr()
 
     &.webterm-settings-view
       .kdselectbox
-          min-width           130px
+          min-width           134px
 
   .context-menu-item
     margin-left           10px
