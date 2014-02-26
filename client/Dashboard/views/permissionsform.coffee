@@ -118,7 +118,7 @@ class PermissionsForm extends KDFormViewWithFields
       cascadeData[current].defaultValue = yes
       cascadeData[current].disabled = yes
     if current and remainder.length > 0
-      cascadeData[current].nextElement = cascadeFormElements set, remainder, module, permission, roles.length
+      cascadeData[current].nextElement = cascadeFormElements set, remainder, module, permission, roleCount
     return cascadeData
 
   cascadeHeaderElements = (roles)->
