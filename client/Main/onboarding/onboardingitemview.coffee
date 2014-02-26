@@ -3,15 +3,9 @@ class OnboardingItemView extends JView
   constructor: (options = {}, data) ->
 
     options.cssClass   = KD.utils.curry "onboarding-item", options.cssClass
-    parentOffset       = options.parentElement.getDomElement().offset()
-    options.position   =
-      top              : parentOffset.top + 40
-      left             : parentOffset.left
 
     super options, data
 
-    {hasPrev, hasNext} = @getOptions()
-    @prevButton        = new KDCustomHTMLView
     @nextButton        = new KDCustomHTMLView
     @overlay           = new KDOverlayView
       isRemovable      : no
@@ -28,8 +22,6 @@ class OnboardingItemView extends JView
         cssClass       : "next-button solid medium green"
         title          : "NEXT"
         callback       : => @emit "NavigationRequested", "next"
-
-    @appendToDomBody()
 
     @on "NavigationRequested", (direction) =>
       @overlay.destroy()
