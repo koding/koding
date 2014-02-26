@@ -242,8 +242,8 @@ button.app-settings-menu
     shadow            none
 
 
-finderSelectedColor1 = #3AAAAB
-finderSelectedColor2 = #3AAAAB
+finderSelectedColor1 = logoBg
+finderSelectedColor2 = logoBg
 
 .jcontextmenu
 
@@ -542,15 +542,21 @@ finderSelectedColor2 = #3AAAAB
     hr
       margin              3px 10px
 
+      &~p
+        line-height       32px
+
     p
       font-size           12px
       padding             3px 20px
+      clear               both
+      vertical-align      center
       borderBox()
       .koding-on-off
         fr()
       a.shortcuts
         color             #444
         noTextDeco()
+
 
     .kdview.section
       margin              0 10px 0 0
@@ -563,14 +569,8 @@ finderSelectedColor2 = #3AAAAB
         display           block
 
     .kdselectbox
-      min-width           110px
+      min-width           100px
       fr()
-      span.title
-        font-weight       normal
-        height            19px
-        line-height       20px
-      span.arrows
-        top               0
 
     &.webterm-settings-view
       .kdselectbox
@@ -621,8 +621,27 @@ finderSelectedColor2 = #3AAAAB
       color             #3aaaab
       background        white
 
+//
+// KD SELECTBOX
+//
 
+div.kdselectbox
+  background          #fff
+  border              1px solid #d7d7d7
+  border-radius       6px
+  height              32px
 
+  span.title
+    font-size         12px
+    font-weight       200
+    color             #606060
+    line-height       34px
+    padding           0 40px 0 15px
+
+  span.arrows
+    r-sprite          "app", "select-arrows"
+    top               9px
+    right             6px
 
 //
 // THIN INPUT STYLES
@@ -855,26 +874,6 @@ input.kdinput.text
     color             #282521 !important
     line-height       14px
     blockMidTop()
-
-  div.kdselectbox
-    background        #fff
-    border            1px solid #d7d7d7
-    shadow            none
-    border-radius     6px
-    height            32px
-
-    .title
-      font-size       12px
-      font-weight     200
-      color           #606060
-      text-shadow     none
-      line-height     34px !important
-      padding         0 40px 0 15px
-
-    .arrows
-      r-sprite      "app", "select-arrows"
-      top           9px
-      right         6px
 
   .linkholder
     padding           0 0 10px 0

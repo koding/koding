@@ -107,11 +107,14 @@ var DjangoHtmlHighlightRules = function() {
 oop.inherits(DjangoHtmlHighlightRules, HtmlHighlightRules);
 
 var Mode = function() {
-    var highlighter = new DjangoHtmlHighlightRules();
-    this.$tokenizer = new Tokenizer(highlighter.getRules());
-    this.$embeds = highlighter.getEmbeds();
+    HtmlMode.call(this);
+    this.HighlightRules = DjangoHtmlHighlightRules;
 };
 oop.inherits(Mode, HtmlMode);
+
+(function() {
+    this.$id = "ace/mode/django";
+}).call(Mode.prototype);
 
 exports.Mode = Mode;
 });

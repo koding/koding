@@ -8,7 +8,7 @@ projectRoot = nodePath.join __dirname, '..'
 mongo        = 'dev:k9lc4G1k32nyD72@172.16.3.9:27017/koding'
 mongoKontrol = 'dev:k9lc4G1k32nyD72@172.16.3.9:27017/kontrol'
 
-mongoReplSet = 'mongodb://dev:k9lc4G1k32nyD72@172.16.3.9,172.16.3.10,172.16.3.3/koding?replicaSet=koodingrs0&readPreference=primaryPreferred'
+mongoReplSet = 'mongodb://dev:k9lc4G1k32nyD72@172.16.3.9,172.16.3.10,172.16.3.15/koding?replicaSet=koodingrs0&readPreference=primaryPreferred'
 
 socialQueueName = "koding-social-#{version}"
 
