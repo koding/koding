@@ -58,7 +58,7 @@ module.exports = class JReferral extends jraphical.Message
 
   @getReferralEarningLimits = (type) ->
     switch type
-      when "disk" then return 16000
+      when "disk" then return 17408
       else return console.error "Unknown referral query limit"
 
   # Simply find the unused referrals
