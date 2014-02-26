@@ -63,11 +63,11 @@ var Text = function(parentEl) {
     };
 
     this.getLineHeight = function() {
-        return this.$characterSize.height || 1;
+        return this.$characterSize.height || 0;
     };
 
     this.getCharacterWidth = function() {
-        return this.$characterSize.width || 1;
+        return this.$characterSize.width || 0;
     };
 
     this.checkForSizeChanges = function() {
@@ -294,6 +294,7 @@ var Text = function(parentEl) {
                 this.$renderLine(
                     html, row, !this.$useLineGroups(), row == foldStart ? foldLine : false
                 );
+                lineElement.style.height = config.lineHeight * this.session.getRowLength(row) + "px";
                 dom.setInnerHtml(lineElement, html.join(""));
             }
             row++;
@@ -360,10 +361,11 @@ var Text = function(parentEl) {
             if (this.$useLineGroups()) {
                 container.className = 'ace_line_group';
                 fragment.appendChild(container);
+                container.style.height = config.lineHeight * this.session.getRowLength(row) + "px";
+
             } else {
-                var lines = container.childNodes
-                while(lines.length)
-                    fragment.appendChild(lines[0]);
+                while(container.firstChild)
+                    fragment.appendChild(container.firstChild);
             }
 
             row++;
@@ -391,7 +393,7 @@ var Text = function(parentEl) {
                 break;
 
             if (this.$useLineGroups())
-                html.push("<div class='ace_line_group'>")
+                html.push("<div class='ace_line_group' style='height:", config.lineHeight*this.session.getRowLength(row), "px'>")
 
             this.$renderLine(html, row, false, row == foldStart ? foldLine : false);
 
@@ -551,7 +553,10 @@ var Text = function(parentEl) {
 
         if (!onlyContents) {
             stringBuilder.push(
-                "<div class='ace_line' style='height:", this.config.lineHeight, "px'>"
+                "<div class='ace_line' style='height:", 
+                    this.config.lineHeight * (
+                        this.$useLineGroups() ? 1 :this.session.getRowLength(row)
+                    ), "px'>"
             );
         }
 

@@ -37,14 +37,14 @@ var JavaScriptMode = require("./javascript").Mode;
 var CssMode = require("./css").Mode;
 var Tokenizer = require("../tokenizer").Tokenizer;
 var ColdfusionHighlightRules = require("./coldfusion_highlight_rules").ColdfusionHighlightRules;
+var CfmlBehaviour = require("./behaviour/coldfusion").CfmlBehaviour;
 
 var Mode = function() {
     XmlMode.call(this);
     
-    var highlighter = new ColdfusionHighlightRules();
-    this.$tokenizer = new Tokenizer(highlighter.getRules());
+    this.HighlightRules = ColdfusionHighlightRules;
+    this.$behaviour = new CfmlBehaviour();
     
-    this.$embeds = highlighter.getEmbeds();
     this.createModeDelegates({
       "js-": JavaScriptMode,
       "css-": CssMode
@@ -58,6 +58,7 @@ oop.inherits(Mode, XmlMode);
         return this.$getIndent(line);
     };
 
+    this.$id = "ace/mode/coldfusion";
 }).call(Mode.prototype);
 
 exports.Mode = Mode;
