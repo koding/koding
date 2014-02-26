@@ -21,7 +21,9 @@ class GroupsController extends KDController
       then router.handleRoute "#{pageInfo.path}"
       else router.handleRoute "#{pageInfo.path}", {entryPoint}
 
-    mainController.ready => @changeGroup entryPoint?.slug
+    mainController.ready =>
+      {slug} = entryPoint  if entryPoint?.type is "group"
+      @changeGroup slug
 
   getCurrentGroup:->
     throw 'FIXME: array should never be passed'  if Array.isArray @currentGroupData.data

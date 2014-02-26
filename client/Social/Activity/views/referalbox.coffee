@@ -29,7 +29,7 @@ class ReferalBox extends JView
     @updateReferralCountPartial()
 
     @progressBar = new KDProgressBarView
-      title       : '0 GB / 16 GB'
+      title       : '0 GB / 20 GB'
       determinate : yes
 
   click : -> @showReferrerModal()
@@ -67,7 +67,7 @@ class ReferalBox extends JView
         usagePercent = max / (16*1e9) * 90
         used         = KD.utils.formatBytesToHumanReadable max
 
-        @progressBar.updateBar usagePercent + 10, null, "#{used} / 16 GB"
+        @progressBar.updateBar usagePercent + 10, null, "#{used} / 20 GB"
 
 
   showReferrerModal: (event)->
