@@ -46,7 +46,7 @@ class OnboardingItemView extends JView
 
   createContentView: ->
     {title, content} = @getData()
-    @overlay       = new KDOverlayView    { isRemovable : no    , parent  : "body"  }
+    @overlay       = new KDOverlayView    { isRemovable : no                        }
     title          = new KDCustomHTMLView { tagName     : "h3"  , partial : title   }
     content        = new KDCustomHTMLView { tagName     : "p"   , partial : content }
     buttonsWrapper = new KDCustomHTMLView { cssClass    : "buttons"                 }
