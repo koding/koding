@@ -90,7 +90,7 @@ class WebTermView extends KDView
       sizeX       : @terminal.sizeX
       sizeY       : @terminal.sizeY
       joinUser    : myOptions.joinUser  ? delegateOptions.joinUser
-      session     : myOptions.session   ? delegateOptions.session ? @sessionId
+      session     : @sessionId ? myOptions.session ? delegateOptions.session
       mode        : myOptions.mode      ? 'create'
 
   getVMName:->
