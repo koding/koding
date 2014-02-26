@@ -17,7 +17,7 @@ class OnboardingViewController extends KDController
     @show item
 
   show: (item) ->
-    path     = @escapePath item.partial.path
+    path     = item.path
     appName  = @app.getOptions().name
     itemName = item.name
     hasNext  = @items.indexOf(item) isnt @items.length - 1
@@ -34,13 +34,3 @@ class OnboardingViewController extends KDController
     catch e
       details = { appName: appName, itemName: itemName, error: e }
       console.warn "Path parse error for onboarding item", details
-
-  escapePath: (path) ->
-    escaped  = path.replace(/\[/g, ".").replace(/\]/g, ".")
-    splitted = escaped.split "."
-    result   = splitted.first
-
-    for item, index in splitted when item
-      result += """["#{item}"]"""  if index > 0
-
-    return result
