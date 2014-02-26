@@ -11,7 +11,7 @@ class WebTermView extends KDView
         isRunningCallback()
       else
         vmController.start vmName, (err, state)=>
-          warn "Failed to turn on vm:", err  if err
+          return warn "Failed to turn on vm:", err  if err
           isStartedCallback()
       KD.mixpanel "Open Webterm, success", {vmName}
 

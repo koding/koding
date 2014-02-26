@@ -482,6 +482,163 @@ func (p *Proxy) redirect(req *http.Request, target *resolver.Target) http.Handle
 	return http.RedirectHandler(target.URL.String()+req.RequestURI, http.StatusFound)
 }
 
+func (p *Proxy) internal(req *http.Request, target *resolver.Target) http.Handler {
+	// switch to websocket immediately
+	if isWebsocket(req) {
+		return websocketHandler(target.URL.Host)
+	}
+
+	userIP := getIP(req.RemoteAddr)
+
+	service := target.GetService()
+	round, err := service.NextRoundRing()
+	if err != nil {
+		log.Info("internal NextRoundRing resolver error for %s (%s) - %s", req.Host, userIP, err)
+		return templateHandler("maintenance.html", nil, 503)
+	}
+
+	resp, backendServer, err := RoundTrip(req, round, 0)
+	if err != nil {
+		log.Info("internal recursive resolver error for %s (%s) - %s", req.Host, userIP, err)
+		return templateHandler("maintenance.html", nil, 503)
+	}
+
+	log.Debug("internal - %s [%s] goes to %s -->  [build: %s server: %s]",
+		target.FetchedSource, userIP, resp.Request.Host, service.Build, backendServer)
+
+	return internelReverseProxy(resp)
+}
+
+func internelReverseProxy(res *http.Response) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		defer res.Body.Close()
+		copyHeader(w.Header(), res.Header)
+		w.WriteHeader(res.StatusCode)
+		io.Copy(w, res.Body)
+	})
+}
+
+func RoundTrip(req *http.Request, round *resolver.RoundRing, index int) (*http.Response, string, error) {
+	if round.Ring.Len() == index {
+		return nil, "", errors.New("all servers are down")
+	}
+
+	// means the healtChecker created a zero length ring. This is caused only
+	// when all hosts are sick.
+	if round.Ring == nil {
+		return nil, "", errors.New("all servers are down")
+	}
+
+	// get backendServer and forward ring to the next value. the next value will be
+	// used on the next request if this fails.
+	backendServer, ok := round.Ring.Value.(string)
+	if !ok {
+		return nil, "", fmt.Errorf("ring value is not string: %+v", backendServer)
+	}
+	round.Ring = round.Ring.Next()
+
+	// be sure that the backendServer has scheme prependend
+	backendServer = utils.CheckScheme(backendServer)
+	targetURL, err := url.Parse(backendServer)
+	if err != nil {
+		return nil, "", err
+	}
+
+	outreq := new(http.Request)
+	*outreq = *req // includes shallow copies of maps, but okay
+
+	if !utils.HasPort(targetURL.Host) {
+		outreq.URL.Host = utils.AddPort(targetURL.Host, "80")
+	} else {
+		outreq.URL.Host = targetURL.Host
+	}
+	outreq.URL.Scheme = targetURL.Scheme
+
+	outreq.Proto = "HTTP/1.1"
+	outreq.ProtoMajor = 1
+	outreq.ProtoMinor = 1
+	outreq.Close = false
+
+	// Remove hop-by-hop headers to the backend.  Especially
+	// important is "Connection" because we want a persistent
+	// connection, regardless of what the client sent to us.  This
+	// is modifying the same underlying map from req (shallow
+	// copied above) so we only copy it if necessary.
+	copiedHeaders := false
+	for _, h := range hopHeaders {
+		if outreq.Header.Get(h) != "" {
+			if !copiedHeaders {
+				outreq.Header = make(http.Header)
+				copyHeader(outreq.Header, req.Header)
+				copiedHeaders = true
+			}
+			outreq.Header.Del(h)
+		}
+	}
+
+	if clientIP, _, err := net.SplitHostPort(req.RemoteAddr); err == nil {
+		// If we aren't the first proxy retain prior
+		// X-Forwarded-For information as a comma+space
+		// separated list and fold multiple headers into one.
+		if prior, ok := outreq.Header["X-Forwarded-For"]; ok {
+			clientIP = strings.Join(prior, ", ") + ", " + clientIP
+		}
+		outreq.Header.Set("X-Forwarded-For", clientIP)
+	}
+
+	res, err := http.DefaultTransport.RoundTrip(outreq)
+	if err != nil {
+		index++
+		return RoundTrip(req, round, index) // pick up the next one
+	}
+
+	return res, backendServer, nil
+}
+
+// Hop-by-hop headers. These are removed when sent to the backend.
+// http://www.w3.org/Protocols/rfc2616/rfc2616-sec13.html
+var hopHeaders = []string{
+	"Connection",
+	"Keep-Alive",
+	"Proxy-Authenticate",
+	"Proxy-Authorization",
+	"Te", // canonicalized version of "TE"
+	"Trailers",
+	"Transfer-Encoding",
+	"Upgrade",
+}
+
+func copyHeader(dst, src http.Header) {
+	for k, vv := range src {
+		for _, v := range vv {
+			dst.Add(k, v)
+		}
+	}
+}
+
+// reverseProxyHandler is the main handler that is used for copy the response
+// back and forth to the request iniator. We use Go's main
+// httputil.ReverseProxy but can easily switch to any custom handler in the
+// future
+func reverseProxyHandler(transport http.RoundTripper, target *url.URL) http.Handler {
+	return &httputil.ReverseProxy{
+		Transport: transport, // if nil, http.DefaultTransport is used.
+		Director: func(req *http.Request) {
+			if !utils.HasPort(target.Host) {
+				req.URL.Host = utils.AddPort(target.Host, "80")
+			} else {
+				req.URL.Host = target.Host
+			}
+			req.URL.Scheme = target.Scheme
+		},
+	}
+}
+
+type tempData struct {
+	Host string
+	Url  string
+}
+
 func (p *Proxy) vm(req *http.Request, target *resolver.Target) http.Handler {
 	userIP := getIP(req.RemoteAddr)
 	hostnameAlias := target.HostnameAlias[0]
@@ -584,37 +741,6 @@ func (p *Proxy) vm(req *http.Request, target *resolver.Target) http.Handler {
 	return reverseProxyHandler(nil, target.URL)
 }
 
-type tempData struct {
-	Host string
-	Url  string
-}
-
-func (p *Proxy) internal(req *http.Request, target *resolver.Target) http.Handler {
-	userIP := getIP(req.RemoteAddr)
-
-	// roundrobin to next target
-	target.Resolve(req.Host)
-	if target.Err != nil {
-		log.Info("internal resolver error for %s (%s) - %s", req.Host, userIP, target.Err)
-		statusCode := 503
-		if target.Err == resolver.ErrGone {
-			statusCode = 410 // Gone
-		}
-
-		return templateHandler("maintenance.html", nil, statusCode)
-	}
-
-	log.Debug("mode '%s' [%s] via %s : %s --> %s",
-		target.Proxy.Mode, userIP, target.FetchedSource, req.Host, target.URL.String())
-
-	// switch to websocket before we even show the cookie
-	if isWebsocket(req) {
-		return websocketHandler(target.URL.Host)
-	}
-
-	return reverseProxyHandler(nil, target.URL)
-}
-
 func (p *Proxy) checkAndStartVM(hostnameAlias, hostkite, port string) (*url.URL, error) {
 	vmAddr, err := p.startVM(hostnameAlias, hostkite)
 	if err != nil {
@@ -643,24 +769,6 @@ func (p *Proxy) checkAndStartVM(hostnameAlias, hostkite, port string) (*url.URL,
 		case <-timeout:
 			return nil, errors.New("timeout")
 		}
-	}
-}
-
-// reverseProxyHandler is the main handler that is used for copy the response
-// back and forth to the request iniator. We use Go's main
-// httputil.ReverseProxy but can easily switch to any custom handler in the
-// future
-func reverseProxyHandler(transport http.RoundTripper, target *url.URL) http.Handler {
-	return &httputil.ReverseProxy{
-		Transport: transport, // if nil, http.DefaultTransport is used.
-		Director: func(req *http.Request) {
-			if !utils.HasPort(target.Host) {
-				req.URL.Host = utils.AddPort(target.Host, "80")
-			} else {
-				req.URL.Host = target.Host
-			}
-			req.URL.Scheme = target.Scheme
-		},
 	}
 }
 
