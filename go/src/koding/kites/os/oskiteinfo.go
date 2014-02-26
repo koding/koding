@@ -12,12 +12,19 @@ import (
 	"strings"
 )
 
+type ByVM []*OskiteInfo
+
+func (b ByVM) Len() int           { return len(b) }
+func (b ByVM) Swap(i, j int)      { b[i], b[j] = b[j], b[i] }
+func (b ByVM) Less(i, j int) bool { return b[i].CurrentVMs < b[j].CurrentVMs }
+
 type OskiteInfo struct {
-	QueuedVMs       int    `json:"queuedVMs"`
-	QueueLimit      int    `json:"queueLimit"`
-	CurrentVMs      int    `json:"currentVMs"` // by default 0
-	CurrentVMsLimit int    `json:"currentVMsLimit"`
-	Version         string `json:"version"`
+	QueuedVMs         int    `json:"queuedVMs"`
+	QueueLimit        int    `json:"queueLimit"`
+	CurrentVMs        int    `json:"currentVMs"` // by default 0
+	CurrentVMsLimit   int    `json:"currentVMsLimit"`
+	Version           string `json:"version"`
+	ServiceUniquename string `json:"-"`
 }
 
 func GetOskiteInfo() *OskiteInfo {

@@ -3,6 +3,7 @@
 package main
 
 import (
+	"fmt"
 	"koding/tools/dnode"
 	"koding/tools/kite"
 	"koding/virt"
@@ -15,14 +16,27 @@ func vmStart(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interfa
 	if !vos.Permissions.Sudo {
 		return nil, &kite.PermissionError{}
 	}
-	if err := vos.VM.Start(); err != nil {
-		panic(err)
+
+	done := make(chan struct{}, 1)
+	prepareQueue <- &QueueJob{
+		msg: "vm.Start" + channel.CorrelationName,
+		f: func() string {
+
+			if err := vos.VM.Start(); err != nil {
+				panic(err)
+			}
+
+			// wait until network is up
+			if err := vos.VM.WaitForNetwork(time.Second * 5); err != nil {
+				panic(err)
+			}
+
+			done <- struct{}{}
+			return fmt.Sprintf("vm.Start %s", channel.CorrelationName)
+		},
 	}
 
-	// wait until network is up
-	if err := vos.VM.WaitForNetwork(time.Second * 5); err != nil {
-		panic(err)
-	}
+	<-done
 
 	return true, nil
 }
@@ -31,9 +45,22 @@ func vmShutdown(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (inte
 	if !vos.Permissions.Sudo {
 		return nil, &kite.PermissionError{}
 	}
-	if err := vos.VM.Shutdown(); err != nil {
-		panic(err)
+
+	done := make(chan struct{}, 1)
+	prepareQueue <- &QueueJob{
+		msg: "vm.Shutdown" + channel.CorrelationName,
+		f: func() string {
+
+			if err := vos.VM.Shutdown(); err != nil {
+				panic(err)
+			}
+
+			done <- struct{}{}
+			return fmt.Sprintf("vm.Shutdown %s", channel.CorrelationName)
+		},
 	}
+
+	<-done
 	return true, nil
 }
 
