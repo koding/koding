@@ -332,6 +332,7 @@ module.exports = class JAccount extends jraphical.Module
           default           : 0
         lastStatusUpdate    : String
       referrerUsername      : String
+      referralUsed          : Boolean
       preferredKDProxyDomain: String
       isExempt              : # is a troll ?
         type                : Boolean

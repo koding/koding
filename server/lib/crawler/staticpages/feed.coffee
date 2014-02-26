@@ -2,8 +2,7 @@
 {uri}                   = require('koding-config-manager').load("main.#{argv.c}")
 {daisy}                 = require "bongo"
 {Relationship}          = require 'jraphical'
-{createActivityContent,
- decorateComment}       = require '../helpers'
+{createActivityContent, decorateComment} = require '../helpers'
 
 ITEMSPERPAGE = 20
 

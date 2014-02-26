@@ -58,7 +58,7 @@ module.exports = class JReferral extends jraphical.Message
 
   @getReferralEarningLimits = (type) ->
     switch type
-      when "disk" then return 16000
+      when "disk" then return 17408
       else return console.error "Unknown referral query limit"
 
   # Simply find the unused referrals
@@ -320,6 +320,8 @@ module.exports = class JReferral extends jraphical.Message
         ->
           referrerUsername = me.referrerUsername
           return console.info "User doesn't have any referrer" unless referrerUsername
+
+          return console.info "User already get the referrer" if me.referralUsed
           # get referrer
           JAccount.one {'profile.nickname': referrerUsername }, (err, referrer_)->
             # if error occured than do nothing and return
@@ -327,6 +329,10 @@ module.exports = class JReferral extends jraphical.Message
             # if referrer not fonud then do nothing and return
             return console.error "Referrer couldnt found" if not referrer_
             referrer = referrer_
+            queue.next()
+        ->
+          me.update $set: "referralUsed": yes, (err)->
+            return console.error err if err
             queue.next()
         ->
           persistReferrals campaign, referrer, me, (err)->

@@ -163,7 +163,7 @@ module.exports =
                         for acc in accounts
                           for comment in teaser.replies
                             if comment.originId.toString() is acc._id.toString()
-                              comment.author = acc.data.profile
+                              comment.author = acc
                         queue.decoratedStatusUpdates.push teaser
                         queue.next()
                   else queue.next()
