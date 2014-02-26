@@ -165,7 +165,7 @@ class FeedController extends KDViewController
     options    = @getFeedOptions()
     selector   = @getFeedSelector()
     {itemClass, feedId}  = @getOptions()
-
+    feedId = "" unless feedId
     {groupsController} = KD.singletons
 
     if KD.config.entryPoint?.type is 'group'
