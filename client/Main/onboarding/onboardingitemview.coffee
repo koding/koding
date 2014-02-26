@@ -54,19 +54,19 @@ class OnboardingItemView extends JView
 
     if @hasPrev
       prevButton   = new KDButtonView
-        cssClass   : "solid medium light-gray"
+        cssClass   : "solid ufak light-gray"
         title      : "PREV"
         callback   : => @emit "NavigationRequested", "prev"
 
     if @hasNext
       nextButton   = new KDButtonView
-        cssClass   : "solid medium green"
+        cssClass   : "solid green ufak"
         title      : "NEXT"
         callback   : => @emit "NavigationRequested", "next"
 
     if @isLast
       doneButton   = new KDButtonView
-        cssClass   : "solid medium green"
+        cssClass   : "solid green ufak"
         title      : "DONE"
         callback   : => @emit "OnboardingCompleted"
 

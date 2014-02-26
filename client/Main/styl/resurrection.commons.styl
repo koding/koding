@@ -442,6 +442,20 @@ finderSelectedColor2 = #3AAAAB
   &:focus
     shadow             0 0 10px -2px logoBg
 
+.kdbutton.solid.ufak
+  height               30px
+  padding              0 16px
+  span
+    line-height        30px
+    font-size          12px
+
+.kdbutton.ufak.light-gray
+  bg                   color, transparent !important
+  border               2px solid #CBCBCB
+  span
+    color              #858585 !important
+    line-height        26px
+
 .kdbutton.solid.yellow
   bg                   color #ff9f00
   span.button-title
@@ -1326,7 +1340,7 @@ a.action-link.verify-email
 
 // onboarding
 .onboarding-item
-  padding               30px
+  padding               28px 30px
   rounded               5px
   bg                    color, #FFF
   max-width             400px
@@ -1339,18 +1353,18 @@ a.action-link.verify-email
     font-weight         400
   p
     font-size           14px
-    line-height         18px
+    line-height         20px
     color               #595959
   .buttons
     text-align          right
     position            relative
     button
-      &:first-child
-        margin-right    10px
       margin-top        25px !important
+      &.ufak.light-gray
+        margin-right    6px
   .steps
     abs()
-    top                 34px
+    top                 30px
     span
       size              8px, 8px
       rounded           8px
