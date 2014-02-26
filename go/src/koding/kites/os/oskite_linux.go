@@ -25,6 +25,7 @@ import (
 	"os/signal"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"syscall"
 	"time"
 
@@ -79,7 +80,7 @@ var (
 
 	vmTimeout         = time.Minute * 50
 	prepareQueueLimit = 8 + 1 // number of concurrent VM preparations, should be CPU + 1
-	prepareQueue      = make(chan func(chan struct{}))
+	prepareQueue      = make(chan *QueueJob, 1000)
 )
 
 func main() {
@@ -123,7 +124,7 @@ func main() {
 	// startPrepareWorkers starts multiple workers (based on prepareQueueLimit)
 	// that accepts vmPrepare/vmStart functions.
 	for i := 0; i < prepareQueueLimit; i++ {
-		go prepareWorker()
+		go prepareWorker(i)
 	}
 
 	k := prepareOsKite()
@@ -208,8 +209,8 @@ func oskiteRedis(serviceUniquename string) {
 
 	// update regularly our VMS info
 	go func() {
-		expireDuration := time.Second * 2
-		for _ = range time.Tick(2 * time.Second) {
+		expireDuration := time.Second * 5
+		for _ = range time.Tick(5 * time.Second) {
 			key := prefix + serviceUniquename
 			oskiteInfo := GetOskiteInfo()
 
@@ -225,7 +226,7 @@ func oskiteRedis(serviceUniquename string) {
 	}()
 
 	// get oskite statuses from others every 2 seconds
-	for _ = range time.Tick(2 * time.Second) {
+	for _ = range time.Tick(5 * time.Second) {
 		kontainers, err := redigo.Strings(session.Do("SMEMBERS", kontainerSet))
 		if err != nil {
 			log.Error("redis SMEMBER kontainers. err: %v", err.Error())
@@ -514,7 +515,13 @@ func setupSignalHandler(k *kite.Kite) {
 		if sig == syscall.SIGUSR1 {
 			for _, info := range infos {
 				log.Info("Unpreparing " + info.vm.String() + "...")
-				info.unprepareVM()
+				prepareQueue <- &QueueJob{
+					msg: "vm unprepare because of shutdown oskite " + info.vm.HostnameAlias,
+					f: func() string {
+						info.unprepareVM()
+						return fmt.Sprintf("shutting down %s", info.vm.Id.Hex())
+					},
+				}
 			}
 
 			query := func(c *mgo.Collection) error {
@@ -815,54 +822,92 @@ func startVM(k *kite.Kite, vm *virt.VM, channel *kite.Channel) error {
 	}
 
 	if !isPrepared || info.currentHostname != vm.HostnameAlias {
-		wait := make(chan struct{}, 0)
+		done := make(chan struct{}, 1)
 
-		prepareQueue <- func(done chan struct{}) {
-			defer func() {
+		prepareQueue <- &QueueJob{
+			msg: "vm prepare and restart " + vm.HostnameAlias,
+			f: func() string {
+				startTime := time.Now()
+
+				// prepare first
+				vm.Prepare(false, log.Warning)
+
+				// start it
+				if err := vm.Start(); err != nil {
+					log.LogError(err, 0)
+				}
+
+				// wait until network is up
+				if err := vm.WaitForNetwork(time.Second * 5); err != nil {
+					log.Error("%v", err)
+				}
+
+				res := fmt.Sprintf("VM PREPARE and START: %s [%s] - ElapsedTime: %.10f seconds.",
+					vm, vm.HostnameAlias, time.Since(startTime).Seconds())
+
+				info.currentHostname = vm.HostnameAlias
+
 				done <- struct{}{}
-				wait <- struct{}{}
-			}()
-
-			startTime := time.Now()
-			vm.Prepare(false, log.Warning)
-			if err := vm.Start(); err != nil {
-				log.LogError(err, 0)
-			}
-
-			// wait until network is up
-			if err := vm.WaitForNetwork(time.Second * 5); err != nil {
-				log.Error("%v", err)
-			}
-
-			endTime := time.Now()
-			log.Info("VM PREPARE and START: %s [%s] - ElapsedTime: %.10f seconds.",
-				vm, vm.HostnameAlias, endTime.Sub(startTime).Seconds())
-
-			info.currentHostname = vm.HostnameAlias
+				return res
+			},
 		}
 
 		log.Info("putting %s into queue. total vms in queue: %d of %d",
-			vm.HostnameAlias, len(prepareQueue), prepareQueueLimit)
+			vm.HostnameAlias, currentQueueCount.Get(), len(prepareQueue))
 
 		// wait until the prepareWorker has picked us and we finished
-		<-wait
+		// to return something to the client
+		<-done
 	}
 
 	return nil
 }
 
+var currentQueueCount AtomicInt32
+
+type AtomicInt32 int32
+
+func (i *AtomicInt32) Add(n int32) int32 {
+	return atomic.AddInt32((*int32)(i), n)
+}
+
+func (i *AtomicInt32) Set(n int32) {
+	atomic.StoreInt32((*int32)(i), n)
+}
+
+func (i *AtomicInt32) Get() int32 {
+	return atomic.LoadInt32((*int32)(i))
+}
+
+// QueueJob is used to append jobs to our prepareQueue.
+type QueueJob struct {
+	f   func() string
+	msg string
+}
+
 // prepareWorker listens from prepareQueue channel and runs the functions it receives
-func prepareWorker() {
-	for fn := range prepareQueue {
+func prepareWorker(id int) {
+	for job := range prepareQueue {
+		currentQueueCount.Add(1)
+
+		log.Info(fmt.Sprintf("Queue %d: processing new job [%s]", id, time.Now().Format(time.StampMilli)))
+
 		done := make(chan struct{}, 1)
-		go fn(done)
+		go func() {
+			startTime := time.Now()
+			res := job.f() // execute our function
+			log.Info(fmt.Sprintf("Queue %d: elapsed time %s, res: %s", id, time.Since(startTime), res))
+			done <- struct{}{}
+		}()
 
 		select {
 		case <-done:
-			log.Info("done preparing vm")
-		case <-time.After(time.Second * 20):
-			log.Error("timing out preparing vm")
+			log.Info(fmt.Sprintf("Queue %d: done for job %s", id, job.msg))
+		case <-time.After(time.Second * 60):
+			log.Info(fmt.Sprintf("Queue %d: timed out after 60 seconds for job: %s", id, job.msg))
 		}
+
+		currentQueueCount.Add(-1)
 	}
 }
 
@@ -1047,8 +1092,15 @@ func (info *VMInfo) startTimeout() {
 			if info.useCounter != 0 || info.vm.AlwaysOn {
 				return
 			}
-			log.Info("Timer is finished. Shutting down %s", info.vm.Id.Hex())
-			info.unprepareVM()
+
+			prepareQueue <- &QueueJob{
+				msg: "vm unprepare " + info.vm.HostnameAlias,
+				f: func() string {
+					info.unprepareVM()
+					return fmt.Sprintf("shutting down %s after %s", info.vm.Id.Hex(), totalTimeout)
+				},
+			}
+
 		})
 	})
 }
