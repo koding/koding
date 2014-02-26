@@ -147,6 +147,7 @@ class WebTermView extends KDView
           console.error "Couldn't connect to your VM. Trying to reconnect...(err:oskite)"
           @webtermConnect("resume")
 
+      # todo do not leak events
       KD.kite.mq.on "broker.error", (err)=>
         console.error "Couldn't connect to your VM. Trying to reconnect...(err:broker)"
         if err.code is 404
