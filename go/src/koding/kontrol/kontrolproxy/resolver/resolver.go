@@ -40,7 +40,7 @@ const (
 	ModeVM          = "vm"
 	ModeRedirect    = "redirect"
 
-	HealthCheckInterval = time.Second * 10
+	HealthCheckInterval = time.Second * 60
 )
 
 // Target is returned for every incoming request host.
@@ -212,7 +212,7 @@ func (t *Target) Resolve(host string) error {
 	case ModeVM:
 		t.URL, t.Err = t.resolveVM(host, port)
 	case ModeInternal:
-		return errors.New("not supported. Use Target.GetRoundRing()")
+		t.CacheTimeout = time.Second * 5
 	default:
 		return errors.New("no mode defined for target resolver")
 	}
@@ -290,7 +290,6 @@ func (s *Service) NextRoundRing() (*RoundRing, error) {
 		// get the hosts to be roundrobined
 		hosts, err := s.serviceHosts()
 		if err != nil {
-			ringsMu.Unlock()
 			return nil, err
 		}
 
@@ -305,10 +304,16 @@ func (s *Service) NextRoundRing() (*RoundRing, error) {
 		go r.healtChecker(hosts, indexkey)
 	}
 
+	// means the healtChecker created a zero length ring. This is caused only
+	// when all hosts are sick.
+	if r.Ring == nil {
+		return nil, errors.New("all servers are down")
+	}
+
 	r.Ring = r.Ring.Next()
 	rings[indexkey] = r
 
-	return r, nil
+	return r.Copy(), nil
 }
 
 // buildHosts returns a list of target hosts for the given build parameters.
@@ -340,6 +345,12 @@ func (s *Service) serviceHosts() ([]string, error) {
 type RoundRing struct {
 	Ring   *ring.Ring
 	ticker *time.Ticker
+}
+
+func (r *RoundRing) Copy() *RoundRing {
+	n := new(RoundRing)
+	*n = *r
+	return n
 }
 
 func (r *RoundRing) healtChecker(hosts []string, indexkey string) {
