@@ -48,6 +48,7 @@ var producer *kontrolhelper.Producer
 var kontrolDB *mongodb.MongoDB
 var log = logger.New("kontroldaemon")
 var proxyMu sync.Mutex
+var handlerMu sync.Mutex
 
 const (
 	WorkersCollection = "jKontrolWorkers"
@@ -237,6 +238,9 @@ func handleAddCommand(worker models.Worker) (*WorkerResponse, error) {
 // modes are special where the workers are allowed to be run exclusive, which
 // then deny any other workers to be runned.
 func handleExclusiveOption(worker models.Worker) (*WorkerResponse, error) {
+	handlerMu.Lock()
+	defer handlerMu.Unlock()
+
 	option := worker.Message.Option
 	query := bson.M{}
 	reason := ""
