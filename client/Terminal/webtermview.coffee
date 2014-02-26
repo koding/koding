@@ -81,6 +81,55 @@ class WebTermView extends KDView
 
     @setKeyView()
 
+  generateOptions:->
+    delegateOptions = @getDelegate().getOptions()
+    myOptions       = @getOptions()
+
+    params =
+      remote      : @terminal.clientInterface
+      sizeX       : @terminal.sizeX
+      sizeY       : @terminal.sizeY
+      joinUser    : myOptions.joinUser  ? delegateOptions.joinUser
+      session     : @sessionId ? myOptions.session ? delegateOptions.session
+      mode        : myOptions.mode      ? 'create'
+
+  getVMName:->
+    delegateOptions = @getDelegate().getOptions()
+    myOptions       = @getOptions()
+    return myOptions.vmName or delegateOptions.vmName
+
+  webtermConnect:(mode)->
+    return console.info "reconnection is in progrees" if @reconnectionInPrgress
+    @reconnectionInPrgress = yes
+    options = @generateOptions()
+    options.mode = mode   if mode
+    KD.getSingleton("vmController").run
+      method        : "webterm.connect",
+      vmName        : @getVMName()
+      withArgs      : options
+    , (err, remote) =>
+      if err
+        warn err
+        if err.code is "ErrInvalidSession"
+          @reconnectionInPrgress = false
+          @emit 'TerminalCanceled',
+            vmName: @getVMName()
+            sessionId: @getOptions().session
+            error: err
+          return
+        else
+          @reconnectionInPrgress = false
+          throw err
+
+      @setOption "session", remote.session
+      @terminal.eventHandler = (data)=> @emit "WebTermEvent", data
+      @terminal.server       = remote
+      @sessionId = remote.session
+
+      @emit "WebTermConnected", remote
+      console.error "just connected"  if mode is "resume"
+      @reconnectionInPrgress = false
+
   connectToTerminal: ->
     @appStorage = KD.getSingleton('appStorageController').storage 'Terminal', '1.0.1'
     @appStorage.fetchStorage =>
@@ -91,42 +140,22 @@ class WebTermView extends KDView
       @appStorage.setValue 'scrollback', 1000 if not @appStorage.getValue('scrollback')?
       @updateSettings()
 
-      delegateOptions = @getDelegate().getOptions()
-      myOptions       = @getOptions()
+      @webtermConnect()
 
-      params =
-        remote      : @terminal.clientInterface
-        sizeX       : @terminal.sizeX
-        sizeY       : @terminal.sizeY
-        joinUser    : myOptions.joinUser  ? delegateOptions.joinUser
-        session     : myOptions.session   ? delegateOptions.session
-        mode        : myOptions.mode      ? 'create'
+      KD.getSingleton("vmController").getKite @getVMName(), (kite)=>
+        kite.on 'destroy', =>
+          console.error "Couldn't connect to your VM. Trying to reconnect...(err:oskite)"
+          @webtermConnect("resume")
 
-      KD.getSingleton("vmController").run
-        method        : "webterm.connect",
-        vmName        : myOptions.vmName or delegateOptions.vmName
-        withArgs      : params
-      , (err, remote) =>
-        if err
-          warn err
-
-          if err.code is "ErrInvalidSession"
-            @emit 'TerminalCanceled',
-              vmName: myOptions.vmName
-              sessionId: myOptions.session
-              error: err
-            return
-          else throw err
-
-        @terminal.eventHandler = (data)=> @emit "WebTermEvent", data
-        @terminal.server       = remote
-        @sessionId = remote.session
-        @emit "WebTermConnected", remote
-
-    KD.getSingleton("status").on "reconnected", =>
-      @handleReconnect yes
+      # todo do not leak events
+      KD.kite.mq.on "broker.error", (err)=>
+        console.error "Couldn't connect to your VM. Trying to reconnect...(err:broker)"
+        if err.code is 404
+          KD.getSingleton("vmController").getKite @getVMName(), (kite)=>
+            @webtermConnect("resume")
 
     KD.getSingleton("kiteController").on "KiteError", (err) =>
+      console.log "kite errr", err
       @reconnected = no
       {code, serviceGenericName} = err
 

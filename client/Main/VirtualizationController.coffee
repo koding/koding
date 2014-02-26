@@ -31,6 +31,12 @@ class VirtualizationController extends KDController
           # log rest...
           callback rest...
 
+  getKite:(vmName, callback)->
+    @fetchRegion vmName, (region)=>
+      kiteName = "os-#{region}"
+      kite = @kc.getKite kiteName, vmName
+      return callback kite
+
   _runWrapper:(command, vm, callback)->
     [callback, vm] = [vm, callback]  if vm and 'string' isnt typeof vm
     @fetchDefaultVmName (defaultVm)=>
