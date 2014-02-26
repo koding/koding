@@ -896,13 +896,13 @@ func prepareWorker(id int) {
 		go func() {
 			startTime := time.Now()
 			res := job.f() // execute our function
-			log.Info(fmt.Sprintf("Queue %d: elapsed time %s, res: %s", id, time.Since(startTime), res))
+			log.Info(fmt.Sprintf("Queue %d: elapsed time %s res: %s", id, time.Since(startTime), res))
 			done <- struct{}{}
 		}()
 
 		select {
 		case <-done:
-			log.Info(fmt.Sprintf("Queue %d: done for job %s", id, job.msg))
+			log.Info(fmt.Sprintf("Queue %d: done for job: %s", id, job.msg))
 		case <-time.After(time.Second * 60):
 			log.Info(fmt.Sprintf("Queue %d: timed out after 60 seconds for job: %s", id, job.msg))
 		}
