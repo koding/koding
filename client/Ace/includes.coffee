@@ -1,6 +1,7 @@
 module.exports = [
 
   "libs/require.js"
+  "libs/diff_match_patch.js"
 
   # ace
   "AppController.coffee"
