@@ -19,7 +19,7 @@ module.exports = ->
   <meta itemprop="image" content="#{uri.address}/a/images/logos/share_logo.png">
 
   <!-- og meta tags -->
-  <meta property="og:title" content="Koding - A new way for developers to work."/>
+  <meta property="og:title" content="Koding | A New Way For Developers To Work"/>
   <meta property="og:type" content="website"/>
   <meta property="og:url" content="https://koding.com"/>
   <meta property="og:image" content="#{uri.address}/a/images/logos/share_logo.png"/>
@@ -31,7 +31,7 @@ module.exports = ->
   <!-- twitter cards -->
   <meta name="twitter:site" content="@koding"/>
   <meta name="twitter:url" content="https://koding.com"/>
-  <meta name="twitter:title" content="Koding - A new way for developers to work."/>
+  <meta name="twitter:title" content="Koding | A New Way For Developers To Work"/>
   <meta name="twitter:creator" content="@koding"/>
   <meta name="twitter:card" content="summary"/>
   <meta name="twitter:image" content="#{uri.address}/a/images/logos/share_logo.png"/>
