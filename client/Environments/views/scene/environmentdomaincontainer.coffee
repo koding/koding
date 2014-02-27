@@ -67,7 +67,8 @@ class EnvironmentDomainContainer extends EnvironmentContainer
           if index is domains.length - 1 then resolve()
 
   getDomainCreateForm: ->
-    domainCreateForm = new DomainCreateForm
+
+    domainCreateForm = new DomainCreateForm {}, {stack: @parent.stack}
 
     @on "itemRemoved", domainCreateForm.bound "updateDomains"
     domainCreateForm.on "DomainSaved", (domain) =>
