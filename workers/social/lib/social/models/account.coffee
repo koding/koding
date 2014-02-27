@@ -207,8 +207,6 @@ module.exports = class JAccount extends jraphical.Module
           (signature Object, Function)
         fetchRelatedUsersFromGraph:
           (signature Object, Function)
-        fetchDomains:
-          (signature Function)
         unlinkOauth:
           (signature String, Function)
         changeUsername: [
@@ -1420,40 +1418,6 @@ module.exports = class JAccount extends jraphical.Module
   addTags: secure (client, tags, options, callback)->
     client.context.group = 'koding'
     oldAddTags.call this, client, tags, options, callback
-
-  fetchUserDomains: (client, callback) ->
-    {connection: {delegate}} = client
-    {group} = client.context
-
-    JDomain = require './domain'
-    delegate.fetchDomains (err, domains) ->
-      return callback err  if err
-      domainList = []
-      domainList = filterDomains domains, delegate, group  if domains
-
-      callback null, domainList
-
-  # filters domains such as shared-x/vm-x.groupSlug.kd.io
-  # or x.koding.kd.io. Also shows only group related
-  # domains to users
-  filterDomains = (domains, account, group)->
-    domainList = []
-    domainList = domains.filter (domain)->
-      {domain} = domain
-      re = if group is "koding" then new RegExp(account.profile.nickname + '\.kd\.io$') \
-           else new RegExp('(.*)\.' + group + '\.kd\.io$')
-      isVmAlias         = (/^shared|vm[\-]?([0-9]+)?/.test domain)
-      isKodingSubdomain = (/(.*)\.(koding|guests)\.kd\.io$/.test domain)
-      isGroupAlias      = re.test domain
-      not isVmAlias and not isKodingSubdomain and isGroupAlias
-
-  fetchDomains$: permit
-    advanced: [
-      { permission: 'list own domains', validateWith: Validators.own }
-    ]
-    success: (client, callback) ->
-      @fetchUserDomains client, callback
-
 
   {Member, OAuth} = require "./graph"
 
