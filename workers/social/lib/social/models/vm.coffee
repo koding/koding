@@ -404,13 +404,16 @@ module.exports = class JVM extends Module
 
               JDomain.createDomains {
                 account, stack,
-                domains:hostnameAliases
-                hostnameAlias:hostnameAliases[0]
+                domains: hostnameAliases
+                hostnameAlias: hostnameAliases[0]
+                group: groupSlug
               }
 
               group.addVm vm, (err)=>
                 return callback err  if err
-                JDomain.ensureDomainSettingsForVM {account, vm, type, nickname, groupSlug, stack}
+                JDomain.ensureDomainSettingsForVM {
+                  account, vm, type, nickname, group: groupSlug, stack
+                }
                 if type is 'group'
                   @addVmUsers user, vm, group, ->
                     callback null, vm
@@ -535,6 +538,8 @@ module.exports = class JVM extends Module
     #     return callback err  if err
     #     callback null, [vm]
 
+  # TODO: Move these methods to JDomain at some point ~ GG
+  # ------------------------------------------------------
   # Private static method to fetch domains
   @fetchDomains = (selector, callback)->
     JDomain = require './domain'
@@ -692,14 +697,22 @@ module.exports = class JVM extends Module
       callback? err, vm  unless err
 
       handleError err
-      if err
-        return console.warn "Failed to create VM for ", \
-                             {users, groups, hostnameAlias}
 
-      JDomain.ensureDomainSettingsForVM \
-        {account, vm, type, nickname, groupSlug, stack}
-      JDomain.createDomains \
-        {account, domains:hostnameAliases, hostnameAlias, stack}
+      return console.warn "Failed to create VM for ", {
+        users, groups, hostnameAlias
+      }  if err
+
+      group = groupSlug
+
+      JDomain.ensureDomainSettingsForVM {
+        account, vm, type, nickname, group, stack
+      }
+
+      JDomain.createDomains {
+        account, domains:hostnameAliases,
+        group, hostnameAlias, stack
+      }
+
       target.addVm vm, handleError
 
   wrapGroup = (group)-> [ { id: group.getId() } ]
@@ -808,12 +821,12 @@ module.exports = class JVM extends Module
                   # Counter created
 
                   hostnameAliases = JVM.createAliases {
-                    nickname:username
-                    type:'user', uid, groupSlug:'koding'
+                    nickname:username, uid,
+                    type:'user', groupSlug:group
                   }
 
                   JDomain.createDomains {
-                    account, stack,
+                    account, stack, group,
                     domains:hostnameAliases,
                     hostnameAlias:hostnameAliases[0]
                   }
