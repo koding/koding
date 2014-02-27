@@ -198,10 +198,27 @@ module.exports = class JDomain extends jraphical.Module
     # Return type as internal and slug and domain
     return {type: 'internal', slug, prefix, domain}
 
+  resolveDomain = (domainData, callback)->
+    return callback null  unless domainData.domainType
 
+    {domain} = domainData
 
-    if newDomain and /^shared|vm[\-]?([0-9]+)?/.test prefix
-      return callback new KodingError("Domain name cannot start with shared|vm", "INVALIDDOMAIN")
+    dns = require 'dns'
+    dns.resolve 'kd.io', (err, baseIps)->
+      return callback err  if err
+
+      dns.resolve domain, (err, remoteIps)->
+        return callback err  if err
+
+        intersection = (a, b)->
+          [a, b] = [b, a] if a.length > b.length
+          value for value in a when value in b
+
+        if (intersection baseIps, remoteIps).length > 0
+          return callback null
+
+        callback new KodingError "CNAME settings are wrong.", "CNAMEMISMATCH"
+
 
     callback null, slug
 
