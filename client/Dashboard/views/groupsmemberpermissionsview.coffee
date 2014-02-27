@@ -88,10 +88,11 @@ class GroupsMemberPermissionsView extends JView
       skip  : @skip
 
     if @_searchValue
+      selector = @_searchValue
       {JAccount} = KD.remote.api
-      JAccount.byRelevance @_searchValue, options, (err, members)=> @populateMembers err, members
     else
-      @getData().fetchMembers {}, options, (err, members)=> @populateMembers err, members
+      selector = ""
+    @getData().searchMembers selector, options, (err, members)=> @populateMembers err, members
 
   populateMembers:(err, members)->
     instantiateItems = (err) =>
