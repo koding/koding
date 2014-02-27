@@ -101,18 +101,13 @@ class DomainCreateForm extends KDCustomHTMLView
         @showSuccess domain
         @updateDomains()
 
-  createJDomain:(params, callback) ->
+  createJDomain:(domain, callback) ->
+
+    {stack} = @getData()
+    stack   = stack?._id
 
     { JDomain } = KD.remote.api
-
-    JDomain.createDomain
-      domain         : params.domainName
-      regYears       : params.regYears
-      proxy          : { mode: 'vm' }
-      hostnameAlias  : []
-      domainType     : params.domainType
-      loadBalancer   : mode : ""
-    , callback
+    JDomain.createDomain { domain, stack }, callback
 
   showSuccess:(domain, view = @subdomainForm) ->
 
