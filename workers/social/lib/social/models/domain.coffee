@@ -153,10 +153,9 @@ module.exports = class JDomain extends jraphical.Module
       {domain} = domain
       return yes  unless /\.kd\.io$/.test domain
 
-      re = if group is "koding"
-             new RegExp(account.profile.nickname + '\.kd\.io$')
-           else
-             new RegExp('(.*)\.' + group + '\.kd\.io$')
+      re = if group is "koding" \
+           then ///#{account.profile.nickname}\.kd\.io$///
+           else ///(.*)\.#{group}\.kd\.io$///
 
       isVmAlias         = (/^shared|vm[\-]?([0-9]+)?/.test domain)
       isKodingSubdomain = (/(.*)\.(koding|guests)\.kd\.io$/.test domain)
@@ -180,18 +179,8 @@ module.exports = class JDomain extends jraphical.Module
       err: new KodingError message, "INVALIDDOMAIN"
 
     # Domain check ~
-    # ^                          start of the line
-    #   [A-Za-z0-9-]+            start with the string in the brackets [ ], must contain one or more (+)
-    #       (                    start of group #1 - For sub-domain.
-    #        \\.[A-Za-z0-9-]+    follow by a dot "." and string in the brackets [ ], must contain one or more (+)
-    #       )*                   end of group #1, this group is optional (*)
-    #       (                    start of group #2 - check the extension
-    #        \\.[A-Za-z]{2,}     follow by a dot "." and string in the brackets [ ], with minimum length of 2
-    #       )                    end of group #2
-    # $                          end of the line
-
     return err()  unless \
-      /^[A-Za-z0-9-]+(\.[A-Za-z0-9-]+)*(\.[A-Za-z]{2,})$/i.test domain
+      /^[a-z0-9]+([\-\.]{1}[a-z0-9]+)*\.[a-z]{2,5}$/i.test domain
 
     # Return domain type as custom and keep the domain as is
     return {type: 'custom', domain}  unless /\.kd\.io$/.test domain
