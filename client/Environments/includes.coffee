@@ -51,7 +51,6 @@ module.exports = [
   # "views/domains/domainsroutingview.coffee"
   # "views/domains/domainsvmlistitemview.coffee"
   # "views/DomainMapperView.coffee"
-  # "views/DomainRegisterModalFormView.coffee"
   # "views/FirewallMapperView.coffee"
   # "views/FirewallFilterListItemView.coffee"
   # "views/FirewallRuleListItemView.coffee"
