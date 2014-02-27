@@ -111,53 +111,37 @@ module.exports = class JDomain extends jraphical.Module
         ]]
         default :  'subdomain'
 
-      hostnameAlias : [String]
+      hostnameAlias :
+        type        : Array
+        default     : []
 
       proxy         :
-        mode        : String # TODO: enumerate all possible modes
+        mode        :
+          type      : String # TODO: enumerate all possible modes
+          default   : 'vm'
         username    : String
         serviceName : String
         key         : String
         fullUrl     : String
 
-      loadBalancer  :
-        persistence :
-          type      : String
-          enum      : ['invalid persistence mode',[
-            'disabled'
-            # 'cookie'
-            # 'sourceAdress'
-          ]]
-          default   : 'disabled'
-        mode        :
-          type      : String
-          enum      : ['invalid load balancer mode',[
-            ''
-            # 'roundrobin'
-            # 'sticky'
-            # 'weighted'
-            # 'weighted-roundrobin'
-          ]]
-          # default   : 'roundrobin'
-          default : ''
-        index       :
-          type      : Number
-          default   : 0
-
       orderId       :
         recurly     : String
         resellerClub: String
 
-      regYears      : Number
+      regYears      :
+        type        : Number
+        default     : 0
 
       dnsRecords    : [Object]
 
       createdAt     :
         type        : Date
         default     : -> new Date
+
       modifiedAt    :
         type        : Date
         default     : -> new Date
+
       stack         : ObjectId
       group         : String
 
