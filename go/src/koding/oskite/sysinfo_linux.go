@@ -1,4 +1,4 @@
-package main
+package oskite
 
 // #include <sys/sysinfo.h>
 import "C"

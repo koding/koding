@@ -1,6 +1,6 @@
 // +build linux
 
-package main
+package oskite
 
 import (
 	"bytes"
@@ -16,33 +16,33 @@ type ByVM []*OskiteInfo
 
 func (b ByVM) Len() int           { return len(b) }
 func (b ByVM) Swap(i, j int)      { b[i], b[j] = b[j], b[i] }
-func (b ByVM) Less(i, j int) bool { return b[i].CurrentVMs < b[j].CurrentVMs }
+func (b ByVM) Less(i, j int) bool { return b[i].ActiveVMs < b[j].ActiveVMs }
 
 type OskiteInfo struct {
 	QueuedVMs         int    `json:"queuedVMs"`
 	QueueLimit        int    `json:"queueLimit"`
-	CurrentVMs        int    `json:"currentVMs"` // by default 0
-	CurrentVMsLimit   int    `json:"currentVMsLimit"`
+	ActiveVMs         int    `json:"activeVMs"` // by default 0
+	ActiveVMsLimit    int    `json:"activeVMsLimit"`
 	Version           string `json:"version"`
 	ServiceUniquename string `json:"-"`
 }
 
-func GetOskiteInfo() *OskiteInfo {
+func (o *Oskite) GetOskiteInfo() *OskiteInfo {
 	return &OskiteInfo{
-		QueuedVMs:       int(currentQueueCount.Get()),
-		QueueLimit:      len(prepareQueue),
-		CurrentVMs:      currentVMS(),
-		CurrentVMsLimit: *flagLimit,
-		Version:         OSKITE_VERSION,
+		QueuedVMs:      int(currentQueueCount.Get()),
+		QueueLimit:     len(prepareQueue),
+		ActiveVMs:      currentVMS(),
+		ActiveVMsLimit: o.ActiveVMsLimit,
+		Version:        o.Version,
 	}
 }
 
-func oskiteInfo(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
+func (o *Oskite) oskiteInfo(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
 	if !vos.Permissions.Sudo {
 		return nil, &kite.PermissionError{}
 	}
 
-	return GetOskiteInfo(), nil
+	return o.GetOskiteInfo(), nil
 }
 
 func oskiteAll(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
