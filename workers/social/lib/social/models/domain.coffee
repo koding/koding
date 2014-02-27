@@ -28,7 +28,6 @@ module.exports = class JDomain extends jraphical.Module
       'delete domains'     : ['member']
       'delete own domains' : ['member']
       'list domains'       : ['member']
-      'list own domains'   : ['member']
 
     sharedMethods:
 
@@ -169,16 +168,12 @@ module.exports = class JDomain extends jraphical.Module
     {group} = client.context
     {connection: {delegate}} = client
 
-    JGroup.one {slug:group}, (err, group)->
-
+    delegate.fetchDomains (err, domains) ->
       return callback err  if err
-      return callback new KodingError("No group found.")  unless group
+      return callback null unless domains
+      callback null, filterDomains domains, delegate, group
 
-      delegate.checkPermission group, 'list own domains', (err, hasPermission)->
 
-        return callback err  if err
-        unless hasPermission
-          return callback new KodingError "Access denied",  "ACCESSDENIED"
 
         delegate.fetchDomains (err, domains) ->
           return callback err  if err
