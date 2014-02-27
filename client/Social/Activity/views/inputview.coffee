@@ -110,7 +110,7 @@ class ActivityInputView extends KDTokenizedInput
     return  content
 
   renderTokens: (content, tokens = {}) ->
-    return  content.replace /\|(.*?):(.*?):(.*?)\|/g, (match, prefix, constructorName, id) =>
+    content.replace /\|(.*?):(.*?):(.*?):(.*?)\|/g, (match, prefix, constructorName, id) =>
       switch prefix
         when "#"
           itemClass = TagLinkView
