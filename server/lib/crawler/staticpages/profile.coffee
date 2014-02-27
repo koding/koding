@@ -73,7 +73,6 @@ createStatusUpdateNode = (statusUpdate, profile)=>
   return statusUpdateContent
 
 createLinkToUserProfile = (fullName, nickname) ->
-
   content =
     """
       <a href=\"#{uri.address}/#!/#{nickname}\">#{fullName}</a>
@@ -161,7 +160,6 @@ putContent = (account, sUpdates)=>
   numberOfFollowing = if account.counts.following then account.counts.following else "0"
 
   imgURL = getAvatarImageUrl profile.hash, profile.avatar
-
   content  =
     """
     <div id="kdmaincontainer" class="kdview">
