@@ -1,18 +1,16 @@
-package main
+package oskite
 
 import (
 	"encoding/binary"
 	"errors"
-	"flag"
 	"fmt"
 	"io"
 	"io/ioutil"
 	"koding/databases/redis"
 	"koding/db/mongodb"
 	"koding/db/mongodb/modelhelper"
-	"koding/kites/os/ldapserver"
 	"koding/kodingkite"
-	"koding/oskite"
+	"koding/oskite/ldapserver"
 	"koding/tools/config"
 	"koding/tools/dnode"
 	"koding/tools/kite"
@@ -37,6 +35,29 @@ import (
 	"labix.org/v2/mgo/bson"
 )
 
+const (
+	OSKITE_NAME    = "oskite"
+	OSKITE_VERSION = "0.1.3"
+)
+
+var (
+	log         = logger.New(OSKITE_NAME)
+	mongodbConn *mongodb.MongoDB
+	conf        *config.Config
+
+	infos            = make(map[bson.ObjectId]*VMInfo)
+	infosMutex       sync.Mutex
+	templateDir      = "files/templates" // should be in the same dir as the binary
+	firstContainerIP net.IP
+	containerSubnet  *net.IPNet
+	shuttingDown     = false
+	requestWaitGroup sync.WaitGroup
+
+	prepareQueue      = make(chan *QueueJob, 1000)
+	currentQueueCount AtomicInt32
+	vmTimeout         time.Duration
+)
+
 type VMInfo struct {
 	vm              *virt.VM
 	useCounter      int
@@ -54,66 +75,120 @@ type VMInfo struct {
 	TotalMemoryLimit    int    `json:"totalMemoryLimit"`
 }
 
-var (
-	log         = logger.New(OSKITE_NAME)
-	logLevel    logger.Level
-	mongodbConn *mongodb.MongoDB
-	conf        *config.Config
+type Oskite struct {
+	Name     string
+	Version  string
+	Region   string
+	LogLevel logger.Level
 
-	flagProfile      = flag.String("c", "", "Configuration profile from file")
-	flagRegion       = flag.String("r", "", "Configuration region from file")
-	flagDebug        = flag.Bool("d", false, "Debug mode")
-	flagTemplates    = flag.String("t", "", "Change template directory")
-	flagTimeout      = flag.String("s", "50m", "Shut down timeout for a single VM")
-	flagDisableGuest = flag.Bool("noguest", false, "Disable Guest VM creation")
-	flagLimit        = flag.Int("limit", 100, "Disable Guest VM creation")
+	ActiveVMsLimit int
+	ActiveVMs      int
 
-	infos            = make(map[bson.ObjectId]*VMInfo)
-	infosMutex       sync.Mutex
-	templateDir      = "files/templates" // should be in the same dir as the binary
-	firstContainerIP net.IP
-	containerSubnet  *net.IPNet
-	shuttingDown     = false
-	requestWaitGroup sync.WaitGroup
-)
+	ServiceUniquename string
+	VmTimeout         time.Duration
+	TemplateDir       string
+	DisableGuest      bool
 
-func main() {
-	flag.Parse()
-	if *flagProfile == "" || *flagRegion == "" {
-		log.Fatal("Please specify profile via -c and region via -r. Aborting.")
+	// PrepareQueueLimit defines the number of concurrent VM preparations,
+	// should be CPU + 1
+	PrepareQueueLimit int
+}
+
+// QueueJob is used to append jobs to the prepareQueue.
+type QueueJob struct {
+	f   func() string
+	msg string
+}
+
+func New(c *config.Config) *Oskite {
+	conf = c
+	mongodbConn = mongodb.NewMongoDB(c.Mongo)
+	modelhelper.Initialize(c.Mongo)
+
+	return &Oskite{
+		Name:    OSKITE_NAME,
+		Version: OSKITE_VERSION,
+	}
+}
+
+func (o *Oskite) Run() {
+	log.Info("Using default VM timeout: %s", o.VmTimeout)
+
+	// TODO: get rid of this after solving info problem
+	vmTimeout = o.VmTimeout
+
+	if o.PrepareQueueLimit == 0 {
+		panic("prepare queue is not set")
 	}
 
-	conf = config.MustConfig(*flagProfile)
-	if *flagDebug {
-		logLevel = logger.DEBUG
-	} else {
-		logLevel = logger.GetLoggingLevelFromConfig(OSKITE_NAME, *flagProfile)
-	}
-	log.SetLevel(logLevel)
+	// set seed for even randomness, needed for randomMinutes() function.
+	rand.Seed(time.Now().UnixNano())
 
-	timeout, err := time.ParseDuration(*flagTimeout)
-	if err != nil {
-		log.Warning("Timeout flag is not correct: %v. Using standart timeout", err.Error())
-		timeout = time.Minute * 50
-	} else {
-		// use our new timeout
-		log.Info("Using default VM timeout: %s", timeout)
+	o.initializeSettings()
+
+	// startPrepareWorkers starts multiple workers (based on prepareQueueLimit)
+	// that accepts vmPrepare/vmStart functions.
+	for i := 0; i < o.PrepareQueueLimit; i++ {
+		go prepareWorker(i)
 	}
 
-	os := oskite.New(conf)
-	os.VmTimeout = timeout
-	os.PrepareQueueLimit = 8 + 1
-	os.TemplateDir = *flagTemplates
-	os.LogLevel
+	k := o.prepareOsKite()
 
-	// go go!
-	os.Run()
+	o.runNewKite(k.ServiceUniqueName)
+	o.handleCurrentVMS(k)   // handle leftover VMs
+	o.startPinnedVMS(k)     // start pinned always-on VMs
+	o.setupSignalHandler(k) // handle SIGUSR1 and other signals.
+
+	// register current client-side methods
+	o.registerVmMethod(k, "vm.start", false, vmStart)
+	o.registerVmMethod(k, "vm.shutdown", false, vmShutdown)
+	o.registerVmMethod(k, "vm.unprepare", false, vmUnprepare)
+	o.registerVmMethod(k, "vm.stop", false, vmStop)
+	o.registerVmMethod(k, "vm.reinitialize", false, vmReinitialize)
+	o.registerVmMethod(k, "vm.info", false, vmInfo)
+	o.registerVmMethod(k, "vm.resizeDisk", false, vmResizeDisk)
+	o.registerVmMethod(k, "vm.createSnapshot", false, vmCreateSnaphost)
+	o.registerVmMethod(k, "spawn", true, spawnFunc)
+	o.registerVmMethod(k, "exec", true, execFunc)
+
+	o.registerVmMethod(k, "oskite.Info", true, o.oskiteInfo)
+	o.registerVmMethod(k, "oskite.All", true, oskiteAll)
+
+	syscall.Umask(0) // don't know why richard calls this
+	o.registerVmMethod(k, "fs.readDirectory", false, fsReadDirectory)
+	o.registerVmMethod(k, "fs.glob", false, fsGlob)
+	o.registerVmMethod(k, "fs.readFile", false, fsReadFile)
+	o.registerVmMethod(k, "fs.writeFile", false, fsWriteFile)
+	o.registerVmMethod(k, "fs.ensureNonexistentPath", false, fsEnsureNonexistentPath)
+	o.registerVmMethod(k, "fs.getInfo", false, fsGetInfo)
+	o.registerVmMethod(k, "fs.setPermissions", false, fsSetPermissions)
+	o.registerVmMethod(k, "fs.remove", false, fsRemove)
+	o.registerVmMethod(k, "fs.rename", false, fsRename)
+	o.registerVmMethod(k, "fs.createDirectory", false, fsCreateDirectory)
+
+	o.registerVmMethod(k, "app.install", false, appInstall)
+	o.registerVmMethod(k, "app.download", false, appDownload)
+	o.registerVmMethod(k, "app.publish", false, appPublish)
+	o.registerVmMethod(k, "app.skeleton", false, appSkeleton)
+
+	// this method is special cased in oskite.go to allow foreign access
+	o.registerVmMethod(k, "webterm.connect", false, webtermConnect)
+	o.registerVmMethod(k, "webterm.getSessions", false, webtermGetSessions)
+
+	o.registerVmMethod(k, "s3.store", true, s3Store)
+	o.registerVmMethod(k, "s3.delete", true, s3Delete)
+
+	go o.oskiteRedis(k.ServiceUniqueName)
+
+	log.Info("Oskite started. Go!")
+	k.Run()
+
 }
 
 var oskitesMu sync.Mutex
 var oskites = make(map[string]*OskiteInfo)
 
-func oskiteRedis(serviceUniquename string) {
+func (o *Oskite) oskiteRedis(serviceUniquename string) {
 	session, err := redis.NewRedisSession(conf.Redis)
 	if err != nil {
 		log.Error("redis SADD kontainers. err: %v", err.Error())
@@ -135,7 +210,7 @@ func oskiteRedis(serviceUniquename string) {
 		expireDuration := time.Second * 5
 		for _ = range time.Tick(2 * time.Second) {
 			key := prefix + serviceUniquename
-			oskiteInfo := GetOskiteInfo()
+			oskiteInfo := o.GetOskiteInfo()
 
 			if _, err := session.Do("HMSET", redigo.Args{key}.AddFlat(oskiteInfo)...); err != nil {
 				log.Error("redis HMSET err: %v", err.Error())
@@ -210,20 +285,21 @@ func lowestOskiteLoad() (serviceUniquename string) {
 	h := oskitesSlice[len(oskitesSlice)-1]
 
 	log.Info("oskite picked up as lowest load %s with %d VMs (highest was: %d / %s)",
-		l.ServiceUniquename, l.CurrentVMs, h.CurrentVMs, h.ServiceUniquename)
+		l.ServiceUniquename, l.ActiveVMs, h.ActiveVMs, h.ServiceUniquename)
 
 	return l.ServiceUniquename
 
 }
 
-func runNewKite(serviceUniqueName string) {
+func (o *Oskite) runNewKite(serviceUniqueName string) {
+	log.Info("Run newkite.")
 	k := kodingkite.New(
 		conf,
 		kitelib.Options{
 			Kitename: OSKITE_NAME,
 			Version:  "0.0.1",
 			Port:     "5000",
-			Region:   *flagRegion,
+			Region:   o.Region,
 		},
 	)
 
@@ -240,7 +316,7 @@ func runNewKite(serviceUniqueName string) {
 		vm := virt.VM(*v)
 		vm.ApplyDefaults()
 
-		err = validateVM(&vm, serviceUniqueName)
+		err = o.validateVM(&vm, serviceUniqueName)
 		if err != nil {
 			return nil, err
 		}
@@ -275,10 +351,10 @@ func runNewKite(serviceUniqueName string) {
 	k.Start()
 
 	// TODO: remove this later, this is needed in order to reinitiliaze the logger package
-	log.SetLevel(logLevel)
+	log.SetLevel(o.LogLevel)
 }
 
-func initializeSettings() {
+func (o *Oskite) initializeSettings() {
 	lifecycle.Startup("kite.os", true)
 
 	var err error
@@ -297,10 +373,11 @@ func initializeSettings() {
 	go LimiterLoop()
 }
 
-func prepareOsKite() *kite.Kite {
+func (o *Oskite) prepareOsKite() *kite.Kite {
+	log.Info("Kite.go preperation started")
 	kiteName := "os"
-	if *flagRegion != "" {
-		kiteName += "-" + *flagRegion
+	if o.Region != "" {
+		kiteName += "-" + o.Region
 	}
 
 	k := kite.New(kiteName, conf, true)
@@ -308,7 +385,7 @@ func prepareOsKite() *kite.Kite {
 	// Default is "broker", we are going to use another one. In our case its "brokerKite"
 	k.PublishExchange = conf.BrokerKite.Name
 
-	if *flagDebug {
+	if o.LogLevel == logger.DEBUG {
 		kite.EnableDebug()
 	}
 
@@ -385,7 +462,7 @@ func prepareOsKite() *kite.Kite {
 
 // handleCurrentVMS removes and unprepare any vm in the lxc dir that doesn't
 // have any associated document which in mongodbConn.
-func handleCurrentVMS(k *kite.Kite) {
+func (o *Oskite) handleCurrentVMS(k *kite.Kite) {
 	dirs, err := ioutil.ReadDir("/var/lib/lxc")
 	if err != nil {
 		log.LogError(err, 0)
@@ -416,9 +493,12 @@ func handleCurrentVMS(k *kite.Kite) {
 			info.startTimeout()
 		}
 	}
+
+	log.Info("VMs in /var/lib/lxc are finished.")
 }
 
-func startPinnedVMS(k *kite.Kite) {
+func (o *Oskite) startPinnedVMS(k *kite.Kite) {
+	log.Info("Starting pinned hosts, if any...")
 	mongodbConn.Run("jVMs", func(c *mgo.Collection) error {
 		iter := c.Find(bson.M{"pinnedToHost": k.ServiceUniqueName, "alwaysOn": true}).Iter()
 		for {
@@ -426,7 +506,7 @@ func startPinnedVMS(k *kite.Kite) {
 			if !iter.Next(&vm) {
 				break
 			}
-			if err := startVM(k, &vm, nil); err != nil {
+			if err := o.startVM(k, &vm, nil); err != nil {
 				log.LogError(err, 0)
 			}
 		}
@@ -437,10 +517,10 @@ func startPinnedVMS(k *kite.Kite) {
 
 		return nil
 	})
-
 }
 
-func setupSignalHandler(k *kite.Kite) {
+func (o *Oskite) setupSignalHandler(k *kite.Kite) {
+	log.Info("Setting up signal handler")
 	sigtermChannel := make(chan os.Signal)
 	signal.Notify(sigtermChannel, syscall.SIGINT, syscall.SIGTERM, syscall.SIGUSR1)
 	go func() {
@@ -478,7 +558,7 @@ func setupSignalHandler(k *kite.Kite) {
 	}()
 }
 
-func registerVmMethod(k *kite.Kite, method string, concurrent bool, callback func(*dnode.Partial, *kite.Channel, *virt.VOS) (interface{}, error)) {
+func (o *Oskite) registerVmMethod(k *kite.Kite, method string, concurrent bool, callback func(*dnode.Partial, *kite.Channel, *virt.VOS) (interface{}, error)) {
 
 	wrapperMethod := func(args *dnode.Partial, channel *kite.Channel) (methodReturnValue interface{}, methodError error) {
 
@@ -493,16 +573,16 @@ func registerVmMethod(k *kite.Kite, method string, concurrent bool, callback fun
 			return nil, errors.New("Kite is shutting down.")
 		}
 
-		if *flagLimit <= currentVMS() {
-			return nil, fmt.Errorf("Maximum capacity of %s has been reached.", *flagLimit)
+		if o.ActiveVMsLimit <= currentVMS() {
+			return nil, fmt.Errorf("Maximum capacity of %s has been reached.", o.ActiveVMsLimit)
 		}
 
-		user, err := getUser(channel.Username)
+		user, err := o.getUser(channel.Username)
 		if err != nil {
 			return nil, err
 		}
 
-		vm, err := getVM(channel)
+		vm, err := o.getVM(channel)
 		if err != nil {
 			return nil, err
 		}
@@ -551,7 +631,7 @@ func registerVmMethod(k *kite.Kite, method string, concurrent bool, callback fun
 			return nil, &kite.PermissionError{}
 		}
 
-		if err := startVM(k, vm, channel); err != nil {
+		if err := o.startVM(k, vm, channel); err != nil {
 			return nil, err
 		}
 
@@ -590,9 +670,9 @@ func registerVmMethod(k *kite.Kite, method string, concurrent bool, callback fun
 	k.Handle(method, concurrent, wrapperMethod)
 }
 
-func getUser(username string) (*virt.User, error) {
+func (o *Oskite) getUser(username string) (*virt.User, error) {
 	// Do not create guest vms if its turned of
-	if *flagDisableGuest && strings.HasPrefix(username, "guest-") {
+	if o.DisableGuest && strings.HasPrefix(username, "guest-") {
 		return nil, errors.New("vm creation for guests are disabled.")
 	}
 
@@ -619,7 +699,7 @@ func getUser(username string) (*virt.User, error) {
 	return user, nil
 }
 
-func getVM(channel *kite.Channel) (*virt.VM, error) {
+func (o *Oskite) getVM(channel *kite.Channel) (*virt.VM, error) {
 	var vm *virt.VM
 	query := bson.M{"hostnameAlias": channel.CorrelationName}
 	if bson.IsObjectIdHex(channel.CorrelationName) {
@@ -639,8 +719,8 @@ func getVM(channel *kite.Channel) (*virt.VM, error) {
 	return vm, nil
 }
 
-func validateVM(vm *virt.VM, serviceUniqueName string) error {
-	if vm.Region != *flagRegion {
+func (o *Oskite) validateVM(vm *virt.VM, serviceUniqueName string) error {
+	if vm.Region != o.Region {
 		time.Sleep(time.Second) // to avoid rapid cycle channel loop
 		return &kite.WrongChannelError{}
 	}
@@ -708,8 +788,8 @@ func validateVM(vm *virt.VM, serviceUniqueName string) error {
 	return nil
 }
 
-func startVM(k *kite.Kite, vm *virt.VM, channel *kite.Channel) error {
-	err := validateVM(vm, k.ServiceUniqueName)
+func (o *Oskite) startVM(k *kite.Kite, vm *virt.VM, channel *kite.Channel) error {
+	err := o.validateVM(vm, k.ServiceUniqueName)
 	if err != nil {
 		return err
 	}
