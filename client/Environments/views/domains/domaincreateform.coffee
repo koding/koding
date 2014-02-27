@@ -35,13 +35,12 @@ class DomainCreateForm extends KDCustomHTMLView
         placeholder      : "Type your domain name..."
         noDomainSelector : yes
 
-
     dom.addSubView @redirectNotice = (new KDCustomHTMLView
       tagName  : "p"
       cssClass : "status-message"
       partial  : """
-        Before doing this you need to create either a <strong>CNAME</strong> pointing to: <strong>http://#{KD.nick()}.kd.io</strong> or an<br/>
-        <strong>A Record</strong> pointing to: <strong>0.0.0.0</strong>. Otherwise Koding won't be able to add your domain.
+        Before adding your domain, you need to create a <strong>CNAME RECORD</strong> pointing to: <strong>kd.io</strong><br/>
+        Otherwise Koding won't be able to add your domain. <a href="http://learn.koding.com/add-cname-records-to-your-domain/" target="_blank">Learn how</a>
         """
     ), null, yes
 
