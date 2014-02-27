@@ -37,7 +37,6 @@ module.exports = class JDomain extends jraphical.Module
         fetchDomains:
           (signature Function)
         createDomain: [
-          (signature Function)
           (signature Object, Function)
         ]
         # getTldList:
@@ -96,6 +95,7 @@ module.exports = class JDomain extends jraphical.Module
       hostnameAlias : 'sparse'
 
     schema          :
+
       domain        :
         type        : String
         required    : yes
@@ -219,8 +219,23 @@ module.exports = class JDomain extends jraphical.Module
 
         callback new KodingError "CNAME settings are wrong.", "CNAMEMISMATCH"
 
+  createDomain = (domainData, account, callback)->
 
-    callback null, slug
+    model = new JDomain domainData
+    model.save (err)->
+      return callback err  if err
+
+      rel = new Relationship
+        targetId   : model.getId()
+        targetName : 'JDomain'
+        sourceId   : account.getId()
+        sourceName : 'JAccount'
+        as         : 'owner'
+
+      rel.save (err)->
+        return callback err  if err
+
+      callback err, model
 
   @createDomain: secure (client, options, callback)->
 
