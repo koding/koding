@@ -301,13 +301,11 @@ module.exports = class JDomain extends jraphical.Module
             console.log err  if err?
 
     domains.forEach (domain) ->
-      domainObj = new JDomain
-        domain        : domain
+      domainObj = new JDomain {
+        domain, group, stack,
         hostnameAlias : [hostnameAlias]
-        proxy         : { mode: 'vm' }
-        regYears      : 0
-        loadBalancer  : { persistance: 'disabled' }
-        stack         : stack
+      }
+
       domainObj.save (err)->
         if err
         then console.error err  unless err.code is 11000
@@ -323,7 +321,10 @@ module.exports = class JDomain extends jraphical.Module
       requiredDomains = ["#{groupSlug}.#{domain}", "shared.#{groupSlug}.#{domain}"]
 
     {hostnameAlias} = vm
-    @createDomains {account, domains:requiredDomains, hostnameAlias, stack}
+    @createDomains {
+      account, hostnameAlias, stack,
+      domains:requiredDomains, group: groupSlug
+    }
 
   bindVM: (client, params, callback)->
     domainName = @domain
