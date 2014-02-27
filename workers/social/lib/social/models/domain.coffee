@@ -225,23 +225,16 @@ module.exports = class JDomain extends jraphical.Module
 
         callback new KodingError "CNAME record for #{domain} is not matching with #{baseDomain}", "CNAMEMISMATCH"
 
-  createDomain = (domainData, account, callback)->
+  createDomain = (domainData, account, group, callback)->
 
-    model = new JDomain domainData
-    model.save (err)->
+    domain = new JDomain domainData
+    domain.save (err)->
       return callback err  if err
 
-      rel = new Relationship
-        targetId   : model.getId()
-        targetName : 'JDomain'
-        sourceId   : account.getId()
-        sourceName : 'JAccount'
-        as         : 'owner'
-
-      rel.save (err)->
+      options = {data:{group}}
+      account.addDomain domain, options, (err)->
         return callback err  if err
-
-      callback err, model
+        callback err, domain
 
   @createDomain$: secure (client, {domain, stack}, callback)->
 
@@ -293,7 +286,7 @@ module.exports = class JDomain extends jraphical.Module
           resolveDomain domainData, (err)->
             return callback err  if err
 
-            createDomain domainData, delegate, callback
+            createDomain domainData, delegate, group.slug, callback
 
   @createDomains = ({account, domains, hostnameAlias, stack, group})->
 
@@ -306,7 +299,8 @@ module.exports = class JDomain extends jraphical.Module
         as: "owner"
       , (err, rel)->
         if err or not rel
-          account.addDomain domainObj, (err)->
+          options = {data:{group}}
+          account.addDomain domainObj, options, (err)->
             console.log err  if err?
 
     domains.forEach (domain) ->
