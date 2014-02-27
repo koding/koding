@@ -102,12 +102,14 @@ class WebTermAppView extends JView
         return @setMessage "It seems you don't have a VM to use with Terminal."
 
       WebTermView.setTerminalTimeout vmName, 15000
-      , => @restoreTabs vmName
-      , (->)
+      , =>
+        @restoreTabs vmName
+        @messagePane.hide()
+      , =>
+        @messagePane.hide()
       , =>
         KD.mixpanel "Open Webterm, fail", {vmName}
         KD.logToExternalWithTime "oskite: Can't open Webterm", vmName
-
 
         @emit 'message', """
           <p>Couldn't connect to your VM.</p>
@@ -246,10 +248,14 @@ class WebTermAppView extends JView
 
     {vmName} = options
 
-    WebTermView.setTerminalTimeout vmName, 15000, ->
-      terminalView.connectToTerminal()
+    WebTermView.setTerminalTimeout vmName, 15000
     , =>
-      KD.utils.defer => @addNewTab vmName
+      terminalView.connectToTerminal()
+      @messagePane.hide()
+    , =>
+      KD.utils.defer =>
+        @addNewTab vmName
+        @messagePane.hide()
     , =>
       KD.mixpanel "Open Webterm, fail", {vmName}
       KD.logToExternalWithTime "oskite: Can't open Webterm", vmName

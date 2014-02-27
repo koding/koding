@@ -20,6 +20,7 @@ log4js.configure {
 process.on 'uncaughtException', (err)->
   exec './beep'
   console.log err, err?.stack
+  process.exit 1
 
 Bongo = require 'bongo'
 Broker = require 'broker'
