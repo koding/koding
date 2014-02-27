@@ -231,7 +231,7 @@ func (t *Target) Resolve(host string) error {
 	case ModeVM:
 		t.URL, t.Err = t.resolveVM(host, port)
 	case ModeInternal:
-		t.CacheTimeout = time.Second * 15
+		t.CacheTimeout = time.Second * 60
 	default:
 		return errors.New("no mode defined for target resolver")
 	}
