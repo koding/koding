@@ -503,6 +503,10 @@ func (p *Proxy) internal(req *http.Request, target *resolver.Target) http.Handle
 		return templateHandler("maintenance.html", nil, 503)
 	}
 
+	// TODO: salt them before we send it back.
+	// resp.Header.Set("X-Koding-Proxy-Fronted", proxyName)
+	// resp.Header.Set("X-Koding-Proxy-Backend", backendServer)
+
 	log.Debug("internal - %s [%s] goes to %s -->  [build: %s server: %s]",
 		target.FetchedSource, userIP, resp.Request.Host, service.Build, backendServer)
 
@@ -519,8 +523,8 @@ func internelReverseProxy(res *http.Response) http.Handler {
 }
 
 func RoundTrip(req *http.Request, round *resolver.RoundRing, index int) (*http.Response, string, error) {
-	if round.Ring.Len() == index {
-		return nil, "", errors.New("all servers are down")
+	if index == 2 {
+		return nil, "", errors.New("to many servers are down in row")
 	}
 
 	// means the healtChecker created a zero length ring. This is caused only
