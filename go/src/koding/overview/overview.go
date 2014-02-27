@@ -111,13 +111,11 @@ func viewHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		version, err := switchOperation(loginName, r)
+		_, err := switchOperation(loginName, r)
 		if err != nil {
 			log.Error("Error: %v", err)
 			renderTemplate(w, "login", HomePage{LoginMessage: err.Error()})
 			return
-		} else {
-			log.Info("switch is invoked by '%s' for build number '%s'\n", loginName, version)
 		}
 	case "newbuild":
 		loginName, err = checkSessionHandler(w, r)
@@ -281,6 +279,7 @@ func switchOperation(loginName string, r *http.Request) (string, error) {
 }
 
 func switchHost(host, newVersion string) error {
+	log.Info("switch host %s to %s", host, newVersion)
 	if host == "" {
 		errors.New("host is not defined")
 	}
@@ -312,10 +311,11 @@ func switchHost(host, newVersion string) error {
 		return err
 	}
 
+	log.Info("reset proxycache for host %s", host)
 	resetURL := "http://koding-proxy0.sj.koding.com/_resetcache_/" + host
 	resp, err := http.Get(resetURL)
 	if err != nil {
-		log.Error("COULD NOT SWITCH")
+		log.Error("COULD NOT SWITCH %v", err.Error())
 	}
 
 	if resp.StatusCode == 200 {
@@ -327,6 +327,7 @@ func switchHost(host, newVersion string) error {
 }
 
 func switchVersion(loginName, newVersion string) error {
+	log.Info("switch is invoked by '%s' for build number '%s'\n", loginName, newVersion)
 	err := switchHost(kodingHost, newVersion)
 	if err != nil {
 		return nil
@@ -337,7 +338,7 @@ func switchVersion(loginName, newVersion string) error {
 		return nil
 	}
 
-	msg := fmt.Sprintf("%s switched <https://koding.com|koding.com> to build %s",
+	msg := fmt.Sprintf("%s switched <https://koding.com|koding.com> and <https://socialkoding.com|social.koding.com> to build %s",
 		loginName, newVersion)
 	err = sendMsgToSlack("#_koding", msg)
 	if err != nil {
