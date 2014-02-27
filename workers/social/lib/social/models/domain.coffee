@@ -223,7 +223,7 @@ module.exports = class JDomain extends jraphical.Module
         if (intersection baseIps, remoteIps).length > 0
           return callback null
 
-        callback new KodingError "CNAME record for #{domain} is not matching with #{baseDomain}", "CNAMEMISMATCH"
+        callback new KodingError "CNAME or A record for #{domain} is not matching with #{baseDomain}", "CNAMEMISMATCH"
 
   createDomain = (domainData, account, group, callback)->
 
