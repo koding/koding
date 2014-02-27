@@ -106,7 +106,8 @@ type Config struct {
 			ApiPort    int
 			ApiHost    string
 			Port       int
-			SwitchHost string
+			KodingHost string
+			SocialHost string
 		}
 		Api struct {
 			Port int

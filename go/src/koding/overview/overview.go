@@ -35,7 +35,8 @@ func NewServerInfo() *ServerInfo {
 }
 
 var (
-	switchHost string
+	kodingHost string
+	socialHost string
 	apiUrl     = "http://kontrol0.sj.koding.com:80" // default
 
 	templates *template.Template
@@ -72,7 +73,8 @@ func main() {
 	port := conf.Kontrold.Overview.Port
 
 	// domain to be switched, like 'koding.com'
-	switchHost = conf.Kontrold.Overview.SwitchHost
+	kodingHost = conf.Kontrold.Overview.KodingHost
+	socialHost = conf.Kontrold.Overview.SocialHost
 
 	bootstrapFolder := "go/templates/overview/bootstrap/"
 
@@ -112,6 +114,8 @@ func viewHandler(w http.ResponseWriter, r *http.Request) {
 		version, err := switchOperation(loginName, r)
 		if err != nil {
 			log.Error("Error: %v", err)
+			renderTemplate(w, "login", HomePage{LoginMessage: err.Error()})
+			return
 		} else {
 			log.Info("switch is invoked by '%s' for build number '%s'\n", loginName, version)
 		}
@@ -276,9 +280,9 @@ func switchOperation(loginName string, r *http.Request) (string, error) {
 	return version, nil
 }
 
-func switchVersion(loginName, newVersion string) error {
-	if switchHost == "" {
-		errors.New("switchHost is not defined")
+func switchHost(host, newVersion string) error {
+	if host == "" {
+		errors.New("host is not defined")
 	}
 
 	// Test if the string is an integer, if not abort
@@ -287,17 +291,17 @@ func switchVersion(loginName, newVersion string) error {
 		return err
 	}
 
-	domain, err := modelhelper.GetDomain(switchHost)
+	domain, err := modelhelper.GetDomain(host)
 	if err != nil {
 		return err
 	}
 
 	if domain.Proxy == nil {
-		return fmt.Errorf("proxy field is empty for '%s'", switchHost)
+		return fmt.Errorf("proxy field is empty for '%s'", host)
 	}
 
 	if domain.Proxy.Key == "" {
-		return fmt.Errorf("key does not exist for '%s'", switchHost)
+		return fmt.Errorf("key does not exist for '%s'", host)
 	}
 
 	domain.Proxy.Key = newVersion
@@ -308,15 +312,29 @@ func switchVersion(loginName, newVersion string) error {
 		return err
 	}
 
-	// reset cache
-	resetURL := "http://koding-proxy0.sj.koding.com/_resetcache_/" + switchHost
+	resetURL := "http://koding-proxy0.sj.koding.com/_resetcache_/" + host
 	resp, err := http.Get(resetURL)
 	if err != nil {
 		log.Error("COULD NOT SWITCH")
 	}
 
 	if resp.StatusCode == 200 {
-		log.Error("Cache is cleaned for %v", switchHost)
+		log.Error("Cache is cleaned for %v", host)
+	}
+
+	return nil
+
+}
+
+func switchVersion(loginName, newVersion string) error {
+	err := switchHost(kodingHost, newVersion)
+	if err != nil {
+		return nil
+	}
+
+	err = switchHost(socialHost, newVersion)
+	if err != nil {
+		return nil
 	}
 
 	msg := fmt.Sprintf("%s switched <https://koding.com|koding.com> to build %s",
@@ -431,7 +449,7 @@ func workerInfo(build string) ([]WorkerInfo, StatusInfo, error) {
 
 	version, _ := currentVersion()
 	s.CurrentVersion = version
-	s.SwitchHost = switchHost
+	s.SwitchHost = kodingHost
 
 	return workers, s, nil
 }
@@ -513,7 +531,7 @@ func parseMongoLogin(login string) string {
 
 func domainInfo() (Domain, error) {
 	d := Domain{}
-	domainApi := apiUrl + "/domains/" + switchHost
+	domainApi := apiUrl + "/domains/" + kodingHost
 
 	resp, err := http.Get(domainApi)
 	if err != nil {
@@ -527,7 +545,7 @@ func domainInfo() (Domain, error) {
 
 	err = json.Unmarshal(body, &d)
 	if err != nil {
-		fmt.Printf("Couldn't unmarshall '%s' into a domain object.\n", switchHost)
+		fmt.Printf("Couldn't unmarshall '%s' into a domain object.\n", kodingHost)
 		return d, err
 	}
 
@@ -535,22 +553,22 @@ func domainInfo() (Domain, error) {
 }
 
 func currentVersion() (string, error) {
-	if switchHost == "" {
-		errors.New("switchHost is not defined")
+	if kodingHost == "" {
+		errors.New("kodingHost is not defined")
 	}
 
-	domain, err := modelhelper.GetDomain(switchHost)
+	domain, err := modelhelper.GetDomain(kodingHost)
 	if err != nil {
 		return "", err
 	}
 
 	if domain.Proxy == nil {
-		return "", fmt.Errorf("proxy field is empty for '%s'", switchHost)
+		return "", fmt.Errorf("proxy field is empty for '%s'", kodingHost)
 	}
 
 	currentVersion := domain.Proxy.Key
 	if currentVersion == "" {
-		return "", fmt.Errorf("key does not exist for '%s'", switchHost)
+		return "", fmt.Errorf("key does not exist for '%s'", kodingHost)
 	}
 
 	return currentVersion, nil
