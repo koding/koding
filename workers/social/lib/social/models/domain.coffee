@@ -152,8 +152,13 @@ module.exports = class JDomain extends jraphical.Module
     domainList = []
     domainList = domains.filter (domain)->
       {domain} = domain
-      re = if group is "koding" then new RegExp(account.profile.nickname + '\.kd\.io$') \
-           else new RegExp('(.*)\.' + group + '\.kd\.io$')
+      return yes  unless /\.kd\.io$/.test domain
+
+      re = if group is "koding"
+             new RegExp(account.profile.nickname + '\.kd\.io$')
+           else
+             new RegExp('(.*)\.' + group + '\.kd\.io$')
+
       isVmAlias         = (/^shared|vm[\-]?([0-9]+)?/.test domain)
       isKodingSubdomain = (/(.*)\.(koding|guests)\.kd\.io$/.test domain)
       isGroupAlias      = re.test domain
