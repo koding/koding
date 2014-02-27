@@ -62,11 +62,13 @@ class GroupsMemberPermissionsView extends JView
     KD.singletons.groupsController.on "MemberJoinedGroup", (data) =>
       @refresh()  unless @getData().slug is "koding" 
 
-    # CtF not very sure about this. just fetched it from ActivityTicker for lazy loading
-    @once 'viewAppended', =>
-      @$('.kdscrollview').height window.innerHeight - 120
+    @once 'viewAppended', @bound '_windowDidResize'
+    @listenWindowResize()
       
     @refresh()
+
+  _windowDidResize:->
+    @$('.kdscrollview').height window.innerHeight - 230
 
   fetchRoles:(callback=->)->
     groupData = @getData()
