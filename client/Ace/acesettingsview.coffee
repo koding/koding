@@ -90,12 +90,12 @@ class AceSettingsView extends JView
     <p>Show invisibles          {{> @showInvisibles}}</p>
     <p>Use scroll past end      {{> @scrollPastEnd}}</p>
     <hr>
-    <p>Soft wrap                {{> @softWrap}}</p>
-    <p>Syntax                   {{> @syntax}}</p>
-    <p>Key binding              {{> @keyboardHandler}}</p>
-    <p>Font                     {{> @fontSize}}</p>
-    <p>Theme                    {{> @theme}}</p>
-    <p>Tab size                 {{> @tabSize}}</p>
+    <p class="with-select">Soft wrap                {{> @softWrap}}</p>
+    <p class="with-select">Syntax                   {{> @syntax}}</p>
+    <p class="with-select">Key binding              {{> @keyboardHandler}}</p>
+    <p class="with-select">Font                     {{> @fontSize}}</p>
+    <p class="with-select">Theme                    {{> @theme}}</p>
+    <p class="with-select">Tab size                 {{> @tabSize}}</p>
 
     <p class='hidden'>{{> @shortcuts}}</p>
 

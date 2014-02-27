@@ -10,7 +10,7 @@ module.exports = ({client, bongoModels, page}, callback)->
     <!doctype html>
     <html lang="en" prefix="og: http://ogp.me/ns#">
     <head>
-      <title>Koding</title>
+      <title>Koding | A New Way For Developers To Work</title>
       #{getStyles()}
       <link rel="stylesheet" href="/a/css/landingapp.#{KONFIG.version}.css" />
       <link href="https://fonts.googleapis.com/css?family=Raleway:100,700" rel="stylesheet" type="text/css">
