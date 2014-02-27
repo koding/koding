@@ -137,27 +137,25 @@ class DomainCreateForm extends KDCustomHTMLView
       loadBalancer   : mode : ""
     , callback
 
-  showSuccess:(domain) ->
+  showSuccess:(domain, view = @subdomainForm) ->
 
-    domainName =
-      Encoder.XSSEncode @subdomainForm.inputs.domainName.getValue()
+    view.message.unsetClass 'err'
 
     @emit 'DomainSaved', domain
-    @subdomainForm.message.updatePartial """
-      Your subdomain <strong>#{domainName}</strong> has been added.
+    view.message.updatePartial """
+      Your domain <strong>#{domain.domain}</strong> has been added.
       You can dismiss this modal and point your new domain to one of your VMs.
       """
-    @subdomainForm.message.show()
+    view.message.show()
 
-    KD.utils.wait 7000, =>
-      @subdomainForm.message.updatePartial ''
-      @subdomainForm.message.hide()
+  hideError:(view = @domainForm)->
 
+    view.message.hide()
 
   showError:(message, view = @domainForm) ->
 
     view.message.setClass 'err'
-    view.message.updatePartial message
+    view.message.updatePartial "<strong>#{message}</strong>"
     view.message.show()
 
   reset:->
