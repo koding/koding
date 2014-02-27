@@ -1,5 +1,6 @@
-{argv} = require 'optimist'
-{uri} = require('koding-config-manager').load("main.#{argv.c}")
+{argv}  = require 'optimist'
+encoder = require 'htmlencode'
+{uri}   = require('koding-config-manager').load("main.#{argv.c}")
 { formatDate, getProfile, getAvatarImageUrl } = require '../helpers'
 
 createLinkToStatusUpdate = (createDate, slug) ->
@@ -21,12 +22,15 @@ createStatusUpdateNode = (statusUpdate, profile)=>
     for comment in statusUpdate.replies
       profile = getProfile comment.author
       avatarUrl = getAvatarImageUrl profile.hash, profile.avatar
+      nickname = encoder.XSSEncode profile.nickname
+      fullname = encoder.XSSEncode profile.fullName
+
       commentsList +=
         """
           <div class="kdview kdlistitemview kdlistitemview-comment">
             <a class="avatarview online" href="/#{comment.author.nickname}" style="width: 40px; height: 40px; background-size: 40px; background-image: none;"><img class="" width="40" height="40" src="#{avatarUrl}" style="opacity: 1;"></a>
             <div class="comment-contents clearfix">
-              <a class="profile" href="/#{profile.nickname}" itemprop="name">#{profile.fullName}</a>
+              <a class="profile" href="/#{nickname}" itemprop="name">#{fullname}</a>
               <div class="comment-body-container"><p itemprop="commentText">#{comment.body}</p></div>
 
             </div>
