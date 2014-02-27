@@ -295,7 +295,8 @@ module.exports =
       apiHost     : "172.16.3.11"
       apiPort     : 80
       port        : 8080
-      switchHost  : "koding.com"
+      kodingHost  : "koding.com"
+      socialHost  : "social.koding.com"
     api           :
       port        : 80
       url         : "http://kontrol0.sj.koding.com"
