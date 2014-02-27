@@ -213,15 +213,18 @@ module.exports = class JDomain extends jraphical.Module
     return {type: 'internal', slug, prefix, domain}
 
   resolveDomain = (domainData, callback)->
+
     return callback null  unless domainData.domainType
 
     {domain} = domainData
 
     dns = require 'dns'
-    dns.resolve 'kd.io', (err, baseIps)->
-      return callback err  if err
+    dns.resolve domain, (err, remoteIps)->
+      return callback new KodingError \
+        "Cannot resolve #{domain}", "RESOLVEFAILED"  if err
 
-      dns.resolve domain, (err, remoteIps)->
+      baseDomain = 'kd.io'
+      dns.resolve baseDomain, (err, baseIps)->
         return callback err  if err
 
         intersection = (a, b)->
@@ -231,7 +234,7 @@ module.exports = class JDomain extends jraphical.Module
         if (intersection baseIps, remoteIps).length > 0
           return callback null
 
-        callback new KodingError "CNAME settings are wrong.", "CNAMEMISMATCH"
+        callback new KodingError "CNAME record for #{domain} is not matching with #{baseDomain}", "CNAMEMISMATCH"
 
   createDomain = (domainData, account, callback)->
 
