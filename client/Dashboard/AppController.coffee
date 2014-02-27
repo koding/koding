@@ -12,7 +12,6 @@ class DashboardAppController extends AppController
       "/:name?/Dashboard/:section" : ({params : {section,name}})->
         handler name, (app)-> app.loadSection title : decodeURIComponent section
     hiddenHandle : yes
-    searchRoute : "/Dashboard?q=:text:"
 
   constructor: (options = {}, data) ->
 
