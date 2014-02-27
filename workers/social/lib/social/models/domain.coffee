@@ -237,48 +237,56 @@ module.exports = class JDomain extends jraphical.Module
 
       callback err, model
 
-  @createDomain: secure (client, options, callback)->
+  @createDomain$: secure (client, {domain, stack}, callback)->
 
-    [callback, options] = [options, callback]  unless callback
     {delegate} = client.connection
-    {domain} = options
+    {err, domain, type, slug, prefix} = parseDomain domain
 
-    JDomain.isDomainEligible {domain}, (err, parentDomain)->
+    return callback err  if err
+
+    error = (message, name)->
+      callback new KodingError message, name
+
+    {group}    = client.context
+    {nickname} = delegate.profile
+
+    if type is 'internal'
+
+      if slug isnt nickname
+        return error "Creating root domains is not allowed"
+
+      slug = "koding"  if nickname is slug
+      unless group is slug
+        return error "Invalid group"
+
+    JGroup.one {slug:group}, (err, group)->
       return callback err  if err
+      return error "Invalid group"  unless group
 
-      {nickname} = delegate.profile
-      slug = if nickname is parentDomain then "koding" else parentDomain
+      delegate.checkPermission group, 'create domains', (err, hasPermission)->
 
-      JGroup.one {slug}, (err, group)->
         return callback err  if err
-        return callback new KodingError("No group found.")  unless group
+        return error "Access denied", "ACCESSDENIED"  unless hasPermission
 
-        delegate.checkPermission group, 'create domains', (err, hasPermission)->
+        JDomain.one {domain}, (err, model)->
           return callback err  if err
-          return callback new KodingError "Access denied",  "ACCESSDENIED" unless hasPermission
+          if model
+            return error "The domain #{domain} already exists", "DUPLICATEDOMAIN"
 
-          JDomain.one {domain}, (err, model) ->
+          domainData = {
+            domain, stack
+            group : group.slug
+          }
+
+          if type is 'custom'
+            domainData.domainType = 'existing'
+
+          resolveDomain domainData, (err)->
             return callback err  if err
-            if model
-              return callback new KodingError("The domain #{options.domain} already exists", "DUPLICATEDOMAIN")
-            model = new JDomain options
-            model.save (err) ->
-              return callback err if err
 
-              account = client.connection.delegate
-              rel = new Relationship
-                targetId: model.getId()
-                targetName: 'JDomain'
-                sourceId: account.getId()
-                sourceName: 'JAccount'
-                as: 'owner'
+            createDomain domainData, delegate, callback
 
-              rel.save (err)->
-                return callback err if err
-
-              callback err, model
-
-  @createDomains = ({account, domains, hostnameAlias, stack})->
+  @createDomains = ({account, domains, hostnameAlias, stack, group})->
 
     updateRelationship = (domainObj)->
       Relationship.one
