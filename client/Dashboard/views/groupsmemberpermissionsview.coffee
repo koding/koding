@@ -27,7 +27,7 @@ class GroupsMemberPermissionsView extends JView
     @searchWrapper.addSubView @search
     @searchWrapper.addSubView @searchIcon
 
-    @_searchValue = null
+    @_searchValue = ""
 
     @listController = new KDListViewController
       itemClass             : GroupsMemberPermissionsListItemView
@@ -48,12 +48,16 @@ class GroupsMemberPermissionsView extends JView
         @continueLoadingTeasers()
 
     @on 'SearchInputChanged', (value)=>
+      return  if value is @_searchValue
       @_searchValue = value
+
       if value isnt ""
         @skip = 0
         @listController.removeAllItems()
         @fetchSomeMembers()
-      else @refresh()
+      else
+        @_searchValue = ""
+        @refresh()
 
     KD.singletons.groupsController.on "MemberJoinedGroup", (data) =>
       @refresh()  unless @getData().slug is "koding" 
