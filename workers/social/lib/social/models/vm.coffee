@@ -271,20 +271,26 @@ module.exports = class JVM extends Module
               return console.error err  if err
               # Counter created
 
-              @addVm {
-                uid
-                user
-                account
-                sudo      : yes
-                type      : 'user'
-                target    : account
-                planCode  : 'free'
-                groupSlug : group.slug
-                planOwner : "user_#{account._id}"
-                webHome   : account.profile.nickname
-                groups    : wrapGroup group
-                # ADD HERE ------------
-              }, callback
+              JStack = require './stack'
+              JStack.getStackId {
+                user : user.username
+                group: group.slug
+              }, (err, stack)=>
+
+                @addVm {
+                  uid
+                  user
+                  stack
+                  account
+                  sudo      : yes
+                  type      : 'user'
+                  target    : account
+                  planCode  : 'free'
+                  groupSlug : group.slug
+                  planOwner : "user_#{account._id}"
+                  webHome   : account.profile.nickname
+                  groups    : wrapGroup group
+                }, callback
 
       else
 
