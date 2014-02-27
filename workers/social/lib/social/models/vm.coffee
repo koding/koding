@@ -698,9 +698,10 @@ module.exports = class JVM extends Module
 
       handleError err
 
-      return console.warn "Failed to create VM for ", {
-        users, groups, hostnameAlias
-      }  if err
+      if err
+        return console.warn "Failed to create VM for ", {
+          users, groups, hostnameAlias
+        }
 
       group = groupSlug
 
