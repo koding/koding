@@ -32,6 +32,9 @@ class GroupsMemberPermissionsView extends JView
     @listController = new KDListViewController
       itemClass             : GroupsMemberPermissionsListItemView
       lazyLoadThreshold     : .99
+      noItemFoundWidget     : new KDCustomHTMLView
+        cssClass : "lazy-loader hidden"
+        partial  : "Member not found"
     @listWrapper    = @listController.getView()
 
     @listController.getListView().on 'ItemWasAdded', (view)=>
