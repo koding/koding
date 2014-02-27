@@ -12,7 +12,7 @@ __utils.extend __utils,
 
   botchedUrlRegExp     : /(([a-zA-Z]+\:)?\/\/)+(\w+:\w+@)?([a-zA-Z\d.-]+\.[A-Za-z]{2,4})(:\d+)?(\/\S*)?/g
   webProtocolRegExp    : /^((http(s)?\:)?\/\/)/
-  domainWithTLDPattern : /^(?:[a-z0-9](?:[_\-](?![_\-])|[a-z0-9]){0,60}[a-z0-9]|[a-z0-9])(?:\.[A-Za-z]{2,})$/i
+  domainWithTLDPattern : /^[A-Za-z0-9-]+(\.[A-Za-z0-9-]+)*(\.[A-Za-z]{2,})$/i
   subdomainPattern     : /^(?:[a-z0-9](?:[_\-](?![_\-])|[a-z0-9]){0,60}[a-z0-9]|[a-z0-9])$/i
 
   proxifyUrl:(url="", options={})->
