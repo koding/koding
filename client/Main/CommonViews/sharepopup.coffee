@@ -118,8 +118,8 @@ class SharePopup extends JView
     """
     {{> @urlInput}}
     {{> @gPlusShareLink}}
-    {{> @twitterShareLink}}
-    {{> @facebookShareLink}}
     {{> @linkedInShareLink}}
+    {{> @facebookShareLink}}
+    {{> @twitterShareLink}}
     """
 
