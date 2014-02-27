@@ -12,6 +12,7 @@ import (
 	"koding/db/mongodb/modelhelper"
 	"koding/kites/os/ldapserver"
 	"koding/kodingkite"
+	"koding/oskite"
 	"koding/tools/config"
 	"koding/tools/dnode"
 	"koding/tools/kite"
@@ -26,7 +27,6 @@ import (
 	"sort"
 	"strings"
 	"sync"
-	"sync/atomic"
 	"syscall"
 	"time"
 
@@ -36,9 +36,6 @@ import (
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
 )
-
-const OSKITE_NAME = "oskite"
-const OSKITE_VERSION = "0.1.3"
 
 type VMInfo struct {
 	vm              *virt.VM
@@ -78,10 +75,6 @@ var (
 	containerSubnet  *net.IPNet
 	shuttingDown     = false
 	requestWaitGroup sync.WaitGroup
-
-	vmTimeout         = time.Minute * 50
-	prepareQueueLimit = 8 + 1 // number of concurrent VM preparations, should be CPU + 1
-	prepareQueue      = make(chan *QueueJob, 1000)
 )
 
 func main() {
@@ -91,9 +84,6 @@ func main() {
 	}
 
 	conf = config.MustConfig(*flagProfile)
-	mongodbConn = mongodb.NewMongoDB(conf.Mongo)
-	modelhelper.Initialize(conf.Mongo)
-
 	if *flagDebug {
 		logLevel = logger.DEBUG
 	} else {
@@ -101,91 +91,23 @@ func main() {
 	}
 	log.SetLevel(logLevel)
 
-	if *flagTemplates != "" {
-		templateDir = *flagTemplates
-	}
-
-	var newTimeout time.Duration
-	var err error
-	newTimeout, err = time.ParseDuration(*flagTimeout)
+	timeout, err := time.ParseDuration(*flagTimeout)
 	if err != nil {
-		log.Warning("Timeout parameter is not correct: %v", err.Error())
-		log.Notice("Using default VM timeout: %s", vmTimeout)
+		log.Warning("Timeout flag is not correct: %v. Using standart timeout", err.Error())
+		timeout = time.Minute * 50
 	} else {
 		// use our new timeout
-		log.Info("Using default VM timeout: %s", vmTimeout)
-		vmTimeout = newTimeout
+		log.Info("Using default VM timeout: %s", timeout)
 	}
 
-	// set seed for even randomness, needed for randomMinutes() function.
-	rand.Seed(time.Now().UnixNano())
+	os := oskite.New(conf)
+	os.VmTimeout = timeout
+	os.PrepareQueueLimit = 8 + 1
+	os.TemplateDir = *flagTemplates
+	os.LogLevel
 
-	initializeSettings()
-
-	// startPrepareWorkers starts multiple workers (based on prepareQueueLimit)
-	// that accepts vmPrepare/vmStart functions.
-	for i := 0; i < prepareQueueLimit; i++ {
-		go prepareWorker(i)
-	}
-
-	k := prepareOsKite()
-	log.Info("Kite.go preperation is done")
-
-	runNewKite(k.ServiceUniqueName)
-	log.Info("Run newkite is finished.")
-
-	handleCurrentVMS(k) // handle leftover VMs
-	log.Info("VMs in /var/lib/lxc are finished.")
-
-	startPinnedVMS(k) // start pinned always-on VMs
-	log.Info("Starting pinned hosts, if any...")
-
-	setupSignalHandler(k) // handle SIGUSR1 and other signals.
-	log.Info("Setting up signal handler")
-
-	// register current client-side methods
-	registerVmMethod(k, "vm.start", false, vmStart)
-	registerVmMethod(k, "vm.shutdown", false, vmShutdown)
-	registerVmMethod(k, "vm.unprepare", false, vmUnprepare)
-	registerVmMethod(k, "vm.stop", false, vmStop)
-	registerVmMethod(k, "vm.reinitialize", false, vmReinitialize)
-	registerVmMethod(k, "vm.info", false, vmInfo)
-	registerVmMethod(k, "vm.resizeDisk", false, vmResizeDisk)
-	registerVmMethod(k, "vm.createSnapshot", false, vmCreateSnaphost)
-	registerVmMethod(k, "spawn", true, spawnFunc)
-	registerVmMethod(k, "exec", true, execFunc)
-
-	registerVmMethod(k, "oskite.Info", true, oskiteInfo)
-	registerVmMethod(k, "oskite.All", true, oskiteAll)
-
-	syscall.Umask(0) // don't know why richard calls this
-	registerVmMethod(k, "fs.readDirectory", false, fsReadDirectory)
-	registerVmMethod(k, "fs.glob", false, fsGlob)
-	registerVmMethod(k, "fs.readFile", false, fsReadFile)
-	registerVmMethod(k, "fs.writeFile", false, fsWriteFile)
-	registerVmMethod(k, "fs.ensureNonexistentPath", false, fsEnsureNonexistentPath)
-	registerVmMethod(k, "fs.getInfo", false, fsGetInfo)
-	registerVmMethod(k, "fs.setPermissions", false, fsSetPermissions)
-	registerVmMethod(k, "fs.remove", false, fsRemove)
-	registerVmMethod(k, "fs.rename", false, fsRename)
-	registerVmMethod(k, "fs.createDirectory", false, fsCreateDirectory)
-
-	registerVmMethod(k, "app.install", false, appInstall)
-	registerVmMethod(k, "app.download", false, appDownload)
-	registerVmMethod(k, "app.publish", false, appPublish)
-	registerVmMethod(k, "app.skeleton", false, appSkeleton)
-
-	// this method is special cased in oskite.go to allow foreign access
-	registerVmMethod(k, "webterm.connect", false, webtermConnect)
-	registerVmMethod(k, "webterm.getSessions", false, webtermGetSessions)
-
-	registerVmMethod(k, "s3.store", true, s3Store)
-	registerVmMethod(k, "s3.delete", true, s3Delete)
-
-	go oskiteRedis(k.ServiceUniqueName)
-
-	log.Info("Oskite started. Go!")
-	k.Run()
+	// go go!
+	os.Run()
 }
 
 var oskitesMu sync.Mutex
@@ -875,28 +797,6 @@ func startVM(k *kite.Kite, vm *virt.VM, channel *kite.Channel) error {
 	}
 
 	return nil
-}
-
-var currentQueueCount AtomicInt32
-
-type AtomicInt32 int32
-
-func (i *AtomicInt32) Add(n int32) int32 {
-	return atomic.AddInt32((*int32)(i), n)
-}
-
-func (i *AtomicInt32) Set(n int32) {
-	atomic.StoreInt32((*int32)(i), n)
-}
-
-func (i *AtomicInt32) Get() int32 {
-	return atomic.LoadInt32((*int32)(i))
-}
-
-// QueueJob is used to append jobs to our prepareQueue.
-type QueueJob struct {
-	f   func() string
-	msg string
 }
 
 // prepareWorker listens from prepareQueue channel and runs the functions it receives
