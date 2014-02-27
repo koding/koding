@@ -256,13 +256,16 @@ module.exports = class JDomain extends jraphical.Module
 
   @createDomain$: secure (client, {domain, stack}, callback)->
 
+    error = (message, name)->
+      callback new KodingError message, name
+
+    unless domain
+      return error "Domain is not provided"
+
     {delegate} = client.connection
     {err, domain, type, slug, prefix} = parseDomain domain
 
     return callback err  if err
-
-    error = (message, name)->
-      callback new KodingError message, name
 
     {group}    = client.context
     {nickname} = delegate.profile
