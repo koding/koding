@@ -55,39 +55,21 @@ class DomainCreateForm extends KDCustomHTMLView
     {domains, domainName} = @domainForm.inputs
     {createButton}        = @parent.buttons
 
-    domainName = domainName.getValue().trim()
+    domain = Encoder.XSSEncode domainName.getValue().trim()
 
-    unless KD.utils.domainWithTLDPattern.test domainName
+    unless KD.utils.domainWithTLDPattern.test domain
       createButton.hideLoader()
-      return notifyUser "#{domainName} is an invalid domain name"
+      return notifyUser "#{domain} is an invalid domain name"
 
-    regYears   = 1e6                          # ಠ_ಠ
-    domainType = "IdontKnowWhatADomainTypeIs" # ಠ_ಠ
+    @hideError()
 
-    @checkDomainAvailability domainName, =>
-      return  createButton.hideLoader()
-      @createJDomain {domainName, regYears, domainType}, (err, domain)=>
-        createButton.hideLoader()
-        return @showDomainError err.message  if err
-        @showSuccess domain
-        @updateDomains()
-
-
-
-  checkDomainAvailability:(name, callback)->
-
-    # make your check
-    KD.utils.wait KD.utils.getRandomNumber(5000), =>
-      # error handling
-      if !!(KD.utils.getRandomNumber(2)-1)
-        {createButton} = @parent.buttons
-        createButton.hideLoader()
-        @redirectNotice.setClass 'err'
+    @createJDomain domain, (err, domain)=>
+      createButton.hideLoader()
+      if err
+        @showError err.message
       else
-        log 'there was no problem'
-        callback()
-
-
+        @showSuccess domain, @domainForm
+        @updateDomains()
 
   createSubDomain: ->
     {domains, domainName} = @subdomainForm.inputs
