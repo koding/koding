@@ -19,9 +19,6 @@ class GroupsMemberPermissionsView extends JView
       callback     : =>
         @emit 'SearchInputChanged', @search.getValue()
         @search.focus()
-      keyup        : =>
-        return unless @search.getValue() is ""
-        @emit 'SearchInputChanged', ''
 
     @searchIcon = new KDCustomHTMLView
       tagName  : 'span'
