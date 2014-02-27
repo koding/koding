@@ -173,25 +173,32 @@ module.exports = class JDomain extends jraphical.Module
       return callback null unless domains
       callback null, filterDomains domains, delegate, group
 
+  parseDomain = (domain)->
 
+    # Return domain type as custom and keep the domain as is
+    return {type: 'custom', domain}  unless /\.kd\.io$/.test domain
 
-        delegate.fetchDomains (err, domains) ->
-          return callback err  if err
+    # Custom error
+    err = (message)->
+      err: new KodingError message, "INVALIDDOMAIN"
 
-          domainList = []
-          domainList = filterDomains domains, delegate, group.slug  if domains
-
-          callback null, domainList
-
-  @isDomainEligible: (params, callback)->
-    {domain, newDomain} = params
-
+    # Basic check
     unless /([a-z0-9\-]+)\.kd\.io$/.test domain
-      return callback new KodingError("Invalid domain: #{domain}.", "INVALIDDOMAIN")
+      return err "Invalid domain: #{domain}."
 
-    match = domain.match /(.*)\.([a-z0-9\-]+)\.kd\.io$/
+    # Check for shared|vm prefix
+    if /^shared|vm[\-]?([0-9]+)?/.test prefix
+      return err "Domain name cannot start with shared|vm"
 
+    # Parse domain
+    match = domain.match /([a-z0-9\-]+)\.([a-z0-9\-]+)\.kd\.io$/
+    return err "Invalid domain: #{domain}."  unless match
     [rest..., prefix, slug] = match
+
+    # Return type as internal and slug and domain
+    return {type: 'internal', slug, prefix, domain}
+
+
 
     if newDomain and /^shared|vm[\-]?([0-9]+)?/.test prefix
       return callback new KodingError("Domain name cannot start with shared|vm", "INVALIDDOMAIN")
