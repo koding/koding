@@ -104,7 +104,7 @@ class StackView extends KDView
       callback : @bound 'dumpStack'
 
     # Main scene for DIA
-    @addSubView @scene = new EnvironmentScene
+    @addSubView @scene = new EnvironmentScene @getData().stack
 
     # Rules Container
     @rules = new EnvironmentRuleContainer
