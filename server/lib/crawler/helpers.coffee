@@ -99,8 +99,24 @@ createActivityContent = (JAccount, model, comments, createFullHTML=no, putBody=y
       {meta:{createdAt}} = model  if model
       createdAt          = if createdAt then formatDate createdAt else ""
 
+      # If href goes to outside of koding, add rel=nofollow.
+      # this is necessary to prevent link abusers.
+      renderer = new marked.Renderer()
+      renderer.link= (href, title, text)->
+        linkHTML = "<a href=\"#{href}\""
+        if title
+          linkHTML += " title=\"#{title}\""
+
+        re = new RegExp("#{uri.address}", "g")
+        if re.test href
+          linkHTML += ">#{text}</a>"
+        else
+          linkHTML += " rel=\"nofollow\">#{text}</a>"
+        return linkHTML
+
       if model?.body? and putBody
         body = marked model.body,
+          renderer  : renderer
           gfm       : true
           pedantic  : false
           sanitize  : true
