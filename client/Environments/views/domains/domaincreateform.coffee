@@ -72,35 +72,31 @@ class DomainCreateForm extends KDCustomHTMLView
         @updateDomains()
 
   createSubDomain: ->
+
     {domains, domainName} = @subdomainForm.inputs
     {createButton}        = @parent.buttons
 
-    domainName = domainName.getValue()
+    domain = domainName.getValue()
 
     # Check given subdomain
-    unless KD.utils.subdomainPattern.test domainName
+    unless KD.utils.subdomainPattern.test domain
       createButton.hideLoader()
-      return notifyUser "#{domainName} is an invalid subdomain."
+      return notifyUser "#{domain} is an invalid subdomain."
 
-    domainName =
-      Encoder.XSSEncode "#{domainName}.#{domains.getValue()}"
+    domain =
+      Encoder.XSSEncode "#{domain}.#{domains.getValue()}"
 
-    domainType = 'subdomain'
-    regYears   = 0
-
-    @createJDomain {domainName, regYears, domainType}, (err, domain)=>
+    @createJDomain domain, (err, domain)=>
       createButton.hideLoader()
       if err
         warn "An error occured while creating domain:", err
         switch err.name
-          when "DUPLICATEDOMAIN"
-            return @showError "The domain #{domainName} already exists.", @subdomainForm
           when "INVALIDDOMAIN"
-            return @showError "#{domainName} is an invalid subdomain.", @subdomainForm
+            @showError "#{domain} is an invalid subdomain.", @subdomainForm
           when "ACCESSDENIED"
-            return @showError "You do not have permission to create a subdomain in this domain", @subdomainForm
+            @showError "You do not have permission to create a subdomain in this domain", @subdomainForm
           else
-            return @showError "An unknown error occured. Please try again later.", @subdomainForm
+            @showError err.message or "An unknown error occured. Please try again later.", @subdomainForm
       else
         @showSuccess domain
         @updateDomains()
