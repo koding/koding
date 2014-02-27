@@ -2,6 +2,7 @@
 {uri}                   = require('koding-config-manager').load("main.#{argv.c}")
 {daisy}                 = require "bongo"
 {Relationship}          = require 'jraphical'
+encoder                 = require 'htmlencode'
 {createActivityContent, decorateComment} = require '../helpers'
 
 ITEMSPERPAGE = 20
@@ -158,7 +159,7 @@ createTagNode = (tag)->
       <a href="#"><span>#{tag.counts?.post ? 0}</span> Posts</a>
       <a href="#"><span>#{tag.counts?.followers ? 0}</span> Followers</a>
     </div>
-    <article>#{tag.body ? ''}</article>
+    <article>#{encoder.XSSEncode(tag.body) ? ''}</article>
   </div>
   """
 

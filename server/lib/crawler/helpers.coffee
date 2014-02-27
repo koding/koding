@@ -1,17 +1,18 @@
-{argv} = require 'optimist'
-{uri} = require('koding-config-manager').load("main.#{argv.c}")
+{argv}  = require 'optimist'
+{uri}   = require('koding-config-manager').load("main.#{argv.c}")
+encoder = require 'htmlencode'
 
 getProfile = (account) ->
   {profile:{nickname, firstName, lastName, about, hash, avatar}} = account if account
 
   userProfile =
-    nickname    : nickname  or "A koding nickname"
-    firstName   : firstName or "a koding "
-    lastName    : lastName  or "user"
+    nickname    : encoder.XSSEncode nickname  or "A koding nickname"
+    firstName   : encoder.XSSEncode firstName or "a koding "
+    lastName    : encoder.XSSEncode lastName  or "user"
     about       : ""
     hash        : hash or ''
     avatar      : avatar or no
-    fullName    : firstName + " " + lastName
+    fullName    : encoder.XSSEncode(firstName + " " + lastName)
   userProfile.about = about  if about
   return userProfile
 
@@ -137,6 +138,7 @@ createActivityContent = (JAccount, model, comments, createFullHTML=no, putBody=y
         comments         : comments
         tags             : tags
         type             : model?.bongo_?.constructorName
+      activityContent.title = encoder.XSSEncode activityContent.title
       if createFullHTML
         content = getSingleActivityPage {activityContent, model}
       else
