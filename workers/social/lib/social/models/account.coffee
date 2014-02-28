@@ -34,6 +34,8 @@ module.exports = class JAccount extends jraphical.Module
   Protected = require '../traits/protected'
   {extend} = require 'underscore'
 
+  validateFullName = (value) -> not /<|>/.test value
+
   @share()
 
   @set
@@ -320,9 +322,11 @@ module.exports = class JAccount extends jraphical.Module
           type              : String
           required          : yes
           default           : 'a koding'
+          validate          : validateFullName
         lastName            :
           type              : String
           default           : 'user'
+          validate          : validateFullName
         description         : String
         avatar              : String
         status              : String
@@ -1076,7 +1080,7 @@ module.exports = class JAccount extends jraphical.Module
   fetchPrivateChannel:(callback)->
     require('bongo').fetchChannel @getPrivateChannelName(), callback
 
-  getPrivateChannelName:-> "private-#{@getAt('profile.nickname')}-private"
+  getPrivateChannelName:-> "private-#{@getAt('pro file.nickname')}-private"
 
   fetchMail:do ->
 
