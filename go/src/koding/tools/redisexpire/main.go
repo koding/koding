@@ -14,17 +14,22 @@ import (
 var (
 	conf        *config.Config
 	flagDebug   = flag.Bool("d", false, "Debug mode")
-	flagProfile = flag.String("c", "", "Configuration profile from file")
+	flagProfile = flag.String("c", "vagrant", "Configuration profile from file")
 )
 
+// This script is intended for adding expiration into redis keys
 func main() {
 	flag.Parse()
 	log := logger.New("Redis Expire Worker")
 
-	if *flagProfile == "" {
-		log.Fatal("Please specify profile via -c. Aborting.")
-	}
 	conf = config.MustConfig(*flagProfile)
+
+	if *flagDebug {
+		log.SetLevel(logger.DEBUG)
+	} else {
+		log.SetLevel(logger.INFO)
+	}
+
 	redisSess, err := redis.NewRedisSession(conf.Redis)
 	if err != nil {
 		panic(err)
