@@ -177,6 +177,9 @@ app.get "/members/:username?*", (req, res)->
   username = req.params.username
   res.redirect 302, '/' + username
 
+app.get "/activity/p/?*", (req, res)->
+  res.redirect 302, '/Activity'
+
 app.get "/sitemap:sitemapName", (req, res)->
   {JSitemap}       = koding.models
 
