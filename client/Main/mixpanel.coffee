@@ -24,7 +24,17 @@ if KD.config.logToExternal then do ->
 # Access control wrapper around mixpanel object.
 KD.mixpanel = (args...)->
   return  unless mixpanel and KD.config.logToExternal
-  mixpanel.track args...
+  if args.length < 2
+    args.push {}
+
+  me = KD.whoami()
+  me.fetchEmail (err, email)->
+    console.log err  if err
+
+    args[1]["username"] = me.profile.nickname
+    args[1]["email"] = email
+
+    mixpanel.track args...
 
 KD.mixpanel.alias = (args...)->
   return  unless mixpanel and KD.config.logToExternal
