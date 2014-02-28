@@ -1,6 +1,7 @@
 package helpers
 
 import (
+	"errors"
 	"koding/db/mongodb"
 	"koding/db/mongodb/modelhelper"
 
@@ -18,17 +19,27 @@ type iterOptions struct {
 	DataType          interface{}
 }
 
-func NewIterOptions(collectionName string) *iterOptions {
+func NewIterOptions() *iterOptions {
 	return &iterOptions{
 		Skip:              0,
 		Limit:             1000,
 		Filter:            modelhelper.Selector{},
-		CollectionName:    collectionName,
 		MaxIterationCount: 50,
 	}
 }
 
 func Iter(mongo *mongodb.MongoDB, iterOptions *iterOptions) error {
+	if iterOptions.CollectionName == "" {
+		return errors.New("Collection name is not set")
+	}
+
+	if iterOptions.F == nil {
+		return errors.New("Iteration function is not given")
+	}
+	if iterOptions.DataType == nil {
+		return errors.New("Datatype is not given")
+	}
+
 	return mongo.Run("jAccounts", createQuery(iterOptions))
 }
 
