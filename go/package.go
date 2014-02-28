@@ -6,6 +6,7 @@ import (
 	"flag"
 	"fmt"
 	"io/ioutil"
+	"koding/oskite"
 	"koding/tools/config"
 	"log"
 	"os"
@@ -67,6 +68,7 @@ func buildOsKite() error {
 	}
 
 	oskitePath := "koding/kites/os"
+	oskitePackage := "koding/oskite"
 	temps := struct {
 		Profile string
 		Region  string
@@ -76,10 +78,10 @@ func buildOsKite() error {
 	}
 
 	var files = make([]string, 0)
-	files = append(files, filepath.Join(gopath, "src", oskitePath, "files"))
+	files = append(files, filepath.Join(gopath, "src", oskitePackage, "files"))
 
 	// change our upstartscript because it's a template
-	oskiteUpstart := filepath.Join(gopath, "src", oskitePath, "files/oskite.conf")
+	oskiteUpstart := filepath.Join(gopath, "src", oskitePackage, "files/oskite.conf")
 	configUpstart, err := prepareUpstart(oskiteUpstart, temps)
 	if err != nil {
 		return err
@@ -90,7 +92,7 @@ func buildOsKite() error {
 		appName:       "oskite",
 		importPath:    oskitePath,
 		files:         files,
-		version:       "0.1.3",
+		version:       oskite.OSKITE_VERSION,
 		upstartScript: configUpstart,
 	}
 

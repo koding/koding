@@ -1,6 +1,7 @@
 package oskite
 
 import (
+	"fmt"
 	"koding/tools/config"
 	"koding/tools/logger"
 	logg "log"
@@ -18,7 +19,7 @@ var (
 )
 
 func TestOskite(t *testing.T) {
-	OverrideConfig()
+	overrideConfig()
 
 	o := New(config.MustConfig(Profile))
 
@@ -27,12 +28,26 @@ func TestOskite(t *testing.T) {
 	o.Region = Region
 	o.ActiveVMsLimit = VMLimit
 	o.VmTimeout = time.Minute * 50
+	// go o.Run()
 
-	go o.Run()
+	vms := make(chan int, VMLimit)
+	for i := 0; i < VMLimit; i++ {
+		go createTestVM(vms)
+	}
 
+	for vm := range vms {
+		fmt.Println(vm)
+	}
 }
 
-func OverrideConfig() {
+var index int
+
+func createTestVM(resultChan chan int) {
+	index++
+	resultChan <- index
+}
+
+func overrideConfig() {
 	envProfile := os.Getenv("PROFILE")
 	if envProfile != "" {
 		Profile = envProfile
