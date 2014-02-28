@@ -1,17 +1,18 @@
-{argv} = require 'optimist'
-{uri} = require('koding-config-manager').load("main.#{argv.c}")
+{argv}  = require 'optimist'
+{uri}   = require('koding-config-manager').load("main.#{argv.c}")
+encoder = require 'htmlencode'
 
 getProfile = (account) ->
   {profile:{nickname, firstName, lastName, about, hash, avatar}} = account if account
 
   userProfile =
-    nickname    : nickname  or "A koding nickname"
-    firstName   : firstName or "a koding "
-    lastName    : lastName  or "user"
+    nickname    : encoder.XSSEncode nickname  or "A koding nickname"
+    firstName   : encoder.XSSEncode firstName or "a koding "
+    lastName    : encoder.XSSEncode lastName  or "user"
     about       : ""
     hash        : hash or ''
     avatar      : avatar or no
-    fullName    : firstName + " " + lastName
+    fullName    : encoder.XSSEncode(firstName + " " + lastName)
   userProfile.about = about  if about
   return userProfile
 
@@ -99,8 +100,24 @@ createActivityContent = (JAccount, model, comments, createFullHTML=no, putBody=y
       {meta:{createdAt}} = model  if model
       createdAt          = if createdAt then formatDate createdAt else ""
 
+      # If href goes to outside of koding, add rel=nofollow.
+      # this is necessary to prevent link abusers.
+      renderer = new marked.Renderer()
+      renderer.link= (href, title, text)->
+        linkHTML = "<a href=\"#{href}\""
+        if title
+          linkHTML += " title=\"#{title}\""
+
+        re = new RegExp("#{uri.address}", "g")
+        if re.test href
+          linkHTML += ">#{text}</a>"
+        else
+          linkHTML += " rel=\"nofollow\">#{text}</a>"
+        return linkHTML
+
       if model?.body? and putBody
         body = marked model.body,
+          renderer  : renderer
           gfm       : true
           pedantic  : false
           sanitize  : true
@@ -121,6 +138,7 @@ createActivityContent = (JAccount, model, comments, createFullHTML=no, putBody=y
         comments         : comments
         tags             : tags
         type             : model?.bongo_?.constructorName
+      activityContent.title = encoder.XSSEncode activityContent.title
       if createFullHTML
         content = getSingleActivityPage {activityContent, model}
       else

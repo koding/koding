@@ -77,7 +77,7 @@ class ActivityInputView extends KDTokenizedInput
       when 27 # Escape
         @emit "Escape"
 
-    if /\s/.test String.fromCharCode event.which
+    if /\W/.test String.fromCharCode event.which
       if @tokenInput and /^\W+$/.test @tokenInput.textContent then @cancel()
       else if @selectToken() then KD.utils.stopDOMEvent event
 
@@ -110,7 +110,7 @@ class ActivityInputView extends KDTokenizedInput
     return  content
 
   renderTokens: (content, tokens = {}) ->
-    return  content.replace /\|(.*?):(.*?):(.*?)\|/g, (match, prefix, constructorName, id) =>
+    content.replace /\|(.*?):(.*?):(.*?):(.*?)\|/g, (match, prefix, constructorName, id) =>
       switch prefix
         when "#"
           itemClass = TagLinkView
