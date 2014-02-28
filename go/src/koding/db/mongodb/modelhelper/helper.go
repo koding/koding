@@ -33,3 +33,13 @@ func RemoveDocument(collectionName string, id bson.ObjectId) error {
 		return coll.RemoveId(id)
 	})
 }
+
+// RemoveAllDocuments removes documents from database if they satisfies the query
+func RemoveAllDocuments(collectionName string, selector Selector) error {
+	query := func(c *mgo.Collection) error {
+		_, err := c.RemoveAll(selector)
+		return err
+	}
+
+	return Mongo.Run(collectionName, query)
+}
