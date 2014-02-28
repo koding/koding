@@ -43,12 +43,7 @@ func GetRelationship(selector Selector) (models.Relationship, error) {
 }
 
 func DeleteRelationship(selector Selector) error {
-	query := func(c *mgo.Collection) error {
-		_, err := c.RemoveAll(selector)
-		return err
-	}
-
-	return Mongo.Run("relationships", query)
+	return RemoveAllDocuments("relationships", selector)
 }
 
 func AddRelationship(r *models.Relationship) error {
