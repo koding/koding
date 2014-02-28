@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
-	"koding/databases/redissingleton"
+	"koding/databases/redis"
 	"koding/kontrol/kontrolhelper"
 	"koding/tools/amqputil"
 	"koding/tools/config"
@@ -67,7 +67,7 @@ type Broker struct {
 	PublishConn       *amqp.Connection
 	ConsumeConn       *amqp.Connection
 	// we should open only one connection session to Redis for one broker
-	RedisSingleton *redissingleton.RedisSingleton
+	RedisSingleton *redis.SingletonSession
 
 	// Accepts SockJS connections
 	listener net.Listener
@@ -91,7 +91,7 @@ func NewBroker(conf *config.Config) *Broker {
 		Hostname:          brokerHostname,
 		ServiceUniqueName: serviceUniqueName,
 		ready:             make(chan struct{}),
-		RedisSingleton:    redissingleton.New(conf),
+		RedisSingleton:    redis.Singleton(conf),
 	}
 }
 

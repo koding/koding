@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"koding/databases/redis"
-	"koding/databases/redissingleton"
 	"time"
 
 	redigo "github.com/garyburd/redigo/redis"
@@ -37,7 +36,7 @@ func convertData(commandName string, data ...string) []interface{} {
 
 // NewRedis creates a redis backend for storing
 // client subscriptions
-func newRedis(r *redissingleton.RedisSingleton, socketId string) (*cache, error) {
+func newRedis(r *redis.SingletonSession, socketId string) (*cache, error) {
 	var err error
 	if redisSession == nil {
 		redisSession, err = r.Connect()
