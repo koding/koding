@@ -214,6 +214,9 @@ class AdministrationView extends KDTabViewWithForms
 
   createUserAutoComplete:->
     {fields, inputs, buttons} = @forms["User Details"]
+
+    {JAccount} = KD.remote.api
+
     @userController = new KDAutoCompleteController
       form                : @forms["User Details"]
       name                : "userController"
@@ -227,13 +230,14 @@ class AdministrationView extends KDTabViewWithForms
         {inputValue} = args
         if /^@/.test inputValue
           query = 'profile.nickname': inputValue.replace /^@/, ''
-          KD.remote.api.JAccount.one query, (err, account)=>
+          JAccount.one query, (err, account)=>
             if not account
               @userController.showNoDataFound()
             else
               callback [account]
         else
-          KD.remote.api.JAccount.byRelevance inputValue, {}, (err, accounts)->
+          byEmail = /[^\s@]+@[^\s@]+\.[^\s@]+/.test inputValue
+          JAccount.byRelevance inputValue, {byEmail}, (err, accounts)->
             callback accounts
 
     @userController.on "ItemListChanged", =>

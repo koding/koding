@@ -3,10 +3,11 @@ package main
 import (
 	"flag"
 	"io/ioutil"
-	"kite"
-	"kite/regserv"
 	"koding/tools/config"
 	"log"
+
+	"github.com/koding/kite"
+	"github.com/koding/kite/regserv"
 )
 
 var (

@@ -135,6 +135,9 @@ module.exports = class JGroup extends Module
           (signature Object, Function)
           (signature Object, Object, Function)
         ]
+        searchMembers: [
+          (signature String, Object, Function)
+        ]
         fetchRoles: [
           (signature Function)
           (signature Object, Function)
@@ -224,8 +227,12 @@ module.exports = class JGroup extends Module
           (signature Function)
         getPermissionSet:
           (signature Function)
+        fetchUserStatus:
+          (signature Object, Function)
         fetchInvitationsByStatus:
           (signature Object, Function)
+        checkUserUsage:
+          (signature Function)
     schema          :
       title         :
         type        : String
@@ -689,17 +696,60 @@ module.exports = class JGroup extends Module
               if err then callback err
               else callback null, arr
 
+  fetchUserStatus: permit 'grant permissions',
+    success:(client, nicknames, callback)->
+      JUser    = require '../user'
+      JUser.someData username: $in: nicknames, {status:1, username:1}, (err, cursor) ->
+        return callback err  if err
+        cursor.toArray callback
+
   fetchMembers$: permit 'list members',
     success:(client, rest...)->
-      [selector, options, callback] = Module.limitEdges 100, rest
+      # when max limit is over 20 it starts giving "call stack exceeded" error
+      [selector, options, callback] = Module.limitEdges 10, 19, rest
       # delete options.targetOptions
       options.client = client
-      @fetchMembers selector, options, ->
-        callback arguments...
+      @fetchMembers selector, options, callback
 
+  # this method contains copy/pasted code from jAccount.findSuggestions method.
+  # It is a workaround, and will be changed after elasticsearch implementation. CtF
+  searchMembers: permit 'list members',
+    success: (client, seed, options = {}, callback) ->
+      cleanSeed = seed.replace(/[^\w\s-]/).trim()
+      seed = RegExp cleanSeed, "i"
+
+      names = seed.toString().split('/')[1].replace('^','').split ' '
+      names.push names.first  if names.length is 1
+
+      selector =  
+        $or : [
+            ( 'profile.nickname'  : seed )
+            ( 'profile.firstName' : new RegExp '^'+names.slice(0, -1).join(' '), 'i' )
+            ( 'profile.lastName'  : new RegExp '^'+names.last, 'i' )
+          ]
+        type    :
+          $in   : ['registered', null] 
+          # CtF null does not effect the results here, it only searches for registered ones.
+          # probably jraphical problem, because the query correctly works in mongo
+
+      {limit, skip} = options
+      options.sort  = 'meta.createdAt' : -1 
+      options.limit = Math.min limit ? 10, 15
+      # CtF @fetchMembers first fetches all group-member relationships, and then filters accounts with found targetIds.
+      # As a result searching groups with large number of members is very time consuming. For now the only group
+      # with large member count is koding, so i have seperated it here. as a future work hopefully we will make
+      # the search queries via elasticsearch. 
+      if @slug is "koding"
+        JAccount = require '../account'
+        JAccount.some selector, options, callback
+      else      
+        options.targetOptions = {options, selector}
+
+        @fetchMembers {}, options, callback
+      
   fetchNewestMembers$: permit 'list members',
     success:(client, rest...)->
-      [selector, options, callback] = Module.limitEdges 100, rest
+      [selector, options, callback] = Module.limitEdges 10, 19, rest
       selector            or= {}
       selector.as         = 'member'
       selector.sourceName = 'JGroup'
@@ -748,22 +798,6 @@ module.exports = class JGroup extends Module
     else
       kallback()
 
-
-  fetchHomepageView: (options, callback)->
-    {account} = options
-    @fetchMembershipPolicy (err, policy)=>
-      if err then callback err
-      else
-        homePageOptions = extend options, {
-          @slug
-          @title
-          @avatar
-          @body
-          @counts
-          @customize
-        }
-        prefix = if account.type is 'unregistered' then 'loggedOut' else 'loggedIn'
-        JGroup.render[prefix].groupHome homePageOptions, callback
 
   fetchRolesByClientId:(clientId, callback)->
     [callback, clientId] = [clientId, callback]  unless callback
@@ -976,7 +1010,7 @@ module.exports = class JGroup extends Module
           return callback err  if err
           unless invite.type is 'multiuse' or user.email is invite.email
             return callback new KodingError 'Are you sure invitation e-mail is for you?'
-          @debitPack "user", (err) =>
+          @debitPack tag: "user", (err) =>
             return callback err  if err
             invite.redeem delegate, (err) =>
               return callback err if err
@@ -1163,19 +1197,39 @@ module.exports = class JGroup extends Module
           if 'owner' in roles
             return callback new KodingError 'You cannot kick the owner of the group!'
 
-          kallback = (err)=>
-            @updateCounts()
-            @cycleChannel()
-            callback err
+          kallback = (err) =>
 
           queue = roles.map (role)=>=>
             @removeMember account, role, (err)=>
-              return kallback err if err
-              @creditUserPack delegate, (err) ->
-                return callback err  if err
-                queue.fin()
+              return callback err  if err
+              @updateCounts()
+              @cycleChannel()
+              queue.fin()
 
-          dash queue, kallback
+          queue.push =>
+            @creditUserPack delegate, (err) =>
+              console.warn "Failed to credit group with user pack", err  if err
+              queue.fin()
+
+          queue.push =>
+            JVM = require "../vm"
+            selector = groups: $elemMatch: id: @getId()
+            JVM.fetchAccountVmsBySelector account, selector, (err, hostnameAliases) =>
+              return callback err  if err
+              JVM.some hostnameAlias: $in: hostnameAliases, null, (err, vms) =>
+                return callback err  if err
+                vmSuspendQueue = vms.map (vm) ->
+                  ->
+                    vm.suspend (err) ->
+                      console.warn "VM couldn't be suspended #{vm.hostnameAlias}", err  if err
+                      vmSuspendQueue.fin()
+
+                dash vmSuspendQueue, =>
+                  @creditPack tag: "vm", multiplyFactor: vms.length, (err) ->
+                    console.warn "VM pack couldn't be credited for group #{@slug}", err  if err
+                    queue.fin()
+
+          dash queue, callback
 
   transferOwnership: permit 'grant permissions',
     success: (client, accountId, callback)->
@@ -1270,8 +1324,7 @@ module.exports = class JGroup extends Module
     @fetchOwner (err, owner)=>
       return callback err if err
       unless owner.getId().equals client.connection.delegate.getId()
-        unless client.connection.delegate.can "reset groups"
-          return callback new KodingError 'You must be the owner to perform this action!'
+        return callback new KodingError 'You must be the owner to perform this action!'
 
       removeHelper = (model, err, callback, queue)->
         return callback err if err
@@ -1534,16 +1587,33 @@ module.exports = class JGroup extends Module
       else
         @fetchDefaultPermissionSet callback
 
-  debitPack: (tag, callback) ->
+  _fetchSubscription: (callback) ->
     @fetchSubscription (err, subscription) =>
       return callback new KodingError "Error when fetching group's subscription: #{err}"  if err
       return callback new KodingError "Group #{@slug}'s subscription is not found"  unless subscription
-      subscription.debitPack {tag}, callback
+      callback err, subscription
+
+  debitPack: (options, callback) ->
+    @_fetchSubscription (err, subscription) ->
+      return callback err  if err
+      subscription.debitPack options, callback
+
+  creditPack: (options, callback) ->
+    @_fetchSubscription (err, subscription) ->
+      return callback err  if err
+      subscription.creditPack options, callback
 
   createMemberVm: (account, callback) ->
-    @debitPack "vm", (err) =>
+    @debitPack tag: "vm", (err) =>
       return callback err  if err
       JVM = require '../vm'
       JVM.createVm {account, groupSlug: @slug, @planCode}, (err) =>
         console.warn "Group #{@slug} member #{account.profile.nickname} VM is not created: #{err}"  if err
         callback()
+
+  checkUserUsage: (callback) ->
+    @fetchSubscription (err, subscription) ->
+      return callback err  if err
+      JPaymentPack.one tags: "user", (err, pack) ->
+        return callback err  if err
+        subscription.checkUsage pack, callback

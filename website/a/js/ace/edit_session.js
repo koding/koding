@@ -163,7 +163,7 @@ var EditSession = function(text, mode) {
 
     config.resetOptions(this);
     this.setMode(mode);
-    config._emit("session", this);
+    config._signal("session", this);
 };
 
 
@@ -269,7 +269,7 @@ var EditSession = function(text, mode) {
         }
 
         this.bgTokenizer.$updateOnChange(delta);
-        this._emit("change", e);
+        this._signal("change", e);
     };
 
     /**
@@ -528,7 +528,7 @@ var EditSession = function(text, mode) {
         if (!this.$decorations[row])
             this.$decorations[row] = "";
         this.$decorations[row] += " " + className;
-        this._emit("changeBreakpoint", {});
+        this._signal("changeBreakpoint", {});
     };
 
     /**
@@ -540,7 +540,7 @@ var EditSession = function(text, mode) {
     **/
     this.removeGutterDecoration = function(row, className) {
         this.$decorations[row] = (this.$decorations[row] || "").replace(" " + className, "");
-        this._emit("changeBreakpoint", {});
+        this._signal("changeBreakpoint", {});
     };
 
     /**
@@ -563,7 +563,7 @@ var EditSession = function(text, mode) {
         for (var i=0; i<rows.length; i++) {
             this.$breakpoints[rows[i]] = "ace_breakpoint";
         }
-        this._emit("changeBreakpoint", {});
+        this._signal("changeBreakpoint", {});
     };
 
     /**
@@ -571,7 +571,7 @@ var EditSession = function(text, mode) {
     **/
     this.clearBreakpoints = function() {
         this.$breakpoints = [];
-        this._emit("changeBreakpoint", {});
+        this._signal("changeBreakpoint", {});
     };
 
     /**
@@ -588,7 +588,7 @@ var EditSession = function(text, mode) {
             this.$breakpoints[row] = className;
         else
             delete this.$breakpoints[row];
-        this._emit("changeBreakpoint", {});
+        this._signal("changeBreakpoint", {});
     };
 
     /**
@@ -599,7 +599,7 @@ var EditSession = function(text, mode) {
     **/
     this.clearBreakpoint = function(row) {
         delete this.$breakpoints[row];
-        this._emit("changeBreakpoint", {});
+        this._signal("changeBreakpoint", {});
     };
 
     /**
@@ -626,10 +626,10 @@ var EditSession = function(text, mode) {
 
         if (inFront) {
             this.$frontMarkers[id] = marker;
-            this._emit("changeFrontMarker")
+            this._signal("changeFrontMarker")
         } else {
             this.$backMarkers[id] = marker;
-            this._emit("changeBackMarker")
+            this._signal("changeBackMarker")
         }
 
         return id;
@@ -652,10 +652,10 @@ var EditSession = function(text, mode) {
 
         if (inFront) {
             this.$frontMarkers[id] = marker;
-            this._emit("changeFrontMarker")
+            this._signal("changeFrontMarker")
         } else {
             this.$backMarkers[id] = marker;
-            this._emit("changeBackMarker")
+            this._signal("changeBackMarker")
         }
 
         return marker;
@@ -676,7 +676,7 @@ var EditSession = function(text, mode) {
         var markers = marker.inFront ? this.$frontMarkers : this.$backMarkers;
         if (marker) {
             delete (markers[markerId]);
-            this._emit(marker.inFront ? "changeFrontMarker" : "changeBackMarker");
+            this._signal(marker.inFront ? "changeFrontMarker" : "changeBackMarker");
         }
     };
 
@@ -728,7 +728,7 @@ var EditSession = function(text, mode) {
     **/
     this.setAnnotations = function(annotations) {
         this.$annotations = annotations;
-        this._emit("changeAnnotation", {});
+        this._signal("changeAnnotation", {});
     };
 
     /**
@@ -858,7 +858,7 @@ var EditSession = function(text, mode) {
     this.onReloadTokenizer = function(e) {
         var rows = e.data;
         this.bgTokenizer.start(rows.first);
-        this._emit("tokenizerUpdate", e);
+        this._signal("tokenizerUpdate", e);
     };
 
     this.$modes = {};
@@ -885,9 +885,11 @@ var EditSession = function(text, mode) {
         if (!this.$modes["ace/mode/text"])
             this.$modes["ace/mode/text"] = new TextMode();
 
-        if (this.$modes[path] && !options)
-            return this.$onChangeMode(this.$modes[path]);
-
+        if (this.$modes[path] && !options) {
+            this.$onChangeMode(this.$modes[path]);
+            cb && cb();
+            return;
+        }
         // load on demand
         this.$modeId = path;
         config.loadModule(["mode", path], function(m) {
@@ -902,7 +904,7 @@ var EditSession = function(text, mode) {
                     m.$id = path;
                 }
                 this.$onChangeMode(m);
-                cb && cb(this.mode);
+                cb && cb();
             }
         }.bind(this));
 
@@ -935,7 +937,7 @@ var EditSession = function(text, mode) {
             this.bgTokenizer = new BackgroundTokenizer(tokenizer);
             var _self = this;
             this.bgTokenizer.addEventListener("update", function(e) {
-                _self._emit("tokenizerUpdate", e);
+                _self._signal("tokenizerUpdate", e);
             });
         } else {
             this.bgTokenizer.setTokenizer(tokenizer);
@@ -946,12 +948,12 @@ var EditSession = function(text, mode) {
         this.tokenRe = mode.tokenRe;
         this.nonTokenRe = mode.nonTokenRe;
 
-        this.$options.wrapMethod.set.call(this, this.$wrapMethod);
         
         if (!$isPlaceholder) {
+            this.$options.wrapMethod.set.call(this, this.$wrapMethod);
             this.$setFolding(mode.foldingRules);
-            this._emit("changeMode");
             this.bgTokenizer.start(0);
+            this._emit("changeMode");
         }
     };
 
@@ -992,7 +994,7 @@ var EditSession = function(text, mode) {
     *
     **/
     this.setScrollTop = function(scrollTop) {
-        scrollTop = Math.round(scrollTop);
+        // TODO: should we force integer lineheight instead? scrollTop = Math.round(scrollTop); 
         if (this.$scrollTop === scrollTop || isNaN(scrollTop))
             return;
 
@@ -1013,7 +1015,7 @@ var EditSession = function(text, mode) {
     * [Sets the value of the distance between the left of the editor and the leftmost part of the visible content.]{: #EditSession.setScrollLeft}
     **/
     this.setScrollLeft = function(scrollLeft) {
-        scrollLeft = Math.round(scrollLeft);
+        // scrollLeft = Math.round(scrollLeft);
         if (this.$scrollLeft === scrollLeft || isNaN(scrollLeft))
             return;
 
@@ -1035,8 +1037,20 @@ var EditSession = function(text, mode) {
     **/
     this.getScreenWidth = function() {
         this.$computeWidth();
+        if (this.lineWidgets) 
+            return Math.max(this.getLineWidgetMaxWidth(), this.screenWidth);
         return this.screenWidth;
     };
+    
+    this.getLineWidgetMaxWidth = function() {
+        if (this.lineWidgetsWidth != null) return this.lineWidgetsWidth
+        var width = 0;
+        this.lineWidgets.forEach(function(w) {
+            if (w && w.screenWidth > width)
+                width = w.screenWidth;
+        });
+        return this.lineWidgetWidth = width;
+    }
 
     this.$computeWidth = function(force) {
         if (this.$modified || force) {
@@ -1325,7 +1339,7 @@ var EditSession = function(text, mode) {
             }
         }
 
-        this.insert(toRange.start, text);
+        toRange.end = this.insert(toRange.start, text);
         if (folds.length) {
             var oldStart = fromRange.start;
             var newStart = toRange.start;
@@ -1549,7 +1563,7 @@ var EditSession = function(text, mode) {
                 this.$updateWrapData(0, len - 1);
             }
 
-            this._emit("changeWrapMode");
+            this._signal("changeWrapMode");
         }
     };
 
@@ -1574,11 +1588,13 @@ var EditSession = function(text, mode) {
     **/
     this.setWrapLimitRange = function(min, max) {
         if (this.$wrapLimitRange.min !== min || this.$wrapLimitRange.max !== max) {
-            this.$wrapLimitRange.min = min;
-            this.$wrapLimitRange.max = max;
+            this.$wrapLimitRange = {
+                min: min,
+                max: max
+            };
             this.$modified = true;
             // This will force a recalculation of the wrap limit
-            this._emit("changeWrapMode");
+            this._signal("changeWrapMode");
         }
     };
 
@@ -1600,7 +1616,7 @@ var EditSession = function(text, mode) {
             if (this.$useWrapMode) {
                 this.$updateWrapData(0, this.getLength() - 1);
                 this.$resetRowCache(0);
-                this._emit("changeWrapLimit");
+                this._signal("changeWrapLimit");
             }
             return true;
         }
@@ -2039,6 +2055,7 @@ var EditSession = function(text, mode) {
         return [screenColumn, column];
     };
 
+    this.lineWidgets = null;
     /**
     * Returns number of screenrows in a wrapped line.
     * @param {Number} row The row number to check
@@ -2046,6 +2063,17 @@ var EditSession = function(text, mode) {
     * @returns {Number}
     **/
     this.getRowLength = function(row) {
+        if (this.lineWidgets)
+            var h = this.lineWidgets[row] && this.lineWidgets[row].rowCount || 0;
+        else 
+            h = 0
+        if (!this.$useWrapMode || !this.$wrapData[row]) {
+            return 1 + h;
+        } else {
+            return this.$wrapData[row].length + 1 + h;
+        }
+    };
+    this.getRowLineCount = function(row) {
         if (!this.$useWrapMode || !this.$wrapData[row]) {
             return 1;
         } else {
@@ -2159,7 +2187,7 @@ var EditSession = function(text, mode) {
 
         while (row <= screenRow) {
             rowLength = this.getRowLength(docRow);
-            if (row + rowLength - 1 >= screenRow || docRow >= maxRow) {
+            if (row + rowLength > screenRow || docRow >= maxRow) {
                 break;
             } else {
                 row += rowLength;
@@ -2194,9 +2222,10 @@ var EditSession = function(text, mode) {
         if (this.$useWrapMode) {
             var splits = this.$wrapData[docRow];
             if (splits) {
-                column = splits[screenRow - row];
-                if(screenRow > row && splits.length) {
-                    docColumn = splits[screenRow - row - 1] || splits[splits.length - 1];
+                var splitIndex = Math.floor(screenRow - row);
+                column = splits[splitIndex];
+                if(splitIndex > 0 && splits.length) {
+                    docColumn = splits[splitIndex - 1] || splits[splits.length - 1];
                     line = line.substring(docColumn);
                 }
             }
@@ -2368,6 +2397,10 @@ var EditSession = function(text, mode) {
             }
         }
 
+        // todo
+        if (this.lineWidgets)
+            screenRows += this.$getWidgetScreenLength();
+
         return screenRows;
     };
 
@@ -2445,22 +2478,36 @@ config.defineOptions(EditSession.prototype, "session", {
             this.$wrap = value;
         },
         get: function() {
-            return this.getUseWrapMode() ? this.getWrapLimitRange().min || "free" : "off";
+            if (this.getUseWrapMode()) {
+                if (this.$wrap == -1)
+                    return "printMargin";
+                if (!this.getWrapLimitRange().min)
+                    return "free";
+                return this.$wrap;
+            }
+            return "off";
         },
         handlesSet: true
     },    
     wrapMethod: {
         // code|text|auto
         set: function(val) {
-            if (val == "auto")
-                this.$wrapAsCode = this.$mode.type != "text";
-            else
-                this.$wrapAsCode = val != "text";
+            val = val == "auto"
+                ? this.$mode.type != "text"
+                : val != "text";
+            if (val != this.$wrapAsCode) {
+                this.$wrapAsCode = val;
+                if (this.$useWrapMode) {
+                    this.$modified = true;
+                    this.$resetRowCache(0);
+                    this.$updateWrapData(0, this.getLength() - 1);
+                }
+            }
         },
         initialValue: "auto"
     },
     firstLineNumber: {
-        set: function() {this._emit("changeBreakpoint");},
+        set: function() {this._signal("changeBreakpoint");},
         initialValue: 1
     },
     useWorker: {
@@ -2481,19 +2528,23 @@ config.defineOptions(EditSession.prototype, "session", {
             this.$modified = true;
             this.$rowLengthCache = [];
             this.$tabSize = tabSize;
-            this._emit("changeTabSize");
+            this._signal("changeTabSize");
         },
         initialValue: 4,
         handlesSet: true
     },
     overwrite: {
-        set: function(val) {this._emit("changeOverwrite");},
+        set: function(val) {this._signal("changeOverwrite");},
         initialValue: false
     },
     newLineMode: {
         set: function(val) {this.doc.setNewLineMode(val)},
         get: function() {return this.doc.getNewLineMode()},
         handlesSet: true
+    },
+    mode: {
+        set: function(val) { this.setMode(val) },
+        get: function() { return this.$modeId }
     }
 });
 

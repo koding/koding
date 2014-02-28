@@ -10,9 +10,10 @@ __utils.extend __utils,
     #{ cardFirstName } #{ cardLastName } (#{ cardType } #{ cardNumber })
     """
 
-  botchedUrlRegExp: /(([a-zA-Z]+\:)?\/\/)+(\w+:\w+@)?([a-zA-Z\d.-]+\.[A-Za-z]{2,4})(:\d+)?(\/\S*)?/g
-
-  webProtocolRegExp: /^((http(s)?\:)?\/\/)/
+  botchedUrlRegExp     : /(([a-zA-Z]+\:)?\/\/)+(\w+:\w+@)?([a-zA-Z\d.-]+\.[A-Za-z]{2,4})(:\d+)?(\/\S*)?/g
+  webProtocolRegExp    : /^((http(s)?\:)?\/\/)/
+  domainWithTLDPattern : /^[a-z0-9]+([\-\.]{1}[a-z0-9]+)*\.[a-z]{2,5}$/i
+  subdomainPattern     : /^(?:[a-z0-9](?:[_\-](?![_\-])|[a-z0-9]){0,60}[a-z0-9]|[a-z0-9])$/i
 
   proxifyUrl:(url="", options={})->
 
@@ -402,24 +403,28 @@ __utils.extend __utils,
     gp = u.generatePassword
     gp(gr(10), yes)
 
-  registerDummyUser:->
-
-    return if location.hostname isnt "localhost"
+  generateDummyUserData:->
 
     u  = KD.utils
 
     uniqueness = (Date.now()+"").slice(6)
-    formData   =
+    return formData   =
       agree           : "on"
       email           : "sinanyasar+#{uniqueness}@gmail.com"
       firstName       : u.getDummyName()
       lastName        : u.getDummyName()
-      inviteCode      : "twitterfriends"
+      # inviteCode      : "twitterfriends"
       password        : "123123123"
       passwordConfirm : "123123123"
       username        : uniqueness
 
-    KD.remote.api.JUser.register formData, => location.reload yes
+  registerDummyUser:->
+
+    return if location.hostname is "koding.com"
+
+    u  = KD.utils
+
+    KD.remote.api.JUser.register u.generateDummyUserData(), => location.reload yes
 
   startRollbar: ->
     @replaceFromTempStorage "_rollbar"

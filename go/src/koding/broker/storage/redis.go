@@ -16,10 +16,6 @@ type cache struct {
 	key      string
 }
 
-func createNewSession() (*redis.RedisSession, error) {
-	return redis.NewRedisSession(conf.Redis)
-}
-
 func generateKey(SocketId string) string {
 	return fmt.Sprintf(
 		"%s-broker-client-%s",
@@ -40,10 +36,10 @@ func convertData(commandName string, data ...string) []interface{} {
 
 // NewRedis creates a redis backend for storing
 // client subscriptions
-func newRedis(socketId string) (*cache, error) {
+func newRedis(r *redis.SingletonSession, socketId string) (*cache, error) {
 	var err error
 	if redisSession == nil {
-		redisSession, err = createNewSession()
+		redisSession, err = r.Connect()
 		if err != nil {
 			return nil, err
 		}
@@ -119,6 +115,20 @@ func (c *cache) Resubscribe(clientID string) (bool, error) {
 		return false, nil
 	}
 
+	length, err := redisSession.Scard(key)
+	if err != nil {
+		return false, err
+	}
+
+	// this is just an arbitary number for now
+	// sometimes client send 1 item for subscription
+	// and then if it tries to resubscribe, it wont get the
+	// realtime event/
+	// this is open for improvements
+	if length < 10 {
+		return false, nil
+	}
+
 	routingKeyPrefixes, err := redigo.Strings(redisSession.Do("SMEMBERS", key))
 	if err := c.Subscribe(routingKeyPrefixes...); err != nil {
 		return false, err
@@ -144,12 +154,7 @@ func (c *cache) Has(routingKeyPrefix string) (bool, error) {
 
 // Len returns subscription count for client
 func (c *cache) Len() (int, error) {
-	reply, err := redigo.Int(redisSession.Do("SCARD", c.key))
-	if err != nil {
-		return 0, err
-	}
-
-	return reply, nil
+	return redisSession.Scard(c.key)
 }
 
 func (c *cache) ClearWithTimeout(duration time.Duration) error {

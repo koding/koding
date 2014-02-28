@@ -60,7 +60,7 @@ module.exports = (options, callback)->
     <!doctype html>
     <html lang="en">
     <head>
-      <title>Koding</title>
+      <title>Koding | A New Way For Developers To Work</title>
       #{getStyles()}
       #{getGraphMeta title: title, shareUrl: shareUrl, body: body}
     </head>

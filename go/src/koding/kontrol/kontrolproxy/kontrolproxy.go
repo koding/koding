@@ -6,8 +6,6 @@ import (
 	"fmt"
 	"html/template"
 	"io"
-	"kite"
-	"kite/protocol"
 	"koding/db/mongodb/modelhelper"
 	"koding/kodingkite"
 	"koding/kontrol/kontrolproxy/resolver"
@@ -30,9 +28,10 @@ import (
 	"time"
 
 	"github.com/gorilla/context"
-	"github.com/gorilla/handlers"
 	"github.com/gorilla/sessions"
 	"github.com/hoisie/redis"
+	"github.com/koding/kite"
+	"github.com/koding/kite/protocol"
 )
 
 const (
@@ -70,13 +69,7 @@ var (
 
 	// used for various kinds of use cases like validator, 404 pages,
 	// maintenance,...
-	templates = template.Must(template.ParseFiles(
-		"files/templates/notfound.html",
-		"files/templates/notactiveVM.html",
-		"files/templates/securepage.html",
-		"files/templates/quotaExceeded.html",
-		"files/templates/maintenance.html",
-	))
+	templates *template.Template
 
 	// readed config
 	conf *config.Config
@@ -86,6 +79,8 @@ var (
 	flagRegion    = flag.String("r", "", "Region")
 	flagVMProxies = flag.Bool("v", false, "Enable ports for VM users (1024-10000)")
 	flagDebug     = flag.Bool("d", false, "Debug mode")
+	flagTemplates = flag.String("template", "files/templates", "Change template directory")
+	flagCerts     = flag.String("certs", ".", "Change Certificate directory")
 )
 
 // Proxy is implementing the http.Handler interface (via ServeHTTP). This is
@@ -142,8 +137,17 @@ func main() {
 	}
 	log.SetLevel(logLevel)
 
+	templates = template.Must(template.ParseFiles(
+		*flagTemplates+"/notfound.html",
+		*flagTemplates+"/notactiveVM.html",
+		*flagTemplates+"/securepage.html",
+		*flagTemplates+"/quotaExceeded.html",
+		*flagTemplates+"/maintenance.html",
+	))
+
 	log.Info("Kontrolproxy started.")
-	log.Info("I'm using %d cpus for goroutines", runtime.NumCPU())
+	log.Info("I'm using %d cpus for GOMACPROCS", runtime.NumCPU())
+	runtime.GOMAXPROCS(runtime.NumCPU())
 
 	p := &Proxy{
 		mux:             http.NewServeMux(),
@@ -177,6 +181,12 @@ func (p *Proxy) runNewKite() {
 			Region:   *flagRegion,
 		},
 	)
+
+	if k.Kontrol == nil {
+		k = nil
+		log.Error("new kite couldn't start")
+		return
+	}
 
 	k.Start()
 
@@ -359,11 +369,12 @@ func (p *Proxy) startHTTPS() {
 	log.Info("https mode is enabled. serving at :%s ...", portssl)
 
 	// don't change it to "*.pem", otherwise you'll get duplicate IP's
-	pemFiles, err := filepath.Glob("*_cert.pem")
+	pemFiles, err := filepath.Glob(filepath.Join(*flagCerts, "*_cert.pem"))
 	if err != nil {
 		log.Critical(err.Error())
 	}
 
+	log.Info("using pem files %v", pemFiles)
 	// hostname example: "koding_com_" or "kd_com_"
 	hostname := strings.TrimSuffix(pemFiles[0], "cert.pem")
 	if hostname == pemFiles[0] {
@@ -433,14 +444,7 @@ func (p *Proxy) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	// our main handler mux function goes and picks the correct handler
 	if h := p.getHandler(r); h != nil {
-		if *flagVMProxies {
-			// don't wrap this around CLH logging handler, because it breaks websocket
-			h.ServeHTTP(w, r)
-		} else {
-			loggingHandler := handlers.CombinedLoggingHandler(p.logDestination, h)
-			loggingHandler.ServeHTTP(w, r)
-		}
-
+		h.ServeHTTP(w, r)
 		return
 	}
 
@@ -476,6 +480,167 @@ func (p *Proxy) maintenance(req *http.Request, target *resolver.Target) http.Han
 
 func (p *Proxy) redirect(req *http.Request, target *resolver.Target) http.Handler {
 	return http.RedirectHandler(target.URL.String()+req.RequestURI, http.StatusFound)
+}
+
+func (p *Proxy) internal(req *http.Request, target *resolver.Target) http.Handler {
+	// switch to websocket immediately
+	if isWebsocket(req) {
+		return websocketHandler(target.URL.Host)
+	}
+
+	userIP := getIP(req.RemoteAddr)
+
+	service := target.GetService()
+	round, err := service.NextRoundRing()
+	if err != nil {
+		log.Info("internal NextRoundRing resolver error for %s (%s) - %s", req.Host, userIP, err)
+		return templateHandler("maintenance.html", nil, 503)
+	}
+
+	resp, backendServer, err := RoundTrip(req, round, 0)
+	if err != nil {
+		log.Info("internal recursive resolver error for %s (%s) - %s", req.Host, userIP, err)
+		return templateHandler("maintenance.html", nil, 503)
+	}
+
+	// TODO: salt them before we send it back.
+	// resp.Header.Set("X-Koding-Proxy-Fronted", proxyName)
+	// resp.Header.Set("X-Koding-Proxy-Backend", backendServer)
+
+	log.Debug("internal - %s [%s] goes to %s -->  [build: %s server: %s]",
+		target.FetchedSource, userIP, resp.Request.Host, service.Build, backendServer)
+
+	return internelReverseProxy(resp)
+}
+
+func internelReverseProxy(res *http.Response) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		defer res.Body.Close()
+		copyHeader(w.Header(), res.Header)
+		w.WriteHeader(res.StatusCode)
+		io.Copy(w, res.Body)
+	})
+}
+
+func RoundTrip(req *http.Request, round *resolver.RoundRing, index int) (*http.Response, string, error) {
+	if index == 2 {
+		return nil, "", errors.New("to many servers are down in row")
+	}
+
+	// means the healtChecker created a zero length ring. This is caused only
+	// when all hosts are sick.
+	if round.Ring == nil {
+		return nil, "", errors.New("all servers are down")
+	}
+
+	// get backendServer and forward ring to the next value. the next value will be
+	// used on the next request if this fails.
+	backendServer, ok := round.Ring.Value.(string)
+	if !ok {
+		return nil, "", fmt.Errorf("ring value is not string: %+v", backendServer)
+	}
+	round.Ring = round.Ring.Next()
+
+	// be sure that the backendServer has scheme prependend
+	backendServer = utils.CheckScheme(backendServer)
+	targetURL, err := url.Parse(backendServer)
+	if err != nil {
+		return nil, "", err
+	}
+
+	outreq := new(http.Request)
+	*outreq = *req // includes shallow copies of maps, but okay
+
+	if !utils.HasPort(targetURL.Host) {
+		outreq.URL.Host = utils.AddPort(targetURL.Host, "80")
+	} else {
+		outreq.URL.Host = targetURL.Host
+	}
+	outreq.URL.Scheme = targetURL.Scheme
+
+	outreq.Proto = "HTTP/1.1"
+	outreq.ProtoMajor = 1
+	outreq.ProtoMinor = 1
+	outreq.Close = false
+
+	// Remove hop-by-hop headers to the backend.  Especially
+	// important is "Connection" because we want a persistent
+	// connection, regardless of what the client sent to us.  This
+	// is modifying the same underlying map from req (shallow
+	// copied above) so we only copy it if necessary.
+	copiedHeaders := false
+	for _, h := range hopHeaders {
+		if outreq.Header.Get(h) != "" {
+			if !copiedHeaders {
+				outreq.Header = make(http.Header)
+				copyHeader(outreq.Header, req.Header)
+				copiedHeaders = true
+			}
+			outreq.Header.Del(h)
+		}
+	}
+
+	if clientIP, _, err := net.SplitHostPort(req.RemoteAddr); err == nil {
+		// If we aren't the first proxy retain prior
+		// X-Forwarded-For information as a comma+space
+		// separated list and fold multiple headers into one.
+		if prior, ok := outreq.Header["X-Forwarded-For"]; ok {
+			clientIP = strings.Join(prior, ", ") + ", " + clientIP
+		}
+		outreq.Header.Set("X-Forwarded-For", clientIP)
+	}
+
+	res, err := http.DefaultTransport.RoundTrip(outreq)
+	if err != nil {
+		index++
+		return RoundTrip(req, round, index) // pick up the next one
+	}
+
+	return res, backendServer, nil
+}
+
+// Hop-by-hop headers. These are removed when sent to the backend.
+// http://www.w3.org/Protocols/rfc2616/rfc2616-sec13.html
+var hopHeaders = []string{
+	"Connection",
+	"Keep-Alive",
+	"Proxy-Authenticate",
+	"Proxy-Authorization",
+	"Te", // canonicalized version of "TE"
+	"Trailers",
+	"Transfer-Encoding",
+	"Upgrade",
+}
+
+func copyHeader(dst, src http.Header) {
+	for k, vv := range src {
+		for _, v := range vv {
+			dst.Add(k, v)
+		}
+	}
+}
+
+// reverseProxyHandler is the main handler that is used for copy the response
+// back and forth to the request iniator. We use Go's main
+// httputil.ReverseProxy but can easily switch to any custom handler in the
+// future
+func reverseProxyHandler(transport http.RoundTripper, target *url.URL) http.Handler {
+	return &httputil.ReverseProxy{
+		Transport: transport, // if nil, http.DefaultTransport is used.
+		Director: func(req *http.Request) {
+			if !utils.HasPort(target.Host) {
+				req.URL.Host = utils.AddPort(target.Host, "80")
+			} else {
+				req.URL.Host = target.Host
+			}
+			req.URL.Scheme = target.Scheme
+		},
+	}
+}
+
+type tempData struct {
+	Host string
+	Url  string
 }
 
 func (p *Proxy) vm(req *http.Request, target *resolver.Target) http.Handler {
@@ -580,32 +745,6 @@ func (p *Proxy) vm(req *http.Request, target *resolver.Target) http.Handler {
 	return reverseProxyHandler(nil, target.URL)
 }
 
-type tempData struct {
-	Host string
-	Url  string
-}
-
-func (p *Proxy) internal(req *http.Request, target *resolver.Target) http.Handler {
-	userIP := getIP(req.RemoteAddr)
-
-	// roundrobin to next target
-	target.Resolve(req.Host)
-	if target.Err != nil {
-		log.Info("internal resolver error for %s (%s) - %s", req.Host, userIP, target.Err)
-		statusCode := 503
-		if target.Err == resolver.ErrGone {
-			statusCode = 410 // Gone
-		}
-
-		return templateHandler("maintenance.html", nil, statusCode)
-	}
-
-	log.Debug("mode '%s' [%s] via %s : %s --> %s",
-		target.Proxy.Mode, userIP, target.FetchedSource, req.Host, target.URL.String())
-
-	return reverseProxyHandler(nil, target.URL)
-}
-
 func (p *Proxy) checkAndStartVM(hostnameAlias, hostkite, port string) (*url.URL, error) {
 	vmAddr, err := p.startVM(hostnameAlias, hostkite)
 	if err != nil {
@@ -637,28 +776,11 @@ func (p *Proxy) checkAndStartVM(hostnameAlias, hostkite, port string) (*url.URL,
 	}
 }
 
-// reverseProxyHandler is the main handler that is used for copy the response
-// back and forth to the request iniator. We use Go's main
-// httputil.ReverseProxy but can easily switch to any custom handler in the
-// future
-func reverseProxyHandler(transport http.RoundTripper, target *url.URL) http.Handler {
-	return &httputil.ReverseProxy{
-		Transport: transport, // if nil, http.DefaultTransport is used.
-		Director: func(req *http.Request) {
-			if !utils.HasPort(target.Host) {
-				req.URL.Host = utils.AddPort(target.Host, "80")
-			} else {
-				req.URL.Host = target.Host
-			}
-			req.URL.Scheme = target.Scheme
-		},
-	}
-}
-
 // websocketHandler is used to reverseProxy websocket connection. It hijacks
 // the underlying http connection and copies forth and back the response
 func websocketHandler(target string) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		log.Debug("making websocket connection to %s", target)
 		hj, ok := w.(http.Hijacker)
 		if !ok {
 			http.Error(w, "not a hijacker?", 500)

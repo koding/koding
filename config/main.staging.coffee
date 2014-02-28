@@ -164,6 +164,7 @@ module.exports =
       useNeo4j: yes
       logToExternal : yes
       resourceName: socialQueueName
+      socialApiUri: 'https://stage-social.koding.com/xhr'
       suppressLogs: no
       version   : version
       mainUri   : "http://koding.com"
@@ -291,7 +292,8 @@ module.exports =
       apiHost     : "172.16.6.16"
       apiPort     : 80
       port        : 8080
-      switchHost  : "y.koding.com"
+      kodingHost  : "latest.koding.com"
+      socialHost  : "stage-social.koding.com"
     api           :
       port        : 80
       url         : "http://stage-kontrol.sj.koding.com"
@@ -377,7 +379,7 @@ module.exports =
     broker        : "info"
   defaultVMConfigs:
     freeVM        :
-      storage     : 4096
+      storage     : 3072
       ram         : 1024
       cpu         : 1
   graphite       :

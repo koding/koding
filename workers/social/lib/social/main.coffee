@@ -20,6 +20,7 @@ log4js.configure {
 process.on 'uncaughtException', (err)->
   exec './beep'
   console.log err, err?.stack
+  process.exit 1
 
 Bongo = require 'bongo'
 Broker = require 'broker'
@@ -130,13 +131,9 @@ koding.connect ->
     require('./traits/slugifiable').updateSlugsByBatch 100, [
       require './models/tag'
       require './models/app'
-      require './models/messages/codesnip'
-      require './models/messages/discussion'
-      require './models/messages/tutorial'
     ]
 
   if KONFIG.misc?.debugConnectionErrors then
-    # console.log 'ffaafafafaf'
     # TEST AMQP WITH THIS CODE. IT THROWS THE CHANNEL ERROR.
     # koding.disconnect ->
     #   console.log "[SOCIAL WORKER #{name}] is reached end of its life, will die in 10 secs."
@@ -147,4 +144,15 @@ koding.connect ->
 console.info "Koding Social Worker #{process.pid} has started."
 
 # require './followfeed' # side effects
+express = require 'express'
+cors = require 'cors'
+helmet = require 'helmet'
+app = express()
+app.use express.compress()
+app.use express.bodyParser()
+helmet.defaults app
+app.use cors()
 
+app.post '/xhr', koding.expressify()
+
+app.listen argv.p

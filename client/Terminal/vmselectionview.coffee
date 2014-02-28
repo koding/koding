@@ -45,6 +45,4 @@ class VMSelection extends KDModalView
       @emit "VMSelected", vm
       @destroy()
 
-    KD.singleton("vmController").fetchGroupVMs no, (err, vms) =>
-      return  if KD.showError err
-      @listController.instantiateListItems vms
+    @listController.instantiateListItems KD.getSingleton('vmController').vms

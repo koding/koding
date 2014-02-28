@@ -1,0 +1,12 @@
+diff --git a/node_modules/mongodb/lib/mongodb/connection/server.js b/node_modules/mongodb/lib/mongodb/connection/server.js
+index f80f6f6..a69f17b 100644
+--- a/node_modules/mongodb/lib/mongodb/connection/server.js
++++ b/node_modules/mongodb/lib/mongodb/connection/server.js
+@@ -429,6 +429,7 @@ Server.prototype.connect = function(dbInstance, options, callback) {
+         // Parse the body
+         mongoReply.parseBody(message, connectionPool.bson, callbackInfo.info.raw, function(err) {
+           if(err != null) {
++            console.error(err);
+             // If pool connection is already closed
+             if(server._serverState === 'disconnected') return;
+             // Set server state to disconnected

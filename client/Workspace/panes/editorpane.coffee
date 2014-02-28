@@ -44,6 +44,7 @@ class EditorPane extends Pane
       file                  = FSHelper.createFileFromPath path
       pane                  = new KDTabPaneView
         name                : file.name or "Untitled.txt"
+        closable            : no
 
       editor = @createEditorInstance file, content
       pane.addSubView editor

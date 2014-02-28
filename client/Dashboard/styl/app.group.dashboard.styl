@@ -197,71 +197,74 @@ Dashboard Member List styles
 */
 }
 
-.kdtabpaneview.members .listview-wrapper
-  .kdlistview
-    overflow                 visible
-    padding-bottom           200px
+.kdtabpaneview.members
+  .searchbar
+    margin                     0 12px 22px 0
 
-    &.item-editing
+  .listview-wrapper
+    .kdlistview
+      padding-bottom           10px
+
+      &.item-editing
+        .kdlistitemview-member
+          opacity              .5
+
       .kdlistitemview-member
-        opacity              .5
-
-    .kdlistitemview-member
-      vendor                 transition, opacity .2s ease
-      kalc                   width, 50% \- 12px
-      background             #FFF
-      rounded                6px
-      padding                20px
-      box-sizing             border-box
-      margin                 0 0 12px 0
-      fl()
-
-      &:nth-child(2n)
-        margin-left          12px
-
-      .profile
-      .user-numbers
-        margin               0
-        width                auto
-        height               auto
-        float                none
-        line-height          20px
-
-      .avatarview
-        position             relative
-        top                  4px !important
-        left                 0
+        vendor                 transition, opacity .2s ease
+        kalc                   width, 50% \- 12px
+        background             #FFF
+        rounded                6px
+        padding                20px
+        box-sizing             border-box
+        margin                 0 0 12px 0
         fl()
-        margin-right         20px
 
-      .edit-link
-      .cancel-link
-        padding              1px 8px
-        color                #3c4752
-        font-size            14px
-        line-height          30px
+        &:nth-child(2n-1)
+          margin-left          12px
 
-      .edit-link
-        hidden()
+        .profile
+        .user-numbers
+          margin               0
+          width                auto
+          height               auto
+          float                none
+          line-height          20px
 
-      .checkboxes
-        border-color         #ededed
+        .avatarview
+          position             relative
+          top                  4px !important
+          left                 0
+          fl()
+          margin-right         20px
 
-      &:hover
         .edit-link
-          visible()
+        .cancel-link
+          padding              1px 8px
+          color                #3c4752
+          font-size            14px
+          line-height          30px
 
-      &.editing
-        border-bottom        none
-        opacity              1
+        .edit-link
+          hidden()
 
-      .edit-container
-        z-index              10
-        background           #fff
-        top                  64px
-        height               90px
-        left                 0
-        abs()
+        .checkboxes
+          border-color         #ededed
+
+        &:hover
+          .edit-link
+            visible()
+
+        &.editing
+          border-bottom        none
+          opacity              1
+
+        .edit-container
+          z-index              10
+          background           #fff
+          top                  64px
+          height               90px
+          left                 0
+          abs()
 
 
 //   .kdlistview
@@ -360,6 +363,7 @@ Dashboard member listing related common styles
       .kdbutton
         width                 auto
         margin-right          10px
+        padding               0 21px
 
 @css {
 /*

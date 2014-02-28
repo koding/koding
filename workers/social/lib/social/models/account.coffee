@@ -34,6 +34,8 @@ module.exports = class JAccount extends jraphical.Module
   Protected = require '../traits/protected'
   {extend} = require 'underscore'
 
+  validateFullName = (value) -> not /<|>/.test value
+
   @share()
 
   @set
@@ -207,8 +209,6 @@ module.exports = class JAccount extends jraphical.Module
           (signature Object, Function)
         fetchRelatedUsersFromGraph:
           (signature Object, Function)
-        fetchDomains:
-          (signature Function)
         unlinkOauth:
           (signature String, Function)
         changeUsername: [
@@ -322,9 +322,11 @@ module.exports = class JAccount extends jraphical.Module
           type              : String
           required          : yes
           default           : 'a koding'
+          validate          : validateFullName
         lastName            :
           type              : String
           default           : 'user'
+          validate          : validateFullName
         description         : String
         avatar              : String
         status              : String
@@ -334,6 +336,7 @@ module.exports = class JAccount extends jraphical.Module
           default           : 0
         lastStatusUpdate    : String
       referrerUsername      : String
+      referralUsed          : Boolean
       preferredKDProxyDomain: String
       isExempt              : # is a troll ?
         type                : Boolean
@@ -1045,7 +1048,7 @@ module.exports = class JAccount extends jraphical.Module
         # Users can delete their stuff but super-admins can delete all of them ಠ_ಠ
         @profile.nickname in dummyAdmins or target?.originId?.equals @getId()
       when 'flag', 'reset guests', 'reset groups', 'administer names', \
-           'administer url aliases', 'administer accounts', \
+           'administer url aliases', 'administer accounts', 'search-by-email',\
            'migrate-koding-users', 'list-blocked-users', 'verify-emails'
         @profile.nickname in dummyAdmins
 
@@ -1077,7 +1080,7 @@ module.exports = class JAccount extends jraphical.Module
   fetchPrivateChannel:(callback)->
     require('bongo').fetchChannel @getPrivateChannelName(), callback
 
-  getPrivateChannelName:-> "private-#{@getAt('profile.nickname')}-private"
+  getPrivateChannelName:-> "private-#{@getAt('pro file.nickname')}-private"
 
   fetchMail:do ->
 
@@ -1384,7 +1387,19 @@ module.exports = class JAccount extends jraphical.Module
 
   @byRelevance$ = permit 'list members',
     success: (client, seed, options, callback)->
-      @byRelevance client, seed, options, callback
+      if options.byEmail
+        account = client.connection.delegate
+        if account.can 'search-by-email'
+          JUser = require './user'
+          JUser.one {email:seed}, (err, user)->
+            return callback err, []  if err? or not user?
+            user.fetchOwnAccount (err, account)->
+              return callback err  if err?
+              callback null, [account]
+        else
+          return callback new KodingError 'Access denied'
+      else
+        @byRelevance client, seed, options, callback
 
   fetchMyPermissions: secure (client, callback)->
     @fetchMyPermissionsAndRoles client, (err, permissions, roles)->
@@ -1396,6 +1411,7 @@ module.exports = class JAccount extends jraphical.Module
     slug = client.context.group ? 'koding'
     JGroup.one {slug}, (err, group)=>
       return callback err  if err
+      return callback {message: "group not found"}  unless group
       cb = (err, roles)=>
         return callback err  if err
         {flatten} = require 'underscore'
@@ -1418,40 +1434,6 @@ module.exports = class JAccount extends jraphical.Module
   addTags: secure (client, tags, options, callback)->
     client.context.group = 'koding'
     oldAddTags.call this, client, tags, options, callback
-
-  fetchUserDomains: (client, callback) ->
-    {connection: {delegate}} = client
-    {group} = client.context
-
-    JDomain = require './domain'
-    delegate.fetchDomains (err, domains) ->
-      return callback err  if err
-      domainList = []
-      domainList = filterDomains domains, delegate, group  if domains
-      
-      callback null, domainList
-
-  # filters domains such as shared-x/vm-x.groupSlug.kd.io
-  # or x.koding.kd.io. Also shows only group related
-  # domains to users
-  filterDomains = (domains, account, group)->
-    domainList = []
-    domainList = domains.filter (domain)->
-      {domain} = domain
-      re = if group is "koding" then new RegExp(account.profile.nickname + '\.kd\.io$') \
-           else new RegExp('(.*)\.' + group + '\.kd\.io$')
-      isVmAlias         = (/^shared|vm[\-]?([0-9]+)?/.test domain)
-      isKodingSubdomain = (/(.*)\.(koding|guests)\.kd\.io$/.test domain)
-      isGroupAlias      = re.test domain
-      not isVmAlias and not isKodingSubdomain and isGroupAlias
-
-  fetchDomains$: permit
-    advanced: [
-      { permission: 'list own domains', validateWith: Validators.own }
-    ]
-    success: (client, callback) ->
-      @fetchUserDomains client, callback
-
 
   {Member, OAuth} = require "./graph"
 

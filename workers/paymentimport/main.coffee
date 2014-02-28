@@ -31,7 +31,7 @@ importProducts = (callback) ->
     {title} = product
     JPaymentProduct.one title: title, (err, paymentProduct) ->
       if err
-        console.err err
+        console.error err
         return fin()
 
       return kreate()  unless paymentProduct
@@ -56,7 +56,7 @@ importPacks = (callback) ->
       kreate = ->
         JPaymentPack.create "koding", pack, (err, pack) ->
           if err
-            console.err err
+            console.error err
             fin()
 
           console.log "#{pack.title} pack added successfully"
@@ -64,16 +64,16 @@ importPacks = (callback) ->
           quantities = {}
           quantities[productPlanCodes[pack.title]] = 1
           pack.updateProducts quantities, (err) ->
-            return console.err err  if err
+            return console.error err  if err
             console.log "#{pack.title} pack products are added"
             fin()
 
       JPaymentPack.one title: title, (err, paymentPack) ->
         if err
-          console.err err  if err
+          console.error err  if err
           fin()
         return kreate()  unless paymentPack
-        handleError "#{pack.title} already exists"
+        console.error "#{pack.title} already exists"
         fin()
     , -> callback null
 
@@ -101,7 +101,7 @@ importPlans = (callback) ->
       kreate = ->
         JPaymentPlan.create "koding", plan, (err, newPlan) ->
           if err
-            console.err err
+            console.error err
             fin()
 
           console.log "#{plan.title} plan added successfully"
@@ -128,11 +128,11 @@ importPlans = (callback) ->
       {title} = plan
       JPaymentPlan.one title: title, (err, paymentPlan) ->
         if err
-          console.err err
+          console.error err
           fin()
         return kreate() unless paymentPlan
 
-        console.err "#{plan.title} already exists"
+        console.error "#{plan.title} already exists"
         fin()
 
     , -> callback null

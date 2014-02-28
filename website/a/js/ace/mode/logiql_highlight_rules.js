@@ -53,7 +53,7 @@ var LogiQLHighlightRules = function() {
            //A single line comment.
             },
          { token: 'constant.numeric',
-           regex: '\\d+(?:\\.\\d+)?(?:[eE][+-]?\\d+)?',
+           regex: '\\d+(?:\\.\\d+)?(?:[eE][+-]?\\d+)?[fd]?',
            //An integer constant.
            //Or a Real number.
             },
@@ -98,7 +98,7 @@ var LogiQLHighlightRules = function() {
            //All the lang system predicates
             },
          { token: [ 'storage.type', 'text' ],
-           regex: '(export|sealed|clauses|block|alias)(\\s*\\()(?=`)',
+           regex: '(export|sealed|clauses|block|alias|alias_all)(\\s*\\()(?=`)',
            //Module keywords
             },
          { token: 'entity.name',

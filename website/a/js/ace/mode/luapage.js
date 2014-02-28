@@ -8,15 +8,18 @@ var Tokenizer = require("../tokenizer").Tokenizer;
 var LuaPageHighlightRules = require("./luapage_highlight_rules").LuaPageHighlightRules;
 
 var Mode = function() {
-    var highlighter = new LuaPageHighlightRules();
+    this.HighlightRules = LuaPageHighlightRules;
     
-    this.$tokenizer = new Tokenizer(new LuaPageHighlightRules().getRules());
-    this.$embeds = highlighter.getEmbeds();
+    this.HighlightRules = LuaPageHighlightRules;
     this.createModeDelegates({
         "lua-": LuaMode
     });
 };
 oop.inherits(Mode, HtmlMode);
+
+(function() {
+    this.$id = "ace/mode/luapage";
+}).call(Mode.prototype);
 
 exports.Mode = Mode;
 });
