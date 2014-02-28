@@ -2,6 +2,7 @@ package storage
 
 import (
 	"errors"
+	"koding/databases/redissingleton"
 	"koding/tools/config"
 	"time"
 )
@@ -31,11 +32,13 @@ func NewStorage(c *config.Config, cacheType Backend, socketId string) (Subscript
 		return nil, errors.New("Config is passed as nil. Aborting.")
 	}
 	conf = c
+	return newSet(socketId)
+}
 
-	switch cacheType {
-	case REDIS:
-		return newRedis(socketId)
-	default:
-		return newSet(socketId)
+func NewRedisStorage(s *redissingleton.RedisSingleton, c *config.Config, socketId string) (Subscriptionable, error) {
+	if c == nil {
+		return nil, errors.New("Config is passed as nil. Aborting.")
 	}
+	conf = c
+	return newRedis(s, socketId)
 }

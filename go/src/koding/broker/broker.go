@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
+	"koding/databases/redissingleton"
 	"koding/kontrol/kontrolhelper"
 	"koding/tools/amqputil"
 	"koding/tools/config"
@@ -65,6 +66,8 @@ type Broker struct {
 	AuthAllExchange   string
 	PublishConn       *amqp.Connection
 	ConsumeConn       *amqp.Connection
+	// we should open only one connection session to Redis for one broker
+	RedisSingleton *redissingleton.RedisSingleton
 
 	// Accepts SockJS connections
 	listener net.Listener
@@ -77,7 +80,7 @@ type Broker struct {
 // prepopulated. After creating a Broker instance, one has to call
 // broker.Run() or broker.Start() to start the broker instance and call
 // broker.Close() for a graceful stop.
-func NewBroker() *Broker {
+func NewBroker(conf *config.Config) *Broker {
 	// returns os.Hostname() if config.BrokerDomain is empty, otherwise it just
 	// returns config.BrokerDomain back
 	brokerHostname := kontrolhelper.CustomHostname(*flagBrokerDomain)
@@ -88,6 +91,7 @@ func NewBroker() *Broker {
 		Hostname:          brokerHostname,
 		ServiceUniqueName: serviceUniqueName,
 		ready:             make(chan struct{}),
+		RedisSingleton:    redissingleton.New(conf),
 	}
 }
 
@@ -98,7 +102,7 @@ func main() {
 	}
 
 	conf = config.MustConfig(*flagProfile)
-	broker := NewBroker()
+	broker := NewBroker(conf)
 
 	switch *flagBrokerType {
 	case "brokerKite":
