@@ -158,10 +158,10 @@ class AccountEditUsername extends JView
     {email} = @userInfo
     {nickname, firstName, lastName} = @account.profile
 
-    @emailForm.inputs.email.setDefaultValue email
-    @emailForm.inputs.username.setDefaultValue nickname
-    @emailForm.inputs.firstName.setDefaultValue firstName
-    @emailForm.inputs.lastName.setDefaultValue lastName
+    @emailForm.inputs.email.setDefaultValue Encoder.htmlDecode email
+    @emailForm.inputs.username.setDefaultValue Encoder.htmlDecode nickname
+    @emailForm.inputs.firstName.setDefaultValue Encoder.htmlDecode firstName
+    @emailForm.inputs.lastName.setDefaultValue Encoder.htmlDecode lastName
 
     {focus} = KD.utils.parseQuery()
     @emailForm.inputs[focus]?.setFocus()  if focus

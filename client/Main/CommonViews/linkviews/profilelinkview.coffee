@@ -33,4 +33,8 @@ class ProfileLinkView extends LinkView
     super fields
 
   pistachio:->
-    super "{{#(profile.firstName)+' '+#(profile.lastName)}}"
+    {profile} = @getData()
+    if profile.firstName is "" and profile.lastName is ""
+      super "{{#(profile.nickname)}}" 
+    else
+      super "{{#(profile.firstName)+' '+#(profile.lastName)}}"

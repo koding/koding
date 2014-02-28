@@ -27,7 +27,7 @@ class GlobalNotificationView extends JView
       @timer.updatePartial @timerPartial scheduledAt
       KD.utils.killRepeat @repeater  if Date.now() > scheduledAt
 
-    if 'admin' in KD.config.roles
+    if 'admin' in KD.config.roles and @getData().bongo_
       @adminClose = new KDButtonView
         tagName  : 'span'
         cssClass : 'solid red mini cancel'

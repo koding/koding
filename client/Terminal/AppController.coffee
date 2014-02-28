@@ -38,6 +38,24 @@ class WebTermController extends AppController
 
     super options, data
 
+    KD.singletons.vmController._runWrapper 'oskite.All', (err, kontainers)=>
+      vms = 0
+      limits = 0
+      if kontainers
+        for own name, kontainer of kontainers
+          for own attribute, amount of kontainer
+            if attribute is 'activeVMs'
+              vms += amount
+            if attribute is 'activeVMsLimit'
+              limits += amount
+
+      if vms >= limits
+        KD.singletons.mainView.createGlobalNotification
+          title   : "Sorry, we can't launch your VM right now. We are experiencing an unxpected high load."
+          content : "Please try again in 10 minutes."
+          type    : 'red'
+
+
   handleQuery: (query) ->
     @getView().ready =>
       @getView().handleQuery query

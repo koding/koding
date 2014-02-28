@@ -25,6 +25,7 @@ type Worker struct {
 	Version            int           `bson:"version" json:"version"`
 	Timestamp          time.Time     `bson:"timestamp" json:"timestamp"`
 	Pid                int           `bson:"pid" json:"pid"`
+	ProxyName          string        `bson:"proxyName", json:"proxyName"`
 	Status             WorkerStatus  `bson:"status" json:"status"`
 	Environment        string        `bson:"environment" json:"environment"`
 	Number             int           `bson:"number" json:"number"`

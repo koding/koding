@@ -136,4 +136,5 @@ module.exports = class JReferralCampaign extends jraphical.Module
 
    increaseGivenAmountSpace:(size, callback)->
     [size, callback] = [@campaignPerEventAmount, size] unless callback
+    size = size * 4
     @update $inc : campaignGivenAmount: size , callback

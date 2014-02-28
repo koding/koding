@@ -33,10 +33,13 @@ var (
 	conf *config.Config
 	log  = logger.New(BROKER_NAME)
 
-	STORAGE_BACKEND = "redis"
-	routeMap        = make(map[string]*set.Set)
-	sessionsMap     = make(map[string]*sockjs.Session)
-	globalMapMutex  sync.Mutex
+	// routeMap holds the subscription list/set for any given routing key
+	routeMap = make(map[string]*set.Set)
+
+	// sessionsMap holds sessions with their socketIds
+	sessionsMap = make(map[string]*sockjs.Session)
+
+	globalMapMutex sync.Mutex
 
 	changeClientsGauge          = lifecycle.CreateClientsGauge()
 	changeNewClientsGauge       = logger.CreateCounterGauge("newClients", logger.NoUnit, true)
@@ -127,16 +130,19 @@ func (b *Broker) Run() {
 	lifecycle.Startup(BROKER_NAME, false)
 	logger.RunGaugesLoop(log)
 
+	// Register broker to kontrol
 	if err := b.registerToKontrol(); err != nil {
 		log.Critical("Couldnt register to kontrol, stopping... %v", err)
 		return
 	}
 
+	// Create AMQP exchanges/queues/bindings
 	if err := b.startAMQP(); err != nil {
 		log.Critical("Couldnt create amqp bindings, stopping... %v", err)
 		return
 	}
 
+	// start listening/serving socket server
 	b.startSockJS() // blocking
 }
 
@@ -215,29 +221,7 @@ func (b *Broker) startAMQP() error {
 	go func(stream <-chan amqp.Delivery) {
 		// start to listen from "broker" topic exchange
 		for amqpMessage := range stream {
-			routingKey := amqpMessage.RoutingKey
-			payload := json.RawMessage(utils.FilterInvalidUTF8(amqpMessage.Body))
-
-			pos := strings.IndexRune(routingKey, '.') // skip first dot, since we want at least two components to always include the secret
-			for pos != -1 && pos < len(routingKey) {
-				index := strings.IndexRune(routingKey[pos+1:], '.')
-				pos += index + 1
-				if index == -1 {
-					pos = len(routingKey)
-				}
-				routingKeyPrefix := routingKey[:pos]
-				globalMapMutex.Lock()
-
-				if routes, ok := routeMap[routingKeyPrefix]; ok {
-					routes.Each(func(sessionId interface{}) bool {
-						if routeSession, ok := sessionsMap[sessionId.(string)]; ok {
-							sendToClient(routeSession, routingKey, &payload)
-						}
-						return true
-					})
-				}
-				globalMapMutex.Unlock()
-			}
+			sendMessageToClient(amqpMessage)
 		}
 
 		b.Close()
@@ -245,6 +229,66 @@ func (b *Broker) startAMQP() error {
 	}(stream)
 
 	return nil
+}
+
+// sendMessageToClient takes an amqp messsage and delivers it to the related
+// clients which are subscribed to the routing key
+func sendMessageToClient(amqpMessage amqp.Delivery) {
+	routingKey := amqpMessage.RoutingKey
+	payloadsByte := utils.FilterInvalidUTF8(amqpMessage.Body)
+
+	// We are sending multiple bodies for updateInstances exchange
+	// so that there will be another operations, if exchange is not "updateInstances"
+	// no need to add more overhead
+	if amqpMessage.Exchange != "updateInstances" {
+		payloadRaw := json.RawMessage(payloadsByte)
+		processMessage(routingKey, &payloadRaw)
+		return
+	}
+
+	// this part is only for updateInstances exchange
+	var payloads []interface{}
+	// unmarshal data to slice of interface
+	if err := json.Unmarshal(payloadsByte, &payloads); err != nil {
+		log.Error("Error while unmarshalling:%v data:%v routingKey:%v", err, string(payloadsByte), routingKey)
+		return
+	}
+
+	// range over the slice and send all of them to the same routingkey
+	for _, payload := range payloads {
+		payloadByte, err := json.Marshal(payload)
+		if err != nil {
+			log.Error("Error while marshalling:%v data:%v routingKey:%v", err, string(payloadByte), routingKey)
+			continue
+		}
+		payloadByteRaw := json.RawMessage(payloadByte)
+		processMessage(routingKey, &payloadByteRaw)
+	}
+}
+
+// processMessage gets routingKey and a payload for sending them to the client
+// Gets subscription bindings from global routeMap
+func processMessage(routingKey string, payload interface{}) {
+	pos := strings.IndexRune(routingKey, '.') // skip first dot, since we want at least two components to always include the secret
+	for pos != -1 && pos < len(routingKey) {
+		index := strings.IndexRune(routingKey[pos+1:], '.')
+		pos += index + 1
+		if index == -1 {
+			pos = len(routingKey)
+		}
+		routingKeyPrefix := routingKey[:pos]
+		globalMapMutex.Lock()
+
+		if routes, ok := routeMap[routingKeyPrefix]; ok {
+			routes.Each(func(sessionId interface{}) bool {
+				if routeSession, ok := sessionsMap[sessionId.(string)]; ok {
+					sendToClient(routeSession, routingKey, &payload)
+				}
+				return true
+			})
+		}
+		globalMapMutex.Unlock()
+	}
 }
 
 // startSockJS starts a new HTTPS listener that implies the SockJS protocol.

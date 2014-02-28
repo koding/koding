@@ -1,7 +1,9 @@
 class SubdomainCreateForm extends CommonDomainCreateForm
 
   constructor:(options = {}, data)->
+
     super
-      placeholder : "Type your subdomain..."
+      label       : ""
+      placeholder : "Type your subdomain name..."
       buttonTitle : "Create subdomain"
     , data
