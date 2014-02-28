@@ -173,6 +173,10 @@ app.all "/:name?/Logout", (req, res)->
 app.get "/humans.txt", (req, res)->
   generateHumanstxt(req, res)
 
+app.get "/members/:username?*", (req, res)->
+  username = req.params.username
+  res.redirect 302, '/' + username
+
 app.get "/sitemap:sitemapName", (req, res)->
   {JSitemap}       = koding.models
 
