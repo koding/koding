@@ -160,14 +160,14 @@ class AvatarPopupGroupSwitcher extends AvatarPopup
         dashboardLink.show()
 
     cookieName = "kdproxy-usehttp"
-    if $.cookie(cookieName) is "1"
+    if (Cookies.get cookieName) is "1"
       @avatarPopupContent.addSubView new KDCustomHTMLView
         tagName    : 'a'
         cssClass   : 'bottom'
         partial    : 'Switch back to secure (https) mode'
         click      : (event)=>
           KD.utils.stopDOMEvent event
-          $.cookie cookieName, erase: yes
+          Cookies.expire cookieName
           window.location.reload()
 
     @avatarPopupContent.addSubView new KDCustomHTMLView

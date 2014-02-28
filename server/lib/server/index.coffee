@@ -114,7 +114,8 @@ app.use (req, res, next) ->
   # it it is not in db, creates a new one and returns it
   JSession.fetchSession clientId, (err, session)->
     return next() if err or not session
-    res.cookie "clientId", session.clientId, {}
+    { maxAge, secure } = KONFIG.sessionCookie
+    res.cookie "clientId", session.clientId, { maxAge, secure } 
     next()
 
 app.use (req, res, next) ->
@@ -124,7 +125,7 @@ app.use (req, res, next) ->
   {JSession} = koding.models
   {clientId} = req.cookies
   clientIPAddress = req.headers['x-forwarded-for'] || req.connection.remoteAddress
-  res.cookie "clientIPAddress", clientIPAddress, { maxAge: 900000, httpOnly: false }
+  res.cookie "clientIPAddress", clientIPAddress, { maxAge: 900000, httpOnly: no }
   JSession.updateClientIP clientId, clientIPAddress, (err)->
     if err then console.log err
     next()

@@ -79,7 +79,7 @@ class DeleteModalView extends KDModalViewWithForms
                 @_windowDidResize()
                 KD.mixpanel "Delete account, success"
                 KD.utils.wait 30000, ->
-                  $.cookie 'clientId', erase : yes
+                  Cookies.expire 'clientId'
                   location.replace '/'
               confirmButton.hideLoader()
 
