@@ -1,29 +1,28 @@
-package redissingleton
+package redis
 
 import (
-	"koding/databases/redis"
 	"koding/tools/config"
 	"sync"
 )
 
-// RedisSingleton handles connection pool for Redis
-type RedisSingleton struct {
-	Session   *redis.RedisSession
+// SingletonSession handles connection pool for Redis
+type SingletonSession struct {
+	Session   *RedisSession
 	Err       error
 	conf      *config.Config
 	initMutex sync.Mutex
 }
 
 // Create a new Singleton
-func New(c *config.Config) *RedisSingleton {
-	return &RedisSingleton{
+func Singleton(c *config.Config) *SingletonSession {
+	return &SingletonSession{
 		conf: c,
 	}
 }
 
 // Connect connects to Redis and holds the Session and Err object
 // in the RedisSingleton struct
-func (r *RedisSingleton) Connect() (*redis.RedisSession, error) {
+func (r *SingletonSession) Connect() (*RedisSession, error) {
 	r.initMutex.Lock()
 	defer r.initMutex.Unlock()
 
@@ -31,12 +30,12 @@ func (r *RedisSingleton) Connect() (*redis.RedisSession, error) {
 		return r.Session, nil
 	}
 
-	r.Session, r.Err = redis.NewRedisSession(r.conf.Redis)
+	r.Session, r.Err = NewRedisSession(r.conf.Redis)
 	return r.Session, r.Err
 }
 
 // Close clears the connection to redis
-func (r *RedisSingleton) Close() {
+func (r *SingletonSession) Close() {
 	r.initMutex.Lock()
 	defer r.initMutex.Unlock()
 
