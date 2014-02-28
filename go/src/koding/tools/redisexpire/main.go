@@ -16,6 +16,7 @@ var (
 	flagDebug    = flag.Bool("d", false, "Debug mode")
 	flagProfile  = flag.String("c", "vagrant", "Configuration profile from file")
 	flagDuration = flag.String("t", "3600", "Duration for expire in seconds")
+	flagKey      = flag.String("k", "-broker-client-*", "Key for KEYS command, environment will be prepended")
 )
 
 // This script is intended for adding expiration into redis keys
@@ -42,7 +43,7 @@ func main() {
 	}
 	log.Info("Expire script started with config: %v", *flagProfile)
 
-	initialKey := fmt.Sprintf("%s-broker-client-*", conf.Environment)
+	initialKey := fmt.Sprintf("%s%s", conf.Environment, *flagKey)
 	sesssionKeys, err := redigo.Strings(redisSess.Do("KEYS", initialKey))
 	if err != nil {
 		panic(err)
