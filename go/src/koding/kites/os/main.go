@@ -1,3 +1,5 @@
+// +build linux
+
 package main
 
 import (
@@ -34,11 +36,8 @@ func main() {
 
 	timeout, err := time.ParseDuration(*flagTimeout)
 	if err != nil {
-		log.Printf("Timeout flag is wrong: %v. Using standart timeout", err.Error())
+		log.Printf("Timeout flag is wrong: %s. Using standart timeout\n", err.Error())
 		timeout = time.Minute * 50
-	} else {
-		// use our new timeout
-		log.Println("Using default VM timeout: %s", timeout)
 	}
 
 	os := oskite.New(config.MustConfig(*flagProfile))

@@ -112,13 +112,28 @@ func New(c *config.Config) *Oskite {
 }
 
 func (o *Oskite) Run() {
-	log.Info("Using default VM timeout: %s", o.VmTimeout)
+
+	log.SetLevel(o.LogLevel)
+
+	log.Info("Using default VM timeout: %v", o.VmTimeout)
 
 	// TODO: get rid of this after solving info problem
 	vmTimeout = o.VmTimeout
 
+	if o.Region == "" {
+		panic("region is not set for Oskite")
+	}
+
+	if o.ActiveVMsLimit == 0 {
+		panic("active VMS limit is not defined.")
+	}
+
 	if o.PrepareQueueLimit == 0 {
 		panic("prepare queue is not set")
+	}
+
+	if o.TemplateDir != "" {
+		templateDir = o.TemplateDir
 	}
 
 	// set seed for even randomness, needed for randomMinutes() function.
