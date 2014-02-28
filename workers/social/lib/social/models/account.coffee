@@ -1048,7 +1048,7 @@ module.exports = class JAccount extends jraphical.Module
         # Users can delete their stuff but super-admins can delete all of them ಠ_ಠ
         @profile.nickname in dummyAdmins or target?.originId?.equals @getId()
       when 'flag', 'reset guests', 'reset groups', 'administer names', \
-           'administer url aliases', 'administer accounts', \
+           'administer url aliases', 'administer accounts', 'search-by-email',\
            'migrate-koding-users', 'list-blocked-users', 'verify-emails'
         @profile.nickname in dummyAdmins
 
@@ -1387,7 +1387,19 @@ module.exports = class JAccount extends jraphical.Module
 
   @byRelevance$ = permit 'list members',
     success: (client, seed, options, callback)->
-      @byRelevance client, seed, options, callback
+      if options.byEmail
+        account = client.connection.delegate
+        if account.can 'search-by-email'
+          JUser = require './user'
+          JUser.one {email:seed}, (err, user)->
+            return callback err, []  if err? or not user?
+            user.fetchOwnAccount (err, account)->
+              return callback err  if err?
+              callback null, [account]
+        else
+          return callback new KodingError 'Access denied'
+      else
+        @byRelevance client, seed, options, callback
 
   fetchMyPermissions: secure (client, callback)->
     @fetchMyPermissionsAndRoles client, (err, permissions, roles)->
