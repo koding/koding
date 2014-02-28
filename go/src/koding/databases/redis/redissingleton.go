@@ -21,7 +21,7 @@ func Singleton(c *config.Config) *SingletonSession {
 }
 
 // Connect connects to Redis and holds the Session and Err object
-// in the RedisSingleton struct
+// in the SingletonSession struct
 func (r *SingletonSession) Connect() (*RedisSession, error) {
 	r.initMutex.Lock()
 	defer r.initMutex.Unlock()
