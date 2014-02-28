@@ -10,24 +10,39 @@ import (
 )
 
 type iterOptions struct {
-	Skip              int
-	Limit             int
-	Filter            modelhelper.Selector
-	CollectionName    string
-	F                 func(result interface{})
-	MaxIterationCount int
-	DataType          interface{}
+	// Starting offset
+	Skip int
+
+	// Ending point, iter count
+	Limit int
+
+	// Filter for limiting the result set
+	Filter modelhelper.Selector
+
+	// Iteration collection
+	CollectionName string
+
+	// Iteration function, all results will be passed to this function
+	F func(result interface{})
+
+	// Sometimes iteration can timeout, this is retry count
+	RetryCount int
+
+	// Data object itself for marshalling the result
+	DataType interface{}
 }
 
+// NewIterOptions Sets the default values for iterOptions
 func NewIterOptions() *iterOptions {
 	return &iterOptions{
-		Skip:              0,
-		Limit:             1000,
-		Filter:            modelhelper.Selector{},
-		MaxIterationCount: 50,
+		Skip:       0,
+		Limit:      1000,
+		Filter:     modelhelper.Selector{},
+		RetryCount: 50,
 	}
 }
 
+// Iter accepts mongo and iterOptions and runs the query
 func Iter(mongo *mongodb.MongoDB, iterOptions *iterOptions) error {
 	if iterOptions.CollectionName == "" {
 		return errors.New("Collection name is not set")
@@ -43,6 +58,7 @@ func Iter(mongo *mongodb.MongoDB, iterOptions *iterOptions) error {
 	return mongo.Run("jAccounts", createQuery(iterOptions))
 }
 
+// createQuery creates mongo query for iteration
 func createQuery(iterOptions *iterOptions) func(coll *mgo.Collection) error {
 	return func(coll *mgo.Collection) error {
 		// find the total count
@@ -71,7 +87,7 @@ func createQuery(iterOptions *iterOptions) func(coll *mgo.Collection) error {
 			}
 
 			// this is the max re-iterating count
-			if iteration == iterOptions.MaxIterationCount {
+			if iteration == iterOptions.RetryCount {
 				break
 			}
 
@@ -100,7 +116,7 @@ func createQuery(iterOptions *iterOptions) func(coll *mgo.Collection) error {
 			iteration++
 		}
 
-		if iteration == iterOptions.MaxIterationCount {
+		if iteration == iterOptions.RetryCount {
 			log.Info("Max iteration count %v reached, exiting", iteration)
 		}
 		log.Info("Deleted %v guest accounts on this process", index-skip)
