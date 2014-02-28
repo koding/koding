@@ -27,7 +27,7 @@ func (r *RedisSingleton) Connect() (*redis.RedisSession, error) {
 	r.initMutex.Lock()
 	defer r.initMutex.Unlock()
 
-	if r.Session != nil {
+	if r.Session != nil && r.Err == nil {
 		return r.Session, nil
 	}
 
