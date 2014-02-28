@@ -177,6 +177,10 @@ app.get "/members/:username?*", (req, res)->
   username = req.params.username
   res.redirect 302, '/' + username
 
+app.get "/w/members/:username?*", (req, res)->
+  username = req.params.username
+  res.redirect 302, '/' + username
+
 app.get "/activity/p/?*", (req, res)->
   res.redirect 302, '/Activity'
 
@@ -280,6 +284,9 @@ app.all '/:name/:section?*', (req, res, next)->
   bongoModels = koding.models
 
   if isInAppRoute name
+
+    if name is 'Develop'
+      return res.redirect 302, '/Terminal'
 
     if name in ['Activity', 'Topics']
 
