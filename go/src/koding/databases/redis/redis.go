@@ -35,6 +35,11 @@ func NewRedisSession(server string) (*RedisSession, error) {
 	return s, nil
 }
 
+// Close closes the connection pool for redis
+func (r *RedisSession) Close() error {
+	return r.pool.Close()
+}
+
 // SetPrefix is used to add a prefix to all keys to be used. It is useful for
 // creating namespaces for each different application
 func (r *RedisSession) SetPrefix(name string) {

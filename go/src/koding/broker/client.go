@@ -46,7 +46,7 @@ func NewClient(session *sockjs.Session, broker *Broker) (*Client, error) {
 		return nil, fmt.Errorf("Couldnt create publish channel %v", err)
 	}
 
-	subscriptions, err := createSubscriptionStorage(socketId)
+	subscriptions, err := createSubscriptionStorage(broker, socketId)
 	if err != nil {
 		return nil, err
 	}
@@ -66,22 +66,23 @@ func NewClient(session *sockjs.Session, broker *Broker) (*Client, error) {
 
 // createSubscriptionStorage arranges a storage place for subscriptions
 // it can be Redis backend or inmemory Set storage
-func createSubscriptionStorage(socketId string) (storage.Subscriptionable, error) {
+func createSubscriptionStorage(broker *Broker, socketId string) (storage.Subscriptionable, error) {
 
 	// first try to create a redis storage
-	if subscriptions, err := storage.NewStorage(conf, storage.REDIS, socketId); err == nil {
+	if subscriptions, err := storage.NewRedisStorage(broker.RedisSingleton, conf, socketId); err == nil {
 		// if we success, just return the storage
 		return subscriptions, nil
 	} else {
 		log.Critical("Couldnt access to redis/create a key for client %v: Error: %v", socketId, err)
 	}
+
 	// if we try to create subscription storage backend with redis and fail
 	// create an inmemory storage system
 	if subscriptions, err := storage.NewStorage(conf, storage.SET, socketId); err == nil {
 		return subscriptions, nil
 	}
 
-	// this will never fail to here
+	// this will never fail to here, because SET returns nil as error
 	return nil, fmt.Errorf("Couldnt create subscription storage for Client: %v", socketId)
 }
 
