@@ -2,6 +2,8 @@ package modelhelper
 
 import (
 	"strings"
+	"labix.org/v2/mgo"
+	"labix.org/v2/mgo/bson"
 
 	"github.com/chuckpreslar/inflect"
 )
@@ -23,4 +25,11 @@ func GetCollectionName(name string) string {
 	name = strings.Join(splittedName, "")
 	return name
 
+}
+
+// Delete document deletes given id from given collection
+func RemoveDocument(collectionName string, id bson.ObjectId) error {
+	return Mongo.Run(collectionName, func(coll *mgo.Collection) error {
+		return coll.RemoveId(id)
+	})
 }
