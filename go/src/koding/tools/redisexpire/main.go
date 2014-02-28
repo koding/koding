@@ -12,9 +12,10 @@ import (
 )
 
 var (
-	conf        *config.Config
-	flagDebug   = flag.Bool("d", false, "Debug mode")
-	flagProfile = flag.String("c", "vagrant", "Configuration profile from file")
+	conf         *config.Config
+	flagDebug    = flag.Bool("d", false, "Debug mode")
+	flagProfile  = flag.String("c", "vagrant", "Configuration profile from file")
+	flagDuration = flag.String("t", "3600", "Duration for expire in seconds")
 )
 
 // This script is intended for adding expiration into redis keys
@@ -28,6 +29,11 @@ func main() {
 		log.SetLevel(logger.DEBUG)
 	} else {
 		log.SetLevel(logger.INFO)
+	}
+
+	duration, err := time.ParseDuration(fmt.Sprintf("%ss", *flagDuration))
+	if err != nil {
+		panic(err)
 	}
 
 	redisSess, err := redis.NewRedisSession(conf.Redis)
@@ -45,7 +51,8 @@ func main() {
 	for _, sesssionKey := range sesssionKeys {
 		log.Debug("sesssionKey %v", sesssionKey)
 		time.Sleep(time.Millisecond * 10)
-		err := redisSess.Expire(sesssionKey, time.Minute*59)
+
+		err := redisSess.Expire(sesssionKey, duration)
 		if err != nil {
 			log.Error("An error occured while sending expire req %v", err)
 		}
