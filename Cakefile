@@ -589,7 +589,7 @@ run =({configFile})->
     invoke 'userpresence'                     if config.runUserPresence
     invoke 'persistence'                      if config.runPersistence
     invoke 'proxy'                            if config.runProxy
-    #invoke 'neo4jfeeder'                      if config.runNeo4jFeeder
+    invoke 'neo4jfeeder'                      if config.runNeo4jFeeder
     invoke 'elasticsearchfeeder'              if config.elasticSearch.enabled
     invoke 'authWorker'                       if config.authWorker
     invoke 'guestCleanerWorker'               if config.guestCleanerWorker.enabled
