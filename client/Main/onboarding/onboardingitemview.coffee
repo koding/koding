@@ -32,17 +32,18 @@ class OnboardingItemView extends KDView
       console.warn "Path parse error for onboarding item", { appName, itemName, e }
 
   createContextMenu: ->
-    @contextMenu   = new JContextMenu
-      cssClass     : "onboarding-wrapper"
-      sticky       : yes
-      arrow        :
-        placement  : "top"
-      menuMaxWidth : 500
-      menuWidth    : 500
-      delegate     : @parentElement
-      x            : @parentElement.getX() - 20
-      y            : @parentElement.getY() + 40
-    , customView   : @createContentView()
+    @contextMenu       = new JContextMenu
+      cssClass         : "onboarding-wrapper"
+      sticky           : yes
+      arrow            :
+        placement      : "top"
+      menuMaxWidth     : 500
+      menuWidth        : 500
+      deferPositioning : yes
+      delegate         : @parentElement
+      x                : @parentElement.getX() - 20
+      y                : @parentElement.getY() + 40
+    , customView       : @createContentView()
 
     @contextMenu.on "viewAppended", =>
       KD.utils.defer =>
