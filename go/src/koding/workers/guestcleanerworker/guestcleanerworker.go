@@ -32,7 +32,6 @@ func initialize() {
 	helper.Initialize(conf.Mongo)
 	mongo = helper.Mongo
 
-	log.SetLevel(logger.DEBUG)
 }
 
 func main() {
@@ -47,6 +46,7 @@ func main() {
 	iterOptions.Filter = createFilter()
 	iterOptions.DataType = &models.Account{}
 	iterOptions.Log = log
+	log.SetLevel(logger.DEBUG)
 
 	err := helpers.Iter(mongo, iterOptions)
 	if err != nil {
