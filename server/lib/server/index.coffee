@@ -168,21 +168,21 @@ app.get "/-/auth/register/:hostname/:key", (req, res)->
 
 app.all "/:name?/Logout", (req, res)->
   res.clearCookie 'clientId'  if req.method is 'POST'
-  res.redirect 302, '/'
+  res.redirect 301, '/'
 
 app.get "/humans.txt", (req, res)->
   generateHumanstxt(req, res)
 
 app.get "/members/:username?*", (req, res)->
   username = req.params.username
-  res.redirect 302, '/' + username
+  res.redirect 301, '/' + username
 
 app.get "/w/members/:username?*", (req, res)->
   username = req.params.username
-  res.redirect 302, '/' + username
+  res.redirect 301, '/' + username
 
 app.get "/activity/p/?*", (req, res)->
-  res.redirect 302, '/Activity'
+  res.redirect 301, '/Activity'
 
 app.get "/sitemap:sitemapName", (req, res)->
   {JSitemap}       = koding.models
@@ -277,7 +277,7 @@ app.all '/:name/:section?*', (req, res, next)->
   isCustomPreview = req.cookies["custom-partials-preview-mode"]
   path            = if section then "#{name}/#{section}" else name
 
-  return res.redirect 302, req.url.substring 7  if name in ['koding', 'guests']
+  return res.redirect 301, req.url.substring 7  if name in ['koding', 'guests']
 
   # Checks if its an internal request like /Activity, /Terminal ...
   #
@@ -286,7 +286,7 @@ app.all '/:name/:section?*', (req, res, next)->
   if isInAppRoute name
 
     if name is 'Develop'
-      return res.redirect 302, '/Terminal'
+      return res.redirect 301, '/Terminal'
 
     if name in ['Activity', 'Topics']
 
@@ -374,7 +374,7 @@ app.get '*', (req,res)->
     else "/#!#{urlOnly}#{query}"
 
   res.header 'Location', redirectTo
-  res.send 302
+  res.send 301
 
 app.listen webPort
 console.log '[WEBSERVER] running', "http://localhost:#{webPort} pid:#{process.pid}"
