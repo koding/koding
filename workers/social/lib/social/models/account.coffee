@@ -694,7 +694,7 @@ module.exports = class JAccount extends jraphical.Module
     deciding ourselves which parts of the search are for first or last name.
     MongoDB 2.4 and bongo implementation of aggregate required to use $concat
     ###
-    names = seed.toString().split('/')[1].replace('^','').split ' '
+    names = seed.toString().split('/')[1].replace(/[\\^]/g, "").split ' '
     names.push names.first if names.length is 1
     @some {
       $or : [
