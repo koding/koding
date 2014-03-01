@@ -16,12 +16,18 @@ class OnboardingItemView extends JView
     @hasPrev       = index isnt 0 and @hasNext
 
     try
-      @parentElement = eval path
+      @parentElement = eval Encoder.htmlDecode path
       if @parentElement instanceof KDView
         @createContextMenu()
         @listenEvents()
+      else if @parentElement instanceof jQuery
+        @parentElement = @getKDViewFromJQueryElement @parentElement
+        return  unless @parentElement
+
+        @createContextMenu()
+        @listenEvents()
       else
-        console.warn "Parent element is not a KDView instance", { appName, itemName }
+        console.warn "Target element should be an instance of KDView or jQuery", { appName, itemName }
     catch e
       console.warn "Path parse error for onboarding item", { appName, itemName, e }
 
@@ -86,6 +92,16 @@ class OnboardingItemView extends JView
       view.addSubView child
 
     return view
+
+  getKDViewFromJQueryElement: ($element) ->
+    element = $element[0] # first is jQuery method
+    kdview  = null
+
+    for key, kdinstance of KD.instances
+      if kdinstance.getElement?() is element
+        kdview = kdinstance
+
+    return kdview
 
   listenEvents: ->
     @on "NavigationRequested", (direction) =>
