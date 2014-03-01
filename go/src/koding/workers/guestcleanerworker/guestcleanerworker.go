@@ -46,6 +46,7 @@ func main() {
 	iterOptions.F = deleteGuestAccounts
 	iterOptions.Filter = createFilter()
 	iterOptions.DataType = &models.Account{}
+	iterOptions.Log = log
 
 	err := helpers.Iter(mongo, iterOptions)
 	if err != nil {

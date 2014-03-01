@@ -4,8 +4,8 @@ import (
 	"errors"
 	"koding/db/mongodb"
 	"koding/db/mongodb/modelhelper"
+	"koding/tools/logger"
 
-	"github.com/coreos/go-log/log"
 	"labix.org/v2/mgo"
 )
 
@@ -30,6 +30,9 @@ type iterOptions struct {
 
 	// Data object itself for marshalling the result
 	DataType interface{}
+
+	// logger for iteration
+	Log logger.Log
 }
 
 // NewIterOptions Sets the default values for iterOptions
@@ -39,6 +42,7 @@ func NewIterOptions() *iterOptions {
 		Limit:      1000,
 		Filter:     modelhelper.Selector{},
 		RetryCount: 50,
+		Log:        logger.New("Iter"),
 	}
 }
 
@@ -65,10 +69,10 @@ func createQuery(iterOptions *iterOptions) func(coll *mgo.Collection) error {
 		query := coll.Find(iterOptions.Filter)
 		totalCount, err := query.Count()
 		if err != nil {
-			log.Error("While getting count, exiting: %v", err)
+			iterOptions.Log.Error("While getting count, exiting: %v", err)
 			return err
 		}
-		log.Info("Totaly we have %v items for operation", totalCount)
+		iterOptions.Log.Info("Totaly we have %v items for operation", totalCount)
 
 		skip := iterOptions.Skip
 		// this is a starting point
@@ -82,7 +86,7 @@ func createQuery(iterOptions *iterOptions) func(coll *mgo.Collection) error {
 		for {
 			// if we reach to the end of the all collection, exit
 			if index >= totalCount {
-				log.Info("All items are processed, exiting")
+				iterOptions.Log.Info("All items are processed, exiting")
 				break
 			}
 
@@ -101,25 +105,25 @@ func createQuery(iterOptions *iterOptions) func(coll *mgo.Collection) error {
 			for iter.Next(iterOptions.DataType) {
 				iterOptions.F(iterOptions.DataType)
 				index++
-				log.Info("Index: %v", index)
+				iterOptions.Log.Info("Index: %v", index)
 			}
 
 			if err := iter.Close(); err != nil {
-				log.Error("Iteration failed: %v", err)
+				iterOptions.Log.Error("Iteration failed: %v", err)
 			}
 
 			if iter.Timeout() {
 				continue
 			}
 
-			log.Info("iter existed, starting over from %v  -- %v  item(s) are processsed on this iter", index+1, index-skip)
+			iterOptions.Log.Info("iter existed, starting over from %v  -- %v  item(s) are processsed on this iter", index+1, index-skip)
 			iteration++
 		}
 
 		if iteration == iterOptions.RetryCount {
-			log.Info("Max iteration count %v reached, exiting", iteration)
+			iterOptions.Log.Info("Max iteration count %v reached, exiting", iteration)
 		}
-		log.Info("Deleted %v guest accounts on this process", index-skip)
+		iterOptions.Log.Info("Deleted %v guest accounts on this process", index-skip)
 
 		return nil
 	}
