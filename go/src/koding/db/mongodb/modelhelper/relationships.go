@@ -10,7 +10,7 @@ func GetAllRelationships(selector Selector) ([]models.Relationship, error) {
 	relationships := make([]models.Relationship, 0)
 
 	query := func(c *mgo.Collection) error {
-		return c.Find(selector).Sort("timestamp").All(&relationships)
+		return c.Find(selector).All(&relationships)
 	}
 
 	err := Mongo.Run("relationships", query)
