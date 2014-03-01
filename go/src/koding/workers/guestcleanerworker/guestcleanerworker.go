@@ -45,6 +45,9 @@ func main() {
 	iterOptions.F = deleteGuestAccounts
 	iterOptions.Filter = createFilter()
 	iterOptions.DataType = &models.Account{}
+	iterOptions.Limit = *flagLimit
+	iterOptions.Skip = *flagSkip
+
 	iterOptions.Log = log
 	log.SetLevel(logger.DEBUG)
 
