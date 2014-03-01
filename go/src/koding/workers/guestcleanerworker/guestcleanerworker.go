@@ -56,7 +56,7 @@ func main() {
 }
 
 func createFilter() helper.Selector {
-	oneHourAgo := time.Now().Add(-time.Millisecond * 60).UTC()
+	oneHourAgo := time.Now().Add(-time.Minute * 60).UTC()
 	return helper.Selector{
 		"type":           "unregistered",
 		"status":         helper.Selector{"$ne": "tobedeleted"},
