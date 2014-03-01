@@ -30,8 +30,8 @@ do ->
   else
 
     KD.registerAppClass %%APPNAME%%Controller,
-      name : "%%APPNAME%%"
-      routes :
-        "/%%APPNAME%%" : null
-        "/Apps/%%AUTHOR%%/%%APPNAME%%/run" : null
+      name     : "%%APPNAME%%"
+      routes   :
+        "/:name?/%%APPNAME%%" : null
+        "/:name?/Apps/%%AUTHOR%%/%%APPNAME%%/run" : null
       behavior : "application"
