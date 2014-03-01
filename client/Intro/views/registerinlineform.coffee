@@ -117,7 +117,7 @@ class HomeRegisterForm extends KDFormView
   doRegister:(formData)->
     (KD.getSingleton 'mainController').isLoggingIn on
     formData.agree = 'on'
-    formData.referrer = $.cookie 'referrer'
+    formData.referrer = Cookies.get 'referrer'
     # we need to close the group channel so we don't receive the cycleChannel event.
     # getting the cycleChannel even for our own MemberAdded can cause a race condition
     # that'll leak a guest account.
@@ -143,8 +143,8 @@ class HomeRegisterForm extends KDFormView
 
         _gaq.push ['_trackEvent', 'Sign-up']
 
-        $.cookie 'newRegister', yes
-        $.cookie 'clientId', replacementToken
+        Cookies.set 'newRegister', yes
+        Cookies.set 'clientId', replacementToken, secure: yes
         KD.getSingleton('mainController').accountChanged account
 
         new KDNotificationView

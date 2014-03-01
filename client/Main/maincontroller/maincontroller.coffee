@@ -109,16 +109,9 @@ class MainController extends KDController
       wc.clearUnloadListeners()
 
       KD.utils.wait 1000, ->
-        $.cookie 'clientId', replacementToken  if replacementToken
+        Cookies.set 'clientId', replacementToken, secure: yes  if replacementToken
         storage.setValue 'loggingOut', '1'
         location.reload()
-
-  oldCookie = $.cookie
-  cookieChanges = []
-  $.cookie = (name, val) ->
-    if val?
-      cookieChanges.push (new Error).stack
-    oldCookie.apply this, arguments
 
   attachListeners:->
     # @on 'pageLoaded.as.(loggedIn|loggedOut)', (account)=>
@@ -133,10 +126,10 @@ class MainController extends KDController
 
     # async clientId change checking procedures causes
     # race conditions between window reloading and post-login callbacks
-    cookieChangeHandler = do (cookie = $.cookie 'clientId') => =>
+    cookieChangeHandler = do (cookie = Cookies.get 'clientId') => =>
       cookieExists = cookie?
-      cookieMatches = cookie is ($.cookie 'clientId')
-      cookie = $.cookie 'clientId'
+      cookieMatches = cookie is (Cookies.get 'clientId')
+      cookie = Cookies.get 'clientId'
 
       if cookieExists and not cookieMatches
         return @isLoggingIn off  if @isLoggingIn() is on
@@ -170,8 +163,10 @@ class MainController extends KDController
 
     { account, replacementToken } = options
 
-    if replacementToken and replacementToken isnt $.cookie 'clientId'
-      $.cookie 'clientId', replacementToken
+    { maxAge, secure } = KD.config.sessionCookie
+
+    if replacementToken and replacementToken isnt Cookies.get 'clientId'
+      Cookies.set 'clientId', replacementToken, { maxAge, secure }
 
     @accountChanged account
 
@@ -226,9 +221,9 @@ class MainController extends KDController
       @_isLoggingIn ? no
 
   showInstructionsBook:->
-    if $.cookie 'newRegister'
+    if Cookies.get 'newRegister'
       @emit "ShowInstructionsBook", 9
-      $.cookie 'newRegister', erase: yes
+      Cookies.expire 'newRegister'
     else if @isUserLoggedIn()
       BookView::getNewPages (pages)=>
         return unless pages.length
