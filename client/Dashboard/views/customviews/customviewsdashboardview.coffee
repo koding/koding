@@ -57,11 +57,13 @@ class CustomViewsDashboardView extends JView
       @reloadViews()
       @addNewButton.show()
 
-  addNew: (data) ->
+  hideViews: ->
     customView.hide() for customView in @customViews
     @noViewLabel.hide()
     @addNewButton.hide()
 
+  addNew: (data) ->
+    @hideViews()
     appManager = KD.singleton "appManager"
     appManager.require "Teamwork", (app) =>
       config     =
