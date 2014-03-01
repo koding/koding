@@ -11,7 +11,7 @@ class OnboardingItemView extends CustomViewsDashboardView
       iconClass      : "settings"
       cssClass       : "settings-menu"
       itemChildClass : OnboardingSettingsMenuItem
-      menu           : @getMenuItems data
+      menu           : @getMenuItems()
 
     @loader.on "viewAppended", =>
       @loader.hide()
@@ -21,18 +21,19 @@ class OnboardingItemView extends CustomViewsDashboardView
 
   getMenuItems: ->
     return {
-      "Add Into": callback: @bound "addNew"
-      "Edit"    : callback: @bound "edit"
-      "Delete"  : callback: @bound "delete"
+      "Add Into": callback: => @addNew()
+      "Edit"    : callback: => @edit()
+      "Delete"  : callback: => @delete()
     }
 
   fetchViews: ->
     @loader.hide()
     {items} = @getData().partial
-    return @noViewLabel.show()  if items.length is 0
+    return @noViewLabel.show()  if items?.length is 0
     @createList items
 
   createList: (items) ->
+    return  unless items
     for item in items
       itemView = new OnboardingChildItem { delegate: this }, item
       @customViews.push itemView
@@ -51,7 +52,8 @@ class OnboardingItemView extends CustomViewsDashboardView
       @reloadViews()
 
   edit: ->
-    @addNew {}, @getData()
+    @hideViews()
+    @addSubView new OnboardingSectionForm { delegate: @getDelegate() }, @getData()
 
   delete: ->
     @confirmDelete =>

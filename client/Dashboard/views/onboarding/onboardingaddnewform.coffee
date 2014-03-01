@@ -1,25 +1,29 @@
 class OnboardingAddNewForm extends AddNewCustomViewForm
 
-  constructor: (options = {}, data) ->
+  constructor: (options = {}, data = {}) ->
+
+    options.hasEditor = no
 
     super options, data
 
     @path          = new KDInputView
       type         : "input"
       cssClass     : "big-input"
-      # defaultValue : @getData()?.path or ""
+      defaultValue : Encoder.htmlDecode data.path or ""
 
     @title         = new KDInputView
       type         : "input"
       cssClass     : "big-input"
-      # defaultValue : @getData()?.title or ""
+      defaultValue : Encoder.htmlDecode data.title or ""
 
     @content       = new KDInputView
       type         : "textarea"
       cssClass     : "big-input"
-      # defaultValue : @getData()?.content or ""
+      defaultValue : Encoder.htmlDecode data.content or ""
 
     @editor.setClass "hidden"
+
+    @oldData = data
 
   addNew: ->
     {data}    = @getDelegate()
@@ -29,9 +33,15 @@ class OnboardingAddNewForm extends AddNewCustomViewForm
       path    : @path.getValue()
       title   : @title.getValue()
       content : @content.getValue()
-      partial : @encode @editor.getValues()
+      partial : { html: "", css: "", js: "" }
 
-    items.push newItem
+    isUpdate  = no
+
+    for item, index in items when item is @oldData
+      items.splice index, 1, newItem
+      isUpdate = yes
+
+    items.push newItem  unless isUpdate
     data.update { "partial.items": items }, (err, res) =>
       return warn err  if err
       @getDelegate().emit "NewViewAdded"
@@ -39,13 +49,13 @@ class OnboardingAddNewForm extends AddNewCustomViewForm
   pistachio: ->
     """
       <div class="inputs">
-        <p>Name:</p>
+        <p>Name</p>
         {{> @input}}
-        <p>Parent Path:</p>
+        <p>Parent Path or jQuery selector</p>
         {{> @path}}
-        <p>Title:</p>
+        <p>Title</p>
         {{> @title}}
-        <p>Content:</p>
+        <p>Content</p>
         {{> @content}}
       </div>
       {{> @editor}}

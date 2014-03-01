@@ -2,7 +2,8 @@ class AddNewCustomViewForm extends JView
 
   constructor: (options = {}, data) ->
 
-    options.cssClass = "add-new-view"
+    options.cssClass   = "add-new-view"
+    options.hasEditor ?= yes
 
     super options, data
 
@@ -11,6 +12,21 @@ class AddNewCustomViewForm extends JView
       type        : "input"
       defaultValue: @getData()?.name or ""
 
+    @cancelButton = new KDButtonView
+      title       : "CANCEL"
+      cssClass    : "solid red"
+      callback    : =>
+        @destroy()
+        @getDelegate().emit "AddingNewViewCancelled"
+
+    @saveButton   = new KDButtonView
+      title       : "SAVE"
+      cssClass    : "solid green"
+      callback    : @bound "addNew"
+
+    if @getOption "hasEditor" then @createEditor() else @editor = new KDCustomHTMLView
+
+  createEditor: ->
     editorValues  = @encode @getData()?.partial
 
     files         = [
@@ -36,23 +52,13 @@ class AddNewCustomViewForm extends JView
         height    : 400
       files       : files
 
-    @cancelButton = new KDButtonView
-      title       : "CANCEL"
-      cssClass    : "solid red"
-      callback    : =>
-        @destroy()
-        @getDelegate().emit "AddingNewViewCancelled"
-
-    @saveButton   = new KDButtonView
-      title       : "SAVE"
-      cssClass    : "solid green"
-      callback    : @bound "addNew"
-
   addNew: ->
-    jCustomPartial    =  @getData()
+    jCustomPartial    = @getData()
+    {hasEditor}       = @getOptions()
+    emptyValues       = { html: "", css: "", js: "" }
     data              =
       name            : @input.getValue()
-      partial         : @encode @editor.getValues()
+      partial         : if hasEditor then @encode @editor.getValues() else emptyValues
       partialType     : @getOption "viewType"
       isActive        : jCustomPartial?.isActive        ? no
       viewInstance    : jCustomPartial?.viewInstance    or ""

@@ -2,14 +2,16 @@ class OnboardingSectionForm extends KDFormViewWithFields
 
   constructor: (options = {}, data) ->
 
-    options.cssClass   = "section-form"
-
+    options.cssClass      = "section-form"
+    @jCustomPartial       = data
+    formData              = data?.partial or {}
     options.fields        =
       name                :
         placeholder       : "Name of your set"
         name              : "name"
         cssClass          : "thin"
         label             : "Name"
+        defaultValue      : data?.name or ""
       app                 :
         name              : "app"
         label             : "App"
@@ -19,6 +21,7 @@ class OnboardingSectionForm extends KDFormViewWithFields
           app             :
             itemClass     : KDSelectBox
             cssClass      : "apps"
+            defaultValue  : formData?.app
             selectOptions : [
               { title     : "Activity", value: "Activity" }
               { title     : "Teamwork", value: "Teamwork" }
@@ -30,45 +33,48 @@ class OnboardingSectionForm extends KDFormViewWithFields
       visibility          :
         label             : "Show items together"
         itemClass         : KodingSwitch
-        defaultValue      : no
+        defaultValue      : formData?.visibility ? no
       overlay             :
         label             : "Add Overlay"
         itemClass         : KodingSwitch
-        defaultValue      : no
+        defaultValue      : formData?.overlay ? yes
 
     options.buttons       =
       Save                :
         title             : "SAVE CHANGES"
-        type              : "submit"
         style             : "solid green medium fr"
+        callback          : @bound "save"
       Cancel              :
         title             : "CANCEL"
         style             : "solid medium fr cancel"
         callback          : @bound "cancel"
 
-    options.callback   = @bound "addNew"
-
     super options, data
 
-  addNew: (data) ->
+  save: ->
     data              =
-      name            : data.name or ""
       partialType     : "ONBOARDING"
       partial         :
-        visibility    : data.visibility
-        overlay       : data.overlay
-        app           : data.app
-        items         : []
-      # TODO: Update sets this options to default
-      isActive        : no
-      viewInstance    : ""
-      isPreview       : no
-      previewInstance : no
+        visibility    : @inputs.visibility.getValue()
+        overlay       : @inputs.overlay.getValue()
+        app           : @inputs.app.getValue()
+        items         : @jCustomPartial?.items           or []
+      name            : @inputs.name.getValue()          or ""
+      viewInstance    : @jCustomPartial?.viewInstance    or ""
+      isActive        : @jCustomPartial?.isActive        or no
+      isPreview       : @jCustomPartial?.isPreview       or no
+      previewInstance : @jCustomPartial?.previewInstance or no
 
-    KD.remote.api.JCustomPartials.create data, (err, section) =>
-      return warn err  if err
-      @destroy()
-      @getDelegate().emit "NewSectionAdded", section
+    if @jCustomPartial
+      @jCustomPartial.update data, (err, section) =>
+        return warn err  if err
+        @destroy()
+        @getDelegate().emit "NewSectionAdded"
+    else
+      KD.remote.api.JCustomPartials.create data, (err, section) =>
+        return warn err  if err
+        @destroy()
+        @getDelegate().emit "NewSectionAdded"
 
   cancel: ->
     @destroy()
