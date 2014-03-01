@@ -116,6 +116,11 @@ class OnboardingItemView extends KDView
     @on "OnboardingCancelled", =>
       @destroy()
 
+    {setStorage, slug} = @getOptions()
+    if setStorage
+      viewController = @getDelegate()
+      onboardingController = viewController.getDelegate()
+      onboardingController.emit "OnboardingShown", slug
 
   destroy: ->
     super
