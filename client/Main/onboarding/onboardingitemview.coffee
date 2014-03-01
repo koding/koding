@@ -1,4 +1,4 @@
-class OnboardingItemView extends JView
+class OnboardingItemView extends KDView
 
   constructor: (options = {}, data) ->
 
@@ -32,7 +32,6 @@ class OnboardingItemView extends JView
       console.warn "Path parse error for onboarding item", { appName, itemName, e }
 
   createContextMenu: ->
-    delegate       = this
     @contextMenu   = new JContextMenu
       cssClass     : "onboarding-wrapper"
       sticky       : yes
@@ -52,11 +51,14 @@ class OnboardingItemView extends JView
 
   createContentView: ->
     {title, content} = @getData()
-    @overlay       = new KDOverlayView    { isRemovable : no                        }
-    title          = new KDCustomHTMLView { tagName     : "h3"  , partial : title   }
-    content        = new KDCustomHTMLView { tagName     : "p"   , partial : content }
-    buttonsWrapper = new KDCustomHTMLView { cssClass    : "buttons"                 }
-    view           = new KDCustomHTMLView { cssClass    : "onboarding-item"         }
+    @overlay       = new KDSpotlightView  { isRemovable : no,   delegate : @parentElement }
+    title          = new KDCustomHTMLView { tagName     : "h3", partial  : title          }
+    content        = new KDCustomHTMLView { tagName     : "p" , partial  : content        }
+    buttonsWrapper = new KDCustomHTMLView { cssClass    : "buttons"                       }
+    view           = new KDCustomHTMLView { cssClass    : "onboarding-item"               }
+    closeButton    = new KDCustomHTMLView
+      cssClass     : "close-icon"
+      click        : => @emit "OnboardingCancelled"
 
     if @hasPrev
       prevButton   = new KDButtonView
@@ -88,7 +90,7 @@ class OnboardingItemView extends JView
     for child in [ prevButton, nextButton, doneButton, stepsWrapper ] when child
       buttonsWrapper.addSubView child
 
-    for child in [ title, content, buttonsWrapper ] when child
+    for child in [ title, content, buttonsWrapper, closeButton ] when child
       view.addSubView child
 
     return view
@@ -105,10 +107,17 @@ class OnboardingItemView extends JView
 
   listenEvents: ->
     @on "NavigationRequested", (direction) =>
-      @overlay?.destroy()
-      @contextMenu.destroy()
+      @destroy()
       @getDelegate().emit "NavigationRequested", direction, @getData()
 
     @on "OnboardingCompleted", =>
-      @overlay?.destroy()
-      @contextMenu.destroy()
+      @destroy()
+
+    @on "OnboardingCancelled", =>
+      @destroy()
+
+
+  destroy: ->
+    super
+    @overlay?.destroy()
+    @contextMenu.destroy()
