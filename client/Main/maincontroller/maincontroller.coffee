@@ -50,10 +50,10 @@ class MainController extends KDController
     @ready =>
       router.listen()
       KD.registerSingleton "widgetController",        new WidgetController
-      KD.registerSingleton "onboardingController",    new OnboardingController
       KD.registerSingleton "activityController",      new ActivityController
       KD.registerSingleton "appStorageController",    new AppStorageController
       KD.registerSingleton "kodingAppsController",    new KodingAppsController
+      KD.registerSingleton "onboardingController",    new OnboardingController
       # KD.registerSingleton "kontrol",                 new Kontrol
 
       # @showInstructionsBook()
