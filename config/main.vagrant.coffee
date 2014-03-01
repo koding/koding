@@ -300,12 +300,13 @@ module.exports =
       apiHost     : "127.0.0.1"
       apiPort     : 8888
       port        : 8080
-      switchHost  : "example.com"
+      kodingHost  : "example.com"
+      socialHost  : "social.example.com"
     api           :
       port        : 8888
       url         : "http://lvh.me"
     proxy         :
-      port        : 5000
+      port        : 80
       portssl     : 8081
       ftpip       : '127.0.0.1'
   # crypto :

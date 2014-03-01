@@ -103,7 +103,7 @@ module.exports =
     numberOfWorkers: 2
     watch       : yes
   emailConfirmationCheckerWorker :
-    enabled              : yes
+    enabled              : no
     login                : 'prod-social'
     queueName            : socialQueueName+'emailConfirmationCheckerWorker'
     numberOfWorkers      : 1
@@ -169,6 +169,7 @@ module.exports =
       useNeo4j: yes
       logToExternal : yes
       resourceName: socialQueueName
+      socialApiUri: 'https://social.koding.com/xhr'
       suppressLogs: yes
       version   : version
       mainUri   : "http://koding.com"
@@ -294,7 +295,8 @@ module.exports =
       apiHost     : "68.68.97.179"
       apiPort     : 80
       port        : 8080
-      switchHost  : "koding.com"
+      kodingHost  : "koding.com"
+      socialHost  : "social.koding.com"
     api           :
       port        : 80
       url         : "http://kontrol0.sj.koding.com"

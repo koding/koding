@@ -1,34 +1,36 @@
-{argv} = require 'optimist'
-{uri} = require('koding-config-manager').load("main.#{argv.c}")
+{argv}  = require 'optimist'
+encoder = require 'htmlencode'
+{uri}   = require('koding-config-manager').load("main.#{argv.c}")
+{ formatDate, getProfile, getAvatarImageUrl } = require '../helpers'
 
 createLinkToStatusUpdate = (createDate, slug) ->
   content =
     """
-    <a href="#{uri.address}/#!/Activity/#{slug}"><time class="kdview">#{createDate}</time></a>
+    <a href="#{uri.address}/Activity/#{slug}"><time class="kdview">#{createDate}</time></a>
     """
   return content
 
-createStatusUpdateNode = (statusUpdate, authorFullName, authorNickname)->
-  { formatDate } = require '../helpers'
-  createdAt = ""
-  if statusUpdate?.meta?.createdAt?
-    createdAt = formatDate statusUpdate.meta.createdAt
-
-  slug = ""
-  slug = statusUpdate.slug  if statusUpdate?.slug?
+createStatusUpdateNode = (statusUpdate, profile)=>
+  {meta:{createdAt}} = statusUpdate  if statusUpdate
+  createdAt          = if createdAt then formatDate createdAt else ""
+  slug               = if statusUpdate?.slug then statusUpdate.slug else ""
 
   linkToStatusUpdate = createLinkToStatusUpdate createdAt, slug
 
   commentsList = ""
   if statusUpdate?.replies
     for comment in statusUpdate.replies
-      avatarUrl = "https://gravatar.com/avatar/#{comment.author.hash}?size=90&amp;d=https://koding-cdn.s3.amazonaws.com/images/default.avatar.140.png&r=g"
+      profile = getProfile comment.author
+      avatarUrl = getAvatarImageUrl profile.hash, profile.avatar
+      nickname = encoder.XSSEncode profile.nickname
+      fullname = encoder.XSSEncode profile.fullName
+
       commentsList +=
         """
           <div class="kdview kdlistitemview kdlistitemview-comment">
             <a class="avatarview online" href="/#{comment.author.nickname}" style="width: 40px; height: 40px; background-size: 40px; background-image: none;"><img class="" width="40" height="40" src="#{avatarUrl}" style="opacity: 1;"></a>
             <div class="comment-contents clearfix">
-              <a class="profile" href="/#{comment.author.nickname}" itemprop="name">#{comment.author.firstName} #{comment.author.lastName}</a>
+              <a class="profile" href="/#{nickname}" itemprop="name">#{fullname}</a>
               <div class="comment-body-container"><p itemprop="commentText">#{comment.body}</p></div>
 
             </div>
@@ -60,7 +62,7 @@ createStatusUpdateNode = (statusUpdate, authorFullName, authorNickname)->
     statusUpdateContent =
     """
     <div class="kdview activity-item status">
-      <a class="profile" href="/#{authorNickname}">#{authorFullName}</a>
+      <a class="profile" href="/#{profile.nickname}">#{profile.fullName}</a>
       <article data-paths="body" id="el-1223">
         <p>#{body}</p>
       </article>
@@ -77,25 +79,25 @@ createLinkToUserProfile = (fullName, nickname) ->
     """
   return content
 
-getStatusUpdates = (statusUpdates, authorFullName, authorNickname) ->
-  linkToProfile = createLinkToUserProfile authorFullName, authorNickname
+getStatusUpdates = (statusUpdates, profile) ->
+  linkToProfile = createLinkToUserProfile profile.fullName, profile.nickname
   if statusUpdates?.length > 0
-    updates = (createStatusUpdateNode(statusUpdate, authorFullName, authorNickname) for statusUpdate in statusUpdates)
+    updates = (createStatusUpdateNode(statusUpdate, profile) for statusUpdate in statusUpdates)
     updatesContent = updates.join("")
   else
     updatesContent = ""
   return updatesContent
 
 
-module.exports = (account, statusUpdates)->
-  getStyles  = require './styleblock'
-  getGraphMeta  = require './graphmeta'
-  analytics  = require './analytics'
-  { formatDate, getFullName } = require '../helpers'
+module.exports = (account, statusUpdates)=>
+  getStyles    = require './styleblock'
+  getGraphMeta = require './graphmeta'
+  analytics    = require './analytics'
 
-  {profile:{nickname}} = account if account
-  fullName = getFullName account
-  sUpdates = getStatusUpdates statusUpdates, fullName, nickname, (err, sUpdates) ->
+  {profile:{nickname}} = account  if account
+
+  profile = getProfile account
+  sUpdates = getStatusUpdates statusUpdates, profile, (err, sUpdates) ->
   """
   <!DOCTYPE html>
   <html lang="en">
@@ -149,24 +151,15 @@ getDock = ->
   </header>
   """
 
-putContent = (account, sUpdates)->
-  getGraphMeta  = require './graphmeta'
-  {profile:{nickname, firstName, lastName, about}} = account if account
-  nickname  or= "A koding nickname"
-  firstName or= "a koding "
-  lastName or= "user"
-  about    or= ""
-  hash    = account?.profile.hash or ''
-  avatar  = account?.profile.avatar or no
+putContent = (account, sUpdates)=>
+  getGraphMeta = require './graphmeta'
+  profile      = getProfile account
 
   numberOfLikes     = if account.counts.likes     then account.counts.likes     else "0"
   numberOfFollowers = if account.counts.followers then account.counts.followers else "0"
   numberOfFollowing = if account.counts.following then account.counts.following else "0"
 
-  imgURL   = "//gravatar.com/avatar/#{hash}?size=90&d=https://koding-cdn.s3.amazonaws.com/images/default.avatar.140.png&r=g'}"
-  if avatar
-    imgURL = "//i.embed.ly/1/display/crop?grow=false&width=90&height=90&key=94991069fb354d4e8fdb825e52d4134a&url=#{encodeURIComponent avatar}"
-
+  imgURL = getAvatarImageUrl profile.hash, profile.avatar
   content  =
     """
     <div id="kdmaincontainer" class="kdview">
@@ -177,15 +170,15 @@ putContent = (account, sUpdates)->
             <div class="kdview member content-display" style="min-height: 735px;">
               <div class="kdview profilearea clearfix">
                 <div class="users-profile clearfix" itemscope itemtype="http://schema.org/Person">
-                  <span class="avatarview" href="/#{nickname}" style="width: 81px; height: 81px; background-size: 81px; background-image: none;">
+                  <span class="avatarview" href="/#{profile.nickname}" style="width: 81px; height: 81px; background-size: 81px; background-image: none;">
                     <img class="" width="81" height="81" src="#{imgURL}" style="opacity: 1;" itemprop="image">
                   </span>
                   <h3 class="full-name">
-                    <span class="kdview kdcontenteditableview firstName" itemprop="givenName">#{firstName}</span>
-                    <span class="kdview kdcontenteditableview lastName" itemprop="familyName">#{lastName}</span>
+                    <span class="kdview kdcontenteditableview firstName" itemprop="givenName">#{profile.firstName}</span>
+                    <span class="kdview kdcontenteditableview lastName" itemprop="familyName">#{profile.lastName}</span>
                   </h3>
                   <div class="kdview kdcontenteditableview bio">
-                    #{about}
+                    #{profile.about}
                   </div>
                   <div class="profilestats">
                     <a class="kdview" href="/#">

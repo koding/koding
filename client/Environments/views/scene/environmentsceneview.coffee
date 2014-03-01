@@ -12,13 +12,14 @@ class EnvironmentScene extends KDDiaScene
     EnvironmentDomainItem       : 'domain'
     EnvironmentMachineItem      : 'machine'
 
-  constructor:->
+  constructor: (stack)->
     super
       cssClass  : 'environments-scene'
       lineWidth : 2
       lineColor : "#4ED393"
 
     @boxes = {}
+    @stack = stack
 
     sc = KD.getSingleton 'appStorageController'
     @appStorage = sc.storage 'EnvironmentsScene', '1.0.1'

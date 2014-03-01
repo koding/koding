@@ -20,6 +20,7 @@ log4js.configure {
 process.on 'uncaughtException', (err)->
   exec './beep'
   console.log err, err?.stack
+  process.exit 1
 
 Bongo = require 'bongo'
 Broker = require 'broker'
@@ -145,9 +146,11 @@ console.info "Koding Social Worker #{process.pid} has started."
 # require './followfeed' # side effects
 express = require 'express'
 cors = require 'cors'
+helmet = require 'helmet'
 app = express()
 app.use express.compress()
 app.use express.bodyParser()
+helmet.defaults app
 app.use cors()
 
 app.post '/xhr', koding.expressify()

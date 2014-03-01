@@ -154,7 +154,7 @@ module.exports =
     runtimeOptions:
       environment        : environment
       activityFetchCount : 20
-      precompiledApi     : no
+      precompiledApi     : yes
       authExchange       : authExchange
       github         :
         clientId     : "5891e574253e65ddb7ea"
@@ -292,7 +292,8 @@ module.exports =
       apiHost     : "172.16.6.16"
       apiPort     : 80
       port        : 8080
-      switchHost  : "y.koding.com"
+      kodingHost  : "latest.koding.com"
+      socialHost  : "stage-social.koding.com"
     api           :
       port        : 80
       url         : "http://stage-kontrol.sj.koding.com"

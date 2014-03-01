@@ -305,7 +305,8 @@ config =
         apiHost     : 1
         apiPort     : 1
         port        : 1
-        switchHost  : 1
+        kodingHost  : 1
+        socialHost  : 1
       api           :
         port        : 1
         url         : 1

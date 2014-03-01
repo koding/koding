@@ -8,7 +8,7 @@ projectRoot = nodePath.join __dirname, '..'
 mongo        = 'dev:k9lc4G1k32nyD72@172.16.3.9:27017/koding'
 mongoKontrol = 'dev:k9lc4G1k32nyD72@172.16.3.9:27017/kontrol'
 
-mongoReplSet = 'mongodb://dev:k9lc4G1k32nyD72@172.16.3.9,172.16.3.10,172.16.3.3/koding?replicaSet=koodingrs0&readPreference=primaryPreferred'
+mongoReplSet = 'mongodb://dev:k9lc4G1k32nyD72@172.16.3.9,172.16.3.10,172.16.3.15/koding?replicaSet=koodingrs0&readPreference=primaryPreferred'
 
 socialQueueName = "koding-social-#{version}"
 
@@ -103,7 +103,7 @@ module.exports =
     numberOfWorkers: 2
     watch       : yes
   emailConfirmationCheckerWorker :
-    enabled              : yes
+    enabled              : no
     login                : 'prod-social'
     queueName            : socialQueueName+'emailConfirmationCheckerWorker'
     numberOfWorkers      : 1
@@ -159,7 +159,7 @@ module.exports =
     runtimeOptions:
       environment        : environment
       activityFetchCount : 20
-      precompiledApi     : no
+      precompiledApi     : yes
       authExchange       : authExchange
       github        :
         clientId    : "5891e574253e65ddb7ea"
@@ -295,7 +295,8 @@ module.exports =
       apiHost     : "172.16.3.11"
       apiPort     : 80
       port        : 8080
-      switchHost  : "koding.com"
+      kodingHost  : "koding.com"
+      socialHost  : "social.koding.com"
     api           :
       port        : 80
       url         : "http://kontrol0.sj.koding.com"

@@ -15,14 +15,30 @@ class EnvironmentDomainContainer extends EnvironmentContainer
 
       new KDModalView
         title          : "Add Domain"
+        cssClass       : "domain-creation"
         view           : domainCreateForm
         width          : 700
         buttons        :
           createButton :
             title      : "Create"
             style      : "modal-clean-green"
+            type       : "button"
+            loader     :
+              color    : "#1aaf5d"
+              diameter : 25
             callback   : =>
-              domainCreateForm.createSubDomain()
+              paneType = domainCreateForm.tabView.getActivePane().getOption 'type'
+
+              # @buttons?.createButton.hideLoader()
+              # @off  "FormValidationPassed"
+              # @once "FormValidationPassed", =>
+              #   @emit 'registerDomain'
+              #   @buttons?.createButton.showLoader()
+
+              if paneType is "redirect"
+                domainCreateForm.handleRedirect()
+              else
+                domainCreateForm.createSubDomain()
 
   addDomain: (domain)->
 
@@ -37,7 +53,8 @@ class EnvironmentDomainContainer extends EnvironmentContainer
 
     new Promise (resolve, reject)=>
 
-      KD.whoami().fetchDomains (err, domains)=>
+      {JDomain} = KD.remote.api
+      JDomain.fetchDomains (err, domains)=>
 
         @removeAllItems()
 
@@ -50,7 +67,8 @@ class EnvironmentDomainContainer extends EnvironmentContainer
           if index is domains.length - 1 then resolve()
 
   getDomainCreateForm: ->
-    domainCreateForm = new DomainCreateForm
+
+    domainCreateForm = new DomainCreateForm {}, {stack: @parent.stack}
 
     @on "itemRemoved", domainCreateForm.bound "updateDomains"
     domainCreateForm.on "DomainSaved", (domain) =>

@@ -245,6 +245,8 @@ module.exports = class JNewStatusUpdate extends JPost
 
         # remove exempts from result set
         selector.originId = $nin : ids if ids.length > 0
+        # escape non-word constituent characters
+        searchText = searchText?.replace /(\W)/g, "\\$1"
         # add search regex into query
         selector.body = RegExp searchText, "i" if searchText
 

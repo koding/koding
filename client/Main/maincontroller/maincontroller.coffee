@@ -64,6 +64,7 @@ class MainController extends KDController
     @forwardEvents KD.remote, ['disconnected', 'reconnected']
 
   accountChanged:(account, firstLoad = no)->
+    account = KD.remote.revive account  unless account instanceof KD.remote.api.JAccount
     @userAccount             = account
     connectedState.connected = yes
 

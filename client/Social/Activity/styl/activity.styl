@@ -681,6 +681,9 @@ span.collapsedtext
       color          #3c4752
       borderBox()
 
+      &:focus
+        outline      none
+
     button
       size        auto, 25px
       padding     0 10px
@@ -1206,20 +1209,35 @@ span.collapsedtext
           color           #6096BE
 
 .activity-share-popup
-  bg                      color, #ececec
-  margin                  4px 0 0 14px
-  rounded                 3px 11px 11px 3px
-  size                    176px, 22px
+  bg                      color, #fff
+  margin                  -10px 0 0 19px
+  rounded                 4px
+  size                    auto, auto
+  border                  1px solid #c0c0c0
+  padding                 8px 12px 8px 8px
+  shadow                  0 0 27px rgba(0,0,0,.2)
 
   &:after
     content             ""
     display             block
     size                0 0
     left                -12px
-    top                 5px
+    top                 50%
+    vendor              transform, translateY(-50%)
     border              6px solid transparent
-    border-right-color  #ececec
+    border-right-color  #fff
     z-index             600
+    abs()
+  &:before
+    content             ""
+    display             block
+    size                0 0
+    left                -13px
+    top                 50%
+    vendor              transform, translateY(-50%)
+    border              6px solid transparent
+    border-right-color  #c0c0c0
+    z-index             599
     abs()
 
   .context-list-wrapper
@@ -1229,13 +1247,16 @@ span.collapsedtext
   input.share-input:hover
   input.share-input:focus
   input.share-input:active
-    background            transparent
+    margin                0 4px 0 0
+    background            #e4e4e4
     border                none
-    margin                0 2px 0 0
+    border-radius         2px
     font-size             12px
-    color                 #6e6e6e
-    line-height           22px
-    size                  106px, 22px
+    color                 #737677
+    line-height           28px
+    font-weight           400
+    size                  135px, 27px
+    padding               0 0 0 6px
     outline               0
     fl()
 
@@ -1244,13 +1265,13 @@ span.collapsedtext
     fl()
 
     &.share-gplus
-      r-sprite              activity, "gplus-16"
+      r-sprite              activity, "gplus-21"
     &.share-twitter
-      r-sprite              activity, "twitter-16"
+      r-sprite              activity, "twitter-21"
     &.share-facebook
-      r-sprite              activity, "facebook-16"
+      r-sprite              activity, "facebook-21"
     &.share-linkedin
-      r-sprite              activity, "linkedin-16"
+      r-sprite              activity, "linkedin-21"
 
 
 
@@ -1566,5 +1587,3 @@ body.group.members
     font-weight     500
     position        relative
     line-height     40px
-
-

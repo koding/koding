@@ -44,9 +44,9 @@ class WebTermController extends AppController
       if kontainers
         for own name, kontainer of kontainers
           for own attribute, amount of kontainer
-            if attribute is 'currentVMs'
+            if attribute is 'activeVMs'
               vms += amount
-            if attribute is 'currentVMsLimit'
+            if attribute is 'activeVMsLimit'
               limits += amount
 
       if vms >= limits

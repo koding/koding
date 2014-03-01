@@ -135,6 +135,9 @@ module.exports = class JGroup extends Module
           (signature Object, Function)
           (signature Object, Object, Function)
         ]
+        searchMembers: [
+          (signature String, Object, Function)
+        ]
         fetchRoles: [
           (signature Function)
           (signature Object, Function)
@@ -708,6 +711,42 @@ module.exports = class JGroup extends Module
       options.client = client
       @fetchMembers selector, options, callback
 
+  # this method contains copy/pasted code from jAccount.findSuggestions method.
+  # It is a workaround, and will be changed after elasticsearch implementation. CtF
+  searchMembers: permit 'list members',
+    success: (client, seed, options = {}, callback) ->
+      cleanSeed = seed.replace(/[^\w\s-]/).trim()
+      seed = RegExp cleanSeed, "i"
+
+      names = seed.toString().split('/')[1].replace('^','').split ' '
+      names.push names.first  if names.length is 1
+
+      selector =  
+        $or : [
+            ( 'profile.nickname'  : seed )
+            ( 'profile.firstName' : new RegExp '^'+names.slice(0, -1).join(' '), 'i' )
+            ( 'profile.lastName'  : new RegExp '^'+names.last, 'i' )
+          ]
+        type    :
+          $in   : ['registered', null] 
+          # CtF null does not effect the results here, it only searches for registered ones.
+          # probably jraphical problem, because the query correctly works in mongo
+
+      {limit, skip} = options
+      options.sort  = 'meta.createdAt' : -1 
+      options.limit = Math.min limit ? 10, 15
+      # CtF @fetchMembers first fetches all group-member relationships, and then filters accounts with found targetIds.
+      # As a result searching groups with large number of members is very time consuming. For now the only group
+      # with large member count is koding, so i have seperated it here. as a future work hopefully we will make
+      # the search queries via elasticsearch. 
+      if @slug is "koding"
+        JAccount = require '../account'
+        JAccount.some selector, options, callback
+      else      
+        options.targetOptions = {options, selector}
+
+        @fetchMembers {}, options, callback
+      
   fetchNewestMembers$: permit 'list members',
     success:(client, rest...)->
       [selector, options, callback] = Module.limitEdges 10, 19, rest

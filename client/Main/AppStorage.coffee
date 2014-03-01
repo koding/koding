@@ -29,7 +29,7 @@ class AppStorage extends KDObject
 
     @reset()
     @fetchStorage (storage)->
-      callback  if storage[group]?[key] then storage[group][key]
+      callback  if storage?[group]?[key] then storage[group][key]
     , force
 
   getValue: (key, group = 'bucket')->
@@ -46,7 +46,7 @@ class AppStorage extends KDObject
     @_storageData[group][key] = value
 
     @fetchStorage (storage)->
-      storage.update {
+      storage?.update {
         $set: pack
       }, -> callback?()
 

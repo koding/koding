@@ -19,9 +19,6 @@ class GroupsMemberPermissionsView extends JView
       callback     : =>
         @emit 'SearchInputChanged', @search.getValue()
         @search.focus()
-      keyup        : =>
-        return unless @search.getValue() is ""
-        @emit 'SearchInputChanged', ''
 
     @searchIcon = new KDCustomHTMLView
       tagName  : 'span'
@@ -30,11 +27,14 @@ class GroupsMemberPermissionsView extends JView
     @searchWrapper.addSubView @search
     @searchWrapper.addSubView @searchIcon
 
-    @_searchValue = null
+    @_searchValue = ""
 
     @listController = new KDListViewController
       itemClass             : GroupsMemberPermissionsListItemView
       lazyLoadThreshold     : .99
+      noItemFoundWidget     : new KDCustomHTMLView
+        cssClass : "lazy-loader hidden"
+        partial  : "Member not found"
     @listWrapper    = @listController.getView()
 
     @listController.getListView().on 'ItemWasAdded', (view)=>
@@ -48,21 +48,27 @@ class GroupsMemberPermissionsView extends JView
         @continueLoadingTeasers()
 
     @on 'SearchInputChanged', (value)=>
+      return  if value is @_searchValue
       @_searchValue = value
+
       if value isnt ""
         @skip = 0
         @listController.removeAllItems()
         @fetchSomeMembers()
-      else @refresh()
+      else
+        @_searchValue = ""
+        @refresh()
 
     KD.singletons.groupsController.on "MemberJoinedGroup", (data) =>
       @refresh()  unless @getData().slug is "koding" 
 
-    # CtF not very sure about this. just fetched it from ActivityTicker for lazy loading
-    @once 'viewAppended', =>
-      @$('.kdscrollview').height window.innerHeight - 120
+    @once 'viewAppended', @bound '_windowDidResize'
+    @listenWindowResize()
       
     @refresh()
+
+  _windowDidResize:->
+    @$('.kdscrollview').height window.innerHeight - 230
 
   fetchRoles:(callback=->)->
     groupData = @getData()
@@ -82,10 +88,11 @@ class GroupsMemberPermissionsView extends JView
       skip  : @skip
 
     if @_searchValue
+      selector = @_searchValue
       {JAccount} = KD.remote.api
-      JAccount.byRelevance @_searchValue, options, (err, members)=> @populateMembers err, members
     else
-      @getData().fetchMembers {}, options, (err, members)=> @populateMembers err, members
+      selector = ""
+    @getData().searchMembers selector, options, (err, members)=> @populateMembers err, members
 
   populateMembers:(err, members)->
     instantiateItems = (err) =>
