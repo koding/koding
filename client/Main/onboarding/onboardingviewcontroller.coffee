@@ -4,17 +4,18 @@ class OnboardingViewController extends KDViewController
 
     super options, data
 
-    {@app}   = @getOptions()
-    {@items} = @getData()
+    {@app, @slug} = @getOptions()
+    {@items}      = @getData()
 
-    @show @items.first
+    @show @items.first, yes
     @on "NavigationRequested", (direction, itemData) =>
       @navigate direction, itemData
+
+  show: (item, setStorage) ->
+    delegate = this
+    new OnboardingItemView { delegate, @slug, @app, @items, setStorage }, item
 
   navigate: (direction, itemData) ->
     index = @items.indexOf itemData
     item  = if direction is "next" then @items[++index] else @items[--index]
     @show item
-
-  show: (item) ->
-    new OnboardingItemView { delegate: this, @app, @items }, item
