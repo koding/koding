@@ -14,14 +14,7 @@ import (
 )
 
 func GetDomains(writer http.ResponseWriter, req *http.Request) {
-	domains := modelhelper.GetDomains()
-	data, err := json.MarshalIndent(domains, "", "  ")
-	if err != nil {
-		io.WriteString(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err))
-		return
-	}
-
-	writer.Write([]byte(data))
+	io.WriteString(writer, fmt.Sprintf("{\"res\":\" usage: /domains/<domain name>\"}\n"))
 }
 
 func GetDomain(writer http.ResponseWriter, req *http.Request) {
@@ -104,12 +97,10 @@ func CreateOrUpdateDomain(writer http.ResponseWriter, req *http.Request) {
 
 	var resp string
 	switch p.Mode {
-	case resolver.ModeInternal:
-		resp = fmt.Sprintf("{\"host\":\"%s-%s.kd.io\"}\n", p.Name, p.Key)
+	case resolver.ModeInternal, resolver.ModeVM:
+		resp = fmt.Sprintf("{\"host\":\"%s\"}\n", domainname)
 	case resolver.ModeRedirect:
 		resp = fmt.Sprintf("{\"host\":\"%s\"}\n", p.FullUrl)
-	case resolver.ModeVM:
-		resp = fmt.Sprintf("{\"host\":\"%s\"}\n", domainname)
 	case resolver.ModeMaintenance:
 		resp = fmt.Sprintf("{\"res\":\"maintenance mode enabled for %s\"}\n", domainname)
 	}
