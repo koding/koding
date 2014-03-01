@@ -4,10 +4,10 @@ encoder = require 'htmlencode'
 
 getProfile = (account) ->
   {profile:{nickname, firstName, lastName, about, hash, avatar}} = account if account
-  fullName = firstName + " " + lastName  if firstName and lastName
+  fullName = firstName + " " + lastName ? (firstName and lastName)
 
   unless fullName
-    fullName = firstName or lastName or nickname
+    fullName = firstName ? lastName ? nickname
 
   # if firstname and lastname is empty, assign nickname to firstname.
   # it is used in profile.coffee
@@ -19,10 +19,10 @@ getProfile = (account) ->
     fullName = "A koding user"
 
   userProfile =
-    nickname    : encoder.XSSEncode nickname  or "A koding nickname"
+    nickname    : encoder.XSSEncode nickname ? "A koding nickname"
     firstName   : encoder.XSSEncode firstName
     lastName    : encoder.XSSEncode lastName
-    about       : encoder.XSSEncode about or ""
+    about       : encoder.XSSEncode about ? ""
     hash        : hash or ''
     avatar      : avatar or no
     fullName    : encoder.XSSEncode fullName
