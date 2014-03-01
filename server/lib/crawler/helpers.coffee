@@ -4,16 +4,29 @@ encoder = require 'htmlencode'
 
 getProfile = (account) ->
   {profile:{nickname, firstName, lastName, about, hash, avatar}} = account if account
+  fullName = firstName + " " + lastName ? (firstName and lastName)
+
+  unless fullName
+    fullName = firstName ? lastName ? nickname
+
+  # if firstname and lastname is empty, assign nickname to firstname.
+  # it is used in profile.coffee
+  unless firstName or lastName
+    firstName = nickname
+
+  # if a fullName still can't be found, write a default name.
+  unless fullName
+    fullName = "A koding user"
 
   userProfile =
-    nickname    : encoder.XSSEncode nickname  or "A koding nickname"
-    firstName   : encoder.XSSEncode firstName or "a koding "
-    lastName    : encoder.XSSEncode lastName  or "user"
-    about       : ""
+    nickname    : encoder.XSSEncode nickname ? "A koding nickname"
+    firstName   : encoder.XSSEncode firstName
+    lastName    : encoder.XSSEncode lastName
+    about       : encoder.XSSEncode about ? ""
     hash        : hash or ''
     avatar      : avatar or no
-    fullName    : encoder.XSSEncode(firstName + " " + lastName)
-  userProfile.about = about  if about
+    fullName    : encoder.XSSEncode fullName
+
   return userProfile
 
 getAvatarImageUrl = (hash, avatar)->

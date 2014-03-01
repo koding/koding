@@ -1,4 +1,4 @@
-getSessionToken=-> $.cookie('clientId')
+getSessionToken=-> Cookies.get 'clientId'
 
 { socialApiUri: apiEndpoint } = KD.config
 

@@ -43,8 +43,8 @@ KD.extend
 
     enforceLogin=->
       return  if KD.isLoggedIn()
-      if $.cookie("doNotForceRegistration") or location.search.indexOf("sr=1") > -1
-        $.cookie("doNotForceRegistration", "true")
+      if (Cookies.get "doNotForceRegistration") or location.search.indexOf("sr=1") > -1
+        Cookies.set "doNotForceRegistration", "true"
         return
 
       appManager = KD.getSingleton "appManager"
@@ -322,4 +322,4 @@ KD.extend
 Object.defineProperty KD, "defaultSlug",
   get:->
     if KD.isGuest() then 'guests' else 'koding'
-KD.enableLogs ($.cookie 'enableLogs') or !KD.config?.suppressLogs
+KD.enableLogs (Cookies.get 'enableLogs') or !KD.config?.suppressLogs

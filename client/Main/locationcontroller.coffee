@@ -7,7 +7,7 @@ class LocationController extends KDController
     if @countries or @countryOfIp
       return @utils.defer => callback null, @countries, @countryOfIp
 
-    ip = $.cookie 'clientIPAddress'
+    ip = Cookies.get 'clientIPAddress'
 
     JPayment.fetchCountryDataByIp ip, (err, @countries, @countryOfIp) =>
       callback err, @countries, @countryOfIp
