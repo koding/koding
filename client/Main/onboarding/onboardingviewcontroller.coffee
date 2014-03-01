@@ -1,4 +1,4 @@
-class OnboardingViewController extends KDController
+class OnboardingViewController extends KDViewController
 
   constructor: (options = {}, data) ->
 
