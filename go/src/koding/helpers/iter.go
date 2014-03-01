@@ -105,7 +105,7 @@ func createQuery(iterOptions *iterOptions) func(coll *mgo.Collection) error {
 			for iter.Next(iterOptions.DataType) {
 				iterOptions.F(iterOptions.DataType)
 				index++
-				iterOptions.Log.Info("Index: %v", index)
+				iterOptions.Log.Debug("Index: %v", index)
 			}
 
 			if err := iter.Close(); err != nil {
