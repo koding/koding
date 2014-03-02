@@ -40,8 +40,6 @@ class WebTermController extends AppController
 
     super options, data
 
-    console.clear()
-
     @globalNotification = null
     alreadyStarted      = no
 
@@ -89,7 +87,7 @@ class WebTermController extends AppController
           if attribute is 'activeVMsLimit'
             limits += amount
 
-    if vms > limits
+    if kontainers and vms > limits
       @globalNotification?.destroy()
       return @globalNotification = KD.singletons.mainView.createGlobalNotification
         title   : "Sorry, we can't launch your VM right now. We are experiencing an unxpected high load."
