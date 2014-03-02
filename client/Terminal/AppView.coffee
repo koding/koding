@@ -35,7 +35,14 @@ class WebTermAppView extends JView
 
     @messagePane = new KDCustomHTMLView
       cssClass   : 'message-pane'
-      partial    : 'Loading Terminal...'
+      partial    : loadingPartial = 'Loading Terminal...'
+
+    # if we still have the same message after 15 seconds assuming
+    # all checks have failed and showing a warning to make user
+    # try again. - SY
+    KD.utils.wait 15000, =>
+      if @messagePane.$().text() is loadingPartial
+        @setMessage "Couldn't open your terminal. <a class='plus' href='#'>Click here to try again</a>.", no, yes
 
     @tabView.on 'AllTabsClosed', =>
       @setMessage "All tabs are closed. <a class='plus' href='#'>Click to open a new Terminal</a>.", no, yes
