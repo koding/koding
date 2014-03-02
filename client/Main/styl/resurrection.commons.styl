@@ -348,6 +348,7 @@ finderSelectedColor2 = logoBg
   border               none
   rounded              4px
   padding              0 20px
+  margin               0
   height               55px
   borderBox()
   span.button-title
@@ -367,6 +368,9 @@ finderSelectedColor2 = logoBg
       color            white
   &:focus
     shadow             0 0 10px -2px logoBg
+  &.icon-only
+    span.icon
+      margin           0
 
 .kdbutton.solid.green
   bg                   color logoBg
@@ -393,6 +397,19 @@ finderSelectedColor2 = logoBg
       color            #ff9f00
   &:focus
     shadow             0 0 10px -2px #ff9f00
+
+.kdbutton.solid.clear
+  bg                   color transparent
+  rounded              0
+  span.button-title
+    color              #444
+  &:hover
+  &:active
+  &:focus
+    background         none
+    shadow             none
+    span.button-title
+      color            #222
 
 .kdbutton.solid.light-gray
   bg                   color #C0C0C0
