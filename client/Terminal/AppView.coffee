@@ -110,7 +110,7 @@ class WebTermAppView extends JView
       , =>
         KD.mixpanel "Open Webterm, fail", {vmName}
         KD.logToExternalWithTime "oskite: Can't open Webterm", vmName
-
+        @emit 'TerminalFailed'
         @emit 'message', """
           <p>Couldn't connect to your VM.</p>
           <br>
@@ -252,13 +252,16 @@ class WebTermAppView extends JView
     , =>
       terminalView.connectToTerminal()
       @messagePane.hide()
+      @emit 'TerminalStarted'
     , =>
       KD.utils.defer =>
         @addNewTab vmName
         @messagePane.hide()
+        @emit 'TerminalStarted'
     , =>
       KD.mixpanel "Open Webterm, fail", {vmName}
       KD.logToExternalWithTime "oskite: Can't open Webterm", vmName
+      @emit 'TerminalFailed'
       @setMessage """
         <p>Couldn't connect to your VM.</p>
         <br>
