@@ -4,7 +4,7 @@ class EnvironmentDomainContainer extends EnvironmentContainer
 
     new Promise (resolve, reject)->
 
-      KD.whoami().fetchDomains (err, domains)->
+      KD.remote.api.JDomain.fetchDomains (err, domains)->
 
         if err or not domains or domains.length is 0
           warn "Failed to fetch domains", err  if err
