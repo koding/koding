@@ -6,45 +6,37 @@ class EnvironmentsMainScene extends JView
 
   viewAppended:->
 
-    @addSubView new KDView
-      cssClass : 'environment-help'
+    @addSubView header = new KDView
+      tagName  : 'header'
       partial  : """
+        <h1>Environments</h1>
         <div class="content">
-          <h1>Environments</h1>
           Welcome to Environments.
           Here you can setup your servers and development environment.
         </div>
       """
 
-    @addSubView freePlanView = new KDView
+    freePlanView = new KDView
       cssClass : "top-warning"
       click    : (event) ->
         if "usage" in event.target.classList
           KD.utils.stopDOMEvent event
           new KDNotificationView title: "Coming soon..."
 
+    header.addSubView freePlanView
+
     paymentControl = KD.getSingleton("paymentController")
     paymentControl.fetchActiveSubscription tags: "vm", (err, subscription) ->
       return warn err  if err
       if not subscription or "nosync" in subscription.tags
         freePlanView.updatePartial """
-          <div class="content">
-            You are on a free developer plan,
-            see your <a class="usage" href="#">usage</a> or
-            <a class="pricing" href="/Pricing">upgrade</a>.
-          </div>
+          You are on a free developer plan,
+          see your <a class="usage" href="#">usage</a> or
+          <a class="pricing" href="/Pricing">upgrade</a>.
         """
 
     paymentControl.on "SubscriptionCompleted", ->
       freePlanView.updatePartial ""
-
-    @addSubView controlPanel = new KDView
-      cssClass : "control-panel"
-
-    controlPanel.addSubView @createStackButton = new KDButtonView
-      cssClass : "create-stack-button solid mini green"
-      title    : "Create a new stack"
-      callback : => new KDNotificationView title: "Coming soon!"
 
     @fetchStacks()
 
@@ -68,112 +60,3 @@ class EnvironmentsMainScene extends JView
           callback?()  if index is stacks.length - 1
 
 
-class StackView extends KDView
-
-  constructor:(options={}, data)->
-    options.cssClass = KD.utils.curry 'environment-stack', options.cssClass
-    super options, data
-
-  viewAppended:->
-
-    {stack} = @getOptions()
-    title   = stack.meta?.title
-    number  = if stack.sid > 0 then "#{stack.sid}." else "default"
-    group   = KD.getGroup().title
-    title or= "Your #{number} stack on #{group}"
-
-    @addSubView title = new KDView
-      cssClass : 'stack-title'
-      partial  : title
-
-    @addSubView toggle = new KDButtonView
-      title    : 'Hide details'
-      cssClass : 'stack-toggle solid mini'
-      callback : =>
-        if @getHeight() <= 50
-          @setHeight @getProperHeight()
-          toggle.setTitle 'Hide details'
-        else
-          toggle.setTitle 'Show details'
-          @setHeight 48
-        KD.utils.wait 300, @bound 'updateView'
-
-    @addSubView dump = new KDButtonView
-      title    : 'Show dump'
-      cssClass : 'stack-dump solid mini'
-      callback : @bound 'dumpStack'
-
-    # Main scene for DIA
-    @addSubView @scene = new EnvironmentScene @getData().stack
-
-    # Rules Container
-    @rules = new EnvironmentRuleContainer
-    @scene.addContainer @rules
-
-    # Domains Container
-    @domains = new EnvironmentDomainContainer
-    @scene.addContainer @domains
-    @domains.on 'itemAdded', @lazyBound 'updateView', yes
-
-    # VMs / Machines Container
-    @vms = new EnvironmentMachineContainer
-    @scene.addContainer @vms
-
-    KD.getSingleton("vmController").on 'VMListChanged', =>
-      EnvironmentDataProvider.get (data) => @loadContainers data
-
-    # Rules Container
-    @extras = new EnvironmentExtraContainer
-    @scene.addContainer @extras
-
-    @loadContainers()
-
-  loadContainers: (data)->
-
-    env     = data or @getData()
-    orphans = domains: [], vms: []
-    {stack, isDefault} = @getOptions()
-
-    # Add rules
-    @rules.removeAllItems()
-    @rules.addItem rule  for rule in env.rules
-
-    # Add domains
-    @domains.removeAllItems()
-    for domain in env.domains
-      if domain.stack is stack._id or isDefault
-      then @domains.addDomain domain
-      else orphans.domains.push domain
-
-    # Add vms
-    @vms.removeAllItems()
-    for vm in env.vms
-      if vm.stack is stack._id or isDefault
-      then @vms.addItem title:vm.alias
-      else orphans.vms.push vm
-
-    # Add extras
-    @extras.removeAllItems()
-    @extras.addItem extra  for extra in env.extras
-
-    # log "ORPHANS", orphans
-
-    @setHeight @getProperHeight()
-    KD.utils.wait 300, =>
-      @_inProgress = no
-      @updateView yes
-
-
-  updateView:(updateData = no)->
-
-    @scene.updateConnections()  if updateData
-
-    if @getHeight() > 50
-      @setHeight @getProperHeight()
-
-    @scene.highlightLines()
-    @scene.updateScene()
-
-  getProperHeight:->
-    (Math.max.apply null, \
-      (box.diaCount() for box in @scene.containers)) * 45 + 170
