@@ -58,7 +58,6 @@ class WebTermController extends AppController
     @getView().on 'TerminalFailed', @bound 'checkOSKiteStatus'
 
     # sometimes terminal is so fast we don't even need to ask oskite status
-    log 'alreadyStarted', alreadyStarted
     @checkOSKiteStatus()  unless alreadyStarted
 
   checkOSKiteStatus:-> @askOSKiteStatus @bound 'tellOSKiteStatus'
