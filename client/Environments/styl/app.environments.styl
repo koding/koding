@@ -204,30 +204,26 @@ section.resources-container
         .icon
           bg            position, -60px -500px
 
-  .control-panel
-    size                934px, auto
-    margin              0 auto
-    text-align          right
-
-  .environment-help
+  > header
     height              auto
-    margin              0 auto
     background          white
+    line-height         22px
+    font-weight         100
+    font-size           21px
+
+    > *
+      margin            0 auto
+      max-width         936px
+      overflow          visible
 
     h1
-      padding           30px
+      padding           30px 0
       font-size         42px
       font-weight       100
       padding-left      0
 
     .content
-      height            100px
-      padding           14px
-      line-height       22px
-      width             936px
-      margin            0 auto
-      font-weight       100
-      font-size         21px
+      padding           14px 0
 
       .video
         width           260px
@@ -237,14 +233,18 @@ section.resources-container
         r-sprite        environments, "play"
 
   .top-warning
-    padding             10px 0 20px 0
-    height              20px
-    background          #FFF
-    margin-bottom       20px
-    padding-left        0
+    border-top          1px solid #f2f2f2
+    padding             14px 0 20px
+    font-size           19px
+    color               #999
+    // font-weight         200
 
     a
-      text-decoration   underline
+      color             logoBg
+      // font-weight       400
+      noTextDeco()
+      &:hover
+        border-bottom   1px solid logoBg
 
     .content
       width             936px
@@ -860,13 +860,13 @@ section.resources-container
 
 div.environments-scene
 
-  bg                    image, url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAO0lEQVQYV2NkIA4YMxKhzhio5iwhhWBFIMPwKYQrwqcQRREuhRiKsCnEqghdIU5FyArxKoIpJKgIpBAAuKUJPnltMzUAAAAASUVORK5CYII=")
+  // bg                    image, url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAO0lEQVQYV2NkIA4YMxKhzhio5iwhhWBFIMPwKYQrwqcQRREuhRiKsCnEqghdIU5FyArxKoIpJKgIpBAAuKUJPnltMzUAAAAASUVORK5CYII=")
   bg                    image, url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAQElEQVQYV2NkIALk5eUZMxJSB1I0adKks3gVwhSBDMOpEFkRToXoirAqxKYIQyEuRSgK8SmCKySkCKyQGEUghQAU3yWIL9S7NgAAAABJRU5ErkJggg==")
-  background-color      #EBEBEB
+  background-color      transparent
 
-  width                 934px
+  width                 964px
   margin                0 auto
-  height                100%
+  kalc                  height, 100% \- 49px
 
   canvas
     left                -8px
@@ -936,25 +936,44 @@ div.environment-stack
 
   height                48px
   border                1px solid #BBB
-  width                 934px
-  margin                8px auto
+  bg                    color #E9E9E9
+  width                 964px
+  margin                30px auto
   border-radius         3px
   vendor                transition, height .2s ease
 
   .stack-title
     height              auto
-    padding             10px
+    padding             10px 15px
     font-weight         100
     font-size           29px
+    border-bottom       1px solid #e2e2e2
+    borderBox()
 
-  .stack-dump
-  .stack-toggle
-    top                 14px
-    right               14px
+  .kdbutton.stack-toggle
+    top                 0
+    right               10px
+    height              49px
+    padding             0 10px
     abs()
+    &.on .icon.toggle
+      r-sprite          'environments' '20-arrow-down'
+    .icon.toggle
+      r-sprite          'environments' '20-arrow-up'
 
-  .stack-dump
-    right               114px
+  .kdbutton.stack-context
+    top                 0
+    right               50px
+    height              49px
+    display             block
+    padding             0 10px
+    abs()
+    .icon.cog
+      r-sprite          'app' '20-cog-gray'
+    .chevron-separator
+    .chevron
+      hidden()
+
 
 div.environments-container
 
@@ -998,7 +1017,7 @@ div.environments-container
     margin-left               20px
     width                     180px
     height                    30px
-    border                    1px dashed #ccc
+    border                    1px solid #e6e6e6
     border-radius             3px
     background                #EEE
     color                     #999
@@ -1009,7 +1028,6 @@ div.environments-container
 
     &:hover
       background              white
-      border                  1px solid #ccc
 
 div.environments-item
 
@@ -1262,3 +1280,25 @@ div.environments-joint
     font-size        22px
     color            rgba(80, 89, 90, 0.5)
     font-weight      400
+
+// context menu
+.jcontextmenu.environments
+
+  .kdlistview-contextmenu.default
+    border          1px solid #CFCFCF
+
+  .kdlistitemview-contextitem.default.selected
+  .kdlistitemview-contextitem.default.has-sub-items.expanded
+    bg              color #ECECEC
+    color           #222
+    text-shadow     none
+
+// recipe modal
+.kdmodal.recipe
+
+  pre
+    color           #222
+    font-size       12px
+    // padding         20px
+    // bg              color #444
+    // color           white
