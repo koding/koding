@@ -21,15 +21,12 @@ var log = logger.New("post deleter")
 type strToInf map[string]interface{}
 
 var (
-	MAX_ITERATION_COUNT = 50
-	conf                *config.Config
-	GUEST_GROUP_ID      = "51f41f195f07655e560001c1"
-	SLEEPING_TIME       = 10 * time.Millisecond
-	flagProfile         = flag.String("c", "vagrant", "Configuration profile from file")
-	flagDirection       = flag.String("direction", "targetName", "direction name ")
-	flagSkip            = flag.Int("s", 0, "Configuration profile from file")
-	flagLimit           = flag.Int("l", 1000, "Configuration profile from file")
-	mongo               *mongodb.MongoDB
+	conf          *config.Config
+	flagProfile   = flag.String("c", "vagrant", "Configuration profile from file")
+	flagDirection = flag.String("direction", "targetName", "direction name ")
+	flagSkip      = flag.Int("s", 0, "Configuration profile from file")
+	flagLimit     = flag.Int("l", 1000, "Configuration profile from file")
+	mongo         *mongodb.MongoDB
 )
 
 func initialize() {
