@@ -43,10 +43,7 @@ class ModalViewWithTerminal extends KDModalView
       noScreen : !@terminal.screen
       vmName   : @terminal.vmName
 
-    @webterm = new WebTermView
-      delegate          : terminalWrapper
-      cssClass          : "webterm"
-      advancedSettings  : no
+    @createWebTermView terminalWrapper
 
     @hidden = @terminal.hidden ? no
     # webterm crashes when its hidden, so we hide it using height: 0
@@ -58,6 +55,15 @@ class ModalViewWithTerminal extends KDModalView
     terminalWrapper.addSubView @webterm
 
     @addSubView terminalWrapper
+
+  createWebTermView: (terminalWrapper)->
+
+    handler = => @webterm.connectToTerminal()
+    @webterm           = new WebTermView
+      delegate         : terminalWrapper
+      cssClass         : "webterm"
+      advancedSettings : no
+    WebTermView.setTerminalTimeout null, 15000, handler, handler
 
   run: (command)->
     if @hidden
