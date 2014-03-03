@@ -2,14 +2,15 @@ package main
 
 import (
 	"flag"
-	mm "koding/db/mongodb"
+	"koding/db/models"
+	"koding/db/mongodb"
 	helper "koding/db/mongodb/modelhelper"
+	"koding/helpers"
 	"koding/tools/config"
 	"koding/tools/logger"
 	"strings"
 	"time"
 
-	oldNeo "koding/databases/neo4j"
 	"github.com/chuckpreslar/inflect"
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
@@ -28,104 +29,59 @@ var (
 	flagDirection       = flag.String("direction", "targetName", "direction name ")
 	flagSkip            = flag.Int("s", 0, "Configuration profile from file")
 	flagLimit           = flag.Int("l", 1000, "Configuration profile from file")
-	mongodb             *mm.MongoDB
+	mongo               *mongodb.MongoDB
 )
 
-func main() {
-	log.SetLevel(logger.INFO)
+func initialize() {
 	flag.Parse()
+	log.SetLevel(logger.INFO)
 	if *flagProfile == "" {
 		log.Fatal("Please specify profile via -c. Aborting.")
 	}
 
 	conf = config.MustConfig(*flagProfile)
 	helper.Initialize(conf.Mongo)
-	log.Info("Sync worker started")
-	mongodb = helper.Mongo
-	err := mongodb.Run("relationships", createQuery(*flagDirection))
+	mongo = helper.Mongo
+}
+
+func main() {
+	// init the package
+	initialize()
+	log.Info("Post Deleter worker started")
+
+	iterOptions := helpers.NewIterOptions()
+	iterOptions.CollectionName = "relationships"
+	iterOptions.F = deleteRel
+	iterOptions.Filter = createFilter(*flagDirection)
+	iterOptions.DataType = &models.Relationship{}
+	iterOptions.Limit = *flagLimit
+	iterOptions.Skip = *flagSkip
+	iterOptions.Log = log
+
+	log.SetLevel(logger.DEBUG)
+
+	err := helpers.Iter(mongo, iterOptions)
 	if err != nil {
-		log.Fatal("Connecting to Mongo: %v", err)
+		log.Fatal("Error while iter: %v", err)
 	}
+	log.Info("Deleter worker finished")
+
 }
 
-func createQuery(directionName string) func(coll *mgo.Collection) error {
-
-	oneMonthAgo := time.Now().Add(-time.Hour * 24 * 30).UTC()
-	return func(coll *mgo.Collection) error {
-		filter := strToInf{
-			directionName: strToInf{"$in": ToBeDeletedNames},
-			"timestamp":   strToInf{"$lte": oneMonthAgo},
-		}
-		query := coll.Find(filter)
-
-		totalCount, err := query.Count()
-		if err != nil {
-			log.Error("While getting count, exiting: %v", err)
-			return err
-		}
-
-		skip := *flagSkip
-		// this is a starting point
-		index := skip
-		// this is the item count to be processed
-		limit := *flagLimit
-		// this will be the ending point
-		count := index + limit
-
-		var result oldNeo.Relationship
-
-		iteration := 0
-		for {
-			// if we reach to the end of the all collection, exit
-			if index >= totalCount {
-				log.Info("All items are processed, exiting")
-				break
-			}
-
-			// this is the max re-iterating count
-			if iteration == MAX_ITERATION_COUNT {
-				break
-			}
-
-			// if we processed all items then exit
-			if index == count {
-				break
-			}
-
-			iter := query.Skip(index).Limit(count - index).Iter()
-			for iter.Next(&result) {
-				time.Sleep(SLEEPING_TIME)
-
-				deleteRel(&result, directionName)
-
-				index++
-				log.Info("Index: %v", index)
-			}
-
-			if err := iter.Close(); err != nil {
-				log.Error("Iteration failed: %v", err)
-			}
-
-			if iter.Timeout() {
-				continue
-			}
-
-			log.Info("iter existed, starting over from %v  -- %v  item(s) are processsed on this iter", index+1, index-skip)
-			iteration++
-		}
-
-		if iteration == MAX_ITERATION_COUNT {
-			log.Info("Max iteration count %v reached, exiting", iteration)
-		}
-		log.Info("Synced %v entries on this process", index-skip)
-
-		return nil
+func createFilter(directionName string) helper.Selector {
+	oneMonthAgo := time.Now().Add(-time.Minute * 60 * 24 * 30).UTC()
+	return helper.Selector{
+		directionName: helper.Selector{"$in": ToBeDeletedNames},
+		"timestamp":   helper.Selector{"$lte": oneMonthAgo},
 	}
+
 }
 
-func deleteRel(result *oldNeo.Relationship, directionName string) {
+func deleteRel(rel interface{}) {
+	result := rel.(*models.Relationship)
 	var collectionName string
 	var collectionId bson.ObjectId
+	directionName := *flagDirection
 
 	if directionName == "sourceName" {
 		if result.SourceName == "" {
@@ -151,7 +107,7 @@ func deleteRel(result *oldNeo.Relationship, directionName string) {
 	}
 	log.Info("removing collectionId: %v from collectionName: %v ", collectionId.Hex(), collectionName)
 
-	if err := mongodb.Run(collectionName, func(coll *mgo.Collection) error {
+	if err := mongo.Run(collectionName, func(coll *mgo.Collection) error {
 		return coll.RemoveId(collectionId)
 	}); err != nil {
 		log.Error("couldnt remove collectionId: %v from collectionName: %v  ", collectionId.Hex(), collectionName)
@@ -161,7 +117,7 @@ func deleteRel(result *oldNeo.Relationship, directionName string) {
 		log.Info("relationship id is not valid %v", collectionId)
 		return
 	}
-	if err := mongodb.Run("relationships", func(coll *mgo.Collection) error {
+	if err := mongo.Run("relationships", func(coll *mgo.Collection) error {
 		return coll.RemoveId(result.Id)
 	}); err != nil {
 		log.Error("couldnt remove collectionId: %v from relationships  ", result.Id.Hex())
