@@ -144,7 +144,7 @@ class Ace extends KDView
     else
       # add to list of files that need to be synced.
       syncLocalController.addToWillSaved file.path
-      syncLocalController.once "FileContentSynced", (fileName) =>
+      syncLocalController.once "LocalContentSynced", (fileName) =>
         log "synced File ", fileName
         @notify "file synced to remote...", null, null, 5000
 

@@ -66,7 +66,7 @@ class SyncLocalController extends KDController
             @writeToFile vmName, fileName, newContent[0], (err, res)=>
               return KD.showError err if err
               @removeFromSaveArray fileName
-              @emit "FileContentSynced", fileName
+              @emit "LocalContentSynced", fileName
 
   getPatchedContent: (originalContent, localContent)->
     # diff_match_patch is the 3rd.party lib that used to find
