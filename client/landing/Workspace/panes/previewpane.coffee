@@ -18,7 +18,7 @@ class PreviewPane extends Pane
 
     @container.addSubView @previewer = new PreviewerView viewerOptions
 
-    @createSecureWarning()  unless $.cookie("kdproxy-usehttp") is "1"
+    @createSecureWarning()  unless (Cookies.get "kdproxy-usehttp") is "1"
 
   createSecureWarning: ->
     @secureInfo = new KDCustomHTMLView
@@ -56,7 +56,7 @@ class PreviewPane extends Pane
 
   useHttp: ->
     KD.getSingleton("router").handleRoute "/Activity"
-    $.cookie "kdproxy-usehttp", "1"
+    Cookies.set "kdproxy-usehttp", "1"
 
   pistachio: ->
     """
