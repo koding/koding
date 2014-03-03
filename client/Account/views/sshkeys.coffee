@@ -69,6 +69,7 @@ class AccountSshKeyListItem extends KDListItemView
       buttons           :
         save            :
           style         : "solid medium green"
+          loader        : yes
           title         : "Save"
           callback      : => @emit "FormSaved"
         cancel          :
@@ -124,6 +125,7 @@ class AccountSshKeyListItem extends KDListItemView
     @getDelegate().emit "RemoveItem", @
 
   saveItem:->
+    @form.buttons.save.showLoader()
     @setData
       title : @form.inputs["title"].getValue()
       key   : @form.inputs["key"].getValue()
@@ -135,12 +137,15 @@ class AccountSshKeyListItem extends KDListItemView
       @info.$('span.key').text "#{key.substr(0,45)} . . . #{key.substr(-25)}"
       @swappable.swapViews()
       @getDelegate().emit "UpdatedItems"
+      @form.buttons.save.hideLoader()
     else unless key
       new KDNotificationView
         title : "Key shouldn't be empty."
+      @form.buttons.save.hideLoader()
     else unless title
       new KDNotificationView
         title : "Title required for SSH key."
+      @form.buttons.save.hideLoader()
 
   partial:(data)->
     """

@@ -46,6 +46,9 @@ class PricingProductForm extends JView
       KD.remote.api.JPaymentPlan.one tags: $in: [tag], (err, plan) =>
         return  if KD.showError err
         @emit "PlanSelected", plan, options
+        @developerPlan.buyNow.hideLoader()
+        @teamPlan.buyNow.hideLoader()
+
 
   pistachio: ->
     """

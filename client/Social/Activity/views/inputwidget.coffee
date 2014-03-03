@@ -64,6 +64,7 @@ class ActivityInputWidget extends KDView
       type        : "submit"
       cssClass    : "solid green"
       iconOnly    : yes
+      loader      : yes
       callback    : @bound "submit"
 
     @avatar = new AvatarView
@@ -222,6 +223,7 @@ class ActivityInputWidget extends KDView
 
     @emit "ActivitySubmitted"
 
+
   encodeTagSuggestions: (str, tags) ->
     return  str.replace /\|(.*?):\$suggest:(.*?)\|/g, (match, prefix, title) ->
       tag = tags[title]
@@ -265,11 +267,11 @@ class ActivityInputWidget extends KDView
 
   lockSubmit: ->
     @submitButton.disable()
-    # @submitButton.setTitle "Wait"
+    @submitButton.showLoader()
 
   unlockSubmit: ->
     @submitButton.enable()
-    # @submitButton.setTitle "Post"
+    @submitButton.hideLoader()
 
   showPreview: ->
     return unless value = @input.getValue().trim()

@@ -154,9 +154,7 @@ class PricingAppView extends KDView
           title             : "CREATE YOUR GROUP"
           type              : "submit"
           style             : "solid green medium"
-          loader            :
-            color           : "#ffffff"
-            diameter        : 26
+          loader            : yes
           callback          : ->
       fields                :
         GroupName           :

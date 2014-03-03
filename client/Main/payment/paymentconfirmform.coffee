@@ -8,9 +8,7 @@ class PaymentConfirmForm extends JView
         Buy         :
           title     : "PLACE YOUR ORDER"
           style     : "solid medium green"
-          loader    :
-            color   : "#ffffff"
-            diameter: "26"
+          loader    : yes
           callback  : =>
             @buttonBar.buttons['Buy'].showLoader()
             @emit 'PaymentConfirmed'

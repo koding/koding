@@ -119,8 +119,7 @@ class GroupsMemberRolesEditView extends JView
         Kick         :
           style      : "modal-clean-red"
           loader     :
-            color    : "#ffffff"
-            diameter : 16
+            color    : "#444444"
           callback   : =>
             @group.kickMember @member.getId(), (err)=>
               return @showErrorMessage err if err
