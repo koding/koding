@@ -208,55 +208,12 @@ class DevToolsMainView extends KDView
     return callback @coffee  if @coffee
     require [COFFEE], (@coffee)=> callback @coffee
 
-
   compileApp:->
 
     {JSEditor} = @workspace.activePanel.panesByName
-    app = KodingAppsController.getAppInfoFromPath JSEditor.getData()?.path
 
-    if app
-
-      @compileAppOnServer app, ->
-        log "COMPILE", arguments
-
-
-  compileAppOnServer:(app, callback)->
-
-    loader = new KDNotificationView
-      duration : 18000
-      title    : "Compiling #{app.name}..."
-      type     : "mini"
-
-
-    KodingAppsController.installKDC()
-    return
-    {vmController} = KD.singletons
-    vmController.run "kdc #{app.path}", (err, response)=>
-
-      unless err
-
-        loader.notificationSetTitle "App compiled successfully"
-        loader.notificationSetTimer 2000
-        callback()
-
-      else
-
-        loader.destroy()
-
-        if err.message is "exit status 127"
-          KodingAppsController.installKDC()
-          callback? err
-          return
-
-        new KDModalView
-          title    : "An error occured while compiling #{app.name}"
-          width    : 600
-          overlay  : yes
-          cssClass : 'compiler-modal'
-          content  : if response then "<pre>#{response}</pre>" \
-                                 else "<p>#{err.message}</p>"
-
-        callback? err
+    KodingAppsController.compileAppOnServer JSEditor.getData()?.path, ->
+      log "COMPILE", arguments
 
 class DevToolsEditorPane extends CollaborativeEditorPane
 
