@@ -28,6 +28,8 @@ KD.mixpanel = (args...)->
     args.push {}
 
   me = KD.whoami()
+  return  unless me
+
   me.fetchEmail (err, email)->
     console.log err  if err
 
