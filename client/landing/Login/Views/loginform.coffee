@@ -42,9 +42,7 @@ class LoginInlineForm extends LoginViewInlineForm
       title       : "SIGN IN"
       style       : "solid green"
       type        : 'submit'
-      loader      :
-        color     : "#ffffff"
-        diameter  : 21
+      loader      : yes
 
   activate: ->
     @username.setFocus()
