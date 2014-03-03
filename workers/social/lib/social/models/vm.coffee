@@ -309,15 +309,14 @@ module.exports = class JVM extends Module
       { delegate: account } = client.connection
       { group: groupSlug } = client.context
 
-      @createVm {
-        account
-        groupSlug
-        planCode
-        subscriptionCode
-        type          : 'user'
-      }, (err, vm) ->
+      nonceObject.update $set: action: "used", (err) =>
         return callback err  if err
-        callback null, vm
+        @createVm {
+          account
+          groupSlug
+          planCode
+          subscriptionCode
+        }, callback
 
   @createSharedVm = secure (client, callback)->
     {connection:{delegate:account}, context:{group}} = client
