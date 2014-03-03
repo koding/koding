@@ -53,6 +53,7 @@ class MainController extends KDController
       KD.registerSingleton "activityController",      new ActivityController
       KD.registerSingleton "appStorageController",    new AppStorageController
       KD.registerSingleton "kodingAppsController",    new KodingAppsController
+      KD.registerSingleton "syncLocalController",     new SyncLocalController
       # KD.registerSingleton "kontrol",                 new Kontrol
 
       # @showInstructionsBook()
@@ -157,7 +158,7 @@ class MainController extends KDController
           localStorage?.removeItem "routeToBeContinued"
 
         @utils.wait 3000, cookieChangeHandler
-    # Note: I am using wait instead of repeat, for the subtle difference.  See this StackOverflow answer for more info: 
+    # Note: I am using wait instead of repeat, for the subtle difference.  See this StackOverflow answer for more info:
     #       http://stackoverflow.com/questions/729921/settimeout-or-setinterval/731625#731625
     @utils.wait 3000, cookieChangeHandler
 
