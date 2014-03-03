@@ -302,8 +302,8 @@ module.exports = class JVM extends Module
 
     JPaymentFulfillmentNonce.one { nonce }, (err, nonceObject) =>
       return callback err  if err
-      return { message: "Unrecognized nonce!", nonce }  unless nonceObject
-      return { message: "Invalid nonce!", nonce }  if nonceObject.action isnt "debit"
+      return callback { message: "Unrecognized nonce!", nonce }  unless nonceObject
+      return callback { message: "Invalid nonce!", nonce }  if nonceObject.action isnt "debit"
 
       { planCode, subscriptionCode } = nonceObject
       { delegate: account } = client.connection
