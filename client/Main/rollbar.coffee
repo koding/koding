@@ -2,6 +2,7 @@
 KD.logToExternal = (msg, args) ->
   return  unless KD.config.logToExternal and _rollbar
   return  if KD.isGuest()
+  return  unless KD.whoami()
 
   {nickname} = KD.whoami().profile
 
