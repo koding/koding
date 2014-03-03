@@ -92,10 +92,10 @@ class GroupsController extends KDController
 
   joinGroup:(group, callback)->
     group.join (err, response)=>
-      unless err
-        callback err, response
-        KD.getSingleton('mainController').emit 'JoinedGroup'
-        KD.mixpanel "Join group, success", slug:group.slug
+      return KD.showError err  if err?
+      callback err, response
+      KD.getSingleton('mainController').emit 'JoinedGroup'
+      KD.mixpanel "Join group, success", slug:group.slug
 
   acceptInvitation:(group, callback)->
     KD.whoami().acceptInvitation group, (err, res)=>

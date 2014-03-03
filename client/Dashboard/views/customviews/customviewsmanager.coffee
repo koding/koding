@@ -13,7 +13,7 @@ class CustomViewsManager extends JView
       cssClass     : "solid green preview"
       callback     : @bound "togglePreview"
 
-    if $.cookie cookieName
+    if Cookies.get cookieName
       @previewButton.setTitle   "CANCEL PREVIEW"
       @previewButton.unsetClass "green"
 
@@ -30,14 +30,14 @@ class CustomViewsManager extends JView
       itemClass : WidgetCustomViewItem
 
   togglePreview: ->
-    isPreview = $.cookie cookieName
+    isPreview = Cookies.get cookieName
 
     if isPreview
-      $.cookie cookieName, no
+      Cookies.set cookieName, no
       @previewButton.setTitle "PREVIEW"
       @previewButton.setClass "green"
     else
-      $.cookie cookieName, yes
+      Cookies.set cookieName, yes
       @previewButton.setTitle   "CANCEL PREVIEW"
       @previewButton.unsetClass "green"
 

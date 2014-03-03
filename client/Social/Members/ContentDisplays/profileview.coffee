@@ -338,17 +338,19 @@ class ProfileView extends JView
 
     @bio            = new KDContentEditableView
       testPath      : "profile-bio"
-      pistachio     : "{{ @utils.applyTextExpansions #(profile.about), yes}}"
+      pistachio     : "{{#(profile.about) or ''}}"
       cssClass      : "bio"
       placeholder   : if KD.isMine @memberData then "You haven't entered anything in your bio yet. Why not add something now?" else ""
-      textExpansion : yes
       delegate      : this
       tabNavigation : yes
     , @memberData
 
-    save = -> @getDelegate().save()
+    save = ->
+      @getDelegate().save()
+      @setEditingMode off
+
     focus = (input) ->
-      input.setEditingMode yes
+      input.setEditingMode on
       input.focus()
 
     if @memberData.getId() is KD.whoami().getId()
@@ -359,9 +361,9 @@ class ProfileView extends JView
       @bio.on "NextTabStop",           => focus @firstName
       @bio.on "PreviousTabStop",       => focus @lastName
 
-      @firstName.on "click", -> @setEditingMode yes
-      @lastName.on "click",  -> @setEditingMode yes
-      @bio.on "click",       -> @setEditingMode yes
+      @firstName.on "click", -> @setEditingMode on
+      @lastName.on "click",  -> @setEditingMode on
+      @bio.on "click",       -> @setEditingMode on
 
       @firstName.on "EnterPressed", save
       @lastName.on "EnterPressed", save
@@ -529,6 +531,11 @@ class ProfileView extends JView
     super
     @createExternalProfiles()
     @createBadges()
+    KD.utils.defer =>
+      return  unless KD.isMine @memberData
+      @firstName.setPlaceholder()  unless @firstName.getValue()
+      @lastName.setPlaceholder()   unless @lastName.getValue()
+      @bio.setPlaceholder()        unless @bio.getValue()
 
   uploadAvatar: (avatarData, callback)->
     FSHelper.s3.upload "avatar.png", avatarData, "user", "", (err, url)=>

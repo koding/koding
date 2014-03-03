@@ -19,6 +19,9 @@ regions         =
   sj            : "sj"
   aws           : "aws"
 
+cookieMaxAge = 1000 * 60 * 60 * 24 * 14 # two weeks
+cookieSecure = no
+
 module.exports =
   environment   : environment
   regions       : regions
@@ -150,6 +153,9 @@ module.exports =
     useStaticFileServer: no
     staticFilesBaseUrl: 'http://lvh.me:3020'
     runtimeOptions:
+      sessionCookie :
+        maxAge      : cookieMaxAge
+        secure      : cookieSecure
       environment        : environment
       activityFetchCount : 20
       precompiledApi     : no
@@ -307,7 +313,7 @@ module.exports =
       url         : "http://lvh.me"
     proxy         :
       port        : 80
-      portssl     : 8081
+      portssl     : 443
       ftpip       : '127.0.0.1'
   # crypto :
   #   encrypt: (str,key=Math.floor(Date.now()/1000/60))->
@@ -405,3 +411,6 @@ module.exports =
       storage     : 3072
       ram         : 1024
       cpu         : 1
+  sessionCookie   :
+    maxAge        : cookieMaxAge
+    secure        : cookieSecure
