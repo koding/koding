@@ -305,25 +305,18 @@ module.exports = class JVM extends Module
       return { message: "Unrecognized nonce!", nonce }  unless nonceObject
 
       { planCode, subscriptionCode } = nonceObject
+      { delegate: account } = client.connection
+      { group: groupSlug } = client.context
 
-      JPaymentPack.one { planCode }, (err, pack) =>
+      @createVm {
+        account
+        groupSlug
+        planCode
+        subscriptionCode
+        type          : 'user'
+      }, (err, vm) ->
         return callback err  if err
-
-        pack.fetchProducts (err, products) =>
-          return callback err  if err
-
-          { delegate: account } = client.connection
-          { group: groupSlug } = client.context
-
-          @createVm {
-            account
-            groupSlug
-            planCode
-            subscriptionCode
-            type          : 'user'
-          }, (err, vm) ->
-            return callback err  if err
-            callback null, vm
+        callback null, vm
 
   @createSharedVm = secure (client, callback)->
     {connection:{delegate:account}, context:{group}} = client
