@@ -365,6 +365,37 @@ class KodingAppsController extends KDController
 
     {path:parts[0], name:parts[1], vm}
 
+  @installKDC = ->
+
+    modal = new ModalViewWithTerminal
+      title   : "Koding app compiler is not installed in your VM."
+      width   : 500
+      overlay : yes
+      terminal:
+        hidden: yes
+      content : """
+                  <p>
+                    If you want to install it now, click <strong>Install Compiler</strong> button.
+                  </p>
+                  <p>
+                    <strong>Remember to enter your password when asked.</strong>
+                  </p>
+                """
+      buttons:
+        "Install Compiler":
+          cssClass: "modal-clean-green"
+          callback: =>
+            modal.run "sudo npm install -g kdc; echo $?|kdevent;" # find a clean/better way to do it.
+
+    modal.on "terminal.event", (data)=>
+      if data is "0"
+        new KDNotificationView title: "Installed successfully!"
+        modal.destroy()
+      else
+        new KDNotificationView
+          title   : "An error occured."
+          content : "Something went wrong while installing Koding App Compiler. Please try again."
+
   ###
 
   constructor:->

@@ -227,6 +227,9 @@ class DevToolsMainView extends KDView
       title    : "Compiling #{app.name}..."
       type     : "mini"
 
+
+    KodingAppsController.installKDC()
+    return
     {vmController} = KD.singletons
     vmController.run "kdc #{app.path}", (err, response)=>
 
@@ -241,7 +244,7 @@ class DevToolsMainView extends KDView
         loader.destroy()
 
         if err.message is "exit status 127"
-          @installKDC()
+          KodingAppsController.installKDC()
           callback? err
           return
 
@@ -254,36 +257,6 @@ class DevToolsMainView extends KDView
                                  else "<p>#{err.message}</p>"
 
         callback? err
-
-  installKDC:->
-    modal = new ModalViewWithTerminal
-      title   : "Koding app compiler is not installed in your VM."
-      width   : 500
-      overlay : yes
-      terminal:
-        hidden: yes
-      content : """
-                  <p>
-                    If you want to install it now, click <strong>Install Compiler</strong> button.
-                  </p>
-                  <p>
-                    <strong>Remember to enter your password when asked.</strong>
-                  </p>
-                """
-      buttons:
-        "Install Compiler":
-          cssClass: "modal-clean-green"
-          callback: =>
-            modal.run "sudo npm install -g kdc; echo $?|kdevent;" # find a clean/better way to do it.
-
-    modal.on "terminal.event", (data)=>
-      if data is "0"
-        new KDNotificationView title: "Installed successfully!"
-        modal.destroy()
-      else
-        new KDNotificationView
-          title   : "An error occured."
-          content : "Something went wrong while installing Koding App Compiler. Please try again."
 
 class DevToolsEditorPane extends CollaborativeEditorPane
 
