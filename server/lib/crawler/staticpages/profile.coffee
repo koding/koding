@@ -85,7 +85,10 @@ getStatusUpdates = (statusUpdates, profile) ->
     updates = (createStatusUpdateNode(statusUpdate, profile) for statusUpdate in statusUpdates)
     updatesContent = updates.join("")
   else
-    updatesContent = ""
+    updatesContent =
+    """
+    <div class="lazy-loader">#{profile.fullName} has not shared any posts yet.</div>
+    """
   return updatesContent
 
 

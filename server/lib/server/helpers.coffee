@@ -152,7 +152,7 @@ getAlias = do->
 addReferralCode = (req, res)->
   match = req.path.match(/\/R\/(.*)/)
   if match and refCode = match[1]
-    res.cookie "referrer", refCode, { maxAge: 900000, httpOnly: false }
+    res.cookie "referrer", refCode, { maxAge: 900000, secure: true }
 
 module.exports = {
   error_

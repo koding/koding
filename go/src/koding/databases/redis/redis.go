@@ -19,7 +19,7 @@ func NewRedisSession(server string) (*RedisSession, error) {
 
 	pool := &redis.Pool{
 		MaxIdle:     3,
-		MaxActive:   20,
+		MaxActive:   1000,
 		IdleTimeout: 240 * time.Second,
 		Dial: func() (redis.Conn, error) {
 			c, err := redis.Dial("tcp", server)
