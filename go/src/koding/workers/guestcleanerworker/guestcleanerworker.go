@@ -47,8 +47,8 @@ func main() {
 	iterOptions.DataType = &models.Account{}
 	iterOptions.Limit = *flagLimit
 	iterOptions.Skip = *flagSkip
-
 	iterOptions.Log = log
+
 	log.SetLevel(logger.DEBUG)
 
 	err := helpers.Iter(mongo, iterOptions)
