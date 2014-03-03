@@ -5,6 +5,7 @@ module.exports = [
   "libs/md5-min.js",
   "libs/accounting.js",
   "libs/bluebird.js",
+  "libs/diff_match_patch.js"
 
   # --- Application ---
   "utils.coffee"
