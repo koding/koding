@@ -6,7 +6,6 @@ package main
 import (
 	"flag"
 	"koding/db/models"
-	"koding/db/mongodb"
 	helper "koding/db/mongodb/modelhelper"
 	"koding/helpers"
 	"koding/tools/config"
@@ -16,9 +15,7 @@ import (
 	"labix.org/v2/mgo/bson"
 )
 
-var log = logger.New("post deleter")
-
-type strToInf map[string]interface{}
+var log = logger.New("Obsolete deleter")
 
 var (
 	conf          *config.Config
@@ -26,7 +23,6 @@ var (
 	flagDirection = flag.String("direction", "targetName", "direction name ")
 	flagSkip      = flag.Int("s", 0, "Configuration profile from file")
 	flagLimit     = flag.Int("l", 1000, "Configuration profile from file")
-	mongo         *mongodb.MongoDB
 )
 
 func initialize() {
@@ -38,13 +34,12 @@ func initialize() {
 
 	conf = config.MustConfig(*flagProfile)
 	helper.Initialize(conf.Mongo)
-	mongo = helper.Mongo
 }
 
 func main() {
 	// init the package
 	initialize()
-	log.Info("Post Deleter worker started")
+	log.Info("Obsolete Deleter worker started")
 
 	iterOptions := helpers.NewIterOptions()
 	iterOptions.CollectionName = "relationships"
@@ -57,11 +52,11 @@ func main() {
 
 	log.SetLevel(logger.DEBUG)
 
-	err := helpers.Iter(mongo, iterOptions)
+	err := helpers.Iter(helper.Mongo, iterOptions)
 	if err != nil {
 		log.Fatal("Error while iter: %v", err)
 	}
-	log.Info("Deleter worker finished")
+	log.Info("Obsolete Deleter worker finished")
 
 }
 
@@ -86,7 +81,7 @@ func deleteRel(rel interface{}) {
 			log.Info("source name is not valid %v", result.SourceName)
 			return
 		}
-		collectionName = modelhelper.getCollectionName(result.SourceName)
+		collectionName = helper.GetCollectionName(result.SourceName)
 		collectionId = result.SourceId
 
 	}
@@ -95,7 +90,7 @@ func deleteRel(rel interface{}) {
 			log.Info("target name is not valid %v", result.TargetName)
 			return
 		}
-		collectionName = modelhelper.getCollectionName(result.TargetName)
+		collectionName = helper.GetCollectionName(result.TargetName)
 		collectionId = result.TargetId
 	}
 
@@ -105,7 +100,7 @@ func deleteRel(rel interface{}) {
 	}
 	log.Info("removing collectionId: %v from collectionName: %v ", collectionId.Hex(), collectionName)
 
-	if err := modelhelper.RemoveDocument(collectionName, collectionId); err != nil {
+	if err := helper.RemoveDocument(collectionName, collectionId); err != nil {
 		log.Error("couldnt remove collectionId: %v from collectionName: %v  ", collectionId.Hex(), collectionName)
 	}
 
@@ -114,7 +109,7 @@ func deleteRel(rel interface{}) {
 		return
 	}
 
-	if err := modelhelper.DeleteRelationship(result.Id); err != nil {
+	if err := helper.DeleteRelationship(result.Id); err != nil {
 		log.Error("couldnt remove collectionId: %v from relationships  ", result.Id.Hex())
 	}
 
