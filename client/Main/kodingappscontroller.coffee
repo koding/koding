@@ -440,6 +440,44 @@ class KodingAppsController extends KDController
         callback? err
 
 
+  @createJApp = (path, callback)->
+
+    app = @getAppInfoFromPath path
+    return  unless app
+
+    @compileAppOnServer path, (err)=>
+      return warn err  if err
+
+      @fetchManifest "#{app.path}/manifest.json", (err, manifest)->
+
+        {JNewApp} = KD.remote.api
+        JNewApp.publish {
+          name     : app.name
+          urls     :
+            script : "#{app.fullPath}/index.js"
+            style  : "#{app.fullPath}/resources/style.css"
+          manifest
+        }, (err, app)->
+          log err, app
+
+  @fetchManifest = (path, callback = noop)->
+
+    manifest = FSHelper.createFileFromPath path
+    manifest.fetchContents (err, response)=>
+
+      return err  if err
+
+      try
+        manifest = JSON.parse response
+      catch e
+        return callback {
+          message : "Failed to parse manifest.json"
+          name    : "JSONPARSEERROR"
+          details : e
+        }
+
+      callback null, manifest
+
   ###
 
   constructor:->

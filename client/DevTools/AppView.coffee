@@ -37,6 +37,14 @@ class DevToolsMainView extends KDView
                 CSSEditor.loadFile "[#{vmName}]#{appPath}/resources/style.css"
 
           }
+          {
+            title               : "Publish"
+            cssClass            : "solid green"
+            callback            : =>
+              {JSEditor} = @workspace.activePanel.panesByName
+              KodingAppsController.createJApp JSEditor.getData()?.path, ->
+                new KDNotificationView
+                  title: "Published successfully!"
           }
           {
             title               : "Compile"
