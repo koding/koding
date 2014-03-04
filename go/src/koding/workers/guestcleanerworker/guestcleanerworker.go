@@ -96,6 +96,7 @@ func deleteGuestAccounts(account interface{}) error {
 		log.Error("Error while deleting the acc %v", err)
 		return nil
 	}
+	return nil
 }
 
 // clearAllSessions deletes related JSesssions from database
