@@ -10,8 +10,6 @@ import (
 	"koding/virt"
 	"os"
 	"path"
-	"regexp"
-	"strconv"
 	"time"
 
 	"code.google.com/p/go.exp/inotify"
@@ -64,7 +62,7 @@ func makeFileEntry(vos *virt.VOS, fullPath string, fi os.FileInfo) FileEntry {
 	return entry
 }
 
-func fsReadDirectory(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
+func fsReadDirectoryOld(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
 	var params struct {
 		Path                string
 		OnChange            dnode.Callback
@@ -129,22 +127,41 @@ func fsReadDirectory(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) 
 	return response, nil
 }
 
-func fsGlob(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
+func fsGlobOld(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
 	var params struct {
 		Pattern string
 	}
+
 	if args.Unmarshal(&params) != nil || params.Pattern == "" {
 		return nil, &kite.ArgumentError{Expected: "{ pattern: [string] }"}
 	}
 
-	matches, err := vos.Glob(params.Pattern)
-	if err == nil && matches == nil {
-		matches = []string{}
-	}
-	return matches, err
+	return fsGlob(params.Pattern, vos)
 }
 
-func fsReadFile(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
+func fsReadFileOld(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
+	var params struct {
+		Path string
+	}
+
+	if args.Unmarshal(&params) != nil || params.Path == "" {
+		return nil, &kite.ArgumentError{Expected: "{ path: [string] }"}
+	}
+
+	return fsReadFile(params.Path, vos)
+}
+
+func fsWriteFileOld(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
+	var params writeFileParams
+
+	if args.Unmarshal(&params) != nil || params.Path == "" || params.Content == nil {
+		return nil, &kite.ArgumentError{Expected: "{ path: [string], content: [base64], doNotOverwrite: [bool], append: [bool] }"}
+	}
+
+	return fsWriteFile(params, vos)
+}
+
+func fsUniquePathOld(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
 	var params struct {
 		Path string
 	}
@@ -152,7 +169,79 @@ func fsReadFile(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (inte
 		return nil, &kite.ArgumentError{Expected: "{ path: [string] }"}
 	}
 
-	file, err := vos.Open(params.Path)
+	return fsUniquePath(params.Path, vos)
+}
+
+func fsGetInfoOld(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
+	var params struct {
+		Path string
+	}
+	if args.Unmarshal(&params) != nil || params.Path == "" {
+		return nil, &kite.ArgumentError{Expected: "{ path: [string] }"}
+	}
+
+	return fsGetInfo(params.Path, vos)
+}
+
+func fsSetPermissionsOld(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
+	var params setPermissionsParams
+
+	if args.Unmarshal(&params) != nil || params.Path == "" {
+		return nil, &kite.ArgumentError{Expected: "{ path: [string], mode: [integer], recursive: [bool] }"}
+	}
+
+	return fsSetPermissions(params, vos)
+}
+
+func fsRemoveOld(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
+	var params struct {
+		Path      string
+		Recursive bool
+	}
+	if args.Unmarshal(&params) != nil || params.Path == "" {
+		return nil, &kite.ArgumentError{Expected: "{ path: [string], recursive: [bool] }"}
+	}
+
+	return fsRemove(params.Path, params.Recursive, vos)
+}
+
+func fsRenameOld(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
+	var params struct {
+		OldPath string
+		NewPath string
+	}
+	if args.Unmarshal(&params) != nil || params.OldPath == "" || params.NewPath == "" {
+		return nil, &kite.ArgumentError{Expected: "{ oldPath: [string], newPath: [string] }"}
+	}
+
+	return fsRename(params.OldPath, params.NewPath, vos)
+}
+
+func fsCreateDirectoryOld(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
+	var params struct {
+		Path      string
+		Recursive bool
+	}
+	if args.Unmarshal(&params) != nil || params.Path == "" {
+		return nil, &kite.ArgumentError{Expected: "{ path: [string], recursive: [bool] }"}
+	}
+
+	return fsCreateDirectory(params.Path, params.Recursive, vos)
+}
+
+//////////////////////
+
+func fsGlob(pattern string, vos *virt.VOS) (interface{}, error) {
+	matches, err := vos.Glob(pattern)
+	if err == nil && matches == nil {
+		matches = []string{}
+	}
+
+	return matches, err
+}
+
+func fsReadFile(path string, vos *virt.VOS) (interface{}, error) {
+	file, err := vos.Open(path)
 	if err != nil {
 		return nil, err
 	}
@@ -175,28 +264,34 @@ func fsReadFile(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (inte
 	return map[string]interface{}{"content": buf}, nil
 }
 
-func fsWriteFile(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
-	var params struct {
-		Path           string
-		Content        []byte
-		DoNotOverwrite bool
-		Append         bool
+type writeFileParams struct {
+	Path           string
+	Content        []byte
+	DoNotOverwrite bool
+	Append         bool
+}
+
+func fsWriteFile(params writeFileParams, vos *virt.VOS) (interface{}, error) {
+	newPath, err := vos.UniquePath(params.Path)
+	if err != nil {
+		return nil, err
 	}
-	if args.Unmarshal(&params) != nil || params.Path == "" || params.Content == nil {
-		return nil, &kite.ArgumentError{Expected: "{ path: [string], content: [base64], doNotOverwrite: [bool], append: [bool] }"}
-	}
+	params.Path = newPath
 
 	flags := os.O_RDWR | os.O_CREATE
 	if params.DoNotOverwrite {
 		flags |= os.O_EXCL
 	}
+
 	if !params.Append {
 		flags |= os.O_TRUNC
 	}
+
 	dirInfo, err := vos.Stat(path.Dir(params.Path))
 	if err != nil {
 		return nil, err
 	}
+
 	file, err := vos.OpenFile(params.Path, flags, dirInfo.Mode().Perm()&0666)
 	if err != nil {
 		return nil, err
@@ -209,47 +304,26 @@ func fsWriteFile(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (int
 			return nil, err
 		}
 	}
-	return file.Write(params.Content)
+
+	_, err = file.Write(params.Content)
+	if err != nil {
+		return nil, err
+	}
+
+	fi, err := file.Stat()
+	if err != nil {
+		return nil, err
+	}
+
+	return makeFileEntry(vos, params.Path, fi), nil
 }
 
-var suffixRegexp = regexp.MustCompile(`.((_\d+)?)(\.\w*)?$`)
-
-func fsEnsureNonexistentPath(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
-	var params struct {
-		Path string
-	}
-	if args.Unmarshal(&params) != nil || params.Path == "" {
-		return nil, &kite.ArgumentError{Expected: "{ path: [string] }"}
-	}
-
-	name := params.Path
-	index := 1
-	for {
-		_, err := vos.Stat(name)
-		if err != nil {
-			if os.IsNotExist(err) {
-				break
-			}
-			return nil, err
-		}
-
-		loc := suffixRegexp.FindStringSubmatchIndex(name)
-		name = name[:loc[2]] + "_" + strconv.Itoa(index) + name[loc[3]:]
-		index++
-	}
-
-	return name, nil
+func fsUniquePath(path string, vos *virt.VOS) (interface{}, error) {
+	return vos.UniquePath(path)
 }
 
-func fsGetInfo(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
-	var params struct {
-		Path string
-	}
-	if args.Unmarshal(&params) != nil || params.Path == "" {
-		return nil, &kite.ArgumentError{Expected: "{ path: [string] }"}
-	}
-
-	fi, err := vos.Stat(params.Path)
+func fsGetInfo(path string, vos *virt.VOS) (interface{}, error) {
+	fi, err := vos.Stat(path)
 	if err != nil {
 		if os.IsNotExist(err) {
 			return nil, nil
@@ -257,19 +331,16 @@ func fsGetInfo(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (inter
 		return nil, err
 	}
 
-	return makeFileEntry(vos, params.Path, fi), nil
+	return makeFileEntry(vos, path, fi), nil
 }
 
-func fsSetPermissions(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
-	var params struct {
-		Path      string
-		Mode      os.FileMode
-		Recursive bool
-	}
-	if args.Unmarshal(&params) != nil || params.Path == "" {
-		return nil, &kite.ArgumentError{Expected: "{ path: [string], mode: [integer], recursive: [bool] }"}
-	}
+type setPermissionsParams struct {
+	Path      string
+	Mode      os.FileMode
+	Recursive bool
+}
 
+func fsSetPermissions(params setPermissionsParams, vos *virt.VOS) (interface{}, error) {
 	var doChange func(name string) error
 	doChange = func(name string) error {
 		if err := vos.Chmod(name, params.Mode); err != nil {
@@ -303,6 +374,7 @@ func fsSetPermissions(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS)
 		}
 		return firstErr
 	}
+
 	if err := doChange(params.Path); err != nil {
 		return nil, err
 	}
@@ -310,66 +382,61 @@ func fsSetPermissions(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS)
 	return true, nil
 }
 
-func fsRemove(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
-	var params struct {
-		Path      string
-		Recursive bool
-	}
-	if args.Unmarshal(&params) != nil || params.Path == "" {
-		return nil, &kite.ArgumentError{Expected: "{ path: [string], recursive: [bool] }"}
-	}
-
-	if params.Recursive {
-		if err := vos.RemoveAll(params.Path); err != nil {
+func fsRemove(removePath string, recursive bool, vos *virt.VOS) (interface{}, error) {
+	if recursive {
+		if err := vos.RemoveAll(removePath); err != nil {
 			return nil, err
 		}
 		return true, nil
 	}
 
-	if err := vos.Remove(params.Path); err != nil {
+	if err := vos.Remove(removePath); err != nil {
 		return nil, err
 	}
 	return true, nil
 }
 
-func fsRename(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
-	var params struct {
-		OldPath string
-		NewPath string
-	}
-	if args.Unmarshal(&params) != nil || params.OldPath == "" || params.NewPath == "" {
-		return nil, &kite.ArgumentError{Expected: "{ oldPath: [string], newPath: [string] }"}
-	}
-
-	if err := vos.Rename(params.OldPath, params.NewPath); err != nil {
-		return nil, err
-	}
-
-	return true, nil
-}
-
-func fsCreateDirectory(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
-	var params struct {
-		Path      string
-		Recursive bool
-	}
-	if args.Unmarshal(&params) != nil || params.Path == "" {
-		return nil, &kite.ArgumentError{Expected: "{ path: [string], recursive: [bool] }"}
-	}
-
-	if params.Recursive {
-		if err := vos.MkdirAll(params.Path, 0755); err != nil {
-			return nil, err
-		}
-		return true, nil
-	}
-
-	dirInfo, err := vos.Stat(path.Dir(params.Path))
+func fsRename(oldpath, newpath string, vos *virt.VOS) (interface{}, error) {
+	var err error
+	newpath, err = vos.UniquePath(newpath)
 	if err != nil {
 		return nil, err
 	}
-	if err := vos.Mkdir(params.Path, dirInfo.Mode().Perm()); err != nil {
+
+	if err := vos.Rename(oldpath, newpath); err != nil {
 		return nil, err
 	}
-	return true, nil
+
+	fi, err := vos.Stat(newpath)
+	if err != nil {
+		return nil, err
+	}
+
+	return makeFileEntry(vos, newpath, fi), nil
+}
+
+func fsCreateDirectory(newPath string, recursive bool, vos *virt.VOS) (interface{}, error) {
+	var err error
+	newPath, err = vos.UniquePath(newPath)
+	if err != nil {
+		return nil, err
+	}
+
+	if recursive {
+		if err := vos.MkdirAll(newPath, 0755); err != nil {
+			return nil, err
+		}
+		return true, nil
+	}
+
+	dirInfo, err := vos.Stat(path.Dir(newPath))
+	if err != nil {
+		return nil, err
+	}
+
+	if err := vos.Mkdir(newPath, dirInfo.Mode().Perm()); err != nil {
+		return nil, err
+	}
+
+	return makeFileEntry(vos, newPath, dirInfo), nil
 }
