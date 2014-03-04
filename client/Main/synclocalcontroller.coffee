@@ -101,10 +101,10 @@ class SyncLocalController extends KDController
       @emit "fs.save.finished", err, res
       callback? err, res
 
-  fetchFileContents: (fileName, callback)->
+  fetchFileContents: (vmName, fileName, callback)->
     KD.singletons.vmController.run
       method    : 'fs.readFile'
-      vmName    : "vm-1.sinan.koding.kd.io"
+      vmName    : vmName
       withArgs  :
         path    : FSHelper.plainPath fileName
     , (err, response)->
