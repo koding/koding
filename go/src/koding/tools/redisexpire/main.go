@@ -26,10 +26,9 @@ func main() {
 
 	conf = config.MustConfig(*flagProfile)
 
+	log.SetLevel(logger.INFO)
 	if *flagDebug {
 		log.SetLevel(logger.DEBUG)
-	} else {
-		log.SetLevel(logger.INFO)
 	}
 
 	duration, err := time.ParseDuration(fmt.Sprintf("%ss", *flagDuration))

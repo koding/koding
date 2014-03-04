@@ -19,6 +19,7 @@ var log = logger.New("Obsolete deleter")
 
 var (
 	conf          *config.Config
+	flagDebug     = flag.Bool("d", false, "Debug mode")
 	flagProfile   = flag.String("c", "vagrant", "Configuration profile from file")
 	flagDirection = flag.String("direction", "targetName", "direction name ")
 	flagSkip      = flag.Int("s", 0, "Configuration profile from file")
@@ -50,7 +51,10 @@ func main() {
 	iterOptions.Skip = *flagSkip
 	iterOptions.Log = log
 
-	log.SetLevel(logger.DEBUG)
+	log.SetLevel(logger.INFO)
+	if *flagDebug {
+		log.SetLevel(logger.DEBUG)
+	}
 
 	err := helpers.Iter(helper.Mongo, iterOptions)
 	if err != nil {

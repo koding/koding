@@ -17,6 +17,7 @@ var log = logger.New("Guest cleaner worker")
 
 var (
 	configProfile = flag.String("c", "", "Configuration profile from file")
+	flagDebug     = flag.Bool("d", false, "Debug mode")
 	flagSkip      = flag.Int("s", 0, "Configuration profile from file")
 	flagLimit     = flag.Int("l", 1000, "Configuration profile from file")
 )
@@ -46,7 +47,10 @@ func main() {
 	iterOptions.Skip = *flagSkip
 	iterOptions.Log = log
 
-	log.SetLevel(logger.DEBUG)
+	log.SetLevel(logger.INFO)
+	if *flagDebug {
+		log.SetLevel(logger.DEBUG)
+	}
 
 	err := helpers.Iter(helper.Mongo, iterOptions)
 	if err != nil {
