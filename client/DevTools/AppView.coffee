@@ -20,8 +20,23 @@ class DevToolsMainView extends KDView
           {
             title               : "Create"
             cssClass            : "solid"
-            callback            : ->
-              KD.singletons.kodingAppsController.makeNewApp()
+            callback            : =>
+
+              KD.singletons.kodingAppsController.makeNewApp (err, data)=>
+
+                return warn err  if err
+
+                {appPath} = data
+                {CSSEditor, JSEditor, finder} = @workspace.activePanel.panesByName
+
+                vmName = KD.singletons.vmController.defaultVmName
+                finder.finderController.expandFolders \
+                  FSHelper.getPathHierarchy "[#{vmName}]#{appPath}/resources"
+
+                JSEditor.loadFile  "[#{vmName}]#{appPath}/index.coffee"
+                CSSEditor.loadFile "[#{vmName}]#{appPath}/resources/style.css"
+
+          }
           }
           {
             title               : "Compile"
