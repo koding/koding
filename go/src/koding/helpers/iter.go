@@ -60,7 +60,7 @@ func Iter(mongo *mongodb.MongoDB, iterOptions *iterOptions) error {
 		return errors.New("Datatype is not given")
 	}
 
-	return mongo.Run("jAccounts", createQuery(iterOptions))
+	return mongo.Run(iterOptions.CollectionName, createQuery(iterOptions))
 }
 
 // createQuery creates mongo query for iteration
@@ -124,7 +124,7 @@ func createQuery(iterOptions *iterOptions) func(coll *mgo.Collection) error {
 		if iteration == iterOptions.RetryCount {
 			iterOptions.Log.Info("Max iteration count %v reached, exiting", iteration)
 		}
-		iterOptions.Log.Info("Deleted %v guest accounts on this process", index-skip)
+		iterOptions.Log.Info("Deleted %v items on this process", index-skip)
 
 		return nil
 	}
