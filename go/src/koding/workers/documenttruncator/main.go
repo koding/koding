@@ -47,7 +47,7 @@ func main() {
 
 	iterOptions := helpers.NewIterOptions()
 	iterOptions.Filter = helper.Selector{}
-	iterOptions.DataType = &resultDataType
+	iterOptions.Result = &resultDataType
 	iterOptions.Limit = *flagLimit
 	iterOptions.Skip = *flagSkip
 	iterOptions.Log = log

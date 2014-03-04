@@ -30,7 +30,7 @@ type iterOptions struct {
 	RetryCount int
 
 	// Data object itself for marshalling the result
-	DataType interface{}
+	Result interface{}
 
 	// logger for iteration
 	Log logger.Log
@@ -56,7 +56,7 @@ func Iter(mongo *mongodb.MongoDB, iterOptions *iterOptions) error {
 	if iterOptions.F == nil {
 		return errors.New("Iteration function is not given")
 	}
-	if iterOptions.DataType == nil {
+	if iterOptions.Result == nil {
 		return errors.New("Datatype is not given")
 	}
 
@@ -100,8 +100,8 @@ func createQuery(iterOptions *iterOptions) func(coll *mgo.Collection) error {
 
 			iter := query.Skip(index).Limit(count - index).Iter()
 
-			for iter.Next(iterOptions.DataType) {
-				if err := iterOptions.F(iterOptions.DataType); err != nil {
+			for iter.Next(iterOptions.Result) {
+				if err := iterOptions.F(iterOptions.Result); err != nil {
 					return err
 				}
 				index++

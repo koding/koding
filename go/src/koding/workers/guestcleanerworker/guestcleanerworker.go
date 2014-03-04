@@ -42,7 +42,7 @@ func main() {
 	iterOptions.CollectionName = "jAccounts"
 	iterOptions.F = deleteGuestAccounts
 	iterOptions.Filter = createFilter()
-	iterOptions.DataType = &models.Account{}
+	iterOptions.Result = &models.Account{}
 	iterOptions.Limit = *flagLimit
 	iterOptions.Skip = *flagSkip
 	iterOptions.Log = log

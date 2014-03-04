@@ -46,7 +46,7 @@ func main() {
 	iterOptions.CollectionName = "relationships"
 	iterOptions.F = deleteRel
 	iterOptions.Filter = createFilter(*flagDirection)
-	iterOptions.DataType = &models.Relationship{}
+	iterOptions.Result = &models.Relationship{}
 	iterOptions.Limit = *flagLimit
 	iterOptions.Skip = *flagSkip
 	iterOptions.Log = log
