@@ -1,9 +1,9 @@
+// This package is created for deleting the old guest accounts
 package main
 
 import (
 	"flag"
 	"koding/db/models"
-	"koding/db/mongodb"
 	helper "koding/db/mongodb/modelhelper"
 	"koding/helpers"
 	"koding/tools/config"
@@ -19,7 +19,6 @@ var (
 	configProfile = flag.String("c", "", "Configuration profile from file")
 	flagSkip      = flag.Int("s", 0, "Configuration profile from file")
 	flagLimit     = flag.Int("l", 1000, "Configuration profile from file")
-	mongo         *mongodb.MongoDB
 )
 
 func initialize() {
@@ -30,8 +29,6 @@ func initialize() {
 
 	conf := config.MustConfig(*configProfile)
 	helper.Initialize(conf.Mongo)
-	mongo = helper.Mongo
-
 }
 
 func main() {
@@ -51,7 +48,7 @@ func main() {
 
 	log.SetLevel(logger.DEBUG)
 
-	err := helpers.Iter(mongo, iterOptions)
+	err := helpers.Iter(helper.Mongo, iterOptions)
 	if err != nil {
 		log.Fatal("Error while iter: %v", err)
 	}
@@ -67,9 +64,18 @@ func createFilter() helper.Selector {
 	}
 }
 
+// deleteGuestAccounts deletes all related documents and
+// relationships for given account
 func deleteGuestAccounts(account interface{}) {
 	acc := account.(*models.Account)
 	log.Info("Deleting account: %v", acc.Profile.Nickname)
+
+	// clear all sessions for acc
+	clearAllSessions(acc)
+
+	// clear all JNames for current acc
+	clearAllNames(acc)
+
 	selector := helper.Selector{"$or": []helper.Selector{
 		helper.Selector{"sourceId": acc.Id},
 		helper.Selector{"targetId": acc.Id},
@@ -81,12 +87,6 @@ func deleteGuestAccounts(account interface{}) {
 		log.Error("Error while getting the all relationships for deletion %v", err)
 		return
 	}
-
-	// clear all sessions for acc
-	clearAllSessions(acc)
-
-	// clear all JNames for current acc
-	clearAllNames(acc)
 
 	// Delete documents with all their relationships
 	deleteDocumentsWithRelationships(rels)
@@ -119,21 +119,25 @@ func clearAllNames(account *models.Account) {
 // is eligible for deletion, at the end deletes the relationship itself
 func deleteDocumentsWithRelationships(rels []models.Relationship) {
 	if len(rels) == 0 {
-		log.Info("no item to process")
+		log.Debug("no item to process")
 		return
 	}
+
 	for _, rel := range rels {
+		// delete source first
 		if checkIfEligibleToDelete(rel.SourceName) {
 			deleteDocument(helper.GetCollectionName(rel.SourceName), rel.SourceId)
 		}
+		// then delete target
 		if checkIfEligibleToDelete(rel.TargetName) {
 			deleteDocument(helper.GetCollectionName(rel.TargetName), rel.TargetId)
 		}
+		// delete relationship itself
 		deleteDocument("relationships", rel.Id)
 	}
 }
 
-// safe to delete those documents
+// safe to delete these documents automatically
 var whiteListedModels = []string{"JSession", "JUser", "JVM", "JDomain", "JAppStorage", "JName"}
 
 //checkIfEligibleToDelete ranges over whiteListedModels and returns bool as checking
@@ -150,6 +154,7 @@ func checkIfEligibleToDelete(modelName string) bool {
 }
 
 // deleteDocument deletes the given id from given collection
+// this is here just for logging purposes
 func deleteDocument(collectionName string, id bson.ObjectId) {
 	log.Debug("removing id: %v from collectionName: %v ", id.Hex(), collectionName)
 	if err := helper.RemoveDocument(collectionName, id); err != nil {
