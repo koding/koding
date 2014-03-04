@@ -18,6 +18,9 @@ regions         =
   sj            : "sj"
   aws           : "aws"
 
+cookieMaxAge = 1000 * 60 * 60 * 24 * 14 # two weeks
+cookieSecure = yes
+
 module.exports =
   environment   : environment
   regions       : regions
@@ -152,6 +155,9 @@ module.exports =
     useStaticFileServer: no
     staticFilesBaseUrl: "https://koding.com"
     runtimeOptions:
+      sessionCookie :
+        maxAge      : cookieMaxAge
+        secure      : cookieSecure
       environment        : environment
       activityFetchCount : 20
       precompiledApi     : yes
@@ -382,6 +388,9 @@ module.exports =
       storage     : 3072
       ram         : 1024
       cpu         : 1
+  sessionCookie :
+    maxAge      : cookieMaxAge
+    secure      : cookieSecure
   graphite       :
     use          : true
     host         : "172.168.2.7"

@@ -17,11 +17,11 @@ class KiteHelper extends KDEventEmitter
 
 
   clear = ->
-    $.cookie "register-to-koding-client", erase:yes
+    Cookies.expire "register-to-koding-client"
     KD.getSingleton("router").clear()
 
   @initiateRegistiration : ->
-    $.cookie "register-to-koding-client", yes
+    Cookies.set "register-to-koding-client", yes
     unless KD.isLoggedIn()
       message = "Please login to proceed to the next step"
       modal = new KDBlockingModalView
@@ -46,7 +46,7 @@ class KiteHelper extends KDEventEmitter
       registerKodingClient_()
 
   registerKodingClient_ = ->
-    if registerToKodingClient = $.cookie "register-to-koding-client"
+    if registerToKodingClient = Cookies.get "register-to-koding-client"
       clear()
       # We pick up 54321 because it's in dynamic range and no one uses it
       # http://en.wikipedia.org/wiki/List_of_TCP_and_UDP_port_numbers

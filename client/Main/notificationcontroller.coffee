@@ -43,7 +43,7 @@ class NotificationController extends KDObject
       deleteUserCookie()
 
     deleteUserCookie = ->
-      $.cookie 'clientId', erase: yes
+      Cookies.expire 'clientId'
 
     displayEmailConfirmedNotification = (modal)->
       modal.off "KDObjectWillBeDestroyed"
@@ -99,13 +99,13 @@ class NotificationController extends KDObject
           "Ok"        :
             style     : "modal-clean-gray"
             callback  : (event) ->
-              $.cookie 'clientId', erase: yes
+              Cookies.expire 'clientId'
               modal.destroy()
               location.reload yes
 
       # If not clicked on "Ok", kick him out after 10 seconds
       @utils.wait 10000, =>
-        $.cookie 'clientId', erase: yes
+        Cookies.expire 'clientId'
         location.reload yes
 
   prepareNotification: (notification)->

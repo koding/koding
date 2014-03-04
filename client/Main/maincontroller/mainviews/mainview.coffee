@@ -280,8 +280,16 @@ class MainView extends KDView
 
     notification.hide() for notification in @notifications
 
+
+  # this only creates a notification
+  # and keeps track of existing ones
+  # it doesn't broadcast anything
+  # a name change might be necessary here - SY
   createGlobalNotification:(message, options = {})->
 
+    # will get rid of this map
+    # once the admin panel counterpart
+    # of this is renewed - SY
     typeMap =
       'restart' : 'warn'
       'reload'  : ''
@@ -291,7 +299,7 @@ class MainView extends KDView
       'green'   : ''
 
     options.type      or= typeMap[message.type]
-    options.showTimer  ?= message.type isnt 'restart'
+    options.showTimer  ?= message.type isnt 'restart'  #change this option name creates confusion with the actual timer
     options.cssClass    = KD.utils.curry "header-notification", options.type
     options.cssClass    = KD.utils.curry options.cssClass, 'fx'  if options.animated
 
@@ -300,6 +308,9 @@ class MainView extends KDView
     @header.addSubView notification
     @hideAllNotifications()
 
+    # if a notification is destroyed
+    # find the previous one
+    # and show it if it exists - SY
     notification.once 'KDObjectWillBeDestroyed', =>
       for n, i in @notifications
         if n.getId() is notification.getId()
@@ -307,6 +318,8 @@ class MainView extends KDView
           break
 
     KD.utils.wait 177, notification.bound 'show'
+
+    return notification
 
 
   enableFullscreen: ->
