@@ -109,7 +109,9 @@ class DockController extends KDViewController
     appManager.quitByName item.name
 
     if (item.hasClass 'running') and (item.hasClass 'selected')
-    then router.handleRoute '/Activity'
+      if router.visitedRoutes.length > 1
+      then router.back()
+      else router.handleRoute '/Activity'
 
     @navController.removeItem item
     @saveItemOrders()
