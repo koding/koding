@@ -46,10 +46,9 @@ class HomeRegisterForm extends KDFormView
         @button.showLoader()
         if @username.input.getValue() is ""
           @username.showError "Please enter a username."
-          @button.hideLoader()
         if @email.input.getValue() is ""
           @email.showError "Please enter an email."
-          @button.hideLoader()
+        @button.hideLoader()
 
     @on "SubmitFailed", (msg)=>
       # if msg is "Wrong password"
