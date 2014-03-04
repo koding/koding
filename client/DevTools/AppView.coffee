@@ -226,21 +226,26 @@ class DevToolsEditorPane extends CollaborativeEditorPane
     @_lastFileKey = "lastFileOn#{@_mode}"
     @storage = KD.singletons.localStorageController.storage "DevTools"
 
+  loadFile:(path, callback = noop)->
+
+    file = FSHelper.createFileFromPath path
+    file.fetchContents (err, content)=>
+      return callback err  if err
+
+      file.path = path
+      @openFile file, content
+
+      KD.utils.defer -> callback null, {file, content}
+
   loadLastOpenFile:->
 
     path = @storage.getAt @_lastFileKey
     return  unless path
 
-    lastOpenFile = FSHelper.createFileFromPath path
-    lastOpenFile.fetchContents (err, content)=>
+    @loadFile path, (err, data)=>
       if err
-        KD.showError err, "Failed to load last open file: #{path}"
+        KD.showError "Failed to load last open file: #{path}"
         @storage.unsetKey @_lastFileKey
-      else
-        # Override the path to keep VM Info
-        lastOpenFile.path = path
-
-        @openFile lastOpenFile, content
 
   createEditor: (callback)->
 
