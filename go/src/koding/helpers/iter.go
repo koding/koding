@@ -9,6 +9,7 @@ import (
 	"labix.org/v2/mgo"
 )
 
+// iterOptions holds the related config paramters for Iter operation
 type iterOptions struct {
 	// Starting offset
 	Skip int
