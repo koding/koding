@@ -1,3 +1,6 @@
+// This package is for deleting all obsolete documents and it's all related
+// relationships
+// it is deleting the documents which are older then one month
 package main
 
 import (
@@ -8,11 +11,8 @@ import (
 	"koding/helpers"
 	"koding/tools/config"
 	"koding/tools/logger"
-	"strings"
 	"time"
 
-	"github.com/chuckpreslar/inflect"
-	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
 )
 
@@ -76,6 +76,7 @@ func createFilter(directionName string) helper.Selector {
 
 func deleteRel(rel interface{}) {
 	result := rel.(*models.Relationship)
+
 	var collectionName string
 	var collectionId bson.ObjectId
 	directionName := *flagDirection
@@ -85,7 +86,7 @@ func deleteRel(rel interface{}) {
 			log.Info("source name is not valid %v", result.SourceName)
 			return
 		}
-		collectionName = getCollectionName(result.SourceName)
+		collectionName = modelhelper.getCollectionName(result.SourceName)
 		collectionId = result.SourceId
 
 	}
@@ -94,7 +95,7 @@ func deleteRel(rel interface{}) {
 			log.Info("target name is not valid %v", result.TargetName)
 			return
 		}
-		collectionName = getCollectionName(result.TargetName)
+		collectionName = modelhelper.getCollectionName(result.TargetName)
 		collectionId = result.TargetId
 	}
 
@@ -104,9 +105,7 @@ func deleteRel(rel interface{}) {
 	}
 	log.Info("removing collectionId: %v from collectionName: %v ", collectionId.Hex(), collectionName)
 
-	if err := mongo.Run(collectionName, func(coll *mgo.Collection) error {
-		return coll.RemoveId(collectionId)
-	}); err != nil {
+	if err := modelhelper.RemoveDocument(collectionName, collectionId); err != nil {
 		log.Error("couldnt remove collectionId: %v from collectionName: %v  ", collectionId.Hex(), collectionName)
 	}
 
@@ -114,28 +113,11 @@ func deleteRel(rel interface{}) {
 		log.Info("relationship id is not valid %v", collectionId)
 		return
 	}
-	if err := mongo.Run("relationships", func(coll *mgo.Collection) error {
-		return coll.RemoveId(result.Id)
-	}); err != nil {
+
+	if err := modelhelper.DeleteRelationship(result.Id); err != nil {
 		log.Error("couldnt remove collectionId: %v from relationships  ", result.Id.Hex())
 	}
 
-}
-
-func getCollectionName(name string) string {
-	//in mongo collection names are hold as "<lowercase_first_letter>...<add (s)>
-	// sample if name is Koding, in database it is "kodings"
-
-	//pluralize name
-	name = inflect.Pluralize(name)
-	//split name into string array
-	splittedName := strings.Split(name, "")
-	//uppercase first character and assign back
-	splittedName[0] = strings.ToLower(splittedName[0])
-
-	//merge string array
-	name = strings.Join(splittedName, "")
-	return name
 }
 
 var ToBeDeletedNames = []string{
