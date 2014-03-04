@@ -149,10 +149,12 @@ func (o *Oskite) Run() {
 
 	k := o.prepareOsKite()
 
-	o.runNewKite(k.ServiceUniqueName)
-	o.handleCurrentVMS(k)   // handle leftover VMs
-	o.startPinnedVMS(k)     // start pinned always-on VMs
-	o.setupSignalHandler(k) // handle SIGUSR1 and other signals.
+	o.ServiceUniquename = k.ServiceUniqueName
+
+	o.runNewKite()
+	o.handleCurrentVMS()   // handle leftover VMs
+	o.startPinnedVMS()     // start pinned always-on VMs
+	o.setupSignalHandler() // handle SIGUSR1 and other signals.
 
 	// register current client-side methods
 	o.registerVmMethod(k, "vm.start", false, vmStart)
@@ -306,7 +308,7 @@ func lowestOskiteLoad() (serviceUniquename string) {
 
 }
 
-func (o *Oskite) runNewKite(serviceUniqueName string) {
+func (o *Oskite) runNewKite() {
 	log.Info("Run newkite.")
 	k := kodingkite.New(
 		conf,
@@ -331,7 +333,7 @@ func (o *Oskite) runNewKite(serviceUniqueName string) {
 		vm := virt.VM(*v)
 		vm.ApplyDefaults()
 
-		err = o.validateVM(&vm, serviceUniqueName)
+		err = o.validateVM(&vm)
 		if err != nil {
 			return nil, err
 		}
@@ -409,11 +411,11 @@ func (o *Oskite) prepareOsKite() *kite.Kite {
 			log.Info("oskite loadbalancer for [correlationName: '%s' user: '%s' deadService: '%s'] results in --> %v.", correlationName, username, deadService, v)
 		}
 
-		resultOskite := k.ServiceUniqueName
+		resultOskite := o.ServiceUniquename
 		lowestOskite := lowestOskiteLoad()
 		if lowestOskite != "" {
 			if deadService == lowestOskite {
-				resultOskite = k.ServiceUniqueName
+				resultOskite = o.ServiceUniquename
 			} else {
 				resultOskite = lowestOskite
 			}
@@ -458,7 +460,7 @@ func (o *Oskite) prepareOsKite() *kite.Kite {
 		// healthy service given by the client, which is the returned
 		// k.ServiceUniqueName.
 		if vm.HostKite == deadService {
-			blog(fmt.Sprintf("dead service detected %s returning '%s'", vm.HostKite, k.ServiceUniqueName))
+			blog(fmt.Sprintf("dead service detected %s returning '%s'", vm.HostKite, o.ServiceUniquename))
 			if err := mongodbConn.Run("jVMs", func(c *mgo.Collection) error {
 				return c.Update(bson.M{"_id": vm.Id}, bson.M{"$set": bson.M{"hostKite": nil}})
 			}); err != nil {
@@ -477,7 +479,7 @@ func (o *Oskite) prepareOsKite() *kite.Kite {
 
 // handleCurrentVMS removes and unprepare any vm in the lxc dir that doesn't
 // have any associated document which in mongodbConn.
-func (o *Oskite) handleCurrentVMS(k *kite.Kite) {
+func (o *Oskite) handleCurrentVMS() {
 	dirs, err := ioutil.ReadDir("/var/lib/lxc")
 	if err != nil {
 		log.LogError(err, 0)
@@ -492,9 +494,9 @@ func (o *Oskite) handleCurrentVMS(k *kite.Kite) {
 				return c.FindId(vmId).One(&vm)
 			}
 
-			if err := mongodbConn.Run("jVMs", query); err != nil || vm.HostKite != k.ServiceUniqueName {
+			if err := mongodbConn.Run("jVMs", query); err != nil || vm.HostKite != o.ServiceUniquename {
 				log.Info("cleaning up leftover VM: '%s', vm.Hoskite: '%s', k.ServiceUniqueName: '%s', error '%v'",
-					vmId, vm.HostKite, k.ServiceUniqueName, err)
+					vmId, vm.HostKite, o.ServiceUniquename, err)
 
 				if err := virt.UnprepareVM(vmId); err != nil {
 					log.Error("%v", err)
@@ -512,16 +514,16 @@ func (o *Oskite) handleCurrentVMS(k *kite.Kite) {
 	log.Info("VMs in /var/lib/lxc are finished.")
 }
 
-func (o *Oskite) startPinnedVMS(k *kite.Kite) {
+func (o *Oskite) startPinnedVMS() {
 	log.Info("Starting pinned hosts, if any...")
 	mongodbConn.Run("jVMs", func(c *mgo.Collection) error {
-		iter := c.Find(bson.M{"pinnedToHost": k.ServiceUniqueName, "alwaysOn": true}).Iter()
+		iter := c.Find(bson.M{"pinnedToHost": o.ServiceUniquename, "alwaysOn": true}).Iter()
 		for {
 			var vm virt.VM
 			if !iter.Next(&vm) {
 				break
 			}
-			if err := o.startVM(k, &vm, nil); err != nil {
+			if err := o.startVM(&vm, nil); err != nil {
 				log.LogError(err, 0)
 			}
 		}
@@ -534,7 +536,7 @@ func (o *Oskite) startPinnedVMS(k *kite.Kite) {
 	})
 }
 
-func (o *Oskite) setupSignalHandler(k *kite.Kite) {
+func (o *Oskite) setupSignalHandler() {
 	log.Info("Setting up signal handler")
 	sigtermChannel := make(chan os.Signal)
 	signal.Notify(sigtermChannel, syscall.SIGINT, syscall.SIGTERM, syscall.SIGUSR1)
@@ -557,7 +559,7 @@ func (o *Oskite) setupSignalHandler(k *kite.Kite) {
 
 			query := func(c *mgo.Collection) error {
 				_, err := c.UpdateAll(
-					bson.M{"hostKite": k.ServiceUniqueName},
+					bson.M{"hostKite": o.ServiceUniquename},
 					bson.M{"$set": bson.M{"hostKite": nil}},
 				) // ensure that really all are set to nil
 				return err
@@ -646,7 +648,7 @@ func (o *Oskite) registerVmMethod(k *kite.Kite, method string, concurrent bool, 
 			return nil, &kite.PermissionError{}
 		}
 
-		if err := o.startVM(k, vm, channel); err != nil {
+		if err := o.startVM(vm, channel); err != nil {
 			return nil, err
 		}
 
@@ -734,7 +736,7 @@ func (o *Oskite) getVM(channel *kite.Channel) (*virt.VM, error) {
 	return vm, nil
 }
 
-func (o *Oskite) validateVM(vm *virt.VM, serviceUniqueName string) error {
+func (o *Oskite) validateVM(vm *virt.VM) error {
 	if vm.Region != o.Region {
 		time.Sleep(time.Second) // to avoid rapid cycle channel loop
 		return &kite.WrongChannelError{}
@@ -788,23 +790,23 @@ func (o *Oskite) validateVM(vm *virt.VM, serviceUniqueName string) error {
 		vm.LdapPassword = ldapPassword
 	}
 
-	if vm.HostKite != serviceUniqueName {
+	if vm.HostKite != o.ServiceUniquename {
 		err := mongodbConn.Run("jVMs", func(c *mgo.Collection) error {
-			return c.Update(bson.M{"_id": vm.Id, "hostKite": nil}, bson.M{"$set": bson.M{"hostKite": serviceUniqueName}})
+			return c.Update(bson.M{"_id": vm.Id, "hostKite": nil}, bson.M{"$set": bson.M{"hostKite": o.ServiceUniquename}})
 		})
 		if err != nil {
 			time.Sleep(time.Second) // to avoid rapid cycle channel loop
 			return &kite.WrongChannelError{}
 		}
 
-		vm.HostKite = serviceUniqueName
+		vm.HostKite = o.ServiceUniquename
 	}
 
 	return nil
 }
 
-func (o *Oskite) startVM(k *kite.Kite, vm *virt.VM, channel *kite.Channel) error {
-	err := o.validateVM(vm, k.ServiceUniqueName)
+func (o *Oskite) startVM(vm *virt.VM, channel *kite.Channel) error {
+	err := o.validateVM(vm)
 	if err != nil {
 		return err
 	}
