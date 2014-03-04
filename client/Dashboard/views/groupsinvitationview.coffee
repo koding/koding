@@ -39,7 +39,6 @@ class GroupsInvitationView extends KDView
                 type         : 'submit'
                 loader       :
                   color      : '#444444'
-                  diameter   : 12
               Cancel         :
                 style        : "modal-clean-red"
                 callback     : -> modal.destroy()
@@ -149,14 +148,14 @@ class GroupsInvitationView extends KDView
           invalidEmails = []
           emailList = emails.split(/\n/).map (email)-> email.trim()
           emailList = emailList.filter (email) ->
-            isValid = KD.utils.doesEmailValid email 
+            isValid = KD.utils.doesEmailValid email
             invalidEmails.push email  unless isValid
             isValid
-           
-          if invalidEmails.length   
+
+          if invalidEmails.length
             @inviteByEmail.modalTabs.forms.invite.buttons.Send.hideLoader()
-            return KD.showError "Your invitations includes some invalid emails: #{invalidEmails}"  
-            
+            return KD.showError "Your invitations includes some invalid emails: #{invalidEmails}"
+
           if userEmail in emailList
             @inviteByEmail.modalTabs.forms.invite.buttons.Send.hideLoader()
             return new KDNotificationView

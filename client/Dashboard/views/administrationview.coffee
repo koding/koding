@@ -11,9 +11,7 @@ class AdministrationView extends KDTabViewWithForms
             Update          :
               title         : "Update"
               style         : "solid medium green"
-              loader        :
-                color       : "#444444"
-                diameter    : 12
+              loader        : yes
               callback      : =>
                 {inputs, buttons} = @forms["User Details"]
                 accounts = @userController.getSelectedItemData()
@@ -76,8 +74,7 @@ class AdministrationView extends KDTabViewWithForms
                     Impersonate  :
                       style      : "modal-clean-green"
                       loader     :
-                        color    : "#FFF"
-                        diameter : 16
+                        color    : "#444444"
                       callback   : =>
                         accounts = @userController.getSelectedItemData()
                         unless accounts.length is 0
@@ -91,9 +88,7 @@ class AdministrationView extends KDTabViewWithForms
             "Broadcast Message"  :
               title         : "Broadcast"
               style         : "solid medium green"
-              loader        :
-                color       : "#444444"
-                diameter    : 12
+              loader        : yes
 
               callback      : (event)=>
                 {inputs, buttons} = @forms["Broadcast Message"]
