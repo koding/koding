@@ -21,8 +21,6 @@ import (
 
 var log = logger.New("post truncator")
 
-type strToInf map[string]interface{}
-
 var (
 	conf          *config.Config
 	flagProfile   = flag.String("c", "vagrant", "Configuration profile from file")
@@ -36,7 +34,6 @@ var (
 
 func initialize() {
 	flag.Parse()
-	log.SetLevel(logger.INFO)
 	if *flagProfile == "" {
 		log.Fatal("Please specify profile via -c. Aborting.")
 	}
@@ -47,7 +44,6 @@ func initialize() {
 }
 
 func main() {
-
 	// init the package
 	initialize()
 	log.Info("Truncater worker started")
@@ -62,7 +58,6 @@ func main() {
 	iterOptions.Log = log
 
 	log.SetLevel(logger.DEBUG)
-
 	for _, coll := range ToBeTruncatedNames {
 		iterOptions.CollectionName = coll
 		iterOptions.F = truncateItems(coll)
@@ -71,15 +66,13 @@ func main() {
 			log.Fatal("Error while iter: %v", err)
 		}
 	}
-
 	log.Info("Truncator worker finished")
-
 }
 
+// this is the iterator function
 func truncateItems(collectionName string) func(doc interface{}) {
 	return func(doc interface{}) {
 		result := *(doc.(*map[string]interface{}))
-
 		id, ok := result["_id"]
 		if !ok {
 			log.Error("result doesnt have _id %v", result)
