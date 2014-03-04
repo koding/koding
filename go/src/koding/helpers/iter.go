@@ -24,7 +24,7 @@ type iterOptions struct {
 	CollectionName string
 
 	// Iteration function, all results will be passed to this function
-	F func(result interface{})
+	F func(result interface{}) error
 
 	// Sometimes iteration can timeout, this is retry count
 	RetryCount int
@@ -104,7 +104,9 @@ func createQuery(iterOptions *iterOptions) func(coll *mgo.Collection) error {
 			iter := query.Skip(index).Limit(count - index).Iter()
 
 			for iter.Next(iterOptions.DataType) {
-				iterOptions.F(iterOptions.DataType)
+				if err := iterOptions.F(iterOptions.DataType); err != nil {
+					return err
+				}
 				index++
 				iterOptions.Log.Debug("Index: %v", index)
 			}

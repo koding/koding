@@ -66,7 +66,7 @@ func createFilter() helper.Selector {
 
 // deleteGuestAccounts deletes all related documents and
 // relationships for given account
-func deleteGuestAccounts(account interface{}) {
+func deleteGuestAccounts(account interface{}) error {
 	acc := account.(*models.Account)
 	log.Info("Deleting account: %v", acc.Profile.Nickname)
 
@@ -85,7 +85,7 @@ func deleteGuestAccounts(account interface{}) {
 	rels, err := helper.GetAllRelationships(selector)
 	if err != nil {
 		log.Error("Error while getting the all relationships for deletion %v", err)
-		return
+		return nil
 	}
 
 	// Delete documents with all their relationships
@@ -94,7 +94,7 @@ func deleteGuestAccounts(account interface{}) {
 	// now time to delete acc itself
 	if err := helper.RemoveAccount(acc.Id); err != nil {
 		log.Error("Error while deleting the acc %v", err)
-		return
+		return nil
 	}
 }
 

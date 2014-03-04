@@ -66,25 +66,25 @@ func main() {
 // this is the iterator function
 // iterates over all documents and  if the document's creation date is older
 // than 1 month deletes all the related relationships and document itself
-func truncateItems(collectionName string) func(doc interface{}) {
-	return func(doc interface{}) {
+func truncateItems(collectionName string) func(doc interface{}) error {
+	return func(doc interface{}) error {
 		result := *(doc.(*map[string]interface{}))
 		id, ok := result["_id"]
 		if !ok {
 			log.Error("result doesnt have _id %v", result)
-			return
+			return nil
 		}
 
 		collectionId := (id.(bson.ObjectId))
 
 		if !collectionId.Valid() {
 			log.Info("result id is not valid %v", collectionId)
-			return
+			return nil
 		}
 
 		if collectionId.Time().UTC().UnixNano() > oneMonthAgo.UnixNano() {
 			log.Info("not deleting docuemnt %v", collectionId.Time())
-			return
+			return nil
 		}
 
 		deleteRel(collectionId)
@@ -94,6 +94,7 @@ func truncateItems(collectionName string) func(doc interface{}) {
 		if err := helper.RemoveDocument(collectionName, collectionId); err != nil {
 			log.Error("couldnt remove collectionId: %v from collectionName: %v Err: %v ", collectionId.Hex(), collectionName, err)
 		}
+		return nil
 	}
 }
 

@@ -69,7 +69,7 @@ func createFilter(directionName string) helper.Selector {
 
 }
 
-func deleteRel(rel interface{}) {
+func deleteRel(rel interface{}) error {
 	result := rel.(*models.Relationship)
 
 	var collectionName string
@@ -79,7 +79,7 @@ func deleteRel(rel interface{}) {
 	if directionName == "sourceName" {
 		if result.SourceName == "" {
 			log.Info("source name is not valid %v", result.SourceName)
-			return
+			return nil
 		}
 		collectionName = helper.GetCollectionName(result.SourceName)
 		collectionId = result.SourceId
@@ -88,7 +88,7 @@ func deleteRel(rel interface{}) {
 	if directionName == "targetName" {
 		if result.TargetName == "" {
 			log.Info("target name is not valid %v", result.TargetName)
-			return
+			return nil
 		}
 		collectionName = helper.GetCollectionName(result.TargetName)
 		collectionId = result.TargetId
@@ -96,7 +96,7 @@ func deleteRel(rel interface{}) {
 
 	if !collectionId.Valid() {
 		log.Info("collectionId name is not valid %v", collectionId)
-		return
+		return nil
 	}
 	log.Info("removing collectionId: %v from collectionName: %v ", collectionId.Hex(), collectionName)
 
@@ -106,12 +106,13 @@ func deleteRel(rel interface{}) {
 
 	if !result.Id.Valid() {
 		log.Info("relationship id is not valid %v", collectionId)
-		return
+		return nil
 	}
 
 	if err := helper.DeleteRelationship(result.Id); err != nil {
 		log.Error("couldnt remove collectionId: %v from relationships  ", result.Id.Hex())
 	}
+	return nil
 
 }
 
