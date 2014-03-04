@@ -165,7 +165,7 @@ class KodingAppsController extends KDController
   defaultManifest = (type, name)->
 
     {profile} = KD.whoami()
-    fullName  = KD.utils.getFullnameFromAccount()
+    fullName  = Encoder.htmlDecode KD.utils.getFullnameFromAccount()
     raw =
       experimental  : no
       background    : no
@@ -209,8 +209,6 @@ class KodingAppsController extends KDController
     return path.replace /(\/+)$/, ""
 
   makeNewApp:(callback)->
-
-    return callback? yes if newAppModal
 
     newAppModal = new KDModalViewWithForms
       title                       : "Create a new Application"
@@ -262,7 +260,7 @@ class KodingAppsController extends KDController
                         duration  : 3000
                     else
                       @prepareApplication name, (err, response)=>
-                        callback? err
+                        callback? err, response
                         form.buttons.Create.hideLoader()
                         newAppModal.destroy()
 
@@ -276,10 +274,6 @@ class KodingAppsController extends KDController
                     regExp        : /^[a-z]+([a-z]+)*$/i
                   messages        :
                     regExp        : "For Application name only lowercase letters are allowed!"
-
-    newAppModal.once "KDObjectWillBeDestroyed", ->
-      newAppModal = null
-      callback? yes
 
   _createChangeLog:(name)->
     today = new Date().format('yyyy-mm-dd')
@@ -351,19 +345,29 @@ class KodingAppsController extends KDController
 
     async.series stack, (err, result) =>
       warn err  if err
-      callback? err, result
+      callback? err, {appPath, result}
 
-  @getAppInfoFromPath = (path)->
+  @getAppInfoFromPath = (path, showWarning = no)->
 
     return  unless path
 
     vm    = FSHelper.getVMNameFromPath path
     path  = FSHelper.plainPath path
-    reg   = /// ^\/home\/#{KD.nick()}\/Applications\/(.*)\.kdapp\/ ///
+    reg   = /// ^\/home\/#{KD.nick()}\/Applications\/(.*)\.kdapp ///
     parts = reg.exec path
-    return  unless parts
 
-    {path:parts[0], name:parts[1], vm}
+    unless parts
+      if showWarning then new KDNotificationView
+        title : "Failed to find app information from given path"
+        type  : "mini"
+      return
+
+    [path, name] = parts[0..1]
+    return {
+      path, name,
+      fullPath : "[#{vm}]#{path}"
+      vm
+    }
 
   @installKDC = ->
 
@@ -398,13 +402,8 @@ class KodingAppsController extends KDController
 
   @compileAppOnServer = (path, callback)->
 
-    app = KodingAppsController.getAppInfoFromPath path
-
-    unless app
-      new KDNotificationView
-        title : "Failed to find app information from given path"
-        type  : "mini"
-      return
+    app = KodingAppsController.getAppInfoFromPath path, yes
+    return  unless app
 
     loader = new KDNotificationView
       duration : 18000
@@ -412,7 +411,10 @@ class KodingAppsController extends KDController
       type     : "mini"
 
     {vmController} = KD.singletons
-    vmController.run "kdc #{app.path}", (err, response)=>
+    vmController.run {
+      withArgs : "kdc #{app.path}"
+      vmName   : app.vm
+    }, (err, response)=>
 
       unless err
 
