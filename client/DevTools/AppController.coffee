@@ -2,7 +2,7 @@ class DevToolsController extends AppController
 
   name    = "DevTools"
   version = "0.1"
-  route   = "/#{name}"
+  route   = "/:name?/#{name}"
 
   KD.registerAppClass this, {name, version, behavior: "application", route}
 
