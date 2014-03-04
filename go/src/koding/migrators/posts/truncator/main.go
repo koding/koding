@@ -7,7 +7,6 @@ package main
 import (
 	"flag"
 	"koding/db/models"
-	"koding/db/mongodb"
 
 	helper "koding/db/mongodb/modelhelper"
 	"koding/helpers"
@@ -25,8 +24,6 @@ var (
 	flagDirection = flag.String("direction", "targetName", "direction name ")
 	flagSkip      = flag.Int("s", 0, "Configuration profile from file")
 	flagLimit     = flag.Int("l", 1000, "Configuration profile from file")
-	mongo         *mongodb.MongoDB
-	deletedItems  = 0
 	oneMonthAgo   = time.Now().Add(-time.Minute * 60 * 24 * 30).UTC()
 )
 
@@ -38,7 +35,6 @@ func initialize() {
 
 	conf = config.MustConfig(*flagProfile)
 	helper.Initialize(conf.Mongo)
-	mongo = helper.Mongo
 }
 
 func main() {
@@ -59,7 +55,7 @@ func main() {
 	for _, coll := range ToBeTruncatedNames {
 		iterOptions.CollectionName = coll
 		iterOptions.F = truncateItems(coll)
-		err := helpers.Iter(mongo, iterOptions)
+		err := helpers.Iter(helper.Mongo, iterOptions)
 		if err != nil {
 			log.Fatal("Error while iter: %v", err)
 		}
@@ -78,9 +74,8 @@ func truncateItems(collectionName string) func(doc interface{}) {
 			log.Error("result doesnt have _id %v", result)
 			return
 		}
-		var collectionId bson.ObjectId
 
-		collectionId = (id.(bson.ObjectId))
+		collectionId := (id.(bson.ObjectId))
 
 		if !collectionId.Valid() {
 			log.Info("result id is not valid %v", collectionId)
@@ -99,7 +94,6 @@ func truncateItems(collectionName string) func(doc interface{}) {
 		if err := helper.RemoveDocument(collectionName, collectionId); err != nil {
 			log.Error("couldnt remove collectionId: %v from collectionName: %v Err: %v ", collectionId.Hex(), collectionName, err)
 		}
-		deletedItems++
 	}
 }
 
@@ -129,7 +123,6 @@ func deleteDocumentsFromRelationships(rels []models.Relationship) {
 		if err := helper.DeleteRelationship(rel.Id); err != nil {
 			log.Error("couldnt remove collectionId: %v from relationships Err: %v ", rel.Id.Hex(), err)
 		}
-		deletedItems++
 	}
 }
 
