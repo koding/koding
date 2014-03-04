@@ -4,6 +4,7 @@ import (
 	"koding/db/models"
 
 	"labix.org/v2/mgo"
+	"labix.org/v2/mgo/bson"
 )
 
 func GetAllRelationships(selector Selector) ([]models.Relationship, error) {
@@ -42,8 +43,12 @@ func GetRelationship(selector Selector) (models.Relationship, error) {
 	return relationship, err
 }
 
-func DeleteRelationship(selector Selector) error {
+func DeleteRelationships(selector Selector) error {
 	return RemoveAllDocuments("relationships", selector)
+}
+
+func DeleteRelationship(id bson.ObjectId) error {
+	return RemoveDocument("relationships", id)
 }
 
 func AddRelationship(r *models.Relationship) error {
