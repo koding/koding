@@ -137,15 +137,13 @@ class AccountSshKeyListItem extends KDListItemView
       @info.$('span.key').text "#{key.substr(0,45)} . . . #{key.substr(-25)}"
       @swappable.swapViews()
       @getDelegate().emit "UpdatedItems"
-      @form.buttons.save.hideLoader()
     else unless key
       new KDNotificationView
         title : "Key shouldn't be empty."
-      @form.buttons.save.hideLoader()
     else unless title
       new KDNotificationView
         title : "Title required for SSH key."
-      @form.buttons.save.hideLoader()
+    @form.buttons.save.hideLoader()
 
   partial:(data)->
     """
