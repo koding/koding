@@ -183,17 +183,17 @@ func (o *Oskite) Run() {
 	o.registerVmMethod(k, "fs.rename", false, fsRenameOld)
 	o.registerVmMethod(k, "fs.createDirectory", false, fsCreateDirectoryOld)
 
-	o.registerVmMethod(k, "app.install", false, appInstall)
-	o.registerVmMethod(k, "app.download", false, appDownload)
-	o.registerVmMethod(k, "app.publish", false, appPublish)
-	o.registerVmMethod(k, "app.skeleton", false, appSkeleton)
+	o.registerVmMethod(k, "app.install", false, appInstallOld)
+	o.registerVmMethod(k, "app.download", false, appDownloadOld)
+	o.registerVmMethod(k, "app.publish", false, appPublishOld)
+	o.registerVmMethod(k, "app.skeleton", false, appSkeletonOld)
 
 	// this method is special cased in oskite.go to allow foreign access
-	o.registerVmMethod(k, "webterm.connect", false, webtermConnect)
-	o.registerVmMethod(k, "webterm.getSessions", false, webtermGetSessions)
+	o.registerVmMethod(k, "webterm.connect", false, webtermConnectOld)
+	o.registerVmMethod(k, "webterm.getSessions", false, webtermGetSessionsOld)
 
-	o.registerVmMethod(k, "s3.store", true, s3Store)
-	o.registerVmMethod(k, "s3.delete", true, s3Delete)
+	o.registerVmMethod(k, "s3.store", true, s3StoreOld)
+	o.registerVmMethod(k, "s3.delete", true, s3DeleteOld)
 
 	go o.oskiteRedis(k.ServiceUniqueName)
 

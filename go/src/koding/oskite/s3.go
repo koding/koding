@@ -127,13 +127,17 @@ func groupBucketFunc(params *storeParams, vos *virt.VOS) error {
 	return nil
 }
 
-func s3Store(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
+func s3StoreOld(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
 	params := new(storeParams)
 
 	if args.Unmarshal(&params) != nil || params.Name == "" || len(params.Content) == 0 || params.Bucket == "" {
 		return nil, &kite.ArgumentError{Expected: "{ name: [string], bucket: [string], content: [base64 string] }"}
 	}
 
+	return s3Store(params, vos)
+}
+
+func s3Store(params *storeParams, vos *virt.VOS) (interface{}, error) {
 	if strings.Contains(params.Name, "/") {
 		return nil, &kite.ArgumentError{Expected: "{ name should not contain \"/\"}"}
 	}
@@ -155,13 +159,16 @@ func s3Store(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interfa
 	return true, nil
 }
 
-func s3Delete(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
-	var params struct {
-		Name string
-	}
+func s3DeleteOld(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
+	params := new(storeParams)
 	if args.Unmarshal(&params) != nil || params.Name == "" || strings.Contains(params.Name, "/") {
 		return nil, &kite.ArgumentError{Expected: "{ name: [string] }"}
 	}
+
+	return s3Delete(params, vos)
+}
+
+func s3Delete(params *storeParams, vos *virt.VOS) (interface{}, error) {
 	if err := uploadsBucket.Del(UserAccountId(vos.User).Hex() + "/" + params.Name); err != nil {
 		return nil, err
 	}
