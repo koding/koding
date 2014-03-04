@@ -117,3 +117,10 @@ class SyncLocalController extends KDController
   saveToLocalStorage: (fileName, contents)->
     @storage.setValue "OE-#{fileName}", contents
 
+  addToOpenedFiles: (fileName)->
+    vmName = FSHelper.getVMNameFromPath fileName
+    index  = @openedFiles.indexOf fileName
+    if index == -1 and vmName
+      @openedFiles.push fileName
+      @storage.setValue "openedFiles", @openedFiles
+
