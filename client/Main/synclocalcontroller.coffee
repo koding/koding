@@ -30,8 +30,8 @@ class SyncLocalController extends KDController
     # TODO : find better name to this method
     syncFiles = @storage.getValue "saveRequestedFiles"
     if syncFiles
-      i = syncFiles.indexOf fileName
-      @filesToSave.push fileName if i == -1
+      index = syncFiles.indexOf fileName
+      @filesToSave.push fileName if index == -1
     else
       @filesToSave.push fileName
 
@@ -59,7 +59,7 @@ class SyncLocalController extends KDController
     KD.singletons.vmController.start vmName, (err, result)=>
       return err if err
       # for each diff file, fetch the contents from user VM
-      @fetchFileContents fileName,(err, content)=>
+      @fetchFileContents vmName, fileName,(err, content)=>
         if content and not err
           newContent = @getPatchedContent content, localContent
           # save new content if not same as ori
