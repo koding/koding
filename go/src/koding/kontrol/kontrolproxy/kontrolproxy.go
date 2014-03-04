@@ -427,12 +427,15 @@ func (p *Proxy) startHTTP() {
 // ServeHTTP is needed to satisfy the http.Handler interface.
 func (p *Proxy) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	// redirect http to https
-	if r.TLS == nil && (r.Host == "koding.com" || r.Host == "www.koding.com") {
+	// TODO: do not hardcode, it's ugly
+	if r.TLS == nil && (r.Host == "koding.com" || r.Host == "www.koding.com" || r.Host == "latest.koding.com" || r.Host == "www.latest.koding.com") {
+
+		r.Host = strings.TrimPrefix(r.Host, "www.")
 
 		// check if this cookie is set, if yes do not redirect to https
 		_, err := r.Cookie(CookieUseHTTP)
 		if err != nil {
-			http.Redirect(w, r, "https://koding.com"+r.RequestURI, http.StatusMovedPermanently)
+			http.Redirect(w, r, "https://"+r.Host+r.RequestURI, http.StatusMovedPermanently)
 			return
 		}
 	}
