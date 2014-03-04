@@ -2,20 +2,24 @@
 KD.logToExternal = (msg, args) ->
   return  unless KD.config.logToExternal and _rollbar
   return  if KD.isGuest()
+  return  unless KD.whoami()
+
+  {nickname} = KD.whoami().profile
 
   if args?
-    args.msg = msg
+    args.msg  = msg
+    args.user = nickname
+
     _rollbar.push args
   else
-    _rollbar.push msg
+    _rollbar.push msg:msg, user:nickname
 
 # log ping times so we know if failure was due to user's slow
 # internet or our internals timing out
 KD.logToExternalWithTime = (name, options)->
   KD.troubleshoot (times)->
-    KD.logToExternal {
+    KD.logToExternal "#{name} timed out", {
       options
-      msg      : "#{name} timed out"
       pings    : times
       protocol : KD.remote.mq.ws.protocol
     }
