@@ -1,3 +1,7 @@
+// this package is for truncating the mongo
+// it deletes from collections which are in ToBeDTruncatedNames
+// first it deletes all related relationships from relationship collection
+// then deletes from collection itself which are older than 1 month
 package main
 
 import (
@@ -59,7 +63,7 @@ func main() {
 
 	log.SetLevel(logger.DEBUG)
 
-	for _, coll := range ToBeDTruncatedNames {
+	for _, coll := range ToBeTruncatedNames {
 		iterOptions.CollectionName = coll
 		iterOptions.F = truncateItems(coll)
 		err := helpers.Iter(mongo, iterOptions)
@@ -140,7 +144,7 @@ func deleteDocumentsFromRelationships(rels []models.Relationship) {
 	}
 }
 
-var ToBeDTruncatedNames = []string{
+var ToBeTruncatedNames = []string{
 	"cActivities",
 	"cFolloweeBuckets",
 	"cLikeeBuckets",
