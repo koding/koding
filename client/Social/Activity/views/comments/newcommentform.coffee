@@ -93,7 +93,12 @@ class EditCommentForm extends NewCommentForm
 
     @commentInput.setValue Encoder.htmlDecode data.body
     @commentInput.on "EscapePerformed", @bound "cancel"
-    @commentInput.setFocus()
 
   cancel: ->
     @getDelegate().emit "CommentUpdateCancelled"
+
+  viewAppended: ->
+    super
+    KD.utils.defer =>
+      @commentInput.setFocus()
+      @commentInput.resize()
