@@ -138,7 +138,7 @@ func (vm *VM) ApplyDefaults() {
 // templating), instead of we use this method which basically let us do things
 // more efficient. It creates the home directory, generates files like lxc.conf
 // and mounts the necessary filesystems.
-func (v *VM) Prepare(reinitialize bool, logWarning func(string, ...interface{})) {
+func (v *VM) Prepare(reinitialize bool) {
 	// first unprepare to not conflict with everything else
 	v.Unprepare()
 
@@ -163,7 +163,7 @@ func (v *VM) Prepare(reinitialize bool, logWarning func(string, ...interface{}))
 
 	v.createOverlay()
 
-	v.mergeFiles(logWarning)
+	v.mergeFiles()
 
 	err = v.mountAufs()
 	if err != nil {
@@ -235,11 +235,11 @@ func (v *VM) createOverlay() {
 	v.generateFile(v.OverlayFile("/etc/ldap.conf"), "ldap.conf", RootIdOffset, false)
 }
 
-func (v *VM) mergeFiles(logWarning func(string, ...interface{})) {
+func (v *VM) mergeFiles() {
 	defer un(trace(v.String()))
 
-	v.MergePasswdFile(logWarning)
-	v.MergeGroupFile(logWarning)
+	v.MergePasswdFile()
+	v.MergeGroupFile()
 }
 
 func (v *VM) mountAufs() error {

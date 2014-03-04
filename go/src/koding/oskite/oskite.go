@@ -157,16 +157,16 @@ func (o *Oskite) Run() {
 	o.setupSignalHandler() // handle SIGUSR1 and other signals.
 
 	// register current client-side methods
-	o.registerVmMethod(k, "vm.start", false, vmStart)
-	o.registerVmMethod(k, "vm.shutdown", false, vmShutdown)
-	o.registerVmMethod(k, "vm.unprepare", false, vmUnprepare)
-	o.registerVmMethod(k, "vm.stop", false, vmStop)
-	o.registerVmMethod(k, "vm.reinitialize", false, vmReinitialize)
-	o.registerVmMethod(k, "vm.info", false, vmInfo)
-	o.registerVmMethod(k, "vm.resizeDisk", false, vmResizeDisk)
-	o.registerVmMethod(k, "vm.createSnapshot", false, vmCreateSnaphost)
-	o.registerVmMethod(k, "spawn", true, spawnFunc)
-	o.registerVmMethod(k, "exec", true, execFunc)
+	o.registerVmMethod(k, "vm.start", false, vmStartOld)
+	o.registerVmMethod(k, "vm.shutdown", false, vmShutdownOld)
+	o.registerVmMethod(k, "vm.unprepare", false, vmUnprepareOld)
+	o.registerVmMethod(k, "vm.stop", false, vmStopOld)
+	o.registerVmMethod(k, "vm.reinitialize", false, vmReinitializeOld)
+	o.registerVmMethod(k, "vm.info", false, vmInfoOld)
+	o.registerVmMethod(k, "vm.resizeDisk", false, vmResizeDiskOld)
+	o.registerVmMethod(k, "vm.createSnapshot", false, vmCreateSnapshotOld)
+	o.registerVmMethod(k, "spawn", true, spawnFuncOld)
+	o.registerVmMethod(k, "exec", true, execFuncOld)
 
 	o.registerVmMethod(k, "oskite.Info", true, o.oskiteInfo)
 	o.registerVmMethod(k, "oskite.All", true, oskiteAll)
@@ -348,7 +348,7 @@ func (o *Oskite) runNewKite() {
 
 		if !isPrepared {
 			fmt.Println("preparing ", hostnameAlias)
-			vm.Prepare(false, log.Warning)
+			vm.Prepare(false)
 		}
 
 		fmt.Println("starting ", hostnameAlias)
@@ -863,7 +863,7 @@ func (o *Oskite) startVM(vm *virt.VM, channel *kite.Channel) error {
 				startTime := time.Now()
 
 				// prepare first
-				vm.Prepare(false, log.Warning)
+				vm.Prepare(false)
 
 				// start it
 				if err := vm.Start(); err != nil {
