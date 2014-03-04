@@ -125,3 +125,25 @@ class SyncLocalController extends KDController
       @openedFiles.push fileName
       @storage.setValue "openedFiles", @openedFiles
 
+  removeFromOpenedFiles: (file)->
+    fileName = "[#{file.vmName}]#{file.path}"
+    log fileName
+    index = @openedFiles.indexOf fileName
+    unless index == -1
+      @openedFiles.splice index, 1
+      @storage.setValue "openedFiles", @openedFiles
+
+
+  getRecentOpenedFiles: ->
+    @openedFiles
+
+
+  saveEditorHistory: ->
+    log "NOT IMPLEMENTED YET"
+
+
+
+
+
+
+
