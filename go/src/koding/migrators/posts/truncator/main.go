@@ -14,8 +14,6 @@ import (
 	"koding/tools/config"
 	"koding/tools/logger"
 	"time"
-
-	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
 )
 
@@ -98,10 +96,8 @@ func truncateItems(collectionName string) func(doc interface{}) {
 
 		log.Info("removing collectionId: %v from collectionName: %v ", collectionId.Hex(), collectionName)
 
-		if err := mongo.Run(collectionName, func(coll *mgo.Collection) error {
-			return coll.RemoveId(collectionId)
-		}); err != nil {
-			log.Error("couldnt remove collectionId: %v from collectionName: %v  ", collectionId.Hex(), collectionName)
+		if err := helper.RemoveDocument(collectionName, collectionId); err != nil {
+			log.Error("couldnt remove collectionId: %v from collectionName: %v Err: %v ", collectionId.Hex(), collectionName, err)
 		}
 		deletedItems++
 	}
@@ -114,7 +110,7 @@ func deleteRel(id bson.ObjectId) {
 		helper.Selector{"targetId": id},
 	}}
 
-	rels, err := modelhelper.GetAllRelationships(selector)
+	rels, err := helper.GetAllRelationships(selector)
 	if err != nil {
 		log.Error("couldnt fetch collectionId: %v from relationships  ", id.Hex())
 		return
@@ -130,8 +126,8 @@ func deleteDocumentsFromRelationships(rels []models.Relationship) {
 	}
 
 	for _, rel := range rels {
-		if err := modelhelper.DeleteRelationship(rel.Id); err != nil {
-			log.Error("couldnt remove collectionId: %v from relationships  ", rel.Id.Hex())
+		if err := helper.DeleteRelationship(rel.Id); err != nil {
+			log.Error("couldnt remove collectionId: %v from relationships Err: %v ", rel.Id.Hex(), err)
 		}
 		deletedItems++
 	}
