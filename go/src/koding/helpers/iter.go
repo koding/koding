@@ -75,13 +75,10 @@ func createQuery(iterOptions *iterOptions) func(coll *mgo.Collection) error {
 		}
 		iterOptions.Log.Info("Totaly we have %v items for operation", totalCount)
 
-		skip := iterOptions.Skip
-		// this is a starting point
-		index := skip
-		// this is the item count to be processed
-		limit := iterOptions.Limit
-		// this will be the ending point
-		count := index + limit
+		skip := iterOptions.Skip   // this is a starting point
+		index := skip              // this is the item count to be processed
+		limit := iterOptions.Limit // this will be the ending point
+		count := index + limit     // total count
 
 		iteration := 0
 		for {
