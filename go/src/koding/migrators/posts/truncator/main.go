@@ -70,6 +70,8 @@ func main() {
 }
 
 // this is the iterator function
+// iterates over all documents and  if the document's creation date is older
+// than 1 month deletes all the related relationships and document itself
 func truncateItems(collectionName string) func(doc interface{}) {
 	return func(doc interface{}) {
 		result := *(doc.(*map[string]interface{}))
@@ -105,15 +107,15 @@ func truncateItems(collectionName string) func(doc interface{}) {
 	}
 }
 
+// deletes all related relationships
 func deleteRel(id bson.ObjectId) {
-	var rels []models.Relationship
-	if err := mongo.Run("relationships", func(coll *mgo.Collection) error {
-		selector := helper.Selector{"$or": []helper.Selector{
-			helper.Selector{"sourceId": id},
-			helper.Selector{"targetId": id},
-		}}
-		return coll.Find(selector).All(&rels)
-	}); err != nil {
+	selector := helper.Selector{"$or": []helper.Selector{
+		helper.Selector{"sourceId": id},
+		helper.Selector{"targetId": id},
+	}}
+
+	rels, err := modelhelper.GetAllRelationships(selector)
+	if err != nil {
 		log.Error("couldnt fetch collectionId: %v from relationships  ", id.Hex())
 		return
 	}
@@ -128,9 +130,7 @@ func deleteDocumentsFromRelationships(rels []models.Relationship) {
 	}
 
 	for _, rel := range rels {
-		if err := mongo.Run("relationships", func(coll *mgo.Collection) error {
-			return coll.RemoveId(rel.Id)
-		}); err != nil {
+		if err := modelhelper.DeleteRelationship(rel.Id); err != nil {
 			log.Error("couldnt remove collectionId: %v from relationships  ", rel.Id.Hex())
 		}
 		deletedItems++
