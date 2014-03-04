@@ -415,7 +415,7 @@ module.exports = class JNewApp extends jraphical.Module
     success: (client, callback)->
       @remove callback
 
-      removeJNames: (names)->
+      removeJNames = (names)->
         names.forEach (name)->
           JName.one {name}, (err, jname)->
             return console.error "Failed to get JName: ", err  if err
