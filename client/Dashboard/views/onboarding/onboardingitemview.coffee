@@ -4,7 +4,18 @@ class OnboardingItemView extends CustomViewsDashboardView
 
     super options, data
 
-    @addNewButton = new KDButtonViewWithMenu
+    labelText = ""
+
+    if data.isActive then labelText = "Published"
+    else if data.isPreview
+    then labelText   = "On preview"
+
+    @title           = new KDCustomHTMLView
+      tagName        : "h3"
+      cssClass       : options.cssClass
+      partial        : "#{options.title} <span>#{labelText}</span>"
+
+    @addNewButton    = new KDButtonViewWithMenu
       title          : ""
       icon           : yes
       delegate       : this
@@ -20,11 +31,51 @@ class OnboardingItemView extends CustomViewsDashboardView
       @deleteChildItem childData
 
   getMenuItems: ->
-    return {
-      "Add Into": callback: => @addNew()
-      "Edit"    : callback: => @edit()
-      "Delete"  : callback: => @delete()
-    }
+    data         = @getData()
+    activeLabel  = if data.isActive  then "Unpublish"      else "Publish"
+    previewLabel = if data.isPreview then "Cancel preview" else "Preview"
+    items        =
+      "Add Into" : callback: => @addNew()
+      "Edit"     : callback: => @edit()
+      "Delete"   : callback: => @delete()
+
+    items[activeLabel]  = callback : => @updateState "isActive"
+    items[previewLabel] = callback : => @updateState "isPreview"
+
+    return items
+
+  updateState: (key) ->
+    changeSet = {}
+    data      = @getData()
+    callback  = =>
+      changeSet[key] = not data[key]
+      data.update changeSet, (err, res) =>
+        return warn err  if err
+        @getDelegate().reloadViews()
+
+    keyword = "publish"
+
+    if key is "isActive"
+      if data[key] then keyword = "unpublish"
+    else
+      keyword = if data[key] then "cancel preview for" else "enable preview mode for"
+
+    content        = "Are you sure you want to #{keyword} this item?"
+    modal          = new KDModalView
+      title        : "Are you sure?"
+      content      : "<p>#{content}</p>"
+      overlay      : yes
+      buttons      :
+        Delete     :
+          title    : "Confirm"
+          cssClass : "modal-clean-green"
+          callback : =>
+            callback()
+            modal.destroy()
+        Cancel     :
+          title    : "Cancel"
+          cssClass : "modal-cancel"
+          callback : -> modal.destroy()
 
   fetchViews: ->
     @loader.hide()

@@ -16,7 +16,14 @@ class OnboardingController extends KDController
       @appStorage.setValue slug, yes
 
   fetchItems: ->
-    query = partialType: "ONBOARDING"
+    hasCookie = Cookies.get "custom-partials-preview-mode"
+    query     = partialType : "ONBOARDING"
+
+    if hasCookie
+      query["isPreview"] = yes
+    else
+      query["isActive"]  = yes
+
     KD.remote.api.JCustomPartials.some query, {}, (err, onboardings) =>
 
       for data in onboardings when data.partial
@@ -41,7 +48,7 @@ class OnboardingController extends KDController
           slug    = KD.utils.slugify KD.utils.curry appName, item.name
           isShown = @appStorage.getValue slug
 
-          unless isShown
+          if yes # unless isShown
             onboarding = item
             break
 
