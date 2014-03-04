@@ -155,6 +155,9 @@ class AceAppView extends JView
     @tabView.addPane pane
     pane.addSubView aceView
 
+    # save opened file to localStorage, so that we can open same files on refresh.
+    KD.singletons.syncLocalController.addToOpenedFiles file.path
+
   setViewListeners: (view) ->
     @setFileListeners view.getData()
 
