@@ -48,7 +48,7 @@ class OnboardingController extends KDController
           slug    = KD.utils.slugify KD.utils.curry appName, item.name
           isShown = @appStorage.getValue slug
 
-          if yes # unless isShown
+          unless isShown
             onboarding = item
             break
 
