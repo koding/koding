@@ -7,6 +7,7 @@ class SyncLocalController extends KDController
     super
     @storage     = KD.singletons.localStorageController.storage "editor"
     @filesToSave = @storage.getValue("saveRequestedFiles") or []
+    @openedFiles = @storage.getValue("openedFiles") or []
     @syncLocalContentIfDiffExists() if @filesToSave.length > 0
     @initializeListeners()
 
