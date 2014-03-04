@@ -174,7 +174,7 @@ class FeedController extends KDViewController
 
     groupsController.changeGroup group, =>
 
-      currentGroup = groupsController.getCurrentGroup().slug
+      currentGroup = group
       feedId = "#{currentGroup}-#{feedId}"
 
       kallback = (err, items, rest...)=>
