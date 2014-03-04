@@ -43,10 +43,12 @@ func GetRelationship(selector Selector) (models.Relationship, error) {
 	return relationship, err
 }
 
+// Deletes all relationships satisfying the selector
 func DeleteRelationships(selector Selector) error {
 	return RemoveAllDocuments("relationships", selector)
 }
 
+// Deletes relationships with the given id
 func DeleteRelationship(id bson.ObjectId) error {
 	return RemoveDocument("relationships", id)
 }
