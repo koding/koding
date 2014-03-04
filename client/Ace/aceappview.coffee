@@ -28,7 +28,19 @@ class AceAppView extends JView
       @finderController.reset()
       @finderController.on 'FileNeedsToBeOpened', (file)=>
         @openFile file, yes
+      @openLastFiles()
 
+
+
+  openLastFiles:->
+    vmc = KD.getSingleton("vmController")
+    vmc.on "StateChanged", (err, vm, info)=>
+      {syncLocalController} = KD.singletons
+      lastOpenedFiles = syncLocalController.getRecentOpenedFiles()
+      for file in lastOpenedFiles
+        if file isnt 'localfile:/Untitled.txt'
+          fsfile = FSHelper.createFileFromPath file
+          @openFile fsfile
 
   attachEvents:->
 
