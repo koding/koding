@@ -228,6 +228,19 @@ class LoginView extends KDView
     @setTemplate @pistachio()
     @template.update()
 
+    query = KD.utils.parseQuery document.location.search.replace "?", ""
+
+    if query.warning
+      suffix  = if query.type is "comment" then "post a comment" else "like an activity"
+      message = "You need to be logged in to #{suffix}"
+
+      KD.getSingleton("mainView").createGlobalNotification
+        title      : message
+        type       : "yellow"
+        content    : ""
+        closeTimer : 4000
+        container  : this
+
   pistachio:->
       # {{> @loginOptions}}
       # {{> @registerOptions}}
