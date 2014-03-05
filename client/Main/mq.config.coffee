@@ -56,7 +56,13 @@ KD.remote = new Bongo
         dash queue, -> callback err, models, name
 
   mq: do ->
-    { broker:{ servicesEndpoint }, authExchange } = KD.config
+    {authExchange} = KD.config
+
+    if KD.config.premiumBroker
+      { servicesEndpoint } = KD.config.premiumBroker
+    else
+      { servicesEndpoint } = KD.config.broker
+
     options = {
       servicesEndpoint
       authExchange
