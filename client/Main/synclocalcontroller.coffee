@@ -10,6 +10,21 @@ class SyncLocalController extends KDController
       @syncLocalContentIfDiffExists (res)->
         log "sync complete"
 
+    @initializeListeners()
+
+  initializeListeners: ->
+    KD.remote.status.on "reconnected", =>
+     @syncLocalContentIfDiffExists (err)-> KD.showError err if err
+
+  syncLocalContentIfDiffExists: (callback)->
+    {dash} = Bongo
+    queue  = @filesToSave.map (key)=>
+      =>
+        fsfile = FSHelper.createFileFromPath key
+        @patchFileIfDiffExist fsfile, @storage.getValue("OE-#{key}"), (res)->
+          queue.fin()
+    dash queue, callback
+
   addToSaveArray: (file)->
     fileName = @getFileFullPath file
     index    = @filesToSave.indexOf fileName
