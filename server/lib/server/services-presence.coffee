@@ -6,7 +6,7 @@ getFailoverUrl = (serviceName)->
   { webProtocol, failoverUri, port } = KONFIG[serviceName]
 
   # piece the url together from the config:
-  url = "#{ webProtocol }//#{ fallbackUri }#{ if port then ":#{port}" else "" }"
+  url = "#{ webProtocol }//#{ failoverUri }#{ if port then ":#{port}" else "" }"
   console.warn "Serving failover url", url
   return url
 
