@@ -766,15 +766,17 @@ module.exports = class JAccount extends jraphical.Module
             activity.mark client, 'glanced', -> queue.fin()
           dash queue, callback
 
-  fetchLikedContents: secure ({connection}, options, selector, callback)->
+  fetchLikedContents: secure ({connection, context}, options, selector, callback)->
 
     {delegate} = connection
+    {group}    = context
     [callback, selector] = [selector, callback] unless callback
 
     selector            or= {}
     selector.as           = 'like'
     selector.targetId     = @getId()
     selector.sourceName or= $in: likeableActivities
+    selector.data         = {group}
 
     Relationship.some selector, options, (err, contents)=>
       if err then callback err, []
