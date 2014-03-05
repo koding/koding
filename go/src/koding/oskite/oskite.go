@@ -597,7 +597,6 @@ func (o *Oskite) registerVmMethod(k *kite.Kite, method string, concurrent bool, 
 		if err != nil {
 			return nil, err
 		}
-		vm.ApplyDefaults()
 
 		defer func() {
 			if err := recover(); err != nil {
@@ -717,8 +716,8 @@ func (o *Oskite) registerMethod(k *kite.Kite, method string, concurrent bool, ca
 			}
 		}()
 
-		// this method is special cased in oskite.go to allow foreign access,
-		// that's why do not check for permisisons.
+		// this method is special cased in oskite.go to allow foreign access.
+		// that's why do not check for permisisons and return early.
 		if method == "webterm.connect" {
 			return callback(args, channel, &virt.VOS{VM: vm, User: user})
 		}
@@ -781,6 +780,7 @@ func (o *Oskite) getVM(correlationName string) (*virt.VM, error) {
 		return nil, &VMNotFoundError{Name: correlationName}
 	}
 
+	vm.ApplyDefaults()
 	return vm, nil
 }
 
@@ -894,54 +894,7 @@ func (o *Oskite) startVM(vm *virt.VM, channel *kite.Channel) error {
 	info.mutex.Lock()
 	defer info.mutex.Unlock()
 
-	isPrepared := true
-	if _, err := os.Stat(vm.File("rootfs/dev")); err != nil {
-		if !os.IsNotExist(err) {
-			panic(err)
-		}
-		isPrepared = false
-	}
-
-	if !isPrepared || info.currentHostname != vm.HostnameAlias {
-		done := make(chan struct{}, 1)
-
-		prepareQueue <- &QueueJob{
-			msg: "vm prepare and restart " + vm.HostnameAlias,
-			f: func() string {
-				startTime := time.Now()
-
-				// prepare first
-				vm.Prepare(false)
-
-				// start it
-				if err := vm.Start(); err != nil {
-					log.LogError(err, 0)
-				}
-
-				// wait until network is up
-				if err := vm.WaitForNetwork(time.Second * 5); err != nil {
-					log.Error("%v", err)
-				}
-
-				res := fmt.Sprintf("VM PREPARE and START: %s [%s] - ElapsedTime: %.10f seconds.",
-					vm, vm.HostnameAlias, time.Since(startTime).Seconds())
-
-				info.currentHostname = vm.HostnameAlias
-
-				done <- struct{}{}
-				return res
-			},
-		}
-
-		log.Info("putting %s into queue. total vms in queue: %d of %d",
-			vm.HostnameAlias, currentQueueCount.Get(), len(prepareQueue))
-
-		// wait until the prepareWorker has picked us and we finished
-		// to return something to the client
-		<-done
-	}
-
-	return nil
+	return startAndPrepareVM(vm)
 }
 
 // prepareWorker listens from prepareQueue channel and runs the functions it receives
