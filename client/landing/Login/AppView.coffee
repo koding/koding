@@ -182,6 +182,9 @@ class LoginView extends KDView
       cssClass : "invite-recovery-notification-bar hidden"
       partial  : "..."
 
+    @failureNotice = new KDCustomHTMLView
+      cssClass     : "failure-notice hidden"
+
     KD.getSingleton("mainController").on "landingSidebarClicked", => @unsetClass 'landed'
 
     setValue = (field, value)=>
@@ -255,6 +258,7 @@ class LoginView extends KDView
       <div class="login-form-holder resend-confirmation-form">
         {{> @resendForm}}
       </div>
+      {{> @failureNotice}}
       <div class="login-footer">
         <div class='first-row clearfix'>
           <div class='fl'>{{> @goToRecoverLink}}</div><div class='fr'>{{> @goToRegisterLink}}<i>•</i>{{> @backToLoginLink}}</div>
@@ -313,7 +317,7 @@ class LoginView extends KDView
   doRegister:(formData)->
     (KD.getSingleton 'mainController').isLoggingIn on
     formData.agree = 'on'
-    formData.referrer = $.cookie 'referrer'
+    formData.referrer = Cookies.get 'referrer'
     @registerForm.notificationsDisabled = yes
     @registerForm.notification?.destroy()
 
@@ -343,8 +347,8 @@ class LoginView extends KDView
         catch
           KD.logToExternal "mixpanel doesn't exist"
 
-        $.cookie 'newRegister', yes
-        $.cookie 'clientId', replacementToken
+        Cookies.set 'newRegister', yes
+        Cookies.set 'clientId', replacementToken, secure: yes
         KD.getSingleton('mainController').accountChanged account
 
         titleText = unless err then 'Good to go, Enjoy!' \
@@ -357,15 +361,17 @@ class LoginView extends KDView
           # content   : 'Successfully registered!'
           duration  : 2000
 
-        KD.getSingleton('router').clear()
+        return location.reload()  unless KD.remote.isConnected()
+
         @headBanner.hide()
         #could not joined to the group. Directing to Koding
-        window.location.href = "/" if err
+        window.location.href= "/" if err
 
         KD.utils.wait 1000, =>
           @registerForm.reset()
           @registerForm.button.hideLoader()
           @hide()
+          KD.singleton("router").handleRoute "/Activity"
 
   doFinishRegistration: (formData) ->
     (KD.getSingleton 'mainController').handleFinishRegistration formData, @bound 'afterLoginCallback'
@@ -457,7 +463,7 @@ class LoginView extends KDView
 
   headBannerShowInvitation:(invite)->
     @showHeadBanner "Cool! you got an invite! <span>If you already have an account click here to sign in.</span>", =>
-      @animateToForm "login"
+      KD.singleton("router").handleRoute "/Login"
       @headBanner.hide()
 
     KD.getSingleton('router').clear @getRouteWithEntryPoint 'Register'
@@ -514,11 +520,17 @@ class LoginView extends KDView
           KD.remote.api.JUser.isRegistrationEnabled (status)=>
             if status is no
               log "Registrations are disabled!!!"
-              @registerForm.$('.main-part').addClass 'hidden'
-              @registerForm.disabledNotice.show()
+              @setFailureNotice
+                cssClass  : "registrations-disabled"
+                title     : "REGISTRATIONS ARE CURRENTLY DISABLED"
+                message   : "We're sorry for that, please follow us on <a href='http://twitter.com/koding' target='_blank'>twitter</a>
+                  if you want to be notified when registrations are enabled again."
+              @github.hide()
+              @$(".login-footer").addClass 'hidden'
+              @animateToForm "failureNotice"
             else
-              @registerForm.disabledNotice.hide()
-              @registerForm.$('.main-part').removeClass 'hidden'
+              @github.show()
+              @$(".login-footer").removeClass 'hidden'
 
           KD.mixpanel "Register form, click"
 
@@ -547,10 +559,18 @@ class LoginView extends KDView
           @loginForm.username.input.setFocus()
         when "recover"
           @$('.flex-wrapper').addClass 'one'
+          @github.hide()
           @recoverForm.usernameOrEmail.input.setFocus()
         when "resendEmail"
           @$('.flex-wrapper').addClass 'one'
           @resendForm.usernameOrEmail.input.setFocus()
+        when "failureNotice"
+          @$('.flex-wrapper').addClass 'one'
+          @github.hide()
+          @$(".login-footer").addClass 'hidden'
+          @failureNotice.show()
+        when "reset"
+          @github.hide()
 
   getRouteWithEntryPoint:(route)->
     {entryPoint} = KD.config
@@ -575,3 +595,11 @@ class LoginView extends KDView
       new KDNotificationView
         title   : err.message
         duration: 1000
+
+  setFailureNotice: ({cssClass, title, message}) ->
+    @failureNotice.setClass cssClass  if cssClass
+    @failureNotice.updatePartial \
+      """
+      <strong>#{title}</strong>
+      <p>#{message}</p>
+      """
