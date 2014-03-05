@@ -2,6 +2,9 @@ class OnboardingSectionForm extends KDFormViewWithFields
 
   constructor: (options = {}, data) ->
 
+    apps = []
+    apps.push { title: app, value: app }  for app of KD.config.apps
+
     options.cssClass      = "section-form"
     @jCustomPartial       = data
     formData              = data?.partial or {}
@@ -22,14 +25,7 @@ class OnboardingSectionForm extends KDFormViewWithFields
             itemClass     : KDSelectBox
             cssClass      : "apps"
             defaultValue  : formData?.app
-            selectOptions : [
-              { title     : "Activity", value: "Activity" }
-              { title     : "Teamwork", value: "Teamwork" }
-              { title     : "Ace",      value: "Ace"      }
-              { title     : "Terminal", value: "Terminal" }
-              { title     : "Apps",     value: "Apps"     }
-              { title     : "Bugs",     value: "Bugs"     }
-            ]
+            selectOptions : apps
       visibility          :
         label             : "Show items together"
         itemClass         : KodingSwitch
