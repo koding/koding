@@ -53,18 +53,18 @@ class EnvironmentDomainContainer extends EnvironmentContainer
 
     domainCreateForm = new DomainCreateForm {}, {stack: @parent.stack}
 
-      {JDomain} = KD.remote.api
-      JDomain.fetchDomains (err, domains)=>
+    {JDomain} = KD.remote.api
+    JDomain.fetchDomains (err, domains)=>
 
-        @removeAllItems()
+      @removeAllItems()
 
-        if err or not domains or domains.length is 0
-          warn "Failed to fetch domains", err  if err
-          return resolve()
+      if err or not domains or domains.length is 0
+        warn "Failed to fetch domains", err  if err
+        return resolve()
 
-        domains.forEach (domain, index)=>
-          @addDomain domain
-          if index is domains.length - 1 then resolve()
+      domains.forEach (domain, index)=>
+        @addDomain domain
+        if index is domains.length - 1 then resolve()
 
   getDomainCreateForm: ->
 
