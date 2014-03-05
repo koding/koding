@@ -1,5 +1,16 @@
 class EnvironmentDomainContainer extends EnvironmentContainer
 
+  EnvironmentDataProvider.addProvider "domains", ->
+
+    new Promise (resolve, reject)->
+
+      KD.remote.api.JDomain.fetchDomains (err, domains)->
+        if err or not domains or domains.length is 0
+          warn "Failed to fetch domains", err  if err
+          return resolve []
+
+        resolve domains
+
   constructor:(options={}, data)->
     options.cssClass  = 'domains'
     options.itemClass = EnvironmentDomainItem

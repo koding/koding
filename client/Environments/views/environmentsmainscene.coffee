@@ -57,4 +57,4 @@ class EnvironmentsMainScene extends JView
           @_stacks.push @addSubView new StackView \
             {stack, isDefault: index is 0}, data
 
-        callback?()  if index is stacks.length - 1
+          callback?()  if index is stacks.length - 1
