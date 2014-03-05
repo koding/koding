@@ -6,7 +6,6 @@ class OnboardingController extends KDController
 
     @onboardings   = {}
     mainController = KD.getSingleton "mainController"
-    @appStorage    = KD.getSingleton("appStorageController").storage "OnboardingStatus", "1.0.0"
 
     @fetchItems()  if KD.isLoggedIn()
 
@@ -16,8 +15,9 @@ class OnboardingController extends KDController
       @appStorage.setValue slug, yes
 
   fetchItems: ->
-    hasCookie = Cookies.get "custom-partials-preview-mode"
-    query     = partialType : "ONBOARDING"
+    @appStorage = KD.getSingleton("appStorageController").storage "OnboardingStatus", "1.0.0"
+    hasCookie   = Cookies.get "custom-partials-preview-mode"
+    query       = partialType : "ONBOARDING"
 
     if hasCookie
       query["isPreview"] = yes
