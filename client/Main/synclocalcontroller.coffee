@@ -5,17 +5,10 @@ class SyncLocalController extends KDController
     @storage     = KD.singletons.localStorageController.storage "editor"
     @filesToSave = @storage.getValue("saveRequestedFiles") or []
     @openedFiles = @storage.getValue("openedFiles") or []
-    @syncLocalContentIfDiffExists() if @filesToSave.length > 0
-    @initializeListeners()
 
-  initializeListeners: ->
-    status = KD.remote
-    status.on "connected"  , @bound 'syncLocalContentIfDiffExists'
-    status.on "reconnected", @bound 'syncLocalContentIfDiffExists'
-
-      vmName   = FSHelper.getVMNameFromPath key
-      filePath = FSHelper.plainPath key
-      @patchFileIfDiffExist vmName, filePath, @storage.getValue "OE-#{key}"
+    if @filesToSave.length > 0
+      @syncLocalContentIfDiffExists (res)->
+        log "sync complete"
 
   addToWillSaved: (fileName)->
     syncFiles = @storage.getValue "saveRequestedFiles"
