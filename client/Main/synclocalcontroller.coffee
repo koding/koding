@@ -108,6 +108,11 @@ class SyncLocalController extends KDController
   getRecentOpenedFiles: ->
     @openedFiles
 
+  getFileFullPath:(file)->
+    plainPath = FSHelper.plainPath file.path
+    fileName = "[#{file.vmName}]#{plainPath}"
+    return fileName
+
 
   saveEditorHistory: ->
     log "NOT IMPLEMENTED YET"
