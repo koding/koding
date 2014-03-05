@@ -225,3 +225,84 @@ func execFunc(line string, vos *virt.VOS) (interface{}, error) {
 func spawnFunc(command []string, vos *virt.VOS) (interface{}, error) {
 	return vos.VM.AttachCommand(vos.User.Uid, "", command...).CombinedOutput()
 }
+
+func vmStartExplicit(vos *virt.VOS) (interface{}, error) {
+	if !vos.Permissions.Sudo {
+		return nil, &kite.PermissionError{}
+	}
+
+	if err := startAndPrepareVM(vos.VM); err != nil {
+		return nil, err
+	}
+
+	rootVos, err := vos.VM.OS(&virt.RootUser)
+	if err != nil {
+		return nil, err
+	}
+
+	vmWebDir := "/home/" + vos.VM.WebHome + "/Web"
+	userWebDir := "/home/" + vos.User.Name + "/Web"
+
+	vmWebVos := rootVos
+	if vmWebDir == userWebDir {
+		vmWebVos = vos
+	}
+
+	rootVos.Chmod("/", 0755)     // make sure that executable flag is set
+	rootVos.Chmod("/home", 0755) // make sure that executable flag is set
+	createUserHome(vos.User, rootVos, vos)
+	createVmWebDir(vos.VM, vmWebDir, rootVos, vmWebVos)
+	if vmWebDir != userWebDir {
+		createUserWebDir(vos.User, vmWebDir, userWebDir, rootVos, vos)
+	}
+
+	return true, nil
+}
+
+func startAndPrepareVM(vm *virt.VM) error {
+	prepared, err := isVmPrepared(vm)
+	if err != nil {
+		return err
+	}
+
+	if prepared {
+		return nil
+	}
+
+	done := make(chan struct{}, 1)
+
+	prepareQueue <- &QueueJob{
+		msg: "vm prepare and start " + vm.HostnameAlias,
+		f: func() string {
+			startTime := time.Now()
+
+			// prepare first
+			vm.Prepare(false)
+
+			// start it
+			if err := vm.Start(); err != nil {
+				log.LogError(err, 0)
+			}
+
+			// wait until network is up
+			if err := vm.WaitForNetwork(time.Second * 5); err != nil {
+				log.Error("%v", err)
+			}
+
+			res := fmt.Sprintf("VM PREPARE and START: %s [%s] - ElapsedTime: %.10f seconds.",
+				vm, vm.HostnameAlias, time.Since(startTime).Seconds())
+
+			done <- struct{}{}
+			return res
+		},
+	}
+
+	log.Info("putting %s into queue. total vms in queue: %d of %d",
+		vm.HostnameAlias, currentQueueCount.Get(), len(prepareQueue))
+
+	// wait until the prepareWorker has picked us and we finished
+	// to return something to the client
+	<-done
+
+	return nil
+}
