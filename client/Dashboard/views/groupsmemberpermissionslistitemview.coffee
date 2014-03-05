@@ -53,20 +53,30 @@ class GroupsMemberPermissionsListItemView extends KDListItemView
       if listItem isnt @
         @hideEditMemberRolesView()
 
+    @on 'OwnershipChanged', =>
+      @getDelegate().unsetClass 'item-editing'
+
   showEditMemberRolesView:->
 
     list           = @getDelegate()
     editorsRoles   = list.getOptions().editorsRoles
-    {group, roles} = list.getOptions()
+    {group, roles, userStatus} = list.getOptions()
+    {nickname} = @getData().profile
 
     @editView      = new GroupsMemberRolesEditView delegate : @
     @editView.setMember @getData()
     @editView.setGroup group
 
+    if group.slug is "koding"
+      @editView.setStatus userStatus[nickname]
+      
+      @editView.on "UserConfirmed", (user)-> 
+        userStatus[user.profile.nickname] = "confirmed"
+
     list.emit "EditMemberRolesViewShown", this
 
     @setClass 'editing'
-    @getDelegate().setClass 'item-editing'
+    @getDelegate().setClass 'item-editing clearfix'
     @editLink.hide()
     @cancelLink.show()
     @editContainer.show()

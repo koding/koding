@@ -170,6 +170,9 @@ config =
       useStaticFileServer: 1
       staticFilesBaseUrl: 1
       runtimeOptions  :
+        sessionCookie :
+          maxAge      : 1
+          secure      : 1
         environment   : 1
         activityFetchCount : 1
         precompiledApi: 1
@@ -182,6 +185,7 @@ config =
         useNeo4j      : 1
         logToExternal : 1
         resourceName  : 1
+        socialApiUri  : 1
         suppressLogs  : 1
         version       : 1
         mainUri       : 1
@@ -304,7 +308,8 @@ config =
         apiHost     : 1
         apiPort     : 1
         port        : 1
-        switchHost  : 1
+        kodingHost  : 1
+        socialHost  : 1
       api           :
         port        : 1
         url         : 1
@@ -397,4 +402,7 @@ config =
         storage     : 1
         ram         : 1
         cpu         : 1
+    sessionCookie   :
+      maxAge        : 1
+      secure        : 1
 module.exports = config

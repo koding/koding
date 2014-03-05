@@ -40,7 +40,7 @@ class WidgetController extends KDObject
     return @placeholders
 
   showWidgets: (widgets) ->
-    isPreviewMode = $.cookie "custom-partials-preview-mode"
+    isPreviewMode = Cookies.get "custom-partials-preview-mode"
     targetKey     = if isPreviewMode then "preview" else "published"
 
     for widget in widgets

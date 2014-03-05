@@ -281,11 +281,13 @@ func (k *Kite) startRouting(stream <-chan amqp.Delivery, publishChannel *amqp.Ch
 					ServiceGenericName string `json:"serviceGenericName"`
 					ServiceUniqueName  string `json:"serviceUniqueName"` // used only for response
 				}
+
 				err := json.Unmarshal(message.Body, &client)
 				if err != nil || client.Username == "" || client.RoutingKey == "" || client.CorrelationName == "" {
 					log.Error("Invalid auth.who message. %v", message.Body)
 					continue
 				}
+
 				if k.LoadBalancer == nil {
 					log.Error("Got auth.who without having a load balancer. %v", message.Body)
 					continue
@@ -297,9 +299,11 @@ func (k *Kite) startRouting(stream <-chan amqp.Delivery, publishChannel *amqp.Ch
 					log.LogError(err, 0)
 					continue
 				}
+
 				if client.ReplyExchange == "" { // backwards-compatibility
 					client.ReplyExchange = "auth"
 				}
+
 				if err := publishChannel.Publish(client.ReplyExchange, "kite.who", false, false, amqp.Publishing{Body: response}); err != nil {
 					log.LogError(err, 0)
 				}
@@ -314,6 +318,14 @@ func (k *Kite) startRouting(stream <-chan amqp.Delivery, publishChannel *amqp.Ch
 						close(route)
 						delete(routeMap, message.RoutingKey)
 						log.Warning("Dropped client because of message buffer overflow.")
+					}
+				} else {
+					// if user's routing key is old or doesnt exists, return a
+					// command to user for cycling the channel
+					log.Debug("Unknown routing key, send cycle channel for : %v", message.RoutingKey)
+					msg := []byte("{\"method\":\"cycleChannel\"}")
+					if err := publishChannel.Publish(k.PublishExchange, message.RoutingKey, false, false, amqp.Publishing{Body: msg}); err != nil {
+						log.LogError(err, 0)
 					}
 				}
 			}

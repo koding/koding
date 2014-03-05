@@ -54,6 +54,7 @@ require("./keyboard/hash_handler");
 require("./placeholder");
 require("./mode/folding/fold_mode");
 require("./theme/textmate");
+require("./ext/error_marker");
 
 exports.config = require("./config");
 
@@ -75,7 +76,7 @@ exports.edit = function(el) {
         var _id = el;
         var el = document.getElementById(_id);
         if (!el)
-            throw "ace.edit can't find div #" + _id;
+            throw new Error("ace.edit can't find div #" + _id);
     }
 
     if (el.env && el.env.editor instanceof Editor)

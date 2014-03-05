@@ -18,6 +18,9 @@ regions         =
   sj            : "sj"
   aws           : "aws"
 
+cookieMaxAge = 1000 * 60 * 60 * 24 * 14 # two weeks
+cookieSecure = yes
+
 module.exports =
   environment   : environment
   regions       : regions
@@ -60,7 +63,7 @@ module.exports =
   buildClient   : yes
   runOsKite     : no
   runProxy      : no
-  redis         : "172.16.3.13:6379"
+  redis         : "172.16.6.13:6379"
   misc          :
     claimGlobalNamesForUsers: no
     updateAllSlugs : no
@@ -152,6 +155,9 @@ module.exports =
     useStaticFileServer: no
     staticFilesBaseUrl: "https://koding.com"
     runtimeOptions:
+      sessionCookie :
+        maxAge      : cookieMaxAge
+        secure      : cookieSecure
       environment        : environment
       activityFetchCount : 20
       precompiledApi     : yes
@@ -164,6 +170,7 @@ module.exports =
       useNeo4j: yes
       logToExternal : yes
       resourceName: socialQueueName
+      socialApiUri: 'https://stage-social.koding.com/xhr'
       suppressLogs: no
       version   : version
       mainUri   : "http://koding.com"
@@ -291,7 +298,8 @@ module.exports =
       apiHost     : "172.16.6.16"
       apiPort     : 80
       port        : 8080
-      switchHost  : "y.koding.com"
+      kodingHost  : "latest.koding.com"
+      socialHost  : "stage-social.koding.com"
     api           :
       port        : 80
       url         : "http://stage-kontrol.sj.koding.com"
@@ -377,9 +385,12 @@ module.exports =
     broker        : "info"
   defaultVMConfigs:
     freeVM        :
-      storage     : 4096
+      storage     : 3072
       ram         : 1024
       cpu         : 1
+  sessionCookie :
+    maxAge      : cookieMaxAge
+    secure      : cookieSecure
   graphite       :
     use          : true
     host         : "172.168.2.7"

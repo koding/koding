@@ -2,8 +2,8 @@
 {uri}                   = require('koding-config-manager').load("main.#{argv.c}")
 {daisy}                 = require "bongo"
 {Relationship}          = require 'jraphical'
-{createActivityContent,
- decorateComment}       = require '../helpers'
+encoder                 = require 'htmlencode'
+{createActivityContent, decorateComment} = require '../helpers'
 
 ITEMSPERPAGE = 20
 
@@ -159,7 +159,7 @@ createTagNode = (tag)->
       <a href="#"><span>#{tag.counts?.post ? 0}</span> Posts</a>
       <a href="#"><span>#{tag.counts?.followers ? 0}</span> Followers</a>
     </div>
-    <article>#{tag.body ? ''}</article>
+    <article>#{encoder.XSSEncode(tag.body) ? ''}</article>
   </div>
   """
 
@@ -219,7 +219,7 @@ putContentIntoFullPage = (content, pagination, contentType)->
     <!DOCTYPE html>
     <html lang="en">
     <head>
-      <title>Koding | A new way for developers to work.</title>
+      <title>Koding | A New Way For Developers To Work</title>
       #{getGraphMeta()}
     </head>
     <body itemscope itemtype="http://schema.org/WebPage" class="super activity">

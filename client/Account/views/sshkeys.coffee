@@ -49,57 +49,6 @@ class AccountSshKeyList extends KDListView
     ,options
     super options,data
 
-class AccountSshKeyForm extends KDFormView
-
-  constructor:->
-
-    super
-
-    @titleInput = new KDInputView
-      placeholder  : "your SSH key title"
-      name         : "sshtitle"
-      label        : @titleLabel
-
-    @keyTextarea = new KDInputView
-      placeholder  : "your SSH key"
-      type         : "textarea"
-      name         : "sshkey"
-      cssClass     : "light"
-      label        : @keyTextLabel
-
-  viewAppended:->
-
-    @addSubView formline1 = new KDCustomHTMLView
-      cssClass  : "formline"
-
-    formline1.addSubView @titleInput
-    formline1.addSubView @keyTextarea
-
-    @addSubView formline2 = new KDCustomHTMLView
-      cssClass : "button-holder"
-
-    formline2.addSubView save = new KDButtonView
-      style        : "solid green"
-      title        : "Save"
-      callback     : => @emit "FormSaved"
-
-    formline2.addSubView cancel = new KDButtonView
-      title      : "Cancel"
-      cssClass   : "solid"
-      callback   : => @emit "FormCancelled"
-
-    formline2.addSubView @deletebtn = new KDButtonView
-      style        : "solid red fr"
-      title        : "Delete"
-      callback     : => @emit "FormDeleted"
-
-    # @addSubView actionsWrapper = new KDCustomHTMLView
-    #   tagName : "div"
-    #   cssClass : "actions-wrapper"
-
-
-
-
 class AccountSshKeyListItem extends KDListItemView
   setDomElement:(cssClass)->
     @domElement = $ "<li class='kdview clearfix #{cssClass}'></li>"
@@ -107,29 +56,49 @@ class AccountSshKeyListItem extends KDListItemView
   viewAppended:->
 
     super
-
-    @form = form = new AccountSshKeyForm
-      delegate : this
-      cssClass : "posrelative"
+    @form = form = new KDFormViewWithFields
+      cssClass          : "add-key-form"
+      fields            :
+        title           :
+          placeholder   : "Your SSH key title"
+          name          : "sshtitle"
+        key             :
+          placeholder   : "Your SSH key"
+          type          : "textarea"
+          name          : "sshkey"
+      buttons           :
+        save            :
+          style         : "solid medium green"
+          loader        : yes
+          title         : "Save"
+          callback      : => @emit "FormSaved"
+        cancel          :
+          style         : "solid medium light-gray"
+          title         : "Cancel"
+          callback      : => @emit "FormCancelled"
+        remove          :
+          style         : "solid medium red"
+          title         : "Delete"
+          callback      : => @emit "FormDeleted"
 
     {title, key} = @getData()
 
-    form.titleInput.setValue Encoder.htmlDecode title  if title
-    form.keyTextarea.setValue key  if key
+    form.inputs["title"].setValue Encoder.htmlDecode title  if title
+    form.inputs["key"].setValue key if key
 
     @info = info = new KDCustomHTMLView
       tagName  : "div"
+      cssClass : "ssh-key-item"
       partial  : """
-      <div class="title">#{@getData().title}<div>
+      <div class="title">#{@getData().title}</div>
       <div class="key">#{@getData().key.substr(0,45)} . . . #{@getData().key.substr(-25)}</div>
       """
-      cssClass : "posstatic"
 
-    info.addSubView editLink = new KDCustomHTMLView
-      tagName  : "a"
-      partial  : "Edit"
-      cssClass : "action-link"
-      click    : @bound "swapSwappable"
+    info.addSubView editLink = new KDButtonView
+      title    : "Edit"
+      cssClass : "edit"
+      style    : "solid small green"
+      callback : @bound "swapSwappable"
 
     @swappable = swappable = new AccountsSwappable
       views : [form,info]
@@ -137,15 +106,15 @@ class AccountSshKeyListItem extends KDListItemView
 
     @addSubView swappable,".swappable-wrapper"
 
-    form.on "FormCancelled", @bound "cancelItem"
-    form.on "FormSaved", @bound "saveItem"
-    form.on "FormDeleted", @bound "deleteItem"
+    @on "FormCancelled", @bound "cancelItem"
+    @on "FormSaved", @bound "saveItem"
+    @on "FormDeleted", @bound "deleteItem"
 
   swapSwappable: (options)->
     if options.hideDelete
-      @form.deletebtn.hide()
+      @form.buttons.remove.hide()
     else
-      @form.deletebtn.show()
+      @form.buttons.remove.show()
     @swappable.swapViews()
 
   cancelItem:->
@@ -156,9 +125,10 @@ class AccountSshKeyListItem extends KDListItemView
     @getDelegate().emit "RemoveItem", @
 
   saveItem:->
+    @form.buttons.save.showLoader()
     @setData
-      key   : @form.keyTextarea.getValue()
-      title : @form.titleInput.getValue()
+      title : @form.inputs["title"].getValue()
+      key   : @form.inputs["key"].getValue()
 
     {key, title} = @getData()
 
@@ -173,6 +143,7 @@ class AccountSshKeyListItem extends KDListItemView
     else unless title
       new KDNotificationView
         title : "Title required for SSH key."
+    @form.buttons.save.hideLoader()
 
   partial:(data)->
     """

@@ -35,22 +35,20 @@ var oop = require("../lib/oop");
 var EventEmitter = require("../lib/event_emitter").EventEmitter;
 var config = require("../config");
 
-var WorkerClient = function(topLevelNamespaces, mod, classname) {
+var WorkerClient = function(topLevelNamespaces, mod, classname, workerUrl) {
     this.$sendDeltaQueue = this.$sendDeltaQueue.bind(this);
     this.changeListener = this.changeListener.bind(this);
     this.onMessage = this.onMessage.bind(this);
-    this.onError = this.onError.bind(this);
 
     // nameToUrl is renamed to toUrl in requirejs 2
     if (require.nameToUrl && !require.toUrl)
         require.toUrl = require.nameToUrl;
-
-    var workerUrl;
+    
     if (config.get("packaged") || !require.toUrl) {
-        workerUrl = config.moduleUrl(mod, "worker");
+        workerUrl = workerUrl || config.moduleUrl(mod, "worker");
     } else {
         var normalizePath = this.$normalizePath;
-        workerUrl = normalizePath(require.toUrl("ace/worker/worker.js", null, "_"));
+        workerUrl = workerUrl || normalizePath(require.toUrl("ace/worker/worker.js", null, "_"));
 
         var tlns = {};
         topLevelNamespaces.forEach(function(ns) {
@@ -58,29 +56,37 @@ var WorkerClient = function(topLevelNamespaces, mod, classname) {
         });
     }
 
-    this.$worker = new Worker(workerUrl);
+    try {
+        this.$worker = new Worker(workerUrl);
+    } catch(e) {
+        if (e instanceof window.DOMException) {
+            // Likely same origin problem. Use importScripts from a shim Worker
+            var blob = this.$workerBlob(workerUrl);
+            var URL = window.URL || window.webkitURL;
+            var blobURL = URL.createObjectURL(blob);
+
+            this.$worker = new Worker(blobURL);
+            URL.revokeObjectURL(blobURL);
+        } else {
+            throw e;
+        }
+    }
     this.$worker.postMessage({
         init : true,
-        tlns: tlns,
-        module: mod,
-        classname: classname
+        tlns : tlns,
+        module : mod,
+        classname : classname
     });
 
     this.callbackId = 1;
     this.callbacks = {};
 
-    this.$worker.onerror = this.onError;
     this.$worker.onmessage = this.onMessage;
 };
 
 (function(){
 
     oop.implement(this, EventEmitter);
-
-    this.onError = function(e) {
-        window.console && console.log && console.log(e);
-        throw e;
-    };
 
     this.onMessage = function(e) {
         var msg = e.data;
@@ -90,7 +96,7 @@ var WorkerClient = function(topLevelNamespaces, mod, classname) {
                 break;
 
             case "event":
-                this._emit(msg.name, {data: msg.data});
+                this._signal(msg.name, {data: msg.data});
                 break;
 
             case "call":
@@ -115,7 +121,7 @@ var WorkerClient = function(topLevelNamespaces, mod, classname) {
     };
 
     this.terminate = function() {
-        this._emit("terminate", {});
+        this._signal("terminate", {});
         this.deltaQueue = null;
         this.$worker.terminate();
         this.$worker = null;
@@ -157,7 +163,7 @@ var WorkerClient = function(topLevelNamespaces, mod, classname) {
     this.changeListener = function(e) {
         if (!this.deltaQueue) {
             this.deltaQueue = [e.data];
-            setTimeout(this.$sendDeltaQueue, 1);
+            setTimeout(this.$sendDeltaQueue, 0);
         } else
             this.deltaQueue.push(e.data);
     };
@@ -170,7 +176,20 @@ var WorkerClient = function(topLevelNamespaces, mod, classname) {
             this.call("setValue", [this.$doc.getValue()]);
         } else
             this.emit("change", {data: q});
-    }
+    };
+
+    this.$workerBlob = function(workerUrl) {
+        var script = 'importScripts("' + workerUrl + '");';
+        try {
+            var blob = new Blob([script], {'type': 'application/javascript'});
+        } catch (e) { // Backwards-compatibility
+            var BlobBuilder = window.BlobBuilder || window.WebKitBlobBuilder || window.MozBlobBuilder;
+            var blobBuilder = new BlobBuilder();
+            blobBuilder.append(script);
+            blob = blobBuilder.getBlob('application/javascript');
+        }
+        return blob;
+    };
 
 }).call(WorkerClient.prototype);
 
@@ -198,7 +217,7 @@ var UIWorkerClient = function(topLevelNamespaces, mod, classname) {
         if (msg.command)
             main[msg.command].apply(main, msg.args);
         else if (msg.event)
-            sender._emit(msg.event, msg.data);
+            sender._signal(msg.event, msg.data);
     };
 
     sender.postMessage = function(msg) {

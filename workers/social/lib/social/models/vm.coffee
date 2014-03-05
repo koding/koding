@@ -18,6 +18,8 @@ module.exports = class JVM extends Module
   JPaymentSubscription = require './payment/subscription'
   JPaymentPack         = require './payment/pack'
   JPermissionSet       = require './group/permissionset'
+  JDomain              = require './domain'
+
   @share()
 
   @trait __dirname, '../traits/protected'
@@ -206,46 +208,6 @@ module.exports = class JVM extends Module
         return callback err if err
         callback null, vm.hostnameAlias
 
-  @createDomains = ({account, domains, hostnameAlias, stack})->
-
-    updateRelationship = (domainObj)->
-      Relationship.one
-        targetName: "JDomain",
-        targetId: domainObj._id,
-        sourceName: "JAccount",
-        sourceId: account._id,
-        as: "owner"
-      , (err, rel)->
-        if err or not rel
-          account.addDomain domainObj, (err)->
-            console.log err  if err?
-
-    JDomain = require './domain'
-    domains.forEach (domain) ->
-      domainObj = new JDomain
-        domain        : domain
-        hostnameAlias : [hostnameAlias]
-        proxy         : { mode: 'vm' }
-        regYears      : 0
-        loadBalancer  : { persistance: 'disabled' }
-        stack         : stack
-      domainObj.save (err)->
-        if err
-        then console.error err  unless err.code is 11000
-        else updateRelationship domainObj
-
-  @ensureDomainSettings = ({account, vm, type, nickname, groupSlug, stack})->
-    domain = 'kd.io'
-    if type in ['user', 'expensed']
-      requiredDomains = ["#{nickname}.#{groupSlug}.#{domain}"]
-      if groupSlug in ['koding', 'guests']
-        requiredDomains.push "#{nickname}.#{domain}"
-    else
-      requiredDomains = ["#{groupSlug}.#{domain}", "shared.#{groupSlug}.#{domain}"]
-
-    {hostnameAlias} = vm
-    @createDomains {account, domains:requiredDomains, hostnameAlias, stack}
-
   @createAliases = ({nickname, type, uid, groupSlug})->
     domain       = 'kd.io'
     aliases      = []
@@ -312,20 +274,26 @@ module.exports = class JVM extends Module
               return console.error err  if err
               # Counter created
 
-              @addVm {
-                uid
-                user
-                account
-                sudo      : yes
-                type      : 'user'
-                target    : account
-                planCode  : 'free'
-                groupSlug : group.slug
-                planOwner : "user_#{account._id}"
-                webHome   : account.profile.nickname
-                groups    : wrapGroup group
-                # ADD HERE ------------
-              }, callback
+              JStack = require './stack'
+              JStack.getStackId {
+                user : user.username
+                group: group.slug
+              }, (err, stack)=>
+
+                @addVm {
+                  uid
+                  user
+                  stack
+                  account
+                  sudo      : yes
+                  type      : 'user'
+                  target    : account
+                  planCode  : 'free'
+                  groupSlug : group.slug
+                  planOwner : "user_#{account._id}"
+                  webHome   : account.profile.nickname
+                  groups    : wrapGroup group
+                }, callback
 
       else
 
@@ -337,28 +305,21 @@ module.exports = class JVM extends Module
 
     JPaymentFulfillmentNonce.one { nonce }, (err, nonceObject) =>
       return callback err  if err
-      return { message: "Unrecognized nonce!", nonce }  unless nonceObject
+      return callback { message: "Unrecognized nonce!", nonce }  unless nonceObject
+      return callback { message: "Invalid nonce!", nonce }  if nonceObject.action isnt "debit"
 
       { planCode, subscriptionCode } = nonceObject
+      { delegate: account } = client.connection
+      { group: groupSlug } = client.context
 
-      JPaymentPack.one { planCode }, (err, pack) =>
+      nonceObject.update $set: action: "used", (err) =>
         return callback err  if err
-
-        pack.fetchProducts (err, products) =>
-          return callback err  if err
-
-          { delegate: account } = client.connection
-          { group: groupSlug } = client.context
-
-          @createVm {
-            account
-            groupSlug
-            planCode
-            subscriptionCode
-            type          : 'user'
-          }, (err, vm) ->
-            return callback err  if err
-            callback null, vm
+        @createVm {
+          account
+          groupSlug
+          planCode
+          subscriptionCode
+        }, callback
 
   @createSharedVm = secure (client, callback)->
     {connection:{delegate:account}, context:{group}} = client
@@ -437,15 +398,18 @@ module.exports = class JVM extends Module
                 return console.warn "Failed to create VM for ", \
                                      {users, groups, hostnameAlias}
 
-              JVM.createDomains {
+              JDomain.createDomains {
                 account, stack,
-                domains:hostnameAliases
-                hostnameAlias:hostnameAliases[0]
+                domains: hostnameAliases
+                hostnameAlias: hostnameAliases[0]
+                group: groupSlug
               }
 
               group.addVm vm, (err)=>
                 return callback err  if err
-                JVM.ensureDomainSettings {account, vm, type, nickname, groupSlug, stack}
+                JDomain.ensureDomainSettingsForVM {
+                  account, vm, type, nickname, group: groupSlug, stack
+                }
                 if type is 'group'
                   @addVmUsers user, vm, group, ->
                     callback null, vm
@@ -567,6 +531,8 @@ module.exports = class JVM extends Module
     { delegate } = client.connection
     @fetchAccountVmsBySelector delegate, { hostnameAlias: $in: names }, callback
 
+  # TODO: Move these methods to JDomain at some point ~ GG
+  # ------------------------------------------------------
   # Private static method to fetch domains
   @fetchDomains = (selector, callback)->
     JDomain = require './domain'
@@ -724,14 +690,23 @@ module.exports = class JVM extends Module
       callback? err, vm  unless err
 
       handleError err
-      if err
-        return console.warn "Failed to create VM for ", \
-                             {users, groups, hostnameAlias}
 
-      JVM.ensureDomainSettings \
-        {account, vm, type, nickname, groupSlug, stack}
-      JVM.createDomains \
-        {account, domains:hostnameAliases, hostnameAlias, stack}
+      if err
+        return console.warn "Failed to create VM for ", {
+          users, groups, hostnameAlias
+        }
+
+      group = groupSlug
+
+      JDomain.ensureDomainSettingsForVM {
+        account, vm, type, nickname, group, stack
+      }
+
+      JDomain.createDomains {
+        account, domains:hostnameAliases,
+        group, hostnameAlias, stack
+      }
+
       target.addVm vm, handleError
 
   wrapGroup = (group)-> [ { id: group.getId() } ]
@@ -840,12 +815,12 @@ module.exports = class JVM extends Module
                   # Counter created
 
                   hostnameAliases = JVM.createAliases {
-                    nickname:username
-                    type:'user', uid, groupSlug:'koding'
+                    nickname:username, uid,
+                    type:'user', groupSlug:group
                   }
 
-                  JVM.createDomains {
-                    account, stack,
+                  JDomain.createDomains {
+                    account, stack, group,
                     domains:hostnameAliases,
                     hostnameAlias:hostnameAliases[0]
                   }

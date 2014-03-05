@@ -31,6 +31,12 @@ class VirtualizationController extends KDController
         options.kiteName = "os-#{region}"
         @kc.run options, callback
 
+  getKite:(vmName, callback)->
+    @fetchRegion vmName, (region)=>
+      kiteName = "os-#{region}"
+      kite = @kc.getKite kiteName, vmName
+      return callback kite
+
   _runWrapper:(command, vm, callback)->
     if vm and 'string' isnt typeof vm
       [callback, vm] = [vm, callback]
@@ -232,7 +238,7 @@ class VirtualizationController extends KDController
 
     return  if not force and (waiting.push callback) > 1
 
-    KD.remote.api.JVM.fetchVms (err, vms) =>
+    KD.remote.api.JVM.fetchVmsByContext (err, vms)=>
       @vms = vms  unless err
       if force
       then callback err, vms

@@ -226,6 +226,7 @@ class PaymentController extends KDController
 
   fetchActiveSubscription: (tags, callback) ->
     if KD.getGroup()?.slug is "koding"
+      return callback()  if KD.whoami().type isnt "registered"
       status = $in: ["active", "canceled"]
       @fetchSubscriptionsWithPlans {tags, status}, (err, subscriptions) ->
         return callback err  if err
@@ -274,22 +275,3 @@ class PaymentController extends KDController
       subscription.plan = plansByCode[subscription.planCode]
 
     { plans, subscriptions }
-
-  debitWrapper: (options = {}, callback) ->
-    options.fn = @debitSubscription.bind this
-    @_runWrapper options, callback
-
-  creditWrapper: (options = {}, callback) ->
-    options.fn = @creditSubscription.bind this
-    @_runWrapper options, callback
-
-  _runWrapper: (options, callback) ->
-    {fn, subscriptionTag, packTag} = options
-
-    @fetchActiveSubscription (err, subscription) ->
-      return callback err  if err
-      KD.remote.api.JPaymentPack.one tags: packTag, (err, pack) =>
-        return callback err  if err
-        fn subscription, pack, (err, nonce) =>
-          return callback err  if err
-          callback null, nonce

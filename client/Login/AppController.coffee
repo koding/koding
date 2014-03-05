@@ -56,8 +56,23 @@ class LoginAppsController extends AppController
             app.getView().animateToForm 'login'
         else
           KD.singleton('appManager').open 'Login', (app) ->
-            app.getView().animateToForm 'login'
-            app.headBannerShowInvitation invite
+            view = app.getView()
+            KD.remote.api.JGroup.one {slug: invite.group}, (err, group) ->
+              group.checkUserUsage (err) ->
+                if err
+                  view.animateToForm 'failureNotice'
+                  view.setFailureNotice
+                    cssClass : "group-full"
+                    title    : "#{group.title} is full!"
+                    message  : """
+                      <p>Please contact to group administrator.</p>
+                      <p>Or continue to <a href="/" target="_self">koding.com</a></p>
+                    """
+                  view.animateToForm 'failureNotice'
+                  return
+
+                view.animateToForm 'login'
+                app.headBannerShowInvitation invite
 
   handleFinishRegistration = ({params:{token}}) ->
     KD.singleton('appManager').open 'Login', (app) ->
@@ -138,4 +153,3 @@ class LoginAppsController extends AppController
     @appStorage.fetchStorage (storage) =>
       @appStorage.setValue key, value, (err) ->
         warn "Failed to set #{key} information"  if err
-

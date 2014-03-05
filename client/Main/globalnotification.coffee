@@ -14,9 +14,12 @@ class GlobalNotificationView extends JView
 
     @bindTransitionEnd()
 
-    {scheduledAt} = @getData()
+    {scheduledAt, closeTimer} = @getData()
 
     scheduledAt = (new Date(scheduledAt)).getTime()
+
+    if closeTimer and typeof closeTimer is 'number'
+      KD.utils.wait closeTimer, @bound 'hideAndDestroy'
 
     @timer = new KDCustomHTMLView
       tagName  : 'strong'
@@ -27,7 +30,7 @@ class GlobalNotificationView extends JView
       @timer.updatePartial @timerPartial scheduledAt
       KD.utils.killRepeat @repeater  if Date.now() > scheduledAt
 
-    if 'admin' in KD.config.roles
+    if 'admin' in KD.config.roles and @getData().bongo_
       @adminClose = new KDButtonView
         tagName  : 'span'
         cssClass : 'solid red mini cancel'

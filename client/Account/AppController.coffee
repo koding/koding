@@ -2,7 +2,10 @@ class AccountAppController extends AppController
 
   handler = (callback)->
     if KD.isLoggedIn()
-      KD.singleton('appManager').open 'Account', callback
+      appManager = KD.singleton('appManager')
+      if appManager.getFrontApp()?.getOption('name') is 'Account'
+        callback appManager.getFrontApp()
+      else appManager.open 'Account', callback
     else
       KD.singletons.router.handleRoute '/'
 
@@ -191,7 +194,6 @@ class AccountAppController extends AppController
                     type          : "submit"
                     loader        :
                       color       : "#444444"
-                      diameter    : 12
                     callback      : -> @hideLoader()
                   cancel          :
                     title         : "Cancel"
@@ -199,7 +201,7 @@ class AccountAppController extends AppController
                     callback      : (event)-> modal.destroy()
                 fields            :
                   vmToResize    :
-                    label         : "Select a WM to resize"
+                    label         : "Select a VM to resize"
                     cssClass      : "clearfix"
                     itemClass     : KDSelectBox
                     type          : "select"

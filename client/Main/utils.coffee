@@ -10,9 +10,10 @@ __utils.extend __utils,
     #{ cardFirstName } #{ cardLastName } (#{ cardType } #{ cardNumber })
     """
 
-  botchedUrlRegExp: /(([a-zA-Z]+\:)?\/\/)+(\w+:\w+@)?([a-zA-Z\d.-]+\.[A-Za-z]{2,4})(:\d+)?(\/\S*)?/g
-
-  webProtocolRegExp: /^((http(s)?\:)?\/\/)/
+  botchedUrlRegExp     : /(([a-zA-Z]+\:)?\/\/)+(\w+:\w+@)?([a-zA-Z\d.-]+\.[A-Za-z]{2,4})(:\d+)?(\/\S*)?/g
+  webProtocolRegExp    : /^((http(s)?\:)?\/\/)/
+  domainWithTLDPattern : /^[a-z0-9]+([\-\.]{1}[a-z0-9]+)*\.[a-z]{2,5}$/i
+  subdomainPattern     : /^(?:[a-z0-9](?:[_\-](?![_\-])|[a-z0-9]){0,60}[a-z0-9]|[a-z0-9])$/i
 
   proxifyUrl:(url="", options={})->
 
@@ -29,13 +30,6 @@ __utils.extend __utils,
       endpoint = "/crop"
     return "https://i.embed.ly/1/display#{endpoint or ''}?grow=#{options.grow}&width=#{options.width}&height=#{options.height}&key=#{KD.config.embedly.apiKey}&url=#{encodeURIComponent url}"
 
-
-  goBackToOldKoding:->
-    KD.whoami().modify preferredKDProxyDomain : 'oldkoding', (err)->
-      unless err
-        $.cookie 'kdproxy-preferred-domain', 'oldkoding'
-        location.reload yes
-
   # This function checks current user's preferred domain and
   # set's it to preferredDomainCookie
   setPreferredDomain:(account)->
@@ -44,10 +38,10 @@ __utils.extend __utils,
     {preferredKDProxyDomain} = account
     if preferredKDProxyDomain and preferredKDProxyDomain isnt ""
       # if cookie name is already same do nothing
-      return  if $.cookie(preferredDomainCookieName) is preferredKDProxyDomain
+      return  if (Cookies.get preferredDomainCookieName) is preferredKDProxyDomain
 
       # set cookie name
-      $.cookie preferredDomainCookieName, preferredKDProxyDomain
+      Cookies.set preferredDomainCookieName, preferredKDProxyDomain
 
       # there can be conflicts between first(which is defined below) route
       # and the currect builds router, so reload to main page from server
@@ -402,24 +396,28 @@ __utils.extend __utils,
     gp = u.generatePassword
     gp(gr(10), yes)
 
-  registerDummyUser:->
-
-    return if location.hostname isnt "localhost"
+  generateDummyUserData:->
 
     u  = KD.utils
 
     uniqueness = (Date.now()+"").slice(6)
-    formData   =
+    return formData   =
       agree           : "on"
       email           : "sinanyasar+#{uniqueness}@gmail.com"
       firstName       : u.getDummyName()
       lastName        : u.getDummyName()
-      inviteCode      : "twitterfriends"
+      # inviteCode      : "twitterfriends"
       password        : "123123123"
       passwordConfirm : "123123123"
       username        : uniqueness
 
-    KD.remote.api.JUser.register formData, => location.reload yes
+  registerDummyUser:->
+
+    return if location.hostname is "koding.com"
+
+    u  = KD.utils
+
+    KD.remote.api.JUser.register u.generateDummyUserData(), => location.reload yes
 
   startRollbar: ->
     @replaceFromTempStorage "_rollbar"

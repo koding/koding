@@ -6,6 +6,9 @@ class SharePopup extends JView
     options.shortenURL        ?= true
     options.url               ?= ""
 
+    options.gplus            ?= {}
+    options.gplus.enabled    ?= true
+
     options.twitter         ?= {}
     options.twitter.enabled ?= true
     options.twitter.text    ?= ""
@@ -44,6 +47,7 @@ class SharePopup extends JView
       @urlInput.$().select()
 
 
+    @gPlusShareLink    = @buildGPlusShareLink()
     @twitterShareLink  = @buildTwitterShareLink()
     @facebookShareLink = @buildFacebookShareLink()
     @linkedInShareLink = @buildLinkedInShareLink()
@@ -68,6 +72,11 @@ class SharePopup extends JView
       @urlInput.$().select()
       return @urlInput
 
+  buildGPlusShareLink:()->
+    if @getOptions().gplus.enabled
+      link = "https://plus.google.com/share?url=#{encodeURIComponent(@getOptions().url)}"
+      return @generateView(link, "gplus")
+    return new KDView
 
   buildTwitterShareLink:()->
     if @getOptions().twitter.enabled
@@ -108,8 +117,9 @@ class SharePopup extends JView
   pistachio: ->
     """
     {{> @urlInput}}
-    {{> @twitterShareLink}}
-    {{> @facebookShareLink}}
+    {{> @gPlusShareLink}}
     {{> @linkedInShareLink}}
+    {{> @facebookShareLink}}
+    {{> @twitterShareLink}}
     """
 
