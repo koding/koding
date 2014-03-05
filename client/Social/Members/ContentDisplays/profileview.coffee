@@ -605,8 +605,7 @@ class ProfileView extends JView
       pistachio   : "<span>{{ #(counts.#{route}) }}</span>#{path}"
       click       : (event) =>
         event.preventDefault()
-        unless @memberData.counts[route] is 0
-          KD.getSingleton('router').handleRoute "/#{nickname}/#{path}", {state: @memberData}
+        KD.getSingleton('router').handleRoute "/#{nickname}?filter=#{route}", {state: @memberData}
     , @memberData
 
   fetchAutoCompleteForToField: (inputValue, blacklist, callback) ->
