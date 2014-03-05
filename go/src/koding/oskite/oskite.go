@@ -320,51 +320,41 @@ func (o *Oskite) runNewKite() {
 		},
 	)
 
-	k.HandleFunc("startVM", func(r *kitelib.Request) (interface{}, error) {
-		hostnameAlias := r.Args.One().MustString()
-		// just print hostnameAlias for now
-		fmt.Println("got request from", r.RemoteKite.Name, "starting:", hostnameAlias)
+	o.vosMethod(k, "vm.start", vmStartNew)
+	o.vosMethod(k, "vm.shutdown", vmShutdownNew)
+	o.vosMethod(k, "vm.prepare", vmPrepareNew)
+	o.vosMethod(k, "vm.unprepare", vmUnprepareNew)
+	o.vosMethod(k, "vm.stop", vmStopNew)
+	o.vosMethod(k, "vm.reinitialize", vmReinitializeNew)
+	o.vosMethod(k, "vm.info", vmInfoNew)
+	o.vosMethod(k, "vm.resizeDisk", vmResizeDiskNew)
+	o.vosMethod(k, "vm.createSnapshot", vmCreateSnapshotNew)
+	o.vosMethod(k, "spawn", spawnFuncNew)
+	o.vosMethod(k, "exec", execFuncNew)
 
-		v, err := modelhelper.GetVM(hostnameAlias)
-		if err != nil {
-			return nil, err
-		}
+	o.vosMethod(k, "fs.readDirectory", fsReadDirectoryNew)
+	o.vosMethod(k, "fs.glob", fsGlobNew)
+	o.vosMethod(k, "fs.readFile", fsReadFileNew)
+	o.vosMethod(k, "fs.writeFile", fsWriteFileNew)
+	o.vosMethod(k, "fs.uniquePath", fsUniquePathNew)
+	o.vosMethod(k, "fs.getInfo", fsGetInfoNew)
+	o.vosMethod(k, "fs.setPermissions", fsSetPermissionsNew)
+	o.vosMethod(k, "fs.remove", fsRemoveNew)
+	o.vosMethod(k, "fs.rename", fsRenameNew)
+	o.vosMethod(k, "fs.createDirectory", fsCreateDirectoryNew)
 
-		vm := virt.VM(*v)
-		vm.ApplyDefaults()
+	o.vosMethod(k, "app.install", appInstallNew)
+	o.vosMethod(k, "app.download", appDownloadNew)
+	o.vosMethod(k, "app.publish", appPublishNew)
+	o.vosMethod(k, "app.skeleton", appSkeletonNew)
 
-		err = o.validateVM(&vm)
-		if err != nil {
-			return nil, err
-		}
+	o.vosMethod(k, "webterm.connect", webtermConnectNew)
+	o.vosMethod(k, "webterm.getSessions", webtermGetSessionsNew)
 
-		isPrepared := true
-		if _, err := os.Stat(vm.File("rootfs/dev")); err != nil {
-			if !os.IsNotExist(err) {
-				panic(err)
-			}
-			isPrepared = false
-		}
+	o.vosMethod(k, "s3.store", s3StoreNew)
+	o.vosMethod(k, "s3.delete", s3DeleteNew)
 
-		if !isPrepared {
-			fmt.Println("preparing ", hostnameAlias)
-			vm.Prepare(false)
-		}
-
-		fmt.Println("starting ", hostnameAlias)
-		if err := vm.Start(); err != nil {
-			log.LogError(err, 0)
-		}
-
-		// wait until network is up
-		if err := vm.WaitForNetwork(time.Second * 5); err != nil {
-			log.LogError(err, 0)
-		}
-
-		// return back the IP address of the started vm
-		return vm.IP.String(), nil
-	})
-
+	k.DisableConcurrency() // needed for webterm.connect
 	k.Start()
 
 	// TODO: remove this later, this is needed in order to reinitiliaze the logger package

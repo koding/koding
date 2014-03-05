@@ -17,11 +17,11 @@ import (
 var ErrVmAlreadyPrepared = errors.New("vm is already prepared")
 
 func vmStartOld(args *dnode.Partial, c *kite.Channel, vos *virt.VOS) (interface{}, error) {
-	return vmStart(vos, c.CorrelationName)
+	return vmStart(vos)
 }
 
 func vmShutdownOld(args *dnode.Partial, c *kite.Channel, vos *virt.VOS) (interface{}, error) {
-	return vmShutdown(vos, c.CorrelationName)
+	return vmShutdown(vos)
 }
 
 func vmUnprepareOld(args *dnode.Partial, c *kite.Channel, vos *virt.VOS) (interface{}, error) {
@@ -72,16 +72,15 @@ func execFuncOld(args *dnode.Partial, c *kite.Channel, vos *virt.VOS) (interface
 
 ////////////////////
 
-func vmStart(vos *virt.VOS, hostnameAlias string) (interface{}, error) {
+func vmStart(vos *virt.VOS) (interface{}, error) {
 	if !vos.Permissions.Sudo {
 		return nil, &kite.PermissionError{}
 	}
 
 	done := make(chan struct{}, 1)
 	prepareQueue <- &QueueJob{
-		msg: "vm.Start" + hostnameAlias,
+		msg: "vm.Start" + vos.VM.HostnameAlias,
 		f: func() string {
-
 			if err := vos.VM.Start(); err != nil {
 				panic(err)
 			}
@@ -92,7 +91,7 @@ func vmStart(vos *virt.VOS, hostnameAlias string) (interface{}, error) {
 			}
 
 			done <- struct{}{}
-			return fmt.Sprintf("vm.Start %s", hostnameAlias)
+			return fmt.Sprintf("vm.Start %s", vos.VM.HostnameAlias)
 		},
 	}
 
@@ -101,14 +100,14 @@ func vmStart(vos *virt.VOS, hostnameAlias string) (interface{}, error) {
 	return true, nil
 }
 
-func vmShutdown(vos *virt.VOS, hostnameAlias string) (interface{}, error) {
+func vmShutdown(vos *virt.VOS) (interface{}, error) {
 	if !vos.Permissions.Sudo {
 		return nil, &kite.PermissionError{}
 	}
 
 	done := make(chan struct{}, 1)
 	prepareQueue <- &QueueJob{
-		msg: "vm.Shutdown" + hostnameAlias,
+		msg: "vm.Shutdown" + vos.VM.HostnameAlias,
 		f: func() string {
 
 			if err := vos.VM.Shutdown(); err != nil {
@@ -116,7 +115,7 @@ func vmShutdown(vos *virt.VOS, hostnameAlias string) (interface{}, error) {
 			}
 
 			done <- struct{}{}
-			return fmt.Sprintf("vm.Shutdown %s", hostnameAlias)
+			return fmt.Sprintf("vm.Shutdown %s", vos.VM.HostnameAlias)
 		},
 	}
 
@@ -190,7 +189,6 @@ func vmPrepare(vos *virt.VOS) (interface{}, error) {
 	}
 
 	vos.VM.Prepare(false)
-
 	return true, nil
 }
 
