@@ -39,6 +39,9 @@ class FeederResultsController extends KDViewController
 
     tabView = @getView()
 
+    listControllerClass = filter.listControllerClass  if filter.listControllerClass
+    itemClass           = filter.itemClass  if filter.itemClass
+
     @listControllers[name] = listController = new listControllerClass
       lazyLoadThreshold   : .75
       startWithLazyLoader : yes
