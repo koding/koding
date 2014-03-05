@@ -32,23 +32,18 @@ class SyncLocalController extends KDController
     @storage.setValue "saveRequestedFiles", @filesToSave
     @initializeListeners()
 
-  removeFromSaveArray: (fileName) ->
+  removeFromSaveArray: (file) ->
+    fileName = @getFileFullPath file
     index = @filesToSave.indexOf fileName
     if index > -1
       @filesToSave.splice index, 1
       @storage.setValue "saveRequestedFiles", @filesToSave
 
-  saveOpenedTabsContentToLocalStorage: ->
-    {aceViews} = KD.singletons.appManager.get("Ace").mainView
-    for filePath in Object.keys aceViews
-      content = aceViews[filePath].ace.getContents()
-      @saveToLocalStorage filePath, content
-
-  patchFileIfDiffExist: (vmName, fileName, localContent)->
-    KD.singletons.vmController.start vmName, (err, result)=>
-      return err if err
-      @fetchFileContents vmName, fileName,(err, content)=>
+  patchFileIfDiffExist: (file, localContent, cb)->
+    KD.singletons.vmController.info file.vmName, (err, vm, info)=>
       # TODO : we may need to listen vmController when state is not RUNNING
+      return cb err unless info.state is "RUNNING"
+      file.fetchContents (err, content)=>
         if content and not err
           newContent = @getPatchedContent content, localContent
           if newContent
@@ -65,33 +60,8 @@ class SyncLocalController extends KDController
     patchArray = dmp.patch_make originalContent, diffArray
     dmp.patch_apply patchArray, originalContent
 
-
-  writeToFile:(vmName, fileName, contents, callback)->
-    @emit "fs.save.started"
-    utf8Content   = KD.utils.utf8Encode contents
-    binaryContent = btoa contents
-    KD.singletons.vmController.run
-      vmName    : vmName
-      method    : 'fs.writeFile'
-      withArgs  :
-        path    : FSHelper.plainPath fileName
-        content : binaryContent
-    , (err, res)=>
-      if err then warn err
-      @emit "fs.save.finished", err, res
-      callback? err, res
-
-  fetchFileContents: (vmName, fileName, callback)->
-    KD.singletons.vmController.run
-      method    : 'fs.readFile'
-      vmName    : vmName
-      withArgs  :
-        path    : FSHelper.plainPath fileName
-    , (err, response)->
-      content = atob response.content
-      callback err, KD.utils.utf8Decode content
-
-  updateFileContentOnLocalStorage: (fileName, content)->
+  updateFileContentOnLocalStorage: (file, content)->
+    fileName = @getFileFullPath file
     @saveToLocalStorage fileName, content
 
   saveToLocalStorage: (fileName, contents)->
