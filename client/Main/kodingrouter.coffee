@@ -282,9 +282,6 @@ class KodingRouter extends KDRouter
       '/:name?/Topics/:slug'   : createContentHandler 'Topics'
 
       '/:name/Groups'          : createSectionHandler 'Groups'
-      '/:name/Followers'       : createContentHandler 'Members', yes
-      '/:name/Following'       : createContentHandler 'Members', yes
-      '/:name/Likes'           : createContentHandler 'Members', yes
 
       '/:name?/Invitation/:inviteCode': ({params:{inviteCode, name}})=>
         @handleRoute "/Redeem/#{inviteCode}"
