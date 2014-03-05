@@ -34,7 +34,7 @@ class AceAppView extends JView
 
   openLastFiles:->
     vmc = KD.getSingleton("vmController")
-    vmc.on "StateChanged", (err, vm, info)=>
+    vmc.once "StateChanged", (err, vm, info)=>
       {syncLocalController} = KD.singletons
       lastOpenedFiles = syncLocalController.getRecentOpenedFiles()
       for file in lastOpenedFiles
