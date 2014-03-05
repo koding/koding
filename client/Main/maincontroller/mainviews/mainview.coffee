@@ -305,7 +305,8 @@ class MainView extends KDView
 
     @notifications.push notification = new GlobalNotificationView options, message
 
-    @header.addSubView notification
+    container = message.container or @header
+    container.addSubView notification
     @hideAllNotifications()
 
     # if a notification is destroyed
