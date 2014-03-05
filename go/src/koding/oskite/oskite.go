@@ -158,6 +158,7 @@ func (o *Oskite) Run() {
 
 	// register current client-side methods
 	o.registerMethod(k, "vm.start", false, vmStartOld)
+	o.registerMethod(k, "vm.startProgress", false, vmStartProgress)
 	o.registerMethod(k, "vm.shutdown", false, vmShutdownOld)
 	o.registerMethod(k, "vm.unprepare", false, vmUnprepareOld)
 	o.registerMethod(k, "vm.prepare", false, vmPrepareOld)

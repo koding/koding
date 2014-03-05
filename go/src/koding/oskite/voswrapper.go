@@ -4,13 +4,14 @@ package oskite
 
 import (
 	"errors"
-	kitelib "github.com/koding/kite"
-	kitednode "github.com/koding/kite/dnode"
 	"koding/tools/kite"
 	"koding/virt"
 	"os"
 	"path"
 	"strings"
+
+	kitelib "github.com/koding/kite"
+	kitednode "github.com/koding/kite/dnode"
 
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
@@ -113,8 +114,7 @@ func vmReinitializeNew(r *kitelib.Request, vos *virt.VOS) (interface{}, error) {
 }
 
 func vmInfoNew(r *kitelib.Request, vos *virt.VOS) (interface{}, error) {
-	// TODO: fix this that it doesn't accept any channel
-	return vmInfo(vos, nil)
+	return vmInfo(vos)
 }
 
 func vmPrepareNew(r *kitelib.Request, vos *virt.VOS) (interface{}, error) {

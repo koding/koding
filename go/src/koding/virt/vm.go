@@ -134,63 +134,82 @@ func (vm *VM) ApplyDefaults() {
 	}
 }
 
+type PrepareStep struct {
+	Message     string  `json:"message"`
+	CurrentStep int     `json:"currentStep"`
+	TotalStep   int     `json:"totalStep"`
+	Err         error   `json:"error"`
+	TotalTime   float64 `json:"totalTime"` // time.Duration.Seconds()
+}
+
 // Prepare creates and initialized the container to be started later directly
 // with lxc.start. We don't use lxc.create (which uses shell scipts for
 // templating), instead of we use this method which basically let us do things
 // more efficient. It creates the home directory, generates files like lxc.conf
 // and mounts the necessary filesystems.
-func (v *VM) Prepare(reinitialize bool) {
-	// first unprepare to not conflict with everything else
-	v.Unprepare()
-
-	// create our lxc container dir
-	v.createContainerDir()
-
-	// map rbd image to block device
-	err := v.mountRBD()
-	if err != nil {
-		panic(err)
+func (v *VM) Prepare(reinitialize bool) <-chan *PrepareStep {
+	type PrepareFunc struct {
+		Fn  func() error
+		Msg string
 	}
+
+	funcs := make([]*PrepareFunc, 0)
+	funcs = append(funcs, &PrepareFunc{Msg: "Create container", Fn: v.createContainerDir})
+	funcs = append(funcs, &PrepareFunc{Msg: "Mount RBD", Fn: v.mountRBD})
 
 	// remove all except /home on reinitialize
 	if reinitialize {
-		err := v.reinitialize()
-		if err != nil {
-			panic(err)
+		funcs = append(funcs, &PrepareFunc{Msg: "Reinitialize", Fn: v.reinitialize})
+	}
+
+	funcs = append(funcs, &PrepareFunc{Msg: "Create overlay", Fn: v.createOverlay})
+	funcs = append(funcs, &PrepareFunc{Msg: "Merging old files", Fn: v.mergeFiles})
+	funcs = append(funcs, &PrepareFunc{Msg: "Mount AUF", Fn: v.mountAufs})
+	funcs = append(funcs, &PrepareFunc{Msg: "Mount PTS", Fn: v.prepareAndMountPts})
+	funcs = append(funcs, &PrepareFunc{Msg: "Add Ebtables rules", Fn: v.addEbtablesRule})
+	funcs = append(funcs, &PrepareFunc{Msg: "Add Static route", Fn: v.addStaticRoute})
+
+	results := make(chan *PrepareStep, len(funcs)+1) // plus we send the "FINISHED" msg.
+
+	// create the functions one by one and pass back the results via a
+	// channel. The channel will be closed if an error results.
+	go func() {
+		defer func() {
+			close(results)
+			results = nil
+		}()
+
+		for step, current := range funcs {
+			start := time.Now()
+			err := current.Fn() // invoke our function
+			if err != nil {
+				v.Unprepare() // don't put the prepare in an unknown state
+				break
+			}
+
+			results <- &PrepareStep{
+				Message:     current.Msg,
+				CurrentStep: step + 1,
+				TotalStep:   len(funcs) + 1, // plus we send the FINISHED msg
+				TotalTime:   time.Since(start).Seconds(),
+				Err:         err,
+			}
 		}
-	}
 
-	v.createOverlay()
+	}()
 
-	v.mergeFiles()
+	return results
 
-	err = v.mountAufs()
-	if err != nil {
-		panic(err)
-	}
-
-	err = v.prepareAndMountPts()
-	if err != nil {
-		panic(err)
-	}
-
-	err = v.addEbtablesRule()
-	if err != nil {
-		panic(err)
-	}
-
-	err = v.addStaticRoute()
-	if err != nil {
-		panic(err)
-	}
 }
 
-func (v *VM) createContainerDir() {
+func (v *VM) createContainerDir() error {
 	// write LXC files
 	prepareDir(v.File(""), 0)
 	v.generateFile(v.File("config"), "config", 0, false)
 	v.generateFile(v.File("fstab"), "fstab", 0, false)
 	v.generateFile(v.File("ip-address"), "ip-address", 0, false)
+
+	return nil
 }
 
 func (v *VM) mountRBD() error {
@@ -215,7 +234,7 @@ func (v *VM) reinitialize() error {
 	return nil
 }
 
-func (v *VM) createOverlay() {
+func (v *VM) createOverlay() error {
 	// prepare overlay
 	prepareDir(v.OverlayFile("/"), RootIdOffset)           // for chown
 	prepareDir(v.OverlayFile("/lost+found"), RootIdOffset) // for chown
@@ -224,11 +243,15 @@ func (v *VM) createOverlay() {
 	v.generateFile(v.OverlayFile("/etc/hostname"), "hostname", RootIdOffset, false)
 	v.generateFile(v.OverlayFile("/etc/hosts"), "hosts", RootIdOffset, false)
 	v.generateFile(v.OverlayFile("/etc/ldap.conf"), "ldap.conf", RootIdOffset, false)
+
+	return nil
 }
 
-func (v *VM) mergeFiles() {
+func (v *VM) mergeFiles() error {
 	v.MergePasswdFile()
 	v.MergeGroupFile()
+
+	return nil
 }
 
 func (v *VM) mountAufs() error {

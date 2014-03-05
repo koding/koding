@@ -41,7 +41,7 @@ func vmPrepareOld(args *dnode.Partial, c *kite.Channel, vos *virt.VOS) (interfac
 }
 
 func vmInfoOld(args *dnode.Partial, c *kite.Channel, vos *virt.VOS) (interface{}, error) {
-	return vmInfo(vos, c)
+	return vmInfo(vos)
 }
 
 func vmResizeDiskOld(args *dnode.Partial, c *kite.Channel, vos *virt.VOS) (interface{}, error) {
@@ -138,7 +138,6 @@ func vmUnprepare(vos *virt.VOS) (interface{}, error) {
 	}
 
 	return true, nil
-
 }
 
 func vmStop(vos *virt.VOS) (interface{}, error) {
@@ -173,9 +172,19 @@ func vmResizeDisk(vos *virt.VOS) (interface{}, error) {
 	return true, vos.VM.ResizeRBD()
 }
 
-func vmInfo(vos *virt.VOS, channel *kite.Channel) (interface{}, error) {
-	info := channel.KiteData.(*VMInfo)
-	info.State = vos.VM.GetState()
+func vmInfo(vos *virt.VOS) (interface{}, error) {
+	var info *VMInfo
+	var ok bool
+
+	info, ok = infos[vos.VM.Id]
+	if !ok {
+		info = newInfo(vos.VM)
+		info.State = vos.VM.GetState()
+		infos[vos.VM.Id] = info
+	} else {
+		info.State = vos.VM.GetState()
+	}
+
 	return info, nil
 }
 
@@ -193,7 +202,8 @@ func vmPrepare(vos *virt.VOS) (interface{}, error) {
 		return nil, ErrVmAlreadyPrepared
 	}
 
-	vos.VM.Prepare(false)
+	for _ = range vos.VM.Prepare(false) {
+	}
 	return true, nil
 }
 
@@ -215,7 +225,9 @@ func vmReinitialize(vos *virt.VOS) (interface{}, error) {
 		return nil, &kite.PermissionError{}
 	}
 
-	vos.VM.Prepare(true)
+	for _ = range vos.VM.Prepare(true) {
+	}
+
 	if err := vos.VM.Start(); err != nil {
 		return nil, err
 	}
@@ -249,7 +261,8 @@ func startAndPrepareVM(vm *virt.VM) error {
 			startTime := time.Now()
 
 			// prepare first
-			vm.Prepare(false)
+			for _ = range vm.Prepare(false) {
+			}
 
 			// start it
 			if err := vm.Start(); err != nil {
@@ -277,4 +290,83 @@ func startAndPrepareVM(vm *virt.VM) error {
 	<-done
 
 	return nil
+}
+
+func vmStartProgress(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
+	var params struct {
+		OnProgress dnode.Callback
+	}
+
+	if args.Unmarshal(&params) != nil || params.OnProgress == nil {
+		return nil, &kite.ArgumentError{Expected: "{OnProgress: [function]}"}
+	}
+
+	params.OnProgress(&virt.PrepareStep{
+		Err:         nil,
+		CurrentStep: 0,
+		TotalStep:   0,
+		Message:     "vmPrepareAndStart called.",
+		TotalTime:   0,
+	})
+
+	go func() {
+		done := make(chan struct{}, 1)
+		prepareQueue <- &QueueJob{
+			msg: "vm.Start" + channel.CorrelationName,
+			f: func() string {
+				var lastError error
+
+				defer func() {
+					params.OnProgress(&virt.PrepareStep{
+						Err:       lastError,
+						Message:   "FINISHED",
+						TotalTime: 0,
+					})
+
+					done <- struct{}{}
+				}()
+
+				for step := range vos.VM.Prepare(false) {
+					lastError = step.Err
+					if lastError != nil {
+						return fmt.Sprintf("Error while preparing VM %s", lastError)
+					}
+
+					params.OnProgress(step) // send every process back to the client
+				}
+
+				// start vm
+				start := time.Now()
+				if lastError = vos.VM.Start(); lastError != nil {
+					return fmt.Sprintf("Error while starting VM")
+				}
+
+				params.OnProgress(&virt.PrepareStep{
+					Err:       nil,
+					Message:   "VM started",
+					TotalTime: time.Since(start).Seconds(),
+				})
+
+				// wait until network is up
+				start = time.Now()
+				if lastError = vos.VM.WaitForNetwork(time.Second * 5); lastError != nil {
+					return fmt.Sprintf("Error while preparing VM")
+				}
+
+				params.OnProgress(&virt.PrepareStep{
+					Err:       nil,
+					Message:   "VM prepared",
+					TotalTime: time.Since(start).Seconds(),
+				})
+
+				return fmt.Sprintf("vm.PrepareAndStart %s", channel.CorrelationName)
+			},
+		}
+
+		// wait until the prepareWorker has picked us and we finished
+		// to return something to the client
+		<-done
+	}()
+
+	return true, nil
 }
