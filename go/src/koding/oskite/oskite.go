@@ -157,45 +157,46 @@ func (o *Oskite) Run() {
 	o.setupSignalHandler() // handle SIGUSR1 and other signals.
 
 	// register current client-side methods
-	o.registerVmMethod(k, "vm.start", false, vmStartOld)
-	o.registerVmMethod(k, "vm.shutdown", false, vmShutdownOld)
-	o.registerVmMethod(k, "vm.unprepare", false, vmUnprepareOld)
-	o.registerVmMethod(k, "vm.stop", false, vmStopOld)
-	o.registerVmMethod(k, "vm.reinitialize", false, vmReinitializeOld)
-	o.registerVmMethod(k, "vm.info", false, vmInfoOld)
-	o.registerVmMethod(k, "vm.resizeDisk", false, vmResizeDiskOld)
-	o.registerVmMethod(k, "vm.createSnapshot", false, vmCreateSnapshotOld)
-	o.registerVmMethod(k, "spawn", true, spawnFuncOld)
-	o.registerVmMethod(k, "exec", true, execFuncOld)
+	o.registerMethod(k, "vm.start", false, vmStartOld)
+	o.registerMethod(k, "vm.shutdown", false, vmShutdownOld)
+	o.registerMethod(k, "vm.unprepare", false, vmUnprepareOld)
+	o.registerMethod(k, "vm.prepare", false, vmPrepareOld)
+	o.registerMethod(k, "vm.stop", false, vmStopOld)
+	o.registerMethod(k, "vm.reinitialize", false, vmReinitializeOld)
+	o.registerMethod(k, "vm.info", false, vmInfoOld)
+	o.registerMethod(k, "vm.resizeDisk", false, vmResizeDiskOld)
+	o.registerMethod(k, "vm.createSnapshot", false, vmCreateSnapshotOld)
+	o.registerMethod(k, "spawn", true, spawnFuncOld)
+	o.registerMethod(k, "exec", true, execFuncOld)
 
-	o.registerVmMethod(k, "oskite.Info", true, o.oskiteInfo)
-	o.registerVmMethod(k, "oskite.All", true, oskiteAll)
+	o.registerMethod(k, "oskite.Info", true, o.oskiteInfo)
+	o.registerMethod(k, "oskite.All", true, oskiteAll)
 
 	syscall.Umask(0) // don't know why richard calls this
-	o.registerVmMethod(k, "fs.readDirectory", false, fsReadDirectoryOld)
-	o.registerVmMethod(k, "fs.glob", false, fsGlobOld)
-	o.registerVmMethod(k, "fs.readFile", false, fsReadFileOld)
-	o.registerVmMethod(k, "fs.writeFile", false, fsWriteFileOld)
-	o.registerVmMethod(k, "fs.ensureNonexistentPath", false, fsUniquePathOld)
-	o.registerVmMethod(k, "fs.getInfo", false, fsGetInfoOld)
-	o.registerVmMethod(k, "fs.setPermissions", false, fsSetPermissionsOld)
-	o.registerVmMethod(k, "fs.remove", false, fsRemoveOld)
-	o.registerVmMethod(k, "fs.rename", false, fsRenameOld)
-	o.registerVmMethod(k, "fs.createDirectory", false, fsCreateDirectoryOld)
-	o.registerVmMethod(k, "fs.move", false, fsMoveOld)
-	o.registerVmMethod(k, "fs.copy", false, fsCopyOld)
+	o.registerMethod(k, "fs.readDirectory", false, fsReadDirectoryOld)
+	o.registerMethod(k, "fs.glob", false, fsGlobOld)
+	o.registerMethod(k, "fs.readFile", false, fsReadFileOld)
+	o.registerMethod(k, "fs.writeFile", false, fsWriteFileOld)
+	o.registerMethod(k, "fs.ensureNonexistentPath", false, fsUniquePathOld)
+	o.registerMethod(k, "fs.getInfo", false, fsGetInfoOld)
+	o.registerMethod(k, "fs.setPermissions", false, fsSetPermissionsOld)
+	o.registerMethod(k, "fs.remove", false, fsRemoveOld)
+	o.registerMethod(k, "fs.rename", false, fsRenameOld)
+	o.registerMethod(k, "fs.createDirectory", false, fsCreateDirectoryOld)
+	o.registerMethod(k, "fs.move", false, fsMoveOld)
+	o.registerMethod(k, "fs.copy", false, fsCopyOld)
 
-	o.registerVmMethod(k, "app.install", false, appInstallOld)
-	o.registerVmMethod(k, "app.download", false, appDownloadOld)
-	o.registerVmMethod(k, "app.publish", false, appPublishOld)
-	o.registerVmMethod(k, "app.skeleton", false, appSkeletonOld)
+	o.registerMethod(k, "app.install", false, appInstallOld)
+	o.registerMethod(k, "app.download", false, appDownloadOld)
+	o.registerMethod(k, "app.publish", false, appPublishOld)
+	o.registerMethod(k, "app.skeleton", false, appSkeletonOld)
 
 	// this method is special cased in oskite.go to allow foreign access
-	o.registerVmMethod(k, "webterm.connect", false, webtermConnectOld)
-	o.registerVmMethod(k, "webterm.getSessions", false, webtermGetSessionsOld)
+	o.registerMethod(k, "webterm.connect", false, webtermConnectOld)
+	o.registerMethod(k, "webterm.getSessions", false, webtermGetSessionsOld)
 
-	o.registerVmMethod(k, "s3.store", true, s3StoreOld)
-	o.registerVmMethod(k, "s3.delete", true, s3DeleteOld)
+	o.registerMethod(k, "s3.store", true, s3StoreOld)
+	o.registerMethod(k, "s3.delete", true, s3DeleteOld)
 
 	go o.oskiteRedis(k.ServiceUniqueName)
 
@@ -567,117 +568,6 @@ func (o *Oskite) setupSignalHandler() {
 
 		log.Fatal()
 	}()
-}
-
-func (o *Oskite) registerVmMethod(k *kite.Kite, method string, concurrent bool, callback func(*dnode.Partial, *kite.Channel, *virt.VOS) (interface{}, error)) {
-
-	wrapperMethod := func(args *dnode.Partial, channel *kite.Channel) (methodReturnValue interface{}, methodError error) {
-
-		if shuttingDown {
-			return nil, errors.New("Kite is shutting down.")
-		}
-
-		requestWaitGroup.Add(1)
-		defer requestWaitGroup.Done()
-
-		if shuttingDown { // check second time after sync to avoid additional mutex
-			return nil, errors.New("Kite is shutting down.")
-		}
-
-		if o.ActiveVMsLimit <= currentVMS() {
-			return nil, fmt.Errorf("Maximum capacity of %s has been reached.", o.ActiveVMsLimit)
-		}
-
-		user, err := o.getUser(channel.Username)
-		if err != nil {
-			return nil, err
-		}
-
-		vm, err := o.getVM(channel.CorrelationName)
-		if err != nil {
-			return nil, err
-		}
-
-		defer func() {
-			if err := recover(); err != nil {
-				log.LogError(err, 1, channel.Username, channel.CorrelationName, vm.String())
-				time.Sleep(time.Second) // penalty for avoiding that the client rapidly sends the request again on error
-				methodError = &kite.InternalKiteError{}
-			}
-		}()
-
-		if method == "webterm.connect" {
-			var params struct {
-				JoinUser string
-				Session  string
-			}
-
-			args.Unmarshal(&params)
-
-			if params.JoinUser != "" {
-				if len(params.Session) != utils.RandomStringLength {
-					return nil, &kite.BaseError{
-						Message: "Invalid session identifier",
-						CodeErr: ErrInvalidSession,
-					}
-				}
-
-				if vm.GetState() != "RUNNING" {
-					return nil, errors.New("VM not running.")
-				}
-
-				if err := mongodbConn.Run("jUsers", func(c *mgo.Collection) error {
-					return c.Find(bson.M{"username": params.JoinUser}).One(&user)
-				}); err != nil {
-					panic(err)
-				}
-
-				return callback(args, channel, &virt.VOS{VM: vm, User: user})
-			}
-		}
-
-		permissions := vm.GetPermissions(user)
-		if permissions == nil {
-			return nil, &kite.PermissionError{}
-		}
-
-		if err := o.startVM(vm, channel); err != nil {
-			return nil, err
-		}
-
-		vmWebDir := "/home/" + vm.WebHome + "/Web"
-		userWebDir := "/home/" + user.Name + "/Web"
-
-		rootVos, err := vm.OS(&virt.RootUser)
-		if err != nil {
-			panic(err)
-		}
-
-		userVos, err := vm.OS(user)
-		if err != nil {
-			panic(err)
-		}
-		vmWebVos := rootVos
-		if vmWebDir == userWebDir {
-			vmWebVos = userVos
-		}
-
-		rootVos.Chmod("/", 0755)     // make sure that executable flag is set
-		rootVos.Chmod("/home", 0755) // make sure that executable flag is set
-		createUserHome(user, rootVos, userVos)
-		createVmWebDir(vm, vmWebDir, rootVos, vmWebVos)
-		if vmWebDir != userWebDir {
-			createUserWebDir(user, vmWebDir, userWebDir, rootVos, userVos)
-		}
-
-		if concurrent {
-			requestWaitGroup.Done()
-			defer requestWaitGroup.Add(1)
-		}
-		return callback(args, channel, userVos)
-	}
-
-	k.Handle(method, concurrent, wrapperMethod)
 }
 
 // registerMethod is wrapper around our final methods. It's basically creates

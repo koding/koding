@@ -77,25 +77,30 @@ func vmStart(vos *virt.VOS) (interface{}, error) {
 		return nil, &kite.PermissionError{}
 	}
 
-	done := make(chan struct{}, 1)
-	prepareQueue <- &QueueJob{
-		msg: "vm.Start" + vos.VM.HostnameAlias,
-		f: func() string {
-			if err := vos.VM.Start(); err != nil {
-				panic(err)
-			}
-
-			// wait until network is up
-			if err := vos.VM.WaitForNetwork(time.Second * 5); err != nil {
-				panic(err)
-			}
-
-			done <- struct{}{}
-			return fmt.Sprintf("vm.Start %s", vos.VM.HostnameAlias)
-		},
+	if err := startAndPrepareVM(vos.VM); err != nil {
+		return nil, err
 	}
 
-	<-done
+	rootVos, err := vos.VM.OS(&virt.RootUser)
+	if err != nil {
+		return nil, err
+	}
+
+	vmWebDir := "/home/" + vos.VM.WebHome + "/Web"
+	userWebDir := "/home/" + vos.User.Name + "/Web"
+
+	vmWebVos := rootVos
+	if vmWebDir == userWebDir {
+		vmWebVos = vos
+	}
+
+	rootVos.Chmod("/", 0755)     // make sure that executable flag is set
+	rootVos.Chmod("/home", 0755) // make sure that executable flag is set
+	createUserHome(vos.User, rootVos, vos)
+	createVmWebDir(vos.VM, vmWebDir, rootVos, vmWebVos)
+	if vmWebDir != userWebDir {
+		createUserWebDir(vos.User, vmWebDir, userWebDir, rootVos, vos)
+	}
 
 	return true, nil
 }
@@ -224,39 +229,6 @@ func execFunc(line string, vos *virt.VOS) (interface{}, error) {
 
 func spawnFunc(command []string, vos *virt.VOS) (interface{}, error) {
 	return vos.VM.AttachCommand(vos.User.Uid, "", command...).CombinedOutput()
-}
-
-func vmStartExplicit(vos *virt.VOS) (interface{}, error) {
-	if !vos.Permissions.Sudo {
-		return nil, &kite.PermissionError{}
-	}
-
-	if err := startAndPrepareVM(vos.VM); err != nil {
-		return nil, err
-	}
-
-	rootVos, err := vos.VM.OS(&virt.RootUser)
-	if err != nil {
-		return nil, err
-	}
-
-	vmWebDir := "/home/" + vos.VM.WebHome + "/Web"
-	userWebDir := "/home/" + vos.User.Name + "/Web"
-
-	vmWebVos := rootVos
-	if vmWebDir == userWebDir {
-		vmWebVos = vos
-	}
-
-	rootVos.Chmod("/", 0755)     // make sure that executable flag is set
-	rootVos.Chmod("/home", 0755) // make sure that executable flag is set
-	createUserHome(vos.User, rootVos, vos)
-	createVmWebDir(vos.VM, vmWebDir, rootVos, vmWebVos)
-	if vmWebDir != userWebDir {
-		createUserWebDir(vos.User, vmWebDir, userWebDir, rootVos, vos)
-	}
-
-	return true, nil
 }
 
 func startAndPrepareVM(vm *virt.VM) error {
