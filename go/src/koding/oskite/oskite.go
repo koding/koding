@@ -202,6 +202,59 @@ func (o *Oskite) Run() {
 
 }
 
+func (o *Oskite) runNewKite() {
+	log.Info("Run newkite.")
+	k := kodingkite.New(
+		conf,
+		kitelib.Options{
+			Kitename: OSKITE_NAME,
+			Version:  "0.0.1",
+			Port:     "5000",
+			Region:   o.Region,
+		},
+	)
+
+	o.vosMethod(k, "vm.start", vmStartNew)
+	o.vosMethod(k, "vm.shutdown", vmShutdownNew)
+	o.vosMethod(k, "vm.prepare", vmPrepareNew)
+	o.vosMethod(k, "vm.unprepare", vmUnprepareNew)
+	o.vosMethod(k, "vm.stop", vmStopNew)
+	o.vosMethod(k, "vm.reinitialize", vmReinitializeNew)
+	o.vosMethod(k, "vm.info", vmInfoNew)
+	o.vosMethod(k, "vm.resizeDisk", vmResizeDiskNew)
+	o.vosMethod(k, "vm.createSnapshot", vmCreateSnapshotNew)
+	o.vosMethod(k, "spawn", spawnFuncNew)
+	o.vosMethod(k, "exec", execFuncNew)
+
+	o.vosMethod(k, "fs.readDirectory", fsReadDirectoryNew)
+	o.vosMethod(k, "fs.glob", fsGlobNew)
+	o.vosMethod(k, "fs.readFile", fsReadFileNew)
+	o.vosMethod(k, "fs.writeFile", fsWriteFileNew)
+	o.vosMethod(k, "fs.uniquePath", fsUniquePathNew)
+	o.vosMethod(k, "fs.getInfo", fsGetInfoNew)
+	o.vosMethod(k, "fs.setPermissions", fsSetPermissionsNew)
+	o.vosMethod(k, "fs.remove", fsRemoveNew)
+	o.vosMethod(k, "fs.rename", fsRenameNew)
+	o.vosMethod(k, "fs.createDirectory", fsCreateDirectoryNew)
+
+	o.vosMethod(k, "app.install", appInstallNew)
+	o.vosMethod(k, "app.download", appDownloadNew)
+	o.vosMethod(k, "app.publish", appPublishNew)
+	o.vosMethod(k, "app.skeleton", appSkeletonNew)
+
+	o.vosMethod(k, "webterm.connect", webtermConnectNew)
+	o.vosMethod(k, "webterm.getSessions", webtermGetSessionsNew)
+
+	o.vosMethod(k, "s3.store", s3StoreNew)
+	o.vosMethod(k, "s3.delete", s3DeleteNew)
+
+	k.DisableConcurrency() // needed for webterm.connect
+	k.Start()
+
+	// TODO: remove this later, this is needed in order to reinitiliaze the logger package
+	log.SetLevel(o.LogLevel)
+}
+
 var oskitesMu sync.Mutex
 var oskites = make(map[string]*OskiteInfo)
 
@@ -306,59 +359,6 @@ func lowestOskiteLoad() (serviceUniquename string) {
 
 	return l.ServiceUniquename
 
-}
-
-func (o *Oskite) runNewKite() {
-	log.Info("Run newkite.")
-	k := kodingkite.New(
-		conf,
-		kitelib.Options{
-			Kitename: OSKITE_NAME,
-			Version:  "0.0.1",
-			Port:     "5000",
-			Region:   o.Region,
-		},
-	)
-
-	o.vosMethod(k, "vm.start", vmStartNew)
-	o.vosMethod(k, "vm.shutdown", vmShutdownNew)
-	o.vosMethod(k, "vm.prepare", vmPrepareNew)
-	o.vosMethod(k, "vm.unprepare", vmUnprepareNew)
-	o.vosMethod(k, "vm.stop", vmStopNew)
-	o.vosMethod(k, "vm.reinitialize", vmReinitializeNew)
-	o.vosMethod(k, "vm.info", vmInfoNew)
-	o.vosMethod(k, "vm.resizeDisk", vmResizeDiskNew)
-	o.vosMethod(k, "vm.createSnapshot", vmCreateSnapshotNew)
-	o.vosMethod(k, "spawn", spawnFuncNew)
-	o.vosMethod(k, "exec", execFuncNew)
-
-	o.vosMethod(k, "fs.readDirectory", fsReadDirectoryNew)
-	o.vosMethod(k, "fs.glob", fsGlobNew)
-	o.vosMethod(k, "fs.readFile", fsReadFileNew)
-	o.vosMethod(k, "fs.writeFile", fsWriteFileNew)
-	o.vosMethod(k, "fs.uniquePath", fsUniquePathNew)
-	o.vosMethod(k, "fs.getInfo", fsGetInfoNew)
-	o.vosMethod(k, "fs.setPermissions", fsSetPermissionsNew)
-	o.vosMethod(k, "fs.remove", fsRemoveNew)
-	o.vosMethod(k, "fs.rename", fsRenameNew)
-	o.vosMethod(k, "fs.createDirectory", fsCreateDirectoryNew)
-
-	o.vosMethod(k, "app.install", appInstallNew)
-	o.vosMethod(k, "app.download", appDownloadNew)
-	o.vosMethod(k, "app.publish", appPublishNew)
-	o.vosMethod(k, "app.skeleton", appSkeletonNew)
-
-	o.vosMethod(k, "webterm.connect", webtermConnectNew)
-	o.vosMethod(k, "webterm.getSessions", webtermGetSessionsNew)
-
-	o.vosMethod(k, "s3.store", s3StoreNew)
-	o.vosMethod(k, "s3.delete", s3DeleteNew)
-
-	k.DisableConcurrency() // needed for webterm.connect
-	k.Start()
-
-	// TODO: remove this later, this is needed in order to reinitiliaze the logger package
-	log.SetLevel(o.LogLevel)
 }
 
 func (o *Oskite) initializeSettings() {
