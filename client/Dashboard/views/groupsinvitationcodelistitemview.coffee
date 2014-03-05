@@ -50,7 +50,6 @@ class GroupsInvitationCodeListItemView extends KDListItemView
                 type          : 'submit'
                 loader        :
                   color       : '#444444'
-                  diameter    : 12
               # Disable         :
               #   itemClass     : KDButtonView
               #   style         : 'modal-clean-red'
@@ -93,8 +92,7 @@ class GroupsInvitationCodeListItemView extends KDListItemView
                 itemClass    : KDButtonView
                 style        : 'modal-clean-green'
                 loader       :
-                  color      : '#ffffff'
-                  diameter   : 12
+                  color      : '#444444'
                 callback     : -> modal.destroy()
             fields           :
               link           :
@@ -131,8 +129,7 @@ class GroupsInvitationCodeListItemView extends KDListItemView
                   itemClass  : KDButtonView
                   style      : 'modal-clean-green'
                   loader     :
-                    color    : '#ffffff'
-                    diameter : 12
+                    color    : '#444444'
                   callback   : =>
                     invitation.remove (err) =>
                       return KD.showError err if err

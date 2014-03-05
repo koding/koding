@@ -149,49 +149,51 @@ func (o *Oskite) Run() {
 
 	k := o.prepareOsKite()
 
-	o.runNewKite(k.ServiceUniqueName)
-	o.handleCurrentVMS(k)   // handle leftover VMs
-	o.startPinnedVMS(k)     // start pinned always-on VMs
-	o.setupSignalHandler(k) // handle SIGUSR1 and other signals.
+	o.ServiceUniquename = k.ServiceUniqueName
+
+	o.runNewKite()
+	o.handleCurrentVMS()   // handle leftover VMs
+	o.startPinnedVMS()     // start pinned always-on VMs
+	o.setupSignalHandler() // handle SIGUSR1 and other signals.
 
 	// register current client-side methods
-	o.registerVmMethod(k, "vm.start", false, vmStart)
-	o.registerVmMethod(k, "vm.shutdown", false, vmShutdown)
-	o.registerVmMethod(k, "vm.unprepare", false, vmUnprepare)
-	o.registerVmMethod(k, "vm.stop", false, vmStop)
-	o.registerVmMethod(k, "vm.reinitialize", false, vmReinitialize)
-	o.registerVmMethod(k, "vm.info", false, vmInfo)
-	o.registerVmMethod(k, "vm.resizeDisk", false, vmResizeDisk)
-	o.registerVmMethod(k, "vm.createSnapshot", false, vmCreateSnaphost)
-	o.registerVmMethod(k, "spawn", true, spawnFunc)
-	o.registerVmMethod(k, "exec", true, execFunc)
+	o.registerVmMethod(k, "vm.start", false, vmStartOld)
+	o.registerVmMethod(k, "vm.shutdown", false, vmShutdownOld)
+	o.registerVmMethod(k, "vm.unprepare", false, vmUnprepareOld)
+	o.registerVmMethod(k, "vm.stop", false, vmStopOld)
+	o.registerVmMethod(k, "vm.reinitialize", false, vmReinitializeOld)
+	o.registerVmMethod(k, "vm.info", false, vmInfoOld)
+	o.registerVmMethod(k, "vm.resizeDisk", false, vmResizeDiskOld)
+	o.registerVmMethod(k, "vm.createSnapshot", false, vmCreateSnapshotOld)
+	o.registerVmMethod(k, "spawn", true, spawnFuncOld)
+	o.registerVmMethod(k, "exec", true, execFuncOld)
 
 	o.registerVmMethod(k, "oskite.Info", true, o.oskiteInfo)
 	o.registerVmMethod(k, "oskite.All", true, oskiteAll)
 
 	syscall.Umask(0) // don't know why richard calls this
-	o.registerVmMethod(k, "fs.readDirectory", false, fsReadDirectory)
-	o.registerVmMethod(k, "fs.glob", false, fsGlob)
-	o.registerVmMethod(k, "fs.readFile", false, fsReadFile)
-	o.registerVmMethod(k, "fs.writeFile", false, fsWriteFile)
-	o.registerVmMethod(k, "fs.ensureNonexistentPath", false, fsEnsureNonexistentPath)
-	o.registerVmMethod(k, "fs.getInfo", false, fsGetInfo)
-	o.registerVmMethod(k, "fs.setPermissions", false, fsSetPermissions)
-	o.registerVmMethod(k, "fs.remove", false, fsRemove)
-	o.registerVmMethod(k, "fs.rename", false, fsRename)
-	o.registerVmMethod(k, "fs.createDirectory", false, fsCreateDirectory)
+	o.registerVmMethod(k, "fs.readDirectory", false, fsReadDirectoryOld)
+	o.registerVmMethod(k, "fs.glob", false, fsGlobOld)
+	o.registerVmMethod(k, "fs.readFile", false, fsReadFileOld)
+	o.registerVmMethod(k, "fs.writeFile", false, fsWriteFileOld)
+	o.registerVmMethod(k, "fs.ensureNonexistentPath", false, fsUniquePathOld)
+	o.registerVmMethod(k, "fs.getInfo", false, fsGetInfoOld)
+	o.registerVmMethod(k, "fs.setPermissions", false, fsSetPermissionsOld)
+	o.registerVmMethod(k, "fs.remove", false, fsRemoveOld)
+	o.registerVmMethod(k, "fs.rename", false, fsRenameOld)
+	o.registerVmMethod(k, "fs.createDirectory", false, fsCreateDirectoryOld)
 
-	o.registerVmMethod(k, "app.install", false, appInstall)
-	o.registerVmMethod(k, "app.download", false, appDownload)
-	o.registerVmMethod(k, "app.publish", false, appPublish)
-	o.registerVmMethod(k, "app.skeleton", false, appSkeleton)
+	o.registerVmMethod(k, "app.install", false, appInstallOld)
+	o.registerVmMethod(k, "app.download", false, appDownloadOld)
+	o.registerVmMethod(k, "app.publish", false, appPublishOld)
+	o.registerVmMethod(k, "app.skeleton", false, appSkeletonOld)
 
 	// this method is special cased in oskite.go to allow foreign access
-	o.registerVmMethod(k, "webterm.connect", false, webtermConnect)
-	o.registerVmMethod(k, "webterm.getSessions", false, webtermGetSessions)
+	o.registerVmMethod(k, "webterm.connect", false, webtermConnectOld)
+	o.registerVmMethod(k, "webterm.getSessions", false, webtermGetSessionsOld)
 
-	o.registerVmMethod(k, "s3.store", true, s3Store)
-	o.registerVmMethod(k, "s3.delete", true, s3Delete)
+	o.registerVmMethod(k, "s3.store", true, s3StoreOld)
+	o.registerVmMethod(k, "s3.delete", true, s3DeleteOld)
 
 	go o.oskiteRedis(k.ServiceUniqueName)
 
@@ -306,7 +308,7 @@ func lowestOskiteLoad() (serviceUniquename string) {
 
 }
 
-func (o *Oskite) runNewKite(serviceUniqueName string) {
+func (o *Oskite) runNewKite() {
 	log.Info("Run newkite.")
 	k := kodingkite.New(
 		conf,
@@ -318,51 +320,41 @@ func (o *Oskite) runNewKite(serviceUniqueName string) {
 		},
 	)
 
-	k.HandleFunc("startVM", func(r *kitelib.Request) (interface{}, error) {
-		hostnameAlias := r.Args.One().MustString()
-		// just print hostnameAlias for now
-		fmt.Println("got request from", r.RemoteKite.Name, "starting:", hostnameAlias)
+	o.vosMethod(k, "vm.start", vmStartNew)
+	o.vosMethod(k, "vm.shutdown", vmShutdownNew)
+	o.vosMethod(k, "vm.prepare", vmPrepareNew)
+	o.vosMethod(k, "vm.unprepare", vmUnprepareNew)
+	o.vosMethod(k, "vm.stop", vmStopNew)
+	o.vosMethod(k, "vm.reinitialize", vmReinitializeNew)
+	o.vosMethod(k, "vm.info", vmInfoNew)
+	o.vosMethod(k, "vm.resizeDisk", vmResizeDiskNew)
+	o.vosMethod(k, "vm.createSnapshot", vmCreateSnapshotNew)
+	o.vosMethod(k, "spawn", spawnFuncNew)
+	o.vosMethod(k, "exec", execFuncNew)
 
-		v, err := modelhelper.GetVM(hostnameAlias)
-		if err != nil {
-			return nil, err
-		}
+	o.vosMethod(k, "fs.readDirectory", fsReadDirectoryNew)
+	o.vosMethod(k, "fs.glob", fsGlobNew)
+	o.vosMethod(k, "fs.readFile", fsReadFileNew)
+	o.vosMethod(k, "fs.writeFile", fsWriteFileNew)
+	o.vosMethod(k, "fs.uniquePath", fsUniquePathNew)
+	o.vosMethod(k, "fs.getInfo", fsGetInfoNew)
+	o.vosMethod(k, "fs.setPermissions", fsSetPermissionsNew)
+	o.vosMethod(k, "fs.remove", fsRemoveNew)
+	o.vosMethod(k, "fs.rename", fsRenameNew)
+	o.vosMethod(k, "fs.createDirectory", fsCreateDirectoryNew)
 
-		vm := virt.VM(*v)
-		vm.ApplyDefaults()
+	o.vosMethod(k, "app.install", appInstallNew)
+	o.vosMethod(k, "app.download", appDownloadNew)
+	o.vosMethod(k, "app.publish", appPublishNew)
+	o.vosMethod(k, "app.skeleton", appSkeletonNew)
 
-		err = o.validateVM(&vm, serviceUniqueName)
-		if err != nil {
-			return nil, err
-		}
+	o.vosMethod(k, "webterm.connect", webtermConnectNew)
+	o.vosMethod(k, "webterm.getSessions", webtermGetSessionsNew)
 
-		isPrepared := true
-		if _, err := os.Stat(vm.File("rootfs/dev")); err != nil {
-			if !os.IsNotExist(err) {
-				panic(err)
-			}
-			isPrepared = false
-		}
+	o.vosMethod(k, "s3.store", s3StoreNew)
+	o.vosMethod(k, "s3.delete", s3DeleteNew)
 
-		if !isPrepared {
-			fmt.Println("preparing ", hostnameAlias)
-			vm.Prepare(false, log.Warning)
-		}
-
-		fmt.Println("starting ", hostnameAlias)
-		if err := vm.Start(); err != nil {
-			log.LogError(err, 0)
-		}
-
-		// wait until network is up
-		if err := vm.WaitForNetwork(time.Second * 5); err != nil {
-			log.LogError(err, 0)
-		}
-
-		// return back the IP address of the started vm
-		return vm.IP.String(), nil
-	})
-
+	k.DisableConcurrency() // needed for webterm.connect
 	k.Start()
 
 	// TODO: remove this later, this is needed in order to reinitiliaze the logger package
@@ -409,11 +401,11 @@ func (o *Oskite) prepareOsKite() *kite.Kite {
 			log.Info("oskite loadbalancer for [correlationName: '%s' user: '%s' deadService: '%s'] results in --> %v.", correlationName, username, deadService, v)
 		}
 
-		resultOskite := k.ServiceUniqueName
+		resultOskite := o.ServiceUniquename
 		lowestOskite := lowestOskiteLoad()
 		if lowestOskite != "" {
 			if deadService == lowestOskite {
-				resultOskite = k.ServiceUniqueName
+				resultOskite = o.ServiceUniquename
 			} else {
 				resultOskite = lowestOskite
 			}
@@ -458,7 +450,7 @@ func (o *Oskite) prepareOsKite() *kite.Kite {
 		// healthy service given by the client, which is the returned
 		// k.ServiceUniqueName.
 		if vm.HostKite == deadService {
-			blog(fmt.Sprintf("dead service detected %s returning '%s'", vm.HostKite, k.ServiceUniqueName))
+			blog(fmt.Sprintf("dead service detected %s returning '%s'", vm.HostKite, o.ServiceUniquename))
 			if err := mongodbConn.Run("jVMs", func(c *mgo.Collection) error {
 				return c.Update(bson.M{"_id": vm.Id}, bson.M{"$set": bson.M{"hostKite": nil}})
 			}); err != nil {
@@ -477,7 +469,7 @@ func (o *Oskite) prepareOsKite() *kite.Kite {
 
 // handleCurrentVMS removes and unprepare any vm in the lxc dir that doesn't
 // have any associated document which in mongodbConn.
-func (o *Oskite) handleCurrentVMS(k *kite.Kite) {
+func (o *Oskite) handleCurrentVMS() {
 	dirs, err := ioutil.ReadDir("/var/lib/lxc")
 	if err != nil {
 		log.LogError(err, 0)
@@ -492,9 +484,9 @@ func (o *Oskite) handleCurrentVMS(k *kite.Kite) {
 				return c.FindId(vmId).One(&vm)
 			}
 
-			if err := mongodbConn.Run("jVMs", query); err != nil || vm.HostKite != k.ServiceUniqueName {
+			if err := mongodbConn.Run("jVMs", query); err != nil || vm.HostKite != o.ServiceUniquename {
 				log.Info("cleaning up leftover VM: '%s', vm.Hoskite: '%s', k.ServiceUniqueName: '%s', error '%v'",
-					vmId, vm.HostKite, k.ServiceUniqueName, err)
+					vmId, vm.HostKite, o.ServiceUniquename, err)
 
 				if err := virt.UnprepareVM(vmId); err != nil {
 					log.Error("%v", err)
@@ -512,16 +504,16 @@ func (o *Oskite) handleCurrentVMS(k *kite.Kite) {
 	log.Info("VMs in /var/lib/lxc are finished.")
 }
 
-func (o *Oskite) startPinnedVMS(k *kite.Kite) {
+func (o *Oskite) startPinnedVMS() {
 	log.Info("Starting pinned hosts, if any...")
 	mongodbConn.Run("jVMs", func(c *mgo.Collection) error {
-		iter := c.Find(bson.M{"pinnedToHost": k.ServiceUniqueName, "alwaysOn": true}).Iter()
+		iter := c.Find(bson.M{"pinnedToHost": o.ServiceUniquename, "alwaysOn": true}).Iter()
 		for {
 			var vm virt.VM
 			if !iter.Next(&vm) {
 				break
 			}
-			if err := o.startVM(k, &vm, nil); err != nil {
+			if err := o.startVM(&vm, nil); err != nil {
 				log.LogError(err, 0)
 			}
 		}
@@ -534,7 +526,7 @@ func (o *Oskite) startPinnedVMS(k *kite.Kite) {
 	})
 }
 
-func (o *Oskite) setupSignalHandler(k *kite.Kite) {
+func (o *Oskite) setupSignalHandler() {
 	log.Info("Setting up signal handler")
 	sigtermChannel := make(chan os.Signal)
 	signal.Notify(sigtermChannel, syscall.SIGINT, syscall.SIGTERM, syscall.SIGUSR1)
@@ -557,7 +549,7 @@ func (o *Oskite) setupSignalHandler(k *kite.Kite) {
 
 			query := func(c *mgo.Collection) error {
 				_, err := c.UpdateAll(
-					bson.M{"hostKite": k.ServiceUniqueName},
+					bson.M{"hostKite": o.ServiceUniquename},
 					bson.M{"$set": bson.M{"hostKite": nil}},
 				) // ensure that really all are set to nil
 				return err
@@ -646,7 +638,7 @@ func (o *Oskite) registerVmMethod(k *kite.Kite, method string, concurrent bool, 
 			return nil, &kite.PermissionError{}
 		}
 
-		if err := o.startVM(k, vm, channel); err != nil {
+		if err := o.startVM(vm, channel); err != nil {
 			return nil, err
 		}
 
@@ -734,7 +726,7 @@ func (o *Oskite) getVM(channel *kite.Channel) (*virt.VM, error) {
 	return vm, nil
 }
 
-func (o *Oskite) validateVM(vm *virt.VM, serviceUniqueName string) error {
+func (o *Oskite) validateVM(vm *virt.VM) error {
 	if vm.Region != o.Region {
 		time.Sleep(time.Second) // to avoid rapid cycle channel loop
 		return &kite.WrongChannelError{}
@@ -788,23 +780,23 @@ func (o *Oskite) validateVM(vm *virt.VM, serviceUniqueName string) error {
 		vm.LdapPassword = ldapPassword
 	}
 
-	if vm.HostKite != serviceUniqueName {
+	if vm.HostKite != o.ServiceUniquename {
 		err := mongodbConn.Run("jVMs", func(c *mgo.Collection) error {
-			return c.Update(bson.M{"_id": vm.Id, "hostKite": nil}, bson.M{"$set": bson.M{"hostKite": serviceUniqueName}})
+			return c.Update(bson.M{"_id": vm.Id, "hostKite": nil}, bson.M{"$set": bson.M{"hostKite": o.ServiceUniquename}})
 		})
 		if err != nil {
 			time.Sleep(time.Second) // to avoid rapid cycle channel loop
 			return &kite.WrongChannelError{}
 		}
 
-		vm.HostKite = serviceUniqueName
+		vm.HostKite = o.ServiceUniquename
 	}
 
 	return nil
 }
 
-func (o *Oskite) startVM(k *kite.Kite, vm *virt.VM, channel *kite.Channel) error {
-	err := o.validateVM(vm, k.ServiceUniqueName)
+func (o *Oskite) startVM(vm *virt.VM, channel *kite.Channel) error {
+	err := o.validateVM(vm)
 	if err != nil {
 		return err
 	}
@@ -861,7 +853,7 @@ func (o *Oskite) startVM(k *kite.Kite, vm *virt.VM, channel *kite.Channel) error
 				startTime := time.Now()
 
 				// prepare first
-				vm.Prepare(false, log.Warning)
+				vm.Prepare(false)
 
 				// start it
 				if err := vm.Start(); err != nil {

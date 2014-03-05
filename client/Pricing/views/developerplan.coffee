@@ -40,8 +40,10 @@ class DeveloperPlan extends JView
     @summary.addSubView @buyNow    = new KDButtonView
       cssClass : "buy-now"
       style    : "solid green"
+      loader   : yes
       title    : "BUY NOW"
       callback : =>
+        @buyNow.showLoader()
         { paymentController, router } = KD.singletons
         if @planIndex is 0
           return router.handleRoute '/Register'

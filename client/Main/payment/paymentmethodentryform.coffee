@@ -102,9 +102,7 @@ class PaymentMethodEntryForm extends KDFormViewWithFields
           title             : 'ADD CARD'
           style             : 'solid medium green'
           type              : 'submit'
-          loader            :
-            color           : '#ffffff'
-            diameter        : 26
+          loader            : yes
         BACK                :
           style             : 'medium solid light-gray to-left'
           callback          : => @parent.showForm 'choice'

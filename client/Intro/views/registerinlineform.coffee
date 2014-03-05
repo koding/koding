@@ -41,13 +41,14 @@ class HomeRegisterForm extends KDFormView
       title         : 'Sign up'
       cssClass      : 'solid red shadowed'
       type          : 'submit'
+      loader        : yes
       callback      : =>
+        @button.showLoader()
         if @username.input.getValue() is ""
           @username.showError "Please enter a username."
         if @email.input.getValue() is ""
           @email.showError "Please enter an email."
-
-
+        @button.hideLoader()
 
     @on "SubmitFailed", (msg)=>
       # if msg is "Wrong password"
