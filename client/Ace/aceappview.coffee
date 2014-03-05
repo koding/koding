@@ -28,7 +28,19 @@ class AceAppView extends JView
       @finderController.reset()
       @finderController.on 'FileNeedsToBeOpened', (file)=>
         @openFile file, yes
+      @openLastFiles()
 
+
+
+  openLastFiles:->
+    vmc = KD.getSingleton("vmController")
+    vmc.once "StateChanged", (err, vm, info)=>
+      {syncLocalController} = KD.singletons
+      lastOpenedFiles = syncLocalController.getRecentOpenedFiles()
+      for file in lastOpenedFiles
+        if file isnt 'localfile:/Untitled.txt'
+          fsfile = FSHelper.createFileFromPath file
+          @openFile fsfile
 
   attachEvents:->
 
@@ -132,7 +144,9 @@ class AceAppView extends JView
   addNewTab: (file) ->
     file = file or FSHelper.createFileFromPath 'localfile:/Untitled.txt'
     aceView = new AceView delegate: this, file
-    aceView.on 'KDObjectWillBeDestroyed', => @removeOpenDocument aceView
+    aceView.on 'KDObjectWillBeDestroyed', =>
+      KD.singletons.syncLocalController.removeFromOpenedFiles file
+      @removeOpenDocument aceView
     @aceViews[file.path] = aceView
     @setViewListeners aceView
 
@@ -142,6 +156,9 @@ class AceAppView extends JView
 
     @tabView.addPane pane
     pane.addSubView aceView
+
+    # save opened file to localStorage, so that we can open same files on refresh.
+    KD.singletons.syncLocalController.addToOpenedFiles file.path
 
   setViewListeners: (view) ->
     @setFileListeners view.getData()

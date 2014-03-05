@@ -19,6 +19,7 @@ class Ace extends KDView
     @domElement = $ "<figure class='kdview'><div id='editor#{@getId()}' class='code-wrapper'></div></figure>"
 
   viewAppended:->
+    super
     @hide()
     @appStorage.fetchStorage (storage)=>
       require ['ace/ace'], (ace)=>
@@ -137,17 +138,19 @@ class Ace extends KDView
     file = @getData()
     # update the localStorage each time user requested save.
     {syncLocalController} = KD.singletons
-    syncLocalController.updateFileContentOnLocalStorage file.path, contents
+    syncLocalController.updateFileContentOnLocalStorage file, contents
     if KD.remote.isConnected()
       # if file is saved, remove it from localStorage
-      syncLocalController.removeFromSaveArray file.path
+      syncLocalController.removeFromSaveArray file
     else
       # add to list of files that need to be synced.
-      syncLocalController.addToWillSaved file.path
-      syncLocalController.once "FileContentSynced", (fileName) =>
-        log "synced File ", fileName
-        @notify "file synced to remote...", null, null, 5000
+      syncLocalController.addToSaveArray file
+      @prepareSyncListeners()
 
+  prepareSyncListeners: ->
+    {syncLocalController} = KD.singletons
+    syncLocalController.on "LocalContentSynced", (fileName) =>
+      @notify "file synced to remote...", null, null, 5000
 
   requestSaveAs: (options) ->
     contents = @getContents()
