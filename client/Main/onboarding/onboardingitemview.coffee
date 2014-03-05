@@ -45,9 +45,13 @@ class OnboardingItemView extends KDView
     , customView       : @createContentView()
 
     @contextMenu.on "viewAppended", =>
+      @contextMenu.once "KDObjectWillBeDestroyed", =>
+        @destroy()
+
       KD.utils.defer =>
         left = @parentElement.getX() - @contextMenu.getX() + 10
         @contextMenu.arrow.setCss "left", left
+        $("body").addClass "noscroll"
 
   createContentView: ->
     {title, content} = @getData()
@@ -128,6 +132,7 @@ class OnboardingItemView extends KDView
     super
     @overlay?.destroy()
     @contextMenu.destroy()
+    $("body").removeClass "noscroll"
 
 
 class OnboardingContextMenu extends JContextMenu
