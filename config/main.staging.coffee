@@ -55,6 +55,7 @@ module.exports =
   runGoBroker   : no
   runGoBrokerKite: no
   runPremiumBrokerKite: no
+  runPremiumBroker: no
   runKontrol    : yes
   runRerouting  : yes
   runUserPresence: yes
@@ -176,15 +177,18 @@ module.exports =
       mainUri   : "http://koding.com"
       broker    :
         servicesEndpoint: "/-/services/broker"
-        sockJS   : "http://stage-broker-#{version}.sj.koding.com/subscribe"
+        sockJS   : "http://stage-broker.koding.com/subscribe"
+      premiumBroker    :
+        servicesEndpoint: "/-/services/premiumBroker"
+        sockJS   : "http://stage-premiumbroker.koding.com/subscribe"
       brokerKite:
         servicesEndpoint: "/-/services/brokerKite"
         brokerExchange: 'brokerKite'
-        sockJS   : "http://stage-brokerkite-#{version}.sj.koding.com/subscribe"
+        sockJS   : "http://stage-brokerkite.koding.com/subscribe"
       premiumBrokerKite:
         servicesEndpoint: "/-/services/premiumBrokerKite"
         brokerExchange: 'premiumBrokerKite'
-        sockJS   : "http://stage-premiumbrokerkite-#{version}.sj.koding.com/subscribe"
+        sockJS   : "http://stage-premiumbrokerkite.koding.com/subscribe"
       apiUri    : 'https://koding.com'
       appsUri   : 'https://koding-apps.s3.amazonaws.com'
       uploadsUri: 'https://koding-uploads.s3.amazonaws.com'
@@ -230,8 +234,15 @@ module.exports =
     certFile    : "/opt/ssl_certs/wildcard.koding.com.cert"
     keyFile     : "/opt/ssl_certs/wildcard.koding.com.key"
     webProtocol : 'https:'
-    webHostname : "broker-#{version}.sj.koding.com"
-    webPort     : null
+    authExchange: authExchange
+    authAllExchange: authAllExchange
+  premiumBroker :
+    name        : "premiumBroker"
+    ip          : ""
+    port        : 443
+    certFile    : "/opt/ssl_certs/wildcard.koding.com.cert"
+    keyFile     : "/opt/ssl_certs/wildcard.koding.com.key"
+    webProtocol : 'https:'
     authExchange: authExchange
     authAllExchange: authAllExchange
   brokerKite    :
@@ -241,8 +252,6 @@ module.exports =
     certFile    : "/opt/ssl_certs/wildcard.koding.com.cert"
     keyFile     : "/opt/ssl_certs/wildcard.koding.com.key"
     webProtocol : 'https:'
-    webHostname : "brokerKite-#{version}.sj.koding.com"
-    webPort     : null
     authExchange: authExchange
     authAllExchange: authAllExchange
   premiumBrokerKite:
@@ -252,8 +261,6 @@ module.exports =
     certFile    : "/opt/ssl_certs/wildcard.koding.com.cert"
     keyFile     : "/opt/ssl_certs/wildcard.koding.com.key"
     webProtocol : 'https:'
-    webHostname : "premiumbrokerkite-#{version}.sj.koding.com"
-    webPort     : null
     authExchange: authExchange
     authAllExchange: authAllExchange
   kites:

@@ -75,6 +75,7 @@ config =
     runGoBroker   : 1
     runGoBrokerKite: 1
     runPremiumBrokerKite: 1
+    runPremiumBroker: 1
     runKontrol    : 1
     runRerouting  : 1
     runUserPresence: 1
@@ -192,6 +193,9 @@ config =
         broker        :
           servicesEndpoint: 1
           sockJS      : 1
+        premiumBroker        :
+          servicesEndpoint: 1
+          sockJS      : 1
         brokerKite    :
           servicesEndpoint: 1
           brokerExchange: 1
@@ -244,8 +248,15 @@ config =
       certFile    : 1
       keyFile     : 1
       webProtocol : 1
-      webHostname : 1
-      webPort     : 1
+      authExchange: 1
+      authAllExchange: 1
+    premiumBroker :
+      name        : 1
+      ip          : 1
+      port        : 1
+      certFile    : 1
+      keyFile     : 1
+      webProtocol : 1
       authExchange: 1
       authAllExchange: 1
     brokerKite    :
@@ -255,20 +266,16 @@ config =
       certFile    : 1
       keyFile     : 1
       webProtocol : 1
-      webHostname : 1
-      webPort     : 1
       authExchange: 1
       authAllExchange: 1
     premiumBrokerKite :
-      name           : 1
-      ip             : 1
-      port           : 1
-      certFile       : 1
-      keyFile        : 1
-      webProtocol    : 1
-      webHostname    : 1
-      webPort        : 1
-      authExchange   : 1
+      name        : 1
+      ip          : 1
+      port        : 1
+      certFile    : 1
+      keyFile     : 1
+      webProtocol : 1
+      authExchange: 1
       authAllExchange: 1
     kites:
       disconnectTimeout: 1

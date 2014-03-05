@@ -105,6 +105,8 @@ func main() {
 	broker := NewBroker(conf)
 
 	switch *flagBrokerType {
+	case "premiumBroker":
+		broker.Config = &conf.PremiumBroker
 	case "brokerKite":
 		broker.Config = &conf.BrokerKite
 	case "premiumBrokerKite":

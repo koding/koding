@@ -55,6 +55,7 @@ module.exports =
   runNeo4jFeeder: yes
   runGoBroker   : yes
   runGoBrokerKite: yes
+  runPremiumBroker: yes
   runPremiumBrokerKite: yes
   runKontrol    : yes
   runRerouting  : yes
@@ -173,14 +174,17 @@ module.exports =
       broker    :
         servicesEndpoint: 'http://lvh.me:3020/-/services/broker'
         sockJS  : 'http://lvh.me:8008/subscribe'
+      premiumBroker:
+        servicesEndpoint: 'http://lvh.me:3020/-/services/premiumBroker'
+        sockJS  : 'http://lvh.me:8009/subscribe'
       brokerKite:
         servicesEndpoint: 'http://lvh.me:3020/-/services/brokerKite'
         brokerExchange: 'brokerKite'
-        sockJS  : 'http://lvh.me:8009/subscribe'
+        sockJS  : 'http://lvh.me:8010/subscribe'
       premiumBrokerKite:
         servicesEndpoint: 'http://lvh.me:3020/-/services/premiumBrokerKite'
         brokerExchange: 'premiumBrokerKite'
-        sockJS  : 'http://lvh.me:8010/subscribe'
+        sockJS  : 'http://lvh.me:8011/subscribe'
       apiUri    : 'http://lvh.me:3020'
       version   : version
       mainUri   : 'http://lvh.me:3020'
@@ -229,30 +233,33 @@ module.exports =
     certFile    : ""
     keyFile     : ""
     webProtocol : 'http:'
-    webHostname : 'lvh.me'
-    webPort     : 8008
     authExchange: authExchange
     authAllExchange: authAllExchange
-  brokerKite    :
-    name        : "brokerKite"
+  premiumBroker  :
+    name        : "premiumBroker"
     ip          : ""
     port        : 8009
     certFile    : ""
     keyFile     : ""
     webProtocol : 'http:'
-    webHostname : 'lvh.me'
-    webPort     : 8009
     authExchange: authExchange
     authAllExchange: authAllExchange
-  premiumBrokerKite :
-    name        : "premiumBrokerKite"
+  brokerKite    :
+    name        : "brokerKite"
     ip          : ""
     port        : 8010
     certFile    : ""
     keyFile     : ""
     webProtocol : 'http:'
-    webHostname : 'lvh.me'
-    webPort     : 8010
+    authExchange: authExchange
+    authAllExchange: authAllExchange
+  premiumBrokerKite :
+    name        : "premiumBrokerKite"
+    ip          : ""
+    port        : 8011
+    certFile    : ""
+    keyFile     : ""
+    webProtocol : 'http:'
     authExchange: authExchange
     authAllExchange: authAllExchange
   kites:

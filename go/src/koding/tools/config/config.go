@@ -60,6 +60,7 @@ type Config struct {
 	}
 	GoLogLevel        string
 	Broker            Broker
+	PremiumBroker     Broker
 	BrokerKite        Broker
 	PremiumBrokerKite Broker
 	Loggr             struct {
