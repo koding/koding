@@ -59,7 +59,7 @@ class SyncLocalController extends KDController
   getPatchedContent: (originalContent, localContent)->
     dmp = new diff_match_patch
     diffArray = dmp.diff_main originalContent, localContent
-    return no unless diffArray.length > 2
+    return no unless diffArray.length > 0
     dmp.diff_cleanupEfficiency diffArray
     patchArray = dmp.patch_make originalContent, diffArray
     dmp.patch_apply patchArray, originalContent
@@ -74,18 +74,17 @@ class SyncLocalController extends KDController
   addToOpenedFiles: (fileName)->
     vmName = FSHelper.getVMNameFromPath fileName
     index  = @openedFiles.indexOf fileName
-    if index == -1 and vmName
+    if index is -1 and vmName
       @openedFiles.push fileName
       @storage.setValue "openedFiles", @openedFiles
 
   removeFromOpenedFiles: (file)->
-    fileName = "[#{file.vmName}]#{file.path}"
-    log fileName
-    index = @openedFiles.indexOf fileName
-    unless index == -1
+    fileName = @getFileFullPath file
+    index    = @openedFiles.indexOf fileName
+    unless index is -1
       @openedFiles.splice index, 1
       @storage.setValue "openedFiles", @openedFiles
-
+      @removeFromSaveArray file
 
   getRecentOpenedFiles: ->
     @openedFiles
@@ -95,6 +94,11 @@ class SyncLocalController extends KDController
     fileName = "[#{file.vmName}]#{plainPath}"
     return fileName
 
+  saveOpenedTabsContentToLocalStorage: ->
+    {aceViews} = KD.singletons.appManager.get("Ace").mainView
+    for filePath in Object.keys aceViews
+      content = aceViews[filePath].ace.getContents()
+      @saveToLocalStorage filePath, content
 
   saveEditorHistory: ->
     log "NOT IMPLEMENTED YET"
