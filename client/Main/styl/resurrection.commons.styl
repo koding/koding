@@ -79,65 +79,63 @@ resurrection.commons.styl
   bg                        color, #1b2224
 
 /* Activity item menu */
-body.activity
-body.profile
-body.dashboard
-  .kdbuttonmenu.jcontextmenu
-    margin              4px 0 0 14px
-    rounded             6px
-    border              1px solid #e4e4e4
-    shadow              0 8px 35px rgba(0, 0, 0, .22)
-    padding             5px 0
 
-    &:after
-      content             ""
-      display             block
-      size                0 0
-      right               19px
-      bottom              100%
-      border              7px solid transparent
-      border-bottom-color #fff
-      z-index             600
-      abs()
+.kdbuttonmenu.jcontextmenu.resurrection
+  margin                4px 0 0 14px
+  rounded               6px
+  border                1px solid #e4e4e4
+  shadow                0 8px 35px rgba(0, 0, 0, .22)
+  padding               5px 0
 
-    &:before
-      content             ""
-      display             block
-      size                0 0
-      right               18px
-      bottom              100%
-      border              8px solid transparent
-      border-bottom-color #e4e4e4
-      z-index             599
-      abs()
+  &:after
+    content             ""
+    display             block
+    size                0 0
+    right               19px
+    bottom              100%
+    border              7px solid transparent
+    border-bottom-color #fff
+    z-index             600
+    abs()
 
-    &.comment-menu
-      margin              0 0 0 16px
+  &:before
+    content             ""
+    display             block
+    size                0 0
+    right               18px
+    bottom              100%
+    border              8px solid transparent
+    border-bottom-color #e4e4e4
+    z-index             599
+    abs()
 
-    .kdlistitemview-contextitem
-      color               #50595f
-      font-size           12px
-      line-height         24px
-      cursor              pointer
-      padding             0 0 0 12px
+  &.comment-menu
+    margin              0 0 0 16px
 
-      .icon
-        margin            0 7px 0 0
-        display           inline-block
-        vertical-align    sub
-        &.edit
-          r-sprite        app "edit-icon"
-        &.delete
-          r-sprite        app "delete-icon"
+  .kdlistitemview-contextitem.default
+    color               #50595f
+    font-size           12px
+    line-height         24px
+    cursor              pointer
+    padding             0 0 0 12px
 
-      &:hover
-      &.selected
-        bg                color #F8f8f8
-        text-shadow       none
+    .icon
+      margin            0 7px 0 0
+      display           inline-block
+      vertical-align    sub
+      &.edit
+        r-sprite        app "edit-icon"
+      &.delete
+        r-sprite        app "delete-icon"
 
+    &:hover
+    &.selected
+      bg                color, #F8f8f8
+      text-shadow       none
+      color             #50595f
 
-    .chevron-ghost-wrapper
-      opacity           0
+  .chevron-ghost-wrapper
+    opacity           0
 
 .kdtabhandlecontainer.application-tab-handle-holder
 
@@ -442,14 +440,14 @@ finderSelectedColor2 = logoBg
   &:focus
     shadow             0 0 10px -2px logoBg
 
-.kdbutton.solid.ufak
+.kdbutton.solid.compact
   height               30px
   padding              0 16px
   span
     line-height        30px
     font-size          12px
 
-.kdbutton.ufak.light-gray
+.kdbutton.compact.light-gray
   bg                   color, transparent !important
   border               2px solid #CBCBCB
   span
@@ -1362,7 +1360,7 @@ a.action-link.verify-email
     position            relative
     button
       margin-top        25px !important
-      &.ufak.light-gray
+      &.compact.light-gray
         margin-right    6px
   .steps
     abs()

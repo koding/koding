@@ -22,6 +22,7 @@ class OnboardingItemView extends CustomViewsDashboardView
       iconClass      : "settings"
       cssClass       : "settings-menu"
       itemChildClass : OnboardingSettingsMenuItem
+      style          : "resurrection"
       menu           : @getMenuItems()
 
     @loader.on "viewAppended", =>
