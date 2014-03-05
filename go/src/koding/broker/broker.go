@@ -49,7 +49,7 @@ var (
 	flagProfile      = flag.String("c", "", "Configuration profile from file")
 	flagBrokerDomain = flag.String("a", "", "Send kontrol a custom domain istead of os.Hostname")
 	flagKontrolUUID  = flag.String("u", "", "Enable Kontrol mode")
-	flagBrokerType   = flag.String("b", "broker", "Define broker type. Available: broker and brokerKite. B")
+	flagBrokerType   = flag.String("b", "broker", "Define broker type. Available: broker, premiumBroker and brokerKite, premiumBrokerKite. B")
 	flagDebug        = flag.Bool("d", false, "Debug mode")
 )
 
