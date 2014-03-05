@@ -18,6 +18,9 @@ regions         =
   sj            : "sj"
   aws           : "aws"
 
+cookieMaxAge = 1000 * 60 * 60 * 24 * 14 # two weeks
+cookieSecure = yes
+
 module.exports =
   environment   : environment
   regions       : regions
@@ -60,7 +63,7 @@ module.exports =
   buildClient   : yes
   runOsKite     : no
   runProxy      : no
-  redis         : "172.16.3.13:6379"
+  redis         : "172.16.6.13:6379"
   misc          :
     claimGlobalNamesForUsers: no
     updateAllSlugs : no
@@ -152,6 +155,9 @@ module.exports =
     useStaticFileServer: no
     staticFilesBaseUrl: "https://koding.com"
     runtimeOptions:
+      sessionCookie :
+        maxAge      : cookieMaxAge
+        secure      : cookieSecure
       environment        : environment
       activityFetchCount : 20
       precompiledApi     : yes
@@ -382,6 +388,9 @@ module.exports =
       storage     : 3072
       ram         : 1024
       cpu         : 1
+  sessionCookie :
+    maxAge      : cookieMaxAge
+    secure      : cookieSecure
   graphite       :
     use          : true
     host         : "172.168.2.7"

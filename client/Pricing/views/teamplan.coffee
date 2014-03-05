@@ -45,7 +45,9 @@ class TeamPlan extends JView
       cssClass : "buy-now"
       style    : "solid green"
       title    : "BUY NOW"
+      loader   : yes
       callback : =>
+        @buyNow.showLoader()
         @emit "PlanSelected", "custom-plan", {
           @userQuantity
           @resourceQuantity

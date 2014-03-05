@@ -1,17 +1,5 @@
 class EnvironmentDomainContainer extends EnvironmentContainer
 
-  EnvironmentDataProvider.addProvider "domains", ->
-
-    new Promise (resolve, reject)->
-
-      KD.remote.api.JDomain.fetchDomains (err, domains)->
-
-        if err or not domains or domains.length is 0
-          warn "Failed to fetch domains", err  if err
-          return resolve []
-
-        resolve domains
-
   constructor:(options={}, data)->
     options.cssClass  = 'domains'
     options.itemClass = EnvironmentDomainItem
@@ -25,7 +13,7 @@ class EnvironmentDomainContainer extends EnvironmentContainer
 
       domainCreateForm = @getDomainCreateForm()
 
-      new KDModalView
+      domainCreateModal = new KDModalView
         title          : "Add Domain"
         cssClass       : "domain-creation"
         view           : domainCreateForm
@@ -60,6 +48,23 @@ class EnvironmentDomainContainer extends EnvironmentContainer
       activated   : yes
       aliases     : domain.hostnameAlias
       domain      : domain
+
+  getDomainCreateForm: ->
+
+    domainCreateForm = new DomainCreateForm {}, {stack: @parent.stack}
+
+      {JDomain} = KD.remote.api
+      JDomain.fetchDomains (err, domains)=>
+
+        @removeAllItems()
+
+        if err or not domains or domains.length is 0
+          warn "Failed to fetch domains", err  if err
+          return resolve()
+
+        domains.forEach (domain, index)=>
+          @addDomain domain
+          if index is domains.length - 1 then resolve()
 
   getDomainCreateForm: ->
 

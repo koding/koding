@@ -170,6 +170,9 @@ config =
       useStaticFileServer: 1
       staticFilesBaseUrl: 1
       runtimeOptions  :
+        sessionCookie :
+          maxAge      : 1
+          secure      : 1
         environment   : 1
         activityFetchCount : 1
         precompiledApi: 1
@@ -399,4 +402,7 @@ config =
         storage     : 1
         ram         : 1
         cpu         : 1
+    sessionCookie   :
+      maxAge        : 1
+      secure        : 1
 module.exports = config

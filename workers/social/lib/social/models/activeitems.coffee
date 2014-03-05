@@ -65,7 +65,7 @@ module.exports = class ActiveItems extends Base
     group = options.group or "koding"
     {select: selector} = nameMapping.topic
     selector.group = group
-    JTag.some selector, {limit:10, "counts.followers":-1}, callback
+    JTag.some selector, {limit:10, sort:"counts.followers":-1}, callback
 
   @_fetchUsers = (options={}, callback)->
     {client}   = options

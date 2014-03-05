@@ -15,9 +15,7 @@ class PermissionsForm extends KDFormViewWithFields
     options.buttons or=
       Save          :
         style       : "solid green"
-        loader      :
-          color     : "#444444"
-          diameter  : 12
+        loader      : yes
         callback    : =>
 
           group.updatePermissions @reducedList(), (err,res)=>

@@ -27,7 +27,9 @@ class WebTermController extends AppController
     ]
     behavior     : "application"
 
+
   constructor:(options = {}, data)->
+
     params              = options.params or {}
     vmName              = params.vmName  or KD.getSingleton("vmController").defaultVmName
     options.view        = (new WebTermAppView { vmName })
@@ -38,23 +40,58 @@ class WebTermController extends AppController
 
     super options, data
 
-    KD.singletons.vmController._runWrapper 'oskite.All', (err, kontainers)=>
-      vms = 0
-      limits = 0
-      if kontainers
-        for own name, kontainer of kontainers
-          for own attribute, amount of kontainer
-            if attribute is 'activeVMs'
-              vms += amount
-            if attribute is 'activeVMsLimit'
-              limits += amount
+    @globalNotification = null
+    alreadyStarted      = no
 
-      if vms >= limits
-        KD.singletons.mainView.createGlobalNotification
-          title   : "Sorry, we can't launch your VM right now. We are experiencing an unxpected high load."
-          content : "Please try again in 10 minutes."
-          type    : 'red'
+    @getView().on 'TerminalStarted', =>
+      alreadyStarted = yes
+      if @globalNotification
+        KD.utils.wait 300, =>
+          @globalNotification.hideAndDestroy()
+          KD.utils.wait 1000, =>
+            KD.singletons.mainView.createGlobalNotification
+              title      : "All seem good now,"
+              content    : "keep coding :)"
+              type       : 'green'
+              closeTimer : 2000
 
+    @getView().on 'TerminalFailed', @bound 'checkOSKiteStatus'
+
+    # sometimes terminal is so fast we don't even need to ask oskite status
+    @checkOSKiteStatus()  unless alreadyStarted
+
+  checkOSKiteStatus:-> @askOSKiteStatus @bound 'tellOSKiteStatus'
+
+  askOSKiteStatus:(callback)-> KD.singletons.vmController._runWrapper 'oskite.All', callback
+
+  tellOSKiteStatus:(err, kontainers)=>
+
+    vms          = 0
+    limits       = 0
+
+    if err
+      warn err
+      # title = err.message or "Something went wrong!"
+      @globalNotification?.destroy()
+      return @globalNotification = KD.singletons.mainView.createGlobalNotification
+        title   : "Something went wrong!"
+        content : "Please check back again in a few minutes."
+        type    : 'yellow'
+
+    if kontainers
+      for own name, kontainer of kontainers
+        for own attribute, amount of kontainer
+          if attribute is 'activeVMs'
+            vms += amount
+          if attribute is 'activeVMsLimit'
+            limits += amount
+
+    if kontainers and vms > limits
+      @globalNotification?.destroy()
+      return @globalNotification = KD.singletons.mainView.createGlobalNotification
+        title   : "Sorry, we can't launch your VM right now. We are experiencing an unxpected high load."
+        content : "Please try again later."
+        type    : 'red'
 
   handleQuery: (query) ->
     @getView().ready =>

@@ -6,6 +6,8 @@ import (
 	"errors"
 	"os"
 	"path"
+	"regexp"
+	"strconv"
 	"strings"
 	"sync"
 	"syscall"
@@ -37,6 +39,30 @@ func (vos *VOS) IsReadable(info os.FileInfo) bool {
 func (vos *VOS) IsWritable(info os.FileInfo) bool {
 	sysinfo := info.Sys().(*syscall.Stat_t)
 	return info.Mode()&0002 != 0 || (info.Mode()&0020 != 0 && int(sysinfo.Gid) == vos.User.Uid) || int(sysinfo.Uid) == vos.User.Uid || vos.User.Uid == RootIdOffset
+}
+
+var suffixRegexp = regexp.MustCompile(`.((_\d+)?)(\.\w*)?$`)
+
+// UniquePath returns a new path if the given path does exist. The
+// returned path is to be ensured to be not existent.
+func (vos *VOS) UniquePath(path string) (string, error) {
+	name := path
+	index := 1
+	for {
+		_, err := vos.Stat(name)
+		if err != nil {
+			if os.IsNotExist(err) {
+				break // does not exist, return it back
+			}
+			return "", err
+		}
+
+		loc := suffixRegexp.FindStringSubmatchIndex(name)
+		name = name[:loc[2]] + "_" + strconv.Itoa(index) + name[loc[3]:]
+		index++
+	}
+
+	return name, nil
 }
 
 func (vos *VOS) resolve(name string, followLastSymlink bool) (string, error) {

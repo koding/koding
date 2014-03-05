@@ -300,11 +300,15 @@ pre
     display         inline-block
     border-left     1px solid #1f2628
 
+    .icon
+      padding-bottom 1px
+    // i know, this is not a proper solution. [BC]
+
     &.help
       width         30px
       .icon
         margin      18px 0 0 13px
-        r-sprite      app question-mark
+        r-sprite    app question-mark
 
     .count
       vendor        transform, scale(0)
@@ -330,12 +334,12 @@ pre
       display       block
     &.notifications .icon
       margin        18px 0 0 13px
-      r-sprite        app account-notifications
+      r-sprite      app account-notifications
     &.search
       width         55px
       .icon
         margin      17px 0 0 17px
-        r-sprite      app account-search
+        r-sprite    app account-search
     &.groups
       abs()
       top           0
