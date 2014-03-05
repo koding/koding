@@ -1,6 +1,3 @@
-# Test cases
-# need to test if user opened more tabs that content is bigger than 2.5 MB
-
 class SyncLocalController extends KDController
 
   constructor:->
@@ -16,23 +13,13 @@ class SyncLocalController extends KDController
     status.on "connected"  , @bound 'syncLocalContentIfDiffExists'
     status.on "reconnected", @bound 'syncLocalContentIfDiffExists'
 
-  # this method should run on each reconnect and
-  # connect event received to sync content.
-  syncLocalContentIfDiffExists: ->
-    for key in @filesToSave
       vmName   = FSHelper.getVMNameFromPath key
       filePath = FSHelper.plainPath key
       @patchFileIfDiffExist vmName, filePath, @storage.getValue "OE-#{key}"
 
-  # we need to keep track of files that requested for save, otherwise
-  # we will save the changes to file that user made but didnt requested to save.
   addToWillSaved: (fileName)->
-    # TODO : find better name to this method
     syncFiles = @storage.getValue "saveRequestedFiles"
-    if syncFiles
-      index = syncFiles.indexOf fileName
       @filesToSave.push fileName if index == -1
-    else
       @filesToSave.push fileName
 
     @storage.setValue "saveRequestedFiles", @filesToSave
@@ -43,26 +30,19 @@ class SyncLocalController extends KDController
       @filesToSave.splice index, 1
       @storage.setValue "saveRequestedFiles", @filesToSave
 
-  # This method should copy all the content
-  # that opened on Ace views to localStorage with fileName
   saveOpenedTabsContentToLocalStorage: ->
     {aceViews} = KD.singletons.appManager.get("Ace").mainView
     for filePath in Object.keys aceViews
       content = aceViews[filePath].ace.getContents()
       @saveToLocalStorage filePath, content
 
-  # we get the original file content from corresponding user VM
-  # then get the diff of file on storage and file on VM
   patchFileIfDiffExist: (vmName, fileName, localContent)->
-    # TODO : we should check if state of VM is running or not
-    # start the VM, that file is belong to, if didnt started
     KD.singletons.vmController.start vmName, (err, result)=>
       return err if err
-      # for each diff file, fetch the contents from user VM
       @fetchFileContents vmName, fileName,(err, content)=>
+      # TODO : we may need to listen vmController when state is not RUNNING
         if content and not err
           newContent = @getPatchedContent content, localContent
-          # save new content if not same as ori
           if newContent
             @writeToFile vmName, fileName, newContent[0], (err, res)=>
               return KD.showError err if err
@@ -70,27 +50,18 @@ class SyncLocalController extends KDController
               @emit "LocalContentSynced", fileName
 
   getPatchedContent: (originalContent, localContent)->
-    # diff_match_patch is the 3rd.party lib that used to find
-    # diff and apply the patch to create a merged content
-    # initialize diff lib
     dmp = new diff_match_patch
-    # diff_main creates an array of diff results
     diffArray = dmp.diff_main originalContent, localContent
-    # that check verifies, we got diff here
     return no unless diffArray.length > 2
     dmp.diff_cleanupEfficiency diffArray
     patchArray = dmp.patch_make originalContent, diffArray
     dmp.patch_apply patchArray, originalContent
 
 
-  # TODO:  we can pass object as parameter here
   writeToFile:(vmName, fileName, contents, callback)->
     @emit "fs.save.started"
-    # encode the file contents
     utf8Content   = KD.utils.utf8Encode contents
-    # Convert to base64
     binaryContent = btoa contents
-    # save to related VM
     KD.singletons.vmController.run
       vmName    : vmName
       method    : 'fs.writeFile'
@@ -140,10 +111,3 @@ class SyncLocalController extends KDController
 
   saveEditorHistory: ->
     log "NOT IMPLEMENTED YET"
-
-
-
-
-
-
-
