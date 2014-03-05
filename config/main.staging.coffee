@@ -177,18 +177,14 @@ module.exports =
       mainUri   : "http://koding.com"
       broker    :
         servicesEndpoint: "/-/services/broker"
-        sockJS   : "http://stage-broker.koding.com/subscribe"
       premiumBroker    :
         servicesEndpoint: "/-/services/premiumBroker"
-        sockJS   : "http://stage-premiumbroker.koding.com/subscribe"
       brokerKite:
         servicesEndpoint: "/-/services/brokerKite"
         brokerExchange: 'brokerKite'
-        sockJS   : "http://stage-brokerkite.koding.com/subscribe"
       premiumBrokerKite:
         servicesEndpoint: "/-/services/premiumBrokerKite"
         brokerExchange: 'premiumBrokerKite'
-        sockJS   : "http://stage-premiumbrokerkite.koding.com/subscribe"
       apiUri    : 'https://koding.com'
       appsUri   : 'https://koding-apps.s3.amazonaws.com'
       uploadsUri: 'https://koding-uploads.s3.amazonaws.com'
@@ -227,42 +223,50 @@ module.exports =
     password    : 'djfjfhgh4455__5'
     heartbeat   : 20
     vhost       : 'new'
-  broker        :
-    name        : "broker"
-    ip          : ""
-    port        : 443
-    certFile    : "/opt/ssl_certs/wildcard.koding.com.cert"
-    keyFile     : "/opt/ssl_certs/wildcard.koding.com.key"
-    webProtocol : 'https:'
-    authExchange: authExchange
-    authAllExchange: authAllExchange
-  premiumBroker :
-    name        : "premiumBroker"
-    ip          : ""
-    port        : 443
-    certFile    : "/opt/ssl_certs/wildcard.koding.com.cert"
-    keyFile     : "/opt/ssl_certs/wildcard.koding.com.key"
-    webProtocol : 'https:'
-    authExchange: authExchange
-    authAllExchange: authAllExchange
-  brokerKite    :
-    name        : "brokerKite"
-    ip          : ""
-    port        : 443
-    certFile    : "/opt/ssl_certs/wildcard.koding.com.cert"
-    keyFile     : "/opt/ssl_certs/wildcard.koding.com.key"
-    webProtocol : 'https:'
-    authExchange: authExchange
-    authAllExchange: authAllExchange
-  premiumBrokerKite:
-    name        : "premiumBrokerKite"
-    ip          : ""
-    port        : 443
-    certFile    : "/opt/ssl_certs/wildcard.koding.com.cert"
-    keyFile     : "/opt/ssl_certs/wildcard.koding.com.key"
-    webProtocol : 'https:'
-    authExchange: authExchange
-    authAllExchange: authAllExchange
+  broker              :
+    name              : "broker"
+    serviceGenericName: "broker"
+    ip                : ""
+    port              : 443
+    certFile          : "/opt/ssl_certs/wildcard.koding.com.cert"
+    keyFile           : "/opt/ssl_certs/wildcard.koding.com.key"
+    webProtocol       : 'https:'
+    authExchange      : authExchange
+    authAllExchange   : authAllExchange
+    failoverUri       : 'stage-broker.koding.com'
+  premiumBroker       :
+    name              : "premiumBroker"
+    serviceGenericName: "broker"
+    ip                : ""
+    port              : 443
+    certFile          : "/opt/ssl_certs/wildcard.koding.com.cert"
+    keyFile           : "/opt/ssl_certs/wildcard.koding.com.key"
+    webProtocol       : 'https:'
+    authExchange      : authExchange
+    authAllExchange   : authAllExchange
+    failoverUri       : 'stage-premiumbroker.koding.com'
+  brokerKite          :
+    name              : "brokerKite"
+    serviceGenericName: "brokerKite"
+    ip                : ""
+    port              : 443
+    certFile          : "/opt/ssl_certs/wildcard.koding.com.cert"
+    keyFile           : "/opt/ssl_certs/wildcard.koding.com.key"
+    webProtocol       : 'https:'
+    authExchange      : authExchange
+    authAllExchange   : authAllExchange
+    failoverUri       : 'stage-brokerkite.koding.com'
+  premiumBrokerKite   :
+    name              : "premiumBrokerKite"
+    serviceGenericName: "brokerKite"
+    ip                : ""
+    port              : 443
+    certFile          : "/opt/ssl_certs/wildcard.koding.com.cert"
+    keyFile           : "/opt/ssl_certs/wildcard.koding.com.key"
+    webProtocol       : 'https:'
+    authExchange      : authExchange
+    authAllExchange   : authAllExchange
+    failoverUri       : 'stage-premiumbrokerkite.koding.com'
   kites:
     disconnectTimeout: 3e3
     vhost       : 'kite'
