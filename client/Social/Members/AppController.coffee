@@ -24,6 +24,99 @@ class MembersAppController extends AppController
 
     @on "LazyLoadThresholdReached", => @feedController?.loadFeed()
 
+  createContentDisplay:(account, callback)->
+    KD.singletons.appManager.setFrontApp this
+    contentDisplay = new KDView
+      cssClass : 'member content-display'
+      type     : 'profile'
+    contentDisplay.on 'handleQuery', (query)=>
+      @ready => @feedController?.handleQuery? query
+
+    @addProfileView contentDisplay, account
+    @addActivityView contentDisplay, account
+    @showContentDisplay contentDisplay
+    @utils.defer -> callback contentDisplay
+
+  addActivityView:(view, account)->
+    view.$('div.lazy').remove()
+    windowController = KD.getSingleton('windowController')
+
+    KD.getSingleton("appManager").tell 'Feeder', 'createContentFeedController', {
+      itemClass             : ActivityListItemView
+      listControllerClass   : MemberActivityListController
+      listCssClass          : "activity-related"
+      limitPerPage          : 8
+      useHeaderNav          : yes
+      delegate              : this
+      creator               : account
+      filter                :
+        statuses            :
+          noItemFoundText   : "#{KD.utils.getFullnameFromAccount account} has not shared any posts yet."
+          dataSource        : (selector, options = {}, callback)=>
+            options.originId = account.getId()
+            KD.getSingleton("appManager").tell 'Activity', 'fetchActivitiesProfilePage', options, callback
+        followers           :
+          loggedInOnly      : yes
+          itemClass          : GroupMembersPageListItemView
+          listControllerClass: MembersListViewController
+          noItemFoundText   : "No one is following #{KD.utils.getFullnameFromAccount account} yet."
+          dataSource        : (selector, options, callback)=>
+            options.groupId or= KD.getSingleton('groupsController').getCurrentGroup().getId()
+            account.fetchFollowersWithRelationship selector, options, callback
+
+            account.countFollowersWithRelationship selector, (err, count)=>
+              @setCurrentViewNumber 'followers', count
+        following           :
+          loggedInOnly      : yes
+          itemClass          : GroupMembersPageListItemView
+          listControllerClass: MembersListViewController
+          noItemFoundText   : "#{KD.utils.getFullnameFromAccount account} is not following anyone."
+          dataSource        : (selector, options, callback)=>
+            options.groupId or= KD.getSingleton('groupsController').getCurrentGroup().getId()
+            account.fetchFollowingWithRelationship selector, options, callback
+
+            account.countFollowingWithRelationship selector, (err, count)=>
+              @setCurrentViewNumber 'following', count
+        likes               :
+          loggedInOnly      : yes
+          noItemFoundText   : "#{KD.utils.getFullnameFromAccount account} has not liked any posts yet."
+          dataSource        : (selector, options, callback)->
+            selector = {sourceName: $in: ['JNewStatusUpdate']}
+            account.fetchLikedContents options, selector, callback
+      sort                  :
+        'modifiedAt'        :
+          title             : "Latest activity"
+          direction         : -1
+        'counts.followers'  :
+          title             : "Most followers"
+          direction         : -1
+        'counts.following'  :
+          title             : "Most following"
+          direction         : -1
+        'timestamp|new'     :
+          title             : 'Latest activity'
+          direction         : -1
+        'timestamp|old'     :
+          title             : 'Most activity'
+          direction         : 1
+    }, (controller)=>
+      @feedController = controller
+      view.addSubView controller.getView()
+      view.setCss minHeight : windowController.winHeight
+      @emit 'ready'
+
+  addProfileView:(view, member)->
+    options      =
+      cssClass   : "profilearea clearfix"
+      delegate   : view
+
+    if KD.isMine member
+      options.cssClass = KD.utils.curry "own-profile", options.cssClass
+    else
+      options.bind = "mouseenter" unless KD.isMine member
+
+    return view.addSubView memberProfile = new ProfileView options, member
+
   createFeed:(view, loadFeed = no)->
     @appManager.tell 'Feeder', 'createContentFeedController', {
       feedId                : 'members.main'
@@ -57,35 +150,9 @@ class MembersAppController extends AppController
                 count = 0 if err
                 @setCurrentViewNumber 'all', count
 
-        followed            :
-          loggedInOnly      : yes
-          title             : "Followers <span class='member-numbers-followers'></span>"
-          noItemFoundText   : "No one is following you yet."
-          dataSource        : (selector, options, callback)=>
-            options.groupId or= KD.getSingleton('groupsController').getCurrentGroup().getId()
-            KD.whoami().fetchMyFollowersFromGraph options, callback
-
-            KD.whoami().countFollowersWithRelationship selector, (err, count)=>
-              @setCurrentViewNumber 'followers', count
-        followings          :
-          loggedInOnly      : yes
-          title             : "Following <span class='member-numbers-following'></span>"
-          noItemFoundText   : "You are not following anyone."
-          dataSource        : (selector, options, callback)=>
-            options.groupId or= KD.getSingleton('groupsController').getCurrentGroup().getId()
-            KD.whoami().fetchMyFollowingsFromGraph options, callback
-
-            KD.whoami().countFollowingWithRelationship selector, (err, count)=>
-              @setCurrentViewNumber 'following', count
       sort                  :
         'meta.modifiedAt'   :
           title             : "Latest activity"
-          direction         : -1
-        'counts.followers'  :
-          title             : "Most followers"
-          direction         : -1
-        'counts.following'  :
-          title             : "Most following"
           direction         : -1
     }, (controller)=>
       @feedController = controller
@@ -98,121 +165,6 @@ class MembersAppController extends AppController
 
       KD.mixpanel "Load member list, success"
 
-  createFeedForContentDisplay:(view, account, followersOrFollowing, callback)->
-
-    @appManager.tell 'Feeder', 'createContentFeedController', {
-      # domId                 : 'members-feeder-split-view'
-      feedId                : "members.#{account.profile.username}"
-      itemClass             : MembersListItemView
-      listControllerClass   : MembersListViewController
-      limitPerPage          : 10
-      noItemFoundText       : "There is no member."
-      useHeaderNav          : yes
-      delegate              : this
-      # singleDataSource      : (selector, options, callback)=>
-        # filterFunc selector, options, callback
-      help                  :
-        subtitle            : "Learn About Members"
-        bookIndex           : 11
-        tooltip             :
-          title             : "<p class=\"bigtwipsy\">These people are all members of koding.com. Learn more about them and their interests, activity and coding prowess here.</p>"
-          placement         : "above"
-      filter                :
-        everything          :
-          title             : "All"
-          dataSource        : (selector, options, callback)=>
-            if followersOrFollowing is "followers"
-              account.fetchFollowersWithRelationship selector, options, callback
-            else
-              account.fetchFollowingWithRelationship selector, options, callback
-      sort                  :
-        'meta.modifiedAt'   :
-          title             : "Latest activity"
-          direction         : -1
-        'counts.followers'  :
-          title             : "Most followers"
-          direction         : -1
-        'counts.following'  :
-          title             : "Most following"
-          direction         : -1
-    }, (controller)=>
-      view.addSubView controller.getView()
-      # KD.singleton('display').emit "ContentDisplayWantsToBeShown", view
-      callback view, controller
-      if controller.facetsController?.filterController?
-        controller.emit 'ready'
-      else
-        controller.getView().on 'viewAppended', -> controller.emit 'ready'
-
-  createFolloweeContentDisplay:(account, filter, callback)->
-    # log "I need to create followee for", account, filter
-    newView = new MembersContentDisplayView
-      cssClass : "content-display #{filter}"
-      # domId    : 'members-feeder-split-view'
-    newView.createCommons(account, filter)
-    @createFeedForContentDisplay newView, account, filter, callback
-
-  createLikedFeedForContentDisplay:(view, account, callback)->
-
-    @appManager.tell 'Feeder', 'createContentFeedController', {
-      # domId                 : 'members-feeder-split-view'
-      itemClass             : ActivityListItemView
-      listControllerClass   : ActivityListController
-      listCssClass          : "activity-related"
-      noItemFoundText       : "There is no liked activity."
-      limitPerPage          : 8
-      delegate              : this
-      help                  :
-        subtitle            : "Learn Personal feed"
-        tooltip             :
-          title             : "<p class=\"bigtwipsy\">This is the liked feed of a single Koding user.</p>"
-          placement         : "above"
-      filter                :
-        everything          :
-          title             : "Everything"
-          dataSource        : (selector, options, callback)=>
-            account.fetchLikedContents options, callback
-        statusupdates       :
-          title             : 'Status Updates'
-          dataSource        : (selector, options, callback)->
-            selector = {sourceName: $in: ['JNewStatusUpdate']}
-            account.fetchLikedContents options, selector, callback
-        codesnippets        :
-          title             : 'Code Snippets'
-          dataSource        : (selector, options, callback)->
-            selector = {sourceName: $in: ['JCodeSnip']}
-            account.fetchLikedContents options, selector, callback
-        # Discussions Disabled
-        # discussions         :
-        #   title             : 'Discussions'
-        #   dataSource        : (selector, options, callback)->
-        #     selector = {sourceName: $in: ['JDiscussion']}
-        #     account.fetchLikedContents options, selector, callback
-      sort                :
-        'timestamp|new'   :
-          title           : 'Latest activity'
-          direction       : -1
-        'timestamp|old'   :
-          title           : 'Most activity'
-          direction       : 1
-    }, (controller)=>
-      view.addSubView controller.getView()
-      # KD.singleton('display').emit "ContentDisplayWantsToBeShown", view
-      callback view, controller
-
-      if controller.facetsController?.filterController?
-        controller.emit 'ready'
-      else
-        controller.getView().on 'viewAppended', -> controller.emit 'ready'
-
-  createLikedContentDisplay:(account, callback)->
-    newView = new MembersLikedContentDisplayView
-      cssClass : "content-display likes"
-      # domId    : 'members-feeder-split-view'
-
-    newView.createCommons account
-    @createLikedFeedForContentDisplay newView, account, callback
-
   loadView:(mainView, firstRun = yes, loadFeed = no)->
     if firstRun
       mainView.on "searchFilterChanged", (value) =>
@@ -222,38 +174,6 @@ class MembersAppController extends AppController
         @loadView mainView, no, yes
       mainView.createCommons()
     @createFeed mainView, loadFeed
-
-
-  createContentDisplay:(account, callback)->
-
-    KD.singletons.appManager.setFrontApp this
-    controller     = new ContentDisplayControllerMember {delegate:this}, account
-    contentDisplay = controller.getView()
-    contentDisplay.on 'handleQuery', (query)=>
-      controller.ready -> controller.feedController?.handleQuery? query
-    @showContentDisplay contentDisplay
-    @utils.defer -> callback contentDisplay
-
-
-  createContentDisplayWithOptions:(options, callback)->
-    {model, route, query} = options
-    kallback = (contentDisplay, controller)=>
-      # needed to remove the member display which comes as HTML
-      unless KD.getSingleton('router').openRoutes[KD.config.entryPoint?.slug]
-        memberDisplay = document.getElementById('member-contentdisplay')
-        memberDisplay?.parentNode.removeChild(memberDisplay)
-
-      contentDisplay.on 'handleQuery', (query)->
-        controller.ready -> controller.handleQuery? query
-      callback contentDisplay
-
-    switch route.split('/')[2]
-      when 'Followers'
-        @createFolloweeContentDisplay model, 'followers', kallback
-      when 'Following'
-        @createFolloweeContentDisplay model, 'following', kallback
-      when 'Likes'
-        @createLikedContentDisplay model, kallback
 
   showContentDisplay:(contentDisplay)->
 
@@ -303,3 +223,9 @@ class MembersAppController extends AppController
 
     whitelist = Object.keys(externalProfiles).slice().map (a)-> "ext|profile|#{a}"
     account.fetchStorages  whitelist, callback
+
+class MemberActivityListController extends ActivityListController
+  # used for filtering received live updates
+  addItem: (activity, index, animation)->
+    if activity.originId is @getOptions().creator.getId()
+      super activity, index, animation
