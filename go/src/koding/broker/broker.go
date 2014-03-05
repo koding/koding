@@ -173,7 +173,7 @@ func (b *Broker) registerToKontrol() error {
 	if err := kontrolhelper.RegisterToKontrol(
 		conf,
 		b.Config.Name,
-		b.Config.Name, // servicGenericName
+		b.Config.ServiceGenericName, // servicGenericName
 		b.ServiceUniqueName,
 		*flagKontrolUUID,
 		b.Hostname,
@@ -191,12 +191,12 @@ func (b *Broker) startAMQP() error {
 	b.ConsumeConn = amqputil.CreateConnection(conf, b.Config.Name)
 	consumeChannel := amqputil.CreateChannel(b.ConsumeConn)
 	presenceQueue := amqputil.JoinPresenceExchange(
-		consumeChannel,      // channel
-		"services-presence", // exchange
-		b.Config.Name,       // serviceType
-		b.Config.Name,       // serviceGenericName
-		b.ServiceUniqueName, // serviceUniqueName
-		false,               // loadBalancing
+		consumeChannel,              // channel
+		"services-presence",         // exchange
+		b.Config.Name,               // serviceType
+		b.Config.ServiceGenericName, // serviceGenericName
+		b.ServiceUniqueName,         // serviceUniqueName
+		false,                       // loadBalancing
 	)
 
 	go func() {
@@ -206,7 +206,7 @@ func (b *Broker) startAMQP() error {
 		consumeChannel.QueueDelete(presenceQueue, false, false, false)
 	}()
 
-	stream := amqputil.DeclareBindConsumeQueue(consumeChannel, "topic", b.Config.Name, "#", false)
+	stream := amqputil.DeclareBindConsumeQueue(consumeChannel, "topic", b.Config.ServiceGenericName, "#", false)
 
 	if err := consumeChannel.ExchangeDeclare(
 		"updateInstances", // name

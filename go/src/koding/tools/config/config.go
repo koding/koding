@@ -11,14 +11,15 @@ import (
 )
 
 type Broker struct {
-	Name            string
-	IP              string
-	Port            int
-	CertFile        string
-	KeyFile         string
-	AuthExchange    string
-	AuthAllExchange string
-	WebProtocol     string
+	Name               string
+	ServiceGenericName string
+	IP                 string
+	Port               int
+	CertFile           string
+	KeyFile            string
+	AuthExchange       string
+	AuthAllExchange    string
+	WebProtocol        string
 }
 
 type Config struct {
