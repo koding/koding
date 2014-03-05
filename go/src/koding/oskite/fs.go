@@ -229,6 +229,32 @@ func fsCreateDirectoryOld(args *dnode.Partial, channel *kite.Channel, vos *virt.
 	return fsCreateDirectory(params.Path, params.Recursive, vos)
 }
 
+func fsMoveOld(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
+	var params struct {
+		OldPath string
+		NewPath string
+	}
+
+	if args.Unmarshal(&params) != nil || params.OldPath == "" || params.NewPath == "" {
+		return nil, &kite.ArgumentError{Expected: "{ oldPath: [string], newPath: [string] }"}
+	}
+
+	return fsMove(params.OldPath, params.NewPath, vos)
+}
+
+func fsCopyOld(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
+	var params struct {
+		SrcPath string
+		DstPath string
+	}
+
+	if args.Unmarshal(&params) != nil || params.SrcPath == "" || params.DstPath == "" {
+		return nil, &kite.ArgumentError{Expected: "{ srcPath: [string], dstPath: [string] }"}
+	}
+
+	return fsCopy(params.SrcPath, params.DstPath, vos)
+}
+
 //////////////////////
 
 func fsGlob(pattern string, vos *virt.VOS) (interface{}, error) {
@@ -272,26 +298,17 @@ type writeFileParams struct {
 }
 
 func fsWriteFile(params writeFileParams, vos *virt.VOS) (interface{}, error) {
-	newPath, err := vos.UniquePath(params.Path)
-	if err != nil {
-		return nil, err
-	}
-	params.Path = newPath
-
 	flags := os.O_RDWR | os.O_CREATE
 	if params.DoNotOverwrite {
 		flags |= os.O_EXCL
 	}
-
 	if !params.Append {
 		flags |= os.O_TRUNC
 	}
-
 	dirInfo, err := vos.Stat(path.Dir(params.Path))
 	if err != nil {
 		return nil, err
 	}
-
 	file, err := vos.OpenFile(params.Path, flags, dirInfo.Mode().Perm()&0666)
 	if err != nil {
 		return nil, err
@@ -304,18 +321,7 @@ func fsWriteFile(params writeFileParams, vos *virt.VOS) (interface{}, error) {
 			return nil, err
 		}
 	}
-
-	_, err = file.Write(params.Content)
-	if err != nil {
-		return nil, err
-	}
-
-	fi, err := file.Stat()
-	if err != nil {
-		return nil, err
-	}
-
-	return makeFileEntry(vos, params.Path, fi), nil
+	return file.Write(params.Content)
 }
 
 func fsUniquePath(path string, vos *virt.VOS) (interface{}, error) {
@@ -397,31 +403,14 @@ func fsRemove(removePath string, recursive bool, vos *virt.VOS) (interface{}, er
 }
 
 func fsRename(oldpath, newpath string, vos *virt.VOS) (interface{}, error) {
-	var err error
-	newpath, err = vos.UniquePath(newpath)
-	if err != nil {
-		return nil, err
-	}
-
 	if err := vos.Rename(oldpath, newpath); err != nil {
 		return nil, err
 	}
 
-	fi, err := vos.Stat(newpath)
-	if err != nil {
-		return nil, err
-	}
-
-	return makeFileEntry(vos, newpath, fi), nil
+	return true, nil
 }
 
 func fsCreateDirectory(newPath string, recursive bool, vos *virt.VOS) (interface{}, error) {
-	var err error
-	newPath, err = vos.UniquePath(newPath)
-	if err != nil {
-		return nil, err
-	}
-
 	if recursive {
 		if err := vos.MkdirAll(newPath, 0755); err != nil {
 			return nil, err
@@ -433,10 +422,25 @@ func fsCreateDirectory(newPath string, recursive bool, vos *virt.VOS) (interface
 	if err != nil {
 		return nil, err
 	}
-
 	if err := vos.Mkdir(newPath, dirInfo.Mode().Perm()); err != nil {
 		return nil, err
 	}
+	return true, nil
 
-	return makeFileEntry(vos, newPath, dirInfo), nil
+}
+
+func fsMove(oldPath, newPath string, vos *virt.VOS) (interface{}, error) {
+	if err := vos.Rename(oldPath, newPath); err != nil {
+		return nil, err
+	}
+
+	return true, nil
+}
+
+func fsCopy(srcPath, dstPath string, vos *virt.VOS) (interface{}, error) {
+	if err := vos.Copy(srcPath, dstPath); err != nil {
+		return nil, err
+	}
+
+	return true, nil
 }
