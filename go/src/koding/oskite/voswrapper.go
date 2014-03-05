@@ -334,6 +334,32 @@ func fsCreateDirectoryNew(r *kitelib.Request, vos *virt.VOS) (interface{}, error
 	return fsCreateDirectory(params.Path, params.Recursive, vos)
 }
 
+func fsMoveNew(r *kitelib.Request, vos *virt.VOS) (interface{}, error) {
+	var params struct {
+		OldPath string
+		NewPath string
+	}
+
+	if r.Args.One().Unmarshal(&params) != nil || params.OldPath == "" || params.NewPath == "" {
+		return nil, &kite.ArgumentError{Expected: "{ oldPath: [string], newPath: [string] }"}
+	}
+
+	return fsMove(params.OldPath, params.NewPath, vos)
+}
+
+func fsCopyNew(r *kitelib.Request, vos *virt.VOS) (interface{}, error) {
+	var params struct {
+		SrcPath string
+		DstPath string
+	}
+
+	if r.Args.One().Unmarshal(&params) != nil || params.SrcPath == "" || params.DstPath == "" {
+		return nil, &kite.ArgumentError{Expected: "{ srcPath: [string], dstPath: [string] }"}
+	}
+
+	return fsCopy(params.SrcPath, params.DstPath, vos)
+}
+
 // APP METHODS
 func appInstallNew(r *kitelib.Request, vos *virt.VOS) (interface{}, error) {
 	var params appParams

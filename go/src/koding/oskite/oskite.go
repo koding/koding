@@ -182,6 +182,8 @@ func (o *Oskite) Run() {
 	o.registerVmMethod(k, "fs.remove", false, fsRemoveOld)
 	o.registerVmMethod(k, "fs.rename", false, fsRenameOld)
 	o.registerVmMethod(k, "fs.createDirectory", false, fsCreateDirectoryOld)
+	o.registerVmMethod(k, "fs.move", false, fsMoveOld)
+	o.registerVmMethod(k, "fs.copy", false, fsCopyOld)
 
 	o.registerVmMethod(k, "app.install", false, appInstallOld)
 	o.registerVmMethod(k, "app.download", false, appDownloadOld)
@@ -236,6 +238,8 @@ func (o *Oskite) runNewKite() {
 	o.vosMethod(k, "fs.remove", fsRemoveNew)
 	o.vosMethod(k, "fs.rename", fsRenameNew)
 	o.vosMethod(k, "fs.createDirectory", fsCreateDirectoryNew)
+	o.vosMethod(k, "fs.move", fsMoveNew)
+	o.vosMethod(k, "fs.copy", fsCopyNew)
 
 	o.vosMethod(k, "app.install", appInstallNew)
 	o.vosMethod(k, "app.download", appDownloadNew)

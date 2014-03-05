@@ -229,6 +229,32 @@ func fsCreateDirectoryOld(args *dnode.Partial, channel *kite.Channel, vos *virt.
 	return fsCreateDirectory(params.Path, params.Recursive, vos)
 }
 
+func fsMoveOld(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
+	var params struct {
+		OldPath string
+		NewPath string
+	}
+
+	if args.Unmarshal(&params) != nil || params.OldPath == "" || params.NewPath == "" {
+		return nil, &kite.ArgumentError{Expected: "{ oldPath: [string], newPath: [string] }"}
+	}
+
+	return fsMove(params.OldPath, params.NewPath, vos)
+}
+
+func fsCopyOld(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
+	var params struct {
+		SrcPath string
+		DstPath string
+	}
+
+	if args.Unmarshal(&params) != nil || params.SrcPath == "" || params.DstPath == "" {
+		return nil, &kite.ArgumentError{Expected: "{ srcPath: [string], dstPath: [string] }"}
+	}
+
+	return fsCopy(params.SrcPath, params.DstPath, vos)
+}
+
 //////////////////////
 
 func fsGlob(pattern string, vos *virt.VOS) (interface{}, error) {
@@ -439,4 +465,20 @@ func fsCreateDirectory(newPath string, recursive bool, vos *virt.VOS) (interface
 	}
 
 	return makeFileEntry(vos, newPath, dirInfo), nil
+}
+
+func fsMove(oldPath, newPath string, vos *virt.VOS) (interface{}, error) {
+	if err := vos.Rename(oldPath, newPath); err != nil {
+		return nil, err
+	}
+
+	return true, nil
+}
+
+func fsCopy(srcPath, dstPath string, vos *virt.VOS) (interface{}, error) {
+	if err := vos.Copy(srcPath, dstPath); err != nil {
+		return nil, err
+	}
+
+	return true, nil
 }
