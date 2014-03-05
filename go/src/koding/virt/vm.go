@@ -296,27 +296,27 @@ func UnprepareVM(id bson.ObjectId) error {
 // Unprepare also doesn't return on errors, instead it silently fails and
 // tries to execute the next step until all steps are done.
 func (vm *VM) Unprepare() error {
-	var firstError error
+	var lastError error
 
 	// stop VM
 	if err := vm.Shutdown(); err != nil {
 		panic(err)
 	}
 
-	if err := vm.removeNetworkRules(); err != nil && firstError == nil {
-		firstError = err
+	if err := vm.removeNetworkRules(); err != nil && lastError == nil {
+		lastError = err
 	}
 
-	if err := vm.umountPts(); err != nil && firstError == nil {
-		firstError = err
+	if err := vm.umountPts(); err != nil && lastError == nil {
+		lastError = err
 	}
 
-	if err := vm.umountAufs(); err != nil && firstError == nil {
-		firstError = err
+	if err := vm.umountAufs(); err != nil && lastError == nil {
+		lastError = err
 	}
 
-	if err := vm.umountRBD(); err != nil && firstError == nil {
-		firstError = err
+	if err := vm.umountRBD(); err != nil && lastError == nil {
+		lastError = err
 	}
 
 	// remove VM directory
@@ -327,11 +327,11 @@ func (vm *VM) Unprepare() error {
 	os.Remove(vm.File("rootfs.hold"))
 	os.Remove(vm.File(""))
 
-	return firstError
+	return lastError
 }
 
 func (vm *VM) removeNetworkRules() error {
-	var firstError error
+	var lastError error
 
 	if vm.IP == nil {
 		if ip, err := ioutil.ReadFile(vm.File("ip-address")); err == nil {
@@ -344,16 +344,16 @@ func (vm *VM) removeNetworkRules() error {
 		if out, err := exec.Command("/sbin/ebtables", "--delete", "VMS", "--protocol", "IPv4",
 			"--source", vm.MAC().String(), "--ip-src", vm.IP.String(), "--in-interface", vm.VEth(),
 			"--jump", "ACCEPT").CombinedOutput(); err != nil {
-			firstError = commandError("ebtables rule deletion failed.", err, out)
+			lastError = commandError("ebtables rule deletion failed.", err, out)
 		}
 
 		// remove the static route so it is no longer redistribed by BGP
 		if out, err := exec.Command("/sbin/route", "del", vm.IP.String(), "lxcbr0").CombinedOutput(); err != nil {
-			firstError = commandError("Removing route failed.", err, out)
+			lastError = commandError("Removing route failed.", err, out)
 		}
 	}
 
-	return firstError
+	return lastError
 }
 
 func (vm *VM) umountPts() error {
@@ -365,18 +365,18 @@ func (vm *VM) umountPts() error {
 }
 
 func (vm *VM) umountAufs() error {
-	var firstError error
+	var lastError error
 
 	//Flush the aufs
 	if out, err := exec.Command("/sbin/auplink", vm.File("rootfs"), "flush").CombinedOutput(); err != nil {
-		firstError = commandError("AUFS flush failed.", err, out)
+		lastError = commandError("AUFS flush failed.", err, out)
 	}
 
-	if out, err := exec.Command("/bin/umount", vm.File("rootfs")).CombinedOutput(); err != nil && firstError == nil {
-		firstError = commandError("umount overlay failed.", err, out)
+	if out, err := exec.Command("/bin/umount", vm.File("rootfs")).CombinedOutput(); err != nil && lastError == nil {
+		lastError = commandError("umount overlay failed.", err, out)
 	}
 
-	return firstError
+	return lastError
 }
 
 func (vm *VM) umountRBD() error {
@@ -402,6 +402,7 @@ func (vm *VM) MountRBD(mountDir string) error {
 				return commandError("rbd create failed.", err, out)
 			}
 		}
+
 		if vm.SnapshotName != "" {
 			if out, err := exec.Command("/usr/bin/rbd", "clone", "--pool", VMPool, "--image", VMName(vm.SnapshotVM), "--snap", vm.SnapshotName, "--dest-pool", VMPool, "--dest", vm.String()).CombinedOutput(); err != nil {
 				return commandError("rbd clone failed.", err, out)
@@ -461,15 +462,15 @@ func (vm *VM) MountRBD(mountDir string) error {
 }
 
 func (vm *VM) UnmountRBD(mountDir string) error {
-	var firstError error
-	if out, err := exec.Command("/bin/umount", vm.OverlayFile("")).CombinedOutput(); err != nil && firstError == nil {
-		firstError = commandError("umount rbd failed.", err, out)
+	var lastError error
+	if out, err := exec.Command("/bin/umount", vm.OverlayFile("")).CombinedOutput(); err != nil && lastError == nil {
+		lastError = commandError("umount rbd failed.", err, out)
 	}
-	if out, err := exec.Command("/usr/bin/rbd", "unmap", vm.RbdDevice()).CombinedOutput(); err != nil && firstError == nil {
-		firstError = commandError("rbd unmap failed.", err, out)
+	if out, err := exec.Command("/usr/bin/rbd", "unmap", vm.RbdDevice()).CombinedOutput(); err != nil && lastError == nil {
+		lastError = commandError("rbd unmap failed.", err, out)
 	}
 	os.Remove(mountDir)
-	return firstError
+	return lastError
 }
 
 func (vm *VM) ResizeRBD() error {
