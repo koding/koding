@@ -177,7 +177,7 @@ func (o *Oskite) Run() {
 	o.registerMethod(k, "fs.glob", false, fsGlobOld)
 	o.registerMethod(k, "fs.readFile", false, fsReadFileOld)
 	o.registerMethod(k, "fs.writeFile", false, fsWriteFileOld)
-	o.registerMethod(k, "fs.ensureNonexistentPath", false, fsUniquePathOld)
+	o.registerMethod(k, "fs.uniquePath", false, fsUniquePathOld)
 	o.registerMethod(k, "fs.getInfo", false, fsGetInfoOld)
 	o.registerMethod(k, "fs.setPermissions", false, fsSetPermissionsOld)
 	o.registerMethod(k, "fs.remove", false, fsRemoveOld)
@@ -228,6 +228,9 @@ func (o *Oskite) runNewKite() {
 	o.vosMethod(k, "vm.createSnapshot", vmCreateSnapshotNew)
 	o.vosMethod(k, "spawn", spawnFuncNew)
 	o.vosMethod(k, "exec", execFuncNew)
+
+	o.vosMethod(k, "oskite.Info", o.oskiteInfoNew)
+	o.vosMethod(k, "oskite.All", oskiteAllNew)
 
 	o.vosMethod(k, "fs.readDirectory", fsReadDirectoryNew)
 	o.vosMethod(k, "fs.glob", fsGlobNew)
