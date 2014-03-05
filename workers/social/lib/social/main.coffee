@@ -102,9 +102,7 @@ koding = new Bongo {
         callback {sessionToken, context, connection:delegate:account}
       else
         console.log "this is not a proper account".red
-        console.log ''+account.constructor.pid
-        console.log ''+JAccount.pid
-        console.log JAccount is account.constructor
+        console.log "constructor is JAccount", JAccount is account.constructor
         # koding.emit 'error', message: 'this is not a proper account'
 }
 
