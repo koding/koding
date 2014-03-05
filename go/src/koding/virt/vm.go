@@ -7,7 +7,6 @@ import (
 	"net"
 	"os"
 	"os/exec"
-	"runtime"
 	"strconv"
 	"syscall"
 	"text/template"
@@ -141,8 +140,6 @@ func (v *VM) Prepare(reinitialize bool) {
 	// first unprepare to not conflict with everything else
 	v.Unprepare()
 
-	defer un(trace(v.String()))
-
 	// create our lxc container dir
 	v.createContainerDir()
 
@@ -186,8 +183,6 @@ func (v *VM) Prepare(reinitialize bool) {
 }
 
 func (v *VM) createContainerDir() {
-	defer un(trace(v.String()))
-
 	// write LXC files
 	prepareDir(v.File(""), 0)
 	v.generateFile(v.File("config"), "config", 0, false)
@@ -196,8 +191,6 @@ func (v *VM) createContainerDir() {
 }
 
 func (v *VM) mountRBD() error {
-	defer un(trace(v.String()))
-
 	if err := v.MountRBD(v.OverlayFile("")); err != nil {
 		return err
 	}
@@ -205,8 +198,6 @@ func (v *VM) mountRBD() error {
 }
 
 func (v *VM) reinitialize() error {
-	defer un(trace(v.String()))
-
 	entries, err := ioutil.ReadDir(v.OverlayFile("/"))
 	if err != nil {
 		return err
@@ -222,8 +213,6 @@ func (v *VM) reinitialize() error {
 }
 
 func (v *VM) createOverlay() {
-	defer un(trace(v.String()))
-
 	// prepare overlay
 	prepareDir(v.OverlayFile("/"), RootIdOffset)           // for chown
 	prepareDir(v.OverlayFile("/lost+found"), RootIdOffset) // for chown
@@ -235,15 +224,11 @@ func (v *VM) createOverlay() {
 }
 
 func (v *VM) mergeFiles() {
-	defer un(trace(v.String()))
-
 	v.MergePasswdFile()
 	v.MergeGroupFile()
 }
 
 func (v *VM) mountAufs() error {
-	defer un(trace(v.String()))
-
 	// mount "/var/lib/lxc/vm-{id}/overlay" (rw) and "/var/lib/lxc/vmroot" (ro)
 	// under "/var/lib/lxc/vm-{id}/rootfs"
 	prepareDir(v.File("rootfs"), RootIdOffset)
@@ -258,8 +243,6 @@ func (v *VM) mountAufs() error {
 }
 
 func (v *VM) prepareAndMountPts() error {
-	defer un(trace(v.String()))
-
 	// mount devpts
 	prepareDir(v.PtsDir(), RootIdOffset)
 	if out, err := exec.Command("/bin/mount", "--no-mtab", "-t", "devpts", "-o",
@@ -282,8 +265,6 @@ func (v *VM) prepareAndMountPts() error {
 
 // addEbtablesRule adds entries to restrict IP and MAC
 func (v *VM) addEbtablesRule() error {
-	defer un(trace(v.String()))
-
 	if out, err := exec.Command("/sbin/ebtables", "--append", "VMS", "--protocol",
 		"IPv4", "--source", v.MAC().String(), "--ip-src", v.IP.String(),
 		"--in-interface", v.VEth(), "--jump", "ACCEPT").CombinedOutput(); err != nil {
@@ -293,8 +274,6 @@ func (v *VM) addEbtablesRule() error {
 }
 
 func (v *VM) addStaticRoute() error {
-	defer un(trace(v.String()))
-
 	if out, err := exec.Command("/sbin/route", "add", v.IP.String(), "lxcbr0").CombinedOutput(); err != nil {
 		return commandError("adding route failed.", err, out)
 	}
@@ -314,7 +293,6 @@ func UnprepareVM(id bson.ObjectId) error {
 // Unprepare also doesn't return on errors, instead it silently fails and
 // tries to execute the next step until all steps are done.
 func (vm *VM) Unprepare() error {
-	defer un(trace(vm.String()))
 	var firstError error
 
 	// stop VM
@@ -350,8 +328,6 @@ func (vm *VM) Unprepare() error {
 }
 
 func (vm *VM) removeNetworkRules() error {
-	defer un(trace(vm.String()))
-
 	var firstError error
 
 	if vm.IP == nil {
@@ -378,8 +354,6 @@ func (vm *VM) removeNetworkRules() error {
 }
 
 func (vm *VM) umountPts() error {
-	defer un(trace(vm.String()))
-
 	// unmount and unmap everything
 	if out, err := exec.Command("/bin/umount", vm.PtsDir()).CombinedOutput(); err != nil {
 		return commandError("umount devpts failed.", err, out)
@@ -388,7 +362,6 @@ func (vm *VM) umountPts() error {
 }
 
 func (vm *VM) umountAufs() error {
-	defer un(trace(vm.String()))
 	var firstError error
 
 	//Flush the aufs
@@ -404,8 +377,6 @@ func (vm *VM) umountAufs() error {
 }
 
 func (vm *VM) umountRBD() error {
-	defer un(trace(vm.String()))
-
 	if err := vm.UnmountRBD(vm.OverlayFile("")); err != nil {
 		return err
 	}
@@ -609,29 +580,4 @@ func chown(p string, uid, gid int) {
 	if err := os.Chown(p, uid, gid); err != nil {
 		panic(err)
 	}
-}
-
-// the following two functions are used to track how long it takes a function to
-// be finished. see more about this pattern:
-// https://github.com/iand/gocookbook/blob/master/recipes/timingfunction.md
-// but we also print the function name of the caller
-func trace(additionalInfo string) (string, time.Time) {
-	name := "<unknown>"
-	pc, _, _, ok := runtime.Caller(1) // 1 means the caller who called trace()
-	if ok {
-		if fn := runtime.FuncForPC(pc); fn != nil {
-			name = fn.Name() //  get the function name of the caller
-		}
-	}
-
-	finalLog := fmt.Sprintf("%s [%s]", name, additionalInfo)
-	// TODO: disable until senthil has merged the log package
-	// log.Println("START:", finalLog)
-	return finalLog, time.Now()
-}
-
-func un(traceLog string, startTime time.Time) {
-	// endTime := time.Now()
-	// TODO: disable until senthil has merged the log package
-	// log.Printf("  END: %s ElapsedTime: %.10f seconds\n", traceLog, endTime.Sub(startTime).Seconds())
 }
