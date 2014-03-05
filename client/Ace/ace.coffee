@@ -138,13 +138,13 @@ class Ace extends KDView
     file = @getData()
     # update the localStorage each time user requested save.
     {syncLocalController} = KD.singletons
-    syncLocalController.updateFileContentOnLocalStorage file.path, contents
+    syncLocalController.updateFileContentOnLocalStorage file, contents
     if KD.remote.isConnected()
       # if file is saved, remove it from localStorage
-      syncLocalController.removeFromSaveArray file.path
+      syncLocalController.removeFromSaveArray file
     else
       # add to list of files that need to be synced.
-      syncLocalController.addToWillSaved file.path
+      syncLocalController.addToSaveArray file
       @prepareSyncListeners()
 
   prepareSyncListeners: ->
