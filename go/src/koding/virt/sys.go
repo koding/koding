@@ -27,13 +27,11 @@ func (vm *VM) MergePasswdFile() error {
 	users, err := ReadPasswd(passwdFile) // error ignored
 	if err != nil {
 		if os.IsNotExist(err) {
-			return nil
+			return nil // no file in upper, no need to merge
 		}
-
 		if err := os.Rename(passwdFile, passwdFile+"_corrupt_"+time.Now().Format(time.RFC3339)); err != nil {
 			panic(err)
 		}
-
 		return fmt.Errorf("Renamed /etc/passwd file, because it was corrupted.", vm.String(), err)
 	}
 
@@ -50,6 +48,7 @@ func (vm *VM) MergePasswdFile() error {
 		panic(err)
 	}
 	os.Chown(passwdFile, RootIdOffset, RootIdOffset)
+
 	return nil
 }
 
@@ -58,8 +57,7 @@ func (vm *VM) MergeGroupFile() error {
 	groups, err := ReadGroup(groupFile) // error ignored
 	if err != nil {
 		if os.IsNotExist(err) {
-			// no file in upper, no need to merge
-			return nil
+			return nil // no file in upper, no need to merge
 		}
 		if err := os.Rename(groupFile, groupFile+"_corrupt_"+time.Now().Format(time.RFC3339)); err != nil {
 			panic(err)

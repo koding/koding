@@ -226,17 +226,9 @@ func (v *VM) createOverlay() {
 	v.generateFile(v.OverlayFile("/etc/ldap.conf"), "ldap.conf", RootIdOffset, false)
 }
 
-func (v *VM) mergeFiles() error {
-	var lastError error
-	if err := v.MergePasswdFile(); err != nil {
-		lastError = err
-	}
-
-	if err := v.MergeGroupFile(); err != nil {
-		lastError = err
-	}
-
-	return lastError
+func (v *VM) mergeFiles() {
+	v.MergePasswdFile()
+	v.MergeGroupFile()
 }
 
 func (v *VM) mountAufs() error {
@@ -409,7 +401,8 @@ func (vm *VM) MountRBD(mountDir string) error {
 			if out, err := exec.Command("/usr/bin/rbd", "create", "--pool", VMPool, "--size", strconv.Itoa(vm.DiskSizeInMB), "--image", vm.String(), "--image-format", "1").CombinedOutput(); err != nil {
 				return commandError("rbd create failed.", err, out)
 			}
-		} else {
+		}
+		if vm.SnapshotName != "" {
 			if out, err := exec.Command("/usr/bin/rbd", "clone", "--pool", VMPool, "--image", VMName(vm.SnapshotVM), "--snap", vm.SnapshotName, "--dest-pool", VMPool, "--dest", vm.String()).CombinedOutput(); err != nil {
 				return commandError("rbd clone failed.", err, out)
 			}
@@ -459,7 +452,6 @@ func (vm *VM) MountRBD(mountDir string) error {
 	if err := os.Mkdir(mountDir, 0755); err != nil && !os.IsExist(err) {
 		return err
 	}
-
 	if out, err := exec.Command("/bin/mount", "-t", "ext4", vm.RbdDevice(), mountDir).CombinedOutput(); err != nil {
 		os.Remove(mountDir)
 		return commandError("mount rbd failed.", err, out)

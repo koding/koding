@@ -265,6 +265,7 @@ type info struct {
 	IsDir  bool
 }
 
+//
 // CopyFile copies the file from src to dst.
 func (vos *VOS) Copy(src, dst string) error {
 	srcInfo, dstInfo := vos.Vosinfo(src), vos.Vosinfo(dst)
