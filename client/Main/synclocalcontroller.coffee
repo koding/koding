@@ -47,10 +47,14 @@ class SyncLocalController extends KDController
         if content and not err
           newContent = @getPatchedContent content, localContent
           if newContent
-            @writeToFile vmName, fileName, newContent[0], (err, res)=>
-              return KD.showError err if err
-              @removeFromSaveArray fileName
-              @emit "LocalContentSynced", fileName
+            file.save newContent[0], (err, res)=>
+              return cb err if err
+              @removeFromSaveArray file
+              @emit "LocalContentSynced", file
+              cb null, file
+          else
+            @removeFromSaveArray file
+            cb null, file
 
   getPatchedContent: (originalContent, localContent)->
     dmp = new diff_match_patch
