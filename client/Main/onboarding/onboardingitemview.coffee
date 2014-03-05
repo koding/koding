@@ -29,17 +29,16 @@ class OnboardingItemView extends KDView
       else
         console.warn "Target element should be an instance of KDView or jQuery", { appName, itemName }
     catch e
-      console.warn "Path parse error for onboarding item", { appName, itemName, e }
+      console.warn "Couldn't create onboarding item", { appName, itemName, e }
 
   createContextMenu: ->
-    @contextMenu       = new JContextMenu
+    @contextMenu       = new OnboardingContextMenu
       cssClass         : "onboarding-wrapper"
       sticky           : yes
       arrow            :
         placement      : "top"
       menuMaxWidth     : 500
       menuWidth        : 500
-      deferPositioning : yes
       delegate         : @parentElement
       x                : @parentElement.getX() - 20
       y                : @parentElement.getY() + 40
@@ -63,19 +62,19 @@ class OnboardingItemView extends KDView
 
     if @hasPrev
       prevButton   = new KDButtonView
-        cssClass   : "solid ufak light-gray"
+        cssClass   : "solid compact light-gray"
         title      : "PREV"
         callback   : => @emit "NavigationRequested", "prev"
 
     if @hasNext
       nextButton   = new KDButtonView
-        cssClass   : "solid green ufak"
+        cssClass   : "solid green compact"
         title      : "NEXT"
         callback   : => @emit "NavigationRequested", "next"
 
     if @isLast
       doneButton   = new KDButtonView
-        cssClass   : "solid green ufak"
+        cssClass   : "solid green compact"
         title      : "DONE"
         callback   : => @emit "OnboardingCompleted"
 
@@ -103,27 +102,35 @@ class OnboardingItemView extends KDView
     for key, kdinstance of KD.instances
       if kdinstance.getElement?() is element
         kdview = kdinstance
+        break
 
     return kdview
 
   listenEvents: ->
     @on "NavigationRequested", (direction) =>
       @destroy()
-      @getDelegate().emit "NavigationRequested", direction, @getData()
+      KD.mixpanel "Onboarding navigation, click"
 
     @on "OnboardingCompleted", =>
       @destroy()
+      KD.mixpanel "Onboarding navigation, success"
 
     @on "OnboardingCancelled", =>
       @destroy()
+      KD.mixpanel "Onboarding navigation, failure"
 
     {setStorage, slug} = @getOptions()
     if setStorage
-      viewController = @getDelegate()
-      onboardingController = viewController.getDelegate()
-      onboardingController.emit "OnboardingShown", slug
+      KD.utils.defer =>
+        @emit "OnboardingShown", slug
 
   destroy: ->
     super
     @overlay?.destroy()
     @contextMenu.destroy()
+
+
+class OnboardingContextMenu extends JContextMenu
+
+  childAppended: ->
+    KD.utils.defer => @positionContextMenu()

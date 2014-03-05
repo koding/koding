@@ -7,9 +7,9 @@ class OnboardingController extends KDController
     @onboardings   = {}
     mainController = KD.getSingleton "mainController"
 
-    @fetchItems()  if KD.isLoggedIn()
-
-    mainController.on "accountChanged.to.loggedIn", @bound "fetchItems"
+    if KD.isLoggedIn() then @fetchItems()
+    else
+      mainController.on "accountChanged.to.loggedIn", @bound "fetchItems"
 
     @on "OnboardingShown", (slug) =>
       @appStorage.setValue slug, yes
@@ -25,14 +25,12 @@ class OnboardingController extends KDController
       query["isActive"]  = yes
 
     KD.remote.api.JCustomPartials.some query, {}, (err, onboardings) =>
-
       for data in onboardings when data.partial
         appName = data.partial.app
-        @onboardings[appName] = []  unless @onboardings[appName]
+        @onboardings[appName] ?= []
         @onboardings[appName].push data
 
-      @appStorage.fetchStorage (storage) =>
-        @bindOnboardingEvents()
+      @appStorage.fetchStorage @bound "bindOnboardingEvents"
 
   bindOnboardingEvents: ->
     appManager = KD.getSingleton "appManager"
@@ -42,7 +40,6 @@ class OnboardingController extends KDController
 
       KD.utils.wait 3000, =>
         onboardings = @onboardings[appName]
-        onboarding  = null
 
         for item in onboardings
           slug    = KD.utils.slugify KD.utils.curry appName, item.name

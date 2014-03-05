@@ -8,14 +8,19 @@ class OnboardingViewController extends KDViewController
     {@items}      = @getData()
 
     @show @items.first, yes
-    @on "NavigationRequested", (direction, itemData) =>
-      @navigate direction, itemData
 
   show: (item, setStorage) ->
-    delegate = this
-    new OnboardingItemView { delegate, @slug, @app, @items, setStorage }, item
+    view = new OnboardingItemView { @slug, @app, @items, setStorage }, item
+    @bindViewEvents view
 
   navigate: (direction, itemData) ->
     index = @items.indexOf itemData
     item  = if direction is "next" then @items[++index] else @items[--index]
     @show item
+
+  bindViewEvents: (view) =>
+    view.on "NavigationRequested", (direction) =>
+      @navigate direction, view.getData()
+
+    view.on "OnboardingShown", (slug) =>
+      @getDelegate().emit "OnboardingShown", slug
