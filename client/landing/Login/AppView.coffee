@@ -559,6 +559,7 @@ class LoginView extends KDView
           @loginForm.username.input.setFocus()
         when "recover"
           @$('.flex-wrapper').addClass 'one'
+          @github.hide()
           @recoverForm.usernameOrEmail.input.setFocus()
         when "resendEmail"
           @$('.flex-wrapper').addClass 'one'
@@ -568,6 +569,8 @@ class LoginView extends KDView
           @github.hide()
           @$(".login-footer").addClass 'hidden'
           @failureNotice.show()
+        when "reset"
+          @github.hide()
 
   getRouteWithEntryPoint:(route)->
     {entryPoint} = KD.config
