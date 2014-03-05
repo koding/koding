@@ -317,7 +317,7 @@ class LoginView extends KDView
   doRegister:(formData)->
     (KD.getSingleton 'mainController').isLoggingIn on
     formData.agree = 'on'
-    formData.referrer = $.cookie 'referrer'
+    formData.referrer = Cookies.get 'referrer'
     @registerForm.notificationsDisabled = yes
     @registerForm.notification?.destroy()
 
@@ -347,8 +347,8 @@ class LoginView extends KDView
         catch
           KD.logToExternal "mixpanel doesn't exist"
 
-        $.cookie 'newRegister', yes
-        $.cookie 'clientId', replacementToken
+        Cookies.set 'newRegister', yes
+        Cookies.set 'clientId', replacementToken, secure: yes
         KD.getSingleton('mainController').accountChanged account
 
         titleText = unless err then 'Good to go, Enjoy!' \
