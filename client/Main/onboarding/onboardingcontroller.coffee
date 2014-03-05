@@ -16,10 +16,10 @@ class OnboardingController extends KDController
 
   fetchItems: ->
     @appStorage = KD.getSingleton("appStorageController").storage "OnboardingStatus", "1.0.0"
-    hasCookie   = Cookies.get "custom-partials-preview-mode"
+    @hasCookie  = Cookies.get "custom-partials-preview-mode"
     query       = partialType : "ONBOARDING"
 
-    if hasCookie
+    if @hasCookie
       query["isPreview"] = yes
     else
       query["isActive"]  = yes
@@ -45,7 +45,7 @@ class OnboardingController extends KDController
           slug    = KD.utils.slugify KD.utils.curry appName, item.name
           isShown = @appStorage.getValue slug
 
-          unless isShown
+          if not isShown or @hasCookie
             onboarding = item
             break
 
