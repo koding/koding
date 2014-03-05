@@ -10,12 +10,12 @@ class SyncLocalController extends KDController
       @syncLocalContentIfDiffExists (res)->
         log "sync complete"
 
-  addToWillSaved: (fileName)->
-    syncFiles = @storage.getValue "saveRequestedFiles"
-      @filesToSave.push fileName if index == -1
-      @filesToSave.push fileName
-
+  addToSaveArray: (file)->
+    fileName = @getFileFullPath file
+    index    = @filesToSave.indexOf fileName
+    @filesToSave.push fileName if index is -1
     @storage.setValue "saveRequestedFiles", @filesToSave
+    @initializeListeners()
 
   removeFromSaveArray: (fileName) ->
     index = @filesToSave.indexOf fileName
