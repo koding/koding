@@ -236,7 +236,7 @@ module.exports =
     authExchange: authExchange
     authAllExchange: authAllExchange
   premiumBroker  :
-    name        : "premiumBroker"
+    name        : "broker"
     ip          : ""
     port        : 8009
     certFile    : ""
