@@ -596,15 +596,13 @@ class ProfileView extends JView
     @memberData.emit "update"
 
   getActionLink: (route) ->
-    count    = @memberData.counts[route] or 0
     nickname = @memberData.profile.nickname
     path     = route[0].toUpperCase() + route[1..-1]
-
     new KDView
       tagName     : 'a'
       attributes  :
-        href      : "/#"
-      pistachio   : "<span>#{count}</span>#{path}"
+        href      : ""
+      pistachio   : "<span>{{ #(counts.#{route}) }}</span>#{path}"
       click       : (event) =>
         event.preventDefault()
         unless @memberData.counts[route] is 0
