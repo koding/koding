@@ -2,12 +2,15 @@ class MembersAppController extends AppController
 
   KD.registerAppClass this,
     name         : "Members"
-    route        : "/:name?/Members"
+    routes       :
+      "/:name?/Members" : ({params, query}) ->
+        {router, appManager} = KD.singletons
+        KD.getSingleton('groupsController').ready ->
+          group = KD.getSingleton('groupsController').getCurrentGroup()
+          KD.getSingleton("appManager").tell 'Members', 'createContentDisplay', group, (contentDisplay) ->
+            contentDisplay.emit "handleQuery", {filter: "members"}
+
     hiddenHandle : yes
-    # navItem      :
-    #   title      : "Members"
-    #   path       : "/Members"
-    #   order      : 30
 
   {externalProfiles} = KD.config
 
@@ -24,7 +27,7 @@ class MembersAppController extends AppController
 
     @on "LazyLoadThresholdReached", => @feedController?.loadFeed()
 
-  createContentDisplay:(account, callback)->
+  createContentDisplay:(account, callback=->)->
     KD.singletons.appManager.setFrontApp this
     contentDisplay = new KDView
       cssClass : 'member content-display'
@@ -32,8 +35,15 @@ class MembersAppController extends AppController
     contentDisplay.on 'handleQuery', (query)=>
       @ready => @feedController?.handleQuery? query
 
-    @addProfileView contentDisplay, account
-    @addActivityView contentDisplay, account
+    contentDisplay.once 'KDObjectWillBeDestroyed', ->
+      KD.singleton('appManager').tell 'Activity', 'resetProfileLastTo'
+
+    {JAccount} = KD.remote.api
+    if account instanceof JAccount
+      @addProfileView contentDisplay, account
+      @addActivityView contentDisplay, account
+    else
+      @addActivityView contentDisplay, KD.whoami()
     @showContentDisplay contentDisplay
     @utils.defer -> callback contentDisplay
 
@@ -95,6 +105,25 @@ class MembersAppController extends AppController
           dataSource        : (selector, options, callback)->
             selector = {sourceName: $in: ['JNewStatusUpdate']}
             account.fetchLikedContents options, selector, callback
+        members              :
+          noItemFoundText    : "There is no member."
+          optional_title     : if @_searchValue then "<span class='optional_title'></span>" else null
+          itemClass          : GroupMembersPageListItemView
+          listControllerClass: MembersListViewController
+          dataSource         : (selector, options, callback)=>
+            {JAccount} = KD.remote.api
+            if @_searchValue
+              @setCurrentViewHeader "Searching for <strong>#{@_searchValue}</strong>..."
+              JAccount.byRelevance @_searchValue, options, callback
+            else
+              group = KD.getSingleton('groupsController').getCurrentGroup()
+              group.fetchMembers selector, options, (err, res)=>
+                KD.mixpanel "Load member list, success"  unless err
+                callback err, res
+
+              group.countMembers (err, count) =>
+                count = 0 if err
+                @setCurrentViewNumber 'all', count
       sort                  :
         'modifiedAt'        :
           title             : "Latest activity"
@@ -128,54 +157,6 @@ class MembersAppController extends AppController
       options.bind = "mouseenter" unless KD.isMine member
 
     return view.addSubView memberProfile = new ProfileView options, member
-
-  createFeed:(view, loadFeed = no)->
-    @appManager.tell 'Feeder', 'createContentFeedController', {
-      feedId                : 'members.main'
-      itemClass             : GroupMembersPageListItemView
-      listControllerClass   : MembersListViewController
-      useHeaderNav          : yes
-      noItemFoundText       : "There is no member."
-      limitPerPage          : 20
-      delegate              : this
-      help                  :
-        subtitle            : "Learn About Members"
-        bookIndex           : 11
-        tooltip             :
-          title             : "<p class=\"bigtwipsy\">These people are all members of koding.com. Learn more about them and their interests, activity and coding prowess here.</p>"
-          placement         : "above"
-      filter                :
-        everything          :
-          title             : ""
-          optional_title    : if @_searchValue then "<span class='optional_title'></span>" else null
-          dataSource        : (selector, options, callback)=>
-            {JAccount} = KD.remote.api
-            if @_searchValue
-              @setCurrentViewHeader "Searching for <strong>#{@_searchValue}</strong>..."
-              JAccount.byRelevance @_searchValue, options, callback
-            else
-              group = KD.getSingleton('groupsController').getCurrentGroup()
-              group.fetchMembers selector, options, (err, res)=>
-                callback err, res
-
-              group.countMembers (err, count) =>
-                count = 0 if err
-                @setCurrentViewNumber 'all', count
-
-      sort                  :
-        'meta.modifiedAt'   :
-          title             : "Latest activity"
-          direction         : -1
-    }, (controller)=>
-      @feedController = controller
-      @feedController.loadFeed() if loadFeed
-      view.addSubView @_lastSubview = controller.getView()
-      @emit 'ready'
-      controller.on "FeederListViewItemCountChanged", (count, filter)=>
-        if @_searchValue and filter is 'everything'
-          @setCurrentViewHeader count
-
-      KD.mixpanel "Load member list, success"
 
   loadView:(mainView, firstRun = yes, loadFeed = no)->
     if firstRun
