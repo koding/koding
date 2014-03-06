@@ -44,7 +44,7 @@ processMonitor = (require 'processes-monitor').start
   limit_hard  :
     memory   : 300
     callback : (name,msg,details)->
-      console.log "[SOCIAL WORKER #{name}] Using excessive memory, exiting."
+      console.log "[#{(new Date()).toJSON()}][SOCIAL WORKER #{name}] Using excessive memory, exiting."
       process.exit()
   die :
     after: "non-overlapping, random, 3 digits prime-number of minutes"
