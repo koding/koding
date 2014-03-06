@@ -137,6 +137,7 @@ func (o *Oskite) Run() {
 	// register current client-side methods
 	o.registerMethod(k, "vm.start", false, vmStartOld)
 	o.registerMethod(k, "vm.prepareAndStart", false, vmPrepareAndStart)
+	o.registerMethod(k, "vm.stopAndUnprepare", false, vmStopAndUnprepare)
 	o.registerMethod(k, "vm.shutdown", false, vmShutdownOld)
 	o.registerMethod(k, "vm.unprepare", false, vmUnprepareOld)
 	o.registerMethod(k, "vm.prepare", false, vmPrepareOld)
@@ -461,6 +462,8 @@ func (o *Oskite) registerMethod(k *kite.Kite, method string, concurrent bool, ca
 		if shuttingDown {
 			return nil, errors.New("Kite is shutting down.")
 		}
+
+		fmt.Println("GOT METTHOD", method)
 
 		// Needed when we oskite get closed via a SIGNAL. It waits until all methods are done.
 		requestWaitGroup.Add(1)
