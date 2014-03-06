@@ -97,9 +97,9 @@ module.exports = (options = {}, callback)->
 
     if delegate and  typeof delegate.fetchSubscriptions is 'function'
       selector = {}
-      options = targetOptions:{ tags: $nin: ["nosync"] }
+      fetchOptions = targetOptions:{ tags: $nin: ["nosync"] }
 
-      delegate.fetchSubscriptions selector, options, (err, subscriptions)->
+      delegate.fetchSubscriptions selector, fetchOptions, (err, subscriptions)->
         if subscriptions and subscriptions.length
           usePremiumBroker = yes
         callback null, createHTML()
