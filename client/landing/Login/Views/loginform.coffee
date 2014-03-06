@@ -39,7 +39,7 @@ class LoginInlineForm extends LoginViewInlineForm
             required  : "Please enter your password."
 
     @button = new KDButtonView
-      title       : "Sign me in"
+      title       : "Sign in"
       style       : "solid medium green"
       type        : 'submit'
       loader      : yes
