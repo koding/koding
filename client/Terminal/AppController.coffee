@@ -43,7 +43,7 @@ class WebTermController extends AppController
     @globalNotification = null
     alreadyStarted      = no
 
-    @getView().on 'TerminalStarted', =>
+    @getView().once 'TerminalStarted', =>
       alreadyStarted = yes
       if @globalNotification
         KD.utils.wait 300, =>

@@ -142,18 +142,6 @@ class WebTermView extends KDView
 
       @webtermConnect()
 
-      KD.getSingleton("vmController").getKite @getVMName(), (kite)=>
-        kite.on 'destroy', =>
-          console.error "Couldn't connect to your VM. Trying to reconnect...(err:oskite)"
-          @webtermConnect("resume")
-
-      # todo do not leak events
-      KD.kite.mq.on "broker.error", (err)=>
-        console.error "Couldn't connect to your VM. Trying to reconnect...(err:broker)"
-        if err.code is 404
-          KD.getSingleton("vmController").getKite @getVMName(), (kite)=>
-            @webtermConnect("resume")
-
     KD.getSingleton("kiteController").on "KiteError", (err) =>
       console.log "kite errr", err
       @reconnected = no

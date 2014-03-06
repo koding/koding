@@ -31,12 +31,6 @@ class VirtualizationController extends KDController
         options.kiteName = "os-#{region}"
         @kc.run options, callback
 
-  getKite:(vmName, callback)->
-    @fetchRegion vmName, (region)=>
-      kiteName = "os-#{region}"
-      kite = @kc.getKite kiteName, vmName
-      return callback kite
-
   _runWrapper:(command, vm, callback)->
     if vm and 'string' isnt typeof vm
       [callback, vm] = [vm, callback]
@@ -152,6 +146,16 @@ class VirtualizationController extends KDController
         if defaultVmName?
         then callback null, defaultVmName
         else callback message: 'There is no VM for this account.', code: 100
+
+  fetchDefaultVm: (callback) ->
+    # TODO: this is horrible, but better alternatives are not permitted by time
+    # FIXME: the sooner we stop leaning on some notion of a "default vm",
+    #        the better off we will be.  C.T.
+    @fetchVMs (err, vms) =>
+      return callback err  if err
+      @fetchDefaultVmName (vmName) ->
+        return callback err  if err
+        callback null, (vm for vm in vms when vm.hostnameAlias is vmName)[0]
 
   fetchDefaultVmName:(callback=noop, force=no)->
     if @defaultVmName and not force

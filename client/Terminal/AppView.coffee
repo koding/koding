@@ -84,25 +84,28 @@ class WebTermAppView extends JView
     storage = KD.getSingleton('appStorageController').storage 'Terminal', '1.0.1'
     storage.fetchStorage -> callback storage
 
-  restoreTabs: (vmName) ->
+  restoreTabs: (vm) ->
     @fetchStorage (storage) =>
       sessions = storage.getValue 'savedSessions'
       activeIndex = storage.getValue 'activeIndex'
       if sessions?.length
         for session in sessions
           [vmName, sessionId] = session.split ':'
-          @createNewTab { vmName, session: sessionId, mode: 'resume' }
+          @createNewTab { vm, session: sessionId, mode: 'resume' }
         activePane = @tabView.getPaneByIndex activeIndex ? 0
         @tabView.showPane activePane
         { terminalView } = activePane.getOptions()
         terminalView.setKeyView()
       else
-        @addNewTab vmName
+        @addNewTab vm
 
   checkVM:->
 
     vmController = KD.getSingleton 'vmController'
-    vmController.fetchDefaultVmName (vmName)=>
+    vmController.fetchDefaultVm (err, vm) =>
+      return KD.showError err  if err?
+
+      { region, hostnameAlias: vmName } = vm
 
       KD.mixpanel "Open Webterm, click", {vmName}
 
@@ -111,7 +114,7 @@ class WebTermAppView extends JView
 
       WebTermView.setTerminalTimeout vmName, 15000
       , =>
-        @restoreTabs vmName
+        @restoreTabs vm
         @messagePane.hide()
       , =>
         @messagePane.hide()
@@ -242,6 +245,8 @@ class WebTermAppView extends JView
 
 
   createNewTab: (options = {}) ->
+    { hostnameAlias: vmName, region } = options.vm
+
     @messagePane.hide()
 
     defaultOptions =
@@ -259,11 +264,23 @@ class WebTermAppView extends JView
     WebTermView.setTerminalTimeout vmName, 15000
     , =>
       terminalView.connectToTerminal()
+
+      kite = KD.getSingleton("vmController").getKite options.vm
+      kite.on 'destroy', =>
+        console.error "Couldn't connect to your VM. Trying to reconnect...(err:oskite)"
+        terminalView.webtermConnect("resume")
+
+      # todo do not leak events
+      KD.kite.mq.on "broker.error", (err)=>
+        console.error "Couldn't connect to your VM. Trying to reconnect...(err:broker)"
+        if err.code is 404
+          terminalView.webtermConnect("resume")
+
       @messagePane.hide()
       @emit 'TerminalStarted'
     , =>
       KD.utils.defer =>
-        @addNewTab vmName
+        @addNewTab options.vm
         @messagePane.hide()
         @emit 'TerminalStarted'
     , =>
@@ -320,27 +337,27 @@ class WebTermAppView extends JView
       storage.setValue 'savedSessions', sessions
       storage.setValue 'activeIndex', activeIndex
 
-  addNewTab: (vmName)->
+  addNewTab: (vm) ->
 
     if @_secondTab
       KD.mixpanel "Open new Webterm tab, success"
 
     @_secondTab   = yes
 
-    unless vmName
+    if vm?
+      @createNewTab { vm }, mode: 'create'
+
+    else
       @utils.defer =>
 
         vmc = KD.getSingleton 'vmController'
         if vmc.vms.length > 1
           return  if @vmselection and not @vmselection.isDestroyed
           @vmselection = new VMSelection
-          @vmselection.once 'VMSelected', ({ hostnameAlias }) =>
-            @createNewTab vmName: hostnameAlias, mode: 'create'
+          @vmselection.once 'VMSelected', (vm) =>
+            @createNewTab { vm }, mode: 'create'
         else
-          @createNewTab vmName: vmc.vms.first.hostnameAlias, mode: 'create'
-
-    else
-      @createNewTab vmName: vmName, mode: 'create'
+          @createNewTab vm: vmc.vms.first, mode: 'create'
 
   pistachio: ->
     """
