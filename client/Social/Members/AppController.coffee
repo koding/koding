@@ -41,6 +41,17 @@ class MembersAppController extends AppController
     view.$('div.lazy').remove()
     windowController = KD.getSingleton('windowController')
 
+    if KD.whoami().getId() is account.getId()
+      owner   = "you"
+      auxVerb =
+        have : "have"
+        be   : "are"
+    else
+      owner = KD.utils.getFullnameFromAccount account
+      auxVerb =
+        have : "has"
+        be   : "is"
+
     KD.getSingleton("appManager").tell 'Feeder', 'createContentFeedController', {
       itemClass             : ActivityListItemView
       listControllerClass   : MemberActivityListController
@@ -51,15 +62,16 @@ class MembersAppController extends AppController
       creator               : account
       filter                :
         statuses            :
-          noItemFoundText   : "#{KD.utils.getFullnameFromAccount account} has not shared any posts yet."
+          noItemFoundText   : "#{owner} #{auxVerb.have} not shared any posts yet."
           dataSource        : (selector, options = {}, callback)=>
-            options.originId = account.getId()
-            KD.getSingleton("appManager").tell 'Activity', 'fetchActivitiesProfilePage', options, callback
+            KD.getSingleton('groupsController').ready ->
+              options.originId = account.getId()
+              KD.getSingleton("appManager").tell 'Activity', 'fetchActivitiesProfilePage', options, callback
         followers           :
           loggedInOnly      : yes
           itemClass          : GroupMembersPageListItemView
           listControllerClass: MembersListViewController
-          noItemFoundText   : "No one is following #{KD.utils.getFullnameFromAccount account} yet."
+          noItemFoundText   : "No one is following #{owner} yet."
           dataSource        : (selector, options, callback)=>
             options.groupId or= KD.getSingleton('groupsController').getCurrentGroup().getId()
             account.fetchFollowersWithRelationship selector, options, callback
@@ -70,7 +82,7 @@ class MembersAppController extends AppController
           loggedInOnly      : yes
           itemClass          : GroupMembersPageListItemView
           listControllerClass: MembersListViewController
-          noItemFoundText   : "#{KD.utils.getFullnameFromAccount account} is not following anyone."
+          noItemFoundText   : "#{owner} #{auxVerb.be} not following anyone."
           dataSource        : (selector, options, callback)=>
             options.groupId or= KD.getSingleton('groupsController').getCurrentGroup().getId()
             account.fetchFollowingWithRelationship selector, options, callback
@@ -79,7 +91,7 @@ class MembersAppController extends AppController
               @setCurrentViewNumber 'following', count
         likes               :
           loggedInOnly      : yes
-          noItemFoundText   : "#{KD.utils.getFullnameFromAccount account} has not liked any posts yet."
+          noItemFoundText   : "#{owner} #{auxVerb.have} not liked any posts yet."
           dataSource        : (selector, options, callback)->
             selector = {sourceName: $in: ['JNewStatusUpdate']}
             account.fetchLikedContents options, selector, callback
