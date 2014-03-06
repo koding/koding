@@ -18,10 +18,18 @@ app.login-signup.styl
   &.shown
     top               0
 
-  #koding-logo
+  .koding-logo
+    rounded           2px
+    size              45px 45px
+    bg                color, logoBg
     top               16px
     left              16px
-    rounded           2px
+    fix()
+
+    cite
+      r-sprite        home 'logo'
+      margin          14px
+      display         block
 
   .tint
     size                100% 100%
