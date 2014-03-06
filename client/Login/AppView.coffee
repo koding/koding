@@ -97,7 +97,7 @@ class LoginView extends KDView
 
     @logo = new KDCustomHTMLView
       tagName   : "a"
-      domId     : "koding-logo"
+      cssClass  : "koding-logo"
       partial   : '<cite></cite>'
       click     : (event)=>
         KD.utils.stopDOMEvent event
