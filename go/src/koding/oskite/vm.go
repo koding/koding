@@ -305,97 +305,98 @@ func vmStartProgress(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) 
 		return nil, &kite.ArgumentError{Expected: "{OnProgress: [function]}"}
 	}
 
-	params.OnProgress(&virt.PrepareStep{
-		Err:         nil,
-		CurrentStep: 0,
-		TotalStep:   0,
-		Message:     "vmPrepareAndStart called.",
-		TotalTime:   0,
-	})
+	params.OnProgress(&virt.PrepareStep{Message: "vm.startProgress called."})
 
 	go func() {
 		prepareQueue <- &QueueJob{
 			msg: "vm.Start" + channel.CorrelationName,
 			f: func() (string, error) {
-				var lastError error
+				for step := range progress(vos) {
+					params.OnProgress(step)
 
-				defer func() {
-					params.OnProgress(&virt.PrepareStep{
-						Err:       lastError,
-						Message:   "FINISHED",
-						TotalTime: 0,
-					})
-				}()
-
-				var prepared bool
-				prepared, lastError = isVmPrepared(vos.VM)
-				if lastError != nil {
-					return "", lastError
-				}
-
-				if prepared {
-					return "vm already repared", nil
-				}
-
-				for step := range vos.VM.Prepare(false) {
-					lastError = step.Err
-					if lastError != nil {
-						return "", fmt.Errorf("preparing VM %s", lastError)
+					if step.Err != nil {
+						return "", step.Err
 					}
-
-					params.OnProgress(step) // send every process back to the client
 				}
 
-				// start vm and return any error
-				start := time.Now()
-				if lastError = vos.VM.Start(); lastError != nil {
-					return "", fmt.Errorf("starting VM %s", lastError)
-				}
-
-				params.OnProgress(&virt.PrepareStep{
-					Err:       nil,
-					Message:   "VM is started.",
-					TotalTime: time.Since(start).Seconds(),
-				})
-
-				// wait until network is up
-				start = time.Now()
-				if lastError = vos.VM.WaitForNetwork(time.Second * 5); lastError != nil {
-					return "", fmt.Errorf("waiting for network VM %s", lastError)
-				}
-
-				params.OnProgress(&virt.PrepareStep{
-					Err:       nil,
-					Message:   "VM network is ready and up.",
-					TotalTime: time.Since(start).Seconds(),
-				})
-
-				var rootVos *virt.VOS
-				rootVos, lastError = vos.VM.OS(&virt.RootUser)
-				if lastError != nil {
-					return "", lastError
-				}
-
-				vmWebDir := "/home/" + vos.VM.WebHome + "/Web"
-				userWebDir := "/home/" + vos.User.Name + "/Web"
-
-				vmWebVos := rootVos
-				if vmWebDir == userWebDir {
-					vmWebVos = vos
-				}
-
-				rootVos.Chmod("/", 0755)     // make sure that executable flag is set
-				rootVos.Chmod("/home", 0755) // make sure that executable flag is set
-				createUserHome(vos.User, rootVos, vos)
-				createVmWebDir(vos.VM, vmWebDir, rootVos, vmWebVos)
-				if vmWebDir != userWebDir {
-					createUserWebDir(vos.User, vmWebDir, userWebDir, rootVos, vos)
-				}
-
-				return fmt.Sprintf("vm.PrepareAndStart %s", channel.CorrelationName), nil
+				return fmt.Sprintf("vm.startProgress %s", vos.VM.HostnameAlias), nil
 			},
 		}
 	}()
 
 	return true, nil
+}
+
+func progress(vos *virt.VOS) <-chan *virt.PrepareStep {
+	results := make(chan *virt.PrepareStep)
+
+	go func() {
+		var lastError error
+
+		defer func() {
+			results <- &virt.PrepareStep{Err: lastError, Message: "FINISHED"}
+			close(results)
+		}()
+
+		var prepared bool
+		prepared, lastError = isVmPrepared(vos.VM)
+		if lastError != nil {
+			return
+		}
+
+		if prepared {
+			results <- &virt.PrepareStep{Message: "vm already prepared"}
+			return
+		}
+
+		for step := range vos.VM.Prepare(false) {
+			lastError = step.Err
+			if lastError != nil {
+				lastError = fmt.Errorf("preparing VM %s", lastError)
+				return
+			}
+
+			// send every process back to the client
+			results <- step
+		}
+
+		// start vm and return any error
+		start := time.Now()
+		if lastError = vos.VM.Start(); lastError != nil {
+			return
+		}
+		results <- &virt.PrepareStep{Message: "VM is started.", TotalTime: time.Since(start).Seconds()}
+
+		// wait until network is up
+		start = time.Now()
+		if lastError = vos.VM.WaitForNetwork(time.Second * 5); lastError != nil {
+			return
+		}
+		results <- &virt.PrepareStep{Message: "VM network is ready and up.", TotalTime: time.Since(start).Seconds()}
+
+		var rootVos *virt.VOS
+		rootVos, lastError = vos.VM.OS(&virt.RootUser)
+		if lastError != nil {
+			return
+		}
+
+		vmWebDir := "/home/" + vos.VM.WebHome + "/Web"
+		userWebDir := "/home/" + vos.User.Name + "/Web"
+
+		vmWebVos := rootVos
+		if vmWebDir == userWebDir {
+			vmWebVos = vos
+		}
+
+		rootVos.Chmod("/", 0755)     // make sure that executable flag is set
+		rootVos.Chmod("/home", 0755) // make sure that executable flag is set
+		createUserHome(vos.User, rootVos, vos)
+		createVmWebDir(vos.VM, vmWebDir, rootVos, vmWebVos)
+		if vmWebDir != userWebDir {
+			createUserWebDir(vos.User, vmWebDir, userWebDir, rootVos, vos)
+		}
+	}()
+
+	return results
+
 }
