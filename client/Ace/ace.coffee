@@ -149,8 +149,12 @@ class Ace extends KDView
 
   prepareSyncListeners: ->
     {syncLocalController} = KD.singletons
-    syncLocalController.on "LocalContentSynced", (fileName) =>
+
+    syncLocalController.on "LocalContentSynced", (file) =>
       @notify "file synced to remote...", null, null, 5000
+
+    syncLocalController.on "LocalContentCouldntSynced", (file) =>
+      @notify "file coudn't synced to remote please try again...", null, null, 5000
 
   requestSaveAs: (options) ->
     contents = @getContents()
