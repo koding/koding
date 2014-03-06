@@ -454,8 +454,37 @@ class ProfileView extends JView
         style : "solid"
       , @memberData
 
-    for route in ['followers', 'following', 'likes']
-      @[route] = @getActionLink route, @memberData
+    nickname = @memberData.profile.nickname
+
+    @followers = new KDView
+      tagName     : 'a'
+      attributes  :
+        href      : ""
+      pistachio   : "<span>{{ #(counts.followers) }}</span>Followers"
+      click       : (event) =>
+        event.preventDefault()
+        KD.getSingleton('router').handleRoute "/#{nickname}?filter=followers", {state: @memberData}
+    , @memberData
+
+    @following = new KDView
+      tagName     : 'a'
+      attributes  :
+        href      : ""
+      pistachio   : "<span>{{ #(counts.following) }}</span>Following"
+      click       : (event) =>
+        event.preventDefault()
+        KD.getSingleton('router').handleRoute "/#{nickname}?filter=following", {state: @memberData}
+    , @memberData
+
+    @likes = new KDView
+      tagName     : 'a'
+      attributes  :
+        href      : ""
+      pistachio   : "<span>{{ #(counts.likes) }}</span>Likes"
+      click       : (event) =>
+        event.preventDefault()
+        KD.getSingleton('router').handleRoute "/#{nickname}?filter=likes", {state: @memberData}
+    , @memberData
 
     @sendMessageLink = new KDCustomHTMLView
     unless KD.isMine @memberData
@@ -594,19 +623,6 @@ class ProfileView extends JView
   cancel:(event)->
     KD.utils.stopDOMEvent event  if event
     @memberData.emit "update"
-
-  getActionLink: (route) ->
-    nickname = @memberData.profile.nickname
-    path     = route[0].toUpperCase() + route[1..-1]
-    new KDView
-      tagName     : 'a'
-      attributes  :
-        href      : ""
-      pistachio   : "<span>{{ #(counts.#{route}) }}</span>#{path}"
-      click       : (event) =>
-        event.preventDefault()
-        KD.getSingleton('router').handleRoute "/#{nickname}?filter=#{route}", {state: @memberData}
-    , @memberData
 
   fetchAutoCompleteForToField: (inputValue, blacklist, callback) ->
     KD.remote.api.JAccount.byRelevance inputValue,{blacklist},(err,accounts) ->
