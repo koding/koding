@@ -45,6 +45,7 @@ var (
 	mongodbConn *mongodb.MongoDB
 	conf        *config.Config
 
+	// stores vm based mutexes
 	infos            = make(map[bson.ObjectId]*VMInfo)
 	infosMutex       sync.Mutex
 	templateDir      = "files/templates" // should be in the same dir as the binary
@@ -966,6 +967,21 @@ func newInfo(vm *virt.VM) *VMInfo {
 		PhysicalMemoryLimit: 100 * 1024 * 1024,
 		TotalMemoryLimit:    1024 * 1024 * 1024,
 	}
+}
+
+func getInfo(vm *virt.VM) *VMInfo {
+	var info *VMInfo
+	var found bool
+
+	infosMutex.Lock()
+	info, found = infos[vm.Id]
+	if !found {
+		info = newInfo(vm)
+		infos[vm.Id] = info
+	}
+	infosMutex.Unlock()
+
+	return info
 }
 
 // randomMinutes returns a random duration between [0,n] in minutes. It panics if n <=  0.

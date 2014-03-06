@@ -116,6 +116,10 @@ func vmShutdown(vos *virt.VOS) (interface{}, error) {
 		f: func() (string, error) {
 			defer func() { done <- struct{}{} }()
 
+			info := getInfo(vos.VM)
+			info.mutex.Lock()
+			defer info.mutex.Unlock()
+
 			if err := vos.VM.Shutdown(); err != nil {
 				return "", err
 			}
@@ -133,6 +137,10 @@ func vmUnprepare(vos *virt.VOS) (interface{}, error) {
 		return nil, &kite.PermissionError{}
 	}
 
+	info := getInfo(vos.VM)
+	info.mutex.Lock()
+	defer info.mutex.Unlock()
+
 	if err := vos.VM.Unprepare(); err != nil {
 		return nil, err
 	}
@@ -144,6 +152,10 @@ func vmStop(vos *virt.VOS) (interface{}, error) {
 	if !vos.Permissions.Sudo {
 		return nil, &kite.PermissionError{}
 	}
+
+	info := getInfo(vos.VM)
+	info.mutex.Lock()
+	defer info.mutex.Unlock()
 
 	if err := vos.VM.Stop(); err != nil {
 		return nil, err
@@ -157,6 +169,10 @@ func vmCreateSnapshot(vos *virt.VOS) (interface{}, error) {
 		return nil, &kite.PermissionError{}
 	}
 
+	info := getInfo(vos.VM)
+	info.mutex.Lock()
+	defer info.mutex.Unlock()
+
 	snippetId := bson.NewObjectId().Hex()
 	if err := vos.VM.CreateConsistentSnapshot(snippetId); err != nil {
 		return nil, err
@@ -169,21 +185,21 @@ func vmResizeDisk(vos *virt.VOS) (interface{}, error) {
 	if !vos.Permissions.Sudo {
 		return nil, &kite.PermissionError{}
 	}
+
+	info := getInfo(vos.VM)
+	info.mutex.Lock()
+	defer info.mutex.Unlock()
+
 	return true, vos.VM.ResizeRBD()
 }
 
 func vmInfo(vos *virt.VOS) (interface{}, error) {
-	var info *VMInfo
-	var ok bool
+	info := getInfo(vos.VM)
+	info.State = vos.VM.GetState()
 
-	info, ok = infos[vos.VM.Id]
-	if !ok {
-		info = newInfo(vos.VM)
-		info.State = vos.VM.GetState()
-		infos[vos.VM.Id] = info
-	} else {
-		info.State = vos.VM.GetState()
-	}
+	infosMutex.Lock()
+	infos[vos.VM.Id] = info
+	infosMutex.Unlock()
 
 	return info, nil
 }
@@ -192,6 +208,10 @@ func vmPrepare(vos *virt.VOS) (interface{}, error) {
 	if !vos.Permissions.Sudo {
 		return nil, &kite.PermissionError{}
 	}
+
+	info := getInfo(vos.VM)
+	info.mutex.Lock()
+	defer info.mutex.Unlock()
 
 	prepared, err := isVmPrepared(vos.VM)
 	if err != nil {
@@ -225,6 +245,10 @@ func vmReinitialize(vos *virt.VOS) (interface{}, error) {
 		return nil, &kite.PermissionError{}
 	}
 
+	info := getInfo(vos.VM)
+	info.mutex.Lock()
+	defer info.mutex.Unlock()
+
 	for _ = range vos.VM.Prepare(true) {
 	}
 
@@ -244,6 +268,10 @@ func spawnFunc(command []string, vos *virt.VOS) (interface{}, error) {
 }
 
 func startAndPrepareVM(vm *virt.VM) error {
+	info := getInfo(vm)
+	info.mutex.Lock()
+	defer info.mutex.Unlock()
+
 	prepared, err := isVmPrepared(vm)
 	if err != nil {
 		return err
@@ -331,8 +359,11 @@ func progress(vos *virt.VOS) <-chan *virt.PrepareStep {
 	results := make(chan *virt.PrepareStep)
 
 	go func() {
-		var lastError error
+		info := getInfo(vos.VM)
+		info.mutex.Lock()
+		defer info.mutex.Unlock()
 
+		var lastError error
 		defer func() {
 			results <- &virt.PrepareStep{Err: lastError, Message: "FINISHED"}
 			close(results)
