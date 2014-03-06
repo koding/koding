@@ -5,6 +5,7 @@ import (
 	"koding/tools/kite"
 	"koding/tools/utils"
 	"koding/virt"
+	"math/rand"
 	"sync"
 	"time"
 
@@ -157,3 +158,6 @@ func (v *VMInfo) unprepareVM() {
 	}
 	infosMutex.Unlock()
 }
+
+// randomMinutes returns a random duration between [0,n] in minutes. It panics if n <=  0.
+func randomMinutes(n int64) time.Duration { return time.Minute * time.Duration(rand.Int63n(n)) }

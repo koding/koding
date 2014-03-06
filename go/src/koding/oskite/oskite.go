@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
-	"koding/databases/redis"
 	"koding/db/mongodb"
 	"koding/db/mongodb/modelhelper"
 	"koding/kodingkite"
@@ -22,13 +21,11 @@ import (
 	"net"
 	"os"
 	"os/signal"
-	"sort"
 	"strings"
 	"sync"
 	"syscall"
 	"time"
 
-	redigo "github.com/garyburd/redigo/redis"
 	kitelib "github.com/koding/kite"
 
 	"labix.org/v2/mgo"
@@ -44,9 +41,6 @@ var (
 	log         = logger.New(OSKITE_NAME)
 	mongodbConn *mongodb.MongoDB
 	conf        *config.Config
-
-	oskitesMu sync.Mutex
-	oskites   = make(map[string]*OskiteInfo)
 
 	templateDir      = "files/templates" // should be in the same dir as the binary
 	firstContainerIP net.IP
@@ -183,7 +177,7 @@ func (o *Oskite) Run() {
 	o.registerMethod(k, "s3.store", true, s3StoreOld)
 	o.registerMethod(k, "s3.delete", true, s3DeleteOld)
 
-	go o.oskiteRedis(k.ServiceUniqueName)
+	go o.redisBalancer(k.ServiceUniqueName)
 
 	log.Info("Oskite started. Go!")
 	k.Run()
@@ -246,109 +240,6 @@ func (o *Oskite) runNewKite() {
 
 	// TODO: remove this later, this is needed in order to reinitiliaze the logger package
 	log.SetLevel(o.LogLevel)
-}
-
-func (o *Oskite) oskiteRedis(serviceUniquename string) {
-	session, err := redis.NewRedisSession(conf.Redis)
-	if err != nil {
-		log.Error("redis SADD kontainers. err: %v", err.Error())
-	}
-	session.SetPrefix("oskite")
-
-	prefix := "oskite:" + conf.Environment + ":"
-	kontainerSet := "kontainers-" + conf.Environment
-
-	log.Info("Connected to Redis with %s", prefix+serviceUniquename)
-
-	_, err = redigo.Int(session.Do("SADD", kontainerSet, prefix+serviceUniquename))
-	if err != nil {
-		log.Error("redis SADD kontainers. err: %v", err.Error())
-	}
-
-	// update regularly our VMS info
-	go func() {
-		expireDuration := time.Second * 5
-		for _ = range time.Tick(2 * time.Second) {
-			key := prefix + serviceUniquename
-			oskiteInfo := o.GetOskiteInfo()
-
-			if _, err := session.Do("HMSET", redigo.Args{key}.AddFlat(oskiteInfo)...); err != nil {
-				log.Error("redis HMSET err: %v", err.Error())
-			}
-
-			reply, err := redigo.Int(session.Do("EXPIRE", key, expireDuration.Seconds()))
-			if err != nil {
-				log.Error("redis SET Expire %v. reply: %v err: %v", key, reply, err.Error())
-			}
-		}
-	}()
-
-	// get oskite statuses from others every 2 seconds
-	for _ = range time.Tick(2 * time.Second) {
-		kontainers, err := redigo.Strings(session.Do("SMEMBERS", kontainerSet))
-		if err != nil {
-			log.Error("redis SMEMBER kontainers. err: %v", err.Error())
-		}
-
-		for _, kontainerHostname := range kontainers {
-			// convert to serviceUniqueName formst
-			remoteOskite := strings.TrimPrefix(kontainerHostname, prefix)
-
-			values, err := redigo.Values(session.Do("HGETALL", kontainerHostname))
-			if err != nil {
-				log.Error("redis HTGETALL %s. err: %v", kontainerHostname, err.Error())
-
-				// kontainer might be dead, key gets than expired, continue with the next one
-
-				oskitesMu.Lock()
-				delete(oskites, remoteOskite)
-				oskitesMu.Unlock()
-				continue
-			}
-
-			oskiteInfo := new(OskiteInfo)
-			if err := redigo.ScanStruct(values, oskiteInfo); err != nil {
-				log.Error("redis ScanStruct err: %v", err.Error())
-			}
-
-			log.Debug("%s: %+v", kontainerHostname, oskiteInfo)
-
-			oskitesMu.Lock()
-			oskites[remoteOskite] = oskiteInfo
-			oskitesMu.Unlock()
-		}
-	}
-}
-
-func lowestOskiteLoad() (serviceUniquename string) {
-	oskitesMu.Lock()
-	defer oskitesMu.Unlock()
-
-	oskitesSlice := make([]*OskiteInfo, 0, len(oskites))
-
-	for s, v := range oskites {
-		v.ServiceUniquename = s
-		oskitesSlice = append(oskitesSlice, v)
-	}
-
-	sort.Sort(ByVM(oskitesSlice))
-
-	middle := len(oskitesSlice) / 2
-	if middle == 0 {
-		return ""
-	}
-
-	// return randomly one of the lowest
-	l := oskitesSlice[rand.Intn(middle)]
-
-	// also pick up the highest to log information
-	h := oskitesSlice[len(oskitesSlice)-1]
-
-	log.Info("oskite picked up as lowest load %s with %d VMs (highest was: %d / %s)",
-		l.ServiceUniquename, l.ActiveVMs, h.ActiveVMs, h.ServiceUniquename)
-
-	return l.ServiceUniquename
-
 }
 
 func (o *Oskite) initializeSettings() {
@@ -952,6 +843,3 @@ func NextCounterValue(counterName string, initialValue int) int {
 	return counter.Value
 
 }
-
-// randomMinutes returns a random duration between [0,n] in minutes. It panics if n <=  0.
-func randomMinutes(n int64) time.Duration { return time.Minute * time.Duration(rand.Int63n(n)) }
