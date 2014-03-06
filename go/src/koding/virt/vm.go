@@ -169,7 +169,7 @@ func (v *VM) Prepare(reinitialize bool) <-chan *PrepareStep {
 	funcs = append(funcs, &PrepareFunc{Msg: "Add Ebtables rules", Fn: v.addEbtablesRule})
 	funcs = append(funcs, &PrepareFunc{Msg: "Add Static route", Fn: v.addStaticRoute})
 
-	results := make(chan *PrepareStep, len(funcs)+1) // plus we send the "FINISHED" msg.
+	results := make(chan *PrepareStep, len(funcs))
 
 	// create the functions one by one and pass back the results via a
 	// channel. The channel will be closed if an error results.
@@ -182,24 +182,24 @@ func (v *VM) Prepare(reinitialize bool) <-chan *PrepareStep {
 		for step, current := range funcs {
 			start := time.Now()
 			err := current.Fn() // invoke our function
-			if err != nil {
-				v.Unprepare() // don't put the prepare in an unknown state
-				break
-			}
 
 			results <- &PrepareStep{
 				Message:     current.Msg,
 				CurrentStep: step + 1,
-				TotalStep:   len(funcs) + 1, // plus we send the FINISHED msg
+				TotalStep:   len(funcs), // plus we send the FINISHED msg
 				TotalTime:   time.Since(start).Seconds(),
 				Err:         err,
+			}
+
+			if err != nil {
+				v.Unprepare() // don't put the prepare in an unknown state
+				break
 			}
 		}
 
 	}()
 
 	return results
-
 }
 
 func (v *VM) createContainerDir() error {

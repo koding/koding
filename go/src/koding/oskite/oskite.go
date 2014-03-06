@@ -96,7 +96,7 @@ type Oskite struct {
 
 // QueueJob is used to append jobs to the prepareQueue.
 type QueueJob struct {
-	f   func() string
+	f   func() (string, error)
 	msg string
 }
 
@@ -549,9 +549,9 @@ func (o *Oskite) setupSignalHandler() {
 				log.Info("Unpreparing " + info.vm.String() + "...")
 				prepareQueue <- &QueueJob{
 					msg: "vm unprepare because of shutdown oskite " + info.vm.HostnameAlias,
-					f: func() string {
+					f: func() (string, error) {
 						info.unprepareVM()
-						return fmt.Sprintf("shutting down %s", info.vm.Id.Hex())
+						return fmt.Sprintf("shutting down %s", info.vm.Id.Hex()), nil
 					},
 				}
 			}
@@ -801,8 +801,13 @@ func prepareWorker(id int) {
 		done := make(chan struct{}, 1)
 		go func() {
 			startTime := time.Now()
-			res := job.f() // execute our function
-			log.Info(fmt.Sprintf("Queue %d: elapsed time %s res: %s", id, time.Since(startTime), res))
+			res, err := job.f() // execute our function
+			if err != nil {
+				log.Error(fmt.Sprintf("Queue %d: error %s", id, err))
+			} else {
+				log.Info(fmt.Sprintf("Queue %d: elapsed time %s res: %s", id, time.Since(startTime), res))
+			}
+
 			done <- struct{}{}
 		}()
 
@@ -1001,9 +1006,9 @@ func (info *VMInfo) startTimeout() {
 
 			prepareQueue <- &QueueJob{
 				msg: "vm unprepare " + info.vm.HostnameAlias,
-				f: func() string {
+				f: func() (string, error) {
 					info.unprepareVM()
-					return fmt.Sprintf("shutting down %s after %s", info.vm.Id.Hex(), totalTimeout)
+					return fmt.Sprintf("shutting down %s after %s", info.vm.Id.Hex(), totalTimeout), nil
 				},
 			}
 

@@ -113,14 +113,14 @@ func vmShutdown(vos *virt.VOS) (interface{}, error) {
 	done := make(chan struct{}, 1)
 	prepareQueue <- &QueueJob{
 		msg: "vm.Shutdown" + vos.VM.HostnameAlias,
-		f: func() string {
+		f: func() (string, error) {
+			defer func() { done <- struct{}{} }()
 
 			if err := vos.VM.Shutdown(); err != nil {
-				panic(err)
+				return "", err
 			}
 
-			done <- struct{}{}
-			return fmt.Sprintf("vm.Shutdown %s", vos.VM.HostnameAlias)
+			return fmt.Sprintf("vm.Shutdown %s", vos.VM.HostnameAlias), nil
 		},
 	}
 
@@ -253,15 +253,20 @@ func startAndPrepareVM(vm *virt.VM) error {
 		return nil
 	}
 
+	var lastError error
 	done := make(chan struct{}, 1)
-
 	prepareQueue <- &QueueJob{
 		msg: "vm prepare and start " + vm.HostnameAlias,
-		f: func() string {
+		f: func() (string, error) {
+			defer func() { done <- struct{}{} }()
 			startTime := time.Now()
 
 			// prepare first
-			for _ = range vm.Prepare(false) {
+			for step := range vm.Prepare(false) {
+				lastError = step.Err
+				if lastError != nil {
+					return "", fmt.Errorf("preparing VM %s", lastError)
+				}
 			}
 
 			// start it
@@ -277,8 +282,7 @@ func startAndPrepareVM(vm *virt.VM) error {
 			res := fmt.Sprintf("VM PREPARE and START: %s [%s] - ElapsedTime: %.10f seconds.",
 				vm, vm.HostnameAlias, time.Since(startTime).Seconds())
 
-			done <- struct{}{}
-			return res
+			return res, nil
 		},
 	}
 
@@ -289,7 +293,7 @@ func startAndPrepareVM(vm *virt.VM) error {
 	// to return something to the client
 	<-done
 
-	return nil
+	return lastError
 }
 
 func vmStartProgress(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
@@ -310,10 +314,9 @@ func vmStartProgress(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) 
 	})
 
 	go func() {
-		done := make(chan struct{}, 1)
 		prepareQueue <- &QueueJob{
 			msg: "vm.Start" + channel.CorrelationName,
-			f: func() string {
+			f: func() (string, error) {
 				var lastError error
 
 				defer func() {
@@ -322,50 +325,76 @@ func vmStartProgress(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) 
 						Message:   "FINISHED",
 						TotalTime: 0,
 					})
-
-					done <- struct{}{}
 				}()
+
+				var prepared bool
+				prepared, lastError = isVmPrepared(vos.VM)
+				if lastError != nil {
+					return "", lastError
+				}
+
+				if prepared {
+					return "vm already repared", nil
+				}
 
 				for step := range vos.VM.Prepare(false) {
 					lastError = step.Err
 					if lastError != nil {
-						return fmt.Sprintf("Error while preparing VM %s", lastError)
+						return "", fmt.Errorf("preparing VM %s", lastError)
 					}
 
 					params.OnProgress(step) // send every process back to the client
 				}
 
-				// start vm
+				// start vm and return any error
 				start := time.Now()
 				if lastError = vos.VM.Start(); lastError != nil {
-					return fmt.Sprintf("Error while starting VM")
+					return "", fmt.Errorf("starting VM %s", lastError)
 				}
 
 				params.OnProgress(&virt.PrepareStep{
 					Err:       nil,
-					Message:   "VM started",
+					Message:   "VM is started.",
 					TotalTime: time.Since(start).Seconds(),
 				})
 
 				// wait until network is up
 				start = time.Now()
 				if lastError = vos.VM.WaitForNetwork(time.Second * 5); lastError != nil {
-					return fmt.Sprintf("Error while preparing VM")
+					return "", fmt.Errorf("waiting for network VM %s", lastError)
 				}
 
 				params.OnProgress(&virt.PrepareStep{
 					Err:       nil,
-					Message:   "VM prepared",
+					Message:   "VM network is ready and up.",
 					TotalTime: time.Since(start).Seconds(),
 				})
 
-				return fmt.Sprintf("vm.PrepareAndStart %s", channel.CorrelationName)
+				var rootVos *virt.VOS
+				rootVos, lastError = vos.VM.OS(&virt.RootUser)
+				if lastError != nil {
+					return "", lastError
+				}
+
+				vmWebDir := "/home/" + vos.VM.WebHome + "/Web"
+				userWebDir := "/home/" + vos.User.Name + "/Web"
+
+				vmWebVos := rootVos
+				if vmWebDir == userWebDir {
+					vmWebVos = vos
+				}
+
+				rootVos.Chmod("/", 0755)     // make sure that executable flag is set
+				rootVos.Chmod("/home", 0755) // make sure that executable flag is set
+				createUserHome(vos.User, rootVos, vos)
+				createVmWebDir(vos.VM, vmWebDir, rootVos, vmWebVos)
+				if vmWebDir != userWebDir {
+					createUserWebDir(vos.User, vmWebDir, userWebDir, rootVos, vos)
+				}
+
+				return fmt.Sprintf("vm.PrepareAndStart %s", channel.CorrelationName), nil
 			},
 		}
-
-		// wait until the prepareWorker has picked us and we finished
-		// to return something to the client
-		<-done
 	}()
 
 	return true, nil
