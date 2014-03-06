@@ -283,6 +283,9 @@ class KodingRouter extends KDRouter
 
       '/:name/Groups'          : createSectionHandler 'Groups'
 
+      '/:slug/:name?' : ({params, query}, model, route) ->
+        (createContentHandler 'Members') arguments...
+
       '/:name?/Invitation/:inviteCode': ({params:{inviteCode, name}})=>
         @handleRoute "/Redeem/#{inviteCode}"
 
@@ -338,7 +341,9 @@ class KodingRouter extends KDRouter
 
           switch model?.bongo_?.constructorName
             when 'JAccount'
-              (createContentHandler 'Members') routeInfo, [model]
+              # workaround. when a route as /:name?/:name2? is defined there occurs two redirection
+              # if we remove JAccount case then handleNotFound is called - CtF
+              return
             when 'JGroup'
               (createSectionHandler 'Activity') routeInfo, model
             when 'JNewApp'
@@ -347,7 +352,6 @@ class KodingRouter extends KDRouter
               @handleNotFound routeInfo.params.name
 
         (routeInfo, state, route)->
-
           if state?
             open.call this, routeInfo, state
 
