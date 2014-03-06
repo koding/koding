@@ -77,31 +77,37 @@ func vmStart(vos *virt.VOS) (interface{}, error) {
 		return nil, &kite.PermissionError{}
 	}
 
-	if err := startAndPrepareVM(vos.VM); err != nil {
-		return nil, err
+	var lastError error
+
+	done := make(chan struct{}, 1)
+	prepareQueue <- &QueueJob{
+		msg: "vm.Start" + vos.VM.HostnameAlias,
+		f: func() (string, error) {
+			defer func() { done <- struct{}{} }()
+
+			// mutex is needed because it's handled in the queue
+			info := getInfo(vos.VM)
+			info.mutex.Lock()
+			defer info.mutex.Unlock()
+
+			if lastError = vos.VM.Start(); lastError != nil {
+				return "", lastError
+			}
+
+			// wait until network is up
+			if lastError = vos.VM.WaitForNetwork(time.Second * 5); lastError != nil {
+				return "", lastError
+			}
+
+			return fmt.Sprintf("vm.Start %s", vos.VM.HostnameAlias), nil
+		},
 	}
 
-	rootVos, err := vos.VM.OS(&virt.RootUser)
-	if err != nil {
-		return nil, err
+	<-done
+
+	if lastError != nil {
+		return true, lastError
 	}
-
-	vmWebDir := "/home/" + vos.VM.WebHome + "/Web"
-	userWebDir := "/home/" + vos.User.Name + "/Web"
-
-	vmWebVos := rootVos
-	if vmWebDir == userWebDir {
-		vmWebVos = vos
-	}
-
-	rootVos.Chmod("/", 0755)     // make sure that executable flag is set
-	rootVos.Chmod("/home", 0755) // make sure that executable flag is set
-	createUserHome(vos.User, rootVos, vos)
-	createVmWebDir(vos.VM, vmWebDir, rootVos, vmWebVos)
-	if vmWebDir != userWebDir {
-		createUserWebDir(vos.User, vmWebDir, userWebDir, rootVos, vos)
-	}
-
 	return true, nil
 }
 
@@ -205,6 +211,7 @@ func vmPrepare(vos *virt.VOS) (interface{}, error) {
 
 	for _ = range vos.VM.Prepare(false) {
 	}
+
 	return true, nil
 }
 
@@ -303,6 +310,43 @@ func startAndPrepareVM(vm *virt.VM) error {
 	return lastError
 }
 
+// TODO merge this with vmStartProgress
+func vmStartProgress2(vos *virt.VOS) (interface{}, error) {
+	if !vos.Permissions.Sudo {
+		return nil, &kite.PermissionError{}
+	}
+
+	var lastError error
+	done := make(chan struct{}, 1)
+	prepareQueue <- &QueueJob{
+		msg: "vm.Start " + vos.VM.HostnameAlias,
+		f: func() (string, error) {
+			defer func() { done <- struct{}{} }()
+
+			for step := range progress(vos) {
+				if step.Err != nil {
+					lastError = step.Err
+					return "", lastError
+				}
+			}
+
+			return fmt.Sprintf("vm.start %s", vos.VM.HostnameAlias), nil
+		},
+	}
+
+	log.Info("putting %s into queue. total vms in queue: %d of %d",
+		vos.VM.HostnameAlias, currentQueueCount.Get(), len(prepareQueue))
+
+	// wait until the prepareWorker has picked us and we finished
+	// to return something to the client
+	<-done
+
+	if lastError != nil {
+		return true, lastError
+	}
+	return true, nil
+}
+
 func vmStartProgress(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
 	var params struct {
 		OnProgress dnode.Callback
@@ -356,7 +400,7 @@ func progress(vos *virt.VOS) <-chan *virt.PrepareStep {
 		}
 
 		if prepared {
-			results <- &virt.PrepareStep{Message: "vm already prepared"}
+			results <- &virt.PrepareStep{Message: "Vm is already prepared"}
 			return
 		}
 

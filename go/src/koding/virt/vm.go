@@ -323,7 +323,7 @@ func (vm *VM) Unprepare() error {
 
 	// stop VM
 	if err := vm.Shutdown(); err != nil {
-		panic(err)
+		return err
 	}
 
 	if err := vm.removeNetworkRules(); err != nil && lastError == nil {
