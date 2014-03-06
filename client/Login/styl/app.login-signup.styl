@@ -8,12 +8,16 @@ app.login-signup.styl
 */
 }
 
+body.login
+  #kdmaincontainer
+    min-height        400px
+
 .kdview.login-screen
   background          #111617
   bg                  size cover
   text-align          center
-  position            fixed
-  padding             0
+  position            relative
+  overflow            auto
   borderBox()
   &.shown
     top               0
@@ -34,13 +38,15 @@ app.login-signup.styl
   .tint
     size                100% 100%
     z-index             0
+    top                 0
+    left                0
     bg                  color, rgba(0,0,0,.6)
     abs()
 
   .flex-wrapper
     z-index             1
     size                320px auto
-    margin              -160px auto 0 auto
+    margin              -205px auto 0 auto
     top                 50%
     rounded             4px
     bg                  color #F4F4F4
