@@ -24,7 +24,7 @@ module.exports = (options = {}, callback)->
     currentGroup         = JSON.stringify currentGroup, replacer
     landingOptions       = page : landing
 
-    usePremiumBroker = options.client.context.group isnt "koding"
+    usePremiumBroker = usePremiumBroker or options.client.context.group isnt "koding"
     landingOptions =
       page         : landing
 
@@ -92,6 +92,20 @@ module.exports = (options = {}, callback)->
     #{if argv.t then "<script src=\"/a/js/tests.js\"></script>" else ''}
     """
 
+  kallback = ->
+    {delegate} = options.client.connection
+
+    if delegate and  typeof delegate.fetchSubscriptions is 'function'
+      selector = {}
+      options = targetOptions:{ tags: $nin: ["nosync"] }
+
+      delegate.fetchSubscriptions selector, options, (err, subscriptions)->
+        if subscriptions and subscriptions.length
+          usePremiumBroker = yes
+        callback null, createHTML()
+    else
+      callback null, createHTML()
+
   generateScript = ->
     selector =
       partialType : "HOME"
@@ -116,7 +130,7 @@ module.exports = (options = {}, callback)->
               logo       : group.customize?.logo or ""
               coverPhoto : group.customize?.coverPhoto or ""
               id         : group.getId()
-          callback null, createHTML()
+          kallback()
 
 
 
