@@ -361,8 +361,7 @@ class LoginView extends KDView
           KD.logToExternal "mixpanel doesn't exist"
 
         Cookies.set 'newRegister', yes
-        Cookies.set 'clientId', replacementToken, secure: yes
-        KD.getSingleton('mainController').accountChanged account
+        KD.getSingleton("mainController").swapAccount {account, replacementToken}
 
         titleText = unless err then 'Good to go, Enjoy!' \
                     else 'Quota exceeded and could not join to the group. Please contact with group admin'
