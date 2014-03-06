@@ -42,6 +42,7 @@ config =
       vagrant     : 1
       sj          : 1
       aws         : 1
+      premium     : 1
     version       : 1
     haproxy       :
       webPort     : 1

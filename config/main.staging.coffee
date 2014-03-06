@@ -17,6 +17,7 @@ regions         =
   vagrant       : "vagrant"
   sj            : "sj"
   aws           : "aws"
+  premium       : "premium-sj"
 
 cookieMaxAge = 1000 * 60 * 60 * 24 * 14 # two weeks
 cookieSecure = yes

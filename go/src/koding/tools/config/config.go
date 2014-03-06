@@ -29,6 +29,7 @@ type Config struct {
 		Vagrant string
 		SJ      string
 		AWS     string
+		Premium string
 	}
 	ProjectRoot     string
 	UserSitesDomain string
