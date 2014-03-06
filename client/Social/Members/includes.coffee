@@ -9,7 +9,6 @@ module.exports = [
   "newmemberactivitylistitem.coffee"
   "memberslistcontroller.coffee"
 
-  "AppView.coffee"
   "AppController.coffee"
 
   "styl/resurrection.profile.styl"
