@@ -95,7 +95,7 @@ module.exports = (options = {}, callback)->
   kallback = ->
     {delegate} = options.client.connection
 
-    if delegate and  typeof delegate.fetchSubscriptions is 'function'
+    if 'function' is typeof delegate?.fetchSubscriptions
       selector = {}
       fetchOptions = targetOptions:{ tags: $nin: ["nosync"] }
 
