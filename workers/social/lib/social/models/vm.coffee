@@ -378,40 +378,45 @@ module.exports = class JVM extends Module
 
           JStack.getStackId {user: nickname, group: groupSlug}, (err, stack)=>
 
-            vm = new JVM {
-              hostnameAlias
-              planCode
-              subscriptionCode
-              webHome
-              groups
-              users
-              vmType : type
-              stack
-            }
+            JPaymentSubscription.isFreeSubscripton subscriptionCode, (err, isFreeSubscripton)=>
+              return callback err if err
 
-            vm.save (err) =>
-
-              if err
-                return console.warn "Failed to create VM for ", \
-                                     {users, groups, hostnameAlias}
-
-              JDomain.createDomains {
-                account, stack,
-                domains: hostnameAliases
-                hostnameAlias: hostnameAliases[0]
-                group: groupSlug
+              vm = new JVM {
+                hostnameAlias
+                planCode
+                subscriptionCode
+                webHome
+                groups
+                users
+                vmType : type
+                stack
               }
 
-              group.addVm vm, (err)=>
-                return callback err  if err
-                JDomain.ensureDomainSettingsForVM {
-                  account, vm, type, nickname, group: groupSlug, stack
+              vm.region = KONFIG.regions.premium unless isFreeSubscripton
+
+              vm.save (err) =>
+
+                if err
+                  return console.warn "Failed to create VM for ", \
+                                       {users, groups, hostnameAlias}
+
+                JDomain.createDomains {
+                  account, stack,
+                  domains: hostnameAliases
+                  hostnameAlias: hostnameAliases[0]
+                  group: groupSlug
                 }
-                if type is 'group'
-                  @addVmUsers user, vm, group, ->
+
+                group.addVm vm, (err)=>
+                  return callback err  if err
+                  JDomain.ensureDomainSettingsForVM {
+                    account, vm, type, nickname, group: groupSlug, stack
+                  }
+                  if type is 'group'
+                    @addVmUsers user, vm, group, ->
+                      callback null, vm
+                  else
                     callback null, vm
-                else
-                  callback null, vm
 
   @addVmUsers = (user, vm, group, callback)->
     # todo - do this operation in batches

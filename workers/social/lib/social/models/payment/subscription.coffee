@@ -402,3 +402,15 @@ module.exports = class JPaymentSubscription extends jraphical.Module
         account.addSubscription freePlanSubscription, (err) ->
           return callback new KodingError "couldn't add subscription to account: #{err}"  if err
           callback null, freePlanSubscription
+
+  @isFreeSubscripton:(planCode, callback)->
+    # until premium kontainers are ready, just return yes
+    return callback null, yes
+
+    @one {planCode}, (err, subscription)->
+      return callback err  if err
+      return callback null, yes  unless subscription
+      # default free vm for users
+      return callback null, yes  if "nosync" in subscription.tags
+      # if none of the above, they are not free
+      return callback null, no
