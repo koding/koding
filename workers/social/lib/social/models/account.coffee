@@ -1024,7 +1024,7 @@ module.exports = class JAccount extends jraphical.Module
     else
       callback new KodingError 'Access denied'
 
-  checkFlag:(flagToCheck)=>
+  checkFlag: (flagToCheck) ->
     if flagToCheck is 'exempt'
       return @isExempt
     flags = @getAt('globalFlags')
