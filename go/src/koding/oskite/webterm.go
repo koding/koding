@@ -47,7 +47,7 @@ type WebtermRemote struct {
 	SessionEnded dnode.Callback
 }
 
-func webtermGetSessions(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
+func webtermGetSessionsOld(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
 	sessions := screenSessions(vos)
 	if len(sessions) == 0 {
 		return nil, errors.New("no sessions available")
@@ -56,7 +56,8 @@ func webtermGetSessions(args *dnode.Partial, channel *kite.Channel, vos *virt.VO
 	return sessions, nil
 }
 
-func webtermConnect(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
+// this method is special cased in oskite.go to allow foreign access
+func webtermConnectOld(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
 	var params struct {
 		Remote       WebtermRemote
 		Session      string

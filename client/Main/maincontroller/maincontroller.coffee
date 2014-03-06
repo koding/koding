@@ -103,14 +103,14 @@ class MainController extends KDController
     KD.logout()
     storage = new LocalStorage 'Koding'
 
-    KD.remote.api.JUser.logout (err, account, replacementToken)=>
+    KD.remote.api.JUser.logout (err) =>
       mainView._logoutAnimation()
 
       wc = KD.singleton 'windowController'
       wc.clearUnloadListeners()
 
-      KD.utils.wait 1000, ->
-        Cookies.set 'clientId', replacementToken, secure: yes  if replacementToken
+      KD.utils.wait 1000, =>
+        @swapAccount replacementAccount: null
         storage.setValue 'loggingOut', '1'
         location.reload()
 
@@ -169,10 +169,10 @@ class MainController extends KDController
     if replacementToken and replacementToken isnt Cookies.get 'clientId'
       Cookies.set 'clientId', replacementToken, { maxAge, secure }
 
-    @accountChanged account
-
-    @once 'AccountChanged', (account) -> callback null, options
-
+    if account
+      @accountChanged account
+      if callback
+        @once 'AccountChanged', (account) -> callback null, options
 
   handleLogin: (credentials, callback) ->
     { JUser } = KD.remote.api

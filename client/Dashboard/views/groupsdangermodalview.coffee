@@ -26,8 +26,7 @@ class GroupsDangerModalView extends KDModalViewWithForms
               type           : 'submit'
               disabled       : yes
               loader         :
-                color        : '#ffffff'
-                diameter     : 15
+                color        : "#444444"
               callback       : -> @showLoader()
             Cancel           :
               style          : 'modal-cancel'

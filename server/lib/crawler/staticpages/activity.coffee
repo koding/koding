@@ -214,14 +214,14 @@ getSingleActivityContent = (activityContent, model)->
           <footer>
               #{userInteractionMeta}
               <div class="kdview comment-header activity-actions">
-                  <span class="kdview logged-in action-container"><a class="action-link" href="/Login">Like</a>
-                      <a class="count" href="/Login">
+                  <span class="kdview logged-in action-container"><a class="action-link" href="/Login?warning=1&type=like">Like</a>
+                      <a class="count" href="/Login?warning=1&type=like">
                           <span data-paths="meta.likes">#{likesCount}</span>
                       </a>
                   </span>
                   <span class="logged-in action-container">
-                      <a class="action-link" href="/Login">Comment</a>
-                      <a class="count" href="/Login">
+                      <a class="action-link" href="/Login?warning=1&type=comment">Comment</a>
+                      <a class="count" href="/Login?warning=1&type=comment">
                           <span data-paths="repliesCount" >#{commentsCount}</span>
                       </a>
                   </span>

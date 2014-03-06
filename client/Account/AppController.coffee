@@ -194,7 +194,6 @@ class AccountAppController extends AppController
                     type          : "submit"
                     loader        :
                       color       : "#444444"
-                      diameter    : 12
                     callback      : -> @hideLoader()
                   cancel          :
                     title         : "Cancel"

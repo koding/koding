@@ -60,9 +60,7 @@ class GroupGeneralSettingsView extends JView
       Save                :
         style             : "solid medium green"
         type              : "submit"
-        loader            :
-          color           : "#444444"
-          diameter        : 12
+        loader            : yes
 
   saveSettings: (formData) ->
     saveButton = @settingsForm.buttons.Save
