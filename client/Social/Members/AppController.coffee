@@ -6,7 +6,7 @@ class MembersAppController extends AppController
       "/:name?/Members" : ({params, query}) ->
         {router, appManager} = KD.singletons
         KD.getSingleton('groupsController').ready ->
-          group = KD.getSingleton('groupsController').getCurrentGroup()
+          group = KD.getGroup()
           KD.getSingleton("appManager").tell 'Members', 'createContentDisplay', group, (contentDisplay) ->
             contentDisplay.emit "handleQuery", {filter: "members"}
 
@@ -84,7 +84,7 @@ class MembersAppController extends AppController
           listCssClass      : "member-related"
           noItemFoundText   : "No one is following #{owner} yet."
           dataSource        : (selector, options, callback)=>
-            options.groupId or= KD.getSingleton('groupsController').getCurrentGroup().getId()
+            options.groupId or= KD.getGroup().getId()
             account.fetchFollowersWithRelationship selector, options, callback
 
             account.countFollowersWithRelationship selector, (err, count)=>
@@ -96,7 +96,7 @@ class MembersAppController extends AppController
           listCssClass      : "member-related"
           noItemFoundText   : "#{owner} #{auxVerb.be} not following anyone."
           dataSource        : (selector, options, callback)=>
-            options.groupId or= KD.getSingleton('groupsController').getCurrentGroup().getId()
+            options.groupId or= KD.getGroup().getId()
             account.fetchFollowingWithRelationship selector, options, callback
 
             account.countFollowingWithRelationship selector, (err, count)=>
