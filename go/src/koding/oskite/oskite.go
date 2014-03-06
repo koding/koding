@@ -45,9 +45,9 @@ var (
 	mongodbConn *mongodb.MongoDB
 	conf        *config.Config
 
-	// stores vm based mutexes
-	infos            = make(map[bson.ObjectId]*VMInfo)
-	infosMutex       sync.Mutex
+	oskitesMu sync.Mutex
+	oskites   = make(map[string]*OskiteInfo)
+
 	templateDir      = "files/templates" // should be in the same dir as the binary
 	firstContainerIP net.IP
 	containerSubnet  *net.IPNet
@@ -58,23 +58,6 @@ var (
 	currentQueueCount AtomicInt32
 	vmTimeout         time.Duration
 )
-
-type VMInfo struct {
-	vm              *virt.VM
-	useCounter      int
-	timeout         *time.Timer
-	mutex           sync.Mutex
-	totalCpuUsage   int
-	currentCpus     []string
-	currentHostname string
-
-	State               string `json:"state"`
-	CpuUsage            int    `json:"cpuUsage"`
-	CpuShares           int    `json:"cpuShares"`
-	MemoryUsage         int    `json:"memoryUsage"`
-	PhysicalMemoryLimit int    `json:"physicalMemoryLimit"`
-	TotalMemoryLimit    int    `json:"totalMemoryLimit"`
-}
 
 type Oskite struct {
 	Name     string
@@ -264,9 +247,6 @@ func (o *Oskite) runNewKite() {
 	// TODO: remove this later, this is needed in order to reinitiliaze the logger package
 	log.SetLevel(o.LogLevel)
 }
-
-var oskitesMu sync.Mutex
-var oskites = make(map[string]*OskiteInfo)
 
 func (o *Oskite) oskiteRedis(serviceUniquename string) {
 	session, err := redis.NewRedisSession(conf.Redis)
@@ -551,6 +531,10 @@ func (o *Oskite) setupSignalHandler() {
 				prepareQueue <- &QueueJob{
 					msg: "vm unprepare because of shutdown oskite " + info.vm.HostnameAlias,
 					f: func() (string, error) {
+						// mutex is needed because it's handled in the queue
+						info.mutex.Lock()
+						defer info.mutex.Unlock()
+
 						info.unprepareVM()
 						return fmt.Sprintf("shutting down %s", info.vm.Id.Hex()), nil
 					},
@@ -617,13 +601,24 @@ func (o *Oskite) registerMethod(k *kite.Kite, method string, concurrent bool, ca
 			return callback(args, channel, &virt.VOS{VM: vm, User: user})
 		}
 
+		// protect each callback with their own associated mutex
+		info := getInfo(vm)
+		info.mutex.Lock()
+		defer info.mutex.Unlock()
+		info.stopTimeout(channel)
+
+		err = o.validateVM(vm)
+		if err != nil {
+			return nil, err
+		}
+
 		// vos has now "vm", "user" and "permissions" document.
 		vos, err := vm.OS(user)
 		if err != nil {
 			return nil, err // returns an error if the permisisons are not set for the user
 		}
 
-		// now call our final method. run forrest run ....!
+		// now call our final method. run forrest run ....
 		return callback(args, channel, vos)
 	}
 
@@ -749,45 +744,15 @@ func (o *Oskite) validateVM(vm *virt.VM) error {
 }
 
 func (o *Oskite) startVM(vm *virt.VM, channel *kite.Channel) error {
+	info := getInfo(vm)
+	info.mutex.Lock()
+	defer info.mutex.Unlock()
+	info.stopTimeout(channel)
+
 	err := o.validateVM(vm)
 	if err != nil {
 		return err
 	}
-
-	var info *VMInfo
-	if channel != nil {
-		info, _ = channel.KiteData.(*VMInfo)
-	}
-
-	if info == nil {
-		infosMutex.Lock()
-		var found bool
-		info, found = infos[vm.Id]
-		if !found {
-			info = newInfo(vm)
-			infos[vm.Id] = info
-		}
-
-		if channel != nil {
-			info.useCounter += 1
-			info.timeout.Stop()
-
-			channel.KiteData = info
-			channel.OnDisconnect(func() {
-				info.mutex.Lock()
-				defer info.mutex.Unlock()
-
-				info.useCounter -= 1
-				info.startTimeout()
-			})
-		}
-
-		infosMutex.Unlock()
-	}
-
-	info.vm = vm
-	info.mutex.Lock()
-	defer info.mutex.Unlock()
 
 	return startAndPrepareVM(vm)
 }
@@ -955,101 +920,6 @@ func copyIntoVos(src, dst string, vos *virt.VOS) error {
 	return nil
 }
 
-func newInfo(vm *virt.VM) *VMInfo {
-	return &VMInfo{
-		vm:                  vm,
-		useCounter:          0,
-		timeout:             time.NewTimer(0),
-		totalCpuUsage:       utils.MaxInt,
-		currentCpus:         nil,
-		currentHostname:     vm.HostnameAlias,
-		CpuShares:           1000,
-		PhysicalMemoryLimit: 100 * 1024 * 1024,
-		TotalMemoryLimit:    1024 * 1024 * 1024,
-	}
-}
-
-func getInfo(vm *virt.VM) *VMInfo {
-	var info *VMInfo
-	var found bool
-
-	infosMutex.Lock()
-	info, found = infos[vm.Id]
-	if !found {
-		info = newInfo(vm)
-		infos[vm.Id] = info
-	}
-	infosMutex.Unlock()
-
-	return info
-}
-
-// randomMinutes returns a random duration between [0,n] in minutes. It panics if n <=  0.
-func randomMinutes(n int64) time.Duration { return time.Minute * time.Duration(rand.Int63n(n)) }
-
-func (info *VMInfo) startTimeout() {
-	if info.useCounter != 0 || info.vm.AlwaysOn {
-		return
-	}
-
-	// Shut down the VM (unprepareVM does it.) The timeout is calculated as:
-	// * 5  Minutes from kite.go
-	// * 50 Minutes pre-defined timeout
-	// * 5  Minutes after we give warning
-	// * [0, 30] random duration to avoid hickups during mass unprepares
-	// In Total it's [60, 90] minutes.
-	totalTimeout := vmTimeout + randomMinutes(30)
-	log.Info("Timer is started. VM %s will be shut down in %s minutes",
-		info.vm.Id.Hex(), totalTimeout)
-
-	info.timeout = time.AfterFunc(totalTimeout, func() {
-		if info.useCounter != 0 || info.vm.AlwaysOn {
-			return
-		}
-
-		if info.vm.GetState() == "RUNNING" {
-			if err := info.vm.SendMessageToVMUsers("========================================\nThis VM will be turned off in 5 minutes.\nLog in to Koding.com to keep it running.\n========================================\n"); err != nil {
-				log.Warning("%v", err)
-			}
-		}
-
-		info.timeout = time.AfterFunc(5*time.Minute, func() {
-			info.mutex.Lock()
-			defer info.mutex.Unlock()
-			if info.useCounter != 0 || info.vm.AlwaysOn {
-				return
-			}
-
-			prepareQueue <- &QueueJob{
-				msg: "vm unprepare " + info.vm.HostnameAlias,
-				f: func() (string, error) {
-					info.unprepareVM()
-					return fmt.Sprintf("shutting down %s after %s", info.vm.Id.Hex(), totalTimeout), nil
-				},
-			}
-
-		})
-	})
-}
-
-func (info *VMInfo) unprepareVM() {
-	if err := virt.UnprepareVM(info.vm.Id); err != nil {
-		log.Warning("%v", err)
-	}
-
-	if err := mongodbConn.Run("jVMs", func(c *mgo.Collection) error {
-		return c.Update(bson.M{"_id": info.vm.Id}, bson.M{"$set": bson.M{"hostKite": nil}})
-	}); err != nil {
-		log.LogError(err, 0, info.vm.Id.Hex())
-	}
-
-	infosMutex.Lock()
-	if info.useCounter == 0 {
-		delete(infos, info.vm.Id)
-	}
-	infosMutex.Unlock()
-}
-
 type Counter struct {
 	Name  string `bson:"_id"`
 	Value int    `bson:"seq"`
@@ -1083,22 +953,5 @@ func NextCounterValue(counterName string, initialValue int) int {
 
 }
 
-type UnderMaintenanceError struct{}
-
-func (err *UnderMaintenanceError) Error() string {
-	return "VM is under maintenance."
-}
-
-type AccessDeniedError struct{}
-
-func (err *AccessDeniedError) Error() string {
-	return "Vm is banned"
-}
-
-type VMNotFoundError struct {
-	Name string
-}
-
-func (err *VMNotFoundError) Error() string {
-	return "There is no VM with hostname/id '" + err.Name + "'."
-}
+// randomMinutes returns a random duration between [0,n] in minutes. It panics if n <=  0.
+func randomMinutes(n int64) time.Duration { return time.Minute * time.Duration(rand.Int63n(n)) }

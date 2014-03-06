@@ -58,6 +58,11 @@ func (o *Oskite) getVos(username, vmName string) (*virt.VOS, error) {
 		return nil, err
 	}
 
+	err = o.validateVM(vm)
+	if err != nil {
+		return nil, err
+	}
+
 	permissions := vm.GetPermissions(user)
 	if permissions == nil && user.Uid != virt.RootIdOffset {
 		return nil, errors.New("Permission denied.")
