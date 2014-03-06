@@ -77,6 +77,15 @@ func vmStart(vos *virt.VOS) (interface{}, error) {
 		return nil, &kite.PermissionError{}
 	}
 
+	prepared, err := isVmPrepared(vos.VM)
+	if err != nil {
+		return nil, err
+	}
+
+	if prepared {
+		return nil, ErrVmAlreadyPrepared
+	}
+
 	var lastError error
 
 	done := make(chan struct{}, 1)
@@ -108,6 +117,7 @@ func vmStart(vos *virt.VOS) (interface{}, error) {
 	if lastError != nil {
 		return true, lastError
 	}
+
 	return true, nil
 }
 
@@ -185,8 +195,14 @@ func vmResizeDisk(vos *virt.VOS) (interface{}, error) {
 }
 
 func vmInfo(vos *virt.VOS) (interface{}, error) {
+	prepared, err := isVmPrepared(vos.VM)
+	if err != nil {
+		return nil, err
+	}
+
 	info := getInfo(vos.VM)
 	info.State = vos.VM.GetState()
+	info.Prepared = prepared
 
 	infosMutex.Lock()
 	infos[vos.VM.Id] = info
@@ -311,7 +327,7 @@ func startAndPrepareVM(vm *virt.VM) error {
 }
 
 // TODO merge this with vmStartProgress
-func vmStartProgress2(vos *virt.VOS) (interface{}, error) {
+func vmPrepareAndStart(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
 	if !vos.Permissions.Sudo {
 		return nil, &kite.PermissionError{}
 	}

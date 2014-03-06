@@ -31,6 +31,7 @@ type VMInfo struct {
 	currentHostname string
 
 	State               string `json:"state"`
+	Prepared            bool   `json:"prepared"`
 	CpuUsage            int    `json:"cpuUsage"`
 	CpuShares           int    `json:"cpuShares"`
 	MemoryUsage         int    `json:"memoryUsage"`
