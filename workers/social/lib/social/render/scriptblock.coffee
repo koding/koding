@@ -99,7 +99,7 @@ module.exports = (options = {}, callback)->
 
     if 'function' is typeof delegate?.fetchSubscriptions
       selector = {}
-      fetchOptions = targetOptions:{ tags: $nin: ["nosync"] }
+      fetchOptions = targetOptions: selector :{ tags: $nin: ["nosync"] }
 
       delegate.fetchSubscriptions selector, fetchOptions, (err, subscriptions)->
         if subscriptions and subscriptions.length
