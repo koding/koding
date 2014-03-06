@@ -186,7 +186,7 @@ func (v *VM) Prepare(reinitialize bool) <-chan *PrepareStep {
 			results <- &PrepareStep{
 				Message:     current.Msg,
 				CurrentStep: step + 1,
-				TotalStep:   len(funcs), // plus we send the FINISHED msg
+				TotalStep:   len(funcs),
 				TotalTime:   time.Since(start).Seconds(),
 				Err:         err,
 			}

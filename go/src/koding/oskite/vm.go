@@ -305,7 +305,7 @@ func vmStartProgress(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) 
 		return nil, &kite.ArgumentError{Expected: "{OnProgress: [function]}"}
 	}
 
-	params.OnProgress(&virt.PrepareStep{Message: "vm.startProgress called."})
+	params.OnProgress(&virt.PrepareStep{Message: "STARTED"})
 
 	go func() {
 		prepareQueue <- &QueueJob{
@@ -349,12 +349,17 @@ func progress(vos *virt.VOS) <-chan *virt.PrepareStep {
 			return
 		}
 
+		var totalStep int
 		for step := range vos.VM.Prepare(false) {
 			lastError = step.Err
 			if lastError != nil {
 				lastError = fmt.Errorf("preparing VM %s", lastError)
 				return
 			}
+
+			// add VM.Start() and Vm.WaitForNetwork() steps too
+			totalStep = step.TotalStep + 2
+			step.TotalStep = totalStep
 
 			// send every process back to the client
 			results <- step
@@ -365,14 +370,24 @@ func progress(vos *virt.VOS) <-chan *virt.PrepareStep {
 		if lastError = vos.VM.Start(); lastError != nil {
 			return
 		}
-		results <- &virt.PrepareStep{Message: "VM is started.", TotalTime: time.Since(start).Seconds()}
+		results <- &virt.PrepareStep{
+			Message:     "VM is started.",
+			TotalTime:   time.Since(start).Seconds(),
+			CurrentStep: totalStep - 1,
+			TotalStep:   totalStep,
+		}
 
 		// wait until network is up
 		start = time.Now()
 		if lastError = vos.VM.WaitForNetwork(time.Second * 5); lastError != nil {
 			return
 		}
-		results <- &virt.PrepareStep{Message: "VM network is ready and up.", TotalTime: time.Since(start).Seconds()}
+		results <- &virt.PrepareStep{
+			Message:     "VM network is ready and up",
+			TotalTime:   time.Since(start).Seconds(),
+			CurrentStep: totalStep,
+			TotalStep:   totalStep,
+		}
 
 		var rootVos *virt.VOS
 		rootVos, lastError = vos.VM.OS(&virt.RootUser)
