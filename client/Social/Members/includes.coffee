@@ -1,5 +1,4 @@
 module.exports = [
-  "ContentDisplays/ContentDisplayControllerMember.coffee"
   "ContentDisplays/contactlink.coffee"
   "ContentDisplays/externalprofileview.coffee"
   "ContentDisplays/profileview.coffee"
