@@ -144,9 +144,21 @@ func vmUnprepare(vos *virt.VOS) (interface{}, error) {
 		return nil, &kite.PermissionError{}
 	}
 
-	if err := vos.VM.Unprepare(); err != nil {
-		return nil, err
+	done := make(chan struct{}, 1)
+	prepareQueue <- &QueueJob{
+		msg: "vm.Unprepare" + vos.VM.HostnameAlias,
+		f: func() (string, error) {
+			defer func() { done <- struct{}{} }()
+
+			if err := vos.VM.Unprepare(); err != nil {
+				return "", err
+			}
+
+			return fmt.Sprintf("vm.Unprepare %s", vos.VM.HostnameAlias), nil
+		},
 	}
+
+	<-done
 
 	return true, nil
 }
