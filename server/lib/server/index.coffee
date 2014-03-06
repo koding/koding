@@ -115,7 +115,7 @@ app.use (req, res, next) ->
   JSession.fetchSession clientId, (err, session)->
     return next() if err or not session
     { maxAge, secure } = KONFIG.sessionCookie
-    res.cookie "clientId", session.clientId, { maxAge, secure } 
+    res.cookie "clientId", session.clientId, { maxAge, secure }
     next()
 
 app.use (req, res, next) ->
@@ -334,11 +334,12 @@ app.all '/:name/:section?*', (req, res, next)->
           if models.last.bongo_?.constructorName isnt "JGroup" and not loggedIn
             return Crawler.crawl koding, req, res, name
 
-          homePageOptions = {section, account, bongoModels, isCustomPreview}
-          models.last.fetchHomepageView homePageOptions, (err, view)->
-            if err then next err
-            else if view? then res.send view
-            else res.send 404, error_404()
+          generateFakeClient req, res, (err, client)->
+            homePageOptions = {section, account, bongoModels, isCustomPreview, client}
+            models.last.fetchHomepageView homePageOptions, (err, view)->
+              if err then next err
+              else if view? then res.send view
+              else res.send 404, error_404()
         else next()
 
 # Main Handler for Koding.com
