@@ -317,6 +317,7 @@ class ActivityEditWidget extends ActivityInputWidget
       type        : "submit"
       cssClass    : "solid green"
       iconOnly    : no
+      loader      : yes
       title       : "Done editing"
       callback    : @bound "submit"
 
