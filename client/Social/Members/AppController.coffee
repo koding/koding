@@ -109,24 +109,17 @@ class MembersAppController extends AppController
             account.fetchLikedContents options, selector, callback
         members              :
           noItemFoundText    : "There is no member."
-          optional_title     : if @_searchValue then "<span class='optional_title'></span>" else null
           itemClass          : GroupMembersPageListItemView
           listControllerClass: MembersListViewController
           listCssClass       : "member-related"
           dataSource         : (selector, options, callback)=>
-            {JAccount} = KD.remote.api
-            if @_searchValue
-              @setCurrentViewHeader "Searching for <strong>#{@_searchValue}</strong>..."
-              JAccount.byRelevance @_searchValue, options, callback
-            else
-              group = KD.getSingleton('groupsController').getCurrentGroup()
-              group.fetchMembers selector, options, (err, res)=>
-                KD.mixpanel "Load member list, success"  unless err
-                callback err, res
+            group.fetchMembers selector, options, (err, res)=>
+              KD.mixpanel "Load member list, success"  unless err
+              callback err, res
 
-              group.countMembers (err, count) =>
-                count = 0 if err
-                @setCurrentViewNumber 'all', count
+            group.countMembers (err, count) =>
+              count = 0 if err
+              @setCurrentViewNumber 'all', count
       sort                  :
         'modifiedAt'        :
           title             : "Latest activity"
@@ -163,11 +156,6 @@ class MembersAppController extends AppController
 
   loadView:(mainView, firstRun = yes, loadFeed = no)->
     if firstRun
-      mainView.on "searchFilterChanged", (value) =>
-        return if value is @_searchValue
-        @_searchValue = Encoder.XSSEncode value
-        @_lastSubview.destroy?()
-        @loadView mainView, no, yes
       mainView.createCommons()
     @createFeed mainView, loadFeed
 
