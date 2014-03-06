@@ -30,6 +30,7 @@ module.exports = (options={}, callback)->
     options.sort = 'meta.likes' : -1
     aDay = 24 * 60 * 60 * 1000
     options.from = Date.now() - aDay
+    options.limit = 5
 
     JNewStatusUpdate.fetchGroupActivity client, options, (err, data)->
       return cb null, [] if err
