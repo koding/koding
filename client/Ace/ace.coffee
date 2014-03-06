@@ -133,16 +133,16 @@ class Ace extends KDView
   requestSave:->
     contents = @getContents()
     return @notify "Nothing to save!" unless contents is "" or @isContentChanged()
-    @askedForSave = yes
-    @emit "ace.requests.save", contents
     file = @getData()
+    {syncLocalController} = KD.singletons
     # update the localStorage each time user requested save.
     if KD.remote.isConnected()
+      @askedForSave = yes
+      @emit "ace.requests.save", contents
       # if file is saved, remove it from localStorage
       syncLocalController.removeFromSaveArray file
     else
       # add to list of files that need to be synced.
-      {syncLocalController} = KD.singletons
       syncLocalController.updateFileContentOnLocalStorage file, contents
       syncLocalController.addToSaveArray file
       @prepareSyncListeners()

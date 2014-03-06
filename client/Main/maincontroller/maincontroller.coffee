@@ -105,6 +105,7 @@ class MainController extends KDController
 
     KD.remote.api.JUser.logout (err) =>
       mainView._logoutAnimation()
+      KD.singletons.syncLocalController.removeLocalContents()
 
       wc = KD.singleton 'windowController'
       wc.clearUnloadListeners()
