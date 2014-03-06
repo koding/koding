@@ -12,15 +12,7 @@ class SyncLocalController extends KDController
     @initializeListeners()
 
   initializeListeners: ->
-    status = KD.remote
-
-    @on "LocalContentSynced", (file)->
-      log "LocalContentSynced : #{file.path}"
-
-    @on "LocalContentCouldntSynced", (file)->
-      log "LocalContentSynced : #{file.path}"
-
-    status.on "reconnected", =>
+    KD.remote.on "reconnected", =>
       return  if @synStarted
       @synStarted = yes
       @syncLocalContentIfDiffExists (err)=>
@@ -46,30 +38,33 @@ class SyncLocalController extends KDController
   removeFromSaveArray: (file) ->
     fileName = @getFileFullPath file
     index = @filesToSave.indexOf fileName
-    if index > -1
-      @filesToSave.splice index, 1
-      @storage.setValue "saveRequestedFiles", @filesToSave
+    return  unless index > -1
+    @filesToSave.splice index, 1
+    @storage.setValue "saveRequestedFiles", @filesToSave
 
-  patchFileIfDiffExist: (file, localContent, cb)->
-    KD.singletons.vmController.info file.vmName, (err, vm, info)=>
-      # TODO : we may need to listen vmController when state is not RUNNING
+  patchFileIfDiffExist: (file, localContent, cb, callCounter = 0)->
+    KD.singletons.vmController.info file.vmName, @utils.getTimedOutCallback (err, vm, info)=>
       return cb err unless info.state is "RUNNING"
       file.fetchContents (err, content)=>
         if content and not err
           newContent = @getPatchedContent content, localContent
-          if newContent
-            file.save newContent[0],
-            @utils.getTimedOutCallback (err, res)=>
+          unless content is localContent
+            file.save localContent, (err, res)=>
               return cb err if err
               @removeFromSaveArray file
               @removeFileContentFromLocalStorage file
+              @updateEditorStatus file, localContent
               @emit "LocalContentSynced", file
               cb null, file
-            ->
-              @emit "LocalContentCouldntSynced", file
           else
             @removeFromSaveArray file
             cb null, file
+    ,=>
+      ++callCounter
+      if callCounter > 5
+        @emit "VMNotResponding", file
+      else
+        @patchFileIfDiffExist file, localContent, cb, callCounter
 
   getPatchedContent: (originalContent, localContent)->
     dmp = new diff_match_patch
@@ -97,11 +92,11 @@ class SyncLocalController extends KDController
   removeFromOpenedFiles: (file)->
     fileName = @getFileFullPath file
     index    = @openedFiles.indexOf fileName
-    unless index is -1
-      @openedFiles.splice index, 1
-      @storage.setValue "openedFiles", @openedFiles
-      @removeFromSaveArray file
-      @removeFileContentFromLocalStorage file
+    return if index is -1
+    @openedFiles.splice index, 1
+    @storage.setValue "openedFiles", @openedFiles
+    @removeFromSaveArray file
+    @removeFileContentFromLocalStorage file
 
   getRecentOpenedFiles: ->
     @openedFiles
@@ -111,5 +106,18 @@ class SyncLocalController extends KDController
     fileName = "[#{file.vmName}]#{plainPath}"
     return fileName
 
-  saveEditorHistory: ->
-    log "NOT IMPLEMENTED YET"
+  updateEditorStatus:(file, lastSavedContent)->
+    fileName   = FSHelper.plainPath file.path
+    # get current AceViews
+    aceAppView = KD.singletons.appManager.get("Ace").getView()
+    {ace} = aceAppView.aceViews[fileName]
+    ace.lastSavedContents = lastSavedContent
+    unless ace.getContents() is lastSavedContent
+      ace.emit "FileContentChanged"
+    else
+      ace.emit "FileContentSynced"
+
+  removeLocalContents:->
+    for key in @storage.getLocalStorageKeys()
+      if key.indexOf("koding-editor") > -1
+        delete window.localStorage[key]
