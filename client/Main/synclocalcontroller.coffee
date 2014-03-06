@@ -81,10 +81,11 @@ class SyncLocalController extends KDController
 
   updateFileContentOnLocalStorage: (file, content)->
     fileName = @getFileFullPath file
-    @saveToLocalStorage fileName, content
+    @storage.setValue "OE-#{fileName}", content
 
-  saveToLocalStorage: (fileName, contents)->
-    @storage.setValue "OE-#{fileName}", contents
+  removeFileContentFromLocalStorage: (file)->
+    fileName = @getFileFullPath file
+    @storage.unsetKey "OE-#{fileName}"
 
   addToOpenedFiles: (fileName)->
     vmName = FSHelper.getVMNameFromPath fileName
@@ -100,6 +101,7 @@ class SyncLocalController extends KDController
       @openedFiles.splice index, 1
       @storage.setValue "openedFiles", @openedFiles
       @removeFromSaveArray file
+      @removeFileContentFromLocalStorage file
 
   getRecentOpenedFiles: ->
     @openedFiles
@@ -108,12 +110,6 @@ class SyncLocalController extends KDController
     plainPath = FSHelper.plainPath file.path
     fileName = "[#{file.vmName}]#{plainPath}"
     return fileName
-
-  saveOpenedTabsContentToLocalStorage: ->
-    {aceViews} = KD.singletons.appManager.get("Ace").mainView
-    for filePath in Object.keys aceViews
-      content = aceViews[filePath].ace.getContents()
-      @saveToLocalStorage filePath, content
 
   saveEditorHistory: ->
     log "NOT IMPLEMENTED YET"
