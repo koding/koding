@@ -41,13 +41,19 @@ class KiteWrapper extends KDObject
     return this
 
   watchChanges: (target) ->
-    target.on 'change', @bound 'handleChange'
+    target.on 'register',     @bound 'register'
+    target.on 'deregister',   @bound 'deregister'
 
   ignoreChanges: (target) ->
-    target.off 'change', @bound 'handleChange'
+    target.off 'register',    @bound 'register'
+    target.off 'deregister',  @bound 'deregister'
 
-  handleChange: ->
-    console.log "handle change", arguments
+  register: ({ kite }) ->
+    @kite = kite
+    kite.connect()
+
+  deregister: ({ kite }) ->
+    debugger
 
   getQueryKey: ->
     (
@@ -78,9 +84,10 @@ class KiteWrapper extends KDObject
     startWatching: ->
       kontrol = KD.getSingleton 'kontrol'
       kontrol.watchKites(@getOption 'query')
-      .then ({ changes }) =>
-        debugger
-        changes.on 'deregister', -> debugger
+      .then (kites) =>
+        for { kite, changes } in kites
+          @forwardEvents changes, ['register', 'deregister']
+          changes.emit 'register', { kite }
 
     correlatePath: (path) ->
       @correlatedPaths.push path
