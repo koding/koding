@@ -94,11 +94,6 @@ func vmStart(vos *virt.VOS) (interface{}, error) {
 		f: func() (string, error) {
 			defer func() { done <- struct{}{} }()
 
-			// mutex is needed because it's handled in the queue
-			info := getInfo(vos.VM)
-			info.mutex.Lock()
-			defer info.mutex.Unlock()
-
 			if lastError = vos.VM.Start(); lastError != nil {
 				return "", lastError
 			}
@@ -131,11 +126,6 @@ func vmShutdown(vos *virt.VOS) (interface{}, error) {
 		msg: "vm.Shutdown" + vos.VM.HostnameAlias,
 		f: func() (string, error) {
 			defer func() { done <- struct{}{} }()
-
-			// mutex is needed because it's handled in the queue
-			info := getInfo(vos.VM)
-			info.mutex.Lock()
-			defer info.mutex.Unlock()
 
 			if err := vos.VM.Shutdown(); err != nil {
 				return "", err
@@ -284,11 +274,6 @@ func startAndPrepareVM(vm *virt.VM) error {
 		f: func() (string, error) {
 			defer func() { done <- struct{}{} }()
 
-			// mutex is needed because it's handled in the queue
-			info := getInfo(vm)
-			info.mutex.Lock()
-			defer info.mutex.Unlock()
-
 			startTime := time.Now()
 
 			// prepare first
@@ -326,68 +311,44 @@ func startAndPrepareVM(vm *virt.VM) error {
 	return lastError
 }
 
-// TODO merge this with vmStartProgress
 func vmPrepareAndStart(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
-	if !vos.Permissions.Sudo {
-		return nil, &kite.PermissionError{}
-	}
-
-	var lastError error
-	done := make(chan struct{}, 1)
-	prepareQueue <- &QueueJob{
-		msg: "vm.Start " + vos.VM.HostnameAlias,
-		f: func() (string, error) {
-			defer func() { done <- struct{}{} }()
-
-			for step := range progress(vos) {
-				if step.Err != nil {
-					lastError = step.Err
-					return "", lastError
-				}
-			}
-
-			return fmt.Sprintf("vm.start %s", vos.VM.HostnameAlias), nil
-		},
-	}
-
-	log.Info("putting %s into queue. total vms in queue: %d of %d",
-		vos.VM.HostnameAlias, currentQueueCount.Get(), len(prepareQueue))
-
-	// wait until the prepareWorker has picked us and we finished
-	// to return something to the client
-	<-done
-
-	if lastError != nil {
-		return true, lastError
-	}
-	return true, nil
-}
-
-func vmStartProgress(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
 	var params struct {
 		OnProgress dnode.Callback
 	}
 
-	if args.Unmarshal(&params) != nil || params.OnProgress == nil {
+	if args.Unmarshal(&params) != nil {
 		return nil, &kite.ArgumentError{Expected: "{OnProgress: [function]}"}
 	}
 
-	params.OnProgress(&virt.PrepareStep{Message: "STARTED"})
+	var lastError error
+	done := make(chan struct{}, 1)
+
+	if params.OnProgress != nil {
+		params.OnProgress(&virt.PrepareStep{Message: "STARTED"})
+		done = nil // not used anymore
+	}
 
 	go func() {
 		prepareQueue <- &QueueJob{
 			msg: "vm.Start" + channel.CorrelationName,
 			f: func() (string, error) {
-				// mutex is needed because it's handled in the queue
-				info := getInfo(vos.VM)
-				info.mutex.Lock()
-				defer info.mutex.Unlock()
+				if params.OnProgress == nil {
+					defer func() { done <- struct{}{} }()
+				} else {
+					// mutex is needed because it's handled in the queue
+					info := getInfo(vos.VM)
+					info.mutex.Lock()
+					defer info.mutex.Unlock()
+				}
 
 				for step := range progress(vos) {
-					params.OnProgress(step)
+					if params.OnProgress != nil {
+						params.OnProgress(step)
+					}
 
 					if step.Err != nil {
-						return "", step.Err
+						lastError = step.Err
+						return "", lastError
 					}
 				}
 
@@ -395,6 +356,15 @@ func vmStartProgress(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) 
 			},
 		}
 	}()
+
+	if params.OnProgress == nil {
+		// wait until the prepareWorker has picked us and we finished
+		// to return something to the client
+		<-done
+		if lastError != nil {
+			return true, lastError
+		}
+	}
 
 	return true, nil
 }
