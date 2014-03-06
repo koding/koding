@@ -28,23 +28,24 @@ class ActivityListController extends KDListViewController
     @_state      = 'public'
 
     groupController = KD.getSingleton("groupsController")
-    groupController.on "PostIsCreated", (post) =>
+    groupController.on "PostIsCreated", @bound "postIsCreated"
 
-      bugTag   = tag for tag in post.subject.tags when tag.slug is "bug"
-      subject  = @prepareSubject post
-      instance = @addItem subject, 0
+  postIsCreated: (post) =>
+    bugTag   = tag for tag in post.subject.tags when tag.slug is "bug"
+    subject  = @prepareSubject post
+    instance = @addItem subject, 0
 
-      return  unless instance
+    return  unless instance
 
-      if bugTag and not @isMine subject
-        instance.hide()
-        @hiddenItems.push instance
+    if bugTag and not @isMine subject
+      instance.hide()
+      @hiddenItems.push instance
 
-      liveUpdate = @activityHeader?.liveUpdateToggle.getState().title is 'live'
-      if not liveUpdate and not @isMine subject
-        instance.hide()
-        @hiddenItems.push instance
-        @activityHeader.newActivityArrived() unless bugTag
+    liveUpdate = @activityHeader?.liveUpdateToggle.getState().title is 'live'
+    if not liveUpdate and not @isMine subject
+      instance.hide()
+      @hiddenItems.push instance
+      @activityHeader.newActivityArrived() unless bugTag
 
   prepareSubject:(post)->
     {subject} = post
