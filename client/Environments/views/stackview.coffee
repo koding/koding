@@ -137,7 +137,7 @@ class StackView extends KDView
       width    : 600
       content  : """
         <pre>
-        #{hljs.highlight('yaml',jsyaml.dump(dump)).value}
+        #{jsyaml.dump dump}
         </pre>
         """
 
