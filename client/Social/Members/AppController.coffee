@@ -79,8 +79,9 @@ class MembersAppController extends AppController
               KD.getSingleton("appManager").tell 'Activity', 'fetchActivitiesProfilePage', options, callback
         followers           :
           loggedInOnly      : yes
-          itemClass          : GroupMembersPageListItemView
+          itemClass         : GroupMembersPageListItemView
           listControllerClass: MembersListViewController
+          listCssClass      : "member-related"
           noItemFoundText   : "No one is following #{owner} yet."
           dataSource        : (selector, options, callback)=>
             options.groupId or= KD.getSingleton('groupsController').getCurrentGroup().getId()
@@ -90,8 +91,9 @@ class MembersAppController extends AppController
               @setCurrentViewNumber 'followers', count
         following           :
           loggedInOnly      : yes
-          itemClass          : GroupMembersPageListItemView
+          itemClass         : GroupMembersPageListItemView
           listControllerClass: MembersListViewController
+          listCssClass      : "member-related"
           noItemFoundText   : "#{owner} #{auxVerb.be} not following anyone."
           dataSource        : (selector, options, callback)=>
             options.groupId or= KD.getSingleton('groupsController').getCurrentGroup().getId()
@@ -110,6 +112,7 @@ class MembersAppController extends AppController
           optional_title     : if @_searchValue then "<span class='optional_title'></span>" else null
           itemClass          : GroupMembersPageListItemView
           listControllerClass: MembersListViewController
+          listCssClass       : "member-related"
           dataSource         : (selector, options, callback)=>
             {JAccount} = KD.remote.api
             if @_searchValue
