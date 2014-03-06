@@ -228,6 +228,19 @@ class LoginView extends KDView
     @setTemplate @pistachio()
     @template.update()
 
+    query = KD.utils.parseQuery document.location.search.replace "?", ""
+
+    if query.warning
+      suffix  = if query.type is "comment" then "post a comment" else "like an activity"
+      message = "You need to be logged in to #{suffix}"
+
+      KD.getSingleton("mainView").createGlobalNotification
+        title      : message
+        type       : "yellow"
+        content    : ""
+        closeTimer : 4000
+        container  : this
+
   pistachio:->
       # {{> @loginOptions}}
       # {{> @registerOptions}}
@@ -348,8 +361,7 @@ class LoginView extends KDView
           KD.logToExternal "mixpanel doesn't exist"
 
         Cookies.set 'newRegister', yes
-        Cookies.set 'clientId', replacementToken, secure: yes
-        KD.getSingleton('mainController').accountChanged account
+        KD.getSingleton("mainController").swapAccount {account, replacementToken}
 
         titleText = unless err then 'Good to go, Enjoy!' \
                     else 'Quota exceeded and could not join to the group. Please contact with group admin'
@@ -559,6 +571,7 @@ class LoginView extends KDView
           @loginForm.username.input.setFocus()
         when "recover"
           @$('.flex-wrapper').addClass 'one'
+          @github.hide()
           @recoverForm.usernameOrEmail.input.setFocus()
         when "resendEmail"
           @$('.flex-wrapper').addClass 'one'
@@ -568,6 +581,8 @@ class LoginView extends KDView
           @github.hide()
           @$(".login-footer").addClass 'hidden'
           @failureNotice.show()
+        when "reset"
+          @github.hide()
 
   getRouteWithEntryPoint:(route)->
     {entryPoint} = KD.config
