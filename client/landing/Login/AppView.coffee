@@ -389,6 +389,7 @@ class LoginView extends KDView
     (KD.getSingleton 'mainController').handleFinishRegistration formData, @bound 'afterLoginCallback'
 
   doLogin:(credentials)->
+    KD.singletons.syncLocalController.removeLocalContents()
     (KD.getSingleton 'mainController').handleLogin credentials, @bound 'afterLoginCallback'
 
   runExternal = (token)->
