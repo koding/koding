@@ -10,10 +10,12 @@ module.exports = (options = {}, callback)->
 
   {argv} = require 'optimist'
 
-  prefetchedFeeds = {}
-  customPartial   = {}
-  campaignData    = {}
-  currentGroup    = {}
+  prefetchedFeeds  = {}
+  customPartial    = {}
+  campaignData     = {}
+  currentGroup     = {}
+  usePremiumBroker = no
+
   {bongoModels, client, intro, landing, slug} = options
 
   createHTML = ->
