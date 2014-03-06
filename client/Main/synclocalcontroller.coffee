@@ -58,11 +58,15 @@ class SyncLocalController extends KDController
         if content and not err
           newContent = @getPatchedContent content, localContent
           if newContent
-            file.save newContent[0], (err, res)=>
+            file.save newContent[0],
+            @utils.getTimedOutCallback (err, res)=>
               return cb err if err
               @removeFromSaveArray file
+              @removeFileContentFromLocalStorage file
               @emit "LocalContentSynced", file
               cb null, file
+            ->
+              @emit "LocalContentCouldntSynced", file
           else
             @removeFromSaveArray file
             cb null, file
