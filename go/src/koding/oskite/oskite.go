@@ -604,14 +604,14 @@ func (o *Oskite) validateVM(vm *virt.VM) error {
 				log.LogError(errLog, 0, logVM)
 			}
 
-			panic(updateErr)
+			return updateErr
 		}
 
 		vm.IP = ip
 	}
 
 	if !containerSubnet.Contains(vm.IP) {
-		panic("VM with IP that is not in the container subnet: " + vm.IP.String())
+		return errors.New("VM with IP that is not in the container subnet: " + vm.IP.String())
 	}
 
 	if vm.LdapPassword == "" {
@@ -619,7 +619,7 @@ func (o *Oskite) validateVM(vm *virt.VM) error {
 		if err := mongodbConn.Run("jVMs", func(c *mgo.Collection) error {
 			return c.Update(bson.M{"_id": vm.Id}, bson.M{"$set": bson.M{"ldapPassword": ldapPassword}})
 		}); err != nil {
-			panic(err)
+			return err
 		}
 		vm.LdapPassword = ldapPassword
 	}
