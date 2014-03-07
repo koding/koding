@@ -222,6 +222,11 @@ class VirtualizationController extends KDController
   registerKite: (vm) ->
     @kites[vm.hostnameAlias] = @getKite vm
 
+    @kites[vm.hostnameAlias].on 'vm.start.progress', do => (update)=>
+      @emit 'vm.start.progress', vm.hostnameAlias, update
+    @kites[vm.hostnameAlias].vmOn()
+    # @kites[vm.hostnameAlias].vmOff()
+
   getKiteByVmName: (vmName) ->
     @kites[vmName]
 
@@ -259,7 +264,7 @@ class VirtualizationController extends KDController
   getOsKite: ({ hostname, region }) ->
     new Promise (resolve) =>
       kite = @osKites[hostname]
-      
+
       return resolve kite  if kite?
 
       kontrol = KD.getSingleton 'kontrol'
@@ -277,7 +282,7 @@ class VirtualizationController extends KDController
         kite.connect()
         .then(-> resolve kite)
         .catch warn
-        
+
   handleFetchedVms: (vms, callback) ->
     if KD.useNewKites
       Promise.cast(vms).map (vm) =>
@@ -289,7 +294,7 @@ class VirtualizationController extends KDController
           options   =
             vmName  : vm.hostnameAlias
             kite    : os
-          
+
           os.ready().then =>
             @kites[vm.hostnameAlias] = new VM options
 
