@@ -332,6 +332,10 @@ class WebTermAppView extends JView
 
     @appendTerminalTab terminalView
 
+  MESSAGE_MAP =
+    'started'                : 'Checking VM state'
+    'vm is already prepared' : 'READY'
+
   addStartTab:->
 
     pane = new KDTabPaneView
@@ -354,20 +358,35 @@ class WebTermAppView extends JView
       tagName : 'figure'
       partial : """<iframe src="//www.youtube.com/embed/DmjWnmSlSu4?origin=https://koding.com&showinfo=0&rel=0&theme=dark&modestbranding=1&autohide=1&loop=1" width="100%" height="100%" frameborder="0" webkitAllowFullScreen mozallowfullscreen allowFullScreen></iframe>"""
 
+    view.addSubView help = new KDCustomHTMLView
+      tagName : 'h3'
+      partial : 'Your VMs'
+
     view.addSubView vmWrapper = new KDCustomHTMLView
       tagName : 'ul'
 
-    KD.singletons.vmController.fetchVMs (err, vms)->
+    {vmController} = KD.singletons
+    vmController.fetchVMs (err, vms)=>
       if err
         return new KDNotificationView title : "Couldn't fetch your VMs"
 
       vms.sort (a,b)-> a.hostnameAlias > b.hostnameAlias
 
-      vms.forEach (vm)->
+      vms.forEach (vm)=>
         vmWrapper[vm.hostnameAlias] = new KDCustomHTMLView
           tagName : 'li'
-          partial : "<figure></figure>#{vm.hostnameAlias.replace 'koding.kd.io', 'kd.io'}"
+          partial : "<figure></figure>#{vm.hostnameAlias.replace 'koding.kd.io', 'kd.io'}<i></i>"
+          click   : => @addNewTab vm.hostnameAlias
         vmWrapper.addSubView vmWrapper[vm.hostnameAlias]
+
+      vmController.on 'vm.start.progress', (vmAlias, {message})->
+        log vmAlias, message
+        return  if message is 'FINISHED'
+        niceMessage = MESSAGE_MAP[message.toLowerCase()]
+        vmWrapper[vmAlias].unsetClass 'ready'
+        vmWrapper[vmAlias].setClass 'ready'  if niceMessage is 'READY'
+        vmWrapper[vmAlias].$('i').text niceMessage or message
+
 
     @tabView.addPane pane
 
