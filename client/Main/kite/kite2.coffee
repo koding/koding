@@ -20,7 +20,7 @@ class KDKite extends Kite
 
   @constructors = {}
 
-  tell2: (method, params) ->
+  tell2: (method, params = {}) ->
     # #tell2 is wrapping #tell with a promise-based api
     new Promise (resolve, reject) =>
 
