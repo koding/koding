@@ -63,7 +63,7 @@ body.terminal #main-header
       ul
         size            700px auto
         color           #999
-        margin          40px auto
+        margin          0 auto
         li
           display       block
           line-height   30px
@@ -74,9 +74,10 @@ body.terminal #main-header
           cursor        pointer
           borderBox()
           rel()
-          &:hover
-            figure
-              opacity     1
+          &:hover figure
+            opacity     1
+          &.ready i
+            color       logoBg
           figure
             top         9px
             left        6px
@@ -84,6 +85,14 @@ body.terminal #main-header
             display     block
             r-sprite    environments 'terminal'
             abs()
+          i
+            text-transform uppercase
+            right          6px
+            top            0
+            font-size      11px
+            font-weight    400
+            abs()
+
 
     h1
       font-size     32px
@@ -94,12 +103,20 @@ body.terminal #main-header
       color         logoBg
 
     h2
+    h3
       font-size     18px
       font-weight   200
       line-height   1
       padding       20px 0 40px
       text-align    center
       color         #999
+
+    h3
+      margin        0 auto
+      size          700px auto
+      padding       30px 0 10px 6px
+      text-align    left
+      borderBox()
 
 .application-tab-handle-holder.terminal
 
