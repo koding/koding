@@ -16,7 +16,10 @@ import (
 	"labix.org/v2/mgo/bson"
 )
 
-var ErrVmAlreadyPrepared = errors.New("vm is already prepared")
+var (
+	ErrVmAlreadyPrepared = errors.New("vm is already prepared")
+	ErrVmNotPrepared     = errors.New("vm is not prepared")
+)
 
 func vmStartOld(args *dnode.Partial, c *kite.Channel, vos *virt.VOS) (interface{}, error) {
 	return vmStart(vos)
@@ -93,8 +96,8 @@ func vmStart(vos *virt.VOS) (interface{}, error) {
 		return nil, err
 	}
 
-	if prepared {
-		return nil, ErrVmAlreadyPrepared
+	if !prepared {
+		return nil, ErrVmNotPrepared
 	}
 
 	var lastError error

@@ -464,7 +464,7 @@ func (o *Oskite) registerMethod(k *kite.Kite, method string, concurrent bool, ca
 			return nil, errors.New("Kite is shutting down.")
 		}
 
-		fmt.Println("GOT METTHOD", method)
+		log.Info("[%s] is called. user [%s] [%s]", method, channel.Username, channel.CorrelationName)
 
 		// Needed when we oskite get closed via a SIGNAL. It waits until all methods are done.
 		requestWaitGroup.Add(1)
@@ -479,8 +479,6 @@ func (o *Oskite) registerMethod(k *kite.Kite, method string, concurrent bool, ca
 		if err != nil {
 			return nil, err
 		}
-
-		log.Info("[%s] method %s get called", vm.Id.Hex(), method)
 
 		defer func() {
 			if err := recover(); err != nil {
