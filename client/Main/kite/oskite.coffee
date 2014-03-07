@@ -46,12 +46,16 @@ class OsKite extends KDKite
 
   vmOn: ->
     console.log "vm on is called"
-    @vmPrepareAndStart()
+    @vmPrepareAndStart onProgress: (update) =>
+      @emit 'vm.start.progress', update
+
+  vmOff: ->
+    @vmUnprepareAndStop onProgress: (update) =>
+      @emit 'vm.stop.progress', update
 
   fsExists: (options) ->
     @fsGetInfo(options)
 
-    .then (result) ->
-      Promise.cast result?
+    .then (result) -> return result
 
   @constructors['os-vagrant'] = this
