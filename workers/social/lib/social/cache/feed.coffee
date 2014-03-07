@@ -45,17 +45,17 @@ module.exports = (options={}, callback)->
     skip  : 0
     sort  : 'counts.followers' : -1
 
-  queue.push ->
-    fetchMembersFromGraph bongoModels, client, (err, members)->
-      localPrefetchedFeeds['members.main'] = members  if members
-      queue.fin()
+  # queue.push ->
+  #   fetchMembersFromGraph bongoModels, client, (err, members)->
+  #     localPrefetchedFeeds['members.main'] = members  if members
+  #     queue.fin()
 
   # Modified this function to fetch groups' tags
   # also we can return topics for all groups
-  queue.push ->
-    JTag._some client, {}, defaultOptions, (err, topics)->
-      localPrefetchedFeeds['topics.main'] = topics  if topics
-      queue.fin()
+  # queue.push ->
+  #   JTag._some client, {}, defaultOptions, (err, topics)->
+  #     localPrefetchedFeeds['topics.main'] = topics  if topics
+  #     queue.fin()
 
   # This is not koding specific so we can return this to every group
   # queue.push ->
