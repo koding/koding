@@ -582,10 +582,21 @@ func prepareProgress(vos *virt.VOS) <-chan *virt.Step {
 
 		rootVos.Chmod("/", 0755)     // make sure that executable flag is set
 		rootVos.Chmod("/home", 0755) // make sure that executable flag is set
-		createUserHome(vos.User, rootVos, vos)
-		createVmWebDir(vos.VM, vmWebDir, rootVos, vmWebVos)
-		if vmWebDir != userWebDir {
-			createUserWebDir(vos.User, vmWebDir, userWebDir, rootVos, vos)
+
+		if lastError = createUserHome(vos.User, rootVos, vos); lastError != nil {
+			return
+		}
+
+		if lastError = createVmWebDir(vos.VM, vmWebDir, rootVos, vmWebVos); lastError != nil {
+			return
+		}
+
+		if vmWebDir == userWebDir {
+			return
+		}
+
+		if lastError = createUserWebDir(vos.User, vmWebDir, userWebDir, rootVos, vos); lastError != nil {
+			return
 		}
 	}()
 
@@ -593,59 +604,61 @@ func prepareProgress(vos *virt.VOS) <-chan *virt.Step {
 
 }
 
-func createUserHome(user *virt.User, rootVos, userVos *virt.VOS) {
+func createUserHome(user *virt.User, rootVos, userVos *virt.VOS) error {
 	if info, err := rootVos.Stat("/home/" + user.Name); err == nil {
 		rootVos.Chmod("/home/"+user.Name, info.Mode().Perm()|0511) // make sure that user read and executable flag is set
-		return
+		return nil
 	}
 	// home directory does not yet exist
 
 	if _, err := rootVos.Stat("/home/" + user.OldName); user.OldName != "" && err == nil {
 		if err := rootVos.Rename("/home/"+user.OldName, "/home/"+user.Name); err != nil {
-			panic(err)
+			return err
 		}
 		if err := rootVos.Symlink(user.Name, "/home/"+user.OldName); err != nil {
-			panic(err)
+			return err
 		}
 		if err := rootVos.Chown("/home/"+user.OldName, user.Uid, user.Uid); err != nil {
-			panic(err)
+			return err
 		}
 
 		if target, err := rootVos.Readlink("/var/www"); err == nil && target == "/home/"+user.OldName+"/Web" {
 			if err := rootVos.Remove("/var/www"); err != nil {
-				panic(err)
+				return err
 			}
 			if err := rootVos.Symlink("/home/"+user.Name+"/Web", "/var/www"); err != nil {
-				panic(err)
+				return err
 			}
 		}
 
 		ldapserver.ClearCache()
-		return
+		return nil
 	}
 
 	if err := rootVos.MkdirAll("/home/"+user.Name, 0755); err != nil && !os.IsExist(err) {
-		panic(err)
+		return err
 	}
 	if err := rootVos.Chown("/home/"+user.Name, user.Uid, user.Uid); err != nil {
-		panic(err)
+		return err
 	}
 	if err := copyIntoVos(templateDir+"/user", "/home/"+user.Name, userVos); err != nil {
-		panic(err)
+		return err
 	}
+
+	return nil
 }
 
-func createVmWebDir(vm *virt.VM, vmWebDir string, rootVos, vmWebVos *virt.VOS) {
+func createVmWebDir(vm *virt.VM, vmWebDir string, rootVos, vmWebVos *virt.VOS) error {
 	if err := rootVos.Symlink(vmWebDir, "/var/www"); err != nil {
 		if !os.IsExist(err) {
-			panic(err)
+			return err
 		}
-		return
+		return nil
 	}
 	// symlink successfully created
 
 	if _, err := rootVos.Stat(vmWebDir); err == nil {
-		return
+		return nil
 	}
 	// vmWebDir directory does not yet exist
 
@@ -657,29 +670,33 @@ func createVmWebDir(vm *virt.VM, vmWebDir string, rootVos, vmWebVos *virt.VOS) {
 	if migrationErr != nil {
 		// create fresh Web directory if migration unsuccessful
 		if err := vmWebVos.MkdirAll(vmWebDir, 0755); err != nil {
-			panic(err)
+			return err
 		}
 		if err := copyIntoVos(templateDir+"/website", vmWebDir, vmWebVos); err != nil {
-			panic(err)
+			return err
 		}
 	}
+
+	return nil
 }
 
-func createUserWebDir(user *virt.User, vmWebDir, userWebDir string, rootVos, userVos *virt.VOS) {
+func createUserWebDir(user *virt.User, vmWebDir, userWebDir string, rootVos, userVos *virt.VOS) error {
 	if _, err := rootVos.Stat(userWebDir); err == nil {
-		return
+		return nil
 	}
 	// userWebDir directory does not yet exist
 
 	if err := userVos.MkdirAll(userWebDir, 0755); err != nil {
-		panic(err)
+		return err
 	}
 	if err := copyIntoVos(templateDir+"/website", userWebDir, userVos); err != nil {
-		panic(err)
+		return err
 	}
 	if err := rootVos.Symlink(userWebDir, vmWebDir+"/~"+user.Name); err != nil && !os.IsExist(err) {
-		panic(err)
+		return err
 	}
+
+	return nil
 }
 
 func copyIntoVos(src, dst string, vos *virt.VOS) error {
