@@ -100,9 +100,6 @@ class MembersAppController extends AppController
           dataSource        : (selector, options, callback)=>
             options.groupId or= KD.getGroup().getId()
             account.fetchFollowersWithRelationship selector, options, callback
-
-            account.countFollowersWithRelationship selector, (err, count)=>
-              @setCurrentViewNumber 'followers', count
         following           :
           loggedInOnly      : yes
           itemClass         : GroupMembersPageListItemView
@@ -112,9 +109,6 @@ class MembersAppController extends AppController
           dataSource        : (selector, options, callback)=>
             options.groupId or= KD.getGroup().getId()
             account.fetchFollowingWithRelationship selector, options, callback
-
-            account.countFollowingWithRelationship selector, (err, count)=>
-              @setCurrentViewNumber 'following', count
         likes               :
           loggedInOnly      : yes
           noItemFoundText   : "#{owner} #{auxVerb.have} not liked any posts yet."
@@ -132,9 +126,6 @@ class MembersAppController extends AppController
               KD.mixpanel "Load member list, success"  unless err
               callback err, res
 
-            group.countMembers (err, count) =>
-              count = 0 if err
-              @setCurrentViewNumber 'all', count
       sort                  :
         'modifiedAt'        :
           title             : "Latest activity"
@@ -171,23 +162,6 @@ class MembersAppController extends AppController
 
     KD.singleton('display').emit "ContentDisplayWantsToBeShown", contentDisplay
     return contentDisplay
-
-  setCurrentViewNumber:(type, count)->
-    countFmt = count.toLocaleString() ? "n/a"
-    @getView().$(".feeder-header span.member-numbers-#{type}").text countFmt
-
-  setCurrentViewHeader:(count)->
-    if typeof 1 isnt typeof count
-      @getView().$(".feeder-header span.optional_title").html count
-      return no
-
-    if count >= 10 then count = '10+'
-    # return if count % 10 is 0 and count isnt 20
-    # postfix = if count is 10 then '+' else ''
-    count   = 'No' if count is 0
-    result  = "#{count} member" + if count isnt 1 then 's' else ''
-    title   = "#{result} found for <strong>#{@_searchValue}</strong>"
-    @getView().$(".feeder-header span.optional_title").html title
 
   fetchFeedForHomePage:(callback)->
     options  =
