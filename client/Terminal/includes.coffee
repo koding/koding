@@ -4,11 +4,12 @@ module.exports = [
   "AppView.coffee",
   "AppController.coffee",
 
+  "chrometerminalbanner.coffee"
   "vmselectionview.coffee",
   "webtermview.coffee",
   "webtermsettingsview.coffee",
   "webtermsettings.coffee",
-  
+
   "src/ControlCodeReader.coffee",
   "src/Cursor.coffee",
   "src/InputHandler.coffee",
