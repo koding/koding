@@ -146,7 +146,8 @@ class AceAppView extends JView
     aceView.on 'KDObjectWillBeDestroyed', =>
       KD.singletons.localSync.removeFromOpenedFiles file
       @removeOpenDocument aceView
-    @aceViews[file.path] = aceView
+    path = FSHelper.getFullPath file
+    @aceViews[path] = aceView
     @setViewListeners aceView
 
     pane = new KDTabPaneView
