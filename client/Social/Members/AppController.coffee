@@ -28,9 +28,12 @@ class MembersAppController extends AppController
 
   createContentDisplay:(model, callback=->)->
     KD.singletons.appManager.setFrontApp this
+    {JAccount} = KD.remote.api
+    type = if model instanceof JAccount then "profile" else "members"
+
     contentDisplay = new KDView
       cssClass : 'member content-display'
-      type     : 'profile'
+      type     : type
 
     contentDisplay.on 'handleQuery', (query)=>
       @ready => @feedController?.handleQuery? query
@@ -40,8 +43,7 @@ class MembersAppController extends AppController
 
     KD.getSingleton('groupsController').ready =>
       contentDisplay.$('div.lazy').remove()
-      {JAccount} = KD.remote.api
-      if model instanceof JAccount
+      if type is "profile"
         @createProfileView contentDisplay, model
       else
         @createGroupMembersView contentDisplay
