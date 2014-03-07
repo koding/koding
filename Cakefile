@@ -316,6 +316,26 @@ task 'goBroker', "Run the goBroker", (options)->
       hostname        : options.domain
     verbose           : yes
 
+task 'premiumBroker', "Run the premium broker", (options)->
+  {configFile} = options
+  config = require('koding-config-manager').load("main.#{configFile}")
+  {broker} = config
+  uuid = hat()
+
+  processes.spawn
+    name              : 'premiumBroker'
+    cmd               : "./go/bin/broker -c #{configFile} -u #{uuid} -b premiumBroker #{addFlags options}"
+    restart           : yes
+    restartTimeout    : 100
+    stdout            : process.stdout
+    stderr            : process.stderr
+    kontrol           :
+      enabled         : if config.runKontrol is yes then yes else no
+      binary          : uuid
+      port            : broker.port
+      hostname        : options.domain
+    verbose           : yes
+
 task 'goBrokerKite', "Run the goBrokerKite", (options)->
   {configFile} = options
   config = require('koding-config-manager').load("main.#{configFile}")
@@ -583,6 +603,7 @@ run =({configFile})->
     invoke 'kontrolApi'                       if config.runKontrol
     invoke 'goBroker'                         if config.runGoBroker
     invoke 'goBrokerKite'                     if config.runGoBrokerKite
+    invoke 'premiumBroker'                    if config.runPremiumBroker
     invoke 'premiumBrokerKite'                if config.runPremiumBrokerKite
     invoke 'osKite'                           if config.runOsKite
     invoke 'rerouting'                        if config.runRerouting

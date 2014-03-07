@@ -127,6 +127,23 @@ class ActivityListContainer extends JView
 
     super options, data
 
+    @pinnedListController = new PinnedActivityListController
+      delegate    : this
+      itemClass   : ActivityListItemView
+      viewOptions :
+        cssClass  : "hidden"
+
+    @pinnedListWrapper = @pinnedListController.getView()
+
+    @togglePinnedList = new KDCustomHTMLView
+      cssClass   : "toggle-pinned-list hidden"
+      # click      : KDView::toggleClass.bind @pinnedListWrapper, "hidden"
+
+    @togglePinnedList.addSubView new KDCustomHTMLView
+      tagName    : "span"
+      cssClass   : "title"
+      partial    : "Most Liked"
+
     @controller = new ActivityListController
       delegate          : @
       itemClass         : ActivityListItemView
@@ -142,9 +159,15 @@ class ActivityListContainer extends JView
   setSize:(newHeight)->
     # @controller.scrollView.setHeight newHeight - 28 # HEIGHT OF THE LIST HEADER
 
+  viewAppended: ->
+    super
+    @togglePinnedList.show()  if @pinnedListController.getItemCount()
+
   pistachio:->
     """
       {{> @filterWarning}}
+      {{> @togglePinnedList}}
+      {{> @pinnedListWrapper}}
       {{> @listWrapper}}
     """
 

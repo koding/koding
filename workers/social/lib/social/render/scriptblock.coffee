@@ -10,10 +10,12 @@ module.exports = (options = {}, callback)->
 
   {argv} = require 'optimist'
 
-  prefetchedFeeds = {}
-  customPartial   = {}
-  campaignData    = {}
-  currentGroup    = {}
+  prefetchedFeeds  = {}
+  customPartial    = {}
+  campaignData     = {}
+  currentGroup     = {}
+  usePremiumBroker = no
+
   {bongoModels, client, intro, landing, slug} = options
 
   createHTML = ->
@@ -24,7 +26,7 @@ module.exports = (options = {}, callback)->
     currentGroup         = JSON.stringify currentGroup, replacer
     landingOptions       = page : landing
 
-    isPremiumBroker = options.client.context.group isnt "koding"
+    usePremiumBroker = usePremiumBroker or options.client.context.group isnt "koding"
     landingOptions =
       page         : landing
 
@@ -44,7 +46,7 @@ module.exports = (options = {}, callback)->
     <!-- MIXPANEL -->
     <script>(function(e,b){if(!b.__SV){var a,f,i,g;window.mixpanel=b;a=e.createElement("script");a.type="text/javascript";a.async=!0;a.src=("https:"===e.location.protocol?"https:":"http:")+'//cdn.mxpnl.com/libs/mixpanel-2.2.min.js';f=e.getElementsByTagName("script")[0];f.parentNode.insertBefore(a,f);b._i=[];b.init=function(a,e,d){function f(b,h){var a=h.split(".");2==a.length&&(b=b[a[0]],h=a[1]);b[h]=function(){b.push([h].concat(Array.prototype.slice.call(arguments,0)))}}var c=b;"undefined"!==typeof d?c=b[d]=[]:d="mixpanel";c.people=c.people||[];c.toString=function(b){var a="mixpanel";"mixpanel"!==d&&(a+="."+d);b||(a+=" (stub)");return a};c.people.toString=function(){return c.toString(1)+".people (stub)"};i="disable track track_pageview track_links track_forms register register_once alias unregister identify name_tag set_config people.set people.set_once people.increment people.append people.track_charge people.clear_charges people.delete_user".split(" ");for(g=0;g<i.length;g++)f(c,i[g]);b._i.push([a,e,d])};b.__SV=1.2}})(document,window.mixpanel||[]);mixpanel.init("#{KONFIG.mixpanel}");</script>
 
-    <script>KD.config.premiumBroker=#{isPremiumBroker}</script>
+    <script>KD.config.usePremiumBroker=#{usePremiumBroker}</script>
     <script>KD.customPartial=#{encodedCustomPartial}</script>
     <script>KD.campaignData=#{encodedCampaignData}</script>
     <script src='/a/js/kd.#{KONFIG.version}.js'></script>
@@ -92,6 +94,20 @@ module.exports = (options = {}, callback)->
     #{if argv.t then "<script src=\"/a/js/tests.js\"></script>" else ''}
     """
 
+  kallback = ->
+    {delegate} = options.client.connection
+
+    if 'function' is typeof delegate?.fetchSubscriptions
+      selector = {}
+      fetchOptions = targetOptions: selector :{ tags: $nin: ["nosync"] }
+
+      delegate.fetchSubscriptions selector, fetchOptions, (err, subscriptions)->
+        if subscriptions and subscriptions.length
+          usePremiumBroker = yes
+        callback null, createHTML()
+    else
+      callback null, createHTML()
+
   generateScript = ->
     selector =
       partialType : "HOME"
@@ -116,7 +132,7 @@ module.exports = (options = {}, callback)->
               logo       : group.customize?.logo or ""
               coverPhoto : group.customize?.coverPhoto or ""
               id         : group.getId()
-          callback null, createHTML()
+          kallback()
 
 
 
@@ -127,7 +143,7 @@ module.exports = (options = {}, callback)->
   Cache  = require '../cache/main'
   feedFn = require '../cache/feed'
 
-  getCacheKey =-> return "scriptblock-#{options.client.context.group}"
+  getCacheKey =-> return "scriptblock#{options.client.context.group}"
 
   Cache.fetch getCacheKey(), feedFn, options, (err, data)->
     prefetchedFeeds = data    # this is updating the prefetchedFeeds property

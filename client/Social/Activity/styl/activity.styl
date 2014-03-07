@@ -113,8 +113,19 @@ resurrection.activity.styl
       .kdview
         overflow        visible
 
+      .toggle-pinned-list
+        text-align      right
+        margin-top      15px
+
+        .title
+          color             #838987
+          font-size         20px
+          font-weight       300
+          text-decoration   none
+          margin-right      3px
+
     .feeder-header
-      margin-top        31px
+      margin-top        10px
       text-align        right
       overflow          visible
 
@@ -609,6 +620,9 @@ span.collapsedtext
   border          1px solid #d8d8d8
   shadow          1px 1px 0 rgba(196, 196, 196, .75)
   borderBox()
+
+  &:first-child
+    margin-top    15px
 
   &.content-display-main-section /* Content display */
     kalc          width, 100% \- 100px
