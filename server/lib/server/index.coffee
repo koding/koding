@@ -115,6 +115,11 @@ app.use (req, res, next) ->
   JSession.fetchSession clientId, (err, session)->
     return next() if err or not session
     { maxAge, secure } = KONFIG.sessionCookie
+
+    # set cookie as pending cookie
+    req.pendingCookies or= {}
+    req.pendingCookies.clientId = session.clientId
+
     res.cookie "clientId", session.clientId, { maxAge, secure }
     next()
 
