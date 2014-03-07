@@ -8,7 +8,6 @@ class WebTermController extends AppController
     route        :
       slug       : "/:name?/Terminal"
       handler    : ({params:{name}, query})->
-        # KD.utils.wait 800, ->
         router = KD.getSingleton 'router'
         router.openSection "Terminal", name, query
     multiple     : yes
@@ -111,4 +110,5 @@ class WebTermController extends AppController
   runCommand:(command)->
     @getView().ready =>
       @getView().runCommand command
+
 WebTerm = {}
