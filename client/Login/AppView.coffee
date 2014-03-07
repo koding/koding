@@ -576,7 +576,7 @@ class LoginView extends KDView
           @redeemForm.inviteCode.input.setFocus()
         when "login"
           @formHeader.show()
-          @formHeader.setPartial "Dont't have an account yet? "
+          @formHeader.updatePartial "Dont't have an account yet? "
           @formHeader.addSubView @goToRegisterLink
           @loginForm.username.input.setFocus()
         when "recover"
@@ -593,6 +593,9 @@ class LoginView extends KDView
           @$(".login-footer").addClass 'hidden'
           @failureNotice.show()
         when "reset"
+          @formHeader.show()
+          @formHeader.updatePartial "Set your new password below"
+          @goToRecoverLink.hide()
           @github.hide()
 
   getRouteWithEntryPoint:(route)->

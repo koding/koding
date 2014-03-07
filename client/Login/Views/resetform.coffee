@@ -40,7 +40,7 @@ class ResetInlineForm extends LoginViewInlineForm
 
   pistachio:->
     """
-    <div class='login-hint'>Set your new password below.</div>
+
     <div>{{> @password}}</div>
     <div>{{> @passwordConfirm}}</div>
     <div>{{> @button}}</div>
