@@ -101,6 +101,7 @@ module.exports = class JVM extends Module
                             'aws' # Amazon Web Services
                             'sj'  # San Jose
                             'vagrant'
+                            'premium-sj'
                           ]]
         default         : if argv.c is 'vagrant' then 'vagrant' else 'sj'
       webHome           : String
