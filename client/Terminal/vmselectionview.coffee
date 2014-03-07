@@ -22,7 +22,7 @@ class VMSelection extends KDModalView
 
     super
       width           : 300
-      title           : "Select VM"
+      title           : "Select a VM"
       overlay         : yes
       # cssClass        : KD.utils.curry 'vm-selection', options.cssClass
       draggable       : no
@@ -45,4 +45,5 @@ class VMSelection extends KDModalView
       @emit "VMSelected", vm
       @destroy()
 
-    @listController.instantiateListItems KD.getSingleton('vmController').vms
+    @listController.instantiateListItems KD.getSingleton('vmController').vms.map (vm) ->
+      vm.hostnameAlias

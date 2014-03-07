@@ -24,6 +24,7 @@ class OsKite extends KDKite
     s3Delete        : 's3.delete'
     
     vmStart         : 'vm.start'
+    vmPrepareAndStart: 'vm.prepareAndStart'
     vmShutdown      : 'vm.shutdown' 
     vmUnprepare     : 'vm.unprepare'
     vmStop          : 'vm.stop'
@@ -42,6 +43,10 @@ class OsKite extends KDKite
   constructor: (options = {}, data) ->
     options.kiteName = 'os-vagrant'
     super options, data
+
+  vmOn: ->
+    console.log "vm on is called"
+    @vmPrepareAndStart()
 
   fsExists: (options) ->
     @fsGetInfo(options)

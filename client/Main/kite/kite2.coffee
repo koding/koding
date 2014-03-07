@@ -46,3 +46,4 @@ class KDKite extends Kite
         return resolve restResponse...  if timeOk
 
       @tell options, callback
+    .catch warn

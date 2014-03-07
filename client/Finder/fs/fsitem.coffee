@@ -10,7 +10,7 @@ class FSItem extends KDObject
 
     kite = KD.getSingleton('vmController').getKiteByVmName vmName
 
-    kite.vmStart().then =>
+    kite.vmOn().then =>
 
       plainPath = FSHelper.plainPath path
 
@@ -45,7 +45,7 @@ class FSItem extends KDObject
     
     file = null
 
-    kite.vmStart().then ->
+    kite.vmOn().then ->
 
       kite.fsEnsureNonexistentPath(path: targetPath).then (actualPath) ->
         
@@ -86,7 +86,7 @@ class FSItem extends KDObject
 
     path = FSHelper.plainPath "#{file.path}.#{type}"
 
-    kite.vmStart().then ->
+    kite.vmOn().then ->
 
       kite.fsEnsureNonexistentPath { path }
 
@@ -123,7 +123,7 @@ class FSItem extends KDObject
       when zipPattern .test file.name
         [no, path.replace zipPattern, '']
 
-    kite.vmStart()
+    kite.vmOn()
 
     .then ->
       kite.fsEnsureNonexistentPath(path: "#{ extractFolder }")
@@ -218,7 +218,7 @@ class FSItem extends KDObject
   isHidden:-> FSItem.isHidden @name
 
   exists:(callback=noop)->
-    @getKite().vmStart()
+    @getKite().vmOn()
 
     .fsExists(path: @getPath())
 
@@ -227,7 +227,7 @@ class FSItem extends KDObject
   stat:(callback=noop)->
     kite = @getKite()
     
-    kite.vmStart().then =>
+    kite.vmOn().then =>
 
       kite.fsGetInfo path: @getPath()
 
@@ -238,7 +238,7 @@ class FSItem extends KDObject
 
     kite = @getKite()
 
-    kite.vmStart().then =>
+    kite.vmOn().then =>
 
       kite.fsRemove { path: @getPath(), recursive }
 
@@ -255,7 +255,7 @@ class FSItem extends KDObject
 
     kite = @getKite()
 
-    kite.vmStart()
+    kite.vmOn()
 
     .then =>
       kite.fsRename(
@@ -280,7 +280,7 @@ class FSItem extends KDObject
 
     kite = @getKite()
 
-    kite.vmStart().then =>
+    kite.vmOn().then =>
 
       kite.fsSetPermissions {
         path: @getPath()

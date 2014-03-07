@@ -34,7 +34,7 @@ class FSFile extends FSItem
 
     kite = @getKite()
 
-    ok = kite.vmStart()
+    ok = kite.vmOn()
     .then =>
 
       kite.fsReadFile {
@@ -65,7 +65,7 @@ class FSFile extends FSItem
 
     kite = @getKite()
 
-    kite.vmStart()
+    kite.vmOn()
     .then =>
 
       ok = kite.fsEnsureNonexistentPath(path: "#{newPath}")
@@ -202,7 +202,7 @@ class FSFile extends FSItem
 
     @emit "fs.save.started"
 
-    ok = @getKite().vmStart()
+    ok = @getKite().vmOn()
     .then =>
 
       contents = KD.utils.utf8Encode contents  if useEncoding

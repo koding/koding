@@ -51,7 +51,8 @@ class EnvironmentMachineContainer extends EnvironmentContainer
         vms.forEach (vm, index)=>
 
           @addItem
-            title     : vm
+            title     : vm.hostnameAlias
+            vm        : vm
             cpuUsage  : KD.utils.getRandomNumber 100
             memUsage  : KD.utils.getRandomNumber 100
             activated : yes
