@@ -37,7 +37,7 @@ class PermissionsForm extends KDFormViewWithFields
     roleNameLabel   = new KDLabelView title: "give role a name"
     @roleName       = new KDInputView
       name          : "rolename"
-      placeholder   : "give new name to role.."
+      placeholder   : "give new role name.."
 
     roleSelectLabel = new KDLabelView title: "Select role to copy from"
     @roleSelectBox   = new KDSelectBox
@@ -47,17 +47,20 @@ class PermissionsForm extends KDFormViewWithFields
     confirmButton   = new KDButtonView
       title         : "Select"
       callback      : =>
-        titleOfRole = @roleName.getValue() or "NewRole"
-        @group.addCustomRole title: titleOfRole , (err, newRole)=>
-          return KD.showError err if err
-          duplicatedRole = @roleSelectBox.getValue()
-          newPermissions = @getPermissionsOfRole duplicatedRole
-          currentPermissionSet = @reducedList()
-          permission.role = titleOfRole for permission in newPermissions
-          currentPermissionSet.push perm for perm in newPermissions
-          @group.updatePermissions currentPermissionSet, (err,res)=>
+        titleOfRole = @roleName.getValue()
+        unless titleOfRole
+          @roleName.setClass "kdinput text validation-error"
+        else
+          @group.addCustomRole title: titleOfRole , (err, newRole)=>
             return KD.showError err if err
-            @emit "RoleWasAdded", currentPermissionSet, newRole.title
+            duplicatedRole = @roleSelectBox.getValue()
+            newPermissions = @getPermissionsOfRole duplicatedRole
+            currentPermissionSet = @reducedList()
+            permission.role = titleOfRole for permission in newPermissions
+            currentPermissionSet.push perm for perm in newPermissions
+            @group.updatePermissions currentPermissionSet, (err,res)=>
+              return KD.showError err if err
+              @emit "RoleWasAdded", currentPermissionSet, newRole.title
 
     @selectRoleModal.addSubView roleNameLabel
     @selectRoleModal.addSubView @roleName
