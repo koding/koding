@@ -39,25 +39,6 @@ class WebTermController extends AppController
 
     super options, data
 
-    # @globalNotification = null
-    # alreadyStarted      = no
-
-    # @getView().once 'TerminalStarted', =>
-    #   alreadyStarted = yes
-    #   if @globalNotification
-    #     KD.utils.wait 300, =>
-    #       @globalNotification.hideAndDestroy()
-    #       KD.utils.wait 1000, =>
-    #         KD.singletons.mainView.createGlobalNotification
-    #           title      : "All seem good now,"
-    #           content    : "keep coding :)"
-    #           type       : 'green'
-    #           closeTimer : 2000
-
-    # @getView().on 'TerminalFailed', @bound 'checkOSKiteStatus'
-
-    # # sometimes terminal is so fast we don't even need to ask oskite status
-    # @checkOSKiteStatus()  unless alreadyStarted
 
   checkOSKiteStatus:-> @askOSKiteStatus @bound 'tellOSKiteStatus'
 
