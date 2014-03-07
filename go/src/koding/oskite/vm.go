@@ -345,8 +345,6 @@ func vmPrepareAndStart(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS
 		OnProgress dnode.Callback
 	}
 
-	fmt.Printf("args %+v\n", args)
-
 	if args != nil && args.Unmarshal(&params) != nil {
 		return nil, &kite.ArgumentError{Expected: "{OnProgress: [function]}"}
 	}
@@ -361,7 +359,7 @@ func vmPrepareAndStart(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS
 
 	go func() {
 		prepareQueue <- &QueueJob{
-			msg: "vm.Start" + channel.CorrelationName,
+			msg: "vm.prepareAndStart" + vos.VM.HostnameAlias,
 			f: func() (string, error) {
 				if params.OnProgress == nil {
 					defer func() { done <- struct{}{} }()
@@ -383,7 +381,7 @@ func vmPrepareAndStart(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS
 					}
 				}
 
-				return fmt.Sprintf("vm.startProgress %s", vos.VM.HostnameAlias), nil
+				return fmt.Sprintf("vm.prepareAndStart %s", vos.VM.HostnameAlias), nil
 			},
 		}
 	}()
@@ -419,7 +417,7 @@ func vmStopAndUnprepare(args *dnode.Partial, channel *kite.Channel, vos *virt.VO
 
 	go func() {
 		prepareQueue <- &QueueJob{
-			msg: "vm.Start" + channel.CorrelationName,
+			msg: "vm.StopAndUnprepare" + vos.VM.HostnameAlias,
 			f: func() (string, error) {
 				if params.OnProgress == nil {
 					defer func() { done <- struct{}{} }()
@@ -441,7 +439,7 @@ func vmStopAndUnprepare(args *dnode.Partial, channel *kite.Channel, vos *virt.VO
 					}
 				}
 
-				return fmt.Sprintf("vm.startProgress %s", vos.VM.HostnameAlias), nil
+				return fmt.Sprintf("vm.StopAndUnprepare %s", vos.VM.HostnameAlias), nil
 			},
 		}
 	}()

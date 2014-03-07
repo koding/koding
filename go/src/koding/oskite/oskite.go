@@ -198,6 +198,8 @@ func (o *Oskite) runNewKite() {
 	)
 
 	o.vosMethod(k, "vm.start", vmStartNew)
+	o.vosMethod(k, "vm.prepareAndStart", vmPrepareAndStartNew)
+	o.vosMethod(k, "vm.stopAndUnprepare", vmStopAndUnprepareNew)
 	o.vosMethod(k, "vm.shutdown", vmShutdownNew)
 	o.vosMethod(k, "vm.prepare", vmPrepareNew)
 	o.vosMethod(k, "vm.unprepare", vmUnprepareNew)
