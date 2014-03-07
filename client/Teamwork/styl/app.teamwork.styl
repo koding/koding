@@ -364,10 +364,10 @@ app.teamwork.styl
 .tw-bot-avatar
   r-sprite                      teamwork, "teampunk"
   size                          30px, 30px
-  fl()
+  display                       inline-block
 
 .tw-add-user
-  fl()
+  display                       inline-block
   size                          30px, 30px
   sprite                        teamwork, "add"
   bg                            color, #1B2224
@@ -421,10 +421,13 @@ app.teamwork.styl
   .tw-action-links
     position                    relative
   .tw-users
-    overflow                    hidden
+    overflow                    auto
     float                       left
+    size                        100%, 100px
+    white-space                 nowrap
+
   .avatarview
-    fl()
+    display                     inline-block
     margin                      10px 9px 0 0
     rounded                     3px
     &.watching
@@ -569,12 +572,13 @@ app.teamwork.styl
       .icon
         padding                 0 2px 0 0 !important
     &.modal-clean-green
-      bg                        color, #1AAE5D
+      bg                        color, #1AAF5D !important
       color                     #FFF
+      border                    none !important
     &.modal-cancel
-      bg                        color, #A9A9A9
+      bg                        color, #A9A9A9 !important
       color                     #FFF
-      border-color              #A9A9A9
+      border                    none !important
 
 .tw-invite-modal
   .kdmodal-buttons

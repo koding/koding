@@ -25,12 +25,18 @@ class ActivityAppView extends KDScrollView
     @inputWidget      = new ActivityInputWidget
 
     @referalBox       = new ReferalBox
+    @groupListBox     = new UserGroupList
     @topicsBox        = new ActiveTopics
     @usersBox         = new ActiveUsers
-    @tickerBox        = new ActivityTicker
+    # @tickerBox        = new ActivityTicker
+    # TODO : if not on private group DO NOT create those ~EA
+    @groupDescription = new GroupDescription
+    @groupMembers     = new GroupMembers
 
     @mainBlock        = new KDCustomHTMLView tagName : "main" #"activity-left-block"
     @sideBlock        = new KDCustomHTMLView tagName : "aside"   #"activity-right-block"
+
+    @groupCoverView   = new FeedCoverPhotoView
 
     @mainController   = KD.getSingleton("mainController")
     @mainController.on "AccountChanged", @bound "decorate"
@@ -42,29 +48,54 @@ class ActivityAppView extends KDScrollView
       {feedFilterNav}  = @activityHeader
       feedFilterNav.unsetClass 'multiple-choice on-off'
 
-    @tickerBox.once 'viewAppended', =>
-      topOffset = @tickerBox.$().position().top
-      windowController.on 'ScrollHappened', =>
-        # sanity check
-        topOffset = @tickerBox.$().position().top  if topOffset < 200
-        if document.documentElement.scrollTop > topOffset
-        then @tickerBox.setClass 'fixed'
-        else @tickerBox.unsetClass 'fixed'
+    # calculateTopOffset = =>
+    #   KD.utils.wait 3000, =>
+    #     @topOffset = @tickerBox.$().position().top
+
+
+    # @tickerBox.once 'viewAppended', =>
+    #   calculateTopOffset()
+    #   windowController.on 'ScrollHappened', =>
+    #     # sanity check
+    #     calculateTopOffset()  if @topOffset < 200
+    #     if document.documentElement.scrollTop > @topOffset
+    #     then @tickerBox.setClass 'fixed'
+    #     else @tickerBox.unsetClass 'fixed'
+
+    # @groupListBox.on 'TopOffsetShouldBeFixed', calculateTopOffset
 
     @decorate()
 
     @setLazyLoader 200
 
+    @addSubView @groupCoverView
     @addSubView @mainBlock
     @addSubView @sideBlock
 
+    topWidgetPlaceholder  = new KDCustomHTMLView
+    leftWidgetPlaceholder = new KDCustomHTMLView
+
+    @mainBlock.addSubView topWidgetPlaceholder
     @mainBlock.addSubView @inputWidget
     @mainBlock.addSubView @feedWrapper
 
-    @sideBlock.addSubView @referalBox  if KD.isLoggedIn()
+    @sideBlock.addSubView @referalBox  if KD.isLoggedIn() and not @isPrivateGroup()
+    @sideBlock.addSubView leftWidgetPlaceholder
+    @sideBlock.addSubView @groupDescription if @isPrivateGroup()
+    @sideBlock.addSubView @groupMembers if @isPrivateGroup() and ("list members" in KD.config.permissions)
+    @sideBlock.addSubView @groupListBox  if KD.getGroup().slug is "koding"
     @sideBlock.addSubView @topicsBox
-    @sideBlock.addSubView @usersBox
-    @sideBlock.addSubView @tickerBox
+    @sideBlock.addSubView @usersBox if "list members" in KD.config.permissions
+    # @sideBlock.addSubView @tickerBox
+
+    KD.getSingleton("widgetController").showWidgets [
+      { view: topWidgetPlaceholder,  key: "ActivityTop"  }
+      { view: leftWidgetPlaceholder, key: "ActivityLeft" }
+    ]
+
+  isPrivateGroup :->
+    {entryPoint} = KD.config
+    if entryPoint?.slug isnt "koding" and entryPoint?.type is "group" then yes else no
 
   decorate:->
     @unsetClass "guest"
@@ -96,6 +127,23 @@ class ActivityListContainer extends JView
 
     super options, data
 
+    @pinnedListController = new PinnedActivityListController
+      delegate    : this
+      itemClass   : ActivityListItemView
+      viewOptions :
+        cssClass  : "hidden"
+
+    @pinnedListWrapper = @pinnedListController.getView()
+
+    @togglePinnedList = new KDCustomHTMLView
+      cssClass   : "toggle-pinned-list hidden"
+      # click      : KDView::toggleClass.bind @pinnedListWrapper, "hidden"
+
+    @togglePinnedList.addSubView new KDCustomHTMLView
+      tagName    : "span"
+      cssClass   : "title"
+      partial    : "Most Liked"
+
     @controller = new ActivityListController
       delegate          : @
       itemClass         : ActivityListItemView
@@ -111,9 +159,15 @@ class ActivityListContainer extends JView
   setSize:(newHeight)->
     # @controller.scrollView.setHeight newHeight - 28 # HEIGHT OF THE LIST HEADER
 
+  viewAppended: ->
+    super
+    @togglePinnedList.show()  if @pinnedListController.getItemCount()
+
   pistachio:->
     """
       {{> @filterWarning}}
+      {{> @togglePinnedList}}
+      {{> @pinnedListWrapper}}
       {{> @listWrapper}}
     """
 
@@ -142,98 +196,3 @@ class FilterWarning extends JView
     @warning.updatePartial "#{partialText}"
 
     @show()
-
-class ReferalBox extends JView
-
-
-  constructor: (options = {}, data) ->
-
-    options.cssClass = 'referal-box'
-
-    super options, data
-
-    @modalLink = new KDCustomHTMLView
-      tagName    : 'a'
-      attributes :
-        href     : '#'
-      click      : @bound 'showReferrerModal'
-      partial    : 'show more...'
-
-    @redeemPointsModal = new KDCustomHTMLView
-      tagName    : 'a'
-      attributes :
-        href     : '#'
-      click      : (e)=>
-        @showRedeemReferralPointModal()
-        e.stopPropagation()
-
-    KD.getSingleton("vmController").on "ReferralCountUpdated", =>
-      @updateReferralCountPartial()
-      @updateSizeBar()
-
-    @updateReferralCountPartial()
-
-    @progressBar = new KDProgressBarView
-      title       : '0 GB / 16 GB'
-      determinate : yes
-
-    @showMore = new KDCustomHTMLView
-      tagName : "a"
-      partial : "show more..."
-
-  click : ->
-    @showReferrerModal()
-
-  showRedeemReferralPointModal:->
-    KD.mixpanel "Referer Redeem Point modal, click"
-
-    appManager = KD.getSingleton "appManager"
-    appManager.tell "Account", "showRedeemReferralPointModal"
-
-  updateReferralCountPartial:->
-    KD.remote.api.JReferral.fetchRedeemableReferrals { type: "disk" }, (err, referals)=>
-      if referals and referals.length > 0
-        text =  """
-          Congrats, your bonus is waiting for you!
-          You have #{referals.length} referrals!
-        """
-        @redeemPointsModal.updatePartial text
-
-
-  viewAppended:->
-
-    super
-    @updateSizeBar()
-
-  updateSizeBar:->
-    @progressBar.updateBar 0
-    vmc = KD.getSingleton "vmController"
-    vmc.fetchDefaultVmName (name) =>
-      vmc.fetchVmInfo name, (err , vmInfo) =>
-        return  if err or not vmInfo?.diskSizeInMB
-        max          = vmInfo?.diskSizeInMB or 4096
-        max          = max*1024*1024
-        usagePercent = max / (16*1e9) * 90
-        used         = KD.utils.formatBytesToHumanReadable max
-
-        @progressBar.updateBar usagePercent + 10, null, "#{used} / 16 GB"
-
-
-  showReferrerModal: (event)->
-    KD.utils.stopDOMEvent event
-    KD.mixpanel "Referer modal, click"
-
-    appManager = KD.getSingleton "appManager"
-    appManager.tell "Account", "showReferrerModal"
-
-  pistachio:->
-    """
-    <span class="title">Get free disk space!</span>
-    <p>
-      Invite your friends and get 250MB up to 16GB for free!
-      {{> @showMore}}
-      {{> @redeemPointsModal}}
-    </p>
-    {{> @progressBar}}
-    """
-

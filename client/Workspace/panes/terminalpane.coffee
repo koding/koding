@@ -13,10 +13,15 @@ class TerminalPane extends Pane
       @onWebTermConnected()
 
   createWebTermView: ->
+    handler = => @webterm.connectToTerminal()
     @webterm           = new WebTermView
-      delegate         : this
       cssClass         : "webterm"
       advancedSettings : no
+      delegate         : this
+      mode             : @getMode()
+    WebTermView.setTerminalTimeout null, 15000, handler, handler
+
+  getMode: -> "create"
 
   onWebTermConnected: ->
     {command} = @getOptions()

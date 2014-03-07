@@ -1,5 +1,5 @@
-module.exports = ({account, client, bongoModels}, callback)->
-
+module.exports = (options, callback)->
+  {account, client, bongoModels} = options
   getStyles    = require './../styleblock'
   fetchScripts = require './../scriptblock'
   getGraphMeta = require './../graphmeta'
@@ -10,7 +10,7 @@ module.exports = ({account, client, bongoModels}, callback)->
     <!doctype html>
     <html lang="en" prefix="og: http://ogp.me/ns#">
     <head>
-      <title>Koding</title>
+      <title>Koding | A New Way For Developers To Work</title>
       #{getStyles()}
       #{getGraphMeta()}
     </head>
@@ -38,6 +38,7 @@ module.exports = ({account, client, bongoModels}, callback)->
     """
 
 
-  fetchScripts {bongoModels, client, intro : yes}, (err, scripts)->
+  options.intro = yes
+  fetchScripts options, (err, scripts)->
     callback null, prepareHTML scripts
 

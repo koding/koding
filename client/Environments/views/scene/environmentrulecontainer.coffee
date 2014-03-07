@@ -1,27 +1,24 @@
 class EnvironmentRuleContainer extends EnvironmentContainer
 
   constructor:(options={}, data)->
+    options.cssClass  = 'firewall'
     options.itemClass = EnvironmentRuleItem
-    options.title     = 'Rules'
+    options.title     = 'firewall rules'
     super options, data
+
+    @on 'PlusButtonClicked', ->
+      new KDNotificationView title: "Adding more rules will be available soon."
 
   loadItems:->
     super
 
     dummyRules = [
       {
-        title: "Allow Turkey",
-        description: "allow from 5.2.80.0/21"
-      },
-      {
-        title: "Block China",
-        description: "deny from 65.19.146.2 220.248.0.0/14"
-      },
-      {
-        title: "Allow Gokmen's Machine",
-        description: "allow from 1.2.3.4"
+        title: "Allow All",
+        description: "allow from *"
       }
     ]
 
-    @addItem rule for rule in dummyRules
-    @emit "DataLoaded"
+    new Promise (resolve, reject)=>
+      @addItem rule for rule in dummyRules
+      resolve()

@@ -6,6 +6,7 @@ import (
 	"io"
 	"koding/db/models"
 	"koding/db/mongodb"
+	"koding/tools/config"
 	"math"
 	"net/http"
 	"net/url"
@@ -93,12 +94,29 @@ func GetWorkerURL(writer http.ResponseWriter, req *http.Request) {
 	// use http for all workers because they don't have ssl certs
 	protocolScheme := "http:"
 
+	brokerConf := config.Broker{}
+	switch workerName {
+	case "brokerKite":
+		brokerConf = conf.BrokerKite
+	case "broker":
+		brokerConf = conf.Broker
+	case "premiumBrokerKite":
+		brokerConf = conf.PremiumBrokerKite
+	case "premiumBroker":
+		brokerConf = conf.PremiumBroker
+	default:
+	}
+
 	// broker has ssl cert and a custom url scheme, look what it's it
-	if workerName == "broker" {
-		if conf.Broker.WebProtocol != "" {
-			protocolScheme = conf.Broker.WebProtocol
-		} else {
-			protocolScheme = "https:" // fallback
+	// TODO: this is ugly, fix some time
+	if workerName == "broker" ||
+		workerName == "brokerKite" ||
+		workerName == "premiumBroker" ||
+		workerName == "premiumBrokerKite" {
+
+		protocolScheme = "https:"
+		if brokerConf.WebProtocol != "" {
+			protocolScheme = brokerConf.WebProtocol
 		}
 	}
 
@@ -194,7 +212,7 @@ func GetWorkers(writer http.ResponseWriter, req *http.Request) {
 				}
 				// if searched for social-1, social-2, then return all workers
 				// that begins with social
-				query[key] = bson.RegEx{Pattern: "^" + name, Options: "i"}
+				query[key] = bson.RegEx{Pattern: name, Options: "i"}
 			} else {
 				query[key] = value[0]
 			}

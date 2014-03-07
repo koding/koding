@@ -2,8 +2,8 @@
 {uri}                   = require('koding-config-manager').load("main.#{argv.c}")
 {daisy}                 = require "bongo"
 {Relationship}          = require 'jraphical'
-{createActivityContent,
- decorateComment}       = require '../helpers'
+encoder                 = require 'htmlencode'
+{createActivityContent, decorateComment} = require '../helpers'
 
 ITEMSPERPAGE = 20
 
@@ -12,7 +12,6 @@ module.exports = (bongo, page, contentType, callback)=>
   skip = 0
   if page > 0
     skip = (page - 1) * ITEMSPERPAGE
-
 
   options = {
     limit : ITEMSPERPAGE
@@ -28,13 +27,14 @@ module.exports = (bongo, page, contentType, callback)=>
     return callback new Error "Unknown content type.", null
 
   pageContent = ""
-  model.count {}, (error, count)=>
+  selector = group : "koding"
+  model.count selector, (error, count)=>
     return callback error, null  if error
-    return callback null, null  if count is 0
-    model.some {}, options, (err, contents)=>
+    return callback null, getEmptyPage contentType  if count is 0
+    model.some selector, options, (err, contents)=>
       return callback err, null  if err
-      return callback null, null  if contents.length is 0
-      queue = [0..contents.length - 1].map (index)=>=>
+      return callback null, getEmptyPage contentType  if count is 0
+      queue = [0...contents.length].map (index)=>=>
         queue.pageContent or= ""
 
         content = contents[index]
@@ -159,7 +159,7 @@ createTagNode = (tag)->
       <a href="#"><span>#{tag.counts?.post ? 0}</span> Posts</a>
       <a href="#"><span>#{tag.counts?.followers ? 0}</span> Followers</a>
     </div>
-    <article>#{tag.body ? ''}</article>
+    <article>#{encoder.XSSEncode(tag.body) ? ''}</article>
   </div>
   """
 
@@ -208,6 +208,8 @@ getDock = ->
       </div>
   </header>
   """
+getEmptyPage = (contentType) ->
+  putContentIntoFullPage "There is no activity yet", "", contentType
 
 putContentIntoFullPage = (content, pagination, contentType)->
   getGraphMeta  = require './graphmeta'
@@ -217,7 +219,7 @@ putContentIntoFullPage = (content, pagination, contentType)->
     <!DOCTYPE html>
     <html lang="en">
     <head>
-      <title>Koding</title>
+      <title>Koding | A New Way For Developers To Work</title>
       #{getGraphMeta()}
     </head>
     <body itemscope itemtype="http://schema.org/WebPage" class="super activity">

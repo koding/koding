@@ -6,88 +6,119 @@ class EnvironmentsMainScene extends JView
 
   viewAppended:->
 
-    # Action Area for Domains
-    @addSubView actionArea = new KDView cssClass : 'action-area'
+    @addSubView new KDView
+      cssClass : 'environment-help'
+      partial  : """
+        <div class="content">
+          <h1>Environments</h1>
+          Welcome to Environments. Here you can setup your servers and development environment.
+        </div>
+      """
 
-    # Domain Creation form in actionArea
-    actionArea.addSubView @domainCreateForm = new DomainCreateForm
+    @addSubView @freePlanView = new KDView
+      cssClass : "top-warning"
+      click    : (event) ->
+        if "usage" in event.target.classList
+          KD.utils.stopDOMEvent event
+          new KDNotificationView title: "Coming soon..."
 
-    # Domain Creation form connections
-    @domainCreateForm.on 'CloseClicked', =>
-      @unsetClass 'in-progress'
-      @scene.unsetClass 'out'
-      @domainCreateForm.unsetClass 'opened'
-      @scene.off "click"
+    @paymentController = KD.getSingleton("paymentController")
+    @paymentController.fetchActiveSubscription tags: "vm", (err, subscription) =>
+      return console.error err  if err
+      if not subscription or "nosync" in subscription.tags
+        @freePlanView.updatePartial """
+          <div class="content">
+            You are on a free developer plan, see your <a class="usage" href="#">usage</a> or <a class="pricing" href="/Pricing">upgrade</a>.
+          </div>
+        """
+
+    @paymentController.on "SubscriptionCompleted", =>
+      @freePlanView.updatePartial ""
+
+    @fetchStacks()
+
+  fetchStacks:->
+
+    {JStack} = KD.remote.api
+
+    JStack.getStacks (err, stacks)=>
+      warn err  if err
+
+      group = KD.getGroup().title
+      if not stacks or stacks.length is 0
+        stacks = [{sid:0, group}]
+
+      stacks.forEach (stack)=>
+
+        title   = stack.meta?.title
+        number  = if stack.sid > 0 then "#{stack.sid}." else "default"
+        title or= "Your #{number} stack on #{group}"
+
+        @addSubView new StackView {}, {title, stack}
+
+class StackView extends KDView
+
+  constructor:(options={}, data)->
+    options.cssClass = 'environment-stack'
+    super options, data
+
+  viewAppended:->
+
+    @addSubView title = new KDView
+      cssClass : 'stack-title'
+      partial  : @getData().title
+
+    @addSubView new KDButtonView
+      title    : 'Details'
+      cssClass : 'stack-toggle solid mini green hidden'
+      callback : =>
+        @setHeight if @getHeight() <= 50 then @getProperHeight() else 48
+        KD.utils.wait 300, @bound 'updateView'
 
     # Main scene for DIA
-    @addSubView @scene = new EnvironmentScene
+    @addSubView @scene = new EnvironmentScene @getData().stack
 
-    if KD.checkFlag 'nostradamus'
-      # Rules Container
-      rulesContainer = new EnvironmentRuleContainer
-      @scene.addContainer rulesContainer
-      # rulesContainer.on "itemRemoved", @domainCreateForm.bound "updateDomains"
+    # Rules Container
+    rulesContainer = new EnvironmentRuleContainer
+    @scene.addContainer rulesContainer
 
     # Domains Container
-    @domainsContainer = new EnvironmentDomainContainer
-    @scene.addContainer @domainsContainer
-    @domainsContainer.on "itemRemoved", @domainCreateForm.bound "updateDomains"
+    domainsContainer = new EnvironmentDomainContainer
+    @scene.addContainer domainsContainer
+    domainsContainer.on 'itemAdded',   @lazyBound('updateView', yes)
 
     # VMs / Machines Container
-    @machinesContainer = new EnvironmentMachineContainer
-    @scene.addContainer @machinesContainer
+    machinesContainer = new EnvironmentMachineContainer
+    @scene.addContainer machinesContainer
+    machinesContainer.on 'VMListChanged', @bound 'loadContainers'
 
-    @_containers = [@machinesContainer, @domainsContainer]
+    # Rules Container
+    extrasContainer = new EnvironmentExtraContainer
+    @scene.addContainer extrasContainer
 
-    if KD.checkFlag 'nostradamus'
-      # Rules Container
-      extrasContainer = new EnvironmentExtraContainer
-      @scene.addContainer extrasContainer
-      @_containers = @_containers.concat [rulesContainer, extrasContainer]
+    @loadContainers()
 
-    for container in @_containers
-      container.on 'DataLoaded', @scene.bound 'updateConnections'
+  loadContainers:->
 
-    @refreshContainers()
+    return  if @_inProgress
+    @_inProgress = yes
 
-    @domainCreateForm.on 'DomainSaved', @domainsContainer.bound 'loadItems'
-    KD.getSingleton("vmController").on 'VMListChanged', \
-                                        @bound 'refreshContainers'
+    promises = (container.loadItems()  for container in @scene.containers)
+    Promise.all(promises).then =>
+      @setHeight @getProperHeight()
+      KD.utils.wait 300, =>
+        @_inProgress = no
+        @updateView yes
 
-    # Plus button on @domainsContainer opens up the action area
-    @domainsContainer.on 'PlusButtonClicked', =>
-      return unless KD.isLoggedIn()
-        new KDNotificationView title: "You need to login to add a new domain."
+  updateView:(updateData = no)->
 
-      return if @machinesContainer.diaCount() is 0
-        new KDNotificationView
-          title: "You need to have at least one VM to manage domains."
+    @scene.updateConnections()  if updateData
 
-      @setClass 'in-progress'
-      @scene.setClass 'out'
-      @domainCreateForm.setClass 'opened'
-      @domainCreateForm.emit 'DomainNameShouldFocus'
-      @utils.defer =>
-        @scene.once 'click', => @domainCreateForm.emit 'CloseClicked'
+    if @getHeight() > 50
+      @setHeight @getProperHeight()
 
-    vmController = KD.getSingleton 'vmController'
+    @scene.highlightLines()
+    @scene.updateScene()
 
-    vmController.on "VMPlansFetchStart", =>
-      @machinesContainer.showLoader()
-
-    vmController.on "VMPlansFetchEnd", =>
-      @machinesContainer.hideLoader()
-
-    # Plus button on @machinesContainer uses the vmController
-    @machinesContainer.on 'PlusButtonClicked', =>
-      return unless KD.isLoggedIn()
-        new KDNotificationView
-          title: "You need to login to create a new machine."
-
-      vmController.createNewVM()
-
-  refreshContainers:->
-    # After Domains and Machines container load finished
-    # Call updateConnections to draw lines between corresponding objects
-    @scene.whenItemsLoadedFor @_containers, =>
-      @scene.updateConnections()
+  getProperHeight:->
+    (Math.max.apply null, (box.diaCount() for box in @scene.containers)) * 45 + 170

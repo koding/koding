@@ -35,7 +35,15 @@ class WebTermAppView extends JView
 
     @messagePane = new KDCustomHTMLView
       cssClass   : 'message-pane'
-      partial    : 'Loading Terminal...'
+      partial    : loadingPartial = 'Loading Terminal...'
+
+    # if we still have the same message after 15 seconds assuming
+    # all checks have failed and showing a warning to make user
+    # try again. - SY
+    messageTimer = KD.utils.wait 15000, =>
+      if @messagePane.$().text() is loadingPartial
+        @setMessage "Couldn't open your terminal. <a class='plus' href='#'>Click here to try again</a>.", no, yes
+    @on 'TerminalStarted', => KD.utils.killWait messageTimer
 
     @tabView.on 'AllTabsClosed', =>
       @setMessage "All tabs are closed. <a class='plus' href='#'>Click to open a new Terminal</a>.", no, yes
@@ -101,53 +109,50 @@ class WebTermAppView extends JView
       unless vmName
         return @setMessage "It seems you don't have a VM to use with Terminal."
 
-      vmController.info vmName, KD.utils.getTimedOutCallback (err, vm, info)=>
-        if err
-          KD.logToExternal "oskite: Error opening Webterm", vmName, err
-          KD.mixpanel "Open Webterm, fail", {vmName}
-
-        if info?.state is 'RUNNING'
-          @restoreTabs vmName
-        else
-          vmController.start vmName, (err, state)=>
-            warn "Failed to turn on vm:", err  if err
-            KD.utils.defer => @addNewTab vmName
-        KD.mixpanel "Open Webterm, success", {vmName}
-
+      WebTermView.setTerminalTimeout vmName, 15000
+      , =>
+        @restoreTabs vmName
+        @messagePane.hide()
+      , =>
+        @messagePane.hide()
       , =>
         KD.mixpanel "Open Webterm, fail", {vmName}
         KD.logToExternalWithTime "oskite: Can't open Webterm", vmName
-        @setMessage "Couldn't connect to your VM, please try again later. <a class='close' href='#'>close this</a>", no, yes
-      , 10000
+        @emit 'TerminalFailed'
+        @emit 'message', """
+          <p>Couldn't connect to your VM.</p>
+          <br>
+          <p>Preparing your VM can take anywhere from
+          5 to 60 seconds, depending on load.</p>
+          <br>
+          <p>Please wait, then <a class='plus' href='#'>try again</a>.</p>
+          """, no, yes
 
   showApprovalModal: (remote, command)->
     modal = new KDModalView
+      cssClass: "terminal-command-warning"
       title   : "Warning!"
       content : """
-      <div class="modalformline">
-        <p>
-          If you <strong>don't trust this app</strong>, or if you clicked on this
-          link <strong>not knowing what it would do</strong> - be careful it <strong>can
-          damage/destroy</strong> your Koding VM.
-        </p>
-      </div>
-      <div class="modalformline">
-        <p>
-          This URL is set to execute the command below:
-        </p>
-      </div>
+      <p>
+        If you <strong>don't trust this app</strong>, or if you clicked on this
+        link <strong>not knowing what it would do</strong> - be careful it <strong>can
+        damage/destroy</strong> your Koding VM.
+      </p>
+      <p>
+        This URL is set to execute the command below:
+      </p>
       <pre>
         #{Encoder.XSSEncode command}
       </pre>
       """
       buttons :
         "Run" :
-          cssClass: "modal-clean-gray"
+          cssClass: "modal-clean-green"
           callback: ->
             remote.input "#{command}\n"
             modal.destroy()
         "Cancel":
-          cssClass: "modal-cancel"
+          cssClass: "modal-clean-red"
           callback: ->
             modal.destroy()
 
@@ -249,6 +254,31 @@ class WebTermAppView extends JView
 
     terminalView.on 'WebTermConnected', @bound 'updateSessions'
 
+    {vmName} = options
+
+    WebTermView.setTerminalTimeout vmName, 15000
+    , =>
+      terminalView.connectToTerminal()
+      @messagePane.hide()
+      @emit 'TerminalStarted'
+    , =>
+      KD.utils.defer =>
+        @addNewTab vmName
+        @messagePane.hide()
+        @emit 'TerminalStarted'
+    , =>
+      KD.mixpanel "Open Webterm, fail", {vmName}
+      KD.logToExternalWithTime "oskite: Can't open Webterm", vmName
+      @emit 'TerminalFailed'
+      @setMessage """
+        <p>Couldn't connect to your VM.</p>
+        <br>
+        <p>Preparing your VM can take anywhere from
+        5 to 60 seconds, depending on load.</p>
+        <br>
+        <p>Please wait, then <a class='plus' href='#'>try again</a>.</p>
+        """, no, yes
+
     @appendTerminalTab terminalView
 
   appendTerminalTab: (terminalView) ->
@@ -310,7 +340,6 @@ class WebTermAppView extends JView
 
     else
       @createNewTab vmName: vmName, mode: 'create'
-
 
   pistachio: ->
     """

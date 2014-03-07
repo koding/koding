@@ -12,12 +12,14 @@ class EnvironmentScene extends KDDiaScene
     EnvironmentDomainItem       : 'domain'
     EnvironmentMachineItem      : 'machine'
 
-  constructor:->
+  constructor: (stack)->
     super
       cssClass  : 'environments-scene'
-      lineWidth : 1
+      lineWidth : 2
+      lineColor : "#4ED393"
 
     @boxes = {}
+    @stack = stack
 
     sc = KD.getSingleton 'appStorageController'
     @appStorage = sc.storage 'EnvironmentsScene', '1.0.1'
@@ -33,73 +35,68 @@ class EnvironmentScene extends KDDiaScene
     return  if Object.keys(items).length < 2
     {domain, machine, rule, extra} = items
 
-    modal = @createApproveModal items, 'delete'
-    modal.once 'Approved', =>
-      if domain and machine
-        jDomain = domain.dia.getData().domain # JDomain
-        vmName  = machine.dia.getData().title # JVM.hostnameAlias
-        jDomain.unbindVM hostnameAlias: vmName, (err)=>
-          modal.destroy()
-          return KD.showError err  if err
-          jDomain.hostnameAlias.splice jDomain.hostnameAlias.indexOf(vmName), 1
-          removeConnection()
-      else if domain and rule
+    if domain and machine
+      jDomain = domain.dia.getData().domain # JDomain
+      vmName  = machine.dia.getData().title # JVM.hostnameAlias
+      jDomain.unbindVM hostnameAlias: vmName, (err)=>
+        return KD.showError err  if err
+        jDomain.hostnameAlias.splice jDomain.hostnameAlias.indexOf(vmName), 1
         removeConnection()
-        modal.destroy()
-      else if machine and extra
-        removeConnection()
-        modal.destroy()
+    else if domain and rule
+      removeConnection()
+    else if machine and extra
+      removeConnection()
 
   connect:(source, target, internal = no)->
 
-    createConnection = => KDDiaScene::connect.call this, source, target
+    createConnection = => KDDiaScene::connect.call this, source, target, !internal
+
     return createConnection()  if internal
 
     if not @allowedToConnect source, target
       return new KDNotificationView
-        title : "It's not allowed connect this two item."
+        title : "It's not allowed connect this two joint."
 
     items = parseItems source, target
     return  if Object.keys(items).length < 2
     {domain, machine, rule, extra} = items
+
+    return  if rule or extra
+      new KDNotificationView
+        title : "Assigning #{if rule then 'rules' else 'resources'} will be available soon."
 
     if domain and machine and not KD.checkFlag 'nostradamus'
       if domain.dia.getData().domain.hostnameAlias.length > 0
         return new KDNotificationView
           title : "A domain name can only be bound to one VM."
 
-    @addFakeConnection {
-      source, target,
-      options : {
-        lineColor  : "#cdcdcd"
-        lineDashes : [5]
-      }
-    }
-
-    modal = @createApproveModal items, 'create'
-    modal.once "KDObjectWillBeDestroyed", @bound 'resetScene'
-    modal.once 'Approved', =>
-      if domain and machine
-        jDomain = domain.dia.getData().domain # JDomain
-        vmName  = machine.dia.getData().title # JVM.hostnameAlias
-        jDomain.bindVM hostnameAlias: vmName, (err)=>
-          modal.destroy()
-          return KD.showError err  if err
-          jDomain.hostnameAlias.push vmName
-          createConnection()
-      else if domain and rule
+    if domain and machine
+      jDomain = domain.dia.getData().domain # JDomain
+      vmName  = machine.dia.getData().title # JVM.hostnameAlias
+      jDomain.bindVM hostnameAlias: vmName, (err)=>
+        return  if KD.showError err
+        jDomain.hostnameAlias.push vmName
         createConnection()
-        modal.destroy()
-      else if machine and extra
-        createConnection()
-        modal.destroy()
+    else if domain and rule
+      createConnection()
+    else if machine and extra
+      createConnection()
 
   updateConnections:->
+
+    @reset no
+
     for _mkey, machine of @boxes.machines.dias
       for _dkey, domain of @boxes.domains.dias
         if domain.getData().aliases and machine.getData().title in domain.getData().aliases
           @connect {dia : domain , joint : 'right'}, \
                    {dia : machine, joint : 'left' }, yes
+
+    {dias} = @boxes.rules
+    rule = dias[Object.keys(dias).first]
+    for _dkey, domain of @boxes.domains.dias
+      @connect {dia : rule,   joint : 'right'}, \
+               {dia : domain, joint : 'left' }, yes
 
   createApproveModal:(items, action)->
     return unless KD.isLoggedIn()
@@ -107,18 +104,8 @@ class EnvironmentScene extends KDDiaScene
         title : "You need to login to change domain settings."
     return new EnvironmentApprovalModal {action}, items
 
-  whenItemsLoadedFor:do->
-    # poor man's when/promise implementation ~ GG
-    (containers, callback)->
-      counter = containers.length
-      containers.forEach (container)->
-        container.once "DataLoaded", ->
-          if counter is 1 then do callback
-          counter--
-        container.loadItems()
-
   addContainer:(container, pos)->
-    pos ?= x: 10 + @containers.length * 260, y: 0
+    pos ?= x: 10 + @containers.length * 230, y: 0
     super container, pos
 
     {name} = container.constructor
@@ -135,8 +122,8 @@ class EnvironmentScene extends KDDiaScene
   type = (item)->
     itemMap[item.dia.constructor.name] or null
 
-  viewAppended:->
-    super
+  # viewAppended:->
+  #   super
 
     # @addSubView @slider = new KDSliderBarView
     #   cssClass   : 'zoom-slider'

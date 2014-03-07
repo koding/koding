@@ -53,6 +53,7 @@ fs         = require 'fs'
 hat        = require 'hat'
 nodePath   = require 'path'
 http       = require "https"
+helmet     = require 'helmet'
 {JSession} = koding.models
 app        = express()
 
@@ -81,6 +82,7 @@ app        = express()
 
 app.configure ->
   app.set 'case sensitive routing', on
+  helmet.defaults app
   app.use express.cookieParser()
   app.use express.session {"secret":"foo"}
   app.use express.bodyParser()
@@ -112,7 +114,8 @@ app.use (req, res, next) ->
   # it it is not in db, creates a new one and returns it
   JSession.fetchSession clientId, (err, session)->
     return next() if err or not session
-    res.cookie "clientId", session.clientId, {}
+    { maxAge, secure } = KONFIG.sessionCookie
+    res.cookie "clientId", session.clientId, { maxAge, secure }
     next()
 
 app.use (req, res, next) ->
@@ -122,7 +125,7 @@ app.use (req, res, next) ->
   {JSession} = koding.models
   {clientId} = req.cookies
   clientIPAddress = req.headers['x-forwarded-for'] || req.connection.remoteAddress
-  res.cookie "clientIPAddress", clientIPAddress, { maxAge: 900000, httpOnly: false }
+  res.cookie "clientIPAddress", clientIPAddress, { maxAge: 900000, httpOnly: no }
   JSession.updateClientIP clientId, clientIPAddress, (err)->
     if err then console.log err
     next()
@@ -164,12 +167,23 @@ app.get "/-/auth/register/:hostname/:key", (req, res)->
         res.send 200, authTemplate data
 
 
-app.all "/Logout", (req, res)->
+app.all "/:name?/Logout", (req, res)->
   res.clearCookie 'clientId'  if req.method is 'POST'
-  res.redirect 302, '/'
+  res.redirect 301, '/'
 
 app.get "/humans.txt", (req, res)->
   generateHumanstxt(req, res)
+
+app.get "/members/:username?*", (req, res)->
+  username = req.params.username
+  res.redirect 301, '/' + username
+
+app.get "/w/members/:username?*", (req, res)->
+  username = req.params.username
+  res.redirect 301, '/' + username
+
+app.get "/activity/p/?*", (req, res)->
+  res.redirect 301, '/Activity'
 
 app.get "/sitemap:sitemapName", (req, res)->
   {JSitemap}       = koding.models
@@ -261,15 +275,19 @@ app.all '/:name/:section?*', (req, res, next)->
 
   {JName, JGroup} = koding.models
   {name, section} = req.params
-  path = if section then "#{name}/#{section}" else name
+  isCustomPreview = req.cookies["custom-partials-preview-mode"]
+  path            = if section then "#{name}/#{section}" else name
 
-  return res.redirect 302, req.url.substring 7  if name in ['koding', 'guests']
+  return res.redirect 301, req.url.substring 7  if name in ['koding', 'guests']
 
   # Checks if its an internal request like /Activity, /Terminal ...
   #
   bongoModels = koding.models
 
   if isInAppRoute name
+
+    if name is 'Develop'
+      return res.redirect 301, '/Terminal'
 
     if name in ['Activity', 'Topics']
 
@@ -295,11 +313,13 @@ app.all '/:name/:section?*', (req, res, next)->
 
           JName.fetchModels path, (err, models)->
             if err
-              options = {account, name, section, client, bongoModels}
+              options = { account, name, section, client,
+                          bongoModels, isCustomPreview }
               JGroup.render[prefix].subPage options, serveSub
             else if not models? then next()
             else
-              options = {account, name, section, models, client, bongoModels}
+              options = { account, name, section, models,
+                          client, bongoModels, isCustomPreview }
               JGroup.render[prefix].subPage options, serveSub
 
   # Checks if its a User or Group from JName collection
@@ -314,10 +334,12 @@ app.all '/:name/:section?*', (req, res, next)->
           if models.last.bongo_?.constructorName isnt "JGroup" and not loggedIn
             return Crawler.crawl koding, req, res, name
 
-          models.last.fetchHomepageView {section, account, bongoModels}, (err, view)->
-            if err then next err
-            else if view? then res.send view
-            else res.send 404, error_404()
+          generateFakeClient req, res, (err, client)->
+            homePageOptions = {section, account, bongoModels, isCustomPreview, client}
+            models.last.fetchHomepageView homePageOptions, (err, view)->
+              if err then next err
+              else if view? then res.send view
+              else res.send 404, error_404()
         else next()
 
 # Main Handler for Koding.com
@@ -354,7 +376,7 @@ app.get '*', (req,res)->
     else "/#!#{urlOnly}#{query}"
 
   res.header 'Location', redirectTo
-  res.send 302
+  res.send 301
 
 app.listen webPort
 console.log '[WEBSERVER] running', "http://localhost:#{webPort} pid:#{process.pid}"

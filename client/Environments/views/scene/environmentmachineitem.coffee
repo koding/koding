@@ -3,8 +3,8 @@ class EnvironmentMachineItem extends EnvironmentItem
   constructor:(options={}, data)->
 
     options.cssClass           = 'machine'
-    options.joints             = ['left']
-    if KD.checkFlag 'nostradamus' then options.joints.push 'right'
+    options.joints             = ['left', 'right']
+    options.staticJoints       = ['right']
 
     options.allowedConnections =
       EnvironmentDomainItem : ['right']
@@ -12,18 +12,20 @@ class EnvironmentMachineItem extends EnvironmentItem
 
     super options, data
 
-    @ramUsage  = new VMRamUsageBar  null, data.title
-    @diskUsage = new VMDiskUsageBar null, data.title
+    # @ramUsage  = new VMRamUsageBar  null, data.title
+    # @diskUsage = new VMDiskUsageBar null, data.title
 
   contextMenuItems : ->
     colorSelection = new ColorSelection selectedColor : @getOption 'colorTag'
     colorSelection.on "ColorChanged", @bound 'setColorTag'
 
     vmName = @getData().title
-    vmStateSwitch = new NVMToggleButtonView {}, {vmName}
+    vmStateSwitch    = new NVMToggleButtonView        null, {vmName}
+    vmAlwaysOnSwitch = new VMAlwaysOnToggleButtonView null, {vmName}
     # vmMountSwitch = new NMountToggleButtonView {}, {vmName}
     items =
       customView1        : vmStateSwitch
+      customView4        : vmAlwaysOnSwitch
       # customView2        : vmMountSwitch
       'Re-initialize VM' :
         disabled         : KD.isGuest()
@@ -31,8 +33,8 @@ class EnvironmentMachineItem extends EnvironmentItem
           KD.getSingleton("vmController").reinitialize vmName
           @destroy()
       'Open VM Terminal' :
-        callback         : ->
-          KD.getSingleton("appManager").open "Terminal", params: {vmName}, forceNew: yes
+        callback         : =>
+          @openTerminal()
           @destroy()
         separator        : yes
       'Delete'           :
@@ -46,15 +48,35 @@ class EnvironmentMachineItem extends EnvironmentItem
 
     return items
 
+  openTerminal:->
+    vmName = @getData().title
+    KD.getSingleton("router").handleRoute "/Terminal", replaceState: yes
+    KD.getSingleton("appManager").open "Terminal", params: {vmName}, forceNew: yes
+
   confirmDestroy:->
     (KD.getSingleton 'vmController').remove @getData().title, @bound "destroy"
 
+  click:(event)->
+
+    target = $(event.target)
+    if target.is ".terminal"
+      @openTerminal()
+      return no
+
+    super
+
+
   pistachio:->
+    {title} = @getData()
+    vm = (title.split '.').first
     """
       <div class='details'>
-        {h3{#(title)}}
-        {{> @ramUsage}}
-        {{> @diskUsage}}
+        <span class='toggle'></span>
+        <h3>#{vm}</h3>
+        <a href="http://#{title}" target="_blank" title="#{title}">
+          <span class='url'></span>
+        </a>
+        <span class='terminal'></span>
         <span class='chevron'></span>
       </div>
     """

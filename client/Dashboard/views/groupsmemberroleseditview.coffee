@@ -24,6 +24,8 @@ class GroupsMemberRolesEditView extends JView
 
   setGroup:(@group)->
 
+  setStatus:(@status)->
+
   getSelectedRoles:->
     @checkboxGroup.getValue()
 
@@ -60,7 +62,7 @@ class GroupsMemberRolesEditView extends JView
 
     @addSubView (new KDButtonView
       title    : 'Save'
-      cssClass : 'solid green'
+      style    : 'solid small green'
       callback : =>
         @getDelegate().emit 'RolesChanged', @getDelegate().getData(), @getSelectedRoles()
         @getDelegate().hideEditMemberRolesView()
@@ -69,15 +71,28 @@ class GroupsMemberRolesEditView extends JView
 
     @addSubView (new KDButtonView
       title    : "Kick"
-      cssClass : 'solid red'
+      style    : 'solid small red'
       callback : => @showKickModal()
     ), '.buttons'
 
     if 'owner' in @roles.editorsRoles
       @addSubView (new KDButtonView
         title    : "Make Owner"
-        cssClass : 'solid'
+        style    : 'solid small'
         callback : => @showTransferOwnershipModal()
+      ), '.buttons'
+
+    if @group.slug is "koding" and @status is "unconfirmed"
+      @addSubView (confirmButton = new KDButtonView
+        title    : "Confirm"
+        style    : 'solid small'
+        callback : =>
+          KD.remote.api.JAccount.verifyEmailByUsername @member.profile.nickname, (err) =>
+            return KD.showError err  if err
+            new KDNotificationView title: 'User confirmed'
+            @status = "confirmed"
+            @emit 'UserConfirmed', @member
+            confirmButton.destroy()
       ), '.buttons'
 
     @$('.buttons').removeClass 'hidden'
@@ -90,6 +105,7 @@ class GroupsMemberRolesEditView extends JView
         @group.transferOwnership @member.getId(), (err)=>
           return @showErrorMessage err if err
           new KDNotificationView title:'Ownership transferred!'
+          @getDelegate().emit 'OwnershipChanged'
           modal.destroy()
     , @group
 
@@ -103,8 +119,7 @@ class GroupsMemberRolesEditView extends JView
         Kick         :
           style      : "modal-clean-red"
           loader     :
-            color    : "#ffffff"
-            diameter : 16
+            color    : "#444444"
           callback   : =>
             @group.kickMember @member.getId(), (err)=>
               return @showErrorMessage err if err

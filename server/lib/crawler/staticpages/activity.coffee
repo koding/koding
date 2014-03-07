@@ -1,6 +1,7 @@
 # account and models will be removed.
-{argv} = require 'optimist'
-{uri, client} = require('koding-config-manager').load("main.#{argv.c}")
+{argv}              = require 'optimist'
+{uri, client}       = require('koding-config-manager').load("main.#{argv.c}")
+{getAvatarImageUrl} = require '../helpers'
 
 getDock = ->
   """
@@ -100,8 +101,8 @@ createCommentNode = (comment)->
 createAccountName = (fullName)->
   return "#{fullName}"
 
-createAvatarImage = (hash)->
-  imgURL = "https://gravatar.com/avatar/#{hash}?size=90&amp;d=https%3A%2F%2Fapi.koding.com%2Fimages%2Fdefaultavatar%2Fdefault.avatar.90.png"
+createAvatarImage = (hash, avatar)=>
+  imgURL = getAvatarImageUrl hash, avatar
   """
   <img width="70" height="70" src="#{imgURL}" style="opacity: 1;" itemprop="image" />
   """
@@ -132,13 +133,11 @@ createUserInteractionMeta = (numberOfLikes, numberOfComments)->
   return userInteractionMeta
 
 getSingleActivityContent = (activityContent, model)->
-
   slugWithDomain = "#{uri.address}/Activity/#{activityContent.slug}"
-
   body          = activityContent.body
   nickname      = activityContent.nickname
   accountName   = createAccountName activityContent.fullName
-  avatarImage   = createAvatarImage activityContent.hash
+  avatarImage   = createAvatarImage activityContent.hash, activityContent.avatar
   createdAt     = createCreationDate activityContent.createdAt, slugWithDomain
   commentsCount = createCommentsCount activityContent.numberOfComments
   likesCount    = createLikesCount activityContent.numberOfLikes
@@ -150,7 +149,7 @@ getSingleActivityContent = (activityContent, model)->
   commentsList = ""
   if activityContent?.comments
     for comment in activityContent.comments
-      avatarUrl = "https://gravatar.com/avatar/#{comment.authorHash}?size=90&amp;d=https%3A%2F%2Fapi.koding.com%2Fimages%2Fdefaultavatar%2Fdefault.avatar.40.png"
+      avatarUrl = getAvatarImageUrl comment.authorHash, false
       commentsList +=
         """
           <div class="kdview kdlistitemview kdlistitemview-comment">
@@ -215,14 +214,14 @@ getSingleActivityContent = (activityContent, model)->
           <footer>
               #{userInteractionMeta}
               <div class="kdview comment-header activity-actions">
-                  <span class="kdview logged-in action-container"><a class="action-link" href="/Login">Like</a>
-                      <a class="count" href="/Login">
+                  <span class="kdview logged-in action-container"><a class="action-link" href="/Login?warning=1&type=like">Like</a>
+                      <a class="count" href="/Login?warning=1&type=like">
                           <span data-paths="meta.likes">#{likesCount}</span>
                       </a>
                   </span>
                   <span class="logged-in action-container">
-                      <a class="action-link" href="/Login">Comment</a>
-                      <a class="count" href="/Login">
+                      <a class="action-link" href="/Login?warning=1&type=comment">Comment</a>
+                      <a class="count" href="/Login?warning=1&type=comment">
                           <span data-paths="repliesCount" >#{commentsCount}</span>
                       </a>
                   </span>

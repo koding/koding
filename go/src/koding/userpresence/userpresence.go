@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"flag"
+	"fmt"
 	"koding/db/mongodb"
 	"koding/tools/amqputil"
 	"koding/tools/config"
@@ -244,12 +245,20 @@ func broadcastStatusChange(
 		return err
 	}
 
+	updateArr := make([]string, 1)
+	updateArr[0] = fmt.Sprintf("%s", string(message))
+
+	msg, err := json.Marshal(updateArr)
+	if err != nil {
+		return err
+	}
+
 	channel.Publish(
 		"updateInstances", // exchange name
 		routingKey,        // routing key
 		false,             // mandatory
 		false,             // immediate
-		amqp.Publishing{Body: message}, // message
+		amqp.Publishing{Body: msg}, // message
 	)
 	return nil
 }

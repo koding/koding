@@ -1,11 +1,14 @@
 class CommonDomainCreateForm extends KDFormViewWithFields
+
   constructor:(options = {}, data)->
-    super
-      cssClass              : KD.utils.curry "new-domain-form",options.cssClass
+
+    o =
+      cssClass              : KD.utils.curry "new-domain-form", options.cssClass
       fields                :
         domainName          :
           name              : "domainInput"
           cssClass          : "domain-input"
+          label             : options.label        ? "Subdomain"
           placeholder       : options.placeholder or "Type your domain"
           validate          :
             rules           : required : yes
@@ -15,23 +18,19 @@ class CommonDomainCreateForm extends KDFormViewWithFields
               itemClass     : KDSelectBox
               cssClass      : "main-domain-select"
               selectOptions : options.selectOptions
-      buttons               :
-        createButton        :
-          name              : "createButton"
-          title             : options.buttonTitle or "Check availability"
-          style             : "cupid-green"
-          cssClass          : "add-domain"
-          type              : "submit"
-          loader            : {color : "#ffffff", diameter : 10}
-      , data
+
+
+    delete o.fields.domainName.nextElement  if options.noDomainSelector
+
+    super o, data
 
     @addSubView @message = new KDCustomHTMLView
-      cssClass : 'status-message'
+      cssClass : 'status-message hidden'
 
-  submit:->
-    @buttons.createButton.hideLoader()
-    @off  "FormValidationPassed"
-    @once "FormValidationPassed", =>
-      @emit 'registerDomain'
-      @buttons.createButton.showLoader()
-    super
+  # submit:->
+  #   @buttons?.createButton.hideLoader()
+  #   @off  "FormValidationPassed"
+  #   @once "FormValidationPassed", =>
+  #     @emit 'registerDomain'
+  #     @buttons?.createButton.showLoader()
+  #   super

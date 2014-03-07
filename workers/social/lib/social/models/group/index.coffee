@@ -11,9 +11,13 @@ module.exports = class JGroup extends Module
 
   JPermissionSet = require './permissionset'
   {permit}       = JPermissionSet
+
+  JAccount     = require '../account'
+  JPaymentPack = require '../payment/pack'
+
   KodingError    = require '../../error'
   Validators     = require './validators'
-  {throttle}     = require 'underscore'
+  {throttle, extend}     = require 'underscore'
 
   PERMISSION_EDIT_GROUPS = [
     {permission: 'edit groups'}
@@ -40,8 +44,11 @@ module.exports = class JGroup extends Module
       'grant permissions'                 : []
       'open group'                        : ['member','moderator']
       'list members'                      :
-        public                            : ['moderator']
-        private                           : ['moderator']
+        public                            : ['moderator', 'member']
+        private                           : ['moderator', 'member']
+      'read group activity'               :
+        public                            : ['guest','member','moderator']
+        private                           : ['member','moderator']
       'create groups'                     : ['moderator']
       'edit groups'                       : ['moderator']
       'edit own groups'                   : ['member','moderator']
@@ -128,6 +135,9 @@ module.exports = class JGroup extends Module
           (signature Object, Function)
           (signature Object, Object, Function)
         ]
+        searchMembers: [
+          (signature String, Object, Function)
+        ]
         fetchRoles: [
           (signature Function)
           (signature Object, Function)
@@ -211,6 +221,18 @@ module.exports = class JGroup extends Module
           (signature String, Function)
         unlinkPaymentMethod:
           (signature String, Function)
+        addSubscription:
+          (signature String, Function)
+        fetchSubscription:
+          (signature Function)
+        getPermissionSet:
+          (signature Function)
+        fetchUserStatus:
+          (signature Object, Function)
+        fetchInvitationsByStatus:
+          (signature Object, Function)
+        checkUserUsage:
+          (signature Function)
     schema          :
       title         :
         type        : String
@@ -233,26 +255,12 @@ module.exports = class JGroup extends Module
           'visible'
           'hidden'
         ]]
-      parent        : ObjectRef
+      # parent        : ObjectRef
       counts        :
         members     : Number
       customize     :
-        background  :
-          customImages    : [String]
-          customColors    : [String]
-          customType      :
-            type          : String
-            default       : 'defaultImage'
-            enum          : ['Invalid type', [
-              'defaultImage'
-              'customImage'
-              'defaultColor'
-              'customColor'
-            ]]
-          customValue     :
-            type          : String
-            default       : '1'
-          customOptions   : Object
+        coverPhoto  : String
+        logo        : String
       payment       :
         plan        : String
         paymentQuota: Number
@@ -314,6 +322,9 @@ module.exports = class JGroup extends Module
       plan          :
         targetType  : 'JPaymentPlan'
         as          : 'group plan'
+      subscription  :
+        targetType  : 'JPaymentSubscription'
+        as          : 'payment plan subscription'
 
   constructor:->
     super
@@ -409,12 +420,12 @@ module.exports = class JGroup extends Module
           console.log "#{label} is saved"
           queue.next()
 
-    create = (groupData, owner, callback) ->
+    create = (client, groupData, owner, callback) ->
       JPermissionSet        = require './permissionset'
       JMembershipPolicy     = require './membershippolicy'
       JName                 = require '../name'
       group                 = new this groupData
-      permissionSet         = new JPermissionSet {}, {privacy: group.privacy}
+      group.privacy         = 'private'
       defaultPermissionSet  = new JPermissionSet {}, {privacy: group.privacy}
 
       queue = [
@@ -447,14 +458,8 @@ module.exports = class JGroup extends Module
             else
               console.log 'owner is added'
               queue.next()
-        -> save_ 'permission set', permissionSet, queue, callback
         -> save_ 'default permission set', defaultPermissionSet, queue,
                   callback
-        -> group.addPermissionSet permissionSet, (err)->
-            if err then callback err
-            else
-              console.log 'permissionSet is added'
-              queue.next()
         -> group.addDefaultPermissionSet defaultPermissionSet, (err)->
             if err then callback err
             else
@@ -477,19 +482,26 @@ module.exports = class JGroup extends Module
       daisy queue
 
   @create$ = secure (client, formData, callback)->
-    JAccount = require '../account'
     {delegate} = client.connection
 
-    @one {slug:"koding"}, (err, kodingGroup)=>
-      delegate.checkPermission kodingGroup, 'create groups', (err, hasPermission)=>
-        unless hasPermission
-          return callback new KodingError 'Access denied'
+    subOptions = targetOptions: selector: tags: "custom-plan"
+    delegate.fetchSubscription null, subOptions, (err, subscription) =>
+      return callback err  if err
+      return callback new KodingError "Subscription is not found"  unless subscription
+      subscription.debitPack tag: "group", (err) =>
+        return callback err  if err
+        @create client, formData, delegate, (err, group) ->
+          return callback err if err
+          group.addSubscription subscription, (err) ->
+            return callback err  if err
+            callback null, group, subscription
 
-        @create formData, delegate, callback
-
-    #unless delegate instanceof JAccount
-    #  return callback new KodingError 'Access denied'
-
+  creditUserPack: (delegate, callback) ->
+    subOptions = targetOptions: selector: tags: "custom-plan"
+    delegate.fetchSubscription null, subOptions, (err, subscription) =>
+      return callback err  if err
+      return callback new KodingError "Subscription is not found"  unless subscription
+      subscription.creditPack tag: "user", callback
 
   @findSuggestions = (client, seed, options, callback)->
     {limit, blacklist, skip}  = options
@@ -591,13 +603,17 @@ module.exports = class JGroup extends Module
   updatePermissions: permit 'grant permissions',
     success:(client, permissions, callback=->)->
       @fetchPermissionSet (err, permissionSet)=>
-        if err
-          callback err
-        else if permissionSet?
+        return callback err if err
+        if permissionSet
           permissionSet.update $set:{permissions}, callback
         else
-          permissionSet = new JPermissionSet {permissions}
-          permissionSet.save callback
+          permissionSet = new JPermissionSet {permissions, isCustom: true}
+          permissionSet.save (err) =>
+            return callback err if err
+            @addPermissionSet permissionSet, (err)->
+              return callback err if err
+              console.log 'permissionSet is added'
+              callback null
 
   fetchPermissions:do->
     fixDefaultPermissions_ =(model, permissionSet, callback)->
@@ -632,6 +648,7 @@ module.exports = class JGroup extends Module
               else if model?
                 console.log 'already had defaults'
                 defaultPermissionSet = model
+                permissionSet = model unless permissionSet
                 queue.next()
               else
                 console.log 'needed defaults fixed'
@@ -679,17 +696,60 @@ module.exports = class JGroup extends Module
               if err then callback err
               else callback null, arr
 
+  fetchUserStatus: permit 'grant permissions',
+    success:(client, nicknames, callback)->
+      JUser    = require '../user'
+      JUser.someData username: $in: nicknames, {status:1, username:1}, (err, cursor) ->
+        return callback err  if err
+        cursor.toArray callback
+
   fetchMembers$: permit 'list members',
     success:(client, rest...)->
-      [selector, options, callback] = Module.limitEdges 100, rest
+      # when max limit is over 20 it starts giving "call stack exceeded" error
+      [selector, options, callback] = Module.limitEdges 10, 19, rest
       # delete options.targetOptions
       options.client = client
-      @fetchMembers selector, options, ->
-        callback arguments...
+      @fetchMembers selector, options, callback
 
+  # this method contains copy/pasted code from jAccount.findSuggestions method.
+  # It is a workaround, and will be changed after elasticsearch implementation. CtF
+  searchMembers: permit 'list members',
+    success: (client, seed, options = {}, callback) ->
+      cleanSeed = seed.replace(/[^\w\s-]/).trim()
+      seed = RegExp cleanSeed, "i"
+
+      names = seed.toString().split('/')[1].replace('^','').split ' '
+      names.push names.first  if names.length is 1
+
+      selector =  
+        $or : [
+            ( 'profile.nickname'  : seed )
+            ( 'profile.firstName' : new RegExp '^'+names.slice(0, -1).join(' '), 'i' )
+            ( 'profile.lastName'  : new RegExp '^'+names.last, 'i' )
+          ]
+        type    :
+          $in   : ['registered', null] 
+          # CtF null does not effect the results here, it only searches for registered ones.
+          # probably jraphical problem, because the query correctly works in mongo
+
+      {limit, skip} = options
+      options.sort  = 'meta.createdAt' : -1 
+      options.limit = Math.min limit ? 10, 15
+      # CtF @fetchMembers first fetches all group-member relationships, and then filters accounts with found targetIds.
+      # As a result searching groups with large number of members is very time consuming. For now the only group
+      # with large member count is koding, so i have seperated it here. as a future work hopefully we will make
+      # the search queries via elasticsearch. 
+      if @slug is "koding"
+        JAccount = require '../account'
+        JAccount.some selector, options, callback
+      else      
+        options.targetOptions = {options, selector}
+
+        @fetchMembers {}, options, callback
+      
   fetchNewestMembers$: permit 'list members',
     success:(client, rest...)->
-      [selector, options, callback] = Module.limitEdges 100, rest
+      [selector, options, callback] = Module.limitEdges 10, 19, rest
       selector            or= {}
       selector.as         = 'member'
       selector.sourceName = 'JGroup'
@@ -712,32 +772,32 @@ module.exports = class JGroup extends Module
           , {}, (err,memberAccounts)=>
             callback err,memberAccounts
 
-  # fetchMyFollowees: permit 'list members'
-  #   success:(client, options, callback)->
-  #     [callback, options] = [options, callback]  unless callback
-  #     options ?=
+  fetchHomepageView: (options, callback)->
+    {account, section} = options
+    kallback = =>
+      @fetchMembershipPolicy (err, policy)=>
+        if err then callback err
+        else
+          homePageOptions = extend options, {
+            @slug
+            @title
+            policy
+            @avatar
+            @body
+            @counts
+            @customize
+          }
+          prefix = if account?.type is 'unregistered' then 'loggedOut' else 'loggedIn'
+          JGroup.render[prefix].groupHome homePageOptions, callback
 
+    if @visibility is 'hidden' and section isnt 'Invitation'
+      @isMember account, (err, isMember)->
+        return callback err if err
+        if isMember then kallback()
+        else do callback
+    else
+      kallback()
 
-  # fetchMyFollowees: permit 'list members'
-  #   success:(client, options, callback)->
-
-  fetchHomepageView: ({section, account, bongoModels}, callback)->
-    @fetchMembershipPolicy (err, policy)=>
-      if err then callback err
-      else
-        options = {
-          account
-          @slug
-          @title
-          policy
-          @avatar
-          @body
-          @counts
-          @customize
-          bongoModels
-        }
-        prefix = if account.type is 'unregistered' then 'loggedOut' else 'loggedIn'
-        JGroup.render[prefix].groupHome options, callback
 
   fetchRolesByClientId:(clientId, callback)->
     [callback, clientId] = [clientId, callback]  unless callback
@@ -839,7 +899,9 @@ module.exports = class JGroup extends Module
 
   canEditGroup: permit 'grant permissions'
 
-  canReadActivity: permit 'read activity'
+  @canReadGroupActivity = permit 'read group activity'
+  canReadGroupActivity  : permit 'read group activity'
+  @canListMembers       = permit 'list members'
 
   canOpenGroup: permit 'open group',
     failure:(client, callback)->
@@ -869,7 +931,7 @@ module.exports = class JGroup extends Module
             else if request? then request.approve client
             else callback null
 
-  fetchAccountByEmail: (email, callback)=>
+  fetchAccountByEmail: (email, callback) ->
     JUser    = require '../user'
     JUser.one {email}, (err, user)=>
       return callback err, null  if err or not user
@@ -927,6 +989,7 @@ module.exports = class JGroup extends Module
               kallback null
 
   isMember: (account, callback)->
+    return callback new Error "No account found!"  unless account
     selector =
       sourceId  : @getId()
       targetId  : account.getId()
@@ -943,9 +1006,15 @@ module.exports = class JGroup extends Module
       @fetchInvitations {}, selector, (err, [invite])=>
         return callback err  if err
         return callback new KodingError 'Invitation code is invalid!'  unless invite
-        @approveMember delegate, (err)->
+        delegate.fetchUser (err, user)=>
           return callback err  if err
-          invite.redeem client, callback
+          unless invite.type is 'multiuse' or user.email is invite.email
+            return callback new KodingError 'Are you sure invitation e-mail is for you?'
+          @debitPack tag: "user", (err) =>
+            return callback err  if err
+            invite.redeem delegate, (err) =>
+              return callback err if err
+              @approveMember delegate, callback
 
   bulkApprove: permit 'send invitations',
     success: (client, count, options, callback)->
@@ -1016,13 +1085,19 @@ module.exports = class JGroup extends Module
   approveMember:(member, roles, callback)->
     [callback, roles] = [roles, callback]  unless callback
     roles ?= ['member']
+
+    kallback = =>
+      callback()
+      @updateCounts()
+      @emit 'MemberAdded', member  if 'member' in roles
+
     queue = roles.map (role)=>=>
       @addMember member, role, queue.fin.bind queue
 
     dash queue, =>
-      callback()
-      @updateCounts()
-      @emit 'MemberAdded', member  if 'member' in roles
+      if @slug not in ["koding", "guests"]
+      then @createMemberVm member, kallback
+      else kallback()
 
   each:(selector, rest...)->
     selector.visibility = 'visible'
@@ -1104,6 +1179,7 @@ module.exports = class JGroup extends Module
 
   kickMember: permit 'grant permissions',
     success: (client, accountId, callback)->
+      {connection:{delegate}} = client
       JAccount = require '../account'
 
       if @slug is 'koding'
@@ -1121,17 +1197,39 @@ module.exports = class JGroup extends Module
           if 'owner' in roles
             return callback new KodingError 'You cannot kick the owner of the group!'
 
-          kallback = (err)=>
-            @updateCounts()
-            @cycleChannel()
-            callback err
+          kallback = (err) =>
 
           queue = roles.map (role)=>=>
-            @removeMember account, role, (err)->
-              return kallback err if err
+            @removeMember account, role, (err)=>
+              return callback err  if err
+              @updateCounts()
+              @cycleChannel()
               queue.fin()
 
-          dash queue, kallback
+          queue.push =>
+            @creditUserPack delegate, (err) =>
+              console.warn "Failed to credit group with user pack", err  if err
+              queue.fin()
+
+          queue.push =>
+            JVM = require "../vm"
+            selector = groups: $elemMatch: id: @getId()
+            JVM.fetchAccountVmsBySelector account, selector, (err, hostnameAliases) =>
+              return callback err  if err
+              JVM.some hostnameAlias: $in: hostnameAliases, null, (err, vms) =>
+                return callback err  if err
+                vmSuspendQueue = vms.map (vm) ->
+                  ->
+                    vm.suspend (err) ->
+                      console.warn "VM couldn't be suspended #{vm.hostnameAlias}", err  if err
+                      vmSuspendQueue.fin()
+
+                dash vmSuspendQueue, =>
+                  @creditPack tag: "vm", multiplyFactor: vms.length, (err) ->
+                    console.warn "VM pack couldn't be credited for group #{@slug}", err  if err
+                    queue.fin()
+
+          dash queue, callback
 
   transferOwnership: permit 'grant permissions',
     success: (client, accountId, callback)->
@@ -1221,6 +1319,7 @@ module.exports = class JGroup extends Module
   remove_ = @::remove
   remove: secure (client, callback)->
     JName = require '../name'
+    JNewStatusUpdate = require '../messages/newstatusupdate'
 
     @fetchOwner (err, owner)=>
       return callback err if err
@@ -1263,10 +1362,6 @@ module.exports = class JGroup extends Module
           JInvitation = require '../invitation'
           removeHelperMany JInvitation, requests, err, callback, queue
 
-        => @fetchVocabularies (err, vocabularies)->
-          JVocabulary = require '../vocabulary'
-          removeHelperMany JVocabulary, vocabularies, err, callback, queue
-
         => @fetchTags (err, tags)->
           JTag = require '../tag'
           removeHelperMany JTag, tags, err, callback, queue
@@ -1275,14 +1370,20 @@ module.exports = class JGroup extends Module
           JNewApp = require '../app'
           removeHelperMany JNewApp, apps, err, callback, queue
 
-        # needs to be tested once subgroups are supported
-        # => @fetchSubgroups (err, groups)=>
-        #   return callback err if err
-        #   return queue.next() unless groups
-        #   ids = (model._id for model in groups)
-        #   JGroup.remove client, (_id: $in: ids), (err)->
-        #     return callback err if err
-        #     queue.next()
+        => JNewStatusUpdate.count group:@slug, (err, count)=>
+          numberOfNamePages = Math.ceil(count / 50)
+
+          deleteQueue = [1..numberOfNamePages].map (pageNumber)=>=>
+            skip = (pageNumber - 1) * 50
+            option = {
+              limit : 50,
+              skip  : skip
+            }
+            JNewStatusUpdate.some group:@slug, option, (err, statusUpdates)=>
+              removeHelperMany JNewStatusUpdate, statusUpdates, err, callback, deleteQueue
+
+          deleteQueue.push => queue.next()
+          daisy deleteQueue
 
         =>
           @constructor.emit 'GroupDestroyed', this
@@ -1364,6 +1465,24 @@ module.exports = class JGroup extends Module
       {Invitation} = require "../graph"
       Invitation["fetchOrCount#{type}s"] method, options, callback
 
+  fetchInvitationsByStatus: permit 'send invitations',
+    success: (client, options, callback)->
+      JInvitation = require '../invitation'
+      if options.type is "InvitationCode"
+        type   = "multiuse"
+        status = if options.showResolved then ["active" , "redeemed"] else ['active']
+      else
+        type   = "admin"
+        status = if options.showResolved then ["sent", "redeemed"] else ["sent"]
+
+      JInvitation.some
+        group  : @slug
+        type   : type
+        status :
+          $in  : status
+        , options
+        , callback
+
   fetchInvitationsFromGraph: permit 'send invitations',
     success: (client, type, options, callback)->
       @fetchOrCountInvitations client, type, 'fetch', options, (err, results)=>
@@ -1443,3 +1562,58 @@ module.exports = class JGroup extends Module
         @fetchPacks {}, options, callback
       when 'plan'
         @fetchPlans {}, options, callback
+
+  addSubscription$: permit 'edit own groups',
+    success: (client, id, callback) ->
+      JPaymentSubscription = require '../payment/subscription'
+      JPaymentSubscription.one _id: id, (err, subscription) =>
+        @addSubscription subscription, callback
+
+  fetchSubscription$: secure (client, callback) ->
+    @fetchSubscription (err, subscription) ->
+      return callback err  if err
+      {planCode} = subscription
+      JPaymentPlan = require '../payment/plan'
+      JPaymentPlan.one {planCode}, (err, plan) ->
+        return callback err  if err
+        subscription.plan = plan
+        callback null, subscription
+
+  getPermissionSet : (callback)->
+    @fetchPermissionSet (err, permissionSet) =>
+      callback err, null if err
+      if permissionSet
+        callback null, permissionSet
+      else
+        @fetchDefaultPermissionSet callback
+
+  _fetchSubscription: (callback) ->
+    @fetchSubscription (err, subscription) =>
+      return callback new KodingError "Error when fetching group's subscription: #{err}"  if err
+      return callback new KodingError "Group #{@slug}'s subscription is not found"  unless subscription
+      callback err, subscription
+
+  debitPack: (options, callback) ->
+    @_fetchSubscription (err, subscription) ->
+      return callback err  if err
+      subscription.debitPack options, callback
+
+  creditPack: (options, callback) ->
+    @_fetchSubscription (err, subscription) ->
+      return callback err  if err
+      subscription.creditPack options, callback
+
+  createMemberVm: (account, callback) ->
+    @debitPack tag: "vm", (err) =>
+      return callback err  if err
+      JVM = require '../vm'
+      JVM.createVm {account, groupSlug: @slug, @planCode}, (err) =>
+        console.warn "Group #{@slug} member #{account.profile.nickname} VM is not created: #{err}"  if err
+        callback()
+
+  checkUserUsage: (callback) ->
+    @fetchSubscription (err, subscription) ->
+      return callback err  if err
+      JPaymentPack.one tags: "user", (err, pack) ->
+        return callback err  if err
+        subscription.checkUsage pack, callback

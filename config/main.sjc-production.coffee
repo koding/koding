@@ -8,7 +8,7 @@ projectRoot = nodePath.join __dirname, '..'
 mongo        = 'dev:k9lc4G1k32nyD72@172.16.3.9:27017/koding'
 mongoKontrol = 'dev:k9lc4G1k32nyD72@172.16.3.9:27017/kontrol'
 
-mongoReplSet = 'mongodb://dev:k9lc4G1k32nyD72@172.16.3.9,172.16.3.10,172.16.3.3/koding?replicaSet=koodingrs0&readPreference=primaryPreferred'
+mongoReplSet = 'mongodb://dev:k9lc4G1k32nyD72@172.16.3.9,172.16.3.10,172.16.3.15/koding?replicaSet=koodingrs0&readPreference=primaryPreferred'
 
 socialQueueName = "koding-social-#{version}"
 
@@ -22,6 +22,10 @@ regions         =
   vagrant       : "vagrant"
   sj            : "sj"
   aws           : "aws"
+  premium       : "premium-sj"
+
+cookieMaxAge = 1000 * 60 * 60 * 24 * 14 # two weeks
+cookieSecure = yes
 
 module.exports =
   environment   : environment
@@ -47,8 +51,8 @@ module.exports =
     enabled     : no
     port        : 1337
   neo4j         :
-    read        : "http://kgraph.sj.koding.com"
-    write       : "http://kgraph.sj.koding.com"
+    read        : "http://172.16.3.14"
+    write       : "http://172.16.3.14"
     port        : 7474
   mongo         : mongo
   mongoKontrol  : mongoKontrol
@@ -56,6 +60,8 @@ module.exports =
   runNeo4jFeeder: yes
   runGoBroker   : no
   runGoBrokerKite : no
+  runPremiumBrokerKite : no
+  runPremiumBroker : no
   runKontrol    : yes
   runRerouting  : yes
   runUserPresence: yes
@@ -102,7 +108,7 @@ module.exports =
     numberOfWorkers: 2
     watch       : yes
   emailConfirmationCheckerWorker :
-    enabled              : yes
+    enabled              : no
     login                : 'prod-social'
     queueName            : socialQueueName+'emailConfirmationCheckerWorker'
     numberOfWorkers      : 1
@@ -156,6 +162,9 @@ module.exports =
     useStaticFileServer: no
     staticFilesBaseUrl: "https://koding.com"
     runtimeOptions:
+      sessionCookie :
+        maxAge      : cookieMaxAge
+        secure      : cookieSecure
       environment        : environment
       activityFetchCount : 20
       precompiledApi     : yes
@@ -168,19 +177,24 @@ module.exports =
       useNeo4j: yes
       logToExternal : yes
       resourceName: socialQueueName
+      socialApiUri: 'https://social.koding.com/xhr'
       suppressLogs: yes
       version   : version
       mainUri   : "http://koding.com"
       broker    :
         servicesEndpoint: "/-/services/broker"
-        sockJS   : "https://broker-#{version}.koding.com/subscribe"
+      premiumBroker    :
+        servicesEndpoint: "/-/services/premiumBroker"
       brokerKite:
-        servicesEndpoint: "/-/services/broker"
+        servicesEndpoint: "/-/services/brokerKite"
         brokerExchange: 'brokerKite'
-        sockJS   : "https://brokerkite-#{version}.koding.com/subscribe"
+      premiumBrokerKite:
+        servicesEndpoint: "/-/services/premiumBrokerKite"
+        brokerExchange: 'premiumBrokerKite'
       apiUri    : 'https://koding.com'
       appsUri   : 'https://koding-apps.s3.amazonaws.com'
       uploadsUri: 'https://koding-uploads.s3.amazonaws.com'
+      uploadsUriForGroup: 'https://koding-groups.s3.amazonaws.com'
       sourceUri : "http://webserver-#{version}a.sj.koding.com:1337"
       newkontrol:
         url         : 'wss://newkontrol.sj.koding.com/kontrol'
@@ -204,37 +218,59 @@ module.exports =
         # bitbucket     :
         #   nicename    : 'BitBucket'
   mq            :
-    host        : '172.16.3.5'
+    host        : '172.16.3.4'
     port        : 5672
-    apiAddress  : "172.16.3.5"
+    apiAddress  : "172.16.3.4"
     apiPort     : 15672
     login       : 'guest'
     componentUser: "guest"
     password    : 'Xah8ibeekelah'
     heartbeat   : 20
     vhost       : 'new'
-  broker        :
-    name        : "broker"
-    ip          : ""
-    port        : 443
-    certFile    : "/opt/ssl_certs/wildcard.koding.com.cert"
-    keyFile     : "/opt/ssl_certs/wildcard.koding.com.key"
-    webProtocol : 'https:'
-    webHostname : "broker-#{version}a.koding.com"
-    webPort     : null
-    authExchange: authExchange
-    authAllExchange: authAllExchange
-  brokerKite    :
-    name        : "brokerKite"
-    ip          : ""
-    port        : 443
-    certFile    : "/opt/ssl_certs/wildcard.koding.com.cert"
-    keyFile     : "/opt/ssl_certs/wildcard.koding.com.key"
-    webProtocol : 'https:'
-    webHostname : "brokerkite-#{version}a.koding.com"
-    webPort     : null
-    authExchange: authExchange
-    authAllExchange: authAllExchange
+  broker              :
+    name              : "broker"
+    serviceGenericName: "broker"
+    ip                : ""
+    port              : 443
+    certFile          : "/opt/ssl_certs/wildcard.koding.com.cert"
+    keyFile           : "/opt/ssl_certs/wildcard.koding.com.key"
+    webProtocol       : 'https:'
+    authExchange      : authExchange
+    authAllExchange   : authAllExchange
+    failoverUri       : 'broker.koding.com'
+  premiumBroker       :
+    name              : "premiumBroker"
+    serviceGenericName: "broker"
+    ip                : ""
+    port              : 443
+    certFile          : "/opt/ssl_certs/wildcard.koding.com.cert"
+    keyFile           : "/opt/ssl_certs/wildcard.koding.com.key"
+    webProtocol       : 'https:'
+    authExchange      : authExchange
+    authAllExchange   : authAllExchange
+    failoverUri       : 'premiumbroker.koding.com'
+  brokerKite          :
+    name              : "brokerKite"
+    serviceGenericName: "brokerKite"
+    ip                : ""
+    port              : 443
+    certFile          : "/opt/ssl_certs/wildcard.koding.com.cert"
+    keyFile           : "/opt/ssl_certs/wildcard.koding.com.key"
+    webProtocol       : 'https:'
+    authExchange      : authExchange
+    authAllExchange   : authAllExchange
+    failoverUri       : 'brokerkite.koding.com'
+  premiumBrokerKite   :
+    name              : "premiumBrokerKite"
+    serviceGenericName: "brokerKite"
+    ip                : ""
+    port              : 443
+    certFile          : "/opt/ssl_certs/wildcard.koding.com.cert"
+    keyFile           : "/opt/ssl_certs/wildcard.koding.com.key"
+    webProtocol       : 'https:'
+    authExchange      : authExchange
+    authAllExchange   : authAllExchange
+    failoverUri       : 'premiumbrokerkite.koding.com'
   kites:
     disconnectTimeout: 3e3
     vhost       : 'kite'
@@ -277,7 +313,8 @@ module.exports =
       apiHost     : "172.16.3.11"
       apiPort     : 80
       port        : 8080
-      switchHost  : "koding.com"
+      kodingHost  : "koding.com"
+      socialHost  : "social.koding.com"
     api           :
       port        : 80
       url         : "http://kontrol0.sj.koding.com"
@@ -285,8 +322,9 @@ module.exports =
       port        : 80
       portssl     : 443
       ftpip       : '54.208.3.200'
-  recurly       :
-    apiKey      : '0cb2777651034e6889fb0d091126481a' # koding.recurly.com
+  recurly         :
+    apiKey        : '0cb2777651034e6889fb0d091126481a' # koding.recurly.com
+    loggedRequests: /^(subscriptions|transactions)/
   embedly       :
     apiKey      : embedlyApiKey
   opsview	:
@@ -364,3 +402,11 @@ module.exports =
     rabbitMQ      : "info"
     ldapserver    : "info"
     broker        : "info"
+  defaultVMConfigs:
+    freeVM        :
+      storage     : 3072
+      ram         : 1024
+      cpu         : 1
+  sessionCookie :
+    maxAge      : cookieMaxAge
+    secure      : cookieSecure

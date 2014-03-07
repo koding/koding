@@ -1,5 +1,39 @@
-{argv} = require 'optimist'
-{uri} = require('koding-config-manager').load("main.#{argv.c}")
+{argv}  = require 'optimist'
+{uri}   = require('koding-config-manager').load("main.#{argv.c}")
+encoder = require 'htmlencode'
+
+getProfile = (account) ->
+  {profile:{nickname, firstName, lastName, about, hash, avatar}} = account if account
+  fullName = firstName + " " + lastName ? (firstName and lastName)
+
+  unless fullName
+    fullName = firstName ? lastName ? nickname
+
+  # if firstname and lastname is empty, assign nickname to firstname.
+  # it is used in profile.coffee
+  unless firstName or lastName
+    firstName = nickname
+
+  # if a fullName still can't be found, write a default name.
+  unless fullName
+    fullName = "A koding user"
+
+  userProfile =
+    nickname    : encoder.XSSEncode nickname ? "A koding nickname"
+    firstName   : encoder.XSSEncode firstName
+    lastName    : encoder.XSSEncode lastName
+    about       : encoder.XSSEncode about ? ""
+    hash        : hash or ''
+    avatar      : avatar or no
+    fullName    : encoder.XSSEncode fullName
+
+  return userProfile
+
+getAvatarImageUrl = (hash, avatar)->
+  imgURL   = "//gravatar.com/avatar/#{hash}?size=90&d=https://koding-cdn.s3.amazonaws.com/images/default.avatar.140.png&r=g"
+  if avatar
+    imgURL = "//i.embed.ly/1/display/crop?grow=false&width=90&height=90&key=94991069fb354d4e8fdb825e52d4134a&url=#{encodeURIComponent avatar}"
+  return imgURL
 
 forceTwoDigits = (val) ->
   if val < 10
@@ -19,27 +53,6 @@ formatDate = (date) ->
     "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
   monthName = months[month]
   return "#{monthName} #{day}, #{year} #{hour}:#{minute}"
-
-getFullName = (account) ->
-  fullName = "A koding user"
-  if account?.data?.profile?.firstName?
-    fullName = account.data.profile.firstName + " "
-
-  if account?.data?.profile?.lastName?
-    fullName += account.data.profile.lastName
-  return fullName
-
-getNickname = (account) ->
-  nickname = "/"
-  if account?.data?.profile?.nickname?
-    nickname = account.data.profile.nickname
-  return nickname
-
-getUserHash = (account) ->
-  hash = ""
-  if account?.data?.profile?.hash?
-    hash = account.data.profile.hash
-  return hash
 
 normalizeActivityBody = (activity, bodyString="") ->
   if bodyString
@@ -86,56 +99,64 @@ createActivityContent = (JAccount, model, comments, createFullHTML=no, putBody=y
     tags = []
     tags = teaser.tags  if teaser?.tags?
 
-    Relationship.one selector, (err, rel) =>
+    sel =
+      "_id" : model.originId
+
+    JAccount.one sel, (err, acc) =>
       if err
         console.error err
         return callback err, null
-      unless rel
-        console.error "Rel not found"
-        return callback new Error "Rel not found", null
-      sel =
-        "_id" : rel.targetId
 
-      JAccount.one sel, (err, acc) =>
-        if err
-          console.error err
-          callback err, null
+      profile = getProfile acc
+      slug    = teaser?.slug or "#"
 
-        fullName = getFullName acc
-        nickname = getNickname acc
-        slug = "#"
-        slug = teaser.slug  if teaser?.slug?
+      {meta:{createdAt}} = model  if model
+      createdAt          = if createdAt then formatDate createdAt else ""
 
-        hash = getUserHash acc
+      # If href goes to outside of koding, add rel=nofollow.
+      # this is necessary to prevent link abusers.
+      renderer = new marked.Renderer()
+      renderer.link= (href, title, text)->
+        linkHTML = "<a href=\"#{href}\""
+        if title
+          linkHTML += " title=\"#{title}\""
 
-        if model?.body? and putBody
-          body = marked model.body,
-            gfm       : true
-            pedantic  : false
-            sanitize  : true
-          body = normalizeActivityBody model, body
+        re = new RegExp("#{uri.address}", "g")
+        if re.test href
+          linkHTML += ">#{text}</a>"
         else
-          body = ""
+          linkHTML += " rel=\"nofollow\">#{text}</a>"
+        return linkHTML
 
-        activityContent =
-          slug             : teaser.slug
-          fullName         : fullName
-          nickname         : nickname
-          hash             : hash
-          title            :  if model?.title? then model.title else model.body or ""
-          body             : body
-          createdAt        : if model?.meta?.createdAt? then formatDate model.meta.createdAt else ""
-          numberOfComments : teaser.repliesCount or 0
-          numberOfLikes    : model?.meta?.likes or 0
-          comments         : comments
-          tags             : tags
-          type             : model?.bongo_?.constructorName
-
-        if createFullHTML
-          content = getSingleActivityPage {activityContent, model}
-        else
-          content = getSingleActivityContent activityContent, model
-        return callback null, content
+      if model?.body? and putBody
+        body = marked model.body,
+          renderer  : renderer
+          gfm       : true
+          pedantic  : false
+          sanitize  : true
+        body = normalizeActivityBody model, body
+      else
+        body = ""
+      activityContent =
+        slug             : teaser.slug
+        fullName         : profile.fullName
+        nickname         : profile.nickname
+        hash             : profile.hash
+        avatar           : profile.avatar
+        title            : if model?.title then model.title else model.body or ""
+        body             : body
+        createdAt        : createdAt
+        numberOfComments : teaser.repliesCount or 0
+        numberOfLikes    : model?.meta?.likes or 0
+        comments         : comments
+        tags             : tags
+        type             : model?.bongo_?.constructorName
+      activityContent.title = encoder.XSSEncode activityContent.title
+      if createFullHTML
+        content = getSingleActivityPage {activityContent, model}
+      else
+        content = getSingleActivityContent activityContent, model
+      return callback null, content
 
 decorateComment = (JAccount, comment, callback) ->
   { Relationship } = require 'jraphical'
@@ -157,19 +178,21 @@ decorateComment = (JAccount, comment, callback) ->
       if err
         console.error err
         callback err, null
-      commentSummary.authorName     = getFullName acc
-      commentSummary.authorNickname = getNickname acc
-      if acc?.data?.profile?.hash
-        commentSummary.authorHash   = acc.data.profile.hash
-      commentSummary.authorHash   or= ""
+
+      profile = getProfile acc
+
+      commentSummary.authorName     = profile.fullName
+      commentSummary.authorNickname = profile.nickname
+      commentSummary.authorHash     = profile.hash or ''
+      commentSummary.authorAvatar   = profile.avatar
+
       callback null, commentSummary
 
 module.exports = {
+  getProfile
+  getAvatarImageUrl
   forceTwoDigits
   formatDate
-  getFullName
-  getNickname
-  getUserHash
   createActivityContent
   decorateComment
 }

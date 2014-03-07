@@ -13,8 +13,6 @@ class AceAppView extends JView
       delegate           : this
       tabHandleContainer : @tabHandleContainer
       closeAppWhenAllTabsClosed : no
-      saveSession        : yes
-      sessionName        : "AceTabHistory"
     @finderWrapper       = new KDCustomHTMLView
       tagName            : 'aside'
 
@@ -33,20 +31,6 @@ class AceAppView extends JView
 
 
   attachEvents:->
-
-    @on "SessionDataCreated", (@sessionData) =>
-
-    @on "UpdateSessionData", (openPanes, data) =>
-      @sessionData = @createSessionData openPanes, data
-      @tabView.emit "SaveSessionData", @sessionData
-
-    @on "SessionItemClicked", (items) =>
-      if items.length > 1
-        @appManager.open "Ace", { forceNew: true }, (appController) =>
-          appView = appController.getView()
-          appView.openFile FSHelper.createFileFromPath file for file in items
-      else
-        @openFile FSHelper.createFileFromPath file for file in items
 
     @tabView.on "PaneDidShow", (pane) ->
       {aceView} = pane.getOptions()
@@ -139,14 +123,6 @@ class AceAppView extends JView
     else
       notify()
 
-  reopenLastSession: ->
-    data   = @sessionData
-    latest = data.latestSessions
-    if latest?.length > 0
-      @emit "SessionItemClicked", data[latest.first]
-    else
-      @getActiveAceView().ace.notify "No recent file.", "error"
-
   viewAppended:->
     super
     @utils.wait 100, =>
@@ -214,8 +190,6 @@ class AceAppView extends JView
     @on "compileAndRunMenuItemClicked", => @getActiveAceView().compileAndRun()
 
     @on "previewMenuItemClicked", => @preview()
-
-    @on "reopenMenuItemClicked", => @reopenLastSession()
 
     @on "findMenuItemClicked", => @getActiveAceView().ace.showFindReplaceView()
 

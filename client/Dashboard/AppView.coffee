@@ -6,8 +6,7 @@ class DashboardAppView extends JView
     data or= KD.getSingleton("groupsController").getCurrentGroup()
     super options, data
 
-    @header = new HeaderViewSection type : "big", title : "Group Dashboard"
-    @nav    = new CommonInnerNavigation
+    @nav    = new KDView tagName : 'aside'
     @tabs   = new KDTabView
       cssClass            : 'dashboard-tabs'
       hideHandleContainer : yes
@@ -15,7 +14,6 @@ class DashboardAppView extends JView
 
     @setListeners()
     @once 'viewAppended', =>
-      @header.hide()
       @nav.hide()
       group = KD.getSingleton("groupsController").getCurrentGroup()
       group?.canEditGroup (err, success)=>
@@ -23,47 +21,8 @@ class DashboardAppView extends JView
           {entryPoint} = KD.config
           KD.getSingleton('router').handleRoute "/Activity", { entryPoint }
         else
-          @header.show()
           @nav.show()
           @createTabs()
-
-    @searchWrapper = new KDCustomHTMLView
-      tagName  : 'section'
-      cssClass : 'searchbar'
-
-    @search = new KDHitEnterInputView
-      placeholder  : "Search..."
-      name         : "searchInput"
-      cssClass     : "header-search-input"
-      type         : "text"
-      focus        : =>
-        @tabs.showPaneByName "Members"  unless @tabs.getActivePane().name is 'Invitations'
-      callback     : =>
-        if @tabs.getActivePane().name is 'Invitations'
-          pane = @tabs.getActivePane()
-        else
-          pane = @tabs.getPaneByName "Members"
-        {mainView} = pane
-        return unless mainView
-        mainView.emit 'SearchInputChanged', @search.getValue()
-        @search.focus()
-      keyup        : =>
-        return unless @search.getValue() is ""
-        if @tabs.getActivePane().name is 'Invitations'
-          pane = @tabs.getActivePane()
-        else
-          pane = @tabs.getPaneByName "Members"
-        {mainView} = pane
-        return unless mainView
-        mainView.emit 'SearchInputChanged', ''
-
-    @searchIcon = new KDCustomHTMLView
-      tagName  : 'span'
-      cssClass : 'icon search'
-
-    @searchWrapper.addSubView @search
-    @searchWrapper.addSubView @searchIcon
-    @header.addSubView @searchWrapper
 
     @on "groupSettingsUpdated", (group)->
       @setData group
@@ -71,9 +30,13 @@ class DashboardAppView extends JView
 
   setListeners:->
 
-    @nav.on "viewAppended", =>
-      @navController = @nav.setListController
-        itemClass : CommonInnerNavigationListItem
+    @nav.once "viewAppended", =>
+
+      @navController = new NavigationController
+        scrollView    : no
+        wrapper       : no
+        view          : new CommonInnerNavigationList
+          itemClass   : CommonInnerNavigationListItem
       ,
         title     : ""
         items     : []
@@ -100,9 +63,21 @@ class DashboardAppView extends JView
 
       @navController.replaceAllItems navItems
       @nav.emit "ready"
+      @emit "ready"
 
   pistachio:->
     """
       {{> @nav}}
       {{> @tabs}}
     """
+
+  search: (searchValue)->
+    if @tabs.getActivePane().name is 'Invitations'
+      pane = @tabs.getActivePane()
+    else
+      pane = @tabs.getPaneByName "Members"
+      @tabs.showPane pane
+    {mainView} = pane
+    return unless mainView
+    mainView.emit 'SearchInputChanged', searchValue
+

@@ -4,6 +4,8 @@ import (
 	"crypto/tls"
 	"encoding/json"
 	"flag"
+	"fmt"
+	"koding/databases/redis"
 	"koding/kontrol/kontrolhelper"
 	"koding/tools/amqputil"
 	"koding/tools/config"
@@ -15,6 +17,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"runtime"
 	"strconv"
 	"strings"
 	"sync"
@@ -31,10 +34,13 @@ var (
 	conf *config.Config
 	log  = logger.New(BROKER_NAME)
 
-	STORAGE_BACKEND = "redis"
-	routeMap        = make(map[string]*set.Set)
-	sessionsMap     = make(map[string]*sockjs.Session)
-	globalMapMutex  sync.Mutex
+	// routeMap holds the subscription list/set for any given routing key
+	routeMap = make(map[string]*set.Set)
+
+	// sessionsMap holds sessions with their socketIds
+	sessionsMap = make(map[string]*sockjs.Session)
+
+	globalMapMutex sync.Mutex
 
 	changeClientsGauge          = lifecycle.CreateClientsGauge()
 	changeNewClientsGauge       = logger.CreateCounterGauge("newClients", logger.NoUnit, true)
@@ -43,7 +49,7 @@ var (
 	flagProfile      = flag.String("c", "", "Configuration profile from file")
 	flagBrokerDomain = flag.String("a", "", "Send kontrol a custom domain istead of os.Hostname")
 	flagKontrolUUID  = flag.String("u", "", "Enable Kontrol mode")
-	flagBrokerType   = flag.String("b", "broker", "Define broker type. Available: broker and brokerKite. B")
+	flagBrokerType   = flag.String("b", "broker", "Define broker type. Available: broker, premiumBroker and brokerKite, premiumBrokerKite. B")
 	flagDebug        = flag.Bool("d", false, "Debug mode")
 )
 
@@ -60,22 +66,21 @@ type Broker struct {
 	AuthAllExchange   string
 	PublishConn       *amqp.Connection
 	ConsumeConn       *amqp.Connection
+	// we should open only one connection session to Redis for one broker
+	RedisSingleton *redis.SingletonSession
 
 	// Accepts SockJS connections
 	listener net.Listener
 
 	// Closed when SockJS server is ready to acccept connections
 	ready chan struct{}
-
-	// Closed when AMQP connection and channel are setup
-	amqpReady chan struct{}
 }
 
 // NewBroker returns a new Broker instance with ServiceUniqueName and Hostname
 // prepopulated. After creating a Broker instance, one has to call
 // broker.Run() or broker.Start() to start the broker instance and call
 // broker.Close() for a graceful stop.
-func NewBroker() *Broker {
+func NewBroker(conf *config.Config) *Broker {
 	// returns os.Hostname() if config.BrokerDomain is empty, otherwise it just
 	// returns config.BrokerDomain back
 	brokerHostname := kontrolhelper.CustomHostname(*flagBrokerDomain)
@@ -86,7 +91,7 @@ func NewBroker() *Broker {
 		Hostname:          brokerHostname,
 		ServiceUniqueName: serviceUniqueName,
 		ready:             make(chan struct{}),
-		amqpReady:         make(chan struct{}),
+		RedisSingleton:    redis.Singleton(conf),
 	}
 }
 
@@ -97,11 +102,15 @@ func main() {
 	}
 
 	conf = config.MustConfig(*flagProfile)
-	broker := NewBroker()
+	broker := NewBroker(conf)
 
 	switch *flagBrokerType {
+	case "premiumBroker":
+		broker.Config = &conf.PremiumBroker
 	case "brokerKite":
 		broker.Config = &conf.BrokerKite
+	case "premiumBrokerKite":
+		broker.Config = &conf.PremiumBrokerKite
 	default:
 		broker.Config = &conf.Broker
 	}
@@ -121,13 +130,25 @@ func main() {
 
 // Run starts the broker.
 func (b *Broker) Run() {
+	// sets the maximum number of CPUs that can be executing simultaneously
+	runtime.GOMAXPROCS(runtime.NumCPU())
+
 	lifecycle.Startup(BROKER_NAME, false)
 	logger.RunGaugesLoop(log)
 
-	b.registerToKontrol()
+	// Register broker to kontrol
+	if err := b.registerToKontrol(); err != nil {
+		log.Critical("Couldnt register to kontrol, stopping... %v", err)
+		return
+	}
 
-	go b.startAMQP()
-	<-b.amqpReady
+	// Create AMQP exchanges/queues/bindings
+	if err := b.startAMQP(); err != nil {
+		log.Critical("Couldnt create amqp bindings, stopping... %v", err)
+		return
+	}
+
+	// start listening/serving socket server
 	b.startSockJS() // blocking
 }
 
@@ -148,43 +169,34 @@ func (b *Broker) Close() {
 // registerToKontrol registers the broker to KontrolDaemon. This is needed to
 // populate a list of brokers and show them to the client. The list is
 // available at: https://koding.com/-/services/broker?all
-func (b *Broker) registerToKontrol() {
-	defer log.RecoverAndLog()
-
+func (b *Broker) registerToKontrol() error {
 	if err := kontrolhelper.RegisterToKontrol(
 		conf,
 		b.Config.Name,
-		b.Config.Name, // servicGenericName
+		b.Config.ServiceGenericName, // servicGenericName
 		b.ServiceUniqueName,
 		*flagKontrolUUID,
 		b.Hostname,
 		b.Config.Port,
 	); err != nil {
-		panic(err)
+		return err
 	}
+	return nil
 }
 
 // startAMQP setups the the neccesary publisher and consumer connections for
 // the broker broker.
-func (b *Broker) startAMQP() {
-	defer log.RecoverAndLog()
-
+func (b *Broker) startAMQP() error {
 	b.PublishConn = amqputil.CreateConnection(conf, b.Config.Name)
-	defer b.PublishConn.Close()
-
 	b.ConsumeConn = amqputil.CreateConnection(conf, b.Config.Name)
-	defer b.ConsumeConn.Close()
-
 	consumeChannel := amqputil.CreateChannel(b.ConsumeConn)
-	defer consumeChannel.Close()
-
 	presenceQueue := amqputil.JoinPresenceExchange(
-		consumeChannel,      // channel
-		"services-presence", // exchange
-		b.Config.Name,       // serviceType
-		b.Config.Name,       // serviceGenericName
-		b.ServiceUniqueName, // serviceUniqueName
-		false,               // loadBalancing
+		consumeChannel,              // channel
+		"services-presence",         // exchange
+		b.Config.Name,               // serviceType
+		b.Config.ServiceGenericName, // serviceGenericName
+		b.ServiceUniqueName,         // serviceUniqueName
+		false,                       // loadBalancing
 	)
 
 	go func() {
@@ -194,7 +206,7 @@ func (b *Broker) startAMQP() {
 		consumeChannel.QueueDelete(presenceQueue, false, false, false)
 	}()
 
-	stream := amqputil.DeclareBindConsumeQueue(consumeChannel, "topic", b.Config.Name, "#", false)
+	stream := amqputil.DeclareBindConsumeQueue(consumeChannel, "topic", b.Config.ServiceGenericName, "#", false)
 
 	if err := consumeChannel.ExchangeDeclare(
 		"updateInstances", // name
@@ -205,41 +217,83 @@ func (b *Broker) startAMQP() {
 		false,             // noWait
 		nil,               // args
 	); err != nil {
-		panic(err)
+		return fmt.Errorf("Couldnt create updateInstances exchange  %v", err)
 	}
 
 	if err := consumeChannel.ExchangeBind(BROKER_NAME, "", "updateInstances", false, nil); err != nil {
-		panic(err)
+		return fmt.Errorf("Couldnt bind to updateInstances exchange  %v", err)
 	}
 
-	// signal that we are ready now
-	close(b.amqpReady)
-
-	// start to listen from "broker" topic exchange
-	for amqpMessage := range stream {
-		routingKey := amqpMessage.RoutingKey
-		payload := json.RawMessage(utils.FilterInvalidUTF8(amqpMessage.Body))
-
-		pos := strings.IndexRune(routingKey, '.') // skip first dot, since we want at least two components to always include the secret
-		for pos != -1 && pos < len(routingKey) {
-			index := strings.IndexRune(routingKey[pos+1:], '.')
-			pos += index + 1
-			if index == -1 {
-				pos = len(routingKey)
-			}
-			routingKeyPrefix := routingKey[:pos]
-			globalMapMutex.Lock()
-
-			if routes, ok := routeMap[routingKeyPrefix]; ok {
-				routes.Each(func(sessionId interface{}) bool {
-					if routeSession, ok := sessionsMap[sessionId.(string)]; ok {
-						sendToClient(routeSession, routingKey, &payload)
-					}
-					return true
-				})
-			}
-			globalMapMutex.Unlock()
+	go func(stream <-chan amqp.Delivery) {
+		// start to listen from "broker" topic exchange
+		for amqpMessage := range stream {
+			sendMessageToClient(amqpMessage)
 		}
+
+		b.Close()
+
+	}(stream)
+
+	return nil
+}
+
+// sendMessageToClient takes an amqp messsage and delivers it to the related
+// clients which are subscribed to the routing key
+func sendMessageToClient(amqpMessage amqp.Delivery) {
+	routingKey := amqpMessage.RoutingKey
+	payloadsByte := utils.FilterInvalidUTF8(amqpMessage.Body)
+
+	// We are sending multiple bodies for updateInstances exchange
+	// so that there will be another operations, if exchange is not "updateInstances"
+	// no need to add more overhead
+	if amqpMessage.Exchange != "updateInstances" {
+		payloadRaw := json.RawMessage(payloadsByte)
+		processMessage(routingKey, &payloadRaw)
+		return
+	}
+
+	// this part is only for updateInstances exchange
+	var payloads []interface{}
+	// unmarshal data to slice of interface
+	if err := json.Unmarshal(payloadsByte, &payloads); err != nil {
+		log.Error("Error while unmarshalling:%v data:%v routingKey:%v", err, string(payloadsByte), routingKey)
+		return
+	}
+
+	// range over the slice and send all of them to the same routingkey
+	for _, payload := range payloads {
+		payloadByte, err := json.Marshal(payload)
+		if err != nil {
+			log.Error("Error while marshalling:%v data:%v routingKey:%v", err, string(payloadByte), routingKey)
+			continue
+		}
+		payloadByteRaw := json.RawMessage(payloadByte)
+		processMessage(routingKey, &payloadByteRaw)
+	}
+}
+
+// processMessage gets routingKey and a payload for sending them to the client
+// Gets subscription bindings from global routeMap
+func processMessage(routingKey string, payload interface{}) {
+	pos := strings.IndexRune(routingKey, '.') // skip first dot, since we want at least two components to always include the secret
+	for pos != -1 && pos < len(routingKey) {
+		index := strings.IndexRune(routingKey[pos+1:], '.')
+		pos += index + 1
+		if index == -1 {
+			pos = len(routingKey)
+		}
+		routingKeyPrefix := routingKey[:pos]
+		globalMapMutex.Lock()
+
+		if routes, ok := routeMap[routingKeyPrefix]; ok {
+			routes.Each(func(sessionId interface{}) bool {
+				if routeSession, ok := sessionsMap[sessionId.(string)]; ok {
+					sendToClient(routeSession, routingKey, &payload)
+				}
+				return true
+			})
+		}
+		globalMapMutex.Unlock()
 	}
 }
 
@@ -312,17 +366,20 @@ func (b *Broker) startSockJS() {
 // sockjsSession is called for every client connection and handles all the
 // message trafic for a single client connection.
 func (b *Broker) sockjsSession(session *sockjs.Session) {
-	defer log.RecoverAndLog()
+	client, err := NewClient(session, b)
+	if err != nil {
+		log.Critical("Couldnt create client %v", err)
+		return
+	}
 
-	client := NewClient(session, b)
 	sessionGaugeEnd := client.gaugeStart()
 
 	defer sessionGaugeEnd()
 	defer client.Close()
 
-	err := client.ControlChannel.Publish(b.Config.AuthAllExchange, "broker.clientConnected", false, false, amqp.Publishing{Body: []byte(client.SocketId)})
+	err = client.ControlChannel.Publish(b.Config.AuthAllExchange, "broker.clientConnected", false, false, amqp.Publishing{Body: []byte(client.SocketId)})
 	if err != nil {
-		panic(err)
+		log.Critical("Couldnt publish to control channel %v", err)
 	}
 
 	sendToClient(session, "broker.connected", client.SocketId)

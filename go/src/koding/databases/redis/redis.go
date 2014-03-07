@@ -19,6 +19,7 @@ func NewRedisSession(server string) (*RedisSession, error) {
 
 	pool := &redis.Pool{
 		MaxIdle:     3,
+		MaxActive:   1000,
 		IdleTimeout: 240 * time.Second,
 		Dial: func() (redis.Conn, error) {
 			c, err := redis.Dial("tcp", server)
@@ -33,6 +34,11 @@ func NewRedisSession(server string) (*RedisSession, error) {
 	// dialing and returning an error will be
 	// with the request
 	return s, nil
+}
+
+// Close closes the connection pool for redis
+func (r *RedisSession) Close() error {
+	return r.pool.Close()
 }
 
 // SetPrefix is used to add a prefix to all keys to be used. It is useful for
@@ -160,4 +166,29 @@ func (r *RedisSession) Exists(key string) bool {
 	}
 
 	return false // means reply is 0, key does not exist
+}
+
+// Ping pings the redis server to check if it is alive or not
+// If the server is not alive will return a proper error
+func (r *RedisSession) Ping() error {
+	reply, err := redis.String(r.Do("PING"))
+	if err != nil {
+		return err
+	}
+
+	if reply != "PONG" {
+		return fmt.Errorf("reply string is wrong!: %s", reply)
+	}
+
+	return nil
+}
+
+// Scard gets the member count of a Set with given key
+func (r *RedisSession) Scard(key string) (int, error) {
+	reply, err := redis.Int(r.Do("SCARD", key))
+	if err != nil {
+		return 0, err
+	}
+
+	return reply, nil
 }

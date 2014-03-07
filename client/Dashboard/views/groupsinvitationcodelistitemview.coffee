@@ -7,18 +7,19 @@ class GroupsInvitationCodeListItemView extends KDListItemView
     super options, data
 
     @editButton = new KDButtonView
-      style       : 'clean-gray'
+      style       : 'solid'
       title       : 'Edit'
-      icon        : yes
-      iconClass   : 'edit'
       callback    : @bound 'showEditModal'
 
     @shareButton = new KDButtonView
-      style       : 'clean-gray'
+      style       : 'solid green'
       title       : 'Share'
-      icon        : yes
-      iconClass   : 'share'
       callback    : @bound 'showShareModal'
+
+    @deleteButton = new KDButtonView
+      style       : 'solid red'
+      title       : 'Delete'
+      callback    : @bound 'deleteInvitation'
 
     @statusText    = new KDCustomHTMLView
       partial     : '<span class="icon"></span><span class="title"></span>'
@@ -30,7 +31,7 @@ class GroupsInvitationCodeListItemView extends KDListItemView
       cssClass                : 'invitation-share-modal'
       title                   : 'Share Invitation Code'
       overlay                 : yes
-      width                   : 400
+      width                   : 640
       height                  : 'auto'
       tabs                    :
         forms                 :
@@ -49,7 +50,6 @@ class GroupsInvitationCodeListItemView extends KDListItemView
                 type          : 'submit'
                 loader        :
                   color       : '#444444'
-                  diameter    : 12
               # Disable         :
               #   itemClass     : KDButtonView
               #   style         : 'modal-clean-red'
@@ -82,7 +82,7 @@ class GroupsInvitationCodeListItemView extends KDListItemView
       cssClass               : 'invitation-share-modal'
       title                  : 'Share Invitation Code'
       overlay                : yes
-      width                  : 400
+      width                  : 640
       height                 : 'auto'
       tabs                   :
         forms                :
@@ -92,8 +92,7 @@ class GroupsInvitationCodeListItemView extends KDListItemView
                 itemClass    : KDButtonView
                 style        : 'modal-clean-green'
                 loader       :
-                  color      : '#ffffff'
-                  diameter   : 12
+                  color      : '#444444'
                 callback     : -> modal.destroy()
             fields           :
               link           :
@@ -113,6 +112,30 @@ class GroupsInvitationCodeListItemView extends KDListItemView
     @editButton.hide()
     @shareButton.hide()
 
+  deleteInvitation:->
+    {group, code} = @getData()
+    KD.remote.api.JInvitation.byCode code, (err, invitation) =>
+      return KD.showError err if err
+
+      modal                  = new KDModalViewWithForms
+        cssClass             : 'invitation-remove-modal'
+        title                : "Remove Invitation Code #{code}"
+        overlay              : yes
+        tabs                 :
+          forms              :
+            Remove           :
+              buttons        :
+                Confirm      :
+                  itemClass  : KDButtonView
+                  style      : 'modal-clean-green'
+                  loader     :
+                    color    : '#444444'
+                  callback   : =>
+                    invitation.remove (err) =>
+                      return KD.showError err if err
+                      modal.destroy()
+                      @destroy()
+
   viewAppended: JView::viewAppended
 
   pistachio:->
@@ -120,7 +143,7 @@ class GroupsInvitationCodeListItemView extends KDListItemView
     codeSuffix = if memo then " (#{memo})" else ''
     """
     <section>
-      <div class="buttons">{{> @shareButton}} {{> @editButton}}</div>
+      <div class="buttons">{{> @deleteButton}} {{> @shareButton}} {{> @editButton}}</div>
       {{> @statusText}}
       <div class="details">
         <div class="code">#{code}#{codeSuffix}</div>

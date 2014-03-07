@@ -15,37 +15,40 @@ import (
 )
 
 type Client struct {
-	Session        *sockjs.Session
+	// Holds SockJS session
+	Session *sockjs.Session
+
+	// ControlChannel for communicating with authworker
 	ControlChannel *amqp.Channel
-	SocketId       string
-	Broker         *Broker
-	LastPayload    string
-	Subscriptions  storage.Subscriptionable
+
+	// Holds the socket id for Client Session
+	SocketId string
+
+	// Main broker singleton
+	Broker *Broker
+
+	// LastPayload is used for trying to send the same payload again
+	// if any error occures while publishing
+	LastPayload string
+
+	// Subscriptions holds subscriptions of the current client
+	Subscriptions storage.Subscriptionable
 }
 
-// NewClient retuns a new client that is defined on a given session.
-func NewClient(session *sockjs.Session, broker *Broker) *Client {
-	defer log.RecoverAndLog()
-
+// NewClient retuns a new client which represents the connected client
+// it holds required information about the client/session
+func NewClient(session *sockjs.Session, broker *Broker) (*Client, error) {
 	socketId := randomString()
 	session.Tag = socketId
 
-	var err error
 	controlChannel, err := broker.PublishConn.Channel()
 	if err != nil {
-		panic(err)
+		return nil, fmt.Errorf("Couldnt create publish channel %v", err)
 	}
 
-	var subscriptions storage.Subscriptionable
-
-	subscriptions, err = storage.NewStorage(conf, storage.REDIS, socketId)
+	subscriptions, err := createSubscriptionStorage(broker, socketId)
 	if err != nil {
-		log.Critical("Couldnt access to redis/create a key for client %v", session.Tag)
-		subscriptions, err = storage.NewStorage(conf, storage.SET, socketId)
-		if err != nil {
-			// this will never fail to here
-			panic(err)
-		}
+		return nil, err
 	}
 
 	globalMapMutex.Lock()
@@ -58,13 +61,36 @@ func NewClient(session *sockjs.Session, broker *Broker) *Client {
 		ControlChannel: controlChannel,
 		Broker:         broker,
 		Subscriptions:  subscriptions,
+	}, nil
+}
+
+// createSubscriptionStorage arranges a storage place for subscriptions
+// it can be Redis backend or inmemory Set storage
+func createSubscriptionStorage(broker *Broker, socketId string) (storage.Subscriptionable, error) {
+
+	// first try to create a redis storage
+	if subscriptions, err := storage.NewRedisStorage(broker.RedisSingleton, conf, socketId); err == nil {
+		// if we success, just return the storage
+		return subscriptions, nil
+	} else {
+		log.Critical("Couldnt access to redis/create a key for client %v: Error: %v", socketId, err)
 	}
+
+	// if we try to create subscription storage backend with redis and fail
+	// create an inmemory storage system
+	if subscriptions, err := storage.NewStorage(conf, storage.SET, socketId); err == nil {
+		return subscriptions, nil
+	}
+
+	// this will never fail to here, because SET returns nil as error
+	return nil, fmt.Errorf("Couldnt create subscription storage for Client: %v", socketId)
 }
 
 // Close should be called whenever a client disconnects.
+// Close removes client's subscriptions from routeMap immediately
+// It waits for 5 minutes before clearing the client's subscriptions because if this
+// is a temp glitch on network client should be able to resubscribe to all of them again
 func (c *Client) Close() {
-	defer log.RecoverAndLog()
-
 	log.Debug("Client Close Request for socketID: %v", c.SocketId)
 	c.Subscriptions.Each(func(routingKeyPrefix interface{}) bool {
 		c.RemoveFromRoute(routingKeyPrefix.(string))
@@ -79,7 +105,7 @@ func (c *Client) Close() {
 			break
 		}
 		if amqpError, isAmqpError := err.(*amqp.Error); !isAmqpError || amqpError.Code != amqp.ChannelError {
-			panic(err)
+			log.Critical("Error while publising -not rabbitmq error- %v", err)
 		}
 		c.resetControlChannel()
 	}
@@ -96,8 +122,6 @@ func (c *Client) Close() {
 // passes a response back to the client or publish the received message to a
 // rabbitmq exchange for further process.
 func (c *Client) handleSessionMessage(data interface{}) {
-	defer log.RecoverAndLog()
-
 	message := data.(map[string]interface{})
 	log.Debug("Received message: %v", message)
 
@@ -138,15 +162,16 @@ func (c *Client) handleSessionMessage(data interface{}) {
 			payload,
 		)
 
-		err := c.Publish(exchange, routingKey, payload)
-		if err != nil {
+		if err := c.Publish(exchange, routingKey, payload); err != nil {
 			log.Error(err.Error())
 		}
 
 	case "ping":
 		sendToClient(c.Session, "broker.pong", nil)
-		// TOOD - may be we need to revisit this part later about duration and request count
-		go c.Subscriptions.ClearWithTimeout(time.Minute * 30)
+		if c.Subscriptions.Backend() == storage.REDIS {
+			// TOOD - may be we need to revisit this part later about duration and request count
+			go c.Subscriptions.ClearWithTimeout(time.Minute * 59)
+		}
 	default:
 		log.Warning("Invalid action. message: %v socketId: %v", message, c.SocketId)
 
@@ -154,6 +179,7 @@ func (c *Client) handleSessionMessage(data interface{}) {
 }
 
 // Publish publish the given payload for to the given exchange and routingkey.
+// if publishing fails for given payload waits for quarter of a second
 func (c *Client) Publish(exchange, routingKey, payload string) error {
 	if !strings.HasPrefix(routingKey, "client.") {
 		return fmt.Errorf("Invalid routing key: %v socketId: %v", routingKey, c.SocketId)
@@ -212,7 +238,7 @@ func (c *Client) resetControlChannel() {
 	var err error
 	c.ControlChannel, err = c.Broker.PublishConn.Channel()
 	if err != nil {
-		panic(err)
+		log.Critical("Couldnt create publishing channel %v", err)
 	}
 
 	go func() {
@@ -247,8 +273,7 @@ func (c *Client) RemoveFromRoute(routingKeyPrefixes ...string) {
 	}
 }
 
-// Add to route
-// todo ~ check for multiple subscriptions
+// AddToRoute ads routes to the routeMap for client
 func (c *Client) AddToRoute() {
 	c.Subscriptions.Each(func(routingKeyPrefix interface{}) bool {
 		c.AddToRouteMapNOTS(routingKeyPrefix.(string))
@@ -256,6 +281,9 @@ func (c *Client) AddToRoute() {
 	})
 }
 
+// AddToRouteMapNOTS adds given routingKeys to the global routemap
+// it is non-thread-safe function, developers should use it with their
+// own thread safe wrapping
 func (c *Client) AddToRouteMapNOTS(routingKeyPrefixes ...string) {
 	for _, routingKeyPrefix := range routingKeyPrefixes {
 		if _, ok := routeMap[routingKeyPrefix]; !ok {
@@ -291,6 +319,10 @@ func (c *Client) Subscribe(routingKeyPrefixes ...string) error {
 	return nil
 }
 
+// Resubscribe tries to resubscribe with another sessionId
+// it is useful when client disconnected and a while after
+// tries to subscribe again, so there will not be that many
+// communication between broker and the client
 func (c *Client) Resubscribe(sessionId string) (bool, error) {
 	found, err := c.Subscriptions.Resubscribe(sessionId)
 	if err != nil {

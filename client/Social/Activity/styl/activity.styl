@@ -113,8 +113,19 @@ resurrection.activity.styl
       .kdview
         overflow        visible
 
+      .toggle-pinned-list
+        text-align      right
+        margin-top      15px
+
+        .title
+          color             #838987
+          font-size         20px
+          font-weight       300
+          text-decoration   none
+          margin-right      3px
+
     .feeder-header
-      margin-top        31px
+      margin-top        10px
       text-align        right
       overflow          visible
 
@@ -174,18 +185,19 @@ resurrection.activity.styl
     padding             0 0 0 35px
     bg                  color, #ebebeb
     height              100%
-    kalc                width, 50% \- 156px
+    kalc                width, 50% \- 146px
     border-left         1px solid #d5d5d5
     borderBox()
     abs()
 
     > div
-      size              269px, auto
+      size              280px, auto
 
     .referal-box
       margin-top        33px
       color             #5b5b5b
       overflow          visible
+      display           none !important
 
       strong
         color           #1aaf5d
@@ -256,6 +268,7 @@ resurrection.activity.styl
     .right-block-box
       size              auto, auto
       margin            33px 0 0
+      bg                color, #ebebeb
 
       h3
         display         block
@@ -294,10 +307,8 @@ resurrection.activity.styl
 
       .action
         overflow        visible
-        size            100% auto
         line-height     18px
-        abs             50% 0 0
-        vendor          transform, translateY(-50%)
+        vCenter()
 
         .kdview
           font-weight   300
@@ -314,12 +325,15 @@ resurrection.activity.styl
 
         &.profile
           font-weight   500
+          line-height   15px
+
 
         &.ttag.expandable
           display       block
           overflow      hidden
           text-overflow ellipsis
           width         240px
+          line-height   14px
 
       .avatarview
         display         block
@@ -334,6 +348,7 @@ resurrection.activity.styl
         bg              color, transparent
         border          2px solid #b5b5b5
         right           4px
+        overflow        hidden
         vendor          transition, width .1s ease \,\
                                     border-color .3s ease
         abs()
@@ -345,7 +360,6 @@ resurrection.activity.styl
           abs()
 
         .button-title
-          z-index       -1
           opacity       0
           right         0
           top           4px
@@ -359,7 +373,6 @@ resurrection.activity.styl
           background    #ebebeb
           .button-title
             right       4px
-            z-index     1
             opacity     1
 
         &.following-account
@@ -396,18 +409,39 @@ resurrection.activity.styl
 
     .active-users
       .kdscrollview
-        height        240px
+        height            auto
+        max-height        240px
 
       .profile
       .user-numbers
         width           170px
+
+    .user-group-list
+      .kdlistitemview-activity-ticker-item
+        margin          0
+
+        figure
+          display         inline-block
+          size            30px 30px
+          margin          0 8px 0 1px
+          vertical-align  top
+          rounded         15px
+          bg              position, 50% 50%
+          bg              size cover
+        a
+          line-height    30px
+
+      .kdscrollview
+        height          auto
+        max-height      252px
 
     .active-topics
       h3
         margin-bottom   4px
 
       .kdscrollview
-        height          252px
+        height          auto
+        max-height      252px
 
       .kdlistitemview-activity-ticker-item
         margin          0
@@ -431,6 +465,8 @@ resurrection.activity.styl
           font-weight   200
           color         #9a9a9a
           fl()
+          &:first-child
+            margin      0
 
     .kdbuttonwithmenu-wrapper.ticker-settings-menu
         abs()
@@ -451,10 +487,32 @@ resurrection.activity.styl
         .chevron
           r-sprite    activity chevron-icon
 
+div.kdtooltip.activity-helper
+  code
+    font-weight       400
+    font-family       monoFamily
+    font-size         12px
+    padding           5px
+
 .activity-input-widget
   size                auto auto
   position            relative
   margin              0
+  overflow            visible
+
+  .help-container
+    margin            5px
+    font-size         12px
+    line-height       1.6
+    color             footerLinkColor
+    margin-bottom     -24px
+    > a
+    > span
+      margin-left     8px
+      color           logoBg
+    > a
+      border-bottom   1px solid logoBg
+      noTextDeco()
 
   .avatarview
     top               6px
@@ -563,6 +621,9 @@ span.collapsedtext
   shadow          1px 1px 0 rgba(196, 196, 196, .75)
   borderBox()
 
+  &:first-child
+    margin-top    15px
+
   &.content-display-main-section /* Content display */
     kalc          width, 100% \- 100px
     margin-left   100px
@@ -633,6 +694,9 @@ span.collapsedtext
       border-bottom  1px solid #ececec
       color          #3c4752
       borderBox()
+
+      &:focus
+        outline      none
 
     button
       size        auto, 25px
@@ -1219,20 +1283,35 @@ body.profile
           color           #6096BE
 
 .activity-share-popup
-  bg                      color, #ececec
-  margin                  4px 0 0 14px
-  rounded                 3px 11px 11px 3px
-  size                    176px, 22px
+  bg                      color, #fff
+  margin                  -10px 0 0 19px
+  rounded                 4px
+  size                    auto, auto
+  border                  1px solid #c0c0c0
+  padding                 8px 12px 8px 8px
+  shadow                  0 0 27px rgba(0,0,0,.2)
 
   &:after
     content             ""
     display             block
     size                0 0
     left                -12px
-    top                 5px
+    top                 50%
+    vendor              transform, translateY(-50%)
     border              6px solid transparent
-    border-right-color  #ececec
+    border-right-color  #fff
     z-index             600
+    abs()
+  &:before
+    content             ""
+    display             block
+    size                0 0
+    left                -13px
+    top                 50%
+    vendor              transform, translateY(-50%)
+    border              6px solid transparent
+    border-right-color  #c0c0c0
+    z-index             599
     abs()
 
   .context-list-wrapper
@@ -1242,13 +1321,16 @@ body.profile
   input.share-input:hover
   input.share-input:focus
   input.share-input:active
-    background            transparent
+    margin                0 4px 0 0
+    background            #e4e4e4
     border                none
-    margin                0 2px 0 0
+    border-radius         2px
     font-size             12px
-    color                 #6e6e6e
-    line-height           22px
-    size                  106px, 22px
+    color                 #737677
+    line-height           28px
+    font-weight           400
+    size                  135px, 27px
+    padding               0 0 0 6px
     outline               0
     fl()
 
@@ -1256,12 +1338,14 @@ body.profile
     margin                3px 0 0 4px
     fl()
 
+    &.share-gplus
+      r-sprite              activity, "gplus-21"
     &.share-twitter
-      r-sprite              activity, "twitter-16"
+      r-sprite              activity, "twitter-21"
     &.share-facebook
-      r-sprite              activity, "facebook-16"
+      r-sprite              activity, "facebook-21"
     &.share-linkedin
-      r-sprite              activity, "linkedin-16"
+      r-sprite              activity, "linkedin-21"
 
 
 
@@ -1356,6 +1440,120 @@ body.profile
       &~.bug-status-title
         border-top       1px solid #d3d3d3
 
+
+// Group Activity
+body.group.activity
+  .content-page
+    margin-top             55px
+    min-height             2070px
+
+    main
+      margin-top           24px
+
+    > aside
+      padding-top          306px
+
+      .group-description
+        font-size          13px
+        line-height        17px
+        letter-spacing     .2px
+        color              #4a4a4a
+        padding            17px 0 0
+        font-weight        400
+        opacity            .9
+
+      .group-members
+        .kdscrollview
+          height           auto
+          max-height       217px
+        .kdlistview
+          padding          20px 0 0
+        .kdlistitemview
+          display          inline-block
+          size             auto auto
+        .avatarview
+          margin           0 8px 8px 0
+          fl()
+          rounded          4px
+          img
+            rounded        4px
+
+          &:nth-of-type(4n)
+            margin-right   0
+
+
+    .group-cover-view
+      max-width            948px
+      line-height          0
+      height               316px
+      bg                   color, #e6e6e6
+      margin               0 auto
+      kalc                 margin-right, 50% \- 462px
+      z-index              3
+      bg                   size, 948px \, 316px
+      bg                   image, -webkit-linear-gradient(90deg\, rgba(0, 0, 0, .1) 50%\, transparent 50%) \,
+                                  -webkit-linear-gradient(0deg\, rgba(0, 0, 0, .1) 50%\, transparent 50% \, transparent 100% \, rgba(0, 0, 0, .1) 100%)
+      bg                   image, -moz-linear-gradient(90deg\, rgba(0, 0, 0, .1) 50%\, transparent 50%) \,
+                                  -moz-linear-gradient(0deg\, rgba(0, 0, 0, .1) 50%\, transparent 50% \, transparent 100% \, rgba(0, 0, 0, .1) 100%)
+      .avatarview
+      .avatarview img
+        rounded            0
+
+      .kdscrollview
+        overflow           hidden
+
+
+      figure
+        abs                0 0 0 0
+        size               100%, 100%
+        bg                 size cover
+
+      .kdlistview-collage
+        width              100%
+
+        .kdlistitemview
+          display          inline-block
+          size             auto auto
+
+      .kdbutton.update-cover
+        abs                0 27px 27px 0
+        margin             0
+        padding            0 0 0 14px
+        font-size          13px
+        font-weight        400
+        color              #fff
+        size               auto, 36px
+        line-height        35px
+        z-index            5
+        rounded            12px
+        bg                 color, #1aaf5d
+        border             1px solid #159950
+
+        .button-title
+          padding          0
+          line-height      35px
+          color            inherit
+          font-size        inherit
+          font-weight      inherit
+
+        .icon
+          r-sprite         activity image
+          margin           9px 13px 0 9px
+          padding          0
+          fr()
+
+  .kdmodal.group-cover-uploader
+    .kdmodal-content
+      figure
+        bg                size, cover
+      .kdloader
+        abs               50% 0 0 50%
+        margin            -47px 0 0 -47px
+        padding           15px
+        rounded           50%
+        background        rgba(255,255,255,.8)
+
+
 // Crawlable //
 nav.crawler-pagination
   size                    100%, auto
@@ -1369,3 +1567,97 @@ nav.crawler-pagination
     color                 #b1b1b1
     noTextDeco()
     fl()
+
+
+// Group Members //
+body.group.members
+  .content-page.members
+    .header-view-section
+      margin              42px 0 12px
+      border              none
+
+      .section-title
+        font-size         20px
+        color             #1aaf5d
+        font-weight       400
+
+  .kdlistitemview-member
+    margin                0 0 1px
+    background            #fff
+    rounded               6px
+    padding               24px 28px 20px 88px
+
+    .avatarview
+      left                20px
+      top                 17px !important
+
+    .profile
+      margin              6px 0 0
+      padding             0
+      font-size           14px
+      font-weight         400
+      color               #616161
+
+    .user-numbers
+      float               none
+      padding             0
+      font-size           12px
+      color               #b0b0b0
+      margin              24px 0 0
+      line-height         14px
+
+    .follow-button
+      fr()
+
+      &.light-gray:hover
+        bg                   color #E94835
+        span.button-title
+          color              white
+
+// referral-modal
+.referrer-modal
+  line-height         1.8em
+  p
+    margin-bottom     15px
+    &.center
+      color           #999
+      font-size       13px
+      text-align      center
+  .content .title
+    margin-bottom     36px !important
+
+  .share-url-input
+    width           320px !important
+
+  .share-url-label
+    display         block
+    font-weight     400
+    font-size       12px
+
+  .share-links
+    size            140px 30px
+    margin-top      -30px
+    position        relative
+    left            330px
+    top             -13px
+
+    .share-icon
+      border        none
+      size          30px 30px
+      rounded       50%
+      padding       0
+      margin        0 0 0 8px
+      background    none
+
+      &.twitter
+        r-sprite    "activity", "inv-twitter"
+      &.facebook
+        r-sprite    "activity", "inv-facebook"
+      &.linkedin
+        r-sprite    "activity", "inv-linkedin"
+
+  a.mail
+    color           #606060
+    font-weight     500
+    position        relative
+    line-height     40px

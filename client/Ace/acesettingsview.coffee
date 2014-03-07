@@ -6,21 +6,29 @@ class AceSettingsView extends JView
 
     button = @getDelegate()
 
-    @useSoftTabs    = new KDOnOffSwitch
+    @useSoftTabs    = new KodingSwitch
+      cssClass      : "tiny"
       callback      : (state) -> button.emit "ace.changeSetting", "useSoftTabs", state
-    @showGutter     = new KDOnOffSwitch
+    @showGutter     = new KodingSwitch
+      cssClass      : "tiny"
       callback      : (state) -> button.emit "ace.changeSetting", "showGutter", state
-    @useWordWrap    = new KDOnOffSwitch
+    @useWordWrap    = new KodingSwitch
+      cssClass      : "tiny"
       callback      : (state) -> button.emit "ace.changeSetting", "useWordWrap", state
-    @showPrintMargin= new KDOnOffSwitch
+    @showPrintMargin= new KodingSwitch
+      cssClass      : "tiny"
       callback      : (state) -> button.emit "ace.changeSetting", "showPrintMargin", state
-    @highlightActiveLine = new KDOnOffSwitch
+    @highlightActiveLine = new KodingSwitch
+      cssClass      : "tiny"
       callback      : (state) -> button.emit "ace.changeSetting", "highlightActiveLine", state
-    @highlightWord  = new KDOnOffSwitch
+    @highlightWord  = new KodingSwitch
+      cssClass      : "tiny"
       callback      : (state) -> button.emit "ace.changeSetting", "highlightSelectedWord", state
-    @showInvisibles = new KDOnOffSwitch
+    @showInvisibles = new KodingSwitch
+      cssClass      : "tiny"
       callback      : (state) -> button.emit "ace.changeSetting", "showInvisibles", state
-    @scrollPastEnd  = new KDOnOffSwitch
+    @scrollPastEnd  = new KodingSwitch
+      cssClass      : "tiny"
       callback      : (state) -> button.emit "ace.changeSetting", "scrollPastEnd", state
 
     @keyboardHandler= new KDSelectBox
@@ -82,12 +90,12 @@ class AceSettingsView extends JView
     <p>Show invisibles          {{> @showInvisibles}}</p>
     <p>Use scroll past end      {{> @scrollPastEnd}}</p>
     <hr>
-    <p>Soft wrap                {{> @softWrap}}</p>
-    <p>Syntax                   {{> @syntax}}</p>
-    <p>Key binding              {{> @keyboardHandler}}</p>
-    <p>Font                     {{> @fontSize}}</p>
-    <p>Theme                    {{> @theme}}</p>
-    <p>Tab size                 {{> @tabSize}}</p>
+    <p class="with-select">Soft wrap                {{> @softWrap}}</p>
+    <p class="with-select">Syntax                   {{> @syntax}}</p>
+    <p class="with-select">Key binding              {{> @keyboardHandler}}</p>
+    <p class="with-select">Font                     {{> @fontSize}}</p>
+    <p class="with-select">Theme                    {{> @theme}}</p>
+    <p class="with-select">Tab size                 {{> @tabSize}}</p>
 
     <p class='hidden'>{{> @shortcuts}}</p>
 

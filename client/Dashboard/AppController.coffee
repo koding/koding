@@ -1,15 +1,16 @@
 class DashboardAppController extends AppController
 
   handler = (group, callback)->
-    KD.getSingleton('groupsController').changeGroup group, (err)=>
+    KD.getSingleton('groupsController').ready ->
       KD.singleton('appManager').open 'Dashboard', callback
 
   KD.registerAppClass this,
-    name         : "Dashboard"
+    name                           : "Dashboard"
     routes                         :
-      "/:name?/Dashboard"          : null
+      "/:name?/Dashboard"          : ({params : {section,name}})->
+        handler name, (app)-> app.loadSection title : "Settings"
       "/:name?/Dashboard/:section" : ({params : {section,name}})->
-        handler name, (app)-> app.loadSection title : section
+        handler name, (app)-> app.loadSection title : decodeURIComponent section
     hiddenHandle : yes
 
   constructor: (options = {}, data) ->
@@ -17,7 +18,7 @@ class DashboardAppController extends AppController
     options.view = new DashboardAppView
       testPath   : "groups-dashboard"
 
-    data or= (KD.getSingleton "groupsController").getCurrentGroup()
+    data or= KD.getSingleton('groupsController').getCurrentGroup()
 
     super options, data
 
@@ -44,37 +45,50 @@ class DashboardAppController extends AppController
           lazy       : yes
       ,
         name         : 'Membership policy'
-        hiddenHandle : @getData().privacy is 'public'
         viewOptions  :
           viewClass  : GroupsMembershipPolicyDetailView
           lazy       : yes
           callback   : @bound 'policyViewAdded'
-      ,
-        name         : 'Payment'
-        viewOptions  :
-          viewClass  : GroupPaymentSettingsView
-          lazy       : yes
-          callback   : @bound 'paymentViewAdded'
-      ,
-        name         : 'Products'
-        viewOptions  :
-          viewClass  : GroupProductSettingsView
-          lazy       : yes
-          callback   : @bound 'productViewAdded'
-      ,
-        name         : 'Blocked Users'
-        hiddenHandle : @getData().privacy is 'public'
-        kodingOnly   : yes # this is only intended for koding group, we assume koding group is super-group
-        viewOptions  :
-          viewClass  : GroupsBlockedUserView
-          lazy       : yes
-      ,
-        name         : 'Badges'
-        hiddenHandle : @getData().privacy is 'public'
-        kodingOnly   : yes # this is only intended for koding group, we assume koding group is super-group
-        viewOptions  :
-          viewClass  : BadgeDashboardView
-          lazy       : yes
+      # ,
+      #   name         : 'Payment'
+      #   viewOptions  :
+      #     viewClass  : GroupPaymentSettingsView
+      #     lazy       : yes
+      #     callback   : @bound 'paymentViewAdded'
+      ]
+
+      if data.slug is "koding"
+        @tabData.push
+            name         : 'Products'
+            kodingOnly   : yes
+            viewOptions  :
+              viewClass  : GroupProductSettingsView
+              lazy       : yes
+              callback   : @bound 'productViewAdded'
+          ,
+            name         : 'Blocked users'
+            kodingOnly   : yes # this is only intended for koding group, we assume koding group is super-group
+            viewOptions  :
+              viewClass  : GroupsBlockedUserView
+              lazy       : yes
+          ,
+            name         : 'Badges'
+            kodingOnly   : yes # this is only intended for koding group, we assume koding group is super-group
+            viewOptions  :
+              viewClass  : BadgeDashboardView
+              lazy       : yes
+          ,
+            name         : 'Widgets'
+            kodingOnly   : yes # this is only intended for koding group, we assume koding group is super-group
+            viewOptions  :
+              viewClass  : CustomViewsManager
+              lazy       : yes
+          ,
+            name         : 'Administration'
+            kodingOnly   : yes # this is only intended for koding group, we assume koding group is super-group
+            viewOptions  :
+              viewClass  : AdministrationView
+              lazy       : yes
 
       # CURRENTLY DISABLED
 
@@ -90,7 +104,7 @@ class DashboardAppController extends AppController
       #     viewClass : GroupsBundleView
       #     lazy      : yes
       #     callback  : @bundleViewAdded
-    ]
+
 
   fetchTabData: (callback) -> @utils.defer => callback @tabData
 
@@ -106,7 +120,7 @@ class DashboardAppController extends AppController
 
   loadSection: ({title}) ->
     @getView().nav.ready =>
-      @getView().tabs.showPaneByName title or 'Settings'
+      @getView().tabs.showPaneByName title
 
   policyViewAdded: (pane, view) ->
 
@@ -115,3 +129,16 @@ class DashboardAppController extends AppController
 
   productViewAdded: (pane, view) ->
     new GroupProductsController { view }
+
+  loadView: (mainView, firstRun = yes, loadFeed = no)->
+    return unless firstRun
+    @on "SearchFilterChanged", (value) =>
+      return if value is @_searchValue
+      @_searchValue = Encoder.XSSEncode value
+      @getOptions().view.search @_searchValue
+      @loadView mainView, no, yes
+
+  handleQuery:(query={})->
+    @getOptions().view.ready =>
+      {q} = query
+      @emit "SearchFilterChanged", q or ""

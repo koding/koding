@@ -1,6 +1,10 @@
-getSessionToken=-> $.cookie('clientId')
+getSessionToken=-> Cookies.get 'clientId'
+
+{ socialApiUri: apiEndpoint } = KD.config
 
 KD.remote = new Bongo
+
+  apiEndpoint: apiEndpoint
 
   precompileApi: KD.config.precompiledApi ? no
 
@@ -52,18 +56,34 @@ KD.remote = new Bongo
         dash queue, -> callback err, models, name
 
   mq: do ->
-    { broker:{ servicesEndpoint }, authExchange } = KD.config
-    options = { servicesEndpoint, authExchange, autoReconnect: yes, getSessionToken }
+    {authExchange} = KD.config
+    if KD.config.usePremiumBroker
+      { servicesEndpoint } = KD.config.premiumBroker
+    else
+      { servicesEndpoint } = KD.config.broker
+
+    options = {
+      servicesEndpoint
+      authExchange
+      autoReconnect: yes
+      getSessionToken
+    }
     broker = new KDBroker.Broker null, options
 
 KD.kite =
   mq: do ->
-    { brokerKite:{ servicesEndpoint, brokerExchange }, authExchange } = KD.config
+    {authExchange} = KD.config
+    if KD.config.usePremiumBroker
+      { servicesEndpoint, brokerExchange } = KD.config.premiumBrokerKite
+    else
+      { servicesEndpoint, brokerExchange } = KD.config.brokerKite
+
     options = {
       servicesEndpoint
       authExchange
       autoReconnect: yes
       getSessionToken
       brokerExchange
+      tryResubscribing:no
     }
     broker = new KDBroker.Broker null, options

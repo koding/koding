@@ -376,21 +376,92 @@ func jsonDecode(data string) (map[string]interface{}, error) {
 
 var NotAllowedNames = []string{
 	"CStatusActivity",
+	"CStatus",
+
 	"CFolloweeBucketActivity",
+	"CFolloweeBucket",
+
 	"CFollowerBucketActivity",
-	"CCodeSnipActivity",
-	"CDiscussionActivity",
-	"CReplieeBucketActivity",
-	"CReplierBucketActivity",
-	"CBlogPostActivity",
-	"CNewMemberBucketActivity",
-	"CTutorialActivity",
-	"CLikeeBucketActivity",
-	"CLikerBucketActivity",
+	"CFollowerBucket",
+
+	"GroupJoineeBucketActivity",
+	"GroupJoineeBucket",
+
+	"GroupJoinerBucketActivity",
+	"GroupJoinerBucket",
+
 	"CInstalleeBucketActivity",
+	"CInstalleeBucket",
+
 	"CInstallerBucketActivity",
-	"CActivity",
+	"CInstallerBucket",
+
+	"CLikeeBucketActivity",
+	"CLikeeBucket",
+
+	"CLikerBucketActivity",
+	"CLikerBucket",
+
+	"CReplieeBucketActivity",
+	"CReplieeBucket",
+
+	"CReplierBucketActivity",
+	"CReplierBucket",
+
+	"CCodeSnipActivity",
+	"CCodeSnip",
+
+	"CDiscussionActivity",
+	"CDiscussion",
+
+	"CBlogPostActivity",
+	"CBlogPost",
+
+	"CNewMemberBucketActivity",
+	"CNewMemberBucket",
+
 	"CRunnableActivity",
+	"CRunnable",
+
+	"CTutorialActivity",
+	"CTutorial",
+
+	"CActivity",
 	"JAppStorage",
 	"JFeed",
+
+	"JBlogPost",
+	"JChatConversation",
+	"JCodeShare",
+	"JCodeSnip",
+	"JConversationSlice",
+	"JDiscussion",
+	"JDomainStat",
+	"JDomain",
+	"JEmailConfirmation",
+	"JEmailNotification",
+	"JEnvironment",
+	"JGroupBundle",
+	"JGuest",
+	"JInvitationRequest",
+	"JInvitation",
+	"JKodingKey",
+	"JLimit",
+	"JLocationStates",
+	"JLocation",
+	"JMailNotification",
+	"JMails",
+	"JMarkdownDoc",
+	"JMembershipPolicy",
+	"JMessage",
+	"JName",
+	"JOpinion",
+	"JPasswordRecovery",
+	"JPrivateMessage",
+	"JReferrableEmail",
+	"JReferral",
+	"JStatusUpdate",
+	"JStorage",
+	"JVM",
+	"JApp",
 }

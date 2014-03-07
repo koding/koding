@@ -43,9 +43,7 @@ class BadgeRules extends JView
       style           : 'create-badge-button solid green'
       title           : 'Create'
       type            : "submit"
-      loader          :
-        color         : "#ffffff"
-        diameter      : 21
+      loader          : yes
 
     @usersInput       = new KDInputView
       type            : "hidden"

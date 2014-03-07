@@ -10,7 +10,7 @@ Cache          = require "../cache/main"
 
 module.exports = class ActiveItems extends Base
   @share()
-
+  JGroup         = require './group'
   @set
     sharedMethods   :
       static        :
@@ -36,11 +36,6 @@ module.exports = class ActiveItems extends Base
   #   * Active topics in the last day
   #   * Random topics
   @fetchTopics = secure (client, options, callback)->
-    # [callback, options] = [options, callback]  unless callback
-    # options.fallbackFn = @fetchRandomTopics
-    # cacheId            = "#{options.group}-activeItems.fetchTopics"
-    # Cache.fetch cacheId, (@fetchItems.bind this), options, callback
-
     options.name  = "topic"
     options.group = client.context.group
     @fetchRandomTopics callback, options
@@ -50,12 +45,16 @@ module.exports = class ActiveItems extends Base
   #   * Active users in the last day
   #   * Random users
   @fetchUsers = secure (client, options, callback)->
-    # [callback, options] = [options, callback]  unless callback
-    # options.client      = client
-    # options.group       = client.context.group
+    [callback, options] = [options, callback]  unless callback
+    options.client      = client
+    options.group       = client.context.group
+
     # options.fallbackFn  = @fetchRandomUsers
 
-    # Cache.fetch "activeItems.fetchUsers", (@_fetchUsers.bind this), options, callback
+    # JGroup.canListMembers client, (err, hasPermission)=>
+    #   if err or not hasPermission
+    #     return callback new Error "Not allowed to list members of this group"
+        # Cache.fetch "activeItems.fetchUsers", (@_fetchUsers.bind this), options, callback
 
     @fetchRandomUsers callback
 
@@ -66,7 +65,7 @@ module.exports = class ActiveItems extends Base
     group = options.group or "koding"
     {select: selector} = nameMapping.topic
     selector.group = group
-    JTag.some selector, {limit:10}, callback
+    JTag.some selector, {limit:10, sort:"counts.followers":-1}, callback
 
   @_fetchUsers = (options={}, callback)->
     {client}   = options
@@ -84,6 +83,8 @@ module.exports = class ActiveItems extends Base
         members = onlineMembers.concat activeMembers
         callback null, members
 
+  # DO NOT USE...THIS WILL BRING DOWN KODING: SA
+  #
   # General method that returns popular items in the last day. If none
   # exists, it returns random items.
   #

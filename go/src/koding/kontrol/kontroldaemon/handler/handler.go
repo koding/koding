@@ -7,18 +7,37 @@ import (
 	"koding/db/models"
 	"koding/db/mongodb"
 	"koding/db/mongodb/modelhelper"
-	"koding/kontrol/kontroldaemon/workerconfig"
 	"koding/kontrol/kontrolhelper"
 	"koding/tools/config"
 	"koding/tools/logger"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/streadway/amqp"
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
 )
+
+const HEARTBEAT_INTERVAL = time.Second * 10
+const HEARTBEAT_DELAY = time.Second * 5
+
+type WorkerResponse struct {
+	Name    string `json:"name"`
+	Uuid    string `json:"uuid"`
+	Command string `json:"command"`
+	Log     string `json:"log"`
+}
+
+func NewWorkerResponse(name, uuid, command, log string) *WorkerResponse {
+	return &WorkerResponse{
+		Name:    name,
+		Uuid:    uuid,
+		Command: command,
+		Log:     log,
+	}
+}
 
 type IncomingMessage struct {
 	Worker  *models.Worker
@@ -28,6 +47,8 @@ type IncomingMessage struct {
 var producer *kontrolhelper.Producer
 var kontrolDB *mongodb.MongoDB
 var log = logger.New("kontroldaemon")
+var proxyMu sync.Mutex
+var handlerMu sync.Mutex
 
 const (
 	WorkersCollection = "jKontrolWorkers"
@@ -55,19 +76,6 @@ func Startup(conf *config.Config) {
 	log.Info("handler is initialized")
 }
 
-// ClientMessage is handling messages coming from the clientExchange
-func ClientMessage(data amqp.Delivery) {
-	if data.RoutingKey == "kontrol-client" {
-		var info models.ServerInfo
-		err := json.Unmarshal(data.Body, &info)
-		if err != nil {
-			log.Error("bad json client msg: %s err: %s", string(data.Body), err)
-		}
-
-		modelhelper.AddClient(info)
-	}
-}
-
 // WorkerMessage is handling messages coming from the workerExchange
 func WorkerMessage(data []byte) {
 	var msg IncomingMessage
@@ -81,14 +89,18 @@ func WorkerMessage(data []byte) {
 		if err != nil {
 			log.Error(err.Error())
 		}
-	} else if msg.Worker != nil {
+		return
+	}
+
+	if msg.Worker != nil {
 		err = handleCommand(msg.Worker.Message.Command, *msg.Worker)
 		if err != nil {
 			log.Error(err.Error())
 		}
-	} else {
-		log.Warning("incoming message is in wrong format")
+		return
 	}
+
+	log.Warning("incoming message is in wrong format %v", msg)
 }
 
 func handleMonitorData(data *models.Monitor) error {
@@ -128,35 +140,66 @@ func handleCommand(command string, worker models.Worker) error {
 			return fmt.Errorf("register to kontrol proxy not possible. port number is '0' for %s", worker.Name)
 		}
 
+		proxyName := worker.Name
+		if worker.ProxyName != "" {
+			proxyName = worker.ProxyName
+		}
+
 		port := strconv.Itoa(worker.Port)
 		key := strconv.Itoa(worker.Version)
+
+		proxyMu.Lock()
 		err = modelhelper.UpsertKey(
-			"koding",    // username
-			worker.Name, // servicename
-			key,         // version (build number)
+			"koding",  // username
+			proxyName, // servicename
+			key,       // version (build number)
 			worker.Hostname+":"+port, // host
 			worker.Environment,       // hostdata, pass environment
 			true,                     // enable keyData to be used with proxy immediately
 		)
+		proxyMu.Unlock()
 		if err != nil {
 			return fmt.Errorf("register to kontrol proxy not possible: %s", err.Error())
 		}
 	case "ack":
-		err := workerconfig.Ack(worker)
-		if err != nil {
-			return err
+		query := func(c *mgo.Collection) error {
+			return c.Update(
+				bson.M{"uuid": worker.Uuid},
+				bson.M{"$set": bson.M{
+					"timestamp": time.Now().Add(HEARTBEAT_INTERVAL),
+					"status":    models.Started,
+				}},
+			)
 		}
+
+		err := kontrolDB.RunOnDatabase(WorkersDB, WorkersCollection, query)
+		if err == mgo.ErrNotFound {
+			worker.Status = models.Started
+			worker.ObjectId = bson.NewObjectId()
+			worker.Timestamp = time.Now().Add(HEARTBEAT_INTERVAL)
+			workerLog("NOT REGISTERED, ADDING AGAIN", worker)
+			return modelhelper.UpsertWorker(worker)
+		}
+
+		// workerLog("PING", worker)
+		return err
 	case "update":
-		log.Info("[%s (%d)] update request from: '%s' - '%s'",
-			worker.Name,
-			worker.Version,
-			worker.Hostname,
-			worker.Uuid,
-		)
-		err := workerconfig.Update(worker)
-		if err != nil {
-			return err
+		//  Update kontrold worker information with our newly created pid.
+		query := func(c *mgo.Collection) error {
+			return c.Update(
+				bson.M{"uuid": worker.Uuid},
+				bson.M{"$set": bson.M{
+					"timestamp": time.Now().Add(HEARTBEAT_INTERVAL),
+					"status":    models.Started,
+					"pid":       worker.Pid,
+					"version":   worker.Version,
+				}},
+			)
 		}
+
+		workerLog("UPDATE", worker)
+
+		return kontrolDB.RunOnDatabase(WorkersDB, WorkersCollection, query)
 	default:
 		return fmt.Errorf(" command not recognized: %s", command)
 	}
@@ -164,84 +207,40 @@ func handleCommand(command string, worker models.Worker) error {
 	return nil
 }
 
+func workerLog(msg string, worker models.Worker) string {
+	msgLog := fmt.Sprintf("%7s ▶ %s  [version: %d hostname: %s uuid: %s pid: %d]",
+		msg,
+		worker.Name,
+		worker.Version,
+		worker.Hostname,
+		worker.Uuid,
+		worker.Pid,
+	)
+
+	log.Info(msgLog)
+	return msgLog
+}
+
 // handleAddCommand is a router that does different things according to the
 // workers' start mode. Each mode is handled via a seperate function.
-func handleAddCommand(worker models.Worker) (workerconfig.WorkerResponse, error) {
+func handleAddCommand(worker models.Worker) (*WorkerResponse, error) {
 	switch worker.Message.Option {
-	case "force":
-		return handleForceOption(worker)
 	case "one", "version":
 		return handleExclusiveOption(worker)
 	case "many":
 		return handleManyOption(worker)
 	}
 
-	return workerconfig.WorkerResponse{},
-		errors.New("no option specified for add action. aborting add handler...")
-}
-
-// handleForceOption mode immediately run the worker, however before it will run,
-// it tries to find all workers with the same name(foo and foo-1 counts
-// as the same) on other host's. Basically 'force' mode makes the
-// worker exclusive on all machines and no other worker with the same
-// name can run anymore.
-func handleForceOption(worker models.Worker) (workerconfig.WorkerResponse, error) {
-	log.Info("[%s (%d)] killing all other workers except hostname '%s'",
-		worker.Name, worker.Version, worker.Hostname)
-
-	result := models.Worker{}
-	query := func(c *mgo.Collection) error {
-		iter := c.Find(bson.M{
-			"name": bson.RegEx{Pattern: "^" + normalizeName(worker.Name),
-				Options: "i"},
-			"hostname": bson.M{"$ne": worker.Hostname},
-		}).Iter()
-		for iter.Next(&result) {
-			res, err := workerconfig.Kill(result.Uuid, "force")
-			if err != nil {
-				log.Error(err.Error())
-			}
-			go deliver(res)
-
-			err = workerconfig.Delete(result.Uuid)
-			if err != nil {
-				log.Error(err.Error())
-			}
-		}
-
-		return nil
-
-	}
-
-	kontrolDB.RunOnDatabase(WorkersDB, WorkersCollection, query)
-
-	startLog := fmt.Sprintf("[%s (%d) - (%s)] starting at '%s' - '%s'",
-		worker.Name,
-		worker.Version,
-		worker.Message.Option,
-		worker.Hostname,
-		worker.Uuid,
-	)
-	log.Info(startLog)
-
-	worker.Status = models.Started
-	worker.ObjectId = bson.NewObjectId()
-	modelhelper.UpsertWorker(worker)
-
-	response := *workerconfig.NewWorkerResponse(
-		worker.Name,
-		worker.Uuid,
-		"start",
-		startLog,
-	)
-
-	return response, nil
+	return nil, errors.New("no option specified for add action. aborting add handler...")
 }
 
 // handleExclusiveOption starts workers whose are in one and version mode. These
 // modes are special where the workers are allowed to be run exclusive, which
 // then deny any other workers to be runned.
-func handleExclusiveOption(worker models.Worker) (workerconfig.WorkerResponse, error) {
+func handleExclusiveOption(worker models.Worker) (*WorkerResponse, error) {
+	handlerMu.Lock()
+	defer handlerMu.Unlock()
+
 	option := worker.Message.Option
 	query := bson.M{}
 	reason := ""
@@ -251,10 +250,8 @@ func handleExclusiveOption(worker models.Worker) (workerconfig.WorkerResponse, e
 	// emailWorker don't get the permission to run.
 	if option == "one" {
 		query = bson.M{
-			"name":   worker.Name,
-			"status": bson.M{"$in": []int{int(models.Started), int(models.Waiting)}},
+			"name": worker.Name,
 		}
-
 		reason = fmt.Sprintf("workers with the same name running: ")
 	}
 
@@ -268,9 +265,7 @@ func handleExclusiveOption(worker models.Worker) (workerconfig.WorkerResponse, e
 			"name": bson.RegEx{Pattern: "^" + normalizeName(worker.Name),
 				Options: "i"},
 			"version": bson.M{"$ne": worker.Version},
-			"status":  bson.M{"$in": []int{int(models.Started), int(models.Waiting)}},
 		}
-
 		reason = fmt.Sprintf("workers with different name and versions running: ")
 	}
 
@@ -281,6 +276,7 @@ func handleExclusiveOption(worker models.Worker) (workerconfig.WorkerResponse, e
 	// that there is some workers that are running).
 	worker.ObjectId = bson.NewObjectId()
 	worker.Status = models.Started
+	worker.Timestamp = time.Now().Add(HEARTBEAT_INTERVAL)
 	change := mgo.Change{
 		Update: worker,
 		Upsert: true,
@@ -307,90 +303,27 @@ func handleExclusiveOption(worker models.Worker) (workerconfig.WorkerResponse, e
 	})
 
 	if err == nil {
-		startLog := fmt.Sprintf("[%s (%d) - (%s)] starting at '%s' - '%s'", worker.Name, worker.Version, option, worker.Hostname, worker.Uuid)
-		log.Info(startLog)
-		response := *workerconfig.NewWorkerResponse(worker.Name, worker.Uuid, "start", startLog)
-		return response, nil
+		startLog := workerLog("START", worker)
+		return NewWorkerResponse(worker.Name, worker.Uuid, "start", startLog), nil
 	}
 
 	reasonLog := reason + fmt.Sprintf("version: %d (pid: %d) at %s", aliveWorker.Version, aliveWorker.Pid, aliveWorker.Hostname)
-	response := *workerconfig.NewWorkerResponse(worker.Name, worker.Uuid, "noPermission", reasonLog)
-	return response, nil // contains start or noPermission
+	return NewWorkerResponse(worker.Name, worker.Uuid, "noPermission", reasonLog), nil
 }
 
 // handleManyOption just starts the worker. That means a worker can be started as
 // many times as we wished with this option.
-func handleManyOption(worker models.Worker) (workerconfig.WorkerResponse, error) {
-	startLog := fmt.Sprintf("[%s (%d) - (%s)] starting at '%s' - '%s'",
-		worker.Name,
-		worker.Version,
-		worker.Message.Option,
-		worker.Hostname,
-		worker.Uuid,
-	)
-	log.Info(startLog)
-
+func handleManyOption(worker models.Worker) (*WorkerResponse, error) {
+	startLog := workerLog("START", worker)
 	worker.ObjectId = bson.NewObjectId()
 	worker.Status = models.Started
-	worker.Timestamp = time.Now().Add(workerconfig.HEARTBEAT_INTERVAL)
+	worker.Timestamp = time.Now().Add(HEARTBEAT_INTERVAL)
 	modelhelper.UpsertWorker(worker)
 
-	response := *workerconfig.NewWorkerResponse(
-		worker.Name,
-		worker.Uuid,
-		"start",
-		startLog,
-	)
-	return response, nil //
+	return NewWorkerResponse(worker.Name, worker.Uuid, "start", startLog), nil
 }
 
-// ApiMessage is handling messages coming from the infoExchange
-func ApiMessage(data []byte) {
-	var req workerconfig.ApiRequest
-	err := json.Unmarshal(data, &req)
-	if err != nil {
-		log.Error("bad json api msg: %s err: %s", string(data), err)
-	}
-
-	err = handleApiRequest(req.Command, req.Uuid)
-	if err != nil {
-		log.Error(err.Error())
-	}
-}
-
-// handleApiRequest is used to make actions on workers. You can kill, delete or
-// start any worker with this api.
-func handleApiRequest(command, uuid string) error {
-	if uuid == "" {
-		errors.New("empty uuid is not allowed.")
-	}
-
-	log.Info("[%s] received: %s", uuid, command)
-	switch command {
-	case "delete":
-		err := workerconfig.Delete(uuid)
-		if err != nil {
-			return err
-		}
-	case "kill":
-		res, err := workerconfig.Kill(uuid, "normal")
-		if err != nil {
-			log.Error(err.Error())
-		}
-		go deliver(res)
-	case "start":
-		res, err := workerconfig.Start(uuid)
-		if err != nil {
-			log.Error(err.Error())
-		}
-		go deliver(res)
-	default:
-		return fmt.Errorf(" command not recognized: %s", command)
-	}
-	return nil
-}
-
-func deliver(res workerconfig.WorkerResponse) {
+func deliver(res *WorkerResponse) {
 	data, err := json.Marshal(res)
 	if err != nil {
 		log.Error("could not marshall worker: %s", err)
@@ -429,44 +362,16 @@ func normalizeName(name string) string {
 // hearbeat. If that worker didn't get three heartbeats in a series we are
 // removing it from the DB.
 func heartBeatChecker() {
-	// counting the hearbeats for each individiual worker
-	countWorkers := make(map[string]uint64)
-
-	queryFunc := func(c *mgo.Collection) error {
+	query := func(c *mgo.Collection) error {
 		worker := models.Worker{}
 
 		iter := c.Find(nil).Iter()
 		for iter.Next(&worker) {
-			if worker.Status == models.Dead {
-				continue // already dead, nothing to do
+			if time.Now().Before(worker.Timestamp.Add(HEARTBEAT_DELAY)) {
+				continue // this one is alive, pick up the next one
 			}
 
-			if time.Now().Before(worker.Timestamp.Add(workerconfig.HEARTBEAT_DELAY)) {
-				countWorkers[worker.Uuid] = 0 // reset counter because it's alive now
-				continue                      // pick up the next one
-			}
-
-			if countWorkers[worker.Uuid] != 3 {
-				log.Info("[%s (%d)] inactive hearbeat (%d) '%s' - '%s' (pid: %d).",
-					worker.Name,
-					worker.Version,
-					countWorkers[worker.Uuid],
-					worker.Hostname,
-					worker.Uuid,
-					worker.Pid,
-				)
-				countWorkers[worker.Uuid]++
-				continue
-			}
-
-			log.Info("[%s (%d)] deleting after three inactive heartbeats '%s' - '%s' (pid: %d).",
-				worker.Name,
-				worker.Version,
-				worker.Hostname,
-				worker.Uuid,
-				worker.Pid,
-			)
-
+			workerLog("DEAD", worker)
 			modelhelper.DeleteWorker(worker.Uuid)
 		}
 
@@ -478,8 +383,8 @@ func heartBeatChecker() {
 	}
 
 	for {
-		kontrolDB.RunOnDatabase(WorkersDB, WorkersCollection, queryFunc)
-		time.Sleep(workerconfig.HEARTBEAT_INTERVAL)
+		time.Sleep(time.Second * 2)
+		kontrolDB.RunOnDatabase(WorkersDB, WorkersCollection, query)
 	}
 }
 
@@ -520,5 +425,4 @@ func deploymentCleaner() {
 		// check 12 hours later again
 		time.Sleep(time.Hour * 12)
 	}
-
 }

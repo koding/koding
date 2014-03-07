@@ -17,6 +17,10 @@ regions         =
   vagrant       : "vagrant"
   sj            : "sj"
   aws           : "aws"
+  premium       : "premium-sj"
+
+cookieMaxAge = 1000 * 60 * 60 * 24 * 14 # two weeks
+cookieSecure = yes
 
 module.exports =
   environment   : environment
@@ -51,6 +55,8 @@ module.exports =
   runNeo4jFeeder: yes
   runGoBroker   : no
   runGoBrokerKite: no
+  runPremiumBrokerKite: no
+  runPremiumBroker: no
   runKontrol    : yes
   runRerouting  : yes
   runUserPresence: yes
@@ -59,7 +65,7 @@ module.exports =
   buildClient   : yes
   runOsKite     : no
   runProxy      : no
-  redis         : "172.16.3.13:6379"
+  redis         : "172.16.6.13:6379"
   misc          :
     claimGlobalNamesForUsers: no
     updateAllSlugs : no
@@ -151,6 +157,9 @@ module.exports =
     useStaticFileServer: no
     staticFilesBaseUrl: "https://koding.com"
     runtimeOptions:
+      sessionCookie :
+        maxAge      : cookieMaxAge
+        secure      : cookieSecure
       environment        : environment
       activityFetchCount : 20
       precompiledApi     : yes
@@ -163,19 +172,24 @@ module.exports =
       useNeo4j: yes
       logToExternal : yes
       resourceName: socialQueueName
+      socialApiUri: 'https://stage-social.koding.com/xhr'
       suppressLogs: no
       version   : version
       mainUri   : "http://koding.com"
       broker    :
         servicesEndpoint: "/-/services/broker"
-        sockJS   : "http://stage-broker-#{version}.sj.koding.com/subscribe"
+      premiumBroker    :
+        servicesEndpoint: "/-/services/premiumBroker"
       brokerKite:
-        servicesEndpoint: "/-/services/broker"
+        servicesEndpoint: "/-/services/brokerKite"
         brokerExchange: 'brokerKite'
-        sockJS   : "http://stage-brokerkite-#{version}.sj.koding.com/subscribe"
+      premiumBrokerKite:
+        servicesEndpoint: "/-/services/premiumBrokerKite"
+        brokerExchange: 'premiumBrokerKite'
       apiUri    : 'https://koding.com'
       appsUri   : 'https://koding-apps.s3.amazonaws.com'
       uploadsUri: 'https://koding-uploads.s3.amazonaws.com'
+      uploadsUriForGroup: 'https://koding-groups.s3.amazonaws.com'
       sourceUri : "http://stage-webserver-#{version}.sj.koding.com:1337"
       github    :
         clientId: "f733c52d991ae9642365"
@@ -210,33 +224,55 @@ module.exports =
     password    : 'djfjfhgh4455__5'
     heartbeat   : 20
     vhost       : 'new'
-  broker        :
-    name        : "broker"
-    ip          : ""
-    port        : 443
-    certFile    : "/opt/ssl_certs/wildcard.koding.com.cert"
-    keyFile     : "/opt/ssl_certs/wildcard.koding.com.key"
-    webProtocol : 'https:'
-    webHostname : "broker-#{version}.sj.koding.com"
-    webPort     : null
-    authExchange: authExchange
-    authAllExchange: authAllExchange
-  brokerKite    :
-    name        : "brokerKite"
-    ip          : ""
-    port        : 443
-    certFile    : "/opt/ssl_certs/wildcard.koding.com.cert"
-    keyFile     : "/opt/ssl_certs/wildcard.koding.com.key"
-    webProtocol : 'https:'
-    webHostname : "brokerKite-#{version}.sj.koding.com"
-    webPort     : null
-    authExchange: authExchange
-    authAllExchange: authAllExchange
+  broker              :
+    name              : "broker"
+    serviceGenericName: "broker"
+    ip                : ""
+    port              : 443
+    certFile          : "/opt/ssl_certs/wildcard.koding.com.cert"
+    keyFile           : "/opt/ssl_certs/wildcard.koding.com.key"
+    webProtocol       : 'https:'
+    authExchange      : authExchange
+    authAllExchange   : authAllExchange
+    failoverUri       : 'stage-broker.koding.com'
+  premiumBroker       :
+    name              : "premiumBroker"
+    serviceGenericName: "broker"
+    ip                : ""
+    port              : 443
+    certFile          : "/opt/ssl_certs/wildcard.koding.com.cert"
+    keyFile           : "/opt/ssl_certs/wildcard.koding.com.key"
+    webProtocol       : 'https:'
+    authExchange      : authExchange
+    authAllExchange   : authAllExchange
+    failoverUri       : 'stage-premiumbroker.koding.com'
+  brokerKite          :
+    name              : "brokerKite"
+    serviceGenericName: "brokerKite"
+    ip                : ""
+    port              : 443
+    certFile          : "/opt/ssl_certs/wildcard.koding.com.cert"
+    keyFile           : "/opt/ssl_certs/wildcard.koding.com.key"
+    webProtocol       : 'https:'
+    authExchange      : authExchange
+    authAllExchange   : authAllExchange
+    failoverUri       : 'stage-brokerkite.koding.com'
+  premiumBrokerKite   :
+    name              : "premiumBrokerKite"
+    serviceGenericName: "brokerKite"
+    ip                : ""
+    port              : 443
+    certFile          : "/opt/ssl_certs/wildcard.koding.com.cert"
+    keyFile           : "/opt/ssl_certs/wildcard.koding.com.key"
+    webProtocol       : 'https:'
+    authExchange      : authExchange
+    authAllExchange   : authAllExchange
+    failoverUri       : 'stage-premiumbrokerkite.koding.com'
   kites:
     disconnectTimeout: 3e3
     vhost       : 'kite'
   email         :
-    host        : "koding.com"
+    host        : "latest.koding.com"
     protocol    : 'https:'
     defaultFromAddress: 'hello@koding.com'
   emailWorker   :
@@ -274,7 +310,8 @@ module.exports =
       apiHost     : "172.16.6.16"
       apiPort     : 80
       port        : 8080
-      switchHost  : "y.koding.com"
+      kodingHost  : "latest.koding.com"
+      socialHost  : "stage-social.koding.com"
     api           :
       port        : 80
       url         : "http://stage-kontrol.sj.koding.com"
@@ -282,8 +319,9 @@ module.exports =
       port        : 80
       portssl     : 443
       ftpip       : '54.208.3.200'
-  recurly       :
-    apiKey      : '0cb2777651034e6889fb0d091126481a' # koding.recurly.com
+  recurly         :
+    apiKey        : '4a0b7965feb841238eadf94a46ef72ee' # koding-test.recurly.com
+    loggedRequests: /^(subscriptions|transactions)/
   embedly       :
     apiKey      : embedlyApiKey
   opsview :
@@ -357,6 +395,14 @@ module.exports =
     rabbitMQ      : "info"
     ldapserver    : "info"
     broker        : "info"
+  defaultVMConfigs:
+    freeVM        :
+      storage     : 3072
+      ram         : 1024
+      cpu         : 1
+  sessionCookie :
+    maxAge      : cookieMaxAge
+    secure      : cookieSecure
   graphite       :
     use          : true
     host         : "172.168.2.7"

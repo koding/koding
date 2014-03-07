@@ -10,39 +10,58 @@ class EditorPane extends Pane
 
     if Array.isArray @files then @createEditorTabs() else @createSingleEditor()
 
-  createEditorInstance: (file) ->
-    return new Ace
+  createEditorInstance: (file, content) ->
+    ace = new Ace
       delegate        : this
       enableShortcuts : no
     , file
 
+    if content
+      ace.once "ace.ready", ->
+        ace.editor.setValue content
+
+    return ace
+
   createSingleEditor: ->
     path      = @files or "localfile:/Untitled.txt"
     file      = FSHelper.createFileFromPath path
-    @ace      = @createEditorInstance file
     {content} = @getOptions()
-    @ace.on "ace.ready", =>
-      @ace.editor.setValue content  if content
+    @ace      = @createEditorInstance file, content
 
   createEditorTabs: ->
-    @tabHandleContainer = new ApplicationTabHandleHolder
-      delegate      : this
-      addPlusHandle : no
+    @editors              = {}
+    @tabHandleContainer   = new ApplicationTabHandleHolder
+      delegate            : this
+      addPlusHandle       : no
 
-    @tabView = new ApplicationTabView
-      delegate           : this
-      tabHandleContainer : @tabHandleContainer
+    @tabView              = new ApplicationTabView
+      delegate            : this
+      tabHandleContainer  : @tabHandleContainer
+      detachPanes         : no
 
-    for fileOptions in @files
-      file   = FSHelper.createFileFromPath fileOptions.path
-      pane   = new KDTabPaneView
-        name : file.name or "Untitled.txt"
+    @files.forEach (options) =>
+      {name, path, content} = options
+      file                  = FSHelper.createFileFromPath path
+      pane                  = new KDTabPaneView
+        name                : file.name or "Untitled.txt"
+        closable            : no
 
-      pane.addSubView @createEditorInstance file
+      editor = @createEditorInstance file, content
+      pane.addSubView editor
       @tabView.addPane pane
+      @editors[name] = editor  if name
 
+  # use this for single editor
   getValue: ->
     return  @ace.editor.getSession().getValue()
+
+  # use this for multiple editor tabs
+  getValues: ->
+    data = {}
+    for name, editorInstance of @editors
+      data[name] = editorInstance.editor.getValue()
+
+    return data
 
   pistachio: ->
     single   = "{{> @ace}}"

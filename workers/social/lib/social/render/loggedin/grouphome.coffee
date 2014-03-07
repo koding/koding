@@ -18,7 +18,7 @@ module.exports = (options, callback)->
     <html>
     <head>
       <title>#{encoder.XSSEncode title}</title>
-      #{getStyles()}
+      #{getStyles customize}
     </head>
     <body class="group">
 
@@ -31,5 +31,5 @@ module.exports = (options, callback)->
 
     """
 
-  fetchScripts {bongoModels, client}, (err, scripts)->
+  fetchScripts {bongoModels, client, slug}, (err, scripts)->
     callback null, prepareHTML scripts

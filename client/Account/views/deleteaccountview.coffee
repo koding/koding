@@ -61,7 +61,7 @@ class DeleteModalView extends KDModalViewWithForms
             {username}      = dangerForm.inputs
             {confirmButton} = dangerForm.buttons
 
-            JUser.unregister username.getValue(), (err)->
+            JUser.unregister username.getValue(), (err)=>
               if err then new KDNotificationView title : 'There was a problem, please try again!'
               else
                 surveyLink = "https://docs.google.com/forms/d/1fiC6wSThfXxtLpdRlQ7qnNvJrClqdUrmOT_L-_cu1tw/viewform"
@@ -79,7 +79,7 @@ class DeleteModalView extends KDModalViewWithForms
                 @_windowDidResize()
                 KD.mixpanel "Delete account, success"
                 KD.utils.wait 30000, ->
-                  $.cookie 'clientId', erase : yes
+                  Cookies.expire 'clientId'
                   location.replace '/'
               confirmButton.hideLoader()
 
@@ -91,7 +91,6 @@ class DeleteModalView extends KDModalViewWithForms
               disabled       : yes
               loader         :
                 color        : '#ffffff'
-                diameter     : 15
               callback       : -> @showLoader()
             Cancel           :
               style          : 'modal-cancel'

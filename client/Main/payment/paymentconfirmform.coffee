@@ -6,11 +6,16 @@ class PaymentConfirmForm extends JView
     @buttonBar = new KDButtonBar
       buttons       :
         Buy         :
-          cssClass  : "modal-clean-green"
-          callback  : => @emit 'PaymentConfirmed'
+          title     : "PLACE YOUR ORDER"
+          style     : "solid medium green"
+          loader    : yes
+          callback  : =>
+            @buttonBar.buttons['Buy'].showLoader()
+            @emit 'PaymentConfirmed'
+
         cancel      :
-          title     : "cancel"
-          cssClass  : "modal-cancel"
+          title     : "CANCEL"
+          style     : "solid medium light-gray"
           callback  : => @emit 'Cancel'
 
   getExplanation: (key) -> # doesn't define any copy

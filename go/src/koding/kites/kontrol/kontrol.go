@@ -1,21 +1,24 @@
 package main
 
 import (
-	"errors"
 	"flag"
-	"fmt"
 	"io/ioutil"
-	"kite"
-	"kite/kontrol"
 	"koding/db/mongodb/modelhelper"
 	"koding/tools/config"
 	"log"
+	"os"
+	"path/filepath"
 	"strconv"
+	"strings"
+
+	"github.com/koding/kite"
+	"github.com/koding/kite/kontrol"
 )
 
 var (
-	profile = flag.String("c", "", "Configuration profile")
-	region  = flag.String("r", "", "Region")
+	profile     = flag.String("c", "", "Configuration profile")
+	region      = flag.String("r", "", "Region")
+	peersString = flag.String("p", "", "Peers (comma seperated)")
 )
 
 func main() {
@@ -38,12 +41,6 @@ func main() {
 		Region:      *region,
 	}
 
-	// Read list of etcd servers from config.
-	machines := make([]string, len(conf.Etcd))
-	for i, s := range conf.Etcd {
-		machines[i] = "http://" + s.Host + ":" + strconv.FormatUint(uint64(s.Port), 10)
-	}
-
 	publicKey, err := ioutil.ReadFile(conf.NewKontrol.PublicKeyFile)
 	if err != nil {
 		log.Fatalln(err.Error())
@@ -54,9 +51,25 @@ func main() {
 		log.Fatalln(err.Error())
 	}
 
-	kon := kontrol.New(kiteOptions, machines, string(publicKey), string(privateKey))
+	hostname, err := os.Hostname()
+	if err != nil {
+		log.Fatalln(err.Error())
+	}
 
-	kon.AddAuthenticator("kodingKey", authenticateFromKodingKey)
+	cwd, err := os.Getwd()
+	if err != nil {
+		log.Fatalln(err.Error())
+	}
+
+	datadir := filepath.Join(cwd, "kontrol-data-"+hostname)
+
+	var peers []string
+	if *peersString != "" {
+		peers = strings.Split(*peersString, ",")
+	}
+
+	kon := kontrol.New(kiteOptions, hostname, datadir, peers, string(publicKey), string(privateKey))
+
 	kon.AddAuthenticator("sessionID", authenticateFromSessionID)
 
 	if conf.NewKontrol.UseTLS {
@@ -84,33 +97,4 @@ func findUsernameFromSessionID(sessionID string) (string, error) {
 	}
 
 	return session.Username, nil
-}
-
-func authenticateFromKodingKey(r *kite.Request) error {
-	username, err := findUsernameFromKey(r.Authentication.Key)
-	if err != nil {
-		return err
-	}
-
-	r.Username = username
-
-	return nil
-}
-
-func findUsernameFromKey(key string) (string, error) {
-	kodingKey, err := modelhelper.GetKodingKeysByKey(key)
-	if err != nil {
-		return "", errors.New("kodingkey not found in kontrol db")
-	}
-
-	account, err := modelhelper.GetAccountById(kodingKey.Owner)
-	if err != nil {
-		return "", fmt.Errorf("register get user err %s", err)
-	}
-
-	if account.Profile.Nickname == "" {
-		return "", errors.New("nickname is empty, could not register kite")
-	}
-
-	return account.Profile.Nickname, nil
 }

@@ -19,7 +19,8 @@ class DomainsListViewController extends KDListViewController
 
   loadItems:(callback)->
     @showLazyLoader()
-    KD.whoami().fetchDomains (err, domains) =>
+    {JDomain} = KD.remote.api
+    JDomain.fetchDomains (err, domains) =>
       @instantiateListItems domains or []
       @hideLazyLoader()
       callback?()

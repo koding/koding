@@ -10,9 +10,10 @@ __utils.extend __utils,
     #{ cardFirstName } #{ cardLastName } (#{ cardType } #{ cardNumber })
     """
 
-  botchedUrlRegExp: /(([a-zA-Z]+\:)?\/\/)+(\w+:\w+@)?([a-zA-Z\d.-]+\.[A-Za-z]{2,4})(:\d+)?(\/\S*)?/g
-
-  webProtocolRegExp: /^((http(s)?\:)?\/\/)/
+  botchedUrlRegExp     : /(([a-zA-Z]+\:)?\/\/)+(\w+:\w+@)?([a-zA-Z\d.-]+\.[A-Za-z]{2,4})(:\d+)?(\/\S*)?/g
+  webProtocolRegExp    : /^((http(s)?\:)?\/\/)/
+  domainWithTLDPattern : /^[a-z0-9]+([\-\.]{1}[a-z0-9]+)*\.[a-z]{2,5}$/i
+  subdomainPattern     : /^(?:[a-z0-9](?:[_\-](?![_\-])|[a-z0-9]){0,60}[a-z0-9]|[a-z0-9])$/i
 
   proxifyUrl:(url="", options={})->
 
@@ -29,13 +30,6 @@ __utils.extend __utils,
       endpoint = "/crop"
     return "https://i.embed.ly/1/display#{endpoint or ''}?grow=#{options.grow}&width=#{options.width}&height=#{options.height}&key=#{KD.config.embedly.apiKey}&url=#{encodeURIComponent url}"
 
-
-  goBackToOldKoding:->
-    KD.whoami().modify preferredKDProxyDomain : 'oldkoding', (err)->
-      unless err
-        $.cookie 'kdproxy-preferred-domain', 'oldkoding'
-        location.reload yes
-
   # This function checks current user's preferred domain and
   # set's it to preferredDomainCookie
   setPreferredDomain:(account)->
@@ -44,10 +38,10 @@ __utils.extend __utils,
     {preferredKDProxyDomain} = account
     if preferredKDProxyDomain and preferredKDProxyDomain isnt ""
       # if cookie name is already same do nothing
-      return  if $.cookie(preferredDomainCookieName) is preferredKDProxyDomain
+      return  if (Cookies.get preferredDomainCookieName) is preferredKDProxyDomain
 
       # set cookie name
-      $.cookie preferredDomainCookieName, preferredKDProxyDomain
+      Cookies.set preferredDomainCookieName, preferredKDProxyDomain
 
       # there can be conflicts between first(which is defined below) route
       # and the currect builds router, so reload to main page from server
@@ -402,24 +396,28 @@ __utils.extend __utils,
     gp = u.generatePassword
     gp(gr(10), yes)
 
-  registerDummyUser:->
-
-    return if location.hostname isnt "localhost"
+  generateDummyUserData:->
 
     u  = KD.utils
 
     uniqueness = (Date.now()+"").slice(6)
-    formData   =
+    return formData   =
       agree           : "on"
       email           : "sinanyasar+#{uniqueness}@gmail.com"
       firstName       : u.getDummyName()
       lastName        : u.getDummyName()
-      inviteCode      : "twitterfriends"
+      # inviteCode      : "twitterfriends"
       password        : "123123123"
       passwordConfirm : "123123123"
       username        : uniqueness
 
-    KD.remote.api.JUser.register formData, => location.reload yes
+  registerDummyUser:->
+
+    return if location.hostname is "koding.com"
+
+    u  = KD.utils
+
+    KD.remote.api.JUser.register u.generateDummyUserData(), => location.reload yes
 
   startRollbar: ->
     @replaceFromTempStorage "_rollbar"
@@ -492,10 +490,10 @@ __utils.extend __utils,
       height        : "auto"
       buttons       :
         Save        :
-          style     : "modal-clean-gray"
+          style     : "solid green medium"
           callback  : => callback input, finderController, dialog
         Cancel      :
-          style     : "modal-cancel"
+          style     : "solid medium"
           callback  : =>
             finderController.stopAllWatchers()
             delete finderController
@@ -570,6 +568,18 @@ __utils.extend __utils,
 
   formatMoney: accounting.formatMoney
 
+  stringToColor:(str)->
+    hash = 0
+    for i in [0...str.length]
+      hash = str.charCodeAt(i) + ((hash << 5) - hash)
+
+    color = '#'
+    for i in [0...3]
+      value = (hash >> (i * 8)) & 0xFF
+      color += ('00' + value.toString(16)).substr(-2)
+
+    return color
+
   postDummyStatusUpdate:->
 
     return if location.hostname isnt "localhost"
@@ -579,7 +589,7 @@ __utils.extend __utils,
     then KD.config.entryPoint.slug
     else 'koding'
 
-    KD.remote.api.JStatusUpdate.create {body, group}, (err,reply)=>
+    KD.remote.api.JNewStatusUpdate.create {body, group}, (err,reply)=>
       unless err
       then KD.getSingleton("appManager").tell 'Activity', 'ownActivityArrived', reply
       else new KDNotificationView type : "mini", title : "There was an error, try again later!"
@@ -593,3 +603,50 @@ __utils.extend __utils,
   # creates string from tag so that new status updates can
   # show the tags properly
   tokenizeTag: (tag)-> "|#:JTag:#{tag.getId()}|"
+
+  doesEmailValid: (email) ->
+    /^((([a-z]|\d|[!#\$%&'\*\+\-\/=\?\^_`{\|}~]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])+(\.([a-z]|\d|[!#\$%&'\*\+\-\/=\?\^_`{\|}~]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])+)*)|((\x22)((((\x20|\x09)*(\x0d\x0a))?(\x20|\x09)+)?(([\x01-\x08\x0b\x0c\x0e-\x1f\x7f]|\x21|[\x23-\x5b]|[\x5d-\x7e]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(\\([\x01-\x09\x0b\x0c\x0d-\x7f]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF]))))*(((\x20|\x09)*(\x0d\x0a))?(\x20|\x09)+)?(\x22)))@((([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])*([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])))\.)+(([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])*([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])))\.?$/i.test email
+
+  nicetime: do ->
+
+    niceify = (duration)->
+
+      past = no
+
+      if duration < 0
+        past     = yes
+        duration = Math.abs duration
+
+      duration = new Number(duration).toFixed 2
+      durstr   = ''
+      second   = 1
+      minute   = second * 60
+      hour     = minute * 60
+      day      = hour * 24
+
+      durstr = if duration < minute then 'less than a minute'
+      else if duration < minute * 2 then 'about a minute';
+      else if duration < hour       then Math.floor(duration / minute) + ' minutes'
+      else if duration < hour * 2   then 'about an hour'
+      else if duration < day        then 'about ' + Math.floor(duration / hour) + ' hours';
+      else if duration < day * 2    then '1 day'
+      else if duration < day * 365  then Math.floor(duration / day) + ' days';
+      else 'over a year'
+
+      durstr += ' ago'  if past
+
+      return durstr
+
+    (duration, to)->
+
+      if not to
+        niceify duration
+      else if duration and to
+        from = duration
+        to   = to
+        niceify to - from
+      else if not duration and to
+        from = new Date().getTime() / 1000
+        to   = to
+        niceify to - from
+

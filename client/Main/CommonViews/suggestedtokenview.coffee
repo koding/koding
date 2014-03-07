@@ -15,5 +15,6 @@ class SuggestedTokenView extends TokenView
     return  "#{@getKey()}:#{$suggest}"
 
   pistachio: ->
-    {prefix} = @getOptions()
-    "#{prefix}{{#($suggest)}}"
+    {prefix}   = @getOptions()
+    {$suggest} = @getData()
+    "#{prefix}#{Encoder.XSSEncode $suggest}"

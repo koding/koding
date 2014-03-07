@@ -59,9 +59,9 @@ module.exports = class JPasswordRecovery extends jraphical.Module
 
   @getEmailSubject = ({resetPassword})-> switch
     when resetPassword
-      "Instructions to reset your password"
+      "Please reset your password"
     else
-      "Instructions to confirm your email"
+      "Please confirm your email"
 
   @getEmailDateFormat = -> 'fullDate'
 
@@ -70,11 +70,11 @@ module.exports = class JPasswordRecovery extends jraphical.Module
     verb = if resetPassword then "reset" else "confirm"
     obj = if resetPassword then "password" else "email"
     """
-    At #{dateFormat requestedAt, 'shortTime'} on #{dateFormat requestedAt, 'shortDate'}, you requested to #{verb} your #{obj}.
-
-    This one-time token will allow you to #{verb} your #{obj}.  This token will self-destruct 30 minutes after it is issued.
+    Please click the link below to #{verb} your #{obj}. This token is valid for only 30 minutes.
 
     #{url}
+
+    If you can't click the link, please copy it and paste it on your browser. If you didn't request this, please ignore this email.
     """
 
   @recoverPassword = secure (client, usernameOrEmail, callback)->
@@ -156,7 +156,9 @@ module.exports = class JPasswordRecovery extends jraphical.Module
               redemptionToken : token
               force           : yes
 
-            email.save callback
+            email.save (err)->
+              return callback new KodingError "Email cannot saved" if err
+              callback err, token
 
   @validate = secure ({connection:{delegate}}, token, callback)->
     @one {token}, (err, certificate)->

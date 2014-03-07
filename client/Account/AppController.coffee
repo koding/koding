@@ -2,7 +2,10 @@ class AccountAppController extends AppController
 
   handler = (callback)->
     if KD.isLoggedIn()
-      KD.singleton('appManager').open 'Account', callback
+      appManager = KD.singleton('appManager')
+      if appManager.getFrontApp()?.getOption('name') is 'Account'
+        callback appManager.getFrontApp()
+      else appManager.open 'Account', callback
     else
       KD.singletons.router.handleRoute '/'
 
@@ -12,7 +15,6 @@ class AccountAppController extends AppController
       "/:name?/Account"          : -> KD.singletons.router.handleRoute '/Account/Profile'
       "/:name?/Account/:section" : ({params:{section}})-> handler (app)-> app.openSection section
       "/:name?/Account/Referrer" : -> KD.singletons.router.handleRoute '/'
-    behavior                     : "hideTabs"
     hiddenHandle                 : yes
 
   items =
@@ -72,13 +74,16 @@ class AccountAppController extends AppController
     # SET UP VIEWS
     @navController = new KDListViewController
       view        : new KDListView
-        tagName   : 'aside'
+        tagName   : 'nav'
         type      : 'inner-nav'
         itemClass : AccountNavigationItem
       wrapper     : no
       scrollView  : no
 
-    mainView.addSubView navView = @navController.getView()
+    mainView.addSubView aside = new KDView tagName : 'aside'
+
+
+    aside.addSubView navView = @navController.getView()
 
     mainView.addSubView @tabView = new KDTabView
       hideHandleContainer : yes
@@ -189,7 +194,6 @@ class AccountAppController extends AppController
                     type          : "submit"
                     loader        :
                       color       : "#444444"
-                      diameter    : 12
                     callback      : -> @hideLoader()
                   cancel          :
                     title         : "Cancel"
@@ -197,7 +201,7 @@ class AccountAppController extends AppController
                     callback      : (event)-> modal.destroy()
                 fields            :
                   vmToResize    :
-                    label         : "Select a WM to resize"
+                    label         : "Select a VM to resize"
                     cssClass      : "clearfix"
                     itemClass     : KDSelectBox
                     type          : "select"

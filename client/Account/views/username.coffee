@@ -51,7 +51,9 @@ class AccountEditUsername extends JView
         Save               :
           title            : 'SAVE CHANGES'
           type             : 'submit'
-          style            : 'solid green fr'
+          cssClass         : 'profile-save-changes'
+          style            : 'solid green'
+          loader           : yes
       callback             : @bound 'update'
 
 
@@ -123,6 +125,7 @@ class AccountEditUsername extends JView
       =>
         # if everything is OK or didnt change, show profile updated modal
         notify "Your account information is updated." if profileUpdated
+        @emailForm.buttons.Save.hideLoader()
     ]
     daisy queue
 
@@ -157,10 +160,10 @@ class AccountEditUsername extends JView
     {email} = @userInfo
     {nickname, firstName, lastName} = @account.profile
 
-    @emailForm.inputs.email.setDefaultValue email
-    @emailForm.inputs.username.setDefaultValue nickname
-    @emailForm.inputs.firstName.setDefaultValue firstName
-    @emailForm.inputs.lastName.setDefaultValue lastName
+    @emailForm.inputs.email.setDefaultValue Encoder.htmlDecode email
+    @emailForm.inputs.username.setDefaultValue Encoder.htmlDecode nickname
+    @emailForm.inputs.firstName.setDefaultValue Encoder.htmlDecode firstName
+    @emailForm.inputs.lastName.setDefaultValue Encoder.htmlDecode lastName
 
     {focus} = KD.utils.parseQuery()
     @emailForm.inputs[focus]?.setFocus()  if focus
@@ -220,7 +223,7 @@ class AccountEditUsername extends JView
             @avatarChange.emit "LoadingEnd"
 
   uploadAvatar: (avatarData, callback)->
-    FSHelper.s3.upload "avatar.png", avatarData, (err, url)=>
+    FSHelper.s3.upload "avatar.png", avatarData, "user", "", (err, url)=>
       resized = KD.utils.proxifyUrl url,
         crop: true, width: 300, height: 300
 

@@ -26,8 +26,6 @@ class MainController extends KDController
     @setFailTimer()
     @attachListeners()
 
-    @introductionTooltipController = new IntroductionTooltipController
-
   createSingletons:->
 
     KD.registerSingleton "mainController",            this
@@ -40,18 +38,18 @@ class MainController extends KDController
     KD.registerSingleton "localStorageController",    new LocalStorageController
     KD.registerSingleton "oauthController",           new OAuthController
     KD.registerSingleton "groupsController",          new GroupsController
-    KD.registerSingleton "vmController",              new VirtualizationController
     KD.registerSingleton "paymentController",         new PaymentController
+    KD.registerSingleton "vmController",              new VirtualizationController
     KD.registerSingleton "locationController",        new LocationController
     KD.registerSingleton "badgeController",           new BadgeController
     KD.registerSingleton "helpController",            new HelpController
-
 
     # appManager.create 'Chat', (chatController)->
     #   KD.registerSingleton "chatController", chatController
 
     @ready =>
       router.listen()
+      KD.registerSingleton "widgetController",        new WidgetController
       KD.registerSingleton "activityController",      new ActivityController
       KD.registerSingleton "appStorageController",    new AppStorageController
       KD.registerSingleton "kodingAppsController",    new KodingAppsController
@@ -62,7 +60,10 @@ class MainController extends KDController
 
       console.timeEnd "Koding.com loaded"
 
+    @forwardEvents KD.remote, ['disconnected', 'reconnected']
+
   accountChanged:(account, firstLoad = no)->
+    account = KD.remote.revive account  unless account instanceof KD.remote.api.JAccount
     @userAccount             = account
     connectedState.connected = yes
 
@@ -101,23 +102,16 @@ class MainController extends KDController
     KD.logout()
     storage = new LocalStorage 'Koding'
 
-    KD.remote.api.JUser.logout (err, account, replacementToken)=>
+    KD.remote.api.JUser.logout (err) =>
       mainView._logoutAnimation()
 
       wc = KD.singleton 'windowController'
       wc.clearUnloadListeners()
 
-      KD.utils.wait 1000, ->
-        $.cookie 'clientId', replacementToken  if replacementToken
+      KD.utils.wait 1000, =>
+        @swapAccount replacementAccount: null
         storage.setValue 'loggingOut', '1'
         location.reload()
-
-  oldCookie = $.cookie
-  cookieChanges = []
-  $.cookie = (name, val) ->
-    if val?
-      cookieChanges.push (new Error).stack
-    oldCookie.apply this, arguments
 
   attachListeners:->
     # @on 'pageLoaded.as.(loggedIn|loggedOut)', (account)=>
@@ -132,17 +126,13 @@ class MainController extends KDController
 
     # async clientId change checking procedures causes
     # race conditions between window reloading and post-login callbacks
-    cookieChangeHandler = do (cookie = $.cookie 'clientId') => =>
+    cookieChangeHandler = do (cookie = Cookies.get 'clientId') => =>
       cookieExists = cookie?
-      cookieMatches = cookie is ($.cookie 'clientId')
-      cookie = $.cookie 'clientId'
+      cookieMatches = cookie is (Cookies.get 'clientId')
+      cookie = Cookies.get 'clientId'
 
       if cookieExists and not cookieMatches
-        KD.logToExternal "cookie changes", {stackTraces:cookieChanges, username:KD.nick()}
-
         return @isLoggingIn off  if @isLoggingIn() is on
-
-        KD.logToExternal "cookie changes", {stackTraces:cookieChanges, username:KD.nick(), inlogin:true}
 
         window.removeEventListener 'beforeunload', wc.bound 'beforeUnload'
         @emit "clientIdChanged"
@@ -150,13 +140,14 @@ class MainController extends KDController
         # window location path is set to last route to ensure visitor is not
         # redirected to another page
         @utils.defer ->
-          lastRoute = KD.getSingleton("router").visitedRoutes.last
+          lastRoute = localStorage?.routeToBeContinued or KD.getSingleton("router").visitedRoutes.last
 
           if lastRoute and /^\/(?:Reset|Register|Verify|Confirm)\//.test lastRoute
             lastRoute = "/Activity"
 
           {entryPoint} = KD.config
           KD.getSingleton('router').handleRoute lastRoute or '/Activity', {replaceState: yes, entryPoint}
+          localStorage?.removeItem "routeToBeContinued"
 
         @utils.wait 3000, cookieChangeHandler
     # Note: I am using wait instead of repeat, for the subtle difference.  See this StackOverflow answer for more info: 
@@ -172,13 +163,15 @@ class MainController extends KDController
 
     { account, replacementToken } = options
 
-    if replacementToken and replacementToken isnt $.cookie 'clientId'
-      $.cookie 'clientId', replacementToken
+    { maxAge, secure } = KD.config.sessionCookie
 
-    @accountChanged account
+    if replacementToken and replacementToken isnt Cookies.get 'clientId'
+      Cookies.set 'clientId', replacementToken, { maxAge, secure }
 
-    @once 'AccountChanged', (account) -> callback null, options
-
+    if account
+      @accountChanged account
+      if callback
+        @once 'AccountChanged', (account) -> callback null, options
 
   handleLogin: (credentials, callback) ->
     { JUser } = KD.remote.api
@@ -228,9 +221,9 @@ class MainController extends KDController
       @_isLoggingIn ? no
 
   showInstructionsBook:->
-    if $.cookie 'newRegister'
+    if Cookies.get 'newRegister'
       @emit "ShowInstructionsBook", 9
-      $.cookie 'newRegister', erase: yes
+      Cookies.expire 'newRegister'
     else if @isUserLoggedIn()
       BookView::getNewPages (pages)=>
         return unless pages.length

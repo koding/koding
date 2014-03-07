@@ -1,6 +1,6 @@
 class ActivityInputView extends KDTokenizedInput
 
-  {JTag} = KD.remote.api
+  TOKEN_LIMIT = 5
 
   constructor: (options = {}, data) ->
     options.cssClass         = KD.utils.curry "input-view", options.cssClass
@@ -77,9 +77,13 @@ class ActivityInputView extends KDTokenizedInput
       when 27 # Escape
         @emit "Escape"
 
-    if /\s/.test String.fromCharCode event.which
+    if /\W/.test String.fromCharCode event.which
       if @tokenInput and /^\W+$/.test @tokenInput.textContent then @cancel()
       else if @selectToken() then KD.utils.stopDOMEvent event
+
+  keyUp: ->
+    return  if @getTokens().length >= TOKEN_LIMIT
+    super
 
   focus: ->
     return  if @focused
@@ -106,7 +110,7 @@ class ActivityInputView extends KDTokenizedInput
     return  content
 
   renderTokens: (content, tokens = {}) ->
-    return  content.replace /\|(.*?):(.*?):(.*?)\|/g, (match, prefix, constructorName, id) =>
+    content.replace /\|(.*?):(.*?):(.*?):(.*?)\|/g, (match, prefix, constructorName, id) =>
       switch prefix
         when "#"
           itemClass = TagLinkView
@@ -124,7 +128,7 @@ class ActivityInputView extends KDTokenizedInput
 
   getTokenFilter: ->
     switch @activeRule.prefix
-      when "#" then (token) -> token instanceof JTag
+      when "#" then (token) -> token instanceof KD.remote.api.JTag
       else noop
 
   fillTokenMap = (tokens, map) ->

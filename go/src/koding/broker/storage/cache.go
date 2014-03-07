@@ -29,6 +29,10 @@ func newSet(socketId string) (*subscriptionSet, error) {
 	return s, nil
 }
 
+func (s *subscriptionSet) Backend() Backend {
+	return SET
+}
+
 func (s *subscriptionSet) Each(f func(item interface{}) bool) error {
 	s.set.Each(f)
 	// each doesnt return anything
@@ -54,6 +58,20 @@ func (s *subscriptionSet) Unsubscribe(routingKeyPrefixes ...string) error {
 func (s *subscriptionSet) Resubscribe(socketId string) (bool, error) {
 	socketSubscription, ok := socketSubscriptionsMap[socketId]
 	if !ok {
+		return false, nil
+	}
+
+	length, err := socketSubscription.Len()
+	if err != nil {
+		return false, err
+	}
+
+	// this is just an arbitary number for now
+	// sometimes client send 1 item for subscription
+	// and then if it tries to resubscribe, it wont get the
+	// realtime event/
+	// this is open for improvements
+	if length < 10 {
 		return false, nil
 	}
 

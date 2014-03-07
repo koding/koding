@@ -41,13 +41,14 @@ class HomeRegisterForm extends KDFormView
       title         : 'Sign up'
       cssClass      : 'solid red shadowed'
       type          : 'submit'
+      loader        : yes
       callback      : =>
+        @button.showLoader()
         if @username.input.getValue() is ""
           @username.showError "Please enter a username."
         if @email.input.getValue() is ""
           @email.showError "Please enter an email."
-
-
+        @button.hideLoader()
 
     @on "SubmitFailed", (msg)=>
       # if msg is "Wrong password"
@@ -117,7 +118,7 @@ class HomeRegisterForm extends KDFormView
   doRegister:(formData)->
     (KD.getSingleton 'mainController').isLoggingIn on
     formData.agree = 'on'
-    formData.referrer = $.cookie 'referrer'
+    formData.referrer = Cookies.get 'referrer'
     # we need to close the group channel so we don't receive the cycleChannel event.
     # getting the cycleChannel even for our own MemberAdded can cause a race condition
     # that'll leak a guest account.
@@ -143,9 +144,8 @@ class HomeRegisterForm extends KDFormView
 
         _gaq.push ['_trackEvent', 'Sign-up']
 
-        $.cookie 'newRegister', yes
-        $.cookie 'clientId', replacementToken
-        KD.getSingleton('mainController').accountChanged account
+        Cookies.set 'newRegister', yes
+        KD.getSingleton('mainController').swapAccount {account, replacementToken}
 
         new KDNotificationView
           cssClass  : "login"
@@ -153,8 +153,12 @@ class HomeRegisterForm extends KDFormView
           # content   : 'Successfully registered!'
           duration  : 2000
 
+        return location.reload()  unless KD.remote.isConnected()
+
         firstRoute = KD.getSingleton("router").visitedRoutes.first
         if firstRoute and /^\/(?:Reset|Register|Confirm|R)\//.test firstRoute
+          firstRoute = "/Activity"
+        else if firstRoute is "/"
           firstRoute = "/Activity"
 
         {entryPoint} = KD.config

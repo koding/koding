@@ -61,17 +61,6 @@ class RegisterInlineForm extends LoginViewInlineForm
         color       : "#ffffff"
         diameter    : 21
 
-    @disabledNotice = new KDCustomHTMLView
-      tagName       : "section"
-      cssClass      : "disabled-notice"
-      partial       : """
-                      <p>
-                      <b>REGISTRATIONS ARE CURRENTLY DISABLED</b>
-                      We're sorry for that, please follow us on <a href='http://twitter.com/koding' target='_blank'>twitter</a>
-                      if you want to be notified when registrations are enabled again.
-                      </p>
-                      """
-
     @invitationCode = new LoginInputView
       cssClass      : "hidden"
       inputOptions  :
@@ -148,6 +137,7 @@ class RegisterInlineForm extends LoginViewInlineForm
       {origin} = invite
       @invitationCode.input.setValue invite.code
       @email.input.setValue invite.email
+      @email.placeholder.setClass "out"
       if origin.constructorName is 'JAccount'# instanceof KD.remote.api.JAccount
         KD.remote.cacheable [origin], (err, [account])=>
           @addSubView new AvatarStaticView({size: width : 30, height : 30}, account), '.invited-by .wrapper'
@@ -194,7 +184,6 @@ class RegisterInlineForm extends LoginViewInlineForm
       <div>{{> @button}}</div>
     </section>
     {{> @invitationCode}}
-    {{> @disabledNotice}}
     """
       # <div>{{> @fullName}}</div>
     #   <div>{{> @password}}</div>

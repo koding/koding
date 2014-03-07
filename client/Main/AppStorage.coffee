@@ -6,11 +6,11 @@ class AppStorage extends KDObject
     @reset()
     super
 
-  fetchStorage: (callback)->
+  fetchStorage: (callback, force = no)->
 
     [appId, version] = [@_applicationID, @_applicationVersion]
 
-    unless @_storage
+    if not @_storage or force
       KD.whoami().fetchAppStorage {appId, version}, (error, storage) =>
         if not error and storage
           @_storage = storage
@@ -25,11 +25,12 @@ class AppStorage extends KDObject
         @emit "storageFetched"
         @emit "ready"
 
-  fetchValue: (key, callback, group = 'bucket')->
+  fetchValue: (key, callback, group = 'bucket', force = no)->
 
     @reset()
     @fetchStorage (storage)->
-      callback  if storage[group]?[key] then storage[group][key]
+      callback  if storage?[group]?[key] then storage[group][key]
+    , force
 
   getValue: (key, group = 'bucket')->
 
@@ -45,7 +46,7 @@ class AppStorage extends KDObject
     @_storageData[group][key] = value
 
     @fetchStorage (storage)->
-      storage.update {
+      storage?.update {
         $set: pack
       }, -> callback?()
 

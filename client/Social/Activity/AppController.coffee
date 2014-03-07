@@ -55,6 +55,8 @@ class ActivityAppController extends AppController
     @lastFrom              = Date.now()
     @lastQuery             = null
 
+    KD.singletons.dock.getView().show()
+
     # if @mainController.appIsReady then @putListeners()
     # else @mainController.on 'AppIsReady', => @putListeners()
 
@@ -163,10 +165,8 @@ class ActivityAppController extends AppController
     @listController.showLazyLoader no
     view.unsetTopicTag()
 
-    @isLoading       = yes
-    groupsController = KD.getSingleton 'groupsController'
-    {isReady}        = groupsController
-    currentGroup     = groupsController.getCurrentGroup()
+    @isLoading         = yes
+    {groupsController} = KD.singletons
     {
       filterByTag
       to
@@ -188,7 +188,7 @@ class ActivityAppController extends AppController
       #@isExempt (exempt)=>
       #if exempt or @getFilter() isnt activityTypes
 
-      groupObj     = KD.getSingleton("groupsController").getCurrentGroup()
+      groupObj     = groupsController.getCurrentGroup()
       mydate       = new Date((new Date()).setSeconds(0) + 60000).getTime()
       options      =
         to         : options.to or mydate #Date.now() we cant cache if we change ts everytime.
@@ -208,6 +208,12 @@ class ActivityAppController extends AppController
 
       {roles} = KD.config
       group   = groupObj?.slug
+
+      {togglePinnedList, pinnedListController} = view.feedWrapper
+      pinnedListView = pinnedListController.getListView()
+
+      togglePinnedList.hide()
+      pinnedListView.hide()
 
       if not to and (searchText or @searchText)
         @resetAll()
@@ -238,6 +244,9 @@ class ActivityAppController extends AppController
         @once "publicFeedFetched_#{eventSuffix}", setFeedData
         @fetchPublicActivities options
         @setWarning()
+        if pinnedListController.getItemCount()
+          togglePinnedList.show()
+          pinnedListView.show()
         return
 
       else
@@ -247,8 +256,7 @@ class ActivityAppController extends AppController
 
       # log "------------------ populateActivity", dateFormat(@lastFrom, "mmmm dS HH:mm:ss"), @_e
 
-    if isReady then fetch()
-    else groupsController.once 'GroupChanged', fetch
+    groupsController.ready fetch
 
   searchActivities:(options = {})->
     options.to = @lastTo

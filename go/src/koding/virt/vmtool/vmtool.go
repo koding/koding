@@ -81,7 +81,7 @@ var actions = map[string]func(){
 					IP: utils.IntToIP(<-ipPoolFetch),
 				}
 				vm.ApplyDefaults()
-				vm.Prepare(false, func(text string, data ...interface{}) { fmt.Println(text) })
+				vm.Prepare(false)
 				done <- i
 			}(i)
 		}

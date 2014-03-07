@@ -28,27 +28,27 @@ module.exports = class JDomain extends jraphical.Module
       'delete domains'     : ['member']
       'delete own domains' : ['member']
       'list domains'       : ['member']
-      'list own domains'   : ['member']
 
     sharedMethods:
 
-      static: 
+      static:
         one:
           (signature Object, Function)
-        getDomainInfo:
-          (signature String, Function)
-        registerDomain:
-          (signature Object, Function)
-        getTldList:
+        fetchDomains:
           (signature Function)
         createDomain: [
-          (signature Function)
           (signature Object, Function)
         ]
-        getTldPrice:
-          (signature String, Function)
-        getDomainSuggestions:
-          (signature String, Function)
+        # getTldList:
+        #   (signature Function)
+        # getTldPrice:
+        #   (signature String, Function)
+        # getDomainSuggestions:
+        #   (signature String, Function)
+        # getDomainInfo:
+        #   (signature String, Function)
+        # registerDomain:
+        #   (signature Object, Function)
 
       instance      :
         # Basic methods
@@ -58,28 +58,30 @@ module.exports = class JDomain extends jraphical.Module
           (signature Object, Function)
         remove:
           (signature Function)
-        # Proxy Methods
-        deleteProxyRule:
-          (signature Object, Function)
-        createProxyRule:
-          (signature Object, Function)
-        fetchProxyRules:
-          (signature Function)
-        updateProxyRule:
-          (signature Object, Function)
-        updateRuleOrders:
-          (signature [Object], Function)
-        fetchProxyRulesWithMatches:
-          (signature Function)
-        # DNS Related methods
-        fetchDNSRecords:
-          (signature String, Function)
-        createDNSRecord:
-          (signature Object, Function)
-        deleteDNSRecord:
-          (signature Object, Function)
-        updateDNSRecord:
-          (signature Object, Function)
+
+        # # Proxy Methods
+        # deleteProxyRule:
+        #   (signature Object, Function)
+        # createProxyRule:
+        #   (signature Object, Function)
+        # fetchProxyRules:
+        #   (signature Function)
+        # updateProxyRule:
+        #   (signature Object, Function)
+        # updateRuleOrders:
+        #   (signature [Object], Function)
+        # fetchProxyRulesWithMatches:
+        #   (signature Function)
+
+        # # DNS Related methods
+        # fetchDNSRecords:
+        #   (signature String, Function)
+        # createDNSRecord:
+        #   (signature Object, Function)
+        # deleteDNSRecord:
+        #   (signature Object, Function)
+        # updateDNSRecord:
+        #   (signature Object, Function)
 
     sharedEvents    :
       static        : [
@@ -93,6 +95,7 @@ module.exports = class JDomain extends jraphical.Module
       hostnameAlias : 'sparse'
 
     schema          :
+
       domain        :
         type        : String
         required    : yes
@@ -107,199 +110,224 @@ module.exports = class JDomain extends jraphical.Module
         ]]
         default :  'subdomain'
 
-      hostnameAlias : [String]
+      hostnameAlias :
+        type        : Array
+        default     : []
 
       proxy         :
-        mode        : String # TODO: enumerate all possible modes
+        mode        :
+          type      : String # TODO: enumerate all possible modes
+          default   : 'vm'
         username    : String
         serviceName : String
         key         : String
         fullUrl     : String
 
-      loadBalancer  :
-        persistence :
-          type      : String
-          enum      : ['invalid persistence mode',[
-            'disabled'
-            # 'cookie'
-            # 'sourceAdress'
-          ]]
-          default   : 'disabled'
-        mode        :
-          type      : String
-          enum      : ['invalid load balancer mode',[
-            ''
-            # 'roundrobin'
-            # 'sticky'
-            # 'weighted'
-            # 'weighted-roundrobin'
-          ]]
-          # default   : 'roundrobin'
-          default : ''
-        index       :
-          type      : Number
-          default   : 0
-
       orderId       :
         recurly     : String
         resellerClub: String
 
-      regYears      : Number
+      regYears      :
+        type        : Number
+        default     : 0
 
       dnsRecords    : [Object]
 
       createdAt     :
         type        : Date
         default     : -> new Date
+
       modifiedAt    :
         type        : Date
         default     : -> new Date
 
-  @isDomainEligible: (params, callback)->
-    {delegate, domain} = params
+      stack         : ObjectId
+      group         : String
 
-    {nickname} = delegate.profile
+  # filters domains such as shared-x/vm-x.groupSlug.kd.io
+  # or x.koding.kd.io. Also shows only group related
+  # domains to users
+  filterDomains = (domains, account, group)->
+    domainList = []
+    domainList = domains.filter (domain)->
+      {domain} = domain
+      return yes  unless /\.kd\.io$/.test domain
 
-    unless ///\.#{nickname}\.kd\.io$///.test domain
-      return callback new KodingError("Invalid domain: #{domain}.", "INVALIDDOMAIN")
+      re = if group is "koding" \
+           then ///#{account.profile.nickname}\.kd\.io$///
+           else ///(.*)\.#{group}\.kd\.io$///
 
-    match = domain.match /(.*)\.([a-z0-9\-]+)\.kd\.io$/
+      isVmAlias         = (/^shared|vm[\-]?([0-9]+)?/.test domain)
+      isKodingSubdomain = (/(.*)\.(koding|guests)\.kd\.io$/.test domain)
+      isGroupAlias      = re.test domain
+      not isVmAlias and not isKodingSubdomain and isGroupAlias
 
-    unless match
-      return callback new KodingError("Invalid domain: #{domain}.", "INVALIDDOMAIN")
+  @fetchDomains: secure (client, callback)->
 
+    {group} = client.context
+    {connection: {delegate}} = client
+
+    delegate.fetchDomains (err, domains) ->
+      return callback err  if err
+      return callback null unless domains
+      callback null, filterDomains domains, delegate, group
+
+  parseDomain = (domain)->
+
+    # Custom error
+    err = (message = "Invalid domain: #{domain}")->
+      err: new KodingError message, "INVALIDDOMAIN"
+
+    # Domain check ~
+    return err()  unless \
+      /^[a-z0-9]+([\-\.]{1}[a-z0-9]+)*\.[a-z]{2,5}$/i.test domain
+
+    # Return domain type as custom and keep the domain as is
+    return {type: 'custom', domain}  unless /\.kd\.io$/.test domain
+
+    # Basic check
+    unless /([a-z0-9\-]+)\.kd\.io$/.test domain
+      return err()
+
+    # Check for shared|vm prefix
+    if /^shared|vm[\-]?([0-9]+)?/.test prefix
+      return err "Domain name cannot start with shared|vm"
+
+    # Parse domain
+    match = domain.match /([a-z0-9\-]+)\.([a-z0-9\-]+)\.kd\.io$/
+    return err "Invalid domain: #{domain}."  unless match
     [rest..., prefix, slug] = match
 
-    if slug is nickname
-      callback null, !/^vm[\-]([0-9]+)$/.test prefix
-    else
-      JGroup.one {slug:'koding'}, (err, group)->
+    # Return type as internal and slug and domain
+    return {type: 'internal', slug, prefix, domain}
+
+  resolveDomain = (domainData, callback)->
+
+    return callback null  unless domainData.domainType
+
+    {domain} = domainData
+
+    dns = require 'dns'
+    dns.resolve domain, (err, remoteIps)->
+      return callback new KodingError \
+        "Cannot resolve #{domain}", "RESOLVEFAILED"  if err
+
+      baseDomain = 'kd.io'
+      dns.resolve baseDomain, (err, baseIps)->
         return callback err  if err
 
-        unless group
-          return callback new KodingError("No group found.")
+        intersection = (a, b)->
+          [a, b] = [b, a] if a.length > b.length
+          value for value in a when value in b
 
-        delegate.checkPermission group, 'create domains', (err, hasPermission)->
-          return callback err  if err
-          return callback null, no  unless hasPermission
-          callback null, !/shared[\-]?([0-9]+)?$/.test prefix
+        if (intersection baseIps, remoteIps).length > 0
+          return callback null
 
-  @createDomain: secure (client, options, callback)->
-    [callback, options] = [options, callback]  unless callback
-    {delegate} = client.connection
+        callback new KodingError "CNAME or A record for #{domain} is not matching with #{baseDomain}", "CNAMEMISMATCH"
 
-    JGroup.one {slug:'koding'}, (err, group)->
+  createDomain = (domainData, account, group, callback)->
+
+    domain = new JDomain domainData
+    domain.save (err)->
       return callback err  if err
 
-      delegate.checkPermission group, 'create domains', (err, hasPermission)->
+      options = {data:{group}}
+      account.addDomain domain, options, (err)->
         return callback err  if err
-        return callback new KodingError "Access denied"  unless hasPermission
+        callback err, domain
 
-        JDomain.isDomainEligible
-          delegate : delegate
-          domain   : options.domain
-        , (err, isEligible)->
+  @createDomain$: secure (client, {domain, stack}, callback)->
+
+    error = (message, name)->
+      callback new KodingError message, name
+
+    unless domain
+      return error "Domain is not provided"
+
+    {delegate} = client.connection
+    {err, domain, type, slug, prefix} = parseDomain domain
+
+    return callback err  if err
+
+    {group}    = client.context
+    {nickname} = delegate.profile
+
+    if type is 'internal'
+
+      if slug isnt nickname
+        return error "Creating root domains is not allowed"
+
+      slug = "koding"  if nickname is slug
+      unless group is slug
+        return error "Invalid group"
+
+    JGroup.one {slug:group}, (err, group)->
+      return callback err  if err
+      return error "Invalid group"  unless group
+
+      delegate.checkPermission group, 'create domains', (err, hasPermission)->
+
+        return callback err  if err
+        return error "Access denied", "ACCESSDENIED"  unless hasPermission
+
+        JDomain.one {domain}, (err, model)->
           return callback err  if err
-          return callback new KodingError "You can't create this domain."  unless isEligible
+          if model
+            return error "The domain #{domain} already exists", "DUPLICATEDOMAIN"
 
-          model = new JDomain options
-          model.save (err) ->
-            return callback err if err
+          domainData = {
+            domain, stack
+            group : group.slug
+          }
 
-            account = client.connection.delegate
-            rel = new Relationship
-              targetId: model.getId()
-              targetName: 'JDomain'
-              sourceId: account.getId()
-              sourceName: 'JAccount'
-              as: 'owner'
+          if type is 'custom'
+            domainData.domainType = 'existing'
 
-            rel.save (err)->
-              return callback err if err
+          resolveDomain domainData, (err)->
+            return callback err  if err
 
-            callback err, model
+            createDomain domainData, delegate, group.slug, callback
 
-  @getTldList = (callback)->
-    domainManager.domainService.getAvailableTlds callback
+  @createDomains = ({account, domains, hostnameAlias, stack, group})->
 
-  @getDomainSuggestions = (domainName, callback)->
-    domainManager.domainService.getDomainSuggestions domainName, callback
+    updateRelationship = (domainObj)->
+      Relationship.one
+        targetName: "JDomain",
+        targetId: domainObj._id,
+        sourceName: "JAccount",
+        sourceId: account._id,
+        as: "owner"
+      , (err, rel)->
+        if err or not rel
+          options = {data:{group}}
+          account.addDomain domainObj, options, (err)->
+            console.log err  if err?
 
-  @getDomainInfo = (domainName, callback) ->
-    domainManager.domainService.getDomainInfo domainName, callback
+    domains.forEach (domain) ->
+      domainObj = new JDomain {
+        domain, group, stack,
+        hostnameAlias : [hostnameAlias]
+      }
 
-  @getTldPrice = (tld, callback) ->
-    domainManager.domainService.getTldPrice tld, callback
+      domainObj.save (err)->
+        if err
+        then console.error err  unless err.code is 11000
+        else updateRelationship domainObj
 
-  @registerDomain = permit 'create domains',
+  @ensureDomainSettingsForVM = ({account, vm, type, nickname, group, stack})->
+    domain = 'kd.io'
+    if type in ['user', 'expensed']
+      requiredDomains = ["#{nickname}.#{group}.#{domain}"]
+      if group in ['koding', 'guests']
+        requiredDomains.push "#{nickname}.#{domain}"
+    else
+      requiredDomains = ["#{group}.#{domain}", "shared.#{group}.#{domain}"]
 
-    success: (client, data, callback) ->
-
-      # default user info / all domains are under koding account.
-      params =
-        domainName         : data.domain
-        years              : data.year
-        customerId         : "10360936" # PROD: 10073817
-        regContactId       : "30714812" # PROD: 29527194
-        adminContactId     : "30714812" # PROD: 29527194
-        techContactId      : "30714812" # PROD: 29527194
-        billingContactId   : "30714812" # PROD: 29527194
-        invoiceOption      : "KeepInvoice"
-        protectPrivacy     : no
-
-      console.log "User has privileges to register domain..", params
-
-      @one {domain: data.domain}, (err, domain)=>
-
-        if err or domain
-          callback {message: "Already created."}
-          return
-
-        # Make transaction
-        @makeTransaction client, data.transaction, (err, charge)=>
-          return callback err  if err
-
-          console.log "Transaction is done."
-
-          domainManager.domainService.registerDomain params, (err, response)->
-
-            console.log "ResellerAPI response:", err, response
-
-            if err
-              return charge.cancel client, ->
-                callback err, data
-
-            if response.actionstatus is "Success"
-
-              console.log "Creating new JDomain..."
-              model = new JDomain
-                domain         : response.description
-                hostnameAlias  : []
-                regYears       : params.years
-                orderId        :
-                  resellerClub : response.entityid
-                loadBalancer   :
-                  mode         : "" # "roundrobin"
-                domainType     : "new"
-
-              model.save (err) ->
-                return callback err if err
-
-                { delegate } = client.connection
-
-                delegate.addDomain model, (err) ->
-                  return callback err if err
-
-                  callback err, model
-
-            else
-              callback {message: "Domain registration failed"}
-
-  @makeTransaction: secure (client, data, callback)->
-    JPaymentCharge = require './payment/charge'
-    JPaymentCharge.charge client, data, callback
-
-  bound: require 'koding-bound'
+    {hostnameAlias} = vm
+    @createDomains {
+      account, hostnameAlias, stack,
+      domains:requiredDomains, group
+    }
 
   bindVM: (client, params, callback)->
     domainName = @domain
@@ -342,138 +370,222 @@ module.exports = class JDomain extends jraphical.Module
         return callback message: "It's not allowed to delete root domains"
       @remove (err)=> callback err
 
-  # DNS Related Methods
+  # DOMAIN REGISTER STUFF ~ WIP
 
-  fetchDNSRecords: permit
-    advanced: [
-      { permission: 'edit own domains', validateWith: Validators.own }
-    ]
-    success: (client, recordType, callback)->
-      domainManager.dnsManager.fetchDNSRecords
-        domainName : @domain
-        recordType : recordType
-      , (err, records)->
-        callback err if err
-        callback null, records if records
+  # @getTldList = (callback)->
+  #   domainManager.domainService.getAvailableTlds callback
 
-  createDNSRecord: permit
-    advanced: [
-      { permission: 'edit own domains', validateWith: Validators.own }
-    ]
-    success: (client, params, callback)->
-      recordParams            = Object.create(params)
-      recordParams.domainName = @domain
+  # @getDomainSuggestions = (domainName, callback)->
+  #   domainManager.domainService.getDomainSuggestions domainName, callback
 
-      domainManager.dnsManager.createDNSRecord recordParams, (err, response)=>
-        return callback err  if err
+  # @getDomainInfo = (domainName, callback) ->
+  #   domainManager.domainService.getDomainInfo domainName, callback
 
-        JDomain.update {domain:@domain}, {$addToSet: dnsRecords: params}, (err)=>
-          return callback err if err
+  # @getTldPrice = (tld, callback) ->
+  #   domainManager.domainService.getTldPrice tld, callback
 
-          callback err, response
+  # @registerDomain = permit 'create domains',
 
-  deleteDNSRecord: permit
-    advanced: [
-      { permission: 'edit own domains', validateWith: Validators.own }
-    ]
-    success: (client, params, callback)->
-      recordParams            = Object.create(params)
-      recordParams.domainName = @domain
+  #   success: (client, data, callback) ->
 
-      domainManager.dnsManager.deleteDNSRecord recordParams, (err, response)=>
-        return callback err if err
+  #     # default user info / all domains are under koding account.
+  #     params =
+  #       domainName         : data.domain
+  #       years              : data.year
+  #       customerId         : "10360936" # PROD: 10073817
+  #       regContactId       : "30714812" # PROD: 29527194
+  #       adminContactId     : "30714812" # PROD: 29527194
+  #       techContactId      : "30714812" # PROD: 29527194
+  #       billingContactId   : "30714812" # PROD: 29527194
+  #       invoiceOption      : "KeepInvoice"
+  #       protectPrivacy     : no
 
-        JDomain.update {domain:@domain}, {$pull: dnsRecords: params}, (err)->
-          return callback err if err
+  #     console.log "User has privileges to register domain..", params
 
-          callback err, response
+  #     @one {domain: data.domain}, (err, domain)=>
 
-  updateDNSRecord: permit
-    advanced: [
-      { permission: 'edit own domains', validateWith: Validators.own }
-    ]
-    success: (client, params, callback)->
-      recordParams            = Object.create(params)
-      recordParams.domainName = @domain
-      oldData                 = params.oldData
-      newData                 = params.newData
+  #       if err or domain
+  #         callback {message: "Already created."}
+  #         return
 
-      domainManager.dnsManager.updateDNSRecord recordParams, (err, response)=>
-        return callback err if err
+  #       # Make transaction
+  #       @makeTransaction client, data.transaction, (err, charge)=>
+  #         return callback err  if err
 
-        JDomain.update
-          domain                  : @domain
-          "dnsRecords.host"       : oldData.host
-          "dnsRecords.value"      : oldData.value
-          "dnsRecords.recordType" : oldData.recordType
-        , {$set : {
-            "dnsRecords.$.host"       : newData.host
-            "dnsRecords.$.value"      : newData.value
-            "dnsRecords.$.recordType" : newData.recordType
-            "dnsRecords.$.ttl"        : newData.ttl
-            "dnsRecords.$.priority"   : newData.priority
-          }}
-        , (err) ->
-          return callback err if err
+  #         console.log "Transaction is done."
 
-        callback err, response
+  #         domainManager.domainService.registerDomain params, (err, response)->
 
-  # Proxy Functions
+  #           console.log "ResellerAPI response:", err, response
 
-  fetchProxyRules: (callback)->
-    JProxyRestriction.fetchRestrictionByDomain @domain, (err, restriction)->
-      return callback err if err
-      return callback null, restriction.ruleList if restriction
-      return callback null, []
+  #           if err
+  #             return charge.cancel client, ->
+  #               callback err, data
 
-  fetchProxyRulesWithMatches: (callback)->
-    JProxyRestriction.fetchRestrictionByDomain @domain, (err, restriction)->
-      return callback err if err
+  #           if response.actionstatus is "Success"
 
-      restrictions = {}
+  #             console.log "Creating new JDomain..."
+  #             model = new JDomain
+  #               domain         : response.description
+  #               hostnameAlias  : []
+  #               regYears       : params.years
+  #               orderId        :
+  #                 resellerClub : response.entityid
+  #               loadBalancer   :
+  #                 mode         : "" # "roundrobin"
+  #               domainType     : "new"
 
-      if restriction and restriction.ruleList?
-        for rest in restriction.ruleList
-          restrictions[rest.match] = rest.action
+  #             model.save (err) ->
+  #               return callback err if err
 
-      callback null, restrictions
+  #               { delegate } = client.connection
 
-  createProxyRule: permit
-    advanced: [
-      { permission: 'edit own domains', validateWith: Validators.own }
-    ]
-    success: (client, params, callback)->
-      JProxyRestriction.fetchRestrictionByDomain params.domainName, (err, restriction)->
-        return callback err if err
+  #               delegate.addDomain model, (err) ->
+  #                 return callback err if err
 
-        unless restriction
-          restriction = new JProxyRestriction {domainName: params.domainName}
-          restriction.save (err)->
-            return callback err if err
+  #                 callback err, model
 
-        restriction.addRule params, (err, rule)->
-          return callback err if err
-          callback err, rule
+  #           else
+  #             callback {message: "Domain registration failed"}
 
-  updateRuleOrders: permit
-    advanced: [
-      { permission: 'edit own domains', validateWith: Validators.own }
-    ]
-    success: (client, newRuleList, callback)->
-      JProxyRestriction.updateRuleOrders {domainName:@domain, ruleList:newRuleList}, (err)->
-        callback err
+  # @makeTransaction: secure (client, data, callback)->
+  #   JPaymentCharge = require './payment/charge'
+  #   JPaymentCharge.charge client, data, callback
 
-  updateProxyRule: permit
-    advanced: [
-      {permission: 'edit own domains', validateWith: Validators.own}
-    ]
-    success: (client, params, callback)->
-      JProxyRestriction.updateRule params, (err)-> callback err
+  # bound: require 'koding-bound'
 
-  deleteProxyRule: permit
-    advanced: [
-      {permission: 'edit own domains', validateWith: Validators.own}
-    ]
-    success: (client, params, callback)->
-      params.domainName = @domain
-      JProxyRestriction.deleteRule params, (err)-> callback err
+  # # DNS Related Methods
+
+  # fetchDNSRecords: permit
+  #   advanced: [
+  #     { permission: 'edit own domains', validateWith: Validators.own }
+  #   ]
+  #   success: (client, recordType, callback)->
+  #     domainManager.dnsManager.fetchDNSRecords
+  #       domainName : @domain
+  #       recordType : recordType
+  #     , (err, records)->
+  #       callback err if err
+  #       callback null, records if records
+
+  # createDNSRecord: permit
+  #   advanced: [
+  #     { permission: 'edit own domains', validateWith: Validators.own }
+  #   ]
+  #   success: (client, params, callback)->
+  #     recordParams            = Object.create(params)
+  #     recordParams.domainName = @domain
+
+  #     domainManager.dnsManager.createDNSRecord recordParams, (err, response)=>
+  #       return callback err  if err
+
+  #       JDomain.update {domain:@domain}, {$addToSet: dnsRecords: params}, (err)=>
+  #         return callback err if err
+
+  #         callback err, response
+
+  # deleteDNSRecord: permit
+  #   advanced: [
+  #     { permission: 'edit own domains', validateWith: Validators.own }
+  #   ]
+  #   success: (client, params, callback)->
+  #     recordParams            = Object.create(params)
+  #     recordParams.domainName = @domain
+
+  #     domainManager.dnsManager.deleteDNSRecord recordParams, (err, response)=>
+  #       return callback err if err
+
+  #       JDomain.update {domain:@domain}, {$pull: dnsRecords: params}, (err)->
+  #         return callback err if err
+
+  #         callback err, response
+
+  # updateDNSRecord: permit
+  #   advanced: [
+  #     { permission: 'edit own domains', validateWith: Validators.own }
+  #   ]
+  #   success: (client, params, callback)->
+  #     recordParams            = Object.create(params)
+  #     recordParams.domainName = @domain
+  #     oldData                 = params.oldData
+  #     newData                 = params.newData
+
+  #     domainManager.dnsManager.updateDNSRecord recordParams, (err, response)=>
+  #       return callback err if err
+
+  #       JDomain.update
+  #         domain                  : @domain
+  #         "dnsRecords.host"       : oldData.host
+  #         "dnsRecords.value"      : oldData.value
+  #         "dnsRecords.recordType" : oldData.recordType
+  #       , {$set : {
+  #           "dnsRecords.$.host"       : newData.host
+  #           "dnsRecords.$.value"      : newData.value
+  #           "dnsRecords.$.recordType" : newData.recordType
+  #           "dnsRecords.$.ttl"        : newData.ttl
+  #           "dnsRecords.$.priority"   : newData.priority
+  #         }}
+  #       , (err) ->
+  #         return callback err if err
+
+  #       callback err, response
+
+  # # Proxy Functions
+
+  # fetchProxyRules: (callback)->
+  #   JProxyRestriction.fetchRestrictionByDomain @domain, (err, restriction)->
+  #     return callback err if err
+  #     return callback null, restriction.ruleList if restriction
+  #     return callback null, []
+
+  # fetchProxyRulesWithMatches: (callback)->
+  #   JProxyRestriction.fetchRestrictionByDomain @domain, (err, restriction)->
+  #     return callback err if err
+
+  #     restrictions = {}
+
+  #     if restriction and restriction.ruleList?
+  #       for rest in restriction.ruleList
+  #         restrictions[rest.match] = rest.action
+
+  #     callback null, restrictions
+
+  # createProxyRule: permit
+  #   advanced: [
+  #     { permission: 'edit own domains', validateWith: Validators.own }
+  #   ]
+  #   success: (client, params, callback)->
+  #     JProxyRestriction.fetchRestrictionByDomain params.domainName, (err, restriction)->
+  #       return callback err if err
+
+  #       unless restriction
+  #         restriction = new JProxyRestriction {domainName: params.domainName}
+  #         restriction.save (err)->
+  #           return callback err if err
+
+  #       restriction.addRule params, (err, rule)->
+  #         return callback err if err
+  #         callback err, rule
+
+  # updateRuleOrders: permit
+  #   advanced: [
+  #     { permission: 'edit own domains', validateWith: Validators.own }
+  #   ]
+  #   success: (client, newRuleList, callback)->
+  #     JProxyRestriction.updateRuleOrders {domainName:@domain, ruleList:newRuleList}, (err)->
+  #       callback err
+
+  # updateProxyRule: permit
+  #   advanced: [
+  #     {permission: 'edit own domains', validateWith: Validators.own}
+  #   ]
+  #   success: (client, params, callback)->
+  #     JProxyRestriction.updateRule params, (err)-> callback err
+
+  # deleteProxyRule: permit
+  #   advanced: [
+  #     {permission: 'edit own domains', validateWith: Validators.own}
+  #   ]
+  #   success: (client, params, callback)->
+  #     params.domainName = @domain
+  #     JProxyRestriction.deleteRule params, (err)-> callback err

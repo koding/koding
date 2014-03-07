@@ -95,7 +95,7 @@ task 'webserver', "Run the webserver", ({configFile, tests}) ->
       restart           : yes
       restartTimeout    : 100
       kontrol           :
-        enabled         : if KONFIG.runKontrol is yes then yes else no
+        enabled         : !!KONFIG.runKontrol
         startMode       : "many"
         registerToProxy : yes
         port            : port
@@ -132,16 +132,21 @@ task 'socialWorker', "Run the socialWorker", ({configFile}) ->
   console.log 'CAKEFILE STARTING SOCIAL WORKERS'
 
   for i in [1..social.numberOfWorkers]
+    port = 3029 + i
+
     processes.fork
       name           : if social.numberOfWorkers is 1 then "social" else "social-#{i}"
-      cmd            : __dirname + "/workers/social/index -c #{configFile}"
+      cmd            : __dirname + "/workers/social/index -c #{configFile} -p #{port}"
       restart        : yes
       restartTimeout : 100
       kontrol        :
-        enabled      : if KONFIG.runKontrol is yes then yes else no
+        enabled      : !!KONFIG.runKontrol
         startMode    : "many"
+        registerToProxy: yes
+        proxyName    : 'social'
+        port         : port
       # onMessage: (msg) ->
-      #   if msg.exiting
+      #   if msg.exiting;
       #     exitingProcesses[msg.pid] = yes
       #     runProcess(0)
       # onExit: (pid, name) ->
@@ -175,7 +180,7 @@ task 'authWorker', "Run the authWorker", ({configFile}) ->
       restart 		 : yes
       restartTimeout : 1000
       kontrol        :
-        enabled      : if KONFIG.runKontrol is yes then yes else no
+        enabled      : !!KONFIG.runKontrol
         startMode    : "many"
       verbose        : yes
 
@@ -307,6 +312,28 @@ task 'goBroker', "Run the goBroker", (options)->
     kontrol           :
       enabled         : if config.runKontrol is yes then yes else no
       binary          : uuid
+      port            : broker.port
+      hostname        : options.domain
+    verbose           : yes
+
+task 'premiumBroker', "Run the premium broker", (options)->
+  {configFile} = options
+  config = require('koding-config-manager').load("main.#{configFile}")
+  {broker} = config
+  uuid = hat()
+
+  processes.spawn
+    name              : 'premiumBroker'
+    cmd               : "./go/bin/broker -c #{configFile} -u #{uuid} -b premiumBroker #{addFlags options}"
+    restart           : yes
+    restartTimeout    : 100
+    stdout            : process.stdout
+    stderr            : process.stderr
+    kontrol           :
+      enabled         : if config.runKontrol is yes then yes else no
+      binary          : uuid
+      port            : broker.port
+      hostname        : options.domain
     verbose           : yes
 
 task 'goBrokerKite', "Run the goBrokerKite", (options)->
@@ -325,6 +352,28 @@ task 'goBrokerKite', "Run the goBrokerKite", (options)->
     kontrol           :
       enabled         : if config.runKontrol is yes then yes else no
       binary          : uuid
+      port            : broker.port
+      hostname        : options.domain
+    verbose           : yes
+
+task 'premiumBrokerKite', "Run the premium broker kite", (options)->
+  {configFile} = options
+  config = require('koding-config-manager').load("main.#{configFile}")
+  {broker} = config
+  uuid = hat()
+
+  processes.spawn
+    name              : 'premiumBrokerKite'
+    cmd               : "./go/bin/broker -c #{configFile} -u #{uuid} -b premiumBrokerKite #{addFlags options}"
+    restart           : yes
+    restartTimeout    : 100
+    stdout            : process.stdout
+    stderr            : process.stderr
+    kontrol           :
+      enabled         : if config.runKontrol is yes then yes else no
+      binary          : uuid
+      port            : broker.port
+      hostname        : options.domain
     verbose           : yes
 
 task 'rerouting', "Run rerouting", (options)->
@@ -383,7 +432,7 @@ task 'persistence', "Run persistence", (options)->
 task 'osKite', "Run the osKite", ({configFile})->
   processes.spawn
     name  : 'osKite'
-    cmd   : if configFile == "vagrant" then "vagrant ssh default -c 'cd /opt/koding/go/src/koding/kites/os; sudo killall -q -KILL os; sudo KITE_HOME=/opt/koding/kite_home /opt/koding/go/bin-vagrant/os -c #{configFile} -r vagrant'" else "./go/bin/os -c #{configFile}"
+    cmd   : if configFile == "vagrant" then "vagrant ssh default -c 'cd /opt/koding; sudo killall -q -KILL os; sudo KITE_HOME=/opt/koding/kite_home KITE_KONTROL_URL='ws://192.168.50.1:4000/kontrol' /opt/koding/go/bin-vagrant/os -c #{configFile} -r vagrant -t go/src/koding/oskite/files/templates/'" else "./go/bin/os -c #{configFile}"
     restart: no
     stdout  : process.stdout
     stderr  : process.stderr
@@ -445,7 +494,7 @@ task 'cacheWorker', "Run the cacheWorker", ({configFile})->
     restart        : yes
     restartTimeout : 100
     kontrol        :
-      enabled      : if KONFIG.runKontrol is yes then yes else no
+      enabled      : !!KONFIG.runKontrol
       startMode    : "one"
 
   if cacheWorker.watch is yes
@@ -488,6 +537,24 @@ task 'kontrolApi', "Run the kontrolApi", (options) ->
   processes.spawn
     name    : 'kontrolApi'
     cmd     : "./go/bin/kontrolapi -c #{configFile}"
+    stdout  : process.stdout
+    stderr  : process.stderr
+    verbose : yes
+
+task 'kontrolKite', "Run the kontrol kite", (options) ->
+  {configFile} = options
+  processes.spawn
+    name    : 'kontrolKite'
+    cmd     : "KITE_HOME=kite_home ./go/bin/kontrol -c #{configFile} -r vagrant"
+    stdout  : process.stdout
+    stderr  : process.stderr
+    verbose : yes
+
+task 'regservKite', "Run the regserv kite", (options) ->
+  {configFile} = options
+  processes.spawn
+    name    : 'regservKite'
+    cmd     : "KITE_HOME=kite_home ./go/bin/regserv -c #{configFile} -region vagrant -port 8090"
     stdout  : process.stdout
     stderr  : process.stderr
     verbose : yes
@@ -536,6 +603,8 @@ run =({configFile})->
     invoke 'kontrolApi'                       if config.runKontrol
     invoke 'goBroker'                         if config.runGoBroker
     invoke 'goBrokerKite'                     if config.runGoBrokerKite
+    invoke 'premiumBroker'                    if config.runPremiumBroker
+    invoke 'premiumBrokerKite'                if config.runPremiumBrokerKite
     invoke 'osKite'                           if config.runOsKite
     invoke 'rerouting'                        if config.runRerouting
     invoke 'userpresence'                     if config.runUserPresence
@@ -651,6 +720,20 @@ task 'runExternals', "runs externals kite which imports info about github, will 
     kontrol           :
       enabled         : if config.runKontrol is yes then yes else no
     verbose           : yes
+
+task 'importPaymentData', "creates default payment data", (options)->
+  {configFile} = options
+  config = require('koding-config-manager').load("main.#{configFile}")
+
+  processes.spawn
+    cmd            : "node ./workers/productimport/index -c #{configFile}"
+    name           : 'importPaymentData'
+    stdout         : process.stdout
+    stderr         : process.stderr
+    kontrol        :
+      enabled      : if config.runKontrol is yes then yes else no
+      startMode    : "one"
+    verbose        : yes
 
 # ------------------- TEST STUFF --------------------------
 

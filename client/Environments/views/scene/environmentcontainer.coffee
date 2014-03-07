@@ -2,27 +2,16 @@ class EnvironmentContainer extends KDDiaContainer
 
   constructor:(options={}, data)->
 
-    options.cssClass   = 'environments-container'
-    options.bind       = 'scroll mousewheel wheel'
-    # options.draggable  = yes
+    options.cssClass   = KD.utils.curry 'environments-container', options.cssClass
 
     super options, data
 
     title   = @getOption 'title'
     @header = new KDHeaderView {type : "medium", title}
 
-    @itemHeight = options.itemHeight ? 40
+    @itemHeight = options.itemHeight ? 24
 
     @on "DataLoaded", => @_dataLoaded = yes
-    # @on "DragFinished", @bound 'savePosition'
-
-    @newItemPlus = new KDCustomHTMLView
-      cssClass   : 'new-item-plus'
-      partial    : "<i></i><span>Add new</span>"
-      click      : =>
-        @once 'transitionend', @emit 'PlusButtonClicked'
-
-    @newItemPlus.bindTransitionEnd()
 
     @loader = new KDLoaderView
       cssClass   : 'new-item-loader hidden'
@@ -34,11 +23,16 @@ class EnvironmentContainer extends KDDiaContainer
     super
 
     @addSubView @header
-    @header.addSubView @newItemPlus
     @header.addSubView @loader
 
+    @addButton = new KDButtonView
+      title    : "+"
+      cssClass : 'add-button'
+      callback : => @emit 'PlusButtonClicked'
+    @addSubView @addButton
+    @addButton.setY 54
+
     {@appStorage} = @parent
-    # @appStorage.ready @bound 'loadPosition'
 
   showLoader: ->
     @newItemPlus.hide()
@@ -49,58 +43,27 @@ class EnvironmentContainer extends KDDiaContainer
     @loader.hide()
 
   addDia:(diaObj, pos)->
-    pos = x: 20, y: 60 + @diaCount() * (@itemHeight + 10)
+    pos = x: 20, y: 50 + @diaCount() * (@itemHeight + 14)
     super diaObj, pos
 
     diaObj.on "KDObjectWillBeDestroyed", @bound 'updatePositions'
     diaObj.on "KDObjectWillBeDestroyed", => @emit "itemRemoved"
-    # @updateHeight()
+    @updateAddButton()
 
   updatePositions:->
 
     index = 0
     for _key, dia of @dias
       dia.setX 20
-      dia.setY 60 + index * 50
+      dia.setY 50 + index * (@itemHeight + 14)
       index++
-    # @updateHeight()
+
+    @updateAddButton()
 
   diaCount:-> Object.keys(@dias).length
-
-  mouseWheel:(e)->
-    @emit "UpdateScene"
-    super e
 
   loadItems:->
     @removeAllItems()
 
-  # updateHeight:->
-
-  #   @setHeight 80 + @diaCount() * 50
-  #   @emit 'UpdateScene'
-
-  # savePosition:->
-
-  #   name      = @constructor.name
-  #   bounds    = x: @getRelativeX(), y: @getRelativeY()
-  #   positions = (@appStorage.getValue 'containerPositions') or {}
-  #   positions[name] = bounds
-  #   @appStorage.setValue 'containerPositions', positions
-
-  # loadPosition:->
-
-  #   name     = @constructor.name
-  #   position = ((@appStorage.getValue 'containerPositions') or {})[name]
-  #   return  unless position
-  #   @setX position.x; @setY position.y
-
-  # resetPosition:->
-
-  #   @setX @_initialPosition.x
-  #   @setY @_initialPosition.y
-
-  #   name      = @constructor.name
-  #   positions = (@appStorage.getValue 'containerPositions') or {}
-
-  #   delete positions[name]
-  #   @appStorage.setValue 'containerPositions', positions
+  updateAddButton:->
+    @addButton.setY 54 + @diaCount() * (@itemHeight + 14)

@@ -1,10 +1,14 @@
 {Model} = require 'bongo'
 {Relationship, Module} = require 'jraphical'
+{argv} = require 'optimist'
+KONFIG = require('koding-config-manager').load("main.#{argv.c}")
+
+JPaymentPack = require "./payment/pack"
 
 module.exports = class JVM extends Module
 
   {permit} = require './group/permissionset'
-  {secure, dash, signature} = require 'bongo'
+  {ObjectId, secure, dash, signature} = require 'bongo'
   {uniq}   = require 'underscore'
 
   {argv} = require 'optimist'
@@ -14,6 +18,8 @@ module.exports = class JVM extends Module
   JPaymentSubscription = require './payment/subscription'
   JPaymentPack         = require './payment/pack'
   JPermissionSet       = require './group/permissionset'
+  JDomain              = require './domain'
+
   @share()
 
   @trait __dirname, '../traits/protected'
@@ -22,7 +28,7 @@ module.exports = class JVM extends Module
 
   handleError = (err)-> console.error err  if err
 
-  VMDefaultDiskSize = @VMDefaultDiskSize = 4096
+  VMDefaultDiskSize = @VMDefaultDiskSize = 3072
   @set
     softDelete          : yes
     indexes             :
@@ -70,6 +76,11 @@ module.exports = class JVM extends Module
           (signature String, Function)
         createFreeVm:
           (signature Function)
+        createSharedVm:
+          (signature Function)
+        setAlwaysOn:
+          (signature Object, Function)
+
     schema              :
       ip                :
         type            : String
@@ -90,6 +101,7 @@ module.exports = class JVM extends Module
                             'aws' # Amazon Web Services
                             'sj'  # San Jose
                             'vagrant'
+                            'premium-sj'
                           ]]
         default         : if argv.c is 'vagrant' then 'vagrant' else 'sj'
       webHome           : String
@@ -112,13 +124,14 @@ module.exports = class JVM extends Module
         default         : no
       maxMemoryInMB     :
         type            : Number
-        default         : 1024
+        default         : KONFIG.defaultVMConfigs.freeVM.ram ? 1024
       diskSizeInMB      :
         type            : Number
-        default         : VMDefaultDiskSize
+        default         : KONFIG.defaultVMConfigs.freeVM.storage ? VMDefaultDiskSize
       numCPUs           :
         type            : Number
-        default         : 1
+        default         : KONFIG.defaultVMConfigs.freeVM.cpu ? 1
+      stack             : ObjectId
 
   suspend: (callback)->
     @update { $set: { hostKite: '(banned)' } }, (err)=>
@@ -128,6 +141,46 @@ module.exports = class JVM extends Module
         @hostnameAlias
       }
       return callback null
+
+  @setAlwaysOn = secure (client, options, callback)->
+    {connection: {delegate}, context: {group}} = client
+    {vmName, status} = options
+
+    fetchVmByHostname delegate, vmName, (err, vm) ->
+      return callback err if err
+
+      kallback = (subscription) ->
+        JPaymentPack.one tags: "alwayson", (err, pack) ->
+          return callback err  if err
+          return callback new KodingError "Always On pack not found"  unless pack
+          {debit, credit} = subscription
+          fn = if status then debit else credit
+          fn.call subscription, {pack}, (err) ->
+            return callback err  if err
+            vm.update $set: alwaysOn: status, callback
+
+      if group is "koding"
+        delegate.fetchSubscriptions$ client, tags: ["vm"], (err, subscriptions) ->
+          noSyncSubscription = null
+          activeSubscription = null
+
+          for subscription in subscriptions
+            if "nosync" in subscription.tags
+              noSyncSubscription = subscription
+            else
+              activeSubscription = subscription
+
+          subscription = activeSubscription or noSyncSubscription
+          if subscription
+          then kallback subscription
+          else callback message: "Subscription not found", code: "no subscription"
+      else
+        JGroup = require './group'
+        JGroup.one slug: group, (err, group) ->
+          return callback err  if err
+          group.fetchSubscription (err, subscription) ->
+            return callback err  if err
+            kallback subscription
 
   @fetchDefaultVm_ = (client, callback)->
     {delegate} = client.connection
@@ -152,69 +205,6 @@ module.exports = class JVM extends Module
       vm.update {$set: diskSizeInMB: VMDefaultDiskSize}, (err) ->
         return callback err if err
         callback null, vm.hostnameAlias
-
-  @createDomains = (account, domains, hostnameAlias)->
-
-    updateRelationship = (domainObj)->
-      Relationship.one
-        targetName: "JDomain",
-        targetId: domainObj._id,
-        sourceName: "JAccount",
-        sourceId: account._id,
-        as: "owner"
-      , (err, rel)->
-        if err or not rel
-          account.addDomain domainObj, (err)->
-            console.log err  if err?
-
-    JDomain = require './domain'
-    domains.forEach (domain) ->
-      domainObj = new JDomain
-        domain        : domain
-        hostnameAlias : [hostnameAlias]
-        proxy         : { mode: 'vm' }
-        regYears      : 0
-        loadBalancer  : { persistance: 'disabled' }
-      domainObj.save (err)->
-        if err
-        then console.error err  unless err.code is 11000
-        else updateRelationship domainObj
-
-  @fixUserDomains = permit 'change bundle',
-    success: (client, callback)->
-
-      unless client.context.group is "koding"
-        return callback new KodingError "You are not Koding admin."
-
-      JDomain = require './domain'
-      JUser   = require './user'
-
-      JVM.each {}, {}, (err, vm) =>
-        return callback err  if err
-        return callback null, null  unless vm
-        {nickname, groupSlug, uid, type} = @parseAlias vm.hostnameAlias
-        hostnameAliases = JVM.createAliases {
-          nickname, type, uid, groupSlug
-        }
-        [vmUser] = vm.users.filter (u) -> u.owner is yes
-        if vmUser?
-          JUser.one { _id: vmUser.id }, (err, user) =>
-            if not err and user
-              user.fetchAccount 'koding', (err, account) =>
-                console.log "WORKING ON VM FOR #{nickname} - #{hostnameAliases[0]}"
-                if not err and account
-                  @ensureDomainSettings {account, vm, type, nickname, groupSlug}
-                  @createDomains account, hostnameAliases, hostnameAliases[0]
-
-  @ensureDomainSettings = ({account, vm, type, nickname, groupSlug})->
-    domain = 'kd.io'
-    if type in ['user', 'expensed']
-      requiredDomains = ["#{nickname}.#{groupSlug}.#{domain}"]
-      if groupSlug in ['koding', 'guests']
-        requiredDomains.push "#{nickname}.#{domain}"
-    else
-      requiredDomains = ["#{groupSlug}.#{domain}", "shared.#{groupSlug}.#{domain}"]
-    @createDomains account, requiredDomains, vm.hostnameAlias
 
   @createAliases = ({nickname, type, uid, groupSlug})->
     domain       = 'kd.io'
@@ -282,28 +272,30 @@ module.exports = class JVM extends Module
               return console.error err  if err
               # Counter created
 
-              @addVm {
-                uid
-                user
-                account
-                sudo      : yes
-                type      : 'user'
-                target    : account
-                planCode  : 'free'
-                groupSlug : group.slug
-                planOwner : "user_#{account._id}"
-                webHome   : account.profile.nickname
-                groups    : wrapGroup group
-              }, callback
+              JStack = require './stack'
+              JStack.getStackId {
+                user : user.username
+                group: group.slug
+              }, (err, stack)=>
+
+                @addVm {
+                  uid
+                  user
+                  stack
+                  account
+                  sudo      : yes
+                  type      : 'user'
+                  target    : account
+                  planCode  : 'free'
+                  groupSlug : group.slug
+                  planOwner : "user_#{account._id}"
+                  webHome   : account.profile.nickname
+                  groups    : wrapGroup group
+                }, callback
 
       else
 
         callback new KodingError('Default VM already exists'), vm
-
-  vmProductMap =
-    "f34ba4e35041fea7e519dc20a96d3e1b": { core  : 1 }
-    "04d5a80edbde8c2b4be2c4fc0da4d527": { ram   : 1024 }
-    "7029c74b6f16ed328cd1c41a454c02f3": { disk  : 1200 }
 
   @createVmByNonce = secure (client, nonce, callback) ->
     JPaymentFulfillmentNonce  = require './payment/nonce'
@@ -311,60 +303,64 @@ module.exports = class JVM extends Module
 
     JPaymentFulfillmentNonce.one { nonce }, (err, nonceObject) =>
       return callback err  if err
-      return { message: "Unrecognized nonce!", nonce }  unless nonceObject
+      return callback { message: "Unrecognized nonce!", nonce }  unless nonceObject
+      return callback { message: "Invalid nonce!", nonce }  if nonceObject.action isnt "debit"
 
       { planCode, subscriptionCode } = nonceObject
+      { delegate: account } = client.connection
+      { group: groupSlug } = client.context
 
-      JPaymentPack.one { planCode }, (err, pack) =>
+      nonceObject.update $set: action: "used", (err) =>
+        return callback err  if err
+        @createVm {
+          account
+          groupSlug
+          planCode
+          subscriptionCode
+        }, callback
+
+  @createSharedVm = secure (client, callback)->
+    {connection:{delegate:account}, context:{group}} = client
+    JGroup = require './group'
+    JGroup.one {slug:group}, (err, group)=>
+      return callback err  if err
+      group.fetchAdmins (err, admins)=>
         return callback err  if err
 
-        pack.fetchProducts (err, products) =>
-          return callback err  if err
+        adminIds = admins.map (admin) ->
+          admin.getId().toString()
 
-          { delegate: account } = client.connection
-          { group: groupSlug } = client.context
+        return callback new Error "You can not create shared VM" unless account.getId().toString() in adminIds
 
-          attributes = products
-            .map (product) ->
-              vmProductMap[product.planCode]
-            .reduce( (memo, attr) ->
-              memo[key] = val  for own key, val of attr
-              memo
-            , {})
+        group.fetchSubscription (err, subscription) =>
+          return callback err  if err or not subscription
 
-          @createVm {
-            account
-            groupSlug
-            planCode
-            subscriptionCode
-            type          : 'user'
-            maxMemoryInMB : attributes.ram
-            diskSizeInMB  : attributes.disk
-            numCPUs       : attributes.core
-          }, (err, vm) ->
+          subscription.debitPack tag: "vm", (err) =>
             return callback err  if err
-
-            callback null, vm
+            @createVm {
+              type      : "group"
+              groupSlug : group.slug
+              account
+            }, callback
 
   # TODO: this needs to be rethought in terms of bundles, as per the
   # discussion between Devrim, Chris T. and Badahir  C.T.
-  @createVm = ({account, type, groupSlug, usage, planCode, subscriptionCode}, callback)->
+  @createVm = ({account, type, groupSlug, planCode, subscriptionCode}, callback)->
     JGroup = require './group'
+    JStack = require './stack'
     JGroup.one {slug: groupSlug}, (err, group)=>
       return callback err  if err
+      return callback new Error "Group not found"  unless group
 
       account.fetchUser (err, user)=>
         return callback err  if err
         return callback new Error "user is not defined"  unless user
 
         # We are keeping this names just for counter
-        webHome     = groupSlug
-
         {nickname} = account.profile
+        webHome    = if type is "group" then groupSlug else nickname
 
         counterName = "#{groupSlug}~#{nickname}~"
-        webHome     = nickname
-
         nameFactory = (require 'koding-counter') {
           db     : JVM.getClient()
           offset : 0
@@ -381,47 +377,88 @@ module.exports = class JVM extends Module
           groups        = [{ id: group.getId() }]
           hostnameAlias = hostnameAliases[0]
 
-          vm = new JVM {
-            hostnameAlias
-            planCode
-            subscriptionCode
-            webHome
-            groups
-            users
-            usage
-            vmType: type
-          }
+          JStack.getStackId {user: nickname, group: groupSlug}, (err, stack)=>
 
-          vm.save (err) =>
+            JPaymentSubscription.isFreeSubscripton subscriptionCode, (err, isFreeSubscripton)=>
+              return callback err if err
 
-            if err
-              return console.warn "Failed to create VM for ", \
-                                   {users, groups, hostnameAlias}
+              vm = new JVM {
+                hostnameAlias
+                planCode
+                subscriptionCode
+                webHome
+                groups
+                users
+                vmType : type
+                stack
+              }
 
-            JVM.createDomains account, hostnameAliases, hostnameAliases[0]
+              vm.region = KONFIG.regions.premium unless isFreeSubscripton
 
-            group.addVm vm, (err)=>
-              return callback err  if err
-              JVM.ensureDomainSettings {account, vm, type, nickname, groupSlug}
-              if type is 'group'
-                @addVmUsers vm, group, ->
-                  callback null, vm
-              else
-                callback null, vm
+              vm.save (err) =>
 
-  @addVmUsers = (vm, group, callback)->
-    group.fetchMembers (err, members)->
+                if err
+                  return console.warn "Failed to create VM for ", \
+                                       {users, groups, hostnameAlias}
+
+                JDomain.createDomains {
+                  account, stack,
+                  domains: hostnameAliases
+                  hostnameAlias: hostnameAliases[0]
+                  group: groupSlug
+                }
+
+                group.addVm vm, (err)=>
+                  return callback err  if err
+                  JDomain.ensureDomainSettingsForVM {
+                    account, vm, type, nickname, group: groupSlug, stack
+                  }
+                  if type is 'group'
+                    @addVmUsers user, vm, group, ->
+                      callback null, vm
+                  else
+                    callback null, vm
+
+  @addVmUsers = (user, vm, group, callback)->
+    # todo - do this operation in batches
+    selector =
+      sourceId    : group.getId()
+      sourceName  : "JGroup"
+      as          : "member"
+
+    # fetch members of the group
+    Relationship.someData selector, {targetId:1}, (err, cursor)->
       return callback err  if err
-      members.forEach (member)->
-        member.fetchUser (err, user)->
-          return callback err if err
-          return callback new Error "user not found" unless user
-          member.checkPermission group, 'sudoer', (err, hasPermission)->
-            if err then handleError err
-            else
-              vm.update {
-                $addToSet: users: { id: user.getId(), sudo: hasPermission }
-              }, callback
+
+      cursor.toArray (err, targetIds)->
+        return callback err  if err
+        targetIds or= []
+
+        # aggregate them into accountIds
+        accountIds = targetIds.map (rec)-> rec.targetId
+
+        selector =
+          targetId   : {$in : accountIds}
+          targetName : "JAccount"
+          as         : 'owner'
+          sourceName : 'JUser'
+
+        # fetch userids of the accounts
+        Relationship.someData selector, {sourceId:1}, (err, cursor)->
+          return callback err  if err
+
+          cursor.toArray (err, sourceIds)->
+            return callback err  if err
+            sourceIds or= []
+            vmUsers = []
+
+            vmUsers = sourceIds.map (rec)->
+              owner = if rec.sourceId.equals user.getId() then yes else no
+              { id: rec.sourceId, sudo: yes, owner }
+
+            return vm.update {
+              $set: users: vmUsers
+            }, callback
 
   @fetchVmInfo = secure (client, hostnameAlias, callback)->
     {delegate} = client.connection
@@ -442,6 +479,7 @@ module.exports = class JVM extends Module
           underMaintenance : vm.hostKite is "(maintenance)"
           region           : vm.region or 'sj'
           diskSizeInMB     : vm.diskSizeInMB
+          alwaysOn         : vm.alwaysOn
 
   @fetchVmRegion = secure (client, hostnameAlias, callback)->
     {delegate} = client.connection
@@ -465,13 +503,17 @@ module.exports = class JVM extends Module
       return callback new Error "user not found" unless user
 
       selector.users = $elemMatch: id: user.getId()
-
-      JVM.someData selector, { hostnameAlias: 1 }, options, (err, cursor)->
+      fieldsToFetch = { hostnameAlias: 1, stack: 1 }
+      JVM.someData selector, fieldsToFetch, options, (err, cursor)->
         return callback err  if err
 
         cursor.toArray (err, arr)->
           return callback err  if err
-          callback null, arr.map (vm)-> vm.hostnameAlias
+          if options.withStacks
+            callback null, arr.map (vm)->
+              {alias:vm.hostnameAlias, stack:vm.stack}
+          else
+            callback null, arr.map (vm)-> vm.hostnameAlias
 
   @fetchVmsByContext = secure (client, options, callback) ->
     {connection:{delegate}, context:{group}} = client
@@ -495,6 +537,8 @@ module.exports = class JVM extends Module
     #     return callback err  if err
     #     callback null, [vm]
 
+  # TODO: Move these methods to JDomain at some point ~ GG
+  # ------------------------------------------------------
   # Private static method to fetch domains
   @fetchDomains = (selector, callback)->
     JDomain = require './domain'
@@ -548,66 +592,78 @@ module.exports = class JVM extends Module
     JVM.removeRelatedDomains this
     super callback
 
-  @deleteVM = (vm, callback)->
-    if vm.planCode is 'free'
-      vm.remove callback
+  removeFromSubscription: (account, group, callback)->
+    kallback = (subscription) =>
+      @remove (err) =>
+        return callback err  if err
+
+        errs = []
+
+        dash queue = [
+          ->
+            subscription.creditPack tag: "vm", (err) ->
+              errs.push new KodingError "VM usage couldn't be credited"  if err
+              console.warn "VM cannot be credited to user #{account.profile.nickname}: #{err}"  if err
+              queue.fin()
+        ,
+          =>
+            return queue.fin()  unless @alwaysOn
+            subscription.creditPack tag: "alwayson", (err) ->
+              errs.push new KodingError "Always On usage couldn't be credited"  if err
+              console.warn "Always On pack couldn't be credited to user #{account.profile.nickname}: #{err}"  if err
+              queue.fin()
+        ], ->
+          if errs.length
+          then callback errs
+          else callback()
+
+    if group.slug is "koding"
+      account.fetchSubscription (err, subscription) =>
+        return callback err  if err
+        return @remove callback  unless subscription # so this is a free account
+        kallback subscription
     else
-      JPaymentSubscription.one
-        planCode : vm.subscriptionCode
-        $or      : [
-          {status: 'active'}
-          {status: 'canceled'}
-        ]
-      , (err, subscription)->
-        if err or not subscription
-          return callback { message: 'Unable to update subscription.' }
-
-        if subscription.status is 'canceled'
-          vm.remove callback
-        else
-          JPaymentPack.one { planCode: vm.planCode }, (err, pack) ->
-            return callback err  if err
-
-            subscription.credit pack, (err) ->
-              return callback err  if err
-
-              vm.remove callback
+      group.fetchSubscription (err, subscription) =>
+        return callback err  if err
+        return callback new KodingError "Group subscription not found"  unless subscription
+        kallback subscription
 
   @removeByHostname = secure (client, hostnameAlias, callback)->
     {delegate} = client.connection
 
-    delegate.fetchUser (err, user) =>
+    fetchVmByHostname delegate, hostnameAlias, (err, vm) ->
       return callback err  if err
-      return callback { message: "user not found" }  unless user
+      [{ id: groupId }] = vm.groups
+      JGroup = require './group'
+      JGroup.one { _id: groupId }, (err, group)->
+        return callback err  if err
+        return callback new KodingError "Group not found"  unless group
+        JPermissionSet.checkPermission client, "delete vms", group, (err, hasPermission)->
+          return callback err  if err
+          return callback new KodingError "You do not have permission to delete this vm"  unless hasPermission
+          vm.removeFromSubscription delegate, group, callback
+
+  fetchVmByHostname = (account, hostnameAlias, callback) ->
+    account.fetchUser (err, user) =>
+      return callback err  if err
+      return callback new KodingError "user not found"  unless user
 
       selector =
         hostnameAlias : hostnameAlias
-        users         : { $elemMatch: id: user.getId(), owner: yes }
+        users         : { $elemMatch: id: user.getId() }
 
-      JVM.one selector, (err, vm) =>
+      JVM.one selector, (err, vm) ->
         return callback err  if err
-        return callback new KodingError 'No such VM'  unless vm
+        return callback new KodingError "VM not found"  unless vm
 
-        delegate.hasTarget vm, 'owner', (err, hasTarget) =>
-          return callback err  if err
+        isOwner = vm.users.filter (vmUser) ->
+          vmUser.id.equals(user.getId()) && vmUser.owner is true
 
-          if hasTarget
-            @deleteVM vm, callback
-          else
-            [{ id: groupId }] = vm.groups
-
-            JGroup = require './group'
-            JGroup.one { _id: groupId }, (err, group)=>
-              return callback err  if err
-
-              JPermissionSet.checkPermission client, "delete vms", group,
-              (err, hasPermission)=>
-                return callback err  if err
-
-                @deleteVM vm, callback  if hasPermission
+        err = new KodingError("You are not owner of this VM", "NOTPERMITTED")  unless isOwner.length
+        callback err, vm
 
   @addVm = ({ account, target, user, sudo, groups, groupSlug
-             type, planCode, planOwner, webHome, uid }, callback)->
+             type, planCode, planOwner, webHome, uid, stack }, callback)->
 
     return handleError new Error "user is not defined"  unless user
     nickname = account.profile.nickname or user.username
@@ -632,6 +688,7 @@ module.exports = class JVM extends Module
       groups
       users
       vmType: type
+      stack
     }
 
     vm.save (err)->
@@ -639,13 +696,23 @@ module.exports = class JVM extends Module
       callback? err, vm  unless err
 
       handleError err
-      if err
-        return console.warn "Failed to create VM for ", \
-                             {users, groups, hostnameAlias}
 
-      JVM.ensureDomainSettings \
-        {account, vm, type, nickname, groupSlug}
-      JVM.createDomains account, hostnameAliases, hostnameAlias
+      if err
+        return console.warn "Failed to create VM for ", {
+          users, groups, hostnameAlias
+        }
+
+      group = groupSlug
+
+      JDomain.ensureDomainSettingsForVM {
+        account, vm, type, nickname, group, stack
+      }
+
+      JDomain.createDomains {
+        account, domains:hostnameAliases,
+        group, hostnameAlias, stack
+      }
+
       target.addVm vm, handleError
 
   wrapGroup = (group)-> [ { id: group.getId() } ]
@@ -727,27 +794,45 @@ module.exports = class JVM extends Module
             return console.error err  if err or not account
             # New account found
             webHome       = username
-            vm.update {$set: {hostnameAlias:newHostNameAlias, webHome}},(err)=>
 
-              return console.error err  if err
-              # VM hostnameAlias updated
+            JStack = require './stack'
+            JStack.getStackId {user:username, group}, (err, stack)=>
 
-              nameFactory = (require 'koding-counter')
-                db          : JVM.getClient()
-                offset      : 0
-                counterName : "koding~#{username}~"
-              nameFactory.next (err, uid)=>
-                return console.error err  if err
-                # Counter created
+              if err then warn "Failed to get stack:", err
 
-                hostnameAliases = JVM.createAliases {
-                  nickname:username
-                  type:'user', uid, groupSlug:'koding'
+              stack ?= null
+              vm.update
+                $set: {
+                  webHome, stack,
+                  hostnameAlias: newHostNameAlias
                 }
-                JVM.createDomains account, hostnameAliases, hostnameAliases[0]
+              , (err)=>
 
-                console.log """Migration completed for
-                               #{hostnameAlias} to #{newHostNameAlias}"""
+                return console.error err  if err
+                # VM hostnameAlias updated
+
+                nameFactory = (require 'koding-counter')
+                  db          : JVM.getClient()
+                  offset      : 0
+                  counterName : "koding~#{username}~"
+
+                nameFactory.next (err, uid)=>
+                  return console.error err  if err
+                  # Counter created
+
+                  hostnameAliases = JVM.createAliases {
+                    nickname:username, uid,
+                    type:'user', groupSlug:group
+                  }
+
+                  JDomain.createDomains {
+                    account, stack, group,
+                    domains:hostnameAliases,
+                    hostnameAlias:hostnameAliases[0]
+                  }
+
+                  console.log """Migration completed for
+                                 #{hostnameAlias} to #{newHostNameAlias}"""
 
     JGroup.on 'GroupDestroyed', (group)->
       group.fetchVms (err, vms)->
@@ -793,7 +878,7 @@ module.exports = class JVM extends Module
               group.fetchVms (err, vms)->
                 if err then handleError err
                 else vms.forEach (vm)->
-                  if vm.type is 'group'
+                  if vm.vmType is 'group'
                     vm.update {
                       $addToSet: users: { id: user.getId(), sudo: hasPermission }
                     }, handleError

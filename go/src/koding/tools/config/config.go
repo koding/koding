@@ -11,14 +11,15 @@ import (
 )
 
 type Broker struct {
-	Name            string
-	IP              string
-	Port            int
-	CertFile        string
-	KeyFile         string
-	AuthExchange    string
-	AuthAllExchange string
-	WebProtocol     string
+	Name               string
+	ServiceGenericName string
+	IP                 string
+	Port               int
+	CertFile           string
+	KeyFile            string
+	AuthExchange       string
+	AuthAllExchange    string
+	WebProtocol        string
 }
 
 type Config struct {
@@ -28,6 +29,7 @@ type Config struct {
 		Vagrant string
 		SJ      string
 		AWS     string
+		Premium string
 	}
 	ProjectRoot     string
 	UserSitesDomain string
@@ -58,10 +60,12 @@ type Config struct {
 		Port    int
 		Enabled bool
 	}
-	GoLogLevel string
-	Broker     Broker
-	BrokerKite Broker
-	Loggr      struct {
+	GoLogLevel        string
+	Broker            Broker
+	PremiumBroker     Broker
+	BrokerKite        Broker
+	PremiumBrokerKite Broker
+	Loggr             struct {
 		Push   bool
 		Url    string
 		ApiKey string
@@ -105,7 +109,8 @@ type Config struct {
 			ApiPort    int
 			ApiHost    string
 			Port       int
-			SwitchHost string
+			KodingHost string
+			SocialHost string
 		}
 		Api struct {
 			Port int
@@ -186,13 +191,11 @@ func readConfig(profile string) (*Config, error) {
 
 	var conf *Config
 	if ok {
-		fmt.Printf("config.go: reading config from %s\n", configPath)
 		conf, err = ReadJson(profile)
 		if err != nil {
 			return nil, err
 		}
 	} else {
-		fmt.Println("config.go: reading config with koding-config-manager")
 		conf, err = ReadConfigManager(profile)
 		if err != nil {
 			return nil, err

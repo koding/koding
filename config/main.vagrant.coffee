@@ -18,6 +18,10 @@ regions         =
   vagrant       : "vagrant"
   sj            : "sj"
   aws           : "aws"
+  premium       : "vagrant"
+
+cookieMaxAge = 1000 * 60 * 60 * 24 * 14 # two weeks
+cookieSecure = no
 
 module.exports =
   environment   : environment
@@ -27,8 +31,8 @@ module.exports =
     key         : 'AKIAJSUVKX6PD254UGAA'
     secret      : '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'
   uri           :
-    address     : "http://localhost:3020"
-  userSitesDomain: 'localhost'
+    address     : "http://lvh.me:3020"
+  userSitesDomain: 'lvh.me'
   containerSubnet: "10.128.2.0/9"
   vmPool        : "vms"
   projectRoot   : projectRoot
@@ -52,6 +56,8 @@ module.exports =
   runNeo4jFeeder: yes
   runGoBroker   : yes
   runGoBrokerKite: yes
+  runPremiumBroker: yes
+  runPremiumBrokerKite: yes
   runKontrol    : yes
   runRerouting  : yes
   runUserPresence: yes
@@ -147,8 +153,11 @@ module.exports =
     indexMaster : "index-master.html"
     index       : "default.html"
     useStaticFileServer: no
-    staticFilesBaseUrl: 'http://localhost:3020'
+    staticFilesBaseUrl: 'http://lvh.me:3020'
     runtimeOptions:
+      sessionCookie :
+        maxAge      : cookieMaxAge
+        secure      : cookieSecure
       environment        : environment
       activityFetchCount : 20
       precompiledApi     : no
@@ -157,24 +166,29 @@ module.exports =
         clientId     : "f8e440b796d953ea01e5"
       embedly        :
         apiKey       : embedlyApiKey
-      userSitesDomain: 'localhost'
+      userSitesDomain: 'lvh.me'
       useNeo4j: yes
       logToExternal: no  # rollbar, mixpanel etc.
       resourceName: socialQueueName
+      socialApiUri: 'http://lvh.me:3030/xhr'
       suppressLogs: no
       broker    :
-        servicesEndpoint: 'http://localhost:3020/-/services/broker'
-        sockJS  : 'http://localhost:8008/subscribe'
+        servicesEndpoint: 'http://lvh.me:3020/-/services/broker'
+      premiumBroker:
+        servicesEndpoint: 'http://lvh.me:3020/-/services/premiumBroker'
       brokerKite:
-        servicesEndpoint: 'http://localhost:3020/-/services/brokerKite'
+        servicesEndpoint: 'http://lvh.me:3020/-/services/brokerKite'
         brokerExchange: 'brokerKite'
-        sockJS  : 'http://localhost:8009/subscribe'
-      apiUri    : 'http://localhost:3020'
+      premiumBrokerKite:
+        servicesEndpoint: 'http://lvh.me:3020/-/services/premiumBrokerKite'
+        brokerExchange: 'premiumBrokerKite'
+      apiUri    : 'http://lvh.me:3020'
       version   : version
-      mainUri   : 'http://localhost:3020'
+      mainUri   : 'http://lvh.me:3020'
       appsUri   : 'https://koding-apps.s3.amazonaws.com'
       uploadsUri: 'https://koding-uploads.s3.amazonaws.com'
-      sourceUri : 'http://localhost:3526'
+      uploadsUriForGroup: 'https://koding-groups.s3.amazonaws.com'
+      sourceUri : 'http://lvh.me:3526'
       newkontrol:
         url     : 'ws://127.0.0.1:4000/kontrol'
       fileFetchTimeout: 15 * 1000 # seconds
@@ -209,33 +223,55 @@ module.exports =
     # so it'll disconnect from RabbitMQ if heartbeat is enabled.
     heartbeat   : 0
     vhost       : '/'
-  broker        :
-    name        : "broker"
-    ip          : ""
-    port        : 8008
-    certFile    : ""
-    keyFile     : ""
-    webProtocol : 'http:'
-    webHostname : 'localhost'
-    webPort     : 8008
-    authExchange: authExchange
-    authAllExchange: authAllExchange
-  brokerKite    :
-    name        : "brokerKite"
-    ip          : ""
-    port        : 8009
-    certFile    : ""
-    keyFile     : ""
-    webProtocol : 'http:'
-    webHostname : 'localhost'
-    webPort     : 8009
-    authExchange: authExchange
-    authAllExchange: authAllExchange
+  broker              :
+    name              : "broker"
+    serviceGenericName: "broker"
+    ip                : ""
+    port              : 8008
+    certFile          : ""
+    keyFile           : ""
+    webProtocol       : 'http:'
+    authExchange      : authExchange
+    authAllExchange   : authAllExchange
+    failoverUri       : 'lvh.me'
+  premiumBroker       :
+    name              : "premiumBroker"
+    serviceGenericName: "broker"
+    ip                : ""
+    port              : 8009
+    certFile          : ""
+    keyFile           : ""
+    webProtocol       : 'http:'
+    authExchange      : authExchange
+    authAllExchange   : authAllExchange
+    failoverUri       : 'lvh.me'
+  brokerKite          :
+    name              : "brokerKite"
+    serviceGenericName: "brokerKite"
+    ip                : ""
+    port              : 8010
+    certFile          : ""
+    keyFile           : ""
+    webProtocol       : 'http:'
+    authExchange      : authExchange
+    authAllExchange   : authAllExchange
+    failoverUri       : 'lvh.me'
+  premiumBrokerKite   :
+    name              : "premiumBrokerKite"
+    serviceGenericName: "brokerKite"
+    ip                : ""
+    port              : 8011
+    certFile          : ""
+    keyFile           : ""
+    webProtocol       : 'http:'
+    authExchange      : authExchange
+    authAllExchange   : authAllExchange
+    failoverUri       : 'lvh.me'
   kites:
     disconnectTimeout: 3e3
     vhost       : 'kite'
   email         :
-    host        : 'localhost'
+    host        : 'lvh.me:3020'
     protocol    : 'http:'
     defaultFromAddress: 'hello@koding.com'
   emailWorker   :
@@ -282,13 +318,14 @@ module.exports =
       apiHost     : "127.0.0.1"
       apiPort     : 8888
       port        : 8080
-      switchHost  : "example.com"
+      kodingHost  : "example.com"
+      socialHost  : "social.example.com"
     api           :
       port        : 8888
-      url         : "http://localhost"
+      url         : "http://lvh.me"
     proxy         :
-      port        : 5000
-      portssl     : 8081
+      port        : 80
+      portssl     : 443
       ftpip       : '127.0.0.1'
   # crypto :
   #   encrypt: (str,key=Math.floor(Date.now()/1000/60))->
@@ -307,8 +344,9 @@ module.exports =
   #     decipher.update(str,'hex')
   #     b = decipher.final('utf-8')
   #     return b
-  recurly       :
-    apiKey      : '4a0b7965feb841238eadf94a46ef72ee' # koding-test.recurly.com
+  recurly         :
+    apiKey        : '4a0b7965feb841238eadf94a46ef72ee' # koding-test.recurly.com
+    loggedRequests: /^(subscriptions|transactions)/
   embedly       :
     apiKey      : embedlyApiKey
   opsview       :
@@ -327,27 +365,27 @@ module.exports =
     secret_url   : "https://www.odesk.com/services/api/auth?oauth_token="
     version      : "1.0"
     signature    : "HMAC-SHA1"
-    redirect_uri : "http://localhost:3020/-/oauth/odesk/callback"
+    redirect_uri : "http://lvh.me:3020/-/oauth/odesk/callback"
   facebook       :
     clientId     : "475071279247628"
     clientSecret : "65cc36108bb1ac71920dbd4d561aca27"
-    redirectUri  : "http://localhost:3020/-/oauth/facebook/callback"
+    redirectUri  : "http://lvh.me:3020/-/oauth/facebook/callback"
   google         :
     client_id    : "1058622748167.apps.googleusercontent.com"
     client_secret: "vlF2m9wue6JEvsrcAaQ-y9wq"
-    redirect_uri : "http://localhost:3020/-/oauth/google/callback"
+    redirect_uri : "http://lvh.me:3020/-/oauth/google/callback"
   statsd         :
     use          : false
-    ip           : "localhost"
+    ip           : "lvh.me"
     port         : 8125
   graphite       :
     use          : false
-    host         : "localhost"
+    host         : "lvh.me"
     port         : 2003
   linkedin       :
     client_id    : "f4xbuwft59ui"
     client_secret: "fBWSPkARTnxdfomg"
-    redirect_uri : "http://localhost:3020/-/oauth/linkedin/callback"
+    redirect_uri : "http://lvh.me:3020/-/oauth/linkedin/callback"
   twitter        :
     key          : "aFVoHwffzThRszhMo2IQQ"
     secret       : "QsTgIITMwo2yBJtpcp9sUETSHqEZ2Fh7qEQtRtOi2E"
@@ -380,3 +418,11 @@ module.exports =
     rabbitMQ      : "notice"
     ldapserver    : "notice"
     broker        : "notice"
+  defaultVMConfigs:
+    freeVM        :
+      storage     : 3072
+      ram         : 1024
+      cpu         : 1
+  sessionCookie   :
+    maxAge        : cookieMaxAge
+    secure        : cookieSecure

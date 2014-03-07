@@ -17,12 +17,8 @@ do ->
     mainController.accountChanged account, firstLoad
     firstLoad = no
 
-    # enable sending logs from frontend to backend
-    KD.enabledBackendLogger KD.remote.api.FrontLogger
-
   status.on 'sessionTokenChanged', (token)->
     # this is disabled for now to test user log-out problem.
-    KD.logToExternal "sessionTokenChanged event"
     # $.cookie 'clientId', token
 
   status.on 'connected', ->
@@ -41,11 +37,12 @@ do ->
     clearTimeout modalTimerId
     modalTimerId = null
 
-    modalSize  = currentModalSize or options.modalSize
-    notifyUser = options.notifyUser
+    # hide reconnected modal
+    # modalSize  = currentModalSize or options.modalSize
+    # notifyUser = options.notifyUser
 
-    if notifyUser or currentModal
-      showModal modalSize, state
+    # if notifyUser or currentModal
+    #   currentModal = showModal modalSize, state
 
   status.on 'disconnected', (options={})->
     reason     = options.reason     or= "unknown"
@@ -63,7 +60,12 @@ do ->
       # if reconnected within 2 secs, reconnected event clears this
       modalTimerId = setTimeout =>
         currentModalSize = modalSize
-        showModal modalSize, state
+        # in Status class there is constants that we can not
+        # reach from another class here o_0
+        # 4 represents disconnected state
+        return if status.state isnt 4
+        # disable modal
+        # currentModal = showModal modalSize, state
       , 2000
 
     currentModalSize = "small"

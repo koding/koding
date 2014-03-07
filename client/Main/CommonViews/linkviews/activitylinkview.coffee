@@ -8,6 +8,7 @@ class ActivityLinkView extends JView
     KD.getSingleton('linkController').unregisterLink this
 
   formatContent: (str = "") ->
+    str = Encoder.htmlEncode str
     str = @utils.expandTokens str, @getData()
     return  str
 

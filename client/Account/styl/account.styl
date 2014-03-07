@@ -12,8 +12,6 @@ app.settings.styl
 }
 
 body.account
-  bg                      color, #E9E9E7
-
   // THIS IS TEMP - SY
 
   textarea.kdinput.text
@@ -41,7 +39,6 @@ body.account
 
 
 .kdtabpaneview.account
-
   color                   #828B8B
 
   .content-page
@@ -87,13 +84,10 @@ body.account
   .kdformview
     .formline
       border              none
-      padding             11px 0
       input.kdinput.text
         min-width         0
 
-  .button-field
-    bg                    color transparent
-    .kdbutton.solid.green
+    .profile-save-changes
       width               100%
 
 
@@ -182,53 +176,6 @@ button.kdbutton.solid.green.account-header-button
     &.escape
       left                -160px
 
-.referrer-modal
-  line-height         1.8em
-  p
-    margin-bottom     15px
-    &.center
-      color           #999
-      font-size       13px
-      text-align      center
-  .content .title
-    margin-bottom     36px !important
-
-  .share-url-input
-    width           320px !important
-
-  .share-url-label
-    display         block
-    font-weight     400
-    font-size       12px
-
-  .share-links
-    size            140px 30px
-    margin-top      -30px
-    position        relative
-    left            330px
-    top             -13px
-
-    .share-icon
-      border        none
-      size          30px 30px
-      rounded       50%
-      padding       0
-      margin        0 0 0 8px
-      background    none
-
-      &.twitter
-        r-sprite    "account", "inv-twitter"
-      &.facebook
-        r-sprite    "account", "inv-facebook"
-      &.linkedin
-        r-sprite    "account", "inv-linkedin"
-
-  a.mail
-    color           #606060
-    font-weight     500
-    position        relative
-    line-height     40px
-
 // FIX THESE STYLES FOR
 // TOO MUCH REPITITION
 // for .settings-list-wrapper - SY
@@ -251,6 +198,9 @@ button.kdbutton.solid.green.account-header-button
   .no-item-found
     padding           10px 20px
     color             #888
+    text-align        center
+    font-weight       400
+    borderBox()
 
   &.payment-methods
     .no-item-found
@@ -292,18 +242,47 @@ button.kdbutton.solid.green.account-header-button
           color         rgba(255,255,255,.5)
 
   &.your-subscriptions
-    ul
-      li
-        margin-bottom        15px
-        h4
-          font-weight     400
-          font-size       16px
-          line-height     1.6
-          width           auto
-        a
-          display         inline
-          float           none
-          margin-left     0
+    .kdlistitemview-subscription
+      size              100%, auto
+      padding           19px 22px
+      background        #fff
+      rounded           6px
+      font-weight       400
+      color             #6f6f6f
+      margin            0 0 2px 0
+
+      h4
+        font-size       14px
+        margin-bottom   4px
+
+      p
+        font-size       12px
+        color           #c6c6c6
+        min-height      20px
+
+      .price
+        display         block
+        abs             0px 0px 0 0
+        font-size       18px
+
+      .controls
+        abs             0 22px 19px 0
+
+        .custom-link-view
+          font-size     12px
+          noTextDeco()
+
+          &.red
+            color       #ed492c
+
+          &.green
+            color       #01b05a
+
+          &.yellow
+            color       #eeb844
+
+
+
 
   &.referral-system
     header
@@ -350,10 +329,30 @@ button.kdbutton.solid.green.account-header-button
         width         20%
 
   &.ssh-keys
-    a.action-link
-      abs()
-      top             0px
-      right           2px
+    .add-key-form
+      margin-bottom   42px
+
+    .ssh-key-item
+      background      #fff
+      margin          2px 0 0 0
+      padding         14px 120px 14px 14px
+      rounded         12px
+      position        relative
+
+      .title
+        font-weight   400
+        font-size     16px
+
+      .key
+        font-size     14px
+        font-weight   200
+        color         #bcbcbc
+
+
+      .kdbutton.edit
+        abs           50% 22px 0 0
+        vendor        transform, translateY(-50%)
+
 
 .koding-keys
   code

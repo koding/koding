@@ -62,8 +62,7 @@ class DomainsMainView extends JView
       iconOnly    : yes
       iconClass   : "refresh"
       loader      :
-        color     : "#777777"
-        diameter  : 24
+        color     : "#444444"
       tooltip     :
         title     : "Refresh"
         placement : "left"
