@@ -69,7 +69,7 @@ func spawnFuncOld(args *dnode.Partial, c *kite.Channel, vos *virt.VOS) (interfac
 func execFuncOld(args *dnode.Partial, c *kite.Channel, vos *virt.VOS) (interface{}, error) {
 	var line string
 	if args == nil {
-		return nil, &kite.ArgumentError{Expected: "empy argument passed"}
+		return nil, &kite.ArgumentError{Expected: "empty argument passed"}
 	}
 
 	if args.Unmarshal(&line) != nil {
