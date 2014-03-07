@@ -122,6 +122,7 @@ class MembersAppController extends AppController
           itemClass          : GroupMembersPageListItemView
           listControllerClass: MembersListViewController
           listCssClass       : "member-related"
+          title              : ""
           dataSource         : (selector, options, callback)=>
             group = KD.getGroup()
             group.fetchMembers selector, options, (err, res)=>
