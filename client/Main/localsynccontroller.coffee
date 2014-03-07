@@ -29,14 +29,14 @@ class LocalSyncController extends KDController
     dash queue, callback
 
   addToSaveArray: (file)->
-    fileName = @getFileFullPath file
+    fileName = FSHelper.getFullPath file
     index    = @filesToSave.indexOf fileName
     @filesToSave.push fileName if index is -1
     @storage.setValue "saveRequestedFiles", @filesToSave
     @initializeListeners()
 
   removeFromSaveArray: (file) ->
-    fileName = @getFileFullPath file
+    fileName = FSHelper.getFullPath file
     index = @filesToSave.indexOf fileName
     return  unless index > -1
     @filesToSave.splice index, 1
@@ -67,11 +67,11 @@ class LocalSyncController extends KDController
         @patchFileIfDiffExist file, localContent, cb, callCounter
 
   updateFileContentOnLocalStorage: (file, content)->
-    fileName = @getFileFullPath file
+    fileName = FSHelper.getFullPath file
     @storage.setValue "OE-#{fileName}", content
 
   removeFileContentFromLocalStorage: (file)->
-    fileName = @getFileFullPath file
+    fileName = FSHelper.getFullPath file
     @storage.unsetKey "OE-#{fileName}"
 
   addToOpenedFiles: (fileName)->
@@ -82,7 +82,7 @@ class LocalSyncController extends KDController
       @storage.setValue "openedFiles", @openedFiles
 
   removeFromOpenedFiles: (file)->
-    fileName = @getFileFullPath file
+    fileName = FSHelper.getFullPath file
     index    = @openedFiles.indexOf fileName
     return if index is -1
     @openedFiles.splice index, 1
@@ -92,11 +92,6 @@ class LocalSyncController extends KDController
 
   getRecentOpenedFiles: ->
     @openedFiles
-
-  getFileFullPath:(file)->
-    plainPath = FSHelper.plainPath file.path
-    fileName = "[#{file.vmName}]#{plainPath}"
-    return fileName
 
   updateEditorStatus:(file, lastSavedContent)->
     fileName   = FSHelper.plainPath file.path
