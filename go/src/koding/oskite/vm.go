@@ -54,6 +54,11 @@ func vmCreateSnapshotOld(args *dnode.Partial, c *kite.Channel, vos *virt.VOS) (i
 
 func spawnFuncOld(args *dnode.Partial, c *kite.Channel, vos *virt.VOS) (interface{}, error) {
 	var command []string
+
+	if args == nil {
+		return nil, &kite.ArgumentError{Expected: "empty argument passed"}
+	}
+
 	if args.Unmarshal(&command) != nil {
 		return nil, &kite.ArgumentError{Expected: "[array of strings]"}
 	}
@@ -63,6 +68,10 @@ func spawnFuncOld(args *dnode.Partial, c *kite.Channel, vos *virt.VOS) (interfac
 
 func execFuncOld(args *dnode.Partial, c *kite.Channel, vos *virt.VOS) (interface{}, error) {
 	var line string
+	if args == nil {
+		return nil, &kite.ArgumentError{Expected: "empy argument passed"}
+	}
+
 	if args.Unmarshal(&line) != nil {
 		return nil, &kite.ArgumentError{Expected: "[string]"}
 	}
@@ -336,7 +345,9 @@ func vmPrepareAndStart(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS
 		OnProgress dnode.Callback
 	}
 
-	if args.Unmarshal(&params) != nil {
+	fmt.Printf("args %+v\n", args)
+
+	if args != nil && args.Unmarshal(&params) != nil {
 		return nil, &kite.ArgumentError{Expected: "{OnProgress: [function]}"}
 	}
 
@@ -394,7 +405,7 @@ func vmStopAndUnprepare(args *dnode.Partial, channel *kite.Channel, vos *virt.VO
 		OnProgress dnode.Callback
 	}
 
-	if args.Unmarshal(&params) != nil {
+	if args != nil && args.Unmarshal(&params) != nil {
 		return nil, &kite.ArgumentError{Expected: "{OnProgress: [function]}"}
 	}
 

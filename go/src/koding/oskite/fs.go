@@ -68,6 +68,11 @@ func fsReadDirectoryOld(args *dnode.Partial, channel *kite.Channel, vos *virt.VO
 		OnChange            dnode.Callback
 		WatchSubdirectories bool
 	}
+
+	if args == nil {
+		return nil, &kite.ArgumentError{Expected: "empy argument passed"}
+	}
+
 	if args.Unmarshal(&params) != nil || params.Path == "" {
 		return nil, &kite.ArgumentError{Expected: "{ path: [string], onChange: [function], watchSubdirectories: [bool] }"}
 	}
@@ -132,6 +137,10 @@ func fsGlobOld(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (inter
 		Pattern string
 	}
 
+	if args == nil {
+		return nil, &kite.ArgumentError{Expected: "empy argument passed"}
+	}
+
 	if args.Unmarshal(&params) != nil || params.Pattern == "" {
 		return nil, &kite.ArgumentError{Expected: "{ pattern: [string] }"}
 	}
@@ -144,6 +153,10 @@ func fsReadFileOld(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (i
 		Path string
 	}
 
+	if args == nil {
+		return nil, &kite.ArgumentError{Expected: "empy argument passed"}
+	}
+
 	if args.Unmarshal(&params) != nil || params.Path == "" {
 		return nil, &kite.ArgumentError{Expected: "{ path: [string] }"}
 	}
@@ -153,6 +166,10 @@ func fsReadFileOld(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (i
 
 func fsWriteFileOld(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
 	var params writeFileParams
+
+	if args == nil {
+		return nil, &kite.ArgumentError{Expected: "empy argument passed"}
+	}
 
 	if args.Unmarshal(&params) != nil || params.Path == "" || params.Content == nil {
 		return nil, &kite.ArgumentError{Expected: "{ path: [string], content: [base64], doNotOverwrite: [bool], append: [bool] }"}
@@ -165,6 +182,11 @@ func fsUniquePathOld(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) 
 	var params struct {
 		Path string
 	}
+
+	if args == nil {
+		return nil, &kite.ArgumentError{Expected: "empy argument passed"}
+	}
+
 	if args.Unmarshal(&params) != nil || params.Path == "" {
 		return nil, &kite.ArgumentError{Expected: "{ path: [string] }"}
 	}
@@ -176,6 +198,9 @@ func fsGetInfoOld(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (in
 	var params struct {
 		Path string
 	}
+	if args == nil {
+		return nil, &kite.ArgumentError{Expected: "empy argument passed"}
+	}
 	if args.Unmarshal(&params) != nil || params.Path == "" {
 		return nil, &kite.ArgumentError{Expected: "{ path: [string] }"}
 	}
@@ -185,6 +210,10 @@ func fsGetInfoOld(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (in
 
 func fsSetPermissionsOld(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
 	var params setPermissionsParams
+
+	if args == nil {
+		return nil, &kite.ArgumentError{Expected: "empy argument passed"}
+	}
 
 	if args.Unmarshal(&params) != nil || params.Path == "" {
 		return nil, &kite.ArgumentError{Expected: "{ path: [string], mode: [integer], recursive: [bool] }"}
@@ -198,6 +227,11 @@ func fsRemoveOld(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (int
 		Path      string
 		Recursive bool
 	}
+
+	if args == nil {
+		return nil, &kite.ArgumentError{Expected: "empy argument passed"}
+	}
+
 	if args.Unmarshal(&params) != nil || params.Path == "" {
 		return nil, &kite.ArgumentError{Expected: "{ path: [string], recursive: [bool] }"}
 	}
@@ -210,6 +244,11 @@ func fsRenameOld(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (int
 		OldPath string
 		NewPath string
 	}
+
+	if args == nil {
+		return nil, &kite.ArgumentError{Expected: "empy argument passed"}
+	}
+
 	if args.Unmarshal(&params) != nil || params.OldPath == "" || params.NewPath == "" {
 		return nil, &kite.ArgumentError{Expected: "{ oldPath: [string], newPath: [string] }"}
 	}
@@ -222,6 +261,11 @@ func fsCreateDirectoryOld(args *dnode.Partial, channel *kite.Channel, vos *virt.
 		Path      string
 		Recursive bool
 	}
+
+	if args == nil {
+		return nil, &kite.ArgumentError{Expected: "empy argument passed"}
+	}
+
 	if args.Unmarshal(&params) != nil || params.Path == "" {
 		return nil, &kite.ArgumentError{Expected: "{ path: [string], recursive: [bool] }"}
 	}
@@ -235,6 +279,10 @@ func fsMoveOld(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (inter
 		NewPath string
 	}
 
+	if args == nil {
+		return nil, &kite.ArgumentError{Expected: "empy argument passed"}
+	}
+
 	if args.Unmarshal(&params) != nil || params.OldPath == "" || params.NewPath == "" {
 		return nil, &kite.ArgumentError{Expected: "{ oldPath: [string], newPath: [string] }"}
 	}
@@ -246,6 +294,10 @@ func fsCopyOld(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (inter
 	var params struct {
 		SrcPath string
 		DstPath string
+	}
+
+	if args == nil {
+		return nil, &kite.ArgumentError{Expected: "empy argument passed"}
 	}
 
 	if args.Unmarshal(&params) != nil || params.SrcPath == "" || params.DstPath == "" {
