@@ -394,11 +394,13 @@ class WebTermAppView extends JView
     storage = (KD.getSingleton 'appStorageController').storage 'Terminal', '1.0.1'
     storage.fetchStorage =>
       activeIndex = @tabView.getActivePaneIndex()
-      sessions = @tabView.panes.map (pane) =>
+      sessions = []
+      @tabView.panes.forEach (pane) =>
         { terminalView } = pane.getOptions()
+        return unless terminalView
         sessionId = terminalView.sessionId ? terminalView.getOption 'session'
         vmName = terminalView.getOption 'vmName'
-        "#{ vmName }:#{ sessionId }"
+        sessions.push "#{ vmName }:#{ sessionId }"
       storage.setValue 'savedSessions', sessions
       storage.setValue 'activeIndex', activeIndex
 
