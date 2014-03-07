@@ -197,7 +197,7 @@ class AceAppView extends JView
 
   clearFileRecords: (view) ->
     file = view.getData()
-    delete @aceViews[file.path]
+    delete @aceViews[FSHelper.getFullPath file]
 
   attachAppMenuEvents: ->
     @on "saveMenuItemClicked", => @getActiveAceView().ace.requestSave()
