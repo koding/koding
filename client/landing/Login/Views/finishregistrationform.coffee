@@ -39,9 +39,7 @@ class FinishRegistrationForm extends RegisterInlineForm
       title         : "FINISH REGISTRATION"
       type          : 'submit'
       style         : "solid green"
-      loader        :
-        color       : "#ffffff"
-        diameter    : 21
+      loader        : yes
 
   getEmailValidator: ->
 
