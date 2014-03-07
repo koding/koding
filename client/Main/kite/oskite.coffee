@@ -55,8 +55,8 @@ class OsKite extends KDKite
     @fetchState()
 
     KD.getSingleton('mainController')
-      .on('userIdle', @bound 'stopPollingState')
-      .on('userBack', @bound 'pollState')
+      .once('userIdle', @bound 'stopPollingState')
+      .once('userBack', @bound 'pollState')
 
     @intervalId = KD.utils.repeat KD.config.osKitePollingMs, @bound 'fetchState'
 
