@@ -35,6 +35,11 @@ type Manifest struct {
 
 func appInstallOld(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
 	var params appParams
+
+	if args == nil {
+		return nil, &kite.ArgumentError{Expected: "empty argument passed"}
+	}
+
 	if args.Unmarshal(&params) != nil || params.Owner == "" || params.Identifier == "" || params.Version == "" || params.AppPath == "" {
 		return nil, &kite.ArgumentError{Expected: "{ owner: [string], identifier: [string], version: [string], appPath: [string] }"}
 	}
@@ -45,6 +50,10 @@ func appInstallOld(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (i
 func appDownloadOld(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
 	var params appParams
 
+	if args == nil {
+		return nil, &kite.ArgumentError{Expected: "empty argument passed"}
+	}
+
 	if args.Unmarshal(&params) != nil || params.Owner == "" || params.Identifier == "" || params.Version == "" || params.AppPath == "" {
 		return nil, &kite.ArgumentError{Expected: "{ owner: [string], identifier: [string], version: [string], appPath: [string] }"}
 	}
@@ -54,6 +63,11 @@ func appDownloadOld(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (
 
 func appPublishOld(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
 	var params appParams
+
+	if args == nil {
+		return nil, &kite.ArgumentError{Expected: "empty argument passed"}
+	}
+
 	if args.Unmarshal(&params) != nil || params.AppPath == "" {
 		return nil, &kite.ArgumentError{Expected: "{ appPath: [string] }"}
 	}
@@ -63,6 +77,11 @@ func appPublishOld(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (i
 
 func appSkeletonOld(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
 	var params appParams
+
+	if args == nil {
+		return nil, &kite.ArgumentError{Expected: "empty argument passed"}
+	}
+
 	if args.Unmarshal(&params) != nil || params.AppPath == "" {
 		return nil, &kite.ArgumentError{Expected: "{ type: [string], appPath: [string] }"}
 	}

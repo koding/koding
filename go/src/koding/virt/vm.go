@@ -134,12 +134,17 @@ func (vm *VM) ApplyDefaults() {
 	}
 }
 
-type PrepareStep struct {
+type Step struct {
 	Message     string  `json:"message"`
 	CurrentStep int     `json:"currentStep"`
 	TotalStep   int     `json:"totalStep"`
 	Err         error   `json:"error"`
-	TotalTime   float64 `json:"totalTime"` // time.Duration.Seconds()
+	ElapsedTime float64 `json:"elapsedTime"` // time.Duration.Seconds()
+}
+
+type StepFunc struct {
+	Fn  func() error
+	Msg string
 }
 
 // Prepare creates and initialized the container to be started later directly
@@ -147,29 +152,24 @@ type PrepareStep struct {
 // templating), instead of we use this method which basically let us do things
 // more efficient. It creates the home directory, generates files like lxc.conf
 // and mounts the necessary filesystems.
-func (v *VM) Prepare(reinitialize bool) <-chan *PrepareStep {
-	type PrepareFunc struct {
-		Fn  func() error
-		Msg string
-	}
-
-	funcs := make([]*PrepareFunc, 0)
-	funcs = append(funcs, &PrepareFunc{Msg: "Create container", Fn: v.createContainerDir})
-	funcs = append(funcs, &PrepareFunc{Msg: "Mount RBD", Fn: v.mountRBD})
+func (v *VM) Prepare(reinitialize bool) <-chan *Step {
+	funcs := make([]*StepFunc, 0)
+	funcs = append(funcs, &StepFunc{Msg: "Create container", Fn: v.createContainerDir})
+	funcs = append(funcs, &StepFunc{Msg: "Mount RBD", Fn: v.mountRBD})
 
 	// remove all except /home on reinitialize
 	if reinitialize {
-		funcs = append(funcs, &PrepareFunc{Msg: "Reinitialize", Fn: v.reinitialize})
+		funcs = append(funcs, &StepFunc{Msg: "Reinitialize", Fn: v.reinitialize})
 	}
 
-	funcs = append(funcs, &PrepareFunc{Msg: "Create overlay", Fn: v.createOverlay})
-	funcs = append(funcs, &PrepareFunc{Msg: "Merging old files", Fn: v.mergeFiles})
-	funcs = append(funcs, &PrepareFunc{Msg: "Mount AUF", Fn: v.mountAufs})
-	funcs = append(funcs, &PrepareFunc{Msg: "Mount PTS", Fn: v.prepareAndMountPts})
-	funcs = append(funcs, &PrepareFunc{Msg: "Add Ebtables rules", Fn: v.addEbtablesRule})
-	funcs = append(funcs, &PrepareFunc{Msg: "Add Static route", Fn: v.addStaticRoute})
+	funcs = append(funcs, &StepFunc{Msg: "Create overlay", Fn: v.createOverlay})
+	funcs = append(funcs, &StepFunc{Msg: "Merging old files", Fn: v.mergeFiles})
+	funcs = append(funcs, &StepFunc{Msg: "Mount AUF", Fn: v.mountAufs})
+	funcs = append(funcs, &StepFunc{Msg: "Mount PTS", Fn: v.prepareAndMountPts})
+	funcs = append(funcs, &StepFunc{Msg: "Add Ebtables rules", Fn: v.addEbtablesRule})
+	funcs = append(funcs, &StepFunc{Msg: "Add Static route", Fn: v.addStaticRoute})
 
-	results := make(chan *PrepareStep, len(funcs))
+	results := make(chan *Step, len(funcs))
 
 	// create the functions one by one and pass back the results via a
 	// channel. The channel will be closed if an error results.
@@ -183,16 +183,18 @@ func (v *VM) Prepare(reinitialize bool) <-chan *PrepareStep {
 			start := time.Now()
 			err := current.Fn() // invoke our function
 
-			results <- &PrepareStep{
+			results <- &Step{
 				Message:     current.Msg,
 				CurrentStep: step + 1,
 				TotalStep:   len(funcs),
-				TotalTime:   time.Since(start).Seconds(),
+				ElapsedTime: time.Since(start).Seconds(),
 				Err:         err,
 			}
 
 			if err != nil {
-				v.Unprepare() // don't put the prepare in an unknown state
+				// don't put the prepare in an unknown state
+				for _ = range v.Unprepare() {
+				}
 				break
 			}
 		}
@@ -308,7 +310,16 @@ func (v *VM) addStaticRoute() error {
 
 func UnprepareVM(id bson.ObjectId) error {
 	vm := VM{Id: id}
-	return vm.Unprepare()
+
+	if err := vm.Shutdown(); err != nil {
+		return err
+	}
+
+	var err error
+	for step := range vm.Unprepare() {
+		err = step.Err
+	}
+	return err
 }
 
 // Unprepare is basically the inverse of Prepare. We don't use lxc.destroy
@@ -318,39 +329,53 @@ func UnprepareVM(id bson.ObjectId) error {
 // Those files will be stored in the vmroot.
 // Unprepare also doesn't return on errors, instead it silently fails and
 // tries to execute the next step until all steps are done.
-func (vm *VM) Unprepare() error {
+func (vm *VM) Unprepare() <-chan *Step {
+	funcs := make([]*StepFunc, 0)
+	funcs = append(funcs, &StepFunc{Msg: "Removing network rules", Fn: vm.removeNetworkRules})
+	funcs = append(funcs, &StepFunc{Msg: "Umount PTS", Fn: vm.umountPts})
+	funcs = append(funcs, &StepFunc{Msg: "Umount AUFS", Fn: vm.umountAufs})
+	funcs = append(funcs, &StepFunc{Msg: "Umount RBD", Fn: vm.umountRBD})
+	funcs = append(funcs, &StepFunc{Msg: "Removing lxc prepare files", Fn: func() error {
+		os.Remove(vm.File("config"))
+		os.Remove(vm.File("fstab"))
+		os.Remove(vm.File("ip-address"))
+		os.Remove(vm.File("rootfs"))
+		os.Remove(vm.File("rootfs.hold"))
+		os.Remove(vm.File(""))
+		return nil
+	}})
+
 	var lastError error
+	results := make(chan *Step, len(funcs))
 
-	// stop VM
-	if err := vm.Shutdown(); err != nil {
-		return err
-	}
+	// create the functions one by one and pass back the results via a
+	// channel. The channel will be closed if an error results.
+	go func() {
+		defer func() {
+			close(results)
+			results = nil
+		}()
 
-	if err := vm.removeNetworkRules(); err != nil && lastError == nil {
-		lastError = err
-	}
+		for step, current := range funcs {
+			start := time.Now()
+			err := current.Fn() // invoke our function
 
-	if err := vm.umountPts(); err != nil && lastError == nil {
-		lastError = err
-	}
+			if err != nil {
+				lastError = err
+			}
 
-	if err := vm.umountAufs(); err != nil && lastError == nil {
-		lastError = err
-	}
+			results <- &Step{
+				Message:     current.Msg,
+				CurrentStep: step + 1,
+				TotalStep:   len(funcs),
+				ElapsedTime: time.Since(start).Seconds(),
+				Err:         lastError,
+			}
 
-	if err := vm.umountRBD(); err != nil && lastError == nil {
-		lastError = err
-	}
+		}
+	}()
 
-	// remove VM directory
-	os.Remove(vm.File("config"))
-	os.Remove(vm.File("fstab"))
-	os.Remove(vm.File("ip-address"))
-	os.Remove(vm.File("rootfs"))
-	os.Remove(vm.File("rootfs.hold"))
-	os.Remove(vm.File(""))
-
-	return lastError
+	return results
 }
 
 func (vm *VM) removeNetworkRules() error {

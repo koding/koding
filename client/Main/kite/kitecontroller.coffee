@@ -128,7 +128,7 @@ class KiteController extends KDController
 
     ok =
       if options.kiteName is 'os'
-      then kite.vmStart()
+      then kite.vmOn()
       else Promise.cast()
 
     ok

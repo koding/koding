@@ -54,6 +54,11 @@ func vmCreateSnapshotOld(args *dnode.Partial, c *kite.Channel, vos *virt.VOS) (i
 
 func spawnFuncOld(args *dnode.Partial, c *kite.Channel, vos *virt.VOS) (interface{}, error) {
 	var command []string
+
+	if args == nil {
+		return nil, &kite.ArgumentError{Expected: "empty argument passed"}
+	}
+
 	if args.Unmarshal(&command) != nil {
 		return nil, &kite.ArgumentError{Expected: "[array of strings]"}
 	}
@@ -63,6 +68,10 @@ func spawnFuncOld(args *dnode.Partial, c *kite.Channel, vos *virt.VOS) (interfac
 
 func execFuncOld(args *dnode.Partial, c *kite.Channel, vos *virt.VOS) (interface{}, error) {
 	var line string
+	if args == nil {
+		return nil, &kite.ArgumentError{Expected: "empy argument passed"}
+	}
+
 	if args.Unmarshal(&line) != nil {
 		return nil, &kite.ArgumentError{Expected: "[string]"}
 	}
@@ -93,11 +102,6 @@ func vmStart(vos *virt.VOS) (interface{}, error) {
 		msg: "vm.Start" + vos.VM.HostnameAlias,
 		f: func() (string, error) {
 			defer func() { done <- struct{}{} }()
-
-			// mutex is needed because it's handled in the queue
-			info := getInfo(vos.VM)
-			info.mutex.Lock()
-			defer info.mutex.Unlock()
 
 			if lastError = vos.VM.Start(); lastError != nil {
 				return "", lastError
@@ -132,11 +136,6 @@ func vmShutdown(vos *virt.VOS) (interface{}, error) {
 		f: func() (string, error) {
 			defer func() { done <- struct{}{} }()
 
-			// mutex is needed because it's handled in the queue
-			info := getInfo(vos.VM)
-			info.mutex.Lock()
-			defer info.mutex.Unlock()
-
 			if err := vos.VM.Shutdown(); err != nil {
 				return "", err
 			}
@@ -154,9 +153,29 @@ func vmUnprepare(vos *virt.VOS) (interface{}, error) {
 		return nil, &kite.PermissionError{}
 	}
 
-	if err := vos.VM.Unprepare(); err != nil {
-		return nil, err
+	done := make(chan struct{}, 1)
+	prepareQueue <- &QueueJob{
+		msg: "vm.Unprepare" + vos.VM.HostnameAlias,
+		f: func() (string, error) {
+			defer func() { done <- struct{}{} }()
+
+			if err := vos.VM.Shutdown(); err != nil {
+				return "", err
+			}
+
+			var err error
+			for step := range vos.VM.Unprepare() {
+				err = step.Err
+			}
+			if err != nil {
+				return "", err
+			}
+
+			return fmt.Sprintf("vm.Unprepare %s", vos.VM.HostnameAlias), nil
+		},
 	}
+
+	<-done
 
 	return true, nil
 }
@@ -284,11 +303,6 @@ func startAndPrepareVM(vm *virt.VM) error {
 		f: func() (string, error) {
 			defer func() { done <- struct{}{} }()
 
-			// mutex is needed because it's handled in the queue
-			info := getInfo(vm)
-			info.mutex.Lock()
-			defer info.mutex.Unlock()
-
 			startTime := time.Now()
 
 			// prepare first
@@ -326,68 +340,46 @@ func startAndPrepareVM(vm *virt.VM) error {
 	return lastError
 }
 
-// TODO merge this with vmStartProgress
 func vmPrepareAndStart(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
-	if !vos.Permissions.Sudo {
-		return nil, &kite.PermissionError{}
-	}
-
-	var lastError error
-	done := make(chan struct{}, 1)
-	prepareQueue <- &QueueJob{
-		msg: "vm.Start " + vos.VM.HostnameAlias,
-		f: func() (string, error) {
-			defer func() { done <- struct{}{} }()
-
-			for step := range progress(vos) {
-				if step.Err != nil {
-					lastError = step.Err
-					return "", lastError
-				}
-			}
-
-			return fmt.Sprintf("vm.start %s", vos.VM.HostnameAlias), nil
-		},
-	}
-
-	log.Info("putting %s into queue. total vms in queue: %d of %d",
-		vos.VM.HostnameAlias, currentQueueCount.Get(), len(prepareQueue))
-
-	// wait until the prepareWorker has picked us and we finished
-	// to return something to the client
-	<-done
-
-	if lastError != nil {
-		return true, lastError
-	}
-	return true, nil
-}
-
-func vmStartProgress(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
 	var params struct {
 		OnProgress dnode.Callback
 	}
 
-	if args.Unmarshal(&params) != nil || params.OnProgress == nil {
+	fmt.Printf("args %+v\n", args)
+
+	if args != nil && args.Unmarshal(&params) != nil {
 		return nil, &kite.ArgumentError{Expected: "{OnProgress: [function]}"}
 	}
 
-	params.OnProgress(&virt.PrepareStep{Message: "STARTED"})
+	var lastError error
+	done := make(chan struct{}, 1)
+
+	if params.OnProgress != nil {
+		params.OnProgress(&virt.Step{Message: "STARTED"})
+		done = nil // not used anymore
+	}
 
 	go func() {
 		prepareQueue <- &QueueJob{
 			msg: "vm.Start" + channel.CorrelationName,
 			f: func() (string, error) {
-				// mutex is needed because it's handled in the queue
-				info := getInfo(vos.VM)
-				info.mutex.Lock()
-				defer info.mutex.Unlock()
+				if params.OnProgress == nil {
+					defer func() { done <- struct{}{} }()
+				} else {
+					// mutex is needed because it's handled in the queue
+					info := getInfo(vos.VM)
+					info.mutex.Lock()
+					defer info.mutex.Unlock()
+				}
 
-				for step := range progress(vos) {
-					params.OnProgress(step)
+				for step := range prepareProgress(vos) {
+					if params.OnProgress != nil {
+						params.OnProgress(step)
+					}
 
 					if step.Err != nil {
-						return "", step.Err
+						lastError = step.Err
+						return "", lastError
 					}
 				}
 
@@ -396,16 +388,130 @@ func vmStartProgress(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) 
 		}
 	}()
 
+	if params.OnProgress == nil {
+		// wait until the prepareWorker has picked us and we finished
+		// to return something to the client
+		<-done
+		if lastError != nil {
+			return true, lastError
+		}
+	}
+
 	return true, nil
 }
 
-func progress(vos *virt.VOS) <-chan *virt.PrepareStep {
-	results := make(chan *virt.PrepareStep)
+func vmStopAndUnprepare(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
+	var params struct {
+		OnProgress dnode.Callback
+	}
+
+	if args != nil && args.Unmarshal(&params) != nil {
+		return nil, &kite.ArgumentError{Expected: "{OnProgress: [function]}"}
+	}
+
+	var lastError error
+	done := make(chan struct{}, 1)
+
+	if params.OnProgress != nil {
+		params.OnProgress(&virt.Step{Message: "STARTED"})
+		done = nil // not used anymore
+	}
+
+	go func() {
+		prepareQueue <- &QueueJob{
+			msg: "vm.Start" + channel.CorrelationName,
+			f: func() (string, error) {
+				if params.OnProgress == nil {
+					defer func() { done <- struct{}{} }()
+				} else {
+					// mutex is needed because it's handled in the queue
+					info := getInfo(vos.VM)
+					info.mutex.Lock()
+					defer info.mutex.Unlock()
+				}
+
+				for step := range unprepareProgress(vos) {
+					if params.OnProgress != nil {
+						params.OnProgress(step)
+					}
+
+					if step.Err != nil {
+						lastError = step.Err
+						return "", lastError
+					}
+				}
+
+				return fmt.Sprintf("vm.startProgress %s", vos.VM.HostnameAlias), nil
+			},
+		}
+	}()
+
+	if params.OnProgress == nil {
+		// wait until the prepareWorker has picked us and we finished
+		// to return something to the client
+		<-done
+		if lastError != nil {
+			return true, lastError
+		}
+	}
+
+	return true, nil
+}
+
+func unprepareProgress(vos *virt.VOS) <-chan *virt.Step {
+	results := make(chan *virt.Step)
 
 	go func() {
 		var lastError error
 		defer func() {
-			results <- &virt.PrepareStep{Err: lastError, Message: "FINISHED"}
+			results <- &virt.Step{Err: lastError, Message: "FINISHED"}
+			close(results)
+		}()
+
+		var prepared bool
+		prepared, lastError = isVmPrepared(vos.VM)
+		if lastError != nil {
+			return
+		}
+
+		if !prepared {
+			results <- &virt.Step{Message: "Vm is already unprepared"}
+			return
+		}
+
+		start := time.Now()
+		if lastError = vos.VM.Shutdown(); lastError != nil {
+			return
+		}
+		results <- &virt.Step{
+			Message:     "VM is stopped.",
+			ElapsedTime: time.Since(start).Seconds(),
+			CurrentStep: 1,
+			TotalStep:   6, // hardcoded I know, 5 comes from vm.Unprepare()
+		}
+
+		for step := range vos.VM.Unprepare() {
+			lastError = step.Err
+
+			// add +1 because of previous vm.Shutdown()
+			step.CurrentStep = step.CurrentStep + 1
+			step.TotalStep = step.TotalStep + 1
+
+			// send every process back to the client
+			results <- step
+		}
+	}()
+
+	return results
+}
+
+func prepareProgress(vos *virt.VOS) <-chan *virt.Step {
+	results := make(chan *virt.Step)
+
+	go func() {
+		var lastError error
+		defer func() {
+			results <- &virt.Step{Err: lastError, Message: "FINISHED"}
 			close(results)
 		}()
 
@@ -416,7 +522,7 @@ func progress(vos *virt.VOS) <-chan *virt.PrepareStep {
 		}
 
 		if prepared {
-			results <- &virt.PrepareStep{Message: "Vm is already prepared"}
+			results <- &virt.Step{Message: "Vm is already prepared"}
 			return
 		}
 
@@ -441,9 +547,9 @@ func progress(vos *virt.VOS) <-chan *virt.PrepareStep {
 		if lastError = vos.VM.Start(); lastError != nil {
 			return
 		}
-		results <- &virt.PrepareStep{
+		results <- &virt.Step{
 			Message:     "VM is started.",
-			TotalTime:   time.Since(start).Seconds(),
+			ElapsedTime: time.Since(start).Seconds(),
 			CurrentStep: totalStep - 1,
 			TotalStep:   totalStep,
 		}
@@ -453,9 +559,9 @@ func progress(vos *virt.VOS) <-chan *virt.PrepareStep {
 		if lastError = vos.VM.WaitForNetwork(time.Second * 5); lastError != nil {
 			return
 		}
-		results <- &virt.PrepareStep{
+		results <- &virt.Step{
 			Message:     "VM network is ready and up",
-			TotalTime:   time.Since(start).Seconds(),
+			ElapsedTime: time.Since(start).Seconds(),
 			CurrentStep: totalStep,
 			TotalStep:   totalStep,
 		}

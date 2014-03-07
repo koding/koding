@@ -13,7 +13,7 @@ class FSFolder extends FSFile
 
     kite = @getKite()
 
-    kite.vmStart()
+    kite.vmOn()
     .then =>
 
       kite.fsReadDirectory
@@ -47,7 +47,7 @@ class FSFolder extends FSFile
 
     @emit "fs.save.started"
 
-    @getKite().vmStart()
+    @getKite().vmOn()
 
     .then =>
       @vmController.fsCreateDirectory {

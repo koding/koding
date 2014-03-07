@@ -130,6 +130,10 @@ func groupBucketFunc(params *storeParams, vos *virt.VOS) error {
 func s3StoreOld(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
 	params := new(storeParams)
 
+	if args == nil {
+		return nil, &kite.ArgumentError{Expected: "empty argument passed"}
+	}
+
 	if args.Unmarshal(&params) != nil || params.Name == "" || len(params.Content) == 0 || params.Bucket == "" {
 		return nil, &kite.ArgumentError{Expected: "{ name: [string], bucket: [string], content: [base64 string] }"}
 	}
@@ -161,6 +165,11 @@ func s3Store(params *storeParams, vos *virt.VOS) (interface{}, error) {
 
 func s3DeleteOld(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
 	params := new(storeParams)
+
+	if args == nil {
+		return nil, &kite.ArgumentError{Expected: "empty argument passed"}
+	}
+
 	if args.Unmarshal(&params) != nil || params.Name == "" || strings.Contains(params.Name, "/") {
 		return nil, &kite.ArgumentError{Expected: "{ name: [string] }"}
 	}

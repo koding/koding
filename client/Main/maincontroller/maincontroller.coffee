@@ -26,6 +26,8 @@ class MainController extends KDController
     @setFailTimer()
     @attachListeners()
 
+    @detectIdleUser()
+
   createSingletons:->
 
     KD.registerSingleton "mainController",            this
@@ -253,3 +255,7 @@ class MainController extends KDController
     return ->
       @utils.wait @getOptions().failWait, checkConnectionState
       @on "AccountChanged", -> notification.destroy()  if notification
+
+  detectIdleUser: (threshold = KD.config.userIdleMs) ->
+    idleDetector = new IdleUserDetector { threshold }
+    @forwardEvents idleDetector, ['userIdle', 'userBack']
