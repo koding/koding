@@ -59,6 +59,9 @@ module.exports = [
   "CommonViews/activitywidget.coffee",
   "CommonViews/uploadimagemodalview.coffee",
 
+  # idle detection
+  "idleuserdetector.coffee"
+
   # junction
   "junction/junction.coffee"
   "junction/satisfier.coffee"
