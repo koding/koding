@@ -15,8 +15,7 @@ class MembersAppController extends AppController
   {externalProfiles} = KD.config
 
   constructor:(options = {}, data)->
-
-    options.view    = new MembersMainView
+    options.view    = new KDView
       cssClass      : 'content-page members'
     options.appInfo =
       name          : 'Members'
@@ -27,31 +26,47 @@ class MembersAppController extends AppController
 
     @on "LazyLoadThresholdReached", => @feedController?.loadFeed()
 
-  createContentDisplay:(account, callback=->)->
+  createContentDisplay:(model, callback=->)->
     KD.singletons.appManager.setFrontApp this
     contentDisplay = new KDView
       cssClass : 'member content-display'
       type     : 'profile'
+
     contentDisplay.on 'handleQuery', (query)=>
       @ready => @feedController?.handleQuery? query
 
     contentDisplay.once 'KDObjectWillBeDestroyed', ->
       KD.singleton('appManager').tell 'Activity', 'resetProfileLastTo'
 
-    {JAccount} = KD.remote.api
-    if account instanceof JAccount
-      @addProfileView contentDisplay, account
-      @addActivityView contentDisplay, account
-    else
-      @addActivityView contentDisplay, KD.whoami()
-    @showContentDisplay contentDisplay
-    @utils.defer -> callback contentDisplay
+    KD.getSingleton('groupsController').ready =>
+      contentDisplay.$('div.lazy').remove()
+      {JAccount} = KD.remote.api
+      if model instanceof JAccount
+        @createProfileView contentDisplay, model
+      else
+        @createGroupMembersView contentDisplay
+      @showContentDisplay contentDisplay
+      @utils.defer -> callback contentDisplay
 
-  addActivityView:(view, account)->
-    view.$('div.lazy').remove()
+  createProfileView: (contentDisplay, model)->
+    @prepareProfileView model, (profileView)=>
+      contentDisplay.addSubView profileView
+      @prepareFeederView model, (feederView)->
+        contentDisplay.addSubView feederView
+        contentDisplay.setCss minHeight : window.innerHeight
+
+  createGroupMembersView: (contentDisplay)->
+    contentDisplay.addSubView new HeaderViewSection
+      title    : "Members"
+      type     : "big"
+    @prepareFeederView KD.whoami(), (feederView)->
+      contentDisplay.addSubView feederView
+      contentDisplay.setCss minHeight : window.innerHeight
+
+  prepareFeederView:(account, callback)->
     windowController = KD.getSingleton('windowController')
 
-    if KD.whoami().getId() is account.getId()
+    if KD.isMine account
       owner   = "you"
       auxVerb =
         have : "have"
@@ -74,9 +89,8 @@ class MembersAppController extends AppController
         statuses            :
           noItemFoundText   : "#{owner} #{auxVerb.have} not shared any posts yet."
           dataSource        : (selector, options = {}, callback)=>
-            KD.getSingleton('groupsController').ready ->
-              options.originId = account.getId()
-              KD.getSingleton("appManager").tell 'Activity', 'fetchActivitiesProfilePage', options, callback
+            options.originId = account.getId()
+            KD.getSingleton("appManager").tell 'Activity', 'fetchActivitiesProfilePage', options, callback
         followers           :
           loggedInOnly      : yes
           itemClass         : GroupMembersPageListItemView
@@ -113,6 +127,7 @@ class MembersAppController extends AppController
           listControllerClass: MembersListViewController
           listCssClass       : "member-related"
           dataSource         : (selector, options, callback)=>
+            group = KD.getGroup()
             group.fetchMembers selector, options, (err, res)=>
               KD.mixpanel "Load member list, success"  unless err
               callback err, res
@@ -138,26 +153,19 @@ class MembersAppController extends AppController
           direction         : 1
     }, (controller)=>
       @feedController = controller
-      view.addSubView controller.getView()
-      view.setCss minHeight : windowController.winHeight
+      callback controller.getView()
       @emit 'ready'
 
-  addProfileView:(view, member)->
+  prepareProfileView:(member, callback)->
     options      =
       cssClass   : "profilearea clearfix"
-      delegate   : view
 
     if KD.isMine member
       options.cssClass = KD.utils.curry "own-profile", options.cssClass
     else
       options.bind = "mouseenter" unless KD.isMine member
 
-    return view.addSubView memberProfile = new ProfileView options, member
-
-  loadView:(mainView, firstRun = yes, loadFeed = no)->
-    if firstRun
-      mainView.createCommons()
-    @createFeed mainView, loadFeed
+    callback new ProfileView options, member
 
   showContentDisplay:(contentDisplay)->
 
