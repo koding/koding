@@ -532,7 +532,7 @@ func (o *Oskite) getUser(username string) (*virt.User, error) {
 		return c.Find(bson.M{"username": username}).One(&user)
 	}); err != nil {
 		if err != mgo.ErrNotFound {
-			panic(err)
+			return nil, fmt.Errorf("username lookup error: %v", err)
 		}
 
 		if !strings.HasPrefix(username, "guest-") {
@@ -544,7 +544,7 @@ func (o *Oskite) getUser(username string) (*virt.User, error) {
 	}
 
 	if user.Uid < virt.UserIdOffset {
-		panic("User with too low uid.")
+		return nil, errors.New("User with too low uid.")
 	}
 
 	return user, nil
