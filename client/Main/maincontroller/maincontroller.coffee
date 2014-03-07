@@ -53,7 +53,7 @@ class MainController extends KDController
       KD.registerSingleton "activityController",      new ActivityController
       KD.registerSingleton "appStorageController",    new AppStorageController
       KD.registerSingleton "kodingAppsController",    new KodingAppsController
-      KD.registerSingleton "syncLocalController",     new SyncLocalController
+      KD.registerSingleton "localSync",               new LocalSyncController
       # KD.registerSingleton "kontrol",                 new Kontrol
 
       # @showInstructionsBook()
@@ -105,7 +105,7 @@ class MainController extends KDController
 
     KD.remote.api.JUser.logout (err) =>
       mainView._logoutAnimation()
-      KD.singletons.syncLocalController.removeLocalContents()
+      KD.singletons.localSync.removeLocalContents()
 
       wc = KD.singleton 'windowController'
       wc.clearUnloadListeners()

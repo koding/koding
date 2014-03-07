@@ -35,10 +35,9 @@ class AceAppView extends JView
   openLastFiles:->
     vmc = KD.getSingleton("vmController")
     vmc.once "StateChanged", (err, vm, info)=>
-      {syncLocalController} = KD.singletons
-      lastOpenedFiles = syncLocalController.getRecentOpenedFiles()
+      lastOpenedFiles = KD.singletons.localSync.getRecentOpenedFiles()
       for file in lastOpenedFiles
-        if file isnt 'localfile:/Untitled.txt'
+        unless file is 'localfile:/Untitled.txt'
           fsfile = FSHelper.createFileFromPath file
           @openFile fsfile
 
@@ -145,7 +144,7 @@ class AceAppView extends JView
     file = file or FSHelper.createFileFromPath 'localfile:/Untitled.txt'
     aceView = new AceView delegate: this, file
     aceView.on 'KDObjectWillBeDestroyed', =>
-      KD.singletons.syncLocalController.removeFromOpenedFiles file
+      KD.singletons.localSync.removeFromOpenedFiles file
       @removeOpenDocument aceView
     @aceViews[file.path] = aceView
     @setViewListeners aceView
@@ -158,7 +157,7 @@ class AceAppView extends JView
     pane.addSubView aceView
 
     # save opened file to localStorage, so that we can open same files on refresh.
-    KD.singletons.syncLocalController.addToOpenedFiles file.path
+    KD.singletons.localSync.addToOpenedFiles file.path
 
   setViewListeners: (view) ->
     @setFileListeners view.getData()

@@ -1,4 +1,4 @@
-class SyncLocalController extends KDController
+class LocalSyncController extends KDController
 
   constructor:->
     super
