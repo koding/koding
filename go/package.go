@@ -150,7 +150,7 @@ func buildKontrolProxy() error {
 		appName:       "kontrolproxy",
 		importPath:    kdproxyPath,
 		files:         files,
-		version:       "0.0.4",
+		version:       "0.0.5",
 		upstartScript: configUpstart,
 	}
 
