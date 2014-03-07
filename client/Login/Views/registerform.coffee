@@ -57,9 +57,7 @@ class RegisterInlineForm extends LoginViewInlineForm
       title         : "Create account"
       type          : 'submit'
       style         : "solid green medium"
-      loader        :
-        color       : "#ffffff"
-        diameter    : 21
+      loader        : yes
 
     @invitationCode = new LoginInputView
       cssClass      : "hidden"
