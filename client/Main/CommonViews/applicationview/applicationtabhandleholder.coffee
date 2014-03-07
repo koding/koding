@@ -8,7 +8,7 @@ class ApplicationTabHandleHolder extends KDView
 
     super options, data
 
-    @tabs = new KDCustomHTMLView cssClass: 'kdtabhandle-tabs'
+    @tabs = new KDCustomHTMLView cssClass: 'kdtabhandle-tabs clearfix'
 
   viewAppended: ->
     @addSubView @tabs
