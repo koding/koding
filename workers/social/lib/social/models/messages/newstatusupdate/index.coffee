@@ -232,18 +232,14 @@ module.exports = class JNewStatusUpdate extends JPost
       if err then return callback err
       {to, searchText, feedType, from, sort} = options
       to = if to then new Date(to)  else new Date()
-      selector =
-        'meta.createdAt' :
-          "$lt"          : to
-        'group'          : group.slug
-
-      selector["meta.createdAt"]["$gt"] = new Date(from) if from
 
       @getExemptUserIdsIfNeeded client, options, (err, ids)=>
         return callback err  if err
         selector =
           'meta.createdAt': $lt: to
           group: group.slug
+
+        selector["meta.createdAt"]["$gt"] = new Date(from) if from
 
         # remove exempts from result set
         selector.originId = $nin : ids if ids.length > 0
