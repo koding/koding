@@ -255,4 +255,8 @@ class FSHelper
         data = data.substr chunkSize
     return chunks
 
+  @getFullPath = (file)->
+    plainPath = @plainPath file.path
+    return "[#{file.vmName}]#{plainPath}"
+
 KD.classes.FSHelper = FSHelper
