@@ -111,7 +111,15 @@ class WebTermAppView extends JView
     storage.fetchStorage -> callback storage
 
   restoreTabs: (vm) ->
+
+    notification = new KDNotificationView
+      title     : "Checking for previous sessions"
+      type      : "mini"
+      cssClass  : "success"
+      duration  : 5000
+
     @fetchStorage (storage) =>
+      notification.destroy()
       sessions = storage.getValue 'savedSessions'
       activeIndex = storage.getValue 'activeIndex'
       if sessions?.length
