@@ -25,7 +25,7 @@ class NFinderController extends KDViewController
     TreeControllerClass = options.treeControllerClass or NFinderTreeController
     @treeController     = new TreeControllerClass treeOptions, []
 
-    @appStorage = KD.getSingleton('appStorageController').storage 'Finder', '1.1.1'
+    @appStorage = KD.getSingleton('appStorageController').storage 'Finder', '1.1.1.1'
 
     @watchers = {}
 
@@ -121,7 +121,6 @@ class NFinderController extends KDViewController
         else
           JVM.fetchVmsByContext {}, (err, vms)=>
             return callback err  if err
-
             if not vms or vms.length is 0
               KD.getSingleton('vmController').fetchDefaultVmName (vm)=>
                 if vm then @mountVms [vm]
