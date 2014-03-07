@@ -209,7 +209,10 @@ class ActivityAppController extends AppController
       {roles} = KD.config
       group   = groupObj?.slug
 
-      pinnedListView = view.feedWrapper.pinnedListController.getListView()
+      {togglePinnedList, pinnedListController} = view.feedWrapper
+      pinnedListView = pinnedListController.getListView()
+
+      togglePinnedList.hide()
       pinnedListView.hide()
 
       if not to and (searchText or @searchText)
@@ -241,7 +244,9 @@ class ActivityAppController extends AppController
         @once "publicFeedFetched_#{eventSuffix}", setFeedData
         @fetchPublicActivities options
         @setWarning()
-        pinnedListView.show()
+        if pinnedListController.getItemCount()
+          togglePinnedList.show()
+          pinnedListView.show()
         return
 
       else
