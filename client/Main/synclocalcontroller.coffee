@@ -62,17 +62,9 @@ class SyncLocalController extends KDController
     ,=>
       ++callCounter
       if callCounter > 5
-        @emit "VMNotResponding", file
+        @emit "LocalContentCouldntSynced", file
       else
         @patchFileIfDiffExist file, localContent, cb, callCounter
-
-  getPatchedContent: (originalContent, localContent)->
-    dmp = new diff_match_patch
-    diffArray = dmp.diff_main originalContent, localContent
-    return no unless diffArray.length > 0
-    dmp.diff_cleanupEfficiency diffArray
-    patchArray = dmp.patch_make originalContent, diffArray
-    dmp.patch_apply patchArray, originalContent
 
   updateFileContentOnLocalStorage: (file, content)->
     fileName = @getFileFullPath file
