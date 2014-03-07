@@ -135,6 +135,10 @@ class ActivityListContainer extends JView
 
     @pinnedListWrapper = @pinnedListController.getView()
 
+    @pinnedListController.on "Loaded", =>
+      @togglePinnedList.show()
+      @pinnedListController.getListView().show()
+
     @togglePinnedList = new KDCustomHTMLView
       cssClass   : "toggle-pinned-list hidden"
       # click      : KDView::toggleClass.bind @pinnedListWrapper, "hidden"

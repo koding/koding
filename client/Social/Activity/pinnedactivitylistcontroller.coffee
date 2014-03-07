@@ -13,7 +13,16 @@ class PinnedActivityListController extends ActivityListController
     @getView().once "viewAppended", =>
       return  unless KD.prefetchedFeeds
       feeds = KD.prefetchedFeeds["mostlikedactivity.main"] or []
-      return  unless feeds.length
-      @instantiateListItems KD.remote.revive feeds
+      return @instantiateListItems KD.remote.revive feeds  if feeds.length
+
+      options =
+        sort  : "meta.likes": -1
+        limit : 5
+        from  : Date.now() - (24 * 60 * 60 * 1000)
+
+      KD.remote.api.JNewStatusUpdate.fetchGroupActivity options, (err, items) =>
+        return log "fetching pinned activity list failed", err  if err
+        @instantiateListItems items
+        @emit "Loaded"
 
   postIsCreated: ->
