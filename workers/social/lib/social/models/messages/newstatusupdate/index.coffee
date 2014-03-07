@@ -300,7 +300,7 @@ module.exports = class JNewStatusUpdate extends JPost
 
       fetchOptions =
         sort : {'timestamp': -1}
-        limit: options.limit or 20
+        limit: 7
 
       @getExemptUserIdsIfNeeded client, options, (err, ids)=>
         return callback err  if err
