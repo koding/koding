@@ -279,8 +279,13 @@ func (v *VM) createOverlay() error {
 }
 
 func (v *VM) mergeFiles() error {
-	v.MergePasswdFile()
-	v.MergeGroupFile()
+	if err := v.MergePasswdFile(); err != nil {
+		return err
+	}
+
+	if err := v.MergeGroupFile(); err != nil {
+		return err
+	}
 
 	return nil
 }
