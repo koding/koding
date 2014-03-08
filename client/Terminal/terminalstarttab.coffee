@@ -6,6 +6,11 @@ class TerminalStartTab extends JView
 
     @vmWrapper = new KDCustomHTMLView tagName : 'ul'
 
+
+  viewAppended:->
+
+    super
+
     @fetchVMs()
 
 
@@ -21,6 +26,10 @@ class TerminalStartTab extends JView
       vms.sort (a,b)-> a.hostnameAlias > b.hostnameAlias
 
       @listVMs vms
+
+      for own alias, kite of vmController.kites
+        if kite.recentState
+          @vmWrapper[alias].handleVMInfo kite.recentState
 
     vmController.on 'vm.start.progress', (alias, update) => @vmWrapper[alias].handleVMStart update
     vmController.on 'vm.stop.progress',  (alias, update) => @vmWrapper[alias].handleVMStop update
