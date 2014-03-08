@@ -207,9 +207,18 @@ func (v *VM) Prepare(reinitialize bool) <-chan *Step {
 func (v *VM) createContainerDir() error {
 	// write LXC files
 	prepareDir(v.File(""), 0)
-	v.generateFile(v.File("config"), "config", 0, false)
-	v.generateFile(v.File("fstab"), "fstab", 0, false)
-	v.generateFile(v.File("ip-address"), "ip-address", 0, false)
+
+	if err := v.generateFile(v.File("config"), "config", 0, false); err != nil {
+		return err
+	}
+
+	if err := v.generateFile(v.File("fstab"), "fstab", 0, false); err != nil {
+		return err
+	}
+
+	if err := v.generateFile(v.File("ip-address"), "ip-address", 0, false); err != nil {
+		return err
+	}
 
 	return nil
 }
@@ -242,9 +251,17 @@ func (v *VM) createOverlay() error {
 	prepareDir(v.OverlayFile("/lost+found"), RootIdOffset) // for chown
 	prepareDir(v.OverlayFile("/etc"), RootIdOffset)
 
-	v.generateFile(v.OverlayFile("/etc/hostname"), "hostname", RootIdOffset, false)
-	v.generateFile(v.OverlayFile("/etc/hosts"), "hosts", RootIdOffset, false)
-	v.generateFile(v.OverlayFile("/etc/ldap.conf"), "ldap.conf", RootIdOffset, false)
+	if err := v.generateFile(v.OverlayFile("/etc/hostname"), "hostname", RootIdOffset, false); err != nil {
+		return err
+	}
+
+	if err := v.generateFile(v.OverlayFile("/etc/hosts"), "hosts", RootIdOffset, false); err != nil {
+		return err
+	}
+
+	if err := v.generateFile(v.OverlayFile("/etc/ldap.conf"), "ldap.conf", RootIdOffset, false); err != nil {
+		return err
+	}
 
 	return nil
 }
@@ -663,28 +680,30 @@ func prepareDir(p string, id int) {
 	chown(p, id, id)
 }
 
-// may panic
-func (vm *VM) generateFile(p, template string, id int, executable bool) {
+func (vm *VM) generateFile(p, template string, id int, executable bool) error {
 	var mode os.FileMode = 0644
 	if executable {
 		mode = 0755
 	}
+
 	file, err := os.OpenFile(p, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, mode)
 	if err != nil {
-		panic(err)
+		return err
 	}
 	defer file.Close()
 
 	if err := Templates.ExecuteTemplate(file, template, vm); err != nil {
-		panic(err)
+		return err
 	}
 
 	if err := file.Chown(id, id); err != nil {
-		panic(err)
+		return err
 	}
 	if err := file.Chmod(mode); err != nil {
-		panic(err)
+		return err
 	}
+
+	return nil
 }
 
 // may panic
