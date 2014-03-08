@@ -335,15 +335,12 @@ func (vm *VM) Unprepare() <-chan *Step {
 	funcs = append(funcs, &StepFunc{Msg: "Umount PTS", Fn: vm.umountPts})
 	funcs = append(funcs, &StepFunc{Msg: "Umount AUFS", Fn: vm.umountAufs})
 	funcs = append(funcs, &StepFunc{Msg: "Umount RBD", Fn: vm.umountRBD})
-	funcs = append(funcs, &StepFunc{Msg: "Removing lxc prepare files", Fn: func() error {
-		os.Remove(vm.File("config"))
-		os.Remove(vm.File("fstab"))
-		os.Remove(vm.File("ip-address"))
-		os.Remove(vm.File("rootfs"))
-		os.Remove(vm.File("rootfs.hold"))
-		os.Remove(vm.File(""))
-		return nil
-	}})
+	funcs = append(funcs, &StepFunc{Msg: "Removing lxc/config", Fn: func() error { return os.Remove(vm.File("config")) }})
+	funcs = append(funcs, &StepFunc{Msg: "Removing lxc/fstab", Fn: func() error { return os.Remove(vm.File("fstab")) }})
+	funcs = append(funcs, &StepFunc{Msg: "Removing lxc/ip-config", Fn: func() error { return os.Remove(vm.File("ip-address")) }})
+	funcs = append(funcs, &StepFunc{Msg: "Removing lxc/rootfs", Fn: func() error { return os.Remove(vm.File("rootfs")) }})
+	funcs = append(funcs, &StepFunc{Msg: "Removing lxc/rootfs.hold", Fn: func() error { return os.Remove(vm.File("rootfs.hold")) }})
+	funcs = append(funcs, &StepFunc{Msg: "Removing lxc folder", Fn: func() error { return os.Remove(vm.File("")) }})
 
 	var lastError error
 	results := make(chan *Step, len(funcs))

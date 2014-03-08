@@ -490,7 +490,7 @@ func unprepareProgress(vos *virt.VOS) <-chan *virt.Step {
 			Message:     "VM is stopped.",
 			ElapsedTime: time.Since(start).Seconds(),
 			CurrentStep: 1,
-			TotalStep:   6, // hardcoded I know, 5 comes from vm.Unprepare()
+			TotalStep:   11, // hardcoded I know, 10 comes from vm.Unprepare()
 		}
 
 		for step := range vos.VM.Unprepare() {
