@@ -28,7 +28,7 @@ class WebTermAppView extends JView
 
     @addStartTab()
 
-    @on 'VMItemClicked', @bound 'addNewTab'
+    @on 'VMItemClicked', (vm)=> @createNewTab {vm}
 
 
   initPane: (pane) ->
@@ -199,6 +199,7 @@ class WebTermAppView extends JView
 
 
   createNewTab: (options = {}) ->
+
     { hostnameAlias: vmName, region } = options.vm
 
     defaultOptions =
@@ -270,9 +271,10 @@ class WebTermAppView extends JView
       KD.mixpanel "Open new Webterm tab, success"
 
     @_secondTab   = yes
+    mode          = 'create'
 
     if vm?
-      @createNewTab { vm }, mode: 'create'
+      @createNewTab {vm, mode}
 
     else
       @utils.defer =>
@@ -282,9 +284,9 @@ class WebTermAppView extends JView
           return  if @vmselection and not @vmselection.isDestroyed
           @vmselection = new VMSelection
           @vmselection.once 'VMSelected', (vm) =>
-            @createNewTab { vm }, mode: 'create'
+            @createNewTab {vm, mode}
         else
-          @createNewTab vm: vmc.vms.first, mode: 'create'
+          @createNewTab {vm : vmc.vms.first, mode}
 
   pistachio: ->
     """
