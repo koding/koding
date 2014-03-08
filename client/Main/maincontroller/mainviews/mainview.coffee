@@ -167,8 +167,7 @@ class MainView extends KDView
         KD.getSingleton("windowController").addLayer @searchInput
 
         @searchInput.once "ReceivedClickElsewhere", =>
-          if not @searchInput.getValue()
-            @accountArea.unsetClass "search-open"
+          @accountArea.unsetClass "search-open"
 
       partial    : "<span class='icon'></span>"
 
