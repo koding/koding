@@ -133,7 +133,10 @@ class Ace extends KDView
 
   requestSave:->
     contents = @getContents()
-    return @notify "Nothing to save!" unless contents is "" or @isContentChanged()
+    unless contents is "" or @isContentChanged()
+      if @getDelegate().parent.active
+        @notify "Nothing to save!"
+      return
     file = @getData()
     {localSync} = KD.singletons
     # update the localStorage each time user requested save.

@@ -47,7 +47,6 @@ class LocalSyncController extends KDController
       return cb err unless info.state is "RUNNING"
       file.fetchContents (err, content)=>
         if content and not err
-          newContent = @getPatchedContent content, localContent
           unless content is localContent
             file.save localContent, (err, res)=>
               return cb err if err
@@ -94,7 +93,7 @@ class LocalSyncController extends KDController
     @openedFiles
 
   updateEditorStatus:(file, lastSavedContent)->
-    fileName   = FSHelper.plainPath file.path
+    fileName   = FSHelper.getFullPath file
     # get current AceViews
     aceAppView = KD.singletons.appManager.get("Ace").getView()
     {ace} = aceAppView.aceViews[fileName]
