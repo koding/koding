@@ -53,13 +53,13 @@ class VirtualizationController extends KDController
     @_runWrapper 'vm.resizeDisk', vm, callback
 
   start:(vm, callback)->
-    @_runWrapper 'vm.start', vm, callback
+    @_runWrapper 'vm.prepareAndStart', vm, callback
 
   stop:(vm, callback)->
     @_runWrapper 'vm.shutdown', vm, callback
 
   halt:(vm, callback)->
-    @_runWrapper 'vm.stop', vm, callback
+    @_runWrapper 'vm.stopAndUnprepare', vm, callback
 
   reinitialize:(vm, callback)->
     @_runWrapper 'vm.reinitialize', vm, callback
@@ -222,7 +222,7 @@ class VirtualizationController extends KDController
   registerKite: (vm) ->
     @kites[vm.hostnameAlias] = @getKite vm
 
-    @kites[vm.hostnameAlias].on 'vm.start.progress', do => (update)=>
+    @kites[vm.hostnameAlias].on 'vm.start.progress', (update) =>
       @emit 'vm.start.progress', vm.hostnameAlias, update
     @kites[vm.hostnameAlias].vmOn()
     # @kites[vm.hostnameAlias].vmOff()

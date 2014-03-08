@@ -141,6 +141,8 @@ class WebTermAppView extends JView
 
       { region, hostnameAlias: vmName } = vm
 
+      kite = vmController.kites[vmName]
+
       KD.mixpanel "Open Webterm, click", {vmName}
 
       unless vmName
@@ -148,7 +150,8 @@ class WebTermAppView extends JView
 
       WebTermView.setTerminalTimeout vmName, 15000
       , =>
-        @restoreTabs vm
+        kite.webtermGetSessions().then (sessions) ->
+          console.log sessions, sessions.length
         @messagePane.hide()
       , =>
         @messagePane.hide()
@@ -281,6 +284,8 @@ class WebTermAppView extends JView
   createNewTab: (options = {}) ->
     { hostnameAlias: vmName, region } = options.vm
 
+    debugger  if 'string' is typeof options.vm
+
     @messagePane.hide()
 
     defaultOptions =
@@ -292,8 +297,6 @@ class WebTermAppView extends JView
     terminalView.on 'message', @bound 'setMessage'
 
     terminalView.on 'WebTermConnected', @bound 'updateSessions'
-
-    {vmName} = options
 
     WebTermView.setTerminalTimeout vmName, 15000
     , =>
@@ -376,7 +379,7 @@ class WebTermAppView extends JView
         vmWrapper[vm.hostnameAlias] = new KDCustomHTMLView
           tagName : 'li'
           partial : "<figure></figure>#{vm.hostnameAlias.replace 'koding.kd.io', 'kd.io'}<i></i>"
-          click   : => @addNewTab vm.hostnameAlias
+          click   : => @addNewTab vm
         vmWrapper.addSubView vmWrapper[vm.hostnameAlias]
 
       vmController.on 'vm.start.progress', (vmAlias, {message})->

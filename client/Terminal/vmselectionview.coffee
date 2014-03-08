@@ -12,7 +12,7 @@ class VmListItem extends KDListItemView
     """
       <div class="vm-info">
         <cite></cite>
-        #{@getData()}
+        #{@getData().hostnameAlias}
       </div>
     """
 
@@ -45,5 +45,4 @@ class VMSelection extends KDModalView
       @emit "VMSelected", vm
       @destroy()
 
-    @listController.instantiateListItems KD.getSingleton('vmController').vms.map (vm) ->
-      vm.hostnameAlias
+    @listController.instantiateListItems KD.getSingleton('vmController').vms
