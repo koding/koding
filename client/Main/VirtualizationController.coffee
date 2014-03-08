@@ -232,6 +232,7 @@ class VirtualizationController extends KDController
 
     kite.vmInfo().then (info) =>
       @emit 'vm.info.state', alias, info
+      kite.recentState = info
 
 
   getKiteByVmName: (vmName) ->
