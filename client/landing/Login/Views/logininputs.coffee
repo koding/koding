@@ -6,7 +6,7 @@ class LoginInputView extends JView
     {inputOptions}            = options
     options.cssClass          = KD.utils.curry 'login-input-view', options.cssClass
     inputOptions            or= {}
-    inputOptions.cssClass     = KD.utils.curry 'thin', inputOptions.cssClass
+    inputOptions.cssClass     = KD.utils.curry 'thin medium', inputOptions.cssClass
     inputOptions.decorateValidation = no
 
     {placeholder, validate}   = inputOptions
