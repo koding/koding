@@ -7,6 +7,7 @@ class TerminalStartTabVMItem extends KDCustomHTMLView
   constructor:(options = {}, data)->
 
     options.tagName = 'li'
+    options.cssClass = KD.utils.curry 'vm-loader-item', options.cssClass
 
     super options, data
 

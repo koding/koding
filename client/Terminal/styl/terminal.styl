@@ -63,53 +63,7 @@ body.terminal #main-header
       ul
         size            700px auto
         color           #999
-        margin          0 auto
-        li
-          display             block
-          line-height         30px
-          font-size           14px
-          font-weight         200
-          border-bottom       1px solid #252e30
-          padding-left        30px
-          cursor              pointer
-          borderBox()
-          rel()
-          &:hover figure
-            opacity           1
-          &.ready i
-            color             logoBg
-          &.off
-            // cursor            default
-            i
-              color           #FF7379
-            // &:hover
-            //   figure
-            //     opacity       .4
-
-          figure
-            top               9px
-            left              6px
-            opacity           .4
-            display           block
-            r-sprite          environments 'terminal'
-            abs()
-          .kdloader
-            top               -2px
-            left              0
-            bg                color #1D2628
-            size              30px 30px
-            display           block
-            abs()
-          i
-            text-transform    uppercase
-            right             6px
-            top               1px
-            font-size         11px
-            font-weight       400
-            min-width         200px
-            text-align        right
-            abs()
-
+        margin          0 auto 40px
 
     h1
       font-size     32px
@@ -134,6 +88,88 @@ body.terminal #main-header
       padding       30px 0 10px 6px
       text-align    left
       borderBox()
+
+li.vm-loader-item
+  display             block
+  line-height         30px
+  font-size           14px
+  font-weight         200
+  border-bottom       2px solid #252e30
+  padding-left        30px
+  cursor              pointer
+  borderBox()
+  rel()
+  &:hover
+    figure
+      opacity         1
+  &.ready
+    i
+      color           logoBg
+    cite
+      width           100% !important
+      opacity         .1
+    &:hover
+      cite
+        opacity       .6
+  &.off
+    i
+      color           #FF7379
+    cite
+      width           0% !important
+      bg              color #FF7379
+  figure
+    top               9px
+    left              6px
+    opacity           .4
+    display           block
+    r-sprite          environments 'terminal'
+    abs()
+  .kdloader
+    top               -2px
+    left              0
+    bg                color #1D2628
+    size              30px 30px
+    display           block
+    abs()
+  i
+    text-transform    uppercase
+    right             6px
+    top               1px
+    font-size         11px
+    font-weight       400
+    min-width         200px
+    text-align        right
+    abs()
+  cite
+    abs()
+    height            1px
+    bg                color transparent
+    left              0
+    top               30px
+    vendor            transition, width .1s linear \,\
+                                  opacity .1s linear\,\
+                                  background-color .1s linear
+    width             0%
+    opacity           .5
+
+.kdmodal.vm-selection
+  ul
+    size                  auto auto
+    li
+      line-height         40px
+      border-bottom       1px solid #eee
+      padding-left        0
+      &.ready
+        color             logoBg
+      &.off
+        color             #FF7379
+      figure
+      .kdloader
+      i
+        hidden()
+      cite
+        top               40px
+
 
 .application-tab-handle-holder.terminal
 
