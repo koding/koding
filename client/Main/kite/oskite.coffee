@@ -68,6 +68,8 @@ class OsKite extends KDKite
     if not @recentState? or @recentState.state is 'STOPPED'
       @vmPrepareAndStart onProgress: (update) =>
         @emit 'vm.start.progress', update
+        if update.message is 'FINISHED'
+          @recentState?.state = 'RUNNING'
     else
       Promise.cast true
 
@@ -75,6 +77,8 @@ class OsKite extends KDKite
     if not @recentState? or @recentState.state is 'RUNNING'
       @vmStopAndUnprepare onProgress: (update) =>
         @emit 'vm.stop.progress', update
+        if update.message is 'FINISHED'
+          @recentState?.state = 'STOPPED'
     else
       Promise.cast true
 
