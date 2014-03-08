@@ -30,9 +30,8 @@ class KiteController extends KDController
 
   createKite:(kiteName, correlationName, kiteKey)->
     konstructor = KDKite.constructors[kiteName]
-    
+
     unless konstructor?
-      debugger
       throw new Error "Unknown constructor: #{ kiteName }"
 
     kite = new konstructor { correlationName, kiteKey }
