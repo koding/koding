@@ -91,6 +91,7 @@ body.terminal #main-header
 
 li.vm-loader-item
   display             block
+  height              30px
   line-height         30px
   font-size           14px
   font-weight         200
@@ -110,7 +111,7 @@ li.vm-loader-item
       opacity         .1
     &:hover
       cite
-        opacity       .6
+        opacity       .3
   &.off
     i
       color           #FF7379
@@ -142,20 +143,21 @@ li.vm-loader-item
     abs()
   cite
     abs()
-    height            1px
+    height            2px
     bg                color transparent
     left              0
-    top               30px
+    top               28px
     vendor            transition, width .1s linear \,\
                                   opacity .1s linear\,\
                                   background-color .1s linear
     width             0%
-    opacity           .5
+    opacity           .3
 
 .kdmodal.vm-selection
   ul
     size                  auto auto
     li
+      height              40px
       line-height         40px
       border-bottom       1px solid #eee
       padding-left        0
@@ -168,7 +170,8 @@ li.vm-loader-item
       i
         hidden()
       cite
-        top               40px
+        height            1px
+        top               39px
 
 
 .application-tab-handle-holder.terminal

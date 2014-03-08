@@ -18,7 +18,7 @@ class TerminalStartTabVMItem extends KDCustomHTMLView
       size          : width : 16
       showLoader    : yes
       loaderOptions :
-        color       : '#f2f2f2'
+        color       : '#ffffff'
 
     @notice = new KDCustomHTMLView
       tagName : 'i'
@@ -43,6 +43,7 @@ class TerminalStartTabVMItem extends KDCustomHTMLView
     # @notice.updatePartial niceMessage or message
 
     if message is 'STARTED'
+      # @loader.canvas.setColor "#1aaf5d"
       @loader.show()
       @progress.setCss 'background-color', "#1aaf5d"
       return
@@ -64,9 +65,11 @@ class TerminalStartTabVMItem extends KDCustomHTMLView
     # niceMessage = MESSAGE_MAP[message.toLowerCase()]
     # @notice.updatePartial niceMessage or message
     if message is 'STARTED'
+      # @loader.canvas.setColor "#FF7379"
       @loader.show()
       @progress.setCss 'background-color', "#FF7379"
       @notice.updatePartial "100%"
+      @progress.setWidth 100, '%'
       return
     percentage = 100 - Math.round currentStep/totalStep*100
     @progress.setWidth percentage, '%'
