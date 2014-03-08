@@ -314,8 +314,13 @@ func (v *VM) prepareAndMountPts() error {
 		return commandError("mount devpts failed.", err, out)
 	}
 
-	chown(v.PtsDir(), RootIdOffset, RootIdOffset)
-	chown(v.PtsDir()+"/ptmx", RootIdOffset, RootIdOffset)
+	if err := chown(v.PtsDir(), RootIdOffset, RootIdOffset); err != nil {
+		return err
+	}
+
+	if err := chown(v.PtsDir()+"/ptmx", RootIdOffset, RootIdOffset); err != nil {
+		return err
+	}
 
 	if v.IP == nil {
 		if ip, err := ioutil.ReadFile(v.File("ip-address")); err == nil {
@@ -694,8 +699,8 @@ func prepareDir(p string, id int) error {
 	if err := os.Mkdir(p, 0755); err != nil && !os.IsExist(err) {
 		return err
 	}
-	chown(p, id, id)
-	return nil
+
+	return chown(p, id, id)
 }
 
 func (vm *VM) generateFile(p, template string, id int, executable bool) error {
@@ -724,9 +729,6 @@ func (vm *VM) generateFile(p, template string, id int, executable bool) error {
 	return nil
 }
 
-// may panic
-func chown(p string, uid, gid int) {
-	if err := os.Chown(p, uid, gid); err != nil {
-		panic(err)
-	}
+func chown(p string, uid, gid int) error {
+	return os.Chown(p, uid, gid)
 }
