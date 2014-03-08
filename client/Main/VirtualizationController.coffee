@@ -225,7 +225,7 @@ class VirtualizationController extends KDController
     @kites[vm.hostnameAlias].on 'vm.start.progress', do => (update)=>
       @emit 'vm.start.progress', vm.hostnameAlias, update
     @kites[vm.hostnameAlias].vmOn()
-    # @kites[vm.hostnameAlias].vmOff()
+    # @kites[vm.hostnameAlias].on 'vm.stop.progress', warn
 
   getKiteByVmName: (vmName) ->
     @kites[vmName]
