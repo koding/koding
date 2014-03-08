@@ -206,7 +206,9 @@ func (v *VM) Prepare(reinitialize bool) <-chan *Step {
 
 func (v *VM) createContainerDir() error {
 	// write LXC files
-	prepareDir(v.File(""), 0)
+	if err := prepareDir(v.File(""), 0); err != nil {
+		return err
+	}
 
 	if err := v.generateFile(v.File("config"), "config", 0, false); err != nil {
 		return err
@@ -245,11 +247,21 @@ func (v *VM) reinitialize() error {
 	return nil
 }
 
+// prepare overlay
 func (v *VM) createOverlay() error {
-	// prepare overlay
-	prepareDir(v.OverlayFile("/"), RootIdOffset)           // for chown
-	prepareDir(v.OverlayFile("/lost+found"), RootIdOffset) // for chown
-	prepareDir(v.OverlayFile("/etc"), RootIdOffset)
+	// for chown
+	if err := prepareDir(v.OverlayFile("/"), RootIdOffset); err != nil {
+		return err
+	}
+
+	// for chown
+	if err := prepareDir(v.OverlayFile("/lost+found"), RootIdOffset); err != nil {
+		return err
+	}
+
+	if err := prepareDir(v.OverlayFile("/etc"), RootIdOffset); err != nil {
+		return err
+	}
 
 	if err := v.generateFile(v.OverlayFile("/etc/hostname"), "hostname", RootIdOffset, false); err != nil {
 		return err
@@ -276,7 +288,10 @@ func (v *VM) mergeFiles() error {
 func (v *VM) mountAufs() error {
 	// mount "/var/lib/lxc/vm-{id}/overlay" (rw) and "/var/lib/lxc/vmroot" (ro)
 	// under "/var/lib/lxc/vm-{id}/rootfs"
-	prepareDir(v.File("rootfs"), RootIdOffset)
+	if err := prepareDir(v.File("rootfs"), RootIdOffset); err != nil {
+		return err
+	}
+
 	// if out, err := exec.Command("/bin/mount", "--no-mtab", "-t", "overlayfs", "-o", fmt.Sprintf("lowerdir=%s,upperdir=%s", v.LowerdirFile("/"), v.OverlayFile("/")), "overlayfs", v.File("rootfs")).CombinedOutput(); err != nil {
 	if out, err := exec.Command("/bin/mount", "--no-mtab", "-t", "aufs", "-o",
 		fmt.Sprintf("noplink,br=%s:%s", v.OverlayFile("/"), v.LowerdirFile("/")), "aufs",
@@ -289,7 +304,10 @@ func (v *VM) mountAufs() error {
 
 func (v *VM) prepareAndMountPts() error {
 	// mount devpts
-	prepareDir(v.PtsDir(), RootIdOffset)
+	if err := prepareDir(v.PtsDir(), RootIdOffset); err != nil {
+		return err
+	}
+
 	if out, err := exec.Command("/bin/mount", "--no-mtab", "-t", "devpts", "-o",
 		"rw,noexec,nosuid,newinstance,gid="+strconv.Itoa(RootIdOffset+5)+",mode=0620,ptmxmode=0666",
 		"devpts", v.PtsDir()).CombinedOutput(); err != nil {
@@ -672,12 +690,12 @@ func commandError(message string, err error, out []byte) error {
 	return fmt.Errorf("%s\n%s\n%s", message, err.Error(), string(out))
 }
 
-// may panic
-func prepareDir(p string, id int) {
+func prepareDir(p string, id int) error {
 	if err := os.Mkdir(p, 0755); err != nil && !os.IsExist(err) {
-		panic(err)
+		return err
 	}
 	chown(p, id, id)
+	return nil
 }
 
 func (vm *VM) generateFile(p, template string, id int, executable bool) error {
