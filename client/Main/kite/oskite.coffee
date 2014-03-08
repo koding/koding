@@ -1,6 +1,6 @@
 class OsKite extends KDKite
 
-  api = 
+  api =
     exec            : 'exec'
 
     appInstall      : 'app.install'
@@ -14,7 +14,7 @@ class OsKite extends KDKite
     fsGetInfo       : 'fs.getInfo'
     fsSetPermissions: 'fs.setPermissions'
     fsRemove        : 'fs.remove'
-    
+
     fsEnsureNonexistentPath: 'fs.ensureNonexistentPath'
     fsWriteFile     : 'fs.writeFile'
     fsRename        : 'fs.rename'
@@ -22,10 +22,11 @@ class OsKite extends KDKite
 
     s3Store         : 's3.store'
     s3Delete        : 's3.delete'
-    
+
     vmStart         : 'vm.start'
     vmPrepareAndStart: 'vm.prepareAndStart'
-    vmShutdown      : 'vm.shutdown' 
+    vmStopAndUnprepare: 'vm.stopAndUnprepare'
+    vmShutdown      : 'vm.shutdown'
     vmUnprepare     : 'vm.unprepare'
     vmStop          : 'vm.stop'
     vmReinitialize  : 'vm.reinitialize'
@@ -72,7 +73,7 @@ class OsKite extends KDKite
 
   vmOff: ->
     if not @recentState? or @recentState.state is 'RUNNING'
-      @vmUnprepareAndStop onProgress: (update) =>
+      @vmStopAndUnprepare onProgress: (update) =>
         @emit 'vm.stop.progress', update
     else
       Promise.cast true
