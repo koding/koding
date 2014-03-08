@@ -206,10 +206,21 @@ func (v *VM) Prepare(reinitialize bool) <-chan *Step {
 
 func (v *VM) createContainerDir() error {
 	// write LXC files
-	prepareDir(v.File(""), 0)
-	v.generateFile(v.File("config"), "config", 0, false)
-	v.generateFile(v.File("fstab"), "fstab", 0, false)
-	v.generateFile(v.File("ip-address"), "ip-address", 0, false)
+	if err := prepareDir(v.File(""), 0); err != nil {
+		return err
+	}
+
+	if err := v.generateFile(v.File("config"), "config", 0, false); err != nil {
+		return err
+	}
+
+	if err := v.generateFile(v.File("fstab"), "fstab", 0, false); err != nil {
+		return err
+	}
+
+	if err := v.generateFile(v.File("ip-address"), "ip-address", 0, false); err != nil {
+		return err
+	}
 
 	return nil
 }
@@ -236,22 +247,45 @@ func (v *VM) reinitialize() error {
 	return nil
 }
 
+// prepare overlay
 func (v *VM) createOverlay() error {
-	// prepare overlay
-	prepareDir(v.OverlayFile("/"), RootIdOffset)           // for chown
-	prepareDir(v.OverlayFile("/lost+found"), RootIdOffset) // for chown
-	prepareDir(v.OverlayFile("/etc"), RootIdOffset)
+	// for chown
+	if err := prepareDir(v.OverlayFile("/"), RootIdOffset); err != nil {
+		return err
+	}
 
-	v.generateFile(v.OverlayFile("/etc/hostname"), "hostname", RootIdOffset, false)
-	v.generateFile(v.OverlayFile("/etc/hosts"), "hosts", RootIdOffset, false)
-	v.generateFile(v.OverlayFile("/etc/ldap.conf"), "ldap.conf", RootIdOffset, false)
+	// for chown
+	if err := prepareDir(v.OverlayFile("/lost+found"), RootIdOffset); err != nil {
+		return err
+	}
+
+	if err := prepareDir(v.OverlayFile("/etc"), RootIdOffset); err != nil {
+		return err
+	}
+
+	if err := v.generateFile(v.OverlayFile("/etc/hostname"), "hostname", RootIdOffset, false); err != nil {
+		return err
+	}
+
+	if err := v.generateFile(v.OverlayFile("/etc/hosts"), "hosts", RootIdOffset, false); err != nil {
+		return err
+	}
+
+	if err := v.generateFile(v.OverlayFile("/etc/ldap.conf"), "ldap.conf", RootIdOffset, false); err != nil {
+		return err
+	}
 
 	return nil
 }
 
 func (v *VM) mergeFiles() error {
-	v.MergePasswdFile()
-	v.MergeGroupFile()
+	if err := v.MergePasswdFile(); err != nil {
+		return err
+	}
+
+	if err := v.MergeGroupFile(); err != nil {
+		return err
+	}
 
 	return nil
 }
@@ -259,7 +293,10 @@ func (v *VM) mergeFiles() error {
 func (v *VM) mountAufs() error {
 	// mount "/var/lib/lxc/vm-{id}/overlay" (rw) and "/var/lib/lxc/vmroot" (ro)
 	// under "/var/lib/lxc/vm-{id}/rootfs"
-	prepareDir(v.File("rootfs"), RootIdOffset)
+	if err := prepareDir(v.File("rootfs"), RootIdOffset); err != nil {
+		return err
+	}
+
 	// if out, err := exec.Command("/bin/mount", "--no-mtab", "-t", "overlayfs", "-o", fmt.Sprintf("lowerdir=%s,upperdir=%s", v.LowerdirFile("/"), v.OverlayFile("/")), "overlayfs", v.File("rootfs")).CombinedOutput(); err != nil {
 	if out, err := exec.Command("/bin/mount", "--no-mtab", "-t", "aufs", "-o",
 		fmt.Sprintf("noplink,br=%s:%s", v.OverlayFile("/"), v.LowerdirFile("/")), "aufs",
@@ -272,15 +309,23 @@ func (v *VM) mountAufs() error {
 
 func (v *VM) prepareAndMountPts() error {
 	// mount devpts
-	prepareDir(v.PtsDir(), RootIdOffset)
+	if err := prepareDir(v.PtsDir(), RootIdOffset); err != nil {
+		return err
+	}
+
 	if out, err := exec.Command("/bin/mount", "--no-mtab", "-t", "devpts", "-o",
 		"rw,noexec,nosuid,newinstance,gid="+strconv.Itoa(RootIdOffset+5)+",mode=0620,ptmxmode=0666",
 		"devpts", v.PtsDir()).CombinedOutput(); err != nil {
 		return commandError("mount devpts failed.", err, out)
 	}
 
-	chown(v.PtsDir(), RootIdOffset, RootIdOffset)
-	chown(v.PtsDir()+"/ptmx", RootIdOffset, RootIdOffset)
+	if err := chown(v.PtsDir(), RootIdOffset, RootIdOffset); err != nil {
+		return err
+	}
+
+	if err := chown(v.PtsDir()+"/ptmx", RootIdOffset, RootIdOffset); err != nil {
+		return err
+	}
 
 	if v.IP == nil {
 		if ip, err := ioutil.ReadFile(v.File("ip-address")); err == nil {
@@ -335,15 +380,12 @@ func (vm *VM) Unprepare() <-chan *Step {
 	funcs = append(funcs, &StepFunc{Msg: "Umount PTS", Fn: vm.umountPts})
 	funcs = append(funcs, &StepFunc{Msg: "Umount AUFS", Fn: vm.umountAufs})
 	funcs = append(funcs, &StepFunc{Msg: "Umount RBD", Fn: vm.umountRBD})
-	funcs = append(funcs, &StepFunc{Msg: "Removing lxc prepare files", Fn: func() error {
-		os.Remove(vm.File("config"))
-		os.Remove(vm.File("fstab"))
-		os.Remove(vm.File("ip-address"))
-		os.Remove(vm.File("rootfs"))
-		os.Remove(vm.File("rootfs.hold"))
-		os.Remove(vm.File(""))
-		return nil
-	}})
+	funcs = append(funcs, &StepFunc{Msg: "Removing lxc/config", Fn: func() error { return os.Remove(vm.File("config")) }})
+	funcs = append(funcs, &StepFunc{Msg: "Removing lxc/fstab", Fn: func() error { return os.Remove(vm.File("fstab")) }})
+	funcs = append(funcs, &StepFunc{Msg: "Removing lxc/ip-config", Fn: func() error { return os.Remove(vm.File("ip-address")) }})
+	funcs = append(funcs, &StepFunc{Msg: "Removing lxc/rootfs", Fn: func() error { return os.Remove(vm.File("rootfs")) }})
+	funcs = append(funcs, &StepFunc{Msg: "Removing lxc/rootfs.hold", Fn: func() error { return os.Remove(vm.File("rootfs.hold")) }})
+	funcs = append(funcs, &StepFunc{Msg: "Removing lxc folder", Fn: func() error { return os.Remove(vm.File("")) }})
 
 	var lastError error
 	results := make(chan *Step, len(funcs))
@@ -658,41 +700,40 @@ func commandError(message string, err error, out []byte) error {
 	return fmt.Errorf("%s\n%s\n%s", message, err.Error(), string(out))
 }
 
-// may panic
-func prepareDir(p string, id int) {
+func prepareDir(p string, id int) error {
 	if err := os.Mkdir(p, 0755); err != nil && !os.IsExist(err) {
-		panic(err)
+		return err
 	}
-	chown(p, id, id)
+
+	return chown(p, id, id)
 }
 
-// may panic
-func (vm *VM) generateFile(p, template string, id int, executable bool) {
+func (vm *VM) generateFile(p, template string, id int, executable bool) error {
 	var mode os.FileMode = 0644
 	if executable {
 		mode = 0755
 	}
+
 	file, err := os.OpenFile(p, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, mode)
 	if err != nil {
-		panic(err)
+		return err
 	}
 	defer file.Close()
 
 	if err := Templates.ExecuteTemplate(file, template, vm); err != nil {
-		panic(err)
+		return err
 	}
 
 	if err := file.Chown(id, id); err != nil {
-		panic(err)
+		return err
 	}
 	if err := file.Chmod(mode); err != nil {
-		panic(err)
+		return err
 	}
+
+	return nil
 }
 
-// may panic
-func chown(p string, uid, gid int) {
-	if err := os.Chown(p, uid, gid); err != nil {
-		panic(err)
-	}
+func chown(p string, uid, gid int) error {
+	return os.Chown(p, uid, gid)
 }

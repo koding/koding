@@ -5,6 +5,8 @@ package oskite
 import (
 	"errors"
 	"fmt"
+	"io"
+	"koding/oskite/ldapserver"
 	"koding/tools/dnode"
 	"koding/tools/kite"
 	"koding/virt"
@@ -14,7 +16,10 @@ import (
 	"labix.org/v2/mgo/bson"
 )
 
-var ErrVmAlreadyPrepared = errors.New("vm is already prepared")
+var (
+	ErrVmAlreadyPrepared = errors.New("vm is already prepared")
+	ErrVmNotPrepared     = errors.New("vm is not prepared")
+)
 
 func vmStartOld(args *dnode.Partial, c *kite.Channel, vos *virt.VOS) (interface{}, error) {
 	return vmStart(vos)
@@ -69,7 +74,7 @@ func spawnFuncOld(args *dnode.Partial, c *kite.Channel, vos *virt.VOS) (interfac
 func execFuncOld(args *dnode.Partial, c *kite.Channel, vos *virt.VOS) (interface{}, error) {
 	var line string
 	if args == nil {
-		return nil, &kite.ArgumentError{Expected: "empy argument passed"}
+		return nil, &kite.ArgumentError{Expected: "empty argument passed"}
 	}
 
 	if args.Unmarshal(&line) != nil {
@@ -91,8 +96,8 @@ func vmStart(vos *virt.VOS) (interface{}, error) {
 		return nil, err
 	}
 
-	if prepared {
-		return nil, ErrVmAlreadyPrepared
+	if !prepared {
+		return nil, ErrVmNotPrepared
 	}
 
 	var lastError error
@@ -345,8 +350,6 @@ func vmPrepareAndStart(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS
 		OnProgress dnode.Callback
 	}
 
-	fmt.Printf("args %+v\n", args)
-
 	if args != nil && args.Unmarshal(&params) != nil {
 		return nil, &kite.ArgumentError{Expected: "{OnProgress: [function]}"}
 	}
@@ -361,7 +364,7 @@ func vmPrepareAndStart(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS
 
 	go func() {
 		prepareQueue <- &QueueJob{
-			msg: "vm.Start" + channel.CorrelationName,
+			msg: "vm.prepareAndStart" + vos.VM.HostnameAlias,
 			f: func() (string, error) {
 				if params.OnProgress == nil {
 					defer func() { done <- struct{}{} }()
@@ -383,7 +386,7 @@ func vmPrepareAndStart(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS
 					}
 				}
 
-				return fmt.Sprintf("vm.startProgress %s", vos.VM.HostnameAlias), nil
+				return fmt.Sprintf("vm.prepareAndStart %s", vos.VM.HostnameAlias), nil
 			},
 		}
 	}()
@@ -419,7 +422,7 @@ func vmStopAndUnprepare(args *dnode.Partial, channel *kite.Channel, vos *virt.VO
 
 	go func() {
 		prepareQueue <- &QueueJob{
-			msg: "vm.Start" + channel.CorrelationName,
+			msg: "vm.StopAndUnprepare" + vos.VM.HostnameAlias,
 			f: func() (string, error) {
 				if params.OnProgress == nil {
 					defer func() { done <- struct{}{} }()
@@ -441,7 +444,7 @@ func vmStopAndUnprepare(args *dnode.Partial, channel *kite.Channel, vos *virt.VO
 					}
 				}
 
-				return fmt.Sprintf("vm.startProgress %s", vos.VM.HostnameAlias), nil
+				return fmt.Sprintf("vm.StopAndUnprepare %s", vos.VM.HostnameAlias), nil
 			},
 		}
 	}()
@@ -487,7 +490,7 @@ func unprepareProgress(vos *virt.VOS) <-chan *virt.Step {
 			Message:     "VM is stopped.",
 			ElapsedTime: time.Since(start).Seconds(),
 			CurrentStep: 1,
-			TotalStep:   6, // hardcoded I know, 5 comes from vm.Unprepare()
+			TotalStep:   11, // hardcoded I know, 10 comes from vm.Unprepare()
 		}
 
 		for step := range vos.VM.Unprepare() {
@@ -582,13 +585,162 @@ func prepareProgress(vos *virt.VOS) <-chan *virt.Step {
 
 		rootVos.Chmod("/", 0755)     // make sure that executable flag is set
 		rootVos.Chmod("/home", 0755) // make sure that executable flag is set
-		createUserHome(vos.User, rootVos, vos)
-		createVmWebDir(vos.VM, vmWebDir, rootVos, vmWebVos)
-		if vmWebDir != userWebDir {
-			createUserWebDir(vos.User, vmWebDir, userWebDir, rootVos, vos)
+
+		if lastError = createUserHome(vos.User, rootVos, vos); lastError != nil {
+			return
+		}
+
+		if lastError = createVmWebDir(vos.VM, vmWebDir, rootVos, vmWebVos); lastError != nil {
+			return
+		}
+
+		if vmWebDir == userWebDir {
+			return
+		}
+
+		if lastError = createUserWebDir(vos.User, vmWebDir, userWebDir, rootVos, vos); lastError != nil {
+			return
 		}
 	}()
 
 	return results
 
+}
+
+func createUserHome(user *virt.User, rootVos, userVos *virt.VOS) error {
+	if info, err := rootVos.Stat("/home/" + user.Name); err == nil {
+		rootVos.Chmod("/home/"+user.Name, info.Mode().Perm()|0511) // make sure that user read and executable flag is set
+		return nil
+	}
+	// home directory does not yet exist
+
+	if _, err := rootVos.Stat("/home/" + user.OldName); user.OldName != "" && err == nil {
+		if err := rootVos.Rename("/home/"+user.OldName, "/home/"+user.Name); err != nil {
+			return err
+		}
+		if err := rootVos.Symlink(user.Name, "/home/"+user.OldName); err != nil {
+			return err
+		}
+		if err := rootVos.Chown("/home/"+user.OldName, user.Uid, user.Uid); err != nil {
+			return err
+		}
+
+		if target, err := rootVos.Readlink("/var/www"); err == nil && target == "/home/"+user.OldName+"/Web" {
+			if err := rootVos.Remove("/var/www"); err != nil {
+				return err
+			}
+			if err := rootVos.Symlink("/home/"+user.Name+"/Web", "/var/www"); err != nil {
+				return err
+			}
+		}
+
+		ldapserver.ClearCache()
+		return nil
+	}
+
+	if err := rootVos.MkdirAll("/home/"+user.Name, 0755); err != nil && !os.IsExist(err) {
+		return err
+	}
+	if err := rootVos.Chown("/home/"+user.Name, user.Uid, user.Uid); err != nil {
+		return err
+	}
+	if err := copyIntoVos(templateDir+"/user", "/home/"+user.Name, userVos); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func createVmWebDir(vm *virt.VM, vmWebDir string, rootVos, vmWebVos *virt.VOS) error {
+	if err := rootVos.Symlink(vmWebDir, "/var/www"); err != nil {
+		if !os.IsExist(err) {
+			return err
+		}
+		return nil
+	}
+	// symlink successfully created
+
+	if _, err := rootVos.Stat(vmWebDir); err == nil {
+		return nil
+	}
+	// vmWebDir directory does not yet exist
+
+	// migration of old Sites directory
+	migrationErr := vmWebVos.Rename("/home/"+vm.WebHome+"/Sites/"+vm.HostnameAlias, vmWebDir)
+	vmWebVos.Remove("/home/" + vm.WebHome + "/Sites")
+	rootVos.Remove("/etc/apache2/sites-enabled/" + vm.HostnameAlias)
+
+	if migrationErr != nil {
+		// create fresh Web directory if migration unsuccessful
+		if err := vmWebVos.MkdirAll(vmWebDir, 0755); err != nil {
+			return err
+		}
+		if err := copyIntoVos(templateDir+"/website", vmWebDir, vmWebVos); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func createUserWebDir(user *virt.User, vmWebDir, userWebDir string, rootVos, userVos *virt.VOS) error {
+	if _, err := rootVos.Stat(userWebDir); err == nil {
+		return nil
+	}
+	// userWebDir directory does not yet exist
+
+	if err := userVos.MkdirAll(userWebDir, 0755); err != nil {
+		return err
+	}
+	if err := copyIntoVos(templateDir+"/website", userWebDir, userVos); err != nil {
+		return err
+	}
+	if err := rootVos.Symlink(userWebDir, vmWebDir+"/~"+user.Name); err != nil && !os.IsExist(err) {
+		return err
+	}
+
+	return nil
+}
+
+func copyIntoVos(src, dst string, vos *virt.VOS) error {
+	sf, err := os.Open(src)
+	if err != nil {
+		return err
+	}
+	defer sf.Close()
+
+	fi, err := sf.Stat()
+	if err != nil {
+		return err
+	}
+
+	if fi.Name() == "empty-directory" {
+		// ignored file
+	} else if fi.IsDir() {
+		if err := vos.Mkdir(dst, fi.Mode()); err != nil && !os.IsExist(err) {
+			return err
+		}
+
+		entries, err := sf.Readdirnames(0)
+		if err != nil {
+			return err
+		}
+		for _, entry := range entries {
+			if err := copyIntoVos(src+"/"+entry, dst+"/"+entry, vos); err != nil {
+				return err
+			}
+		}
+	} else {
+		df, err := vos.OpenFile(dst, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, fi.Mode())
+		if err != nil {
+			return err
+		}
+		defer df.Close()
+
+		if _, err := io.Copy(df, sf); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
