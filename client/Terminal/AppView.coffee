@@ -25,13 +25,10 @@ class WebTermAppView extends JView
       .on('PaneRemoved',   @bound 'updateSessions')
       .on('TabsSorted',    @bound 'updateSessions')
       .on('PaneDidShow',   @bound 'handlePaneShown')
-      .on('AllTabsClosed', @bound 'handleAllPanesClosed')
-
-    @messagePane = new KDCustomHTMLView
-      cssClass   : 'message-pane hidden'
-      partial    : loadingPartial
 
     @addStartTab()
+
+    @on 'VMItemClicked', @bound 'addNewTab'
 
 
   initPane: (pane) ->
@@ -55,56 +52,11 @@ class WebTermAppView extends JView
 
     return  unless terminalView
 
-    @setFailTimer()
-
     @initPane pane
     terminalView.terminal?.scrollToBottom()
     KD.utils.defer -> terminalView.setKeyView()
     @fetchStorage (storage) -> storage.setValue 'activeIndex', index
 
-
-  handleAllPanesClosed:->
-
-    @setMessage """
-      All tabs are closed. <a class='plus' href='#'>Click to open a new Terminal</a>.
-      """
-    , no, yes
-
-
-
-  setFailTimer: do -> alreadySet = null; ->
-
-    return  if alreadySet
-
-    # if we still have the same message after 15 seconds assuming
-    # all checks have failed and showing a warning to make user
-    # try again. - SY
-    messageTimer = KD.utils.wait 15000, =>
-      alreadySet = yes
-      if @messagePane.$().text() is loadingPartial
-        @setMessage "Couldn't open your terminal. <a class='plus' href='#'>Click here to try again</a>.", no, yes
-    @on 'TerminalStarted', =>
-      alreadySet = yes
-      KD.utils.killWait messageTimer
-
-
-  setMessage:(msg, light = no, bindClick = no)->
-
-    @messagePane.updatePartial msg
-    if light
-    then @messagePane.setClass   'light'
-    else @messagePane.unsetClass 'light'
-    @messagePane.show()
-
-    if bindClick
-      @messagePane.once 'click', (event)=>
-        KD.utils.stopDOMEvent event
-        if $(event.target).hasClass 'close'
-          KD.singleton('router').back()
-          KD.singleton('appManager').quitByName 'Terminal'
-        else if $(event.target).hasClass 'plus'
-          @addNewTab()
-          @messagePane.hide()
 
   fetchStorage: (callback) ->
     storage = KD.getSingleton('appStorageController').storage 'Terminal', '1.0.1'
@@ -133,40 +85,6 @@ class WebTermAppView extends JView
       else
         @addNewTab vm
 
-  checkVM:->
-
-    vmController = KD.getSingleton 'vmController'
-    vmController.fetchDefaultVm (err, vm) =>
-      return KD.showError err  if err?
-
-      { region, hostnameAlias: vmName } = vm
-
-      kite = vmController.kites[vmName]
-
-      KD.mixpanel "Open Webterm, click", {vmName}
-
-      unless vmName
-        return @setMessage "It seems you don't have a VM to use with Terminal."
-
-      WebTermView.setTerminalTimeout vmName, 15000
-      , =>
-        kite.webtermGetSessions().then (sessions) ->
-          console.log sessions, sessions.length
-        @messagePane.hide()
-      , =>
-        @messagePane.hide()
-      , =>
-        KD.mixpanel "Open Webterm, fail", {vmName}
-        KD.logToExternalWithTime "oskite: Can't open Webterm", vmName
-        @emit 'TerminalFailed'
-        @emit 'message', """
-          <p>Couldn't connect to your VM.</p>
-          <br>
-          <p>Preparing your VM can take anywhere from
-          5 to 60 seconds, depending on load.</p>
-          <br>
-          <p>Please wait, then <a class='plus' href='#'>try again</a>.</p>
-          """, no, yes
 
   showApprovalModal: (remote, command)->
     modal = new KDModalView
@@ -270,7 +188,6 @@ class WebTermAppView extends JView
 
   viewAppended: ->
     super
-    @checkVM()
     path = location.pathname + location.search + "?"
     mainController = KD.getSingleton("mainController")
 
@@ -284,60 +201,16 @@ class WebTermAppView extends JView
   createNewTab: (options = {}) ->
     { hostnameAlias: vmName, region } = options.vm
 
-    debugger  if 'string' is typeof options.vm
-
-    @messagePane.hide()
-
     defaultOptions =
       testPath    : "webterm-tab"
       delegate    : this
 
     terminalView   = new WebTermView (KD.utils.extend defaultOptions, options)
 
-    terminalView.on 'message', @bound 'setMessage'
-
-    terminalView.on 'WebTermConnected', @bound 'updateSessions'
-
-    WebTermView.setTerminalTimeout vmName, 15000
-    , =>
-      terminalView.connectToTerminal()
-
-      kite = KD.getSingleton("vmController").getKite options.vm
-      kite.on 'destroy', =>
-        console.error "Couldn't connect to your VM. Trying to reconnect...(err:oskite)"
-        terminalView.webtermConnect("resume")
-
-      # todo do not leak events
-      KD.kite.mq.on "broker.error", (err)=>
-        console.error "Couldn't connect to your VM. Trying to reconnect...(err:broker)"
-        if err.code is 404
-          terminalView.webtermConnect("resume")
-
-      @messagePane.hide()
-      @emit 'TerminalStarted'
-    , =>
-      KD.utils.defer =>
-        @addNewTab options.vm
-        @messagePane.hide()
-        @emit 'TerminalStarted'
-    , =>
-      KD.mixpanel "Open Webterm, fail", {vmName}
-      KD.logToExternalWithTime "oskite: Can't open Webterm", vmName
-      @emit 'TerminalFailed'
-      @setMessage """
-        <p>Couldn't connect to your VM.</p>
-        <br>
-        <p>Preparing your VM can take anywhere from
-        5 to 60 seconds, depending on load.</p>
-        <br>
-        <p>Please wait, then <a class='plus' href='#'>try again</a>.</p>
-        """, no, yes
+    @emit 'TerminalStarted'
 
     @appendTerminalTab terminalView
-
-  MESSAGE_MAP =
-    'started'                : 'Checking VM state'
-    'vm is already prepared' : 'READY'
+    terminalView.connectToTerminal()
 
   addStartTab:->
 
@@ -346,50 +219,10 @@ class WebTermAppView extends JView
       tabHandleView : new KDCustomHTMLView
         tagName     : 'span'
         cssClass    : 'home'
-      view          : view = new KDView tagName : 'main'
+      view          : new TerminalStartTab
+        tagName     : 'main'
+        delegate    : this
       closable      : no
-
-    view.addSubView header = new KDCustomHTMLView
-      tagName : 'h1'
-      partial : 'This is where the magic happens!'
-
-    view.addSubView help = new KDCustomHTMLView
-      tagName : 'h2'
-      partial : 'Terminal allows you to interact directly with your VM.'
-
-    view.addSubView new KDCustomHTMLView
-      tagName : 'figure'
-      partial : """<iframe src="//www.youtube.com/embed/DmjWnmSlSu4?origin=https://koding.com&showinfo=0&rel=0&theme=dark&modestbranding=1&autohide=1&loop=1" width="100%" height="100%" frameborder="0" webkitAllowFullScreen mozallowfullscreen allowFullScreen></iframe>"""
-
-    view.addSubView help = new KDCustomHTMLView
-      tagName : 'h3'
-      partial : 'Your VMs'
-
-    view.addSubView vmWrapper = new KDCustomHTMLView
-      tagName : 'ul'
-
-    {vmController} = KD.singletons
-    vmController.fetchVMs (err, vms)=>
-      if err
-        return new KDNotificationView title : "Couldn't fetch your VMs"
-
-      vms.sort (a,b)-> a.hostnameAlias > b.hostnameAlias
-
-      vms.forEach (vm)=>
-        vmWrapper[vm.hostnameAlias] = new KDCustomHTMLView
-          tagName : 'li'
-          partial : "<figure></figure>#{vm.hostnameAlias.replace 'koding.kd.io', 'kd.io'}<i></i>"
-          click   : => @addNewTab vm
-        vmWrapper.addSubView vmWrapper[vm.hostnameAlias]
-
-      vmController.on 'vm.start.progress', (vmAlias, update)->
-        {message} = update
-        return  if message is 'FINISHED'
-        niceMessage = MESSAGE_MAP[message.toLowerCase()]
-        vmWrapper[vmAlias].unsetClass 'ready'
-        vmWrapper[vmAlias].setClass 'ready'  if niceMessage is 'READY'
-        vmWrapper[vmAlias].$('i').text niceMessage or message
-
 
     @tabView.addPane pane
 
@@ -413,9 +246,6 @@ class WebTermAppView extends JView
       @tabView.removePane pane
       unless @dirty[vmName]
         @tabView.off 'AllTabsClosed'
-        @setMessage """
-          Sorry, your terminal sessions on #{ vmName } are dead. <a href='#' class='plus'>Open a new session.</a>
-          """, no, yes
         @dirty[vmName] = yes
 
     # terminalView.once 'KDObjectWillBeDestroyed', => @tabView.removePane pane
@@ -459,7 +289,6 @@ class WebTermAppView extends JView
   pistachio: ->
     """
     {{> @tabHandleContainer}}
-    {{> @messagePane}}
     {{> @tabView}}
     """
 

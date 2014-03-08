@@ -65,32 +65,49 @@ body.terminal #main-header
         color           #999
         margin          0 auto
         li
-          display       block
-          line-height   30px
-          font-size     14px
-          font-weight   200
-          border-bottom 1px solid #252e30
-          padding-left  30px
-          cursor        pointer
+          display             block
+          line-height         30px
+          font-size           14px
+          font-weight         200
+          border-bottom       1px solid #252e30
+          padding-left        30px
+          cursor              pointer
           borderBox()
           rel()
           &:hover figure
-            opacity     1
+            opacity           1
           &.ready i
-            color       logoBg
+            color             logoBg
+          &.off
+            // cursor            default
+            i
+              color           #FF7379
+            // &:hover
+            //   figure
+            //     opacity       .4
+
           figure
-            top         9px
-            left        6px
-            opacity     .4
-            display     block
-            r-sprite    environments 'terminal'
+            top               9px
+            left              6px
+            opacity           .4
+            display           block
+            r-sprite          environments 'terminal'
+            abs()
+          .kdloader
+            top               -2px
+            left              0
+            bg                color #1D2628
+            size              30px 30px
+            display           block
             abs()
           i
-            text-transform uppercase
-            right          6px
-            top            0
-            font-size      11px
-            font-weight    400
+            text-transform    uppercase
+            right             6px
+            top               1px
+            font-size         11px
+            font-weight       400
+            min-width         200px
+            text-align        right
             abs()
 
 
