@@ -260,10 +260,10 @@ class ActivityInputWidget extends KDView
     @input.setContent ""
     @input.blur()
     @embedBox.resetEmbedAndHide()
-    # @submitButton.setTitle "Post"
-    @submitButton.focus()
-    setTimeout (@bound "unlockSubmit"), 8000
-    @unlockSubmit()  if lock
+
+    if lock
+    then @unlockSubmit()
+    else KD.utils.wait 8000, @bound "unlockSubmit"
 
   lockSubmit: ->
     @submitButton.disable()
