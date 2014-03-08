@@ -25,7 +25,7 @@ module.exports = (options={}, callback)->
 
     JNewStatusUpdate.fetchGroupActivity client, options, (err, data)->
       if err
-        console.log "pre-fetch group activity err", err
+        console.error "pre-fetch group activity err", err
         return cb null, []
 
       return cb null, data
