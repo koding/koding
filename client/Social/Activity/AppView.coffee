@@ -24,6 +24,12 @@ class ActivityAppView extends KDScrollView
     @feedWrapper      = new ActivityListContainer
     @inputWidget      = new ActivityInputWidget
 
+    @inputWidget.on "ActivitySubmitted", =>
+      appTop   = @getElement().offsetTop
+      listTop  = @feedWrapper.listWrapper.getElement().offsetTop
+      duration = @feedWrapper.pinnedListWrapper.getHeight() * .3
+      $("html, body").animate {scrollTop: appTop + listTop + 10}, {duration}
+
     @referalBox       = new ReferalBox
     @groupListBox     = new UserGroupList
     @topicsBox        = new ActiveTopics
