@@ -282,9 +282,7 @@ class WebTermAppView extends JView
         vmc = KD.getSingleton 'vmController'
         if vmc.vms.length > 1
           return  if @vmselection and not @vmselection.isDestroyed
-          @vmselection = new VMSelection
-          @vmselection.once 'VMSelected', (vm) =>
-            @createNewTab {vm, mode}
+          @vmselection = new VMSelection delegate : this
         else
           @createNewTab {vm : vmc.vms.first, mode}
 
