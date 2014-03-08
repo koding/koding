@@ -76,17 +76,6 @@ class TerminalStartTabVMItem extends KDCustomHTMLView
 
     @loader.hide()
 
-    # if message is 'FINISHED'
-    #   @setClass 'off'
-    #   @notice.updatePartial 'OFF'
-    #   @loader.hide()
-    #   return
-
-    # @unsetClass 'off ready'
-    # niceMessage = MESSAGE_MAP[message.toLowerCase()]
-    # @notice.updatePartial niceMessage or message
-
-
   click : ->
 
     osKite = KD.singletons.vmController.kites[@getData().hostnameAlias]
