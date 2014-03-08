@@ -220,12 +220,19 @@ class VirtualizationController extends KDController
       .getKite "os-#{ region }", hostnameAlias
 
   registerKite: (vm) ->
-    @kites[vm.hostnameAlias] = @getKite vm
 
-    @kites[vm.hostnameAlias].on 'vm.start.progress', (update) =>
-      @emit 'vm.start.progress', vm.hostnameAlias, update
-    @kites[vm.hostnameAlias].vmOn()
-    # @kites[vm.hostnameAlias].on 'vm.stop.progress', warn
+    alias         = vm.hostnameAlias
+    @kites[alias] = kite = @getKite vm
+
+    kite.on 'vm.start.progress', (update) =>
+      @emit 'vm.start.progress', alias, update
+
+    kite.on 'vm.stop.progress', (update) =>
+      @emit 'vm.stop.progress', alias, update
+
+    kite.vmInfo().then (info) =>
+      @emit 'vm.info.state', alias, info
+
 
   getKiteByVmName: (vmName) ->
     @kites[vmName]
