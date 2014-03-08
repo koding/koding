@@ -94,9 +94,8 @@ class WebTermView extends KDView
       mode        : myOptions.mode      ? 'create'
 
   getVMName:->
-    delegateOptions = @getDelegate().getOptions()
-    myOptions       = @getOptions()
-    return myOptions.vmName or delegateOptions.vmName
+    { hostnameAlias: vmName } = @getOption 'vm'
+    return vmName
 
   webtermConnect:(mode)->
     return console.info "reconnection is in progrees" if @reconnectionInPrgress
