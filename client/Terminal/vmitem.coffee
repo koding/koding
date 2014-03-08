@@ -24,6 +24,9 @@ class TerminalStartTabVMItem extends KDCustomHTMLView
       tagName : 'i'
       partial : '0%'
 
+    @progress = new KDCustomHTMLView
+      tagName  : 'cite'
+
 
   handleVMStart:(update)->
 
@@ -39,8 +42,13 @@ class TerminalStartTabVMItem extends KDCustomHTMLView
     # niceMessage = MESSAGE_MAP[message.toLowerCase()]
     # @notice.updatePartial niceMessage or message
 
-    return if message is 'STARTED'
-    @notice.updatePartial "#{Math.round(currentStep/totalStep*100)}%"
+    if message is 'STARTED'
+      @loader.show()
+      @progress.setCss 'background-color', "#1aaf5d"
+      return
+    percentage = Math.round currentStep/totalStep*100
+    @progress.setWidth percentage, '%'
+    @notice.updatePartial "#{percentage}%"
 
 
   handleVMStop:(update)->
@@ -55,8 +63,14 @@ class TerminalStartTabVMItem extends KDCustomHTMLView
     @unsetClass 'off ready'
     # niceMessage = MESSAGE_MAP[message.toLowerCase()]
     # @notice.updatePartial niceMessage or message
-    return if message is 'STARTED'
-    @notice.updatePartial "#{100-Math.round(currentStep/totalStep*100)}%"
+    if message is 'STARTED'
+      @loader.show()
+      @progress.setCss 'background-color', "#FF7379"
+      @notice.updatePartial "100%"
+      return
+    percentage = 100 - Math.round currentStep/totalStep*100
+    @progress.setWidth percentage, '%'
+    @notice.updatePartial "#{percentage}%"
 
 
   handleVMInfo:(info)->
@@ -77,6 +91,7 @@ class TerminalStartTabVMItem extends KDCustomHTMLView
 
     @loader.hide()
 
+
   click : ->
 
     osKite = KD.singletons.vmController.kites[@getData().hostnameAlias]
@@ -90,7 +105,6 @@ class TerminalStartTabVMItem extends KDCustomHTMLView
       osKite?.vmOff()
 
 
-
   viewAppended:JView::viewAppended
 
 
@@ -99,5 +113,6 @@ class TerminalStartTabVMItem extends KDCustomHTMLView
     alias = vm.hostnameAlias
     """
     <figure>{{> @loader}}</figure>#{alias.replace 'koding.kd.io', 'kd.io'}{{> @notice}}
+    {{> @progress}}
     """
 
