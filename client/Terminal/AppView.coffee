@@ -379,8 +379,8 @@ class WebTermAppView extends JView
           click   : => @addNewTab vm.hostnameAlias
         vmWrapper.addSubView vmWrapper[vm.hostnameAlias]
 
-      vmController.on 'vm.start.progress', (vmAlias, {message})->
-        log vmAlias, message
+      vmController.on 'vm.start.progress', (vmAlias, update)->
+        {message} = update
         return  if message is 'FINISHED'
         niceMessage = MESSAGE_MAP[message.toLowerCase()]
         vmWrapper[vmAlias].unsetClass 'ready'
