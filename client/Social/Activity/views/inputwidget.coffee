@@ -149,7 +149,7 @@ class ActivityInputWidget extends KDView
     @currentHelperNames = []
 
   submit: (callback) ->
-    return  unless value = @input.getValue().trim()
+    return @reset yes unless value = @input.getValue().trim()
 
     {JTag} = KD.remote.api
 
