@@ -103,6 +103,7 @@ class Ace extends KDView
       @addKeyCombo "preview", "Ctrl-Shift-P", => @getDelegate().preview()
       @addKeyCombo "fullscreen", "Ctrl-Enter", => @getDelegate().toggleFullscreen()
       @addKeyCombo "gotoLine", "Ctrl-G", @bound "showGotoLine"
+      @addKeyCombo "saveAll", "Ctrl-Shift-E", @bound "saveAllFiles"
       @addKeyCombo "settings", "Ctrl-,", noop # ace creates a settings view for this shortcut, overriding it.
 
   showFindReplaceView: (openReplaceView) ->
@@ -380,6 +381,17 @@ class Ace extends KDView
 
           details.on 'ReceivedClickElsewhere', =>
             details.destroy()
+
+  saveAllFiles: ->
+    {aceViews} = KD.singletons.appManager.get("Ace").getView()
+    for path, aceView of aceViews when aceView.data.parentPath isnt "localfile:"
+      aceView.ace.requestSave()
+      aceView.ace.once "FileContentSynced", -> @removeModifiedFromTab aceView
+
+  removeModifiedFromTab:(aceView)->
+    {name} = aceView.ace.data
+    for handle in aceView.delegate.tabView.handles when handle.options.title is name
+      handle.unsetClass "modified"
 
   showGotoLine: ->
     unless @gotoLineModal
