@@ -37,16 +37,18 @@ module.exports = (options={}, callback)->
       return cb null, []
 
     {JNewStatusUpdate} = bongoModels
-    options.sort = 'meta.likes' : -1
+
     aDay = 24 * 60 * 60 * 1000
-    options.from = Date.now() - aDay
-    options.limit = 5
+    mostLikedOptions =
+      sort : 'meta.likes' : -1
+      from : Date.now() - aDay
+      limit: 5
+
+    JNewStatusUpdate.fetchGroupActivity client, mostLikedOptions, (err, data)->
       if err
         console.error "pre-fetch most likes err:", err
         return cb null, []
 
-    JNewStatusUpdate.fetchGroupActivity client, options, (err, data)->
-      return cb null, [] if err
       return cb null, data
 
   # set interval options for later use
