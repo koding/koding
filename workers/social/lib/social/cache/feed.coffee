@@ -16,24 +16,39 @@ module.exports = (options={}, callback)->
       group.fetchMembersFromGraph client, {}, cb
 
   fetchActivity = (bongoModels, client, cb)->
-    return cb null, [] unless bongoModels
+    unless bongoModels
+      console.error "bongo models not found, fetch activity"
+      return cb null, []
+
     {JNewStatusUpdate} = bongoModels
     # options = facets : "Everything"
 
     JNewStatusUpdate.fetchGroupActivity client, options, (err, data)->
-      return cb null, [] if err
+      if err
+        console.error "pre-fetch group activity err", err
+        return cb null, []
+
       return cb null, data
 
   fetchMostLikedActivity = (bongoModels, client, cb)->
-    return cb null, [] unless bongoModels
-    {JNewStatusUpdate} = bongoModels
-    options.sort = 'meta.likes' : -1
-    aDay = 24 * 60 * 60 * 1000
-    options.from = Date.now() - aDay
-    options.limit = 5
 
-    JNewStatusUpdate.fetchGroupActivity client, options, (err, data)->
-      return cb null, [] if err
+    unless bongoModels
+      console.error "bongo models not found"
+      return cb null, []
+
+    {JNewStatusUpdate} = bongoModels
+
+    aDay = 24 * 60 * 60 * 1000
+    mostLikedOptions =
+      sort : 'meta.likes' : -1
+      from : Date.now() - aDay
+      limit: 5
+
+    JNewStatusUpdate.fetchGroupActivity client, mostLikedOptions, (err, data)->
+      if err
+        console.error "pre-fetch most likes err:", err
+        return cb null, []
+
       return cb null, data
 
   # set interval options for later use
