@@ -168,7 +168,7 @@ module.exports = class JNewApp extends jraphical.Module
 
 
   checkData = (data, profile)->
-    unless data.name or data.urls?.script or data.manifest
+    if not data.name or not data.url or not data.manifest
       return new KodingError 'Name, Url and Manifest is required!'
     unless typeof(data.manifest) is 'object'
       return new KodingError 'Manifest should be an object!'
