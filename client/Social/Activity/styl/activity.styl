@@ -1111,66 +1111,6 @@ span.collapsedtext
       textarea.description-input
         display             none
 
-/* Activity item menu */
-body.activity
-body.profile
-  .kdbuttonmenu.jcontextmenu
-    margin              4px 0 0 14px
-    rounded             6px
-    border              1px solid #e4e4e4
-    shadow              0 8px 35px rgba(0, 0, 0, .22)
-    padding             5px 0
-
-    &:after
-      content             ""
-      display             block
-      size                0 0
-      right               19px
-      bottom              100%
-      border              7px solid transparent
-      border-bottom-color #fff
-      z-index             600
-      abs()
-
-    &:before
-      content             ""
-      display             block
-      size                0 0
-      right               18px
-      bottom              100%
-      border              8px solid transparent
-      border-bottom-color #e4e4e4
-      z-index             599
-      abs()
-
-    &.comment-menu
-      margin              0 0 0 16px
-
-    .kdlistitemview-contextitem
-      color               #50595f
-      font-size           12px
-      line-height         24px
-      cursor              pointer
-      padding             0 0 0 12px
-
-      .icon
-        margin            0 7px 0 0
-        display           inline-block
-        vertical-align    sub
-        &.edit
-          r-sprite          activity "edit-icon"
-        &.delete
-          r-sprite          activity "delete-icon"
-
-      &:hover
-      &.selected
-        bg                color #F8f8f8
-        text-shadow       none
-
-
-    .chevron-ghost-wrapper
-      opacity           0
-
 /** Markdown Styling **/
 .activity-item > article
 .activity-input-widget .update-preview
