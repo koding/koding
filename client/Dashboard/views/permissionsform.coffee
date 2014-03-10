@@ -103,15 +103,14 @@ class PermissionsForm extends KDFormViewWithFields
 
     isChecked = checkForPermission set.permissions, module, permission, current
 
-    cssClass = 'permission-switch '+__utils.slugify(permission)+' '+current
+    cssClass = 'permission-switch tiny '+__utils.slugify(permission)+' '+current
 
     name = _getCheckboxName module, permission, current
-    # TODO BURAK CHANGE THIS PART
-    widthForRows = (window.innerWidth - 345) / (roleCount * 100) / window.innerWidth
+
+    widthForRows = (786-174)/roleCount
     cascadeData[current]= {
       name
       cssClass
-      size         : "tiny"
       itemClass    : PermissionSwitch
       defaultValue : isChecked ? no
       widthForRows
@@ -124,7 +123,9 @@ class PermissionsForm extends KDFormViewWithFields
       cascadeData[current].nextElement = cascadeFormElements set, remainder, module, permission, roleCount
     return cascadeData
 
-  cascadeHeaderElements = (roles)->
+  cascadeHeaderElements = (roles, roleCount)->
+    widthForRows = (786-174)/roleCount
+
     [current,remainder...] = roles
     cascadeData = {}
     cascadeData[current]=
@@ -133,17 +134,18 @@ class PermissionsForm extends KDFormViewWithFields
       cssClass      : 'text header-item role-'+__utils.slugify(current)
       attributes    :
         title       : readableText current
+        style       : "width : #{widthForRows}px"
     if current and remainder.length > 0
-      cascadeData[current].nextElement = cascadeHeaderElements remainder
+      cascadeData[current].nextElement = cascadeHeaderElements remainder, roleCount
     return cascadeData
 
   optionizePermissions = (roles, set)->
     permissionOptions =
       head            :
         itemClass     : KDView
-        cssClass      : 'permissions-header col-'+roles.length
+        cssClass      : 'permissions-header col'
         nextElement   :
-          cascadeHeaderElements roles
+          cascadeHeaderElements roles, roles.length
 
     # set.permissionsByModule is giving all the possible permissions
     # module is collection name (JComment, JDomain etc..)
