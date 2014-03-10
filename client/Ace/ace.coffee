@@ -103,7 +103,7 @@ class Ace extends KDView
       @addKeyCombo "preview", "Ctrl-Shift-P", => @getDelegate().preview()
       @addKeyCombo "fullscreen", "Ctrl-Enter", => @getDelegate().toggleFullscreen()
       @addKeyCombo "gotoLine", "Ctrl-G", @bound "showGotoLine"
-      @addKeyCombo "saveAll", "Ctrl-Shift-E", @bound "saveAllFiles"
+      @addKeyCombo "saveAll", "Ctrl-Alt-S", @bound "saveAllFiles"
       @addKeyCombo "settings", "Ctrl-,", noop # ace creates a settings view for this shortcut, overriding it.
 
   showFindReplaceView: (openReplaceView) ->
@@ -117,6 +117,7 @@ class Ace extends KDView
     if typeof macKey is "function"
       callback = macKey
       macKey   = winKey.replace "Ctrl", "Command"
+      macKey   = macKey.replace "Alt", "Option"
     @editor.commands.addCommand
       name    : name
       bindKey :
@@ -155,10 +156,10 @@ class Ace extends KDView
     {localSync} = KD.singletons
 
     localSync.on "LocalContentSynced", (file) =>
-      @notify "file synced to remote...", null, null, 5000
+      @notify "File synced to remote...", null, null, 5000
 
     localSync.on "LocalContentCouldntSynced", (file) =>
-      @notify "file coudn't synced to remote please try again...", null, null, 5000
+      @notify "File coudn't synced to remote please try again...", null, null, 5000
 
   requestSaveAs: (options) ->
     contents = @getContents()
