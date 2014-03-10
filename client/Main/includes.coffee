@@ -217,6 +217,8 @@ module.exports = [
   "AppStorage.coffee",
   "localstorage.coffee",
 
+  # 3rd Parties
+  "extras/github/api.coffee",
   # CONTENT DISPLAY VIEWS
   "ContentDisplay/ContentDisplay.coffee",
   "ContentDisplay/ContentDisplayController.coffee",
