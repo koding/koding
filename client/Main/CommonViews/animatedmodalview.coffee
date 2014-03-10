@@ -10,7 +10,7 @@ class AnimatedModalView extends KDView
         "<span class='close-icon closeModal' title='Close [ESC]'></span>"
       click   : @bound 'destroy'
 
-    @putOverlay options.overlay  if options.overlay
+    @putOverlay()  if options.overlay
 
     @setMagic 0
     @appendToDomBody()
@@ -20,11 +20,9 @@ class AnimatedModalView extends KDView
     event
 
   putOverlay:->
-
     removable = @getOption 'overlayClick'
-    @overlay = new KDOverlayView
+    @overlay  = new KDOverlayView
       isRemovable : removable
-      parent      : "body"
 
     if removable
       @overlay.on 'OverlayWillBeRemoved', @bound 'destroy'

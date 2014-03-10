@@ -11,16 +11,17 @@ class LinkController extends KDController
     options = {}
     route   = switch data.constructor
       when JAccount
-        entryPoint = type : "account" # everytime user clicks on avatar view,
-        "/#{data.profile.nickname}"   # regardless of group, user will always
-      when JGroup                     # routed to /USER_NAME page. ~ EA
+        {slug} = KD.getGroup()
+        {profile: {nickname}} = data
+        href = if slug is "koding" then "/#{nickname}" else "/#{slug}/#{nickname}"
+      when JGroup
         "/#{data.slug}"
       when JTag
         {group, slug} = data
         route = if group is KD.defaultSlug then '' else "/#{group}"
         route += "/Activity/?tagged=#{slug}"
 
-    KD.getSingleton('router').handleRoute route, {state : data, entryPoint}  if route?
+    KD.getSingleton('router').handleRoute route, {state : data}  if route?
 
   registerLink:(link)->
     id = link.getId()
