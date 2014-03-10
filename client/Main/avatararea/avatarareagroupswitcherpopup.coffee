@@ -76,7 +76,7 @@ class AvatarPopupGroupSwitcher extends AvatarPopup
         router.handleRoute '/Pricing/CreateGroup', entryPoint : 'koding'
         @hide()
 
-    KD.singleton("mainController").once "accountChanged.to.loggedIn", ->
+    if KD.isLoggedIn()
       KD.singleton("paymentController").fetchSubscriptionsWithPlans tags: ["custom-plan"], (err, subscriptions) ->
         return KD.showError err  if err
         createGroupLink.show()   unless subscriptions.length

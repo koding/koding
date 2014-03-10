@@ -91,7 +91,6 @@ class DeleteModalView extends KDModalViewWithForms
               disabled       : yes
               loader         :
                 color        : '#ffffff'
-                diameter     : 15
               callback       : -> @showLoader()
             Cancel           :
               style          : 'modal-cancel'

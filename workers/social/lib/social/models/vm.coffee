@@ -101,6 +101,7 @@ module.exports = class JVM extends Module
                             'aws' # Amazon Web Services
                             'sj'  # San Jose
                             'vagrant'
+                            'premium-sj'
                           ]]
         default         : if argv.c is 'vagrant' then 'vagrant' else 'sj'
       webHome           : String
@@ -302,28 +303,21 @@ module.exports = class JVM extends Module
 
     JPaymentFulfillmentNonce.one { nonce }, (err, nonceObject) =>
       return callback err  if err
-      return { message: "Unrecognized nonce!", nonce }  unless nonceObject
+      return callback { message: "Unrecognized nonce!", nonce }  unless nonceObject
+      return callback { message: "Invalid nonce!", nonce }  if nonceObject.action isnt "debit"
 
       { planCode, subscriptionCode } = nonceObject
+      { delegate: account } = client.connection
+      { group: groupSlug } = client.context
 
-      JPaymentPack.one { planCode }, (err, pack) =>
+      nonceObject.update $set: action: "used", (err) =>
         return callback err  if err
-
-        pack.fetchProducts (err, products) =>
-          return callback err  if err
-
-          { delegate: account } = client.connection
-          { group: groupSlug } = client.context
-
-          @createVm {
-            account
-            groupSlug
-            planCode
-            subscriptionCode
-            type          : 'user'
-          }, (err, vm) ->
-            return callback err  if err
-            callback null, vm
+        @createVm {
+          account
+          groupSlug
+          planCode
+          subscriptionCode
+        }, callback
 
   @createSharedVm = secure (client, callback)->
     {connection:{delegate:account}, context:{group}} = client
@@ -385,40 +379,45 @@ module.exports = class JVM extends Module
 
           JStack.getStackId {user: nickname, group: groupSlug}, (err, stack)=>
 
-            vm = new JVM {
-              hostnameAlias
-              planCode
-              subscriptionCode
-              webHome
-              groups
-              users
-              vmType : type
-              stack
-            }
+            JPaymentSubscription.isFreeSubscripton subscriptionCode, (err, isFreeSubscripton)=>
+              return callback err if err
 
-            vm.save (err) =>
-
-              if err
-                return console.warn "Failed to create VM for ", \
-                                     {users, groups, hostnameAlias}
-
-              JDomain.createDomains {
-                account, stack,
-                domains: hostnameAliases
-                hostnameAlias: hostnameAliases[0]
-                group: groupSlug
+              vm = new JVM {
+                hostnameAlias
+                planCode
+                subscriptionCode
+                webHome
+                groups
+                users
+                vmType : type
+                stack
               }
 
-              group.addVm vm, (err)=>
-                return callback err  if err
-                JDomain.ensureDomainSettingsForVM {
-                  account, vm, type, nickname, group: groupSlug, stack
+              vm.region = KONFIG.regions.premium unless isFreeSubscripton
+
+              vm.save (err) =>
+
+                if err
+                  return console.warn "Failed to create VM for ", \
+                                       {users, groups, hostnameAlias}
+
+                JDomain.createDomains {
+                  account, stack,
+                  domains: hostnameAliases
+                  hostnameAlias: hostnameAliases[0]
+                  group: groupSlug
                 }
-                if type is 'group'
-                  @addVmUsers user, vm, group, ->
+
+                group.addVm vm, (err)=>
+                  return callback err  if err
+                  JDomain.ensureDomainSettingsForVM {
+                    account, vm, type, nickname, group: groupSlug, stack
+                  }
+                  if type is 'group'
+                    @addVmUsers user, vm, group, ->
+                      callback null, vm
+                  else
                     callback null, vm
-                else
-                  callback null, vm
 
   @addVmUsers = (user, vm, group, callback)->
     # todo - do this operation in batches

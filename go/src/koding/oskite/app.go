@@ -33,14 +33,117 @@ type Manifest struct {
 	Category    string
 }
 
-func appInstall(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
-	var params struct {
-		Owner, Identifier, Version, AppPath string
-	}
+func appInstallOld(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
+	var params appParams
 	if args.Unmarshal(&params) != nil || params.Owner == "" || params.Identifier == "" || params.Version == "" || params.AppPath == "" {
 		return nil, &kite.ArgumentError{Expected: "{ owner: [string], identifier: [string], version: [string], appPath: [string] }"}
 	}
 
+	return appInstall(params, vos)
+}
+
+func appDownloadOld(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
+	var params appParams
+
+	if args.Unmarshal(&params) != nil || params.Owner == "" || params.Identifier == "" || params.Version == "" || params.AppPath == "" {
+		return nil, &kite.ArgumentError{Expected: "{ owner: [string], identifier: [string], version: [string], appPath: [string] }"}
+	}
+
+	return appDownload(params, vos)
+}
+
+func appPublishOld(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
+	var params appParams
+	if args.Unmarshal(&params) != nil || params.AppPath == "" {
+		return nil, &kite.ArgumentError{Expected: "{ appPath: [string] }"}
+	}
+
+	return appPublish(params, vos)
+}
+
+func appSkeletonOld(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
+	var params appParams
+	if args.Unmarshal(&params) != nil || params.AppPath == "" {
+		return nil, &kite.ArgumentError{Expected: "{ type: [string], appPath: [string] }"}
+	}
+
+	return appSkeleton(params, vos)
+}
+
+func moveToBackup(name string, vos *virt.VOS) error {
+	if _, err := vos.Stat(name); err == nil {
+		if err := vos.Mkdir("Backup", 0755); err != nil && !os.IsExist(err) {
+			return err
+		}
+		if err := vos.Rename(name, "Backup/"+path.Base(name)+time.Now().Format("_02_Jan_06_15:04:05_MST")); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func downloadFile(url string, vos *virt.VOS, path string) error {
+	r, err := appsBucket.GetReader(url)
+	if err != nil {
+		return err
+	}
+	defer r.Close()
+
+	file, err := vos.Create(path)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	_, err = io.Copy(file, r)
+	return err
+}
+
+func recursiveCopy(srcPath string, vos *virt.VOS, appPath string) error {
+	fi, err := os.Stat(srcPath)
+	if err != nil {
+		return err
+	}
+
+	sf, err := os.Open(srcPath)
+	if err != nil {
+		return err
+	}
+	defer sf.Close()
+
+	if fi.IsDir() {
+		if err := vos.MkdirAll(appPath, fi.Mode()); err != nil {
+			return err
+		}
+		entries, err := sf.Readdirnames(0)
+		if err != nil {
+			return err
+		}
+		for _, entry := range entries {
+			if err := recursiveCopy(srcPath+"/"+entry, vos, appPath+"/"+entry); err != nil {
+				return err
+			}
+		}
+	} else {
+		df, err := vos.OpenFile(appPath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, fi.Mode())
+		if err != nil {
+			return err
+		}
+
+		if _, err := io.Copy(df, sf); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+///
+type appParams struct {
+	Type, Owner, Identifier, Version, AppPath string
+}
+
+func appInstall(params appParams, vos *virt.VOS) (interface{}, error) {
 	bucketPath := fmt.Sprintf("%s/%s/%s", params.Owner, params.Identifier, params.Version)
 	if err := vos.MkdirAll(params.AppPath, 0755); err != nil && !os.IsExist(err) {
 		return nil, err
@@ -55,14 +158,7 @@ func appInstall(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (inte
 	return true, nil
 }
 
-func appDownload(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
-	var params struct {
-		Owner, Identifier, Version, AppPath string
-	}
-	if args.Unmarshal(&params) != nil || params.Owner == "" || params.Identifier == "" || params.Version == "" || params.AppPath == "" {
-		return nil, &kite.ArgumentError{Expected: "{ owner: [string], identifier: [string], version: [string], appPath: [string] }"}
-	}
-
+func appDownload(params appParams, vos *virt.VOS) (interface{}, error) {
 	bucketPath := fmt.Sprintf("%s/%s/%s", params.Owner, params.Identifier, params.Version)
 	r, err := appsBucket.GetReader(bucketPath + ".tar.gz")
 	if err != nil {
@@ -131,17 +227,9 @@ func appDownload(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (int
 	}
 
 	return true, nil
-
 }
 
-func appPublish(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
-	var params struct {
-		AppPath string
-	}
-	if args.Unmarshal(&params) != nil || params.AppPath == "" {
-		return nil, &kite.ArgumentError{Expected: "{ appPath: [string] }"}
-	}
-
+func appPublish(params appParams, vos *virt.VOS) (interface{}, error) {
 	manifestFile, err := vos.Open(params.AppPath + "/manifest.json")
 	if err != nil {
 		return nil, err
@@ -259,16 +347,10 @@ func appPublish(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (inte
 	}
 
 	return true, nil
+
 }
 
-func appSkeleton(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
-	var params struct {
-		Type, AppPath string
-	}
-	if args.Unmarshal(&params) != nil || params.AppPath == "" {
-		return nil, &kite.ArgumentError{Expected: "{ type: [string], appPath: [string] }"}
-	}
-
+func appSkeleton(params appParams, vos *virt.VOS) (interface{}, error) {
 	if params.Type == "" {
 		params.Type = "blank"
 	}
@@ -281,72 +363,4 @@ func appSkeleton(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (int
 	}
 
 	return true, nil
-}
-
-func moveToBackup(name string, vos *virt.VOS) error {
-	if _, err := vos.Stat(name); err == nil {
-		if err := vos.Mkdir("Backup", 0755); err != nil && !os.IsExist(err) {
-			return err
-		}
-		if err := vos.Rename(name, "Backup/"+path.Base(name)+time.Now().Format("_02_Jan_06_15:04:05_MST")); err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-func downloadFile(url string, vos *virt.VOS, path string) error {
-	r, err := appsBucket.GetReader(url)
-	if err != nil {
-		return err
-	}
-	defer r.Close()
-
-	file, err := vos.Create(path)
-	if err != nil {
-		return err
-	}
-	defer file.Close()
-
-	_, err = io.Copy(file, r)
-	return err
-}
-
-func recursiveCopy(srcPath string, vos *virt.VOS, appPath string) error {
-	fi, err := os.Stat(srcPath)
-	if err != nil {
-		return err
-	}
-
-	sf, err := os.Open(srcPath)
-	if err != nil {
-		return err
-	}
-	defer sf.Close()
-
-	if fi.IsDir() {
-		if err := vos.MkdirAll(appPath, fi.Mode()); err != nil {
-			return err
-		}
-		entries, err := sf.Readdirnames(0)
-		if err != nil {
-			return err
-		}
-		for _, entry := range entries {
-			if err := recursiveCopy(srcPath+"/"+entry, vos, appPath+"/"+entry); err != nil {
-				return err
-			}
-		}
-	} else {
-		df, err := vos.OpenFile(appPath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, fi.Mode())
-		if err != nil {
-			return err
-		}
-
-		if _, err := io.Copy(df, sf); err != nil {
-			return err
-		}
-	}
-
-	return nil
 }

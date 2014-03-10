@@ -2,6 +2,7 @@ module.exports = [
   "AppController.coffee",
   "AppView.coffee",
   "activitylistcontroller.coffee",
+  "pinnedactivitylistcontroller.coffee",
 
   # Activity commons
   "views/feedcoverphotoview.coffee",

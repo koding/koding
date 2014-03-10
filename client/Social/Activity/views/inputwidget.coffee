@@ -64,6 +64,7 @@ class ActivityInputWidget extends KDView
       type        : "submit"
       cssClass    : "solid green"
       iconOnly    : yes
+      loader      : yes
       callback    : @bound "submit"
 
     @avatar = new AvatarView
@@ -148,7 +149,7 @@ class ActivityInputWidget extends KDView
     @currentHelperNames = []
 
   submit: (callback) ->
-    return  unless value = @input.getValue().trim()
+    return @reset yes unless value = @input.getValue().trim()
 
     {JTag} = KD.remote.api
 
@@ -222,6 +223,7 @@ class ActivityInputWidget extends KDView
 
     @emit "ActivitySubmitted"
 
+
   encodeTagSuggestions: (str, tags) ->
     return  str.replace /\|(.*?):\$suggest:(.*?)\|/g, (match, prefix, title) ->
       tag = tags[title]
@@ -258,18 +260,18 @@ class ActivityInputWidget extends KDView
     @input.setContent ""
     @input.blur()
     @embedBox.resetEmbedAndHide()
-    # @submitButton.setTitle "Post"
-    @submitButton.focus()
-    setTimeout (@bound "unlockSubmit"), 8000
-    @unlockSubmit()  if lock
+
+    if lock
+    then @unlockSubmit()
+    else KD.utils.wait 8000, @bound "unlockSubmit"
 
   lockSubmit: ->
     @submitButton.disable()
-    # @submitButton.setTitle "Wait"
+    @submitButton.showLoader()
 
   unlockSubmit: ->
     @submitButton.enable()
-    # @submitButton.setTitle "Post"
+    @submitButton.hideLoader()
 
   showPreview: ->
     return unless value = @input.getValue().trim()
@@ -315,6 +317,7 @@ class ActivityEditWidget extends ActivityInputWidget
       type        : "submit"
       cssClass    : "solid green"
       iconOnly    : no
+      loader      : yes
       title       : "Done editing"
       callback    : @bound "submit"
 

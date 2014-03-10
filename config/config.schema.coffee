@@ -42,6 +42,7 @@ config =
       vagrant     : 1
       sj          : 1
       aws         : 1
+      premium     : 1
     version       : 1
     haproxy       :
       webPort     : 1
@@ -75,6 +76,7 @@ config =
     runGoBroker   : 1
     runGoBrokerKite: 1
     runPremiumBrokerKite: 1
+    runPremiumBroker: 1
     runKontrol    : 1
     runRerouting  : 1
     runUserPresence: 1
@@ -191,15 +193,14 @@ config =
         mainUri       : 1
         broker        :
           servicesEndpoint: 1
-          sockJS      : 1
+        premiumBroker        :
+          servicesEndpoint: 1
         brokerKite    :
           servicesEndpoint: 1
           brokerExchange: 1
-          sockJS      : 1
         premiumBrokerKite:
           servicesEndpoint : 1
           brokerExchange   : 1
-          sockJS           : 1
         apiUri        : 1
         appsUri       : 1
         uploadsUri    : 1
@@ -239,37 +240,48 @@ config =
       vhost       : 1
     broker        :
       name        : 1
+      serviceGenericName: 1
       ip          : 1
       port        : 1
       certFile    : 1
       keyFile     : 1
       webProtocol : 1
-      webHostname : 1
-      webPort     : 1
       authExchange: 1
       authAllExchange: 1
+      failoverUri : 1
+    premiumBroker :
+      name        : 1
+      serviceGenericName: 1
+      ip          : 1
+      port        : 1
+      certFile    : 1
+      keyFile     : 1
+      webProtocol : 1
+      authExchange: 1
+      authAllExchange: 1
+      failoverUri : 1
     brokerKite    :
       name        : 1
+      serviceGenericName: 1
       ip          : 1
       port        : 1
       certFile    : 1
       keyFile     : 1
       webProtocol : 1
-      webHostname : 1
-      webPort     : 1
       authExchange: 1
       authAllExchange: 1
+      failoverUri : 1
     premiumBrokerKite :
-      name           : 1
-      ip             : 1
-      port           : 1
-      certFile       : 1
-      keyFile        : 1
-      webProtocol    : 1
-      webHostname    : 1
-      webPort        : 1
-      authExchange   : 1
+      name        : 1
+      serviceGenericName: 1
+      ip          : 1
+      port        : 1
+      certFile    : 1
+      keyFile     : 1
+      webProtocol : 1
+      authExchange: 1
       authAllExchange: 1
+      failoverUri : 1
     kites:
       disconnectTimeout: 1
       vhost       : 1

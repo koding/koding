@@ -13,7 +13,7 @@ class EnvironmentDomainContainer extends EnvironmentContainer
 
       domainCreateForm = @getDomainCreateForm()
 
-      new KDModalView
+      domainCreateModal = new KDModalView
         title          : "Add Domain"
         cssClass       : "domain-creation"
         view           : domainCreateForm

@@ -41,13 +41,14 @@ class HomeRegisterForm extends KDFormView
       title         : 'Sign up'
       cssClass      : 'solid red shadowed'
       type          : 'submit'
+      loader        : yes
       callback      : =>
+        @button.showLoader()
         if @username.input.getValue() is ""
           @username.showError "Please enter a username."
         if @email.input.getValue() is ""
           @email.showError "Please enter an email."
-
-
+        @button.hideLoader()
 
     @on "SubmitFailed", (msg)=>
       # if msg is "Wrong password"
@@ -144,8 +145,7 @@ class HomeRegisterForm extends KDFormView
         _gaq.push ['_trackEvent', 'Sign-up']
 
         Cookies.set 'newRegister', yes
-        Cookies.set 'clientId', replacementToken, secure: yes
-        KD.getSingleton('mainController').accountChanged account
+        KD.getSingleton('mainController').swapAccount {account, replacementToken}
 
         new KDNotificationView
           cssClass  : "login"

@@ -30,7 +30,7 @@ resurrection.activity.styl
 .content-page.activity
   max-width             100%
   min-height            1026px
-  margin                85px auto
+  margin                85px auto 0
   padding               0
   position              static
   overflow              visible
@@ -42,6 +42,7 @@ resurrection.activity.styl
 
     >.activity-input-widget
       margin-left       80px
+      margin-bottom     36px
       display           block
 
       .input-view
@@ -113,8 +114,18 @@ resurrection.activity.styl
       .kdview
         overflow        visible
 
+      .toggle-pinned-list
+        text-align      right
+
+        .title
+          color             #838987
+          font-size         20px
+          font-weight       300
+          text-decoration   none
+          margin-right      3px
+
     .feeder-header
-      margin-top        31px
+      margin-top        10px
       text-align        right
       overflow          visible
 
@@ -609,6 +620,9 @@ span.collapsedtext
   border          1px solid #d8d8d8
   shadow          1px 1px 0 rgba(196, 196, 196, .75)
   borderBox()
+
+  &:first-child
+    margin-top    15px
 
   &.content-display-main-section /* Content display */
     kalc          width, 100% \- 100px
@@ -1497,7 +1511,7 @@ nav.crawler-pagination
 
 // Group Members //
 body.group.members
-  .content-page.members
+  .content-page
     .header-view-section
       margin              42px 0 12px
       border              none

@@ -53,6 +53,7 @@ class AccountEditUsername extends JView
           type             : 'submit'
           cssClass         : 'profile-save-changes'
           style            : 'solid green'
+          loader           : yes
       callback             : @bound 'update'
 
 
@@ -124,6 +125,7 @@ class AccountEditUsername extends JView
       =>
         # if everything is OK or didnt change, show profile updated modal
         notify "Your account information is updated." if profileUpdated
+        @emailForm.buttons.Save.hideLoader()
     ]
     daisy queue
 

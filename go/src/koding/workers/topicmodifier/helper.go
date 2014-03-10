@@ -53,7 +53,7 @@ func RemoveRelationship(relationship *Relationship) error {
 		"as":       relationship.As,
 	}
 	log.Debug("Delete Mongo Relationship")
-	return helper.DeleteRelationship(selector)
+	return helper.DeleteRelationships(selector)
 }
 
 //Finds synonym of a given tag by tagId

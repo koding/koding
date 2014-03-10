@@ -426,20 +426,26 @@ func (p *Proxy) startHTTP() {
 
 // ServeHTTP is needed to satisfy the http.Handler interface.
 func (p *Proxy) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	// redirect http to https
-	if r.TLS == nil && (r.Host == "koding.com" || r.Host == "www.koding.com") {
-
-		// check if this cookie is set, if yes do not redirect to https
-		_, err := r.Cookie(CookieUseHTTP)
-		if err != nil {
-			http.Redirect(w, r, "https://koding.com"+r.RequestURI, http.StatusMovedPermanently)
-			return
-		}
+	// redirect https://www.koding.com to https://koding.com
+	if r.TLS != nil && strings.HasPrefix(r.Host, "www.") {
+		r.Host = strings.TrimPrefix(r.Host, "www.")
+		http.Redirect(w, r, "https://"+r.Host+r.RequestURI, http.StatusMovedPermanently)
+		return
 	}
 
 	// remove www from the hostname (i.e. www.foo.com -> foo.com)
 	if strings.HasPrefix(r.Host, "www.") {
 		r.Host = strings.TrimPrefix(r.Host, "www.")
+	}
+
+	// redirect http to https
+	if r.TLS == nil && (r.Host == "koding.com" || r.Host == "latest.koding.com") {
+		// check if this cookie is set, if yes do not redirect to https
+		_, err := r.Cookie(CookieUseHTTP)
+		if err != nil {
+			http.Redirect(w, r, "https://"+r.Host+r.RequestURI, http.StatusMovedPermanently)
+			return
+		}
 	}
 
 	// our main handler mux function goes and picks the correct handler

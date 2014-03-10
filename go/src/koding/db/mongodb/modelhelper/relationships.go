@@ -4,13 +4,14 @@ import (
 	"koding/db/models"
 
 	"labix.org/v2/mgo"
+	"labix.org/v2/mgo/bson"
 )
 
 func GetAllRelationships(selector Selector) ([]models.Relationship, error) {
 	relationships := make([]models.Relationship, 0)
 
 	query := func(c *mgo.Collection) error {
-		return c.Find(selector).Sort("timestamp").All(&relationships)
+		return c.Find(selector).All(&relationships)
 	}
 
 	err := Mongo.Run("relationships", query)
@@ -42,13 +43,14 @@ func GetRelationship(selector Selector) (models.Relationship, error) {
 	return relationship, err
 }
 
-func DeleteRelationship(selector Selector) error {
-	query := func(c *mgo.Collection) error {
-		_, err := c.RemoveAll(selector)
-		return err
-	}
+// Deletes all relationships satisfying the selector
+func DeleteRelationships(selector Selector) error {
+	return RemoveAllDocuments("relationships", selector)
+}
 
-	return Mongo.Run("relationships", query)
+// Deletes relationships with the given id
+func DeleteRelationship(id bson.ObjectId) error {
+	return RemoveDocument("relationships", id)
 }
 
 func AddRelationship(r *models.Relationship) error {
