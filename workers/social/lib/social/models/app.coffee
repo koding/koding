@@ -49,8 +49,6 @@ module.exports = class JNewApp extends jraphical.Module
         ]
 
       static            :
-        create          :
-          (signature Object, Function)
         publish         :
           (signature Object, Function)
         one             :
@@ -147,6 +145,10 @@ module.exports = class JNewApp extends jraphical.Module
 
   capitalize = (str)-> str.charAt(0).toUpperCase() + str.slice(1)
 
+  @byRelevance$ = permit 'list apps',
+    success: (client, seed, options, callback)->
+      @byRelevance client, seed, options, callback
+
   @findSuggestions = (client, seed, options, callback)->
     {limit, blacklist, skip}  = options
     names = seed.toString().split('/')[1].replace('^','')
@@ -168,9 +170,6 @@ module.exports = class JNewApp extends jraphical.Module
     unless data.manifest.authorNick is profile.nickname
       return new KodingError 'Authornick in manifest is different from your username!'
 
-  @byRelevance$ = permit 'list apps',
-    success: (client, seed, options, callback)->
-      @byRelevance client, seed, options, callback
 
   # TODO ~ GG
   # - Add updated version field, and do not allow to change urls if it approved
@@ -518,6 +517,54 @@ module.exports = class JNewApp extends jraphical.Module
     #                   callback err
     #                 else
     #                   callback null, app
+
+  # @create = permit 'create apps',
+
+  #   success: (client, data, callback)->
+
+  #     console.log "creating the JNewApp"
+
+  #     {connection:{delegate}} = client
+  #     {profile} = delegate
+
+  #     if not data.name or not data.urls?.script
+  #       return callback new KodingError 'Name and Url is required!'
+
+  #     data.name = capitalize @slugify data.name
+
+  #     data.manifest           ?= {}
+
+  #     # Overwrite the user/app information in manifest
+  #     data.manifest.name       = data.name
+  #     data.manifest.authorNick = profile.nickname
+  #     data.manifest.author     = "#{profile.firstName} #{profile.lastName}"
+
+  #     # Optionals
+  #     data.manifest.version   ?= "1.0"
+  #     data.identifier         ?= "com.koding.apps.#{data.name.toLowerCase()}"
+
+  #     app           = new JNewApp
+  #       name        : data.name
+  #       title       : data.name
+  #       urls        : data.urls
+  #       type        : data.type or 'web-app'
+  #       manifest    : data.manifest
+  #       identifier  : data.identifier
+  #       version     : data.manifest.version
+  #       originId    : delegate.getId()
+  #       group       : client.context.group
+
+  #     app.save (err)->
+  #       return callback err  if err
+  #       slug = "Apps/#{app.manifest.authorNick}/#{app.name}"
+  #       app.useSlug slug, (err, slugobj)->
+  #         if err then return app.remove -> callback err
+  #         slug = slugobj.slug
+  #         app.update {$set: {slug, slug_: slug}}, (err)->
+  #           console.warn "Slug update failed for #{slug}", err  if err
+  #         app.addCreator delegate, (err)->
+  #           return callback err  if err
+  #           callback null, app
 
   # fetchRelativeReviews: permit 'list reviews',
 
