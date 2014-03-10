@@ -415,10 +415,11 @@ func (o *Oskite) setupSignalHandler() {
 	signal.Notify(sigtermChannel, syscall.SIGINT, syscall.SIGTERM, syscall.SIGUSR1)
 	go func() {
 		sig := <-sigtermChannel
-		log.Info("Shutdown initiated.")
+		log.Info("Shutdown initiated. Waiting until current calls are finished...")
 		shuttingDown = true
 		requestWaitGroup.Wait()
 		if sig == syscall.SIGUSR1 {
+			log.Info("Unpreparing all remaining VMs")
 			for _, info := range infos {
 				log.Info("Unpreparing " + info.vm.String() + "...")
 				prepareQueue <- &QueueJob{
