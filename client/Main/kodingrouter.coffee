@@ -282,9 +282,9 @@ class KodingRouter extends KDRouter
       '/:name?/Topics/:slug'   : createContentHandler 'Topics'
 
       '/:name/Groups'          : createSectionHandler 'Groups'
-      '/:name/Followers'       : createContentHandler 'Members', yes
-      '/:name/Following'       : createContentHandler 'Members', yes
-      '/:name/Likes'           : createContentHandler 'Members', yes
+
+      '/:slug/:name' : ({params, query}, model, route) ->
+        (createContentHandler 'Members') arguments...
 
       '/:name?/Invitation/:inviteCode': ({params:{inviteCode, name}})=>
         @handleRoute "/Redeem/#{inviteCode}"
@@ -350,7 +350,6 @@ class KodingRouter extends KDRouter
               @handleNotFound routeInfo.params.name
 
         (routeInfo, state, route)->
-
           if state?
             open.call this, routeInfo, state
 
