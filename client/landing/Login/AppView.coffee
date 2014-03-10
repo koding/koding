@@ -96,9 +96,12 @@ class LoginView extends KDView
     recoverHandler  = handler.bind null, '/Recover'
 
     @logo = new KDCustomHTMLView
-      cssClass    : "logo"
-      partial     : "Koding<cite></cite>"
-      click       : homeHandler
+      tagName   : "a"
+      cssClass  : "koding-logo"
+      partial   : '<cite></cite>'
+      click     : (event)=>
+        KD.utils.stopDOMEvent event
+        location.replace '/'
 
     @backToLoginLink = new KDCustomHTMLView
       tagName     : "a"
@@ -107,23 +110,30 @@ class LoginView extends KDView
         KD.mixpanel "Login button form in /Login, click"
         loginHandler()
 
+
     @goToRecoverLink = new KDCustomHTMLView
       tagName     : "a"
+      cssClass    : "forgot-link"
       partial     : "Forgot your password?"
       testPath    : "landing-recover-password"
       click       : recoverHandler
 
     @goToRegisterLink = new KDCustomHTMLView
       tagName     : "a"
-      partial     : "Create Account"
+      partial     : "Sign up"
       click       : ->
         KD.mixpanel "Register button form in /Login, click"
         registerHandler()
 
-    @github       = new KDButtonView
-      style       : 'solid github'
-      icon        : yes
-      callback    : ->
+    @formHeader      = new KDCustomHTMLView
+      tagName     : "h4"
+      cssClass    : "form-header"
+
+    @github          = new KDCustomHTMLView
+      tagName     : "a"
+      cssClass    : "github-login"
+      partial     : "Sign in using <strong>GitHub</strong>"
+      click       : ->
         KD.mixpanel "Github auth button in /Login, click"
         KD.singletons.oauthController.openPopup "github"
 
@@ -228,15 +238,27 @@ class LoginView extends KDView
     @setTemplate @pistachio()
     @template.update()
 
+    query = KD.utils.parseQuery document.location.search.replace "?", ""
+
+    if query.warning
+      suffix  = if query.type is "comment" then "post a comment" else "like an activity"
+      message = "You need to be logged in to #{suffix}"
+
+      KD.getSingleton("mainView").createGlobalNotification
+        title      : message
+        type       : "yellow"
+        content    : ""
+        closeTimer : 4000
+        container  : this
+
   pistachio:->
       # {{> @loginOptions}}
       # {{> @registerOptions}}
     """
     <div class='tint'></div>
+    {{> @logo }}
     <div class="flex-wrapper">
-      <div class="login-box-header">
-        {{> @logo}}
-      </div>
+      {{> @formHeader}}
       <div class="login-form-holder lf">
         {{> @loginForm}}
       </div>
@@ -260,14 +282,11 @@ class LoginView extends KDView
       </div>
       {{> @failureNotice}}
       <div class="login-footer">
-        <div class='first-row clearfix'>
-          <div class='fl'>{{> @goToRecoverLink}}</div><div class='fr'>{{> @goToRegisterLink}}<i>•</i>{{> @backToLoginLink}}</div>
-        </div>
-        {{> @github}}
+        {{> @github}} {{> @goToRecoverLink}}
       </div>
     </div>
     <footer>
-      <a href="/tos.html" target="_blank">Terms of service</a><i>•</i><a href="/privacy.html" target="_blank">Privacy policy</a><i>•</i><a href="#{backgroundImages[backgroundImageNr].href}" target="_blank"><span>photo by </span>#{backgroundImages[backgroundImageNr].photographer}</a>
+      <a href="/tos.html" target="_blank">Terms of service</a><a href="/privacy.html" target="_blank">Privacy policy</a><a href="#{backgroundImages[backgroundImageNr].href}" target="_blank"><span>photo by </span>#{backgroundImages[backgroundImageNr].photographer}</a>
     </footer>
     """
 
@@ -348,8 +367,7 @@ class LoginView extends KDView
           KD.logToExternal "mixpanel doesn't exist"
 
         Cookies.set 'newRegister', yes
-        Cookies.set 'clientId', replacementToken, secure: yes
-        KD.getSingleton('mainController').accountChanged account
+        KD.getSingleton("mainController").swapAccount {account, replacementToken}
 
         titleText = unless err then 'Good to go, Enjoy!' \
                     else 'Quota exceeded and could not join to the group. Please contact with group admin'
@@ -545,9 +563,11 @@ class LoginView extends KDView
       @setClass name
       @$('.flex-wrapper').removeClass 'three one'
 
+      @formHeader.hide()
+      @goToRecoverLink.show()
+
       switch name
         when "register"
-          @github.setTitle "Sign up with GitHub"
           @registerForm.email.input.setFocus()
         when "finishRegistration"
           @finishRegistrationForm.username.input.setFocus()
@@ -555,10 +575,14 @@ class LoginView extends KDView
           @$('.flex-wrapper').addClass 'one'
           @redeemForm.inviteCode.input.setFocus()
         when "login"
-          @github.setTitle "Sign in with GitHub"
+          @formHeader.show()
+          @formHeader.updatePartial "Dont't have an account yet? "
+          @formHeader.addSubView @goToRegisterLink
           @loginForm.username.input.setFocus()
         when "recover"
           @$('.flex-wrapper').addClass 'one'
+          @github.hide()
+          @goToRecoverLink.hide()
           @recoverForm.usernameOrEmail.input.setFocus()
         when "resendEmail"
           @$('.flex-wrapper').addClass 'one'
@@ -568,6 +592,11 @@ class LoginView extends KDView
           @github.hide()
           @$(".login-footer").addClass 'hidden'
           @failureNotice.show()
+        when "reset"
+          @formHeader.show()
+          @formHeader.updatePartial "Set your new password below"
+          @goToRecoverLink.hide()
+          @github.hide()
 
   getRouteWithEntryPoint:(route)->
     {entryPoint} = KD.config
