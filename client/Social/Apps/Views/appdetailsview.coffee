@@ -97,7 +97,7 @@ class AppDetailsView extends KDScrollView
           tmpl += "<li><img src=\"#{KD.appsUri}/#{authorNick}/#{identifier}/#{version}/#{slide}\" /></li>"
         return tmpl
 
-    @reviewView = new ReviewView {}, app
+    # @reviewView = new ReviewView {}, app
 
   viewAppended: JView::viewAppended
 
