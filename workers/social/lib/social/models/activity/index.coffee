@@ -21,7 +21,7 @@ module.exports = class CActivity extends jraphical.Capsule
   @trait __dirname, '../../traits/grouprelated'
 
   @set
-    softDelete        : yes
+    softDelete        : no
     feedable          : yes
     broadcastable     : no
     indexes           :

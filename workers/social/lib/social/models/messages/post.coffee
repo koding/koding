@@ -45,7 +45,7 @@ module.exports = class JPost extends jraphical.Message
 
   # TODO: these relationships may not be abstract enough to belong to JPost.
   @set
-    softDelete  : yes
+    softDelete  : no
     slugifyFrom : 'title'
     slugTemplate: ->
       """
