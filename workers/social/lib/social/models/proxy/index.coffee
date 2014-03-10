@@ -13,8 +13,10 @@ module.exports = class JProxyFilter extends jraphical.Module
   @share()
 
   @set
-    softDelete      : yes
-
+    sharedEvents    :
+      static        : []
+      instance      : []
+    softDelete      : no
     permissions     :
       'create filters'     : ['member']
       'edit filters'       : ['member']
@@ -84,7 +86,7 @@ module.exports = class JProxyFilter extends jraphical.Module
         @remove selector, (err)->
           return callback err if err
 
-        match = filter.match 
+        match = filter.match
 
         JProxyRestriction.update
           "ruleList.match": match
@@ -94,7 +96,7 @@ module.exports = class JProxyFilter extends jraphical.Module
 
         callback null
 
-  
+
 
 
 

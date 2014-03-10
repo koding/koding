@@ -33,11 +33,8 @@ module.exports = class JNewApp extends jraphical.Module
       name              : 'sparse'
 
     sharedEvents        :
-      instance          : [
-        { name: 'ReviewIsAdded' }
-      ]
+      instance          : []
       static            : []
-
     sharedMethods       :
       instance          :
         fetchRelativeReviews:

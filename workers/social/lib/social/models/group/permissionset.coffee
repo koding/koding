@@ -25,9 +25,7 @@ module.exports = class JPermissionSet extends Module
       'permissions.title'   : 'sparse'
     sharedEvents            :
       static                : []
-      instance              : [
-        'updateInstance'
-      ]
+      instance              : [ 'updateInstance' ]
     schema                  :
       isCustom              :
         type                : Boolean
@@ -101,7 +99,7 @@ module.exports = class JPermissionSet extends Module
       else
         group.fetchPermissionSet (err, permissionSet)->
           if err then callback err, no
-          else unless permissionSet 
+          else unless permissionSet
             group.fetchDefaultPermissionSet (err, permissionSet) ->
               return callback err if err
               kallback group, permissionSet
