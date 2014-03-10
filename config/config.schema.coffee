@@ -153,11 +153,6 @@ config =
       watch       : 1
       queueName   : 1
       verbose     : 1
-    cacheWorker       :
-      login           : 1
-      watch           : 1
-      queueName       : 1
-      run             : 1
     graphFeederWorker :
       numberOfWorkers : 1
     presence        :
