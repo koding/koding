@@ -143,11 +143,6 @@ module.exports =
     watch       : no
     queueName   : socialQueueName
     verbose     : no
-  cacheWorker   :
-    login       : 'prod-social'
-    watch       : no
-    queueName   : socialQueueName+'cache'
-    run         : no
   presence        :
     exchange      : 'services-presence'
   client          :
