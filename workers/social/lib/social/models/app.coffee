@@ -1,5 +1,7 @@
 jraphical   = require 'jraphical'
 KodingError = require '../error'
+{argv}      = require 'optimist'
+KONFIG      = require('koding-config-manager').load("main.#{argv.c}")
 
 module.exports = class JNewApp extends jraphical.Module
 
@@ -175,69 +177,49 @@ module.exports = class JNewApp extends jraphical.Module
     unless data.manifest.authorNick is profile.nickname
       return new KodingError 'Authornick in manifest is different from your username!'
 
+  validateUrl = (account, url, callback)->
 
-  # TODO ~ GG
-  # - Add updated version field, and do not allow to change urls if it approved
+    url = url.replace /\/$/, ''
+    urls =
+      script : "#{url}/index.js"
+      style  : "#{url}/resources/style.css"
 
-  @publish = permit 'create apps',
+    # If user is admin
+    # if account.can 'bypass-validations'
+    #   return callback null, urls, no
 
-    success: (client, data, callback)->
+    # If url points to a vm url
+    if (/^\[([^\]]+)\]/g.exec url)?[1]
+      return callback null, urls, no
 
-      console.log "publishing the JNewApp"
+    {appsUri} = KONFIG.client.runtimeOptions
 
-      {connection:{delegate}} = client
-      {profile} = delegate
+    urlParser =
+      ///
+        ^#{appsUri}\/           # Should start with appsUri (in config.client)
+        ([a-z0-9\-]+)\/         # Username
+        ([a-z0-9\-]+)\.kdapp\/  # App name
+        ([a-z0-9\-]+)$          # Git branch (usually master)
+      ///i
 
-      if validationError = checkData data, profile
-        return callback validationError
+    [url, remoteUser, app, branch] = (urlParser.exec url) or []
 
-      data.name = capitalize @slugify data.name
-      {name, manifest:{authorNick}} = data
+    unless remoteUser
+      return callback new KodingError "URL is not allowed."
 
-      # Overwrite the user/app information in manifest
-      data.manifest.name       = data.name
-      data.manifest.authorNick = profile.nickname
-      data.manifest.author     = "#{profile.firstName} #{profile.lastName}"
+    account.fetchUser (err, user)->
+      return callback err  if err?
 
-      # Optionals
-      data.manifest.version   ?= "1.0"
-      data.identifier         ?= "com.koding.apps.#{data.name.toLowerCase()}"
+      unless user.foreignAuth?.github?
+        return callback new KodingError \
+          "There is no linked GitHub account with this account."
 
-      JNewApp.one {name, 'manifest.authorNick':authorNick}, (err, app)->
+      {username} = user.foreignAuth.github
+      if username is not remoteUser
+        return callback new KodingError "Remote username mismatch."
 
-        return callback err  if err
-
-        appData =
-          name        : data.name
-          title       : data.name
-          urls        : data.urls
-          type        : data.type or 'web-app'
-          manifest    : data.manifest
-          identifier  : data.identifier
-          version     : data.manifest.version
-          originId    : delegate.getId()
-          group       : client.context.group
-
-        if app
-
-          app.update $set: appData, (err)->
-            return callback err  if err
-            callback null, app
-
-        else
-
-          app = new JNewApp appData
-          app.save (err)->
-            return callback err  if err
-            slug = "Apps/#{app.manifest.authorNick}/#{app.name}"
-            app.useSlug slug, (err, slugobj)->
-              if err then return app.remove -> callback err
-              slug = slugobj.slug
-              app.update {$set: {slug, slug_: slug}}, (err)->
-                console.warn "Slug update failed for #{slug}", err  if err
-              app.addCreator delegate, (err)->
-                return callback err  if err
-                callback null, app
+      # TODO - Add existence check from remote url ~ GG
+      callback null, urls, yes
 
 
   @create = permit 'create apps',
