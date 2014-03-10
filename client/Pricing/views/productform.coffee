@@ -59,7 +59,7 @@ class PricingProductForm extends JView
         <p>
           Your virtual machines (VMs) run on servers in our Premium cluster that are dedicated to our paying customers.
           <br><br>
-          If you want us to deploy Koding to your own servers, please contact us for our Enterprise plans.
+          If you want us to deploy Koding to your own servers, please click <a href='mailto:sales@koding.com?subject=Interested%20in%20Enterprise%20plans' target='_self'>here</a> to contact us about our Enterprise plans.
         </p>
         {{> @toggle}}
       </header>
