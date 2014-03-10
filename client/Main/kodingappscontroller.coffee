@@ -454,10 +454,8 @@ class KodingAppsController extends KDController
 
         {JNewApp} = KD.remote.api
         JNewApp.publish {
-          name     : app.name
-          urls     :
-            script : "#{app.fullPath}/index.js"
-            style  : "#{app.fullPath}/resources/style.css"
+          name : app.name
+          url  : app.fullPath
           manifest
         }, (err, app)->
           log err, app

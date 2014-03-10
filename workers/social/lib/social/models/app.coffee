@@ -221,75 +221,73 @@ module.exports = class JNewApp extends jraphical.Module
       # TODO - Add existence check from remote url ~ GG
       callback null, urls, yes
 
+  # TODO ~ GG
 
-  @create = permit 'create apps',
+  @publish = permit 'create apps',
 
     success: (client, data, callback)->
 
-      console.log "creating the JNewApp"
+      console.log "publishing the JNewApp"
 
       {connection:{delegate}} = client
       {profile} = delegate
 
-      if not data.name or not data.urls?.script
-        return callback new KodingError 'Name and Url is required!'
+      if validationError = checkData data, profile
+        return callback validationError
 
-      data.name = capitalize @slugify data.name
-
-      data.manifest           ?= {}
-
-      # Overwrite the user/app information in manifest
-      data.manifest.name       = data.name
-      data.manifest.authorNick = profile.nickname
-      data.manifest.author     = "#{profile.firstName} #{profile.lastName}"
-
-      # Optionals
-      data.manifest.version   ?= "1.0"
-      data.identifier         ?= "com.koding.apps.#{data.name.toLowerCase()}"
-
-      app           = new JNewApp
-        name        : data.name
-        title       : data.name
-        urls        : data.urls
-        type        : data.type or 'web-app'
-        manifest    : data.manifest
-        identifier  : data.identifier
-        version     : data.manifest.version
-        originId    : delegate.getId()
-        group       : client.context.group
-
-      app.save (err)->
+      validateUrl delegate, data.url, (err, urls, githubVerified)=>
         return callback err  if err
-        slug = "Apps/#{app.manifest.authorNick}/#{app.name}"
-        app.useSlug slug, (err, slugobj)->
-          if err then return app.remove -> callback err
-          slug = slugobj.slug
-          app.update {$set: {slug, slug_: slug}}, (err)->
-            console.warn "Slug update failed for #{slug}", err  if err
-          app.addCreator delegate, (err)->
-            return callback err  if err
-            callback null, app
+
+        data.urls = urls
+        data.name = capitalize @slugify data.name
+        {name, manifest:{authorNick}} = data
+
+        # Overwrite the user/app information in manifest
+        data.manifest.name       = data.name
+        data.manifest.authorNick = profile.nickname
+        data.manifest.author     = "#{profile.firstName} #{profile.lastName}"
+
+        # Optionals
+        data.manifest.version   ?= "1.0"
+        data.identifier         ?= "com.koding.apps.#{data.name.toLowerCase()}"
+
+        JNewApp.one {name, 'manifest.authorNick':authorNick}, (err, app)->
 
           return callback err  if err
+
+          appData =
+            name        : data.name
+            title       : data.name
+            urls        : data.urls
+            type        : data.type or 'web-app'
+            manifest    : data.manifest
+            identifier  : data.identifier
+            version     : data.manifest.version
+            originId    : delegate.getId()
+            group       : client.context.group
+            status      : if githubVerified \
+                          then 'github-verified' else 'not-verified'
+
+          if app
+
+            app.update $set: appData, (err)->
               return callback err  if err
-              callback null, review
+              callback null, app
 
-              @fetchCreator (err, origin)=>
-                return console.error "JNewApp:", err  if err
-                @emit 'ReviewIsAdded',
-                  origin        : origin
-                  subject       : ObjectRef(@).data
-                  actorType     : 'reviewer'
-                  actionType    : 'review'
-                  replier       : ObjectRef(delegate).data
-                  reply         : ObjectRef(review).data
-                  repliesCount  : count
-                  relationship  : docs[0]
+          else
 
-                @follow client, emitActivity: no, (err)->
-                  console.error "JNewApp:", err  if err
-                @addParticipant delegate, 'reviewer', (err)->
-                  console.error "JNewApp:", err  if err
+            app = new JNewApp appData
+            app.save (err)->
+              return callback err  if err
+              slug = "Apps/#{app.manifest.authorNick}/#{app.name}"
+              app.useSlug slug, (err, slugobj)->
+                if err then return app.remove -> callback err
+                slug = slugobj.slug
+                app.update {$set: {slug, slug_: slug}}, (err)->
+                  console.warn "Slug update failed for #{slug}", err  if err
+                app.addCreator delegate, (err)->
+                  return callback err  if err
+                  callback null, app
 
   getDefaultSelector = (client, selector)->
     {delegate}   = client.connection
