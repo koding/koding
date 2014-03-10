@@ -34,10 +34,10 @@ class PermissionsForm extends KDFormViewWithFields
     @selectRoleModal  = new KDModalView title: "Select Role to Copy", overlay: yes
     roleSelectOptions.push {title: role, value: role} for role in @roles
 
-    roleNameLabel   = new KDLabelView title: "give role a name"
+    roleNameLabel   = new KDLabelView title: "Role name"
     @roleName       = new KDInputView
       name          : "rolename"
-      placeholder   : "give new role name.."
+      placeholder   : "role name..."
 
     roleSelectLabel = new KDLabelView title: "Select role to copy from"
     @roleSelectBox   = new KDSelectBox
