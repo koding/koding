@@ -213,7 +213,6 @@ module.exports = [
   "channels/kitechannel.coffee",
   "ApplicationManager.coffee",
   "AppController.coffee",
-  "kodingappscontroller.coffee",
   "AppStorage.coffee",
   "localstorage.coffee",
 
@@ -221,6 +220,10 @@ module.exports = [
   "extras/github/api.coffee",
   "extras/github/views/githubmodal.coffee",
   "extras/github/views/githubrepoitem.coffee",
+
+  # Application Backend
+  "kodingappscontroller.coffee",
+  "CommonViews/kodingappselectorforgithub.coffee",
 
   # CONTENT DISPLAY VIEWS
   "ContentDisplay/ContentDisplay.coffee",
