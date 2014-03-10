@@ -114,12 +114,17 @@ module.exports = class JNewApp extends jraphical.Module
 
       type              :
         type            : String
-        enum            : ["Wrong type specified!",["web-app", "add-on", "server-stack", "framework"]]
+        enum            : ["Wrong type specified!",
+          ["web-app", "add-on", "server-stack", "framework"]
+        ]
         default         : "web-app"
 
-      approved          :
-        type            : Boolean
-        default         : false
+      status            :
+        type            : String
+        enum            : ["Wrong status specified!",
+          ["verified", "not-verified", "github-verified"]
+        ]
+        default         : "not-verified"
 
       repliesCount      :
         type            : Number
@@ -308,7 +313,7 @@ module.exports = class JNewApp extends jraphical.Module
     {delegate}   = client.connection
     selector   or= {}
     selector.$or = [
-      {approved  : yes}
+      {status    : $ne : 'not-verified'}
       {originId  : delegate.getId()}
     ]
     return selector
@@ -396,7 +401,8 @@ module.exports = class JNewApp extends jraphical.Module
             name.save (err) ->
               console.error "Failed to save JName: ", err  if err
 
-        @update $set: approved: state, callback
+        status = if state then 'verified' else 'not-verified'
+        @update $set: {status}, callback
 
       # identifier = @getAt 'identifier'
 
