@@ -219,6 +219,9 @@ module.exports = [
 
   # 3rd Parties
   "extras/github/api.coffee",
+  "extras/github/views/githubmodal.coffee",
+  "extras/github/views/githubrepoitem.coffee",
+
   # CONTENT DISPLAY VIEWS
   "ContentDisplay/ContentDisplay.coffee",
   "ContentDisplay/ContentDisplayController.coffee",
