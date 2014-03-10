@@ -190,7 +190,7 @@ func (o *Oskite) runNewKite() {
 		conf,
 		kitelib.Options{
 			Kitename: OSKITE_NAME,
-			Version:  "0.0.1",
+			Version:  OSKITE_VERSION,
 			Port:     "5000",
 			Region:   o.Region,
 		},
