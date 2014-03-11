@@ -309,6 +309,7 @@ module.exports = class JVM extends Module
       { planCode, subscriptionCode } = nonceObject
       { delegate: account } = client.connection
       { group: groupSlug } = client.context
+      type = "user"
 
       nonceObject.update $set: action: "used", (err) =>
         return callback err  if err
@@ -317,6 +318,7 @@ module.exports = class JVM extends Module
           groupSlug
           planCode
           subscriptionCode
+          type
         }, callback
 
   @createSharedVm = secure (client, callback)->
