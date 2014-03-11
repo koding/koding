@@ -1,6 +1,8 @@
+# We decided to move to segment.io which multiplexes to many
+# services. This is still named mixpanel for legacy reasons.
 if KD.config.logToExternal then do ->
   KD.getSingleton('mainController').on "AccountChanged", (account) ->
-    return  unless KD.isLoggedIn() and account and mixpanel
+    return  unless KD.isLoggedIn() and account and analytics
 
     account.fetchEmail (err, email)->
       console.log err  if err
@@ -10,8 +12,7 @@ if KD.config.logToExternal then do ->
       {firstName, lastName, nickname} = profile
 
       # register user to mixpanel
-      mixpanel.identify nickname
-      mixpanel.people.set
+      analytics.identify nickname, {
         "$username"     : nickname
         "$first_name"   : firstName
         "$last_name"    : lastName
@@ -19,11 +20,11 @@ if KD.config.logToExternal then do ->
         "$created"      : createdAt
         "Status"        : type
         "Randomizer"    : KD.utils.getRandomNumber 4
-      mixpanel.name_tag "#{nickname}.kd.io"
+      }
 
 # Access control wrapper around mixpanel object.
 KD.mixpanel = (args...)->
-  return  unless mixpanel and KD.config.logToExternal
+  return  unless analytics and KD.config.logToExternal
   if args.length < 2
     args.push {}
 
@@ -36,8 +37,8 @@ KD.mixpanel = (args...)->
     args[1]["username"] = me.profile.nickname
     args[1]["email"] = email
 
-    mixpanel.track args...
+    analytics.track args...
 
 KD.mixpanel.alias = (args...)->
-  return  unless mixpanel and KD.config.logToExternal
-  mixpanel.alias args...
+  return  unless analytics and KD.config.logToExternal
+  analytics.alias args...

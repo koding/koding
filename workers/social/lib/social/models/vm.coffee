@@ -160,7 +160,8 @@ module.exports = class JVM extends Module
             vm.update $set: alwaysOn: status, callback
 
       if group is "koding"
-        delegate.fetchSubscriptions$ client, tags: ["vm"], (err, subscriptions) ->
+        options = targetOptions: tags: $in: "vm"
+        delegate.fetchSubscriptions null, options, (err, subscriptions) ->
           noSyncSubscription = null
           activeSubscription = null
 
@@ -309,6 +310,7 @@ module.exports = class JVM extends Module
       { planCode, subscriptionCode } = nonceObject
       { delegate: account } = client.connection
       { group: groupSlug } = client.context
+      type = "user"
 
       nonceObject.update $set: action: "used", (err) =>
         return callback err  if err
@@ -317,6 +319,7 @@ module.exports = class JVM extends Module
           groupSlug
           planCode
           subscriptionCode
+          type
         }, callback
 
   @createSharedVm = secure (client, callback)->
@@ -618,10 +621,15 @@ module.exports = class JVM extends Module
           else callback()
 
     if group.slug is "koding"
-      account.fetchSubscription (err, subscription) =>
+      options = targetOptions: tags: $in: "vm"
+      account.fetchSubscriptions null, options, (err, subscriptions = []) =>
         return callback err  if err
-        return @remove callback  unless subscription # so this is a free account
-        kallback subscription
+
+        subscription = freeSubscription = null
+        for subscription in subscriptions
+          freeSubscription = subscription  if "nosync" in subscription.tags
+
+        kallback subscription or freeSubscription
     else
       group.fetchSubscription (err, subscription) =>
         return callback err  if err

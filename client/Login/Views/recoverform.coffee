@@ -16,12 +16,10 @@ class RecoverInlineForm extends LoginViewInlineForm
             required  : "Please enter your username or email."
 
     @button = new KDButtonView
-      title       : "RECOVER PASSWORD"
-      style       : "solid green"
+      title       : "Recover password"
+      style       : "solid medium green"
       type        : 'submit'
-      loader      :
-        color     : "#ffffff"
-        diameter  : 21
+      loader      : yes
 
   pistachio:->
 

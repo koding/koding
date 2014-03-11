@@ -46,6 +46,10 @@ generateFakeClient = (req, res, callback)->
 
   {clientId} = req.cookies
 
+  # if client id is not set, check for pendingCookies
+  if not clientId and req.pendingCookies?.clientId
+    clientId = req.pendingCookies.clientId
+
   return callback null, fakeClient unless clientId?
 
   bongo.models.JSession.fetchSession clientId, (err, session)->

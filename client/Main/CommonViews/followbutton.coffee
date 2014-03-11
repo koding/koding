@@ -9,8 +9,6 @@ class FollowButton extends KDToggleButton
       dataPath     : "followee"
       loader       :
         color      : "#333333"
-        diameter   : 18
-        top        : 11
       states       : [
         title      : "Follow"
         cssClass   : options.stateOptions?.follow?.cssClass
