@@ -347,7 +347,7 @@ module.exports = class JAccount extends jraphical.Module
         type                : String
         enum                : ['invalid status',['online','offline','away','busy']]
         default             : 'online'
-
+    broadcastableRelationships : [ 'follower' ]
     relationships           : ->
       JPrivateMessage = require './messages/privatemessage'
 

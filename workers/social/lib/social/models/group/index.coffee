@@ -264,6 +264,10 @@ module.exports = class JGroup extends Module
       payment       :
         plan        : String
         paymentQuota: Number
+    broadcastableRelationships : [
+      'member', 'moderator', 'admin'
+      'owner', 'tag', 'role'
+    ]
     relationships   :
       bundle        :
         targetType  : 'JGroupBundle'
