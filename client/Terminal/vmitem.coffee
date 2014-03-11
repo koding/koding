@@ -85,6 +85,7 @@ class TerminalStartTabVMItem extends KDCustomHTMLView
       @unsetClass 'ready off'
       @loader.show()
       @notice.updatePartial 'LOADING'
+      @progress.setWidth 0, '%'
       return
 
     { state } = info
