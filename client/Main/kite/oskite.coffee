@@ -42,7 +42,7 @@ class OsKite extends KDKite
     @::[method] = @createMethod @prototype, { method, rpcMethod }
 
   constructor: (options = {}, data) ->
-    options.kiteName = 'os-vagrant'
+    options.kiteName = 'os-sj'
     super options, data
     @pollState()
 
@@ -91,4 +91,4 @@ class OsKite extends KDKite
 
     .then (result) -> return result
 
-  @constructors['os-vagrant'] = this
+  @constructors['os-sj'] = this
