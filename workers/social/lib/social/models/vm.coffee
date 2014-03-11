@@ -618,10 +618,15 @@ module.exports = class JVM extends Module
           else callback()
 
     if group.slug is "koding"
-      account.fetchSubscription (err, subscription) =>
+      options = targetOptions: tags: $in: "vm"
+      account.fetchSubscriptions null, options, (err, subscriptions = []) =>
         return callback err  if err
-        return @remove callback  unless subscription # so this is a free account
-        kallback subscription
+
+        subscription = freeSubscription = null
+        for subscription in subscriptions
+          freeSubscription = subscription  if "nosync" in subscription.tags
+
+        kallback subscription or freeSubscription
     else
       group.fetchSubscription (err, subscription) =>
         return callback err  if err
