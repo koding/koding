@@ -22,7 +22,7 @@ class TerminalStartTabVMItem extends KDCustomHTMLView
 
     @notice = new KDCustomHTMLView
       tagName : 'i'
-      partial : '0%'
+      partial : 'LOADING'
 
     @progress = new KDCustomHTMLView
       tagName  : 'cite'
@@ -79,16 +79,21 @@ class TerminalStartTabVMItem extends KDCustomHTMLView
   handleVMInfo:(info)->
 
     unless info
-      @loader.hide()
-      @notice.updatePartial 'FAILED'
+      @unsetClass 'ready'
+      @loader.show()
+      @notice.updatePartial 'LOADING'
       return
 
     { state } = info
     switch state.toLowerCase()
       when "running"
+        @loader.hide()
+        @unsetClass 'off'
         @notice.updatePartial 'READY'
         @setClass 'ready'
       when "stopped"
+        @loader.hide()
+        @unsetClass 'ready'
         @setClass 'off'
         @notice.updatePartial 'OFF'
 
