@@ -185,8 +185,8 @@ module.exports = class JNewApp extends jraphical.Module
       style  : "#{url}/resources/style.css"
 
     # If user is admin
-    # if account.can 'bypass-validations'
-    #   return callback null, urls, no
+    if account.can 'bypass-validations'
+      return callback null, urls, no
 
     # If url points to a vm url
     if (/^\[([^\]]+)\]/g.exec url)?[1]
