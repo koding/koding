@@ -414,40 +414,58 @@ func (o *Oskite) setupSignalHandler() {
 	go func() {
 		sig := <-sigtermChannel
 		log.Info("Shutdown initiated. Waiting until current calls are finished...")
+
+		defer func() {
+			log.Info("Closing and shutting down. Bye!")
+			// close amqp connections
+			o.Kite.Close()
+			os.Exit(1)
+		}()
+
 		shuttingDown = true
 		requestWaitGroup.Wait()
-		if sig == syscall.SIGUSR1 {
-			log.Info("Unpreparing all remaining VMs")
-			for _, info := range infos {
-				log.Info("Unpreparing " + info.vm.String() + "...")
-				prepareQueue <- &QueueJob{
-					msg: "vm unprepare because of shutdown oskite " + info.vm.HostnameAlias,
-					f: func() (string, error) {
-						// mutex is needed because it's handled in the queue
-						info.mutex.Lock()
-						defer info.mutex.Unlock()
 
-						info.unprepareVM()
-						return fmt.Sprintf("shutting down %s", info.vm.Id.Hex()), nil
-					},
-				}
-			}
+		//return early for non SIGUSR1.
+		if sig != syscall.SIGUSR1 {
+			return
+		}
 
-			query := func(c *mgo.Collection) error {
-				_, err := c.UpdateAll(
-					bson.M{"hostKite": o.ServiceUniquename},
-					bson.M{"$set": bson.M{"hostKite": nil}},
-				) // ensure that really all are set to nil
-				return err
-			}
+		// unprepare all VMS when we receive SIGUSR1
+		log.Info("Unpreparing all VMs on this host.")
 
-			err := mongodbConn.Run("jVMs", query)
-			if err != nil {
-				log.LogError(err, 0)
+		var wg sync.WaitGroup
+		for _, info := range infos {
+			wg.Add(1)
+			log.Info("Unpreparing " + info.vm.String())
+			prepareQueue <- &QueueJob{
+				msg: "vm unprepare because of shutdown oskite " + info.vm.HostnameAlias,
+				f: func() (string, error) {
+					defer wg.Done()
+					// mutex is needed because it's handled in the queue
+					info.mutex.Lock()
+					defer info.mutex.Unlock()
+
+					info.unprepareVM()
+					return fmt.Sprintf("shutting down %s", info.vm.Id.Hex()), nil
+				},
 			}
 		}
 
-		log.Fatal()
+		// Wait for all VM unprepares to complete.
+		wg.Wait()
+
+		query := func(c *mgo.Collection) error {
+			_, err := c.UpdateAll(
+				bson.M{"hostKite": o.ServiceUniquename},
+				bson.M{"$set": bson.M{"hostKite": nil}},
+			) // ensure that really all are set to nil
+			return err
+		}
+
+		err := mongodbConn.Run("jVMs", query)
+		if err != nil {
+			log.LogError(err, 0)
+		}
 	}()
 }
 
@@ -456,7 +474,6 @@ func (o *Oskite) setupSignalHandler() {
 // "permissions" document embedded, with this info our final method has all
 // the necessary needed bits.
 func (o *Oskite) registerMethod(method string, concurrent bool, callback func(*dnode.Partial, *kite.Channel, *virt.VOS) (interface{}, error)) {
-
 	wrapperMethod := func(args *dnode.Partial, channel *kite.Channel) (methodReturnValue interface{}, methodError error) {
 		// set to true when a SIGNAL is received
 		if shuttingDown {
@@ -497,6 +514,11 @@ func (o *Oskite) registerMethod(method string, concurrent bool, callback func(*d
 		info := getInfo(vm)
 		info.mutex.Lock()
 		defer info.mutex.Unlock()
+
+		// stop our famous 30/45/60 shutdown timer. Basically we stop the timer
+		// if any method call is made to us. The timer is started again if the
+		// user disconnects (this is done via channel.OnDisconnect in
+		// vminfo.go).
 		info.stopTimeout(channel)
 
 		err = o.validateVM(vm)
