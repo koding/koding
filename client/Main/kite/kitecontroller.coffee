@@ -127,18 +127,17 @@ class KiteController extends KDController
 
     @on "CreatingUserEnvironment", =>
       mainView = KD.getSingleton "mainView"
-      mainView.contentPanel.putOverlay
-        isRemovable : no
-        cssClass    : "dummy"
-        animated    : yes
-        parent      : ".application-page.start-tab"
+      # mainView.contentPanel.putOverlay
+      #   isRemovable : no
+      #   cssClass    : "dummy"
+      #   animated    : yes
 
     @on "UserEnvironmentIsCreated", =>
       return if _attempt is 1
       notify _notifications.envCreated
-      mainView = KD.getSingleton "mainView"
-      mainView.removeOverlay()
-      mainView.contentPanel.removeOverlay()
+      # mainView = KD.getSingleton "mainView"
+      # mainView.removeOverlay()
+      # mainView.contentPanel.removeOverlay()
       _attempt = 1
 
   accountChanged:(account)->

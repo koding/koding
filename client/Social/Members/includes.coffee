@@ -1,5 +1,4 @@
 module.exports = [
-  "ContentDisplays/ContentDisplayControllerMember.coffee"
   "ContentDisplays/contactlink.coffee"
   "ContentDisplays/externalprofileview.coffee"
   "ContentDisplays/profileview.coffee"
@@ -10,7 +9,6 @@ module.exports = [
   "newmemberactivitylistitem.coffee"
   "memberslistcontroller.coffee"
 
-  "AppView.coffee"
   "AppController.coffee"
 
   "styl/resurrection.profile.styl"

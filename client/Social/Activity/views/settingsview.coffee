@@ -14,6 +14,7 @@ class ActivitySettingsView extends KDCustomHTMLView
         delegate       : this
         iconClass      : "arrow"
         menu           : @settingsMenu data
+        style          : "resurrection"
         callback       : (event)=> button.contextMenu event
     else
       new KDCustomHTMLView tagName : 'span', cssClass : 'hidden'
