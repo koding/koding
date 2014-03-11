@@ -26,6 +26,8 @@ type Kite struct {
 	ServiceUniqueName string
 	PublishExchange   string
 	LoadBalancer      func(correlationName string, username string, deadService string) string
+	PublishConn       *amqp.Connection
+	ConsumeConn       *amqp.Connection
 }
 
 type Handler struct {
@@ -77,22 +79,28 @@ func (k *Kite) Handle(method string, concurrent bool, callback func(args *dnode.
 }
 
 func (k *Kite) Run() {
-	consumeConn := amqputil.CreateConnection(conf, "kite-"+k.Name)
-	defer consumeConn.Close()
+	k.ConsumeConn = amqputil.CreateConnection(conf, "kite-"+k.Name)
+	defer k.ConsumeConn.Close()
 
-	publishConn := amqputil.CreateConnection(conf, "kite-"+k.Name)
-	defer publishConn.Close()
+	k.PublishConn = amqputil.CreateConnection(conf, "kite-"+k.Name)
+	defer k.PublishConn.Close()
 
-	publishChannel := amqputil.CreateChannel(publishConn)
+	publishChannel := amqputil.CreateChannel(k.PublishConn)
 	defer publishChannel.Close()
 
-	consumeChannel := amqputil.CreateChannel(consumeConn)
+	consumeChannel := amqputil.CreateChannel(k.ConsumeConn)
+	defer consumeChannel.Close()
 
 	amqputil.JoinPresenceExchange(consumeChannel, "services-presence", "kite", "kite-"+k.Name, k.ServiceUniqueName, k.LoadBalancer != nil)
 
 	stream := amqputil.DeclareBindConsumeQueue(consumeChannel, "fanout", k.ServiceUniqueName, "", true)
 
 	k.startRouting(stream, publishChannel)
+}
+
+func (k *Kite) Close() {
+	k.PublishConn.Close()
+	k.ConsumeConn.Close()
 }
 
 func (k *Kite) startRouting(stream <-chan amqp.Delivery, publishChannel *amqp.Channel) {

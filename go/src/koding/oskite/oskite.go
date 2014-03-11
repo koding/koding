@@ -53,6 +53,7 @@ var (
 )
 
 type Oskite struct {
+	Kite     *kite.Kite
 	Name     string
 	Version  string
 	Region   string
@@ -124,64 +125,60 @@ func (o *Oskite) Run() {
 		go prepareWorker(i)
 	}
 
-	k := o.prepareOsKite()
-
-	o.ServiceUniquename = k.ServiceUniqueName
-
+	o.prepareOsKite()
 	o.runNewKite()
 	o.handleCurrentVMS()   // handle leftover VMs
 	o.startPinnedVMS()     // start pinned always-on VMs
 	o.setupSignalHandler() // handle SIGUSR1 and other signals.
 
 	// register current client-side methods
-	o.registerMethod(k, "vm.start", false, vmStartOld)
-	o.registerMethod(k, "vm.prepareAndStart", false, vmPrepareAndStart)
-	o.registerMethod(k, "vm.stopAndUnprepare", false, vmStopAndUnprepare)
-	o.registerMethod(k, "vm.shutdown", false, vmShutdownOld)
-	o.registerMethod(k, "vm.unprepare", false, vmUnprepareOld)
-	o.registerMethod(k, "vm.prepare", false, vmPrepareOld)
-	o.registerMethod(k, "vm.stop", false, vmStopOld)
-	o.registerMethod(k, "vm.reinitialize", false, vmReinitializeOld)
-	o.registerMethod(k, "vm.info", false, vmInfoOld)
-	o.registerMethod(k, "vm.resizeDisk", false, vmResizeDiskOld)
-	o.registerMethod(k, "vm.createSnapshot", false, vmCreateSnapshotOld)
-	o.registerMethod(k, "spawn", true, spawnFuncOld)
-	o.registerMethod(k, "exec", true, execFuncOld)
+	o.registerMethod("vm.start", false, vmStartOld)
+	o.registerMethod("vm.prepareAndStart", false, vmPrepareAndStart)
+	o.registerMethod("vm.stopAndUnprepare", false, vmStopAndUnprepare)
+	o.registerMethod("vm.shutdown", false, vmShutdownOld)
+	o.registerMethod("vm.unprepare", false, vmUnprepareOld)
+	o.registerMethod("vm.prepare", false, vmPrepareOld)
+	o.registerMethod("vm.stop", false, vmStopOld)
+	o.registerMethod("vm.reinitialize", false, vmReinitializeOld)
+	o.registerMethod("vm.info", false, vmInfoOld)
+	o.registerMethod("vm.resizeDisk", false, vmResizeDiskOld)
+	o.registerMethod("vm.createSnapshot", false, vmCreateSnapshotOld)
+	o.registerMethod("spawn", true, spawnFuncOld)
+	o.registerMethod("exec", true, execFuncOld)
 
-	o.registerMethod(k, "oskite.Info", true, o.oskiteInfo)
-	o.registerMethod(k, "oskite.All", true, oskiteAll)
+	o.registerMethod("oskite.Info", true, o.oskiteInfo)
+	o.registerMethod("oskite.All", true, oskiteAll)
 
 	syscall.Umask(0) // don't know why richard calls this
-	o.registerMethod(k, "fs.readDirectory", false, fsReadDirectoryOld)
-	o.registerMethod(k, "fs.glob", false, fsGlobOld)
-	o.registerMethod(k, "fs.readFile", false, fsReadFileOld)
-	o.registerMethod(k, "fs.writeFile", false, fsWriteFileOld)
-	o.registerMethod(k, "fs.uniquePath", false, fsUniquePathOld)
-	o.registerMethod(k, "fs.getInfo", false, fsGetInfoOld)
-	o.registerMethod(k, "fs.setPermissions", false, fsSetPermissionsOld)
-	o.registerMethod(k, "fs.remove", false, fsRemoveOld)
-	o.registerMethod(k, "fs.rename", false, fsRenameOld)
-	o.registerMethod(k, "fs.createDirectory", false, fsCreateDirectoryOld)
-	o.registerMethod(k, "fs.move", false, fsMoveOld)
-	o.registerMethod(k, "fs.copy", false, fsCopyOld)
+	o.registerMethod("fs.readDirectory", false, fsReadDirectoryOld)
+	o.registerMethod("fs.glob", false, fsGlobOld)
+	o.registerMethod("fs.readFile", false, fsReadFileOld)
+	o.registerMethod("fs.writeFile", false, fsWriteFileOld)
+	o.registerMethod("fs.uniquePath", false, fsUniquePathOld)
+	o.registerMethod("fs.getInfo", false, fsGetInfoOld)
+	o.registerMethod("fs.setPermissions", false, fsSetPermissionsOld)
+	o.registerMethod("fs.remove", false, fsRemoveOld)
+	o.registerMethod("fs.rename", false, fsRenameOld)
+	o.registerMethod("fs.createDirectory", false, fsCreateDirectoryOld)
+	o.registerMethod("fs.move", false, fsMoveOld)
+	o.registerMethod("fs.copy", false, fsCopyOld)
 
-	o.registerMethod(k, "app.install", false, appInstallOld)
-	o.registerMethod(k, "app.download", false, appDownloadOld)
-	o.registerMethod(k, "app.publish", false, appPublishOld)
-	o.registerMethod(k, "app.skeleton", false, appSkeletonOld)
+	o.registerMethod("app.install", false, appInstallOld)
+	o.registerMethod("app.download", false, appDownloadOld)
+	o.registerMethod("app.publish", false, appPublishOld)
+	o.registerMethod("app.skeleton", false, appSkeletonOld)
 
 	// this method is special cased in oskite.go to allow foreign access
-	o.registerMethod(k, "webterm.connect", false, webtermConnectOld)
-	o.registerMethod(k, "webterm.getSessions", false, webtermGetSessionsOld)
+	o.registerMethod("webterm.connect", false, webtermConnectOld)
+	o.registerMethod("webterm.getSessions", false, webtermGetSessionsOld)
 
-	o.registerMethod(k, "s3.store", true, s3StoreOld)
-	o.registerMethod(k, "s3.delete", true, s3DeleteOld)
+	o.registerMethod("s3.store", true, s3StoreOld)
+	o.registerMethod("s3.delete", true, s3DeleteOld)
 
-	go o.redisBalancer(k.ServiceUniqueName)
+	go o.redisBalancer()
 
 	log.Info("Oskite started. Go!")
-	k.Run()
-
+	o.Kite.Run()
 }
 
 func (o *Oskite) runNewKite() {
@@ -190,7 +187,7 @@ func (o *Oskite) runNewKite() {
 		conf,
 		kitelib.Options{
 			Kitename: OSKITE_NAME,
-			Version:  "0.0.1",
+			Version:  OSKITE_VERSION,
 			Port:     "5000",
 			Region:   o.Region,
 		},
@@ -263,7 +260,7 @@ func (o *Oskite) initializeSettings() {
 	go LimiterLoop()
 }
 
-func (o *Oskite) prepareOsKite() *kite.Kite {
+func (o *Oskite) prepareOsKite() {
 	log.Info("Kite.go preperation started")
 	kiteName := "os"
 	if o.Region != "" {
@@ -347,7 +344,8 @@ func (o *Oskite) prepareOsKite() *kite.Kite {
 		return vm.HostKite
 	}
 
-	return k
+	o.ServiceUniquename = k.ServiceUniqueName
+	o.Kite = k
 }
 
 // handleCurrentVMS removes and unprepare any vm in the lxc dir that doesn't
@@ -415,10 +413,11 @@ func (o *Oskite) setupSignalHandler() {
 	signal.Notify(sigtermChannel, syscall.SIGINT, syscall.SIGTERM, syscall.SIGUSR1)
 	go func() {
 		sig := <-sigtermChannel
-		log.Info("Shutdown initiated.")
+		log.Info("Shutdown initiated. Waiting until current calls are finished...")
 		shuttingDown = true
 		requestWaitGroup.Wait()
 		if sig == syscall.SIGUSR1 {
+			log.Info("Unpreparing all remaining VMs")
 			for _, info := range infos {
 				log.Info("Unpreparing " + info.vm.String() + "...")
 				prepareQueue <- &QueueJob{
@@ -456,7 +455,7 @@ func (o *Oskite) setupSignalHandler() {
 // a "vos" struct and pass it to the our method. The VOS has "vm", "user" and
 // "permissions" document embedded, with this info our final method has all
 // the necessary needed bits.
-func (o *Oskite) registerMethod(k *kite.Kite, method string, concurrent bool, callback func(*dnode.Partial, *kite.Channel, *virt.VOS) (interface{}, error)) {
+func (o *Oskite) registerMethod(method string, concurrent bool, callback func(*dnode.Partial, *kite.Channel, *virt.VOS) (interface{}, error)) {
 
 	wrapperMethod := func(args *dnode.Partial, channel *kite.Channel) (methodReturnValue interface{}, methodError error) {
 		// set to true when a SIGNAL is received
@@ -515,7 +514,7 @@ func (o *Oskite) registerMethod(k *kite.Kite, method string, concurrent bool, ca
 		return callback(args, channel, vos)
 	}
 
-	k.Handle(method, concurrent, wrapperMethod)
+	o.Kite.Handle(method, concurrent, wrapperMethod)
 }
 
 func (o *Oskite) getUser(username string) (*virt.User, error) {

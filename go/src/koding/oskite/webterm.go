@@ -94,7 +94,7 @@ func webtermConnectOld(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS
 	cmd := vos.VM.AttachCommand(vos.User.Uid, "/dev/pts/"+strconv.Itoa(server.pty.No), screen.Command...)
 	err = cmd.Start()
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 
 	go func() {
