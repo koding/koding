@@ -110,14 +110,25 @@ li.vm-loader-item
       width           100% !important
       opacity         .1
     &:hover
+      span
+        opacity       1
+        &:before
+          content     'click to run your terminal'
       cite
         opacity       .3
+
   &.off
     i
       color           #FF7379
     cite
       width           0% !important
       bg              color #FF7379
+    &:hover
+      span
+        opacity       1
+      span:before
+        content       'click to turn on your VM'
+
   figure
     top               9px
     left              6px
@@ -141,6 +152,20 @@ li.vm-loader-item
     min-width         200px
     text-align        right
     abs()
+
+  span
+    opacity           0
+    abs()
+    font-weight       400
+    color             #444
+    z-index           0
+    top               0
+    left              0
+    text-align        center
+    width             100%
+    vendor            transition, opacity .1s linear
+
+
   cite
     abs()
     height            2px
