@@ -931,7 +931,7 @@ module.exports = class JGroup extends Module
             else if request? then request.approve client
             else callback null
 
-  fetchAccountByEmail: (email, callback)=>
+  fetchAccountByEmail: (email, callback) ->
     JUser    = require '../user'
     JUser.one {email}, (err, user)=>
       return callback err, null  if err or not user

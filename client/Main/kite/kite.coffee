@@ -108,14 +108,14 @@ class Kite extends Pinger
       @ready => @channel.publish messageString
 
   scrub: (method, args, callback) ->
-    scrubber = new Scrubber @localStore
+    scrubber = new Scrubber @localStore, null, no
     scrubber.scrub args, =>
       scrubbed = scrubber.toDnodeProtocol()
       scrubbed.method or= method
       callback scrubbed
 
   unscrub: (args) ->
-    scrubber = new Scrubber @localStore
+    scrubber = new Scrubber @localStore, null, no
     return scrubber.unscrub args, (callbackId) =>
       unless @remoteStore.has callbackId
         @remoteStore.add callbackId, (rest...) =>

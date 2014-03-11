@@ -53,13 +53,13 @@ class VirtualizationController extends KDController
     @_runWrapper 'vm.resizeDisk', vm, callback
 
   start:(vm, callback)->
-    @_runWrapper 'vm.start', vm, callback
+    @_runWrapper 'vm.prepareAndStart', vm, callback
 
   stop:(vm, callback)->
     @_runWrapper 'vm.shutdown', vm, callback
 
   halt:(vm, callback)->
-    @_runWrapper 'vm.stop', vm, callback
+    @_runWrapper 'vm.stopAndUnprepare', vm, callback
 
   reinitialize:(vm, callback)->
     @_runWrapper 'vm.reinitialize', vm, callback
@@ -220,7 +220,21 @@ class VirtualizationController extends KDController
       .getKite "os-#{ region }", hostnameAlias
 
   registerKite: (vm) ->
-    @kites[vm.hostnameAlias] = @getKite vm
+
+    alias         = vm.hostnameAlias
+    @kites[alias] = kite = @getKite vm
+
+    kite.on 'vm.progress.start', (update) =>
+      @emit 'vm.progress.start', {alias, update}
+
+    kite.on 'vm.progress.stop', (update) =>
+      @emit 'vm.progress.stop', {alias, update}
+
+    kite.on 'vm.state.info', (state) =>
+      @emit 'vm.state.info', {alias, state}
+
+    kite.fetchState()
+
 
   getKiteByVmName: (vmName) ->
     @kites[vmName]
@@ -259,7 +273,7 @@ class VirtualizationController extends KDController
   getOsKite: ({ hostname, region }) ->
     new Promise (resolve) =>
       kite = @osKites[hostname]
-      
+
       return resolve kite  if kite?
 
       kontrol = KD.getSingleton 'kontrol'
@@ -277,7 +291,7 @@ class VirtualizationController extends KDController
         kite.connect()
         .then(-> resolve kite)
         .catch warn
-        
+
   handleFetchedVms: (vms, callback) ->
     if KD.useNewKites
       Promise.cast(vms).map (vm) =>
@@ -289,7 +303,7 @@ class VirtualizationController extends KDController
           options   =
             vmName  : vm.hostnameAlias
             kite    : os
-          
+
           os.ready().then =>
             @kites[vm.hostnameAlias] = new VM options
 
