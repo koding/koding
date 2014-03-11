@@ -524,25 +524,23 @@ func prepareProgress(vos *virt.VOS) <-chan *virt.Step {
 			return
 		}
 
-		if prepared {
-			results <- &virt.Step{Message: "Vm is already prepared"}
-			return
-		}
+		var totalStep int = 2 // vm.Start and vm.WaitForNetwork
 
-		var totalStep int
-		for step := range vos.VM.Prepare(false) {
-			lastError = step.Err
-			if lastError != nil {
-				lastError = fmt.Errorf("preparing VM %s", lastError)
-				return
+		if !prepared {
+			for step := range vos.VM.Prepare(false) {
+				lastError = step.Err
+				if lastError != nil {
+					lastError = fmt.Errorf("preparing VM %s", lastError)
+					return
+				}
+
+				// add VM.Start() and Vm.WaitForNetwork() steps too
+				totalStep = step.TotalStep + 2
+				step.TotalStep = totalStep
+
+				// send every process back to the client
+				results <- step
 			}
-
-			// add VM.Start() and Vm.WaitForNetwork() steps too
-			totalStep = step.TotalStep + 2
-			step.TotalStep = totalStep
-
-			// send every process back to the client
-			results <- step
 		}
 
 		// start vm and return any error
