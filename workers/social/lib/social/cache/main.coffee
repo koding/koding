@@ -6,7 +6,8 @@ repeatFetchingItems = (cacheKey, fetcherFn, fetcherFnOptions)->
 
   return  if inProgress
 
-  cache[cacheKey] = inProgress : yes
+  cache[cacheKey] or= {}
+  cache[cacheKey].inProgress = yes
 
   cache[cacheKey].timer = setTimeout ->
     cache[cacheKey].inProgress = no
@@ -28,7 +29,7 @@ module.exports = class Cache
     {fallbackFn} = fetcherFnOptions
     if cache[cacheKey]
       {data, ttl} = cache[cacheKey]
-      callback null, data
+      callback null, data or {}
       if (Date.now() - (ttl or 0)  > cachingTimeInMS)
         repeatFetchingItems cacheKey, fetcherFn, fetcherFnOptions
     else

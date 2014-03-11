@@ -24,6 +24,12 @@ class ActivityAppView extends KDScrollView
     @feedWrapper      = new ActivityListContainer
     @inputWidget      = new ActivityInputWidget
 
+    @inputWidget.on "ActivitySubmitted", =>
+      appTop   = @getElement().offsetTop
+      listTop  = @feedWrapper.listWrapper.getElement().offsetTop
+      duration = @feedWrapper.pinnedListWrapper.getHeight() * .3
+      $("html, body").animate {scrollTop: appTop + listTop + 10}, {duration}
+
     @referalBox       = new ReferalBox
     @groupListBox     = new UserGroupList
     @topicsBox        = new ActiveTopics
@@ -127,6 +133,27 @@ class ActivityListContainer extends JView
 
     super options, data
 
+    @pinnedListController = new PinnedActivityListController
+      delegate    : this
+      itemClass   : ActivityListItemView
+      viewOptions :
+        cssClass  : "hidden"
+
+    @pinnedListWrapper = @pinnedListController.getView()
+
+    @pinnedListController.on "Loaded", =>
+      @togglePinnedList.show()
+      @pinnedListController.getListView().show()
+
+    @togglePinnedList = new KDCustomHTMLView
+      cssClass   : "toggle-pinned-list hidden"
+      # click      : KDView::toggleClass.bind @pinnedListWrapper, "hidden"
+
+    @togglePinnedList.addSubView new KDCustomHTMLView
+      tagName    : "span"
+      cssClass   : "title"
+      partial    : "Most Liked"
+
     @controller = new ActivityListController
       delegate          : @
       itemClass         : ActivityListItemView
@@ -142,9 +169,15 @@ class ActivityListContainer extends JView
   setSize:(newHeight)->
     # @controller.scrollView.setHeight newHeight - 28 # HEIGHT OF THE LIST HEADER
 
+  viewAppended: ->
+    super
+    @togglePinnedList.show()  if @pinnedListController.getItemCount()
+
   pistachio:->
     """
       {{> @filterWarning}}
+      {{> @togglePinnedList}}
+      {{> @pinnedListWrapper}}
       {{> @listWrapper}}
     """
 

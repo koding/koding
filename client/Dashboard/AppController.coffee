@@ -84,6 +84,12 @@ class DashboardAppController extends AppController
               viewClass  : CustomViewsManager
               lazy       : yes
           ,
+            name         : 'Onboarding'
+            kodingOnly   : yes # this is only intended for koding group, we assume koding group is super-group
+            viewOptions  :
+              viewClass  : OnboardingDashboardView
+              lazy       : yes
+          ,
             name         : 'Administration'
             kodingOnly   : yes # this is only intended for koding group, we assume koding group is super-group
             viewOptions  :

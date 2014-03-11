@@ -11,14 +11,15 @@ import (
 )
 
 type Broker struct {
-	Name            string
-	IP              string
-	Port            int
-	CertFile        string
-	KeyFile         string
-	AuthExchange    string
-	AuthAllExchange string
-	WebProtocol     string
+	Name               string
+	ServiceGenericName string
+	IP                 string
+	Port               int
+	CertFile           string
+	KeyFile            string
+	AuthExchange       string
+	AuthAllExchange    string
+	WebProtocol        string
 }
 
 type Config struct {
@@ -28,6 +29,7 @@ type Config struct {
 		Vagrant string
 		SJ      string
 		AWS     string
+		Premium string
 	}
 	ProjectRoot     string
 	UserSitesDomain string
@@ -60,6 +62,7 @@ type Config struct {
 	}
 	GoLogLevel        string
 	Broker            Broker
+	PremiumBroker     Broker
 	BrokerKite        Broker
 	PremiumBrokerKite Broker
 	Loggr             struct {

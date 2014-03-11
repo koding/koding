@@ -100,15 +100,23 @@ func GetWorkerURL(writer http.ResponseWriter, req *http.Request) {
 		brokerConf = conf.BrokerKite
 	case "broker":
 		brokerConf = conf.Broker
+	case "premiumBrokerKite":
+		brokerConf = conf.PremiumBrokerKite
+	case "premiumBroker":
+		brokerConf = conf.PremiumBroker
 	default:
 	}
 
 	// broker has ssl cert and a custom url scheme, look what it's it
-	if workerName == "broker" || workerName == "brokerKite" {
+	// TODO: this is ugly, fix some time
+	if workerName == "broker" ||
+		workerName == "brokerKite" ||
+		workerName == "premiumBroker" ||
+		workerName == "premiumBrokerKite" {
+
+		protocolScheme = "https:"
 		if brokerConf.WebProtocol != "" {
 			protocolScheme = brokerConf.WebProtocol
-		} else {
-			protocolScheme = "https:" // fallback
 		}
 	}
 
