@@ -65,13 +65,13 @@ class OsKite extends KDKite
     @vmInfo().then (state) =>
       @recentState = state
       if state
-      then @emit 'vm.info.state', @recentState
+      then @emit 'vm.state.info', @recentState
       else @cycleChannel() # backend's cycleChannel regressed - SY
 
   vmOn: ->
     if not @recentState? or @recentState.state is 'STOPPED'
       @vmPrepareAndStart onProgress: (update) =>
-        @emit 'vm.start.progress', update
+        @emit 'vm.progress.start', update
         if update.message is 'FINISHED'
           @recentState?.state = 'RUNNING'
     else
@@ -80,7 +80,7 @@ class OsKite extends KDKite
   vmOff: ->
     if not @recentState? or @recentState.state is 'RUNNING'
       @vmStopAndUnprepare onProgress: (update) =>
-        @emit 'vm.stop.progress', update
+        @emit 'vm.progress.stop', update
         if update.message is 'FINISHED'
           @recentState?.state = 'STOPPED'
     else

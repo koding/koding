@@ -224,14 +224,14 @@ class VirtualizationController extends KDController
     alias         = vm.hostnameAlias
     @kites[alias] = kite = @getKite vm
 
-    kite.on 'vm.start.progress', (update) =>
-      @emit 'vm.start.progress', alias, update
+    kite.on 'vm.progress.start', (update) =>
+      @emit 'vm.progress.start', {alias, update}
 
-    kite.on 'vm.stop.progress', (update) =>
-      @emit 'vm.stop.progress', alias, update
+    kite.on 'vm.progress.stop', (update) =>
+      @emit 'vm.progress.stop', {alias, update}
 
-    kite.on 'vm.info.state', (state) =>
-      @emit 'vm.info.state', alias, state
+    kite.on 'vm.state.info', (state) =>
+      @emit 'vm.state.info', {alias, state}
 
     kite.fetchState()
 

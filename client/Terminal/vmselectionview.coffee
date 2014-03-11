@@ -21,9 +21,9 @@ class VMSelection extends KDModalView
     { vmController } = KD.singletons
     { vms }          = vmController
 
-    vmController.on 'vm.start.progress', (alias, update) => @[alias].handleVMStart update
-    vmController.on 'vm.stop.progress',  (alias, update) => @[alias].handleVMStop update
-    vmController.on 'vm.info.state',     (alias, update) => @[alias].handleVMInfo update
+    vmController.on 'vm.progress.start', ({alias, update}) => @[alias].handleVMStart update
+    vmController.on 'vm.progress.stop',  ({alias, update}) => @[alias].handleVMStop update
+    vmController.on 'vm.state.info',     ({alias, state})  => @[alias].handleVMInfo state
 
     @addSubView ul = new KDCustomHTMLView tagName : 'ul'
 

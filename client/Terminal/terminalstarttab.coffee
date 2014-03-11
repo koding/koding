@@ -31,9 +31,9 @@ class TerminalStartTab extends JView
         if kite.recentState
           @vmWrapper[alias].handleVMInfo kite.recentState
 
-    vmController.on 'vm.start.progress', (alias, update) => @vmWrapper[alias].handleVMStart update
-    vmController.on 'vm.stop.progress',  (alias, update) => @vmWrapper[alias].handleVMStop update
-    vmController.on 'vm.info.state',     (alias, state)  => @vmWrapper[alias].handleVMInfo state
+    vmController.on 'vm.progress.start', ({alias, update}) => @vmWrapper[alias].handleVMStart update
+    vmController.on 'vm.progress.stop',  ({alias, update}) => @vmWrapper[alias].handleVMStop update
+    vmController.on 'vm.state.info',     ({alias, state})  => @vmWrapper[alias].handleVMInfo state
 
 
   listVMs:(vms)->
