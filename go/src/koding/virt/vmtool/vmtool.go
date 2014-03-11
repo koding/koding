@@ -42,9 +42,6 @@ func main() {
 		log.Fatal(err)
 	}
 
-	fmt.Println("remainingArgs", remainingArgs)
-	fmt.Println("flagOpts", flagOpts)
-
 	if err := virt.LoadTemplates(flagOpts.Templates); err != nil {
 		log.Fatal(err)
 	}
