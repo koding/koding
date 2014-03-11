@@ -24,7 +24,6 @@ class MembersAppController extends AppController
 
     super options, data
 
-    @on "LazyLoadThresholdReached", => @feedController?.loadFeed()
 
   createContentDisplay:(model, callback=->)->
     KD.singletons.appManager.setFrontApp this
