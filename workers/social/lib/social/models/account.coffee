@@ -380,15 +380,6 @@ module.exports = class JAccount extends jraphical.Module
         targetType  : [
           "JNewStatusUpdate"
           "JComment"
-#          "CActivity"
-#          "JCodeSnip"
-#          "JReview"
-#          "JDiscussion"
-#          "JOpinion"
-#          "JCodeShare"
-#          "JLink"
-#          "JTutorial"
-#          "JBlogPost"
         ]
 
       vm            :
