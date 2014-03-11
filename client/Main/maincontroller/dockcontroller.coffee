@@ -152,8 +152,10 @@ class DockController extends KDViewController
       # Listen appManager to update dock items states
       {appManager, kodingAppsController} = KD.singletons
 
-      kodingAppsController.on "LoadingAppScript", (name)=>
-        @setNavItemState {name}, 'loading'
+      for name of appManager.appControllers
+        @setNavItemState {name}, 'active'
+
+      {appManager, kodingAppsController} = KD.singletons
 
       appManager.on "AppRegistered", (name, options) =>
         @setNavItemState {name, options}, 'running'
