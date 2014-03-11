@@ -1,5 +1,4 @@
 module.exports = [
-  "libs/mixpanelscrolltracker.js"
   "views/logininputs.coffee"
   "views/registerinlineform.coffee"
   "markercontroller.coffee"
