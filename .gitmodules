@@ -1,3 +1,0 @@
-[submodule "client/Framework"]
-	path = client/Framework
-	url = git@git.sj.koding.com:koding/kdframework.git
