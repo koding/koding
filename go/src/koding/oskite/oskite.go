@@ -44,7 +44,7 @@ var (
 	templateDir      = "files/templates" // should be in the same dir as the binary
 	firstContainerIP net.IP
 	containerSubnet  *net.IPNet
-	shuttingDown     = false
+	shuttingDown     AtomicInt32 // atomic bool, false by default
 	requestWaitGroup sync.WaitGroup
 
 	prepareQueue      = make(chan *QueueJob, 1000)
@@ -413,7 +413,6 @@ func (o *Oskite) setupSignalHandler() {
 	signal.Notify(sigtermChannel, syscall.SIGINT, syscall.SIGTERM, syscall.SIGUSR1)
 	go func() {
 		sig := <-sigtermChannel
-		log.Info("Shutdown initiated. Waiting until current calls are finished...")
 
 		defer func() {
 			log.Info("Closing and shutting down. Bye!")
@@ -422,8 +421,13 @@ func (o *Oskite) setupSignalHandler() {
 			os.Exit(1)
 		}()
 
-		shuttingDown = true
+		// close the communication. We should not accept any calls anymore...
+		shuttingDown.SetClosed()
+
+		// ...but wait until the current calls are finished.
+		log.Info("Shutdown initiated. Waiting until current calls are finished...")
 		requestWaitGroup.Wait()
+		log.Info("All calls are finished.")
 
 		//return early for non SIGUSR1.
 		if sig != syscall.SIGUSR1 {
@@ -431,7 +435,7 @@ func (o *Oskite) setupSignalHandler() {
 		}
 
 		// unprepare all VMS when we receive SIGUSR1
-		log.Info("Unpreparing all VMs on this host.")
+		log.Info("Got a SIGUSR1. Unpreparing all VMs on this host.")
 
 		var wg sync.WaitGroup
 		for _, info := range infos {
@@ -475,8 +479,9 @@ func (o *Oskite) setupSignalHandler() {
 // the necessary needed bits.
 func (o *Oskite) registerMethod(method string, concurrent bool, callback func(*dnode.Partial, *kite.Channel, *virt.VOS) (interface{}, error)) {
 	wrapperMethod := func(args *dnode.Partial, channel *kite.Channel) (methodReturnValue interface{}, methodError error) {
+
 		// set to true when a SIGNAL is received
-		if shuttingDown {
+		if shuttingDown.Closed() {
 			return nil, errors.New("Kite is shutting down.")
 		}
 
