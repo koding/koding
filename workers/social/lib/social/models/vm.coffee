@@ -160,7 +160,8 @@ module.exports = class JVM extends Module
             vm.update $set: alwaysOn: status, callback
 
       if group is "koding"
-        delegate.fetchSubscriptions$ client, tags: ["vm"], (err, subscriptions) ->
+        options = targetOptions: tags: $in: "vm"
+        delegate.fetchSubscriptions null, options, (err, subscriptions) ->
           noSyncSubscription = null
           activeSubscription = null
 
