@@ -74,6 +74,10 @@ class KodingAppsController extends KDController
     else
       route = "/Apps/#{jApp.manifest.authorNick}/#{jApp.name}/run"
 
+      KD.singletons.dock?.setNavItemState {
+        name : app.name, options: {dockPath : route}
+      }, 'loading'
+
     @putAppScript app, ->
 
       KD.utils.defer ->
