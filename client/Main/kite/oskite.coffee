@@ -62,7 +62,11 @@ class OsKite extends KDKite
     @intervalId = KD.utils.repeat KD.config.osKitePollingMs, @bound 'fetchState'
 
   fetchState: ->
-    @vmInfo().then (@recentState) =>
+    @vmInfo().then (state) =>
+      @recentState = state
+      if state
+      then @emit 'vm.info.state', @recentState
+      else @cycleChannel() # backend's cycleChannel regressed - SY
 
   vmOn: ->
     if not @recentState? or @recentState.state is 'STOPPED'
