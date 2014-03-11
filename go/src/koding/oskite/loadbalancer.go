@@ -7,7 +7,6 @@ import (
 	"strings"
 	"sync"
 	"time"
-
 	redigo "github.com/garyburd/redigo/redis"
 )
 
@@ -16,7 +15,7 @@ var (
 	oskitesMu sync.Mutex
 )
 
-func (o *Oskite) redisBalancer(serviceUniquename string) {
+func (o *Oskite) redisBalancer() {
 	session, err := redis.NewRedisSession(conf.Redis)
 	if err != nil {
 		log.Error("redis SADD kontainers. err: %v", err.Error())
@@ -26,9 +25,9 @@ func (o *Oskite) redisBalancer(serviceUniquename string) {
 	prefix := "oskite:" + conf.Environment + ":"
 	kontainerSet := "kontainers-" + conf.Environment
 
-	log.Info("Connected to Redis with %s", prefix+serviceUniquename)
+	log.Info("Connected to Redis with %s", prefix+o.ServiceUniquename)
 
-	_, err = redigo.Int(session.Do("SADD", kontainerSet, prefix+serviceUniquename))
+	_, err = redigo.Int(session.Do("SADD", kontainerSet, prefix+o.ServiceUniquename))
 	if err != nil {
 		log.Error("redis SADD kontainers. err: %v", err.Error())
 	}
@@ -37,7 +36,7 @@ func (o *Oskite) redisBalancer(serviceUniquename string) {
 	go func() {
 		expireDuration := time.Second * 5
 		for _ = range time.Tick(2 * time.Second) {
-			key := prefix + serviceUniquename
+			key := prefix + o.ServiceUniquename
 			oskiteInfo := o.GetOskiteInfo()
 
 			if _, err := session.Do("HMSET", redigo.Args{key}.AddFlat(oskiteInfo)...); err != nil {
@@ -59,7 +58,7 @@ func (o *Oskite) redisBalancer(serviceUniquename string) {
 		}
 
 		for _, kontainerHostname := range kontainers {
-			// convert to serviceUniqueName formst
+			// convert to o.ServiceUniquename formst
 			remoteOskite := strings.TrimPrefix(kontainerHostname, prefix)
 
 			values, err := redigo.Values(session.Do("HGETALL", kontainerHostname))
