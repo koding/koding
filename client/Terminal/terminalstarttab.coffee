@@ -33,7 +33,7 @@ class TerminalStartTab extends JView
 
     vmController.on 'vm.start.progress', (alias, update) => @vmWrapper[alias].handleVMStart update
     vmController.on 'vm.stop.progress',  (alias, update) => @vmWrapper[alias].handleVMStop update
-    vmController.on 'vm.info.state',     (alias, update) => @vmWrapper[alias].handleVMInfo update
+    vmController.on 'vm.info.state',     (alias, state)  => @vmWrapper[alias].handleVMInfo state
 
 
   listVMs:(vms)->
