@@ -34,4 +34,5 @@ do ->
       routes   :
         "/:name?/%%APPNAME%%" : null
         "/:name?/Apps/%%AUTHOR%%/%%APPNAME%%/run" : null
+      dockPath : "/Apps/%%AUTHOR%%/%%APPNAME%%/run"
       behavior : "application"

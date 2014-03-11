@@ -128,11 +128,13 @@ class DockController extends KDViewController
       state  = 'running'
       select = yes
 
-    options or= {}
+    options  or= {}
+    {dockPath} = options
+
     route   or= options.navItem?.path or '-'
 
     for nav in @getItems()
-      if (///^#{route}///.test nav.data.path) \
+      if (///^#{route}///.test nav.data.path) or (dockPath is nav.data.path) \
       or (nav.data.path is "/#{name}") or ("/#{name}" is nav.data.path)
         nav.setState state
         @navController.selectItem nav  if select
@@ -140,7 +142,8 @@ class DockController extends KDViewController
 
     if not hasNav and state isnt 'initial'
       unless name in Object.keys(KD.config.apps)
-        @addItem { title : name,  path : "/#{name}", \
+        path = if dockPath then dockPath else "/#{name}"
+        @addItem { title : name, path, \
                    order : 60 + KD.utils.uniqueId(), type :"" }
 
   loadView:(dock)->
