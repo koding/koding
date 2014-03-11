@@ -36,10 +36,7 @@ class AvatarChangeView extends JView
 
     {isVideoSupported, isDNDSupported} = detectFeatures()
 
-    @on "viewAppended", =>
-      @overlay = new KDOverlayView
-        isRemovable: no
-        parent     : "body"
+    @on "viewAppended", => @overlay = new KDOverlayView
 
     @on "KDObjectWillBeDestroyed", => @overlay.destroy()
 
