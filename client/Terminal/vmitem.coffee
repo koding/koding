@@ -79,7 +79,7 @@ class TerminalStartTabVMItem extends KDCustomHTMLView
   handleVMInfo:(info)->
 
     unless info
-      @unsetClass 'ready'
+      @unsetClass 'ready off'
       @loader.show()
       @notice.updatePartial 'LOADING'
       return
