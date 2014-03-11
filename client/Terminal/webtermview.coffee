@@ -102,6 +102,10 @@ class WebTermView extends KDView
           @reconnectionInPrgress = false
           throw err
 
+      unless remote?
+        console.warn "Terminal: No remote object was received!"
+        return
+
       @setOption "session", remote.session
       @terminal.eventHandler = (data)=> @emit "WebTermEvent", data
       @terminal.server       = remote
