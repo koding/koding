@@ -24,7 +24,8 @@ class MembersAppController extends AppController
 
     super options, data
 
-    @on "LazyLoadThresholdReached", => @feedController?.loadFeed()
+    @once "MemberListLoaded", ->
+      KD.mixpanel "Load member list, success"
 
   createContentDisplay:(model, callback=->)->
     KD.singletons.appManager.setFrontApp this
@@ -126,7 +127,7 @@ class MembersAppController extends AppController
           dataSource         : (selector, options, callback)=>
             group = KD.getGroup()
             group.fetchMembers selector, options, (err, res)=>
-              KD.mixpanel "Load member list, success"  unless err
+              @emit "MemberListLoaded"  unless err
               callback err, res
 
       sort                  :
