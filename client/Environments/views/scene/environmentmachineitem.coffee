@@ -20,11 +20,11 @@ class EnvironmentMachineItem extends EnvironmentItem
     colorSelection.on "ColorChanged", @bound 'setColorTag'
 
     vmName = @getData().vm.hostnameAlias
-    vmStateSwitch    = new NVMToggleButtonView        null, {vmName}
+    # vmStateSwitch    = new NVMToggleButtonView        null, {vmName}
     vmAlwaysOnSwitch = new VMAlwaysOnToggleButtonView null, {vmName}
     # vmMountSwitch = new NMountToggleButtonView {}, {vmName}
     items =
-      customView1        : vmStateSwitch
+      # customView1        : vmStateSwitch
       customView4        : vmAlwaysOnSwitch
       # customView2        : vmMountSwitch
       'Re-initialize VM' :
