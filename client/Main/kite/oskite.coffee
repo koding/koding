@@ -42,7 +42,6 @@ class OsKite extends KDKite
     @::[method] = @createMethod @prototype, { method, rpcMethod }
 
   constructor: (options = {}, data) ->
-    debugger unless options.kiteName
     super options, data
     @pollState()
 
