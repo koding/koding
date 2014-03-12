@@ -61,7 +61,7 @@ class AppSettingsMenuButton extends KDButtonView
       cssClass    : "app-settings"
       delegate    : @
       x           : @offset.left - @menuWidth - 3
-      y           : @offset.top - 6
+      y           : @offset.top + 8
       arrow       :
         placement : "right"
         margin    : 5

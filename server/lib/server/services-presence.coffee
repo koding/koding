@@ -1,19 +1,18 @@
 request = require 'request'
 
-supportedServices = ['broker', 'brokerKite', 'premiumBrokerKite']
+supportedServices = ['broker', 'premiumBroker', 'brokerKite', 'premiumBrokerKite']
 
-getFailoverUrl = ->
-  { webProtocol: protocol, webHostname: hostname, webPort: port } =
-    KONFIG.broker
+getFailoverUrl = (serviceName)->
+  { webProtocol, failoverUri, port } = KONFIG[serviceName]
 
   # piece the url together from the config:
-  url = "#{ protocol }//#{ hostname }#{ if port then ":#{port}" else "" }"
+  url = "#{ webProtocol }//#{ failoverUri }#{ if port then ":#{port}" else "" }"
   console.warn "Serving failover url", url
   return url
 
 failover = (req, res, multi) ->
   if req.params.service in supportedServices
-    url = getFailoverUrl()
+    url = getFailoverUrl req.params.service
     res.set 'Content-Type', 'application/json'
     res.send if multi then [url] else JSON.stringify url
     yes

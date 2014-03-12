@@ -1,0 +1,54 @@
+class OnboardingController extends KDController
+
+  constructor: (options = {}, data) ->
+
+    super options, data
+
+    @onboardings   = {}
+    mainController = KD.getSingleton "mainController"
+
+    if KD.isLoggedIn() then @fetchItems()
+    else
+      mainController.on "accountChanged.to.loggedIn", @bound "fetchItems"
+
+    @on "OnboardingShown", (slug) =>
+      @appStorage.setValue slug, yes
+
+  fetchItems: ->
+    @appStorage = KD.getSingleton("appStorageController").storage "OnboardingStatus", "1.0.0"
+    @hasCookie  = Cookies.get "custom-partials-preview-mode"
+    query       = partialType : "ONBOARDING"
+
+    if @hasCookie
+      query["isPreview"] = yes
+    else
+      query["isActive"]  = yes
+
+    KD.remote.api.JCustomPartials.some query, {}, (err, onboardings) =>
+      for data in onboardings when data.partial
+        appName = data.partial.app
+        @onboardings[appName] ?= []
+        @onboardings[appName].push data
+
+      @appStorage.fetchStorage @bound "bindOnboardingEvents"
+
+  bindOnboardingEvents: ->
+    appManager = KD.getSingleton "appManager"
+    appManager.on "AppCreated", (app) =>
+      appName = app.getOptions().name
+      return unless @onboardings[appName]
+
+      KD.utils.wait 3000, =>
+        onboardings = @onboardings[appName]
+
+        for item in onboardings
+          slug    = KD.utils.slugify KD.utils.curry appName, item.name
+          isShown = @appStorage.getValue slug
+
+          if not isShown or @hasCookie
+            onboarding = item
+            break
+
+        return unless onboarding?.partial.items?.length
+
+        new OnboardingViewController { app, slug, delegate: this }, onboarding.partial

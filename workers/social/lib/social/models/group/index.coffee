@@ -931,7 +931,7 @@ module.exports = class JGroup extends Module
             else if request? then request.approve client
             else callback null
 
-  fetchAccountByEmail: (email, callback)=>
+  fetchAccountByEmail: (email, callback) ->
     JUser    = require '../user'
     JUser.one {email}, (err, user)=>
       return callback err, null  if err or not user
@@ -1010,11 +1010,15 @@ module.exports = class JGroup extends Module
           return callback err  if err
           unless invite.type is 'multiuse' or user.email is invite.email
             return callback new KodingError 'Are you sure invitation e-mail is for you?'
-          @debitPack tag: "user", (err) =>
-            return callback err  if err
-            invite.redeem delegate, (err) =>
-              return callback err if err
-              @approveMember delegate, callback
+
+          if invite.status isnt "redeemed"
+            @debitPack tag: "user", (err) =>
+              return callback err  if err
+              invite.redeem delegate, (err) =>
+                return callback err if err
+                @approveMember delegate, callback
+          else
+            callback new KodingError "Invitation is already redeemed"
 
   bulkApprove: permit 'send invitations',
     success: (client, count, options, callback)->

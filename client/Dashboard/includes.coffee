@@ -38,6 +38,7 @@ module.exports = [
   "views/groupsmembershippolicydetailview.coffee",
   "views/groupsinvitationview.coffee",
   "views/permissionview.coffee",
+  "views/permissionswitch.coffee",
   "views/blockeduserslistitemview.coffee",
   "views/blockedusersview.coffee",
   "views/groupsinvitationcodelistitemview.coffee"
@@ -68,8 +69,15 @@ module.exports = [
   "views/customviews/addnewcustomviewform.coffee",
   "views/customviews/customviewsmanager.coffee",
 
+  # onboarding
+  "views/onboarding/onboardingdashboardview.coffee",
+  "views/onboarding/onboardingsectionform.coffee",
+  "views/onboarding/onboardingitemview.coffee",
+  "views/onboarding/onboardingaddnewform.coffee",
+
   "views/permissionsform.coffee",
   "views/grouplogosettings.coffee",
 
   "styl/app.group.dashboard.styl",
+  "styl/onboarding.styl"
 ]

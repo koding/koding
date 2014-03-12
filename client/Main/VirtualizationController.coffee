@@ -289,35 +289,10 @@ class VirtualizationController extends KDController
   hasDefaultVM:(callback)->
     KD.remote.api.JVM.fetchDefaultVm callback
 
-  createDefaultVM: (stackId, callback)->
-    @hasDefaultVM (err, state)->
-      return warn 'Default VM already exists.'  if state
-
-      notify = new KDNotificationView
-        title         : "Creating your VM..."
-        overlay       :
-          transparent : no
-          destroyOnClick: no
-        loader        :
-          color       : "#ffffff"
-        duration      : 120000
-
-      { JVM } = KD.remote.api
-      JVM.createFreeVm stackId, (err, vm)->
-        unless err
-          vmController = KD.getSingleton('vmController')
-          vmController.fetchDefaultVmName (defaultVmName)->
-            vmController.emit 'VMListChanged'
-            notify.destroy()
-            callback?()
-        else
-          notify?.destroy()
-          KD.showError err
-
-  createNewVM: (stackId, callback)->
-    @hasDefaultVM (err, state)=>
-      create = @bound if state then "createPaidVM" else "createDefaultVM"
-      create stackId, callback
+  createNewVM: (callback)->
+    @createPaidVM stackId, (err) =>
+      @emit 'VMListChanged'
+      callback err
 
   showVMDetails: (vm)->
     vmName = vm.hostnameAlias
@@ -348,26 +323,28 @@ class VirtualizationController extends KDController
           callback  : =>
             modal.destroy()
 
-  createPaidVM: (stackId) ->
+  createPaidVM: (stackId, callback) ->
     @payment.fetchActiveSubscription tags: "vm", (err, subscription) =>
       if err
-        if err.code is "no subscription"
-        then @showUpgradeModal()
-        else KD.showError err
-        return
+        @showUpgradeModal()  if err.code is "no subscription"
+        return callback err
       else if not subscription
-      then return @showUpgradeModal()
+        @showUpgradeModal()
+        return callback()
 
       KD.remote.api.JPaymentPack.one tags: "vm", (err, pack) =>
-        return KD.showError err  if err
+        return callback err  if err
+
         @provisionVm {stackId, subscription, productData: {pack}}, (err, nonce) =>
           return  unless err
+
           if err.message is "quota exceeded"
             if KD.getGroup().slug is "koding"
               @showUpgradeModal()
+              callback()
             else
-              new KDNotificationView title: "Your group is out of VM quota"
-          else KD.showError err
+              callback message: "Your group is out of VM quota"
+          else callback err
 
   showUpgradeModal: ->
     modal      = new KDModalView
@@ -401,7 +378,17 @@ class VirtualizationController extends KDController
     payment.debitSubscription subscription, pack, (err, nonce) =>
       return callback err  if err
 
+      notify = new KDNotificationView
+        title            : "Creating your VM..."
+        overlay          :
+          transparent    : no
+          destroyOnClick : no
+        loader           :
+          color          : "white"
+        duration         : 120000
+
       JVM.createVmByNonce nonce, stackId, (err, vm) =>
+        notify.destroy()
         return  if KD.showError err
 
         @emit 'VMListChanged'

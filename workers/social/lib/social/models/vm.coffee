@@ -101,6 +101,7 @@ module.exports = class JVM extends Module
                             'aws' # Amazon Web Services
                             'sj'  # San Jose
                             'vagrant'
+                            'premium-sj'
                           ]]
         default         : if argv.c is 'vagrant' then 'vagrant' else 'sj'
       webHome           : String
@@ -159,7 +160,8 @@ module.exports = class JVM extends Module
             vm.update $set: alwaysOn: status, callback
 
       if group is "koding"
-        delegate.fetchSubscriptions$ client, tags: ["vm"], (err, subscriptions) ->
+        options = targetOptions: tags: $in: "vm"
+        delegate.fetchSubscriptions null, options, (err, subscriptions) ->
           noSyncSubscription = null
           activeSubscription = null
 
@@ -302,6 +304,7 @@ module.exports = class JVM extends Module
       { planCode, subscriptionCode } = nonceObject
       { delegate: account } = client.connection
       { group: groupSlug } = client.context
+      type = "user"
 
       nonceObject.update $set: action: "used", (err) =>
         return callback err  if err
@@ -311,6 +314,7 @@ module.exports = class JVM extends Module
           planCode
           subscriptionCode
           stackId
+          type
         }, callback
 
   @createSharedVm = secure (client, callback)->
@@ -371,6 +375,7 @@ module.exports = class JVM extends Module
           groups        = [{ id: group.getId() }]
           hostnameAlias = hostnameAliases[0]
 
+<<<<<<< HEAD
           vm = new JVM {
             hostnameAlias
             planCode
@@ -405,6 +410,46 @@ module.exports = class JVM extends Module
                   callback null, vm
               else
                 callback null, vm
+
+          JPaymentSubscription.isFreeSubscripton subscriptionCode, (err, isFreeSubscripton)=>
+            return callback err if err
+
+            vm = new JVM {
+              hostnameAlias
+              planCode
+              subscriptionCode
+              webHome
+              groups
+              users
+              vmType : type
+              stack
+            }
+
+            vm.region = KONFIG.regions.premium unless isFreeSubscripton
+
+            vm.save (err) =>
+
+              if err
+                return console.warn "Failed to create VM for ", \
+                                     {users, groups, hostnameAlias}
+
+              JDomain.createDomains {
+                account, stack,
+                domains: hostnameAliases
+                hostnameAlias: hostnameAliases[0]
+                group: groupSlug
+              }
+
+              group.addVm vm, (err)=>
+                return callback err  if err
+                JDomain.ensureDomainSettingsForVM {
+                  account, vm, type, nickname, group: groupSlug, stack
+                }
+                if type is 'group'
+                  @addVmUsers user, vm, group, ->
+                    callback null, vm
+                else
+                  callback null, vm
 
   @addVmUsers = (user, vm, group, callback)->
     # todo - do this operation in batches
@@ -605,10 +650,15 @@ module.exports = class JVM extends Module
           else callback()
 
     if group.slug is "koding"
-      account.fetchSubscription (err, subscription) =>
+      options = targetOptions: tags: $in: "vm"
+      account.fetchSubscriptions null, options, (err, subscriptions = []) =>
         return callback err  if err
-        return @remove callback  unless subscription # so this is a free account
-        kallback subscription
+
+        subscription = freeSubscription = null
+        for subscription in subscriptions
+          freeSubscription = subscription  if "nosync" in subscription.tags
+
+        kallback subscription or freeSubscription
     else
       group.fetchSubscription (err, subscription) =>
         return callback err  if err
