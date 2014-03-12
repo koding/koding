@@ -19,6 +19,7 @@ class Ace extends KDView
     @domElement = $ "<figure class='kdview'><div id='editor#{@getId()}' class='code-wrapper'></div></figure>"
 
   viewAppended:->
+    super
     @hide()
     @appStorage.fetchStorage (storage)=>
       require ['ace/ace'], (ace)=>
@@ -62,6 +63,7 @@ class Ace extends KDView
       @setTabSize             @appStorage.getValue('tabSize')             ? 4      ,no
       @setKeyboardHandler     @appStorage.getValue('keyboardHandler')     ? "default"
       @setScrollPastEnd       @appStorage.getValue('scrollPastEnd')       ? yes
+      @setOpenRecentFiles     @appStorage.getValue('openRecentFiles')     ? yes
 
     require ["ace/ext/language_tools"], =>
       @editor.setOptions
@@ -102,6 +104,7 @@ class Ace extends KDView
       @addKeyCombo "preview", "Ctrl-Shift-P", => @getDelegate().preview()
       @addKeyCombo "fullscreen", "Ctrl-Enter", => @getDelegate().toggleFullscreen()
       @addKeyCombo "gotoLine", "Ctrl-G", @bound "showGotoLine"
+      @addKeyCombo "saveAll", "Ctrl-Alt-S", @bound "saveAllFiles"
       @addKeyCombo "settings", "Ctrl-,", noop # ace creates a settings view for this shortcut, overriding it.
 
   showFindReplaceView: (openReplaceView) ->
@@ -115,6 +118,7 @@ class Ace extends KDView
     if typeof macKey is "function"
       callback = macKey
       macKey   = winKey.replace "Ctrl", "Command"
+      macKey   = macKey.replace "Alt", "Option"
     @editor.commands.addCommand
       name    : name
       bindKey :
@@ -131,9 +135,32 @@ class Ace extends KDView
 
   requestSave:->
     contents = @getContents()
-    return @notify "Nothing to save!" unless contents is "" or @isContentChanged()
-    @askedForSave = yes
-    @emit "ace.requests.save", contents
+    unless contents is "" or @isContentChanged()
+      if @getDelegate().parent.active
+        @notify "Nothing to save!"
+      return
+    file = @getData()
+    {localSync} = KD.singletons
+    # update the localStorage each time user requested save.
+    if KD.remote.isConnected()
+      @askedForSave = yes
+      @emit "ace.requests.save", contents
+      # if file is saved, remove it from localStorage
+      localSync.removeFromSaveArray file
+    else
+      # add to list of files that need to be synced.
+      localSync.updateFileContentOnLocalStorage file, contents
+      localSync.addToSaveArray file
+      @prepareSyncListeners()
+
+  prepareSyncListeners: ->
+    {localSync} = KD.singletons
+
+    localSync.on "LocalContentSynced", (file) =>
+      @notify "File synced to remote...", null, null, 5000
+
+    localSync.on "LocalContentCouldntSynced", (file) =>
+      @notify "File coudn't be synced to remote please try again...", null, null, 5000
 
   requestSaveAs: (options) ->
     contents = @getContents()
@@ -198,6 +225,9 @@ class Ace extends KDView
   getScrollPastEnd: ->
     @appStorage.getValue('scrollPastEnd') ? yes
 
+  getOpenRecentFiles:->
+    @appStorage.getValue("openRecentFiles") ? yes
+
   getSettings:->
     theme               : @getTheme()
     syntax              : @getSyntax()
@@ -212,6 +242,7 @@ class Ace extends KDView
     softWrap            : @getSoftWrap()
     keyboardHandler     : @getKeyboardHandler()
     scrollPastEnd       : @getScrollPastEnd()
+    openRecentFiles     : @getOpenRecentFiles()
 
   ###
   SETTERS
@@ -308,6 +339,10 @@ class Ace extends KDView
 
   setReadOnly:(value)-> @editor.setReadOnly value
 
+  setOpenRecentFiles:(value, save = yes)->
+    @appStorage.setValue "openRecentFiles", value
+
+
   setSoftWrap:(value, save = yes)->
     softWrapValueMap =
       'off'  : [ null, 80 ]
@@ -359,6 +394,17 @@ class Ace extends KDView
 
           details.on 'ReceivedClickElsewhere', =>
             details.destroy()
+
+  saveAllFiles: ->
+    {aceViews} = KD.singletons.appManager.get("Ace").getView()
+    for path, aceView of aceViews when aceView.data.parentPath isnt "localfile:"
+      aceView.ace.requestSave()
+      aceView.ace.once "FileContentSynced", -> @removeModifiedFromTab aceView
+
+  removeModifiedFromTab:(aceView)->
+    {name} = aceView.ace.data
+    for handle in aceView.delegate.tabView.handles when handle.options.title is name
+      handle.unsetClass "modified"
 
   showGotoLine: ->
     unless @gotoLineModal

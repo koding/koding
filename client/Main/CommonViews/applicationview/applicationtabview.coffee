@@ -7,6 +7,7 @@ class ApplicationTabView extends KDTabView
     options.sortable                    ?= yes
     options.closeAppWhenAllTabsClosed   ?= yes
     options.enableMoveTabHandle         ?= no
+    options.detachPanes                 ?= no
     options.cssClass = KD.utils.curry 'application-tabview', options.cssClass
 
     super options, data

@@ -49,7 +49,7 @@ class TopicsAppController extends AppController
               @setCurrentViewHeader "Searching for <strong>#{@_searchValue}</strong>..."
               JTag.byRelevance @_searchValue, options, callback
             else
-              JTag.streamModels selector, options, callback
+              JTag.some selector, options, callback
           dataError         : ->
             log "Seems something broken:", arguments
 
