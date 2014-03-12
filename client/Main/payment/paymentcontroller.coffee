@@ -78,6 +78,7 @@ class PaymentController extends KDController
 
     { JPayment } = KD.remote.api
 
+    paymentMethod[key] = value.trim()  for own key, value of paymentMethod
     JPayment.setPaymentInfo paymentMethodId, paymentMethod, callback
 
   createPaymentInfoModal: -> new PaymentFormModal
