@@ -74,7 +74,7 @@ module.exports = class Builder
     exec cmd, (err, stdout, stderr)->
       console.warn "------------------------ FRAMEWORK COMPILED -------------------------- "
       console.warn " To use watcher for Framework use following command in different tab:  "
-      console.log  " $ #{cmd} "
+      console.log  " $ #{cmd.replace 'compile ', ''} "
       console.warn "------------------------ FRAMEWORK COMPILED -------------------------- "
 
   buildClient: (options) ->
