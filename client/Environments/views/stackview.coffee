@@ -67,12 +67,14 @@ class StackView extends KDView
     @scene.addContainer @rules
 
     # Domains Container
-    @domains = new EnvironmentDomainContainer
+
+    @domains = new EnvironmentDomainContainer { delegate: this }
     @scene.addContainer @domains
     @domains.on 'itemAdded', @lazyBound 'updateView', yes
 
     # VMs / Machines Container
-    @vms = new EnvironmentMachineContainer
+    stackId = @getOptions().stack.getId?()
+    @vms    = new EnvironmentMachineContainer { stackId }
     @scene.addContainer @vms
 
     KD.getSingleton("vmController").on 'VMListChanged', =>
@@ -97,16 +99,19 @@ class StackView extends KDView
     # Add domains
     @domains.removeAllItems()
     for domain in env.domains
-      if domain.stack is stack._id or isDefault
-      then @domains.addDomain domain
-      else orphans.domains.push domain
+      if domain.stack is stack._id #or isDefault
+        @domains.addDomain domain
+      else
+        orphans.domains.push domain
 
     # Add vms
     @vms.removeAllItems()
     for vm in env.vms
-      if vm.stack is stack._id or isDefault
+      if vm.stack is stack._id #or isDefault
       then @vms.addItem title:vm.alias
       else orphans.vms.push vm
+
+    # log "orphans", orphans
 
     # Add extras
     @extras.removeAllItems()

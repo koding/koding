@@ -32,13 +32,16 @@ class EnvironmentMachineContainer extends EnvironmentContainer
         cssClass     : 'add-vm-modal'
         view         : @getVmSelectionView()
         width        : 786
+        overlay      : yes
         buttons      :
           create     :
             title    : "Create"
             style    : "modal-clean-green"
             callback : =>
+              {stackId} = @getOptions()
               @addVmModal.destroy()
-              KD.singleton("vmController").createNewVM (err) ->
+
+              KD.singleton("vmController").createNewVM stackId, (err) ->
                 KD.showError err
 
   getVmSelectionView: ->

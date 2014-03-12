@@ -11,10 +11,12 @@ class EnvironmentDomainContainer extends EnvironmentContainer
 
         resolve domains
 
-  constructor:(options={}, data)->
+  constructor: (options = {}, data) ->
+
     options.cssClass  = 'domains'
-    options.itemClass = EnvironmentDomainItem
     options.title     = 'domains'
+    options.itemClass = EnvironmentDomainItem
+
     super options, data
 
     # Plus button on domainsContainer opens up the domainCreateModal
@@ -29,6 +31,7 @@ class EnvironmentDomainContainer extends EnvironmentContainer
         cssClass       : "domain-creation"
         view           : domainCreateForm
         width          : 700
+        overlay        : yes
         buttons        :
           createButton :
             title      : "Create"
@@ -51,7 +54,7 @@ class EnvironmentDomainContainer extends EnvironmentContainer
               else
                 domainCreateForm.createSubDomain()
 
-  addDomain: (domain)->
+  addDomain: (domain) ->
 
     @addItem
       title       : domain.domain
@@ -61,25 +64,8 @@ class EnvironmentDomainContainer extends EnvironmentContainer
       domain      : domain
 
   getDomainCreateForm: ->
-
-    domainCreateForm = new DomainCreateForm {}, {stack: @parent.stack}
-
-    {JDomain} = KD.remote.api
-    JDomain.fetchDomains (err, domains)=>
-
-      @removeAllItems()
-
-      if err or not domains or domains.length is 0
-        warn "Failed to fetch domains", err  if err
-        return resolve()
-
-      domains.forEach (domain, index)=>
-        @addDomain domain
-        if index is domains.length - 1 then resolve()
-
-  getDomainCreateForm: ->
-
-    domainCreateForm = new DomainCreateForm {}, {stack: @parent.stack}
+    {stack} = @getDelegate().getOptions()
+    domainCreateForm = new DomainCreateForm {}, { stack }
 
     @on "itemRemoved", domainCreateForm.bound "updateDomains"
     domainCreateForm.on "DomainSaved", (domain) =>
