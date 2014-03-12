@@ -6,8 +6,7 @@ import (
 	"fmt"
 	"koding/tools/config" // Imported for side-effect of handling /debug/vars.
 	"log"
-	_ "net/http/pprof"
-	// Imported for side-effect of handling /debug/pprof.
+	_ "net/http/pprof" // Imported for side-effect of handling /debug/pprof.
 	"os"
 	"os/signal"
 	"socialapi/db"
@@ -15,6 +14,7 @@ import (
 	"socialapi/workers/api/handlers"
 	"strings"
 	"syscall"
+
 	"github.com/rcrowley/go-tigertonic"
 )
 
@@ -52,7 +52,7 @@ func main() {
 	if err := tigertonic.Configure(*flagConfig, c); nil != err {
 		log.Fatalln(err)
 	}
-	createTables()
+	// createTables()
 	server := newServer()
 	// Example use of server.Close and server.Wait to stop gracefully.
 	go listener(server)
@@ -93,13 +93,22 @@ func listener(server *tigertonic.Server) {
 }
 
 func createTables() {
-	db.DB.Exec("drop table channel_message;")
-	db.DB.Exec("drop table channel;")
 	db.DB.LogMode(true)
+	db.DB.Exec("drop table channel_message_list;")
+	db.DB.Exec("drop table channel_message;")
+	db.DB.Exec("drop table channel_participant;")
+	db.DB.Exec("drop table channel;")
+
 	if err := db.DB.CreateTable(&models.ChannelMessage{}).Error; err != nil {
 		panic(fmt.Sprintf("No error should happen when create table, but got %+v", err))
 	}
 	if err := db.DB.CreateTable(&models.Channel{}).Error; err != nil {
+		panic(fmt.Sprintf("No error should happen when create table, but got %+v", err))
+	}
+	if err := db.DB.CreateTable(&models.ChannelMessageList{}).Error; err != nil {
+		panic(fmt.Sprintf("No error should happen when create table, but got %+v", err))
+	}
+	if err := db.DB.CreateTable(&models.ChannelParticipant{}).Error; err != nil {
 		panic(fmt.Sprintf("No error should happen when create table, but got %+v", err))
 	}
 }
