@@ -67,3 +67,22 @@ func Get(u *url.URL, h http.Header, req *models.Channel) (int, http.Header, inte
 
 	return helpers.NewOKResponse(req)
 }
+
+func PostMessage(u *url.URL, h http.Header, req *models.Channel) (int, http.Header, interface{}, error) {
+	// id, err := strconv.ParseInt(u.Query().Get("id"), 10, 64)
+	// if err != nil {
+	// 	return helpers.NewBadRequestResponse()
+	// }
+
+	// req.Id = id
+	// // TODO - check if the user is member of the channnel
+
+	// if err := req.Fetch(); err != nil {
+	// 	if err == gorm.RecordNotFound {
+	// 		return helpers.NewNotFoundResponse()
+	// 	}
+	// 	return helpers.NewBadRequestResponse()
+	// }
+
+	return helpers.NewOKResponse(req)
+}
