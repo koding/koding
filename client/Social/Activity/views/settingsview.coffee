@@ -31,10 +31,6 @@ class ActivitySettingsView extends KDCustomHTMLView
         menu['Delete Post'] =
           callback: => @confirmDeletePost post
 
-      if KD.checkFlag("super-admin") or KD.hasAccess("delete posts")
-        menu['Add System Tag'] =
-          callback : => @selectSystemTag post
-
     if KD.checkFlag("super-admin") or KD.hasAccess("delete posts")
       if KD.checkFlag 'exempt', account
         menu['Unmark User as Troll'] =
