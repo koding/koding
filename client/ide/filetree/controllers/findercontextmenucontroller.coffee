@@ -47,7 +47,7 @@ class NFinderContextMenuController extends KDController
     fileData = fileView.getData()
 
     items =
-      'Open File'                 :
+      'Open file'                 :
         separator                 : yes
         action                    : 'openFile'
       # 'Open with...'              :
@@ -77,9 +77,9 @@ class NFinderContextMenuController extends KDController
       #   disabled                  : yes
       'Public URL...'             :
         separator                 : yes
-      'New File'                  :
+      'New file'                  :
         action                    : 'createFile'
-      'New Folder'                :
+      'New folder'                :
         action                    : 'createFolder'
       # 'Upload to Dropbox'         :
       #   action                    : 'dropboxSaver'
