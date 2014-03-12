@@ -10,14 +10,15 @@ class AceAppView extends JView
     @appManager          = KD.getSingleton "appManager"
     @tabHandleContainer  = new ApplicationTabHandleHolder delegate: @
     @tabView             = new AceApplicationTabView
-      delegate           : this
-      tabHandleContainer : @tabHandleContainer
+      delegate                  : this
+      tabHandleContainer        : @tabHandleContainer
       closeAppWhenAllTabsClosed : no
     @finderWrapper       = new KDCustomHTMLView
       tagName            : 'aside'
 
     @attachEvents()
     @attachAppMenuEvents()
+    @on 'PlusHandleClicked', @bound 'addNewTab'
 
 
   embedFinder:->

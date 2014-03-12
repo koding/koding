@@ -8,6 +8,7 @@ import (
 	"net"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	ber "github.com/hsoj/asn1-ber"
@@ -15,12 +16,19 @@ import (
 	"labix.org/v2/mgo/bson"
 )
 
-var log = logger.New("ldapserver")
-var mongo *mongodb.MongoDB
+var (
+	log   = logger.New("ldapserver")
+	mongo *mongodb.MongoDB
 
-var vmCache = make(map[bson.ObjectId]*virt.VM)
-var userByUidCache = make(map[int]*virt.User)
-var userByNameCache = make(map[string]*virt.User)
+	vmCacheMu sync.Mutex
+	vmCache   = make(map[bson.ObjectId]*virt.VM)
+
+	userByUidCacheMu sync.Mutex
+	userByUidCache   = make(map[int]*virt.User)
+
+	userByNameCacheMu sync.Mutex
+	userByNameCache   = make(map[string]*virt.User)
+)
 
 func Listen(mongodbUrl string) {
 	mongo = mongodb.NewMongoDB(mongodbUrl)
@@ -52,9 +60,17 @@ func Listen(mongodbUrl string) {
 }
 
 func ClearCache() {
+	vmCacheMu.Lock()
 	vmCache = make(map[bson.ObjectId]*virt.VM, len(vmCache))
+	vmCacheMu.Unlock()
+
+	userByUidCacheMu.Lock()
 	userByUidCache = make(map[int]*virt.User, len(userByUidCache))
+	userByUidCacheMu.Unlock()
+
+	userByNameCacheMu.Lock()
 	userByNameCache = make(map[string]*virt.User, len(userByNameCache))
+	userByNameCacheMu.Unlock()
 }
 
 func handleConnection(conn net.Conn) {
@@ -115,6 +131,10 @@ func authenticate(name, password string) (bool, *virt.VM) {
 
 	if strings.HasPrefix(name, "vm-") && bson.IsObjectIdHex(name[3:]) {
 		id := bson.ObjectIdHex(name[3:])
+
+		vmCacheMu.Lock()
+		defer vmCacheMu.Unlock()
+
 		vm, found := vmCache[id]
 		if !found {
 			err := mongo.Run("jVMs", func(c *mgo.Collection) error {
@@ -235,6 +255,9 @@ func findUser(query interface{}) (*virt.User, error) {
 }
 
 func findUserByUid(id int) (*virt.User, error) {
+	userByUidCacheMu.Lock()
+	defer userByUidCacheMu.Unlock()
+
 	if user := userByUidCache[id]; user != nil {
 		return user, nil
 	}
@@ -244,6 +267,9 @@ func findUserByUid(id int) (*virt.User, error) {
 }
 
 func findUserByName(name string) (*virt.User, error) {
+	userByNameCacheMu.Lock()
+	defer userByNameCacheMu.Unlock()
+
 	if user := userByNameCache[name]; user != nil {
 		return user, nil
 	}

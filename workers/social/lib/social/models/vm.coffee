@@ -56,6 +56,9 @@ module.exports = class JVM extends Module
           (signature Function)
           (signature Object, Function)
         ]
+        fetchVmsByName: [
+          (signature Object, Function)
+        ]
         fetchVmInfo:
           (signature String, Function)
         fetchDomains:
@@ -506,17 +509,16 @@ module.exports = class JVM extends Module
       return callback new Error "user not found" unless user
 
       selector.users = $elemMatch: id: user.getId()
-      fieldsToFetch = { hostnameAlias: 1, stack: 1 }
+
+      fieldsToFetch = { hostnameAlias: 1, region: 1, hostKite: 1, stack: 1 }
       JVM.someData selector, fieldsToFetch, options, (err, cursor)->
         return callback err  if err
 
-        cursor.toArray (err, arr)->
+        cursor.toArray (err, arr) ->
           return callback err  if err
-          if options.withStacks
-            callback null, arr.map (vm)->
-              {alias:vm.hostnameAlias, stack:vm.stack}
-          else
-            callback null, arr.map (vm)-> vm.hostnameAlias
+          callback null, arr.map ({ hostnameAlias, region, hostKite, stack }) ->
+            hostKite = null  if hostKite in ['(banned)', '(maintenance)']
+            { hostnameAlias, region, hostKite, stack }
 
   @fetchVmsByContext = secure (client, options, callback) ->
     {connection:{delegate}, context:{group}} = client
@@ -534,11 +536,9 @@ module.exports = class JVM extends Module
     {delegate} = client.connection
     @fetchAccountVmsBySelector delegate, {}, options, callback
 
-    # TODO: let's implement something like this:
-    # failure: (client, callback) ->
-    #   @fetchDefaultVmByContext client, (err, vm)->
-    #     return callback err  if err
-    #     callback null, [vm]
+  @fetchVmsByName = secure (client, names, callback) ->
+    { delegate } = client.connection
+    @fetchAccountVmsBySelector delegate, { hostnameAlias: $in: names }, callback
 
   # TODO: Move these methods to JDomain at some point ~ GG
   # ------------------------------------------------------
