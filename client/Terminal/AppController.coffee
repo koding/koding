@@ -93,6 +93,14 @@ class WebTermController extends AppController
         type    : 'red'
 
   handleQuery: (query) ->
+
+    shouldReturn = yes
+    for own key, value of query
+      shouldReturn = no
+      break
+
+    return  if shouldReturn
+
     @getView().ready =>
       @getView().handleQuery query
 
