@@ -251,7 +251,7 @@ class GroupsAppController extends AppController
 
     if policy.explanation
       title   = "Request Access"
-      content = __utils.applyMarkdown policy.explanation
+      content = utils.applyMarkdown policy.explanation
       success = "Your request has been sent to the group's admin."
     else if policy.approvalEnabled
       title   = 'Request Access'

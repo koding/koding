@@ -7,7 +7,7 @@ class BookView extends JView
     return if not __bookPages[index] or cached[index]
     page = new BookPage {}, __bookPages[index]
     page.appendToDomBody()
-    __utils.wait ->
+    utils.wait ->
       cached[index] = yes
       page.destroy()
 

@@ -216,7 +216,7 @@ class KiteController extends KDController
       method     : "createSystemUser"
       withArgs   :
         fullName : "#{KD.whoami().getAt 'profile.firstName'} #{KD.whoami().getAt 'profile.lastName'}"
-        password : __utils.getRandomHex().substr(1)
+        password : utils.getRandomHex().substr(1)
     , (err, res)=>
       # this callback gets lost
       log "Creating the user environment."

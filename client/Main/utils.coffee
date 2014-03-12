@@ -1,4 +1,4 @@
-__utils.extend __utils,
+utils.extend utils,
 
   getPaymentMethodTitle: (billing)->
     # for convenience, accept either the payment method, or the billing object
@@ -49,7 +49,7 @@ __utils.extend __utils,
 
   showMoreClickHandler:(event)->
     $trg = $(event.target)
-    __utils.stopDOMEvent event  if $trg.is ".more-link, .less-link"
+    utils.stopDOMEvent event  if $trg.is ".more-link, .less-link"
     more = "span.collapsedtext a.more-link"
     less = "span.collapsedtext a.less-link"
     $trg.parent().addClass("show").removeClass("hide") if $trg.is(more)
@@ -63,7 +63,7 @@ __utils.extend __utils,
     # Expand URLs with intention to replace them after putShowMore
     {links,text} = @expandUrls text, yes
 
-    text = __utils.putShowMore text if shorten
+    text = utils.putShowMore text if shorten
 
     # Reinsert URLs into text
     if links? then for link,i in links
@@ -164,7 +164,7 @@ __utils.extend __utils,
       text
 
   putShowMore: (text, l = 500)->
-    shortenedText = __utils.shortenText text,
+    shortenedText = utils.shortenText text,
       minLength : l
       maxLength : l + Math.floor(l/10)
       suffix    : ''
@@ -235,8 +235,8 @@ __utils.extend __utils,
         str = str.replace tokenString, "#{prefix}#{title}"
         continue
 
-      domId     = __utils.getUniqueId()
-      itemClass = __utils.getTokenClass prefix
+      domId     = utils.getUniqueId()
+      itemClass = utils.getTokenClass prefix
       tokenView = new TokenView {domId, itemClass}, token
       tokenView.emit "viewAppended"
       str = str.replace tokenString, tokenView.getElement().outerHTML
@@ -244,7 +244,7 @@ __utils.extend __utils,
 
       viewParams.push {options: {domId, itemClass}, data: token}
 
-    __utils.defer ->
+    utils.defer ->
       for {options, data} in viewParams
         new TokenView options, data
 
@@ -321,9 +321,9 @@ __utils.extend __utils,
       chr = chr.toLowerCase() if memorable
 
       unless pattern.test chr
-        return __utils.generatePassword length, memorable, pattern, prefix
+        return utils.generatePassword length, memorable, pattern, prefix
 
-      return __utils.generatePassword length, memorable, pattern, "" + prefix + chr
+      return utils.generatePassword length, memorable, pattern, "" + prefix + chr
 
   # Version Compare
   # https://github.com/balupton/bal-util/blob/master/src/lib/compare.coffee
@@ -455,7 +455,7 @@ __utils.extend __utils,
     # resourceRoot = "#{KD.appsUri}/#{authorNick}/#{name}/#{version}/"
 
     # if appManifest.devMode # TODO: change url to https when vm urls are ready for it
-    #   resourceRoot = "http://#{KD.getSingleton('vmController').defaultVm}/.applications/#{__utils.slugify name}/"
+    #   resourceRoot = "http://#{KD.getSingleton('vmController').defaultVm}/.applications/#{utils.slugify name}/"
 
 
     # for size in [64, 128, 160, 256, 512]
