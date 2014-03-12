@@ -3,8 +3,7 @@ class EditorMacroView extends KDModalView
   constructor: (options = {}, data) ->
 
     keyBindings = """
-    #Default Keyboard Shortcuts
-    | PC (Windows/Linux)             | Mac                            | action                         |
+    | PC (Windows/Linux)             | Mac                            | Action                         |
     |:-------------------------------|:-------------------------------|:-------------------------------|
     | Ctrl-, | Command-, | Show the settings menu |
     | Ctrl-Alt-Up | Ctrl-Option-Up | add multi-cursor above |
@@ -86,7 +85,9 @@ class EditorMacroView extends KDModalView
     | Ctrl-Enter | Command-Enter | enter full screen |
     """
     options.title    = "Editor Key Bindings"
+    options.width    = 760
     options.content  = KD.utils.applyMarkdown keyBindings
+    options.cssClass = "key-bindings"
 
     super options, data
 
