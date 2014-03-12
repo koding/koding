@@ -54,18 +54,10 @@ class EnvironmentsMainScene extends JView
       JStack.getStacks (err, stacks)=>
         warn err  if err
 
-        # group = KD.getGroup().title
-        # if not stacks or stacks.length is 0
-        #   stacks = [{sid:0, group}]
+        group = KD.getGroup().title
+        stacks.splice 0, 0, [{sid: 0, group}]
 
-        if not stacks or stacks.length is 0
-          meta    =
-            title : "Your default stack on Koding"
-            slug  : "default"
-          JStack.createStack meta, (err, stack) =>
-            @createStacks [stack]
-        else
-          @createStacks stacks
+        @createStacks stacks
 
   createStacks: (stacks) ->
     @_stacks = []
