@@ -12,6 +12,6 @@ type ChannelMessageList struct {
 	// Id of the message
 	MessageId int64
 
-	// Creation date of the channel
-	CreatedAt time.Time
+	// Addition date of the message to the channel
+	AddedAt time.Time
 }
