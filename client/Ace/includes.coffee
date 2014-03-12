@@ -1,7 +1,6 @@
 module.exports = [
 
   "libs/require.js"
-
   # ace
   "AppController.coffee"
   "AppView.coffee"
