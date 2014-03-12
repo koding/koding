@@ -350,26 +350,17 @@ type writeFileParams struct {
 }
 
 func fsWriteFile(params writeFileParams, vos *virt.VOS) (interface{}, error) {
-	newPath, err := vos.UniquePath(params.Path)
-	if err != nil {
-		return nil, err
-	}
-	params.Path = newPath
-
 	flags := os.O_RDWR | os.O_CREATE
 	if params.DoNotOverwrite {
 		flags |= os.O_EXCL
 	}
-
 	if !params.Append {
 		flags |= os.O_TRUNC
 	}
-
 	dirInfo, err := vos.Stat(path.Dir(params.Path))
 	if err != nil {
 		return nil, err
 	}
-
 	file, err := vos.OpenFile(params.Path, flags, dirInfo.Mode().Perm()&0666)
 	if err != nil {
 		return nil, err
@@ -382,18 +373,7 @@ func fsWriteFile(params writeFileParams, vos *virt.VOS) (interface{}, error) {
 			return nil, err
 		}
 	}
-
-	_, err = file.Write(params.Content)
-	if err != nil {
-		return nil, err
-	}
-
-	fi, err := file.Stat()
-	if err != nil {
-		return nil, err
-	}
-
-	return makeFileEntry(vos, params.Path, fi), nil
+	return file.Write(params.Content)
 }
 
 func fsUniquePath(path string, vos *virt.VOS) (interface{}, error) {
@@ -475,31 +455,14 @@ func fsRemove(removePath string, recursive bool, vos *virt.VOS) (interface{}, er
 }
 
 func fsRename(oldpath, newpath string, vos *virt.VOS) (interface{}, error) {
-	var err error
-	newpath, err = vos.UniquePath(newpath)
-	if err != nil {
-		return nil, err
-	}
-
 	if err := vos.Rename(oldpath, newpath); err != nil {
 		return nil, err
 	}
 
-	fi, err := vos.Stat(newpath)
-	if err != nil {
-		return nil, err
-	}
-
-	return makeFileEntry(vos, newpath, fi), nil
+	return true, nil
 }
 
 func fsCreateDirectory(newPath string, recursive bool, vos *virt.VOS) (interface{}, error) {
-	var err error
-	newPath, err = vos.UniquePath(newPath)
-	if err != nil {
-		return nil, err
-	}
-
 	if recursive {
 		if err := vos.MkdirAll(newPath, 0755); err != nil {
 			return nil, err
@@ -511,12 +474,11 @@ func fsCreateDirectory(newPath string, recursive bool, vos *virt.VOS) (interface
 	if err != nil {
 		return nil, err
 	}
-
 	if err := vos.Mkdir(newPath, dirInfo.Mode().Perm()); err != nil {
 		return nil, err
 	}
+	return true, nil
 
-	return makeFileEntry(vos, newPath, dirInfo), nil
 }
 
 func fsMove(oldPath, newPath string, vos *virt.VOS) (interface{}, error) {
