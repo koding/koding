@@ -26,6 +26,26 @@ class DevToolsMainView extends KDView
 
     toggleLiveReload.on "viewAppended", ->
       toggleLiveReload.parent.setClass "default"
+
+  getToggleFullscreenMenuView: (item, menu)->
+    labels = [
+      "Enter Fullscreen"
+      "Exit Fullscreen"
+    ]
+    mainView = KD.getSingleton "mainView"
+    state    = mainView.isFullscreen() or 0
+    toggleFullscreen = new KDView
+      partial : "<span>#{labels[Number state]}</span>"
+      click   : =>
+        mainView.toggleFullscreen()
+        # @getActiveAceView().toggleFullscreen()
+        menu.contextMenu.destroy()
+        # menu.click()
+    # behave like a menu item
+    toggleFullscreen.on "viewAppended", ->
+      toggleFullscreen.parent.setClass "default"
+
+
   viewAppended:->
 
     @addSubView @workspace      = new CollaborativeWorkspace
