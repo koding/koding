@@ -29,7 +29,13 @@ class KiteController extends KDController
     delete @kiteInstances[kite.kiteKey]
 
   createKite:(kiteName, correlationName, kiteKey)->
-    kite = new Kite { kiteName, correlationName, kiteKey }
+    konstructor = KDKite.constructors['os']
+
+    unless konstructor?
+      throw new Error "Unknown constructor: #{ kiteName }"
+
+    kite = new konstructor { kiteName, correlationName, kiteKey }
+
     kite.on 'destroy', =>
       @destroyKite kite
       @emit "channelDeleted", kite, kiteName
@@ -104,7 +110,10 @@ class KiteController extends KDController
       correlationName  = vmc.defaultVmName
       options.kiteName = "os-#{vmc.vmRegions[vmc.defaultVmName]}"
 
-    kite = @getKite options.kiteName, correlationName
+    kite =
+      if KD.useNewKites
+      then KD.getSingleton('vmController').getKiteByVmName correlationName
+      else @getKite options.kiteName, correlationName
 
     if command
       options.withArgs = command
@@ -118,7 +127,21 @@ class KiteController extends KDController
              """
       log "Kite Request:", options
 
-    kite.tell options, (err, response)=>
+    ok =
+      if options.kiteName is 'os'
+      then kite.vmOn()
+      else Promise.cast()
+
+    ok
+    .then =>
+      method =
+        if KD.useNewKites
+        then 'tell'
+        else 'tell2'
+
+      kite[method] options.method, options.withArgs
+
+    .nodeify (err, response) =>
       @parseKiteResponse {err, response}, options, callback
 
   setListeners:->
