@@ -60,7 +60,7 @@ module.exports = class JStack extends jraphical.Module
     @getStack selector, (err, stack)->
       callback err, stack?.getId()
 
-  @getStack = ({user, group, sid}, callback)->
+  @getStack = ({user, group, sid, meta}, callback)->
 
     sid ?= 0
 
@@ -73,14 +73,14 @@ module.exports = class JStack extends jraphical.Module
 
       console.log "Stack not found, creating new one."
 
-      stack = new JStack {user, group, sid}
+      stack = new JStack {user, group, sid, meta}
       stack.save (err)->
         if err then callback err
         else callback null, stack
 
   @createStack = permit 'create stacks',
 
-    success: (client, callback)->
+    success: (client, meta, callback)->
 
       {group} = client.context
       user    = client.connection.delegate.profile.nickname
@@ -91,7 +91,7 @@ module.exports = class JStack extends jraphical.Module
 
       stackCounter.next (err, sid)=>
         return callback err  if err
-        @getStack {user, group, sid}, callback
+        @getStack {user, group, sid, meta}, callback
 
   @getStack$ = permit 'get stacks',
 
