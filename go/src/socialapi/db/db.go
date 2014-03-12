@@ -13,7 +13,7 @@ var DB gorm.DB
 
 func init() {
 	var err error
-	DB, err = gorm.Open("postgres", "user=postgres password=123123123 dbname=godenemeler sslmode=disable")
+	DB, err = gorm.Open("postgres", "user=postgres password=123123123 dbname=social sslmode=disable")
 	if err != nil {
 		panic(fmt.Sprintf("Got error when connect database, the error is '%v'", err))
 	}
