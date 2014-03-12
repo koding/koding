@@ -187,7 +187,7 @@ class FeedController extends KDViewController
             items = @sortByKey(items, filter.activeSort) if filter.activeSort
             listController.instantiateListItems items
             @emitCountChanged listController.itemsOrdered.length, filter.name
-            headerHeight = KD.singletons.mainView.getHeight()
+            headerHeight = KD.singleton("dock").getView().getHeight()
             if document.body.scrollHeight - headerHeight <= window.innerHeight
               @loadFeed filter
           else
