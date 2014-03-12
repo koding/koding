@@ -32,10 +32,13 @@ class AceAppView extends JView
 
 
 
+
   openLastFiles:->
     vmc = KD.getSingleton("vmController")
     vmc.once "StateChanged", (err, vm, info)=>
+      appStorage = KD.getSingleton('appStorageController').storage 'Ace', '1.0.1'
       lastOpenedFiles = KD.singletons.localSync.getRecentOpenedFiles()
+      return  unless appStorage.getValue("openRecentFiles")
       for file in lastOpenedFiles
         unless file is 'localfile:/Untitled.txt'
           fsfile = FSHelper.createFileFromPath file

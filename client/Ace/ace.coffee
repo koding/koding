@@ -63,6 +63,7 @@ class Ace extends KDView
       @setTabSize             @appStorage.getValue('tabSize')             ? 4      ,no
       @setKeyboardHandler     @appStorage.getValue('keyboardHandler')     ? "default"
       @setScrollPastEnd       @appStorage.getValue('scrollPastEnd')       ? yes
+      @setOpenRecentFiles     @appStorage.getValue('openRecentFiles')     ? yes
 
     require ["ace/ext/language_tools"], =>
       @editor.setOptions
@@ -224,6 +225,9 @@ class Ace extends KDView
   getScrollPastEnd: ->
     @appStorage.getValue('scrollPastEnd') ? yes
 
+  getOpenRecentFiles:->
+    @appStorage.getValue("openRecentFiles") ? yes
+
   getSettings:->
     theme               : @getTheme()
     syntax              : @getSyntax()
@@ -238,6 +242,7 @@ class Ace extends KDView
     softWrap            : @getSoftWrap()
     keyboardHandler     : @getKeyboardHandler()
     scrollPastEnd       : @getScrollPastEnd()
+    openRecentFiles     : @getOpenRecentFiles()
 
   ###
   SETTERS
@@ -333,6 +338,10 @@ class Ace extends KDView
     @appStorage.setValue 'useWordWrap', value
 
   setReadOnly:(value)-> @editor.setReadOnly value
+
+  setOpenRecentFiles:(value, save = yes)->
+    @appStorage.setValue "openRecentFiles", value
+
 
   setSoftWrap:(value, save = yes)->
     softWrapValueMap =

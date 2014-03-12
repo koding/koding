@@ -30,6 +30,9 @@ class AceSettingsView extends JView
     @scrollPastEnd  = new KodingSwitch
       cssClass      : "tiny"
       callback      : (state) -> button.emit "ace.changeSetting", "scrollPastEnd", state
+    @openRecentFiles = new KodingSwitch
+      cssClass      : "tiny"
+      callback      : (state) -> button.emit "ace.changeSetting", "openRecentFiles", state
 
     @keyboardHandler= new KDSelectBox
       selectOptions : __aceSettings.keyboardHandlers
