@@ -44,6 +44,37 @@ class EnvironmentMachineContainer extends EnvironmentContainer
               KD.singleton("vmController").createNewVM stackId, (err) ->
                 KD.showError err
 
+    KD.getSingleton("vmController").on 'VMListChanged', =>
+      @loadItems().then => @emit 'VMListChanged'
+
+  loadItems:->
+
+    new Promise (resolve, reject)=>
+
+      vmc = KD.getSingleton 'vmController'
+
+      {entryPoint} = KD.config
+      cmd = if entryPoint then 'fetchGroupVMs' else 'fetchVmNames'
+
+      vmc.fetchGroupVMs yes, (err, vms)=>
+
+        @removeAllItems()
+
+        if err or vms.length is 0
+          warn "Failed to fetch VMs", err  if err
+          return resolve()
+
+        vms.forEach (vm, index)=>
+
+          @addItem
+            title     : vm.hostnameAlias
+            vm        : vm
+            cpuUsage  : KD.utils.getRandomNumber 100
+            memUsage  : KD.utils.getRandomNumber 100
+            activated : yes
+
+          if index is vms.length - 1 then resolve()
+
   getVmSelectionView: ->
 
     addVmSelection = new KDCustomHTMLView

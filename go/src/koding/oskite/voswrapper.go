@@ -4,13 +4,15 @@ package oskite
 
 import (
 	"errors"
-	kitelib "github.com/koding/kite"
-	kitednode "github.com/koding/kite/dnode"
+	"fmt"
 	"koding/tools/kite"
 	"koding/virt"
 	"os"
 	"path"
 	"strings"
+
+	kitelib "github.com/koding/kite"
+	kitednode "github.com/koding/kite/dnode"
 
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
@@ -53,6 +55,11 @@ func (o *Oskite) getVos(username, vmName string) (*virt.VOS, error) {
 	}
 
 	vm, err := checkAndGetVM(username, vmName)
+	if err != nil {
+		return nil, err
+	}
+
+	err = o.validateVM(vm)
 	if err != nil {
 		return nil, err
 	}
@@ -113,8 +120,7 @@ func vmReinitializeNew(r *kitelib.Request, vos *virt.VOS) (interface{}, error) {
 }
 
 func vmInfoNew(r *kitelib.Request, vos *virt.VOS) (interface{}, error) {
-	// TODO: fix this that it doesn't accept any channel
-	return vmInfo(vos, nil)
+	return vmInfo(vos)
 }
 
 func vmPrepareNew(r *kitelib.Request, vos *virt.VOS) (interface{}, error) {
@@ -151,6 +157,123 @@ func execFuncNew(r *kitelib.Request, vos *virt.VOS) (interface{}, error) {
 	}
 
 	return execFunc(params.Line, vos)
+}
+
+func vmStopAndUnprepareNew(r *kitelib.Request, vos *virt.VOS) (interface{}, error) {
+	var params struct {
+		OnProgress kitednode.Function
+	}
+
+	if r.Args.One().Unmarshal(&params) != nil {
+		return nil, &kite.ArgumentError{Expected: "{OnProgress: [function]}"}
+	}
+
+	var lastError error
+	done := make(chan struct{}, 1)
+
+	if params.OnProgress != nil {
+		params.OnProgress(&virt.Step{Message: "STARTED"})
+		done = nil // not used anymore
+	}
+
+	go func() {
+		prepareQueue <- &QueueJob{
+			msg: "vm.topAndUnprepare" + vos.VM.HostnameAlias,
+			f: func() (string, error) {
+				if params.OnProgress == nil {
+					defer func() { done <- struct{}{} }()
+				} else {
+					// mutex is needed because it's handled in the queue
+					info := getInfo(vos.VM)
+					info.mutex.Lock()
+					defer info.mutex.Unlock()
+				}
+
+				for step := range unprepareProgress(vos) {
+					if params.OnProgress != nil {
+						params.OnProgress(step)
+					}
+
+					if step.Err != nil {
+						lastError = step.Err
+						return "", lastError
+					}
+				}
+
+				return fmt.Sprintf("vm.stopAndUnprepare %s", vos.VM.HostnameAlias), nil
+			},
+		}
+	}()
+
+	if params.OnProgress == nil {
+		// wait until the prepareWorker has picked us and we finished
+		// to return something to the client
+		<-done
+		if lastError != nil {
+			return true, lastError
+		}
+	}
+
+	return true, nil
+}
+
+func vmPrepareAndStartNew(r *kitelib.Request, vos *virt.VOS) (interface{}, error) {
+	var params struct {
+		OnProgress kitednode.Function
+	}
+
+	if r.Args.One().Unmarshal(&params) != nil {
+		return nil, &kite.ArgumentError{Expected: "{OnProgress: [function]}"}
+	}
+
+	var lastError error
+	done := make(chan struct{}, 1)
+
+	if params.OnProgress != nil {
+		params.OnProgress(&virt.Step{Message: "STARTED"})
+		done = nil // not used anymore
+	}
+
+	go func() {
+		prepareQueue <- &QueueJob{
+			msg: "vm.prepareAndStart" + vos.VM.HostnameAlias,
+			f: func() (string, error) {
+				if params.OnProgress == nil {
+					defer func() { done <- struct{}{} }()
+				} else {
+					// mutex is needed because it's handled in the queue
+					info := getInfo(vos.VM)
+					info.mutex.Lock()
+					defer info.mutex.Unlock()
+				}
+
+				for step := range prepareProgress(vos) {
+					if params.OnProgress != nil {
+						params.OnProgress(step)
+					}
+
+					if step.Err != nil {
+						lastError = step.Err
+						return "", lastError
+					}
+				}
+
+				return fmt.Sprintf("vm.startProgress %s", vos.VM.HostnameAlias), nil
+			},
+		}
+	}()
+
+	if params.OnProgress == nil {
+		// wait until the prepareWorker has picked us and we finished
+		// to return something to the client
+		<-done
+		if lastError != nil {
+			return true, lastError
+		}
+	}
+
+	return true, nil
+
 }
 
 // FS METHODS

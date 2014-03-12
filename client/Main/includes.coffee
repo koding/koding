@@ -6,6 +6,7 @@ module.exports = [
   "libs/accounting.js",
   "libs/bluebird.js",
 
+
   # --- Application ---
   "utils.coffee"
   "KD.extend.coffee" # our extensions to KD global
@@ -63,6 +64,9 @@ module.exports = [
   "CommonViews/activitywidgetitem.coffee",
   "CommonViews/activitywidget.coffee",
   "CommonViews/uploadimagemodalview.coffee",
+
+  # idle detection
+  "idleuserdetector.coffee"
 
   # junction
   "junction/junction.coffee"
@@ -234,9 +238,13 @@ module.exports = [
 
   # KITE CONTROLLER
   "kite/kite.coffee",
+  "kite/kite2.coffee",
+  "kite/oskite.coffee",
   "kite/kitecontroller.coffee",
-  "kite/newkite.coffee"
+  "kite/newkite.coffee",
+  "kite/vm.coffee", # TODO: this doesn't really belong here.
   "kite/kontrol.coffee"
+  "kite/kitewrapper.coffee"
   "kite/kitehelper.coffee"
   # Virtualization CONTROLLER
   "VirtualizationController.coffee",

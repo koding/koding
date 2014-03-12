@@ -20,8 +20,8 @@ class AppStorage extends KDObject
         else
           callback? null
     else
-      callback? @_storage
       KD.utils.defer =>
+        callback? @_storage
         @emit "storageFetched"
         @emit "ready"
 
