@@ -82,24 +82,22 @@ class AceSettingsView extends JView
   pistachio:->
 
     """
-    <p>Use soft tabs            {{> @useSoftTabs}}</p>
-    <p>Line numbers             {{> @showGutter}}</p>
-    <p>Use word wrapping        {{> @useWordWrap}}</p>
-    <p>Show print margin        {{> @showPrintMargin}}</p>
-    <p>Highlight active line    {{> @highlightActiveLine}}</p>
-
+    <p>Use soft tabs                           {{> @useSoftTabs}}</p>
+    <p>Line numbers                            {{> @showGutter}}</p>
+    <p>Use word wrapping                       {{> @useWordWrap}}</p>
+    <p>Show print margin                       {{> @showPrintMargin}}</p>
+    <p>Highlight active line                   {{> @highlightActiveLine}}</p>
     <p class='hidden'>Highlight selected word  {{> @highlightWord}}</p>
-
-    <p>Show invisibles          {{> @showInvisibles}}</p>
-    <p>Use scroll past end      {{> @scrollPastEnd}}</p>
+    <p>Show invisibles                         {{> @showInvisibles}}</p>
+    <p>Use scroll past end                     {{> @scrollPastEnd}}</p>
     <hr>
-    <p class="with-select">Soft wrap                {{> @softWrap}}</p>
-    <p class="with-select">Syntax                   {{> @syntax}}</p>
-    <p class="with-select">Key binding              {{> @keyboardHandler}}</p>
-    <p class="with-select">Font                     {{> @fontSize}}</p>
-    <p class="with-select">Theme                    {{> @theme}}</p>
-    <p class="with-select">Tab size                 {{> @tabSize}}</p>
-
+    <p class="with-select">Soft wrap           {{> @softWrap}}</p>
+    <p class="with-select">Syntax              {{> @syntax}}</p>
+    <p class="with-select">Key binding         {{> @keyboardHandler}}</p>
+    <p class="with-select">Font                {{> @fontSize}}</p>
+    <p class="with-select">Theme               {{> @theme}}</p>
+    <p class="with-select">Tab size            {{> @tabSize}}</p>
     <p class='hidden'>{{> @shortcuts}}</p>
-
+    <hr>
+    <p>Open Recent Files                       {{> @openRecentFiles}}</p>
     """
