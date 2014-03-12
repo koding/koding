@@ -275,3 +275,13 @@ class PaymentController extends KDController
       subscription.plan = plansByCode[subscription.planCode]
 
     { plans, subscriptions }
+
+  canDebitPack: (options = {}, callback = noop) ->
+    {subscriptionTag, packTag, multiplyFactor} = options
+    multiplyFactor ?= 1
+
+    return warn "missing parameters"  unless subscriptionTag or packTag
+
+    @fetchActiveSubscription tags: subscriptionTag, (err, subscription) ->
+      KD.remote.api.JPaymentPack.one tags: packTag, (err, pack) ->
+        subscription.checkUsage pack, multiplyFactor, callback
