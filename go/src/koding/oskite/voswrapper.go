@@ -127,6 +127,10 @@ func vmPrepareNew(r *kitelib.Request, vos *virt.VOS) (interface{}, error) {
 	return vmPrepare(vos)
 }
 
+func vmDestroyNew(r *kitelib.Request, vos *virt.VOS) (interface{}, error) {
+	return vmDestroy(vos)
+}
+
 func vmResizeDiskNew(r *kitelib.Request, vos *virt.VOS) (interface{}, error) {
 	return vmResizeDisk(vos)
 }

@@ -45,6 +45,10 @@ func vmPrepareOld(args *dnode.Partial, c *kite.Channel, vos *virt.VOS) (interfac
 	return vmPrepare(vos)
 }
 
+func vmDestroyOld(args *dnode.Partial, c *kite.Channel, vos *virt.VOS) (interface{}, error) {
+	return vmDestroy(vos)
+}
+
 func vmInfoOld(args *dnode.Partial, c *kite.Channel, vos *virt.VOS) (interface{}, error) {
 	return vmInfo(vos)
 }
@@ -233,6 +237,10 @@ func vmInfo(vos *virt.VOS) (interface{}, error) {
 	infosMutex.Unlock()
 
 	return info, nil
+}
+
+func vmDestroy(vos *virt.VOS) (interface{}, error) {
+	return "vm.destroy is called", nil
 }
 
 func vmPrepare(vos *virt.VOS) (interface{}, error) {
