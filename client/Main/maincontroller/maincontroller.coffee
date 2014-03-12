@@ -53,6 +53,7 @@ class MainController extends KDController
       KD.registerSingleton "activityController",      new ActivityController
       KD.registerSingleton "appStorageController",    new AppStorageController
       KD.registerSingleton "kodingAppsController",    new KodingAppsController
+      KD.registerSingleton "localSync",               new LocalSyncController
       KD.registerSingleton "onboardingController",    new OnboardingController
       # KD.registerSingleton "kontrol",                 new Kontrol
 
@@ -105,6 +106,7 @@ class MainController extends KDController
 
     KD.remote.api.JUser.logout (err) =>
       mainView._logoutAnimation()
+      KD.singletons.localSync.removeLocalContents()
 
       wc = KD.singleton 'windowController'
       wc.clearUnloadListeners()
@@ -151,7 +153,7 @@ class MainController extends KDController
           localStorage?.removeItem "routeToBeContinued"
 
         @utils.wait 3000, cookieChangeHandler
-    # Note: I am using wait instead of repeat, for the subtle difference.  See this StackOverflow answer for more info: 
+    # Note: I am using wait instead of repeat, for the subtle difference.  See this StackOverflow answer for more info:
     #       http://stackoverflow.com/questions/729921/settimeout-or-setinterval/731625#731625
     @utils.wait 3000, cookieChangeHandler
 
