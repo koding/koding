@@ -48,10 +48,11 @@ class EnvironmentsMainScene extends JView
   fetchStacks: (callback)->
 
     EnvironmentDataProvider.get (@environmentData) =>
-      console.clear()
+      # console.clear()
       # log "environment data", @environmentData
+
       {JStack} = KD.remote.api
-      JStack.getStacks (err, stacks)=>
+      JStack.getStacks (err, stacks = [])=>
         warn err  if err
 
         group = KD.getGroup().title
