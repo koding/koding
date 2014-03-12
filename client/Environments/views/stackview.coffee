@@ -55,7 +55,8 @@ class StackView extends KDView
           'Show stack recipe'  :
             callback           : @bound "dumpStack"
           'Clone this stack'   :
-            callback           : -> log 'clone'
+            callback           : =>
+              @emit "CloneStackRequested", @getStackDump()
           'Create a new stack' :
             callback           : @bound "showCreateStackModal"
 
@@ -125,9 +126,19 @@ class StackView extends KDView
       @updateView yes
 
   dumpStack:->
+    new KDModalView
+      cssClass : 'recipe'
+      title    : 'Stack recipe'
+      overlay  : yes
+      width    : 600
+      content  : """
+        <pre>
+          #{@getStackDump yes}
+        </pre>
+      """
 
+  getStackDump: (asYaml = no) ->
     {containers, connections} = @scene
-
     dump = {}
 
     for i, container of containers
@@ -140,16 +151,7 @@ class StackView extends KDView
             aliases : dia.data.aliases
           else dia.data
 
-    new KDModalView
-      cssClass : 'recipe'
-      title    : 'Stack recipe'
-      width    : 600
-      content  : """
-        <pre>
-        #{jsyaml.dump dump}
-        </pre>
-        """
-
+    return if asYaml then jsyaml.dump dump else dump
 
   updateView:(dataUpdated = no)->
 

@@ -857,8 +857,12 @@ section.resources-container
 
   .kdselectbox.main-domain-select
     abs             5px 5px 0 0
+    width           130px
     span.title
       line-height   32px !important
+      max-width     100px
+      text-overflow ellipsis
+      overflow      hidden
 
 
 /*--- Scene -----*/
@@ -979,6 +983,11 @@ div.environment-stack
     .chevron
       hidden()
 
+  &.hilite
+    bg                  color, rgba(254, 255, 217, .6)
+    vendor              transition, background-color .6s ease
+  &.hilited
+    bg                  color, #e9e9e9
 
 div.environments-container
 
@@ -1302,8 +1311,57 @@ div.environments-joint
 .kdmodal.recipe
 
   pre
-    color           #222
-    font-size       12px
-    // padding         20px
-    // bg              color #444
-    // color           white
+    color                    #222
+    font-size                12px
+
+.kdmodal.create-stack
+  label
+    width                     110px
+
+.kdmodal.clone-stack-modal
+  &.loading
+    text-align                center
+    .kdloader
+      margin-bottom           20px
+  .subscription-notice
+    color                     #999
+    margin-bottom             15px
+  &.domain-names
+    .kdtabhandlecontainer
+      display                 none
+    .label
+      margin-bottom           20px
+    .input-wrapper
+      border                  1px solid #d7d7d7
+      border-radius           6px
+      padding-bottom          4px
+    .environments-add-domain-form
+      position                relative
+    .kdinput.text
+      margin-left             270px
+      size                    218px, 34px
+      min-width               218px
+      margin-top              4px
+      font-size               14px
+    .old-name
+      color                   #606060
+      overflow                hidden
+      text-overflow           ellipsis
+      width                   230px
+      display                 inline-block
+      position                absolute
+      top                     0px
+      left                    10px
+      line-height             44px
+      font-size               14px
+    .icon
+      r-sprite                "app", "login-right-arrow"
+      display                 inline-block
+      top                     12px
+      left                    245px
+      opacity                 .33
+      abs()
+  .buttons-container
+    text-align                right
+    button:last-child
+      margin-left             10px
