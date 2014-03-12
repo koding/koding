@@ -26,6 +26,8 @@ class MainController extends KDController
     @setFailTimer()
     @attachListeners()
 
+    @detectIdleUser()
+
   createSingletons:->
 
     KD.registerSingleton "mainController",            this
@@ -39,6 +41,8 @@ class MainController extends KDController
     KD.registerSingleton "oauthController",           new OAuthController
     KD.registerSingleton "groupsController",          new GroupsController
     KD.registerSingleton "paymentController",         new PaymentController
+    if KD.useNewKites
+      KD.registerSingleton "kontrol",                 new Kontrol
     KD.registerSingleton "vmController",              new VirtualizationController
     KD.registerSingleton "locationController",        new LocationController
     KD.registerSingleton "badgeController",           new BadgeController
@@ -254,3 +258,7 @@ class MainController extends KDController
     return ->
       @utils.wait @getOptions().failWait, checkConnectionState
       @on "AccountChanged", -> notification.destroy()  if notification
+
+  detectIdleUser: (threshold = KD.config.userIdleMs) ->
+    idleDetector = new IdleUserDetector { threshold }
+    @forwardEvents idleDetector, ['userIdle', 'userBack']

@@ -19,12 +19,12 @@ class EnvironmentMachineItem extends EnvironmentItem
     colorSelection = new ColorSelection selectedColor : @getOption 'colorTag'
     colorSelection.on "ColorChanged", @bound 'setColorTag'
 
-    vmName = @getData().title
-    vmStateSwitch    = new NVMToggleButtonView        null, {vmName}
+    vmName = @getData().vm.hostnameAlias
+    # vmStateSwitch    = new NVMToggleButtonView        null, {vmName}
     vmAlwaysOnSwitch = new VMAlwaysOnToggleButtonView null, {vmName}
     # vmMountSwitch = new NMountToggleButtonView {}, {vmName}
     items =
-      customView1        : vmStateSwitch
+      # customView1        : vmStateSwitch
       customView4        : vmAlwaysOnSwitch
       # customView2        : vmMountSwitch
       'Re-initialize VM' :
@@ -49,12 +49,12 @@ class EnvironmentMachineItem extends EnvironmentItem
     return items
 
   openTerminal:->
-    vmName = @getData().title
+    vmName = @getData().vm.hostnameAlias
     KD.getSingleton("router").handleRoute "/Terminal", replaceState: yes
     KD.getSingleton("appManager").open "Terminal", params: {vmName}, forceNew: yes
 
   confirmDestroy:->
-    (KD.getSingleton 'vmController').remove @getData().title, @bound "destroy"
+    (KD.getSingleton 'vmController').remove @getData().vm.hostnameAlias, @bound "destroy"
 
   click:(event)->
 
@@ -67,7 +67,7 @@ class EnvironmentMachineItem extends EnvironmentItem
 
 
   pistachio:->
-    {title} = @getData()
+    {vm: { hostnameAlias: title }} = @getData()
     vm = (title.split '.').first
     """
       <div class='details'>

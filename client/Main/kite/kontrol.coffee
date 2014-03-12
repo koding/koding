@@ -3,6 +3,10 @@
 # reachable from KD.getSingleton("kontrol").
 class Kontrol extends KDObject
 
+  # TODO We need to send "watch" commands again on re-connection because old watchers will be removed on disconnect.
+  # TODO Tokens need to be renewed before they expire.
+  # TODO A token must be renewed when we get "authenticationError" from remote kite.
+
   constructor: (options={})->
     super options
 
@@ -16,7 +20,7 @@ class Kontrol extends KDObject
 
     @kite = new NewKite kite, authentication
     @kite.connect()
-
+    @kite.on "ready", => @emit "ready"
   # getKites Calls the callback function with the list of NewKite instances.
   # The returned kites are not connected. You must connect with
   # NewKite.connect().
@@ -31,30 +35,53 @@ class Kontrol extends KDObject
   #   hostname    string
   #   id          string
   #
-  getKites: (query={}, callback = noop)->
+  getKites: (query={}, callback = noop) ->
     @_sanitizeQuery query
 
-    @kite.tell "getKites", [query], (err, kites)=>
-      return callback err, null  if err
+    @kite.tell("getKites", [query]).then (result) =>
+      (@_createKite k for k in result.kites)
 
-      callback null, (@_createKite k for k in kites)
+    .nodeify(callback)
+
+  getKite: (query, callback) ->
+    @getKites(query).then (kites) ->
+      return kites[0] ? throw new Error "no kite found!"
 
   # watchKites watches for Kites that matches the query. The onEvent functions
   # is called for current kites and every new kite event.
   watchKites: (query={}, callback)->
-    return warn "callback is not defined "  unless callback
-
     @_sanitizeQuery query
 
-    onEvent = (options)=>
-      e = options.withArgs[0]
-      callback null, {action: e.action, kite: @_createKite e}
+    changes = new KDEventEmitter
 
-    @kite.tell "getKites", [query, onEvent], (err, kites)=>
-      return callback err, null  if err
+    onEvent = (change, err)=>
+      if err?
+        if callback?
+          callback err, null  if err
+        else
+          throw err
 
-      for kite in kites
-        callback null, {action: @KiteAction.Register, kite: @_createKite kite}
+      changes.emit kiteAction[change.action], kite: @_createKite change
+
+    @kite.tell("getKites", [query, onEvent]).then ({ kites, watcherID }) =>
+
+      for kiteData in kites
+        kite = @_createKite kiteData
+        
+        console.log kite
+
+        {
+          action    : kiteAction.REGISTER
+          kite 
+          changes
+          watcherID
+        }
+
+    .nodeify callback
+
+  cancelWatcher: (id, callback)->
+    @kite.tell "cancelWatcher", [id], (err, result)=>
+      return callback err  # result will always be "null"
 
   # Returns a new NewKite instance from Kite data structure coming from
   # getKites() and watchKites() methods.
@@ -65,6 +92,6 @@ class Kontrol extends KDObject
     query.username    = "#{KD.nick()}"              unless query.username
     query.environment = "#{KD.config.environment}"  unless query.environment
 
-  KiteAction :
-    Register   : "REGISTER"
-    Deregister : "DEREGISTER"
+  kiteAction    =
+    REGISTER    : "register"
+    DEREGISTER  : "deregister"
