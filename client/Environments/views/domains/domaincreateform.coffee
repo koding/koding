@@ -89,18 +89,20 @@ class DomainCreateForm extends KDCustomHTMLView
 
     @createJDomain domain, (err, domain)=>
       createButton.hideLoader()
-      if err
-        warn "An error occured while creating domain:", err
-        switch err.name
-          when "INVALIDDOMAIN"
-            @showError "#{domain} is an invalid subdomain.", @subdomainForm
-          when "ACCESSDENIED"
-            @showError "You do not have permission to create a subdomain in this domain", @subdomainForm
-          else
-            @showError err.message or "An unknown error occured. Please try again later.", @subdomainForm
+      return @handleDomainCreationError err  if err
+
+      @showSuccess domain
+      @updateDomains()
+
+  handleDomainCreationError: (err) ->
+    warn "An error occured while creating domain:", err
+    switch err.name
+      when "INVALIDDOMAIN"
+        @showError "#{domain} is an invalid subdomain.", @subdomainForm
+      when "ACCESSDENIED"
+        @showError "You do not have permission to create a subdomain in this domain", @subdomainForm
       else
-        @showSuccess domain
-        @updateDomains()
+        @showError err.message or "An unknown error occured. Please try again later.", @subdomainForm
 
   createJDomain:(domain, callback) ->
 
