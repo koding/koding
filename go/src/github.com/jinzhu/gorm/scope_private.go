@@ -324,7 +324,7 @@ func (scope *Scope) sqlTagForField(field *Field) (tag string) {
 		}
 	}
 
-	if len(tag) == 0 && tag != "-" {
+	if len(tag) == 0 {
 		if field.isPrimaryKey {
 			tag = scope.Dialect().PrimaryKeyTag(value, size)
 		} else {
@@ -396,6 +396,7 @@ func (scope *Scope) typeName() string {
 
 func (scope *Scope) related(value interface{}, foreignKeys ...string) *Scope {
 	toScope := scope.New(value)
+	toScope.db = scope.db
 
 	for _, foreignKey := range append(foreignKeys, toScope.typeName()+"Id", scope.typeName()+"Id") {
 		if foreignValue, ok := scope.FieldByName(foreignKey); ok {
