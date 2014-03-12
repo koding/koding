@@ -375,7 +375,6 @@ module.exports = class JVM extends Module
           groups        = [{ id: group.getId() }]
           hostnameAlias = hostnameAliases[0]
 
-<<<<<<< HEAD
           vm = new JVM {
             hostnameAlias
             planCode
@@ -422,7 +421,7 @@ module.exports = class JVM extends Module
               groups
               users
               vmType : type
-              stack
+              stack  : stackId
             }
 
             vm.region = KONFIG.regions.premium unless isFreeSubscripton

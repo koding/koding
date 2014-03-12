@@ -289,7 +289,7 @@ class VirtualizationController extends KDController
   hasDefaultVM:(callback)->
     KD.remote.api.JVM.fetchDefaultVm callback
 
-  createNewVM: (callback)->
+  createNewVM: (stackId, callback)->
     @createPaidVM stackId, (err) =>
       @emit 'VMListChanged'
       callback err
