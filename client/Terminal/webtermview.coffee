@@ -76,7 +76,10 @@ class WebTermView extends KDView
       mode        : myOptions.mode      ? 'create'
 
   getVMName:->
-    { hostnameAlias: vmName } = @getOption 'vm'
+
+    if vm = @getOption 'vm'
+      { hostnameAlias: vmName } = vm
+
     return vmName
 
   webtermConnect:(mode)->
