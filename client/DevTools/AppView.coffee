@@ -8,6 +8,24 @@ class DevToolsMainView extends KDView
     @storage = KD.singletons.localStorageController.storage "DevTools"
     @liveMode = @storage.getAt 'liveMode'
 
+  getToggleLiveReloadMenuView: (item, menu)->
+
+    itemLabel = "#{if @liveMode then 'Disable' else 'Enable'} live compile"
+
+    toggleLiveReload = new KDView
+      partial : "<span>#{itemLabel}</span>"
+      click   : =>
+        @liveMode = !@liveMode
+        @storage.setValue 'liveMode', @liveMode
+
+        menu.contextMenu.destroy()
+
+        if @liveMode
+          KD.utils.defer =>
+            @previewApp yes; @previewCss yes
+
+    toggleLiveReload.on "viewAppended", ->
+      toggleLiveReload.parent.setClass "default"
   viewAppended:->
 
     @addSubView @workspace      = new CollaborativeWorkspace
