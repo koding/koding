@@ -1,9 +1,12 @@
 class EnvironmentsMainScene extends JView
 
-  constructor:(options={}, data)->
+  constructor: (options = {}, data) ->
+
     options.cssClass = KD.utils.curry 'environment-content', options.cssClass
+
     super options, data
 
+    @on "NewStackRequested",   @bound "createNewStack"
   viewAppended:->
 
     @addSubView header = new KDView
@@ -51,6 +54,32 @@ class EnvironmentsMainScene extends JView
         group = KD.getGroup().title
         if not stacks or stacks.length is 0
           stacks = [{sid:0, group}]
+  createStacks: (stacks) ->
+    @_stacks = []
+    stacks.forEach (stack, index) =>
+      stack = new StackView  { stack, isDefault: index is 0 }, @environmentData
+      @_stacks.push @addSubView stack
+      @forwardEvent stack, "NewStackRequested"
+      @forwardEvent stack, "CloneStackRequested"
+
+      callback?()  if index is stacks.length - 1
+
+  createNewStack: (meta, modal) ->
+    KD.remote.api.JStack.createStack meta, (err, stack) =>
+      title = "Failed to create a new stack. Try again later!"
+      return new KDNotificationView { title }  if err
+      modal.destroy()
+
+      stackView = new StackView { stack} , @environmentData
+      @_stacks.push @addSubView stackView
+
+      stackView.once "transitionend", =>
+        stackView.getElement().scrollIntoView()
+        KD.utils.wait 300, => # wait for a smooth feedback
+          stackView.setClass "hilite"
+          stackView.once "transitionend", =>
+            stackView.setClass "hilited"
+
 
         @_stacks = []
         stacks.forEach (stack, index)=>
