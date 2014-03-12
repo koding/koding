@@ -377,7 +377,9 @@ func (o *Oskite) handleCurrentVMS() {
 
 			vm.ApplyDefaults()
 			info := newInfo(&vm)
+			infosMutex.Lock()
 			infos[vm.Id] = info
+			infosMutex.Unlock()
 			info.startTimeout()
 		}
 	}
