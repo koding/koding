@@ -32,11 +32,8 @@ class VMSelection extends KDModalView
       @[alias] = new TerminalStartTabVMItem {}, vm
       ul.addSubView @[alias]
       appView = @getDelegate()
-      @[alias]
-        .once('vm.is.prepared', @bound 'destroy')
-        .once 'VMItemClicked', (vm)=>
-          appView.emit 'VMItemClicked', vm
-          @destroy()
+      @[alias].on 'VMItemClicked', (vm)=>
+        appView.emit 'VMItemClicked', vm
 
     for own alias, kite of vmController.kites
       if kite.recentState
