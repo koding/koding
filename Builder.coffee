@@ -179,16 +179,6 @@ module.exports = class Builder
     if @config.client.watch is yes
       if initial
         log.info "\n All done. Watching for changes... \n"
-        @livereloads = []
-        wss = new WebSocketServer port: 35729, path: "/livereload"
-        wss.on 'connection', (ws)=>
-          ws.send "!!ver:1.6"
-          @livereloads.push ws
-
-      if includesChanged or scriptsChanged or stylesChanged
-        for ws in @livereloads
-          if ws.readyState == WebSocket.OPEN
-            ws.send JSON.stringify ['refresh', { path: "" }]
 
       setTimeout =>
         @compileChanged options, false
