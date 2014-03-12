@@ -137,13 +137,6 @@ class HomeRegisterForm extends KDFormView
         KD.mixpanel.alias account.profile.nickname
         KD.mixpanel "Signup, success"
 
-        try
-          mixpanel.track "Alternate Signup, success"
-        catch
-          KD.logToExternal "mixpanel doesn't exist"
-
-        _gaq.push ['_trackEvent', 'Sign-up']
-
         Cookies.set 'newRegister', yes
         KD.getSingleton('mainController').swapAccount {account, replacementToken}
 
