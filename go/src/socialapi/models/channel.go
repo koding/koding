@@ -1,6 +1,10 @@
 package models
 
-import "time"
+import (
+	"errors"
+	"socialapi/db"
+	"time"
+)
 
 type Channel struct {
 	// unique identifier of the channel
@@ -23,10 +27,10 @@ type Channel struct {
 	SecretKey string
 
 	// Type of the channel
-	Type ChannelType
+	Type int
 
 	// Privacy constant of the channel
-	Privacy ChannelPrivacy
+	Privacy int
 
 	// Creation date of the channel
 	CreatedAt time.Time
@@ -35,17 +39,66 @@ type Channel struct {
 	ModifiedAt time.Time
 }
 
-type ChannelType int
-
 const (
-	TOPIC ChannelType = iota
-	CHAT
+	TOPIC int = iota
+	// CHAT
 	GROUP
 )
 
-type ChannelPrivacy int
-
 const (
-	PUBLIC ChannelPrivacy = iota
+	PUBLIC int = iota
 	PRIVATE
 )
+
+func NewChannel() *Channel {
+	now := time.Now().UTC()
+	return &Channel{
+		Name:       "koding-main",
+		CreatorId:  123,
+		Group:      "koding",
+		Purpose:    "string",
+		SecretKey:  "string",
+		Type:       GROUP,
+		Privacy:    PRIVATE,
+		CreatedAt:  now,
+		ModifiedAt: now,
+	}
+}
+
+func (c *Channel) Fetch() error {
+	if err := db.DB.First(c, c.Id).Error; err != nil {
+		return err
+	}
+	return nil
+}
+
+func (c *Channel) Update() error {
+	if c.Id == 0 {
+		return errors.New("Channel id is not set")
+	}
+	return c.Save()
+}
+
+func (c *Channel) Save() error {
+	now := time.Now().UTC()
+	// created at shouldnt be updated
+	c.CreatedAt = now
+	c.ModifiedAt = now
+
+	if err := db.DB.Save(c).Error; err != nil {
+		return err
+	}
+	return nil
+}
+
+func (c *Channel) Delete() error {
+	if c.Id == 0 {
+		return errors.New("Channel id is not set")
+	}
+
+	if err := db.DB.Delete(c).Error; err != nil {
+		return err
+	}
+
+	return nil
+}
