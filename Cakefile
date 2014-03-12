@@ -323,7 +323,7 @@ task 'premiumBroker', "Run the premium broker", (options)->
   uuid = hat()
 
   processes.spawn
-    name              : 'broker'
+    name              : 'premiumBroker'
     cmd               : "./go/bin/broker -c #{configFile} -u #{uuid} -b premiumBroker #{addFlags options}"
     restart           : yes
     restartTimeout    : 100

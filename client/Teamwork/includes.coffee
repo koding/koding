@@ -3,7 +3,7 @@ module.exports = [
   # coffee block
   "Views/teamworktabview.coffee",
   "Views/teamworkmarkdownmodal.coffee",
-  "Views/facebookteamworkinstructionsmodal.coffee",
+  # "Views/facebookteamworkinstructionsmodal.coffee",
   "Views/teamworkinvitemodal.coffee",
   "Views/teamworkexportmodal.coffee",
   "Views/teamworksharemodal.coffee",
@@ -16,7 +16,7 @@ module.exports = [
   "Views/teamworkavatartabview.coffee",
   "Views/playgroundteamwork.coffee",
   "Views/teamworkapp.coffee",
-  "Views/facebookteamwork.coffee",
+  # "Views/facebookteamwork.coffee",
   "AppView.coffee",
   "AppController.coffee",
 

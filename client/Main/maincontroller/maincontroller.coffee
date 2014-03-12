@@ -54,6 +54,7 @@ class MainController extends KDController
       KD.registerSingleton "appStorageController",    new AppStorageController
       KD.registerSingleton "kodingAppsController",    new KodingAppsController
       KD.registerSingleton "localSync",               new LocalSyncController
+      KD.registerSingleton "onboardingController",    new OnboardingController
       # KD.registerSingleton "kontrol",                 new Kontrol
 
       # @showInstructionsBook()

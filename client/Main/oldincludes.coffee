@@ -102,7 +102,6 @@
 
 # MEMBERS VIEWS
 "Applications/Members.kdapplication/AppView.coffee",
-"Applications/Members.kdapplication/ContentDisplays/ContentDisplayControllerMember.coffee",
 "Applications/Members.kdapplication/ContentDisplays/externalprofileview.coffee",
 "Applications/Members.kdapplication/ContentDisplays/profileview.coffee",
 "Applications/Members.kdapplication/ContentDisplays/contactlink.coffee",

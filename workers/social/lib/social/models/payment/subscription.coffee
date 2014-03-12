@@ -404,9 +404,6 @@ module.exports = class JPaymentSubscription extends jraphical.Module
           callback null, freePlanSubscription
 
   @isFreeSubscripton:(planCode, callback)->
-    # until premium kontainers are ready, just return yes
-    return callback null, yes
-
     @one {planCode}, (err, subscription)->
       return callback err  if err
       return callback null, yes  unless subscription

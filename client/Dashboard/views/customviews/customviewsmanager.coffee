@@ -18,11 +18,13 @@ class CustomViewsManager extends JView
       @previewButton.unsetClass "green"
 
     @homePages  = new CustomViewsDashboardView
+      title     : "Home Pages"
       viewType  : "HOME"
       cssClass  : "home-pages"
       itemClass : HomePageCustomViewItem
 
     @widgets    = new CustomViewsDashboardView
+      title     : "Widgets"
       viewType  : "WIDGET"
       cssClass  : "widgets"
       itemClass : WidgetCustomViewItem
@@ -44,8 +46,6 @@ class CustomViewsManager extends JView
       <div class="button-container">
         {{> @previewButton}}
       </div>
-      <h3 class="home-pages">Home Pages</h3>
       {{> @homePages}}
-      <h3>Widgets</h3>
       {{> @widgets}}
     """

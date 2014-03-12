@@ -6,7 +6,7 @@ handleError = (err, callback) ->
 
 
 fetchGroupName = (req, callback)->
-  [name, section] = req.params
+  {name, section} = req.params
   {JName} = bongo.models
 
   groupName = ""
@@ -17,7 +17,7 @@ fetchGroupName = (req, callback)->
   if not name or name[0].toUpperCase() is name[0]
     return callback null, "koding"
   else
-    JName.fetchModels "#{name}/#{section}", (err, models)->
+    JName.fetchModels "#{name}", (err, models)->
       return callback if err
       return callback new Error "JName is not found #{name}/#{section}" if not models and model.length < 1
 
@@ -45,6 +45,10 @@ generateFakeClient = (req, res, callback)->
       groupName : 'koding'
 
   {clientId} = req.cookies
+
+  # if client id is not set, check for pendingCookies
+  if not clientId and req.pendingCookies?.clientId
+    clientId = req.pendingCookies.clientId
 
   return callback null, fakeClient unless clientId?
 
