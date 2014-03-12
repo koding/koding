@@ -67,10 +67,22 @@ module.exports = class Builder
       spriteHelper = helper
       @buildClient options
 
+  buildFramework:->
+
+    @config ?= require('koding-config-manager').load("main.#{options.configFile}")
+    cmd = "cd client/Framework;gulp compile --buildVersion=#{@config.client.version} --outputDir=../../website/a/"
+    exec cmd, (err, stdout, stderr)->
+      console.warn "------------------------ FRAMEWORK COMPILED -------------------------- "
+      console.warn " To use watcher for Framework use following command in different tab:  "
+      console.log  " $ #{cmd} "
+      console.warn "------------------------ FRAMEWORK COMPILED -------------------------- "
+
   buildClient: (options) ->
     @config ?= require('koding-config-manager').load("main.#{options.configFile}")
 
     try fs.mkdirSync ".build"
+
+    @buildFramework()
 
     if @config.client.runtimeOptions.precompiledApi
       exec 'coffee ./bongo-api-builder/build.coffee -o .build/api.js', =>
@@ -78,6 +90,7 @@ module.exports = class Builder
     else
       fs.writeFileSync '.build/api.js', '', 'utf-8'
       @buildAndWatchClient options
+
 
   buildAndWatchClient: (options) ->
 
