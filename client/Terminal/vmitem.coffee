@@ -21,7 +21,8 @@ class TerminalStartTabVMItem extends KDCustomHTMLView
         color       : '#ffffff'
 
     @callToAction = new KDCustomHTMLView
-      tagName : 'span'
+      tagName  : 'span'
+      cssClass : 'call-to-action'
 
     @notice = new KDCustomHTMLView
       tagName : 'i'
@@ -42,8 +43,6 @@ class TerminalStartTabVMItem extends KDCustomHTMLView
       return
 
     @unsetClass 'off ready'
-    # niceMessage = MESSAGE_MAP[message.toLowerCase()]
-    # @notice.updatePartial niceMessage or message
 
     if message is 'STARTED'
       # @loader.canvas.setColor "#1aaf5d"
@@ -101,19 +100,10 @@ class TerminalStartTabVMItem extends KDCustomHTMLView
         @setClass 'off'
         @notice.updatePartial 'OFF'
 
-    @loader.hide()
 
 
-  click : ->
+  click : -> @emit 'VMItemClicked', @getData()
 
-    osKite = KD.singletons.vmController.kites[@getData().hostnameAlias]
-
-    if @hasClass 'ready'
-      @emit 'VMItemClicked', @getData()
-    else if @hasClass 'off'
-      osKite?.vmOn()
-    else
-      osKite?.vmOff()
 
   viewAppended:JView::viewAppended
 
