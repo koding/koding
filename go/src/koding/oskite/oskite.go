@@ -33,7 +33,7 @@ import (
 
 const (
 	OSKITE_NAME    = "oskite"
-	OSKITE_VERSION = "0.1.5"
+	OSKITE_VERSION = "0.1.6"
 )
 
 var (
@@ -90,7 +90,6 @@ func New(c *config.Config) *Oskite {
 }
 
 func (o *Oskite) Run() {
-
 	log.SetLevel(o.LogLevel)
 
 	log.Info("Using default VM timeout: %v", o.VmTimeout)
