@@ -4,6 +4,8 @@ import (
 	"net/http"
 	"socialapi/workers/api/modules/channel"
 	"socialapi/workers/api/modules/message"
+	"socialapi/workers/api/modules/messagelist"
+	"socialapi/workers/api/modules/participant"
 
 	"github.com/rcrowley/go-tigertonic"
 )
@@ -33,6 +35,23 @@ func Inject(mux *tigertonic.TrieServeMux) *tigertonic.TrieServeMux {
 	mux.Handle("POST", "/channel/{id}", handlerWrapper(channel.Update, "channel-update"))
 	mux.Handle("DELETE", "/channel/{id}", handlerWrapper(channel.Delete, "channel-delete"))
 	mux.Handle("GET", "/channel/{id}", handlerWrapper(channel.Get, "channel-get"))
+
+	// add participant into a channel
+	mux.Handle("POST", "/channel/{id}/participant", handlerWrapper(participant.Add, "participant-add"))
+
+	// remove participant from a channel
+	mux.Handle("DELETE", "/channel/{id}/participant", handlerWrapper(participant.Delete, "participant-remove"))
+
+	// list participants of the channnel
+	mux.Handle("GET", "/channel/{id}/participant", handlerWrapper(participant.List, "participant-remove"))
+
+	// list messages of the channel
+	mux.Handle("GET", "/channel/{id}/history", handlerWrapper(messagelist.List, "channel-history-list"))
+
+	// mux.Handle("POST", "/participant", handlerWrapper(participant.Create, "channel-create"))
+	// mux.Handle("POST", "/participant/{id}", handlerWrapper(participant.Update, "channel-update"))
+	// mux.Handle("DELETE", "/participant/{id}", handlerWrapper(participant.Delete, "channel-delete"))
+	// mux.Handle("GET", "/participant/{id}", handlerWrapper(participant.Get, "channel-get"))
 
 	// mux.Handle("POST", "/post/{postId}/like", handlerWrapper(post, "update-post"))
 	// mux.Handle("DELETE", "/post/{postId}/like/{likeId}", handlerWrapper(post, "update-post"))
