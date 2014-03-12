@@ -13,7 +13,7 @@ class TeamworkAppView extends KDView
   handleQuery: (query) ->
     @teamworkApp = @createApp query  unless @teamworkApp
     importUrl = query.importUrl or query.import
-    if query.sessionKey then @handleSessionKey query.sessionKey
+    if query.sessionKey then @handleSessionKey Encoder.XSSEncode query.sessionKey
     else if importUrl then @handleImportUrl importUrl
     else if @teamworkApp.getOption "sessionKey" then @restoreLocation()
     else @teamworkApp.emit "NewSessionRequested"
