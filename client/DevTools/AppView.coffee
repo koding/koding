@@ -143,26 +143,28 @@ class DevToolsMainView extends KDView
 
       {JSEditor, CSSEditor} = panes = @workspace.activePanel.panesByName
 
-      JSEditor.ready =>
+      KD.singletons.vmController.ready =>
 
-        JSEditor.codeMirrorEditor.on "change", \
-          _.debounce (@lazyBound 'previewApp', no), 500
+        JSEditor.ready =>
 
-        JSEditor.on "RunRequested", @lazyBound 'previewApp', yes
-        JSEditor.on "AutoRunRequested", toggleAutoRun
+          JSEditor.codeMirrorEditor.on "change", \
+            _.debounce (@lazyBound 'previewApp', no), 500
 
-        JSEditor.on "OpenedAFile", (file, content)->
-          app = KodingAppsController.getAppInfoFromPath file.path
-          button = @workspace.panels.first.headerButtons['Compile']
-          if app then button.enable() else button.disable()
+          JSEditor.on "RunRequested", @lazyBound 'previewApp', yes
+          JSEditor.on "AutoRunRequested", toggleAutoRun
 
-      CSSEditor.ready =>
+          JSEditor.on "OpenedAFile", (file, content)->
+            app = KodingAppsController.getAppInfoFromPath file.path
+            button = @workspace.panels.first.headerButtons['Compile']
+            if app then button.enable() else button.disable()
 
-        CSSEditor.codeMirrorEditor.on "change", \
-          _.debounce (@lazyBound 'previewCss', no), 500
+        CSSEditor.ready =>
 
-        CSSEditor.on "RunRequested", @lazyBound 'previewCss', yes
-        CSSEditor.on "AutoRunRequested", toggleAutoRun
+          CSSEditor.codeMirrorEditor.on "change", \
+            _.debounce (@lazyBound 'previewCss', no), 500
+
+          CSSEditor.on "RunRequested", @lazyBound 'previewCss', yes
+          CSSEditor.on "AutoRunRequested", toggleAutoRun
 
 
   previewApp:(force = no)->
