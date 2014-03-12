@@ -13,7 +13,9 @@ class KodingSwitch extends KDOnOffSwitch
 
     @domElement = $ "<div class='kdinput koding-on-off off #{cssClass}'><a href='#' class='knob' title='turn on'></a></div>"
 
-  mouseDown:-> @setValue if @getValue() is on then off else on
+  mouseDown:->
+    unless @getOption 'disabled'
+      @setValue if @getValue() is on then off else on
 
 
   setOff:(wCallback = yes)->
