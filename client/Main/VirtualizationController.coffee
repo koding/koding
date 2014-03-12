@@ -289,7 +289,7 @@ class VirtualizationController extends KDController
   hasDefaultVM:(callback)->
     KD.remote.api.JVM.fetchDefaultVm callback
 
-  createDefaultVM: (callback)->
+  createDefaultVM: (stackId, callback)->
     @hasDefaultVM (err, state)->
       return warn 'Default VM already exists.'  if state
 
@@ -303,7 +303,7 @@ class VirtualizationController extends KDController
         duration      : 120000
 
       { JVM } = KD.remote.api
-      JVM.createFreeVm (err, vm)->
+      JVM.createFreeVm stackId, (err, vm)->
         unless err
           vmController = KD.getSingleton('vmController')
           vmController.fetchDefaultVmName (defaultVmName)->
@@ -314,10 +314,10 @@ class VirtualizationController extends KDController
           notify?.destroy()
           KD.showError err
 
-  createNewVM: (callback)->
+  createNewVM: (stackId, callback)->
     @hasDefaultVM (err, state)=>
       create = @bound if state then "createPaidVM" else "createDefaultVM"
-      create callback
+      create stackId, callback
 
   showVMDetails: (vm)->
     vmName = vm.hostnameAlias
@@ -348,7 +348,7 @@ class VirtualizationController extends KDController
           callback  : =>
             modal.destroy()
 
-  createPaidVM: ->
+  createPaidVM: (stackId) ->
     @payment.fetchActiveSubscription tags: "vm", (err, subscription) =>
       if err
         if err.code is "no subscription"
@@ -360,7 +360,7 @@ class VirtualizationController extends KDController
 
       KD.remote.api.JPaymentPack.one tags: "vm", (err, pack) =>
         return KD.showError err  if err
-        @provisionVm {subscription, productData: {pack}}, (err, nonce) =>
+        @provisionVm {stackId, subscription, productData: {pack}}, (err, nonce) =>
           return  unless err
           if err.message is "quota exceeded"
             if KD.getGroup().slug is "koding"
@@ -382,7 +382,7 @@ class VirtualizationController extends KDController
     upgradeForm.on "Cancel", modal.bound "destroy"
     return modal
 
-  provisionVm: ({ subscription, paymentMethod, productData }, callback) ->
+  provisionVm: ({ subscription, stackId, paymentMethod, productData }, callback) ->
     { JVM } = KD.remote.api
 
     { plan, pack } = productData
@@ -394,14 +394,14 @@ class VirtualizationController extends KDController
       plan.subscribe paymentMethod.paymentMethodId, (err, subscription) =>
         return  if KD.showError err
 
-        @provisionVm { subscription, productData }, callback
+        @provisionVm { subscription, productData, stackId }, callback
 
       return
 
     payment.debitSubscription subscription, pack, (err, nonce) =>
       return callback err  if err
 
-      JVM.createVmByNonce nonce, (err, vm) =>
+      JVM.createVmByNonce nonce, stackId, (err, vm) =>
         return  if KD.showError err
 
         @emit 'VMListChanged'
