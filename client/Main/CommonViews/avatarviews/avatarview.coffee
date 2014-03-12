@@ -97,7 +97,10 @@ class AvatarView extends LinkView
 
     @$('cite').addClass flags
 
-    @setAttribute "href", "/#{profile.nickname}"
+    KD.getSingleton("groupsController").ready =>
+      {slug} = KD.getSingleton("groupsController").getCurrentGroup()
+      href = if slug is "koding" then "/#{profile.nickname}" else "/#{slug}/#{profile.nickname}"
+      @setAttribute "href", href
 
     @showStatus()  if @getOptions().showStatus
 

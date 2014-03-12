@@ -71,10 +71,6 @@ class ActivityActionsView extends KDView
 
         KD.mixpanel "Activity share, click"
 
-        new KDOverlayView
-          parent      : KD.singletons.mainView.mainTabView.activePane
-          transparent : yes
-
     @likeView = new LikeView
       cssClass           : "logged-in action-container"
       useTitle           : yes

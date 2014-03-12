@@ -63,9 +63,8 @@ class OsKite extends KDKite
   fetchState: ->
     @vmInfo().then (state) =>
       @recentState = state
-      if state
-      then @emit 'vm.state.info', @recentState
-      else @cycleChannel() # backend's cycleChannel regressed - SY
+      @emit 'vm.state.info', @recentState
+      @cycleChannel()  unless state # backend's cycleChannel regressed - SY
 
   vmOn: ->
     if not @recentState? or @recentState.state is 'STOPPED'

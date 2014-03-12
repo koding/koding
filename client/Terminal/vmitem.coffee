@@ -6,7 +6,7 @@ class TerminalStartTabVMItem extends KDCustomHTMLView
 
   constructor:(options = {}, data)->
 
-    options.tagName = 'li'
+    options.tagName  = 'li'
     options.cssClass = KD.utils.curry 'vm-loader-item', options.cssClass
 
     super options, data
@@ -19,6 +19,9 @@ class TerminalStartTabVMItem extends KDCustomHTMLView
       showLoader    : yes
       loaderOptions :
         color       : '#ffffff'
+
+    @callToAction = new KDCustomHTMLView
+      tagName : 'span'
 
     @notice = new KDCustomHTMLView
       tagName : 'i'
@@ -79,9 +82,10 @@ class TerminalStartTabVMItem extends KDCustomHTMLView
   handleVMInfo:(info)->
 
     unless info
-      @unsetClass 'ready'
+      @unsetClass 'ready off'
       @loader.show()
       @notice.updatePartial 'LOADING'
+      @progress.setWidth 0, '%'
       return
 
     { state } = info
@@ -107,11 +111,9 @@ class TerminalStartTabVMItem extends KDCustomHTMLView
     if @hasClass 'ready'
       @emit 'VMItemClicked', @getData()
     else if @hasClass 'off'
-      @once "vm.is.prepared", => @emit 'VMItemClicked', @getData()
       osKite?.vmOn()
     else
       osKite?.vmOff()
-
 
   viewAppended:JView::viewAppended
 
@@ -120,7 +122,7 @@ class TerminalStartTabVMItem extends KDCustomHTMLView
     vm    = @getData()
     alias = vm.hostnameAlias
     """
-    <figure>{{> @loader}}</figure>#{alias.replace 'koding.kd.io', 'kd.io'}{{> @notice}}
+    <figure>{{> @loader}}</figure>#{alias.replace 'koding.kd.io', 'kd.io'}{{> @callToAction}}{{> @notice}}
     {{> @progress}}
     """
 

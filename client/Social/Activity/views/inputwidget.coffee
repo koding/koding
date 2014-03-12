@@ -149,7 +149,7 @@ class ActivityInputWidget extends KDView
     @currentHelperNames = []
 
   submit: (callback) ->
-    return  unless value = @input.getValue().trim()
+    return @reset yes unless value = @input.getValue().trim()
 
     {JTag} = KD.remote.api
 
@@ -260,10 +260,10 @@ class ActivityInputWidget extends KDView
     @input.setContent ""
     @input.blur()
     @embedBox.resetEmbedAndHide()
-    # @submitButton.setTitle "Post"
-    @submitButton.focus()
-    setTimeout (@bound "unlockSubmit"), 8000
-    @unlockSubmit()  if lock
+
+    if lock
+    then @unlockSubmit()
+    else KD.utils.wait 8000, @bound "unlockSubmit"
 
   lockSubmit: ->
     @submitButton.disable()
@@ -317,6 +317,7 @@ class ActivityEditWidget extends ActivityInputWidget
       type        : "submit"
       cssClass    : "solid green"
       iconOnly    : no
+      loader      : yes
       title       : "Done editing"
       callback    : @bound "submit"
 

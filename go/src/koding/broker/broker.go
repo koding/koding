@@ -49,7 +49,7 @@ var (
 	flagProfile      = flag.String("c", "", "Configuration profile from file")
 	flagBrokerDomain = flag.String("a", "", "Send kontrol a custom domain istead of os.Hostname")
 	flagKontrolUUID  = flag.String("u", "", "Enable Kontrol mode")
-	flagBrokerType   = flag.String("b", "broker", "Define broker type. Available: broker and brokerKite. B")
+	flagBrokerType   = flag.String("b", "broker", "Define broker type. Available: broker, premiumBroker and brokerKite, premiumBrokerKite. B")
 	flagDebug        = flag.Bool("d", false, "Debug mode")
 )
 
@@ -105,6 +105,8 @@ func main() {
 	broker := NewBroker(conf)
 
 	switch *flagBrokerType {
+	case "premiumBroker":
+		broker.Config = &conf.PremiumBroker
 	case "brokerKite":
 		broker.Config = &conf.BrokerKite
 	case "premiumBrokerKite":
@@ -171,7 +173,7 @@ func (b *Broker) registerToKontrol() error {
 	if err := kontrolhelper.RegisterToKontrol(
 		conf,
 		b.Config.Name,
-		b.Config.Name, // servicGenericName
+		b.Config.ServiceGenericName, // servicGenericName
 		b.ServiceUniqueName,
 		*flagKontrolUUID,
 		b.Hostname,
@@ -189,12 +191,12 @@ func (b *Broker) startAMQP() error {
 	b.ConsumeConn = amqputil.CreateConnection(conf, b.Config.Name)
 	consumeChannel := amqputil.CreateChannel(b.ConsumeConn)
 	presenceQueue := amqputil.JoinPresenceExchange(
-		consumeChannel,      // channel
-		"services-presence", // exchange
-		b.Config.Name,       // serviceType
-		b.Config.Name,       // serviceGenericName
-		b.ServiceUniqueName, // serviceUniqueName
-		false,               // loadBalancing
+		consumeChannel,              // channel
+		"services-presence",         // exchange
+		b.Config.Name,               // serviceType
+		b.Config.ServiceGenericName, // serviceGenericName
+		b.ServiceUniqueName,         // serviceUniqueName
+		false,                       // loadBalancing
 	)
 
 	go func() {
@@ -204,7 +206,7 @@ func (b *Broker) startAMQP() error {
 		consumeChannel.QueueDelete(presenceQueue, false, false, false)
 	}()
 
-	stream := amqputil.DeclareBindConsumeQueue(consumeChannel, "topic", b.Config.Name, "#", false)
+	stream := amqputil.DeclareBindConsumeQueue(consumeChannel, "topic", b.Config.ServiceGenericName, "#", false)
 
 	if err := consumeChannel.ExchangeDeclare(
 		"updateInstances", // name

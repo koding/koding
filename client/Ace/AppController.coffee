@@ -25,6 +25,7 @@ class AceAppController extends AppController
     menu          : [
       { title     : "Save",                eventName : "save" }
       { title     : "Save as...",          eventName : "saveAs" }
+      { title     : "Save All",            eventName : "saveAll" }
       { type      : "separator" }
       { title     : "Find",                eventName : "find" }
       { title     : "Find and replace...", eventName : "findAndReplace" }
