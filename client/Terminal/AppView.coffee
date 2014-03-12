@@ -28,7 +28,8 @@ class WebTermAppView extends JView
 
     @addStartTab()
 
-    @on 'VMItemClicked', (vm)=> @createNewTab {vm}
+    @on 'VMItemClicked',     @bound 'prepareAndRunTerminal'
+    @on 'PlusHandleClicked', @bound 'handlePlusClick'
 
 
   initPane: (pane) ->
@@ -64,14 +65,11 @@ class WebTermAppView extends JView
 
   restoreTabs: (vm) ->
 
-    notification = new KDNotificationView
+    notify
       title     : "Checking for previous sessions"
-      type      : "mini"
       cssClass  : "success"
-      duration  : 5000
 
     @fetchStorage (storage) =>
-      notification.destroy()
       sessions = storage.getValue 'savedSessions'
       activeIndex = storage.getValue 'activeIndex'
       if sessions?.length
@@ -150,6 +148,9 @@ class WebTermAppView extends JView
     else terminalView.once 'WebTermConnected', runner
 
   handleQuery:(query)->
+
+    console.trace()
+
     pane = @tabView.getActivePane()
     {terminalView} = pane.getOptions()
     terminalView.terminal?.scrollToBottom()
@@ -267,24 +268,47 @@ class WebTermAppView extends JView
 
   addNewTab: (vm) ->
 
-    if @_secondTab
-      KD.mixpanel "Open new Webterm tab, success"
+    KD.mixpanel "Open new Webterm tab, success"  if @_secondTab
 
-    @_secondTab   = yes
-    mode          = 'create'
+    @_secondTab = yes
+    mode        = 'create'
 
-    if vm?
-      @createNewTab {vm, mode}
+    @prepareAndRunTerminal vm, mode
 
+
+  showVMSelection:->
+
+    return  if @vmselection and not @vmselection.isDestroyed
+    @vmselection = new VMSelection delegate : this
+
+
+  handlePlusClick:->
+
+    vmc = KD.getSingleton 'vmController'
+    if vmc.vms.length > 1 then @showVMSelection()
     else
-      @utils.defer =>
+      vm            = vmc.vms.first
+      osKite        = vmc.kites[vm.hostnameAlias]
+      {recentState} = osKite
+      if recentState?.state is 'RUNNING'
+      then @prepareAndRunTerminal vm
+      else notify cssClass : 'error'
 
-        vmc = KD.getSingleton 'vmController'
-        if vmc.vms.length > 1
-          return  if @vmselection and not @vmselection.isDestroyed
-          @vmselection = new VMSelection delegate : this
-        else
-          @createNewTab {vm : vmc.vms.first, mode}
+  prepareAndRunTerminal: (vm, mode = 'create') ->
+
+    {vmController} = KD.singletons
+    osKite         = vmController.kites[vm.hostnameAlias]
+    {recentState}  = osKite
+
+    if recentState?.state is 'RUNNING'
+      @createNewTab {vm, mode}
+    else if recentState?.state is 'STOPPED'
+      osKite?.vmOn()
+    else
+      notify cssClass : 'error'
+      osKite?.vmOff()
+
+
 
   pistachio: ->
     """
@@ -292,3 +316,18 @@ class WebTermAppView extends JView
     {{> @tabView}}
     """
 
+
+  notify = do ->
+
+    notification = null
+
+    (options = {}) =>
+
+      notification?.destroy()
+
+      options.title     or= "We can not communicate with your VM, please try again later!"
+      options.type      or= "mini"
+      options.cssClass  or= "success"
+      options.duration   ?= 5000
+
+      notification = new KDNotificationView options
