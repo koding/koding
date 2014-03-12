@@ -159,9 +159,16 @@ class AceAppView extends JView
 
     @tabView.addPane pane
     pane.addSubView aceView
+    pane.on "KDTabPaneActive", => @selectCurrentFileAtFinder aceView
 
     # save opened file to localStorage, so that we can open same files on refresh.
     KD.singletons.localSync.addToOpenedFiles file.path
+
+  selectCurrentFileAtFinder: (aceView)->
+    {treeController}  = KD.singletons.appManager.get("Finder").controller
+    treeController.deselectAllNodes()
+    nodeName = FSHelper.getFullPath aceView.data # we need filepath with VM address
+    treeController.selectNode treeController.nodes[nodeName]
 
   setViewListeners: (view) ->
     @setFileListeners view.getData()
