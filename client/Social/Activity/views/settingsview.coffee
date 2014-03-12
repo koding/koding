@@ -54,6 +54,13 @@ class ActivitySettingsView extends KDCustomHTMLView
       menu['Add System Tag'] =
         callback : => @selectSystemTag post
 
+      menu['Impersonate'] =
+        callback : ->
+          KD.remote.cacheable post.originType, post.originId, (err, owner) ->
+            return KD.showError err  if err
+            return KD.showError message: "Account not found"  unless owner
+            KD.impersonate owner.profile.nickname
+
     return menu
 
   viewAppended: -> @addSubView @settings
