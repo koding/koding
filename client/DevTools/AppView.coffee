@@ -305,10 +305,8 @@ class DevToolsEditorPane extends CollaborativeEditorPane
     path = @storage.getAt @_lastFileKey
     return  unless path
 
-    @loadFile path, (err, data)=>
-      if err
-        KD.showError "Failed to load last open file: #{path}"
-        @storage.unsetKey @_lastFileKey
+    @loadFile path, (err)=>
+      @storage.unsetKey @_lastFileKey  if err?
 
   createEditor: (callback)->
 
