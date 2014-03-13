@@ -14,8 +14,8 @@ class HealthChecker extends KDObject
 
   setPingTimeout: ->
     @pingTimeout = setTimeout =>
-      @emit "failed"
       @status = "down"
+      @emit "healthCheckCompleted"
     , 5000
 
   finish: (data)->
@@ -23,7 +23,7 @@ class HealthChecker extends KDObject
     @finishTime = Date.now()
     clearTimeout @pingTimeout
     @pingTimeout = null
-    @emit "finish"
+    @emit "healthCheckCompleted"
 
   getResponseTime: ->
     status = switch @status
