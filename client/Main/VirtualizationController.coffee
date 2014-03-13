@@ -24,12 +24,19 @@ class VirtualizationController extends KDController
       options =
         withArgs : command
 
+    @runHelper options, callback
+
+  runHelper: (options, callback) ->
     @fetchVmName options, (err, vmName) =>
       return callback err  if err?
       options.correlationName = vmName
       @fetchRegion vmName, (region)=>
         options.kiteName = "os-#{region}"
         @kc.run options, callback
+
+  ping: (callback) ->
+    options = {}
+    @runHelper options, callback
 
   _runWrapper:(command, vm, callback)->
     if vm and 'string' isnt typeof vm
