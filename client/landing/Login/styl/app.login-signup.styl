@@ -1,4 +1,4 @@
-@import "../../Framework/themes/default/kdfn"
+@import "../../Framework/src/themes/default/kdfn"
 @import "../../Main/styl/appfn"
 
 @css {
@@ -8,63 +8,92 @@ app.login-signup.styl
 */
 }
 
+body.login
+  #kdmaincontainer
+    min-height        400px
+
 .kdview.login-screen
   background          #111617
   bg                  size cover
   text-align          center
-  position            fixed
-  padding             0
+  position            relative
+  overflow            auto
   borderBox()
   &.shown
     top               0
 
+  .koding-logo
+    rounded           2px
+    size              45px 45px
+    bg                color, logoBg
+    top               16px
+    left              16px
+    fix()
+
+    cite
+      r-sprite        home 'logo'
+      margin          14px
+      display         block
+
   .tint
     size                100% 100%
     z-index             0
+    top                 0
+    left                0
     bg                  color, rgba(0,0,0,.6)
     abs()
 
   .flex-wrapper
     z-index             1
-    size                419px 353px
-    margin              -300px auto 0 auto
+    size                320px auto
+    margin              -205px auto 0 auto
     top                 50%
-    rounded             5px
+    rounded             4px
     bg                  color #F4F4F4
-    // vendor              transition, height .1s ease-out\,\
-    //                                 width  .4s ease-in-out\,\
-    //                                 margin .4s ease-in-out
+    padding             37px
+    shadow              0 10px 16px rgba(0, 0, 0, .27)
+    borderBox()
     rel()
-    &.one
-      height            281px
-    &.three
-      height            427px
+    // &.one
+    //   height            281px
+    // &.three
+    //   height            427px
 
   a
     noTextDeco()
     color               white
     font-size           14px
-  i
-    color               white
-    font-size           10px
-    font-style          normal
-    margin              0 5px
-    vertical-align      top
-    line-height         19px
-
 
   footer
     fix()
-    color               white
-    margin-left         -210px
-    size                419px auto
-    bottom              0
-    left                50%
-    font-size           13px
+    bottom              22px
+    left                9px
     a
-      color             #ddd
-      span
-        color           #aaa
+      color             rgba(255, 255, 255, .5)
+      margin-left       13px
+      font-size         12px
+
+  h4.form-header
+    padding             0 0 28px
+    margin              0 0 28px
+    font-size           15px
+    color               #53585c
+    rel()
+
+    &:after
+      content           ""
+      display           block
+      abs               100% 0 0
+      size              100%, 1px
+      opacity           .4
+      bg                image, -webkit-linear-gradient(left, transparent 0%, #bdc3c7 50%, transparent 100%)
+
+    a
+      color             #1aaf5d
+      font-weight       400
+      padding-bottom    2px
+      border-bottom     1px solid #1aaf5d
+
 
   .login-form-holder
   .login-options-holder
@@ -111,7 +140,7 @@ app.login-signup.styl
     .login-options-holder.reg
       visible()
     .flex-wrapper
-      height                400px
+      height                auto
       &.taller
         height              470px
 
@@ -140,8 +169,6 @@ app.login-signup.styl
     .rcf
     .logLink
       visible()
-    .rcf > form
-      margin-top          15px
 
   &.reset
     .rsf
@@ -154,14 +181,13 @@ app.login-signup.styl
     .resend-confirmation-form
     .logLink
       visible()
-    .resend-confirmation-form > form
-      margin-top          15px
 
   .login-hint
     color                 #B4B3B3
     margin                0 auto 10px auto
-    width                 327px
+    width                 auto
     font-size             11px
+    top                   -14px
 
   .failure-notice
     size                auto, auto
@@ -191,64 +217,28 @@ app.login-signup.styl
       color             logoBg
 
   .login-footer
-    abs()
-    size                  419px auto
-    margin                0 auto
-    padding               10px 0
-    color                 white
+    width               100%
+    abs                 100% 0 0 0px
+    padding             24px 14px 0
     borderBox()
-    .first-row
-      margin-bottom       20px
-    p
-      line-height         24px
-      font-size           12px
-      color               rgba(255, 255, 255, .75)
-    button
-      width               100%
-    button.solid.github
-      height              74px
-      text-align          left
-      span.button-title
-        line-height       74px
-        margin-left       20px
-      span.button-arrow
-        abs()
-        display         block
-        right           20px
-        top             27px
-        r-sprite          app 'login-right-arrow'
-      .icon
-        padding           0
-        r-sprite            app 'login-github'
 
-.login-box-header
-  rel()
-  text-align              center
-  overflow                visible
-  height                  72px
-  borderBox()
+    a
+      font-size           14px
+      font-weight         200
+      opacity             .9
+      letter-spacing      .2px
 
-  .logo
-    font-size             0
-    size                  110px 72px
-    cursor                pointer
-    rounded               0 0 5px 5px
-    bg                    color logoBg
-    blockMid()
-    cite
-      margin              19px auto 0 auto
-      display             block
-      r-sprite              app logo-login
-  a.back-to-login
-    font-size             11px
-    abs()
-    width                 100%
-    bottom                10px
-    left                  0
-    noTextDeco()
+      strong
+        font-weight       500
+
+    .github-login
+      fl()
+
+    .forgot-link
+      color               #cfcfcf
+      fr()
 
 .login-form-holder
-  margin                  36px 0 0 0
   padding-bottom          0
   height                  auto
 
@@ -259,7 +249,7 @@ app.login-signup.styl
     rel()
     text-align            center
     .kdview
-      width               327px
+      width               auto
       margin              0 auto 17px auto
 
       &.half-size
@@ -288,7 +278,7 @@ app.login-signup.styl
       //     opacity         1
 
   p
-    size              327px, 0
+    size              auto, 0
     margin            0 auto
     color             #f2f2f2
     font-size         10px
@@ -321,9 +311,9 @@ app.login-signup.styl
       abs()
       size              100% auto
       left              0
-      color             #93979a
-      top               19px
-      font-size         16px
+      color             #53585c
+      top               14px
+      font-size         14px
       text-align        center
       z-index           0
       opacity           1
@@ -367,7 +357,7 @@ app.login-signup.styl
     text-align          left
     color               #B4B3B3
     margin              0 auto
-    width               327px
+    width               auto
     line-height         36px
     font-size           12px
     overflow            hidden
@@ -410,8 +400,10 @@ app.login-signup.styl
       padding-right     5px
 
   button
-    width               327px
-    margin-bottom       46px
+    display             block
+    width               100% !important
+    rounded             27px !important
+
     &.loading
       color             rgba(255,255,255,.8)
       &:hover
@@ -421,7 +413,7 @@ app.login-signup.styl
     font-size           14px
     line-height         18px
     color               #6e7879
-    margin              18px 46px
+    margin              18px 0
     strong
       font-weight       600
 
@@ -473,3 +465,9 @@ p.login-tip
 
   span
     color               #ffb500
+
+body.login.koding
+  .header-notification
+    top                 -29px
+    &.in
+      top               0

@@ -54,12 +54,10 @@ class RegisterInlineForm extends LoginViewInlineForm
         decorateValidation: no
 
     @button = new KDButtonView
-      title         : "CREATE ACCOUNT"
+      title         : "Create account"
       type          : 'submit'
-      style         : "solid green"
-      loader        :
-        color       : "#ffffff"
-        diameter    : 21
+      style         : "solid green medium"
+      loader        : yes
 
     @invitationCode = new LoginInputView
       cssClass      : "hidden"

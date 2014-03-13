@@ -146,10 +146,10 @@ class StartTabMainView extends JView
 
   startGuestTimer:->
     return  unless KD.isGuest()
-    unless $.cookie "guestForFirstTime"
+    unless Cookies.get "guestForFirstTime"
       @utils.wait 5*60*1000, =>
         @showGuestNotification()
-        $.cookie "guestForFirstTime", yes
+        Cookies.set "guestForFirstTime", yes
     else
       @showGuestNotification()
 
@@ -171,8 +171,8 @@ class StartTabMainView extends JView
         KD.remote.api.JVM.removeByHostname defaultVmName, (err)->
           KD.getSingleton("finderController").unmountVm defaultVmName
           KD.getSingleton("vmController").emit 'VMListChanged'
-          $.cookie "clientId", erase: yes
-          $.cookie "guestForFirstTime", erase: yes
+          Cookies.expire "clientId"
+          Cookies.expire "guestForFirstTime"
 
   # Common parts
 
