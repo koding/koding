@@ -6,14 +6,19 @@ import (
 	"net/url"
 	"socialapi/models"
 	"socialapi/workers/api/modules/helpers"
-	"strconv"
 
+	"github.com/coreos/go-log/log"
 	"github.com/jinzhu/gorm"
 )
 
 func Add(u *url.URL, h http.Header, req *models.ChannelParticipant) (int, http.Header, interface{}, error) {
-	id, err := strconv.ParseInt(u.Query().Get("id"), 10, 64)
+	id, err := helpers.GetId(u)
 	if err != nil {
+		return helpers.NewBadRequestResponse()
+	}
+
+	if req.AccountId == 0 {
+		log.Error("account id is not set")
 		return helpers.NewBadRequestResponse()
 	}
 
@@ -28,8 +33,13 @@ func Add(u *url.URL, h http.Header, req *models.ChannelParticipant) (int, http.H
 }
 
 func Delete(u *url.URL, h http.Header, req *models.ChannelParticipant) (int, http.Header, interface{}, error) {
-	id, err := strconv.ParseInt(u.Query().Get("id"), 10, 64)
+	id, err := helpers.GetId(u)
 	if err != nil {
+		return helpers.NewBadRequestResponse()
+	}
+
+	if req.AccountId == 0 {
+		log.Error("account id is not set")
 		return helpers.NewBadRequestResponse()
 	}
 
@@ -44,7 +54,7 @@ func Delete(u *url.URL, h http.Header, req *models.ChannelParticipant) (int, htt
 
 func List(u *url.URL, h http.Header, req *models.ChannelParticipant) (int, http.Header, interface{}, error) {
 	fmt.Println(u.Query().Get("id"))
-	id, err := strconv.ParseInt(u.Query().Get("id"), 10, 64)
+	id, err := helpers.GetId(u)
 	if err != nil {
 		fmt.Println(err)
 		return helpers.NewBadRequestResponse()
@@ -56,7 +66,6 @@ func List(u *url.URL, h http.Header, req *models.ChannelParticipant) (int, http.
 		if err == gorm.RecordNotFound {
 			return helpers.NewNotFoundResponse()
 		}
-		fmt.Println(err)
 		return helpers.NewBadRequestResponse()
 	}
 
