@@ -2,7 +2,6 @@ package models
 
 import (
 	"errors"
-	"socialapi/db"
 	"time"
 )
 
@@ -21,25 +20,22 @@ type ChannelMessageList struct {
 }
 
 func NewChannelMessageList() *ChannelMessageList {
-	now := time.Now().UTC()
-	return &ChannelMessageList{
-		ChannelId: 1,
-		MessageId: 1,
-		AddedAt:   now,
-	}
+	return &ChannelMessageList{}
 }
 
 func (c *ChannelMessageList) Fetch() error {
-	if err := db.DB.First(c, c.Id).Error; err != nil {
+	if err := First(c, c.Id); err != nil {
 		return err
 	}
 	return nil
 }
 
 func (c *ChannelMessageList) Save() error {
+	// add those time related properties on write time
+	// from database with now() command
 	c.AddedAt = time.Now().UTC()
 
-	if err := db.DB.Save(c).Error; err != nil {
+	if err := Save(c); err != nil {
 		return err
 	}
 	return nil
@@ -50,7 +46,7 @@ func (c *ChannelMessageList) Delete() error {
 		return errors.New("Channel id is not set")
 	}
 
-	if err := db.DB.Delete(c).Error; err != nil {
+	if err := Delete(c); err != nil {
 		return err
 	}
 
