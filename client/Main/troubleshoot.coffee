@@ -96,7 +96,7 @@ class ConnectionChecker extends KDObject
 
   constructor: (options, data)->
     super options, data
-    @url = "https://s3.amazonaws.com/koding-ping/ping.json"
+    @url = data
 
   ping: (callback) ->
     KD.connectionPong = callback.bind this
