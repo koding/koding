@@ -34,8 +34,11 @@ class Troubleshoot extends KDObject
     # register webserver status
     webserverStatus = new ConnectionChecker({}, window.location.origin + "/healthCheck")
     @registerItem "webServer", webserverStatus, webserverStatus.ping
+    # register bongo
+    KD.remote.once "modelsReady", =>
+      bongoStatus = KD.remote.api.JSystemStatus
+      @registerItem "bongo", bongoStatus, bongoStatus.healthCheck
     @vc = KD.singleton "vmController"
-    @registerItem "bongo", KD.remote
     @registerItem "broker", KD.remote.mq
     @registerItem "osKite", @vc
 
