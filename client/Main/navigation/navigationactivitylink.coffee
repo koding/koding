@@ -19,7 +19,7 @@ class NavigationActivityLink extends KDCustomHTMLView
 
     @icon  = new KDCustomHTMLView
       tagName   : "span"
-      cssClass  : "main-nav-icon #{__utils.slugify @getData().title}"
+      cssClass  : "main-nav-icon #{utils.slugify @getData().title}"
 
     mainController = KD.getSingleton "mainController"
 

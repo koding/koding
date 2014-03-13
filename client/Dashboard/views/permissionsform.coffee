@@ -103,7 +103,7 @@ class PermissionsForm extends KDFormViewWithFields
 
     isChecked = checkForPermission set.permissions, module, permission, current
 
-    cssClass = 'permission-switch tiny '+__utils.slugify(permission)+' '+current
+    cssClass = 'permission-switch tiny '+utils.slugify(permission)+' '+current
 
     name = _getCheckboxName module, permission, current
 
@@ -131,7 +131,7 @@ class PermissionsForm extends KDFormViewWithFields
     cascadeData[current]=
       itemClass     : KDView
       partial       : readableText current
-      cssClass      : 'text header-item role-'+__utils.slugify(current)
+      cssClass      : 'text header-item role-'+utils.slugify(current)
       attributes    :
         title       : readableText current
         style       : "width : #{widthForRows}px"
@@ -158,7 +158,7 @@ class PermissionsForm extends KDFormViewWithFields
         cssClass        : 'permissions-module text'
 
       for permission in permissions
-        permissionOptions[module+'-'+__utils.slugify(permission)] =
+        permissionOptions[module+'-'+utils.slugify(permission)] =
           itemClass     : KDView
           partial       : readableText permission
           cssClass      : 'text'
