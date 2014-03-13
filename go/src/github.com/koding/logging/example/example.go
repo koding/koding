@@ -42,9 +42,9 @@ type MyHandler struct {
 	logging.BaseHandler
 }
 
-func (b *MyHandler) Handle(rec *logging.Record) {
+func (h *MyHandler) Handle(rec *logging.Record) {
 	fmt.Printf(rec.Format, rec.Args...)
 }
 
-func (b *MyHandler) Close() {
+func (h *MyHandler) Close() {
 }

@@ -74,7 +74,7 @@ func getInfo(vm *virt.VM) *VMInfo {
 // stopTimeout stops the timer for every incoming request for the given
 // channel. That whay we prevent that the VM is turned off after the timeout.
 func (v *VMInfo) stopTimeout(channel *kite.Channel) {
-	if channel != nil {
+	if channel == nil {
 		return
 	}
 
