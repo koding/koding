@@ -5,7 +5,10 @@ class EditorMacroView extends KDModalView
     keyBindings = """
     | PC (Windows/Linux)             | Mac                            | Action                         |
     |:-------------------------------|:-------------------------------|:-------------------------------|
-    | Ctrl-, | Command-, | Show the settings menu |
+    | Ctrl-S | Command-Save | Save file |
+    | Ctrl-Shift-S | Command-Shift-S | Save As... |
+    | Ctrl-Alt-S | Command-Option-S | Save All |
+    | Ctrl-W | Ctrl-W, | Close file |
     | Ctrl-Alt-Up | Ctrl-Option-Up | add multi-cursor above |
     | Ctrl-Alt-Down | Ctrl-Option-Down | add multi-cursor below |
     | Ctrl-Alt-Right | Ctrl-Option-Right | add next occurrence to multi-selection |
