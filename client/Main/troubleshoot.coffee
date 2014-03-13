@@ -92,7 +92,7 @@ class TroubleshootResult extends KDObject
   getResponseTime: ->
     @pinger.getResponseTime()
 
-class ConnectionStatus extends KDObject
+class ConnectionChecker extends KDObject
 
   constructor: (options, data)->
     super options, data
