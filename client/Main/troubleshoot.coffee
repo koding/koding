@@ -1,3 +1,6 @@
+KD.troubleshoot = ->
+  KD.singleton("troubleshoot").run()
+
 class Troubleshoot extends KDObject
 
   [PENDING, STARTED] = [1..2]
