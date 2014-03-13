@@ -5,7 +5,6 @@ import (
 	"net/url"
 	"socialapi/models"
 	"socialapi/workers/api/modules/helpers"
-	"strconv"
 
 	"github.com/jinzhu/gorm"
 )
@@ -19,7 +18,7 @@ func Create(u *url.URL, h http.Header, req *models.Channel) (int, http.Header, i
 }
 
 func Delete(u *url.URL, h http.Header, req *models.Channel) (int, http.Header, interface{}, error) {
-	id, err := strconv.ParseInt(u.Query().Get("id"), 10, 64)
+	id, err := helpers.GetId(u)
 	if err != nil {
 		return helpers.NewBadRequestResponse()
 	}
@@ -34,7 +33,7 @@ func Delete(u *url.URL, h http.Header, req *models.Channel) (int, http.Header, i
 }
 
 func Update(u *url.URL, h http.Header, req *models.Channel) (int, http.Header, interface{}, error) {
-	id, err := strconv.ParseInt(u.Query().Get("id"), 10, 64)
+	id, err := helpers.GetId(u)
 	if err != nil {
 		return helpers.NewBadRequestResponse()
 	}
@@ -44,7 +43,7 @@ func Update(u *url.URL, h http.Header, req *models.Channel) (int, http.Header, i
 		return helpers.NewBadRequestResponse()
 	}
 
-	if err := req.Save(); err != nil {
+	if err := req.Update(); err != nil {
 		return helpers.NewBadRequestResponse()
 	}
 
@@ -52,7 +51,7 @@ func Update(u *url.URL, h http.Header, req *models.Channel) (int, http.Header, i
 }
 
 func Get(u *url.URL, h http.Header, req *models.Channel) (int, http.Header, interface{}, error) {
-	id, err := strconv.ParseInt(u.Query().Get("id"), 10, 64)
+	id, err := helpers.GetId(u)
 	if err != nil {
 		return helpers.NewBadRequestResponse()
 	}
@@ -69,7 +68,7 @@ func Get(u *url.URL, h http.Header, req *models.Channel) (int, http.Header, inte
 }
 
 func PostMessage(u *url.URL, h http.Header, req *models.Channel) (int, http.Header, interface{}, error) {
-	// id, err := strconv.ParseInt(u.Query().Get("id"), 10, 64)
+	// id, err := helpers.GetId(u)
 	// if err != nil {
 	// 	return helpers.NewBadRequestResponse()
 	// }
