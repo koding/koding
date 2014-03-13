@@ -199,7 +199,6 @@ module.exports = [
 
   # trouble shooter
   "troubleshoot/troubleshoot.coffee",
-  "troubleshoot/troubleshootresult.coffee",
   "troubleshoot/healthchecker.coffee",
   "troubleshoot/connectionchecker.coffee",
 

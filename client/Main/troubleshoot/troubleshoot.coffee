@@ -65,9 +65,7 @@ class Troubleshoot extends KDObject
     waitingResponse = Object.keys(@items).length
     for own name, item of @items
       item.run()
-      @result[name] = new TroubleshootResult name, item
-      @result[name].on "completed", =>
+      item.on "healthCheckCompleted", (item) =>
         waitingResponse -= 1
-        # we can also send each response to user
         unless waitingResponse
           @emit "pingCompleted"
