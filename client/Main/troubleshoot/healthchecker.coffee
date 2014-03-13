@@ -1,26 +1,25 @@
 class HealthChecker extends KDObject
-  [NOTSTARTED, WAITING, SUCCESS, FAILED] = [1..4]
 
   constructor: (options={}, @cb) ->
     super options
 
     @identifier = options.identifier or Date.now()
-    @status = NOTSTARTED
+    @status = "not started"
 
   run: ->
-    @status = WAITING
+    @status = "waiting"
     @startTime = Date.now()
     @setPingTimeout()
     @cb @finish.bind(this)
 
   setPingTimeout: ->
     @pingTimeout = setTimeout =>
-      @status = FAILED
       @emit "failed"
+      @status = "down"
     , 5000
 
   finish: (data)->
-    @status = SUCCESS
+    @status = "success"
     @finishTime = Date.now()
     clearTimeout @pingTimeout
     @pingTimeout = null
