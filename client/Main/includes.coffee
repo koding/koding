@@ -198,7 +198,10 @@ module.exports = [
   "globalnotification.coffee",
 
   # trouble shooter
-  "troubleshoot.coffee",
+  "troubleshoot/troubleshoot.coffee",
+  "troubleshoot/troubleshootresult.coffee",
+  "troubleshoot/healthchecker.coffee",
+  "troubleshoot/connectionchecker.coffee",
 
   # avatararea
   "avatararea/avatararea.coffee",
@@ -260,7 +263,6 @@ module.exports = [
 
   "status.coffee",
   "main.coffee",
-  "monitor_status.coffee",
   "rollbar.coffee",
   "mixpanel.coffee",
   "analytic.coffee",
