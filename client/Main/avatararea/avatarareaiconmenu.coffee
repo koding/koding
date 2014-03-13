@@ -6,6 +6,11 @@ class AvatarAreaIconMenu extends JView
 
     @setClass "account-menu"
 
+    @troubleshootIcon = new AvatarAreaIconLink
+      cssClass   : "help acc-dropdown-icon"
+      attributes :
+        title    : "Troubleshoot"
+
     @helpIcon    = new AvatarAreaIconLink
       cssClass   : "help acc-dropdown-icon"
       attributes :
@@ -15,6 +20,10 @@ class AvatarAreaIconMenu extends JView
       KD.singletons.helpController.showHelp this
       KD.utils.stopDOMEvent event
       @animation?.destroy()
+
+    @troubleshootIcon.click = (event) =>
+      @_modal?.destroy()
+      @_modal = new TroubleshootModal
 
     @notificationsPopup = new AvatarPopupNotifications
       cssClass : "notifications"
@@ -37,6 +46,7 @@ class AvatarAreaIconMenu extends JView
 
   pistachio:->
     """
+    {{> @troubleshootIcon}}
     {{> @helpIcon}}
     {{> @notificationsIcon}}
     """
@@ -93,3 +103,53 @@ class AvatarAreaIconMenu extends JView
     notifications.filter (notification) ->
       snapshot = JSON.parse Encoder.htmlDecode notification.snapshot
       snapshot.anchor.constructorName in activityNameMap
+
+class TroubleshootModal extends KDModalView
+
+  constructor: (options = {}, data) ->
+    super options, data
+    KD.troubleshoot()
+    KD.singleton("troubleshoot").on "troubleshootCompleted", @bound "update"
+    status =
+      bongo :
+        status : "waiting"
+      broker:
+        status : "waiting"
+      kiteBroker:
+        status : "waiting"
+      osKite:
+        status : "waiting"
+      webServer :
+        status : "waiting"
+      connection :
+        status : "waiting"
+
+    @update status
+
+  update: (response) ->
+    @destroySubViews()
+    @bongo = new KDCustomHTMLView
+      partial : "Bongo Server Status : #{response?.bongo.status}"
+
+    @broker = new KDCustomHTMLView
+      partial : "Broker Status : #{response?.broker.status}"
+
+    @kiteBroker = new KDCustomHTMLView
+      partial : "Kite-Broker Status : #{response?.kiteBroker.status}"
+
+    @osKite = new KDCustomHTMLView
+      partial : "OS-Kite Status : #{response?.osKite.status}"
+
+    @webServer = new KDCustomHTMLView
+      partial : "Webserver Status : #{response?.webServer?.status}"
+
+    @connection = new KDCustomHTMLView
+      partial : "Internet Connection Status : #{response?.connection?.status}"
+
+    @addSubView @bongo
+    @addSubView @broker
+    @addSubView @kiteBroker
+    @addSubView @osKite
+    @addSubView @webServer
+    @addSubView @connection
+
