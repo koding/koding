@@ -69,7 +69,7 @@ func (m Model) UpdatePartial(i Modellable, rest ...map[string]interface{}) error
 		query = query.Where(i.GetId())
 	} else {
 		//add selector
-		query = getWhere(query, selector)
+		query = addWhere(query, selector)
 	}
 
 	if err := query.Update(set).Error; err != nil {
@@ -107,18 +107,18 @@ func (m Model) Some(i Modellable, data interface{}, rest ...map[string]interface
 	query := db.DB
 
 	// add sort options
-	query = getSort(query, options)
+	query = addSort(query, options)
 
 	// add table name
 	query = query.Table(i.TableName())
 
 	// add selector
-	query = getWhere(query, selector)
+	query = addWhere(query, selector)
 
 	return query.Find(data).Error
 }
 
-func getSort(query *gorm.DB, options map[string]interface{}) *gorm.DB {
+func addSort(query *gorm.DB, options map[string]interface{}) *gorm.DB {
 
 	if options == nil {
 		return query
@@ -131,7 +131,7 @@ func getSort(query *gorm.DB, options map[string]interface{}) *gorm.DB {
 	return query.Order(strings.Join(opts, ","))
 }
 
-func getWhere(query *gorm.DB, selector map[string]interface{}) *gorm.DB {
+func addWhere(query *gorm.DB, selector map[string]interface{}) *gorm.DB {
 	if selector == nil {
 		return query
 	}
