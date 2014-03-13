@@ -38,6 +38,8 @@ class Troubleshoot extends KDObject
     KD.remote.once "modelsReady", =>
       bongoStatus = KD.remote.api.JSystemStatus
       @registerItem "bongo", bongoStatus, bongoStatus.healthCheck
+    # register kite
+    @registerItem "kiteBroker", KD.kite.mq, KD.kite.mq.ping
     @vc = KD.singleton "vmController"
     @registerItem "broker", KD.remote.mq
     @registerItem "osKite", @vc
