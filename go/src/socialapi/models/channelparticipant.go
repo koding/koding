@@ -26,7 +26,9 @@ type ChannelParticipant struct {
 
 	// Modification date of the channel participant's status
 	UpdatedAt time.Time
-	m         Model
+
+	//Base model operations
+	m Model
 }
 
 const (

@@ -30,7 +30,7 @@ func Create(u *url.URL, h http.Header, req *models.ChannelMessage) (int, http.He
 	// override channel id
 	cml.ChannelId = channelId
 	cml.MessageId = req.Id
-	if err := cml.Save(); err != nil {
+	if err := cml.Create(); err != nil {
 		// todo this should be internal server error
 		return helpers.NewBadRequestResponse()
 	}

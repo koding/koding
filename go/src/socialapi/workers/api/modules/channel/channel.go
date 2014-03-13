@@ -10,7 +10,7 @@ import (
 )
 
 func Create(u *url.URL, h http.Header, req *models.Channel) (int, http.Header, interface{}, error) {
-	if err := req.Save(); err != nil {
+	if err := req.Create(); err != nil {
 		return helpers.NewBadRequestResponse()
 	}
 

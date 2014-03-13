@@ -1,9 +1,6 @@
 package models
 
-import (
-	"errors"
-	"time"
-)
+import "time"
 
 type ChannelMessageList struct {
 	// unique identifier of the channel message list
@@ -17,6 +14,21 @@ type ChannelMessageList struct {
 
 	// Addition date of the message to the channel
 	AddedAt time.Time
+
+	//Base model operations
+	m Model
+}
+
+func (c *ChannelMessageList) GetId() int64 {
+	return c.Id
+}
+
+func (c *ChannelMessageList) TableName() string {
+	return "channel_message_list"
+}
+
+func (c *ChannelMessageList) Self() Modellable {
+	return c
 }
 
 func NewChannelMessageList() *ChannelMessageList {
@@ -24,31 +36,13 @@ func NewChannelMessageList() *ChannelMessageList {
 }
 
 func (c *ChannelMessageList) Fetch() error {
-	if err := First(c, c.Id); err != nil {
-		return err
-	}
-	return nil
+	return c.m.Fetch(c)
 }
 
-func (c *ChannelMessageList) Save() error {
-	// add those time related properties on write time
-	// from database with now() command
-	c.AddedAt = time.Now().UTC()
-
-	if err := Save(c); err != nil {
-		return err
-	}
-	return nil
+func (c *ChannelMessageList) Create() error {
+	return c.m.Create(c)
 }
 
 func (c *ChannelMessageList) Delete() error {
-	if c.Id == 0 {
-		return errors.New("Channel id is not set")
-	}
-
-	if err := Delete(c); err != nil {
-		return err
-	}
-
-	return nil
+	return c.m.Delete(c)
 }

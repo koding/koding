@@ -37,6 +37,9 @@ type Channel struct {
 
 	// Modification date of the channel
 	UpdatedAt time.Time
+
+	//Base model operations
+	m Model
 }
 
 const (
@@ -62,41 +65,38 @@ func NewChannel() *Channel {
 	}
 }
 
+func (c *Channel) GetId() int64 {
+	return c.Id
+}
+
+func (c *Channel) TableName() string {
+	return "channel"
+}
+
+func (c *Channel) Self() Modellable {
+	return c
+}
+
 func (c *Channel) Fetch() error {
-	if err := First(c, c.Id); err != nil {
-		return err
-	}
-	return nil
+	return c.m.Fetch(c)
 }
 
 func (c *Channel) Update() error {
-	if c.Id == 0 {
-		return errors.New("Channel id is not set")
-	}
-	return c.Save()
-}
-
-func (c *Channel) Save() error {
-
-	// todo add validation rules for name, group
 	if c.Name == "" || c.Group == "" {
 		return errors.New(fmt.Sprintf("Validation failed %s - %s", c.Name, c.Group))
 	}
 
-	if err := Save(c); err != nil {
-		return err
+	return c.m.Update(c)
+}
+
+func (c *Channel) Create() error {
+	if c.Name == "" || c.Group == "" {
+		return errors.New(fmt.Sprintf("Validation failed %s - %s", c.Name, c.Group))
 	}
-	return nil
+
+	return c.m.Create(c)
 }
 
 func (c *Channel) Delete() error {
-	if c.Id == 0 {
-		return errors.New("Channel id is not set")
-	}
-
-	if err := Delete(c); err != nil {
-		return err
-	}
-
-	return nil
+	return c.m.Delete(c)
 }
