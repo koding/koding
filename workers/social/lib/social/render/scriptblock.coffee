@@ -56,6 +56,7 @@ module.exports = (options = {}, callback)->
     <script>KD.config.usePremiumBroker=#{usePremiumBroker}</script>
     <script>KD.customPartial=#{encodedCustomPartial}</script>
     <script>KD.campaignData=#{encodedCampaignData}</script>
+    <script src='/a/js/kd.libs.#{KONFIG.version}.js'></script>
     <script src='/a/js/kd.#{KONFIG.version}.js'></script>
     #{if intro then "<script src='/a/js/introapp.#{ KONFIG.version }.js'></script>" else ''}
     <script>KD.currentGroup=#{currentGroup};</script>

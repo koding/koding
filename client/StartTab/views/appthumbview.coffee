@@ -26,7 +26,7 @@ class StartTabAppThumbView extends KDCustomHTMLView
     resourceRoot = "#{KD.appsUri}/#{authorNick}/#{identifier}/#{version}"
 
     if manifest.devMode
-      resourceRoot = "https://#{authorNick}.#{KD.config.userSitesDomain}/.applications/#{__utils.slugify name}"
+      resourceRoot = "https://#{authorNick}.#{KD.config.userSitesDomain}/.applications/#{utils.slugify name}"
 
     thumb = "#{KD.apiUri + '/a/images/default.app.thumb.png'}"
 
@@ -154,7 +154,7 @@ class StartTabAppThumbView extends KDCustomHTMLView
             overlay  : yes
             width    : 500
             title    : "Dev Mode"
-            content  : __utils.expandUrls """<div class='modalformline'><p>
+            content  : utils.expandUrls """<div class='modalformline'><p>
                           If you set <code>devMode</code> to <code>true</code>
                           in the <code>.manifest</code> file, you can compile
                           this app on the Koding Application servers. When you
