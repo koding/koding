@@ -11,20 +11,13 @@ class Troubleshoot extends KDObject
     options.timeout ?= 20000
 
     super options
-    @init()
     @registerItems()
 
-
-  init: ->
-    setInterval =>
-      run.call this
-    , @getOptions().timeout
-
-    # after a timeout period
-    @timeout = setTimeout =>
+    @on "pingCompleted", =>
       @status = PENDING
+      clearTimeout @timeout
+      @timeout = null
       decorateResult.call this
-      , 10000
 
 
   registerItems:->
@@ -38,38 +31,34 @@ class Troubleshoot extends KDObject
     KD.remote.once "modelsReady", =>
       bongoStatus = KD.remote.api.JSystemStatus
       @registerItem "bongo", bongoStatus, bongoStatus.healthCheck
+    # register broker
+    @registerItem "broker", KD.remote.mq, KD.remote.mq.ping
     # register kite
     @registerItem "kiteBroker", KD.kite.mq, KD.kite.mq.ping
+    # register osKite
     @vc = KD.singleton "vmController"
-    @registerItem "broker", KD.remote.mq
-    @registerItem "osKite", @vc
-
-    @on "pingCompleted", =>
-      @timeout = null
-      @status = PENDING
-      decorateResult.call this
-
+    @registerItem "osKite", @vc, @vc.ping
 
   decorateResult = ->
     response = {}
     for own name, item of @result
       {status, responseTime} = item
       response[name] = {status, responseTime}
-    console.log 'response', response
+    @emit "troubleshootCompleted", response
 
 
-  # registerItem registers ServicePinger objects: "broker", item
-  registerItem : (name, item) ->
-    # we can register item after troubleshoot is completed
-    unless @status is STARTED
-      @items[name] = new ServicePinger item
+  # registerItem registers HealthCheck objects: "broker", item
+  registerItem : (name, item, cb) ->
+    @items[name] = new HealthCheck {}, item, cb
 
 
-  getItems: ->
-    @items
+  run: ->
+    return  warn "there is an ongoing troubleshooting"  if @status is STARTED
+    @timeout = setTimeout =>
+      @status = PENDING
+      decorateResult.call this
+    , @getOptions().timeout
 
-
-  run = ->
     @status = STARTED
     @result = {}
     waitingResponse = Object.keys(@items).length
