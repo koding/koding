@@ -27,7 +27,7 @@ type ChannelParticipant struct {
 	CreatedAt time.Time
 
 	// Modification date of the channel participant's status
-	ModifiedAt time.Time
+	UpdatedAt time.Time
 }
 
 const (
@@ -37,23 +37,18 @@ const (
 )
 
 func NewChannelParticipant() *ChannelParticipant {
-	now := time.Now().UTC()
-	return &ChannelParticipant{
-		ChannelId:  1,
-		AccountId:  1,
-		Status:     ACTIVE,
-		LastSeenAt: now,
-		CreatedAt:  now,
-		ModifiedAt: now,
-	}
+	return &ChannelParticipant{}
+}
+
+func (c *ChannelParticipant) BeforeSave() {
+	c.LastSeenAt = time.Now().UTC()
+}
+
+func (c *ChannelParticipant) BeforeUpdate() {
+	c.LastSeenAt = time.Now().UTC()
 }
 
 func (c *ChannelParticipant) Create() error {
-	now := time.Now().UTC()
-	// created at shouldnt be updated
-	c.LastSeenAt = now
-	c.CreatedAt = now
-	c.ModifiedAt = now
 	return c.Save()
 }
 
@@ -62,21 +57,44 @@ func (c *ChannelParticipant) Update() error {
 		return errors.New("ChannelParticipant id is not set")
 	}
 
-	now := time.Now().UTC()
-	c.LastSeenAt = now
-	c.ModifiedAt = now
-
 	return c.Save()
 }
 
 func (c *ChannelParticipant) Save() error {
-	if err := db.DB.Save(c).Error; err != nil {
+	if err := Save(c); err != nil {
 		return err
 	}
+
+	return nil
+}
+
+func (c *ChannelParticipant) Fetch() error {
+	if c.AccountId == 0 {
+		return errors.New("AccountId is not set")
+	}
+
+	if c.ChannelId == 0 {
+		return errors.New("ChannelId is not set")
+	}
+
+	cp := NewChannelParticipant()
+	err := db.DB.
+		Where("account_id = ? and channel_id = ?", c.AccountId, c.ChannelId).
+		Find(&cp).Error
+
+	if err != nil {
+		return err
+	}
+
+	// override channel participant
+	c = cp
 	return nil
 }
 
 func (c *ChannelParticipant) Delete() error {
+	if err := c.Fetch(); err != nil {
+		return err
+	}
 	c.Status = LEFT
 	return c.Update()
 }
