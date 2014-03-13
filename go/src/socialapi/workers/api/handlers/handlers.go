@@ -25,25 +25,43 @@ func handlerWrapper(handler interface{}, logName string) http.Handler {
 		))
 }
 
+// todo implement context support here for requests
 func Inject(mux *tigertonic.TrieServeMux) *tigertonic.TrieServeMux {
-	mux.Handle("POST", "/message", handlerWrapper(message.Create, "message-create"))
+
+	////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////// Message Operations /////////////////////////////
+	////////////////////////////////////////////////////////////////////////////////////
+	// tested
 	mux.Handle("POST", "/message/{id}", handlerWrapper(message.Update, "message-update"))
+	// tested
 	mux.Handle("DELETE", "/message/{id}", handlerWrapper(message.Delete, "message-delete"))
+	// tested
 	mux.Handle("GET", "/message/{id}", handlerWrapper(message.Get, "message-get"))
 
+	////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////// Channel Operations /////////////////////////////
+	////////////////////////////////////////////////////////////////////////////////////
+	// tested
 	mux.Handle("POST", "/channel", handlerWrapper(channel.Create, "channel-create"))
+	// tested
 	mux.Handle("POST", "/channel/{id}", handlerWrapper(channel.Update, "channel-update"))
+	// tested
 	mux.Handle("DELETE", "/channel/{id}", handlerWrapper(channel.Delete, "channel-delete"))
+	// tested
 	mux.Handle("GET", "/channel/{id}", handlerWrapper(channel.Get, "channel-get"))
 
-	// add participant into a channel
+	// add a new messages to the channel
+	// tested
+	mux.Handle("POST", "/channel/{id}/message", handlerWrapper(message.Create, "channel-message-create"))
+
+	// add/update participant into a channel
 	mux.Handle("POST", "/channel/{id}/participant", handlerWrapper(participant.Add, "participant-add"))
 
 	// remove participant from a channel
-	mux.Handle("DELETE", "/channel/{id}/participant", handlerWrapper(participant.Delete, "participant-remove"))
+	// mux.Handle("POST", "/channel/{id}/participant", handlerWrapper(participant.Delete, "participant-remove"))
 
 	// list participants of the channnel
-	mux.Handle("GET", "/channel/{id}/participant", handlerWrapper(participant.List, "participant-remove"))
+	mux.Handle("GET", "/channel/{id}/participant", handlerWrapper(participant.List, "participant-list"))
 
 	// list messages of the channel
 	mux.Handle("GET", "/channel/{id}/history", handlerWrapper(messagelist.List, "channel-history-list"))
