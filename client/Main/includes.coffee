@@ -214,6 +214,7 @@ module.exports = [
   "avatararea/avatarareapopupmessageslistitem.coffee",
   "avatararea/avatarareapopupnotificationslistitem.coffee",
   "avatararea/avatarareasharestatuspopup.coffee",
+  "avatararea/avatarareatroubleshootmodal.coffee",
 
   "maincontroller/groupdata.coffee",
   "maincontroller/mainviews/appsettingsmenubutton.coffee",
