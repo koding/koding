@@ -197,6 +197,9 @@ module.exports = [
   # global notifications
   "globalnotification.coffee",
 
+  # trouble shooter
+  "troubleshoot.coffee",
+
   # avatararea
   "avatararea/avatararea.coffee",
   "avatararea/avatarareapopup.coffee",
