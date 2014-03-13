@@ -165,7 +165,7 @@ class AceAppView extends JView
     KD.singletons.localSync.addToOpenedFiles file.path
 
   selectCurrentFileAtFinder: (aceView)->
-    {treeController}  = KD.singletons.appManager.get("Finder").controller
+    {treeController}  = @finderController
     treeController.deselectAllNodes()
     nodeName = FSHelper.getFullPath aceView.data # we need filepath with VM address
     treeController.selectNode treeController.nodes[nodeName]
