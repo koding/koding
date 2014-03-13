@@ -5,13 +5,33 @@ import (
 	"net/url"
 	"socialapi/models"
 	"socialapi/workers/api/modules/helpers"
-	"strconv"
 
 	"github.com/jinzhu/gorm"
 )
 
 func Create(u *url.URL, h http.Header, req *models.ChannelMessage) (int, http.Header, interface{}, error) {
+	channelId, err := helpers.GetId(u)
+	if err != nil {
+		return helpers.NewBadRequestResponse()
+	}
+
+	// override message type
+	// all of the messages coming from client-side
+	// should be marked as POST
+	req.Type = models.POST
+
 	if err := req.Save(); err != nil {
+		// todo this should be internal server error
+		return helpers.NewBadRequestResponse()
+	}
+
+	cml := models.NewChannelMessageList()
+
+	// override channel id
+	cml.ChannelId = channelId
+	cml.MessageId = req.Id
+	if err := cml.Save(); err != nil {
+		// todo this should be internal server error
 		return helpers.NewBadRequestResponse()
 	}
 
@@ -19,7 +39,7 @@ func Create(u *url.URL, h http.Header, req *models.ChannelMessage) (int, http.He
 }
 
 func Delete(u *url.URL, h http.Header, req *models.ChannelMessage) (int, http.Header, interface{}, error) {
-	id, err := strconv.ParseInt(u.Query().Get("id"), 10, 64)
+	id, err := helpers.GetId(u)
 	if err != nil {
 		return helpers.NewBadRequestResponse()
 	}
@@ -34,7 +54,7 @@ func Delete(u *url.URL, h http.Header, req *models.ChannelMessage) (int, http.He
 }
 
 func Update(u *url.URL, h http.Header, req *models.ChannelMessage) (int, http.Header, interface{}, error) {
-	id, err := strconv.ParseInt(u.Query().Get("id"), 10, 64)
+	id, err := helpers.GetId(u)
 	if err != nil {
 		return helpers.NewBadRequestResponse()
 	}
@@ -44,7 +64,7 @@ func Update(u *url.URL, h http.Header, req *models.ChannelMessage) (int, http.He
 		return helpers.NewBadRequestResponse()
 	}
 
-	if err := req.Save(); err != nil {
+	if err := req.Update(); err != nil {
 		return helpers.NewBadRequestResponse()
 	}
 
@@ -52,7 +72,7 @@ func Update(u *url.URL, h http.Header, req *models.ChannelMessage) (int, http.He
 }
 
 func Get(u *url.URL, h http.Header, req *models.ChannelMessage) (int, http.Header, interface{}, error) {
-	id, err := strconv.ParseInt(u.Query().Get("id"), 10, 64)
+	id, err := helpers.GetId(u)
 	if err != nil {
 		return helpers.NewBadRequestResponse()
 	}
