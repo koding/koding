@@ -152,4 +152,36 @@ class TroubleshootModal extends KDModalView
     @addSubView @osKite
     @addSubView @webServer
     @addSubView @connection
+class TroubleshootItemView extends KDCustomHTMLView
+
+  constructor: (options, data) ->
+
+    super options, data
+
+    @loader = new KDLoaderView
+      size          : width : 16
+      showLoader    : yes
+
+    @getData().on "healthCheckCompleted", =>
+      @loader.hide()
+      @render()
+
+    # @addSubView @loader
+      # console.log 'data', @getData()
+
+  viewAppended: ->
+    JView::viewAppended.call this
+
+  getResponseTime: ->
+    responseTime = @getData().getResponseTime()
+    return "#{responseTime} ms" unless responseTime is ""
+
+    responseTime
+
+
+  pistachio:->
+    {title} = @getOptions()
+    """
+      {{> @loader}}  #{title} : {{ #(status) }} {{@getResponseTime #(dummy) }}
+    """
 
