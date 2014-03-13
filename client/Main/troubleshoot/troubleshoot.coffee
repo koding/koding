@@ -23,15 +23,11 @@ class Troubleshoot extends KDObject
   registerItems:->
     #register connection
     externalUrl = "https://s3.amazonaws.com/koding-ping/ping.json"
-    item = new ConnectionChecker(crossDomain: yes, externalUrl)
+    item = new ConnectionChecker crossDomain: yes, externalUrl
     @registerItem "connection", item.ping.bind item
     # register webserver status
     webserverStatus = new ConnectionChecker({}, window.location.origin + "/healthCheck")
     @registerItem "webServer", webserverStatus.ping.bind webserverStatus
-    # register bongo
-    KD.remote.once "modelsReady", =>
-      bongoStatus = KD.remote.api.JSystemStatus
-      @registerItem "bongo", bongoStatus.healthCheck.bind bongoStatus
     # register broker
     @registerItem "broker", KD.remote.mq.ping.bind KD.remote.mq
     # register kite
@@ -39,6 +35,10 @@ class Troubleshoot extends KDObject
     # register osKite
     @vc = KD.singleton "vmController"
     @registerItem "osKite", @vc.ping.bind @vc
+    # register bongo
+    KD.remote.once "modelsReady", =>
+      bongoStatus = KD.remote.api.JSystemStatus
+      @registerItem "bongo", bongoStatus.healthCheck.bind bongoStatus
 
   decorateResult = ->
     response = {}
@@ -52,6 +52,8 @@ class Troubleshoot extends KDObject
   registerItem : (name, item, cb) ->
     @items[name] = new HealthChecker {}, item, cb
 
+  getItems: ->
+    @items
 
   run: ->
     return  warn "there is an ongoing troubleshooting"  if @status is STARTED
