@@ -2,8 +2,6 @@ package models
 
 import (
 	"errors"
-	"fmt"
-	"socialapi/db"
 	"time"
 )
 
@@ -28,6 +26,7 @@ type ChannelParticipant struct {
 
 	// Modification date of the channel participant's status
 	UpdatedAt time.Time
+	m         Model
 }
 
 const (
@@ -40,6 +39,18 @@ func NewChannelParticipant() *ChannelParticipant {
 	return &ChannelParticipant{}
 }
 
+func (c *ChannelParticipant) GetId() int64 {
+	return c.Id
+}
+
+func (c *ChannelParticipant) TableName() string {
+	return "channel_participant"
+}
+
+func (c *ChannelParticipant) Self() Modellable {
+	return c
+}
+
 func (c *ChannelParticipant) BeforeSave() {
 	c.LastSeenAt = time.Now().UTC()
 }
@@ -49,54 +60,15 @@ func (c *ChannelParticipant) BeforeUpdate() {
 }
 
 func (c *ChannelParticipant) Create() error {
-	return c.Save()
+	return c.m.Create(c)
 }
 
 func (c *ChannelParticipant) Update() error {
-	if c.Id == 0 {
-		return errors.New("ChannelParticipant id is not set")
-	}
-
-	return c.Save()
-}
-
-func (c *ChannelParticipant) Save() error {
-	if err := Save(c); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (c *ChannelParticipant) Fetch() error {
-	if c.AccountId == 0 {
-		return errors.New("AccountId is not set")
-	}
-
-	if c.ChannelId == 0 {
-		return errors.New("ChannelId is not set")
-	}
-
-	cp := NewChannelParticipant()
-	err := db.DB.
-		Where("account_id = ? and channel_id = ?", c.AccountId, c.ChannelId).
-		Find(&cp).Error
-
-	if err != nil {
-		return err
-	}
-
-	// override channel participant
-	c = cp
-	return nil
+	return c.m.Update(c)
 }
 
 func (c *ChannelParticipant) Delete() error {
-	if err := c.Fetch(); err != nil {
-		return err
-	}
-	c.Status = LEFT
-	return c.Update()
+	return c.m.UpdatePartial(c, Partial{"status": LEFT})
 }
 
 func (c *ChannelParticipant) List() ([]ChannelParticipant, error) {
@@ -106,15 +78,10 @@ func (c *ChannelParticipant) List() ([]ChannelParticipant, error) {
 		return participants, errors.New("ChannelId is not set")
 	}
 
-	// change this usage to a better one
-	// we shouldnt use table name directly
-	err := db.DB.Order("created_at desc").Table("channel_participant").Where(
-		map[string]interface{}{
-			"channel_id": c.ChannelId,
-			"status":     ACTIVE,
-		},
-	).Find(&participants).Error
+	err := c.m.Some(c, &participants)
+	if err != nil {
+		return nil, err
+	}
 
-	fmt.Println(participants)
-	return participants, err
+	return participants, nil
 }
