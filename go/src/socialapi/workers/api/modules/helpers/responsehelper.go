@@ -48,3 +48,7 @@ func NewDeletedResponse() (int, http.Header, interface{}, error) {
 func GetId(u *url.URL) (int64, error) {
 	return strconv.ParseInt(u.Query().Get("id"), 10, 64)
 }
+
+func GetURIInt64(u *url.URL, queryParam string) (int64, error) {
+	return strconv.ParseInt(u.Query().Get(queryParam), 10, 64)
+}

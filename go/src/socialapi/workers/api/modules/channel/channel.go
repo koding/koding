@@ -18,7 +18,7 @@ func Create(u *url.URL, h http.Header, req *models.Channel) (int, http.Header, i
 }
 
 func Delete(u *url.URL, h http.Header, req *models.Channel) (int, http.Header, interface{}, error) {
-	id, err := helpers.GetId(u)
+	id, err := helpers.GetURIInt64(u, "id")
 	if err != nil {
 		return helpers.NewBadRequestResponse()
 	}
@@ -33,7 +33,7 @@ func Delete(u *url.URL, h http.Header, req *models.Channel) (int, http.Header, i
 }
 
 func Update(u *url.URL, h http.Header, req *models.Channel) (int, http.Header, interface{}, error) {
-	id, err := helpers.GetId(u)
+	id, err := helpers.GetURIInt64(u, "id")
 	if err != nil {
 		return helpers.NewBadRequestResponse()
 	}
@@ -51,7 +51,7 @@ func Update(u *url.URL, h http.Header, req *models.Channel) (int, http.Header, i
 }
 
 func Get(u *url.URL, h http.Header, req *models.Channel) (int, http.Header, interface{}, error) {
-	id, err := helpers.GetId(u)
+	id, err := helpers.GetURIInt64(u, "id")
 	if err != nil {
 		return helpers.NewBadRequestResponse()
 	}
@@ -68,7 +68,7 @@ func Get(u *url.URL, h http.Header, req *models.Channel) (int, http.Header, inte
 }
 
 func PostMessage(u *url.URL, h http.Header, req *models.Channel) (int, http.Header, interface{}, error) {
-	// id, err := helpers.GetId(u)
+	// id, err := helpers.GetURIInt64(u, "id")
 	// if err != nil {
 	// 	return helpers.NewBadRequestResponse()
 	// }
