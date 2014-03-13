@@ -78,29 +78,31 @@ class Troubleshoot extends KDObject
       @result[name] = new TroubleshootResult name, item
       @result[name].on "completed", =>
         waitingResponse -= 1
+        # we can also send each response to user
         unless waitingResponse
           @emit "pingCompleted"
 
 
 class TroubleshootResult extends KDObject
 
-  constructor: (name, pinger) ->
+  constructor: (name, healthChecker) ->
     @name    = name
-    @pinger  = pinger
+    @healthChecker  = healthChecker
     @status  = "failed"
     super
 
-    pinger.once "finish", =>
+    healthChecker.once "finish", =>
       @status = "ok"
       @responseTime = @getResponseTime()
       @emit "completed"
 
-    pinger.once "failed", =>
-      @status = "failed"
+    healthChecker.once "failed", =>
+      @status = "down"
       @emit "completed"
 
   getResponseTime: ->
-    @pinger.getResponseTime()
+    @healthChecker.getResponseTime()
+
 
 class ConnectionChecker extends KDObject
 
@@ -122,13 +124,12 @@ class ConnectionChecker extends KDObject
       error   : ->
 
 
-class ServicePinger extends KDObject
+class HealthCheck extends KDObject
   [NOTSTARTED, WAITING, SUCCESS, FAILED] = [1..4]
 
-  constructor: (item, options={}) ->
+  constructor: (options={}, @item, @cb) ->
     super options
 
-    @item = item
     @identifier = options.identifier or Date.now()
     @status = NOTSTARTED
 
@@ -136,22 +137,20 @@ class ServicePinger extends KDObject
     @status = WAITING
     @startTime = Date.now()
     @setPingTimeout()
-    # unless @item.ping is typeof "function"
-    #   throw new Error "ping is not defined"
-    @item.ping(@finish.bind(this))
+    @cb.call @item, @finish.bind(this)
 
   setPingTimeout: ->
     @pingTimeout = setTimeout =>
       @status = FAILED
-      @emit "failed", @item, @name
+      @emit "failed"
     , 5000
 
-  finish: ->
+  finish: (data)->
     @status = SUCCESS
     @finishTime = Date.now()
     clearTimeout @pingTimeout
     @pingTimeout = null
-    @emit "finish", @item
+    @emit "finish"
 
   getResponseTime: ->
     status = switch @status
@@ -161,7 +160,7 @@ class ServicePinger extends KDObject
         "failed"
       when SUCCESS
         @finishTime - @startTime
-      when "WAITING"
+      when WAITING
         "waiting"
 
     return status
