@@ -31,10 +31,12 @@ type ChannelParticipant struct {
 	m Model
 }
 
+// here is why i did this not-so-good constants
+// https://code.google.com/p/go/issues/detail?id=359
 const (
-	ACTIVE int = iota
-	LEFT
-	REQUEST_PENDING
+	ChannelParticipant_STATUS_ACTIVE int = iota
+	ChannelParticipant_STATUS_LEFT
+	ChannelParticipant_STATUS_REQUEST_PENDING
 )
 
 func NewChannelParticipant() *ChannelParticipant {
@@ -70,7 +72,15 @@ func (c *ChannelParticipant) Update() error {
 }
 
 func (c *ChannelParticipant) Delete() error {
-	return c.m.UpdatePartial(c, Partial{"status": LEFT})
+	return c.m.UpdatePartial(c,
+		Partial{
+			"account_id": c.AccountId,
+			"channel_id": c.ChannelId,
+		},
+		Partial{
+			"status": ChannelParticipant_STATUS_LEFT,
+		},
+	)
 }
 
 func (c *ChannelParticipant) List() ([]ChannelParticipant, error) {
@@ -80,7 +90,12 @@ func (c *ChannelParticipant) List() ([]ChannelParticipant, error) {
 		return participants, errors.New("ChannelId is not set")
 	}
 
-	err := c.m.Some(c, &participants)
+	selector := map[string]interface{}{
+		"channel_id": c.ChannelId,
+		"status":     ChannelParticipant_STATUS_ACTIVE,
+	}
+
+	err := c.m.Some(c, &participants, selector)
 	if err != nil {
 		return nil, err
 	}

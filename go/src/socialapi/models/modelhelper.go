@@ -33,7 +33,7 @@ func (m Model) Fetch(i Modellable) error {
 }
 
 func (m Model) Create(i Modellable) error {
-	if err := db.DB.Save(i.Self()).Error; err != nil {
+	if err := db.DB.Save(i).Error; err != nil {
 		return err
 	}
 
@@ -48,16 +48,31 @@ func (m Model) Update(i Modellable) error {
 	return m.Create(i)
 }
 
-func (m Model) UpdatePartial(i Modellable, partial Partial) error {
-	if i.GetId() == 0 {
-		return errors.New(fmt.Sprintf("Id is not set for %s", i.TableName()))
+// selector, set
+func (m Model) UpdatePartial(i Modellable, rest ...map[string]interface{}) error {
+	var set, selector map[string]interface{}
+
+	switch len(rest) {
+	case 1:
+		set = rest[0]
+		selector = nil
+	case 2:
+		selector = rest[0]
+		set = rest[1]
+	default:
+		return errors.New("Update partial parameter list is wrong")
 	}
 
-	if err := db.DB.
-		Table(i.TableName()).
-		Where(i.GetId()).
-		Update(partial).
-		Error; err != nil {
+	query := db.DB.Table(i.TableName())
+
+	if i.GetId() != 0 {
+		query = query.Where(i.GetId())
+	} else {
+		//add selector
+		query = getWhere(query, selector)
+	}
+
+	if err := query.Update(set).Error; err != nil {
 		return err
 	}
 
@@ -76,7 +91,7 @@ func (m Model) Delete(i Modellable) error {
 	return nil
 }
 
-func (m Model) Some(i Modellable, data interface{}, rest ...Partial) error {
+func (m Model) Some(i Modellable, data interface{}, rest ...map[string]interface{}) error {
 
 	var selector Partial
 	var options Partial
@@ -103,7 +118,7 @@ func (m Model) Some(i Modellable, data interface{}, rest ...Partial) error {
 	return query.Find(data).Error
 }
 
-func getSort(query *gorm.DB, options Partial) *gorm.DB {
+func getSort(query *gorm.DB, options map[string]interface{}) *gorm.DB {
 
 	if options == nil {
 		return query
@@ -111,26 +126,14 @@ func getSort(query *gorm.DB, options Partial) *gorm.DB {
 
 	var opts []string
 	for key, val := range options {
-		opts = append(opts, fmt.Sprintf("%s %s", key, val))
+		opts = append(opts, fmt.Sprintf("%s %v", key, val))
 	}
 	return query.Order(strings.Join(opts, ","))
 }
 
-func getWhere(query *gorm.DB, selector Partial) *gorm.DB {
+func getWhere(query *gorm.DB, selector map[string]interface{}) *gorm.DB {
 	if selector == nil {
 		return query
 	}
 	return query.Where(selector)
-}
-
-func Save(d interface{}) error {
-	return db.DB.Save(d).Error
-}
-
-func Delete(d interface{}) error {
-	return db.DB.Delete(d).Error
-}
-
-func First(d interface{}, id int64) error {
-	return db.DB.First(d, id).Error
 }

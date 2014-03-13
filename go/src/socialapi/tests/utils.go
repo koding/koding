@@ -14,8 +14,16 @@ import (
 // reads response body and returns as string
 func DoRequest(requestType, url string, data []byte) ([]byte, error) {
 	//convert string into bytestream
-	byteData := bytes.NewReader(data)
-	req, err := http.NewRequest(requestType, url, byteData)
+	var req *http.Request
+	var err error
+
+	if data == nil {
+		req, err = http.NewRequest(requestType, url, nil)
+	} else {
+		byteData := bytes.NewReader(data)
+		req, err = http.NewRequest(requestType, url, byteData)
+	}
+
 	if err != nil {
 		return make([]byte, 0), err
 	}
