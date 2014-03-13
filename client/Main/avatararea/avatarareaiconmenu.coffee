@@ -127,24 +127,30 @@ class TroubleshootModal extends KDModalView
     @update status
 
   update: (response) ->
-    @destroySubViews()
-    @bongo = new KDCustomHTMLView
-      partial : "Bongo Server Status : #{response?.bongo.status}"
+    @bongo = new TroubleshootItemView
+      title: "Bongo"
+    , @getData()["bongo"]
 
-    @broker = new KDCustomHTMLView
-      partial : "Broker Status : #{response?.broker.status}"
+    @broker = new TroubleshootItemView
+      title : "Broker"
+    , @getData()["broker"]
 
-    @kiteBroker = new KDCustomHTMLView
-      partial : "Kite-Broker Status : #{response?.kiteBroker.status}"
+    @kiteBroker = new TroubleshootItemView
+      title : "Kite-Broker"
+    , @getData()["kiteBroker"]
 
-    @osKite = new KDCustomHTMLView
-      partial : "OS-Kite Status : #{response?.osKite.status}"
+    @osKite = new TroubleshootItemView
+      title : "OS-Kite"
+    , @getData()["osKite"]
 
-    @webServer = new KDCustomHTMLView
-      partial : "Webserver Status : #{response?.webServer?.status}"
+    @webServer = new TroubleshootItemView
+      title : "Webserver"
+    , @getData()["webServer"]
 
-    @connection = new KDCustomHTMLView
-      partial : "Internet Connection Status : #{response?.connection?.status}"
+    @connection = new TroubleshootItemView
+      title : "Internet Connection"
+    , @getData()["connection"]
+
 
     @addSubView @bongo
     @addSubView @broker
