@@ -17,6 +17,8 @@ module.exports = class JSystemStatus extends Model
           (signature Function)
         forceReload:
           (do signature)
+        healthCheck  :
+          (signature Function)
       instance       :
         cancel:
           (signature Function)
@@ -110,3 +112,6 @@ module.exports = class JSystemStatus extends Model
         callback()
       else
         callback callback new KodingError "Could not cancel the system status"
+
+  @healthCheck = secure (client, callback) ->
+    callback result:1
