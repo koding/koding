@@ -2,7 +2,7 @@ package models
 
 import (
 	"errors"
-	"socialapi/db"
+	"fmt"
 	"time"
 )
 
@@ -36,7 +36,7 @@ type Channel struct {
 	CreatedAt time.Time
 
 	// Modification date of the channel
-	ModifiedAt time.Time
+	UpdatedAt time.Time
 }
 
 const (
@@ -51,22 +51,19 @@ const (
 )
 
 func NewChannel() *Channel {
-	now := time.Now().UTC()
 	return &Channel{
-		Name:       "koding-main",
-		CreatorId:  123,
-		Group:      "koding",
-		Purpose:    "string",
-		SecretKey:  "string",
-		Type:       GROUP,
-		Privacy:    PRIVATE,
-		CreatedAt:  now,
-		ModifiedAt: now,
+		Name:      "koding-main",
+		CreatorId: 123,
+		Group:     "koding",
+		Purpose:   "string",
+		SecretKey: "string",
+		Type:      GROUP,
+		Privacy:   PRIVATE,
 	}
 }
 
 func (c *Channel) Fetch() error {
-	if err := db.DB.First(c, c.Id).Error; err != nil {
+	if err := First(c, c.Id); err != nil {
 		return err
 	}
 	return nil
@@ -80,12 +77,13 @@ func (c *Channel) Update() error {
 }
 
 func (c *Channel) Save() error {
-	now := time.Now().UTC()
-	// created at shouldnt be updated
-	c.CreatedAt = now
-	c.ModifiedAt = now
 
-	if err := db.DB.Save(c).Error; err != nil {
+	// todo add validation rules for name, group
+	if c.Name == "" || c.Group == "" {
+		return errors.New(fmt.Sprintf("Validation failed %s - %s", c.Name, c.Group))
+	}
+
+	if err := Save(c); err != nil {
 		return err
 	}
 	return nil
@@ -96,7 +94,7 @@ func (c *Channel) Delete() error {
 		return errors.New("Channel id is not set")
 	}
 
-	if err := db.DB.Delete(c).Error; err != nil {
+	if err := Delete(c); err != nil {
 		return err
 	}
 
