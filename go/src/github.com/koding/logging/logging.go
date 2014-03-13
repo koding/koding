@@ -59,12 +59,12 @@ var LevelColors = map[Level]Color{
 }
 
 var (
-	DefaultLogger    = NewLogger(procName())
-	DefaultLevel     = INFO
-	DefaultHandler   = StderrHandler
-	DefaultFormatter = &defaultFormatter{}
-	StdoutHandler    = NewWriterHandler(os.Stdout)
-	StderrHandler    = NewWriterHandler(os.Stderr)
+	DefaultLogger    Logger    = NewLogger(procName())
+	DefaultLevel     Level     = INFO
+	DefaultHandler   Handler   = StderrHandler
+	DefaultFormatter Formatter = &defaultFormatter{}
+	StdoutHandler              = NewWriterHandler(os.Stdout)
+	StderrHandler              = NewWriterHandler(os.Stderr)
 )
 
 func init() {
