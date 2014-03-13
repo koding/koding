@@ -185,6 +185,7 @@ class DevToolsMainView extends KDView
 
         JSEditor.ready =>
 
+          JSEditor.loadLastOpenFile()
           JSEditor.codeMirrorEditor.on "change", \
             _.debounce (@lazyBound 'previewApp', no), 500
 
@@ -198,6 +199,7 @@ class DevToolsMainView extends KDView
 
         CSSEditor.ready =>
 
+          CSSEditor.loadLastOpenFile()
           CSSEditor.codeMirrorEditor.on "change", \
             _.debounce (@lazyBound 'previewCss', no), 500
 
@@ -339,7 +341,6 @@ class DevToolsEditorPane extends CollaborativeEditorPane
         callback?()
 
         @emit 'ready'
-        @loadLastOpenFile()
 
   openFile: (file, content)->
     @storage.setValue @_lastFileKey, file.path

@@ -12,7 +12,7 @@ class DevToolsController extends AppController
       { title     : "Save",                eventName : "save" }
       { title     : "Save All",            eventName : "saveAll" }
       { type      : "separator" }
-      { title     : "Publish to AppStore", eventName : "publis" }
+      { title     : "Publish to AppStore", eventName : "publish" }
       { title     : "customViewToggleLiveReload" }
       { type      : "separator" }
       { title     : "customViewToggleFullscreen" }
