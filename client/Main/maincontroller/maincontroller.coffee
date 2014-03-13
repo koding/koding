@@ -26,6 +26,8 @@ class MainController extends KDController
     @setFailTimer()
     @attachListeners()
 
+    @detectIdleUser()
+
   createSingletons:->
 
     KD.registerSingleton "mainController",            this
@@ -39,6 +41,8 @@ class MainController extends KDController
     KD.registerSingleton "oauthController",           new OAuthController
     KD.registerSingleton "groupsController",          new GroupsController
     KD.registerSingleton "paymentController",         new PaymentController
+    if KD.useNewKites
+      KD.registerSingleton "kontrol",                 new Kontrol
     KD.registerSingleton "vmController",              new VirtualizationController
     KD.registerSingleton "locationController",        new LocationController
     KD.registerSingleton "badgeController",           new BadgeController
@@ -53,6 +57,8 @@ class MainController extends KDController
       KD.registerSingleton "activityController",      new ActivityController
       KD.registerSingleton "appStorageController",    new AppStorageController
       KD.registerSingleton "kodingAppsController",    new KodingAppsController
+      KD.registerSingleton "localSync",               new LocalSyncController
+      KD.registerSingleton "onboardingController",    new OnboardingController
       # KD.registerSingleton "kontrol",                 new Kontrol
 
       # @showInstructionsBook()
@@ -63,6 +69,7 @@ class MainController extends KDController
     @forwardEvents KD.remote, ['disconnected', 'reconnected']
 
   accountChanged:(account, firstLoad = no)->
+    account = KD.remote.revive account  unless account instanceof KD.remote.api.JAccount
     @userAccount             = account
     connectedState.connected = yes
 
@@ -101,23 +108,17 @@ class MainController extends KDController
     KD.logout()
     storage = new LocalStorage 'Koding'
 
-    KD.remote.api.JUser.logout (err, account, replacementToken)=>
+    KD.remote.api.JUser.logout (err) =>
       mainView._logoutAnimation()
+      KD.singletons.localSync.removeLocalContents()
 
       wc = KD.singleton 'windowController'
       wc.clearUnloadListeners()
 
-      KD.utils.wait 1000, ->
-        $.cookie 'clientId', replacementToken  if replacementToken
+      KD.utils.wait 1000, =>
+        @swapAccount replacementAccount: null
         storage.setValue 'loggingOut', '1'
         location.reload()
-
-  oldCookie = $.cookie
-  cookieChanges = []
-  $.cookie = (name, val) ->
-    if val?
-      cookieChanges.push (new Error).stack
-    oldCookie.apply this, arguments
 
   attachListeners:->
     # @on 'pageLoaded.as.(loggedIn|loggedOut)', (account)=>
@@ -132,10 +133,10 @@ class MainController extends KDController
 
     # async clientId change checking procedures causes
     # race conditions between window reloading and post-login callbacks
-    cookieChangeHandler = do (cookie = $.cookie 'clientId') => =>
+    cookieChangeHandler = do (cookie = Cookies.get 'clientId') => =>
       cookieExists = cookie?
-      cookieMatches = cookie is ($.cookie 'clientId')
-      cookie = $.cookie 'clientId'
+      cookieMatches = cookie is (Cookies.get 'clientId')
+      cookie = Cookies.get 'clientId'
 
       if cookieExists and not cookieMatches
         return @isLoggingIn off  if @isLoggingIn() is on
@@ -156,7 +157,7 @@ class MainController extends KDController
           localStorage?.removeItem "routeToBeContinued"
 
         @utils.wait 3000, cookieChangeHandler
-    # Note: I am using wait instead of repeat, for the subtle difference.  See this StackOverflow answer for more info: 
+    # Note: I am using wait instead of repeat, for the subtle difference.  See this StackOverflow answer for more info:
     #       http://stackoverflow.com/questions/729921/settimeout-or-setinterval/731625#731625
     @utils.wait 3000, cookieChangeHandler
 
@@ -169,13 +170,15 @@ class MainController extends KDController
 
     { account, replacementToken } = options
 
-    if replacementToken and replacementToken isnt $.cookie 'clientId'
-      $.cookie 'clientId', replacementToken
+    { maxAge, secure } = KD.config.sessionCookie
 
-    @accountChanged account
+    if replacementToken and replacementToken isnt Cookies.get 'clientId'
+      Cookies.set 'clientId', replacementToken, { maxAge, secure }
 
-    @once 'AccountChanged', (account) -> callback null, options
-
+    if account
+      @accountChanged account
+      if callback
+        @once 'AccountChanged', (account) -> callback null, options
 
   handleLogin: (credentials, callback) ->
     { JUser } = KD.remote.api
@@ -225,9 +228,9 @@ class MainController extends KDController
       @_isLoggingIn ? no
 
   showInstructionsBook:->
-    if $.cookie 'newRegister'
+    if Cookies.get 'newRegister'
       @emit "ShowInstructionsBook", 9
-      $.cookie 'newRegister', erase: yes
+      Cookies.expire 'newRegister'
     else if @isUserLoggedIn()
       BookView::getNewPages (pages)=>
         return unless pages.length
@@ -255,3 +258,7 @@ class MainController extends KDController
     return ->
       @utils.wait @getOptions().failWait, checkConnectionState
       @on "AccountChanged", -> notification.destroy()  if notification
+
+  detectIdleUser: (threshold = KD.config.userIdleMs) ->
+    idleDetector = new IdleUserDetector { threshold }
+    @forwardEvents idleDetector, ['userIdle', 'userBack']

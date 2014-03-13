@@ -71,7 +71,7 @@ exports.handler.attach = function(editor) {
                 background-color: rgba(0,250,0,0.9);\
                 opacity: 0.5;\
             }\
-            .emacs-mode .ace_cursor.ace_hidden{\
+            .emacs-mode .ace_hidden-cursors .ace_cursor{\
                 opacity: 1;\
                 background-color: transparent;\
             }\
@@ -100,30 +100,30 @@ exports.handler.attach = function(editor) {
 
     editor.emacsMark = function() {
         return this.session.$emacsMark;
-    }
+    };
 
     editor.setEmacsMark = function(p) {
         // to deactivate pass in a falsy value
         this.session.$emacsMark = p;
-    }
+    };
 
     editor.pushEmacsMark = function(p, activate) {
         var prevMark = this.session.$emacsMark;
         if (prevMark)
             this.session.$emacsMarkRing.push(prevMark);
-        if (!p || activate) this.setEmacsMark(p)
+        if (!p || activate) this.setEmacsMark(p);
         else this.session.$emacsMarkRing.push(p);
-    }
+    };
 
     editor.popEmacsMark = function() {
         var mark = this.emacsMark();
         if (mark) { this.setEmacsMark(null); return mark; }
         return this.session.$emacsMarkRing.pop();
-    }
+    };
 
     editor.getLastEmacsMark = function(p) {
         return this.session.$emacsMark || this.session.$emacsMarkRing.slice(-1)[0];
-    }
+    };
 
     editor.on("click", $resetMarkMode);
     editor.on("changeSession", $kbSessionChange);
@@ -163,15 +163,15 @@ var $kbSessionChange = function(e) {
         e.session.$emacsMark = null;
     if (!e.session.hasOwnProperty('$emacsMarkRing'))
         e.session.$emacsMarkRing = [];
-}
+};
 
 var $resetMarkMode = function(e) {
     e.editor.session.$emacsMark = null;
-}
+};
 
-var keys = require("../lib/keys").KEY_MODS,
-    eMods = {C: "ctrl", S: "shift", M: "alt", CMD: "command"},
-    combinations = ["C-S-M-CMD",
+var keys = require("../lib/keys").KEY_MODS;
+var eMods = {C: "ctrl", S: "shift", M: "alt", CMD: "command"};
+var combinations = ["C-S-M-CMD",
                     "S-M-CMD", "C-M-CMD", "C-S-CMD", "C-S-M",
                     "M-CMD", "S-CMD", "S-M", "C-CMD", "C-M", "C-S",
                     "CMD", "M", "S", "C"];
@@ -188,17 +188,17 @@ exports.handler.onCopy = function(e, editor) {
     editor.$handlesEmacsOnCopy = true;
     exports.handler.commands.killRingSave.exec(editor);
     delete editor.$handlesEmacsOnCopy;
-}
+};
 
 exports.handler.onPaste = function(e, editor) {
     editor.pushEmacsMark(editor.getCursorPosition());
-}
+};
 
 exports.handler.bindKey = function(key, command) {
     if (!key)
         return;
 
-    var ckb = this.commmandKeyBinding;
+    var ckb = this.commandKeyBinding;
     key.split("|").forEach(function(keyPart) {
         keyPart = keyPart.toLowerCase();
         ckb[keyPart] = command;
@@ -206,7 +206,7 @@ exports.handler.bindKey = function(key, command) {
         // to be able to activate key combos with arbitrary length
         // Example: if keyPart is "C-c C-l t" then "C-c C-l t" will
         // get command assigned and "C-c" and "C-c C-l" will get
-        // a null command assigned in this.commmandKeyBinding. For
+        // a null command assigned in this.commandKeyBinding. For
         // the lookup logic see handleKeyboard()
         var keyParts = keyPart.split(" ").slice(0,-1);
         keyParts.reduce(function(keyMapKeys, keyPart, i) {
@@ -216,7 +216,7 @@ exports.handler.bindKey = function(key, command) {
             if (!ckb[keyPart]) ckb[keyPart] = "null";
         });
     }, this);
-}
+};
 
 exports.handler.handleKeyboard = function(data, hashId, key, keyCode) {
     var editor = data.editor;
@@ -224,7 +224,7 @@ exports.handler.handleKeyboard = function(data, hashId, key, keyCode) {
     if (hashId == -1) {
         editor.pushEmacsMark();
         if (data.count) {
-            var str = Array(data.count + 1).join(key);
+            var str = new Array(data.count + 1).join(key);
             data.count = null;
             return {command: "insertstring", args: str};
         }
@@ -257,9 +257,9 @@ exports.handler.handleKeyboard = function(data, hashId, key, keyCode) {
     if (data.keyChain) key = data.keyChain += " " + key;
 
     // Key combo prefixes get stored as "null" (String!) in this
-    // this.commmandKeyBinding. When encountered no command is invoked but we
+    // this.commandKeyBinding. When encountered no command is invoked but we
     // buld up data.keyChain
-    var command = this.commmandKeyBinding[key];
+    var command = this.commandKeyBinding[key];
     data.keyChain = command == "null" ? key : "";
 
     // there really is no command
@@ -313,7 +313,7 @@ exports.handler.handleKeyboard = function(data, hashId, key, keyCode) {
                 }
             };
         } else {
-            if (!args) args = {}
+            if (!args) args = {};
             if (typeof args === 'object') args.count = count;
         }
     }
@@ -508,8 +508,8 @@ exports.handler.addCommands({
     killLine: function(editor) {
         editor.pushEmacsMark(null);
         var pos = editor.getCursorPosition();
-        if (pos.column == 0 &&
-            editor.session.doc.getLine(pos.row).length == 0) {
+        if (pos.column === 0 &&
+            editor.session.doc.getLine(pos.row).length === 0) {
             // If an already empty line is killed, remove
             // the line entirely
             editor.selection.selectLine();

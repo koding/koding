@@ -76,8 +76,10 @@ class AvatarPopupGroupSwitcher extends AvatarPopup
         router.handleRoute '/Pricing/CreateGroup', entryPoint : 'koding'
         @hide()
 
-    KD.singleton("paymentController").fetchSubscriptionsWithPlans tags: ["custom-plan"], (err, subscriptions) ->
-      createGroupLink.show()  unless subscriptions.length
+    if KD.isLoggedIn()
+      KD.singleton("paymentController").fetchSubscriptionsWithPlans tags: ["custom-plan"], (err, subscriptions) ->
+        return KD.showError err  if err
+        createGroupLink.show()   unless subscriptions.length
 
     backToKoding = new KDCustomHTMLView
       tagName    : 'a'
@@ -160,14 +162,14 @@ class AvatarPopupGroupSwitcher extends AvatarPopup
         dashboardLink.show()
 
     cookieName = "kdproxy-usehttp"
-    if $.cookie(cookieName) is "1"
+    if (Cookies.get cookieName) is "1"
       @avatarPopupContent.addSubView new KDCustomHTMLView
         tagName    : 'a'
         cssClass   : 'bottom'
         partial    : 'Switch back to secure (https) mode'
         click      : (event)=>
           KD.utils.stopDOMEvent event
-          $.cookie cookieName, erase: yes
+          Cookies.expire cookieName
           window.location.reload()
 
     @avatarPopupContent.addSubView new KDCustomHTMLView

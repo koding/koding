@@ -1,4 +1,4 @@
-@import "../../Framework/themes/default/kdfn"
+@import "../../Framework/src/themes/default/kdfn"
 @import "../styl/appfn"
 @import "../styl/app.fonts"
 
@@ -60,52 +60,6 @@ button
   visibility          visible
   fix()
 
-  .header-notification
-    size                100% 26px
-    bg                  color rgba(24, 148, 83, .9)
-    bg                  image url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAQAAAAngNWGAAAAT0lEQVQ4y43SOxIAIAxCQUruf+HYqBPNj6HdjgdjHLJpzCLMWYAV+2DNHtgxB3t24cQ2nJkRGjNCYyksThXZD5tERObhEJzIDhTyFRkhMi6JHdO5oh57CwAAAABJRU5ErkJggg==')
-    bg                  repeat repeat
-    bg                  scroll no-scroll
-    vendor              transition, top .077s ease-in
-    left                0
-    top                 29px
-    z-index             0
-    color               white
-    letter-spacing      .05em
-    text-align          center
-    line-height         26px
-    font-size           12px
-    borderBox()
-    abs()
-    &.in
-      top               55px
-    &.warn
-      bg                color rgba(187, 159, 9, .9)
-    &.err
-      bg                color rgba(238, 100, 98, .9)
-    &.fx
-      vendor            animation, progress 60s linear infinite
-    strong
-      font-weight       600
-    .cancel
-      right             10px
-      top               3px
-      abs()
-    a
-      border-bottom     1px solid white
-      color             white
-      noTextDeco()
-    .custom-link-view
-      display           inline-block
-      size              16px 16px
-      vertical-align    top
-      border-bottom     none
-      margin            5px 0 0 5px
-      span.close.icon
-        display         block
-        r-sprite        app '16-close-white'
-
-
   .inner-container
     bg                  color, #1f2628
     size                100%, 55px
@@ -119,6 +73,51 @@ button
 
     .logotype
       hidden()
+
+.header-notification
+  size                100% 26px
+  bg                  color rgba(24, 148, 83, .9)
+  bg                  image url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAQAAAAngNWGAAAAT0lEQVQ4y43SOxIAIAxCQUruf+HYqBPNj6HdjgdjHLJpzCLMWYAV+2DNHtgxB3t24cQ2nJkRGjNCYyksThXZD5tERObhEJzIDhTyFRkhMi6JHdO5oh57CwAAAABJRU5ErkJggg==')
+  bg                  repeat repeat
+  bg                  scroll no-scroll
+  vendor              transition, top .077s ease-in
+  left                0
+  top                 29px
+  z-index             0
+  color               white
+  letter-spacing      .05em
+  text-align          center
+  line-height         26px
+  font-size           12px
+  borderBox()
+  abs()
+  &.in
+    top               55px
+  &.warn
+    bg                color rgba(187, 159, 9, .9)
+  &.err
+    bg                color rgba(238, 100, 98, .9)
+  &.fx
+    vendor            animation, progress 60s linear infinite
+  strong
+    font-weight       600
+  .cancel
+    right             10px
+    top               3px
+    abs()
+  a
+    border-bottom     1px solid white
+    color             white
+    noTextDeco()
+  .custom-link-view
+    display           inline-block
+    size              16px 16px
+    vertical-align    top
+    border-bottom     none
+    margin            5px 0 0 5px
+    span.close.icon
+      display         block
+      r-sprite        app '16-close-white'
 
 
 .intro #main-header
@@ -302,11 +301,15 @@ button
     display         inline-block
     border-left     1px solid #1f2628
 
+    .icon
+      padding-bottom 1px
+    // i know, this is not a proper solution. [BC]
+
     &.help
       width         30px
       .icon
         margin      18px 0 0 13px
-        r-sprite      app question-mark
+        r-sprite    app question-mark
 
     .count
       vendor        transform, scale(0)
@@ -332,12 +335,12 @@ button
       display       block
     &.notifications .icon
       margin        18px 0 0 13px
-      r-sprite        app account-notifications
+      r-sprite      app account-notifications
     &.search
       width         55px
       .icon
         margin      17px 0 0 17px
-        r-sprite      app account-search
+        r-sprite    app account-search
     &.groups
       abs()
       top           0

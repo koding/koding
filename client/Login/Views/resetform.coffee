@@ -33,16 +33,14 @@ class ResetInlineForm extends LoginViewInlineForm
             match     : "Password confirmation doesn't match!"
 
     @button = new KDButtonView
-      title : "RESET PASSWORD"
-      style : "thin"
+      title : "Reset password"
+      style : "solid green medium"
       type  : 'submit'
-      loader      :
-        color     : "#ffffff"
-        diameter  : 21
+      loader: yes
 
   pistachio:->
     """
-    <div class='login-hint'>Set your new password below.</div>
+
     <div>{{> @password}}</div>
     <div>{{> @passwordConfirm}}</div>
     <div>{{> @button}}</div>

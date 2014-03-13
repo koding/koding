@@ -60,11 +60,12 @@ class ActivityInputWidget extends KDView
 
     @embedBox = new EmbedBoxWidget delegate: @input, data
 
-    @submit    = new KDButtonView
-      type     : "submit"
-      cssClass : "solid green"
-      iconOnly : yes
-      callback : @bound "submit"
+    @submitButton = new KDButtonView
+      type        : "submit"
+      cssClass    : "solid green"
+      iconOnly    : yes
+      loader      : yes
+      callback    : @bound "submit"
 
     @avatar = new AvatarView
       size      :
@@ -148,7 +149,7 @@ class ActivityInputWidget extends KDView
     @currentHelperNames = []
 
   submit: (callback) ->
-    return  unless value = @input.getValue().trim()
+    return @reset yes unless value = @input.getValue().trim()
 
     {JTag} = KD.remote.api
 
@@ -222,6 +223,7 @@ class ActivityInputWidget extends KDView
 
     @emit "ActivitySubmitted"
 
+
   encodeTagSuggestions: (str, tags) ->
     return  str.replace /\|(.*?):\$suggest:(.*?)\|/g, (match, prefix, title) ->
       tag = tags[title]
@@ -258,18 +260,18 @@ class ActivityInputWidget extends KDView
     @input.setContent ""
     @input.blur()
     @embedBox.resetEmbedAndHide()
-    # @submit.setTitle "Post"
-    @submit.focus()
-    setTimeout (@bound "unlockSubmit"), 8000
-    @unlockSubmit()  if lock
+
+    if lock
+    then @unlockSubmit()
+    else KD.utils.wait 8000, @bound "unlockSubmit"
 
   lockSubmit: ->
-    @submit.disable()
-    # @submit.setTitle "Wait"
+    @submitButton.disable()
+    @submitButton.showLoader()
 
   unlockSubmit: ->
-    @submit.enable()
-    # @submit.setTitle "Post"
+    @submitButton.enable()
+    @submitButton.hideLoader()
 
   showPreview: ->
     return unless value = @input.getValue().trim()
@@ -300,7 +302,7 @@ class ActivityInputWidget extends KDView
     @addSubView @embedBox
     @addSubView @bugNotification
     @addSubView @helpContainer
-    @input.addSubView @submit
+    @input.addSubView @submitButton
     @input.addSubView @previewIcon
     @hide()  unless KD.isLoggedIn()
 
@@ -311,14 +313,15 @@ class ActivityEditWidget extends ActivityInputWidget
 
     super options, data
 
-    @submit    = new KDButtonView
-      type     : "submit"
-      cssClass : "solid green"
-      iconOnly : no
-      title    : "Done editing"
-      callback : @bound "submit"
+    @submitButton = new KDButtonView
+      type        : "submit"
+      cssClass    : "solid green"
+      iconOnly    : no
+      loader      : yes
+      title       : "Done editing"
+      callback    : @bound "submit"
 
-    @cancel = new KDButtonView
+    @cancelButton = new KDButtonView
       cssClass : "solid gray"
       title    : "Cancel"
       callback : => @emit "Cancel"
@@ -328,11 +331,11 @@ class ActivityEditWidget extends ActivityInputWidget
     {body, link} = data
 
     content = ""
-    content += "<div>#{Encoder.htmlEncode(line)}</div>" for line in body.split "\n"
+    content += "<div>#{Encoder.htmlEncode(line)}&nbsp;</div>" for line in body.split "\n"
     @input.setContent content, data
     @embedBox.loadEmbed link.link_url  if link
 
     @addSubView @input
     @addSubView @embedBox
-    @input.addSubView @submit
-    @input.addSubView @cancel
+    @input.addSubView @submitButton
+    @input.addSubView @cancelButton

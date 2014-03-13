@@ -1,4 +1,4 @@
-@import "../../../Framework/themes/default/kdfn"
+@import "../../../Framework/src/themes/default/kdfn"
 @import "../../../Main/styl/appfn"
 
 
@@ -30,7 +30,7 @@ resurrection.activity.styl
 .content-page.activity
   max-width             100%
   min-height            1026px
-  margin                85px auto
+  margin                85px auto 0
   padding               0
   position              static
   overflow              visible
@@ -42,6 +42,7 @@ resurrection.activity.styl
 
     >.activity-input-widget
       margin-left       80px
+      margin-bottom     36px
       display           block
 
       .input-view
@@ -113,8 +114,18 @@ resurrection.activity.styl
       .kdview
         overflow        visible
 
+      .toggle-pinned-list
+        text-align      right
+
+        .title
+          color             #838987
+          font-size         20px
+          font-weight       300
+          text-decoration   none
+          margin-right      3px
+
     .feeder-header
-      margin-top        31px
+      margin-top        10px
       text-align        right
       overflow          visible
 
@@ -610,6 +621,9 @@ span.collapsedtext
   shadow          1px 1px 0 rgba(196, 196, 196, .75)
   borderBox()
 
+  &:first-child
+    margin-top    15px
+
   &.content-display-main-section /* Content display */
     kalc          width, 100% \- 100px
     margin-left   100px
@@ -680,6 +694,9 @@ span.collapsedtext
       border-bottom  1px solid #ececec
       color          #3c4752
       borderBox()
+
+      &:focus
+        outline      none
 
     button
       size        auto, 25px
@@ -1094,66 +1111,6 @@ span.collapsedtext
       textarea.description-input
         display             none
 
-/* Activity item menu */
-body.activity
-body.profile
-  .kdbuttonmenu.jcontextmenu
-    margin              4px 0 0 14px
-    rounded             6px
-    border              1px solid #e4e4e4
-    shadow              0 8px 35px rgba(0, 0, 0, .22)
-    padding             5px 0
-
-    &:after
-      content             ""
-      display             block
-      size                0 0
-      right               19px
-      bottom              100%
-      border              7px solid transparent
-      border-bottom-color #fff
-      z-index             600
-      abs()
-
-    &:before
-      content             ""
-      display             block
-      size                0 0
-      right               18px
-      bottom              100%
-      border              8px solid transparent
-      border-bottom-color #e4e4e4
-      z-index             599
-      abs()
-
-    &.comment-menu
-      margin              0 0 0 16px
-
-    .kdlistitemview-contextitem
-      color               #50595f
-      font-size           12px
-      line-height         24px
-      cursor              pointer
-      padding             0 0 0 12px
-
-      .icon
-        margin            0 7px 0 0
-        display           inline-block
-        vertical-align    sub
-        &.edit
-          r-sprite          activity "edit-icon"
-        &.delete
-          r-sprite          activity "delete-icon"
-
-      &:hover
-      &.selected
-        bg                color #F8f8f8
-        text-shadow       none
-
-
-    .chevron-ghost-wrapper
-      opacity           0
-
 /** Markdown Styling **/
 .activity-item > article
 .activity-input-widget .update-preview
@@ -1266,20 +1223,35 @@ body.profile
           color           #6096BE
 
 .activity-share-popup
-  bg                      color, #ececec
-  margin                  4px 0 0 14px
-  rounded                 3px 11px 11px 3px
-  size                    176px, 22px
+  bg                      color, #fff
+  margin                  -10px 0 0 19px
+  rounded                 4px
+  size                    auto, auto
+  border                  1px solid #c0c0c0
+  padding                 8px 12px 8px 8px
+  shadow                  0 0 27px rgba(0,0,0,.2)
 
   &:after
     content             ""
     display             block
     size                0 0
     left                -12px
-    top                 5px
+    top                 50%
+    vendor              transform, translateY(-50%)
     border              6px solid transparent
-    border-right-color  #ececec
+    border-right-color  #fff
     z-index             600
+    abs()
+  &:before
+    content             ""
+    display             block
+    size                0 0
+    left                -13px
+    top                 50%
+    vendor              transform, translateY(-50%)
+    border              6px solid transparent
+    border-right-color  #c0c0c0
+    z-index             599
     abs()
 
   .context-list-wrapper
@@ -1289,13 +1261,16 @@ body.profile
   input.share-input:hover
   input.share-input:focus
   input.share-input:active
-    background            transparent
+    margin                0 4px 0 0
+    background            #e4e4e4
     border                none
-    margin                0 2px 0 0
+    border-radius         2px
     font-size             12px
-    color                 #6e6e6e
-    line-height           22px
-    size                  106px, 22px
+    color                 #737677
+    line-height           28px
+    font-weight           400
+    size                  135px, 27px
+    padding               0 0 0 6px
     outline               0
     fl()
 
@@ -1303,12 +1278,14 @@ body.profile
     margin                3px 0 0 4px
     fl()
 
+    &.share-gplus
+      r-sprite              activity, "gplus-21"
     &.share-twitter
-      r-sprite              activity, "twitter-16"
+      r-sprite              activity, "twitter-21"
     &.share-facebook
-      r-sprite              activity, "facebook-16"
+      r-sprite              activity, "facebook-21"
     &.share-linkedin
-      r-sprite              activity, "linkedin-16"
+      r-sprite              activity, "linkedin-21"
 
 
 
@@ -1534,7 +1511,7 @@ nav.crawler-pagination
 
 // Group Members //
 body.group.members
-  .content-page.members
+  .content-page
     .header-view-section
       margin              42px 0 12px
       border              none
@@ -1624,5 +1601,3 @@ body.group.members
     font-weight     500
     position        relative
     line-height     40px
-
-

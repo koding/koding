@@ -1,50 +1,41 @@
-# FIXME - Move this in a seperate file ~ GG
-
-class VmListItem extends KDListItemView
-
-  click: ->
-    @getDelegate().emit 'VMSelected', @getData()
-
-  viewAppended: ->
-    JView::viewAppended.call this
-
-  pistachio: ->
-    """
-      <div class="vm-info">
-        <cite></cite>
-        #{@getData()}
-      </div>
-    """
-
 class VMSelection extends KDModalView
 
   constructor:(options={}, data)->
 
     super
-      width           : 300
-      title           : "Select VM"
+      width           : 400
+      title           : "Select a VM"
       overlay         : yes
-      # cssClass        : KD.utils.curry 'vm-selection', options.cssClass
       draggable       : no
       cancellable     : yes
       appendToDomBody : yes
       delegate        : options.delegate
     , data
 
-    @listController   = new KDListViewController
-      view            : new KDListView
-        type          : "vm"
-        cssClass      : "vm-list"
-        itemClass     : VmListItem
+    @setClass 'vm-selection'
 
   viewAppended:->
-    # @unsetClass 'kdmodal'
-    @addSubView view = @listController.getView()
 
-    @listController.getListView().on 'VMSelected', (vm)=>
-      @emit "VMSelected", vm
-      @destroy()
+    @addSubView view = new KDCustomHTMLView tagName : 'ul'
 
-    KD.singleton("vmController").fetchGroupVMs no, (err, vms) =>
-      return  if KD.showError err
-      @listController.instantiateListItems vms
+    { vmController } = KD.singletons
+    { vms }          = vmController
+
+    vmController.on 'vm.progress.start', ({alias, update}) => @[alias].handleVMStart update
+    vmController.on 'vm.progress.stop',  ({alias, update}) => @[alias].handleVMStop update
+    vmController.on 'vm.state.info',     ({alias, state})  => @[alias].handleVMInfo state
+
+    @addSubView ul = new KDCustomHTMLView tagName : 'ul'
+
+    vms.forEach (vm)=>
+      alias             = vm.hostnameAlias
+      @[alias] = new TerminalStartTabVMItem {}, vm
+      ul.addSubView @[alias]
+      appView = @getDelegate()
+      @[alias].on 'VMItemClicked', (vm)=>
+        appView.emit 'VMItemClicked', vm
+
+    for own alias, kite of vmController.kites
+      if kite.recentState
+        @[alias].handleVMInfo kite.recentState
+

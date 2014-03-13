@@ -1,4 +1,4 @@
-@import "../../Framework/themes/default/kdfn"
+@import "../../Framework/src/themes/default/kdfn"
 @import "../../Main/styl/appfn"
 
 @css {
@@ -364,10 +364,10 @@ app.teamwork.styl
 .tw-bot-avatar
   r-sprite                      teamwork, "teampunk"
   size                          30px, 30px
-  fl()
+  display                       inline-block
 
 .tw-add-user
-  fl()
+  display                       inline-block
   size                          30px, 30px
   sprite                        teamwork, "add"
   bg                            color, #1B2224
@@ -421,10 +421,13 @@ app.teamwork.styl
   .tw-action-links
     position                    relative
   .tw-users
-    overflow                    hidden
+    overflow                    auto
     float                       left
+    size                        100%, 100px
+    white-space                 nowrap
+
   .avatarview
-    fl()
+    display                     inline-block
     margin                      10px 9px 0 0
     rounded                     3px
     &.watching
@@ -775,3 +778,10 @@ app.teamwork.styl
   100%
     -webkit-transform           scale(1.3)
     opacity                     0
+
+.teamwork
+  .kdspotlightview
+    .kdoverlay
+      bg                        color, rgba(0, 0, 0, .4)
+      &.main
+        background              radial-gradient(ellipse at center, rgba(0, 0, 0, 0) 30%, rgba(0, 0, 0, .4) 60%)

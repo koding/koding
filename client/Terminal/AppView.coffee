@@ -1,5 +1,7 @@
 class WebTermAppView extends JView
 
+  loadingPartial = 'Loading Terminal...'
+
   constructor: (options = {}, data) ->
 
     super options, data
@@ -11,6 +13,7 @@ class WebTermAppView extends JView
     @tabHandleContainer = new ApplicationTabHandleHolder
       delegate          : this
       addPlusHandle     : yes
+      cssClass          : 'terminal'
 
     @tabView = new ApplicationTabView
       delegate                  : this
@@ -18,34 +21,21 @@ class WebTermAppView extends JView
       resizeTabHandles          : yes
       closeAppWhenAllTabsClosed : no
 
-    @tabView.on 'PaneDidShow', (pane, index) =>
-      @_windowDidResize()
-      {terminalView} = pane.getOptions()
-
-      @initPane pane
-
-      terminalView.terminal?.scrollToBottom()
-
-      KD.utils.defer -> terminalView.setKeyView()
-
-      @fetchStorage (storage) -> storage.setValue 'activeIndex', index
-
-    @on "KDObjectWillBeDestroyed", ->
-      KD.getSingleton("mainView").disableFullscreen()
-
-    @messagePane = new KDCustomHTMLView
-      cssClass   : 'message-pane'
-      partial    : 'Loading Terminal...'
-
-    @tabView.on 'AllTabsClosed', =>
-      @setMessage "All tabs are closed. <a class='plus' href='#'>Click to open a new Terminal</a>.", no, yes
-
     @tabView
-      .on('PaneRemoved', @bound 'updateSessions')
-      .on('TabsSorted', @bound 'updateSessions')
+      .on('PaneRemoved',   @bound 'updateSessions')
+      .on('TabsSorted',    @bound 'updateSessions')
+      .on('PaneDidShow',   @bound 'handlePaneShown')
+
+    @addStartTab()
+
+    @on 'VMItemClicked',     @bound 'prepareAndRunTerminal'
+    @on 'PlusHandleClicked', @bound 'handlePlusClick'
+
 
   initPane: (pane) ->
+
     return if pane.id of @initedPanes
+
     @initedPanes[pane.id] = yes
 
     {terminalView} = pane.getOptions()
@@ -55,68 +45,44 @@ class WebTermAppView extends JView
       if not pane.isDestroyed and @tabView.getActivePane() is pane
         @tabView.removePane pane
 
-  setMessage:(msg, light = no, bindClick = no)->
-    @messagePane.updatePartial msg
-    if light
-    then @messagePane.setClass   'light'
-    else @messagePane.unsetClass 'light'
-    @messagePane.show()
 
-    if bindClick
-      @messagePane.once 'click', (event)=>
-        KD.utils.stopDOMEvent event
-        if $(event.target).hasClass 'close'
-          KD.singleton('router').back()
-          KD.singleton('appManager').quitByName 'Terminal'
-        else if $(event.target).hasClass 'plus'
-          @addNewTab()
-          @messagePane.hide()
+  handlePaneShown:(pane, index)->
+
+    @_windowDidResize()
+    {terminalView} = pane.getOptions()
+
+    return  unless terminalView
+
+    @initPane pane
+    terminalView.terminal?.scrollToBottom()
+    KD.utils.defer -> terminalView.setKeyView()
+    @fetchStorage (storage) -> storage.setValue 'activeIndex', index
+
 
   fetchStorage: (callback) ->
     storage = KD.getSingleton('appStorageController').storage 'Terminal', '1.0.1'
     storage.fetchStorage -> callback storage
 
-  restoreTabs: (vmName) ->
+  restoreTabs: (vm) ->
+
+    notify
+      title     : "Checking for previous sessions"
+      cssClass  : "success"
+
     @fetchStorage (storage) =>
       sessions = storage.getValue 'savedSessions'
       activeIndex = storage.getValue 'activeIndex'
       if sessions?.length
         for session in sessions
           [vmName, sessionId] = session.split ':'
-          @createNewTab { vmName, session: sessionId, mode: 'resume' }
+          @createNewTab { vm, session: sessionId, mode: 'resume' }
         activePane = @tabView.getPaneByIndex activeIndex ? 0
         @tabView.showPane activePane
         { terminalView } = activePane.getOptions()
         terminalView.setKeyView()
       else
-        @addNewTab vmName
+        @addNewTab vm
 
-  checkVM:->
-
-    vmController = KD.getSingleton 'vmController'
-    vmController.fetchDefaultVmName (vmName)=>
-
-      KD.mixpanel "Open Webterm, click", {vmName}
-
-      unless vmName
-        return @setMessage "It seems you don't have a VM to use with Terminal."
-
-      WebTermView.setTerminalTimeout vmName, 15000
-      , => @restoreTabs vmName
-      , (->)
-      , =>
-        KD.mixpanel "Open Webterm, fail", {vmName}
-        KD.logToExternalWithTime "oskite: Can't open Webterm", vmName
-
-
-        @emit 'message', """
-          <p>Couldn't connect to your VM.</p>
-          <br>
-          <p>Preparing your VM can take anywhere from
-          5 to 60 seconds, depending on load.</p>
-          <br>
-          <p>Please wait, then <a class='plus' href='#'>try again</a>.</p>
-          """, no, yes
 
   showApprovalModal: (remote, command)->
     modal = new KDModalView
@@ -182,6 +148,9 @@ class WebTermAppView extends JView
     else terminalView.once 'WebTermConnected', runner
 
   handleQuery:(query)->
+
+    console.trace()
+
     pane = @tabView.getActivePane()
     {terminalView} = pane.getOptions()
     terminalView.terminal?.scrollToBottom()
@@ -220,7 +189,6 @@ class WebTermAppView extends JView
 
   viewAppended: ->
     super
-    @checkVM()
     path = location.pathname + location.search + "?"
     mainController = KD.getSingleton("mainController")
 
@@ -232,7 +200,8 @@ class WebTermAppView extends JView
 
 
   createNewTab: (options = {}) ->
-    @messagePane.hide()
+
+    { hostnameAlias: vmName, region } = options.vm
 
     defaultOptions =
       testPath    : "webterm-tab"
@@ -240,29 +209,24 @@ class WebTermAppView extends JView
 
     terminalView   = new WebTermView (KD.utils.extend defaultOptions, options)
 
-    terminalView.on 'message', @bound 'setMessage'
-
-    terminalView.on 'WebTermConnected', @bound 'updateSessions'
-
-    {vmName} = options
-
-    WebTermView.setTerminalTimeout vmName, 15000, ->
-      terminalView.connectToTerminal()
-    , =>
-      KD.utils.defer => @addNewTab vmName
-    , =>
-      KD.mixpanel "Open Webterm, fail", {vmName}
-      KD.logToExternalWithTime "oskite: Can't open Webterm", vmName
-      @setMessage """
-        <p>Couldn't connect to your VM.</p>
-        <br>
-        <p>Preparing your VM can take anywhere from
-        5 to 60 seconds, depending on load.</p>
-        <br>
-        <p>Please wait, then <a class='plus' href='#'>try again</a>.</p>
-        """, no, yes
+    @emit 'TerminalStarted'
 
     @appendTerminalTab terminalView
+    terminalView.connectToTerminal()
+
+  addStartTab:->
+
+    pane = new KDTabPaneView
+      name          : 'intro'
+      tabHandleView : new KDCustomHTMLView
+        tagName     : 'span'
+        cssClass    : 'home'
+      view          : new TerminalStartTab
+        tagName     : 'main'
+        delegate    : this
+      closable      : no
+
+    @tabView.addPane pane
 
   appendTerminalTab: (terminalView) ->
 
@@ -284,9 +248,6 @@ class WebTermAppView extends JView
       @tabView.removePane pane
       unless @dirty[vmName]
         @tabView.off 'AllTabsClosed'
-        @setMessage """
-          Sorry, your terminal sessions on #{ vmName } are dead. <a href='#' class='plus'>Open a new session.</a>
-          """, no, yes
         @dirty[vmName] = yes
 
     # terminalView.once 'KDObjectWillBeDestroyed', => @tabView.removePane pane
@@ -295,112 +256,78 @@ class WebTermAppView extends JView
     storage = (KD.getSingleton 'appStorageController').storage 'Terminal', '1.0.1'
     storage.fetchStorage =>
       activeIndex = @tabView.getActivePaneIndex()
-      sessions = @tabView.panes.map (pane) =>
+      sessions = []
+      @tabView.panes.forEach (pane) =>
         { terminalView } = pane.getOptions()
+        return unless terminalView
         sessionId = terminalView.sessionId ? terminalView.getOption 'session'
         vmName = terminalView.getOption 'vmName'
-        "#{ vmName }:#{ sessionId }"
+        sessions.push "#{ vmName }:#{ sessionId }"
       storage.setValue 'savedSessions', sessions
       storage.setValue 'activeIndex', activeIndex
 
-  addNewTab: (vmName)->
+  addNewTab: (vm) ->
 
-    if @_secondTab
-      KD.mixpanel "Open new Webterm tab, success"
+    KD.mixpanel "Open new Webterm tab, success"  if @_secondTab
 
-    @_secondTab   = yes
+    @_secondTab = yes
+    mode        = 'create'
 
-    unless vmName
-      @utils.defer =>
+    @prepareAndRunTerminal vm, mode
 
-        vmc = KD.getSingleton 'vmController'
-        if vmc.vms.length > 1
-          return  if @vmselection and not @vmselection.isDestroyed
-          @vmselection = new VMSelection
-          @vmselection.once 'VMSelected', (vm)=> @createNewTab vmName: vm, mode: 'create'
-        else
-          @createNewTab vmName: vmc.vms.first, mode: 'create'
 
+  showVMSelection:->
+
+    return  if @vmselection and not @vmselection.isDestroyed
+    @vmselection = new VMSelection delegate : this
+
+
+  handlePlusClick:->
+
+    vmc = KD.getSingleton 'vmController'
+    if vmc.vms.length > 1 then @showVMSelection()
     else
-      @createNewTab vmName: vmName, mode: 'create'
+      vm            = vmc.vms.first
+      osKite        = vmc.kites[vm.hostnameAlias]
+      {recentState} = osKite
+      if recentState?.state is 'RUNNING'
+      then @prepareAndRunTerminal vm
+      else notify cssClass : 'error'
+
+  prepareAndRunTerminal: (vm, mode = 'create') ->
+
+    {vmController} = KD.singletons
+    osKite         = vmController.kites[vm.hostnameAlias]
+    {recentState}  = osKite
+
+    if recentState?.state is 'RUNNING'
+      @createNewTab {vm, mode}
+    else if recentState?.state is 'STOPPED'
+      osKite?.vmOn()
+    else
+      notify cssClass : 'error'
+      osKite?.vmOff()
+
+
 
   pistachio: ->
     """
     {{> @tabHandleContainer}}
-    {{> @messagePane}}
     {{> @tabView}}
     """
 
-class ChromeTerminalBanner extends JView
-  constructor: (options={}, data)->
 
-    options.domId = "chrome-terminal-banner"
+  notify = do ->
 
-    super options, data
+    notification = null
 
-    @descriptionHidden = yes
+    (options = {}) =>
 
-    @mainView = KD.getSingleton "mainView"
-    @router   = KD.getSingleton "router"
-    @finder   = KD.getSingleton "finderController"
+      notification?.destroy()
 
-    @mainView.on "fullscreen", (state)=>
-      unless state then @hide() else @show()
+      options.title     or= "We can not communicate with your VM, please try again later!"
+      options.type      or= "mini"
+      options.cssClass  or= "success"
+      options.duration   ?= 5000
 
-    @register   = new CustomLinkView
-      cssClass: "action"
-      title   : "Register"
-      click   : => @revealKoding "/Register"
-
-    @login      = new CustomLinkView
-      cssClass: "action"
-      title   : "Login"
-      click   : => @revealKoding "/Login"
-
-    @whatIsThis = new CustomLinkView
-      cssClass : "action"
-      title    : "What is This?"
-      click    : =>
-        if @descriptionHidden
-          @description.show()
-        else
-          @description.hide()
-        @descriptionHidden = not @descriptionHidden
-
-    @description = new KDCustomHTMLView
-      tagName : "p"
-      cssClass: "hidden"
-      partial : """
-      This is a complete virtual environment provided by Koding. <br>
-      Koding is a social development environment. <br>
-      Visit and see it in action at <a href="http://koding.com" target="_blank">http://koding.com</a>
-      """
-
-    @revealer = new CustomLinkView
-      cssClass : "action"
-      title    : "Reveal Koding"
-      click    : => @revealKoding()
-
-  revealKoding: (route)->
-    @finder.mountVm "vm-0.#{KD.nick()}.guests.kd.io" unless KD.isLoggedIn()
-    @router.handleRoute route if route
-    @mainView.disableFullscreen()
-
-  pistachio: ->
-    if KD.isLoggedIn()
-      """
-      <span class="koding-icon"></span>
-      <div class="actions">
-        {{> @revealer}}
-      </div>
-      """
-    else
-      """
-      <span class="koding-icon"></span>
-      <div class="actions">
-        {{> @register}}
-        {{> @login}}
-        {{> @whatIsThis}}
-      </div>
-      {{> @description}}
-      """
+      notification = new KDNotificationView options

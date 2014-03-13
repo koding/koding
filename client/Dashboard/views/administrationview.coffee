@@ -11,9 +11,7 @@ class AdministrationView extends KDTabViewWithForms
             Update          :
               title         : "Update"
               style         : "solid medium green"
-              loader        :
-                color       : "#444444"
-                diameter    : 12
+              loader        : yes
               callback      : =>
                 {inputs, buttons} = @forms["User Details"]
                 accounts = @userController.getSelectedItemData()
@@ -76,8 +74,7 @@ class AdministrationView extends KDTabViewWithForms
                     Impersonate  :
                       style      : "modal-clean-green"
                       loader     :
-                        color    : "#FFF"
-                        diameter : 16
+                        color    : "#444444"
                       callback   : =>
                         accounts = @userController.getSelectedItemData()
                         unless accounts.length is 0
@@ -91,9 +88,7 @@ class AdministrationView extends KDTabViewWithForms
             "Broadcast Message"  :
               title         : "Broadcast"
               style         : "solid medium green"
-              loader        :
-                color       : "#444444"
-                diameter    : 12
+              loader        : yes
 
               callback      : (event)=>
                 {inputs, buttons} = @forms["Broadcast Message"]
@@ -214,6 +209,9 @@ class AdministrationView extends KDTabViewWithForms
 
   createUserAutoComplete:->
     {fields, inputs, buttons} = @forms["User Details"]
+
+    {JAccount} = KD.remote.api
+
     @userController = new KDAutoCompleteController
       form                : @forms["User Details"]
       name                : "userController"
@@ -227,13 +225,14 @@ class AdministrationView extends KDTabViewWithForms
         {inputValue} = args
         if /^@/.test inputValue
           query = 'profile.nickname': inputValue.replace /^@/, ''
-          KD.remote.api.JAccount.one query, (err, account)=>
+          JAccount.one query, (err, account)=>
             if not account
               @userController.showNoDataFound()
             else
               callback [account]
         else
-          KD.remote.api.JAccount.byRelevance inputValue, {}, (err, accounts)->
+          byEmail = /[^\s@]+@[^\s@]+\.[^\s@]+/.test inputValue
+          JAccount.byRelevance inputValue, {byEmail}, (err, accounts)->
             callback accounts
 
     @userController.on "ItemListChanged", =>

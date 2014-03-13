@@ -23,6 +23,9 @@ regions         =
   sj            : "sj"
   aws           : "aws"
 
+cookieMaxAge = 1000 * 60 * 60 * 24 * 14 # two weeks
+cookieSecure = no
+
 module.exports =
   environment   : environment
   regions       : regions
@@ -103,7 +106,7 @@ module.exports =
     numberOfWorkers: 2
     watch       : yes
   emailConfirmationCheckerWorker :
-    enabled              : yes
+    enabled              : no
     login                : 'prod-social'
     queueName            : socialQueueName+'emailConfirmationCheckerWorker'
     numberOfWorkers      : 1
@@ -157,6 +160,11 @@ module.exports =
     useStaticFileServer: no
     staticFilesBaseUrl: "https://koding.com"
     runtimeOptions:
+      osKitePollingMs: 1000 * 60 # 1 min
+      userIdleMs: 1000 * 60 * 5 # 5 min
+      sessionCookie :
+        maxAge      : cookieMaxAge
+        secure      : cookieSecure
       environment        : environment
       activityFetchCount : 20
       precompiledApi     : yes
@@ -169,6 +177,7 @@ module.exports =
       useNeo4j: yes
       logToExternal : yes
       resourceName: socialQueueName
+      socialApiUri: 'https://social.koding.com/xhr'
       suppressLogs: yes
       version   : version
       mainUri   : "http://koding.com"
@@ -294,7 +303,8 @@ module.exports =
       apiHost     : "68.68.97.179"
       apiPort     : 80
       port        : 8080
-      switchHost  : "koding.com"
+      kodingHost  : "koding.com"
+      socialHost  : "social.koding.com"
     api           :
       port        : 80
       url         : "http://kontrol0.sj.koding.com"
@@ -387,3 +397,6 @@ module.exports =
       storage     : 4096
       ram         : 1024
       cpu         : 1
+  sessionCookie :
+    maxAge      : cookieMaxAge
+    secure      : cookieSecure

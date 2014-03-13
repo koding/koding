@@ -19,6 +19,7 @@ func NewRedisSession(server string) (*RedisSession, error) {
 
 	pool := &redis.Pool{
 		MaxIdle:     3,
+		MaxActive:   1000,
 		IdleTimeout: 240 * time.Second,
 		Dial: func() (redis.Conn, error) {
 			c, err := redis.Dial("tcp", server)
@@ -33,6 +34,11 @@ func NewRedisSession(server string) (*RedisSession, error) {
 	// dialing and returning an error will be
 	// with the request
 	return s, nil
+}
+
+// Close closes the connection pool for redis
+func (r *RedisSession) Close() error {
+	return r.pool.Close()
 }
 
 // SetPrefix is used to add a prefix to all keys to be used. It is useful for

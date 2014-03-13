@@ -36,10 +36,7 @@ class AvatarChangeView extends JView
 
     {isVideoSupported, isDNDSupported} = detectFeatures()
 
-    @on "viewAppended", =>
-      @overlay = new KDOverlayView
-        isRemovable: no
-        parent     : "body"
+    @on "viewAppended", => @overlay = new KDOverlayView
 
     @on "KDObjectWillBeDestroyed", => @overlay.destroy()
 
@@ -341,17 +338,19 @@ class ProfileView extends JView
 
     @bio            = new KDContentEditableView
       testPath      : "profile-bio"
-      pistachio     : "{{ @utils.applyTextExpansions #(profile.about), yes}}"
+      pistachio     : "{{#(profile.about) or ''}}"
       cssClass      : "bio"
       placeholder   : if KD.isMine @memberData then "You haven't entered anything in your bio yet. Why not add something now?" else ""
-      textExpansion : yes
       delegate      : this
       tabNavigation : yes
     , @memberData
 
-    save = -> @getDelegate().save()
+    save = ->
+      @getDelegate().save()
+      @setEditingMode off
+
     focus = (input) ->
-      input.setEditingMode yes
+      input.setEditingMode on
       input.focus()
 
     if @memberData.getId() is KD.whoami().getId()
@@ -362,9 +361,9 @@ class ProfileView extends JView
       @bio.on "NextTabStop",           => focus @firstName
       @bio.on "PreviousTabStop",       => focus @lastName
 
-      @firstName.on "click", -> @setEditingMode yes
-      @lastName.on "click",  -> @setEditingMode yes
-      @bio.on "click",       -> @setEditingMode yes
+      @firstName.on "click", -> @setEditingMode on
+      @lastName.on "click",  -> @setEditingMode on
+      @bio.on "click",       -> @setEditingMode on
 
       @firstName.on "EnterPressed", save
       @lastName.on "EnterPressed", save
@@ -452,8 +451,37 @@ class ProfileView extends JView
         style : "solid"
       , @memberData
 
-    for route in ['followers', 'following', 'likes']
-      @[route] = @getActionLink route, @memberData
+    nickname = @memberData.profile.nickname
+
+    @followers = new KDView
+      tagName     : 'a'
+      attributes  :
+        href      : ""
+      pistachio   : "<span>{{ #(counts.followers) }}</span>Followers"
+      click       : (event) =>
+        event.preventDefault()
+        KD.getSingleton('router').handleRoute "/#{nickname}?filter=followers", {state: @memberData}
+    , @memberData
+
+    @following = new KDView
+      tagName     : 'a'
+      attributes  :
+        href      : ""
+      pistachio   : "<span>{{ #(counts.following) }}</span>Following"
+      click       : (event) =>
+        event.preventDefault()
+        KD.getSingleton('router').handleRoute "/#{nickname}?filter=following", {state: @memberData}
+    , @memberData
+
+    @likes = new KDView
+      tagName     : 'a'
+      attributes  :
+        href      : ""
+      pistachio   : "<span>{{ #(counts.likes) }}</span>Likes"
+      click       : (event) =>
+        event.preventDefault()
+        KD.getSingleton('router').handleRoute "/#{nickname}?filter=likes", {state: @memberData}
+    , @memberData
 
     @sendMessageLink = new KDCustomHTMLView
     unless KD.isMine @memberData
@@ -532,6 +560,11 @@ class ProfileView extends JView
     super
     @createExternalProfiles()
     @createBadges()
+    KD.utils.defer =>
+      return  unless KD.isMine @memberData
+      @firstName.setPlaceholder()  unless @firstName.getValue()
+      @lastName.setPlaceholder()   unless @lastName.getValue()
+      @bio.setPlaceholder()        unless @bio.getValue()
 
   uploadAvatar: (avatarData, callback)->
     FSHelper.s3.upload "avatar.png", avatarData, "user", "", (err, url)=>
@@ -587,22 +620,6 @@ class ProfileView extends JView
   cancel:(event)->
     KD.utils.stopDOMEvent event  if event
     @memberData.emit "update"
-
-  getActionLink: (route) ->
-    count    = @memberData.counts[route] or 0
-    nickname = @memberData.profile.nickname
-    path     = route[0].toUpperCase() + route[1..-1]
-
-    new KDView
-      tagName     : 'a'
-      attributes  :
-        href      : "/#"
-      pistachio   : "<span>#{count}</span>#{path}"
-      click       : (event) =>
-        event.preventDefault()
-        unless @memberData.counts[route] is 0
-          KD.getSingleton('router').handleRoute "/#{nickname}/#{path}", {state: @memberData}
-    , @memberData
 
   fetchAutoCompleteForToField: (inputValue, blacklist, callback) ->
     KD.remote.api.JAccount.byRelevance inputValue,{blacklist},(err,accounts) ->

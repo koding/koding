@@ -20,6 +20,7 @@ log4js.configure {
 process.on 'uncaughtException', (err)->
   exec './beep'
   console.log err, err?.stack
+  process.exit 1
 
 Bongo = require 'bongo'
 Broker = require 'broker'
@@ -43,7 +44,7 @@ processMonitor = (require 'processes-monitor').start
   limit_hard  :
     memory   : 300
     callback : (name,msg,details)->
-      console.log "[SOCIAL WORKER #{name}] Using excessive memory, exiting."
+      console.log "[#{JSON.stringify(new Date())}][SOCIAL WORKER #{name}] Using excessive memory, exiting."
       process.exit()
   die :
     after: "non-overlapping, random, 3 digits prime-number of minutes"
@@ -101,9 +102,7 @@ koding = new Bongo {
         callback {sessionToken, context, connection:delegate:account}
       else
         console.log "this is not a proper account".red
-        console.log ''+account.constructor.pid
-        console.log ''+JAccount.pid
-        console.log JAccount is account.constructor
+        console.log "constructor is JAccount", JAccount is account.constructor
         # koding.emit 'error', message: 'this is not a proper account'
 }
 
@@ -145,9 +144,11 @@ console.info "Koding Social Worker #{process.pid} has started."
 # require './followfeed' # side effects
 express = require 'express'
 cors = require 'cors'
+helmet = require 'helmet'
 app = express()
 app.use express.compress()
 app.use express.bodyParser()
+helmet.defaults app
 app.use cors()
 
 app.post '/xhr', koding.expressify()

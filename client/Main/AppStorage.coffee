@@ -20,8 +20,8 @@ class AppStorage extends KDObject
         else
           callback? null
     else
-      callback? @_storage
       KD.utils.defer =>
+        callback? @_storage
         @emit "storageFetched"
         @emit "ready"
 
@@ -29,7 +29,7 @@ class AppStorage extends KDObject
 
     @reset()
     @fetchStorage (storage)->
-      callback  if storage[group]?[key] then storage[group][key]
+      callback  if storage?[group]?[key] then storage[group][key]
     , force
 
   getValue: (key, group = 'bucket')->
@@ -46,7 +46,7 @@ class AppStorage extends KDObject
     @_storageData[group][key] = value
 
     @fetchStorage (storage)->
-      storage.update {
+      storage?.update {
         $set: pack
       }, -> callback?()
 

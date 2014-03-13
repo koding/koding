@@ -6,35 +6,72 @@ class PermissionsForm extends KDFormViewWithFields
 
   constructor:(options,data)->
 
-    group                   = data # @getData()
-    {privacy,permissionSet} = options #@getOptions()
+    @group           = data
+    {@permissionSet} = options
 
-    roles = (role.title for role in options.roles when role.title isnt 'owner')
-
-    addRoleDialog = null
+    @roles = (role.title for role in options.roles when role.title isnt 'owner')
     options.buttons or=
       Save          :
         style       : "solid green"
-        loader      :
-          color     : "#444444"
-          diameter  : 12
+        loader      : yes
         callback    : =>
-
-          group.updatePermissions @reducedList(), (err,res)=>
+          @buttons["Save"].hideLoader()
+          @group.updatePermissions @reducedList(), (err,res)=>
             @buttons["Save"].hideLoader()
-            unless err
-              new KDNotificationView
-                title : "Group permissions have been updated."
-            KD.showError err
+            return KD.showError err if err
+            new KDNotificationView title: "Group permissions have been updated."
+      Add           :
+        title       : "Add"
+        style       : "solid green"
+        callback    : @bound "showNewRoleModal"
 
-    options.fields or= optionizePermissions roles, permissionSet
+    options.fields or= optionizePermissions @roles, @permissionSet
     super options,data
-    @setClass 'permissions-form col-'+roles.length
+    @setClass 'permissions-form col-'+@roles.length
+
+  showNewRoleModal:->
+    roleSelectOptions = []
+    @selectRoleModal  = new KDModalView title: "Select Role to Copy", overlay: yes
+    roleSelectOptions.push {title: role, value: role} for role in @roles
+
+    roleNameLabel   = new KDLabelView title: "Role name"
+    @roleName       = new KDInputView
+      name          : "rolename"
+      placeholder   : "role name..."
+
+    roleSelectLabel = new KDLabelView title: "Select role to copy from"
+    @roleSelectBox   = new KDSelectBox
+      name          : "roletocopy"
+      selectOptions : roleSelectOptions
+
+    confirmButton   = new KDButtonView
+      title         : "Select"
+      callback      : =>
+        titleOfRole = @roleName.getValue()
+        unless titleOfRole
+          @roleName.setClass "kdinput text validation-error"
+        else
+          @group.addCustomRole title: titleOfRole , (err, newRole)=>
+            return KD.showError err if err
+            duplicatedRole = @roleSelectBox.getValue()
+            newPermissions = @getPermissionsOfRole duplicatedRole
+            currentPermissionSet = @reducedList()
+            permission.role = titleOfRole for permission in newPermissions
+            currentPermissionSet.push perm for perm in newPermissions
+            @group.updatePermissions currentPermissionSet, (err,res)=>
+              return KD.showError err if err
+              @emit "RoleWasAdded", currentPermissionSet, newRole.title
+
+    @selectRoleModal.addSubView roleNameLabel
+    @selectRoleModal.addSubView @roleName
+    @selectRoleModal.addSubView roleSelectLabel
+    @selectRoleModal.addSubView @roleSelectBox
+    @selectRoleModal.addSubView confirmButton
 
   readableText = (text)->
     dictionary =
       "JTag"        : "Tags"
-      "JNewApp"        : "Apps"
+      "JNewApp"     : "Apps"
       "JGroup"      : "Groups"
       "JPost"       : "Posts"
       "JVM"         : "Compute"
@@ -43,7 +80,9 @@ class PermissionsForm extends KDFormViewWithFields
       "JDomain"     : "Domains"
       "JProxyFilter": "Proxy Filters"
       "JInvitation" : "Invitations"
-      "JComments"   : "Comments"
+      "JComment"    : "Comments"
+      "JStack"      : "Stacks"
+
     return dictionary[text] or text.charAt(0).toUpperCase()+text.slice(1)
 
   _getCheckboxName =(module, permission, role)->
@@ -57,52 +96,61 @@ class PermissionsForm extends KDFormViewWithFields
             return yes
         return no
 
-  cascadeFormElements = (set,roles,module,permission)->
+  cascadeFormElements = (set,roles,module,permission,roleCount=0)->
+
     [current,remainder...] = roles
     cascadeData = {}
 
     isChecked = checkForPermission set.permissions, module, permission, current
 
-    cssClass = 'permission-switch '+__utils.slugify(permission)+' '+current
+    cssClass = 'permission-switch tiny '+utils.slugify(permission)+' '+current
 
     name = _getCheckboxName module, permission, current
 
+    widthForRows = (786-174)/roleCount
     cascadeData[current]= {
       name
       cssClass
-      size         : "tiny"
-      itemClass    : KodingSwitch
+      itemClass    : PermissionSwitch
       defaultValue : isChecked ? no
+      widthForRows
     }
 
     if current in ['admin','owner']
       cascadeData[current].defaultValue = yes
       cascadeData[current].disabled = yes
     if current and remainder.length > 0
-      cascadeData[current].nextElement = cascadeFormElements set, remainder, module, permission
+      cascadeData[current].nextElement = cascadeFormElements set, remainder, module, permission, roleCount
     return cascadeData
 
-  cascadeHeaderElements = (roles)->
+  cascadeHeaderElements = (roles, roleCount)->
+    widthForRows = (786-174)/roleCount
+
     [current,remainder...] = roles
     cascadeData = {}
     cascadeData[current]=
       itemClass     : KDView
       partial       : readableText current
-      cssClass      : 'text header-item role-'+__utils.slugify(current)
+      cssClass      : 'text header-item role-'+utils.slugify(current)
       attributes    :
         title       : readableText current
+        style       : "width : #{widthForRows}px"
     if current and remainder.length > 0
-      cascadeData[current].nextElement = cascadeHeaderElements remainder
+      cascadeData[current].nextElement = cascadeHeaderElements remainder, roleCount
     return cascadeData
 
   optionizePermissions = (roles, set)->
     permissionOptions =
-      head              :
-        itemClass       : KDView
-        cssClass        : 'permissions-header col-'+roles.length
-        nextElement :
-          cascadeHeaderElements roles
+      head            :
+        itemClass     : KDView
+        cssClass      : 'permissions-header col'
+        nextElement   :
+          cascadeHeaderElements roles, roles.length
 
+    # set.permissionsByModule is giving all the possible permissions
+    # module is collection name (JComment, JDomain etc..)
+    # var permissions is permission under collection (module)
+    # like "edit comments" for JComment
     for own module, permissions of set.permissionsByModule
       permissionOptions['header '+module.toLowerCase()] =
         itemClass       : KDView
@@ -110,14 +158,14 @@ class PermissionsForm extends KDFormViewWithFields
         cssClass        : 'permissions-module text'
 
       for permission in permissions
-        permissionOptions[module+'-'+__utils.slugify(permission)] =
+        permissionOptions[module+'-'+utils.slugify(permission)] =
           itemClass     : KDView
           partial       : readableText permission
           cssClass      : 'text'
           attributes    :
             title       : readableText permission
           nextElement :
-            cascadeFormElements set, roles, module, permission
+            cascadeFormElements set, roles, module, permission, roles.length
     permissionOptions
 
   createTree =(values)->
@@ -159,6 +207,8 @@ class PermissionsForm extends KDFormViewWithFields
       when 'tree'         then return createTree values
       else throw new Error "Unknown structure #{structure}"
 
-  viewAppended:->
-    super
-    # @applyScrollShadow()
+  getPermissionsOfRole: (role)->
+    allValues = @list()
+    selectedRoleValues = []
+    selectedRoleValues.push permission for permission in allValues when permission.role is role
+    createReducedList selectedRoleValues

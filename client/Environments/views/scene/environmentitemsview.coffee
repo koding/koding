@@ -35,7 +35,7 @@ class EnvironmentItem extends KDDiaObject
 
     ctxMenu = new JContextMenu
       menuWidth   : 200
-      delegate    : @
+      delegate    : this
       x           : event.pageX
       y           : event.pageY
       lazyLoad    : yes

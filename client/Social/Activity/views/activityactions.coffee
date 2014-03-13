@@ -65,14 +65,11 @@ class ActivityActionsView extends KDView
           x           : @shareLink.getX() + 25
           y           : @shareLink.getY() - 7
           menuMaxWidth: 400
+          menuMinWidth: 192
           lazyLoad    : yes
         , customView  : new ActivitySharePopup delegate: this, url: shareUrl
 
         KD.mixpanel "Activity share, click"
-
-        new KDOverlayView
-          parent      : KD.singletons.mainView.mainTabView.activePane
-          transparent : yes
 
     @likeView = new LikeView
       cssClass           : "logged-in action-container"

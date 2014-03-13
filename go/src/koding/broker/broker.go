@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
+	"koding/databases/redis"
 	"koding/kontrol/kontrolhelper"
 	"koding/tools/amqputil"
 	"koding/tools/config"
@@ -33,10 +34,13 @@ var (
 	conf *config.Config
 	log  = logger.New(BROKER_NAME)
 
-	STORAGE_BACKEND = "redis"
-	routeMap        = make(map[string]*set.Set)
-	sessionsMap     = make(map[string]*sockjs.Session)
-	globalMapMutex  sync.Mutex
+	// routeMap holds the subscription list/set for any given routing key
+	routeMap = make(map[string]*set.Set)
+
+	// sessionsMap holds sessions with their socketIds
+	sessionsMap = make(map[string]*sockjs.Session)
+
+	globalMapMutex sync.Mutex
 
 	changeClientsGauge          = lifecycle.CreateClientsGauge()
 	changeNewClientsGauge       = logger.CreateCounterGauge("newClients", logger.NoUnit, true)
@@ -45,7 +49,7 @@ var (
 	flagProfile      = flag.String("c", "", "Configuration profile from file")
 	flagBrokerDomain = flag.String("a", "", "Send kontrol a custom domain istead of os.Hostname")
 	flagKontrolUUID  = flag.String("u", "", "Enable Kontrol mode")
-	flagBrokerType   = flag.String("b", "broker", "Define broker type. Available: broker and brokerKite. B")
+	flagBrokerType   = flag.String("b", "broker", "Define broker type. Available: broker, premiumBroker and brokerKite, premiumBrokerKite. B")
 	flagDebug        = flag.Bool("d", false, "Debug mode")
 )
 
@@ -62,6 +66,8 @@ type Broker struct {
 	AuthAllExchange   string
 	PublishConn       *amqp.Connection
 	ConsumeConn       *amqp.Connection
+	// we should open only one connection session to Redis for one broker
+	RedisSingleton *redis.SingletonSession
 
 	// Accepts SockJS connections
 	listener net.Listener
@@ -74,7 +80,7 @@ type Broker struct {
 // prepopulated. After creating a Broker instance, one has to call
 // broker.Run() or broker.Start() to start the broker instance and call
 // broker.Close() for a graceful stop.
-func NewBroker() *Broker {
+func NewBroker(conf *config.Config) *Broker {
 	// returns os.Hostname() if config.BrokerDomain is empty, otherwise it just
 	// returns config.BrokerDomain back
 	brokerHostname := kontrolhelper.CustomHostname(*flagBrokerDomain)
@@ -85,6 +91,7 @@ func NewBroker() *Broker {
 		Hostname:          brokerHostname,
 		ServiceUniqueName: serviceUniqueName,
 		ready:             make(chan struct{}),
+		RedisSingleton:    redis.Singleton(conf),
 	}
 }
 
@@ -95,9 +102,11 @@ func main() {
 	}
 
 	conf = config.MustConfig(*flagProfile)
-	broker := NewBroker()
+	broker := NewBroker(conf)
 
 	switch *flagBrokerType {
+	case "premiumBroker":
+		broker.Config = &conf.PremiumBroker
 	case "brokerKite":
 		broker.Config = &conf.BrokerKite
 	case "premiumBrokerKite":
@@ -127,16 +136,19 @@ func (b *Broker) Run() {
 	lifecycle.Startup(BROKER_NAME, false)
 	logger.RunGaugesLoop(log)
 
+	// Register broker to kontrol
 	if err := b.registerToKontrol(); err != nil {
 		log.Critical("Couldnt register to kontrol, stopping... %v", err)
 		return
 	}
 
+	// Create AMQP exchanges/queues/bindings
 	if err := b.startAMQP(); err != nil {
 		log.Critical("Couldnt create amqp bindings, stopping... %v", err)
 		return
 	}
 
+	// start listening/serving socket server
 	b.startSockJS() // blocking
 }
 
@@ -161,7 +173,7 @@ func (b *Broker) registerToKontrol() error {
 	if err := kontrolhelper.RegisterToKontrol(
 		conf,
 		b.Config.Name,
-		b.Config.Name, // servicGenericName
+		b.Config.ServiceGenericName, // servicGenericName
 		b.ServiceUniqueName,
 		*flagKontrolUUID,
 		b.Hostname,
@@ -179,12 +191,12 @@ func (b *Broker) startAMQP() error {
 	b.ConsumeConn = amqputil.CreateConnection(conf, b.Config.Name)
 	consumeChannel := amqputil.CreateChannel(b.ConsumeConn)
 	presenceQueue := amqputil.JoinPresenceExchange(
-		consumeChannel,      // channel
-		"services-presence", // exchange
-		b.Config.Name,       // serviceType
-		b.Config.Name,       // serviceGenericName
-		b.ServiceUniqueName, // serviceUniqueName
-		false,               // loadBalancing
+		consumeChannel,              // channel
+		"services-presence",         // exchange
+		b.Config.Name,               // serviceType
+		b.Config.ServiceGenericName, // serviceGenericName
+		b.ServiceUniqueName,         // serviceUniqueName
+		false,                       // loadBalancing
 	)
 
 	go func() {
@@ -194,7 +206,7 @@ func (b *Broker) startAMQP() error {
 		consumeChannel.QueueDelete(presenceQueue, false, false, false)
 	}()
 
-	stream := amqputil.DeclareBindConsumeQueue(consumeChannel, "topic", b.Config.Name, "#", false)
+	stream := amqputil.DeclareBindConsumeQueue(consumeChannel, "topic", b.Config.ServiceGenericName, "#", false)
 
 	if err := consumeChannel.ExchangeDeclare(
 		"updateInstances", // name
@@ -225,37 +237,43 @@ func (b *Broker) startAMQP() error {
 	return nil
 }
 
+// sendMessageToClient takes an amqp messsage and delivers it to the related
+// clients which are subscribed to the routing key
 func sendMessageToClient(amqpMessage amqp.Delivery) {
 	routingKey := amqpMessage.RoutingKey
 	payloadsByte := utils.FilterInvalidUTF8(amqpMessage.Body)
 
-	if amqpMessage.Exchange == "updateInstances" {
-		var payloads []interface{}
-		if err := json.Unmarshal(payloadsByte, &payloads); err != nil {
-			log.Error("Error while unmarshalling %v", err)
-			log.Error("data %v", string(payloadsByte))
-			log.Error("routingKey %v", routingKey)
-			return
-		}
-
-		for _, payload := range payloads {
-			payloadByte, err := json.Marshal(payload)
-			if err != nil {
-				log.Error("Error while marshalling %v", err)
-				log.Error("data %v", string(payloadByte))
-				log.Error("routingKey %v", routingKey)
-				continue
-			}
-			payloadByteRaw := json.RawMessage(payloadByte)
-			processMessage(routingKey, &payloadByteRaw)
-		}
-	} else {
+	// We are sending multiple bodies for updateInstances exchange
+	// so that there will be another operations, if exchange is not "updateInstances"
+	// no need to add more overhead
+	if amqpMessage.Exchange != "updateInstances" {
 		payloadRaw := json.RawMessage(payloadsByte)
 		processMessage(routingKey, &payloadRaw)
+		return
 	}
 
+	// this part is only for updateInstances exchange
+	var payloads []interface{}
+	// unmarshal data to slice of interface
+	if err := json.Unmarshal(payloadsByte, &payloads); err != nil {
+		log.Error("Error while unmarshalling:%v data:%v routingKey:%v", err, string(payloadsByte), routingKey)
+		return
+	}
+
+	// range over the slice and send all of them to the same routingkey
+	for _, payload := range payloads {
+		payloadByte, err := json.Marshal(payload)
+		if err != nil {
+			log.Error("Error while marshalling:%v data:%v routingKey:%v", err, string(payloadByte), routingKey)
+			continue
+		}
+		payloadByteRaw := json.RawMessage(payloadByte)
+		processMessage(routingKey, &payloadByteRaw)
+	}
 }
 
+// processMessage gets routingKey and a payload for sending them to the client
+// Gets subscription bindings from global routeMap
 func processMessage(routingKey string, payload interface{}) {
 	pos := strings.IndexRune(routingKey, '.') // skip first dot, since we want at least two components to always include the secret
 	for pos != -1 && pos < len(routingKey) {

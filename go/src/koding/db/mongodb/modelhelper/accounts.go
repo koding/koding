@@ -34,3 +34,8 @@ func UpdateAccount(selector, options Selector) error {
 	}
 	return Mongo.Run("jAccounts", query)
 }
+
+// RemoveAccount removes given account
+func RemoveAccount(id bson.ObjectId) error {
+	return RemoveDocument("jAccounts", id)
+}

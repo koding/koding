@@ -1,4 +1,4 @@
-@import "../../Framework/themes/default/kdfn"
+@import "../../Framework/src/themes/default/kdfn"
 @import "../../Main/styl/appfn"
 
 @css {
@@ -32,6 +32,9 @@ body.pricing.flow
       margin              0 0 0 -20px
       z-index             10
       abs()
+
+    .kdbutton .kdloader
+      margin              0
 
   h3.pricing-title
     text-align          center
@@ -89,6 +92,9 @@ body.pricing.flow
         line-height     26px
         width           702px
         fl()
+
+      a
+        color           #3c4752
 
       .pricing-toggle
         font-family     inherit
@@ -1173,4 +1179,3 @@ section.pricing-sign-in
     r-sprite      pricing paypal
   .american-express figure
     r-sprite      pricing amex
-

@@ -18,6 +18,10 @@ regions         =
   vagrant       : "vagrant"
   sj            : "sj"
   aws           : "aws"
+  premium       : "vagrant"
+
+cookieMaxAge = 1000 * 60 * 60 * 24 * 14 # two weeks
+cookieSecure = no
 
 module.exports =
   environment   : environment
@@ -52,6 +56,7 @@ module.exports =
   runNeo4jFeeder: yes
   runGoBroker   : yes
   runGoBrokerKite: yes
+  runPremiumBroker: yes
   runPremiumBrokerKite: yes
   runKontrol    : yes
   runRerouting  : yes
@@ -150,6 +155,11 @@ module.exports =
     useStaticFileServer: no
     staticFilesBaseUrl: 'http://lvh.me:3020'
     runtimeOptions:
+      osKitePollingMs: 1000 * 10 # 10 secs
+      userIdleMs: 1000 * 60 * 5  # 5 min
+      sessionCookie :
+        maxAge      : cookieMaxAge
+        secure      : cookieSecure
       environment        : environment
       activityFetchCount : 20
       precompiledApi     : no
@@ -166,15 +176,14 @@ module.exports =
       suppressLogs: no
       broker    :
         servicesEndpoint: 'http://lvh.me:3020/-/services/broker'
-        sockJS  : 'http://lvh.me:8008/subscribe'
+      premiumBroker:
+        servicesEndpoint: 'http://lvh.me:3020/-/services/premiumBroker'
       brokerKite:
         servicesEndpoint: 'http://lvh.me:3020/-/services/brokerKite'
         brokerExchange: 'brokerKite'
-        sockJS  : 'http://lvh.me:8009/subscribe'
       premiumBrokerKite:
         servicesEndpoint: 'http://lvh.me:3020/-/services/premiumBrokerKite'
         brokerExchange: 'premiumBrokerKite'
-        sockJS  : 'http://lvh.me:8010/subscribe'
       apiUri    : 'http://lvh.me:3020'
       version   : version
       mainUri   : 'http://lvh.me:3020'
@@ -216,39 +225,50 @@ module.exports =
     # so it'll disconnect from RabbitMQ if heartbeat is enabled.
     heartbeat   : 0
     vhost       : '/'
-  broker        :
-    name        : "broker"
-    ip          : ""
-    port        : 8008
-    certFile    : ""
-    keyFile     : ""
-    webProtocol : 'http:'
-    webHostname : 'lvh.me'
-    webPort     : 8008
-    authExchange: authExchange
-    authAllExchange: authAllExchange
-  brokerKite    :
-    name        : "brokerKite"
-    ip          : ""
-    port        : 8009
-    certFile    : ""
-    keyFile     : ""
-    webProtocol : 'http:'
-    webHostname : 'lvh.me'
-    webPort     : 8009
-    authExchange: authExchange
-    authAllExchange: authAllExchange
-  premiumBrokerKite :
-    name        : "premiumBrokerKite"
-    ip          : ""
-    port        : 8010
-    certFile    : ""
-    keyFile     : ""
-    webProtocol : 'http:'
-    webHostname : 'lvh.me'
-    webPort     : 8010
-    authExchange: authExchange
-    authAllExchange: authAllExchange
+  broker              :
+    name              : "broker"
+    serviceGenericName: "broker"
+    ip                : ""
+    port              : 8008
+    certFile          : ""
+    keyFile           : ""
+    webProtocol       : 'http:'
+    authExchange      : authExchange
+    authAllExchange   : authAllExchange
+    failoverUri       : 'lvh.me'
+  premiumBroker       :
+    name              : "premiumBroker"
+    serviceGenericName: "broker"
+    ip                : ""
+    port              : 8009
+    certFile          : ""
+    keyFile           : ""
+    webProtocol       : 'http:'
+    authExchange      : authExchange
+    authAllExchange   : authAllExchange
+    failoverUri       : 'lvh.me'
+  brokerKite          :
+    name              : "brokerKite"
+    serviceGenericName: "brokerKite"
+    ip                : ""
+    port              : 8010
+    certFile          : ""
+    keyFile           : ""
+    webProtocol       : 'http:'
+    authExchange      : authExchange
+    authAllExchange   : authAllExchange
+    failoverUri       : 'lvh.me'
+  premiumBrokerKite   :
+    name              : "premiumBrokerKite"
+    serviceGenericName: "brokerKite"
+    ip                : ""
+    port              : 8011
+    certFile          : ""
+    keyFile           : ""
+    webProtocol       : 'http:'
+    authExchange      : authExchange
+    authAllExchange   : authAllExchange
+    failoverUri       : 'lvh.me'
   kites:
     disconnectTimeout: 3e3
     vhost       : 'kite'
@@ -287,8 +307,8 @@ module.exports =
     useTLS          : no
     certFile        : ""
     keyFile         : ""
-    publicKeyFile   : "/opt/koding/certs/test_kontrol_rsa_public.pem"
-    privateKeyFile  : "/opt/koding/certs/test_kontrol_rsa_private.pem"
+    publicKeyFile   : "./certs/test_kontrol_rsa_public.pem"
+    privateKeyFile  : "./certs/test_kontrol_rsa_private.pem"
   proxyKite       :
     domain        : "127.0.0.1"
     certFile      : "/opt/koding/certs/vagrant_127.0.0.1_cert.pem"
@@ -300,13 +320,14 @@ module.exports =
       apiHost     : "127.0.0.1"
       apiPort     : 8888
       port        : 8080
-      switchHost  : "example.com"
+      kodingHost  : "example.com"
+      socialHost  : "social.example.com"
     api           :
       port        : 8888
       url         : "http://lvh.me"
     proxy         :
-      port        : 5000
-      portssl     : 8081
+      port        : 80
+      portssl     : 443
       ftpip       : '127.0.0.1'
   # crypto :
   #   encrypt: (str,key=Math.floor(Date.now()/1000/60))->
@@ -383,7 +404,7 @@ module.exports =
     channel      : "C024LG80K"
   logLevel        :
     neo4jfeeder   : "notice"
-    oskite        : "notice"
+    oskite        : "info"
     kontrolproxy  : "notice"
     kontroldaemon : "notice"
     userpresence  : "notice"
@@ -404,3 +425,6 @@ module.exports =
       storage     : 3072
       ram         : 1024
       cpu         : 1
+  sessionCookie   :
+    maxAge        : cookieMaxAge
+    secure        : cookieSecure

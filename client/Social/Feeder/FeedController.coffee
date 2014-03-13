@@ -165,7 +165,7 @@ class FeedController extends KDViewController
     options    = @getFeedOptions()
     selector   = @getFeedSelector()
     {itemClass, feedId}  = @getOptions()
-
+    feedId = "" unless feedId
     {groupsController} = KD.singletons
 
     if KD.config.entryPoint?.type is 'group'
@@ -182,13 +182,13 @@ class FeedController extends KDViewController
         @emit "FilterLoaded"
         {limit}      = options
         {scrollView} = listController
-
         if items?.length > 0
           unless err
             items = @sortByKey(items, filter.activeSort) if filter.activeSort
             listController.instantiateListItems items
             @emitCountChanged listController.itemsOrdered.length, filter.name
-            if scrollView and scrollView.getScrollHeight() <= scrollView.getHeight()
+            headerHeight = KD.singleton("dock").getView().getHeight()
+            if document.body.scrollHeight - headerHeight <= window.innerHeight
               @loadFeed filter
           else
             warn err
@@ -203,8 +203,9 @@ class FeedController extends KDViewController
         @emit "FilterLoaded"
       else unless feedId in USEDFEEDS
         USEDFEEDS.push feedId
-        unless prefetchedItems = KD.prefetchedFeeds[feedId]
-        then @loadFeed filter
-        else kallback null, (KD.remote.revive item for item in prefetchedItems)
+        if KD.prefetchedFeeds and prefetchedItems = KD.prefetchedFeeds[feedId]
+          kallback null, (KD.remote.revive item for item in prefetchedItems)
+        else
+          @loadFeed filter
       else
         filter.dataSource selector, options, kallback

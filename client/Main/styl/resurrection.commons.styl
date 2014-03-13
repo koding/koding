@@ -1,4 +1,4 @@
-@import "../../Framework/themes/default/kdfn"
+@import "../../Framework/src/themes/default/kdfn"
 @import "../styl/appfn"
 @import "../styl/app.fonts"
 
@@ -77,6 +77,65 @@ resurrection.commons.styl
 .application-tabview
   kalc                      height, 100% \- 40px
   bg                        color, #1b2224
+
+/* Activity item menu */
+
+.kdbuttonmenu.jcontextmenu.resurrection
+  margin                4px 0 0 14px
+  rounded               6px
+  border                1px solid #e4e4e4
+  shadow                0 8px 35px rgba(0, 0, 0, .22)
+  padding               5px 0
+
+  &:after
+    content             ""
+    display             block
+    size                0 0
+    right               19px
+    bottom              100%
+    border              7px solid transparent
+    border-bottom-color #fff
+    z-index             600
+    abs()
+
+  &:before
+    content             ""
+    display             block
+    size                0 0
+    right               18px
+    bottom              100%
+    border              8px solid transparent
+    border-bottom-color #e4e4e4
+    z-index             599
+    abs()
+
+  &.comment-menu
+    margin              0 0 0 16px
+
+  .kdlistitemview-contextitem.default
+    color               #50595f
+    font-size           12px
+    line-height         24px
+    cursor              pointer
+    padding             0 0 0 12px
+
+    .icon
+      margin            0 7px 0 0
+      display           inline-block
+      vertical-align    sub
+      &.edit
+        r-sprite        app "edit-icon"
+      &.delete
+        r-sprite        app "delete-icon"
+
+    &:hover
+    &.selected
+      bg                color, #F8f8f8
+      text-shadow       none
+      color             #50595f
+
+  .chevron-ghost-wrapper
+    opacity           0
 
 .kdtabhandlecontainer.application-tab-handle-holder
 
@@ -241,79 +300,6 @@ button.app-settings-menu
     border            none
     shadow            none
 
-
-finderSelectedColor1 = #3AAAAB
-finderSelectedColor2 = #3AAAAB
-
-.jcontextmenu
-
-  .kdlistview-contextmenu.default
-    rounded                 2px
-    border                  none
-    padding                 0
-
-    .kdlistview-contextmenu.default
-      margin-top            -29px
-      rounded               0 2px 2px 0
-      .kdlistitemview-contextitem.default
-        &:first-child
-          rounded             0 2px 0 0
-        &:last-child
-          rounded             0 0 2px 0
-
-      &.left-aligned
-        rounded             2px 0 0 2px
-        .kdlistitemview-contextitem.default
-          &:first-child
-            rounded             2px 0 0 0
-          &:last-child
-            rounded             0 0 0 2px
-
-  .kdlistitemview-contextitem.default
-    font-size               .8em
-    padding                 8px 10px
-    border                  none
-
-    &.selected
-    &.has-sub-items.expanded
-      border                none
-      bg                    color, finderSelectedColor1
-      color                 white
-      &:first-child
-        rounded             2px 2px 0 0
-      &:last-child
-        rounded             0 0 2px 2px
-      &:hover
-        bg                  color, finderSelectedColor1
-      span.arrow
-        border-left-color   white
-
-    &.has-sub-items
-      span.arrow
-        top                 10px
-        border-left-color   #31575F
-    &.separator
-      margin                1px 0
-      padding               0
-      border-bottom         1px solid #ddd
-      &:hover
-        border-bottom       1px solid #ddd
-
-  > span.arrow
-    z-index             9002
-    size                15px 15px
-    bg                  color, transparent
-    kdfsprite()
-    abs()
-    &.top
-      bg                position, -240px -560px
-    &.right
-      bg                position, -220px -560px
-    &.bottom
-      bg                position, -200px -560px
-    &.left
-      bg                position, -260px -560px
-
 //
 // THIN BUTTON STYLES
 //
@@ -380,6 +366,20 @@ finderSelectedColor2 = #3AAAAB
       color            white
   &:focus
     shadow             0 0 10px -2px logoBg
+
+.kdbutton.solid.compact
+  height               30px
+  padding              0 16px
+  span
+    line-height        30px
+    font-size          12px
+
+.kdbutton.compact.light-gray
+  bg                   color, transparent !important
+  border               2px solid #CBCBCB
+  span
+    color              #858585 !important
+    line-height        26px
 
 .kdbutton.solid.yellow
   bg                   color #ff9f00
@@ -464,7 +464,11 @@ finderSelectedColor2 = #3AAAAB
 
 .kdbutton.w-loader.loading
   .button-title
+  .icon
     opacity            0
+
+  .kdloader
+    vendor             transform, translateX(-50%) translateY(-50%)
 
 .formline.button-field
   .kdbutton
@@ -540,17 +544,26 @@ finderSelectedColor2 = #3AAAAB
     borderBox()
 
     hr
-      margin              3px 10px
+      border              none
+      border-top          1px solid #cacaca
+      margin              12px 10px
 
     p
       font-size           12px
       padding             3px 20px
+      clear               both
+      vertical-align      center
       borderBox()
+
+      &.with-select
+        line-height       32px
+
       .koding-on-off
         fr()
       a.shortcuts
         color             #444
         noTextDeco()
+
 
     .kdview.section
       margin              0 10px 0 0
@@ -558,23 +571,17 @@ finderSelectedColor2 = #3AAAAB
       display             inline-block
       fr()
       .kdselectbox
-        width             110px
+        width             134px
         margin            0
         display           block
 
     .kdselectbox
-      min-width           110px
+      min-width           112px
       fr()
-      span.title
-        font-weight       normal
-        height            19px
-        line-height       20px
-      span.arrows
-        top               0
 
     &.webterm-settings-view
       .kdselectbox
-          min-width           130px
+          min-width           134px
 
   .context-menu-item
     margin-left           10px
@@ -621,8 +628,27 @@ finderSelectedColor2 = #3AAAAB
       color             #3aaaab
       background        white
 
+//
+// KD SELECTBOX
+//
 
+div.kdselectbox
+  background          #fff
+  border              1px solid #d7d7d7
+  border-radius       6px
+  height              32px
 
+  span.title
+    font-size         12px
+    font-weight       200
+    color             #606060
+    line-height       34px
+    padding           0 40px 0 15px
+
+  span.arrows
+    r-sprite          "app", "select-arrows"
+    top               9px
+    right             6px
 
 //
 // THIN INPUT STYLES
@@ -654,6 +680,9 @@ input.kdinput.text
   input.kdinput.text.thin:-moz-placeholder
     color               #93979a
     font-weight         300
+
+  &.medium
+    height              44px
 
 
 ///
@@ -855,26 +884,6 @@ input.kdinput.text
     color             #282521 !important
     line-height       14px
     blockMidTop()
-
-  div.kdselectbox
-    background        #fff
-    border            1px solid #d7d7d7
-    shadow            none
-    border-radius     6px
-    height            32px
-
-    .title
-      font-size       12px
-      font-weight     200
-      color           #606060
-      text-shadow     none
-      line-height     34px !important
-      padding         0 40px 0 15px
-
-    .arrows
-      r-sprite      "app", "select-arrows"
-      top           9px
-      right         6px
 
   .linkholder
     padding           0 0 10px 0
@@ -1261,3 +1270,56 @@ a.action-link.verify-email
     .user-numbers
       width         340px
 
+
+
+// onboarding
+.onboarding-item
+  padding               28px 30px
+  rounded               5px
+  bg                    color, #FFF
+  max-width             400px
+  height                auto
+  z-index               10001 // this is required because overlay is 10000
+  h3
+    color               #1AAF5D
+    margin-bottom       15px
+    font-size           18px
+    font-weight         400
+  p
+    font-size           14px
+    line-height         20px
+    color               #595959
+  .buttons
+    text-align          right
+    position            relative
+    button
+      margin-top        25px !important
+      &.compact.light-gray
+        margin-right    6px
+  .steps
+    abs()
+    top                 30px
+    span
+      size              8px, 8px
+      rounded           8px
+      margin-right      8px
+      display           inline-block
+      bg                color, #E4E4E4
+      &.active
+        bg              color, #1AAF5D
+
+.onboarding-wrapper
+  .kdlistview-contextmenu
+    rounded             5px !important
+  .arrow
+    bg                  image, none !important
+    top                 -5px !important
+    &.top
+      size              0, 0
+      border-left       10px solid transparent
+      border-right      10px solid transparent
+      border-bottom     10px solid #fff
+  .close-icon
+    r-sprite            "app", "20-close-tab"
+    top                 10px
+    right               10px

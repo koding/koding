@@ -54,6 +54,9 @@ class LocalStorage extends AppStorage
   getSignature:(key)->
     "koding-#{@_applicationID}-#{@_applicationVersion}-#{key}"
 
+  getLocalStorageKeys:->
+    return Object.keys storage
+
 class LocalStorageController extends KDController
 
   constructor:->

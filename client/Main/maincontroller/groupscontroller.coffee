@@ -21,11 +21,19 @@ class GroupsController extends KDController
       then router.handleRoute "#{pageInfo.path}"
       else router.handleRoute "#{pageInfo.path}", {entryPoint}
 
-    mainController.ready => @changeGroup entryPoint?.slug
+    mainController.ready =>
+      {slug} = entryPoint  if entryPoint?.type is "group"
+      @changeGroup slug
 
   getCurrentGroup:->
     throw 'FIXME: array should never be passed'  if Array.isArray @currentGroupData.data
     return @currentGroupData.data
+
+  filterXssAndForwardEvents: (target, events) ->
+    events.forEach (event) =>
+      target.on event, (rest...) =>
+        rest = KD.remote.revive rest
+        @emit event, rest...
 
   openGroupChannel:(group, callback=->)->
     @groupChannel = KD.remote.subscribe "group.#{group.slug}",
@@ -33,13 +41,15 @@ class GroupsController extends KDController
       group       : group.slug
       isExclusive : yes
 
-    @forwardEvent @groupChannel, "MemberJoinedGroup"
-    @forwardEvent @groupChannel, "FollowHappened"
-    @forwardEvent @groupChannel, "LikeIsAdded"
-    @forwardEvent @groupChannel, "PostIsCreated"
-    @forwardEvent @groupChannel, "ReplyIsAdded"
-    @forwardEvent @groupChannel, "PostIsDeleted"
-    @forwardEvent @groupChannel, "LikeIsRemoved"
+    @filterXssAndForwardEvents @groupChannel, [
+      "MemberJoinedGroup"
+      "FollowHappened"
+      "LikeIsAdded"
+      "PostIsCreated"
+      "ReplyIsAdded"
+      "PostIsDeleted"
+      "LikeIsRemoved"
+    ]
 
     @groupChannel.once 'setSecretNames', callback
 
@@ -82,10 +92,10 @@ class GroupsController extends KDController
 
   joinGroup:(group, callback)->
     group.join (err, response)=>
-      unless err
-        callback err, response
-        KD.getSingleton('mainController').emit 'JoinedGroup'
-        KD.mixpanel "Join group, success", slug:group.slug
+      return KD.showError err  if err?
+      callback err, response
+      KD.getSingleton('mainController').emit 'JoinedGroup'
+      KD.mixpanel "Join group, success", slug:group.slug
 
   acceptInvitation:(group, callback)->
     KD.whoami().acceptInvitation group, (err, res)=>

@@ -16,10 +16,6 @@ type cache struct {
 	key      string
 }
 
-func createNewSession() (*redis.RedisSession, error) {
-	return redis.NewRedisSession(conf.Redis)
-}
-
 func generateKey(SocketId string) string {
 	return fmt.Sprintf(
 		"%s-broker-client-%s",
@@ -40,10 +36,10 @@ func convertData(commandName string, data ...string) []interface{} {
 
 // NewRedis creates a redis backend for storing
 // client subscriptions
-func newRedis(socketId string) (*cache, error) {
+func newRedis(r *redis.SingletonSession, socketId string) (*cache, error) {
 	var err error
 	if redisSession == nil {
-		redisSession, err = createNewSession()
+		redisSession, err = r.Connect()
 		if err != nil {
 			return nil, err
 		}

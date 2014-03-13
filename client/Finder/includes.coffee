@@ -29,8 +29,6 @@ module.exports = [
   "filetree/itemsubviews/mounttogglebuttonview.coffee",
   "filetree/itemsubviews/copyurlview.coffee",
 
-  "filetree/helpers/dropboxuploader.coffee",
-
   # fs representation
   "fs/fshelper.coffee",
   "fs/fswatcher.coffee",

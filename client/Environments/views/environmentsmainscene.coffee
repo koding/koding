@@ -76,7 +76,7 @@ class StackView extends KDView
         KD.utils.wait 300, @bound 'updateView'
 
     # Main scene for DIA
-    @addSubView @scene = new EnvironmentScene
+    @addSubView @scene = new EnvironmentScene @getData().stack
 
     # Rules Container
     rulesContainer = new EnvironmentRuleContainer

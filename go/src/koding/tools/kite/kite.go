@@ -26,6 +26,8 @@ type Kite struct {
 	ServiceUniqueName string
 	PublishExchange   string
 	LoadBalancer      func(correlationName string, username string, deadService string) string
+	PublishConn       *amqp.Connection
+	ConsumeConn       *amqp.Connection
 }
 
 type Handler struct {
@@ -77,58 +79,29 @@ func (k *Kite) Handle(method string, concurrent bool, callback func(args *dnode.
 }
 
 func (k *Kite) Run() {
-	consumeConn := amqputil.CreateConnection(conf, "kite-"+k.Name)
-	defer consumeConn.Close()
+	k.ConsumeConn = amqputil.CreateConnection(conf, "kite-"+k.Name)
+	defer k.ConsumeConn.Close()
 
-	publishConn := amqputil.CreateConnection(conf, "kite-"+k.Name)
-	defer publishConn.Close()
+	k.PublishConn = amqputil.CreateConnection(conf, "kite-"+k.Name)
+	defer k.PublishConn.Close()
 
-	publishChannel := amqputil.CreateChannel(publishConn)
+	publishChannel := amqputil.CreateChannel(k.PublishConn)
 	defer publishChannel.Close()
 
-	consumeChannel := amqputil.CreateChannel(consumeConn)
+	consumeChannel := amqputil.CreateChannel(k.ConsumeConn)
+	defer consumeChannel.Close()
 
 	amqputil.JoinPresenceExchange(consumeChannel, "services-presence", "kite", "kite-"+k.Name, k.ServiceUniqueName, k.LoadBalancer != nil)
 
 	stream := amqputil.DeclareBindConsumeQueue(consumeChannel, "fanout", k.ServiceUniqueName, "", true)
 
 	k.startRouting(stream, publishChannel)
-
-	// // listen to an external control channel
-	// controlChannel := amqputil.CreateChannel(consumeConn)
-	// defer controlChannel.Close()
-
-	// controlStream := amqputil.DeclareBindConsumeQueue(controlChannel, "fanout", "control", "", true)
-	// controlRouting(controlStream) // blocking
 }
 
-// func controlRouting(stream <-chan amqp.Delivery) {
-// 	for msg := range stream {
-// 		switch msg.RoutingKey {
-// 		// those are temporary here
-// 		// and should not be here
-// 		case "control.suspendVM":
-// 			var control Control
-// 			err := json.Unmarshal(msg.Body, &control)
-// 			if err != nil || control.HostnameAlias == "" {
-// 				log.Error("Invalid control message '%s'", string(msg.Body))
-// 				continue
-// 			}
-
-// 			v, err := modelhelper.GetVM(control.HostnameAlias)
-// 			if err != nil {
-// 				log.Error("vm not found '%s'", control.HostnameAlias)
-// 				continue
-// 			}
-
-// 			vm := virt.VM(*v)
-// 			if err := vm.Stop(); err != nil {
-// 				log.Error("could not stop vm '%s'", control.HostnameAlias)
-// 				continue
-// 			}
-// 		}
-// 	}
-// }
+func (k *Kite) Close() {
+	k.PublishConn.Close()
+	k.ConsumeConn.Close()
+}
 
 func (k *Kite) startRouting(stream <-chan amqp.Delivery, publishChannel *amqp.Channel) {
 	changeClientsGauge := lifecycle.CreateClientsGauge()
@@ -353,6 +326,14 @@ func (k *Kite) startRouting(stream <-chan amqp.Delivery, publishChannel *amqp.Ch
 						close(route)
 						delete(routeMap, message.RoutingKey)
 						log.Warning("Dropped client because of message buffer overflow.")
+					}
+				} else {
+					// if user's routing key is old or doesnt exists, return a
+					// command to user for cycling the channel
+					log.Debug("Unknown routing key, send cycle channel for : %v", message.RoutingKey)
+					msg := []byte("{\"method\":\"cycleChannel\"}")
+					if err := publishChannel.Publish(k.PublishExchange, message.RoutingKey, false, false, amqp.Publishing{Body: msg}); err != nil {
+						log.LogError(err, 0)
 					}
 				}
 			}

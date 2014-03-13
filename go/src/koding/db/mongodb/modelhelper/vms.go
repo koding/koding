@@ -30,6 +30,31 @@ func GetVM(hostname string) (*models.VM, error) {
 	return vm, nil
 }
 
+func GetUserVMS(username string) ([]*models.VM, error) {
+	vm := new(models.VM)
+	vms := make([]*models.VM, 0)
+
+	query := func(c *mgo.Collection) error {
+		iter := c.Find(bson.M{"webHome": username}).Iter()
+		for iter.Next(&vm) {
+			vms = append(vms, vm)
+		}
+
+		if err := iter.Close(); err != nil {
+			return err
+		}
+
+		return nil
+	}
+
+	err := Mongo.Run("jVMs", query)
+	if err != nil {
+		return nil, fmt.Errorf("vm fetching err for user %s. err: %s", username, err)
+	}
+
+	return vms, nil
+}
+
 func AddVM(vm *models.VM) error {
 	query := func(c *mgo.Collection) error {
 		_, err := c.Upsert(bson.M{"hostnameAlias": vm.HostnameAlias}, &vm)

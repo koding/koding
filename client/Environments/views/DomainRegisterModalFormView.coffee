@@ -14,7 +14,6 @@ class DomainForwardForm extends KDView
           type          : "submit"
           loader        :
             color       : "#444444"
-            diameter    : 12
 
       fields            :
           domainName    :

@@ -1,39 +1,48 @@
 class FSHelper
 
-  parseWatcherFile = (vm, parentPath, file, user, treeController)->
+  parseWatcherFile = ({ vmName, parentPath, file, user, treeController, osKite })->
 
     {name, size, mode} = file
     type      = if file.isBroken then 'brokenLink' else \
                 if file.isDir then 'folder' else 'file'
-    path      = if parentPath is "[#{vm}]/" then "[#{vm}]/#{name}" else \
+    path      = if parentPath is "[#{vmName}]/" then "[#{vmName}]/#{name}" else \
                 "#{parentPath}/#{name}"
     group     = user
     createdAt = file.time
     return { size, user, group, createdAt, mode, type, \
-             parentPath, path, name, vmName:vm, treeController }
+             parentPath, path, name, vmName:vmName, treeController, osKite }
 
-  @parseWatcher = (vm, parentPath, files, treeController)->
-
+  @parseWatcher = ({ vmName, parentPath, files, treeController, osKite })->
     data = []
     return data unless files
     files = [files] unless Array.isArray files
 
-    sortedFiles = []
-    for p in [yes, no]
-      z = (x for x in files when x.isDir is p).sort (x,y)->
-        x.name.toLowerCase() > y.name.toLowerCase()
-      sortedFiles.push x for x in z
+    { partition, sortFiles } = KD.utils
+
+    sortedFiles = partition(files.sort(sortFiles), (file) -> file.isDir)
+      .reduce (acc, next) -> acc.concat next
 
     nickname = KD.nick()
     for file in sortedFiles
       data.push FSHelper.createFile \
-        parseWatcherFile vm, parentPath, file, nickname, treeController
+        parseWatcherFile {
+          vmName
+          parentPath
+          file
+          nickname
+          treeController
+        }
 
     return data
 
-  @folderOnChange = (vm, path, change, treeController)->
+  @folderOnChange = ({ vmName, path, change, treeController })->
     return  unless treeController
-    file = (@parseWatcher vm, path, change.file, treeController).first
+    [ file ] = @parseWatcher {
+      vmName
+      parentPath  : path
+      files       : change.file
+      treeController
+    }
     switch change.event
       when "added"
         treeController.addNode file
@@ -43,39 +52,10 @@ class FSHelper
             treeController.removeNodeView node
             break
 
-  @plainPath:(path)-> path.replace /\[.*\]/, ''
-  @getVMNameFromPath:(path)-> (/\[([^\]]+)\]/g.exec path)?[1]
+  @plainPath:(path)-> path.replace /^\[.*\]/, ''
+  @getVMNameFromPath:(path)-> (/^\[([^\]]+)\]/g.exec path)?[1]
 
   @minimizePath: (path)-> @plainPath(path).replace ///^\/home\/#{KD.nick()}///, '~'
-
-  @grepInDirectory = (keyword, directory, callback, matchingLinesCount = 3) ->
-    command = "grep #{keyword} '#{directory}' -n -r -i -I -H -T -C#{matchingLinesCount}"
-    KD.getSingleton('vmController').run command, (err, res) =>
-      result = {}
-
-      if res
-        chunks = res.split "--\n"
-
-        for chunk in chunks
-          lines = chunk.split "\n"
-
-          for line in lines when line
-            [lineNumberWithPath, line] = line.split "\t"
-            [lineNumber]               = lineNumberWithPath.match /\d+$/
-            path                       = lineNumberWithPath.split(lineNumber)[0].trim()
-            path                       = path.substring 0, path.length - 1
-            isMatchedLine              = line.charAt(1) is ":"
-            line                       = line.substring 2, line.length
-
-            result[path] = {} unless result[path]
-            result[path][lineNumber] = {
-              lineNumber
-              line
-              isMatchedLine
-              path
-            }
-
-      callback? result
 
   @exists = (path, vmName, callback=noop)->
     @getInfo path, vmName, (err, res)->
@@ -254,5 +234,9 @@ class FSHelper
         # shrink
         data = data.substr chunkSize
     return chunks
+
+  @getFullPath = (file)->
+    plainPath = @plainPath file.path
+    return "[#{file.vmName}]#{plainPath}"
 
 KD.classes.FSHelper = FSHelper

@@ -25,7 +25,6 @@ class GroupPaymentHistoryModal extends KDModalViewWithForms
                 type          : 'submit'
                 loader        :
                   color       : "#444444"
-                  diameter    : 12
                 callback      : =>
                   form = @modalTabs.forms.history
                   @dbController.loadItems =>
@@ -117,7 +116,6 @@ class GroupSubscriptionsModal extends KDModalViewWithForms
                 type          : 'submit'
                 loader        :
                   color       : "#444444"
-                  diameter    : 12
                 callback      : =>
                   form = @modalTabs.forms.history
                   @dbController.loadItems =>

@@ -67,7 +67,6 @@ class TeamworkExportModal extends KDModalView
           file.remove ->
           KD.utils.shortenUrl res, (shorten) =>
             @handleExportDone shorten
-      , no
 
   createElements: ->
     KD.mixpanel "Teamwork export, click"

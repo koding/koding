@@ -14,9 +14,12 @@ class GlobalNotificationView extends JView
 
     @bindTransitionEnd()
 
-    {scheduledAt} = @getData()
+    {scheduledAt, closeTimer} = @getData()
 
     scheduledAt = (new Date(scheduledAt)).getTime()
+
+    if closeTimer and typeof closeTimer is 'number'
+      KD.utils.wait closeTimer, @bound 'hideAndDestroy'
 
     @timer = new KDCustomHTMLView
       tagName  : 'strong'

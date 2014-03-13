@@ -135,7 +135,7 @@ func deleteSourcePost(m *Migrator) error {
 		"as":         helper.Selector{"$in": relations},
 	}
 
-	return helper.DeleteRelationship(s)
+	return helper.DeleteRelationships(s)
 }
 
 func deleteTargetPost(m *Migrator) error {
@@ -146,7 +146,7 @@ func deleteTargetPost(m *Migrator) error {
 		"as":         helper.Selector{"$in": relations},
 	}
 
-	return helper.DeleteRelationship(s)
+	return helper.DeleteRelationships(s)
 }
 
 func deleteOpinions(m *Migrator) error {
@@ -183,13 +183,13 @@ func deleteOpinions(m *Migrator) error {
 		"targetName": "JOpinion",
 		"targetId":   helper.Selector{"$in": ids},
 	}
-	if err := helper.DeleteRelationship(selector); err != nil {
+	if err := helper.DeleteRelationships(selector); err != nil {
 		return nil
 	}
 
 	selector["sourceName"] = m.PostType
 	selector["as"] = "opinion"
-	if err := helper.DeleteRelationship(selector); err != nil {
+	if err := helper.DeleteRelationships(selector); err != nil {
 		return nil
 	}
 

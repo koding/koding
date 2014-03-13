@@ -29,8 +29,14 @@ class ProfileLinkView extends LinkView
 
   render: (fields) ->
     nickname = @getData().profile?.nickname
-    @setAttribute "href", "/#{nickname}"  if nickname
+    {slug} = KD.getSingleton("groupsController").getCurrentGroup()
+    href = if slug is "koding" then "/#{nickname}" else "/#{slug}/#{nickname}"
+    @setAttribute "href", href  if nickname
     super fields
 
   pistachio:->
-    super "{{#(profile.firstName)+' '+#(profile.lastName)}}"
+    {profile} = @getData()
+    if profile.firstName is "" and profile.lastName is ""
+      super "{{#(profile.nickname)}}"
+    else
+      super "{{#(profile.firstName)+' '+#(profile.lastName)}}"

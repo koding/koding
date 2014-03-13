@@ -230,12 +230,8 @@ module.exports = class JNewStatusUpdate extends JPost
     showExemptComments = @checkForTrollMode delegate, options
     @getCurrentGroup client, (err, group)=>
       if err then return callback err
-      {to, searchText, feedType} = options
+      {to, searchText, feedType, from, sort} = options
       to = if to then new Date(to)  else new Date()
-      selector =
-        'meta.createdAt' :
-          "$lt"          : to
-        'group'          : group.slug
 
       @getExemptUserIdsIfNeeded client, options, (err, ids)=>
         return callback err  if err
@@ -243,12 +239,19 @@ module.exports = class JNewStatusUpdate extends JPost
           'meta.createdAt': $lt: to
           group: group.slug
 
+        selector["meta.createdAt"]["$gt"] = new Date(from) if from
+
         # remove exempts from result set
         selector.originId = $nin : ids if ids.length > 0
+        # escape non-word constituent characters
+        searchText = searchText?.replace /(\W)/g, "\\$1"
         # add search regex into query
         selector.body = RegExp searchText, "i" if searchText
 
         options.sort = 'meta.createdAt' : -1
+        # if user sends a sort option override current one
+        options.sort = sort if sort
+
         options.limit ?= 20
         selector.feedType = feedType if feedType
 
@@ -293,7 +296,7 @@ module.exports = class JNewStatusUpdate extends JPost
 
       fetchOptions =
         sort : {'timestamp': -1}
-        limit: options.limit or 20
+        limit: 7
 
       @getExemptUserIdsIfNeeded client, options, (err, ids)=>
         return callback err  if err

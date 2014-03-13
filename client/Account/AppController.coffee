@@ -166,7 +166,7 @@ class AccountAppController extends AppController
 
   showRedeemReferralPointModal:->
     vmController = KD.getSingleton("vmController")
-    vmController.fetchVMs yes, (err, vms)=>
+    vmController.fetchVmNames yes, (err, vms)=>
       return KD.showError err if err
       return KD.notify_ "You don't have any VMs. Please create one VM" if not vms or vms.length < 1
 
@@ -194,7 +194,6 @@ class AccountAppController extends AppController
                     type          : "submit"
                     loader        :
                       color       : "#444444"
-                      diameter    : 12
                     callback      : -> @hideLoader()
                   cancel          :
                     title         : "Cancel"
@@ -202,7 +201,7 @@ class AccountAppController extends AppController
                     callback      : (event)-> modal.destroy()
                 fields            :
                   vmToResize    :
-                    label         : "Select a WM to resize"
+                    label         : "Select a VM to resize"
                     cssClass      : "clearfix"
                     itemClass     : KDSelectBox
                     type          : "select"

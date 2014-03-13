@@ -34,6 +34,8 @@ module.exports = class JAccount extends jraphical.Module
   Protected = require '../traits/protected'
   {extend} = require 'underscore'
 
+  validateFullName = (value) -> not /<|>/.test value
+
   @share()
 
   @set
@@ -207,8 +209,6 @@ module.exports = class JAccount extends jraphical.Module
           (signature Object, Function)
         fetchRelatedUsersFromGraph:
           (signature Object, Function)
-        fetchDomains:
-          (signature Function)
         unlinkOauth:
           (signature String, Function)
         changeUsername: [
@@ -322,9 +322,11 @@ module.exports = class JAccount extends jraphical.Module
           type              : String
           required          : yes
           default           : 'a koding'
+          validate          : validateFullName
         lastName            :
           type              : String
           default           : 'user'
+          validate          : validateFullName
         description         : String
         avatar              : String
         status              : String
@@ -334,6 +336,7 @@ module.exports = class JAccount extends jraphical.Module
           default           : 0
         lastStatusUpdate    : String
       referrerUsername      : String
+      referralUsed          : Boolean
       preferredKDProxyDomain: String
       isExempt              : # is a troll ?
         type                : Boolean
@@ -691,7 +694,7 @@ module.exports = class JAccount extends jraphical.Module
     deciding ourselves which parts of the search are for first or last name.
     MongoDB 2.4 and bongo implementation of aggregate required to use $concat
     ###
-    names = seed.toString().split('/')[1].replace('^','').split ' '
+    names = seed.toString().split('/')[1].replace(/[\\^]/g, "").split ' '
     names.push names.first if names.length is 1
     @some {
       $or : [
@@ -763,15 +766,17 @@ module.exports = class JAccount extends jraphical.Module
             activity.mark client, 'glanced', -> queue.fin()
           dash queue, callback
 
-  fetchLikedContents: secure ({connection}, options, selector, callback)->
+  fetchLikedContents: secure ({connection, context}, options, selector, callback)->
 
     {delegate} = connection
+    {group}    = context
     [callback, selector] = [selector, callback] unless callback
 
     selector            or= {}
     selector.as           = 'like'
     selector.targetId     = @getId()
     selector.sourceName or= $in: likeableActivities
+    selector.data         = {group}
 
     Relationship.some selector, options, (err, contents)=>
       if err then callback err, []
@@ -845,7 +850,8 @@ module.exports = class JAccount extends jraphical.Module
       targetId   : @getId()
       sourceName : 'JAccount'
     , (err, count)=>
-      return if err or not count
+      return if err
+      count ?= 0
       @update ($set: 'counts.following': count), ->
 
     # Member Follower count
@@ -854,7 +860,8 @@ module.exports = class JAccount extends jraphical.Module
       sourceId   : @getId()
       sourceName : 'JAccount'
     , (err, count)=>
-      return if err or not count
+      return if err
+      count ?= 0
       @update ($set: 'counts.followers': count), ->
 
     # Tag Following count
@@ -863,7 +870,8 @@ module.exports = class JAccount extends jraphical.Module
       targetId   : @getId()
       sourceName : 'JTag'
     , (err, count)=>
-      return if err or not count
+      return if err
+      count ?= 0
       @update ($set: 'counts.topics': count), ->
 
     # Status Update count
@@ -872,7 +880,8 @@ module.exports = class JAccount extends jraphical.Module
       targetId   : @getId()
       sourceName : 'JNewStatusUpdate'
     , (err, count)=>
-      return if err or not count
+      return if err
+      count ?= 0
       @update ($set: 'counts.statusUpdates': count), ->
 
     # Comments count
@@ -881,14 +890,16 @@ module.exports = class JAccount extends jraphical.Module
       targetId   : @getId()
       sourceName : 'JNewStatusUpdate'
     , (err, count)=>
-      return if err or not count
+      return if err
+      count ?= 0
       @update ($set: 'counts.comments': count), ->
 
     # ReferredUsers count
     JAccount.count
       referrerUsername : @profile.nickname
     , (err, count)=>
-      return if err or not count
+      return if err
+      count ?= 0
       @update ($set: 'counts.referredUsers': count), ->
 
     # Invitations count
@@ -896,7 +907,8 @@ module.exports = class JAccount extends jraphical.Module
       username   : @profile.nickname
       invited    : true
     , (err, count)=>
-      return if err or not count
+      return if err
+      count ?= 0
       @update ($set: 'counts.invitations': count), ->
 
     # Last Login date
@@ -916,12 +928,13 @@ module.exports = class JAccount extends jraphical.Module
       targetName : 'JAccount'
       sourceName : 'JAccount'
     , (err, count)=>
-      return if err or not count
+      return if err
+      count ?= 0
       @update ($set: 'counts.staffLikes': count), ->
 
   dummyAdmins = [ "sinan", "devrim", "gokmen", "chris", "fatihacet", "arslan",
                   "sent-hil", "kiwigeraint", "cihangirsavas", "leventyalcin",
-                  "samet", "leeolayvar", "stefanbc", "erdinc"]
+                  "samet", "leeolayvar", "stefanbc", "erdinc", "szkl" ]
 
   userIsExempt: (callback)->
     # console.log @isExempt, this
@@ -1021,7 +1034,7 @@ module.exports = class JAccount extends jraphical.Module
     else
       callback new KodingError 'Access denied'
 
-  checkFlag:(flagToCheck)=>
+  checkFlag: (flagToCheck) ->
     if flagToCheck is 'exempt'
       return @isExempt
     flags = @getAt('globalFlags')
@@ -1045,7 +1058,7 @@ module.exports = class JAccount extends jraphical.Module
         # Users can delete their stuff but super-admins can delete all of them ಠ_ಠ
         @profile.nickname in dummyAdmins or target?.originId?.equals @getId()
       when 'flag', 'reset guests', 'reset groups', 'administer names', \
-           'administer url aliases', 'administer accounts', \
+           'administer url aliases', 'administer accounts', 'search-by-email',\
            'migrate-koding-users', 'list-blocked-users', 'verify-emails'
         @profile.nickname in dummyAdmins
 
@@ -1077,7 +1090,7 @@ module.exports = class JAccount extends jraphical.Module
   fetchPrivateChannel:(callback)->
     require('bongo').fetchChannel @getPrivateChannelName(), callback
 
-  getPrivateChannelName:-> "private-#{@getAt('profile.nickname')}-private"
+  getPrivateChannelName:-> "private-#{@getAt('pro file.nickname')}-private"
 
   fetchMail:do ->
 
@@ -1384,7 +1397,19 @@ module.exports = class JAccount extends jraphical.Module
 
   @byRelevance$ = permit 'list members',
     success: (client, seed, options, callback)->
-      @byRelevance client, seed, options, callback
+      if options.byEmail
+        account = client.connection.delegate
+        if account.can 'search-by-email'
+          JUser = require './user'
+          JUser.one {email:seed}, (err, user)->
+            return callback err, []  if err? or not user?
+            user.fetchOwnAccount (err, account)->
+              return callback err  if err?
+              callback null, [account]
+        else
+          return callback new KodingError 'Access denied'
+      else
+        @byRelevance client, seed, options, callback
 
   fetchMyPermissions: secure (client, callback)->
     @fetchMyPermissionsAndRoles client, (err, permissions, roles)->
@@ -1396,6 +1421,7 @@ module.exports = class JAccount extends jraphical.Module
     slug = client.context.group ? 'koding'
     JGroup.one {slug}, (err, group)=>
       return callback err  if err
+      return callback {message: "group not found"}  unless group
       cb = (err, roles)=>
         return callback err  if err
         {flatten} = require 'underscore'
@@ -1418,40 +1444,6 @@ module.exports = class JAccount extends jraphical.Module
   addTags: secure (client, tags, options, callback)->
     client.context.group = 'koding'
     oldAddTags.call this, client, tags, options, callback
-
-  fetchUserDomains: (client, callback) ->
-    {connection: {delegate}} = client
-    {group} = client.context
-
-    JDomain = require './domain'
-    delegate.fetchDomains (err, domains) ->
-      return callback err  if err
-      domainList = []
-      domainList = filterDomains domains, delegate, group  if domains
-      
-      callback null, domainList
-
-  # filters domains such as shared-x/vm-x.groupSlug.kd.io
-  # or x.koding.kd.io. Also shows only group related
-  # domains to users
-  filterDomains = (domains, account, group)->
-    domainList = []
-    domainList = domains.filter (domain)->
-      {domain} = domain
-      re = if group is "koding" then new RegExp(account.profile.nickname + '\.kd\.io$') \
-           else new RegExp('(.*)\.' + group + '\.kd\.io$')
-      isVmAlias         = (/^shared|vm[\-]?([0-9]+)?/.test domain)
-      isKodingSubdomain = (/(.*)\.(koding|guests)\.kd\.io$/.test domain)
-      isGroupAlias      = re.test domain
-      not isVmAlias and not isKodingSubdomain and isGroupAlias
-
-  fetchDomains$: permit
-    advanced: [
-      { permission: 'list own domains', validateWith: Validators.own }
-    ]
-    success: (client, callback) ->
-      @fetchUserDomains client, callback
-
 
   {Member, OAuth} = require "./graph"
 

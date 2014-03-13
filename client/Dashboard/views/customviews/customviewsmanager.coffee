@@ -13,29 +13,31 @@ class CustomViewsManager extends JView
       cssClass     : "solid green preview"
       callback     : @bound "togglePreview"
 
-    if $.cookie cookieName
+    if Cookies.get cookieName
       @previewButton.setTitle   "CANCEL PREVIEW"
       @previewButton.unsetClass "green"
 
     @homePages  = new CustomViewsDashboardView
+      title     : "Home Pages"
       viewType  : "HOME"
       cssClass  : "home-pages"
       itemClass : HomePageCustomViewItem
 
     @widgets    = new CustomViewsDashboardView
+      title     : "Widgets"
       viewType  : "WIDGET"
       cssClass  : "widgets"
       itemClass : WidgetCustomViewItem
 
   togglePreview: ->
-    isPreview = $.cookie cookieName
+    isPreview = Cookies.get cookieName
 
     if isPreview
-      $.cookie cookieName, no
+      Cookies.set cookieName, no
       @previewButton.setTitle "PREVIEW"
       @previewButton.setClass "green"
     else
-      $.cookie cookieName, yes
+      Cookies.set cookieName, yes
       @previewButton.setTitle   "CANCEL PREVIEW"
       @previewButton.unsetClass "green"
 
@@ -44,8 +46,6 @@ class CustomViewsManager extends JView
       <div class="button-container">
         {{> @previewButton}}
       </div>
-      <h3 class="home-pages">Home Pages</h3>
       {{> @homePages}}
-      <h3>Widgets</h3>
       {{> @widgets}}
     """
