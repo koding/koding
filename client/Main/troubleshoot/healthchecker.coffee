@@ -26,14 +26,4 @@ class HealthChecker extends KDObject
     @emit "healthCheckCompleted"
 
   getResponseTime: ->
-    status = switch @status
-      when NOTSTARTED
-        "not started"
-      when FAILED
-        "failed"
-      when SUCCESS
-        @finishTime - @startTime
-      when WAITING
-        "waiting"
-
-    return status
+    if @status is "success" then @finishTime - @startTime else ""
