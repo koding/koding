@@ -22,5 +22,5 @@ type Comment struct {
 	CreatedAt time.Time
 
 	// Modification date of the message
-	ModifiedAt time.Time
+	UpdatedAt time.Time
 }
