@@ -109,24 +109,10 @@ class TroubleshootModal extends KDModalView
   constructor: (options = {}, data) ->
     super options, data
     KD.troubleshoot()
-    KD.singleton("troubleshoot").on "troubleshootCompleted", @bound "update"
-    status =
-      bongo :
-        status : "waiting"
-      broker:
-        status : "waiting"
-      kiteBroker:
-        status : "waiting"
-      osKite:
-        status : "waiting"
-      webServer :
-        status : "waiting"
-      connection :
-        status : "waiting"
 
-    @update status
+    @init()
 
-  update: (response) ->
+  init: ->
     @bongo = new TroubleshootItemView
       title: "Bongo"
     , @getData()["bongo"]
