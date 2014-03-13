@@ -8,10 +8,6 @@ import (
 	"crypto/tls"
 	"fmt"
 	"io/ioutil"
-	"github.com/koding/kite/dnode/rpc"
-	"github.com/koding/kite/kitekey"
-	"github.com/koding/kite/logging"
-	"github.com/koding/kite/protocol"
 	"log"
 	"net"
 	"net/http"
@@ -22,29 +18,14 @@ import (
 	"strings"
 	"syscall"
 
+	"github.com/koding/kite/dnode/rpc"
+	"github.com/koding/kite/kitekey"
+	"github.com/koding/kite/logging"
+	"github.com/koding/kite/protocol"
+
 	"github.com/dgrijalva/jwt-go"
 	"github.com/nu7hatch/gouuid"
 )
-
-func init() {
-	// Debugging helper: Prints stacktrace on SIGUSR1.
-	c := make(chan os.Signal)
-	signal.Notify(c, syscall.SIGUSR1)
-	go func() {
-		for {
-			s := <-c
-			fmt.Println("Got signal:", s)
-			buf := make([]byte, 1<<16)
-			runtime.Stack(buf, true)
-			fmt.Println(string(buf))
-			fmt.Print("Number of goroutines:", runtime.NumGoroutine())
-			m := new(runtime.MemStats)
-			runtime.GC()
-			runtime.ReadMemStats(m)
-			fmt.Printf(", Memory allocated: %+v\n", m.Alloc)
-		}
-	}()
-}
 
 // Kite defines a single process that enables distributed service messaging
 // amongst the peers it is connected. A Kite process acts as a Client and as a
@@ -453,4 +434,24 @@ func newLogger(name string) logging.Logger {
 	}
 
 	return logger
+}
+
+// SetupSignalHandler listens to SIGUSR1 signal and prints a stackrace for every
+// SIGUSR1 signal
+func (k *Kite) SetupSignalHandler() {
+	c := make(chan os.Signal, 1)
+	signal.Notify(c, syscall.SIGUSR1)
+	go func() {
+		for s := range c {
+			fmt.Println("Got signal:", s)
+			buf := make([]byte, 1<<16)
+			runtime.Stack(buf, true)
+			fmt.Println(string(buf))
+			fmt.Print("Number of goroutines:", runtime.NumGoroutine())
+			m := new(runtime.MemStats)
+			runtime.GC()
+			runtime.ReadMemStats(m)
+			fmt.Printf(", Memory allocated: %+v\n", m.Alloc)
+		}
+	}()
 }

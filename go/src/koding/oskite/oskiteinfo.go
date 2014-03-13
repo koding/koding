@@ -5,6 +5,7 @@ package oskite
 import (
 	"bytes"
 	"fmt"
+	kitelib "github.com/koding/kite"
 	"koding/tools/dnode"
 	"koding/tools/kite"
 	"koding/virt"
@@ -50,6 +51,14 @@ func oskiteAll(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (inter
 		return nil, &kite.PermissionError{}
 	}
 
+	return oskites, nil
+}
+
+func (o *Oskite) oskiteInfoNew(r *kitelib.Request, vos *virt.VOS) (interface{}, error) {
+	return o.GetOskiteInfo(), nil
+}
+
+func oskiteAllNew(r *kitelib.Request, vos *virt.VOS) (interface{}, error) {
 	return oskites, nil
 }
 

@@ -1,38 +1,62 @@
 class FSFolder extends FSFile
 
-  fetchContents:(callback, dontWatch=yes)->
+  constructor: ->
+    { @stack } = new Error
+    super
+
+  fetchContents:(dontWatch, callback)->
+    [callback, dontWatch] = [dontWatch, callback]  unless callback?
+
+    dontWatch ?= yes
+
     { treeController } = @getOptions()
 
-    @emit "fs.job.started"
-    @vmController.run
-      method     : 'fs.readDirectory'
-      vmName     : @vmName
-      withArgs   :
-        onChange : if dontWatch then null else (change)=>
-          FSHelper.folderOnChange @vmName, @path, change, treeController
-        path     : FSHelper.plainPath @path
-    , (err, response)=>
-      if not err and response?.files
-        files = FSHelper.parseWatcher @vmName, @path, response.files, treeController
-        @registerWatcher response
-        @emit "fs.job.finished", err, files
-      else
-        @emit "fs.job.finished", err
-      callback? err, files
+    kite = @getKite()
+
+    kite.vmOn()
+    .then =>
+
+      kite.fsReadDirectory
+        path      : FSHelper.plainPath @path
+        onChange  : if dontWatch then null else (change) =>
+          FSHelper.folderOnChange {
+            @vmName
+            @path
+            change
+            treeController
+          }
+
+    .then (response) =>
+      files =
+        if response?.files?
+        then FSHelper.parseWatcher {
+          @vmName
+          parentPath: @path
+          files: response.files
+          treeController
+        }
+        else []
+
+    .nodeify(callback)
+
+    .then =>
+      @emit 'fs.job.finished'
+
 
   save:(callback)->
 
     @emit "fs.save.started"
 
-    @vmController.run
-      vmName    : @vmName
-      method    : 'fs.createDirectory'
-      withArgs  :
-        path    : FSHelper.plainPath @path
-    , (err, res)=>
-      if err then warn err
-      @emit "fs.save.finished", err, res
-      callback? err, res
+    @getKite().vmOn()
+
+    .then =>
+      @vmController.fsCreateDirectory {
+        path: FSHelper.plainPath @path
+      }
+
+    .nodeify (err, response) ->
+      callback null, response
+      @emit "fs.save.finished", null, response
 
   saveAs:(callback)->
     log 'Not implemented yet.'

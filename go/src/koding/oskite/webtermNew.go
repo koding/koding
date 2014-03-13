@@ -5,8 +5,6 @@ package oskite
 import (
 	"bytes"
 	"errors"
-	kitelib "github.com/koding/kite"
-	kitednode "github.com/koding/kite/dnode"
 	"koding/tools/kite"
 	"koding/tools/pty"
 	"koding/tools/utils"
@@ -15,6 +13,9 @@ import (
 	"syscall"
 	"time"
 	"unicode/utf8"
+
+	kitelib "github.com/koding/kite"
+	kitednode "github.com/koding/kite/dnode"
 
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
@@ -103,7 +104,7 @@ func webtermConnectNew(r *kitelib.Request, vos *virt.VOS) (interface{}, error) {
 	cmd := vos.VM.AttachCommand(vos.User.Uid, "/dev/pts/"+strconv.Itoa(server.pty.No), screen.Command...)
 	err = cmd.Start()
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 
 	go func() {

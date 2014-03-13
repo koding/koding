@@ -6,20 +6,13 @@ versionFile = nodePath.join(__dirname, 'VERSION')
 if fs.existsSync versionFile
   version = (fs.readFileSync versionFile, 'utf-8').trim()
 
-FRAMEWORK_VERSION = version ? "0.0.1"
 KODING_VERSION    = version ? "0.0.1"
 
 projects      =
 
-  KDFramework :
-    files     : "client/Framework/includes.coffee"
-    style     : "website/a/css/kd.#{FRAMEWORK_VERSION}.css"
-    script    : "website/a/js/kd.#{FRAMEWORK_VERSION}.js"
-    sourceMapRoot : "Framework/"
-
   KDBackend   :
     files     : "client/Bongo/includes.coffee"
-    script    : "website/a/js/bongo.#{FRAMEWORK_VERSION}.js"
+    script    : "website/a/js/bongo.#{KODING_VERSION}.js"
     sourceMapRoot : "Bongo/"
 
   KDMainApp   :

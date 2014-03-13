@@ -166,7 +166,7 @@ class AccountAppController extends AppController
 
   showRedeemReferralPointModal:->
     vmController = KD.getSingleton("vmController")
-    vmController.fetchVMs yes, (err, vms)=>
+    vmController.fetchVmNames yes, (err, vms)=>
       return KD.showError err if err
       return KD.notify_ "You don't have any VMs. Please create one VM" if not vms or vms.length < 1
 

@@ -65,6 +65,10 @@ func webtermConnectOld(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS
 		Mode         string
 	}
 
+	if args == nil {
+		return nil, &kite.ArgumentError{Expected: "empty argument passed"}
+	}
+
 	if args.Unmarshal(&params) != nil || params.SizeX <= 0 || params.SizeY <= 0 {
 		return nil, &kite.ArgumentError{Expected: "{ remote: [object], session: [string], sizeX: [integer], sizeY: [integer], noScreen: [boolean] }"}
 	}
@@ -90,7 +94,7 @@ func webtermConnectOld(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS
 	cmd := vos.VM.AttachCommand(vos.User.Uid, "/dev/pts/"+strconv.Itoa(server.pty.No), screen.Command...)
 	err = cmd.Start()
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 
 	go func() {
