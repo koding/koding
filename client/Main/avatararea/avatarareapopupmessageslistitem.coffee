@@ -30,7 +30,7 @@ class PopupMessageListItem extends KDListItemView
     @template.update()
 
   teaser:(text)->
-    __utils.shortenText(text, minLength: 40, maxLength: 70) or ''
+    utils.shortenText(text, minLength: 40, maxLength: 70) or ''
 
   click:(event)->
     appManager = KD.getSingleton "appManager"

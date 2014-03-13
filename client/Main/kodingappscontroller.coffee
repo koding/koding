@@ -878,7 +878,7 @@ class KodingAppsController extends KDController
           jAppData     =
             title      : manifest.name        or "Application Title"
             body       : manifest.description or "Application description"
-            identifier : manifest.identifier  or "com.koding.apps.#{__utils.slugify manifest.name}"
+            identifier : manifest.identifier  or "com.koding.apps.#{utils.slugify manifest.name}"
             manifest   : manifest
 
           notification.destroy()
@@ -1076,17 +1076,17 @@ class KodingAppsController extends KDController
 
     return unless stylesheets
 
-    $("head .app-#{__utils.slugify name}").remove()
+    $("head .app-#{utils.slugify name}").remove()
     stylesheets.forEach (sheet)->
       if devMode
-        urlToStyle = "https://#{KD.nick()}.#{KD.config.userSitesDomain}/.applications/#{__utils.slugify name}/#{__utils.stripTags sheet}?#{Date.now()}"
-        $('head').append "<link class='app-#{__utils.slugify name}' rel='stylesheet' href='#{urlToStyle}'>"
+        urlToStyle = "https://#{KD.nick()}.#{KD.config.userSitesDomain}/.applications/#{utils.slugify name}/#{utils.stripTags sheet}?#{Date.now()}"
+        $('head').append "<link class='app-#{utils.slugify name}' rel='stylesheet' href='#{urlToStyle}'>"
       else
         if /(http)|(:\/\/)/.test sheet
           warn "external sheets cannot be used"
         else
           sheet = sheet.replace /(^\.\/)|(^\/+)/, ""
-          $('head').append("<link class='app-#{__utils.slugify name}' rel='stylesheet' href='#{KD.appsUri}/#{manifest.authorNick or KD.nick()}/#{__utils.stripTags identifier}/#{__utils.stripTags version}/#{__utils.stripTags sheet}'>")
+          $('head').append("<link class='app-#{utils.slugify name}' rel='stylesheet' href='#{KD.appsUri}/#{manifest.authorNick or KD.nick()}/#{utils.stripTags identifier}/#{utils.stripTags version}/#{utils.stripTags sheet}'>")
 
   showError = (error)->
     new KDModalView
@@ -1159,6 +1159,47 @@ class KodingAppsController extends KDController
     {defaultApps} = @appManager
     defaultApps[extension] = appName
     @appConfigStorage.setValue "settings", defaultApps
+
+
+  defaultManifest = (type, name)->
+    {profile} = KD.whoami()
+    fullName  = KD.utils.getFullnameFromAccount()
+    raw =
+      devMode       : yes
+      experimental  : no
+      multiple      : no
+      background    : no
+      hiddenHandle  : no
+      forceUpdate   : no
+      openWith      : "lastActive"
+      behavior      : "application"
+      version       : "0.1"
+      title         : "#{name or type.capitalize()}"
+      name          : "#{name or type.capitalize()}"
+      identifier    : "com.koding.apps.#{utils.slugify name or type}"
+      path          : "~/Applications/#{name or type.capitalize()}.kdapp"
+      homepage      : "#{profile.nickname}.#{KD.config.userSitesDomain}/#{utils.slugify name or type}"
+      author        : "#{fullName}"
+      authorNick    : "#{profile.nickname}"
+      repository    : "git://github.com/#{profile.nickname}/#{utils.slugify name or type}.kdapp.git"
+      description   : "#{name or type} : a Koding application created with the #{type} template."
+      category      : "web-app" # can be web-app, add-on, server-stack, framework, misc
+      source        :
+        blocks      :
+          app       :
+            # pre     : ""
+            files   : [ "./index.coffee" ]
+            # post    : ""
+        stylesheets : [ "./resources/style.css" ]
+      options       :
+        type        : "tab"
+      icns          :
+        "128"       : "./resources/icon.128.png"
+      screenshots   : []
+      menu          : []
+      fileTypes     : []
+
+    json = JSON.stringify raw, null, 2
 
   defaultShortcuts =
     Ace           :
