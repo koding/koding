@@ -3,6 +3,8 @@ package helpers
 import (
 	"errors"
 	"net/http"
+	"net/url"
+	"strconv"
 )
 
 // type ApiResponse struct {
@@ -41,4 +43,8 @@ func NewNotFoundResponse() (int, http.Header, interface{}, error) {
 
 func NewDeletedResponse() (int, http.Header, interface{}, error) {
 	return http.StatusAccepted, nil, nil, nil
+}
+
+func GetId(u *url.URL) (int64, error) {
+	return strconv.ParseInt(u.Query().Get("id"), 10, 64)
 }
