@@ -28,8 +28,13 @@ class Troubleshoot extends KDObject
 
 
   registerItems:->
+    #register connection
+    externalUrl = "https://s3.amazonaws.com/koding-ping/ping.json"
+    @registerItem "connection", item = new ConnectionChecker(crossDomain: yes, externalUrl), item.ping
+    # register webserver status
+    webserverStatus = new ConnectionChecker({}, window.location.origin + "/healthCheck")
+    @registerItem "webServer", webserverStatus, webserverStatus.ping
     @vc = KD.singleton "vmController"
-    @registerItem "connection", new ConnectionStatus
     @registerItem "bongo", KD.remote
     @registerItem "broker", KD.remote.mq
     @registerItem "osKite", @vc
