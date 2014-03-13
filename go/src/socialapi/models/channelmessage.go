@@ -17,13 +17,13 @@ type ChannelMessage struct {
 	Type int
 
 	// Creator of the channel message
-	CreatorId int64
+	AccountId int64
 
 	// Creation date of the message
 	CreatedAt time.Time
 
 	// Modification date of the message
-	ModifiedAt time.Time
+	UpdatedAt time.Time
 }
 
 const (
@@ -36,14 +36,21 @@ const (
 func NewChannelMessage() *ChannelMessage {
 	now := time.Now().UTC()
 	return &ChannelMessage{
-		Type:       POST,
-		CreatedAt:  now,
-		ModifiedAt: now,
+		Type:      POST,
+		CreatedAt: now,
+		UpdatedAt: now,
 	}
 }
 
+func (c ChannelMessage) TableName() string {
+	return "channel_message"
+}
+
 func (c *ChannelMessage) Fetch() error {
-	if err := db.DB.First(c, c.Id).Error; err != nil {
+	if c.Id == 0 {
+		return errors.New("Channel message id is not set")
+	}
+	if err := First(c, c.Id); err != nil {
 		return err
 	}
 	return nil
@@ -53,7 +60,16 @@ func (c *ChannelMessage) Update() error {
 	if c.Id == 0 {
 		return errors.New("Channel message id is not set")
 	}
-	return c.Save()
+
+	if err := db.DB.
+		Table(c.TableName()).
+		Where(c.Id).
+		Update("body", c.Body).
+		Error; err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (c *ChannelMessage) Save() error {
@@ -61,9 +77,9 @@ func (c *ChannelMessage) Save() error {
 	now := time.Now().UTC()
 	// created at shouldnt be updated
 	c.CreatedAt = now
-	c.ModifiedAt = now
+	c.UpdatedAt = now
 
-	if err := db.DB.Save(c).Error; err != nil {
+	if err := Save(c); err != nil {
 		return err
 	}
 	return nil
@@ -74,7 +90,7 @@ func (c *ChannelMessage) Delete() error {
 		return errors.New("Channel message id is not set")
 	}
 
-	if err := db.DB.Delete(c).Error; err != nil {
+	if err := Delete(c); err != nil {
 		return err
 	}
 
