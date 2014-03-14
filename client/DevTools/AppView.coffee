@@ -46,23 +46,6 @@ class DevToolsMainView extends KDView
       firebaseInstance          : "tw-local"
       panels                    : [
         title                   : "Koding DevTools"
-        buttons                 : [
-          {
-            title               : "Run as I type"
-            cssClass            : "solid #{if @liveMode then 'green' else 'live'}"
-            callback            : =>
-
-              button = @workspace.panels.first.headerButtons['Run as I type']
-              button.unsetClass 'live green'
-              button.setClass if @liveMode then 'live' else 'green'
-              @liveMode = button.hasClass 'green'
-              @storage.setValue 'liveMode', @liveMode
-
-              if @liveMode
-                @previewApp yes; @previewCss yes
-
-          }
-        ]
         layout                  :
           direction             : "vertical"
           sizes                 : [ "264px", null ]
@@ -132,8 +115,6 @@ class DevToolsMainView extends KDView
 
     @workspace.ready =>
 
-      toggleAutoRun = =>
-        @workspace.panels.first.headerButtons['Run as I type'].click()
 
       {JSEditor, CSSEditor} = panes = @workspace.activePanel.panesByName
 
@@ -146,12 +127,8 @@ class DevToolsMainView extends KDView
             _.debounce (@lazyBound 'previewApp', no), 500
 
           JSEditor.on "RunRequested", @lazyBound 'previewApp', yes
-          JSEditor.on "AutoRunRequested", toggleAutoRun
+          JSEditor.on "AutoRunRequested", @bound 'toggleLiveReload'
 
-          JSEditor.on "OpenedAFile", (file, content)->
-            app = KodingAppsController.getAppInfoFromPath file.path
-            button = @workspace.panels.first.headerButtons['Compile']
-            if app then button.enable() else button.disable()
           @on 'closeAllMenuItemClicked', =>
             CSSEditor.closeFile(); JSEditor.closeFile()
 
