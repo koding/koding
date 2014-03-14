@@ -15,14 +15,8 @@ class DevToolsMainView extends KDView
     toggleLiveReload = new KDView
       partial : "<span>#{itemLabel}</span>"
       click   : =>
-        @liveMode = !@liveMode
-        @storage.setValue 'liveMode', @liveMode
-
+        @toggleLiveReload()
         menu.contextMenu.destroy()
-
-        if @liveMode
-          KD.utils.defer =>
-            @previewApp yes; @previewCss yes
 
     toggleLiveReload.on "viewAppended", ->
       toggleLiveReload.parent.setClass "default"
@@ -204,7 +198,7 @@ class DevToolsMainView extends KDView
             _.debounce (@lazyBound 'previewCss', no), 500
 
           CSSEditor.on "RunRequested", @lazyBound 'previewCss', yes
-          CSSEditor.on "AutoRunRequested", toggleAutoRun
+          CSSEditor.on "AutoRunRequested", @bound 'toggleLiveReload'
 
 
   previewApp:(force = no)->
@@ -279,6 +273,22 @@ class DevToolsMainView extends KDView
 
     KodingAppsController.compileAppOnServer JSEditor.getData()?.path, ->
       log "COMPILE", arguments
+
+  toggleLiveReload:(state)->
+
+    if state?
+    then @liveMode = state
+    else @liveMode = !@liveMode
+
+    new KDNotificationView
+      title: if @liveMode then 'Live compile enabled' \
+                          else 'Live compile disabled'
+
+    @storage.setValue 'liveMode', @liveMode
+    return  unless @liveMode
+
+    KD.utils.defer =>
+      @previewApp yes; @previewCss yes
 
 class DevToolsEditorPane extends CollaborativeEditorPane
 
