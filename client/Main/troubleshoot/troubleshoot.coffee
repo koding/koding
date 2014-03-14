@@ -20,6 +20,19 @@ class Troubleshoot extends KDObject
       @emit "troubleshootCompleted"
 
 
+  isSystemOK: ->
+    for own name, item of @items
+      return no  if item.status is "down"
+
+    yes
+
+  isConnectionDown: ->
+    @items["connection"].status is "down"
+
+  resetAllItems: ->
+    for own name, item of @items
+      item.reset()
+
   registerItems:->
     #register connection
     externalUrl = "https://s3.amazonaws.com/koding-ping/ping.json"
@@ -48,6 +61,14 @@ class Troubleshoot extends KDObject
 
   getItems: ->
     @items
+
+
+  getFailureFeedback: ->
+    result = ""
+    for own name, item of @items
+      result = "#{result} #{name}" if item.status is "down"
+    result
+
 
   run: ->
     return  warn "there is an ongoing troubleshooting"  if @status is STARTED
