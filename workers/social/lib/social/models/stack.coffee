@@ -27,7 +27,7 @@ module.exports = class JStack extends jraphical.Module
         getStack      :
           (signature Function)
         createStack   :
-          (signature Function)
+          (signature Object, Function)
         getStacks     :
           (signature Function)
       instance        :
