@@ -1,6 +1,41 @@
-class TroubleshootModal extends KDModalView
+class TroubleshootModal extends KDModalViewWithForms
 
   constructor: (options = {}, data) ->
+    troubleshoot = KD.singleton("troubleshoot")
+
+    options =
+        title                 : "Check Koding Status"
+        overlay               : yes
+        tabs                  :
+          forms               :
+            Troubleshoot      :
+              callback        : =>
+                {feedback} = @modalTabs.forms.Troubleshoot.customData
+                KD.logToExternal "troubleshoot feedback", {failure:troubleshoot.getFailureFeedback(), feedback}
+                @destroy()
+              buttons         :
+                sendFeedback    :
+                  title       : "Send Feedback"
+                  style       : "modal-clean-gray"
+                  type        : "submit"
+                  loader      :
+                    color     : "#444444"
+                    diameter  : 12
+                  callback    : -> @hideLoader()
+                close         :
+                  title       : "Close"
+                  style       : "modal-cancel"
+                  callback    : => @destroy()
+              fields          :
+                check         :
+                  label       : "System Status"
+                  itemClass   : TroubleshootStatusView
+                feedback      :
+                  label       : "Feedback"
+                  itemClass   : KDInputView
+                  name        : "feedback"
+                  placeholder : "Define the situation"
+
     super options, data
 
     KD.troubleshoot()
