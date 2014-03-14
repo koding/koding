@@ -54,10 +54,6 @@ class EnvironmentsMainScene extends JView
       {JStack} = KD.remote.api
       JStack.getStacks (err, stacks = [])=>
         warn err  if err
-
-        group = KD.getGroup().title
-        stacks.splice 0, 0, [{sid: 0, group}]
-
         @createStacks stacks
 
   createStacks: (stacks) ->
