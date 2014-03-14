@@ -7,6 +7,7 @@ import (
 	"socialapi/workers/api/modules/message"
 	"socialapi/workers/api/modules/messagelist"
 	"socialapi/workers/api/modules/participant"
+	"socialapi/workers/api/modules/reply"
 
 	"github.com/rcrowley/go-tigertonic"
 )
@@ -38,6 +39,13 @@ func Inject(mux *tigertonic.TrieServeMux) *tigertonic.TrieServeMux {
 	mux.Handle("DELETE", "/message/{id}", handlerWrapper(message.Delete, "message-delete"))
 	// tested
 	mux.Handle("GET", "/message/{id}", handlerWrapper(message.Get, "message-get"))
+
+	////////////////////////////////////////////////////////////////////////////////////
+	///////////////////////////// Message Reply Operations /////////////////////////////
+	////////////////////////////////////////////////////////////////////////////////////
+	mux.Handle("POST", "/message/{id}/reply", handlerWrapper(reply.Create, "reply-create"))
+	mux.Handle("DELETE", "/message/{id}/reply/{replyId}", handlerWrapper(reply.Delete, "reply-delete"))
+	mux.Handle("GET", "/message/{id}/reply", handlerWrapper(reply.List, "reply-list"))
 
 	////////////////////////////////////////////////////////////////////////////////////
 	/////////////////////// Message Interaction Operations /////////////////////////////
