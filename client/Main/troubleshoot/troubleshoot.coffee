@@ -17,7 +17,7 @@ class Troubleshoot extends KDObject
       @status = PENDING
       clearTimeout @timeout
       @timeout = null
-      decorateResult.call this
+      @emit "troubleshootCompleted"
 
 
   registerItems:->
@@ -40,12 +40,6 @@ class Troubleshoot extends KDObject
       bongoStatus = KD.remote.api.JSystemStatus
       @registerItem "bongo", bongoStatus.healthCheck.bind bongoStatus
 
-  decorateResult = ->
-    response = {}
-    for own name, item of @result
-      {status, responseTime} = item
-      response[name] = {status, responseTime}
-    @emit "troubleshootCompleted", response
 
 
   # registerItem registers HealthChecker objects: "broker", item
