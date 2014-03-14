@@ -158,6 +158,8 @@ class DevToolsMainView extends KDView
             app = KodingAppsController.getAppInfoFromPath file.path
             button = @workspace.panels.first.headerButtons['Compile']
             if app then button.enable() else button.disable()
+          @on 'closeAllMenuItemClicked', =>
+            CSSEditor.closeFile(); JSEditor.closeFile()
 
         CSSEditor.ready =>
 
@@ -294,6 +296,9 @@ class DevToolsEditorPane extends CollaborativeEditorPane
     @_lastFileKey = "lastFileOn#{@_mode}"
     @storage = KD.singletons.localStorageController.storage "DevTools"
 
+  closeFile:->
+    @openFile FSHelper.createFileFromPath 'localfile:/empty.coffee'
+
   loadFile:(path, callback = noop)->
 
     file = FSHelper.createFileFromPath path
@@ -346,13 +351,19 @@ class DevToolsEditorPane extends CollaborativeEditorPane
         @emit 'ready'
 
   openFile: (file, content)->
-    @storage.setValue @_lastFileKey, file.path
+
+    validPath = file instanceof FSFile and not /^localfile\:/.test file.path
+
+    if validPath
+    then @storage.setValue @_lastFileKey, file.path
+    else @storage.unsetKey @_lastFileKey
+
     super
 
     path = (FSHelper.plainPath file.path).replace \
       "/home/#{KD.nick()}/Applications/", ""
 
-    @header.title.updatePartial path
+    @header.title.updatePartial if not validPath then @_defaultTitle else path
 
 class DevToolsCssEditorPane extends DevToolsEditorPane
   constructor:-> @_mode = 'css'; super
