@@ -17,8 +17,18 @@ func New(items ...interface{}) *Set {
 	s := &Set{}
 	s.m = make(map[interface{}]struct{})
 
+	// Ensure interface compliance
+	var _ Interface = s
+
 	s.Add(items...)
 	return s
+}
+
+// New creates and initalizes a new Set interface. It accepts a variable
+// number of arguments to populate the initial set. If nothing is passed a
+// zero size Set based on the struct is created.
+func (s *Set) New(items ...interface{}) Interface {
+	return New(items...)
 }
 
 // Add includes the specified items (one or more) to the set. The underlying
@@ -185,4 +195,3 @@ func (s *Set) Merge(t Interface) {
 		return true
 	})
 }
-
