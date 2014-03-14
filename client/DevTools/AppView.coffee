@@ -48,12 +48,6 @@ class DevToolsMainView extends KDView
         title                   : "Koding DevTools"
         buttons                 : [
           {
-            title               : "Compile"
-            cssClass            : "solid green"
-            disabled            : yes
-            callback            : => @compileApp()
-          }
-          {
             title               : "Run as I type"
             cssClass            : "solid #{if @liveMode then 'green' else 'live'}"
             callback            : =>
@@ -169,9 +163,11 @@ class DevToolsMainView extends KDView
 
           CSSEditor.on "RunRequested", @lazyBound 'previewCss', yes
           CSSEditor.on "AutoRunRequested", @bound 'toggleLiveReload'
+          CSSEditor.on "FocusedOnMe", => @_lastActiveEditor = CSSEditor
 
         @on 'createMenuItemClicked',  @bound 'createNewApp'
         @on 'publishMenuItemClicked', @bound 'publishCurrentApp'
+        @on 'compileMenuItemClicked', @bound 'compileApp'
 
   previewApp:(force = no)->
 
