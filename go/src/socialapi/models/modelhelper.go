@@ -93,18 +93,27 @@ func (m Model) Delete(i Modellable) error {
 
 func (m Model) Some(i Modellable, data interface{}, rest ...map[string]interface{}) error {
 
-	var selector Partial
-	var options Partial
+	var selector, options, plucked map[string]interface{}
+	switch len(rest) {
 
-	if length := len(rest); length > 0 {
+	case 1: // just filter
 		selector = rest[0]
-		if length == 2 {
-			options = rest[1]
-		}
+	case 2: //filter and sort
+		selector = rest[0]
+		options = rest[1]
+	case 3: // filter, sort and only get some data of the result set
+		selector = rest[0]
+		options = rest[1]
+		plucked = rest[2]
+	default:
+		return errors.New("Some parameter list is wrong")
 	}
 
 	// init query
 	query := db.DB
+
+	// add pluck data
+	query = addPluck(query, plucked)
 
 	// add sort options
 	query = addSort(query, options)
@@ -114,7 +123,6 @@ func (m Model) Some(i Modellable, data interface{}, rest ...map[string]interface
 
 	// add selector
 	query = addWhere(query, selector)
-
 	return query.Find(data).Error
 }
 
@@ -129,6 +137,20 @@ func addSort(query *gorm.DB, options map[string]interface{}) *gorm.DB {
 		opts = append(opts, fmt.Sprintf("%s %v", key, val))
 	}
 	return query.Order(strings.Join(opts, ","))
+}
+
+func addPluck(query *gorm.DB, plucked map[string]interface{}) *gorm.DB {
+
+	if plucked == nil {
+		return query
+	}
+
+	var opts []string
+	for key := range plucked {
+		opts = append(opts, fmt.Sprintf("%s", key))
+	}
+	fmt.Println(strings.Join(opts, ","))
+	return query.Select(strings.Join(opts, ","))
 }
 
 func addWhere(query *gorm.DB, selector map[string]interface{}) *gorm.DB {
