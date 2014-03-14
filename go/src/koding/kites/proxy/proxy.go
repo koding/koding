@@ -16,6 +16,7 @@ func main() {
 		ip         = flag.String("ip", "0.0.0.0", "")
 		port       = flag.Int("port", 3999, "")
 		publicHost = flag.String("public-host", "127.0.0.1:3999", "")
+		region     = flag.String("r", "", "Region")
 	)
 
 	flag.Parse()
@@ -33,6 +34,8 @@ func main() {
 	}
 
 	kiteConf := kiteconfig.MustGet()
+	kiteConf.Environment = conf.Environment
+	kiteConf.Region = *region
 	kiteConf.IP = *ip
 	kiteConf.Port = *port
 
