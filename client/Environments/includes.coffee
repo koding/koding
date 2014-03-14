@@ -26,6 +26,7 @@ module.exports = [
   "views/resourcescontainer.coffee"
   "views/environmentsmainscene.coffee"
   "views/clonestackmodal.coffee"
+  "views/createstackmodal.coffee"
 
   "views/domains/domaincreateform.coffee"
   "views/domains/commondomaincreateform.coffee"

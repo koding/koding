@@ -58,7 +58,9 @@ class StackView extends KDView
             callback           : =>
               @emit "CloneStackRequested", @getStackDump()
           'Create a new stack' :
-            callback           : @bound "showCreateStackModal"
+            callback           : => new CreateStackModal
+              callback         : (meta, modal) =>
+                @emit "NewStackRequested", meta, modal
 
     # Main scene for DIA
     @addSubView @scene = new EnvironmentScene @getData().stack
@@ -167,57 +169,3 @@ class StackView extends KDView
     (Math.max.apply null, \
       (box.diaCount() for box in @scene.containers)) * 45 + 170
 
-  showCreateStackModal: ->
-    modal                       = new KDModalViewWithForms
-      title                     : "Create a new stack"
-      cssClass                  : "create-stack"
-      content                   : ""
-      overlay                   : yes
-      width                     : 720
-      height                    : "auto"
-      tabs                      :
-        forms                   :
-          CreateStackForm       :
-            callback            : =>
-              {title, slug}     = modal.modalTabs.forms.CreateStackForm.inputs
-              meta              =
-                title           : title.getValue()
-                slug            : KD.utils.slugify slug.getValue()
-              @emit "NewStackRequested", meta, modal
-            buttons             :
-              create            :
-                title           : "Create"
-                style           : "modal-clean-green"
-                type            : "submit"
-                loader          :
-                  color         : '#eee'
-                callback        : =>
-                  form          = modal.modalTabs.forms.CreateStackForm
-                  form.once "FormValidationFailed", =>
-                    modal.modalTabs.forms.CreateStackForm.buttons.create.hideLoader()
-              cancel            :
-                title           : "Cancel"
-                style           : "modal-cancel"
-                callback        : -> modal.destroy()
-            fields              :
-              title             :
-                label           : "Stack title"
-                type            : "text"
-                name            : "title"
-                keyup           : =>
-                  {title, slug} = modal.modalTabs.forms.CreateStackForm.inputs
-                  slug.setValue KD.utils.slugify title.getValue()
-                validate        :
-                  rules         :
-                    required    : yes
-                  messages      :
-                    required    : "Stack title cannot be blank."
-              slug              :
-                label           : "Domain prefix"
-                type            : "text"
-                name            : "slug"
-                validate        :
-                  rules         :
-                    required    : yes
-                  messages      :
-                    required    : "Domain prefix cannot be blank"
