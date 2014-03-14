@@ -23,8 +23,7 @@ class AvatarAreaIconMenu extends JView
 
     @troubleshootIcon.click = (event) =>
       @_modal?.destroy()
-      troubleshoot = KD.singleton("troubleshoot")
-      @_modal = new TroubleshootModal {}, troubleshoot.getItems()
+      @_modal = new TroubleshootModal
 
     @notificationsPopup = new AvatarPopupNotifications
       cssClass : "notifications"
