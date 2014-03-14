@@ -221,34 +221,6 @@ button
       shadow        inset 0 2px 0 #1aaf5d
       borderBox()
 
-      .quit-app-link
-        size        100%, 16px
-        line-height 16px
-        font-size   12px
-        bg          color logoBg
-        color       white
-        abs         -14px 0 0 0px
-        overflow    hidden
-        text-align  center
-        z-index     40
-        vendor              transform, translateY(0px)
-        -webkit-transition  -webkit-transform .2s 1s ease-in
-        -moz-transition     -moz-transform    .2s 1s ease-in
-        transition          transform         .2s 1s ease-in
-
-      &.running-initial
-        .quit-app-link
-          display       none !important
-
-      &:hover
-        .quit-app-link
-          vendor        transform, translateY(14px)
-
-
-    &.no-anim
-      .quit-icon
-        opacity               0 !important
-
     &.loading
       .icon
         vendor      animation, pulse 1.5s ease-in-out 100
@@ -271,6 +243,22 @@ button
     //   r-sprite      app nav-develop
     // &.finder .icon
     //   r-sprite      app nav-finder
+
+.jcontextmenu.dock
+
+  .kdlistitemview-contextitem.default
+    text-align            center
+    &.selected
+      color               selectedBgColor
+      text-shadow         none
+      bg                  color, transparent
+      &:hover
+        bg                color, transparent
+  >span.arrow
+    border-bottom-color   #f6f6f6
+    border-width          10px
+    margin-left           -5px
+
 
 .account-area
   vendor            transform-style, preserve-3d
