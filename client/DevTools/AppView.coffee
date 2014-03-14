@@ -114,8 +114,10 @@ class DevToolsMainView extends KDView
           ]
       ]
 
-    @workspace.ready =>
+    # DISABLE broadcastMessaging in workspace
+    @workspace.broadcastMessage = noop
 
+    @workspace.ready =>
 
       {JSEditor, CSSEditor} = panes = @workspace.activePanel.panesByName
 
