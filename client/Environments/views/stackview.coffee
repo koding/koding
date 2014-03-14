@@ -100,7 +100,7 @@ class StackView extends KDView
     # Add domains
     @domains.removeAllItems()
     for domain in env.domains
-      if domain.stack is stack._id #or isDefault
+      if domain.stack is stack.getId() or (isDefault and not domain.stack)
         @domains.addDomain domain
       else
         orphans.domains.push domain
@@ -108,17 +108,17 @@ class StackView extends KDView
     # Add vms
     @vms.removeAllItems()
     for vm in env.vms
-      if vm.stack is stack._id #or isDefault
-      then @vms.addItem title:vm.alias
-      else orphans.vms.push vm
-
-    # log "orphans", orphans
+      if vm.stack is stack.getId() or (isDefault and not vm.stack)
+        vm.title = vm.hostnameAlias
+        @vms.addItem vm
+      else
+        orphans.vms.push vm
 
     # Add extras
     @extras.removeAllItems()
     @extras.addItem extra  for extra in env.extras
 
-    # log "ORPHANS", orphans
+    log "orphans", orphans
 
     @setHeight @getProperHeight()
     KD.utils.wait 300, =>
