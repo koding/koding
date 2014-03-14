@@ -6,8 +6,12 @@ class TroubleshootModal extends KDModalView
     KD.troubleshoot()
 
     @init()
+class TroubleshootStatus extends KDCustomHTMLView
 
-  init: ->
+  constructor: (options, data) ->
+    data = KD.singleton("troubleshoot").getItems()
+    super options, data
+
     @bongo = new TroubleshootItemView
       title: "Bongo"
     , @getData()["bongo"]
