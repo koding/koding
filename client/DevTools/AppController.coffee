@@ -33,4 +33,6 @@ class DevToolsController extends AppController
   handleQuery:->
     {workspace} = @getView()
     workspace.ready ->
-      KD.getSingleton("windowController").notifyWindowResizeListeners()
+      wc = KD.getSingleton("windowController")
+      wc.notifyWindowResizeListeners()
+      wc.notifyWindowResizeListeners()
