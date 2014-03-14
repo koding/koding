@@ -126,10 +126,6 @@ func vmPrepareNew(r *kitelib.Request, vos *virt.VOS) (interface{}, error) {
 	return vmPrepare(vos)
 }
 
-func vmDestroyNew(r *kitelib.Request, vos *virt.VOS) (interface{}, error) {
-	return vmDestroy(vos)
-}
-
 func vmResizeDiskNew(r *kitelib.Request, vos *virt.VOS) (interface{}, error) {
 	return vmResizeDisk(vos)
 }
@@ -163,7 +159,6 @@ func execFuncNew(r *kitelib.Request, vos *virt.VOS) (interface{}, error) {
 }
 
 type progressParamsNew struct {
-	Destroy    bool
 	OnProgress kitednode.Function
 }
 
@@ -178,9 +173,11 @@ func vmPrepareAndStartNew(r *kitelib.Request, vos *virt.VOS) (interface{}, error
 
 	return progress("vm.prepareAndStart"+vos.VM.HostnameAlias, params, func() error {
 		// mutex is needed because it's handled in the queue
-		info := getInfo(vos.VM)
-		info.mutex.Lock()
-		defer info.mutex.Unlock()
+		if params.OnProgress != nil {
+			info := getInfo(vos.VM)
+			info.mutex.Lock()
+			defer info.mutex.Unlock()
+		}
 
 		for step := range prepareProgress(vos) {
 			if params.OnProgress != nil {
@@ -204,11 +201,41 @@ func vmStopAndUnprepareNew(r *kitelib.Request, vos *virt.VOS) (interface{}, erro
 
 	return progress("vm.stopAndUnprepare"+vos.VM.HostnameAlias, params, func() error {
 		// mutex is needed because it's handled in the queue
-		info := getInfo(vos.VM)
-		info.mutex.Lock()
-		defer info.mutex.Unlock()
+		if params.OnProgress != nil {
+			info := getInfo(vos.VM)
+			info.mutex.Lock()
+			defer info.mutex.Unlock()
+		}
 
-		for step := range unprepareProgress(vos, params.Destroy) {
+		for step := range unprepareProgress(vos, false) {
+			if params.OnProgress != nil {
+				params.OnProgress(step)
+			}
+
+			if step.Err != nil {
+				return step.Err
+			}
+		}
+
+		return nil
+	})
+}
+
+func vmDestroyNew(r *kitelib.Request, vos *virt.VOS) (interface{}, error) {
+	params := new(progressParamsNew)
+	if r.Args.One().Unmarshal(&params) != nil {
+		return nil, &kite.ArgumentError{Expected: "{OnProgress: [function]}"}
+	}
+
+	return progress("vm.stopAndUnprepare"+vos.VM.HostnameAlias, params, func() error {
+		// mutex is needed because it's handled in the queue
+		if params.OnProgress != nil {
+			info := getInfo(vos.VM)
+			info.mutex.Lock()
+			defer info.mutex.Unlock()
+		}
+
+		for step := range unprepareProgress(vos, true) {
 			if params.OnProgress != nil {
 				params.OnProgress(step)
 			}

@@ -45,10 +45,6 @@ func vmPrepareOld(args *dnode.Partial, c *kite.Channel, vos *virt.VOS) (interfac
 	return vmPrepare(vos)
 }
 
-func vmDestroyOld(args *dnode.Partial, c *kite.Channel, vos *virt.VOS) (interface{}, error) {
-	return vmDestroy(vos)
-}
-
 func vmInfoOld(args *dnode.Partial, c *kite.Channel, vos *virt.VOS) (interface{}, error) {
 	return vmInfo(vos)
 }
@@ -239,28 +235,6 @@ func vmInfo(vos *virt.VOS) (interface{}, error) {
 	return info, nil
 }
 
-func vmDestroy(vos *virt.VOS) (interface{}, error) {
-	if !vos.Permissions.Sudo {
-		return nil, &kite.PermissionError{}
-	}
-
-	if err := vos.VM.Destroy(); err != nil {
-		return nil, err
-
-	}
-
-	// TODO: enable this after getting the relationships to be removed.
-	// query := func(c *mgo.Collection) error {
-	// 	return c.Remove(bson.M{"hostnameAlias": vos.VM.HostnameAlias})
-	// }
-
-	// if err := mongodbConn.Run("jVMs", query); err != nil {
-	// 	return nil, err
-	// }
-
-	return true, nil
-}
-
 func vmPrepare(vos *virt.VOS) (interface{}, error) {
 	if !vos.Permissions.Sudo {
 		return nil, &kite.PermissionError{}
@@ -377,7 +351,6 @@ type progresser interface {
 }
 
 type progressParamsOld struct {
-	Destroy    bool
 	OnProgress dnode.Callback
 }
 
@@ -385,6 +358,10 @@ func (p *progressParamsOld) Enabled() bool      { return p.OnProgress != nil }
 func (p *progressParamsOld) Call(v interface{}) { p.OnProgress(v) }
 
 func vmPrepareAndStart(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
+	if !vos.Permissions.Sudo {
+		return nil, &kite.PermissionError{}
+	}
+
 	params := new(progressParamsOld)
 	if args != nil && args.Unmarshal(&params) != nil {
 		return nil, &kite.ArgumentError{Expected: "{OnProgress: [function]}"}
@@ -392,9 +369,11 @@ func vmPrepareAndStart(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS
 
 	return progress("vm.prepareAndStart"+vos.VM.HostnameAlias, params, func() error {
 		// mutex is needed because it's handled in the queue
-		info := getInfo(vos.VM)
-		info.mutex.Lock()
-		defer info.mutex.Unlock()
+		if params.OnProgress != nil {
+			info := getInfo(vos.VM)
+			info.mutex.Lock()
+			defer info.mutex.Unlock()
+		}
 
 		for step := range prepareProgress(vos) {
 			if params.OnProgress != nil {
@@ -410,7 +389,45 @@ func vmPrepareAndStart(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS
 	})
 }
 
+func vmDestroyOld(args *dnode.Partial, c *kite.Channel, vos *virt.VOS) (interface{}, error) {
+	if !vos.Permissions.Sudo {
+		return nil, &kite.PermissionError{}
+	}
+
+	params := new(progressParamsOld)
+	if args != nil && args.Unmarshal(&params) != nil {
+		return nil, &kite.ArgumentError{Expected: "{OnProgress: [function]}"}
+	}
+
+	return progress("vm.destroy"+vos.VM.HostnameAlias, params, func() error {
+		// mutex is needed because it's handled in the queue
+		if params.OnProgress != nil {
+			info := getInfo(vos.VM)
+			info.mutex.Lock()
+			defer info.mutex.Unlock()
+		}
+
+		for step := range unprepareProgress(vos, true) {
+			if params.OnProgress != nil {
+				params.OnProgress(step)
+			}
+
+			if step.Err != nil {
+				return step.Err
+			}
+		}
+
+		return nil
+	})
+
+	return true, nil
+}
+
 func vmStopAndUnprepare(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
+	if !vos.Permissions.Sudo {
+		return nil, &kite.PermissionError{}
+	}
+
 	params := new(progressParamsOld)
 	if args != nil && args.Unmarshal(&params) != nil {
 		return nil, &kite.ArgumentError{Expected: "{OnProgress: [function]}"}
@@ -418,11 +435,13 @@ func vmStopAndUnprepare(args *dnode.Partial, channel *kite.Channel, vos *virt.VO
 
 	return progress("vm.stopAndUnprepare"+vos.VM.HostnameAlias, params, func() error {
 		// mutex is needed because it's handled in the queue
-		info := getInfo(vos.VM)
-		info.mutex.Lock()
-		defer info.mutex.Unlock()
+		if params.OnProgress != nil {
+			info := getInfo(vos.VM)
+			info.mutex.Lock()
+			defer info.mutex.Unlock()
+		}
 
-		for step := range unprepareProgress(vos, params.Destroy) {
+		for step := range unprepareProgress(vos, false) {
 			if params.OnProgress != nil {
 				params.OnProgress(step)
 			}
@@ -544,6 +563,16 @@ func unprepareProgress(vos *virt.VOS, destroy bool) <-chan *virt.Step {
 				CurrentStep: lastCurrentStep + 1,
 				TotalStep:   totalStep,
 			}
+
+			// TODO: enable this after getting the relationships to be removed.
+			// query := func(c *mgo.Collection) error {
+			// 	return c.Remove(bson.M{"hostnameAlias": vos.VM.HostnameAlias})
+			// }
+
+			// if err := mongodbConn.Run("jVMs", query); err != nil {
+			// 	return nil, err
+			// }
+
 		}
 	}()
 
