@@ -53,7 +53,12 @@ module.exports = class JStack extends jraphical.Module
 
     JStack.some {user, group}, {}, (err, stacks)->
       return callback err  if err
-      callback null, stacks or []
+
+      if stacks.length is 0
+        JStack.getStack { user, group }, (err, stack) =>
+          callback err, [stack]
+      else
+        callback null, stacks
 
   @getStackId = (selector, callback)->
 
@@ -68,11 +73,10 @@ module.exports = class JStack extends jraphical.Module
       return callback err  if err
 
       if stack
-        console.log "Found stack, returning."
+        console.log "Returning a stack"
         return callback null, stack
 
-      console.log "Stack not found, creating new one."
-
+      console.log "Creating new stack."
       stack = new JStack {user, group, sid, meta}
       stack.save (err)->
         if err then callback err
