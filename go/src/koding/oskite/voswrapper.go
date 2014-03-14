@@ -165,6 +165,7 @@ func execFuncNew(r *kitelib.Request, vos *virt.VOS) (interface{}, error) {
 
 func vmStopAndUnprepareNew(r *kitelib.Request, vos *virt.VOS) (interface{}, error) {
 	var params struct {
+		Destroy    bool
 		OnProgress kitednode.Function
 	}
 
@@ -182,7 +183,7 @@ func vmStopAndUnprepareNew(r *kitelib.Request, vos *virt.VOS) (interface{}, erro
 
 	go func() {
 		prepareQueue <- &QueueJob{
-			msg: "vm.topAndUnprepare" + vos.VM.HostnameAlias,
+			msg: "vm.StopAndUnprepare" + vos.VM.HostnameAlias,
 			f: func() (string, error) {
 				if params.OnProgress == nil {
 					defer func() { done <- struct{}{} }()
@@ -193,7 +194,7 @@ func vmStopAndUnprepareNew(r *kitelib.Request, vos *virt.VOS) (interface{}, erro
 					defer info.mutex.Unlock()
 				}
 
-				for step := range unprepareProgress(vos) {
+				for step := range unprepareProgress(vos, params.Destroy) {
 					if params.OnProgress != nil {
 						params.OnProgress(step)
 					}
