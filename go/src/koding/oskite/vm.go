@@ -376,16 +376,16 @@ type progresser interface {
 	Call(v interface{})
 }
 
-type progressParams struct {
+type progressParamsOld struct {
 	Destroy    bool
 	OnProgress dnode.Callback
 }
 
-func (p *progressParams) Enabled() bool      { return p.OnProgress != nil }
-func (p *progressParams) Call(v interface{}) { p.OnProgress(v) }
+func (p *progressParamsOld) Enabled() bool      { return p.OnProgress != nil }
+func (p *progressParamsOld) Call(v interface{}) { p.OnProgress(v) }
 
 func vmPrepareAndStart(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
-	params := new(progressParams)
+	params := new(progressParamsOld)
 	if args != nil && args.Unmarshal(&params) != nil {
 		return nil, &kite.ArgumentError{Expected: "{OnProgress: [function]}"}
 	}
@@ -411,7 +411,7 @@ func vmPrepareAndStart(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS
 }
 
 func vmStopAndUnprepare(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
-	params := new(progressParams)
+	params := new(progressParamsOld)
 	if args != nil && args.Unmarshal(&params) != nil {
 		return nil, &kite.ArgumentError{Expected: "{OnProgress: [function]}"}
 	}
