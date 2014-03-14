@@ -3,6 +3,7 @@ package handlers
 import (
 	"net/http"
 	"socialapi/workers/api/modules/channel"
+	"socialapi/workers/api/modules/interaction"
 	"socialapi/workers/api/modules/message"
 	"socialapi/workers/api/modules/messagelist"
 	"socialapi/workers/api/modules/participant"
@@ -39,6 +40,18 @@ func Inject(mux *tigertonic.TrieServeMux) *tigertonic.TrieServeMux {
 	mux.Handle("GET", "/message/{id}", handlerWrapper(message.Get, "message-get"))
 
 	////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////// Message Interaction Operations /////////////////////////////
+	////////////////////////////////////////////////////////////////////////////////////
+	// add new like
+	mux.Handle("POST", "/message/{id}/interaction/{type}/add", handlerWrapper(interaction.Add, "interactions-add"))
+	// delete like - unlike
+	mux.Handle("POST", "/message/{id}/interaction/{type}/delete", handlerWrapper(interaction.Delete, "interactions-delete"))
+	// get all the interactions for message
+	// mux.Handle("GET", "/message/{id}/interaction", handlerWrapper(interaction.List, "interactions-list"))
+	// get typed interactions
+	mux.Handle("GET", "/message/{id}/interaction/{type}", handlerWrapper(interaction.List, "interactions-list-typed"))
+
+	////////////////////////////////////////////////////////////////////////////////////
 	/////////////////////////////////// Channel Operations /////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////
 	// tested
@@ -59,9 +72,11 @@ func Inject(mux *tigertonic.TrieServeMux) *tigertonic.TrieServeMux {
 	mux.Handle("GET", "/channel/{id}/participant", handlerWrapper(participant.List, "participant-list"))
 
 	// add participant to the channnel
+	//tested
 	mux.Handle("POST", "/channel/{id}/participant/{accountId}", handlerWrapper(participant.Add, "participant-list"))
 
 	// remove participant from the channel
+	// tested
 	mux.Handle("DELETE", "/channel/{id}/participant/{accountId}", handlerWrapper(participant.Delete, "participant-list"))
 
 	// list messages of the channel
@@ -92,11 +107,6 @@ func Inject(mux *tigertonic.TrieServeMux) *tigertonic.TrieServeMux {
 	return mux
 }
 
-// GET /stuff/{id}
-// func get(u *url.URL, h http.Header, _ *Request) (int, http.Header, *Response, error) {
-// 	return http.StatusOK, nil, &Response{u.Query().Get("id"), "OK"}, nil
-// }
-
-// func post2(u *url.URL, h http.Header, _ *Request) (int, http.Header, *Response, error) {
-// 	return http.StatusAccepted, nil, &Response{"POST", "Accepted"}, nil
-// }
+// to-do list
+// get current account from context for future
+// like client.connection.delegate
