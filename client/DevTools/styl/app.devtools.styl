@@ -51,6 +51,20 @@ body.devtools
       padding-right 10px
       background    #efefef
       abs()
+
+      .inline-info
+        left        -50px
+        top         0
+        size        auto, 20px
+        padding     3px
+        background  green
+        color       white
+        vendor      transition, left .2s ease-in
+        abs()
+
+        &.in
+          left      0
+
   .editor-split
     .panel-1
       border        none

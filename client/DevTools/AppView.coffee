@@ -131,7 +131,12 @@ class DevToolsMainView extends KDView
 
           JSEditor.on "RunRequested", @lazyBound 'previewApp', yes
           JSEditor.on "AutoRunRequested", @bound 'toggleLiveReload'
+          JSEditor.on "FocusedOnMe", => @_lastActiveEditor = JSEditor
 
+          @on 'saveMenuItemClicked', =>
+            @_lastActiveEditor?.handleSave()
+          @on 'saveAllMenuItemClicked', =>
+            CSSEditor.handleSave(); JSEditor.handleSave()
           @on 'closeAllMenuItemClicked', =>
             CSSEditor.closeFile(); JSEditor.closeFile()
 
@@ -328,6 +333,15 @@ class DevToolsEditorPane extends CollaborativeEditorPane
 
         callback?()
 
+        @header.addSubView @info = new KDView
+          cssClass : "inline-info"
+          partial  : "saved"
+
+        @on 'EditorDidSave', =>
+          @info.updatePartial 'saved'; @info.setClass 'in'
+          KD.utils.wait 1000, => @info.unsetClass 'in'
+
+        @codeMirrorEditor.on 'focus', => @emit "FocusedOnMe"
         @emit 'ready'
 
   openFile: (file, content)->
