@@ -76,6 +76,9 @@ class Troubleshoot extends KDObject
       decorateResult.call this
     , @getOptions().timeout
 
+    @resetAllItems()
+    @emit "healthCheckStarted"
+
     @status = STARTED
     @result = {}
     waitingResponse = Object.keys(@items).length
