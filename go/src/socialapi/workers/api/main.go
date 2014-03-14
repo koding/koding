@@ -96,11 +96,15 @@ func createTables() {
 	db.DB.LogMode(true)
 	db.DB.Exec("drop table channel_message_list;")
 	db.DB.Exec("drop table channel_message;")
+	db.DB.Exec("drop table message_reply;")
 	db.DB.Exec("drop table channel_participant;")
 	db.DB.Exec("drop table channel;")
 	db.DB.Exec("drop table interaction;")
 
 	if err := db.DB.CreateTable(&models.ChannelMessage{}).Error; err != nil {
+		panic(fmt.Sprintf("No error should happen when create table, but got %+v", err))
+	}
+	if err := db.DB.CreateTable(&models.MessageReply{}).Error; err != nil {
 		panic(fmt.Sprintf("No error should happen when create table, but got %+v", err))
 	}
 	if err := db.DB.CreateTable(&models.Channel{}).Error; err != nil {
