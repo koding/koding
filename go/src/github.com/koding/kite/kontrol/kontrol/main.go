@@ -2,52 +2,68 @@ package main
 
 import (
 	"flag"
-	"github.com/koding/kite"
-	"github.com/koding/kite/kontrol"
-	"github.com/koding/kite/testkeys"
+	"io/ioutil"
 	"log"
-	"os"
 	"strings"
+
+	"github.com/koding/kite/config"
+	"github.com/koding/kite/kontrol"
 )
 
 func main() {
-	var name, dataDir, peersString string
-	var peers []string
-
-	options := &kite.Options{
-		Kitename: "kontrol",
-		Version:  "0.0.1",
-		Path:     "/kontrol",
-	}
-
-	flag.StringVar(&options.Environment, "environment", "development", "")
-	flag.StringVar(&options.Region, "region", "localhost", "")
-	flag.StringVar(&options.PublicIP, "ip", "0.0.0.0", "")
-	flag.StringVar(&options.Port, "port", "4000", "")
-
-	flag.StringVar(&name, "name", "", "name of the instance")
-	flag.StringVar(&dataDir, "data-dir", "", "directory to store data")
-	flag.StringVar(&peersString, "peers", "", "comma seperated peer addresses")
+	var (
+		publicKeyFile  = flag.String("public-key", "", "")
+		privateKeyFile = flag.String("private-key", "", "")
+		ip             = flag.String("ip", "0.0.0.0", "")
+		port           = flag.Int("port", 4000, "")
+		etcdAddr       = flag.String("etcd-addr", "http://127.0.0.1:4001", "The public host:port used for etcd server.")
+		etcdBindAddr   = flag.String("etcd-bind-addr", ":4001", "The listening host:port used for etcd server.")
+		peerAddr       = flag.String("peer-addr", "http://127.0.0.1:7001", "The public host:port used for peer communication.")
+		peerBindAddr   = flag.String("peer-bind-addr", ":7001", "The listening host:port used for peer communication.")
+		name           = flag.String("name", "", "name of the instance")
+		dataDir        = flag.String("data-dir", "", "directory to store data")
+		peers          = flag.String("peers", "", "comma seperated peer addresses")
+	)
 
 	flag.Parse()
 
-	if name == "" {
-		var err error
-		name, err = os.Hostname()
-		if err != nil {
-			log.Fatal(err.Error())
-		}
+	if *publicKeyFile == "" {
+		log.Fatalln("no -public-key given")
 	}
 
-	if dataDir == "" {
-		log.Fatal("data-dir flag is not set")
+	if *privateKeyFile == "" {
+		log.Fatalln("no -private-key given")
 	}
 
-	if peersString != "" {
-		peers = strings.Split(peersString, ",")
+	publicKey, err := ioutil.ReadFile(*publicKeyFile)
+	if err != nil {
+		log.Fatalln("cannot read public key file")
 	}
 
-	k := kontrol.New(options, name, dataDir, peers, testkeys.Public, testkeys.Private)
+	privateKey, err := ioutil.ReadFile(*privateKeyFile)
+	if err != nil {
+		log.Fatalln("cannot read private key file")
+	}
+
+	conf := config.MustGet()
+	conf.IP = *ip
+	conf.Port = *port
+
+	k := kontrol.New(conf, string(publicKey), string(privateKey))
+	k.EtcdAddr = *etcdAddr
+	k.EtcdBindAddr = *etcdBindAddr
+	k.PeerAddr = *peerAddr
+	k.PeerBindAddr = *peerBindAddr
+
+	if *name != "" {
+		k.Name = *name
+	}
+	if *dataDir != "" {
+		k.DataDir = *dataDir
+	}
+	if *peers != "" {
+		k.Peers = strings.Split(*peers, ",")
+	}
 
 	k.Run()
 }

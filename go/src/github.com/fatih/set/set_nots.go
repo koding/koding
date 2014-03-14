@@ -1,8 +1,8 @@
 package set
 
 import (
-  "fmt"
-  "strings"
+	"fmt"
+	"strings"
 )
 
 // Provides a common set baseline for both threadsafe and non-ts Sets.
@@ -22,8 +22,18 @@ func NewNonTS(items ...interface{}) *SetNonTS {
 	s := &SetNonTS{}
 	s.m = make(map[interface{}]struct{})
 
+	// Ensure interface compliance
+	var _ Interface = s
+
 	s.Add(items...)
 	return s
+}
+
+// New creates and initalizes a new Set interface. It accepts a variable
+// number of arguments to populate the initial set. If nothing is passed a
+// zero size Set based on the struct is created.
+func (s *set) New(items ...interface{}) Interface {
+	return NewNonTS(items...)
 }
 
 // Add includes the specified items (one or more) to the set. The underlying
@@ -166,15 +176,6 @@ func (s *set) Copy() Interface {
 	return NewNonTS(s.List()...)
 }
 
-// Union is the merger of two sets. It returns a new set with the element in s
-// and t combined. It doesn't modify s. Use Merge() if  you want to change the
-// underlying set s.
-func (s *set) Union(t Interface) Interface {
-	u := s.Copy()
-	u.Merge(t)
-	return u
-}
-
 // Merge is like Union, however it modifies the current set it's applied on
 // with the given t set.
 func (s *set) Merge(t Interface) {
@@ -189,56 +190,3 @@ func (s *set) Merge(t Interface) {
 func (s *set) Separate(t Interface) {
 	s.Remove(t.List()...)
 }
-
-// Intersection returns a new set which contains items which is in both s and t.
-func (s *set) Intersection(t Interface) Interface {
-	u := s.Copy()
-	u.Separate(u.Difference(t))
-	return u
-}
-
-// Difference returns a new set which contains items which are in s but not in t.
-func (s *set) Difference(t Interface) Interface {
-	u := s.Copy()
-	u.Separate(t)
-	return u
-}
-
-// SymmetricDifference returns a new set which s is the difference of items which are in
-// one of either, but not in both.
-func (s *set) SymmetricDifference(t Interface) Interface {
-	u := s.Difference(t)
-	v := t.Difference(s)
-	return u.Union(v)
-}
-
-// StringSlice is a helper function that returns a slice of strings of s. If
-// the set contains mixed types of items only items of type string are returned.
-func (s *set) StringSlice() []string {
-	slice := make([]string, 0)
-	for _, item := range s.List() {
-		v, ok := item.(string)
-		if !ok {
-			continue
-		}
-
-		slice = append(slice, v)
-	}
-	return slice
-}
-
-// IntSlice is a helper function that returns a slice of ints of s. If
-// the set contains mixed types of items only items of type int are returned.
-func (s *set) IntSlice() []int {
-	slice := make([]int, 0)
-	for _, item := range s.List() {
-		v, ok := item.(int)
-		if !ok {
-			continue
-		}
-
-		slice = append(slice, v)
-	}
-	return slice
-}
-

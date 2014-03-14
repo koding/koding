@@ -1,25 +1,20 @@
 #!/usr/bin/env python2.7
 """
-A script for packaging and releasing kd tool for OS X and Linux platforms.
+A script for packaging and releasing kite tool for OS X and Linux platforms.
 It can also upload the generated package file to S3 if you provide --upload flag.
 
 usage: release.py [-h] [--upload]
 
-Run it with the same folder as kd.go. It will put the generated files into
-the current working directory.
+Run it at the same directory as this script. It will put the generated files
+into the current working directory.
 
 On OS X, the brew formula can be installed with the following command:
 
-    brew install kd.rb
+    brew install kite.rb
 
 On Linux, the deb package can be installed with the following command:
 
-    dpkg --force-architecture -i kd-0.0.1-linux.deb
-
-Note:
-"--force-architecture" is only needed on 64-bit systems since we only compile
-the tool for i386 architecture for now. Since the kd binary is static-linked
-it can safely run on amd64 architecture.
+    dpkg -i kite-0.0.1-linux.deb
 
 """
 import argparse
@@ -34,53 +29,49 @@ import tempfile
 import boto
 from boto.s3.key import Key
 
-
-AWS_KEY = 'AKIAJSUVKX6PD254UGAA'
-AWS_SECRET = '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'
-
 BREW_FORMULA = """\
 require 'formula'
 
-class Kd < Formula
-  homepage 'http://koding.com'
+class Kite < Formula
+  homepage 'http://kite.koding.com'
   # url and sha1 needs to be changed after new binary is uploaded.
   url '{url}'
   sha1 '{sha1}'
 
   def install
-    bin.install "kd"
+    bin.install "kite"
   end
 
   def test
-    system "#{{bin}}/kd", "version"
+    system "#{{bin}}/kite", "version"
   end
 end
 """
 
 DEB_CONTROL = """\
-Package: kd
+Package: kite
 Version: {version}
 Section: utils
 Priority: optional
 Architecture: amd64
 Essential: no
 Maintainer: Koding Developers <hello@koding.com>
-Description: Koding command-line tool.
+Description: Kite command-line tool.
 """
 
 
 def build_osx(binpath, version):
     print "Making tar file..."
-    tarname = "kd-%s-osx.tar.gz" % version
+    tarname = "kite-%s-osx.tar.gz" % version
     with tarfile.open(tarname, "w:gz") as tar:
-        tar.add(binpath, arcname="kd")
+        tar.add(binpath, arcname="kite")
     return tarname
 
 
 def build_linux(binpath, version):
     workdir = tempfile.mkdtemp()
     try:
-        debname = "kd-%s-linux" % version
+        debname = "kite-%s-linux" % version
         packagedir = os.path.join(workdir, debname)
         os.mkdir(packagedir)
         debiandir = os.path.join(packagedir, "DEBIAN")
@@ -111,18 +102,18 @@ def postbuild_osx(package_name, args, bucket, package_s3_key):
     print "Generating formula..."
     sha1 = sha1_file(package_name)
     formula_str = BREW_FORMULA.format(url=url, sha1=sha1)
-    with open("kd.rb", "w") as f:
+    with open("kite.rb", "w") as f:
         f.write(formula_str)
 
     if args.upload:
         print "Uploading new brew formula..."
         formula_key = Key(bucket)
-        formula_key.key = "kd.rb"
+        formula_key.key = "kite.rb"
         formula_key.set_contents_from_string(formula_str)
         formula_key.make_public()
         formula_url = formula_key.generate_url(expires_in=0, query_auth=False)
 
-        print "kd tool has been uplaoded successfully.\n" \
+        print "kite tool has been uplaoded successfully.\n" \
               "Users can install it with:\n    " \
               "brew install \"%s\"" % formula_url
     else:
@@ -132,9 +123,9 @@ def postbuild_osx(package_name, args, bucket, package_s3_key):
 
 def postbuild_linux(package_name, args, bucket, package_s3_key):
     if args.upload:
-        print "Uploading again as kd-latest.linux.deb ..."
+        print "Uploading again as kite-latest.linux.deb ..."
         latest = Key(bucket)
-        latest.key = "kd-latest-linux.deb"
+        latest.key = "kite-latest-linux.deb"
         latest.set_contents_from_filename(package_name)
         latest.make_public()
         print "Uploaded:", latest.generate_url(expires_in=0, query_auth=False)
@@ -142,17 +133,21 @@ def postbuild_linux(package_name, args, bucket, package_s3_key):
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Compile kd tool and upload to S3.")
+        description="Compile kite tool and upload to S3.")
     parser.add_argument('--upload', action='store_true', help="upload to s3")
     parser.add_argument('--overwrite', action='store_true', help="overwrite existing package")
     args = parser.parse_args()
 
+    if args.upload:
+        aws_key = os.environ['AWS_KEY']
+        aws_secret = os.environ['AWS_SECRET']
+
     workdir = tempfile.mkdtemp()
     try:
-        tardir = os.path.join(workdir, "kd")  # dir to be tarred
+        tardir = os.path.join(workdir, "kite")  # dir to be tarred
         os.mkdir(tardir)
-        binpath = os.path.join(tardir, "kd")
-        cmd = "go build -o %s %s" % (binpath, "main/kd.go")
+        binpath = os.path.join(tardir, "kite")
+        cmd = "go build -o %s %s" % (binpath, "kite/main.go")
         env = os.environ.copy()
         env["GOARCH"] = "amd64"   # we only build for 64-bit
         env["CGO_ENABLED"] = "1"  # cgo must be enabled for some functions to run correctly
@@ -168,12 +163,12 @@ def main():
             print "%s platform is not supported" % sys.platform
             sys.exit(1)
 
-        # Compile kd tool source code
+        # Compile kite tool source code
         print "Building for platform: %s" % platform
         try:
             subprocess.check_call(cmd.split(), env=env)
         except subprocess.CalledProcessError:
-            print "Cannot compile kd tool. Try manually."
+            print "Cannot compile kite tool. Try manually."
             sys.exit(1)
 
         # Get the version number from compiled binary
@@ -193,8 +188,8 @@ def main():
         bucket = package_key = None
         if args.upload:
             print "Uploading to Amazon S3..."
-            s3_connection = boto.connect_s3(AWS_KEY, AWS_SECRET)
-            bucket = s3_connection.get_bucket('kd-tool')
+            s3_connection = boto.connect_s3(aws_key, aws_secret)
+            bucket = s3_connection.get_bucket('kite-cli')
 
             package_key = Key(bucket)
             package_key.key = package
