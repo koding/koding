@@ -19,14 +19,10 @@ class EnvironmentMachineItem extends EnvironmentItem
     colorSelection = new ColorSelection selectedColor : @getOption 'colorTag'
     colorSelection.on "ColorChanged", @bound 'setColorTag'
 
-    vmName = @getData().vm.hostnameAlias
-    # vmStateSwitch    = new NVMToggleButtonView        null, {vmName}
+    vmName = @getData().hostnameAlias
     vmAlwaysOnSwitch = new VMAlwaysOnToggleButtonView null, {vmName}
-    # vmMountSwitch = new NMountToggleButtonView {}, {vmName}
     items =
-      # customView1        : vmStateSwitch
       customView4        : vmAlwaysOnSwitch
-      # customView2        : vmMountSwitch
       'Re-initialize VM' :
         disabled         : KD.isGuest()
         callback         : ->
@@ -49,7 +45,7 @@ class EnvironmentMachineItem extends EnvironmentItem
     return items
 
   openTerminal:->
-    vmName = @getData().vm.hostnameAlias
+    vmName = @getData().hostnameAlias
     KD.getSingleton("router").handleRoute "/Terminal", replaceState: yes
     KD.getSingleton("appManager").open "Terminal", params: {vmName}, forceNew: yes
 
@@ -67,8 +63,9 @@ class EnvironmentMachineItem extends EnvironmentItem
 
 
   pistachio:->
-    {vm: { hostnameAlias: title }} = @getData()
-    vm = (title.split '.').first
+    title = @getData().hostnameAlias
+    [vm]  = title.split "."
+
     """
       <div class='details'>
         <span class='toggle'></span>

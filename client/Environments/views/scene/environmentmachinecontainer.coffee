@@ -65,13 +65,15 @@ class EnvironmentMachineContainer extends EnvironmentContainer
           return resolve()
 
         vms.forEach (vm, index)=>
-
-          @addItem
-            title     : vm.hostnameAlias
-            vm        : vm
+          {hostnameAlias} = vm
+          @addItem {
+            title     : hostnameAlias
             cpuUsage  : KD.utils.getRandomNumber 100
             memUsage  : KD.utils.getRandomNumber 100
             activated : yes
+            hostnameAlias
+            vm
+          }
 
           if index is vms.length - 1 then resolve()
 
