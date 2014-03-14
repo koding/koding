@@ -152,7 +152,7 @@ func webtermConnectNew(r *kitelib.Request, vos *virt.VOS) (interface{}, error) {
 		}
 	}()
 
-	r.RemoteKite.OnDisconnect(func() { server.close() })
+	r.Client.OnDisconnect(func() { server.close() })
 
 	return server, nil
 }
