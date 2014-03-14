@@ -34,9 +34,6 @@ KD.extend
         username  : 'erdinc'
         title     : 'Software Engineer'
       ,
-        username  : 'ybrs'
-        title     : 'Software Engineer'
-      ,
         username  : 'szkl'
         title     : 'Software Engineer'
       ,
@@ -45,9 +42,6 @@ KD.extend
       ,
         username  : 'burakcan'
         title     : 'CSS Wizard'
-      ,
-        username  : 'samet'
-        title     : 'Software Engineer'
       ,
         username  : 'cenk6'
         title     : 'Software Engineer'
@@ -78,9 +72,6 @@ KD.extend
       ,
         username  : 'juliap'
         title     : 'Recruiting & HR'
-      ,
-        username  : 'psanchezdl'
-        title     : 'Growth Engineer'
       ,
         username  : 'selin'
         title     : 'Data Scientist'
@@ -129,4 +120,13 @@ KD.extend
       # ,
       #   username  : 'bacon'
       #   title     : 'XEO &amp; Office Manager'
+      # ,
+      #   username  : 'ybrs'
+      #   title     : 'Software Engineer'
+      # ,
+      #   username  : 'samet'
+      #   title     : 'Software Engineer'
+      # ,
+      #   username  : 'psanchezdl'
+      #   title     : 'Growth Engineer'
       # ]
