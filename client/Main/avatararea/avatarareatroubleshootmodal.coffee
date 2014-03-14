@@ -40,8 +40,16 @@ class TroubleshootModal extends KDModalViewWithForms
 
     KD.troubleshoot()
 
-    @init()
-class TroubleshootStatus extends KDCustomHTMLView
+  hideFeedback: ->
+    @modalTabs.forms.Troubleshoot.fields.feedback.hide()
+    @modalTabs.forms.Troubleshoot.buttons.sendFeedback.hide()
+
+  showFeedback: ->
+    @modalTabs.forms.Troubleshoot.fields.feedback.show()
+    @modalTabs.forms.Troubleshoot.buttons.sendFeedback.show()
+
+
+class TroubleshootStatusView extends KDCustomHTMLView
 
   constructor: (options, data) ->
     data = KD.singleton("troubleshoot").getItems()
