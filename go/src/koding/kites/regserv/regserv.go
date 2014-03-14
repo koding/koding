@@ -7,6 +7,7 @@ import (
 	"log"
 
 	"github.com/koding/kite"
+	kiteconfig "github.com/koding/kite/config"
 	"github.com/koding/kite/regserv"
 )
 
@@ -14,7 +15,7 @@ var (
 	profile = flag.String("c", "", "Configuration profile")
 	region  = flag.String("region", "", "Region")
 	ip      = flag.String("ip", "0.0.0.0", "Listen IP")
-	port    = flag.String("port", "8080", "Port")
+	port    = flag.Int("port", 8080, "Port")
 
 	conf *config.Config
 )
@@ -40,16 +41,13 @@ func main() {
 		log.Fatalln(err.Error())
 	}
 
-	backend := &exampleBackend{
-		publicKey:  string(pubKey),
-		privateKey: string(privKey),
-	}
+	kiteConf := kiteconfig.MustGet()
+	kiteConf.Environment = conf.Environment
+	kiteConf.Region = *region
+	kiteConf.IP = *ip
+	kiteConf.Port = *port
 
-	server := regserv.New(backend)
-	server.Environment = conf.Environment
-	server.Region = *region
-	server.PublicIP = *ip
-	server.Port = *port
+	server := regserv.New(kiteConf, string(pubKey), string(privKey))
 
 	server.Run()
 }

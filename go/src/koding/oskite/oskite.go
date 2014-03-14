@@ -25,8 +25,6 @@ import (
 	"syscall"
 	"time"
 
-	kitelib "github.com/koding/kite"
-
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
 )
@@ -183,15 +181,9 @@ func (o *Oskite) Run() {
 
 func (o *Oskite) runNewKite() {
 	log.Info("Run newkite.")
-	k := kodingkite.New(
-		conf,
-		kitelib.Options{
-			Kitename: OSKITE_NAME,
-			Version:  OSKITE_VERSION,
-			Port:     "5000",
-			Region:   o.Region,
-		},
-	)
+	k := kodingkite.New(conf, OSKITE_NAME, OSKITE_VERSION)
+	k.Config.Port = 5000
+	k.Config.Region = o.Region
 
 	o.vosMethod(k, "vm.start", vmStartNew)
 	o.vosMethod(k, "vm.prepareAndStart", vmPrepareAndStartNew)
