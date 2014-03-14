@@ -1,19 +1,17 @@
 class EditorMacroView extends KDModalView
-
-  constructor: (options = {}, data) ->
-
-    keyBindings = """
+  # we copy paste that markdown from https://github.com/ajaxorg/ace/wiki/Default-Keyboard-Shortcuts
+  # if we want to update keybindings, just change the keyBindings markdown content.
+  keyBindings = """
     | PC (Windows/Linux)             | Mac                            | Action                         |
     |:-------------------------------|:-------------------------------|:-------------------------------|
-    | Ctrl-S | Command-Save | Save file |
-    | Ctrl-Shift-S | Command-Shift-S | Save As... |
-    | Ctrl-Alt-S | Command-Option-S | Save All |
-    | Ctrl-W | Ctrl-W, | Close file |
+    | Ctrl-S | Command-Save | save file |
+    | Ctrl-Shift-S | Command-Shift-S | save As... |
+    | Ctrl-Alt-S | Command-Option-S | save All |
+    | Ctrl-W | Ctrl-W, | close file |
     | Ctrl-Alt-Up | Ctrl-Option-Up | add multi-cursor above |
     | Ctrl-Alt-Down | Ctrl-Option-Down | add multi-cursor below |
     | Ctrl-Alt-Right | Ctrl-Option-Right | add next occurrence to multi-selection |
     | Ctrl-Alt-Left | Ctrl-Option-Left | add previous occurrence to multi-selection |
-    |  | Ctrl-L | center selection |
     | Ctrl-Shift-U | Ctrl-Shift-U | change to lower case |
     | Ctrl-U | Ctrl-U | change to upper case |
     | Alt-Shift-Down | Command-Option-Down | copy lines down |
@@ -60,8 +58,6 @@ class EditorMacroView extends KDModalView
     | Ctrl-Shift-R | Command-Shift-Option-F | replace all |
     | Ctrl-Down | Command-Down | scroll line down |
     | Ctrl-Up |  | scroll line up |
-    |  | Option-PageDown | scroll page down |
-    |  | Option-PageUp | scroll page up |
     | Ctrl-A | Command-A | select all |
     | Ctrl-Shift-L | Ctrl-Shift-L | select all from multi-selection |
     | Shift-Down | Shift-Down | select down |
@@ -79,7 +75,6 @@ class EditorMacroView extends KDModalView
     | Shift-Up | Shift-Up | select up |
     | Ctrl-Shift-Left | Option-Shift-Left | select word left |
     | Ctrl-Shift-Right | Option-Shift-Right | select word right |
-    |  | Ctrl-O | split line |
     | Ctrl-/ | Command-/ | toggle comment |
     | Ctrl-T | Ctrl-T | transpose letters |
     | Ctrl-Z | Command-Z | undo |
@@ -87,14 +82,36 @@ class EditorMacroView extends KDModalView
     | Alt-Shift-0 | Command-Option-Shift-0 | unfold all |
     | Ctrl-Enter | Command-Enter | enter full screen |
     """
+
+  constructor: (options = {}, data) ->
+    keyBindings      = @getKeyboardBindings()
     options.title    = "Editor Key Bindings"
     options.width    = 760
     options.content  = KD.utils.applyMarkdown keyBindings
     options.cssClass = "key-bindings"
-
     super options, data
 
+  getKeyboardBindings: ->
+    rowArray    = keyBindings.split "\n"
+    keyBinding  = []
+    keyIndex    = @getUserPlatformId()
 
+    for row in rowArray
+      splitBinding = row.split "|"
+      key          = splitBinding[keyIndex]
+      property     =  splitBinding[3]
+      unless key.trim() is ""
+        binding  = {key, property}
+        keyBinding.push binding
+
+    markdown = ""
+    keyBinding.map (row)-> markdown += "|#{row.key}|#{row.property}|\n"
+    return  markdown
+
+  getUserPlatformId:->
+    if navigator.platform in ["MacIntel", "MacPPC", "Mac68K", "Macintosh", "iPad"]
+      return  2
+    return 1
 
 
 
