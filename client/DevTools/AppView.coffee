@@ -32,10 +32,8 @@ class DevToolsMainView extends KDView
       partial : "<span>#{labels[Number state]}</span>"
       click   : =>
         mainView.toggleFullscreen()
-        # @getActiveAceView().toggleFullscreen()
         menu.contextMenu.destroy()
-        # menu.click()
-    # behave like a menu item
+
     toggleFullscreen.on "viewAppended", ->
       toggleFullscreen.parent.setClass "default"
 
@@ -119,7 +117,6 @@ class DevToolsMainView extends KDView
                   else editor = JSEditor
 
                 editor.openFile file, content
-
             }
             {
               type              : "split"
