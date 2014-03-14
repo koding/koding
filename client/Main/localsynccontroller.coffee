@@ -33,7 +33,12 @@ class LocalSyncController extends KDController
     index    = @filesToSave.indexOf fileName
     @filesToSave.push fileName if index is -1
     @storage.setValue "saveRequestedFiles", @filesToSave
+    @addSaveRequestTime file
     @initializeListeners()
+
+  addSaveRequestTime: (file)->
+    path = FSHelper.getFullPath file
+    @storage.setValue "#{path}-savetime", Date.now()
 
   removeFromSaveArray: (file) ->
     fileName = FSHelper.getFullPath file
