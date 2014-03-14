@@ -32,6 +32,19 @@ func (m Model) Fetch(i Modellable) error {
 	return nil
 }
 
+func (m Model) FetchByIds(i Modellable, data interface{}, ids []int64) error {
+	if len(ids) == 0 {
+		return nil
+	}
+
+	return db.DB.
+		Table(i.TableName()).
+		Where(ids).
+		Find(data).
+		Error
+
+}
+
 func (m Model) Create(i Modellable) error {
 	if err := db.DB.Save(i).Error; err != nil {
 		return err
