@@ -16,7 +16,7 @@ class HealthChecker extends KDObject
     @pingTimeout = setTimeout =>
       @status = "down"
       @emit "healthCheckCompleted"
-    , 5000
+    , 10000
 
   finish: (data)->
     @status = "success"
@@ -24,6 +24,11 @@ class HealthChecker extends KDObject
     clearTimeout @pingTimeout
     @pingTimeout = null
     @emit "healthCheckCompleted"
+
+  reset: ->
+    @status = "waiting"
+    @finishTime = null
+    @startTime = null
 
   getResponseTime: ->
     if @status is "success" then @finishTime - @startTime else ""
