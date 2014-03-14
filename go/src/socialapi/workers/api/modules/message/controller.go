@@ -18,7 +18,7 @@ func Create(u *url.URL, h http.Header, req *models.ChannelMessage) (int, http.He
 	// override message type
 	// all of the messages coming from client-side
 	// should be marked as POST
-	req.Type = models.POST
+	req.Type = models.ChannelMessage_TYPE_POST
 
 	if err := req.Create(); err != nil {
 		// todo this should be internal server error

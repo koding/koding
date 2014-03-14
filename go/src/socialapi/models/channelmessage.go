@@ -10,7 +10,7 @@ type ChannelMessage struct {
 	Body string
 
 	// type of the message
-	Type int
+	Type string
 
 	// Creator of the channel message
 	AccountId int64
@@ -36,10 +36,10 @@ func (c *ChannelMessage) Self() Modellable {
 }
 
 const (
-	POST int = iota
-	JOIN
-	LEAVE
-	CHAT
+	ChannelMessage_TYPE_POST  = "post"
+	ChannelMessage_TYPE_JOIN  = "join"
+	ChannelMessage_TYPE_LEAVE = "leave"
+	ChannelMessage_TYPE_CHAT  = "chat"
 )
 
 func NewChannelMessage() *ChannelMessage {
