@@ -48,15 +48,6 @@ class DevToolsMainView extends KDView
         title                   : "Koding DevTools"
         buttons                 : [
           {
-            title               : "Publish"
-            cssClass            : "solid green"
-            callback            : =>
-              {JSEditor} = @workspace.activePanel.panesByName
-              KodingAppsController.createJApp JSEditor.getData()?.path, ->
-                new KDNotificationView
-                  title: "Published successfully!"
-          }
-          {
             title               : "Compile"
             cssClass            : "solid green"
             disabled            : yes
@@ -177,6 +168,8 @@ class DevToolsMainView extends KDView
           CSSEditor.on "RunRequested", @lazyBound 'previewCss', yes
           CSSEditor.on "AutoRunRequested", @bound 'toggleLiveReload'
 
+        @on 'createMenuItemClicked',  @bound 'createNewApp'
+        @on 'publishMenuItemClicked', @bound 'publishCurrentApp'
 
   previewApp:(force = no)->
 
@@ -266,6 +259,13 @@ class DevToolsMainView extends KDView
 
       JSEditor.loadFile  "[#{vmName}]#{appPath}/index.coffee"
       CSSEditor.loadFile "[#{vmName}]#{appPath}/resources/style.css"
+
+  publishCurrentApp:->
+
+    {JSEditor} = @workspace.activePanel.panesByName
+    KodingAppsController.createJApp JSEditor.getData()?.path, ->
+      new KDNotificationView
+        title: "Published successfully!"
 
   toggleLiveReload:(state)->
 
