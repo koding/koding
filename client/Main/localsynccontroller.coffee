@@ -43,14 +43,16 @@ class LocalSyncController extends KDController
   isFileVersionOk: (file, lastUpdate)->
     path      = FSHelper.getFullPath file
     localTime = @storage.getValue "#{path}-savetime"
-    @storage.unsetKey "#{path}-savetime"
 
-    if localTime? > lastUpdate
+    dt = new Date lastUpdate
+
+    if localTime > dt.getTime()
       return  yes
     else
       @removeFileContentFromLocalStorage file
       @removeFromSaveArray file
 
+    @storage.unsetKey "#{path}-savetime"
     return  no
 
 
