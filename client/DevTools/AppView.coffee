@@ -48,26 +48,6 @@ class DevToolsMainView extends KDView
         title                   : "Koding DevTools"
         buttons                 : [
           {
-            title               : "Create"
-            cssClass            : "solid"
-            callback            : =>
-
-              KD.singletons.kodingAppsController.makeNewApp (err, data)=>
-
-                return warn err  if err
-
-                {appPath} = data
-                {CSSEditor, JSEditor, finder} = @workspace.activePanel.panesByName
-
-                vmName = KD.singletons.vmController.defaultVmName
-                finder.finderController.expandFolders \
-                  FSHelper.getPathHierarchy "[#{vmName}]#{appPath}/resources"
-
-                JSEditor.loadFile  "[#{vmName}]#{appPath}/index.coffee"
-                CSSEditor.loadFile "[#{vmName}]#{appPath}/resources/style.css"
-
-          }
-          {
             title               : "Publish"
             cssClass            : "solid green"
             callback            : =>
@@ -270,6 +250,22 @@ class DevToolsMainView extends KDView
 
     KodingAppsController.compileAppOnServer JSEditor.getData()?.path, ->
       log "COMPILE", arguments
+
+  createNewApp:->
+
+    KD.singletons.kodingAppsController.makeNewApp (err, data)=>
+
+      return warn err  if err
+
+      {appPath} = data
+      {CSSEditor, JSEditor, finder} = @workspace.activePanel.panesByName
+
+      vmName = KD.singletons.vmController.defaultVmName
+      finder.finderController.expandFolders \
+        FSHelper.getPathHierarchy "[#{vmName}]#{appPath}/resources"
+
+      JSEditor.loadFile  "[#{vmName}]#{appPath}/index.coffee"
+      CSSEditor.loadFile "[#{vmName}]#{appPath}/resources/style.css"
 
   toggleLiveReload:(state)->
 
