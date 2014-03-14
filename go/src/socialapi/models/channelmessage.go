@@ -66,3 +66,16 @@ func (c *ChannelMessage) Create() error {
 func (c *ChannelMessage) Delete() error {
 	return c.m.Delete(c)
 }
+
+func (c *ChannelMessage) FetchByIds(ids []int64) ([]ChannelMessage, error) {
+	var messages []ChannelMessage
+
+	if len(ids) == 0 {
+		return messages, nil
+	}
+
+	if err := c.m.FetchByIds(c, &messages, ids); err != nil {
+		return nil, err
+	}
+	return messages, nil
+}
