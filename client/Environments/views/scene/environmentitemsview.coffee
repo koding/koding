@@ -11,6 +11,11 @@ class EnvironmentItem extends KDDiaObject
 
     super options, data
 
+    @chevron   = new KDCustomHTMLView
+      tagName  : "span"
+      cssClass : "chevron ali"
+      click    : @bound "contextMenu"
+
   contextMenuItems:->
 
     colorSelection = new ColorSelection
@@ -81,14 +86,6 @@ class EnvironmentItem extends KDDiaObject
 
   pipedVmName = (vmName)-> vmName.replace /\./g, '|'
 
-  click:(event)->
-
-    if $(event.target).is ".chevron"
-      @contextMenu event
-      return no
-
-    super
-
   viewAppended:->
     super
 
@@ -100,6 +97,6 @@ class EnvironmentItem extends KDDiaObject
       <div class='details'>
         <span class='toggle'></span>
         {h3{#(title)}}
-        <span class='chevron'></span>
+        {{> @chevron}}
       </div>
     """

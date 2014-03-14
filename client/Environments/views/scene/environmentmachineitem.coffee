@@ -12,8 +12,10 @@ class EnvironmentMachineItem extends EnvironmentItem
 
     super options, data
 
-    # @ramUsage  = new VMRamUsageBar  null, data.title
-    # @diskUsage = new VMDiskUsageBar null, data.title
+    @terminalIcon = new KDCustomHTMLView
+      tagName     : "span"
+      cssClass    : "terminal"
+      click       : @bound "openTerminal"
 
   contextMenuItems : ->
     colorSelection = new ColorSelection selectedColor : @getOption 'colorTag'
@@ -50,17 +52,7 @@ class EnvironmentMachineItem extends EnvironmentItem
     KD.getSingleton("appManager").open "Terminal", params: {vmName}, forceNew: yes
 
   confirmDestroy:->
-    (KD.getSingleton 'vmController').remove @getData().vm.hostnameAlias, @bound "destroy"
-
-  click:(event)->
-
-    target = $(event.target)
-    if target.is ".terminal"
-      @openTerminal()
-      return no
-
-    super
-
+    KD.getSingleton('vmController').remove @getData().hostnameAlias, @bound "destroy"
 
   pistachio:->
     title = @getData().hostnameAlias
@@ -73,7 +65,7 @@ class EnvironmentMachineItem extends EnvironmentItem
         <a href="http://#{title}" target="_blank" title="#{title}">
           <span class='url'></span>
         </a>
-        <span class='terminal'></span>
-        <span class='chevron'></span>
+        {{> @terminalIcon}}
+        {{> @chevron}}
       </div>
     """
