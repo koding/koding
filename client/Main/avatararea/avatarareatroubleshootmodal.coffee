@@ -111,6 +111,9 @@ class TroubleshootItemView extends KDCustomHTMLView
       @loader.hide()
       @render()
 
+    KD.singleton("troubleshoot").on "healthCheckStarted", =>
+      @render()
+
 
   viewAppended: ->
     JView::viewAppended.call this
