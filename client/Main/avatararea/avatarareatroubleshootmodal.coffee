@@ -37,6 +37,12 @@ class TroubleshootModal extends KDModalViewWithForms
                   placeholder : "Define the situation"
 
     super options, data
+    @hideFeedback()
+
+    troubleshoot.on "troubleshootCompleted", =>
+      # show feedback form if there are any errors apart from connection down
+      @showFeedback()  if not troubleshoot.isSystemOK() and not troubleshoot.isConnectionDown()
+
 
     KD.troubleshoot()
 
