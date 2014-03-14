@@ -179,12 +179,12 @@ class KodingAppsController extends KDController
       version       : "0.1"
       title         : "#{name or type.capitalize()}"
       name          : "#{name or type.capitalize()}"
-      identifier    : "com.koding.apps.#{__utils.slugify name or type}"
+      identifier    : "com.koding.apps.#{utils.slugify name or type}"
       path          : "~/Applications/#{name or type.capitalize()}.kdapp"
-      homepage      : "#{profile.nickname}.#{KD.config.userSitesDomain}/#{__utils.slugify name or type}"
+      homepage      : "#{profile.nickname}.#{KD.config.userSitesDomain}/#{utils.slugify name or type}"
       author        : "#{fullName}"
       authorNick    : "#{profile.nickname}"
-      repository    : "git://github.com/#{profile.nickname}/#{__utils.slugify name or type}.kdapp.git"
+      repository    : "git://github.com/#{profile.nickname}/#{utils.slugify name or type}.kdapp.git"
       description   : "#{name or type} : a Koding application created with the #{type} template."
       category      : "web-app" # can be web-app, add-on, server-stack, framework, misc
       source        :
