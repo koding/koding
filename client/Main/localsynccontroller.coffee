@@ -64,19 +64,22 @@ class LocalSyncController extends KDController
   patchFileIfDiffExist: (file, localContent, cb, callCounter = 0)->
     KD.singletons.vmController.info file.vmName, @utils.getTimedOutCallback (err, vm, info)=>
       return cb err unless info.state is "RUNNING"
-      file.fetchContents (err, content)=>
-        if content and not err
-          unless content is localContent
-            file.save localContent, (err, res)=>
-              return cb err if err
+      FSHelper.getInfo file.path, file.vmName, (err, info)=>
+        return  KD.showError err if err
+        return unless @isFileVersionOk file, info.time
+        file.fetchContents (err, content)=>
+          if content and not err
+            unless content is localContent
+              file.save localContent, (err, res)=>
+                return cb err if err
+                @removeFromSaveArray file
+                @removeFileContentFromLocalStorage file
+                @updateEditorStatus file, localContent
+                @emit "LocalContentSynced", file
+                cb null, file
+            else
               @removeFromSaveArray file
-              @removeFileContentFromLocalStorage file
-              @updateEditorStatus file, localContent
-              @emit "LocalContentSynced", file
               cb null, file
-          else
-            @removeFromSaveArray file
-            cb null, file
     ,=>
       ++callCounter
       if callCounter > 5
