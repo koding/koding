@@ -240,7 +240,16 @@ func vmInfo(vos *virt.VOS) (interface{}, error) {
 }
 
 func vmDestroy(vos *virt.VOS) (interface{}, error) {
-	return "vm.destroy is called", nil
+	if !vos.Permissions.Sudo {
+		return nil, &kite.PermissionError{}
+	}
+
+	err := vos.VM.Destroy()
+	if err != nil {
+		return nil, err
+	}
+
+	return true, nil
 }
 
 func vmPrepare(vos *virt.VOS) (interface{}, error) {

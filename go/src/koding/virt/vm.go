@@ -171,8 +171,8 @@ func (v *VM) Prepare(reinitialize bool) <-chan *Step {
 
 	results := make(chan *Step, len(funcs))
 
-	// create the functions one by one and pass back the results via a
-	// channel. The channel will be closed if an error results.
+	// create the functions one by one and pass back the results via a channel.
+	// The channel will be closed if an error results of if it's finished.
 	go func() {
 		defer func() {
 			close(results)
@@ -683,6 +683,7 @@ func (vm *VM) DeleteSnapshot(snapshotName string) error {
 	if out, err := exec.Command("/usr/bin/rbd", "snap", "unprotect", "--pool", VMPool, "--image", vm.String(), "--snap", snapshotName).CombinedOutput(); err != nil {
 		return commandError("Unprotecting snapshot failed.", err, out)
 	}
+
 	if out, err := exec.Command("/usr/bin/rbd", "snap", "rm", "--pool", VMPool, "--image", vm.String(), "--snap", snapshotName).CombinedOutput(); err != nil {
 		return commandError("Removing snapshot failed.", err, out)
 	}
@@ -691,6 +692,14 @@ func (vm *VM) DeleteSnapshot(snapshotName string) error {
 
 func DestroyVM(id bson.ObjectId) error {
 	if out, err := exec.Command("/usr/bin/rbd", "rm", "--pool", VMPool, "--image", VMName(id)).CombinedOutput(); err != nil {
+		return commandError("Removing image failed.", err, out)
+	}
+	return nil
+}
+
+// Destroy deletes the VM's rbd image from the VMPool
+func (v *VM) Destroy() error {
+	if out, err := exec.Command("/usr/bin/rbd", "rm", "--pool", VMPool, "--image", v.String()).CombinedOutput(); err != nil {
 		return commandError("Removing image failed.", err, out)
 	}
 	return nil
