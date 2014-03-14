@@ -106,6 +106,7 @@ class DevToolsMainView extends KDView
                 {
                   type          : "custom"
                   name          : "PreviewPane"
+                  title         : "Preview"
                   paneClass     : CollaborativePane
                 }
               ]
@@ -262,10 +263,14 @@ class DevToolsEditorPane extends CollaborativeEditorPane
 
   constructor:(options = {}, data)->
 
-    options.cssClass = 'devtools-editor'
+    options.defaultTitle or= 'JavaScript'
+    options.editorMode   or= 'coffeescript'
+    options.cssClass       = 'devtools-editor'
     super options, data
 
-    @_mode or= "coffeescript"
+    @_mode = @getOption 'editorMode'
+    @_defaultTitle = @getOption 'defaultTitle'
+
     @_lastFileKey = "lastFileOn#{@_mode}"
     @storage = KD.singletons.localStorageController.storage "DevTools"
 
@@ -339,12 +344,20 @@ class DevToolsEditorPane extends CollaborativeEditorPane
     @header.title.updatePartial if not validPath then @_defaultTitle else path
 
 class DevToolsCssEditorPane extends DevToolsEditorPane
-  constructor:-> @_mode = 'css'; super
+
+  constructor: (options = {}, data)->
+
+    options.editorMode   = 'css'
+    options.defaultTitle = 'Style'
+
+    super options, data
 
 class ErrorPaneWidget extends JView
+
   constructor:(options = {}, data)->
+
     options.cssClass = KD.utils.curry 'error-pane', options.cssClass
-    super
+    super options, data
 
   pistachio:->
     {error} = @getData()
