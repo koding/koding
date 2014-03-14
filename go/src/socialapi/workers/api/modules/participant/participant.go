@@ -16,6 +16,7 @@ func List(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface
 		fmt.Println(err)
 		return helpers.NewBadRequestResponse()
 	}
+
 	req := models.NewChannelParticipant()
 	req.ChannelId = channelId
 	participants, err := req.List()

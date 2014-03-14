@@ -14,14 +14,11 @@ var (
 func main() {
 	testMessageOperations()
 	testChannelOperations()
+	testInteractionOperations()
 }
 func sendModel(reqType, url string, model interface{}) (interface{}, error) {
-	data, err := json.Marshal(model)
-	if err != nil {
-		return nil, err
-	}
 
-	res, err := sendRequest(reqType, url, data)
+	res, err := marshallAndSendRequest(reqType, url, model)
 	if err != nil {
 		return nil, err
 	}
@@ -32,6 +29,15 @@ func sendModel(reqType, url string, model interface{}) (interface{}, error) {
 	}
 
 	return model, nil
+}
+
+func marshallAndSendRequest(reqType, url string, model interface{}) ([]byte, error) {
+	data, err := json.Marshal(model)
+	if err != nil {
+		return nil, err
+	}
+
+	return sendRequest(reqType, url, data)
 }
 
 func sendRequest(reqType, url string, data []byte) ([]byte, error) {
