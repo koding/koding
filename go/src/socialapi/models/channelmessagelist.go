@@ -46,6 +46,37 @@ func (c *ChannelMessageList) Create() error {
 func (c *ChannelMessageList) Delete() error {
 	return c.m.Delete(c)
 }
+
+func (c *ChannelMessageList) List(q *Query) (*HistoryResponse, error) {
+	messageList, err := c.getMessages(q)
+	if err != nil {
+		return nil, err
+	}
+
+	hr := NewHistoryResponse()
+	hr.MessageList = messageList
+
+	cp := NewChannelParticipant()
+	cp.ChannelId = c.ChannelId
+	cp.AccountId = q.AccountId
+	err = cp.FetchParticipant()
+	if err != nil {
+		return nil, err
+	}
+
+	if cp.Id == 0 {
+		return nil, errors.New("Participant not found")
+	}
+
+	unreadCount, err := c.UnreadCount(cp)
+	if err != nil {
+		return nil, err
+	}
+
+	hr.UnreadCount = unreadCount
+	return hr, nil
+}
+
 func (c *ChannelMessageList) getMessages(q *Query) ([]ChannelMessage, error) {
 	var messages []int64
 
