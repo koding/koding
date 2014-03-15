@@ -46,3 +46,27 @@ func (c *ChannelMessageList) Create() error {
 func (c *ChannelMessageList) Delete() error {
 	return c.m.Delete(c)
 }
+func (c *ChannelMessageList) getMessages(q *Query) ([]ChannelMessage, error) {
+	var messages []int64
+
+	if c.ChannelId == 0 {
+		return nil, errors.New("ChannelId is not set")
+	}
+
+	if err := db.DB.Table(c.TableName()).
+		Order("added_at desc").
+		Where("channel_id = ?", c.ChannelId).
+		Offset(q.Skip).
+		Limit(q.Limit).
+		Pluck("message_id", &messages).
+		Error; err != nil {
+		return nil, err
+	}
+
+	parent := NewChannelMessage()
+	channelMessageReplies, err := parent.FetchByIds(messages)
+	if err != nil {
+		return nil, err
+	}
+	return channelMessageReplies, nil
+}
