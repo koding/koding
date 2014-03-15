@@ -1,6 +1,10 @@
 package models
 
-import "time"
+import (
+	"errors"
+	"socialapi/db"
+	"time"
+)
 
 type ChannelMessageList struct {
 	// unique identifier of the channel message list
@@ -37,6 +41,27 @@ func NewChannelMessageList() *ChannelMessageList {
 
 func (c *ChannelMessageList) Fetch() error {
 	return c.m.Fetch(c)
+}
+
+func (c *ChannelMessageList) UnreadCount(cp *ChannelParticipant) (int, error) {
+	if cp.ChannelId == 0 {
+		return 0, errors.New("ChannelId is not set")
+	}
+
+	if cp.AccountId == 0 {
+		return 0, errors.New("AccountId is not set")
+	}
+
+	if cp.LastSeenAt.IsZero() {
+		return 0, errors.New("Last seen at date is not valid - it is zero")
+	}
+
+	return c.m.Count(c,
+		"channel_id = ? and added_at > ?",
+		cp.ChannelId,
+		// todo change this format to get from a specific place
+		cp.LastSeenAt.UTC().Format(time.RFC822Z),
+	)
 }
 
 func (c *ChannelMessageList) Create() error {
