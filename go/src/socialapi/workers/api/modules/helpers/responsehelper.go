@@ -4,6 +4,7 @@ import (
 	"errors"
 	"net/http"
 	"net/url"
+	"socialapi/models"
 	"strconv"
 )
 
@@ -51,4 +52,8 @@ func GetId(u *url.URL) (int64, error) {
 
 func GetURIInt64(u *url.URL, queryParam string) (int64, error) {
 	return strconv.ParseInt(u.Query().Get(queryParam), 10, 64)
+}
+
+func GetQuery(u *url.URL) *models.Query {
+	return models.NewQuery().MapURL(u).SetDefaults()
 }
