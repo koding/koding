@@ -5,6 +5,8 @@ import (
 	"time"
 )
 
+// todo Scope function for this struct
+// in order not to fetch passive accounts
 type ChannelParticipant struct {
 	// unique identifier of the channel
 	Id int64
@@ -93,6 +95,11 @@ func (c *ChannelParticipant) FetchParticipant() error {
 	}
 
 	return nil
+}
+
+func (c *ChannelParticipant) FetchUnreadCount() (int, error) {
+	cml := NewChannelMessageList()
+	return cml.UnreadCount(c)
 }
 
 func (c *ChannelParticipant) Delete() error {
