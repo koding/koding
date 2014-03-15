@@ -366,8 +366,8 @@ class ActivityAppController extends AppController
       callback null, cache
 
   createContentDisplay:(activity, callback=->)->
-    controller = @createStatusUpdateContentDisplay activity
-    @utils.defer -> callback controller
+    contentDisplay = @createStatusUpdateContentDisplay activity
+    @utils.defer -> callback contentDisplay
 
   showContentDisplay:(contentDisplay)->
 
@@ -375,13 +375,10 @@ class ActivityAppController extends AppController
     return contentDisplay
 
   createStatusUpdateContentDisplay:(activity)->
-    activity.fetchTags (err, tags) =>
-      unless err
-        activity.tags = tags
-        @showContentDisplay new ContentDisplayStatusUpdate
-          title : "Status Update"
-          type  : "status"
-        ,activity
+    @showContentDisplay new ContentDisplayStatusUpdate
+      title : "Status Update"
+      type  : "status"
+    ,activity
 
   streamByIds:(ids, callback)->
 
