@@ -43,20 +43,26 @@ func Inject(mux *tigertonic.TrieServeMux) *tigertonic.TrieServeMux {
 	////////////////////////////////////////////////////////////////////////////////////
 	///////////////////////////// Message Reply Operations /////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////
+	// tested
 	mux.Handle("POST", "/message/{id}/reply", handlerWrapper(reply.Create, "reply-create"))
+	// tested
 	mux.Handle("DELETE", "/message/{id}/reply/{replyId}", handlerWrapper(reply.Delete, "reply-delete"))
+	// tested
 	mux.Handle("GET", "/message/{id}/reply", handlerWrapper(reply.List, "reply-list"))
 
 	////////////////////////////////////////////////////////////////////////////////////
 	/////////////////////// Message Interaction Operations /////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////
 	// add new like
+	// tested
 	mux.Handle("POST", "/message/{id}/interaction/{type}/add", handlerWrapper(interaction.Add, "interactions-add"))
 	// delete like - unlike
+	// tested
 	mux.Handle("POST", "/message/{id}/interaction/{type}/delete", handlerWrapper(interaction.Delete, "interactions-delete"))
 	// get all the interactions for message
 	// mux.Handle("GET", "/message/{id}/interaction", handlerWrapper(interaction.List, "interactions-list"))
 	// get typed interactions
+	// tested
 	mux.Handle("GET", "/message/{id}/interaction/{type}", handlerWrapper(interaction.List, "interactions-list-typed"))
 
 	////////////////////////////////////////////////////////////////////////////////////
@@ -89,25 +95,6 @@ func Inject(mux *tigertonic.TrieServeMux) *tigertonic.TrieServeMux {
 
 	// list messages of the channel
 	mux.Handle("GET", "/channel/{id}/history", handlerWrapper(messagelist.List, "channel-history-list"))
-
-	// mux.Handle("POST", "/participant", handlerWrapper(participant.Create, "channel-create"))
-	// mux.Handle("POST", "/participant/{id}", handlerWrapper(participant.Update, "channel-update"))
-	// mux.Handle("DELETE", "/participant/{id}", handlerWrapper(participant.Delete, "channel-delete"))
-	// mux.Handle("GET", "/participant/{id}", handlerWrapper(participant.Get, "channel-get"))
-
-	// mux.Handle("POST", "/post/{postId}/like", handlerWrapper(post, "update-post"))
-	// mux.Handle("DELETE", "/post/{postId}/like/{likeId}", handlerWrapper(post, "update-post"))
-
-	// mux.Handle("POST", "/post/{postId}/comment", handlerWrapper(post, "add-comment"))
-	// mux.Handle("POST", "/post/{postId}/comment/{commentId}", handlerWrapper(post, "update-post-comment"))
-	// mux.Handle("DELETE", "/post/{postId}/comment/{commentId}", handlerWrapper(post, "delete-post-comment"))
-
-	// mux.Handle("GET", "/post/{id}/comments", handlerWrapper(get, "get-post-comments"))
-	// mux.Handle("GET", "/post/{id}/likes", handlerWrapper(get, "get-post-likes"))
-
-	// mux.Handle("POST", "/comment", handlerWrapper(post, "create-comment"))
-	// mux.Handle("POST", "/comment/{id}", handlerWrapper(post, "update-comment"))
-	// mux.Handle("GET", "/comment/{id}", handlerWrapper(get, "get-comment"))
 
 	// mux.Handle("POST", "/follow/{id}", handlerWrapper(post, "follow-id"))
 	// mux.Handle("POST", "/unfollow/{id}", handlerWrapper(post, "follow-id"))
