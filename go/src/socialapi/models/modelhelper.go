@@ -104,6 +104,21 @@ func (m Model) Delete(i Modellable) error {
 	return nil
 }
 
+func (m Model) Count(i Modellable, where ...interface{}) (int, error) {
+	var count int
+
+	// init query
+	query := db.DB
+
+	// add table name
+	query = query.Table(i.TableName())
+
+	// add query
+	query = query.Where(where[0], where[1:len(where)]...)
+
+	return count, query.Count(&count).Error
+}
+
 func (m Model) Some(i Modellable, data interface{}, rest ...map[string]interface{}) error {
 
 	var selector, options, plucked map[string]interface{}
