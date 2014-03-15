@@ -1,27 +1,27 @@
 package messagelist
 
 import (
-	"fmt"
 	"net/http"
 	"net/url"
 	"socialapi/models"
 	"socialapi/workers/api/modules/helpers"
 )
 
-func List(u *url.URL, h http.Header, req *models.ChannelMessageList) (int, http.Header, interface{}, error) {
+func List(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
+	query := helpers.GetQuery(u)
+
 	channelId, err := helpers.GetURIInt64(u, "id")
 	if err != nil {
 		return helpers.NewBadRequestResponse()
 	}
 
-	fmt.Println(channelId)
-	// req.Id = id
-	// if err := req.Fetch(); err != nil {
-	// 	if err == gorm.RecordNotFound {
-	// 		return helpers.NewNotFoundResponse()
-	// 	}
-	// 	return helpers.NewBadRequestResponse()
-	// }
+	cml := models.NewChannelMessageList()
+	cml.ChannelId = channelId
 
-	return helpers.NewOKResponse(req)
+	list, err := cml.List(query)
+	if err != nil {
+		return helpers.NewBadRequestResponse()
+	}
+
+	return helpers.NewOKResponse(list)
 }

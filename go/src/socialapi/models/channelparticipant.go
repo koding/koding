@@ -74,7 +74,6 @@ func (c *ChannelParticipant) Update() error {
 }
 
 func (c *ChannelParticipant) FetchParticipant() error {
-
 	if c.ChannelId == 0 {
 		return errors.New("ChannelId is not set")
 	}
