@@ -71,6 +71,30 @@ func (c *ChannelParticipant) Update() error {
 	return c.m.Update(c)
 }
 
+func (c *ChannelParticipant) FetchParticipant() error {
+
+	if c.ChannelId == 0 {
+		return errors.New("ChannelId is not set")
+	}
+
+	if c.AccountId == 0 {
+		return errors.New("AccountId is not set")
+	}
+
+	selector := map[string]interface{}{
+		"channel_id": c.ChannelId,
+		"account_id": c.AccountId,
+		"status":     ChannelParticipant_STATUS_ACTIVE,
+	}
+
+	err := c.m.Some(c, c, selector)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (c *ChannelParticipant) Delete() error {
 	return c.m.UpdatePartial(c,
 		Partial{
