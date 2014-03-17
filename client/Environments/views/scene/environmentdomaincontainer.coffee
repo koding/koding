@@ -25,7 +25,6 @@ class EnvironmentDomainContainer extends EnvironmentContainer
             type       : "button"
             loader     :
               color    : "#1aaf5d"
-              diameter : 25
             callback   : =>
               paneType = domainCreateForm.tabView.getActivePane().getOption 'type'
 
