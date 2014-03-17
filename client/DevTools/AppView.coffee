@@ -57,6 +57,8 @@ class DevToolsMainView extends KDView
               editor            : "JSEditor"
               handleFileOpen    : (file, content) =>
 
+                @switchMode 'develop'
+
                 {CSSEditor, JSEditor} = @workspace.activePanel.panesByName
 
                 switch FSItem.getFileExtension file.path
@@ -65,6 +67,7 @@ class DevToolsMainView extends KDView
                   else editor = JSEditor
 
                 editor.openFile file, content
+
             }
             {
               type              : "split"
@@ -243,6 +246,8 @@ class DevToolsMainView extends KDView
       JSEditor.loadFile  "[#{vmName}]#{appPath}/index.coffee"
       CSSEditor.loadFile "[#{vmName}]#{appPath}/resources/style.css"
 
+      @switchMode 'develop'
+
   publishCurrentApp:->
 
     {JSEditor} = @workspace.activePanel.panesByName
@@ -265,6 +270,19 @@ class DevToolsMainView extends KDView
 
     KD.utils.defer =>
       @previewApp yes; @previewCss yes
+
+  switchMode: (mode = 'develop')->
+
+    @_currentMode = mode
+
+    # FIXME welcomePage show/hide logic ~ GG
+    switch mode
+      when 'home'
+        @welcomePage.show()
+        KD.utils.defer @welcomePage.lazyBound 'unsetClass', 'out'
+      else
+        @welcomePage.setClass 'out'
+        KD.utils.wait 500, @welcomePage.bound 'hide'
 
 class DevToolsEditorPane extends CollaborativeEditorPane
 
