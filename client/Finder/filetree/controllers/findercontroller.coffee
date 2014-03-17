@@ -90,7 +90,7 @@ class NFinderController extends KDViewController
 
   fetchSavedVms: (savedVms, callback) ->
     [vmNames, paths] = parseSavedVms savedVms
-    
+
     KD.getSingleton('vmController').fetchVmsByName vmNames, (err, vms) =>
       return callback? err  if err
 
@@ -285,20 +285,15 @@ class NFinderController extends KDViewController
       return @treeController.expandFolder node, callback  if path is folderPath
     callback {message:"Folder not exists: #{folderPath}"}
 
-  expandFolders: do ->
-    expandedFolderIndex = 0
-    (paths, callback=noop)->
-      @expandFolder paths[expandedFolderIndex], (err)=>
-        if err
-          callback? err
-          @unsetRecentFolder paths[expandedFolderIndex]
-        expandedFolderIndex++
-        if expandedFolderIndex <= paths.length
-          @expandFolders paths, callback, expandedFolderIndex
-
-        if expandedFolderIndex is paths.length
-          callback? null, @treeController.nodes[paths.last]
-          expandedFolderIndex = 0
+  expandFolders: (paths, callback=noop)->
+    if typeof paths is 'string'
+      paths = FSHelper.getPathHierarchy paths
+    path = paths.pop()
+    @expandFolder path, (err)=>
+      @unsetRecentFolder path  if err
+      if paths.length is 0
+      then callback null, @treeController.nodes[path]
+      else @expandFolders paths, callback
 
   reloadPreviousState:(vmName)->
     recentFolders = @getRecentFolders()

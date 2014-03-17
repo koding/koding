@@ -221,7 +221,8 @@ class FSHelper
       subPath = nodes.join "/"
       nodes.pop()
       "[#{vmName}]/#{subPath}"
-    queue.reverse() # reverse the queue to open files to back
+    queue.push "[#{vmName}]/"
+    return queue
 
   @chunkify = (data, chunkSize)->
     chunks = []
