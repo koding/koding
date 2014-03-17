@@ -282,6 +282,7 @@ module.exports = [
   # "styl/resurrection.activity.styl",
   # "styl/resurrection.apps.styl",
   "styl/resurrection.commons.styl",
+  "styl/troubleshoot.styl",
   # "styl/formworkflow.styl"
   # "styl/resurrection.feeder.styl",
 
