@@ -6,11 +6,6 @@ class AvatarAreaIconMenu extends JView
 
     @setClass "account-menu"
 
-    @troubleshootIcon = new AvatarAreaIconLink
-      cssClass   : "help acc-dropdown-icon"
-      attributes :
-        title    : "Troubleshoot"
-
     @helpIcon    = new AvatarAreaIconLink
       cssClass   : "help acc-dropdown-icon"
       attributes :
@@ -20,10 +15,6 @@ class AvatarAreaIconMenu extends JView
       KD.singletons.helpController.showHelp this
       KD.utils.stopDOMEvent event
       @animation?.destroy()
-
-    @troubleshootIcon.click = (event) =>
-      @_modal?.destroy()
-      @_modal = new TroubleshootModal
 
     @notificationsPopup = new AvatarPopupNotifications
       cssClass : "notifications"
@@ -46,7 +37,6 @@ class AvatarAreaIconMenu extends JView
 
   pistachio:->
     """
-    {{> @troubleshootIcon}}
     {{> @helpIcon}}
     {{> @notificationsIcon}}
     """
