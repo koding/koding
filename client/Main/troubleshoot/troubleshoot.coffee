@@ -11,20 +11,34 @@ class Troubleshoot extends KDObject
     options.timeout ?= 10000
 
     super options
+
+    # this is a tree structured health check sequence.
+    # health check of leaves happens with its successor root
+    @checkSequence =
+      connection       :
+        webServer      : 0
+        brokerKite     :
+          osKite       :
+            vm         : 0
+        bongo          :
+          broker       :
+            liveUpdate : 0
+        version        : 0
+        lastSeen       : 0
+
     @registerItems()
-
-    @on "pingCompleted", =>
-      @status = PENDING
-      clearTimeout @timeout
-      @timeout = null
-      @emit "troubleshootCompleted"
-
 
   isSystemOK: ->
     for own name, item of @items
       return no  if item.status is "down"
 
     yes
+
+  reset: ->
+    @status = PENDING
+    clearTimeout @timeout
+    @timeout = null
+    @emit "troubleshootCompleted"
 
   isConnectionDown: ->
     @items["connection"].status is "down"
@@ -44,7 +58,7 @@ class Troubleshoot extends KDObject
     # register broker
     @registerItem "broker", KD.remote.mq.ping.bind KD.remote.mq
     # register kite
-    @registerItem "kiteBroker", KD.kite.mq.ping.bind KD.kite.mq
+    @registerItem "brokerKite", KD.kite.mq.ping.bind KD.kite.mq
     # register osKite
     @vc = KD.singleton "vmController"
     @registerItem "osKite", @vc.ping.bind @vc
@@ -65,26 +79,34 @@ class Troubleshoot extends KDObject
   getFailureFeedback: ->
     result = ""
     for own name, item of @items
-      result = "#{result} #{name}" if item.status is "down"
+      premium = if name in ["broker", "brokerKite"] and KD.config.usePremiumBroker then "premium" else ""
+      result = "#{result} #{premium}#{name}"  if item.status is "down"
     result
 
+
+  healthChecker: (root) ->
+    for own name, children of root
+      item = @items[name]
+      do (name, children, item) =>
+        return warn "#{name} is not registered for health checking"  unless item
+
+        item.once "healthCheckCompleted", =>
+          @waitingResponse -= 1
+          @healthChecker children  if children and item.status is "success"
+          @reset()  unless @waitingResponse
+
+        item.run()
 
   run: ->
     return  warn "there is an ongoing troubleshooting"  if @status is STARTED
     @timeout = setTimeout =>
       @status = PENDING
-      decorateResult.call this
     , @getOptions().timeout
 
     @resetAllItems()
-    @emit "healthCheckStarted"
 
     @status = STARTED
     @result = {}
-    waitingResponse = Object.keys(@items).length
-    for own name, item of @items
-      item.run()
-      item.on "healthCheckCompleted", (item) =>
-        waitingResponse -= 1
-        unless waitingResponse
-          @emit "pingCompleted"
+    @waitingResponse = Object.keys(@items).length
+
+    @healthChecker @checkSequence
