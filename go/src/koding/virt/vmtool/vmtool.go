@@ -127,6 +127,10 @@ var actions = map[string]func(args []string){
 	},
 
 	"rbd-orphans": func(args []string) {
+		if len(args) == 0 {
+			log.Fatal("usage: vmtool rbd-orphans <mongo-url>")
+		}
+
 		session, err := mgo.Dial(args[0])
 		if err != nil {
 			panic(err)

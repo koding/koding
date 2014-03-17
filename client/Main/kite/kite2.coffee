@@ -4,7 +4,7 @@ class KDKite extends Kite
     ctx[method] = (rest...) -> @tell2 rpcMethod, rest...
 
   # @createConstructor = (kiteName) ->
-    
+
   #   class Kite extends this
 
   #     constructor: (options = {}, data) ->
@@ -46,4 +46,3 @@ class KDKite extends Kite
         return resolve restResponse...  if timeOk
 
       @tell options, callback
-    .catch warn

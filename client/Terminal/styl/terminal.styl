@@ -110,12 +110,12 @@ li.vm-loader-item
       width           100% !important
       opacity         .1
     &:hover
-      span
-        opacity       1
+      i
         &:before
-          content     'click to run your terminal'
-      cite
-        opacity       .3
+          margin-right    10px
+          text-transform  none
+          color           #757575
+          content         'click to open terminal'
 
   &.off
     i
@@ -124,10 +124,11 @@ li.vm-loader-item
       width           0% !important
       bg              color #FF7379
     &:hover
-      span
-        opacity       1
-      span:before
-        content       'click to turn on your VM'
+      i:before
+        margin-right    10px
+        text-transform  none
+        color           #757575
+        content         'click to turn on your VM'
 
   figure
     top               9px
@@ -152,19 +153,6 @@ li.vm-loader-item
     min-width         200px
     text-align        right
     abs()
-
-  span.call-to-action
-    opacity           0
-    abs()
-    font-weight       400
-    color             #444
-    z-index           0
-    top               0
-    left              0
-    text-align        center
-    width             100%
-    vendor            transition, opacity .1s linear
-
 
   cite
     abs()
@@ -198,13 +186,6 @@ li.vm-loader-item
       cite
         height            1px
         top               39px
-      span.call-to-action
-        color             #aaa
-        text-align        right
-        // font-weight     100
-        font-size         11px
-        top               1px
-
 
 .application-tab-handle-holder.terminal
 

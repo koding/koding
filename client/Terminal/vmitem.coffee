@@ -20,10 +20,6 @@ class TerminalStartTabVMItem extends KDCustomHTMLView
       loaderOptions :
         color       : '#ffffff'
 
-    @callToAction = new KDCustomHTMLView
-      tagName  : 'span'
-      cssClass : 'call-to-action'
-
     @notice = new KDCustomHTMLView
       tagName : 'i'
       partial : 'LOADING'
@@ -112,7 +108,7 @@ class TerminalStartTabVMItem extends KDCustomHTMLView
     vm    = @getData()
     alias = vm.hostnameAlias
     """
-    <figure>{{> @loader}}</figure>#{alias.replace 'koding.kd.io', 'kd.io'}{{> @callToAction}}{{> @notice}}
+    <figure>{{> @loader}}</figure>#{alias.replace 'koding.kd.io', 'kd.io'}{{> @notice}}
     {{> @progress}}
     """
 
