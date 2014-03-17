@@ -122,11 +122,15 @@ class DevToolsMainView extends KDView
 
     @workspace.ready =>
 
-      {JSEditor, CSSEditor} = panes = @workspace.activePanel.panesByName
+      {JSEditor, CSSEditor, PreviewPane} = panes = @workspace.activePanel.panesByName
 
       innerSplit = @workspace.activePanel
         .layoutContainer.getSplitByName "InnerSplit"
       innerSplit.addSubView @welcomePage = new WelcomePage delegate: this
+
+      PreviewPane.header.addSubView PreviewPane.info = new KDView
+        cssClass : "inline-info"
+        partial  : "updating"
 
       @switchMode 'home'
 
@@ -184,22 +188,29 @@ class DevToolsMainView extends KDView
           message : "You can only preview .coffee and .js files."
       return
 
+    PreviewPane.info.unsetClass 'fail'
+
     @compiler (coffee)=>
 
       code = JSEditor.getValue()
 
       PreviewPane.container.destroySubViews()
       window.appView = new KDView
-
       try
 
         switch extension
           when 'js' then eval code
           when 'coffee' then coffee.run code
 
+        PreviewPane.info.updatePartial 'compiled'
+        PreviewPane.info.setClass 'in'
+
         PreviewPane.container.addSubView window.appView
 
       catch error
+
+        PreviewPane.info.updatePartial 'failed'
+        PreviewPane.info.setClass 'fail in'
 
         try window.appView.destroy?()
         warn "Failed to run:", error
@@ -210,6 +221,8 @@ class DevToolsMainView extends KDView
 
         delete window.appView
         @_inprogress = no
+        KD.utils.wait 700, -> PreviewPane.info.unsetClass 'in'
+
 
 
   previewCss:(force = no)->

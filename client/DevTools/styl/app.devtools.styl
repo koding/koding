@@ -64,11 +64,25 @@ body.devtools
       margin-top  7px
 
   .inner-split
+
     .panel-1
       border-left   1px solid #ccc
 
       .ws-container
         margin-top  20px
+
+    &.previewMode
+      .panel-0
+        width       0 !important
+      .panel-1
+        width       100% !important
+        left        0 !important
+        .ws-header.inner-header
+          display   none
+        .ws-container
+          margin-top 0
+      .kdsplitview-resizer
+        display     none
 
     .ws-header.inner-header
       width         100%
@@ -80,17 +94,21 @@ body.devtools
       abs()
 
       .inline-info
-        left        -50px
-        top         0
-        size        auto, 20px
-        padding     3px
+        left        -80px
         background  green
+        top         0
+        size        auto, 14px
+        padding     3px
         color       white
+        font-size   11px
         vendor      transition, left .2s ease-in
         abs()
 
         &.in
           left      0
+
+        &.fail
+          background darkred
 
   .editor-split
     .panel-1
