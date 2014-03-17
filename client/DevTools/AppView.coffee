@@ -138,20 +138,26 @@ class DevToolsMainView extends KDView
 
         JSEditor.ready =>
 
-          JSEditor.loadLastOpenFile()
           JSEditor.codeMirrorEditor.on "change", \
             _.debounce (@lazyBound 'previewApp', no), 500
 
           JSEditor.on "RunRequested", @lazyBound 'previewApp', yes
           JSEditor.on "AutoRunRequested", @bound 'toggleLiveReload'
           JSEditor.on "FocusedOnMe", => @_lastActiveEditor = JSEditor
+          JSEditor.on "RecentFileLoaded", => @switchMode 'develop'
 
           @on 'saveMenuItemClicked', =>
             @_lastActiveEditor?.handleSave()
           @on 'saveAllMenuItemClicked', =>
             CSSEditor.handleSave(); JSEditor.handleSave()
           @on 'closeAllMenuItemClicked', =>
-            CSSEditor.closeFile(); JSEditor.closeFile()
+            delete @_lastActiveEditor
+            @switchMode 'home'
+            KD.utils.defer ->
+              PreviewPane.container.destroySubViews()
+              CSSEditor.closeFile(); JSEditor.closeFile()
+
+          JSEditor.loadLastOpenFile()
 
         CSSEditor.ready =>
 
@@ -339,7 +345,9 @@ class DevToolsEditorPane extends CollaborativeEditorPane
     return  unless path
 
     @loadFile path, (err)=>
-      @storage.unsetKey @_lastFileKey  if err?
+      if err?
+      then @storage.unsetKey @_lastFileKey
+      else @emit "RecentFileLoaded"
 
   createEditor: (callback)->
 
