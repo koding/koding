@@ -128,16 +128,13 @@ class StackView extends KDView
       @updateView yes
 
   dumpStack:->
+    dump = @getStackDump yes
     new KDModalView
+      width    : 600
+      overlay  : yes
       cssClass : 'recipe'
       title    : 'Stack recipe'
-      overlay  : yes
-      width    : 600
-      content  : """
-        <pre>
-          #{@getStackDump yes}
-        </pre>
-      """
+      content  : "<pre>#{dump}</pre>"
 
   getStackDump: (asYaml = no) ->
     {containers, connections} = @scene
@@ -151,6 +148,8 @@ class StackView extends KDView
           if name is 'domains'
             title   : dia.data.title
             aliases : dia.data.aliases
+          else if name is 'vms'
+            title   : dia.data.title
           else dia.data
 
     return if asYaml then jsyaml.dump dump else dump
