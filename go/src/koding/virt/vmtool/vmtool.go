@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"koding/db/models"
 	"koding/tools/utils"
 	"koding/virt"
 	"log"
@@ -26,6 +27,7 @@ const (
 	start
 	shutdown
 	stop
+	ip
 	unprepare
 	create-test-vms
 	rbd-orphans
@@ -100,6 +102,31 @@ var actions = map[string]func(args []string){
 			err := vm.Unprepare()
 			fmt.Printf("%v: %v\n", vm, err)
 		}
+	},
+
+	"ip": func(args []string) {
+		if len(args) != 2 {
+			log.Fatal("usage: ip <mongo-url> <vm-id>")
+		}
+
+		session, err := mgo.Dial(args[0])
+		if err != nil {
+			panic(err)
+		}
+
+		vm := new(models.VM)
+		session.SetSafe(&mgo.Safe{})
+
+		vmId := strings.TrimPrefix(args[1], "vm-")
+
+		database := session.DB("")
+		err = database.C("jVMs").Find(bson.M{"_id": bson.ObjectIdHex(vmId)}).One(vm)
+		if err != nil {
+			fmt.Println(err)
+			os.Exit(1)
+		}
+
+		fmt.Println(vm.IP.String())
 	},
 
 	"create-test-vms": func(args []string) {
