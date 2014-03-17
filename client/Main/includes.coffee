@@ -205,6 +205,7 @@ module.exports = [
   "troubleshoot/troubleshootitemview.coffee",
   "troubleshoot/troubleshootstatusview.coffee",
   "troubleshoot/troubleshooterrorview.coffee",
+  "troubleshoot/liveupdatechecker.coffee",
 
   # avatararea
   "avatararea/avatararea.coffee",
