@@ -7,6 +7,7 @@ class HealthChecker extends KDObject
     @status = "not started"
 
   run: ->
+    @emit "healthCheckStarted"
     @status = "waiting"
     @startTime = Date.now()
     @setPingTimeout()
@@ -19,11 +20,14 @@ class HealthChecker extends KDObject
     , 5000
 
   finish: (data)->
-    @status = "success"
-    @finishTime = Date.now()
-    clearTimeout @pingTimeout
-    @pingTimeout = null
-    @emit "healthCheckCompleted"
+    # some services (e.g. kite controller) does return callback with error parameter
+    # hence we are having
+    unless @status is "down"
+      @status = "success"
+      @finishTime = Date.now()
+      clearTimeout @pingTimeout
+      @pingTimeout = null
+      @emit "healthCheckCompleted"
 
   reset: ->
     @status = "waiting"
@@ -31,4 +35,4 @@ class HealthChecker extends KDObject
     @startTime = null
 
   getResponseTime: ->
-    if @status is "success" then @finishTime - @startTime else ""
+    if @status is "success" then @finishTime - @startTime else 0
