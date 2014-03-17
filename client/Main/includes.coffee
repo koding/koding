@@ -201,6 +201,10 @@ module.exports = [
   "troubleshoot/troubleshoot.coffee",
   "troubleshoot/healthchecker.coffee",
   "troubleshoot/connectionchecker.coffee",
+  "troubleshoot/troubleshootmodal.coffee",
+  "troubleshoot/troubleshootitemview.coffee",
+  "troubleshoot/troubleshootstatusview.coffee",
+  "troubleshoot/troubleshooterrorview.coffee",
 
   # avatararea
   "avatararea/avatararea.coffee",
@@ -214,7 +218,6 @@ module.exports = [
   "avatararea/avatarareapopupmessageslistitem.coffee",
   "avatararea/avatarareapopupnotificationslistitem.coffee",
   "avatararea/avatarareasharestatuspopup.coffee",
-  "avatararea/avatarareatroubleshootmodal.coffee",
 
   "maincontroller/groupdata.coffee",
   "maincontroller/mainviews/appsettingsmenubutton.coffee",
