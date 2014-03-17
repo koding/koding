@@ -17,6 +17,33 @@ body.devtools
 
 .devtools
 
+  .welcome-pane
+    top           0
+    left          0
+    background    white
+    opacity       1
+    vendor        transition, top .5s ease\, \
+                              opacity .5s ease
+    z-index       10000 // To make it on top of resize handles
+    abs()
+
+    &.out
+      top         100%
+      opacity     0
+
+    h1
+      width       400px
+      margin      0 auto
+      text-align  center
+      font-size   24px
+      margin-top  100px
+
+    .button-container
+      width       300px
+      height      auto
+      text-align  center
+      margin      50px auto
+
   .inner-header
 
     background    white

@@ -124,6 +124,12 @@ class DevToolsMainView extends KDView
 
       {JSEditor, CSSEditor} = panes = @workspace.activePanel.panesByName
 
+      innerSplit = @workspace.activePanel
+        .layoutContainer.getSplitByName "InnerSplit"
+      innerSplit.addSubView @welcomePage = new WelcomePage delegate: this
+
+      @switchMode 'home'
+
       KD.singletons.vmController.ready =>
 
         JSEditor.ready =>
@@ -156,6 +162,7 @@ class DevToolsMainView extends KDView
         @on 'createMenuItemClicked',  @bound 'createNewApp'
         @on 'publishMenuItemClicked', @bound 'publishCurrentApp'
         @on 'compileMenuItemClicked', @bound 'compileApp'
+
 
   previewApp:(force = no)->
 
@@ -407,6 +414,36 @@ class ErrorPaneWidget extends JView
       {h1{#(error.name)}}
       <pre>#{error.message} #{line}</pre>
       #{stack}
+    """
+
+  click:-> @setClass 'in'
+
+class WelcomePage extends JView
+
+  constructor:(options = {}, data)->
+
+    options.cssClass = KD.utils.curry 'welcome-pane', options.cssClass
+    super options, data
+
+    @buttons = new KDView
+      cssClass : 'button-container'
+
+    delegate = @getDelegate()
+    @addButton title : "Create New", delegate.bound 'createNewApp'
+
+  addButton:({title, type}, callback)->
+
+    type ?= ""
+    cssClass = "solid big #{type}"
+
+    @buttons.addSubView new KDButtonView {
+      title, cssClass, callback
+    }
+
+  pistachio:->
+    """
+      <h1>Welcome to Koding DevTools</h1>
+      {{> @buttons}}
     """
 
   click:-> @setClass 'in'
