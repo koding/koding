@@ -357,6 +357,54 @@ type progressParamsOld struct {
 func (p *progressParamsOld) Enabled() bool      { return p.OnProgress != nil }
 func (p *progressParamsOld) Call(v interface{}) { p.OnProgress(v) }
 
+// progress is function that enables sync and async call of the given function
+// "f". We pass an interface called progresser just for compatibility of
+// newkite and oldkite (they each have different callback signatures)
+// TODO: fix this function signature, a function shouldn't have this much arguments.
+func progress(vos *virt.VOS, desc string, p progresser, f func() error) (interface{}, error) {
+	var lastError error
+	done := make(chan struct{}, 1)
+
+	if p.Enabled() {
+		p.Call(&virt.Step{Message: "STARTED"})
+		done = nil // not used anymore
+	}
+
+	go func() {
+		prepareQueue <- &QueueJob{
+			msg: desc,
+			f: func() (string, error) {
+				if !p.Enabled() {
+					defer func() { done <- struct{}{} }()
+				} else {
+					// mutex is needed because it's handled in the queue
+					info := getInfo(vos.VM)
+					info.mutex.Lock()
+					defer info.mutex.Unlock()
+				}
+
+				if err := f(); err != nil {
+					lastError = err
+					return "", err
+				}
+
+				return desc, nil
+			},
+		}
+	}()
+
+	if !p.Enabled() {
+		// wait until the prepareWorker has picked us and we finished
+		// to return something to the client
+		<-done
+		if lastError != nil {
+			return true, lastError
+		}
+	}
+
+	return true, nil
+}
+
 func vmPrepareAndStart(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
 	if !vos.Permissions.Sudo {
 		return nil, &kite.PermissionError{}
@@ -367,14 +415,7 @@ func vmPrepareAndStart(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS
 		return nil, &kite.ArgumentError{Expected: "{OnProgress: [function]}"}
 	}
 
-	return progress("vm.prepareAndStart"+vos.VM.HostnameAlias, params, func() error {
-		// mutex is needed because it's handled in the queue
-		if params.OnProgress != nil {
-			info := getInfo(vos.VM)
-			info.mutex.Lock()
-			defer info.mutex.Unlock()
-		}
-
+	return progress(vos, "vm.prepareAndStart"+vos.VM.HostnameAlias, params, func() error {
 		for step := range prepareProgress(vos) {
 			if params.OnProgress != nil {
 				params.OnProgress(step)
@@ -399,14 +440,7 @@ func vmDestroyOld(args *dnode.Partial, c *kite.Channel, vos *virt.VOS) (interfac
 		return nil, &kite.ArgumentError{Expected: "{OnProgress: [function]}"}
 	}
 
-	return progress("vm.destroy"+vos.VM.HostnameAlias, params, func() error {
-		// mutex is needed because it's handled in the queue
-		if params.OnProgress != nil {
-			info := getInfo(vos.VM)
-			info.mutex.Lock()
-			defer info.mutex.Unlock()
-		}
-
+	return progress(vos, "vm.destroy"+vos.VM.HostnameAlias, params, func() error {
 		for step := range unprepareProgress(vos, true) {
 			if params.OnProgress != nil {
 				params.OnProgress(step)
@@ -433,14 +467,7 @@ func vmStopAndUnprepare(args *dnode.Partial, channel *kite.Channel, vos *virt.VO
 		return nil, &kite.ArgumentError{Expected: "{OnProgress: [function]}"}
 	}
 
-	return progress("vm.stopAndUnprepare"+vos.VM.HostnameAlias, params, func() error {
-		// mutex is needed because it's handled in the queue
-		if params.OnProgress != nil {
-			info := getInfo(vos.VM)
-			info.mutex.Lock()
-			defer info.mutex.Unlock()
-		}
-
+	return progress(vos, "vm.stopAndUnprepare"+vos.VM.HostnameAlias, params, func() error {
 		for step := range unprepareProgress(vos, false) {
 			if params.OnProgress != nil {
 				params.OnProgress(step)
@@ -453,45 +480,6 @@ func vmStopAndUnprepare(args *dnode.Partial, channel *kite.Channel, vos *virt.VO
 
 		return nil
 	})
-}
-
-func progress(desc string, p progresser, f func() error) (interface{}, error) {
-	var lastError error
-	done := make(chan struct{}, 1)
-
-	if p.Enabled() {
-		p.Call(&virt.Step{Message: "STARTED"})
-		done = nil // not used anymore
-	}
-
-	go func() {
-		prepareQueue <- &QueueJob{
-			msg: desc,
-			f: func() (string, error) {
-				if !p.Enabled() {
-					defer func() { done <- struct{}{} }()
-				}
-
-				if err := f(); err != nil {
-					lastError = err
-					return "", err
-				}
-
-				return desc, nil
-			},
-		}
-	}()
-
-	if !p.Enabled() {
-		// wait until the prepareWorker has picked us and we finished
-		// to return something to the client
-		<-done
-		if lastError != nil {
-			return true, lastError
-		}
-	}
-
-	return true, nil
 }
 
 func unprepareProgress(vos *virt.VOS, destroy bool) <-chan *virt.Step {
