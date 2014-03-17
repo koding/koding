@@ -33,6 +33,8 @@ class AceAppController extends AppController
       { type      : "separator" }
       { title     : "Preview",             eventName : "preview" }
       { type      : "separator" }
+      { title     : "Key Bindings",        eventName : "keyBindings" }
+      { type      : "separator" }
       { title     : "Advanced settings",   id        : "advancedSettings" }
       { title     : "customViewAdvancedSettings", parentId: "advancedSettings"}
       { type      : "separator" }
