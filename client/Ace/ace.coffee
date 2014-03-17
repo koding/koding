@@ -105,6 +105,7 @@ class Ace extends KDView
       @addKeyCombo "fullscreen", "Ctrl-Enter", => @getDelegate().toggleFullscreen()
       @addKeyCombo "gotoLine", "Ctrl-G", @bound "showGotoLine"
       @addKeyCombo "saveAll", "Ctrl-Alt-S", @bound "saveAllFiles"
+      @addKeyCombo "closeTab", "Ctrl-W", "Ctrl-W", @bound "closeTab"
       @addKeyCombo "settings", "Ctrl-,", noop # ace creates a settings view for this shortcut, overriding it.
 
   showFindReplaceView: (openReplaceView) ->
@@ -128,6 +129,11 @@ class Ace extends KDView
 
   isContentChanged: -> @contentChanged
   isCurrentContentChanged:-> @getContents() isnt @lastSavedContents
+
+  closeTab: ->
+    aceView   = @getDelegate()
+    {tabView} = aceView.getDelegate()
+    tabView.removePane_ tabView.getActivePane()
 
   ###
   FS REQUESTS
