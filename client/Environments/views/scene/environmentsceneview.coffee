@@ -83,18 +83,21 @@ class EnvironmentScene extends KDDiaScene
       createConnection()
 
   updateConnections:->
-
     @reset no
 
-    for _mkey, vm of @boxes.vms.dias
-      for _dkey, domain of @boxes.domains.dias
-        if domain.getData().aliases and vm.getData().title in domain.getData().aliases
+    vmDias     = @boxes.vms.dias
+    domainDias = @boxes.domains.dias
+
+    for _mkey, vm of vmDias
+      for _dkey, domain of domainDias
+        domainAliases = domain.getData().aliases
+        if domainAliases and vm.getData().title in domainAliases
           @connect {dia : domain , joint : 'right'}, \
                    {dia : vm, joint : 'left' }, yes
 
     {dias} = @boxes.rules
     rule = dias[Object.keys(dias).first]
-    for _dkey, domain of @boxes.domains.dias
+    for _dkey, domain of domainDias
       @connect {dia : rule,   joint : 'right'}, \
                {dia : domain, joint : 'left' }, yes
 
