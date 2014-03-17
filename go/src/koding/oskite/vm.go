@@ -57,6 +57,10 @@ func vmCreateSnapshotOld(args *dnode.Partial, c *kite.Channel, vos *virt.VOS) (i
 	return vmCreateSnapshot(vos)
 }
 
+func vmUsageOld(args *dnode.Partial, c *kite.Channel, vos *virt.VOS) (interface{}, error) {
+	return vmUsage(vos)
+}
+
 func spawnFuncOld(args *dnode.Partial, c *kite.Channel, vos *virt.VOS) (interface{}, error) {
 	var command []string
 

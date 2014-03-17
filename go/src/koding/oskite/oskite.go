@@ -141,6 +141,7 @@ func (o *Oskite) Run() {
 	o.registerMethod("vm.info", false, vmInfoOld)
 	o.registerMethod("vm.resizeDisk", false, vmResizeDiskOld)
 	o.registerMethod("vm.createSnapshot", false, vmCreateSnapshotOld)
+	o.registerMethod("vm.usage", false, vmUsageOld)
 	o.registerMethod("spawn", true, spawnFuncOld)
 	o.registerMethod("exec", true, execFuncOld)
 
