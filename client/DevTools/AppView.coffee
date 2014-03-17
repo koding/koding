@@ -266,8 +266,9 @@ class DevToolsMainView extends KDView
       {CSSEditor, JSEditor, finder} = @workspace.activePanel.panesByName
 
       vmName = KD.singletons.vmController.defaultVmName
-      finder.finderController.expandFolders \
-        FSHelper.getPathHierarchy "[#{vmName}]#{appPath}/resources"
+      finder.finderController.expandFolders "[#{vmName}]#{appPath}/resources", ->
+        fileTree = finder.finderController.treeController
+        fileTree.selectNode fileTree.nodes["[#{vmName}]#{appPath}"]
 
       JSEditor.loadFile  "[#{vmName}]#{appPath}/index.coffee"
       CSSEditor.loadFile "[#{vmName}]#{appPath}/resources/style.css"
