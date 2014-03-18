@@ -6,7 +6,7 @@ import (
 )
 
 func testMessageOperations() {
-	post, err := createPost()
+	post, err := createPost(CHANNEL_ID, ACCOUNT_ID)
 	if err != nil {
 		fmt.Println("error while creating post", err)
 		err = nil
@@ -39,7 +39,7 @@ func testMessageOperations() {
 	}
 
 	for i := 0; i < 10; i++ {
-		_, err := createPost()
+		_, err := createPost(CHANNEL_ID, ACCOUNT_ID)
 		if err != nil {
 			fmt.Println("error while creating post", err)
 			err = nil
@@ -47,12 +47,12 @@ func testMessageOperations() {
 	}
 }
 
-func createPost() (*models.ChannelMessage, error) {
+func createPost(channelId, accountId int64) (*models.ChannelMessage, error) {
 	cm := models.NewChannelMessage()
 	cm.Body = "create a message"
-	cm.AccountId = ACCOUNT_ID
+	cm.AccountId = accountId
 
-	url := fmt.Sprintf("/channel/%d/message", CHANNEL_ID)
+	url := fmt.Sprintf("/channel/%d/message", channelId)
 	cmI, err := sendModel("POST", url, cm)
 	if err != nil {
 		return nil, err
