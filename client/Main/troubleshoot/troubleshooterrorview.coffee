@@ -25,6 +25,10 @@ class TroubleshootErrorView extends KDCustomHTMLView
       down     : "You do not have internet at the moment. The parts of Koding that \
                  supports offline working will continue to work, but you cannot \
                  send/receive updates, reach your VMs nor interact with terminal."
+    liveUpdate :
+      slow     : "You will not receive live updates, and you wont be able to \
+                  connect to your vms"
+      fail     : "You will experience slowness with live updates"
 
 
   constructor: (options, data) ->

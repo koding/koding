@@ -11,6 +11,10 @@ class TroubleshootStatusView extends KDCustomHTMLView
       title       : "Bongo"
     , @getData()["bongo"]
 
+    @liveUpdate = new TroubleshootItemView
+      title       : "Live Update"
+    , @getData()["liveUpdate"]
+
     @broker = new TroubleshootItemView
       title : "#{premium} Broker"
     , @getData()["broker"]
