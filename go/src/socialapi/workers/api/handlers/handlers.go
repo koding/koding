@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"net/http"
+	"socialapi/workers/api/modules/account"
 	"socialapi/workers/api/modules/channel"
 	"socialapi/workers/api/modules/interaction"
 	"socialapi/workers/api/modules/message"
@@ -95,6 +96,9 @@ func Inject(mux *tigertonic.TrieServeMux) *tigertonic.TrieServeMux {
 
 	// list messages of the channel
 	mux.Handle("GET", "/channel/{id}/history", handlerWrapper(messagelist.List, "channel-history-list"))
+
+	// list channels of the account
+	mux.Handle("GET", "/account/{id}/channels", handlerWrapper(account.ListChannels, "account-channel-list"))
 
 	// mux.Handle("POST", "/follow/{id}", handlerWrapper(post, "follow-id"))
 	// mux.Handle("POST", "/unfollow/{id}", handlerWrapper(post, "follow-id"))
