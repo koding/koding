@@ -37,6 +37,7 @@ module.exports = class JKite extends jraphical.Module
           (signature Function)
         removePlan:
           (signature Object, Function)
+
     relationships: ->
       plan          :
         as          : 'kitePlan'
@@ -44,12 +45,13 @@ module.exports = class JKite extends jraphical.Module
 
   @create: permit 'create kite',
     success:(client, formData, callback)->
-      queue = [
-        =>
-          {plans} = formData
-          plans.map (plan)=> console.log  "NOT IMPLEMENTED YET"
-
-      ]
+      kite = new JKite formData
+      kite.save (err)->
+        return  callback new KodingError "kite couldn't saved" if err
+        account = client.connection.delegate
+        account.addKite (err, res)->
+          return  callback new KodingError "kite couldn't added to Account" if err
+          callback null, kite
 
   @list: permit 'list kites',
     success: (client, selector, options, callback)->
