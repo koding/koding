@@ -118,7 +118,7 @@ class Troubleshoot extends KDObject
 
         item.once "healthCheckCompleted", =>
           @waitingResponse -= 1
-          @healthChecker children  if children and item.status is "success"
+          @healthChecker children  if children and item.status in ["success", "slow"]
           @reset()  unless @waitingResponse
 
         item.run()

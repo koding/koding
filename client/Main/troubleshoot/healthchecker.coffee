@@ -2,7 +2,9 @@ class HealthChecker extends KDObject
 
   constructor: (options={}, @cb) ->
     super options
-
+    options.slownessIndicator ?= 1000
+    options.speedCheck        ?= yes
+    options.timeout           ?= 5000
     @identifier = options.identifier or Date.now()
     @status = "not started"
 
@@ -15,16 +17,17 @@ class HealthChecker extends KDObject
 
   setPingTimeout: ->
     @pingTimeout = setTimeout =>
-      @status = "down"
+      @status = "fail"
       @emit "healthCheckCompleted"
-    , 5000
+    , @getOptions().timeout
 
   finish: (data)->
     # some services (e.g. kite controller) does return callback with error parameter
     # hence we are having
-    unless @status is "down"
-      @status = "success"
+    unless @status is "fail"
+      {slownessIndicator, speedCheck} = @getOptions()
       @finishTime = Date.now()
+      @status = if speedCheck and @getResponseTime() > slownessIndicator then "slow" else "success"
       clearTimeout @pingTimeout
       @pingTimeout = null
       @emit "healthCheckCompleted"
@@ -35,4 +38,4 @@ class HealthChecker extends KDObject
     @startTime = null
 
   getResponseTime: ->
-    if @status is "success" then @finishTime - @startTime else 0
+    @finishTime - @startTime
