@@ -82,9 +82,9 @@ class FSHelper
       withArgs : {pattern}
     , callback
 
-  @ensureNonexistentPath = (path, vmName, callback=noop)->
+  @uniquePath = (path, vmName, callback=noop)->
     KD.getSingleton('vmController').run
-      method   : "fs.ensureNonexistentPath"
+      method   : "fs.uniquePath"
       vmName   : vmName
       withArgs : {path}
     , callback
