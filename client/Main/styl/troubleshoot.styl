@@ -6,12 +6,12 @@
       > label
         margin-top  0px
 
+    .kdlabel.feedback
+      margin-top 10px
+
     .troubleshoot-status
       padding-left  40px
       margin-top     1px
-
-    .input-wrapper
-      color         #444
 
       .success
         color       #1aaf5d
@@ -19,16 +19,23 @@
       .waiting
         color       #444
 
-      .down
+      .fail
         color       #ff7379
+
+      .slow
+        color       #eba612
+
+    .input-wrapper
+      color         #444
 
       .troubleshoot-result
         margin-bottom 20px
         padding 10px
-        background-color rgba(244,204,0,0.5)
+        background-color #4ed393
         line-height 1.7
         font-size 14px
         text-align   center
+        color      #ffffff
 
       .status
         float  right
@@ -43,15 +50,20 @@
         display     initial !important
 
       .troubleshoot-errors
-        background-color: #ff7379;
-        padding: 10px 30px 10px 30px;
+        background-color #ff7379;
+        padding  10px 30px 10px 30px
 
+        .status-message.fail
+            background-color #ff7379
+            color #ffffff
 
-    .status-message
-      background-color #ff7379
+        .status-message.slow
+            // background-color #eba612
+            color #ffffff
 
-      strong
-        font-weight 400
-        font-family 'Monaco','Courier New','Courier','Andale Mono',monospace,sans-serif
-        font-size 13px
+        .status-message
+          div
+            font-weight 400
+            font-family 'Monaco','Courier New','Courier','Andale Mono',monospace,sans-serif
+            font-size 13px
 
