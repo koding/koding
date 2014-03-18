@@ -27,6 +27,10 @@ class TroubleshootStatusView extends KDCustomHTMLView
       title : "OS-Kite"
     , @getData()["osKite"]
 
+    @vm = new TroubleshootItemView
+      title : "VMs"
+    , @getData()["vm"]
+
     @webServer = new TroubleshootItemView
       title : "Webserver"
     , @getData()["webServer"]
@@ -35,13 +39,16 @@ class TroubleshootStatusView extends KDCustomHTMLView
       title : "Internet Connection"
     , @getData()["connection"]
 
-    @version = new KDCustomHTMLView
-      title : "Build Version: #{KD.config.version}"
+    @version = new TroubleshootItemView
+      title : "Latest version"
+    , @getData()["version"]
 
     @addSubView @connection
     @addSubView @bongo
+    @addSubView @liveUpdate
     @addSubView @broker
     @addSubView @brokerKite
     @addSubView @osKite
+    @addSubView @vm
     @addSubView @webServer
     @addSubView @version

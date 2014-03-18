@@ -29,6 +29,11 @@ class TroubleshootErrorView extends KDCustomHTMLView
       slow     : "You will not receive live updates, and you wont be able to \
                   connect to your vms"
       fail     : "You will experience slowness with live updates"
+    version    :
+      fail     : "You are currently running an old version of Koding. Please refresh \
+                  your page."
+    vm         :
+      fail     : "Your VMs are not accessible"
 
 
   constructor: (options, data) ->
