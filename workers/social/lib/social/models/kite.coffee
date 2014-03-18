@@ -59,21 +59,19 @@ module.exports = class JKite extends jraphical.Module
 
   modify: permit 'edit kite',
     success: (client, formData, callback)->
-      console.log  "NOT IMPLEMENTED YET"
+      @update $set: {name: formData.name} , callback
 
   deleteKite : permit 'delete kite',
     success: (client, callback)->
-      console.log  "NOT IMPLEMENTED YET"
-
-  fetchSubscriptions: permit 'fetch subscriptions',
-    success: (client, callback)->
-      console.log "NOT IMPLEMENTED YET"
-
-  fetchKitePlans: permit 'fetch kite plans',
-    success: (client, callback)->
-      console.log  "NOT IMPLEMENTED YET"
-
-  removePlan: permit 'modify kite',
-    success: (client, callback )->
-      console.log  "NOT IMPLEMENTED YET"
+      account = client.connection.delegate
+      Relationship.one {
+        targeName   : "JKite"
+        targetId    : @getId()
+        sourceName  : "JAccount"
+        sourceId    : account.getId()
+        as          : "owner"
+      }, (err, rel) =>
+        return  callback new KodingError err if err
+        @remove (err, res)->
+          return  callback err, res
 
