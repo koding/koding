@@ -290,15 +290,15 @@ class ActivityAppController extends AppController
 
   fetchFollowingActivities:(options = {})->
     {JNewStatusUpdate} = KD.remote.api
-    options.to = @lastTo or @followingLastTo or Date.now()
+    options.to  = @followingLastTo or Date.now()
     eventSuffix = "#{@getFeedFilter()}_#{@getActivityFilter()}"
     JNewStatusUpdate.fetchFollowingFeed options, (err, activities) =>
       if err
       then @emit "activitiesCouldntBeFetched", err
       else
         if Array.isArray activities
-          activities = activities.reverse()
-          @profileLastTo = activities.last.meta.createdAt if activities.length > 0
+          activities       = activities.reverse()
+          @followingLastTo = activities.last.meta.createdAt if activities.length > 0
         @emit "followingFeedFetched_#{eventSuffix}", activities
 
   setWarning:(options = {})->
