@@ -67,8 +67,12 @@ func testChannelParticipantOperations(channel *models.Channel) {
 }
 
 func createChannelParticipant(channelId int64) (*models.ChannelParticipant, error) {
+	return addChannelParticipant(channelId, rand.Int63())
+}
+
+func addChannelParticipant(channelId, accountId int64) (*models.ChannelParticipant, error) {
 	c := models.NewChannelParticipant()
-	c.AccountId = rand.Int63()
+	c.AccountId = accountId
 
 	url := fmt.Sprintf("/channel/%d/participant/%d", channelId, c.AccountId)
 	cmI, err := sendModel("POST", url, c)
