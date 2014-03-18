@@ -376,6 +376,7 @@ class DevToolsEditorPane extends CollaborativeEditorPane
               spaces = Array(cm.getOption("indentUnit") + 1).join " "
               cm.replaceSelection spaces, "end", "+input"
 
+        @setEditorTheme 'blackboard'
         @setEditorMode @_mode ? "coffee"
 
         callback?()

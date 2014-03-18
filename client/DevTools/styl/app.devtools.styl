@@ -13,14 +13,14 @@ body.devtools
     .app-settings-menu
       top      53px
       right    -5px
-      opacity  .5
 
 .devtools
 
   .welcome-pane
     top           0
     left          0
-    background    white
+    background    #1F2628
+    color         white
     opacity       1
     vendor        transition, top .5s ease\, \
                               opacity .5s ease
@@ -46,16 +46,18 @@ body.devtools
 
   .inner-header
 
-    background    white
+    background    #1F2628
     border        none
-    border-bottom 1px solid #ccc
+    border-bottom 1px solid #185334
     height        35px
+    color         white
 
     .title
       display     inline-block
       float       left
       padding     11px
-      font-weight 500
+      font-weight 300
+
     .users
       display     none
 
@@ -87,15 +89,16 @@ body.devtools
     .ws-header.inner-header
       width         100%
       height        20px
-      padding       3px
+      padding       4px
       text-align    right
       padding-right 10px
-      background    #efefef
+      color         #eee
+      font-size     12px
       abs()
 
       .inline-info
         left        -80px
-        background  green
+        background  #185334
         top         0
         size        auto, 14px
         padding     3px
@@ -113,7 +116,7 @@ body.devtools
   .editor-split
     .panel-1
       border        none
-      border-top    1px solid #ccc
+      border-top    1px solid #185334
 
       .ws-container
         margin-top  0
