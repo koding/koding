@@ -31,8 +31,6 @@ module.exports = class JKite extends jraphical.Module
           (signature Object, Function)
         deleteKite:
           (signature Function)
-        fetchSubscriptions:
-          (signature Function)
         fetchPlans:
           (signature Function)
         removePlan:
@@ -50,7 +48,7 @@ module.exports = class JKite extends jraphical.Module
         return  callback new KodingError "kite couldn't saved" if err
         account = client.connection.delegate
         account.addKite (err, res)->
-          return  callback new KodingError "kite couldn't added to Account" if err
+          return  callback new KodingError "kite couldn't added to account" if err
           callback null, kite
 
   @list: permit 'list kites',
