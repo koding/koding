@@ -259,6 +259,8 @@ module.exports = class JAccount extends jraphical.Module
           (signature Object, Function)
         likeMember:
           (signature String, Function)
+        fetchKites :
+          (signature Object, Function)
 
     schema                  :
       skillTags             : [String]
@@ -430,6 +432,14 @@ module.exports = class JAccount extends jraphical.Module
       badge         :
         as          : 'badge'
         targetType  : 'JBadge'
+
+      kite          :
+        as          : 'owner'
+        targetType  : JKite
+
+      kiteSubscription :
+        as             : 'kiteSubscription'
+        targetType     : JKitePlan
 
   constructor:->
     super
