@@ -6,7 +6,6 @@ import (
 	"koding/tools/config"
 	"log"
 
-	"github.com/koding/kite"
 	kiteconfig "github.com/koding/kite/config"
 	"github.com/koding/kite/regserv"
 )
@@ -50,18 +49,4 @@ func main() {
 	server := regserv.New(kiteConf, string(pubKey), string(privKey))
 
 	server.Run()
-}
-
-type exampleBackend struct {
-	publicKey, privateKey string
-}
-
-func (b *exampleBackend) Username() string   { return conf.NewKontrol.Username }
-func (b *exampleBackend) KontrolURL() string { return conf.Client.RuntimeOptions.NewKontrol.Url }
-func (b *exampleBackend) PublicKey() string  { return b.publicKey }
-func (b *exampleBackend) PrivateKey() string { return b.privateKey }
-
-// TODO authenticate with username and password
-func (b *exampleBackend) Authenticate(r *kite.Request) (string, error) {
-	return "koding-kites", nil
 }
