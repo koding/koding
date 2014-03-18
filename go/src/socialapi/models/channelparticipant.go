@@ -2,6 +2,7 @@ package models
 
 import (
 	"errors"
+	"socialapi/db"
 	"time"
 )
 
@@ -131,4 +132,23 @@ func (c *ChannelParticipant) List() ([]ChannelParticipant, error) {
 	}
 
 	return participants, nil
+}
+
+func (c *ChannelParticipant) FetchParticipatedChannelIds(a *Account) ([]int64, error) {
+
+	if a.Id == 0 {
+		return nil, errors.New("Account.Id is not set")
+	}
+
+	var channelIds []int64
+
+	if err := db.DB.Table(c.TableName()).
+		Order("created_at desc").
+		Where("account_id = ?", a.Id).
+		Pluck("channel_id", &channelIds).
+		Error; err != nil {
+		return nil, err
+	}
+
+	return channelIds, nil
 }
