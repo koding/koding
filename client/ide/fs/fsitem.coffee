@@ -24,21 +24,27 @@ class FSItem extends KDObject
         content         : ''
         donotoverwrite  : yes
 
-      kite[method](options).then (stat) ->
+      kite.fsUniquePath(path: plainPath)
 
-        file = FSHelper.createFile {
-          path: stat.fullPath
-          type
-          vmName
-        }
+      .then (actualPath) ->
 
-        file.save().then -> return file
-      
+        options.path = actualPath
+
+        kite[method](options).then (stat) ->
+
+          file = FSHelper.createFile {
+            path: actualPath
+            type
+            vmName
+          }
+
+          file.save().then -> return file
+
       .nodeify(callback)
 
   @copyOrMove:(sourceItem, targetItem, commandPrefix, callback)->
     sourceItem.emit "fs.job.started"
-    
+
     kite = sourceItem.getKite()
 
     targetPath = FSHelper.plainPath "#{targetItem.path}/#{sourceItem.name}"
