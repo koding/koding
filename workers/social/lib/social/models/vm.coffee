@@ -626,8 +626,11 @@ module.exports = class JVM extends Module
         return callback err  if err
 
         subscription = freeSubscription = null
-        for subscription in subscriptions
-          freeSubscription = subscription  if "nosync" in subscription.tags
+        for item in subscriptions
+          if "nosync" in item.tags
+            freeSubscription = item
+          else
+            subscription = item
 
         kallback subscription or freeSubscription
     else
