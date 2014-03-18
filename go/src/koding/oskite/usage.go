@@ -1,6 +1,7 @@
 package oskite
 
 import (
+	"errors"
 	"fmt"
 	"koding/db/models"
 	"koding/virt"
@@ -10,11 +11,11 @@ import (
 )
 
 type Usage struct {
-	CPU         int
-	RAM         int
-	Disk        int
-	AlwaysOnVMs int
-	TotalVMs    int
+	CPU         int `json:"cpu"`
+	RAM         int `json:"ram"`
+	Disk        int `json:"disk"`
+	AlwaysOnVMs int `json:"alwaysOnVMs"`
+	TotalVMs    int `json:"totalVMs"`
 }
 
 func NewUsage(vos *virt.VOS) (*Usage, error) {
@@ -29,14 +30,27 @@ func NewUsage(vos *virt.VOS) (*Usage, error) {
 		return nil, fmt.Errorf("vm fetching err for user %s. err: %s", vos.VM.WebHome, err)
 	}
 
-	fmt.Println("my vms are %+v\n", vms)
-	return &Usage{}, nil
+	usage := new(Usage)
+	usage.TotalVMs = len(vms)
+
+	for _, vm := range vms {
+		if vm.AlwaysOn {
+			usage.AlwaysOnVMs++
+		}
+
+		usage.CPU += vm.NumCPUs
+		usage.RAM += vm.MaxMemoryInMB
+		usage.Disk += vm.DiskSizeInMB
+	}
+
+	return usage, nil
 }
 
 func vmUsage(vos *virt.VOS) (interface{}, error) {
 	usage, err := NewUsage(vos)
 	if err != nil {
-		return nil, err
+		log.Info("vm.usage [%s] err: %v", vos.VM.HostnameAlias, err)
+		return nil, errors.New("vm.usage couldn't be retrieved. please consult to support.")
 	}
 
 	return usage, nil
