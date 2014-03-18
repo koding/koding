@@ -3,12 +3,13 @@ package build
 import (
 	"fmt"
 	"io/ioutil"
-	"github.com/koding/kite/cmd/util"
 	"log"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"text/template"
+
+	"github.com/koding/kite/cmd/util"
 )
 
 type Darwin struct {

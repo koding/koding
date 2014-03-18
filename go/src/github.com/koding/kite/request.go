@@ -3,14 +3,14 @@ package kite
 import (
 	"errors"
 	"fmt"
-	"github.com/koding/kite/dnode"
-	"github.com/koding/kite/dnode/rpc"
-	"github.com/koding/kite/kitekey"
 	"reflect"
 	"runtime/debug"
 	"strings"
 
 	"github.com/dgrijalva/jwt-go"
+	"github.com/koding/kite/dnode"
+	"github.com/koding/kite/dnode/rpc"
+	"github.com/koding/kite/kitekey"
 )
 
 // runMethod is called when a method is received from remote Kite.
@@ -41,9 +41,9 @@ func runMethod(method string, handlerFunc reflect.Value, args dnode.Arguments, t
 		}
 
 		// Only argument to the callback.
-		response := callbackArg{
+		response := Response{
 			Result: result,
-			Error:  errorForSending(kiteErr),
+			Error:  kiteErr,
 		}
 
 		// Call response callback function.
@@ -58,7 +58,7 @@ func runMethod(method string, handlerFunc reflect.Value, args dnode.Arguments, t
 
 	request, callback = kite.parseRequest(method, args, tr)
 
-	if !kite.disableAuthenticate {
+	if !kite.Config.DisableAuthentication {
 		kiteErr = request.authenticate()
 		if kiteErr != nil {
 			return
@@ -86,16 +86,12 @@ func (e Error) Error() string {
 	return fmt.Sprintf("kite error %s - %s", e.Type, e.Message)
 }
 
-// When a callback is called we always pass this as the only argument.
-type callbackArg struct {
-	Error  errorForSending `json:"error"`
-	Result interface{}     `json:"result"`
+// Response is the type of the object that is returned from request handlers
+// and the type of only argument that is passed to callback functions.
+type Response struct {
+	Error  *Error      `json:"error" dnode:"-"`
+	Result interface{} `json:"result"`
 }
-
-// errorForSending is a for sending the error as an argument in a dnode message.
-// Normally Error method of the Error struct is sent as a callback since it is
-// exported. We do not want this behavior.
-type errorForSending *Error
 
 // recoverError returns a function which recovers the error and sets to the
 // given argument as kite.Error.
@@ -138,13 +134,13 @@ type Request struct {
 	Method         string
 	Args           dnode.Arguments
 	LocalKite      *Kite
-	RemoteKite     *RemoteKite
+	Client         *Client
 	Username       string
-	Authentication Authentication
+	Authentication *Authentication
 	RemoteAddr     string
 }
 
-// Wrap your function with Callback to send it as an argument to a RemoteKite.
+// Wrap your function with Callback to send it as an argument to a Client.
 type Callback func(r *Request)
 
 func (c Callback) MarshalJSON() ([]byte, error) {
@@ -175,31 +171,28 @@ func (k *Kite) parseRequest(method string, arguments dnode.Arguments, tr dnode.T
 	// Properties about the client...
 	properties := tr.Properties()
 
-	// Create a new RemoteKite instance to pass it to the handler, so
+	// Create a new Client instance to pass it to the handler, so
 	// the handler can call methods on the other site on the same connection.
-	var remoteKite *RemoteKite
-	if properties["remoteKite"] == nil {
-		// Do not create a new RemoteKite on every request,
+	var client *Client
+	if properties["client"] == nil {
+		// Do not create a new Client on every request,
 		// cache it in Transport.Properties().
-		client := tr.(*rpc.Client) // We only have a dnode/rpc.Client for now.
-		remoteKite = k.newRemoteKiteWithClient(options.Kite, options.Authentication, client)
-		properties["remoteKite"] = remoteKite
+		rpcClient := tr.(*rpc.Client) // We only have a dnode/rpc.Client for now.
+		client = k.newClientWithClient(nil, rpcClient)
+		client.Kite = options.Kite
+		properties["client"] = client
 
-		// Notify Kite.OnConnect handlers.
-		k.notifyRemoteKiteConnected(remoteKite)
+		// Notify Kite.OnFirstRequest handlers.
+		k.notifyFirstRequest(client)
 	} else {
-		remoteKite = properties["remoteKite"].(*RemoteKite)
-
-		// Need to update URL in case of a change. For example, the remote kite
-		// may disconnect from a proxy kite and registers to different proxy.
-		remoteKite.URL = options.Kite.URL
+		client = properties["client"].(*Client)
 	}
 
 	request := &Request{
 		Method:         method,
 		Args:           options.WithArgs,
 		LocalKite:      k,
-		RemoteKite:     remoteKite,
+		Client:         client,
 		RemoteAddr:     tr.RemoteAddr(),
 		Authentication: options.Authentication,
 	}
@@ -214,6 +207,13 @@ func (r *Request) authenticate() *Error {
 	// RemoteAddr() returns "" if this is an outgoing connection.
 	if r.RemoteAddr == "" {
 		return nil
+	}
+
+	if r.Authentication == nil {
+		return &Error{
+			Type:    "authenticationError",
+			Message: "No authentication information is provided",
+		}
 	}
 
 	// Select authenticator function.
@@ -236,14 +236,14 @@ func (r *Request) authenticate() *Error {
 
 	// Fix username of the remote Kite if it is invalid.
 	// This prevents a Kite to impersonate someone else's Kite.
-	r.RemoteKite.Kite.Username = r.Username
+	r.Client.Kite.Username = r.Username
 
 	return nil
 }
 
 // AuthenticateFromToken is the default Authenticator for Kite.
 func (k *Kite) AuthenticateFromToken(r *Request) error {
-	token, err := jwt.Parse(r.Authentication.Key, r.LocalKite.getRSAKey)
+	token, err := jwt.Parse(r.Authentication.Key, r.LocalKite.RSAKey)
 	if err != nil {
 		return err
 	}
@@ -252,7 +252,7 @@ func (k *Kite) AuthenticateFromToken(r *Request) error {
 		return errors.New("Invalid signature in token")
 	}
 
-	if audience, ok := token.Claims["aud"].(string); !ok || !strings.HasPrefix(k.Kite.Key(), audience) {
+	if audience, ok := token.Claims["aud"].(string); !ok || !strings.HasPrefix(k.Kite().String(), audience) {
 		return fmt.Errorf("Invalid audience in token: %s", audience)
 	}
 
@@ -267,8 +267,7 @@ func (k *Kite) AuthenticateFromToken(r *Request) error {
 	return nil
 }
 
-// AuthenticateFromKiteKey authenticates user from Koding Key.
-// Kontrol makes requests with a Koding Key.
+// AuthenticateFromKiteKey authenticates user from kite key.
 func (k *Kite) AuthenticateFromKiteKey(r *Request) error {
 	token, err := jwt.Parse(r.Authentication.Key, kitekey.GetKontrolKey)
 	if err != nil {

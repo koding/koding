@@ -7,12 +7,13 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
-	"github.com/koding/kite/kitekey"
 	"net/http"
 	"os"
 	"path/filepath"
 	"strconv"
 	"strings"
+
+	"github.com/koding/kite/kitekey"
 )
 
 type Install struct{}

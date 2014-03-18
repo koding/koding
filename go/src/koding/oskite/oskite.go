@@ -25,8 +25,6 @@ import (
 	"syscall"
 	"time"
 
-	kitelib "github.com/koding/kite"
-
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
 )
@@ -137,6 +135,7 @@ func (o *Oskite) Run() {
 	o.registerMethod("vm.shutdown", false, vmShutdownOld)
 	o.registerMethod("vm.unprepare", false, vmUnprepareOld)
 	o.registerMethod("vm.prepare", false, vmPrepareOld)
+	o.registerMethod("vm.destroy", false, vmDestroyOld)
 	o.registerMethod("vm.stop", false, vmStopOld)
 	o.registerMethod("vm.reinitialize", false, vmReinitializeOld)
 	o.registerMethod("vm.info", false, vmInfoOld)
@@ -182,21 +181,16 @@ func (o *Oskite) Run() {
 
 func (o *Oskite) runNewKite() {
 	log.Info("Run newkite.")
-	k := kodingkite.New(
-		conf,
-		kitelib.Options{
-			Kitename: OSKITE_NAME,
-			Version:  OSKITE_VERSION,
-			Port:     "5000",
-			Region:   o.Region,
-		},
-	)
+	k := kodingkite.New(conf, OSKITE_NAME, OSKITE_VERSION)
+	k.Config.Port = 5000
+	k.Config.Region = o.Region
 
 	o.vosMethod(k, "vm.start", vmStartNew)
 	o.vosMethod(k, "vm.prepareAndStart", vmPrepareAndStartNew)
 	o.vosMethod(k, "vm.stopAndUnprepare", vmStopAndUnprepareNew)
 	o.vosMethod(k, "vm.shutdown", vmShutdownNew)
 	o.vosMethod(k, "vm.prepare", vmPrepareNew)
+	o.vosMethod(k, "vm.destroy", vmDestroyNew)
 	o.vosMethod(k, "vm.unprepare", vmUnprepareNew)
 	o.vosMethod(k, "vm.stop", vmStopNew)
 	o.vosMethod(k, "vm.reinitialize", vmReinitializeNew)

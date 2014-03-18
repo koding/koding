@@ -229,6 +229,9 @@ class AceAppView extends JView
 
     @on "exitMenuItemClicked", => @appManager.quit @appManager.frontApp
 
+    @on "keyBindingsMenuItemClicked", => new EditorMacroView
+
+
   getAdvancedSettingsMenuView: ->
     pane = @tabView.getActivePane()
     {aceView} = pane.getOptions()

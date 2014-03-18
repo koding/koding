@@ -132,14 +132,8 @@ class KiteController extends KDController
       then kite.vmOn()
       else Promise.cast()
 
-    ok
-    .then =>
-      method =
-        if KD.useNewKites
-        then 'tell'
-        else 'tell2'
-
-      kite[method] options.method, options.withArgs
+    ok.then =>
+      kite.tell2 options.method, options.withArgs
 
     .nodeify (err, response) =>
       @parseKiteResponse {err, response}, options, callback

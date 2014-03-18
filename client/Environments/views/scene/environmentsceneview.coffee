@@ -221,7 +221,6 @@ class EnvironmentApprovalModal extends KDModalView
       Yes                 :
         loader            :
           color           : "#444444"
-          diameter        : 12
         cssClass          : if options.action is 'delete' \
                             then "modal-clean-red" else "modal-clean-green"
         callback          : =>
