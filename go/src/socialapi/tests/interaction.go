@@ -7,7 +7,7 @@ import (
 )
 
 func testInteractionOperations() {
-	post, err := createPost()
+	post, err := createPost(CHANNEL_ID, ACCOUNT_ID)
 	if err != nil {
 		fmt.Println("error while creating post", err)
 		err = nil
