@@ -66,7 +66,7 @@ class EnvironmentItem extends KDDiaObject
 
   saveColorTag:(color)->
 
-    return unless @parent.appStorage
+    return unless @parent?.appStorage
 
     colorTags = (@parent.appStorage.getValue 'colorTags') or {}
     name      = @constructor.name
@@ -76,6 +76,8 @@ class EnvironmentItem extends KDDiaObject
     @parent.appStorage.setValue 'colorTags', colorTags
 
   loadColorTag:->
+
+    return unless @parent?.appStorage
 
     colorTags = (@parent.appStorage.getValue 'colorTags') or {}
     name      = @constructor.name
