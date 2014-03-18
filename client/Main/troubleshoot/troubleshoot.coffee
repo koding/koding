@@ -16,15 +16,14 @@ class Troubleshoot extends KDObject
     # health check of leaves happens with its successor root
     @checkSequence =
       connection       :
-        webServer      : 0
+        webServer      :
+          version      : 0
         brokerKite     :
           osKite       :
             vm         : 0
         bongo          :
           broker       :
             liveUpdate : 0
-        version        : 0
-        lastSeen       : 0
 
     @registerItems()
 
