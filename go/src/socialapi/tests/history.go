@@ -25,7 +25,7 @@ func testHistoryOperations() {
 
 		ACCOUNT_ID = channelParticipant.AccountId
 
-		_, err = createPost()
+		_, err = createPost(CHANNEL_ID, ACCOUNT_ID)
 		if err != nil {
 			fmt.Println("error while creating post", err)
 			err = nil
