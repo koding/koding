@@ -173,3 +173,84 @@ class StackView extends KDView
 
     return items
 
+  confirmStackDelete: ->
+    stackMeta  = @getOptions().stack.meta or {}
+    stackTitle = stackMeta.title or ""
+    stackSlug  = stackMeta.slug  or "confirm"
+
+    modal      = new VmDangerModalView
+      name     : stackTitle
+      action   : "DELETE MY STACK"
+      title    : "Delete your #{stackTitle} stack"
+      width    : 650
+      content  : """
+          <div class='modalformline'>
+            <p><strong>CAUTION! </strong>This will destroy your #{stackTitle} stack including</strong>
+            all VMs and domains inside this stack. You will also lose all your data in your VMs. This action <strong>CANNOT</strong> be undone.</p><br><p>
+            Please enter <strong>#{stackSlug}</strong> into the field below to continue: </p>
+          </div>
+        """
+      callback : => @deleteStack modal
+    , stackSlug
+
+  deleteDomains: (callback = noop) ->
+    domainDias    = @domains.dias
+    domainDiaKeys = Object.keys domainDias
+    domainCouter  = 0
+    domainQueue   = domainDiaKeys.map (key) =>=>
+      domainDias[key].data.domain.remove (err, res) =>
+        return @handleStackDeleteError err  if err
+        domainCouter++
+        domainQueue.next()
+        log "domain deleted"
+        if domainCouter is domainDiaKeys.length
+          log "all domains deleted"
+          callback()
+
+    Bongo.daisy domainQueue
+
+  deleteVms: (callback = noop) ->
+    vmc       = KD.getSingleton "vmController"
+    vmDias    = @vms.dias
+    vmDiaKeys = Object.keys vmDias
+    vmCounter = 0
+    vmQueue   = vmDiaKeys.map (key) =>=>
+      vmc.deleteVmByHostname vmDias[key].data.hostnameAlias, (err) =>
+        return @handleStackDeleteError err  if err
+        vmCounter++
+        vmQueue.next()
+        log "vm deleted"
+        if vmCounter is vmDiaKeys.length
+          log "all vms deleted"
+          callback()
+
+    Bongo.daisy vmQueue
+
+  deleteJStack: ->
+    {stack} = @getOptions()
+    stack.remove (err, res) =>
+      return @handleStackDeleteError err  if err
+      @destroy()
+
+  deleteStack: (modal) ->
+    hasDomain = Object.keys(@domains.dias).length
+    hasVm     = Object.keys(@vms.dias).length
+
+    @on "KDObjectWillBeDestroyed", -> modal.destroy()
+
+    if hasDomain
+      @deleteDomains =>
+        if hasVm
+          @deleteVms =>
+            @deleteJStack()
+        else
+          @deleteJStack()
+    else if hasVm
+      @deleteVms =>
+        @deleteJStack()
+    else
+      @deleteJStack()
+
+  handleStackDeleteError: (err) ->
+    # TODO: Implement this
+    warn err if err
