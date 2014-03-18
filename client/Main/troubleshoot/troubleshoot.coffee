@@ -67,9 +67,11 @@ class Troubleshoot extends KDObject
       @registerItem "bongo", bongoStatus.healthCheck.bind bongoStatus
 
 
-  registerItem : (name, cb) ->
-    @items[name] = new HealthChecker {}, cb
     @registerItem "vm", timeout: 10000, speedCheck: no, checkVm
+
+  registerItem : (name, options, cb) ->
+    cb = options  unless cb
+    @items[name] = new HealthChecker options, cb
 
 
   getItems: ->
