@@ -237,11 +237,14 @@ class ClassroomAppView extends KDScrollView
       type       : "mini"
       title      : "Fetching zip file..."
       duration   : 200000
-    vmController.run "mkdir -p #{path} ; cd #{path} ; wget -O #{fileName} #{url}", (err, res) =>
+    vmController.run "mkdir -p #{path} ; cd #{path} ; wget -O #{fileName} #{url}", (err, res)->
       return warn err if err
+      return warn res.stderr if res.exitStatus > 0
+
       notification.notificationSetTitle "Extracting zip file..."
-      vmController.run "cd #{path} ; unzip #{fileName} ; rm #{fileName} ; rm -rf __MACOSX", (err, res) =>
+      vmController.run "cd #{path} ; unzip #{fileName} ; rm #{fileName} ; rm -rf __MACOSX", (err, res)->
         return warn err if err
+        return warn res.stderr if res.exitStatus > 0
 
 
   readFileContent: (path, callback = noop) ->

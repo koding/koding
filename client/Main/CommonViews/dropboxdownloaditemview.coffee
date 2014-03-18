@@ -37,7 +37,9 @@ class DropboxDownloadItemView extends JView
         withArgs: "cd #{path} ; wget #{fileData.link}"
         vmName  : @getOptions().nodeView.getData().vmName
       , (err, res) =>
-        return  warn err if err
+        return warn err  if err
+        return warn res.stderr if res.exitStatus > 0
+
         @loader.hide()
         @success.show()
         @emit "FileDownloadDone"
