@@ -17,6 +17,7 @@ func main() {
 	testInteractionOperations()
 	testReplyOperations()
 	testHistoryOperations()
+	testFrontpageOperations()
 }
 func sendModel(reqType, url string, model interface{}) (interface{}, error) {
 
