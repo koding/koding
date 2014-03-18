@@ -2,9 +2,10 @@ jraphical = require 'jraphical'
 module.exports = class JKite extends jraphical.Module
   {permit}            = require './group/permissionset'
   {secure, signature} = require 'bongo'
-  {JKitePlan}         = require './kiteplan'
-  {JAccount}         = require './account'
+  JKitePlan           = require './kiteplan'
+  JAccount            = require './account'
   KodingError         = require '../error'
+  {Relationship}      = jraphical
 
   @share()
   @set
@@ -13,7 +14,6 @@ module.exports = class JKite extends jraphical.Module
       'list kites'        : ['member']
     schema                :
       name                : String
-      owner               : String
       createdAt           :
         type              : Date
         default           : -> new Date
@@ -23,7 +23,7 @@ module.exports = class JKite extends jraphical.Module
     sharedMethods         :
       static:
         create:
-          (signature Object, Object, Function)
+          (signature Object, Function)
         list:
           (signature Object, Object, Function)
       instance:
@@ -33,7 +33,7 @@ module.exports = class JKite extends jraphical.Module
           (signature Function)
         fetchSubscriptions:
           (signature Function)
-        fetchKitePlans:
+        fetchPlans:
           (signature Function)
         removePlan:
           (signature Object, Function)
@@ -41,10 +41,6 @@ module.exports = class JKite extends jraphical.Module
       plan          :
         as          : 'kitePlan'
         targetType  : JKitePlan
-      owner         :
-        as          : ['owner','kiteSubscription']
-        targetType  : JAccount
-
 
   @create: permit 'create kite',
     success:(client, formData, callback)->
