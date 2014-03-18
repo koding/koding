@@ -3,6 +3,7 @@
 package oskite
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
 	"io"
@@ -11,6 +12,8 @@ import (
 	"koding/tools/kite"
 	"koding/virt"
 	"os"
+	"os/exec"
+	"syscall"
 	"time"
 
 	"labix.org/v2/mgo/bson"
@@ -85,6 +88,41 @@ func execFuncOld(args *dnode.Partial, c *kite.Channel, vos *virt.VOS) (interface
 }
 
 ////////////////////
+
+type output struct {
+	Stdout     string `json:"stdout"`
+	Stderr     string `json:"stderr"`
+	ExitStatus int    `json:"exitStatus"`
+}
+
+func newOutput(cmd *exec.Cmd) (interface{}, error) {
+	stdoutBuffer, stderrBuffer := new(bytes.Buffer), new(bytes.Buffer)
+	cmd.Stdout, cmd.Stderr = stdoutBuffer, stderrBuffer
+	var exitStatus int
+
+	err := cmd.Run()
+	if err != nil {
+		if exitErr, ok := err.(*exec.ExitError); !ok {
+			return nil, err // return if it's not an exitError
+		} else {
+			exitStatus = exitErr.Sys().(syscall.WaitStatus).ExitStatus()
+		}
+	}
+
+	return output{
+		Stdout:     stdoutBuffer.String(),
+		Stderr:     stderrBuffer.String(),
+		ExitStatus: exitStatus,
+	}, nil
+}
+
+func execFunc(line string, vos *virt.VOS) (interface{}, error) {
+	return newOutput(vos.VM.AttachCommand(vos.User.Uid, "", "/bin/bash", "-c", line))
+}
+
+func spawnFunc(command []string, vos *virt.VOS) (interface{}, error) {
+	return newOutput(vos.VM.AttachCommand(vos.User.Uid, "", command...))
+}
 
 func vmStart(vos *virt.VOS) (interface{}, error) {
 	if !vos.Permissions.Sudo {
@@ -281,14 +319,6 @@ func vmReinitialize(vos *virt.VOS) (interface{}, error) {
 	}
 
 	return true, nil
-}
-
-func execFunc(line string, vos *virt.VOS) (interface{}, error) {
-	return vos.VM.AttachCommand(vos.User.Uid, "", "/bin/bash", "-c", line).CombinedOutput()
-}
-
-func spawnFunc(command []string, vos *virt.VOS) (interface{}, error) {
-	return vos.VM.AttachCommand(vos.User.Uid, "", command...).CombinedOutput()
 }
 
 func startAndPrepareVM(vm *virt.VM) error {

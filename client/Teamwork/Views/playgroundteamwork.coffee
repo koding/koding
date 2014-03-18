@@ -71,6 +71,7 @@ class PlaygroundTeamwork extends TeamworkWorkspace
     return warn "no command passed for prerequisite"  unless command
     KD.getSingleton("vmController").run command, (err, res) =>
       return warn err  if err
+      return warn res.stderr  if res.exitStatus > 0
       callback()
 
   setUpInitialState: (initialState) ->

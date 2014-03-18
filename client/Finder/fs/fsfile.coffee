@@ -68,7 +68,7 @@ class FSFile extends FSItem
     kite.vmOn()
     .then =>
 
-      ok = kite.fsEnsureNonexistentPath(path: "#{newPath}")
+      ok = kite.fsUniquePath(path: "#{newPath}")
       .then (actualPath) =>
 
         file = FSHelper.createFile {

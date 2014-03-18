@@ -12,6 +12,12 @@ class FSHelper
     return { size, user, group, createdAt, mode, type, \
              parentPath, path, name, vmName:vmName, treeController, osKite }
 
+  @handleStdErr = ->
+    (result) ->
+      { stdout, stderr, exitStatus } = result
+      throw new Error "std error: #{ stderr }"  if exitStatus > 0
+      return result
+
   @parseWatcher = ({ vmName, parentPath, files, treeController, osKite })->
     data = []
     return data unless files
@@ -76,9 +82,9 @@ class FSHelper
       withArgs : {pattern}
     , callback
 
-  @ensureNonexistentPath = (path, vmName, callback=noop)->
+  @uniquePath = (path, vmName, callback=noop)->
     KD.getSingleton('vmController').run
-      method   : "fs.ensureNonexistentPath"
+      method   : "fs.uniquePath"
       vmName   : vmName
       withArgs : {path}
     , callback

@@ -22,8 +22,7 @@ class VmDangerModalView extends KDModalViewWithForms
               type           : 'submit'
               disabled       : yes
               loader         :
-                color        : '#ffffff'
-                diameter     : 15
+                color        : '#E94835'
               callback       : -> @showLoader()
             Cancel           :
               style          : 'modal-cancel'
