@@ -10,7 +10,11 @@ class EnvironmentsMainScene extends JView
 
   viewAppended:->
 
-    @addSubView header = new KDView
+    container  = new KDCustomHTMLView
+      tagName  : "section"
+      cssClass : "environments-header"
+
+    container.addSubView header = new KDView
       tagName  : 'header'
       partial  : """
         <h1>Environments</h1>
@@ -24,6 +28,8 @@ class EnvironmentsMainScene extends JView
       cssClass : "solid green medium create-stack"
       title    : "Create a new stack"
       callback : @bound "showCreateStackModal"
+
+    @addSubView container
 
     freePlanView = new KDView
       cssClass : "top-warning"
