@@ -193,6 +193,9 @@ app.get "/activity/p/?*", (req, res)->
 app.get "/healthCheck", (req, res) ->
   res.jsonp(result:1)
 
+app.get "/getVersion", (req, res) ->
+  res.jsonp(version:KONFIG.version)
+
 app.get "/sitemap:sitemapName", (req, res)->
   {JSitemap}       = koding.models
 
