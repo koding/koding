@@ -34,10 +34,8 @@ module.exports = class JReferral extends jraphical.Message
   @set
     sharedMethods     :
       static          :
-        addExtraReferral:[
+        addExtraReferral:
           (signature Object, Function)
-          (signature Object, Object, Function)
-        ]
         redeem:
           (signature Object, Function)
         changeBaseVMForUsers:[
