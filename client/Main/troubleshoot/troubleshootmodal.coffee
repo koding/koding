@@ -52,7 +52,7 @@ class TroubleshootModal extends KDModalViewWithForms
 
       if troubleshoot.isSystemOK()
         return @modalTabs.forms.Troubleshoot.fields.result.show()
-      @showFeedback()  unless troubleshoot.isConnectionDown()
+      @showFeedback()  unless troubleshoot.isConnectionFailed()
 
 
     KD.troubleshoot()

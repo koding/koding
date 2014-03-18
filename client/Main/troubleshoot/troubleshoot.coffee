@@ -31,7 +31,7 @@ class Troubleshoot extends KDObject
 
   isSystemOK: ->
     for own name, item of @items
-      return no  if item.status is "down"
+      return no  if item.status is "fail"
 
     yes
 
@@ -41,8 +41,8 @@ class Troubleshoot extends KDObject
     @timeout = null
     @emit "troubleshootCompleted"
 
-  isConnectionDown: ->
-    @items["connection"].status is "down"
+  isConnectionFailed: ->
+    @items["connection"].status is "fail"
 
   resetAllItems: ->
     for own name, item of @items
@@ -67,6 +67,10 @@ class Troubleshoot extends KDObject
     KD.remote.once "modelsReady", =>
       bongoStatus = KD.remote.api.JSystemStatus
       @registerItem "bongo", bongoStatus.healthCheck.bind bongoStatus
+
+    KD.singleton("mainController").on "AccountChanged", =>
+      liveUpdateChecker = new LiveUpdateChecker
+      @registerItem "liveUpdate", liveUpdateChecker.healthCheck.bind liveUpdateChecker
 
     @registerItem "version", speedCheck: no, checkVersion
 
@@ -106,7 +110,7 @@ class Troubleshoot extends KDObject
     result = ""
     for own name, item of @items
       premium = if name in ["broker", "brokerKite"] and KD.config.usePremiumBroker then "premium" else ""
-      result = "#{result} #{premium}#{name}"  if item.status is "down"
+      result = "#{result} #{premium}#{name}"  if item.status is "fail"
     result
 
 
