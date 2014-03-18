@@ -69,11 +69,19 @@ class Troubleshoot extends KDObject
 
   registerItem : (name, cb) ->
     @items[name] = new HealthChecker {}, cb
+    @registerItem "vm", timeout: 10000, speedCheck: no, checkVm
 
 
   getItems: ->
     @items
 
+
+  checkVm = (callback) ->
+    {vmController} = KD.singletons
+    # probably we will need to check all vms
+    vmController.once "vm.state.info", ({alias, state}) =>
+      @status = "fail"  if state.state isnt "RUNNING"
+      callback null
 
   getFailureFeedback: ->
     result = ""
