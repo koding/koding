@@ -16,8 +16,8 @@ __saveToDropbox = (nodeView) ->
     vmController.run
       withArgs   : command
       vmName     : nodeView.getData().vmName
-    , (err, res) =>
-      if err
+    , (err, res)->
+      if err or res.exitStatus > 0
         notification.notificationSetTitle "An error occured. Please try again."
         notification.notificationSetTimer 4000
         notification.setClass "error"
