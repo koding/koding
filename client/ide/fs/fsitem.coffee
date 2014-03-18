@@ -10,11 +10,11 @@ class FSItem extends KDObject
 
     kite = KD.getSingleton('vmController').getKiteByVmName vmName
 
-    kite.vmOn().then =>
+    kite.vmOn().then ->
 
       plainPath = FSHelper.plainPath path
 
-      method = 
+      method =
         if type is "folder"
         then "fsCreateDirectory"
         else "fsWriteFile"
@@ -42,13 +42,13 @@ class FSItem extends KDObject
     kite = sourceItem.getKite()
 
     targetPath = FSHelper.plainPath "#{targetItem.path}/#{sourceItem.name}"
-    
+
     file = null
 
     kite.vmOn().then ->
 
-      kite.fsEnsureNonexistentPath(path: targetPath).then (actualPath) ->
-        
+      kite.fsUniquePath(path: targetPath).then (actualPath) ->
+
         command = "#{ commandPrefix } #{ escapeFilePath sourceItem.path } #{ escapeFilePath actualPath }"
 
         kite.exec(command)
@@ -77,7 +77,7 @@ class FSItem extends KDObject
     @copyOrMove sourceItem, targetItem, 'cp -R', callback
 
   @move:(sourceItem, targetItem, callback)->
-    
+
     newName = FSHelper.plainPath "#{ targetItem.path }/#{ sourceItem.name }"
     sourceItem.rename path: newName, callback
 
@@ -91,7 +91,7 @@ class FSItem extends KDObject
 
     kite.vmOn().then ->
 
-      kite.fsEnsureNonexistentPath { path }
+      kite.fsUniquePath { path }
 
     .then (actualPath) ->
 
@@ -119,7 +119,7 @@ class FSItem extends KDObject
     zipPattern = /\.zip$/
 
     path = FSHelper.plainPath file.path
-    
+
     [isTarGz, extractFolder] = switch
 
       when tarPattern .test file.name
@@ -131,8 +131,8 @@ class FSItem extends KDObject
     kite.vmOn()
 
     .then ->
-      kite.fsEnsureNonexistentPath(path: "#{ extractFolder }")
-      
+      kite.fsUniquePath(path: "#{ extractFolder }")
+
     .then (actualPath) ->
 
       command =
@@ -233,7 +233,7 @@ class FSItem extends KDObject
 
   stat:(callback=noop)->
     kite = @getKite()
-    
+
     kite.vmOn().then =>
 
       kite.fsGetInfo path: @getPath()
