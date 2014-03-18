@@ -26,6 +26,8 @@ class Troubleshoot extends KDObject
             liveUpdate : 0
 
     @registerItems()
+    @idleUserDetector = new IdleUserDetector threshold: 3600000
+    @forwardEvent @idleUserDetector, "userIdle"
 
   isSystemOK: ->
     for own name, item of @items
