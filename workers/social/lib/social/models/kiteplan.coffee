@@ -55,10 +55,10 @@ module.exports = class JKitePlan extends jraphical.Module
 
   modify: permit 'edit kite plan',
     success:(client, formData, callback)->
-      {kiteId} = formData
+      {kite} = formData
       Relationship.one {
         targetName  : "JKite"
-        targetId    : kiteId
+        targetId    : kite._id
         sourceName  : "JAccount"
         sourceId    : account.getId()
         as          : "owner"
@@ -85,6 +85,16 @@ module.exports = class JKitePlan extends jraphical.Module
         @remove (err, res)->
           return  callback err, res
 
+  # we may change this method after implementing
+  # recurly calls for each subscription.
+  fetchPlanSubscriptions: permit 'fetch plans',
+    success:(client, callback)->
+      Relationship.some {
+        targeName   : "JKitePlan"
+        targetId    : @getId()
+        sourceName  : "JAccount"
+        as          : "kiteSubscription"
+      }, callback
 
 
 
