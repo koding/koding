@@ -18,21 +18,6 @@ class ActivityAppController extends AppController
 
   USEDFEEDS = []
 
-  activityTypes = [
-    'Everything'
-  ]
-
-  newActivitiesArrivedTypes = [
-    'CStatusActivity'
-    'CCodeSnipActivity'
-    'CFollowerBucketActivity'
-    'CNewMemberBucketActivity'
-    'CDiscussionActivity'
-    'CTutorialActivity'
-    'CInstallerBucketActivity'
-    'CBlogPostActivity'
-  ]
-
   @clearQuotes = clearQuotes = (activities)->
     return activities = for own activityId, activity of activities
       activity.snapshot = activity.snapshot?.replace /&quot;/g, '\"'
@@ -78,8 +63,6 @@ class ActivityAppController extends AppController
     @reachedEndOfActivities = no
     @listController.resetList()
     @listController.removeAllItems()
-
-  fetchCurrentGroup:(callback)-> callback @currentGroupSlug
 
   search:(text)->
     text = Encoder.XSSEncode text
@@ -182,11 +165,6 @@ class ActivityAppController extends AppController
       callback messages
 
     fetch = =>
-
-      #since it is not working, disabled it,
-      #to-do add isExempt control.
-      #@isExempt (exempt)=>
-      #if exempt or @getFilter() isnt activityTypes
 
       groupObj     = groupsController.getCurrentGroup()
       mydate       = new Date((new Date()).setSeconds(0) + 60000).getTime()
@@ -355,16 +333,6 @@ class ActivityAppController extends AppController
     return unless teasers.first
     @setLastTimestamps new Date(teasers.last.meta.createdAt).getTime(), new Date(teasers.first.meta.createdAt).getTime()
 
-  sanitizeCache:(cache, callback)->
-    activities = clearQuotes cache.activities
-
-    KD.remote.reviveFromSnapshots activities, (err, instances)->
-      for activity,i in activities
-        cache.activities[activity._id] or= {}
-        cache.activities[activity._id].teaser = instances[i]
-
-      callback null, cache
-
   createContentDisplay:(activity, callback=->)->
     contentDisplay = @createStatusUpdateContentDisplay activity
     @utils.defer -> callback contentDisplay
@@ -414,8 +382,6 @@ class ActivityAppController extends AppController
         @profileLastTo = (new Date(lastOne)).getTime()
       callback err, activities
 
-  unhideNewItems: ->
-    @listController?.activityHeader.updateShowNewItemsLink yes
 
   getNewItemsCount: (callback) ->
     callback? @listController?.activityHeader?.getNewItemsCount() or 0
@@ -442,10 +408,6 @@ class ActivityAppController extends AppController
 
     @status.disconnect()
     @refresh()
-
-  feederBridge : (options, callback)->
-
-    KD.getSingleton("appManager").tell 'Feeder', 'createContentFeedController', options, callback
 
   resetProfileLastTo : ->
     @profileLastTo = null
