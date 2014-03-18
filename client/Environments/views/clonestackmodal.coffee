@@ -123,7 +123,7 @@ class CloneStackModal extends KDModalView
     @stack.remove()
 
   createStack: (callback = noop) ->
-    KD.remote.api.JStack.createStack {name: "ali"}, (err, @stack) =>
+    KD.remote.api.JStack.createStack @getOptions().meta, (err, @stack) =>
       title = "Failed to create a new stack. Try again later!"
       return new KDNotificationView { title }  if err
 
