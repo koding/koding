@@ -1,8 +1,8 @@
 package models
 
 type HistoryResponse struct {
-	MessageList []ChannelMessage `json:"messageList"`
-	UnreadCount int              `json:"unreadCount"`
+	MessageList []*ChannelMessageContainer `json:"messageList"`
+	UnreadCount int                        `json:"unreadCount"`
 	// To          time.Time        `json:"to,omitempty"`
 	// From        time.Time        `json:"from,omitempty"`
 }
