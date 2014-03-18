@@ -89,4 +89,9 @@ class EnvironmentsMainScene extends JView
             stackView.setClass "hilited"
 
   cloneStack: (stackData) ->
-    new CloneStackModal {}, stackData
+    log stackData
+    new CreateStackModal
+      title   : "Give a title to your new stack"
+      callback: (meta, modal) =>
+        modal.destroy()
+        new CloneStackModal { meta }, stackData

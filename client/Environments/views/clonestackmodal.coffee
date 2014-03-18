@@ -5,6 +5,7 @@ class CloneStackModal extends KDModalView
     options.overlay  = yes
     options.width    = 720
     options.cssClass = "clone-stack-modal loading"
+    options.meta   or= {}
 
     super options, data
 
@@ -43,17 +44,26 @@ class CloneStackModal extends KDModalView
     @createDomainCreationButtons()
 
   createDomainCreateForm: (domain) ->
-    form = new DomainCreateForm {}, { @stack }
+    form  = new DomainCreateForm {}, { @stack }
+    input = form.subdomainForm.inputs.domainName
     form.addSubView new KDCustomHTMLView
       tagName  : "span"
       cssClass : "old-name"
       partial  : domain.title
-      click    : -> form.subdomainForm.inputs.domainName.setFocus()
+      click    : -> input.setFocus()
 
     form.addSubView new KDCustomHTMLView
       tagName  : "span"
       cssClass : "icon"
-      click    : -> form.subdomainForm.inputs.domainName.setFocus()
+      click    : -> input.setFocus()
+
+    form.once "viewAppended", =>
+      # FIXME: fatihacet - what about group related urls ?
+      splitted = domain.title.split "."
+      splitted.first = ""  if splitted.first is KD.nick()
+
+      KD.utils.wait 300, => # need to remove this timeout
+        input.setValue "#{splitted.first}-#{@getOptions().meta.slug}"
 
     @addSubView form
     @domainCreateForms.push form

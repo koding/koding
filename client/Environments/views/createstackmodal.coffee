@@ -2,12 +2,9 @@ class CreateStackModal extends KDModalViewWithForms
 
   constructor: (options = {}, data) ->
 
-    options.overlay           = yes
-    options.width             = 720
-    options.cssClass          = "clone-stack-modal"
-    options.title             = "Create a new stack"
-    options.cssClass          = "create-stack"
-    options.content           = ""
+    options.cssClass          = KD.utils.curry "create-stack", options.cssClass
+    options.title           or= "Create a new stack"
+    options.content         or= ""
     options.overlay           = yes
     options.width             = 720
     options.height            = "auto"
@@ -29,7 +26,7 @@ class CreateStackModal extends KDModalViewWithForms
             cancel            :
               title           : "Cancel"
               style           : "modal-cancel"
-              callback        : -> @destroy()
+              callback        : => @destroy()
           fields              :
             title             :
               label           : "Stack title"
