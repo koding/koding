@@ -10,15 +10,45 @@ import (
 	"labix.org/v2/mgo/bson"
 )
 
-type Usage struct {
+type Plan struct {
 	CPU         int `json:"cpu"`
 	RAM         int `json:"ram"`
-	Disk        int `json:"disk"`
-	AlwaysOnVMs int `json:"alwaysOnVMs"`
+	Disk        int `json:"Disk"`
 	TotalVMs    int `json:"totalVMs"`
+	AlwaysOnVMs int `json:"alwaysOnVMs"`
 }
 
-func NewUsage(vos *virt.VOS) (*Usage, error) {
+var (
+	ErrQuotaExceeded = errors.New("quota exceeded")
+
+	plans = map[string]Plan{
+		"Free": {CPU: 1, RAM: 1, Disk: 3, TotalVMs: 1, AlwaysOnVMs: 0},
+		"1x":   {CPU: 2, RAM: 2, Disk: 10, TotalVMs: 2, AlwaysOnVMs: 1},
+		"2x":   {CPU: 4, RAM: 4, Disk: 20, TotalVMs: 4, AlwaysOnVMs: 2},
+		"3x":   {CPU: 6, RAM: 6, Disk: 40, TotalVMs: 6, AlwaysOnVMs: 3},
+		"4x":   {CPU: 8, RAM: 8, Disk: 80, TotalVMs: 8, AlwaysOnVMs: 4},
+		"5x":   {CPU: 10, RAM: 10, Disk: 100, TotalVMs: 10, AlwaysOnVMs: 5},
+	}
+)
+
+func (p *Plan) checkLimits(planID string) error {
+	plan, ok := plans[planID]
+	if !ok {
+		return errors.New("plan doesn't exist")
+	}
+
+	if p.AlwaysOnVMs >= plan.AlwaysOnVMs {
+		return ErrQuotaExceeded
+	}
+
+	if p.TotalVMs >= plan.TotalVMs {
+		return ErrQuotaExceeded
+	}
+
+	return nil
+}
+
+func NewUsage(vos *virt.VOS) (*Plan, error) {
 	vms := make([]*models.VM, 0)
 
 	query := func(c *mgo.Collection) error {
@@ -30,7 +60,7 @@ func NewUsage(vos *virt.VOS) (*Usage, error) {
 		return nil, fmt.Errorf("vm fetching err for user %s. err: %s", vos.VM.WebHome, err)
 	}
 
-	usage := new(Usage)
+	usage := new(Plan)
 	usage.TotalVMs = len(vms)
 
 	for _, vm := range vms {
