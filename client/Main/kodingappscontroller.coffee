@@ -418,9 +418,16 @@ class KodingAppsController extends KDController
     vmController.run {
       withArgs : "kdc #{app.path}"
       vmName   : app.vm
-    }, (err, response)=>
+    }, (err, response)->
 
-      unless err
+      if err
+
+        loader.notificationSetTitle "An unknown error occured"
+        loader.notificationSetTimer 2000
+        callback? err
+        warn err
+
+      else if response.exitStatus is 0
 
         loader.notificationSetTitle "App compiled successfully"
         loader.notificationSetTimer 2000
@@ -430,9 +437,11 @@ class KodingAppsController extends KDController
 
         loader.destroy()
 
-        if err.message is "exit status 127"
+        err = response.stderr or response.stdout
+
+        if response.exitStatus is 127
           KodingAppsController.installKDC()
-          callback? err
+          callback? { message: "KDC is not installed: #{err}" }
           return
 
         new KDModalView
@@ -440,11 +449,9 @@ class KodingAppsController extends KDController
           width    : 600
           overlay  : yes
           cssClass : 'compiler-modal'
-          content  : if response then "<pre>#{response}</pre>" \
-                                 else "<p>#{err.message}</p>"
+          content  : "<pre>#{err}</pre>"
 
-        callback? err
-
+        callback? { message: "Failed to compile: #{err}" }
 
   @createJApp = (path, callback)->
 
