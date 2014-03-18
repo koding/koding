@@ -70,7 +70,7 @@ func List(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface
 	// set message id
 	req.MessageId = messageId
 
-	interactions, err := req.List()
+	interactions, err := req.List("like")
 	if err != nil {
 		return helpers.NewBadRequestResponse()
 	}
