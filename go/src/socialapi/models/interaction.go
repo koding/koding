@@ -71,7 +71,7 @@ func (i *Interaction) Delete() error {
 	return nil
 }
 
-func (c *Interaction) List() ([]int64, error) {
+func (c *Interaction) List(interactionType string) ([]int64, error) {
 	var interations []int64
 
 	if c.MessageId == 0 {
