@@ -14,17 +14,17 @@ class VM extends KDObject
     fsGetInfo       : 'fs.getInfo'
     fsSetPermissions: 'fs.setPermissions'
     fsRemove        : 'fs.remove'
-    
-    fsEnsureNonexistentPath: 'fs.ensureNonexistentPath'
+
+    fsUniquePath    : 'fs.uniquePath'
     fsWriteFile     : 'fs.writeFile'
     fsRename        : 'fs.rename'
     fsCreateDirectory: 'fs.createDirectory'
 
     s3Store         : 's3.store'
     s3Delete        : 's3.delete'
-    
+
     vmStart         : 'vm.start'
-    vmShutdown      : 'vm.shutdown' 
+    vmShutdown      : 'vm.shutdown'
     vmUnprepare     : 'vm.unprepare'
     vmStop          : 'vm.stop'
     vmReinitialize  : 'vm.reinitialize'

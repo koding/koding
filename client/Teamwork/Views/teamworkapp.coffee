@@ -221,7 +221,11 @@ class TeamworkApp extends KDObject
     vmController.run
       withArgs: "curl -kLs #{path}"
       vmName  : vmController.defaultVmName
-    , (err, contents) =>
+    , (err, res) ->
+      return warn err  if err
+      return warn res.stderr if res.exitStatus > 0
+
+      contents  = res.stdout
       extension = FSItem.getFileExtension path
       error     = null
 
