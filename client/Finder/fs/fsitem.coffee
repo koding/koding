@@ -4,7 +4,7 @@ class FSItem extends KDObject
   CLASS CONTEXT
   ###
 
-  { escapeFilePath } = FSHelper
+  { escapeFilePath, handleStdErr } = FSHelper
 
   @create:({ path, type, vmName, treeController }, callback)->
 
@@ -51,8 +51,11 @@ class FSItem extends KDObject
         
         command = "#{ commandPrefix } #{ escapeFilePath sourceItem.path } #{ escapeFilePath actualPath }"
 
-        kite.exec(command).then ->
+        kite.exec(command)
 
+        .then(handleStdErr())
+
+        .then ->
           file = FSHelper.createFile {
             path        : actualPath
             parentPath  : targetItem.path
@@ -65,7 +68,7 @@ class FSItem extends KDObject
 
     .nodeify(callback)
 
-    .then ->
+    .finally ->
       sourceItem.emit "fs.job.finished"
 
       return file
@@ -100,9 +103,11 @@ class FSItem extends KDObject
 
       kite.exec command
 
+    .then(handleStdErr())
+
     .nodeify(callback)
 
-    .then ->
+    .finally ->
       file.emit "fs.job.finished"
 
   @extract: (file, callback = (->)) ->
@@ -138,6 +143,8 @@ class FSItem extends KDObject
 
       kite.exec(command)
 
+    .then(handleStdErr())
+
     .then ->
 
       file = FSHelper.createFile {
@@ -151,7 +158,7 @@ class FSItem extends KDObject
 
     .nodeify(callback)
 
-    .then ->
+    .finally ->
       file.emit "fs.job.finished"
 
   @getFileExtension: (path) ->
