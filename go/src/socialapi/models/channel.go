@@ -100,3 +100,16 @@ func (c *Channel) Create() error {
 func (c *Channel) Delete() error {
 	return c.m.Delete(c)
 }
+
+func (c *Channel) FetchByIds(ids []int64) ([]Channel, error) {
+	var channels []Channel
+
+	if len(ids) == 0 {
+		return channels, nil
+	}
+
+	if err := c.m.FetchByIds(c, &channels, ids); err != nil {
+		return nil, err
+	}
+	return channels, nil
+}
