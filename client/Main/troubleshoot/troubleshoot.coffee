@@ -66,6 +66,7 @@ class Troubleshoot extends KDObject
       bongoStatus = KD.remote.api.JSystemStatus
       @registerItem "bongo", bongoStatus.healthCheck.bind bongoStatus
 
+    @registerItem "version", speedCheck: no, checkVersion
 
     @registerItem "vm", timeout: 10000, speedCheck: no, checkVm
 
@@ -84,6 +85,20 @@ class Troubleshoot extends KDObject
     vmController.once "vm.state.info", ({alias, state}) =>
       @status = "fail"  if state.state isnt "RUNNING"
       callback null
+
+
+  checkVersion = (callback) ->
+    $.ajax
+      url     : window.location.origin + "/getVersion"
+      success : (data) =>
+        @status = "fail"  unless data.version is KD.config.version
+        callback null
+      timeout : 5000
+      dataType: "jsonp"
+      error   : =>
+        @status = "fail"
+        callback null
+
 
   getFailureFeedback: ->
     result = ""
