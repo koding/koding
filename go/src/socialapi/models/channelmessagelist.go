@@ -102,7 +102,7 @@ func (c *ChannelMessageList) List(q *Query) (*HistoryResponse, error) {
 	return hr, nil
 }
 
-func (c *ChannelMessageList) getMessages(q *Query) ([]ChannelMessage, error) {
+func (c *ChannelMessageList) getMessages(q *Query) ([]*ChannelMessageContainer, error) {
 	var messages []int64
 
 	if c.ChannelId == 0 {
@@ -120,9 +120,56 @@ func (c *ChannelMessageList) getMessages(q *Query) ([]ChannelMessage, error) {
 	}
 
 	parent := NewChannelMessage()
-	channelMessageReplies, err := parent.FetchByIds(messages)
+	channelMessages, err := parent.FetchByIds(messages)
 	if err != nil {
 		return nil, err
 	}
-	return channelMessageReplies, nil
+
+	populatedChannelMessages, err := c.populateChannelMessages(channelMessages)
+	if err != nil {
+		return nil, err
+	}
+
+	return populatedChannelMessages, nil
+}
+
+func (c *ChannelMessageList) populateChannelMessages(channelMessages []ChannelMessage) ([]*ChannelMessageContainer, error) {
+	channelMessageCount := len(channelMessages)
+
+	populatedChannelMessages := make([]*ChannelMessageContainer, channelMessageCount)
+
+	if channelMessageCount == 0 {
+		return populatedChannelMessages, nil
+	}
+
+	for i := 0; i < channelMessageCount; i++ {
+		cm := channelMessages[i]
+		cmc, err := cm.FetchRelatives()
+		if err != nil {
+			return nil, err
+		}
+
+		populatedChannelMessages[i] = cmc
+
+		mr := NewMessageReply()
+		mr.MessageId = cm.Id
+		replies, err := mr.List()
+		if err != nil {
+			return nil, err
+		}
+
+		populatedChannelMessagesReplies := make([]*ChannelMessageContainer, len(replies))
+
+		for rl := 0; rl < len(replies); rl++ {
+			cmrc, err := replies[rl].FetchRelatives()
+			if err != nil {
+				return nil, err
+			}
+			populatedChannelMessagesReplies[rl] = cmrc
+		}
+		populatedChannelMessages[i].Replies = populatedChannelMessagesReplies
+
+	}
+	return populatedChannelMessages, nil
+
 }
