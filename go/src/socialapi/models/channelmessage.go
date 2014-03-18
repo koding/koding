@@ -1,6 +1,9 @@
 package models
 
-import "time"
+import (
+	"errors"
+	"time"
+)
 
 type ChannelMessage struct {
 	// unique identifier of the channel message
@@ -78,4 +81,34 @@ func (c *ChannelMessage) FetchByIds(ids []int64) ([]ChannelMessage, error) {
 		return nil, err
 	}
 	return messages, nil
+}
+
+func (c *ChannelMessage) FetchRelatives() (*ChannelMessageContainer, error) {
+	if c.Id == 0 {
+		return nil, errors.New("Channel message id is not set")
+	}
+	container := NewChannelMessageContainer()
+	container.Message = c
+
+	i := NewInteraction()
+	i.MessageId = c.Id
+
+	interactions, err := i.List("like")
+	if err != nil {
+		return nil, err
+	}
+
+	interactionContainer := NewInteractionContainer()
+	interactionContainer.Actors = interactions
+	// check this from database
+	interactionContainer.IsInteracted = true
+
+	if container.Interactions == nil {
+		container.Interactions = make(map[string]*InteractionContainer)
+	}
+	if _, ok := container.Interactions["like"]; !ok {
+		container.Interactions["like"] = NewInteractionContainer()
+	}
+	container.Interactions["like"] = interactionContainer
+	return container, nil
 }
