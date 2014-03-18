@@ -6,7 +6,6 @@ class EnvironmentsMainScene extends JView
 
     super options, data
 
-    @on "NewStackRequested",   @bound "createNewStack"
     @on "CloneStackRequested", @bound "cloneStack"
 
   viewAppended:->
@@ -20,6 +19,11 @@ class EnvironmentsMainScene extends JView
           Here you can setup your servers and development environment.
         </div>
       """
+
+    header.addSubView new KDButtonView
+      cssClass : "solid green medium create-stack"
+      title    : "Create a new stack"
+      callback : @bound "showCreateStackModal"
 
     freePlanView = new KDView
       cssClass : "top-warning"
@@ -45,8 +49,7 @@ class EnvironmentsMainScene extends JView
 
     @fetchStacks()
 
-  fetchStacks: (callback)->
-
+  fetchStacks: (callback) ->
     EnvironmentDataProvider.get (@environmentData) =>
       # console.clear()
       # log "environment data", @environmentData
@@ -61,10 +64,13 @@ class EnvironmentsMainScene extends JView
     stacks.forEach (stack, index) =>
       stack = new StackView  { stack, isDefault: index is 0 }, @environmentData
       @_stacks.push @addSubView stack
-      @forwardEvent stack, "NewStackRequested"
       @forwardEvent stack, "CloneStackRequested"
 
       callback?()  if index is stacks.length - 1
+
+  showCreateStackModal: ->
+    modal = new CreateStackModal
+      callback : @bound "createNewStack"
 
   createNewStack: (meta, modal) ->
     KD.remote.api.JStack.createStack meta, (err, stack) =>

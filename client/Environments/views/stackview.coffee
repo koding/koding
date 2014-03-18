@@ -51,16 +51,7 @@ class StackView extends KDView
           arrow       :
             placement : 'top'
             margin    : 150
-        ,
-          'Show stack recipe'  :
-            callback           : @bound "dumpStack"
-          'Clone this stack'   :
-            callback           : =>
-              @emit "CloneStackRequested", @getStackDump()
-          'Create a new stack' :
-            callback           : => new CreateStackModal
-              callback         : (meta, modal) =>
-                @emit "NewStackRequested", meta, modal
+        , @getMenuItems()
 
     # Main scene for DIA
     @addSubView @scene = new EnvironmentScene @getData().stack
@@ -167,4 +158,18 @@ class StackView extends KDView
   getProperHeight:->
     (Math.max.apply null, \
       (box.diaCount() for box in @scene.containers)) * 45 + 170
+
+  getMenuItems: ->
+    items =
+      'Show stack recipe'  :
+        callback           : @bound "dumpStack"
+      'Clone this stack'   :
+        callback           : =>
+          @emit "CloneStackRequested", @getStackDump()
+      'Delete stack'       :
+        callback           : @bound "confirmStackDelete"
+
+    delete items['Delete stack']  if @getOptions().isDefault
+
+    return items
 
