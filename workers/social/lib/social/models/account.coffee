@@ -22,7 +22,9 @@ module.exports = class JAccount extends jraphical.Module
   Graph            = require "./graph/graph"
   JName            = require './name'
   JBadge           = require './badge'
+  JKite            = require './kite'
   JReferrableEmail = require './referrableemail'
+  JKitePlan        = require './kiteplan'
 
   @getFlagRole            = 'content'
   @lastUserCountFetchTime = 0
