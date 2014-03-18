@@ -8,10 +8,10 @@ import (
 	"log"
 	"os"
 	"path/filepath"
-	"strconv"
 	"strings"
 
 	"github.com/koding/kite"
+	kiteconfig "github.com/koding/kite/config"
 	"github.com/koding/kite/kontrol"
 )
 
@@ -32,14 +32,6 @@ func main() {
 
 	conf := config.MustConfig(*profile)
 	modelhelper.Initialize(conf.Mongo)
-
-	kiteOptions := &kite.Options{
-		Kitename:    "kontrol",
-		Version:     "0.0.1",
-		Port:        strconv.Itoa(conf.NewKontrol.Port),
-		Environment: conf.Environment,
-		Region:      *region,
-	}
 
 	publicKey, err := ioutil.ReadFile(conf.NewKontrol.PublicKeyFile)
 	if err != nil {
@@ -68,12 +60,20 @@ func main() {
 		peers = strings.Split(*peersString, ",")
 	}
 
-	kon := kontrol.New(kiteOptions, hostname, datadir, peers, string(publicKey), string(privateKey))
+	kiteConf := kiteconfig.MustGet()
+	kiteConf.Port = conf.NewKontrol.Port
+	kiteConf.Environment = conf.Environment
+	kiteConf.Region = *region
+
+	// kon := kontrol.New(kiteOptions, hostname, datadir, peers, string(publicKey), string(privateKey))
+	kon := kontrol.New(kiteConf, string(publicKey), string(privateKey))
+	kon.Peers = peers
+	kon.DataDir = datadir
 
 	kon.AddAuthenticator("sessionID", authenticateFromSessionID)
 
 	if conf.NewKontrol.UseTLS {
-		kon.EnableTLS(conf.NewKontrol.CertFile, conf.NewKontrol.KeyFile)
+		kon.Server.UseTLSFile(conf.NewKontrol.CertFile, conf.NewKontrol.KeyFile)
 	}
 
 	kon.Run()

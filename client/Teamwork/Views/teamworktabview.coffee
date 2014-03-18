@@ -140,6 +140,8 @@ class TeamworkTabView extends CollaborativePane
       pane.getHandle().on "click", =>
         @handlePaneHandleClicked pane.getOptions()
 
+    @on 'PlusHandleClicked', @bound 'addNewTab'
+
   addNewTab: ->
     @createPlusHandleDropDown()
 

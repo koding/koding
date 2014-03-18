@@ -8,7 +8,6 @@ class WebTermController extends AppController
     route        :
       slug       : "/:name?/Terminal"
       handler    : ({params:{name}, query})->
-        # KD.utils.wait 800, ->
         router = KD.getSingleton 'router'
         router.openSection "Terminal", name, query
     multiple     : yes
@@ -43,7 +42,7 @@ class WebTermController extends AppController
     @globalNotification = null
     alreadyStarted      = no
 
-    @getView().on 'TerminalStarted', =>
+    @getView().once 'TerminalStarted', =>
       alreadyStarted = yes
       if @globalNotification
         KD.utils.wait 300, =>
@@ -94,6 +93,14 @@ class WebTermController extends AppController
         type    : 'red'
 
   handleQuery: (query) ->
+
+    shouldReturn = yes
+    for own key, value of query
+      shouldReturn = no
+      break
+
+    return  if shouldReturn
+
     @getView().ready =>
       @getView().handleQuery query
 
@@ -111,4 +118,5 @@ class WebTermController extends AppController
   runCommand:(command)->
     @getView().ready =>
       @getView().runCommand command
+
 WebTerm = {}

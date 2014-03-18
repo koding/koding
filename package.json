@@ -66,9 +66,10 @@
     "newrelic": "1.1.1",
     "sync": "0.2.2",
     "fibers": "1.0.1",
-    "mixpanel": "0.0.18",
     "cors": "~2.1.1",
-    "helmet": "~0.1.2"
+    "helmet": "~0.1.2",
+    "bluebird": "~1.0.8",
+    "portchecker": "~0.1.1"
   },
   "devDependencies": {},
   "optionalDependencies": {},

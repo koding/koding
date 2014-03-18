@@ -10,9 +10,9 @@ class ContentDisplayTags extends KDView
 
   partial: (data)->
     partial = ""
-    max = __utils.getRandomNumber(11)
+    max = utils.getRandomNumber(11)
     for tag,index in data
       if index < max
         partial += "<span class='tag'>#{tag}</span>"
-        # partial += "<span class='tag' style='background-color:#{__utils.getRandomRGB()};'>#{tag}</span>"
+        # partial += "<span class='tag' style='background-color:#{utils.getRandomRGB()};'>#{tag}</span>"
     partial

@@ -1,4 +1,4 @@
-@import "../../Framework/themes/default/kdfn"
+@import "../../Framework/src/themes/default/kdfn"
 @import "../../Main/styl/appfn"
 @import "../../Main/styl/app.fonts"
 
@@ -309,3 +309,37 @@ body.ace #main-header
     .input-wrapper > input
       min-width           0
       max-width           98px
+
+.kdmodal.key-bindings
+  table
+    size                  100%, auto
+    margin                0
+    font-size             14px
+    borderBox()
+    fl()
+
+    &~table
+      padding             0 0 0 12px
+      border-left         1px solid #dedede
+
+    thead
+      font-weight         500
+
+      th
+        padding           8px 6px
+
+    tr
+      line-height         18px
+      border-bottom       1px solid #dedede
+
+      td
+        padding           8px 6px
+        min-width         140px
+
+        ~td
+          border-left     1px solid #dfdfdf
+
+      &:nth-child(2n)
+        background        #f7f7f7
+
+

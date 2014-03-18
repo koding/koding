@@ -37,6 +37,9 @@ class EnvironmentMachineContainer extends EnvironmentContainer
 
       vmc = KD.getSingleton 'vmController'
 
+      {entryPoint} = KD.config
+      cmd = if entryPoint then 'fetchGroupVMs' else 'fetchVmNames'
+
       vmc.fetchGroupVMs yes, (err, vms)=>
 
         @removeAllItems()
@@ -48,7 +51,8 @@ class EnvironmentMachineContainer extends EnvironmentContainer
         vms.forEach (vm, index)=>
 
           @addItem
-            title     : vm
+            title     : vm.hostnameAlias
+            vm        : vm
             cpuUsage  : KD.utils.getRandomNumber 100
             memUsage  : KD.utils.getRandomNumber 100
             activated : yes

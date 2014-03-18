@@ -31,6 +31,7 @@ import (
 	"github.com/gorilla/sessions"
 	"github.com/hoisie/redis"
 	"github.com/koding/kite"
+	"github.com/koding/kite/kontrolclient"
 	"github.com/koding/kite/protocol"
 )
 
@@ -108,7 +109,7 @@ type Proxy struct {
 	cacheTransports map[string]http.RoundTripper
 
 	// oskite references
-	oskites   map[string]*kite.RemoteKite
+	oskites   map[string]*kite.Client
 	oskitesMu sync.Mutex
 }
 
@@ -153,7 +154,7 @@ func main() {
 		mux:             http.NewServeMux(),
 		enableFirewall:  false,
 		cacheTransports: make(map[string]http.RoundTripper),
-		oskites:         make(map[string]*kite.RemoteKite),
+		oskites:         make(map[string]*kite.Client),
 		resolvers:       make(map[string]Resolver),
 	}
 
@@ -173,21 +174,8 @@ func main() {
 }
 
 func (p *Proxy) runNewKite() {
-	k := kodingkite.New(
-		conf,
-		kite.Options{
-			Kitename: KONTROLPROXY_NAME,
-			Version:  "0.0.1",
-			Region:   *flagRegion,
-		},
-	)
-
-	if k.Kontrol == nil {
-		k = nil
-		log.Error("new kite couldn't start")
-		return
-	}
-
+	k := kodingkite.New(conf, KONTROLPROXY_NAME, "0.0.1")
+	k.Config.Region = *flagRegion
 	k.Start()
 
 	// TODO: remove this later, this is needed in order to reinitiliaze the logger package
@@ -201,7 +189,7 @@ func (p *Proxy) runNewKite() {
 		Region:      *flagRegion,
 	}
 
-	onEvent := func(e *kite.Event, err error) {
+	onEvent := func(e *kontrolclient.Event, err *kite.Error) {
 		if err != nil {
 			log.Error(err.Error())
 			return
@@ -227,7 +215,7 @@ func (p *Proxy) runNewKite() {
 			}
 
 			// update oskite instance with new one
-			oskite = e.RemoteKite()
+			oskite = e.Client()
 			err := oskite.Dial()
 			if err != nil {
 				log.Warning(err.Error())
@@ -251,7 +239,7 @@ func (p *Proxy) runNewKite() {
 	}
 }
 
-func (p *Proxy) randomOskite() (*kite.RemoteKite, bool) {
+func (p *Proxy) randomOskite() (*kite.Client, bool) {
 	p.oskitesMu.Lock()
 	defer p.oskitesMu.Unlock()
 
@@ -276,7 +264,7 @@ func (p *Proxy) randomOskite() (*kite.RemoteKite, bool) {
 // startVM starts the vm and returns back the iniprandtalized IP
 func (p *Proxy) startVM(hostnameAlias, hostkite string) (string, error) {
 	log.Debug("starting vm", hostnameAlias)
-	var oskite *kite.RemoteKite
+	var oskite *kite.Client
 	var ok bool
 
 	if hostkite == "" {

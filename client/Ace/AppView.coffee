@@ -165,7 +165,8 @@ class AceView extends JView
 
     height = @getHeight()
     bottomBarHeight = @$('.editor-bottom-bar').height()
-    @ace.setHeight height - bottomBarHeight
+    newHeight = height - bottomBarHeight
+    @ace.setHeight newHeight unless newHeight is 0
 
   openSaveDialog: (options = {}) ->
     { closeAfter }   = options

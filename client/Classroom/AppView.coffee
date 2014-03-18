@@ -165,8 +165,7 @@ class ClassroomAppView extends KDScrollView
                 style           : "modal-clean-green"
                 type            : "submit"
                 loader          :
-                  color         : "#FFFFFF"
-                  diameter      : 16
+                  color         : "#1aaf5d"
               Cancel            :
                 style           : "modal-cancel"
                 callback        : -> modal.destroy()
@@ -183,8 +182,7 @@ class ClassroomAppView extends KDScrollView
                 style           : "modal-clean-green"
                 type            : "submit"
                 loader          :
-                  color         : "#FFFFFF"
-                  diameter      : 16
+                  color         : "#1aaf5d"
               Cancel            :
                 style           : "modal-cancel"
                 callback        : -> modal.destroy()

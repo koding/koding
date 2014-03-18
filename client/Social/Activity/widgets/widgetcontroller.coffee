@@ -10,7 +10,7 @@ class ActivityUpdateWidgetController extends KDViewController
 
   stopSubmission = ->
     # submissionStopped = yes
-    # __utils.wait 20000, -> submissionStopped = no
+    # utils.wait 20000, -> submissionStopped = no
 
   loadView:(mainView)->
     activityController = KD.getSingleton('activityController')

@@ -1,4 +1,4 @@
-@import "../../Framework/themes/default/kdfn"
+@import "../../Framework/src/themes/default/kdfn"
 @import "../../Main/styl/appfn"
 @import "../../Main/styl/app.fonts"
 
@@ -991,9 +991,12 @@ Dashboard Invitations Modal Styles
     .permissions-form
       overflow              visible
 
-      .permission-switch
-        fl()
-        margin              0 61px
+      .switcher
+        text-align          center
+        float               left
+
+        .koding-on-off
+          display           inline-block
 
       .formline
         borderBox()

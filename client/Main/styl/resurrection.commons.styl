@@ -1,4 +1,4 @@
-@import "../../Framework/themes/default/kdfn"
+@import "../../Framework/src/themes/default/kdfn"
 @import "../styl/appfn"
 @import "../styl/app.fonts"
 
@@ -299,79 +299,6 @@ button.app-settings-menu
   &:focus
     border            none
     shadow            none
-
-
-finderSelectedColor1 = logoBg
-finderSelectedColor2 = logoBg
-
-.jcontextmenu
-
-  .kdlistview-contextmenu.default
-    rounded                 2px
-    border                  none
-    padding                 0
-
-    .kdlistview-contextmenu.default
-      margin-top            -29px
-      rounded               0 2px 2px 0
-      .kdlistitemview-contextitem.default
-        &:first-child
-          rounded             0 2px 0 0
-        &:last-child
-          rounded             0 0 2px 0
-
-      &.left-aligned
-        rounded             2px 0 0 2px
-        .kdlistitemview-contextitem.default
-          &:first-child
-            rounded             2px 0 0 0
-          &:last-child
-            rounded             0 0 0 2px
-
-  .kdlistitemview-contextitem.default
-    font-size               .8em
-    padding                 8px 10px
-    border                  none
-
-    &.selected
-    &.has-sub-items.expanded
-      border                none
-      bg                    color, finderSelectedColor1
-      color                 white
-      &:first-child
-        rounded             2px 2px 0 0
-      &:last-child
-        rounded             0 0 2px 2px
-      &:hover
-        bg                  color, finderSelectedColor1
-      span.arrow
-        border-left-color   white
-
-    &.has-sub-items
-      span.arrow
-        top                 10px
-        border-left-color   #31575F
-    &.separator
-      margin                1px 0
-      padding               0
-      border-bottom         1px solid #ddd
-      &:hover
-        border-bottom       1px solid #ddd
-
-  > span.arrow
-    z-index             9002
-    size                15px 15px
-    bg                  color, transparent
-    kdfsprite()
-    abs()
-    &.top
-      bg                position, -240px -560px
-    &.right
-      bg                position, -220px -560px
-    &.bottom
-      bg                position, -200px -560px
-    &.left
-      bg                position, -260px -560px
 
 //
 // THIN BUTTON STYLES

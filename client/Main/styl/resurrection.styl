@@ -1,4 +1,4 @@
-@import "../../Framework/themes/default/kdfn"
+@import "../../Framework/src/themes/default/kdfn"
 @import "../styl/appfn"
 @import "../styl/app.fonts"
 
@@ -58,6 +58,7 @@ button
   z-index             1000
   overflow            visible
   visibility          visible
+  shadow              0 3px 0 rgba(0, 0, 0, .15)
   fix()
 
   .inner-container
@@ -68,7 +69,6 @@ button
     -moz-transition     -moz-transform .2s ease
     transition          transform .2s ease
     z-index             1
-    shadow              0 3px 0 rgba(0, 0, 0, .15)
     rel()
 
     .logotype

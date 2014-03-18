@@ -17,6 +17,9 @@ import (
 	"syscall"
 	"time"
 	"unicode/utf8"
+
+	"labix.org/v2/mgo"
+	"labix.org/v2/mgo/bson"
 )
 
 const (
@@ -63,10 +66,35 @@ func webtermConnectOld(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS
 		Session      string
 		SizeX, SizeY int
 		Mode         string
+		JoinUser     string
+	}
+
+	if args == nil {
+		return nil, &kite.ArgumentError{Expected: "empty argument passed"}
 	}
 
 	if args.Unmarshal(&params) != nil || params.SizeX <= 0 || params.SizeY <= 0 {
 		return nil, &kite.ArgumentError{Expected: "{ remote: [object], session: [string], sizeX: [integer], sizeY: [integer], noScreen: [boolean] }"}
+	}
+
+	if params.JoinUser != "" {
+		if len(params.Session) != utils.RandomStringLength {
+			return nil, &kite.BaseError{
+				Message: "Invalid session identifier",
+				CodeErr: ErrInvalidSession,
+			}
+		}
+
+		user := new(virt.User)
+		if err := mongodbConn.Run("jUsers", func(c *mgo.Collection) error {
+			return c.Find(bson.M{"username": params.JoinUser}).One(user)
+		}); err != nil {
+			return nil, err
+		}
+
+		// vos.VM is replaced already in registerMethod via
+		// channel.CorrelationName which is the remote VM hostnameAlias
+		vos.User = user
 	}
 
 	screen, err := newScreen(vos, params.Mode, params.Session)
@@ -90,7 +118,7 @@ func webtermConnectOld(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS
 	cmd := vos.VM.AttachCommand(vos.User.Uid, "/dev/pts/"+strconv.Itoa(server.pty.No), screen.Command...)
 	err = cmd.Start()
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 
 	go func() {

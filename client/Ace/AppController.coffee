@@ -25,12 +25,15 @@ class AceAppController extends AppController
     menu          : [
       { title     : "Save",                eventName : "save" }
       { title     : "Save as...",          eventName : "saveAs" }
+      { title     : "Save All",            eventName : "saveAll" }
       { type      : "separator" }
       { title     : "Find",                eventName : "find" }
       { title     : "Find and replace...", eventName : "findAndReplace" }
       { title     : "Go to line",          eventName : "gotoLine" }
       { type      : "separator" }
       { title     : "Preview",             eventName : "preview" }
+      { type      : "separator" }
+      { title     : "Key Bindings",        eventName : "keyBindings" }
       { type      : "separator" }
       { title     : "Advanced settings",   id        : "advancedSettings" }
       { title     : "customViewAdvancedSettings", parentId: "advancedSettings"}

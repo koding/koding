@@ -134,63 +134,95 @@ func (vm *VM) ApplyDefaults() {
 	}
 }
 
+type Step struct {
+	Message     string  `json:"message"`
+	CurrentStep int     `json:"currentStep"`
+	TotalStep   int     `json:"totalStep"`
+	Err         error   `json:"error"`
+	ElapsedTime float64 `json:"elapsedTime"` // time.Duration.Seconds()
+}
+
+type StepFunc struct {
+	Fn  func() error
+	Msg string
+}
+
 // Prepare creates and initialized the container to be started later directly
 // with lxc.start. We don't use lxc.create (which uses shell scipts for
 // templating), instead of we use this method which basically let us do things
 // more efficient. It creates the home directory, generates files like lxc.conf
 // and mounts the necessary filesystems.
-func (v *VM) Prepare(reinitialize bool) {
-	// first unprepare to not conflict with everything else
-	v.Unprepare()
-
-	// create our lxc container dir
-	v.createContainerDir()
-
-	// map rbd image to block device
-	err := v.mountRBD()
-	if err != nil {
-		panic(err)
-	}
+func (v *VM) Prepare(reinitialize bool) <-chan *Step {
+	funcs := make([]*StepFunc, 0)
+	funcs = append(funcs, &StepFunc{Msg: "Create container", Fn: v.createContainerDir})
+	funcs = append(funcs, &StepFunc{Msg: "Mount RBD", Fn: v.mountRBD})
 
 	// remove all except /home on reinitialize
 	if reinitialize {
-		err := v.reinitialize()
-		if err != nil {
-			panic(err)
+		funcs = append(funcs, &StepFunc{Msg: "Reinitialize", Fn: v.reinitialize})
+	}
+
+	funcs = append(funcs, &StepFunc{Msg: "Create overlay", Fn: v.createOverlay})
+	funcs = append(funcs, &StepFunc{Msg: "Merging old files", Fn: v.mergeFiles})
+	funcs = append(funcs, &StepFunc{Msg: "Mount AUF", Fn: v.mountAufs})
+	funcs = append(funcs, &StepFunc{Msg: "Mount PTS", Fn: v.prepareAndMountPts})
+	funcs = append(funcs, &StepFunc{Msg: "Add Ebtables rules", Fn: v.addEbtablesRule})
+	funcs = append(funcs, &StepFunc{Msg: "Add Static route", Fn: v.addStaticRoute})
+
+	results := make(chan *Step, len(funcs))
+
+	// create the functions one by one and pass back the results via a channel.
+	// The channel will be closed if an error results of if it's finished.
+	go func() {
+		defer func() {
+			close(results)
+			results = nil
+		}()
+
+		for step, current := range funcs {
+			start := time.Now()
+			err := current.Fn() // invoke our function
+
+			results <- &Step{
+				Message:     current.Msg,
+				CurrentStep: step + 1,
+				TotalStep:   len(funcs),
+				ElapsedTime: time.Since(start).Seconds(),
+				Err:         err,
+			}
+
+			if err != nil {
+				// don't put the prepare in an unknown state
+				for _ = range v.Unprepare() {
+				}
+				break
+			}
 		}
-	}
 
-	v.createOverlay()
+	}()
 
-	v.mergeFiles()
-
-	err = v.mountAufs()
-	if err != nil {
-		panic(err)
-	}
-
-	err = v.prepareAndMountPts()
-	if err != nil {
-		panic(err)
-	}
-
-	err = v.addEbtablesRule()
-	if err != nil {
-		panic(err)
-	}
-
-	err = v.addStaticRoute()
-	if err != nil {
-		panic(err)
-	}
+	return results
 }
 
-func (v *VM) createContainerDir() {
+func (v *VM) createContainerDir() error {
 	// write LXC files
-	prepareDir(v.File(""), 0)
-	v.generateFile(v.File("config"), "config", 0, false)
-	v.generateFile(v.File("fstab"), "fstab", 0, false)
-	v.generateFile(v.File("ip-address"), "ip-address", 0, false)
+	if err := prepareDir(v.File(""), 0); err != nil {
+		return err
+	}
+
+	if err := v.generateFile(v.File("config"), "config", 0, false); err != nil {
+		return err
+	}
+
+	if err := v.generateFile(v.File("fstab"), "fstab", 0, false); err != nil {
+		return err
+	}
+
+	if err := v.generateFile(v.File("ip-address"), "ip-address", 0, false); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (v *VM) mountRBD() error {
@@ -215,26 +247,56 @@ func (v *VM) reinitialize() error {
 	return nil
 }
 
-func (v *VM) createOverlay() {
-	// prepare overlay
-	prepareDir(v.OverlayFile("/"), RootIdOffset)           // for chown
-	prepareDir(v.OverlayFile("/lost+found"), RootIdOffset) // for chown
-	prepareDir(v.OverlayFile("/etc"), RootIdOffset)
+// prepare overlay
+func (v *VM) createOverlay() error {
+	// for chown
+	if err := prepareDir(v.OverlayFile("/"), RootIdOffset); err != nil {
+		return err
+	}
 
-	v.generateFile(v.OverlayFile("/etc/hostname"), "hostname", RootIdOffset, false)
-	v.generateFile(v.OverlayFile("/etc/hosts"), "hosts", RootIdOffset, false)
-	v.generateFile(v.OverlayFile("/etc/ldap.conf"), "ldap.conf", RootIdOffset, false)
+	// for chown
+	if err := prepareDir(v.OverlayFile("/lost+found"), RootIdOffset); err != nil {
+		return err
+	}
+
+	if err := prepareDir(v.OverlayFile("/etc"), RootIdOffset); err != nil {
+		return err
+	}
+
+	if err := v.generateFile(v.OverlayFile("/etc/hostname"), "hostname", RootIdOffset, false); err != nil {
+		return err
+	}
+
+	if err := v.generateFile(v.OverlayFile("/etc/hosts"), "hosts", RootIdOffset, false); err != nil {
+		return err
+	}
+
+	if err := v.generateFile(v.OverlayFile("/etc/ldap.conf"), "ldap.conf", RootIdOffset, false); err != nil {
+		return err
+	}
+
+	return nil
 }
 
-func (v *VM) mergeFiles() {
-	v.MergePasswdFile()
-	v.MergeGroupFile()
+func (v *VM) mergeFiles() error {
+	if err := v.MergePasswdFile(); err != nil {
+		return err
+	}
+
+	if err := v.MergeGroupFile(); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (v *VM) mountAufs() error {
 	// mount "/var/lib/lxc/vm-{id}/overlay" (rw) and "/var/lib/lxc/vmroot" (ro)
 	// under "/var/lib/lxc/vm-{id}/rootfs"
-	prepareDir(v.File("rootfs"), RootIdOffset)
+	if err := prepareDir(v.File("rootfs"), RootIdOffset); err != nil {
+		return err
+	}
+
 	// if out, err := exec.Command("/bin/mount", "--no-mtab", "-t", "overlayfs", "-o", fmt.Sprintf("lowerdir=%s,upperdir=%s", v.LowerdirFile("/"), v.OverlayFile("/")), "overlayfs", v.File("rootfs")).CombinedOutput(); err != nil {
 	if out, err := exec.Command("/bin/mount", "--no-mtab", "-t", "aufs", "-o",
 		fmt.Sprintf("noplink,br=%s:%s", v.OverlayFile("/"), v.LowerdirFile("/")), "aufs",
@@ -247,15 +309,23 @@ func (v *VM) mountAufs() error {
 
 func (v *VM) prepareAndMountPts() error {
 	// mount devpts
-	prepareDir(v.PtsDir(), RootIdOffset)
+	if err := prepareDir(v.PtsDir(), RootIdOffset); err != nil {
+		return err
+	}
+
 	if out, err := exec.Command("/bin/mount", "--no-mtab", "-t", "devpts", "-o",
 		"rw,noexec,nosuid,newinstance,gid="+strconv.Itoa(RootIdOffset+5)+",mode=0620,ptmxmode=0666",
 		"devpts", v.PtsDir()).CombinedOutput(); err != nil {
 		return commandError("mount devpts failed.", err, out)
 	}
 
-	chown(v.PtsDir(), RootIdOffset, RootIdOffset)
-	chown(v.PtsDir()+"/ptmx", RootIdOffset, RootIdOffset)
+	if err := chown(v.PtsDir(), RootIdOffset, RootIdOffset); err != nil {
+		return err
+	}
+
+	if err := chown(v.PtsDir()+"/ptmx", RootIdOffset, RootIdOffset); err != nil {
+		return err
+	}
 
 	if v.IP == nil {
 		if ip, err := ioutil.ReadFile(v.File("ip-address")); err == nil {
@@ -285,7 +355,16 @@ func (v *VM) addStaticRoute() error {
 
 func UnprepareVM(id bson.ObjectId) error {
 	vm := VM{Id: id}
-	return vm.Unprepare()
+
+	if err := vm.Shutdown(); err != nil {
+		return err
+	}
+
+	var err error
+	for step := range vm.Unprepare() {
+		err = step.Err
+	}
+	return err
 }
 
 // Unprepare is basically the inverse of Prepare. We don't use lxc.destroy
@@ -295,39 +374,50 @@ func UnprepareVM(id bson.ObjectId) error {
 // Those files will be stored in the vmroot.
 // Unprepare also doesn't return on errors, instead it silently fails and
 // tries to execute the next step until all steps are done.
-func (vm *VM) Unprepare() error {
+func (vm *VM) Unprepare() <-chan *Step {
+	funcs := make([]*StepFunc, 0)
+	funcs = append(funcs, &StepFunc{Msg: "Removing network rules", Fn: vm.removeNetworkRules})
+	funcs = append(funcs, &StepFunc{Msg: "Umount PTS", Fn: vm.umountPts})
+	funcs = append(funcs, &StepFunc{Msg: "Umount AUFS", Fn: vm.umountAufs})
+	funcs = append(funcs, &StepFunc{Msg: "Umount RBD", Fn: vm.umountRBD})
+	funcs = append(funcs, &StepFunc{Msg: "Removing lxc/config", Fn: func() error { return os.Remove(vm.File("config")) }})
+	funcs = append(funcs, &StepFunc{Msg: "Removing lxc/fstab", Fn: func() error { return os.Remove(vm.File("fstab")) }})
+	funcs = append(funcs, &StepFunc{Msg: "Removing lxc/ip-config", Fn: func() error { return os.Remove(vm.File("ip-address")) }})
+	funcs = append(funcs, &StepFunc{Msg: "Removing lxc/rootfs", Fn: func() error { return os.Remove(vm.File("rootfs")) }})
+	funcs = append(funcs, &StepFunc{Msg: "Removing lxc/rootfs.hold", Fn: func() error { return os.Remove(vm.File("rootfs.hold")) }})
+	funcs = append(funcs, &StepFunc{Msg: "Removing lxc folder", Fn: func() error { return os.Remove(vm.File("")) }})
+
 	var lastError error
+	results := make(chan *Step, len(funcs))
 
-	// stop VM
-	if err := vm.Shutdown(); err != nil {
-		panic(err)
-	}
+	// create the functions one by one and pass back the results via a
+	// channel. The channel will be closed if an error results.
+	go func() {
+		defer func() {
+			close(results)
+			results = nil
+		}()
 
-	if err := vm.removeNetworkRules(); err != nil && lastError == nil {
-		lastError = err
-	}
+		for step, current := range funcs {
+			start := time.Now()
+			err := current.Fn() // invoke our function
 
-	if err := vm.umountPts(); err != nil && lastError == nil {
-		lastError = err
-	}
+			if err != nil {
+				lastError = err
+			}
 
-	if err := vm.umountAufs(); err != nil && lastError == nil {
-		lastError = err
-	}
+			results <- &Step{
+				Message:     current.Msg,
+				CurrentStep: step + 1,
+				TotalStep:   len(funcs),
+				ElapsedTime: time.Since(start).Seconds(),
+				Err:         lastError,
+			}
 
-	if err := vm.umountRBD(); err != nil && lastError == nil {
-		lastError = err
-	}
+		}
+	}()
 
-	// remove VM directory
-	os.Remove(vm.File("config"))
-	os.Remove(vm.File("fstab"))
-	os.Remove(vm.File("ip-address"))
-	os.Remove(vm.File("rootfs"))
-	os.Remove(vm.File("rootfs.hold"))
-	os.Remove(vm.File(""))
-
-	return lastError
+	return results
 }
 
 func (vm *VM) removeNetworkRules() error {
@@ -402,7 +492,6 @@ func (vm *VM) MountRBD(mountDir string) error {
 				return commandError("rbd create failed.", err, out)
 			}
 		}
-
 		if vm.SnapshotName != "" {
 			if out, err := exec.Command("/usr/bin/rbd", "clone", "--pool", VMPool, "--image", VMName(vm.SnapshotVM), "--snap", vm.SnapshotName, "--dest-pool", VMPool, "--dest", vm.String()).CombinedOutput(); err != nil {
 				return commandError("rbd clone failed.", err, out)
@@ -462,15 +551,15 @@ func (vm *VM) MountRBD(mountDir string) error {
 }
 
 func (vm *VM) UnmountRBD(mountDir string) error {
-	var lastError error
-	if out, err := exec.Command("/bin/umount", vm.OverlayFile("")).CombinedOutput(); err != nil && lastError == nil {
-		lastError = commandError("umount rbd failed.", err, out)
+	var firstError error
+	if out, err := exec.Command("/bin/umount", vm.OverlayFile("")).CombinedOutput(); err != nil && firstError == nil {
+		firstError = commandError("umount rbd failed.", err, out)
 	}
-	if out, err := exec.Command("/usr/bin/rbd", "unmap", vm.RbdDevice()).CombinedOutput(); err != nil && lastError == nil {
-		lastError = commandError("rbd unmap failed.", err, out)
+	if out, err := exec.Command("/usr/bin/rbd", "unmap", vm.RbdDevice()).CombinedOutput(); err != nil && firstError == nil {
+		firstError = commandError("rbd unmap failed.", err, out)
 	}
 	os.Remove(mountDir)
-	return lastError
+	return firstError
 }
 
 func (vm *VM) ResizeRBD() error {
@@ -594,6 +683,7 @@ func (vm *VM) DeleteSnapshot(snapshotName string) error {
 	if out, err := exec.Command("/usr/bin/rbd", "snap", "unprotect", "--pool", VMPool, "--image", vm.String(), "--snap", snapshotName).CombinedOutput(); err != nil {
 		return commandError("Unprotecting snapshot failed.", err, out)
 	}
+
 	if out, err := exec.Command("/usr/bin/rbd", "snap", "rm", "--pool", VMPool, "--image", vm.String(), "--snap", snapshotName).CombinedOutput(); err != nil {
 		return commandError("Removing snapshot failed.", err, out)
 	}
@@ -607,45 +697,52 @@ func DestroyVM(id bson.ObjectId) error {
 	return nil
 }
 
+// Destroy deletes the VM's rbd image from the VMPool
+func (v *VM) Destroy() error {
+	if out, err := exec.Command("/usr/bin/rbd", "rm", "--pool", VMPool, "--image", v.String()).CombinedOutput(); err != nil {
+		return commandError("Removing image failed.", err, out)
+	}
+	return nil
+}
+
 func commandError(message string, err error, out []byte) error {
 	return fmt.Errorf("%s\n%s\n%s", message, err.Error(), string(out))
 }
 
-// may panic
-func prepareDir(p string, id int) {
+func prepareDir(p string, id int) error {
 	if err := os.Mkdir(p, 0755); err != nil && !os.IsExist(err) {
-		panic(err)
+		return err
 	}
-	chown(p, id, id)
+
+	return chown(p, id, id)
 }
 
-// may panic
-func (vm *VM) generateFile(p, template string, id int, executable bool) {
+func (vm *VM) generateFile(p, template string, id int, executable bool) error {
 	var mode os.FileMode = 0644
 	if executable {
 		mode = 0755
 	}
+
 	file, err := os.OpenFile(p, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, mode)
 	if err != nil {
-		panic(err)
+		return err
 	}
 	defer file.Close()
 
 	if err := Templates.ExecuteTemplate(file, template, vm); err != nil {
-		panic(err)
+		return err
 	}
 
 	if err := file.Chown(id, id); err != nil {
-		panic(err)
+		return err
 	}
 	if err := file.Chmod(mode); err != nil {
-		panic(err)
+		return err
 	}
+
+	return nil
 }
 
-// may panic
-func chown(p string, uid, gid int) {
-	if err := os.Chown(p, uid, gid); err != nil {
-		panic(err)
-	}
+func chown(p string, uid, gid int) error {
+	return os.Chown(p, uid, gid)
 }

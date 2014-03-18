@@ -1,23 +1,5 @@
 class WebTermView extends KDView
 
-  @setTerminalTimeout = (vmName,  delayMs, isRunningCallback, isStartedCallback = (->), isFinishedCallback = (->)) ->
-    vmController = KD.getSingleton 'vmController'
-    vmController.info vmName, KD.utils.getTimedOutCallback (err, vm, info)=>
-      if err
-        KD.logToExternal "oskite: Error opening Webterm", vmName, err
-        KD.mixpanel "Open Webterm, fail", {vmName}
-
-      if info?.state is 'RUNNING'
-        isRunningCallback()
-      else
-        vmController.start vmName, (err, state)=>
-          return warn "Failed to turn on vm:", err  if err
-          isStartedCallback()
-      KD.mixpanel "Open Webterm, success", {vmName}
-
-    , isFinishedCallback
-    , delayMs
-
   constructor: (options = {}, data) ->
     super options, data
 
@@ -94,9 +76,11 @@ class WebTermView extends KDView
       mode        : myOptions.mode      ? 'create'
 
   getVMName:->
-    delegateOptions = @getDelegate().getOptions()
-    myOptions       = @getOptions()
-    return myOptions.vmName or delegateOptions.vmName
+
+    if vm = @getOption 'vm'
+      { hostnameAlias: vmName } = vm
+
+    return vmName
 
   webtermConnect:(mode)->
     return console.info "reconnection is in progrees" if @reconnectionInPrgress
@@ -121,6 +105,10 @@ class WebTermView extends KDView
           @reconnectionInPrgress = false
           throw err
 
+      unless remote?
+        console.warn "Terminal: No remote object was received!"
+        return
+
       @setOption "session", remote.session
       @terminal.eventHandler = (data)=> @emit "WebTermEvent", data
       @terminal.server       = remote
@@ -141,18 +129,6 @@ class WebTermView extends KDView
       @updateSettings()
 
       @webtermConnect()
-
-      KD.getSingleton("vmController").getKite @getVMName(), (kite)=>
-        kite.on 'destroy', =>
-          console.error "Couldn't connect to your VM. Trying to reconnect...(err:oskite)"
-          @webtermConnect("resume")
-
-      # todo do not leak events
-      KD.kite.mq.on "broker.error", (err)=>
-        console.error "Couldn't connect to your VM. Trying to reconnect...(err:broker)"
-        if err.code is 404
-          KD.getSingleton("vmController").getKite @getVMName(), (kite)=>
-            @webtermConnect("resume")
 
     KD.getSingleton("kiteController").on "KiteError", (err) =>
       console.log "kite errr", err

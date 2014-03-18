@@ -56,6 +56,9 @@ module.exports = class JVM extends Module
           (signature Function)
           (signature Object, Function)
         ]
+        fetchVmsByName: [
+          (signature Object, Function)
+        ]
         fetchVmInfo:
           (signature String, Function)
         fetchDomains:
@@ -160,7 +163,8 @@ module.exports = class JVM extends Module
             vm.update $set: alwaysOn: status, callback
 
       if group is "koding"
-        delegate.fetchSubscriptions$ client, tags: ["vm"], (err, subscriptions) ->
+        options = targetOptions: tags: $in: "vm"
+        delegate.fetchSubscriptions null, options, (err, subscriptions) ->
           noSyncSubscription = null
           activeSubscription = null
 
@@ -309,6 +313,7 @@ module.exports = class JVM extends Module
       { planCode, subscriptionCode } = nonceObject
       { delegate: account } = client.connection
       { group: groupSlug } = client.context
+      type = "user"
 
       nonceObject.update $set: action: "used", (err) =>
         return callback err  if err
@@ -317,6 +322,7 @@ module.exports = class JVM extends Module
           groupSlug
           planCode
           subscriptionCode
+          type
         }, callback
 
   @createSharedVm = secure (client, callback)->
@@ -503,17 +509,16 @@ module.exports = class JVM extends Module
       return callback new Error "user not found" unless user
 
       selector.users = $elemMatch: id: user.getId()
-      fieldsToFetch = { hostnameAlias: 1, stack: 1 }
+
+      fieldsToFetch = { hostnameAlias: 1, region: 1, hostKite: 1, stack: 1 }
       JVM.someData selector, fieldsToFetch, options, (err, cursor)->
         return callback err  if err
 
-        cursor.toArray (err, arr)->
+        cursor.toArray (err, arr) ->
           return callback err  if err
-          if options.withStacks
-            callback null, arr.map (vm)->
-              {alias:vm.hostnameAlias, stack:vm.stack}
-          else
-            callback null, arr.map (vm)-> vm.hostnameAlias
+          callback null, arr.map ({ hostnameAlias, region, hostKite, stack }) ->
+            hostKite = null  if hostKite in ['(banned)', '(maintenance)']
+            { hostnameAlias, region, hostKite, stack }
 
   @fetchVmsByContext = secure (client, options, callback) ->
     {connection:{delegate}, context:{group}} = client
@@ -531,11 +536,9 @@ module.exports = class JVM extends Module
     {delegate} = client.connection
     @fetchAccountVmsBySelector delegate, {}, options, callback
 
-    # TODO: let's implement something like this:
-    # failure: (client, callback) ->
-    #   @fetchDefaultVmByContext client, (err, vm)->
-    #     return callback err  if err
-    #     callback null, [vm]
+  @fetchVmsByName = secure (client, names, callback) ->
+    { delegate } = client.connection
+    @fetchAccountVmsBySelector delegate, { hostnameAlias: $in: names }, callback
 
   # TODO: Move these methods to JDomain at some point ~ GG
   # ------------------------------------------------------
@@ -618,10 +621,18 @@ module.exports = class JVM extends Module
           else callback()
 
     if group.slug is "koding"
-      account.fetchSubscription (err, subscription) =>
+      options = targetOptions: tags: $in: "vm"
+      account.fetchSubscriptions null, options, (err, subscriptions = []) =>
         return callback err  if err
-        return @remove callback  unless subscription # so this is a free account
-        kallback subscription
+
+        subscription = freeSubscription = null
+        for item in subscriptions
+          if "nosync" in item.tags
+            freeSubscription = item
+          else
+            subscription = item
+
+        kallback subscription or freeSubscription
     else
       group.fetchSubscription (err, subscription) =>
         return callback err  if err

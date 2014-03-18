@@ -172,6 +172,8 @@ config =
       useStaticFileServer: 1
       staticFilesBaseUrl: 1
       runtimeOptions  :
+        osKitePollingMs: 1
+        userIdleMs: 1
         sessionCookie :
           maxAge      : 1
           secure      : 1

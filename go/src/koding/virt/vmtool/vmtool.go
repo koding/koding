@@ -5,74 +5,137 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"koding/db/models"
 	"koding/tools/utils"
 	"koding/virt"
+	"log"
 	"net"
 	"os"
 	"os/exec"
-	"runtime"
 	"strconv"
 	"strings"
 
+	"github.com/jessevdk/go-flags"
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
 )
 
-type PackageWithCount struct {
-	pkg   string
-	count int
+const (
+	usage = `usage: <action> [<vm-id>|all]
+
+	list
+	start
+	shutdown
+	stop
+	ip
+	unprepare
+	create-test-vms
+	rbd-orphans
+`
+)
+
+var flagOpts struct {
+	Templates string `long:"templates" short:"t" description:"Change template dir." default:"files/templates"`
 }
 
-type PackageWithCountSlice []PackageWithCount
+func main() {
+	remainingArgs, err := flags.Parse(&flagOpts)
+	if err != nil {
+		log.Fatal(err)
+	}
 
-func (s PackageWithCountSlice) Len() int {
-	return len(s)
+	if err := virt.LoadTemplates(flagOpts.Templates); err != nil {
+		log.Fatal(err)
+	}
+
+	if len(remainingArgs) == 0 {
+		fmt.Fprintf(os.Stderr, usage)
+		os.Exit(0)
+	}
+
+	action := remainingArgs[0]
+	actionArgs := remainingArgs[1:]
+
+	fn := actions[action]
+	fn(actionArgs)
 }
 
-func (s PackageWithCountSlice) Less(i, j int) bool {
-	return s[i].count > s[j].count
-}
+var actions = map[string]func(args []string){
+	"list": func(args []string) {
+		dirs, err := ioutil.ReadDir("/var/lib/lxc")
+		if err != nil {
+			log.Println(err)
+			return
+		}
 
-func (s PackageWithCountSlice) Swap(i, j int) {
-	s[i], s[j] = s[j], s[i]
-}
+		for _, dir := range dirs {
+			if strings.HasPrefix(dir.Name(), "vm-") {
+				fmt.Println(dir.Name())
+			}
+		}
 
-var actions = map[string]func(){
-	"start": func() {
-		for _, vm := range selectVMs(os.Args[2]) {
+	},
+
+	"start": func(args []string) {
+		for _, vm := range selectVMs(args[0]) {
 			err := vm.Start()
 			fmt.Printf("%v: %v\n%s", vm, err)
 		}
 	},
 
-	"shutdown": func() {
-		for _, vm := range selectVMs(os.Args[2]) {
+	"shutdown": func(args []string) {
+		for _, vm := range selectVMs(args[0]) {
 			err := vm.Shutdown()
 			fmt.Printf("%v: %v\n%s", vm, err)
 		}
 	},
 
-	"stop": func() {
-		for _, vm := range selectVMs(os.Args[2]) {
+	"stop": func(args []string) {
+		for _, vm := range selectVMs(args[0]) {
 			err := vm.Stop()
 			fmt.Printf("%v: %v\n%s", vm, err)
 		}
 	},
 
-	"unprepare": func() {
-		for _, vm := range selectVMs(os.Args[2]) {
+	"unprepare": func(args []string) {
+		for _, vm := range selectVMs(args[0]) {
 			err := vm.Unprepare()
 			fmt.Printf("%v: %v\n", vm, err)
 		}
 	},
 
-	"create-test-vms": func() {
+	"ip": func(args []string) {
+		if len(args) != 2 {
+			log.Fatal("usage: ip <mongo-url> <vm-id>")
+		}
+
+		session, err := mgo.Dial(args[0])
+		if err != nil {
+			panic(err)
+		}
+
+		vm := new(models.VM)
+		session.SetSafe(&mgo.Safe{})
+
+		vmId := strings.TrimPrefix(args[1], "vm-")
+
+		database := session.DB("")
+		err = database.C("jVMs").Find(bson.M{"_id": bson.ObjectIdHex(vmId)}).One(vm)
+		if err != nil {
+			fmt.Println(err)
+			os.Exit(1)
+		}
+
+		fmt.Println(vm.IP.String())
+	},
+
+	"create-test-vms": func(args []string) {
 		startIP := net.IPv4(10, 128, 2, 7)
 		if len(os.Args) >= 4 {
 			startIP = net.ParseIP(os.Args[3])
 		}
 		ipPoolFetch, _ := utils.NewIntPool(utils.IPToInt(startIP), nil)
-		count, _ := strconv.Atoi(os.Args[2])
+		count, _ := strconv.Atoi(args[0])
 		done := make(chan int)
 		for i := 0; i < count; i++ {
 			go func(i int) {
@@ -90,8 +153,12 @@ var actions = map[string]func(){
 		}
 	},
 
-	"rbd-orphans": func() {
-		session, err := mgo.Dial(os.Args[2])
+	"rbd-orphans": func(args []string) {
+		if len(args) == 0 {
+			log.Fatal("usage: vmtool rbd-orphans <mongo-url>")
+		}
+
+		session, err := mgo.Dial(args[0])
 		if err != nil {
 			panic(err)
 		}
@@ -131,16 +198,6 @@ var actions = map[string]func(){
 			}
 		}
 	},
-}
-
-func main() {
-	runtime.GOMAXPROCS(runtime.NumCPU())
-	if err := virt.LoadTemplates("templates"); err != nil {
-		panic(err)
-	}
-
-	action := actions[os.Args[1]]
-	action()
 }
 
 func selectVMs(selector string) []*virt.VM {
