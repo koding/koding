@@ -222,22 +222,21 @@ class TeamworkApp extends KDObject
       vmName  : vmController.defaultVmName
     , (err, res) ->
       return warn err  if err
-      return warn res.stderr if res.exitStatus > 0
+      return warn res.stderr  if res and res.exitStatus > 0
 
-      contents  = res.stdout
       extension = FSItem.getFileExtension path
       error     = null
 
       switch extension
         when "json"
           try
-            manifest = JSON.parse contents
+            manifest = JSON.parse res
           catch err
             error    = "Manifest file is broken for #{path}"
 
           callback error, manifest
         when "md"
-          callback errorMessage, KD.utils.applyMarkdown error, contents
+          callback errorMessage, KD.utils.applyMarkdown error, res
 
   fetchManifestFile: (path, callback = noop) ->
     $.ajax
