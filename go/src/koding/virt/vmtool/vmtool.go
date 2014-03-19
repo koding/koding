@@ -14,6 +14,7 @@ import (
 	"os/exec"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/jessevdk/go-flags"
 	"labix.org/v2/mgo"
@@ -136,7 +137,8 @@ var actions = map[string]func(args []string){
 		}
 		ipPoolFetch, _ := utils.NewIntPool(utils.IPToInt(startIP), nil)
 		count, _ := strconv.Atoi(args[0])
-		done := make(chan int)
+
+		done := make(chan string)
 		for i := 0; i < count; i++ {
 			go func(i int) {
 				vm := virt.VM{
@@ -144,10 +146,24 @@ var actions = map[string]func(args []string){
 					IP: utils.IntToIP(<-ipPoolFetch),
 				}
 				vm.ApplyDefaults()
-				vm.Prepare(false)
-				done <- i
+				fmt.Println(i, "preparing...")
+				for _ = range vm.Prepare(false) {
+				}
+
+				fmt.Println(i, "starting...")
+				if err := vm.Start(); err != nil {
+					log.Println(i, "start", err)
+				}
+
+				// wait until network is up
+				fmt.Println(i, "waiting...")
+				if err := vm.WaitForNetwork(time.Second * 5); err != nil {
+					log.Print(i, "WaitForNetwork", err)
+				}
+				done <- fmt.Sprintln(i, "ready", "vm-"+vm.Id.Hex())
 			}(i)
 		}
+
 		for i := 0; i < count; i++ {
 			fmt.Println(<-done)
 		}
