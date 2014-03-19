@@ -150,9 +150,11 @@ class Troubleshoot extends KDObject
         return warn "#{name} is not registered for health checking"  unless item
 
         item.once "healthCheckCompleted", =>
-          @waitingResponse -= if item.status is "fail" then @getSuccessorCount root else 1
+          @waitingResponse -= 1
+          # no need to wait for child services
+          @waitingResponse -= @getSuccessorCount children  if item.status is "fail"
           @healthChecker children  if children and item.status in ["success", "slow"]
-          @reset()  unless @waitingResponse
+          @reset "troubleshootCompleted"  unless @waitingResponse
 
         item.run()
 
