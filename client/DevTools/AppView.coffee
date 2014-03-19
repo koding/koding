@@ -379,47 +379,79 @@ class DevToolsEditorPane extends CollaborativeEditorPane
       then @storage.unsetKey @_lastFileKey
       else @emit "RecentFileLoaded"
 
-  createEditor: (callback)->
+  loadAddons:(callback)->
 
     {cdnRoot} = CollaborativeEditorPane
 
-    KodingAppsController.appendScriptElement 'script',
-      url        : "#{cdnRoot}/addon/selection/active-line.js"
-      identifier : "codemirror-activeline-addon"
-      callback   : =>
+    KodingAppsController.appendHeadElements
+      identifier : "codemirror-addons"
+      items      : [
+        {
+          type   : 'script'
+          url    : "#{cdnRoot}/addon/selection/active-line.js"
+        },
+        {
+          type   : 'style'
+          url    : "#{cdnRoot}/addon/hint/show-hint.css"
+        },
+        {
+          type   : 'script'
+          url    : "#{cdnRoot}/addon/hint/show-hint.js"
+        },
+        {
+          type   : 'script'
+          url    : "#{cdnRoot}/addon/hint/coffeescript-hint.js"
+        },
+        {
+          type   : 'script'
+          url    : "#{cdnRoot}/addon/hint/css-hint.js"
+        }
+      ]
+    , callback
 
-        @codeMirrorEditor = CodeMirror @container.getDomElement()[0],
-          lineNumbers     : yes
-          lineWrapping    : yes
-          styleActiveLine : yes
-          scrollPastEnd   : yes
-          cursorHeight    : 1
-          tabSize         : 2
-          mode            : @_mode
-          extraKeys       :
-            "Cmd-S"       : @bound "handleSave"
-            "Ctrl-S"      : @bound "handleSave"
-            "Alt-R"       : => @emit "RunRequested"
-            "Shift-Ctrl-R": => @emit "AutoRunRequested"
-            "Tab"         : (cm)->
-              spaces = Array(cm.getOption("indentUnit") + 1).join " "
-              cm.replaceSelection spaces, "end", "+input"
+  createEditor: (callback)->
 
-        @setEditorTheme 'blackboard'
-        @setEditorMode @_mode ? "coffee"
+    @loadAddons =>
 
-        callback?()
+      @codeMirrorEditor = CodeMirror @container.getDomElement()[0],
+        lineNumbers     : yes
+        lineWrapping    : yes
+        styleActiveLine : yes
+        scrollPastEnd   : yes
+        cursorHeight    : 1
+        tabSize         : 2
+        mode            : @_mode
+        extraKeys       :
+          "Cmd-S"       : @bound "handleSave"
+          "Ctrl-S"      : @bound "handleSave"
+          "Shift-Cmd-S" : => @emit "SaveAllRequested"
+          "Shift-Ctrl-S": => @emit "SaveAllRequested"
+          "Alt-R"       : => @emit "RunRequested"
+          "Shift-Ctrl-R": => @emit "AutoRunRequested"
+          "Ctrl-Space"  : (cm)->
+            mode = CodeMirror.innerMode(cm.getMode()).mode.name
+            if mode is 'coffeescript'
+              CodeMirror.showHint cm, CodeMirror.coffeescriptHint
+            else if mode is 'css'
+              CodeMirror.showHint cm, CodeMirror.hint.css
+          "Tab"         : (cm)->
+            spaces = Array(cm.getOption("indentUnit") + 1).join " "
+            cm.replaceSelection spaces, "end", "+input"
 
-        @header.addSubView @info = new KDView
-          cssClass : "inline-info"
-          partial  : "saved"
+      @setEditorTheme()
+      @setEditorMode @_mode ? "coffee"
 
-        @on 'EditorDidSave', =>
-          @info.updatePartial 'saved'; @info.setClass 'in'
-          KD.utils.wait 1000, => @info.unsetClass 'in'
+      callback?()
 
-        @codeMirrorEditor.on 'focus', => @emit "FocusedOnMe"
-        @emit 'ready'
+      @header.addSubView @info = new KDView
+        cssClass : "inline-info"
+        partial  : "saved"
+
+      @on 'EditorDidSave', =>
+        @info.updatePartial 'saved'; @info.setClass 'in'
+        KD.utils.wait 1000, => @info.unsetClass 'in'
+
+      @codeMirrorEditor.on 'focus', => @emit "FocusedOnMe"
 
   openFile: (file, content)->
 
