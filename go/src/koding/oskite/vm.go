@@ -162,7 +162,7 @@ func vmStart(vos *virt.VOS) (interface{}, error) {
 	<-done
 
 	if lastError != nil {
-		return true, lastError
+		return nil, lastError
 	}
 
 	return true, nil
@@ -173,14 +173,15 @@ func vmShutdown(vos *virt.VOS) (interface{}, error) {
 		return nil, &kite.PermissionError{}
 	}
 
+	var lastError error
 	done := make(chan struct{}, 1)
 	prepareQueue <- &QueueJob{
 		msg: "vm.Shutdown" + vos.VM.HostnameAlias,
 		f: func() (string, error) {
 			defer func() { done <- struct{}{} }()
 
-			if err := vos.VM.Shutdown(); err != nil {
-				return "", err
+			if lastError = vos.VM.Shutdown(); lastError != nil {
+				return "", lastError
 			}
 
 			return fmt.Sprintf("vm.Shutdown %s", vos.VM.HostnameAlias), nil
@@ -188,6 +189,11 @@ func vmShutdown(vos *virt.VOS) (interface{}, error) {
 	}
 
 	<-done
+
+	if lastError != nil {
+		return nil, lastError
+	}
+
 	return true, nil
 }
 
@@ -196,22 +202,23 @@ func vmUnprepare(vos *virt.VOS) (interface{}, error) {
 		return nil, &kite.PermissionError{}
 	}
 
+	var lastError error
 	done := make(chan struct{}, 1)
 	prepareQueue <- &QueueJob{
 		msg: "vm.Unprepare" + vos.VM.HostnameAlias,
 		f: func() (string, error) {
 			defer func() { done <- struct{}{} }()
 
-			if err := vos.VM.Shutdown(); err != nil {
-				return "", err
+			if lastError = vos.VM.Shutdown(); lastError != nil {
+				return "", lastError
 			}
 
-			var err error
 			for step := range vos.VM.Unprepare() {
-				err = step.Err
+				lastError = step.Err
 			}
-			if err != nil {
-				return "", err
+
+			if lastError != nil {
+				return "", lastError
 			}
 
 			return fmt.Sprintf("vm.Unprepare %s", vos.VM.HostnameAlias), nil
@@ -219,6 +226,10 @@ func vmUnprepare(vos *virt.VOS) (interface{}, error) {
 	}
 
 	<-done
+
+	if lastError != nil {
+		return nil, lastError
+	}
 
 	return true, nil
 }
@@ -520,6 +531,10 @@ func unprepareProgress(vos *virt.VOS, destroy bool) <-chan *virt.Step {
 		var prepared bool
 
 		defer func() {
+			if lastError != nil {
+				lastError = kite.NewKiteErr(lastError)
+			}
+
 			results <- &virt.Step{Err: lastError, Message: "FINISHED"}
 			close(results)
 		}()
@@ -603,6 +618,10 @@ func prepareProgress(vos *virt.VOS) <-chan *virt.Step {
 	go func() {
 		var lastError error
 		defer func() {
+			if lastError != nil {
+				lastError = kite.NewKiteErr(lastError)
+			}
+
 			results <- &virt.Step{Err: lastError, Message: "FINISHED"}
 			close(results)
 		}()
