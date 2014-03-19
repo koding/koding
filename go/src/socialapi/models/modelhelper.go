@@ -178,6 +178,20 @@ func (m Model) AfterUpdate(i Modellable) {
 	}
 	eventbus.Publish(eventName, data)
 }
+
+func (m Model) AfterDelete(i Modellable) {
+	eventName := fmt.Sprintf("%s_deleted", i.TableName())
+	data, err := json.Marshal(i.Self())
+	if err != nil {
+		// here try to resend this message to RMQ again, than
+		// persist it to somewhere!#!##@$%#?
+		// those messages are really important now
+		fmt.Println("Error occured", err)
+		return
+	}
+	eventbus.Publish(eventName, data)
+}
+
 func addSort(query *gorm.DB, options map[string]interface{}) *gorm.DB {
 
 	if options == nil {
