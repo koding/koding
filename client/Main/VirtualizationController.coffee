@@ -85,15 +85,16 @@ class VirtualizationController extends KDController
         modal.destroy()
     , vmPrefix
 
-  deleteVmByHostname: (hostnameAlias, callback) ->
+  deleteVmByHostname: (hostnameAlias, callback, fireEvents = yes) ->
     { JVM } = KD.remote.api
 
     JVM.removeByHostname hostnameAlias, (err)->
       return callback err  if err
 
-      vmc = KD.getSingleton("vmController")
-      vmc.emit 'VMListChanged'
-      vmc.emit 'VMDestroyed', hostnameAlias
+      if fireEvents
+        vmc = KD.getSingleton("vmController")
+        vmc.emit 'VMListChanged'
+        vmc.emit 'VMDestroyed', hostnameAlias
 
       callback null
 
