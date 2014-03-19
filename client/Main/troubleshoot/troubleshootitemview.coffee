@@ -8,21 +8,18 @@ class TroubleshootItemView extends KDCustomHTMLView
       size          : width : 16
       showLoader    : yes
 
-    @getData().once "healthCheckStarted", =>
-      @show()
-      @status.render()
-      @status.setClass "status"
-      # @status.setClass @getData().status
+    @getData().once "healthCheckStarted", startCheck.bind this
 
-    @getData().once "healthCheckCompleted", =>
-      @loader.hide()
-      @status.render()
-      {status} = @getData()
-      @status.setClass "status #{status}"
+    @getData().once "healthCheckCompleted", completeCheck.bind this
+
+    @getData().on "recoveryStarted", startCheck.bind this
+
+    @getData().on "recoveryCompleted", completeCheck.bind this
 
     @status = new KDCustomHTMLView
       tagName   : "strong"
       pistachio : "{{#(status)}}"
+      cssClass  : "status"
     , @getData()
 
     {title} = @getOptions()
@@ -46,3 +43,16 @@ class TroubleshootItemView extends KDCustomHTMLView
     """
       {{> @loader}} {{> @title}} {{> @status }}
     """
+
+  startCheck = ->
+    @show()
+    @loader.show()
+    @status.render()
+    @status.unsetClass "fail success"
+
+  completeCheck = ->
+    @loader.hide()
+    @status.render()
+    {status} = @getData()
+    @status.unsetClass "fail success"
+    @status.setClass "#{status}"
