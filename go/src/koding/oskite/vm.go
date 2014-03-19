@@ -3,6 +3,7 @@
 package oskite
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
 	"io"
@@ -11,6 +12,8 @@ import (
 	"koding/tools/kite"
 	"koding/virt"
 	"os"
+	"os/exec"
+	"syscall"
 	"time"
 
 	"labix.org/v2/mgo/bson"
@@ -86,6 +89,41 @@ func execFuncOld(args *dnode.Partial, c *kite.Channel, vos *virt.VOS) (interface
 
 ////////////////////
 
+type output struct {
+	Stdout     string `json:"stdout"`
+	Stderr     string `json:"stderr"`
+	ExitStatus int    `json:"exitStatus"`
+}
+
+func newOutput(cmd *exec.Cmd) (interface{}, error) {
+	stdoutBuffer, stderrBuffer := new(bytes.Buffer), new(bytes.Buffer)
+	cmd.Stdout, cmd.Stderr = stdoutBuffer, stderrBuffer
+	var exitStatus int
+
+	err := cmd.Run()
+	if err != nil {
+		if exitErr, ok := err.(*exec.ExitError); !ok {
+			return nil, err // return if it's not an exitError
+		} else {
+			exitStatus = exitErr.Sys().(syscall.WaitStatus).ExitStatus()
+		}
+	}
+
+	return output{
+		Stdout:     stdoutBuffer.String(),
+		Stderr:     stderrBuffer.String(),
+		ExitStatus: exitStatus,
+	}, nil
+}
+
+func execFunc(line string, vos *virt.VOS) (interface{}, error) {
+	return newOutput(vos.VM.AttachCommand(vos.User.Uid, "", "/bin/bash", "-c", line))
+}
+
+func spawnFunc(command []string, vos *virt.VOS) (interface{}, error) {
+	return newOutput(vos.VM.AttachCommand(vos.User.Uid, "", command...))
+}
+
 func vmStart(vos *virt.VOS) (interface{}, error) {
 	if !vos.Permissions.Sudo {
 		return nil, &kite.PermissionError{}
@@ -124,7 +162,7 @@ func vmStart(vos *virt.VOS) (interface{}, error) {
 	<-done
 
 	if lastError != nil {
-		return true, lastError
+		return nil, lastError
 	}
 
 	return true, nil
@@ -135,14 +173,15 @@ func vmShutdown(vos *virt.VOS) (interface{}, error) {
 		return nil, &kite.PermissionError{}
 	}
 
+	var lastError error
 	done := make(chan struct{}, 1)
 	prepareQueue <- &QueueJob{
 		msg: "vm.Shutdown" + vos.VM.HostnameAlias,
 		f: func() (string, error) {
 			defer func() { done <- struct{}{} }()
 
-			if err := vos.VM.Shutdown(); err != nil {
-				return "", err
+			if lastError = vos.VM.Shutdown(); lastError != nil {
+				return "", lastError
 			}
 
 			return fmt.Sprintf("vm.Shutdown %s", vos.VM.HostnameAlias), nil
@@ -150,6 +189,11 @@ func vmShutdown(vos *virt.VOS) (interface{}, error) {
 	}
 
 	<-done
+
+	if lastError != nil {
+		return nil, lastError
+	}
+
 	return true, nil
 }
 
@@ -158,22 +202,23 @@ func vmUnprepare(vos *virt.VOS) (interface{}, error) {
 		return nil, &kite.PermissionError{}
 	}
 
+	var lastError error
 	done := make(chan struct{}, 1)
 	prepareQueue <- &QueueJob{
 		msg: "vm.Unprepare" + vos.VM.HostnameAlias,
 		f: func() (string, error) {
 			defer func() { done <- struct{}{} }()
 
-			if err := vos.VM.Shutdown(); err != nil {
-				return "", err
+			if lastError = vos.VM.Shutdown(); lastError != nil {
+				return "", lastError
 			}
 
-			var err error
 			for step := range vos.VM.Unprepare() {
-				err = step.Err
+				lastError = step.Err
 			}
-			if err != nil {
-				return "", err
+
+			if lastError != nil {
+				return "", lastError
 			}
 
 			return fmt.Sprintf("vm.Unprepare %s", vos.VM.HostnameAlias), nil
@@ -181,6 +226,10 @@ func vmUnprepare(vos *virt.VOS) (interface{}, error) {
 	}
 
 	<-done
+
+	if lastError != nil {
+		return nil, lastError
+	}
 
 	return true, nil
 }
@@ -281,14 +330,6 @@ func vmReinitialize(vos *virt.VOS) (interface{}, error) {
 	}
 
 	return true, nil
-}
-
-func execFunc(line string, vos *virt.VOS) (interface{}, error) {
-	return vos.VM.AttachCommand(vos.User.Uid, "", "/bin/bash", "-c", line).CombinedOutput()
-}
-
-func spawnFunc(command []string, vos *virt.VOS) (interface{}, error) {
-	return vos.VM.AttachCommand(vos.User.Uid, "", command...).CombinedOutput()
 }
 
 func startAndPrepareVM(vm *virt.VM) error {
@@ -490,6 +531,10 @@ func unprepareProgress(vos *virt.VOS, destroy bool) <-chan *virt.Step {
 		var prepared bool
 
 		defer func() {
+			if lastError != nil {
+				lastError = kite.NewKiteErr(lastError)
+			}
+
 			results <- &virt.Step{Err: lastError, Message: "FINISHED"}
 			close(results)
 		}()
@@ -573,6 +618,10 @@ func prepareProgress(vos *virt.VOS) <-chan *virt.Step {
 	go func() {
 		var lastError error
 		defer func() {
+			if lastError != nil {
+				lastError = kite.NewKiteErr(lastError)
+			}
+
 			results <- &virt.Step{Err: lastError, Message: "FINISHED"}
 			close(results)
 		}()
