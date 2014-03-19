@@ -99,6 +99,10 @@ var actions = map[string]func(args []string){
 	},
 
 	"unprepare": func(args []string) {
+		if len(args) == 0 {
+			log.Fatal("usage: unprepare <all | vm-id>")
+		}
+
 		for _, vm := range selectVMs(args[0]) {
 			err := vm.Unprepare()
 			fmt.Printf("%v: %v\n", vm, err)
