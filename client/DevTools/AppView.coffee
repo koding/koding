@@ -37,7 +37,6 @@ class DevToolsMainView extends KDView
     toggleFullscreen.on "viewAppended", ->
       toggleFullscreen.parent.setClass "default"
 
-
   viewAppended:->
 
     @addSubView @workspace      = new CollaborativeWorkspace
@@ -142,14 +141,14 @@ class DevToolsMainView extends KDView
             _.debounce (@lazyBound 'previewApp', no), 500
 
           JSEditor.on "RunRequested", @lazyBound 'previewApp', yes
+          JSEditor.on "SaveAllRequested", @bound 'saveAll'
           JSEditor.on "AutoRunRequested", @bound 'toggleLiveReload'
           JSEditor.on "FocusedOnMe", => @_lastActiveEditor = JSEditor
           JSEditor.on "RecentFileLoaded", => @switchMode 'develop'
 
+          @on 'saveAllMenuItemClicked', @bound 'saveAll'
           @on 'saveMenuItemClicked', =>
             @_lastActiveEditor?.handleSave()
-          @on 'saveAllMenuItemClicked', =>
-            CSSEditor.handleSave(); JSEditor.handleSave()
           @on 'closeAllMenuItemClicked', =>
             delete @_lastActiveEditor
             @switchMode 'home'
@@ -166,6 +165,7 @@ class DevToolsMainView extends KDView
             _.debounce (@lazyBound 'previewCss', no), 500
 
           CSSEditor.on "RunRequested", @lazyBound 'previewCss', yes
+          CSSEditor.on "SaveAllRequested", @bound 'saveAll'
           CSSEditor.on "AutoRunRequested", @bound 'toggleLiveReload'
           CSSEditor.on "FocusedOnMe", => @_lastActiveEditor = CSSEditor
 
@@ -228,8 +228,6 @@ class DevToolsMainView extends KDView
         delete window.appView
         @_inprogress = no
         KD.utils.wait 700, -> PreviewPane.info.unsetClass 'in'
-
-
 
   previewCss:(force = no)->
 
@@ -310,6 +308,12 @@ class DevToolsMainView extends KDView
       else
         @welcomePage.setClass 'out'
         KD.utils.wait 500, @welcomePage.bound 'hide'
+
+  saveAll:->
+
+    {JSEditor, CSSEditor} = @workspace.activePanel.panesByName
+    CSSEditor.handleSave(); JSEditor.handleSave()
+
 
 class DevToolsEditorPane extends CollaborativeEditorPane
 
