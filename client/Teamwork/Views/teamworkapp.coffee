@@ -171,6 +171,7 @@ class TeamworkApp extends KDObject
         {manifestUrl} = manifest
 
     @doCurlRequest manifestUrl, (err, manifest) =>
+      return KD.showError err  if err
       root            = "/home/#{@teamwork.getHost()}/Web/Teamwork/#{playground}"
       folder          = FSHelper.createFileFromPath root, "folder"
       contentUrl      = manifest.content.url
