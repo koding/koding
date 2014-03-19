@@ -453,7 +453,7 @@ class KodingAppsController extends KDController
 
         callback? { message: "Failed to compile: #{err}" }
 
-  @createJApp = (path, callback)->
+  @createJApp = ({path, githubPath}, callback)->
 
     app = @getAppInfoFromPath path
     return  unless app
@@ -466,7 +466,7 @@ class KodingAppsController extends KDController
         {JNewApp} = KD.remote.api
         JNewApp.publish {
           name : app.name
-          url  : app.fullPath
+          url  : githubPath or app.fullPath
           manifest
         }, (err, app)->
           log err, app

@@ -14,6 +14,7 @@ class DevToolsController extends AppController
       { title     : "Close All",           eventName : "closeAll" }
       { type      : "separator" }
       { title     : "Compile on server",   eventName : "compile" }
+      { title     : "Publish for Testing", eventName : "publishTest" }
       { title     : "Publish to AppStore", eventName : "publish" }
       { title     : "customViewToggleLiveReload" }
       { type      : "separator" }

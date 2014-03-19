@@ -170,7 +170,8 @@ class DevToolsMainView extends KDView
           CSSEditor.on "FocusedOnMe", => @_lastActiveEditor = CSSEditor
 
         @on 'createMenuItemClicked',  @bound 'createNewApp'
-        @on 'publishMenuItemClicked', @bound 'publishCurrentApp'
+        @on 'publishMenuItemClicked', @lazyBound 'publishCurrentApp', 'production'
+        @on 'publishTestMenuItemClicked', @bound 'publishCurrentApp'
         @on 'compileMenuItemClicked', @bound 'compileApp'
 
 
@@ -273,12 +274,36 @@ class DevToolsMainView extends KDView
 
       @switchMode 'develop'
 
-  publishCurrentApp:->
+  publishCurrentApp:(target='test')->
 
     {JSEditor} = @workspace.activePanel.panesByName
-    KodingAppsController.createJApp JSEditor.getData()?.path, ->
-      new KDNotificationView
-        title: "Published successfully!"
+    path = JSEditor.getData()?.path
+
+    unless path
+      return new KDNotificationView
+        title : "Open an application first"
+
+    app = KodingAppsController.getAppInfoFromPath path
+    options = {path}
+
+    if target is 'production'
+
+      modal = new KodingAppSelectorForGitHub
+        title : "Select repository of #{app.name}.kdapp"
+        customFilter : ///#{app.name}\.kdapp$///
+
+      modal.on "RepoSelected", (repo)->
+        options.githubPath = \
+          "#{KD.config.appsUri}/#{repo.full_name}/#{repo.default_branch}"
+        KodingAppsController.createJApp options, ->
+          new KDNotificationView
+            title: "Published successfully!"
+
+    else
+
+      KodingAppsController.createJApp options, ->
+        new KDNotificationView
+          title: "Published successfully!"
 
   toggleLiveReload:(state)->
 
