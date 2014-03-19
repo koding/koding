@@ -2,6 +2,7 @@ package followingfeed
 
 import (
 	"errors"
+	"fmt"
 	"koding/tools/logger"
 )
 
@@ -20,7 +21,9 @@ func NewFollowingFeedController(log logger.Log) *FollowingFeedController {
 	}
 
 	routes := map[string]Action{
-		"MessageSaved": (*FollowingFeedController).MessageSaved,
+		"channel_message_created": (*FollowingFeedController).MessageSaved,
+		"channel_message_update":  (*FollowingFeedController).MessageUpdated,
+		"channel_message_deleted": (*FollowingFeedController).MessageDeleted,
 	}
 
 	ffc.routes = routes
@@ -39,5 +42,19 @@ func (f *FollowingFeedController) HandleEvent(event string, data []byte) error {
 }
 
 func (f *FollowingFeedController) MessageSaved(data []byte) error {
+	fmt.Println("saved")
+	return nil
+}
+
+func (f *FollowingFeedController) MessageUpdated(data []byte) error {
+	fmt.Println("update")
+
+	return nil
+
+}
+
+func (f *FollowingFeedController) MessageDeleted(data []byte) error {
+	fmt.Println("delete")
+
 	return nil
 }
