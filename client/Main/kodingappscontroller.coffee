@@ -69,7 +69,7 @@ class KodingAppsController extends KDController
       identifier : jApp.identifier
     }
 
-    if jApp.approved
+    if jApp.status is 'verified'
       route = "/#{jApp.name}"
     else
       route = "/Apps/#{jApp.manifest.authorNick}/#{jApp.name}/run"
@@ -91,7 +91,7 @@ class KodingAppsController extends KDController
 
   @runExternalApp = (jApp, options = {}, callback = noop)->
 
-    if jApp.approved or jApp.manifest.authorNick is KD.nick()
+    if jApp.status is 'verified' or jApp.manifest.authorNick is KD.nick()
       return @runApprovedApp jApp, options
 
     modal = new KDModalView

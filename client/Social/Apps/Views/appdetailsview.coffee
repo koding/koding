@@ -61,7 +61,7 @@ class AppDetailsView extends KDScrollView
     @approveButton = new KDToggleButton
       style           : "approve"
       dataPath        : "approved"
-      defaultState    : if app.approved then "Disapprove" else "Approve"
+      defaultState    : if app.status is 'verified' then "Disapprove" else "Approve"
       states          : [
         title         : "Approve"
         callback      : (callback)->
