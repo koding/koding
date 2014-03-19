@@ -26,9 +26,9 @@ class TroubleshootErrorView extends KDCustomHTMLView
                  supports offline working will continue to work, but you cannot \
                  send/receive updates, reach your VMs nor interact with terminal."
     liveUpdate :
-      slow     : "You will not receive live updates, and you wont be able to \
+      slow     : "You will experience slowness with live updates"
+      fail     : "You will not receive live updates, and you wont be able to \
                   connect to your vms"
-      fail     : "You will experience slowness with live updates"
     version    :
       fail     : "You are currently running an old version of Koding. Please refresh \
                   your page."
@@ -41,6 +41,8 @@ class TroubleshootErrorView extends KDCustomHTMLView
     super options, data
     @hide()
     @initStatusListener()
+    @errorViews = {}
+    @errorCount = 0
 
 
   initStatusListener: ->
@@ -51,8 +53,28 @@ class TroubleshootErrorView extends KDCustomHTMLView
           {status} = item
           if status in ["fail", "slow"] and errorMessages[name]?[status]
             @show()
-            @addSubView new KDCustomHTMLView
-              tagName: "div"
-              cssClass: "status-message #{status}"
-              partial: "* #{errorMessages[name][status]}"
+            @errorCount += 1
+            @addSubView @errorViews[name] = @createErrorView name, item
+
+        item.on "recoveryStarted", =>
+          @errorCount -= 1
+          @hide()  unless @errorCount
+          @errorViews[name].destroy()
+          delete @errorViews[name]
+
+
+        item.on "recoveryCompleted", =>
+          {status} = item
+          if status in ["fail", "slow"] and errorMessages[name]?[status]
+            @show()
+            @errorCount += 1
+            @addSubView @errorViews[name] = @createErrorView name, item
+
+
+  createErrorView: (name, item) ->
+    {status} = item
+    new KDCustomHTMLView
+      tagName: "div"
+      cssClass: "status-message #{status}"
+      partial: "* #{errorMessages[name][status]}"
 
