@@ -3,6 +3,7 @@
 package oskite
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
 	"io"
@@ -11,6 +12,8 @@ import (
 	"koding/tools/kite"
 	"koding/virt"
 	"os"
+	"os/exec"
+	"syscall"
 	"time"
 
 	"labix.org/v2/mgo/bson"
@@ -86,6 +89,41 @@ func execFuncOld(args *dnode.Partial, c *kite.Channel, vos *virt.VOS) (interface
 
 ////////////////////
 
+type output struct {
+	Stdout     string `json:"stdout"`
+	Stderr     string `json:"stderr"`
+	ExitStatus int    `json:"exitStatus"`
+}
+
+func newOutput(cmd *exec.Cmd) (interface{}, error) {
+	stdoutBuffer, stderrBuffer := new(bytes.Buffer), new(bytes.Buffer)
+	cmd.Stdout, cmd.Stderr = stdoutBuffer, stderrBuffer
+	var exitStatus int
+
+	err := cmd.Run()
+	if err != nil {
+		if exitErr, ok := err.(*exec.ExitError); !ok {
+			return nil, err // return if it's not an exitError
+		} else {
+			exitStatus = exitErr.Sys().(syscall.WaitStatus).ExitStatus()
+		}
+	}
+
+	return output{
+		Stdout:     stdoutBuffer.String(),
+		Stderr:     stderrBuffer.String(),
+		ExitStatus: exitStatus,
+	}, nil
+}
+
+func execFunc(line string, vos *virt.VOS) (interface{}, error) {
+	return newOutput(vos.VM.AttachCommand(vos.User.Uid, "", "/bin/bash", "-c", line))
+}
+
+func spawnFunc(command []string, vos *virt.VOS) (interface{}, error) {
+	return newOutput(vos.VM.AttachCommand(vos.User.Uid, "", command...))
+}
+
 func vmStart(vos *virt.VOS) (interface{}, error) {
 	if !vos.Permissions.Sudo {
 		return nil, &kite.PermissionError{}
@@ -124,7 +162,7 @@ func vmStart(vos *virt.VOS) (interface{}, error) {
 	<-done
 
 	if lastError != nil {
-		return true, lastError
+		return nil, lastError
 	}
 
 	return true, nil
@@ -135,14 +173,15 @@ func vmShutdown(vos *virt.VOS) (interface{}, error) {
 		return nil, &kite.PermissionError{}
 	}
 
+	var lastError error
 	done := make(chan struct{}, 1)
 	prepareQueue <- &QueueJob{
 		msg: "vm.Shutdown" + vos.VM.HostnameAlias,
 		f: func() (string, error) {
 			defer func() { done <- struct{}{} }()
 
-			if err := vos.VM.Shutdown(); err != nil {
-				return "", err
+			if lastError = vos.VM.Shutdown(); lastError != nil {
+				return "", lastError
 			}
 
 			return fmt.Sprintf("vm.Shutdown %s", vos.VM.HostnameAlias), nil
@@ -150,6 +189,11 @@ func vmShutdown(vos *virt.VOS) (interface{}, error) {
 	}
 
 	<-done
+
+	if lastError != nil {
+		return nil, lastError
+	}
+
 	return true, nil
 }
 
@@ -158,22 +202,23 @@ func vmUnprepare(vos *virt.VOS) (interface{}, error) {
 		return nil, &kite.PermissionError{}
 	}
 
+	var lastError error
 	done := make(chan struct{}, 1)
 	prepareQueue <- &QueueJob{
 		msg: "vm.Unprepare" + vos.VM.HostnameAlias,
 		f: func() (string, error) {
 			defer func() { done <- struct{}{} }()
 
-			if err := vos.VM.Shutdown(); err != nil {
-				return "", err
+			if lastError = vos.VM.Shutdown(); lastError != nil {
+				return "", lastError
 			}
 
-			var err error
 			for step := range vos.VM.Unprepare() {
-				err = step.Err
+				lastError = step.Err
 			}
-			if err != nil {
-				return "", err
+
+			if lastError != nil {
+				return "", lastError
 			}
 
 			return fmt.Sprintf("vm.Unprepare %s", vos.VM.HostnameAlias), nil
@@ -181,6 +226,10 @@ func vmUnprepare(vos *virt.VOS) (interface{}, error) {
 	}
 
 	<-done
+
+	if lastError != nil {
+		return nil, lastError
+	}
 
 	return true, nil
 }
@@ -283,14 +332,6 @@ func vmReinitialize(vos *virt.VOS) (interface{}, error) {
 	return true, nil
 }
 
-func execFunc(line string, vos *virt.VOS) (interface{}, error) {
-	return vos.VM.AttachCommand(vos.User.Uid, "", "/bin/bash", "-c", line).CombinedOutput()
-}
-
-func spawnFunc(command []string, vos *virt.VOS) (interface{}, error) {
-	return vos.VM.AttachCommand(vos.User.Uid, "", command...).CombinedOutput()
-}
-
 func startAndPrepareVM(vm *virt.VM) error {
 	prepared, err := isVmPrepared(vm)
 	if err != nil {
@@ -345,28 +386,36 @@ func startAndPrepareVM(vm *virt.VM) error {
 	return lastError
 }
 
-func vmPrepareAndStart(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
-	var params struct {
-		OnProgress dnode.Callback
-	}
+type progresser interface {
+	Enabled() bool
+	Call(v interface{})
+}
 
-	if args != nil && args.Unmarshal(&params) != nil {
-		return nil, &kite.ArgumentError{Expected: "{OnProgress: [function]}"}
-	}
+type progressParamsOld struct {
+	OnProgress dnode.Callback
+}
 
+func (p *progressParamsOld) Enabled() bool      { return p.OnProgress != nil }
+func (p *progressParamsOld) Call(v interface{}) { p.OnProgress(v) }
+
+// progress is function that enables sync and async call of the given function
+// "f". We pass an interface called progresser just for compatibility of
+// newkite and oldkite (they each have different callback signatures)
+// TODO: fix this function signature, a function shouldn't have this much arguments.
+func progress(vos *virt.VOS, desc string, p progresser, f func() error) (interface{}, error) {
 	var lastError error
 	done := make(chan struct{}, 1)
 
-	if params.OnProgress != nil {
-		params.OnProgress(&virt.Step{Message: "STARTED"})
+	if p.Enabled() {
+		p.Call(&virt.Step{Message: "STARTED"})
 		done = nil // not used anymore
 	}
 
 	go func() {
 		prepareQueue <- &QueueJob{
-			msg: "vm.prepareAndStart" + vos.VM.HostnameAlias,
+			msg: desc,
 			f: func() (string, error) {
-				if params.OnProgress == nil {
+				if !p.Enabled() {
 					defer func() { done <- struct{}{} }()
 				} else {
 					// mutex is needed because it's handled in the queue
@@ -375,23 +424,17 @@ func vmPrepareAndStart(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS
 					defer info.mutex.Unlock()
 				}
 
-				for step := range prepareProgress(vos) {
-					if params.OnProgress != nil {
-						params.OnProgress(step)
-					}
-
-					if step.Err != nil {
-						lastError = step.Err
-						return "", lastError
-					}
+				if err := f(); err != nil {
+					lastError = err
+					return "", err
 				}
 
-				return fmt.Sprintf("vm.prepareAndStart %s", vos.VM.HostnameAlias), nil
+				return desc, nil
 			},
 		}
 	}()
 
-	if params.OnProgress == nil {
+	if !p.Enabled() {
 		// wait until the prepareWorker has picked us and we finished
 		// to return something to the client
 		<-done
@@ -399,79 +442,103 @@ func vmPrepareAndStart(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS
 			return true, lastError
 		}
 	}
+
+	return true, nil
+}
+
+func vmPrepareAndStart(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
+	if !vos.Permissions.Sudo {
+		return nil, &kite.PermissionError{}
+	}
+
+	params := new(progressParamsOld)
+	if args != nil && args.Unmarshal(&params) != nil {
+		return nil, &kite.ArgumentError{Expected: "{OnProgress: [function]}"}
+	}
+
+	return progress(vos, "vm.prepareAndStart"+vos.VM.HostnameAlias, params, func() error {
+		for step := range prepareProgress(vos) {
+			if params.OnProgress != nil {
+				params.OnProgress(step)
+			}
+
+			if step.Err != nil {
+				return step.Err
+			}
+		}
+
+		return nil
+	})
+}
+
+func vmDestroyOld(args *dnode.Partial, c *kite.Channel, vos *virt.VOS) (interface{}, error) {
+	if !vos.Permissions.Sudo {
+		return nil, &kite.PermissionError{}
+	}
+
+	params := new(progressParamsOld)
+	if args != nil && args.Unmarshal(&params) != nil {
+		return nil, &kite.ArgumentError{Expected: "{OnProgress: [function]}"}
+	}
+
+	return progress(vos, "vm.destroy"+vos.VM.HostnameAlias, params, func() error {
+		for step := range unprepareProgress(vos, true) {
+			if params.OnProgress != nil {
+				params.OnProgress(step)
+			}
+
+			if step.Err != nil {
+				return step.Err
+			}
+		}
+
+		return nil
+	})
 
 	return true, nil
 }
 
 func vmStopAndUnprepare(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
-	var params struct {
-		OnProgress dnode.Callback
+	if !vos.Permissions.Sudo {
+		return nil, &kite.PermissionError{}
 	}
 
+	params := new(progressParamsOld)
 	if args != nil && args.Unmarshal(&params) != nil {
 		return nil, &kite.ArgumentError{Expected: "{OnProgress: [function]}"}
 	}
 
-	var lastError error
-	done := make(chan struct{}, 1)
+	return progress(vos, "vm.stopAndUnprepare"+vos.VM.HostnameAlias, params, func() error {
+		for step := range unprepareProgress(vos, false) {
+			if params.OnProgress != nil {
+				params.OnProgress(step)
+			}
 
-	if params.OnProgress != nil {
-		params.OnProgress(&virt.Step{Message: "STARTED"})
-		done = nil // not used anymore
-	}
-
-	go func() {
-		prepareQueue <- &QueueJob{
-			msg: "vm.StopAndUnprepare" + vos.VM.HostnameAlias,
-			f: func() (string, error) {
-				if params.OnProgress == nil {
-					defer func() { done <- struct{}{} }()
-				} else {
-					// mutex is needed because it's handled in the queue
-					info := getInfo(vos.VM)
-					info.mutex.Lock()
-					defer info.mutex.Unlock()
-				}
-
-				for step := range unprepareProgress(vos) {
-					if params.OnProgress != nil {
-						params.OnProgress(step)
-					}
-
-					if step.Err != nil {
-						lastError = step.Err
-						return "", lastError
-					}
-				}
-
-				return fmt.Sprintf("vm.StopAndUnprepare %s", vos.VM.HostnameAlias), nil
-			},
+			if step.Err != nil {
+				return step.Err
+			}
 		}
-	}()
 
-	if params.OnProgress == nil {
-		// wait until the prepareWorker has picked us and we finished
-		// to return something to the client
-		<-done
-		if lastError != nil {
-			return true, lastError
-		}
-	}
-
-	return true, nil
+		return nil
+	})
 }
 
-func unprepareProgress(vos *virt.VOS) <-chan *virt.Step {
+func unprepareProgress(vos *virt.VOS, destroy bool) <-chan *virt.Step {
 	results := make(chan *virt.Step)
 
 	go func() {
 		var lastError error
+		var prepared bool
+
 		defer func() {
+			if lastError != nil {
+				lastError = kite.NewKiteErr(lastError)
+			}
+
 			results <- &virt.Step{Err: lastError, Message: "FINISHED"}
 			close(results)
 		}()
 
-		var prepared bool
 		prepared, lastError = isVmPrepared(vos.VM)
 		if lastError != nil {
 			return
@@ -486,22 +553,59 @@ func unprepareProgress(vos *virt.VOS) <-chan *virt.Step {
 		if lastError = vos.VM.Shutdown(); lastError != nil {
 			return
 		}
+
+		// now start our unprepare progress. Also this enables to get the total
+		// steps before we send the result of shutdown back
+		unprepareChan := vos.VM.Unprepare()
+
+		totalStep := cap(unprepareChan) + 1 // include vm.Shutdown()
+		if destroy {
+			totalStep += 1 // include vm.Destroy()
+		}
+
 		results <- &virt.Step{
 			Message:     "VM is stopped.",
 			ElapsedTime: time.Since(start).Seconds(),
 			CurrentStep: 1,
-			TotalStep:   11, // hardcoded I know, 10 comes from vm.Unprepare()
+			TotalStep:   totalStep,
 		}
 
-		for step := range vos.VM.Unprepare() {
+		var lastCurrentStep int
+		for step := range unprepareChan {
 			lastError = step.Err
 
 			// add +1 because of previous vm.Shutdown()
-			step.CurrentStep = step.CurrentStep + 1
-			step.TotalStep = step.TotalStep + 1
+			step.CurrentStep += 1
+			step.TotalStep = totalStep
+
+			lastCurrentStep = step.CurrentStep
 
 			// send every process back to the client
 			results <- step
+		}
+
+		if destroy {
+			start := time.Now()
+			if lastError = vos.VM.Destroy(); lastError != nil {
+				return
+			}
+
+			results <- &virt.Step{
+				Message:     "VM is destroyed.",
+				ElapsedTime: time.Since(start).Seconds(),
+				CurrentStep: lastCurrentStep + 1,
+				TotalStep:   totalStep,
+			}
+
+			// TODO: enable this after getting the relationships to be removed.
+			// query := func(c *mgo.Collection) error {
+			// 	return c.Remove(bson.M{"hostnameAlias": vos.VM.HostnameAlias})
+			// }
+
+			// if err := mongodbConn.Run("jVMs", query); err != nil {
+			// 	return nil, err
+			// }
+
 		}
 	}()
 
@@ -514,6 +618,10 @@ func prepareProgress(vos *virt.VOS) <-chan *virt.Step {
 	go func() {
 		var lastError error
 		defer func() {
+			if lastError != nil {
+				lastError = kite.NewKiteErr(lastError)
+			}
+
 			results <- &virt.Step{Err: lastError, Message: "FINISHED"}
 			close(results)
 		}()

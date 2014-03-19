@@ -54,7 +54,8 @@ class TeamworkImporter extends KDObject
     @notify "Downloading zip file...", "", 25000
     commands = commands.join(" && ")
     @vmController.run commands, (err, res) =>
-      return @handleError err  if err
+      err = err or res.stderr
+      return @handleError err  if err or res.exitStatus > 0
 
       FSHelper.glob "#{@tempPath}/*", @vmName, (err, folders) =>
         return @handleError err  if err
@@ -102,7 +103,12 @@ class TeamworkImporter extends KDObject
     delegate     = @getDelegate()
     command      = "rm -rf #{rootPath}/#{@folderName} ; mv #{@tempPath}/#{@folderName} #{rootPath}"
 
+    # There wasn't an error check, added
+    # but you can remove if you think its not necessary ~ GG
     @vmController.run command, (err, res) =>
+      err = err or res.stderr
+      return warn err  if err or res.exitStatus > 0
+
       options.modal?.destroy()
       @notification?.destroy()
       options.callback?()
@@ -161,7 +167,8 @@ class TeamworkImporter extends KDObject
       paneLauncher.handleLaunch "terminal"
 
     @vmController.run "chmod 777 #{shFile.path}", (err, res) =>
-      return @handleError err  if err
+      err = err or res.stderr
+      return @handleError err  if err or res.exitStatus > 0
       paneLauncher.terminalPane.runCommand "./#{shFile.path}"
 
   cloneRepo: ->
@@ -192,14 +199,18 @@ class TeamworkImporter extends KDObject
 
     modal?.destroy()
     @vmController.run commands.join(" && "), (err, res) =>
-      return @handleError err  if err
+      err = err or res.stderr
+      return @handleError err  if err or res.exitStatus > 0
+
       @getDelegate().setVMRoot "#{rootPath}/#{@folderName}"
       @notification?.destroy()
       @checkContent()
 
   resolveUrl: (callback = noop) ->
-    @vmController.run "curl -sIL #{@url} | grep ^Location", (err, longUrl) =>
-      return @handleError err  if err
+    @vmController.run "curl -sIL #{@url} | grep ^Location", (err, res) =>
+      err = err or res.stderr
+      return @handleError err  if err or res.exitStatus > 0
+      longUrl = res.stdout
 
       message = "Url must be a GitHub repository link or a zip file."
       return @handleError { message }, message  unless longUrl

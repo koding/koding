@@ -61,6 +61,9 @@ class TeamworkExportModal extends KDModalView
     ]
 
     vmController.run commands.join("&&"), (err, res) =>
+      return warn err  if err
+      return warn res.stderr  if res.exitStatus > 0
+
       file = FSHelper.createFileFromPath "#{tempPath}/#{name}.zip"
       file.fetchContents (err, contents) =>
         FSHelper.s3.upload "#{name}.zip", btoa(contents), "user", "", (err, res) =>
