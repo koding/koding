@@ -329,9 +329,11 @@ class DevToolsMainView extends KDView
     switch mode
       when 'home'
         @welcomePage.show()
+        KD.singletons.mainView.appSettingsMenuButton.hide()
         KD.utils.defer @welcomePage.lazyBound 'unsetClass', 'out'
       else
         @welcomePage.setClass 'out'
+        KD.singletons.mainView.appSettingsMenuButton.show()
         KD.utils.wait 500, @welcomePage.bound 'hide'
 
   saveAll:->
@@ -438,7 +440,7 @@ class DevToolsEditorPane extends CollaborativeEditorPane
             spaces = Array(cm.getOption("indentUnit") + 1).join " "
             cm.replaceSelection spaces, "end", "+input"
 
-      @setEditorTheme()
+      @setEditorTheme 'xq-dark'
       @setEditorMode @_mode ? "coffee"
 
       callback?()

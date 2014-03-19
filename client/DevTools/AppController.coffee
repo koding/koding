@@ -6,22 +6,24 @@ class DevToolsController extends AppController
 
   KD.registerAppClass this, {
     name, version, behavior: "application", route,
-    menu          : [
-      { title     : "Create a new App",    eventName : "create" }
-      { type      : "separator" }
-      { title     : "Save",                eventName : "save" }
-      { title     : "Save All",            eventName : "saveAll" }
-      { title     : "Close All",           eventName : "closeAll" }
-      { type      : "separator" }
-      { title     : "Compile on server",   eventName : "compile" }
-      { title     : "Publish for Testing", eventName : "publishTest" }
-      { title     : "Publish to AppStore", eventName : "publish" }
-      { title     : "customViewToggleLiveReload" }
-      { type      : "separator" }
-      { title     : "customViewToggleFullscreen" }
-      { type      : "separator" }
-      { title     : "Exit",                eventName : "exit" }
-    ]
+    menu          :
+      items       : [
+        { title     : "Create a new App",    eventName : "create" }
+        { type      : "separator" }
+        { title     : "Save",                eventName : "save" }
+        { title     : "Save All",            eventName : "saveAll" }
+        { title     : "Close All",           eventName : "closeAll" }
+        { type      : "separator" }
+        { title     : "Compile on server",   eventName : "compile" }
+        { title     : "Publish for Testing", eventName : "publishTest" }
+        { title     : "Publish to AppStore", eventName : "publish" }
+        { title     : "customViewToggleLiveReload" }
+        { type      : "separator" }
+        { title     : "customViewToggleFullscreen" }
+        { type      : "separator" }
+        { title     : "Exit",                eventName : "exit" }
+      ]
+      hiddenOnStart : yes
   }
 
   constructor:(options = {}, data)->

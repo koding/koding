@@ -242,7 +242,7 @@ class MainView extends KDView
         menu = items: menu
       if menu?.items?.length
         @appSettingsMenuButton.setData menu
-        @appSettingsMenuButton.show()
+        @appSettingsMenuButton.show()  unless menu.hiddenOnStart
       else
         @appSettingsMenuButton.hide()
 
