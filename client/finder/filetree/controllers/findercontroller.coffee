@@ -212,7 +212,10 @@ class NFinderController extends KDViewController
     vmRoots[pipedVm] = path
     @appStorage.setValue 'vmRoots', vmRoots  if @getOptions().useStorage
 
-    @mountVm "#{vmName}:#{path}"
+    KD.singleton("vmController").fetchVmsByName [vmName], (err, [vm]) =>
+      return KD.showError err  if err
+      vm.path = path
+      @mountVm vm
 
   cleanup:->
     @treeController.removeAllNodes()
