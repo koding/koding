@@ -3,56 +3,136 @@ class ActivityAppView extends KDScrollView
 
   headerHeight = 0
 
+  {entryPoint, permissions, roles} = KD.config
+
+  isGroup        = -> entryPoint?.type is 'group'
+  isKoding       = -> entryPoint?.slug is 'koding'
+  isMember       = -> 'member' in roles
+  canListMembers = -> 'list members' in permissions
+  isPrivateGroup = -> not isKoding() and isGroup()
+
 
   constructor:(options = {}, data)->
 
-    options.cssClass   = "content-page activity"
-    options.domId      = "content-page-activity"
+    options.cssClass   = 'content-page activity'
+    options.domId      = 'content-page-activity'
 
     super options, data
 
     # FIXME: disable live updates - SY
-    @appStorage = KD.getSingleton("appStorageController").storage 'Activity', '1.0.1'
+    {entryPoint}      = KD.config
+    {
+      windowController
+      widgetController
+      mainController
+      appStorageController
+    } = KD.singletons
+
+    @appStorage = appStorageController.storage 'Activity', '1.0.1'
     @appStorage.setValue 'liveUpdates', off
 
+    # main components
+    @feedWrapper       = new ActivityListContainer
+    @inputWidget       = new ActivityInputWidget
+    @referalBox        = new ReferalBox
+    @topWidgetWrapper  = new KDCustomHTMLView
+    @leftWidgetWrapper = new KDCustomHTMLView
+    @groupListBox      = new UserGroupList
+    @topicsBox         = new ActiveTopics
+    @usersBox          = new ActiveUsers
 
-  viewAppended:->
-
-    {entryPoint}      = KD.config
-    windowController  = KD.singleton 'windowController'
-
-    @feedWrapper      = new ActivityListContainer
-    @inputWidget      = new ActivityInputWidget
-
-    @inputWidget.on "ActivitySubmitted", =>
-      appTop   = @getElement().offsetTop
-      listTop  = @feedWrapper.listWrapper.getElement().offsetTop
-      duration = @feedWrapper.pinnedListWrapper.getHeight() * .3
-      $("html, body").animate {scrollTop: appTop + listTop + 10}, {duration}
-
-    @referalBox       = new ReferalBox
-    @groupListBox     = new UserGroupList
-    @topicsBox        = new ActiveTopics
-    @usersBox         = new ActiveUsers
-    # @tickerBox        = new ActivityTicker
     # TODO : if not on private group DO NOT create those ~EA
+    # group components
+    @groupCoverView   = new FeedCoverPhotoView
     @groupDescription = new GroupDescription
     @groupMembers     = new GroupMembers
 
-    @mainBlock        = new KDCustomHTMLView tagName : "main" #"activity-left-block"
-    @sideBlock        = new KDCustomHTMLView tagName : "aside"   #"activity-right-block"
 
-    @groupCoverView   = new FeedCoverPhotoView
 
-    @mainController   = KD.getSingleton("mainController")
-    @mainController.on "AccountChanged", @bound "decorate"
-    @mainController.on "JoinedGroup", => @inputWidget.show()
+    widgetController.showWidgets [
+      { view: @topWidgetPlaceholder,  key: 'ActivityTop'  }
+      { view: @leftWidgetPlaceholder, key: 'ActivityLeft' }
+    ]
 
+    @inputWidget.on 'ActivitySubmitted', @bound 'activitySubmitted'
+    mainController.on 'AccountChanged', @bound "decorate"
+    mainController.on 'JoinedGroup', => @inputWidget.show()
     @feedWrapper.ready =>
       @activityHeader  = @feedWrapper.controller.activityHeader
       {@filterWarning} = @feedWrapper
       {feedFilterNav}  = @activityHeader
       feedFilterNav.unsetClass 'multiple-choice on-off'
+
+    @once 'viewAppended', =>
+
+
+  viewAppended: ->
+
+    appendAside = (view)=> @addSubView view, 'aside'
+
+    JView::viewAppended.call this
+
+    @decorate()
+    @setLazyLoader 200
+
+    appendAside @referalBox       if KD.isLoggedIn() and not isPrivateGroup()
+    appendAside @groupDescription if isPrivateGroup()
+    appendAside @groupMembers     if isPrivateGroup() and hasListPermissions()
+    appendAside @groupListBox     if isKoding()
+    appendAside @topicsBox
+    appendAside @usersBox         if canListMembers()
+
+
+  pistachio:->
+    """
+    {{> @groupCoverView}}
+    <main>
+      {{> @inputWidget}}
+      {{> @feedWrapper}}
+      {{> @topWidgetWrapper}}
+    </main>
+    <aside>
+      {{> @leftWidgetWrapper}}
+    </aside>
+    """
+
+
+  activitySubmitted:->
+
+    appTop   = @getElement().offsetTop
+    listTop  = @feedWrapper.listWrapper.getElement().offsetTop
+    duration = @feedWrapper.pinnedListWrapper.getHeight() * .3
+    $('html, body').animate {scrollTop: appTop + listTop + 10}, {duration}
+
+
+  decorate:->
+
+    {entryPoint, roles} = KD.config
+
+    @unsetClass 'guest'
+    @setClass 'guest'     unless isMember()
+    @setClass 'loggedin'  if KD.isLoggedIn()
+
+    unless isMember()
+    then @inputWidget.hide()
+    else @inputWidget.show()
+
+    @_windowDidResize()
+
+
+  setTopicTag: (slug) ->
+
+    return  unless slug
+
+    KD.remote.api.JTag.one {slug}, null, (err, tag) =>
+      @inputWidget.input.setDefaultTokens tags: [tag]
+
+
+  unsetTopicTag: -> @inputWidget.input.setDefaultTokens tags: []
+
+
+  # ticker: if we ever need to put it back it's here. at least for a while.- SY
+    # @tickerBox        = new ActivityTicker
 
     # calculateTopOffset = =>
     #   KD.utils.wait 3000, =>
@@ -70,139 +150,5 @@ class ActivityAppView extends KDScrollView
 
     # @groupListBox.on 'TopOffsetShouldBeFixed', calculateTopOffset
 
-    @decorate()
 
-    @setLazyLoader 200
-
-    @addSubView @groupCoverView
-    @addSubView @mainBlock
-    @addSubView @sideBlock
-
-    topWidgetPlaceholder  = new KDCustomHTMLView
-    leftWidgetPlaceholder = new KDCustomHTMLView
-
-    @mainBlock.addSubView topWidgetPlaceholder
-    @mainBlock.addSubView @inputWidget
-    @mainBlock.addSubView @feedWrapper
-
-    @sideBlock.addSubView @referalBox  if KD.isLoggedIn() and not @isPrivateGroup()
-    @sideBlock.addSubView leftWidgetPlaceholder
-    @sideBlock.addSubView @groupDescription if @isPrivateGroup()
-    @sideBlock.addSubView @groupMembers if @isPrivateGroup() and ("list members" in KD.config.permissions)
-    @sideBlock.addSubView @groupListBox  if KD.getGroup().slug is "koding"
-    @sideBlock.addSubView @topicsBox
-    @sideBlock.addSubView @usersBox if "list members" in KD.config.permissions
     # @sideBlock.addSubView @tickerBox
-
-    KD.getSingleton("widgetController").showWidgets [
-      { view: topWidgetPlaceholder,  key: "ActivityTop"  }
-      { view: leftWidgetPlaceholder, key: "ActivityLeft" }
-    ]
-
-  isPrivateGroup :->
-    {entryPoint} = KD.config
-    if entryPoint?.slug isnt "koding" and entryPoint?.type is "group" then yes else no
-
-  decorate:->
-    @unsetClass "guest"
-    {entryPoint, roles} = KD.config
-    @setClass "guest" unless "member" in roles
-    # if KD.isLoggedIn()
-    @setClass 'loggedin'
-    if entryPoint?.type is 'group' and 'member' not in roles
-    then @inputWidget.hide()
-    else @inputWidget.show()
-    # else
-    #   @unsetClass 'loggedin'
-    #   @inputWidget.hide()
-    @_windowDidResize()
-
-  setTopicTag: (slug) ->
-    return  if not slug or slug is ""
-    KD.remote.api.JTag.one {slug}, null, (err, tag) =>
-      @inputWidget.input.setDefaultTokens tags: [tag]
-
-  unsetTopicTag: ->
-    @inputWidget.input.setDefaultTokens tags: []
-
-
-class ActivityListContainer extends JView
-
-  constructor:(options = {}, data)->
-    options.cssClass = "activity-content feeder-tabs"
-
-    super options, data
-
-    @pinnedListController = new PinnedActivityListController
-      delegate    : this
-      itemClass   : ActivityListItemView
-      viewOptions :
-        cssClass  : "hidden"
-
-    @pinnedListWrapper = @pinnedListController.getView()
-
-    @pinnedListController.on "Loaded", =>
-      @togglePinnedList.show()
-      @pinnedListController.getListView().show()
-
-    @togglePinnedList = new KDCustomHTMLView
-      cssClass   : "toggle-pinned-list hidden"
-      # click      : KDView::toggleClass.bind @pinnedListWrapper, "hidden"
-
-    @togglePinnedList.addSubView new KDCustomHTMLView
-      tagName    : "span"
-      cssClass   : "title"
-      partial    : "Most Liked"
-
-    @controller = new ActivityListController
-      delegate          : @
-      itemClass         : ActivityListItemView
-      showHeader        : yes
-      # wrapper           : no
-      # scrollView        : no
-
-    @listWrapper = @controller.getView()
-    @filterWarning = new FilterWarning
-
-    @controller.ready => @emit "ready"
-
-  setSize:(newHeight)->
-    # @controller.scrollView.setHeight newHeight - 28 # HEIGHT OF THE LIST HEADER
-
-  viewAppended: ->
-    super
-    @togglePinnedList.show()  if @pinnedListController.getItemCount()
-
-  pistachio:->
-    """
-      {{> @filterWarning}}
-      {{> @togglePinnedList}}
-      {{> @pinnedListWrapper}}
-      {{> @listWrapper}}
-    """
-
-class FilterWarning extends JView
-
-  constructor:->
-    super cssClass : 'filter-warning hidden'
-
-    @warning   = new KDCustomHTMLView
-    @goBack    = new KDButtonView
-      cssClass : 'goback-button'
-      # todo - add group context here!
-      callback : => KD.singletons.router.handleRoute '/Activity'
-
-  pistachio:->
-    """
-    {{> @warning}}
-    {{> @goBack}}
-    """
-
-  showWarning:({text, type})->
-    partialText = switch type
-      when "search" then "Results for <strong>\"#{text}\"</strong>"
-      else "You are now looking at activities tagged with <strong>##{text}</strong>"
-
-    @warning.updatePartial "#{partialText}"
-
-    @show()
