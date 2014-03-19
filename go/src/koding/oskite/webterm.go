@@ -215,14 +215,13 @@ func newScreen(vos *virt.VOS, mode, session string) (*screen, error) {
 
 	// it can happen that the user deleted our screen binary
 	// accidently, if this happens fallback to default screen binary
-
 	_, err := vos.Stat(kodingScreenPath)
 	if os.IsNotExist(err) {
 		// check if the default screen binary exists too
 		_, err := vos.Stat(defaultScreenPath)
 		if os.IsNotExist(err) {
 			return nil, &kite.BaseError{
-				Message: "/usr/bin/screen does not exist",
+				Message: fmt.Sprintf("neither %s nor %s does exist.", kodingScreenPath, defaultScreenPath),
 				CodeErr: ErrInvalidSession,
 			}
 		}
