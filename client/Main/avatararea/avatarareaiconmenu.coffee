@@ -33,7 +33,7 @@ class AvatarAreaIconMenu extends JView
                           system status before you progress."
         overlay        : yes
         buttons        :
-          Troubleshoot :
+          Resume       :
             style      : "modal-clean-green"
             callback   : ->
               idleModal.destroy()
