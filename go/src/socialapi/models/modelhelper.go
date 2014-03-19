@@ -1,9 +1,11 @@
 package models
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"socialapi/db"
+	"socialapi/eventbus"
 	"strings"
 
 	"github.com/jinzhu/gorm"
@@ -166,6 +168,7 @@ func (m Model) AfterCreate(i Modellable) {
 	}
 	eventbus.Publish(eventName, data)
 }
+
 func (m Model) AfterUpdate(i Modellable) {
 	eventName := fmt.Sprintf("%s_updated", i.TableName())
 	data, err := json.Marshal(i.Self())
