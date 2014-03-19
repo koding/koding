@@ -130,11 +130,7 @@ class TeamworkApp extends KDObject
     {finderController} = @teamwork.getActivePanel().getPaneByName "finder"
 
     cb = (vmName) ->
-
-      if finderController.getVmNode vmName
-        finderController.unmountVm vmName
-
-      finderController.mountVm "#{vmName}:#{path}"
+      finderController.updateVMRoot vmName, path
 
     vmController = KD.getSingleton "vmController"
     {defaultVmName} = vmController
