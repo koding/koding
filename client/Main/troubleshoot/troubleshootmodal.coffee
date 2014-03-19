@@ -23,6 +23,10 @@ class TroubleshootModal extends KDModalViewWithForms
                     color     : "#444444"
                     diameter  : 12
                   callback    : -> @hideLoader()
+                recover       :
+                  title       : "Recover"
+                  style       : "modal-clean-red"
+                  callback    : -> troubleshoot.recover()
                 close         :
                   title       : "Close"
                   style       : "modal-cancel"
