@@ -482,17 +482,18 @@ func vmDestroyOld(args *dnode.Partial, c *kite.Channel, vos *virt.VOS) (interfac
 	}
 
 	return progress(vos, "vm.destroy"+vos.VM.HostnameAlias, params, func() error {
+		var lastError error
 		for step := range unprepareProgress(vos, true) {
 			if params.OnProgress != nil {
 				params.OnProgress(step)
 			}
 
 			if step.Err != nil {
-				return step.Err
+				lastError = step.Err
 			}
 		}
 
-		return nil
+		return lastError
 	})
 
 	return true, nil
@@ -509,17 +510,18 @@ func vmStopAndUnprepare(args *dnode.Partial, channel *kite.Channel, vos *virt.VO
 	}
 
 	return progress(vos, "vm.stopAndUnprepare"+vos.VM.HostnameAlias, params, func() error {
+		var lastError error
 		for step := range unprepareProgress(vos, false) {
 			if params.OnProgress != nil {
 				params.OnProgress(step)
 			}
 
 			if step.Err != nil {
-				return step.Err
+				lastError = step.Err
 			}
 		}
 
-		return nil
+		return lastError
 	})
 }
 
