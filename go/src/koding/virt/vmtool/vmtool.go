@@ -80,21 +80,21 @@ var actions = map[string]func(args []string){
 	"start": func(args []string) {
 		for _, vm := range selectVMs(args[0]) {
 			err := vm.Start()
-			fmt.Printf("%v: %v\n%s", vm, err)
+			fmt.Printf("%v: %v\n", vm, err)
 		}
 	},
 
 	"shutdown": func(args []string) {
 		for _, vm := range selectVMs(args[0]) {
 			err := vm.Shutdown()
-			fmt.Printf("%v: %v\n%s", vm, err)
+			fmt.Printf("%v: %v\n", vm, err)
 		}
 	},
 
 	"stop": func(args []string) {
 		for _, vm := range selectVMs(args[0]) {
 			err := vm.Stop()
-			fmt.Printf("%v: %v\n%s", vm, err)
+			fmt.Printf("%v: %v\n", vm, err)
 		}
 	},
 
@@ -103,8 +103,14 @@ var actions = map[string]func(args []string){
 			log.Fatal("usage: unprepare <all | vm-id>")
 		}
 
-		for _, vm := range selectVMs(args[0]) {
-			err := vm.Unprepare()
+		vms := selectVMs(args[0])
+
+		for _, vm := range vms {
+			err := vm.Shutdown()
+
+			for step := range vm.Unprepare() {
+				err = step.Err
+			}
 			fmt.Printf("%v: %v\n", vm, err)
 		}
 	},
@@ -164,7 +170,7 @@ var actions = map[string]func(args []string){
 				if err := vm.WaitForNetwork(time.Second * 5); err != nil {
 					log.Print(i, "WaitForNetwork", err)
 				}
-				done <- fmt.Sprintln(i, "ready", "vm-"+vm.Id.Hex())
+				done <- fmt.Sprint(i, " vm-"+vm.Id.Hex())
 			}(i)
 		}
 
