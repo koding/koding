@@ -26,6 +26,18 @@ type ChannelMessage struct {
 	m         Model
 }
 
+func (c *ChannelMessage) AfterCreate() {
+	c.m.AfterCreate(c)
+}
+
+func (c *ChannelMessage) AfterUpdate() {
+	c.m.AfterUpdate(c)
+}
+
+func (c *ChannelMessage) AfterDelete() {
+	c.m.AfterDelete(c)
+}
+
 func (c *ChannelMessage) GetId() int64 {
 	return c.Id
 }
