@@ -38,7 +38,7 @@ class Troubleshoot extends KDObject
 
     yes
 
-  reset: ->
+  reset: (event) ->
     @status = PENDING
     clearTimeout @timeout
     @timeout = null
@@ -168,6 +168,24 @@ class Troubleshoot extends KDObject
       count += 1
 
     count
+
+  recover: ->
+    waitingRecovery = 0
+    for own name, item of @items
+      item.on "recoveryCompleted", =>
+        waitingRecovery -= 1
+        @reset "recoveryCompleted"  unless waitingRecovery
+
+      if item.status is "fail" and item.canBeRecovered()
+        waitingRecovery += 1
+        item.recover()
+
+    waitingRecovery
+
+  canBeRecovered: ->
+    for own name, item of @items
+      return yes  if item.status is "fail" and item.canBeRecovered()
+    no
 
   run: ->
     return  warn "there is an ongoing troubleshooting"  if @status is STARTED
