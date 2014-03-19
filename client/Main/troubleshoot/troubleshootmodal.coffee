@@ -51,6 +51,11 @@ class TroubleshootModal extends KDModalViewWithForms
     super options, data
     @hideFeedback()
     @modalTabs.forms.Troubleshoot.fields.result.hide()
+    troubleshoot.off "recoveryCompleted"
+    troubleshoot.on "recoveryCompleted", =>
+      hideFeedback()  if troubleshoot.isSystemOK()
+
+
     troubleshoot.once "troubleshootCompleted", =>
       # show feedback form if there are any errors apart from connection down
 
@@ -64,10 +69,13 @@ class TroubleshootModal extends KDModalViewWithForms
   hideFeedback: ->
     @modalTabs.forms.Troubleshoot.fields.feedback.hide()
     @modalTabs.forms.Troubleshoot.buttons.sendFeedback.hide()
+    @modalTabs.forms.Troubleshoot.buttons.recover.hide()
 
   showFeedback: ->
     @modalTabs.forms.Troubleshoot.fields.feedback.show()
     @modalTabs.forms.Troubleshoot.buttons.sendFeedback.show()
+    if KD.singleton("troubleshoot").canBeRecovered()
+      @modalTabs.forms.Troubleshoot.buttons.recover.show()
 
 class TroubleshootResultView extends KDCustomHTMLView
 
