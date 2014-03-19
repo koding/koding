@@ -5,11 +5,12 @@ import (
 	"flag"
 	"fmt"
 	"koding/tools/config" // Imported for side-effect of handling /debug/vars.
-	"log"
+	"koding/tools/logger"
 	_ "net/http/pprof" // Imported for side-effect of handling /debug/pprof.
 	"os"
 	"os/signal"
 	"socialapi/db"
+	"socialapi/eventbus"
 	"socialapi/models"
 	"socialapi/workers/api/handlers"
 	"strings"
@@ -19,10 +20,14 @@ import (
 )
 
 var (
-	cert       = flag.String("cert", "", "certificate pathname")
-	key        = flag.String("key", "", "private key pathname")
-	flagConfig = flag.String("config", "", "pathname of JSON configuration file")
-	listen     = flag.String("listen", "127.0.0.1:8000", "listen address")
+	log         = logger.New("FollowingFeedWorker")
+	cert        = flag.String("cert", "", "certificate pathname")
+	key         = flag.String("key", "", "private key pathname")
+	flagConfig  = flag.String("config", "", "pathname of JSON configuration file")
+	listen      = flag.String("listen", "127.0.0.1:8000", "listen address")
+	flagProfile = flag.String("c", "", "Configuration profile from file")
+	flagDebug   = flag.Bool("d", false, "Debug mode")
+	conf        *config.Config
 
 	hMux       tigertonic.HostServeMux
 	mux, nsMux *tigertonic.TrieServeMux
@@ -37,30 +42,50 @@ func init() {
 		fmt.Fprintln(os.Stderr, "Usage: example [-cert=<cert>] [-key=<key>] [-config=<config>] [-listen=<listen>]")
 		flag.PrintDefaults()
 	}
-	log.SetFlags(log.Ltime | log.Lmicroseconds | log.Lshortfile)
-
 	mux = tigertonic.NewTrieServeMux()
 	mux = handlers.Inject(mux)
 
 }
 
+func setLogLevel() {
+	var logLevel logger.Level
+
+	if *flagDebug {
+		logLevel = logger.DEBUG
+	} else {
+		logLevel = logger.INFO
+	}
+	log.SetLevel(logLevel)
+}
+
 func main() {
 	flag.Parse()
+	if *flagProfile == "" {
+		log.Fatal("Please define config file with -c")
+	}
+	conf = config.MustConfig(*flagProfile)
+	setLogLevel()
 
 	// Example of parsing a configuration file.
-	c := &config.Config{}
-	if err := tigertonic.Configure(*flagConfig, c); nil != err {
-		log.Fatalln(err)
-	}
+	// c := &config.Config{}
+	// if err := tigertonic.Configure(*flagConfig, c); nil != err {
+	// 	log.Fatal(err)
+	// }
+
 	// createTables()
 	server := newServer()
 	// Example use of server.Close and server.Wait to stop gracefully.
 	go listener(server)
 
+	if err := eventbus.Open(conf); err != nil {
+		log.Critical("Realtime operations will not work, this is not good %v", err.Error())
+	}
+
 	ch := make(chan os.Signal)
 	signal.Notify(ch, syscall.SIGINT, syscall.SIGQUIT, syscall.SIGTERM)
 
-	log.Println(<-ch)
+	log.Info("Recieved %v", <-ch)
+	eventbus.Close()
 	server.Close()
 }
 
