@@ -190,7 +190,9 @@ class StackView extends KDView
             Please enter <strong>#{stackSlug}</strong> into the field below to continue: </p>
           </div>
         """
-      callback : => @deleteStack modal
+      callback : =>
+        modal.destroy()
+        @deleteStack()
     , stackSlug
 
   deleteDomains: (callback = noop) ->
@@ -202,6 +204,7 @@ class StackView extends KDView
         return @handleStackDeleteError err  if err
         domainCouter++
         domainQueue.next()
+        @progressModal.next()
         log "domain deleted"
         if domainCouter is domainDiaKeys.length
           log "all domains deleted"
@@ -217,12 +220,14 @@ class StackView extends KDView
     vmQueue   = vmDiaKeys.map (key) =>=>
       vmc.deleteVmByHostname vmDias[key].data.hostnameAlias, (err) =>
         return @handleStackDeleteError err  if err
+        log "vm deleted"
         vmCounter++
         vmQueue.next()
-        log "vm deleted"
+        @progressModal.next()
         if vmCounter is vmDiaKeys.length
           log "all vms deleted"
           callback()
+      , no
 
     Bongo.daisy vmQueue
 
@@ -230,13 +235,27 @@ class StackView extends KDView
     {stack} = @getOptions()
     stack.remove (err, res) =>
       return @handleStackDeleteError err  if err
+      log "stack deleted"
       @destroy()
+      @progressModal?.destroy()
 
-  deleteStack: (modal) ->
+  deleteStack: ->
     hasDomain = Object.keys(@domains.dias).length
     hasVm     = Object.keys(@vms.dias).length
 
-    @on "KDObjectWillBeDestroyed", -> modal.destroy()
+    listData  = {}
+
+    if hasDomain
+      arr = listData["Deleting Domains"] = []
+      for key, domain of @domains.dias
+        arr.push domain.data.title
+
+    if hasVm
+      arr = listData["Deleting VMs"] = []
+      for key, vm of @vms.dias
+        arr.push vm.data.title
+
+    @progressModal = new StackProgressModal {}, listData
 
     if hasDomain
       @deleteDomains =>

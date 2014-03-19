@@ -98,7 +98,7 @@ class DomainCreateForm extends KDCustomHTMLView
     warn "An error occured while creating domain:", err
     switch err.name
       when "INVALIDDOMAIN"
-        @showError "#{domain} is an invalid subdomain.", @subdomainForm
+        @showError "This is an invalid subdomain.", @subdomainForm
       when "ACCESSDENIED"
         @showError "You do not have permission to create a subdomain in this domain", @subdomainForm
       else
