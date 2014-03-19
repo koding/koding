@@ -10,16 +10,17 @@ class HealthChecker extends KDObject
 
   run: ->
     @emit "healthCheckStarted"
-    @status = "waiting"
-    @startTime = Date.now()
-    @setPingTimeout()
-    @cb @finish.bind(this)
+
+    {troubleshoot} = @getOptions()
     return @forceComplete "undefined callback"  unless troubleshoot
+    @completeEvent = "healthCheckCompleted"
+    @startCheck()
+    troubleshoot @finish.bind(this)
 
   setPingTimeout: ->
     @pingTimeout = setTimeout =>
       @status = "fail"
-      @emit "healthCheckCompleted"
+      @emit @completeEvent
     , @getOptions().timeout
 
   finish: (data)->
@@ -31,7 +32,12 @@ class HealthChecker extends KDObject
       @status = if speedCheck and @getResponseTime() > slownessIndicator then "slow" else "success"
       clearTimeout @pingTimeout
       @pingTimeout = null
-      @emit "healthCheckCompleted"
+      @emit @completeEvent
+
+  startCheck: ->
+    @status = "waiting"
+    @startTime = Date.now()
+    @setPingTimeout @completeEvent
 
   reset: ->
     @status = "waiting"
@@ -45,3 +51,14 @@ class HealthChecker extends KDObject
     warn err  if err
     @status = "fail"
     @emit "healthCheckCompleted"
+
+  recover: ->
+    @completeEvent = "recoveryCompleted"
+    @startCheck()
+    @emit "recoveryStarted"
+    {recover} = @getOptions()
+    recover @finish.bind(this)
+
+  canBeRecovered: ->
+    @getOptions().recover?
+
