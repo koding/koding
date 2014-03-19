@@ -24,7 +24,7 @@ createFreeSubscription = ({db, cursor, plan, account}, cb) ->
     feeAmount  : 0
     quantities : quantities
     tags       : tags
-    usage      : []
+    usage      : {}
 
   (db.collection 'jPaymentSubscriptions').insert subscription, (err, [subscription])->
     return cb err if err
