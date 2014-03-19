@@ -17,6 +17,7 @@ class CollaborativeEditorPane extends CollaborativePane
             @firepad.setText ""
           @codeMirrorEditor.scrollTo 0, 0
           {file, content} = @getOptions()
+          @emit 'ready'
           return @openFile file, content  if file
 
         if @amIHost
