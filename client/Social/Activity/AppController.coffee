@@ -42,9 +42,6 @@ class ActivityAppController extends AppController
 
     KD.singletons.dock.getView().show()
 
-    # if @mainController.appIsReady then @putListeners()
-    # else @mainController.on 'AppIsReady', => @putListeners()
-
     @status = KD.getSingleton "status"
     @status.on "reconnected", (conn)=>
       if conn?.reason is "internetDownForLongTime" then @refresh()
@@ -328,11 +325,6 @@ class ActivityAppController extends AppController
     to   = new Date(messages.first.meta.createdAt).getTime()
     @setLastTimestamps to, from #from, to
 
-  # Store first & last activity timestamp.
-  extractTeasersTimeStamps:(teasers)->
-    return unless teasers.first
-    @setLastTimestamps new Date(teasers.last.meta.createdAt).getTime(), new Date(teasers.first.meta.createdAt).getTime()
-
   createContentDisplay:(activity, callback=->)->
     contentDisplay = @createStatusUpdateContentDisplay activity
     @utils.defer -> callback contentDisplay
@@ -347,17 +339,6 @@ class ActivityAppController extends AppController
       title : "Status Update"
       type  : "status"
     ,activity
-
-  streamByIds:(ids, callback)->
-
-    selector = _id : $in : ids
-    KD.remote.api.CActivity.streamModels selector, {}, (err, model) =>
-      if err then callback err
-      else
-        unless model is null
-          callback null, model[0]
-        else
-          callback null, null
 
   fetchActivitiesProfilePage:(options,callback)->
     {originId} = options
