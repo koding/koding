@@ -38,11 +38,11 @@ class KodingAppsController extends KDController
   @putAppScript = (app, callback = noop)->
 
     if app.style
-      @appendScriptElement 'style',  \
+      @appendHeadElement 'style',  \
         { url:app.style, identifier:app.identifier, callback }, yes
 
     if app.script
-      @appendScriptElement 'script', \
+      @appendHeadElement 'script', \
         { url:app.script, identifier:app.identifier, callback }, yes
 
     return
@@ -113,7 +113,7 @@ class KodingAppsController extends KDController
           style      : "modal-cancel"
           callback   : -> modal.destroy()
 
-  @appendScriptElement = (type, {identifier, url, callback}, force)->
+  @appendHeadElement = (type, {identifier, url, callback}, force)->
 
     identifier = identifier.replace /\./g, '_'
     domId      = "internal-#{type}-#{identifier}"
