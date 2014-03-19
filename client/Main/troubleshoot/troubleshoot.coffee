@@ -6,14 +6,21 @@ class Troubleshoot extends KDObject
   [PENDING, STARTED] = [1..2]
 
   constructor: (options = {}) ->
-    @items = {}
-    @status = PENDING
-    options.timeout ?= 10000
-
+    options.timeout ?= 10000 #overall troubleshoot timeout
     super options
 
-    # this is a tree structured health check sequence.
-    # health check of leaves happens with its successor root
+    @items = {}
+    @status = PENDING
+
+    @prepareCheckSequence()
+    @registerItems()
+    # when a user stays idle for an hour we forward userIdle event
+    @idleUserDetector = new IdleUserDetector threshold: 3600000
+    @forwardEvent @idleUserDetector, "userIdle"
+
+  # prepareCheckSequence builds a tree structured health check sequence.
+  # With predecessor's successful health check, successors status is checked
+  prepareCheckSequence: ->
     @checkSequence =
       connection       :
         webServer      :
@@ -24,10 +31,6 @@ class Troubleshoot extends KDObject
         bongo          :
           broker       :
             liveUpdate : 0
-
-    @registerItems()
-    @idleUserDetector = new IdleUserDetector threshold: 3600000
-    @forwardEvent @idleUserDetector, "userIdle"
 
   isSystemOK: ->
     for own name, item of @items
