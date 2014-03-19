@@ -154,6 +154,18 @@ func (m Model) Some(i Modellable, data interface{}, rest ...map[string]interface
 	return query.Find(data).Error
 }
 
+func (m Model) AfterCreate(i Modellable) {
+	eventName := fmt.Sprintf("%s_created", i.TableName())
+	data, err := json.Marshal(i.Self())
+	if err != nil {
+		// here try to resend this message to RMQ again, than
+		// persist it to somewhere!#!##@$%#?
+		// those messages are really important now
+		fmt.Println("Error occured", err)
+		return
+	}
+	eventbus.Publish(eventName, data)
+}
 func addSort(query *gorm.DB, options map[string]interface{}) *gorm.DB {
 
 	if options == nil {
