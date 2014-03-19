@@ -186,11 +186,11 @@ module.exports = class JNewApp extends jraphical.Module
 
     # If user is admin
     if account.can 'bypass-validations'
-      return callback null, urls, no
+      return callback null, urls
 
     # If url points to a vm url
     if (/^\[([^\]]+)\]/g.exec url)?[1]
-      return callback null, urls, no
+      return callback null, urls
 
     {appsUri} = KONFIG.client.runtimeOptions
 
@@ -202,9 +202,9 @@ module.exports = class JNewApp extends jraphical.Module
         ([a-z0-9\-]+)$          # Git branch (usually master)
       ///i
 
-    [url, remoteUser, app, branch] = (urlParser.exec url) or []
+    [url, githubUsername, app, branch] = (urlParser.exec url) or []
 
-    unless remoteUser
+    unless githubUsername
       return callback new KodingError "URL is not allowed."
 
     account.fetchUser (err, user)->
@@ -215,11 +215,12 @@ module.exports = class JNewApp extends jraphical.Module
           "There is no linked GitHub account with this account."
 
       {username} = user.foreignAuth.github
-      if username is not remoteUser
+      if username is not githubUsername
         return callback new KodingError "Remote username mismatch."
 
+      app = app.replace /\.kdapp$/, ''
       # TODO - Add existence check from remote url ~ GG
-      callback null, urls, yes
+      callback null, urls, {githubVerified: yes, app, githubUsername}
 
   # TODO ~ GG
 
@@ -227,20 +228,29 @@ module.exports = class JNewApp extends jraphical.Module
 
     success: (client, data, callback)->
 
-      console.log "publishing the JNewApp"
-
       {connection:{delegate}} = client
       {profile} = delegate
+
+      console.info "publishing the JNewApp of #{profile.nickname}"
 
       if validationError = checkData data, profile
         return callback validationError
 
-      validateUrl delegate, data.url, (err, urls, githubVerified)=>
+      validateUrl delegate, data.url, (err, urls, details)=>
         return callback err  if err
 
         data.urls = urls
         data.name = capitalize @slugify data.name
         {name, manifest:{authorNick}} = data
+
+        # Make sure the app name and the GitHub url matches if exists
+        if details?
+          if details.app isnt data.name
+            return callback \
+              new KodingError "GitHub repository and application name mismatch."
+
+          data.manifest.repository = \
+            "git://github.com/#{details.githubUsername}/#{details.app}.kdapp"
 
         # Overwrite the user/app information in manifest
         data.manifest.name       = data.name
@@ -265,7 +275,7 @@ module.exports = class JNewApp extends jraphical.Module
             version     : data.manifest.version
             originId    : delegate.getId()
             group       : client.context.group
-            status      : if githubVerified \
+            status      : if details?.githubVerified? \
                           then 'github-verified' else 'not-verified'
 
           if app
