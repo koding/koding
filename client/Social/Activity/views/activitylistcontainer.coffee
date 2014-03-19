@@ -27,11 +27,9 @@ class ActivityListContainer extends JView
       partial    : "Most Liked"
 
     @controller = new ActivityListController
-      delegate          : @
-      itemClass         : ActivityListItemView
-      showHeader        : yes
-      # wrapper           : no
-      # scrollView        : no
+      delegate   : @
+      itemClass  : ActivityListItemView
+      showHeader : yes
 
     @listWrapper = @controller.getView()
     @filterWarning = new FilterWarning
