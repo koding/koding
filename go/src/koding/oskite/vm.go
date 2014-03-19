@@ -209,7 +209,7 @@ func vmUnprepare(vos *virt.VOS) (interface{}, error) {
 		f: func() (string, error) {
 			defer func() { done <- struct{}{} }()
 
-			if lastError := vos.VM.Shutdown(); lastError != nil {
+			if lastError = vos.VM.Shutdown(); lastError != nil {
 				return "", lastError
 			}
 
