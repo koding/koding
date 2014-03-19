@@ -14,6 +14,7 @@ class HealthChecker extends KDObject
     @startTime = Date.now()
     @setPingTimeout()
     @cb @finish.bind(this)
+    return @forceComplete "undefined callback"  unless troubleshoot
 
   setPingTimeout: ->
     @pingTimeout = setTimeout =>
@@ -39,3 +40,8 @@ class HealthChecker extends KDObject
 
   getResponseTime: ->
     @finishTime - @startTime
+
+  forceComplete: (err) ->
+    warn err  if err
+    @status = "fail"
+    @emit "healthCheckCompleted"
