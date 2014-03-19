@@ -47,6 +47,8 @@ class GitHub.Modal extends KDModalView
     @container.addSubView \
       @repoListView = @repoController.getView()
 
+    @forwardEvent @repoController.getListView(), 'RepoSelected'
+
     @checkLinkStatus()
 
   showRepos:(username, force)->

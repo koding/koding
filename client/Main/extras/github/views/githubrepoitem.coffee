@@ -8,8 +8,11 @@ class GitHub.RepoItem extends KDListItemView
     @actionButton = new KDButtonView
       title    : @getOption 'buttonTitle'
       cssClass : 'solid green mini action-button'
-      click    : =>
-        @getDelegate().emit "RepoSelected", this
+      callback : =>
+        @getDelegate().emit "RepoSelected", @getData()
+      disabled : data._disabled
+
+    @setClass 'disabled'  if data._disabled
 
   viewAppended: JView::viewAppended
 
