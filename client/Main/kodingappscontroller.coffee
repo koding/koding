@@ -162,6 +162,23 @@ class KodingAppsController extends KDController
   @destroyScriptElement = (type, identifier)->
     (document.getElementById "internal-#{type}-#{identifier}")?.remove()
 
+  @appendHeadElements = (options, callback)->
+
+    {items, identifier} = options
+
+    stack = []
+    items.forEach ({url, type}, index)->
+      stack.push (cb)->
+        KodingAppsController.appendHeadElement type, {
+          identifier : "#{identifier}-#{index}"
+          callback   : cb
+          url
+        }
+        KD.utils.defer cb  if type is 'style'
+
+    async.series stack, callback
+
+
   # #
   # MAKE NEW APP
   # #
