@@ -125,6 +125,8 @@ class TeamworkApp extends KDObject
       targetEl        : t.getActivePanel().headerHint
 
   setVMRoot: (path) ->
+    panel = @teamwork.getActivePanel()
+    return  unless panel
     {finderController} = @teamwork.getActivePanel().getPaneByName "finder"
 
     cb = (vmName) ->
