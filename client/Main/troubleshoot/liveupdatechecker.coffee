@@ -1,12 +1,8 @@
 class LiveUpdateChecker extends KDObject
 
-  constructor: (options, data) ->
-    super options, data
-    @cb = ->
-    KD.whoami().on "healthCheck", =>
-      @cb()
-
-
   healthCheck: (callback) ->
-    @cb = callback
+    {notificationController} = KD.singletons
+    notificationController.off "NotificationHasArrived"
+    notificationController.on "NotificationHasArrived", (notification) =>
+      callback()  if notification?.event is "healthCheck"
     KD.remote.api.JNewStatusUpdate.healthCheck callback

@@ -349,4 +349,4 @@ module.exports = class JNewStatusUpdate extends JPost
 
   @healthCheck = secure (client, callback) ->
     {connection: {delegate}} = client
-    delegate.emit "healthCheck"
+    delegate.sendNotification "healthCheck"
