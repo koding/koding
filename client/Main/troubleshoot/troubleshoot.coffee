@@ -49,36 +49,65 @@ class Troubleshoot extends KDObject
       item.reset()
 
   registerItems:->
-    #register connection
-    externalUrl = "https://s3.amazonaws.com/koding-ping/ping.json"
-    item = new ConnectionChecker crossDomain: yes, externalUrl
-    @registerItem "connection", item.ping.bind item
-    # register webserver status
-    webserverStatus = new ConnectionChecker({}, window.location.origin + "/healthCheck")
-    @registerItem "webServer", webserverStatus.ping.bind webserverStatus
+
+    @registerConnections()
+
     # register broker
-    @registerItem "broker", KD.remote.mq.ping.bind KD.remote.mq
+    broker = KD.remote.mq
+    @registerItem "broker",
+      troubleshoot : broker.ping.bind broker
+      recover      : (callback) ->
+        # if status is not reconnected wait for reconnected event
+        {status} = KD.singletons
+        return callback()  if status.state is 3
+        status.once "reconnected", callback
+
     # register kite
-    @registerItem "brokerKite", KD.kite.mq.ping.bind KD.kite.mq
+    brokerKite = KD.kite.mq
+    @registerItem "brokerKite",
+      troubleshoot : brokerKite.ping.bind brokerKite
+      recover      : brokerKite.ping.bind brokerKite #temp
+
     # register osKite
-    @vc = KD.singleton "vmController"
-    @registerItem "osKite", @vc.ping.bind @vc
+    vc = KD.singleton "vmController"
+    @registerItem "osKite",
+      troubleshoot : vc.ping.bind vc
+      recover      : vc.ping.bind vc #temp
+
     # register bongo
     KD.remote.once "modelsReady", =>
       bongoStatus = KD.remote.api.JSystemStatus
-      @registerItem "bongo", bongoStatus.healthCheck.bind bongoStatus
+      @registerItem "bongo",
+        troubleshoot : bongoStatus.healthCheck.bind bongoStatus
+        recover      : bongoStatus.healthCheck.bind bongoStatus
 
     KD.singleton("mainController").on "AccountChanged", =>
       liveUpdateChecker = new LiveUpdateChecker
-      @registerItem "liveUpdate", liveUpdateChecker.healthCheck.bind liveUpdateChecker
+      @registerItem "liveUpdate",
+        troubleshoot: liveUpdateChecker.healthCheck.bind liveUpdateChecker
 
-    @registerItem "version", speedCheck: no, checkVersion
+    @registerItem "version",
+      speedCheck   : no
+      troubleshoot : checkVersion
 
-    @registerItem "vm", timeout: 10000, speedCheck: no, checkVm
+    @registerItem "vm",
+      timeout      : 10000
+      speedCheck   : no
+      troubleshoot : checkVm
+      recover      : checkVm #temp
 
-  registerItem : (name, options, cb) ->
-    cb = options  unless cb
-    @items[name] = new HealthChecker options, cb
+  registerConnections: ->
+    #register connection
+    externalUrl = "https://s3.amazonaws.com/koding-ping/ping.json"
+    item = new ConnectionChecker crossDomain: yes, externalUrl
+    @registerItem "connection", troubleshoot: item.ping.bind item
+
+    # register webserver status
+    webserverStatus = new ConnectionChecker({}, window.location.origin + "/healthCheck")
+    @registerItem "webServer", troubleshoot: webserverStatus.ping.bind webserverStatus
+
+  registerItem : (name, options) ->
+    @items[name] = new HealthChecker options
 
 
   getItems: ->
