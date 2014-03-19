@@ -51,8 +51,8 @@ module.exports =
     enabled     : no
     port        : 1337
   neo4j         :
-    read        : "http://172.16.3.14"
-    write       : "http://172.16.3.14"
+    read        : "http://172.16.3.16"
+    write       : "http://172.16.3.16"
     port        : 7474
   mongo         : mongo
   mongoKontrol  : mongoKontrol
