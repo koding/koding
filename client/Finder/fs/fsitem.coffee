@@ -231,9 +231,11 @@ class FSItem extends KDObject
   isHidden:-> FSItem.isHidden @name
 
   exists:(callback=noop)->
-    @getKite().vmOn()
+    kite = @getKite()
 
-    .fsExists(path: @getPath())
+    kite.vmOn().then =>
+
+      kite.fsExists(path: @getPath())
 
     .nodeify(callback)
 

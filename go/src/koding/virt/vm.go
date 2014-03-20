@@ -193,7 +193,7 @@ func (v *VM) Prepare(reinitialize bool) <-chan *Step {
 
 			if err != nil {
 				// don't put the prepare in an unknown state
-				for _ = range v.Unprepare() {
+				for _ = range v.Unprepare(false) {
 				}
 				break
 			}
@@ -361,7 +361,7 @@ func UnprepareVM(id bson.ObjectId) error {
 	}
 
 	var err error
-	for step := range vm.Unprepare() {
+	for step := range vm.Unprepare(false) {
 		err = step.Err
 	}
 	return err
@@ -374,18 +374,25 @@ func UnprepareVM(id bson.ObjectId) error {
 // Those files will be stored in the vmroot.
 // Unprepare also doesn't return on errors, instead it silently fails and
 // tries to execute the next step until all steps are done.
-func (vm *VM) Unprepare() <-chan *Step {
+func (vm *VM) Unprepare(onlyOverlay bool) <-chan *Step {
 	funcs := make([]*StepFunc, 0)
 	funcs = append(funcs, &StepFunc{Msg: "Removing network rules", Fn: vm.removeNetworkRules})
 	funcs = append(funcs, &StepFunc{Msg: "Umount PTS", Fn: vm.umountPts})
 	funcs = append(funcs, &StepFunc{Msg: "Umount AUFS", Fn: vm.umountAufs})
-	funcs = append(funcs, &StepFunc{Msg: "Umount RBD", Fn: vm.umountRBD})
+
+	if onlyOverlay {
+		funcs = append(funcs, &StepFunc{Msg: "Umount Overlay", Fn: vm.unmountOverlay})
+	} else {
+		funcs = append(funcs, &StepFunc{Msg: "Umount RBD", Fn: vm.umountRBD})
+	}
+
 	funcs = append(funcs, &StepFunc{Msg: "Removing lxc/config", Fn: func() error { return os.Remove(vm.File("config")) }})
 	funcs = append(funcs, &StepFunc{Msg: "Removing lxc/fstab", Fn: func() error { return os.Remove(vm.File("fstab")) }})
 	funcs = append(funcs, &StepFunc{Msg: "Removing lxc/ip-config", Fn: func() error { return os.Remove(vm.File("ip-address")) }})
 	funcs = append(funcs, &StepFunc{Msg: "Removing lxc/rootfs", Fn: func() error { return os.Remove(vm.File("rootfs")) }})
 	funcs = append(funcs, &StepFunc{Msg: "Removing lxc/rootfs.hold", Fn: func() error { return os.Remove(vm.File("rootfs.hold")) }})
 	funcs = append(funcs, &StepFunc{Msg: "Removing lxc folder", Fn: func() error { return os.Remove(vm.File("")) }})
+	funcs = append(funcs, &StepFunc{Msg: "Unlocking RBD", Fn: vm.UnlockRBD})
 
 	var lastError error
 	results := make(chan *Step, len(funcs))
@@ -469,36 +476,49 @@ func (vm *VM) umountAufs() error {
 	return lastError
 }
 
-func (vm *VM) umountRBD() error {
-	if err := vm.UnmountRBD(vm.OverlayFile("")); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (vm *VM) MountRBD(mountDir string) error {
-	makeFileSystem := false
-
-	// create image if it does not exist
+func (vm *VM) ExistsRBD() (bool, error) {
 	if out, err := exec.Command("/usr/bin/rbd", "info", "--pool", VMPool, "--image", vm.String()).CombinedOutput(); err != nil {
 		exitError, isExitError := err.(*exec.ExitError)
 		if !isExitError || exitError.Sys().(syscall.WaitStatus).ExitStatus() > 2 {
-			return commandError("rbd info failed.", err, out)
+			return false, commandError("rbd info failed.", err, out)
 		}
 
+		return false, nil
+	}
+
+	return true, nil
+}
+
+func (vm *VM) MountRBD(mountDir string) error {
+	exists, err := vm.ExistsRBD()
+	if err != nil {
+		return err
+	}
+
+	makeFileSystem := false
+	if !exists {
 		if vm.SnapshotName == "" {
-			if out, err := exec.Command("/usr/bin/rbd", "create", "--pool", VMPool, "--size", strconv.Itoa(vm.DiskSizeInMB), "--image", vm.String(), "--image-format", "1").CombinedOutput(); err != nil {
+			if out, err := exec.Command("/usr/bin/rbd", "create", "--pool", VMPool,
+				"--size", strconv.Itoa(vm.DiskSizeInMB), "--image", vm.String(),
+				"--image-format", "1").CombinedOutput(); err != nil {
 				return commandError("rbd create failed.", err, out)
 			}
 		}
+
 		if vm.SnapshotName != "" {
-			if out, err := exec.Command("/usr/bin/rbd", "clone", "--pool", VMPool, "--image", VMName(vm.SnapshotVM), "--snap", vm.SnapshotName, "--dest-pool", VMPool, "--dest", vm.String()).CombinedOutput(); err != nil {
+			if out, err := exec.Command("/usr/bin/rbd", "clone", "--pool", VMPool,
+				"--image", VMName(vm.SnapshotVM), "--snap", vm.SnapshotName,
+				"--dest-pool", VMPool, "--dest", vm.String()).CombinedOutput(); err != nil {
 				return commandError("rbd clone failed.", err, out)
 			}
 		}
 
 		makeFileSystem = true
+	}
+
+	// create a lock to prevent cluster wide race condition
+	if err := vm.LockRBD(); err != nil {
+		return err
 	}
 
 	// map image
@@ -550,6 +570,14 @@ func (vm *VM) MountRBD(mountDir string) error {
 	return nil
 }
 
+func (vm *VM) umountRBD() error {
+	if err := vm.UnmountRBD(vm.OverlayFile("")); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (vm *VM) UnmountRBD(mountDir string) error {
 	var firstError error
 	if out, err := exec.Command("/bin/umount", vm.OverlayFile("")).CombinedOutput(); err != nil && firstError == nil {
@@ -562,6 +590,16 @@ func (vm *VM) UnmountRBD(mountDir string) error {
 	return firstError
 }
 
+func (vm *VM) unmountOverlay() error {
+	var firstError error
+	if out, err := exec.Command("/bin/umount", vm.OverlayFile("")).CombinedOutput(); err != nil && firstError == nil {
+		firstError = commandError("umount rbd failed.", err, out)
+	}
+
+	os.Remove(vm.OverlayFile(""))
+	return firstError
+}
+
 func (vm *VM) ResizeRBD() error {
 	if out, err := exec.Command("/usr/bin/rbd", "resize", "--pool", VMPool, "--image", vm.String(), "--size", strconv.Itoa(vm.DiskSizeInMB)).CombinedOutput(); err != nil {
 		return commandError("rbd resize failed.", err, out)
@@ -571,15 +609,11 @@ func (vm *VM) ResizeRBD() error {
 		return commandError("resize2fs failed.", err, out)
 	}
 
-	if out, err := exec.Command("/bin/mount", "-o", "remount", vm.OverlayFile("")).CombinedOutput(); err != nil {
-		return commandError("remount failed.", err, out)
-	}
-
 	return nil
 }
 
 // LockRBD is locking the specific image. The lock is propogated to the whole
-// cluster. Trying to lock a locked image returns an error.
+// cluster. Trying to lock a locked or not-existing image returns an error.
 func (vm *VM) LockRBD() error {
 	// lock-id is going to be the VM-Hex ID to find it easily.
 	lockID := vm.String()
@@ -599,7 +633,7 @@ func (vm *VM) getLockerRBD() (locker string, err error) {
 
 	out, err := exec.Command("/usr/bin/rbd", arg...).CombinedOutput()
 	if err != nil {
-		return "", commandError("rbd lock failed.", err, out)
+		return "", commandError("rbd getLock failed.", err, out)
 	}
 
 	shellOut := string(bytes.TrimSpace(out))
@@ -636,7 +670,7 @@ func (vm *VM) UnlockRBD() error {
 
 	arg := []string{"lock", "rm", "--pool", VMPool, "--image", vm.String(), lockID, locker}
 	if out, err := exec.Command("/usr/bin/rbd", arg...).CombinedOutput(); err != nil {
-		return commandError("rbd lock failed.", err, out)
+		return commandError("rbd unlock failed.", err, out)
 	}
 
 	return nil

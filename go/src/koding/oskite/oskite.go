@@ -31,7 +31,7 @@ import (
 
 const (
 	OSKITE_NAME    = "oskite"
-	OSKITE_VERSION = "0.1.6"
+	OSKITE_VERSION = "0.1.7"
 )
 
 var (
@@ -123,7 +123,7 @@ func (o *Oskite) Run() {
 	}
 
 	o.prepareOsKite()
-	o.runNewKite()
+	// o.runNewKite()
 	o.handleCurrentVMS()   // handle leftover VMs
 	o.startPinnedVMS()     // start pinned always-on VMs
 	o.setupSignalHandler() // handle SIGUSR1 and other signals.
@@ -133,8 +133,6 @@ func (o *Oskite) Run() {
 	o.registerMethod("vm.prepareAndStart", false, vmPrepareAndStart)
 	o.registerMethod("vm.stopAndUnprepare", false, vmStopAndUnprepare)
 	o.registerMethod("vm.shutdown", false, vmShutdownOld)
-	o.registerMethod("vm.unprepare", false, vmUnprepareOld)
-	o.registerMethod("vm.prepare", false, vmPrepareOld)
 	o.registerMethod("vm.destroy", false, vmDestroyOld)
 	o.registerMethod("vm.stop", false, vmStopOld)
 	o.registerMethod("vm.reinitialize", false, vmReinitializeOld)
@@ -189,9 +187,7 @@ func (o *Oskite) runNewKite() {
 	o.vosMethod(k, "vm.prepareAndStart", vmPrepareAndStartNew)
 	o.vosMethod(k, "vm.stopAndUnprepare", vmStopAndUnprepareNew)
 	o.vosMethod(k, "vm.shutdown", vmShutdownNew)
-	o.vosMethod(k, "vm.prepare", vmPrepareNew)
 	o.vosMethod(k, "vm.destroy", vmDestroyNew)
-	o.vosMethod(k, "vm.unprepare", vmUnprepareNew)
 	o.vosMethod(k, "vm.stop", vmStopNew)
 	o.vosMethod(k, "vm.reinitialize", vmReinitializeNew)
 	o.vosMethod(k, "vm.info", vmInfoNew)
