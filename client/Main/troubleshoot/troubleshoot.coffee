@@ -113,10 +113,6 @@ class Troubleshoot extends KDObject
     @items[name] = new HealthChecker options
 
 
-  getItems: ->
-    @items
-
-
   checkVm = (callback) ->
     {vmController} = KD.singletons
     # probably we will need to check all vms

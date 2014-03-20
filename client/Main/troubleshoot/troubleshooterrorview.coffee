@@ -46,7 +46,7 @@ class TroubleshootErrorView extends KDCustomHTMLView
 
 
   initStatusListener: ->
-    items = KD.singleton("troubleshoot").getItems()
+    {items} = KD.singleton("troubleshoot")
     for own name, item of items
       do (name, item) =>
         item.once "healthCheckCompleted", =>

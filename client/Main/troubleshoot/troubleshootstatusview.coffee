@@ -1,7 +1,7 @@
 class TroubleshootStatusView extends KDCustomHTMLView
 
   constructor: (options, data) ->
-    data = KD.singleton("troubleshoot").getItems()
+    {items: data} = KD.singleton("troubleshoot")
     options.cssClass = "troubleshoot-status"
     super options, data
 
