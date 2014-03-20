@@ -266,6 +266,9 @@ class Ace extends KDView
       for own name, [language, extensions] of __aceSettings.syntaxAssociations
         if ///^(?:#{extensions})$///i.test ext
           mode = name
+
+      syntaxChoice = @appStorage.getValue "syntax_#{ext}"
+      mode = syntaxChoice if syntaxChoice
       mode or= "text"
 
     require ["ace/mode/#{mode}"], ({Mode})=>
