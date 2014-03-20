@@ -93,7 +93,7 @@ class Troubleshoot extends KDObject
     @registerItem "connection", troubleshoot: item.ping.bind item
 
     # register webserver status
-    webserverStatus = new ConnectionChecker({}, window.location.origin + "/healthCheck")
+    webserverStatus = new ConnectionChecker({}, "#{window.location.origin}/-/healthCheck")
     @registerItem "webServer", troubleshoot: webserverStatus.ping.bind webserverStatus
 
   registerBrokers: ->
@@ -123,7 +123,7 @@ class Troubleshoot extends KDObject
 
   checkVersion = (callback) ->
     $.ajax
-      url     : window.location.origin + "/getVersion"
+      url     : "#{window.location.origin}/-/version"
       success : (data) =>
         @status = "fail"  unless data.version is KD.config.version
         callback null
