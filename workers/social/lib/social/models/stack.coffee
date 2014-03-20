@@ -46,7 +46,6 @@ module.exports = class JStack extends jraphical.Module
     schema            :
       user            : String
       group           : String
-      sid             : Number
       meta            : Object
 
   @getStacks = ({user, group}, callback)->
@@ -55,7 +54,8 @@ module.exports = class JStack extends jraphical.Module
       return callback err  if err
 
       if stacks.length is 0
-        JStack.getStack { user, group }, (err, stack) =>
+        meta = title: "Default", slug: "default"
+        JStack.getStack { user, group, meta }, (err, stack) =>
           callback err, [stack]
       else
         callback null, stacks
@@ -65,19 +65,13 @@ module.exports = class JStack extends jraphical.Module
     @getStack selector, (err, stack)->
       callback err, stack?.getId()
 
-  @getStack = ({user, group, sid, meta}, callback)->
-
-    sid ?= 0
-
-    JStack.one {user, group, sid}, (err, stack)->
+  @getStack = ({user, group, meta}, callback)->
+    JStack.one {user, group, meta}, (err, stack)->
       return callback err  if err
 
-      if stack
-        console.log "Returning a stack"
-        return callback null, stack
+      return callback null, stack  if stack
 
-      console.log "Creating new stack."
-      stack = new JStack {user, group, sid, meta}
+      stack = new JStack {user, group, meta}
       stack.save (err)->
         if err then callback err
         else callback null, stack
@@ -89,13 +83,7 @@ module.exports = class JStack extends jraphical.Module
       {group} = client.context
       user    = client.connection.delegate.profile.nickname
 
-      stackCounter = (require 'koding-counter')
-        db          : JStack.getClient()
-        counterName : "stacks~#{group}~#{user}~"
-
-      stackCounter.next (err, sid)=>
-        return callback err  if err
-        @getStack {user, group, sid, meta}, callback
+      @getStack {user, group, meta}, callback
 
   @getStack$ = permit 'get stacks',
 
