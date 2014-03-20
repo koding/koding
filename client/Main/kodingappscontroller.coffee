@@ -17,6 +17,15 @@ class KodingAppsController extends KDController
 
       @emit 'ready'
 
+    KD.singletons.router.addRoute "/:name?/Apps/:username/:app?", (route)->
+      {username} = route.params
+      if username[0] is username[0].toUpperCase()
+        app = route.params.username
+        username = route.params.name
+        KD.remote.api.JNewApp.one slug:"#{username}/Apps/#{app}", (err, app)->
+          if not err and app
+            KodingAppsController.runExternalApp app, dontUseRouter:yes
+
   @loadInternalApp = (name, callback)->
 
     unless KD.config.apps[name]
