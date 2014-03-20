@@ -11,7 +11,6 @@ class AppsListItemView extends KDListItemView
       partial  : "<span class='logo'>#{data.name[0]}</span>"
 
     @thumbnail.setCss 'backgroundColor', KD.utils.getColorFromString data.name
-    @setClass "waits-approve"  unless @getData().approved
 
     @runButton = new KDButtonView
       cssClass : 'run'
@@ -19,6 +18,14 @@ class AppsListItemView extends KDListItemView
       callback : =>
         KodingAppsController.runExternalApp @getData()
         KD.mixpanel "App run, click"
+
+    @statusWidget = new KDView
+      cssClass : KD.utils.curry 'status-widget', data.status
+      tooltip  : title : {
+        'github-verified': "Public"
+        'not-verified'   : "Private"
+        'verified'       : "Verified"
+      }[data.status]
 
   # Override KDView::render since I'm updating all the manifest at once ~ GG
   render:-> @template.update()
@@ -33,8 +40,12 @@ class AppsListItemView extends KDListItemView
       <figure>
         {{> @thumbnail}}
       </figure>
+      {{> @statusWidget}}
       <div class="appmeta clearfix">
-        <h3><a href="/Apps/#{authorNick}/#{name}">#{name}</a></h3>
+        <a href="/Apps/#{authorNick}/#{name}">
+          <h3>#{name}</h3>
+          <cite></cite>
+        </a>
         <h4>{{#(manifest.author)}}</h4>
         <div class="appdetails">
           <article>{{@utils.shortenText #(manifest.description)}}</article>

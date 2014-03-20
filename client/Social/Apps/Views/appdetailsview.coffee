@@ -14,6 +14,16 @@ class AppDetailsView extends KDScrollView
         <span class='logo'>#{app.name[0]}</span>
       """
 
+    @statusWidget = new KDView
+      cssClass : KD.utils.curry 'status-widget', app.status
+      tooltip  : title : {
+        'github-verified': "Public"
+        'not-verified'   : "Private"
+        'verified'       : "Verified"
+      }[app.status]
+
+    @appLogo.addSubView @statusWidget
+
     @appLogo.setCss 'backgroundColor', KD.utils.getColorFromString app.name
 
     @actionButtons = new KDView cssClass: 'action-buttons'
