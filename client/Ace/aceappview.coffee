@@ -227,7 +227,9 @@ class AceAppView extends JView
 
     @on "gotoLineMenuItemClicked", => @getActiveAceView().ace.showGotoLine()
 
-    @on "exitMenuItemClicked", => @appManager.quit @appManager.frontApp
+    @on "exitMenuItemClicked", =>
+      @appManager.quit @appManager.frontApp
+      KD.singletons.router.handleRoute "/Activity"
 
     @on "keyBindingsMenuItemClicked", => new EditorMacroView
 
