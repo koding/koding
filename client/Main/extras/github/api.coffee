@@ -119,6 +119,27 @@ class GitHub
         #{if text then text else "github.com/"+path}
       </a>
     """
+
+  @getLatestCommit = (repo, callback)->
+
+    @username (username)=>
+
+      return callback {
+        message : "There is no linked GitHub account with this account."
+      }  unless username
+
+      @fetch "/repos/#{username}/#{repo}/commits?per_page=1", (response, state, req)=>
+
+        {meta, data} = response
+
+        if meta.status is 200
+          data or= []
+          return callback null, data.first
+
+        @errorWrapper callback, {
+          message: "Failed to fetch latest commit", state, meta
+        }
+
   @errorWrapper = (callback, options)->
 
     if options.meta['X-RateLimit-Remaining'] is "0"
