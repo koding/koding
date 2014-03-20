@@ -32,20 +32,12 @@ func vmShutdownOld(args *dnode.Partial, c *kite.Channel, vos *virt.VOS) (interfa
 	return vmShutdown(vos)
 }
 
-func vmUnprepareOld(args *dnode.Partial, c *kite.Channel, vos *virt.VOS) (interface{}, error) {
-	return vmUnprepare(vos)
-}
-
 func vmStopOld(args *dnode.Partial, c *kite.Channel, vos *virt.VOS) (interface{}, error) {
 	return vmStop(vos)
 }
 
 func vmReinitializeOld(args *dnode.Partial, c *kite.Channel, vos *virt.VOS) (interface{}, error) {
 	return vmReinitialize(vos)
-}
-
-func vmPrepareOld(args *dnode.Partial, c *kite.Channel, vos *virt.VOS) (interface{}, error) {
-	return vmPrepare(vos)
 }
 
 func vmInfoOld(args *dnode.Partial, c *kite.Channel, vos *virt.VOS) (interface{}, error) {
@@ -162,7 +154,7 @@ func vmStart(vos *virt.VOS) (interface{}, error) {
 	<-done
 
 	if lastError != nil {
-		return true, lastError
+		return nil, lastError
 	}
 
 	return true, nil
@@ -173,14 +165,15 @@ func vmShutdown(vos *virt.VOS) (interface{}, error) {
 		return nil, &kite.PermissionError{}
 	}
 
+	var lastError error
 	done := make(chan struct{}, 1)
 	prepareQueue <- &QueueJob{
 		msg: "vm.Shutdown" + vos.VM.HostnameAlias,
 		f: func() (string, error) {
 			defer func() { done <- struct{}{} }()
 
-			if err := vos.VM.Shutdown(); err != nil {
-				return "", err
+			if lastError = vos.VM.Shutdown(); lastError != nil {
+				return "", lastError
 			}
 
 			return fmt.Sprintf("vm.Shutdown %s", vos.VM.HostnameAlias), nil
@@ -188,37 +181,10 @@ func vmShutdown(vos *virt.VOS) (interface{}, error) {
 	}
 
 	<-done
-	return true, nil
-}
 
-func vmUnprepare(vos *virt.VOS) (interface{}, error) {
-	if !vos.Permissions.Sudo {
-		return nil, &kite.PermissionError{}
+	if lastError != nil {
+		return nil, lastError
 	}
-
-	done := make(chan struct{}, 1)
-	prepareQueue <- &QueueJob{
-		msg: "vm.Unprepare" + vos.VM.HostnameAlias,
-		f: func() (string, error) {
-			defer func() { done <- struct{}{} }()
-
-			if err := vos.VM.Shutdown(); err != nil {
-				return "", err
-			}
-
-			var err error
-			for step := range vos.VM.Unprepare() {
-				err = step.Err
-			}
-			if err != nil {
-				return "", err
-			}
-
-			return fmt.Sprintf("vm.Unprepare %s", vos.VM.HostnameAlias), nil
-		},
-	}
-
-	<-done
 
 	return true, nil
 }
@@ -273,26 +239,6 @@ func vmInfo(vos *virt.VOS) (interface{}, error) {
 	return info, nil
 }
 
-func vmPrepare(vos *virt.VOS) (interface{}, error) {
-	if !vos.Permissions.Sudo {
-		return nil, &kite.PermissionError{}
-	}
-
-	prepared, err := isVmPrepared(vos.VM)
-	if err != nil {
-		return nil, err
-	}
-
-	if prepared {
-		return nil, ErrVmAlreadyPrepared
-	}
-
-	for _ = range vos.VM.Prepare(false) {
-	}
-
-	return true, nil
-}
-
 func isVmPrepared(vm *virt.VM) (bool, error) {
 	isPrepared := true
 	if _, err := os.Stat(vm.File("rootfs/dev")); err != nil {
@@ -311,7 +257,18 @@ func vmReinitialize(vos *virt.VOS) (interface{}, error) {
 		return nil, &kite.PermissionError{}
 	}
 
-	for _ = range vos.VM.Prepare(true) {
+	if err := vos.VM.Shutdown(); err != nil {
+		return nil, err
+	}
+
+	// errors are neglected by design
+	for _ = range vos.VM.Unprepare() {
+	}
+
+	for step := range vos.VM.Prepare(true) {
+		if step.Err != nil {
+			return nil, step.Err
+		}
 	}
 
 	if err := vos.VM.Start(); err != nil {
@@ -327,10 +284,6 @@ func startAndPrepareVM(vm *virt.VM) error {
 		return err
 	}
 
-	if prepared {
-		return nil
-	}
-
 	var lastError error
 	done := make(chan struct{}, 1)
 	prepareQueue <- &QueueJob{
@@ -340,11 +293,13 @@ func startAndPrepareVM(vm *virt.VM) error {
 
 			startTime := time.Now()
 
-			// prepare first
-			for step := range vm.Prepare(false) {
-				lastError = step.Err
-				if lastError != nil {
-					return "", fmt.Errorf("preparing VM %s", lastError)
+			if !prepared {
+				// prepare first
+				for step := range vm.Prepare(false) {
+					lastError = step.Err
+					if lastError != nil {
+						return "", fmt.Errorf("preparing VM %s", lastError)
+					}
 				}
 			}
 
@@ -471,17 +426,18 @@ func vmDestroyOld(args *dnode.Partial, c *kite.Channel, vos *virt.VOS) (interfac
 	}
 
 	return progress(vos, "vm.destroy"+vos.VM.HostnameAlias, params, func() error {
+		var lastError error
 		for step := range unprepareProgress(vos, true) {
 			if params.OnProgress != nil {
 				params.OnProgress(step)
 			}
 
 			if step.Err != nil {
-				return step.Err
+				lastError = step.Err
 			}
 		}
 
-		return nil
+		return lastError
 	})
 
 	return true, nil
@@ -498,17 +454,18 @@ func vmStopAndUnprepare(args *dnode.Partial, channel *kite.Channel, vos *virt.VO
 	}
 
 	return progress(vos, "vm.stopAndUnprepare"+vos.VM.HostnameAlias, params, func() error {
+		var lastError error
 		for step := range unprepareProgress(vos, false) {
 			if params.OnProgress != nil {
 				params.OnProgress(step)
 			}
 
 			if step.Err != nil {
-				return step.Err
+				lastError = step.Err
 			}
 		}
 
-		return nil
+		return lastError
 	})
 }
 
@@ -520,6 +477,10 @@ func unprepareProgress(vos *virt.VOS, destroy bool) <-chan *virt.Step {
 		var prepared bool
 
 		defer func() {
+			if lastError != nil {
+				lastError = kite.NewKiteErr(lastError)
+			}
+
 			results <- &virt.Step{Err: lastError, Message: "FINISHED"}
 			close(results)
 		}()
@@ -603,6 +564,10 @@ func prepareProgress(vos *virt.VOS) <-chan *virt.Step {
 	go func() {
 		var lastError error
 		defer func() {
+			if lastError != nil {
+				lastError = kite.NewKiteErr(lastError)
+			}
+
 			results <- &virt.Step{Err: lastError, Message: "FINISHED"}
 			close(results)
 		}()

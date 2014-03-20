@@ -111,20 +111,12 @@ func vmShutdownNew(r *kitelib.Request, vos *virt.VOS) (interface{}, error) {
 	return vmShutdown(vos)
 }
 
-func vmUnprepareNew(r *kitelib.Request, vos *virt.VOS) (interface{}, error) {
-	return vmUnprepare(vos)
-}
-
 func vmReinitializeNew(r *kitelib.Request, vos *virt.VOS) (interface{}, error) {
 	return vmReinitialize(vos)
 }
 
 func vmInfoNew(r *kitelib.Request, vos *virt.VOS) (interface{}, error) {
 	return vmInfo(vos)
-}
-
-func vmPrepareNew(r *kitelib.Request, vos *virt.VOS) (interface{}, error) {
-	return vmPrepare(vos)
 }
 
 func vmResizeDiskNew(r *kitelib.Request, vos *virt.VOS) (interface{}, error) {
