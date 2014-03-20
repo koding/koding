@@ -88,3 +88,8 @@ module.exports = class JKite extends jraphical.Module
         return  callback err if err
         @addPlan plan, callback
 
+  deletePlan: permit 'delete kite plan',
+    success: (client, planCode, callback)->
+      @fetchPlans (err, plan) ->
+        plan.remove
+
