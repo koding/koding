@@ -450,14 +450,14 @@ class KodingAppsController extends KDController
 
         loader.notificationSetTitle "An unknown error occured"
         loader.notificationSetTimer 2000
-        callback? err
+        callback? err, app
         warn err
 
       else if response.exitStatus is 0
 
         loader.notificationSetTitle "App compiled successfully"
         loader.notificationSetTimer 2000
-        callback()
+        callback null, app
 
       else
 
@@ -477,7 +477,7 @@ class KodingAppsController extends KDController
           cssClass : 'compiler-modal'
           content  : "<pre>#{err}</pre>"
 
-        callback? { message: "Failed to compile: #{err}" }
+        callback? { message: "Failed to compile: #{err}" }, app
 
   @createJApp = ({path, githubPath}, callback)->
 

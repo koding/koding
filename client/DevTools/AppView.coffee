@@ -249,10 +249,19 @@ class DevToolsMainView extends KDView
 
   compileApp:->
 
-    {JSEditor} = @workspace.activePanel.panesByName
+    {JSEditor, finder} = @workspace.activePanel.panesByName
 
-    KodingAppsController.compileAppOnServer JSEditor.getData()?.path, ->
-      log "COMPILE", arguments
+    KodingAppsController.compileAppOnServer \
+      JSEditor.getData()?.path, (err, app)->
+
+        return warn err  if err
+        return warn "NO APP?"  unless app
+
+        {vm, path} = app
+        finder.finderController.expandFolders "[#{vm}]#{path}", ->
+          fileTree = finder.finderController.treeController
+          fileTree.selectNode fileTree.nodes["[#{vm}]#{path}/index.js"]
+
 
   createNewApp:->
 
