@@ -300,9 +300,9 @@ class DevToolsMainView extends KDView
         title : "Select repository of #{app.name}.kdapp"
         customFilter : ///#{app.name}\.kdapp$///
 
-      modal.on "RepoSelected", (repo)->
+      modal.on "RepoSelected", (repo)=>
 
-        GitHub.getLatestCommit repo.name, (err, commit)->
+        GitHub.getLatestCommit repo.name, (err, commit)=>
 
           if err
             return new KDNotificationView
@@ -311,15 +311,23 @@ class DevToolsMainView extends KDView
           options.githubPath = \
             "#{KD.config.appsUri}/#{repo.full_name}/#{commit.sha}/"
 
-          KodingAppsController.createJApp options, ->
-            new KDNotificationView
-              title: "Published successfully!"
+          KodingAppsController.createJApp options, @publishCallback
 
     else
 
-      KodingAppsController.createJApp options, ->
-        new KDNotificationView
-          title: "Published successfully!"
+      KodingAppsController.createJApp options, @publishCallback
+
+  publishCallback:(err, app)->
+    if err or not app
+      warn err
+      return new KDNotificationView
+        title : "Failed to publish"
+
+    new KDNotificationView
+      title: "Published successfully!"
+
+    KD.singletons
+      .router.handleRoute "/Apps/#{app.manifest.authorNick}/#{app.name}"
 
   toggleLiveReload:(state)->
 

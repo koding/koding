@@ -494,8 +494,7 @@ class KodingAppsController extends KDController
           name : app.name
           url  : githubPath or app.fullPath
           manifest
-        }, (err, app)->
-          log err, app
+        }, callback
 
   @fetchManifest = (path, callback = noop)->
 
