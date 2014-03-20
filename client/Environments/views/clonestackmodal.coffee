@@ -144,24 +144,16 @@ class CloneStackModal extends KDModalView
       callback()
 
   handleSubscriptionError: (err) ->
-    @loader.destroy()
-    @setClass "resource-required"
+    @destroy()
 
     if err.message is "quota exceeded"
-      @label.updatePartial """
-        <p class="subscription-notice">
-          You do not have enough resources, you need to buy at least one
-          "Resource Pack" to be able to create an extra VM.
-        </p>
-      """
+      modal      = new KDModalView
+        cssClass : "create-vm"
+        overlay  : yes
 
-      @addSubView new KDButtonView
-        cssClass  : "buy-packs"
-        style     : "solid green medium"
-        title     : "Buy Resource Packs"
-        callback  : ->
-          @destroy()
-          KD.singleton("router").handleRoute "/Pricing"
+      view = KD.singletons.paymentController.createUpgradeForm modal
+      modal.addSubView view
+      modal.once "Cancel", -> modal.destroy()
     else
       @label.updatePartial """
         Something went wrong with your process.
