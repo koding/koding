@@ -154,6 +154,7 @@ type StepFunc struct {
 // and mounts the necessary filesystems.
 func (v *VM) Prepare(reinitialize bool) <-chan *Step {
 	funcs := make([]*StepFunc, 0)
+	funcs = append(funcs, &StepFunc{Msg: "Lock RBD", Fn: v.LockRBD})
 	funcs = append(funcs, &StepFunc{Msg: "Create container", Fn: v.createContainerDir})
 	funcs = append(funcs, &StepFunc{Msg: "Mount RBD", Fn: v.mountRBD})
 
@@ -386,6 +387,7 @@ func (vm *VM) Unprepare() <-chan *Step {
 	funcs = append(funcs, &StepFunc{Msg: "Removing lxc/rootfs", Fn: func() error { return os.Remove(vm.File("rootfs")) }})
 	funcs = append(funcs, &StepFunc{Msg: "Removing lxc/rootfs.hold", Fn: func() error { return os.Remove(vm.File("rootfs.hold")) }})
 	funcs = append(funcs, &StepFunc{Msg: "Removing lxc folder", Fn: func() error { return os.Remove(vm.File("")) }})
+	funcs = append(funcs, &StepFunc{Msg: "Unlocking RBD", Fn: vm.UnlockRBD})
 
 	var lastError error
 	results := make(chan *Step, len(funcs))
