@@ -69,8 +69,6 @@ module.exports = class JNewStatusUpdate extends JPost
           (signature Function)
           (signature Object, Function)
         ]
-        healthCheck:
-          (signature Function)
 
       instance        :
         reply:
@@ -346,7 +344,3 @@ module.exports = class JNewStatusUpdate extends JPost
       , showExempt
     , -> callback null, teasers
     collectTeasers post for post in posts
-
-  @healthCheck = secure (client, callback) ->
-    {connection: {delegate}} = client
-    delegate.sendNotification "healthCheck"

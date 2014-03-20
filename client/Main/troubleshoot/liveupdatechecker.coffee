@@ -5,4 +5,4 @@ class LiveUpdateChecker extends KDObject
     notificationController.off "NotificationHasArrived"
     notificationController.on "NotificationHasArrived", (notification) =>
       callback()  if notification?.event is "healthCheck"
-    KD.remote.api.JNewStatusUpdate.healthCheck callback
+    KD.remote.api.JSystemStatus.checkRealtimeUpdates callback

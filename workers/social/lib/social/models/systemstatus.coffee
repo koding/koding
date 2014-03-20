@@ -19,6 +19,8 @@ module.exports = class JSystemStatus extends Model
           (do signature)
         healthCheck  :
           (signature Function)
+        checkRealtimeUpdates:
+          (signature Function)
       instance       :
         cancel:
           (signature Function)
@@ -115,3 +117,7 @@ module.exports = class JSystemStatus extends Model
 
   @healthCheck = secure (client, callback) ->
     callback result:1
+
+  @checkRealtimeUpdates = secure (client, callback) ->
+    {connection: {delegate}} = client
+    delegate.sendNotification "healthCheck"
