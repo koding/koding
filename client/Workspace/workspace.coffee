@@ -1,4 +1,4 @@
-class Workspace extends JView
+class Workspace extends KDView
 
   constructor: (options = {}, data) ->
 
@@ -73,10 +73,5 @@ class Workspace extends JView
     container.setHeight panel.getHeight() - header.getHeight()  if header
 
   viewAppended: ->
-    super
+    @addSubView @container
     @_windowDidResize()
-
-  pistachio: ->
-    """
-      {{> @container}}
-    """
