@@ -9,6 +9,9 @@ class CloneStackModal extends KDModalView
 
     super options, data
 
+    @queue    = []
+    @listData = {}
+
     if data.vms.length # has vm
       @fetchSubscription()
       @createInitialState "<p>Fetching your subscriptions...</p>"
@@ -29,13 +32,12 @@ class CloneStackModal extends KDModalView
       @createStack =>
         {domains} = stackData
         if domains.length
-          @askForNewDomainNames domains
-          @once "AllDomainsCreated", =>
-            @cloneVMs()
+          @askForNewDomains domains
         else
-          @cloneVMs()
+          @addVMsToQueue()
+          @processQueue()
 
-  askForNewDomainNames: (domains) ->
+  askForNewDomains: (domains) ->
     @loader.destroy()
     @unsetClass "loading"
     @setClass   "domain-names"
@@ -62,11 +64,10 @@ class CloneStackModal extends KDModalView
       click    : -> input.setFocus()
 
     form.once "viewAppended", =>
-      # FIXME: fatihacet - what about group related urls ?
       splitted = domain.title.split "."
       splitted.first = ""  if splitted.first is KD.nick()
 
-      KD.utils.wait 300, => # need to remove this timeout
+      KD.utils.wait 500, => # need to remove this timeout
         input.setValue "#{splitted.first}-#{@getOptions().meta.slug}"
 
     @addSubView form
@@ -84,11 +85,11 @@ class CloneStackModal extends KDModalView
     container.addSubView new KDButtonView
       title    : "Clone Stack"
       cssClass : "solid green medium"
-      callback : @bound "cloneDomains"
+      callback : @bound "validateDomains"
 
-  cloneDomains: ->
+  validateDomains: ->
     userDomains = []
-    newDomains  = []
+    @newDomains = []
     isValidated = yes
 
     KD.remote.api.JDomain.fetchDomains (err, domains) =>
@@ -100,37 +101,53 @@ class CloneStackModal extends KDModalView
         {domainName}     = inputs
         name             = domainName.getValue()
         extension        = fields.domains.getSubViews().last.getValue()
-        newDomains.push if name.length then "#{name}.#{extension}" else "#{extension}"
+        @newDomains.push if name.length then "#{name}.#{extension}" else "#{extension}"
 
         domainName.unsetClass "validation-error"
 
-      for domainName, index in newDomains
+      for domainName, index in @newDomains
         domainNameInput   = @domainCreateForms[index].subdomainForm.inputs.domainName
         isValid           = KD.utils.subdomainPattern.test domainNameInput.getValue()
         isExists          = userDomains.indexOf(domainName) > -1
-        isSameDomainTyped = newDomains.indexOf(domainName) isnt index
+        isSameDomainTyped = @newDomains.indexOf(domainName) isnt index
 
         if isExists or isSameDomainTyped or not isValid
           isValidated = no
           domainNameInput.setClass "validation-error"
 
-      createdDomainLength = 0
-
       if isValidated
-        for form, index in @domainCreateForms
-          form.createJDomain newDomains[index], (err, domain) =>
-            @handleDomainCreationError err  if err
-            createdDomainLength++
+        @addDomainsToQueue()
+        @addVMsToQueue()  if @getData().vms.length
+        @processQueue()
 
-            if createdDomainLength is newDomains.length
-              @emit "AllDomainsCreated"
+  addDomainsToQueue: ->
+    domainList = @listData["Creating Domains"] = []
+    @domainCreateForms.forEach (form, index) =>
+      newName = @newDomains[index]
+      domainList.push newName
+      @queue.push =>
+        KD.remote.api.JDomain.createDomain { domain: newName, stack: @stack.getId() }, (err, res) =>
+          # TODO: Error handling
+          return warn err  if err
+          @queue.next()
+          @progressModal.next()
 
-  cloneVMs: ->
-    vmLength = @getData().vms.length
+  addVMsToQueue: ->
+    vmList  = @listData["Creating VMs"] = []
+    counter = 0
+    for [0...@getData().vms.length]
+      vmList.push "#{++counter}. VM"
+      @queue.push =>
+        KD.singleton("vmController").createNewVM @stack.getId(), (err) =>
+          # KD.showError err  if err
+          @queue.next()
+          @progressModal.next()
+        , no
 
-    for [0...vmLength]
-      KD.singleton("vmController").createNewVM @stack.getId(), (err) ->
-        KD.showError err
+  processQueue: ->
+    @destroy()
+    @progressModal = new StackProgressModal {}, @listData
+    Bongo.daisy @queue
 
   deleteStack: ->
     @destroy()
