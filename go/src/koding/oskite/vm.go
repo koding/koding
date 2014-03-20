@@ -32,20 +32,12 @@ func vmShutdownOld(args *dnode.Partial, c *kite.Channel, vos *virt.VOS) (interfa
 	return vmShutdown(vos)
 }
 
-func vmUnprepareOld(args *dnode.Partial, c *kite.Channel, vos *virt.VOS) (interface{}, error) {
-	return vmUnprepare(vos)
-}
-
 func vmStopOld(args *dnode.Partial, c *kite.Channel, vos *virt.VOS) (interface{}, error) {
 	return vmStop(vos)
 }
 
 func vmReinitializeOld(args *dnode.Partial, c *kite.Channel, vos *virt.VOS) (interface{}, error) {
 	return vmReinitialize(vos)
-}
-
-func vmPrepareOld(args *dnode.Partial, c *kite.Channel, vos *virt.VOS) (interface{}, error) {
-	return vmPrepare(vos)
 }
 
 func vmInfoOld(args *dnode.Partial, c *kite.Channel, vos *virt.VOS) (interface{}, error) {
@@ -197,43 +189,6 @@ func vmShutdown(vos *virt.VOS) (interface{}, error) {
 	return true, nil
 }
 
-func vmUnprepare(vos *virt.VOS) (interface{}, error) {
-	if !vos.Permissions.Sudo {
-		return nil, &kite.PermissionError{}
-	}
-
-	var lastError error
-	done := make(chan struct{}, 1)
-	prepareQueue <- &QueueJob{
-		msg: "vm.Unprepare" + vos.VM.HostnameAlias,
-		f: func() (string, error) {
-			defer func() { done <- struct{}{} }()
-
-			if lastError = vos.VM.Shutdown(); lastError != nil {
-				return "", lastError
-			}
-
-			for step := range vos.VM.Unprepare() {
-				lastError = step.Err
-			}
-
-			if lastError != nil {
-				return "", lastError
-			}
-
-			return fmt.Sprintf("vm.Unprepare %s", vos.VM.HostnameAlias), nil
-		},
-	}
-
-	<-done
-
-	if lastError != nil {
-		return nil, lastError
-	}
-
-	return true, nil
-}
-
 func vmStop(vos *virt.VOS) (interface{}, error) {
 	if !vos.Permissions.Sudo {
 		return nil, &kite.PermissionError{}
@@ -282,26 +237,6 @@ func vmInfo(vos *virt.VOS) (interface{}, error) {
 	infosMutex.Unlock()
 
 	return info, nil
-}
-
-func vmPrepare(vos *virt.VOS) (interface{}, error) {
-	if !vos.Permissions.Sudo {
-		return nil, &kite.PermissionError{}
-	}
-
-	prepared, err := isVmPrepared(vos.VM)
-	if err != nil {
-		return nil, err
-	}
-
-	if prepared {
-		return nil, ErrVmAlreadyPrepared
-	}
-
-	for _ = range vos.VM.Prepare(false) {
-	}
-
-	return true, nil
 }
 
 func isVmPrepared(vm *virt.VM) (bool, error) {
