@@ -18,21 +18,6 @@ class ActivityAppController extends AppController
 
   USEDFEEDS = []
 
-  activityTypes = [
-    'Everything'
-  ]
-
-  newActivitiesArrivedTypes = [
-    'CStatusActivity'
-    'CCodeSnipActivity'
-    'CFollowerBucketActivity'
-    'CNewMemberBucketActivity'
-    'CDiscussionActivity'
-    'CTutorialActivity'
-    'CInstallerBucketActivity'
-    'CBlogPostActivity'
-  ]
-
   @clearQuotes = clearQuotes = (activities)->
     return activities = for own activityId, activity of activities
       activity.snapshot = activity.snapshot?.replace /&quot;/g, '\"'
@@ -57,9 +42,6 @@ class ActivityAppController extends AppController
 
     KD.singletons.dock.getView().show()
 
-    # if @mainController.appIsReady then @putListeners()
-    # else @mainController.on 'AppIsReady', => @putListeners()
-
     @status = KD.getSingleton "status"
     @status.on "reconnected", (conn)=>
       if conn?.reason is "internetDownForLongTime" then @refresh()
@@ -78,8 +60,6 @@ class ActivityAppController extends AppController
     @reachedEndOfActivities = no
     @listController.resetList()
     @listController.removeAllItems()
-
-  fetchCurrentGroup:(callback)-> callback @currentGroupSlug
 
   search:(text)->
     text = Encoder.XSSEncode text
@@ -182,11 +162,6 @@ class ActivityAppController extends AppController
       callback messages
 
     fetch = =>
-
-      #since it is not working, disabled it,
-      #to-do add isExempt control.
-      #@isExempt (exempt)=>
-      #if exempt or @getFilter() isnt activityTypes
 
       groupObj     = groupsController.getCurrentGroup()
       mydate       = new Date((new Date()).setSeconds(0) + 60000).getTime()
@@ -312,15 +287,15 @@ class ActivityAppController extends AppController
 
   fetchFollowingActivities:(options = {})->
     {JNewStatusUpdate} = KD.remote.api
-    options.to = @lastTo or @followingLastTo or Date.now()
+    options.to  = @followingLastTo or Date.now()
     eventSuffix = "#{@getFeedFilter()}_#{@getActivityFilter()}"
     JNewStatusUpdate.fetchFollowingFeed options, (err, activities) =>
       if err
       then @emit "activitiesCouldntBeFetched", err
       else
         if Array.isArray activities
-          activities = activities.reverse()
-          @profileLastTo = activities.last.meta.createdAt if activities.length > 0
+          activities       = activities.reverse()
+          @followingLastTo = activities.last.meta.createdAt if activities.length > 0
         @emit "followingFeedFetched_#{eventSuffix}", activities
 
   setWarning:(options = {})->
@@ -350,24 +325,9 @@ class ActivityAppController extends AppController
     to   = new Date(messages.first.meta.createdAt).getTime()
     @setLastTimestamps to, from #from, to
 
-  # Store first & last activity timestamp.
-  extractTeasersTimeStamps:(teasers)->
-    return unless teasers.first
-    @setLastTimestamps new Date(teasers.last.meta.createdAt).getTime(), new Date(teasers.first.meta.createdAt).getTime()
-
-  sanitizeCache:(cache, callback)->
-    activities = clearQuotes cache.activities
-
-    KD.remote.reviveFromSnapshots activities, (err, instances)->
-      for activity,i in activities
-        cache.activities[activity._id] or= {}
-        cache.activities[activity._id].teaser = instances[i]
-
-      callback null, cache
-
   createContentDisplay:(activity, callback=->)->
-    controller = @createStatusUpdateContentDisplay activity
-    @utils.defer -> callback controller
+    contentDisplay = @createStatusUpdateContentDisplay activity
+    @utils.defer -> callback contentDisplay
 
   showContentDisplay:(contentDisplay)->
 
@@ -375,24 +335,10 @@ class ActivityAppController extends AppController
     return contentDisplay
 
   createStatusUpdateContentDisplay:(activity)->
-    activity.fetchTags (err, tags) =>
-      unless err
-        activity.tags = tags
-        @showContentDisplay new ContentDisplayStatusUpdate
-          title : "Status Update"
-          type  : "status"
-        ,activity
-
-  streamByIds:(ids, callback)->
-
-    selector = _id : $in : ids
-    KD.remote.api.CActivity.streamModels selector, {}, (err, model) =>
-      if err then callback err
-      else
-        unless model is null
-          callback null, model[0]
-        else
-          callback null, null
+    @showContentDisplay new ContentDisplayStatusUpdate
+      title : "Status Update"
+      type  : "status"
+    ,activity
 
   fetchActivitiesProfilePage:(options,callback)->
     {originId} = options
@@ -417,8 +363,6 @@ class ActivityAppController extends AppController
         @profileLastTo = (new Date(lastOne)).getTime()
       callback err, activities
 
-  unhideNewItems: ->
-    @listController?.activityHeader.updateShowNewItemsLink yes
 
   getNewItemsCount: (callback) ->
     callback? @listController?.activityHeader?.getNewItemsCount() or 0
@@ -445,10 +389,6 @@ class ActivityAppController extends AppController
 
     @status.disconnect()
     @refresh()
-
-  feederBridge : (options, callback)->
-
-    KD.getSingleton("appManager").tell 'Feeder', 'createContentFeedController', options, callback
 
   resetProfileLastTo : ->
     @profileLastTo = null
