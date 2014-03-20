@@ -7,6 +7,7 @@ class DevToolsMainView extends KDView
 
     @storage = KD.singletons.localStorageController.storage "DevTools"
     @liveMode = @storage.getAt 'liveMode'
+    @_currentMode = 'home'
 
   getToggleLiveReloadMenuView: (item, menu)->
 
@@ -126,6 +127,11 @@ class DevToolsMainView extends KDView
       innerSplit = @workspace.activePanel
         .layoutContainer.getSplitByName "InnerSplit"
       innerSplit.addSubView @welcomePage = new WelcomePage delegate: this
+
+      # Remove the resizer in baseSplit until KDSplitView fixed ~ GG
+      baseSplit = @workspace.activePanel
+        .layoutContainer.getSplitByName "BaseSplit"
+      baseSplit.resizers?[0].destroy?()
 
       PreviewPane.header.addSubView PreviewPane.info = new KDView
         cssClass : "inline-info"
