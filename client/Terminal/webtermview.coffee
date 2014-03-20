@@ -80,11 +80,13 @@ class WebTermView extends KDView
     if vm = @getOption 'vm'
       { hostnameAlias: vmName } = vm
 
+    vmName = @getDelegate().getOption "vmName"  unless vmName
+
     return vmName
 
   webtermConnect:(mode)->
-    return console.info "reconnection is in progrees" if @reconnectionInPrgress
-    @reconnectionInPrgress = yes
+    return console.info "reconnection is in progress" if @reconnectionInProgress
+    @reconnectionInProgress = yes
     options = @generateOptions()
     options.mode = mode   if mode
     KD.getSingleton("vmController").run
@@ -95,14 +97,14 @@ class WebTermView extends KDView
       if err
         warn err
         if err.code is "ErrInvalidSession"
-          @reconnectionInPrgress = false
+          @reconnectionInProgress = false
           @emit 'TerminalCanceled',
             vmName: @getVMName()
             sessionId: @getOptions().session
             error: err
           return
         else
-          @reconnectionInPrgress = false
+          @reconnectionInProgress = false
           throw err
 
       unless remote?
@@ -116,7 +118,7 @@ class WebTermView extends KDView
 
       @emit "WebTermConnected", remote
       console.error "just connected"  if mode is "resume"
-      @reconnectionInPrgress = false
+      @reconnectionInProgress = false
 
   connectToTerminal: ->
     @appStorage = KD.getSingleton('appStorageController').storage 'Terminal', '1.0.1'

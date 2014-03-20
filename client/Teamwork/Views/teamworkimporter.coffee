@@ -54,8 +54,7 @@ class TeamworkImporter extends KDObject
     @notify "Downloading zip file...", "", 25000
     commands = commands.join(" && ")
     @vmController.run commands, (err, res) =>
-      err = err or res.stderr
-      return @handleError err  if res.exitStatus > 0
+      return @handleError err or res.stderr  if err or res.exitStatus > 0
 
       FSHelper.glob "#{@tempPath}/*", @vmName, (err, folders) =>
         return @handleError err  if err
