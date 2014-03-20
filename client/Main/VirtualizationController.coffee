@@ -429,14 +429,13 @@ class VirtualizationController extends KDController
         return callback err  if err
 
         @provisionVm {stackId, subscription, productData: {pack}}, (err, nonce) =>
-          return  unless err
-
-          if err.message is "quota exceeded"
-            if KD.getGroup().slug is "koding"
-              @showUpgradeModal()
-              callback()
-            else
-              callback message: "Your group is out of VM quota"
+          if err
+            if err.message is "quota exceeded"
+              if KD.getGroup().slug is "koding"
+                @showUpgradeModal()
+                callback()
+              else
+                callback message: "Your group is out of VM quota"
           else callback err
         , fireEvent
 
