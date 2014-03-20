@@ -238,13 +238,15 @@ class MainView extends KDView
       appManifest  = appManager.getFrontAppManifest()
       forntAppName = appManager.getFrontApp().getOptions().name
       menu         = appManifest?.menu or KD.getAppOptions(forntAppName)?.menu
+
       if Array.isArray menu
         menu = items: menu
+
+      @appSettingsMenuButton.hide()
       if menu?.items?.length
         @appSettingsMenuButton.setData menu
-        @appSettingsMenuButton.show()  unless menu.hiddenOnStart
-      else
-        @appSettingsMenuButton.hide()
+        unless menu.hiddenOnStart
+          @appSettingsMenuButton.show()
 
     @mainTabView.on "AllPanesClosed", ->
       KD.getSingleton('router').handleRoute "/Activity"

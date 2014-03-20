@@ -36,8 +36,12 @@ class DevToolsController extends AppController
 
   # FIXME facet, to make it work I had to call notifyWindowResizeListeners here
   handleQuery:->
-    {workspace} = @getView()
+    {workspace, _currentMode} = @getView()
+
     workspace.ready ->
       wc = KD.getSingleton("windowController")
       wc.notifyWindowResizeListeners()
       wc.notifyWindowResizeListeners()
+
+      unless _currentMode is 'home'
+        KD.singletons.mainView.appSettingsMenuButton.show()
