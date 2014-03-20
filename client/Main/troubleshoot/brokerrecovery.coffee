@@ -5,12 +5,16 @@ class BrokerRecovery extends KDObject
     super options, data
 
     @unsuccessfulAttempt = 0
-    @broker = KD.remote.mq
+    @broker = if options.type is "kite" then KD.kite.mq \
+              else KD.remote.mq
     KD.utils.repeat options.timeout, @bound "checkStatus"
 
     @on "brokerNotResponding", =>
       if @unsuccessfulAttempt > 2
         @changeBroker()
+
+    @broker.on "ready", =>
+      @emit "brokerConnected"
 
 
   checkStatus: ->
@@ -31,17 +35,14 @@ class BrokerRecovery extends KDObject
     # every time it will try to connect another broker, but here we are not
     # checking for the previous unsuccessful attempts
     @unsuccessfulAttempt = 0
-    broker = @getData()
-    broker.disconnect no
-    brokerURL = broker.sockURL.replace("/subscribe", "")
-    broker.selectAndConnect [brokerURL]
+    @broker.disconnect no
+    brokerURL = @broker.sockURL.replace("/subscribe", "")
+    @broker.selectAndConnect [brokerURL]
     # log while changing and send alert
     KD.logToExternal "broker connection error", broker : brokerURL
 
 
   recover: (callback) ->
-    @broker.off "ready"
-    @broker.once "ready", ->
-      callback null
+    @once "brokerConnected", callback
 
     @changeBroker()
