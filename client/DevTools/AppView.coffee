@@ -119,7 +119,7 @@ class DevToolsMainView extends KDView
 
       innerSplit = @workspace.activePanel
         .layoutContainer.getSplitByName "InnerSplit"
-      innerSplit.addSubView @welcomePage = new WelcomePage delegate: this
+      innerSplit.addSubView @welcomePage = new DevToolsWelcomePage delegate: this
 
       # Remove the resizer in baseSplit until KDSplitView fixed ~ GG
       baseSplit = @workspace.activePanel
@@ -188,7 +188,7 @@ class DevToolsMainView extends KDView
       @_inprogress = no
       pc = PreviewPane.container
       pc.destroySubViews()
-      pc.addSubView new ErrorPaneWidget {},
+      pc.addSubView new DevToolsErrorPaneWidget {},
         error     :
           name    : "Preview not supported"
           message : "You can only preview .coffee and .js files."
@@ -221,7 +221,7 @@ class DevToolsMainView extends KDView
         try window.appView.destroy?()
         warn "Failed to run:", error
 
-        PreviewPane.container.addSubView new ErrorPaneWidget {}, {code, error}
+        PreviewPane.container.addSubView new DevToolsErrorPaneWidget {}, {code, error}
 
       finally
 
@@ -347,196 +347,3 @@ class DevToolsMainView extends KDView
 
     {JSEditor, CSSEditor} = @workspace.activePanel.panesByName
     CSSEditor.handleSave(); JSEditor.handleSave()
-
-
-class DevToolsEditorPane extends CollaborativeEditorPane
-
-  constructor:(options = {}, data)->
-
-    options.defaultTitle or= 'JavaScript'
-    options.editorMode   or= 'coffeescript'
-    options.cssClass       = 'devtools-editor'
-    super options, data
-
-    @_mode = @getOption 'editorMode'
-    @_defaultTitle = @getOption 'defaultTitle'
-
-    @_lastFileKey = "lastFileOn#{@_mode}"
-    @storage = KD.singletons.localStorageController.storage "DevTools"
-
-  closeFile:->
-    @openFile FSHelper.createFileFromPath 'localfile:/empty.coffee'
-
-  loadFile:(path, callback = noop)->
-
-    file = FSHelper.createFileFromPath path
-    file.fetchContents (err, content)=>
-      return callback err  if err
-
-      file.path = path
-      @openFile file, content
-
-      KD.utils.defer -> callback null, {file, content}
-
-  loadLastOpenFile:->
-
-    path = @storage.getAt @_lastFileKey
-    return  unless path
-
-    @loadFile path, (err)=>
-      if err?
-      then @storage.unsetKey @_lastFileKey
-      else @emit "RecentFileLoaded"
-
-  loadAddons:(callback)->
-
-    {cdnRoot} = CollaborativeEditorPane
-
-    KodingAppsController.appendHeadElements
-      identifier : "codemirror-addons"
-      items      : [
-        {
-          type   : 'script'
-          url    : "#{cdnRoot}/addon/selection/active-line.js"
-        },
-        {
-          type   : 'style'
-          url    : "#{cdnRoot}/addon/hint/show-hint.css"
-        },
-        {
-          type   : 'script'
-          url    : "#{cdnRoot}/addon/hint/show-hint.js"
-        },
-        {
-          type   : 'script'
-          url    : "#{cdnRoot}/addon/hint/coffeescript-hint.js"
-        },
-        {
-          type   : 'script'
-          url    : "#{cdnRoot}/addon/hint/css-hint.js"
-        }
-      ]
-    , callback
-
-  createEditor: (callback)->
-
-    @loadAddons =>
-
-      @codeMirrorEditor = CodeMirror @container.getDomElement()[0],
-        lineNumbers     : yes
-        lineWrapping    : yes
-        styleActiveLine : yes
-        scrollPastEnd   : yes
-        cursorHeight    : 1
-        tabSize         : 2
-        mode            : @_mode
-        extraKeys       :
-          "Cmd-S"       : @bound "handleSave"
-          "Ctrl-S"      : @bound "handleSave"
-          "Shift-Cmd-S" : => @emit "SaveAllRequested"
-          "Shift-Ctrl-S": => @emit "SaveAllRequested"
-          "Alt-R"       : => @emit "RunRequested"
-          "Shift-Ctrl-R": => @emit "AutoRunRequested"
-          "Ctrl-Space"  : (cm)->
-            mode = CodeMirror.innerMode(cm.getMode()).mode.name
-            if mode is 'coffeescript'
-              CodeMirror.showHint cm, CodeMirror.coffeescriptHint
-            else if mode is 'css'
-              CodeMirror.showHint cm, CodeMirror.hint.css
-          "Tab"         : (cm)->
-            spaces = Array(cm.getOption("indentUnit") + 1).join " "
-            cm.replaceSelection spaces, "end", "+input"
-
-      @setEditorTheme 'xq-dark'
-      @setEditorMode @_mode ? "coffee"
-
-      callback?()
-
-      @header.addSubView @info = new KDView
-        cssClass : "inline-info"
-        partial  : "saved"
-
-      @on 'EditorDidSave', =>
-        @info.updatePartial 'saved'; @info.setClass 'in'
-        KD.utils.wait 1000, => @info.unsetClass 'in'
-
-      @codeMirrorEditor.on 'focus', => @emit "FocusedOnMe"
-
-  openFile: (file, content)->
-
-    validPath = file instanceof FSFile and not /^localfile\:/.test file.path
-
-    if validPath
-    then @storage.setValue @_lastFileKey, file.path
-    else @storage.unsetKey @_lastFileKey
-
-    super
-
-    path = (FSHelper.plainPath file.path).replace \
-      "/home/#{KD.nick()}/Applications/", ""
-
-    @header.title.updatePartial if not validPath then @_defaultTitle else path
-
-class DevToolsCssEditorPane extends DevToolsEditorPane
-
-  constructor: (options = {}, data)->
-
-    options.editorMode   = 'css'
-    options.defaultTitle = 'Style'
-
-    super options, data
-
-class ErrorPaneWidget extends JView
-
-  constructor:(options = {}, data)->
-
-    options.cssClass = KD.utils.curry 'error-pane', options.cssClass
-    super options, data
-
-  pistachio:->
-    {error} = @getData()
-    line    = if error.location then "at line: #{error.location.last_line+1}" else ""
-    stack   = if error.stack? then """
-      <div class='stack'>
-        <h2>Full Stack</h2>
-        <pre>#{error.stack}</pre>
-      </div>
-    """ else ""
-
-    """
-      {h1{#(error.name)}}
-      <pre>#{error.message} #{line}</pre>
-      #{stack}
-    """
-
-  click:-> @setClass 'in'
-
-class WelcomePage extends JView
-
-  constructor:(options = {}, data)->
-
-    options.cssClass = KD.utils.curry 'welcome-pane', options.cssClass
-    super options, data
-
-    @buttons = new KDView
-      cssClass : 'button-container'
-
-    delegate = @getDelegate()
-    @addButton title : "Create New", delegate.bound 'createNewApp'
-
-  addButton:({title, type}, callback)->
-
-    type ?= ""
-    cssClass = "solid big #{type}"
-
-    @buttons.addSubView new KDButtonView {
-      title, cssClass, callback
-    }
-
-  pistachio:->
-    """
-      <h1>Welcome to Koding DevTools</h1>
-      {{> @buttons}}
-    """
-
-  click:-> @setClass 'in'
