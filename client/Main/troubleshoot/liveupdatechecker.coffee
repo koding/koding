@@ -1,8 +1,11 @@
 class LiveUpdateChecker extends KDObject
 
-  healthCheck: (callback) ->
+  constructor: (options, data) ->
+    super options, data
     {notificationController} = KD.singletons
-    notificationController.off "NotificationHasArrived"
     notificationController.on "NotificationHasArrived", (notification) =>
-      callback()  if notification?.event is "healthCheck"
+      @emit "healthCheckReceived"  if notification?.event is "healthCheck"
+
+  healthCheck: (callback) ->
+    @once "healthCheckReceived", callback
     KD.remote.api.JSystemStatus.checkRealtimeUpdates callback
