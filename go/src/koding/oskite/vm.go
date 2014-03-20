@@ -257,7 +257,18 @@ func vmReinitialize(vos *virt.VOS) (interface{}, error) {
 		return nil, &kite.PermissionError{}
 	}
 
-	for _ = range vos.VM.Prepare(true) {
+	if err := vos.VM.Shutdown(); err != nil {
+		return nil, err
+	}
+
+	// errors are neglected by design
+	for _ = range vos.VM.Unprepare() {
+	}
+
+	for step := range vos.VM.Prepare(true) {
+		if step.Err != nil {
+			return nil, step.Err
+		}
 	}
 
 	if err := vos.VM.Start(); err != nil {
