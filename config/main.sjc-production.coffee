@@ -51,8 +51,8 @@ module.exports =
     enabled     : no
     port        : 1337
   neo4j         :
-    read        : "http://172.16.3.14"
-    write       : "http://172.16.3.14"
+    read        : "http://172.16.3.16"
+    write       : "http://172.16.3.16"
     port        : 7474
   mongo         : mongo
   mongoKontrol  : mongoKontrol
@@ -162,7 +162,7 @@ module.exports =
     useStaticFileServer: no
     staticFilesBaseUrl: "https://koding.com"
     runtimeOptions:
-      osKitePollingMs: 1000 * 10 # 10 secs
+      osKitePollingMs: 1000 * 60 # 1 min
       userIdleMs: 1000 * 60 * 5 # 5 min
       sessionCookie :
         maxAge      : cookieMaxAge

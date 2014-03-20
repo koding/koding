@@ -125,14 +125,12 @@ class TeamworkApp extends KDObject
       targetEl        : t.getActivePanel().headerHint
 
   setVMRoot: (path) ->
+    panel = @teamwork.getActivePanel()
+    return  unless panel
     {finderController} = @teamwork.getActivePanel().getPaneByName "finder"
 
     cb = (vmName) ->
-
-      if finderController.getVmNode vmName
-        finderController.unmountVm vmName
-
-      finderController.mountVm "#{vmName}:#{path}"
+      finderController.updateVMRoot vmName, path
 
     vmController = KD.getSingleton "vmController"
     {defaultVmName} = vmController
@@ -173,6 +171,7 @@ class TeamworkApp extends KDObject
         {manifestUrl} = manifest
 
     @doCurlRequest manifestUrl, (err, manifest) =>
+      return KD.showError err  if err
       root            = "/home/#{@teamwork.getHost()}/Web/Teamwork/#{playground}"
       folder          = FSHelper.createFileFromPath root, "folder"
       contentUrl      = manifest.content.url
@@ -223,22 +222,21 @@ class TeamworkApp extends KDObject
       vmName  : vmController.defaultVmName
     , (err, res) ->
       return warn err  if err
-      return warn res.stderr if res.exitStatus > 0
+      return warn res.stderr  if res and res.exitStatus > 0
 
-      contents  = res.stdout
       extension = FSItem.getFileExtension path
       error     = null
 
       switch extension
         when "json"
           try
-            manifest = JSON.parse contents
+            manifest = JSON.parse res
           catch err
             error    = "Manifest file is broken for #{path}"
 
           callback error, manifest
         when "md"
-          callback errorMessage, KD.utils.applyMarkdown error, contents
+          callback errorMessage, KD.utils.applyMarkdown error, res
 
   fetchManifestFile: (path, callback = noop) ->
     $.ajax
