@@ -26,12 +26,15 @@ class AppsListItemView extends KDListItemView
   viewAppended: JView::viewAppended
 
   pistachio:->
+
+    {manifest:{authorNick}, name} = @getData()
+
     """
       <figure>
         {{> @thumbnail}}
       </figure>
       <div class="appmeta clearfix">
-        <h3><a href="/#{@getData().slug}">#{@getData().name}</a></h3>
+        <h3><a href="/Apps/#{authorNick}/#{name}">#{name}</a></h3>
         <h4>{{#(manifest.author)}}</h4>
         <div class="appdetails">
           <article>{{@utils.shortenText #(manifest.description)}}</article>

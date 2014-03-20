@@ -289,7 +289,7 @@ module.exports = class JNewApp extends jraphical.Module
             app = new JNewApp appData
             app.save (err)->
               return callback err  if err
-              slug = "Apps/#{app.manifest.authorNick}/#{app.name}"
+              slug = "#{app.manifest.authorNick}/Apps/#{app.name}"
               app.useSlug slug, (err, slugobj)->
                 if err then return app.remove -> callback err
                 slug = slugobj.slug

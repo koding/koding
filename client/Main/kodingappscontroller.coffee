@@ -72,7 +72,7 @@ class KodingAppsController extends KDController
     if jApp.status is 'verified'
       route = "/#{jApp.name}"
     else
-      route = "/Apps/#{jApp.manifest.authorNick}/#{jApp.name}/run"
+      route = "/#{jApp.manifest.authorNick}/Apps/#{jApp.name}"
 
       KD.singletons.dock?.setNavItemState {
         name : app.name, options: {dockPath : route}

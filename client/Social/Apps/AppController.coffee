@@ -5,7 +5,7 @@ class AppsAppController extends AppController
   getAppInstance = (route, callback)->
     {app, username} = route.params
     return callback null  unless app
-    KD.remote.api.JNewApp.one slug:"Apps/#{username}/#{app}", callback
+    KD.remote.api.JNewApp.one slug:"#{username}/Apps/#{app}", callback
 
   KD.registerAppClass this,
     name         : "Apps"
@@ -13,12 +13,10 @@ class AppsAppController extends AppController
     routes       :
       "/:name?/Apps" : ({params, query})->
         handler (app)-> app.handleQuery query
-      "/:name?/Apps/:username/:app?" : (arg)->
-        handler (app)-> app.handleRoute arg
-      "/:name?/Apps/:username/:app/run" : (arg)->
-        getAppInstance arg, (err, app)->
-          if not err and app
-            KodingAppsController.runExternalApp app, dontUseRouter:yes
+      "/:name?/Apps/:username/:app?" : (route)->
+        {username} = route.params
+        return  if username[0] is username[0].toUpperCase()
+        handler (app)-> app.handleRoute route
 
     hiddenHandle : yes
     searchRoute  : "/Apps?q=:text:"
