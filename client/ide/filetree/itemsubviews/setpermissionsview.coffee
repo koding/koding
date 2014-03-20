@@ -8,6 +8,7 @@ class NSetPermissionsView extends JView
 
     @setPermissionsButton = new KDButtonView
       title     : "Set"
+      style     : "solid green small"
       callback  : =>
         permissions = @getPermissions()
         recursive   = @recursive.getValue() or no
@@ -16,7 +17,7 @@ class NSetPermissionsView extends JView
           unless err
             @displayOldOctalPermissions()
 
-    @recursive = new KDOnOffSwitch
+    @recursive = new KodingSwitch
       size : 'tiny'
 
   permissionsToOctalString = (permissions)->
@@ -26,7 +27,8 @@ class NSetPermissionsView extends JView
 
   createSwitches: (permission) ->
     for i in [0...9]
-      @switches.push new KDOnOffSwitch
+      @switches.push new KodingSwitch
+        size          : 'tiny'
         defaultValue  : (permission & (1<<i)) != 0
         callback      : (state)=>
           @displayOctalPermissions()
