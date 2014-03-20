@@ -90,13 +90,6 @@ class DevToolsMainView extends KDView
                       name      : "JSEditor"
                       paneClass : DevToolsEditorPane
                       title     : "JavaScript"
-                      # buttons : [
-                      #   {
-                      #     itemClass: KDOnOffSwitch
-                      #     callback: ->
-                      #       log arguments
-                      #   }
-                      # ]
                     }
                     {
                       type      : "custom"
