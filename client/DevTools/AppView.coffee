@@ -299,11 +299,19 @@ class DevToolsMainView extends KDView
         customFilter : ///#{app.name}\.kdapp$///
 
       modal.on "RepoSelected", (repo)->
-        options.githubPath = \
-          "#{KD.config.appsUri}/#{repo.full_name}/#{repo.default_branch}"
-        KodingAppsController.createJApp options, ->
-          new KDNotificationView
-            title: "Published successfully!"
+
+        GitHub.getLatestCommit repo.name, (err, commit)->
+
+          if err
+            return new KDNotificationView
+              title : "Failed to fetch latest commit for #{repo.full_name}"
+
+          options.githubPath = \
+            "#{KD.config.appsUri}/#{repo.full_name}/#{commit.sha}/"
+
+          KodingAppsController.createJApp options, ->
+            new KDNotificationView
+              title: "Published successfully!"
 
     else
 

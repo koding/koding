@@ -199,7 +199,7 @@ module.exports = class JNewApp extends jraphical.Module
         ^#{appsUri}\/           # Should start with appsUri (in config.client)
         ([a-z0-9\-]+)\/         # Username
         ([a-z0-9\-]+)\.kdapp\/  # App name
-        ([a-z0-9\-]+)$          # Git branch (usually master)
+        ([a-z0-9\-]+)$          # Git branch/commit id (usually master)
       ///i
 
     [url, githubUsername, app, branch] = (urlParser.exec url) or []
