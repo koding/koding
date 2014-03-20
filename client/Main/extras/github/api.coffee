@@ -39,12 +39,10 @@ class GitHub
       }, (response, state, req) =>
 
         {meta, data} = response
-        {status} = meta
 
-        unless state is 'success' and status is 200
-          return callback {
-            message: "Failed to fetch repos for #{username}"
-            status, state
+        unless state is 'success' and meta.status is 200
+          return @errorWrapper callback, {
+            message: "Failed to fetch repos for #{username}", state, meta
           }, repos
 
         repos = repos.concat data
@@ -96,7 +94,7 @@ class GitHub
 
   @rateLimit = (callback = noop)->
 
-    @fetch "/rate_limit", (response, state, req)->
+    @fetch "/rate_limit", (response, state, req)=>
 
       {meta, data} = response
       {status} = meta
@@ -104,7 +102,9 @@ class GitHub
       if data.rate?
         return callback null, data.rate
 
-      callback {message: "Failed to fetch rate_limit", state, status}
+      @errorWrapper callback, {
+        message: "Failed to fetch rate limit", state, meta
+      }
 
   @username = (callback)->
 
@@ -119,3 +119,22 @@ class GitHub
         #{if text then text else "github.com/"+path}
       </a>
     """
+  @errorWrapper = (callback, options)->
+
+    if options.meta['X-RateLimit-Remaining'] is "0"
+
+      remaining = new Date(
+        new Date(options.meta['X-RateLimit-Reset'] * 1000) - new Date()
+      ).getMinutes()
+
+      remaining = if remaining > 1
+                    "#{remaining} minutes"
+                  if remaining is 1
+                    "#{remaining} minute"
+                  if remaining is 0
+                    "a minute."
+
+      options.message = """You reached the rate limit for GitHub
+                           api calls, try again in #{remaining}."""
+
+    callback options
