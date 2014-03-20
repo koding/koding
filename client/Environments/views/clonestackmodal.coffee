@@ -15,6 +15,8 @@ class CloneStackModal extends KDModalView
     if data.vms.length # has vm
       @fetchSubscription()
       @createInitialState "<p>Fetching your subscriptions...</p>"
+    else if data.domains.length
+      @createStack => @askForNewDomains()
     else
       @createInitialState "<p>Cloning your stack, please wait...</p>"
       @createStack => @destroy()
@@ -32,16 +34,17 @@ class CloneStackModal extends KDModalView
       @createStack =>
         {domains} = stackData
         if domains.length
-          @askForNewDomains domains
+          @askForNewDomains()
         else
           @addVMsToQueue()
           @processQueue()
 
-  askForNewDomains: (domains) ->
-    @loader.destroy()
+  askForNewDomains: ->
+    {domains} = @getData()
     @unsetClass "loading"
     @setClass   "domain-names"
-    @label.updatePartial """<p class="label">Choose your new domains for your new stack</p>"""
+    @loader?.destroy()
+    @label?.updatePartial """<p class="label">Choose your new domains for your new stack</p>"""
 
     @domainCreateForms = []
     domains.forEach (domain) =>
