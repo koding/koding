@@ -9,8 +9,12 @@ class CloneStackModal extends KDModalView
 
     super options, data
 
-    @createInitialState()
-    @fetchSubscription()
+    if data.vms.length # has vm
+      @fetchSubscription()
+      @createInitialState "<p>Fetching your subscriptions...</p>"
+    else
+      @createInitialState "<p>Cloning your stack, please wait...</p>"
+      @createStack => @destroy()
 
   fetchSubscription: ->
     stackData         = @getData()
@@ -164,11 +168,6 @@ class CloneStackModal extends KDModalView
         Please try again in a few minutes. Sorry for the inconvenience.
       """
 
-  createInitialState: ->
-    @addSubView @loader = new KDLoaderView
-      showLoader        : yes
-      size              :
-        width           : 40
-
-    @addSubView @label  = new KDCustomHTMLView
-      partial           : "<p>Fetching your subscriptions...</p>"
+  createInitialState: (partial) ->
+    @addSubView @loader = new KDLoaderView showLoader: yes, size : width : 40
+    @addSubView @label  = new KDCustomHTMLView { partial }
