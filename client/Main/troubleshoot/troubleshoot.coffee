@@ -54,22 +54,7 @@ class Troubleshoot extends KDObject
   registerItems:->
 
     @registerConnections()
-
-    # register broker
-    broker = KD.remote.mq
-    @registerItem "broker",
-      troubleshoot : broker.ping.bind broker
-      recover      : (callback) ->
-        # if status is not reconnected wait for reconnected event
-        {status} = KD.singletons
-        return callback()  if status.state is 3
-        status.once "reconnected", callback
-
-    # register kite
-    brokerKite = KD.kite.mq
-    @registerItem "brokerKite",
-      troubleshoot : brokerKite.ping.bind brokerKite
-      recover      : brokerKite.ping.bind brokerKite #temp
+    @registerBrokers()
 
     # register osKite
     vc = KD.singleton "vmController"
@@ -108,6 +93,19 @@ class Troubleshoot extends KDObject
     # register webserver status
     webserverStatus = new ConnectionChecker({}, window.location.origin + "/healthCheck")
     @registerItem "webServer", troubleshoot: webserverStatus.ping.bind webserverStatus
+
+  registerBrokers: ->
+    # register broker
+    broker = KD.remote.mq
+    @registerItem "broker",
+      troubleshoot : broker.ping.bind broker
+      recover      : @brokerRecovery.recover.bind @brokerRecovery
+
+    # register kite
+    brokerKite = KD.kite.mq
+    @registerItem "brokerKite",
+      troubleshoot : brokerKite.ping.bind brokerKite
+      recover      : @brokerKiteRecovery.recover.bind @brokerKiteRecovery
 
   registerItem : (name, options) ->
     @items[name] = new HealthChecker options
