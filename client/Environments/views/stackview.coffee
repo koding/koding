@@ -204,7 +204,7 @@ class StackView extends KDView
         return @handleStackDeleteError err  if err
         domainCouter++
         domainQueue.next()
-        @progressModal.next()
+        @progressModal?.next()
         log "domain deleted"
         if domainCouter is domainDiaKeys.length
           log "all domains deleted"
@@ -223,7 +223,7 @@ class StackView extends KDView
         log "vm deleted"
         vmCounter++
         vmQueue.next()
-        @progressModal.next()
+        @progressModal?.next()
         if vmCounter is vmDiaKeys.length
           log "all vms deleted"
           callback()
@@ -239,23 +239,11 @@ class StackView extends KDView
       @destroy()
       @progressModal?.destroy()
 
-  deleteStack: ->
+  deleteStack: (showProgress = yes) ->
     hasDomain = Object.keys(@domains.dias).length
     hasVm     = Object.keys(@vms.dias).length
 
-    listData  = {}
-
-    if hasDomain
-      arr = listData["Deleting Domains"] = []
-      for key, domain of @domains.dias
-        arr.push domain.data.title
-
-    if hasVm
-      arr = listData["Deleting VMs"] = []
-      for key, vm of @vms.dias
-        arr.push vm.data.title
-
-    @progressModal = new StackProgressModal {}, listData
+    @createProgressModal hasDomain, hasVm  if showProgress
 
     if hasDomain
       @deleteDomains =>
@@ -269,6 +257,21 @@ class StackView extends KDView
         @deleteJStack()
     else
       @deleteJStack()
+
+  createProgressModal: (hasDomain, hasVm) ->
+    listData = {}
+
+    if hasDomain
+      arr = listData["Deleting Domains"] = []
+      for key, domain of @domains.dias
+        arr.push domain.data.title
+
+    if hasVm
+      arr = listData["Deleting VMs"] = []
+      for key, vm of @vms.dias
+        arr.push vm.data.title
+
+    @progressModal = new StackProgressModal {}, listData
 
   handleStackDeleteError: (err) ->
     # TODO: Implement this
