@@ -24,7 +24,6 @@ module.exports = class JAccount extends jraphical.Module
   JBadge           = require './badge'
   JKite            = require './kite'
   JReferrableEmail = require './referrableemail'
-  JKitePlan        = require './kiteplan'
 
   @getFlagRole            = 'content'
   @lastUserCountFetchTime = 0
@@ -436,10 +435,6 @@ module.exports = class JAccount extends jraphical.Module
       kite          :
         as          : 'owner'
         targetType  : JKite
-
-      kiteSubscription :
-        as             : 'kiteSubscription'
-        targetType     : JKitePlan
 
   constructor:->
     super
