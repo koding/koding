@@ -120,9 +120,10 @@ class AceAppView extends JView
     return items
 
   preview: ->
-    {path, vmName} = @getActiveAceView().getData()
+    file = @getActiveAceView().getData()
+    {path, vmName} = file
     return  if /^localfile/.test path
-    path = KD.getPublicURLOfPath path
+    path = KD.getPublicURLOfPath FSHelper.getFullPath file
 
     notify = =>
       @getActiveAceView().ace.notify "File needs to be under ~/Web folder", "error"
