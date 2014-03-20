@@ -16,11 +16,10 @@ class BrokerRecovery extends KDObject
   checkStatus: ->
     {timeout} = @getOptions()
     if @broker.lastTo < Date.now() - timeout
-      timeout = setTimeout =>
-        @unsuccessfulAttempt += 1
+      timeout = KD.utils.wait 3000, =>
+        @unsuccessfulAttempt++
         @emit "brokerNotResponding"
         console.warn 'broker not responding'
-      , 3000
 
       @broker.ping =>
         @unsuccessfulAttempt = 0

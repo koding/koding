@@ -19,10 +19,9 @@ class HealthChecker extends KDObject
     troubleshoot @finish.bind(this)
 
   setPingTimeout: ->
-    @pingTimeout = setTimeout =>
+    @pingTimeout = KD.utils.wait @getOptions().timeout, =>
       @status = "fail"
       @emit @completeEvent
-    , @getOptions().timeout
 
   finish: (data)->
     # some services (e.g. kite controller) does return callback with error parameter

@@ -185,9 +185,7 @@ class Troubleshoot extends KDObject
 
   run: ->
     return  warn "there is an ongoing troubleshooting"  if @status is STARTED
-    @timeout = setTimeout =>
-      @status = PENDING
-    , @getOptions().timeout
+    @timeout = KD.utils.wait @getOptions().timeout, => @status = PENDING
 
     @resetAllItems()
 
