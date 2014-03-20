@@ -64,10 +64,12 @@ class GitHub.Modal extends KDModalView
           An error occured while fetching
           repos from #{GitHub.makeLink username}...
         """
-        return warn err
+        new KDNotificationView title: err.message  if err.message?
 
-      # a = new LocalStorage 'kithub', '1.0'
-      # log repos = a.getAt 'repos'
+        KD.utils.defer =>
+          @_windowDidResize()
+
+        return warn err
 
       if @repoFilter?
         repos = @repoFilter repos
