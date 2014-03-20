@@ -83,13 +83,14 @@ class PaymentController extends KDController
 
   createPaymentInfoModal: -> new PaymentFormModal
 
-  createUpgradeForm: (tag, options = {}) ->
+  createUpgradeForm: (parent) ->
     buyPacksButton = new KDButtonView
       cssClass     : "buy-packs"
       style        : "solid green medium"
       title        : "Buy Resource Packs"
       callback     : ->
-        @parent.emit "Cancel"
+        parent   or= @parent
+        parent.emit "Cancel"
         KD.singleton("router").handleRoute "/Pricing"
 
     return new JView
@@ -106,7 +107,7 @@ class PaymentController extends KDController
   createUpgradeWorkflow: (options = {}) ->
     {tag, productForm, confirmForm} = options
 
-    productForm or= @createUpgradeForm tag, options
+    productForm or= @createUpgradeForm()
     confirmForm or= new PlanUpgradeConfirmForm
       name : 'overview'
     workflow      = new PaymentWorkflow {productForm, confirmForm}
