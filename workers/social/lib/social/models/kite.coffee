@@ -76,6 +76,15 @@ module.exports = class JKite extends jraphical.Module
         as          : "owner"
       }, (err, rel) =>
         return  callback new KodingError err if err
-        @remove (err, res)->
-          return  callback err, res
+        if rel
+          @remove (err, res)->
+            return  callback err, res
+
+  createPlan: permit 'create kite',
+    success: (client, formData, callback)->
+      formData.tags = ["kite"]
+      JPaymentPlan  = require './payment/plan'
+      JPaymentPlan.create client.context.group, formData, (err, plan)=>
+        return  callback err if err
+        @addPlan plan, callback
 
