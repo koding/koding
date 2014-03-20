@@ -75,7 +75,7 @@ class FeedController extends KDViewController
     sortName    = @selection.activeSort or @defaultSort.name
     @facetsController.highlight filterName, sortName
 
-  handleQuery:({filter, sort})->
+  handleQuery:({filter, sort}, options = {})->
     if filter
       unless @filters[filter]?
         filter = (Object.keys @filters).first
@@ -87,7 +87,10 @@ class FeedController extends KDViewController
       @changeActiveSort sort, no
 
     @highlightFacets()
-    @loadFeed()
+
+    if options.force
+    then @reload()
+    else @loadFeed()
 
   defineFilter:(name, filter)->
     filter.name     = name
