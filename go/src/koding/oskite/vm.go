@@ -219,7 +219,30 @@ func vmResizeDisk(vos *virt.VOS) (interface{}, error) {
 		return nil, &kite.PermissionError{}
 	}
 
-	return true, vos.VM.ResizeRBD()
+	if err := vos.VM.Shutdown(); err != nil {
+		return nil, err
+	}
+
+	// errors are neglected by design
+	for step := range vos.VM.Unprepare(true) {
+		fmt.Println(step.Message, step.Err)
+	}
+
+	if err := vos.VM.ResizeRBD(); err != nil {
+		return nil, err
+	}
+
+	for step := range vos.VM.Prepare(false) {
+		if step.Err != nil {
+			return nil, step.Err
+		}
+	}
+
+	if err := vos.VM.Start(); err != nil {
+		return nil, err
+	}
+
+	return true, nil
 }
 
 func vmInfo(vos *virt.VOS) (interface{}, error) {
@@ -262,7 +285,7 @@ func vmReinitialize(vos *virt.VOS) (interface{}, error) {
 	}
 
 	// errors are neglected by design
-	for _ = range vos.VM.Unprepare() {
+	for _ = range vos.VM.Unprepare(false) {
 	}
 
 	for step := range vos.VM.Prepare(true) {
@@ -502,7 +525,7 @@ func unprepareProgress(vos *virt.VOS, destroy bool) <-chan *virt.Step {
 
 		// now start our unprepare progress. Also this enables to get the total
 		// steps before we send the result of shutdown back
-		unprepareChan := vos.VM.Unprepare()
+		unprepareChan := vos.VM.Unprepare(false)
 
 		totalStep := cap(unprepareChan) + 1 // include vm.Shutdown()
 		if destroy {
