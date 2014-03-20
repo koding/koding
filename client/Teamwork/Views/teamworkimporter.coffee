@@ -55,7 +55,7 @@ class TeamworkImporter extends KDObject
     commands = commands.join(" && ")
     @vmController.run commands, (err, res) =>
       err = err or res.stderr
-      return @handleError err  if err or res.exitStatus > 0
+      return @handleError err  if res.exitStatus > 0
 
       FSHelper.glob "#{@tempPath}/*", @vmName, (err, folders) =>
         return @handleError err  if err

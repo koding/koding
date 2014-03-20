@@ -230,7 +230,7 @@ class TeamworkApp extends KDObject
       switch extension
         when "json"
           try
-            manifest = JSON.parse res
+            manifest = JSON.parse res.stdout
           catch err
             error    = "Manifest file is broken for #{path}"
 
