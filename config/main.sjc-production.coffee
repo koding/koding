@@ -162,7 +162,7 @@ module.exports =
     useStaticFileServer: no
     staticFilesBaseUrl: "https://koding.com"
     runtimeOptions:
-      osKitePollingMs: 1000 * 10 # 10 secs
+      osKitePollingMs: 1000 * 60 # 1 min
       userIdleMs: 1000 * 60 * 5 # 5 min
       sessionCookie :
         maxAge      : cookieMaxAge
