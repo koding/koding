@@ -80,6 +80,8 @@ class WebTermView extends KDView
     if vm = @getOption 'vm'
       { hostnameAlias: vmName } = vm
 
+    vmName = @getDelegate().getOption "vmName"  unless vmName
+
     return vmName
 
   webtermConnect:(mode)->
