@@ -6,7 +6,7 @@ class BrokerRecovery extends KDObject
 
     @unsuccessfulAttempt = 0
     @broker = KD.remote.mq
-    KD.utils.repeat options.timeout, @checkStatus.bind(this)
+    KD.utils.repeat options.timeout, @bound "checkStatus"
 
     @on "brokerNotResponding", =>
       if @unsuccessfulAttempt > 2
