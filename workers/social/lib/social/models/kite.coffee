@@ -1,11 +1,12 @@
 jraphical = require 'jraphical'
 module.exports = class JKite extends jraphical.Module
-  {permit}            = require './group/permissionset'
-  {secure, signature} = require 'bongo'
-  JKitePlan           = require './kiteplan'
-  JAccount            = require './account'
+
   KodingError         = require '../error'
+  {permit}            = require './group/permissionset'
+  {signature}         = require 'bongo'
   {Relationship}      = jraphical
+
+  @trait __dirname, '../traits/protected'
 
   @share()
   @set
@@ -14,6 +15,7 @@ module.exports = class JKite extends jraphical.Module
       'list kites'        : ['member']
     schema                :
       name                : String
+      description         : String
       createdAt           :
         type              : Date
         default           : -> new Date
@@ -21,25 +23,29 @@ module.exports = class JKite extends jraphical.Module
       instance            : []
       static              : []
     sharedMethods         :
-      static:
-        create:
+      static              :
+        create            :
           (signature Object, Function)
-        list:
+        list              :
           (signature Object, Object, Function)
-      instance:
-        modify:
+        one               :
           (signature Object, Function)
-        deleteKite:
+      instance            :
+        modify            :
+          (signature Object, Function)
+        deleteKite        :
           (signature Function)
-        fetchPlans:
+        fetchPlans        :
           (signature Function)
-        removePlan:
+        createPlan        :
+          (signature Object, Function)
+        deletePlan        :
           (signature Object, Function)
 
-    relationships: ->
-      plan          :
-        as          : 'kitePlan'
-        targetType  : JKitePlan
+    relationships       :
+      plan              :
+        targetType      : 'JPaymentPlan'
+        as              : 'kitePlan'
 
   @create: permit 'create kite',
     success:(client, formData, callback)->
@@ -47,7 +53,7 @@ module.exports = class JKite extends jraphical.Module
       kite.save (err)->
         return  callback new KodingError "kite couldn't saved" if err
         account = client.connection.delegate
-        account.addKite (err, res)->
+        account.addKite kite, (err, res)->
           return  callback new KodingError "kite couldn't added to account" if err
           callback null, kite
 
@@ -57,9 +63,9 @@ module.exports = class JKite extends jraphical.Module
 
   modify: permit 'edit kite',
     success: (client, formData, callback)->
-      @update $set: {name: formData.name} , callback
+      @update $set: {name: formData.name, description: formData.description} , callback
 
-  deleteKite : permit 'delete kite',
+  deleteKite: permit 'delete kite',
     success: (client, callback)->
       account = client.connection.delegate
       Relationship.one {
