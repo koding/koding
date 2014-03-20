@@ -15,7 +15,7 @@ class OsKite extends KDKite
     fsSetPermissions: 'fs.setPermissions'
     fsRemove        : 'fs.remove'
 
-    fsEnsureNonexistentPath: 'fs.ensureNonexistentPath'
+    fsUniquePath    : 'fs.uniquePath'
     fsWriteFile     : 'fs.writeFile'
     fsRename        : 'fs.rename'
     fsCreateDirectory: 'fs.createDirectory'

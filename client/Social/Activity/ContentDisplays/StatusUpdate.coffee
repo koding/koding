@@ -14,9 +14,16 @@ class ContentDisplayStatusUpdate extends ActivityContentDisplay
     @activityItem.on 'ActivityIsDeleted', ->
       KD.singleton('router').back()
 
-  viewAppended: JView::viewAppended
 
-  pistachio:->
-    """
-    {{> @activityItem}}
-    """
+  viewAppended:->
+
+    cb       = JView::viewAppended.bind this
+    activity = @getData()
+    if /#\:JTag/.test activity.body
+      activity.fetchTags (err, tags) =>
+        activity.tags = tags  unless err
+        cb()
+    else cb()
+
+
+  pistachio:-> "{{> @activityItem}}"

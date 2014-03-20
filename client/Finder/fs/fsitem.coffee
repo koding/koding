@@ -4,17 +4,17 @@ class FSItem extends KDObject
   CLASS CONTEXT
   ###
 
-  { escapeFilePath } = FSHelper
+  { escapeFilePath, handleStdErr } = FSHelper
 
   @create:({ path, type, vmName, treeController }, callback)->
 
     kite = KD.getSingleton('vmController').getKiteByVmName vmName
 
-    kite.vmOn().then =>
+    kite.vmOn().then ->
 
       plainPath = FSHelper.plainPath path
 
-      method = 
+      method =
         if type is "folder"
         then "fsCreateDirectory"
         else "fsWriteFile"
@@ -24,35 +24,44 @@ class FSItem extends KDObject
         content         : ''
         donotoverwrite  : yes
 
-      kite[method](options).then (stat) ->
+      kite.fsUniquePath(path: plainPath)
 
-        file = FSHelper.createFile {
-          path: stat.fullPath
-          type
-          vmName
-        }
+      .then (actualPath) ->
 
-        file.save().then -> return file
-      
+        options.path = actualPath
+
+        kite[method](options).then (stat) ->
+
+          file = FSHelper.createFile {
+            path: actualPath
+            type
+            vmName
+          }
+
+          file.save().then -> return file
+
       .nodeify(callback)
 
   @copyOrMove:(sourceItem, targetItem, commandPrefix, callback)->
     sourceItem.emit "fs.job.started"
-    
+
     kite = sourceItem.getKite()
 
     targetPath = FSHelper.plainPath "#{targetItem.path}/#{sourceItem.name}"
-    
+
     file = null
 
     kite.vmOn().then ->
 
-      kite.fsEnsureNonexistentPath(path: targetPath).then (actualPath) ->
-        
+      kite.fsUniquePath(path: targetPath).then (actualPath) ->
+
         command = "#{ commandPrefix } #{ escapeFilePath sourceItem.path } #{ escapeFilePath actualPath }"
 
-        kite.exec(command).then ->
+        kite.exec(command)
 
+        .then(handleStdErr())
+
+        .then ->
           file = FSHelper.createFile {
             path        : actualPath
             parentPath  : targetItem.path
@@ -65,7 +74,7 @@ class FSItem extends KDObject
 
     .nodeify(callback)
 
-    .then ->
+    .finally ->
       sourceItem.emit "fs.job.finished"
 
       return file
@@ -74,7 +83,7 @@ class FSItem extends KDObject
     @copyOrMove sourceItem, targetItem, 'cp -R', callback
 
   @move:(sourceItem, targetItem, callback)->
-    
+
     newName = FSHelper.plainPath "#{ targetItem.path }/#{ sourceItem.name }"
     sourceItem.rename path: newName, callback
 
@@ -88,7 +97,7 @@ class FSItem extends KDObject
 
     kite.vmOn().then ->
 
-      kite.fsEnsureNonexistentPath { path }
+      kite.fsUniquePath { path }
 
     .then (actualPath) ->
 
@@ -100,9 +109,11 @@ class FSItem extends KDObject
 
       kite.exec command
 
+    .then(handleStdErr())
+
     .nodeify(callback)
 
-    .then ->
+    .finally ->
       file.emit "fs.job.finished"
 
   @extract: (file, callback = (->)) ->
@@ -114,7 +125,7 @@ class FSItem extends KDObject
     zipPattern = /\.zip$/
 
     path = FSHelper.plainPath file.path
-    
+
     [isTarGz, extractFolder] = switch
 
       when tarPattern .test file.name
@@ -126,8 +137,8 @@ class FSItem extends KDObject
     kite.vmOn()
 
     .then ->
-      kite.fsEnsureNonexistentPath(path: "#{ extractFolder }")
-      
+      kite.fsUniquePath(path: "#{ extractFolder }")
+
     .then (actualPath) ->
 
       command =
@@ -137,6 +148,8 @@ class FSItem extends KDObject
           "cd #{escapeFilePath file.parentPath};unzip -o #{escapeFilePath file.name} -d #{escapeFilePath actualPath}"
 
       kite.exec(command)
+
+    .then(handleStdErr())
 
     .then ->
 
@@ -151,7 +164,7 @@ class FSItem extends KDObject
 
     .nodeify(callback)
 
-    .then ->
+    .finally ->
       file.emit "fs.job.finished"
 
   @getFileExtension: (path) ->
@@ -218,15 +231,17 @@ class FSItem extends KDObject
   isHidden:-> FSItem.isHidden @name
 
   exists:(callback=noop)->
-    @getKite().vmOn()
+    kite = @getKite()
 
-    .fsExists(path: @getPath())
+    kite.vmOn().then =>
+
+      kite.fsExists(path: @getPath())
 
     .nodeify(callback)
 
   stat:(callback=noop)->
     kite = @getKite()
-    
+
     kite.vmOn().then =>
 
       kite.fsGetInfo path: @getPath()

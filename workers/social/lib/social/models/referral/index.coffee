@@ -34,6 +34,8 @@ module.exports = class JReferral extends jraphical.Message
   @set
     sharedMethods     :
       static          :
+        addExtraReferral:
+          (signature Object, Function)
         redeem:
           (signature Object, Function)
         changeBaseVMForUsers:[
@@ -254,6 +256,29 @@ module.exports = class JReferral extends jraphical.Message
         return callback err  if err
         return callback new KodingError "#{vm} is not found" unless vm
         callback null, vm
+
+  @addExtraReferral: secure (client, options, callback)->
+    {delegate} = client.connection
+    unless delegate.can 'administer accounts'
+      return callback {message: "You can not add extra referral to users"}
+
+    {username} = options
+    return callback {message: "Please set username"}  unless username
+
+    referral = new JReferral
+      amount         : options.amount         or 256
+      type           : options.type           or "disk"
+      unit           : options.unit           or "MB"
+      sourceCampaign : options.sourceCampaign or "register"
+
+    referral.save (err) ->
+      return callback err if err
+      JAccount.one {'profile.nickname': username}, (err, account)->
+        return callback err if err
+        return callback {message:"Account not found"} unless account
+        account.addReferrer referral, (err)->
+          return callback err if err
+          return callback null, referral
 
   do =>
     JAccount.on 'AccountRegistered', (me, referrerCode)->
