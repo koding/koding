@@ -15,199 +15,199 @@ body.devtools
       top      53px
       right    -5px
 
-.devtools
+  .devtools
 
-  .welcome-pane
-    top           0
-    left          0
-    background    #1F2628
-    color         white
-    opacity       1
-    vendor        transition, top .5s ease\, \
-                              opacity .5s ease
-    z-index       10000 // To make it on top of resize handles
-    abs()
-
-    &.out
-      top         100%
-      opacity     0
-
-    h1
-      width       400px
-      margin      0 auto
-      text-align  center
-      font-size   24px
-      margin-top  100px
-
-    .button-container
-      width       300px
-      height      auto
-      text-align  center
-      margin      50px auto
-
-  .inner-header
-
-    background    #1F2628
-    border        none
-    border-bottom 1px solid #185334
-    height        35px
-    color         white
-
-    .title
-      display     inline-block
-      float       left
-      padding     11px
-      font-weight 300
-
-    .users
-      display     none
-
-  .tw-header-buttons
-    .kdbutton
-      margin-top  7px
-
-  .inner-split
-
-    .panel-1
-      border-left   1px solid #185334
-
-      .ws-container
-        margin-top  20px
-
-    &.previewMode
-      .panel-0
-        width       0 !important
-      .panel-1
-        width       100% !important
-        left        0 !important
-        .ws-header.inner-header
-          display   none
-        .ws-container
-          margin-top 0
-      .kdsplitview-resizer
-        display     none
-
-    .ws-header.inner-header
-      width         100%
-      height        20px
-      padding       4px
-      text-align    right
-      padding-right 10px
-      color         #eee
-      font-size     12px
+    .welcome-pane
+      top           0
+      left          0
+      background    #1F2628
+      color         white
+      opacity       1
+      vendor        transition, top .5s ease\, \
+                                opacity .5s ease
+      z-index       10000 // To make it on top of resize handles
       abs()
 
-      .inline-info
-        left        -80px
-        background  #185334
-        top         0
-        size        auto, 14px
-        padding     3px
-        color       white
-        font-size   11px
-        vendor      transition, left .2s ease-in
+      &.out
+        top         100%
+        opacity     0
+
+      h1
+        width       400px
+        margin      0 auto
+        text-align  center
+        font-size   24px
+        margin-top  100px
+
+      .button-container
+        width       300px
+        height      auto
+        text-align  center
+        margin      50px auto
+
+    .inner-header
+
+      background    #1F2628
+      border        none
+      border-bottom 1px solid #185334
+      height        35px
+      color         white
+
+      .title
+        display     inline-block
+        float       left
+        padding     11px
+        font-weight 300
+
+      .users
+        display     none
+
+    .tw-header-buttons
+      .kdbutton
+        margin-top  7px
+
+    .inner-split
+
+      .panel-1
+        border-left   1px solid #185334
+
+        .ws-container
+          margin-top  20px
+
+      &.previewMode
+        .panel-0
+          width       0 !important
+        .panel-1
+          width       100% !important
+          left        0 !important
+          .ws-header.inner-header
+            display   none
+          .ws-container
+            margin-top 0
+        .kdsplitview-resizer
+          display     none
+
+      .ws-header.inner-header
+        width         100%
+        height        20px
+        padding       4px
+        text-align    right
+        padding-right 10px
+        color         #eee
+        font-size     12px
         abs()
 
-        &.in
-          left      0
+        .inline-info
+          left        -80px
+          background  #185334
+          top         0
+          size        auto, 14px
+          padding     3px
+          color       white
+          font-size   11px
+          vendor      transition, left .2s ease-in
+          abs()
 
-        &.fail
-          background darkred
+          &.in
+            left      0
 
-  .editor-split
-    .panel-1
-      border        none
-      border-top    1px solid #185334
+          &.fail
+            background darkred
 
-      .ws-container
-        margin-top  0
+    .editor-split
+      .panel-1
+        border        none
+        border-top    1px solid #185334
 
-  .devtools-editor
+        .ws-container
+          margin-top  0
 
-    .CodeMirror
-      margin-top    20px
-      font-size     12px
-      line-height   16px
-      font-family   'Monaco', 'monospace'
+    .devtools-editor
 
-      .CodeMirror-activeline-background
-        background  rgba(0,0,0,.05)
+      .CodeMirror
+        margin-top    20px
+        font-size     12px
+        line-height   16px
+        font-family   'Monaco', 'monospace'
 
-  .compiler-modal
+        .CodeMirror-activeline-background
+          background  rgba(0,0,0,.05)
 
-    background       #333
-    color            white
+    .compiler-modal
 
-    .kdmodal-inner
-      background     #333
-      .kdmodal-title > span
-        color        white
+      background       #333
+      color            white
 
-    pre
-      font-family    monospace
-      font-size      12px
-
-  .error-pane
-
-    background       white
-    width            400px
-    height           auto
-    padding          10px
-    margin           40px auto
-    border           1px solid #ccc
-    border-radius    3px
-
-    h1
-      font-weight    400
-      border-bottom  1px solid #ccc
-      margin-bottom  10px
-      padding-bottom 10px
-
-    pre
-      font-family    monospace
-      font-size      12px
-      overflow       auto
-
-    .stack
-      h2
-        text-align   right
-        font-size    12px
-        border-top   1px solid #eee
-        margin-top   10px
-        padding-top  4px
-        color        darkblue
-        cursor       pointer
+      .kdmodal-inner
+        background     #333
+        .kdmodal-title > span
+          color        white
 
       pre
-        display      none
-        background   #eee
-        padding      4px
-        margin-top   10px
+        font-family    monospace
+        font-size      12px
 
-    &.in
+    .error-pane
+
+      background       white
+      width            400px
+      height           auto
+      padding          10px
+      margin           40px auto
+      border           1px solid #ccc
+      border-radius    3px
+
+      h1
+        font-weight    400
+        border-bottom  1px solid #ccc
+        margin-bottom  10px
+        padding-bottom 10px
+
+      pre
+        font-family    monospace
+        font-size      12px
+        overflow       auto
+
       .stack
-        pre
-          display    block
         h2
-          display    none
+          text-align   right
+          font-size    12px
+          border-top   1px solid #eee
+          margin-top   10px
+          padding-top  4px
+          color        darkblue
+          cursor       pointer
 
-  .kdsplitview-resizer
-    opacity     .05
-    &:hover
-      opacity   .1
+        pre
+          display      none
+          background   #eee
+          padding      4px
+          margin-top   10px
 
-  .kdbutton.solid
+      &.in
+        .stack
+          pre
+            display    block
+          h2
+            display    none
 
-    height        22px
-    padding       0 5px
-    font-weight   300
+    .kdsplitview-resizer
+      opacity     .05
+      &:hover
+        opacity   .1
 
-    &.live
-      background  white
-      border      1px solid #ddd
+    .kdbutton.solid
+
+      height        22px
+      padding       0 5px
+      font-weight   300
+
+      &.live
+        background  white
+        border      1px solid #ddd
+        .button-title
+          color     #999
+
       .button-title
-        color     #999
-
-    .button-title
-      line-height 22px
-      font-size   12px
+        line-height 22px
+        font-size   12px
