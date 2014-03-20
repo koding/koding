@@ -381,10 +381,11 @@ class VirtualizationController extends KDController
   hasDefaultVM:(callback)->
     KD.remote.api.JVM.fetchDefaultVm callback
 
-  createNewVM: (stackId, callback)->
+  createNewVM: (stackId, callback, fireEvent = yes)->
     @createPaidVM stackId, (err) =>
-      @emit 'VMListChanged'
+      @emit 'VMListChanged'  if fireEvent
       callback err
+    , fireEvent
 
   showVMDetails: (vm)->
     vmName = vm.hostnameAlias
@@ -415,7 +416,7 @@ class VirtualizationController extends KDController
           callback  : =>
             modal.destroy()
 
-  createPaidVM: (stackId, callback) ->
+  createPaidVM: (stackId, callback, fireEvent) ->
     @payment.fetchActiveSubscription tags: "vm", (err, subscription) =>
       if err
         @showUpgradeModal()  if err.code is "no subscription"
@@ -437,6 +438,7 @@ class VirtualizationController extends KDController
             else
               callback message: "Your group is out of VM quota"
           else callback err
+        , fireEvent
 
   showUpgradeModal: ->
     modal      = new KDModalView
@@ -451,7 +453,7 @@ class VirtualizationController extends KDController
     upgradeForm.on "Cancel", modal.bound "destroy"
     return modal
 
-  provisionVm: ({ subscription, stackId, paymentMethod, productData }, callback) ->
+  provisionVm: ({ subscription, stackId, paymentMethod, productData }, callback, fireEvent = yes) ->
     { JVM } = KD.remote.api
 
     { plan, pack } = productData
@@ -470,21 +472,23 @@ class VirtualizationController extends KDController
     payment.debitSubscription subscription, pack, (err, nonce) =>
       return callback err  if err
 
-      notify = new KDNotificationView
-        title            : "Creating your VM..."
-        overlay          :
-          transparent    : no
-          destroyOnClick : no
-        loader           :
-          color          : "white"
-        duration         : 120000
+      if fireEvent
+        notify = new KDNotificationView
+          title            : "Creating your VM..."
+          overlay          :
+            transparent    : no
+            destroyOnClick : no
+          loader           :
+            color          : "white"
+          duration         : 120000
 
       JVM.createVmByNonce nonce, stackId, (err, vm) =>
-        notify.destroy()
+        notify?.destroy()
         return  if KD.showError err
 
-        @emit 'VMListChanged'
-        @showVMDetails vm
+        if fireEvent
+          @emit 'VMListChanged'
+          @showVMDetails vm
 
         callback null, nonce
 
