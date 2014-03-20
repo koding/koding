@@ -154,7 +154,6 @@ type StepFunc struct {
 // and mounts the necessary filesystems.
 func (v *VM) Prepare(reinitialize bool) <-chan *Step {
 	funcs := make([]*StepFunc, 0)
-	funcs = append(funcs, &StepFunc{Msg: "Lock RBD", Fn: v.LockRBD})
 	funcs = append(funcs, &StepFunc{Msg: "Create container", Fn: v.createContainerDir})
 	funcs = append(funcs, &StepFunc{Msg: "Mount RBD", Fn: v.mountRBD})
 
@@ -479,28 +478,49 @@ func (vm *VM) umountRBD() error {
 	return nil
 }
 
-func (vm *VM) MountRBD(mountDir string) error {
-	makeFileSystem := false
-
-	// create image if it does not exist
+func (vm *VM) ExistsRBD() (bool, error) {
 	if out, err := exec.Command("/usr/bin/rbd", "info", "--pool", VMPool, "--image", vm.String()).CombinedOutput(); err != nil {
 		exitError, isExitError := err.(*exec.ExitError)
 		if !isExitError || exitError.Sys().(syscall.WaitStatus).ExitStatus() > 2 {
-			return commandError("rbd info failed.", err, out)
+			return false, commandError("rbd info failed.", err, out)
 		}
 
+		return false, nil
+	}
+
+	return true, nil
+}
+
+func (vm *VM) MountRBD(mountDir string) error {
+	exists, err := vm.ExistsRBD()
+	if err != nil {
+		return err
+	}
+
+	makeFileSystem := false
+	if !exists {
 		if vm.SnapshotName == "" {
-			if out, err := exec.Command("/usr/bin/rbd", "create", "--pool", VMPool, "--size", strconv.Itoa(vm.DiskSizeInMB), "--image", vm.String(), "--image-format", "1").CombinedOutput(); err != nil {
+			if out, err := exec.Command("/usr/bin/rbd", "create", "--pool", VMPool,
+				"--size", strconv.Itoa(vm.DiskSizeInMB), "--image", vm.String(),
+				"--image-format", "1").CombinedOutput(); err != nil {
 				return commandError("rbd create failed.", err, out)
 			}
 		}
+
 		if vm.SnapshotName != "" {
-			if out, err := exec.Command("/usr/bin/rbd", "clone", "--pool", VMPool, "--image", VMName(vm.SnapshotVM), "--snap", vm.SnapshotName, "--dest-pool", VMPool, "--dest", vm.String()).CombinedOutput(); err != nil {
+			if out, err := exec.Command("/usr/bin/rbd", "clone", "--pool", VMPool,
+				"--image", VMName(vm.SnapshotVM), "--snap", vm.SnapshotName,
+				"--dest-pool", VMPool, "--dest", vm.String()).CombinedOutput(); err != nil {
 				return commandError("rbd clone failed.", err, out)
 			}
 		}
 
 		makeFileSystem = true
+	}
+
+	// create a lock to prevent cluster wide race condition
+	if err := vm.LockRBD(); err != nil {
+		return err
 	}
 
 	// map image
@@ -581,7 +601,7 @@ func (vm *VM) ResizeRBD() error {
 }
 
 // LockRBD is locking the specific image. The lock is propogated to the whole
-// cluster. Trying to lock a locked image returns an error.
+// cluster. Trying to lock a locked or not-existing image returns an error.
 func (vm *VM) LockRBD() error {
 	// lock-id is going to be the VM-Hex ID to find it easily.
 	lockID := vm.String()
@@ -601,7 +621,7 @@ func (vm *VM) getLockerRBD() (locker string, err error) {
 
 	out, err := exec.Command("/usr/bin/rbd", arg...).CombinedOutput()
 	if err != nil {
-		return "", commandError("rbd lock failed.", err, out)
+		return "", commandError("rbd getLock failed.", err, out)
 	}
 
 	shellOut := string(bytes.TrimSpace(out))
@@ -638,7 +658,7 @@ func (vm *VM) UnlockRBD() error {
 
 	arg := []string{"lock", "rm", "--pool", VMPool, "--image", vm.String(), lockID, locker}
 	if out, err := exec.Command("/usr/bin/rbd", arg...).CombinedOutput(); err != nil {
-		return commandError("rbd lock failed.", err, out)
+		return commandError("rbd unlock failed.", err, out)
 	}
 
 	return nil
