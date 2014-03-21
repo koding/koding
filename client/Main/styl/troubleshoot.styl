@@ -1,18 +1,21 @@
 @import "../../Framework/src/themes/default/kdfn"
 
 .troubleshoot-modal
+  .close-icon
+    hidden()
+
+  .check
+    label
+      hidden()
+
   .kdformview
     .formline
-      > label
-        margin-top  0px
+      margin-bottom 20px
 
     .kdlabel.feedback
       margin-top 10px
 
     .troubleshoot-status
-      padding-left  40px
-      margin-top     1px
-
       .success
         color       #1aaf5d
 
@@ -30,27 +33,25 @@
 
     .input-wrapper
       color         #444
+      margin-bottom 0
 
       .troubleshoot-result
-        margin-bottom 20px
-        padding 10px
-        background-color #4ed393
+      .status-message
         line-height 1.7
         font-size 14px
-        text-align   center
-        color      #ffffff
+
+      .troubleshoot-result
+        padding           10px
+        background-color  #4ed393
+        text-align        center
+        color             #ffffff
 
       .status
-        float  right
-        padding-right 10px
+        fr()
 
       .kdloader
-        float  right
-        padding-right 80px
-
-      .kdloader.hidden
-        visibility  hidden
-        display     initial !important
+        margin-right 10px
+        fr()
 
       .troubleshoot-errors
         background-color #ff7379;
@@ -58,8 +59,8 @@
 
         .status-message.pending
         .status-message.fail
-            background-color #ff7379
-            color #ffffff
+          background-color #ff7379
+          color #ffffff
 
         .status-message.slow
             // background-color #eba612
@@ -71,3 +72,5 @@
             font-family 'Monaco','Courier New','Courier','Andale Mono',monospace,sans-serif
             font-size 13px
 
+  .troubleshootitem
+    line-height 1.6em
