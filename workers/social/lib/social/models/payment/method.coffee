@@ -11,6 +11,9 @@ module.exports = class JPaymentMethod extends Module
   @share()
 
   @set
+    sharedEvents    :
+      static        : []
+      instance      : []
     sharedMethods:
       static:
         create:

@@ -2,16 +2,9 @@ class NotificationController extends KDObject
 
   subjectMap = ->
 
-    JNewStatusUpdate       : "<a href='#'>status</a>"
-    JCodeSnip           : "<a href='#'>code snippet</a>"
-    JQuestionActivity   : "<a href='#'>question</a>"
-    JDiscussion         : "<a href='#'>discussion</a>"
-    JLinkActivity       : "<a href='#'>link</a>"
-    JPrivateMessage     : "<a href='#'>private message</a>"
-    JOpinion            : "<a href='#'>opinion</a>"
-    JTutorial           : "<a href='#'>tutorial</a>"
-    JComment            : "<a href='#'>comment</a>"
-    JReview             : "<a href='#'>review</a>"
+    JNewStatusUpdate : "<a href='#'>status</a>"
+    JPrivateMessage  : "<a href='#'>private message</a>"
+    JComment         : "<a href='#'>comment</a>"
 
   constructor:->
 
