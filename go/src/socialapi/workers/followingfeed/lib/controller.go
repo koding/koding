@@ -58,3 +58,12 @@ func (f *FollowingFeedController) MessageDeleted(data []byte) error {
 
 	return nil
 }
+
+func mapMessage(data []byte) (*models.ChannelMessage, error) {
+	cm := models.NewChannelMessage()
+	if err := json.Unmarshal(data, cm); err != nil {
+		return nil, err
+	}
+
+	return cm, nil
+}
