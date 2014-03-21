@@ -33,8 +33,7 @@ class HealthChecker extends KDObject
       @status = if speedCheck and @getResponseTime() > slownessIndicator then "slow" else "success"
 
       @status = data.status  if data?.status #set custom status
-      clearTimeout @pingTimeout
-      @pingTimeout = null
+      KD.utils.killWait @pingTimeout
       @emit @completeEvent
 
   startCheck: ->

@@ -42,8 +42,7 @@ class Troubleshoot extends KDObject
 
   reset: (event) ->
     @status = PENDING
-    clearTimeout @timeout
-    @timeout = null
+    KD.utils.killWait @timeout
     @emit event
 
   isConnectionFailed: ->
