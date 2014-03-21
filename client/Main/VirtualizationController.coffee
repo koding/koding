@@ -26,7 +26,7 @@ class VirtualizationController extends KDController
 
     @runHelper options, callback
 
-  runHelper: (options, callback) ->
+  runHelper: (options = {}, callback) ->
     @fetchVmName options, (err, vmName) =>
       return callback err  if err?
       options.correlationName = vmName
@@ -35,7 +35,7 @@ class VirtualizationController extends KDController
         @kc.run options, callback
 
   ping: (callback) ->
-    options = {}
+    options = {withArgs : ""}
     @runHelper options, callback
 
   _runWrapper:(command, vm, callback)->
