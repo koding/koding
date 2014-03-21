@@ -100,6 +100,8 @@ func Inject(mux *tigertonic.TrieServeMux) *tigertonic.TrieServeMux {
 	// list channels of the account
 	mux.Handle("GET", "/account/{id}/channels", handlerWrapper(account.ListChannels, "account-channel-list"))
 
+	// follow the account
+	mux.Handle("POST", "/account/{id}/follow", handlerWrapper(account.Follow, "account-follow"))
 	// mux.Handle("POST", "/follow/{id}", handlerWrapper(post, "follow-id"))
 	// mux.Handle("POST", "/unfollow/{id}", handlerWrapper(post, "follow-id"))
 
