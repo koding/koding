@@ -48,7 +48,7 @@ class DevToolsMainView extends KDView
     @addSubView @workspace      = new CollaborativeWorkspace
       name                      : "Koding DevTools"
       delegate                  : this
-      firebaseInstance          : "tw-local"
+      firebaseInstance          : "koding-dev-tools"
       panels                    : [
         title                   : "Koding DevTools"
         layout                  :
