@@ -5,8 +5,13 @@ class DevToolsMainView extends KDView
   constructor:->
     super
 
-    @storage = KD.singletons.localStorageController.storage "DevTools"
-    @liveMode = @storage.getAt 'liveMode'
+    @storage   = KD.singletons.localStorageController.storage "DevTools"
+    @liveMode  = @storage.getValue 'liveMode'
+
+    unless @liveMode?
+     @liveMode = yes
+     @storage.setValue 'liveMode', @liveMode
+
     @_currentMode = 'home'
 
   getToggleLiveReloadMenuView: (item, menu)->
