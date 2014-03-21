@@ -73,6 +73,8 @@ class EnvironmentsMainScene extends JView
 
       callback?()  if index is stacks.length - 1
 
+    @emit "StacksCreated"
+
   showCreateStackModal: ->
     modal = new CreateStackModal
       callback : @bound "createNewStack"
@@ -85,13 +87,15 @@ class EnvironmentsMainScene extends JView
 
       stackView = new StackView { stack} , @environmentData
       @_stacks.push @addSubView stackView
+      @highlightStack stackView
 
-      stackView.once "transitionend", =>
-        stackView.getElement().scrollIntoView()
-        KD.utils.wait 300, => # wait for a smooth feedback
-          stackView.setClass "hilite"
-          stackView.once "transitionend", =>
-            stackView.setClass "hilited"
+  highlightStack: (stackView) ->
+    stackView.once "transitionend", =>
+      stackView.getElement().scrollIntoView()
+      KD.utils.wait 300, => # wait for a smooth feedback
+        stackView.setClass "hilite"
+        stackView.once "transitionend", =>
+          stackView.setClass "hilited"
 
   cloneStack: (stackData) ->
     new CreateStackModal
@@ -102,4 +106,6 @@ class EnvironmentsMainScene extends JView
         stackModal.once "StackCloned", =>
           @once "EnvironmentDataFetched", =>
             stackView.destroy() for stackView in @_stacks
+          @once "StacksCreated", =>
+            @highlightStack @_stacks.last
           @fetchStacks()

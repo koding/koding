@@ -232,11 +232,11 @@ class StackView extends KDView
       @destroy()
       @progressModal?.destroy()
 
-  deleteStack: (showProgress = yes) ->
+  deleteStack: ->
     hasDomain = Object.keys(@domains.dias).length
     hasVm     = Object.keys(@vms.dias).length
 
-    @createProgressModal hasDomain, hasVm  if showProgress
+    @createProgressModal hasDomain, hasVm
 
     if hasDomain
       @deleteDomains =>
@@ -268,4 +268,4 @@ class StackView extends KDView
 
   handleStackDeleteError: (err) ->
     # TODO: Implement this
-    warn err if err
+    KD.showErr err  if err
