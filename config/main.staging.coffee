@@ -404,3 +404,5 @@ module.exports =
     use          : true
     host         : "172.168.2.7"
     port         : 2003
+  troubleshoot    :
+    recipientEmail: "can@koding.com"

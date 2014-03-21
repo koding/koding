@@ -414,4 +414,6 @@ config =
     sessionCookie   :
       maxAge        : 1
       secure        : 1
+    troubleshoot    :
+      recipientEmail: 1
 module.exports = config

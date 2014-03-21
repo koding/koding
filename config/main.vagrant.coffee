@@ -423,3 +423,5 @@ module.exports =
   sessionCookie   :
     maxAge        : cookieMaxAge
     secure        : cookieSecure
+  troubleshoot    :
+    recipientEmail: "can@koding.com"
