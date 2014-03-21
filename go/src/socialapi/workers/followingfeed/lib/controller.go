@@ -40,7 +40,21 @@ func (f *FollowingFeedController) HandleEvent(event string, data []byte) error {
 		return HandlerNotFoundErr
 	}
 
-	return handler(f, data)
+	cm, err := mapMessage(data)
+	if err != nil {
+		return err
+	}
+
+	res, err := isEligible(cm)
+	if err != nil {
+		return err
+	}
+
+	if !res {
+		return nil
+	}
+
+	return handler(f, cm)
 }
 
 func (f *FollowingFeedController) MessageSaved(data *models.ChannelMessage) error {
