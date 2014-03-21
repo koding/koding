@@ -7,6 +7,7 @@ import (
 	"koding/tools/logger"
 	followingfeed "socialapi/workers/followingfeed/lib"
 
+	"github.com/jinzhu/gorm"
 	"github.com/streadway/amqp"
 )
 
@@ -19,6 +20,9 @@ func startHandler() func(delivery amqp.Delivery) {
 			delivery.Ack(false)
 		case followingfeed.HandlerNotFoundErr:
 			log.Notice("unknown event type (%s) recieved, \n deleting message from RMQ", delivery.Type)
+			delivery.Ack(false)
+		case gorm.RecordNotFound:
+			log.Warning("Record not found in our db (%s) recieved, \n deleting message from RMQ", string(delivery.Body))
 			delivery.Ack(false)
 		default:
 			// add proper error handling
