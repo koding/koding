@@ -104,6 +104,7 @@ class Ace extends KDView
       @addKeyCombo "preview", "Ctrl-Shift-P", => @getDelegate().preview()
       @addKeyCombo "fullscreen", "Ctrl-Enter", => @getDelegate().toggleFullscreen()
       @addKeyCombo "gotoLine", "Ctrl-G", @bound "showGotoLine"
+      @addKeyCombo "gotoLineL", "Ctrl-L", noop
       @addKeyCombo "saveAll", "Ctrl-Alt-S", @bound "saveAllFiles"
       @addKeyCombo "closeTab", "Ctrl-W", "Ctrl-W", @bound "closeTab"
       @addKeyCombo "settings", "Ctrl-,", noop # ace creates a settings view for this shortcut, overriding it.
@@ -266,7 +267,9 @@ class Ace extends KDView
       for own name, [language, extensions] of __aceSettings.syntaxAssociations
         if ///^(?:#{extensions})$///i.test ext
           mode = name
-      mode or= "text"
+
+      syntaxChoice = @appStorage.getValue "syntax_#{ext}"
+      mode = syntaxChoice or "text"
 
     require ["ace/mode/#{mode}"], ({Mode})=>
       @editor.getSession().setMode new Mode

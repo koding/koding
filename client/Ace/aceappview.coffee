@@ -120,9 +120,10 @@ class AceAppView extends JView
     return items
 
   preview: ->
-    {path, vmName} = @getActiveAceView().getData()
+    file = @getActiveAceView().getData()
+    {path, vmName} = file
     return  if /^localfile/.test path
-    path = KD.getPublicURLOfPath path
+    path = KD.getPublicURLOfPath FSHelper.getFullPath file
 
     notify = =>
       @getActiveAceView().ace.notify "File needs to be under ~/Web folder", "error"
@@ -147,9 +148,6 @@ class AceAppView extends JView
   addNewTab: (file) ->
     file = file or FSHelper.createFileFromPath 'localfile:/Untitled.txt'
     aceView = new AceView delegate: this, file
-    aceView.on 'KDObjectWillBeDestroyed', =>
-      KD.singletons.localSync.removeFromOpenedFiles file
-      @removeOpenDocument aceView
     path = FSHelper.getFullPath file
     @aceViews[path] = aceView
     @setViewListeners aceView
@@ -227,7 +225,9 @@ class AceAppView extends JView
 
     @on "gotoLineMenuItemClicked", => @getActiveAceView().ace.showGotoLine()
 
-    @on "exitMenuItemClicked", => @appManager.quit @appManager.frontApp
+    @on "exitMenuItemClicked", =>
+      @appManager.quit @appManager.frontApp
+      KD.singletons.router.handleRoute "/Activity"
 
     @on "keyBindingsMenuItemClicked", => new EditorMacroView
 
