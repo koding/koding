@@ -75,6 +75,7 @@ class Troubleshoot extends KDObject
       liveUpdateChecker = new LiveUpdateChecker
       @registerItem "liveUpdate",
         troubleshoot: liveUpdateChecker.healthCheck.bind liveUpdateChecker
+        recover     : liveUpdateChecker.healthCheck.bind liveUpdateChecker
 
     @registerItem "version",
       speedCheck   : no
@@ -88,7 +89,7 @@ class Troubleshoot extends KDObject
 
   registerConnections: ->
     #register connection
-    externalUrl = "https://s3.amazonaws.com/koding-ping/ping.json"
+    externalUrl = "https://s3.amazonaws.com/koding-ping/healthcheck.json"
     item = new ConnectionChecker crossDomain: yes, externalUrl
     @registerItem "connection", troubleshoot: item.ping.bind item
 
