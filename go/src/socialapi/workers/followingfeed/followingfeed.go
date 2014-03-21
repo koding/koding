@@ -13,7 +13,7 @@ import (
 func startHandler() func(delivery amqp.Delivery) {
 	log.Info("Worker Started to Consume")
 	return func(delivery amqp.Delivery) {
-		err := router.HandleEvent(delivery.Type, delivery.Body)
+		err := handler.HandleEvent(delivery.Type, delivery.Body)
 		switch err {
 		case nil:
 			delivery.Ack(false)
@@ -37,7 +37,7 @@ var (
 	conf        *config.Config
 	flagProfile = flag.String("c", "", "Configuration profile from file")
 	flagDebug   = flag.Bool("d", false, "Debug mode")
-	router      = followingfeed.NewFollowingFeedController(log)
+	handler     = followingfeed.NewFollowingFeedController(log)
 )
 
 func main() {
