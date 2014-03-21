@@ -2,12 +2,14 @@ class WorkspaceLayout extends KDSplitComboView
 
   init: ->
     @splitViews    = {}
-    {direction, sizes, views, splitName} = @getOptions().layoutOptions
+
+    {direction, sizes, views, cssClass, splitName} = @getOption 'layoutOptions'
+
     @baseSplitName = splitName
+    @addSubView @createSplitView \
+      {type: direction, sizes, cssClass, viewsConfig:views}, splitName
 
-    @addSubView @createSplitView direction, sizes, views, splitName
-
-  createSplitView: (type, sizes, viewsConfig, splitName) ->
+  createSplitView: ({type, sizes, viewsConfig, cssClass}, splitName) ->
     views = []
 
     viewsConfig.forEach (config, index) =>
@@ -15,7 +17,12 @@ class WorkspaceLayout extends KDSplitComboView
         {options}   = config
         {splitName} = options
 
-        splitView = @createSplitView options.direction, options.sizes, config.views
+        splitView = @createSplitView
+          type        : options.direction
+          sizes       : options.sizes
+          cssClass    : options.cssClass
+          viewsConfig : config.views
+
         @splitViews[splitName] = splitView  if splitName
         views.push splitView
       else
@@ -25,7 +32,7 @@ class WorkspaceLayout extends KDSplitComboView
 
         views.push wrapper
 
-    splitView = new SplitViewWithOlderSiblings { type, sizes, views }
+    splitView = new SplitViewWithOlderSiblings { type, sizes, views, cssClass }
     @splitViews[@baseSplitName] = splitView  if @baseSplitName
     splitView.on "ResizeDidStop", => @emitResizedEventToPanes()
 
