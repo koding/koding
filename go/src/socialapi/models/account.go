@@ -53,6 +53,28 @@ func (a *Account) Unfollow(targetId int64) error {
 
 	return c.RemoveParticipant(targetId)
 }
+
+func (a *Account) FetchFollowerIds() ([]int64, error) {
+	followerIds := make([]int64, 0)
+	if a.Id == 0 {
+		return nil, errors.New(
+			"Account id is not set for FetchFollowerChannelIds function ",
+		)
+	}
+
+	c, err := a.FetchChannel(Channel_TYPE_FOLLOWERS)
+	if err != nil {
+		return followerIds, err
+	}
+
+	participants, err := c.FetchParticipantIds()
+	if err != nil {
+		return followerIds, err
+	}
+
+	return participants, nil
+}
+
 func (a *Account) FetchChannel(channelType string) (*Channel, error) {
 	if a.Id == 0 {
 		return nil, errors.New("Account id is not set")
