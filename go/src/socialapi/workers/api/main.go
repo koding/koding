@@ -78,7 +78,7 @@ func main() {
 	go listener(server)
 
 	if err := eventbus.Open(conf); err != nil {
-		log.Critical("Realtime operations will not work, this is not good %v", err.Error())
+		log.Critical("Realtime operations will not work, this is not good, probably couldnt connect to RMQ. %v", err.Error())
 	}
 
 	ch := make(chan os.Signal)
