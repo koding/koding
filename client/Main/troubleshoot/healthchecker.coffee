@@ -1,6 +1,6 @@
 class HealthChecker extends KDObject
 
-  constructor: (options={}) ->
+  constructor: (options = {}) ->
     super options
 
     options.slownessIndicator ?= 1000
@@ -23,13 +23,15 @@ class HealthChecker extends KDObject
       @status = "fail"
       @emit @completeEvent
 
-  finish: (data)->
+  finish: (data) ->
     # some services (e.g. kite controller) does return callback with error parameter
     # hence we are having
     unless @status is "fail"
       {slownessIndicator, speedCheck} = @getOptions()
       @finishTime = Date.now()
       @status = if speedCheck and @getResponseTime() > slownessIndicator then "slow" else "success"
+
+      @status = data.status  if data?.status #set custom status
       clearTimeout @pingTimeout
       @pingTimeout = null
       @emit @completeEvent
