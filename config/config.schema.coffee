@@ -391,6 +391,7 @@ config =
     logLevel        :
       neo4jfeeder   : 1
       oskite        : 1
+      terminal      : 1
       kontrolproxy  : 1
       kontroldaemon : 1
       userpresence  : 1

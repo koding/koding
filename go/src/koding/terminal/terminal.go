@@ -42,8 +42,6 @@ type Terminal struct {
 }
 
 func New(c *config.Config) *Terminal {
-	return &Terminal{}
-
 	conf = c
 	mongodbConn = mongodb.NewMongoDB(c.Mongo)
 	modelhelper.Initialize(c.Mongo)
@@ -59,7 +57,9 @@ func (t *Terminal) Run() {
 		panic("region is not set for Oskite")
 	}
 
+	log.SetLevel(t.LogLevel)
 	log.Info("Kite.go preperation started")
+
 	kiteName := "terminal"
 	if t.Region != "" {
 		kiteName += "-" + t.Region
@@ -71,6 +71,7 @@ func (t *Terminal) Run() {
 	t.registerMethod("webterm.connect", false, webtermConnect)
 	t.registerMethod("webterm.getSessions", false, webtermGetSessions)
 
+	log.Info("Terminal kite started. Go!")
 	t.Kite.Run()
 }
 

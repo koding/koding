@@ -37,6 +37,7 @@ func main() {
 
 	term := terminal.New(config.MustConfig(*flagProfile))
 	term.LogLevel = logLevel
+	term.Region = *flagRegion
 
 	// go go!
 	term.Run()

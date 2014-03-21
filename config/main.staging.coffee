@@ -377,6 +377,7 @@ module.exports =
   logLevel        :
     neo4jfeeder   : "info"
     oskite        : "info"
+    terminal      : "info"
     kontrolproxy  : "debug"
     kontroldaemon : "info"
     userpresence  : "info"
