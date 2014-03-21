@@ -1,7 +1,7 @@
 class TroubleshootItemView extends KDCustomHTMLView
 
   constructor: (options, data) ->
-    options.cssClass ?= "hidden"
+    options.cssClass ?= "hidden troubleshootitem"
     super options, data
 
     @loader = new KDLoaderView
@@ -31,8 +31,7 @@ class TroubleshootItemView extends KDCustomHTMLView
       partial  : "#{title}"
       cssClass : "checker-name"
 
-  viewAppended: ->
-    JView::viewAppended.call this
+  viewAppended: JView::viewAppended
 
   # instead we need a slowness indicator
   getResponseTime: ->
@@ -44,7 +43,7 @@ class TroubleshootItemView extends KDCustomHTMLView
 
   pistachio:->
     """
-      {{> @loader}} {{> @title}} {{> @status }}
+    {{> @title}}{{> @status }}{{> @loader}}
     """
 
   startCheck: ->
