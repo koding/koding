@@ -66,11 +66,6 @@ var (
 	StderrHandler              = NewWriterHandler(os.Stderr)
 )
 
-func init() {
-	StdoutHandler.Colorize = true
-	StderrHandler.Colorize = true
-}
-
 // Logger is the interface for outputing log messages in different levels.
 // A new Logger can be created with NewLogger() function.
 // You can changed the output handler with SetHandler() function.
