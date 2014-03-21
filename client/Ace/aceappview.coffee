@@ -148,15 +148,6 @@ class AceAppView extends JView
   addNewTab: (file) ->
     file = file or FSHelper.createFileFromPath 'localfile:/Untitled.txt'
     aceView = new AceView delegate: this, file
-    aceView.ace.on "ace.changeSetting", (setting, value)->
-      if setting is "syntax"
-        fileExtension = file.getExtension()
-        appStorage = KD.getSingleton('appStorageController').storage 'Ace', '1.0.1'
-        appStorage.setValue "syntax_#{fileExtension}", value
-
-    aceView.on 'KDObjectWillBeDestroyed', =>
-      KD.singletons.localSync.removeFromOpenedFiles file
-      @removeOpenDocument aceView
     path = FSHelper.getFullPath file
     @aceViews[path] = aceView
     @setViewListeners aceView
