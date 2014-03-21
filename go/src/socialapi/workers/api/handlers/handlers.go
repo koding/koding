@@ -102,6 +102,10 @@ func Inject(mux *tigertonic.TrieServeMux) *tigertonic.TrieServeMux {
 
 	// follow the account
 	mux.Handle("POST", "/account/{id}/follow", handlerWrapper(account.Follow, "account-follow"))
+
+	// un-follow the account
+	mux.Handle("POST", "/account/{id}/unfollow", handlerWrapper(account.Unfollow, "account-unfollow"))
+
 	// mux.Handle("POST", "/follow/{id}", handlerWrapper(post, "follow-id"))
 	// mux.Handle("POST", "/unfollow/{id}", handlerWrapper(post, "follow-id"))
 
