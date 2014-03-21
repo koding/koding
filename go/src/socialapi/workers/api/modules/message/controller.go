@@ -20,6 +20,9 @@ func Create(u *url.URL, h http.Header, req *models.ChannelMessage) (int, http.He
 	// should be marked as POST
 	req.Type = models.ChannelMessage_TYPE_POST
 
+	// set initial channel id
+	req.InitialChannelId = channelId
+
 	if err := req.Create(); err != nil {
 		// todo this should be internal server error
 		return helpers.NewBadRequestResponse()
