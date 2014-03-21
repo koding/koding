@@ -59,8 +59,8 @@ class Troubleshoot extends KDObject
     # register osKite
     vc = KD.singleton "vmController"
     @registerItem "osKite",
-      troubleshoot : vc.ping.bind vc
-      recover      : vc.ping.bind vc #temp
+      troubleshoot : vc.bound 'ping'
+      recover      : vc.bound 'ping'
 
     # register bongo
     KD.remote.once "modelsReady", =>
@@ -72,8 +72,8 @@ class Troubleshoot extends KDObject
     KD.singleton("mainController").on "AccountChanged", =>
       liveUpdateChecker = new LiveUpdateChecker
       @registerItem "liveUpdate",
-        troubleshoot: liveUpdateChecker.healthCheck.bind liveUpdateChecker
-        recover     : liveUpdateChecker.healthCheck.bind liveUpdateChecker
+        troubleshoot: liveUpdateChecker.bound 'healthCheck'
+        recover     : liveUpdateChecker.bound 'healthCheck'
 
     @registerItem "version",
       speedCheck   : no
@@ -82,31 +82,31 @@ class Troubleshoot extends KDObject
     vmChecker = new VMChecker
     @registerItem "vm",
       speedCheck   : no
-      troubleshoot : vmChecker.healthCheck.bind vmChecker
-      recover      : vmChecker.healthCheck.bind vmChecker
+      troubleshoot : vmChecker.bound 'healthCheck'
+      recover      : vmChecker.bound 'healthCheck'
 
   registerConnections: ->
     #register connection
     externalUrl = "https://s3.amazonaws.com/koding-ping/healthcheck.json"
     item = new ConnectionChecker crossDomain: yes, externalUrl
-    @registerItem "connection", troubleshoot: item.ping.bind item
+    @registerItem "connection", troubleshoot: item.bound 'ping'
 
     # register webserver status
     webserverStatus = new ConnectionChecker({}, "#{window.location.origin}/-/healthCheck")
-    @registerItem "webServer", troubleshoot: webserverStatus.ping.bind webserverStatus
+    @registerItem "webServer", troubleshoot: webserverStatus.bound 'ping'
 
   registerBrokers: ->
     # register broker
     broker = KD.remote.mq
     @registerItem "broker",
-      troubleshoot : broker.ping.bind broker
-      recover      : @brokerRecovery.recover.bind @brokerRecovery
+      troubleshoot : broker.bound 'ping'
+      recover      : @brokerRecovery.bound 'recover'
 
     # register kite
     brokerKite = KD.kite.mq
     @registerItem "brokerKite",
-      troubleshoot : brokerKite.ping.bind brokerKite
-      recover      : @brokerKiteRecovery.recover.bind @brokerKiteRecovery
+      troubleshoot : brokerKite.bound 'ping'
+      recover      : @brokerKiteRecovery.bound 'recover'
 
   registerItem : (name, options) ->
     options.name = name
