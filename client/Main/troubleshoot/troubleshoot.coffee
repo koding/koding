@@ -161,13 +161,14 @@ class Troubleshoot extends KDObject
   recover: ->
     waitingRecovery = 0
     for own name, item of @items
-      item.on "recoveryCompleted", =>
-        waitingRecovery -= 1
-        @reset "recoveryCompleted"  unless waitingRecovery
+      do (name, item) =>
+        item.once "recoveryCompleted", =>
+          waitingRecovery--
+          @reset "recoveryCompleted"  unless waitingRecovery
 
-      if item.status is "fail" and item.canBeRecovered()
-        waitingRecovery += 1
-        item.recover()
+        if item.status is "fail" and item.canBeRecovered()
+          waitingRecovery++
+          item.recover()
 
     waitingRecovery
 
