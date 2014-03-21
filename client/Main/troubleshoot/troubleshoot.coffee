@@ -1,5 +1,4 @@
-KD.troubleshoot = ->
-  KD.singleton("troubleshoot").run()
+KD.extend troubleshoot: -> KD.singleton("troubleshoot").run()
 
 class Troubleshoot extends KDObject
 
