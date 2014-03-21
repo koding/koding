@@ -44,15 +44,20 @@ class TroubleshootItemView extends KDCustomHTMLView
       {{> @loader}} {{> @title}} {{> @status }}
     """
 
-  startCheck = ->
+  startCheck: ->
     @show()
     @loader.show()
     @status.render()
     @status.unsetClass "fail success"
 
-  completeCheck = ->
+  completeCheck: ->
     @loader.hide()
     @status.render()
     {status} = @getData()
     @status.unsetClass "fail success"
     @status.setClass "#{status}"
+
+  destroy: ->
+    @off "recoveryCompleted"
+    @off "recoveryStarted"
+    super

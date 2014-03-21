@@ -80,3 +80,9 @@ class TroubleshootErrorView extends KDCustomHTMLView
       cssClass: "status-message #{status}"
       partial: "* #{errorMessages[name][status]}"
 
+
+  destroy: ->
+    @off "recoveryStarted"
+    @off "recoveryCompleted"
+    super
+
