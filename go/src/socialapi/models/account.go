@@ -26,3 +26,20 @@ func (a *Account) FetchChannels(q *Query) ([]Channel, error) {
 
 	return channels, nil
 }
+func (a *Account) CreateFollowingFeedChannel() (*Channel, error) {
+	if a.Id == 0 {
+		return nil, errors.New("Account id is not set")
+	}
+
+	c := NewChannel()
+	c.CreatorId = a.Id
+	c.Name = fmt.Sprintf("%d-FollowingFeedChannel", a.Id)
+	c.Group = Channel_KODING_NAME
+	c.Purpose = "Following Feed for Me"
+	c.Type = Channel_TYPE_FOLLOWERS
+	if err := c.Create(); err != nil {
+		return nil, err
+	}
+
+	return c, nil
+}
