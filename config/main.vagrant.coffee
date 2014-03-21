@@ -405,6 +405,7 @@ module.exports =
   logLevel        :
     neo4jfeeder   : "notice"
     oskite        : "info"
+    terminal      : "info"
     kontrolproxy  : "notice"
     kontroldaemon : "notice"
     userpresence  : "notice"
