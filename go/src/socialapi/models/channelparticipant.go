@@ -90,10 +90,10 @@ func (c *ChannelParticipant) FetchParticipant() error {
 	selector := map[string]interface{}{
 		"channel_id": c.ChannelId,
 		"account_id": c.AccountId,
-		"status":     ChannelParticipant_STATUS_ACTIVE,
+		// "status":     ChannelParticipant_STATUS_ACTIVE,
 	}
 
-	err := c.m.Some(c, c, selector)
+	err := c.m.One(c, c, selector)
 	if err != nil {
 		return err
 	}
