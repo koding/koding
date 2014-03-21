@@ -23,6 +23,14 @@ type ChannelMessageList struct {
 	m Model
 }
 
+func (c *ChannelMessageList) BeforeCreate() {
+	c.AddedAt = time.Now()
+}
+
+func (c *ChannelMessageList) BeforeUpdate() {
+	c.AddedAt = time.Now()
+}
+
 func (c *ChannelMessageList) GetId() int64 {
 	return c.Id
 }
