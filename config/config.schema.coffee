@@ -84,6 +84,7 @@ config =
     compileGo     : 1
     buildClient   : 1
     runOsKite     : 0
+    runTerminalKite: 0
     runProxy      : 0
     redis         : 1
     misc          :

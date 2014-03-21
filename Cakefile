@@ -438,6 +438,15 @@ task 'osKite', "Run the osKite", ({configFile})->
     stderr  : process.stderr
     verbose : yes
 
+task 'terminalKite', "Run the terminalKite", ({configFile})->
+  processes.spawn
+    name  : 'osKite'
+    cmd   : if configFile == "vagrant" then "vagrant ssh default -c 'cd /opt/koding; sudo killall -q -KILL terminal; sudo /opt/koding/go/bin-vagrant/terminal -c #{configFile} -r vagrant" else "./go/bin/terminal -c #{configFile}"
+    restart: no
+    stdout  : process.stdout
+    stderr  : process.stderr
+    verbose : yes
+
 task 'proxy', "Run the go-Proxy", ({configFile})->
 
   processes.spawn
@@ -585,6 +594,7 @@ run =({configFile})->
     invoke 'premiumBroker'                    if config.runPremiumBroker
     invoke 'premiumBrokerKite'                if config.runPremiumBrokerKite
     invoke 'osKite'                           if config.runOsKite
+    invoke 'terminalKite'                     if config.runTerminalKite
     invoke 'rerouting'                        if config.runRerouting
     invoke 'userpresence'                     if config.runUserPresence
     invoke 'persistence'                      if config.runPersistence
