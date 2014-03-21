@@ -9,8 +9,10 @@ class CloneStackModal extends KDModalView
 
     super options, data
 
-    @queue    = []
-    @listData = {}
+    @queue               = []
+    @listData            = {}
+    @completedTaskLength = 0
+    @totalTaskLength     = @getData().vms.length + @getData().domains.length
 
     if data.vms.length # has vm
       @fetchSubscription()
@@ -19,7 +21,7 @@ class CloneStackModal extends KDModalView
       @createStack => @askForNewDomains()
     else
       @createInitialState "<p>Cloning your stack, please wait...</p>"
-      @createStack => @destroy()
+      @createStack => @handleCloneDone()
 
   fetchSubscription: ->
     stackData         = @getData()
@@ -125,6 +127,8 @@ class CloneStackModal extends KDModalView
 
   addDomainsToQueue: ->
     domainList = @listData["Creating Domains"] = []
+    {vms, domains} = @getData()
+
     @domainCreateForms.forEach (form, index) =>
       newName = @newDomains[index]
       domainList.push newName
@@ -134,17 +138,23 @@ class CloneStackModal extends KDModalView
           return warn err  if err
           @queue.next()
           @progressModal.next()
+          @completedTaskLength++
+          @handleCloneDone()  if @completedTaskLength is @totalTaskLength
 
   addVMsToQueue: ->
-    vmList  = @listData["Creating VMs"] = []
-    counter = 0
-    for [0...@getData().vms.length]
-      vmList.push "#{++counter}. VM"
+    vmList    = @listData["Creating VMs"] = []
+    vmNumber  = 0
+    {vms, domains} = @getData()
+
+    for [0...vms.length]
+      vmList.push "#{++vmNumber}. VM"
       @queue.push =>
         KD.singleton("vmController").createNewVM @stack.getId(), (err) =>
-          # KD.showError err  if err
+          return KD.showError err  if err
           @queue.next()
           @progressModal.next()
+          @completedTaskLength++
+          @handleCloneDone()  if @completedTaskLength is @totalTaskLength
         , no
 
   processQueue: ->
@@ -155,6 +165,11 @@ class CloneStackModal extends KDModalView
   deleteStack: ->
     @destroy()
     @stack.remove()
+
+  handleCloneDone: ->
+    @emit "StackCloned"
+    @progressModal.destroy()
+    @destroy()
 
   createStack: (callback = noop) ->
     KD.remote.api.JStack.createStack @getOptions().meta, (err, @stack) =>

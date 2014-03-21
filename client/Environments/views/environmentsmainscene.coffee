@@ -55,8 +55,9 @@ class EnvironmentsMainScene extends JView
 
     @fetchStacks()
 
-  fetchStacks: (callback) ->
+  fetchStacks: ->
     EnvironmentDataProvider.get (@environmentData) =>
+      @emit "EnvironmentDataFetched", @environmentData
 
       {JStack} = KD.remote.api
       JStack.getStacks (err, stacks = [])=>
@@ -97,4 +98,8 @@ class EnvironmentsMainScene extends JView
       title   : "Give a title to your new stack"
       callback: (meta, modal) =>
         modal.destroy()
-        new CloneStackModal { meta }, stackData
+        stackModal = new CloneStackModal { meta }, stackData
+        stackModal.once "StackCloned", =>
+          @once "EnvironmentDataFetched", =>
+            stackView.destroy() for stackView in @_stacks
+          @fetchStacks()
