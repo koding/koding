@@ -116,6 +116,36 @@ func (c *Channel) FetchByIds(ids []int64) ([]Channel, error) {
 	}
 	return channels, nil
 }
+func (c *Channel) RemoveParticipant(participantId int64) error {
+	if c.Id == 0 {
+		return errors.New("Channel Id is not set")
+	}
+
+	cp := NewChannelParticipant()
+	cp.ChannelId = c.Id
+	cp.AccountId = participantId
+
+	err := cp.FetchParticipant()
+	// if user is not in this channel, do nothing
+	if err == gorm.RecordNotFound {
+		return nil
+	}
+
+	if err != nil {
+		return err
+	}
+
+	if cp.Status == ChannelParticipant_STATUS_LEFT {
+		return nil
+	}
+
+	cp.Status = ChannelParticipant_STATUS_LEFT
+	if err := cp.Update(); err != nil {
+		return err
+	}
+
+	return nil
+}
 func (c *Channel) FetchParticipantIds() ([]int64, error) {
 	var participantIds []int64
 
