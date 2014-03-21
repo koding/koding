@@ -440,8 +440,8 @@ task 'osKite', "Run the osKite", ({configFile})->
 
 task 'terminalKite', "Run the terminalKite", ({configFile})->
   processes.spawn
-    name  : 'osKite'
-    cmd   : if configFile == "vagrant" then "vagrant ssh default -c 'cd /opt/koding; sudo killall -q -KILL terminal; sudo /opt/koding/go/bin-vagrant/terminal -c #{configFile} -r vagrant" else "./go/bin/terminal -c #{configFile}"
+    name  : 'terminalKite'
+    cmd   : if configFile == "vagrant" then "vagrant ssh default -c 'cd /opt/koding; sudo killall -q -KILL terminal; sudo /opt/koding/go/bin-vagrant/terminal -c #{configFile} -r vagrant'" else "./go/bin/terminal -c #{configFile}"
     restart: no
     stdout  : process.stdout
     stderr  : process.stderr
