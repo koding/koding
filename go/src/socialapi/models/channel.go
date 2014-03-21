@@ -116,3 +116,27 @@ func (c *Channel) FetchByIds(ids []int64) ([]Channel, error) {
 	}
 	return channels, nil
 }
+func (c *Channel) FetchParticipantIds() ([]int64, error) {
+	var participantIds []int64
+
+	if c.Id == 0 {
+		return participantIds, errors.New("Channel Id is not set")
+	}
+
+	selector := map[string]interface{}{
+		"channel_id": c.Id,
+		"status":     ChannelParticipant_STATUS_ACTIVE,
+	}
+
+	pluck := map[string]interface{}{
+		"account_id": true,
+	}
+
+	cp := NewChannelParticipant()
+	err := cp.Some(&participantIds, selector, nil, pluck)
+	if err != nil {
+		return nil, err
+	}
+
+	return participantIds, nil
+}
