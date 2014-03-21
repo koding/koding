@@ -50,8 +50,8 @@ class ActivityAppView extends KDScrollView
 
 
     widgetController.showWidgets [
-      { view: @topWidgetPlaceholder,  key: 'ActivityTop'  }
-      { view: @leftWidgetPlaceholder, key: 'ActivityLeft' }
+      { view: @topWidgetWrapper,  key: 'ActivityTop'  }
+      { view: @leftWidgetWrapper, key: 'ActivityLeft' }
     ]
 
     @inputWidget.on 'ActivitySubmitted', @bound 'activitySubmitted'
