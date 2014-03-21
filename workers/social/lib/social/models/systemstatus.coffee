@@ -21,6 +21,8 @@ module.exports = class JSystemStatus extends Model
           (signature Function)
         checkRealtimeUpdates:
           (signature Function)
+        sendFeedback :
+          (signature Object, Function)
       instance       :
         cancel:
           (signature Function)
@@ -121,3 +123,20 @@ module.exports = class JSystemStatus extends Model
   @checkRealtimeUpdates = secure (client, callback) ->
     {connection: {delegate}} = client
     delegate.sendNotification "healthCheck"
+
+  @sendFeedback = secure (client, options, callback) ->
+    {connection: {delegate}} = client
+    {status, feedback, userAgent} = options
+
+    JMail = require './email'
+    {recipientEmail} = KONFIG.troubleshoot
+    delegate.fetchEmail client, (err, email) ->
+      return callback err  if err
+      mail = new JMail
+        from    : email
+        replyto : email
+        email   : recipientEmail
+        content : "Failed Services: #{status} \n\n User-Agent: #{userAgent} \n\n Feedback: #{feedback}"
+        subject : "Feedback from user: #{delegate.profile.nickname}"
+
+      mail.save callback

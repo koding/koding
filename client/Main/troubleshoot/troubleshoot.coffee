@@ -187,3 +187,13 @@ class Troubleshoot extends KDObject
     @waitingResponse = Object.keys(@items).length
 
     @healthChecker @checkSequence
+
+  sendFeedback: (feedback, callback) ->
+    KD.logToExternal "troubleshoot feedback", {failure:@getFailureFeedback(), feedback}
+    {JSystemStatus} = KD.remote.api
+    JSystemStatus.sendFeedback
+      feedback : feedback
+      status   : @getFailureFeedback()
+      userAgent: navigator.userAgent
+    , callback
+
