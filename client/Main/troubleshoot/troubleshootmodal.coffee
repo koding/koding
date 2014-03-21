@@ -56,7 +56,7 @@ class TroubleshootModal extends KDModalViewWithForms
     @modalTabs.forms.Troubleshoot.fields.result.hide()
 
     troubleshoot.on "recoveryCompleted", =>
-      hideFeedback()  if troubleshoot.isSystemOK()
+      @hideFeedback()  if troubleshoot.isSystemOK()
 
 
     troubleshoot.once "troubleshootCompleted", =>
