@@ -26,6 +26,22 @@ func (a *Account) FetchChannels(q *Query) ([]Channel, error) {
 
 	return channels, nil
 }
+
+func (a *Account) Follow(targetId int64) (*ChannelParticipant, error) {
+	c, err := a.FetchChannel(Channel_TYPE_FOLLOWERS)
+	if err == nil {
+		return c.AddParticipant(targetId)
+	}
+
+	if err == gorm.RecordNotFound {
+		c, err := a.CreateFollowingFeedChannel()
+		if err != nil {
+			return nil, err
+		}
+		return c.AddParticipant(targetId)
+	}
+	return nil, err
+}
 func (a *Account) CreateFollowingFeedChannel() (*Channel, error) {
 	if a.Id == 0 {
 		return nil, errors.New("Account id is not set")
