@@ -74,6 +74,10 @@ func (c *ChannelParticipant) Update() error {
 	return c.m.Update(c)
 }
 
+func (c *ChannelParticipant) Some(data interface{}, rest ...map[string]interface{}) error {
+	return c.m.Some(c, data, rest...)
+}
+
 func (c *ChannelParticipant) FetchParticipant() error {
 	if c.ChannelId == 0 {
 		return errors.New("ChannelId is not set")
