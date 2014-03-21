@@ -38,7 +38,7 @@ class TroubleshootModal extends KDModalViewWithForms
                   itemClass   : TroubleshootStatusView
                 result        :
                   itemClass   : TroubleshootResultView
-                  partial     : "Successfully Completed"
+                  partial     : "Troubleshooting Completed"
                 errors        :
                   # label       : "Errors"
                   itemClass   : TroubleshootErrorView
@@ -54,7 +54,7 @@ class TroubleshootModal extends KDModalViewWithForms
     @hideFeedback()
     @modalTabs.forms.Troubleshoot.buttons.close.hide()
     @modalTabs.forms.Troubleshoot.fields.result.hide()
-    troubleshoot.off "recoveryCompleted"
+
     troubleshoot.on "recoveryCompleted", =>
       hideFeedback()  if troubleshoot.isSystemOK()
 
@@ -80,3 +80,10 @@ class TroubleshootModal extends KDModalViewWithForms
     if KD.singleton("troubleshoot").canBeRecovered()
       @modalTabs.forms.Troubleshoot.buttons.recover.show()
 
+  destroy: ->
+    KD.singleton("troubleshoot").off "recoveryCompleted"
+    {items} = KD.singleton("troubleshoot")
+    for own key, item of items
+      item.off "recoveryStarted"
+      item.off "recoveryCompleted"
+    super
