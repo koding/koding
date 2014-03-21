@@ -104,6 +104,7 @@ class Ace extends KDView
       @addKeyCombo "preview", "Ctrl-Shift-P", => @getDelegate().preview()
       @addKeyCombo "fullscreen", "Ctrl-Enter", => @getDelegate().toggleFullscreen()
       @addKeyCombo "gotoLine", "Ctrl-G", @bound "showGotoLine"
+      @addKeyCombo "gotoLineL", "Ctrl-L", noop
       @addKeyCombo "saveAll", "Ctrl-Alt-S", @bound "saveAllFiles"
       @addKeyCombo "closeTab", "Ctrl-W", "Ctrl-W", @bound "closeTab"
       @addKeyCombo "settings", "Ctrl-,", noop # ace creates a settings view for this shortcut, overriding it.
