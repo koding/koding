@@ -80,8 +80,3 @@ class TroubleshootModal extends KDModalViewWithForms
     if KD.singleton("troubleshoot").canBeRecovered()
       @modalTabs.forms.Troubleshoot.buttons.recover.show()
 
-class TroubleshootResultView extends KDCustomHTMLView
-
-  constructor: (options, data) ->
-    options.cssClass = "troubleshoot-result"
-    super options, data
