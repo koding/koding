@@ -1,5 +1,7 @@
 jraphical   = require 'jraphical'
 KodingError = require '../error'
+{argv}      = require 'optimist'
+KONFIG      = require('koding-config-manager').load("main.#{argv.c}")
 
 module.exports = class JNewApp extends jraphical.Module
 
@@ -34,16 +36,13 @@ module.exports = class JNewApp extends jraphical.Module
 
     sharedEvents        :
       instance          : [
+        { name: 'updateInstance' }
         { name: 'ReviewIsAdded' }
       ]
       static            : []
 
     sharedMethods       :
       instance          :
-        fetchRelativeReviews:
-          (signature Object, Function)
-        review          :
-          (signature String, Function)
         delete          :
           (signature Function)
         approve         : [
@@ -52,7 +51,7 @@ module.exports = class JNewApp extends jraphical.Module
         ]
 
       static            :
-        create          :
+        publish         :
           (signature Object, Function)
         one             :
           (signature Object, Function)
@@ -75,8 +74,6 @@ module.exports = class JNewApp extends jraphical.Module
       'create apps'     : ['member']
       'update own apps' : ['member']
       'delete own apps' : ['member']
-      'list reviews'    : ['member']
-      'create review'   : ['member']
       'approve apps'    : []
       'delete apps'     : []
       'update apps'     : []
@@ -111,6 +108,7 @@ module.exports = class JNewApp extends jraphical.Module
         installed       :
           type          : Number
           default       : 0
+
       versions          : [String]
 
       meta              : require "bongo/bundles/meta"
@@ -118,12 +116,17 @@ module.exports = class JNewApp extends jraphical.Module
 
       type              :
         type            : String
-        enum            : ["Wrong type specified!",["web-app", "add-on", "server-stack", "framework"]]
+        enum            : ["Wrong type specified!",
+          ["web-app", "add-on", "server-stack", "framework"]
+        ]
         default         : "web-app"
 
-      approved          :
-        type            : Boolean
-        default         : false
+      status            :
+        type            : String
+        enum            : ["Wrong status specified!",
+          ["verified", "not-verified", "github-verified"]
+        ]
+        default         : "not-verified"
 
       repliesCount      :
         type            : Number
@@ -140,30 +143,18 @@ module.exports = class JNewApp extends jraphical.Module
 
       group             : String
 
-
     relationships       :
       creator           :
         targetType      : JAccount
         as              : "creator"
-      review            :
-        targetType      : JReview
-        as              : "review"
-      follower          :
-        targetType      : JAccount
-        as              : 'follower'
-      likedBy           :
-        targetType      : JAccount
-        as              : 'like'
-      participant       :
-        targetType      : JAccount
-        as              : ['author','reviewer','user']
-      tag               :
-        targetType      : JTag
-        as              : 'tag'
 
   @getAuthorType =-> JAccount
 
   capitalize = (str)-> str.charAt(0).toUpperCase() + str.slice(1)
+
+  @byRelevance$ = permit 'list apps',
+    success: (client, seed, options, callback)->
+      @byRelevance client, seed, options, callback
 
   @findSuggestions = (client, seed, options, callback)->
     {limit, blacklist, skip}  = options
@@ -178,121 +169,141 @@ module.exports = class JNewApp extends jraphical.Module
       },{skip, limit}, callback
 
 
-  @byRelevance$ = permit 'list apps',
-    success: (client, seed, options, callback)->
-      @byRelevance client, seed, options, callback
+  checkData = (data, profile)->
+    if not data.name or not data.url or not data.manifest
+      return new KodingError 'Name, Url and Manifest is required!'
+    unless typeof(data.manifest) is 'object'
+      return new KodingError 'Manifest should be an object!'
+    unless data.manifest.authorNick is profile.nickname
+      return new KodingError 'Authornick in manifest is different from your username!'
 
-  @create = permit 'create apps',
+  validateUrl = (account, url, callback)->
+
+    url = url.replace /\/$/, ''
+    urls =
+      script : "#{url}/index.js"
+      style  : "#{url}/resources/style.css"
+
+    # If user is admin
+    if account.can 'bypass-validations'
+      return callback null, urls
+
+    # If url points to a vm url
+    if (/^\[([^\]]+)\]/g.exec url)?[1]
+      return callback null, urls
+
+    {appsUri} = KONFIG.client.runtimeOptions
+
+    urlParser =
+      ///
+        ^#{appsUri}\/           # Should start with appsUri (in config.client)
+        ([a-z0-9\-]+)\/         # Username
+        ([a-z0-9\-]+)\.kdapp\/  # App name
+        ([a-z0-9\-]+)$          # Git branch/commit id (usually master)
+      ///i
+
+    [url, githubUsername, app, branch] = (urlParser.exec url) or []
+
+    unless githubUsername
+      return callback new KodingError "URL is not allowed."
+
+    account.fetchUser (err, user)->
+      return callback err  if err?
+
+      unless user.foreignAuth?.github?
+        return callback new KodingError \
+          "There is no linked GitHub account with this account."
+
+      {username} = user.foreignAuth.github
+      if username is not githubUsername
+        return callback new KodingError "Remote username mismatch."
+
+      app = app.replace /\.kdapp$/, ''
+      # TODO - Add existence check from remote url ~ GG
+      callback null, urls, {githubVerified: yes, app, githubUsername}
+
+  # TODO ~ GG
+
+  @publish = permit 'create apps',
 
     success: (client, data, callback)->
-
-      console.log "creating the JNewApp"
 
       {connection:{delegate}} = client
       {profile} = delegate
 
-      if not data.name or not data.urls?.script
-        return callback new KodingError 'Name and Url is required!'
+      console.info "publishing the JNewApp of #{profile.nickname}"
 
-      data.name = capitalize @slugify data.name
+      if validationError = checkData data, profile
+        return callback validationError
 
-      data.manifest           ?= {}
-
-      # Overwrite the user/app information in manifest
-      data.manifest.name       = data.name
-      data.manifest.authorNick = profile.nickname
-      data.manifest.author     = "#{profile.firstName} #{profile.lastName}"
-
-      # Optionals
-      data.manifest.version   ?= "1.0"
-      data.identifier         ?= "com.koding.apps.#{data.name.toLowerCase()}"
-
-      app           = new JNewApp
-        name        : data.name
-        title       : data.name
-        urls        : data.urls
-        type        : data.type or 'web-app'
-        manifest    : data.manifest
-        identifier  : data.identifier
-        version     : data.manifest.version
-        originId    : delegate.getId()
-        group       : client.context.group
-
-      app.save (err)->
+      validateUrl delegate, data.url, (err, urls, details)=>
         return callback err  if err
-        slug = "Apps/#{app.manifest.authorNick}/#{app.name}"
-        app.useSlug slug, (err, slugobj)->
-          if err then return app.remove -> callback err
-          slug = slugobj.slug
-          app.update {$set: {slug, slug_: slug}}, (err)->
-            console.warn "Slug update failed for #{slug}", err  if err
-          app.addCreator delegate, (err)->
-            return callback err  if err
-            callback null, app
 
-  fetchRelativeReviews: permit 'list reviews',
+        data.urls = urls
+        data.name = capitalize @slugify data.name
+        {name, manifest:{authorNick}} = data
 
-    success: (client, {offset, limit, before, after}, callback)->
+        # Make sure the app name and the GitHub url matches if exists
+        if details?
+          if details.app isnt data.name
+            return callback \
+              new KodingError "GitHub repository and application name mismatch."
 
-      limit  ?= 10
-      offset ?= 0
-      if before? and after?
-        callback new KodingError "Don't use before and after together."
-      selector = timestamp:
-        if before? then  $lt: before
-        else if after? then $gt: after
-      options = {sort: timestamp: -1}
-      if limit > 0
-        options.limit = limit
-      if offset > 0
-        options.skip = offset
-      @fetchReviews selector, options, callback
+          data.manifest.repository = \
+            "git://github.com/#{details.githubUsername}/#{details.app}.kdapp"
 
-  review: permit 'create review',
+        # Overwrite the user/app information in manifest
+        data.manifest.name       = data.name
+        data.manifest.authorNick = profile.nickname
+        data.manifest.author     = "#{profile.firstName} #{profile.lastName}"
 
-    success: (client, body, callback)->
+        # Optionals
+        data.manifest.version   ?= "1.0"
+        data.identifier         ?= "com.koding.apps.#{data.name.toLowerCase()}"
 
-      {delegate} = client.connection
+        JNewApp.one {name, 'manifest.authorNick':authorNick}, (err, app)->
 
-      review = new JReview  { body }
-      review.sign delegate
-      review.save (err)=>
-        return callback err  if err
-        delegate.addContent review, (err)=>
-          console.error 'JNewApp:', err  if err
-        @addReview review, (err, docs)=>
           return callback err  if err
-          Relationship.count
-            sourceId : @getId()
-            as       : 'review'
-          , (err, count)=>
-            return callback err  if err
-            @update $set: repliesCount: count, (err)=>
+
+          appData =
+            name        : data.name
+            title       : data.name
+            urls        : data.urls
+            type        : data.type or 'web-app'
+            manifest    : data.manifest
+            identifier  : data.identifier
+            version     : data.manifest.version
+            originId    : delegate.getId()
+            group       : client.context.group
+            status      : if details?.githubVerified? \
+                          then 'github-verified' else 'not-verified'
+
+          if app
+
+            app.update $set: appData, (err)->
               return callback err  if err
-              callback null, review
+              callback null, app
 
-              @fetchCreator (err, origin)=>
-                return console.error "JNewApp:", err  if err
-                @emit 'ReviewIsAdded',
-                  origin        : origin
-                  subject       : ObjectRef(@).data
-                  actorType     : 'reviewer'
-                  actionType    : 'review'
-                  replier       : ObjectRef(delegate).data
-                  reply         : ObjectRef(review).data
-                  repliesCount  : count
-                  relationship  : docs[0]
+          else
 
-                @follow client, emitActivity: no, (err)->
-                  console.error "JNewApp:", err  if err
-                @addParticipant delegate, 'reviewer', (err)->
-                  console.error "JNewApp:", err  if err
+            app = new JNewApp appData
+            app.save (err)->
+              return callback err  if err
+              slug = "#{app.manifest.authorNick}/Apps/#{app.name}"
+              app.useSlug slug, (err, slugobj)->
+                if err then return app.remove -> callback err
+                slug = slugobj.slug
+                app.update {$set: {slug, slug_: slug}}, (err)->
+                  console.warn "Slug update failed for #{slug}", err  if err
+                app.addCreator delegate, (err)->
+                  return callback err  if err
+                  callback null, app
 
   getDefaultSelector = (client, selector)->
     {delegate}   = client.connection
     selector   or= {}
     selector.$or = [
-      {approved  : yes}
+      {status    : $ne : 'not-verified'}
       {originId  : delegate.getId()}
     ]
     return selector
@@ -339,16 +350,14 @@ module.exports = class JNewApp extends jraphical.Module
     success: (client, callback)->
       @remove callback
 
-      JName.one {@name}, (err, jname)->
-        return console.error "Failed to get JName: ", err  if err
-        jname?.remove (err)->
-          console.error "Failed to remove JName: ", err  if err
+      removeJNames = (names)->
+        names.forEach (name)->
+          JName.one {name}, (err, jname)->
+            return console.error "Failed to get JName: ", err  if err
+            jname?.remove (err)->
+              console.error "Failed to remove JName: ", err  if err
 
-      JName.one {name:@slug}, (err, jname)->
-        return console.error "Failed to get JName: ", err  if err
-        jname?.remove (err)->
-          console.error "Failed to remove JName: ", err  if err
-
+      removeJNames [@name, @slug]
 
   approve: permit 'approve apps',
 
@@ -382,7 +391,8 @@ module.exports = class JNewApp extends jraphical.Module
             name.save (err) ->
               console.error "Failed to save JName: ", err  if err
 
-        @update $set: approved: state, callback
+        status = if state then 'verified' else 'not-verified'
+        @update $set: {status}, callback
 
       # identifier = @getAt 'identifier'
 
@@ -503,6 +513,112 @@ module.exports = class JNewApp extends jraphical.Module
     #                   callback err
     #                 else
     #                   callback null, app
+
+  # @create = permit 'create apps',
+
+  #   success: (client, data, callback)->
+
+  #     console.log "creating the JNewApp"
+
+  #     {connection:{delegate}} = client
+  #     {profile} = delegate
+
+  #     if not data.name or not data.urls?.script
+  #       return callback new KodingError 'Name and Url is required!'
+
+  #     data.name = capitalize @slugify data.name
+
+  #     data.manifest           ?= {}
+
+  #     # Overwrite the user/app information in manifest
+  #     data.manifest.name       = data.name
+  #     data.manifest.authorNick = profile.nickname
+  #     data.manifest.author     = "#{profile.firstName} #{profile.lastName}"
+
+  #     # Optionals
+  #     data.manifest.version   ?= "1.0"
+  #     data.identifier         ?= "com.koding.apps.#{data.name.toLowerCase()}"
+
+  #     app           = new JNewApp
+  #       name        : data.name
+  #       title       : data.name
+  #       urls        : data.urls
+  #       type        : data.type or 'web-app'
+  #       manifest    : data.manifest
+  #       identifier  : data.identifier
+  #       version     : data.manifest.version
+  #       originId    : delegate.getId()
+  #       group       : client.context.group
+
+  #     app.save (err)->
+  #       return callback err  if err
+  #       slug = "Apps/#{app.manifest.authorNick}/#{app.name}"
+  #       app.useSlug slug, (err, slugobj)->
+  #         if err then return app.remove -> callback err
+  #         slug = slugobj.slug
+  #         app.update {$set: {slug, slug_: slug}}, (err)->
+  #           console.warn "Slug update failed for #{slug}", err  if err
+  #         app.addCreator delegate, (err)->
+  #           return callback err  if err
+  #           callback null, app
+
+  # fetchRelativeReviews: permit 'list reviews',
+
+  #   success: (client, {offset, limit, before, after}, callback)->
+
+  #     limit  ?= 10
+  #     offset ?= 0
+  #     if before? and after?
+  #       callback new KodingError "Don't use before and after together."
+  #     selector = timestamp:
+  #       if before? then  $lt: before
+  #       else if after? then $gt: after
+  #     options = {sort: timestamp: -1}
+  #     if limit > 0
+  #       options.limit = limit
+  #     if offset > 0
+  #       options.skip = offset
+  #     @fetchReviews selector, options, callback
+
+  # review: permit 'create review',
+
+  #   success: (client, body, callback)->
+
+  #     {delegate} = client.connection
+
+  #     review = new JReview  { body }
+  #     review.sign delegate
+  #     review.save (err)=>
+  #       return callback err  if err
+  #       delegate.addContent review, (err)=>
+  #         console.error 'JNewApp:', err  if err
+  #       @addReview review, (err, docs)=>
+  #         return callback err  if err
+  #         Relationship.count
+  #           sourceId : @getId()
+  #           as       : 'review'
+  #         , (err, count)=>
+  #           return callback err  if err
+  #           @update $set: repliesCount: count, (err)=>
+  #             return callback err  if err
+  #             callback null, review
+
+  #             @fetchCreator (err, origin)=>
+  #               return console.error "JNewApp:", err  if err
+  #               @emit 'ReviewIsAdded',
+  #                 origin        : origin
+  #                 subject       : ObjectRef(@).data
+  #                 actorType     : 'reviewer'
+  #                 actionType    : 'review'
+  #                 replier       : ObjectRef(delegate).data
+  #                 reply         : ObjectRef(review).data
+  #                 repliesCount  : count
+  #                 relationship  : docs[0]
+
+  #               @follow client, emitActivity: no, (err)->
+  #                 console.error "JNewApp:", err  if err
+  #               @addParticipant delegate, 'reviewer', (err)->
+  #                 console.error "JNewApp:", err  if err
 
   # install: secure ({connection}, callback)->
   #   {delegate} = connection

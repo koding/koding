@@ -1,28 +1,31 @@
 class CollaborativeEditorPane extends CollaborativePane
 
-  cdnRoot = "https://koding-cdn.s3.amazonaws.com/codemirror/latest"
+  @cdnRoot = cdnRoot = "https://koding-cdn.s3.amazonaws.com/codemirror/latest"
 
   constructor: (options = {}, data) ->
 
     super options, data
 
     @container.on "viewAppended", =>
-      @createEditor()
-      @ref        = @workspace.firebaseRef.child @sessionKey
-      @firepad    = Firepad.fromCodeMirror @ref, @codeMirrorEditor
+      @createEditor =>
+        @ref        = @workspace.firebaseRef.child @sessionKey
+        @firepad    = Firepad.fromCodeMirror @ref, @codeMirrorEditor
 
-      @firepad.on "ready", =>
-        @firepad.setText " " if @firepad.isHistoryEmpty() # fix for a firepad bug
-        @codeMirrorEditor.scrollTo 0, 0
-        {file, content} = @getOptions()
-        return @openFile file, content  if file
+        @firepad.on "ready", =>
+          if @firepad.isHistoryEmpty() # fix for a firepad bug
+            @firepad.setText " "
+            @firepad.setText ""
+          @codeMirrorEditor.scrollTo 0, 0
+          {file, content} = @getOptions()
+          @emit 'ready'
+          return @openFile file, content  if file
 
-      if @amIHost
-        @ref.on "value", (snapshot) =>
-          value = @workspace.reviveSnapshot snapshot
-          return unless value
-          if value.WaitingSaveRequest is yes
-            return @save()
+        if @amIHost
+          @ref.on "value", (snapshot) =>
+            value = @workspace.reviveSnapshot snapshot
+            return unless value
+            if value.WaitingSaveRequest is yes
+              return @save()
 
   openFile: (file, content) ->
     @setData file
@@ -34,6 +37,7 @@ class CollaborativeEditorPane extends CollaborativePane
 
     @codeMirrorEditor.scrollTo 0, 0
     @emit "OpenedAFile", file, content
+    @setEditorMode file.getExtension()
 
   save: ->
     file        = @getData()
@@ -59,7 +63,8 @@ class CollaborativeEditorPane extends CollaborativePane
   setValue: (value) ->
     @codeMirrorEditor.setValue value
 
-  createEditor: ->
+  createEditor: (callback)->
+
     @codeMirrorEditor = CodeMirror @container.getDomElement()[0],
       lineNumbers     : yes
       scrollPastEnd   : yes
@@ -69,7 +74,9 @@ class CollaborativeEditorPane extends CollaborativePane
         "Ctrl-S"      : @bound "handleSave"
 
     @setEditorTheme()
-    @setEditorMode()
+    @setEditorMode 'html'
+
+    callback?()
 
   handleSave: ->
     @save()
@@ -77,24 +84,25 @@ class CollaborativeEditorPane extends CollaborativePane
       message: "$0 saved #{@getData().name}"
       by     : KD.nick()
 
-  setEditorTheme: ->
-    if document.getElementById "codemirror-ambiance-style"
-      return  @codeMirrorEditor.setOption "theme", "ambiance"
-    link       = document.createElement "link"
-    link.rel   = "stylesheet"
-    link.type  = "text/css"
-    link.href  = "#{cdnRoot}/theme/ambiance.css"
-    link.id    = "codemirror-ambiance-style"
-    document.head.appendChild link
-    @codeMirrorEditor.setOption "theme", "ambiance"
+  setEditorTheme: (theme = 'ambiance')->
 
-  setEditorMode: ->
-    {file} = @getOptions()
+    styleId = "codemirror-#{theme}-style"
 
-    return  unless file
+    unless document.getElementById styleId
+      link       = document.createElement "link"
+      link.rel   = "stylesheet"
+      link.type  = "text/css"
+      link.href  = "#{cdnRoot}/theme/#{theme}.css"
+      link.id    = styleId
+      document.head.appendChild link
+
+    @codeMirrorEditor.setOption "theme", theme
+
+  setEditorMode:(fileExtension) ->
+
+    return  unless fileExtension
 
     CodeMirror.modeURL = "#{cdnRoot}/mode/%N/%N.js"
-    fileExtension      = file.getExtension()
     syntaxHandler      = __aceSettings.syntaxAssociations[fileExtension]
     modeName           = "htmlmixed"
     corrections        =
@@ -102,6 +110,7 @@ class CollaborativeEditorPane extends CollaborativePane
       json             : "javascript"
       js               : "javascript"
       go               : "go"
+      coffee           : "coffeescript"
 
     if corrections[fileExtension]
       modeName = corrections[fileExtension]

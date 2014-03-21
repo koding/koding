@@ -257,7 +257,7 @@ class NFinderTreeController extends JTreeViewController
   createFile:(nodeView, type = "file")->
     @notify "creating a new #{type}!"
     nodeData = nodeView.getData()
-    
+
     { vmName } = nodeData
 
     if nodeData.type is "file"
