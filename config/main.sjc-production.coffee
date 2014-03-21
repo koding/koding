@@ -69,6 +69,7 @@ module.exports =
   compileGo     : no
   buildClient   : yes
   runOsKite     : no
+  runTerminalKite: no
   runProxy      : no
   redis         : "172.16.3.13:6379"
   misc          :
