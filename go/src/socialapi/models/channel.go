@@ -70,6 +70,15 @@ func NewChannel() *Channel {
 	}
 }
 
+func (c *Channel) BeforeCreate() {
+	c.CreatedAt = time.Now()
+	c.UpdatedAt = time.Now()
+}
+
+func (c *Channel) BeforeUpdate() {
+	c.UpdatedAt = time.Now()
+}
+
 func (c *Channel) GetId() int64 {
 	return c.Id
 }
