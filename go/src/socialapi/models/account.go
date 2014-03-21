@@ -1,5 +1,13 @@
 package models
 
+import (
+	"errors"
+	"fmt"
+	"socialapi/db"
+
+	"github.com/jinzhu/gorm"
+)
+
 type Account struct {
 	// unique id of the account
 	Id int64
