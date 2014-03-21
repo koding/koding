@@ -1,4 +1,4 @@
-@import "../../Framework/themes/default/kdfn"
+@import "../../Framework/src/themes/default/kdfn"
 @import "../../Main/styl/appfn"
 
 @css {
@@ -45,6 +45,160 @@ body.terminal #main-header
         color    #fff
       &:visited
         color    #eee
+
+  .kdtabpaneview.intro
+    overflow        auto
+
+    main
+      size          100% auto
+      margin        0 auto
+      max-width     984px
+
+      > figure
+        size        524px 295px
+        margin      0 auto
+        border      3px solid #252e30
+        borderBox()
+
+      ul
+        size            530px auto
+        color           #999
+        margin          0 auto 40px
+
+    h1
+      font-size     32px
+      font-weight   100
+      line-height   1
+      padding       30px 0 0
+      text-align    center
+      color         logoBg
+
+    h2
+    h3
+      font-size     16px
+      font-weight   200
+      line-height   1
+      padding       10px 0 30px
+      text-align    center
+      color         #3F493F
+
+    h3
+      margin        0 auto
+      size          530px auto
+      padding       20px 0 10px 6px
+      text-align    left
+      borderBox()
+
+li.vm-loader-item
+  display             block
+  height              30px
+  line-height         30px
+  font-size           14px
+  font-weight         200
+  border-bottom       2px solid #252e30
+  padding-left        30px
+  cursor              pointer
+  borderBox()
+  rel()
+  &:hover
+    figure
+      opacity         1
+  &.ready
+    i
+      color           logoBg
+    cite
+      width           100% !important
+      opacity         .1
+    &:hover
+      i
+        &:before
+          margin-right    10px
+          text-transform  none
+          color           #757575
+          content         'click to open terminal'
+
+  &.off
+    i
+      color           #FF7379
+    cite
+      width           0% !important
+      bg              color #FF7379
+    &:hover
+      i:before
+        margin-right    10px
+        text-transform  none
+        color           #757575
+        content         'click to turn on your VM'
+
+  figure
+    top               9px
+    left              6px
+    opacity           .4
+    display           block
+    r-sprite          environments 'terminal'
+    abs()
+  .kdloader
+    top               -2px
+    left              0
+    bg                color #1D2628
+    size              30px 30px
+    display           block
+    abs()
+  i
+    text-transform    uppercase
+    right             6px
+    top               1px
+    font-size         11px
+    font-weight       400
+    min-width         200px
+    text-align        right
+    abs()
+
+  cite
+    abs()
+    height            2px
+    bg                color transparent
+    left              0
+    top               28px
+    vendor            transition, width .1s linear \,\
+                                  opacity .1s linear\,\
+                                  background-color .1s linear
+    width             0%
+    opacity           .3
+
+.kdmodal.vm-selection
+  ul
+    size                  auto auto
+    overflow              hidden
+    li
+      height              40px
+      line-height         40px
+      border-bottom       1px solid #eee
+      padding-left        0
+      &.ready
+        color             logoBg
+      &.off
+        color             #FF7379
+      figure
+      .kdloader
+      i
+        hidden()
+      cite
+        height            1px
+        top               39px
+
+.application-tab-handle-holder.terminal
+
+  .kdtabhandle.intro
+    padding         0
+    bg              color #252e30
+    size            40px 37px
+    max-width       40px !important
+
+    span.home
+      display       block
+      r-sprite      'app' '20-home-icon'
+      margin        8px 10px
 
 .vm-info
 

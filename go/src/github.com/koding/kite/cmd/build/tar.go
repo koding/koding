@@ -3,12 +3,13 @@ package build
 import (
 	"errors"
 	"io/ioutil"
-	"github.com/koding/kite/cmd/util"
-	"github.com/koding/kite/cmd/util/deps"
 	"log"
 	"os"
 	"path/filepath"
 	"strings"
+
+	"github.com/koding/kite/cmd/util"
+	"github.com/koding/kite/cmd/util/deps"
 )
 
 type Tar struct {

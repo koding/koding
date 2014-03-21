@@ -30,14 +30,14 @@ func (vm *VM) MergePasswdFile() error {
 			return nil // no file in upper, no need to merge
 		}
 		if err := os.Rename(passwdFile, passwdFile+"_corrupt_"+time.Now().Format(time.RFC3339)); err != nil {
-			panic(err)
+			return err
 		}
 		return fmt.Errorf("Renamed /etc/passwd file, because it was corrupted.", vm.String(), err)
 	}
 
 	lowerUsers, err := ReadPasswd(vm.LowerdirFile("/etc/passwd"))
 	if err != nil {
-		panic(err)
+		return err
 	}
 	for uid, user := range lowerUsers {
 		users[uid] = user
@@ -45,7 +45,7 @@ func (vm *VM) MergePasswdFile() error {
 
 	err = WritePasswd(users, passwdFile)
 	if err != nil {
-		panic(err)
+		return err
 	}
 	os.Chown(passwdFile, RootIdOffset, RootIdOffset)
 
@@ -60,14 +60,14 @@ func (vm *VM) MergeGroupFile() error {
 			return nil // no file in upper, no need to merge
 		}
 		if err := os.Rename(groupFile, groupFile+"_corrupt_"+time.Now().Format(time.RFC3339)); err != nil {
-			panic(err)
+			return err
 		}
 		return fmt.Errorf("Renamed /etc/group file, because it was corrupted.", vm.String(), err)
 	}
 
 	lowerGroups, err := ReadGroup(vm.LowerdirFile("/etc/group"))
 	if err != nil {
-		panic(err)
+		return err
 	}
 	for gid, group := range lowerGroups {
 		if groups[gid] != nil {
@@ -79,7 +79,7 @@ func (vm *VM) MergeGroupFile() error {
 	}
 
 	if err := WriteGroup(groups, groupFile); err != nil {
-		panic(err)
+		return err
 	}
 	os.Chown(groupFile, RootIdOffset, RootIdOffset)
 	return nil

@@ -1,23 +1,5 @@
 class WebTermView extends KDView
 
-  @setTerminalTimeout = (vmName,  delayMs, isRunningCallback, isStartedCallback = (->), isFinishedCallback = (->)) ->
-    vmController = KD.getSingleton 'vmController'
-    vmController.info vmName, KD.utils.getTimedOutCallback (err, vm, info)=>
-      if err
-        KD.logToExternal "oskite: Error opening Webterm", vmName, err
-        KD.mixpanel "Open Webterm, fail", {vmName}
-
-      if info?.state is 'RUNNING'
-        isRunningCallback()
-      else
-        vmController.start vmName, (err, state)=>
-          return warn "Failed to turn on vm:", err  if err
-          isStartedCallback()
-      KD.mixpanel "Open Webterm, success", {vmName}
-
-    , isFinishedCallback
-    , delayMs
-
   constructor: (options = {}, data) ->
     super options, data
 
@@ -94,13 +76,17 @@ class WebTermView extends KDView
       mode        : myOptions.mode      ? 'create'
 
   getVMName:->
-    delegateOptions = @getDelegate().getOptions()
-    myOptions       = @getOptions()
-    return myOptions.vmName or delegateOptions.vmName
+
+    if vm = @getOption 'vm'
+      { hostnameAlias: vmName } = vm
+
+    vmName = @getDelegate().getOption "vmName"  unless vmName
+
+    return vmName
 
   webtermConnect:(mode)->
-    return console.info "reconnection is in progrees" if @reconnectionInPrgress
-    @reconnectionInPrgress = yes
+    return console.info "reconnection is in progress" if @reconnectionInProgress
+    @reconnectionInProgress = yes
     options = @generateOptions()
     options.mode = mode   if mode
     KD.getSingleton("vmController").run
@@ -111,15 +97,19 @@ class WebTermView extends KDView
       if err
         warn err
         if err.code is "ErrInvalidSession"
-          @reconnectionInPrgress = false
+          @reconnectionInProgress = false
           @emit 'TerminalCanceled',
             vmName: @getVMName()
             sessionId: @getOptions().session
             error: err
           return
         else
-          @reconnectionInPrgress = false
+          @reconnectionInProgress = false
           throw err
+
+      unless remote?
+        console.warn "Terminal: No remote object was received!"
+        return
 
       @setOption "session", remote.session
       @terminal.eventHandler = (data)=> @emit "WebTermEvent", data
@@ -128,7 +118,7 @@ class WebTermView extends KDView
 
       @emit "WebTermConnected", remote
       console.error "just connected"  if mode is "resume"
-      @reconnectionInPrgress = false
+      @reconnectionInProgress = false
 
   connectToTerminal: ->
     @appStorage = KD.getSingleton('appStorageController').storage 'Terminal', '1.0.1'
@@ -141,18 +131,6 @@ class WebTermView extends KDView
       @updateSettings()
 
       @webtermConnect()
-
-      KD.getSingleton("vmController").getKite @getVMName(), (kite)=>
-        kite.on 'destroy', =>
-          console.error "Couldn't connect to your VM. Trying to reconnect...(err:oskite)"
-          @webtermConnect("resume")
-
-      # todo do not leak events
-      KD.kite.mq.on "broker.error", (err)=>
-        console.error "Couldn't connect to your VM. Trying to reconnect...(err:broker)"
-        if err.code is 404
-          KD.getSingleton("vmController").getKite @getVMName(), (kite)=>
-            @webtermConnect("resume")
 
     KD.getSingleton("kiteController").on "KiteError", (err) =>
       console.log "kite errr", err
@@ -262,6 +240,7 @@ class WebTermView extends KDView
 
   restoreRange: ->
     range = @utils.getSelectionRange()
+    return  unless range
     return  if range.startOffset is range.endOffset and range.startContainer is range.endContainer
     @utils.defer =>
       @utils.addRange range

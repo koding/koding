@@ -4,6 +4,7 @@ KD.extend
   apiUri       : KD.config.apiUri
   appsUri      : KD.config.appsUri
   singleton    : KD.getSingleton.bind KD
+  useNewKites  : no
   appClasses   : {}
   appScripts   : {}
   appLabels    : {}
@@ -115,6 +116,8 @@ KD.extend
   getAppClass        :(name)-> KD.appClasses[name]?.fn or null
 
   getAppOptions      :(name)-> KD.appClasses[name]?.options or null
+
+  getAppVersion      :(name)-> KD.appClasses[name]?.options?.version or null
 
   getAppScript       :(name)-> @appScripts[name] or null
 

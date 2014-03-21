@@ -2,13 +2,22 @@ class AppsAppController extends AppController
 
   handler = (callback)-> KD.singleton('appManager').open 'Apps', callback
 
+  getAppInstance = (route, callback)->
+    {app, username} = route.params
+    return callback null  unless app
+    KD.remote.api.JNewApp.one slug:"#{username}/Apps/#{app}", callback
+
   KD.registerAppClass this,
     name         : "Apps"
     enforceLogin : yes
     routes       :
-      "/:name?/Apps"             : ({params, query})->
+      "/:name?/Apps" : ({params, query})->
         handler (app)-> app.handleQuery query
-      "/:name?/Apps/:username/:app?" : (arg)-> handler (app)-> app.handleRoute arg
+      "/:name?/Apps/:username/:app?" : (route)->
+        {username} = route.params
+        return  if username[0] is username[0].toUpperCase()
+        handler (app)-> app.handleRoute route
+
     hiddenHandle : yes
     searchRoute  : "/Apps?q=:text:"
     behaviour    : 'application'
@@ -23,18 +32,42 @@ class AppsAppController extends AppController
 
     super options, data
 
+    @_verifiedOnly = yes
+
   loadView:(mainView, firstRun = yes, loadFeed = no)->
+
     if firstRun
+
       @on "searchFilterChanged", (value) =>
         return if value is @_searchValue
+
         @_searchValue = Encoder.XSSEncode value
         @_lastSubview.destroy?()
         @loadView mainView, no, yes
 
       mainView.createCommons()
+
     @createFeed mainView, loadFeed
 
+  doQuery:(selector, options, callback)->
+
+    if selector['manifest.authorNick'] is KD.nick()
+
+      @_verifiedSwitch?.hide()
+      @_verifiedSwitchLabel?.hide()
+
+    else
+
+      @_verifiedSwitch?.show()
+      @_verifiedSwitchLabel?.show()
+
+      if @_verifiedOnly
+        selector['status'] = 'verified'
+
+    KD.remote.api.JNewApp.some selector, options, callback
+
   createFeed:(view, loadFeed = no)->
+
     options =
       feedId                : 'apps.main'
       itemClass             : AppsListItemView
@@ -42,67 +75,64 @@ class AppsAppController extends AppController
       delegate              : this
       useHeaderNav          : yes
       filter                :
+
         allApps             :
+
           title             : "All Apps"
           noItemFoundText   : "There is no application yet"
           dataSource        : (selector, options, callback)=>
             {JNewApp} = KD.remote.api
             if @_searchValue
-              JNewApp.byRelevance @_searchValue, options, callback
-            else
-              JNewApp.some selector, options, callback
+            then JNewApp.byRelevance @_searchValue, options, callback
+            else @doQuery selector, options, callback
+
+        myApps              :
+          title             : "My Apps"
+          noItemFoundText   : "You don't have any apps yet"
+          dataSource        : (selector, options, callback)=>
+            selector['manifest.authorNick'] = KD.nick()
+            @doQuery selector, options, callback
+
         webApps             :
           title             : "Web Apps"
           noItemFoundText   : "There is no web apps yet"
           dataSource        : (selector, options, callback)=>
             selector['manifest.category'] = 'web-app'
-            KD.remote.api.JNewApp.some selector, options, callback
+            @doQuery selector, options, callback
+
         kodingAddOns        :
           title             : "Add-ons"
           noItemFoundText   : "There is no add-ons yet"
           dataSource        : (selector, options, callback)=>
             selector['manifest.category'] = 'add-on'
-            KD.remote.api.JNewApp.some selector, options, callback
+            @doQuery selector, options, callback
+
         serverStacks        :
           title             : "Server Stacks"
           noItemFoundText   : "There is no server-stacks yet"
           dataSource        : (selector, options, callback)=>
             selector['manifest.category'] = 'server-stack'
-            KD.remote.api.JNewApp.some selector, options, callback
+            @doQuery selector, options, callback
+
         frameworks          :
           title             : "Frameworks"
           noItemFoundText   : "There is no frameworks yet"
           dataSource        : (selector, options, callback)=>
             selector['manifest.category'] = 'framework'
-            KD.remote.api.JNewApp.some selector, options, callback
+            @doQuery selector, options, callback
+
         miscellaneous       :
           title             : "Miscellaneous"
           noItemFoundText   : "There is no miscellaneous app yet"
           dataSource        : (selector, options, callback)=>
             selector['manifest.category'] = 'misc'
-            KD.remote.api.JNewApp.some selector, options, callback
+            @doQuery selector, options, callback
 
       sort                  :
+
         'meta.modifiedAt'   :
           title             : "Latest activity"
           direction         : -1
-        'counts.followers'  :
-          title             : "Most popular"
-          direction         : -1
-        'counts.tagged'     :
-          title             : "Most activity"
-          direction         : -1
-
-      help                  :
-        subtitle            : "Learn About Apps"
-        bookIndex           : 26
-        tooltip :
-          title     : "<p class=\"bigtwipsy\">The App Catalog contains apps and Koding enhancements contributed to the community by users.</p>"
-          placement : "above"
-          offset    : 0
-          delayIn   : 300
-          html      : yes
-          animate   : yes
 
     if KD.checkFlag 'super-admin'
       options.filter.waitsForApprove =
@@ -110,32 +140,39 @@ class AppsAppController extends AppController
         dataSource        : (selector, options, callback)=>
           KD.remote.api.JNewApp.some_ selector, options, callback
 
-    KD.getSingleton("appManager").tell 'Feeder', 'createContentFeedController', options, (controller)=>
+    KD.getSingleton("appManager").tell 'Feeder', \
+      'createContentFeedController', options, (controller)=>
 
-      view.addSubView @_lastSubview = controller.getView()
-      @feedController = controller
-      controller.loadFeed() if loadFeed
-      @emit 'ready'
+        @_verifiedSwitchLabel = new KDLabelView
+          cssClass : 'verified-switch-label'
+          title : "Verified applications only"
+
+        @_verifiedSwitch = new KodingSwitch
+          cssClass      : 'verified-switch tiny'
+          defaultValue  : @_verifiedOnly
+          callback      : (state) =>
+            @_verifiedOnly = state
+            @feedController.reload()
+
+        feed = controller.getView()
+        feed.addSubView @_verifiedSwitchLabel
+        feed.addSubView @_verifiedSwitch
+
+        view.addSubView @_lastSubview = feed
+        @feedController = controller
+        controller.loadFeed()  if loadFeed
+        @emit 'ready'
 
   handleQuery:(query)->
     @ready =>
-      {q} = query
-      if q
-        @emit "searchFilterChanged", q
-      else
-        @emit "searchFilterChanged", ""
+      if query.q? or @_searchValue
+        @emit "searchFilterChanged", query.q or ""
+      @feedController.handleQuery query, force: yes
 
   handleRoute:(route)->
 
-    {app, username} = route.params
-    {JNewApp}      = KD.remote.api
-    if app
-      log "slug:", slug = "Apps/#{username}/#{app}"
-      JNewApp.one {slug}, (err, app)=>
-        log "FOUND THIS JAPP", err, app
-        if app then @showContentDisplay app
-
-    log "HANDLING", route
+    getAppInstance route, (err, app)=>
+      if not err and app then @showContentDisplay app
 
   showContentDisplay:(content)->
 

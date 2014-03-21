@@ -152,6 +152,8 @@ module.exports =
     useStaticFileServer: no
     staticFilesBaseUrl: "https://koding.com"
     runtimeOptions:
+      osKitePollingMs: 1000 * 60 # 1 min
+      userIdleMs: 1000 * 60 * 5 # 5 min
       sessionCookie :
         maxAge      : cookieMaxAge
         secure      : cookieSecure
@@ -182,7 +184,7 @@ module.exports =
         servicesEndpoint: "/-/services/premiumBrokerKite"
         brokerExchange: 'premiumBrokerKite'
       apiUri    : 'https://koding.com'
-      appsUri   : 'https://koding-apps.s3.amazonaws.com'
+      appsUri   : 'https://rest.kd.io'
       uploadsUri: 'https://koding-uploads.s3.amazonaws.com'
       uploadsUriForGroup: 'https://koding-groups.s3.amazonaws.com'
       sourceUri : "http://stage-webserver-#{version}.sj.koding.com:1337"

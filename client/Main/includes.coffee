@@ -6,6 +6,7 @@ module.exports = [
   "libs/accounting.js",
   "libs/bluebird.js",
 
+
   # --- Application ---
   "utils.coffee"
   "KD.extend.coffee" # our extensions to KD global
@@ -18,6 +19,7 @@ module.exports = [
   "linkcontroller.coffee",
   "oauthcontroller.coffee",
   "widgetcontroller.coffee",
+  "localsynccontroller.coffee",
 
   # onboarding
   "onboarding/onboardingviewcontroller.coffee",
@@ -62,6 +64,9 @@ module.exports = [
   "CommonViews/activitywidgetitem.coffee",
   "CommonViews/activitywidget.coffee",
   "CommonViews/uploadimagemodalview.coffee",
+
+  # idle detection
+  "idleuserdetector.coffee"
 
   # junction
   "junction/junction.coffee"
@@ -132,10 +137,7 @@ module.exports = [
 
   "CommonViews/ModalViewWithTerminal.coffee",
   "CommonViews/clonerepomodal.coffee",
-
   "CommonViews/memberautocomplete.coffee",
-
-  "kodingappcontroller.coffee",
 
   "navigation/navigationlist.coffee",
   "navigation/navigationlink.coffee",
@@ -221,9 +223,17 @@ module.exports = [
   "channels/kitechannel.coffee",
   "ApplicationManager.coffee",
   "AppController.coffee",
-  "kodingappscontroller.coffee",
   "AppStorage.coffee",
   "localstorage.coffee",
+
+  # 3rd Parties
+  "extras/github/api.coffee",
+  "extras/github/views/githubmodal.coffee",
+  "extras/github/views/githubrepoitem.coffee",
+
+  # Application Backend
+  "kodingappscontroller.coffee",
+  "CommonViews/kodingappselectorforgithub.coffee",
 
   # CONTENT DISPLAY VIEWS
   "ContentDisplay/ContentDisplay.coffee",
@@ -233,9 +243,13 @@ module.exports = [
 
   # KITE CONTROLLER
   "kite/kite.coffee",
+  "kite/kite2.coffee",
+  "kite/oskite.coffee",
   "kite/kitecontroller.coffee",
-  "kite/newkite.coffee"
+  "kite/newkite.coffee",
+  "kite/vm.coffee", # TODO: this doesn't really belong here.
   "kite/kontrol.coffee"
+  "kite/kitewrapper.coffee"
   "kite/kitehelper.coffee"
   # Virtualization CONTROLLER
   "VirtualizationController.coffee",

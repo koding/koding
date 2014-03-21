@@ -17,6 +17,15 @@ class KodingAppsController extends KDController
 
       @emit 'ready'
 
+    KD.singletons.router.addRoute "/:name?/Apps/:username/:app?", (route)->
+      {username} = route.params
+      if username[0] is username[0].toUpperCase()
+        app = route.params.username
+        username = route.params.name
+        KD.remote.api.JNewApp.one slug:"#{username}/Apps/#{app}", (err, app)->
+          if not err and app
+            KodingAppsController.runExternalApp app, dontUseRouter:yes
+
   @loadInternalApp = (name, callback)->
 
     unless KD.config.apps[name]
@@ -37,41 +46,24 @@ class KodingAppsController extends KDController
   # Please make sure about your changes on it.
   @putAppScript = (app, callback = noop)->
 
-    # Remove app from head if exists, just for sure
-    # $("head .internal-#{app.identifier}").remove()
+    if app.style
+      @appendHeadElement 'style',  \
+        { url:app.style, identifier:app.identifier, callback }, yes
 
-    if $("head .internal-style-#{app.identifier}").length is 0 and app.style
-
-      style        = new KDCustomHTMLView
-        tagName    : "link"
-        cssClass   : "internal-style-#{app.identifier}"
-        bind       : 'load'
-        # load       : ->
-        attributes :
-          rel      : "stylesheet"
-          href     : "#{app.style}?#{KD.utils.uniqueId()}"
-
-      $('head')[0].appendChild style.getElement()
-
-    if $("head .internal-script-#{app.identifier}").length is 0 and app.script
-
-      script       = new KDCustomHTMLView
-        tagName    : "script"
-        cssClass   : "internal-script-#{app.identifier}"
-        bind       : 'load'
-        load       : -> callback null
-        attributes :
-          type     : "text/javascript"
-          src      : "#{app.script}?#{KD.utils.uniqueId()}"
-
-      $('head')[0].appendChild script.getElement()
+    if app.script
+      @appendHeadElement 'script', \
+        { url:app.script, identifier:app.identifier, callback }, yes
 
     return
 
   @unloadAppScript = (app, callback = noop)->
 
-    $("head .internal-style-#{app.identifier}").remove()
-    $("head .internal-script-#{app.identifier}").remove()
+    identifier = app.identifier.replace /\./g, '_'
+
+    @destroyScriptElement "style", identifier
+    @destroyScriptElement "script", identifier
+
+    KD.utils.defer -> callback()
 
   @runApprovedApp = (jApp, options = {}, callback = noop)->
 
@@ -86,17 +78,30 @@ class KodingAppsController extends KDController
       identifier : jApp.identifier
     }
 
+    if jApp.status is 'verified'
+      route = "/#{jApp.name}"
+    else
+      route = "/#{jApp.manifest.authorNick}/Apps/#{jApp.name}"
+
+    KD.singletons.dock?.setNavItemState {
+      name : app.name, options: {dockPath : route}
+    }, 'loading'
+
     @putAppScript app, ->
+
       KD.utils.defer ->
-        unless options.dontUseRouter
-          KD.singletons.router.handleRoute "/#{jApp.name}"
-        else
+
+        if options.dontUseRouter
           KD.singletons.appManager.open jApp.name
+        else
+          KD.singletons.router.handleRoute route
+
         callback()
 
-  @runExternalApp = (jApp, callback = noop)->
+  @runExternalApp = (jApp, options = {}, callback = noop)->
 
-    return  if jApp.approved then @runApprovedApp jApp
+    if jApp.status is 'verified' or jApp.manifest.authorNick is KD.nick()
+      return @runApprovedApp jApp, options
 
     modal = new KDModalView
       title          : "Run #{jApp.manifest.name}"
@@ -111,23 +116,405 @@ class KodingAppsController extends KDController
           loader     :
             color    : "#ffffff"
             diameter : 16
-          callback   : => @runApprovedApp jApp, {}, -> modal.destroy()
+          callback   : => @runApprovedApp jApp, options, -> modal.destroy()
 
         cancel       :
           style      : "modal-cancel"
           callback   : -> modal.destroy()
 
+  @appendHeadElement = (type, {identifier, url, callback}, force)->
+
+    identifier = identifier.replace /\./g, '_'
+    domId      = "internal-#{type}-#{identifier}"
+    vmName     = FSHelper.getVMNameFromPath url
+    tagName    = type
+
+    # Which means this is an invm-app
+    if vmName
+
+      file = FSHelper.createFileFromPath url
+      file.fetchContents (err, partial)=>
+        return  if err
+        obj = new KDCustomHTMLView {domId, tagName, partial}
+
+        @destroyScriptElement type, identifier  if force
+
+        if type is 'script'
+          obj.once 'viewAppended', -> callback null
+
+        KD.utils.defer -> obj.appendToSelector 'head'
+
+    else
+
+      url  = "#{url}?#{KD.utils.uniqueId()}"
+      bind = ''
+      load = noop
+
+      if type is 'style'
+        tagName    = 'link'
+        attributes =
+          rel      : 'stylesheet'
+          href     : url
+      else
+        attributes =
+          type     : "text/javascript"
+          src      : url
+        bind       = "load"
+        load       = -> callback? null
+
+      @destroyScriptElement type, identifier  if force
+
+      document.head.appendChild (new KDCustomHTMLView {
+        domId, tagName, attributes, bind, load
+      }).getElement()
+
+  @destroyScriptElement = (type, identifier)->
+    (document.getElementById "internal-#{type}-#{identifier}")?.remove()
+
+  @appendHeadElements = (options, callback)->
+
+    {items, identifier} = options
+
+    stack = []
+    items.forEach ({url, type}, index)->
+      stack.push (cb)->
+        KodingAppsController.appendHeadElement type, {
+          identifier : "#{identifier}-#{index}"
+          callback   : cb
+          url
+        }
+        KD.utils.defer cb  if type is 'style'
+
+    async.series stack, callback
+
+
+  # #
+  # MAKE NEW APP
+  # #
+
+  defaultManifest = (type, name)->
+
+    {profile} = KD.whoami()
+    fullName  = Encoder.htmlDecode KD.utils.getFullnameFromAccount()
+    raw =
+      experimental  : no
+      background    : no
+      hiddenHandle  : no
+      forceUpdate   : no
+      behavior      : "application"
+      version       : "0.1"
+      title         : "#{name or type.capitalize()}"
+      name          : "#{name or type.capitalize()}"
+      identifier    : "com.koding.apps.#{utils.slugify name or type}"
+      path          : "~/Applications/#{name or type.capitalize()}.kdapp"
+      homepage      : "#{profile.nickname}.#{KD.config.userSitesDomain}/#{utils.slugify name or type}"
+      author        : "#{fullName}"
+      authorNick    : "#{profile.nickname}"
+      repository    : "git://github.com/#{profile.nickname}/#{utils.slugify name or type}.kdapp.git"
+      description   : "#{name or type} : a Koding application created with the #{type} template."
+      category      : "web-app" # can be web-app, add-on, server-stack, framework, misc
+      source        :
+        blocks      :
+          app       :
+            files   : [ "./index.coffee" ]
+        stylesheets : [ "./resources/style.css" ]
+      options       :
+        type        : "tab"
+      icns          :
+        "128"       : "./resources/icon.128.png"
+      screenshots   : []
+      menu          : []
+      fileTypes     : []
+
+    json = JSON.stringify raw, null, 2
+
+  newAppModal = null
+
+  getAppPath:(manifest, escaped=no)->
+
+    path = if 'string' is typeof manifest then manifest else manifest.path
+    path = if /^~/.test path then "/home/#{KD.nick()}#{path.substr(1)}"\
+           else path
+    return FSHelper.escapeFilePath path  if escaped
+    return path.replace /(\/+)$/, ""
+
+  makeNewApp:(callback)->
+
+    newAppModal = new KDModalViewWithForms
+      title                       : "Create a new Application"
+      content                     :
+        """
+          <div class='modalformline'>
+            <p>
+              Please provide a name for your awesome Koding App you want to start with.
+            </p>
+          </div>
+        """
+      overlay                     : yes
+      width                       : 600
+      height                      : "auto"
+      tabs                        :
+        navigable                 : yes
+        forms                     :
+          form                    :
+            buttons               :
+              Create              :
+                cssClass          : "modal-clean-gray"
+                loader            :
+                  color           : "#444444"
+                  diameter        : 12
+                callback          : =>
+                  form = newAppModal.modalTabs.forms.form
+                  unless form.inputs.name.validate()
+                    form.buttons.Create.hideLoader()
+                    return
+                  name        = form.inputs.name.getValue()
+                  unless name
+                    return new KDNotificationView
+                      title : "Application name is not provided."
+
+                  type        = "blank"
+                  name        = (name.replace /[^a-zA-Z]/g, '').capitalize()
+                  manifestStr = defaultManifest type, name
+                  manifest    = JSON.parse manifestStr
+                  appPath     = @getAppPath manifest
+                  defaultVm   = KD.singletons.vmController.defaultVmName
+
+                  FSHelper.exists appPath, defaultVm, (err, exists)=>
+                    if exists
+                      form.buttons.Create.hideLoader()
+                      new KDNotificationView
+                        type      : "mini"
+                        cssClass  : "error"
+                        title     : "App folder with that name is already exists, please choose a new name."
+                        duration  : 3000
+                    else
+                      @prepareApplication name, (err, response)=>
+                        callback? err, response
+                        form.buttons.Create.hideLoader()
+                        newAppModal.destroy()
+
+            fields                :
+              name                :
+                label             : "Name:"
+                name              : "name"
+                placeholder       : "name your application..."
+                validate          :
+                  rules           :
+                    regExp        : /^[a-z]+([a-z]+)*$/i
+                  messages        :
+                    regExp        : "For Application name only lowercase letters are allowed!"
+
+  _createChangeLog:(name)->
+    today = new Date().format('yyyy-mm-dd')
+    {profile} = KD.whoami()
+    fullName  = KD.utils.getFullnameFromAccount()
+
+    """
+     #{today} #{fullName} <@#{profile.nickname}>
+
+        * #{name} (index.coffee): Application created.
+    """
+
+  prepareApplication:(name, callback)->
+
+    unless name
+      return new KDNotificationView
+        title : "Application name is not provided."
+
+    type         = "blank"
+    appname      = KD.utils.slugify name.replace /[^a-zA-Z]/g, ''
+    APPNAME      = appname.capitalize()
+    manifestStr  = defaultManifest type, APPNAME
+    changeLogStr = @_createChangeLog APPNAME
+    manifest     = JSON.parse manifestStr
+    appPath      = @getAppPath manifest
+
+    {vmController} = KD.singletons
+
+    stack = [
+
+      (cb)->
+
+        vmController.run
+          method    : "app.skeleton"
+          withArgs  :
+            type    : "blank"
+            appPath : appPath
+          , cb
+
+      (cb)->
+
+        indexFile = FSHelper.createFileFromPath "#{appPath}/index.coffee"
+        indexFile.fetchContents (err, content)->
+          return cb err  if err
+          content = content.replace(/\%\%APPNAME\%\%/g, APPNAME)
+                           .replace(/\%\%appname\%\%/g, appname)
+                           .replace(/\%\%AUTHOR\%\%/g , KD.nick())
+          indexFile.save content, cb
+
+      (cb)->
+
+        styleFile = FSHelper.createFileFromPath "#{appPath}/resources/style.css"
+        styleFile.fetchContents (err, content)->
+          return cb err  if err
+          content = content.replace(/\%\%appname\%\%/g, appname)
+          styleFile.save content, cb
+
+      (cb)->
+
+        FSHelper.createFileFromPath("#{appPath}/manifest.json")
+                .save manifestStr,  cb
+
+      (cb)->
+
+        FSHelper.createFileFromPath("#{appPath}/ChangeLog")
+                .save changeLogStr, cb
+
+    ]
+
+    async.series stack, (err, result) =>
+      warn err  if err
+      callback? err, {appPath, result}
+
+  @getAppInfoFromPath = (path, showWarning = no)->
+
+    return  unless path
+
+    vm    = FSHelper.getVMNameFromPath path
+    path  = FSHelper.plainPath path
+    reg   = /// ^\/home\/#{KD.nick()}\/Applications\/(.*)\.kdapp ///
+    parts = reg.exec path
+
+    unless parts
+      if showWarning then new KDNotificationView
+        title : "Failed to find app information from given path"
+        type  : "mini"
+      return
+
+    [path, name] = parts[0..1]
+    return {
+      path, name,
+      fullPath : "[#{vm}]#{path}"
+      vm
+    }
+
+  @installKDC = ->
+
+    modal = new ModalViewWithTerminal
+      title   : "Koding app compiler is not installed in your VM."
+      width   : 500
+      overlay : yes
+      terminal:
+        hidden: yes
+      content : """
+                  <p>
+                    If you want to install it now, click <strong>Install Compiler</strong> button.
+                  </p>
+                  <p>
+                    <strong>Remember to enter your password when asked.</strong>
+                  </p>
+                """
+      buttons:
+        "Install Compiler":
+          cssClass: "modal-clean-green"
+          callback: =>
+            modal.run "sudo npm install -g kdc; echo $?|kdevent;" # find a clean/better way to do it.
+
+    modal.on "terminal.event", (data)=>
+      if data is "0"
+        new KDNotificationView title: "Installed successfully!"
+        modal.destroy()
+      else
+        new KDNotificationView
+          title   : "An error occured."
+          content : "Something went wrong while installing Koding App Compiler. Please try again."
+
+  @compileAppOnServer = (path, callback)->
+
+    app = KodingAppsController.getAppInfoFromPath path, yes
+    return  unless app
+
+    loader = new KDNotificationView
+      duration : 18000
+      title    : "Compiling #{app.name}..."
+      type     : "mini"
+
+    {vmController} = KD.singletons
+    vmController.run {
+      withArgs : "kdc #{app.path}"
+      vmName   : app.vm
+    }, (err, response)->
+
+      if err
+
+        loader.notificationSetTitle "An unknown error occured"
+        loader.notificationSetTimer 2000
+        callback? err, app
+        warn err
+
+      else if response.exitStatus is 0
+
+        loader.notificationSetTitle "App compiled successfully"
+        loader.notificationSetTimer 2000
+        callback null, app
+
+      else
+
+        loader.destroy()
+
+        err = response.stderr or response.stdout
+
+        if response.exitStatus is 127
+          KodingAppsController.installKDC()
+          callback? { message: "KDC is not installed: #{err}" }
+          return
+
+        new KDModalView
+          title    : "An error occured while compiling #{app.name}"
+          width    : 600
+          overlay  : yes
+          cssClass : 'compiler-modal'
+          content  : "<pre>#{err}</pre>"
+
+        callback? { message: "Failed to compile: #{err}" }, app
+
+  @createJApp = ({path, githubPath}, callback)->
+
+    app = @getAppInfoFromPath path
+    return  unless app
+
+    @compileAppOnServer path, (err)=>
+      return warn err  if err
+
+      @fetchManifest "#{app.path}/manifest.json", (err, manifest)->
+
+        {JNewApp} = KD.remote.api
+        JNewApp.publish {
+          name : app.name
+          url  : githubPath or app.fullPath
+          manifest
+        }, callback
+
+  @fetchManifest = (path, callback = noop)->
+
+    manifest = FSHelper.createFileFromPath path
+    manifest.fetchContents (err, response)=>
+
+      return err  if err
+
+      try
+        manifest = JSON.parse response
+      catch e
+        return callback {
+          message : "Failed to parse manifest.json"
+          name    : "JSONPARSEERROR"
+          details : e
+        }
+
+      callback null, manifest
+
   ###
-
-  @manifests = {}
-
-  @getManifestFromPath = getManifestFromPath = (path)->
-    folderName = (p for p in path.split("/") when /\.kdapp/.test p)[0]
-    app        = null
-    return app unless folderName
-    for own name, manifest of KodingAppsController.manifests
-      do -> app = manifest  if manifest.path.search(folderName) > -1
-    return app
 
   constructor:->
 
@@ -176,14 +563,6 @@ class KodingAppsController extends KDController
       @fetchAppFromFs app, =>
         @putAppsToAppStorage null, =>
           @emit "UpdateAppData", app
-
-  getAppPath:(manifest, escaped=no)->
-
-    path = if 'string' is typeof manifest then manifest else manifest.path
-    path = if /^~/.test path then "/home/#{KD.nick()}#{path.substr(1)}"\
-           else path
-    return FSHelper.escapeFilePath path  if escaped
-    return path.replace /(\/+)$/, ""
 
   # #
   # FETCHERS
@@ -531,7 +910,7 @@ class KodingAppsController extends KDController
           jAppData     =
             title      : manifest.name        or "Application Title"
             body       : manifest.description or "Application description"
-            identifier : manifest.identifier  or "com.koding.apps.#{__utils.slugify manifest.name}"
+            identifier : manifest.identifier  or "com.koding.apps.#{utils.slugify manifest.name}"
             manifest   : manifest
 
           notification.destroy()
@@ -693,133 +1072,6 @@ class KodingAppsController extends KDController
                   callback?()
 
   # #
-  # MAKE NEW APP
-  # #
-
-  newAppModal = null
-
-  makeNewApp:(callback)->
-
-    return callback? yes if newAppModal
-
-    newAppModal = new KDModalViewWithForms
-      title                       : "Create a new Application"
-      content                     :
-        """ <div class='modalformline'><p>
-            Please select the application type you want to start with.
-            Alternatively, you can modify an existing app; all applications are installed under <code>~/Applications</code> folder,
-            you can right click on any of them, go to <b>Applications</b> menu, and click <b>Download source files</b> and start
-            reading <code>manifest.json</code>
-            </p></div>
-        """
-      overlay                     : yes
-      width                       : 400
-      height                      : "auto"
-      tabs                        :
-        navigable                 : yes
-        forms                     :
-          form                    :
-            buttons               :
-              Create              :
-                cssClass          : "modal-clean-gray"
-                loader            :
-                  color           : "#444444"
-                  diameter        : 12
-                callback          : =>
-                  unless newAppModal.modalTabs.forms.form.inputs.name.validate()
-                    newAppModal.modalTabs.forms.form.buttons.Create.hideLoader()
-                    return
-                  name        = newAppModal.modalTabs.forms.form.inputs.name.getValue()
-                  type        = newAppModal.modalTabs.forms.form.inputs.type.getValue()
-                  name        = name.replace(/[^a-zA-Z0-9\/\-.]/g, '')  if name
-                  manifestStr = defaultManifest type, name
-                  manifest    = JSON.parse manifestStr
-                  appPath     = @getAppPath manifest
-
-                  # FIXME Use default VM ~ GG
-                  FSHelper.exists appPath, null, (err, exists)=>
-                    if exists
-                      newAppModal.modalTabs.forms.form.buttons.Create.hideLoader()
-                      new KDNotificationView
-                        type      : "mini"
-                        cssClass  : "error"
-                        title     : "App folder with that name is already exists, please choose a new name."
-                        duration  : 3000
-                    else
-                      @prepareApplication {isBlank : type is "blank", name}, (err, response)=>
-                        callback? err
-                        newAppModal.modalTabs.forms.form.buttons.Create.hideLoader()
-                        newAppModal.destroy()
-
-            fields                :
-              type                :
-                label             : "Type"
-                itemClass         : KDSelectBox
-                type              : "select"
-                name              : "type"
-                defaultValue      : "sample"
-                selectOptions     : [
-                  { title : "Sample Application", value : "sample" }
-                  { title : "Blank Application",  value : "blank"  }
-                ]
-              name                :
-                label             : "Name:"
-                name              : "name"
-                placeholder       : "name your application..."
-                validate          :
-                  rules           :
-                    regExp        : /^[a-z\d]+([-][a-z\d]+)*$/i
-                  messages        :
-                    regExp        : "For Application name only lowercase letters and numbers are allowed!"
-
-    newAppModal.once "KDObjectWillBeDestroyed", ->
-      newAppModal = null
-      callback? yes
-
-  _createChangeLog:(name)->
-    today = new Date().format('yyyy-mm-dd')
-    {profile} = KD.whoami()
-    fullName  = KD.utils.getFullnameFromAccount()
-
-    """
-     #{today} #{fullName} <@#{profile.nickname}>
-
-        * #{name} (index.coffee): Application created.
-    """
-
-  prepareApplication:({isBlank, name}, callback)->
-
-    type         = if isBlank then "blank" else "sample"
-    name         = if name is "" then null else name
-    name         = name.replace(/[^a-zA-Z0-9\/\-.]/g, '')  if name
-    manifestStr  = defaultManifest type, name
-    changeLogStr = @_createChangeLog name
-    manifest     = JSON.parse manifestStr
-    appPath      = @getAppPath manifest
-    # log manifestStr
-
-    stack = []
-
-    manifestFile  = FSHelper.createFileFromPath "#{appPath}/manifest.json"
-    changeLogFile = FSHelper.createFileFromPath "#{appPath}/ChangeLog"
-
-    # Copy default app files (app Skeleton)
-    stack.push (cb)=>
-      @vmController.run
-        method    : "app.skeleton"
-        withArgs  :
-          type    : if isBlank then "blank" else "sample"
-          appPath : appPath
-        , cb
-
-    stack.push (cb)=> manifestFile.save  manifestStr,  cb
-    stack.push (cb)=> changeLogFile.save changeLogStr, cb
-
-    async.series stack, (err, result) =>
-      warn err  if err
-      callback? err, result
-
-  # #
   # FORK / CLONE APP
   # #
 
@@ -856,17 +1108,17 @@ class KodingAppsController extends KDController
 
     return unless stylesheets
 
-    $("head .app-#{__utils.slugify name}").remove()
+    $("head .app-#{utils.slugify name}").remove()
     stylesheets.forEach (sheet)->
       if devMode
-        urlToStyle = "https://#{KD.nick()}.#{KD.config.userSitesDomain}/.applications/#{__utils.slugify name}/#{__utils.stripTags sheet}?#{Date.now()}"
-        $('head').append "<link class='app-#{__utils.slugify name}' rel='stylesheet' href='#{urlToStyle}'>"
+        urlToStyle = "https://#{KD.nick()}.#{KD.config.userSitesDomain}/.applications/#{utils.slugify name}/#{utils.stripTags sheet}?#{Date.now()}"
+        $('head').append "<link class='app-#{utils.slugify name}' rel='stylesheet' href='#{urlToStyle}'>"
       else
         if /(http)|(:\/\/)/.test sheet
           warn "external sheets cannot be used"
         else
           sheet = sheet.replace /(^\.\/)|(^\/+)/, ""
-          $('head').append("<link class='app-#{__utils.slugify name}' rel='stylesheet' href='#{KD.appsUri}/#{manifest.authorNick or KD.nick()}/#{__utils.stripTags identifier}/#{__utils.stripTags version}/#{__utils.stripTags sheet}'>")
+          $('head').append("<link class='app-#{utils.slugify name}' rel='stylesheet' href='#{KD.appsUri}/#{manifest.authorNick or KD.nick()}/#{utils.stripTags identifier}/#{utils.stripTags version}/#{utils.stripTags sheet}'>")
 
   showError = (error)->
     new KDModalView
@@ -956,12 +1208,12 @@ class KodingAppsController extends KDController
       version       : "0.1"
       title         : "#{name or type.capitalize()}"
       name          : "#{name or type.capitalize()}"
-      identifier    : "com.koding.apps.#{__utils.slugify name or type}"
+      identifier    : "com.koding.apps.#{utils.slugify name or type}"
       path          : "~/Applications/#{name or type.capitalize()}.kdapp"
-      homepage      : "#{profile.nickname}.#{KD.config.userSitesDomain}/#{__utils.slugify name or type}"
+      homepage      : "#{profile.nickname}.#{KD.config.userSitesDomain}/#{utils.slugify name or type}"
       author        : "#{fullName}"
       authorNick    : "#{profile.nickname}"
-      repository    : "git://github.com/#{profile.nickname}/#{__utils.slugify name or type}.kdapp.git"
+      repository    : "git://github.com/#{profile.nickname}/#{utils.slugify name or type}.kdapp.git"
       description   : "#{name or type} : a Koding application created with the #{type} template."
       category      : "web-app" # can be web-app, add-on, server-stack, framework, misc
       source        :

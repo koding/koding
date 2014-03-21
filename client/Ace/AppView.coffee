@@ -86,6 +86,18 @@ class AceView extends JView
       @getActiveTabHandle().unsetClass "modified"
       delete @getDelegate().quitOptions
 
+    @on 'KDObjectWillBeDestroyed', =>
+      file = @getData()
+      KD.singletons.localSync.removeFromOpenedFiles file
+      @getDelegate().removeOpenDocument @
+
+    @ace.on "ace.changeSetting", (setting, value)->
+      if setting is "syntax"
+        file = @getData()
+        fileExtension = file.getExtension()
+        appStorage = KD.getSingleton('appStorageController').storage 'Ace', '1.0.1'
+        appStorage.setValue "syntax_#{fileExtension}", value
+
     @ace.on "FileIsReadOnly", =>
       @getActiveTabHandle().setClass "readonly"
       @ace.setReadOnly yes
@@ -165,7 +177,8 @@ class AceView extends JView
 
     height = @getHeight()
     bottomBarHeight = @$('.editor-bottom-bar').height()
-    @ace.setHeight height - bottomBarHeight
+    newHeight = height - bottomBarHeight
+    @ace.setHeight newHeight unless newHeight is 0
 
   openSaveDialog: (options = {}) ->
     { closeAfter }   = options

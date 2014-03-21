@@ -23,49 +23,77 @@ class FSFile extends FSItem
     @localStorage.unsetKey btoa KD.utils.utf8Encode FSHelper.plainPath @path
 
   fetchContentsBinary: (callback)->
-    @fetchContents callback, no
+    @fetchContents no, callback
 
-  fetchContents:(callback, useEncoding=yes)->
+  fetchContents: (useEncoding, callback)->
+    [callback, useEncoding] = [useEncoding, callback]  unless callback
+
+    useEncoding = yes
 
     @emit "fs.job.started"
-    @vmController.run
-      method    : 'fs.readFile'
-      vmName    : @vmName
-      withArgs  :
-        path    : FSHelper.plainPath @path
-    , (err, response)=>
 
-      if err then warn err
-      else
-        content = atob response.content
+    kite = @getKite()
 
-        if useEncoding
-          content = KD.utils.utf8Decode content # Convert to String
+    ok = kite.vmOn()
+    .then =>
 
-        KD.mixpanel "Fetch contents, success"
+      kite.fsReadFile {
+        path: FSHelper.plainPath @path
+      }
 
-      callback.call @, err, content
-      @emit "fs.job.finished", err, content
+    .then (response) =>
+      content = atob response.content
+
+      content = KD.utils.utf8Decode content  if useEncoding # Convert to String
+
+      KD.mixpanel "Fetch contents, success"
+
+      @emit "fs.job.finished"
+
+      return content
+
+    .nodeify(callback)
+
+
 
   saveAs:(contents, name, parentPath, callback)->
-
-    @vmName = FSHelper.getVMNameFromPath parentPath  if parentPath
-    newPath = FSHelper.plainPath "#{parentPath}/#{name}"
     @emit "fs.saveAs.started"
 
-    FSHelper.ensureNonexistentPath "#{newPath}", @vmName, (err, path)=>
-      if err
-        callback? err, path
-        warn err
-      else
-        newFile = FSHelper.createFile
+    newPath = FSHelper.plainPath "#{parentPath}/#{name}"
+
+    file = null
+
+    kite = @getKite()
+
+    kite.vmOn()
+    .then =>
+
+      ok = kite.fsUniquePath(path: "#{newPath}")
+      .then (actualPath) =>
+
+        file = FSHelper.createFile {
           type   : 'file'
-          path   : path
-          vmName : @vmName
-        newFile.save contents, (err, res)=>
-          if err then warn err
-          else
-            @emit "fs.saveAs.finished", newFile, @
+          path   : actualPath
+          @vmName
+        }
+
+        ok = file.save contents
+
+        if callback?
+
+          ok = ok
+          .catch (err) ->
+            callback err
+
+          .then (response) =>
+            callback null, file, this
+
+        ok
+
+      .then (response) =>
+        @emit "fs.saveAs.finished", file, this
+
+        return file
 
   append: (contents, callback)->
     @emit "fs.append.started"
@@ -73,18 +101,33 @@ class FSFile extends FSItem
     # Convert to base64
     content = btoa contents
 
-    @vmController.run
-      method    : 'fs.writeFile'
-      vmName    : @vmName
-      withArgs  :
-        path    : FSHelper.plainPath @path
-        content : content
-        append  : yes
-    , (err, res)=>
+    kite = @getKite()
 
-      if err then warn err
-      @emit "fs.append.finished", err, res
-      callback? err,res
+    ok = kite.startVm()
+    .then =>
+
+      kite.fsWriteFile {
+        path    : FSHelper.plainPath @path
+        content : btoa contents
+        append  : yes
+      }
+
+    if callback?
+      ok
+      .then (response) =>
+        callback null, response
+        @emit 'fs.append.finished', null, response
+
+      .catch (err) ->
+        warn err
+        callback err
+        @emit 'fs.append.finished', err
+
+    else
+      ok
+      .then (response) =>
+        @emit 'fs.append.finished', null, response
+        Promise.cast response
 
   @createChunkQueue: (data, chunkSize=1024*1024, skip=0)->
 
@@ -155,24 +198,38 @@ class FSFile extends FSItem
 
   abort: -> @emit "AbortRequested"
 
-  save:(contents, callback, useEncoding=yes)->
+  save: (contents = '', callback = null, useEncoding = yes) ->
 
     @emit "fs.save.started"
 
-    if useEncoding
-      contents = KD.utils.utf8Encode contents
+    ok = @getKite().vmOn()
+    .then =>
 
-    # Convert to base64
-    content = btoa contents
+      contents = KD.utils.utf8Encode contents  if useEncoding
 
-    @vmController.run
-      method    : 'fs.writeFile'
-      vmName    : @vmName
-      withArgs  :
-        path    : FSHelper.plainPath @path
-        content : content
-    , (err, res)=>
+      # Convert to base64
+      content = btoa contents
 
-      if err then warn err
-      @emit "fs.save.finished", err, res
-      callback? err,res
+      @getKite().fsWriteFile {
+        path: FSHelper.plainPath @path
+        content
+      }
+
+    if callback?
+
+      ok
+      .then (response) =>
+        callback null, response
+        @emit "fs.save.finished", null, response
+
+      .catch (err) =>
+        callback err
+        @emit "fs.save.finished", err
+
+    else
+      ok
+      .then (response) =>
+        @emit "fs.save.finished", null, response
+
+        return response
+

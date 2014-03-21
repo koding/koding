@@ -1,7 +1,6 @@
 module.exports = [
 
   "libs/require.js"
-
   # ace
   "AppController.coffee"
   "AppView.coffee"
@@ -11,6 +10,7 @@ module.exports = [
   "acesettingsview.coffee"
   "acesettings.coffee"
   "acefindandreplaceview.coffee"
+  "editormacroview.coffee"
 
   # Terminal Themes
   "styl/aceeditor.styl"

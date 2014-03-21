@@ -1,4 +1,4 @@
-@import "../../Framework/themes/default/kdfn"
+@import "../../Framework/src/themes/default/kdfn"
 @import "../styl/appfn"
 @import "../styl/app.fonts"
 
@@ -58,6 +58,7 @@ button
   z-index             1000
   overflow            visible
   visibility          visible
+  shadow              0 3px 0 rgba(0, 0, 0, .15)
   fix()
 
   .inner-container
@@ -68,7 +69,6 @@ button
     -moz-transition     -moz-transform .2s ease
     transition          transform .2s ease
     z-index             1
-    shadow              0 3px 0 rgba(0, 0, 0, .15)
     rel()
 
     .logotype
@@ -245,8 +245,7 @@ button
         opacity               0 !important
 
     &.loading
-      .icon
-        vendor      animation, pulse 1.5s ease-in-out 100
+      vendor      animation, pulse 1.5s ease-in-out 100
 
     &.activity .icon
       r-sprite      app nav-activity
@@ -262,8 +261,8 @@ button
       r-sprite      app nav-teamwork
     &.bugs .icon
       r-sprite      app nav-bugs
-    // &.develop .icon
-    //   r-sprite      app nav-develop
+    &.devtools .icon
+      r-sprite      app nav-develop
     // &.finder .icon
     //   r-sprite      app nav-finder
 

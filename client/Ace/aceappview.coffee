@@ -10,14 +10,15 @@ class AceAppView extends JView
     @appManager          = KD.getSingleton "appManager"
     @tabHandleContainer  = new ApplicationTabHandleHolder delegate: @
     @tabView             = new AceApplicationTabView
-      delegate           : this
-      tabHandleContainer : @tabHandleContainer
+      delegate                  : this
+      tabHandleContainer        : @tabHandleContainer
       closeAppWhenAllTabsClosed : no
     @finderWrapper       = new KDCustomHTMLView
       tagName            : 'aside'
 
     @attachEvents()
     @attachAppMenuEvents()
+    @on 'PlusHandleClicked', @bound 'addNewTab'
 
 
   embedFinder:->
@@ -28,7 +29,21 @@ class AceAppView extends JView
       @finderController.reset()
       @finderController.on 'FileNeedsToBeOpened', (file)=>
         @openFile file, yes
+      @openLastFiles()
 
+
+
+
+  openLastFiles:->
+    vmc = KD.getSingleton("vmController")
+    vmc.once "StateChanged", (err, vm, info)=>
+      appStorage = KD.getSingleton('appStorageController').storage 'Ace', '1.0.1'
+      lastOpenedFiles = KD.singletons.localSync.getRecentOpenedFiles()
+      return  unless appStorage.getValue("openRecentFiles")
+      for file in lastOpenedFiles
+        unless file is 'localfile:/Untitled.txt'
+          fsfile = FSHelper.createFileFromPath file
+          @openFile fsfile
 
   attachEvents:->
 
@@ -105,9 +120,10 @@ class AceAppView extends JView
     return items
 
   preview: ->
-    {path, vmName} = @getActiveAceView().getData()
+    file = @getActiveAceView().getData()
+    {path, vmName} = file
     return  if /^localfile/.test path
-    path = KD.getPublicURLOfPath path
+    path = KD.getPublicURLOfPath FSHelper.getFullPath file
 
     notify = =>
       @getActiveAceView().ace.notify "File needs to be under ~/Web folder", "error"
@@ -132,8 +148,8 @@ class AceAppView extends JView
   addNewTab: (file) ->
     file = file or FSHelper.createFileFromPath 'localfile:/Untitled.txt'
     aceView = new AceView delegate: this, file
-    aceView.on 'KDObjectWillBeDestroyed', => @removeOpenDocument aceView
-    @aceViews[file.path] = aceView
+    path = FSHelper.getFullPath file
+    @aceViews[path] = aceView
     @setViewListeners aceView
 
     pane = new KDTabPaneView
@@ -142,6 +158,16 @@ class AceAppView extends JView
 
     @tabView.addPane pane
     pane.addSubView aceView
+    pane.on "KDTabPaneActive", => @selectCurrentFileAtFinder aceView
+
+    # save opened file to localStorage, so that we can open same files on refresh.
+    KD.singletons.localSync.addToOpenedFiles file.path
+
+  selectCurrentFileAtFinder: (aceView)->
+    {treeController}  = @finderController
+    treeController.deselectAllNodes()
+    nodeName = FSHelper.getFullPath aceView.data # we need filepath with VM address
+    treeController.selectNode treeController.nodes[nodeName]
 
   setViewListeners: (view) ->
     @setFileListeners view.getData()
@@ -180,12 +206,14 @@ class AceAppView extends JView
 
   clearFileRecords: (view) ->
     file = view.getData()
-    delete @aceViews[file.path]
+    delete @aceViews[FSHelper.getFullPath file]
 
   attachAppMenuEvents: ->
     @on "saveMenuItemClicked", => @getActiveAceView().ace.requestSave()
 
     @on "saveAsMenuItemClicked", => @getActiveAceView().ace.requestSaveAs()
+
+    @on "saveAllMenuItemClicked", => @getActiveAceView().ace.saveAllFiles()
 
     @on "compileAndRunMenuItemClicked", => @getActiveAceView().compileAndRun()
 
@@ -197,7 +225,12 @@ class AceAppView extends JView
 
     @on "gotoLineMenuItemClicked", => @getActiveAceView().ace.showGotoLine()
 
-    @on "exitMenuItemClicked", => @appManager.quit @appManager.frontApp
+    @on "exitMenuItemClicked", =>
+      @appManager.quit @appManager.frontApp
+      KD.singletons.router.handleRoute "/Activity"
+
+    @on "keyBindingsMenuItemClicked", => new EditorMacroView
+
 
   getAdvancedSettingsMenuView: ->
     pane = @tabView.getActivePane()

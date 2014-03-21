@@ -6,20 +6,13 @@ versionFile = nodePath.join(__dirname, 'VERSION')
 if fs.existsSync versionFile
   version = (fs.readFileSync versionFile, 'utf-8').trim()
 
-FRAMEWORK_VERSION = version ? "0.0.1"
 KODING_VERSION    = version ? "0.0.1"
 
 projects      =
 
-  KDFramework :
-    files     : "client/Framework/includes.coffee"
-    style     : "website/a/css/kd.#{FRAMEWORK_VERSION}.css"
-    script    : "website/a/js/kd.#{FRAMEWORK_VERSION}.js"
-    sourceMapRoot : "Framework/"
-
   KDBackend   :
     files     : "client/Bongo/includes.coffee"
-    script    : "website/a/js/bongo.#{FRAMEWORK_VERSION}.js"
+    script    : "website/a/js/bongo.#{KODING_VERSION}.js"
     sourceMapRoot : "Bongo/"
 
   KDMainApp   :
@@ -170,6 +163,12 @@ projects      =
     script        : "website/a/js/__app.bugreport.#{KODING_VERSION}.js"
     sourceMapRoot : "Social/Bugs/"
 
+  DevTools        :
+    files         : "client/DevTools/includes.coffee"
+    style         : "website/a/css/__app.devtools.#{KODING_VERSION}.css"
+    script        : "website/a/js/__app.devtools.#{KODING_VERSION}.js"
+    sourceMapRoot : "DevTools/"
+
 bundles           =
 
   Social          :
@@ -183,7 +182,8 @@ bundles           =
     script        : "website/a/js/koding.#{KODING_VERSION}.js"
 
   TeamworkBundle  :
-    projects      : ['Ace', 'Terminal', 'Viewer', 'Workspace', 'CollaborativeWorkspace', 'Teamwork']
+    projects      : ['Ace', 'Terminal', 'Viewer', 'Workspace',
+                     'CollaborativeWorkspace', 'Teamwork', 'DevTools']
     style         : "website/a/css/__teamwork.#{KODING_VERSION}.css"
     script        : "website/a/js/__teamwork.#{KODING_VERSION}.js"
 

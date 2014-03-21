@@ -1,4 +1,4 @@
-__utils.extend __utils,
+utils.extend utils,
 
   getPaymentMethodTitle: (billing)->
     # for convenience, accept either the payment method, or the billing object
@@ -49,7 +49,7 @@ __utils.extend __utils,
 
   showMoreClickHandler:(event)->
     $trg = $(event.target)
-    __utils.stopDOMEvent event  if $trg.is ".more-link, .less-link"
+    utils.stopDOMEvent event  if $trg.is ".more-link, .less-link"
     more = "span.collapsedtext a.more-link"
     less = "span.collapsedtext a.less-link"
     $trg.parent().addClass("show").removeClass("hide") if $trg.is(more)
@@ -63,7 +63,7 @@ __utils.extend __utils,
     # Expand URLs with intention to replace them after putShowMore
     {links,text} = @expandUrls text, yes
 
-    text = __utils.putShowMore text if shorten
+    text = utils.putShowMore text if shorten
 
     # Reinsert URLs into text
     if links? then for link,i in links
@@ -164,7 +164,7 @@ __utils.extend __utils,
       text
 
   putShowMore: (text, l = 500)->
-    shortenedText = __utils.shortenText text,
+    shortenedText = utils.shortenText text,
       minLength : l
       maxLength : l + Math.floor(l/10)
       suffix    : ''
@@ -235,8 +235,8 @@ __utils.extend __utils,
         str = str.replace tokenString, "#{prefix}#{title}"
         continue
 
-      domId     = __utils.getUniqueId()
-      itemClass = __utils.getTokenClass prefix
+      domId     = utils.getUniqueId()
+      itemClass = utils.getTokenClass prefix
       tokenView = new TokenView {domId, itemClass}, token
       tokenView.emit "viewAppended"
       str = str.replace tokenString, tokenView.getElement().outerHTML
@@ -244,7 +244,7 @@ __utils.extend __utils,
 
       viewParams.push {options: {domId, itemClass}, data: token}
 
-    __utils.defer ->
+    utils.defer ->
       for {options, data} in viewParams
         new TokenView options, data
 
@@ -321,9 +321,9 @@ __utils.extend __utils,
       chr = chr.toLowerCase() if memorable
 
       unless pattern.test chr
-        return __utils.generatePassword length, memorable, pattern, prefix
+        return utils.generatePassword length, memorable, pattern, prefix
 
-      return __utils.generatePassword length, memorable, pattern, "" + prefix + chr
+      return utils.generatePassword length, memorable, pattern, "" + prefix + chr
 
   # Version Compare
   # https://github.com/balupton/bal-util/blob/master/src/lib/compare.coffee
@@ -455,7 +455,7 @@ __utils.extend __utils,
     # resourceRoot = "#{KD.appsUri}/#{authorNick}/#{name}/#{version}/"
 
     # if appManifest.devMode # TODO: change url to https when vm urls are ready for it
-    #   resourceRoot = "http://#{KD.getSingleton('vmController').defaultVm}/.applications/#{__utils.slugify name}/"
+    #   resourceRoot = "http://#{KD.getSingleton('vmController').defaultVm}/.applications/#{utils.slugify name}/"
 
 
     # for size in [64, 128, 160, 256, 512]
@@ -561,9 +561,10 @@ __utils.extend __utils,
 
   getColorFromString:(str)->
     return [
-      "#37B298", "#BA4B3A", "#F1C42C", "#DB4B00", "#009BCB"
-      "#37B298", "#35485F", "#D35219", "#FDAB2E", "#19A2C4"
-      "#37B298", "#BA4B3A", "#F1C42C", "#DB4B00", "#009BCB"
+      "#37B298", "#BA4B3A", "#F1C42C", "#DB4B00"
+      "#009BCB", "#37B298", "#35485F", "#D35219"
+      "#FDAB2E", "#19A2C4", "#37B298", "#BA4B3A"
+      "#F1C42C", "#DB4B00", "#009BCB", "#B82F68"
     ][parseInt (md5.digest str)[0], 16]
 
   formatMoney: accounting.formatMoney
@@ -604,8 +605,24 @@ __utils.extend __utils,
   # show the tags properly
   tokenizeTag: (tag)-> "|#:JTag:#{tag.getId()}|"
 
-  doesEmailValid: (email) ->
-    /^((([a-z]|\d|[!#\$%&'\*\+\-\/=\?\^_`{\|}~]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])+(\.([a-z]|\d|[!#\$%&'\*\+\-\/=\?\^_`{\|}~]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])+)*)|((\x22)((((\x20|\x09)*(\x0d\x0a))?(\x20|\x09)+)?(([\x01-\x08\x0b\x0c\x0e-\x1f\x7f]|\x21|[\x23-\x5b]|[\x5d-\x7e]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(\\([\x01-\x09\x0b\x0c\x0d-\x7f]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF]))))*(((\x20|\x09)*(\x0d\x0a))?(\x20|\x09)+)?(\x22)))@((([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])*([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])))\.)+(([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])*([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])))\.?$/i.test email
+  sortFiles: (a, b) ->
+
+    { name: na } = a
+    { name: nb } = b
+
+    la = na.toLowerCase()
+    lb = nb.toLowerCase()
+
+    switch
+      when la is lb
+        switch
+          when na is nb  then 0
+          when na > nb   then 1
+          when na < nb   then -1
+      when la > lb       then 1
+      when la < lb       then -1
+
+  doesEmailValid: (email) -> /@/.test email
 
   nicetime: do ->
 
@@ -649,4 +666,3 @@ __utils.extend __utils,
         from = new Date().getTime() / 1000
         to   = to
         niceify to - from
-

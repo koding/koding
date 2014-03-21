@@ -125,7 +125,7 @@ class Kite extends Pinger
   getChannelName: ->
     delegate  = KD.whoami()
     nickname  = delegate?.profile.nickname ?
-                if delegate.guestId then "guest#{delegate.guestId}" ?
+                (if delegate?.guestId then "guest#{delegate.guestId}") ?
                 'unknown'
     channelName = "#{@entropy}.#{nickname}.#{@qualifiedName}"
     return channelName

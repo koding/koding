@@ -150,6 +150,8 @@ module.exports =
     useStaticFileServer: no
     staticFilesBaseUrl: 'http://lvh.me:3020'
     runtimeOptions:
+      osKitePollingMs: 1000 * 60 # 1 min
+      userIdleMs: 1000 * 60 * 5  # 5 min
       sessionCookie :
         maxAge      : cookieMaxAge
         secure      : cookieSecure
@@ -180,7 +182,7 @@ module.exports =
       apiUri    : 'http://lvh.me:3020'
       version   : version
       mainUri   : 'http://lvh.me:3020'
-      appsUri   : 'https://koding-apps.s3.amazonaws.com'
+      appsUri   : 'https://rest.kd.io'
       uploadsUri: 'https://koding-uploads.s3.amazonaws.com'
       uploadsUriForGroup: 'https://koding-groups.s3.amazonaws.com'
       sourceUri : 'http://lvh.me:3526'
@@ -300,8 +302,8 @@ module.exports =
     useTLS          : no
     certFile        : ""
     keyFile         : ""
-    publicKeyFile   : "/opt/koding/certs/test_kontrol_rsa_public.pem"
-    privateKeyFile  : "/opt/koding/certs/test_kontrol_rsa_private.pem"
+    publicKeyFile   : "./certs/test_kontrol_rsa_public.pem"
+    privateKeyFile  : "./certs/test_kontrol_rsa_private.pem"
   proxyKite       :
     domain        : "127.0.0.1"
     certFile      : "/opt/koding/certs/vagrant_127.0.0.1_cert.pem"
@@ -397,7 +399,7 @@ module.exports =
     channel      : "C024LG80K"
   logLevel        :
     neo4jfeeder   : "notice"
-    oskite        : "notice"
+    oskite        : "info"
     kontrolproxy  : "notice"
     kontroldaemon : "notice"
     userpresence  : "notice"

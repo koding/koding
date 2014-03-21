@@ -3,13 +3,15 @@ package rpc
 import (
 	"errors"
 	"fmt"
-	"github.com/koding/kite/dnode"
+	"net"
 	"net/url"
 	"os"
+	"strings"
 	"sync"
 	"time"
 
 	"code.google.com/p/go.net/websocket"
+	"github.com/koding/kite/dnode"
 )
 
 const redialDurationStart = 1 * time.Second
@@ -97,6 +99,10 @@ func (c *Client) SetWrappers(wrapMethodArgs, wrapCallbackArgs dnode.Wrapper, run
 func (c *Client) Dial(serverURL string) error {
 	var err error
 
+	if serverURL == "" {
+		panic("empty serverURL")
+	}
+
 	if c.Config.Location, err = url.Parse(serverURL); err != nil {
 		return err
 	}
@@ -112,6 +118,25 @@ func (c *Client) Dial(serverURL string) error {
 
 // dial makes a single Dial() and run onConnectHandlers if connects.
 func (c *Client) dial() error {
+	// If no port number in host, append 80 or 443 depending on the scheme
+	_, _, err := net.SplitHostPort(c.Config.Location.Host)
+	if err != nil {
+		if err2, ok := err.(*net.AddrError); ok && err2.Err == "missing port in address" {
+			var port string
+			switch c.Config.Location.Scheme {
+			case "ws":
+				port = "80"
+			case "wss":
+				port = "443"
+			default:
+				panic("unexpected scheme: " + c.Config.Location.Scheme)
+			}
+			c.Config.Location.Host = net.JoinHostPort(strings.TrimRight(err2.Addr, ":"), port)
+		} else {
+			return err // Other kind of error
+		}
+	}
+
 	ws, err := websocket.DialConfig(c.Config)
 	if err != nil {
 		return err
@@ -132,19 +157,25 @@ func (c *Client) dial() error {
 
 // DialForever connects to the server in background.
 // If the connection drops, it reconnects again.
-func (c *Client) DialForever(serverURL string) (err error) {
+func (c *Client) DialForever(serverURL string) (connected chan bool, err error) {
+	if serverURL == "" {
+		panic("empty serverURL")
+	}
+
 	c.Reconnect = true
+
+	connected = make(chan bool, 1)
 
 	if c.Config.Location, err = url.Parse(serverURL); err != nil {
 		return
 	}
 
-	go c.dialForever()
+	go c.dialForever(connected)
 
 	return
 }
 
-func (c *Client) dialForever() {
+func (c *Client) dialForever(connectNotifyChan chan bool) {
 	for c.dial() != nil {
 		if !c.Reconnect {
 			return
@@ -152,6 +183,9 @@ func (c *Client) dialForever() {
 
 		c.sleep()
 	}
+
+	close(connectNotifyChan) // This is executed only once.
+
 	go c.run()
 }
 
@@ -192,7 +226,9 @@ func (c *Client) sleep() {
 // Close closes the underlying websocket connection.
 func (c *Client) Close() {
 	c.Reconnect = false
-	c.Conn.Close()
+	if c.Conn != nil {
+		c.Conn.Close()
+	}
 }
 
 func (c *Client) Send(msg []byte) error {
@@ -201,14 +237,17 @@ func (c *Client) Send(msg []byte) error {
 	}
 
 	if c.Conn == nil {
-		return errors.New("Not connected")
+		return errors.New("not connected")
 	}
 
 	return websocket.Message.Send(c.Conn, string(msg))
 }
 
 func (c *Client) Receive() ([]byte, error) {
-	// println("Receiving...")
+	if c.Conn == nil {
+		return nil, errors.New("not connected")
+	}
+
 	var msg []byte
 	err := websocket.Message.Receive(c.Conn, &msg)
 

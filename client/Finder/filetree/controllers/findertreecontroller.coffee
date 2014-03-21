@@ -19,7 +19,6 @@ class NFinderTreeController extends JTreeViewController
     mainController.on "SelectedFileChanged", @bound "highlightFile"
 
   addNode:(nodeData, index)->
-
     fc = @getDelegate()
     return if @getOption('foldersOnly') and nodeData.type is "file"
     return if nodeData.isHidden() and fc.isNodesHiddenFor nodeData.vmName
@@ -151,7 +150,7 @@ class NFinderTreeController extends JTreeViewController
       folder.emit "fs.job.finished", []
       callback? err
 
-    folder.fetchContents (KD.utils.getTimedOutCallback (err, files)=>
+    folder.fetchContents no, (KD.utils.getTimedOutCallback (err, files)=>
       unless err
         nodeView.expand()
         if files
@@ -162,7 +161,7 @@ class NFinderTreeController extends JTreeViewController
         @hideNotification()
       else
         failCallback err
-    , failCallback, KD.config.fileFetchTimeout), no
+    , failCallback, KD.config.fileFetchTimeout)
 
   collapseFolder:(nodeView, callback, silence=no)->
 
@@ -248,19 +247,9 @@ class NFinderTreeController extends JTreeViewController
     oldPath = nodeData.path
     nodeView.showRenameView (newValue)=>
       return if newValue is nodeData.name
-      if @nodes["#{nodeData.parentPath}/#{newValue}"]
-        caretPos = nodeView.renameView.input.getCaretPosition()
-        @notify "#{nodeData.type.capitalize()} exist!", "error"
-        return KD.utils.defer =>
-          @showRenameDialog nodeView
-          nodeView.renameView.input.setCaretPosition caretPos
 
-      nodeData.rename newValue, (err)=>
+      nodeData.rename name: newValue, (err)=>
         if err then @notify null, null, err
-        # else
-        #   delete @nodes[oldPath]
-        #   @nodes[nodeView.getData().path] = nodeView
-        #   nodeView.childView.render()
 
       # @setKeyView()
       @beingEdited = null
@@ -268,7 +257,8 @@ class NFinderTreeController extends JTreeViewController
   createFile:(nodeView, type = "file")->
     @notify "creating a new #{type}!"
     nodeData = nodeView.getData()
-    {vmName} = nodeData
+
+    { vmName } = nodeData
 
     if nodeData.type is "file"
       {parentPath} = nodeData
@@ -492,7 +482,6 @@ class NFinderTreeController extends JTreeViewController
   cmOpenFileWithApp: (nodeView, contextMenuItem)-> @openFileWithApp  nodeView, contextMenuItem
   cmCloneRepo:     (nodeView, contextMenuItem)-> @cloneRepo nodeView
   cmDropboxChooser:(nodeView, contextMenuItem)-> @chooseFromDropbox nodeView
-  cmDropboxSaver:  (nodeView, contextMenuItem)-> __saveToDropbox nodeView
   cmOpenTerminal:  (nodeView, contextMenuItem)-> @openTerminalFromHere nodeView
   # cmShowOpenWithModal: (nodeView, contextMenuItem)-> @showOpenWithModal nodeView
   # cmOpenFileWithApp: (nodeView, contextMenuItem)-> @openFileWithApp  nodeView, contextMenuItem

@@ -75,7 +75,7 @@ class FeedController extends KDViewController
     sortName    = @selection.activeSort or @defaultSort.name
     @facetsController.highlight filterName, sortName
 
-  handleQuery:({filter, sort})->
+  handleQuery:({filter, sort}, options = {})->
     if filter
       unless @filters[filter]?
         filter = (Object.keys @filters).first
@@ -87,7 +87,10 @@ class FeedController extends KDViewController
       @changeActiveSort sort, no
 
     @highlightFacets()
-    @loadFeed()
+
+    if options.force
+    then @reload()
+    else @loadFeed()
 
   defineFilter:(name, filter)->
     filter.name     = name
@@ -174,7 +177,7 @@ class FeedController extends KDViewController
 
     groupsController.changeGroup group, =>
 
-      currentGroup = groupsController.getCurrentGroup().slug
+      currentGroup = group
       feedId = "#{currentGroup}-#{feedId}"
 
       kallback = (err, items, rest...)=>
@@ -182,13 +185,13 @@ class FeedController extends KDViewController
         @emit "FilterLoaded"
         {limit}      = options
         {scrollView} = listController
-
         if items?.length > 0
           unless err
             items = @sortByKey(items, filter.activeSort) if filter.activeSort
             listController.instantiateListItems items
             @emitCountChanged listController.itemsOrdered.length, filter.name
-            if scrollView and scrollView.getScrollHeight() <= scrollView.getHeight()
+            headerHeight = KD.singleton("dock").getView().getHeight()
+            if document.body.scrollHeight - headerHeight <= window.innerHeight
               @loadFeed filter
           else
             warn err

@@ -1,5 +1,7 @@
 jraphical   = require 'jraphical'
 KodingError = require '../error'
+{argv}      = require 'optimist'
+KONFIG      = require('koding-config-manager').load("main.#{argv.c}")
 
 module.exports = class JNewApp extends jraphical.Module
 
@@ -30,9 +32,13 @@ module.exports = class JNewApp extends jraphical.Module
     indexes             :
       slug              : 'unique'
       name              : 'sparse'
+
     sharedEvents        :
-      instance          : []
+      instance          : [
+        { name: 'updateInstance' }
+      ]
       static            : []
+
     sharedMethods       :
       instance          :
         delete          :
@@ -43,7 +49,7 @@ module.exports = class JNewApp extends jraphical.Module
         ]
 
       static            :
-        create          :
+        publish         :
           (signature Object, Function)
         one             :
           (signature Object, Function)
@@ -100,6 +106,7 @@ module.exports = class JNewApp extends jraphical.Module
         installed       :
           type          : Number
           default       : 0
+
       versions          : [String]
 
       meta              : require "bongo/bundles/meta"
@@ -107,12 +114,17 @@ module.exports = class JNewApp extends jraphical.Module
 
       type              :
         type            : String
-        enum            : ["Wrong type specified!",["web-app", "add-on", "server-stack", "framework"]]
+        enum            : ["Wrong type specified!",
+          ["web-app", "add-on", "server-stack", "framework"]
+        ]
         default         : "web-app"
 
-      approved          :
-        type            : Boolean
-        default         : false
+      status            :
+        type            : String
+        enum            : ["Wrong status specified!",
+          ["verified", "not-verified", "github-verified"]
+        ]
+        default         : "not-verified"
 
       repliesCount      :
         type            : Number
@@ -129,27 +141,18 @@ module.exports = class JNewApp extends jraphical.Module
 
       group             : String
 
-
     relationships       :
       creator           :
         targetType      : JAccount
         as              : "creator"
-      follower          :
-        targetType      : JAccount
-        as              : 'follower'
-      likedBy           :
-        targetType      : JAccount
-        as              : 'like'
-      participant       :
-        targetType      : JAccount
-        as              : ['author','reviewer','user']
-      tag               :
-        targetType      : JTag
-        as              : 'tag'
 
   @getAuthorType =-> JAccount
 
   capitalize = (str)-> str.charAt(0).toUpperCase() + str.slice(1)
+
+  @byRelevance$ = permit 'list apps',
+    success: (client, seed, options, callback)->
+      @byRelevance client, seed, options, callback
 
   @findSuggestions = (client, seed, options, callback)->
     {limit, blacklist, skip}  = options
@@ -164,64 +167,141 @@ module.exports = class JNewApp extends jraphical.Module
       },{skip, limit}, callback
 
 
-  @byRelevance$ = permit 'list apps',
-    success: (client, seed, options, callback)->
-      @byRelevance client, seed, options, callback
+  checkData = (data, profile)->
+    if not data.name or not data.url or not data.manifest
+      return new KodingError 'Name, Url and Manifest is required!'
+    unless typeof(data.manifest) is 'object'
+      return new KodingError 'Manifest should be an object!'
+    unless data.manifest.authorNick is profile.nickname
+      return new KodingError 'Authornick in manifest is different from your username!'
 
-  @create = permit 'create apps',
+  validateUrl = (account, url, callback)->
+
+    url = url.replace /\/$/, ''
+    urls =
+      script : "#{url}/index.js"
+      style  : "#{url}/resources/style.css"
+
+    # If url points to a vm url
+    if (/^\[([^\]]+)\]/g.exec url)?[1]
+      return callback null, urls
+
+    {appsUri} = KONFIG.client.runtimeOptions
+
+    urlParser =
+      ///
+        ^#{appsUri}\/           # Should start with appsUri (in config.client)
+        ([a-z0-9\-]+)\/         # Username
+        ([a-z0-9\-]+)\.kdapp\/  # App name
+        ([a-z0-9\-]+)$          # Git branch/commit id (usually master)
+      ///i
+
+    [url, githubUsername, app, branch] = (urlParser.exec url) or []
+
+    unless githubUsername
+      return callback new KodingError "URL is not allowed."
+
+    # If user is admin
+    if account.can 'bypass-validations'
+      return callback null, urls, {githubVerified: yes, app, githubUsername}
+
+    account.fetchUser (err, user)->
+      return callback err  if err?
+
+      unless user.foreignAuth?.github?
+        return callback new KodingError \
+          "There is no linked GitHub account with this account."
+
+      {username} = user.foreignAuth.github
+      if username is not githubUsername
+        return callback new KodingError "Remote username mismatch."
+
+      app = app.replace /\.kdapp$/, ''
+      # TODO - Add existence check from remote url ~ GG
+      callback null, urls, {githubVerified: yes, app, githubUsername}
+
+  # TODO ~ GG
+
+  @publish = permit 'create apps',
 
     success: (client, data, callback)->
-
-      console.log "creating the JNewApp"
 
       {connection:{delegate}} = client
       {profile} = delegate
 
-      if not data.name or not data.urls?.script
-        return callback new KodingError 'Name and Url is required!'
+      console.info "publishing the JNewApp of #{profile.nickname}"
 
-      data.name = capitalize @slugify data.name
+      if validationError = checkData data, profile
+        return callback validationError
 
-      data.manifest           ?= {}
-
-      # Overwrite the user/app information in manifest
-      data.manifest.name       = data.name
-      data.manifest.authorNick = profile.nickname
-      data.manifest.author     = "#{profile.firstName} #{profile.lastName}"
-
-      # Optionals
-      data.manifest.version   ?= "1.0"
-      data.identifier         ?= "com.koding.apps.#{data.name.toLowerCase()}"
-
-      app           = new JNewApp
-        name        : data.name
-        title       : data.name
-        urls        : data.urls
-        type        : data.type or 'web-app'
-        manifest    : data.manifest
-        identifier  : data.identifier
-        version     : data.manifest.version
-        originId    : delegate.getId()
-        group       : client.context.group
-
-      app.save (err)->
+      validateUrl delegate, data.url, (err, urls, details)=>
         return callback err  if err
-        slug = "Apps/#{app.manifest.authorNick}/#{app.name}"
-        app.useSlug slug, (err, slugobj)->
-          if err then return app.remove -> callback err
-          slug = slugobj.slug
-          app.update {$set: {slug, slug_: slug}}, (err)->
-            console.warn "Slug update failed for #{slug}", err  if err
-          app.addCreator delegate, (err)->
-            return callback err  if err
-            callback null, app
 
+        data.urls = urls
+        data.name = capitalize @slugify data.name
+        {name, manifest:{authorNick}} = data
+
+        # Make sure the app name and the GitHub url matches if exists
+        if details?
+          if details.app isnt data.name
+            return callback \
+              new KodingError "GitHub repository and application name mismatch."
+
+          data.manifest.repository = \
+            "git://github.com/#{details.githubUsername}/#{details.app}.kdapp"
+
+        # Overwrite the user/app information in manifest
+        data.manifest.name       = data.name
+        data.manifest.authorNick = profile.nickname
+        data.manifest.author     = "#{profile.firstName} #{profile.lastName}"
+
+        # Optionals
+        data.manifest.version   ?= "1.0"
+        data.identifier         ?= "com.koding.apps.#{data.name.toLowerCase()}"
+
+        JNewApp.one {name, 'manifest.authorNick':authorNick}, (err, app)->
+
+          return callback err  if err
+
+          appData =
+            name        : data.name
+            title       : data.name
+            urls        : data.urls
+            type        : data.type or 'web-app'
+            manifest    : data.manifest
+            identifier  : data.identifier
+            version     : data.manifest.version
+            originId    : delegate.getId()
+            group       : client.context.group
+            status      : if details?.githubVerified? \
+                          then 'github-verified' else 'not-verified'
+
+          if app
+
+            app.update $set: appData, (err)->
+              return callback err  if err
+              callback null, app
+
+          else
+
+            app = new JNewApp appData
+            app.save (err)->
+              return callback err  if err
+              slug = "#{app.manifest.authorNick}/Apps/#{app.name}"
+              app.useSlug slug, (err, slugobj)->
+                if err then return app.remove -> callback err
+                slug = slugobj.slug
+                app.update {$set: {slug, slug_: slug}}, (err)->
+                  console.warn "Slug update failed for #{slug}", err  if err
+                app.addCreator delegate, (err)->
+                  return callback err  if err
+                  callback null, app
 
   getDefaultSelector = (client, selector)->
     {delegate}   = client.connection
     selector   or= {}
     selector.$or = [
-      {approved  : yes}
+      {status    : $ne : 'not-verified'}
       {originId  : delegate.getId()}
     ]
     return selector
@@ -268,16 +348,14 @@ module.exports = class JNewApp extends jraphical.Module
     success: (client, callback)->
       @remove callback
 
-      JName.one {@name}, (err, jname)->
-        return console.error "Failed to get JName: ", err  if err
-        jname?.remove (err)->
-          console.error "Failed to remove JName: ", err  if err
+      removeJNames = (names)->
+        names.forEach (name)->
+          JName.one {name}, (err, jname)->
+            return console.error "Failed to get JName: ", err  if err
+            jname?.remove (err)->
+              console.error "Failed to remove JName: ", err  if err
 
-      JName.one {name:@slug}, (err, jname)->
-        return console.error "Failed to get JName: ", err  if err
-        jname?.remove (err)->
-          console.error "Failed to remove JName: ", err  if err
-
+      removeJNames [@name, @slug]
 
   approve: permit 'approve apps',
 
@@ -311,259 +389,5 @@ module.exports = class JNewApp extends jraphical.Module
             name.save (err) ->
               console.error "Failed to save JName: ", err  if err
 
-        @update $set: approved: state, callback
-
-      # identifier = @getAt 'identifier'
-
-      # JNewApp.count {identifier, approved:yes}, (count)=>
-
-      #   # Check if any app used same identifier and already approved
-      #   if count > 1
-      #     return callback new KodingError \
-      #            'Identifier already in use, please change it first'
-
-
-
-
-      #   # Check if the app has a slug, if not create one
-      #   unless @getAt 'slug'
-      #     this.createSlug (err, slug)=>
-      #       return callback err  if err
-      #       slug = slug_ = slug.slug
-      #       @update {slug, slug_, approved:yes}, callback
-      #   else
-      #     @update approved:yes, callback
-
-  # JNewApp.one
-    #   name : data.name
-    # , (err, app)=>
-    #   if err
-    #     callback err
-    #   else
-    #     # Override author info with delegate
-    #     data.manifest.authorNick = delegate.getAt 'profile.nickname'
-    #     data.manifest.author = "#{delegate.getAt 'profile.firstName'} #{delegate.getAt 'profile.lastName'}"
-
-    #     if app
-    #       if String(app.originId) isnt String(delegate.getId()) and not delegate.can('approve', this)
-    #         callback new KodingError 'Identifier belongs to different user.'
-    #       else
-    #         console.log "alreadyPublished trying to update fields"
-
-    #         if app.approved # So, this is just a new update
-    #           # Lets look if already waiting for approve
-    #           JNewApp.one
-    #             identifier : "waits.for.approve:#{data.identifier}"
-    #           , (err, approval_app)=>
-    #             if approval_app
-    #               # means no one approved the update before this update
-    #               approval_app.update
-    #                 $set:
-    #                   title     : data.title
-    #                   body      : data.body
-    #                   manifest  : data.manifest
-    #                   approved  : no
-    #               , (err)->
-    #                 if err then callback err
-    #                 else callback null, approval_app
-
-    #             else
-    #               approval_slug = "#{app.slug}-#{data.manifest.version}-waits-for-approve"
-    #               approval_app = new JNewApp
-    #                 title       : data.title
-    #                 body        : data.body
-    #                 manifest    : data.manifest
-    #                 originId    : delegate.getId()
-    #                 slug        : approval_slug
-    #                 slug_       : approval_slug
-    #                 originType  : delegate.constructor.name
-    #                 identifier  : "waits.for.approve:#{data.identifier}"
-
-    #               approval_app.save (err)->
-    #                 if err
-    #                   callback err
-    #                 else
-    #                   callback null, app
-
-    #         else
-    #           if not data.manifest.version
-    #             callback new KodingError 'Version is not provided.'
-    #           else
-    #             curVersions = app.data.versions
-    #             versionExists = (curVersions[i] for i in [0..curVersions.length] when curVersions[i] is data.manifest.version).length
-
-    #           if versionExists
-    #             callback new KodingError 'Version already exists, update version to publish.'
-    #           else
-    #             app.update
-    #               $set:
-    #                 title     : data.title
-    #                 body      : data.body
-    #                 manifest  : data.manifest
-    #                 approved  : no # After each update on an app we need to reapprove it
-    #               $addToSet   :
-    #                 versions  : data.manifest.version
-    #             , (err)->
-    #               if err then callback err
-    #               else callback null, app
-
-    #     else
-    #       app = new JNewApp
-    #         title       : data.title
-    #         body        : data.body
-    #         manifest    : data.manifest
-    #         originId    : delegate.getId()
-    #         originType  : delegate.constructor.name
-    #         identifier  : data.identifier
-    #         versions    : [data.manifest.version]
-
-    #       app.createSlug (err, slug)->
-    #         if err
-    #           callback err
-    #         else
-    #           app.slug   = slug.slug
-    #           app.slug_  = slug.slug
-    #           app.save (err)->
-    #             if err
-    #               callback err
-    #             else
-    #               app.addCreator delegate, (err)->
-    #                 if err
-    #                   callback err
-    #                 else
-    #                   callback null, app
-
-  # install: secure ({connection}, callback)->
-  #   {delegate} = connection
-  #   {constructor} = @
-  #   unless delegate instanceof constructor.getAuthorType()
-  #     callback new Error 'Only instances of JAccount can install apps.'
-  #   else
-  #     Relationship.one
-  #       sourceId: @getId()
-  #       targetId: delegate.getId()
-  #       as: 'user'
-  #     , (err, installedBefore)=>
-  #       if err
-  #         callback err
-  #       else
-  #         unless installedBefore
-  #           # If itsn't an approved app so we dont need to create activity
-  #           if @getAt 'approved'
-  #             @addParticipant delegate, {as:'user', respondWithCount: yes}, (err, docs, count)=>
-  #               if err
-  #                 callback err
-  #               else
-  #                 @update ($set: 'counts.installed': count), (err)=>
-  #                   if err then callback err
-  #                   else
-  #                     Relationship.one
-  #                       sourceId: @getId()
-  #                       targetId: delegate.getId()
-  #                       as: 'user'
-  #                     , (err, relation)=>
-  #                       if err then callback err
-  #                       else
-  #                         CBucket.addActivities relation, @, delegate, null, (err)=>
-  #                           if err
-  #                             callback err
-  #                           else
-  #                             callback null
-  #           else
-  #             callback new KodingError 'App is not approved so activity is not created.'
-  #         else
-  #           callback null
-
-  # approve: secure ({connection}, state = yes, callback)->
-
-  #   {delegate} = connection
-  #   {constructor} = @
-  #   unless delegate instanceof constructor.getAuthorType()
-  #     callback new KodingError 'Only instances of JAccount can approve apps.'
-  #   else
-  #     unless delegate.checkFlag 'super-admin'
-  #       callback new KodingError 'Only Koding Application Admins can approve apps.'
-  #     else
-  #       if @getAt('identifier').indexOf('waits.for.approve:') is 0
-  #         identifier = @getAt('identifier').replace 'waits.for.approve:', ''
-
-  #         JNewApp.one
-  #           identifier:identifier
-  #         , (err, target)=>
-  #           if err
-  #             callback err
-  #           else
-
-  #             if target
-  #               newVersion = @getAt 'manifest.version'
-
-  #               if not newVersion
-  #                 callback new KodingError 'Version is not provided.'
-  #               else
-  #                 curVersions = target.data.versions
-  #                 versionExists = (curVersions[i] for i in [0..curVersions.length] when curVersions[i] is newVersion).length
-
-  #                 if versionExists
-  #                   callback new KodingError 'Version already approved, update version to reapprove.'
-  #                 else
-  #                   target.update
-  #                     $set:
-  #                       title     : @getAt 'title'
-  #                       body      : @getAt 'body'
-  #                       manifest  : @getAt 'manifest'
-  #                       meta      : createdAt: new Date()
-  #                       approved  : yes
-  #                     $addToSet   :
-  #                       versions  : @getAt 'manifest.version'
-  #                   , (err)->
-  #                     if err
-  #                       console.log err
-  #                       callback err
-  #                     else
-  #                       # @delete We can delete the temporary JNewApp (@) here.
-  #                       callback null, target
-
-  #             else
-  #               callback new KodingError "Target (already approved application) not found!"
-
-  #       else
-  #         @update ($set: approved: state), (err)=>
-  #           callback err
-
-  # @markInstalled = secure (client, apps, callback)->
-  #   Relationship.all
-  #     targetId  : client.connection.delegate.getId()
-  #     as        : 'user'
-  #     sourceType: 'JNewApp'
-  #   , (err, relationships)->
-  #     apps.forEach (app)->
-  #       app.installed = no
-  #       for relationship, index in relationships
-  #         if app._id is relationship.sourceId
-  #           app.installed = yes
-  #           relationships.splice index,1
-  #           break
-  #     callback err, apps
-
-  # delete: secure ({connection:{delegate}}, callback)->
-
-  #   if delegate.can 'delete', this
-  #     @remove callback
-
-
-  # # modify: permit
-  # #   advanced: [
-  # #     { permission: 'edit own posts', validateWith: Validators.own }
-  # #     { permission: 'edit posts' }
-  # #   ]
-  # #   success: (client, formData, callback)->
-
-
-
-  #   # if not (delegate.checkFlag('app-publisher') or delegate.checkFlag('super-admin'))
-  #   #   callback new KodingError 'You are not authorized to publish apps.'
-  #   #   return no
-
-  #   # if data.identifier.indexOf('com.koding.apps.') isnt 0
-  #   #   callback new KodingError 'Invalid identifier provided.'
-  #   #   return no
+        status = if state then 'verified' else 'not-verified'
+        @update $set: {status}, callback

@@ -1,4 +1,4 @@
-@import "../../../Framework/themes/default/kdfn"
+@import "../../../Framework/src/themes/default/kdfn"
 @import "../../../Main/styl/appfn"
 @import "nib/gradients"
 
@@ -9,61 +9,72 @@ appstore.styl
 */
 }
 
-.appstore.coming-soon-page
-  .comingsoon
-    abs()
-    top           0
-    left          0
-    size          100%,100%
-    z-index       100
+body.apps
 
-.waits-approve
-  background      #efefef
+  .header-facets
+    height      30px
+    top         70px
 
-.kdview.kdlistitemview-appstore
-  height          300px
-  overflow        hidden
-  width           220px
-  clear           none
-  margin          18px
-  border-radius   3px
-  fl()
+    .title
+      display   none
 
-  &:hover
-    .appdetails
-      top           0
+    .active-facet
+      background      #1AAF5D
+      color           white
+      padding-left    15px
+      padding-right   40px
+      border-radius   20px
+      font-size       14px
+      font-weight     200
 
-  &:last-child
-    border-bottom 1px solid #E6E6E6
+      cite
+        r-sprite      app, 'filter-arrow'
+        top           12px
+        right         12px
 
-  > figure
-    width           220px
-    height          120px
-    margin-bottom   0px
-    overflow        hidden
-    abs()
+  .feeder-header
+    font-weight       500
+    color             #666
+    line-height       20px
+    margin-bottom     10px
 
-    img
-      width         100%
+  h1.header-view-section
+    height            60px
+    border-bottom     2px solid #ccc
+    line-height       60px
+    color             #1AAF5D
+    margin-bottom     20px
+    font-weight       500
 
-    .thumbnail
-      text-align    center
-      padding-top   45px
-      color         white
-      font-size     30px
+  .app-details
+    overflow-x      hidden
 
-      .logo
-        border      1px solid #eee
-        border-radius 2px
-        padding     4px 10px 4px 10px
+  .app-logo
 
-  .appmeta
-    color           #353535
-    padding         15px
-    height          180px
+    color           white
+    padding         55px
+    font-size       22px
+    margin-top      20px
+    width           37px
+    height          27px
+
+    border-top-left-radius      2px
+    border-bottom-left-radius   2px
+
+    .logo
+      border        1px solid #eee
+      border-radius 2px
+      padding       4px 10px 4px 10px
+
+  .app-info
+
+    top             20px
     background      white
-    width           250px
-    top             120px
+    left            147px
+    padding         20px
+    height          97px
+    width           600px
+    overflow        auto
     abs()
 
     h3
@@ -83,376 +94,235 @@ appstore.styl
       color           gray
       margin-top      -8px
 
-    .appstats
-      font-size       11px
-      color           #A5A5A5
-
-      a
-        color           #A5A5A5
-        font-weight     bold
-        text-decoration none
-      span.icon
-        display         inline-block
-        size            18px,14px
-        margin          0 8px 0 0px
-        vertical-align  top
-        kdfsprite()
-      p
-        margin-bottom   10px
-        font-size       11px
-        color           #353535
-
-      .installs
-        span.icon
-          bg            position, 0 -642px
-
-      .followers
-        span.icon
-          bg            position,-141px -442px
-
-  .appdetails
-
     article
       color                 #353535
       font-size             13px
       line-height           1.5
       margin-top            5px
-      overflow              hidden
-      width                 200px
+      overflow              auto
 
-    button
-      color                 #7F7F7F
-      vendor                transition,all 0 none
-
-    a
-      color                 linkColor1
-      text-decoration       none
-
-  .bottom
-    height                  70px
-    width                   220px
-    background              linear-gradient(top, rgba(255,255,255,0) 0%, #fff 20%)
-    bottom                  0
+  .verified-switch-label
+  .verified-switch
+    right    25px
+    top      135px
+    z-index  3
     abs()
 
-  .kdbutton.run
-
-    bottom                  20px
-    width                   180px
-    left                    18px
-    border                  none
-    background              logoBg
-    color                   white
-    font-size               20px
-    border-radius           30px
-    font-variant            small-caps
-    height                  39px
-    abs()
-
-.content-page.appstore
-  max-width                 1036px
-
-// single app page
-.content-display.apps
-  .profilearea
-    vendor              transition, box-shadow .15s linear
-    z-index             10
-    &.cast-shadow
-      shadow            0 10px 20px -10px rgba(0, 0, 0, 0.4)
-    section
-      h3
-        cite
-          font-size     12px
-          color         #999
-          font-weight   300
-          font-style    normal
-          margin-left   5px
-  .profileleft
-    .profile-avatar
-      display         block
-      size            90px, 90px
-      img
-        max-width     90px
-  section
-    .profileinfo
-      .profile-about
-        font-size       15px
-        font-weight     300
-        line-height     140%
-        margin          0px 0px
-        padding         20px 0px 0px 0px
-        max-width       750px
-        rel()
-
-  .profilestats
-    .fing
-      a
-        bg              position, 0 -790px
-    .fers
-      a
-        bg              position, 0 -630px
-    .contact
-      a
-        bg              position, 0 -749px
-        span
-          color         #FF9200
-  .skilltags
-    margin              20px 0
-    label
-      width             58px
-      margin            0
-      display           inline-block
-      text-transform    uppercase
-      font-size         10px
-      color             #a5a5a5
-    span
-      font-size         10px
-      font-weight       bold
-      padding           3px 6px
-      color             white
-      rounded           3px
-      display           inline-block
-      line-height       10px
-      background-color  #ff9200
-      text-transform    uppercase
-
-  .members-contentpage-list
-    margin-top          0
+  .verified-switch-label
+    right      62px
+    font-size  12px
+    top        134px
 
   .installerbar
-    margin              10px 0 0 0
-    rounded             4px
-    > .kdbutton
-    > .kdbuttonwithmenu-wrapper
-      margin            11px 11px 0px 0px
-      font-size         14px
-      font-weight       600
-      line-height       1
-      width             auto
-      fl()
-      .kdbutton.with-menu
-        font-size       14px
-        font-weight     600
-        height          33px
-        padding-right   13px !important
-    > .kdbutton
-      padding           9px 20px 10px 20px
 
-  .topic.appversion
-    .topicmeta
-      border-top       1px solid #e8e8e8
-      margin-top       20px!important
-      padding-top      10px
-
-
-  .versionscorecard
-    margin              12px 0px 0 0
-    fl()
-
-  .versionstats
-    margin-left       0
-    margin-right      0
-    font-size         14px
-    line-height       16px
-    padding-left      0
-    margin-right      25px
-    fl()
-    &:first-child
-      margin-left     0!important
-    &.updateddate
-      margin          12px 25px 0 0
-    p
-      font-size       11px
-      line-height     18px
-      color           #999
-
-
-  .appfollowlike
-    display             inline-block
-    margin              5px 0
-    button
-      display           block
-      font-size         11px
-      width             90px
-      padding           3px 8px 4px
-      margin-right      0px
-      margin-bottom     0px
-      borderBox()
-      &:first-child
-        margin-bottom   2px
-
-  .info-wrapper
-    padding             25px
-    z-index             0
-    borderBox()
-    header
-      font-size         14px
-      margin-bottom     10px
-      a
-        font-size       12px
-        font-weight     bold
-        color           #666
-        noTextDeco()
-        &:before
-          content           ' '
-          height            0
-          display           inline-block
-          width             8px
-          border            4px solid transparent
-          border-top-color  #555
-          margin-right      4px
-          borderBox()
-    > section
-      margin-bottom         18px
-      margin-top            0
-      font-size             12px
-      line-height           150%
-      padding               0
-      color                 #353535
-      figure
-        margin              15px 0
-
-    section.screenshots
-      background            #e2e2e2
-      shadow                inset 0 0 20px rgba(0, 0, 0, 0.34)
-      padding               30px
-      borderBox()
-      ul
-        margin              0
-        text-align          center
-      li
-        display             inline-block
-        clear               both
-        margin              30px 0 0 0
-        bg                  color, white
-        shadow              0 0 20px rgba(0, 0, 0, 0.34)
-        &:last-child
-          margin            30px 0
-        img
-          max-width         100%
-          vertical-align    top
-
-.search-tags span
-  color         white
-  display       inline-block
-  padding       3px 4px 3px 5px
-  margin-right  10px
-  bg(color,finderSelectedColor1)
-  rounded(4px)
-  cursor        pointer
-  cite
-    font-style      normal
-    rounded(16px)
-    padding         0 3px 1px 3px
-    color           finderSelectedColor1
-    line-height     10px
-    font-size       9px
-    font-weight     bold
-    vertical-align  middle
-    rel()
-    top             -1px
-    display         inline-block
-    margin-left     4px
-    bg(color,#f9c169)
-  &:hover
-    color         white
-
-.profilename-input-wrapper
-  input
-    font-size        30px
-    font-weight      700
-    margin-right     20px
-    border           1px solid #DADADA
-  a
+    background-color #545454
+    width            220px
+    height           137px
+    color            white
+    top              20px
+    right            0
+    border-bottom-left-radius   3px
+    border-bottom-right-radius  3px
     abs()
-    right           0
-    top             -10px
-    line-height     10px
 
-.profilelocation-input-wrapper
-  a
-    abs()
-    right           0
-    top             -10px
-    line-height     10px
-
-.profileabout-input-wrapper
-  textarea
-    padding         10px
-  a
-    abs()
-    right           0
-    top             20px
-    line-height     10px
-
-
-
-.convertible-input-view
-  .convertible-edit
-    abs()
-    color           #ff9200
-    abs             0,0,none,none
-    noTextDeco()
-
-
-.kdmodal.app-submission
-  input,
-  textarea,
-  .kdautocompleteinputwrapper,
-  .tags-selected-item-wrapper
-    width               665px
-    max-width           665px
-  textarea
-    height              115px
-    &.code
-      font-family       mono
-      bg                color, #333333
-      color             #f2f2f2!important
-  .code-snip-holder,
-  .kdfileupload
-    width               665px
-    margin              -22px 0 0 95px
-  .tags-selected-item-wrapper
-    margin              10px 0 0 95px
-  .app-preview
-    max-height          400px
-    .formline
-      padding-top       20px
-      rel()
-      &.screenshots
-        img
-          max-width     96px
-          margin-right  5px
-          bg            color,#eee
-          shadow        0 2px 4px rgba(0,0,0,0.3)
-      &.title
-        span
-          vertical-align top
-        img
-          max-width     32px
-          margin-right  5px
-
-    label
-      min-width         0
-      display           block
+    .action-buttons
+      bottom                     0
+      left                       0
+      width                      100%
+      height                     32px
       abs()
-      top               0
-      color             #aaa
-      padding           3px 0
-      text-transform    uppercase
-      font-size         9px
-      font-weight       600
 
-.app-update-modal
-  padding               20px 20px 10px
-  font-size             13px
-  p
-    margin-bottom       10px
-    line-height         15px
-.app-update-warning
-  color                 #A80000
-  font-weight           bold
-.update-apps-button
-  abs()
-  top                   25px
-  right                 25px
+      .kdbutton
+        border                     none
+        font-size                  13px
+        color                      #fff
+        height                     32px
+        abs()
+
+      .kdbutton.run
+        background                 logoBg
+        text-align                 left
+        padding-left               12px
+        border-bottom-right-radius 3px
+        left                       0
+        width                      100%
+        abs()
+
+      .kdbutton.delete
+        z-index                    1
+        right                      0
+        background                 #BA4B3A
+        border-bottom-right-radius 3px
+        width                      70px
+
+      .kdbutton.approve
+        z-index                    2
+        right                      70px
+        background                 #1FCE6E
+        width                      85px
+
+    .versionstats
+      font-size                  12px
+      padding                    10px
+      line-height                20px
+
+  .content-page.appstore
+    max-width                 1036px
+    min-height                500px
+
+  .content-page.appstore.singleapp
+    padding-top                  0
+
+  .status-widget
+    top            5px
+    right          5px
+    abs()
+
+    &.github-verified
+      display   none
+    &.not-verified
+      r-sprite  app, 'private'
+    &.verified
+      r-sprite  app, 'verified'
+
+  .kdview.kdlistitemview-appstore
+
+    height          300px
+    overflow        hidden
+    width           220px
+    clear           none
+    margin          18px// 36px 20px 0
+    border-radius   3px
+    fl()
+
+    &:hover
+      .appdetails
+        top           0
+
+    &:last-child
+      border-bottom 1px solid #E6E6E6
+
+    > figure
+      width           220px
+      height          120px
+      margin-bottom   0px
+      overflow        hidden
+      abs()
+
+      img
+        width         100%
+
+      .thumbnail
+        text-align    center
+        padding-top   45px
+        color         white
+        font-size     30px
+
+        .logo
+          border      1px solid #eee
+          border-radius 2px
+          padding     4px 10px 4px 10px
+
+    .appmeta
+
+      color           #353535
+      padding         15px
+      height          180px
+      background      white
+      width           190px
+      top             120px
+      abs()
+
+      a
+        color           #333
+        font-weight     bold
+        display         block
+        text-decoration none
+
+        h3
+          display         block
+          font-size       14px
+          line-height     14px
+          margin          0 0 10px 0
+
+        cite
+          r-sprite        app, 'app-arrow'
+          display         block
+          right           16px
+          top             18px
+          abs()
+
+
+      h4
+        font-size       11px
+        color           gray
+        margin-top      -8px
+        padding-bottom  8px
+        border-bottom   1px solid #eee
+
+      .appstats
+        font-size       11px
+        color           #A5A5A5
+
+        a
+          color           #A5A5A5
+          font-weight     bold
+          text-decoration none
+        span.icon
+          display         inline-block
+          size            18px,14px
+          margin          0 8px 0 0px
+          vertical-align  top
+          kdfsprite()
+        p
+          margin-bottom   10px
+          font-size       11px
+          color           #353535
+
+        .installs
+          span.icon
+            bg            position, 0 -642px
+
+        .followers
+          span.icon
+            bg            position,-141px -442px
+
+    .appdetails
+
+      article
+        color                 #353535
+        font-size             13px
+        line-height           1.5
+        margin-top            5px
+        overflow              hidden
+        width                 200px
+
+      button
+        color                 #7F7F7F
+        vendor                transition,all 0 none
+
+      a
+        color                 linkColor1
+        text-decoration       none
+
+    .bottom
+
+      height                  70px
+      width                   220px
+      background              linear-gradient(top, rgba(255,255,255,0) 0%, #fff 20%)
+      bottom                  0
+      abs()
+
+    .kdbutton.run
+
+      bottom                  20px
+      width                   180px
+      left                    18px
+      border                  none
+      background              logoBg
+      color                   white
+      font-size               20px
+      border-radius           30px
+      font-variant            small-caps
+      height                  39px
+      abs()
