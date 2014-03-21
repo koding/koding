@@ -7,6 +7,7 @@ class TroubleshootModal extends KDModalViewWithForms
         title                 : "Checking Koding Status"
         overlay               : yes
         cssClass              : "troubleshoot-modal"
+        cancelable            : no
         tabs                  :
           forms               :
             Troubleshoot      :
@@ -49,7 +50,9 @@ class TroubleshootModal extends KDModalViewWithForms
                   placeholder : "Define the situation"
 
     super options, data
+    @overlay.off "click"
     @hideFeedback()
+    @modalTabs.forms.Troubleshoot.buttons.close.hide()
     @modalTabs.forms.Troubleshoot.fields.result.hide()
     troubleshoot.off "recoveryCompleted"
     troubleshoot.on "recoveryCompleted", =>
@@ -58,7 +61,7 @@ class TroubleshootModal extends KDModalViewWithForms
 
     troubleshoot.once "troubleshootCompleted", =>
       # show feedback form if there are any errors apart from connection down
-
+      @modalTabs.forms.Troubleshoot.buttons.close.show()
       if troubleshoot.isSystemOK()
         return @modalTabs.forms.Troubleshoot.fields.result.show()
       @showFeedback()  unless troubleshoot.isConnectionFailed()
