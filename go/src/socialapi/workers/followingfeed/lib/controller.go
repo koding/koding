@@ -67,3 +67,15 @@ func mapMessage(data []byte) (*models.ChannelMessage, error) {
 
 	return cm, nil
 }
+
+// todo add caching here
+func fetchChannel(channelId int64) (*models.Channel, error) {
+	c := models.NewChannel()
+	c.Id = channelId
+	// todo - fetch only name here
+	if err := c.Fetch(); err != nil {
+		return nil, err
+	}
+
+	return c, nil
+}
