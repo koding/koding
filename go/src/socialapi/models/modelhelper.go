@@ -153,6 +153,27 @@ func (m Model) Some(i Modellable, data interface{}, rest ...map[string]interface
 
 	// add selector
 	query = addWhere(query, selector)
+	err := query.Find(data).Error
+	if err == gorm.RecordNotFound {
+		return nil
+	}
+	return err
+}
+
+func (m Model) One(i Modellable, data interface{}, selector map[string]interface{}) error {
+
+	// init query
+	query := db.DB
+
+	// add table name
+	query = query.Table(i.TableName())
+
+	// add selector
+	query = addWhere(query, selector)
+
+	// add limit
+	query.Limit(1)
+
 	return query.Find(data).Error
 }
 
