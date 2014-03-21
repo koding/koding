@@ -48,8 +48,12 @@ func testMessageOperations() {
 }
 
 func createPost(channelId, accountId int64) (*models.ChannelMessage, error) {
+	return createPostWithBody(channelId, accountId, "create a message")
+}
+
+func createPostWithBody(channelId, accountId int64, body string) (*models.ChannelMessage, error) {
 	cm := models.NewChannelMessage()
-	cm.Body = "create a message"
+	cm.Body = body
 	cm.AccountId = accountId
 
 	url := fmt.Sprintf("/channel/%d/message", channelId)
