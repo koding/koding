@@ -19,7 +19,9 @@ func main() {
 	testHistoryOperations()
 	testFollowingFeedOperations()
 	testFrontpageOperations()
+	testTopicFeedOperations()
 }
+
 func sendModel(reqType, url string, model interface{}) (interface{}, error) {
 
 	res, err := marshallAndSendRequest(reqType, url, model)
