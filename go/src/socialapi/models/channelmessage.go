@@ -55,6 +55,7 @@ func (c *ChannelMessage) Self() Modellable {
 
 const (
 	ChannelMessage_TYPE_POST  = "post"
+	ChannelMessage_TYPE_REPLY = "reply"
 	ChannelMessage_TYPE_JOIN  = "join"
 	ChannelMessage_TYPE_LEAVE = "leave"
 	ChannelMessage_TYPE_CHAT  = "chat"
