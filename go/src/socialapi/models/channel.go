@@ -4,6 +4,8 @@ import (
 	"errors"
 	"fmt"
 	"time"
+
+	"github.com/jinzhu/gorm"
 )
 
 type Channel struct {
@@ -116,6 +118,43 @@ func (c *Channel) FetchByIds(ids []int64) ([]Channel, error) {
 	}
 	return channels, nil
 }
+
+func (c *Channel) AddParticipant(participantId int64) (*ChannelParticipant, error) {
+	if c.Id == 0 {
+		return nil, errors.New("Channel Id is not set")
+	}
+
+	cp := NewChannelParticipant()
+	cp.ChannelId = c.Id
+	cp.AccountId = participantId
+
+	err := cp.FetchParticipant()
+	if err != nil && err != gorm.RecordNotFound {
+		return nil, err
+	}
+
+	// if we have this record in DB
+	if cp.Id != 0 {
+		// if status is not active
+		if cp.Status == ChannelParticipant_STATUS_ACTIVE {
+			return nil, errors.New(fmt.Sprintf("Account %s is already a participant of channel %s", cp.AccountId, cp.ChannelId))
+		}
+		cp.Status = ChannelParticipant_STATUS_ACTIVE
+		if err := cp.Update(); err != nil {
+			return nil, err
+		}
+		return cp, nil
+	}
+
+	cp.Status = ChannelParticipant_STATUS_ACTIVE
+
+	if err := cp.Create(); err != nil {
+		return nil, err
+	}
+
+	return cp, nil
+}
+
 func (c *Channel) RemoveParticipant(participantId int64) error {
 	if c.Id == 0 {
 		return errors.New("Channel Id is not set")
@@ -146,6 +185,7 @@ func (c *Channel) RemoveParticipant(participantId int64) error {
 
 	return nil
 }
+
 func (c *Channel) FetchParticipantIds() ([]int64, error) {
 	var participantIds []int64
 
