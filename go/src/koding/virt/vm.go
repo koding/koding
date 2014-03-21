@@ -193,7 +193,7 @@ func (v *VM) Prepare(reinitialize bool) <-chan *Step {
 
 			if err != nil {
 				// don't put the prepare in an unknown state
-				for _ = range v.Unprepare() {
+				for _ = range v.Unprepare(false) {
 				}
 				break
 			}
@@ -361,7 +361,7 @@ func UnprepareVM(id bson.ObjectId) error {
 	}
 
 	var err error
-	for step := range vm.Unprepare() {
+	for step := range vm.Unprepare(false) {
 		err = step.Err
 	}
 	return err
@@ -374,12 +374,18 @@ func UnprepareVM(id bson.ObjectId) error {
 // Those files will be stored in the vmroot.
 // Unprepare also doesn't return on errors, instead it silently fails and
 // tries to execute the next step until all steps are done.
-func (vm *VM) Unprepare() <-chan *Step {
+func (vm *VM) Unprepare(onlyOverlay bool) <-chan *Step {
 	funcs := make([]*StepFunc, 0)
 	funcs = append(funcs, &StepFunc{Msg: "Removing network rules", Fn: vm.removeNetworkRules})
 	funcs = append(funcs, &StepFunc{Msg: "Umount PTS", Fn: vm.umountPts})
 	funcs = append(funcs, &StepFunc{Msg: "Umount AUFS", Fn: vm.umountAufs})
-	funcs = append(funcs, &StepFunc{Msg: "Umount RBD", Fn: vm.umountRBD})
+
+	if onlyOverlay {
+		funcs = append(funcs, &StepFunc{Msg: "Umount Overlay", Fn: vm.unmountOverlay})
+	} else {
+		funcs = append(funcs, &StepFunc{Msg: "Umount RBD", Fn: vm.umountRBD})
+	}
+
 	funcs = append(funcs, &StepFunc{Msg: "Removing lxc/config", Fn: func() error { return os.Remove(vm.File("config")) }})
 	funcs = append(funcs, &StepFunc{Msg: "Removing lxc/fstab", Fn: func() error { return os.Remove(vm.File("fstab")) }})
 	funcs = append(funcs, &StepFunc{Msg: "Removing lxc/ip-config", Fn: func() error { return os.Remove(vm.File("ip-address")) }})
@@ -468,14 +474,6 @@ func (vm *VM) umountAufs() error {
 	}
 
 	return lastError
-}
-
-func (vm *VM) umountRBD() error {
-	if err := vm.UnmountRBD(vm.OverlayFile("")); err != nil {
-		return err
-	}
-
-	return nil
 }
 
 func (vm *VM) ExistsRBD() (bool, error) {
@@ -572,6 +570,14 @@ func (vm *VM) MountRBD(mountDir string) error {
 	return nil
 }
 
+func (vm *VM) umountRBD() error {
+	if err := vm.UnmountRBD(vm.OverlayFile("")); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (vm *VM) UnmountRBD(mountDir string) error {
 	var firstError error
 	if out, err := exec.Command("/bin/umount", vm.OverlayFile("")).CombinedOutput(); err != nil && firstError == nil {
@@ -584,6 +590,16 @@ func (vm *VM) UnmountRBD(mountDir string) error {
 	return firstError
 }
 
+func (vm *VM) unmountOverlay() error {
+	var firstError error
+	if out, err := exec.Command("/bin/umount", vm.OverlayFile("")).CombinedOutput(); err != nil && firstError == nil {
+		firstError = commandError("umount rbd failed.", err, out)
+	}
+
+	os.Remove(vm.OverlayFile(""))
+	return firstError
+}
+
 func (vm *VM) ResizeRBD() error {
 	if out, err := exec.Command("/usr/bin/rbd", "resize", "--pool", VMPool, "--image", vm.String(), "--size", strconv.Itoa(vm.DiskSizeInMB)).CombinedOutput(); err != nil {
 		return commandError("rbd resize failed.", err, out)
@@ -591,10 +607,6 @@ func (vm *VM) ResizeRBD() error {
 
 	if out, err := exec.Command("/sbin/resize2fs", vm.RbdDevice()).CombinedOutput(); err != nil {
 		return commandError("resize2fs failed.", err, out)
-	}
-
-	if out, err := exec.Command("/bin/mount", "-o", "remount", vm.OverlayFile("")).CombinedOutput(); err != nil {
-		return commandError("remount failed.", err, out)
 	}
 
 	return nil

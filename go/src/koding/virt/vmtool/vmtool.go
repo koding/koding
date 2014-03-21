@@ -108,7 +108,7 @@ var actions = map[string]func(args []string){
 		for _, vm := range vms {
 			err := vm.Shutdown()
 
-			for step := range vm.Unprepare() {
+			for step := range vm.Unprepare(false) {
 				err = step.Err
 			}
 			fmt.Printf("%v: %v\n", vm, err)

@@ -561,9 +561,10 @@ utils.extend utils,
 
   getColorFromString:(str)->
     return [
-      "#37B298", "#BA4B3A", "#F1C42C", "#DB4B00", "#009BCB"
-      "#37B298", "#35485F", "#D35219", "#FDAB2E", "#19A2C4"
-      "#37B298", "#BA4B3A", "#F1C42C", "#DB4B00", "#009BCB"
+      "#37B298", "#BA4B3A", "#F1C42C", "#DB4B00"
+      "#009BCB", "#37B298", "#35485F", "#D35219"
+      "#FDAB2E", "#19A2C4", "#37B298", "#BA4B3A"
+      "#F1C42C", "#DB4B00", "#009BCB", "#B82F68"
     ][parseInt (md5.digest str)[0], 16]
 
   formatMoney: accounting.formatMoney
@@ -613,7 +614,7 @@ utils.extend utils,
     lb = nb.toLowerCase()
 
     switch
-      when la is lb 
+      when la is lb
         switch
           when na is nb  then 0
           when na > nb   then 1

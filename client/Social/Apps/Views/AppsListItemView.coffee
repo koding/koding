@@ -1,6 +1,6 @@
 class AppsListItemView extends KDListItemView
 
-  constructor:(options = {},data)->
+  constructor:(options = {}, data)->
 
     options.type = "appstore"
 
@@ -11,7 +11,6 @@ class AppsListItemView extends KDListItemView
       partial  : "<span class='logo'>#{data.name[0]}</span>"
 
     @thumbnail.setCss 'backgroundColor', KD.utils.getColorFromString data.name
-    @setClass "waits-approve"  unless @getData().approved
 
     @runButton = new KDButtonView
       cssClass : 'run'
@@ -20,23 +19,39 @@ class AppsListItemView extends KDListItemView
         KodingAppsController.runExternalApp @getData()
         KD.mixpanel "App run, click"
 
-  viewAppended:->
-    @setTemplate @pistachio()
-    @template.update()
+    @statusWidget = new KDView
+      cssClass : KD.utils.curry 'status-widget', data.status
+      tooltip  : title : {
+        'github-verified': "Public"
+        'not-verified'   : "Private"
+        'verified'       : "Verified"
+      }[data.status]
+
+  # Override KDView::render since I'm updating all the manifest at once ~ GG
+  render:-> @template.update()
+
+  viewAppended: JView::viewAppended
 
   pistachio:->
+
+    {manifest:{authorNick}, name} = @getData()
+
     """
-    <figure>
-      {{> @thumbnail}}
-    </figure>
-    <div class="appmeta clearfix">
-      <h3><a href="/#{@getData().slug}">#{@getData().name}</a></h3>
-      <h4>{{#(manifest.author)}}</h4>
-      <div class="appdetails">
-        <article>{{@utils.shortenText #(manifest.description)}}</article>
+      <figure>
+        {{> @thumbnail}}
+      </figure>
+      {{> @statusWidget}}
+      <div class="appmeta clearfix">
+        <a href="/Apps/#{authorNick}/#{name}">
+          <h3>#{name}</h3>
+          <cite></cite>
+        </a>
+        <h4>{{#(manifest.author)}}</h4>
+        <div class="appdetails">
+          <article>{{@utils.shortenText #(manifest.description)}}</article>
+        </div>
       </div>
-    </div>
-    <div class='bottom'>
-      {{> @runButton}}
-    </div>
+      <div class='bottom'>
+        {{> @runButton}}
+      </div>
     """
