@@ -214,3 +214,19 @@ func (c *Channel) FetchParticipantIds() ([]int64, error) {
 
 	return participantIds, nil
 }
+
+func (c *Channel) AddMessage(messageId int64) (*ChannelMessageList, error) {
+	if c.Id == 0 {
+		return nil, errors.New("Channel Id is not set")
+	}
+
+	cml := NewChannelMessageList()
+	cml.ChannelId = c.Id
+	cml.MessageId = messageId
+
+	if err := cml.Create(); err != nil {
+		return nil, err
+	}
+
+	return cml, nil
+}
