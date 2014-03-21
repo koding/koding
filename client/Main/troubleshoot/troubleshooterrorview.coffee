@@ -58,19 +58,11 @@ class TroubleshootErrorView extends KDCustomHTMLView
             @errorCount++
             @addSubView @errorViews[name] = @createErrorView name, item
 
-        item.on "recoveryStarted", =>
-          @errorCount--
-          @hide()  unless @errorCount
-          @errorViews[name].destroy()
-          delete @errorViews[name]
+        @forwardEvent item, "recoveryStarted"
+        @on "recoveryStarted", @startRecovery.bind @, name
 
-
-        item.on "recoveryCompleted", =>
-          {status} = item
-          if errorMessages[name]?[status]
-            @show()
-            @errorCount++
-            @addSubView @errorViews[name] = @createErrorView name, item
+        @forwardEvent item, "recoveryCompleted"
+        @on "recoveryCompleted", @completeRecovery.bind @, name, item
 
 
   createErrorView: (name, item) ->
@@ -80,6 +72,20 @@ class TroubleshootErrorView extends KDCustomHTMLView
       cssClass: "status-message #{status}"
       partial: "* #{errorMessages[name][status]}"
 
+
+  startRecovery: (name) ->
+    @errorCount--
+    @hide()  unless @errorCount
+    @errorViews[name].destroy()
+    delete @errorViews[name]
+
+
+  completeRecovery: (name, item) ->
+    {status} = item
+    if errorMessages[name]?[status]
+      @show()
+      @errorCount++
+      @addSubView @errorViews[name] = @createErrorView name, item
 
   destroy: ->
     @off "recoveryStarted"

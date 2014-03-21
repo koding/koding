@@ -8,13 +8,16 @@ class TroubleshootItemView extends KDCustomHTMLView
       size          : width : 16
       showLoader    : yes
 
-    @getData().once "healthCheckStarted", startCheck.bind this
+    @getData().once "healthCheckStarted", @bound "startCheck"
 
-    @getData().once "healthCheckCompleted", completeCheck.bind this
+    @getData().once "healthCheckCompleted", @bound "completeCheck"
 
-    @getData().on "recoveryStarted", startCheck.bind this
+    @forwardEvent @getData(), "recoveryStarted"
+    @on "recoveryStarted", @bound "startCheck"
 
-    @getData().on "recoveryCompleted", completeCheck.bind this
+    @forwardEvent @getData(), "recoveryCompleted"
+    @on "recoveryCompleted", @bound "completeCheck"
+
 
     @status = new KDCustomHTMLView
       tagName   : "strong"
