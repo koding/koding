@@ -110,3 +110,27 @@ func (a *Account) CreateFollowingFeedChannel() (*Channel, error) {
 
 	return c, nil
 }
+
+func (a *Account) FetchFollowerChannelIds() ([]int64, error) {
+
+	followerIds, err := a.FetchFollowerIds()
+	if err != nil {
+		return nil, err
+	}
+
+	cp := NewChannelParticipant()
+	var channelIds []int64
+	err = db.DB.
+		Table(cp.TableName()).
+		Where(
+		"creator_id IN (?) and type = ?",
+		followerIds,
+		Channel_TYPE_FOLLOWINGFEED,
+	).Find(&channelIds).Error
+
+	if err != nil {
+		return nil, err
+	}
+
+	return channelIds, nil
+}
