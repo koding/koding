@@ -184,10 +184,6 @@ module.exports = class JNewApp extends jraphical.Module
       script : "#{url}/index.js"
       style  : "#{url}/resources/style.css"
 
-    # If user is admin
-    if account.can 'bypass-validations'
-      return callback null, urls
-
     # If url points to a vm url
     if (/^\[([^\]]+)\]/g.exec url)?[1]
       return callback null, urls
@@ -206,6 +202,10 @@ module.exports = class JNewApp extends jraphical.Module
 
     unless githubUsername
       return callback new KodingError "URL is not allowed."
+
+    # If user is admin
+    if account.can 'bypass-validations'
+      return callback null, urls, {githubVerified: yes, app, githubUsername}
 
     account.fetchUser (err, user)->
       return callback err  if err?
