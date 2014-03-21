@@ -34,6 +34,8 @@ class TroubleshootErrorView extends KDCustomHTMLView
                   your page."
     vm         :
       fail     : "Your VMs are not accessible"
+      pending  : "Some of your VMs are currently offline. If you want to activate them please \
+                  use Terminal App"
 
 
   constructor: (options, data) ->
@@ -51,13 +53,13 @@ class TroubleshootErrorView extends KDCustomHTMLView
       do (name, item) =>
         item.once "healthCheckCompleted", =>
           {status} = item
-          if status in ["fail", "slow"] and errorMessages[name]?[status]
+          if errorMessages[name]?[status]
             @show()
-            @errorCount += 1
+            @errorCount++
             @addSubView @errorViews[name] = @createErrorView name, item
 
         item.on "recoveryStarted", =>
-          @errorCount -= 1
+          @errorCount--
           @hide()  unless @errorCount
           @errorViews[name].destroy()
           delete @errorViews[name]
@@ -65,9 +67,9 @@ class TroubleshootErrorView extends KDCustomHTMLView
 
         item.on "recoveryCompleted", =>
           {status} = item
-          if status in ["fail", "slow"] and errorMessages[name]?[status]
+          if errorMessages[name]?[status]
             @show()
-            @errorCount += 1
+            @errorCount++
             @addSubView @errorViews[name] = @createErrorView name, item
 
 
