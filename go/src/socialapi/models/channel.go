@@ -27,10 +27,10 @@ type Channel struct {
 	SecretKey string
 
 	// Type of the channel
-	Type int
+	Type string
 
 	// Privacy constant of the channel
-	Privacy int
+	Privacy string
 
 	// Creation date of the channel
 	CreatedAt time.Time
@@ -43,25 +43,28 @@ type Channel struct {
 }
 
 const (
-	TOPIC int = iota
-	// CHAT
-	GROUP
-)
-
-const (
-	PUBLIC int = iota
-	PRIVATE
+	// TYPES
+	Channel_TYPE_GROUP         = "group"
+	Channel_TYPE_TOPIC         = "topic"
+	Channel_TYPE_FOLLOWINGFEED = "followingfeed"
+	Channel_TYPE_FOLLOWERS     = "followers"
+	Channel_TYPE_CHAT          = "chat"
+	// Privacy
+	Channel_TYPE_PUBLIC  = "public"
+	Channel_TYPE_PRIVATE = "private"
+	// Koding Group Name
+	Channel_KODING_NAME = "koding-main"
 )
 
 func NewChannel() *Channel {
 	return &Channel{
 		Name:      "koding-main",
 		CreatorId: 123,
-		Group:     "koding",
+		Group:     Channel_KODING_NAME,
 		Purpose:   "string",
 		SecretKey: "string",
-		Type:      GROUP,
-		Privacy:   PRIVATE,
+		Type:      Channel_TYPE_GROUP,
+		Privacy:   Channel_TYPE_PRIVATE,
 	}
 }
 
