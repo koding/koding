@@ -16,8 +16,9 @@ func Create(u *url.URL, h http.Header, reply *models.ChannelMessage) (int, http.
 	}
 
 	// first create reply as a message
+	reply.Type = models.ChannelMessage_TYPE_REPLY
 
-	reply.Type = models.ChannelMessage_TYPE_POST
+
 	if err := reply.Create(); err != nil {
 		// todo this should be internal server error
 		return helpers.NewBadRequestResponse()
