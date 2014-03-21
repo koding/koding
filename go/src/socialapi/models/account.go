@@ -42,6 +42,17 @@ func (a *Account) Follow(targetId int64) (*ChannelParticipant, error) {
 	}
 	return nil, err
 }
+
+func (a *Account) Unfollow(targetId int64) error {
+	c, err := a.FetchChannel(Channel_TYPE_FOLLOWERS)
+	if err != nil {
+		fmt.Println(1, err)
+		return err
+	}
+	fmt.Println(2)
+
+	return c.RemoveParticipant(targetId)
+}
 func (a *Account) CreateFollowingFeedChannel() (*Channel, error) {
 	if a.Id == 0 {
 		return nil, errors.New("Account id is not set")
