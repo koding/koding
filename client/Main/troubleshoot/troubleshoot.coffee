@@ -44,7 +44,7 @@ class Troubleshoot extends KDObject
     @status = PENDING
     clearTimeout @timeout
     @timeout = null
-    @emit "troubleshootCompleted"
+    @emit event
 
   isConnectionFailed: ->
     @items["connection"].status is "fail"
