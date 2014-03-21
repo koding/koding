@@ -111,8 +111,6 @@ class StackView extends KDView
     @extras.removeAllItems()
     @extras.addItem extra  for extra in env.extras
 
-    log "orphans", orphans
-
     @setHeight @getProperHeight()
     KD.utils.wait 300, =>
       @_inProgress = no
@@ -205,9 +203,7 @@ class StackView extends KDView
         domainCouter++
         domainQueue.next()
         @progressModal?.next()
-        log "domain deleted"
         if domainCouter is domainDiaKeys.length
-          log "all domains deleted"
           callback()
 
     Bongo.daisy domainQueue
@@ -220,12 +216,10 @@ class StackView extends KDView
     vmQueue   = vmDiaKeys.map (key) =>=>
       vmc.deleteVmByHostname vmDias[key].data.hostnameAlias, (err) =>
         return @handleStackDeleteError err  if err
-        log "vm deleted"
         vmCounter++
         vmQueue.next()
         @progressModal?.next()
         if vmCounter is vmDiaKeys.length
-          log "all vms deleted"
           callback()
       , no
 
@@ -235,7 +229,6 @@ class StackView extends KDView
     {stack} = @getOptions()
     stack.remove (err, res) =>
       return @handleStackDeleteError err  if err
-      log "stack deleted"
       @destroy()
       @progressModal?.destroy()
 
