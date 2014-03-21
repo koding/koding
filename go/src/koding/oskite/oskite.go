@@ -145,7 +145,7 @@ func (o *Oskite) Run() {
 	o.registerMethod("exec", true, execFuncOld)
 
 	o.registerMethod("oskite.Info", true, o.oskiteInfo)
-	o.registerMethod("oskite.All", true, oskiteAll)
+	o.registerMethod("oskite.All", true, oskiteAllOld)
 
 	syscall.Umask(0) // don't know why richard calls this
 	o.registerMethod("fs.readDirectory", false, fsReadDirectoryOld)
