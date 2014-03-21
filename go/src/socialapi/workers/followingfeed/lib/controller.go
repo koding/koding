@@ -1,12 +1,14 @@
 package followingfeed
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"koding/tools/logger"
+	"socialapi/models"
 )
 
-type Action func(*FollowingFeedController, []byte) error
+type Action func(*FollowingFeedController, *models.ChannelMessage) error
 
 type FollowingFeedController struct {
 	routes map[string]Action
@@ -41,20 +43,26 @@ func (f *FollowingFeedController) HandleEvent(event string, data []byte) error {
 	return handler(f, data)
 }
 
-func (f *FollowingFeedController) MessageSaved(data []byte) error {
-	fmt.Println("saved")
+func (f *FollowingFeedController) MessageSaved(data *models.ChannelMessage) error {
+	a := models.NewAccount()
+	a.Id = data.AccountId
+	channelIds, err := a.FetchFollowerChannelIds()
+	if err != nil {
+		return err
+	}
+	fmt.Println(channelIds)
 	return nil
 }
 
-func (f *FollowingFeedController) MessageUpdated(data []byte) error {
-	fmt.Println("update")
+func (f *FollowingFeedController) MessageUpdated(data *models.ChannelMessage) error {
+	fmt.Println("update", data.InitialChannelId)
 
 	return nil
 
 }
 
-func (f *FollowingFeedController) MessageDeleted(data []byte) error {
-	fmt.Println("delete")
+func (f *FollowingFeedController) MessageDeleted(data *models.ChannelMessage) error {
+	fmt.Println("delete", data.InitialChannelId)
 
 	return nil
 }
