@@ -14,6 +14,16 @@ class AppDetailsView extends KDScrollView
         <span class='logo'>#{app.name[0]}</span>
       """
 
+    @statusWidget = new KDView
+      cssClass : KD.utils.curry 'status-widget', app.status
+      tooltip  : title : {
+        'github-verified': "Public"
+        'not-verified'   : "Private"
+        'verified'       : "Verified"
+      }[app.status]
+
+    @appLogo.addSubView @statusWidget
+
     @appLogo.setCss 'backgroundColor', KD.utils.getColorFromString app.name
 
     @actionButtons = new KDView cssClass: 'action-buttons'
@@ -61,7 +71,7 @@ class AppDetailsView extends KDScrollView
     @approveButton = new KDToggleButton
       style           : "approve"
       dataPath        : "approved"
-      defaultState    : if app.approved then "Disapprove" else "Approve"
+      defaultState    : if app.status is 'verified' then "Disapprove" else "Approve"
       states          : [
         title         : "Approve"
         callback      : (callback)->
@@ -97,7 +107,7 @@ class AppDetailsView extends KDScrollView
           tmpl += "<li><img src=\"#{KD.appsUri}/#{authorNick}/#{identifier}/#{version}/#{slide}\" /></li>"
         return tmpl
 
-    @reviewView = new ReviewView {}, app
+    # @reviewView = new ReviewView {}, app
 
   viewAppended: JView::viewAppended
 

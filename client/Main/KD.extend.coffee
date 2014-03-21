@@ -117,6 +117,8 @@ KD.extend
 
   getAppOptions      :(name)-> KD.appClasses[name]?.options or null
 
+  getAppVersion      :(name)-> KD.appClasses[name]?.options?.version or null
+
   getAppScript       :(name)-> @appScripts[name] or null
 
   registerAppScript  :(name, script)-> @appScripts[name] = script

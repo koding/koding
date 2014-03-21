@@ -8,6 +8,7 @@ class DockController extends KDViewController
     { title : "Editor",    path : "/Ace",      order : 40, type :"persistent" }
     { title : "Apps",      path : "/Apps",     order : 50, type :"persistent" }
     # { title : "About",     path : "/About",    order : 70, type :"persistent" }
+    { title : "DevTools",  path : "/DevTools", order : 60, type :"persistent" }
   ]
 
   constructor:(options = {}, data)->
@@ -16,7 +17,7 @@ class DockController extends KDViewController
 
     super options, data
 
-    @storage = new AppStorage "Dock", "1.0.1"
+    @storage = new AppStorage "Dock", "1.0.3"
 
     @navController = new MainNavController
       view         : new NavigationList
@@ -68,7 +69,7 @@ class DockController extends KDViewController
 
   saveItemOrders:(items)->
 
-    items or= @navController.itemsOrdered
+    items or= @getItems()
 
     navItems = []
     for own index, item of items
@@ -95,36 +96,55 @@ class DockController extends KDViewController
 
   addItem:(item)->
 
-    if KD.registerNavItem item
+    if item not in @getItems()
+      KD.registerNavItem item
       @navController.addItem item
       @saveItemOrders()
 
   removeItem:(item)->
 
-    return unless index = KD.getNavItems().indexOf item > -1
-    KD.getNavItems().splice index, 1
+    return  if item.data.type is 'persistent'
+
+    {appManager, router} = KD.singletons
+    appManager.quitByName item.name
+
+    if (item.hasClass 'running') and (item.hasClass 'selected')
+      if router.visitedRoutes.length > 1
+      then router.back()
+      else router.handleRoute '/Activity'
+
+    @navController.removeItem item
+    @saveItemOrders()
 
   accountChanged:->
-
     @navController.reset()
+
+  getItems:->
+    @navController.getView().items
 
   setNavItemState:({name, route, options}, state)->
 
-    options or= {}
+    if state is 'active'
+      state  = 'running'
+      select = yes
+
+    options  or= {}
+    {dockPath} = options
+
     route   or= options.navItem?.path or '-'
 
-    for nav in @navController.itemsOrdered
-      if (///^#{route}///.test nav.data.path) \
+    for nav in @getItems()
+      if (///^#{route}///.test nav.data.path) or (dockPath is nav.data.path) \
       or (nav.data.path is "/#{name}") or ("/#{name}" is nav.data.path)
         nav.setState state
+        @navController.selectItem nav  if select
         hasNav = yes
 
-    unless hasNav
-
+    if not hasNav and state isnt 'initial'
       unless name in Object.keys(KD.config.apps)
-        @addItem { title : name,  path : "/#{name}", \
+        path = if dockPath then dockPath else "/#{name}"
+        @addItem { title : name, path, \
                    order : 60 + KD.utils.uniqueId(), type :"" }
-        @setNavItemState {name}, 'running'
 
   loadView:(dock)->
 
@@ -135,11 +155,16 @@ class DockController extends KDViewController
       # Listen appManager to update dock items states
       {appManager, kodingAppsController} = KD.singletons
 
-      kodingAppsController.on "LoadingAppScript", (name)=>
-        @setNavItemState {name}, 'loading'
+      for name of appManager.appControllers
+        @setNavItemState {name}, 'active'
+
+      {appManager, kodingAppsController} = KD.singletons
 
       appManager.on "AppRegistered", (name, options) =>
         @setNavItemState {name, options}, 'running'
 
       appManager.on "AppUnregistered", (name, options) =>
         @setNavItemState {name, options}, 'initial'
+
+      appManager.on "AppIsBeingShown", (instance, view, options) =>
+        @setNavItemState {name:options.name, options}, 'active'

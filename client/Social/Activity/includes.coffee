@@ -44,10 +44,10 @@ module.exports = [
   "views/comments/commentlistitemview.coffee",
   "views/comments/newcommentform.coffee",
 
-  "views/reviews/reviewview.coffee",
-  "views/reviews/reviewlistviewcontroller.coffee",
-  "views/reviews/reviewlistitemview.coffee",
-  "views/reviews/newreviewform.coffee",
+  # "views/reviews/reviewview.coffee",
+  # "views/reviews/reviewlistviewcontroller.coffee",
+  # "views/reviews/reviewlistitemview.coffee",
+  # "views/reviews/newreviewform.coffee",
 
   "views/inputview.coffee",
   "views/inputwidget.coffee",

@@ -11,9 +11,9 @@ class VirtualizationController extends KDController
 
     @osKites = {}
 
-    KD.getSingleton('mainController')
-      .once('AppIsReady', @bound 'fetchVMs')
-      .on('AccountChanged', => @emit 'VMListChanged')
+    mc = KD.getSingleton('mainController')
+    mc.once 'AppIsReady', => @fetchVMs => @emit 'ready'
+    mc.on   'AccountChanged', => @emit 'VMListChanged'
 
     @on 'VMListChanged', @bound 'resetVMData'
 
