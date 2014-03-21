@@ -68,6 +68,18 @@ func mapMessage(data []byte) (*models.ChannelMessage, error) {
 	return cm, nil
 }
 
+func isEligible(cm *models.ChannelMessage) (bool, error) {
+	if cm.InitialChannelId == 0 {
+		return false, nil
+	}
+
+	if cm.Type != models.ChannelMessage_TYPE_POST {
+		return false, nil
+	}
+
+	return isChannelEligible(cm)
+}
+
 func isChannelEligible(cm *models.ChannelMessage) (bool, error) {
 	c, err := fetchChannel(cm.InitialChannelId)
 	if err != nil {
@@ -80,6 +92,7 @@ func isChannelEligible(cm *models.ChannelMessage) (bool, error) {
 
 	return true, nil
 }
+
 // todo add caching here
 func fetchChannel(channelId int64) (*models.Channel, error) {
 	c := models.NewChannel()
