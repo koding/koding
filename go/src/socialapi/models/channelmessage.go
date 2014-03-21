@@ -24,6 +24,9 @@ type ChannelMessage struct {
 	// Modification date of the message
 	UpdatedAt time.Time
 	m         Model
+
+	// meta data
+	InitialChannelId int64 `sql:"-" json:",omitempty"`
 }
 
 func (c *ChannelMessage) AfterCreate() {
