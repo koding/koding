@@ -14,6 +14,7 @@ services=(
   koding/userpresence
   koding/persistence
   koding/kites/os
+  koding/kites/terminal
   koding/kites/kontrol
   koding/kites/regserv
   koding/kites/proxy
