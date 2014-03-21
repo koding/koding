@@ -138,7 +138,9 @@ class Troubleshoot extends KDObject
     for own name, children of root
       item = @items[name]
       do (name, children, item) =>
-        return warn "#{name} is not registered for health checking"  unless item
+        unless item
+          @waitingResponse -= @getSuccessorCount children
+          return warn "#{name} is not registered for health checking"
 
         item.once "healthCheckCompleted", =>
           @waitingResponse -= 1
