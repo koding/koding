@@ -89,8 +89,10 @@ class WebTermView extends KDView
     @reconnectionInProgress = yes
     options = @generateOptions()
     options.mode = mode   if mode
+
     KD.getSingleton("vmController").run
-      method        : "webterm.connect",
+      kiteName      : "terminal"
+      method        : "webterm.connect"
       vmName        : @getVMName()
       withArgs      : options
     , (err, remote) =>

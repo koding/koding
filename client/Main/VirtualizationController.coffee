@@ -28,7 +28,11 @@ class VirtualizationController extends KDController
       return callback err  if err?
       options.correlationName = vmName
       @fetchRegion vmName, (region)=>
-        options.kiteName = "os-#{region}"
+        if options.kiteName
+          options.kiteName = "#{options.kiteName}-#{region}"
+        else
+          options.kiteName = "os-#{region}"
+
         @kc.run options, callback
 
   _runWrapper:(command, vm, callback)->
