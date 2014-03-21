@@ -8,6 +8,7 @@ class HealthChecker extends KDObject
     options.timeout           ?= 5000
     @identifier = options.identifier or Date.now()
     @status = "not started"
+    @name = options.name
 
   run: ->
     @emit "healthCheckStarted"

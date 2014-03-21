@@ -111,6 +111,7 @@ class Troubleshoot extends KDObject
       recover      : @brokerKiteRecovery.recover.bind @brokerKiteRecovery
 
   registerItem : (name, options) ->
+    options.name = name
     @items[name] = new HealthChecker options
 
 
@@ -161,7 +162,7 @@ class Troubleshoot extends KDObject
   recover: ->
     waitingRecovery = 0
     for own name, item of @items
-      do (name, item) =>
+      do (item) =>
         item.once "recoveryCompleted", =>
           waitingRecovery--
           @reset "recoveryCompleted"  unless waitingRecovery

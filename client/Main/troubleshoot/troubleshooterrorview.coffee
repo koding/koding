@@ -49,46 +49,39 @@ class TroubleshootErrorView extends KDCustomHTMLView
 
   initStatusListener: ->
     {items} = KD.singleton("troubleshoot")
-    for own name, item of items
-      do (name, item) =>
+    for own key, item of items
+      do (item) =>
         item.once "healthCheckCompleted", =>
-          {status} = item
+          {status, name} = item
           if errorMessages[name]?[status]
             @show()
             @errorCount++
-            @addSubView @errorViews[name] = @createErrorView name, item
+            @addSubView @errorViews[name] = @createErrorView item
 
-        @forwardEvent item, "recoveryStarted"
-        @on "recoveryStarted", @startRecovery.bind @, name
+        item.on "recoveryStarted", @startRecovery.bind this, item
 
-        @forwardEvent item, "recoveryCompleted"
-        @on "recoveryCompleted", @completeRecovery.bind @, name, item
+        item.on "recoveryCompleted", @completeRecovery.bind this, item
 
 
-  createErrorView: (name, item) ->
-    {status} = item
+  createErrorView: (item) ->
+    {status, name} = item
     new KDCustomHTMLView
       tagName: "div"
       cssClass: "status-message #{status}"
       partial: "* #{errorMessages[name][status]}"
 
 
-  startRecovery: (name) ->
+  startRecovery: (item) ->
+    {name} = item
     @errorCount--
     @hide()  unless @errorCount
     @errorViews[name].destroy()
     delete @errorViews[name]
 
 
-  completeRecovery: (name, item) ->
-    {status} = item
+  completeRecovery: (item) ->
+    {status, name} = item
     if errorMessages[name]?[status]
       @show()
       @errorCount++
-      @addSubView @errorViews[name] = @createErrorView name, item
-
-  destroy: ->
-    @off "recoveryStarted"
-    @off "recoveryCompleted"
-    super
-
+      @addSubView @errorViews[name] = @createErrorView item
