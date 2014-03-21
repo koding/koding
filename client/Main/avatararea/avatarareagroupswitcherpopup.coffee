@@ -149,7 +149,7 @@ class AvatarPopupGroupSwitcher extends AvatarPopup
       cssClass   : 'bottom'
       partial    : 'System Health Check'
       click      : (event)=>
-        @_modal = new TroubleshootModal
+        new TroubleshootModal
         @hide()
 
     @avatarPopupContent.addSubView dashboardLink = new KDCustomHTMLView
