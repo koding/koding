@@ -106,6 +106,10 @@ func (c *Channel) Delete() error {
 	return c.m.Delete(c)
 }
 
+func (c *Channel) One(selector map[string]interface{}) error {
+	return c.m.One(c, c, selector)
+}
+
 func (c *Channel) FetchByIds(ids []int64) ([]Channel, error) {
 	var channels []Channel
 
