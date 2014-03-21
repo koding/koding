@@ -80,11 +80,11 @@ class Troubleshoot extends KDObject
       speedCheck   : no
       troubleshoot : checkVersion
 
+    vmChecker = new VMChecker
     @registerItem "vm",
-      timeout      : 10000
       speedCheck   : no
-      troubleshoot : checkVm
-      recover      : checkVm #temp
+      troubleshoot : vmChecker.healthCheck.bind vmChecker
+      recover      : vmChecker.healthCheck.bind vmChecker
 
   registerConnections: ->
     #register connection
@@ -111,14 +111,6 @@ class Troubleshoot extends KDObject
 
   registerItem : (name, options) ->
     @items[name] = new HealthChecker options
-
-
-  checkVm = (callback) ->
-    {vmController} = KD.singletons
-    # probably we will need to check all vms
-    vmController.once "vm.state.info", ({alias, state}) =>
-      @status = "fail"  if state.state isnt "RUNNING"
-      callback null
 
 
   checkVersion = (callback) ->
