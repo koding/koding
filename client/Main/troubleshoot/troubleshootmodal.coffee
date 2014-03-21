@@ -13,7 +13,9 @@ class TroubleshootModal extends KDModalViewWithForms
             Troubleshoot      :
               callback        : =>
                 {feedback} = @modalTabs.forms.Troubleshoot.customData
-                KD.logToExternal "troubleshoot feedback", {failure:troubleshoot.getFailureFeedback(), feedback}
+                troubleshoot.sendFeedback feedback, (err) =>
+                  return warn "an error occured while sending feedback"  if err
+                  @showFeedbackSentModal()
                 @destroy()
               buttons         :
                 sendFeedback  :
@@ -87,3 +89,13 @@ class TroubleshootModal extends KDModalViewWithForms
       item.off "recoveryStarted"
       item.off "recoveryCompleted"
     super
+
+  showFeedbackSentModal: ->
+    modal = new KDModalView
+      title        : "Thank you for your support"
+      overlay      : yes
+      content      : "We have received your feedback."
+      buttons      :
+        Close      :
+          style    : "modal-cancel"
+          callback : -> modal.destroy()
