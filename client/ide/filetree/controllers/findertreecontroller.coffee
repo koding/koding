@@ -365,23 +365,25 @@ class NFinderTreeController extends JTreeViewController
         @refreshFolder @nodes[file.parentPath], =>
           @selectNode @nodes[response.path]
 
-  # compileApp:(nodeView, callback)->
+  compileApp:(nodeView, callback)->
 
-  #   folder = nodeView.getData()
-  #   folder.emit "fs.job.started"
-  #   kodingAppsController = KD.getSingleton('kodingAppsController')
+    folder = nodeView.getData()
+    folder.emit "fs.job.started"
 
-  #   manifest = KodingAppsController.getManifestFromPath folder.path
+    KodingAppsController.compileAppOnServer folder.path, (err, app)=>
 
-  #   kodingAppsController.compileApp manifest.name, (err)=>
-  #     folder.emit "fs.job.finished"
-  #     if not err
-  #       @notify "App compiled!", "success"
-  #       @utils.wait 500, =>
-  #         @refreshFolder nodeView, =>
-  #           @utils.defer =>
-  #             @selectNode @nodes["#{folder.path}/index.js"]
-  #     callback? err
+      folder.emit "fs.job.finished"
+      return warn err  if err
+
+      @notify "App compiled!", "success"
+
+      @utils.wait 500, =>
+        @refreshFolder nodeView, =>
+          @utils.defer =>
+            @selectNode @nodes["#{folder.path}/index.js"]
+
+      callback? err
+
 
   # runApp:(nodeView, callback)->
 
@@ -474,9 +476,9 @@ class NFinderTreeController extends JTreeViewController
   cmGitHubClone:   (nodeView, contextMenuItem)-> @appManager.notify()
   cmOpenFile:      (nodeView, contextMenuItem)-> @openFile nodeView
   cmPreviewFile:   (nodeView, contextMenuItem)-> @previewFile nodeView
-  # cmCompile:       (nodeView, contextMenuItem)-> @compileApp nodeView
   # cmMakeNewApp:    (nodeView, contextMenuItem)-> @makeNewApp nodeView
   # cmPublish:       (nodeView, contextMenuItem)-> @publishApp nodeView
+  cmCompile:       (nodeView, contextMenuItem)-> @compileApp nodeView
   cmOpenFileWithApp: (nodeView, contextMenuItem)-> @openFileWithApp  nodeView, contextMenuItem
   cmCloneRepo:     (nodeView, contextMenuItem)-> @cloneRepo nodeView
   cmDropboxChooser:(nodeView, contextMenuItem)-> @chooseFromDropbox nodeView
