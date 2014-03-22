@@ -127,6 +127,26 @@ func (f *TopicFeedController) MessageUpdated(data *models.ChannelMessage) error 
 	return nil
 }
 
+func deleteChannelMessages(channels []models.Channel, data *models.ChannelMessage, toBeDeletedTopics []string) error {
+	for _, channel := range channels {
+		for _, topic := range toBeDeletedTopics {
+			if channel.Name != topic {
+				continue
+			}
+
+			cml := models.NewChannelMessageList()
+			selector := map[string]interface{}{
+				"mesage_id":  data.Id,
+				"channel_id": channel.Id,
+			}
+
+			if err := cml.DeleteMessagesBySelector(selector); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
 func getTopicDiff(channels []models.Channel, topics []string) map[string][]string {
 	res := make(map[string][]string)
 
