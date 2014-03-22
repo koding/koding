@@ -5,6 +5,7 @@ import (
 	"koding/messaging/rabbitmq"
 	"koding/tools/config"
 	"koding/tools/logger"
+	"socialapi/eventbus"
 	topicfeed "socialapi/workers/topicfeed/lib"
 
 	"github.com/jinzhu/gorm"
@@ -52,6 +53,11 @@ func main() {
 
 	conf = config.MustConfig(*flagProfile)
 	setLogLevel()
+
+	if err := eventbus.Open(conf); err != nil {
+		log.Critical("Realtime operations will not work, this is not good, probably couldnt connect to RMQ. %v", err.Error())
+	}
+	defer eventbus.Close()
 
 	// blocking
 	topicfeed.Listen(rabbitmq.New(conf), startHandler)
