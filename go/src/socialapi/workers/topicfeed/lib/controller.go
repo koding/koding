@@ -33,13 +33,6 @@ type TopicFeedController struct {
 var HandlerNotFoundErr = errors.New("Handler Not Found")
 
 func NewTopicFeedController(log logger.Log) *TopicFeedController {
-	// s := "naber #foo hede #bar dede gel # baz #123 #-`3sdf"
-	// res := topicRegex.FindAllStringSubmatch(s, -1)
-	// fmt.Println("res", res)
-	// fmt.Println("res", res[0][1])
-	// fmt.Println("res", res[1][1])
-	// fmt.Println(topicRegex.String())
-
 	ffc := &TopicFeedController{
 		log: log,
 	}
