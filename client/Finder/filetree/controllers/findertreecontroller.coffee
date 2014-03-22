@@ -403,6 +403,8 @@ class NFinderTreeController extends JTreeViewController
       KD.singletons
         .router.handleRoute "/Apps/#{app.manifest.authorNick}/#{app.name}"
 
+  makeNewApp:(nodeView)->
+    KD.getSingleton('kodingAppsController').makeNewApp()
 
   cloneRepo: (nodeView) ->
     folder   = nodeView.getData()
@@ -410,22 +412,6 @@ class NFinderTreeController extends JTreeViewController
       vmName : folder.vmName
       path   : folder.path
     modal.on "RepoClonedSuccessfully", => @notify "Repo cloned successfully.", "success"
-
-  # makeNewApp:(nodeView)->
-  #   KD.getSingleton('kodingAppsController').makeNewApp()
-
-  # downloadAppSource:(nodeView)->
-
-  #   folder = nodeView.getData()
-
-  #   folder.emit "fs.job.started"
-  #   KD.getSingleton('kodingAppsController').downloadAppSource folder.path, (err)=>
-  #     folder.emit "fs.job.finished"
-  #     @refreshFolder @nodes[folder.parentPath]
-  #     unless err
-  #       @notify "Source downloaded!", "success"
-  #     else
-  #       @notify "Download failed!", "error", err
 
   openTerminalFromHere: (nodeView) ->
     @appManager.open "Terminal", (appInstance) =>
@@ -460,8 +446,8 @@ class NFinderTreeController extends JTreeViewController
   cmGitHubClone:   (nodeView, contextMenuItem)-> @appManager.notify()
   cmOpenFile:      (nodeView, contextMenuItem)-> @openFile nodeView
   cmPreviewFile:   (nodeView, contextMenuItem)-> @previewFile nodeView
-  # cmMakeNewApp:    (nodeView, contextMenuItem)-> @makeNewApp nodeView
   cmCompile:       (nodeView, contextMenuItem)-> @compileApp nodeView
+  cmMakeNewApp:    (nodeView, contextMenuItem)-> @makeNewApp nodeView
   cmPublish:       (nodeView, contextMenuItem)-> @publishApp nodeView
   cmOpenFileWithApp: (nodeView, contextMenuItem)-> @openFileWithApp  nodeView, contextMenuItem
   cmCloneRepo:     (nodeView, contextMenuItem)-> @cloneRepo nodeView
