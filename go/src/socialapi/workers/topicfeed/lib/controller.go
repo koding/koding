@@ -144,7 +144,45 @@ func extractTopics(body string) []string {
 }
 
 func (f *TopicFeedController) MessageUpdated(data *models.ChannelMessage) error {
-	fmt.Println("update", data.InitialChannelId)
+	f.log.Debug("udpate message %s", data.Id)
+	// fetch message's current topics from the db
+	channels, err := fetchMessageChannels(data.Id)
+	if err != nil {
+		return err
+	}
+
+	// get current topics from
+	topics := extractTopics(data.Body)
+	if topics == nil {
+		return nil
+	}
+
+	// if message and the topics dont have any item, we can safely return
+	if len(channels) == 0 && len(topics) == 0 {
+		return nil
+	}
+
+	res := getTopicDiff(channels, topics)
+
+	// add messages
+	if len(res["added"]) > 0 {
+		initialChannel, err := fetchChannel(data.InitialChannelId)
+		if err != nil {
+			return err
+		}
+
+		if err := ensureChannelMessages(initialChannel, data, res["added"]); err != nil {
+			return err
+		}
+	}
+
+	// delete messages
+	if len(res["deleted"]) > 0 {
+		if err := deleteChannelMessages(channels, data, res["deleted"]); err != nil {
+			return err
+		}
+	}
+
 	return nil
 }
 
