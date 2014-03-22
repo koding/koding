@@ -1,4 +1,4 @@
-package followingfeed
+package realtime
 
 import (
 	"fmt"
