@@ -384,18 +384,25 @@ class NFinderTreeController extends JTreeViewController
 
       callback? err
 
+  publishApp:(nodeView)->
 
-  # runApp:(nodeView, callback)->
+    folder = nodeView.getData()
+    folder.emit "fs.job.started"
 
-  #   folder = nodeView.getData()
-  #   folder.emit "fs.job.started"
-  #   kodingAppsController = KD.getSingleton 'kodingAppsController'
+    KodingAppsController.createJApp path: folder.path, (err, app)->
+      folder.emit "fs.job.finished"
 
-  #   manifest = KodingAppsController.getManifestFromPath folder.path
+      if err or not app
+        warn err
+        return new KDNotificationView
+          title : "Failed to publish"
 
-  #   KD.getSingleton("appManager").open manifest.name, =>
-  #     folder.emit "fs.job.finished"
-  #     callback?()
+      new KDNotificationView
+        title: "Published successfully!"
+
+      KD.singletons
+        .router.handleRoute "/Apps/#{app.manifest.authorNick}/#{app.name}"
+
 
   cloneRepo: (nodeView) ->
     folder   = nodeView.getData()
@@ -403,29 +410,6 @@ class NFinderTreeController extends JTreeViewController
       vmName : folder.vmName
       path   : folder.path
     modal.on "RepoClonedSuccessfully", => @notify "Repo cloned successfully.", "success"
-
-  # publishApp:(nodeView)->
-
-  #   folder = nodeView.getData()
-
-  #   folder.emit "fs.job.started"
-  #   KD.getSingleton('kodingAppsController').publishApp folder.path, (err)=>
-  #     folder.emit "fs.job.finished"
-  #     unless err
-  #       @notify "App published!", "success"
-  #     else
-  #       @notify "Publish failed!", "error", err
-  #       message = err.message or err
-  #       modal = new KDModalView
-  #         title        : "Publish failed!"
-  #         overlay      : yes
-  #         cssClass     : "new-kdmodal"
-  #         content      : "<div class='modalformline'>#{message}</div>"
-  #         buttons      :
-  #           "Close"    :
-  #             style    : "modal-clean-gray"
-  #             callback : (event)->
-  #               modal.destroy()
 
   # makeNewApp:(nodeView)->
   #   KD.getSingleton('kodingAppsController').makeNewApp()
@@ -477,8 +461,8 @@ class NFinderTreeController extends JTreeViewController
   cmOpenFile:      (nodeView, contextMenuItem)-> @openFile nodeView
   cmPreviewFile:   (nodeView, contextMenuItem)-> @previewFile nodeView
   # cmMakeNewApp:    (nodeView, contextMenuItem)-> @makeNewApp nodeView
-  # cmPublish:       (nodeView, contextMenuItem)-> @publishApp nodeView
   cmCompile:       (nodeView, contextMenuItem)-> @compileApp nodeView
+  cmPublish:       (nodeView, contextMenuItem)-> @publishApp nodeView
   cmOpenFileWithApp: (nodeView, contextMenuItem)-> @openFileWithApp  nodeView, contextMenuItem
   cmCloneRepo:     (nodeView, contextMenuItem)-> @cloneRepo nodeView
   cmDropboxChooser:(nodeView, contextMenuItem)-> @chooseFromDropbox nodeView
