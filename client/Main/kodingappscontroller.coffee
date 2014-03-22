@@ -103,6 +103,14 @@ class KodingAppsController extends KDController
     if jApp.status is 'verified' or jApp.manifest.authorNick is KD.nick()
       return @runApprovedApp jApp, options
 
+    if jApp.status is 'not-verified'
+      return new KDModalView
+        title        : "Not a verified app"
+        content      : "Only the owner of the app can run it."
+        buttons      :
+          "Got it"   :
+            callback : -> @getDelegate().destroy()
+
     repo = jApp.manifest.repository.replace /^git\:\/\//, "https://"
     script = jApp.urls.script.replace KD.config.appsUri, "https://raw.github.com"
 
