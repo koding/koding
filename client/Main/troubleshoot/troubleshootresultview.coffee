@@ -1,6 +1,6 @@
 class TroubleshootResultView extends KDCustomHTMLView
 
-  errorMessages =
+  getMessages: ->
     bongo      :
       slow     : "You will experience slowness with posting status updates and \
                  receiving feeds. Generally interacting with social"
@@ -39,12 +39,16 @@ class TroubleshootResultView extends KDCustomHTMLView
 
 
   constructor: (options, data) ->
-    options.cssClass = "troubleshoot-errors"
     super options, data
+    @errorView = new TroubleshootMessageView
+      cssClass: "troubleshoot-errors"
+    @warningView = new TroubleshootMessageView
+      cssClass: "troubleshoot-warnings"
+
     @hide()
     @initStatusListener()
-    @errorViews = {}
-    @errorCount = 0
+    @addSubView @errorView
+    @addSubView @warningView
 
 
   initStatusListener: ->
@@ -53,35 +57,22 @@ class TroubleshootResultView extends KDCustomHTMLView
       do (item) =>
         item.once "healthCheckCompleted", =>
           {status, name} = item
-          if errorMessages[name]?[status]
+          if @getMessages()[name]?[status]
+            message = @getMessages()[name][status]
             @show()
-            @errorCount++
-            @addSubView @errorViews[name] = @createErrorView item
+            view = if status is "fail" then @errorView else @warningView
+            view.addItem item, message
 
         item.on "recoveryStarted", @startRecovery.bind this, item
 
         item.on "recoveryCompleted", @completeRecovery.bind this, item
 
 
-  createErrorView: (item) ->
-    {status, name} = item
-    new KDCustomHTMLView
-      tagName: "div"
-      cssClass: "status-message #{status}"
-      partial: "* #{errorMessages[name][status]}"
-
-
   startRecovery: (item) ->
-    {name} = item
-    @errorCount--
-    @hide()  unless @errorCount
-    @errorViews[name].destroy()
-    delete @errorViews[name]
+    @errorView.removeItem item
 
 
   completeRecovery: (item) ->
     {status, name} = item
-    if errorMessages[name]?[status]
-      @show()
-      @errorCount++
-      @addSubView @errorViews[name] = @createErrorView item
+    if @getMessages()[name]?[status]
+      @errorView.addItem item, @getMessages()[name][status]
