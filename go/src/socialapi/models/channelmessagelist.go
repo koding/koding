@@ -181,6 +181,25 @@ func (c *ChannelMessageList) populateChannelMessages(channelMessages []ChannelMe
 	return populatedChannelMessages, nil
 
 }
+
+func (c *ChannelMessageList) FetchMessageChannels(messageId int64) ([]Channel, error) {
+	var channelIds []int64
+	selector := map[string]interface{}{
+		"mesage_id": messageId,
+	}
+
+	pluck := map[string]interface{}{
+		"channel_id": true,
+	}
+
+	err := c.m.Some(c, &channelIds, selector, nil, pluck)
+	if err != nil {
+		return nil, err
+	}
+
+	return NewChannel().FetchByIds(channelIds)
+}
+
 // seperate this fucntion into modelhelper
 // as setting it to a variadic function
 func (c *ChannelMessageList) DeleteMessagesBySelector(selector map[string]interface{}) error {
