@@ -206,6 +206,12 @@ func deleteChannelMessages(channels []models.Channel, data *models.ChannelMessag
 	}
 	return nil
 }
+
+func fetchMessageChannels(messageId int64) ([]models.Channel, error) {
+	cml := models.NewChannelMessageList()
+	return cml.FetchMessageChannels(messageId)
+}
+
 func getTopicDiff(channels []models.Channel, topics []string) map[string][]string {
 	res := make(map[string][]string)
 
