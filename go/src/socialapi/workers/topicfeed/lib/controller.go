@@ -128,8 +128,14 @@ func (f *TopicFeedController) MessageUpdated(data *models.ChannelMessage) error 
 }
 
 func (f *TopicFeedController) MessageDeleted(data *models.ChannelMessage) error {
-	fmt.Println("delete", data.InitialChannelId)
+	cml := models.NewChannelMessageList()
+	selector := map[string]interface{}{
+		"mesage_id": data.Id,
+	}
 
+	if err := cml.DeleteMessagesBySelector(selector); err != nil {
+		return err
+	}
 	return nil
 }
 
