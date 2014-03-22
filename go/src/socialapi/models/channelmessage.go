@@ -18,6 +18,9 @@ type ChannelMessage struct {
 	// Creator of the channel message
 	AccountId int64
 
+	// in which channel this message is created
+	InitialChannelId int64
+
 	// Creation date of the message
 	CreatedAt time.Time
 
@@ -26,7 +29,6 @@ type ChannelMessage struct {
 	m         Model
 
 	// meta data
-	InitialChannelId int64 `sql:"-" json:",omitempty"`
 }
 
 func (c *ChannelMessage) AfterCreate() {
