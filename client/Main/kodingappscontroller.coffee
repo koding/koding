@@ -103,11 +103,34 @@ class KodingAppsController extends KDController
     if jApp.status is 'verified' or jApp.manifest.authorNick is KD.nick()
       return @runApprovedApp jApp, options
 
+    if jApp.status is 'not-verified'
+      return new KDModalView
+        title        : "Not a verified app"
+        content      : "Only the owner of the app can run it."
+        buttons      :
+          "Got it"   :
+            callback : -> @getDelegate().destroy()
+
+    repo = jApp.manifest.repository.replace /^git\:\/\//, "https://"
+    script = jApp.urls.script.replace KD.config.appsUri, "https://raw.github.com"
+
     modal = new KDModalView
       title          : "Run #{jApp.manifest.name}"
-      content        : """This is <strong>DANGEROUS!!!</strong>
-                          If you don't know this user, its recommended to not run this app!
-                          Do you still want to continue?"""
+      cssClass       : 'run-app-dialog'
+      content        : """
+        <p><strong>Unverified apps are not moderated, they may be harmful.</strong></p>
+        <p>
+          If you don't know <a href="/#{jApp.manifest.authorNick}">#{jApp.manifest.author}</a>, it's recommended that you don't run this app.
+        </p>
+        <p>This app can <span>Access your files</span>,
+          <span>Access your account</span>, <span>Change your account</span>,
+          <span>Can post updates</span>.</p>
+        <p>
+          You can take a look at this application
+          <a href="#{repo}" target="_blank">repository</a> and the
+          <a href="#{script}" target="_blank">source code</a> from here.
+        </p>
+      """
       height         : "auto"
       overlay        : yes
       buttons        :
@@ -116,11 +139,25 @@ class KodingAppsController extends KDController
           loader     :
             color    : "#ffffff"
             diameter : 16
-          callback   : => @runApprovedApp jApp, options, -> modal.destroy()
+          callback   : =>
+            $.ajax
+              type     : "HEAD"
+              url      : jApp.urls.script
+              complete : (res, state)=>
+                modal.destroy()
+                if res.status is 200
+                  @runApprovedApp jApp, options, -> modal.destroy()
+                else
+                  new KDNotificationView
+                    title : "Application is not reachable"
 
         cancel       :
           style      : "modal-cancel"
           callback   : -> modal.destroy()
+
+    modal.buttonHolder.addSubView new KDView
+      partial  : "Do you still want to continue?"
+      cssClass : "run-warning"
 
   @appendHeadElement = (type, {identifier, url, callback}, force)->
 

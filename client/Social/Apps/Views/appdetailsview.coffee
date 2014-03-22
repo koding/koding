@@ -74,14 +74,13 @@ class AppDetailsView extends KDScrollView
       defaultState    : if app.status is 'verified' then "Disapprove" else "Approve"
       states          : [
         title         : "Approve"
-        callback      : (callback)->
-          app.approve yes, (err)->
-            if err then warn err
-            callback? err
+        callback      : (callback)=>
+          @approveApp app, yes, callback
       ,
         title         : "Disapprove"
-        callback      : (callback)->
-          app.approve no, (err)-> callback? err
+        callback      : (callback)=>
+          @approveApp app, no, callback
+
       ]
     , app
 
@@ -108,6 +107,27 @@ class AppDetailsView extends KDScrollView
         return tmpl
 
     # @reviewView = new ReviewView {}, app
+
+  approveApp:(app, state, callback)->
+
+    if state
+      text  = 'approve'
+      style = 'modal-clean-green'
+    else
+      text  = 'disapprove'
+      style = 'modal-clean-red'
+
+    modal = KDModalView.confirm
+      title       : 'Are you sure?'
+      description : "Are you sure you want to #{text} this application?"
+      ok          :
+        style     : style
+        title     : text.capitalize()
+        callback  : ->
+          app.approve state, (err)->
+            if err then warn err
+            modal.destroy()
+            callback? err
 
   viewAppended: JView::viewAppended
 
