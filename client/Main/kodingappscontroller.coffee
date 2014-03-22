@@ -139,7 +139,17 @@ class KodingAppsController extends KDController
           loader     :
             color    : "#ffffff"
             diameter : 16
-          callback   : => @runApprovedApp jApp, options, -> modal.destroy()
+          callback   : =>
+            $.ajax
+              type     : "HEAD"
+              url      : jApp.urls.script
+              complete : (res, state)=>
+                modal.destroy()
+                if res.status is 200
+                  @runApprovedApp jApp, options, -> modal.destroy()
+                else
+                  new KDNotificationView
+                    title : "Application is not reachable"
 
         cancel       :
           style      : "modal-cancel"
