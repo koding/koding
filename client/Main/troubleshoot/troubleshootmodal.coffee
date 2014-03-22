@@ -39,11 +39,12 @@ class TroubleshootModal extends KDModalViewWithForms
                   label       : "System Status"
                   itemClass   : TroubleshootStatusView
                 result        :
-                  itemClass   : TroubleshootResultView
+                  itemClass   : KDCustomHTMLView
+                  cssClass    : "troubleshoot-result"
                   partial     : "Troubleshooting Completed"
                 errors        :
                   # label       : "Errors"
-                  itemClass   : TroubleshootErrorView
+                  itemClass   : TroubleshootResultView
                   # cssClass    : "hidden"
                 feedback      :
                   label       : "Feedback"

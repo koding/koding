@@ -204,7 +204,7 @@ module.exports = [
   "troubleshoot/troubleshootmodal.coffee",
   "troubleshoot/troubleshootitemview.coffee",
   "troubleshoot/troubleshootstatusview.coffee",
-  "troubleshoot/troubleshooterrorview.coffee",
+
   "troubleshoot/liveupdatechecker.coffee",
   "troubleshoot/brokerrecovery.coffee",
   "troubleshoot/vmchecker.coffee",
