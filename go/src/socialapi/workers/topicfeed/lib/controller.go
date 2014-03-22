@@ -122,6 +122,27 @@ func (f *TopicFeedController) MessageSaved(data *models.ChannelMessage) error {
 	return nil
 }
 
+func extractTopics(body string) []string {
+	flattened := make([]string, 0)
+
+	res := topicRegex.FindAllStringSubmatch(body, -1)
+	if len(res) == 0 {
+		return flattened
+	}
+
+	topics := map[string]struct{}{}
+	// remove duplicate tag usages
+	for _, ele := range res {
+		topics[ele[1]] = struct{}{}
+	}
+
+	for topic := range topics {
+		flattened = append(flattened, topic)
+	}
+
+	return flattened
+}
+
 func (f *TopicFeedController) MessageUpdated(data *models.ChannelMessage) error {
 	fmt.Println("update", data.InitialChannelId)
 	return nil
