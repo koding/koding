@@ -3,7 +3,7 @@ class HealthChecker extends KDObject
   constructor: (options = {}) ->
     super options
 
-    options.slownessIndicator ?= 1000
+    options.slownessIndicator ?= 350
     options.speedCheck        ?= yes
     options.timeout           ?= 5000
     @identifier = options.identifier or Date.now()
