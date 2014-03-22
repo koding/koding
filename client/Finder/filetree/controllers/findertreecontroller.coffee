@@ -475,9 +475,7 @@ class NFinderTreeController extends JTreeViewController
   cmOpenFile:      (nodeView, contextMenuItem)-> @openFile nodeView
   cmPreviewFile:   (nodeView, contextMenuItem)-> @previewFile nodeView
   # cmCompile:       (nodeView, contextMenuItem)-> @compileApp nodeView
-  # cmRunApp:        (nodeView, contextMenuItem)-> @runApp nodeView
   # cmMakeNewApp:    (nodeView, contextMenuItem)-> @makeNewApp nodeView
-  # cmDownloadApp:   (nodeView, contextMenuItem)-> @downloadAppSource nodeView
   # cmPublish:       (nodeView, contextMenuItem)-> @publishApp nodeView
   cmOpenFileWithApp: (nodeView, contextMenuItem)-> @openFileWithApp  nodeView, contextMenuItem
   cmCloneRepo:     (nodeView, contextMenuItem)-> @cloneRepo nodeView
