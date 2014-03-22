@@ -127,6 +127,41 @@ func (f *TopicFeedController) MessageUpdated(data *models.ChannelMessage) error 
 	return nil
 }
 
+func getTopicDiff(channels []models.Channel, topics []string) map[string][]string {
+	res := make(map[string][]string)
+
+	// aggregate all channel names into map
+	channelNames := map[string]struct{}{}
+	for _, channel := range channels {
+		channelNames[channel.Name] = struct{}{}
+	}
+
+	// range over new topics, bacause we are gonna remove
+	// unused channels
+	for _, topic := range topics {
+		found := false
+		for channelName := range channelNames {
+			if channelName == topic {
+				found = true
+			}
+		}
+		if !found {
+			res["added"] = append(res["added"], topic)
+		} else {
+			// if we have topic in channels
+			// do remove it because at the end we are gonna mark
+			// channels as deleted which are still in channelNames
+			delete(channelNames, topic)
+		}
+	}
+	// flatten the deleted channel names
+	for channelName := range channelNames {
+		res["deleted"] = append(res["deleted"], channelName)
+	}
+
+	return res
+}
+
 func (f *TopicFeedController) MessageDeleted(data *models.ChannelMessage) error {
 	cml := models.NewChannelMessageList()
 	selector := map[string]interface{}{
