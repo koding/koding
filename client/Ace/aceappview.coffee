@@ -215,8 +215,6 @@ class AceAppView extends JView
 
     @on "saveAllMenuItemClicked", => @getActiveAceView().ace.saveAllFiles()
 
-    @on "compileAndRunMenuItemClicked", => @getActiveAceView().compileAndRun()
-
     @on "previewMenuItemClicked", => @preview()
 
     @on "findMenuItemClicked", => @getActiveAceView().ace.showFindReplaceView()
