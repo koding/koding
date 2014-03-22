@@ -95,15 +95,15 @@ func (f *TopicFeedController) MessageSaved(data *models.ChannelMessage) error {
 	return ensureChannelMessages(c, data, topics)
 }
 
-	for topic := range topics {
-		channelName := topic
-		tc, err := fetchTopicChannel(c.Group, channelName)
+func ensureChannelMessages(parentChannel *models.Channel, data *models.ChannelMessage, topics []string) error {
+	for _, topic := range topics {
+		tc, err := fetchTopicChannel(parentChannel.Group, topic)
 		if err != nil && err != gorm.RecordNotFound {
 			return err
 		}
 
 		if err == gorm.RecordNotFound {
-			tc, err = createTopicChannel(data.AccountId, c.Group, channelName, c.Privacy)
+			tc, err = createTopicChannel(data.AccountId, parentChannel.Group, topic, parentChannel.Privacy)
 			if err != nil {
 				return err
 			}
@@ -113,7 +113,6 @@ func (f *TopicFeedController) MessageSaved(data *models.ChannelMessage) error {
 		if err != nil {
 			return err
 		}
-
 	}
 
 	return nil
