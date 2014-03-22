@@ -10,8 +10,8 @@ import (
 
 var (
 	Consumer        *rabbitmq.Consumer
-	WorkerQueueName = "FollowingFeedWorkerQueue"
-	WorkerQueueTag  = "FollowingFeedWorkerConsumer"
+	WorkerQueueName = "TopicFeedWorkerQueue"
+	WorkerQueueTag  = "TopicFeedWorkerConsumer"
 )
 
 func Listen(rmq *rabbitmq.RabbitMQ, startHandler func() func(delivery amqp.Delivery)) {
