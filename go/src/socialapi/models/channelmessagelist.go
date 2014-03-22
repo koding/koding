@@ -181,3 +181,20 @@ func (c *ChannelMessageList) populateChannelMessages(channelMessages []ChannelMe
 	return populatedChannelMessages, nil
 
 }
+// seperate this fucntion into modelhelper
+// as setting it to a variadic function
+func (c *ChannelMessageList) DeleteMessagesBySelector(selector map[string]interface{}) error {
+	var cmls []ChannelMessageList
+
+	err := c.m.Some(c, &cmls, selector)
+	if err != nil {
+		return err
+	}
+
+	for _, cml := range cmls {
+		if err := cml.Delete(); err != nil {
+			return err
+		}
+	}
+	return nil
+}
