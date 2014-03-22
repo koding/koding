@@ -81,22 +81,19 @@ func (f *TopicFeedController) HandleEvent(event string, data []byte) error {
 
 func (f *TopicFeedController) MessageSaved(data *models.ChannelMessage) error {
 
-	res := topicRegex.FindAllStringSubmatch(data.Body, -1)
-	if len(res) == 0 {
-		f.log.Debug("Message doesnt have any topic Body: %s", data.Body)
+	topics := extractTopics(data.Body)
+	if len(topics) == 0 {
 		return nil
 	}
 
 	c, err := fetchChannel(data.InitialChannelId)
 	if err != nil {
+		f.log.Error("Error on fetchChannel %d, %s", data.InitialChannelId, err)
 		return err
 	}
 
-	topics := map[string]struct{}{}
-
-	for _, ele := range res {
-		topics[ele[1]] = struct{}{}
-	}
+	return ensureChannelMessages(c, data, topics)
+}
 
 	for topic := range topics {
 		channelName := topic
