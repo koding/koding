@@ -2,6 +2,7 @@ package realtime
 
 import (
 	"errors"
+	"fmt"
 	"koding/tools/logger"
 )
 
@@ -23,6 +24,10 @@ func NewRealtimeWorkerController(log logger.Log) *RealtimeWorkerController {
 		"channel_message_created": (*RealtimeWorkerController).MessageSaved,
 		"channel_message_update":  (*RealtimeWorkerController).MessageUpdated,
 		"channel_message_deleted": (*RealtimeWorkerController).MessageDeleted,
+
+		"channel_message_list_created": (*RealtimeWorkerController).MessageListSaved,
+		"channel_message_list_update":  (*RealtimeWorkerController).MessageListUpdated,
+		"channel_message_list_deleted": (*RealtimeWorkerController).MessageListDeleted,
 	}
 
 	ffc.routes = routes
@@ -41,13 +46,35 @@ func (f *RealtimeWorkerController) HandleEvent(event string, data []byte) error 
 }
 
 func (f *RealtimeWorkerController) MessageSaved(data []byte) error {
+	fmt.Println("MessageSaved")
 	return nil
 }
 
 func (f *RealtimeWorkerController) MessageUpdated(data []byte) error {
+	fmt.Println("MessageUpdate")
 	return nil
 }
 
 func (f *RealtimeWorkerController) MessageDeleted(data []byte) error {
+
+	fmt.Println("MessageSaved")
+
+	return nil
+}
+
+func (f *RealtimeWorkerController) MessageListSaved(data []byte) error {
+	fmt.Println("MessageListSaved")
+	return nil
+}
+
+func (f *RealtimeWorkerController) MessageListUpdated(data []byte) error {
+	fmt.Println("MessageListUpdate")
+
+	return nil
+}
+
+func (f *RealtimeWorkerController) MessageListDeleted(data []byte) error {
+	fmt.Println("MessageListDelete")
+
 	return nil
 }
