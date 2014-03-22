@@ -16,7 +16,7 @@ var (
 	conf        *config.Config
 	flagProfile = flag.String("c", "", "Configuration profile from file")
 	flagDebug   = flag.Bool("d", false, "Debug mode")
-	handler     = realtime.NewRealTimeController(log)
+	handler     = realtime.NewRealtimeWorkerController(log)
 )
 
 func main() {
