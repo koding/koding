@@ -31,6 +31,18 @@ func (c *ChannelMessageList) BeforeUpdate() {
 	c.AddedAt = time.Now()
 }
 
+func (c *ChannelMessageList) AfterCreate() {
+	c.m.AfterCreate(c)
+}
+
+func (c *ChannelMessageList) AfterUpdate() {
+	c.m.AfterUpdate(c)
+}
+
+func (c *ChannelMessageList) AfterDelete() {
+	c.m.AfterDelete(c)
+}
+
 func (c *ChannelMessageList) GetId() int64 {
 	return c.Id
 }
