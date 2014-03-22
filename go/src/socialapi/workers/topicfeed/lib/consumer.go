@@ -1,4 +1,4 @@
-package followingfeed
+package topicfeed
 
 import (
 	"fmt"
