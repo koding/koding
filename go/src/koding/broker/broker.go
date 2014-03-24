@@ -48,6 +48,7 @@ var (
 
 	flagProfile      = flag.String("c", "", "Configuration profile from file")
 	flagBrokerDomain = flag.String("a", "", "Send kontrol a custom domain istead of os.Hostname")
+	flagDuration     = flag.Duration("t", time.Second*5, "Duration for timeout in seconds - Duration flag accept any input valid for time.ParseDuration.")
 	flagKontrolUUID  = flag.String("u", "", "Enable Kontrol mode")
 	flagBrokerType   = flag.String("b", "broker", "Define broker type. Available: broker, premiumBroker and brokerKite, premiumBrokerKite. B")
 	flagDebug        = flag.Bool("d", false, "Debug mode")
@@ -369,28 +370,17 @@ func (b *Broker) sockjsSession(session *sockjs.Session) {
 	clientChan := make(chan *Client, 0)
 	errChan := make(chan error, 0)
 
-	// we don't use time.After because we are stopping the time if the given
-	// functions are fast enough.
-	timer := time.NewTicker(5 * time.Second)
-
 	go createClient(b, session, clientChan, errChan)
 
+	// Return if there is any error or if we don't get the result in 5 seconds back
 	var client *Client
-	var ok bool
 	select {
-	case client, ok = <-clientChan:
-		if ok {
-			timer.Stop()
-		}
-	case err, ok := <-errChan:
-		if ok {
-			timer.Stop()
-			log.Critical("An error occured while creating client %v", err)
-			return
-		}
-	case <-timer.C:
-		timer.Stop()
-		log.Critical("Client coulnt created in %s exiting ", "5s")
+	case client = <-clientChan:
+	case err := <-errChan:
+		log.Critical("An error occured while creating client %v", err)
+		return
+	case <-time.After(*flagDuration):
+		log.Critical("Client coulnt created in %s exiting ", flagDuration.String())
 		return
 	}
 
