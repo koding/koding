@@ -10,8 +10,7 @@ class BrokerRecovery extends KDObject
     KD.utils.repeat options.timeout, @bound "checkStatus"
 
     @on "brokerNotResponding", =>
-      if @unsuccessfulAttempt > 2
-        @changeBroker()
+      @changeBroker()  if @unsuccessfulAttempt > 2
 
     @broker.on "ready", =>
       @emit "brokerConnected"
