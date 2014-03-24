@@ -5,4 +5,4 @@ type Config struct {
 	Bar int
 }
 
-var EventExchangeName = "SocialApiEventExchange"
+var EventExchangeName = "BrokerMessageBus"
