@@ -3,9 +3,9 @@ package models
 import (
 	"errors"
 	"fmt"
-	"socialapi/db"
 
 	"github.com/jinzhu/gorm"
+	"github.com/koding/bongo"
 )
 
 type Account struct {
@@ -128,7 +128,7 @@ func (a *Account) FetchFollowerChannelIds() ([]int64, error) {
 
 	cp := NewChannelParticipant()
 	var channelIds []int64
-	err = db.DB.
+	err = bongo.B.DB.
 		Table(cp.TableName()).
 		Where(
 		"creator_id IN (?) and type = ?",
