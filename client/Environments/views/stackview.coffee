@@ -236,7 +236,7 @@ class StackView extends KDView
     hasDomain = Object.keys(@domains.dias).length
     hasVm     = Object.keys(@vms.dias).length
 
-    @createProgressModal hasDomain, hasVm
+    @createProgressModal hasDomain, hasVm  if hasVm and hasDomain
 
     if hasDomain
       @deleteDomains =>
