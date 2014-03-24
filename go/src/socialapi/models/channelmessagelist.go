@@ -2,8 +2,9 @@ package models
 
 import (
 	"errors"
-	"socialapi/db"
 	"time"
+
+	"github.com/koding/bongo"
 )
 
 type ChannelMessageList struct {
@@ -18,9 +19,6 @@ type ChannelMessageList struct {
 
 	// Addition date of the message to the channel
 	AddedAt time.Time
-
-	//Base model operations
-	m Model
 }
 
 func (c *ChannelMessageList) BeforeCreate() {
@@ -32,15 +30,15 @@ func (c *ChannelMessageList) BeforeUpdate() {
 }
 
 func (c *ChannelMessageList) AfterCreate() {
-	c.m.AfterCreate(c)
+	bongo.B.AfterCreate(c)
 }
 
 func (c *ChannelMessageList) AfterUpdate() {
-	c.m.AfterUpdate(c)
+	bongo.B.AfterUpdate(c)
 }
 
 func (c *ChannelMessageList) AfterDelete() {
-	c.m.AfterDelete(c)
+	bongo.B.AfterDelete(c)
 }
 
 func (c *ChannelMessageList) GetId() int64 {
@@ -51,7 +49,7 @@ func (c *ChannelMessageList) TableName() string {
 	return "channel_message_list"
 }
 
-func (c *ChannelMessageList) Self() Modellable {
+func (c *ChannelMessageList) Self() bongo.Modellable {
 	return c
 }
 
@@ -60,7 +58,7 @@ func NewChannelMessageList() *ChannelMessageList {
 }
 
 func (c *ChannelMessageList) Fetch() error {
-	return c.m.Fetch(c)
+	return bongo.B.Fetch(c)
 }
 
 func (c *ChannelMessageList) UnreadCount(cp *ChannelParticipant) (int, error) {
@@ -76,7 +74,7 @@ func (c *ChannelMessageList) UnreadCount(cp *ChannelParticipant) (int, error) {
 		return 0, errors.New("Last seen at date is not valid - it is zero")
 	}
 
-	return c.m.Count(c,
+	return bongo.B.Count(c,
 		"channel_id = ? and added_at > ?",
 		cp.ChannelId,
 		// todo change this format to get from a specific place
@@ -85,11 +83,11 @@ func (c *ChannelMessageList) UnreadCount(cp *ChannelParticipant) (int, error) {
 }
 
 func (c *ChannelMessageList) Create() error {
-	return c.m.Create(c)
+	return bongo.B.Create(c)
 }
 
 func (c *ChannelMessageList) Delete() error {
-	return c.m.Delete(c)
+	return bongo.B.Delete(c)
 }
 
 func (c *ChannelMessageList) List(q *Query) (*HistoryResponse, error) {
@@ -129,7 +127,7 @@ func (c *ChannelMessageList) getMessages(q *Query) ([]*ChannelMessageContainer, 
 		return nil, errors.New("ChannelId is not set")
 	}
 
-	if err := db.DB.Table(c.TableName()).
+	if err := bongo.B.DB.Table(c.TableName()).
 		Order("added_at desc").
 		Where("channel_id = ?", c.ChannelId).
 		Offset(q.Skip).
@@ -204,7 +202,7 @@ func (c *ChannelMessageList) FetchMessageChannels(messageId int64) ([]Channel, e
 		"channel_id": true,
 	}
 
-	err := c.m.Some(c, &channelIds, selector, nil, pluck)
+	err := bongo.B.Some(c, &channelIds, selector, nil, pluck)
 	if err != nil {
 		return nil, err
 	}
@@ -217,7 +215,7 @@ func (c *ChannelMessageList) FetchMessageChannels(messageId int64) ([]Channel, e
 func (c *ChannelMessageList) DeleteMessagesBySelector(selector map[string]interface{}) error {
 	var cmls []ChannelMessageList
 
-	err := c.m.Some(c, &cmls, selector)
+	err := bongo.B.Some(c, &cmls, selector)
 	if err != nil {
 		return err
 	}
