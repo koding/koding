@@ -66,6 +66,9 @@ class AppsAppController extends AppController
 
     KD.remote.api.JNewApp.some selector, options, callback
 
+  doKiteQuery:(selector, options, callback)->
+    KD.remote.api.JKite.list selector, options, callback
+
   createFeed:(view, loadFeed = no)->
 
     options =
@@ -120,6 +123,12 @@ class AppsAppController extends AppController
           dataSource        : (selector, options, callback)=>
             selector['manifest.category'] = 'framework'
             @doQuery selector, options, callback
+
+        kites               :
+          title             : "Kites"
+          noItemFoundText   : "There are no kites yet"
+          dataSource        : (selector, options, callback)=>
+            @doKiteQuery selector, options, callback
 
         miscellaneous       :
           title             : "Miscellaneous"
