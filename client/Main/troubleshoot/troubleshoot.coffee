@@ -44,9 +44,6 @@ class Troubleshoot extends KDObject
     KD.utils.killWait @timeout
     @emit event
 
-  isConnectionFailed: ->
-    @items["connection"].status is "fail"
-
   resetAllItems: ->
     for own name, item of @items
       item.reset()
