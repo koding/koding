@@ -85,8 +85,8 @@ class Troubleshoot extends KDObject
   registerConnections: ->
     #register connection
     {externalUrl} = KD.config.troubleshoot
-    item = new ConnectionChecker crossDomain: yes, speedCheck: no, externalUrl
-    @registerItem "connection", troubleshoot: item.bound 'ping'
+    item = new ConnectionChecker crossDomain: yes, externalUrl
+    @registerItem "connection", speedCheck: no, troubleshoot: item.bound 'ping'
 
     # register webserver status
     webserverStatus = new ConnectionChecker({}, "#{window.location.origin}/-/healthCheck")
