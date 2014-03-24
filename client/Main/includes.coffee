@@ -197,6 +197,20 @@ module.exports = [
   # global notifications
   "globalnotification.coffee",
 
+  # trouble shooter
+  "troubleshoot/troubleshoot.coffee",
+  "troubleshoot/healthchecker.coffee",
+  "troubleshoot/connectionchecker.coffee",
+  "troubleshoot/troubleshootmodal.coffee",
+  "troubleshoot/troubleshootitemview.coffee",
+  "troubleshoot/troubleshootstatusview.coffee",
+
+  "troubleshoot/liveupdatechecker.coffee",
+  "troubleshoot/brokerrecovery.coffee",
+  "troubleshoot/vmchecker.coffee",
+  "troubleshoot/troubleshootresultview.coffee",
+  "troubleshoot/troubleshootmessageview.coffee",
+
   # avatararea
   "avatararea/avatararea.coffee",
   "avatararea/avatarareapopup.coffee",
@@ -257,7 +271,6 @@ module.exports = [
 
   "status.coffee",
   "main.coffee",
-  "monitor_status.coffee",
   "rollbar.coffee",
   "mixpanel.coffee",
   "analytic.coffee",
@@ -274,6 +287,7 @@ module.exports = [
   # "styl/resurrection.activity.styl",
   # "styl/resurrection.apps.styl",
   "styl/resurrection.commons.styl",
+  "styl/troubleshoot.styl",
   # "styl/formworkflow.styl"
   # "styl/resurrection.feeder.styl",
 
