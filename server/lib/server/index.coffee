@@ -135,16 +135,19 @@ app.use (req, res, next) ->
     if err then console.log err
     next()
 
-app.get "/-/subscription/check/:username", (req, res)->
-  {username} = req.params
-  {JAccount} = koding.models
-  JAccount.one {"profile.nickname": username}, (err, account)->
-    account.fetchSubscriptions (err, subs)->
-      unless err
-        subsdata = subs.map (sub)->sub.data
-        res.send 200, {subsdata}
-      else
-        res.send 401, authTemplate "Kite Subscription Error - 1"
+app.get "/-/subscription/check/:kiteToken/:username", (req, res)->
+  {username, kiteToken} = req.params
+  {JAccount, JKite} = koding.models
+  JKite.one kiteCode: kiteToken, (err, kite)->
+    return res.send 401, "Kite Subscription Error - 1" if err
+    JAccount.one {"profile.nickname": username}, (err, account)->
+      account.fetchSubscriptions (err, subs)->
+        return res.send 401, "Kite Subscription Error - 2" if err
+        kite.fetchPlans (err, plans)->
+          subsIds = subs.map (sub)-> sub.planCode
+          for plan in plans
+            if plan.planCode in subsIds
+              return res.send 200, plan.data
 
 app.get "/-/8a51a0a07e3d456c0b00dc6ec12ad85c", require './__notify-users'
 
