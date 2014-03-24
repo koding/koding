@@ -58,8 +58,3 @@ class TroubleshootItemView extends KDCustomHTMLView
     {status} = @getData()
     @status.unsetClass "fail success"
     @status.setClass "#{status}"
-
-  destroy: ->
-    @off "recoveryCompleted"
-    @off "recoveryStarted"
-    super
