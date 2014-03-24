@@ -16,7 +16,7 @@ class Troubleshoot extends KDObject
     @brokerKiteRecovery = new BrokerRecovery type: 'kite'
     @registerItems()
     # when a user stays idle for an hour we forward userIdle event
-    @idleUserDetector = new IdleUserDetector threshold: 3600000
+    @idleUserDetector = new IdleUserDetector threshold: KD.config.troubleshoot.idleTime
     @forwardEvent @idleUserDetector, "userIdle"
 
   # prepareCheckSequence builds a tree structured health check sequence.
@@ -87,8 +87,8 @@ class Troubleshoot extends KDObject
 
   registerConnections: ->
     #register connection
-    externalUrl = "https://s3.amazonaws.com/koding-ping/healthcheck.json"
-    item = new ConnectionChecker crossDomain: yes, externalUrl
+    {externalUrl} = KD.config.troubleshoot
+    item = new ConnectionChecker crossDomain: yes, speedCheck: no, externalUrl
     @registerItem "connection", troubleshoot: item.bound 'ping'
 
     # register webserver status

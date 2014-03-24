@@ -224,6 +224,9 @@ config =
             nicename      : 1
           # bitbucket     :
           #   nicename    : 1
+        troubleshoot      :
+          idleTime        : 1
+          externalUrl     : 1
       # authResourceName : DO NOT COMMIT THIS BACK IN NOR DELETE. IT KEEPS COMING BACK. devrim.
     mq            :
       host        : 1

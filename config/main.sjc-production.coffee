@@ -214,6 +214,9 @@ module.exports =
           nicename      : 'Twitter'
         # bitbucket     :
         #   nicename    : 'BitBucket'
+      troubleshoot      :
+        idleTime        : 1000 * 60 * 60
+        externalUrl     : "https://s3.amazonaws.com/koding-ping/healthcheck.json"
   mq            :
     host        : '172.16.3.4'
     port        : 5672
