@@ -2,8 +2,9 @@ package models
 
 import (
 	"errors"
-	"socialapi/db"
 	"time"
+
+	"github.com/koding/bongo"
 )
 
 // todo Scope function for this struct
@@ -29,9 +30,6 @@ type ChannelParticipant struct {
 
 	// Modification date of the channel participant's status
 	UpdatedAt time.Time
-
-	//Base model operations
-	m Model
 }
 
 // here is why i did this not-so-good constants
@@ -54,7 +52,7 @@ func (c *ChannelParticipant) TableName() string {
 	return "channel_participant"
 }
 
-func (c *ChannelParticipant) Self() Modellable {
+func (c *ChannelParticipant) Self() bongo.Modellable {
 	return c
 }
 
@@ -67,15 +65,15 @@ func (c *ChannelParticipant) BeforeUpdate() {
 }
 
 func (c *ChannelParticipant) Create() error {
-	return c.m.Create(c)
+	return bongo.B.Create(c)
 }
 
 func (c *ChannelParticipant) Update() error {
-	return c.m.Update(c)
+	return bongo.B.Update(c)
 }
 
 func (c *ChannelParticipant) Some(data interface{}, rest ...map[string]interface{}) error {
-	return c.m.Some(c, data, rest...)
+	return bongo.B.Some(c, data, rest...)
 }
 
 func (c *ChannelParticipant) FetchParticipant() error {
@@ -93,7 +91,7 @@ func (c *ChannelParticipant) FetchParticipant() error {
 		// "status":     ChannelParticipant_STATUS_ACTIVE,
 	}
 
-	err := c.m.One(c, c, selector)
+	err := bongo.B.One(c, c, selector)
 	if err != nil {
 		return err
 	}
@@ -107,12 +105,12 @@ func (c *ChannelParticipant) FetchUnreadCount() (int, error) {
 }
 
 func (c *ChannelParticipant) Delete() error {
-	return c.m.UpdatePartial(c,
-		Partial{
+	return bongo.B.UpdatePartial(c,
+		bongo.Partial{
 			"account_id": c.AccountId,
 			"channel_id": c.ChannelId,
 		},
-		Partial{
+		bongo.Partial{
 			"status": ChannelParticipant_STATUS_LEFT,
 		},
 	)
@@ -130,7 +128,7 @@ func (c *ChannelParticipant) List() ([]ChannelParticipant, error) {
 		"status":     ChannelParticipant_STATUS_ACTIVE,
 	}
 
-	err := c.m.Some(c, &participants, selector)
+	err := bongo.B.Some(c, &participants, selector)
 	if err != nil {
 		return nil, err
 	}
@@ -146,7 +144,7 @@ func (c *ChannelParticipant) FetchParticipatedChannelIds(a *Account) ([]int64, e
 
 	var channelIds []int64
 
-	if err := db.DB.Table(c.TableName()).
+	if err := bongo.B.DB.Table(c.TableName()).
 		Order("created_at desc").
 		Where("account_id = ?", a.Id).
 		Pluck("channel_id", &channelIds).
