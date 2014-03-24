@@ -86,6 +86,11 @@ func main() {
 	signal.Notify(ch, syscall.SIGINT, syscall.SIGQUIT, syscall.SIGTERM)
 
 	log.Info("Recieved %v", <-ch)
+
+	// do not forgot to close the bongo connection
+	Bongo.Close()
+
+	// shutdown server
 	server.Close()
 }
 
@@ -99,7 +104,7 @@ func initBongo(c *config.Config) {
 	}
 
 	broker := broker.New(bConf, log)
-	Bongo = bongo.New(broker, db.DB)
+	Bongo = bongo.New(broker, db.DB, log)
 	err := Bongo.Connect()
 	if err != nil {
 		panic(err)
