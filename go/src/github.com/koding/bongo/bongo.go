@@ -1,7 +1,6 @@
 package bongo
 
 import (
-	"fmt"
 	"github.com/koding/logging"
 
 	"github.com/jinzhu/gorm"
@@ -41,7 +40,6 @@ func (b *Bongo) Connect() error {
 }
 
 func (b *Bongo) Close() error {
-
 	if err := b.Broker.Close(); err != nil {
 		return err
 	}
