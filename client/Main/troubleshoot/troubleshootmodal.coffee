@@ -48,9 +48,10 @@ class TroubleshootModal extends KDModalViewWithForms
                   # cssClass    : "hidden"
                 feedback      :
                   label       : "Feedback"
-                  itemClass   : KDInputView
                   name        : "feedback"
-                  placeholder : "Define the situation"
+                  placeholder : "Please tell us about the problems you were having and describe the situation"
+                  type        : "textarea"
+                  autogrow    : yes
 
     super options, data
     @overlay.off "click"
