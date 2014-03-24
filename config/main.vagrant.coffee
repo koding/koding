@@ -131,11 +131,6 @@ module.exports =
     watch       : yes
     queueName   : socialQueueName
     verbose     : no
-  cacheWorker   :
-    login       : 'prod-social'
-    watch       : yes
-    queueName   : socialQueueName+'cache'
-    run         : no
   followFeed    :
     host        : 'localhost'
     port        : 5672

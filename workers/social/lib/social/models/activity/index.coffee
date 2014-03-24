@@ -21,7 +21,7 @@ module.exports = class CActivity extends jraphical.Capsule
   @trait __dirname, '../../traits/grouprelated'
 
   @set
-    softDelete        : yes
+    softDelete        : no
     feedable          : yes
     broadcastable     : no
     indexes           :
@@ -33,8 +33,7 @@ module.exports = class CActivity extends jraphical.Capsule
       group           : 'sparse'
     sharedEvents      :
       instance        : []
-      static          : ['BucketIsUpdated', 'cacheWorker'
-                         'ActivityIsCreated']
+      static          : ['BucketIsUpdated', 'ActivityIsCreated']
     sharedMethods     :
       static          :
         fetchFolloweeContents:
@@ -140,13 +139,3 @@ module.exports = class CActivity extends jraphical.Capsule
         as: 'like'
       , {}, (err, likedRels)=>
         callback err, (likedRel.sourceId for likedRel in likedRels)
-
-  notifyCache = (event, contents)->
-    routingKey = contents.group or 'koding'
-    @emit 'cacheWorker', {routingKey, event, contents}
-
-  @on 'ActivityIsCreated', notifyCache.bind this, 'ActivityIsCreated'
-  @on 'PostIsUpdated',     notifyCache.bind this, 'PostIsUpdated'
-  @on 'PostIsDeleted',     notifyCache.bind this, 'PostIsDeleted'
-  @on 'BucketIsUpdated',   notifyCache.bind this, 'BucketIsUpdated'
-  @on 'UserMarkedAsTroll', notifyCache.bind this, 'UserMarkedAsTroll'

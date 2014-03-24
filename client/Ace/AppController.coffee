@@ -4,11 +4,6 @@ require.config baseUrl: "/a/js", waitSeconds:30
 
 class AceAppController extends AppController
 
-  # canCompile = (view)->
-  #   ace      = view.getActiveAceView()
-  #   manifest = KodingAppsController.getManifestFromPath ace.getData().path
-  #   return if manifest then yes else no
-
   KD.registerAppClass this,
     name          : "Ace"
     multiple      : yes
