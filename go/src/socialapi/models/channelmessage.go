@@ -3,6 +3,8 @@ package models
 import (
 	"errors"
 	"time"
+
+	"github.com/koding/bongo"
 )
 
 type ChannelMessage struct {
@@ -26,21 +28,18 @@ type ChannelMessage struct {
 
 	// Modification date of the message
 	UpdatedAt time.Time
-	m         Model
-
-	// meta data
 }
 
 func (c *ChannelMessage) AfterCreate() {
-	c.m.AfterCreate(c)
+	bongo.B.AfterCreate(c)
 }
 
 func (c *ChannelMessage) AfterUpdate() {
-	c.m.AfterUpdate(c)
+	bongo.B.AfterUpdate(c)
 }
 
 func (c *ChannelMessage) AfterDelete() {
-	c.m.AfterDelete(c)
+	bongo.B.AfterDelete(c)
 }
 
 func (c *ChannelMessage) GetId() int64 {
@@ -51,7 +50,7 @@ func (c *ChannelMessage) TableName() string {
 	return "channel_message"
 }
 
-func (c *ChannelMessage) Self() Modellable {
+func (c *ChannelMessage) Self() bongo.Modellable {
 	return c
 }
 
@@ -68,12 +67,12 @@ func NewChannelMessage() *ChannelMessage {
 }
 
 func (c *ChannelMessage) Fetch() error {
-	return c.m.Fetch(c)
+	return bongo.B.Fetch(c)
 }
 
 func (c *ChannelMessage) Update() error {
 	// only update body
-	return c.m.UpdatePartial(c,
+	return bongo.B.UpdatePartial(c,
 		map[string]interface{}{
 			"body": c.Body,
 		},
@@ -81,11 +80,11 @@ func (c *ChannelMessage) Update() error {
 }
 
 func (c *ChannelMessage) Create() error {
-	return c.m.Create(c)
+	return bongo.B.Create(c)
 }
 
 func (c *ChannelMessage) Delete() error {
-	return c.m.Delete(c)
+	return bongo.B.Delete(c)
 }
 
 func (c *ChannelMessage) FetchByIds(ids []int64) ([]ChannelMessage, error) {
@@ -95,7 +94,7 @@ func (c *ChannelMessage) FetchByIds(ids []int64) ([]ChannelMessage, error) {
 		return messages, nil
 	}
 
-	if err := c.m.FetchByIds(c, &messages, ids); err != nil {
+	if err := bongo.B.FetchByIds(c, &messages, ids); err != nil {
 		return nil, err
 	}
 	return messages, nil
