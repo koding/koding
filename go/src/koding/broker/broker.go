@@ -366,9 +366,31 @@ func (b *Broker) startSockJS() {
 // sockjsSession is called for every client connection and handles all the
 // message trafic for a single client connection.
 func (b *Broker) sockjsSession(session *sockjs.Session) {
-	client, err := NewClient(session, b)
-	if err != nil {
-		log.Critical("Couldnt create client %v", err)
+	clientChan := make(chan *Client, 0)
+	errChan := make(chan error, 0)
+
+	// we don't use time.After because we are stopping the time if the given
+	// functions are fast enough.
+	timer := time.NewTicker(5 * time.Second)
+
+	go createClient(b, session, clientChan, errChan)
+
+	var client *Client
+	var ok bool
+	select {
+	case client, ok = <-clientChan:
+		if ok {
+			timer.Stop()
+		}
+	case err, ok := <-errChan:
+		if ok {
+			timer.Stop()
+			log.Critical("An error occured while creating client %v", err)
+			return
+		}
+	case <-timer.C:
+		timer.Stop()
+		log.Critical("Client coulnt created in %s exiting ", "5s")
 		return
 	}
 
@@ -377,19 +399,39 @@ func (b *Broker) sockjsSession(session *sockjs.Session) {
 	defer sessionGaugeEnd()
 	defer client.Close()
 
-	err = client.ControlChannel.Publish(b.Config.AuthAllExchange, "broker.clientConnected", false, false, amqp.Publishing{Body: []byte(client.SocketId)})
-	if err != nil {
-		log.Critical("Couldnt publish to control channel %v", err)
-	}
-
-	sendToClient(session, "broker.connected", client.SocketId)
-
 	for data := range session.ReceiveChan {
 		if data == nil || session.Closed {
 			break
 		}
 
 		client.handleSessionMessage(data)
+	}
+}
+
+func createClient(b *Broker, session *sockjs.Session, clientChan chan *Client, errChan chan error) {
+	// do not forget to close channels
+	defer close(errChan)
+	defer close(clientChan)
+
+	client, err := NewClient(session, b)
+	if err != nil {
+		log.Critical("Couldnt create client %v", err)
+		errChan <- err
+		return
+	}
+
+	err = client.ControlChannel.Publish(b.Config.AuthAllExchange, "broker.clientConnected", false, false, amqp.Publishing{Body: []byte(client.SocketId)})
+	if err != nil {
+		log.Critical("Couldnt publish to control channel %v", err)
+		errChan <- err
+		return
+	}
+
+	// if session is closed before the client creation no need to send
+	// client object to listeners
+	if !session.Closed {
+		sendToClient(session, "broker.connected", client.SocketId)
+		clientChan <- client
 	}
 }
 
