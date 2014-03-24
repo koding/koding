@@ -4,20 +4,21 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"koding/tools/logger"
 	"socialapi/models"
+
+	"github.com/koding/logging"
 )
 
 type Action func(*FollowingFeedController, *models.ChannelMessage) error
 
 type FollowingFeedController struct {
 	routes map[string]Action
-	log    logger.Log
+	log    logging.Logger
 }
 
 var HandlerNotFoundErr = errors.New("Handler Not Found")
 
-func NewFollowingFeedController(log logger.Log) *FollowingFeedController {
+func NewFollowingFeedController(log logging.Logger) *FollowingFeedController {
 	ffc := &FollowingFeedController{
 		log: log,
 	}
