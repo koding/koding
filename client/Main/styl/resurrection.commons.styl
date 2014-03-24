@@ -72,6 +72,7 @@ resurrection.commons.styl
   margin                    0
   padding                   55px 0 0
   width                     100%
+  z-index                   10
   borderBox()
 
 .application-tabview
@@ -245,8 +246,7 @@ resurrection.commons.styl
       top                   4px
       right                 0
       display               block
-      background-color      red
-      r-sprite                app '20-chevron-orange'
+      r-sprite              app '20-chevron-orange'
       size                  16px 20px
 
 div.copy-url-wrapper
@@ -1287,7 +1287,95 @@ a.action-link.verify-email
     .user-numbers
       width         340px
 
+.kdmodal.github-modal
 
+  a
+    text-decoration none
+    color           green
+
+  .kdmodal-inner
+    margin          20px
+
+    .loader
+      top           10px
+      right         10px
+      abs()
+
+  .message
+    margin-top      10px
+    font-size       14px
+    span
+      color         green
+      cursor        pointer
+
+  .warning
+    font-size       11px
+    text-decoration italic
+
+  .listview-wrapper
+    margin-top    10px
+    height        260px
+    border-top    1px solid #eee
+    border-bottom 1px solid #eee
+
+  .noitem-warning
+    text-align    center
+    margin-top    115px
+    font-size     12px
+    opacity       .6
+
+  .refresh-button
+    background    none
+    border        none
+    position      absolute
+    right         3px
+    padding       0
+    margin        0
+    top           2px
+    z-index       1
+
+    span.icon
+      rel()
+      display         block
+      padding         0
+      margin          0
+      border          none
+      visibility      visible
+      r-sprite        app '30-refresh-icon-green'
+
+  .kdlistitemview-repo
+    height        32px
+    width         482px
+    border        1px solid #eee
+    border-radius 4px
+    padding       4px
+    margin        4px
+
+    &:hover
+      background  #eee
+
+      .action-button
+        visibility visible
+
+      p
+        width      420px
+
+    h1
+      font-weight 400
+
+    p
+      text-overflow   ellipsis
+      white-space     nowrap
+      font-size       12px
+      overflow        hidden
+      width           480px
+
+
+    .action-button
+      top         10px
+      right       10px
+      visibility  hidden
+      abs()
 
 // onboarding
 .onboarding-item
@@ -1340,3 +1428,49 @@ a.action-link.verify-email
     r-sprite            "app", "20-close-tab"
     top                 10px
     right               10px
+
+.kdmodal.run-app-dialog
+
+  background       #333
+  color            rgba(255,255,255,.7)
+
+  .kdmodal-inner
+    background     #333
+    margin         25px
+    .kdmodal-title > span
+      color        white
+
+  p
+    padding       4px 0 4px 0
+    font-size     15px
+
+    &:first-child
+      margin-bottom 10px
+
+    span
+      color         white
+
+  strong
+    font-weight   500
+    font-size     16px
+
+  a
+    color         white
+    padding       0 2px 2px 2px
+    background    rgba(255,255,255,0.2)
+    border-radius 4px
+    noTextDeco()
+
+    &:hover
+      color       black
+      background  white
+
+  .kdmodal-buttons
+    border        none !important
+
+  .run-warning
+    color         white
+    width         300px
+    top           35px
+    font-weight   500
+    abs()

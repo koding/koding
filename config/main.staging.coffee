@@ -140,11 +140,6 @@ module.exports =
     watch       : yes
     queueName   : socialQueueName
     verbose     : no
-  cacheWorker   :
-    login       : 'prod-social'
-    watch       : yes
-    queueName   : socialQueueName+'cache'
-    run         : no
   presence        :
     exchange      : 'services-presence'
   client          :
@@ -189,7 +184,7 @@ module.exports =
         servicesEndpoint: "/-/services/premiumBrokerKite"
         brokerExchange: 'premiumBrokerKite'
       apiUri    : 'https://koding.com'
-      appsUri   : 'https://koding-apps.s3.amazonaws.com'
+      appsUri   : 'https://rest.kd.io'
       uploadsUri: 'https://koding-uploads.s3.amazonaws.com'
       uploadsUriForGroup: 'https://koding-groups.s3.amazonaws.com'
       sourceUri : "http://stage-webserver-#{version}.sj.koding.com:1337"

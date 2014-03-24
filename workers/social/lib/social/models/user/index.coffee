@@ -76,12 +76,8 @@ module.exports = class JUser extends jraphical.Module
       'foreignAuth.twitter.foreignId'  : 1
 
     sharedEvents    :
-      static        : [
-        { name : "RemovedFromCollection" }
-      ]
-      instance      : [
-        { name : "RemovedFromCollection" }
-      ]
+      static        : []
+      instance      : []
     sharedMethods   :
       instance      : []
       static        :

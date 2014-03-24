@@ -39,7 +39,6 @@ module.exports = class JStack extends jraphical.Module
     sharedEvents      :
       static          : [ ]
       instance        : [
-        { name : "RemovedFromCollection" }
         { name : 'updateInstance' }
       ]
 

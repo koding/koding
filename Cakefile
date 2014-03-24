@@ -484,27 +484,6 @@ task 'elasticsearchfeeder', "Run the Elastic Search Feeder", (options)->
       enabled      : if config.runKontrol is yes then yes else no
       startMode    : "one"
 
-task 'cacheWorker', "Run the cacheWorker", ({configFile})->
-  KONFIG = require('koding-config-manager').load("main.#{configFile}")
-  {cacheWorker} = KONFIG
-
-  processes.fork
-    name           : 'cache'
-    cmd            : "./workers/cacher/index -c #{configFile}"
-    restart        : yes
-    restartTimeout : 100
-    kontrol        :
-      enabled      : !!KONFIG.runKontrol
-      startMode    : "one"
-
-  if cacheWorker.watch is yes
-    watcher = new Watcher
-      groups        :
-        server      :
-          folders   : ['./workers/cacher']
-          onChange  : ->
-            processes.kill "cacheWorker"
-
 task 'kontrolClient', "Run the kontrolClient", (options) ->
   {configFile} = options
   processes.spawn
@@ -615,7 +594,6 @@ run =({configFile})->
     invoke 'authWorker'                       if config.authWorker
     invoke 'guestCleanerWorker'               if config.guestCleanerWorker.enabled
     invoke 'emailConfirmationCheckerWorker'   if config.emailConfirmationCheckerWorker.enabled
-    invoke 'cacheWorker'                      if config.cacheWorker?.run is yes
     invoke 'socialWorker'
     invoke 'emailWorker'                      if config.emailWorker?.run is yes
     invoke 'emailSender'                      if config.emailSender?.run is yes

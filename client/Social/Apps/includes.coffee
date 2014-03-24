@@ -8,5 +8,4 @@ module.exports = [
   "AppController.coffee"
 
   "styl/app.appstore.styl"
-  "styl/resurrection.apps.styl"
 ]

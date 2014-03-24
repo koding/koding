@@ -163,6 +163,12 @@ projects      =
     script        : "website/a/js/__app.bugreport.#{KODING_VERSION}.js"
     sourceMapRoot : "Social/Bugs/"
 
+  DevTools        :
+    files         : "client/DevTools/includes.coffee"
+    style         : "website/a/css/__app.devtools.#{KODING_VERSION}.css"
+    script        : "website/a/js/__app.devtools.#{KODING_VERSION}.js"
+    sourceMapRoot : "DevTools/"
+
 bundles           =
 
   Social          :
@@ -176,7 +182,8 @@ bundles           =
     script        : "website/a/js/koding.#{KODING_VERSION}.js"
 
   TeamworkBundle  :
-    projects      : ['Ace', 'Terminal', 'Viewer', 'Workspace', 'CollaborativeWorkspace', 'Teamwork']
+    projects      : ['Ace', 'Terminal', 'Viewer', 'Workspace',
+                     'CollaborativeWorkspace', 'Teamwork', 'DevTools']
     style         : "website/a/css/__teamwork.#{KODING_VERSION}.css"
     script        : "website/a/js/__teamwork.#{KODING_VERSION}.js"
 

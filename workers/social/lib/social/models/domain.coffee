@@ -19,7 +19,7 @@ module.exports = class JDomain extends jraphical.Module
   @share()
 
   @set
-    softDelete      : yes
+    softDelete      : no
 
     permissions     :
       'create domains'     : ['member']
@@ -84,12 +84,8 @@ module.exports = class JDomain extends jraphical.Module
         #   (signature Object, Function)
 
     sharedEvents    :
-      static        : [
-        { name : "RemovedFromCollection" }
-      ]
-      instance      : [
-        { name : "RemovedFromCollection" }
-      ]
+      static        : []
+      instance      : []
     indexes         :
       domain        : 'unique'
       hostnameAlias : 'sparse'

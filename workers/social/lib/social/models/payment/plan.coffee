@@ -25,6 +25,9 @@ module.exports = class JPaymentPlan extends JPaymentBase
   @set
     indexes         :
       planCode      : 'unique'
+    sharedEvents    :
+      static        : []
+      instance      : []
     sharedMethods   :
       static        :
         create      :
