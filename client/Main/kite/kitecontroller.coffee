@@ -17,19 +17,19 @@ class KiteController extends KDController
   getKiteKey =(kiteName, correlationName)->
     "~#{kiteName}~#{correlationName}"
 
-  getKite:(kiteName, correlationName)->
+  getKite:(kiteName, correlationName, type)->
     key = getKiteKey kiteName, correlationName
     kite = @kiteInstances[key]
     return kite  if kite?
-    kite = @createKite kiteName, correlationName, key
+    kite = @createKite kiteName, correlationName, key, type
     @kiteInstances[key] = kite
     return kite
 
   destroyKite:(kite)->
     delete @kiteInstances[kite.kiteKey]
 
-  createKite:(kiteName, correlationName, kiteKey)->
-    konstructor = KDKite.constructors['os']
+  createKite:(kiteName, correlationName, kiteKey, type = "os")->
+    konstructor = KDKite.constructors[type]
 
     unless konstructor?
       throw new Error "Unknown constructor: #{ kiteName }"

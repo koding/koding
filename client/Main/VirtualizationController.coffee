@@ -8,6 +8,7 @@ class VirtualizationController extends KDController
     @resetVMData()
 
     @kites = {}
+    @terminalKites = {}
 
     @osKites = {}
 
@@ -219,14 +220,15 @@ class VirtualizationController extends KDController
     group = KD.getSingleton("groupsController").getCurrentGroup()
     group.createVM {type, planCode}, vmCreateCallback
 
-  getKite: ({ region, hostnameAlias }) ->
+  getKite: ({ region, hostnameAlias }, type = 'os') ->
     (KD.getSingleton 'kiteController')
-      .getKite "os-#{ region }", hostnameAlias
+      .getKite "#{ type }-#{ region }", hostnameAlias, type
 
   registerKite: (vm) ->
 
     alias         = vm.hostnameAlias
-    @kites[alias] = kite = @getKite vm
+    @kites[alias] = kite = @getKite vm, 'os'
+    @terminalKites[alias] = @getKite vm, 'terminal'
 
     kite.on 'vm.progress.start', (update) =>
       @emit 'vm.progress.start', {alias, update}

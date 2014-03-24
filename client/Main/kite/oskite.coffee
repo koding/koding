@@ -1,6 +1,6 @@
 class OsKite extends KDKite
 
-  api =
+  @createApiMapping
     exec            : 'exec'
 
     appInstall      : 'app.install'
@@ -33,13 +33,6 @@ class OsKite extends KDKite
     vmInfo          : 'vm.info'
     vmResizeDisk    : 'vm.resizeDisk'
     vmCreateSnapshot: 'vm.createSnapshot'
-
-    webtermGetSessions: 'webterm.getSessions'
-    webtermConnect    : 'webterm.connect'
-
-
-  for own method, rpcMethod of api
-    @::[method] = @createMethod @prototype, { method, rpcMethod }
 
   constructor: (options = {}, data) ->
     super options, data
