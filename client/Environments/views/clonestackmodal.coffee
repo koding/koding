@@ -98,7 +98,8 @@ class CloneStackModal extends KDModalView
     isValidated = yes
 
     KD.remote.api.JDomain.fetchDomains (err, domains) =>
-      # TODO: ERROR CHECK
+      return @notify "Unable to fetch your domains"  if err
+
       userDomains.push domain.domain  for domain in domains
 
       for form in @domainCreateForms
@@ -125,6 +126,7 @@ class CloneStackModal extends KDModalView
         @addVMsToQueue()  if @getData().vms.length
         @processQueue()
 
+  # TODO: fatihacet - DRY addVMsToQueue and addDomainsToQueue
   addDomainsToQueue: ->
     domainList = @listData["Creating Domains"] = []
     {vms, domains} = @getData()
@@ -134,13 +136,16 @@ class CloneStackModal extends KDModalView
       domainList.push newName
       @queue.push =>
         KD.remote.api.JDomain.createDomain { domain: newName, stack: @stack.getId() }, (err, res) =>
-          # TODO: Error handling
-          return warn err  if err
+          if err
+            @notify "Unable to create your domain"
+            @queue.error()
+
           @queue.next()
           @progressModal.next()
           @completedTaskLength++
           @handleCloneDone()  if @completedTaskLength is @totalTaskLength
 
+  # TODO: fatihacet - DRY addVMsToQueue and addDomainsToQueue
   addVMsToQueue: ->
     vmList    = @listData["Creating VMs"] = []
     vmNumber  = 0
@@ -150,7 +155,10 @@ class CloneStackModal extends KDModalView
       vmList.push "#{++vmNumber}. VM"
       @queue.push =>
         KD.singleton("vmController").createNewVM @stack.getId(), (err) =>
-          return KD.showError err  if err
+          if err
+            @notify "Unable to create your VM"
+            @queue.error()
+
           @queue.next()
           @progressModal.next()
           @completedTaskLength++
@@ -168,15 +176,17 @@ class CloneStackModal extends KDModalView
 
   handleCloneDone: ->
     @emit "StackCloned"
-    @progressModal.destroy()
+    @progressModal?.destroy()
     @destroy()
 
   createStack: (callback = noop) ->
     KD.remote.api.JStack.createStack @getOptions().meta, (err, @stack) =>
-      title = "Failed to create a new stack. Try again later!"
-      return new KDNotificationView { title }  if err
+      return @notify "Failed to create a new stack. Try again later!"  if err
 
       callback()
+
+  notify: (title, cssClass = "error", duration = 3000, type = "mini") ->
+    new KDNotificationView { title, cssClass, duration, type }
 
   handleSubscriptionError: (err) ->
     @destroy()

@@ -199,12 +199,11 @@ class StackView extends KDView
     domainCouter  = 0
     domainQueue   = domainDiaKeys.map (key) =>=>
       domainDias[key].data.domain.remove (err, res) =>
-        return @handleStackDeleteError err  if err
         domainCouter++
         domainQueue.next()
+        @progressModal?.error()  if err
         @progressModal?.next()
-        if domainCouter is domainDiaKeys.length
-          callback()
+        callback()  if domainCouter is domainDiaKeys.length
 
     Bongo.daisy domainQueue
 
@@ -215,12 +214,11 @@ class StackView extends KDView
     vmCounter = 0
     vmQueue   = vmDiaKeys.map (key) =>=>
       vmc.deleteVmByHostname vmDias[key].data.hostnameAlias, (err) =>
-        return @handleStackDeleteError err  if err
         vmCounter++
         vmQueue.next()
         @progressModal?.next()
-        if vmCounter is vmDiaKeys.length
-          callback()
+        @progressModal?.error()  if err
+        callback()  if vmCounter is vmDiaKeys.length
       , no
 
     Bongo.daisy vmQueue
@@ -228,7 +226,7 @@ class StackView extends KDView
   deleteJStack: ->
     {stack} = @getOptions()
     stack.remove (err, res) =>
-      return @handleStackDeleteError err  if err
+      return KD.showError err  if err
       @destroy()
       @progressModal?.destroy()
 
@@ -265,7 +263,3 @@ class StackView extends KDView
         arr.push vm.data.title
 
     @progressModal = new StackProgressModal {}, listData
-
-  handleStackDeleteError: (err) ->
-    # TODO: Implement this
-    KD.showErr err  if err

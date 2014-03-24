@@ -31,6 +31,9 @@ class StackProgressModal extends KDModalView
         itemView.addSubView itemView.success = new KDView
           cssClass : "success hidden"
 
+        itemView.addSubView itemView.error   = new KDView
+          cssClass : "error hidden"
+
         @items.push itemView
         @addSubView itemView
 
@@ -41,6 +44,10 @@ class StackProgressModal extends KDModalView
   next: ->
     index = @items.indexOf @activeItem
     @activeItem.loader.hide()
-    @activeItem.success.unsetClass "hidden"
+    @activeItem.success?.unsetClass "hidden"
 
     @showLoader @items[index + 1]
+
+  error: ->
+    @activeItem.success.destroy()
+    @activeItem.error.show()
