@@ -2,8 +2,9 @@ package models
 
 import (
 	"errors"
-	"socialapi/db"
 	"time"
+
+	"github.com/koding/bongo"
 )
 
 type Interaction struct {
@@ -21,9 +22,6 @@ type Interaction struct {
 
 	// Creation of the interaction
 	CreatedAt time.Time
-
-	//Base model operations
-	m Model
 }
 
 var AllowedInteractions = map[string]struct{}{
@@ -46,7 +44,7 @@ func (i *Interaction) TableName() string {
 	return "interaction"
 }
 
-func (i *Interaction) Self() Modellable {
+func (i *Interaction) Self() bongo.Modellable {
 	return i
 }
 
@@ -55,15 +53,15 @@ func NewInteraction() *Interaction {
 }
 
 func (i *Interaction) Fetch() error {
-	return i.m.Fetch(i)
+	return bongo.B.Fetch(i)
 }
 
 func (i *Interaction) Create() error {
-	return i.m.Create(i)
+	return bongo.B.Create(i)
 }
 
 func (i *Interaction) Delete() error {
-	if err := db.DB.
+	if err := bongo.B.DB.
 		Where("message_id = ? and account_id = ?", i.MessageId, i.AccountId).
 		Delete(i.Self()).Error; err != nil {
 		return err
@@ -78,7 +76,7 @@ func (c *Interaction) List(interactionType string) ([]int64, error) {
 		return interations, errors.New("ChannelId is not set")
 	}
 
-	if err := db.DB.Table(c.TableName()).
+	if err := bongo.B.DB.Table(c.TableName()).
 		Where("message_id = ?", c.MessageId).
 		Pluck("account_id", &interations).
 		Error; err != nil {
