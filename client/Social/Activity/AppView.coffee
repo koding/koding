@@ -34,7 +34,7 @@ class ActivityAppView extends KDScrollView
     # main components
     @feedWrapper       = new ActivityListContainer
     @inputWidget       = new ActivityInputWidget
-    @referalBox        = new ReferalBox
+    # @referalBox        = new ReferalBox
     @topWidgetWrapper  = new KDCustomHTMLView
     @leftWidgetWrapper = new KDCustomHTMLView
     @groupListBox      = new UserGroupList
@@ -75,7 +75,7 @@ class ActivityAppView extends KDScrollView
     @decorate()
     @setLazyLoader 200
 
-    appendAside @referalBox       if KD.isLoggedIn() and not isPrivateGroup()
+    # appendAside @referalBox       if KD.isLoggedIn() and not isPrivateGroup()
     appendAside @groupDescription if isPrivateGroup()
     appendAside @groupMembers     if isPrivateGroup() and hasListPermissions()
     appendAside @groupListBox     if isKoding()
@@ -86,14 +86,14 @@ class ActivityAppView extends KDScrollView
   pistachio:->
     """
     {{> @groupCoverView}}
+    <aside>
+      {{> @leftWidgetWrapper}}
+    </aside>
     <main>
       {{> @inputWidget}}
       {{> @feedWrapper}}
       {{> @topWidgetWrapper}}
     </main>
-    <aside>
-      {{> @leftWidgetWrapper}}
-    </aside>
     """
 
 

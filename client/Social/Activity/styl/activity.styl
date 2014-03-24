@@ -180,24 +180,22 @@ resurrection.activity.styl
 
 
   > aside
-    right               0
+    left                0
     top                 55px
-    padding             0 0 0 35px
-    bg                  color, #ebebeb
-    height              100%
-    kalc                width, 50% \- 146px
-    border-left         1px solid #d5d5d5
-    borderBox()
+    padding             0 35px
+    bg                  color #ebebeb
+    size                280px 100%
+    border-right        1px solid #d5d5d5
     abs()
 
     > div
-      size              280px, auto
+      size              auto auto
 
     .referal-box
       margin-top        33px
       color             #5b5b5b
       overflow          visible
-      display           none !important
+      // display           none !important
 
       strong
         color           #1aaf5d
@@ -1148,15 +1146,12 @@ span.collapsedtext
       font-size           20px
 
   /* Paragraphs and other text */
-  p  p
-    padding               0 0 12px
-    word-wrap             break-word
   em
     font-style            italic
   strong
-    font-weight           600
+    font-weight           500
   a
-    color                 inherit
+    color                 logoBg
   hr
     height                1px
     background            #c4c4c9
@@ -1166,6 +1161,8 @@ span.collapsedtext
     margin                4px 21px
     padding               0 10px
   p
+    padding               0 21px 6px
+    word-wrap             break-word
     code
       padding             2px 5px
       border              1px solid #DDD
