@@ -345,8 +345,9 @@ class LoginView extends KDView
     # that'll leak a guest account.
     KD.getSingleton('groupsController').groupChannel?.close()
 
-    KD.remote.api.JUser.convert formData, (err, replacementToken)=>
-      account = KD.whoami()
+    KD.remote.api.JUser.convert formData, (err, {account, newToken})=>
+
+      account ?= KD.whoami()
       @registerForm.button.hideLoader()
 
       if err
@@ -367,7 +368,9 @@ class LoginView extends KDView
           KD.logToExternal "mixpanel doesn't exist"
 
         Cookies.set 'newRegister', yes
-        KD.getSingleton("mainController").swapAccount {account, replacementToken}
+        KD.getSingleton("mainController").swapAccount {
+          account, replacementToken:newToken
+        }
 
         titleText = unless err then 'Good to go, Enjoy!' \
                     else 'Quota exceeded and could not join to the group. Please contact with group admin'
