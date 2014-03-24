@@ -4,8 +4,10 @@ import (
 	_ "expvar"
 	"flag"
 	"fmt"
-	"koding/tools/config" // Imported for side-effect of handling /debug/vars.
-	"koding/tools/logger"
+	"koding/tools/config"
+	// Imported for side-effect of handling /debug/vars.
+	"github.com/koding/logging"
+	// "koding/tools/logger"
 	_ "net/http/pprof" // Imported for side-effect of handling /debug/pprof.
 	"os"
 	"os/signal"
@@ -21,6 +23,7 @@ import (
 
 var (
 	log         = logger.New("FollowingFeedWorker")
+	log         = logging.NewLogger("FollowingFeedWorker")
 	cert        = flag.String("cert", "", "certificate pathname")
 	key         = flag.String("key", "", "private key pathname")
 	flagConfig  = flag.String("config", "", "pathname of JSON configuration file")
@@ -48,12 +51,12 @@ func init() {
 }
 
 func setLogLevel() {
-	var logLevel logger.Level
+	var logLevel logging.Level
 
 	if *flagDebug {
-		logLevel = logger.DEBUG
+		logLevel = logging.DEBUG
 	} else {
-		logLevel = logger.INFO
+		logLevel = logging.INFO
 	}
 	log.SetLevel(logLevel)
 }
