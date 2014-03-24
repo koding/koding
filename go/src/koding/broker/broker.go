@@ -48,6 +48,7 @@ var (
 
 	flagProfile      = flag.String("c", "", "Configuration profile from file")
 	flagBrokerDomain = flag.String("a", "", "Send kontrol a custom domain istead of os.Hostname")
+	flagDuration     = flag.Duration("t", time.Second*5, "Duration for timeout in seconds - Duration flag accept any input valid for time.ParseDuration.")
 	flagKontrolUUID  = flag.String("u", "", "Enable Kontrol mode")
 	flagBrokerType   = flag.String("b", "broker", "Define broker type. Available: broker, premiumBroker and brokerKite, premiumBrokerKite. B")
 	flagDebug        = flag.Bool("d", false, "Debug mode")
@@ -366,9 +367,20 @@ func (b *Broker) startSockJS() {
 // sockjsSession is called for every client connection and handles all the
 // message trafic for a single client connection.
 func (b *Broker) sockjsSession(session *sockjs.Session) {
-	client, err := NewClient(session, b)
-	if err != nil {
-		log.Critical("Couldnt create client %v", err)
+	clientChan := make(chan *Client, 0)
+	errChan := make(chan error, 0)
+
+	go createClient(b, session, clientChan, errChan)
+
+	// Return if there is any error or if we don't get the result in 5 seconds back
+	var client *Client
+	select {
+	case client = <-clientChan:
+	case err := <-errChan:
+		log.Critical("An error occured while creating client %v", err)
+		return
+	case <-time.After(*flagDuration):
+		log.Critical("Client coulnt created in %s exiting ", flagDuration.String())
 		return
 	}
 
@@ -377,19 +389,39 @@ func (b *Broker) sockjsSession(session *sockjs.Session) {
 	defer sessionGaugeEnd()
 	defer client.Close()
 
-	err = client.ControlChannel.Publish(b.Config.AuthAllExchange, "broker.clientConnected", false, false, amqp.Publishing{Body: []byte(client.SocketId)})
-	if err != nil {
-		log.Critical("Couldnt publish to control channel %v", err)
-	}
-
-	sendToClient(session, "broker.connected", client.SocketId)
-
 	for data := range session.ReceiveChan {
 		if data == nil || session.Closed {
 			break
 		}
 
 		client.handleSessionMessage(data)
+	}
+}
+
+func createClient(b *Broker, session *sockjs.Session, clientChan chan *Client, errChan chan error) {
+	// do not forget to close channels
+	defer close(errChan)
+	defer close(clientChan)
+
+	client, err := NewClient(session, b)
+	if err != nil {
+		log.Critical("Couldnt create client %v", err)
+		errChan <- err
+		return
+	}
+
+	err = client.ControlChannel.Publish(b.Config.AuthAllExchange, "broker.clientConnected", false, false, amqp.Publishing{Body: []byte(client.SocketId)})
+	if err != nil {
+		log.Critical("Couldnt publish to control channel %v", err)
+		errChan <- err
+		return
+	}
+
+	// if session is closed before the client creation no need to send
+	// client object to listeners
+	if !session.Closed {
+		sendToClient(session, "broker.connected", client.SocketId)
+		clientChan <- client
 	}
 }
 

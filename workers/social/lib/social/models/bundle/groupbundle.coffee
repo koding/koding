@@ -65,7 +65,7 @@ module.exports = class JGroupBundle extends JBundle
 #        planOwner : paymentMethodId
 #        planCode  : planCode
 #
-#      JVM.count selector, (err, count = 0) -> 
+#      JVM.count selector, (err, count = 0) ->
 #        return callback err  if err
 #
 #        firstVM = group.slug in ['koding','guests'] and

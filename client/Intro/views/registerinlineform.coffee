@@ -10,6 +10,7 @@ class HomeRegisterForm extends KDFormView
         placeholder   : 'your@email.com'
         testPath      : "register-form-email"
         validate      : @getEmailValidator()
+        keyup         : @bound 'setNickname'
 
     @username = new HomeLoginInput
       inputOptions       :
@@ -59,6 +60,12 @@ class HomeRegisterForm extends KDFormView
       @button.hideLoader()
 
   usernameCheckTimer = null
+
+  setNickname:->
+    email = @email.input.getValue()
+    index = email.indexOf('@')
+    uname = if index > -1 then email.substring(0,index) else email
+    @username.input.setValue uname
 
   reset:->
     inputs = KDFormView.findChildInputs this
@@ -124,8 +131,9 @@ class HomeRegisterForm extends KDFormView
     # that'll leak a guest account.
     KD.getSingleton('groupsController').groupChannel?.close()
 
-    KD.remote.api.JUser.convert formData, (err, replacementToken)=>
-      account = KD.whoami()
+    KD.remote.api.JUser.convert formData, (err, {newToken, account})=>
+
+      account ?= KD.whoami()
       @button.hideLoader()
 
       if err
@@ -138,7 +146,9 @@ class HomeRegisterForm extends KDFormView
         KD.mixpanel "Signup, success"
 
         Cookies.set 'newRegister', yes
-        KD.getSingleton('mainController').swapAccount {account, replacementToken}
+        KD.getSingleton('mainController').swapAccount {
+          account, replacementToken: newToken
+        }
 
         new KDNotificationView
           cssClass  : "login"

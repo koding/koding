@@ -76,12 +76,8 @@ module.exports = class JUser extends jraphical.Module
       'foreignAuth.twitter.foreignId'  : 1
 
     sharedEvents    :
-      static        : [
-        { name : "RemovedFromCollection" }
-      ]
-      instance      : [
-        { name : "RemovedFromCollection" }
-      ]
+      static        : []
+      instance      : []
     sharedMethods   :
       instance      : []
       static        :
@@ -801,7 +797,7 @@ module.exports = class JUser extends jraphical.Module
         JAccount.emit "AccountRegistered", account, referrer
         queue.next()
       ->
-        callback error, newToken, recoveryToken
+        callback error, {account, recoveryToken, newToken}
         queue.next()
     ]
 
