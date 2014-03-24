@@ -10,7 +10,7 @@ class HomeRegisterForm extends KDFormView
         placeholder   : 'your@email.com'
         testPath      : "register-form-email"
         validate      : @getEmailValidator()
-        keyup         : => @setNickname()
+        keyup         : @bound 'setNickname'
 
     @username = new HomeLoginInput
       inputOptions       :
@@ -64,7 +64,8 @@ class HomeRegisterForm extends KDFormView
   setNickname:->
     email = @email.input.getValue()
     index = email.indexOf('@')
-    @username.input.setValue(email.substring(0,index)) if index > 0
+    uname = if index > -1 then email.substring(0,index) else email
+    @username.input.setValue uname
 
   reset:->
     inputs = KDFormView.findChildInputs this
