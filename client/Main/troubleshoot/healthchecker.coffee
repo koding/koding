@@ -1,14 +1,18 @@
 class HealthChecker extends KDObject
 
   constructor: (options = {}) ->
-    super options
 
     options.slownessIndicator ?= 350
     options.speedCheck        ?= yes
     options.timeout           ?= 5000
-    @identifier = options.identifier or Date.now()
+
+    super options
+
+    {@name, @identifier} = @getOptions()
+
+    @identifier or= Date.now()
     @status = "not started"
-    @name = options.name
+    @completeEvent = "healthCheckCompleted"
 
   run: ->
     @emit "healthCheckStarted"

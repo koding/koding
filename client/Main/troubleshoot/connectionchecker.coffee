@@ -2,7 +2,7 @@ class ConnectionChecker extends KDObject
 
   constructor: (options, data)->
     super options, data
-    @url = data
+    @url = @getData()
 
   ping: (callback) ->
     {crossDomain} = @getOptions()
