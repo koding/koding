@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/jinzhu/gorm"
+	"github.com/koding/bongo"
 )
 
 type Channel struct {
@@ -39,9 +40,6 @@ type Channel struct {
 
 	// Modification date of the channel
 	UpdatedAt time.Time
-
-	//Base model operations
-	m Model
 }
 
 const (
@@ -87,12 +85,12 @@ func (c *Channel) TableName() string {
 	return "channel"
 }
 
-func (c *Channel) Self() Modellable {
+func (c *Channel) Self() bongo.Modellable {
 	return c
 }
 
 func (c *Channel) Fetch() error {
-	return c.m.Fetch(c)
+	return bongo.B.Fetch(c)
 }
 
 func (c *Channel) Update() error {
@@ -100,7 +98,7 @@ func (c *Channel) Update() error {
 		return errors.New(fmt.Sprintf("Validation failed %s - %s", c.Name, c.Group))
 	}
 
-	return c.m.Update(c)
+	return bongo.B.Update(c)
 }
 
 func (c *Channel) Create() error {
@@ -108,15 +106,15 @@ func (c *Channel) Create() error {
 		return errors.New(fmt.Sprintf("Validation failed %s - %s", c.Name, c.Group))
 	}
 
-	return c.m.Create(c)
+	return bongo.B.Create(c)
 }
 
 func (c *Channel) Delete() error {
-	return c.m.Delete(c)
+	return bongo.B.Delete(c)
 }
 
 func (c *Channel) One(selector map[string]interface{}) error {
-	return c.m.One(c, c, selector)
+	return bongo.B.One(c, c, selector)
 }
 
 func (c *Channel) FetchByIds(ids []int64) ([]Channel, error) {
@@ -126,7 +124,7 @@ func (c *Channel) FetchByIds(ids []int64) ([]Channel, error) {
 		return channels, nil
 	}
 
-	if err := c.m.FetchByIds(c, &channels, ids); err != nil {
+	if err := bongo.B.FetchByIds(c, &channels, ids); err != nil {
 		return nil, err
 	}
 	return channels, nil
