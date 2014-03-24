@@ -48,7 +48,6 @@ func init() {
 	}
 	mux = tigertonic.NewTrieServeMux()
 	mux = handlers.Inject(mux)
-
 }
 
 func setLogLevel() {

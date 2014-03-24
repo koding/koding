@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"koding/tools/logger"
 	"socialapi/models"
+	"github.com/koding/logging"
 
 	verbalexpressions "github.com/VerbalExpressions/GoVerbalExpressions"
 	"github.com/jinzhu/gorm"
@@ -27,12 +27,12 @@ type Action func(*TopicFeedController, *models.ChannelMessage) error
 
 type TopicFeedController struct {
 	routes map[string]Action
-	log    logger.Log
+	log    logging.Logger
 }
 
 var HandlerNotFoundErr = errors.New("Handler Not Found")
 
-func NewTopicFeedController(log logger.Log) *TopicFeedController {
+func NewTopicFeedController(log logging.Logger) *TopicFeedController {
 	ffc := &TopicFeedController{
 		log: log,
 	}
