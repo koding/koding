@@ -4,10 +4,12 @@ import (
 	"flag"
 	"koding/messaging/rabbitmq"
 	"koding/tools/config"
-	"socialapi/eventbus"
+	"socialapi/db"
 	followingfeed "socialapi/workers/followingfeed/lib"
 
 	"github.com/jinzhu/gorm"
+	"github.com/koding/bongo"
+	"github.com/koding/broker"
 	"github.com/koding/logging"
 	"github.com/streadway/amqp"
 )
@@ -38,6 +40,7 @@ func startHandler() func(delivery amqp.Delivery) {
 }
 
 var (
+	Bongo       *bongo.Bongo
 	log         = logging.NewLogger("FollowingFeedWorker")
 	conf        *config.Config
 	flagProfile = flag.String("c", "", "Configuration profile from file")
@@ -54,13 +57,24 @@ func main() {
 	conf = config.MustConfig(*flagProfile)
 	setLogLevel()
 
-	if err := eventbus.Open(conf); err != nil {
-		log.Critical("Realtime operations will not work, this is not good, probably couldnt connect to RMQ. %v", err.Error())
-	}
-	defer eventbus.Close()
+	initBongo(conf)
 	// blocking
 	followingfeed.Listen(rabbitmq.New(conf), startHandler)
 	defer followingfeed.Consumer.Shutdown()
+}
+
+func initBongo(c *config.Config) {
+	bConf := &broker.Config{
+		Host:     c.Mq.Host,
+		Port:     c.Mq.Port,
+		Username: c.Mq.ComponentUser,
+		Password: c.Mq.Password,
+		Vhost:    c.Mq.Vhost,
+	}
+
+	broker := broker.New(bConf, log)
+	Bongo = bongo.New(broker, db.DB)
+	Bongo.Connect()
 }
 
 func setLogLevel() {
