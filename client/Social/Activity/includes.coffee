@@ -15,6 +15,8 @@ module.exports = [
   "views/newmemberbucket.coffee",
   "views/activitytickeritem.coffee",
   "views/referalbox.coffee",
+  "views/activitylistcontainer.coffee",
+  "views/filterwarning.coffee",
 
   "views/embedbox.coffee",
   "views/embedboxwidget.coffee",
@@ -42,10 +44,10 @@ module.exports = [
   "views/comments/commentlistitemview.coffee",
   "views/comments/newcommentform.coffee",
 
-  "views/reviews/reviewview.coffee",
-  "views/reviews/reviewlistviewcontroller.coffee",
-  "views/reviews/reviewlistitemview.coffee",
-  "views/reviews/newreviewform.coffee",
+  # "views/reviews/reviewview.coffee",
+  # "views/reviews/reviewlistviewcontroller.coffee",
+  # "views/reviews/reviewlistitemview.coffee",
+  # "views/reviews/newreviewform.coffee",
 
   "views/inputview.coffee",
   "views/inputwidget.coffee",

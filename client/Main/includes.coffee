@@ -137,10 +137,7 @@ module.exports = [
 
   "CommonViews/ModalViewWithTerminal.coffee",
   "CommonViews/clonerepomodal.coffee",
-
   "CommonViews/memberautocomplete.coffee",
-
-  "kodingappcontroller.coffee",
 
   "navigation/navigationlist.coffee",
   "navigation/navigationlink.coffee",
@@ -226,9 +223,17 @@ module.exports = [
   "channels/kitechannel.coffee",
   "ApplicationManager.coffee",
   "AppController.coffee",
-  "kodingappscontroller.coffee",
   "AppStorage.coffee",
   "localstorage.coffee",
+
+  # 3rd Parties
+  "extras/github/api.coffee",
+  "extras/github/views/githubmodal.coffee",
+  "extras/github/views/githubrepoitem.coffee",
+
+  # Application Backend
+  "kodingappscontroller.coffee",
+  "CommonViews/kodingappselectorforgithub.coffee",
 
   # CONTENT DISPLAY VIEWS
   "ContentDisplay/ContentDisplay.coffee",

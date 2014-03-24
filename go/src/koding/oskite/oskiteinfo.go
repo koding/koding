@@ -5,12 +5,13 @@ package oskite
 import (
 	"bytes"
 	"fmt"
-	kitelib "github.com/koding/kite"
 	"koding/tools/dnode"
 	"koding/tools/kite"
 	"koding/virt"
 	"os/exec"
 	"strings"
+
+	kitelib "github.com/koding/kite"
 )
 
 type ByVM []*OskiteInfo
@@ -46,12 +47,24 @@ func (o *Oskite) oskiteInfo(args *dnode.Partial, channel *kite.Channel, vos *vir
 	return o.GetOskiteInfo(), nil
 }
 
-func oskiteAll(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
+func oskiteAllOld(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
 	if !vos.Permissions.Sudo {
 		return nil, &kite.PermissionError{}
 	}
 
-	return oskites, nil
+	return oskiteAll(), nil
+}
+
+func oskiteAll() map[string]*OskiteInfo {
+	oskitesMu.Lock()
+	defer oskitesMu.Unlock()
+
+	oskitesCopy := make(map[string]*OskiteInfo, len(oskites))
+	for k, v := range oskites {
+		oskitesCopy[k] = v
+	}
+
+	return oskitesCopy
 }
 
 func (o *Oskite) oskiteInfoNew(r *kitelib.Request, vos *virt.VOS) (interface{}, error) {
@@ -59,7 +72,7 @@ func (o *Oskite) oskiteInfoNew(r *kitelib.Request, vos *virt.VOS) (interface{}, 
 }
 
 func oskiteAllNew(r *kitelib.Request, vos *virt.VOS) (interface{}, error) {
-	return oskites, nil
+	return oskiteAll(), nil
 }
 
 // currentVMS returns the number of available lxc containers on the running machine

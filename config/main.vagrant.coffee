@@ -130,11 +130,6 @@ module.exports =
     watch       : yes
     queueName   : socialQueueName
     verbose     : no
-  cacheWorker   :
-    login       : 'prod-social'
-    watch       : yes
-    queueName   : socialQueueName+'cache'
-    run         : no
   followFeed    :
     host        : 'localhost'
     port        : 5672
@@ -187,7 +182,7 @@ module.exports =
       apiUri    : 'http://lvh.me:3020'
       version   : version
       mainUri   : 'http://lvh.me:3020'
-      appsUri   : 'https://koding-apps.s3.amazonaws.com'
+      appsUri   : 'https://rest.kd.io'
       uploadsUri: 'https://koding-uploads.s3.amazonaws.com'
       uploadsUriForGroup: 'https://koding-groups.s3.amazonaws.com'
       sourceUri : 'http://lvh.me:3526'

@@ -22,7 +22,6 @@ class TeamworkTabView extends CollaborativePane
         data = @workspace.reviveSnapshot snapshot
         return unless data
 
-        @keysRefChildAddedCallback value  for key, value of data
         @bindRemoteEvents()
 
     {mainTabView} = KD.getSingleton "mainView"
