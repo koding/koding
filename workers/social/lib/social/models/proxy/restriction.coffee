@@ -9,16 +9,15 @@ module.exports = class JProxyRestriction extends jraphical.Module
   @share()
 
   @set
+    sharedEvents    :
+      static        : []
+      instance      : []
     softDelete      : no
-
     indexes         :
       domainName    : 'unique'
-
     schema          :
-      
       domainName    : String
       ruleList      : [Object]
-
       createdAt     :
         type        : Date
         default     : -> new Date
@@ -41,7 +40,7 @@ module.exports = class JProxyRestriction extends jraphical.Module
         rule.save (err)->
           return callback err if err
 
-      ruleObj = 
+      ruleObj =
         match   : rule.match
         action  : rule.action
         enabled : rule.enabled
@@ -50,7 +49,7 @@ module.exports = class JProxyRestriction extends jraphical.Module
         JProxyRule.update {_id:rule.getId()}, {$set: action: params.action}, (err)->
           return callback err if err
 
-        JProxyRestriction.update 
+        JProxyRestriction.update
           _id:@getId()
           "ruleList.match": params.match
         , {$set: "ruleList.$.action": params.action}
@@ -91,7 +90,7 @@ module.exports = class JProxyRestriction extends jraphical.Module
     JProxyRule.one {match:params.match}, (err, rule)->
       return callback err if err
 
-      ruleObj = 
+      ruleObj =
         match   : params.match
         action  : params.action
         enabled : params.enabled

@@ -32,9 +32,10 @@ class AppsAppController extends AppController
 
     super options, data
 
-    @_verifiedOnly = no
+    @_verifiedOnly = yes
 
   loadView:(mainView, firstRun = yes, loadFeed = no)->
+
     if firstRun
 
       @on "searchFilterChanged", (value) =>
@@ -49,7 +50,20 @@ class AppsAppController extends AppController
     @createFeed mainView, loadFeed
 
   doQuery:(selector, options, callback)->
-    if @_verifiedOnly then selector['status'] = 'verified'
+
+    if selector['manifest.authorNick'] is KD.nick()
+
+      @_verifiedSwitch?.hide()
+      @_verifiedSwitchLabel?.hide()
+
+    else
+
+      @_verifiedSwitch?.show()
+      @_verifiedSwitchLabel?.show()
+
+      if @_verifiedOnly
+        selector['status'] = 'verified'
+
     KD.remote.api.JNewApp.some selector, options, callback
 
   createFeed:(view, loadFeed = no)->

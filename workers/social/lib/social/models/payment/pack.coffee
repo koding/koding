@@ -9,6 +9,9 @@ module.exports = class JPaymentPack extends JPaymentBase
   @share()
 
   @set
+    sharedEvents    :
+      static        : []
+      instance      : []
     sharedMethods   :
       static        :
         create      :
@@ -42,7 +45,7 @@ module.exports = class JPaymentPack extends JPaymentBase
         required    : yes
       quantities    :
         type        : Object
-        default     : -> {}      
+        default     : -> {}
       tags          : (require './schema').tags
       sortWeight    : Number
     relationships   :

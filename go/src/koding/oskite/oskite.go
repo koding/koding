@@ -12,7 +12,6 @@ import (
 	"koding/tools/config"
 	"koding/tools/dnode"
 	"koding/tools/kite"
-	"koding/tools/lifecycle"
 	"koding/tools/logger"
 	"koding/tools/utils"
 	"koding/virt"
@@ -88,8 +87,11 @@ func New(c *config.Config) *Oskite {
 }
 
 func (o *Oskite) Run() {
-	log.SetLevel(o.LogLevel)
+	if os.Getuid() != 0 {
+		log.Fatal("Must be run as root.")
+	}
 
+	log.SetLevel(o.LogLevel)
 	log.Info("Using default VM timeout: %v", o.VmTimeout)
 
 	// TODO: get rid of this after solving info problem
@@ -143,7 +145,7 @@ func (o *Oskite) Run() {
 	o.registerMethod("exec", true, execFuncOld)
 
 	o.registerMethod("oskite.Info", true, o.oskiteInfo)
-	o.registerMethod("oskite.All", true, oskiteAll)
+	o.registerMethod("oskite.All", true, oskiteAllOld)
 
 	syscall.Umask(0) // don't know why richard calls this
 	o.registerMethod("fs.readDirectory", false, fsReadDirectoryOld)
@@ -231,8 +233,6 @@ func (o *Oskite) runNewKite() {
 }
 
 func (o *Oskite) initializeSettings() {
-	lifecycle.Startup("kite.os", true)
-
 	var err error
 	if firstContainerIP, containerSubnet, err = net.ParseCIDR(conf.ContainerSubnet); err != nil {
 		log.LogError(err, 0)

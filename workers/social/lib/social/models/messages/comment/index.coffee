@@ -69,6 +69,7 @@ module.exports = class JComment extends jraphical.Reply
       editedAt     : Date
       editedBy     : ObjectRef
       meta         : require 'bongo/bundles/meta'
+    broadcastableRelationships : [ 'like' ]
     relationships  :
       likedBy      :
         targetType : JAccount

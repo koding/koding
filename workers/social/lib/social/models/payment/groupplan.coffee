@@ -11,6 +11,9 @@ module.exports = class JGroupPlan extends JResourcePlan
   @share()
 
   @set
+    sharedEvents  :
+      static      : []
+      instance    : []
     sharedMethods :
       static      :
         subscribe :
@@ -89,7 +92,7 @@ module.exports = class JGroupPlan extends JResourcePlan
     userUnitAmount     =  500 # cents
     resourceUnitAmount = 2000 # cents
   ) -> (userQuantity, resourceQuantity) ->
-    (userQuantity * userUnitAmount) + 
+    (userQuantity * userUnitAmount) +
     (resourceQuantity * resourceUnitAmount)
 
   @subscribeToPlan = secure (client, options, callback) ->
