@@ -5,6 +5,7 @@ module.exports = class JKite extends jraphical.Module
   {permit}            = require './group/permissionset'
   {signature}         = require 'bongo'
   {Relationship}      = jraphical
+  { v4: createId }    = require 'node-uuid'
 
   @trait __dirname, '../traits/protected'
 
@@ -16,6 +17,7 @@ module.exports = class JKite extends jraphical.Module
     schema                :
       name                : String
       description         : String
+      kiteCode            : String
       createdAt           :
         type              : Date
         default           : -> new Date
@@ -50,6 +52,7 @@ module.exports = class JKite extends jraphical.Module
   @create: permit 'create kite',
     success:(client, formData, callback)->
       kite = new JKite formData
+      kite.kiteCode = createId()
       kite.save (err)->
         return  callback new KodingError "kite couldn't saved" if err
         account = client.connection.delegate
