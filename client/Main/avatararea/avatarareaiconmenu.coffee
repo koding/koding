@@ -29,8 +29,8 @@ class AvatarAreaIconMenu extends JView
     troubleshoot.on "userIdle", =>
       idleModal = new KDModalView
         title          : "You were away from Koding for a while."
-        content        : "Your dev VMs might have been turned off. Please check \
-                          system status before you progress."
+        content        : "Your dev VMs might have been turned off. Before you progress \
+                          please check system status by clicking Resume."
         overlay        : yes
         buttons        :
           Resume       :
