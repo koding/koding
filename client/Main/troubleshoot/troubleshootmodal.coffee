@@ -4,56 +4,57 @@ class TroubleshootModal extends KDModalViewWithForms
     troubleshoot = KD.singleton("troubleshoot")
 
     options =
-        title                 : "Checking Koding Status"
-        overlay               : yes
-        cssClass              : "troubleshoot-modal"
-        cancelable            : no
-        tabs                  :
-          forms               :
-            Troubleshoot      :
-              callback        : =>
-                {feedback} = @modalTabs.forms.Troubleshoot.customData
-                troubleshoot.sendFeedback feedback, (err) =>
-                  return warn "an error occured while sending feedback"  if err
-                  @showFeedbackSentModal()
-                @destroy()
-              buttons         :
-                sendFeedback  :
-                  title       : "Send Feedback"
-                  style       : "modal-clean-green"
-                  type        : "submit"
-                  loader      :
-                    color     : "#444444"
-                    diameter  : 12
-                  callback    : -> @hideLoader()
-                recover       :
-                  title       : "Recover"
-                  style       : "modal-clean-red"
-                  callback    : -> troubleshoot.recover()
-                close         :
-                  title       : "Close"
-                  style       : "modal-cancel"
-                  callback    : => @destroy()
-              fields          :
-                check         :
-                  label       : "System Status"
-                  itemClass   : TroubleshootStatusView
-                result        :
-                  itemClass   : KDCustomHTMLView
-                  cssClass    : "troubleshoot-result"
-                  partial     : "Troubleshooting Completed"
-                errors        :
-                  # label       : "Errors"
-                  itemClass   : TroubleshootResultView
-                  # cssClass    : "hidden"
-                feedback      :
-                  label       : "Feedback"
-                  name        : "feedback"
-                  placeholder : "Please tell us about the problems you were having and describe the situation"
-                  type        : "textarea"
-                  autogrow    : yes
+      title                 : "Checking Koding Status"
+      overlay               : yes
+      cssClass              : "troubleshoot-modal"
+      cancelable            : no
+      tabs                  :
+        forms               :
+          Troubleshoot      :
+            callback        : =>
+              {feedback} = @modalTabs.forms.Troubleshoot.customData
+              troubleshoot.sendFeedback feedback, (err) =>
+                return warn "an error occured while sending feedback"  if err
+                @showFeedbackSentModal()
+              @destroy()
+            buttons         :
+              sendFeedback  :
+                title       : "Send Feedback"
+                style       : "modal-clean-green"
+                type        : "submit"
+                loader      :
+                  color     : "#444444"
+                  diameter  : 12
+                callback    : -> @hideLoader()
+              recover       :
+                title       : "Recover"
+                style       : "modal-clean-red"
+                callback    : -> troubleshoot.recover()
+              close         :
+                title       : "Close"
+                style       : "modal-cancel"
+                callback    : => @destroy()
+            fields          :
+              check         :
+                label       : "System Status"
+                itemClass   : TroubleshootStatusView
+              result        :
+                itemClass   : KDCustomHTMLView
+                cssClass    : "troubleshoot-result"
+                partial     : "Troubleshooting Completed"
+              errors        :
+                # label       : "Errors"
+                itemClass   : TroubleshootResultView
+                # cssClass    : "hidden"
+              feedback      :
+                label       : "Feedback"
+                name        : "feedback"
+                placeholder : "Please tell us about the problems you were having and describe the situation"
+                type        : "textarea"
+                autogrow    : yes
 
     super options, data
+
     @overlay.off "click"
     @hideFeedback()
     @modalTabs.forms.Troubleshoot.buttons.close.hide()
