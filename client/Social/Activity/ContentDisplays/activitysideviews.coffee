@@ -1,4 +1,4 @@
-class ActivityRightBase extends JView
+class ActivitySideView extends JView
 
   constructor:(options={}, data)->
 
@@ -30,7 +30,7 @@ class ActivityRightBase extends JView
     </div>
     """
 
-class UserGroupList extends ActivityRightBase
+class UserGroupList extends ActivitySideView
 
   constructor: (options = {}, data) ->
 
@@ -55,7 +55,7 @@ class UserGroupList extends ActivityRightBase
         @parent.emit 'TopOffsetShouldBeFixed'
         @show()
 
-class ActiveUsers extends ActivityRightBase
+class ActiveUsers extends ActivitySideView
 
   constructor:(options={}, data)->
     {entryPoint} = KD.config
@@ -84,7 +84,7 @@ class ActiveUsers extends ActivityRightBase
         currentGroup.fetchNewestMembers {}, "limit" : 10, @bound 'renderItems'
 
 
-class ActiveTopics extends ActivityRightBase
+class ActiveTopics extends ActivitySideView
 
   constructor:(options={}, data)->
 
@@ -166,7 +166,7 @@ class GroupDescription extends KDView
         @bodyView.setPartial "You can have a short description for your group here"  unless hasBody
 
 
-class GroupMembers extends ActivityRightBase
+class GroupMembers extends ActivitySideView
 
   constructor:(options={}, data)->
     @itemClass       = GroupMembersListItemView

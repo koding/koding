@@ -65,7 +65,7 @@ module.exports = [
 
   "ContentDisplays/activitycontentdisplay.coffee",
   "ContentDisplays/StatusUpdate.coffee",
-  "ContentDisplays/ActivityRightBlock.coffee",
+  "ContentDisplays/activitysideviews.coffee",
   "ContentDisplays/ActivityTicker.coffee",
 
   # Activity content displays commons
