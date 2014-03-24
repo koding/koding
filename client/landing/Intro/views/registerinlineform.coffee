@@ -124,8 +124,9 @@ class HomeRegisterForm extends KDFormView
     # that'll leak a guest account.
     KD.getSingleton('groupsController').groupChannel?.close()
 
-    KD.remote.api.JUser.convert formData, (err, replacementToken)=>
-      account = KD.whoami()
+    KD.remote.api.JUser.convert formData, (err, {newToken, account})=>
+
+      account ?= KD.whoami()
       @button.hideLoader()
 
       if err
@@ -138,7 +139,9 @@ class HomeRegisterForm extends KDFormView
         KD.mixpanel "Signup, success"
 
         Cookies.set 'newRegister', yes
-        KD.getSingleton('mainController').swapAccount {account, replacementToken}
+        KD.getSingleton('mainController').swapAccount {
+          account, replacementToken: newToken
+        }
 
         new KDNotificationView
           cssClass  : "login"
