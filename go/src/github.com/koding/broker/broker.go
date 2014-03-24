@@ -2,7 +2,6 @@ package broker
 
 import (
 	"errors"
-	"fmt"
 
 	"github.com/koding/logging"
 	"github.com/koding/rabbitmq"
@@ -39,7 +38,6 @@ func New(c *Config, l logging.Logger) *Broker {
 		Password: c.Password,
 		Vhost:    c.Vhost,
 	}
-
 	// set defaults
 	if c.ExchangeName == "" {
 		c.ExchangeName = "BrokerMessageBus"
@@ -79,18 +77,23 @@ func (b *Broker) Connect() error {
 	if err != nil {
 		return err
 	}
-
 	b.Producer.RegisterSignalHandler()
+
+	// b.Producer.NotifyReturn(func(message amqp.Return) {
+	// 	fmt.Println(message)
+	// })
+
 	return nil
 }
 
 func (b *Broker) Close() error {
+	if b.Producer == nil {
+		return errors.New("Broker is not open, you cannot close it")
+	}
 	return b.Producer.Shutdown()
 }
 
 func (b *Broker) Publish(messageType string, body []byte) error {
-	fmt.Println("publish icide", messageType)
-	fmt.Println("publish icide", b.Producer)
 	if b.Producer == nil {
 		return MesssageBusNotInitializedErr
 	}
