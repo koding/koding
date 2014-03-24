@@ -12,17 +12,18 @@ import (
 	"os"
 	"os/signal"
 	"socialapi/db"
-	"socialapi/eventbus"
 	"socialapi/models"
 	"socialapi/workers/api/handlers"
 	"strings"
 	"syscall"
 
+	"github.com/koding/bongo"
+	"github.com/koding/broker"
 	"github.com/rcrowley/go-tigertonic"
 )
 
 var (
-	log         = logger.New("FollowingFeedWorker")
+	Bongo       *bongo.Bongo
 	log         = logging.NewLogger("FollowingFeedWorker")
 	cert        = flag.String("cert", "", "certificate pathname")
 	key         = flag.String("key", "", "private key pathname")
@@ -75,21 +76,35 @@ func main() {
 	// 	log.Fatal(err)
 	// }
 
-	// createTables()
 	server := newServer()
 	// Example use of server.Close and server.Wait to stop gracefully.
 	go listener(server)
 
-	if err := eventbus.Open(conf); err != nil {
-		log.Critical("Realtime operations will not work, this is not good, probably couldnt connect to RMQ. %v", err.Error())
-	}
+	initBongo(conf)
+	// createTables()
 
 	ch := make(chan os.Signal)
 	signal.Notify(ch, syscall.SIGINT, syscall.SIGQUIT, syscall.SIGTERM)
 
 	log.Info("Recieved %v", <-ch)
-	eventbus.Close()
 	server.Close()
+}
+
+func initBongo(c *config.Config) {
+	bConf := &broker.Config{
+		Host:     c.Mq.Host,
+		Port:     c.Mq.Port,
+		Username: c.Mq.ComponentUser,
+		Password: c.Mq.Password,
+		Vhost:    c.Mq.Vhost,
+	}
+
+	broker := broker.New(bConf, log)
+	Bongo = bongo.New(broker, db.DB)
+	err := Bongo.Connect()
+	if err != nil {
+		panic(err)
+	}
 }
 
 func newServer() *tigertonic.Server {
