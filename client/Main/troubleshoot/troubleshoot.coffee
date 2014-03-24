@@ -37,7 +37,7 @@ class Troubleshoot extends KDObject
     for own name, item of @items
       return no  if item.status is "fail"
 
-    yes
+    return yes
 
   reset: (event) ->
     @status = PENDING
@@ -131,7 +131,7 @@ class Troubleshoot extends KDObject
     for own name, item of @items
       premium = if name in ["broker", "brokerKite"] and KD.config.usePremiumBroker then "premium" else ""
       result = "#{result} #{premium}#{name}"  if item.status is "fail"
-    result
+    return result
 
 
   healthChecker: (root) ->
@@ -157,7 +157,7 @@ class Troubleshoot extends KDObject
       count += @getSuccessorCount child
       count += 1
 
-    count
+    return count
 
   recover: ->
     waitingRecovery = 0
@@ -171,12 +171,12 @@ class Troubleshoot extends KDObject
           waitingRecovery++
           item.recover()
 
-    waitingRecovery
+    return waitingRecovery
 
   canBeRecovered: ->
     for own name, item of @items
       return yes  if item.status is "fail" and item.canBeRecovered()
-    no
+    return no
 
   run: ->
     return  warn "there is an ongoing troubleshooting"  if @status is STARTED
