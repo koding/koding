@@ -167,7 +167,7 @@ class NFinderContextMenuController extends KDController
 
     {nickname} = KD.whoami().profile
 
-    if fileData.path is "/home/#{nickname}/Applications"
+    if ///\/home\/#{nickname}\/Applications$///.test fileData.path
       items.Refresh.separator         = yes
       items["Make a new Application"] =
         action : "makeNewApp"
@@ -176,19 +176,11 @@ class NFinderContextMenuController extends KDController
     if fileData.getExtension() is "kdapp"
       items.Refresh.separator   = yes
       items['Application menu'] =
-        children                  :
-          Compile                 :
-            action                : "compile"
-          Run                     :
-            action                : "runApp"
-            separator             : yes
-          "Download source files" :
-            action                : "downloadApp"
-
-      if KD.checkFlag('app-publisher') or KD.checkFlag('super-admin')
-        items['Application menu'].children["Download source files"].separator = yes
-        items['Application menu'].children["Publish to app catalog"] =
-          action : "publish"
+        children                   :
+          Compile                  :
+            action                 : "compile"
+          "Publish to app catalog" :
+            action                 : "publish"
 
     return items
 

@@ -4,15 +4,11 @@ module.exports = class JLog extends Module
 
   {daisy} = Bongo = require 'bongo'
 
-  # no need to share for now
-  # @share()
-
-
   TRY_LIMIT_FOR_BLOCKING = 5
   TIME_LIMIT_IN_MIN = 5
 
   @set
-    softDelete      : yes
+    softDelete      : no
     indexes         :
       username      : 1
       ip            : 1

@@ -14,6 +14,9 @@ module.exports = class JPaymentPayment extends jraphical.Module
   @share()
 
   @set
+    sharedEvents      :
+      static          : []
+      instance        : []
     sharedMethods     :
       static          :
         makePayment   :

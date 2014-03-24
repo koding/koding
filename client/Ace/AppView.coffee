@@ -125,17 +125,6 @@ class AceView extends JView
   getActiveTabHandle: ->
     return  @getDelegate().tabView.getActivePane().tabHandle
 
-  # compileAndRun: ->
-  #   manifest = KodingAppsController.getManifestFromPath @getData().path
-  #   return @ace.notify "Not found an app to compile", null, yes unless manifest?.name
-
-  #   appManager = KD.getSingleton "appManager"
-  #   appManager.quitByName manifest.name
-
-  #   KD.getSingleton("kodingAppsController").compileApp manifest.name, (err) =>
-  #     @ace.notify "Trying to run old version..." if err
-  #     appManager.open manifest.name
-
   toggleFullscreen: ->
     mainView = KD.getSingleton "mainView"
     mainView.toggleFullscreen()

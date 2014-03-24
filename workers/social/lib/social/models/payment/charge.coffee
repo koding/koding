@@ -16,6 +16,9 @@ module.exports = class JPaymentCharge extends jraphical.Module
   @set
     indexes:
       uuid            : 'unique'
+    sharedEvents      :
+      static          : []
+      instance        : []
     sharedMethods     :
       static          :
         # TODO: this is a really big WTF, and needs to be removed:
@@ -40,7 +43,7 @@ module.exports = class JPaymentCharge extends jraphical.Module
 
   @charge = secure (client, data, callback)->
     { connection: { delegate } } = client
-    
+
     { paymentMethodId, description, feeAmount } = data
 
     (require './method').one { paymentMethodId }, (err, method) =>
