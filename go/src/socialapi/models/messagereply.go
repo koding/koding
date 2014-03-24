@@ -2,8 +2,9 @@ package models
 
 import (
 	"errors"
-	"socialapi/db"
 	"time"
+
+	"github.com/koding/bongo"
 )
 
 type MessageReply struct {
@@ -18,9 +19,6 @@ type MessageReply struct {
 
 	// Creation of the MessageReply
 	CreatedAt time.Time
-
-	//Base model operations
-	m Model
 }
 
 func (m *MessageReply) GetId() int64 {
@@ -31,7 +29,7 @@ func (m *MessageReply) TableName() string {
 	return "message_reply"
 }
 
-func (m *MessageReply) Self() Modellable {
+func (m *MessageReply) Self() bongo.Modellable {
 	return m
 }
 
@@ -40,15 +38,15 @@ func NewMessageReply() *MessageReply {
 }
 
 func (m *MessageReply) Fetch() error {
-	return m.m.Fetch(m)
+	return bongo.B.Fetch(m)
 }
 
 func (m *MessageReply) Create() error {
-	return m.m.Create(m)
+	return bongo.B.Create(m)
 }
 
 func (m *MessageReply) Delete() error {
-	if err := db.DB.
+	if err := bongo.B.DB.
 		Where("message_id = ? and reply_id = ?", m.MessageId, m.ReplyId).
 		Delete(m.Self()).Error; err != nil {
 		return err
@@ -63,7 +61,7 @@ func (m *MessageReply) List() ([]ChannelMessage, error) {
 		return nil, errors.New("MessageId is not set")
 	}
 
-	if err := db.DB.Table(m.TableName()).
+	if err := bongo.B.DB.Table(m.TableName()).
 		Where("message_id = ?", m.MessageId).
 		Pluck("reply_id", &replies).
 		Error; err != nil {
