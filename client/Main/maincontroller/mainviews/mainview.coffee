@@ -123,7 +123,12 @@ class MainView extends KDView
 
     @headerContainer.addSubView @accountArea
 
-    unless KD.isLoggedIn()
+    if KD.isLoggedIn()
+
+      @createLoggedInAccountArea()
+
+    else
+
       @loginLink = new CustomLinkView
         cssClass    : 'header-sign-in'
         title       : 'Login'
@@ -135,13 +140,9 @@ class MainView extends KDView
       @accountArea.addSubView @loginLink
 
       mc = KD.getSingleton "mainController"
-      mc.on "accountChanged.to.loggedIn", =>
+      mc.once "accountChanged.to.loggedIn", =>
         @loginLink.destroy()
         @createLoggedInAccountArea()
-
-      return
-
-    @createLoggedInAccountArea()
 
   createLoggedInAccountArea:->
     @accountArea.destroySubViews()
