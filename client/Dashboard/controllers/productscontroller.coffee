@@ -145,7 +145,7 @@ class GroupProductsController extends KDController
   fetchProducts: (category, callback) ->
     KD.getGroup().fetchProducts category, (err, products) ->
       return callback err  if err
-
+      products = products.filter (plan)-> not ("kite" in plan.tags)
       queue = products.map (plan) -> ->
         # recursively fetch nested products, if any
         if plan.fetchProducts?

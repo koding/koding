@@ -5,6 +5,7 @@ module.exports = class JBadge extends jraphical.Module
   KodingError       = require '../error'
 
   @trait __dirname, '../traits/filterable'
+  @trait __dirname, '../traits/protected'
 
   @share()
   @set
