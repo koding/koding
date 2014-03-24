@@ -86,6 +86,7 @@ class EnvironmentsMainScene extends JView
       modal.destroy()
 
       stackView = new StackView { stack} , @environmentData
+      @forwardEvent stackView, "CloneStackRequested"
       @_stacks.push @addSubView stackView
       @highlightStack stackView
 
