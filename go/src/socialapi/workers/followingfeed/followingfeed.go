@@ -4,11 +4,11 @@ import (
 	"flag"
 	"koding/messaging/rabbitmq"
 	"koding/tools/config"
-	"koding/tools/logger"
 	"socialapi/eventbus"
 	followingfeed "socialapi/workers/followingfeed/lib"
 
 	"github.com/jinzhu/gorm"
+	"github.com/koding/logging"
 	"github.com/streadway/amqp"
 )
 
@@ -38,7 +38,7 @@ func startHandler() func(delivery amqp.Delivery) {
 }
 
 var (
-	log         = logger.New("FollowingFeedWorker")
+	log         = logging.NewLogger("FollowingFeedWorker")
 	conf        *config.Config
 	flagProfile = flag.String("c", "", "Configuration profile from file")
 	flagDebug   = flag.Bool("d", false, "Debug mode")
@@ -48,7 +48,7 @@ var (
 func main() {
 	flag.Parse()
 	if *flagProfile == "" {
-		log.Fatal("Please define config file with -c")
+		log.Fatal("Please define config file with -c", "")
 	}
 
 	conf = config.MustConfig(*flagProfile)
@@ -64,12 +64,12 @@ func main() {
 }
 
 func setLogLevel() {
-	var logLevel logger.Level
+	var logLevel logging.Level
 
 	if *flagDebug {
-		logLevel = logger.DEBUG
+		logLevel = logging.DEBUG
 	} else {
-		logLevel = logger.INFO
+		logLevel = logging.INFO
 	}
 	log.SetLevel(logLevel)
 }
