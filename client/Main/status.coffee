@@ -76,8 +76,8 @@ class Status extends KDController
 
   loggedInStateChanged: (account) ->
     @emit "bongoConnected", account
-    @registerBongoAndBroker()
-    @registerKites()
+    # @registerBongoAndBroker()
+    # @registerKites()
 
   registerBongoAndBroker: ->
     bongo = KD.remote

@@ -207,6 +207,9 @@ module.exports =
           nicename      : 'Twitter'
         # bitbucket     :
         #   nicename    : 'BitBucket'
+      troubleshoot      :
+        idleTime        : 1000 * 60 * 60
+        externalUrl     : "https://s3.amazonaws.com/koding-ping/healthcheck.json"
   mq            :
     host        : 'localhost'
     port        : 5672
@@ -423,3 +426,5 @@ module.exports =
   sessionCookie   :
     maxAge        : cookieMaxAge
     secure        : cookieSecure
+  troubleshoot    :
+    recipientEmail: "can@koding.com"
