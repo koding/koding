@@ -17,7 +17,6 @@ class KDKite extends Kite
   tell: (method, params = {}) ->
     { correlationName, kiteName, timeout: classTimeout } = @getOptions()
 
-    # #tell2 is wrapping #tell with a promise-based api
     new Promise (resolve, reject) =>
 
       options = {

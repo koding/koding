@@ -71,7 +71,7 @@
     "bluebird": "~1.0.8",
     "portchecker": "~0.1.1",
     "pistachio-compiler": "~0.0.3",
-    "kite.js": "^0.0.21"
+    "kite.js": "^0.0.25"
   },
   "devDependencies": {},
   "optionalDependencies": {},

@@ -2,10 +2,11 @@ module.exports = [
 
   # Libs
   "libs/md5-min.js",
+  "libs/uuid.js",
   "libs/accounting.js",
   "libs/bluebird.js",
   "libs/kite.js",
-  # "libs/kontrol.js",
+  "libs/kontrol.js",
 
 
   # --- Application ---
@@ -263,7 +264,12 @@ module.exports = [
   "kite/terminalkite.coffee",
   "kite/kitecontroller.coffee",
   "kite/vm.coffee", # TODO: this doesn't really belong here.
-  "kite/kitehelper.coffee"
+  "kite/kitehelper.coffee",
+
+  # NEW KITES (extending kite.js)
+  "kite/kodingkite.coffee",
+  "kite/kodingkontrol.coffee",
+
   # Virtualization CONTROLLER
   "VirtualizationController.coffee",
   "CommonViews/modalappslistitemview.coffee",
