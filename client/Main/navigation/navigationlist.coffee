@@ -40,14 +40,12 @@ class NavigationList extends KDListView
 
       view.on 'DragFinished', =>
 
+
         view.unsetClass 'no-anim remove'
 
         if view.data.type isnt 'persistent' and view.getY() > 125
           view.setClass 'explode'
-          KD.utils.wait 500, =>
-            @removeItem view
-            @updateItemPositions()
-            KD.singletons.dock.removeItem view
+          KD.utils.wait 500, => @removeApp view
         else
           KD.utils.wait 200, -> view.unsetClass 'on-top'
           view.setX view._index * @viewWidth
@@ -55,6 +53,14 @@ class NavigationList extends KDListView
           KD.singletons.dock.saveItemOrders @items
 
         lastChange  = 0
+
+
+  removeApp:(view)->
+
+    @removeItem view
+    @updateItemPositions()
+    KD.singletons.dock.removeItem view
+
 
   updateItemPositions:(exclude)->
     for _item, index in @items
