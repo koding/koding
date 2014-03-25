@@ -11,6 +11,6 @@ class KodingKontrol extends (require 'kontrol')
     super injectQueryParams query
 
   injectQueryParams = (query) ->
-    query.username = KD.nick()
+    query.username = 'koding'
     query.environment = KD.config.environment
     query

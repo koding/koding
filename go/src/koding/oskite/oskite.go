@@ -125,7 +125,7 @@ func (o *Oskite) Run() {
 	}
 
 	o.prepareOsKite()
-	// o.runNewKite()
+	o.runNewKite()
 	o.handleCurrentVMS()   // handle leftover VMs
 	o.startPinnedVMS()     // start pinned always-on VMs
 	o.setupSignalHandler() // handle SIGUSR1 and other signals.
