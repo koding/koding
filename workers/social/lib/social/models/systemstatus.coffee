@@ -123,6 +123,7 @@ module.exports = class JSystemStatus extends Model
   @checkRealtimeUpdates = secure (client, callback) ->
     {connection: {delegate}} = client
     delegate.sendNotification "healthCheck"
+    callback result:1
 
   @sendFeedback = secure (client, options, callback) ->
     {connection: {delegate}} = client
