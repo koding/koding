@@ -8,6 +8,7 @@ class VirtualizationController extends KDController
     @resetVMData()
 
     @kites = {}
+    @terminalKites = {}
 
     @osKites = {}
 
@@ -17,7 +18,7 @@ class VirtualizationController extends KDController
 
     @on 'VMListChanged', @bound 'resetVMData'
 
-  run:(options, callback = noop)->
+  run: Promise.promisify (options, callback = noop)->
     options ?= {}
     if "string" is typeof options
       command = options
@@ -28,8 +29,16 @@ class VirtualizationController extends KDController
       return callback err  if err?
       options.correlationName = vmName
       @fetchRegion vmName, (region)=>
-        options.kiteName = "os-#{region}"
+        if options.kiteName
+          options.kiteName = "#{options.kiteName}-#{region}"
+        else
+          options.kiteName = "os-#{region}"
+
         @kc.run options, callback
+
+  ping: (callback) ->
+    options = {withArgs : ""}
+    @run options, callback
 
   _runWrapper:(command, vm, callback)->
     if vm and 'string' isnt typeof vm
@@ -216,14 +225,15 @@ class VirtualizationController extends KDController
     group = KD.getSingleton("groupsController").getCurrentGroup()
     group.createVM {type, planCode}, vmCreateCallback
 
-  getKite: ({ region, hostnameAlias }) ->
+  getKite: ({ region, hostnameAlias }, type = 'os') ->
     (KD.getSingleton 'kiteController')
-      .getKite "os-#{ region }", hostnameAlias
+      .getKite "#{ type }-#{ region }", hostnameAlias, type
 
   registerKite: (vm) ->
 
     alias         = vm.hostnameAlias
-    @kites[alias] = kite = @getKite vm
+    @kites[alias] = kite = @getKite vm, 'os'
+    @terminalKites[alias] = @getKite vm, 'terminal'
 
     kite.on 'vm.progress.start', (update) =>
       @emit 'vm.progress.start', {alias, update}

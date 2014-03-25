@@ -190,6 +190,12 @@ app.get "/w/members/:username?*", (req, res)->
 app.get "/activity/p/?*", (req, res)->
   res.redirect 301, '/Activity'
 
+app.get "/-/healthCheck", (req, res) ->
+  res.jsonp(result:1)
+
+app.get "/-/version", (req, res) ->
+  res.jsonp(version:KONFIG.version)
+
 app.get "/sitemap:sitemapName", (req, res)->
   {JSitemap}       = koding.models
 

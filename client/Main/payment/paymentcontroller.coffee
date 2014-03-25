@@ -152,7 +152,8 @@ class PaymentController extends KDController
         else if createAccount
           { cardFirstName: firstName, cardLastName: lastName } = billing
           { JUser } = KD.remote.api
-          JUser.convert { firstName, lastName, email }, (err, newToken, recoveryToken) =>
+          JUser.convert { firstName, lastName, email }, (err, {recoveryToken}) =>
+            return KD.showError err  if err
             workflow.emit "PasswordRecoveryToken", recoveryToken
             JUser.logout ->
         else

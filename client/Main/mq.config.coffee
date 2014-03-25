@@ -53,7 +53,9 @@ KD.remote = new Bongo
                 models.push model
               queue.fin()
 
-        dash queue, -> callback err, models, name
+        dash queue, =>
+          @emit "modelsReady"
+          callback err, models, name
 
   mq: do ->
     {authExchange} = KD.config

@@ -1,6 +1,4 @@
-// +build linux
-
-package oskite
+package terminal
 
 import (
 	"bytes"
@@ -22,15 +20,6 @@ import (
 	"labix.org/v2/mgo/bson"
 )
 
-const (
-	sessionPrefix     = "koding"
-	kodingScreenPath  = "/opt/koding/bin/screen"
-	kodingScreenrc    = "/opt/koding/etc/screenrc"
-	defaultScreenPath = "/usr/bin/screen"
-)
-
-var ErrInvalidSession = "ErrInvalidSession"
-
 type WebtermServer struct {
 	Session          string `json:"session"`
 	remote           WebtermRemote
@@ -50,7 +39,7 @@ type WebtermRemote struct {
 	SessionEnded dnode.Callback
 }
 
-func webtermGetSessionsOld(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
+func webtermGetSessions(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
 	sessions := screenSessions(vos)
 	if len(sessions) == 0 {
 		return nil, errors.New("no sessions available")
@@ -60,7 +49,7 @@ func webtermGetSessionsOld(args *dnode.Partial, channel *kite.Channel, vos *virt
 }
 
 // this method is special cased in oskite.go to allow foreign access
-func webtermConnectOld(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
+func webtermConnect(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
 	var params struct {
 		Remote       WebtermRemote
 		Session      string

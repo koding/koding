@@ -30,7 +30,7 @@ import (
 
 const (
 	OSKITE_NAME    = "oskite"
-	OSKITE_VERSION = "0.1.7"
+	OSKITE_VERSION = "0.1.8"
 )
 
 var (
@@ -166,10 +166,6 @@ func (o *Oskite) Run() {
 	o.registerMethod("app.publish", false, appPublishOld)
 	o.registerMethod("app.skeleton", false, appSkeletonOld)
 
-	// this method is special cased in oskite.go to allow foreign access
-	o.registerMethod("webterm.connect", false, webtermConnectOld)
-	o.registerMethod("webterm.getSessions", false, webtermGetSessionsOld)
-
 	o.registerMethod("s3.store", true, s3StoreOld)
 	o.registerMethod("s3.delete", true, s3DeleteOld)
 
@@ -218,9 +214,6 @@ func (o *Oskite) runNewKite() {
 	o.vosMethod(k, "app.download", appDownloadNew)
 	o.vosMethod(k, "app.publish", appPublishNew)
 	o.vosMethod(k, "app.skeleton", appSkeletonNew)
-
-	o.vosMethod(k, "webterm.connect", webtermConnectNew)
-	o.vosMethod(k, "webterm.getSessions", webtermGetSessionsNew)
 
 	o.vosMethod(k, "s3.store", s3StoreNew)
 	o.vosMethod(k, "s3.delete", s3DeleteNew)
@@ -499,12 +492,6 @@ func (o *Oskite) registerMethod(method string, concurrent bool, callback func(*d
 				methodError = &kite.InternalKiteError{}
 			}
 		}()
-
-		// this method is special cased in oskite.go to allow foreign access.
-		// that's why do not check for permisisons and return early.
-		if method == "webterm.connect" {
-			return callback(args, channel, &virt.VOS{VM: vm, User: user})
-		}
 
 		// protect each callback with their own associated mutex
 		info := getInfo(vm)

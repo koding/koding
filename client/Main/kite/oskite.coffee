@@ -1,6 +1,6 @@
 class OsKite extends KDKite
 
-  api =
+  @createApiMapping
     exec            : 'exec'
 
     appInstall      : 'app.install'
@@ -34,24 +34,17 @@ class OsKite extends KDKite
     vmResizeDisk    : 'vm.resizeDisk'
     vmCreateSnapshot: 'vm.createSnapshot'
 
-    webtermGetSessions: 'webterm.getSessions'
-    webtermConnect    : 'webterm.connect'
-
-
-  for own method, rpcMethod of api
-    @::[method] = @createMethod @prototype, { method, rpcMethod }
-
   constructor: (options = {}, data) ->
     super options, data
     @pollState()
 
   stopPollingState: ->
-    console.log 'stop polling state'
+    log 'stop polling state'
     KD.utils.killRepeat @intervalId
     @intervalId = null
 
   pollState: ->
-    console.log 'start polling state'
+    log 'start polling state'
     @fetchState()
 
     KD.getSingleton('mainController')
