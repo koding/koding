@@ -11,10 +11,8 @@ class StackView extends KDView
   viewAppended:->
 
     {stack} = @getOptions()
-    title   = stack.meta?.title
-    number  = if stack.sid > 0 then "#{stack.sid}." else "default"
     group   = KD.getGroup().title
-    title or= "Your #{number} stack on #{group}"
+    title   = "#{stack.meta.title} stack on #{group}"
 
     @addSubView title = new KDView
       cssClass : 'stack-title'
