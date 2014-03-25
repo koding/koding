@@ -35,39 +35,87 @@ func (*List) Exec(args []string) error {
 
 // getIntalledKites returns installed kites in .kd/kites folder.
 // an empty argument returns all kites.
-func getInstalledKites(kiteName string) ([]string, error) {
+func getInstalledKites(kiteName string) ([]*InstalledKite, error) {
 	kiteHome, err := kitekey.KiteHome()
 	if err != nil {
 		return nil, err
 	}
 	kitesPath := filepath.Join(kiteHome, "kites")
 
-	kites, err := ioutil.ReadDir(kitesPath)
+	domains, err := ioutil.ReadDir(kitesPath)
 	if err != nil {
 		if os.IsNotExist(err) {
-			return []string{}, nil
+			return nil, nil
 		}
 
 		return nil, err
 	}
 
-	installedKites := []string{} // to be returned
-	for _, fi := range kites {
-		name := fi.Name()
-		if !strings.HasSuffix(name, ".kite") {
-			continue
-		}
+	var installedKites []*InstalledKite // to be returned
 
-		fullName := strings.TrimSuffix(name, ".kite")
-		name, _, err := splitVersion(fullName, false)
+	for _, domain := range domains {
+		domainPath := filepath.Join(kitesPath, domain.Name())
+		users, err := ioutil.ReadDir(domainPath)
 		if err != nil {
+			fmt.Println(err)
 			continue
 		}
 
-		if kiteName == "" || kiteName == name {
-			installedKites = append(installedKites, fullName)
+		for _, user := range users {
+			userPath := filepath.Join(domainPath, user.Name())
+			repos, err := ioutil.ReadDir(userPath)
+			if err != nil {
+				fmt.Println(err)
+				continue
+			}
+
+			for _, repo := range repos {
+				repoPath := filepath.Join(userPath, repo.Name())
+				versions, err := ioutil.ReadDir(repoPath)
+				if err != nil {
+					fmt.Println(err)
+					continue
+				}
+
+				for _, version := range versions {
+					versionPath := filepath.Join(repoPath, version.Name())
+					binaryPath := filepath.Join(versionPath, "bin", strings.TrimSuffix(repo.Name(), ".kite"))
+					_, err := os.Stat(binaryPath)
+					if err != nil {
+						fmt.Println(err)
+						continue
+					}
+
+					installedKites = append(installedKites, NewInstalledKite(domain.Name(), user.Name(), repo.Name(), version.Name()))
+				}
+			}
 		}
 	}
 
 	return installedKites, nil
+}
+
+type InstalledKite struct {
+	Domain  string
+	User    string
+	Repo    string
+	Version string
+}
+
+func NewInstalledKite(domain, user, repo, version string) *InstalledKite {
+	return &InstalledKite{
+		Domain:  domain,
+		User:    user,
+		Repo:    repo,
+		Version: version,
+	}
+}
+
+func (k *InstalledKite) String() string {
+	return k.Domain + "/" + k.User + "/" + k.Repo + "/" + k.Version
+}
+
+// BinPath returns the path of the executable binary file.
+func (k *InstalledKite) BinPath() string {
+	return filepath.Join(k.Domain, k.User, k.Repo, k.Version, "bin", strings.TrimSuffix(k.Repo, ".kite"))
 }

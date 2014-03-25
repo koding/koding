@@ -4,7 +4,6 @@ import (
 	"flag"
 	"fmt"
 	"net/url"
-	"os"
 	"time"
 
 	"github.com/koding/kite"
@@ -30,11 +29,17 @@ func (r *Register) Definition() string {
 func (r *Register) Exec(args []string) error {
 	flags := flag.NewFlagSet("register", flag.ExitOnError)
 	to := flags.String("to", "", "target registration server")
+	username := flags.String("username", "", "pick a username")
 	flags.Parse(args)
 
 	if *to == "" {
-		r.client.Log.Fatal("no URL given in -to flag")
+		r.client.Log.Fatal("No URL given in -to flag")
 	}
+
+	if *username == "" {
+		r.client.Log.Fatal("You must give a username with -username flag")
+	}
+	r.client.Config.Username = *username
 
 	parsed, err := url.Parse(*to)
 	if err != nil {
@@ -45,17 +50,12 @@ func (r *Register) Exec(args []string) error {
 		r.client.Log.Warning("Already registered. Registering again...")
 	}
 
-	hostname, err := os.Hostname()
-	if err != nil {
-		return err
-	}
-
 	regserv := r.client.NewClient(parsed)
 	if err = regserv.Dial(); err != nil {
 		return err
 	}
 
-	result, err := regserv.TellWithTimeout("register", 10*time.Minute, map[string]string{"hostname": hostname})
+	result, err := regserv.TellWithTimeout("register", 10*time.Minute)
 	if err != nil {
 		return err
 	}

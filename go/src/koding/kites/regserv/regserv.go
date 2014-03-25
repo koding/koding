@@ -3,21 +3,25 @@ package main
 import (
 	"flag"
 	"io/ioutil"
-	"koding/tools/config"
 	"log"
+	"net/url"
+	"time"
+
+	"koding/db/mongodb/modelhelper"
+	kodingconfig "koding/tools/config"
 
 	"github.com/koding/kite"
 	kiteconfig "github.com/koding/kite/config"
 	"github.com/koding/kite/regserv"
 )
 
+const KodingUser = "koding"
+
 var (
 	profile = flag.String("c", "", "Configuration profile")
-	region  = flag.String("region", "", "Region")
+	region  = flag.String("r", "", "Region")
 	ip      = flag.String("ip", "0.0.0.0", "Listen IP")
 	port    = flag.Int("port", 8080, "Port")
-
-	conf *config.Config
 )
 
 func main() {
@@ -29,39 +33,51 @@ func main() {
 		log.Fatal("Please specify region via -r. Aborting.")
 	}
 
-	conf = config.MustConfig(*profile)
+	kodingConf := kodingconfig.MustConfig(*profile)
 
-	pubKey, err := ioutil.ReadFile(conf.NewKontrol.PublicKeyFile)
+	pubKey, err := ioutil.ReadFile(kodingConf.NewKontrol.PublicKeyFile)
 	if err != nil {
 		log.Fatalln(err.Error())
 	}
 
-	privKey, err := ioutil.ReadFile(conf.NewKontrol.PrivateKeyFile)
+	privKey, err := ioutil.ReadFile(kodingConf.NewKontrol.PrivateKeyFile)
 	if err != nil {
 		log.Fatalln(err.Error())
 	}
 
-	kiteConf := kiteconfig.MustGet()
-	kiteConf.Environment = conf.Environment
+	kontrolURL, err := url.Parse(kodingConf.Client.RuntimeOptions.NewKontrol.Url)
+	if err != nil {
+		log.Fatalln(err.Error())
+	}
+
+	kiteConf := kiteconfig.New()
+	kiteConf.Username = KodingUser
+	kiteConf.Environment = kodingConf.Environment
 	kiteConf.Region = *region
 	kiteConf.IP = *ip
 	kiteConf.Port = *port
+	kiteConf.KontrolURL = kontrolURL
+	kiteConf.KontrolUser = KodingUser
+	kiteConf.KontrolKey = string(pubKey)
 
-	server := regserv.New(kiteConf, string(pubKey), string(privKey))
+	s := regserv.New(kiteConf, string(pubKey), string(privKey))
 
-	server.Run()
-}
+	// Request must not be authenticated because clients do not have a
+	// kite.key before they register. We will authenticate them in
+	// "register" method handler.
+	s.Server.Config.DisableAuthentication = true
 
-type exampleBackend struct {
-	publicKey, privateKey string
-}
+	s.Authenticate = func(r *kite.Request) error {
+		password, err := r.Client.TellWithTimeout("kite.getPass", 10*time.Minute, "Enter password: ")
+		if err != nil {
+			return err
+		}
 
-func (b *exampleBackend) Username() string   { return conf.NewKontrol.Username }
-func (b *exampleBackend) KontrolURL() string { return conf.Client.RuntimeOptions.NewKontrol.Url }
-func (b *exampleBackend) PublicKey() string  { return b.publicKey }
-func (b *exampleBackend) PrivateKey() string { return b.privateKey }
+		_, err = modelhelper.CheckAndGetUser(r.Client.Kite.Username, password.MustString())
+		return err
+	}
 
-// TODO authenticate with username and password
-func (b *exampleBackend) Authenticate(r *kite.Request) (string, error) {
-	return "koding-kites", nil
+	modelhelper.Initialize(kodingConf.Mongo)
+
+	s.Run()
 }
