@@ -225,20 +225,20 @@ class NFinderTreeController extends JTreeViewController
 
   deleteFiles:(nodes, callback)->
 
-    stack = []
-    nodes.forEach (node)=>
-      stack.push (cb) =>
-        node.getData().remove (err, response)=>
-          if err then @notify null, null, err
-          else
-            node.emit "ItemBeingDeleted"
-            cb err, node
+    deletedNodes = []
+    results = nodes.map (node) ->
+      node.getData().remove().then ->
+        node.emit "ItemBeingDeleted"
+        deletedNodes.push node
 
-    async.parallel stack, (error, result) =>
-      @notify "#{result.length} item#{if result.length > 1 then 's' else ''} deleted!", "success"
-      @removeNodeView node for node in result
-      callback?()
+    Promise.all(results).then =>
+      @notify "#{deletedNodes.length} item#{if deletedNodes.length > 1 then 's' else ''} deleted!", "success"
+      @removeNodeView node for node in deletedNodes
 
+    .catch (err) =>
+      @notify null, null, err
+
+    .nodeify callback
 
   showRenameDialog:(nodeView)->
 
