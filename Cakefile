@@ -53,17 +53,14 @@ compileGoBinaries = (configFile,callback)->
       stderr : process.stderr
       verbose : yes
       onExit :->
-        if configFile == "vagrant"
-          processes.spawn
-            name: 'build go in vagrant'
-            cmd : 'vagrant ssh default --command "/opt/koding/go/build.sh bin-vagrant"'
-            stdout : process.stdout
-            stderr : process.stderr
-            verbose : yes
-            onExit :->
-              callback null
-        else
-          callback null
+        processes.spawn
+          name: 'build go in vagrant'
+          cmd : 'vagrant ssh default --command "/opt/koding/go/build.sh bin-vagrant"'
+          stdout : process.stdout
+          stderr : process.stderr
+          verbose : yes
+          onExit :->
+            callback null
   else
     callback null
 
