@@ -3,22 +3,16 @@ class KDKite extends Kite
   @createMethod = (ctx, { method, rpcMethod }) ->
     ctx[method] = (rest...) -> @tell2 rpcMethod, rest...
 
-  # @createConstructor = (kiteName) ->
-
-  #   class Kite extends this
-
-  #     constructor: (options = {}, data) ->
-  #       options.kiteName = kiteName
-  #       super options, data
-
-      # api = switch kiteName
-      #   when 'os'           then osKiteMethods
-      #   when 'os-vagrant'   then osKiteMethods
-
-      # for own method, rpcMethod of api
-      #   @::[method] = @createMethod @prototype, { method, rpcMethod }
+  @createApiMapping = (api) ->
+    for own method, rpcMethod of api
+      @::[method] = @createMethod @prototype, { method, rpcMethod }
 
   @constructors = {}
+
+  createProperError = (err) ->
+    e = new Error err.message
+    e.type = err.type
+    e
 
   tell2: (method, params = {}) ->
     # #tell2 is wrapping #tell with a promise-based api
@@ -42,7 +36,7 @@ class KDKite extends Kite
           reject new Error "Request timeout exceeded (#{ timeout }ms)"
 
       callback = (err, restResponse...) ->
-        return reject err               if err?
-        return resolve restResponse...  if timeOk
+        return reject createProperError err   if err?
+        return resolve restResponse...        if timeOk
 
       @tell options, callback
