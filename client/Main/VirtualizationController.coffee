@@ -17,7 +17,7 @@ class VirtualizationController extends KDController
 
     @on 'VMListChanged', @bound 'resetVMData'
 
-  run:(options, callback = noop)->
+  run: Promise.promisify (options, callback = noop)->
     options ?= {}
     if "string" is typeof options
       command = options
