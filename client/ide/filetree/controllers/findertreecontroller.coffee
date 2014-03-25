@@ -286,21 +286,21 @@ class NFinderTreeController extends JTreeViewController
       targetNodeView = @nodes[targetNodeView.getData().parentPath]
       targetItem = targetNodeView.getData()
 
-    stack = []
-    nodesToBeMoved.forEach (node)=>
-      stack.push (cb) =>
-        sourceItem = node.getData()
-        FSItem.move sourceItem, targetItem, (err, response)=>
-          if err then @notify null, null, err
-          else
-            cb err, node
+    movedNodes = []
+    results = nodesToBeMoved.map (node) ->
+      sourceItem = node.getData()
+      FSItem.move(sourceItem, targetItem).then ->
+        movedNodes.push node
 
-    callback or= (error, result) =>
-      @notify "#{result.length} item#{if result.length > 1 then 's' else ''} moved!", "success"
-      @removeNodeView node for node in result
+    Promise.all(results).then =>
+      @notify "#{movedNodes.length} item#{if movedNodes.length > 1 then 's' else ''} moved!", "success"
+      @removeNodeView node for node in movedNodes
       @refreshFolder targetNodeView
 
-    async.parallel stack, callback
+    .catch (err) =>
+      @notify null, null, err
+
+    .nodeify callback
 
   copyFiles:(nodesToBeCopied, targetNodeView, callback)->
 
