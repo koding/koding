@@ -107,12 +107,12 @@ class KiteHelper extends KDEventEmitter
             key:result.key
             hostname:result.hostID
         }, (err, res)->
-          fn = => k.tell "info", handleInfo
+          fn = => k.tellOld "info", handleInfo
           return showErrorModal err, fn if err
           showSuccessfulModal res, ->
             result.cb true
             KD.utils.wait 500, clear
 
-      k.tell "info", handleInfo
+      k.tellOld "info", handleInfo
 
   registerKodingClient : registerKodingClient_

@@ -133,7 +133,7 @@ class KiteController extends KDController
       else Promise.cast()
 
     ok.then =>
-      kite.tell2 options.method, options.withArgs
+      kite.tell options.method, options.withArgs
 
     .nodeify (err, response) =>
       @parseKiteResponse {err, response}, options, callback
