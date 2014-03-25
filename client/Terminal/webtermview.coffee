@@ -128,7 +128,7 @@ class WebTermView extends KDView
       @webtermConnect()
 
     KD.getSingleton("kiteController").on "KiteError", (err) =>
-      console.log "kite errr", err
+      log "kite error:", err
       @reconnected = no
       {code, serviceGenericName} = err
 
