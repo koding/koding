@@ -117,23 +117,27 @@ class TeamworkChatPane extends ChatPane
     query = { "profile.nickname": { "$in": usernames } }
 
     KD.remote.api.JAccount.someWithRelationship query, {}, (err, accounts) =>
-      stack = []
-      usernames.forEach (username) =>
-        account = null
-        user    = account for account in accounts when account.profile.nickname is username
 
-        if user
-          stack.push (cb) =>
+      promises = usernames.map (username) =>
+
+        new Promise (resolve, reject) =>
+
+          account = null
+          user    = account for account in accounts when account.profile.nickname is username
+
+          if user
             @workspace.createUserList() # TODO: fatihacet - find a better way for invite
 
             @workspace.userList.once "UserInvited", =>
               @botReply getMessage "invited", username
 
             @workspace.userList.sendInviteTo account
-        else
-          @botReply getMessage "inviteFailed", username
+          else
+            @botReply getMessage "inviteFailed", username
 
-      async.parallel stack, noop
+          resolve()
+
+      Promise.all(promises)
 
   replyForWatch: (usernames) ->
     username = usernames.first
