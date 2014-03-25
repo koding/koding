@@ -32,13 +32,11 @@ class FSItem extends KDObject
 
         kite[method](options).then (stat) ->
 
-          file = FSHelper.createFile {
+          FSHelper.createFile {
             path: actualPath
             type
             vmName
           }
-
-          file.save().then -> return file
 
       .nodeify(callback)
 
