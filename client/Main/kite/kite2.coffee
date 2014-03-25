@@ -42,7 +42,12 @@ class KDKite extends Kite
           reject new Error "Request timeout exceeded (#{ timeout }ms)"
 
       callback = (err, restResponse...) ->
-        return reject err               if err?
-        return resolve restResponse...  if timeOk
+        return reject createProperError err   if err?
+        return resolve restResponse...        if timeOk
 
       @tell options, callback
+
+  createProperError = (err) ->
+    e = new Error err.message
+    e.type = err.type
+    e
