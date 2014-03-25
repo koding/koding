@@ -173,6 +173,8 @@ class DevToolsMainView extends KDView
           CSSEditor.on "AutoRunRequested", @bound 'toggleLiveReload'
           CSSEditor.on "FocusedOnMe", => @_lastActiveEditor = CSSEditor
 
+        JSEditor.ready => CSSEditor.ready => @emit 'ready'
+
         @on 'createMenuItemClicked',  @bound 'createNewApp'
         @on 'publishMenuItemClicked', @lazyBound 'publishCurrentApp', 'production'
         @on 'publishTestMenuItemClicked', @bound 'publishCurrentApp'
