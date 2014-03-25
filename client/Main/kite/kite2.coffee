@@ -40,3 +40,8 @@ class KDKite extends Kite
         return resolve restResponse...        if timeOk
 
       @tell options, callback
+
+  createProperError = (err) ->
+    e = new Error err.message
+    e.type = err.type
+    e

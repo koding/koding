@@ -48,11 +48,11 @@ class KodingAppsController extends KDController
 
     if app.style
       @appendHeadElement 'style',  \
-        { url:app.style, identifier:app.identifier, callback }, yes
+        { url:app.style, identifier:app.identifier, force: yes }
 
     if app.script
       @appendHeadElement 'script', \
-        { url:app.script, identifier:app.identifier, callback }, yes
+        { url:app.script, identifier:app.identifier, force: yes }, callback
 
     return
 
@@ -159,7 +159,7 @@ class KodingAppsController extends KDController
       partial  : "Do you still want to continue?"
       cssClass : "run-warning"
 
-  @appendHeadElement = (type, {identifier, url, callback}, force)->
+  @appendHeadElement = Promise.promisify (type, {identifier, url, force}, callback = (->)) ->
 
     identifier = identifier.replace /\./g, '_'
     domId      = "internal-#{type}-#{identifier}"
@@ -178,6 +178,8 @@ class KodingAppsController extends KDController
 
         if type is 'script'
           obj.once 'viewAppended', -> callback null
+        else
+          callback null
 
         KD.utils.defer -> obj.appendToSelector 'head'
 
@@ -197,7 +199,7 @@ class KodingAppsController extends KDController
           type     : "text/javascript"
           src      : url
         bind       = "load"
-        load       = -> callback? null
+        load       = -> callback null
 
       @destroyScriptElement type, identifier  if force
 
@@ -205,25 +207,24 @@ class KodingAppsController extends KDController
         domId, tagName, attributes, bind, load
       }).getElement()
 
+      callback null  if type is 'style'
+
   @destroyScriptElement = (type, identifier)->
     (document.getElementById "internal-#{type}-#{identifier}")?.remove()
 
   @appendHeadElements = (options, callback)->
-
     {items, identifier} = options
 
-    stack = []
-    items.forEach ({url, type}, index)->
-      stack.push (cb)->
-        KodingAppsController.appendHeadElement type, {
-          identifier : "#{identifier}-#{index}"
-          callback   : cb
-          url
-        }
-        KD.utils.defer cb  if type is 'style'
+    Promise.reduce(items, (acc, {url, type}, index) =>
+      KodingAppsController.appendHeadElement type, {
+        identifier : "#{identifier}-#{index}"
+        url
+      }
 
-    async.series stack, callback
-
+    , 0)
+    # .timeout(5000)
+    # .catch(warn)
+    .nodeify callback
 
   # #
   # MAKE NEW APP
@@ -369,50 +370,40 @@ class KodingAppsController extends KDController
 
     {vmController} = KD.singletons
 
-    stack = [
+    vmController.run
+      method    : "app.skeleton"
+      withArgs  :
+        type    : "blank"
+        appPath : appPath
 
-      (cb)->
+    .then ->
+      indexFile = FSHelper.createFileFromPath "#{appPath}/index.coffee"
+      indexFile.fetchContents().then (content) ->
+        content = content.replace(/\%\%APPNAME\%\%/g, APPNAME)
+                         .replace(/\%\%appname\%\%/g, appname)
+                         .replace(/\%\%AUTHOR\%\%/g , KD.nick())
+        indexFile.save content
 
-        vmController.run
-          method    : "app.skeleton"
-          withArgs  :
-            type    : "blank"
-            appPath : appPath
-          , cb
+    .then ->
+      styleFile = FSHelper.createFileFromPath "#{appPath}/resources/style.css"
+      styleFile.fetchContents().then (content) ->
+        content = content.replace(/\%\%appname\%\%/g, appname)
+        styleFile.save content
 
-      (cb)->
+    .then ->
+      FSHelper.createFileFromPath("#{appPath}/manifest.json")
+              .save manifestStr
+    .then ->
+      FSHelper.createFileFromPath("#{appPath}/ChangeLog")
+              .save changeLogStr
 
-        indexFile = FSHelper.createFileFromPath "#{appPath}/index.coffee"
-        indexFile.fetchContents (err, content)->
-          return cb err  if err
-          content = content.replace(/\%\%APPNAME\%\%/g, APPNAME)
-                           .replace(/\%\%appname\%\%/g, appname)
-                           .replace(/\%\%AUTHOR\%\%/g , KD.nick())
-          indexFile.save content, cb
+    .then ->
+      return { appPath }
 
-      (cb)->
+    .catch (err) ->
+      warn err
 
-        styleFile = FSHelper.createFileFromPath "#{appPath}/resources/style.css"
-        styleFile.fetchContents (err, content)->
-          return cb err  if err
-          content = content.replace(/\%\%appname\%\%/g, appname)
-          styleFile.save content, cb
-
-      (cb)->
-
-        FSHelper.createFileFromPath("#{appPath}/manifest.json")
-                .save manifestStr,  cb
-
-      (cb)->
-
-        FSHelper.createFileFromPath("#{appPath}/ChangeLog")
-                .save changeLogStr, cb
-
-    ]
-
-    async.series stack, (err, result) =>
-      warn err  if err
-      callback? err, {appPath, result}
+    .nodeify callback
 
   @getAppInfoFromPath = (path, showWarning = no)->
 

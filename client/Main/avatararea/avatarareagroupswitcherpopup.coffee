@@ -217,30 +217,31 @@ class AvatarPopupGroupSwitcher extends AvatarPopup
       if err then warn err
       else if groups?
 
-        stack = []
-        groups.forEach (group)->
-          stack.push (cb)->
+        results = []
+        promises = groups.map (group)->
+          new Promise (resolve, reject)->
             group.group.fetchMyRoles (err, roles)->
               group.admin = unless err then 'admin' in roles else no
-              cb err, group
+              results.push group
+              resolve()
 
-        async.parallel stack, (err, results)=>
+        Promise.all(promises).then =>
+
           @isLoading = no
 
-          unless err
-            results.sort (a, b)->
-              return if a.admin is b.admin
-              then a.group.slug > b.group.slug
-              else not a.admin and b.admin
+          results.sort (a, b)->
+            return if a.admin is b.admin
+            then a.group.slug > b.group.slug
+            else not a.admin and b.admin
 
-            index = null
-            results.forEach (item, i)->
-              index = i  if item.group.slug is 'koding'
+          index = null
+          results.forEach (item, i)->
+            index = i  if item.group.slug is 'koding'
 
-            results.splice index, 1  if index?
+          results.splice index, 1  if index?
 
-            @listController.hideLazyLoader()
-            @listController.instantiateListItems results
+          @listController.hideLazyLoader()
+          @listController.instantiateListItems results
 
   decreasePendingCount:->
     @pending--
