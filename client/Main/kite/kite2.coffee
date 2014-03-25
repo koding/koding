@@ -15,10 +15,10 @@ class KDKite extends Kite
     e
 
   tell2: (method, params = {}) ->
+    { correlationName, kiteName, timeout: classTimeout } = @getOptions()
+
     # #tell2 is wrapping #tell with a promise-based api
     new Promise (resolve, reject) =>
-
-      { correlationName, kiteName, timeout: classTimeout } = @getOptions()
 
       options = {
         method
@@ -27,16 +27,10 @@ class KDKite extends Kite
         withArgs: params
       }
 
-      # handle timeout:
-      timeOk = yes
-      if params?.timeout not in [null, Infinity]
-        timeout = params?.timeout ? classTimeout ? 5000
-        KD.utils.wait timeout, ->
-          timeOk = no
-          reject new Error "Request timeout exceeded (#{ timeout }ms)"
-
       callback = (err, restResponse...) ->
         return reject createProperError err   if err?
-        return resolve restResponse...        if timeOk
+        return resolve restResponse...
 
       @tell options, callback
+
+    .timeout classTimeout ? 5000
