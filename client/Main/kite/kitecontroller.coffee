@@ -118,7 +118,9 @@ class KiteController extends KDController
     if command
       options.withArgs = command
     else
-      options.withArgs or= {}
+      #related to this this empty object kite response returns "An error occured: Invalid argument,
+      # [string] expected." error
+      options.withArgs ?= {}
 
     if KD.logsEnabled and KD.showKiteCalls
       notify """

@@ -36,6 +36,10 @@ class VirtualizationController extends KDController
 
         @kc.run options, callback
 
+  ping: (callback) ->
+    options = {withArgs : ""}
+    @run options, callback
+
   _runWrapper:(command, vm, callback)->
     if vm and 'string' isnt typeof vm
       [callback, vm] = [vm, callback]
