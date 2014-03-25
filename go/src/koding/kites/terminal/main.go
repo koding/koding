@@ -34,7 +34,7 @@ func main() {
 	if *flagDebug {
 		logLevel = logger.DEBUG
 	} else {
-		logLevel = logger.GetLoggingLevelFromConfig("oskite", *flagProfile)
+		logLevel = logger.GetLoggingLevelFromConfig("terminal", *flagProfile)
 	}
 
 	term := terminal.New(config.MustConfig(*flagProfile))
