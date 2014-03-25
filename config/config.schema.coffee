@@ -84,6 +84,7 @@ config =
     compileGo     : 1
     buildClient   : 1
     runOsKite     : 0
+    runTerminalKite: 0
     runProxy      : 0
     redis         : 1
     misc          :
@@ -394,6 +395,7 @@ config =
     logLevel        :
       neo4jfeeder   : 1
       oskite        : 1
+      terminal      : 1
       kontrolproxy  : 1
       kontroldaemon : 1
       userpresence  : 1
