@@ -1,7 +1,6 @@
 module.exports = [
 
   # Libs
-  "libs/async.js",
   "libs/md5-min.js",
   "libs/accounting.js",
   "libs/bluebird.js",
