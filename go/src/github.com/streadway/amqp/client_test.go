@@ -15,10 +15,14 @@ import (
 
 type server struct {
 	*testing.T
-	r reader        // framer <- client
-	w writer        // framer -> client
-	S io.ReadWriter // Server IO
-	C io.ReadWriter // Client IO
+	r reader             // framer <- client
+	w writer             // framer -> client
+	S io.ReadWriteCloser // Server IO
+	C io.ReadWriteCloser // Client IO
+
+	// captured client frames
+	start connectionStartOk
+	tune  connectionTuneOk
 }
 
 func defaultConfig() Config {
@@ -55,7 +59,7 @@ func (t *server) expectBytes(b []byte) {
 }
 
 func (t *server) send(channel int, m message) {
-	defer time.AfterFunc(10*time.Millisecond, func() { panic("send deadlock") }).Stop()
+	defer time.AfterFunc(time.Second, func() { panic("send deadlock") }).Stop()
 
 	if err := t.w.WriteFrame(&methodFrame{
 		ChannelId: uint16(channel),
@@ -137,7 +141,7 @@ func (t *server) connectionStart() {
 		Locales:      "en-us",
 	})
 
-	t.recv(0, &connectionStartOk{})
+	t.recv(0, &t.start)
 }
 
 func (t *server) connectionTune() {
@@ -147,7 +151,7 @@ func (t *server) connectionTune() {
 		Heartbeat:  10,
 	})
 
-	t.recv(0, &connectionTuneOk{})
+	t.recv(0, &t.tune)
 }
 
 func (t *server) connectionOpen() {
@@ -167,6 +171,54 @@ func (t *server) connectionClose() {
 func (t *server) channelOpen(id int) {
 	t.recv(id, &channelOpen{})
 	t.send(id, &channelOpenOk{})
+}
+
+func TestDefaultClientProperties(t *testing.T) {
+	rwc, srv := newSession(t)
+
+	go func() {
+		srv.connectionOpen()
+		rwc.Close()
+	}()
+
+	if c, err := Open(rwc, defaultConfig()); err != nil {
+		t.Fatalf("could not create connection: %s (%s)", c, err)
+	}
+
+	if want, got := defaultProduct, srv.start.ClientProperties["product"]; want != got {
+		t.Errorf("expected product %s got: %s", want, got)
+	}
+
+	if want, got := defaultVersion, srv.start.ClientProperties["version"]; want != got {
+		t.Errorf("expected version %s got: %s", want, got)
+	}
+}
+
+func TestCustomClientProperties(t *testing.T) {
+	rwc, srv := newSession(t)
+
+	config := defaultConfig()
+	config.Properties = Table{
+		"product": "foo",
+		"version": "1.0",
+	}
+
+	go func() {
+		srv.connectionOpen()
+		rwc.Close()
+	}()
+
+	if c, err := Open(rwc, config); err != nil {
+		t.Fatalf("could not create connection: %s (%s)", c, err)
+	}
+
+	if want, got := config.Properties["product"], srv.start.ClientProperties["product"]; want != got {
+		t.Errorf("expected product %s got: %s", want, got)
+	}
+
+	if want, got := config.Properties["version"], srv.start.ClientProperties["version"]; want != got {
+		t.Errorf("expected version %s got: %s", want, got)
+	}
 }
 
 func TestOpen(t *testing.T) {
@@ -256,7 +308,7 @@ func TestOpenFailedVhost(t *testing.T) {
 	}
 }
 
-func TestConfirmMultiple(t *testing.T) {
+func TestConfirmMultipleOrdersDeliveryTags(t *testing.T) {
 	rwc, srv := newSession(t)
 	defer rwc.Close()
 
@@ -407,6 +459,12 @@ func TestNotifyClosesAllChansAfterConnectionClose(t *testing.T) {
 	}
 
 	select {
+	case <-ch.NotifyCancel(make(chan string)):
+	case <-time.After(time.Millisecond):
+		t.Errorf("expected to close Channel.NofityCancel chan after Connection.Close")
+	}
+
+	select {
 	case <-ch.NotifyReturn(make(chan Return)):
 	case <-time.After(time.Millisecond):
 		t.Errorf("expected to close Channel.NotifyReturn chan after Connection.Close")
@@ -467,4 +525,35 @@ func TestPublishBodySliceIssue74(t *testing.T) {
 	}
 
 	<-done
+}
+
+func TestPublishAndShutdownDeadlockIssue84(t *testing.T) {
+	rwc, srv := newSession(t)
+	defer rwc.Close()
+
+	go func() {
+		srv.connectionOpen()
+		srv.channelOpen(1)
+		srv.recv(1, &basicPublish{})
+		// Mimic a broken io pipe so that Publish catches the error and goes into shutdown
+		srv.S.Close()
+	}()
+
+	c, err := Open(rwc, defaultConfig())
+	if err != nil {
+		t.Fatalf("couldn't create connection: %s (%s)", c, err)
+	}
+
+	ch, err := c.Channel()
+	if err != nil {
+		t.Fatalf("couldn't open channel: %s (%s)", ch, err)
+	}
+
+	defer time.AfterFunc(500*time.Millisecond, func() { panic("Publish deadlock") }).Stop()
+	for {
+		if err := ch.Publish("exchange", "q", false, false, Publishing{Body: []byte("test")}); err != nil {
+			t.Log("successfully caught disconnect error", err)
+			return
+		}
+	}
 }
