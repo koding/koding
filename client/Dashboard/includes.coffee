@@ -5,7 +5,6 @@ module.exports = [
   "AppView.coffee",
 
   # Group Dashboard Views:
-  "views/paymentmodalview.coffee",
   "views/linkablepaymentmethodview.coffee",
   "views/paymentsettingsview.coffee",
 
