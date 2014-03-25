@@ -411,7 +411,7 @@ class LoginView extends KDView
         serviceName   : "github"
         userId        : KD.whoami().getId()
       ,
-    (err, status)-> console.log "Status of fetching stuff from external: #{status}"
+    (err, status)-> log "Status of fetching stuff from external: #{status}"
 
 
   afterLoginCallback: (err, params={})->
