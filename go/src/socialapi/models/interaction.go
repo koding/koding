@@ -9,19 +9,19 @@ import (
 
 type Interaction struct {
 	// unique identifier of the Interaction
-	Id int64
+	Id int64 `json:"id"`
 
 	// Id of the interacted message
-	MessageId int64
+	MessageId int64 `json:"messageId"`
 
 	// Id of the actor
-	AccountId int64
+	AccountId int64 `json:"accountId"`
 
 	// Type of the interaction
-	Type string
+	Type string `json:"type"`
 
 	// Creation of the interaction
-	CreatedAt time.Time
+	CreatedAt time.Time `json:"createdAt"`
 }
 
 var AllowedInteractions = map[string]struct{}{
