@@ -61,10 +61,10 @@ class NFinderTreeController extends JTreeViewController
         @emit "file.opened", nodeData
         @setBlurState()
 
-  # openFileWithApp: (nodeView, contextMenuItem) ->
-  #   return warn "no app passed to open this file"  unless contextMenuItem
-  #   app = contextMenuItem.getData().title
-  #   KD.getSingleton("appManager").openFileWithApplication app, nodeView.getData()
+  openFileWithApp: (nodeView, contextMenuItem) ->
+    return warn "no app passed to open this file"  unless contextMenuItem
+    app = contextMenuItem.getData().title
+    KD.getSingleton("appManager").openFileWithApplication app, nodeView.getData()
 
   openFile:(nodeView)->
 
@@ -225,20 +225,20 @@ class NFinderTreeController extends JTreeViewController
 
   deleteFiles:(nodes, callback)->
 
-    stack = []
-    nodes.forEach (node)=>
-      stack.push (cb) =>
-        node.getData().remove (err, response)=>
-          if err then @notify null, null, err
-          else
-            node.emit "ItemBeingDeleted"
-            cb err, node
+    deletedNodes = []
+    results = nodes.map (node) ->
+      node.getData().remove().then ->
+        node.emit "ItemBeingDeleted"
+        deletedNodes.push node
 
-    async.parallel stack, (error, result) =>
-      @notify "#{result.length} item#{if result.length > 1 then 's' else ''} deleted!", "success"
-      @removeNodeView node for node in result
-      callback?()
+    Promise.all(results).then =>
+      @notify "#{deletedNodes.length} item#{if deletedNodes.length > 1 then 's' else ''} deleted!", "success"
+      @removeNodeView node for node in deletedNodes
 
+    .catch (err) =>
+      @notify null, null, err
+
+    .nodeify callback
 
   showRenameDialog:(nodeView)->
 
@@ -286,21 +286,21 @@ class NFinderTreeController extends JTreeViewController
       targetNodeView = @nodes[targetNodeView.getData().parentPath]
       targetItem = targetNodeView.getData()
 
-    stack = []
-    nodesToBeMoved.forEach (node)=>
-      stack.push (cb) =>
-        sourceItem = node.getData()
-        FSItem.move sourceItem, targetItem, (err, response)=>
-          if err then @notify null, null, err
-          else
-            cb err, node
+    movedNodes = []
+    results = nodesToBeMoved.map (node) ->
+      sourceItem = node.getData()
+      FSItem.move(sourceItem, targetItem).then ->
+        movedNodes.push node
 
-    callback or= (error, result) =>
-      @notify "#{result.length} item#{if result.length > 1 then 's' else ''} moved!", "success"
-      @removeNodeView node for node in result
+    Promise.all(results).then =>
+      @notify "#{movedNodes.length} item#{if movedNodes.length > 1 then 's' else ''} moved!", "success"
+      @removeNodeView node for node in movedNodes
       @refreshFolder targetNodeView
 
-    async.parallel stack, callback
+    .catch (err) =>
+      @notify null, null, err
+
+    .nodeify callback
 
   copyFiles:(nodesToBeCopied, targetNodeView, callback)->
 
@@ -309,42 +309,42 @@ class NFinderTreeController extends JTreeViewController
       targetNodeView = @nodes[targetNodeView.getData().parentPath]
       targetItem = targetNodeView.getData()
 
-    stack = []
-    nodesToBeCopied.forEach (node)=>
-      stack.push (cb) =>
-        sourceItem = node.getData()
-        FSItem.copy sourceItem, targetItem, (err, response)=>
-          if err then @notify null, null, err
-          else
-            cb err, node
+    copiedNodes = []
+    results = nodesToBeCopied.map (node) ->
+      sourceItem = node.getData()
+      FSItem.copy(sourceItem, targetItem).then ->
+        copiedNodes.push node
 
-    callback or= (error, result) =>
-      @notify "#{result.length} item#{if result.length > 1 then 's' else ''} copied!", "success"
+    Promise.all(results).then =>
+      @notify "#{copiedNodes.length} item#{if copiedNodes.length > 1 then 's' else ''} copied!", "success"
       @refreshFolder targetNodeView
 
-    async.parallel stack, callback
+    .catch (err) =>
+      @notify null, null, err
+
+    .nodeify callback
 
   duplicateFiles:(nodes, callback)->
 
-    stack = []
-    nodes.forEach (node)=>
-      stack.push (cb) =>
-        sourceItem = node.getData()
-        targetItem = @nodes[sourceItem.parentPath].getData()
-        FSItem.copy sourceItem, targetItem, (err, response)=>
-          if err then @notify null, null, err
-          else
-            cb err, node
+    duplicatedNodes = []
+    results = nodes.map (node) =>
+      sourceItem = node.getData()
+      targetItem = @nodes[sourceItem.parentPath].getData()
+      FSItem.copy(sourceItem, targetItem).then ->
+        duplicatedNodes.push node
 
-    callback or= (error, result) =>
-      @notify "#{result.length} item#{if result.length > 1 then 's' else ''} duplicated!", "success"
+    Promise.all(results).then =>
+      @notify "#{duplicatedNodes.length} item#{if duplicatedNodes.length > 1 then 's' else ''} duplicated!", "success"
       parentNodes = []
-      result.forEach (node)=>
+      duplicatedNodes.forEach (node)=>
         parentNode = @nodes[node.getData().parentPath]
         parentNodes.push parentNode unless parentNode in parentNodes
       @refreshFolder parentNode for parentNode in parentNodes
 
-    async.parallel stack, callback
+    .catch (err) =>
+      @notify null, null, err
+
+    .nodeify callback
 
   compressFiles:(nodeView, type)->
 

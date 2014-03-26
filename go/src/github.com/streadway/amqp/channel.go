@@ -50,6 +50,10 @@ type Channel struct {
 	// publishings or undeliverable messages on immediate publishings.
 	returns []chan Return
 
+	// Listeners for when the server notifies the client that
+	// a consumer has been cancelled.
+	cancels []chan string
+
 	// Listeners for Acks/Nacks when the channel is in Confirm mode
 	// the value is the sequentially increasing delivery tag
 	// starting at 1 immediately after the Confirm
@@ -119,6 +123,10 @@ func (me *Channel) shutdown(e *Error) {
 		}
 
 		for _, c := range me.returns {
+			close(c)
+		}
+
+		for _, c := range me.cancels {
 			close(c)
 		}
 
@@ -262,6 +270,12 @@ func (me *Channel) dispatch(msg message) {
 			c <- m.Active
 		}
 		me.send(me, &channelFlowOk{Active: m.Active})
+
+	case *basicCancel:
+		for _, c := range me.cancels {
+			c <- m.ConsumerTag
+		}
+		me.send(me, &basicCancelOk{ConsumerTag: m.ConsumerTag})
 
 	case *basicReturn:
 		ret := newReturn(*m)
@@ -492,6 +506,27 @@ func (me *Channel) NotifyReturn(c chan Return) chan Return {
 }
 
 /*
+NotifyCancel registers a listener for basic.cancel methods.  These can be sent
+from the server when a queue is deleted or when consuming from a mirrored queue
+where the master has just failed (and was moved to another node)
+
+The subscription tag is returned to the listener.
+
+*/
+func (me *Channel) NotifyCancel(c chan string) chan string {
+	me.m.Lock()
+	defer me.m.Unlock()
+
+	if me.noNotify {
+		close(c)
+	} else {
+		me.cancels = append(me.cancels, c)
+	}
+
+	return c
+}
+
+/*
 NotifyConfirm registers a listener chan for reliable publishing to receive
 basic.ack and basic.nack messages.  These messages will be sent by the server
 for every publish after Channel.Confirm has been called.  The value sent on
@@ -501,7 +536,8 @@ resends on basic.nack.
 
 There will be either at most one Ack or Nack delivered for every Publishing.
 
-The order of acknowledgments is not bound to the order of publishings.
+Acknowledgments will be received in the order of delivery from the
+NotifyConfirm channels even if the server acknowledges them out of order.
 
 The capacity of the ack and nack channels must be at least as large as the
 number of outstanding publishings.  Not having enough buffered chans will
@@ -739,11 +775,55 @@ func (me *Channel) QueueDeclare(name string, durable, autoDelete, exclusive, noW
 			Messages:  int(res.MessageCount),
 			Consumers: int(res.ConsumerCount),
 		}, nil
-	} else {
+	}
+
+	return Queue{
+		Name: name,
+	}, nil
+
+	panic("unreachable")
+}
+
+/*
+
+QueueDeclarePassive is functionally and parametrically equivalent to
+QueueDeclare, except that it sets the "passive" attribute to true. A passive
+queue is assumed by RabbitMQ to already exist, and attempting to connect to a
+non-existent queue will cause RabbitMQ to throw an exception. This function
+can be used to test for the existence of a queue.
+
+*/
+func (me *Channel) QueueDeclarePassive(name string, durable, autoDelete, exclusive, noWait bool, args Table) (Queue, error) {
+	if err := args.Validate(); err != nil {
+		return Queue{}, err
+	}
+
+	req := &queueDeclare{
+		Queue:      name,
+		Passive:    true,
+		Durable:    durable,
+		AutoDelete: autoDelete,
+		Exclusive:  exclusive,
+		NoWait:     noWait,
+		Arguments:  args,
+	}
+	res := &queueDeclareOk{}
+
+	if err := me.call(req, res); err != nil {
+		return Queue{}, err
+	}
+
+	if req.wait() {
 		return Queue{
-			Name: name,
+			Name:      res.Queue,
+			Messages:  int(res.MessageCount),
+			Consumers: int(res.ConsumerCount),
 		}, nil
 	}
+
+	return Queue{
+		Name: name,
+	}, nil
 
 	panic("unreachable")
 }
@@ -786,8 +866,8 @@ QueueBind binds an exchange to a queue so that publishings to the exchange will
 be routed to the queue when the publishing routing key matches the binding
 routing key.
 
-  QueueBind("pagers", "log", "alert", false, nil)
-  QueueBind("emails", "log", "info", false, nil)
+  QueueBind("pagers", "alert", "log", false, nil)
+  QueueBind("emails", "info", "log", false, nil)
 
   Delivery       Exchange  Key       Queue
   -----------------------------------------------
@@ -803,9 +883,9 @@ In the case that multiple bindings may cause the message to be routed to the
 same queue, the server will only route the publishing once.  This is possible
 with topic exchanges.
 
-  QueueBind("pagers", "amq.topic", "alert", false, nil)
-  QueueBind("emails", "amq.topic", "info", false, nil)
-  QueueBind("emails", "amq.topic", "#", false, nil) // match everything
+  QueueBind("pagers", "alert", "amq.topic", false, nil)
+  QueueBind("emails", "info", "amq.topic", false, nil)
+  QueueBind("emails", "#", "amq.topic", false, nil) // match everything
 
   Delivery       Exchange        Key       Queue
   -----------------------------------------------
@@ -1010,7 +1090,7 @@ func (me *Channel) Consume(queue, consumer string, autoAck, exclusive, noLocal, 
 }
 
 /*
-ExchangeDelcare declares an exchange on the server. If the exchange does not
+ExchangeDeclare declares an exchange on the server. If the exchange does not
 already exist, the server will create it.  If the exchange exists, the server
 verifies that it is of the provided type, durability and auto-delete flags.
 
@@ -1071,6 +1151,35 @@ func (me *Channel) ExchangeDeclare(name, kind string, durable, autoDelete, inter
 			Exchange:   name,
 			Type:       kind,
 			Passive:    false,
+			Durable:    durable,
+			AutoDelete: autoDelete,
+			Internal:   internal,
+			NoWait:     noWait,
+			Arguments:  args,
+		},
+		&exchangeDeclareOk{},
+	)
+}
+
+/*
+
+ExchangeDeclarePassive is functionally and parametrically equivalent to
+ExchangeDeclare, except that it sets the "passive" attribute to true. A passive
+exchange is assumed by RabbitMQ to already exist, and attempting to connect to a
+non-existent exchange will cause RabbitMQ to throw an exception. This function
+can be used to detect the existence of an exchange.
+
+*/
+func (me *Channel) ExchangeDeclarePassive(name, kind string, durable, autoDelete, internal, noWait bool, args Table) error {
+	if err := args.Validate(); err != nil {
+		return err
+	}
+
+	return me.call(
+		&exchangeDeclare{
+			Exchange:   name,
+			Type:       kind,
+			Passive:    true,
 			Durable:    durable,
 			AutoDelete: autoDelete,
 			Internal:   internal,
@@ -1216,12 +1325,12 @@ accounted for.
 
 */
 func (me *Channel) Publish(exchange, key string, mandatory, immediate bool, msg Publishing) error {
-	me.m.Lock()
-	defer me.m.Unlock()
-
 	if err := msg.Headers.Validate(); err != nil {
 		return err
 	}
+
+	me.m.Lock()
+	defer me.m.Unlock()
 
 	if err := me.send(me, &basicPublish{
 		Exchange:   exchange,

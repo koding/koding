@@ -14,7 +14,7 @@ class ConversationStarterButton extends KDButtonView
     return  unless KD.isLoggedIn()
 
     conversationStarter = new ConversationStarter
-    contextMenu   = new JContextMenu
+    contextMenu   = new KDContextMenu
       menuWidth   : 200
       delegate    : @
       x           : @getX() - 206

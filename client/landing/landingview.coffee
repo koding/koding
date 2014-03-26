@@ -1,4 +1,5 @@
 class LandingView extends JView
+
   constructor: (options = {}, data) ->
     options.cssClass = KD.utils.curry "landing-view", options.cssClass
     super options, data
@@ -35,10 +36,8 @@ class LandingView extends JView
         diameter  : 24
       callback    : =>
         @emailAddressSubmit.hideLoader()
-        if @emailAddressInput.getValue() is ""
-          return
-        else
-          @requireLogin @bound "submitEmailAddresses"
+        return  if @emailAddressInput.getValue() is ""
+        @requireLogin @bound "submitEmailAddresses"
 
     @invitationSentButton = new KDButtonView
       style : "invitations-sent hidden"
@@ -91,11 +90,13 @@ class LandingView extends JView
     fails = []
 
     @emailAddressSubmit.showLoader()
-    async.map emails, (email, callback) ->
-      KD.remote.api.JReferrableEmail.invite email, (err) ->
-        fails.push email if err
-        callback()
-    , =>
+    Promise.all(
+      emails.map (email) ->
+        new Promise (resolve, reject)->
+          KD.remote.api.JReferrableEmail.invite email, (err) ->
+            fails.push email if err
+            resolve()
+    ).then =>
       @errorMessage.hide()
       @emailAddressSubmit.hideLoader()
 

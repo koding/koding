@@ -135,7 +135,7 @@ class OnboardingItemView extends KDView
     $("body").removeClass "noscroll"
 
 
-class OnboardingContextMenu extends JContextMenu
+class OnboardingContextMenu extends KDContextMenu
 
   childAppended: ->
     KD.utils.defer => @positionContextMenu()
