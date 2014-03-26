@@ -74,7 +74,7 @@ func PostMessage(u *url.URL, h http.Header, req *models.Channel) (int, http.Head
 	// }
 
 	// req.Id = id
-	// // TODO - check if the user is member of the channnel
+	// // TODO - check if the user is member of the channel
 
 	// if err := req.Fetch(); err != nil {
 	// 	if err == gorm.RecordNotFound {
