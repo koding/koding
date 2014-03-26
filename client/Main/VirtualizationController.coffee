@@ -91,6 +91,8 @@ class VirtualizationController extends KDController
         @deleteVmByHostname hostnameAlias, (err) ->
           return if KD.showError err
           new KDNotificationView title:'Successfully destroyed!'
+          appStorage = KD.getSingleton('appStorageController').storage 'Finder', '1.1.1.1'
+          appStorage.unsetKey "mountedVM", (err)-> return if KD.showError err
         modal.destroy()
     , vmPrefix
 
