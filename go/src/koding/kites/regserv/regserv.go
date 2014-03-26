@@ -4,7 +4,6 @@ import (
 	"flag"
 	"io/ioutil"
 	"log"
-	"net/url"
 	"time"
 
 	"koding/db/mongodb/modelhelper"
@@ -14,8 +13,6 @@ import (
 	kiteconfig "github.com/koding/kite/config"
 	"github.com/koding/kite/regserv"
 )
-
-const KodingUser = "koding"
 
 var (
 	profile = flag.String("c", "", "Configuration profile")
@@ -45,20 +42,11 @@ func main() {
 		log.Fatalln(err.Error())
 	}
 
-	kontrolURL, err := url.Parse(kodingConf.Client.RuntimeOptions.NewKontrol.Url)
-	if err != nil {
-		log.Fatalln(err.Error())
-	}
-
-	kiteConf := kiteconfig.New()
-	kiteConf.Username = KodingUser
+	kiteConf := kiteconfig.MustGet()
 	kiteConf.Environment = kodingConf.Environment
 	kiteConf.Region = *region
 	kiteConf.IP = *ip
 	kiteConf.Port = *port
-	kiteConf.KontrolURL = kontrolURL
-	kiteConf.KontrolUser = KodingUser
-	kiteConf.KontrolKey = string(pubKey)
 
 	s := regserv.New(kiteConf, string(pubKey), string(privKey))
 
