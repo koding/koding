@@ -386,7 +386,7 @@ class ProfileView extends JView
         if KD.isMine @memberData
 
           @avatarMenu?.destroy()
-          @avatarMenu = new JContextMenu
+          @avatarMenu = new KDContextMenu
             menuWidth: 312
             cssClass : "avatar-menu dark"
             delegate : @avatar

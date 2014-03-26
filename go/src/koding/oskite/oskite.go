@@ -218,7 +218,7 @@ func (o *Oskite) runNewKite() {
 	o.vosMethod(k, "s3.store", s3StoreNew)
 	o.vosMethod(k, "s3.delete", s3DeleteNew)
 
-	k.DisableConcurrency() // needed for webterm.connect
+	k.DisableConcurrency()
 	k.Start()
 
 	// TODO: remove this later, this is needed in order to reinitiliaze the logger package
