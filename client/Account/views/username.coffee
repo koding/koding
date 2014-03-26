@@ -203,7 +203,7 @@ class AccountEditUsername extends JView
           left : @avatar.getX() - 8
 
         @avatarMenu?.destroy()
-        @avatarMenu = new JContextMenu
+        @avatarMenu = new KDContextMenu
           menuWidth  : 312
           cssClass   : "avatar-menu dark"
           delegate   : @avatar

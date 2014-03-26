@@ -24,7 +24,7 @@ class NFinderContextMenuController extends KDController
     items = @getMenuItems fileViews
     [fileView] = fileViews
     if items
-      @contextMenu = new JContextMenu
+      @contextMenu = new KDContextMenu
         event    : event
         delegate : fileView
         cssClass : 'finder'

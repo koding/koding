@@ -21,7 +21,7 @@ class HeaderNavigationController extends KDController
       click     : (event)=>
         offset = @activeFacet.$().offset()
         event.preventDefault()
-        @contextMenu = new JContextMenu
+        @contextMenu = new KDContextMenu
           event       : event
           delegate    : mainView
           x           : offset.left + @activeFacet.getWidth() - 166

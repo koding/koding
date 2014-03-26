@@ -49,7 +49,7 @@ class MainTabHandleHolder extends KDView
       KD.getSingleton("appManager").open "StartTab"
     else
       offset = @plusHandle.$().offset()
-      contextMenu = new JContextMenu
+      contextMenu = new KDContextMenu
         event       : event
         delegate    : @plusHandle
         x           : offset.left - 133
