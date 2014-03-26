@@ -63,24 +63,28 @@ func (i *Interaction) Create() error {
 func (i *Interaction) Delete() error {
 	if err := bongo.B.DB.
 		Where("message_id = ? and account_id = ?", i.MessageId, i.AccountId).
-		Delete(i.Self()).Error; err != nil {
+		Delete(NewInteraction()).Error; err != nil {
 		return err
 	}
 	return nil
 }
 
 func (c *Interaction) List(interactionType string) ([]int64, error) {
-	var interations []int64
+	var interactions []int64
 
 	if c.MessageId == 0 {
-		return interations, errors.New("ChannelId is not set")
+		return interactions, errors.New("ChannelId is not set")
 	}
 
 	if err := bongo.B.DB.Table(c.TableName()).
 		Where("message_id = ?", c.MessageId).
-		Pluck("account_id", &interations).
+		Pluck("account_id", &interactions).
 		Error; err != nil {
-		return interations, nil
+		return nil, err
+	}
+
+	if interactions == nil {
+		return make([]int64, 0), nil
 	}
 
 	// change this part to use c.m.some
@@ -93,10 +97,10 @@ func (c *Interaction) List(interactionType string) ([]int64, error) {
 	// 	"account_id": true,
 	// }
 
-	// err := c.m.Some(c, &interations, selector, nil, pluck)
+	// err := c.m.Some(c, &interactions, selector, nil, pluck)
 	// if err != nil && err != gorm.RecordNotFound {
 	// 	return nil, err
 	// }
 
-	return interations, nil
+	return interactions, nil
 }
