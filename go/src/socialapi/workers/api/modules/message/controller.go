@@ -49,6 +49,13 @@ func Delete(u *url.URL, h http.Header, req *models.ChannelMessage) (int, http.He
 
 	req.Id = id
 
+	if err := req.Fetch(); err != nil {
+		if err == gorm.RecordNotFound {
+			return helpers.NewNotFoundResponse()
+		}
+		return helpers.NewBadRequestResponse()
+	}
+
 	if err := req.Delete(); err != nil {
 		return helpers.NewBadRequestResponse()
 	}
@@ -63,10 +70,19 @@ func Update(u *url.URL, h http.Header, req *models.ChannelMessage) (int, http.He
 	}
 	req.Id = id
 
+	body := req.Body
+	if err := req.Fetch(); err != nil {
+		if err == gorm.RecordNotFound {
+			return helpers.NewNotFoundResponse()
+		}
+		return helpers.NewBadRequestResponse()
+	}
+
 	if req.Id == 0 {
 		return helpers.NewBadRequestResponse()
 	}
 
+	req.Body = body
 	if err := req.Update(); err != nil {
 		return helpers.NewBadRequestResponse()
 	}
