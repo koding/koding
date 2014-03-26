@@ -595,6 +595,11 @@ run =({configFile})->
   compileGoBinaries configFile, ->
     invoke 'kontrolDaemon'                    if config.runKontrol
     invoke 'kontrolApi'                       if config.runKontrol
+
+    invoke 'kontrolKite'                      if config.runKontrol
+    invoke 'proxyKite'                        if config.runKontrol
+    invoke 'regservKite'                      if config.runKontrol
+
     invoke 'goBroker'                         if config.runGoBroker
     invoke 'goBrokerKite'                     if config.runGoBrokerKite
     invoke 'premiumBroker'                    if config.runPremiumBroker

@@ -66,7 +66,7 @@ class OsKite extends KDKite
         if update.message is 'FINISHED'
           @recentState?.state = 'RUNNING'
     else
-      Promise.cast true
+      Promise.resolve()
 
   vmOff: ->
     if not @recentState? or @recentState.state is 'RUNNING'
@@ -75,11 +75,12 @@ class OsKite extends KDKite
         if update.message is 'FINISHED'
           @recentState?.state = 'STOPPED'
     else
-      Promise.cast true
+      Promise.resolve()
 
   fsExists: (options) ->
     @fsGetInfo(options)
 
     .then (result) -> return result
 
+  @constructors['oskite'] = this
   @constructors['os'] = this

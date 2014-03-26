@@ -228,6 +228,25 @@ class VirtualizationController extends KDController
     (KD.getSingleton 'kiteController')
       .getKite "#{ type }-#{ region }", hostnameAlias, type
 
+  createNewKite: (vm, name) ->
+    (KD.getSingleton 'kontrol').fetchKite({ name }).then (kite) ->
+      kite.connect()
+      return kite
+
+  createNewKites: (vm) ->
+    hostname = @getKiteHostname vm
+    Promise.all [
+      @createNewKite vm, 'oskite'
+      # @createNewKite vm, 'terminalkite'
+    ]
+
+  registerNewKites: (vms) ->
+    Promise.all(@createNewKites vm for vm in vms).then (kites) ->
+
+      debugger
+      
+      return kites
+
   registerKite: (vm) ->
 
     alias         = vm.hostnameAlias
@@ -304,20 +323,7 @@ class VirtualizationController extends KDController
 
   handleFetchedVms: (vms, callback) ->
     if KD.useNewKites
-      Promise.cast(vms).map (vm) =>
-
-        hostname = @getKiteHostname vm
-
-        @getOsKite({ hostname, region: vm.region }).then (os) =>
-
-          options   =
-            vmName  : vm.hostnameAlias
-            kite    : os
-
-          os.ready().then =>
-            @kites[vm.hostnameAlias] = new VM options
-
-      .nodeify callback
+      @registerNewKites vms
     else
       @registerKite vm  for vm in vms
       KD.utils.defer -> callback null
