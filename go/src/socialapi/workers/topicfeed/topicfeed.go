@@ -73,7 +73,7 @@ func initBongo(c *config.Config) {
 	}
 
 	broker := broker.New(bConf, log)
-	Bongo = bongo.New(broker, db.DB)
+	Bongo = bongo.New(broker, db.DB, log)
 	Bongo.Connect()
 }
 
