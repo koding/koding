@@ -19,7 +19,6 @@ class ActivityAppView extends KDScrollView
 
     super options, data
 
-    # FIXME: disable live updates - SY
     {entryPoint}      = KD.config
     {
       windowController
@@ -32,31 +31,25 @@ class ActivityAppView extends KDScrollView
     @appStorage.setValue 'liveUpdates', off
 
     # main components
+    @sidebar           = new KDCustomScrollView tagName : 'aside'
     @feedWrapper       = new ActivityListContainer
     @inputWidget       = new ActivityInputWidget
-    # @referalBox        = new ReferalBox
     @topWidgetWrapper  = new KDCustomHTMLView
     @leftWidgetWrapper = new KDCustomHTMLView
-    @groupListBox      = new UserGroupList
-    @topicsBox         = new ActiveTopics
-    @usersBox          = new ActiveUsers
-
-    # TODO : if not on private group DO NOT create those ~EA
-    # group components
-    @groupCoverView   = new FeedCoverPhotoView
-    @groupDescription = new GroupDescription
-    @groupMembers     = new GroupMembers
-
-
+    @groupCoverView    = new FeedCoverPhotoView
 
     widgetController.showWidgets [
       { view: @topWidgetWrapper,  key: 'ActivityTop'  }
       { view: @leftWidgetWrapper, key: 'ActivityLeft' }
     ]
 
+    @sidebar.once 'viewAppended', =>
+      @sidebar.addSubView @leftWidgetWrapper
+
     @inputWidget.on 'ActivitySubmitted', @bound 'activitySubmitted'
     mainController.on 'AccountChanged', @bound "decorate"
     mainController.on 'JoinedGroup', => @inputWidget.show()
+
     @feedWrapper.ready =>
       @activityHeader  = @feedWrapper.controller.activityHeader
       {@filterWarning} = @feedWrapper
@@ -68,27 +61,26 @@ class ActivityAppView extends KDScrollView
 
   viewAppended: ->
 
-    appendAside = (view)=> @addSubView view, 'aside'
-
     JView::viewAppended.call this
 
     @decorate()
     @setLazyLoader 200
 
-    # appendAside @referalBox       if KD.isLoggedIn() and not isPrivateGroup()
-    appendAside @groupDescription if isPrivateGroup()
-    appendAside @groupMembers     if isPrivateGroup() and hasListPermissions()
-    appendAside @groupListBox     if isKoding()
-    appendAside @topicsBox
-    appendAside @usersBox         if canListMembers()
+    aa = (v)=> @sidebar.wrapper.addSubView v
+
+    # temp items
+    aa new DummyTopics
+    aa new DummyTopics
+    aa new DummyUsers
+    aa new DummyUsers
+    aa new DummyUsers
+
 
 
   pistachio:->
     """
     {{> @groupCoverView}}
-    <aside>
-      {{> @leftWidgetWrapper}}
-    </aside>
+    {{> @sidebar}}
     <main>
       {{> @inputWidget}}
       {{> @feedWrapper}}
@@ -129,26 +121,3 @@ class ActivityAppView extends KDScrollView
 
 
   unsetTopicTag: -> @inputWidget.input.setDefaultTokens tags: []
-
-
-  # ticker: if we ever need to put it back it's here. at least for a while.- SY
-    # @tickerBox        = new ActivityTicker
-
-    # calculateTopOffset = =>
-    #   KD.utils.wait 3000, =>
-    #     @topOffset = @tickerBox.$().position().top
-
-
-    # @tickerBox.once 'viewAppended', =>
-    #   calculateTopOffset()
-    #   windowController.on 'ScrollHappened', =>
-    #     # sanity check
-    #     calculateTopOffset()  if @topOffset < 200
-    #     if document.documentElement.scrollTop > @topOffset
-    #     then @tickerBox.setClass 'fixed'
-    #     else @tickerBox.unsetClass 'fixed'
-
-    # @groupListBox.on 'TopOffsetShouldBeFixed', calculateTopOffset
-
-
-    # @sideBlock.addSubView @tickerBox
