@@ -9,16 +9,16 @@ import (
 
 type MessageReply struct {
 	// unique identifier of the MessageReply
-	Id int64
+	Id int64 `json:"id"`
 
 	// Id of the interacted message
-	MessageId int64
+	MessageId int64 `json:"messageId"`
 
 	// Id of the reply
-	ReplyId int64
+	ReplyId int64 `json:"replyId"`
 
 	// Creation of the MessageReply
-	CreatedAt time.Time
+	CreatedAt time.Time `json:"createdAt"`
 }
 
 func (m *MessageReply) GetId() int64 {
