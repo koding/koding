@@ -223,19 +223,25 @@ func vmResizeDisk(vos *virt.VOS) (interface{}, error) {
 		return nil, err
 	}
 
-	// errors are neglected by design
-	for step := range vos.VM.Unprepare(true) {
-		fmt.Println(step.Message, step.Err)
+	prepared, err := isVmPrepared(vos.VM)
+	if err != nil {
+		return nil, err
 	}
 
-	if err := vos.VM.ResizeRBD(); err != nil {
-		return nil, err
+	if prepared {
+		// errors are neglected by design
+		for _ = range vos.VM.Unprepare(true) {
+		}
 	}
 
 	for step := range vos.VM.Prepare(false) {
 		if step.Err != nil {
 			return nil, step.Err
 		}
+	}
+
+	if err := vos.VM.ResizeRBD(); err != nil {
+		return nil, err
 	}
 
 	if err := vos.VM.Start(); err != nil {

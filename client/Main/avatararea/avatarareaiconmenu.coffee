@@ -25,7 +25,24 @@ class AvatarAreaIconMenu extends JView
         title    : 'Notifications'
       delegate   : @notificationsPopup
 
-    {mainController} = KD.singletons
+    {mainController, troubleshoot} = KD.singletons
+    troubleshoot.on "userIdle", =>
+      idleModal = new KDModalView
+        title          : "You were away from Koding for a while."
+        content        : "Your dev VMs might have been turned off. Before you progress \
+                          please check system status by clicking Resume."
+        overlay        : yes
+        buttons        :
+          Resume       :
+            style      : "modal-clean-green"
+            callback   : ->
+              idleModal.destroy()
+              new TroubleshootModal
+          Close        :
+            style      : "modal-cancel"
+            callback   : -> idleModal.destroy()
+
+
     mainController.ready =>
       storage = KD.singletons.localStorageController.storage('HelpController')
       unless storage.getValue 'shown'

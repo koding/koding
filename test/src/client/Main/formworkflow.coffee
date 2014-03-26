@@ -8,11 +8,11 @@ make = ->
   fw
 
 module.exports = [
-  -> 
+  ->
     results = []
     test.call make() for test in tests
     results = null
-    console.log "FormWorkflow tests passed"
+    log "FormWorkflow tests passed"
     yes
 ]
 
@@ -22,28 +22,28 @@ tests = [
       'foo'
       'bar'
     ]
-    
+
     @collectData { foo: 42 }
-    
+
     assert not @isSatisfied()
-    
+
     @collectData { bar: 0 }
-    
+
     assert @isSatisfied()
- 
-    assert results.length is 1  
+
+    assert results.length is 1
   ->
     @requireData @all(
       'foo'
       'bar'
     )
-    
+
     @collectData { foo: 42 }
-    
+
     assert not @isSatisfied()
-    
+
     @collectData { bar: 0 }
-    
+
     assert @isSatisfied()
 
     assert results.length is 2
@@ -53,15 +53,15 @@ tests = [
       'foo'
       'bar'
     )
-    
+
     @collectData { foo: 42 }
-    
+
     assert @isSatisfied()
 
     assert results.length is 3
-    
+
     @collectData { bar: 0 }
-    
+
     assert @isSatisfied()
 
     assert results.length is 4
@@ -81,13 +81,13 @@ tests = [
       'bar'
       @any('baz', 'qux')
     )
-    
+
     @collectData { foo: 42 }
-    
+
     assert not @isSatisfied()
-    
+
     @collectData { bar: 0 }
-    
+
     assert not @isSatisfied()
 
     @collectData { baz: 16 }

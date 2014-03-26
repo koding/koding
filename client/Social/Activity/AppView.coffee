@@ -77,7 +77,7 @@ class ActivityAppView extends KDScrollView
 
     appendAside @referalBox       if KD.isLoggedIn() and not isPrivateGroup()
     appendAside @groupDescription if isPrivateGroup()
-    appendAside @groupMembers     if isPrivateGroup() and hasListPermissions()
+    appendAside @groupMembers     if isPrivateGroup() and canListMembers()
     appendAside @groupListBox     if isKoding()
     appendAside @topicsBox
     appendAside @usersBox         if canListMembers()

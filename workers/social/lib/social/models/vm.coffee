@@ -605,15 +605,19 @@ module.exports = class JVM extends Module
         dash queue = [
           ->
             subscription.creditPack tag: "vm", (err) ->
-              errs.push new KodingError "VM usage couldn't be credited"  if err
-              console.warn "VM cannot be credited to user #{account.profile.nickname}: #{err}"  if err
+              if err
+                console.error "VM credit error: ",  err
+                errs.push new KodingError "VM usage couldn't be credited"
+                console.warn "VM cannot be credited to user #{account.profile.nickname}: #{err}"
               queue.fin()
         ,
           =>
             return queue.fin()  unless @alwaysOn
             subscription.creditPack tag: "alwayson", (err) ->
-              errs.push new KodingError "Always On usage couldn't be credited"  if err
-              console.warn "Always On pack couldn't be credited to user #{account.profile.nickname}: #{err}"  if err
+              if err
+                console.error "Always on credit error: ", err
+                errs.push new KodingError "Always On usage couldn't be credited"
+                console.warn "Always On pack couldn't be credited to user #{account.profile.nickname}: #{err}"
               queue.fin()
         ], ->
           if errs.length

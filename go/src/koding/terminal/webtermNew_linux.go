@@ -1,6 +1,4 @@
-// +build linux
-
-package oskite
+package terminal
 
 import (
 	"bytes"

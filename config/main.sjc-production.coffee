@@ -69,6 +69,7 @@ module.exports =
   compileGo     : no
   buildClient   : yes
   runOsKite     : no
+  runTerminalKite: no
   runProxy      : no
   redis         : "172.16.3.13:6379"
   misc          :
@@ -214,6 +215,9 @@ module.exports =
           nicename      : 'Twitter'
         # bitbucket     :
         #   nicename    : 'BitBucket'
+      troubleshoot      :
+        idleTime        : 1000 * 60 * 60
+        externalUrl     : "https://s3.amazonaws.com/koding-ping/healthcheck.json"
   mq            :
     host        : '172.16.3.4'
     port        : 5672
@@ -384,6 +388,7 @@ module.exports =
   logLevel        :
     neo4jfeeder   : "info"
     oskite        : "info"
+    terminal      : "info"
     kontrolproxy  : "debug"
     kontroldaemon : "info"
     userpresence  : "info"
@@ -407,3 +412,5 @@ module.exports =
   sessionCookie :
     maxAge      : cookieMaxAge
     secure      : cookieSecure
+  troubleshoot    :
+    recipientEmail: "support@koding.com"
