@@ -184,7 +184,7 @@ func deleteChannelMessages(channels []models.Channel, data *models.ChannelMessag
 
 			cml := models.NewChannelMessageList()
 			selector := map[string]interface{}{
-				"mesage_id":  data.Id,
+				"message_id": data.Id,
 				"channel_id": channel.Id,
 			}
 
@@ -239,7 +239,7 @@ func getTopicDiff(channels []models.Channel, topics []string) map[string][]strin
 func (f *TopicFeedController) MessageDeleted(data *models.ChannelMessage) error {
 	cml := models.NewChannelMessageList()
 	selector := map[string]interface{}{
-		"mesage_id": data.Id,
+		"message_id": data.Id,
 	}
 
 	if err := cml.DeleteMessagesBySelector(selector); err != nil {
