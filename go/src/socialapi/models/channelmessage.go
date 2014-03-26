@@ -9,25 +9,25 @@ import (
 
 type ChannelMessage struct {
 	// unique identifier of the channel message
-	Id int64
+	Id int64 `json:"id"`
 
 	// Body of the mesage
-	Body string
+	Body string `json:"body"`
 
 	// type of the message
-	Type string
+	Type string `json:"type"`
 
 	// Creator of the channel message
-	AccountId int64
+	AccountId int64 `json:"accountId"`
 
 	// in which channel this message is created
-	InitialChannelId int64
+	InitialChannelId int64 `json:"initialChannelId"`
 
 	// Creation date of the message
-	CreatedAt time.Time
+	CreatedAt time.Time `json:"createdAt"`
 
 	// Modification date of the message
-	UpdatedAt time.Time
+	UpdatedAt time.Time `json:"updatedAt"`
 }
 
 func (c *ChannelMessage) AfterCreate() {
