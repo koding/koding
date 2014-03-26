@@ -1,6 +1,8 @@
 class ActivitySideView extends JView
 
-  constructor:(options={}, data)->
+  constructor:(options = {}, data)->
+
+    options.tagName = 'section'
 
     super options, data
 
@@ -24,10 +26,8 @@ class ActivitySideView extends JView
 
   pistachio:->
     """
-    <div class="right-block-box">
-      <h3>#{@getOption 'title'}{{> @showAllLink}}</h3>
-      {{> @tickerListView}}
-    </div>
+    <h3>#{@getOption 'title'}{{> @showAllLink}}</h3>
+    {{> @tickerListView}}
     """
 
 class UserGroupList extends ActivitySideView
@@ -54,6 +54,67 @@ class UserGroupList extends ActivitySideView
       if items.length - 1
         @parent.emit 'TopOffsetShouldBeFixed'
         @show()
+
+class DummyUsers extends ActivitySideView
+
+  skip = -3
+
+  constructor:(options={}, data)->
+
+    {entryPoint} = KD.config
+
+    if entryPoint?.type is "group" then group = entryPoint.slug else group = "koding"
+
+    @itemClass       = MembersListItemView
+    options.title    = if group is "koding" then "Active users" else "New Members"
+    options.cssClass = "active-users"
+
+    super options, data
+
+    @showAllLink = new KDCustomHTMLView
+      tagName : "a"
+      partial : "show all"
+      cssClass: "show-all-link hidden"
+      click   : (event) ->
+        KD.singletons.router.handleRoute "/Members"
+        KD.mixpanel "Show all members, click"
+    , data
+    KD.singletons.groupsController.ready =>
+      skip += 3
+      currentGroup = KD.singletons.groupsController.getCurrentGroup()
+      currentGroup.fetchNewestMembers {}, {limit : 3, skip}, @bound 'renderItems'
+
+
+class DummyTopics extends ActivitySideView
+
+  skip = -3
+
+  constructor:(options={}, data)->
+
+    @itemClass       = ActiveTopicItemView
+    options.title    = "Popular topics"
+    options.cssClass = "active-topics"
+
+    super options, data
+
+    {entryPoint} = KD.config
+    if entryPoint?.type is "group" then group = entryPoint.slug else group = "koding"
+
+    @showAllLink = new KDCustomHTMLView
+
+    skip += 3
+
+    KD.remote.api.JTag.some {group},
+      limit  : 3
+      skip   : skip
+      sort   : "counts.followers" : -1
+    , (err, topics)=>
+      if err or topics.length is 0
+        @hide()
+      else
+        @renderItems err, topics
+
+
 
 class ActiveUsers extends ActivitySideView
 
