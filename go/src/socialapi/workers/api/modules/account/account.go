@@ -38,6 +38,15 @@ func Follow(u *url.URL, h http.Header, req *models.Account) (int, http.Header, i
 	return helpers.NewOKResponse(cp)
 }
 
+func Register(u *url.URL, h http.Header, req *models.Account) (int, http.Header, interface{}, error) {
+
+	if err := req.FetchOrCreate(); err != nil {
+		return helpers.NewBadRequestResponse()
+	}
+
+	return helpers.NewOKResponse(req)
+}
+
 func Unfollow(u *url.URL, h http.Header, req *models.Account) (int, http.Header, interface{}, error) {
 	targetId, err := helpers.GetURIInt64(u, "id")
 	if err != nil {
