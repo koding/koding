@@ -103,8 +103,8 @@ func (c *Channel) Update() error {
 }
 
 func (c *Channel) Create() error {
-	if c.Name == "" || c.Group == "" {
-		return errors.New(fmt.Sprintf("Validation failed %s - %s", c.Name, c.Group))
+	if c.Name == "" || c.Group == "" || c.Type == "" {
+		return errors.New(fmt.Sprintf("Validation failed %s - %s", c.Name, c.Group, c.Group))
 	}
 
 	return bongo.B.Create(c)
