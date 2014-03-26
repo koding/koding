@@ -600,6 +600,8 @@ func (vm *VM) unmountOverlay() error {
 	return firstError
 }
 
+// ResizeRBD resizes the given VM's rbd image to the value written in
+// vm.DiskSizeInMB. It also resize the physical mount point and remounts it.
 func (vm *VM) ResizeRBD() error {
 	if out, err := exec.Command("/usr/bin/rbd", "resize", "--pool", VMPool, "--image", vm.String(), "--size", strconv.Itoa(vm.DiskSizeInMB)).CombinedOutput(); err != nil {
 		return commandError("rbd resize failed.", err, out)
@@ -607,6 +609,10 @@ func (vm *VM) ResizeRBD() error {
 
 	if out, err := exec.Command("/sbin/resize2fs", vm.RbdDevice()).CombinedOutput(); err != nil {
 		return commandError("resize2fs failed.", err, out)
+	}
+
+	if out, err := exec.Command("/bin/mount", "-o", "remount", vm.OverlayFile("")).CombinedOutput(); err != nil {
+		return commandError("remount failed.", err, out)
 	}
 
 	return nil
