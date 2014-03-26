@@ -2,23 +2,25 @@ package models
 
 import (
 	"errors"
+	"fmt"
 	"time"
 
+	"github.com/jinzhu/gorm"
 	"github.com/koding/bongo"
 )
 
 type ChannelMessageList struct {
 	// unique identifier of the channel message list
-	Id int64
+	Id int64 `json:"id"`
 
 	// Id of the channel
-	ChannelId int64
+	ChannelId int64 `json:"channelId"`
 
 	// Id of the message
-	MessageId int64
+	MessageId int64 `json:"messageId"`
 
 	// Addition date of the message to the channel
-	AddedAt time.Time
+	AddedAt time.Time `json:"addedAt"`
 }
 
 func (c *ChannelMessageList) BeforeCreate() {
