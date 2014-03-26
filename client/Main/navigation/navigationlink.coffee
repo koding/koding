@@ -69,46 +69,42 @@ class NavigationLink extends KDListItemView
 
     KD.utils.stopDOMEvent event
 
-    {type} = @getData()
-    items  = null
+    {type, path} = @getData()
 
-    log @name
-
-    unless KD.singletons.appManager.appControllers[NAMES[@name] or @name]
-      items = Open :
-        callback   : =>
-          contextMenu.destroy()
-          KD.singletons.router.handleRoute @getData().path
+    items = {}
+    items[@name] = disabled  : yes
 
     if @hasClass 'running'
-      items     or= {}
+
       items.Close = callback : =>
         contextMenu.destroy()
         @closeApp()
 
-    if type isnt 'persistent'
-      items      or= {}
+    else
+
+      items.Open = callback : ->
+        contextMenu.destroy()
+        KD.singletons.router.handleRoute path
+
+    unless type is 'persistent'
+
       items.Remove = callback : =>
         contextMenu.destroy()
-        @getDelegate().removeApp()
+        @getDelegate().removeApp this
 
-    return  unless items
-
-    contextMenu   = new JContextMenu
+    contextMenu   = new KDContextMenu
       cssClass    : 'dock'
       delegate    : this
       menuWidth   : 100
       y           : @getY() + 57
       x           : @getX() - 25
       arrow       :
-        margin    : 47
+        margin    : 35
         placement : 'top'
     , items
 
 
   closeApp:->
-
-    # temp fix - SY
 
     appManager = KD.singleton('appManager')
     router     = KD.singleton('router')
