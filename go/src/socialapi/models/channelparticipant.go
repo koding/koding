@@ -11,33 +11,33 @@ import (
 // in order not to fetch passive accounts
 type ChannelParticipant struct {
 	// unique identifier of the channel
-	Id int64
+	Id int64 `json:"id"`
 
 	// Id of the channel
-	ChannelId int64
+	ChannelId int64 `json:"channelId"`
 
 	// Id of the account
-	AccountId int64
+	AccountId int64 `json:"accountId"`
 
 	// Status of the participant in the channel
-	Status int
+	Status string `json:"status"`
 
 	// date of the user's last access to regarding channel
-	LastSeenAt time.Time
+	LastSeenAt time.Time `json:"lastSeenAt"`
 
 	// Creation date of the channel channel participant
-	CreatedAt time.Time
+	CreatedAt time.Time `json:"createdAt"`
 
 	// Modification date of the channel participant's status
-	UpdatedAt time.Time
+	UpdatedAt time.Time `json:"updatedAt"`
 }
 
 // here is why i did this not-so-good constants
 // https://code.google.com/p/go/issues/detail?id=359
 const (
-	ChannelParticipant_STATUS_ACTIVE int = iota
-	ChannelParticipant_STATUS_LEFT
-	ChannelParticipant_STATUS_REQUEST_PENDING
+	ChannelParticipant_STATUS_ACTIVE          = "active"
+	ChannelParticipant_STATUS_LEFT            = "left"
+	ChannelParticipant_STATUS_REQUEST_PENDING = "requestPending"
 )
 
 func NewChannelParticipant() *ChannelParticipant {
