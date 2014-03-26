@@ -230,6 +230,7 @@ class VirtualizationController extends KDController
 
   createNewKite: (vm, name) ->
     (KD.getSingleton 'kontrol').fetchKite({ name }).then (kite) ->
+      KD.utils.setPrototypeOf kite, KodingKite.constructors[name].prototype
       kite.connect()
       return kite
 
@@ -242,8 +243,6 @@ class VirtualizationController extends KDController
 
   registerNewKites: (vms) ->
     Promise.all(@createNewKites vm for vm in vms).then (kites) ->
-
-      debugger
       
       return kites
 

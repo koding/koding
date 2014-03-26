@@ -269,6 +269,7 @@ module.exports = [
   # NEW KITES (extending kite.js)
   "kite/kodingkite.coffee",
   "kite/kodingkontrol.coffee",
+  "kite/kites/oskite.coffee",
 
   # Virtualization CONTROLLER
   "VirtualizationController.coffee",
