@@ -145,9 +145,11 @@ app.get "/-/subscription/check/:kiteToken/:username", (req, res)->
         return res.send 401, "Kite Subscription Error - 2" if err
         kite.fetchPlans (err, plans)->
           subsIds = subs.map (sub)-> sub.planCode
+          userPlan = []
           for plan in plans
             if plan.planCode in subsIds
-              return res.send 200, plan.data
+              userPlan.push plan.data.tags
+          res.send 200, userPlan
 
 app.get "/-/8a51a0a07e3d456c0b00dc6ec12ad85c", require './__notify-users'
 
