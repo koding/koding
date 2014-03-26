@@ -10,7 +10,9 @@ import (
 
 type Account struct {
 	// unique id of the account
-	Id int64
+	Id int64 `json:"id"`
+	// old id of the account, which is coming from mongo
+	OldId string `json:"oldId"`
 }
 
 func NewAccount() *Account {
