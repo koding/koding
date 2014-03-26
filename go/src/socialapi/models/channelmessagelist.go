@@ -2,7 +2,6 @@ package models
 
 import (
 	"errors"
-	"fmt"
 	"time"
 
 	"github.com/jinzhu/gorm"
@@ -101,21 +100,22 @@ func (c *ChannelMessageList) List(q *Query) (*HistoryResponse, error) {
 	hr := NewHistoryResponse()
 	hr.MessageList = messageList
 
+	unreadCount := 0
 	cp := NewChannelParticipant()
 	cp.ChannelId = c.ChannelId
 	cp.AccountId = q.AccountId
 	err = cp.FetchParticipant()
-	if err != nil {
+	// we are forcing unread count to 0 if user is not a participant
+	// of the channel
+	if err != nil && err != gorm.RecordNotFound {
 		return nil, err
 	}
 
-	if cp.Id == 0 {
-		return nil, errors.New("Participant not found")
-	}
-
-	unreadCount, err := c.UnreadCount(cp)
-	if err != nil {
-		return nil, err
+	if err == nil {
+		unreadCount, err = c.UnreadCount(cp)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	hr.UnreadCount = unreadCount
@@ -197,7 +197,7 @@ func (c *ChannelMessageList) populateChannelMessages(channelMessages []ChannelMe
 func (c *ChannelMessageList) FetchMessageChannels(messageId int64) ([]Channel, error) {
 	var channelIds []int64
 	selector := map[string]interface{}{
-		"mesage_id": messageId,
+		"message_id": messageId,
 	}
 
 	pluck := map[string]interface{}{
