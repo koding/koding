@@ -14,14 +14,16 @@ import (
 // s := "naber #foo hede #bar dede gel # baz #123 #-`3sdf"
 // will find [foo, bar, 123]
 // will not find [' baz', '-`3sdf']
-// here is the regex -> (?m)(?:#)(\w+)(?: )
+// here is the regex -> (?m)(?:#)(\w+)
 var topicRegex = verbalexpressions.New().
 	Find("#").
 	BeginCapture().
 	Word().
 	EndCapture().
-	Find(" ").
 	Regex()
+
+// extend this regex with https://github.com/twitter/twitter-text-rb/blob/eacf388136891eb316f1c110da8898efb8b54a38/lib/twitter-text/regex.rb
+// to support all languages
 
 type Action func(*TopicFeedController, *models.ChannelMessage) error
 
