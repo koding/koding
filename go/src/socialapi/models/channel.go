@@ -11,37 +11,38 @@ import (
 
 type Channel struct {
 	// unique identifier of the channel
-	Id int64
+	Id int64 `json:"id"`
 
 	// Name of the channel
-	Name string
+	Name string `json:"name"`
 
 	// Creator of the channel
-	CreatorId int64
+	CreatorId int64 `json:"creatorId"`
 
 	// Name of the group which channel is belong to
-	Group string
+	Group string `json:"group"`
 
 	// Purpose of the channel
-	Purpose string
+	Purpose string `json:"purpose"`
 
 	// Secret key of the channel for event propagation purposes
 	// we can put this key into another table?
-	SecretKey string
+	SecretKey string `json:"secretKey"`
 
 	// Type of the channel
-	Type string
+	Type string `json:"type"`
 
 	// Privacy constant of the channel
-	Privacy string
+	Privacy string `json:"privacy"`
 
 	// Creation date of the channel
-	CreatedAt time.Time
+	CreatedAt time.Time `json:"createdAt"`
 
 	// Modification date of the channel
-	UpdatedAt time.Time
+	UpdatedAt time.Time `json:"updatedAt"`
 }
 
+// to-do check for allowed channels
 const (
 	// TYPES
 	Channel_TYPE_GROUP         = "group"
