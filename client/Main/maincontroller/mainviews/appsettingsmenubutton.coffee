@@ -57,7 +57,7 @@ class AppSettingsMenuButton extends KDButtonView
 
   createMenu: (event, menu) ->
     @offset = @$().offset()
-    @contextMenu = new JContextMenu
+    @contextMenu = new KDContextMenu
       cssClass    : "app-settings"
       delegate    : @
       x           : @offset.left - @menuWidth - 3

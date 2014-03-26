@@ -43,7 +43,7 @@ class NVMItemView extends NFileItemView
     currentPath = @getData().path
     width = 30 + currentPath.length * 3
 
-    contextMenu = new JContextMenu
+    contextMenu = new KDContextMenu
       menuWidth   : width
       delegate    : @changePathButton
       x           : offset.left - 106
