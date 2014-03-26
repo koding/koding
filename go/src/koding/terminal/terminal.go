@@ -144,7 +144,7 @@ func (t *Terminal) Run() {
 	t.registerMethod("webterm.getSessions", false, webtermGetSessions)
 
 	// register methods for new kite and start it
-	// t.runNewKite()
+	t.runNewKite()
 
 	log.Info("Terminal kite started. Go!")
 	t.Kite.Run()
