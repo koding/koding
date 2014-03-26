@@ -82,11 +82,11 @@ func Inject(mux *tigertonic.TrieServeMux) *tigertonic.TrieServeMux {
 	// tested
 	mux.Handle("POST", "/channel/{id}/message", handlerWrapper(message.Create, "channel-message-create"))
 
-	// list participants of the channnel
+	// list participants of the channel
 	// tested
 	mux.Handle("GET", "/channel/{id}/participant", handlerWrapper(participant.List, "participant-list"))
 
-	// add participant to the channnel
+	// add participant to the channel
 	//tested
 	mux.Handle("POST", "/channel/{id}/participant/{accountId}", handlerWrapper(participant.Add, "participant-list"))
 
@@ -96,6 +96,9 @@ func Inject(mux *tigertonic.TrieServeMux) *tigertonic.TrieServeMux {
 
 	// list messages of the channel
 	mux.Handle("GET", "/channel/{id}/history", handlerWrapper(messagelist.List, "channel-history-list"))
+
+	// register an account
+	mux.Handle("POST", "/account", handlerWrapper(account.Register, "account-create"))
 
 	// list channels of the account
 	mux.Handle("GET", "/account/{id}/channels", handlerWrapper(account.ListChannels, "account-channel-list"))
