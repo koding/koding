@@ -12,7 +12,7 @@ class ConversationSettingsButton extends KDButtonView
 
   click:->
     conversationSettings = new ConversationSettings
-    contextMenu   = new JContextMenu
+    contextMenu   = new KDContextMenu
       menuWidth   : 200
       delegate    : @
       x           : @getX() - 148
