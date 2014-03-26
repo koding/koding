@@ -1,9 +1,9 @@
 package models
 
 type ChannelMessageContainer struct {
-	Message      *ChannelMessage
-	Interactions map[string]*InteractionContainer
-	Replies      []*ChannelMessageContainer
+	Message      *ChannelMessage                  `json:"message"`
+	Interactions map[string]*InteractionContainer `json:"interactions"`
+	Replies      []*ChannelMessageContainer       `json:"replies"`
 }
 
 func NewChannelMessageContainer() *ChannelMessageContainer {
@@ -11,8 +11,8 @@ func NewChannelMessageContainer() *ChannelMessageContainer {
 }
 
 type InteractionContainer struct {
-	Actors       []int64
-	IsInteracted bool
+	Actors       []int64 `json:"actors"`
+	IsInteracted bool    `json:"isInteracted"`
 }
 
 func NewInteractionContainer() *InteractionContainer {
