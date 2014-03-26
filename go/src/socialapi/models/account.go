@@ -19,6 +19,17 @@ func NewAccount() *Account {
 	return &Account{}
 }
 
+func (a *Account) GetId() int64 {
+	return a.Id
+}
+
+func (a *Account) TableName() string {
+	return "account"
+}
+
+func (a *Account) Self() bongo.Modellable {
+	return a
+}
 func (a *Account) FetchChannels(q *Query) ([]Channel, error) {
 	cp := NewChannelParticipant()
 	// fetch channel ids
