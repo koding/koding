@@ -21,7 +21,7 @@ var (
 	profile = flag.String("c", "", "Configuration profile")
 	region  = flag.String("r", "", "Region")
 	ip      = flag.String("ip", "0.0.0.0", "Listen IP")
-	port    = flag.Int("port", 8080, "Port")
+	port    = flag.Int("port", 3998, "Port")
 )
 
 func main() {
