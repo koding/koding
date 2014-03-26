@@ -30,6 +30,41 @@ func (a *Account) TableName() string {
 func (a *Account) Self() bongo.Modellable {
 	return a
 }
+
+func (a *Account) One(selector map[string]interface{}) error {
+	return bongo.B.One(a, a, selector)
+}
+
+func (a *Account) FetchOrCreate() error {
+	if a.OldId == "" {
+		return errors.New("old id is not set")
+	}
+
+	selector := map[string]interface{}{
+		"old_id": a.OldId,
+	}
+
+	err := a.One(selector)
+	if err == gorm.RecordNotFound {
+		if err := a.Create(); err != nil {
+			return err
+		}
+		return nil
+	}
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (a *Account) Create() error {
+	if a.OldId == "" {
+		return errors.New("old id is not set")
+	}
+	return bongo.B.Create(a)
+}
+
 func (a *Account) FetchChannels(q *Query) ([]Channel, error) {
 	cp := NewChannelParticipant()
 	// fetch channel ids
