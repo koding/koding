@@ -34,6 +34,8 @@ class WebTermAppView extends JView
     {vmController} = KD.singletons
     vmController.on 'vm.progress.error', => notify cssClass : 'error'
 
+    @startTab.on "sessionSelected", ({vm, session}) => @createNewTab {vm, session, mode: 'resume'}
+
   initPane: (pane) ->
 
     return if pane.id of @initedPanes
@@ -223,7 +225,7 @@ class WebTermAppView extends JView
       tabHandleView : new KDCustomHTMLView
         tagName     : 'span'
         cssClass    : 'home'
-      view          : new TerminalStartTab
+      view          : @startTab = new TerminalStartTab
         tagName     : 'main'
         delegate    : this
       closable      : no
