@@ -1,5 +1,7 @@
 class StatusActivityItemView extends ActivityItemChild
+
   constructor:(options = {}, data={})->
+
     options.cssClass or= "activity-item status"
     options.tooltip  or=
       title            : "Status Update"
@@ -73,15 +75,15 @@ class StatusActivityItemView extends ActivityItemChild
 
   pistachio:->
     """
-      {{> @avatar}}
-      {{> @settingsButton}}
+    {{> @settingsButton}}
+    {{> @avatar}}
+    <div class='meta'>
       {{> @author}}
-      {{> @editWidgetWrapper}}
-      {article{@formatContent #(body)}}
-      {{> @embedBox}}
-      <footer>
-        {{> @actionLinks}}
-        {{> @timeAgoView}}
-      </footer>
-      {{> @commentBox}}
+      {{> @timeAgoView}} · San Francisco
+    </div>
+    {{> @editWidgetWrapper}}
+    {article{@formatContent #(body)}}
+    {{> @embedBox}}
+    {{> @actionLinks}}
+    {{> @commentBox}}
     """

@@ -36,12 +36,13 @@ resurrection.activity.styl
   overflow              visible
 
   > main
-    size                  689px, auto
-    kalc                  margin-right, 50% \- 122px
-    fr()
+    size                689px, auto
+    kalc                margin-left, \(\(100% \- 935px\)\/2\)\+250px
+    padding-left        40px
+    borderBox()
+    fl()
 
-    >.activity-input-widget
-      margin-left       80px
+    > .activity-input-widget
       margin-bottom     36px
       display           block
 
@@ -107,7 +108,6 @@ resurrection.activity.styl
 
     .activity-content
       size              auto, auto
-      margin            0 0 0 80px
       font-size         14px
       overflow          visible
 
@@ -182,86 +182,98 @@ resurrection.activity.styl
   > aside
     left                0
     top                 55px
-    padding             0 35px
-    bg                  color #ebebeb
-    size                280px 100%
-    border-right        1px solid #d5d5d5
-    abs()
+    size                270px 100%
+    kalc                height, (100% \- 55px)
+    kalc                margin-left, \(100% \- 935px\)\/2
+    borderBox()
+    fix()
 
-    > div
-      size              auto auto
-
-    .referal-box
-      margin-top        33px
-      color             #5b5b5b
+    .kdview.kdscrolltrack
+      bg                color, transparent
       overflow          visible
-      // display           none !important
+      .kdscrollthumb
+        bg              color, rgba(0,0,0,.1)
+        margin          0 4px
+        width           7px
+        rounded         6px
 
-      strong
-        color           #1aaf5d
-        font-size       26px
-        margin-bottom   5px
-        font-weight     300
-        display         inline-block
+    > main
+      width             250px
 
-      &:hover .hide
-        visible()
+      > section
+        size              auto, auto
+        margin            33px 0 0
 
-      .hide
-        bottom          0
-        right           20px
-        line-height     31px
-        font-size       14px
-        color           #999
-        z-index         3
-        hidden()
-        abs()
+        h3
+          display         block
+          font-size       14px
+          font-weight     400
+          color           logoBg
+          margin          0
+          padding         0 0 7px
+          border-bottom   1px solid #2eb398
+          letter-spacing  .2px
 
-      span.title
-        display         inline-block
-        color           logoBg
-        font-size       20px
+          .show-all-link
+            color         #a1a1a1
+            font-weight   200
+            font-size     12px
+            noTextDeco()
+            fr()
+
+
+    .active-users
+      .profile
+      .user-numbers
+        width           170px
+
+    .user-group-list
+      .kdlistitemview-activity-ticker-item
+        margin          0
+
+        figure
+          display         inline-block
+          size            30px 30px
+          margin          0 8px 0 1px
+          vertical-align  top
+          rounded         15px
+          bg              position, 50% 50%
+          bg              size cover
+        a
+          line-height    30px
+
+      .kdscrollview
+        height          auto
+        max-height      252px
+
+    .active-topics
+      h3
         margin-bottom   4px
-        noTextDeco()
-      a
-        color           logoBg
 
-      > p
-        overflow        hidden
-        width           auto
-        font-size       18px
-        line-height     1.4em
-        padding-bottom  14px
-        font-weight     300
-        borderBox()
+      .kdlistitemview-activity-ticker-item
+        margin          0
+        padding-top     9px
 
-      .progressbar-container
-        overflow            hidden
-        size                100% 31px
-        border              none
-        rounded             16px
-        margin-top          10px
-        gradient            #cfcece #cfcece
-        borderBox()
-        rel()
-        span
-          display           block
-          size              100% 100%
-          line-height       31px
-          font-size         14px
-          text-align        left
-          color             white
-          text-shadow       none
-          padding           0 20px
-          abs()
-        .bar
-          rounded           15px
-          gradient          logoBg logoBg
-          shadow            none
-          vendor            transition, width 400ms ease
-          overflow          hidden
-          z-index           3
-          abs()
+      .follow-btn
+        top             16px
+
+      .tag-info
+        line-height     19px
+        margin          6px 0 0
+
+        .avatarview
+          position      static
+          margin        0 1px 0
+          fl()
+
+        .total-following
+          margin        0 0 0 5px
+          font-size     12px
+          font-weight   200
+          color         #9a9a9a
+          fl()
+          &:first-child
+            margin      0
 
     .right-block-box
       size              auto, auto
@@ -365,107 +377,6 @@ resurrection.activity.styl
           color         #b5b5b5
           vendor        transition, opacity .4s ease
           abs()
-
-        &:hover
-          width         64px
-          background    #ebebeb
-          .button-title
-            right       4px
-            opacity     1
-
-        &.following-account
-        &.following-topic
-          border-color  #2eb398
-          .icon
-            r-sprite      activity, "following-check"
-          .button-title
-            color       #2eb398
-          &:hover
-            width       78px
-
-    .activity-ticker
-      &.fixed
-        top           55px
-        fix()
-
-      .kdscrollview
-        height        240px
-
-      .profile
-        display       inline
-
-      .avatarview
-        abs           50% 0 0
-        vendor        transform, translateY(-50%)
-
-      .action
-        a.ttag
-          font-weight 400
-          color       #3c4752
-          display     inline
-          width       auto
-
-    .active-users
-      .kdscrollview
-        height            auto
-        max-height        240px
-
-      .profile
-      .user-numbers
-        width           170px
-
-    .user-group-list
-      .kdlistitemview-activity-ticker-item
-        margin          0
-
-        figure
-          display         inline-block
-          size            30px 30px
-          margin          0 8px 0 1px
-          vertical-align  top
-          rounded         15px
-          bg              position, 50% 50%
-          bg              size cover
-        a
-          line-height    30px
-
-      .kdscrollview
-        height          auto
-        max-height      252px
-
-    .active-topics
-      h3
-        margin-bottom   4px
-
-      .kdscrollview
-        height          auto
-        max-height      252px
-
-      .kdlistitemview-activity-ticker-item
-        margin          0
-        padding-top     9px
-
-      .follow-btn
-        top             16px
-
-      .tag-info
-        line-height     19px
-        margin          6px 0 0
-
-        .avatarview
-          position      static
-          margin        0 1px 0
-          fl()
-
-        .total-following
-          margin        0 0 0 5px
-          font-size     12px
-          font-weight   200
-          color         #9a9a9a
-          fl()
-          &:first-child
-            margin      0
-
     .kdbuttonwithmenu-wrapper.ticker-settings-menu
         abs()
         top                 26px
@@ -611,7 +522,7 @@ span.collapsedtext
 
 .activity-item
   background      #fff
-  rounded         5px
+  rounded         6px
   overflow        visible
   position        relative
   margin          31px 0 11px 0
@@ -651,13 +562,33 @@ span.collapsedtext
     .chevron
       r-sprite    activity chevron-icon
 
-  .author-avatar
-    display       block
-    top           0
-    right         100%
-    margin        0 11px 0 0
-    borderBox()
+  > .meta
+    overflow        hidden
+    height          55px
+    top             20px
+    left            90px
+    color           rgba(0,0,0,.3)
+    font-size       12px
+    font-weight     400
     abs()
+
+
+    .profile
+    time
+      display       inline
+
+    .profile
+      color         #1aaf5d
+      font-size     14px
+      line-height   20px
+      font-weight   400
+      margin        10px 0 2px
+      display       block
+      noTextDeco()
+
+
+  .author-avatar
+    margin        20px 20px 12px
 
   .profile
   > article
@@ -672,14 +603,7 @@ span.collapsedtext
     overflow          auto
     max-height        400px
     line-height       22px
-    margin-bottom     16px
 
-  >.profile
-    color         #1aaf5d
-    font-weight   400
-    padding       18px 20px 5px
-    display       inline-block
-    noTextDeco()
 
   .edit-widget-wrapper
     margin        14px
@@ -710,34 +634,20 @@ span.collapsedtext
     &:not(.hidden) ~ .status-body
       display      none
 
-  footer
-    size          100%, 25px
+  .activity-actions
+    margin            0px 20px 13px
     borderBox()
-
-    time
-      width       auto
-      line-height 19px
-      font-size   12px
-      color       #dadcdd
-      padding     0 19px 0 0
-      fr()
-
-    .activity-actions
-      width       auto
-      padding     0 0 0 8px
-      fl()
 
     .action-link
       display         inline-block
       opacity         .9
       font-size       12px
+      line-height     20px
       color           #a6abb1
       noTextDeco()
 
     .action-container
-      size            auto 18px
-      margin          0 0 0 13px
-      fl()
+      margin-right    13px
 
       &.liked .action-link
         color         #2db66a
