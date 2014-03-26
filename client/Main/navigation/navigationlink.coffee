@@ -95,7 +95,8 @@ class NavigationLink extends KDListItemView
     contextMenu   = new KDContextMenu
       cssClass    : 'dock'
       delegate    : this
-      menuWidth   : 100
+      menuWidth   : 'auto'
+      menuMinWidth: 100
       y           : @getY() + 57
       x           : @getX() - 25
       arrow       :
