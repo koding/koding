@@ -108,14 +108,23 @@ func (f *RealtimeWorkerController) InteractionDeleted(data []byte) error {
 	return nil
 }
 
+// send message to the channel
 func (f *RealtimeWorkerController) MessageListSaved(data []byte) error {
-	fmt.Println("MessageListSaved")
+	cml, err := mapMessageToChannelMessageList(data)
+	if err != nil {
+		return err
+	}
+
+	err = f.sendChannelEvent(cml, "MessageAddedToChannel")
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
+// no operation for channel_message_list_updated event
 func (f *RealtimeWorkerController) MessageListUpdated(data []byte) error {
-	fmt.Println("MessageListUpdate")
-
 	return nil
 }
 
