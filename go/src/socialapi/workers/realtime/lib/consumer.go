@@ -2,8 +2,8 @@ package realtime
 
 import (
 	"fmt"
-	"koding/messaging/rabbitmq"
 	"socialapi/config"
+	"github.com/koding/rabbitmq"
 
 	"github.com/streadway/amqp"
 )
@@ -12,9 +12,18 @@ var (
 	Consumer        *rabbitmq.Consumer
 	WorkerQueueName = "RealtimeWorkerQueue"
 	WorkerQueueTag  = "RealtimeWorkerConsumer"
+	RMQConnection   *amqp.Connection
 )
 
 func Listen(rmq *rabbitmq.RabbitMQ, startHandler func() func(delivery amqp.Delivery)) {
+	// set rmq connection
+	rmqConn, err := rmq.Connect("RealtimeWorker")
+	if err != nil {
+		panic(err)
+	}
+
+	RMQConnection = rmqConn.Conn()
+
 	exchange := rabbitmq.Exchange{
 		Name:    config.EventExchangeName,
 		Type:    "fanout",
