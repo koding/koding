@@ -47,12 +47,23 @@ type WebtermRemote struct {
 }
 
 func webtermKillSession(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
-	sessions := screenSessions(vos)
-	if len(sessions) == 0 {
-		return nil, errors.New("no sessions available")
+	var params struct {
+		Session string
 	}
 
-	return sessions, nil
+	if args == nil {
+		return nil, &kite.ArgumentError{Expected: "empty argument passed"}
+	}
+
+	if args.Unmarshal(&params) != nil {
+		return nil, &kite.ArgumentError{Expected: "{ session: [string]}"}
+	}
+
+	if err := killSession(vos, params.Session); err != nil {
+		return nil, err
+	}
+
+	return true, nil
 }
 
 func webtermGetSessions(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
@@ -325,8 +336,17 @@ func sessionExists(vos *virt.VOS, session string) bool {
 	return false
 }
 
-// // killSession kills the given SessionID
-// func killSession(vos *virt.VOS, sessionId string) error {
-// 	vos.VM.AttachCommand(vos.User.Uid, "", "screen", "-X", "-S", sessionID, "kill").Output()
-//
-// }
+// killSession kills the given SessionID
+func killSession(vos *virt.VOS, sessionID string) error {
+	screenPath, err := getScreenPath(vos)
+	if err != nil {
+		return err
+	}
+
+	out, err := vos.VM.AttachCommand(vos.User.Uid, "", screenPath, "-X", "-S", sessionPrefix+"."+sessionID, "kill").Output()
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
