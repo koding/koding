@@ -307,7 +307,7 @@ class VirtualizationController extends KDController
 
     return  unless callback?
 
-    if @vms.length
+    if not force and @vms.length
       @utils.defer => callback null, @vms
       return
 
