@@ -7,8 +7,8 @@ class KodingKontrol extends (require 'kontrol')
         type  : 'sessionID'
         key   : Cookies.get 'clientId'
 
-  fetchKites: (query = {}, callback) ->
-    super (injectQueryParams query), callback
+  fetchKites: (query = {}, rest...) ->
+    super (injectQueryParams query), rest...
 
   injectQueryParams = (query) ->
     query.username = 'koding'

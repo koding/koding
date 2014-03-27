@@ -99,7 +99,7 @@ Vagrant.configure("2") do |config|
     default.vm.provider "virtualbox" do |v|
       v.name = "koding_#{Time.new.to_i}"
       v.customize ["setextradata", :id, "VBoxInternal2/SharedFoldersEnableSymlinksCreate/koding", "1"]
-      v.customize ["modifyvm", :id, "--memory", "1224", "--cpus", "2"]
+      v.customize ["modifyvm", :id, "--memory", "2048", "--cpus", "2"]
     end
 
     if provision

@@ -228,17 +228,21 @@ class VirtualizationController extends KDController
     (KD.getSingleton 'kiteController')
       .getKite "#{ type }-#{ region }", hostnameAlias, type
 
-  createNewKite: (vm, name) ->
-    (KD.getSingleton 'kontrol').fetchKite({ name }).then (kite) ->
-      KD.utils.setPrototypeOf kite, KodingKite.constructors[name].prototype
+  wrapNewKite: (kite, name, vm) ->
+    WrapperClass = KodingKite.constructors[name] ? KodingKite
+    new WrapperClass { kite, name, vm }
+
+  createNewKite: (name, vm) ->
+    (KD.getSingleton 'kontrol').fetchKite({ name }).then (kite) =>
+      debugger
       kite.connect()
-      return kite
+      return @wrapNewKite kite, name, vm
 
   createNewKites: (vm) ->
     hostname = @getKiteHostname vm
     Promise.all [
-      @createNewKite vm, 'oskite'
-      # @createNewKite vm, 'terminalkite'
+      @createNewKite 'oskite', vm
+      # @createNewKite 'terminalkite', vm
     ]
 
   registerNewKites: (vms) ->

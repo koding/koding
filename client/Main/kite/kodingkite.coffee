@@ -1,4 +1,12 @@
-class KodingKite extends (require 'kite')
+class KodingKite extends KDObject
+
+  constructor: (options, data) ->
+    super options, data
+
+    { @kite } = options
+
+  tell: (rpcMethod, params, callback) ->
+    @kite.tell rpcMethod, params, callback
 
   @createMethod = (ctx, { method, rpcMethod }) ->
     ctx[method] = (rest...) -> @tell rpcMethod, rest...

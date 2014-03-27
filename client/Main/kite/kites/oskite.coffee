@@ -83,6 +83,3 @@ class KodingKite_OsKite extends KodingKite
     @fsGetInfo(options)
 
     .then (result) -> return result
-
-  @constructors['oskite'] = this
-  @constructors['os'] = this
