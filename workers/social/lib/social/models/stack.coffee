@@ -65,6 +65,7 @@ module.exports = class JStack extends jraphical.Module
       callback err, stack?.getId()
 
   @getStack = ({user, group, meta}, callback)->
+    meta  or= title: "Default", slug: "default"
     JStack.one {user, group, meta}, (err, stack)->
       return callback err  if err
 
