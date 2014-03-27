@@ -131,12 +131,42 @@ pre
 
 
 #dock
-  size              auto auto
-  kalc              width, 100% \- 380px
+
+  size              auto, 55px
+  width             calc( 100% \- 434px )
   overflow          visible
   position          relative
   margin-left       58px
-  fl()
+  background        rgba(31,38,40,0.8);
+  border-radius     4px
+  vendor            transition, height .2s ease
+
+  &:after
+    opacity         0
+    content         ""
+    vendor          transition, opacity .5s ease
+
+  .kdscrolltrack
+    display         none
+
+  .kdcustomscrollview
+    padding         0
+
+  &.remove-app-state
+    height          180px
+
+    &:after
+      opacity       1
+      size          100%, 30px
+      content       "drag here to remove"
+      text-align    center
+      color         #eee
+      padding-top   10px
+      bottom        0
+      font-size     13px
+      font-weight   300
+      abs()
+
 
 
 #main-panel-wrapper
@@ -172,9 +202,8 @@ pre
     display         block
 
 #main-nav
-  size              100% 55px
+  height            55px
   overflow          visible
-  fl()
 
   .on-top
     z-index         100
@@ -224,29 +253,6 @@ pre
       shadow        inset 0 2px 0 #1aaf5d
       borderBox()
 
-      .quit-icon
-        rounded                50%
-        top                    5px
-        right                  5px
-        r-sprite               app, "quit-icon"
-        bg                     color, rgba(255, 255, 255, .4) !important
-        vendor                transform, scale(.4)
-        opacity               0
-        -webkit-transition    -webkit-transform .3s .6s ease \,\
-                              opacity .2s .6s ease
-        -moz-transition       -moz-transform .3s .6s ease \,\
-                              opacity .2s .6s ease
-        abs()
-
-      &:hover
-        .quit-icon
-          vendor              transform, scale(1)
-          opacity             1
-
-    &.no-anim
-      .quit-icon
-        opacity               0 !important
-
     &.loading
       vendor      animation, pulse 1.5s ease-in-out 100
 
@@ -275,7 +281,11 @@ pre
   vendor            transition, right .5s ease
   top               0
   right             0
+  background        rgba(31, 38, 40, 0.9)
+  height            55px
+  border-left       1px solid #252E31
   abs()
+
   > div
     display         inline-block
     width           auto

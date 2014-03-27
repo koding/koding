@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"koding/db/mongodb"
 	"koding/db/mongodb/modelhelper"
+	"koding/kodingkite"
 	"koding/tools/config"
 	"koding/tools/dnode"
 	"koding/tools/kite"
@@ -13,24 +14,22 @@ import (
 	"strings"
 	"time"
 
+	kitelib "github.com/koding/kite"
+	"github.com/koding/kite/simple"
+
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
 )
 
 const (
-	TERMINAL_NAME     = "terminal"
-	TERMINAL_VERSION  = "0.0.1"
-	sessionPrefix     = "koding"
-	kodingScreenPath  = "/opt/koding/bin/screen"
-	kodingScreenrc    = "/opt/koding/etc/screenrc"
-	defaultScreenPath = "/usr/bin/screen"
+	TERMINAL_NAME    = "terminal"
+	TERMINAL_VERSION = "0.0.2"
 )
 
 var (
-	log               = logger.New(TERMINAL_NAME)
-	mongodbConn       *mongodb.MongoDB
-	conf              *config.Config
-	ErrInvalidSession = "ErrInvalidSession"
+	log         = logger.New(TERMINAL_NAME)
+	mongodbConn *mongodb.MongoDB
+	conf        *config.Config
 )
 
 type Terminal struct {
@@ -81,7 +80,7 @@ func (t *Terminal) Run() {
 			log.Info("terminal loadbalancer for [correlationName: '%s' user: '%s' deadService: '%s'] results in --> %v.", correlationName, username, deadService, v)
 		}
 
-		resultOskite := t.ServiceUniquename
+		errKite := "(error)"
 
 		var vm *virt.VM
 		if bson.IsObjectIdHex(correlationName) {
@@ -94,50 +93,42 @@ func (t *Terminal) Run() {
 			if err := mongodbConn.Run("jVMs", func(c *mgo.Collection) error {
 				return c.Find(bson.M{"hostnameAlias": correlationName}).One(&vm)
 			}); err != nil {
-				blog(fmt.Sprintf("no hostnameAlias found, returning %s", resultOskite))
-				return resultOskite // no vm was found, return this oskite
+				blog(fmt.Sprintf("no hostnameAlias found, returning (error)"))
+				return errKite
 			}
 		}
 
 		if vm.PinnedToHost != "" {
-			blog(fmt.Sprintf("returning pinnedHost '%s'", vm.PinnedToHost))
-			return vm.PinnedToHost
+			terminalPinnedHost := strings.Replace(vm.PinnedToHost, "os", "terminal", 1)
+			blog(fmt.Sprintf("returning pinnedHost '%s'", terminalPinnedHost))
+			return terminalPinnedHost
 		}
 
 		if vm.HostKite == "" {
-			blog(fmt.Sprintf("hostkite is empty returning '%s'", resultOskite))
-			return resultOskite
+			blog(fmt.Sprintf("hostkite is empty returning (error)"))
+			return errKite
 		}
 
-		// maintenance and banned will be handled again in valideVM() function,
+		// maintenance and banned will be handled again in validateVM() function,
 		// which will return a permission error.
 		if vm.HostKite == "(maintenance)" || vm.HostKite == "(banned)" {
-			blog(fmt.Sprintf("hostkite is %s returning '%s'", vm.HostKite, resultOskite))
-			return resultOskite
+			blog(fmt.Sprintf("hostkite (maintenance) or (banned), returning (error)"))
+			return errKite
 		}
 
-		// Set hostkite to nil if we detect a dead service. On the next call,
-		// Oskite will point to an health service in validateVM function()
-		// because it will detect that the hostkite is nil and change it to the
-		// healthy service given by the client, which is the returned
-		// k.ServiceUniqueName.
-		if vm.HostKite == deadService {
-			blog(fmt.Sprintf("dead service detected %s returning '%s'", vm.HostKite, t.ServiceUniquename))
-			if err := mongodbConn.Run("jVMs", func(c *mgo.Collection) error {
-				return c.Update(bson.M{"_id": vm.Id}, bson.M{"$set": bson.M{"hostKite": nil}})
-			}); err != nil {
-				log.LogError(err, 0, vm.Id.Hex())
-			}
+		terminalHostKite := strings.Replace(vm.HostKite, "os", "terminal", 1)
 
-			return resultOskite
-		}
-
-		return vm.HostKite
+		// finally return our result back
+		return terminalHostKite
 	}
 
 	// this method is special cased in oskite.go to allow foreign access
 	t.registerMethod("webterm.connect", false, webtermConnect)
 	t.registerMethod("webterm.getSessions", false, webtermGetSessions)
+	t.registerMethod("webterm.killSession", false, webtermKillSession)
+
+	// register methods for new kite and start it
+	t.runNewKite()
 
 	log.Info("Terminal kite started. Go!")
 	t.Kite.Run()
@@ -212,4 +203,92 @@ type VMNotFoundError struct {
 
 func (err *VMNotFoundError) Error() string {
 	return "There is no VM with hostname/id '" + err.Name + "'."
+}
+
+func (t *Terminal) runNewKite() {
+	log.Info("Run newkite.")
+	k := kodingkite.New(conf, TERMINAL_NAME, TERMINAL_VERSION)
+	k.Config.Port = 5001
+	k.Config.Region = t.Region
+
+	t.vosMethod(k, "webterm.getSessions", webtermGetSessionsNew)
+	t.vosMethod(k, "webterm.connect", webtermGetSessionsNew)
+	t.vosMethod(k, "webterm.killSession", webtermGetSessionsNew)
+	k.DisableConcurrency() // needed for webterm.connect
+
+	k.Start()
+
+	// TODO: remove this later, this is needed in order to reinitiliaze the logger package
+	log.SetLevel(t.LogLevel)
+}
+
+// vosFunc is used to associate each request with a VOS instance.
+type vosFunc func(*kitelib.Request, *virt.VOS) (interface{}, error)
+
+// vosMethod is compat wrapper around the new kite library. It's basically
+// creates a vos instance that is the plugged into the the base functions.
+func (t *Terminal) vosMethod(k *simple.Simple, method string, vosFn vosFunc) {
+	handler := func(r *kitelib.Request) (interface{}, error) {
+		var params struct {
+			VmName string
+		}
+
+		if r.Args.One().Unmarshal(&params) != nil || params.VmName == "" {
+			return nil, errors.New("{ vmName: [string]}")
+		}
+
+		vos, err := t.getVos(r.Username, params.VmName)
+		if err != nil {
+			return nil, err
+		}
+
+		return vosFn(r, vos)
+	}
+
+	k.HandleFunc(method, handler)
+}
+
+// getVos returns a new VOS based on the given username and vmName
+// which is used to pick up the correct VM.
+func (t *Terminal) getVos(username, vmName string) (*virt.VOS, error) {
+	user, err := getUser(username)
+	if err != nil {
+		return nil, err
+	}
+
+	vm, err := checkAndGetVM(username, vmName)
+	if err != nil {
+		return nil, err
+	}
+
+	permissions := vm.GetPermissions(user)
+	if permissions == nil && user.Uid != virt.RootIdOffset {
+		return nil, errors.New("Permission denied.")
+	}
+
+	return &virt.VOS{
+		VM:          vm,
+		User:        user,
+		Permissions: permissions,
+	}, nil
+}
+
+// checkAndGetVM returns a new virt.VM struct based on on the given username
+// and vm name. If the user doesn't have any associated VM it returns a
+// VMNotFoundError.
+func checkAndGetVM(username, vmName string) (*virt.VM, error) {
+	var vm *virt.VM
+	query := func(c *mgo.Collection) error {
+		return c.Find(bson.M{
+			"hostnameAlias": vmName,
+			"webHome":       username,
+		}).One(&vm)
+	}
+
+	if err := mongodbConn.Run("jVMs", query); err != nil {
+		return nil, &VMNotFoundError{Name: vmName}
+	}
+
+	vm.ApplyDefaults()
+	return vm, nil
 }

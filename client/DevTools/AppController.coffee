@@ -45,3 +45,20 @@ class DevToolsController extends AppController
 
       unless _currentMode is 'home'
         KD.singletons.mainView.appSettingsMenuButton.show()
+
+  openFile:(file, callback)->
+
+    app = KodingAppsController.getAppInfoFromPath file.path
+    unless app then return new KDNotificationView
+      title : "Not a Koding App directory"
+
+    KD.singletons.router.handleRoute '/DevTools'
+
+    view = @getView()
+    view.ready =>
+
+      {JSEditor, CSSEditor} = view.workspace.activePanel.panesByName
+      JSEditor.loadFile  "#{app.fullPath}/index.coffee"
+      CSSEditor.loadFile "#{app.fullPath}/resources/style.css"
+
+      view.switchMode 'develop'

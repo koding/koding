@@ -2,7 +2,7 @@ class BugReportController extends AppController
 
   KD.registerAppClass this,
     name         : "Bugs"
-    route        : "/Bugs"
+    route        : "/:name?/Bugs"
     version      : "1.0"
 
   constructor:(options = {}, data)->
