@@ -19,6 +19,10 @@ class DevToolsEditorPane extends CollaborativeEditorPane
   loadFile:(path, callback = noop)->
 
     file = FSHelper.createFileFromPath path
+
+    kite = KD.getSingleton('vmController').getKiteByVmName file.vmName
+    return  callback {message: "VM not found"}  unless kite
+
     file.fetchContents (err, content)=>
       return callback err  if err
 
@@ -37,39 +41,40 @@ class DevToolsEditorPane extends CollaborativeEditorPane
       then @storage.unsetKey @_lastFileKey
       else @emit "RecentFileLoaded"
 
-  loadAddons:(callback)->
+  loadAddons: do (addOns = null) -> (callback)->
 
-    {cdnRoot} = CollaborativeEditorPane
+    addOns ?= do ->
 
-    KodingAppsController.appendHeadElements
-      identifier : "codemirror-addons"
-      items      : [
-        {
-          type   : 'script'
-          url    : "#{cdnRoot}/addon/selection/active-line.js"
-        },
-        {
-          type   : 'style'
-          url    : "#{cdnRoot}/addon/hint/show-hint.css"
-        },
-        {
-          type   : 'script'
-          url    : "#{cdnRoot}/addon/hint/show-hint.js"
-        },
-        {
-          type   : 'script'
-          url    : "#{cdnRoot}/addon/hint/coffeescript-hint.js"
-        },
-        {
-          type   : 'script'
-          url    : "#{cdnRoot}/addon/hint/css-hint.js"
-        }
-      ]
-    , callback
+      {cdnRoot} = CollaborativeEditorPane
+
+      KodingAppsController.appendHeadElements
+        identifier : "codemirror-addons"
+        items      : [
+          {
+            type   : 'script'
+            url    : "#{cdnRoot}/addon/selection/active-line.js"
+          },
+          {
+            type   : 'style'
+            url    : "#{cdnRoot}/addon/hint/show-hint.css"
+          },
+          {
+            type   : 'script'
+            url    : "#{cdnRoot}/addon/hint/show-hint.js"
+          },
+          {
+            type   : 'script'
+            url    : "#{cdnRoot}/addon/hint/coffeescript-hint.js"
+          },
+          {
+            type   : 'script'
+            url    : "#{cdnRoot}/addon/hint/css-hint.js"
+          }
+        ]
 
   createEditor: (callback)->
 
-    @loadAddons =>
+    @loadAddons().then =>
 
       @codeMirrorEditor = CodeMirror @container.getDomElement()[0],
         lineNumbers     : yes

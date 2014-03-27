@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"koding/oskite"
+	"koding/terminal"
 	"koding/tools/config"
 	"log"
 	"os"
@@ -71,9 +72,49 @@ func buildPackages(pkgName string) error {
 		return buildOsKite()
 	case "kontrolproxy":
 		return buildKontrolProxy()
+	case "terminal":
+		return buildTerminal()
 	default:
 		return errors.New("package to be build is not available")
 	}
+}
+
+func buildTerminal() error {
+	gopath := os.Getenv("GOPATH")
+	if gopath == "" {
+		return errors.New("GOPATH is not set")
+	}
+
+	terminalPath := "koding/kites/terminal"
+	terminalPackage := "koding/terminal"
+	temps := struct {
+		Profile string
+		Region  string
+	}{
+		Profile: *flagProfile,
+		Region:  *flagRegion,
+	}
+
+	var files = make([]string, 0)
+	files = append(files, filepath.Join(gopath, "src", terminalPackage, "files"))
+
+	// change our upstartscript because it's a template
+	terminalUpstart := filepath.Join(gopath, "src", terminalPackage, "files/terminal.conf")
+	configUpstart, err := prepareUpstart(terminalUpstart, temps)
+	if err != nil {
+		return err
+	}
+	defer os.Remove(configUpstart)
+
+	term := pkg{
+		appName:       *flagApp,
+		importPath:    terminalPath,
+		files:         files,
+		version:       terminal.TERMINAL_VERSION,
+		upstartScript: configUpstart,
+	}
+
+	return term.build()
 }
 
 func buildOsKite() error {

@@ -102,13 +102,14 @@ module.exports = class JUser extends jraphical.Module
       username      :
         type        : String
         validate    : require('../name').validateName
-        set         : (value)-> value.toLowerCase()
+        set         : (value) -> value.toLowerCase()
       oldUsername   : String
       uid           :
         type        : Number
         set         : Math.floor
       email         :
         type        : String
+        set         : (value) -> value.toLowerCase()
         email       : yes
       password      : String
       salt          : String
@@ -797,7 +798,7 @@ module.exports = class JUser extends jraphical.Module
         JAccount.emit "AccountRegistered", account, referrer
         queue.next()
       ->
-        callback error, newToken, recoveryToken
+        callback error, {account, recoveryToken, newToken}
         queue.next()
     ]
 
