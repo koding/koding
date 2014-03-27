@@ -56,6 +56,14 @@ func mapMessageToChannelMessage(data []byte) (*models.ChannelMessage, error) {
 	return cm, nil
 }
 
+func mapMessageToChannelMessageList(data []byte) (*models.ChannelMessageList, error) {
+	cm := models.NewChannelMessageList()
+	if err := json.Unmarshal(data, cm); err != nil {
+		return nil, err
+	}
+
+	return cm, nil
+}
 
 func mapMessageToInteraction(data []byte) (*models.Interaction, error) {
 	i := models.NewInteraction()
@@ -65,8 +73,24 @@ func mapMessageToInteraction(data []byte) (*models.Interaction, error) {
 
 	return i, nil
 }
+
+func mapMessageToMessageReply(data []byte) (*models.Interaction, error) {
+	i := models.NewInteraction()
+	if err := json.Unmarshal(data, i); err != nil {
+		return nil, err
+	}
+
+	return i, nil
+}
+
+// no operation for message save for now
 func (f *RealtimeWorkerController) MessageSaved(data []byte) error {
-	fmt.Println("MessageSaved")
+	return nil
+}
+
+// no operation for message delete for now
+// channel_message_delete will handle message deletions from the
+func (f *RealtimeWorkerController) MessageDeleted(data []byte) error {
 	return nil
 }
 
