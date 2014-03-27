@@ -71,7 +71,17 @@ func (f *RealtimeWorkerController) MessageSaved(data []byte) error {
 }
 
 func (f *RealtimeWorkerController) MessageUpdated(data []byte) error {
-	fmt.Println("MessageUpdate")
+	cm, err := mapMessageToChannelMessage(data)
+	if err != nil {
+		return err
+	}
+
+	err = sendInstanceEvent(cm, "updateInstance")
+	if err != nil {
+		fmt.Println(err)
+		return err
+	}
+
 	return nil
 }
 
