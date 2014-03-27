@@ -1,6 +1,7 @@
 package kodingkite
 
 import (
+	"errors"
 	"log"
 	"net/http"
 	"net/url"
@@ -21,6 +22,7 @@ type KodingKite struct {
 	Kontrol      *kontrolclient.KontrolClient
 	Registration *registration.Registration
 	KodingConfig *kodingconfig.Config
+	registerIP   string
 }
 
 // New returns a new kite instance based on for the given Koding configurations
@@ -46,6 +48,11 @@ func New(kodingConf *kodingconfig.Config, name, version string) (*KodingKite, er
 		KodingConfig: kodingConf,
 	}
 
+	kk.registerIP, err = getRegisterIP(kodingConf.Environment)
+	if err != nil {
+		return nil, err
+	}
+
 	syslog, err := logging.NewSyslogHandler(name)
 	if err != nil {
 		log.Fatalf("Cannot connect to syslog: %s", err.Error())
@@ -56,41 +63,47 @@ func New(kodingConf *kodingconfig.Config, name, version string) (*KodingKite, er
 	return kk, nil
 }
 
-func (s *KodingKite) Start() {
-	s.Log.Info("Kite has started: %s", s.Kite.Kite())
+func getRegisterIP(environment string) (string, error) {
+	var ip string
 
-	var ip string // we must register to kontrol with this IP address
-
-	switch s.KodingConfig.Environment {
+	switch environment {
 	case "production":
+		fallthrough
+	case "staging":
 		// Magical IP address of Openstack Metadata Service
 		// http://docs.openstack.org/grizzly/openstack-compute/admin/content/metadata-service.html
 		resp, err := http.Get("http://169.254.169.254/latest/meta-data/public-ipv4")
 		if err != nil {
-			panic("cannot get public IP address: " + err.Error())
+			return "", errors.New("cannot get public IP address: " + err.Error())
 		}
 		if resp.StatusCode != 200 {
-			panic("unexpected status code: " + resp.Status)
+			return "", errors.New("unexpected status code: " + resp.Status)
 		}
 		body := make([]byte, 0)
 		_, err = resp.Body.Read(body)
 		if err != nil {
-			panic(err)
+			return "", err
 		}
 		ip = string(body)
 	case "vagrant":
 		ip = "127.0.0.1"
 	default:
-		panic("I don't know which IP address to register in this environment: " + s.KodingConfig.Environment)
+		return "", errors.New("I don't know which IP address to register in this environment: " + environment)
 	}
 
 	if ip == "" {
-		panic("no suitable IP address is found")
+		return "", errors.New("no suitable IP address is found")
 	}
+
+	return ip, nil
+}
+
+func (s *KodingKite) Start() {
+	s.Log.Info("Kite has started: %s", s.Kite.Kite())
 
 	registerWithURL := &url.URL{
 		Scheme: "ws",
-		Host:   ip + ":" + strconv.Itoa(s.Config.Port),
+		Host:   s.registerIP + ":" + strconv.Itoa(s.Config.Port),
 		Path:   "/",
 	}
 
