@@ -17,7 +17,16 @@ class NavigationList extends KDListView
 
       lastChange = 0
 
+      view.on 'DragStarted', =>
+        @_dragStarted = yes
+
       view.on 'DragInAction', (x, y)=>
+
+        if @_dragStarted and y > 25
+          dock = KD.singletons.dock.mainView
+          dock.setClass 'in-order'
+          dock.setClass 'removable'  unless view.data.type is 'persistent'
+          delete @_dragStarted
 
         return  if x + view._x > @_width or x + view._x < 0
 
@@ -57,6 +66,10 @@ class NavigationList extends KDListView
           KD.singletons.dock.saveItemOrders @items
 
         lastChange  = 0
+
+        KD.utils.wait 200, =>
+          delete @_dragStarted
+          KD.singletons.dock.mainView.unsetClass 'in-order removable'
 
 
   removeApp:(view)->

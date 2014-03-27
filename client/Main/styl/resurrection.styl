@@ -128,13 +128,37 @@ button
 
 
 #dock
-  size              auto auto
-  kalc              width, 100% \- 380px
+
+  size              auto, 55px
+  width             calc( 100% \- 434px )
   overflow          visible
   position          relative
   margin-left       58px
-  fl()
+  background        rgba(31,38,40,0.8);
+  border-radius     4px
+  vendor            transition, height .2s ease
 
+  .kdscrolltrack
+    display         none
+
+  .kdcustomscrollview
+    padding         0
+
+  &.in-order
+    height          180px
+
+  &.removable
+
+    &:after
+      size 100%, 30px
+      content       "drag here to remove";
+      background    rgba(255,0,0,0.5)
+      text-align    center
+      color         #fff
+      padding-top   10px
+      bottom        0
+      border-radius 4px
+      abs()
 
 #main-panel-wrapper
   overflow          visible
@@ -169,9 +193,8 @@ button
     display         block
 
 #main-nav
-  size              100% 55px
+  height            55px
   overflow          visible
-  fl()
 
   .on-top
     z-index         100
@@ -249,7 +272,11 @@ button
   vendor            transition, right .5s ease
   top               0
   right             0
+  background        rgba(31, 38, 40, 0.9)
+  height            55px
+  border-left       1px solid #252E31
   abs()
+
   > div
     display         inline-block
     width           auto
