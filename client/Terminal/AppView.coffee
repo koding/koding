@@ -82,6 +82,12 @@ class WebTermAppView extends JView
               sessionRestored = yes
               @createNewTab {vm: vmList[alias], session: sessionId, mode: 'resume'}
 
+          unless sessionRestored
+            notify
+              title     : "Your previous sessions are no longer online since your VM is turned off due to inactivity. \
+                           If you want always on VMs, you can upgrade your plan"
+              cssClass  : "fail"
+
           activeIndex = storage.getValue 'activeIndex'
           activePane = @tabView.getPaneByIndex activeIndex ? 1
           if sessionRestored and activeIndex isnt 0
