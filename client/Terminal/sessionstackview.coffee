@@ -15,6 +15,7 @@ class SessionStackView extends KDView
       tagName : "ul"
 
     delegate.on "WebTermConnected", @bound "updateSessions"
+    delegate.on "TerminalClosed",   @bound "updateSessions"
 
     @updateSessions()
 
