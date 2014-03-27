@@ -102,10 +102,41 @@ func vmUsage(vos *virt.VOS, username string) (interface{}, error) {
 	return usage, nil
 }
 
+type KiteStore struct {
+	Id          bson.ObjectId `bson:"_id"`
+	Name        string        `bson:"name"`
+	Description string        `bson:"description"`
+	KiteCode    string        `son:"kiteCode"`
+}
+
+func getKiteCode() (string, error) {
+	kiteStore := new(KiteStore)
+
+	query := func(c *mgo.Collection) error {
+		return c.Find(bson.M{"name": OSKITE_NAME}).Iter().All(&kiteStore)
+	}
+
+	err := mongodbConn.Run("jKites", query)
+	if err != nil {
+		return "", err
+	}
+
+	return kiteStore.KiteCode, nil
+}
+
 func getSubscription(username string) (string, error) {
 	endpointURL := "https://lvh.me:3020"
 
-	resp, err := http.Get(endpointURL + "/-/subscription/check/" + username)
+	code, err := getKiteCode()
+	if err != nil {
+		return "", err
+	}
+
+	if code == "" {
+		return "", errors.New("kite code is empty")
+	}
+
+	resp, err := http.Get(endpointURL + "/-/subscription/check/" + code + "/" + username)
 	if err != nil {
 		return "", err
 	}
