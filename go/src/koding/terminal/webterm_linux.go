@@ -69,7 +69,10 @@ func webtermKillSession(args *dnode.Partial, channel *kite.Channel, vos *virt.VO
 func webtermGetSessions(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
 	sessions := screenSessions(vos)
 	if len(sessions) == 0 {
-		return nil, errors.New("no sessions available")
+		return nil, &kite.BaseError{
+			Message: "No sessions available",
+			CodeErr: ErrNoSession,
+		}
 	}
 
 	return sessions, nil

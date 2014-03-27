@@ -27,10 +27,9 @@ const (
 )
 
 var (
-	log               = logger.New(TERMINAL_NAME)
-	mongodbConn       *mongodb.MongoDB
-	conf              *config.Config
-	ErrInvalidSession = "ErrInvalidSession"
+	log         = logger.New(TERMINAL_NAME)
+	mongodbConn *mongodb.MongoDB
+	conf        *config.Config
 )
 
 type Terminal struct {
