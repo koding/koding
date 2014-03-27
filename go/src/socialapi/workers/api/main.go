@@ -7,6 +7,7 @@ import (
 	"koding/tools/config"
 	// Imported for side-effect of handling /debug/vars.
 	"github.com/koding/logging"
+	"github.com/koding/rabbitmq"
 	// "koding/tools/logger"
 	_ "net/http/pprof" // Imported for side-effect of handling /debug/pprof.
 	"os"
@@ -95,7 +96,7 @@ func main() {
 }
 
 func initBongo(c *config.Config) {
-	bConf := &broker.Config{
+	rmqConf := &rabbitmq.Config{
 		Host:     c.Mq.Host,
 		Port:     c.Mq.Port,
 		Username: c.Mq.ComponentUser,
@@ -103,6 +104,9 @@ func initBongo(c *config.Config) {
 		Vhost:    c.Mq.Vhost,
 	}
 
+	bConf := &broker.Config{
+		RMQConfig: rmqConf,
+	}
 	broker := broker.New(bConf, log)
 	Bongo = bongo.New(broker, db.DB, log)
 	err := Bongo.Connect()
