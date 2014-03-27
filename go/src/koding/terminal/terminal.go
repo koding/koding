@@ -15,7 +15,6 @@ import (
 	"time"
 
 	kitelib "github.com/koding/kite"
-	"github.com/koding/kite/simple"
 
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
@@ -220,7 +219,11 @@ func (err *VMNotFoundError) Error() string {
 
 func (t *Terminal) runNewKite() {
 	log.Info("Run newkite.")
-	k := kodingkite.New(conf, TERMINAL_NAME, TERMINAL_VERSION)
+	k, err := kodingkite.New(conf, TERMINAL_NAME, TERMINAL_VERSION)
+	if err != nil {
+		panic(err)
+	}
+
 	k.Config.Port = 5001
 	k.Config.Region = t.Region
 
@@ -240,7 +243,7 @@ type vosFunc func(*kitelib.Request, *virt.VOS) (interface{}, error)
 
 // vosMethod is compat wrapper around the new kite library. It's basically
 // creates a vos instance that is the plugged into the the base functions.
-func (t *Terminal) vosMethod(k *simple.Simple, method string, vosFn vosFunc) {
+func (t *Terminal) vosMethod(k *kodingkite.KodingKite, method string, vosFn vosFunc) {
 	handler := func(r *kitelib.Request) (interface{}, error) {
 		var params struct {
 			VmName string
