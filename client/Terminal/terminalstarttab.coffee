@@ -75,4 +75,22 @@ class TerminalStartTab extends JView
     {{> @vmWrapper}}
     <h3>Your Stored VM Sessions</h3>
     {{> @vmSessions}}
+    {{> @message}}
     """
+
+  prepareMessage: ->
+    {paymentController} = KD.singletons
+    paymentController.fetchActiveSubscription tags: "vm", (err, subscription) =>
+      return error err  if err
+      if not subscription or "nosync" in subscription.tags
+        message = """You are on a free developer plan. Your VMs will be turned off within 15 minutes of idle time,
+        and all your sessions will be deleted. If you want to keep your sessions, you can
+        <a class="pricing" href="/Pricing">upgrade</a> your current plan and use Always On VMs."""
+      else
+        message = """If your terminal sessions does not reside in an Always On VM, you can lost your sessions."""
+
+      @message.updatePartial message
+
+
+
+
