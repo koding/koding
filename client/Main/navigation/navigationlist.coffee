@@ -12,6 +12,7 @@ class NavigationList extends KDListView
         view._index ?= @getItemIndex view
         view.setX view._index * @viewWidth
         @_width = @viewWidth * (@items.length + 1)
+        @setWidth @_width - @viewWidth
         KD.utils.defer -> view.unsetClass 'no-anim'
 
       lastChange = 0
@@ -64,11 +65,14 @@ class NavigationList extends KDListView
     @updateItemPositions()
     KD.singletons.dock.removeItem view
 
+  updateItemPositions:(excluded)->
 
-  updateItemPositions:(exclude)->
+    @_width = @viewWidth * (@items.length + 1)
+    @setWidth @_width - @viewWidth
+
     for _item, index in @items
       _item._index = index
-      _item.setX index * @viewWidth  unless exclude is _item
+      _item.setX index * @viewWidth  unless _item is excluded
 
   moveItemToIndex:(item, index)->
     super item, index
