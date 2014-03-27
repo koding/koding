@@ -21,3 +21,25 @@ func FetchSecretNameByName(name string) (*models.SecretName, error) {
 
 	return secretName, nil
 }
+
+func FlattenSecretName(secretName *models.SecretName, err error) ([]string, error) {
+	if err != nil {
+		return nil, err
+	}
+
+	secretNames := make([]string, 0)
+
+	if secretName.SecretName != "" {
+		secretNames = append(secretNames, secretName.SecretName)
+	}
+
+	if secretName.OldSecretName != "" {
+		secretNames = append(secretNames, secretName.OldSecretName)
+	}
+
+	return secretNames, nil
+}
+
+func FetchFlattenedSecretName(name string) ([]string, error) {
+	return FlattenSecretName(FetchSecretNameByName(name))
+}
