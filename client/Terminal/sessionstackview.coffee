@@ -10,13 +10,24 @@ class SessionStackView extends KDView
       loaderOptions :
         color       : '#ffffff'
 
-    {kite} = @getOptions()
+    {delegate} = @getOptions()
     @sessions = new KDCustomHTMLView
       tagName : "ul"
+
+    delegate.on "WebTermConnected", @bound "updateSessions"
+
+    @updateSessions()
+
+  updateSessions: ->
+    @loader.show()
+    {kite} = @getOptions()
     kite.webtermGetSessions().then (sessions) =>
+      @sessions.destroySubViews()
+      @show()
       @loader.hide()
       sessions.forEach (session, index) => @addSession session, index
     .catch (err) =>
+      @hide()
       @loader.hide()
       @addSubView new KDCustomHTMLView partial: "Sessions are not available"
 
@@ -24,7 +35,7 @@ class SessionStackView extends KDView
   pistachio: ->
     {alias} = @getOptions()
     """
-    #{alias}
+    #{alias.replace 'koding.kd.io', 'kd.io'}
     {{> @loader }}
     {{> @sessions }}
     """
