@@ -37,6 +37,18 @@ func NewMessageReply() *MessageReply {
 	return &MessageReply{}
 }
 
+func (m *MessageReply) AfterCreate() {
+	bongo.B.AfterCreate(m)
+}
+
+func (m *MessageReply) AfterUpdate() {
+	bongo.B.AfterUpdate(m)
+}
+
+func (m *MessageReply) AfterDelete() {
+	bongo.B.AfterDelete(m)
+}
+
 func (m *MessageReply) Fetch() error {
 	return bongo.B.Fetch(m)
 }
