@@ -9,6 +9,9 @@ class NavigationList extends KDListView
 
       view.once 'viewAppended', =>
 
+        if view.data.type is 'persistent'
+          view.options.draggable = axis : 'x'
+
         view._index ?= @getItemIndex view
         view.setX view._index * @viewWidth
         @_width = @viewWidth * (@items.length + 1)
@@ -22,15 +25,14 @@ class NavigationList extends KDListView
 
       view.on 'DragInAction', (x, y)=>
 
-        if @_dragStarted and y > 25
+        if @_dragStarted and y > 15 and view.data.type isnt 'persistent'
           dock = KD.singletons.dock.mainView
           dock.setClass 'in-order'
-          dock.setClass 'removable'  unless view.data.type is 'persistent'
           delete @_dragStarted
 
         return  if x + view._x > @_width or x + view._x < 0
 
-        if view.data.type isnt 'persistent' and y > 125
+        if view.data.type isnt 'persistent' and y > 25
         then view.setClass 'remove'
         else view.unsetClass 'remove'
 
@@ -52,7 +54,7 @@ class NavigationList extends KDListView
 
         view.unsetClass 'no-anim remove'
 
-        if view.data.type isnt 'persistent' and view.getY() > 100
+        if view.data.type isnt 'persistent' and view.getY() > 25
 
           view.setClass 'explode'
           KD.utils.wait 500, => @removeApp view

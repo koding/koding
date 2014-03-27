@@ -138,6 +138,11 @@ button
   border-radius     4px
   vendor            transition, height .2s ease
 
+  &:after
+    opacity         0
+    content         ""
+    vendor          transition, opacity .5s ease
+
   .kdscrolltrack
     display         none
 
@@ -147,18 +152,19 @@ button
   &.in-order
     height          180px
 
-  &.removable
-
     &:after
-      size 100%, 30px
-      content       "drag here to remove";
-      background    rgba(255,0,0,0.5)
+      opacity       1
+      size          100%, 30px
+      content       "drag here to remove"
       text-align    center
-      color         #fff
+      color         #eee
       padding-top   10px
       bottom        0
-      border-radius 4px
+      font-size     13px
+      font-weight   300
       abs()
+
+
 
 #main-panel-wrapper
   overflow          visible
