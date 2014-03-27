@@ -82,7 +82,18 @@ class CreateKiteModal extends KDModalViewWithForms
     details = @modalTabs.forms.Details.getFormData()
     plans   = (form.getFormData() for form in @pricingForms)
 
-    log { details, plans }
+    KD.remote.api.JKite.create details, (err, kite)=>
+      return  KD.showError err if err
+      {dash} = Bongo
+      queue = plans.map (plan) -> ->
+        kite.createPlan plan, (err, kiteplan)->
+          return queue.fin err  if err
+          queue.fin()
+
+      dash queue, (err) =>
+        return KD.showError err if err
+        @destroy()
+
 
 class KitePricingFormView extends KDFormViewWithFields
 
