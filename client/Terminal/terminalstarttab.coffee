@@ -8,20 +8,26 @@ class TerminalStartTab extends JView
 
     @vmSessions = new KDCustomHTMLView tagName : 'ul'
 
+    @message = new KDCustomHTMLView
+
+    KD.singletons.notificationController.on 'NotificationHasArrived', ({event}) =>
+      if event in ["VMCreated", "VMRemoved"]
+        @wmWrapper = {}
+        @viewAppended()
 
   viewAppended:->
 
     super
-
+    @wmWrapper = {}
     @fetchVMs()
+    @prepareMessage()
 
 
   fetchVMs:->
 
     {vmController, kontrol} = KD.singletons
 
-    vmController.fetchVMs (err, vms)=>
-
+    vmController.fetchVMs yes, (err, vms)=>
       if err
         return new KDNotificationView title : "Couldn't fetch your VMs"
 
@@ -61,9 +67,10 @@ class TerminalStartTab extends JView
       vmList[vm.hostnameAlias] = vm
 
     {vmController:{terminalKites : kites}} = KD.singletons
+    {delegate} = @getOptions()
     for own alias, kite of kites
       vm = vmList[alias]
-      @vmSessions.addSubView new SessionStackView {kite: kite, alias: alias, vm: vm, delegate: this}
+      @vmSessions.addSubView new SessionStackView {kite: kite, alias: alias, vm: vm, delegate}
 
 
   pistachio:->
