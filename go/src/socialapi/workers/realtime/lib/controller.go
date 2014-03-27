@@ -47,6 +47,15 @@ func (f *RealtimeWorkerController) HandleEvent(event string, data []byte) error 
 	return handler(f, data)
 }
 
+func mapMessageToChannelMessage(data []byte) (*models.ChannelMessage, error) {
+	cm := models.NewChannelMessage()
+	if err := json.Unmarshal(data, cm); err != nil {
+		return nil, err
+	}
+
+	return cm, nil
+}
+
 
 func mapMessageToInteraction(data []byte) (*models.Interaction, error) {
 	i := models.NewInteraction()
