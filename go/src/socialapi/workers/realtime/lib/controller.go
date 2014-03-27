@@ -121,6 +121,37 @@ func (f *RealtimeWorkerController) MessageListUpdated(data []byte) error {
 
 func (f *RealtimeWorkerController) MessageListDeleted(data []byte) error {
 	fmt.Println("MessageListDelete")
+func sendInstanceEvent(message bongo.Modellable, eventName string) error {
+	channel, err := RMQConnection.Channel()
+	if err != nil {
+		return err
+	}
+	defer channel.Close()
+
+	routingKey := "oid." + strconv.FormatInt(message.GetId(), 10) + ".event." + eventName
+
+	updateMessage, err := json.Marshal(message)
+	if err != nil {
+		return err
+	}
+
+	updateArr := make([]string, 1)
+	updateArr[0] = fmt.Sprintf("%s", string(updateMessage))
+
+	msg, err := json.Marshal(updateArr)
+	if err != nil {
+		return err
+	}
+
+	return channel.Publish(
+		"updateInstances", // exchange name
+		routingKey,        // routing key
+		false,             // mandatory
+		false,             // immediate
+		amqp.Publishing{Body: msg}, // message
+	)
+}
+
 func (f *RealtimeWorkerController) sendChannelEvent(cml *models.ChannelMessageList, eventName string) error {
 	channel, err := RMQConnection.Channel()
 	if err != nil {
