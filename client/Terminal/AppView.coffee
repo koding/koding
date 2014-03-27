@@ -22,7 +22,6 @@ class WebTermAppView extends JView
       closeAppWhenAllTabsClosed : no
 
     @tabView
-      .on('PaneRemoved',   @bound 'updateSessions')
       .on('TabsSorted',    @bound 'updateSessions')
       .on('PaneDidShow',   @bound 'handlePaneShown')
 
@@ -31,6 +30,7 @@ class WebTermAppView extends JView
     @on 'VMItemClicked',     @bound 'prepareAndRunTerminal'
     @on 'PlusHandleClicked', @bound 'handlePlusClick'
     @on 'WebTermConnected',  @bound 'updateSessions'
+    @on 'TerminalClosed',    @bound 'removeSession'
 
     {vmController} = KD.singletons
     vmController.on 'vm.progress.error', => notify cssClass : 'error'
@@ -187,7 +187,9 @@ class WebTermAppView extends JView
 
     if terminalView.terminal?.server?
     then runner()
-    else terminalView.once 'WebTermConnected', runner
+    else
+      terminalView.once "TerminalClosed", @bound "removeSession"
+      terminalView.once 'WebTermConnected', runner
 
   handleQuery:(query)->
 
@@ -196,6 +198,7 @@ class WebTermAppView extends JView
     pane = @tabView.getActivePane()
     {terminalView} = pane.getOptions()
     terminalView.terminal?.scrollToBottom()
+    terminalView.once "TerminalClosed", @bound "removeSession"
     terminalView.once 'WebTermConnected', (remote)=>
       @emit "WebTermConnected"
       if query.command
@@ -256,6 +259,7 @@ class WebTermAppView extends JView
     @appendTerminalTab terminalView
     terminalView.connectToTerminal()
     @forwardEvent terminalView, "WebTermConnected"
+    @forwardEvent terminalView, "TerminalClosed"
 
   addStartTab:->
 
@@ -308,6 +312,16 @@ class WebTermAppView extends JView
         sessions.push "#{ hostnameAlias }:#{ sessionId }"
       storage.setValue 'savedSessions', sessions
       storage.setValue 'activeIndex', activeIndex
+
+  removeSession: ({vmName, sessionId}) ->
+    @updateSessions()
+    {vmController:{terminalKites}} = KD.singletons
+    terminalKites[vmName].webtermKillSession
+      session: sessionId
+    .then (response) ->
+      log 'session removed from terminal kite'
+    .catch (err) ->
+      warn err
 
   addNewTab: (vm) ->
 
