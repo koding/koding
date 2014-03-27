@@ -11,7 +11,7 @@ class ConversationMenuButton extends KDButtonView
     super options, data
 
   click:->
-    contextMenu   = new JContextMenu
+    contextMenu   = new KDContextMenu
       delegate    : @
       menuWidth   : 200
       y           : @getY() + 21
