@@ -2,7 +2,7 @@ class CreateKiteModal extends KDModalViewWithForms
 
   constructor: (options = {}, data) ->
 
-    options.title             = "Create new Kite"
+    options.title             = "Create New Kite"
     options.overlay           = yes
     options.content           = ""
     options.cssClass          = "create-kite-modal"
@@ -103,16 +103,16 @@ class KitePricingFormView extends KDFormViewWithFields
     options.fields        =
       planId              :
         label             : "Plan Id"
-        name              : "planId"
+        name              : "userTag"
         cssClass          : "thin half"
         nextElement       :
           planName        :
             label         : "Plan Name"
-            name          : "planName"
+            name          : "title"
             cssClass      : "thin half"
       planprice           :
         label             : "Plan Price"
-        name              : "planPrice"
+        name              : "feeAmount"
         cssClass          : "thin half"
         nextElement       :
           planRecurring   :
@@ -129,7 +129,7 @@ class KitePricingFormView extends KDFormViewWithFields
             ]
       planDescription     :
         label             : "Plan Description"
-        name              : "planDescription"
+        name              : "description"
         type              : "textarea"
 
     super options, data
