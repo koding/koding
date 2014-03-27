@@ -53,6 +53,14 @@ resurrection.finder.styl
           &.selected
             selectedNeighbor()
 
+    span.chevron
+      r-sprite            finder '16-chevron-white'
+      display       block
+
+    .vm span.path-select
+      display       block
+
+
   &.unsaved
     span.icon
       color           black!important
@@ -62,10 +70,6 @@ resurrection.finder.styl
       vertical-align  top
       &:before
         content       "*"
-
-  &.selected
-    span.chevron
-      r-sprite            finder '16-chevron-white'
 
   &:hover
     span.chevron
