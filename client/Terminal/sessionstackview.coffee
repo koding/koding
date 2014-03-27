@@ -30,7 +30,7 @@ class SessionStackView extends KDView
     .catch (err) =>
       @hide()
       @loader.hide()
-      @addSubView new KDCustomHTMLView partial: "Sessions are not available"
+      warn err  unless err.code is "ErrNoSession"
 
 
   pistachio: ->
