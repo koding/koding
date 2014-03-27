@@ -43,7 +43,7 @@ class NavigationList extends KDListView
 
         view.unsetClass 'no-anim remove'
 
-        if view.data.type isnt 'persistent' and view.getY() > 125
+        if view.data.type isnt 'persistent' and view.getY() > 100
 
           view.setClass 'explode'
           KD.utils.wait 500, => @removeApp view
