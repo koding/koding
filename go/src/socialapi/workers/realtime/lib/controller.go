@@ -124,3 +124,25 @@ func (f *RealtimeWorkerController) MessageListDeleted(data []byte) error {
 
 	return nil
 }
+
+func fetchSecretNames(channelId int64) ([]string, error) {
+	names := make([]string, 0)
+	_, err := fetchChannel(channelId)
+	if err != nil {
+		return names, err
+	}
+
+	// todo - implement fetching from mongo database
+	names = append(names, "foo")
+	names = append(names, "bar")
+	return names, nil
+}
+
+func fetchChannel(channelId int64) (*models.Channel, error) {
+	c := models.NewChannel()
+	c.Id = channelId
+	if err := c.Fetch(); err != nil {
+		return nil, err
+	}
+	return c, nil
+}
