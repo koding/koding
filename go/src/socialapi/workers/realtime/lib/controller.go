@@ -25,6 +25,8 @@ func NewRealtimeWorkerController(log logger.Log) *RealtimeWorkerController {
 		"channel_message_update":  (*RealtimeWorkerController).MessageUpdated,
 		"channel_message_deleted": (*RealtimeWorkerController).MessageDeleted,
 
+		"interaction_created": (*RealtimeWorkerController).InteractionSaved,
+		"interaction_deleted": (*RealtimeWorkerController).InteractionDeleted,
 		"channel_message_list_created": (*RealtimeWorkerController).MessageListSaved,
 		"channel_message_list_update":  (*RealtimeWorkerController).MessageListUpdated,
 		"channel_message_list_deleted": (*RealtimeWorkerController).MessageListDeleted,
@@ -45,6 +47,15 @@ func (f *RealtimeWorkerController) HandleEvent(event string, data []byte) error 
 	return handler(f, data)
 }
 
+
+func mapMessageToInteraction(data []byte) (*models.Interaction, error) {
+	i := models.NewInteraction()
+	if err := json.Unmarshal(data, i); err != nil {
+		return nil, err
+	}
+
+	return i, nil
+}
 func (f *RealtimeWorkerController) MessageSaved(data []byte) error {
 	fmt.Println("MessageSaved")
 	return nil
@@ -55,9 +66,35 @@ func (f *RealtimeWorkerController) MessageUpdated(data []byte) error {
 	return nil
 }
 
-func (f *RealtimeWorkerController) MessageDeleted(data []byte) error {
+func (f *RealtimeWorkerController) InteractionSaved(data []byte) error {
+	i, err := mapMessageToInteraction(data)
+	if err != nil {
+		return err
+	}
 
-	fmt.Println("MessageSaved")
+	err = sendInstanceEvent(i, "InteractionSaved")
+	if err != nil {
+		fmt.Println(err)
+		return err
+	}
+
+	return nil
+}
+
+func (f *RealtimeWorkerController) InteractionDeleted(data []byte) error {
+	i, err := mapMessageToInteraction(data)
+	if err != nil {
+		return err
+	}
+
+	err = sendInstanceEvent(i, "InteractionDeleted")
+	if err != nil {
+		fmt.Println(err)
+		return err
+	}
+
+	return nil
+}
 
 	return nil
 }
