@@ -2,17 +2,21 @@ package main
 
 import (
 	"flag"
-	"koding/messaging/rabbitmq"
 	"koding/tools/config"
-	"koding/tools/logger"
+	"socialapi/db"
 	realtime "socialapi/workers/realtime/lib"
 
 	"github.com/jinzhu/gorm"
+	"github.com/koding/bongo"
+	"github.com/koding/broker"
+	"github.com/koding/logging"
+	"github.com/koding/rabbitmq"
 	"github.com/streadway/amqp"
 )
 
 var (
-	log         = logger.New("RealTimeWorker")
+	Bongo       *bongo.Bongo
+	log         = logging.NewLogger("RealTimeWorker")
 	conf        *config.Config
 	flagProfile = flag.String("c", "", "Configuration profile from file")
 	flagDebug   = flag.Bool("d", false, "Debug mode")
@@ -28,20 +32,19 @@ func main() {
 	conf = config.MustConfig(*flagProfile)
 	setLogLevel()
 
-	// blocking
-	realtime.Listen(rabbitmq.New(conf), startHandler)
-	defer realtime.Consumer.Shutdown()
-}
-
-func setLogLevel() {
-	var logLevel logger.Level
-
-	if *flagDebug {
-		logLevel = logger.DEBUG
-	} else {
-		logLevel = logger.INFO
+	rmqConf := &rabbitmq.Config{
+		Host:     conf.Mq.Host,
+		Port:     conf.Mq.Port,
+		Username: conf.Mq.ComponentUser,
+		Password: conf.Mq.Password,
+		Vhost:    conf.Mq.Vhost,
 	}
-	log.SetLevel(logLevel)
+
+	initBongo(rmqConf)
+
+	// blocking
+	realtime.Listen(rabbitmq.New(rmqConf, log), startHandler)
+	defer realtime.Consumer.Shutdown()
 }
 
 func startHandler() func(delivery amqp.Delivery) {
@@ -67,4 +70,24 @@ func startHandler() func(delivery amqp.Delivery) {
 			delivery.Nack(false, true)
 		}
 	}
+}
+
+func initBongo(c *rabbitmq.Config) {
+	bConf := &broker.Config{
+		RMQConfig: c,
+	}
+	broker := broker.New(bConf, log)
+	Bongo = bongo.New(broker, db.DB, log)
+	Bongo.Connect()
+}
+
+func setLogLevel() {
+	var logLevel logging.Level
+
+	if *flagDebug {
+		logLevel = logging.DEBUG
+	} else {
+		logLevel = logging.INFO
+	}
+	log.SetLevel(logLevel)
 }
