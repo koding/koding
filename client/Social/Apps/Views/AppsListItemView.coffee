@@ -63,11 +63,17 @@ class AppsListItemView extends KDListItemView
         </div>
       """
     else
-      {name} = @getData()
+      {name, description} = @getData()
       """
+        <figure>
+          {{> @thumbnail}}
+        </figure>
         <div class="appmeta clearfix">
-            <h3>#{name}</h3>
-            <cite></cite>
+          <h3>#{name}</h3>
+          <cite></cite>
+          <div class="appdetails">
+            <article>#{description}</article>
+          </div>
         </div>
         <div class='bottom'>
           {{> @kiteOpen}}
