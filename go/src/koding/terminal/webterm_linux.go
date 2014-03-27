@@ -2,7 +2,6 @@ package terminal
 
 import (
 	"bytes"
-	"errors"
 	"fmt"
 	"koding/tools/dnode"
 	"koding/tools/kite"
@@ -25,6 +24,11 @@ const (
 	kodingScreenPath  = "/opt/koding/bin/screen"
 	kodingScreenrc    = "/opt/koding/etc/screenrc"
 	defaultScreenPath = "/usr/bin/screen"
+)
+
+var (
+	ErrNoSession      = "ErrNoSession"
+	ErrInvalidSession = "ErrInvalidSession"
 )
 
 type WebtermServer struct {
