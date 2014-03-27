@@ -258,7 +258,7 @@ func newScreen(vos *virt.VOS, mode, session string) (*screen, error) {
 	// check also if our custom screenrc exists before we continue
 	_, err = vos.Stat(kodingScreenrc)
 	if os.IsNotExist(err) {
-		log.Critical("Screenrc %s does not exist. Starting screen without screenrc.", kodingScreenrc)
+		log.Warning("Screenrc %s does not exist. Starting screen without screenrc.", kodingScreenrc)
 		cmdArgs = []string{screenPath, "-S"}
 	}
 
