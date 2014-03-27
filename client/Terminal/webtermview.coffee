@@ -209,6 +209,10 @@ class WebTermView extends KDView
 
   destroy: ->
     super
+    @emit "TerminalClosed",
+      vmName   : @getVMName()
+      sessionId: @getOptions().session
+
     @terminal.server?.terminate()
 
   updateSettings: ->
