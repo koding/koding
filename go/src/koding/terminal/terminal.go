@@ -22,12 +22,8 @@ import (
 )
 
 const (
-	TERMINAL_NAME     = "terminal"
-	TERMINAL_VERSION  = "0.0.1"
-	sessionPrefix     = "koding"
-	kodingScreenPath  = "/opt/koding/bin/screen"
-	kodingScreenrc    = "/opt/koding/etc/screenrc"
-	defaultScreenPath = "/usr/bin/screen"
+	TERMINAL_NAME    = "terminal"
+	TERMINAL_VERSION = "0.0.1"
 )
 
 var (
@@ -142,6 +138,7 @@ func (t *Terminal) Run() {
 	// this method is special cased in oskite.go to allow foreign access
 	t.registerMethod("webterm.connect", false, webtermConnect)
 	t.registerMethod("webterm.getSessions", false, webtermGetSessions)
+	t.registerMethod("webterm.killSession", false, webtermKillSession)
 
 	// register methods for new kite and start it
 	t.runNewKite()
@@ -229,6 +226,7 @@ func (t *Terminal) runNewKite() {
 
 	t.vosMethod(k, "webterm.getSessions", webtermGetSessionsNew)
 	t.vosMethod(k, "webterm.connect", webtermGetSessionsNew)
+	t.vosMethod(k, "webterm.killSession", webtermGetSessionsNew)
 	k.DisableConcurrency() // needed for webterm.connect
 
 	k.Start()

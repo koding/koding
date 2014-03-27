@@ -267,7 +267,7 @@ class Ace extends KDView
           mode = name
 
       syntaxChoice = @appStorage.getValue "syntax_#{ext}"
-      mode = syntaxChoice or "text"
+      mode = syntaxChoice or mode or "text"
 
     requirejs ["ace/mode/#{mode}"], ({Mode})=>
       @editor.getSession().setMode new Mode
