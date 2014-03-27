@@ -35,7 +35,7 @@ type PublishingOptions struct {
 // We can declare those settings on both place to ensure they are same. But this
 // package will not support it.
 func (r *RabbitMQ) NewProducer(e Exchange, q Queue, po PublishingOptions) (*Producer, error) {
-	rmq, err := r.newConnection(po.Tag)
+	rmq, err := r.Connect(po.Tag)
 	if err != nil {
 		return nil, err
 	}
