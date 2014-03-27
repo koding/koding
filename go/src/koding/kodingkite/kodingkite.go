@@ -2,6 +2,7 @@ package kodingkite
 
 import (
 	"errors"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"net/url"
@@ -76,14 +77,18 @@ func getRegisterIP(environment string) (string, error) {
 		if err != nil {
 			return "", errors.New("cannot get public IP address: " + err.Error())
 		}
+
+		defer resp.Body.Close()
+
 		if resp.StatusCode != 200 {
 			return "", errors.New("unexpected status code: " + resp.Status)
 		}
-		body := make([]byte, 0)
-		_, err = resp.Body.Read(body)
+
+		body, err := ioutil.ReadAll(resp.Body)
 		if err != nil {
 			return "", err
 		}
+
 		ip = string(body)
 	case "vagrant":
 		ip = "127.0.0.1"
