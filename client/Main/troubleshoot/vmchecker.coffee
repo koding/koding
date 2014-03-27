@@ -11,8 +11,29 @@ class VMChecker extends KDObject
 
     {vmController} = KD.singletons
     vmController.on 'vm.state.info', ({alias, state})  =>
-      @resetTimeout()
-      @vmList[alias] = state.state
+      switch state.state
+        when "RUNNING"
+          @vmList[alias] = "on"
+        when "STOPPED"
+          @vmList[alias] = "off"
+      @updateStatus()
+
+    vmController.on 'vm.progress.start', ({alias, update}) =>
+      {message} = update
+      switch message
+        when "FINISHED"
+          @vmList[alias] = "on"
+        when "STARTED"
+          @vmList[alias] = "starting"
+      @updateStatus()
+
+    vmController.on 'vm.progress.stop', ({alias, update}) =>
+      {message} = update
+      switch message
+        when "FINISHED"
+          @vmList[alias] = "off"
+        when "STARTED"
+          @vmList[alias] = "stopping"
       @updateStatus()
 
 
@@ -26,7 +47,7 @@ class VMChecker extends KDObject
     @status = RUNNING
     for own name, status of @vmList
       switch status
-        when "RUNNING"
+        when "on"
           continue
         else
           @status = READY
