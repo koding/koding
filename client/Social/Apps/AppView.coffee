@@ -14,7 +14,7 @@ class AppsMainView extends KDView
 
     @kiteButton = new KDButtonView
       cssClass  : "new-kite"
-      title     : "Create new Kite"
+      title     : "Create New Kite"
       cssClass  : "solid mini green kite-button"
       callback  : -> new CreateKiteModal
 
