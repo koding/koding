@@ -150,7 +150,10 @@ class DockController extends KDViewController
 
     @ready =>
 
-      dock.addSubView @navController.getView()
+      @scrollView = new KDCustomScrollView
+
+      dock.addSubView @scrollView
+      @scrollView.wrapper.addSubView @navController.getView()
 
       # Listen appManager to update dock items states
       {appManager, kodingAppsController} = KD.singletons
