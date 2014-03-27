@@ -419,6 +419,7 @@ module.exports = class JVM extends Module
                   JDomain.ensureDomainSettingsForVM {
                     account, vm, type, nickname, group: groupSlug, stack
                   }
+                  account.sendNotification "VMCreated"
                   if type is 'group'
                     @addVmUsers user, vm, group, ->
                       callback null, vm
@@ -598,6 +599,8 @@ module.exports = class JVM extends Module
     kallback = (subscription) =>
       @remove (err) =>
         return callback err  if err
+
+        account.sendNotification "VMRemoved"
 
         errs = []
 
