@@ -115,6 +115,20 @@ func (f *RealtimeWorkerController) InteractionDeleted(data []byte) error {
 	return nil
 }
 
+func (f *RealtimeWorkerController) MessageReplySaved(data []byte) error {
+	i, err := mapMessageToMessageReply(data)
+	if err != nil {
+		return err
+	}
+
+	err = sendInstanceEvent(i, "MessageReplySaved")
+	if err != nil {
+		fmt.Println(err)
+		return err
+	}
+
+	return nil
+}
 	return nil
 }
 
