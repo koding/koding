@@ -2,7 +2,7 @@ class CreateKiteModal extends KDModalViewWithForms
 
   constructor: (options = {}, data) ->
 
-    options.title             = "Create new Kite"
+    options.title             = "Create New Kite"
     options.overlay           = yes
     options.content           = ""
     options.cssClass          = "create-kite-modal"
@@ -82,7 +82,18 @@ class CreateKiteModal extends KDModalViewWithForms
     details = @modalTabs.forms.Details.getFormData()
     plans   = (form.getFormData() for form in @pricingForms)
 
-    log { details, plans }
+    KD.remote.api.JKite.create details, (err, kite)=>
+      return  KD.showError err if err
+      {dash} = Bongo
+      queue = plans.map (plan) -> ->
+        kite.createPlan plan, (err, kiteplan)->
+          return queue.fin err  if err
+          queue.fin()
+
+      dash queue, (err) =>
+        return KD.showError err if err
+        @destroy()
+
 
 class KitePricingFormView extends KDFormViewWithFields
 
@@ -92,16 +103,16 @@ class KitePricingFormView extends KDFormViewWithFields
     options.fields        =
       planId              :
         label             : "Plan Id"
-        name              : "planId"
+        name              : "userTag"
         cssClass          : "thin half"
         nextElement       :
           planName        :
             label         : "Plan Name"
-            name          : "planName"
+            name          : "title"
             cssClass      : "thin half"
       planprice           :
         label             : "Plan Price"
-        name              : "planPrice"
+        name              : "feeAmount"
         cssClass          : "thin half"
         nextElement       :
           planRecurring   :
@@ -118,7 +129,7 @@ class KitePricingFormView extends KDFormViewWithFields
             ]
       planDescription     :
         label             : "Plan Description"
-        name              : "planDescription"
+        name              : "description"
         type              : "textarea"
 
     super options, data

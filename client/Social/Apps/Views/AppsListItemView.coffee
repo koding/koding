@@ -31,7 +31,19 @@ class AppsListItemView extends KDListItemView
       cssClass : 'run'
       title    : 'open'
       callback : =>
-        log "kite run clicked"
+        kite = @getData()
+        kite.fetchPlans (err, plans)->
+          return KD.showError err if err
+          user = KD.whoami()
+          user.fetchPaymentMethods (err, paymentMethods)->
+            return KD.showError err if err
+            {paymentMethodId} = paymentMethods.first
+            # TODO: THAT IS FOR TESTING PURPOSES
+            # NEED TO CHANGE BEFORE MERGE
+            plans.first.subscribe paymentMethodId, {},(err, subscription)->
+              log subscription
+
+          log plans.first
 
 
   # Override KDView::render since I'm updating all the manifest at once ~ GG
