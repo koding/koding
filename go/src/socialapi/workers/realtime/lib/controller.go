@@ -1,21 +1,27 @@
 package realtime
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
-	"koding/tools/logger"
+	"socialapi/models"
+	"strconv"
+	"github.com/koding/bongo"
+	"github.com/koding/logging"
+
+	"github.com/streadway/amqp"
 )
 
 type Action func(*RealtimeWorkerController, []byte) error
 
 type RealtimeWorkerController struct {
 	routes map[string]Action
-	log    logger.Log
+	log    logging.Logger
 }
 
 var HandlerNotFoundErr = errors.New("Handler Not Found")
 
-func NewRealtimeWorkerController(log logger.Log) *RealtimeWorkerController {
+func NewRealtimeWorkerController(log logging.Logger) *RealtimeWorkerController {
 	ffc := &RealtimeWorkerController{
 		log: log,
 	}
@@ -27,6 +33,10 @@ func NewRealtimeWorkerController(log logger.Log) *RealtimeWorkerController {
 
 		"interaction_created": (*RealtimeWorkerController).InteractionSaved,
 		"interaction_deleted": (*RealtimeWorkerController).InteractionDeleted,
+
+		"message_reply_created": (*RealtimeWorkerController).MessageReplySaved,
+		"message_reply_deleted": (*RealtimeWorkerController).MessageReplyDeleted,
+
 		"channel_message_list_created": (*RealtimeWorkerController).MessageListSaved,
 		"channel_message_list_update":  (*RealtimeWorkerController).MessageListUpdated,
 		"channel_message_list_deleted": (*RealtimeWorkerController).MessageListDeleted,
