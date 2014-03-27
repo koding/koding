@@ -94,6 +94,18 @@ func (c *Channel) Fetch() error {
 	return bongo.B.Fetch(c)
 }
 
+func (c *Channel) AfterCreate() {
+	bongo.B.AfterCreate(c)
+}
+
+func (c *Channel) AfterUpdate() {
+	bongo.B.AfterUpdate(c)
+}
+
+func (c *Channel) AfterDelete() {
+	bongo.B.AfterDelete(c)
+}
+
 func (c *Channel) Update() error {
 	if c.Name == "" || c.Group == "" {
 		return errors.New(fmt.Sprintf("Validation failed %s - %s", c.Name, c.Group))
