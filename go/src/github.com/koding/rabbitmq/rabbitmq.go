@@ -133,6 +133,11 @@ type BindingOptions struct {
 	Args amqp.Table
 }
 
+// Returns RMQ connection
+func (r *RabbitMQ) Conn() *amqp.Connection {
+	return r.conn
+}
+
 // Controls how many messages the server will try to keep on
 // the network for consumers before receiving delivery acks.  The intent of Qos is
 // to make sure the network buffers stay full between the server and client.
