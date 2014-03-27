@@ -345,8 +345,12 @@ func killSession(vos *virt.VOS, sessionID string) error {
 
 	out, err := vos.VM.AttachCommand(vos.User.Uid, "", screenPath, "-X", "-S", sessionPrefix+"."+sessionID, "kill").Output()
 	if err != nil {
-		return err
+		return commandError("screen kill failed", err, out)
 	}
 
 	return nil
+}
+
+func commandError(message string, err error, out []byte) error {
+	return fmt.Errorf("%s\n%s\n%s", message, err.Error(), string(out))
 }
