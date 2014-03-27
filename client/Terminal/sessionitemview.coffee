@@ -16,4 +16,4 @@ class SessionItemView extends KDView
 
   pistachio: ->
     {index} = @getOptions()
-    "Session #{index}"
+    "Terminal Screen Session #{index}"
