@@ -8,8 +8,15 @@ class AppsMainView extends KDView
 
   createCommons:->
 
-    header = new HeaderViewSection
-      type  : "big"
-      title : "App Catalog"
+    @header     = new HeaderViewSection
+      type      : "big"
+      title     : "App Catalog"
 
-    @addSubView header
+    @kiteButton = new KDButtonView
+      cssClass  : "new-kite"
+      title     : "Create new Kite"
+      cssClass  : "solid mini green kite-button"
+      callback  : -> new CreateKiteModal
+
+    @header.addSubView @kiteButton
+    @addSubView @header

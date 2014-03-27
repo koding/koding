@@ -52,19 +52,17 @@ class AppsAppController extends AppController
   doQuery:(selector, options, callback)->
 
     if selector['manifest.authorNick'] is KD.nick()
-
-      @_verifiedSwitch?.hide()
-      @_verifiedSwitchLabel?.hide()
-
+      @changeVerifiedSwitchVisibilty "hide"
     else
-
-      @_verifiedSwitch?.show()
-      @_verifiedSwitchLabel?.show()
-
+      @changeVerifiedSwitchVisibilty "show"
       if @_verifiedOnly
         selector['status'] = 'verified'
 
     KD.remote.api.JNewApp.some selector, options, callback
+
+  changeVerifiedSwitchVisibilty: (methodName) ->
+    @verifiedSwitch?[methodName]()
+    @verifiedSwitchLabel?[methodName]()
 
   doKiteQuery:(selector, options, callback)->
     KD.remote.api.JKite.list selector, options, callback
@@ -152,11 +150,11 @@ class AppsAppController extends AppController
     KD.getSingleton("appManager").tell 'Feeder', \
       'createContentFeedController', options, (controller)=>
 
-        @_verifiedSwitchLabel = new KDLabelView
+        @verifiedSwitchLabel = new KDLabelView
           cssClass : 'verified-switch-label'
           title : "Verified applications only"
 
-        @_verifiedSwitch = new KodingSwitch
+        @verifiedSwitch = new KodingSwitch
           cssClass      : 'verified-switch tiny'
           defaultValue  : @_verifiedOnly
           callback      : (state) =>
@@ -164,13 +162,21 @@ class AppsAppController extends AppController
             @feedController.reload()
 
         feed = controller.getView()
-        feed.addSubView @_verifiedSwitchLabel
-        feed.addSubView @_verifiedSwitch
+        feed.addSubView @verifiedSwitchLabel
+        feed.addSubView @verifiedSwitch
 
         view.addSubView @_lastSubview = feed
         @feedController = controller
         controller.loadFeed()  if loadFeed
         @emit 'ready'
+
+        controller.on "FilterChanged", (name) =>
+          if name is "kites"
+            @changeVerifiedSwitchVisibilty "hide"
+            @getView().kiteButton.show()
+          else
+            @changeVerifiedSwitchVisibilty "show"
+            @getView().kiteButton.hide()
 
   handleQuery:(query)->
     @ready =>
@@ -191,4 +197,3 @@ class AppsAppController extends AppController
     return contentDisplay
 
   search:(text)-> @emit "searchFilterChanged", text
-
