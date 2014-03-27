@@ -27,7 +27,7 @@ class NavigationList extends KDListView
 
         if @_dragStarted and y > 15 and view.data.type isnt 'persistent'
           dock = KD.singletons.dock.mainView
-          dock.setClass 'in-order'
+          dock.setClass 'remove-app-state'
           delete @_dragStarted
 
         return  if x + view._x > @_width or x + view._x < 0
@@ -71,7 +71,7 @@ class NavigationList extends KDListView
 
         KD.utils.wait 200, =>
           delete @_dragStarted
-          KD.singletons.dock.mainView.unsetClass 'in-order removable'
+          KD.singletons.dock.mainView.unsetClass 'remove-app-state'
 
 
   removeApp:(view)->
