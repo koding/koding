@@ -2,10 +2,9 @@ package kodingkite
 
 import (
 	"log"
-	"net"
+	"net/http"
 	"net/url"
 	"strconv"
-	"strings"
 
 	kodingconfig "koding/tools/config"
 
@@ -64,17 +63,19 @@ func (s *KodingKite) Start() {
 
 	switch s.KodingConfig.Environment {
 	case "production":
-		addresses, err := net.InterfaceAddrs()
+		resp, err := http.Get("http://169.254.169.254/latest/meta-data/public-ipv4")
 		if err != nil {
-			panic("cannot get the address of local interfaces")
+			panic("cannot get public IP address: " + err.Error())
 		}
-
-		for _, addr := range addresses {
-			if strings.HasPrefix(addr.String(), "172.16.") {
-				ip = addr.String()
-				break
-			}
+		if resp.StatusCode != 200 {
+			panic("unexpected status code: " + resp.Status)
 		}
+		body := make([]byte, 0)
+		_, err = resp.Body.Read(body)
+		if err != nil {
+			panic(err)
+		}
+		ip = string(body)
 	case "vagrant":
 		ip = "127.0.0.1"
 	default:
