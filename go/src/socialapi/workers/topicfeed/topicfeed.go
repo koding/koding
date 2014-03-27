@@ -2,10 +2,10 @@ package main
 
 import (
 	"flag"
-	"koding/messaging/rabbitmq"
 	"koding/tools/config"
 	"socialapi/db"
 	topicfeed "socialapi/workers/topicfeed/lib"
+	"github.com/koding/rabbitmq"
 
 	"github.com/jinzhu/gorm"
 	"github.com/koding/bongo"
@@ -13,6 +13,38 @@ import (
 	"github.com/koding/logging"
 	"github.com/streadway/amqp"
 )
+
+var (
+	Bongo       *bongo.Bongo
+	log         = logging.NewLogger("TopicFeedWorker")
+	conf        *config.Config
+	flagProfile = flag.String("c", "", "Configuration profile from file")
+	flagDebug   = flag.Bool("d", false, "Debug mode")
+	handler     = topicfeed.NewTopicFeedController(log)
+)
+
+func main() {
+	flag.Parse()
+	if *flagProfile == "" {
+		log.Fatal("Please define config file with -c", "")
+	}
+
+	conf = config.MustConfig(*flagProfile)
+	setLogLevel()
+
+	rmqConf := &rabbitmq.Config{
+		Host:     conf.Mq.Host,
+		Port:     conf.Mq.Port,
+		Username: conf.Mq.ComponentUser,
+		Password: conf.Mq.Password,
+		Vhost:    conf.Mq.Vhost,
+	}
+
+	initBongo(rmqConf)
+	// blocking
+	topicfeed.Listen(rabbitmq.New(rmqConf, log), startHandler)
+	defer topicfeed.Consumer.Shutdown()
+}
 
 func startHandler() func(delivery amqp.Delivery) {
 	log.Info("Worker Started to Consume")
@@ -39,39 +71,10 @@ func startHandler() func(delivery amqp.Delivery) {
 	}
 }
 
-var (
-	Bongo       *bongo.Bongo
-	log         = logging.NewLogger("TopicFeedWorker")
-	conf        *config.Config
-	flagProfile = flag.String("c", "", "Configuration profile from file")
-	flagDebug   = flag.Bool("d", false, "Debug mode")
-	handler     = topicfeed.NewTopicFeedController(log)
-)
-
-func main() {
-	flag.Parse()
-	if *flagProfile == "" {
-		log.Fatal("Please define config file with -c", "")
-	}
-
-	conf = config.MustConfig(*flagProfile)
-	setLogLevel()
-
-	initBongo(conf)
-	// blocking
-	topicfeed.Listen(rabbitmq.New(conf), startHandler)
-	defer topicfeed.Consumer.Shutdown()
-}
-
-func initBongo(c *config.Config) {
+func initBongo(c *rabbitmq.Config) {
 	bConf := &broker.Config{
-		Host:     c.Mq.Host,
-		Port:     c.Mq.Port,
-		Username: c.Mq.ComponentUser,
-		Password: c.Mq.Password,
-		Vhost:    c.Mq.Vhost,
+		RMQConfig: c,
 	}
-
 	broker := broker.New(bConf, log)
 	Bongo = bongo.New(broker, db.DB, log)
 	Bongo.Connect()
