@@ -121,7 +121,42 @@ func (f *RealtimeWorkerController) MessageListUpdated(data []byte) error {
 
 func (f *RealtimeWorkerController) MessageListDeleted(data []byte) error {
 	fmt.Println("MessageListDelete")
+func (f *RealtimeWorkerController) sendChannelEvent(cml *models.ChannelMessageList, eventName string) error {
+	channel, err := RMQConnection.Channel()
+	if err != nil {
+		return err
+	}
+	defer channel.Close()
 
+	secretNames, err := fetchSecretNames(cml.ChannelId)
+	if err != nil {
+		return err
+	}
+
+	// if we dont have any secret names, just return
+	if len(secretNames) < 1 {
+		f.log.Info("Channel %d doest have any secret name", cml.ChannelId)
+		return nil
+	}
+
+	for _, secretName := range secretNames {
+		routingKey := secretName + "." + eventName
+
+		byteMessage, err := json.Marshal(cml)
+		if err != nil {
+			return err
+		}
+
+		if err := channel.Publish(
+			"broker",   // exchange name
+			routingKey, // routing key
+			false,      // mandatory
+			false,      // immediate
+			amqp.Publishing{Body: byteMessage}, // message
+		); err != nil {
+			return err
+		}
+	}
 	return nil
 }
 
