@@ -429,7 +429,7 @@ task 'persistence', "Run persistence", (options)->
 task 'osKite', "Run the osKite", ({configFile})->
   processes.spawn
     name  : 'osKite'
-    cmd   : if configFile == "vagrant" then "vagrant ssh default -c 'cd /opt/koding; sudo killall -q -KILL os; sudo KITE_HOME=/opt/koding/kite_home/koding KITE_PROXY_URL=ws://192.168.50.1:3999/kite /opt/koding/go/bin-vagrant/os -c #{configFile} -r vagrant -t go/src/koding/oskite/files/templates/'" else "./go/bin/os -c #{configFile}"
+    cmd   : if configFile == "vagrant" then "vagrant ssh default -c 'cd /opt/koding; sudo killall -q -KILL os; sudo KITE_HOME=/opt/koding/kite_home/koding /opt/koding/go/bin-vagrant/os -c #{configFile} -r vagrant -t go/src/koding/oskite/files/templates/'" else "./go/bin/os -c #{configFile}"
     restart: no
     stdout  : process.stdout
     stderr  : process.stderr
@@ -530,7 +530,7 @@ task 'kontrolKite', "Run the kontrol kite", (options) ->
   {configFile} = options
   processes.spawn
     name    : 'kontrolKite'
-    cmd     : "KITE_HOME=kite_home/koding ./go/bin/kontrol -c #{configFile} -r vagrant"
+    cmd     : "vagrant ssh default -c 'cd /opt/koding; sudo killall -q -KILL kontrol; sudo KITE_HOME=/opt/koding/kite_home/koding /opt/koding/go/bin-vagrant/kontrol -c #{configFile} -r vagrant'"
     stdout  : process.stdout
     stderr  : process.stderr
     verbose : yes
@@ -539,7 +539,7 @@ task 'proxyKite', "Run the proxy kite", (options) ->
   {configFile} = options
   processes.spawn
     name    : 'proxyKite'
-    cmd     : "KITE_HOME=kite_home/koding ./go/bin/proxy -c #{configFile} -r vagrant"
+    cmd     : "vagrant ssh default -c 'cd /opt/koding; sudo killall -q -KILL proxy; sudo KITE_HOME=/opt/koding/kite_home/koding /opt/koding/go/bin-vagrant/proxy -c #{configFile} -r vagrant'"
     stdout  : process.stdout
     stderr  : process.stderr
     verbose : yes
@@ -548,7 +548,7 @@ task 'regservKite', "Run the regserv kite", (options) ->
   {configFile} = options
   processes.spawn
     name    : 'regservKite'
-    cmd     : "KITE_HOME=kite_home/koding ./go/bin/regserv -c #{configFile} -r vagrant"
+    cmd     : "vagrant ssh default -c 'cd /opt/koding; sudo killall -q -KILL regserv; sudo KITE_HOME=/opt/koding/kite_home/koding /opt/koding/go/bin-vagrant/regserv -c #{configFile} -r vagrant'"
     stdout  : process.stdout
     stderr  : process.stderr
     verbose : yes
