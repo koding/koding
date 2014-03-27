@@ -38,8 +38,8 @@ class EnvironmentItem extends KDDiaObject
     menuItems = @contextMenuItems()
     return  unless menuItems
 
-    ctxMenu = new JContextMenu
-      menuWidth   : 200
+    ctxMenu = new KDContextMenu
+      menuWidth   : 187
       delegate    : this
       x           : event.pageX
       y           : event.pageY

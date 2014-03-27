@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"koding/db/mongodb"
 	"koding/db/mongodb/modelhelper"
+	"koding/kodingkite"
 	"koding/tools/config"
 	"koding/tools/dnode"
 	"koding/tools/kite"
@@ -13,24 +14,22 @@ import (
 	"strings"
 	"time"
 
+	kitelib "github.com/koding/kite"
+	"github.com/koding/kite/simple"
+
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
 )
 
 const (
-	TERMINAL_NAME     = "terminal"
-	TERMINAL_VERSION  = "0.0.1"
-	sessionPrefix     = "koding"
-	kodingScreenPath  = "/opt/koding/bin/screen"
-	kodingScreenrc    = "/opt/koding/etc/screenrc"
-	defaultScreenPath = "/usr/bin/screen"
+	TERMINAL_NAME    = "terminal"
+	TERMINAL_VERSION = "0.0.2"
 )
 
 var (
-	log               = logger.New(TERMINAL_NAME)
-	mongodbConn       *mongodb.MongoDB
-	conf              *config.Config
-	ErrInvalidSession = "ErrInvalidSession"
+	log         = logger.New(TERMINAL_NAME)
+	mongodbConn *mongodb.MongoDB
+	conf        *config.Config
 )
 
 type Terminal struct {
@@ -138,6 +137,10 @@ func (t *Terminal) Run() {
 	// this method is special cased in oskite.go to allow foreign access
 	t.registerMethod("webterm.connect", false, webtermConnect)
 	t.registerMethod("webterm.getSessions", false, webtermGetSessions)
+	t.registerMethod("webterm.killSession", false, webtermKillSession)
+
+	// register methods for new kite and start it
+	t.runNewKite()
 
 	log.Info("Terminal kite started. Go!")
 	t.Kite.Run()
@@ -212,4 +215,92 @@ type VMNotFoundError struct {
 
 func (err *VMNotFoundError) Error() string {
 	return "There is no VM with hostname/id '" + err.Name + "'."
+}
+
+func (t *Terminal) runNewKite() {
+	log.Info("Run newkite.")
+	k := kodingkite.New(conf, TERMINAL_NAME, TERMINAL_VERSION)
+	k.Config.Port = 5001
+	k.Config.Region = t.Region
+
+	t.vosMethod(k, "webterm.getSessions", webtermGetSessionsNew)
+	t.vosMethod(k, "webterm.connect", webtermGetSessionsNew)
+	t.vosMethod(k, "webterm.killSession", webtermGetSessionsNew)
+	k.DisableConcurrency() // needed for webterm.connect
+
+	k.Start()
+
+	// TODO: remove this later, this is needed in order to reinitiliaze the logger package
+	log.SetLevel(t.LogLevel)
+}
+
+// vosFunc is used to associate each request with a VOS instance.
+type vosFunc func(*kitelib.Request, *virt.VOS) (interface{}, error)
+
+// vosMethod is compat wrapper around the new kite library. It's basically
+// creates a vos instance that is the plugged into the the base functions.
+func (t *Terminal) vosMethod(k *simple.Simple, method string, vosFn vosFunc) {
+	handler := func(r *kitelib.Request) (interface{}, error) {
+		var params struct {
+			VmName string
+		}
+
+		if r.Args.One().Unmarshal(&params) != nil || params.VmName == "" {
+			return nil, errors.New("{ vmName: [string]}")
+		}
+
+		vos, err := t.getVos(r.Username, params.VmName)
+		if err != nil {
+			return nil, err
+		}
+
+		return vosFn(r, vos)
+	}
+
+	k.HandleFunc(method, handler)
+}
+
+// getVos returns a new VOS based on the given username and vmName
+// which is used to pick up the correct VM.
+func (t *Terminal) getVos(username, vmName string) (*virt.VOS, error) {
+	user, err := getUser(username)
+	if err != nil {
+		return nil, err
+	}
+
+	vm, err := checkAndGetVM(username, vmName)
+	if err != nil {
+		return nil, err
+	}
+
+	permissions := vm.GetPermissions(user)
+	if permissions == nil && user.Uid != virt.RootIdOffset {
+		return nil, errors.New("Permission denied.")
+	}
+
+	return &virt.VOS{
+		VM:          vm,
+		User:        user,
+		Permissions: permissions,
+	}, nil
+}
+
+// checkAndGetVM returns a new virt.VM struct based on on the given username
+// and vm name. If the user doesn't have any associated VM it returns a
+// VMNotFoundError.
+func checkAndGetVM(username, vmName string) (*virt.VM, error) {
+	var vm *virt.VM
+	query := func(c *mgo.Collection) error {
+		return c.Find(bson.M{
+			"hostnameAlias": vmName,
+			"webHome":       username,
+		}).One(&vm)
+	}
+
+	if err := mongodbConn.Run("jVMs", query); err != nil {
+		return nil, &VMNotFoundError{Name: vmName}
+	}
+
+	vm.ApplyDefaults()
+	return vm, nil
 }

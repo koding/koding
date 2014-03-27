@@ -81,7 +81,8 @@ resurrection.commons.styl
 
 /* Activity item menu */
 
-.kdbuttonmenu.jcontextmenu.resurrection
+.kdcontextmenu.resurrection
+  width                 130px
   margin                4px 0 0 14px
   rounded               6px
   border                1px solid #e4e4e4
@@ -534,7 +535,7 @@ button.app-settings-menu
       size            17px,17px
       top             0
 
-.kdview.jcontextmenu.kdbuttonmenu
+.kdview.kdcontextmenu.kdbuttonmenu
   &.editor-advanced-settings-menu
     .chevron-ghost-wrapper
       border-color    #bababa
@@ -543,11 +544,11 @@ button.app-settings-menu
         bg            position,-60px -300px
         bg            color,#f5f5f5
 
-.jcontextmenu .kdtreeitemview.disabledForBeta
+.kdcontextmenu .kdtreeitemview.disabledForBeta
   opacity         .5
 
 
-.kdview.jcontextmenu.kdbuttonmenu.top-menu.editor-advanced-settings-menu
+.kdview.kdcontextmenu.kdbuttonmenu.top-menu.editor-advanced-settings-menu
   rounded                 5px 5px 0 5px
 
 .editor-advanced-settings-menu
@@ -1428,6 +1429,36 @@ a.action-link.verify-email
     r-sprite            "app", "20-close-tab"
     top                 10px
     right               10px
+
+.kdcontextmenu.dock
+  border             2px solid #4F595C
+  border-radius      4px
+  box-shadow         0 0 40px #1F2628
+
+  ul
+    background-color #1F2628 !important
+
+    .kdlistitemview-contextitem
+      color          #eee
+      padding        7px 10px
+
+      &:first-child
+        background   #4F595C
+        opacity      1
+        cursor       default
+        color        #fff
+        font-weight  400
+
+        &:hover
+          background   #4F595C
+
+        &.selected
+          text-shadow  none
+
+
+  > span.arrow
+    border 15px solid transparent
+    border-bottom-color #4F595C
 
 .kdmodal.run-app-dialog
 

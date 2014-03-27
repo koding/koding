@@ -58,7 +58,7 @@ class ActivityActionsView extends KDView
           shareUrl = "#{KD.config.mainUri}/#!/#{data.group}/Activity/#{data.slug}"
         else
           shareUrl      = "#{KD.config.mainUri}/#!/Activity/#{data.slug}"
-        contextMenu   = new JContextMenu
+        contextMenu   = new KDContextMenu
           cssClass    : "activity-share-popup"
           type        : "activity-share"
           delegate    : this

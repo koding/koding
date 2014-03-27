@@ -2,7 +2,6 @@ package terminal
 
 import (
 	"bytes"
-	"errors"
 	"fmt"
 	"koding/tools/dnode"
 	"koding/tools/kite"
@@ -18,6 +17,18 @@ import (
 
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
+)
+
+const (
+	sessionPrefix     = "koding"
+	kodingScreenPath  = "/opt/koding/bin/screen"
+	kodingScreenrc    = "/opt/koding/etc/screenrc"
+	defaultScreenPath = "/usr/bin/screen"
+)
+
+var (
+	ErrNoSession      = "ErrNoSession"
+	ErrInvalidSession = "ErrInvalidSession"
 )
 
 type WebtermServer struct {
@@ -39,10 +50,33 @@ type WebtermRemote struct {
 	SessionEnded dnode.Callback
 }
 
+func webtermKillSession(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
+	var params struct {
+		Session string
+	}
+
+	if args == nil {
+		return nil, &kite.ArgumentError{Expected: "empty argument passed"}
+	}
+
+	if args.Unmarshal(&params) != nil {
+		return nil, &kite.ArgumentError{Expected: "{ session: [string]}"}
+	}
+
+	if err := killSession(vos, params.Session); err != nil {
+		return nil, err
+	}
+
+	return true, nil
+}
+
 func webtermGetSessions(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
 	sessions := screenSessions(vos)
 	if len(sessions) == 0 {
-		return nil, errors.New("no sessions available")
+		return nil, &kite.BaseError{
+			Message: "No sessions available",
+			CodeErr: ErrNoSession,
+		}
 	}
 
 	return sessions, nil
@@ -180,7 +214,7 @@ func (server *WebtermServer) Close() error {
 func (server *WebtermServer) Terminate() error {
 	server.Close()
 	if !server.isForeignSession {
-		server.vm.AttachCommand(server.user.Uid, "", server.screenPath, "-S", "koding."+server.Session, "-X", "quit").Run()
+		server.vm.AttachCommand(server.user.Uid, "", server.screenPath, "-S", sessionPrefix+"."+server.Session, "-X", "quit").Run()
 	}
 	return nil
 }
@@ -196,11 +230,8 @@ type screen struct {
 	Command []string
 }
 
-// newScreen returns a new screen instance that is used to start screen. The
-// screen command line is created differently based on the incoming mode.
-func newScreen(vos *virt.VOS, mode, session string) (*screen, error) {
-	var cmdArgs []string
-	var screenPath string
+func getScreenPath(vos *virt.VOS) (string, error) {
+	screenPath := kodingScreenPath
 
 	// it can happen that the user deleted our screen binary
 	// accidently, if this happens fallback to default screen binary
@@ -209,26 +240,33 @@ func newScreen(vos *virt.VOS, mode, session string) (*screen, error) {
 		// check if the default screen binary exists too
 		_, err := vos.Stat(defaultScreenPath)
 		if os.IsNotExist(err) {
-			return nil, &kite.BaseError{
+			return "", &kite.BaseError{
 				Message: fmt.Sprintf("neither %s nor %s does exist.", kodingScreenPath, defaultScreenPath),
 				CodeErr: ErrInvalidSession,
 			}
 		}
 
 		screenPath = defaultScreenPath
-		cmdArgs = []string{screenPath, "-S"}
-	} else {
-		// check also if our custom screenrc exists before we continue
-		_, err = vos.Stat(kodingScreenrc)
-		if os.IsNotExist(err) {
-			return nil, &kite.BaseError{
-				Message: fmt.Sprintf("Screenrc file '%s' does not exist.", kodingScreenrc),
-				CodeErr: ErrInvalidSession,
-			}
-		}
+	}
 
-		screenPath = kodingScreenPath
-		cmdArgs = []string{screenPath, "-c", kodingScreenrc, "-S"}
+	return screenPath, nil
+}
+
+// newScreen returns a new screen instance that is used to start screen. The
+// screen command line is created differently based on the incoming mode.
+func newScreen(vos *virt.VOS, mode, session string) (*screen, error) {
+	screenPath, err := getScreenPath(vos)
+	if err != nil {
+		return nil, err
+	}
+
+	cmdArgs := []string{screenPath, "-c", kodingScreenrc, "-S"}
+
+	// check also if our custom screenrc exists before we continue
+	_, err = vos.Stat(kodingScreenrc)
+	if os.IsNotExist(err) {
+		log.Warning("Screenrc %s does not exist. Starting screen without screenrc.", kodingScreenrc)
+		cmdArgs = []string{screenPath, "-S"}
 	}
 
 	switch mode {
@@ -303,4 +341,23 @@ func sessionExists(vos *virt.VOS, session string) bool {
 	}
 
 	return false
+}
+
+// killSession kills the given SessionID
+func killSession(vos *virt.VOS, sessionID string) error {
+	screenPath, err := getScreenPath(vos)
+	if err != nil {
+		return err
+	}
+
+	out, err := vos.VM.AttachCommand(vos.User.Uid, "", screenPath, "-X", "-S", sessionPrefix+"."+sessionID, "kill").Output()
+	if err != nil {
+		return commandError("screen kill failed", err, out)
+	}
+
+	return nil
+}
+
+func commandError(message string, err error, out []byte) error {
+	return fmt.Errorf("%s\n%s\n%s", message, err.Error(), string(out))
 }

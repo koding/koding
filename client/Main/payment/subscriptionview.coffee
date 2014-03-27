@@ -30,7 +30,7 @@ class SubscriptionView extends JView
             when 'active'
               "Will renew on #{dateFormat renewAt, datePattern}"
             when 'canceled'
-              "Will be available till #{dateFormat expires, datePattern}"
+              "Will be available till #{dateFormat (expires or renewAt), datePattern}"
             when 'future'
               "Will become available on #{dateFormat startsAt, datePattern}"
         else ''
