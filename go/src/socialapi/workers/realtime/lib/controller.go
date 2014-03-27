@@ -4,10 +4,13 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"koding/db/mongodb"
+	"koding/db/mongodb/modelhelper"
 	"socialapi/models"
 	"strconv"
 	"github.com/koding/bongo"
 	"github.com/koding/logging"
+	"github.com/koding/rabbitmq"
 
 	"github.com/streadway/amqp"
 )
@@ -15,15 +18,24 @@ import (
 type Action func(*RealtimeWorkerController, []byte) error
 
 type RealtimeWorkerController struct {
-	routes map[string]Action
-	log    logging.Logger
+	routes  map[string]Action
+	log     logging.Logger
+	rmqConn *amqp.Connection
+	mongo   *mongodb.MongoDB
 }
 
 var HandlerNotFoundErr = errors.New("Handler Not Found")
 
-func NewRealtimeWorkerController(log logging.Logger) *RealtimeWorkerController {
+func NewRealtimeWorkerController(rmq *rabbitmq.RabbitMQ, mongo *mongodb.MongoDB, log logging.Logger) (*RealtimeWorkerController, error) {
+	rmqConn, err := rmq.Connect("NewRealtimeWorkerController")
+	if err != nil {
+		return nil, err
+	}
+
 	ffc := &RealtimeWorkerController{
-		log: log,
+		log:     log,
+		mongo:   mongo,
+		rmqConn: rmqConn.Conn(),
 	}
 
 	routes := map[string]Action{
@@ -44,7 +56,7 @@ func NewRealtimeWorkerController(log logging.Logger) *RealtimeWorkerController {
 
 	ffc.routes = routes
 
-	return ffc
+	return ffc, nil
 }
 
 func (f *RealtimeWorkerController) HandleEvent(event string, data []byte) error {
@@ -110,7 +122,7 @@ func (f *RealtimeWorkerController) MessageUpdated(data []byte) error {
 		return err
 	}
 
-	err = sendInstanceEvent(cm, "updateInstance")
+	err = f.sendInstanceEvent(cm, "updateInstance")
 	if err != nil {
 		fmt.Println(err)
 		return err
@@ -125,7 +137,7 @@ func (f *RealtimeWorkerController) InteractionSaved(data []byte) error {
 		return err
 	}
 
-	err = sendInstanceEvent(i, "InteractionSaved")
+	err = f.sendInstanceEvent(i, "InteractionSaved")
 	if err != nil {
 		fmt.Println(err)
 		return err
@@ -140,7 +152,7 @@ func (f *RealtimeWorkerController) InteractionDeleted(data []byte) error {
 		return err
 	}
 
-	err = sendInstanceEvent(i, "InteractionDeleted")
+	err = f.sendInstanceEvent(i, "InteractionDeleted")
 	if err != nil {
 		fmt.Println(err)
 		return err
@@ -155,7 +167,7 @@ func (f *RealtimeWorkerController) MessageReplySaved(data []byte) error {
 		return err
 	}
 
-	err = sendInstanceEvent(i, "MessageReplySaved")
+	err = f.sendInstanceEvent(i, "MessageReplySaved")
 	if err != nil {
 		fmt.Println(err)
 		return err
@@ -170,7 +182,7 @@ func (f *RealtimeWorkerController) MessageReplyDeleted(data []byte) error {
 		return err
 	}
 
-	err = sendInstanceEvent(i, "MessageReplyDeleted")
+	err = f.sendInstanceEvent(i, "MessageReplyDeleted")
 	if err != nil {
 		fmt.Println(err)
 		return err
@@ -212,7 +224,7 @@ func (f *RealtimeWorkerController) MessageListDeleted(data []byte) error {
 	return nil
 }
 
-func sendInstanceEvent(message bongo.Modellable, eventName string) error {
+func (f *RealtimeWorkerController) sendInstanceEvent(message bongo.Modellable, eventName string) error {
 	channel, err := RMQConnection.Channel()
 	if err != nil {
 		return err
@@ -261,13 +273,13 @@ func (f *RealtimeWorkerController) sendChannelEvent(cml *models.ChannelMessageLi
 		return nil
 	}
 
+	byteMessage, err := json.Marshal(cml)
+	if err != nil {
+		return err
+	}
+
 	for _, secretName := range secretNames {
 		routingKey := secretName + "." + eventName
-
-		byteMessage, err := json.Marshal(cml)
-		if err != nil {
-			return err
-		}
 
 		if err := channel.Publish(
 			"broker",   // exchange name
@@ -284,14 +296,12 @@ func (f *RealtimeWorkerController) sendChannelEvent(cml *models.ChannelMessageLi
 
 func fetchSecretNames(channelId int64) ([]string, error) {
 	names := make([]string, 0)
-	_, err := fetchChannel(channelId)
+	c, err := fetchChannel(channelId)
 	if err != nil {
 		return names, err
 	}
 
-	// todo - implement fetching from mongo database
-	names = append(names, "foo")
-	names = append(names, "bar")
+	names, err = modelhelper.FetchFlattenedSecretName(c.Group)
 	return names, nil
 }
 
