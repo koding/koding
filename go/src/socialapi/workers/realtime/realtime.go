@@ -2,6 +2,8 @@ package main
 
 import (
 	"flag"
+	"koding/db/mongodb"
+	"koding/db/mongodb/modelhelper"
 	"koding/tools/config"
 	"socialapi/db"
 	realtime "socialapi/workers/realtime/lib"
@@ -20,7 +22,7 @@ var (
 	conf        *config.Config
 	flagProfile = flag.String("c", "", "Configuration profile from file")
 	flagDebug   = flag.Bool("d", false, "Debug mode")
-	handler     = realtime.NewRealtimeWorkerController(log)
+	handler     *realtime.RealtimeWorkerController
 )
 
 func main() {
@@ -41,9 +43,17 @@ func main() {
 	}
 
 	initBongo(rmqConf)
+	mongo := mongodb.NewMongoDB(conf.Mongo)
+	modelhelper.Initialize(conf.Mongo)
+	rmq := rabbitmq.New(rmqConf, log)
+	var err error
+	handler, err = realtime.NewRealtimeWorkerController(rmq, mongo, log)
+	if err != nil {
+		panic(err)
+	}
 
 	// blocking
-	realtime.Listen(rabbitmq.New(rmqConf, log), startHandler)
+	realtime.Listen(rmq, startHandler)
 	defer realtime.Consumer.Shutdown()
 }
 
