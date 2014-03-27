@@ -120,7 +120,18 @@ func (f *RealtimeWorkerController) MessageListUpdated(data []byte) error {
 }
 
 func (f *RealtimeWorkerController) MessageListDeleted(data []byte) error {
-	fmt.Println("MessageListDelete")
+	cml, err := mapMessageToChannelMessageList(data)
+	if err != nil {
+		return err
+	}
+
+	err = f.sendChannelEvent(cml, "MessageRemovedFromChannel")
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func sendInstanceEvent(message bongo.Modellable, eventName string) error {
 	channel, err := RMQConnection.Channel()
 	if err != nil {
