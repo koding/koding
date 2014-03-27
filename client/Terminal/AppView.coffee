@@ -30,11 +30,64 @@ class WebTermAppView extends JView
 
     @on 'VMItemClicked',     @bound 'prepareAndRunTerminal'
     @on 'PlusHandleClicked', @bound 'handlePlusClick'
+    @on 'WebTermConnected',  @bound 'updateSessions'
 
     {vmController} = KD.singletons
     vmController.on 'vm.progress.error', => notify cssClass : 'error'
 
-    @startTab.on "sessionSelected", ({vm, session}) => @createNewTab {vm, session, mode: 'resume'}
+    @on "sessionSelected", ({vm, session}) => @createNewTab {vm, session, mode: 'resume'}
+    @restoreTabs()
+
+  restoreTabs: ->
+    @fetchStorage (storage) =>
+      sessions = storage.getValue 'savedSessions'
+      return  unless sessions?.length
+
+      notify
+        title     : "Checking for previous sessions"
+        cssClass  : "success"
+
+      # group sessions by alias
+      aliases = []
+      sessions.forEach (session) ->
+        [alias, sessionId] = session.split ':'
+        aliases.push alias  unless alias in aliases
+
+      # fetch vms and store in an object with the key of alias
+      KD.singletons.vmController.fetchVMs (err, vms) =>
+        return warn err  if err
+        vmList = {}
+        vms.map (vm) ->
+          vmList[vm.hostnameAlias] = vm
+
+        {dash} = Bongo
+
+        # fetch all active vm sessions via terminal kites
+        activeSessions = []
+        {vmController:{terminalKites : kites}} = KD.singletons
+        queue = aliases.map (alias)->->
+          kites[alias].webtermGetSessions().then (sessions) =>
+            activeSessions = activeSessions.concat sessions
+            queue.fin()
+          .catch (err) ->
+            warn err
+            queue.fin()
+
+        # after all active sessions are fetched, compare them with last open sessions
+        sessionRestored = no
+        dash queue, =>
+          sessions.forEach (session) =>
+            [alias, sessionId] = session.split ':'
+            if sessionId in activeSessions
+              sessionRestored = yes
+              @createNewTab {vm: vmList[alias], session: sessionId, mode: 'resume'}
+
+          activeIndex = storage.getValue 'activeIndex'
+          activePane = @tabView.getPaneByIndex activeIndex ? 1
+          if sessionRestored and activeIndex isnt 0
+            @tabView.showPane activePane
+            { terminalView } = activePane.getOptions()
+            terminalView.setKeyView()
 
   initPane: (pane) ->
 
@@ -51,7 +104,6 @@ class WebTermAppView extends JView
 
 
   handlePaneShown:(pane, index)->
-
     @_windowDidResize()
     {terminalView} = pane.getOptions()
 
@@ -66,26 +118,6 @@ class WebTermAppView extends JView
   fetchStorage: (callback) ->
     storage = KD.getSingleton('appStorageController').storage 'Terminal', '1.0.1'
     storage.fetchStorage -> callback storage
-
-  restoreTabs: (vm) ->
-
-    notify
-      title     : "Checking for previous sessions"
-      cssClass  : "success"
-
-    @fetchStorage (storage) =>
-      sessions = storage.getValue 'savedSessions'
-      activeIndex = storage.getValue 'activeIndex'
-      if sessions?.length
-        for session in sessions
-          [vmName, sessionId] = session.split ':'
-          @createNewTab { vm, session: sessionId, mode: 'resume' }
-        activePane = @tabView.getPaneByIndex activeIndex ? 0
-        @tabView.showPane activePane
-        { terminalView } = activePane.getOptions()
-        terminalView.setKeyView()
-      else
-        @addNewTab vm
 
 
   showApprovalModal: (remote, command)->
@@ -159,7 +191,7 @@ class WebTermAppView extends JView
     {terminalView} = pane.getOptions()
     terminalView.terminal?.scrollToBottom()
     terminalView.once 'WebTermConnected', (remote)=>
-
+      @emit "WebTermConnected"
       if query.command
         command = decodeURIComponent query.command
         @showApprovalModal remote, command
@@ -217,6 +249,7 @@ class WebTermAppView extends JView
 
     @appendTerminalTab terminalView
     terminalView.connectToTerminal()
+    @forwardEvent terminalView, "WebTermConnected"
 
   addStartTab:->
 
@@ -265,8 +298,8 @@ class WebTermAppView extends JView
         { terminalView } = pane.getOptions()
         return unless terminalView
         sessionId = terminalView.sessionId ? terminalView.getOption 'session'
-        vmName = terminalView.getOption 'vmName'
-        sessions.push "#{ vmName }:#{ sessionId }"
+        {hostnameAlias} = terminalView.getOption 'vm'
+        sessions.push "#{ hostnameAlias }:#{ sessionId }"
       storage.setValue 'savedSessions', sessions
       storage.setValue 'activeIndex', activeIndex
 
