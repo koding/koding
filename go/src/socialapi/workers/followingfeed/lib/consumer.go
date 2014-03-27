@@ -2,8 +2,8 @@ package followingfeed
 
 import (
 	"fmt"
-	"koding/messaging/rabbitmq"
 	"socialapi/config"
+	"github.com/koding/rabbitmq"
 
 	"github.com/streadway/amqp"
 )
