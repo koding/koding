@@ -61,10 +61,10 @@ class NFinderTreeController extends JTreeViewController
         @emit "file.opened", nodeData
         @setBlurState()
 
-  # openFileWithApp: (nodeView, contextMenuItem) ->
-  #   return warn "no app passed to open this file"  unless contextMenuItem
-  #   app = contextMenuItem.getData().title
-  #   KD.getSingleton("appManager").openFileWithApplication app, nodeView.getData()
+  openFileWithApp: (nodeView, contextMenuItem) ->
+    return warn "no app passed to open this file"  unless contextMenuItem
+    app = contextMenuItem.getData().title
+    KD.getSingleton("appManager").openFileWithApplication app, nodeView.getData()
 
   openFile:(nodeView)->
 

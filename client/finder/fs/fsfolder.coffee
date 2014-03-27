@@ -1,9 +1,5 @@
 class FSFolder extends FSFile
 
-  constructor: ->
-    { @stack } = new Error
-    super
-
   fetchContents:(dontWatch, callback)->
     [callback, dontWatch] = [dontWatch, callback]  unless callback?
 
