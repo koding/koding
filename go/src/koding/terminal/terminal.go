@@ -226,6 +226,7 @@ func (t *Terminal) runNewKite() {
 
 	t.vosMethod(k, "webterm.getSessions", webtermGetSessionsNew)
 	t.vosMethod(k, "webterm.connect", webtermGetSessionsNew)
+	t.vosMethod(k, "webterm.killSession", webtermGetSessionsNew)
 	k.DisableConcurrency() // needed for webterm.connect
 
 	k.Start()
