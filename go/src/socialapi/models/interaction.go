@@ -60,6 +60,18 @@ func (i *Interaction) Create() error {
 	return bongo.B.Create(i)
 }
 
+func (i *Interaction) AfterCreate() {
+	bongo.B.AfterCreate(i)
+}
+
+func (i *Interaction) AfterUpdate() {
+	bongo.B.AfterUpdate(i)
+}
+
+func (i *Interaction) AfterDelete() {
+	bongo.B.AfterDelete(i)
+}
+
 func (i *Interaction) Delete() error {
 	if err := bongo.B.DB.
 		Where("message_id = ? and account_id = ?", i.MessageId, i.AccountId).
