@@ -146,7 +146,7 @@ class TeamworkTabView extends CollaborativePane
 
   createPlusHandleDropDown: ->
     offset        = @tabHandleHolder.plusHandle.$().offset()
-    contextMenu   = new JContextMenu
+    contextMenu   = new KDContextMenu
       delegate    : this
       x           : offset.left - 125
       y           : offset.top  + 30
