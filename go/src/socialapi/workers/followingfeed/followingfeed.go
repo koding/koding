@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"koding/tools/config"
+	"os"
 	"socialapi/db"
 	followingfeed "socialapi/workers/followingfeed/lib"
 	"github.com/koding/rabbitmq"
@@ -14,9 +15,16 @@ import (
 	"github.com/streadway/amqp"
 )
 
+func init() {
+	logHandler = logging.NewWriterHandler(os.Stderr)
+	logHandler.Colorize = true
+	log.SetHandler(logHandler)
+}
+
 var (
 	Bongo       *bongo.Bongo
 	log         = logging.NewLogger("FollowingFeedWorker")
+	logHandler  *logging.WriterHandler
 	conf        *config.Config
 	flagProfile = flag.String("c", "", "Configuration profile from file")
 	flagDebug   = flag.Bool("d", false, "Debug mode")
@@ -90,4 +98,5 @@ func setLogLevel() {
 		logLevel = logging.INFO
 	}
 	log.SetLevel(logLevel)
+	logHandler.SetLevel(logLevel)
 }
