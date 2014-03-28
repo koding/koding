@@ -7,25 +7,24 @@ import (
 	"koding/tools/config"
 	// Imported for side-effect of handling /debug/vars.
 	"github.com/koding/logging"
-	"github.com/koding/rabbitmq"
+
 	// "koding/tools/logger"
 	_ "net/http/pprof" // Imported for side-effect of handling /debug/pprof.
 	"os"
 	"os/signal"
-	"socialapi/db"
-	"socialapi/models"
 	"socialapi/workers/api/handlers"
+	"socialapi/workers/helper"
 	"strings"
 	"syscall"
 
 	"github.com/koding/bongo"
-	"github.com/koding/broker"
 	"github.com/rcrowley/go-tigertonic"
 )
 
 var (
 	Bongo       *bongo.Bongo
 	log         = logging.NewLogger("FollowingFeedWorker")
+	logHandler  *logging.WriterHandler
 	cert        = flag.String("cert", "", "certificate pathname")
 	key         = flag.String("key", "", "private key pathname")
 	flagConfig  = flag.String("config", "", "pathname of JSON configuration file")
@@ -49,6 +48,9 @@ func init() {
 	}
 	mux = tigertonic.NewTrieServeMux()
 	mux = handlers.Inject(mux)
+	logHandler = logging.NewWriterHandler(os.Stderr)
+	logHandler.Colorize = true
+	log.SetHandler(logHandler)
 }
 
 func setLogLevel() {
@@ -60,6 +62,8 @@ func setLogLevel() {
 		logLevel = logging.INFO
 	}
 	log.SetLevel(logLevel)
+	logHandler.SetLevel(logLevel)
+
 }
 
 func main() {
