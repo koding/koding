@@ -5,6 +5,7 @@ import (
 	"koding/db/mongodb"
 	"koding/db/mongodb/modelhelper"
 	"koding/tools/config"
+	"os"
 	"socialapi/db"
 	realtime "socialapi/workers/realtime/lib"
 
@@ -16,9 +17,16 @@ import (
 	"github.com/streadway/amqp"
 )
 
+func init() {
+	logHandler = logging.NewWriterHandler(os.Stderr)
+	logHandler.Colorize = true
+	log.SetHandler(logHandler)
+}
+
 var (
 	Bongo       *bongo.Bongo
-	log         = logging.NewLogger("RealTimeWorker")
+	log         = logging.NewLogger("RealtimeWorker")
+	logHandler  *logging.WriterHandler
 	conf        *config.Config
 	flagProfile = flag.String("c", "", "Configuration profile from file")
 	flagDebug   = flag.Bool("d", false, "Debug mode")
@@ -100,4 +108,6 @@ func setLogLevel() {
 		logLevel = logging.INFO
 	}
 	log.SetLevel(logLevel)
+	logHandler.SetLevel(logLevel)
+
 }
