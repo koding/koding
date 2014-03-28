@@ -2,31 +2,20 @@ package main
 
 import (
 	"flag"
-	"koding/db/mongodb"
 	"koding/db/mongodb/modelhelper"
 	"koding/tools/config"
-	"os"
-	"socialapi/db"
+	"socialapi/workers/helper"
 	realtime "socialapi/workers/realtime/lib"
 
 	"github.com/jinzhu/gorm"
 	"github.com/koding/bongo"
-	"github.com/koding/broker"
 	"github.com/koding/logging"
-	"github.com/koding/rabbitmq"
 	"github.com/streadway/amqp"
 )
-
-func init() {
-	logHandler = logging.NewWriterHandler(os.Stderr)
-	logHandler.Colorize = true
-	log.SetHandler(logHandler)
-}
 
 var (
 	Bongo       *bongo.Bongo
 	log         = logging.NewLogger("RealtimeWorker")
-	logHandler  *logging.WriterHandler
 	conf        *config.Config
 	flagProfile = flag.String("c", "", "Configuration profile from file")
 	flagDebug   = flag.Bool("d", false, "Debug mode")
@@ -36,11 +25,10 @@ var (
 func main() {
 	flag.Parse()
 	if *flagProfile == "" {
-		log.Fatal("Please define config file with -c")
+		log.Fatal("Please define config file with -c", "")
 	}
 
 	conf = config.MustConfig(*flagProfile)
-	setLogLevel()
 
 	rmqConf := &rabbitmq.Config{
 		Host:     conf.Mq.Host,
@@ -99,15 +87,3 @@ func initBongo(c *rabbitmq.Config) {
 	Bongo.Connect()
 }
 
-func setLogLevel() {
-	var logLevel logging.Level
-
-	if *flagDebug {
-		logLevel = logging.DEBUG
-	} else {
-		logLevel = logging.INFO
-	}
-	log.SetLevel(logLevel)
-	logHandler.SetLevel(logLevel)
-
-}
