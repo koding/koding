@@ -64,6 +64,36 @@ func New(kodingConf *kodingconfig.Config, name, version string) (*KodingKite, er
 	return kk, nil
 }
 
+func (s *KodingKite) Start() {
+	s.Log.Info("Kite has started: %s", s.Kite.Kite())
+
+	registerWithURL := &url.URL{
+		Scheme: "ws",
+		Host:   s.registerIP + ":" + strconv.Itoa(s.Config.Port),
+		Path:   "/",
+	}
+
+	connected, err := s.Kontrol.DialForever()
+	if err != nil {
+		s.Server.Log.Fatal("Cannot dial kontrol: %s", err.Error())
+	}
+	s.Server.Start()
+	go func() {
+		<-connected
+		s.Registration.RegisterToKontrol(registerWithURL)
+	}()
+}
+
+func (s *KodingKite) Run() {
+	s.Start()
+	<-s.Server.CloseNotify()
+}
+
+func (s *KodingKite) Close() {
+	s.Kontrol.Close()
+	s.Server.Close()
+}
+
 func getRegisterIP(environment string) (string, error) {
 	var ip string
 
@@ -101,34 +131,4 @@ func getRegisterIP(environment string) (string, error) {
 	}
 
 	return ip, nil
-}
-
-func (s *KodingKite) Start() {
-	s.Log.Info("Kite has started: %s", s.Kite.Kite())
-
-	registerWithURL := &url.URL{
-		Scheme: "ws",
-		Host:   s.registerIP + ":" + strconv.Itoa(s.Config.Port),
-		Path:   "/",
-	}
-
-	connected, err := s.Kontrol.DialForever()
-	if err != nil {
-		s.Server.Log.Fatal("Cannot dial kontrol: %s", err.Error())
-	}
-	s.Server.Start()
-	go func() {
-		<-connected
-		s.Registration.RegisterToKontrol(registerWithURL)
-	}()
-}
-
-func (s *KodingKite) Run() {
-	s.Start()
-	<-s.Server.CloseNotify()
-}
-
-func (s *KodingKite) Close() {
-	s.Kontrol.Close()
-	s.Server.Close()
 }
