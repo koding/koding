@@ -19,7 +19,14 @@ class FinderController extends KDController
     @controller = new NFinderController options
 
     @controller.getView().addSubView @getUploader()
+    @controller.getView().addSubView @getMountVMButton()
     return @controller
+
+  getMountVMButton: ->
+    @uploaderPlaceholder = new KDButtonView
+      title    : "Mount others..."
+      domId    : "finder-mountvm"
+      callback : @bound 'showMountVMModal'
 
   getUploader: ->
     @uploaderPlaceholder = new KDView
@@ -58,3 +65,31 @@ class FinderController extends KDController
     return  if @controller.treeController.internalDragging
     @uploaderPlaceholder.show()
     @uploader.unsetClass "hover"
+
+  showMountVMModal: ->
+    modal = new KDModalView
+      width         : 620
+      cssClass      : "modal-with-text"
+      title         : "Mount VM's"
+      overlay       : yes
+      buttons       :
+        cancel      :
+          title     : "Cancel"
+          callback  : -> modal.destroy()
+
+    vmListController = new KDListViewController
+      view           : new KDListView
+        itemClass    : VMListItem
+
+    KD.singletons.vmController.fetchVMs (err, vms)->
+      return KD.showError err if err
+      vmListController.instantiateListItems vms
+      modal.addSubView vmListController.getListView()
+
+    vmListController.getListView().on "VmStateChanged", (options)=>
+      KD.singletons.vmController.fetchVmInfo options.hostnameAlias, (err, info)=>
+        return KD.showError err if err
+        if options.state then @controller.mountVm info else \
+        @controller.unmountVm info.hostnameAlias
+
+
