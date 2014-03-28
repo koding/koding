@@ -69,7 +69,8 @@ func NewUsage(vos *virt.VOS) (*Plan, error) {
 func (p *Plan) checkLimits(username string) error {
 	planID, err := getSubscription(username)
 	if err != nil {
-		return err
+		log.Critical("oskite checkLimits err: %v", err)
+		return errors.New("couldn't fetch subscription")
 	}
 
 	plan, ok := plans[planID]
@@ -120,6 +121,8 @@ func getKiteCode() (string, error) {
 	if err != nil {
 		return "", err
 	}
+
+	fmt.Printf("kiteStore %+v\n", kiteStore)
 
 	return kiteStore.KiteCode, nil
 }
