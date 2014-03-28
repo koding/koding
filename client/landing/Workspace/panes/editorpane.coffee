@@ -2,7 +2,7 @@ class EditorPane extends Pane
 
   constructor: (options = {}, data) ->
 
-    options.cssClass = "editor-pane"
+    options.cssClass = KD.utils.curry "editor-pane", options.cssClass
 
     super options, data
 
