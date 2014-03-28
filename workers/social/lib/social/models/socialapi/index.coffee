@@ -26,6 +26,13 @@ module.exports = class Social extends Base
           (signature Object, Function)
         postToChannel :
           (signature Object, Function)
+    schema          :
+      id               : Number
+      body             : String
+      accountId        : Number
+      initialChannelId : Number
+      createdAt        : Date
+      updatedAt        : Date
 
   JAccount = require '../account'
 
