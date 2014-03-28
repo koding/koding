@@ -10,46 +10,7 @@ class StackView extends KDView
 
   viewAppended:->
 
-    {stack} = @getOptions()
-    group   = KD.getGroup().title
-    title   = "#{stack.meta.title} stack on #{group}"
-
-    @addSubView title = new KDView
-      cssClass : 'stack-title'
-      partial  : title
-
-    @addSubView toggle = new KDButtonView
-      title    : 'Hide details'
-      cssClass : 'stack-toggle solid on clear'
-      iconOnly : yes
-      iconClass: 'toggle'
-      callback : =>
-        if @getHeight() <= 50
-          @setHeight @getProperHeight()
-          toggle.setClass 'on'
-        else
-          toggle.unsetClass 'on'
-          @setHeight 48
-        KD.utils.wait 300, @bound 'updateView'
-
-    @addSubView context = new KDButtonView
-      cssClass  : 'stack-context solid clear'
-      style     : 'comment-menu'
-      title     : ''
-      iconOnly  : yes
-      delegate  : this
-      iconClass : "cog"
-      callback  : (event)=>
-        new JContextMenu
-          cssClass    : 'environments'
-          event       : event
-          delegate    : this
-          x           : context.getX() - 138
-          y           : context.getY() + 40
-          arrow       :
-            placement : 'top'
-            margin    : 150
-        , @getMenuItems()
+    @createHeaderElements()
 
     # Main scene for DIA
     @addSubView @scene = new EnvironmentScene @getData().stack
@@ -136,7 +97,11 @@ class StackView extends KDView
             title   : dia.data.title
             aliases : dia.data.aliases
           else if name is 'vms'
-            title   : dia.data.title
+            obj     =
+              title : dia.data.title
+            if dia.data.meta?.initScript
+              obj.initScript = "[...]"
+            obj
           else dia.data
 
     return if asYaml then jsyaml.dump dump else dump
@@ -161,7 +126,9 @@ class StackView extends KDView
         callback           : @bound "dumpStack"
       'Clone this stack'   :
         callback           : =>
-          @emit "CloneStackRequested", @getStackDump()
+          stackDump        = @getStackDump()
+          stackDump.config = @getOptions().stack.meta?.config or ""
+          @emit "CloneStackRequested", stackDump
       'Delete stack'       :
         callback           : @bound "confirmStackDelete"
 
@@ -261,3 +228,67 @@ class StackView extends KDView
         arr.push vm.data.title
 
     @progressModal = new StackProgressModal {}, listData
+
+  createHeaderElements: ->
+    {stack} = @getOptions()
+    group   = KD.getGroup().title
+    title   = "#{stack.meta.title} stack on #{group}"
+
+    @addSubView title = new KDView
+      cssClass : 'stack-title'
+      partial  : title
+
+    @addSubView toggle = new KDButtonView
+      title    : 'Hide details'
+      cssClass : 'stack-toggle solid on clear stack-button'
+      iconOnly : yes
+      iconClass: 'toggle'
+      callback : =>
+        if @getHeight() <= 50
+          @setHeight @getProperHeight()
+          toggle.setClass 'on'
+        else
+          toggle.unsetClass 'on'
+          @setHeight 48
+        KD.utils.wait 300, @bound 'updateView'
+
+    @addSubView context = new KDButtonView
+      cssClass  : 'stack-context solid clear stack-button'
+      style     : 'comment-menu'
+      title     : ''
+      iconOnly  : yes
+      delegate  : this
+      iconClass : "cog"
+      callback  : (event)=>
+        new KDContextMenu
+          cssClass    : 'environments'
+          event       : event
+          delegate    : this
+          x           : context.getX() - 138
+          y           : context.getY() + 40
+          arrow       :
+            placement : 'top'
+            margin    : 150
+        , @getMenuItems()
+
+    @addSubView configEditor = new KDButtonView
+      cssClass  : "stack-editor solid clear stack-button"
+      iconOnly  : yes
+      iconClass : "editor"
+      callback  : @bound "createConfigEditor"
+
+  createConfigEditor: ->
+    new EditorModal
+      editor              :
+        title             : "Stack Config Editor"
+        content           : @getOptions().stack.meta.config or ""
+        saveMessage       : "Stack config saved."
+        saveFailedMessage : "Couldn't save your config"
+        saveCallback      : @bound "saveConfig"
+
+  saveConfig: (config, modal) ->
+    {stack} = @getOptions()
+
+    stack.updateConfig config, (err, res) =>
+      eventName = if err then "SaveFailed" else "Saved"
+      modal.emit eventName

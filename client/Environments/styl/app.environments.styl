@@ -961,29 +961,31 @@ div.environment-stack
     border-bottom       1px solid #e2e2e2
     borderBox()
 
-  .kdbutton.stack-toggle
+  .stack-button
     top                 0
     right               10px
     height              49px
     padding             0 10px
     abs()
+
+  .stack-toggle
     &.on .icon.toggle
       r-sprite          'environments' '20-arrow-down'
     .icon.toggle
       r-sprite          'environments' '20-arrow-up'
 
-  .kdbutton.stack-context
-    top                 0
+  .stack-context
     right               50px
-    height              49px
-    display             block
-    padding             0 10px
-    abs()
     .icon.cog
       r-sprite          'app' '20-cog-gray'
     .chevron-separator
     .chevron
       hidden()
+
+  .stack-editor
+    right               90px
+    .icon.editor
+      r-sprite          "environments", "codesnippet"
 
   &.hilite
     bg                  color, rgba(254, 255, 217, .6)

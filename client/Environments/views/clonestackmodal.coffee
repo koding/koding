@@ -175,9 +175,11 @@ class CloneStackModal extends KDModalView
     @stack.remove()
 
   handleCloneDone: ->
-    @emit "StackCloned"
-    @progressModal?.destroy()
-    @destroy()
+    newConfig = @clearConfigValues @getData().config
+    @stack.updateConfig newConfig, (err, res) =>
+      @emit "StackCloned"
+      @progressModal?.destroy()
+      @destroy()
 
   createStack: (callback = noop) ->
     KD.remote.api.JStack.createStack @getOptions().meta, (err, @stack) =>
@@ -208,3 +210,18 @@ class CloneStackModal extends KDModalView
   createInitialState: (partial) ->
     @addSubView @loader = new KDLoaderView showLoader: yes, size : width : 40
     @addSubView @label  = new KDCustomHTMLView { partial }
+
+  # Very basic implementation, should be updated later for requirements
+  clearConfigValues: (config) ->
+    config    = config.split "\n"
+    newConfig = []
+
+    for line in config
+        if line.indexOf("=") > -1
+            newConfig.push """#{line.slice(0, line.indexOf("="))} = "" """
+        else if line.indexOf(":") > -1
+            newConfig.push """#{line.slice(0, line.indexOf(":"))} : "" """
+        else
+            newConfig.push line
+
+    return newConfig.join "\n"
