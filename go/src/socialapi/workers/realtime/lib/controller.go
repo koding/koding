@@ -122,7 +122,7 @@ func (f *RealtimeWorkerController) MessageUpdated(data []byte) error {
 		return err
 	}
 
-	err = f.sendInstanceEvent(cm, "updateInstance")
+	err = f.sendInstanceEvent(cm.GetId(), cm, "updateInstance")
 	if err != nil {
 		fmt.Println(err)
 		return err
@@ -137,7 +137,7 @@ func (f *RealtimeWorkerController) InteractionSaved(data []byte) error {
 		return err
 	}
 
-	err = f.sendInstanceEvent(i, "InteractionSaved")
+	err = f.sendInstanceEvent(i.GetId(), i, "InteractionSaved")
 	if err != nil {
 		fmt.Println(err)
 		return err
@@ -152,7 +152,7 @@ func (f *RealtimeWorkerController) InteractionDeleted(data []byte) error {
 		return err
 	}
 
-	err = f.sendInstanceEvent(i, "InteractionDeleted")
+	err = f.sendInstanceEvent(i.GetId(), i, "InteractionDeleted")
 	if err != nil {
 		fmt.Println(err)
 		return err
@@ -167,7 +167,7 @@ func (f *RealtimeWorkerController) MessageReplySaved(data []byte) error {
 		return err
 	}
 
-	err = f.sendInstanceEvent(i, "MessageReplySaved")
+	err = f.sendInstanceEvent(i.MessageId, i, "MessageReplySaved")
 	if err != nil {
 		fmt.Println(err)
 		return err
@@ -182,7 +182,7 @@ func (f *RealtimeWorkerController) MessageReplyDeleted(data []byte) error {
 		return err
 	}
 
-	err = f.sendInstanceEvent(i, "MessageReplyDeleted")
+	err = f.sendInstanceEvent(i.GetId(), i, "MessageReplyDeleted")
 	if err != nil {
 		fmt.Println(err)
 		return err
@@ -224,14 +224,15 @@ func (f *RealtimeWorkerController) MessageListDeleted(data []byte) error {
 	return nil
 }
 
-func (f *RealtimeWorkerController) sendInstanceEvent(message bongo.Modellable, eventName string) error {
+func (f *RealtimeWorkerController) sendInstanceEvent(instanceId int64, message bongo.Modellable, eventName string) error {
 	channel, err := RMQConnection.Channel()
 	if err != nil {
 		return err
 	}
 	defer channel.Close()
 
-	routingKey := "oid." + strconv.FormatInt(message.GetId(), 10) + ".event." + eventName
+	routingKey := "oid." + strconv.FormatInt(instanceId, 10) + ".event." + eventName
+
 
 	updateMessage, err := json.Marshal(message)
 	if err != nil {
@@ -239,7 +240,7 @@ func (f *RealtimeWorkerController) sendInstanceEvent(message bongo.Modellable, e
 	}
 
 	updateArr := make([]string, 1)
-	updateArr[0] = fmt.Sprintf("%s", string(updateMessage))
+	updateArr[0] = fmt.Sprintf("{\"$set\":%s}", string(updateMessage))
 
 	msg, err := json.Marshal(updateArr)
 	if err != nil {
