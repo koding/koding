@@ -80,39 +80,23 @@ func main() {
 	// Example use of server.Close and server.Wait to stop gracefully.
 	go listener(server)
 
-	initBongo(conf)
-	// createTables()
+	// panics if not successful
+	Bongo = helper.MustInitBongo(conf)
 
 	ch := make(chan os.Signal)
 	signal.Notify(ch, syscall.SIGINT, syscall.SIGQUIT, syscall.SIGTERM)
 
 	log.Info("Recieved %v", <-ch)
+	shutdown()
+}
 
+func shutdown() {
+	log.Info("Closing connections")
 	// do not forgot to close the bongo connection
 	Bongo.Close()
 
 	// shutdown server
 	server.Close()
-}
-
-func initBongo(c *config.Config) {
-	rmqConf := &rabbitmq.Config{
-		Host:     c.Mq.Host,
-		Port:     c.Mq.Port,
-		Username: c.Mq.ComponentUser,
-		Password: c.Mq.Password,
-		Vhost:    c.Mq.Vhost,
-	}
-
-	bConf := &broker.Config{
-		RMQConfig: rmqConf,
-	}
-	broker := broker.New(bConf, log)
-	Bongo = bongo.New(broker, db.DB, log)
-	err := Bongo.Connect()
-	if err != nil {
-		panic(err)
-	}
 }
 
 func newServer() *tigertonic.Server {
