@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"koding/tools/config"
+	"os"
 	"socialapi/db"
 	topicfeed "socialapi/workers/topicfeed/lib"
 	"github.com/koding/rabbitmq"
@@ -14,13 +15,20 @@ import (
 	"github.com/streadway/amqp"
 )
 
+func init() {
+	logHandler = logging.NewWriterHandler(os.Stderr)
+	logHandler.Colorize = true
+	log.SetHandler(logHandler)
+}
+
 var (
 	Bongo       *bongo.Bongo
 	log         = logging.NewLogger("TopicFeedWorker")
+	logHandler  *logging.WriterHandler
 	conf        *config.Config
 	flagProfile = flag.String("c", "", "Configuration profile from file")
 	flagDebug   = flag.Bool("d", false, "Debug mode")
-	handler     = topicfeed.NewTopicFeedController(log)
+	handler     *topicfeed.TopicFeedController
 )
 
 func main() {
@@ -41,6 +49,9 @@ func main() {
 	}
 
 	initBongo(rmqConf)
+
+	handler = topicfeed.NewTopicFeedController(log)
+
 	// blocking
 	topicfeed.Listen(rabbitmq.New(rmqConf, log), startHandler)
 	defer topicfeed.Consumer.Shutdown()
@@ -89,4 +100,5 @@ func setLogLevel() {
 		logLevel = logging.INFO
 	}
 	log.SetLevel(logLevel)
+	logHandler.SetLevel(logLevel)
 }
