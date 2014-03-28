@@ -219,7 +219,9 @@ class ActivityInputWidget extends KDView
 
     daisy queue
 
-    if feedType is "bug" then KD.singletons.dock.addItem { title : "Bugs", path : "/Bugs", order : 60 }
+    dockItems = KD.singletons.dock.getItems()
+    dockItem  = dockItems.filter (item) -> item.data.title is 'Bugs'
+    if feedType is "bug" and dockItem.length is 0 then KD.singletons.dock.addItem { title : "Bugs", path : "/Bugs", order : 60 }
 
     @emit "ActivitySubmitted"
 
