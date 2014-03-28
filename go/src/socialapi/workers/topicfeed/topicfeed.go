@@ -3,28 +3,18 @@ package main
 import (
 	"flag"
 	"koding/tools/config"
-	"os"
-	"socialapi/db"
+	"socialapi/workers/helper"
 	topicfeed "socialapi/workers/topicfeed/lib"
-	"github.com/koding/rabbitmq"
 
 	"github.com/jinzhu/gorm"
 	"github.com/koding/bongo"
-	"github.com/koding/broker"
 	"github.com/koding/logging"
 	"github.com/streadway/amqp"
 )
 
-func init() {
-	logHandler = logging.NewWriterHandler(os.Stderr)
-	logHandler.Colorize = true
-	log.SetHandler(logHandler)
-}
-
 var (
 	Bongo       *bongo.Bongo
-	log         = logging.NewLogger("TopicFeedWorker")
-	logHandler  *logging.WriterHandler
+	log         logging.Logger
 	conf        *config.Config
 	flagProfile = flag.String("c", "", "Configuration profile from file")
 	flagDebug   = flag.Bool("d", false, "Debug mode")
@@ -38,7 +28,6 @@ func main() {
 	}
 
 	conf = config.MustConfig(*flagProfile)
-	setLogLevel()
 
 	// create logger for our package
 	log = helper.CreateLogger("TopicFeedWorker", *flagDebug)
@@ -79,16 +68,4 @@ func startHandler() func(delivery amqp.Delivery) {
 			delivery.Nack(false, true)
 		}
 	}
-}
-
-func setLogLevel() {
-	var logLevel logging.Level
-
-	if *flagDebug {
-		logLevel = logging.DEBUG
-	} else {
-		logLevel = logging.INFO
-	}
-	log.SetLevel(logLevel)
-	logHandler.SetLevel(logLevel)
 }
