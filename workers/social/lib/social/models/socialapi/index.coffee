@@ -14,6 +14,8 @@ module.exports = class Social extends Base
       static      :
         fetchGroupActivity :
           (signature Object, Function)
+        fetchActivityByChannel :
+          (signature Object, Function)
         editMessage   :
           (signature Object, Function)
         addReply      :
@@ -49,24 +51,26 @@ module.exports = class Social extends Base
         if err then return callback {error: "Not allowed to open this group"}
         else callback null, group
 
-
   @fetchGroupActivity = secure (client, options = {}, callback)->
+    @fetchGroup client, (err, group)->
+      return callback err  if err
+      group.createSocialApiChannelId (err, socialApiChannelId)->
+        return callback err  if err
+        options.channelId = socialApiChannelId
+        Social.fetchActivityByChannel client, options, callback
+
+  @fetchActivityByChannel = secure (client, options = {}, callback)->
     {connection:{delegate}} = client
     delegate.createSocialApiId (err, socialApiId)=>
       return callback err if err
-      @fetchGroup client, (err, group)=>
-        return callback err  if err
-        group.createSocialApiChannelId (err, socialApiChannelId)->
-          return callback err  if err
-          {fetchChannelAtivity} = require './requests'
+      {fetchChannelAtivity} = require './requests'
 
-          data =
-            channelId: socialApiChannelId
-            accountId: socialApiId
+      data =
+        channelId: options.channelId
+        accountId: socialApiId
 
-
-          fetchChannelAtivity data, (err, activities)->
-            callback err, activities
+      fetchChannelAtivity data, (err, activities)->
+        callback err, activities
 
   @postToChannel = secure (client, data, callback)->
     {connection:{delegate}} = client
