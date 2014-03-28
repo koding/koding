@@ -80,7 +80,7 @@ func (t *Terminal) Run() {
 			log.Info("terminal loadbalancer for [correlationName: '%s' user: '%s' deadService: '%s'] results in --> %v.", correlationName, username, deadService, v)
 		}
 
-		resultOskite := t.ServiceUniquename
+		errKite := "(error)"
 
 		var vm *virt.VM
 		if bson.IsObjectIdHex(correlationName) {
@@ -93,45 +93,34 @@ func (t *Terminal) Run() {
 			if err := mongodbConn.Run("jVMs", func(c *mgo.Collection) error {
 				return c.Find(bson.M{"hostnameAlias": correlationName}).One(&vm)
 			}); err != nil {
-				blog(fmt.Sprintf("no hostnameAlias found, returning %s", resultOskite))
-				return resultOskite // no vm was found, return this oskite
+				blog(fmt.Sprintf("no hostnameAlias found, returning (error)"))
+				return errKite
 			}
 		}
 
 		if vm.PinnedToHost != "" {
-			blog(fmt.Sprintf("returning pinnedHost '%s'", vm.PinnedToHost))
-			return vm.PinnedToHost
+			terminalPinnedHost := strings.Replace(vm.PinnedToHost, "os", "terminal", 1)
+			blog(fmt.Sprintf("returning pinnedHost '%s'", terminalPinnedHost))
+			return terminalPinnedHost
 		}
 
 		if vm.HostKite == "" {
-			blog(fmt.Sprintf("hostkite is empty returning '%s'", resultOskite))
-			return resultOskite
+			blog(fmt.Sprintf("hostkite is empty returning (error)"))
+			return errKite
 		}
 
-		// maintenance and banned will be handled again in valideVM() function,
+		// maintenance and banned will be handled again in validateVM() function,
 		// which will return a permission error.
 		if vm.HostKite == "(maintenance)" || vm.HostKite == "(banned)" {
-			blog(fmt.Sprintf("hostkite is %s returning '%s'", vm.HostKite, resultOskite))
-			return resultOskite
+			blog(fmt.Sprintf("hostkite (maintenance) or (banned), returning (error)"))
+			return errKite
 		}
 
-		// Set hostkite to nil if we detect a dead service. On the next call,
-		// Oskite will point to an health service in validateVM function()
-		// because it will detect that the hostkite is nil and change it to the
-		// healthy service given by the client, which is the returned
-		// k.ServiceUniqueName.
-		if vm.HostKite == deadService {
-			blog(fmt.Sprintf("dead service detected %s returning '%s'", vm.HostKite, t.ServiceUniquename))
-			if err := mongodbConn.Run("jVMs", func(c *mgo.Collection) error {
-				return c.Update(bson.M{"_id": vm.Id}, bson.M{"$set": bson.M{"hostKite": nil}})
-			}); err != nil {
-				log.LogError(err, 0, vm.Id.Hex())
-			}
+		terminalHostKite := strings.Replace(vm.HostKite, "os", "terminal", 1)
 
-			return resultOskite
-		}
-
-		return vm.HostKite
+		blog(fmt.Sprintf("returning terminalHostKite %s", terminalHostKite))
+		// finally return our result back
+		return terminalHostKite
 	}
 
 	// this method is special cased in oskite.go to allow foreign access
