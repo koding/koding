@@ -72,11 +72,13 @@ func (c *ChannelMessage) Fetch() error {
 
 func (c *ChannelMessage) Update() error {
 	// only update body
-	return bongo.B.UpdatePartial(c,
+	err := bongo.B.UpdatePartial(c,
 		map[string]interface{}{
 			"body": c.Body,
 		},
 	)
+	c.AfterUpdate()
+	return err
 }
 
 func (c *ChannelMessage) Create() error {
