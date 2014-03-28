@@ -38,16 +38,23 @@ func main() {
 	// do not forgot to close the bongo connection
 	defer Bongo.Close()
 
+	// init mongo connection
 	modelhelper.Initialize(conf.Mongo)
-	rmq := rabbitmq.New(rmqConf, log)
-	var err error
-	handler, err = realtime.NewRealtimeWorkerController(rmq, mongo, log)
+
+	//create connection to RMQ for publishing realtime events
+	rmq := helper.NewRabbitMQ(conf, log)
+
+	h, err := realtime.NewRealtimeWorkerController(rmq, log)
 	if err != nil {
 		panic(err)
 	}
 
+	handler = h
+
 	// blocking
+	// listen for events
 	realtime.Listen(rmq, startHandler)
+	// close consumer
 	defer realtime.Consumer.Shutdown()
 }
 
