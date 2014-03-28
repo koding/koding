@@ -118,6 +118,7 @@ func (t *Terminal) Run() {
 
 		terminalHostKite := strings.Replace(vm.HostKite, "os", "terminal", 1)
 
+		blog(fmt.Sprintf("returning terminalHostKite %s", terminalHostKite))
 		// finally return our result back
 		return terminalHostKite
 	}
