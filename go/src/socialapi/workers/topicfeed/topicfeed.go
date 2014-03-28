@@ -41,7 +41,8 @@ func main() {
 	handler = topicfeed.NewTopicFeedController(log)
 
 	// blocking
-	topicfeed.Listen(rabbitmq.New(rmqConf, log), startHandler)
+	// listen for events
+	topicfeed.Listen(helper.NewRabbitMQ(conf, log), startHandler)
 	defer topicfeed.Consumer.Shutdown()
 }
 
