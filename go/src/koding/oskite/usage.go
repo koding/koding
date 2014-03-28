@@ -106,14 +106,14 @@ type KiteStore struct {
 	Id          bson.ObjectId `bson:"_id"`
 	Name        string        `bson:"name"`
 	Description string        `bson:"description"`
-	KiteCode    string        `son:"kiteCode"`
+	KiteCode    string        `bson:"kiteCode"`
 }
 
 func getKiteCode() (string, error) {
 	kiteStore := new(KiteStore)
 
 	query := func(c *mgo.Collection) error {
-		return c.Find(bson.M{"name": OSKITE_NAME}).Iter().All(&kiteStore)
+		return c.Find(bson.M{"name": OSKITE_NAME}).One(kiteStore)
 	}
 
 	err := mongodbConn.Run("jKites", query)
