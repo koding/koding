@@ -133,7 +133,7 @@ class WebTermView extends KDView
       @status = healthChecker.status
       if @status is "fail"
         @terminal.cursor.setFocused false
-        @terminal.cursor.resetBlink()
+        @terminal.cursor.stopBlink()
 
     @checker = KD.utils.repeat 15000, ->
       healthChecker.run()
