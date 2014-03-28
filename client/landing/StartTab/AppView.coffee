@@ -8,7 +8,7 @@ class StartTabMainView extends JView
 
     @appIcons   = {}
     appStorages = KD.getSingleton('appStorageController')
-    @appStorage = appStorages.storage 'Finder', '1.1.1'
+    @appStorage = appStorages.storage 'Finder', '1.2'
     @_connectAppsController()
 
     # Main view elements
