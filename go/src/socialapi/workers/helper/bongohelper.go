@@ -3,13 +3,14 @@ package helper
 import (
 	"koding/tools/config"
 	"socialapi/db"
+	"github.com/koding/logging"
 
 	"github.com/koding/bongo"
 	"github.com/koding/broker"
 	"github.com/koding/rabbitmq"
 )
 
-func MustInitBongo(c *config.Config) *bongo.Bongo {
+func MustInitBongo(c *config.Config, log logging.Logger) *bongo.Bongo {
 	rmqConf := &rabbitmq.Config{
 		Host:     c.Mq.Host,
 		Port:     c.Mq.Port,
@@ -23,7 +24,7 @@ func MustInitBongo(c *config.Config) *bongo.Bongo {
 	}
 	broker := broker.New(bConf, log)
 	bongo := bongo.New(broker, db.DB, log)
-	err := Bongo.Connect()
+	err := bongo.Connect()
 	if err != nil {
 		panic(err)
 	}
