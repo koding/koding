@@ -40,16 +40,15 @@ func main() {
 	conf = config.MustConfig(*flagProfile)
 	setLogLevel()
 
-	rmqConf := &rabbitmq.Config{
-		Host:     conf.Mq.Host,
-		Port:     conf.Mq.Port,
-		Username: conf.Mq.ComponentUser,
-		Password: conf.Mq.Password,
-		Vhost:    conf.Mq.Vhost,
-	}
+	// create logger for our package
+	log = helper.CreateLogger("TopicFeedWorker", *flagDebug)
 
-	initBongo(rmqConf)
+	// panics if not successful
+	Bongo = helper.MustInitBongo(conf, log)
+	// do not forgot to close the bongo connection
+	defer Bongo.Close()
 
+	// create message handler
 	handler = topicfeed.NewTopicFeedController(log)
 
 	// blocking
@@ -80,15 +79,6 @@ func startHandler() func(delivery amqp.Delivery) {
 			delivery.Nack(false, true)
 		}
 	}
-}
-
-func initBongo(c *rabbitmq.Config) {
-	bConf := &broker.Config{
-		RMQConfig: c,
-	}
-	broker := broker.New(bConf, log)
-	Bongo = bongo.New(broker, db.DB, log)
-	Bongo.Connect()
 }
 
 func setLogLevel() {
