@@ -47,6 +47,9 @@ func (b *Bongo) Update(i Modellable) error {
 		return errors.New(fmt.Sprintf("Id is not set for %s", i.TableName()))
 	}
 
+	// Update and Create is using the Save method, so they are
+	// same functions but GORM handles, AfterCreate and AfterUpdate
+	// in correct manner
 	return b.Create(i)
 }
 
