@@ -40,7 +40,7 @@ func NewRealtimeWorkerController(rmq *rabbitmq.RabbitMQ, mongo *mongodb.MongoDB,
 
 	routes := map[string]Action{
 		"channel_message_created": (*RealtimeWorkerController).MessageSaved,
-		"channel_message_update":  (*RealtimeWorkerController).MessageUpdated,
+		"channel_message_updated": (*RealtimeWorkerController).MessageUpdated,
 		"channel_message_deleted": (*RealtimeWorkerController).MessageDeleted,
 
 		"interaction_created": (*RealtimeWorkerController).InteractionSaved,
@@ -50,7 +50,7 @@ func NewRealtimeWorkerController(rmq *rabbitmq.RabbitMQ, mongo *mongodb.MongoDB,
 		"message_reply_deleted": (*RealtimeWorkerController).MessageReplyDeleted,
 
 		"channel_message_list_created": (*RealtimeWorkerController).MessageListSaved,
-		"channel_message_list_update":  (*RealtimeWorkerController).MessageListUpdated,
+		"channel_message_list_updated": (*RealtimeWorkerController).MessageListUpdated,
 		"channel_message_list_deleted": (*RealtimeWorkerController).MessageListDeleted,
 	}
 
