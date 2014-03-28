@@ -50,6 +50,10 @@ type WebtermRemote struct {
 	SessionEnded dnode.Callback
 }
 
+func webtermPing(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
+	return "pong", nil
+}
+
 func webtermKillSession(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
 	var params struct {
 		Session string
