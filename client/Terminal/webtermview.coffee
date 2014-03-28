@@ -4,6 +4,7 @@ class WebTermView extends KDView
     super options, data
 
     @initBackoff()
+    @registerHealthChecker()
 
   viewAppended: ->
 
@@ -122,6 +123,29 @@ class WebTermView extends KDView
         @reconnectionInProgress = false
         throw err
 
+  registerHealthChecker:->
+    healthChecker = new HealthChecker
+      troubleshoot: @bound 'healthCheck'
+
+    @forwardEvent healthChecker, "healthCheckCompleted"
+    @status = null
+    @on "healthCheckCompleted", =>
+      @status = healthChecker.status
+      if @status is "fail"
+        @terminal.cursor.setFocused false
+        @terminal.cursor.resetBlink()
+
+    @checker = KD.utils.repeat 15000, ->
+      healthChecker.run()
+
+  healthCheck: (callback) ->
+    kite = KD.getSingleton("vmController").terminalKites[@getVMName()]
+    {session} = @getOptions()
+    kite.webtermGetSessions().then (sessions) ->
+      callback null  if session in sessions
+    .catch (err) =>
+      KD.utils.killRepeat @checker
+
   connectToTerminal: ->
     @appStorage = KD.getSingleton('appStorageController').storage 'Terminal', '1.0.1'
     @appStorage.fetchStorage =>
@@ -209,9 +233,11 @@ class WebTermView extends KDView
 
   destroy: ->
     super
-    @emit "TerminalClosed",
-      vmName   : @getVMName()
-      sessionId: @getOptions().session
+    KD.utils.killRepeat @checker
+    unless @status is "fail"
+      @emit "TerminalClosed",
+        vmName   : @getVMName()
+        sessionId: @getOptions().session
 
     @terminal.server?.terminate()
 
