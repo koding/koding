@@ -93,3 +93,18 @@ class FinderController extends KDController
         @controller.unmountVm info.hostnameAlias
 
 
+class VMListItem extends KDListItemView
+
+  constructor:(options={}, data)->
+    super options, data
+    {hostnameAlias} = @getData()
+    KD.singletons.vmController.info hostnameAlias, (err, name, info)=>
+      return KD.showError err if err
+      @addSubView vmLabel  = new KDLabelView title: hostnameAlias
+      @addSubView vmSwitch = new KodingSwitch
+        cssClass     : 'dark'
+        defaultValue : if info.state is "RUNNING" then true else false
+        callback     : (state)=>
+          @getDelegate().emit "VmStateChanged", {state, hostnameAlias}
+
+  viewAppended:JView::viewAppended
