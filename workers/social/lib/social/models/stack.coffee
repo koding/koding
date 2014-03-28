@@ -35,6 +35,8 @@ module.exports = class JStack extends jraphical.Module
           (signature Function)
         push          :
           (signature Object, Function)
+        updateConfig  :
+          (signature String, Function)
 
     sharedEvents      :
       static          : [ ]
@@ -102,3 +104,16 @@ module.exports = class JStack extends jraphical.Module
       user    = client.connection.delegate.profile.nickname
 
       @getStacks {user, group}, callback
+
+  updateConfig: permit "update stacks",
+    success: (client, config, callback) ->
+      {group} = client.context
+      user    = client.connection.delegate.profile.nickname
+
+      if @user isnt user
+        return callback new KodingError "Access denied"
+
+      @update $set: "meta.config": config, (err) =>
+        err = new KodingError {message: "Failed to update", err}  if err
+
+        callback err, this
