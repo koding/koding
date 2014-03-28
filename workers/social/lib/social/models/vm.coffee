@@ -37,6 +37,7 @@ module.exports = class JVM extends Module
       'sudoer'          : []
       'create vms'      : ['member','moderator']
       'delete vms'      : ['member','moderator']
+      'update vms'      : ['member','moderator']
     sharedEvents        :
       static            : [
         { name : "RemovedFromCollection" }
@@ -83,6 +84,8 @@ module.exports = class JVM extends Module
           (signature Function)
         setAlwaysOn:
           (signature Object, Function)
+        updateInitScript:
+          (signature String, String, Function)
 
     schema              :
       ip                :
@@ -135,6 +138,28 @@ module.exports = class JVM extends Module
         type            : Number
         default         : KONFIG.defaultVMConfigs.freeVM.cpu ? 1
       stack             : ObjectId
+      meta              : Object
+
+  @updateInitScript = secure (client, hostnameAlias, script, callback) ->
+    {delegate} = client.connection
+    {group}    = client.context
+    user       = delegate.profile.nickname
+
+    delegate.fetchUser (err, user) ->
+      return callback err  if err
+      return callback new Error "user not found" unless user
+
+      JVM.one
+        hostnameAlias : hostnameAlias
+        users         : { $elemMatch: id: user.getId() }
+      , (err, vm) ->
+        return callback err  if err
+        return callback null, null  unless vm
+        vm.update $set: "meta.initScript": script, (err) =>
+          err = new KodingError {message: "Failed to update", err}  if err
+
+          callback err, vm
+
 
   suspend: (callback)->
     @update { $set: { hostKite: '(banned)' } }, (err)=>
