@@ -66,7 +66,8 @@ class WebTermAppView extends JView
         activeSessions = []
         {vmController:{terminalKites : kites}} = KD.singletons
         queue = aliases.map (alias)->->
-          kites[alias]?.webtermGetSessions().then (sessions) =>
+          return queue.fin()  unless kites[alias]
+          kites[alias].webtermGetSessions().then (sessions) =>
             activeSessions = activeSessions.concat sessions
             queue.fin()
           .catch (err) ->
