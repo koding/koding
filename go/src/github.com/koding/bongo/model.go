@@ -74,7 +74,7 @@ func (b *Bongo) UpdatePartial(i Modellable, rest ...map[string]interface{}) erro
 		query = addWhere(query, selector)
 	}
 
-	if err := query.Update(set).Error; err != nil {
+	if err := query.Model(i.Self()).Update(set).Error; err != nil {
 		return err
 	}
 
