@@ -1146,3 +1146,43 @@ div.nominateicon
       fr()
     label
       margin              0
+
+#editor-modal
+  &.loading
+    .kdmodal-inner
+    .kdmodal-content
+      height                  400px
+    .kdloader
+      margin                  -18px 0 0 -18px
+      top                     50%
+      left                    50%
+
+  .kdmodal-inner
+  .kdmodal-content
+    margin                    0 !important
+    position                  relative
+  .close-icon
+    display                   none
+  .inner-header
+    overflow                  hidden
+    padding                   6px
+    bg                        color, rgba(204, 204, 204, .4)
+    color                     #333
+    h4
+      fl()
+      font-size               18px
+      position                relative
+      top                     6px
+    button
+      fr()
+      margin-left             6px
+  figure
+    height                    358px
+    border-radius             0 0 6px 6px
+  .kdnotification
+    abs()
+    top                       8px !important
+    vendor                    shadow, none
+    vendor                    rounded, 4px
+
+
