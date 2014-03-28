@@ -233,7 +233,6 @@ func (f *RealtimeWorkerController) sendInstanceEvent(instanceId int64, message b
 
 	routingKey := "oid." + strconv.FormatInt(instanceId, 10) + ".event." + eventName
 
-
 	updateMessage, err := json.Marshal(message)
 	if err != nil {
 		return err
@@ -280,7 +279,7 @@ func (f *RealtimeWorkerController) sendChannelEvent(cml *models.ChannelMessageLi
 	}
 
 	for _, secretName := range secretNames {
-		routingKey := secretName + "." + eventName
+		routingKey := secretName + "." + strconv.FormatInt(cml.ChannelId, 10) + "." + eventName
 
 		if err := channel.Publish(
 			"broker",   // exchange name
