@@ -21,19 +21,6 @@ func (b *Bongo) Fetch(i Modellable) error {
 	return nil
 }
 
-func (b *Bongo) FetchByIds(i Modellable, data interface{}, ids []int64) error {
-	if len(ids) == 0 {
-		return nil
-	}
-
-	return b.DB.
-		Table(i.TableName()).
-		Where(ids).
-		Find(data).
-		Error
-
-}
-
 func (b *Bongo) Create(i Modellable) error {
 	if err := b.DB.Save(i).Error; err != nil {
 		return err
@@ -51,6 +38,31 @@ func (b *Bongo) Update(i Modellable) error {
 	// same functions but GORM handles, AfterCreate and AfterUpdate
 	// in correct manner
 	return b.Create(i)
+}
+
+func (b *Bongo) Delete(i Modellable) error {
+	if i.GetId() == 0 {
+		return errors.New(fmt.Sprintf("Id is not set for %s", i.TableName()))
+	}
+
+	if err := b.DB.Delete(i).Error; err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (b *Bongo) FetchByIds(i Modellable, data interface{}, ids []int64) error {
+	if len(ids) == 0 {
+		return nil
+	}
+
+	return b.DB.
+		Table(i.TableName()).
+		Where(ids).
+		Find(data).
+		Error
+
 }
 
 // selector, set
@@ -78,18 +90,6 @@ func (b *Bongo) UpdatePartial(i Modellable, rest ...map[string]interface{}) erro
 	}
 
 	if err := query.Model(i).Update(set).Error; err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (b *Bongo) Delete(i Modellable) error {
-	if i.GetId() == 0 {
-		return errors.New(fmt.Sprintf("Id is not set for %s", i.TableName()))
-	}
-
-	if err := b.DB.Delete(i).Error; err != nil {
 		return err
 	}
 
