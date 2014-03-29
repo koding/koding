@@ -1,8 +1,11 @@
 package worker
 
 import (
+	"errors"
 	"fmt"
+	"github.com/koding/logging"
 
+	"github.com/jinzhu/gorm"
 	"github.com/koding/rabbitmq"
 	"github.com/streadway/amqp"
 )
@@ -11,16 +14,18 @@ type Listener struct {
 	Consumer           *rabbitmq.Consumer
 	SourceExchangeName string
 	WorkerName         string
+	Log                logging.Logger
 }
 
-func NewListener(workerName string, sourceExchangeName string) *Listener {
+func NewListener(workerName string, sourceExchangeName string, log logging.Logger) *Listener {
 	return &Listener{
 		WorkerName:         workerName,
 		SourceExchangeName: sourceExchangeName,
+		Log:                log,
 	}
 }
 
-func (l *Listener) Listen(rmq *rabbitmq.RabbitMQ, startHandler func() func(delivery amqp.Delivery)) {
+func (l *Listener) Listen(rmq *rabbitmq.RabbitMQ, handler Handler) {
 	exchange := rabbitmq.Exchange{
 		Name:    l.SourceExchangeName,
 		Type:    "fanout",
@@ -54,9 +59,41 @@ func (l *Listener) Listen(rmq *rabbitmq.RabbitMQ, startHandler func() func(deliv
 	}
 
 	l.Consumer.RegisterSignalHandler()
-	l.Consumer.Consume(startHandler())
+	l.Consumer.Consume(l.Start(handler))
 }
 
 func (l *Listener) Close() {
 	l.Consumer.Shutdown()
+}
+
+var HandlerNotFoundErr = errors.New("Handler Not Found")
+
+type Handler interface {
+	HandleEvent(string, []byte) error
+	DefaultErrHandler(amqp.Delivery, error)
+}
+
+func (l *Listener) Start(handler Handler) func(delivery amqp.Delivery) {
+	l.Log.Info("Worker Started to Consume")
+	return func(delivery amqp.Delivery) {
+		err := handler.HandleEvent(delivery.Type, delivery.Body)
+		switch err {
+		case nil:
+			delivery.Ack(false)
+		case HandlerNotFoundErr:
+			l.Log.Notice("unknown event type (%s) recieved, \n deleting message from RMQ", delivery.Type)
+			delivery.Ack(false)
+		case gorm.RecordNotFound:
+			l.Log.Warning("Record not found in our db (%s) recieved, \n deleting message from RMQ", string(delivery.Body))
+			delivery.Ack(false)
+		default:
+			// add proper error handling
+			// instead of puttting message back to same queue, it is better
+			// to put it to another maintenance queue/exchange
+			l.Log.Error("an error occured %s, \n putting message back to queue", err)
+			// // multiple false
+			// // reque true
+			// delivery.Nack(false, true)
+		}
+	}
 }
