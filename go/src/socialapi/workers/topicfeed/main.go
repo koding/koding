@@ -6,7 +6,7 @@ import (
 
 	"socialapi/config"
 	"socialapi/workers/helper"
-	topicfeed "socialapi/workers/topicfeed/lib"
+	"socialapi/workers/topicfeed/topicfeed"
 	"github.com/koding/worker"
 )
 

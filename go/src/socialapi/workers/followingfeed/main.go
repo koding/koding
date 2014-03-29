@@ -4,7 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"socialapi/config"
-	followingfeed "socialapi/workers/followingfeed/lib"
+	"socialapi/workers/followingfeed/followingfeed"
 	"socialapi/workers/helper"
 
 	"github.com/koding/worker"
