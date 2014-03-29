@@ -2,10 +2,11 @@ package topicfeed
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"socialapi/models"
 	"github.com/koding/logging"
+	"github.com/koding/worker"
+	"github.com/streadway/amqp"
 
 	verbalexpressions "github.com/VerbalExpressions/GoVerbalExpressions"
 	"github.com/jinzhu/gorm"
@@ -32,7 +33,12 @@ type TopicFeedController struct {
 	log    logging.Logger
 }
 
-var HandlerNotFoundErr = errors.New("Handler Not Found")
+func (t *TopicFeedController) DefaultErrHandler(delivery amqp.Delivery, err error) {
+	t.log.Error("an error occured %s, \n putting message back to queue", err)
+	// multiple false
+	// reque true
+	delivery.Nack(false, true)
+}
 
 func NewTopicFeedController(log logging.Logger) *TopicFeedController {
 	ffc := &TopicFeedController{
@@ -54,7 +60,7 @@ func (f *TopicFeedController) HandleEvent(event string, data []byte) error {
 	f.log.Debug("New Event Recieved %s", event)
 	handler, ok := f.routes[event]
 	if !ok {
-		return HandlerNotFoundErr
+		return worker.HandlerNotFoundErr
 	}
 
 	cm, err := mapMessage(data)
