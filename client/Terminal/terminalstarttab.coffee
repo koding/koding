@@ -13,28 +13,34 @@ class TerminalStartTab extends JView
     KD.singletons.notificationController.on 'NotificationHasArrived', ({event}) =>
       if event in ["VMCreated", "VMRemoved"]
         @wmWrapper = {}
-        @viewAppended()
+        @viewAppended yes
 
-  viewAppended:->
+  viewAppended: (force = no) ->
 
     super
     @wmWrapper = {}
-    @fetchVMs()
+    @fetchVMs force
     @prepareMessage()
 
 
-  fetchVMs:->
+  fetchVMs: (force = no) ->
 
     {vmController, kontrol} = KD.singletons
 
-    vmController.fetchVMs yes, (err, vms)=>
+    vmController.fetchVMs force, (err, vms)=>
       if err
         return new KDNotificationView title : "Couldn't fetch your VMs"
 
       vms.sort (a,b)-> a.hostnameAlias > b.hostnameAlias
 
       @listVMs vms
-      @listVMSessions vms
+
+      {vmController} = KD.singletons
+      {terminalKites} = vmController
+      if Object.keys(terminalKites).length
+        @listVMSessions vms
+      else
+        vmController.on "KitesRegistered", => @listVMSessions vms
 
       osKites =
         if KD.useNewKites
@@ -80,7 +86,7 @@ class TerminalStartTab extends JView
     <figure><iframe src="//www.youtube.com/embed/DmjWnmSlSu4?origin=https://koding.com&showinfo=0&rel=0&theme=dark&modestbranding=1&autohide=1&loop=1" width="100%" height="100%" frameborder="0" webkitAllowFullScreen mozallowfullscreen allowFullScreen></iframe></figure>
     <h3>Your VMs</h3>
     {{> @vmWrapper}}
-    <h3>Your Stored VM Sessions</h3>
+    <h3>Previous VM Sessions</h3>
     {{> @vmSessions}}
     {{> @message}}
     """
