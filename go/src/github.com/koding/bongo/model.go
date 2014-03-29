@@ -65,6 +65,27 @@ func (b *Bongo) FetchByIds(i Modellable, data interface{}, ids []int64) error {
 
 }
 
+func (b *Bongo) UpdatePartial(i Modellable, set map[string]interface{}) error {
+	if i.GetId() == 0 {
+		return errors.New(fmt.Sprintf("Id is not set for %s", i.TableName()))
+	}
+
+	query := b.DB.Table(i.TableName())
+
+	query = query.Where(i.GetId())
+
+	if err := query.Update(set).Error; err != nil {
+		return err
+	}
+
+	if err := b.Fetch(i); err != nil {
+		return err
+	}
+
+	b.AfterUpdate(i)
+	return nil
+}
+
 // selector, set
 func (b *Bongo) UpdatePartial(i Modellable, rest ...map[string]interface{}) error {
 	var set, selector map[string]interface{}
