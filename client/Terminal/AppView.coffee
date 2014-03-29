@@ -43,7 +43,7 @@ class WebTermAppView extends JView
       sessions = storage.getValue 'savedSessions'
       return  unless sessions?.length
 
-      notify
+      @notify
         title     : "Checking for previous sessions"
         cssClass  : "success"
 
@@ -84,7 +84,7 @@ class WebTermAppView extends JView
               @createNewTab {vm: vmList[alias], session: sessionId, mode: 'resume'}
 
           unless sessionRestored
-            notify
+            @notify
               title     : "Your previous sessions are no longer online since your VM is turned off due to inactivity. \
                            If you want always on VMs, you can upgrade your plan"
               cssClass  : "fail"
@@ -350,15 +350,15 @@ class WebTermAppView extends JView
       {recentState} = osKite
       if recentState?.state is 'RUNNING'
       then @prepareAndRunTerminal vm
-      else notify cssClass : 'error'
+      else @notify cssClass : 'error'
 
   prepareAndRunTerminal: (vm, mode = 'create') ->
     {vmController} = KD.singletons
-    osKite = 
+    osKite =
       if KD.useNewKites
       then vmController.kites.oskite[vm.hostnameAlias]
       else vmController.kites[vm.hostnameAlias]
-  
+
     {recentState}  = osKite
 
     if recentState?.state is 'RUNNING'
@@ -366,8 +366,9 @@ class WebTermAppView extends JView
     else if recentState?.state is 'STOPPED' or 'FAILED'
       osKite?.vmOn()
     else
-      notify cssClass : 'error'
+      @notify cssClass : 'error'
       osKite?.vmOff()
+
 
   pistachio: ->
     """
@@ -376,7 +377,7 @@ class WebTermAppView extends JView
     """
 
 
-  notify = do ->
+  notify: do ->
 
     notification = null
 
