@@ -190,22 +190,27 @@ class WebTermView extends KDView
 
   attemptToReconnect: ->
     return  if @reconnected
-    @reconnectingNotification ?= new KDNotificationView
-      type      : "mini"
+    @getDelegate().notify
+      cssClass  : "error"
       title     : "Trying to reconnect your Terminal"
       duration  : 2 * 60 * 1000 # 2 mins
-      container : @container
 
-    vmController = KD.getSingleton "vmController"
     hasResponse  = no
 
-    vmController.info (@getOption 'vmName') or @getDelegate().getOption("vmName"), (err, res) =>
+    {vm} = @getOptions()
+    {hostnameAlias, region} = vm
+
+    kite = KD.getSingleton("vmController").terminalKites[hostnameAlias]
+    kite?.webtermGetSessions().then (sessions) =>
       hasResponse = yes
       return if @reconnected
       @handleReconnect()
-      @clearConnectionAttempts()
 
-    @utils.wait 500, => @reconnectAttemptFailed() unless hasResponse
+    @utils.wait 500, =>
+      unless hasResponse
+        # TODO resolve this workaround
+        serviceGenericName = "terminal-kite-terminal-#{region}"
+        @reconnectAttemptFailed serviceGenericName, hostnameAlias
 
   clearConnectionAttempts: ->
     @clearBackoffTimeout()
@@ -215,20 +220,14 @@ class WebTermView extends KDView
 
     @clearConnectionAttempts()
     options =
-      session  : @sessionId
-      joinUser : KD.nick()
+      session : @sessionId
+      vm      : @getOption('vm')
 
-    @reinitializeWebTerm options
-    @reconnectingNotification?.destroy()
-    @reconnected = yes
-
-  reinitializeWebTerm: (options = {}) ->
-    return  if @reconnected
     @emit "WebTermNeedsToBeRecovered", options
+    @reconnected = yes
 
   handleConnectionFailure: ->
     return if @failedToReconnect
-    @reconnectingNotification?.destroy()
     @reconnected       = no
     @failedToReconnect = yes
     @clearConnectionAttempts()
