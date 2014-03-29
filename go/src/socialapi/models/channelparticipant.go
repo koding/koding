@@ -52,10 +52,6 @@ func (c *ChannelParticipant) TableName() string {
 	return "channel_participant"
 }
 
-func (c *ChannelParticipant) Self() bongo.Modellable {
-	return c
-}
-
 func (c *ChannelParticipant) BeforeSave() {
 	c.LastSeenAt = time.Now().UTC()
 }

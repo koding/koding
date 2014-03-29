@@ -86,10 +86,6 @@ func (c *Channel) TableName() string {
 	return "channel"
 }
 
-func (c *Channel) Self() bongo.Modellable {
-	return c
-}
-
 func (c *Channel) Fetch() error {
 	return bongo.B.Fetch(c)
 }

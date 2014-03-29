@@ -44,10 +44,6 @@ func (i *Interaction) TableName() string {
 	return "interaction"
 }
 
-func (i *Interaction) Self() bongo.Modellable {
-	return i
-}
-
 func NewInteraction() *Interaction {
 	return &Interaction{}
 }

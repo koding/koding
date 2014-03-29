@@ -14,7 +14,7 @@ func (b *Bongo) Fetch(i Modellable) error {
 		return errors.New(fmt.Sprintf("Id is not set for %s", i.TableName()))
 	}
 
-	if err := b.DB.First(i.Self(), i.GetId()).Error; err != nil {
+	if err := b.DB.First(i, i.GetId()).Error; err != nil {
 		return err
 	}
 
@@ -77,7 +77,7 @@ func (b *Bongo) UpdatePartial(i Modellable, rest ...map[string]interface{}) erro
 		query = addWhere(query, selector)
 	}
 
-	if err := query.Model(i.Self()).Update(set).Error; err != nil {
+	if err := query.Model(i).Update(set).Error; err != nil {
 		return err
 	}
 
@@ -89,7 +89,7 @@ func (b *Bongo) Delete(i Modellable) error {
 		return errors.New(fmt.Sprintf("Id is not set for %s", i.TableName()))
 	}
 
-	if err := b.DB.Delete(i.Self()).Error; err != nil {
+	if err := b.DB.Delete(i).Error; err != nil {
 		return err
 	}
 
@@ -169,7 +169,7 @@ func (b *Bongo) One(i Modellable, data interface{}, selector map[string]interfac
 
 func (b *Bongo) AfterCreate(i Modellable) {
 	eventName := fmt.Sprintf("%s_created", i.TableName())
-	data, err := json.Marshal(i.Self())
+	data, err := json.Marshal(i)
 	if err != nil {
 		// here try to resend this message to RMQ again, than
 		// persist it to somewhere!#!##@$%#?
@@ -185,7 +185,7 @@ func (b *Bongo) AfterCreate(i Modellable) {
 
 func (b *Bongo) AfterUpdate(i Modellable) {
 	eventName := fmt.Sprintf("%s_updated", i.TableName())
-	data, err := json.Marshal(i.Self())
+	data, err := json.Marshal(i)
 	if err != nil {
 		// here try to resend this message to RMQ again, than
 		// persist it to somewhere!#!##@$%#?
@@ -201,7 +201,7 @@ func (b *Bongo) AfterUpdate(i Modellable) {
 
 func (b *Bongo) AfterDelete(i Modellable) {
 	eventName := fmt.Sprintf("%s_deleted", i.TableName())
-	data, err := json.Marshal(i.Self())
+	data, err := json.Marshal(i)
 	if err != nil {
 		// here try to resend this message to RMQ again, than
 		// persist it to somewhere!#!##@$%#?

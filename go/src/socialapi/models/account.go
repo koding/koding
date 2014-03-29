@@ -27,10 +27,6 @@ func (a *Account) TableName() string {
 	return "account"
 }
 
-func (a *Account) Self() bongo.Modellable {
-	return a
-}
-
 func (a *Account) One(selector map[string]interface{}) error {
 	return bongo.B.One(a, a, selector)
 }

@@ -50,10 +50,6 @@ func (c *ChannelMessage) TableName() string {
 	return "channel_message"
 }
 
-func (c *ChannelMessage) Self() bongo.Modellable {
-	return c
-}
-
 const (
 	ChannelMessage_TYPE_POST  = "post"
 	ChannelMessage_TYPE_REPLY = "reply"

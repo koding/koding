@@ -29,10 +29,6 @@ func (m *MessageReply) TableName() string {
 	return "message_reply"
 }
 
-func (m *MessageReply) Self() bongo.Modellable {
-	return m
-}
-
 func NewMessageReply() *MessageReply {
 	return &MessageReply{}
 }
@@ -60,7 +56,7 @@ func (m *MessageReply) Create() error {
 func (m *MessageReply) Delete() error {
 	if err := bongo.B.DB.
 		Where("message_id = ? and reply_id = ?", m.MessageId, m.ReplyId).
-		Delete(m.Self()).Error; err != nil {
+		Delete(m).Error; err != nil {
 		return err
 	}
 	return nil
