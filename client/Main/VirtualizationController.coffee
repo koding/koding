@@ -29,10 +29,18 @@ class VirtualizationController extends KDController
       return callback err  if err?
       options.correlationName = vmName
       @fetchRegion vmName, (region)=>
-        if options.kiteName
-          options.kiteName = "#{options.kiteName}-#{region}"
-        else
-          options.kiteName = "os-#{region}"
+        options.kiteName = 
+          if KD.useNewKites
+            # TODO: this mapping should be removed, and kites should be named consistently
+            if options.kiteName is 'os'
+              'oskite'
+            else
+              options.kiteName ? 'oskite'
+          else
+            if options.kiteName
+              "#{options.kiteName}-#{region}"
+            else
+              "os-#{region}"
 
         @kc.run options, callback
 
@@ -228,34 +236,37 @@ class VirtualizationController extends KDController
     (KD.getSingleton 'kiteController')
       .getKite "#{ type }-#{ region }", hostnameAlias, type
 
-  wrapNewKite: (kite, name, vm) ->
-    WrapperClass = KodingKite.constructors[name] ? KodingKite
-    new WrapperClass { kite, name, vm }
-
-  createNewKite: (name, vm) ->
-    (KD.getSingleton 'kontrol').fetchKite({ name }).then (kite) =>
-      debugger
-      kite.connect()
-      return @wrapNewKite kite, name, vm
-
-  createNewKites: (vm) ->
-    hostname = @getKiteHostname vm
-    Promise.all [
-      @createNewKite 'oskite', vm
-      # @createNewKite 'terminalkite', vm
-    ]
+  registerNewKite: (name, id, kite) ->
+    @kites[name] ?= {}
+    @kites[name][id] = kite
 
   registerNewKites: (vms) ->
-    Promise.all(@createNewKites vm for vm in vms).then (kites) ->
-      
-      return kites
+    for name in ['oskite', 'terminal']
+      for vm in vms
+        { hostnameAlias: correlationName, region } = vm
+
+        kite = (KD.getSingleton 'kontrol').getKite { name, correlationName, region }
+
+        @listenToVmState vm, kite
+
+        @registerNewKite name, correlationName, kite     
 
   registerKite: (vm) ->
 
-    alias         = vm.hostnameAlias
-    @kites[alias] = kite = @getKite vm, 'os'
-    @terminalKites[alias] = @getKite vm, 'terminal'
+    alias = vm.hostnameAlias
+    kite = @getKite vm, 'os'
 
+    @kites[alias] = kite
+    
+    @listenToVmState vm, kite
+
+    kite.ready =>
+      @terminalKites[alias] = @getKite vm, 'terminal'
+
+    kite.fetchState()
+
+  listenToVmState: (vm, kite) ->
+    alias = vm.hostnameAlias
     kite.on 'vm.progress.start', (update) =>
       @emit 'vm.progress.start', {alias, update}
 
@@ -264,8 +275,6 @@ class VirtualizationController extends KDController
 
     kite.on 'vm.state.info', (state) =>
       @emit 'vm.state.info', {alias, state}
-
-    kite.fetchState()
 
 
   getKiteByVmName: (vmName) ->

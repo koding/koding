@@ -1,4 +1,4 @@
-class KodingKite_OsKite extends KodingKite
+class KodingKite_OsKite extends KodingKite_VmKite
 
   @constructors['oskite'] = this
 
@@ -59,11 +59,14 @@ class KodingKite_OsKite extends KodingKite
     @vmInfo().then (state) =>
       @recentState = state
       @emit 'vm.state.info', @recentState
-      @cycleChannel()  unless state # backend's cycleChannel regressed - SY
+      
+      unless KD.useNewKites or state
+        @cycleChannel() # backend's cycleChannel regressed - SY
 
   vmOn: ->
     if not @recentState? or @recentState.state is 'STOPPED'
       @vmPrepareAndStart onProgress: (update) =>
+        console.log { update }
         @emit 'vm.progress.start', update
         if update.message is 'FINISHED'
           @recentState?.state = 'RUNNING'
@@ -80,6 +83,4 @@ class KodingKite_OsKite extends KodingKite
       Promise.resolve()
 
   fsExists: (options) ->
-    @fsGetInfo(options)
-
-    .then (result) -> return result
+    @fsGetInfo(options).then (result) -> return !!result
