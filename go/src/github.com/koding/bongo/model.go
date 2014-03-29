@@ -87,7 +87,7 @@ func (b *Bongo) UpdatePartial(i Modellable, set map[string]interface{}) error {
 }
 
 // selector, set
-func (b *Bongo) UpdatePartial(i Modellable, rest ...map[string]interface{}) error {
+func (b *Bongo) UpdateMulti(i Modellable, rest ...map[string]interface{}) error {
 	var set, selector map[string]interface{}
 
 	switch len(rest) {
@@ -103,14 +103,10 @@ func (b *Bongo) UpdatePartial(i Modellable, rest ...map[string]interface{}) erro
 
 	query := b.DB.Table(i.TableName())
 
-	if i.GetId() != 0 {
-		query = query.Where(i.GetId())
-	} else {
-		//add selector
-		query = addWhere(query, selector)
-	}
+	//add selector
+	query = addWhere(query, selector)
 
-	if err := query.Model(i).Update(set).Error; err != nil {
+	if err := query.Update(set).Error; err != nil {
 		return err
 	}
 
