@@ -21,8 +21,7 @@ import (
 
 var (
 	Bongo       *bongo.Bongo
-	log         = logging.NewLogger("FollowingFeedWorker")
-	logHandler  *logging.WriterHandler
+	log         logging.Logger
 	cert        = flag.String("cert", "", "certificate pathname")
 	key         = flag.String("key", "", "private key pathname")
 	flagConfig  = flag.String("config", "", "pathname of JSON configuration file")
@@ -46,21 +45,6 @@ func init() {
 	}
 	mux = tigertonic.NewTrieServeMux()
 	mux = handlers.Inject(mux)
-	logHandler = logging.NewWriterHandler(os.Stderr)
-	logHandler.Colorize = true
-	log.SetHandler(logHandler)
-}
-
-func setLogLevel() {
-	var logLevel logging.Level
-
-	if *flagDebug {
-		logLevel = logging.DEBUG
-	} else {
-		logLevel = logging.INFO
-	}
-	log.SetLevel(logLevel)
-	logHandler.SetLevel(logLevel)
 
 }
 
@@ -70,13 +54,7 @@ func main() {
 		log.Fatal("Please define config file with -c")
 	}
 	conf = config.MustConfig(*flagProfile)
-	setLogLevel()
-
-	// Example of parsing a configuration file.
-	// c := &config.Config{}
-	// if err := tigertonic.Configure(*flagConfig, c); nil != err {
-	// 	log.Fatal(err)
-	// }
+	log = helper.CreateLogger("SocialAPI", *flagDebug)
 
 	server := newServer()
 	// Example use of server.Close and server.Wait to stop gracefully.
