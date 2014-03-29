@@ -263,13 +263,16 @@ module.exports = [
   "kite/oskite.coffee",
   "kite/terminalkite.coffee",
   "kite/kitecontroller.coffee",
+  "kite/newkitecontroller.coffee",
   "kite/vm.coffee", # TODO: this doesn't really belong here.
   "kite/kitehelper.coffee",
 
   # NEW KITES (extending kite.js)
   "kite/kodingkite.coffee",
   "kite/kodingkontrol.coffee",
+  "kite/kites/vmkite.coffee",
   "kite/kites/oskite.coffee",
+  "kite/kites/terminalkite.coffee",
 
   # Virtualization CONTROLLER
   "VirtualizationController.coffee",

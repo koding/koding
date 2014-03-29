@@ -92,6 +92,10 @@ class KiteController extends KDController
 
   run:(options = {}, callback)->
 
+    console.warn "KiteController#run is deprecated"
+    console.log options
+    console.trace()
+
     if "string" is typeof options
       command = options
       options = {}
@@ -112,8 +116,12 @@ class KiteController extends KDController
 
     kite =
       if KD.useNewKites
-      then KD.getSingleton('vmController').getKiteByVmName correlationName
+      then KD.getSingleton('kontrol').getKite {
+        name: options.kiteName, correlationName
+      }
       else @getKite options.kiteName, correlationName
+
+    debugger
 
     if command
       options.withArgs = command

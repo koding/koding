@@ -3,6 +3,7 @@ package terminal
 import (
 	"bytes"
 	"errors"
+	"fmt"
 	"koding/tools/kite"
 	"koding/tools/pty"
 	"koding/tools/utils"
@@ -87,6 +88,8 @@ func webtermConnectNew(r *kitelib.Request, vos *virt.VOS) (interface{}, error) {
 				CodeErr: ErrInvalidSession,
 			}
 		}
+
+		fmt.Printf("params %#v\n", params)
 
 		user := new(virt.User)
 		if err := mongodbConn.Run("jUsers", func(c *mgo.Collection) error {

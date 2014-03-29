@@ -4,6 +4,7 @@ package oskite
 
 import (
 	"errors"
+	"koding/kodingkite"
 	"koding/tools/kite"
 	"koding/virt"
 	"os"
@@ -12,7 +13,6 @@ import (
 
 	kitelib "github.com/koding/kite"
 	kitednode "github.com/koding/kite/dnode"
-	"github.com/koding/kite/simple"
 
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
@@ -25,7 +25,7 @@ type vosFunc func(*kitelib.Request, *virt.VOS) (interface{}, error)
 
 // vosMethod is compat wrapper around the new kite library. It's basically
 // creates a vos instance that is the plugged into the the base functions.
-func (o *Oskite) vosMethod(k *simple.Simple, method string, vosFn vosFunc) {
+func (o *Oskite) vosMethod(k *kodingkite.KodingKite, method string, vosFn vosFunc) {
 	handler := func(r *kitelib.Request) (interface{}, error) {
 		var params struct {
 			VmName string

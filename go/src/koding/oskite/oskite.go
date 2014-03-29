@@ -177,7 +177,11 @@ func (o *Oskite) Run() {
 
 func (o *Oskite) runNewKite() {
 	log.Info("Run newkite.")
-	k := kodingkite.New(conf, OSKITE_NAME, OSKITE_VERSION)
+	k, err := kodingkite.New(conf, OSKITE_NAME, OSKITE_VERSION)
+	if err != nil {
+		panic(err)
+	}
+
 	k.Config.Port = 5000
 	k.Config.Region = o.Region
 
