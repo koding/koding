@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"koding/db/mongodb"
 	"koding/db/mongodb/modelhelper"
 	"socialapi/models"
 	"strconv"
@@ -21,12 +20,11 @@ type RealtimeWorkerController struct {
 	routes  map[string]Action
 	log     logging.Logger
 	rmqConn *amqp.Connection
-	mongo   *mongodb.MongoDB
 }
 
 var HandlerNotFoundErr = errors.New("Handler Not Found")
 
-func NewRealtimeWorkerController(rmq *rabbitmq.RabbitMQ, mongo *mongodb.MongoDB, log logging.Logger) (*RealtimeWorkerController, error) {
+func NewRealtimeWorkerController(rmq *rabbitmq.RabbitMQ, log logging.Logger) (*RealtimeWorkerController, error) {
 	rmqConn, err := rmq.Connect("NewRealtimeWorkerController")
 	if err != nil {
 		return nil, err
@@ -34,7 +32,6 @@ func NewRealtimeWorkerController(rmq *rabbitmq.RabbitMQ, mongo *mongodb.MongoDB,
 
 	ffc := &RealtimeWorkerController{
 		log:     log,
-		mongo:   mongo,
 		rmqConn: rmqConn.Conn(),
 	}
 
