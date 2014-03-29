@@ -1,7 +1,7 @@
 package helper
 
 import (
-	"koding/tools/config"
+	"socialapi/config"
 	"github.com/koding/logging"
 
 	"github.com/koding/rabbitmq"
@@ -15,7 +15,7 @@ func createRabbitMqConf(conf *config.Config) *rabbitmq.Config {
 	return &rabbitmq.Config{
 		Host:     conf.Mq.Host,
 		Port:     conf.Mq.Port,
-		Username: conf.Mq.ComponentUser,
+		Username: conf.Mq.Username,
 		Password: conf.Mq.Password,
 		Vhost:    conf.Mq.Vhost,
 	}
