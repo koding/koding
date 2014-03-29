@@ -73,7 +73,6 @@ func (c *ChannelMessage) Update() error {
 			"body": c.Body,
 		},
 	)
-	c.AfterUpdate()
 	return err
 }
 
