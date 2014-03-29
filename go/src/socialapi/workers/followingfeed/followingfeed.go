@@ -3,12 +3,14 @@ package main
 import (
 	"flag"
 	"koding/tools/config"
+	socialconfig "socialapi/config"
 	followingfeed "socialapi/workers/followingfeed/lib"
 	"socialapi/workers/helper"
 
 	"github.com/jinzhu/gorm"
 	"github.com/koding/bongo"
 	"github.com/koding/logging"
+	"github.com/koding/worker"
 	"github.com/streadway/amqp"
 )
 
@@ -39,9 +41,12 @@ func main() {
 
 	handler = followingfeed.NewFollowingFeedController(log)
 
+	listener := worker.NewListener("FollowingFeed", socialconfig.EventExchangeName)
 	// blocking
-	followingfeed.Listen(helper.NewRabbitMQ(conf, log), startHandler)
-	defer followingfeed.Consumer.Shutdown()
+	// listen for events
+	listener.Listen(helper.NewRabbitMQ(conf, log), startHandler)
+	// close consumer
+	defer listener.Close()
 }
 
 func startHandler() func(delivery amqp.Delivery) {
