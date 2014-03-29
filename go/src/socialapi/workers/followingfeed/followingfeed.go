@@ -2,8 +2,7 @@ package main
 
 import (
 	"flag"
-	"koding/tools/config"
-	socialconfig "socialapi/config"
+	"socialapi/config"
 	followingfeed "socialapi/workers/followingfeed/lib"
 	"socialapi/workers/helper"
 
@@ -29,7 +28,7 @@ func main() {
 		log.Fatal("Please define config file with -c", "")
 	}
 
-	conf = config.MustConfig(*flagProfile)
+	conf = config.Read(*flagProfile)
 
 	// create logger for our package
 	log = helper.CreateLogger("TopicFeedWorker", *flagDebug)
@@ -41,7 +40,7 @@ func main() {
 
 	handler = followingfeed.NewFollowingFeedController(log)
 
-	listener := worker.NewListener("FollowingFeed", socialconfig.EventExchangeName)
+	listener := worker.NewListener("FollowingFeed", conf.EventExchangeName)
 	// blocking
 	// listen for events
 	listener.Listen(helper.NewRabbitMQ(conf, log), startHandler)
