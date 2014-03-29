@@ -287,10 +287,13 @@ class WebTermAppView extends JView
     @tabView.addPane pane
     pane.addSubView terminalView
 
-    terminalView.on "WebTermNeedsToBeRecovered", (options) =>
-      options.delegate = this
+    terminalView.on "WebTermNeedsToBeRecovered", ({vm, session}) =>
+      @createNewTab {vm, session, mode: 'resume'}
+      @notify
+        title   : "Reconnected to Terminal"
+
       pane.destroySubViews()
-      pane.addSubView new WebTermView options
+      @tabView.removePane pane
 
     terminalView.once 'TerminalCanceled', ({ vmName }) =>
       @tabView.removePane pane
