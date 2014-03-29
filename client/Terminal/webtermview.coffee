@@ -224,10 +224,8 @@ class WebTermView extends KDView
     @reconnected       = no
     @failedToReconnect = yes
     @clearConnectionAttempts()
-    new KDNotificationView
-      type      : "mini"
+    @getDelegate().notify
       title     : "Sorry, something is wrong with our backend."
-      container : @container
       cssClass  : "error"
       duration  : 15 * 1000 # 15 secs
 
