@@ -222,7 +222,7 @@ func (f *RealtimeWorkerController) MessageListDeleted(data []byte) error {
 }
 
 func (f *RealtimeWorkerController) sendInstanceEvent(instanceId int64, message bongo.Modellable, eventName string) error {
-	channel, err := RMQConnection.Channel()
+	channel, err := f.rmqConn.Channel()
 	if err != nil {
 		return err
 	}
@@ -253,7 +253,7 @@ func (f *RealtimeWorkerController) sendInstanceEvent(instanceId int64, message b
 }
 
 func (f *RealtimeWorkerController) sendChannelEvent(cml *models.ChannelMessageList, eventName string) error {
-	channel, err := RMQConnection.Channel()
+	channel, err := f.rmqConn.Channel()
 	if err != nil {
 		return err
 	}

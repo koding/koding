@@ -4,12 +4,14 @@ import (
 	"flag"
 	"koding/db/mongodb/modelhelper"
 	"koding/tools/config"
+	socialconfig "socialapi/config"
 	"socialapi/workers/helper"
 	realtime "socialapi/workers/realtime/lib"
 
 	"github.com/jinzhu/gorm"
 	"github.com/koding/bongo"
 	"github.com/koding/logging"
+	"github.com/koding/worker"
 	"github.com/streadway/amqp"
 )
 
@@ -51,11 +53,12 @@ func main() {
 
 	handler = h
 
+	listener := worker.NewListener("RealtimeWorker", socialconfig.EventExchangeName)
 	// blocking
 	// listen for events
-	realtime.Listen(rmq, startHandler)
+	listener.Listen(rmq, startHandler)
 	// close consumer
-	defer realtime.Consumer.Shutdown()
+	defer listener.Close()
 }
 
 func startHandler() func(delivery amqp.Delivery) {
