@@ -4,7 +4,7 @@ import (
 	_ "expvar"
 	"flag"
 	"fmt"
-	"koding/tools/config"
+	"socialapi/config"
 
 	"github.com/koding/logging"
 
@@ -53,7 +53,7 @@ func main() {
 	if *flagProfile == "" {
 		log.Fatal("Please define config file with -c")
 	}
-	conf = config.MustConfig(*flagProfile)
+	conf = config.Read(*flagProfile)
 	log = helper.CreateLogger("SocialAPI", *flagDebug)
 
 	server := newServer()
