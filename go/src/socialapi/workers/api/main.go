@@ -5,16 +5,14 @@ import (
 	"flag"
 	"fmt"
 	"koding/tools/config"
-	// Imported for side-effect of handling /debug/vars.
+
 	"github.com/koding/logging"
 
-	// "koding/tools/logger"
 	_ "net/http/pprof" // Imported for side-effect of handling /debug/pprof.
 	"os"
 	"os/signal"
 	"socialapi/workers/api/handlers"
 	"socialapi/workers/helper"
-	"strings"
 	"syscall"
 
 	"github.com/koding/bongo"
@@ -94,29 +92,24 @@ func main() {
 	shutdown()
 }
 
-func shutdown() {
-	log.Info("Closing connections")
-	// do not forgot to close the bongo connection
-	Bongo.Close()
-
-	// shutdown server
-	server.Close()
 }
 
 func newServer() *tigertonic.Server {
-	return tigertonic.NewServer(
+	// go metrics.Log(
+	// 	metrics.DefaultRegistry,
+	// 	60e9,
+	// 	stdlog.New(os.Stderr, "metrics ", stdlog.Lmicroseconds),
+	// )
+
+	server := tigertonic.NewServer(
 		*listen,
-		tigertonic.CountedByStatus(
-			tigertonic.Logged(
-				tigertonic.WithContext(mux, context{}),
-				func(s string) string {
-					return strings.Replace(s, "SECRET", "REDACTED", -1)
-				},
-			),
-			"http",
+		tigertonic.Logged(
+			tigertonic.WithContext(mux, context{}),
 			nil,
 		),
 	)
+	go listener(server)
+	return server
 }
 
 func listener(server *tigertonic.Server) {
