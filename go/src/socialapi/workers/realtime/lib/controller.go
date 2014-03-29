@@ -2,7 +2,6 @@ package realtime
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"koding/db/mongodb/modelhelper"
 	"socialapi/models"
@@ -10,6 +9,7 @@ import (
 	"github.com/koding/bongo"
 	"github.com/koding/logging"
 	"github.com/koding/rabbitmq"
+	"github.com/koding/worker"
 
 	"github.com/streadway/amqp"
 )
@@ -22,7 +22,12 @@ type RealtimeWorkerController struct {
 	rmqConn *amqp.Connection
 }
 
-var HandlerNotFoundErr = errors.New("Handler Not Found")
+func (r *RealtimeWorkerController) DefaultErrHandler(delivery amqp.Delivery, err error) {
+	r.log.Error("an error occured %s, \n putting message back to queue", err)
+	// multiple false
+	// reque true
+	delivery.Nack(false, true)
+}
 
 func NewRealtimeWorkerController(rmq *rabbitmq.RabbitMQ, log logging.Logger) (*RealtimeWorkerController, error) {
 	rmqConn, err := rmq.Connect("NewRealtimeWorkerController")
@@ -60,7 +65,7 @@ func (f *RealtimeWorkerController) HandleEvent(event string, data []byte) error 
 	f.log.Debug("New Event Recieved %s", event)
 	handler, ok := f.routes[event]
 	if !ok {
-		return HandlerNotFoundErr
+		return worker.HandlerNotFoundErr
 	}
 
 	return handler(f, data)
