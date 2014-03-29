@@ -3,8 +3,7 @@ package main
 import (
 	"flag"
 	"koding/db/mongodb/modelhelper"
-	"koding/tools/config"
-	socialconfig "socialapi/config"
+	"socialapi/config"
 	"socialapi/workers/helper"
 	realtime "socialapi/workers/realtime/lib"
 
@@ -30,7 +29,7 @@ func main() {
 		log.Fatal("Please define config file with -c", "")
 	}
 
-	conf = config.MustConfig(*flagProfile)
+	conf = config.Read(*flagProfile)
 
 	// create logger for our package
 	log = helper.CreateLogger("TopicFeedWorker", *flagDebug)
@@ -53,7 +52,7 @@ func main() {
 
 	handler = h
 
-	listener := worker.NewListener("RealtimeWorker", socialconfig.EventExchangeName)
+	listener := worker.NewListener("RealtimeWorker", conf.EventExchangeName)
 	// blocking
 	// listen for events
 	listener.Listen(rmq, startHandler)
