@@ -36,7 +36,13 @@ class WebTermAppView extends JView
     vmController.on 'vm.progress.error', => notify cssClass : 'error'
 
     @on "sessionSelected", ({vm, session}) => @createNewTab {vm, session, mode: 'resume'}
-    @restoreTabs()
+
+    {vmController} = KD.singletons
+    {terminalKites} = vmController
+    if Object.keys(terminalKites).length
+      @restoreTabs()
+    else
+      vmController.on "KitesRegistered", => @restoreTabs()
 
   restoreTabs: ->
     @fetchStorage (storage) =>
@@ -66,7 +72,6 @@ class WebTermAppView extends JView
         activeSessions = []
         {vmController:{terminalKites : kites}} = KD.singletons
         queue = aliases.map (alias)->->
-          return queue.fin()  unless kites[alias]
           kites[alias].webtermGetSessions().then (sessions) =>
             activeSessions = activeSessions.concat sessions
             queue.fin()
