@@ -2,11 +2,12 @@ package followingfeed
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"socialapi/models"
 
 	"github.com/koding/logging"
+	"github.com/koding/worker"
+	"github.com/streadway/amqp"
 )
 
 type Action func(*FollowingFeedController, *models.ChannelMessage) error
@@ -16,7 +17,12 @@ type FollowingFeedController struct {
 	log    logging.Logger
 }
 
-var HandlerNotFoundErr = errors.New("Handler Not Found")
+func (f *FollowingFeedController) DefaultErrHandler(delivery amqp.Delivery, err error) {
+	f.log.Error("an error occured %s, \n putting message back to queue", err)
+	// multiple false
+	// reque true
+	delivery.Nack(false, true)
+}
 
 func NewFollowingFeedController(log logging.Logger) *FollowingFeedController {
 	ffc := &FollowingFeedController{
@@ -38,7 +44,7 @@ func (f *FollowingFeedController) HandleEvent(event string, data []byte) error {
 	f.log.Debug("New Event Recieved %s", event)
 	handler, ok := f.routes[event]
 	if !ok {
-		return HandlerNotFoundErr
+		return worker.HandlerNotFoundErr
 	}
 
 	cm, err := mapMessage(data)
