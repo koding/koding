@@ -277,6 +277,7 @@ class VirtualizationController extends KDController
     # terminal kite.
     kite.on 'ready', =>
       @terminalKites[alias] = @getKite vm, 'terminal'
+      callback null
 
 
   listenToVmState: (vm, kite) ->
@@ -359,6 +360,7 @@ class VirtualizationController extends KDController
         localStorage.useNewKites = if useNewKites then "1" else "0"
         resolve useNewKites
 
+<<<<<<< HEAD
   handleFetchedVms: (vms, callback) ->
     @shouldUseNewKites().then (useNewKites) =>
       if useNewKites
@@ -367,6 +369,28 @@ class VirtualizationController extends KDController
         @registerKite vm  for vm in vms
     .catch(warn)
     .nodeify callback
+=======
+        @getOsKite({ hostname, region: vm.region }).then (os) =>
+
+          options   =
+            vmName  : vm.hostnameAlias
+            kite    : os
+
+          os.ready().then =>
+            @kites[vm.hostnameAlias] = new VM options
+
+      .nodeify callback
+    else
+      {dash} = Bongo
+      queue = []
+      queue = vms.map (vm) =>=>
+        @registerKite vm, -> queue.fin()
+
+      dash queue, =>
+        @emit "KitesRegistered"
+
+      KD.utils.defer -> callback null
+>>>>>>> VMController: After all kites are registered "KitesRegistered" event is emitted. This was needed for resolving a race condition
 
   fetchGroupVMs:(force, callback = noop)->
     if @groupVms.length > 0 and not force
