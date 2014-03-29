@@ -57,19 +57,18 @@ func main() {
 	log = helper.CreateLogger("SocialAPI", *flagDebug)
 
 	server := newServer()
-	// Example use of server.Close and server.Wait to stop gracefully.
-	go listener(server)
+	// shutdown server
+	defer server.Close()
 
 	// panics if not successful
-	Bongo = helper.MustInitBongo(conf)
+	Bongo = helper.MustInitBongo(conf, log)
+	// do not forgot to close the bongo connection
+	defer Bongo.Close()
 
 	ch := make(chan os.Signal)
 	signal.Notify(ch, syscall.SIGINT, syscall.SIGQUIT, syscall.SIGTERM)
 
 	log.Info("Recieved %v", <-ch)
-	shutdown()
-}
-
 }
 
 func newServer() *tigertonic.Server {
