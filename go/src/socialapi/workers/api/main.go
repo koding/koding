@@ -6,29 +6,22 @@ import (
 	"fmt"
 	"socialapi/config"
 
-	"github.com/koding/logging"
-
 	_ "net/http/pprof" // Imported for side-effect of handling /debug/pprof.
 	"os"
 	"os/signal"
 	"socialapi/workers/api/handlers"
 	"socialapi/workers/helper"
 	"syscall"
-
-	"github.com/koding/bongo"
 	"github.com/rcrowley/go-tigertonic"
 )
 
 var (
-	Bongo       *bongo.Bongo
-	log         logging.Logger
 	cert        = flag.String("cert", "", "certificate pathname")
 	key         = flag.String("key", "", "private key pathname")
 	flagConfig  = flag.String("config", "", "pathname of JSON configuration file")
 	listen      = flag.String("listen", "127.0.0.1:8000", "listen address")
 	flagProfile = flag.String("c", "", "Configuration profile from file")
 	flagDebug   = flag.Bool("d", false, "Debug mode")
-	conf        *config.Config
 
 	hMux       tigertonic.HostServeMux
 	mux, nsMux *tigertonic.TrieServeMux
@@ -51,19 +44,20 @@ func init() {
 func main() {
 	flag.Parse()
 	if *flagProfile == "" {
-		log.Fatal("Please define config file with -c")
+		fmt.Println("Please define config file with -c", "Exiting...")
+		return
 	}
-	conf = config.Read(*flagProfile)
-	log = helper.CreateLogger("SocialAPI", *flagDebug)
+	conf := config.Read(*flagProfile)
+	log := helper.CreateLogger("SocialAPI", *flagDebug)
 
 	server := newServer()
 	// shutdown server
 	defer server.Close()
 
 	// panics if not successful
-	Bongo = helper.MustInitBongo(conf, log)
+	bongo := helper.MustInitBongo(conf, log)
 	// do not forgot to close the bongo connection
-	defer Bongo.Close()
+	defer bongo.Close()
 
 	ch := make(chan os.Signal)
 	signal.Notify(ch, syscall.SIGINT, syscall.SIGQUIT, syscall.SIGTERM)
