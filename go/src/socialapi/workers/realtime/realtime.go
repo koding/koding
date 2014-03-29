@@ -7,11 +7,9 @@ import (
 	"socialapi/workers/helper"
 	realtime "socialapi/workers/realtime/lib"
 
-	"github.com/jinzhu/gorm"
 	"github.com/koding/bongo"
 	"github.com/koding/logging"
 	"github.com/koding/worker"
-	"github.com/streadway/amqp"
 )
 
 var (
@@ -52,35 +50,10 @@ func main() {
 
 	handler = h
 
-	listener := worker.NewListener("RealtimeWorker", conf.EventExchangeName)
+	listener := worker.NewListener("RealtimeWorker", conf.EventExchangeName, log)
 	// blocking
 	// listen for events
-	listener.Listen(rmq, startHandler)
+	listener.Listen(rmq, handler)
 	// close consumer
 	defer listener.Close()
-}
-
-func startHandler() func(delivery amqp.Delivery) {
-	log.Info("Worker Started to Consume")
-	return func(delivery amqp.Delivery) {
-		err := handler.HandleEvent(delivery.Type, delivery.Body)
-		switch err {
-		case nil:
-			delivery.Ack(false)
-		case realtime.HandlerNotFoundErr:
-			log.Notice("unknown event type (%s) recieved, \n deleting message from RMQ", delivery.Type)
-			delivery.Ack(false)
-		case gorm.RecordNotFound:
-			log.Warning("Record not found in our db (%s) recieved, \n deleting message from RMQ", string(delivery.Body))
-			delivery.Ack(false)
-		default:
-			// add proper error handling
-			// instead of puttting message back to same queue, it is better
-			// to put it to another maintenance queue/exchange
-			log.Error("an error occured %s, \n putting message back to queue", err)
-			// multiple false
-			// reque true
-			delivery.Nack(false, true)
-		}
-	}
 }
