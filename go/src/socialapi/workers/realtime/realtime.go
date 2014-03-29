@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"koding/db/mongodb/modelhelper"
 	"socialapi/config"
 	"socialapi/workers/helper"
@@ -18,7 +19,8 @@ var (
 func main() {
 	flag.Parse()
 	if *flagProfile == "" {
-		panic("Please define config file with -c")
+		fmt.Println("Please define config file with -c", "Exiting...")
+		return
 	}
 
 	conf := config.Read(*flagProfile)
