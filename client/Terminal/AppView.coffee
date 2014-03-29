@@ -295,9 +295,12 @@ class WebTermAppView extends JView
       else notify cssClass : 'error'
 
   prepareAndRunTerminal: (vm, mode = 'create') ->
-
     {vmController} = KD.singletons
-    osKite         = vmController.kites[vm.hostnameAlias]
+    osKite = 
+      if KD.useNewKites
+      then vmController.kites.oskite[vm.hostnameAlias]
+      else vmController.kites[vm.hostnameAlias]
+  
     {recentState}  = osKite
 
     if recentState?.state is 'RUNNING'
@@ -307,8 +310,6 @@ class WebTermAppView extends JView
     else
       notify cssClass : 'error'
       osKite?.vmOff()
-
-
 
   pistachio: ->
     """

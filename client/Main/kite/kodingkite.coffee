@@ -1,15 +1,22 @@
 class KodingKite extends KDObject
 
-  constructor: (options, data) ->
-    super options, data
+  constructor: (options) ->
+    super options
 
-    { @kite } = options
+    { name } = options
+
+  getTransport: -> @transport
+
+  setTransport: (@transport) ->
+    @transport.connect()
+    @emit 'ready'
 
   tell: (rpcMethod, params, callback) ->
-    @kite.tell rpcMethod, params, callback
+    console.log rpcMethod, params
+    @ready().then => @transport.tell rpcMethod, [params], callback
 
   @createMethod = (ctx, { method, rpcMethod }) ->
-    ctx[method] = (rest...) -> @tell rpcMethod, rest...
+    ctx[method] = (payload) -> @tell rpcMethod, payload
 
   @createApiMapping = (api) ->
     for own method, rpcMethod of api

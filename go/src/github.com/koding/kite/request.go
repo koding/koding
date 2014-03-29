@@ -141,7 +141,7 @@ type Request struct {
 }
 
 // Wrap your function with Callback to send it as an argument to a Client.
-type Callback func(r *Request)
+type Callback func(dnode.Arguments)
 
 func (c Callback) MarshalJSON() ([]byte, error) {
 	return []byte(`"[Function]"`), nil
@@ -154,10 +154,8 @@ func runCallback(method string, handlerFunc reflect.Value, args dnode.Arguments,
 	kiteErr := new(Error)               // Not used. For recovering the error.
 	defer kite.recoverError(&kiteErr)() // Do not panic no matter what.
 
-	request, _ := kite.parseRequest(method, args, tr)
-
 	// Call the callback function.
-	callArgs := []reflect.Value{reflect.ValueOf(request)}
+	callArgs := []reflect.Value{reflect.ValueOf(args)}
 	handlerFunc.Call(callArgs) // No return value from callback function.
 }
 
@@ -206,12 +204,6 @@ func (r *Request) authenticate() *Error {
 	// Trust the Kite if we have initiated the connection.
 	// RemoteAddr() returns "" if this is an outgoing connection.
 	if r.RemoteAddr == "" {
-		// Hack for proxy bug. Since the proxy connection is initiated from local kite
-		// and we don't check authentication for outgoing connections,
-		// this becomes an issue that the Request.Username is not set correctly.
-		if r.Username == "" {
-			r.Username = r.Client.Kite.Username
-		}
 		return nil
 	}
 
