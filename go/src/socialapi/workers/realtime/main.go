@@ -6,7 +6,7 @@ import (
 	"koding/db/mongodb/modelhelper"
 	"socialapi/config"
 	"socialapi/workers/helper"
-	realtime "socialapi/workers/realtime/lib"
+	"socialapi/workers/realtime/realtime"
 
 	"github.com/koding/worker"
 )
