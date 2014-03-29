@@ -131,9 +131,15 @@ class WebTermView extends KDView
     @status = null
     @on "healthCheckCompleted", =>
       @status = healthChecker.status
-      if @status is "fail"
-        @terminal.cursor.setFocused false
-        @terminal.cursor.stopBlink()
+      switch @status
+        when "fail"
+          @setBackoffTimeout(
+            @bound "attemptToReconnect"
+            @bound "handleConnectionFailure"
+          )
+        when "session not found"
+          @terminal.cursor.setFocused false
+          @terminal.cursor.stopBlink()
 
     @checker = KD.utils.repeat 15000, ->
       healthChecker.run()
@@ -141,8 +147,10 @@ class WebTermView extends KDView
   healthCheck: (callback) ->
     kite = KD.getSingleton("vmController").terminalKites[@getVMName()]
     {session} = @getOptions()
-    kite.webtermGetSessions().then (sessions) ->
-      callback null  if session in sessions
+    # TODO we need a session check method in terminal kite
+    kite?.webtermGetSessions().then (sessions) ->
+      return callback null  if session in sessions
+      @status = "session not found"
     .catch (err) =>
       KD.utils.killRepeat @checker
 
