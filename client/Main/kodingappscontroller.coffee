@@ -172,7 +172,9 @@ class KodingAppsController extends KDController
       file = FSHelper.createFileFromPath url
       file.fetchContents (err, partial)=>
         return  if err
-        obj = new KDCustomHTMLView {domId, tagName, partial}
+
+        obj = new KDCustomHTMLView {domId, tagName}
+        obj.getElement().textContent = partial
 
         @destroyScriptElement type, identifier  if force
 
