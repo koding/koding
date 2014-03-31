@@ -61,16 +61,16 @@ Templates =
               <td style="width: 58px; text-align:right; border-right: 1px
                          solid #CCC; margin-left:12px; vertical-align:top;">
                 <!-- Koding Logo with pure table -->
-                <table width="44px" height="40px" style="margin-left:12px; width:44px; text-align:right; height:40px; border:none; font-size:0px; background-color:#1AAF5D; padding:9px;" cellspacing="2" cellpadding="2">
+                <table width="40px" height="40px" style="margin-left:12px; width:40px; text-align:right; height:40px; border:none; font-size:0px; background-color:#1AAF5D; padding:9px;" cellspacing="2" cellpadding="2">
                   <tr>
-                      <td height="2px" style="max-height:2px;height:2px; background-color:white;" colspan="3">&nbsp;</td>
+                      <td height="1px" style="max-height:1px;height:1px; background-color:white;" colspan="3">&nbsp;</td>
                   </tr>
                   <tr>
-                      <td height="2px" style="max-height:2px;height:2px; background-color:white;  width: 75%;" >&nbsp;</td>
-                      <td height="2px" style="max-height:2px;height:2px; background-color:#1AAF5D; width: 25%;" colspan="2">&nbsp;</td>
+                      <td height="1px" style="max-height:1px;height:1px; background-color:white;  width: 75%;" >&nbsp;</td>
+                      <td height="1px" style="max-height:1px;height:1px; background-color:#1AAF5D; width: 25%;" colspan="2">&nbsp;</td>
                   </tr>
                   <tr>
-                      <td height="2px" style="max-height:2px;height:2px; background-color:white;" colspan="3">&nbsp;</td>
+                      <td height="1px" style="max-height:1px;height:1px; background-color:white;" colspan="3">&nbsp;</td>
                   </tr>
                 </table><br/>
               </td>

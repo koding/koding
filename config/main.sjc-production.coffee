@@ -51,8 +51,8 @@ module.exports =
     enabled     : no
     port        : 1337
   neo4j         :
-    read        : "http://172.16.3.14"
-    write       : "http://172.16.3.14"
+    read        : "http://172.16.3.16"
+    write       : "http://172.16.3.16"
     port        : 7474
   mongo         : mongo
   mongoKontrol  : mongoKontrol
@@ -69,6 +69,7 @@ module.exports =
   compileGo     : no
   buildClient   : yes
   runOsKite     : no
+  runTerminalKite: no
   runProxy      : no
   redis         : "172.16.3.13:6379"
   misc          :
@@ -145,11 +146,6 @@ module.exports =
     watch       : no
     queueName   : socialQueueName
     verbose     : no
-  cacheWorker   :
-    login       : 'prod-social'
-    watch       : no
-    queueName   : socialQueueName+'cache'
-    run         : no
   presence        :
     exchange      : 'services-presence'
   client          :
@@ -162,7 +158,7 @@ module.exports =
     useStaticFileServer: no
     staticFilesBaseUrl: "https://koding.com"
     runtimeOptions:
-      osKitePollingMs: 1000 * 10 # 10 secs
+      osKitePollingMs: 1000 * 60 # 1 min
       userIdleMs: 1000 * 60 * 5 # 5 min
       sessionCookie :
         maxAge      : cookieMaxAge
@@ -194,7 +190,7 @@ module.exports =
         servicesEndpoint: "/-/services/premiumBrokerKite"
         brokerExchange: 'premiumBrokerKite'
       apiUri    : 'https://koding.com'
-      appsUri   : 'https://koding-apps.s3.amazonaws.com'
+      appsUri   : 'https://rest.kd.io'
       uploadsUri: 'https://koding-uploads.s3.amazonaws.com'
       uploadsUriForGroup: 'https://koding-groups.s3.amazonaws.com'
       sourceUri : "http://webserver-#{version}a.sj.koding.com:1337"
@@ -219,6 +215,9 @@ module.exports =
           nicename      : 'Twitter'
         # bitbucket     :
         #   nicename    : 'BitBucket'
+      troubleshoot      :
+        idleTime        : 1000 * 60 * 60
+        externalUrl     : "https://s3.amazonaws.com/koding-ping/healthcheck.json"
   mq            :
     host        : '172.16.3.4'
     port        : 5672
@@ -389,6 +388,7 @@ module.exports =
   logLevel        :
     neo4jfeeder   : "info"
     oskite        : "info"
+    terminal      : "info"
     kontrolproxy  : "debug"
     kontroldaemon : "info"
     userpresence  : "info"
@@ -412,3 +412,5 @@ module.exports =
   sessionCookie :
     maxAge      : cookieMaxAge
     secure      : cookieSecure
+  troubleshoot    :
+    recipientEmail: "support@koding.com"

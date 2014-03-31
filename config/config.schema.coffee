@@ -84,6 +84,7 @@ config =
     compileGo     : 1
     buildClient   : 1
     runOsKite     : 0
+    runTerminalKite: 0
     runProxy      : 0
     redis         : 1
     misc          :
@@ -153,11 +154,6 @@ config =
       watch       : 1
       queueName   : 1
       verbose     : 1
-    cacheWorker       :
-      login           : 1
-      watch           : 1
-      queueName       : 1
-      run             : 1
     graphFeederWorker :
       numberOfWorkers : 1
     presence        :
@@ -229,6 +225,9 @@ config =
             nicename      : 1
           # bitbucket     :
           #   nicename    : 1
+        troubleshoot      :
+          idleTime        : 1
+          externalUrl     : 1
       # authResourceName : DO NOT COMMIT THIS BACK IN NOR DELETE. IT KEEPS COMING BACK. devrim.
     mq            :
       host        : 1
@@ -396,6 +395,7 @@ config =
     logLevel        :
       neo4jfeeder   : 1
       oskite        : 1
+      terminal      : 1
       kontrolproxy  : 1
       kontroldaemon : 1
       userpresence  : 1
@@ -419,4 +419,6 @@ config =
     sessionCookie   :
       maxAge        : 1
       secure        : 1
+    troubleshoot    :
+      recipientEmail: 1
 module.exports = config

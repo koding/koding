@@ -48,7 +48,7 @@ class TeamworkTabHandleAvatarView extends KDView
 
   avatarMouseEnter: ->
     offset = @avatar.$().offset()
-    @avatar.avatarsMenu = new JContextMenu
+    @avatar.avatarsMenu = new KDContextMenu
       menuWidth     : 160
       delegate      : @avatar
       treeItemClass : TeamworkAvatarContextMenuItem

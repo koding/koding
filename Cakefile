@@ -438,6 +438,15 @@ task 'osKite', "Run the osKite", ({configFile})->
     stderr  : process.stderr
     verbose : yes
 
+task 'terminalKite', "Run the terminalKite", ({configFile})->
+  processes.spawn
+    name  : 'terminalKite'
+    cmd   : if configFile == "vagrant" then "vagrant ssh default -c 'cd /opt/koding; sudo killall -q -KILL terminal; sudo KITE_HOME=/opt/koding/kite_home KITE_KONTROL_URL='ws://192.168.50.1:4000/kontrol' /opt/koding/go/bin-vagrant/terminal -c #{configFile} -r vagrant'" else "./go/bin/terminal -c #{configFile}"
+    restart: no
+    stdout  : process.stdout
+    stderr  : process.stderr
+    verbose : yes
+
 task 'proxy', "Run the go-Proxy", ({configFile})->
 
   processes.spawn
@@ -483,27 +492,6 @@ task 'elasticsearchfeeder', "Run the Elastic Search Feeder", (options)->
     kontrol        :
       enabled      : if config.runKontrol is yes then yes else no
       startMode    : "one"
-
-task 'cacheWorker', "Run the cacheWorker", ({configFile})->
-  KONFIG = require('koding-config-manager').load("main.#{configFile}")
-  {cacheWorker} = KONFIG
-
-  processes.fork
-    name           : 'cache'
-    cmd            : "./workers/cacher/index -c #{configFile}"
-    restart        : yes
-    restartTimeout : 100
-    kontrol        :
-      enabled      : !!KONFIG.runKontrol
-      startMode    : "one"
-
-  if cacheWorker.watch is yes
-    watcher = new Watcher
-      groups        :
-        server      :
-          folders   : ['./workers/cacher']
-          onChange  : ->
-            processes.kill "cacheWorker"
 
 task 'kontrolClient', "Run the kontrolClient", (options) ->
   {configFile} = options
@@ -606,6 +594,7 @@ run =({configFile})->
     invoke 'premiumBroker'                    if config.runPremiumBroker
     invoke 'premiumBrokerKite'                if config.runPremiumBrokerKite
     invoke 'osKite'                           if config.runOsKite
+    invoke 'terminalKite'                     if config.runTerminalKite
     invoke 'rerouting'                        if config.runRerouting
     invoke 'userpresence'                     if config.runUserPresence
     invoke 'persistence'                      if config.runPersistence
@@ -615,7 +604,6 @@ run =({configFile})->
     invoke 'authWorker'                       if config.authWorker
     invoke 'guestCleanerWorker'               if config.guestCleanerWorker.enabled
     invoke 'emailConfirmationCheckerWorker'   if config.emailConfirmationCheckerWorker.enabled
-    invoke 'cacheWorker'                      if config.cacheWorker?.run is yes
     invoke 'socialWorker'
     invoke 'emailWorker'                      if config.emailWorker?.run is yes
     invoke 'emailSender'                      if config.emailSender?.run is yes

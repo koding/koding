@@ -25,7 +25,7 @@ class NFinderController extends KDViewController
     TreeControllerClass = options.treeControllerClass or NFinderTreeController
     @treeController     = new TreeControllerClass treeOptions, []
 
-    @appStorage = KD.getSingleton('appStorageController').storage 'Finder', '1.1.1.1'
+    @appStorage = KD.getSingleton('appStorageController').storage 'Finder', '1.2'
 
     @watchers = {}
 
@@ -90,7 +90,7 @@ class NFinderController extends KDViewController
 
   fetchSavedVms: (savedVms, callback) ->
     [vmNames, paths] = parseSavedVms savedVms
-    
+
     KD.getSingleton('vmController').fetchVmsByName vmNames, (err, vms) =>
       return callback? err  if err
 
@@ -137,15 +137,14 @@ class NFinderController extends KDViewController
     return  if KD.isGuest()
     groupSlug  = KD.getSingleton("groupsController").getGroupSlug()
     groupSlug ?= KD.defaultSlug
-    @appStorage.fetchValue "mountedVM", (vms)=>
-      vms or= {}
-      vms[groupSlug] or= []
-      items = vms[groupSlug]
-      if state and vmName not in items
-        items.push vmName
-      else if not state and vmName in items
-        items.splice items.indexOf(vmName), 1
-      @appStorage.setValue "mountedVM", vms
+    vms = @appStorage.getValue("mountedVM") or {}
+    vms[groupSlug] or= []
+    items = vms[groupSlug]
+    if state and vmName not in items
+      items.push vmName
+    else if not state and vmName in items
+      items.splice items.indexOf(vmName), 1
+    @appStorage.setValue "mountedVM", vms
 
   checkVMState: (err, vm, info)->
     return warn err if err or not info
@@ -212,7 +211,10 @@ class NFinderController extends KDViewController
     vmRoots[pipedVm] = path
     @appStorage.setValue 'vmRoots', vmRoots  if @getOptions().useStorage
 
-    @mountVm "#{vmName}:#{path}"
+    KD.singleton("vmController").fetchVmsByName [vmName], (err, [vm]) =>
+      return KD.showError err  if err
+      vm.path = path
+      @mountVm vm
 
   cleanup:->
     @treeController.removeAllNodes()
@@ -286,20 +288,15 @@ class NFinderController extends KDViewController
       return @treeController.expandFolder node, callback  if path is folderPath
     callback {message:"Folder not exists: #{folderPath}"}
 
-  expandFolders: do ->
-    expandedFolderIndex = 0
-    (paths, callback=noop)->
-      @expandFolder paths[expandedFolderIndex], (err)=>
-        if err
-          callback? err
-          @unsetRecentFolder paths[expandedFolderIndex]
-        expandedFolderIndex++
-        if expandedFolderIndex <= paths.length
-          @expandFolders paths, callback, expandedFolderIndex
-
-        if expandedFolderIndex is paths.length
-          callback? null, @treeController.nodes[paths.last]
-          expandedFolderIndex = 0
+  expandFolders: (paths, callback=noop)->
+    if typeof paths is 'string'
+      paths = FSHelper.getPathHierarchy paths
+    path = paths.pop()
+    @expandFolder path, (err)=>
+      @unsetRecentFolder path  if err
+      if paths.length is 0
+      then callback null, @treeController.nodes[path]
+      else @expandFolders paths, callback
 
   reloadPreviousState:(vmName)->
     recentFolders = @getRecentFolders()

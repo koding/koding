@@ -53,7 +53,10 @@ module.exports = class JAccount extends jraphical.Module
         { name : "RemovedFromCollection" }
       ]
       instance      : [
-        { name: 'updateInstance' }
+        # this is commented-out intentionally
+        # when a user sends a status update, we are sending 7 events
+        # when a user logs-in we are sending 10 events
+        # { name: 'updateInstance' }
         { name: 'notification' }
         { name : "RemovedFromCollection" }
 
@@ -347,7 +350,7 @@ module.exports = class JAccount extends jraphical.Module
         type                : String
         enum                : ['invalid status',['online','offline','away','busy']]
         default             : 'online'
-
+    broadcastableRelationships : [ 'follower' ]
     relationships           : ->
       JPrivateMessage = require './messages/privatemessage'
 
@@ -380,15 +383,6 @@ module.exports = class JAccount extends jraphical.Module
         targetType  : [
           "JNewStatusUpdate"
           "JComment"
-#          "CActivity"
-#          "JCodeSnip"
-#          "JReview"
-#          "JDiscussion"
-#          "JOpinion"
-#          "JCodeShare"
-#          "JLink"
-#          "JTutorial"
-#          "JBlogPost"
         ]
 
       vm            :
@@ -934,7 +928,7 @@ module.exports = class JAccount extends jraphical.Module
 
   dummyAdmins = [ "sinan", "devrim", "gokmen", "chris", "fatihacet", "arslan",
                   "sent-hil", "kiwigeraint", "cihangirsavas", "leventyalcin",
-                  "samet", "leeolayvar", "stefanbc", "erdinc", "szkl" ]
+                  "leeolayvar", "stefanbc", "erdinc", "szkl", "alfredo", "canthefason" ]
 
   userIsExempt: (callback)->
     # console.log @isExempt, this
@@ -1057,9 +1051,10 @@ module.exports = class JAccount extends jraphical.Module
       when 'delete'
         # Users can delete their stuff but super-admins can delete all of them ಠ_ಠ
         @profile.nickname in dummyAdmins or target?.originId?.equals @getId()
-      when 'flag', 'reset guests', 'reset groups', 'administer names', \
+      when 'flag', 'reset guests', 'reset groups', 'administer names',        \
            'administer url aliases', 'administer accounts', 'search-by-email',\
-           'migrate-koding-users', 'list-blocked-users', 'verify-emails'
+           'migrate-koding-users', 'list-blocked-users', 'verify-emails',     \
+           'bypass-validations'
         @profile.nickname in dummyAdmins
 
   fetchRoles: (group, callback)->

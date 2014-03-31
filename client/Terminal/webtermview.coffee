@@ -80,35 +80,19 @@ class WebTermView extends KDView
     if vm = @getOption 'vm'
       { hostnameAlias: vmName } = vm
 
+    vmName = @getDelegate().getOption "vmName"  unless vmName
+
     return vmName
 
   webtermConnect:(mode)->
-    return console.info "reconnection is in progrees" if @reconnectionInPrgress
-    @reconnectionInPrgress = yes
+    return console.info "reconnection is in progress" if @reconnectionInProgress
+    @reconnectionInProgress = yes
     options = @generateOptions()
     options.mode = mode   if mode
-    KD.getSingleton("vmController").run
-      method        : "webterm.connect",
-      vmName        : @getVMName()
-      withArgs      : options
-    , (err, remote) =>
-      if err
-        warn err
-        if err.code is "ErrInvalidSession"
-          @reconnectionInPrgress = false
-          @emit 'TerminalCanceled',
-            vmName: @getVMName()
-            sessionId: @getOptions().session
-            error: err
-          return
-        else
-          @reconnectionInPrgress = false
-          throw err
 
-      unless remote?
-        console.warn "Terminal: No remote object was received!"
-        return
+    kite = KD.getSingleton("vmController").terminalKites[@getVMName()]
 
+    kite.webtermConnect(options).then (remote) =>
       @setOption "session", remote.session
       @terminal.eventHandler = (data)=> @emit "WebTermEvent", data
       @terminal.server       = remote
@@ -116,7 +100,20 @@ class WebTermView extends KDView
 
       @emit "WebTermConnected", remote
       console.error "just connected"  if mode is "resume"
-      @reconnectionInPrgress = false
+      @reconnectionInProgress = false
+
+    .catch (err) =>
+      warn err
+      if err.code is "ErrInvalidSession"
+        @reconnectionInProgress = false
+        @emit 'TerminalCanceled',
+          vmName: @getVMName()
+          sessionId: @getOptions().session
+          error: err
+        return
+      else
+        @reconnectionInProgress = false
+        throw err
 
   connectToTerminal: ->
     @appStorage = KD.getSingleton('appStorageController').storage 'Terminal', '1.0.1'
@@ -131,7 +128,7 @@ class WebTermView extends KDView
       @webtermConnect()
 
     KD.getSingleton("kiteController").on "KiteError", (err) =>
-      console.log "kite errr", err
+      log "kite error:", err
       @reconnected = no
       {code, serviceGenericName} = err
 
@@ -238,6 +235,7 @@ class WebTermView extends KDView
 
   restoreRange: ->
     range = @utils.getSelectionRange()
+    return  unless range
     return  if range.startOffset is range.endOffset and range.startContainer is range.endContainer
     @utils.defer =>
       @utils.addRange range

@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"koding/oskite"
+	"koding/terminal"
 	"koding/tools/config"
 	"log"
 	"os"
@@ -19,14 +20,16 @@ import (
 )
 
 var (
-	flagProfile = flag.String("c", "", "Define config profile to be included")
-	flagRegion  = flag.String("r", "", "Define region profile to be included")
-	flagApp     = flag.String("a", "", "App to be build")
-	flagProxy   = flag.String("p", "", "Select user proxy or koding proxy") // Proxy only
+	flagProfile        = flag.String("c", "", "Define config profile to be included")
+	flagRegion         = flag.String("r", "", "Define region profile to be included")
+	flagApp            = flag.String("a", "", "App to be build")
+	flagProxy          = flag.String("p", "", "Select user proxy or koding proxy") // Proxy only
+	flagDisableUpstart = flag.Bool("u", false, "Disable including upstart script")
 
 	packages = map[string]func() error{
 		"oskite":       buildOsKite,
 		"kontrolproxy": buildKontrolProxy,
+		"terminal":     buildTerminal,
 	}
 )
 
@@ -71,9 +74,53 @@ func buildPackages(pkgName string) error {
 		return buildOsKite()
 	case "kontrolproxy":
 		return buildKontrolProxy()
+	case "terminal":
+		return buildTerminal()
 	default:
 		return errors.New("package to be build is not available")
 	}
+}
+
+func buildTerminal() error {
+	gopath := os.Getenv("GOPATH")
+	if gopath == "" {
+		return errors.New("GOPATH is not set")
+	}
+
+	terminalPath := "koding/kites/terminal"
+	terminalPackage := "koding/terminal"
+	temps := struct {
+		Profile string
+		Region  string
+	}{
+		Profile: *flagProfile,
+		Region:  *flagRegion,
+	}
+
+	var files = make([]string, 0)
+	files = append(files, filepath.Join(gopath, "src", terminalPackage, "files"))
+
+	// change our upstartscript because it's a template
+	var configUpstart string
+	var err error
+	if !*flagDisableUpstart {
+		terminalUpstart := filepath.Join(gopath, "src", terminalPackage, "files/terminal.conf")
+		configUpstart, err = prepareUpstart(terminalUpstart, temps)
+		if err != nil {
+			return err
+		}
+		defer os.Remove(configUpstart)
+	}
+
+	term := pkg{
+		appName:       *flagApp,
+		importPath:    terminalPath,
+		files:         files,
+		version:       terminal.TERMINAL_VERSION,
+		upstartScript: configUpstart,
+	}
+
+	return term.build()
 }
 
 func buildOsKite() error {
@@ -97,12 +144,16 @@ func buildOsKite() error {
 	files = append(files, filepath.Join(gopath, "bin-vagrant/vmtool")) // TODO add it to the list of importPaths
 
 	// change our upstartscript because it's a template
-	oskiteUpstart := filepath.Join(gopath, "src", oskitePackage, "files/oskite.conf")
-	configUpstart, err := prepareUpstart(oskiteUpstart, temps)
-	if err != nil {
-		return err
+	var configUpstart string
+	var err error
+	if !*flagDisableUpstart {
+		oskiteUpstart := filepath.Join(gopath, "src", oskitePackage, "files/oskite.conf")
+		configUpstart, err = prepareUpstart(oskiteUpstart, temps)
+		if err != nil {
+			return err
+		}
+		defer os.Remove(configUpstart)
 	}
-	defer os.Remove(configUpstart)
 
 	oskite := pkg{
 		appName:       *flagApp,
@@ -150,12 +201,16 @@ func buildKontrolProxy() error {
 	files = append(files, filepath.Join(gopath, "src", kdproxyPath, "files"))
 
 	// change our upstartscript because it's a template
-	kdproxyUpstart := filepath.Join(gopath, "src", kdproxyPath, "files/kontrolproxy.conf")
-	configUpstart, err := prepareUpstart(kdproxyUpstart, temps)
-	if err != nil {
-		return err
+	var configUpstart string
+	var err error
+	if !*flagDisableUpstart {
+		kdproxyUpstart := filepath.Join(gopath, "src", kdproxyPath, "files/kontrolproxy.conf")
+		configUpstart, err = prepareUpstart(kdproxyUpstart, temps)
+		if err != nil {
+			return err
+		}
+		defer os.Remove(configUpstart)
 	}
-	defer os.Remove(configUpstart)
 
 	kontrolproxy := pkg{
 		appName:       *flagApp,

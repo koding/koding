@@ -12,7 +12,10 @@ module.exports = class JKodingKey extends jraphical.Module
   @share()
 
   @set
-    softDelete        : yes
+    sharedEvents      :
+      static          : []
+      instance        : []
+    softDelete        : no
     sharedMethods     :
       instance        :
         revoke        :

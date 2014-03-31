@@ -12,7 +12,6 @@ import (
 	"koding/tools/config"
 	"koding/tools/dnode"
 	"koding/tools/kite"
-	"koding/tools/lifecycle"
 	"koding/tools/logger"
 	"koding/tools/utils"
 	"koding/virt"
@@ -31,7 +30,7 @@ import (
 
 const (
 	OSKITE_NAME    = "oskite"
-	OSKITE_VERSION = "0.1.6"
+	OSKITE_VERSION = "0.1.8"
 )
 
 var (
@@ -88,8 +87,11 @@ func New(c *config.Config) *Oskite {
 }
 
 func (o *Oskite) Run() {
-	log.SetLevel(o.LogLevel)
+	if os.Getuid() != 0 {
+		log.Fatal("Must be run as root.")
+	}
 
+	log.SetLevel(o.LogLevel)
 	log.Info("Using default VM timeout: %v", o.VmTimeout)
 
 	// TODO: get rid of this after solving info problem
@@ -123,7 +125,7 @@ func (o *Oskite) Run() {
 	}
 
 	o.prepareOsKite()
-	o.runNewKite()
+	// o.runNewKite()
 	o.handleCurrentVMS()   // handle leftover VMs
 	o.startPinnedVMS()     // start pinned always-on VMs
 	o.setupSignalHandler() // handle SIGUSR1 and other signals.
@@ -133,8 +135,6 @@ func (o *Oskite) Run() {
 	o.registerMethod("vm.prepareAndStart", false, vmPrepareAndStart)
 	o.registerMethod("vm.stopAndUnprepare", false, vmStopAndUnprepare)
 	o.registerMethod("vm.shutdown", false, vmShutdownOld)
-	o.registerMethod("vm.unprepare", false, vmUnprepareOld)
-	o.registerMethod("vm.prepare", false, vmPrepareOld)
 	o.registerMethod("vm.destroy", false, vmDestroyOld)
 	o.registerMethod("vm.stop", false, vmStopOld)
 	o.registerMethod("vm.reinitialize", false, vmReinitializeOld)
@@ -145,7 +145,7 @@ func (o *Oskite) Run() {
 	o.registerMethod("exec", true, execFuncOld)
 
 	o.registerMethod("oskite.Info", true, o.oskiteInfo)
-	o.registerMethod("oskite.All", true, oskiteAll)
+	o.registerMethod("oskite.All", true, oskiteAllOld)
 
 	syscall.Umask(0) // don't know why richard calls this
 	o.registerMethod("fs.readDirectory", false, fsReadDirectoryOld)
@@ -166,10 +166,6 @@ func (o *Oskite) Run() {
 	o.registerMethod("app.publish", false, appPublishOld)
 	o.registerMethod("app.skeleton", false, appSkeletonOld)
 
-	// this method is special cased in oskite.go to allow foreign access
-	o.registerMethod("webterm.connect", false, webtermConnectOld)
-	o.registerMethod("webterm.getSessions", false, webtermGetSessionsOld)
-
 	o.registerMethod("s3.store", true, s3StoreOld)
 	o.registerMethod("s3.delete", true, s3DeleteOld)
 
@@ -189,9 +185,7 @@ func (o *Oskite) runNewKite() {
 	o.vosMethod(k, "vm.prepareAndStart", vmPrepareAndStartNew)
 	o.vosMethod(k, "vm.stopAndUnprepare", vmStopAndUnprepareNew)
 	o.vosMethod(k, "vm.shutdown", vmShutdownNew)
-	o.vosMethod(k, "vm.prepare", vmPrepareNew)
 	o.vosMethod(k, "vm.destroy", vmDestroyNew)
-	o.vosMethod(k, "vm.unprepare", vmUnprepareNew)
 	o.vosMethod(k, "vm.stop", vmStopNew)
 	o.vosMethod(k, "vm.reinitialize", vmReinitializeNew)
 	o.vosMethod(k, "vm.info", vmInfoNew)
@@ -221,13 +215,10 @@ func (o *Oskite) runNewKite() {
 	o.vosMethod(k, "app.publish", appPublishNew)
 	o.vosMethod(k, "app.skeleton", appSkeletonNew)
 
-	o.vosMethod(k, "webterm.connect", webtermConnectNew)
-	o.vosMethod(k, "webterm.getSessions", webtermGetSessionsNew)
-
 	o.vosMethod(k, "s3.store", s3StoreNew)
 	o.vosMethod(k, "s3.delete", s3DeleteNew)
 
-	k.DisableConcurrency() // needed for webterm.connect
+	k.DisableConcurrency()
 	k.Start()
 
 	// TODO: remove this later, this is needed in order to reinitiliaze the logger package
@@ -235,8 +226,6 @@ func (o *Oskite) runNewKite() {
 }
 
 func (o *Oskite) initializeSettings() {
-	lifecycle.Startup("kite.os", true)
-
 	var err error
 	if firstContainerIP, containerSubnet, err = net.ParseCIDR(conf.ContainerSubnet); err != nil {
 		log.LogError(err, 0)
@@ -358,16 +347,23 @@ func (o *Oskite) handleCurrentVMS() {
 				return c.FindId(vmId).One(&vm)
 			}
 
+			// unprepareVM that are on other machines, they might be prepared already.
 			if err := mongodbConn.Run("jVMs", query); err != nil || vm.HostKite != o.ServiceUniquename {
-				log.Info("cleaning up leftover VM: '%s', vm.Hoskite: '%s', k.ServiceUniqueName: '%s', error '%v'",
-					vmId, vm.HostKite, o.ServiceUniquename, err)
+				prepareQueue <- &QueueJob{
+					msg: fmt.Sprintf("unprepare leftover vm %s [%s]", vm.HostnameAlias, vmId),
+					f: func() (string, error) {
+						if err := virt.UnprepareVM(vmId); err != nil {
+							log.Error("leftover unprepare: %v", err)
+						}
 
-				if err := virt.UnprepareVM(vmId); err != nil {
-					log.Error("%v", err)
+						return fmt.Sprintf("unprepare finished for leftover vm %s", vmId), nil
+					},
 				}
+
 				continue
 			}
 
+			// means the VM is on this machine
 			vm.ApplyDefaults()
 			info := newInfo(&vm)
 			infosMutex.Lock()
@@ -503,12 +499,6 @@ func (o *Oskite) registerMethod(method string, concurrent bool, callback func(*d
 				methodError = &kite.InternalKiteError{}
 			}
 		}()
-
-		// this method is special cased in oskite.go to allow foreign access.
-		// that's why do not check for permisisons and return early.
-		if method == "webterm.connect" {
-			return callback(args, channel, &virt.VOS{VM: vm, User: user})
-		}
 
 		// protect each callback with their own associated mutex
 		info := getInfo(vm)
@@ -676,7 +666,7 @@ func prepareWorker(id int) {
 	for job := range prepareQueue {
 		currentQueueCount.Add(1)
 
-		log.Info(fmt.Sprintf("Queue %d: processing new job [%s]", id, time.Now().Format(time.StampMilli)))
+		log.Info(fmt.Sprintf("Queue %d: processing job: %s [%s]", id, job.msg, time.Now().Format(time.StampMilli)))
 
 		done := make(chan struct{}, 1)
 		go func() {

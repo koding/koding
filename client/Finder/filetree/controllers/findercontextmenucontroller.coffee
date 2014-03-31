@@ -24,7 +24,7 @@ class NFinderContextMenuController extends KDController
     items = @getMenuItems fileViews
     [fileView] = fileViews
     if items
-      @contextMenu = new JContextMenu
+      @contextMenu = new KDContextMenu
         event    : event
         delegate : fileView
         cssClass : 'finder'
@@ -109,6 +109,8 @@ class NFinderContextMenuController extends KDController
       Collapse                    :
         action                    : "collapse"
         separator                 : yes
+      'Open with...'              :
+        children                  : @getOpenWithMenuItems fileView
       'Make this the top folder'  :
         action                    : 'makeTopFolder'
         separator                 : yes
@@ -167,28 +169,21 @@ class NFinderContextMenuController extends KDController
 
     {nickname} = KD.whoami().profile
 
-    if fileData.path is "/home/#{nickname}/Applications"
+    if ///\/home\/#{nickname}\/Applications$///.test fileData.path
       items.Refresh.separator         = yes
       items["Make a new Application"] =
         action : "makeNewApp"
 
-
     if fileData.getExtension() is "kdapp"
       items.Refresh.separator   = yes
       items['Application menu'] =
-        children                  :
-          Compile                 :
-            action                : "compile"
-          Run                     :
-            action                : "runApp"
-            separator             : yes
-          "Download source files" :
-            action                : "downloadApp"
-
-      if KD.checkFlag('app-publisher') or KD.checkFlag('super-admin')
-        items['Application menu'].children["Download source files"].separator = yes
-        items['Application menu'].children["Publish to app catalog"] =
-          action : "publish"
+        children                   :
+          Compile                  :
+            action                 : "compile"
+          "Publish to app catalog" :
+            action                 : "publish"
+    else
+      delete items['Open with...']
 
     return items
 
@@ -371,10 +366,9 @@ class NFinderContextMenuController extends KDController
 
   getOpenWithMenuItems: (fileView) ->
     items            = {}
-    reWebHome        = ///
-      ^/home/#{KD.nick()}/Web/
-    ///
-    {path}           = fileView.getData()
+    reWebHome        = /// \/home\/#{KD.nick()}\/Web/ ///
+
+    {path, type}     = fileView.getData()
     plainPath        = FSHelper.plainPath path
     fileExtension    = FSItem.getFileExtension path
 
@@ -386,33 +380,14 @@ class NFinderContextMenuController extends KDController
     #   items[appName] = action: "openFileWithApp"
 
     items["Viewer"]               = action   : "previewFile"  if plainPath.match reWebHome
+    if fileExtension is "kdapp" and type is "folder"
+      items["DevTools"]           = action   : "openFileWithApp"
+
     items["separator"]            = type     : "separator"
-    items["Other apps"]           = action   : "showOpenWithModal", separator : yes
+    items["Other apps"]           = disabled : yes # action   : "showOpenWithModal", separator : yes
     items["Search the app store"] = disabled : yes
-    items["Contribute an editor"] = disabled : yes
 
     return items
-  # getOpenWithMenuItems: (fileView) ->
-  #   items            = {}
-  #   reWebHome        = ///
-  #     ^/home/#{KD.nick()}/Web/
-  #   ///
-  #   {path}           = fileView.getData()
-  #   plainPath        = FSHelper.plainPath path
-  #   fileExtension    = FSItem.getFileExtension path
-  #   appsController   = KD.singleton "kodingAppsController"
-  #   {extensionToApp} = appsController
-  #   possibleApps     = (extensionToApp[fileExtension] or extensionToApp.txt) or []
-  #   for appName in possibleApps
-  #     items[appName] = action: "openFileWithApp"
-
-  #   items["Viewer"]               = action   : "previewFile"  if plainPath.match reWebHome
-  #   items["separator"]            = type     : "separator"
-  #   items["Other Apps"]           = action   : "showOpenWithModal", separator : yes
-  #   items["Search the App Store"] = disabled : yes
-  #   items["Contribute an Editor"] = disabled : yes
-
-  #   return items
 
 # this is shorter but needs coffee script update
 

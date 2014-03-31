@@ -14,7 +14,26 @@ class HeaderNavigationController extends KDController
         callback : @emit.bind @, "contextMenuItemClicked", item
         action   : item.action
 
+    @activeFacet = new KDCustomHTMLView
+      tagName   : "a"
+      cssClass  : "active-facet"
+      pistachio : "{span{#(title)}}<cite/>"
+      click     : (event)=>
+        offset = @activeFacet.$().offset()
+        event.preventDefault()
+        @contextMenu = new KDContextMenu
+          event       : event
+          delegate    : mainView
+          x           : offset.left + @activeFacet.getWidth() - 166
+          y           : offset.top + 35
+          arrow       :
+            placement : "top"
+            margin    : -20
+        , itemsObj
+    ,
+      title : items.first.title
 
+    return if items.length <= 1
     # mainView.addSubView new KDSelectBox
     #   selectOptions : selectOptions
     #   name          : items.first.action
@@ -24,24 +43,7 @@ class HeaderNavigationController extends KDController
       cssClass : "title"
       partial  : "#{title}:"
 
-    mainView.addSubView @activeFacet = new KDCustomHTMLView
-      tagName   : "a"
-      cssClass  : "active-facet"
-      pistachio : "{span{#(title)}}<cite/>"
-      click     : (event)=>
-        offset = @activeFacet.$().offset()
-        event.preventDefault()
-        @contextMenu = new JContextMenu
-          event       : event
-          delegate    : mainView
-          x           : offset.left + @activeFacet.getWidth() - 138
-          y           : offset.top + 22
-          arrow       :
-            placement : "top"
-            margin    : -20
-        , itemsObj
-    ,
-      title : items.first.title
+    mainView.addSubView @activeFacet
 
     @on "contextMenuItemClicked", (item)=>
       @contextMenu?.destroy()

@@ -53,6 +53,14 @@ resurrection.finder.styl
           &.selected
             selectedNeighbor()
 
+    span.chevron
+      r-sprite            finder '16-chevron-white'
+      display       block
+
+    .vm span.path-select
+      display       block
+
+
   &.unsaved
     span.icon
       color           black!important
@@ -62,10 +70,6 @@ resurrection.finder.styl
       vertical-align  top
       &:before
         content       "*"
-
-  &.selected
-    span.chevron
-      r-sprite            finder '16-chevron-white'
 
   &:hover
     span.chevron
@@ -304,7 +308,7 @@ resurrection.finder.styl
 .set-permissions-wrapper
   margin-left     0
   line-height     28px
-  min-width       273px
+  min-width       217px
   font-size       11px
   size            auto auto
 
@@ -312,7 +316,7 @@ resurrection.finder.styl
     border-bottom 1px solid rgb(213,213,213)
     padding-left  72px
     span
-      width       65px
+      width       45px
       text-align  center
       fl()
 
@@ -321,7 +325,7 @@ resurrection.finder.styl
     text-align    right
     margin-right  12px
     padding-top   3px
-    line-height   33px
+    line-height   23px
 
     fl()
 
@@ -330,32 +334,35 @@ resurrection.finder.styl
     overflow      hidden
 
   footer
-    margin-top    5px
-    padding-left  72px
-    margin-right  10px
+    padding       0 0 15px
 
     p.old
       color       #666
+      margin-left 15px
       em
         color     #888
     p
-      width       65px
+      width       48px
       fl()
       em
         font-style  normal
-        color       k-orange
+        color       logoBg
+        font-weight 400
 
     button
-      width       auto
-      padding     3px 8px
-      margin      3px 3px 0 0
+      margin        0 15px 0 !important
       fr()
 
     label
-      margin-right 2px
+      margin-right  2px
 
-    .on-off
-      margin      0 2px 0 0
+    .recursive
+      padding       15px 15px 15px 42px
+      margin        0 0 15px
+      border-bottom 1px solid rgb(213,213,213)
+
+    .koding-on-off
+      margin        4px 0 0
       fr()
 
   .switcher-group-mask
@@ -376,12 +383,11 @@ resurrection.finder.styl
     width       30px
 
   .switcher-group
-    width         65px
+    width         45px
     fl()
 
-  .on-off
-    margin        6px 5px 0 0
-    fl()
+  .koding-on-off
+    margin        5px auto 0
 
 #finder-dnduploader
    color             #fff

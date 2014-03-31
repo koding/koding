@@ -1,15 +1,14 @@
 class NavigationLink extends KDListItemView
+
+  NAMES    =
+    Editor : 'Ace'
+
   constructor:(options = {}, data={})->
     data.type        or= ''
     options.tagName  or= 'a'
     options.type     or= 'main-nav'
-    # options.tooltip    =
-    #   title            : "#{data.title}"
-    #   placement        : "bottom"
-    #   arrow            : "top"
+    options.bind       = KD.utils.curry 'contextmenu', options.bind
     options.draggable  = yes
-      # axis             : 'xy'
-      # containment      : 'parent' #KD.getSingleton('DockController').getView()
     options.cssClass   = KD.utils.curry @utils.slugify(data.title), options.cssClass
     options.cssClass   = KD.utils.curry 'no-anim', options.cssClass
     options.attributes = {}
@@ -32,25 +31,10 @@ class NavigationLink extends KDListItemView
 
     appsHasIcon = Object.keys(KD.config.apps)
     appsHasIcon.push 'Editor'
-
-    @icon.hide()  if @name in appsHasIcon
-
-    # needs better styling and ux - SY
-
-    # @quitIcon = new KDCustomHTMLView
-    #   tagName  : "span"
-    #   cssClass : "quit-icon"
-    #   click    : =>
-    #     appManager = KD.singleton('appManager')
-    #     router     = KD.singleton('router')
-
-    #     appManager.quitByName @name
-
-    #     if appManager.getFrontApp().getOptions().name is @name
-    #       lastOpened = router.visitedRoutes[0]
-    #       router.back()
+    @icon.hide()  if @name in appsHasIcon and not data.useFakeIcon
 
     @on "DragStarted", @bound 'dragStarted'
+
 
   setState:(state = 'initial')->
 
@@ -58,13 +42,14 @@ class NavigationLink extends KDListItemView
     @unsetClass states
     if state in states.split ' ' then @setClass state
 
+
   click:(event)->
     KD.utils.stopDOMEvent event
     {appPath, title, path, type, topLevel} = @getData()
 
     # This check is for custom items which isn't connected to an app
     # or if the item is a separator
-    return false  if not path or @positionChanged() # or (event.target is @quitIcon.getElement())
+    return false  if not path or @positionChanged()
 
     mc = KD.getSingleton 'mainController'
     mc.emit "NavigationLinkTitleClick",
@@ -73,6 +58,57 @@ class NavigationLink extends KDListItemView
       path      : path
       topLevel  : topLevel
       navItem   : this
+
+  contextMenu:(event)->
+
+    KD.utils.stopDOMEvent event
+
+    {type, path} = @getData()
+
+    items = {}
+    items[@name] = disabled  : yes
+
+    if @hasClass 'running'
+
+      items.Close = callback : =>
+        contextMenu.destroy()
+        @closeApp()
+
+    else
+
+      items.Open = callback : ->
+        contextMenu.destroy()
+        KD.singletons.router.handleRoute path
+
+    unless type is 'persistent'
+
+      items.Remove = callback : =>
+        contextMenu.destroy()
+        @getDelegate().removeApp this
+
+    contextMenu   = new KDContextMenu
+      cssClass    : 'dock'
+      delegate    : this
+      menuWidth   : 'auto'
+      menuMinWidth: 100
+      y           : @getY() + 57
+      x           : @getX() - 25
+      arrow       :
+        margin    : 35
+        placement : 'top'
+    , items
+
+
+  closeApp:->
+
+    appManager = KD.singleton('appManager')
+    router     = KD.singleton('router')
+
+    name = NAMES[@name] or @name
+    appManager.quitByName name
+
+    if appManager.getFrontApp().getOptions().name is name
+      router.back()
 
   viewAppended:->
     JView::viewAppended.call this
@@ -84,7 +120,6 @@ class NavigationLink extends KDListItemView
       <span class='icon'></span>
       <cite>#{@name}</cite>
     """
-      # {{> @quitIcon}}
 
   dragStarted: (event, dragState)->
 

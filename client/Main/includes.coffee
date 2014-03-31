@@ -1,7 +1,6 @@
 module.exports = [
 
   # Libs
-  "libs/async.js",
   "libs/md5-min.js",
   "libs/accounting.js",
   "libs/bluebird.js",
@@ -137,10 +136,7 @@ module.exports = [
 
   "CommonViews/ModalViewWithTerminal.coffee",
   "CommonViews/clonerepomodal.coffee",
-
   "CommonViews/memberautocomplete.coffee",
-
-  "kodingappcontroller.coffee",
 
   "navigation/navigationlist.coffee",
   "navigation/navigationlink.coffee",
@@ -200,6 +196,20 @@ module.exports = [
   # global notifications
   "globalnotification.coffee",
 
+  # trouble shooter
+  "troubleshoot/troubleshoot.coffee",
+  "troubleshoot/healthchecker.coffee",
+  "troubleshoot/connectionchecker.coffee",
+  "troubleshoot/troubleshootmodal.coffee",
+  "troubleshoot/troubleshootitemview.coffee",
+  "troubleshoot/troubleshootstatusview.coffee",
+
+  "troubleshoot/liveupdatechecker.coffee",
+  "troubleshoot/brokerrecovery.coffee",
+  "troubleshoot/vmchecker.coffee",
+  "troubleshoot/troubleshootresultview.coffee",
+  "troubleshoot/troubleshootmessageview.coffee",
+
   # avatararea
   "avatararea/avatararea.coffee",
   "avatararea/avatarareapopup.coffee",
@@ -226,9 +236,17 @@ module.exports = [
   "channels/kitechannel.coffee",
   "ApplicationManager.coffee",
   "AppController.coffee",
-  "kodingappscontroller.coffee",
   "AppStorage.coffee",
   "localstorage.coffee",
+
+  # 3rd Parties
+  "extras/github/api.coffee",
+  "extras/github/views/githubmodal.coffee",
+  "extras/github/views/githubrepoitem.coffee",
+
+  # Application Backend
+  "kodingappscontroller.coffee",
+  "CommonViews/kodingappselectorforgithub.coffee",
 
   # CONTENT DISPLAY VIEWS
   "ContentDisplay/ContentDisplay.coffee",
@@ -240,6 +258,7 @@ module.exports = [
   "kite/kite.coffee",
   "kite/kite2.coffee",
   "kite/oskite.coffee",
+  "kite/terminalkite.coffee",
   "kite/kitecontroller.coffee",
   "kite/newkite.coffee",
   "kite/vm.coffee", # TODO: this doesn't really belong here.
@@ -252,7 +271,6 @@ module.exports = [
 
   "status.coffee",
   "main.coffee",
-  "monitor_status.coffee",
   "rollbar.coffee",
   "mixpanel.coffee",
   "analytic.coffee",
@@ -269,6 +287,7 @@ module.exports = [
   # "styl/resurrection.activity.styl",
   # "styl/resurrection.apps.styl",
   "styl/resurrection.commons.styl",
+  "styl/troubleshoot.styl",
   # "styl/formworkflow.styl"
   # "styl/resurrection.feeder.styl",
 

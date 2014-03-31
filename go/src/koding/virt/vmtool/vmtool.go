@@ -14,6 +14,7 @@ import (
 	"os/exec"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/jessevdk/go-flags"
 	"labix.org/v2/mgo"
@@ -79,27 +80,37 @@ var actions = map[string]func(args []string){
 	"start": func(args []string) {
 		for _, vm := range selectVMs(args[0]) {
 			err := vm.Start()
-			fmt.Printf("%v: %v\n%s", vm, err)
+			fmt.Printf("%v: %v\n", vm, err)
 		}
 	},
 
 	"shutdown": func(args []string) {
 		for _, vm := range selectVMs(args[0]) {
 			err := vm.Shutdown()
-			fmt.Printf("%v: %v\n%s", vm, err)
+			fmt.Printf("%v: %v\n", vm, err)
 		}
 	},
 
 	"stop": func(args []string) {
 		for _, vm := range selectVMs(args[0]) {
 			err := vm.Stop()
-			fmt.Printf("%v: %v\n%s", vm, err)
+			fmt.Printf("%v: %v\n", vm, err)
 		}
 	},
 
 	"unprepare": func(args []string) {
-		for _, vm := range selectVMs(args[0]) {
-			err := vm.Unprepare()
+		if len(args) == 0 {
+			log.Fatal("usage: unprepare <all | vm-id>")
+		}
+
+		vms := selectVMs(args[0])
+
+		for _, vm := range vms {
+			err := vm.Shutdown()
+
+			for step := range vm.Unprepare(false) {
+				err = step.Err
+			}
 			fmt.Printf("%v: %v\n", vm, err)
 		}
 	},
@@ -136,7 +147,8 @@ var actions = map[string]func(args []string){
 		}
 		ipPoolFetch, _ := utils.NewIntPool(utils.IPToInt(startIP), nil)
 		count, _ := strconv.Atoi(args[0])
-		done := make(chan int)
+
+		done := make(chan string)
 		for i := 0; i < count; i++ {
 			go func(i int) {
 				vm := virt.VM{
@@ -144,10 +156,24 @@ var actions = map[string]func(args []string){
 					IP: utils.IntToIP(<-ipPoolFetch),
 				}
 				vm.ApplyDefaults()
-				vm.Prepare(false)
-				done <- i
+				fmt.Println(i, "preparing...")
+				for _ = range vm.Prepare(false) {
+				}
+
+				fmt.Println(i, "starting...")
+				if err := vm.Start(); err != nil {
+					log.Println(i, "start", err)
+				}
+
+				// wait until network is up
+				fmt.Println(i, "waiting...")
+				if err := vm.WaitForNetwork(time.Second * 5); err != nil {
+					log.Print(i, "WaitForNetwork", err)
+				}
+				done <- fmt.Sprint(i, " vm-"+vm.Id.Hex())
 			}(i)
 		}
+
 		for i := 0; i < count; i++ {
 			fmt.Println(<-done)
 		}

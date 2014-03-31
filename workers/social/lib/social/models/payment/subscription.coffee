@@ -19,6 +19,9 @@ module.exports = class JPaymentSubscription extends jraphical.Module
   @set
     indexes         :
       uuid          : 'unique'
+    sharedEvents    :
+      static        : []
+      instance      : []
     sharedMethods   :
       static        :
         fetchUserSubscriptions:

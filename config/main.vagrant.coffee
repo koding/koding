@@ -65,6 +65,7 @@ module.exports =
   compileGo     : yes
   buildClient   : yes
   runOsKite     : yes
+  runTerminalKite: yes
   runProxy      : yes
   redis         : "localhost:6379"
   misc          :
@@ -130,11 +131,6 @@ module.exports =
     watch       : yes
     queueName   : socialQueueName
     verbose     : no
-  cacheWorker   :
-    login       : 'prod-social'
-    watch       : yes
-    queueName   : socialQueueName+'cache'
-    run         : no
   followFeed    :
     host        : 'localhost'
     port        : 5672
@@ -155,7 +151,7 @@ module.exports =
     useStaticFileServer: no
     staticFilesBaseUrl: 'http://lvh.me:3020'
     runtimeOptions:
-      osKitePollingMs: 1000 * 10 # 10 secs
+      osKitePollingMs: 1000 * 60 # 1 min
       userIdleMs: 1000 * 60 * 5  # 5 min
       sessionCookie :
         maxAge      : cookieMaxAge
@@ -187,7 +183,7 @@ module.exports =
       apiUri    : 'http://lvh.me:3020'
       version   : version
       mainUri   : 'http://lvh.me:3020'
-      appsUri   : 'https://koding-apps.s3.amazonaws.com'
+      appsUri   : 'https://rest.kd.io'
       uploadsUri: 'https://koding-uploads.s3.amazonaws.com'
       uploadsUriForGroup: 'https://koding-groups.s3.amazonaws.com'
       sourceUri : 'http://lvh.me:3526'
@@ -212,6 +208,9 @@ module.exports =
           nicename      : 'Twitter'
         # bitbucket     :
         #   nicename    : 'BitBucket'
+      troubleshoot      :
+        idleTime        : 1000 * 60 * 60
+        externalUrl     : "https://s3.amazonaws.com/koding-ping/healthcheck.json"
   mq            :
     host        : 'localhost'
     port        : 5672
@@ -405,6 +404,7 @@ module.exports =
   logLevel        :
     neo4jfeeder   : "notice"
     oskite        : "info"
+    terminal      : "info"
     kontrolproxy  : "notice"
     kontroldaemon : "notice"
     userpresence  : "notice"
@@ -428,3 +428,5 @@ module.exports =
   sessionCookie   :
     maxAge        : cookieMaxAge
     secure        : cookieSecure
+  troubleshoot    :
+    recipientEmail: "can@koding.com"

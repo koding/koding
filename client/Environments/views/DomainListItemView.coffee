@@ -29,7 +29,7 @@ class DomainListItemView extends KDListItemView
     listView.emit "domainsListItemViewClicked", this
 
   contextMenu:(event)->
-    contextMenu = new JContextMenu
+    contextMenu = new KDContextMenu
       menuWidth   : 200
       delegate    : this
       x           : @getX() + 26

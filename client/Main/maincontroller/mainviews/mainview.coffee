@@ -123,7 +123,12 @@ class MainView extends KDView
 
     @headerContainer.addSubView @accountArea
 
-    unless KD.isLoggedIn()
+    if KD.isLoggedIn()
+
+      @createLoggedInAccountArea()
+
+    else
+
       @loginLink = new CustomLinkView
         cssClass    : 'header-sign-in'
         title       : 'Login'
@@ -135,13 +140,9 @@ class MainView extends KDView
       @accountArea.addSubView @loginLink
 
       mc = KD.getSingleton "mainController"
-      mc.on "accountChanged.to.loggedIn", =>
+      mc.once "accountChanged.to.loggedIn", =>
         @loginLink.destroy()
         @createLoggedInAccountArea()
-
-      return
-
-    @createLoggedInAccountArea()
 
   createLoggedInAccountArea:->
     @accountArea.destroySubViews()
@@ -238,13 +239,15 @@ class MainView extends KDView
       appManifest  = appManager.getFrontAppManifest()
       forntAppName = appManager.getFrontApp().getOptions().name
       menu         = appManifest?.menu or KD.getAppOptions(forntAppName)?.menu
+
       if Array.isArray menu
         menu = items: menu
+
+      @appSettingsMenuButton.hide()
       if menu?.items?.length
         @appSettingsMenuButton.setData menu
-        @appSettingsMenuButton.show()
-      else
-        @appSettingsMenuButton.hide()
+        unless menu.hiddenOnStart
+          @appSettingsMenuButton.show()
 
     @mainTabView.on "AllPanesClosed", ->
       KD.getSingleton('router').handleRoute "/Activity"

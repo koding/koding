@@ -47,12 +47,12 @@ class MainController extends KDController
     KD.registerSingleton "locationController",        new LocationController
     KD.registerSingleton "badgeController",           new BadgeController
     KD.registerSingleton "helpController",            new HelpController
+    KD.registerSingleton "troubleshoot",              new Troubleshoot
 
     # appManager.create 'Chat', (chatController)->
     #   KD.registerSingleton "chatController", chatController
 
     @ready =>
-      router.listen()
       KD.registerSingleton "widgetController",        new WidgetController
       KD.registerSingleton "activityController",      new ActivityController
       KD.registerSingleton "appStorageController",    new AppStorageController
@@ -62,6 +62,7 @@ class MainController extends KDController
       # KD.registerSingleton "kontrol",                 new Kontrol
 
       # @showInstructionsBook()
+      router.listen()
       @emit 'AppIsReady'
 
       console.timeEnd "Koding.com loaded"

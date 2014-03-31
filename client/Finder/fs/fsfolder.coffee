@@ -1,9 +1,5 @@
 class FSFolder extends FSFile
 
-  constructor: ->
-    { @stack } = new Error
-    super
-
   fetchContents:(dontWatch, callback)->
     [callback, dontWatch] = [dontWatch, callback]  unless callback?
 
@@ -65,13 +61,12 @@ class FSFolder extends FSFile
   remove:(callback)->
     @off 'fs.delete.finished'
     @on  'fs.delete.finished', =>
-      return  unless finder = KD.getSingleton 'finderController'
-      finder.stopWatching @path
+      finder = @treeController.delegate
+      finder?.stopWatching @path
 
     super callback, yes
 
   registerWatcher:(response)->
     {@stopWatching} = response
-    finder = KD.getSingleton 'finderController'
-    return unless finder
-    finder.registerWatcher @path, @stopWatching  if @stopWatching
+    finder = @treeController.delegate
+    finder?.registerWatcher @path, @stopWatching  if @stopWatching

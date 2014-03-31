@@ -22,7 +22,6 @@ class TeamworkTabView extends CollaborativePane
         data = @workspace.reviveSnapshot snapshot
         return unless data
 
-        @keysRefChildAddedCallback value  for key, value of data
         @bindRemoteEvents()
 
     {mainTabView} = KD.getSingleton "mainView"
@@ -147,7 +146,7 @@ class TeamworkTabView extends CollaborativePane
 
   createPlusHandleDropDown: ->
     offset        = @tabHandleHolder.plusHandle.$().offset()
-    contextMenu   = new JContextMenu
+    contextMenu   = new KDContextMenu
       delegate    : this
       x           : offset.left - 125
       y           : offset.top  + 30

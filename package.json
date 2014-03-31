@@ -69,7 +69,8 @@
     "cors": "~2.1.1",
     "helmet": "~0.1.2",
     "bluebird": "~1.0.8",
-    "portchecker": "~0.1.1"
+    "portchecker": "~0.1.1",
+    "pistachio-compiler": "~0.0.3"
   },
   "devDependencies": {},
   "optionalDependencies": {},

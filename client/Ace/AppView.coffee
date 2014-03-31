@@ -86,6 +86,18 @@ class AceView extends JView
       @getActiveTabHandle().unsetClass "modified"
       delete @getDelegate().quitOptions
 
+    @on 'KDObjectWillBeDestroyed', =>
+      file = @getData()
+      KD.singletons.localSync.removeFromOpenedFiles file
+      @getDelegate().removeOpenDocument @
+
+    @ace.on "ace.changeSetting", (setting, value)->
+      if setting is "syntax"
+        file = @getData()
+        fileExtension = file.getExtension()
+        appStorage = KD.getSingleton('appStorageController').storage 'Ace', '1.0.1'
+        appStorage.setValue "syntax_#{fileExtension}", value
+
     @ace.on "FileIsReadOnly", =>
       @getActiveTabHandle().setClass "readonly"
       @ace.setReadOnly yes
@@ -112,17 +124,6 @@ class AceView extends JView
 
   getActiveTabHandle: ->
     return  @getDelegate().tabView.getActivePane().tabHandle
-
-  # compileAndRun: ->
-  #   manifest = KodingAppsController.getManifestFromPath @getData().path
-  #   return @ace.notify "Not found an app to compile", null, yes unless manifest?.name
-
-  #   appManager = KD.getSingleton "appManager"
-  #   appManager.quitByName manifest.name
-
-  #   KD.getSingleton("kodingAppsController").compileApp manifest.name, (err) =>
-  #     @ace.notify "Trying to run old version..." if err
-  #     appManager.open manifest.name
 
   toggleFullscreen: ->
     mainView = KD.getSingleton "mainView"

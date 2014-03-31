@@ -32,13 +32,11 @@ class FSItem extends KDObject
 
         kite[method](options).then (stat) ->
 
-          file = FSHelper.createFile {
+          FSHelper.createFile {
             path: actualPath
             type
             vmName
           }
-
-          file.save().then -> return file
 
       .nodeify(callback)
 
@@ -231,9 +229,11 @@ class FSItem extends KDObject
   isHidden:-> FSItem.isHidden @name
 
   exists:(callback=noop)->
-    @getKite().vmOn()
+    kite = @getKite()
 
-    .fsExists(path: @getPath())
+    kite.vmOn().then =>
+
+      kite.fsExists(path: @getPath())
 
     .nodeify(callback)
 
