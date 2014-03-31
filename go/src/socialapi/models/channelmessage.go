@@ -50,10 +50,6 @@ func (c *ChannelMessage) TableName() string {
 	return "channel_message"
 }
 
-func (c *ChannelMessage) Self() bongo.Modellable {
-	return c
-}
-
 const (
 	ChannelMessage_TYPE_POST  = "post"
 	ChannelMessage_TYPE_REPLY = "reply"
@@ -72,11 +68,12 @@ func (c *ChannelMessage) Fetch() error {
 
 func (c *ChannelMessage) Update() error {
 	// only update body
-	return bongo.B.UpdatePartial(c,
+	err := bongo.B.UpdatePartial(c,
 		map[string]interface{}{
 			"body": c.Body,
 		},
 	)
+	return err
 }
 
 func (c *ChannelMessage) Create() error {

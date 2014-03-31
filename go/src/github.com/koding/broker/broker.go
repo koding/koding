@@ -10,11 +10,7 @@ import (
 
 type Config struct {
 	// RMQ config
-	Host     string
-	Port     int
-	Username string
-	Password string
-	Vhost    string
+	RMQConfig *rabbitmq.Config
 
 	// Publishing Config
 	ExchangeName string
@@ -31,13 +27,6 @@ type Broker struct {
 }
 
 func New(c *Config, l logging.Logger) *Broker {
-	mqConfig := &rabbitmq.Config{
-		Host:     c.Host,
-		Port:     c.Port,
-		Username: c.Username,
-		Password: c.Password,
-		Vhost:    c.Vhost,
-	}
 	// set defaults
 	if c.ExchangeName == "" {
 		c.ExchangeName = "BrokerMessageBus"
@@ -48,7 +37,7 @@ func New(c *Config, l logging.Logger) *Broker {
 	}
 
 	return &Broker{
-		mq:     rabbitmq.New(mqConfig, l),
+		mq:     rabbitmq.New(c.RMQConfig, l),
 		log:    l,
 		config: c,
 	}

@@ -278,9 +278,32 @@ class ActivityAppController extends AppController
         @emit "publicFeedFetched_#{eventSuffix}", messages
         return
 
-    JNewStatusUpdate.fetchGroupActivity options, (err, messages)=>
+    # just here to make it work
+    # we should change the other parts to make it
+    # work with the new structure
+    {Social}  = KD.remote.api
+    Social.fetchGroupActivity options, (err, result)=>
+      messages = result.messageList
+      revivedMessages = []
+      for message in messages
+        m = new Social message.message
+        m._id = message.message.id
+        m.meta = {}
+        m.meta.likes = message.interactions.length or 0
+        m.meta.createdAt = message.message.createdAt
+        m.replies = message.replies
+        m.repliesCount = message.replies.length or 0
+        m.interactions = message.interactions
+
+        m.on "MessageReplySaved", log
+        m.on "data", log
+        m.on "update", log
+        # m.on "MessageReplySaved", log
+
+        revivedMessages.push m
+
       return @emit "activitiesCouldntBeFetched", err  if err
-      @emit "publicFeedFetched_#{eventSuffix}", messages
+      @emit "publicFeedFetched_#{eventSuffix}", revivedMessages
 
   # this is only reviving the cache for now
   prepareCacheForListing: (cache)-> return KD.remote.revive cache

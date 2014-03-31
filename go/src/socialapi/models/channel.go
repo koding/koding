@@ -86,12 +86,20 @@ func (c *Channel) TableName() string {
 	return "channel"
 }
 
-func (c *Channel) Self() bongo.Modellable {
-	return c
-}
-
 func (c *Channel) Fetch() error {
 	return bongo.B.Fetch(c)
+}
+
+func (c *Channel) AfterCreate() {
+	bongo.B.AfterCreate(c)
+}
+
+func (c *Channel) AfterUpdate() {
+	bongo.B.AfterUpdate(c)
+}
+
+func (c *Channel) AfterDelete() {
+	bongo.B.AfterDelete(c)
 }
 
 func (c *Channel) Update() error {

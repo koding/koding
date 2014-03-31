@@ -52,10 +52,6 @@ func (c *ChannelParticipant) TableName() string {
 	return "channel_participant"
 }
 
-func (c *ChannelParticipant) Self() bongo.Modellable {
-	return c
-}
-
 func (c *ChannelParticipant) BeforeSave() {
 	c.LastSeenAt = time.Now().UTC()
 }
@@ -105,11 +101,15 @@ func (c *ChannelParticipant) FetchUnreadCount() (int, error) {
 }
 
 func (c *ChannelParticipant) Delete() error {
+	selector := bongo.Partial{
+		"account_id": c.AccountId,
+		"channel_id": c.ChannelId,
+	}
+	if err := bongo.B.One(c, c, selector); err != nil {
+		return err
+	}
+
 	return bongo.B.UpdatePartial(c,
-		bongo.Partial{
-			"account_id": c.AccountId,
-			"channel_id": c.ChannelId,
-		},
 		bongo.Partial{
 			"status": ChannelParticipant_STATUS_LEFT,
 		},

@@ -29,12 +29,20 @@ func (m *MessageReply) TableName() string {
 	return "message_reply"
 }
 
-func (m *MessageReply) Self() bongo.Modellable {
-	return m
-}
-
 func NewMessageReply() *MessageReply {
 	return &MessageReply{}
+}
+
+func (m *MessageReply) AfterCreate() {
+	bongo.B.AfterCreate(m)
+}
+
+func (m *MessageReply) AfterUpdate() {
+	bongo.B.AfterUpdate(m)
+}
+
+func (m *MessageReply) AfterDelete() {
+	bongo.B.AfterDelete(m)
 }
 
 func (m *MessageReply) Fetch() error {
@@ -48,7 +56,7 @@ func (m *MessageReply) Create() error {
 func (m *MessageReply) Delete() error {
 	if err := bongo.B.DB.
 		Where("message_id = ? and reply_id = ?", m.MessageId, m.ReplyId).
-		Delete(m.Self()).Error; err != nil {
+		Delete(m).Error; err != nil {
 		return err
 	}
 	return nil

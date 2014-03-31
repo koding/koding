@@ -42,6 +42,26 @@ type WebtermRemoteNew struct {
 	SessionEnded kitednode.Function
 }
 
+func webtermPingNew(r *kitelib.Request, vos *virt.VOS) (interface{}, error) {
+	return "pong", nil
+}
+
+func webtermKillSessionNew(r *kitelib.Request, vos *virt.VOS) (interface{}, error) {
+	var params struct {
+		Session string
+	}
+
+	if r.Args.One().Unmarshal(&params) != nil {
+		return nil, &kite.ArgumentError{Expected: "{ session: [string] }"}
+	}
+
+	if err := killSession(vos, params.Session); err != nil {
+		return nil, err
+	}
+
+	return true, nil
+}
+
 func webtermGetSessionsNew(r *kitelib.Request, vos *virt.VOS) (interface{}, error) {
 	sessions := screenSessions(vos)
 	if len(sessions) == 0 {

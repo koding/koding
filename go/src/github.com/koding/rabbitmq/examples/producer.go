@@ -2,8 +2,9 @@ package main
 
 import (
 	"fmt"
+
+	"github.com/koding/rabbitmq"
 	"github.com/streadway/amqp"
-	"koding/messaging/rabbitmq"
 )
 
 func main() {

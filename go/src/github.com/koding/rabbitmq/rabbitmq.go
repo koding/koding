@@ -133,6 +133,11 @@ type BindingOptions struct {
 	Args amqp.Table
 }
 
+// Returns RMQ connection
+func (r *RabbitMQ) Conn() *amqp.Connection {
+	return r.conn
+}
+
 // Controls how many messages the server will try to keep on
 // the network for consumers before receiving delivery acks.  The intent of Qos is
 // to make sure the network buffers stay full between the server and client.
@@ -145,7 +150,7 @@ func (r *RabbitMQ) QOS(messageCount int) error {
 // and using same channel for publishing and consuming it opens a new channel for
 // every connection
 // TODO this should not return RabbitMQ struct - cihangir,arslan config changes
-func (r *RabbitMQ) newConnection(tag string) (*RabbitMQ, error) {
+func (r *RabbitMQ) Connect(tag string) (*RabbitMQ, error) {
 	if tag == "" {
 		return nil, errors.New("Tag is not defined in consumer options")
 	}

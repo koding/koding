@@ -44,10 +44,6 @@ func (i *Interaction) TableName() string {
 	return "interaction"
 }
 
-func (i *Interaction) Self() bongo.Modellable {
-	return i
-}
-
 func NewInteraction() *Interaction {
 	return &Interaction{}
 }
@@ -58,6 +54,18 @@ func (i *Interaction) Fetch() error {
 
 func (i *Interaction) Create() error {
 	return bongo.B.Create(i)
+}
+
+func (i *Interaction) AfterCreate() {
+	bongo.B.AfterCreate(i)
+}
+
+func (i *Interaction) AfterUpdate() {
+	bongo.B.AfterUpdate(i)
+}
+
+func (i *Interaction) AfterDelete() {
+	bongo.B.AfterDelete(i)
 }
 
 func (i *Interaction) Delete() error {

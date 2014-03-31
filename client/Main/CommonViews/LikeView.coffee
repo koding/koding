@@ -33,8 +33,8 @@ class LikeView extends JView
     @likeLink = new ActivityActionLink partial: "Like"
 
     # We need to getridoff this asap FIXME ~HK
-    if options.checkIfLikedBefore and KD.isLoggedIn()
-      data.checkIfLikedBefore (err, likedBefore)=>
+    if options.checkIfLikedBefore? and KD.isLoggedIn()
+      data.checkIfLikedBefore? (err, likedBefore)=>
         {useTitle} = @getOptions()
         if likedBefore
           @setClass "liked"

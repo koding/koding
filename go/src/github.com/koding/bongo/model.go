@@ -14,7 +14,38 @@ func (b *Bongo) Fetch(i Modellable) error {
 		return errors.New(fmt.Sprintf("Id is not set for %s", i.TableName()))
 	}
 
-	if err := b.DB.First(i.Self(), i.GetId()).Error; err != nil {
+	if err := b.DB.First(i, i.GetId()).Error; err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (b *Bongo) Create(i Modellable) error {
+	if err := b.DB.Save(i).Error; err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (b *Bongo) Update(i Modellable) error {
+	if i.GetId() == 0 {
+		return errors.New(fmt.Sprintf("Id is not set for %s", i.TableName()))
+	}
+
+	// Update and Create is using the Save method, so they are
+	// same functions but GORM handles, AfterCreate and AfterUpdate
+	// in correct manner
+	return b.Create(i)
+}
+
+func (b *Bongo) Delete(i Modellable) error {
+	if i.GetId() == 0 {
+		return errors.New(fmt.Sprintf("Id is not set for %s", i.TableName()))
+	}
+
+	if err := b.DB.Delete(i).Error; err != nil {
 		return err
 	}
 
@@ -34,24 +65,29 @@ func (b *Bongo) FetchByIds(i Modellable, data interface{}, ids []int64) error {
 
 }
 
-func (b *Bongo) Create(i Modellable) error {
-	if err := b.DB.Save(i).Error; err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (b *Bongo) Update(i Modellable) error {
+func (b *Bongo) UpdatePartial(i Modellable, set map[string]interface{}) error {
 	if i.GetId() == 0 {
 		return errors.New(fmt.Sprintf("Id is not set for %s", i.TableName()))
 	}
 
-	return b.Create(i)
+	query := b.DB.Table(i.TableName())
+
+	query = query.Where(i.GetId())
+
+	if err := query.Update(set).Error; err != nil {
+		return err
+	}
+
+	if err := b.Fetch(i); err != nil {
+		return err
+	}
+
+	b.AfterUpdate(i)
+	return nil
 }
 
 // selector, set
-func (b *Bongo) UpdatePartial(i Modellable, rest ...map[string]interface{}) error {
+func (b *Bongo) UpdateMulti(i Modellable, rest ...map[string]interface{}) error {
 	var set, selector map[string]interface{}
 
 	switch len(rest) {
@@ -67,26 +103,10 @@ func (b *Bongo) UpdatePartial(i Modellable, rest ...map[string]interface{}) erro
 
 	query := b.DB.Table(i.TableName())
 
-	if i.GetId() != 0 {
-		query = query.Where(i.GetId())
-	} else {
-		//add selector
-		query = addWhere(query, selector)
-	}
+	//add selector
+	query = addWhere(query, selector)
 
 	if err := query.Update(set).Error; err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (b *Bongo) Delete(i Modellable) error {
-	if i.GetId() == 0 {
-		return errors.New(fmt.Sprintf("Id is not set for %s", i.TableName()))
-	}
-
-	if err := b.DB.Delete(i.Self()).Error; err != nil {
 		return err
 	}
 
@@ -166,7 +186,7 @@ func (b *Bongo) One(i Modellable, data interface{}, selector map[string]interfac
 
 func (b *Bongo) AfterCreate(i Modellable) {
 	eventName := fmt.Sprintf("%s_created", i.TableName())
-	data, err := json.Marshal(i.Self())
+	data, err := json.Marshal(i)
 	if err != nil {
 		// here try to resend this message to RMQ again, than
 		// persist it to somewhere!#!##@$%#?
@@ -182,7 +202,7 @@ func (b *Bongo) AfterCreate(i Modellable) {
 
 func (b *Bongo) AfterUpdate(i Modellable) {
 	eventName := fmt.Sprintf("%s_updated", i.TableName())
-	data, err := json.Marshal(i.Self())
+	data, err := json.Marshal(i)
 	if err != nil {
 		// here try to resend this message to RMQ again, than
 		// persist it to somewhere!#!##@$%#?
@@ -198,7 +218,7 @@ func (b *Bongo) AfterUpdate(i Modellable) {
 
 func (b *Bongo) AfterDelete(i Modellable) {
 	eventName := fmt.Sprintf("%s_deleted", i.TableName())
-	data, err := json.Marshal(i.Self())
+	data, err := json.Marshal(i)
 	if err != nil {
 		// here try to resend this message to RMQ again, than
 		// persist it to somewhere!#!##@$%#?

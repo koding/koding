@@ -22,6 +22,7 @@ var (
 	flagDisableGuest = flag.Bool("noguest", false, "Disable Guest VM creation")
 	flagLimit        = flag.Int("limit", 100, "Limit total running VM on a single Container")
 	flagVersion      = flag.Bool("version", false, "Show version and exit")
+	flagConfigDir    = flag.String("conf_dir", "", "Read config from conf_dir instead of current directory.")
 )
 
 func main() {
@@ -42,7 +43,8 @@ func main() {
 		os.Exit(0)
 	}
 
-	os := oskite.New(config.MustConfig(*flagProfile))
+	// panics if the config can't be parsed
+	os := oskite.New(config.MustConfigDir(*flagConfigDir, *flagProfile))
 	os.VmTimeout = *flagTimeout
 	os.PrepareQueueLimit = 8 + 1
 	os.TemplateDir = *flagTemplates

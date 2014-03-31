@@ -151,7 +151,7 @@ type Config struct {
 }
 
 func MustConfig(profile string) *Config {
-	conf, err := readConfig(profile)
+	conf, err := readConfig("", profile)
 	if err != nil {
 		panic(err)
 	}
@@ -159,50 +159,13 @@ func MustConfig(profile string) *Config {
 	return conf
 }
 
-// readConfig reads and unmarshalls the appropriate config into the Config
-// struct (which is used in many applications). It reads the config from the
-// koding-config-manager  with command line flag -c. If there is no flag
-// specified it tries to get the config from the environment variable
-// "CONFIG".
-func readConfig(profile string) (*Config, error) {
-	if profile == "" {
-		// this is needed also if you can't pass a flag into other packages, like testing.
-		// otherwise it's impossible to inject the config paramater. For example:
-		// this doesn't work  : go test -c "vagrant"
-		// but this will work : CONFIG="vagrant" go test
-		envProfile := os.Getenv("CONFIG")
-		if envProfile == "" {
-			return nil, errors.New("config.go: please specify a configuration profile via -c or set a CONFIG environment.")
-		}
-
-		profile = envProfile
-	}
-
-	cwd, err := os.Getwd()
+func MustConfigDir(dir, profile string) *Config {
+	conf, err := readConfig(dir, profile)
 	if err != nil {
-		return nil, err
+		panic(err)
 	}
 
-	configPath := filepath.Join(cwd, "config", fmt.Sprintf("main.%s.json", profile))
-	ok, err := exists(configPath)
-	if err != nil {
-		return nil, err
-	}
-
-	var conf *Config
-	if ok {
-		conf, err = ReadJson(profile)
-		if err != nil {
-			return nil, err
-		}
-	} else {
-		conf, err = ReadConfigManager(profile)
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	return conf, nil
+	return conf
 }
 
 func ReadJson(profile string) (*Config, error) {
@@ -245,6 +208,56 @@ func ReadConfigManager(profile string) (*Config, error) {
 	}
 
 	// successfully unmarshalled into Current
+	return conf, nil
+}
+
+// readConfig reads and unmarshalls the appropriate config into the Config
+// struct (which is used in many applications). It reads the config from the
+// koding-config-manager  with command line flag -c. If there is no flag
+// specified it tries to get the config from the environment variable
+// "CONFIG".
+func readConfig(configDir, profile string) (*Config, error) {
+	if profile == "" {
+		// this is needed also if you can't pass a flag into other packages, like testing.
+		// otherwise it's impossible to inject the config paramater. For example:
+		// this doesn't work  : go test -c "vagrant"
+		// but this will work : CONFIG="vagrant" go test
+		envProfile := os.Getenv("CONFIG")
+		if envProfile == "" {
+			return nil, errors.New("config.go: please specify a configuration profile via -c or set a CONFIG environment.")
+		}
+
+		profile = envProfile
+	}
+
+	if configDir == "" {
+		cwd, err := os.Getwd()
+		if err != nil {
+			return nil, err
+		}
+
+		configDir = filepath.Join(cwd, "config")
+	}
+
+	configPath := filepath.Join(configDir, fmt.Sprintf("main.%s.json", profile))
+	ok, err := exists(configPath)
+	if err != nil {
+		return nil, err
+	}
+
+	var conf *Config
+	if ok {
+		conf, err = ReadJson(profile)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		conf, err = ReadConfigManager(profile)
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	return conf, nil
 }
 

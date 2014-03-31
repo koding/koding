@@ -50,10 +50,6 @@ func (c *ChannelMessageList) TableName() string {
 	return "channel_message_list"
 }
 
-func (c *ChannelMessageList) Self() bongo.Modellable {
-	return c
-}
-
 func NewChannelMessageList() *ChannelMessageList {
 	return &ChannelMessageList{}
 }

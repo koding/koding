@@ -7,23 +7,26 @@ import (
 	"flag"
 	"fmt"
 	"koding/databases/elasticsearch"
-	"koding/messaging/rabbitmq"
 	"koding/tools/config"
+	"os"
 	"strconv"
 	"time"
+	"github.com/koding/logging"
 
+	"github.com/koding/rabbitmq"
 	"github.com/mattbaird/elastigo/api"
 	"github.com/mattbaird/elastigo/indices"
 	"github.com/streadway/amqp"
 	"labix.org/v2/mgo/bson"
-	"log"
 )
 
 var (
 	EXCHANGE_NAME     = "graphFeederExchange"
 	TIME_FORMAT       = "2006-01-02T15:04:05.000Z"
 	WORKER_QUEUE_NAME string
+	flagDebug         = flag.Bool("d", false, "Debug mode")
 	configProfile     = flag.String("c", "", "Configuration profile from file")
+	log               logging.Logger
 )
 
 type Consumer struct {
@@ -48,10 +51,21 @@ var RoutingTable = map[string]Action{
 func main() {
 	flag.Parse()
 	if *configProfile == "" {
-		log.Fatal("Please define config file with -c")
+		fmt.Println("Please define config file with -c")
+		return
 	}
 
 	conf := config.MustConfig(*configProfile)
+
+	log = logging.NewLogger("ElasticsearchFeeder")
+	logHandler := logging.NewWriterHandler(os.Stderr)
+	logHandler.Colorize = true
+	log.SetHandler(logHandler)
+
+	if *flagDebug {
+		log.SetLevel(logging.DEBUG)
+		logHandler.SetLevel(logging.DEBUG)
+	}
 
 	// this is for ElasticSearch
 	api.Domain = conf.ElasticSearch.Host
@@ -127,7 +141,14 @@ func startConsuming(conf *config.Config) {
 		Tag: "ElasticSearchFeeder",
 	}
 
-	r := rabbitmq.New(conf)
+	rmqConf := &rabbitmq.Config{
+		Host:     conf.Mq.Host,
+		Port:     conf.Mq.Port,
+		Username: conf.Mq.ComponentUser,
+		Password: conf.Mq.Password,
+		Vhost:    conf.Mq.Vhost,
+	}
+	r := rabbitmq.New(rmqConf, log)
 	consumer, err := r.NewConsumer(exchange, queue, binding, consumerOptions)
 	if err != nil {
 		fmt.Print(err)
