@@ -139,11 +139,13 @@ app.get "/-/subscription/check/:kiteToken/:username", (req, res)->
   {username, kiteToken} = req.params
   {JAccount, JKite} = koding.models
   JKite.one kiteCode: kiteToken, (err, kite)->
-    return res.send 401, "Kite Subscription Error - 1" if err
+    return res.send 401, "Error while fetching kite" if err or not kite
     JAccount.one {"profile.nickname": username}, (err, account)->
+      return res.send 401, "Error while fetching user account" if err or not account
       account.fetchSubscriptions (err, subs)->
-        return res.send 401, "Kite Subscription Error - 2" if err
+        return res.send 401, "Error while fetching account subscription" if err or not subs
         kite.fetchPlans (err, plans)->
+          return res.send 401, "Error while fetching kite plans" if err or not plans
           subsIds = subs.map (sub)-> sub.planCode
           userPlan = []
           for plan in plans
