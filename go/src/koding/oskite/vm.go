@@ -429,7 +429,7 @@ func vmPrepareAndStart(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS
 		return nil, &kite.ArgumentError{Expected: "{OnProgress: [function]}"}
 	}
 
-	return progress(vos, "vm.prepareAndStart"+vos.VM.HostnameAlias, params, func() error {
+	return progress(vos, "vm.prepareAndStart "+vos.VM.HostnameAlias, params, func() error {
 		for step := range prepareProgress(vos) {
 			if params.OnProgress != nil {
 				params.OnProgress(step)
@@ -454,7 +454,7 @@ func vmDestroyOld(args *dnode.Partial, c *kite.Channel, vos *virt.VOS) (interfac
 		return nil, &kite.ArgumentError{Expected: "{OnProgress: [function]}"}
 	}
 
-	return progress(vos, "vm.destroy"+vos.VM.HostnameAlias, params, func() error {
+	return progress(vos, "vm.destroy "+vos.VM.HostnameAlias, params, func() error {
 		var lastError error
 		for step := range unprepareProgress(vos, true) {
 			if params.OnProgress != nil {
@@ -482,7 +482,7 @@ func vmStopAndUnprepare(args *dnode.Partial, channel *kite.Channel, vos *virt.VO
 		return nil, &kite.ArgumentError{Expected: "{OnProgress: [function]}"}
 	}
 
-	return progress(vos, "vm.stopAndUnprepare"+vos.VM.HostnameAlias, params, func() error {
+	return progress(vos, "vm.stopAndUnprepare "+vos.VM.HostnameAlias, params, func() error {
 		var lastError error
 		for step := range unprepareProgress(vos, false) {
 			if params.OnProgress != nil {
