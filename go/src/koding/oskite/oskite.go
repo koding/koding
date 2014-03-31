@@ -366,7 +366,7 @@ func (o *Oskite) handleCurrentVMS() {
 			continue
 		}
 
-		// means the VM is on this machine
+		// continue with VMs on this machine,
 		vm.ApplyDefaults()
 		info := newInfo(&vm)
 
@@ -374,14 +374,28 @@ func (o *Oskite) handleCurrentVMS() {
 		infos[vm.Id] = info
 		infosMutex.Unlock()
 
+		// start the shutdown timer for the given vm, for alwaysOn VM's it
+		// doesn't start it
 		info.startTimeout()
 
-		if vm.AlwaysOn {
-			log.Info("starting alwaysOn VM", vm.HostnameAlias, vm.Id.Hex())
+		// start alwaysON VMs. using an anonymous function let us create clean
+		// and flattened code like below
+		func() {
+			if !vm.AlwaysOn {
+				return
+			}
+
+			// means this vm is intended to be start on another kontainer machine
+			if vm.PinnedToHost != "" && vm.PinnedToHost != o.ServiceUniquename {
+				return
+			}
+
+			log.Info("starting alwaysOn VM %s [%s]", vm.HostnameAlias, vm.Id.Hex())
 			if err := o.startVM(&vm, nil); err != nil {
 				log.LogError(err, 0)
 			}
-		}
+		}()
+
 	}
 
 	log.Info("VMs in /var/lib/lxc are finished.")
