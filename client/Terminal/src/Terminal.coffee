@@ -99,8 +99,6 @@ class WebTerm.Terminal extends KDObject
 
     @clientInterface =
       output: (data) =>
-        if KD.useNewKites
-          data = data.withArgs
         log @inspectString(data) if localStorage?["WebTerm.logRawOutput"] is "true"
         @controlCodeReader.addData data
         if localStorage?["WebTerm.slowDrawing"] is "true"
