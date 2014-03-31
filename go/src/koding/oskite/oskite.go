@@ -340,37 +340,62 @@ func (o *Oskite) handleCurrentVMS() {
 	}
 
 	for _, dir := range dirs {
-		if strings.HasPrefix(dir.Name(), "vm-") {
-			vmId := bson.ObjectIdHex(dir.Name()[3:])
-			var vm virt.VM
-			query := func(c *mgo.Collection) error {
-				return c.FindId(vmId).One(&vm)
-			}
-
-			// unprepareVM that are on other machines, they might be prepared already.
-			if err := mongodbConn.Run("jVMs", query); err != nil || vm.HostKite != o.ServiceUniquename {
-				prepareQueue <- &QueueJob{
-					msg: fmt.Sprintf("unprepare leftover vm %s [%s]", vm.HostnameAlias, vmId),
-					f: func() (string, error) {
-						if err := virt.UnprepareVM(vmId); err != nil {
-							log.Error("leftover unprepare: %v", err)
-						}
-
-						return fmt.Sprintf("unprepare finished for leftover vm %s", vmId), nil
-					},
-				}
-
-				continue
-			}
-
-			// means the VM is on this machine
-			vm.ApplyDefaults()
-			info := newInfo(&vm)
-			infosMutex.Lock()
-			infos[vm.Id] = info
-			infosMutex.Unlock()
-			info.startTimeout()
+		if !strings.HasPrefix(dir.Name(), "vm-") {
+			continue
 		}
+
+		vmId := bson.ObjectIdHex(dir.Name()[3:])
+		var vm virt.VM
+		query := func(c *mgo.Collection) error {
+			return c.FindId(vmId).One(&vm)
+		}
+
+		// unprepareVM that are on other machines, they might be prepared already.
+		if err := mongodbConn.Run("jVMs", query); err != nil || vm.HostKite != o.ServiceUniquename {
+			prepareQueue <- &QueueJob{
+				msg: fmt.Sprintf("unprepare leftover vm %s [%s]", vm.HostnameAlias, vm.Id.Hex()),
+				f: func() (string, error) {
+					if err := virt.UnprepareVM(vmId); err != nil {
+						log.Error("leftover unprepare: %v", err)
+					}
+
+					return fmt.Sprintf("unprepare finished for leftover vm %s", vmId), nil
+				},
+			}
+
+			continue
+		}
+
+		// continue with VMs on this machine,
+		vm.ApplyDefaults()
+		info := newInfo(&vm)
+
+		infosMutex.Lock()
+		infos[vm.Id] = info
+		infosMutex.Unlock()
+
+		// start the shutdown timer for the given vm, for alwaysOn VM's it
+		// doesn't start it
+		info.startTimeout()
+
+		// start alwaysON VMs. using an anonymous function let us create clean
+		// and flattened code like below
+		func() {
+			if !vm.AlwaysOn {
+				return
+			}
+
+			// means this vm is intended to be start on another kontainer machine
+			if vm.PinnedToHost != "" && vm.PinnedToHost != o.ServiceUniquename {
+				return
+			}
+
+			log.Info("starting alwaysOn VM %s [%s]", vm.HostnameAlias, vm.Id.Hex())
+			if err := o.startVM(&vm, nil); err != nil {
+				log.LogError(err, 0)
+			}
+		}()
+
 	}
 
 	log.Info("VMs in /var/lib/lxc are finished.")
@@ -659,6 +684,58 @@ func (o *Oskite) startVM(vm *virt.VM, channel *kite.Channel) error {
 	}
 
 	return startAndPrepareVM(vm)
+}
+
+func startAndPrepareVM(vm *virt.VM) error {
+	prepared, err := isVmPrepared(vm)
+	if err != nil {
+		return err
+	}
+
+	var lastError error
+	done := make(chan struct{}, 1)
+	prepareQueue <- &QueueJob{
+		msg: "vm prepare and start " + vm.HostnameAlias,
+		f: func() (string, error) {
+			defer func() { done <- struct{}{} }()
+
+			startTime := time.Now()
+
+			if !prepared {
+				// prepare first
+				for step := range vm.Prepare(false) {
+					lastError = step.Err
+					if lastError != nil {
+						return "", fmt.Errorf("preparing VM %s", lastError)
+					}
+				}
+			}
+
+			// start it
+			if err := vm.Start(); err != nil {
+				log.LogError(err, 0)
+			}
+
+			// wait until network is up
+			if err := vm.WaitForNetwork(time.Second * 5); err != nil {
+				log.Error("%v", err)
+			}
+
+			res := fmt.Sprintf("VM PREPARE and START: %s [%s] - ElapsedTime: %.10f seconds.",
+				vm, vm.HostnameAlias, time.Since(startTime).Seconds())
+
+			return res, nil
+		},
+	}
+
+	log.Info("putting %s into queue. total vms in queue: %d of %d",
+		vm.HostnameAlias, currentQueueCount.Get(), len(prepareQueue))
+
+	// wait until the prepareWorker has picked us and we finished
+	// to return something to the client
+	<-done
+
+	return lastError
 }
 
 // prepareWorker listens from prepareQueue channel and runs the functions it receives
