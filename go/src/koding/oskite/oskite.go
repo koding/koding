@@ -340,37 +340,41 @@ func (o *Oskite) handleCurrentVMS() {
 	}
 
 	for _, dir := range dirs {
-		if strings.HasPrefix(dir.Name(), "vm-") {
-			vmId := bson.ObjectIdHex(dir.Name()[3:])
-			var vm virt.VM
-			query := func(c *mgo.Collection) error {
-				return c.FindId(vmId).One(&vm)
-			}
-
-			// unprepareVM that are on other machines, they might be prepared already.
-			if err := mongodbConn.Run("jVMs", query); err != nil || vm.HostKite != o.ServiceUniquename {
-				prepareQueue <- &QueueJob{
-					msg: fmt.Sprintf("unprepare leftover vm %s [%s]", vm.HostnameAlias, vmId),
-					f: func() (string, error) {
-						if err := virt.UnprepareVM(vmId); err != nil {
-							log.Error("leftover unprepare: %v", err)
-						}
-
-						return fmt.Sprintf("unprepare finished for leftover vm %s", vmId), nil
-					},
-				}
-
-				continue
-			}
-
-			// means the VM is on this machine
-			vm.ApplyDefaults()
-			info := newInfo(&vm)
-			infosMutex.Lock()
-			infos[vm.Id] = info
-			infosMutex.Unlock()
-			info.startTimeout()
+		if !strings.HasPrefix(dir.Name(), "vm-") {
+			continue
 		}
+
+		vmId := bson.ObjectIdHex(dir.Name()[3:])
+		var vm virt.VM
+		query := func(c *mgo.Collection) error {
+			return c.FindId(vmId).One(&vm)
+		}
+
+		// unprepareVM that are on other machines, they might be prepared already.
+		if err := mongodbConn.Run("jVMs", query); err != nil || vm.HostKite != o.ServiceUniquename {
+			prepareQueue <- &QueueJob{
+				msg: fmt.Sprintf("unprepare leftover vm %s [%s]", vm.HostnameAlias, vmId),
+				f: func() (string, error) {
+					if err := virt.UnprepareVM(vmId); err != nil {
+						log.Error("leftover unprepare: %v", err)
+					}
+
+					return fmt.Sprintf("unprepare finished for leftover vm %s", vmId), nil
+				},
+			}
+
+			continue
+		}
+
+		// means the VM is on this machine
+		vm.ApplyDefaults()
+		info := newInfo(&vm)
+
+		infosMutex.Lock()
+		infos[vm.Id] = info
+		infosMutex.Unlock()
+
+		info.startTimeout()
 	}
 
 	log.Info("VMs in /var/lib/lxc are finished.")
