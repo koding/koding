@@ -60,8 +60,9 @@ class OsKite extends KDKite
       @cycleChannel()  unless state # backend's cycleChannel regressed - SY
 
   vmOn: ->
-    if not @recentState? or @recentState.state is 'STOPPED'
+    if not @recentState? or @recentState.state isnt 'RUNNING'
       @vmPrepareAndStart onProgress: (update) =>
+        @handleError update  if update.error
         @emit 'vm.progress.start', update
         if update.message is 'FINISHED'
           @recentState?.state = 'RUNNING'
@@ -69,13 +70,19 @@ class OsKite extends KDKite
       Promise.cast true
 
   vmOff: ->
-    if not @recentState? or @recentState.state is 'RUNNING'
+    if not @recentState? or @recentState.state isnt 'STOPPED'
       @vmStopAndUnprepare onProgress: (update) =>
+        @handleError update  if update.error
         @emit 'vm.progress.stop', update
         if update.message is 'FINISHED'
           @recentState?.state = 'STOPPED'
     else
       Promise.cast true
+
+  handleError: (update) ->
+    warn "vm prepare error ", update.error
+    update.message = 'ERROR'
+    @recentState?.state = 'FAILED'
 
   fsExists: (options) ->
     @fsGetInfo(options)
