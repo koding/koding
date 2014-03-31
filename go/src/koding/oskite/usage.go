@@ -21,22 +21,41 @@ type Plan struct {
 	AlwaysOnVMs int `json:"alwaysOnVMs"`
 }
 
+type PlanResponse struct {
+	CPU         string `json:"cpu"`
+	RAM         string `json:"ram"`  // Memory usage in MB
+	Disk        string `json:"disk"` // Disk in MB
+	TotalVMs    string `json:"totalVMs"`
+	AlwaysOnVMs string `json:"alwaysOnVMs"`
+}
+
 type subscriptionResp struct {
 	Plan string `json:"plan"`
 }
 
 var (
-	ErrQuotaExceeded = errors.New("quota exceeded")
-
 	plans = map[string]Plan{
-		"Free": {CPU: 1, RAM: 1000, Disk: 3000, TotalVMs: 1, AlwaysOnVMs: 0},
+		"free": {CPU: 1, RAM: 1000, Disk: 3000, TotalVMs: 1, AlwaysOnVMs: 0},
 		"1x":   {CPU: 2, RAM: 2000, Disk: 10000, TotalVMs: 2, AlwaysOnVMs: 1},
 		"2x":   {CPU: 4, RAM: 4000, Disk: 20000, TotalVMs: 4, AlwaysOnVMs: 2},
 		"3x":   {CPU: 6, RAM: 6000, Disk: 40000, TotalVMs: 6, AlwaysOnVMs: 3},
 		"4x":   {CPU: 8, RAM: 8000, Disk: 80000, TotalVMs: 8, AlwaysOnVMs: 4},
 		"5x":   {CPU: 10, RAM: 10000, Disk: 100000, TotalVMs: 10, AlwaysOnVMs: 5},
 	}
+
+	okString      = "ok"
+	quotaExceeded = "quota exceeded."
 )
+
+func NewPlanResponse() *PlanResponse {
+	return &PlanResponse{
+		CPU:         okString,
+		RAM:         okString,
+		Disk:        okString,
+		TotalVMs:    okString,
+		AlwaysOnVMs: okString,
+	}
+}
 
 func NewUsage(vos *virt.VOS) (*Plan, error) {
 	vms := make([]*models.VM, 0)
@@ -66,27 +85,29 @@ func NewUsage(vos *virt.VOS) (*Plan, error) {
 	return usage, nil
 }
 
-func (p *Plan) checkLimits(username string) error {
+func (p *Plan) checkLimits(username string) (*PlanResponse, error) {
 	planID, err := getSubscription(username)
 	if err != nil {
 		log.Critical("oskite checkLimits err: %v", err)
-		return errors.New("couldn't fetch subscription")
+		return nil, errors.New("couldn't fetch subscription")
 	}
 
 	plan, ok := plans[planID]
 	if !ok {
-		return errors.New("plan doesn't exist")
+		return nil, errors.New("plan doesn't exist")
 	}
 
+	resp := NewPlanResponse()
+
 	if p.AlwaysOnVMs >= plan.AlwaysOnVMs {
-		return ErrQuotaExceeded
+		resp.AlwaysOnVMs = quotaExceeded
 	}
 
 	if p.TotalVMs >= plan.TotalVMs {
-		return ErrQuotaExceeded
+		resp.TotalVMs = quotaExceeded
 	}
 
-	return nil
+	return resp, nil
 }
 
 func vmUsage(vos *virt.VOS, username string) (interface{}, error) {
@@ -96,11 +117,7 @@ func vmUsage(vos *virt.VOS, username string) (interface{}, error) {
 		return nil, errors.New("vm.usage couldn't be retrieved. please consult to support.")
 	}
 
-	if err := usage.checkLimits(username); err != nil {
-		return nil, err
-	}
-
-	return usage, nil
+	return usage.checkLimits(username)
 }
 
 type KiteStore struct {
@@ -121,8 +138,6 @@ func getKiteCode() (string, error) {
 	if err != nil {
 		return "", err
 	}
-
-	fmt.Printf("kiteStore %+v\n", kiteStore)
 
 	return kiteStore.KiteCode, nil
 }
@@ -152,7 +167,6 @@ func getSubscription(username string) (string, error) {
 
 	var s = new(subscriptionResp)
 	if err := json.Unmarshal(body, s); err != nil {
-		fmt.Println("err")
 		return "", errors.New("Subscription data is malformed")
 	}
 
