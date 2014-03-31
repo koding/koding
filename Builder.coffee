@@ -70,12 +70,16 @@ module.exports = class Builder
   buildFramework:->
 
     @config ?= require('koding-config-manager').load("main.#{options.configFile}")
-    cmd = "cd client/Framework;gulp compile --buildVersion=#{@config.client.version} --outputDir=../../website/a/"
+    cmd = "cd client/Framework;npm i;gulp compile --buildVersion=#{@config.client.version} --outputDir=../../website/a/"
     exec cmd, (err, stdout, stderr)->
       console.warn "------------------------ FRAMEWORK COMPILED -------------------------- "
       console.warn " To use watcher for Framework use following command in different tab:  "
       console.log  " $ #{cmd.replace 'compile ', ''} "
       console.warn "------------------------ FRAMEWORK COMPILED -------------------------- "
+
+  buildKiteJs: ->
+    exec "cd client/Framework;npm i;gulp", (err, stdout, stderr) ->
+      console.log "------------------------- KITEJS COMPILED -------------------------"
 
   buildClient: (options) ->
     @config ?= require('koding-config-manager').load("main.#{options.configFile}")
@@ -83,6 +87,7 @@ module.exports = class Builder
     try fs.mkdirSync ".build"
 
     @buildFramework()
+    @buildKiteJs()
 
     if @config.client.runtimeOptions.precompiledApi
       exec 'coffee ./bongo-api-builder/build.coffee -o .build/api.js', =>
