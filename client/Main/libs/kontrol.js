@@ -1,1 +1,1 @@
-../../../node_modules/kite.js/browser/kontrol-promises-bundle.js
+../../../kite.js/browser/kontrol-promises-bundle.js
