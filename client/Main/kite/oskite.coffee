@@ -62,7 +62,7 @@ class OsKite extends KDKite
   vmOn: ->
     if not @recentState? or @recentState.state isnt 'RUNNING'
       @vmPrepareAndStart onProgress: (update) =>
-        @handleError update  if update.error
+        return @handleError update  if update.error
         @emit 'vm.progress.start', update
         if update.message is 'FINISHED'
           @recentState?.state = 'RUNNING'
@@ -72,7 +72,7 @@ class OsKite extends KDKite
   vmOff: ->
     if not @recentState? or @recentState.state isnt 'STOPPED'
       @vmStopAndUnprepare onProgress: (update) =>
-        @handleError update  if update.error
+        return @handleError update  if update.error
         @emit 'vm.progress.stop', update
         if update.message is 'FINISHED'
           @recentState?.state = 'STOPPED'
@@ -80,9 +80,10 @@ class OsKite extends KDKite
       Promise.cast true
 
   handleError: (update) ->
-    warn "vm prepare error ", update.error
-    update.message = 'ERROR'
+    {error} = update
+    warn "vm prepare error ", error
     @recentState?.state = 'FAILED'
+    @emit 'vm.progress.error', error
 
   fsExists: (options) ->
     @fsGetInfo(options)

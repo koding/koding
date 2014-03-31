@@ -31,8 +31,6 @@ class TerminalStartTabVMItem extends KDCustomHTMLView
   handleVMStart:(update)->
     { message, currentStep, totalStep } = update
 
-    return @renderVMStop()  if message is 'ERROR'
-
     if message is 'FINISHED'
       @setClass 'ready'
       @emit 'vm.is.prepared'
@@ -89,6 +87,9 @@ class TerminalStartTabVMItem extends KDCustomHTMLView
       when "stopped"
         @unsetClass 'ready'
         @renderVMStop()
+
+  handleVMError:(error)->
+    @renderVMStop()
 
   renderVMStop: ->
     @loader.hide()
