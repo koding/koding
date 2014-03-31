@@ -347,16 +347,23 @@ func (o *Oskite) handleCurrentVMS() {
 				return c.FindId(vmId).One(&vm)
 			}
 
+			// unprepareVM that are on other machines, they might be prepared already.
 			if err := mongodbConn.Run("jVMs", query); err != nil || vm.HostKite != o.ServiceUniquename {
-				log.Info("cleaning up leftover VM: '%s', vm.Hoskite: '%s', k.ServiceUniqueName: '%s', error '%v'",
-					vmId, vm.HostKite, o.ServiceUniquename, err)
+				prepareQueue <- &QueueJob{
+					msg: fmt.Sprintf("unprepare leftover vm %s [%s]", vm.HostnameAlias, vmId),
+					f: func() (string, error) {
+						if err := virt.UnprepareVM(vmId); err != nil {
+							log.Error("leftover unprepare: %v", err)
+						}
 
-				if err := virt.UnprepareVM(vmId); err != nil {
-					log.Error("%v", err)
+						return fmt.Sprintf("unprepare finished for leftover vm %s", vmId), nil
+					},
 				}
+
 				continue
 			}
 
+			// means the VM is on this machine
 			vm.ApplyDefaults()
 			info := newInfo(&vm)
 			infosMutex.Lock()
@@ -659,7 +666,7 @@ func prepareWorker(id int) {
 	for job := range prepareQueue {
 		currentQueueCount.Add(1)
 
-		log.Info(fmt.Sprintf("Queue %d: processing new job [%s]", id, time.Now().Format(time.StampMilli)))
+		log.Info(fmt.Sprintf("Queue %d: processing job: %s [%s]", id, job.msg, time.Now().Format(time.StampMilli)))
 
 		done := make(chan struct{}, 1)
 		go func() {
