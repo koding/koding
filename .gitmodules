@@ -1,3 +1,6 @@
 [submodule "client/Framework"]
 	path = client/Framework
 	url = git@github.com:koding/kd.git
+[submodule "kite.js"]
+	path = kite.js
+	url = https://github.com/koding/kite.js.git
