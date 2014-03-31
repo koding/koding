@@ -270,7 +270,7 @@ func fsReadDirectoryNew(r *kitelib.Request, vos *virt.VOS) (interface{}, error) 
 
 		r.Client.OnDisconnect(func() { watch.Close() })
 
-		response["stopWatching"] = kitednode.Callback(func(args kitednode.Arguments) {
+		response["stopWatching"] = kitednode.Callback(func(args *kitednode.Partial) {
 			watch.Close()
 		})
 
