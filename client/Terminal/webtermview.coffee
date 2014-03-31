@@ -98,11 +98,10 @@ class WebTermView extends KDView
       then vmController.kites.terminal[@getVMName()]
       else vmController.terminalKites[@getVMName()]
 
-    window.KITE = kite
-
     kite.webtermConnect(options).then (remote) =>
       @setOption "session", remote.session
-      @terminal.eventHandler = (data)=> @emit "WebTermEvent", data
+      @terminal.eventHandler = (data)=>
+        @emit "WebTermEvent", data
       @terminal.server       = remote
       @sessionId = remote.session
 
