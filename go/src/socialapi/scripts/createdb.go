@@ -1,12 +1,31 @@
 package main
 
 import (
+	"flag"
 	"fmt"
+	"socialapi/config"
 	"socialapi/db"
 	"socialapi/models"
+	"socialapi/workers/helper"
+)
+
+var (
+	flagProfile = flag.String("c", "", "Configuration profile from file")
+	flagDebug   = flag.Bool("d", false, "Debug mode")
 )
 
 func main() {
+	flag.Parse()
+	if *flagProfile == "" {
+		fmt.Println("Please define config file with -c", "Exiting...")
+		return
+	}
+
+	conf := config.Read(*flagProfile)
+	// create logger for our package
+	log := helper.CreateLogger("DB Creation Script", *flagDebug)
+
+	helper.MustInitBongo(conf, log)
 	db.DB.LogMode(true)
 	db.DB.Exec("drop table channel_message_list;")
 	db.DB.Exec("drop table channel_message;")
