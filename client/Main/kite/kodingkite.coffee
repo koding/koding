@@ -12,7 +12,6 @@ class KodingKite extends KDObject
     @emit 'ready'
 
   tell: (rpcMethod, params, callback) ->
-    console.log rpcMethod, params
     @ready().then => @transport.tell rpcMethod, [params], callback
 
   @createMethod = (ctx, { method, rpcMethod }) ->
