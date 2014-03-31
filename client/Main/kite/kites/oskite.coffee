@@ -66,7 +66,6 @@ class KodingKite_OsKite extends KodingKite_VmKite
   vmOn: ->
     if not @recentState? or @recentState.state is 'STOPPED'
       @vmPrepareAndStart onProgress: (update) =>
-        console.log { update }
         @emit 'vm.progress.start', update
         if update.message is 'FINISHED'
           @recentState?.state = 'RUNNING'
