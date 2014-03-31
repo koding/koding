@@ -238,6 +238,9 @@ module.exports = class JGroup extends Module
         type        : String
         required    : yes
       body          : String
+      # channelId for mapping social API
+      # to internal usage
+      socialApiChannelId: Number
       avatar        : String
       slug          :
         type        : String
@@ -1625,3 +1628,24 @@ module.exports = class JGroup extends Module
       JPaymentPack.one tags: "user", (err, pack) ->
         return callback err  if err
         subscription.checkUsage pack, callback
+
+  createSocialApiChannelId: (callback) ->
+    return callback null, @socialApiChannelId  if @socialApiChannelId
+    @fetchOwner (err, owner)=>
+      return callback err if err
+      return callback { message: "Owner not found for #{@slug} group" } unless owner
+      owner.createSocialApiId (err, socialApiId)=>
+        return callback err if err
+        # required data for creating a channel
+        data =
+          name     : @slug
+          creatorId: socialApiId
+          group    : @slug
+          type     : "group"
+
+        {createChannel} = require '../socialapi/requests'
+        createChannel data, (err, socialApiChannel)=>
+          return callback err if err
+          @update $set: socialApiChannelId: socialApiChannel.id, (err)->
+            return callback err if err
+            return callback null, socialApiChannel.id

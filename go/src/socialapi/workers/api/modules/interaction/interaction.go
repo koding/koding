@@ -1,0 +1,79 @@
+package interaction
+
+import (
+	"errors"
+	"fmt"
+	"net/http"
+	"net/url"
+	"socialapi/models"
+	"socialapi/workers/api/modules/helpers"
+)
+
+func prepareInteraction(u *url.URL, req *models.Interaction) (*models.Interaction, error) {
+	messageId, err := helpers.GetURIInt64(u, "id")
+	if err != nil {
+		return nil, errors.New("Couldnt get mesage id from URI")
+	}
+
+	if req.AccountId == 0 {
+		return nil, errors.New("AccountId is not set")
+	}
+
+	interactionType := u.Query().Get("type")
+	//if interaction is not in the allowed interations
+	if _, ok := models.AllowedInteractions[interactionType]; !ok {
+		return nil, errors.New(fmt.Sprintf("interaction not allowed - %s", interactionType))
+	}
+
+	req.MessageId = messageId
+	req.Type = interactionType
+	return req, nil
+}
+
+func Add(u *url.URL, h http.Header, req *models.Interaction) (int, http.Header, interface{}, error) {
+	var err error
+	req, err = prepareInteraction(u, req)
+	if err != nil {
+		return helpers.NewBadRequestResponse()
+	}
+
+	// to-do check uniqness before saving
+	if err := req.Create(); err != nil {
+		return helpers.NewBadRequestResponse()
+	}
+
+	return helpers.NewOKResponse(req)
+}
+
+func Delete(u *url.URL, h http.Header, req *models.Interaction) (int, http.Header, interface{}, error) {
+	var err error
+	req, err = prepareInteraction(u, req)
+	if err != nil {
+		return helpers.NewBadRequestResponse()
+	}
+
+	if err := req.Delete(); err != nil {
+		return helpers.NewBadRequestResponse()
+	}
+
+	// yes it is deleted but not removed completely from our system
+	return helpers.NewOKResponse(nil)
+}
+
+func List(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
+	messageId, err := helpers.GetURIInt64(u, "id")
+	if err != nil {
+		return helpers.NewBadRequestResponse()
+	}
+
+	req := models.NewInteraction()
+	// set message id
+	req.MessageId = messageId
+
+	interactions, err := req.List("like")
+	if err != nil {
+		return helpers.NewBadRequestResponse()
+	}
+
+	return helpers.NewOKResponse(interactions)
+}
