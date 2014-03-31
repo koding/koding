@@ -70,6 +70,7 @@ class CollaborativeWorkspace extends Workspace
         @utils.defer => @chatView.scrollToBottom()
 
       @emit "WorkspaceSyncedWithRemote"
+      @emit 'ready'
 
   bindRemoteEvents: ->
     if @amIHost() then @syncWorkspace() else @requestPingFromHost()

@@ -43,7 +43,7 @@ KD.extend
         username  : 'burakcan'
         title     : 'CSS Wizard'
       ,
-        username  : 'cenk6'
+        username  : 'cenk'
         title     : 'Software Engineer'
       ,
         username  : 'emred'
