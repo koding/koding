@@ -78,9 +78,7 @@ class OsKite extends KDKite
       Promise.resolve()
 
   fsExists: (options) ->
-    @fsGetInfo(options)
-
-    .then (result) -> return result
+    @fsGetInfo(options).then (result) -> return !!result
 
   @constructors['oskite'] = this
   @constructors['os'] = this
