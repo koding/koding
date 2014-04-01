@@ -129,6 +129,14 @@ func (o *Oskite) kiteWho(r *kitelib.Request) (interface{}, error) {
 		kiteHost = resultOskite
 	}
 
+	if vm.HostKite == "(maintenance)" {
+		return nil, errors.New("hostkite is under maintenance")
+	}
+
+	if vm.HostKite == "(banned)" {
+		return nil, errors.New("hostkite is marked as (banned)")
+	}
+
 	if vm.PinnedToHost != "" {
 		kiteHost = vm.PinnedToHost
 
