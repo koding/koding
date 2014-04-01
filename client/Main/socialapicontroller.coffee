@@ -37,3 +37,15 @@ class SocialApiController extends KDController
       revivedMessages.push m
 
     return revivedMessages
+
+  mapChannel:(channels)->
+    revivedChannels = []
+    {SocialChannel} = KD.remote.api
+    for channel in channels
+      c = new SocialChannel channel
+      c.on "MessageReplySaved", log
+      c.on "update", log
+
+      revivedChannels.push c
+
+    return revivedChannels
