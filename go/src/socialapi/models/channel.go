@@ -115,6 +115,26 @@ func (c *Channel) Create() error {
 	if c.Name == "" || c.GroupName == "" || c.Type == "" {
 		return fmt.Errorf("Validation failed %s - %s", c.Name, c.GroupName)
 	}
+
+	// golang returns -1 if item not in the string
+	if strings.Index(c.Name, " ") > -1 {
+		return fmt.Errorf("Channel name %q has empty space in it", c.Name)
+	}
+
+	selector := map[string]interface{}{
+		"name":       c.Name,
+		"group_name": c.GroupName,
+	}
+
+	// if err is nil
+	// it means we already have that channel
+	err := c.One(selector)
+	if err == nil {
+		return fmt.Errorf("Channel %s is already created before for %s group", c.Name, c.GroupName)
+	}
+
+	if err != gorm.RecordNotFound {
+		return err
 	}
 
 	return bongo.B.Create(c)
