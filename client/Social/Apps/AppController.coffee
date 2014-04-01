@@ -154,20 +154,36 @@ class AppsAppController extends AppController
             @_verifiedOnly = state
             @feedController.reload()
 
+        @_lastQuery = {}
+        @_reloadButton = new KDButtonView
+          style     : 'refresh-button transparent'
+          title     : ''
+          icon      : yes
+          iconOnly  : yes
+          callback  : =>
+            @feedController.handleQuery @_lastQuery, force: yes
+
+        facets = controller.facetsController.getView()
+        facets.addSubView @_reloadButton
+
         feed = controller.getView()
         feed.addSubView @_verifiedSwitchLabel
         feed.addSubView @_verifiedSwitch
 
         view.addSubView @_lastSubview = feed
+
         @feedController = controller
         controller.loadFeed()  if loadFeed
+
         @emit 'ready'
 
   handleQuery:(query)->
     @ready =>
       if query.q? or @_searchValue
         @emit "searchFilterChanged", query.q or ""
-      @feedController.handleQuery query, force: yes
+
+      @feedController.handleQuery query
+      @_lastQuery = query
 
   handleRoute:(route)->
 
