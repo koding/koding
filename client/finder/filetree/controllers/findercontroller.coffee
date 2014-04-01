@@ -100,7 +100,6 @@ class NFinderController extends KDViewController
 
   loadVms:(vmNames, callback = (->))->
     { JVM } = KD.remote.api
-
     if vmNames
       @fetchSavedVms vmNames, (err, vms) =>
         return callback err  if err
