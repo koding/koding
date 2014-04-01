@@ -14,20 +14,23 @@ type ChannelMessage struct {
 	// Body of the mesage
 	Body string `json:"body"`
 
+	// Generated Slug for body
+	Slug string `json:"slug" 			           sql:"NOT NULL;UNIQUE"`
+
 	// type of the message
-	Type string `json:"type"`
+	Type string `json:"type"                        sql:"NOT NULL"`
 
 	// Creator of the channel message
-	AccountId int64 `json:"accountId"`
+	AccountId int64 `json:"accountId"               sql:"NOT NULL"`
 
 	// in which channel this message is created
-	InitialChannelId int64 `json:"initialChannelId"`
+	InitialChannelId int64 `json:"initialChannelId" sql:"NOT NULL"`
 
 	// Creation date of the message
-	CreatedAt time.Time `json:"createdAt"`
+	CreatedAt time.Time `json:"createdAt"           sql:"DEFAULT:CURRENT_TIMESTAMP"`
 
 	// Modification date of the message
-	UpdatedAt time.Time `json:"updatedAt"`
+	UpdatedAt time.Time `json:"updatedAt"           sql:"DEFAULT:CURRENT_TIMESTAMP"`
 }
 
 func (c *ChannelMessage) AfterCreate() {
@@ -77,6 +80,12 @@ func (c *ChannelMessage) Update() error {
 }
 
 func (c *ChannelMessage) Create() error {
+	var err error
+	c, err = Slugify(c)
+	if err != nil {
+		return err
+	}
+
 	return bongo.B.Create(c)
 }
 
