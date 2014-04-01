@@ -14,6 +14,8 @@ module.exports = class SocialChannel extends Base
       static      :
         fetchActivity     :
           (signature Object, Function)
+        fetchChannels     :
+          (signature Object, Function)
         fetchParticipants :
           (signature Object, Function)
 
@@ -35,14 +37,32 @@ module.exports = class SocialChannel extends Base
 
 
   @fetchActivity = secure (client, options = {}, callback)->
-    {connection:{delegate}} = client
-    delegate.createSocialApiId (err, socialApiId)=>
+    fetchGroup client, (err, group)->
       return callback err if err
-      {fetchChannelActivity} = require './requests'
+      {connection:{delegate}} = client
+      delegate.createSocialApiId (err, socialApiId)=>
+        return callback err if err
 
-      data =
-        channelId: options.id
-        accountId: socialApiId
+        data =
+          channelId: options.id
+          accountId: socialApiId
+          groupName: group.slug
 
-      fetchChannelActivity data, (err, activities)->
-        callback err, activities
+        {fetchChannelActivity} = require './requests'
+        fetchChannelActivity data, (err, activities)->
+          callback err, activities
+
+  @fetchChannels = secure (client, options = {}, callback)->
+    fetchGroup client, (err, group)->
+      return callback err if err
+      {connection:{delegate}} = client
+      delegate.createSocialApiId (err, socialApiId)=>
+        return callback err if err
+
+        data =
+          groupName: slug.groupName
+          accountId: socialApiId
+
+        {fetchGroupChannels} = require './requests'
+        fetchGroupChannels data, (err, activities)->
+          callback err, activities
