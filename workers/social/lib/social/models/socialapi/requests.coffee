@@ -9,7 +9,7 @@ wrapCallback = (callback)->
       return callback null, body
 
 createAccount = (id, callback)->
-  return callback {message:"Accont id is not valid"}
+  return callback {message:"Accont id is not valid"} unless id
   url = "#{SOCIAL_API_URL}/account"
   post url, {oldId: id}, callback
 
