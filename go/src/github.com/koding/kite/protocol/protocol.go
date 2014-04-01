@@ -70,8 +70,12 @@ type RegisterResult struct {
 
 type GetKitesArgs struct {
 	Query         KontrolQuery    `json:"query"`
-	WatchCallback dnode.Callback  `json:"watchCallback"`
-	Who           json.RawMessage `json:"who"`
+	WatchCallback dnode.Callback  `json:"watchCallback,omitempty"`
+	Who           json.RawMessage `json:"who,omitempty"`
+}
+
+type WhoResult struct {
+	Query KontrolQuery `json:"query"`
 }
 
 type GetKitesResult struct {
