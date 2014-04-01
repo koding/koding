@@ -268,3 +268,19 @@ func (c *Channel) AddMessage(messageId int64) (*ChannelMessageList, error) {
 
 	return cml, nil
 }
+
+func (c *Channel) List(q *Query) ([]Channel, error) {
+
+	var channels []Channel
+
+	selector := map[string]interface{}{
+		"group_name": q.GroupName,
+	}
+
+	err := bongo.B.Some(c, &channels, selector)
+	if err != nil {
+		return nil, err
+	}
+
+	return channels, nil
+}
