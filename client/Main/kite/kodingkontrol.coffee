@@ -33,6 +33,15 @@ class KodingKontrol extends (require 'kontrol')
     @kites[name] ?= {}
     @kites[name][correlationName] = kite
 
+  hasKite: (options = {}) ->
+    { name, correlationName, region } = options
+    return (kite = @getCachedKite name, correlationName)?
+
+  fetchRegion: (vmName, region) ->
+    if region
+    then Promise.resolve region
+    else Promise.reject new Error "TODO: implement vm region fetching"
+
   getKite: (options = {}) ->
     { name, correlationName, region } = options
 
@@ -45,6 +54,10 @@ class KodingKontrol extends (require 'kontrol')
 
     @setCachedKite name, correlationName, kite
 
-    @fetchKite({ name, region }).then kite.bound 'setTransport'
+    @fetchRegion(vmName, region).then (region) =>
+
+      @fetchKite { name, region }
+
+    .then kite.bound 'setTransport'
 
     return kite

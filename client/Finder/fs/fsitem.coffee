@@ -24,9 +24,7 @@ class FSItem extends KDObject
         content         : ''
         donotoverwrite  : yes
 
-      kite.fsUniquePath(path: plainPath)
-
-      .then (actualPath) ->
+      kite.fsUniquePath(path: plainPath).then (actualPath) ->
 
         options.path = actualPath
 
@@ -307,4 +305,18 @@ class FSItem extends KDObject
       @emit "fs.job.started"
 
   getKite: ->
-    KD.getSingleton('vmController').getKiteByVmName @vmName
+    if KD.useNewKites
+      kontrol = KD.getSingleton 'kontrol'
+      kontrol.getKite \
+        if @vm?
+        then {
+          name              : 'oskite'
+          correlationName   : @vm.hostnameAlias
+          region            : @vm.region
+        }
+        else {
+          name              : 'oskite'
+          correlationName   : @vmName
+        }
+    else
+      KD.getSingleton('vmController').getKiteByVmName @vmName

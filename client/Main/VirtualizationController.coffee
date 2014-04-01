@@ -241,15 +241,21 @@ class VirtualizationController extends KDController
     @kites[name][id] = kite
 
   registerNewKites: (vms) ->
+    kontrol = KD.getSingleton 'kontrol'
     for name in ['oskite', 'terminal']
       for vm in vms
         { hostnameAlias: correlationName, region } = vm
 
-        kite = (KD.getSingleton 'kontrol').getKite { name, correlationName, region }
+        query = { name, correlationName, region }
 
-        @listenToVmState vm, kite
+        kiteExisted = kontrol.hasKite query
 
-        @registerNewKite name, correlationName, kite     
+        kite = kontrol.getKite query
+
+        unless kiteExisted
+          @listenToVmState vm, kite
+
+          @registerNewKite name, correlationName, kite
 
   registerKite: (vm) ->
 
@@ -338,7 +344,7 @@ class VirtualizationController extends KDController
       @registerNewKites vms
     else
       @registerKite vm  for vm in vms
-      KD.utils.defer -> callback null
+    KD.utils.defer -> callback null
 
   fetchGroupVMs:(force, callback = noop)->
     if @groupVms.length > 0 and not force

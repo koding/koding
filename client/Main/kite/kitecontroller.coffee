@@ -121,8 +121,6 @@ class KiteController extends KDController
       }
       else @getKite options.kiteName, correlationName
 
-    debugger
-
     if command
       options.withArgs = command
     else
