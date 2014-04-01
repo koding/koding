@@ -16,6 +16,15 @@ class SocialApiController extends KDController
         return callback err if err
         return callback null, @mapActivity result
 
+  fetchGroupActivity:(options, callback)->
+    @getCurrentGroup (group)=>
+      return callback {message: "Group doesnt have socialApiChannelId"} unless group.socialApiChannelId
+      options.id        = group.socialApiChannelId
+      options.groupName = group.slug
+      {SocialChannel} = KD.remote.api
+      SocialChannel.fetchActivity options, (err, result)=>
+        return callback err if err
+        return callback null, @mapActivity result
 
   mapActivity:(result)->
     messages = result.messageList
