@@ -1,6 +1,6 @@
-class VmPlanView extends JView
+class GenericPlanView extends JView
   constructor: (options = {}, data = {} ) ->
-    options.cssClass     = KD.utils.curry "vm-plan-view", options.cssClass
+    options.cssClass     = KD.utils.curry "generic-plan-view", options.cssClass
     options.hiddenPrice ?= no
     super options, data
 

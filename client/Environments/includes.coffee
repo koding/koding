@@ -30,7 +30,6 @@ module.exports = [
   "views/vms/vmproductform.coffee"
   "views/vms/vmpaymentconfirmform.coffee"
   "views/vms/vmproductview.coffee"
-  "views/vms/vmplanview.coffee"
   "views/vms/vmalwaysontogglebuttonview.coffee"
 
   "styl/app.environments.styl"
