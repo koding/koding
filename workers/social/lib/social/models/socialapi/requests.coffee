@@ -3,7 +3,7 @@ request        = require 'request'
 
 wrapCallback = (callback)->
   (err, response, body) ->
-    if err or response.statusCode > 400
+    if err or response.statusCode >= 400
       return callback body
     else
       return callback null, body
@@ -105,5 +105,6 @@ module.exports = {
   postToChannel
   createAccount
   createChannel
-  fetchChannelAtivity
+  fetchMessage
+  fetchChannelActivity
 }
