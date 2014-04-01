@@ -253,6 +253,7 @@ class NFinderController extends KDViewController
         , yes
 
   isNodesHiddenFor:(vmName)->
+    return yes  if @getOption 'hideDotFiles'
     pipedVm = @_pipedVmName vmName
     return (@appStorage.getValue('vmsDotFileChoices') or {})[pipedVm]
 
