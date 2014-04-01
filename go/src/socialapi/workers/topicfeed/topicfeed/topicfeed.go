@@ -98,13 +98,13 @@ func (f *TopicFeedController) MessageSaved(data *models.ChannelMessage) error {
 
 func ensureChannelMessages(parentChannel *models.Channel, data *models.ChannelMessage, topics []string) error {
 	for _, topic := range topics {
-		tc, err := fetchTopicChannel(parentChannel.Group, topic)
+		tc, err := fetchTopicChannel(parentChannel.GroupName, topic)
 		if err != nil && err != gorm.RecordNotFound {
 			return err
 		}
 
 		if err == gorm.RecordNotFound {
-			tc, err = createTopicChannel(data.AccountId, parentChannel.Group, topic, parentChannel.Privacy)
+			tc, err = createTopicChannel(data.AccountId, parentChannel.GroupName, topic, parentChannel.Privacy)
 			if err != nil {
 				return err
 			}
@@ -294,9 +294,9 @@ func fetchTopicChannel(groupName, channelName string) (*models.Channel, error) {
 	c := models.NewChannel()
 
 	selector := map[string]interface{}{
-		"group": groupName,
-		"name":  channelName,
-		"type":  models.Channel_TYPE_TOPIC,
+		"group_name": groupName,
+		"name":       channelName,
+		"type":       models.Channel_TYPE_TOPIC,
 	}
 
 	err := c.One(selector)
@@ -311,7 +311,7 @@ func createTopicChannel(creatorId int64, groupName, channelName, privacy string)
 	c := models.NewChannel()
 	c.Name = channelName
 	c.CreatorId = creatorId
-	c.Group = groupName
+	c.GroupName = groupName
 	c.Purpose = fmt.Sprintf("Channel for %s topic", channelName)
 	c.Type = models.Channel_TYPE_TOPIC
 	c.Privacy = privacy
