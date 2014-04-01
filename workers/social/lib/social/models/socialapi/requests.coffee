@@ -31,6 +31,16 @@ fetchChannelActivity = (data, callback)->
     method : 'GET'
   , wrapCallback callback
 
+fetchMessage = (data, callback)->
+  if not data.id
+    return callback { message: "Message id is not set"}
+
+  request
+    url    : "#{SOCIAL_API_URL}/message/#{data.id}"
+    json   : true
+    method : 'GET'
+  , wrapCallback callback
+
 postToChannel = (data, callback)->
   if not data.channelId or not data.accountId or not data.body
     return callback { message: "Request is not valid for creating channel"}
