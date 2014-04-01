@@ -218,6 +218,8 @@ func (o *Oskite) runNewKite() {
 	o.vosMethod(k, "s3.store", s3StoreNew)
 	o.vosMethod(k, "s3.delete", s3DeleteNew)
 
+	k.HandleFunc("kite.who", o.kiteWho)
+
 	k.DisableConcurrency()
 	k.Start()
 

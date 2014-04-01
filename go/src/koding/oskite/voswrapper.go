@@ -97,6 +97,48 @@ func checkAndGetVM(username, vmName string) (*virt.VM, error) {
 	return vm, nil
 }
 
+type KiteWhoResponse struct {
+	Username string
+	Kitename string
+}
+
+func (o *Oskite) kiteWho(r *kitelib.Request) (interface{}, error) {
+	var params struct {
+		VmName string
+	}
+
+	if r.Args.One().Unmarshal(&params) != nil || params.VmName == "" {
+		return nil, &kite.ArgumentError{Expected: "[string]"}
+	}
+
+	var vm *virt.VM
+	if err := mongodbConn.Run("jVMs", func(c *mgo.Collection) error {
+		return c.Find(bson.M{"hostnameAlias": params.VmName}).One(&vm)
+	}); err != nil {
+		log.Error("kite.who err: %v", err)
+		return nil, errors.New("not found")
+	}
+
+	resultOskite := lowestOskiteLoad()
+	if resultOskite == "" {
+		resultOskite = o.ServiceUniquename
+	}
+
+	kiteHost := vm.HostKite
+	if vm.HostKite == "" {
+		kiteHost = resultOskite
+	}
+
+	if vm.PinnedToHost != "" {
+		kiteHost = vm.PinnedToHost
+
+	}
+	return &KiteWhoResponse{
+		Username: vm.WebHome,
+		Kitename: kiteHost,
+	}, nil
+}
+
 // VM METHODS
 
 func vmStartNew(r *kitelib.Request, vos *virt.VOS) (interface{}, error) {
