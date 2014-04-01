@@ -214,8 +214,8 @@ func (t *Terminal) runNewKite() {
 	k.Config.Region = t.Region
 
 	t.vosMethod(k, "webterm.getSessions", webtermGetSessionsNew)
-	t.vosMethod(k, "webterm.connect", webtermGetSessionsNew)
-	t.vosMethod(k, "webterm.killSession", webtermGetSessionsNew)
+	t.vosMethod(k, "webterm.connect", webtermConnectNew)
+	t.vosMethod(k, "webterm.killSession", webtermKillSessionNew)
 	t.vosMethod(k, "webterm.ping", webtermPingNew)
 
 	k.HandleFunc("kite.who", t.kiteWho)
