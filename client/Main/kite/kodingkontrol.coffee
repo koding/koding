@@ -16,15 +16,15 @@ class KodingKontrol extends (require 'kontrol')
     return '1.0.0'  unless name?
     # TODO: for now I am just hardcoding these versions:
     {
-      oskite    : '0.1.8'
-      terminal  : '0.0.1'
+      oskite    : '0.1.9'
+      terminal  : '0.0.2'
     }[name] ? '1.0.0'
 
-  injectQueryParams: (query) ->
-    query.version = @getVersion query.name
-    query.username = 'koding'
-    query.environment = KD.config.environment
-    query
+  injectQueryParams: (args) ->
+    args.query.version = @getVersion args.query.name
+    args.query.username = 'koding'
+    args.query.environment = KD.config.environment
+    args
 
   getCachedKite: (name, correlationName) ->
     @kites[name]?[correlationName]
