@@ -25,7 +25,19 @@ fetchChannelActivity = (data, callback)->
 
   request
     url    : "#{SOCIAL_API_URL}/channel/#{data.channelId}/history"
-    qs     : {accountId: data.accountId}
+    qs     : data
+    json   : true
+    body   : data
+    method : 'GET'
+  , wrapCallback callback
+
+fetchGroupChannels = (data, callback)->
+  if not data.groupName or not data.accountId
+    return callback { message: "Request is not valid for creating channel"}
+
+  request
+    url    : "#{SOCIAL_API_URL}/channel"
+    qs     : data
     json   : true
     body   : data
     method : 'GET'
