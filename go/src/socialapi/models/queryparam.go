@@ -7,10 +7,13 @@ import (
 )
 
 type Query struct {
-	Skip      int       //`json:"skip,omitempty"`
-	Limit     int       //`json:"limit,omitempty"`
-	To        time.Time //`json:"to,omitempty"`
-	From      time.Time //`json:"from,omitempty"`
+	Skip      int
+	Limit     int
+	To        time.Time
+	From      time.Time
+	GroupName string
+	Type      string
+	Privacy   string
 	AccountId int64
 }
 
@@ -23,6 +26,10 @@ func (q *Query) MapURL(u *url.URL) *Query {
 
 	q.Skip, _ = strconv.Atoi(urlQuery.Get("skip"))
 	q.Limit, _ = strconv.Atoi(urlQuery.Get("limit"))
+
+	q.GroupName = u.Query().Get("groupName")
+	q.Type = u.Query().Get("type")
+	q.Privacy = u.Query().Get("privacy")
 	q.AccountId, _ = strconv.ParseInt(u.Query().Get("accountId"), 10, 64)
 
 	q.To, _ = time.Parse(time.RFC3339, urlQuery.Get("to"))
@@ -42,6 +49,10 @@ func (q *Query) SetDefaults() *Query {
 
 	if q.From.IsZero() {
 		q.From = time.Now().UTC()
+	}
+
+	if q.GroupName == "" {
+		q.GroupName = "koding"
 	}
 
 	return q
