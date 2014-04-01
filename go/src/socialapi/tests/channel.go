@@ -2,7 +2,9 @@ package main
 
 import (
 	"fmt"
+	"math/rand"
 	"socialapi/models"
+	"strconv"
 )
 
 func testChannelOperations() {
@@ -52,7 +54,7 @@ func testChannelOperations() {
 
 func createChannel() (*models.Channel, error) {
 	c := models.NewChannel()
-
+	c.Name = c.Name + strconv.Itoa(rand.Intn(1000000))
 	cmI, err := sendModel("POST", "/channel", c)
 	if err != nil {
 		return nil, err
