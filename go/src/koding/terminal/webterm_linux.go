@@ -2,7 +2,6 @@ package terminal
 
 import (
 	"bytes"
-	"errors"
 	"fmt"
 	"koding/tools/dnode"
 	"koding/tools/kite"
@@ -27,6 +26,11 @@ const (
 	defaultScreenPath = "/usr/bin/screen"
 )
 
+var (
+	ErrNoSession      = "ErrNoSession"
+	ErrInvalidSession = "ErrInvalidSession"
+)
+
 type WebtermServer struct {
 	Session          string `json:"session"`
 	remote           WebtermRemote
@@ -44,6 +48,10 @@ type WebtermServer struct {
 type WebtermRemote struct {
 	Output       dnode.Callback
 	SessionEnded dnode.Callback
+}
+
+func webtermPing(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
+	return "pong", nil
 }
 
 func webtermKillSession(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
@@ -69,7 +77,10 @@ func webtermKillSession(args *dnode.Partial, channel *kite.Channel, vos *virt.VO
 func webtermGetSessions(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
 	sessions := screenSessions(vos)
 	if len(sessions) == 0 {
-		return nil, errors.New("no sessions available")
+		return nil, &kite.BaseError{
+			Message: "No sessions available",
+			CodeErr: ErrNoSession,
+		}
 	}
 
 	return sessions, nil

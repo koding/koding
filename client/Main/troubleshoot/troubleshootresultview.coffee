@@ -33,7 +33,7 @@ class TroubleshootResultView extends KDCustomHTMLView
       fail     : "You are currently running an old version of Koding. Please refresh \
                   your page."
     vm         :
-      fail     : "Your VMs are not accessible"
+      fail     : "One or more of your VMs are not accessible right now. Please try refreshing your page."
       pending  : "Some of your VMs are currently offline. If you want to activate them please \
                   use Terminal App"
 

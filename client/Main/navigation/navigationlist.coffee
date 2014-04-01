@@ -9,18 +9,30 @@ class NavigationList extends KDListView
 
       view.once 'viewAppended', =>
 
+        if view.data.type is 'persistent'
+          view.options.draggable = axis : 'x'
+
         view._index ?= @getItemIndex view
         view.setX view._index * @viewWidth
         @_width = @viewWidth * (@items.length + 1)
+        @setWidth @_width - @viewWidth
         KD.utils.defer -> view.unsetClass 'no-anim'
 
       lastChange = 0
 
+      view.on 'DragStarted', =>
+        @_dragStarted = yes
+
       view.on 'DragInAction', (x, y)=>
+
+        if @_dragStarted and y > 15 and view.data.type isnt 'persistent'
+          dock = KD.singletons.dock.mainView
+          dock.setClass 'remove-app-state'
+          delete @_dragStarted
 
         return  if x + view._x > @_width or x + view._x < 0
 
-        if view.data.type isnt 'persistent' and y > 125
+        if view.data.type isnt 'persistent' and y > 25
         then view.setClass 'remove'
         else view.unsetClass 'remove'
 
@@ -42,7 +54,7 @@ class NavigationList extends KDListView
 
         view.unsetClass 'no-anim remove'
 
-        if view.data.type isnt 'persistent' and view.getY() > 125
+        if view.data.type isnt 'persistent' and view.getRelativeY() > 25
 
           view.setClass 'explode'
           KD.utils.wait 500, => @removeApp view
@@ -57,6 +69,10 @@ class NavigationList extends KDListView
 
         lastChange  = 0
 
+        KD.utils.wait 200, =>
+          delete @_dragStarted
+          KD.singletons.dock.mainView.unsetClass 'remove-app-state'
+
 
   removeApp:(view)->
 
@@ -64,11 +80,14 @@ class NavigationList extends KDListView
     @updateItemPositions()
     KD.singletons.dock.removeItem view
 
+  updateItemPositions:(excluded)->
 
-  updateItemPositions:(exclude)->
+    @_width = @viewWidth * (@items.length + 1)
+    @setWidth @_width - @viewWidth
+
     for _item, index in @items
       _item._index = index
-      _item.setX index * @viewWidth  unless exclude is _item
+      _item.setX index * @viewWidth  unless _item is excluded
 
   moveItemToIndex:(item, index)->
     super item, index

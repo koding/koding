@@ -471,16 +471,6 @@ button.app-settings-menu
   .kdloader
     vendor             transform, translateX(-50%) translateY(-50%)
 
-.formline.button-field
-  .kdbutton
-    margin-left       12px
-    fr()
-
-    &.to-left
-      margin-left     0
-      margin-right    12px
-      fl()
-
 
 /*  */
 
@@ -630,72 +620,6 @@ button.app-settings-menu
       background        white
 
 //
-// KD SELECTBOX
-//
-
-div.kdselectbox
-  background          #fff
-  border              1px solid #d7d7d7
-  border-radius       6px
-  height              32px
-
-  span.title
-    font-size         12px
-    font-weight       200
-    color             #606060
-    line-height       34px
-    padding           0 40px 0 15px
-
-  span.arrows
-    r-sprite          "app", "select-arrows"
-    top               9px
-    right             6px
-
-//
-// THIN INPUT STYLES
-//
-
-.kdformview .formline input.kdinput
-input.kdinput.text
-  rel()
-  z-index             1
-  padding             11px 6px
-  color               #3E4F55
-  font-size           16px
-  box-shadow          none
-  font-weight         300
-  height              55px
-  line-height         33px
-  rounded             6px
-  width               100%
-  text-align          left
-  bg                  color, #f4f4f4
-  borderBox()
-  &.validation-error
-    border            1px solid #F13A18
-
-
-  input.kdinput.text.thin::-webkit-input-placeholder
-    color               #93979a
-    font-weight         300
-  input.kdinput.text.thin:-moz-placeholder
-    color               #93979a
-    font-weight         300
-
-  &.medium
-    height              44px
-
-
-///
-/// KODING INPUT PLACEHOLDER STYLES
-
-.kdinput:focus
-  &::-webkit-input-placeholder
-    opacity 0.5
-  &:-moz-placeholder
-    opacity 0.5
-
-//
 // KODING ON-OFF SWITCH STYLES
 //
 
@@ -831,79 +755,6 @@ input.kdinput.text
 .kdoverlay
   fix()
 
-
-
-//
-// FORMLINE STYLES
-//
-
-.kdformview .formline
-  border-bottom         none
-  padding               0
-  size                  auto auto
-  overflow              visible
-  background            none
-
-  > label
-    min-width           90px
-    margin-top          11px
-    line-height         22px
-    fl()
-
-  .input-wrapper
-    margin-bottom       16px
-    overflow            hidden
-
-    > input
-    > textarea
-      min-width         260px
-      width             100%
-      // color             #282521 !important
-      height            44px
-      line-height       22px
-      display           block
-      text-align        left
-
-    // > input
-    //   height          32px
-    //   line-height     32px
-    //   padding-top     0
-    //   padding-bottom  0
-
-  .on-off
-    // float             right
-    margin-top        0
-
-  .select
-    margin-right      10px
-
-  p
-    line-height       22px
-
-  .kdautocompletewrapper
-    min-width         160px
-    color             #282521 !important
-    line-height       14px
-    blockMidTop()
-
-  .linkholder
-    padding           0 0 10px 0
-    display           inline-block
-    width             200px
-    a
-      display         block
-      cursor          pointer
-      margin-bottom   5px
-
-  >cite.hint
-    font-size         11px
-    color             #999
-
-.formline.button-field //This can be created without a formview sometimes
-  border-top            1px solid #eaeaea
-  padding               18px 0 0
-
-// * //
 
 .kdnotification.mini.tray
   bg                  color, #fff

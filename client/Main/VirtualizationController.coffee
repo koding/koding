@@ -99,6 +99,8 @@ class VirtualizationController extends KDController
         @deleteVmByHostname hostnameAlias, (err) ->
           return if KD.showError err
           new KDNotificationView title:'Successfully destroyed!'
+          appStorage = KD.getSingleton('appStorageController').storage 'Finder', '1.2'
+          appStorage.unsetKey "mountedVM", (err)-> warn "couldn't reach to appstorage"
         modal.destroy()
     , vmPrefix
 
@@ -258,7 +260,6 @@ class VirtualizationController extends KDController
           @registerNewKite name, correlationName, kite
 
   registerKite: (vm) ->
-
     alias = vm.hostnameAlias
     kite = @getKite vm, 'os'
 
@@ -282,6 +283,10 @@ class VirtualizationController extends KDController
     kite.on 'vm.state.info', (state) =>
       @emit 'vm.state.info', {alias, state}
 
+    kite.on 'vm.progress.error', (error) =>
+      @emit 'vm.progress.error', {alias, error}
+
+    kite.fetchState()
 
   getKiteByVmName: (vmName) ->
     @kites[vmName]
