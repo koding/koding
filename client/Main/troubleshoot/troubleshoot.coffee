@@ -80,7 +80,6 @@ class Troubleshoot extends KDObject
     @registerItem "vm",
       speedCheck   : no
       troubleshoot : vmChecker.bound 'healthCheck'
-      recover      : vmChecker.bound 'healthCheck'
 
   registerConnections: ->
     #register connection

@@ -30,7 +30,7 @@ import (
 
 const (
 	OSKITE_NAME    = "oskite"
-	OSKITE_VERSION = "0.1.8"
+	OSKITE_VERSION = "0.1.9"
 )
 
 var (
@@ -391,9 +391,11 @@ func (o *Oskite) handleCurrentVMS() {
 			}
 
 			log.Info("starting alwaysOn VM %s [%s]", vm.HostnameAlias, vm.Id.Hex())
-			if err := o.startVM(&vm, nil); err != nil {
-				log.LogError(err, 0)
-			}
+			go func(vm virt.VM) {
+				if err := o.startVM(&vm, nil); err != nil {
+					log.LogError(err, 0)
+				}
+			}(vm)
 		}()
 
 	}
