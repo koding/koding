@@ -8,19 +8,29 @@ class TerminalPane extends Pane
     super options, data
 
     @createWebTermView()
-    @webterm.on "WebTermConnected", (@remote) =>
-      @emit "WebtermCreated"
-      @onWebTermConnected()
 
   createWebTermView: ->
-    @webterm           = new WebTermView
-      cssClass         : "webterm"
-      advancedSettings : no
-      delegate         : this
-      mode             : @getMode()
 
-    @webterm.connectToTerminal()
-    # WebTermView.setTerminalTimeout null, 15000, handler, handler
+    KD.singletons.vmController.fetchDefaultVm (err, vm)=>
+
+      @webterm           = new WebTermView {
+        cssClass         : "webterm"
+        advancedSettings : no
+        delegate         : this
+        mode             : @getMode()
+        vm
+      }
+
+      @addSubView @header
+      @addSubView @webterm
+
+      @webterm.connectToTerminal()
+
+      @webterm.on "WebTermConnected", (@remote) =>
+        @emit "WebtermCreated"
+        @onWebTermConnected()
+
+      # WebTermView.setTerminalTimeout null, 15000, handler, handler
 
   getMode: -> "create"
 
@@ -41,8 +51,8 @@ class TerminalPane extends Pane
         @runCommand command
         @triedAgain = yes
 
-  pistachio: ->
-    """
-      {{> @header}}
-      {{> @webterm}}
-    """
+  # pistachio: ->
+  #   """
+  #     {{> @header}}
+  #     {{> @webterm}}
+  #   """
