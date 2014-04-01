@@ -15,6 +15,7 @@ import (
 	"time"
 
 	kitelib "github.com/koding/kite"
+	"github.com/koding/kite/protocol"
 
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
@@ -33,6 +34,7 @@ var (
 
 type Terminal struct {
 	Kite              *kite.Kite
+	NewKite           *kitelib.Kite
 	Name              string
 	Version           string
 	Region            string
@@ -213,6 +215,8 @@ func (t *Terminal) runNewKite() {
 		panic(err)
 	}
 
+	t.NewKite = k.Kite
+
 	k.Config.Port = 5001
 	k.Config.Region = t.Region
 
@@ -228,11 +232,6 @@ func (t *Terminal) runNewKite() {
 
 	// TODO: remove this later, this is needed in order to reinitiliaze the logger package
 	log.SetLevel(t.LogLevel)
-}
-
-type KiteWhoResponse struct {
-	Username string
-	Kitename string
 }
 
 func (t *Terminal) kiteWho(r *kitelib.Request) (interface{}, error) {
@@ -252,7 +251,7 @@ func (t *Terminal) kiteWho(r *kitelib.Request) (interface{}, error) {
 		return nil, errors.New("not found")
 	}
 
-	kiteHost := vm.HostKite
+	hostKite := vm.HostKite
 	if vm.HostKite == "" {
 		return nil, errors.New("hostkite is empty returning (error)")
 	}
@@ -266,12 +265,31 @@ func (t *Terminal) kiteWho(r *kitelib.Request) (interface{}, error) {
 	}
 
 	if vm.PinnedToHost != "" {
-		kiteHost = vm.PinnedToHost
+		hostKite = vm.PinnedToHost
 
 	}
-	return &KiteWhoResponse{
-		Username: vm.WebHome,
-		Kitename: kiteHost,
+
+	// hostKite is in form: "kite-os-sj|kontainer1_sj_koding_com"
+	s := strings.Split(hostKite, "|")
+	if len(s) < 2 {
+		return nil, fmt.Errorf("hostkite '%s' is malformed", hostKite)
+	}
+
+	// s[1] -> kontainer1_sj_koding_com
+	hostname := strings.Replace(s[1], "_", ".", -1)
+
+	proc := t.NewKite.Kite()
+	query := protocol.KontrolQuery{
+		Username:    proc.Username,
+		Environment: proc.Environment,
+		Name:        proc.Name,
+		Version:     proc.Version,
+		Region:      proc.Region,
+		Hostname:    hostname,
+	}
+
+	return &protocol.WhoResult{
+		Query: query,
 	}, nil
 }
 

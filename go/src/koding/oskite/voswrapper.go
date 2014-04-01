@@ -4,6 +4,7 @@ package oskite
 
 import (
 	"errors"
+	"fmt"
 	"koding/kodingkite"
 	"koding/tools/kite"
 	"koding/virt"
@@ -13,6 +14,7 @@ import (
 
 	kitelib "github.com/koding/kite"
 	kitednode "github.com/koding/kite/dnode"
+	"github.com/koding/kite/protocol"
 
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
@@ -97,11 +99,6 @@ func checkAndGetVM(username, vmName string) (*virt.VM, error) {
 	return vm, nil
 }
 
-type KiteWhoResponse struct {
-	Username string
-	Kitename string
-}
-
 func (o *Oskite) kiteWho(r *kitelib.Request) (interface{}, error) {
 	var params struct {
 		VmName string
@@ -124,9 +121,9 @@ func (o *Oskite) kiteWho(r *kitelib.Request) (interface{}, error) {
 		resultOskite = o.ServiceUniquename
 	}
 
-	kiteHost := vm.HostKite
+	hostKite := vm.HostKite
 	if vm.HostKite == "" {
-		kiteHost = resultOskite
+		hostKite = resultOskite
 	}
 
 	if vm.HostKite == "(maintenance)" {
@@ -138,12 +135,31 @@ func (o *Oskite) kiteWho(r *kitelib.Request) (interface{}, error) {
 	}
 
 	if vm.PinnedToHost != "" {
-		kiteHost = vm.PinnedToHost
+		hostKite = vm.PinnedToHost
 
 	}
-	return &KiteWhoResponse{
-		Username: vm.WebHome,
-		Kitename: kiteHost,
+
+	// hostKite is in form: "kite-os-sj|kontainer1_sj_koding_com"
+	s := strings.Split(hostKite, "|")
+	if len(s) < 2 {
+		return nil, fmt.Errorf("hostkite '%s' is malformed", hostKite)
+	}
+
+	// s[1] -> kontainer1_sj_koding_com
+	hostname := strings.Replace(s[1], "_", ".", -1)
+
+	proc := o.NewKite.Kite()
+	query := protocol.KontrolQuery{
+		Username:    proc.Username,
+		Environment: proc.Environment,
+		Name:        proc.Name,
+		Version:     proc.Version,
+		Region:      proc.Region,
+		Hostname:    hostname,
+	}
+
+	return &protocol.WhoResult{
+		Query: query,
 	}, nil
 }
 

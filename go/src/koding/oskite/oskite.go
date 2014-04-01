@@ -24,6 +24,7 @@ import (
 	"syscall"
 	"time"
 
+	kitelib "github.com/koding/kite"
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
 )
@@ -51,6 +52,7 @@ var (
 
 type Oskite struct {
 	Kite     *kite.Kite
+	NewKite  *kitelib.Kite
 	Name     string
 	Version  string
 	Region   string
@@ -181,6 +183,8 @@ func (o *Oskite) runNewKite() {
 	if err != nil {
 		panic(err)
 	}
+
+	o.NewKite = k.Kite
 
 	k.Config.Port = 5000
 	k.Config.Region = o.Region
