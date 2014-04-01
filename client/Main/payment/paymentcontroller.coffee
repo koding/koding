@@ -130,9 +130,7 @@ class PaymentController extends KDController
     workflow
       .on 'DataCollected', (data) =>
         @transitionSubscription data, (err, subscription, rest...) ->
-
-          return workflow.emit 'GroupCreationFailed'  if err
-          workflow.emit 'SubscriptionTransitionCompleted', subscription
+          return workflow.emit 'Failed', err  if err
           workflow.emit 'Finished', data, err, subscription, rest...
 
       .on 'Finished', (data, err, subscription, rest...) =>
