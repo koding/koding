@@ -42,6 +42,11 @@ class KodingKontrol extends (require 'kontrol')
     then Promise.resolve region
     else Promise.reject new Error "TODO: implement vm region fetching"
 
+  getWhoParams: (kiteName, correlationName) ->
+    if kiteName in ['oskite', 'terminal']
+      return vmName: correlationName
+    { correlationName }
+
   getKite: (options = {}) ->
     { name, correlationName, region } = options
 
@@ -56,7 +61,9 @@ class KodingKontrol extends (require 'kontrol')
 
     @fetchRegion(vmName, region).then (region) =>
 
-      @fetchKite { name, region }
+      @fetchKite
+        query : { name, region }
+        who   : @getWhoParams name, correlationName
 
     .then kite.bound 'setTransport'
 
