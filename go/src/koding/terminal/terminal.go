@@ -217,12 +217,59 @@ func (t *Terminal) runNewKite() {
 	t.vosMethod(k, "webterm.connect", webtermGetSessionsNew)
 	t.vosMethod(k, "webterm.killSession", webtermGetSessionsNew)
 	t.vosMethod(k, "webterm.ping", webtermPingNew)
+
+	k.HandleFunc("kite.who", t.kiteWho)
 	k.DisableConcurrency() // needed for webterm.connect
 
 	k.Start()
 
 	// TODO: remove this later, this is needed in order to reinitiliaze the logger package
 	log.SetLevel(t.LogLevel)
+}
+
+type KiteWhoResponse struct {
+	Username string
+	Kitename string
+}
+
+func (t *Terminal) kiteWho(r *kitelib.Request) (interface{}, error) {
+	var params struct {
+		VmName string
+	}
+
+	if r.Args.One().Unmarshal(&params) != nil || params.VmName == "" {
+		return nil, &kite.ArgumentError{Expected: "[string]"}
+	}
+
+	var vm *virt.VM
+	if err := mongodbConn.Run("jVMs", func(c *mgo.Collection) error {
+		return c.Find(bson.M{"hostnameAlias": params.VmName}).One(&vm)
+	}); err != nil {
+		log.Error("kite.who err: %v", err)
+		return nil, errors.New("not found")
+	}
+
+	kiteHost := vm.HostKite
+	if vm.HostKite == "" {
+		return nil, errors.New("hostkite is empty returning (error)")
+	}
+
+	if vm.HostKite == "(maintenance)" {
+		return nil, errors.New("hostkite is under maintenance")
+	}
+
+	if vm.HostKite == "(banned)" {
+		return nil, errors.New("hostkite is marked as (banned)")
+	}
+
+	if vm.PinnedToHost != "" {
+		kiteHost = vm.PinnedToHost
+
+	}
+	return &KiteWhoResponse{
+		Username: vm.WebHome,
+		Kitename: kiteHost,
+	}, nil
 }
 
 // vosFunc is used to associate each request with a VOS instance.
