@@ -3,6 +3,7 @@ package models
 import (
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/jinzhu/gorm"
@@ -20,7 +21,7 @@ type Channel struct {
 	CreatorId int64 `json:"creatorId"`
 
 	// Name of the group which channel is belong to
-	Group string `json:"group"`
+	GroupName string `json:"groupName"`
 
 	// Purpose of the channel
 	Purpose string `json:"purpose"`
@@ -54,14 +55,14 @@ const (
 	Channel_TYPE_PUBLIC  = "public"
 	Channel_TYPE_PRIVATE = "private"
 	// Koding Group Name
-	Channel_KODING_NAME = "koding-main"
+	Channel_KODING_NAME = "koding"
 )
 
 func NewChannel() *Channel {
 	return &Channel{
-		Name:      "koding-main",
+		Name:      "koding",
 		CreatorId: 123,
-		Group:     Channel_KODING_NAME,
+		GroupName: Channel_KODING_NAME,
 		Purpose:   "string",
 		SecretKey: "string",
 		Type:      Channel_TYPE_GROUP,
@@ -103,16 +104,17 @@ func (c *Channel) AfterDelete() {
 }
 
 func (c *Channel) Update() error {
-	if c.Name == "" || c.Group == "" {
-		return errors.New(fmt.Sprintf("Validation failed %s - %s", c.Name, c.Group))
+	if c.Name == "" || c.GroupName == "" {
+		return fmt.Errorf("Validation failed %s - %s", c.Name, c.GroupName)
 	}
 
 	return bongo.B.Update(c)
 }
 
 func (c *Channel) Create() error {
-	if c.Name == "" || c.Group == "" || c.Type == "" {
-		return errors.New(fmt.Sprintf("Validation failed %s - %s", c.Name, c.Group, c.Group))
+	if c.Name == "" || c.GroupName == "" || c.Type == "" {
+		return fmt.Errorf("Validation failed %s - %s", c.Name, c.GroupName)
+	}
 	}
 
 	return bongo.B.Create(c)
