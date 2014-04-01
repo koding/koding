@@ -1,0 +1,256 @@
+@import "../../Framework/src/themes/default/kdfn"
+@import "../../Main/styl/appfn"
+@import "../../Main/styl/app.fonts"
+
+@css {
+/*
+Business Landing stylesheet
+business.styl
+*/
+}
+
+body.business
+  -webkit-font-smoothing  antialiased
+  background              #fff
+  font-family             "Asap", "Helvetica Neue", Helvetica, sans-serif
+
+  #dock
+  .account-area
+    hidden()
+
+  #main-header
+    max-width             1280px
+    shadow                none
+    margin                0
+    padding               0 45px
+    abs                   45px 0 0 50%
+    vendor                transform, translateX(-50%)
+    borderBox()
+
+    .inner-container
+      bg                  color, transparent
+    .logotype
+      font-size           24px
+      color               #eff9f4
+      font-weight         400
+      line-height         45px
+      noTextDeco()
+      visible()
+
+    #koding-logo
+      margin              0 12px 0 0
+      size                45px 45px
+      bg                  color, logoBg
+      position            static
+      fl()
+
+      cite
+        r-sprite          home 'logo'
+        margin            14px
+        display           block
+
+  .content-page.business
+    padding               0
+    max-width             100%
+
+    h3.general-title
+      font-size           32px
+      font-weight         700
+      color               #2fbd72
+      margin              80px 0 0
+      text-align          center
+
+    h4.general-subtitle
+      font-size           22px
+      font-weight         400
+      color               #737373
+      margin              17px 0 92px
+      text-align          center
+
+  section .inner-container
+    max-width             1280px
+    padding               0px 45px
+    margin                0 auto
+    display               block
+    borderBox()
+
+  section.introduction
+    padding               90px 0 60px
+    bg                    color, #5b5e5d
+    bg                    image, url('/a/images/biz-city.jpg')
+    bg                    repeat, no-repeat
+    bg                    position, top center
+    bg                    size, cover
+    shadow                inset 0 9000px 0 rgba(51, 56, 58, .68)
+
+    article
+      max-width           601px
+      width               50%
+      font-size           22px
+      color               #ffffff
+      line-height         30px
+      font-weight         400
+      padding             0 15px 0 0
+      borderBox()
+      fl()
+
+      h2
+        font-weight       700
+        color             #46db8c
+        font-size         34px
+        margin            114px 0 34px
+
+      p
+        margin            0 0 67px
+
+        em
+          text-decoration underline
+
+      .kdbutton.solid.green
+        bg                color, #46db8c
+        padding           0 44px
+        border            2px solid #46db8c
+
+        .button-title
+          color           #154f30
+          font-weight     400
+
+      .kdbutton.thin.white
+        bg                color, transparent
+        padding           0 44px
+        border            2px solid #b7b7b7
+        margin-left       14px
+
+        .button-title
+          color           #b7b7b7
+          font-weight     400
+
+    figure
+      size                42vw, 28vw
+      margin              46px 0 0
+      max-width           580px
+      max-height          391px
+      bg                  image, url('/a/images/biz-videothumb.png')
+      bg                  repeat, no-repeat
+      bg                  position, top center
+      bg                  size, cover
+      shadow              0 11px 21px rgba(0,0,0,.4)
+      fr()
+
+  section.features
+    bg                    color, #fcfcfc
+    border-bottom         1px solid #e4e4e4
+
+    .feature
+      width               33%
+      padding             44px 22px 44px 0
+      position            relative
+      borderBox()
+      fl()
+
+      &:before
+        content           ""
+        bg                repeat, no-repeat
+        bg                position, top center
+        bg                size, cover
+        display           block
+        abs               50% 0 0 0px
+        vendor            transform, translateY(-50%)
+
+      &.appstore
+        padding-left      118px
+        &:before
+          r-sprite        "business", "appstore"
+
+      &.teamwork
+        padding-left      122px
+        &:before
+          r-sprite        "business", "teamwork"
+
+      &.social
+        padding-left      98px
+        &:before
+          r-sprite        "business", "social"
+
+    h3
+      color               #767676
+      font-size           24px
+      font-weight         700
+      margin-bottom       12px
+
+    p
+      color               #7e7e7e
+      font-size           18px
+      font-weight         400
+      line-height         22px
+
+  section.content-slider
+    padding               0 0 90px
+    border-bottom         1px solid #e1e1e1
+
+    .slider-wrapper
+      text-align          center
+      position            relative
+      overflow            visible
+      vendor              transform-style, preserve-3d
+      vendor              perspective, 800px
+      size                100%, 846px
+
+      .slide
+        abs()
+        size              100%, auto
+        vendor            animation-duration, .7s
+        vendor            animation-timing-function, ease
+        vendor            animation-fill-mode, forwards
+        vendor            animation-iteration-count, 1
+
+        &.active
+          vendor          animation-name, slideEnter
+
+        &.passive
+          vendor          animation-name, slideExit
+
+      nav
+        abs               0 0 0px 50%
+        vendor            transform, translateX(-50%)
+
+        .dot
+          size            15px, 15px
+          background      #dadada
+          rounded         50%
+          cursor          pointer
+          fl()
+
+          &~.dot
+            margin-left   16px
+
+          &.active
+            background    #01b15a
+
+  section.pricing
+    background            #fcfcfc
+    padding               0 0 68px
+
+
+// Slider Animations
+@-webkit-keyframes slideEnter
+  0%
+    opacity               0
+    -webkit-transform     rotateY(30deg) translateX(80%)
+
+  40%
+    opacity               1
+
+  100%
+    opacity               1
+    -webkit-transform     rotateY(0deg) translateX(0px)
+
+@-webkit-keyframes slideExit
+  0%
+    opacity               1
+    -webkit-transform     translateZ(0px)
+
+  100%
+    opacity               0
+    -webkit-transform     translateZ(-200px)
+

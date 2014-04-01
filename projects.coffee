@@ -129,6 +129,12 @@ projects      =
     script        : "website/a/js/__app.about.#{KODING_VERSION}.js"
     sourceMapRoot : "About/"
 
+  Business        :
+    files         : "client/Business/includes.coffee"
+    style         : "website/a/css/__app.business.#{KODING_VERSION}.css"
+    script        : "website/a/js/__app.business.#{KODING_VERSION}.js"
+    sourceMapRoot : "Business/"
+
   Environments    :
     files         : "client/Environments/includes.coffee"
     style         : "website/a/css/__app.environments.#{KODING_VERSION}.css"
