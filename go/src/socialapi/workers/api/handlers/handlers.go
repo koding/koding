@@ -71,6 +71,8 @@ func Inject(mux *tigertonic.TrieServeMux) *tigertonic.TrieServeMux {
 	////////////////////////////////////////////////////////////////////////////////////
 	// tested
 	mux.Handle("POST", "/channel", handlerWrapper(channel.Create, "channel-create"))
+
+	mux.Handle("GET", "/channel", handlerWrapper(channel.List, "channel-list"))
 	// tested
 	mux.Handle("POST", "/channel/{id}", handlerWrapper(channel.Update, "channel-update"))
 	// tested
