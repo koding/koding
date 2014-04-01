@@ -38,11 +38,11 @@ module.exports = class SocialChannel extends Base
     {connection:{delegate}} = client
     delegate.createSocialApiId (err, socialApiId)=>
       return callback err if err
-      {fetchChannelAtivity} = require './requests'
+      {fetchChannelActivity} = require './requests'
 
       data =
         channelId: options.id
         accountId: socialApiId
 
-      fetchChannelAtivity data, (err, activities)->
+      fetchChannelActivity data, (err, activities)->
         callback err, activities
