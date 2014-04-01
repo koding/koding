@@ -189,6 +189,24 @@ class AppsAppController extends AppController
 
     getAppInstance route, (err, app)=>
       if not err and app then @showContentDisplay app
+      if not err and app
+      then @showContentDisplay app
+
+  # Experimental ~ GG
+  showAppDetailsModal:(app)->
+
+    if @modal
+      # To prevent going back to apps
+      @modal.off "KDObjectWillBeDestroyed"
+      @modal.destroy()
+
+    appView = new AppDetailsView {cssClass : "app-details"}, app
+    @modal  = new KDModalView
+      view  : appView
+
+    @modal.on "KDObjectWillBeDestroyed", =>
+      @modal = null
+      KD.singletons.router.clear "/Apps"
 
   showContentDisplay:(content)->
 
