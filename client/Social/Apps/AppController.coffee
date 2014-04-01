@@ -71,7 +71,7 @@ class AppsAppController extends AppController
     options =
       feedId                : 'apps.main'
       itemClass             : AppsListItemView
-      limitPerPage          : 10
+      limitPerPage          : 12
       delegate              : this
       useHeaderNav          : yes
       filter                :
