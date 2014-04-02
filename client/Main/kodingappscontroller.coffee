@@ -113,14 +113,22 @@ class KodingAppsController extends KDController
 
     repo = jApp.manifest.repository.replace /^git\:\/\//, "https://"
     script = jApp.urls.script.replace KD.config.appsUri, "https://raw.github.com"
+    authorLink = """
+      <a href="/#{jApp.manifest.authorNick}">#{jApp.manifest.author}</a>
+    """
 
     modal = new KDModalView
       title          : "Run #{jApp.manifest.name}"
       cssClass       : 'run-app-dialog'
       content        : """
-        <p><strong>Unverified apps are not moderated, they may be harmful.</strong></p>
         <p>
-          If you don't know <a href="/#{jApp.manifest.authorNick}">#{jApp.manifest.author}</a>, it's recommended that you don't run this app.
+          <strong>
+            Unverified apps are not moderated, they may be harmful.
+          </strong>
+        </p>
+        <p>
+          If you don't know #{authorLink}, it's recommended that
+          you don't run this app.
         </p>
         <p>This app can <span>Access your files</span>,
           <span>Access your account</span>, <span>Change your account</span>,
@@ -237,10 +245,7 @@ class KodingAppsController extends KDController
     {profile} = KD.whoami()
     fullName  = Encoder.htmlDecode KD.utils.getFullnameFromAccount()
     raw =
-      experimental  : no
       background    : no
-      hiddenHandle  : no
-      forceUpdate   : no
       behavior      : "application"
       version       : "0.1"
       title         : "#{name or type.capitalize()}"
@@ -262,8 +267,6 @@ class KodingAppsController extends KDController
         type        : "tab"
       icns          :
         "128"       : "./resources/icon.128.png"
-      screenshots   : []
-      menu          : []
       fileTypes     : []
 
     json = JSON.stringify raw, null, 2
