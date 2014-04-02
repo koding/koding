@@ -91,7 +91,11 @@ class TeamPlan extends JView
 
   pistachio: ->
     """
-    {{> @resourcePackSlider}}
-    {{> @userSlider}}
-    {{> @summary}}
+    <div class="big box with-arrow">
+      {{> @resourcePackSlider}}
+      {{> @userSlider}}
+    </div>
+    <div class="small box">
+      {{> @summary}}
+    </div>
     """
