@@ -272,11 +272,13 @@ func (c *Channel) List(q *Query) ([]Channel, error) {
 
 	var channels []Channel
 
-	selector := map[string]interface{}{
-		"group_name": q.GroupName,
+	query := &bongo.Query{
+		Selector: map[string]interface{}{
+			"group_name": q.GroupName,
+		},
 	}
 
-	err := bongo.B.Some(c, &channels, selector)
+	err := bongo.B.Some(c, &channels, query)
 	if err != nil {
 		return nil, err
 	}
