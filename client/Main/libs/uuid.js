@@ -5,7 +5,7 @@
  * Safe for element IDs and server-side lookups.
  *
  * Extracted from CLCTR
- * 
+ *
  * Copyright (c) Eric Elliott 2012
  * MIT License
  */
@@ -13,7 +13,7 @@
 /*global window, navigator, document, require, process, module */
 (function (app) {
   'use strict';
-  var namespace = 'uuid',
+  var namespace = 'v4',
     c = 0,
     blockSize = 4,
     base = 36,
@@ -68,7 +68,7 @@
 
     c++;
 
-    return date.slice(2,4) + date.slice(-2) + 
+    return date.slice(2,4) + date.slice(-2) +
       counter + print + random;
   };
 
@@ -104,4 +104,4 @@
     app[namespace] = api;
   }
 
-}(this.applitude || this));
+}(this.uuid = {}));
