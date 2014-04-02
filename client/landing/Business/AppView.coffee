@@ -34,6 +34,25 @@ class BusinessView extends KDView
           subTitle : "Keep control your team in a intranet-like space with ready to roll VMs, in the cloud!"
           imgUrl   : "/a/images/biz-slider/1.jpg"
 
+    @planSelectionWrapper = new KDView
+
+    appManager = KD.singleton "appManager"
+    appManager.require "Pricing", (app) =>
+
+      @planSelectionView = new TeamPlan
+        pistachio :
+          """
+            <div class="big box with-arrow">
+              {{> @resourcePackSlider}}
+              {{> @userSlider}}
+            </div>
+            <div class="small box">
+              {{> @summary}}
+            </div>
+          """
+
+      @planSelectionWrapper.addSubView @planSelectionView
+
 
   viewAppended: JView::viewAppended
 
@@ -89,12 +108,7 @@ class BusinessView extends KDView
           <h3 class="general-title">Single developer or a team, doesn’t really matter</h3>
           <h4 class="general-subtitle">Super-scalable pricing for your scalable projects</h4>
 
-          <div class="small box with-arrow">
-          </div>
-          <div class="big box with-arrow">
-          </div>
-          <div class="small box">
-          </div>
+          {{> @planSelectionWrapper}}
 
         </div>
       </section>
