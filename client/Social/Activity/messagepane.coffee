@@ -8,14 +8,8 @@ class MessagePane extends KDTabPaneView
 
     {itemClass} = @getOptions()
 
-    @listController       = new ActivityListController
-      startWithLazyLoader : yes
-      lazyLoaderOptions   : partial : ''
-      scrollView          : no
-      wrapper             : yes
-      viewOptions         :
-        type              : 'message'
-        itemClass         : itemClass
+    @listController = new ActivityListController
+      itemClass     : itemClass or ActivityListItemView
 
     @listView = @listController.getView()
 
@@ -26,8 +20,6 @@ class MessagePane extends KDTabPaneView
     {appManager} = KD.singletons
 
     appManager.tell 'Activity', 'fetchPublicActivities', {}, (err, items)=>
-
-      log items
 
       @listController.hideLazyLoader()
       @listController.listActivities items
