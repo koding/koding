@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"koding/db/mongodb/modelhelper"
 	"koding/oskite/ldapserver"
 	"koding/tools/dnode"
 	"koding/tools/kite"
@@ -81,17 +82,29 @@ func execFuncOld(args *dnode.Partial, c *kite.Channel, vos *virt.VOS) (interface
 }
 
 func execRoot(args *dnode.Partial, c *kite.Channel, vos *virt.VOS) (interface{}, error) {
-	var line string
+	var params struct {
+		Command  string
+		Password string
+	}
 
 	if args == nil {
 		return nil, &kite.ArgumentError{Expected: "empty argument passed"}
 	}
 
-	if args.Unmarshal(&line) != nil {
-		return nil, &kite.ArgumentError{Expected: "[string]"}
+	if args.Unmarshal(&params) != nil {
+		return nil, &kite.ArgumentError{Expected: " command [string]"}
 	}
 
-	return execFunc(true, line, vos)
+	if params.Command == "" || params.Password == "" {
+		return nil, &kite.ArgumentError{Expected: " command: [string], password: [string]"}
+	}
+
+	_, err := modelhelper.CheckAndGetUser(c.Username, params.Password)
+	if err != nil {
+		return nil, errors.New("Permissiond denied. Wrong password")
+	}
+
+	return execFunc(true, params.Command, vos)
 }
 
 ////////////////////
