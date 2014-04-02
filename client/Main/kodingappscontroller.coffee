@@ -393,6 +393,15 @@ class KodingAppsController extends KDController
         styleFile.save content
 
     .then ->
+      readmeFile = FSHelper.createFileFromPath "#{appPath}/README.md"
+      readmeFile.fetchContents().then (content) ->
+        author  = Encoder.htmlDecode(KD.utils.getFullnameFromAccount())
+        content = content
+          .replace(/\%\%APPNAME\%\%/g, APPNAME)
+          .replace(/\%\%AUTHOR_FULLNAME\%\%/g , author)
+        readmeFile.save content
+
+    .then ->
       FSHelper.createFileFromPath("#{appPath}/manifest.json")
               .save manifestStr
     .then ->
