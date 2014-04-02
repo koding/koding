@@ -119,4 +119,5 @@ module.exports = {
   createChannel
   fetchMessage
   fetchChannelActivity
+  fetchGroupChannels
 }
