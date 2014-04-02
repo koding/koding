@@ -1,23 +1,23 @@
 class SocialApiController extends KDController
   constructor: (options = {}, data) ->
     super options, data
-    @groupsController = KD.getSingleton "groupsController"
 
-  getCurrentGroup: (callback)->
-    @groupsController.ready =>
-      callback @groupsController.getCurrentGroup()
+  getCurrentGroup = (callback)->
+    groupsController = KD.getSingleton "groupsController"
+    groupsController.ready =>
+      callback  KD.getSingleton("groupsController").getCurrentGroup()
 
-  fetchChannelActivity:(options, callback)->
+  fetchChannelActivity = (options, callback)->
     return callback {message: "Channel id is not set for request"} unless options.id
-    @getCurrentGroup (group)->
+    getCurrentGroup (group)->
       options.groupName = group.slug
       {SocialChannel} = KD.remote.api
       SocialChannel.fetchActivity options, (err, result)->
         return callback err if err
         return callback null, mapActivities result
 
-  fetchGroupActivity:(options, callback)->
-    @getCurrentGroup (group)->
+  fetchGroupActivity = (options, callback)->
+    getCurrentGroup (group)->
       return callback {message: "Group doesnt have socialApiChannelId"} unless group.socialApiChannelId
       options.id        = group.socialApiChannelId
       options.groupName = group.slug
@@ -26,13 +26,18 @@ class SocialApiController extends KDController
         return callback err if err
         return callback null, mapActivities result
 
-  fetchChannels:(options, callback)->
-    @getCurrentGroup (group)->
+  fetchChannels = (options, callback)->
+    getCurrentGroup (group)->
       options.groupName = group.slug
       {SocialChannel} = KD.remote.api
       SocialChannel.fetchChannels options, (err, result)->
         return callback err if err
         return callback null, mapChannel result
+
+  channel:
+    list: fetchChannels
+    fetchActivity: fetchChannelActivity
+    fetchGroupActivity: fetchGroupActivity
 
   messageApiFunc = (name, rest..., callback)->
     KD.remote.api.SocialMessage[name] rest..., (err, res)->
@@ -83,7 +88,7 @@ class SocialApiController extends KDController
 
     return m
 
-  mapChannel:(channels)->
+  mapChannel = (channels)->
     revivedChannels = []
     {SocialChannel} = KD.remote.api
     for channel in channels
