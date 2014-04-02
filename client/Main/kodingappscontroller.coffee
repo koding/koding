@@ -243,7 +243,6 @@ class KodingAppsController extends KDController
   defaultManifest = (type, name)->
 
     {profile} = KD.whoami()
-    fullName  = Encoder.htmlDecode KD.utils.getFullnameFromAccount()
     raw =
       background    : no
       behavior      : "application"
@@ -253,8 +252,6 @@ class KodingAppsController extends KDController
       identifier    : "com.koding.apps.#{utils.slugify name or type}"
       path          : "~/Applications/#{name or type.capitalize()}.kdapp"
       homepage      : "#{profile.nickname}.#{KD.config.userSitesDomain}/#{utils.slugify name or type}"
-      author        : "#{fullName}"
-      authorNick    : "#{profile.nickname}"
       repository    : "git://github.com/#{profile.nickname}/#{utils.slugify name or type}.kdapp.git"
       description   : "#{name or type} : a Koding application created with the #{type} template."
       category      : "web-app" # can be web-app, add-on, server-stack, framework, misc
