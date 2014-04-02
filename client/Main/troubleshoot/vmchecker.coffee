@@ -21,12 +21,13 @@ class VMChecker extends KDObject
   terminalHealthCheck: (callback) ->
     {terminalKites} = KD.singletons.vmController
     failedTerminals = []
-    promises = @utils.objectToArray(terminalKites).map (terminalKite) =>
+
+    promises = for own _, terminalKite of terminalKites
       terminalKite.webtermPing()
       .catch (err) =>
         {correlationName} = terminalKite
         failedTerminals.push correlationName
 
     Promise.all(promises).then =>
-      unless failedTerminals.length
-        callback()
+      failedTerminals.length > 0
+    .nodeify callback
