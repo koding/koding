@@ -299,4 +299,6 @@ module.exports = [
   # "styl/formworkflow.styl"
   # "styl/resurrection.feeder.styl",
 
+  "styl/dock.responsive.styl"
+
 ]
