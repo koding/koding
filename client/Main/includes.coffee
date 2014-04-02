@@ -14,6 +14,7 @@ module.exports = [
 
   # mainapp controllers
   "activitycontroller.coffee",
+  "socialapicontroller.coffee",
   "notificationcontroller.coffee",
   "linkcontroller.coffee",
   "oauthcontroller.coffee",

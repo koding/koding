@@ -17,6 +17,16 @@ func Create(u *url.URL, h http.Header, req *models.Channel) (int, http.Header, i
 	return helpers.NewOKResponse(req)
 }
 
+func List(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
+	c := models.NewChannel()
+	list, err := c.List(helpers.GetQuery(u))
+	if err != nil {
+		return helpers.NewBadRequestResponse()
+	}
+
+	return helpers.NewOKResponse(list)
+}
+
 func Delete(u *url.URL, h http.Header, req *models.Channel) (int, http.Header, interface{}, error) {
 	id, err := helpers.GetURIInt64(u, "id")
 	if err != nil {

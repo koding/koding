@@ -303,7 +303,7 @@ func fetchSecretNames(channelId int64) ([]string, error) {
 		return names, err
 	}
 
-	names, err = modelhelper.FetchFlattenedSecretName(c.Group)
+	names, err = modelhelper.FetchFlattenedSecretName(c.GroupName)
 	return names, nil
 }
 

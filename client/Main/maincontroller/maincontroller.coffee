@@ -55,6 +55,7 @@ class MainController extends KDController
     @ready =>
       KD.registerSingleton "widgetController",        new WidgetController
       KD.registerSingleton "activityController",      new ActivityController
+      KD.registerSingleton "socialapi",               new SocialApiController
       KD.registerSingleton "appStorageController",    new AppStorageController
       KD.registerSingleton "kodingAppsController",    new KodingAppsController
       KD.registerSingleton "localSync",               new LocalSyncController

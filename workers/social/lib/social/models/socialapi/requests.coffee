@@ -3,13 +3,13 @@ request        = require 'request'
 
 wrapCallback = (callback)->
   (err, response, body) ->
-    if err or response.statusCode > 400
+    if err or response.statusCode >= 400
       return callback body
     else
       return callback null, body
 
 createAccount = (id, callback)->
-  return callback {message:"Accont id is not valid"}
+  return callback {message:"Accont id is not valid"} unless id
   url = "#{SOCIAL_API_URL}/account"
   post url, {oldId: id}, callback
 
@@ -19,15 +19,37 @@ createChannel = (data, callback)->
   url = "#{SOCIAL_API_URL}/channel"
   post url, data, callback
 
-fetchChannelAtivity = (data, callback)->
+fetchChannelActivity = (data, callback)->
   if not data.channelId or not data.accountId
     return callback { message: "Request is not valid for creating channel"}
 
   request
     url    : "#{SOCIAL_API_URL}/channel/#{data.channelId}/history"
-    qs     : {accountId: data.accountId}
+    qs     : data
     json   : true
     body   : data
+    method : 'GET'
+  , wrapCallback callback
+
+fetchGroupChannels = (data, callback)->
+  if not data.groupName or not data.accountId
+    return callback { message: "Request is not valid for creating channel"}
+
+  request
+    url    : "#{SOCIAL_API_URL}/channel"
+    qs     : data
+    json   : true
+    body   : data
+    method : 'GET'
+  , wrapCallback callback
+
+fetchMessage = (data, callback)->
+  if not data.id
+    return callback { message: "Message id is not set"}
+
+  request
+    url    : "#{SOCIAL_API_URL}/message/#{data.id}"
+    json   : true
     method : 'GET'
   , wrapCallback callback
 
@@ -95,5 +117,7 @@ module.exports = {
   postToChannel
   createAccount
   createChannel
-  fetchChannelAtivity
+  fetchMessage
+  fetchChannelActivity
+  fetchGroupChannels
 }

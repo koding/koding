@@ -281,12 +281,14 @@ class ActivityAppController extends AppController
     # just here to make it work
     # we should change the other parts to make it
     # work with the new structure
-    {Social}  = KD.remote.api
-    Social.fetchGroupActivity options, (err, result)=>
+    {SocialChannel, SocialMessage}  = KD.remote.api
+    options.id = KD.singletons.groupsController.getCurrentGroup().socialApiChannelId
+    SocialChannel.fetchActivity options, (err, result)=>
+      console.log err  if err
       messages = result.messageList
       revivedMessages = []
       for message in messages
-        m = new Social message.message
+        m = new SocialMessage message.message
         m._id = message.message.id
         m.meta = {}
         m.meta.likes = message.interactions.length or 0

@@ -3,6 +3,7 @@ package models
 import (
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/jinzhu/gorm"
@@ -20,7 +21,7 @@ type Channel struct {
 	CreatorId int64 `json:"creatorId"`
 
 	// Name of the group which channel is belong to
-	Group string `json:"group"`
+	GroupName string `json:"groupName"`
 
 	// Purpose of the channel
 	Purpose string `json:"purpose"`
@@ -54,14 +55,14 @@ const (
 	Channel_TYPE_PUBLIC  = "public"
 	Channel_TYPE_PRIVATE = "private"
 	// Koding Group Name
-	Channel_KODING_NAME = "koding-main"
+	Channel_KODING_NAME = "koding"
 )
 
 func NewChannel() *Channel {
 	return &Channel{
-		Name:      "koding-main",
+		Name:      "koding",
 		CreatorId: 123,
-		Group:     Channel_KODING_NAME,
+		GroupName: Channel_KODING_NAME,
 		Purpose:   "string",
 		SecretKey: "string",
 		Type:      Channel_TYPE_GROUP,
@@ -103,16 +104,37 @@ func (c *Channel) AfterDelete() {
 }
 
 func (c *Channel) Update() error {
-	if c.Name == "" || c.Group == "" {
-		return errors.New(fmt.Sprintf("Validation failed %s - %s", c.Name, c.Group))
+	if c.Name == "" || c.GroupName == "" {
+		return fmt.Errorf("Validation failed %s - %s", c.Name, c.GroupName)
 	}
 
 	return bongo.B.Update(c)
 }
 
 func (c *Channel) Create() error {
-	if c.Name == "" || c.Group == "" || c.Type == "" {
-		return errors.New(fmt.Sprintf("Validation failed %s - %s", c.Name, c.Group, c.Group))
+	if c.Name == "" || c.GroupName == "" || c.Type == "" {
+		return fmt.Errorf("Validation failed %s - %s", c.Name, c.GroupName)
+	}
+
+	// golang returns -1 if item not in the string
+	if strings.Index(c.Name, " ") > -1 {
+		return fmt.Errorf("Channel name %q has empty space in it", c.Name)
+	}
+
+	selector := map[string]interface{}{
+		"name":       c.Name,
+		"group_name": c.GroupName,
+	}
+
+	// if err is nil
+	// it means we already have that channel
+	err := c.One(selector)
+	if err == nil {
+		return fmt.Errorf("Channel %s is already created before for %s group", c.Name, c.GroupName)
+	}
+
+	if err != gorm.RecordNotFound {
+		return err
 	}
 
 	return bongo.B.Create(c)
@@ -245,4 +267,20 @@ func (c *Channel) AddMessage(messageId int64) (*ChannelMessageList, error) {
 	}
 
 	return cml, nil
+}
+
+func (c *Channel) List(q *Query) ([]Channel, error) {
+
+	var channels []Channel
+
+	selector := map[string]interface{}{
+		"group_name": q.GroupName,
+	}
+
+	err := bongo.B.Some(c, &channels, selector)
+	if err != nil {
+		return nil, err
+	}
+
+	return channels, nil
 }
