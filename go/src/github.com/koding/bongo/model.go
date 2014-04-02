@@ -128,38 +128,31 @@ func (b *Bongo) Count(i Modellable, where ...interface{}) (int, error) {
 	return count, query.Count(&count).Error
 }
 
-func (b *Bongo) Some(i Modellable, data interface{}, rest ...map[string]interface{}) error {
+type Query struct {
+	Selector map[string]interface{}
+	Sort     map[string]string
+	Limit    int
+	Pluck    string
+}
 
-	var selector, options, plucked map[string]interface{}
-	switch len(rest) {
-
-	case 1: // just filter
-		selector = rest[0]
-	case 2: //filter and sort
-		selector = rest[0]
-		options = rest[1]
-	case 3: // filter, sort and only get some data of the result set
-		selector = rest[0]
-		options = rest[1]
-		plucked = rest[2]
-	default:
-		return errors.New("Some parameter list is wrong")
-	}
+// selector, sort, limit, pluck,
+func (b *Bongo) Some(i Modellable, data interface{}, q *Query) error {
 
 	// init query
 	query := b.DB
 
 	// add pluck data
-	query = addPluck(query, plucked)
+	query = addPluck(query, q.Pluck)
 
 	// add sort options
-	query = addSort(query, options)
+	query = addSort(query, q.Sort)
 
 	// add table name
 	query = query.Table(i.TableName())
 
 	// add selector
-	query = addWhere(query, selector)
+	query = addWhere(query, q.Selector)
+
 	err := query.Find(data).Error
 	if err == gorm.RecordNotFound {
 		return nil
@@ -232,7 +225,7 @@ func (b *Bongo) AfterDelete(i Modellable) {
 	}
 }
 
-func addSort(query *gorm.DB, options map[string]interface{}) *gorm.DB {
+func addSort(query *gorm.DB, options map[string]string) *gorm.DB {
 
 	if options == nil {
 		return query
@@ -245,18 +238,12 @@ func addSort(query *gorm.DB, options map[string]interface{}) *gorm.DB {
 	return query.Order(strings.Join(opts, ","))
 }
 
-func addPluck(query *gorm.DB, plucked map[string]interface{}) *gorm.DB {
-
-	if plucked == nil {
+func addPluck(query *gorm.DB, plucked string) *gorm.DB {
+	if plucked == "" {
 		return query
 	}
 
-	var opts []string
-	for key := range plucked {
-		opts = append(opts, fmt.Sprintf("%s", key))
-	}
-	fmt.Println(strings.Join(opts, ","))
-	return query.Select(strings.Join(opts, ","))
+	return query.Select(plucked)
 }
 
 func addWhere(query *gorm.DB, selector map[string]interface{}) *gorm.DB {
