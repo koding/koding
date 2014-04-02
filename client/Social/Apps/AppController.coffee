@@ -188,7 +188,6 @@ class AppsAppController extends AppController
   handleRoute:(route)->
 
     getAppInstance route, (err, app)=>
-      if not err and app then @showContentDisplay app
       if not err and app
       then @showContentDisplay app
 
