@@ -2,6 +2,20 @@
 
 - removed ReferalBox
 - removed Ticker
+- removed widget stuff
+
+```
+# @topWidgetWrapper  = new KDCustomHTMLView
+# @leftWidgetWrapper = new KDCustomHTMLView
+# widgetController.showWidgets [
+#   { view: @topWidgetWrapper,  key: 'ActivityTop'  }
+#   { view: @leftWidgetWrapper, key: 'ActivityLeft' }
+# ]
+# @sidebar.once 'viewAppended', =>
+#   @sidebar.addSubView @leftWidgetWrapper
+# @sidebar.once 'viewAppended', =>
+#   @sidebar.addSubView @leftWidgetWrapper
+```
 
 - removed side items all together
 
