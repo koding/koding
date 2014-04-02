@@ -72,8 +72,8 @@ body.apps
     background      white
     left            147px
     padding         20px
+    padding-right   240px
     height          97px
-    width           600px
     overflow        auto
     abs()
 
@@ -127,6 +127,54 @@ body.apps
     &:focus
       border      none
       shadow      none
+
+  .app-extras
+
+    line-height     18px
+    margin          10px 0
+
+    button
+      right   0
+      top     0
+      abs()
+
+    p
+      font-size     14px
+      padding       10px
+
+    .github-buttons
+
+      border-bottom 1px solid #eee
+
+      a
+        padding                 5px
+        display                 inline-block
+        margin                  0
+        color                   #049C53
+        font-weight             400
+        font-size               15px
+        background              white
+        margin-left             5px
+        border-top-left-radius  2px
+        border-top-right-radius 2px
+        noTextDeco()
+
+        &:hover
+          background            #049C53
+          color                 white
+
+    .readme
+
+      background      white
+
+      h2
+        font-weight   400
+        font-size     18px
+        padding       10px
+        border-bottom 1px solid #eee
+
+      img
+        max-width     100%
 
   .installerbar
 

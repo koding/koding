@@ -106,7 +106,44 @@ class AppDetailsView extends KDScrollView
           tmpl += "<li><img src=\"#{KD.appsUri}/#{authorNick}/#{identifier}/#{version}/#{slide}\" /></li>"
         return tmpl
 
-    # @reviewView = new ReviewView {}, app
+    @detailsView = new KDView
+      cssClass  : "app-extras"
+
+    if app.status in ['verified', 'github-verified']
+
+      {repository} = app.manifest
+      repoUrl   = repository.replace /^git\:\/\//, 'https://'
+      proxyUrl  = repository.replace /^git\:\/\/github.com/, KD.config.appsUri
+      baseUrl   = "#{proxyUrl}/#{app.manifest.commitId}"
+      readmeUrl = "#{baseUrl}/README.md"
+
+      @detailsView.addSubView new KDView
+        cssClass: "github-buttons"
+        partial : """
+          <a href="#{repoUrl}" target="_blank">Code Repository</a>
+          <a href="#{repoUrl}/issues" target="_blank">Issues</a>
+          <a href="#{repoUrl}/commits/#{app.manifest.commitId}" target="_blank">Commits for Current Release</a>
+          <a href="#{repoUrl}/wiki" target="_blank">Wiki</a>
+        """
+
+      # TODO: Implement clone app ~ GG
+      # @detailsView.addSubView new KDButtonView
+      #   title    : "Clone to my VM"
+      #   cssClass : "solid mini"
+      #   callback : -> alert()
+
+      @detailsView.addSubView readmeView = new KDView
+        cssClass : 'readme'
+        partial  : "<p>Fetching readme...</p>"
+
+      $.ajax
+        url      : readmeUrl
+        timeout  : 5000
+        success  : (content, status)->
+          if status is "success"
+            readmeView.updatePartial KD.utils.applyMarkdown content
+        error    : ->
+          readmeView.updatePartial "<p>README.md not found on #{repository}</p>"
 
   approveApp:(app, state, callback)->
 
@@ -163,21 +200,7 @@ class AppDetailsView extends KDScrollView
         {{> @actionButtons}}
 
       </div>
+
+      {{> @detailsView}}
+
     """
-    #   <header>
-    #     <a href='#'>About {{#(title)}}</a>
-    #   </header>
-    #   <section>
-    #     {{ @utils.applyTextExpansions #(manifest.description)}}
-    #   </section>
-
-    #   #{screenshots or ""}
-
-    #   <header>
-    #     <a href='#'>Reviews</a>
-    #   </header>
-    #   <section>
-    #     {{> @reviewView}}
-    #   </section>
-
-    # """
