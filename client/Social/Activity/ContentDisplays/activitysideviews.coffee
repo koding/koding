@@ -1,33 +1,44 @@
 class ActivitySideView extends JView
 
-  constructor:(options = {}, data)->
+  constructor: (options = {}, data) ->
 
-    options.tagName = 'section'
+    options.tagName    or= 'section'
+    options.dataSource or= ->
 
     super options, data
 
-    @tickerController = new KDListViewController
+    {itemClass} = @getOptions()
+
+    @listController = new KDListViewController
       startWithLazyLoader : yes
       lazyLoaderOptions   : partial : ''
+      scrollView          : no
+      wrapper             : no
       viewOptions         :
         tagName           : options.viewTagName
         type              : "activities"
+        itemClass         : @itemClass or itemClass
         cssClass          : "activities"
-        itemClass         : @itemClass
 
-    @tickerListView = @tickerController.getView()
+    @listView    = @listController.getView()
+    @showAllLink = new KDCustomHTMLView
 
-
-  renderItems: (err, items=[])->
-
-    @tickerController.hideLazyLoader()
-    @tickerController.addItem item for item in items  unless err
+    @listView.once 'viewAppended', =>
+      {dataSource} = @getOptions()
+      dataSource @bound 'renderItems'
 
 
-  pistachio:->
+  renderItems: (err, items = []) ->
+
+    @listController.hideLazyLoader()
+    @listController.addItem item for item in items  unless err
+
+
+  pistachio: ->
     """
-    <h3>#{@getOption 'title'}{{> @showAllLink}}</h3>
-    {{> @tickerListView}}
+    <hr>
+    <h3><figure></figure> #{@getOption 'title'}{{> @showAllLink}}</h3>
+    {{> @listView}}
     """
 
 class UserGroupList extends ActivitySideView
@@ -43,7 +54,6 @@ class UserGroupList extends ActivitySideView
 
     super options, data
 
-    @showAllLink = new KDCustomHTMLView
 
   viewAppended:->
 
@@ -61,28 +71,13 @@ class DummyUsers extends ActivitySideView
 
   constructor:(options={}, data)->
 
-    {entryPoint} = KD.config
-
-    if entryPoint?.type is "group" then group = entryPoint.slug else group = "koding"
-
-    @itemClass       = MembersListItemView
-    options.title    = if group is "koding" then "Active users" else "New Members"
-    options.cssClass = "active-users"
+    @itemClass = MembersListItemView
 
     super options, data
 
-    @showAllLink = new KDCustomHTMLView
-      tagName : "a"
-      partial : "show all"
-      cssClass: "show-all-link hidden"
-      click   : (event) ->
-        KD.singletons.router.handleRoute "/Members"
-        KD.mixpanel "Show all members, click"
-    , data
     KD.singletons.groupsController.ready =>
       skip += 3
-      currentGroup = KD.singletons.groupsController.getCurrentGroup()
-      currentGroup.fetchNewestMembers {}, {limit : 3, skip}, @bound 'renderItems'
+      KD.getGroup().fetchNewestMembers {}, {limit : 3, skip}, @bound 'renderItems'
 
 
 class DummyTopics extends ActivitySideView
@@ -91,20 +86,13 @@ class DummyTopics extends ActivitySideView
 
   constructor:(options={}, data)->
 
-    @itemClass       = ActiveTopicItemView
-    options.title    = "Popular topics"
-    options.cssClass = "active-topics"
+    @itemClass = ActiveTopicItemView
 
     super options, data
 
-    {entryPoint} = KD.config
-    if entryPoint?.type is "group" then group = entryPoint.slug else group = "koding"
-
-    @showAllLink = new KDCustomHTMLView
-
     skip += 3
 
-    KD.remote.api.JTag.some {group},
+    KD.remote.api.JTag.some {group : 'koding'},
       limit  : 3
       skip   : skip
       sort   : "counts.followers" : -1
@@ -128,6 +116,7 @@ class ActiveUsers extends ActivitySideView
 
     super options, data
 
+    @showAllLink?.destroy()
     @showAllLink = new KDCustomHTMLView
       tagName : "a"
       partial : "show all"
@@ -155,11 +144,10 @@ class ActiveTopics extends ActivitySideView
 
     super options, data
 
-    @showAllLink = new KDCustomHTMLView
-
     {entryPoint} = KD.config
     if entryPoint?.type is "group" then group = entryPoint.slug else group = "koding"
 
+    @showAllLink?.destroy()
     @showAllLink = new KDCustomHTMLView
       tagName : "a"
       partial : "show all"
@@ -239,6 +227,7 @@ class GroupMembers extends ActivitySideView
     {entryPoint} = KD.config
     if entryPoint?.type is "group" then groupSlug = entryPoint.slug else groupSlug = "koding"
 
+    @showAllLink?.destroy()
     @showAllLink = new KDCustomHTMLView
       tagName    : "a"
       partial    : "See All"
@@ -258,7 +247,7 @@ class GroupMembers extends ActivitySideView
             {constructorName, id} = data.member
             KD.remote.cacheable constructorName, id, (err, account)=>
               return console.error "account is not found", err if err or not account
-              @tickerController.addItem account
+              @listController.addItem account
 
 
 

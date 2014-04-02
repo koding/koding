@@ -4,6 +4,13 @@ module.exports = [
   "activitylistcontroller.coffee",
   "pinnedactivitylistcontroller.coffee",
 
+  "sidebar/activitysidebar.coffee",
+  "sidebar/sidebaritem.coffee",
+  "sidebar/memberitem.coffee",
+  "sidebar/topicitem.coffee",
+
+  "messagepane.coffee",
+
   # Activity commons
   "views/feedcoverphotoview.coffee",
   "views/activityactions.coffee",

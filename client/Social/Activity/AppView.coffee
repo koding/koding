@@ -1,5 +1,4 @@
-class ActivityAppView extends KDScrollView
-
+class ActivityAppView extends KDView
 
   headerHeight = 0
 
@@ -19,105 +18,45 @@ class ActivityAppView extends KDScrollView
 
     super options, data
 
-    {entryPoint}      = KD.config
-    {
-      windowController
-      widgetController
-      mainController
-      appStorageController
-    } = KD.singletons
+    {entryPoint}           = KD.config
+    {appStorageController} = KD.singletons
 
-    @appStorage = appStorageController.storage 'Activity', '1.0.1'
+    @appStorage = appStorageController.storage 'Activity', '2.0'
+    @sidebar    = new ActivitySidebar tagName : 'aside'
+    @tabs       = new KDTabView
+      tagName             : 'main'
+      hideHandleContainer : yes
+
     @appStorage.setValue 'liveUpdates', off
 
-    # main components
-    @sidebar           = new KDCustomScrollView tagName : 'aside'
-    @feedWrapper       = new ActivityListContainer
-    @inputWidget       = new ActivityInputWidget
-    @topWidgetWrapper  = new KDCustomHTMLView
-    @leftWidgetWrapper = new KDCustomHTMLView
-    @groupCoverView    = new FeedCoverPhotoView
-
-    widgetController.showWidgets [
-      { view: @topWidgetWrapper,  key: 'ActivityTop'  }
-      { view: @leftWidgetWrapper, key: 'ActivityLeft' }
-    ]
-
-    @sidebar.once 'viewAppended', =>
-      @sidebar.addSubView @leftWidgetWrapper
-
-    @inputWidget.on 'ActivitySubmitted', @bound 'activitySubmitted'
-    mainController.on 'AccountChanged', @bound "decorate"
-    mainController.on 'JoinedGroup', => @inputWidget.show()
-
-    @feedWrapper.ready =>
-      @activityHeader  = @feedWrapper.controller.activityHeader
-      {@filterWarning} = @feedWrapper
-      {feedFilterNav}  = @activityHeader
-      feedFilterNav.unsetClass 'multiple-choice on-off'
-
-    @once 'viewAppended', =>
+    {activityController} = KD.singletons
+    activityController.on 'SidebarItemClicked', @bound 'sidebarItemClicked'
 
 
   viewAppended: ->
 
-    JView::viewAppended.call this
-
-    @decorate()
-    @setLazyLoader 200
-
-    aa = (v)=> @sidebar.wrapper.addSubView v
-
-    # temp items
-    aa new DummyTopics
-    aa new DummyTopics
-    aa new DummyUsers
-    aa new DummyUsers
-    aa new DummyUsers
+    @addSubView @sidebar
+    @addSubView @tabs
 
 
-
-  pistachio:->
-    """
-    {{> @groupCoverView}}
-    {{> @sidebar}}
-    <main>
-      {{> @inputWidget}}
-      {{> @feedWrapper}}
-      {{> @topWidgetWrapper}}
-    </main>
-    """
+  extractName = (data)-> data.title or data.profile.nickname
 
 
-  activitySubmitted:->
+  sidebarItemClicked: (item) ->
 
-    appTop   = @getElement().offsetTop
-    listTop  = @feedWrapper.listWrapper.getElement().offsetTop
-    duration = @feedWrapper.pinnedListWrapper.getHeight() * .3
-    $('html, body').animate {scrollTop: appTop + listTop + 10}, {duration}
+    data = item.getData()
 
-
-  decorate:->
-
-    {entryPoint, roles} = KD.config
-
-    @unsetClass 'guest'
-    @setClass 'guest'     unless isMember()
-    @setClass 'loggedin'  if KD.isLoggedIn()
-
-    unless isMember()
-    then @inputWidget.hide()
-    else @inputWidget.show()
-
-    @_windowDidResize()
+    if pane = @tabs.getPaneByName extractName data
+    then @tabs.showPane pane
+    else @createTab data
 
 
-  setTopicTag: (slug) ->
+  createTab: (data) ->
 
-    return  unless slug
+    name = extractName data
+    pane = new MessagePane
+      name : name
 
-    KD.remote.api.JTag.one {slug}, null, (err, tag) =>
-      @inputWidget.input.setDefaultTokens tags: [tag]
+    KD.utils.applyGradient pane, KD.utils.stringToColor(name), KD.utils.stringToColor(name.split('').reverse().join(''))
 
-
-  unsetTopicTag: -> @inputWidget.input.setDefaultTokens tags: []
+    @tabs.addPane pane
