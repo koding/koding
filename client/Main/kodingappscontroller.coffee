@@ -518,22 +518,49 @@ class KodingAppsController extends KDController
 
         callback? { message: "Failed to compile: #{err}" }, app
 
-  @createJApp = ({path, githubPath}, callback)->
+  @createJApp = ({path, target}, callback)->
 
     app = @getAppInfoFromPath path
     return  unless app
+    {name} = app
 
     @compileAppOnServer path, (err)=>
       return warn err  if err
 
       @fetchManifest "#{app.path}/manifest.json", (err, manifest)->
 
-        {JNewApp} = KD.remote.api
-        JNewApp.publish {
-          name : app.name
-          url  : githubPath or app.fullPath
-          manifest
-        }, callback
+        if err? or not manifest
+          return new KDNotificationView
+            title : "Failed to fetch application manifest."
+
+        unless target is 'production'
+
+          return KD.remote.api.JNewApp.publish {
+            name, url: app.fullPath, manifest
+          }, callback
+
+        modal = new KodingAppSelectorForGitHub
+          title        : "Select repository of #{app.name}.kdapp"
+          customFilter : ///#{app.name}\.kdapp$///
+
+        modal.once "RepoSelected", (repo)->
+
+          GitHub.getLatestCommit repo.name, (err, commit)->
+
+            if not err and commit
+
+              url = "#{KD.config.appsUri}/#{repo.full_name}/#{commit.sha}/"
+              manifest.commitId = commit.sha
+              KD.remote.api.JNewApp.publish {
+                name, url, manifest
+              }, callback
+
+            else
+
+              new KDNotificationView
+                title : "Failed to fetch latest commit for #{repo.full_name}"
+
+            modal.destroy()
 
   @fetchManifest = (path, callback = noop)->
 
