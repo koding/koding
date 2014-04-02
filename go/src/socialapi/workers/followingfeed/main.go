@@ -25,7 +25,7 @@ func main() {
 	conf := config.Read(*flagProfile)
 
 	// create logger for our package
-	log := helper.CreateLogger("TopicFeedWorker", *flagDebug)
+	log := helper.CreateLogger("FollowingFeedWorker", *flagDebug)
 
 	// panics if not successful
 	bongo := helper.MustInitBongo(conf, log)
