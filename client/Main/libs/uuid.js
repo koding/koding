@@ -1,31 +1,107 @@
-// adapted from this crazy gist: https://gist.github.com/jed/982883
-// note: this is not cryptographically secure, but it should do well enough
-// for most applciations.  If you want a more secure UUID, you can use another
-// module to generate one.
-(function (global) {
+/**
+ * cuid.js
+ * Collision-resistant UID generator for browsers and node.
+ * Sequential for fast db lookups and recency sorting.
+ * Safe for element IDs and server-side lookups.
+ *
+ * Extracted from CLCTR
+ * 
+ * Copyright (c) Eric Elliott 2012
+ * MIT License
+ */
 
-  global.uuid = { v4: b };
-  
-  function b(
-    a                  // placeholder
-  ){
-    return a           // if the placeholder was passed, return
-      ? (              // a random number from 0 to 15
-        a ^            // unless b is 8,
-        Math.random()  // in which case
-        * 16           // a random number from
-        >> a/4         // 8 to 11
-        ).toString(16) // in hexadecimal
-      : (              // or otherwise a concatenated string:
-        [1e7] +        // 10000000 +
-        -1e3 +         // -1000 +
-        -4e3 +         // -4000 +
-        -8e3 +         // -80000000 +
-        -1e11          // -100000000000,
-        ).replace(     // replacing
-          /[018]/g,    // zeroes, ones, and eights with
-          b            // random hex digits
-        )
+/*global window, navigator, document, require, process, module */
+(function (app) {
+  'use strict';
+  var namespace = 'uuid',
+    c = 0,
+    blockSize = 4,
+    base = 36,
+    discreteValues = Math.pow(base, blockSize),
+
+    pad = function pad(num, size) {
+      var s = "000000000" + num;
+      return s.substr(s.length-size);
+    },
+
+    randomBlock = function randomBlock() {
+      return pad((Math.random() *
+            discreteValues << 0)
+            .toString(base), blockSize);
+    },
+
+    api = function cuid() {
+      // Starting with a lowercase letter makes
+      // it HTML element ID friendly.
+      var letter = 'c', // hard-coded allows for sequential access
+
+        // timestamp
+        // warning: this exposes the exact date and time
+        // that the uid was created.
+        timestamp = (new Date().getTime()).toString(base),
+
+        // Prevent same-machine collisions.
+        counter,
+
+        // A few chars to generate distinct ids for different
+        // clients (so different computers are far less
+        // likely to generate the same id)
+        fingerprint = api.fingerprint(),
+
+        // Grab some more chars from Math.random()
+        random = randomBlock() + randomBlock();
+
+        c = (c < discreteValues) ? c : 0;
+        counter = pad(c.toString(base), blockSize);
+
+      c++; // this is not subliminal
+
+      return  (letter + timestamp + counter + fingerprint + random);
+    };
+
+  api.slug = function slug() {
+    var date = new Date().getTime().toString(36),
+      counter = c.toString(36).slice(-1),
+      print = api.fingerprint().slice(0,1) +
+        api.fingerprint().slice(-1),
+      random = randomBlock().slice(-1);
+
+    c++;
+
+    return date.slice(2,4) + date.slice(-2) + 
+      counter + print + random;
+  };
+
+  api.globalCount = function globalCount() {
+    // We want to cache the results of this
+    var cache = (function calc() {
+        var i,
+          count = 0;
+
+        for (i in window) {
+          count++;
+        }
+
+        return count;
+      }());
+
+    api.globalCount = function () { return cache; };
+    return cache;
+  };
+
+  api.fingerprint = function browserPrint() {
+    return pad((navigator.mimeTypes.length +
+      navigator.userAgent.length).toString(36) +
+      api.globalCount().toString(36), 4);
+  };
+
+  // don't change anything from here down.
+  if (app.register) {
+    app.register(namespace, api);
+  } else if (typeof module !== 'undefined') {
+    module.exports = api;
+  } else {
+    app[namespace] = api;
   }
 
-})(this);
+}(this.applitude || this));
