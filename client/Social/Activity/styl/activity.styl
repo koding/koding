@@ -10,11 +10,7 @@ resurrection.activity.styl
 }
 
 
-// .feeder-header
-// .common-inner-nav
-// .system-message
 .activity-status-context
-// .comment-container.no-comment
   display               none
 
 .content-page.activity
@@ -41,6 +37,10 @@ resurrection.activity.styl
     padding-left        40px
     borderBox()
     fl()
+
+    .kdtabpaneview
+
+      min-height        990px
 
     > .activity-input-widget
       margin-bottom     36px
@@ -179,6 +179,7 @@ resurrection.activity.styl
           color         logoBg
 
 
+
   > aside
     left                0
     top                 55px
@@ -203,16 +204,53 @@ resurrection.activity.styl
       > section
         size              auto, auto
         margin            33px 0 0
+        padding-left      11px
+
+        .kdview.kdlistview
+          margin-left     -11px
+
+        &.hot      h3 > figure
+          r-sprite        'activity' 'sidebar-hot'
+
+        &.chat     h3 > figure
+          r-sprite        'activity' 'sidebar-chat'
+
+        &.threads  h3 > figure
+          r-sprite        'activity' 'sidebar-threads'
+
+        &.inbox    h3 > figure
+          r-sprite        'activity' 'sidebar-inbox'
+
+        &.followed h3 > figure
+          r-sprite        'activity' 'sidebar-followed'
+
+        hr
+          size            100% 2px
+          display         block
+          top             10px
+          bg              color #cecece
+          border          none
+          margin          0
+          z-index         0
+          abs()
 
         h3
-          display         block
-          font-size       14px
-          font-weight     400
+          z-index         1
+          display         inline-block
+          font-size       13px
+          font-weight     500
           color           logoBg
-          margin          0
-          padding         0 0 7px
-          border-bottom   1px solid #2eb398
+          bg              color #e4e4e4
           letter-spacing  .2px
+          padding         0 8px 0 25px
+          text-transform  uppercase
+          line-height     22px
+          rel()
+
+          figure
+            top           3px
+            left          0
+            abs()
 
           .show-all-link
             color         #a1a1a1
@@ -221,99 +259,94 @@ resurrection.activity.styl
             noTextDeco()
             fr()
 
+        .profile
+        .user-numbers
+          display         block
+          float           none
 
-    .active-users
-      .profile
-      .user-numbers
-        width           170px
+        .profile
+          color           logoBg
 
-    .user-group-list
-      .kdlistitemview-activity-ticker-item
+        .user-numbers
+          margin          0
+          color           #585858
+          font-size       12px
+          span
+            font-weight   200
+
+    section.users
+      .kdlistitemview-sidebar-item
+        margin            0
+        padding-left      51px
+
+      &.chat
+        .kdlistview
+          padding         20px 0
+
+        .kdlistitemview-sidebar-item
+          padding         5px 0 5px 51px
+          height          40px
+          min-height      40px
+          margin-bottom   0
+
+          .avatarview
+            left          11px
+            top           5px
+            abs()
+
+          &.online
+            .profile:after
+              bg          color logoBg
+
+          .profile:after
+            size          10px 10px
+            bg            color #c8c8c8
+            top           15px
+            right         11px
+            content       " "
+            rounded       5px
+            abs()
+
+        .user-numbers
+          hidden()
+
+        .profile
+          padding-top     3px
+          line-height     27px
+
+    section.topics
+      &.followed
+        .follow-btn
+          hidden()
+
+      .kdlistitemview-sidebar-item
         margin          0
-
-        figure
-          display         inline-block
-          size            30px 30px
-          margin          0 8px 0 1px
-          vertical-align  top
-          rounded         15px
-          bg              position, 50% 50%
-          bg              size cover
-        a
-          line-height    30px
-
-      .kdscrollview
-        height          auto
-        max-height      252px
-
-    .active-topics
-      h3
-        margin-bottom   4px
-
-      .kdlistitemview-activity-ticker-item
-        margin          0
-        padding-top     9px
 
       .follow-btn
         top             16px
 
       .tag-info
         line-height     19px
-        margin          6px 0 0
+        font-size       12px
+        font-weight     200
+        color           #9a9a9a
 
-        .avatarview
-          position      static
-          margin        0 1px 0
-          fl()
-
-        .total-following
-          margin        0 0 0 5px
-          font-size     12px
-          font-weight   200
-          color         #9a9a9a
-          fl()
-          &:first-child
-            margin      0
-
-    .right-block-box
-      size              auto, auto
-      margin            33px 0 0
-      bg                color, #ebebeb
-
-      h3
-        display         block
-        font-size       14px
-        font-weight     400
-        color           logoBg
-        margin          0
-        padding         0 0 7px
-        border-bottom   1px solid #2eb398
-        letter-spacing  .2px
-
-        .show-all-link
-          color         #a1a1a1
-          font-weight   200
-          font-size     12px
-          noTextDeco()
-          fr()
-
-      .kdscrollview
-        size            auto, 203px
-        padding         0
-
-    .kdlistitemview-activity-ticker-item
-    .kdlistitemview-member
+    .kdlistitemview-sidebar-item
       size              auto 60px
       position          relative
-      padding           14px 0 11px
-      margin            0 0 0 42px
+      padding           14px 11px
       overflow          visible
-      border-bottom     1px solid #d3d3d3
       color             #3c4752
       font-weight       400
       font-size         13px
       letter-spacing    .2px
+      cursor            pointer
+      rounded           3px
       borderBox()
+
+      &:hover
+      &.selected
+        bg              color #efefef
 
       .action
         overflow        visible
@@ -330,7 +363,7 @@ resurrection.activity.styl
       a
         color           inherit
         white-space     nowrap
-        display         inline
+        display         block
         noTextDeco()
 
         &.profile
@@ -338,17 +371,18 @@ resurrection.activity.styl
           line-height   15px
 
 
-        &.ttag.expandable
-          display       block
-          overflow      hidden
-          text-overflow ellipsis
-          width         240px
-          line-height   14px
+      .ttag
+        display       block
+        overflow      hidden
+        text-overflow ellipsis
+        width         240px
+        line-height   14px
 
       .avatarview
+        size            30px 30px
         display         block
-        left            -41px
-        top             1px
+        left            11px
+        top             15px
         abs()
 
       .follow-btn
@@ -357,7 +391,7 @@ resurrection.activity.styl
         rounded         13px
         bg              color, transparent
         border          2px solid #b5b5b5
-        right           4px
+        right           10px
         overflow        hidden
         vendor          transition, width .1s ease \,\
                                     border-color .3s ease
@@ -589,6 +623,7 @@ span.collapsedtext
 
   .author-avatar
     margin        20px 20px 12px
+    size          55px 55px
 
   .profile
   > article
@@ -1443,7 +1478,6 @@ body.group.members
       color               #616161
 
     .user-numbers
-      float               none
       padding             0
       font-size           12px
       color               #b0b0b0
