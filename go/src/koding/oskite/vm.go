@@ -68,6 +68,7 @@ func spawnFuncOld(args *dnode.Partial, c *kite.Channel, vos *virt.VOS) (interfac
 
 func execFuncOld(args *dnode.Partial, c *kite.Channel, vos *virt.VOS) (interface{}, error) {
 	var line string
+
 	if args == nil {
 		return nil, &kite.ArgumentError{Expected: "empty argument passed"}
 	}
@@ -76,7 +77,21 @@ func execFuncOld(args *dnode.Partial, c *kite.Channel, vos *virt.VOS) (interface
 		return nil, &kite.ArgumentError{Expected: "[string]"}
 	}
 
-	return execFunc(line, vos)
+	return execFunc(false, line, vos)
+}
+
+func execRoot(args *dnode.Partial, c *kite.Channel, vos *virt.VOS) (interface{}, error) {
+	var line string
+
+	if args == nil {
+		return nil, &kite.ArgumentError{Expected: "empty argument passed"}
+	}
+
+	if args.Unmarshal(&line) != nil {
+		return nil, &kite.ArgumentError{Expected: "[string]"}
+	}
+
+	return execFunc(true, line, vos)
 }
 
 ////////////////////
@@ -108,8 +123,17 @@ func newOutput(cmd *exec.Cmd) (interface{}, error) {
 	}, nil
 }
 
-func execFunc(line string, vos *virt.VOS) (interface{}, error) {
-	return newOutput(vos.VM.AttachCommand(vos.User.Uid, "", "/bin/bash", "-c", line))
+func execFunc(asRoot bool, line string, vos *virt.VOS) (interface{}, error) {
+	if !asRoot {
+		return newOutput(vos.VM.AttachCommand(vos.User.Uid, "", "/bin/bash", "-c", line))
+	}
+
+	args := []string{"--name", vos.VM.String()}
+	args = append(args, "--", "/bin/bash", "-c", line)
+	cmd := exec.Command("/usr/bin/lxc-attach", args...)
+	cmd.Env = []string{"TERM=xterm-256color"}
+
+	return newOutput(cmd)
 }
 
 func spawnFunc(command []string, vos *virt.VOS) (interface{}, error) {

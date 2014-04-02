@@ -148,7 +148,7 @@ func execFuncNew(r *kitelib.Request, vos *virt.VOS) (interface{}, error) {
 		return nil, &kite.ArgumentError{Expected: "[string]"}
 	}
 
-	return execFunc(params.Line, vos)
+	return execFunc(false, params.Line, vos)
 }
 
 type progressParamsNew struct {

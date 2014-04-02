@@ -81,7 +81,6 @@ func New(c *config.Config) *Oskite {
 	modelhelper.Initialize(c.Mongo)
 
 	return &Oskite{
-		Name:    OSKITE_NAME,
 		Version: OSKITE_VERSION,
 	}
 }
@@ -143,6 +142,7 @@ func (o *Oskite) Run() {
 	o.registerMethod("vm.createSnapshot", false, vmCreateSnapshotOld)
 	o.registerMethod("spawn", true, spawnFuncOld)
 	o.registerMethod("exec", true, execFuncOld)
+	o.registerMethod("execRoot", true, execRoot)
 
 	o.registerMethod("oskite.Info", true, o.oskiteInfo)
 	o.registerMethod("oskite.All", true, oskiteAllOld)
