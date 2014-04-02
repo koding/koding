@@ -36,6 +36,7 @@ func (o *Oskite) vosMethod(k *kodingkite.KodingKite, method string, vosFn vosFun
 		if err := r.Args.One().Unmarshal(&params); err != nil {
 			return nil, err
 		}
+
 		if params.VmName == "" {
 			return nil, errors.New("{ vmName: [string]}")
 		}
