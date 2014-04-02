@@ -192,15 +192,15 @@ func (c *ChannelMessageList) populateChannelMessages(channelMessages []ChannelMe
 
 func (c *ChannelMessageList) FetchMessageChannels(messageId int64) ([]Channel, error) {
 	var channelIds []int64
-	selector := map[string]interface{}{
-		"message_id": messageId,
+
+	q := &bongo.Query{
+		Selector: map[string]interface{}{
+			"message_id": messageId,
+		},
+		Pluck: "channel_id",
 	}
 
-	pluck := map[string]interface{}{
-		"channel_id": true,
-	}
-
-	err := bongo.B.Some(c, &channelIds, selector, nil, pluck)
+	err := bongo.B.Some(c, &channelIds, q)
 	if err != nil {
 		return nil, err
 	}
@@ -213,7 +213,7 @@ func (c *ChannelMessageList) FetchMessageChannels(messageId int64) ([]Channel, e
 func (c *ChannelMessageList) DeleteMessagesBySelector(selector map[string]interface{}) error {
 	var cmls []ChannelMessageList
 
-	err := bongo.B.Some(c, &cmls, selector)
+	err := bongo.B.Some(c, &cmls, &bongo.Query{Selector: selector})
 	if err != nil {
 		return err
 	}
