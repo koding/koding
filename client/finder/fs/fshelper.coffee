@@ -71,7 +71,7 @@ class FSHelper
     KD.getSingleton('vmController').run
       method   : "fs.getInfo"
       vmName   : vmName
-      withArgs : {path}
+      withArgs : {path, vmName}
     , callback
 
   @glob = (pattern, vmName, callback)->
@@ -79,14 +79,14 @@ class FSHelper
     KD.getSingleton('vmController').run
       method   : "fs.glob"
       vmName   : vmName
-      withArgs : {pattern}
+      withArgs : {pattern, vmName}
     , callback
 
   @uniquePath = (path, vmName, callback=noop)->
     KD.getSingleton('vmController').run
       method   : "fs.uniquePath"
       vmName   : vmName
-      withArgs : {path}
+      withArgs : {path, vmName}
     , callback
 
   @registry = {}
