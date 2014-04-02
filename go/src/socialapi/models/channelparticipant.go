@@ -68,8 +68,8 @@ func (c *ChannelParticipant) Update() error {
 	return bongo.B.Update(c)
 }
 
-func (c *ChannelParticipant) Some(data interface{}, rest ...map[string]interface{}) error {
-	return bongo.B.Some(c, data, rest...)
+func (c *ChannelParticipant) Some(data interface{}, q *bongo.Query) error {
+	return bongo.B.Some(c, data, q)
 }
 
 func (c *ChannelParticipant) FetchParticipant() error {
@@ -122,13 +122,14 @@ func (c *ChannelParticipant) List() ([]ChannelParticipant, error) {
 	if c.ChannelId == 0 {
 		return participants, errors.New("ChannelId is not set")
 	}
-
-	selector := map[string]interface{}{
-		"channel_id": c.ChannelId,
-		"status":     ChannelParticipant_STATUS_ACTIVE,
+	query := &bongo.Query{
+		Selector: map[string]interface{}{
+			"channel_id": c.ChannelId,
+			"status":     ChannelParticipant_STATUS_ACTIVE,
+		},
 	}
 
-	err := bongo.B.Some(c, &participants, selector)
+	err := bongo.B.Some(c, &participants, query)
 	if err != nil {
 		return nil, err
 	}

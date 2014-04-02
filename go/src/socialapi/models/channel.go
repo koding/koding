@@ -235,17 +235,16 @@ func (c *Channel) FetchParticipantIds() ([]int64, error) {
 		return participantIds, errors.New("Channel Id is not set")
 	}
 
-	selector := map[string]interface{}{
-		"channel_id": c.Id,
-		"status":     ChannelParticipant_STATUS_ACTIVE,
-	}
-
-	pluck := map[string]interface{}{
-		"account_id": true,
+	query := &bongo.Query{
+		Selector: map[string]interface{}{
+			"channel_id": c.Id,
+			"status":     ChannelParticipant_STATUS_ACTIVE,
+		},
+		Pluck: "account_id",
 	}
 
 	cp := NewChannelParticipant()
-	err := cp.Some(&participantIds, selector, nil, pluck)
+	err := cp.Some(&participantIds, query)
 	if err != nil {
 		return nil, err
 	}
@@ -273,11 +272,13 @@ func (c *Channel) List(q *Query) ([]Channel, error) {
 
 	var channels []Channel
 
-	selector := map[string]interface{}{
-		"group_name": q.GroupName,
+	query := &bongo.Query{
+		Selector: map[string]interface{}{
+			"group_name": q.GroupName,
+		},
 	}
 
-	err := bongo.B.Some(c, &channels, selector)
+	err := bongo.B.Some(c, &channels, query)
 	if err != nil {
 		return nil, err
 	}
