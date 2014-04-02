@@ -5,6 +5,7 @@ import (
 	"math/rand"
 	"socialapi/models"
 	"strconv"
+	"time"
 )
 
 func testChannelOperations() {
@@ -54,7 +55,9 @@ func testChannelOperations() {
 
 func createChannel() (*models.Channel, error) {
 	c := models.NewChannel()
-	c.Name = c.Name + strconv.Itoa(rand.Intn(1000000))
+	rand.Seed(time.Now().UnixNano())
+	c.GroupName = c.GroupName + strconv.Itoa(rand.Intn(100000000))
+	c.Name = c.Name + strconv.Itoa(rand.Intn(100000000))
 	cmI, err := sendModel("POST", "/channel", c)
 	if err != nil {
 		return nil, err
