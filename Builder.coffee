@@ -70,7 +70,7 @@ module.exports = class Builder
   buildFramework:->
 
     @config ?= require('koding-config-manager').load("main.#{options.configFile}")
-    cmd = "cd client/Framework;gulp compile --buildVersion=#{@config.client.version} --outputDir=../../website/a/"
+    cmd = "cd client/Framework;npm i;gulp compile --buildVersion=#{@config.client.version} --outputDir=../../website/a/"
     exec cmd, (err, stdout, stderr)->
       console.warn "------------------------ FRAMEWORK COMPILED -------------------------- "
       console.warn " To use watcher for Framework use following command in different tab:  "

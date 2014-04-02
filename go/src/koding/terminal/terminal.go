@@ -118,6 +118,7 @@ func (t *Terminal) Run() {
 
 		terminalHostKite := strings.Replace(vm.HostKite, "os", "terminal", 1)
 
+		blog(fmt.Sprintf("returning terminalHostKite %s", terminalHostKite))
 		// finally return our result back
 		return terminalHostKite
 	}
@@ -126,6 +127,7 @@ func (t *Terminal) Run() {
 	t.registerMethod("webterm.connect", false, webtermConnect)
 	t.registerMethod("webterm.getSessions", false, webtermGetSessions)
 	t.registerMethod("webterm.killSession", false, webtermKillSession)
+	t.registerMethod("webterm.ping", false, webtermPing)
 
 	// register methods for new kite and start it
 	t.runNewKite()
@@ -214,6 +216,7 @@ func (t *Terminal) runNewKite() {
 	t.vosMethod(k, "webterm.getSessions", webtermGetSessionsNew)
 	t.vosMethod(k, "webterm.connect", webtermGetSessionsNew)
 	t.vosMethod(k, "webterm.killSession", webtermGetSessionsNew)
+	t.vosMethod(k, "webterm.ping", webtermPingNew)
 	k.DisableConcurrency() // needed for webterm.connect
 
 	k.Start()
