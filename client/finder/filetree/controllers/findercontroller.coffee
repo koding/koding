@@ -25,7 +25,7 @@ class NFinderController extends KDViewController
     TreeControllerClass = options.treeControllerClass or NFinderTreeController
     @treeController     = new TreeControllerClass treeOptions, []
 
-    @appStorage = KD.getSingleton('appStorageController').storage 'Finder', '1.1.1.1'
+    @appStorage = KD.getSingleton('appStorageController').storage 'Finder', '1.2'
 
     @watchers = {}
 
@@ -253,6 +253,7 @@ class NFinderController extends KDViewController
         , yes
 
   isNodesHiddenFor:(vmName)->
+    return yes  if @getOption 'hideDotFiles'
     pipedVm = @_pipedVmName vmName
     return (@appStorage.getValue('vmsDotFileChoices') or {})[pipedVm]
 
