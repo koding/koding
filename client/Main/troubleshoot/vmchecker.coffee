@@ -4,16 +4,29 @@ class VMChecker extends KDObject
     super options, data
 
   healthCheck: (callback) ->
-    status = "success"
+    status = "pending"
     {kites} = KD.singletons.vmController
     for own alias, kite of kites
       switch kite.recentState?.state
         when 'RUNNING'
-          continue
+          status = "success"
         when 'FAILED'
-          status = "fail"
+          status  = "fail"
           return callback {status}
         when "STOPPED"
           status = "pending"
 
     callback {status}
+
+  terminalHealthCheck: (callback) ->
+    {terminalKites} = KD.singletons.vmController
+    failedTerminals = []
+    promises = @utils.objectToArray(terminalKites).map (terminalKite) =>
+      terminalKite.webtermPing()
+      .catch (err) =>
+        {correlationName} = terminalKite
+        failedTerminals.push correlationName
+
+    Promise.all(promises).then =>
+      unless failedTerminals.length
+        callback()
