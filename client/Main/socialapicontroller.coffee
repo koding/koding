@@ -34,13 +34,17 @@ class SocialApiController extends KDController
         return callback err if err
         return callback null, mapChannel result
 
-  message :
-   edit :(rest..., callback)->
-    KD.remote.api.SocialMessage.edit rest..., (err, res)->
+  messageApiFunc = (name, rest..., callback)->
+    KD.remote.api.SocialMessage[name] rest..., (err, res)->
       return callback null, mapActivity res
-   post :(rest..., callback)->
-    KD.remote.api.SocialMessage.post rest..., (err, res)->
-      return callback null, mapActivity res
+
+  message:
+   edit   :(rest...)-> messageApiFunc 'edit', rest...
+   post   :(rest...)-> messageApiFunc 'post', rest...
+   reply  :(rest...)-> messageApiFunc 'reply', rest...
+   delete :(rest...)-> KD.remote.api.SocialMessage.delete rest...
+   like   :(rest...)-> KD.remote.api.SocialMessage.like rest...
+   unlike :(rest...)-> KD.remote.api.SocialMessage.unlike rest...
 
   mapActivities = (messages)->
     # if no result, no need to do something
