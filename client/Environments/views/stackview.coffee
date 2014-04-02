@@ -40,7 +40,7 @@ class StackView extends KDView
       delegate  : this
       iconClass : "cog"
       callback  : (event)=>
-        new JContextMenu
+        new KDContextMenu
           cssClass    : 'environments'
           event       : event
           delegate    : this
