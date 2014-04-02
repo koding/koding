@@ -192,7 +192,7 @@ module.exports =
       github    :
         clientId: "f733c52d991ae9642365"
       newkontrol:
-        url         : 'ws://stage-kontrol.sj.koding.com:4000/kontrol'
+        url         : 'ws://stage-kontrol.koding.com'
       fileFetchTimeout: 15 * 1000 # seconds
       externalProfiles  :
         github          :
@@ -293,8 +293,8 @@ module.exports =
   haproxy:
     webPort     : 3020
   newkontrol      :
-    username        : "koding-kites"
-    port            : 4000
+    username        : "koding"
+    port            : 80
     useTLS          : no
     certFile        : ""
     keyFile         : ""
