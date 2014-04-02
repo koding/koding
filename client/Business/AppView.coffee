@@ -11,6 +11,10 @@ class BusinessView extends KDView
       title       : "LEARN MORE"
       style       : "solid medium white thin"
 
+    @signInButton = new KDButtonView
+      title       : "SIGN IN"
+      style       : "solid medium white thin"
+
     @contentSlider = window.a = new BusinessSliderView
       contents     :
         first      :
@@ -37,6 +41,12 @@ class BusinessView extends KDView
     """
       <section class="introduction">
         <div class="inner-container clearfix">
+          <nav>
+            <a href="#">ABOUT</a>
+            <a href="#">PRICING</a>
+            <a href="#">BLOG</a>
+            {{> @signInButton}}
+          </nav>
           <article>
             <h2>Koding for Business</h2>
             <p>
@@ -47,8 +57,7 @@ class BusinessView extends KDView
             {{> @signUpButton}}
             {{> @learnMoreButton}}
           </article>
-          <figure>
-          </figure>
+          <figure></figure>
         </div>
       </section>
 
@@ -76,25 +85,80 @@ class BusinessView extends KDView
       </section>
 
       <section class="pricing">
-        <div class="inner-container">
+        <div class="inner-container clearfix">
           <h3 class="general-title">Single developer or a team, doesn’t really matter</h3>
           <h4 class="general-subtitle">Super-scalable pricing for your scalable projects</h4>
+
+          <div class="small box with-arrow">
+          </div>
+          <div class="big box with-arrow">
+          </div>
+          <div class="small box">
+          </div>
+
         </div>
       </section>
 
-      <section class="insights">
-        <div class="inner-container">
+      <section class="quotes">
+        <div class="inner-container clearfix">
+          <h3 class="general-title">Hearing good things about your product is awesome</h3>
+          <h4 class="general-subtitle">Here are some awesome people, sayin awesome things about us</h4>
+
+          <blockquote class="clearfix">
+            <p>
+              Awesome product, awesome team,
+              awesome food.
+              What can I say,
+              I love this company
+            </p>
+            <div class="person">
+              <img src="http://d13yacurqjgara.cloudfront.net/users/45397/avatars/small/mrd.png?1390348178">
+              <span class="name">Emre Durmus</span>
+              <span class="bio">Designer @ Koding</span>
+            <div>
+          </blockquote>
+
+          <blockquote class="clearfix">
+            <p>
+              Awesome product, awesome team,
+              awesome food.
+              What can I say,
+              I love this company
+            </p>
+            <div class="person">
+              <img src="http://d13yacurqjgara.cloudfront.net/users/45397/avatars/small/mrd.png?1390348178">
+              <span class="name">Emre Durmus</span>
+              <span class="bio">Designer @ Koding</span>
+            <div>
+          </blockquote>
 
         </div>
       </section>
 
       <section class="customers">
         <div class="inner-container">
-
+          <img src="/a/images/stanford-logo.png" alt="Stanford University">
+          <img src="/a/images/mit-logo.png" alt="MIT">
+          <img src="/a/images/nasa-logo.png" alt="NASA">
+          <img src="/a/images/tesla-logo.png" alt="Tesla Motors">
         </div>
       </section>
 
       <footer>
+        <div class="inner-container">
+          <address>
+            2014 © Koding, Inc. 358 Brannan Street, San Francisco, CA, 94107
+          </address>
+          <nav>
+            <a href="#">ACTIVITY</a>
+            <a href="#">ABOUT</a>
+            <a href="#">CONTACT</a>
+            <a href="#">UNIVERSITY</a>
+            <a href="#">JOBS</a>
+            <a href="#">BLOG</a>
+            <a href="#">STATUS</a>
+          </nav>
+        </div>
       </footer>
     """
 
