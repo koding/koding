@@ -35,7 +35,6 @@ module.exports = class SocialChannel extends Base
 
   {fetchGroup} = require "./helper"
 
-
   @fetchActivity = secure (client, options = {}, callback)->
     fetchGroup client, (err, group)->
       return callback err if err
@@ -49,8 +48,7 @@ module.exports = class SocialChannel extends Base
           groupName: group.slug
 
         {fetchChannelActivity} = require './requests'
-        fetchChannelActivity data, (err, activities)->
-          callback err, activities
+        fetchChannelActivity data, callback
 
   @fetchChannels = secure (client, options = {}, callback)->
     fetchGroup client, (err, group)->
@@ -60,9 +58,8 @@ module.exports = class SocialChannel extends Base
         return callback err if err
 
         data =
-          groupName: slug.groupName
+          groupName: group.slug
           accountId: socialApiId
 
         {fetchGroupChannels} = require './requests'
-        fetchGroupChannels data, (err, activities)->
-          callback err, activities
+        fetchGroupChannels data, callback
