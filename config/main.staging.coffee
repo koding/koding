@@ -192,7 +192,7 @@ module.exports =
       github    :
         clientId: "f733c52d991ae9642365"
       newkontrol:
-        url         : 'ws://stage-kontrol.sj.koding.com:4000/kontrol'
+        url         : 'ws://stage-kontrol.koding.com'
       fileFetchTimeout: 15 * 1000 # seconds
       externalProfiles  :
         github          :
