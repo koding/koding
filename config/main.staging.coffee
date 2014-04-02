@@ -293,8 +293,8 @@ module.exports =
   haproxy:
     webPort     : 3020
   newkontrol      :
-    username        : "koding-kites"
-    port            : 4000
+    username        : "koding"
+    port            : 80
     useTLS          : no
     certFile        : ""
     keyFile         : ""
