@@ -59,19 +59,36 @@ body.business
     .kdbutton.solid.green
       bg                  color, #46db8c
       border              2px solid #46db8c
+      vendor              transition, background-color .3s ease \,
+                                      border-color .3s ease \,
+                                      color .3s ease
 
       .button-title
         color             #154f30
         font-weight       400
 
+      &:hover
+        bg                color, #8be4b5
+        border-color      #8be4b5
+
     .kdbutton.thin.white
       bg                  color, transparent
       border              2px solid #b7b7b7
       margin-left         14px
+      vendor              transition, background-color .3s ease \,
+                                      border-color .3s ease \,
+                                      color .3s ease
 
       .button-title
         color             #b7b7b7
         font-weight       400
+
+      &:hover
+        bg                color, #fff
+        border-color      #fff
+
+        .button-title
+          color           #525555
 
     h3.general-title
       font-size           32px
@@ -127,6 +144,10 @@ body.business
 
         .button-title
           color           #fff !important
+
+        &:hover
+          .button-title
+            color         #525555 !important
 
     article
       max-width           601px
@@ -316,8 +337,26 @@ body.business
         color             #6d6d6d
         line-height       26px
         padding           24px 22px 0 33px
+        position          relative
         borderBox()
         fl()
+
+        &:before
+          content         "“"
+          display         block
+          font-size       59px
+          color           #dadada
+          abs             19px 0 0 0px
+
+        &:after
+          content         "”"
+          display         inline-block
+          font-size       59px
+          color           #dadada
+          vertical-align  bottom
+          position        relative
+          top             28px
+          left            7px
 
       .person
         size              33%, 124px
