@@ -453,13 +453,6 @@ func (p *Proxy) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	h.ServeHTTP(w, r)
 }
 
-func firewallHandler(h http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-
-		h.ServeHTTP(w, r)
-	})
-}
-
 // getHandler returns the appropriate Handler for the given Request or nil if
 // none found.
 func (p *Proxy) getHandler(req *http.Request) http.Handler {
