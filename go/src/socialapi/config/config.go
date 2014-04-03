@@ -1,5 +1,12 @@
 package config
 
+import (
+	"os"
+	"path/filepath"
+
+	"github.com/BurntSushi/toml"
+)
+
 type (
 	Postgres struct {
 		Host     string
@@ -24,24 +31,39 @@ type (
 	}
 )
 
-func Read(env string) *Config {
-	return &Config{
-		// set postgres connection config
-		Postgres: Postgres{
-			Host:     "localhost",
-			Port:     5432,
-			Username: "postgres",
-			Password: "123123123",
-			DBName:   "social",
-		},
-		EventExchangeName: "BrokerMessageBus",
-		Mongo:             "localhost:27017/koding",
-		Mq: Mq{
-			Host:     "localhost",
-			Port:     5672,
-			Username: "PROD-k5it50s4676pO9O",
-			Password: "djfjfhgh4455__5",
-			Vhost:    "/",
-		},
+func Read(path string) *Config {
+
+	pwd, err := os.Getwd()
+	if err != nil {
+		panic(err)
 	}
+
+	configPath := filepath.Join(pwd, path)
+
+	var conf *Config
+	if _, err := toml.DecodeFile(configPath, &conf); err != nil {
+		panic(err)
+	}
+
+	return conf
+
+	// return &Config{
+	// 	// set postgres connection config
+	// 	Postgres: Postgres{
+	// 		Host:     "localhost",
+	// 		Port:     5432,
+	// 		Username: "postgres",
+	// 		Password: "123123123",
+	// 		DBName:   "social",
+	// 	},
+	// 	EventExchangeName: "BrokerMessageBus",
+	// 	Mongo:             "localhost:27017/koding",
+	// 	Mq: Mq{
+	// 		Host:     "localhost",
+	// 		Port:     5672,
+	// 		Username: "PROD-k5it50s4676pO9O",
+	// 		Password: "djfjfhgh4455__5",
+	// 		Vhost:    "/",
+	// 	},
+	// }
 }
