@@ -195,8 +195,6 @@ class LoginView extends KDView
     @failureNotice = new KDCustomHTMLView
       cssClass     : "failure-notice hidden"
 
-    KD.getSingleton("mainController").on "landingSidebarClicked", => @unsetClass 'landed'
-
     setValue = (field, value)=>
       @registerForm[field]?.input?.setValue value
       @registerForm[field]?.placeholder?.setClass 'out'
