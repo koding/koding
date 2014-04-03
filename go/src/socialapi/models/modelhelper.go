@@ -21,6 +21,8 @@ func Slugify(message *ChannelMessage) (*ChannelMessage, error) {
 		"slug": sugguestedSlug,
 	}
 
+	rand.Seed(time.Now().UnixNano())
+
 	for tryCount := 0; tryCount < 10; tryCount++ {
 		if err := bongo.B.One(message, res, query); err != nil {
 			// if we got error from db, it means it couldnt find the
