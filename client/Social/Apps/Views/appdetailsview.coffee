@@ -142,8 +142,10 @@ class AppDetailsView extends KDScrollView
         timeout  : 5000
         success  : (content, status)->
           if status is "success"
+            readmeView.setClass 'has-markdown'
             readmeView.updatePartial KD.utils.applyMarkdown content
         error    : ->
+          warn arguments
           readmeView.updatePartial "<p>README.md not found on #{repository}</p>"
 
     else
