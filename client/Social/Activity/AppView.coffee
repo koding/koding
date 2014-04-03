@@ -9,6 +9,7 @@ class ActivityAppView extends KDView
   isMember       = -> 'member' in roles
   canListMembers = -> 'list members' in permissions
   isPrivateGroup = -> not isKoding() and isGroup()
+  extractName    = (data) -> data.title or data.profile.nickname
 
 
   constructor:(options = {}, data)->
@@ -37,9 +38,6 @@ class ActivityAppView extends KDView
 
     @addSubView @sidebar
     @addSubView @tabs
-
-
-  extractName = (data)-> data.title or data.profile.nickname
 
 
   sidebarItemClicked: (item) ->
