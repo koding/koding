@@ -1,10 +1,13 @@
 # For Social API Developers
 
 ## get the watcher first
+
+``` sh
 go get github.com/skelterjohn/rerun
 go install github.com/skelterjohn/rerun
 go build github.com/skelterjohn/rerun
 
+```
 ## run the workers
 
 ``` sh
