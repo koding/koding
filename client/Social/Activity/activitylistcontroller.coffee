@@ -4,24 +4,23 @@ class ActivityListController extends KDListViewController
 
   constructor:(options={}, data)->
 
-    viewOptions                   = options.viewOptions or {}
-    viewOptions.cssClass          = KD.utils.curry 'activity-related', viewOptions.cssClass
-    viewOptions.comments         ?= yes
-    viewOptions.itemClass       or= options.itemClass
 
-    options.view                or= new KDListView viewOptions, data
     options.startWithLazyLoader  ?= yes
     options.lazyLoaderOptions     = partial : ''
     options.showHeader           ?= yes
+    options.scrollView           ?= no
+    options.wrapper              ?= no
+    options.boxed                ?= yes
+    options.itemClass           or= ActivityListItemView
+
+    options.viewOptions         or= {}
+    {viewOptions}                 = options
+    viewOptions.cssClass          = KD.utils.curry 'activity-related', viewOptions.cssClass
+    viewOptions.comments         ?= yes
 
     options.noItemFoundWidget    ?= new KDCustomHTMLView
       cssClass : "lazy-loader hidden"
       partial  : "There is no activity."
-
-    # this is regressed until i touch this again. - SY
-    # options.noMoreItemFoundWidget or= new KDCustomHTMLView
-    #   cssClass : "lazy-loader"
-    #   partial  : "There is no more activity."
 
     super options, data
 
