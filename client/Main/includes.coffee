@@ -32,6 +32,7 @@ module.exports = [
   "CommonViews/sharepopup.coffee",
   "CommonViews/sharelink.coffee",
   "CommonViews/linkviews/linkview.coffee",
+  "CommonViews/linkviews/linkmenuitemview.coffee",
   "CommonViews/linkviews/customlinkview.coffee",
   "CommonViews/linkviews/linkgroup.coffee",
   "CommonViews/linkviews/profilelinkview.coffee",
@@ -291,5 +292,7 @@ module.exports = [
   "styl/troubleshoot.styl",
   # "styl/formworkflow.styl"
   # "styl/resurrection.feeder.styl",
+
+  "styl/dock.responsive.styl"
 
 ]
