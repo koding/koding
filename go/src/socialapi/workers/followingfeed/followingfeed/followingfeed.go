@@ -102,7 +102,7 @@ func isEligible(cm *models.ChannelMessage) (bool, error) {
 		return false, nil
 	}
 
-	if cm.Type != models.ChannelMessage_TYPE_POST {
+	if cm.TypeConstant != models.ChannelMessage_TYPE_POST {
 		return false, nil
 	}
 
