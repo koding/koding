@@ -15,13 +15,13 @@ type Channel struct {
 	Id int64 `json:"id"`
 
 	// Name of the channel
-	Name string `json:"name"`
+	Name string `json:"name"                   sql:"NOT NULL;TYPE:VARCHAR(200);"`
 
 	// Creator of the channel
-	CreatorId int64 `json:"creatorId"`
+	CreatorId int64 `json:"creatorId"          sql:"NOT NULL"`
 
 	// Name of the group which channel is belong to
-	GroupName string `json:"groupName"`
+	GroupName string `json:"groupName"         sql:"NOT NULL;TYPE:VARCHAR(200);"`
 
 	// Purpose of the channel
 	Purpose string `json:"purpose"`
@@ -31,16 +31,16 @@ type Channel struct {
 	SecretKey string `json:"secretKey"`
 
 	// Type of the channel
-	Type string `json:"type"`
+	TypeConstant string `json:"typeConstant"   sql:"NOT NULL"`
 
 	// Privacy constant of the channel
-	Privacy string `json:"privacy"`
+	Privacy string `json:"privacy"             sql:"NOT NULL"`
 
 	// Creation date of the channel
-	CreatedAt time.Time `json:"createdAt"`
+	CreatedAt time.Time `json:"createdAt"      sql:"NOT NULL"`
 
 	// Modification date of the channel
-	UpdatedAt time.Time `json:"updatedAt"`
+	UpdatedAt time.Time `json:"updatedAt"      sql:"NOT NULL"`
 }
 
 // to-do check for allowed channels
