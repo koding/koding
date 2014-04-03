@@ -257,7 +257,7 @@ module.exports = class JNewApp extends jraphical.Module
         data.identifier         ?= "com.koding.apps.#{data.name.toLowerCase()}"
 
         {authorNick} = data.manifest
-
+        {name}       = data
         JNewApp.one {name, 'manifest.authorNick':authorNick}, (err, app)->
 
           return callback err  if err

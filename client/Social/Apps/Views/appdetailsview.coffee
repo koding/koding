@@ -178,14 +178,15 @@ class AppDetailsView extends KDScrollView
 
   pistachio:->
 
-    desc = @getData().manifest?.description or ""
-
+    {name, manifest} = @getData()
+    desc = manifest?.description or ""
+    name = manifest?.title or name
     """
 
       {{> @appLogo}}
 
       <div class="app-info">
-        <h3><a href="/#{@getData().slug}">#{@getData().name}</a></h3>
+        <h3><a href="/#{@getData().slug}">#{name}</a></h3>
         <h4>{{#(manifest.author)}}</h4>
 
         <div class="appdetails">
