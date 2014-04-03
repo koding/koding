@@ -10,13 +10,13 @@ go build github.com/skelterjohn/rerun
 ``` sh
 
 // main api
-../../../go/bin/rerun socialapi/workers/api -c vagrant -d
+../../../go/bin/rerun socialapi/workers/api -c ./config/vagrant.toml -d
 // to create topic feed
-../../../go/bin/rerun socialapi/workers/topicfeed -c vagrant
+../../../go/bin/rerun socialapi/workers/topicfeed -c ./config/vagrant.toml -d
 // sending realtime updates
-../../../go/bin/rerun socialapi/workers/realtime -c vagrant -d
+../../../go/bin/rerun socialapi/workers/realtime -c ./config/vagrant.toml -d
 // generating following feed
-../../../go/bin/rerun socialapi/workers/followingfeed -c vagrant
+../../../go/bin/rerun socialapi/workers/followingfeed -c ./config/vagrant.toml -d
 
 ```
 
