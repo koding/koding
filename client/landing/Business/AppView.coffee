@@ -34,25 +34,39 @@ class BusinessView extends KDView
           subTitle : "Keep control your team in a intranet-like space with ready to roll VMs, in the cloud!"
           imgUrl   : "/a/images/biz-slider/1.jpg"
 
-    @planSelectionWrapper = new KDView
+    @planSlidersWrapper = new KDView
 
     appManager = KD.singleton "appManager"
-    appManager.require "Pricing", (app) =>
+    appManager.require "Pricing", =>
 
-      @planSelectionView = new TeamPlan
-        pistachio :
-          """
-            <div class="big box with-arrow">
-              {{> @resourcePackSlider}}
-              {{> @userSlider}}
-            </div>
-            <div class="small box">
-              {{> @summary}}
-            </div>
-          """
+      @resPackSlider = new PricingPlanSelection
+        title             : "Resource Pack"
+        unitPrice         : 20
+        amountSuffix      : "x"
+        slider            :
+          minValue        : 1
+          maxValue        : 250
+          interval        : 5
+          snapOnDrag      : yes
+          handles         : [@resourceQuantity]
+          width           : 715
+          drawOpposite    : yes
 
-      @planSelectionWrapper.addSubView @planSelectionView
+      @userSlider = new PricingPlanSelection
+        title             : "Resource Pack"
+        unitPrice         : 20
+        amountSuffix      : "x"
+        slider            :
+          minValue        : 1
+          maxValue        : 250
+          interval        : 5
+          snapOnDrag      : yes
+          handles         : [@resourceQuantity]
+          width           : 715
+          drawOpposite    : yes
 
+      @planSlidersWrapper.addSubView @resPackSlider
+      @planSlidersWrapper.addSubView @userSlider
 
   viewAppended: JView::viewAppended
 
@@ -108,7 +122,12 @@ class BusinessView extends KDView
           <h3 class="general-title">Single developer or a team, doesn’t really matter</h3>
           <h4 class="general-subtitle">Super-scalable pricing for your scalable projects</h4>
 
-          {{> @planSelectionWrapper}}
+          <div class="big box with-arrow">
+            {{> @planSlidersWrapper}}
+          </div>
+          <div class="small box">
+
+          </div>
 
         </div>
       </section>
