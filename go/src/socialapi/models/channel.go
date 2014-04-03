@@ -112,7 +112,7 @@ func (c *Channel) Update() error {
 }
 
 func (c *Channel) Create() error {
-	if c.Name == "" || c.GroupName == "" || c.Type == "" {
+	if c.Name == "" || c.GroupName == "" || c.TypeConstant == "" {
 		return fmt.Errorf("Validation failed %s - %s", c.Name, c.GroupName)
 	}
 
