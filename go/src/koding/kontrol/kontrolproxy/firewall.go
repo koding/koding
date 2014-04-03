@@ -37,32 +37,29 @@ func firewallHandler(h http.Handler) http.Handler {
 				continue
 			}
 
-			err = checker.Check()
+			matched := checker.Check()
 			switch rule.Action {
 			case "deny":
-				if err == nil {
-					// block
-				} else {
-					continue
+				if matched {
+					templateHandler("quotaExceeded.html", r.Host, 509).ServeHTTP(w, r)
+					return
 				}
 			case "allow":
-				if err == nil {
-					//allow
-					continue
-				} else {
-					// block
+				if !matched {
+					templateHandler("quotaExceeded.html", r.Host, 509).ServeHTTP(w, r)
+					return
 				}
 			case "securepage":
-				if err == nil {
-					session, _ := store.Get(r, CookieVM)
-					log.Debug("getting cookie for: %s", r.Host)
-					cookieValue, ok := session.Values[r.Host]
-					if !ok || cookieValue != MagicCookieValue {
-						securePageHandler(session).ServeHTTP(w, r)
-						return
-					}
-				} else {
+				if !matched {
 					continue
+				}
+
+				session, _ := store.Get(r, CookieVM)
+				log.Debug("getting cookie for: %s", r.Host)
+				cookieValue, ok := session.Values[r.Host]
+				if !ok || cookieValue != MagicCookieValue {
+					securePageHandler(session).ServeHTTP(w, r)
+					return
 				}
 			}
 
@@ -82,7 +79,7 @@ func GetChecker(f models.Filter, ip string) (Checker, error) {
 }
 
 type Checker interface {
-	Check() error
+	Check() bool
 }
 
 type CheckIP struct {
@@ -90,21 +87,21 @@ type CheckIP struct {
 	Pattern string
 }
 
-func (c *CheckIP) Check() error {
+func (c *CheckIP) Check() bool {
 	if c.Pattern == "all" {
 		// assume allowed for all
-		return nil
+		return true
 	}
 
 	matched, err := regexp.MatchString(c.Pattern, c.IP)
 	if err != nil {
 		// do not block if the regex fails
-		return nil
+		return true
 	}
 
 	if matched {
-		return errors.New("access denied")
+		return false
 	}
 
-	return nil // not matched, give access
+	return true // not matched, give access
 }

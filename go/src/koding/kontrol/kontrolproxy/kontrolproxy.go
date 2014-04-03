@@ -732,22 +732,6 @@ func (p *Proxy) vm(req *http.Request, target *resolver.Target) http.Handler {
 	return reverseProxyHandler(nil, target.URL)
 }
 
-func securePageHandler(session *sessions.Session) http.Handler {
-	return context.ClearHandler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		log.Debug("saving cookie for %s", r.Host)
-		session.Values[r.Host] = MagicCookieValue
-		session.Options = &sessions.Options{MaxAge: 3600} //seconds -> 1h
-		session.Save(r, w)
-
-		err := templates.ExecuteTemplate(w, "securepage.html", tempData{Host: r.Host, Url: r.Host + r.URL.String()})
-		if err != nil {
-			log.Warning("template notOnVM could not be executed %s", err)
-			http.Error(w, "error code - 5", 404)
-			return
-		}
-	}))
-}
-
 func (p *Proxy) checkAndStartVM(hostnameAlias, hostkite, port string) (*url.URL, error) {
 	vmAddr, err := p.startVM(hostnameAlias, hostkite)
 	if err != nil {
@@ -824,6 +808,23 @@ func websocketHandler(target string) http.Handler {
 		go cp(nc, d)
 		<-errc
 	})
+}
+
+// securePageHandler is used to show a secure page to make the user click
+func securePageHandler(session *sessions.Session) http.Handler {
+	return context.ClearHandler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		log.Debug("saving cookie for %s", r.Host)
+		session.Values[r.Host] = MagicCookieValue
+		session.Options = &sessions.Options{MaxAge: 3600} //seconds -> 1h
+		session.Save(r, w)
+
+		err := templates.ExecuteTemplate(w, "securepage.html", tempData{Host: r.Host, Url: r.Host + r.URL.String()})
+		if err != nil {
+			log.Warning("template notOnVM could not be executed %s", err)
+			http.Error(w, "error code - 5", 404)
+			return
+		}
+	}))
 }
 
 // templateHandler is used to show static complied html pages. The path
