@@ -18,7 +18,7 @@ type Interaction struct {
 	AccountId int64 `json:"accountId"             sql:"NOT NULL"`
 
 	// Type of the interaction
-	TypeConstant string `json:"typeConstant"      sql:"NOT NULL"`
+	TypeConstant string `json:"typeConstant"      sql:"NOT NULL;TYPE:VARCHAR(100);"`
 
 	// Creation of the interaction
 	CreatedAt time.Time `json:"createdAt"         sql:"NOT NULL"`
