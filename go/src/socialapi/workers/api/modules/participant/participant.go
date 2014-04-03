@@ -14,7 +14,7 @@ func List(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface
 	channelId, err := helpers.GetURIInt64(u, "id")
 	if err != nil {
 		fmt.Println(err)
-		return helpers.NewBadRequestResponse()
+		return helpers.NewBadRequestResponse(err)
 	}
 
 	req := models.NewChannelParticipant()
@@ -24,7 +24,7 @@ func List(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface
 		if err == gorm.RecordNotFound {
 			return helpers.NewNotFoundResponse()
 		}
-		return helpers.NewBadRequestResponse()
+		return helpers.NewBadRequestResponse(err)
 	}
 
 	return helpers.NewOKResponse(participants)
@@ -33,12 +33,12 @@ func List(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface
 func Add(u *url.URL, h http.Header, req *models.ChannelParticipant) (int, http.Header, interface{}, error) {
 	channelId, err := helpers.GetURIInt64(u, "id")
 	if err != nil {
-		return helpers.NewBadRequestResponse()
+		return helpers.NewBadRequestResponse(err)
 	}
 
 	accountId, err := helpers.GetURIInt64(u, "accountId")
 	if err != nil {
-		return helpers.NewBadRequestResponse()
+		return helpers.NewBadRequestResponse(err)
 	}
 
 	req.AccountId = accountId
@@ -46,7 +46,7 @@ func Add(u *url.URL, h http.Header, req *models.ChannelParticipant) (int, http.H
 	req.Status = models.ChannelParticipant_STATUS_ACTIVE
 
 	if err := req.Create(); err != nil {
-		return helpers.NewBadRequestResponse()
+		return helpers.NewBadRequestResponse(err)
 	}
 
 	return helpers.NewOKResponse(req)
@@ -55,12 +55,12 @@ func Add(u *url.URL, h http.Header, req *models.ChannelParticipant) (int, http.H
 func Delete(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
 	channelId, err := helpers.GetURIInt64(u, "id")
 	if err != nil {
-		return helpers.NewBadRequestResponse()
+		return helpers.NewBadRequestResponse(err)
 	}
 
 	accountId, err := helpers.GetURIInt64(u, "accountId")
 	if err != nil {
-		return helpers.NewBadRequestResponse()
+		return helpers.NewBadRequestResponse(err)
 	}
 
 	req := models.NewChannelParticipant()
@@ -68,7 +68,7 @@ func Delete(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interfa
 	req.ChannelId = channelId
 
 	if err := req.Delete(); err != nil {
-		return helpers.NewBadRequestResponse()
+		return helpers.NewBadRequestResponse(err)
 	}
 
 	// yes it is deleted but not removed completely from our system
