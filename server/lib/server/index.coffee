@@ -260,17 +260,6 @@ app.all '/-/email/webhook', (req, res) ->
 
   res.send 'ok'
 
-app.get "/Landing/:page", (req, res, next) ->
-  {page}      = req.params
-  bongoModels = koding.models
-  {JGroup}    = bongoModels
-
-  generateFakeClient req, res, (err, client) ->
-    isLoggedIn req, res, (err, loggedIn, account) ->
-      JGroup.render.landing {account, page, client, bongoModels}, (err, body) ->
-        serve body, res
-
-
 isInAppRoute = (name)->
   [firstLetter] = name
   # user nicknames can start with numbers

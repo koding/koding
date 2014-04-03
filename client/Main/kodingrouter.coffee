@@ -270,7 +270,6 @@ class KodingRouter extends KDRouter
       '/'                      : handleRoot
       ''                       : handleRoot
 
-      '/Landing/:page'         : noop
       '/R/:username'           : ({params:{username}})->
         KD.mixpanel "Visit referrer url, success", {username}
 

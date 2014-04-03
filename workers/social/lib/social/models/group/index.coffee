@@ -392,7 +392,6 @@ module.exports = class JGroup extends Module
       groupHome  : require '../../render/loggedout/grouphome'
       kodingHome : require '../../render/loggedout/kodinghome'
       subPage    : require '../../render/loggedout/subpage'
-    landing      : require '../../render/landing'
 
   @__resetAllGroups = secure (client, callback)->
     {delegate} = client.connection

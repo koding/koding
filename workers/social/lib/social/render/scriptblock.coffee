@@ -2,7 +2,6 @@ module.exports = (options = {}, callback)->
   encoder = require 'htmlencode'
 
   options.intro                 ?= no
-  options.landing               ?= no
   options.client               or= {}
   options.client.context       or= {}
   options.client.context.group or= "koding"
@@ -16,7 +15,7 @@ module.exports = (options = {}, callback)->
   currentGroup     = {}
   usePremiumBroker = no
 
-  {bongoModels, client, intro, landing, slug} = options
+  {bongoModels, client, intro, slug} = options
 
   createHTML = ->
     replacer             = (k, v)-> if 'string' is typeof v then encoder.XSSEncode v else v
@@ -24,19 +23,13 @@ module.exports = (options = {}, callback)->
     encodedCampaignData  = JSON.stringify campaignData, replacer
     encodedCustomPartial = JSON.stringify customPartial, replacer
     currentGroup         = JSON.stringify currentGroup, replacer
-    landingOptions       = page : landing
 
     usePremiumBroker = usePremiumBroker or options.client.context.group isnt "koding"
-    landingOptions =
-      page         : landing
 
     if client.connection?.delegate?.profile?.nickname
       {connection: {delegate}} = client
       {profile   : {nickname}} = delegate
-      landingOptions.username  = nickname if delegate.type is "registered"
 
-
-    landingOptions = JSON.stringify landingOptions
     """
     <script>
       console.time("Framework loaded");
@@ -61,7 +54,6 @@ module.exports = (options = {}, callback)->
     #{if intro then "<script src='/a/js/introapp.#{ KONFIG.version }.js'></script>" else ''}
     <script>KD.currentGroup=#{currentGroup};</script>
     <script src='/a/js/koding.#{KONFIG.version}.js'></script>
-    #{if landing then "<script src='/a/js/landingapp.#{ KONFIG.version }.js'></script>" else ''}
     <script>KD.prefetchedFeeds=#{encodedFeed};</script>
 
 
