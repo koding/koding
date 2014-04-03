@@ -135,8 +135,8 @@ func (a *Account) FetchChannel(channelType string) (*Channel, error) {
 
 	c := NewChannel()
 	selector := map[string]interface{}{
-		"creator_id": a.Id,
-		"type":       channelType,
+		"creator_id":    a.Id,
+		"type_constant": channelType,
 	}
 
 	if err := c.One(selector); err != nil {
@@ -156,7 +156,7 @@ func (a *Account) CreateFollowingFeedChannel() (*Channel, error) {
 	c.Name = fmt.Sprintf("%d-FollowingFeedChannel", a.Id)
 	c.GroupName = Channel_KODING_NAME
 	c.Purpose = "Following Feed for Me"
-	c.Type = Channel_TYPE_FOLLOWERS
+	c.TypeConstant = Channel_TYPE_FOLLOWERS
 	if err := c.Create(); err != nil {
 		return nil, err
 	}
@@ -176,7 +176,7 @@ func (a *Account) FetchFollowerChannelIds() ([]int64, error) {
 	err = bongo.B.DB.
 		Table(cp.TableName()).
 		Where(
-		"creator_id IN (?) and type = ?",
+		"creator_id IN (?) and type_constant = ?",
 		followerIds,
 		Channel_TYPE_FOLLOWINGFEED,
 	).Find(&channelIds).Error
