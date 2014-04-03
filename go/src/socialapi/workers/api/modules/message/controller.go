@@ -12,7 +12,7 @@ import (
 func Create(u *url.URL, h http.Header, req *models.ChannelMessage) (int, http.Header, interface{}, error) {
 	channelId, err := helpers.GetURIInt64(u, "id")
 	if err != nil {
-		return helpers.NewBadRequestResponse()
+		return helpers.NewBadRequestResponse(err)
 	}
 
 	// override message type
@@ -25,7 +25,7 @@ func Create(u *url.URL, h http.Header, req *models.ChannelMessage) (int, http.He
 
 	if err := req.Create(); err != nil {
 		// todo this should be internal server error
-		return helpers.NewBadRequestResponse()
+		return helpers.NewBadRequestResponse(err)
 	}
 
 	cml := models.NewChannelMessageList()
@@ -35,7 +35,7 @@ func Create(u *url.URL, h http.Header, req *models.ChannelMessage) (int, http.He
 	cml.MessageId = req.Id
 	if err := cml.Create(); err != nil {
 		// todo this should be internal server error
-		return helpers.NewBadRequestResponse()
+		return helpers.NewBadRequestResponse(err)
 	}
 
 	return helpers.NewOKResponse(req)
@@ -44,7 +44,7 @@ func Create(u *url.URL, h http.Header, req *models.ChannelMessage) (int, http.He
 func Delete(u *url.URL, h http.Header, req *models.ChannelMessage) (int, http.Header, interface{}, error) {
 	id, err := helpers.GetURIInt64(u, "id")
 	if err != nil {
-		return helpers.NewBadRequestResponse()
+		return helpers.NewBadRequestResponse(err)
 	}
 
 	req.Id = id
@@ -53,11 +53,11 @@ func Delete(u *url.URL, h http.Header, req *models.ChannelMessage) (int, http.He
 		if err == gorm.RecordNotFound {
 			return helpers.NewNotFoundResponse()
 		}
-		return helpers.NewBadRequestResponse()
+		return helpers.NewBadRequestResponse(err)
 	}
 
 	if err := req.Delete(); err != nil {
-		return helpers.NewBadRequestResponse()
+		return helpers.NewBadRequestResponse(err)
 	}
 	// yes it is deleted but not removed completely from our system
 	return helpers.NewDeletedResponse()
@@ -66,7 +66,7 @@ func Delete(u *url.URL, h http.Header, req *models.ChannelMessage) (int, http.He
 func Update(u *url.URL, h http.Header, req *models.ChannelMessage) (int, http.Header, interface{}, error) {
 	id, err := helpers.GetURIInt64(u, "id")
 	if err != nil {
-		return helpers.NewBadRequestResponse()
+		return helpers.NewBadRequestResponse(err)
 	}
 	req.Id = id
 
@@ -75,16 +75,16 @@ func Update(u *url.URL, h http.Header, req *models.ChannelMessage) (int, http.He
 		if err == gorm.RecordNotFound {
 			return helpers.NewNotFoundResponse()
 		}
-		return helpers.NewBadRequestResponse()
+		return helpers.NewBadRequestResponse(err)
 	}
 
 	if req.Id == 0 {
-		return helpers.NewBadRequestResponse()
+		return helpers.NewBadRequestResponse(err)
 	}
 
 	req.Body = body
 	if err := req.Update(); err != nil {
-		return helpers.NewBadRequestResponse()
+		return helpers.NewBadRequestResponse(err)
 	}
 
 	return helpers.NewOKResponse(req)
@@ -93,7 +93,7 @@ func Update(u *url.URL, h http.Header, req *models.ChannelMessage) (int, http.He
 func Get(u *url.URL, h http.Header, req *models.ChannelMessage) (int, http.Header, interface{}, error) {
 	id, err := helpers.GetURIInt64(u, "id")
 	if err != nil {
-		return helpers.NewBadRequestResponse()
+		return helpers.NewBadRequestResponse(err)
 	}
 
 	req.Id = id
@@ -101,7 +101,7 @@ func Get(u *url.URL, h http.Header, req *models.ChannelMessage) (int, http.Heade
 		if err == gorm.RecordNotFound {
 			return helpers.NewNotFoundResponse()
 		}
-		return helpers.NewBadRequestResponse()
+		return helpers.NewBadRequestResponse(err)
 	}
 
 	return helpers.NewOKResponse(req)
