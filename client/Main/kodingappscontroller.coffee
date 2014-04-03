@@ -551,9 +551,7 @@ class KodingAppsController extends KDController
 
               url = "#{KD.config.appsUri}/#{repo.full_name}/#{commit.sha}/"
               manifest.commitId = commit.sha
-              KD.remote.api.JNewApp.publish {
-                name, url, manifest
-              }, callback
+              KD.remote.api.JNewApp.publish { name, url, manifest }, callback
 
             else
 

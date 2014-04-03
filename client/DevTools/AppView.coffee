@@ -298,9 +298,7 @@ class DevToolsMainView extends KDView
       return new KDNotificationView
         title : "Open an application first"
 
-    KodingAppsController.createJApp {
-      path, target
-    }, @publishCallback
+    KodingAppsController.createJApp { path, target }, @publishCallback
 
   publishCallback:(err, app)->
     if err or not app
