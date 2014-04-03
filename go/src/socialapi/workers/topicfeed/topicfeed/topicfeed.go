@@ -104,7 +104,7 @@ func ensureChannelMessages(parentChannel *models.Channel, data *models.ChannelMe
 		}
 
 		if err == gorm.RecordNotFound {
-			tc, err = createTopicChannel(data.AccountId, parentChannel.GroupName, topic, parentChannel.Privacy)
+			tc, err = createTopicChannel(data.AccountId, parentChannel.GroupName, topic, parentChannel.PrivacyConstant)
 			if err != nil {
 				return err
 			}
@@ -314,7 +314,7 @@ func createTopicChannel(creatorId int64, groupName, channelName, privacy string)
 	c.GroupName = groupName
 	c.Purpose = fmt.Sprintf("Channel for %s topic", channelName)
 	c.TypeConstant = models.Channel_TYPE_TOPIC
-	c.Privacy = privacy
+	c.PrivacyConstant = privacy
 	if err := c.Create(); err != nil {
 		return nil, err
 	}
