@@ -114,7 +114,7 @@ class AppDetailsView extends KDScrollView
       {repository} = app.manifest
       repoUrl   = repository.replace /^git\:\/\//, 'https://'
       proxyUrl  = repository.replace /^git\:\/\/github.com/, KD.config.appsUri
-      baseUrl   = "#{proxyUrl}/#{app.manifest.commitId}"
+      baseUrl   = "#{proxyUrl}/#{app.manifest.commitId or 'master'}"
       readmeUrl = "#{baseUrl}/README.md"
 
       @githubMenu = new KDButtonViewWithMenu
@@ -124,7 +124,7 @@ class AppDetailsView extends KDScrollView
         menu           :
           Repository   : link : repoUrl
           Issues       : link : "#{repoUrl}/issues"
-          Commits      : link : "#{repoUrl}/commits/#{app.manifest.commitId}"
+          Commits      : link : "#{repoUrl}/commits/#{app.manifest.commitId or 'master'}"
           Wiki         : link : "#{repoUrl}/wiki"
 
       # TODO: Implement clone app ~ GG
