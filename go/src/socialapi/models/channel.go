@@ -15,13 +15,13 @@ type Channel struct {
 	Id int64 `json:"id"`
 
 	// Name of the channel
-	Name string `json:"name"                   sql:"NOT NULL;TYPE:VARCHAR(200);"`
+	Name string `json:"name"                         sql:"NOT NULL;TYPE:VARCHAR(200);"`
 
 	// Creator of the channel
-	CreatorId int64 `json:"creatorId"          sql:"NOT NULL"`
+	CreatorId int64 `json:"creatorId"                sql:"NOT NULL"`
 
 	// Name of the group which channel is belong to
-	GroupName string `json:"groupName"         sql:"NOT NULL;TYPE:VARCHAR(200);"`
+	GroupName string `json:"groupName"               sql:"NOT NULL;TYPE:VARCHAR(200);"`
 
 	// Purpose of the channel
 	Purpose string `json:"purpose"`
@@ -31,16 +31,16 @@ type Channel struct {
 	SecretKey string `json:"secretKey"`
 
 	// Type of the channel
-	TypeConstant string `json:"typeConstant"   sql:"NOT NULL"`
+	TypeConstant string `json:"typeConstant"         sql:"NOT NULL;TYPE:VARCHAR(100);"`
 
 	// Privacy constant of the channel
-	Privacy string `json:"privacy"             sql:"NOT NULL"`
+	PrivacyConstant string `json:"privacyConstant"   sql:"NOT NULL;TYPE:VARCHAR(100);"`
 
 	// Creation date of the channel
-	CreatedAt time.Time `json:"createdAt"      sql:"NOT NULL"`
+	CreatedAt time.Time `json:"createdAt"            sql:"NOT NULL"`
 
 	// Modification date of the channel
-	UpdatedAt time.Time `json:"updatedAt"      sql:"NOT NULL"`
+	UpdatedAt time.Time `json:"updatedAt"            sql:"NOT NULL"`
 }
 
 // to-do check for allowed channels
@@ -60,13 +60,13 @@ const (
 
 func NewChannel() *Channel {
 	return &Channel{
-		Name:         "koding",
-		CreatorId:    123,
-		GroupName:    Channel_KODING_NAME,
-		Purpose:      "string",
-		SecretKey:    "string",
-		TypeConstant: Channel_TYPE_GROUP,
-		Privacy:      Channel_TYPE_PRIVATE,
+		Name:            "koding",
+		CreatorId:       123,
+		GroupName:       Channel_KODING_NAME,
+		Purpose:         "string",
+		SecretKey:       "string",
+		TypeConstant:    Channel_TYPE_GROUP,
+		PrivacyConstant: Channel_TYPE_PRIVATE,
 	}
 }
 
@@ -178,17 +178,17 @@ func (c *Channel) AddParticipant(participantId int64) (*ChannelParticipant, erro
 	// if we have this record in DB
 	if cp.Id != 0 {
 		// if status is not active
-		if cp.Status == ChannelParticipant_STATUS_ACTIVE {
+		if cp.StatusConstant == ChannelParticipant_STATUS_ACTIVE {
 			return nil, errors.New(fmt.Sprintf("Account %s is already a participant of channel %s", cp.AccountId, cp.ChannelId))
 		}
-		cp.Status = ChannelParticipant_STATUS_ACTIVE
+		cp.StatusConstant = ChannelParticipant_STATUS_ACTIVE
 		if err := cp.Update(); err != nil {
 			return nil, err
 		}
 		return cp, nil
 	}
 
-	cp.Status = ChannelParticipant_STATUS_ACTIVE
+	cp.StatusConstant = ChannelParticipant_STATUS_ACTIVE
 
 	if err := cp.Create(); err != nil {
 		return nil, err
@@ -216,11 +216,11 @@ func (c *Channel) RemoveParticipant(participantId int64) error {
 		return err
 	}
 
-	if cp.Status == ChannelParticipant_STATUS_LEFT {
+	if cp.StatusConstant == ChannelParticipant_STATUS_LEFT {
 		return nil
 	}
 
-	cp.Status = ChannelParticipant_STATUS_LEFT
+	cp.StatusConstant = ChannelParticipant_STATUS_LEFT
 	if err := cp.Update(); err != nil {
 		return err
 	}
@@ -237,8 +237,8 @@ func (c *Channel) FetchParticipantIds() ([]int64, error) {
 
 	query := &bongo.Query{
 		Selector: map[string]interface{}{
-			"channel_id": c.Id,
-			"status":     ChannelParticipant_STATUS_ACTIVE,
+			"channel_id":      c.Id,
+			"status_constant": ChannelParticipant_STATUS_ACTIVE,
 		},
 		Pluck: "account_id",
 	}
