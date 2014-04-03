@@ -15,10 +15,10 @@ type ChannelMessage struct {
 	Body string `json:"body"`
 
 	// Generated Slug for body
-	Slug string `json:"slug" 			           sql:"NOT NULL;UNIQUE"`
+	Slug string `json:"slug"                       sql:"NOT NULL;TYPE:VARCHAR(100);"`
 
 	// type of the message
-	Type string `json:"type"                        sql:"NOT NULL"`
+	TypeConstant string `json:"typeConstant"        sql:"NOT NULL"`
 
 	// Creator of the channel message
 	AccountId int64 `json:"accountId"               sql:"NOT NULL"`
