@@ -166,15 +166,12 @@ class AppDetailsView extends KDScrollView
             modal.destroy()
             callback? err
 
+
   viewAppended: JView::viewAppended
+
 
   pistachio:->
 
-    if @app.manifest.screenshots?.length
-      screenshots = """
-        <header><a href='#'>Screenshots</a></header>
-        <section class='screenshots'>{{> @slideShow}}</section>
-      """
     desc = @getData().manifest?.description or ""
 
     """
