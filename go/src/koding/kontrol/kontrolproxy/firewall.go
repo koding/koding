@@ -54,7 +54,13 @@ func firewallHandler(h http.Handler) http.Handler {
 				}
 			case "securepage":
 				if err == nil {
-					// show securepage
+					session, _ := store.Get(r, CookieVM)
+					log.Debug("getting cookie for: %s", r.Host)
+					cookieValue, ok := session.Values[r.Host]
+					if !ok || cookieValue != MagicCookieValue {
+						securePageHandler(session).ServeHTTP(w, r)
+						return
+					}
 				} else {
 					continue
 				}

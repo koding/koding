@@ -723,25 +723,29 @@ func (p *Proxy) vm(req *http.Request, target *resolver.Target) http.Handler {
 	log.Debug("getting cookie for: %s", req.Host)
 	cookieValue, ok := session.Values[req.Host]
 	if !ok || cookieValue != MagicCookieValue {
-		return context.ClearHandler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			log.Debug("saving cookie for %s", req.Host)
-			session.Values[req.Host] = MagicCookieValue
-			session.Options = &sessions.Options{MaxAge: 3600} //seconds -> 1h
-			session.Save(r, w)
-
-			err := templates.ExecuteTemplate(w, "securepage.html", tempData{Host: r.Host, Url: r.Host + r.URL.String()})
-			if err != nil {
-				log.Warning("template notOnVM could not be executed %s", err)
-				http.Error(w, "error code - 5", 404)
-				return
-			}
-		}))
+		return securePageHandler(session)
 	}
 
 	log.Debug("mode '%s' [%s] via %s : %s --> %s",
 		target.Proxy.Mode, userIP, target.FetchedSource, req.Host, target.URL.String())
 
 	return reverseProxyHandler(nil, target.URL)
+}
+
+func securePageHandler(session *sessions.Session) http.Handler {
+	return context.ClearHandler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		log.Debug("saving cookie for %s", r.Host)
+		session.Values[r.Host] = MagicCookieValue
+		session.Options = &sessions.Options{MaxAge: 3600} //seconds -> 1h
+		session.Save(r, w)
+
+		err := templates.ExecuteTemplate(w, "securepage.html", tempData{Host: r.Host, Url: r.Host + r.URL.String()})
+		if err != nil {
+			log.Warning("template notOnVM could not be executed %s", err)
+			http.Error(w, "error code - 5", 404)
+			return
+		}
+	}))
 }
 
 func (p *Proxy) checkAndStartVM(hostnameAlias, hostkite, port string) (*url.URL, error) {
