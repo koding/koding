@@ -15,15 +15,15 @@ module.exports = [
   "views/feedcoverphotoview.coffee",
   "views/activityactions.coffee",
   "views/activitylistheader.coffee",
-  "views/activitysplitview.coffee",
-  "views/activityitemchild.coffee",
-  "views/discussionactivityactions.coffee",
-  "views/tutorialactivityactions.coffee",
-  "views/newmemberbucket.coffee",
+  # "views/activitysplitview.coffee",
+  # "views/discussionactivityactions.coffee",
+  # "views/tutorialactivityactions.coffee",
+  # "views/newmemberbucket.coffee",
   "views/activitytickeritem.coffee",
   "views/referalbox.coffee",
-  "views/activitylistcontainer.coffee",
+  # "views/activitylistcontainer.coffee",
   "views/filterwarning.coffee",
+  "views/activitymenuitem.coffee",
 
   "views/embedbox.coffee",
   "views/embedboxwidget.coffee",
@@ -83,8 +83,7 @@ module.exports = [
   "ContentDisplays/ContentDisplayScoreBoard.coffee",
 
   # Activity List Items
-  "ListItems/ActivityListItem.coffee",
-  "ListItems/ActivityListItemStatusUpdate.coffee",
+  "ListItems/activitylistitem.coffee",
 
   "styl/activity.styl"
   "styl/activity.responsive.styl"
