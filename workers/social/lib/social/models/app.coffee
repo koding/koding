@@ -172,8 +172,6 @@ module.exports = class JNewApp extends jraphical.Module
       return new KodingError 'Name, Url and Manifest is required!'
     unless typeof(data.manifest) is 'object'
       return new KodingError 'Manifest should be an object!'
-    unless data.manifest.authorNick is profile.nickname
-      return new KodingError 'Authornick in manifest is different from your username!'
 
   validateUrl = (account, url, callback)->
 
@@ -239,7 +237,6 @@ module.exports = class JNewApp extends jraphical.Module
 
         data.urls = urls
         data.name = capitalize @slugify data.name
-        {name, manifest:{authorNick}} = data
 
         # Make sure the app name and the GitHub url matches if exists
         if details?
@@ -258,6 +255,8 @@ module.exports = class JNewApp extends jraphical.Module
         # Optionals
         data.manifest.version   ?= "1.0"
         data.identifier         ?= "com.koding.apps.#{data.name.toLowerCase()}"
+
+        {authorNick} = data.manifest
 
         JNewApp.one {name, 'manifest.authorNick':authorNick}, (err, app)->
 

@@ -106,7 +106,50 @@ class AppDetailsView extends KDScrollView
           tmpl += "<li><img src=\"#{KD.appsUri}/#{authorNick}/#{identifier}/#{version}/#{slide}\" /></li>"
         return tmpl
 
-    # @reviewView = new ReviewView {}, app
+    @detailsView = new KDView
+      cssClass  : "app-extras"
+
+    if app.status in ['verified', 'github-verified']
+
+      {repository} = app.manifest
+      repoUrl   = repository.replace /^git\:\/\//, 'https://'
+      proxyUrl  = repository.replace /^git\:\/\/github.com/, KD.config.appsUri
+      baseUrl   = "#{proxyUrl}/#{app.manifest.commitId}"
+      readmeUrl = "#{baseUrl}/README.md"
+
+      @githubMenu = new KDButtonViewWithMenu
+        itemChildClass : LinkMenuItemView
+        cssClass       : "github-menu"
+        style          : "resurrection"
+        menu           :
+          Repository   : link : repoUrl
+          Issues       : link : "#{repoUrl}/issues"
+          Commits      : link : "#{repoUrl}/commits/#{app.manifest.commitId}"
+          Wiki         : link : "#{repoUrl}/wiki"
+
+      # TODO: Implement clone app ~ GG
+      # @detailsView.addSubView new KDButtonView
+      #   title    : "Clone to my VM"
+      #   cssClass : "solid mini"
+      #   callback : -> alert()
+
+      @detailsView.addSubView readmeView = new KDView
+        cssClass : 'readme'
+        partial  : "<p>Fetching readme...</p>"
+
+      $.ajax
+        url      : readmeUrl
+        timeout  : 5000
+        success  : (content, status)->
+          if status is "success"
+            readmeView.updatePartial KD.utils.applyMarkdown content
+        error    : ->
+          readmeView.updatePartial "<p>README.md not found on #{repository}</p>"
+
+    else
+
+      @githubMenu = new KDView
+
 
   approveApp:(app, state, callback)->
 
@@ -129,15 +172,12 @@ class AppDetailsView extends KDScrollView
             modal.destroy()
             callback? err
 
+
   viewAppended: JView::viewAppended
+
 
   pistachio:->
 
-    if @app.manifest.screenshots?.length
-      screenshots = """
-        <header><a href='#'>Screenshots</a></header>
-        <section class='screenshots'>{{> @slideShow}}</section>
-      """
     desc = @getData().manifest?.description or ""
 
     """
@@ -158,26 +198,13 @@ class AppDetailsView extends KDScrollView
         <div class="versionstats updateddate">
           Version {{ #(manifest.version) || "---" }}
           <p>Released {{> @updatedTimeAgo}}</p>
+          {{> @githubMenu}}
         </div>
 
         {{> @actionButtons}}
 
       </div>
+
+      {{> @detailsView}}
+
     """
-    #   <header>
-    #     <a href='#'>About {{#(title)}}</a>
-    #   </header>
-    #   <section>
-    #     {{ @utils.applyTextExpansions #(manifest.description)}}
-    #   </section>
-
-    #   #{screenshots or ""}
-
-    #   <header>
-    #     <a href='#'>Reviews</a>
-    #   </header>
-    #   <section>
-    #     {{> @reviewView}}
-    #   </section>
-
-    # """

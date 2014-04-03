@@ -8,8 +8,8 @@ class AppsMainView extends KDView
 
   createCommons:->
 
-    header = new HeaderViewSection
+    @header = new HeaderViewSection
       type  : "big"
       title : "App Catalog"
 
-    @addSubView header
+    @addSubView @header

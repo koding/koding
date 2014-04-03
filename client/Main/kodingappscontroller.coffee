@@ -113,14 +113,22 @@ class KodingAppsController extends KDController
 
     repo = jApp.manifest.repository.replace /^git\:\/\//, "https://"
     script = jApp.urls.script.replace KD.config.appsUri, "https://raw.github.com"
+    authorLink = """
+      <a href="/#{jApp.manifest.authorNick}">#{jApp.manifest.author}</a>
+    """
 
     modal = new KDModalView
       title          : "Run #{jApp.manifest.name}"
       cssClass       : 'run-app-dialog'
       content        : """
-        <p><strong>Unverified apps are not moderated, they may be harmful.</strong></p>
         <p>
-          If you don't know <a href="/#{jApp.manifest.authorNick}">#{jApp.manifest.author}</a>, it's recommended that you don't run this app.
+          <strong>
+            Unverified apps are not moderated, they may be harmful.
+          </strong>
+        </p>
+        <p>
+          If you don't know #{authorLink}, it's recommended that
+          you don't run this app.
         </p>
         <p>This app can <span>Access your files</span>,
           <span>Access your account</span>, <span>Change your account</span>,
@@ -235,12 +243,8 @@ class KodingAppsController extends KDController
   defaultManifest = (type, name)->
 
     {profile} = KD.whoami()
-    fullName  = Encoder.htmlDecode KD.utils.getFullnameFromAccount()
     raw =
-      experimental  : no
       background    : no
-      hiddenHandle  : no
-      forceUpdate   : no
       behavior      : "application"
       version       : "0.1"
       title         : "#{name or type.capitalize()}"
@@ -248,8 +252,6 @@ class KodingAppsController extends KDController
       identifier    : "com.koding.apps.#{utils.slugify name or type}"
       path          : "~/Applications/#{name or type.capitalize()}.kdapp"
       homepage      : "#{profile.nickname}.#{KD.config.userSitesDomain}/#{utils.slugify name or type}"
-      author        : "#{fullName}"
-      authorNick    : "#{profile.nickname}"
       repository    : "git://github.com/#{profile.nickname}/#{utils.slugify name or type}.kdapp.git"
       description   : "#{name or type} : a Koding application created with the #{type} template."
       category      : "web-app" # can be web-app, add-on, server-stack, framework, misc
@@ -262,8 +264,6 @@ class KodingAppsController extends KDController
         type        : "tab"
       icns          :
         "128"       : "./resources/icon.128.png"
-      screenshots   : []
-      menu          : []
       fileTypes     : []
 
     json = JSON.stringify raw, null, 2
@@ -393,6 +393,15 @@ class KodingAppsController extends KDController
         styleFile.save content
 
     .then ->
+      readmeFile = FSHelper.createFileFromPath "#{appPath}/README.md"
+      readmeFile.fetchContents().then (content) ->
+        author  = Encoder.htmlDecode(KD.utils.getFullnameFromAccount())
+        content = content
+          .replace(/\%\%APPNAME\%\%/g, APPNAME)
+          .replace(/\%\%AUTHOR_FULLNAME\%\%/g , author)
+        readmeFile.save content
+
+    .then ->
       FSHelper.createFileFromPath("#{appPath}/manifest.json")
               .save manifestStr
     .then ->
@@ -509,22 +518,47 @@ class KodingAppsController extends KDController
 
         callback? { message: "Failed to compile: #{err}" }, app
 
-  @createJApp = ({path, githubPath}, callback)->
+  @createJApp = ({path, target}, callback)->
 
     app = @getAppInfoFromPath path
     return  unless app
+    {name} = app
 
     @compileAppOnServer path, (err)=>
       return warn err  if err
 
       @fetchManifest "#{app.path}/manifest.json", (err, manifest)->
 
-        {JNewApp} = KD.remote.api
-        JNewApp.publish {
-          name : app.name
-          url  : githubPath or app.fullPath
-          manifest
-        }, callback
+        if err? or not manifest
+          return new KDNotificationView
+            title : "Failed to fetch application manifest."
+
+        unless target is 'production'
+
+          return KD.remote.api.JNewApp.publish {
+            name, url: app.fullPath, manifest
+          }, callback
+
+        modal = new KodingAppSelectorForGitHub
+          title        : "Select repository of #{app.name}.kdapp"
+          customFilter : ///#{app.name}\.kdapp$///
+
+        modal.once "RepoSelected", (repo)->
+
+          GitHub.getLatestCommit repo.name, (err, commit)->
+
+            if not err and commit
+
+              url = "#{KD.config.appsUri}/#{repo.full_name}/#{commit.sha}/"
+              manifest.commitId = commit.sha
+              KD.remote.api.JNewApp.publish { name, url, manifest }, callback
+
+            else
+
+              new KDNotificationView
+                title : "Failed to fetch latest commit for #{repo.full_name}"
+
+            modal.destroy()
 
   @fetchManifest = (path, callback = noop)->
 

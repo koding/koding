@@ -12,7 +12,7 @@ appstore.styl
 body.apps
 
   .header-facets
-    height      30px
+    height      33px
     top         70px
 
     .title
@@ -72,8 +72,8 @@ body.apps
     background      white
     left            147px
     padding         20px
+    padding-right   240px
     height          97px
-    width           600px
     overflow        auto
     abs()
 
@@ -112,6 +112,69 @@ body.apps
     right      62px
     font-size  12px
     top        134px
+
+  .refresh-button
+    margin     1px 5px 0 0
+    padding    0
+
+    span.icon
+      r-sprite    app '30-refresh-icon-green'
+
+    &:hover
+      background  none
+      shadow      none
+
+    &:focus
+      border      none
+      shadow      none
+
+  .github-menu
+    top           10px
+    right         10px
+    cursor        pointer
+    abs()
+
+    button.kdbutton
+      position          relative
+      size              21px 21px
+      bg                color transparent
+      border            none
+      padding           0
+      padding-right     0 !important
+      span.icon
+        hidden()
+    .chevron-separator
+      hidden()
+    .chevron
+      r-sprite    activity chevron-icon
+      size        23px, 21px
+
+  .app-extras
+
+    line-height     18px
+    margin          10px 0
+
+    button
+      right   0
+      top     0
+      abs()
+
+    p
+      font-size     14px
+      padding       10px
+
+    .readme
+
+      background      white
+
+      h2
+        font-weight   400
+        font-size     18px
+        padding       10px
+        border-bottom 1px solid #eee
+
+      img
+        max-width     100%
 
   .installerbar
 
