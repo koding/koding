@@ -52,9 +52,7 @@ class ActivityAppView extends KDView
   createTab: (data) ->
 
     name = extractName data
-    pane = new MessagePane
-      name : name
 
-    KD.utils.applyGradient pane, KD.utils.stringToColor(name), KD.utils.stringToColor(name.split('').reverse().join(''))
+    @tabs.addPane pane = new MessagePane {name}
 
-    @tabs.addPane pane
+    return pane
