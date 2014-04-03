@@ -320,6 +320,61 @@ body.business
         abs               50% 0 0 100%
         margin            -6px 0 0 1px
 
+      .plan-selection-box
+        size              715px, auto
+        margin            0 auto
+        padding           24px 0 38px
+
+        &:first-of-type
+          border-bottom   1px solid #ededed
+
+        h4
+          font-size       20px
+          color           #6a6a6a
+
+          cite
+            margin-right  6px
+            fl()
+
+        h5
+          hidden()
+
+      .sliderbar-container
+        background    #dadada
+        shadow        inset 1px 1px 0 rgba(0, 0, 0, .16)
+        height        3px
+        border        none
+        margin        40px auto 0
+        shadow        inset 1px 1px 0 rgba(0, 0, 0, .16) !important
+        background    -webkit-linear-gradient(left, #00c052 0%, #ffd800 50%, #fe0000 100%) !important
+
+        .handle
+          size        33px, 33px
+          border      1px solid #e2e2e2
+          rounded     50%
+          background  #fff
+          shadow      0 3px 5px rgba(0,0,0,.13)
+          top         -16px
+          margin      0 0 0 -16px
+
+          &:after
+          &:before
+            hidden()
+
+        .sliderbar-label
+          color           transparent
+          margin-top      -26px
+          margin-bottom   0
+
+          &:after
+            size          2px, 8px
+            background    #e0e0e0
+
+        .opposite.bar
+          background          #dadada
+          shadow              inset 1px 1px 0 rgba(0, 0, 0, .16) \,
+                              0 0 0 1px #dadada
+
   section.quotes
     padding               0 0 68px
     border-bottom         1px solid #e1e1e1
