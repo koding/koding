@@ -65,6 +65,7 @@ module.exports = class Builder
       retina   : '@2x'
     , (err, helper)=>
       spriteHelper = helper
+      @buildKiteJs()
       @buildClient options
 
   buildFramework:->
@@ -78,8 +79,10 @@ module.exports = class Builder
       console.warn "------------------------ FRAMEWORK COMPILED -------------------------- "
 
   buildKiteJs: ->
-    exec "cd client/Framework;npm i;gulp", (err, stdout, stderr) ->
+    exec "cd kite.js;npm i;gulp", (err, stdout, stderr) ->
       console.log "------------------------- KITEJS COMPILED -------------------------"
+      console.log "STDOUT: #{ stdout }"
+      console.log "STDERR: #{ stderr }"
 
   buildClient: (options) ->
     @config ?= require('koding-config-manager').load("main.#{options.configFile}")
