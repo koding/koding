@@ -12,7 +12,7 @@ import (
 func Create(u *url.URL, h http.Header, reply *models.ChannelMessage) (int, http.Header, interface{}, error) {
 	parentId, err := helpers.GetURIInt64(u, "id")
 	if err != nil {
-		return helpers.NewBadRequestResponse()
+		return helpers.NewBadRequestResponse(err)
 	}
 
 	// first create reply as a message
@@ -21,7 +21,7 @@ func Create(u *url.URL, h http.Header, reply *models.ChannelMessage) (int, http.
 
 	if err := reply.Create(); err != nil {
 		// todo this should be internal server error
-		return helpers.NewBadRequestResponse()
+		return helpers.NewBadRequestResponse(err)
 	}
 
 	// then add this message as a reply to a parent message
@@ -31,7 +31,7 @@ func Create(u *url.URL, h http.Header, reply *models.ChannelMessage) (int, http.
 	mr.CreatedAt = reply.CreatedAt
 	if err := mr.Create(); err != nil {
 		// todo this should be internal server error
-		return helpers.NewBadRequestResponse()
+		return helpers.NewBadRequestResponse(err)
 	}
 
 	return helpers.NewOKResponse(reply)
@@ -40,22 +40,22 @@ func Create(u *url.URL, h http.Header, reply *models.ChannelMessage) (int, http.
 func Delete(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
 	parentId, err := helpers.GetURIInt64(u, "id")
 	if err != nil {
-		return helpers.NewBadRequestResponse()
+		return helpers.NewBadRequestResponse(err)
 	}
 
 	if parentId == 0 {
 		// todo add proper logging
-		return helpers.NewBadRequestResponse()
+		return helpers.NewBadRequestResponse(err)
 	}
 
 	replyId, err := helpers.GetURIInt64(u, "replyId")
 	if err != nil {
-		return helpers.NewBadRequestResponse()
+		return helpers.NewBadRequestResponse(err)
 	}
 
 	if replyId == 0 {
 		// todo add proper logging
-		return helpers.NewBadRequestResponse()
+		return helpers.NewBadRequestResponse(err)
 	}
 
 	// first delete the connection between message and the reply
@@ -63,14 +63,14 @@ func Delete(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interfa
 	mr.MessageId = parentId
 	mr.ReplyId = replyId
 	if err := mr.Delete(); err != nil {
-		return helpers.NewBadRequestResponse()
+		return helpers.NewBadRequestResponse(err)
 	}
 
 	// then delete the message itself
 	reply := models.NewChannelMessage()
 	reply.Id = replyId
 	if err := reply.Delete(); err != nil {
-		return helpers.NewBadRequestResponse()
+		return helpers.NewBadRequestResponse(err)
 	}
 
 	// yes it is deleted but not removed completely from our system
@@ -80,7 +80,7 @@ func Delete(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interfa
 func List(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
 	messageId, err := helpers.GetURIInt64(u, "id")
 	if err != nil {
-		return helpers.NewBadRequestResponse()
+		return helpers.NewBadRequestResponse(err)
 	}
 
 	reply := models.NewMessageReply()
@@ -91,7 +91,7 @@ func List(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface
 		if err == gorm.RecordNotFound {
 			return helpers.NewNotFoundResponse()
 		}
-		return helpers.NewBadRequestResponse()
+		return helpers.NewBadRequestResponse(err)
 	}
 
 	return helpers.NewOKResponse(replies)
