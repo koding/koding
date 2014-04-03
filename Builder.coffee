@@ -65,8 +65,8 @@ module.exports = class Builder
       retina   : '@2x'
     , (err, helper)=>
       spriteHelper = helper
-      @buildKiteJs()
-      @buildClient options
+      @buildKiteJs =>
+        @buildClient options
 
   buildFramework:->
 
@@ -78,11 +78,12 @@ module.exports = class Builder
       console.log  " $ #{cmd.replace 'compile ', ''} "
       console.warn "------------------------ FRAMEWORK COMPILED -------------------------- "
 
-  buildKiteJs: ->
+  buildKiteJs: (callback) ->
     exec "cd kite.js;npm i;gulp", (err, stdout, stderr) ->
       console.log "------------------------- KITEJS COMPILED -------------------------"
       console.log "STDOUT: #{ stdout }"
       console.log "STDERR: #{ stderr }"
+      callback()
 
   buildClient: (options) ->
     @config ?= require('koding-config-manager').load("main.#{options.configFile}")
@@ -90,7 +91,6 @@ module.exports = class Builder
     try fs.mkdirSync ".build"
 
     @buildFramework()
-    @buildKiteJs()
 
     if @config.client.runtimeOptions.precompiledApi
       exec 'coffee ./bongo-api-builder/build.coffee -o .build/api.js', =>
