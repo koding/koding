@@ -152,7 +152,7 @@ func main() {
 
 	p := &Proxy{
 		mux:             http.NewServeMux(),
-		enableFirewall:  false,
+		enableFirewall:  true,
 		cacheTransports: make(map[string]http.RoundTripper),
 		oskites:         make(map[string]*kite.Client),
 		resolvers:       make(map[string]Resolver),
@@ -437,15 +437,27 @@ func (p *Proxy) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// our main handler mux function goes and picks the correct handler
-	if h := p.getHandler(r); h != nil {
-		h.ServeHTTP(w, r)
+	var h http.Handler
+	h = p.getHandler(r)
+	if h == nil {
+		// it should never reach here, if yes something badly happens and needs to be fixed
+		log.Critical("couldn't find any handler")
+		http.Error(w, "Not found.", http.StatusNotFound)
 		return
 	}
 
-	// it should never reach here, if yes something badly happens and needs to be fixed
-	log.Critical("couldn't find any handler")
-	http.Error(w, "Not found.", http.StatusNotFound)
-	return
+	if p.enableFirewall {
+		h = firewallHandler(h)
+	}
+
+	h.ServeHTTP(w, r)
+}
+
+func firewallHandler(h http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+
+		h.ServeHTTP(w, r)
+	})
 }
 
 // getHandler returns the appropriate Handler for the given Request or nil if
