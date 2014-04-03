@@ -117,14 +117,15 @@ class AppDetailsView extends KDScrollView
       baseUrl   = "#{proxyUrl}/#{app.manifest.commitId}"
       readmeUrl = "#{baseUrl}/README.md"
 
-      @detailsView.addSubView new KDView
-        cssClass: "github-buttons"
-        partial : """
-          <a href="#{repoUrl}" target="_blank">Code Repository</a>
-          <a href="#{repoUrl}/issues" target="_blank">Issues</a>
-          <a href="#{repoUrl}/commits/#{app.manifest.commitId}" target="_blank">Commits for Current Release</a>
-          <a href="#{repoUrl}/wiki" target="_blank">Wiki</a>
-        """
+      @githubMenu = new KDButtonViewWithMenu
+        itemChildClass : LinkMenuItemView
+        cssClass       : "github-menu"
+        style          : "resurrection"
+        menu           :
+          Repository   : link : repoUrl
+          Issues       : link : "#{repoUrl}/issues"
+          Commits      : link : "#{repoUrl}/commits/#{app.manifest.commitId}"
+          Wiki         : link : "#{repoUrl}/wiki"
 
       # TODO: Implement clone app ~ GG
       # @detailsView.addSubView new KDButtonView
@@ -144,6 +145,11 @@ class AppDetailsView extends KDScrollView
             readmeView.updatePartial KD.utils.applyMarkdown content
         error    : ->
           readmeView.updatePartial "<p>README.md not found on #{repository}</p>"
+
+    else
+
+      @githubMenu = new KDView
+
 
   approveApp:(app, state, callback)->
 
@@ -192,6 +198,7 @@ class AppDetailsView extends KDScrollView
         <div class="versionstats updateddate">
           Version {{ #(manifest.version) || "---" }}
           <p>Released {{> @updatedTimeAgo}}</p>
+          {{> @githubMenu}}
         </div>
 
         {{> @actionButtons}}
