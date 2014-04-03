@@ -13,6 +13,20 @@ var (
 	restrictions = make(map[string]*models.Restriction)
 )
 
+type Checker interface {
+	Check() bool
+}
+
+type CheckIP struct {
+	IP      string
+	Pattern string
+}
+
+type CheckCountry struct {
+	Country string
+	Pattern string
+}
+
 func firewallHandler(h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		rest, err := modelhelper.GetRestrictionByDomain(r.Host)
@@ -32,7 +46,8 @@ func firewallHandler(h http.Handler) http.Handler {
 				continue // if not found just continue with next rule
 			}
 
-			checker, err := GetChecker(filter, getIP(r.RemoteAddr))
+			// country is empty for now
+			checker, err := GetChecker(filter, getIP(r.RemoteAddr), "")
 			if err != nil {
 				continue
 			}
@@ -69,22 +84,27 @@ func firewallHandler(h http.Handler) http.Handler {
 	})
 }
 
-func GetChecker(f models.Filter, ip string) (Checker, error) {
+func GetChecker(f models.Filter, ip, country string) (Checker, error) {
 	switch f.Type {
 	case "ip":
 		return &CheckIP{IP: ip, Pattern: f.Match}, nil
+	case "country":
+		return &CheckCountry{Country: country, Pattern: f.Match}, nil
 	}
 
 	return nil, errors.New("no checker found")
 }
 
-type Checker interface {
-	Check() bool
-}
+func (c *CheckCountry) Check() bool {
+	if c.Pattern == "all" {
+		return true
+	}
 
-type CheckIP struct {
-	IP      string
-	Pattern string
+	if c.Pattern == c.Country {
+		return true
+	}
+
+	return false
 }
 
 func (c *CheckIP) Check() bool {
