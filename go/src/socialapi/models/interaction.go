@@ -12,16 +12,16 @@ type Interaction struct {
 	Id int64 `json:"id"`
 
 	// Id of the interacted message
-	MessageId int64 `json:"messageId"`
+	MessageId int64 `json:"messageId"             sql:"NOT NULL"`
 
 	// Id of the actor
-	AccountId int64 `json:"accountId"`
+	AccountId int64 `json:"accountId"             sql:"NOT NULL"`
 
 	// Type of the interaction
-	Type string `json:"type"`
+	TypeConstant string `json:"typeConstant"      sql:"NOT NULL"`
 
 	// Creation of the interaction
-	CreatedAt time.Time `json:"createdAt"`
+	CreatedAt time.Time `json:"createdAt"         sql:"NOT NULL"`
 }
 
 var AllowedInteractions = map[string]struct{}{
