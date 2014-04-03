@@ -170,13 +170,16 @@ class AppsAppController extends AppController
         controller.loadFeed()  if loadFeed
         @emit 'ready'
 
+        {kiteButton} = @getView()
+        kiteButton.hide()
+
         controller.on "FilterChanged", (name) =>
           if name is "kites"
             @changeVerifiedSwitchVisibilty "hide"
-            @getView().kiteButton.show()
+            kiteButton.show()
           else
             @changeVerifiedSwitchVisibilty "show"
-            @getView().kiteButton.hide()
+            kiteButton.hide()
 
   handleQuery:(query)->
     @ready =>

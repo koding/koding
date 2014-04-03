@@ -1,6 +1,9 @@
 class KitePlanListItemView extends KDListItemView
+
   constructor: (options = {}, data) ->
+
     options.type = KD.utils.curry "kite-product"
+
     super options, data
 
     @subscribeButton = new KDButtonView
