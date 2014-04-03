@@ -43,8 +43,12 @@ class ActivityAppView extends KDView
   sidebarItemClicked: (item) ->
 
     data = item.getData()
+    pane = @tabs.getPaneByName extractName data
 
-    if pane = @tabs.getPaneByName extractName data
+
+    if pane and pane is @tabs.getActivePane()
+    then pane.refresh()
+    else if pane
     then @tabs.showPane pane
     else @createTab data
 
