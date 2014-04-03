@@ -43,7 +43,7 @@ func Add(u *url.URL, h http.Header, req *models.ChannelParticipant) (int, http.H
 
 	req.AccountId = accountId
 	req.ChannelId = channelId
-	req.Status = models.ChannelParticipant_STATUS_ACTIVE
+	req.StatusConstant = models.ChannelParticipant_STATUS_ACTIVE
 
 	if err := req.Create(); err != nil {
 		return helpers.NewBadRequestResponse(err)
