@@ -1,5 +1,6 @@
 # Refactor notes
 
+- broke Bugs app, needs to be fixed or removed
 - removed ReferalBox
 - removed Ticker
 - removed widget stuff
