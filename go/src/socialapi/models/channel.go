@@ -60,13 +60,13 @@ const (
 
 func NewChannel() *Channel {
 	return &Channel{
-		Name:      "koding",
-		CreatorId: 123,
-		GroupName: Channel_KODING_NAME,
-		Purpose:   "string",
-		SecretKey: "string",
-		Type:      Channel_TYPE_GROUP,
-		Privacy:   Channel_TYPE_PRIVATE,
+		Name:         "koding",
+		CreatorId:    123,
+		GroupName:    Channel_KODING_NAME,
+		Purpose:      "string",
+		SecretKey:    "string",
+		TypeConstant: Channel_TYPE_GROUP,
+		Privacy:      Channel_TYPE_PRIVATE,
 	}
 }
 
