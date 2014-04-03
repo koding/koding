@@ -270,7 +270,7 @@ func isEligible(cm *models.ChannelMessage) (bool, error) {
 		return false, nil
 	}
 
-	if cm.Type != models.ChannelMessage_TYPE_POST {
+	if cm.TypeConstant != models.ChannelMessage_TYPE_POST {
 		return false, nil
 	}
 
@@ -294,9 +294,9 @@ func fetchTopicChannel(groupName, channelName string) (*models.Channel, error) {
 	c := models.NewChannel()
 
 	selector := map[string]interface{}{
-		"group_name": groupName,
-		"name":       channelName,
-		"type":       models.Channel_TYPE_TOPIC,
+		"group_name":    groupName,
+		"name":          channelName,
+		"type_constant": models.Channel_TYPE_TOPIC,
 	}
 
 	err := c.One(selector)
@@ -313,7 +313,7 @@ func createTopicChannel(creatorId int64, groupName, channelName, privacy string)
 	c.CreatorId = creatorId
 	c.GroupName = groupName
 	c.Purpose = fmt.Sprintf("Channel for %s topic", channelName)
-	c.Type = models.Channel_TYPE_TOPIC
+	c.TypeConstant = models.Channel_TYPE_TOPIC
 	c.Privacy = privacy
 	if err := c.Create(); err != nil {
 		return nil, err
