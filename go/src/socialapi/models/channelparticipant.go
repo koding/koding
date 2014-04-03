@@ -14,22 +14,22 @@ type ChannelParticipant struct {
 	Id int64 `json:"id"`
 
 	// Id of the channel
-	ChannelId int64 `json:"channelId"`
+	ChannelId int64 `json:"channelId"        sql:"NOT NULL"`
 
 	// Id of the account
-	AccountId int64 `json:"accountId"`
+	AccountId int64 `json:"accountId"        sql:"NOT NULL"`
 
 	// Status of the participant in the channel
-	Status string `json:"status"`
+	Status string `json:"status"             sql:"NOT NULL"`
 
 	// date of the user's last access to regarding channel
-	LastSeenAt time.Time `json:"lastSeenAt"`
+	LastSeenAt time.Time `json:"lastSeenAt"  sql:"NOT NULL"`
 
 	// Creation date of the channel channel participant
-	CreatedAt time.Time `json:"createdAt"`
+	CreatedAt time.Time `json:"createdAt"    sql:"NOT NULL"`
 
 	// Modification date of the channel participant's status
-	UpdatedAt time.Time `json:"updatedAt"`
+	UpdatedAt time.Time `json:"updatedAt"   sql:"NOT NULL"`
 }
 
 // here is why i did this not-so-good constants
