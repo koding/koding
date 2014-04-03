@@ -13,13 +13,13 @@ type ChannelMessageList struct {
 	Id int64 `json:"id"`
 
 	// Id of the channel
-	ChannelId int64 `json:"channelId"`
+	ChannelId int64 `json:"channelId"     sql:"NOT NULL"`
 
 	// Id of the message
-	MessageId int64 `json:"messageId"`
+	MessageId int64 `json:"messageId"     sql:"NOT NULL"`
 
 	// Addition date of the message to the channel
-	AddedAt time.Time `json:"addedAt"`
+	AddedAt time.Time `json:"addedAt"     sql:"NOT NULL"`
 }
 
 func (c *ChannelMessageList) BeforeCreate() {
