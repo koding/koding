@@ -34,7 +34,7 @@ type TopicFeedController struct {
 }
 
 func (t *TopicFeedController) DefaultErrHandler(delivery amqp.Delivery, err error) {
-	t.log.Error("an error occured %s, \n putting message back to queue", err)
+	t.log.Error("an error occured putting message back to queue", err)
 	// multiple false
 	// reque true
 	delivery.Nack(false, true)
@@ -89,7 +89,7 @@ func (f *TopicFeedController) MessageSaved(data *models.ChannelMessage) error {
 
 	c, err := fetchChannel(data.InitialChannelId)
 	if err != nil {
-		f.log.Error("Error on fetchChannel %d, %s", data.InitialChannelId, err)
+		f.log.Error("Error on fetchChannel", data.InitialChannelId, err)
 		return err
 	}
 

@@ -179,7 +179,7 @@ func (c *Channel) AddParticipant(participantId int64) (*ChannelParticipant, erro
 	if cp.Id != 0 {
 		// if status is not active
 		if cp.StatusConstant == ChannelParticipant_STATUS_ACTIVE {
-			return nil, errors.New(fmt.Sprintf("Account %s is already a participant of channel %s", cp.AccountId, cp.ChannelId))
+			return nil, errors.New(fmt.Sprintf("Account %d is already a participant of channel %d", cp.AccountId, cp.ChannelId))
 		}
 		cp.StatusConstant = ChannelParticipant_STATUS_ACTIVE
 		if err := cp.Update(); err != nil {

@@ -18,7 +18,7 @@ type FollowingFeedController struct {
 }
 
 func (f *FollowingFeedController) DefaultErrHandler(delivery amqp.Delivery, err error) {
-	f.log.Error("an error occured %s, \n putting message back to queue", err)
+	f.log.Error("an error occured putting message back to queue", err)
 	// multiple false
 	// reque true
 	delivery.Nack(false, true)

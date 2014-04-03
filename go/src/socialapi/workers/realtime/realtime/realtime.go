@@ -23,7 +23,7 @@ type RealtimeWorkerController struct {
 }
 
 func (r *RealtimeWorkerController) DefaultErrHandler(delivery amqp.Delivery, err error) {
-	r.log.Error("an error occured %s, \n putting message back to queue", err)
+	r.log.Error("an error occured putting message back to queue", err)
 	// multiple false
 	// reque true
 	delivery.Nack(false, true)
