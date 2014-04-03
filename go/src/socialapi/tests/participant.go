@@ -99,7 +99,7 @@ func getChannelParticipants(channelId int64) ([]*models.ChannelParticipant, erro
 }
 
 func deleteChannelParticipant(channelId int64, data *models.ChannelParticipant) error {
-	data.Status = models.ChannelParticipant_STATUS_LEFT
+	data.StatusConstant = models.ChannelParticipant_STATUS_LEFT
 	url := fmt.Sprintf("/channel/%d/participant/%d", channelId, data.AccountId)
 	_, err := sendRequest("DELETE", url, nil)
 	return err
