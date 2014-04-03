@@ -14,22 +14,22 @@ type ChannelParticipant struct {
 	Id int64 `json:"id"`
 
 	// Id of the channel
-	ChannelId int64 `json:"channelId"        sql:"NOT NULL"`
+	ChannelId int64 `json:"channelId"              sql:"NOT NULL"`
 
 	// Id of the account
-	AccountId int64 `json:"accountId"        sql:"NOT NULL"`
+	AccountId int64 `json:"accountId"              sql:"NOT NULL"`
 
 	// Status of the participant in the channel
-	Status string `json:"status"             sql:"NOT NULL"`
+	StatusConstant string `json:"statusConstant"   sql:"NOT NULL;TYPE:VARCHAR(100);"`
 
 	// date of the user's last access to regarding channel
-	LastSeenAt time.Time `json:"lastSeenAt"  sql:"NOT NULL"`
+	LastSeenAt time.Time `json:"lastSeenAt"        sql:"NOT NULL"`
 
 	// Creation date of the channel channel participant
-	CreatedAt time.Time `json:"createdAt"    sql:"NOT NULL"`
+	CreatedAt time.Time `json:"createdAt"          sql:"NOT NULL"`
 
 	// Modification date of the channel participant's status
-	UpdatedAt time.Time `json:"updatedAt"   sql:"NOT NULL"`
+	UpdatedAt time.Time `json:"updatedAt"          sql:"NOT NULL"`
 }
 
 // here is why i did this not-so-good constants
@@ -84,7 +84,7 @@ func (c *ChannelParticipant) FetchParticipant() error {
 	selector := map[string]interface{}{
 		"channel_id": c.ChannelId,
 		"account_id": c.AccountId,
-		// "status":     ChannelParticipant_STATUS_ACTIVE,
+		// "status_constant":     ChannelParticipant_STATUS_ACTIVE,
 	}
 
 	err := bongo.B.One(c, c, selector)
@@ -111,7 +111,7 @@ func (c *ChannelParticipant) Delete() error {
 
 	return bongo.B.UpdatePartial(c,
 		bongo.Partial{
-			"status": ChannelParticipant_STATUS_LEFT,
+			"status_constant": ChannelParticipant_STATUS_LEFT,
 		},
 	)
 }
@@ -124,8 +124,8 @@ func (c *ChannelParticipant) List() ([]ChannelParticipant, error) {
 	}
 	query := &bongo.Query{
 		Selector: map[string]interface{}{
-			"channel_id": c.ChannelId,
-			"status":     ChannelParticipant_STATUS_ACTIVE,
+			"channel_id":      c.ChannelId,
+			"status_constant": ChannelParticipant_STATUS_ACTIVE,
 		},
 	}
 
