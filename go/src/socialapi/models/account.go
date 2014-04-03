@@ -12,7 +12,8 @@ type Account struct {
 	// unique id of the account
 	Id int64 `json:"id"`
 	// old id of the account, which is coming from mongo
-	OldId string `json:"oldId"`
+	// mongo ids has 24 char
+	OldId string `json:"oldId"      sql:"NOT NULL;UNIQUE;TYPE:VARCHAR(24);"`
 }
 
 func NewAccount() *Account {
