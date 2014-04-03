@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"io/ioutil"
 	"koding/db/models"
+	"koding/tools/dnode"
+	"koding/tools/kite"
 	"koding/virt"
 	"net/http"
 
@@ -85,8 +87,8 @@ func NewUsage(vos *virt.VOS) (*Plan, error) {
 	return usage, nil
 }
 
-func (p *Plan) checkLimits(username string) (*PlanResponse, error) {
-	planID, err := getSubscription(username)
+func (p *Plan) checkLimits(username, groupname string) (*PlanResponse, error) {
+	planID, err := getSubscription(username, groupname)
 	if err != nil {
 		log.Critical("oskite checkLimits err: %v", err)
 		return nil, errors.New("couldn't fetch subscription")
@@ -110,14 +112,26 @@ func (p *Plan) checkLimits(username string) (*PlanResponse, error) {
 	return resp, nil
 }
 
-func vmUsage(vos *virt.VOS, username string) (interface{}, error) {
+func vmUsage(args *dnode.Partial, vos *virt.VOS, username string) (interface{}, error) {
+	var params struct {
+		GroupName string
+	}
+
+	if args == nil {
+		return nil, &kite.ArgumentError{Expected: "empy argument passed"}
+	}
+
+	if args.Unmarshal(&params) != nil || params.GroupName == "" {
+		return nil, &kite.ArgumentError{Expected: "{ groupName: [string] }"}
+	}
+
 	usage, err := NewUsage(vos)
 	if err != nil {
 		log.Info("vm.usage [%s] err: %v", vos.VM.HostnameAlias, err)
 		return nil, errors.New("vm.usage couldn't be retrieved. please consult to support.")
 	}
 
-	return usage.checkLimits(username)
+	return usage.checkLimits(username, params.GroupName)
 }
 
 type KiteStore struct {
@@ -142,7 +156,7 @@ func getKiteCode() (string, error) {
 	return kiteStore.KiteCode, nil
 }
 
-func getSubscription(username string) (string, error) {
+func getSubscription(username, groupname string) (string, error) {
 	endpointURL := "https://lvh.me:3020"
 
 	code, err := getKiteCode()
@@ -154,7 +168,7 @@ func getSubscription(username string) (string, error) {
 		return "", errors.New("kite code is empty")
 	}
 
-	resp, err := http.Get(endpointURL + "/-/subscription/check/" + code + "/" + username)
+	resp, err := http.Get(endpointURL + "/-/subscription/check/" + code + "/" + username + "/" + groupname)
 	if err != nil {
 		return "", err
 	}
