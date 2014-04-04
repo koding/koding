@@ -351,8 +351,8 @@ class VirtualizationController extends KDController
 
   shouldUseNewKites: ->
     new Promise (resolve, reject) ->
-      return resolve KD.useNewKites  if KD.useNewKites?
       KD.remote.api.JKiteStack.fetchInfo (err, info) ->
+        return resolve info.isEnabled and KD.useNewKites  if KD.useNewKites?
         return reject err  if err?
         useNewKites = info.isEnabled and Math.random() <= info.ratio
         KD.useNewKites = useNewKites
