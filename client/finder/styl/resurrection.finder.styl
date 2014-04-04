@@ -202,8 +202,17 @@ resurrection.finder.styl
 
 .file-container
 
+  .app-header
+    size          100%, 58px
+    background    #1b2224
+    line-height   58px
+    color         #676f71
+    font-size     14px
+    text-indent   10px
+
+
   .kdbutton#finder-mountvm
-    background    #252e30
+    background    #1b2224
     border        none
     display       block
     color         #60787d
@@ -213,6 +222,8 @@ resurrection.finder.styl
     text-shadow   none
     width         96%
     margin        2%
+    abs           0 0 0px 0
+    z-index       20
 
     &:hover
       background  #60787d
