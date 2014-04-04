@@ -62,6 +62,11 @@ func (m *MessageReply) Delete() error {
 	return nil
 }
 
+func (m *MessageReply) Some(data interface{}, q *bongo.Query) error {
+
+	return bongo.B.Some(m, data, q)
+}
+
 func (m *MessageReply) List() ([]ChannelMessage, error) {
 	var replies []int64
 
@@ -69,6 +74,7 @@ func (m *MessageReply) List() ([]ChannelMessage, error) {
 		return nil, errors.New("MessageId is not set")
 	}
 
+	// TODO change this with FetchReplyIds methods
 	if err := bongo.B.DB.Table(m.TableName()).
 		Where("message_id = ?", m.MessageId).
 		Pluck("reply_id", &replies).
@@ -83,4 +89,19 @@ func (m *MessageReply) List() ([]ChannelMessage, error) {
 	}
 
 	return channelMessageReplies, nil
+}
+
+func (m *MessageReply) FetchReplyIds() ([]int64, error) {
+	var replyIds []int64
+	q := &bongo.Query{
+		Selector: map[string]interface{}{
+			"message_id": m.MessageId,
+		},
+		Pluck: "reply_id",
+	}
+	if err := m.Some(&replyIds, q); err != nil {
+		return nil, err
+	}
+
+	return replyIds, nil
 }
