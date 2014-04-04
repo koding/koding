@@ -141,9 +141,6 @@ func (b *Bongo) Some(i Modellable, data interface{}, q *Query) error {
 	// init query
 	query := b.DB
 
-	// add pluck data
-	query = addPluck(query, q.Pluck)
-
 	// add sort options
 	query = addSort(query, q.Sort)
 
@@ -153,7 +150,21 @@ func (b *Bongo) Some(i Modellable, data interface{}, q *Query) error {
 	// add selector
 	query = addWhere(query, q.Selector)
 
-	err := query.Find(data).Error
+	var err error
+	// TODO refactor this part
+	if q.Pluck != "" {
+		if strings.Contains(q.Pluck, ",") {
+			// add pluck data
+			query = addPluck(query, q.Pluck)
+
+			err = query.Find(data).Error
+		} else {
+			err = query.Pluck(q.Pluck, data).Error
+		}
+	} else {
+		err = query.Find(data).Error
+	}
+
 	if err == gorm.RecordNotFound {
 		return nil
 	}
