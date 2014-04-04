@@ -7,6 +7,10 @@ import (
 	"koding/db/mongodb/modelhelper"
 	"net/http"
 	"regexp"
+
+	"github.com/coreos/etcd/log"
+	"github.com/coreos/etcd/store"
+	"github.com/juju/ratelimit"
 )
 
 var (
@@ -25,6 +29,10 @@ type CheckIP struct {
 type CheckCountry struct {
 	Country string
 	Pattern string
+}
+
+type CheckRequest struct {
+	Domain string
 }
 
 func firewallHandler(h http.Handler) http.Handler {
@@ -103,6 +111,25 @@ func GetChecker(f models.Filter, ip, country string) (Checker, error) {
 	}
 
 	return nil, errors.New("no checker found")
+}
+
+var buckets = make(map[string]*ratelimit.Bucket)
+
+func (c *CheckRequest) Check() bool {
+	var b *ratelimit.Bucket
+	b, ok := buckets[c.Domain]
+	if !ok {
+		b = ratelimit.NewBucketWithRate(60, 60)
+		buckets[c.Domain] = b
+	}
+
+	// one request
+	available := b.TakeAvailable(1)
+	if available == 0 {
+		return false
+	}
+
+	return true
 }
 
 func (c *CheckCountry) Check() bool {
