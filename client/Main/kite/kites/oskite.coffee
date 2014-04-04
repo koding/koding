@@ -57,29 +57,27 @@ class KodingKite_OsKite extends KodingKite_VmKite
 
   fetchState: ->
     @vmInfo().then (state) =>
+      @emit 'vmOn'  if state.state is 'RUNNING' and
+                       @recentState?.state isnt 'RUNNING'
       @recentState = state
       @emit 'vm.state.info', @recentState
-      
-      unless KD.useNewKites or state
-        @cycleChannel() # backend's cycleChannel regressed - SY
+
+  changeState: (state, event, finEvent, method) ->
+    if not @recentState? or @recentState.state isnt state
+      method.call this, onProgress: (update) =>
+        return @handleError update  if update.error
+        if update.message is 'FINISHED'
+          @recentState?.state = state
+          @emit finEvent
+        @emit event, update
+    else
+      Promise.resolve()
 
   vmOn: ->
-    if not @recentState? or @recentState.state is 'STOPPED'
-      @vmPrepareAndStart onProgress: (update) =>
-        @emit 'vm.progress.start', update
-        if update.message is 'FINISHED'
-          @recentState?.state = 'RUNNING'
-    else
-      Promise.resolve()
+    @changeState 'RUNNING', 'vm.progress.start', 'vmOn', @vmPrepareAndStart
 
   vmOff: ->
-    if not @recentState? or @recentState.state is 'RUNNING'
-      @vmStopAndUnprepare onProgress: (update) =>
-        @emit 'vm.progress.stop', update
-        if update.message is 'FINISHED'
-          @recentState?.state = 'STOPPED'
-    else
-      Promise.resolve()
+    @changeState 'STOPPED', 'vm.progress.stop', 'vmOff', @vmStopAndUnprepare
 
   fsExists: (options) ->
     @fsGetInfo(options).then (result) -> return !!result

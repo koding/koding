@@ -238,26 +238,33 @@ class VirtualizationController extends KDController
     (KD.getSingleton 'kiteController')
       .getKite "#{ type }-#{ region }", hostnameAlias, type
 
-  registerNewKite: (name, id, kite) ->
+  registerNewKite: (name, correlationName, kite) ->
     @kites[name] ?= {}
-    @kites[name][id] = kite
+    @kites[name][correlationName] = kite
+
+  createNewKite: (name, vm) ->
+
+    kontrol = KD.getSingleton 'kontrol'
+
+    { hostnameAlias: correlationName, region } = vm
+
+    query = { name, correlationName, region }
+
+    kiteExisted = kontrol.hasKite query
+
+    kite = kontrol.getKite query
+
+    unless kiteExisted
+      @listenToVmState vm, kite
+
+      @registerNewKite name, correlationName, kite
+
+    return kite
 
   registerNewKites: (vms) ->
-    kontrol = KD.getSingleton 'kontrol'
-    for name in ['oskite', 'terminal']
-      for vm in vms
-        { hostnameAlias: correlationName, region } = vm
-
-        query = { name, correlationName, region }
-
-        kiteExisted = kontrol.hasKite query
-
-        kite = kontrol.getKite query
-
-        unless kiteExisted
-          @listenToVmState vm, kite
-
-          @registerNewKite name, correlationName, kite
+    vms.forEach (vm) =>
+      (@createNewKite 'oskite', vm).on 'vmOn', =>
+        @createNewKite 'terminal', vm
 
   registerKite: (vm) ->
     alias = vm.hostnameAlias
@@ -269,10 +276,8 @@ class VirtualizationController extends KDController
 
     # we need to wait until the vm is on before opening a connection to the
     # terminal kite.
-    kite.on 'vm.progress.start', onready = (update) =>
-      if update.state is 'FINISHED' and not update.err?
-        kite.off 'vm.progress.start', onready
-        @terminalKites[alias] = @getKite vm, 'terminal'
+    kite.on 'ready', =>
+      @terminalKites[alias] = @getKite vm, 'terminal'
 
 
   listenToVmState: (vm, kite) ->

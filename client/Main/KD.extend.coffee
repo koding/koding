@@ -4,7 +4,10 @@ KD.extend
   apiUri       : KD.config.apiUri
   appsUri      : KD.config.appsUri
   singleton    : KD.getSingleton.bind KD
-  useNewKites  : localStorage.useNewKites ? no
+  useNewKites  :
+    if localStorage.useNewKites?
+    then Boolean localStorage.useNewKites
+    else no
   appClasses   : {}
   appScripts   : {}
   appLabels    : {}
