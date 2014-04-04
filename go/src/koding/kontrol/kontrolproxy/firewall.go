@@ -37,51 +37,61 @@ func firewallHandler(h http.Handler) http.Handler {
 		}
 
 		for _, rule := range rest.RuleList {
-			if !rule.Enabled {
-				continue
+			if a := ApplyRule(rule, r); a != nil {
+				a.ServeHTTP(w, r)
+				return
 			}
-
-			filter, err := modelhelper.GetFilterByField("name", rule.Name)
-			if err != nil {
-				continue // if not found just continue with next rule
-			}
-
-			// country is empty for now
-			checker, err := GetChecker(filter, getIP(r.RemoteAddr), "")
-			if err != nil {
-				continue
-			}
-
-			matched := checker.Check()
-			switch rule.Action {
-			case "deny":
-				if matched {
-					templateHandler("quotaExceeded.html", r.Host, 509).ServeHTTP(w, r)
-					return
-				}
-			case "allow":
-				if !matched {
-					templateHandler("quotaExceeded.html", r.Host, 509).ServeHTTP(w, r)
-					return
-				}
-			case "securepage":
-				if !matched {
-					continue
-				}
-
-				session, _ := store.Get(r, CookieVM)
-				log.Debug("getting cookie for: %s", r.Host)
-				cookieValue, ok := session.Values[r.Host]
-				if !ok || cookieValue != MagicCookieValue {
-					securePageHandler(session).ServeHTTP(w, r)
-					return
-				}
-			}
-
 		}
 
 		h.ServeHTTP(w, r)
 	})
+}
+
+// ApplyRule checks the rule and returns an http.Handler to be executed. A nil
+// handler means there is no http.Handler to be executed. For example if the
+// user is allowed to pass the rule a "nil" http.Handler is returned, however
+// if the user is denied a `quotaExceeded` template handler is returned that
+// neneeds to be exectued
+func ApplyRule(rule models.Rule, r *http.Request) http.Handler {
+	if !rule.Enabled {
+		return nil
+	}
+
+	filter, err := modelhelper.GetFilterByField("name", rule.Name)
+	if err != nil {
+		return nil // if not found just continue with next rule
+	}
+
+	// country is empty for now
+	checker, err := GetChecker(filter, getIP(r.RemoteAddr), "")
+	if err != nil {
+		return nil
+	}
+
+	matched := checker.Check()
+	switch rule.Action {
+	case "deny":
+		if matched {
+			return templateHandler("quotaExceeded.html", r.Host, 509)
+		}
+	case "allow":
+		if !matched {
+			return templateHandler("quotaExceeded.html", r.Host, 509)
+		}
+	case "securepage":
+		if !matched {
+			return nil
+		}
+
+		session, _ := store.Get(r, CookieVM)
+		log.Debug("getting cookie for: %s", r.Host)
+		cookieValue, ok := session.Values[r.Host]
+		if !ok || cookieValue != MagicCookieValue {
+			return securePageHandler(session)
+		}
+	}
+
+	return nil
 }
 
 func GetChecker(f models.Filter, ip, country string) (Checker, error) {
