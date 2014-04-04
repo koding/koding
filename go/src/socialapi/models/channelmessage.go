@@ -203,3 +203,47 @@ func (c *ChannelMessage) BuildMessage(query *Query) (*ChannelMessageContainer, e
 	cmc.Replies = populatedChannelMessagesReplies
 	return cmc, nil
 }
+
+func (c *ChannelMessage) FetchReplierIds() ([]int64, error) {
+	if c.Id == 0 {
+		return nil, IdNotSet
+	}
+
+	replyIds, err := c.fetchReplies()
+
+	// adding message owner
+	replyIds = append(replyIds, c.Id)
+
+	messages, err := c.FetchByIds(replyIds)
+	if err != nil {
+		return nil, err
+	}
+	accountIds := fetchDistinctAccounts(messages)
+
+	return accountIds, nil
+}
+
+func (c *ChannelMessage) fetchReplies() ([]int64, error) {
+	// fetch all replies
+	mr := NewMessageReply()
+	mr.MessageId = c.Id
+	return mr.FetchReplyIds()
+}
+
+func fetchDistinctAccounts(messages []ChannelMessage) []int64 {
+	accountIds := make([]int64, 0)
+	if len(messages) == 0 {
+		return accountIds
+	}
+
+	accountIdMap := make(map[int64]interface{})
+	for _, message := range messages {
+		accountIdMap[message.AccountId] = true
+	}
+
+	for key, _ := range accountIdMap {
+		accountIds = append(accountIds, key)
+	}
+
+	return accountIds
+}

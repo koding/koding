@@ -75,7 +75,7 @@ func (n *Notification) FetchMessageRepliers() ([]int64, error) {
 	// fetch all repliers
 	cm := NewChannelMessage()
 	cm.Id = n.TargetId
-	return cm.FetchRepliers()
+	return cm.FetchReplierIds()
 }
 
 func (n *Notification) NotifyUsers(notifiees []int64) error {
