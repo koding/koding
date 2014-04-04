@@ -1,11 +1,15 @@
 # MAKEFLAGS += -j
 NO_COLOR=\033[0m
 OK_COLOR=\033[0;32m
-PWD=`pwd`
-GODIR=$(PWD)/../../../go
+CWD=`pwd`
+GODIR=$(CWD)/../../../go
 GOBINDIR=$(GODIR)/bin
 CONFIG=./config/vagrant.toml
-GO=
+
+MAJOR=0
+MINOR=1
+# export MAJOR
+# export MINOR
 
 develop: apidev topicfeeddev realtimedev followingfeeddev
 
@@ -62,5 +66,40 @@ doc:
 
 vet:
 	@`which go` tool vet -all=true .
+
+pkgs = \
+	followingfeed \
+	realtime \
+	rerun \
+	topicfeed
+
+dep:
+	@echo "$(OK_COLOR)==> Copying files $(NO_COLOR)";
+	@for pkg in $(pkgs); \
+	do \
+	TMP=/tmp/socialapi; \
+	OUTFOLDER=$$TMP/out; \
+	CONTENTFOLDER=$$TMP/$$pkg; \
+	ZIPNAME=$$OUTFOLDER/$$pkg-$(MAJOR).$(MINOR).tar; \
+	mkdir -p $$TMP; \
+	mkdir -p $$OUTFOLDER; \
+	rm -rf $$CONTENTFOLDER; \
+	mkdir $$CONTENTFOLDER; \
+	cp $(GOBINDIR)/$$pkg $$CONTENTFOLDER ;\
+	cp $(CONFIG) $$CONTENTFOLDER ;\
+    done;
+
+	@echo "$(OK_COLOR)==> Generating TAR files $(NO_COLOR)";
+	@for pkg in $(pkgs); \
+	do \
+	TMP=/tmp/socialapi; \
+	OUTFOLDER=$$TMP/out; \
+	CONTENTFOLDER=$$TMP/$$pkg; \
+	ZIPNAME=$$OUTFOLDER/$$pkg-$(MAJOR).$(MINOR).tar; \
+    echo "Creating" $$ZIPNAME ;\
+	cd $$TMP && tar cof $$ZIPNAME ./$$pkg; \
+	done;
+
+	@echo "$(OK_COLOR)==> Files are located at files $(NO_COLOR)";
 
 .PHONY: all
