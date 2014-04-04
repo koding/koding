@@ -1,1 +1,1 @@
-../../../kite.js/browser/kite-promises-bundle.js
+../../../node_modules/kite.js/browser/kite-promises-bundle.js
