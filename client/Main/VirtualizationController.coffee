@@ -29,7 +29,7 @@ class VirtualizationController extends KDController
       return callback err  if err?
       options.correlationName = vmName
       @fetchRegion vmName, (region)=>
-        options.kiteName = 
+        options.kiteName =
           if KD.useNewKites
             # TODO: this mapping should be removed, and kites should be named consistently
             if options.kiteName is 'os'
@@ -264,11 +264,16 @@ class VirtualizationController extends KDController
     kite = @getKite vm, 'os'
 
     @kites[alias] = kite
-    
+
     @listenToVmState vm, kite
 
-    kite.ready =>
-      @terminalKites[alias] = @getKite vm, 'terminal'
+    # we need to wait until the vm is on before opening a connection to the
+    # terminal kite.
+    kite.on 'vm.progress.start', onready = (update) =>
+      if update.state is 'FINISHED' and not update.err?
+        kite.off 'vm.progress.start', onready
+        @terminalKites[alias] = @getKite vm, 'terminal'
+
 
   listenToVmState: (vm, kite) ->
     alias = vm.hostnameAlias
