@@ -49,6 +49,10 @@ test:
 		go test -v $$package; \
 	done;
 
+testapi:
+	(echo "$(OK_COLOR)==> Running go api tests $(NO_COLOR)"); \
+	@go run ./tests/*.go
+
 doc:
 	@for package in $(PACKAGES); \
 	do \
