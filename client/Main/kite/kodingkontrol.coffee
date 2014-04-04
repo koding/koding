@@ -1,13 +1,21 @@
 class KodingKontrol extends (require 'kontrol')
 
   constructor: ->
-    super
-      url     : KD.config.newkontrol.url
-      auth    :
-        type  : 'sessionID'
-        key   : Cookies.get 'clientId'
+    super @getAuthOptions()
 
     @kites = {}
+
+  getAuthOptions: ->
+    url     : KD.config.newkontrol.url
+    auth    :
+      type  : 'sessionID'
+      key   : Cookies.get 'clientId'
+
+  reauthenticate: ->
+    # disconnect the old kontrol kite
+    @kite.disconnect()
+    # reauthenticate with the current session token
+    @authenticate @getAuthOptions()
 
   fetchKites: (query = {}, rest...) ->
     super (@injectQueryParams query), rest...

@@ -30,7 +30,7 @@ class MainController extends KDController
   createSingletons:->
 
     KD.registerSingleton "mainController",            this
-    
+
     if KD.useNewKites
       KD.registerSingleton "kontrol",                 new KodingKontrol
 
@@ -77,6 +77,8 @@ class MainController extends KDController
 
     @on "pageLoaded.as.loggedIn", (account)-> # ignore othter parameters
       KD.utils.setPreferredDomain account if account
+
+    (KD.getSingleton 'kontrol').reauthenticate()
 
     account.fetchMyPermissionsAndRoles (err, permissions, roles)=>
       return warn err  if err
