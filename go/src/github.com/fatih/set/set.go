@@ -5,9 +5,26 @@
 // between the start and the end of the operation.
 package set
 
-// Interface describing a Set. Sets are an unordered, unique list of values.
+// SetType denotes which type of set is created. ThreadSafe or NonThreadSafe
+type SetType int
+
+const (
+	ThreadSafe = iota
+	NonThreadSafe
+)
+
+func (s SetType) String() string {
+	switch s {
+	case ThreadSafe:
+		return "ThreadSafe"
+	case NonThreadSafe:
+		return "NonThreadSafe"
+	}
+	return ""
+}
+
+// Interface is describing a Set. Sets are an unordered, unique list of values.
 type Interface interface {
-	New(items ...interface{}) Interface
 	Add(items ...interface{})
 	Remove(items ...interface{})
 	Pop() interface{}
@@ -29,18 +46,27 @@ type Interface interface {
 // helpful to not write everywhere struct{}{}
 var keyExists = struct{}{}
 
+// New creates and initalizes a new Set interface. Its single parameter
+// denotes the type of set to create. Either ThreadSafe or
+// NonThreadSafe. The default is ThreadSafe.
+func New(settype SetType) Interface {
+	if settype == NonThreadSafe {
+		return newNonTS()
+	}
+	return newTS()
+}
+
 // Union is the merger of multiple sets. It returns a new set with all the
-// elements present in all the sets that are passed. If no items are passed,
-// an empty set is returned.
+// elements present in all the sets that are passed.
 //
 // The dynamic type of the returned set is determined by the first passed set's
 // implementation of the New() method.
-func Union(sets ...Interface) Interface {
-	if len(sets) == 0 {
-		return New()
-	}
-
-	u := sets[0].New()
+func Union(set1, set2 Interface, sets ...Interface) Interface {
+	u := set1.Copy()
+	set2.Each(func(item interface{}) bool {
+		u.Add(item)
+		return true
+	})
 	for _, set := range sets {
 		set.Each(func(item interface{}) bool {
 			u.Add(item)
@@ -53,25 +79,29 @@ func Union(sets ...Interface) Interface {
 
 // Difference returns a new set which contains items which are in in the first
 // set but not in the others. Unlike the Difference() method you can use this
-// function seperatly with multiple sets. If no items are passed an empty set
-// is returned.
-func Difference(sets ...Interface) Interface {
-	if len(sets) == 0 {
-		return New()
-	}
-
-	s := sets[0].Copy()
-	for _, set := range sets[1:] {
+// function separately with multiple sets.
+func Difference(set1, set2 Interface, sets ...Interface) Interface {
+	s := set1.Copy()
+	s.Separate(set2)
+	for _, set := range sets {
 		s.Separate(set) // seperate is thread safe
 	}
 	return s
 }
 
-// Intersection returns a new set which contains items which is in both s and t.
-func Intersection(s Interface, t Interface) Interface {
-	u := s.Copy()
-	u.Separate(Difference(u, t))
-	return u
+// Intersection returns a new set which contains items that only exist in all given sets.
+func Intersection(set1, set2 Interface, sets ...Interface) Interface {
+	all := Union(set1, set2, sets...)
+	result := Union(set1, set2, sets...)
+	all.Each(func(item interface{}) bool {
+		for _, set := range sets {
+			if !set.Has(item) || !set1.Has(item) || !set2.Has(item) {
+				result.Remove(item)
+			}
+		}
+		return true
+	})
+	return result
 }
 
 // SymmetricDifference returns a new set which s is the difference of items which are in
