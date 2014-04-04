@@ -27,13 +27,15 @@ func main() {
 
 	helper.MustInitBongo(conf, log)
 	db.DB.LogMode(true)
-	db.DB.Exec("drop table api.channel_message_list;")
-	db.DB.Exec("drop table api.channel_message;")
-	db.DB.Exec("drop table api.message_reply;")
-	db.DB.Exec("drop table api.channel_participant;")
-	db.DB.Exec("drop table api.channel;")
-	db.DB.Exec("drop table api.interaction;")
-	db.DB.Exec("drop table api.account;")
+	db.DB.Exec("drop table channel_message_list;")
+	db.DB.Exec("drop table channel_message;")
+	db.DB.Exec("drop table message_reply;")
+	db.DB.Exec("drop table channel_participant;")
+	db.DB.Exec("drop table channel;")
+	db.DB.Exec("drop table interaction;")
+	db.DB.Exec("drop table account;")
+	db.DB.Exec("drop table api.notification;")
+	db.DB.Exec("drop table api.notifiee;")
 
 	if err := db.DB.CreateTable(&models.ChannelMessage{}).Error; err != nil {
 		panic(fmt.Sprintf("No error should happen when create table, but got %+v", err))
@@ -56,4 +58,11 @@ func main() {
 	if err := db.DB.CreateTable(&models.Account{}).Error; err != nil {
 		panic(fmt.Sprintf("No error should happen when create table, but got %+v", err))
 	}
+	if err := db.DB.CreateTable(&models.Notification{}).Error; err != nil {
+		panic(fmt.Sprintf("No error should happen when create table, but got %+v", err))
+	}
+	if err := db.DB.CreateTable(&models.Notifiee{}).Error; err != nil {
+		panic(fmt.Sprintf("No error should happen when create table, but got %+v", err))
+	}
+
 }
